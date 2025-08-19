@@ -1038,7 +1038,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                                                     {getArgTypeString(arg)}
                                                   </span>
                                                   <Input
-                                                    placeholder="@preset value"
+                                                    placeholder="preset value"
                                                     value={presetValue}
                                                     onChange={(e) =>
                                                       handlePresetChange(
@@ -1202,7 +1202,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                                                   {getArgTypeString(arg)}
                                                 </span>
                                                 <Input
-                                                  placeholder="@preset value"
+                                                  placeholder="preset value"
                                                   value={presetValue}
                                                   onChange={(e) =>
                                                     handlePresetChange(

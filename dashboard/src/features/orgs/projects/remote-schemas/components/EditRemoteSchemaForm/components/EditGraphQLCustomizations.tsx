@@ -21,6 +21,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
 import useIntrospectRemoteSchemaQuery from '@/features/orgs/projects/remote-schemas/hooks/useIntrospectRemoteSchemaQuery/useIntrospectRemoteSchemaQuery';
+import checkDefaultGQLScalarType from '@/features/orgs/projects/remote-schemas/utils/checkDefaultGQLScalarType';
 import { cn } from '@/lib/utils';
 import type {
   GraphQLTypeForVisualization,
@@ -28,7 +29,7 @@ import type {
   RemoteSchemaCustomizationFieldNamesItem,
 } from '@/utils/hasura-api/generated/schemas';
 import { Check, ChevronsUpDown } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 
 export interface EditGraphQLCustomizationsProps {
@@ -45,25 +46,12 @@ export default function EditGraphQLCustomizations({
     /* eslint-disable-next-line no-underscore-dangle */
     const types = (data?.data?.__schema?.types ??
       []) as GraphQLTypeForVisualization[];
-    // Filter only concrete object types with fields; exclude introspection and wrappers
     return types.filter(
-      (t) =>
-        Boolean(t?.name) &&
-        !String(t?.name).startsWith('__') &&
-        t?.kind === 'OBJECT' &&
-        Array.isArray(t?.fields) &&
-        (t?.fields?.length ?? 0) > 0,
+      (t) => Boolean(t?.name) && !checkDefaultGQLScalarType(t.name!),
     );
   }, [data]);
 
   const { register, getValues, setValue } = useFormContext();
-
-  const [newFieldMapping, setNewFieldMapping] = useState<{
-    parent_type?: string;
-    prefix?: string;
-    suffix?: string;
-    mapping?: Record<string, string>;
-  }>({});
 
   function getParentTypeFields(parentTypeName?: string) {
     const parentType = schemaTypes.find((t) => t.name === parentTypeName);
@@ -76,14 +64,6 @@ export default function EditGraphQLCustomizations({
       shouldDirty: true,
       shouldTouch: true,
     });
-  }
-
-  function addFieldMapping() {
-    const existing: RemoteSchemaCustomizationFieldNamesItem[] =
-      getValues('definition.customization.field_names') ?? [];
-    const next = [...existing, newFieldMapping];
-    upsertFieldNames(next);
-    setNewFieldMapping({});
   }
 
   function updateFieldMappingAt(
@@ -113,10 +93,36 @@ export default function EditGraphQLCustomizations({
     name: 'definition.customization.field_names',
   });
 
+  useEffect(() => {
+    const isObjectMapping =
+      rawTypeNamesMapping &&
+      typeof rawTypeNamesMapping === 'object' &&
+      !Array.isArray(rawTypeNamesMapping);
+    if (!isObjectMapping) {
+      setValue(
+        'definition.customization.type_names.mapping',
+        {},
+        {
+          shouldDirty: true,
+          shouldTouch: true,
+        },
+      );
+    }
+  }, [rawTypeNamesMapping, setValue]);
+
   const existingFieldNames: RemoteSchemaCustomizationFieldNamesItem[] =
     Array.isArray(rawFieldNames)
       ? (rawFieldNames as RemoteSchemaCustomizationFieldNamesItem[])
       : [];
+
+  useEffect(() => {
+    if (!Array.isArray(rawFieldNames)) {
+      setValue('definition.customization.field_names', [], {
+        shouldDirty: true,
+        shouldTouch: true,
+      });
+    }
+  }, [rawFieldNames, setValue]);
 
   const typeNamesMapping: Record<string, string> =
     rawTypeNamesMapping &&
@@ -130,6 +136,25 @@ export default function EditGraphQLCustomizations({
       shouldDirty: true,
       shouldTouch: true,
     });
+  }
+
+  const canAddTypeRemap = useMemo(
+    () =>
+      schemaTypes.some(
+        (t) =>
+          t?.name && !(typeNamesMapping as Record<string, string>)?.[t.name!],
+      ),
+    [schemaTypes, typeNamesMapping],
+  );
+
+  function addFirstAvailableTypeRemap() {
+    const current = (getValues('definition.customization.type_names.mapping') ??
+      {}) as Record<string, string>;
+    const used = new Set(Object.keys(current));
+    const candidate = schemaTypes.find((t) => t?.name && !used.has(t.name!));
+    if (candidate?.name) {
+      setTypeNamesMapping({ ...current, [candidate.name]: '' });
+    }
   }
 
   function changeTypeKey(oldKey: string, newKey: string) {
@@ -164,24 +189,6 @@ export default function EditGraphQLCustomizations({
     setTypeNamesMapping(next);
   }
 
-  const [newTypeRemap, setNewTypeRemap] = useState<{
-    type?: string;
-    renamed?: string;
-  }>({});
-
-  function addTypeRemap() {
-    const current = (getValues('definition.customization.type_names.mapping') ??
-      {}) as Record<string, string>;
-    if (!newTypeRemap.type) {
-      return;
-    }
-    const next = {
-      ...current,
-      [newTypeRemap.type!]: newTypeRemap.renamed ?? '',
-    } as Record<string, string>;
-    setTypeNamesMapping(next);
-    setNewTypeRemap({});
-  }
   function removeTypeRemap(key: string) {
     const current = (getValues('definition.customization.type_names.mapping') ??
       {}) as Record<string, string>;
@@ -268,7 +275,10 @@ export default function EditGraphQLCustomizations({
           <Box className="space-y-2">
             <Text className="font-medium">Prefix</Text>
             <Input
-              {...register('definition.customization.type_names.prefix')}
+              {...register('definition.customization.type_names.prefix', {
+                setValueAs: (v) =>
+                  typeof v === 'string' && v.trim() === '' ? undefined : v,
+              })}
               id="definition.customization.type_names.prefix"
               name="definition.customization.type_names.prefix"
               placeholder="prefix_"
@@ -282,7 +292,10 @@ export default function EditGraphQLCustomizations({
           <Box className="space-y-2">
             <Text className="font-medium">Suffix</Text>
             <Input
-              {...register('definition.customization.type_names.suffix')}
+              {...register('definition.customization.type_names.suffix', {
+                setValueAs: (v) =>
+                  typeof v === 'string' && v.trim() === '' ? undefined : v,
+              })}
               id="definition.customization.type_names.suffix"
               name="definition.customization.type_names.suffix"
               placeholder="_suffix"
@@ -296,13 +309,22 @@ export default function EditGraphQLCustomizations({
       </Box>
 
       <Box className="space-y-4 rounded border-1 p-4">
-        <Box className="flex flex-row items-center space-x-2">
-          <Text variant="h4" className="text-lg font-semibold">
-            Rename Type Names
-          </Text>
-          <Tooltip title="Type remapping takes precedence to prefixes and suffixes.">
-            <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
-          </Tooltip>
+        <Box className="flex flex-row items-center justify-between">
+          <Box className="flex flex-row items-center space-x-2">
+            <Text variant="h4" className="text-lg font-semibold">
+              Rename Type Names
+            </Text>
+            <Tooltip title="Type remapping takes precedence to prefixes and suffixes.">
+              <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
+            </Tooltip>
+          </Box>
+          <Button
+            variant="borderless"
+            onClick={addFirstAvailableTypeRemap}
+            disabled={!canAddTypeRemap}
+          >
+            <PlusIcon className="h-5 w-5" />
+          </Button>
         </Box>
 
         <Box className="space-y-3">
@@ -371,6 +393,7 @@ export default function EditGraphQLCustomizations({
                     onChange={({ target: { value } }) =>
                       updateTypeValue(fromType, value)
                     }
+                    className="mt-1"
                     placeholder="New type name"
                     hideEmptyHelperText
                     autoComplete="off"
@@ -392,107 +415,30 @@ export default function EditGraphQLCustomizations({
             </Box>
           ))}
         </Box>
-
-        {/* Add new type remap */}
-        <Box className="rounded border p-3">
-          <Box className="grid grid-cols-1 gap-3 md:grid-cols-3">
-            <Box>
-              <Text className="font-medium">Type</Text>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <ButtonV3
-                    variant="outline"
-                    role="combobox"
-                    className={cn(
-                      'mt-1 w-full justify-between overflow-hidden text-left',
-                      !(newTypeRemap.type ?? '') && 'text-muted-foreground',
-                    )}
-                  >
-                    <span className="truncate">
-                      {newTypeRemap.type ?? 'Select a type'}
-                    </span>
-                    <ChevronsUpDown className="ml-2 shrink-0 opacity-50" />
-                  </ButtonV3>
-                </PopoverTrigger>
-                <PopoverContent className="max-h-[var(--radix-popover-content-available-height)] w-[var(--radix-popover-trigger-width)] p-0">
-                  <Command>
-                    <CommandInput
-                      placeholder="Search type..."
-                      className="h-9"
-                    />
-                    <CommandList>
-                      <CommandEmpty>No type found.</CommandEmpty>
-                      <CommandGroup>
-                        {schemaTypes
-                          .filter((t) => !typeNamesMapping?.[t.name!])
-                          .map((t) => (
-                            <CommandItem
-                              value={t.name!}
-                              key={t.name!}
-                              onSelect={() =>
-                                setNewTypeRemap((s) => ({
-                                  ...s,
-                                  type: t.name!,
-                                }))
-                              }
-                              className="flex items-center"
-                            >
-                              <span className="min-w-0 flex-1 truncate">
-                                {t.name}
-                              </span>
-                              <Check
-                                className={cn(
-                                  'ml-2 shrink-0',
-                                  t.name === newTypeRemap.type
-                                    ? 'opacity-100'
-                                    : 'opacity-0',
-                                )}
-                              />
-                            </CommandItem>
-                          ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-            </Box>
-            <Box>
-              <Text className="font-medium">New name</Text>
-              <Input
-                value={newTypeRemap.renamed ?? ''}
-                onChange={({ target: { value } }) =>
-                  setNewTypeRemap((s) => ({ ...s, renamed: value }))
-                }
-                placeholder="New type name"
-                hideEmptyHelperText
-                autoComplete="off"
-                variant="inline"
-                fullWidth
-              />
-            </Box>
-            <Box className="flex items-end justify-end md:justify-start">
-              <Button
-                variant="borderless"
-                className="col-span-1"
-                onClick={addTypeRemap}
-                disabled={!newTypeRemap.type}
-              >
-                <PlusIcon className="h-5 w-5" />
-              </Button>
-            </Box>
-          </Box>
-        </Box>
       </Box>
 
       {/* Field Names Mappings */}
       <Box className="space-y-4 rounded border-1 p-4">
-        <Box className="flex flex-row items-center space-x-2">
-          <Text variant="h4" className="text-lg font-semibold">
-            Field Names
-          </Text>
-          <Tooltip title="Add mappings for fields of a selected parent type. You can also set a prefix/suffix for those fields.">
-            <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
-          </Tooltip>
+        <Box className="flex flex-row items-center justify-between">
+          <Box className="flex flex-row items-center space-x-2">
+            <Text variant="h4" className="text-lg font-semibold">
+              Field Names
+            </Text>
+            <Tooltip title="Add mappings for fields of a selected parent type. You can also set a prefix/suffix for those fields.">
+              <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
+            </Tooltip>
+          </Box>
+          <Button
+            variant="borderless"
+            onClick={() =>
+              upsertFieldNames([
+                ...(existingFieldNames ?? []),
+                {} as RemoteSchemaCustomizationFieldNamesItem,
+              ])
+            }
+          >
+            <PlusIcon className="h-5 w-5" />
+          </Button>
         </Box>
 
         {/* Existing items */}
@@ -505,7 +451,7 @@ export default function EditGraphQLCustomizations({
                 key={item.parent_type ?? index}
                 className="rounded border p-3"
               >
-                <Box className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                <Box className="grid grid-cols-1 gap-3 md:grid-cols-4">
                   <Box>
                     <Text className="font-medium">Parent type</Text>
                     <Popover>
@@ -534,31 +480,40 @@ export default function EditGraphQLCustomizations({
                           <CommandList>
                             <CommandEmpty>No type found.</CommandEmpty>
                             <CommandGroup>
-                              {schemaTypes.map((t) => (
-                                <CommandItem
-                                  value={t.name!}
-                                  key={t.name!}
-                                  onSelect={() => {
-                                    updateFieldMappingAt(index, {
-                                      parent_type: t.name!,
-                                      mapping: {},
-                                    });
-                                  }}
-                                  className="flex items-center"
-                                >
-                                  <span className="min-w-0 flex-1 truncate">
-                                    {t.name}
-                                  </span>
-                                  <Check
-                                    className={cn(
-                                      'ml-2 shrink-0',
-                                      t.name === item.parent_type
-                                        ? 'opacity-100'
-                                        : 'opacity-0',
-                                    )}
-                                  />
-                                </CommandItem>
-                              ))}
+                              {schemaTypes
+                                .filter(
+                                  (t) =>
+                                    !(existingFieldNames ?? []).some(
+                                      (i, iIndex) =>
+                                        iIndex !== index &&
+                                        i.parent_type === t.name,
+                                    ),
+                                )
+                                .map((t) => (
+                                  <CommandItem
+                                    value={t.name!}
+                                    key={t.name!}
+                                    onSelect={() => {
+                                      updateFieldMappingAt(index, {
+                                        parent_type: t.name!,
+                                        mapping: {},
+                                      });
+                                    }}
+                                    className="flex items-center"
+                                  >
+                                    <span className="min-w-0 flex-1 truncate">
+                                      {t.name}
+                                    </span>
+                                    <Check
+                                      className={cn(
+                                        'ml-2 shrink-0',
+                                        t.name === item.parent_type
+                                          ? 'opacity-100'
+                                          : 'opacity-0',
+                                      )}
+                                    />
+                                  </CommandItem>
+                                ))}
                             </CommandGroup>
                           </CommandList>
                         </Command>
@@ -566,15 +521,41 @@ export default function EditGraphQLCustomizations({
                     </Popover>
                   </Box>
                   <Box>
-                    <Text className="font-medium">Prefix</Text>
+                    <Text className="font-medium">Field Prefix</Text>
                     <Input
                       value={item.prefix ?? ''}
                       onChange={(e) =>
-                        updateFieldMappingAt(index, { prefix: e.target.value })
+                        updateFieldMappingAt(index, {
+                          prefix:
+                            typeof e.target.value === 'string' &&
+                            e.target.value.trim() === ''
+                              ? undefined
+                              : e.target.value,
+                        })
                       }
                       placeholder="prefix_"
                       hideEmptyHelperText
                       autoComplete="off"
+                      className="mt-1"
+                    />
+                  </Box>
+                  <Box>
+                    <Text className="font-medium">Field Suffix</Text>
+                    <Input
+                      value={item.suffix ?? ''}
+                      onChange={(e) =>
+                        updateFieldMappingAt(index, {
+                          suffix:
+                            typeof e.target.value === 'string' &&
+                            e.target.value.trim() === ''
+                              ? undefined
+                              : e.target.value,
+                        })
+                      }
+                      placeholder="_suffix"
+                      hideEmptyHelperText
+                      autoComplete="off"
+                      className="mt-1"
                       variant="inline"
                       fullWidth
                     />
@@ -638,145 +619,6 @@ export default function EditGraphQLCustomizations({
               </Box>
             );
           })}
-        </Box>
-
-        {/* Add new item */}
-        <Box className="rounded border p-3">
-          <Box className="grid grid-cols-1 gap-3 md:grid-cols-3">
-            <Box>
-              <Text className="font-medium">Parent type</Text>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <ButtonV3
-                    variant="outline"
-                    role="combobox"
-                    className={cn(
-                      'mt-1 w-full justify-between overflow-hidden text-left',
-                      !(newFieldMapping.parent_type ?? '') &&
-                        'text-muted-foreground',
-                    )}
-                  >
-                    <span className="truncate">
-                      {newFieldMapping.parent_type ?? 'Select a type'}
-                    </span>
-                    <ChevronsUpDown className="ml-2 shrink-0 opacity-50" />
-                  </ButtonV3>
-                </PopoverTrigger>
-                <PopoverContent className="max-h-[var(--radix-popover-content-available-height)] w-[var(--radix-popover-trigger-width)] p-0">
-                  <Command>
-                    <CommandInput
-                      placeholder="Search type..."
-                      className="h-9"
-                    />
-                    <CommandList>
-                      <CommandEmpty>No type found.</CommandEmpty>
-                      <CommandGroup>
-                        {schemaTypes
-                          .filter(
-                            (t) =>
-                              !(existingFieldNames ?? []).some(
-                                (i) => i.parent_type === t.name,
-                              ),
-                          )
-                          .map((t) => (
-                            <CommandItem
-                              value={t.name!}
-                              key={t.name!}
-                              onSelect={() => {
-                                setNewFieldMapping((s) => ({
-                                  ...s,
-                                  parent_type: t.name!,
-                                  mapping: {},
-                                }));
-                              }}
-                              className="flex items-center"
-                            >
-                              <span className="min-w-0 flex-1 truncate">
-                                {t.name}
-                              </span>
-                              <Check
-                                className={cn(
-                                  'ml-2 shrink-0',
-                                  t.name === newFieldMapping.parent_type
-                                    ? 'opacity-100'
-                                    : 'opacity-0',
-                                )}
-                              />
-                            </CommandItem>
-                          ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-            </Box>
-            <Box>
-              <Text className="font-medium">Prefix</Text>
-              <Input
-                value={newFieldMapping.prefix ?? ''}
-                onChange={(e) =>
-                  setNewFieldMapping((s) => ({ ...s, prefix: e.target.value }))
-                }
-                placeholder="prefix_"
-                hideEmptyHelperText
-                autoComplete="off"
-                variant="inline"
-                fullWidth
-              />
-            </Box>
-            <Box className="flex items-end justify-end md:justify-start">
-              <Button
-                variant="borderless"
-                className="col-span-1"
-                onClick={addFieldMapping}
-                disabled={!newFieldMapping.parent_type}
-              >
-                <PlusIcon className="h-5 w-5" />
-              </Button>
-            </Box>
-          </Box>
-
-          {/* Render remap inputs for the selected new parent type */}
-          {newFieldMapping.parent_type ? (
-            <Box className="mt-3 space-y-2">
-              <Text className="font-medium">Field remaps</Text>
-              <Box className="space-y-2">
-                {getParentTypeFields(newFieldMapping.parent_type).map((f) => {
-                  const key = f.name;
-                  const current = newFieldMapping.mapping?.[key] ?? '';
-                  return (
-                    <Box
-                      key={key}
-                      className="grid grid-cols-1 gap-2 md:grid-cols-2"
-                    >
-                      <Input disabled value={key} variant="inline" fullWidth />
-                      <Input
-                        value={current}
-                        onChange={({ target: { value } }) => {
-                          setNewFieldMapping((s) => {
-                            const nextMapping = {
-                              ...(s.mapping ?? {}),
-                            } as Record<string, string>;
-                            if (!value) {
-                              delete nextMapping[key];
-                            } else {
-                              nextMapping[key] = value;
-                            }
-                            return { ...s, mapping: nextMapping };
-                          });
-                        }}
-                        placeholder="new_field_name"
-                        hideEmptyHelperText
-                        autoComplete="off"
-                        variant="inline"
-                        fullWidth
-                      />
-                    </Box>
-                  );
-                })}
-              </Box>
-            </Box>
-          ) : null}
         </Box>
       </Box>
     </Box>
