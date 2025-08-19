@@ -30,6 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { useIntrospectRemoteSchemaQuery } from '@/features/orgs/projects/remote-schemas/hooks/useIntrospectRemoteSchemaQuery';
 import convertIntrospectionToSchema from '@/features/orgs/projects/remote-schemas/utils/convertIntrospectionToSchema';
 import { cn } from '@/lib/utils';
@@ -85,7 +86,7 @@ export default function DatabaseRelationshipForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: defaultValues?.name || '',
-      sourceRemoteSchema: defaultValues?.sourceRemoteSchema || '',
+      sourceRemoteSchema: defaultValues?.sourceRemoteSchema || sourceSchema,
       sourceType: defaultValues?.sourceType || '',
       relationshipType: defaultValues?.relationshipType || 'array',
       table: {
@@ -97,6 +98,8 @@ export default function DatabaseRelationshipForm({
       ],
     },
   });
+
+  const { isSubmitting } = form.formState;
 
   // Use the sourceSchema prop instead of watching form field
   // Introspect the source remote schema to get its types
@@ -130,7 +133,7 @@ export default function DatabaseRelationshipForm({
     : [];
 
   function handleSubmit(values: z.infer<typeof formSchema>) {
-    onSubmit(values);
+    return onSubmit(values);
   }
 
   return (
@@ -298,16 +301,13 @@ export default function DatabaseRelationshipForm({
           <Button
             type="button"
             variant="outline"
-            disabled={form.formState.isSubmitting}
+            disabled={isSubmitting}
             onClick={onCancel}
           >
             Cancel
           </Button>
-          <Button
-            type="submit"
-            disabled={form.formState.isSubmitting || disabled}
-          >
-            {submitButtonText}
+          <Button type="submit" disabled={isSubmitting || disabled}>
+            {isSubmitting ? <Spinner /> : submitButtonText}
           </Button>
         </div>
       </form>

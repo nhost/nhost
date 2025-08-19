@@ -12,6 +12,8 @@ export type RemoteSchemaCustomizationFieldNamesItem = {
   parent_type?: string;
   /** Prefix to add to field names */
   prefix?: string;
+  /** Suffix to add to field names */
+  suffix?: string;
   /** Mapping of original field names to new field names */
   mapping?: RemoteSchemaCustomizationFieldNamesItemMapping;
 };
