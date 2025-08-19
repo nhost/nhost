@@ -13,6 +13,8 @@ import type { RemoteSchemaCustomizationTypeNamesMapping } from './remoteSchemaCu
 export type RemoteSchemaCustomizationTypeNames = {
   /** Prefix to add to all type names */
   prefix?: string;
+  /** Suffix to add to all type names */
+  suffix?: string;
   /** Mapping of original type names to new type names */
   mapping?: RemoteSchemaCustomizationTypeNamesMapping;
 };

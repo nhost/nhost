@@ -4,11 +4,14 @@ import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { DotsHorizontalIcon } from '@/components/ui/v2/icons/DotsHorizontalIcon';
 import { PencilIcon } from '@/components/ui/v2/icons/PencilIcon';
+import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
+import { Button } from '@/components/ui/v3/button';
 import {
   Table,
   TableBody,
   TableCell,
+  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -32,6 +35,8 @@ export interface RemoteSchemaRelationshipsInfoTableProps {
     relationship: RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItem,
   ) => void;
   onDeleteRelationship?: () => void;
+  onAddRelationship?: () => void;
+  disabled?: boolean;
 }
 
 export default function RemoteSchemaRelationshipsInfoTable({
@@ -39,6 +44,8 @@ export default function RemoteSchemaRelationshipsInfoTable({
   remoteRelationships,
   onSelectRelationship,
   onDeleteRelationship,
+  onAddRelationship,
+  disabled,
 }: RemoteSchemaRelationshipsInfoTableProps) {
   const { openAlertDialog } = useDialog();
 
@@ -192,6 +199,22 @@ export default function RemoteSchemaRelationshipsInfoTable({
             )),
           )}
         </TableBody>
+        <TableFooter>
+          <TableRow>
+            <TableCell colSpan={5} className="px-0 py-2">
+              <Button
+                variant="link"
+                className="hover:no-underline"
+                color="secondary"
+                onClick={onAddRelationship}
+                disabled={disabled}
+              >
+                <PlusIcon />
+                Add Relationship
+              </Button>
+            </TableCell>
+          </TableRow>
+        </TableFooter>
       </Table>
     </div>
   );
