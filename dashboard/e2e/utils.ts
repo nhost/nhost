@@ -28,7 +28,7 @@ export async function navigateToProject({
   const projectUrl = `/orgs/${orgSlug}/projects/${projectSubdomain}`;
 
   try {
-    await page.goto(projectUrl, { waitUntil: 'networkidle' });
+    await page.goto(projectUrl, { waitUntil: 'load' });
     await page.waitForURL(projectUrl, { timeout: 10000 });
   } catch (error) {
     console.error(`Failed to navigate to project URL: ${projectUrl}`, error);
@@ -222,12 +222,12 @@ export async function clickPermissionButton({
 export async function gotoAuthURL(page: Page) {
   const authUrl = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/users`;
   await page.goto(authUrl);
-  await page.waitForURL(authUrl, { waitUntil: 'networkidle' });
+  await page.waitForURL(authUrl, { waitUntil: 'load' });
 }
 
 export async function gotoUrl(page: Page, url: string) {
   await page.goto(url);
-  await page.waitForURL(url, { waitUntil: 'networkidle' });
+  await page.waitForURL(url, { waitUntil: 'load' });
 }
 
 let newOrgSlug: string;

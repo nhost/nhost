@@ -17,7 +17,7 @@ import { cn, isNotEmptyValue } from '@/lib/utils';
 import { getConfigServerUrl, isPlatform as getIsPlatform } from '@/utils/env';
 import { Box, ChevronDown, ChevronRight, Plus } from 'lucide-react';
 import Link from 'next/link';
-import { useMemo, type ReactElement } from 'react';
+import { type ReactElement } from 'react';
 
 import {
   ControlledTreeEnvironment,
@@ -382,11 +382,9 @@ const buildNavTreeData = (
 
 export default function NavTree() {
   const { currentOrg: org } = useOrgs();
-  const navTree = useMemo(
-    () => buildNavTreeData(org),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [org?.slug],
-  );
+
+  const navTree = buildNavTreeData(org);
+
   const { orgsTreeViewState, setOrgsTreeViewState, setOpen } =
     useTreeNavState();
 
