@@ -1,16 +1,14 @@
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/v3/dialog';
 import { FinishOrganizationProcess } from '@/features/orgs/components/common/FinishOrganizationProcess';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
-import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { analytics } from '@/lib/segment';
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useState } from 'react';
 
 function FinishUpgradeOrganizationProcess() {
   const { refetch: refetchOrg, org } = useCurrentOrg();
-  const { refetch: refetchOrgs } = useOrgs();
   const [open, setOpen] = useState(false);
-  const [hideCloseButton, setHideCloseButton] = useState(false);
+  const [hideCloseButton, setHideCloseButton] = useState(true);
   const { query, isReady: isRouterReady, replace, pathname } = useRouter();
   const { session_id, ...remainingQuery } = query;
 
@@ -30,7 +28,6 @@ function FinishUpgradeOrganizationProcess() {
     removeSessionIdFromQuery();
     const result = await refetchOrg();
     const updatedOrg = result?.data?.organizations?.[0];
-    await refetchOrgs();
     setOpen(false);
     analytics.track('Organization upgraded from starter', {
       organizationId: updatedOrg.id,

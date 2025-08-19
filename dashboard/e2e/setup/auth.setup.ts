@@ -18,7 +18,7 @@ setup('authenticate user', async ({ page }) => {
 
   await page.waitForURL(
     `${TEST_DASHBOARD_URL}/orgs/${TEST_PERSONAL_ORG_SLUG}/projects`,
-    { waitUntil: 'networkidle' },
+    { waitUntil: 'load' },
   );
   await page.context().storageState({ path: 'e2e/.auth/user.json' });
 });
