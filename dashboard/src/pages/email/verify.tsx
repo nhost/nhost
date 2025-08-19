@@ -3,9 +3,10 @@ import { UnauthenticatedLayout } from '@/components/layout/UnauthenticatedLayout
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
+import SendVerificationEmailForm from '@/features/auth/SignIn/SignInWithEmailAndPassword/components/SendVerificationEmailForm';
 import useResendVerificationEmail from '@/features/auth/SignIn/SignInWithEmailAndPassword/hooks/useResendVerificationEmail';
 import { useRouter } from 'next/router';
-import { useEffect, type ReactElement } from 'react';
+import { type ReactElement } from 'react';
 
 export default function VerifyEmailPage() {
   const router = useRouter();
@@ -20,12 +21,6 @@ export default function VerifyEmailPage() {
   const handleResendEmailClick = async () => {
     await resendVerificationEmail(email as string);
   };
-
-  useEffect(() => {
-    if (!email) {
-      router.push('/signin');
-    }
-  }, [email, router]);
 
   return (
     <>
@@ -44,16 +39,20 @@ export default function VerifyEmailPage() {
             to verify your email address and complete your registration.
           </Text>
         </div>
-        <Button
-          className="!bg-white !text-black disabled:!text-black disabled:!text-opacity-60"
-          size="large"
-          disabled={resendVerificationEmailLoading}
-          loading={resendVerificationEmailLoading}
-          type="button"
-          onClick={handleResendEmailClick}
-        >
-          Resend verification email
-        </Button>
+        {email ? (
+          <Button
+            className="!bg-white !text-black disabled:!text-black disabled:!text-opacity-60"
+            size="large"
+            disabled={resendVerificationEmailLoading}
+            loading={resendVerificationEmailLoading}
+            type="button"
+            onClick={handleResendEmailClick}
+          >
+            Resend verification email
+          </Button>
+        ) : (
+          <SendVerificationEmailForm />
+        )}
 
         <div className="flex justify-center">
           <NavLink href="/signin" color="white" className="font-medium">

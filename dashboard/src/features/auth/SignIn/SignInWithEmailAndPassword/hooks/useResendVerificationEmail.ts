@@ -11,7 +11,7 @@ export default function useResendVerificationEmail() {
     setLoading(true);
 
     try {
-      await nhost.auth.sendVerificationEmail({ email: email as string });
+      await nhost.auth.sendVerificationEmail({ email });
 
       toast.success(
         `A new email has been sent to ${email}. Please follow the link to verify your email address and to

@@ -26,7 +26,7 @@ function AuthProvider({ children }: PropsWithChildren) {
   const [isLoading, setIsLoading] = useState(true);
   const [isSigningOut, setIsSigningOut] = useState(false);
 
-  const removeRefreshTokenFromQuery = useCallback(() => {
+  const removeQueryParamsFromURL = useCallback(() => {
     replace({ pathname, query: remainingQuery }, undefined, {
       shallow: true,
     });
@@ -62,7 +62,7 @@ function AuthProvider({ children }: PropsWithChildren) {
           refreshToken,
         });
         setSession(sessionResponse.body);
-        removeRefreshTokenFromQuery();
+        removeQueryParamsFromURL();
       } else {
         const currentSession = nhost.getUserSession();
         setSession(currentSession);
@@ -71,15 +71,15 @@ function AuthProvider({ children }: PropsWithChildren) {
       // handle OAuth redirect errors (e.g., error=unverified-user)
       if (typeof error === 'string') {
         if (error === 'unverified-user') {
-          removeRefreshTokenFromQuery();
-          await push('/github/verify');
+          removeQueryParamsFromURL();
+          await push('/email/verify');
         } else {
           const description =
             typeof errorDescription === 'string'
               ? errorDescription
               : 'An error occurred during the sign-in process. Please try again.';
           toast.error(description, getToastStyleProps());
-          removeRefreshTokenFromQuery();
+          removeQueryParamsFromURL();
           await push('/signin');
         }
       }
