@@ -10,11 +10,11 @@ export const test = base.extend<{ authenticatedNhostPage: Page }>({
     await page.goto('/');
     await page.waitForURL(
       `${TEST_DASHBOARD_URL}/orgs/${TEST_PERSONAL_ORG_SLUG}/projects`,
-      { waitUntil: 'networkidle' },
+      { waitUntil: 'load' },
     );
     await use(page);
     // update the context to get the new refresh token
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
     await page.context().storageState({ path: AUTH_CONTEXT });
     await page.close();
   },
