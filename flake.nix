@@ -29,10 +29,10 @@
         nixops-lib = nixops.lib { inherit pkgs nix2containerPkgs; };
 
         nodeModulesLib = import ./nix/node_modules.nix { inherit pkgs nix-filter; };
-        inherit (nodeModulesLib) mkNodeDevShell;
+        inherit (nodeModulesLib) node_modules mkNodeDevShell;
 
         dashboardf = import ./dashboard/project.nix {
-          inherit self pkgs nix-filter nixops-lib mkNodeDevShell;
+          inherit self pkgs nix2containerPkgs nix-filter nixops-lib mkNodeDevShell node_modules;
         };
       in
       {
@@ -58,12 +58,17 @@
               pnpm_10
               go
               golangci-lint
+              skopeo
             ];
           };
 
           dashboard = dashboardf.devShell;
         };
 
+        packages = flake-utils.lib.flattenTree {
+          dashboard = dashboardf.package;
+          dashboard-docker-image = dashboardf.dockerImage;
+        };
       }
     );
 }
