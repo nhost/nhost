@@ -14,7 +14,7 @@ export default function useResendVerificationEmail() {
       await nhost.auth.sendVerificationEmail({ email: email as string });
 
       toast.success(
-        `An new email has been sent to ${email}. Please follow the link to verify your email address and to
+        `A new email has been sent to ${email}. Please follow the link to verify your email address and to
       complete your registration.`,
         getToastStyleProps(),
       );
