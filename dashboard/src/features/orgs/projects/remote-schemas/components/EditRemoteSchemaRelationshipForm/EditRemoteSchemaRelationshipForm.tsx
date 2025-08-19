@@ -42,8 +42,8 @@ export default function EditRemoteSchemaRelationshipForm({
 
   const handleDatabaseRelationshipCreate = async (
     values: DatabaseRelationshipFormValues,
-  ) => {
-    await execPromiseWithErrorToast(
+  ) =>
+    execPromiseWithErrorToast(
       async () => {
         const args = getDatabaseRelationshipPayload(values);
         await updateRemoteSchemaRelationship({ args });
@@ -57,12 +57,11 @@ export default function EditRemoteSchemaRelationshipForm({
           'An error occurred while saving the database relationship. Please try again.',
       },
     );
-  };
 
   const handleRemoteSchemaRelationshipCreate = async (
     values: RemoteSchemaRelationshipFormValues,
-  ) => {
-    await execPromiseWithErrorToast(
+  ) =>
+    execPromiseWithErrorToast(
       async () => {
         const args = getRemoteSchemaRelationshipPayload(values);
         await updateRemoteSchemaRelationship({ args });
@@ -76,16 +75,14 @@ export default function EditRemoteSchemaRelationshipForm({
           'An error occurred while saving the remote schema relationship. Please try again.',
       },
     );
-  };
 
   const handleSubmit = (
     values: DatabaseRelationshipFormValues | RemoteSchemaRelationshipFormValues,
   ) => {
     if ('table' in values) {
-      handleDatabaseRelationshipCreate(values);
-    } else {
-      handleRemoteSchemaRelationshipCreate(values);
+      return handleDatabaseRelationshipCreate(values);
     }
+    return handleRemoteSchemaRelationshipCreate(values);
   };
 
   return (

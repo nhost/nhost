@@ -432,6 +432,10 @@ components:
               type: string
               description: Prefix to add to all type names
               example: your_type_name_prefix
+            suffix:
+              type: string
+              description: Suffix to add to all type names
+              example: your_type_name_suffix
             mapping:
               type: object
               description: Mapping of original type names to new type names
@@ -453,6 +457,10 @@ components:
                 type: string
                 description: Prefix to add to field names
                 example: your_field_name_prefix
+              suffix:
+                type: string
+                description: Suffix to add to field names
+                example: your_field_name_suffix
               mapping:
                 type: object
                 description: Mapping of original field names to new field names

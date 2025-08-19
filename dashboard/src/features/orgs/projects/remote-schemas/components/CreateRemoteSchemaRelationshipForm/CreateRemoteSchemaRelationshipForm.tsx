@@ -28,7 +28,7 @@ export default function CreateRemoteSchemaRelationshipForm({
   const handleDatabaseRelationshipCreate = async (
     values: DatabaseRelationshipFormValues,
   ) => {
-    await execPromiseWithErrorToast(
+    return execPromiseWithErrorToast(
       async () => {
         const args = getDatabaseRelationshipPayload(values);
         await createRemoteSchemaRelationship({ args });
@@ -47,7 +47,7 @@ export default function CreateRemoteSchemaRelationshipForm({
   const handleRemoteSchemaRelationshipCreate = async (
     values: RemoteSchemaRelationshipFormValues,
   ) => {
-    await execPromiseWithErrorToast(
+    return execPromiseWithErrorToast(
       async () => {
         const args = getRemoteSchemaRelationshipPayload(values);
         await createRemoteSchemaRelationship({ args });
@@ -67,10 +67,9 @@ export default function CreateRemoteSchemaRelationshipForm({
     values: DatabaseRelationshipFormValues | RemoteSchemaRelationshipFormValues,
   ) => {
     if ('table' in values) {
-      handleDatabaseRelationshipCreate(values);
-    } else {
-      handleRemoteSchemaRelationshipCreate(values);
+      return handleDatabaseRelationshipCreate(values);
     }
+    return handleRemoteSchemaRelationshipCreate(values);
   };
 
   return (

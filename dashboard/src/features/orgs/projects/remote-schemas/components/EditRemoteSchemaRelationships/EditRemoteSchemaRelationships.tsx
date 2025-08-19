@@ -98,6 +98,8 @@ export default function EditRemoteSchemaRelationships({
         <RemoteSchemaRelationshipsInfoTable
           sourceRemoteSchema={schema}
           remoteRelationships={remoteRelationships}
+          disabled={disabled}
+          onAddRelationship={() => setView('add')}
           onSelectRelationship={
             disabled ? handleViewRelationship : handleEditRelationship
           }

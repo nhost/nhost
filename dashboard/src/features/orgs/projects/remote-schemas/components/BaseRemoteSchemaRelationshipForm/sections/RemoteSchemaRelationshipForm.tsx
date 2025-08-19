@@ -24,6 +24,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useGetRemoteSchemasQuery } from '@/features/orgs/projects/remote-schemas/hooks/useGetRemoteSchemasQuery';
 import { useIntrospectRemoteSchemaQuery } from '@/features/orgs/projects/remote-schemas/hooks/useIntrospectRemoteSchemaQuery';
@@ -87,6 +88,8 @@ export default function RemoteSchemaRelationshipForm({
       mappings: defaultValues?.mappings || [],
     },
   });
+
+  const { isSubmitting } = form.formState;
 
   // Fetch all remote schemas for the target schema dropdown
   const { data: remoteSchemas, status: remoteSchemasQueryStatus } =
@@ -159,7 +162,7 @@ export default function RemoteSchemaRelationshipForm({
     : [];
 
   function handleSubmit(values: z.infer<typeof formSchema>) {
-    onSubmit(values);
+    return onSubmit(values);
   }
 
   if (remoteSchemasQueryStatus === 'loading' || !remoteSchemas) {
@@ -445,16 +448,13 @@ export default function RemoteSchemaRelationshipForm({
           <Button
             type="button"
             variant="outline"
-            disabled={form.formState.isSubmitting}
+            disabled={isSubmitting}
             onClick={onCancel}
           >
             Cancel
           </Button>
-          <Button
-            type="submit"
-            disabled={form.formState.isSubmitting || disabled}
-          >
-            {submitButtonText}
+          <Button type="submit" disabled={isSubmitting || disabled}>
+            {isSubmitting ? <Spinner /> : submitButtonText}
           </Button>
         </div>
       </form>
