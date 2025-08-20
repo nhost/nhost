@@ -94,7 +94,10 @@ export default function EditRemoteSchemaForm({
         })
         .filter(Boolean) as RemoteSchemaHeaders;
 
+      console.log('originalSchema:', originalSchema);
+
       const remoteSchema: UpdateRemoteSchemaArgs = {
+        ...originalSchema,
         name: values.name,
         comment: values.comment,
         definition: {
