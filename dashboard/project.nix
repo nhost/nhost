@@ -13,13 +13,17 @@ let
       "pnpm-workspace.yaml"
       "pnpm-lock.yaml"
       "turbo.json"
-      (inDirectory "dashboard")
+      (inDirectory "${submodule}")
     ];
 
     exclude = with nix-filter.lib; [
       (matchName "node_modules")
       (matchName ".next")
       (matchExt "nix")
+      ./${submodule}/docker-entrypoint.sh
+      ./${submodule}/README.md
+      ./${submodule}/Makefile
+      ./${submodule}/CHANGELOG.md
     ];
   };
 
@@ -37,14 +41,27 @@ rec {
   entrypoint = pkgs.writeScriptBin "docker-entrypoint.sh" (builtins.readFile ./docker-entrypoint.sh);
 
   package = pkgs.stdenv.mkDerivation {
-    inherit name version src;
+    inherit name src;
+    version = "0.0.0-dev"; # we use a fixed version to avoid rebuilds on every change
 
     nativeBuildInputs = with pkgs; [ pnpm cacert nodejs ];
     buildInputs = with pkgs; [ nodejs ];
-    dontFixup = true;
+
+    configurePhase = ''
+      export NEXT_PUBLIC_NHOST_ADMIN_SECRET=__NEXT_PUBLIC_NHOST_ADMIN_SECRET__
+      export NEXT_PUBLIC_NHOST_AUTH_URL=__NEXT_PUBLIC_NHOST_AUTH_URL__
+      export NEXT_PUBLIC_NHOST_FUNCTIONS_URL=__NEXT_PUBLIC_NHOST_FUNCTIONS_URL__
+      export NEXT_PUBLIC_NHOST_GRAPHQL_URL=__NEXT_PUBLIC_NHOST_GRAPHQL_URL__
+      export NEXT_PUBLIC_NHOST_STORAGE_URL=__NEXT_PUBLIC_NHOST_STORAGE_URL__
+      export NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL=__NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL__
+      export NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL=__NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL__
+      export NEXT_PUBLIC_NHOST_HASURA_API_URL=__NEXT_PUBLIC_NHOST_HASURA_API_URL__
+      export NEXT_PUBLIC_NHOST_CONFIGSERVER_URL=__NEXT_PUBLIC_NHOST_CONFIGSERVER_URL__
+    '';
 
     buildPhase = ''
-      pnpm install --frozen-lockfile
+      cp -r ${node_modules}/node_modules/ node_modules
+      cp -r ${node_modules}/dashboard/node_modules/ dashboard/node_modules
 
       pnpm build:dashboard
     '';
