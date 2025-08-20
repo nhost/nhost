@@ -1,5 +1,6 @@
 import { Alert } from '@/components/ui/v2/Alert';
 import { Button } from '@/components/ui/v2/Button';
+import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import BaseRemoteSchemaForm, {
   type BaseRemoteSchemaFormProps,
   type BaseRemoteSchemaFormValues,
@@ -11,7 +12,6 @@ import { isRemoteSchemaFromUrlDefinition } from '@/features/orgs/projects/remote
 import type {
   RemoteSchemaHeaders,
   RemoteSchemaInfo,
-  UpdateRemoteSchemaArgs,
 } from '@/utils/hasura-api/generated/schemas';
 import { triggerToast } from '@/utils/toast';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -38,6 +38,8 @@ export default function EditRemoteSchemaForm({
   ...props
 }: EditRemoteSchemaFormProps) {
   const router = useRouter();
+
+  const { data: resourceVersion } = useGetMetadataResourceVersion();
 
   const {
     mutateAsync: updateRemoteSchema,
@@ -94,9 +96,7 @@ export default function EditRemoteSchemaForm({
         })
         .filter(Boolean) as RemoteSchemaHeaders;
 
-      console.log('originalSchema:', originalSchema);
-
-      const remoteSchema: UpdateRemoteSchemaArgs = {
+      const remoteSchema: RemoteSchemaInfo = {
         ...originalSchema,
         name: values.name,
         comment: values.comment,
@@ -109,6 +109,7 @@ export default function EditRemoteSchemaForm({
       await updateRemoteSchema({
         originalRemoteSchema: originalSchema,
         updatedRemoteSchema: remoteSchema,
+        resourceVersion,
       });
 
       if (onSubmit) {

@@ -21,7 +21,7 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { useGetRemoteSchemasQuery } from '@/features/orgs/projects/remote-schemas/hooks/useGetRemoteSchemasQuery';
+import { useGetRemoteSchemas } from '@/features/orgs/projects/remote-schemas/hooks/useGetRemoteSchemas';
 import { useIntrospectRemoteSchemaQuery } from '@/features/orgs/projects/remote-schemas/hooks/useIntrospectRemoteSchemaQuery';
 import type { RemoteSchemaAccessLevel } from '@/features/orgs/projects/remote-schemas/types';
 import { buildSchemaFromRoleDefinition } from '@/features/orgs/projects/remote-schemas/utils/buildSchemaFromRoleDefinition';
@@ -78,7 +78,7 @@ export default function EditRemoteSchemaPermissionsForm({
 
   // Get remote schemas data
   const { data: remoteSchemas, refetch: refetchRemoteSchemas } =
-    useGetRemoteSchemasQuery(['remote-schemas', project?.subdomain]);
+    useGetRemoteSchemas();
 
   const {
     data: remoteSchemaPermissionsEnabledData,

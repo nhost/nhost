@@ -1,8 +1,5 @@
 import { executeMigration } from '@/utils/hasura-api/generated/default/default';
-import type {
-  RemoteSchemaInfo,
-  UpdateRemoteSchemaArgs,
-} from '@/utils/hasura-api/generated/schemas';
+import type { RemoteSchemaInfo } from '@/utils/hasura-api/generated/schemas';
 
 export interface UpdateRemoteSchemaMigrationOptions {
   appUrl: string;
@@ -11,7 +8,7 @@ export interface UpdateRemoteSchemaMigrationOptions {
 
 export interface UpdateRemoteSchemaMigrationVariables {
   originalRemoteSchema: RemoteSchemaInfo;
-  updatedRemoteSchema: UpdateRemoteSchemaArgs;
+  updatedRemoteSchema: RemoteSchemaInfo;
 }
 
 export default async function updateRemoteSchemaMigration({

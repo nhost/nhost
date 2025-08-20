@@ -1,8 +1,7 @@
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { CreateRemoteSchemaRelationshipForm } from '@/features/orgs/projects/remote-schemas/components/CreateRemoteSchemaRelationshipForm';
 import { EditRemoteSchemaRelationshipForm } from '@/features/orgs/projects/remote-schemas/components/EditRemoteSchemaRelationshipForm';
-import { useGetRemoteSchemasQuery } from '@/features/orgs/projects/remote-schemas/hooks/useGetRemoteSchemasQuery';
+import { useGetRemoteSchemas } from '@/features/orgs/projects/remote-schemas/hooks/useGetRemoteSchemas';
 import type { DialogFormProps } from '@/types/common';
 import type { RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItem } from '@/utils/hasura-api/generated/schemas/remoteSchemaInfoRemoteRelationshipsItemRelationshipsItem';
 import { useState } from 'react';
@@ -29,8 +28,6 @@ export default function EditRemoteSchemaRelationships({
   onCancel,
   disabled,
 }: EditRemoteSchemaRelationshipsProps) {
-  const { project } = useProject();
-
   // Tracks the current view shown in the form. If you click on the "Add Relationship" button, the view will be set to "add".
   const [view, setView] = useState<'list' | 'add' | 'edit' | 'view'>('list');
 
@@ -39,12 +36,7 @@ export default function EditRemoteSchemaRelationships({
       null,
     );
 
-  const {
-    data: remoteSchemas,
-    status,
-    refetch,
-    error,
-  } = useGetRemoteSchemasQuery([`remote_schemas`, project?.subdomain]);
+  const { data: remoteSchemas, status, refetch, error } = useGetRemoteSchemas();
 
   const remoteRelationships =
     remoteSchemas?.find((remoteSchema) => remoteSchema.name === schema)
