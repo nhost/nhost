@@ -12,7 +12,7 @@ import type { ExportMetadataResponseMetadata } from './exportMetadataResponseMet
  */
 export interface ExportMetadataResponse {
   /** Resource version number */
-  resource_version?: number;
+  resource_version: number;
   /** Complete metadata configuration */
-  metadata?: ExportMetadataResponseMetadata;
+  metadata: ExportMetadataResponseMetadata;
 }
