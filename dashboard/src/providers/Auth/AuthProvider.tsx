@@ -1,4 +1,5 @@
 import { useNhostClient } from '@/providers/nhost/';
+import { getToastStyleProps } from '@/utils/constants/settings';
 import { type Session } from '@nhost/nhost-js-beta/auth';
 import { useRouter } from 'next/router';
 import {
@@ -8,6 +9,7 @@ import {
   useMemo,
   useState,
 } from 'react';
+import { toast } from 'react-hot-toast';
 import { AuthContext, type AuthContextType } from './AuthContext';
 
 function AuthProvider({ children }: PropsWithChildren) {
@@ -19,12 +21,12 @@ function AuthProvider({ children }: PropsWithChildren) {
     pathname,
     push,
   } = useRouter();
-  const { refreshToken, ...remainingQuery } = query;
+  const { refreshToken, error, errorDescription, ...remainingQuery } = query;
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSigningOut, setIsSigningOut] = useState(false);
 
-  const removeRefreshTokenFromQuery = useCallback(() => {
+  const removeQueryParamsFromURL = useCallback(() => {
     replace({ pathname, query: remainingQuery }, undefined, {
       shallow: true,
     });
@@ -60,10 +62,26 @@ function AuthProvider({ children }: PropsWithChildren) {
           refreshToken,
         });
         setSession(sessionResponse.body);
-        removeRefreshTokenFromQuery();
+        removeQueryParamsFromURL();
       } else {
         const currentSession = nhost.getUserSession();
         setSession(currentSession);
+      }
+
+      // handle OAuth redirect errors (e.g., error=unverified-user)
+      if (typeof error === 'string') {
+        if (error === 'unverified-user') {
+          removeQueryParamsFromURL();
+          await push('/email/verify');
+        } else {
+          const description =
+            typeof errorDescription === 'string'
+              ? errorDescription
+              : 'An error occurred during the sign-in process. Please try again.';
+          toast.error(description, getToastStyleProps());
+          removeQueryParamsFromURL();
+          await push('/signin');
+        }
       }
 
       setIsLoading(false);

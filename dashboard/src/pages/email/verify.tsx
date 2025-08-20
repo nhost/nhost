@@ -3,48 +3,23 @@ import { UnauthenticatedLayout } from '@/components/layout/UnauthenticatedLayout
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
-import { useNhostClient } from '@/providers/nhost';
-import { getToastStyleProps } from '@/utils/constants/settings';
+import SendVerificationEmailForm from '@/features/auth/SignIn/SignInWithEmailAndPassword/components/SendVerificationEmailForm';
+import useResendVerificationEmail from '@/features/auth/SignIn/SignInWithEmailAndPassword/hooks/useResendVerificationEmail';
 import { useRouter } from 'next/router';
-import { useEffect, useState, type ReactElement } from 'react';
-import { toast } from 'react-hot-toast';
+import { type ReactElement } from 'react';
 
 export default function VerifyEmailPage() {
   const router = useRouter();
-  const nhost = useNhostClient();
 
   const {
     query: { email },
   } = router;
 
-  const [resendVerificationEmailLoading, setResendVerificationEmailLoading] =
-    useState(false);
+  const { resendVerificationEmail, loading: resendVerificationEmailLoading } =
+    useResendVerificationEmail();
 
-  useEffect(() => {
-    if (!email) {
-      router.push('/signin');
-    }
-  }, [email, router]);
-
-  const resendVerificationEmail = async () => {
-    setResendVerificationEmailLoading(true);
-
-    try {
-      await nhost.auth.sendVerificationEmail({ email: email as string });
-
-      toast.success(
-        `An new email has been sent to ${email}. Please follow the link to verify your email address and to
-      complete your registration.`,
-        getToastStyleProps(),
-      );
-    } catch {
-      toast.error(
-        'An error occurred while sending the verification email. Please try again.',
-        getToastStyleProps(),
-      );
-    } finally {
-      setResendVerificationEmailLoading(false);
-    }
+  const handleResendEmailClick = async () => {
+    await resendVerificationEmail(email as string);
   };
 
   return (
@@ -64,16 +39,20 @@ export default function VerifyEmailPage() {
             to verify your email address and complete your registration.
           </Text>
         </div>
-        <Button
-          className="!bg-white !text-black disabled:!text-black disabled:!text-opacity-60"
-          size="large"
-          disabled={resendVerificationEmailLoading}
-          loading={resendVerificationEmailLoading}
-          type="button"
-          onClick={resendVerificationEmail}
-        >
-          Resend verification email
-        </Button>
+        {email ? (
+          <Button
+            className="!bg-white !text-black disabled:!text-black disabled:!text-opacity-60"
+            size="large"
+            disabled={resendVerificationEmailLoading}
+            loading={resendVerificationEmailLoading}
+            type="button"
+            onClick={handleResendEmailClick}
+          >
+            Resend verification email
+          </Button>
+        ) : (
+          <SendVerificationEmailForm />
+        )}
 
         <div className="flex justify-center">
           <NavLink href="/signin" color="white" className="font-medium">
