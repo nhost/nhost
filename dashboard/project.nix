@@ -2,6 +2,7 @@
 let
   name = "dashboard";
   version = "0.0.0-dev";
+  created = "1970-01-01T00:00:00Z";
   submodule = "${name}";
 
   src = nix-filter.lib.filter {
@@ -13,17 +14,31 @@ let
       "pnpm-workspace.yaml"
       "pnpm-lock.yaml"
       "turbo.json"
-      (inDirectory "${submodule}")
-    ];
-
-    exclude = with nix-filter.lib; [
-      (matchName "node_modules")
-      (matchName ".next")
-      (matchExt "nix")
-      ./${submodule}/docker-entrypoint.sh
-      ./${submodule}/README.md
-      ./${submodule}/Makefile
-      ./${submodule}/CHANGELOG.md
+      "${submodule}/.env.example"
+      "${submodule}/.eslintignore"
+      "${submodule}/.eslintrc.js"
+      "${submodule}/.gitignore"
+      "${submodule}/.lintstagedrc.json"
+      "${submodule}/.npmrc"
+      "${submodule}/.prettierignore"
+      "${submodule}/components.json"
+      "${submodule}/graphite.graphql.config.yaml"
+      "${submodule}/graphql.config.yaml"
+      "${submodule}/next-env.d.ts"
+      "${submodule}/next.config.js"
+      "${submodule}/playwright.config.ts"
+      "${submodule}/postcss.config.js"
+      "${submodule}/prettier.config.js"
+      "${submodule}/react-table-config.d.ts"
+      "${submodule}/tailwind.config.js"
+      "${submodule}/tsconfig.json"
+      "${submodule}/tsconfig.test.json"
+      "${submodule}/vitest.config.ts"
+      "${submodule}/vitest.global-setup.ts"
+      (inDirectory "${submodule}/.storybook")
+      (inDirectory "${submodule}/e2e")
+      (inDirectory "${submodule}/public")
+      (inDirectory "${submodule}/src")
     ];
   };
 
@@ -79,11 +94,9 @@ rec {
 
   dockerImage = pkgs.runCommand "image-as-dir" { } ''
     ${(nix2containerPkgs.nix2container.buildImage {
-      inherit name;
+      inherit name created;
       tag = version;
-      # created
       maxLayers = 100;
-      # arch
 
       copyToRoot = pkgs.buildEnv {
         name = "image";
