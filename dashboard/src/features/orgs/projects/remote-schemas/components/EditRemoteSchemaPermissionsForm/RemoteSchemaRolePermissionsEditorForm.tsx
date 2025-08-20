@@ -19,6 +19,7 @@ import {
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import { Form } from '@/components/ui/v3/form';
 import { Input } from '@/components/ui/v3/input';
+import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { useAddRemoteSchemaPermissionsMutation } from '@/features/orgs/projects/remote-schemas/hooks/useAddRemoteSchemaPermissionsMutation';
 import { useIntrospectRemoteSchemaQuery } from '@/features/orgs/projects/remote-schemas/hooks/useIntrospectRemoteSchemaQuery';
 import { useRemoveRemoteSchemaPermissionsMutation } from '@/features/orgs/projects/remote-schemas/hooks/useRemoveRemoteSchemaPermissionsMutation';
@@ -85,6 +86,8 @@ export default function RemoteSchemaRolePermissionsEditorForm({
   >([]);
   const [argTree, setArgTree] = useState<ArgTreeType>({}); // Store preset values
   const [schemaDefinition, setSchemaDefinition] = useState('');
+
+  const { data: resourceVersion } = useGetMetadataResourceVersion();
 
   const getArgTypeString = useCallback((arg: any): string => {
     const t = arg?.type;
@@ -377,6 +380,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
             remoteSchema: remoteSchemaName,
             originalPermissionSchema: permission.definition.schema,
             newPermissionSchema: schemaDefinition,
+            resourceVersion,
           });
 
           onSubmit();
@@ -399,6 +403,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                 schema: schemaDefinition,
               },
             },
+            resourceVersion,
           });
 
           onSubmit();
@@ -428,6 +433,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
               schema: permission.definition.schema,
             },
           },
+          resourceVersion,
         });
 
         onSubmit();
