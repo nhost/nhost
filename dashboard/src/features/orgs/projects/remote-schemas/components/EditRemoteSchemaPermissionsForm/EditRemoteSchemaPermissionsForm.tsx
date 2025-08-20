@@ -269,9 +269,6 @@ export default function EditRemoteSchemaPermissionsForm({
     );
   }
 
-  console.log('loading', introspectionLoading);
-  console.log('error', introspectionError);
-
   if (rolesLoading || introspectionLoading) {
     return (
       <div className="p-6">
@@ -280,8 +277,8 @@ export default function EditRemoteSchemaPermissionsForm({
     );
   }
 
-  if (introspectionError) {
-    throw introspectionError;
+  if (introspectionError instanceof Error) {
+    throw new Error(introspectionError.message);
   }
 
   if (rolesError) {

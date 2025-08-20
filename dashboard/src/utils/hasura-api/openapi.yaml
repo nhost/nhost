@@ -580,7 +580,7 @@ components:
             - $ref: '#/components/schemas/UpdateRemoteSchemaArgs'
 
     UpdateRemoteSchemaArgs:
-      $ref: '#/components/schemas/AddRemoteSchemaArgs'
+      $ref: '#/components/schemas/RemoteSchemaInfo'
 
     UpdateRemoteSchemaBulkOperation:
       type: object
