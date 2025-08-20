@@ -6,7 +6,6 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { AddRemoteSchemaArgs } from './addRemoteSchemaArgs';
+import type { RemoteSchemaInfo } from './remoteSchemaInfo';
 
-export type RemoteSchemaOperationArgs =
-  | AddRemoteSchemaArgs
-  | AddRemoteSchemaArgs;
+export type RemoteSchemaOperationArgs = AddRemoteSchemaArgs | RemoteSchemaInfo;
