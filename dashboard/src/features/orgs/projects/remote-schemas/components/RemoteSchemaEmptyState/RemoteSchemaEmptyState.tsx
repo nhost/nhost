@@ -1,5 +1,5 @@
 import { Text } from '@/components/ui/v2/Text';
-import Image from 'next/image';
+import { Anchor } from 'lucide-react';
 import type { DetailedHTMLProps, HTMLProps, ReactNode } from 'react';
 import { twMerge } from 'tailwind-merge';
 
@@ -33,13 +33,14 @@ export default function RemoteSchemaEmptyState({
       {...props}
     >
       <div className="mx-auto">
-        <Image
+        {/* <Image
           src="/assets/database.svg"
           width={72}
           height={72}
           alt="Database"
           priority
-        />
+        /> */}
+        <Anchor className="h-12 w-12" />
       </div>
 
       <Text variant="h3" component="h1">
