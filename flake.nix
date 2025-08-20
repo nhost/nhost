@@ -62,6 +62,12 @@
             ];
           };
 
+          skopeo = pkgs.mkShell {
+            buildInputs = with pkgs;[
+              skopeo
+            ];
+          };
+
           dashboard = dashboardf.devShell;
         };
 

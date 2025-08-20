@@ -1,0 +1,106 @@
+---
+on:
+  workflow_call:
+    inputs:
+      NAME:
+        type: string
+        required: true
+      PROJECT:
+        type: string
+        required: true
+      GIT_REF:
+        type: string
+        required: false
+    secrets:
+      AWS_ACCOUNT_ID:
+        required: true
+      NIX_CACHE_PUB_KEY:
+        required: true
+      NIX_CACHE_PRIV_KEY:
+        required: true
+
+jobs:
+  tests:
+    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
+    timeout-minutes: 30
+
+    defaults:
+      run:
+        working-directory: ${{ inputs.PROJECT }}
+
+    permissions:
+      id-token: write
+      contents: write
+      actions: read
+
+    steps:
+    - name: "Check out repository"
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        ref: ${{ inputs.GIT_REF }}
+        submodules: true
+
+    - name: Collect Workflow Telemetry
+      uses: catchpoint/workflow-telemetry-action@v2
+      with:
+        comment_on_pr: false
+
+    - name: Configure aws
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-nhost-${{ github.event.repository.name }}
+        aws-region: eu-central-1
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+      with:
+        mask-password: 'true'
+
+    - uses: cachix/install-nix-action@v30
+      with:
+        install_url: "https://releases.nixos.org/nix/nix-2.22.3/install"
+        install_options: "--no-daemon"
+        extra_nix_config: |
+          experimental-features = nix-command flakes
+          sandbox = false
+          access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+          substituters = https://cache.nixos.org/?priority=40 s3://nhost-nix-cache?region=eu-central-1&priority=50
+          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ${{ secrets.NIX_CACHE_PUB_KEY }}
+
+    # - uses: DeterminateSystems/magic-nix-cache-action@v7
+    #   with:
+    #     diagnostic-endpoint: ""
+    #     use-flakehub: false
+
+    - name: "Verify if we need to build"
+      id: verify-build
+      run: |
+        export drvPath=$(make check-dry-run)
+        # nix store verify --no-trust --store http://127.0.0.1:37515 $drvPath \
+        nix store verify --no-trust --store s3://nhost-nix-cache\?region=eu-central-1 $drvPath \
+          && export BUILD_NEEDED=no \
+          || export BUILD_NEEDED=yes
+        echo BUILD_NEEDED=$BUILD_NEEDED >> $GITHUB_OUTPUT
+        echo DERIVATION_PATH=$drvPath >> $GITHUB_OUTPUT
+
+    - name: "Start containters for integration tests"
+      run: |
+        nix develop .\#${{ inputs.NAME }} -c make dev-env-up
+      if: ${{ steps.verify-build.outputs.BUILD_NEEDED == 'yes' }}
+
+    - name: "Run checks"
+      run: make check
+      if: ${{ steps.verify-build.outputs.BUILD_NEEDED == 'yes' }}
+
+    - name: "Cache build"
+      run: |
+       echo ${{ secrets.NIX_CACHE_PRIV_KEY }} > cache-priv-key.pem
+       nix store sign --key-file cache-priv-key.pem --all
+       find /nix/store -maxdepth 1 -name "*-*" -type d -exec nix copy --to s3://nhost-nix-cache\?region=eu-central-1 {} \;
+      if: always()
+
+    - run: rm -f cache-priv-key.pem
+      if: always()
+
