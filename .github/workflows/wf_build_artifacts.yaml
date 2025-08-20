@@ -67,16 +67,6 @@ jobs:
           substituters = https://cache.nixos.org/?priority=40 s3://nhost-nix-cache?region=eu-central-1&priority=50
           trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ${{ secrets.NIX_CACHE_PUB_KEY }}
 
-    - name: "Verify if we need to build"
-      id: verify-build
-      run: |
-        export drvPath=$(make check-dry-run)
-        nix store verify --no-trust --store s3://nhost-nix-cache\?region=eu-central-1 $drvPath \
-          && export BUILD_NEEDED=no \
-          || export BUILD_NEEDED=yes
-        echo BUILD_NEEDED=$BUILD_NEEDED >> $GITHUB_OUTPUT
-        echo DERIVATION_PATH=$drvPath >> $GITHUB_OUTPUT
-
     - name: Compute common env vars
       id: vars
       run: |
@@ -93,7 +83,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: ${{ inputs.NAME }}-artifact-${{ steps.vars.outputs.ARCH }}-${{ steps.vars.outputs.VERSION }}
-        path: result.zip
+        path: ${{ inputs.PATH }}/result.zip
         retention-days: 7
 
     - name: "Build docker image"
@@ -108,7 +98,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: ${{ inputs.NAME }}-docker-image-${{ steps.vars.outputs.ARCH }}-${{ steps.vars.outputs.VERSION }}
-        path: result
+        path: ${{ inputs.PATH }}/result
         retention-days: 7
       if: ${{ ( inputs.DOCKER ) }}
 
