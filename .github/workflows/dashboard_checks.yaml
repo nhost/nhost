@@ -51,9 +51,9 @@ jobs:
       - check-permissions
     with:
       NAME: dashboard
-      PROJECT: dashboard
+      PATH: dashboard
+      GIT_REF: ${{ github.sha }}
       VERSION: ${{ github.sha }}
-      ARCHS: '["x86_64", "aarch64"]'
       DOCKER: true
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}

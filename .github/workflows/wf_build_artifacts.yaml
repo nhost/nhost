@@ -5,9 +5,6 @@ on:
       NAME:
         type: string
         required: true
-      PROJECT:
-        type: string
-        required: true
       GIT_REF:
         type: string
         required: false
@@ -15,10 +12,6 @@ on:
         type: string
         required: true
       PATH:
-        type: string
-        default: "."
-        required: false
-      ARCHS:
         type: string
         required: true
       DOCKER:
@@ -34,21 +27,17 @@ on:
 
 jobs:
   artifacts:
-    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
-    timeout-minutes: 30
-
-    defaults:
-      run:
-        working-directory: ${{ inputs.PROJECT }}
-
     permissions:
       id-token: write
       contents: write
 
     strategy:
       matrix:
-        platform: ${{ fromJSON(inputs.ARCHS) }}
+        os: [blacksmith-2vcpu-ubuntu-2404-arm, blacksmith-2vcpu-ubuntu-2404]
       fail-fast: true
+
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 180
 
     steps:
     - name: "Check out repository"
@@ -78,7 +67,6 @@ jobs:
       id: verify-build
       run: |
         export drvPath=$(make check-dry-run)
-        # nix store verify --no-trust --store http://127.0.0.1:37515 $drvPath \
         nix store verify --no-trust --store s3://nhost-nix-cache\?region=eu-central-1 $drvPath \
           && export BUILD_NEEDED=no \
           || export BUILD_NEEDED=yes
@@ -89,18 +77,19 @@ jobs:
       id: vars
       run: |
         echo "VERSION=$(make get-version VER=${{ inputs.VERSION }})" >> $GITHUB_OUTPUT
+        ARCH=$([ "${{ runner.arch }}" == "X64" ] && echo "x86_64" || echo "aarch64")
+        echo "ARCH=${ARCH}" >> $GITHUB_OUTPUT
 
     - name: "Build artifact"
       run: |
-        make get-version VER=0.0.0-dev # we revert this to avoid rebuilding just due to version change
-        make build ARCH=${{ matrix.platform }}
+        make build
         zip -r result.zip result
 
     - name: "Push artifact to artifact repository"
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ inputs.NAME }}-artifact-${{ matrix.platform }}-${{ steps.vars.outputs.VERSION }}
-        path: ${{ inputs.PROJECT }}/result.zip
+        name: ${{ inputs.NAME }}-artifact-${{ steps.vars.outputs.ARCH }}-${{ steps.vars.outputs.VERSION }}
+        path: result.zip
         retention-days: 7
 
     - name: "Build docker image"
@@ -108,23 +97,19 @@ jobs:
         sudo chmod 755 /run/containers
         sudo mkdir -p "/run/containers/$(id -u runner)"
         sudo chown runner: "/run/containers/$(id -u runner)"
-        make build-docker-image ARCH=${{ matrix.platform }}
+        make build-docker-image
       if: ${{ ( inputs.DOCKER ) }}
 
     - name: "Push docker image to artifact repository"
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ inputs.NAME }}-docker-image-${{ matrix.platform }}-${{ steps.vars.outputs.VERSION }}
-        path: ${{ inputs.PROJECT }}/result
+        name: ${{ inputs.NAME }}-docker-image-${{ steps.vars.outputs.ARCH }}-${{ steps.vars.outputs.VERSION }}
+        path: result
         retention-days: 7
       if: ${{ ( inputs.DOCKER ) }}
 
     - name: "Cache build"
       run: |
-       echo ${{ secrets.NIX_CACHE_PRIV_KEY }} > cache-priv-key.pem
-       nix store sign --key-file cache-priv-key.pem --all
-       find /nix/store -maxdepth 1 -name "*-*" -type d -exec nix copy --to s3://nhost-nix-cache\?region=eu-central-1 {} \;
-      if: always()
-
-    - run: rm -f cache-priv-key.pem
+        nix store sign --key-file <(echo "${{ secrets.NIX_CACHE_PRIV_KEY }}") --all
+        find /nix/store -maxdepth 1 -name "*-*" -type d -exec nix copy --to s3://nhost-nix-cache\?region=eu-central-1 {} \;
       if: always()
