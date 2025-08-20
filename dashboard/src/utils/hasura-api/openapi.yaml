@@ -572,15 +572,35 @@ components:
       properties:
         type:
           type: string
-          enum: [add_remote_schema, update_remote_schema]
-          description: Type of operation to add or update a remote schema
+          enum: [add_remote_schema]
+          description: Type of operation to add a remote schema
         args:
-          oneOf:
-            - $ref: '#/components/schemas/AddRemoteSchemaArgs'
-            - $ref: '#/components/schemas/UpdateRemoteSchemaArgs'
+          $ref: '#/components/schemas/AddRemoteSchemaArgs'
 
-    UpdateRemoteSchemaArgs:
-      $ref: '#/components/schemas/RemoteSchemaInfo'
+    UpdateRemoteSchemaBulkOperation:
+      type: object
+      required:
+        - type
+        - source
+        - resource_version
+        - args
+      properties:
+        type:
+          type: string
+          enum: [bulk]
+          description: Type of operation to update remote schemas
+        source:
+          type: string
+          description: Source of the operation
+          example: default
+        resource_version:
+          type: integer
+          description: Resource version of the operation
+          example: 1
+        args:
+          type: array
+          items:
+            $ref: '#/components/schemas/UpdateRemoteSchemaStep'
 
     UpdateRemoteSchemaBulkOperation:
       type: object
