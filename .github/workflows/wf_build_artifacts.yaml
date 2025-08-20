@@ -31,6 +31,10 @@ jobs:
       id-token: write
       contents: write
 
+    defaults:
+      run:
+        working-directory: ${{ inputs.PATH }}
+
     strategy:
       matrix:
         os: [blacksmith-2vcpu-ubuntu-2404-arm, blacksmith-2vcpu-ubuntu-2404]
