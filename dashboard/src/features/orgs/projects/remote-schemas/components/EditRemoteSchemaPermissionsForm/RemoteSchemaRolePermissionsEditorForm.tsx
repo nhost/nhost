@@ -566,7 +566,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                 </Text>
                 <Text>
                   Select the fields and operations that should be available for
-                  this role. Edit @preset values for arguments when needed.
+                  this role. Edit preset values for arguments when needed.
                 </Text>
               </div>
 
