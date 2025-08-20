@@ -5,11 +5,10 @@ import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { RemoteSchemaEmptyState } from '@/features/orgs/projects/remote-schemas/components/RemoteSchemaEmptyState';
 import { RemoteSchemaHeadersTable } from '@/features/orgs/projects/remote-schemas/components/RemoteSchemaHeadersTable';
 import { RemoteSchemaPreview } from '@/features/orgs/projects/remote-schemas/components/RemoteSchemaPreview';
-import useGetRemoteSchemasQuery from '@/features/orgs/projects/remote-schemas/hooks/useGetRemoteSchemasQuery/useGetRemoteSchemasQuery';
+import useGetRemoteSchemas from '@/features/orgs/projects/remote-schemas/hooks/useGetRemoteSchemas/useGetRemoteSchemas';
 import { useReloadRemoteSchemaMutation } from '@/features/orgs/projects/remote-schemas/hooks/useReloadRemoteSchemaMutation';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { isNotEmptyValue } from '@/lib/utils';
@@ -17,8 +16,6 @@ import { RefreshCw } from 'lucide-react';
 import { useRouter } from 'next/router';
 
 export default function RemoteSchemaDetails() {
-  const { project } = useProject();
-
   const { mutateAsync: reloadRemoteSchema, isLoading: isReloading } =
     useReloadRemoteSchemaMutation();
 
@@ -26,10 +23,7 @@ export default function RemoteSchemaDetails() {
 
   const { remoteSchemaSlug } = router.query;
 
-  const { data: remoteSchemas, status } = useGetRemoteSchemasQuery([
-    `remote_schemas`,
-    project?.subdomain,
-  ]);
+  const { data: remoteSchemas, status } = useGetRemoteSchemas();
 
   const remoteSchema = remoteSchemas?.find(
     (schema) => schema.name === remoteSchemaSlug,

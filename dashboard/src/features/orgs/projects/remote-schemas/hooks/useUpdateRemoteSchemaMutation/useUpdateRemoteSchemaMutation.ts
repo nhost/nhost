@@ -55,13 +55,13 @@ export default function useUpdateRemoteSchemaMutation({
 
     if (isPlatform) {
       return updateRemoteSchema({
-        ...variables,
+        ...(variables as UpdateRemoteSchemaVariables),
         ...base,
       });
     }
 
     return updateRemoteSchemaMigration({
-      ...variables,
+      ...(variables as UpdateRemoteSchemaMigrationVariables),
       ...base,
     });
   }, mutationOptions);

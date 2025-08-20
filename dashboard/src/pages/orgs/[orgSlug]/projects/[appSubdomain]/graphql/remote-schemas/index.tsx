@@ -1,19 +1,13 @@
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { RemoteSchemaBrowserSidebar } from '@/features/orgs/projects/remote-schemas/components/RemoteSchemaBrowserSidebar';
 import { RemoteSchemaEmptyState } from '@/features/orgs/projects/remote-schemas/components/RemoteSchemaEmptyState';
-import useGetRemoteSchemasQuery from '@/features/orgs/projects/remote-schemas/hooks/useGetRemoteSchemasQuery/useGetRemoteSchemasQuery';
+import { useGetRemoteSchemas } from '@/features/orgs/projects/remote-schemas/hooks/useGetRemoteSchemas';
 import type { ReactElement } from 'react';
 
 export default function RemoteSchemasPage() {
-  const { project } = useProject();
-
-  const { data: remoteSchemas, isLoading } = useGetRemoteSchemasQuery([
-    `remote_schemas`,
-    project?.subdomain,
-  ]);
+  const { data: remoteSchemas, isLoading } = useGetRemoteSchemas();
 
   if (isLoading) {
     return (

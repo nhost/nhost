@@ -25,8 +25,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { useGetRemoteSchemasQuery } from '@/features/orgs/projects/remote-schemas/hooks/useGetRemoteSchemasQuery';
+import { useGetRemoteSchemas } from '@/features/orgs/projects/remote-schemas/hooks/useGetRemoteSchemas';
 import { useIntrospectRemoteSchemaQuery } from '@/features/orgs/projects/remote-schemas/hooks/useIntrospectRemoteSchemaQuery';
 import convertIntrospectionToSchema from '@/features/orgs/projects/remote-schemas/utils/convertIntrospectionToSchema';
 import { cn } from '@/lib/utils';
@@ -76,7 +75,6 @@ export default function RemoteSchemaRelationshipForm({
   defaultValues,
   disabled,
 }: RemoteSchemaRelationshipFormProps) {
-  const { project } = useProject();
   const form = useForm<RemoteSchemaRelationshipFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -93,7 +91,7 @@ export default function RemoteSchemaRelationshipForm({
 
   // Fetch all remote schemas for the target schema dropdown
   const { data: remoteSchemas, status: remoteSchemasQueryStatus } =
-    useGetRemoteSchemasQuery(['remote_schemas', project?.subdomain]);
+    useGetRemoteSchemas();
 
   // Introspect the source remote schema to get its types
   const { data: sourceIntrospectionData } = useIntrospectRemoteSchemaQuery(

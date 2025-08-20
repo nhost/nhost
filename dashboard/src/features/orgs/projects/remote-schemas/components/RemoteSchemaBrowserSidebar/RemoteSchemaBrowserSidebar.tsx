@@ -23,7 +23,7 @@ import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import useGetRemoteSchemasQuery from '@/features/orgs/projects/remote-schemas/hooks/useGetRemoteSchemasQuery/useGetRemoteSchemasQuery';
+import useGetRemoteSchemas from '@/features/orgs/projects/remote-schemas/hooks/useGetRemoteSchemas/useGetRemoteSchemas';
 import { useRemoveRemoteSchemaMutation } from '@/features/orgs/projects/remote-schemas/hooks/useRemoveRemoteSchemaMutation';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { RemoteSchemaInfo } from '@/utils/hasura-api/generated/schemas';
@@ -99,12 +99,7 @@ function RemoteSchemaBrowserSidebarContent({
     query: { orgSlug, appSubdomain, remoteSchemaSlug },
   } = router;
 
-  const {
-    data: remoteSchemas,
-    status,
-    refetch,
-    error,
-  } = useGetRemoteSchemasQuery([`remote_schemas`, project?.subdomain]);
+  const { data: remoteSchemas, status, refetch, error } = useGetRemoteSchemas();
 
   const { mutateAsync: deleteRemoteSchema } = useRemoveRemoteSchemaMutation();
 
