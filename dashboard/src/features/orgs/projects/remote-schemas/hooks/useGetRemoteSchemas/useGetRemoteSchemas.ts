@@ -9,7 +9,7 @@ import type {
 import type { UseQueryOptions } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 
-export interface useGetRemoteSchemasOptions {
+export interface UseGetRemoteSchemasOptions {
   /**
    * Props passed to the underlying query hook.
    */
@@ -28,7 +28,7 @@ export interface useGetRemoteSchemasOptions {
  */
 export default function useGetRemoteSchemas({
   queryOptions,
-}: useGetRemoteSchemasOptions = {}) {
+}: UseGetRemoteSchemasOptions = {}) {
   const { project, loading } = useProject();
 
   const query = useQuery<ExportMetadataResponse, unknown, RemoteSchemaInfo[]>(
