@@ -22,7 +22,7 @@ on:
 jobs:
   check-permissions:
     # runs-on: ubuntu-latest
-    runs-on: blacksmith-ubuntu-2404-arm
+    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
     steps:
       - run: |
           echo "github.event_name: ${{ github.event_name }}"
@@ -91,7 +91,8 @@ jobs:
 
 
   remove_label:
-    runs-on: ubuntu-latest
+    # runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
     needs:
       - check-permissions
     steps:
