@@ -1,5 +1,3 @@
-deleteme
-
 # Nhost Dashboard
 
 This is the Nhost Dashboard, a web application that allows you to manage your Nhost projects.
