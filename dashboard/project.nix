@@ -43,7 +43,7 @@ let
     ];
   };
 
-  checkDeps = with pkgs; [ nhost-cli playwright ];
+  checkDeps = with pkgs; [ nhost-cli playwright-test ];
 
   buildInputs = with pkgs; [ nodejs ];
 
