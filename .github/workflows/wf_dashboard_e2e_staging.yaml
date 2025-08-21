@@ -143,7 +143,10 @@ jobs:
       if: failure()
       run: |
         tar -czf playwright-report.tar.gz playwright-report/
-        openssl enc -aes-256-cbc -salt -in playwright-report.tar.gz -out playwright-report.tar.gz.enc -k "${{ secrets.PLAYWRIGHT_REPORT_ENCRYPTION_KEY }}"
+        openssl enc -aes-256-cbc -salt -pbkdf2 -iter 100000 \
+          -in playwright-report.tar.gz \
+          -out playwright-report.tar.gz.enc \
+          -k "${{ secrets.PLAYWRIGHT_REPORT_ENCRYPTION_KEY }}"
         rm playwright-report.tar.gz
 
     - name: Upload encrypted Playwright report
@@ -151,7 +154,7 @@ jobs:
       if: failure()
       with:
         name: encrypted-playwright-report-${{ github.run_id }}
-        path: playwright-report.tar.gz.enc
+        path: dashboard/playwright-report.tar.gz.enc
         retention-days: 30
 
     - name: "Cache build"
