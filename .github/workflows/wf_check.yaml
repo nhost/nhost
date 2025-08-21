@@ -85,7 +85,7 @@ jobs:
       run: |
        echo ${{ secrets.NIX_CACHE_PRIV_KEY }} > cache-priv-key.pem
        nix store sign --key-file cache-priv-key.pem --all
-       find /nix/store -maxdepth 1 -name "*-*" -type d -exec nix copy --to s3://nhost-nix-cache\?region=eu-central-1 {} \;
+       find /nix/store -maxdepth 1 -name "*-*" -type d | xargs -n 25 nix copy --to s3://nhost-nix-cache\?region=eu-central-1 {} \;
       if: always()
 
     - run: rm -f cache-priv-key.pem
