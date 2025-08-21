@@ -133,7 +133,7 @@ jobs:
       if: steps.fetch-dashboard-preview-url.outputs.preview_url != ''
 
     - name: Run tests
-      run: nix develop .\#dashboard -c ./e2e.sh
+      run: nix develop .\#dashboard -c bash ./e2e.sh
 
     - name: Encrypt Playwright report
       if: failure()
