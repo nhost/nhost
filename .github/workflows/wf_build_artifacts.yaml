@@ -105,5 +105,5 @@ jobs:
     - name: "Cache build"
       run: |
         nix store sign --key-file <(echo "${{ secrets.NIX_CACHE_PRIV_KEY }}") --all
-        find /nix/store -maxdepth 1 -name "*-*" -type d -exec nix copy --to s3://nhost-nix-cache\?region=eu-central-1 {} \;
+        find /nix/store -maxdepth 1 -name "*-*" -type d | xargs -n 25 nix copy --to s3://nhost-nix-cache\?region=eu-central-1
       if: always()
