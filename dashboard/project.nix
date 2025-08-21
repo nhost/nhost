@@ -107,8 +107,7 @@ rec {
 
 
   package = pkgs.stdenv.mkDerivation {
-    inherit name src;
-    version = "0.0.0-dev"; # we use a fixed version to avoid rebuilds on every change
+    inherit name version src;
 
     nativeBuildInputs = with pkgs; [ pnpm cacert nodejs ];
     buildInputs = with pkgs; [ nodejs ];

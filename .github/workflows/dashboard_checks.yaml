@@ -36,6 +36,7 @@ jobs:
     uses: ./.github/workflows/wf_check.yaml
     needs:
       - check-permissions
+      - build_artifacts
     with:
       NAME: dashboard
       PATH: dashboard
@@ -54,7 +55,7 @@ jobs:
       NAME: dashboard
       PATH: dashboard
       GIT_REF: ${{ github.sha }}
-      VERSION: ${{ github.sha }}
+      VERSION: 0.0.0-dev # we use a fixed version here to avoid unnecessary rebuilds
       DOCKER: true
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
