@@ -91,3 +91,15 @@ build-docker-image:  ## Build docker container for native architecture
 		--print-build-logs
 	nix develop \#skopeo -c \
 		skopeo copy --insecure-policy dir:./result docker-daemon:$(NAME):$(VERSION)
+
+
+.PHONY: dev-env-up
+dev-env-up: _dev-env-build _dev-env-up ## Starts development environment
+
+
+.PHONY: dev-env-down
+dev-env-down: _dev-env-down  ## Stops development environment
+
+
+.PHONY: dev-env-build
+dev-env-build: _dev-env-build  ## Builds development environment
