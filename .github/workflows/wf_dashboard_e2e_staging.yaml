@@ -131,11 +131,11 @@ jobs:
 
     - name: Run Onboarding Dashboard e2e tests
       timeout-minutes: 30
-      run: nix develop .\#dashboard -c "pnpm e2e:onboarding"
+      run: nix develop .\#dashboard -c pnpm e2e:onboarding
 
     - name: Run e2e tests
       timeout-minutes: 20
-      run: nix develop .\#dashboard -c "pnpm e2e"
+      run: nix develop .\#dashboard -c pnpm e2e
 
     - name: "Cache build"
       run: |
