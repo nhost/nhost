@@ -132,13 +132,8 @@ jobs:
       run: echo "NHOST_TEST_DASHBOARD_URL=https://${{ steps.fetch-dashboard-preview-url.outputs.preview_url }}" >> $GITHUB_ENV
       if: steps.fetch-dashboard-preview-url.outputs.preview_url != ''
 
-    - name: Run e2e tests
-      timeout-minutes: 30
-      run: |
-        nix develop .\#dashboard
-        pnpm playwright install --with-deps
-        pnpm e2e:onboarding
-        pnpm e2e
+    - name: Run tests
+      run: nix develop .\#dashboard -c e2e.sh
 
     - name: Encrypt Playwright report
       if: failure()
