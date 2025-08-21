@@ -48,6 +48,8 @@
               mkdir $out
               nixpkgs-fmt --check ${nix-src}
             '';
+
+          dashboard = dashboardf.check;
         };
 
         devShells = flake-utils.lib.flattenTree {

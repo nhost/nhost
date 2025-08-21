@@ -32,17 +32,18 @@ jobs:
           exit 1
 
 
-  # tests:
-  #   uses: ./.github/workflows/wf_check.yaml
-  #   needs:
-  #     - check-permissions
-  #   with:
-  #     NAME: dashboard
-  #     PROJECT: dashboard
-  #   secrets:
-  #     AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
-  #     NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
-  #     NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+  tests:
+    uses: ./.github/workflows/wf_check.yaml
+    needs:
+      - check-permissions
+    with:
+      NAME: dashboard
+      PATH: dashboard
+      GIT_REF: ${{ github.sha }}
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
+      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
 
 
   build_artifacts:

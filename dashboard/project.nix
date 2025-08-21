@@ -14,6 +14,7 @@ let
       "pnpm-workspace.yaml"
       "pnpm-lock.yaml"
       "turbo.json"
+      "${submodule}/.env.test"
       "${submodule}/.env.example"
       "${submodule}/.eslintignore"
       "${submodule}/.eslintrc.js"
@@ -54,6 +55,56 @@ rec {
   };
 
   entrypoint = pkgs.writeScriptBin "docker-entrypoint.sh" (builtins.readFile ./docker-entrypoint.sh);
+
+  check = pkgs.runCommand "check"
+    {
+      nativeBuildInputs = checkDeps ++ buildInputs ++ nativeBuildInputs;
+    } ''
+    cp -r ${src}/* .
+    chmod +w -R .
+
+    cp -r ${node_modules}/node_modules/ node_modules
+    cp -r ${node_modules}/dashboard/node_modules/ dashboard/node_modules
+
+    export HOME=$TMPDIR
+
+    cd dashboard
+
+    echo "➜ Running linter"
+    pnpm lint || echo "⚠️⚠️⚠️ Linter failed ⚠️⚠️⚠️"
+
+    echo "➜ Running unit tests"
+    pnpm test --run || echo "⚠️⚠️⚠️ Unit tests failed ⚠️⚠️⚠️"
+
+    echo "➜ Running e2e tests against local Nhost instance"
+    pnpm e2e:local || echo "⚠️⚠️⚠️ E2E tests against local Nhost instance failed ⚠️⚠️⚠️"
+
+    mkdir -p $out
+  '';
+
+  check-staging = pkgs.runCommand "check"
+    {
+      nativeBuildInputs = checkDeps ++ buildInputs ++ nativeBuildInputs;
+    } ''
+    cp -r ${src}/* .
+    chmod +w -R .
+
+    cp -r ${node_modules}/node_modules/ node_modules
+    cp -r ${node_modules}/dashboard/node_modules/ dashboard/node_modules
+
+    export HOME=$TMPDIR
+
+    cd dashboard
+
+    echo "➜ Running e2e tests"
+    pnpm e2e || echo "⚠️⚠️⚠️ E2E tests failed ⚠️⚠️⚠️"
+
+    echo "➜ Running e2e tests (onboarding)"
+    pnpm e2e:onboarding || echo "⚠️⚠️⚠️ E2E onboarding tests failed ⚠️⚠️⚠️"
+
+    mkdir -p $out
+  '';
+
 
   package = pkgs.stdenv.mkDerivation {
     inherit name src;

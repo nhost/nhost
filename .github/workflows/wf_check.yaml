@@ -5,7 +5,7 @@ on:
       NAME:
         type: string
         required: true
-      PROJECT:
+      PATH:
         type: string
         required: true
       GIT_REF:
@@ -26,7 +26,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: ${{ inputs.PROJECT }}
+        working-directory: ${{ inputs.PATH }}
 
     permissions:
       id-token: write
@@ -39,7 +39,6 @@ jobs:
       with:
         fetch-depth: 0
         ref: ${{ inputs.GIT_REF }}
-        submodules: true
 
     - name: Collect Workflow Telemetry
       uses: catchpoint/workflow-telemetry-action@v2
@@ -68,11 +67,6 @@ jobs:
           access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
           substituters = https://cache.nixos.org/?priority=40 s3://nhost-nix-cache?region=eu-central-1&priority=50
           trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ${{ secrets.NIX_CACHE_PUB_KEY }}
-
-    # - uses: DeterminateSystems/magic-nix-cache-action@v7
-    #   with:
-    #     diagnostic-endpoint: ""
-    #     use-flakehub: false
 
     - name: "Verify if we need to build"
       id: verify-build
@@ -103,4 +97,3 @@ jobs:
 
     - run: rm -f cache-priv-key.pem
       if: always()
-
