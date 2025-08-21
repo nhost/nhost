@@ -73,7 +73,8 @@ env:
 
 jobs:
   tests:
-    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
+    # runs-on: blacksmith-2vcpu-ubuntu-2404-arm
+    runs-on: ubuntu-2404
     timeout-minutes: 30
 
     defaults:
@@ -132,15 +133,15 @@ jobs:
       if: steps.fetch-dashboard-preview-url.outputs.preview_url != ''
 
     - name: Install playwright browsers
-      run: npx -y playwright install chromium --with-deps
+      run: nix develop .\#dashboard -c pnpm playwright install --with-deps
 
     - name: Run Onboarding Dashboard e2e tests
       timeout-minutes: 30
-      run: npx -y playwright test --config=playwright.config.ts -x --project=onboarding
+      run: nix develop .\#dashboard -c pnpm e2e:onboarding
 
     - name: Run e2e tests
       timeout-minutes: 20
-      run: npx -y playwright test --config=playwright.config.ts -x --project=main
+      run: nix develop .\#dashboard -c pnpm e2e
 
     - name: Encrypt Playwright report
       if: failure()
