@@ -21,7 +21,8 @@ on:
 
 jobs:
   check-permissions:
-    runs-on: ubuntu-latest
+    # runs-on: ubuntu-latest
+    runs-on: blacksmith-ubuntu-2404-arm
     steps:
       - run: |
           echo "github.event_name: ${{ github.event_name }}"
