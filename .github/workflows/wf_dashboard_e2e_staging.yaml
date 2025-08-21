@@ -1,0 +1,148 @@
+---
+on:
+  workflow_call:
+    inputs:
+      NAME:
+        type: string
+        required: true
+      PATH:
+        type: string
+        required: true
+      GIT_REF:
+        type: string
+        required: false
+      NHOST_TEST_DASHBOARD_URL:
+        type: string
+        required: true
+      NHOST_TEST_PROJECT_NAME:
+        type: string
+        required: true
+      NHOST_TEST_ORGANIZATION_NAME:
+        type: string
+        required: true
+      NHOST_TEST_ORGANIZATION_SLUG:
+        type: string
+        required: true
+      NHOST_TEST_PERSONAL_ORG_SLUG:
+        type: string
+        required: true
+      NHOST_TEST_PROJECT_SUBDOMAIN:
+        type: string
+        required: true
+      NHOST_PRO_TEST_PROJECT_NAME:
+        type: string
+        required: true
+    secrets:
+      AWS_ACCOUNT_ID:
+        required: true
+      NIX_CACHE_PUB_KEY:
+        required: true
+      NIX_CACHE_PRIV_KEY:
+        required: true
+      DASHBOARD_VERCEL_DEPLOY_TOKEN:
+        required: true
+      DASHBOARD_VERCEL_TEAM_ID:
+        required: true
+      DASHBOARD_STAGING_VERCEL_PROJECT_ID:
+        required: true
+      NHOST_TEST_USER_EMAIL:
+        required: true
+      NHOST_TEST_USER_PASSWORD:
+        required: true
+      NHOST_TEST_PROJECT_ADMIN_SECRET:
+        required: true
+      NHOST_TEST_FREE_USER_EMAILS:
+        required: true
+
+env:
+  NEXT_PUBLIC_ENV: dev
+  NEXT_TELEMETRY_DISABLED: 1
+  NHOST_TEST_DASHBOARD_URL: ${{ inputs.NHOST_TEST_DASHBOARD_URL }}
+  NHOST_TEST_PROJECT_NAME: ${{ inputs.NHOST_TEST_PROJECT_NAME }}
+  NHOST_TEST_ORGANIZATION_NAME: ${{ inputs.NHOST_TEST_ORGANIZATION_NAME }}
+  NHOST_TEST_ORGANIZATION_SLUG: ${{ inputs.NHOST_TEST_ORGANIZATION_SLUG }}
+  NHOST_TEST_PERSONAL_ORG_SLUG: ${{ inputs.NHOST_TEST_PERSONAL_ORG_SLUG }}
+  NHOST_TEST_PROJECT_SUBDOMAIN: ${{ inputs.NHOST_TEST_PROJECT_SUBDOMAIN }}
+  NHOST_PRO_TEST_PROJECT_NAME: ${{ inputs.NHOST_PRO_TEST_PROJECT_NAME }}
+  NHOST_TEST_USER_EMAIL: ${{ secrets.NHOST_TEST_USER_EMAIL }}
+  NHOST_TEST_USER_PASSWORD: ${{ secrets.NHOST_TEST_USER_PASSWORD }}
+  NHOST_TEST_PROJECT_ADMIN_SECRET: '${{ secrets.NHOST_TEST_PROJECT_ADMIN_SECRET }}'
+  NHOST_TEST_FREE_USER_EMAILS: ${{ secrets.NHOST_TEST_FREE_USER_EMAILS }}
+
+jobs:
+  tests:
+    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
+    timeout-minutes: 30
+
+    defaults:
+      run:
+        working-directory: ${{ inputs.PATH }}
+
+    permissions:
+      id-token: write
+      contents: write
+      actions: read
+
+    steps:
+    - name: "Check out repository"
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        ref: ${{ inputs.GIT_REF }}
+
+    - name: Collect Workflow Telemetry
+      uses: catchpoint/workflow-telemetry-action@v2
+      with:
+        comment_on_pr: false
+
+    - name: Configure aws
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-nhost-${{ github.event.repository.name }}
+        aws-region: eu-central-1
+
+    - uses: cachix/install-nix-action@v31
+      with:
+        install_url: "https://releases.nixos.org/nix/nix-2.22.3/install"
+        install_options: "--no-daemon"
+        extra_nix_config: |
+          experimental-features = nix-command flakes
+          sandbox = false
+          access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+          substituters = https://cache.nixos.org/?priority=40 s3://nhost-nix-cache?region=eu-central-1&priority=50
+          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ${{ secrets.NIX_CACHE_PUB_KEY }}
+
+    - name: Fetch Dashboard Preview URL
+      id: fetch-dashboard-preview-url
+      uses: zentered/vercel-preview-url@v1.1.9
+      env:
+        VERCEL_TOKEN: ${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
+        GITHUB_REF: ${{ github.ref_name }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
+      with:
+        vercel_team_id: ${{ secrets.DASHBOARD_VERCEL_TEAM_ID }}
+        vercel_project_id: ${{ secrets.DASHBOARD_STAGING_VERCEL_PROJECT_ID }}
+        vercel_state: BUILDING,READY,INITIALIZING
+      if: ${{ github.ref_name != 'main' }}
+
+    - name: Set Dashboard Preview URL
+      run: echo "NHOST_TEST_DASHBOARD_URL=https://${{ steps.fetch-dashboard-preview-url.outputs.preview_url }}" >> $GITHUB_ENV
+      if: steps.fetch-dashboard-preview-url.outputs.preview_url != ''
+
+    - name: Run Onboarding Dashboard e2e tests
+      timeout-minutes: 30
+      run: nix develop .\#dashboard -c "pnpm e2e:onboarding"
+
+    - name: Run e2e tests
+      timeout-minutes: 20
+      run: nix develop .\#dashboard -c "pnpm e2e"
+
+    - name: "Cache build"
+      run: |
+       echo ${{ secrets.NIX_CACHE_PRIV_KEY }} > cache-priv-key.pem
+       nix store sign --key-file cache-priv-key.pem --all
+       find /nix/store -maxdepth 1 -name "*-*" -type d -exec nix copy --to s3://nhost-nix-cache\?region=eu-central-1 {} \;
+      if: always()
+
+    - run: rm -f cache-priv-key.pem
+      if: always()

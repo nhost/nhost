@@ -31,7 +31,6 @@ jobs:
         run: |
           exit 1
 
-
   tests:
     uses: ./.github/workflows/wf_check.yaml
     needs:
@@ -46,6 +45,33 @@ jobs:
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
       NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
 
+  e2e_staging:
+    uses: ./.github/workflows/wf_dashboard_e2e_staging.yaml
+    needs:
+      - check-permissions
+      - build_artifacts
+    with:
+      NAME: dashboard
+      PATH: dashboard
+      GIT_REF: ${{ github.sha }}
+      NHOST_TEST_DASHBOARD_URL: ${{ vars.NHOST_TEST_DASHBOARD_URL }}
+      NHOST_TEST_PROJECT_NAME: ${{ vars.NHOST_TEST_PROJECT_NAME }}
+      NHOST_TEST_ORGANIZATION_NAME: ${{ vars.NHOST_TEST_ORGANIZATION_NAME }}
+      NHOST_TEST_ORGANIZATION_SLUG: ${{ vars.NHOST_TEST_ORGANIZATION_SLUG }}
+      NHOST_TEST_PERSONAL_ORG_SLUG: ${{ vars.NHOST_TEST_PERSONAL_ORG_SLUG }}
+      NHOST_TEST_PROJECT_SUBDOMAIN: ${{ vars.NHOST_TEST_PROJECT_SUBDOMAIN }}
+      NHOST_PRO_TEST_PROJECT_NAME: ${{ vars.NHOST_PRO_TEST_PROJECT_NAME }}
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
+      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+      DASHBOARD_VERCEL_DEPLOY_TOKEN: ${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
+      DASHBOARD_VERCEL_TEAM_ID: ${{ secrets.DASHBOARD_VERCEL_TEAM
+      DASHBOARD_STAGING_VERCEL_PROJECT_ID: ${{ secrets.DASHBOARD_STAGING_VERCEL_PROJECT_ID }}
+      NHOST_TEST_USER_EMAIL: ${{ secrets.NHOST_TEST_USER_EMAIL }}
+      NHOST_TEST_USER_PASSWORD: ${{ secrets.NHOST_TEST_USER_PASSWORD }}
+      NHOST_TEST_PROJECT_ADMIN_SECRET: '${{ secrets.NHOST_TEST_PROJECT_ADMIN_SECRET }}'
+      NHOST_TEST_FREE_USER_EMAILS: ${{ secrets.NHOST_TEST_FREE_USER_EMAILS }}
 
   build_artifacts:
     uses: ./.github/workflows/wf_build_artifacts.yaml
