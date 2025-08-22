@@ -32,7 +32,8 @@ jobs:
   publish-vercel:
     name: Publish to Vercel
     runs-on: blacksmith-2vcpu-ubuntu-2404
-
+    outputs:
+      preview-url: ${{ steps.deploy.outputs.preview-url }}  # Add this line
     permissions:
       id-token: write
       contents: write
@@ -80,3 +81,6 @@ jobs:
 
         PREVIEW_URL=$(grep "Preview:" /tmp/vercel_output | awk '{print $2}')
         echo "preview-url=$PREVIEW_URL" >> $GITHUB_OUTPUT
+
+    - run: rm -rf .vercel
+      if: always()
