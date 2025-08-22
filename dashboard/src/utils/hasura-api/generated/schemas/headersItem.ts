@@ -5,10 +5,7 @@
  * API for managing remote schemas in Hasura
  * OpenAPI spec version: 1.0.0
  */
+import type { HeaderWithEnv } from './headerWithEnv';
+import type { HeaderWithValue } from './headerWithValue';
 
-export interface RemoteSchemaHeaderWithValue {
-  /** Name of the header */
-  name: string;
-  /** Value of the header */
-  value: string;
-}
+export type HeadersItem = HeaderWithValue | HeaderWithEnv;

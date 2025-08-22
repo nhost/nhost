@@ -6,9 +6,9 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export interface RemoteSchemaHeaderWithEnv {
+export interface HeaderWithValue {
   /** Name of the header */
   name: string;
-  /** Environment variable name to get the value from */
-  value_from_env: string;
+  /** Value of the header */
+  value: string;
 }
