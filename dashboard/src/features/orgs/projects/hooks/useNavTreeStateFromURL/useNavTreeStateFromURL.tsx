@@ -26,6 +26,10 @@ const useNavTreeStateFromURL = (): TreeState => {
   const isSettingsPage = pathSegments.includes('settings');
   const settingsPage = isSettingsPage ? pathSegments[6] || null : null;
 
+  const isGraphQLPage = pathSegments.includes('graphql');
+  const graphqlSubPage =
+    isGraphQLPage && pathSegments.length > 6 ? pathSegments[6] || null : null;
+
   return useMemo(() => {
     if (!orgSlug) {
       // If no orgSlug, return an empty state
@@ -67,6 +71,17 @@ const useNavTreeStateFromURL = (): TreeState => {
       }
     }
 
+    if (isGraphQLPage) {
+      expandedItems.push(`${orgSlug}-${appSubdomain}-graphql`);
+      if (!graphqlSubPage) {
+        // When on /graphql (no sub-page), focus on GraphQL Playground
+        focusedItem = `${orgSlug}-${appSubdomain}-graphql-playground`;
+      } else {
+        // When on /graphql/sub-page, focus on the specific sub-page
+        focusedItem = `${orgSlug}-${appSubdomain}-graphql-${graphqlSubPage}`;
+      }
+    }
+
     return { expandedItems, focusedItem };
   }, [
     orgSlug,
@@ -75,6 +90,8 @@ const useNavTreeStateFromURL = (): TreeState => {
     projectPage,
     settingsPage,
     isSettingsPage,
+    isGraphQLPage,
+    graphqlSubPage,
     newProject,
   ]);
 };
