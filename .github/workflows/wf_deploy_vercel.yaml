@@ -65,11 +65,11 @@ jobs:
         PROD_OPTS=$([ "${{ inputs.ENVIRONMENT }}" = "production" ] && echo "--prod" || echo "")
         TARGET_OPTS=$([ "${{ inputs.ENVIRONMENT }}" != "production" ] && echo "--target=${{ inputs.ENVIRONMENT }}" || echo "")
         echo "Deploying to: ${{ inputs.ENVIRONMENT }}..."
-        nix develop .\#vercel -- \
+        nix develop .\#vercel -c \
           vercel pull --environment=${{ inputs.ENVIRONMENT }} --token=${{ secrets.VERCEL_DEPLOY_TOKEN }}
-        nix develop .\#vercel -- \
+        nix develop .\#vercel -c \
           vercel build $TARGET_OPTS --token=${{ secrets.VERCEL_DEPLOY_TOKEN }}
-        nix develop .\#vercel -- \
+        nix develop .\#vercel -c \
           vercel deploy $PROD_OPTS --prebuilt --token=${{ secrets.VERCEL_DEPLOY_TOKEN }} | tee /tmp/vercel_output
 
         PREVIEW_URL=$(grep "Preview:" /tmp/vercel_output | awk '{print $2}')
