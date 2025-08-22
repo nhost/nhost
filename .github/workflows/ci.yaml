@@ -194,16 +194,21 @@ jobs:
         if: always() && (matrix.package.path == 'packages/hasura-auth-js' || matrix.package.path == 'packages/hasura-storage-js')
         working-directory: ./${{ matrix.package.path }}
         run: nhost down
-      - id: file-name
-        if: ${{ failure() }}
-        name: Transform package name into a valid file name
+
+      - name: Encrypt Playwright report
+        if: ${{ failure() && hashFiles('dashboard/playwright-report/**') != ''}}
         run: |
-          PACKAGE_FILE_NAME=$(echo "${{ matrix.package.name }}" | sed 's/@//g; s/\//-/g')
-          echo "fileName=$PACKAGE_FILE_NAME"  >> $GITHUB_OUTPUT
-      # * Run this step only if the previous step failed, and Playwright generated a report
-      - name: Upload Playwright Report
-        if: ${{ failure() && hashFiles(format('{0}/playwright-report/**', matrix.package.path)) != ''}}
+          tar -czf playwright-report.tar.gz playwright-report/
+          openssl enc -aes-256-cbc -salt -pbkdf2 -iter 100000 \
+            -in playwright-report.tar.gz \
+            -out playwright-report.tar.gz.enc \
+            -k "${{ secrets.PLAYWRIGHT_REPORT_ENCRYPTION_KEY }}"
+          rm playwright-report.tar.gz
+
+      - name: Upload encrypted Playwright report
         uses: actions/upload-artifact@v4
+        if: ${{ failure() && hashFiles('dashboard/playwright-report/**') != ''}}
         with:
-          name: playwright-${{ steps.file-name.outputs.fileName }}
-          path: ${{format('{0}/playwright-report/**', matrix.package.path)}}
+          name: encrypted-playwright-report-${{ github.run_id }}
+          path: dashboard/playwright-report.tar.gz.enc
+          retention-days: 1
