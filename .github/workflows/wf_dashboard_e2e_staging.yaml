@@ -150,7 +150,7 @@ jobs:
       with:
         name: encrypted-playwright-report-${{ github.run_id }}
         path: dashboard/playwright-report.tar.gz.enc
-        retention-days: 30
+        retention-days: 1
 
     - name: "Cache build"
       run: |
