@@ -249,7 +249,7 @@
                   "group": "Authentication",
                   "icon": "user-check",
                   "pages": [
-                    "reference/auth/get-.well-known-jwks.json",
+                    "reference/auth/get-.well-known-jwks_json",
                     "reference/auth/post-elevate-webauthn",
                     "reference/auth/post-elevate-webauthn-verify",
                     "reference/auth/get-healthz",
