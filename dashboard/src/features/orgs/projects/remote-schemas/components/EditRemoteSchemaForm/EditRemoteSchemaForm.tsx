@@ -10,7 +10,7 @@ import { useUpdateRemoteSchemaMutation } from '@/features/orgs/projects/remote-s
 import { DEFAULT_REMOTE_SCHEMA_TIMEOUT_SECONDS } from '@/features/orgs/projects/remote-schemas/utils/constants';
 import { isRemoteSchemaFromUrlDefinition } from '@/features/orgs/projects/remote-schemas/utils/guards';
 import type {
-  RemoteSchemaHeaders,
+  Headers,
   RemoteSchemaInfo,
 } from '@/utils/hasura-api/generated/schemas';
 import { triggerToast } from '@/utils/toast';
@@ -78,7 +78,7 @@ export default function EditRemoteSchemaForm({
 
   async function handleSubmit(values: BaseRemoteSchemaFormValues) {
     try {
-      const headers: RemoteSchemaHeaders = values.definition.headers
+      const headers: Headers = values.definition.headers
         ?.map((header) => {
           if (header.value_from_env) {
             return {
@@ -94,7 +94,7 @@ export default function EditRemoteSchemaForm({
           }
           return null;
         })
-        .filter(Boolean) as RemoteSchemaHeaders;
+        .filter(Boolean) as Headers;
 
       const remoteSchema: RemoteSchemaInfo = {
         ...originalSchema,
