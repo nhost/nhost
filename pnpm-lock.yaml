@@ -368,6 +368,9 @@ importers:
       tailwindcss-animate:
         specifier: ^1.0.7
         version: 1.0.7(tailwindcss@3.4.16(ts-node@10.9.2(@types/node@16.18.105)(typescript@5.8.3)))
+      test@latest:
+        specifier: link:playwright/test@latest
+        version: link:playwright/test@latest
       timezones-list:
         specifier: ^3.1.0
         version: 3.1.0
