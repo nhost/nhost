@@ -79,17 +79,8 @@ jobs:
         nix develop .\#vercel -c \
           vercel deploy $PROD_OPTS --prebuilt --token=${{ secrets.VERCEL_DEPLOY_TOKEN }} | tee /tmp/vercel_output
 
-        echo "file output: /tmp/vercel_output"
-        cat /tmp/vercel_output
-        echo "file output end"
-        PREVIEW_URL=$(grep "Preview:" /tmp/vercel_output | awk '{print $2}')
-        if [ -z "$PREVIEW_URL" ]; then
-          echo "Error: Preview URL not found in Vercel output"
-          cat /tmp/vercel_output
-          exit 1
-        fi
-
-        echo "Preview URL: $PREVIEW_URL"
+        PREVIEW_URL=$(cat /tmp/vercel_output)
+        echo "🔗🔗🔗 Preview URL: $PREVIEW_URL"
         echo "preview-url=$PREVIEW_URL" >> $GITHUB_OUTPUT
 
     - run: rm -rf .vercel
