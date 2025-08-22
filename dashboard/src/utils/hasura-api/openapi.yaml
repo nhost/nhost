@@ -517,7 +517,7 @@ components:
           description: Environment variable name to get the value from
           example: HASURA_USER_ID
 
-    RemoteSchemaHeaderWithValue:
+    HeaderWithValue:
       type: object
       required:
         - name
@@ -530,9 +530,9 @@ components:
         value:
           type: string
           description: Value of the header
-          example: 123e4567-e89b-12d3-a456-426614174000
+          example: 123e4567-e89b-4444-4444-444444444000
 
-    RemoteSchemaHeaderWithEnv:
+    HeaderWithEnv:
       type: object
       required:
         - name
