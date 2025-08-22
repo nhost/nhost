@@ -67,3 +67,5 @@ out/
 /.vscode/
 
 result
+
+.vitest
