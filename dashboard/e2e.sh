@@ -2,10 +2,10 @@
 set -euo pipefail
 
 echo "➜ Installing browsers and dependencies"
-playwright install chrome --with-deps || echo "⚠️⚠️⚠️ Failed to install browsers and dependencies ⚠️⚠️⚠️"
+pnpm run playwright install chrome --with-deps
 
 echo "➜ Running onboarding e2e tests"
-playwright test --config=playwright.config.ts -x --project=onboarding || echo "⚠️⚠️⚠️ onboarding tests failed ⚠️⚠️⚠️"
+pnpm run playwright test --config=playwright.config.ts -x --project=onboarding
 
 echo "➜ Running main e2e tests"
-playwright test --config=playwright.config.ts -x --project=main || echo "⚠️⚠️⚠️ main e2e tests failed ⚠️⚠️⚠️"
+pnpm run playwright test --config=playwright.config.ts -x --project=main
