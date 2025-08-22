@@ -9,8 +9,8 @@ import { useCreateRemoteSchemaMutation } from '@/features/orgs/projects/remote-s
 import { DEFAULT_REMOTE_SCHEMA_TIMEOUT_SECONDS } from '@/features/orgs/projects/remote-schemas/utils/constants';
 import type {
   AddRemoteSchemaArgs,
-  RemoteSchemaHeaders,
-  RemoteSchemaHeadersItem,
+  Headers,
+  HeadersItem,
 } from '@/utils/hasura-api/generated/schemas';
 import { triggerToast } from '@/utils/toast';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -74,9 +74,9 @@ export default function CreateRemoteSchemaForm({
 
   async function handleSubmit(values: BaseRemoteSchemaFormValues) {
     try {
-      const headers: RemoteSchemaHeaders = (
+      const headers: Headers = (
         values.definition.headers ?? []
-      ).map<RemoteSchemaHeadersItem>((header) => {
+      ).map<HeadersItem>((header) => {
         if (header.value_from_env) {
           return {
             name: header.name,

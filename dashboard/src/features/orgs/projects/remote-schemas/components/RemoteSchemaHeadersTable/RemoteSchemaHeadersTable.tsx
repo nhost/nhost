@@ -8,10 +8,10 @@ import {
   TableRow,
 } from '@/components/ui/v3/table';
 import { isHeaderWithEnvValue } from '@/features/orgs/projects/remote-schemas/utils/guards';
-import type { RemoteSchemaHeaders } from '@/utils/hasura-api/generated/schemas';
+import type { Headers } from '@/utils/hasura-api/generated/schemas';
 
 export interface RemoteSchemaHeadersTableProps {
-  headers: RemoteSchemaHeaders;
+  headers: Headers;
 }
 
 export default function RemoteSchemaHeadersTable({

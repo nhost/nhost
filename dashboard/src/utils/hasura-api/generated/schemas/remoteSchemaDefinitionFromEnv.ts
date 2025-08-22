@@ -5,8 +5,8 @@
  * API for managing remote schemas in Hasura
  * OpenAPI spec version: 1.0.0
  */
+import type { Headers } from './headers';
 import type { RemoteSchemaCustomization } from './remoteSchemaCustomization';
-import type { RemoteSchemaHeaders } from './remoteSchemaHeaders';
 
 /**
  * Remote schema definition using URL from environment variable
@@ -18,6 +18,6 @@ export interface RemoteSchemaDefinitionFromEnv {
   timeout_seconds?: number;
   /** Forward client headers to the remote schema */
   forward_client_headers?: boolean;
-  headers?: RemoteSchemaHeaders;
+  headers?: Headers;
   customization?: RemoteSchemaCustomization;
 }
