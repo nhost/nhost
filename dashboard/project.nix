@@ -51,7 +51,7 @@ let
 in
 rec {
   devShell = mkNodeDevShell {
-    buildInputs = [ ] ++ checkDeps ++ buildInputs ++ nativeBuildInputs;
+    buildInputs = [ pkgs.playwright-test ] ++ checkDeps ++ buildInputs ++ nativeBuildInputs;
   };
 
   entrypoint = pkgs.writeScriptBin "docker-entrypoint.sh" (builtins.readFile ./docker-entrypoint.sh);
