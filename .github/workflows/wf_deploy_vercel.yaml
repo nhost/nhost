@@ -28,6 +28,11 @@ jobs:
     name: Publish to Vercel
     runs-on: blacksmith-2vcpu-ubuntu-2404
 
+    permissions:
+      id-token: write
+      contents: write
+      actions: read
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
