@@ -5,7 +5,7 @@ set -euo pipefail
 # pnpm playwright install --with-deps
 
 echo "➜ Running onboarding e2e tests"
-playwright test --config=playwright.config.ts -x --project=onboarding
+pnpm playwright test --config=playwright.config.ts -x --project=onboarding
 
 echo "➜ Running main e2e tests"
-playwright test --config=playwright.config.ts -x --project=main
+pnpm playwright test --config=playwright.config.ts -x --project=main

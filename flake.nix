@@ -55,7 +55,7 @@
         devShells = flake-utils.lib.flattenTree {
           default = pkgs.mkShell {
             buildInputs = with pkgs; [
-              playwright-test
+              playwright-driver
               nhost-cli
               nodejs
               pnpm_10
@@ -63,6 +63,11 @@
               golangci-lint
               skopeo
             ];
+
+            shellHook = ''
+              export PLAYWRIGHT_BROWSERS_PATH=${pkgs.playwright-driver.browsers}
+              export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
+            '';
           };
 
           skopeo = pkgs.mkShell {
