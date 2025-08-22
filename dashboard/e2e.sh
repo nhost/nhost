@@ -1,8 +1,6 @@
 #!/bin/sh
 set -euo pipefail
 
-cd dashboard
-
 echo "➜ Installing browsers and dependencies"
 pnpm playwright install chrome --with-deps
 
