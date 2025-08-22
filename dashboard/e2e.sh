@@ -2,7 +2,7 @@
 set -euo pipefail
 
 echo "➜ Installing browsers and dependencies"
-pnpm playwright install chrome --with-deps
+pnpm playwright install --with-deps
 
 echo "➜ Running onboarding e2e tests"
 pnpm playwright test --config=playwright.config.ts -x --project=onboarding
