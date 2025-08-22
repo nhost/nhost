@@ -31,11 +31,26 @@ jobs:
         run: |
           exit 1
 
+  deploy-vercel:
+    uses: ./.github/workflows/wf_deploy_vercel.yaml
+    needs:
+      - check-permissions
+    with:
+      GIT_REF: ${{ github.sha }}
+      ENVIRONMENT: staging
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
+      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+      VERCEL_TEAM_ID: ${{ secrets.DASHBOARD_VERCEL_TEAM_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.DASHBOARD_STAGING_VERCEL_PROJECT_ID }}
+      VERCEL_DEPLOY_TOKEN: ${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
 
   e2e_staging:
     uses: ./.github/workflows/wf_dashboard_e2e_staging.yaml
     needs:
       - check-permissions
+      - deploy-vercel
     with:
       NAME: dashboard
       PATH: dashboard

@@ -55,6 +55,7 @@
         devShells = flake-utils.lib.flattenTree {
           default = pkgs.mkShell {
             buildInputs = with pkgs; [
+              nodePackages.vercel
               playwright-driver
               nhost-cli
               nodejs
@@ -73,6 +74,12 @@
           skopeo = pkgs.mkShell {
             buildInputs = with pkgs;[
               skopeo
+            ];
+          };
+
+          vercel = pkgs.mkShell {
+            buildInputs = with pkgs;[
+              nodePackages.vercel
             ];
           };
 
