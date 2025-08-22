@@ -55,6 +55,7 @@
         devShells = flake-utils.lib.flattenTree {
           default = pkgs.mkShell {
             buildInputs = with pkgs; [
+              playwright-test
               nhost-cli
               nodejs
               pnpm_10
