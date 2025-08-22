@@ -23,6 +23,11 @@ on:
       VERCEL_DEPLOY_TOKEN:
         required: true
 
+    outputs:
+      preview-url:
+        description: "The preview URL from Vercel deployment"
+        value: ${{ jobs.publish-vercel.outputs.preview-url }}
+
 jobs:
   publish-vercel:
     name: Publish to Vercel
@@ -58,6 +63,7 @@ jobs:
           trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ${{ secrets.NIX_CACHE_PUB_KEY }}
 
     - name: Trigger Vercel deployment
+      id: deploy
       env:
         VERCEL_ORG_ID: ${{ secrets.VERCEL_TEAM_ID }}
         VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}

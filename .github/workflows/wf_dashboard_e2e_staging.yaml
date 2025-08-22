@@ -114,20 +114,7 @@ jobs:
           substituters = https://cache.nixos.org/?priority=40 s3://nhost-nix-cache?region=eu-central-1&priority=50
           trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ${{ secrets.NIX_CACHE_PUB_KEY }}
 
-    - name: Fetch Dashboard Preview URL
-      id: fetch-dashboard-preview-url
-      uses: zentered/vercel-preview-url@v1.1.9
-      env:
-        VERCEL_TOKEN: ${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
-        GITHUB_REF: ${{ github.ref_name }}
-        GITHUB_REPOSITORY: ${{ github.repository }}
-      with:
-        vercel_team_id: ${{ secrets.DASHBOARD_VERCEL_TEAM_ID }}
-        vercel_project_id: ${{ secrets.DASHBOARD_STAGING_VERCEL_PROJECT_ID }}
-        vercel_state: BUILDING,READY,INITIALIZING
-      if: ${{ github.ref_name != 'main' }}
-
-    - name: Set Dashboard Preview URL
+    - name: Set Dashboard URL
       run: echo "NHOST_TEST_DASHBOARD_URL=https://${{ steps.fetch-dashboard-preview-url.outputs.preview_url }}" >> $GITHUB_ENV
       if: steps.fetch-dashboard-preview-url.outputs.preview_url != ''
 
