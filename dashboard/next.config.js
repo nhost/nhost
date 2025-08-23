@@ -34,14 +34,18 @@ module.exports = withBundleAnalyzer({
     dirs: ['src'],
   },
   async headers() {
+    if (process.env.NEXT_PUBLIC_ENV === 'development') {
+      return [];
+    }
+
     return [
       {
         source: '/(.*)',
         headers: [
-          // {
-          //   key: 'Content-Security-Policy',
-          //   hgvalue: cspHeader.replace(/\s+/g, ' ').trim(),
-          // },
+          {
+            key: 'Content-Security-Policy',
+            value: cspHeader.replace(/\s+/g, ' ').trim(),
+          },
           {
             key: 'X-Frame-Options',
             value: 'DENY',
