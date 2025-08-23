@@ -48,19 +48,19 @@ test('user should be able to finish onboarding', async () => {
     .getByPlaceholder('Full name on card')
     .fill('EndyTo EndyTest');
   await stripeFrame.locator('#billingCountry').scrollIntoViewIfNeeded();
-  // Need to comment out for local testing START
-  await stripeFrame.getByPlaceholder('Address', { exact: true }).click();
-  stripeFrame.locator('span:has-text("Enter address manually")');
-  await stripeFrame.getByText('Enter address manually').click();
-  await stripeFrame
-    .getByPlaceholder('Address line 1', { exact: true })
-    .fill('123 Main Street');
-  await stripeFrame
-    .getByPlaceholder('City', { exact: true })
-    .fill('Springfield');
-  await stripeFrame.getByPlaceholder('ZIP', { exact: true }).fill('62701');
-  await stripeFrame.locator('#enableStripePass').click({ force: true });
-  // local Comment end
+  // Need to comment out for testing outside US START
+  // await stripeFrame.getByPlaceholder('Address', { exact: true }).click();
+  // stripeFrame.locator('span:has-text("Enter address manually")');
+  // await stripeFrame.getByText('Enter address manually').click();
+  // await stripeFrame
+  //   .getByPlaceholder('Address line 1', { exact: true })
+  //   .fill('123 Main Street');
+  // await stripeFrame
+  //   .getByPlaceholder('City', { exact: true })
+  //   .fill('Springfield');
+  // await stripeFrame.getByPlaceholder('ZIP', { exact: true }).fill('62701');
+  // await stripeFrame.locator('#enableStripePass').click({ force: true });
+  // Need to comment out for testing outside US END
   stripeFrame
     .getByTestId('hosted-payment-submit-button')
     .scrollIntoViewIfNeeded();
