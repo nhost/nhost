@@ -80,7 +80,7 @@ jobs:
           vercel deploy $PROD_OPTS --prebuilt --token=${{ secrets.VERCEL_DEPLOY_TOKEN }} | tee /tmp/vercel_output
 
         PREVIEW_URL=$(cat /tmp/vercel_output)
-        echo "🔗🔗🔗 Preview URL: $PREVIEW_URL"
+        echo "\n🔗🔗🔗 Preview URL: $PREVIEW_URL"
         echo "preview-url=$PREVIEW_URL" >> $GITHUB_OUTPUT
 
     - run: rm -rf .vercel
