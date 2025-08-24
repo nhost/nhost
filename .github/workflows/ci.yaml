@@ -198,17 +198,17 @@ jobs:
       - name: Encrypt Playwright report
         if: ${{ failure() && hashFiles('dashboard/playwright-report/**') != ''}}
         run: |
-          tar -czf playwright-report.tar.gz playwright-report/
+          tar -czf dashboard/playwright-report.tar.gz playwright-report/
           openssl enc -aes-256-cbc -salt -pbkdf2 -iter 100000 \
-            -in playwright-report.tar.gz \
+            -in dashboard/playwright-report.tar.gz \
             -out playwright-report.tar.gz.enc \
             -k "${{ secrets.PLAYWRIGHT_REPORT_ENCRYPTION_KEY }}"
-          rm playwright-report.tar.gz
+          rm dashboard/playwright-report.tar.gz
 
       - name: Upload encrypted Playwright report
         uses: actions/upload-artifact@v4
         if: ${{ failure() && hashFiles('dashboard/playwright-report/**') != ''}}
         with:
           name: encrypted-playwright-report-${{ github.run_id }}
-          path: dashboard/playwright-report.tar.gz.enc
+          path: playwright-report.tar.gz.enc
           retention-days: 1
