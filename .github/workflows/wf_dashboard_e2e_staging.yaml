@@ -118,9 +118,6 @@ jobs:
       run: |
         nix develop .\#dashboard -c make dev-env-cli-up
 
-    - name: Set Dashboard URL
-      run: echo "NHOST_TEST_DASHBOARD_URL=https://${{ steps.fetch-dashboard-preview-url.outputs.preview_url }}" >> $GITHUB_ENV
-
     - name: Run e2e tests
       run: nix develop .\#dashboard -c pnpm e2e
 

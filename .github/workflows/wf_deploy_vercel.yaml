@@ -91,12 +91,12 @@ jobs:
       with:
         header: "vercel-${{ inputs.NAME }}-${{ inputs.ENVIRONMENT }}"
         message: |
-          Deployed to vercel
+          # Vercel Deployment Info - ${{ inputs.NAME }}
 
-          * Name: `${{ inputs.NAME }}`
-          * Environment: `${{ inputs.ENVIRONMENT }}`
           * URL: ${{ steps.deploy.outputs.preview-url }}
-          * Commit: `${{ inputs.GIT_REF }}`
+          * Git Ref: `${{ inputs.GIT_REF }}`
+          * Commit: `${{ github.event.pull_request.head.sha || github.sha }}`
+
       if: github.event_name == 'pull_request' || github.event_name == 'pull_request_target'
 
     - run: rm -rf .vercel
