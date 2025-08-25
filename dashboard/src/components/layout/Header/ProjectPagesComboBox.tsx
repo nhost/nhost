@@ -71,7 +71,7 @@ export default function ProjectPagesComboBox() {
         label: 'Database',
         value: 'database',
         icon: <DatabaseIcon className="h-4 w-4" />,
-        slug: '/database/browser/default',
+        slug: 'database/browser/default',
         disabled: false,
       },
       {
