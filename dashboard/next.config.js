@@ -5,9 +5,9 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 const { version } = require('./package.json');
 
 const cspHeader = `
-    default-src 'self' *.nhost.run ws://*.nhost.run nhost.run ws://nhost.run;
-    script-src 'self' 'unsafe-eval' 'unsafe-inline' cdn.segment.com js.stripe.com;
-    connect-src 'self' *.nhost.run ws://*.nhost.run nhost.run ws://nhost.run discord.com api.segment.io api.segment.com cdn.segment.com nhost.zendesk.com;
+    default-src 'self' *.nhost.run wss://*.nhost.run nhost.run wss://nhost.run;
+    script-src 'self' 'unsafe-eval' cdn.segment.com js.stripe.com challenges.cloudflare.com;
+    connect-src 'self' *.nhost.run wss://*.nhost.run nhost.run wss://nhost.run discord.com api.segment.io api.segment.com cdn.segment.com nhost.zendesk.com;
     style-src 'self' 'unsafe-inline';
     img-src 'self' blob: data: avatars.githubusercontent.com s.gravatar.com *.nhost.run nhost.run;
     font-src 'self' data:;
@@ -15,10 +15,13 @@ const cspHeader = `
     base-uri 'self';
     form-action 'self';
     frame-ancestors 'none';
-    frame-src 'self' js.stripe.com;
+    frame-src 'self' js.stripe.com challenges.cloudflare.com;
     block-all-mixed-content;
-    upgrade-insecure-requests;
 `;
+
+if (process.env.NEXT_PUBLIC_ENV !== 'development') {
+    cspHeader.concat(` upgrade-insecure-requests;`);
+}
 
 module.exports = withBundleAnalyzer({
   reactStrictMode: false,
@@ -38,10 +41,10 @@ module.exports = withBundleAnalyzer({
       {
         source: '/(.*)',
         headers: [
-          // {
-          //   key: 'Content-Security-Policy',
-          //   hgvalue: cspHeader.replace(/\s+/g, ' ').trim(),
-          // },
+          {
+            key: 'Content-Security-Policy',
+            value: cspHeader.replace(/\s+/g, ' ').trim(),
+          },
           {
             key: 'X-Frame-Options',
             value: 'DENY',
