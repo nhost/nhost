@@ -36,6 +36,7 @@ jobs:
     needs:
       - check-permissions
     with:
+      NAME: dashboard
       GIT_REF: ${{ github.sha }}
       ENVIRONMENT: preview
     secrets:
