@@ -75,7 +75,7 @@ jobs:
   unit:
     name: Unit tests
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - uses: actions/checkout@v3
       # * Install Node and dependencies. Package dependencies won't be downloaded again as they have been cached by the `build` job.
@@ -100,7 +100,7 @@ jobs:
   lint:
     name: Lint
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - uses: actions/checkout@v3
       # * Install Node and dependencies. Package dependencies won't be downloaded again as they have been cached by the `build` job.
@@ -127,7 +127,7 @@ jobs:
       fail-fast: false
       matrix:
         package: ${{ fromJson(needs.build.outputs.matrix) }}
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - uses: actions/checkout@v3
       # * Install Node and dependencies. Package dependencies won't be downloaded again as they have been cached by the `build` job.
