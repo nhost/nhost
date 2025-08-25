@@ -13,7 +13,7 @@ export default function NotFoundPage() {
       </Text>
 
       <Text className="font-display text-lg font-normal leading-6">
-        Page Not Found
+        Page Not Found!
       </Text>
 
       <NavLink href="/" passHref legacyBehavior>
