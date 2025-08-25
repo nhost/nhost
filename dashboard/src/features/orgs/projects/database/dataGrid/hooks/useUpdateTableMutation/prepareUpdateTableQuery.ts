@@ -13,7 +13,8 @@ import {
 } from '@/features/orgs/projects/database/dataGrid/utils/hasuraQueryHelpers';
 import { prepareCreateForeignKeyRelationQuery } from '@/features/orgs/projects/database/dataGrid/utils/prepareCreateForeignKeyRelationQuery';
 import { prepareUpdateForeignKeyRelationQuery } from '@/features/orgs/projects/database/dataGrid/utils/prepareUpdateForeignKeyRelationQuery';
-import { isNotEmptyValue } from '@/lib/utils';
+import { areStrArraysEqual, isNotEmptyValue } from '@/lib/utils';
+import { format } from 'node-pg-format';
 
 export interface PrepareUpdateTableQueryVariables
   extends Omit<MutationOrQueryBaseOptions, 'appUrl' | 'table' | 'adminSecret'> {
@@ -108,12 +109,26 @@ export default function prepareUpdateTableQuery({
     }, []),
   );
 
-  const currentPrimaryKey = originalColumns.find((column) => column.isPrimary);
+  const currentPrimaryKeys = originalColumns.filter(
+    (column) => column.isPrimary,
+  );
 
-  if (updatedTable?.primaryKey !== currentPrimaryKey?.id) {
+  const currentPrimaryKeyNames = currentPrimaryKeys.map((pk) => `${pk.name}`);
+  const updatedPrimaryKeys = updatedTable.primaryKey;
+  const hasPrimaryKeysChanged = !areStrArraysEqual(
+    currentPrimaryKeyNames,
+    updatedTable.primaryKey,
+  );
+
+  if (hasPrimaryKeysChanged) {
+    const primaryKeyList = updatedTable.primaryKey
+      .map((pk) => format('%I', pk))
+      .join(', ');
+
     args = args.concat(
-      ...(currentPrimaryKey?.primaryConstraints || []).map(
-        (primaryConstraint) =>
+      ...currentPrimaryKeys
+        .map((currentPrimaryKey) => currentPrimaryKey?.primaryConstraints || [])
+        .map((primaryConstraint) =>
           getPreparedHasuraQuery(
             dataSource,
             'ALTER TABLE %I.%I DROP CONSTRAINT IF EXISTS %I',
@@ -121,15 +136,19 @@ export default function prepareUpdateTableQuery({
             originalTable.table_name,
             primaryConstraint,
           ),
-      ),
-      getPreparedHasuraQuery(
-        dataSource,
-        'ALTER TABLE %I.%I ADD PRIMARY KEY (%I)',
-        schema,
-        originalTable.table_name,
-        updatedTable.primaryKey,
-      ),
+        ),
     );
+    if (isNotEmptyValue(updatedPrimaryKeys)) {
+      args = args.concat(
+        getPreparedHasuraQuery(
+          dataSource,
+          'ALTER TABLE %I.%I ADD PRIMARY KEY (%s)',
+          schema,
+          originalTable.table_name,
+          primaryKeyList,
+        ),
+      );
+    }
   }
 
   const updatedForeignKeyRelationMap = (

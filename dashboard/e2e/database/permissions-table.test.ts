@@ -21,7 +21,7 @@ test('should create a table with role permissions to select row', async ({
   await prepareTable({
     page,
     name: tableName,
-    primaryKey: 'id',
+    primaryKeys: ['id'],
     columns: [
       { name: 'id', type: 'uuid', defaultValue: 'gen_random_uuid()' },
       { name: 'title', type: 'text' },
@@ -69,7 +69,7 @@ test('should create a table with role permissions and a custom check to select r
   await prepareTable({
     page,
     name: tableName,
-    primaryKey: 'id',
+    primaryKeys: ['id'],
     columns: [
       { name: 'id', type: 'uuid', defaultValue: 'gen_random_uuid()' },
       { name: 'title', type: 'text' },
