@@ -38,6 +38,7 @@ jobs:
       id-token: write
       contents: write
       actions: read
+      pull-requests: write
 
     steps:
     - name: Checkout repository
@@ -82,6 +83,15 @@ jobs:
         PREVIEW_URL=$(cat /tmp/vercel_output)
         echo "\n🔗🔗🔗 Preview URL: $PREVIEW_URL"
         echo "preview-url=$PREVIEW_URL" >> $GITHUB_OUTPUT
+
+    - uses: marocchino/sticky-pull-request-comment@v2
+      with:
+        header: "## :rocket: Nhost Dashboard URL"
+        message: |
+          Deployed to `${{ inputs.ENVIRONMENT }}`: ${{ steps.deploy.outputs.preview-url }}
+          ---
+          _This comment was posted by a bot, please don't delete it._
+      if: github.event_name == 'pull_request' || github.event_name == 'pull_request_target'
 
     - run: rm -rf .vercel
       if: always()
