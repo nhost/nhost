@@ -1,4 +1,0 @@
-# Docker image versions used in the cloud
-hasura: v2.15.2
-auth: 0.16.2
-storage: 0.3.0

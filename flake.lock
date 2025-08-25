@@ -101,6 +101,10 @@
           "nixops",
           "nix-filter"
         ],
+        "nix2container": [
+          "nixops",
+          "nix2container"
+        ],
         "nixops": "nixops",
         "nixpkgs": [
           "nixops",

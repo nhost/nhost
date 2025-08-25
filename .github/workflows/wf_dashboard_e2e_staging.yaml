@@ -1,0 +1,152 @@
+---
+on:
+  workflow_call:
+    inputs:
+      NAME:
+        type: string
+        required: true
+      PATH:
+        type: string
+        required: true
+      GIT_REF:
+        type: string
+        required: false
+      NHOST_TEST_DASHBOARD_URL:
+        type: string
+        required: true
+      NHOST_TEST_PROJECT_NAME:
+        type: string
+        required: true
+      NHOST_TEST_ORGANIZATION_NAME:
+        type: string
+        required: true
+      NHOST_TEST_ORGANIZATION_SLUG:
+        type: string
+        required: true
+      NHOST_TEST_PERSONAL_ORG_SLUG:
+        type: string
+        required: true
+      NHOST_TEST_PROJECT_SUBDOMAIN:
+        type: string
+        required: true
+      NHOST_PRO_TEST_PROJECT_NAME:
+        type: string
+        required: true
+    secrets:
+      AWS_ACCOUNT_ID:
+        required: true
+      NIX_CACHE_PUB_KEY:
+        required: true
+      NIX_CACHE_PRIV_KEY:
+        required: true
+      DASHBOARD_VERCEL_DEPLOY_TOKEN:
+        required: true
+      DASHBOARD_VERCEL_TEAM_ID:
+        required: true
+      DASHBOARD_STAGING_VERCEL_PROJECT_ID:
+        required: true
+      NHOST_TEST_USER_EMAIL:
+        required: true
+      NHOST_TEST_USER_PASSWORD:
+        required: true
+      NHOST_TEST_PROJECT_ADMIN_SECRET:
+        required: true
+      NHOST_TEST_FREE_USER_EMAILS:
+        required: true
+      PLAYWRIGHT_REPORT_ENCRYPTION_KEY:
+        required: true
+
+env:
+  NEXT_PUBLIC_ENV: dev
+  NEXT_TELEMETRY_DISABLED: 1
+  NHOST_TEST_DASHBOARD_URL: ${{ inputs.NHOST_TEST_DASHBOARD_URL }}
+  NHOST_TEST_PROJECT_NAME: ${{ inputs.NHOST_TEST_PROJECT_NAME }}
+  NHOST_TEST_ORGANIZATION_NAME: ${{ inputs.NHOST_TEST_ORGANIZATION_NAME }}
+  NHOST_TEST_ORGANIZATION_SLUG: ${{ inputs.NHOST_TEST_ORGANIZATION_SLUG }}
+  NHOST_TEST_PERSONAL_ORG_SLUG: ${{ inputs.NHOST_TEST_PERSONAL_ORG_SLUG }}
+  NHOST_TEST_PROJECT_SUBDOMAIN: ${{ inputs.NHOST_TEST_PROJECT_SUBDOMAIN }}
+  NHOST_PRO_TEST_PROJECT_NAME: ${{ inputs.NHOST_PRO_TEST_PROJECT_NAME }}
+  NHOST_TEST_USER_EMAIL: ${{ secrets.NHOST_TEST_USER_EMAIL }}
+  NHOST_TEST_USER_PASSWORD: ${{ secrets.NHOST_TEST_USER_PASSWORD }}
+  NHOST_TEST_PROJECT_ADMIN_SECRET: ${{ secrets.NHOST_TEST_PROJECT_ADMIN_SECRET }}
+  NHOST_TEST_FREE_USER_EMAILS: ${{ secrets.NHOST_TEST_FREE_USER_EMAILS }}
+
+jobs:
+  tests:
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    timeout-minutes: 30
+
+    defaults:
+      run:
+        working-directory: ${{ inputs.PATH }}
+
+    permissions:
+      id-token: write
+      contents: write
+      actions: read
+
+    steps:
+    - name: "Check out repository"
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        ref: ${{ inputs.GIT_REF }}
+
+    - name: Collect Workflow Telemetry
+      uses: catchpoint/workflow-telemetry-action@v2
+      with:
+        comment_on_pr: false
+
+    - name: Configure aws
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-nhost-${{ github.event.repository.name }}
+        aws-region: eu-central-1
+
+    - uses: cachix/install-nix-action@v31
+      with:
+        install_url: "https://releases.nixos.org/nix/nix-2.22.3/install"
+        install_options: "--no-daemon"
+        extra_nix_config: |
+          experimental-features = nix-command flakes
+          sandbox = false
+          access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+          substituters = https://cache.nixos.org/?priority=40 s3://nhost-nix-cache?region=eu-central-1&priority=50
+          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ${{ secrets.NIX_CACHE_PUB_KEY }}
+
+    - name: Start CLI
+      run: |
+        nix develop .\#dashboard -c make dev-env-cli-up
+
+    - name: Run e2e tests
+      run: nix develop .\#dashboard -c pnpm e2e
+
+    - name: Run e2e onboarding tests
+      run: nix develop .\#dashboard -c pnpm e2e:onboarding
+
+    - name: Run e2e local tests
+      run: nix develop .\#dashboard -c pnpm e2e:local
+
+    - name: Encrypt Playwright report
+      if: failure()
+      run: |
+        tar -czf playwright-report.tar.gz playwright-report/
+        openssl enc -aes-256-cbc -salt -pbkdf2 -iter 100000 \
+          -in playwright-report.tar.gz \
+          -out playwright-report.tar.gz.enc \
+          -k "${{ secrets.PLAYWRIGHT_REPORT_ENCRYPTION_KEY }}"
+        rm playwright-report.tar.gz
+
+    - name: Upload encrypted Playwright report
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: encrypted-playwright-report-${{ github.run_id }}
+        path: dashboard/playwright-report.tar.gz.enc
+        retention-days: 1
+
+    - name: "Cache build"
+      run: |
+        nix store sign --key-file <(echo "${{ secrets.NIX_CACHE_PRIV_KEY }}") --all
+        find /nix/store -maxdepth 1 -name "*-*" -type d | xargs -n 25 nix copy --to s3://nhost-nix-cache\?region=eu-central-1
+      if: always()

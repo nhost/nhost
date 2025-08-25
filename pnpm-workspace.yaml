@@ -1,10 +1,6 @@
 packages:
-  - 'packages/**'
-  - 'integrations/**'
   - 'dashboard'
   - 'docs'
   - '!**/test/**'
   - '!out/**'
-  - 'examples/**'
-  - '!templates/**'
   - '!**/functions'
