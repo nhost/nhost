@@ -3,6 +3,9 @@ name: 'deploy to vercel'
 on:
   workflow_call:
     inputs:
+      NAME:
+        required: true
+        type: string
       GIT_REF:
         required: true
         type: string
@@ -86,11 +89,14 @@ jobs:
 
     - uses: marocchino/sticky-pull-request-comment@v2
       with:
-        header: "## :rocket: Nhost Dashboard URL"
+        header: "vercel-${{ inputs.NAME }}-${{ inputs.ENVIRONMENT }}"
         message: |
-          Deployed to `${{ inputs.ENVIRONMENT }}`: ${{ steps.deploy.outputs.preview-url }}
-          ---
-          _This comment was posted by a bot, please don't delete it._
+          Deployed to vercel
+
+          * Name: `${{ inputs.NAME }}`
+          * Environment: `${{ inputs.ENVIRONMENT }}`
+          * URL: ${{ steps.deploy.outputs.preview-url }}
+          * Commit: `${{ inputs.GIT_REF }}`
       if: github.event_name == 'pull_request' || github.event_name == 'pull_request_target'
 
     - run: rm -rf .vercel
