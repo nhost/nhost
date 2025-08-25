@@ -114,6 +114,10 @@ jobs:
           substituters = https://cache.nixos.org/?priority=40 s3://nhost-nix-cache?region=eu-central-1&priority=50
           trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ${{ secrets.NIX_CACHE_PUB_KEY }}
 
+    - name: Start CLI
+      run: |
+        make dev-env-cli-up
+
     - name: Set Dashboard URL
       run: echo "NHOST_TEST_DASHBOARD_URL=https://${{ steps.fetch-dashboard-preview-url.outputs.preview_url }}" >> $GITHUB_ENV
       if: steps.fetch-dashboard-preview-url.outputs.preview_url != ''
@@ -123,6 +127,9 @@ jobs:
 
     - name: Run e2e onboarding tests
       run: nix develop .\#dashboard -c pnpm e2e:onboarding
+
+    - name: Run e2e local tests
+      run: nix develop .\#dashboard -c pnpm e2e:local
 
     - name: Encrypt Playwright report
       if: failure()

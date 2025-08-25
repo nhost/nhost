@@ -73,13 +73,10 @@ rec {
     cd dashboard
 
     echo "➜ Running linter"
-    pnpm lint || echo "⚠️⚠️⚠️ Linter failed ⚠️⚠️⚠️"
+    pnpm lint
 
     echo "➜ Running unit tests"
-    pnpm test --run || echo "⚠️⚠️⚠️ Unit tests failed ⚠️⚠️⚠️"
-
-    echo "➜ Running e2e tests against local Nhost instance"
-    pnpm e2e:local || echo "⚠️⚠️⚠️ E2E tests against local Nhost instance failed ⚠️⚠️⚠️"
+    pnpm test --run
 
     mkdir -p $out
   '';
@@ -99,10 +96,13 @@ rec {
     cd dashboard
 
     echo "➜ Running e2e tests"
-    pnpm e2e || echo "⚠️⚠️⚠️ E2E tests failed ⚠️⚠️⚠️"
+    pnpm e2e
 
     echo "➜ Running e2e tests (onboarding)"
-    pnpm e2e:onboarding || echo "⚠️⚠️⚠️ E2E onboarding tests failed ⚠️⚠️⚠️"
+    pnpm e2e:onboarding
+
+    echo "➜ Running e2e tests against local Nhost instance"
+    pnpm e2e:local
 
     mkdir -p $out
   '';

@@ -2,15 +2,30 @@ ROOT_DIR?=$(abspath ../)
 include $(ROOT_DIR)/build/makefiles/general.makefile
 
 
+.PHONY: dev-env-cli-up
+dev-env-cli-up: dev-env-cli-build  ## Starts the CLI using the dev dashboard
+	./dev-env-cli.sh up
+
+
+.PHONY: dev-env-cli-up
+dev-env-cli-down: ## Stops the CLI using the dev dashboard
+	./dev-env-cli.sh down
+
+
+.PHONY: dev-env-cli-build
+dev-env-cli-build: build-docker-image  ## Build the docker image with the dev dashboard
+
+
 .PHONY: _dev-env-up
 _dev-env-up:
-	./dev-env-cli.sh up
+	@echo "Nothing to do"
 
 
 .PHONY: _dev-env-down
 _dev-env-down:
-	./dev-env-cli.sh down
+	@echo "Nothing to do"
 
 
 .PHONY: _dev-env-build
-_dev-env-build: build-docker-image
+_dev-env-build:
+	@echo "Nothing to do"
