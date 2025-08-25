@@ -1,5 +1,21 @@
 # @nhost/dashboard
 
+## 2.35.0
+
+### Minor Changes
+
+- c4f383f: fix: dashboard: don't allow for upgrading to starter
+- 4c6400f: fix: handle redirect to verify email page if sign in with github
+- 412692c: chore (dashboard): Turn on strictNullChecks config
+
+### Patch Changes
+
+- 1708578: fix (dashboard): Update navbar after org and project operations
+- 34ede5c: fix: enable csp again
+- 96228df: chore (dashboard): update nhost-js to the latest version
+- 89f6fe6: chore (docker-example): update dashboard image version
+- e8a3789: fix (dashboard): scroll to active element in navbar when navigating
+
 ## 2.34.0
 
 ### Minor Changes
