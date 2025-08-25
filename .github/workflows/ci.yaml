@@ -35,7 +35,7 @@ env:
 jobs:
   build:
     name: Build @nhost packages
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - uses: actions/checkout@v3
         with:
@@ -198,7 +198,7 @@ jobs:
       - name: Encrypt Playwright report
         if: ${{ failure() && hashFiles('dashboard/playwright-report/**') != ''}}
         run: |
-          tar -czf dashboard/playwright-report.tar.gz playwright-report/
+          tar -czf dashboard/playwright-report.tar.gz dashboard/playwright-report/
           openssl enc -aes-256-cbc -salt -pbkdf2 -iter 100000 \
             -in dashboard/playwright-report.tar.gz \
             -out playwright-report.tar.gz.enc \
