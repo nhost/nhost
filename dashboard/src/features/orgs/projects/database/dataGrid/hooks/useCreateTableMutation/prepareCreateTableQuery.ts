@@ -54,7 +54,7 @@ export default function prepareCreateTableQuery({
     })
     .join(', ');
 
-  if (table.primaryKey) {
+  if (isNotEmptyValue(table.primaryKey)) {
     columnsAndConstraints = format(
       `${columnsAndConstraints}, PRIMARY KEY (%I)`,
       table.primaryKey,
