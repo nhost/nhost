@@ -29,7 +29,7 @@ httpPoolSize = 100
 version = 22
 
 [auth]
-version = '0.39.0-beta6'
+version = '0.41.2-beta2'
 
 [auth.elevatedPrivileges]
 mode = 'required'
@@ -91,6 +91,12 @@ teamId = '{{ secrets.APPLE_TEAM_ID }}'
 privateKey = '{{ secrets.APPLE_PRIVATE_KEY }}'
 
 [auth.method.oauth.azuread]
+tenant = 'common'
+enabled = true
+clientId = '{{ secrets.AZUREAD_CLIENT_ID }}'
+clientSecret = '{{ secrets.AZUREAD_CLIENT_SECRET }}'
+
+[auth.method.oauth.entraid]
 tenant = 'common'
 enabled = true
 clientId = '{{ secrets.AZUREAD_CLIENT_ID }}'
