@@ -1,0 +1,126 @@
+# Docker-compose example
+
+Here is an example on how to reproduce the Nhost stack from a docker-compose file.
+
+NOTE: You may notice that some options in the dashboard are greyed-out. These include additional services like CI integration, configuration management, etc., offered by the Nhost Cloud and therefore are not accessible when self-hosting.
+
+## Configuration
+
+```sh
+git clone https://github.com/nhost/nhost
+cd nhost/examples/docker-compose
+cp .env.example .env
+docker compose up -d
+```
+
+The following endpoints are now exposed:
+
+- `postgres://postgres@localhost:5432/postgres`
+
+- `http://localhost:1337/v1/graphql`: Hasura GraphQL endpoint
+- `http://localhost:1337/v1/auth`: Hasura Auth
+- `http://localhost:1337/v1/storage`: Hasura Storage
+- `http://localhost:1337/v1/functions`: Functions
+
+- `http://localhost:3030`: Nhost Dashboard
+- `http://localhost:1337`: Hasura Console
+- `http://localhost:8025`: Mailhog SMTP testing dashboard
+- `http://localhost:9090`: Traefik dashboard
+
+
+## Demo
+
+These instructions are purely for demonstration purposes. If you are looking to run the Nhost stack in production, please, review the docker-compose file, make sure you understand it, adjut it to your needs, and pay special attention to the `.env` file.
+
+```
+$ cp .env.example .env
+
+$ docker compose up -d
+[+] Running 12/12
+ ✔ Network docker-compose_default                  Created                           0.0s
+ ✔ Volume "docker-compose_functions_node_modules"  Created                           0.0s
+ ✔ Container docker-compose-traefik-1              Started                           0.3s
+ ✔ Container docker-compose-minio-1                Started                           0.3s
+ ✔ Container docker-compose-dashboard-1            Started                           0.2s
+ ✔ Container docker-compose-functions-1            Started                           0.2s
+ ✔ Container docker-compose-postgres-1             Started                           0.3s
+ ✔ Container docker-compose-graphql-1              Healthy                           5.9s
+ ✔ Container docker-compose-auth-1                 Started                           0.5s
+ ✔ Container docker-compose-storage-1              Started                           0.5s
+ ✔ Container docker-compose-console-1              Started                           6.0s
+```
+
+Now that the services are up, we can test the individual services.
+
+## Postgres
+
+```
+$ psql postgres://postgres:secret-pg-password-never-use-this-value@localhost:5432/postgres -c "SELECT VERSION();"
+Password for user postgres:
+                                                          version
+---------------------------------------------------------------------------------------------------------------------------
+ PostgreSQL 16.8 (Debian 16.8-1.pgdg120+1) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 12.2.0-14) 12.2.0, 64-bit
+(1 row)
+```
+
+## Auth
+
+```
+$ curl http://localhost:1337/v1/auth/version
+{"version":"0.37.1"}
+
+$ curl -X POST http://localhost:1337/v1/auth/signup/email-password \
+  -H "Content-Type: application/json" \
+  -d '{"email": "email@acme.test", "password":"s3cur3!"}'
+{
+  "session": {
+    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDMwNjQ3MTMsImh0dHBzOi8vaGFzdXJhLmlvL2p3dC9jbGFpbXMiOnsieC1oYXN1cmEtYWxsb3dlZC1yb2xlcyI6WyJtZSIsInVzZXIiXSwieC1oYXN1cmEtZGVmYXVsdC1yb2xlIjoidXNlciIsIngtaGFzdXJhLXVzZXItaWQiOiIxNDA5NjEwMS1kMjc2LTQwMDQtODQ2ZS04NGMwNTJmMmYzMzIiLCJ4LWhhc3VyYS11c2VyLWlzLWFub255bW91cyI6ImZhbHNlIn0sImlhdCI6MTc0MzA2MzgxMywiaXNzIjoiaGFzdXJhLWF1dGgiLCJzdWIiOiIxNDA5NjEwMS1kMjc2LTQwMDQtODQ2ZS04NGMwNTJmMmYzMzIifQ.FdtYDgJOfY28YOu1lRTvkNDsqiH88R9K7PvBiiwbU7E",
+    "accessTokenExpiresIn": 900,
+    "refreshToken": "70a5b31e-4713-4a53-972a-5c04a88aa266",
+    "refreshTokenId": "15ae98f6-0e50-43e2-9193-2a67f456eef0",
+    "user": {
+      "avatarUrl": "https://www.gravatar.com/avatar/1de09cde1ce545d06c9381280237c224?d=blank&r=g",
+      "createdAt": "2025-03-27T08:23:33.063162425Z",
+      "defaultRole": "user",
+      "displayName": "email@acme.test",
+      "email": "email@acme.test",
+      "emailVerified": false,
+      "id": "14096101-d276-4004-846e-84c052f2f332",
+      "isAnonymous": false,
+      "locale": "en",
+      "metadata": null,
+      "phoneNumberVerified": false,
+      "roles": [
+        "me",
+        "user"
+      ]
+    }
+  }
+}
+```
+
+## Storage
+
+```
+$ curl http://localhost:1337/v1/storage/version
+{"buildVersion":"0.7.1"}
+
+$ curl -X POST http://localhost:1337/v1/storage/files \
+   -H "X-Hasura-Admin-Secret: change-me" \
+   -H "Content-Type: multipart/form-data" \
+   -F "file=@README.md"
+
+
+```
+
+## Running the Nhost dashboard locally
+
+In order for you to be able to make edits to the database from the Nhost dashboard, you need to run the [Hasura console locally from the Hasura CLI](https://hasura.io/docs/latest/hasura-cli/commands/hasura_console/):
+
+```sh
+hasura console
+```
+
+The Nhost Dashboard [uses](https://github.com/nhost/nhost/discussions/2398) the [Hasura migrations API](https://hasura.io/docs/latest/hasura-cli/commands/hasura_console/#options) in order to make edits to the database. It runs over port 9693 and is only accessible through running the Hasura console from the CLI. Because the Docker compose still only uses the graphql-engine Hasura Docker image and does not include the CLI image, that is why you need to run it locally. See https://github.com/nhost/nhost/issues/1220. Users are welcome to contibute a Docker compose that includes the CLI image to resolve this.
+
+The Nhost Dashboard also requires the Hasura admin secret to `nhost-admin-secret` specified in the `.env` file.
