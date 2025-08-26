@@ -46,12 +46,12 @@ export async function navigateToProject({
 export async function prepareTable({
   page,
   name: tableName,
-  primaryKey,
+  primaryKeys,
   columns,
 }: {
   page: Page;
   name: string;
-  primaryKey: string;
+  primaryKeys: string[];
   columns: Array<{
     name: string;
     type: string;
@@ -60,7 +60,7 @@ export async function prepareTable({
     defaultValue?: string;
   }>;
 }) {
-  if (!columns.some(({ name }) => name === primaryKey)) {
+  if (!columns.some(({ name }) => primaryKeys.includes(name))) {
     throw new Error('Primary key must be one of the columns.');
   }
 
@@ -124,11 +124,13 @@ export async function prepareTable({
       },
     ),
   );
-
-  // select the first column as primary key
-  // await page.getByRole('button', { name: /primary key/i }).click();
   await page.getByLabel('Primary Key').click();
-  await page.getByRole('option', { name: primaryKey, exact: true }).click();
+  await Promise.all(
+    primaryKeys.map(async (primaryKey) => {
+      await page.getByRole('option', { name: primaryKey, exact: true }).click();
+    }),
+  );
+  await page.getByText('Create a New Table').click();
 }
 
 /**

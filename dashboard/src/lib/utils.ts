@@ -29,3 +29,14 @@ export function ifNullconvertToUndefined<T>(
 ): T | undefined {
   return nullableValue === null ? undefined : nullableValue;
 }
+
+export function areStrArraysEqual(arr1: string[], arr2: string[]) {
+  if (arr1.length !== arr2.length) {
+    return false;
+  }
+
+  const set1 = new Set(arr1);
+  const set2 = new Set(arr2);
+
+  return set1.size === set2.size && [...set1].every((col) => set2.has(col));
+}
