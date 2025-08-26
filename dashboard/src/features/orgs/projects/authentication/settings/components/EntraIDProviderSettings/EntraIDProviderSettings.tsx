@@ -161,7 +161,7 @@ export default function EntraIDProviderSettings() {
               loading: formState.isSubmitting,
             },
           }}
-          icon="/assets/brands/azuread.svg"
+          icon="/assets/brands/entraid.svg"
           switchId="enabled"
           showSwitch
           className={twMerge(

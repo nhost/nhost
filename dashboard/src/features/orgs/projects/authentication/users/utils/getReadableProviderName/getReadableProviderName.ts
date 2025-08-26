@@ -19,5 +19,9 @@ export default function getReadableProviderName(providerId: string) {
     return 'WorkOS';
   }
 
+  if (providerId === 'entraid') {
+    return 'Entra ID';
+  }
+
   return capitalize(providerId);
 }
