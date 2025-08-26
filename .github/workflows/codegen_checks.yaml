@@ -1,5 +1,5 @@
 ---
-name: "check and build"
+name: "codegen: check and build"
 on:
   # pull_request_target:
   pull_request:
