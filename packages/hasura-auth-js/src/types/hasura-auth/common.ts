@@ -53,6 +53,7 @@ export type Provider =
   | 'azuread'
   | 'bitbucket'
   | 'discord'
+  | 'entraid'
   | 'facebook'
   | 'github'
   | 'gitlab'
