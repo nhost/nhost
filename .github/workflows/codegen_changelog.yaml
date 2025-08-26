@@ -13,4 +13,4 @@ jobs:
   check-changelog:
     uses: ./.github/workflows/wf_check_changelog.yaml
     with:
-      PROJECT_PATH: tools/codegen
+      PATH: tools/codegen

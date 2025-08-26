@@ -23,4 +23,4 @@ jobs:
   check-changelog:
     uses: ./.github/workflows/wf_check_changelog.yaml
     with:
-      PROJECT_PATH: dashboard
+      PATH: dashboard
