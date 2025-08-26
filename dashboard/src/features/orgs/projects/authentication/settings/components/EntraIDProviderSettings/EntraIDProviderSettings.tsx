@@ -47,9 +47,9 @@ const validationSchema = Yup.object({
   enabled: Yup.boolean(),
 });
 
-export type AzureADProviderFormValues = Yup.InferType<typeof validationSchema>;
+export type EntraIDProviderFormValues = Yup.InferType<typeof validationSchema>;
 
-export default function AzureADProviderSettings() {
+export default function EntraIDProviderSettings() {
   const { project, loading: isProjectLoading } = useProject();
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
@@ -66,9 +66,9 @@ export default function AzureADProviderSettings() {
   });
 
   const { clientId, clientSecret, tenant, enabled } =
-    data?.config?.auth?.method?.oauth?.azuread || {};
+    data?.config?.auth?.method?.oauth?.entraid || {};
 
-  const form = useForm<AzureADProviderFormValues>({
+  const form = useForm<EntraIDProviderFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
       clientId: clientId || '',
@@ -94,7 +94,7 @@ export default function AzureADProviderSettings() {
     return (
       <ActivityIndicator
         delay={1000}
-        label="Loading settings for Azure AD..."
+        label="Loading settings for Entra ID..."
         className="justify-center"
       />
     );
@@ -107,7 +107,7 @@ export default function AzureADProviderSettings() {
   const { register, formState, watch } = form;
   const authEnabled = watch('enabled');
 
-  async function handleSubmit(formValues: AzureADProviderFormValues) {
+  async function handleSubmit(formValues: EntraIDProviderFormValues) {
     const updateConfigPromise = updateConfig({
       variables: {
         appId: project!.id,
@@ -115,7 +115,7 @@ export default function AzureADProviderSettings() {
           auth: {
             method: {
               oauth: {
-                azuread: formValues,
+                entraid: formValues,
               },
             },
           },
@@ -141,10 +141,10 @@ export default function AzureADProviderSettings() {
         }
       },
       {
-        loadingMessage: 'Azure AD settings are being updated...',
-        successMessage: 'Azure AD settings have been updated successfully.',
+        loadingMessage: 'Entra ID settings are being updated...',
+        successMessage: 'Entra ID settings have been updated successfully.',
         errorMessage:
-          "An error occurred while trying to update the project's Azure AD settings.",
+          "An error occurred while trying to update the project's Entra ID settings.",
       },
     );
   }
@@ -153,8 +153,8 @@ export default function AzureADProviderSettings() {
     <FormProvider {...form}>
       <Form onSubmit={handleSubmit}>
         <SettingsContainer
-          title="Azure AD"
-          description="⚠️ Azure AD is deprecated in favor of Entra ID. Please use Entra ID for new configurations."
+          title="Entra ID"
+          description="Allow users to sign in with Microsoft Entra ID."
           slotProps={{
             submitButton: {
               disabled: !formState.isDirty || maintenanceActive,
@@ -169,7 +169,7 @@ export default function AzureADProviderSettings() {
             !authEnabled && 'hidden',
           )}
         >
-          <BaseProviderSettings providerName="azuread" />
+          <BaseProviderSettings providerName="entraid" />
           <Input
             {...register('tenant')}
             name="tenant"
@@ -184,12 +184,12 @@ export default function AzureADProviderSettings() {
           />
           <Input
             name="redirectUrl"
-            id="azuerad-redirectUrl"
+            id="entraid-redirectUrl"
             defaultValue={`${generateAppServiceUrl(
               project!.subdomain,
               project!.region,
               'auth',
-            )}/signin/provider/azuread/callback`}
+            )}/signin/provider/entraid/callback`}
             className="col-span-2"
             fullWidth
             hideEmptyHelperText
@@ -208,7 +208,7 @@ export default function AzureADProviderSettings() {
                         project!.subdomain,
                         project!.region,
                         'auth',
-                      )}/signin/provider/azuread/callback`,
+                      )}/signin/provider/entraid/callback`,
                       'Redirect URL',
                     );
                   }}

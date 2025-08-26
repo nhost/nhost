@@ -81,6 +81,7 @@
                       "products/auth/social/sign-in-apple",
                       "products/auth/social/sign-in-azuread",
                       "products/auth/social/sign-in-discord",
+                      "products/auth/social/sign-in-entraid",
                       "products/auth/social/sign-in-facebook",
                       "products/auth/social/sign-in-github",
                       "products/auth/social/sign-in-google",

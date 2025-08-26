@@ -3,6 +3,7 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { AnonymousSignInSettings } from '@/features/orgs/projects/authentication/settings/components/AnonymousSignInSettings';
 import { AppleProviderSettings } from '@/features/orgs/projects/authentication/settings/components/AppleProviderSettings';
 import { AzureADProviderSettings } from '@/features/orgs/projects/authentication/settings/components/AzureADProviderSettings';
+import { EntraIDProviderSettings } from '@/features/orgs/projects/authentication/settings/components/EntraIDProviderSettings';
 import { DiscordProviderSettings } from '@/features/orgs/projects/authentication/settings/components/DiscordProviderSettings';
 import { EmailAndPasswordSettings } from '@/features/orgs/projects/authentication/settings/components/EmailAndPasswordSettings';
 import { FacebookProviderSettings } from '@/features/orgs/projects/authentication/settings/components/FacebookProviderSettings';
@@ -65,6 +66,7 @@ export default function SettingsSignInMethodsPage() {
       <OTPEmailSettings />
       <AppleProviderSettings />
       <AzureADProviderSettings />
+      <EntraIDProviderSettings />
       <DiscordProviderSettings />
       <FacebookProviderSettings />
       <GitHubProviderSettings />
