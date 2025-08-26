@@ -1,4 +1,4 @@
-package types //nolint: dupl
+package types //nolint: dupl,revive,nolintlint
 
 import (
 	"encoding/json"

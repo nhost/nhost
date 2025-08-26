@@ -132,6 +132,7 @@ type ComplexityRoot struct {
 		Azuread     func(childComplexity int) int
 		Bitbucket   func(childComplexity int) int
 		Discord     func(childComplexity int) int
+		Entraid     func(childComplexity int) int
 		Facebook    func(childComplexity int) int
 		Github      func(childComplexity int) int
 		Gitlab      func(childComplexity int) int
@@ -156,6 +157,13 @@ type ComplexityRoot struct {
 	}
 
 	ConfigAuthMethodOauthAzuread struct {
+		ClientId     func(childComplexity int) int
+		ClientSecret func(childComplexity int) int
+		Enabled      func(childComplexity int) int
+		Tenant       func(childComplexity int) int
+	}
+
+	ConfigAuthMethodOauthEntraid struct {
 		ClientId     func(childComplexity int) int
 		ClientSecret func(childComplexity int) int
 		Enabled      func(childComplexity int) int
@@ -1086,6 +1094,13 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.ConfigAuthMethodOauth.Discord(childComplexity), true
 
+	case "ConfigAuthMethodOauth.entraid":
+		if e.complexity.ConfigAuthMethodOauth.Entraid == nil {
+			break
+		}
+
+		return e.complexity.ConfigAuthMethodOauth.Entraid(childComplexity), true
+
 	case "ConfigAuthMethodOauth.facebook":
 		if e.complexity.ConfigAuthMethodOauth.Facebook == nil {
 			break
@@ -1239,6 +1254,34 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.ConfigAuthMethodOauthAzuread.Tenant(childComplexity), true
+
+	case "ConfigAuthMethodOauthEntraid.clientId":
+		if e.complexity.ConfigAuthMethodOauthEntraid.ClientId == nil {
+			break
+		}
+
+		return e.complexity.ConfigAuthMethodOauthEntraid.ClientId(childComplexity), true
+
+	case "ConfigAuthMethodOauthEntraid.clientSecret":
+		if e.complexity.ConfigAuthMethodOauthEntraid.ClientSecret == nil {
+			break
+		}
+
+		return e.complexity.ConfigAuthMethodOauthEntraid.ClientSecret(childComplexity), true
+
+	case "ConfigAuthMethodOauthEntraid.enabled":
+		if e.complexity.ConfigAuthMethodOauthEntraid.Enabled == nil {
+			break
+		}
+
+		return e.complexity.ConfigAuthMethodOauthEntraid.Enabled(childComplexity), true
+
+	case "ConfigAuthMethodOauthEntraid.tenant":
+		if e.complexity.ConfigAuthMethodOauthEntraid.Tenant == nil {
+			break
+		}
+
+		return e.complexity.ConfigAuthMethodOauthEntraid.Tenant(childComplexity), true
 
 	case "ConfigAuthMethodOauthTwitter.consumerKey":
 		if e.complexity.ConfigAuthMethodOauthTwitter.ConsumerKey == nil {
@@ -3556,6 +3599,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputConfigAuthMethodOauthAzureadComparisonExp,
 		ec.unmarshalInputConfigAuthMethodOauthAzureadInsertInput,
 		ec.unmarshalInputConfigAuthMethodOauthComparisonExp,
+		ec.unmarshalInputConfigAuthMethodOauthEntraidComparisonExp,
+		ec.unmarshalInputConfigAuthMethodOauthEntraidInsertInput,
 		ec.unmarshalInputConfigAuthMethodOauthInsertInput,
 		ec.unmarshalInputConfigAuthMethodOauthTwitterComparisonExp,
 		ec.unmarshalInputConfigAuthMethodOauthTwitterInsertInput,
@@ -4547,6 +4592,10 @@ type ConfigAuthMethodOauth {
     """
 
     """
+    entraid: ConfigAuthMethodOauthEntraid
+    """
+
+    """
     facebook: ConfigStandardOauthProviderWithScope
     """
 
@@ -4595,6 +4644,7 @@ input ConfigAuthMethodOauthUpdateInput {
     azuread: ConfigAuthMethodOauthAzureadUpdateInput
     bitbucket: ConfigStandardOauthProviderUpdateInput
     discord: ConfigStandardOauthProviderWithScopeUpdateInput
+    entraid: ConfigAuthMethodOauthEntraidUpdateInput
     facebook: ConfigStandardOauthProviderWithScopeUpdateInput
     github: ConfigStandardOauthProviderWithScopeUpdateInput
     gitlab: ConfigStandardOauthProviderWithScopeUpdateInput
@@ -4613,6 +4663,7 @@ input ConfigAuthMethodOauthInsertInput {
     azuread: ConfigAuthMethodOauthAzureadInsertInput
     bitbucket: ConfigStandardOauthProviderInsertInput
     discord: ConfigStandardOauthProviderWithScopeInsertInput
+    entraid: ConfigAuthMethodOauthEntraidInsertInput
     facebook: ConfigStandardOauthProviderWithScopeInsertInput
     github: ConfigStandardOauthProviderWithScopeInsertInput
     gitlab: ConfigStandardOauthProviderWithScopeInsertInput
@@ -4634,6 +4685,7 @@ input ConfigAuthMethodOauthComparisonExp {
     azuread: ConfigAuthMethodOauthAzureadComparisonExp
     bitbucket: ConfigStandardOauthProviderComparisonExp
     discord: ConfigStandardOauthProviderWithScopeComparisonExp
+    entraid: ConfigAuthMethodOauthEntraidComparisonExp
     facebook: ConfigStandardOauthProviderWithScopeComparisonExp
     github: ConfigStandardOauthProviderWithScopeComparisonExp
     gitlab: ConfigStandardOauthProviderWithScopeComparisonExp
@@ -4754,6 +4806,52 @@ input ConfigAuthMethodOauthAzureadComparisonExp {
     _and: [ConfigAuthMethodOauthAzureadComparisonExp!]
     _not: ConfigAuthMethodOauthAzureadComparisonExp
     _or: [ConfigAuthMethodOauthAzureadComparisonExp!]
+    tenant: ConfigStringComparisonExp
+    enabled: ConfigBooleanComparisonExp
+    clientId: ConfigStringComparisonExp
+    clientSecret: ConfigStringComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthMethodOauthEntraid {
+    """
+
+    """
+    tenant: String
+    """
+
+    """
+    enabled: Boolean
+    """
+
+    """
+    clientId: String
+    """
+
+    """
+    clientSecret: String
+}
+
+input ConfigAuthMethodOauthEntraidUpdateInput {
+    tenant: String
+    enabled: Boolean
+    clientId: String
+    clientSecret: String
+}
+
+input ConfigAuthMethodOauthEntraidInsertInput {
+    tenant: String
+    enabled: Boolean
+    clientId: String
+    clientSecret: String
+}
+
+input ConfigAuthMethodOauthEntraidComparisonExp {
+    _and: [ConfigAuthMethodOauthEntraidComparisonExp!]
+    _not: ConfigAuthMethodOauthEntraidComparisonExp
+    _or: [ConfigAuthMethodOauthEntraidComparisonExp!]
     tenant: ConfigStringComparisonExp
     enabled: ConfigBooleanComparisonExp
     clientId: ConfigStringComparisonExp
@@ -11759,6 +11857,8 @@ func (ec *executionContext) fieldContext_ConfigAuthMethod_oauth(_ context.Contex
 				return ec.fieldContext_ConfigAuthMethodOauth_bitbucket(ctx, field)
 			case "discord":
 				return ec.fieldContext_ConfigAuthMethodOauth_discord(ctx, field)
+			case "entraid":
+				return ec.fieldContext_ConfigAuthMethodOauth_entraid(ctx, field)
 			case "facebook":
 				return ec.fieldContext_ConfigAuthMethodOauth_facebook(ctx, field)
 			case "github":
@@ -12247,6 +12347,57 @@ func (ec *executionContext) fieldContext_ConfigAuthMethodOauth_discord(_ context
 				return ec.fieldContext_ConfigStandardOauthProviderWithScope_clientSecret(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ConfigStandardOauthProviderWithScope", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigAuthMethodOauth_entraid(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAuthMethodOauth) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigAuthMethodOauth_entraid(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Entraid, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.ConfigAuthMethodOauthEntraid)
+	fc.Result = res
+	return ec.marshalOConfigAuthMethodOauthEntraid2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthEntraid(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigAuthMethodOauth_entraid(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigAuthMethodOauth",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "tenant":
+				return ec.fieldContext_ConfigAuthMethodOauthEntraid_tenant(ctx, field)
+			case "enabled":
+				return ec.fieldContext_ConfigAuthMethodOauthEntraid_enabled(ctx, field)
+			case "clientId":
+				return ec.fieldContext_ConfigAuthMethodOauthEntraid_clientId(ctx, field)
+			case "clientSecret":
+				return ec.fieldContext_ConfigAuthMethodOauthEntraid_clientSecret(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConfigAuthMethodOauthEntraid", field.Name)
 		},
 	}
 	return fc, nil
@@ -13272,6 +13423,170 @@ func (ec *executionContext) _ConfigAuthMethodOauthAzuread_clientSecret(ctx conte
 func (ec *executionContext) fieldContext_ConfigAuthMethodOauthAzuread_clientSecret(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ConfigAuthMethodOauthAzuread",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigAuthMethodOauthEntraid_tenant(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAuthMethodOauthEntraid) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigAuthMethodOauthEntraid_tenant(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Tenant, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigAuthMethodOauthEntraid_tenant(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigAuthMethodOauthEntraid",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigAuthMethodOauthEntraid_enabled(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAuthMethodOauthEntraid) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigAuthMethodOauthEntraid_enabled(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Enabled, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigAuthMethodOauthEntraid_enabled(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigAuthMethodOauthEntraid",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigAuthMethodOauthEntraid_clientId(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAuthMethodOauthEntraid) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigAuthMethodOauthEntraid_clientId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ClientId, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigAuthMethodOauthEntraid_clientId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigAuthMethodOauthEntraid",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigAuthMethodOauthEntraid_clientSecret(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAuthMethodOauthEntraid) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigAuthMethodOauthEntraid_clientSecret(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ClientSecret, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigAuthMethodOauthEntraid_clientSecret(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigAuthMethodOauthEntraid",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -31073,7 +31388,7 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodOauthComparisonExp(ctx
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "apple", "azuread", "bitbucket", "discord", "facebook", "github", "gitlab", "google", "linkedin", "spotify", "strava", "twitch", "twitter", "windowslive", "workos"}
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "apple", "azuread", "bitbucket", "discord", "entraid", "facebook", "github", "gitlab", "google", "linkedin", "spotify", "strava", "twitch", "twitter", "windowslive", "workos"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -31129,6 +31444,13 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodOauthComparisonExp(ctx
 				return it, err
 			}
 			it.Discord = data
+		case "entraid":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("entraid"))
+			data, err := ec.unmarshalOConfigAuthMethodOauthEntraidComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthEntraidComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Entraid = data
 		case "facebook":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("facebook"))
 			data, err := ec.unmarshalOConfigStandardOauthProviderWithScopeComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStandardOauthProviderWithScopeComparisonExp(ctx, v)
@@ -31212,6 +31534,123 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodOauthComparisonExp(ctx
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputConfigAuthMethodOauthEntraidComparisonExp(ctx context.Context, obj any) (model.ConfigAuthMethodOauthEntraidComparisonExp, error) {
+	var it model.ConfigAuthMethodOauthEntraidComparisonExp
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "tenant", "enabled", "clientId", "clientSecret"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "_and":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_and"))
+			data, err := ec.unmarshalOConfigAuthMethodOauthEntraidComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthEntraidComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.And = data
+		case "_not":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_not"))
+			data, err := ec.unmarshalOConfigAuthMethodOauthEntraidComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthEntraidComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Not = data
+		case "_or":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_or"))
+			data, err := ec.unmarshalOConfigAuthMethodOauthEntraidComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthEntraidComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Or = data
+		case "tenant":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tenant"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Tenant = data
+		case "enabled":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("enabled"))
+			data, err := ec.unmarshalOConfigBooleanComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Enabled = data
+		case "clientId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientId"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ClientId = data
+		case "clientSecret":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientSecret"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ClientSecret = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigAuthMethodOauthEntraidInsertInput(ctx context.Context, obj any) (model.ConfigAuthMethodOauthEntraidInsertInput, error) {
+	var it model.ConfigAuthMethodOauthEntraidInsertInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"tenant", "enabled", "clientId", "clientSecret"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "tenant":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tenant"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Tenant = data
+		case "enabled":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("enabled"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Enabled = data
+		case "clientId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientId"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ClientId = data
+		case "clientSecret":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientSecret"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ClientSecret = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputConfigAuthMethodOauthInsertInput(ctx context.Context, obj any) (model.ConfigAuthMethodOauthInsertInput, error) {
 	var it model.ConfigAuthMethodOauthInsertInput
 	asMap := map[string]any{}
@@ -31219,7 +31658,7 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodOauthInsertInput(ctx c
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"apple", "azuread", "bitbucket", "discord", "facebook", "github", "gitlab", "google", "linkedin", "spotify", "strava", "twitch", "twitter", "windowslive", "workos"}
+	fieldsInOrder := [...]string{"apple", "azuread", "bitbucket", "discord", "entraid", "facebook", "github", "gitlab", "google", "linkedin", "spotify", "strava", "twitch", "twitter", "windowslive", "workos"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -31254,6 +31693,13 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodOauthInsertInput(ctx c
 				return it, err
 			}
 			it.Discord = data
+		case "entraid":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("entraid"))
+			data, err := ec.unmarshalOConfigAuthMethodOauthEntraidInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthEntraidInsertInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Entraid = data
 		case "facebook":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("facebook"))
 			data, err := ec.unmarshalOConfigStandardOauthProviderWithScopeInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStandardOauthProviderWithScopeInsertInput(ctx, v)
@@ -41818,6 +42264,8 @@ func (ec *executionContext) _ConfigAuthMethodOauth(ctx context.Context, sel ast.
 			out.Values[i] = ec._ConfigAuthMethodOauth_bitbucket(ctx, field, obj)
 		case "discord":
 			out.Values[i] = ec._ConfigAuthMethodOauth_discord(ctx, field, obj)
+		case "entraid":
+			out.Values[i] = ec._ConfigAuthMethodOauth_entraid(ctx, field, obj)
 		case "facebook":
 			out.Values[i] = ec._ConfigAuthMethodOauth_facebook(ctx, field, obj)
 		case "github":
@@ -41930,6 +42378,48 @@ func (ec *executionContext) _ConfigAuthMethodOauthAzuread(ctx context.Context, s
 			out.Values[i] = ec._ConfigAuthMethodOauthAzuread_clientId(ctx, field, obj)
 		case "clientSecret":
 			out.Values[i] = ec._ConfigAuthMethodOauthAzuread_clientSecret(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var configAuthMethodOauthEntraidImplementors = []string{"ConfigAuthMethodOauthEntraid"}
+
+func (ec *executionContext) _ConfigAuthMethodOauthEntraid(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigAuthMethodOauthEntraid) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, configAuthMethodOauthEntraidImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ConfigAuthMethodOauthEntraid")
+		case "tenant":
+			out.Values[i] = ec._ConfigAuthMethodOauthEntraid_tenant(ctx, field, obj)
+		case "enabled":
+			out.Values[i] = ec._ConfigAuthMethodOauthEntraid_enabled(ctx, field, obj)
+		case "clientId":
+			out.Values[i] = ec._ConfigAuthMethodOauthEntraid_clientId(ctx, field, obj)
+		case "clientSecret":
+			out.Values[i] = ec._ConfigAuthMethodOauthEntraid_clientSecret(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -46693,6 +47183,11 @@ func (ec *executionContext) unmarshalNConfigAuthMethodOauthComparisonExp2ᚖgith
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNConfigAuthMethodOauthEntraidComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthEntraidComparisonExp(ctx context.Context, v any) (*model.ConfigAuthMethodOauthEntraidComparisonExp, error) {
+	res, err := ec.unmarshalInputConfigAuthMethodOauthEntraidComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNConfigAuthMethodOauthTwitterComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthTwitterComparisonExp(ctx context.Context, v any) (*model.ConfigAuthMethodOauthTwitterComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigAuthMethodOauthTwitterComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
@@ -49034,6 +49529,56 @@ func (ec *executionContext) unmarshalOConfigAuthMethodOauthComparisonExp2ᚖgith
 	}
 	res, err := ec.unmarshalInputConfigAuthMethodOauthComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOConfigAuthMethodOauthEntraid2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthEntraid(ctx context.Context, sel ast.SelectionSet, v *model.ConfigAuthMethodOauthEntraid) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ConfigAuthMethodOauthEntraid(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOConfigAuthMethodOauthEntraidComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthEntraidComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAuthMethodOauthEntraidComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]*model.ConfigAuthMethodOauthEntraidComparisonExp, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigAuthMethodOauthEntraidComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthEntraidComparisonExp(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOConfigAuthMethodOauthEntraidComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthEntraidComparisonExp(ctx context.Context, v any) (*model.ConfigAuthMethodOauthEntraidComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigAuthMethodOauthEntraidComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigAuthMethodOauthEntraidInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthEntraidInsertInput(ctx context.Context, v any) (*model.ConfigAuthMethodOauthEntraidInsertInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigAuthMethodOauthEntraidInsertInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigAuthMethodOauthEntraidUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthEntraidUpdateInput(ctx context.Context, v any) (*model.ConfigAuthMethodOauthEntraidUpdateInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.ConfigAuthMethodOauthEntraidUpdateInput)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOConfigAuthMethodOauthInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthInsertInput(ctx context.Context, v any) (*model.ConfigAuthMethodOauthInsertInput, error) {

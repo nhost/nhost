@@ -551,6 +551,10 @@ type ConfigAuthMethodOauth {
     """
 
     """
+    entraid: ConfigAuthMethodOauthEntraid
+    """
+
+    """
     facebook: ConfigStandardOauthProviderWithScope
     """
 
@@ -599,6 +603,7 @@ input ConfigAuthMethodOauthUpdateInput {
     azuread: ConfigAuthMethodOauthAzureadUpdateInput
     bitbucket: ConfigStandardOauthProviderUpdateInput
     discord: ConfigStandardOauthProviderWithScopeUpdateInput
+    entraid: ConfigAuthMethodOauthEntraidUpdateInput
     facebook: ConfigStandardOauthProviderWithScopeUpdateInput
     github: ConfigStandardOauthProviderWithScopeUpdateInput
     gitlab: ConfigStandardOauthProviderWithScopeUpdateInput
@@ -617,6 +622,7 @@ input ConfigAuthMethodOauthInsertInput {
     azuread: ConfigAuthMethodOauthAzureadInsertInput
     bitbucket: ConfigStandardOauthProviderInsertInput
     discord: ConfigStandardOauthProviderWithScopeInsertInput
+    entraid: ConfigAuthMethodOauthEntraidInsertInput
     facebook: ConfigStandardOauthProviderWithScopeInsertInput
     github: ConfigStandardOauthProviderWithScopeInsertInput
     gitlab: ConfigStandardOauthProviderWithScopeInsertInput
@@ -638,6 +644,7 @@ input ConfigAuthMethodOauthComparisonExp {
     azuread: ConfigAuthMethodOauthAzureadComparisonExp
     bitbucket: ConfigStandardOauthProviderComparisonExp
     discord: ConfigStandardOauthProviderWithScopeComparisonExp
+    entraid: ConfigAuthMethodOauthEntraidComparisonExp
     facebook: ConfigStandardOauthProviderWithScopeComparisonExp
     github: ConfigStandardOauthProviderWithScopeComparisonExp
     gitlab: ConfigStandardOauthProviderWithScopeComparisonExp
@@ -758,6 +765,52 @@ input ConfigAuthMethodOauthAzureadComparisonExp {
     _and: [ConfigAuthMethodOauthAzureadComparisonExp!]
     _not: ConfigAuthMethodOauthAzureadComparisonExp
     _or: [ConfigAuthMethodOauthAzureadComparisonExp!]
+    tenant: ConfigStringComparisonExp
+    enabled: ConfigBooleanComparisonExp
+    clientId: ConfigStringComparisonExp
+    clientSecret: ConfigStringComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthMethodOauthEntraid {
+    """
+
+    """
+    tenant: String
+    """
+
+    """
+    enabled: Boolean
+    """
+
+    """
+    clientId: String
+    """
+
+    """
+    clientSecret: String
+}
+
+input ConfigAuthMethodOauthEntraidUpdateInput {
+    tenant: String
+    enabled: Boolean
+    clientId: String
+    clientSecret: String
+}
+
+input ConfigAuthMethodOauthEntraidInsertInput {
+    tenant: String
+    enabled: Boolean
+    clientId: String
+    clientSecret: String
+}
+
+input ConfigAuthMethodOauthEntraidComparisonExp {
+    _and: [ConfigAuthMethodOauthEntraidComparisonExp!]
+    _not: ConfigAuthMethodOauthEntraidComparisonExp
+    _or: [ConfigAuthMethodOauthEntraidComparisonExp!]
     tenant: ConfigStringComparisonExp
     enabled: ConfigBooleanComparisonExp
     clientId: ConfigStringComparisonExp

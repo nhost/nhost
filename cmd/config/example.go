@@ -267,6 +267,12 @@ func commandExample(cCtx *cli.Context) error { //nolint:funlen,maintidx
 						ClientSecret: ptr("clientsecret"),
 						Audience:     ptr("audience"),
 					},
+					Entraid: &model.ConfigAuthMethodOauthEntraid{
+						ClientId:     ptr("entraidClientId"),
+						ClientSecret: ptr("entraidClientSecret"),
+						Enabled:      ptr(true),
+						Tenant:       ptr("entraidTenant"),
+					},
 					Facebook: &model.ConfigStandardOauthProviderWithScope{
 						Enabled:      ptr(true),
 						ClientId:     ptr("clientid"),

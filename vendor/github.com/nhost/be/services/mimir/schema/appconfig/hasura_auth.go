@@ -927,6 +927,62 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx,gocyclo,gocognit
 	}
 
 	if unptr( //nolint:dupl
+		config.GetAuth().GetMethod().GetOauth().GetEntraid().GetEnabled(),
+	) {
+		env = append(env, []EnvVar{
+			{
+				Name: "AUTH_PROVIDER_ENTRAID_ENABLED",
+				Value: Stringify(
+					unptr(
+						config.
+							GetAuth().
+							GetMethod().
+							GetOauth().
+							GetEntraid().
+							GetEnabled(),
+					),
+				),
+				IsSecret:   false,
+				SecretName: "",
+			},
+			{
+				Name: "AUTH_PROVIDER_ENTRAID_CLIENT_ID",
+				Value: unptr(
+					config.
+						GetAuth().
+						GetMethod().
+						GetOauth().
+						GetEntraid().
+						GetClientId(),
+				),
+				IsSecret:   false,
+				SecretName: "",
+			},
+			{
+				Name:       "AUTH_PROVIDER_ENTRAID_CLIENT_SECRET",
+				SecretName: "",
+				Value: unptr(
+					config.GetAuth().GetMethod().GetOauth().GetEntraid().GetClientSecret(),
+				),
+				IsSecret: false,
+			},
+			{
+				Name: "AUTH_PROVIDER_ENTRAID_TENANT",
+				Value: unptr(
+					config.
+						GetAuth().
+						GetMethod().
+						GetOauth().
+						GetEntraid().
+						GetTenant(),
+				),
+				IsSecret:   false,
+				SecretName: "",
+			},
+		}...)
+	}
+
+	if unptr( //nolint:dupl
 		config.GetAuth().GetMethod().GetOauth().GetGitlab().GetEnabled(),
 	) {
 		env = append(env, []EnvVar{

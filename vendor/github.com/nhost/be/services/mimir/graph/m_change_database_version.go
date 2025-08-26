@@ -51,7 +51,7 @@ func (r *mutationResolver) changeDatabaseVersionValidate(
 }
 
 func (r *mutationResolver) changeDatabaseVersion(
-	ctx context.Context, appID string, version string, _ *bool,
+	ctx context.Context, appID string, version string, force *bool,
 ) (bool, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -82,8 +82,10 @@ func (r *mutationResolver) changeDatabaseVersion(
 		return false, err
 	}
 
-	if err := r.changeDatabaseVersionValidate(ctx, oldApp, newApp); err != nil {
-		return false, err
+	if !deptr(force) {
+		if err := r.changeDatabaseVersionValidate(ctx, oldApp, newApp); err != nil {
+			return false, err
+		}
 	}
 
 	logger := nhcontext.LoggerFromContext(ctx).WithField("app_id", appID)

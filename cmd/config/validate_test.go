@@ -137,6 +137,10 @@ func expectedConfig() *model.ConfigConfig {
 					Discord: &model.ConfigStandardOauthProviderWithScope{
 						Enabled: ptr(false),
 					},
+					Entraid: &model.ConfigAuthMethodOauthEntraid{
+						Enabled: ptr(false),
+						Tenant:  ptr("common"),
+					},
 					Facebook: &model.ConfigStandardOauthProviderWithScope{
 						Enabled: ptr(false),
 					},

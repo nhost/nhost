@@ -107,6 +107,12 @@ func getConfig() *model.ConfigConfig { //nolint:maintidx
 						Scope:        []string{"identify", "email"},
 						Audience:     ptr("audience"),
 					},
+					Entraid: &model.ConfigAuthMethodOauthEntraid{
+						ClientId:     ptr("entraidClientId"),
+						ClientSecret: ptr("entraidClientSecret"),
+						Enabled:      ptr(true),
+						Tenant:       ptr("entraidTenant"),
+					},
 					Facebook: &model.ConfigStandardOauthProviderWithScope{
 						ClientId:     ptr("facebookClientId"),
 						ClientSecret: ptr("facebookClientSecret"),

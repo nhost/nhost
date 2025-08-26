@@ -2827,6 +2827,8 @@ type ConfigAuthMethodOauth struct {
 
 	Discord *ConfigStandardOauthProviderWithScope `json:"discord,omitempty" toml:"discord,omitempty"`
 
+	Entraid *ConfigAuthMethodOauthEntraid `json:"entraid,omitempty" toml:"entraid,omitempty"`
+
 	Facebook *ConfigStandardOauthProviderWithScope `json:"facebook,omitempty" toml:"facebook,omitempty"`
 
 	Github *ConfigStandardOauthProviderWithScope `json:"github,omitempty" toml:"github,omitempty"`
@@ -2863,6 +2865,9 @@ func (o *ConfigAuthMethodOauth) MarshalJSON() ([]byte, error) {
 	}
 	if o.Discord != nil {
 		m["discord"] = o.Discord
+	}
+	if o.Entraid != nil {
+		m["entraid"] = o.Entraid
 	}
 	if o.Facebook != nil {
 		m["facebook"] = o.Facebook
@@ -2926,6 +2931,13 @@ func (o *ConfigAuthMethodOauth) GetDiscord() *ConfigStandardOauthProviderWithSco
 		return nil
 	}
 	return o.Discord
+}
+
+func (o *ConfigAuthMethodOauth) GetEntraid() *ConfigAuthMethodOauthEntraid {
+	if o == nil {
+		return nil
+	}
+	return o.Entraid
 }
 
 func (o *ConfigAuthMethodOauth) GetFacebook() *ConfigStandardOauthProviderWithScope {
@@ -3014,6 +3026,8 @@ type ConfigAuthMethodOauthUpdateInput struct {
 	IsSetBitbucket   bool                                             `json:"-"`
 	Discord          *ConfigStandardOauthProviderWithScopeUpdateInput `json:"discord,omitempty" toml:"discord,omitempty"`
 	IsSetDiscord     bool                                             `json:"-"`
+	Entraid          *ConfigAuthMethodOauthEntraidUpdateInput         `json:"entraid,omitempty" toml:"entraid,omitempty"`
+	IsSetEntraid     bool                                             `json:"-"`
 	Facebook         *ConfigStandardOauthProviderWithScopeUpdateInput `json:"facebook,omitempty" toml:"facebook,omitempty"`
 	IsSetFacebook    bool                                             `json:"-"`
 	Github           *ConfigStandardOauthProviderWithScopeUpdateInput `json:"github,omitempty" toml:"github,omitempty"`
@@ -3082,6 +3096,16 @@ func (o *ConfigAuthMethodOauthUpdateInput) UnmarshalGQL(v interface{}) error {
 			o.Discord = t
 		}
 		o.IsSetDiscord = true
+	}
+	if x, ok := m["entraid"]; ok {
+		if x != nil {
+			t := &ConfigAuthMethodOauthEntraidUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Entraid = t
+		}
+		o.IsSetEntraid = true
 	}
 	if x, ok := m["facebook"]; ok {
 		if x != nil {
@@ -3232,6 +3256,13 @@ func (o *ConfigAuthMethodOauthUpdateInput) GetDiscord() *ConfigStandardOauthProv
 	return o.Discord
 }
 
+func (o *ConfigAuthMethodOauthUpdateInput) GetEntraid() *ConfigAuthMethodOauthEntraidUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Entraid
+}
+
 func (o *ConfigAuthMethodOauthUpdateInput) GetFacebook() *ConfigStandardOauthProviderWithScopeUpdateInput {
 	if o == nil {
 		return nil
@@ -3353,6 +3384,16 @@ func (s *ConfigAuthMethodOauth) Update(v *ConfigAuthMethodOauthUpdateInput) {
 			s.Discord.Update(v.Discord)
 		}
 	}
+	if v.IsSetEntraid || v.Entraid != nil {
+		if v.Entraid == nil {
+			s.Entraid = nil
+		} else {
+			if s.Entraid == nil {
+				s.Entraid = &ConfigAuthMethodOauthEntraid{}
+			}
+			s.Entraid.Update(v.Entraid)
+		}
+	}
 	if v.IsSetFacebook || v.Facebook != nil {
 		if v.Facebook == nil {
 			s.Facebook = nil
@@ -3470,6 +3511,7 @@ type ConfigAuthMethodOauthInsertInput struct {
 	Azuread     *ConfigAuthMethodOauthAzureadInsertInput         `json:"azuread,omitempty" toml:"azuread,omitempty"`
 	Bitbucket   *ConfigStandardOauthProviderInsertInput          `json:"bitbucket,omitempty" toml:"bitbucket,omitempty"`
 	Discord     *ConfigStandardOauthProviderWithScopeInsertInput `json:"discord,omitempty" toml:"discord,omitempty"`
+	Entraid     *ConfigAuthMethodOauthEntraidInsertInput         `json:"entraid,omitempty" toml:"entraid,omitempty"`
 	Facebook    *ConfigStandardOauthProviderWithScopeInsertInput `json:"facebook,omitempty" toml:"facebook,omitempty"`
 	Github      *ConfigStandardOauthProviderWithScopeInsertInput `json:"github,omitempty" toml:"github,omitempty"`
 	Gitlab      *ConfigStandardOauthProviderWithScopeInsertInput `json:"gitlab,omitempty" toml:"gitlab,omitempty"`
@@ -3509,6 +3551,13 @@ func (o *ConfigAuthMethodOauthInsertInput) GetDiscord() *ConfigStandardOauthProv
 		return nil
 	}
 	return o.Discord
+}
+
+func (o *ConfigAuthMethodOauthInsertInput) GetEntraid() *ConfigAuthMethodOauthEntraidInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Entraid
 }
 
 func (o *ConfigAuthMethodOauthInsertInput) GetFacebook() *ConfigStandardOauthProviderWithScopeInsertInput {
@@ -3613,6 +3662,12 @@ func (s *ConfigAuthMethodOauth) Insert(v *ConfigAuthMethodOauthInsertInput) {
 		}
 		s.Discord.Insert(v.Discord)
 	}
+	if v.Entraid != nil {
+		if s.Entraid == nil {
+			s.Entraid = &ConfigAuthMethodOauthEntraid{}
+		}
+		s.Entraid.Insert(v.Entraid)
+	}
 	if v.Facebook != nil {
 		if s.Facebook == nil {
 			s.Facebook = &ConfigStandardOauthProviderWithScope{}
@@ -3691,6 +3746,7 @@ func (s *ConfigAuthMethodOauth) Clone() *ConfigAuthMethodOauth {
 	v.Azuread = s.Azuread.Clone()
 	v.Bitbucket = s.Bitbucket.Clone()
 	v.Discord = s.Discord.Clone()
+	v.Entraid = s.Entraid.Clone()
 	v.Facebook = s.Facebook.Clone()
 	v.Github = s.Github.Clone()
 	v.Gitlab = s.Gitlab.Clone()
@@ -3713,6 +3769,7 @@ type ConfigAuthMethodOauthComparisonExp struct {
 	Azuread     *ConfigAuthMethodOauthAzureadComparisonExp         `json:"azuread,omitempty"`
 	Bitbucket   *ConfigStandardOauthProviderComparisonExp          `json:"bitbucket,omitempty"`
 	Discord     *ConfigStandardOauthProviderWithScopeComparisonExp `json:"discord,omitempty"`
+	Entraid     *ConfigAuthMethodOauthEntraidComparisonExp         `json:"entraid,omitempty"`
 	Facebook    *ConfigStandardOauthProviderWithScopeComparisonExp `json:"facebook,omitempty"`
 	Github      *ConfigStandardOauthProviderWithScopeComparisonExp `json:"github,omitempty"`
 	Gitlab      *ConfigStandardOauthProviderWithScopeComparisonExp `json:"gitlab,omitempty"`
@@ -3737,6 +3794,7 @@ func (exp *ConfigAuthMethodOauthComparisonExp) Matches(o *ConfigAuthMethodOauth)
 			Azuread:     &ConfigAuthMethodOauthAzuread{},
 			Bitbucket:   &ConfigStandardOauthProvider{},
 			Discord:     &ConfigStandardOauthProviderWithScope{},
+			Entraid:     &ConfigAuthMethodOauthEntraid{},
 			Facebook:    &ConfigStandardOauthProviderWithScope{},
 			Github:      &ConfigStandardOauthProviderWithScope{},
 			Gitlab:      &ConfigStandardOauthProviderWithScope{},
@@ -3760,6 +3818,9 @@ func (exp *ConfigAuthMethodOauthComparisonExp) Matches(o *ConfigAuthMethodOauth)
 		return false
 	}
 	if !exp.Discord.Matches(o.Discord) {
+		return false
+	}
+	if !exp.Entraid.Matches(o.Entraid) {
 		return false
 	}
 	if !exp.Facebook.Matches(o.Facebook) {
@@ -4565,6 +4626,303 @@ func (exp *ConfigAuthMethodOauthAzureadComparisonExp) Matches(o *ConfigAuthMetho
 
 	if o == nil {
 		o = &ConfigAuthMethodOauthAzuread{}
+	}
+	if o.Tenant != nil && !exp.Tenant.Matches(*o.Tenant) {
+		return false
+	}
+	if o.Enabled != nil && !exp.Enabled.Matches(*o.Enabled) {
+		return false
+	}
+	if o.ClientId != nil && !exp.ClientId.Matches(*o.ClientId) {
+		return false
+	}
+	if o.ClientSecret != nil && !exp.ClientSecret.Matches(*o.ClientSecret) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigAuthMethodOauthEntraid struct {
+	Tenant *string `json:"tenant" toml:"tenant"`
+
+	Enabled *bool `json:"enabled" toml:"enabled"`
+
+	ClientId *string `json:"clientId" toml:"clientId"`
+
+	ClientSecret *string `json:"clientSecret" toml:"clientSecret"`
+}
+
+func (o *ConfigAuthMethodOauthEntraid) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Tenant != nil {
+		m["tenant"] = o.Tenant
+	}
+	if o.Enabled != nil {
+		m["enabled"] = o.Enabled
+	}
+	if o.ClientId != nil {
+		m["clientId"] = o.ClientId
+	}
+	if o.ClientSecret != nil {
+		m["clientSecret"] = o.ClientSecret
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigAuthMethodOauthEntraid) GetTenant() *string {
+	if o == nil {
+		o = &ConfigAuthMethodOauthEntraid{}
+	}
+	return o.Tenant
+}
+
+func (o *ConfigAuthMethodOauthEntraid) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthMethodOauthEntraid{}
+	}
+	return o.Enabled
+}
+
+func (o *ConfigAuthMethodOauthEntraid) GetClientId() *string {
+	if o == nil {
+		o = &ConfigAuthMethodOauthEntraid{}
+	}
+	return o.ClientId
+}
+
+func (o *ConfigAuthMethodOauthEntraid) GetClientSecret() *string {
+	if o == nil {
+		o = &ConfigAuthMethodOauthEntraid{}
+	}
+	return o.ClientSecret
+}
+
+type ConfigAuthMethodOauthEntraidUpdateInput struct {
+	Tenant            *string `json:"tenant,omitempty" toml:"tenant,omitempty"`
+	IsSetTenant       bool    `json:"-"`
+	Enabled           *bool   `json:"enabled,omitempty" toml:"enabled,omitempty"`
+	IsSetEnabled      bool    `json:"-"`
+	ClientId          *string `json:"clientId,omitempty" toml:"clientId,omitempty"`
+	IsSetClientId     bool    `json:"-"`
+	ClientSecret      *string `json:"clientSecret,omitempty" toml:"clientSecret,omitempty"`
+	IsSetClientSecret bool    `json:"-"`
+}
+
+func (o *ConfigAuthMethodOauthEntraidUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["tenant"]; ok {
+		if v == nil {
+			o.Tenant = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Tenant = &x
+		}
+		o.IsSetTenant = true
+	}
+	if v, ok := m["enabled"]; ok {
+		if v == nil {
+			o.Enabled = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x bool
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Enabled = &x
+		}
+		o.IsSetEnabled = true
+	}
+	if v, ok := m["clientId"]; ok {
+		if v == nil {
+			o.ClientId = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.ClientId = &x
+		}
+		o.IsSetClientId = true
+	}
+	if v, ok := m["clientSecret"]; ok {
+		if v == nil {
+			o.ClientSecret = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.ClientSecret = &x
+		}
+		o.IsSetClientSecret = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAuthMethodOauthEntraidUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAuthMethodOauthEntraidUpdateInput) GetTenant() *string {
+	if o == nil {
+		o = &ConfigAuthMethodOauthEntraidUpdateInput{}
+	}
+	return o.Tenant
+}
+
+func (o *ConfigAuthMethodOauthEntraidUpdateInput) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthMethodOauthEntraidUpdateInput{}
+	}
+	return o.Enabled
+}
+
+func (o *ConfigAuthMethodOauthEntraidUpdateInput) GetClientId() *string {
+	if o == nil {
+		o = &ConfigAuthMethodOauthEntraidUpdateInput{}
+	}
+	return o.ClientId
+}
+
+func (o *ConfigAuthMethodOauthEntraidUpdateInput) GetClientSecret() *string {
+	if o == nil {
+		o = &ConfigAuthMethodOauthEntraidUpdateInput{}
+	}
+	return o.ClientSecret
+}
+
+func (s *ConfigAuthMethodOauthEntraid) Update(v *ConfigAuthMethodOauthEntraidUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetTenant || v.Tenant != nil {
+		s.Tenant = v.Tenant
+	}
+	if v.IsSetEnabled || v.Enabled != nil {
+		s.Enabled = v.Enabled
+	}
+	if v.IsSetClientId || v.ClientId != nil {
+		s.ClientId = v.ClientId
+	}
+	if v.IsSetClientSecret || v.ClientSecret != nil {
+		s.ClientSecret = v.ClientSecret
+	}
+}
+
+type ConfigAuthMethodOauthEntraidInsertInput struct {
+	Tenant       *string `json:"tenant,omitempty" toml:"tenant,omitempty"`
+	Enabled      *bool   `json:"enabled,omitempty" toml:"enabled,omitempty"`
+	ClientId     *string `json:"clientId,omitempty" toml:"clientId,omitempty"`
+	ClientSecret *string `json:"clientSecret,omitempty" toml:"clientSecret,omitempty"`
+}
+
+func (o *ConfigAuthMethodOauthEntraidInsertInput) GetTenant() *string {
+	if o == nil {
+		o = &ConfigAuthMethodOauthEntraidInsertInput{}
+	}
+	return o.Tenant
+}
+
+func (o *ConfigAuthMethodOauthEntraidInsertInput) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthMethodOauthEntraidInsertInput{}
+	}
+	return o.Enabled
+}
+
+func (o *ConfigAuthMethodOauthEntraidInsertInput) GetClientId() *string {
+	if o == nil {
+		o = &ConfigAuthMethodOauthEntraidInsertInput{}
+	}
+	return o.ClientId
+}
+
+func (o *ConfigAuthMethodOauthEntraidInsertInput) GetClientSecret() *string {
+	if o == nil {
+		o = &ConfigAuthMethodOauthEntraidInsertInput{}
+	}
+	return o.ClientSecret
+}
+
+func (s *ConfigAuthMethodOauthEntraid) Insert(v *ConfigAuthMethodOauthEntraidInsertInput) {
+	s.Tenant = v.Tenant
+	s.Enabled = v.Enabled
+	s.ClientId = v.ClientId
+	s.ClientSecret = v.ClientSecret
+}
+
+func (s *ConfigAuthMethodOauthEntraid) Clone() *ConfigAuthMethodOauthEntraid {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAuthMethodOauthEntraid{}
+	v.Tenant = s.Tenant
+	v.Enabled = s.Enabled
+	v.ClientId = s.ClientId
+	v.ClientSecret = s.ClientSecret
+	return v
+}
+
+type ConfigAuthMethodOauthEntraidComparisonExp struct {
+	And          []*ConfigAuthMethodOauthEntraidComparisonExp `json:"_and,omitempty"`
+	Not          *ConfigAuthMethodOauthEntraidComparisonExp   `json:"_not,omitempty"`
+	Or           []*ConfigAuthMethodOauthEntraidComparisonExp `json:"_or,omitempty"`
+	Tenant       *ConfigStringComparisonExp                   `json:"tenant,omitempty"`
+	Enabled      *ConfigBooleanComparisonExp                  `json:"enabled,omitempty"`
+	ClientId     *ConfigStringComparisonExp                   `json:"clientId,omitempty"`
+	ClientSecret *ConfigStringComparisonExp                   `json:"clientSecret,omitempty"`
+}
+
+func (exp *ConfigAuthMethodOauthEntraidComparisonExp) Matches(o *ConfigAuthMethodOauthEntraid) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAuthMethodOauthEntraid{}
 	}
 	if o.Tenant != nil && !exp.Tenant.Matches(*o.Tenant) {
 		return false

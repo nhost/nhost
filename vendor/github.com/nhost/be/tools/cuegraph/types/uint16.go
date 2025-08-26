@@ -1,4 +1,4 @@
-package types
+package types //nolint: revive,nolintlint
 
 import (
 	"encoding/json"

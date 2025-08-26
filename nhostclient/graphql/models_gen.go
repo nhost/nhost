@@ -135,6 +135,7 @@ type ConfigAuthMethodOauth struct {
 	Azuread     *ConfigAuthMethodOauthAzuread         `json:"azuread,omitempty"`
 	Bitbucket   *ConfigStandardOauthProvider          `json:"bitbucket,omitempty"`
 	Discord     *ConfigStandardOauthProviderWithScope `json:"discord,omitempty"`
+	Entraid     *ConfigAuthMethodOauthEntraid         `json:"entraid,omitempty"`
 	Facebook    *ConfigStandardOauthProviderWithScope `json:"facebook,omitempty"`
 	Github      *ConfigStandardOauthProviderWithScope `json:"github,omitempty"`
 	Gitlab      *ConfigStandardOauthProviderWithScope `json:"gitlab,omitempty"`
@@ -182,6 +183,20 @@ type ConfigAuthMethodOauthAzureadUpdateInput struct {
 	Tenant       *string `json:"tenant,omitempty"`
 }
 
+type ConfigAuthMethodOauthEntraid struct {
+	ClientID     *string `json:"clientId,omitempty"`
+	ClientSecret *string `json:"clientSecret,omitempty"`
+	Enabled      *bool   `json:"enabled,omitempty"`
+	Tenant       *string `json:"tenant,omitempty"`
+}
+
+type ConfigAuthMethodOauthEntraidUpdateInput struct {
+	ClientID     *string `json:"clientId,omitempty"`
+	ClientSecret *string `json:"clientSecret,omitempty"`
+	Enabled      *bool   `json:"enabled,omitempty"`
+	Tenant       *string `json:"tenant,omitempty"`
+}
+
 type ConfigAuthMethodOauthTwitter struct {
 	ConsumerKey    *string `json:"consumerKey,omitempty"`
 	ConsumerSecret *string `json:"consumerSecret,omitempty"`
@@ -199,6 +214,7 @@ type ConfigAuthMethodOauthUpdateInput struct {
 	Azuread     *ConfigAuthMethodOauthAzureadUpdateInput         `json:"azuread,omitempty"`
 	Bitbucket   *ConfigStandardOauthProviderUpdateInput          `json:"bitbucket,omitempty"`
 	Discord     *ConfigStandardOauthProviderWithScopeUpdateInput `json:"discord,omitempty"`
+	Entraid     *ConfigAuthMethodOauthEntraidUpdateInput         `json:"entraid,omitempty"`
 	Facebook    *ConfigStandardOauthProviderWithScopeUpdateInput `json:"facebook,omitempty"`
 	Github      *ConfigStandardOauthProviderWithScopeUpdateInput `json:"github,omitempty"`
 	Gitlab      *ConfigStandardOauthProviderWithScopeUpdateInput `json:"gitlab,omitempty"`

@@ -62,10 +62,9 @@ import (
 		postgres.resources.compute.cpu) >= 1000 & true @cuegraph(skip)
 
 	_validateAllResourcesAreSetOrNot: (
-						(hasura.resources.compute == _|_) ==
-		(auth.resources.compute == _|_) ==
-		(storage.resources.compute == _|_) ==
-		(postgres.resources.compute == _|_) ) & true @cuegraph(skip)
+		((hasura.resources.compute != _|_) == (auth.resources.compute != _|_)) &&
+		((auth.resources.compute != _|_) == (storage.resources.compute != _|_)) &&
+		((storage.resources.compute != _|_) == (postgres.resources.compute != _|_))) & true @cuegraph(skip)
 
 	_validateNetworkingMustBeNullOrNotSet: !storage.resources.networking | storage.resources.networking == null @cuegraph(skip)
 
@@ -447,6 +446,10 @@ import (
 			}
 			bitbucket: #StandardOauthProvider
 			discord:   #StandardOauthProviderWithScope
+			entraid: {
+				#StandardOauthProvider
+				tenant: string | *"common"
+			}
 			facebook:  #StandardOauthProviderWithScope
 			github:    #StandardOauthProviderWithScope
 			gitlab:    #StandardOauthProviderWithScope
