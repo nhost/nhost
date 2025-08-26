@@ -2507,6 +2507,7 @@ components:
           - bitbucket
           - workos
           - azuread
+          - entraid
           - strava
           - facebook
           - windowslive

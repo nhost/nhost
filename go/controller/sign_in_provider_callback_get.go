@@ -116,6 +116,11 @@ func (ctrl *Controller) signinProviderProviderCallbackOauthFlow(
 		}
 	}
 
+	if profile.ProviderUserID == "" {
+		logger.ErrorContext(ctx, "provider user id is empty")
+		return oidc.Profile{}, ErrOauthProfileFetchFailed
+	}
+
 	return profile, nil
 }
 

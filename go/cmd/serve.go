@@ -154,6 +154,11 @@ const (
 	flagAzureadClientSecret              = "azuread-client-secret" //nolint:gosec
 	flagAzureadTenant                    = "azuread-tenant"
 	flagAzureadScope                     = "azuread-scope"
+	flagEntraIDEnabled                   = "entraid-enabled"
+	flagEntraIDClientID                  = "entraid-client-id"
+	flagEntraIDClientSecret              = "entraid-client-secret" //nolint:gosec
+	flagEntraIDTenant                    = "entraid-tenant"
+	flagEntraIDScope                     = "entraid-scope"
 	flagFacebookEnabled                  = "facebook-enabled"
 	flagFacebookClientID                 = "facebook-client-id"
 	flagFacebookClientSecret             = "facebook-client-secret"
@@ -1042,6 +1047,7 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 				Name:     flagAzureadTenant,
 				Usage:    "Azuread Tenant",
 				Category: "oauth-azuread",
+				Value:    "common",
 				EnvVars:  []string{"AUTH_PROVIDER_AZUREAD_TENANT"},
 			},
 			&cli.StringSliceFlag{ //nolint: exhaustruct
@@ -1050,6 +1056,40 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 				Category: "oauth-azuread",
 				Value:    cli.NewStringSlice(providers.DefaultAzureadScopes...),
 				EnvVars:  []string{"AUTH_PROVIDER_AZUREAD_SCOPE"},
+			},
+			// Microsoft EntraID flags
+			&cli.BoolFlag{ //nolint: exhaustruct
+				Name:     flagEntraIDEnabled,
+				Usage:    "Enable EntraID OAuth provider",
+				Category: "oauth-entraid",
+				Value:    false,
+				EnvVars:  []string{"AUTH_PROVIDER_ENTRAID_ENABLED"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagEntraIDClientID,
+				Usage:    "EntraID OAuth client ID",
+				Category: "oauth-entraid",
+				EnvVars:  []string{"AUTH_PROVIDER_ENTRAID_CLIENT_ID"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagEntraIDClientSecret,
+				Usage:    "EntraID OAuth client secret",
+				Category: "oauth-entraid",
+				EnvVars:  []string{"AUTH_PROVIDER_ENTRAID_CLIENT_SECRET"},
+			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:     flagEntraIDTenant,
+				Usage:    "EntraID Tenant",
+				Category: "oauth-entraid",
+				Value:    "common",
+				EnvVars:  []string{"AUTH_PROVIDER_ENTRAID_TENANT"},
+			},
+			&cli.StringSliceFlag{ //nolint: exhaustruct
+				Name:     flagEntraIDScope,
+				Usage:    "EntraID OAuth scope",
+				Category: "oauth-entraid",
+				Value:    cli.NewStringSlice(providers.DefaultEntraIDScopes...),
+				EnvVars:  []string{"AUTH_PROVIDER_ENTRAID_SCOPE"},
 			},
 			// Facebook provider flags
 			&cli.BoolFlag{ //nolint: exhaustruct
@@ -1271,7 +1311,7 @@ func getGoServer( //nolint:funlen
 		return nil, err
 	}
 
-	oauthProviders, err := getOauth2Providers(cCtx)
+	oauthProviders, err := getOauth2Providers(cCtx, logger)
 	if err != nil {
 		return nil, fmt.Errorf("problem creating oauth providers: %w", err)
 	}

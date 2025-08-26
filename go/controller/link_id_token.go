@@ -7,7 +7,7 @@ import (
 	"github.com/nhost/hasura-auth/go/middleware"
 )
 
-func (ctrl *Controller) LinkIdToken( //nolint:ireturn,revive,stylecheck
+func (ctrl *Controller) LinkIdToken( //nolint:ireturn,revive
 	ctx context.Context, req api.LinkIdTokenRequestObject,
 ) (api.LinkIdTokenResponseObject, error) {
 	logger := middleware.LoggerFromContext(ctx)

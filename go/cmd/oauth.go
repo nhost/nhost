@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"log/slog"
 
 	"github.com/nhost/hasura-auth/go/api"
 	"github.com/nhost/hasura-auth/go/providers"
@@ -33,6 +34,8 @@ func getDefaultScopes(providerName api.SignInProvider) []string {
 		return providers.DefaultWorkOSScopes
 	case api.SignInProviderAzuread:
 		return providers.DefaultAzureadScopes
+	case api.SignInProviderEntraid:
+		return providers.DefaultEntraIDScopes
 	case api.SignInProviderFacebook:
 		return providers.DefaultFacebookScopes
 	case api.SignInProviderWindowslive:
@@ -66,6 +69,7 @@ func getScopes(provider api.SignInProvider, scopes []string) []string {
 //nolint:funlen,cyclop
 func getOauth2Providers(
 	cCtx *cli.Context,
+	logger *slog.Logger,
 ) (providers.Map, error) {
 	providersMap := make(providers.Map)
 
@@ -180,12 +184,26 @@ func getOauth2Providers(
 	}
 
 	if cCtx.Bool(flagAzureadEnabled) {
+		logger.WarnContext(
+			cCtx.Context, "AzureAD provider is deprecated, use EntraID provider instead",
+		)
+
 		providersMap["azuread"] = providers.NewAzureadProvider(
 			cCtx.String(flagAzureadClientID),
 			cCtx.String(flagAzureadClientSecret),
 			cCtx.String(flagServerURL),
 			cCtx.String(flagAzureadTenant),
 			getScopes(api.SignInProviderAzuread, cCtx.StringSlice(flagAzureadScope)),
+		)
+	}
+
+	if cCtx.Bool(flagEntraIDEnabled) {
+		providersMap["entraid"] = providers.NewEntraIDProvider(
+			cCtx.String(flagEntraIDClientID),
+			cCtx.String(flagEntraIDClientSecret),
+			cCtx.String(flagServerURL),
+			cCtx.String(flagEntraIDTenant),
+			getScopes(api.SignInProviderEntraid, cCtx.StringSlice(flagEntraIDScope)),
 		)
 	}
 

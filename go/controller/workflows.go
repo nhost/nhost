@@ -1131,6 +1131,11 @@ func (wf *Workflows) GetOIDCProfileFromIDToken(
 		return oidc.Profile{}, ErrInvalidRequest
 	}
 
+	if profile.ProviderUserID == "" {
+		logger.ErrorContext(ctx, "provider user id is empty")
+		return oidc.Profile{}, ErrOauthProfileFetchFailed
+	}
+
 	return profile, nil
 }
 

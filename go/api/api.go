@@ -1,3 +1,3 @@
 package api
 
-const IdTokenProviderFake = IdTokenProvider("fake") //nolint:revive,stylecheck
+const IdTokenProviderFake = IdTokenProvider("fake") //nolint:revive

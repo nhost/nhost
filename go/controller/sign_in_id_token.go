@@ -42,7 +42,7 @@ func (ctrl *Controller) postSigninIdtokenCheckUserExists(
 	return user, false, false, nil
 }
 
-func (ctrl *Controller) SignInIdToken( //nolint:ireturn,revive,stylecheck
+func (ctrl *Controller) SignInIdToken( //nolint:ireturn,revive
 	ctx context.Context, req api.SignInIdTokenRequestObject,
 ) (api.SignInIdTokenResponseObject, error) {
 	logger := middleware.LoggerFromContext(ctx)
