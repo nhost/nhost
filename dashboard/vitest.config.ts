@@ -10,6 +10,9 @@ export default defineConfig({
     testTimeout: 30000,
     environment: 'jsdom',
     globals: true,
+      cache: {
+        dir: '.vitest'
+    },
     setupFiles: 'src/setupTests.ts',
     include: ['src/**/*.(spec|test).{js,jsx,ts,tsx}'],
     deps: {
