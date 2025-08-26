@@ -1,0 +1,26 @@
+---
+name: "dashboard: check and build"
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/wf_build_artifacts.yaml'
+      - '.github/workflows/wf_check.yaml'
+      - '.github/workflows/dashboard_checks.yaml'
+      - 'build/**'
+      - 'nix/**'
+      - 'dashboard/**'
+      - 'tools/cuegraph/types/**'
+      - ".npmrc"
+      - "package.json"
+      - "pnpm-workspace.yaml"
+      - "pnpm-lock.yaml"
+      - "turbo.json"
+  push:
+    branches:
+      - main
+
+jobs:
+  check-changelog:
+    uses: ./.github/workflows/wf_check_changelog.yaml
+    with:
+      PROJECT_PATH: dashboard
