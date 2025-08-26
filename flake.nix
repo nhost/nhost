@@ -31,9 +31,14 @@
         nodeModulesLib = import ./nix/node_modules.nix { inherit pkgs nix-filter; };
         inherit (nodeModulesLib) node_modules mkNodeDevShell;
 
+        codegenf = import ./tools/codegen/project.nix {
+          inherit self pkgs nix-filter nixops-lib;
+        };
+
         dashboardf = import ./dashboard/project.nix {
           inherit self pkgs nix2containerPkgs nix-filter nixops-lib mkNodeDevShell node_modules;
         };
+
       in
       {
         checks = {
@@ -49,6 +54,8 @@
               nixpkgs-fmt --check ${nix-src}
             '';
 
+          codegen = codegenf.check;
+
           dashboard = dashboardf.check;
         };
 
@@ -63,6 +70,7 @@
               go
               golangci-lint
               skopeo
+              self.packages.${system}.codegen
             ];
 
             shellHook = ''
@@ -83,12 +91,15 @@
             ];
           };
 
+          codegen = codegenf.devShell;
           dashboard = dashboardf.devShell;
         };
 
         packages = flake-utils.lib.flattenTree {
           dashboard = dashboardf.package;
           dashboard-docker-image = dashboardf.dockerImage;
+
+          codegen = codegenf.package;
         };
       }
     );

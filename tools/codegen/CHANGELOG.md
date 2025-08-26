@@ -1,0 +1,4 @@
+- 20250811 feat (package/nhost-js): update openapi specs and properly generate formData when uploading/updating files #47
+- 20250704 feat (packages/nhost-js): added functions.post method and improve documentation #43
+- 20250610 fix (tools/codegen;packages/nhost-js): encode URL parameters better #30
+- 20250601 chore (ci): enabled #26

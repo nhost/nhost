@@ -1,0 +1,21 @@
+{
+  "extends": "../../configs/tsconfig/library.json",
+  "compilerOptions": {
+    "lib": ["ESNext", "DOM"],
+    "jsx": "react-jsx",
+    "allowJs": true,
+    "outDir": "./dist",
+    "baseUrl": ".",
+    "paths": {
+      "@nhost/nhost-js": ["src/index.ts"],
+      "@nhost/nhost-js/auth": ["src/auth/index.ts"],
+      "@nhost/nhost-js/fetch": ["src/fetch/index.ts"],
+      "@nhost/nhost-js/functions": ["src/functions/index.ts"],
+      "@nhost/nhost-js/graphql": ["src/graphql/index.ts"],
+      "@nhost/nhost-js/session": ["src/session/index.ts"],
+      "@nhost/nhost-js/storage": ["src/storage/index.ts"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "**/*.test.ts", "dist", "**/__tests__/**"]
+}
