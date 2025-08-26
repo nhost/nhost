@@ -5,6 +5,7 @@ import { AppleProviderSettings } from '@/features/orgs/projects/authentication/s
 import { AzureADProviderSettings } from '@/features/orgs/projects/authentication/settings/components/AzureADProviderSettings';
 import { DiscordProviderSettings } from '@/features/orgs/projects/authentication/settings/components/DiscordProviderSettings';
 import { EmailAndPasswordSettings } from '@/features/orgs/projects/authentication/settings/components/EmailAndPasswordSettings';
+import { EntraIDProviderSettings } from '@/features/orgs/projects/authentication/settings/components/EntraIDProviderSettings';
 import { FacebookProviderSettings } from '@/features/orgs/projects/authentication/settings/components/FacebookProviderSettings';
 import { GitHubProviderSettings } from '@/features/orgs/projects/authentication/settings/components/GitHubProviderSettings';
 import { GoogleProviderSettings } from '@/features/orgs/projects/authentication/settings/components/GoogleProviderSettings';
@@ -65,6 +66,7 @@ export default function SettingsSignInMethodsPage() {
       <OTPEmailSettings />
       <AppleProviderSettings />
       <AzureADProviderSettings />
+      <EntraIDProviderSettings />
       <DiscordProviderSettings />
       <FacebookProviderSettings />
       <GitHubProviderSettings />

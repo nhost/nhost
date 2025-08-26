@@ -387,6 +387,7 @@ export type ConfigAuthMethodOauth = {
   azuread?: Maybe<ConfigAuthMethodOauthAzuread>;
   bitbucket?: Maybe<ConfigStandardOauthProvider>;
   discord?: Maybe<ConfigStandardOauthProviderWithScope>;
+  entraid?: Maybe<ConfigAuthMethodOauthEntraid>;
   facebook?: Maybe<ConfigStandardOauthProviderWithScope>;
   github?: Maybe<ConfigStandardOauthProviderWithScope>;
   gitlab?: Maybe<ConfigStandardOauthProviderWithScope>;
@@ -484,6 +485,7 @@ export type ConfigAuthMethodOauthComparisonExp = {
   azuread?: InputMaybe<ConfigAuthMethodOauthAzureadComparisonExp>;
   bitbucket?: InputMaybe<ConfigStandardOauthProviderComparisonExp>;
   discord?: InputMaybe<ConfigStandardOauthProviderWithScopeComparisonExp>;
+  entraid?: InputMaybe<ConfigAuthMethodOauthEntraidComparisonExp>;
   facebook?: InputMaybe<ConfigStandardOauthProviderWithScopeComparisonExp>;
   github?: InputMaybe<ConfigStandardOauthProviderWithScopeComparisonExp>;
   gitlab?: InputMaybe<ConfigStandardOauthProviderWithScopeComparisonExp>;
@@ -497,11 +499,44 @@ export type ConfigAuthMethodOauthComparisonExp = {
   workos?: InputMaybe<ConfigAuthMethodOauthWorkosComparisonExp>;
 };
 
+export type ConfigAuthMethodOauthEntraid = {
+  __typename?: 'ConfigAuthMethodOauthEntraid';
+  clientId?: Maybe<Scalars['String']>;
+  clientSecret?: Maybe<Scalars['String']>;
+  enabled?: Maybe<Scalars['Boolean']>;
+  tenant?: Maybe<Scalars['String']>;
+};
+
+export type ConfigAuthMethodOauthEntraidComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthMethodOauthEntraidComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthMethodOauthEntraidComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthMethodOauthEntraidComparisonExp>>;
+  clientId?: InputMaybe<ConfigStringComparisonExp>;
+  clientSecret?: InputMaybe<ConfigStringComparisonExp>;
+  enabled?: InputMaybe<ConfigBooleanComparisonExp>;
+  tenant?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigAuthMethodOauthEntraidInsertInput = {
+  clientId?: InputMaybe<Scalars['String']>;
+  clientSecret?: InputMaybe<Scalars['String']>;
+  enabled?: InputMaybe<Scalars['Boolean']>;
+  tenant?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigAuthMethodOauthEntraidUpdateInput = {
+  clientId?: InputMaybe<Scalars['String']>;
+  clientSecret?: InputMaybe<Scalars['String']>;
+  enabled?: InputMaybe<Scalars['Boolean']>;
+  tenant?: InputMaybe<Scalars['String']>;
+};
+
 export type ConfigAuthMethodOauthInsertInput = {
   apple?: InputMaybe<ConfigAuthMethodOauthAppleInsertInput>;
   azuread?: InputMaybe<ConfigAuthMethodOauthAzureadInsertInput>;
   bitbucket?: InputMaybe<ConfigStandardOauthProviderInsertInput>;
   discord?: InputMaybe<ConfigStandardOauthProviderWithScopeInsertInput>;
+  entraid?: InputMaybe<ConfigAuthMethodOauthEntraidInsertInput>;
   facebook?: InputMaybe<ConfigStandardOauthProviderWithScopeInsertInput>;
   github?: InputMaybe<ConfigStandardOauthProviderWithScopeInsertInput>;
   gitlab?: InputMaybe<ConfigStandardOauthProviderWithScopeInsertInput>;
@@ -548,6 +583,7 @@ export type ConfigAuthMethodOauthUpdateInput = {
   azuread?: InputMaybe<ConfigAuthMethodOauthAzureadUpdateInput>;
   bitbucket?: InputMaybe<ConfigStandardOauthProviderUpdateInput>;
   discord?: InputMaybe<ConfigStandardOauthProviderWithScopeUpdateInput>;
+  entraid?: InputMaybe<ConfigAuthMethodOauthEntraidUpdateInput>;
   facebook?: InputMaybe<ConfigStandardOauthProviderWithScopeUpdateInput>;
   github?: InputMaybe<ConfigStandardOauthProviderWithScopeUpdateInput>;
   gitlab?: InputMaybe<ConfigStandardOauthProviderWithScopeUpdateInput>;
@@ -27703,7 +27739,7 @@ export type GetSignInMethodsQueryVariables = Exact<{
 }>;
 
 
-export type GetSignInMethodsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', provider?: { __typename: 'ConfigProvider', id: 'ConfigProvider', sms?: { __typename?: 'ConfigSms', accountSid: string, authToken: string, messagingServiceId: string, provider?: string | null } | null } | null, auth?: { __typename: 'ConfigAuth', id: 'ConfigAuth', method?: { __typename?: 'ConfigAuthMethod', otp?: { __typename?: 'ConfigAuthMethodOtp', email?: { __typename?: 'ConfigAuthMethodOtpEmail', enabled?: boolean | null } | null } | null, emailPassword?: { __typename?: 'ConfigAuthMethodEmailPassword', emailVerificationRequired?: boolean | null, hibpEnabled?: boolean | null, passwordMinLength?: any | null } | null, emailPasswordless?: { __typename?: 'ConfigAuthMethodEmailPasswordless', enabled?: boolean | null } | null, smsPasswordless?: { __typename?: 'ConfigAuthMethodSmsPasswordless', enabled?: boolean | null } | null, anonymous?: { __typename?: 'ConfigAuthMethodAnonymous', enabled?: boolean | null } | null, webauthn?: { __typename?: 'ConfigAuthMethodWebauthn', enabled?: boolean | null } | null, oauth?: { __typename?: 'ConfigAuthMethodOauth', apple?: { __typename?: 'ConfigAuthMethodOauthApple', enabled?: boolean | null, clientId?: string | null, keyId?: string | null, teamId?: string | null, privateKey?: string | null, audience?: string | null } | null, bitbucket?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null } | null, gitlab?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, strava?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, discord?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, facebook?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, github?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, google?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null, audience?: string | null } | null, linkedin?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, spotify?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, twitch?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, twitter?: { __typename?: 'ConfigAuthMethodOauthTwitter', enabled?: boolean | null, consumerKey?: string | null, consumerSecret?: string | null } | null, windowslive?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, workos?: { __typename?: 'ConfigAuthMethodOauthWorkos', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, connection?: string | null, organization?: string | null } | null, azuread?: { __typename?: 'ConfigAuthMethodOauthAzuread', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, tenant?: string | null } | null } | null } | null } | null } | null };
+export type GetSignInMethodsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', provider?: { __typename: 'ConfigProvider', id: 'ConfigProvider', sms?: { __typename?: 'ConfigSms', accountSid: string, authToken: string, messagingServiceId: string, provider?: string | null } | null } | null, auth?: { __typename: 'ConfigAuth', id: 'ConfigAuth', method?: { __typename?: 'ConfigAuthMethod', otp?: { __typename?: 'ConfigAuthMethodOtp', email?: { __typename?: 'ConfigAuthMethodOtpEmail', enabled?: boolean | null } | null } | null, emailPassword?: { __typename?: 'ConfigAuthMethodEmailPassword', emailVerificationRequired?: boolean | null, hibpEnabled?: boolean | null, passwordMinLength?: any | null } | null, emailPasswordless?: { __typename?: 'ConfigAuthMethodEmailPasswordless', enabled?: boolean | null } | null, smsPasswordless?: { __typename?: 'ConfigAuthMethodSmsPasswordless', enabled?: boolean | null } | null, anonymous?: { __typename?: 'ConfigAuthMethodAnonymous', enabled?: boolean | null } | null, webauthn?: { __typename?: 'ConfigAuthMethodWebauthn', enabled?: boolean | null } | null, oauth?: { __typename?: 'ConfigAuthMethodOauth', apple?: { __typename?: 'ConfigAuthMethodOauthApple', enabled?: boolean | null, clientId?: string | null, keyId?: string | null, teamId?: string | null, privateKey?: string | null, audience?: string | null } | null, bitbucket?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null } | null, gitlab?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, strava?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, discord?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, facebook?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, github?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, google?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null, audience?: string | null } | null, linkedin?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, spotify?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, twitch?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, twitter?: { __typename?: 'ConfigAuthMethodOauthTwitter', enabled?: boolean | null, consumerKey?: string | null, consumerSecret?: string | null } | null, windowslive?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, workos?: { __typename?: 'ConfigAuthMethodOauthWorkos', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, connection?: string | null, organization?: string | null } | null, azuread?: { __typename?: 'ConfigAuthMethodOauthAzuread', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, tenant?: string | null } | null, entraid?: { __typename?: 'ConfigAuthMethodOauthEntraid', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, tenant?: string | null } | null } | null } | null } | null } | null };
 
 export type GetSmtpSettingsQueryVariables = Exact<{
   appId: Scalars['uuid'];
@@ -30868,6 +30904,12 @@ export const GetSignInMethodsDocument = gql`
             organization
           }
           azuread {
+            enabled
+            clientId
+            clientSecret
+            tenant
+          }
+          entraid {
             enabled
             clientId
             clientSecret

@@ -1,12 +1,10 @@
 ---
-title: Sign In with Azure
-description: Follow this guide to sign in users with Azure.
+title: Sign In with Entra ID
+description: Follow this guide to sign in users with Microsoft's Entra ID
 icon: microsoft
 ---
 
-<Warning>Deprecated: Use [Entra ID](sign-in-entraid) instead</Warning>
-
-## Set up Azure AD
+## Set up Entra ID
 
 1. Visit the Azure Portal and create an account if needed.
 2. Navigate to "Microsoft Entra ID".
@@ -18,7 +16,7 @@ icon: microsoft
    * Click "Register"
 
 <Note>
-Find the Redirect URL in your project settings -> Sign In Methods after enabling Azure AD.
+Find the Redirect URL in your project settings -> Sign In Methods after enabling Entra ID
 </Note>
 
 5. Copy the "Application (client) ID" for later use.
@@ -31,7 +29,7 @@ Find the Redirect URL in your project settings -> Sign In Methods after enabling
 ## Configure Nhost
 
 1. Go to your project's settings -> Sign In Methods.
-2. Find Azure AD, enable it, and enter the client ID and secret.
+2. Find Entra ID, enable it, and enter the client ID and secret.
 3. Save your changes.
 
 ## User Sign-In

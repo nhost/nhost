@@ -131,6 +131,12 @@ query GetSignInMethods($appId: uuid!) {
             clientSecret
             tenant
           }
+          entraid {
+            enabled
+            clientId
+            clientSecret
+            tenant
+          }
         }
       }
     }
