@@ -28,7 +28,7 @@ module.exports = withBundleAnalyzer({
   swcMinify: false,
   output: 'standalone',
   experimental: {
-    outputFileTracingRoot: path.join(__dirname, '../../'),
+    outputFileTracingRoot: path.join(__dirname, '../'),
   },
   publicRuntimeConfig: {
     version,

@@ -6,4 +6,8 @@
     version = "10.1.0";
     hash = "sha256-PuU+kUAR7H8abjqwxYuaAkoFK/4YKVsjtoVn1qal680=";
   };
+
+  ell = prev.ell.overrideAttrs (oldAttrs: {
+    doCheck = false;
+  });
 })
