@@ -6,7 +6,7 @@ import { buttonVariants } from '@/components/ui/button'
 import { WorkOSIcon } from '../ui/workosicon'
 
 export default function OAuthLinks() {
-  const { github, apple, google, linkedin, discord, spotify, twitch, gitlab, bitbucket, workos, azuread, facebook, strava, windowslive, twitter } = useProviderLink({
+  const { github, apple, google, linkedin, discord, spotify, twitch, gitlab, bitbucket, workos, entraid, facebook, strava, windowslive, twitter } = useProviderLink({
     redirectTo: window.location.origin
   })
 
@@ -122,14 +122,14 @@ export default function OAuthLinks() {
       </Link>
 
       <Link
-        to={azuread}
+        to={entraid}
         className={cn(
           buttonVariants({ variant: 'link' }),
           'bg-[#3CCBF4] text-white hover:opacity-90 hover:no-underline'
         )}
       >
         <SiMicrosoftazure className="w-4 h-4" />
-        <span className="flex-1 text-center">Continue with Azure AD</span>
+        <span className="flex-1 text-center">Continue with Microsoft Entra ID</span>
       </Link>
 
       <Link
