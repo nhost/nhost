@@ -1,8 +1,12 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete';
+import {
+  ControlledAutocomplete,
+  defaultFilterOptions,
+} from '@/components/form/ControlledAutocomplete';
 import { ControlledCheckbox } from '@/components/form/ControlledCheckbox';
 import { Form } from '@/components/form/Form';
 import { InlineCode } from '@/components/presentational/InlineCode';
+import type { AutocompleteOption } from '@/components/ui/v2/Autocomplete';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
@@ -132,17 +136,50 @@ export default function BaseColumnForm({
             id="type"
             name="type"
             control={control}
+            aria-label="Type"
             fullWidth
-            placeholder="Select a column type"
-            label="Type"
-            helperText={errors.type?.message}
-            error={Boolean(errors.type)}
-            hideEmptyHelperText
-            autoHighlight
-            className="col-span-8 py-3"
-            variant="inline"
             options={postgresTypeGroups}
             groupBy={(option) => option.group ?? ''}
+            error={Boolean(errors.type)}
+            placeholder="Select a column type"
+            label="Type"
+            hideEmptyHelperText
+            className="col-span-8 py-3"
+            variant="inline"
+            autoHighlight
+            clearOnBlur
+            showCustomOption="first"
+            filterOptions={defaultFilterOptions}
+            isOptionEqualToValue={(option, value) => {
+              const typedValue = value as AutocompleteOption<string> & {
+                isUserDefined: boolean;
+              };
+              if (typedValue.custom || typedValue.isUserDefined) {
+                return true;
+              }
+              return (
+                option.value === typedValue.value ||
+                typedValue.value.includes(option.value)
+              );
+            }}
+            renderOption={(props, { label, value, custom }) => {
+              if (custom) {
+                return (
+                  <OptionBase {...props}>
+                    <span>Use type: &quot;{value}&quot;</span>
+                  </OptionBase>
+                );
+              }
+              return (
+                <OptionBase {...props}>
+                  <div className="grid grid-flow-col items-baseline justify-start justify-items-start gap-1.5">
+                    <span>{label}</span>
+
+                    <InlineCode>{value}</InlineCode>
+                  </div>
+                </OptionBase>
+              );
+            }}
             onChange={(_event, value) => {
               setDefaultValueInputText('');
 
@@ -155,16 +192,6 @@ export default function BaseColumnForm({
                 setValue('defaultValue', null);
               }
             }}
-            noOptionsText="No types found"
-            renderOption={(props, { label, value }) => (
-              <OptionBase {...props}>
-                <div className="grid grid-flow-col items-baseline justify-start justify-items-start gap-1.5">
-                  <span>{label}</span>
-
-                  <InlineCode>{value}</InlineCode>
-                </div>
-              </OptionBase>
-            )}
           />
 
           {identityTypes.includes(type?.value) && (

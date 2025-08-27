@@ -114,34 +114,42 @@ export default async function fetchTable({
       args: [
         getPreparedReadOnlyHasuraQuery(
           dataSource,
-          `SELECT ROW_TO_JSON(TABLE_DATA) FROM (\
-            SELECT *,\
-              EXISTS (\
-                SELECT NSP.NSPNAME, CLS.RELNAME, ATTR.ATTNAME\
-                FROM PG_INDEX IND\
-                JOIN PG_CLASS CLS ON CLS.OID = IND.INDRELID\
-                JOIN PG_ATTRIBUTE ATTR ON ATTR.ATTRELID = CLS.OID\
-                AND ATTR.ATTNUM = ANY(IND.INDKEY)\
-                JOIN PG_NAMESPACE NSP ON NSP.OID = CLS.RELNAMESPACE\
-                WHERE NSPNAME = %1$L AND RELNAME = %2$L AND ATTR.ATTNAME = COLS.COLUMN_NAME AND INDISPRIMARY\
-              ) AS IS_PRIMARY,\
-              EXISTS (\
-                SELECT NSP.NSPNAME, CLS.RELNAME, ATTR.ATTNAME\
-                FROM PG_INDEX IND\
-                JOIN PG_CLASS CLS ON CLS.OID = IND.INDRELID\
-                JOIN PG_ATTRIBUTE ATTR ON ATTR.ATTRELID = CLS.OID\
-                AND ATTR.ATTNUM = ANY(IND.INDKEY)\
-                JOIN PG_NAMESPACE NSP ON NSP.OID = CLS.RELNAMESPACE\
-                WHERE NSPNAME = %1$L AND RELNAME = %2$L AND ATTR.ATTNAME = COLS.COLUMN_NAME AND INDISUNIQUE\
-              ) AS IS_UNIQUE,\
-              (\
-                SELECT PG_CATALOG.COL_DESCRIPTION(CLS.OID, COLS.ORDINAL_POSITION::INT)\
-                FROM PG_CATALOG.PG_CLASS CLS\
-                WHERE CLS.OID = (SELECT '%1$I.%2$I'::REGCLASS::OID) AND CLS.RELNAME = COLS.TABLE_NAME\
-              ) AS COLUMN_COMMENT\
-            FROM INFORMATION_SCHEMA.COLUMNS COLS\
-            WHERE TABLE_SCHEMA = %1$L AND TABLE_NAME = %2$L\
-          ) TABLE_DATA`,
+          `
+            SELECT ROW_TO_JSON(TABLE_DATA) FROM (
+                SELECT *,
+                    PG_CATALOG.FORMAT_TYPE(
+                        (SELECT ATTTYPID FROM PG_ATTRIBUTE
+                         WHERE ATTRELID = (SELECT OID FROM PG_CLASS WHERE RELNAME = %2$L AND RELNAMESPACE = (SELECT OID FROM PG_NAMESPACE WHERE NSPNAME = %1$L))
+                         AND ATTNAME = COLS.COLUMN_NAME),
+                        (SELECT ATTTYPMOD FROM PG_ATTRIBUTE
+                         WHERE ATTRELID = (SELECT OID FROM PG_CLASS WHERE RELNAME = %2$L AND RELNAMESPACE = (SELECT OID FROM PG_NAMESPACE WHERE NSPNAME = %1$L))
+                         AND ATTNAME = COLS.COLUMN_NAME)
+                    ) AS FULL_DATA_TYPE,
+                    EXISTS (
+                        SELECT NSP.NSPNAME, CLS.RELNAME, ATTR.ATTNAME
+                        FROM PG_INDEX IND
+                        JOIN PG_CLASS CLS ON CLS.OID = IND.INDRELID
+                        JOIN PG_ATTRIBUTE ATTR ON ATTR.ATTRELID = CLS.OID AND ATTR.ATTNUM = ANY(IND.INDKEY)
+                        JOIN PG_NAMESPACE NSP ON NSP.OID = CLS.RELNAMESPACE
+                        WHERE NSPNAME = %1$L AND RELNAME = %2$L AND ATTR.ATTNAME = COLS.COLUMN_NAME AND INDISPRIMARY
+                    ) AS IS_PRIMARY,
+                    EXISTS (
+                        SELECT NSP.NSPNAME, CLS.RELNAME, ATTR.ATTNAME
+                        FROM PG_INDEX IND
+                        JOIN PG_CLASS CLS ON CLS.OID = IND.INDRELID
+                        JOIN PG_ATTRIBUTE ATTR ON ATTR.ATTRELID = CLS.OID AND ATTR.ATTNUM = ANY(IND.INDKEY)
+                        JOIN PG_NAMESPACE NSP ON NSP.OID = CLS.RELNAMESPACE
+                        WHERE NSPNAME = %1$L AND RELNAME = %2$L AND ATTR.ATTNAME = COLS.COLUMN_NAME AND INDISUNIQUE
+                    ) AS IS_UNIQUE,
+                    (
+                        SELECT PG_CATALOG.COL_DESCRIPTION(CLS.OID, COLS.ORDINAL_POSITION::INT)
+                        FROM PG_CATALOG.PG_CLASS CLS
+                        WHERE CLS.OID = (SELECT '%1$s.%2$s'::REGCLASS::OID) AND CLS.RELNAME = COLS.TABLE_NAME
+                    ) AS COLUMN_COMMENT
+                FROM INFORMATION_SCHEMA.COLUMNS COLS
+                WHERE TABLE_SCHEMA = %1$L AND TABLE_NAME = %2$L
+            ) TABLE_DATA;
+          `,
           schema,
           table,
         ),
