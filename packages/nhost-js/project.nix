@@ -57,8 +57,6 @@ in
     cp -r ${node_modules}/node_modules/ node_modules
     cp -r ${node_modules}/${submodule}/node_modules/ ${submodule}/node_modules
 
-    export HOME=$TMPDIR
-
     echo "➜ Checking dependencies for security issues"
     pnpm audit-ci
 
@@ -78,11 +76,14 @@ in
     buildInputs = with pkgs; [ nodejs ];
 
     buildPhase = ''
-      cp -r ${src}/* .
+      cp -r ${src} src
       chmod +w -R .
+      cd src
 
       cp -r ${node_modules}/node_modules/ node_modules
       cp -r ${node_modules}/${submodule}/node_modules/ ${submodule}/node_modules
+
+      cd ${submodule}
 
       pnpm build
     '';
