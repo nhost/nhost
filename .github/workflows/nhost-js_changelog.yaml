@@ -31,4 +31,4 @@ jobs:
   check-changelog:
     uses: ./.github/workflows/wf_check_changelog.yaml
     with:
-      PATH: packages/nhost-js
+      PROJECT_PATH: packages/nhost-js

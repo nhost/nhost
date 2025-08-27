@@ -2,7 +2,7 @@
 on:
   workflow_call:
     inputs:
-      PATH:
+      PROJECT_PATH:
         type: string
         required: true
         description: "Path to the project directory where CHANGELOG.md is located"
