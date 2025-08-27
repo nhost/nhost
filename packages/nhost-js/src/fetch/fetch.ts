@@ -3,10 +3,7 @@
  * Takes the same parameters as fetch and returns the same type.
  * This allows middleware to intercept and modify requests and responses.
  */
-export type FetchFunction = (
-  url: string,
-  options?: RequestInit,
-) => Promise<Response>;
+export type FetchFunction = (url: string, options?: RequestInit) => Promise<Response>
 
 /**
  * Type definition for a chain function (middleware).
@@ -18,7 +15,7 @@ export type FetchFunction = (
  * - Request and response transformations
  * - Logging and metrics
  */
-export type ChainFunction = (next: FetchFunction) => FetchFunction;
+export type ChainFunction = (next: FetchFunction) => FetchFunction
 
 /**
  * Creates an enhanced fetch function using a chain of middleware functions.
@@ -47,15 +44,13 @@ export type ChainFunction = (next: FetchFunction) => FetchFunction;
  * @param chainFunctions - Array of chain functions to apply in order
  * @returns Enhanced fetch function with all middleware applied
  */
-export function createEnhancedFetch(
-  chainFunctions: ChainFunction[] = [],
-): FetchFunction {
+export function createEnhancedFetch(chainFunctions: ChainFunction[] = []): FetchFunction {
   // Build the chain starting with vanilla fetch, but apply functions in reverse
   // to achieve the desired execution order
   return chainFunctions.reduceRight(
     (nextInChain, chainFunction) => chainFunction(nextInChain),
-    fetch as FetchFunction,
-  );
+    fetch as FetchFunction
+  )
 }
 
 /**
@@ -68,58 +63,54 @@ export function createEnhancedFetch(
  */
 export interface FetchResponse<T> {
   /** The parsed response body */
-  body: T;
+  body: T
   /** HTTP status code of the response */
-  status: number;
+  status: number
   /** Response headers */
-  headers: Headers;
+  headers: Headers
 }
 
 function extractMessage(body: unknown): string {
-  if (body && typeof body === "string") {
-    return body;
+  if (body && typeof body === 'string') {
+    return body
   }
 
-  if (body && typeof body === "object") {
-    const typedBody = body as Record<string, unknown>;
+  if (body && typeof body === 'object') {
+    const typedBody = body as Record<string, unknown>
 
-    if ("message" in typedBody && typeof typedBody["message"] === "string") {
-      return typedBody["message"];
+    if ('message' in typedBody && typeof typedBody['message'] === 'string') {
+      return typedBody['message']
     }
 
-    if ("error" in typedBody && typeof typedBody["error"] === "string") {
-      return typedBody["error"];
+    if ('error' in typedBody && typeof typedBody['error'] === 'string') {
+      return typedBody['error']
     }
 
-    if (
-      "error" in typedBody &&
-      typedBody["error"] &&
-      typeof typedBody["error"] === "object"
-    ) {
-      const error = typedBody["error"] as Record<string, unknown>;
-      if ("message" in error && typeof error["message"] === "string") {
-        return error["message"];
+    if ('error' in typedBody && typedBody['error'] && typeof typedBody['error'] === 'object') {
+      const error = typedBody['error'] as Record<string, unknown>
+      if ('message' in error && typeof error['message'] === 'string') {
+        return error['message']
       }
     }
 
-    if ("errors" in typedBody && Array.isArray(typedBody["errors"])) {
-      const messages = (typedBody["errors"] as unknown[])
+    if ('errors' in typedBody && Array.isArray(typedBody['errors'])) {
+      const messages = (typedBody['errors'] as unknown[])
         .filter(
           (error): error is { message: string } =>
-            typeof error === "object" &&
+            typeof error === 'object' &&
             error !== null &&
-            "message" in error &&
-            typeof (error as { message: unknown })["message"] === "string",
+            'message' in error &&
+            typeof (error as { message: unknown })['message'] === 'string'
         )
-        .map((error) => error["message"]);
+        .map((error) => error['message'])
 
       if (messages.length > 0) {
-        return messages.join(", ");
+        return messages.join(', ')
       }
     }
   }
 
-  return "An unexpected error occurred";
+  return 'An unexpected error occurred'
 }
 
 /**
@@ -135,11 +126,11 @@ function extractMessage(body: unknown): string {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export class FetchError<T = any> extends Error {
   /** The original response body */
-  body: T;
+  body: T
   /** HTTP status code of the failed response */
-  status: number;
+  status: number
   /** Response headers */
-  headers: Headers;
+  headers: Headers
 
   /**
    * Creates a new FetchError instance
@@ -149,9 +140,9 @@ export class FetchError<T = any> extends Error {
    * @param headers - The response headers
    */
   constructor(body: T, status: number, headers: Headers) {
-    super(extractMessage(body));
-    this.body = body;
-    this.status = status;
-    this.headers = headers;
+    super(extractMessage(body))
+    this.body = body
+    this.status = status
+    this.headers = headers
   }
 }

@@ -1,33 +1,24 @@
-import {
-  createAPIClient as createAuthClient,
-  type Client as AuthClient,
-} from "./auth";
-import {
-  createAPIClient as createStorageClient,
-  type Client as StorageClient,
-} from "./storage";
-import {
-  type Client as GraphQLClient,
-  createAPIClient as createGraphQLClient,
-} from "./graphql";
+import { createAPIClient as createAuthClient, type Client as AuthClient } from './auth'
+import { createAPIClient as createStorageClient, type Client as StorageClient } from './storage'
+import { type Client as GraphQLClient, createAPIClient as createGraphQLClient } from './graphql'
 import {
   type Client as FunctionsClient,
-  createAPIClient as createFunctionsClient,
-} from "./functions";
-import { generateServiceUrl } from "./";
+  createAPIClient as createFunctionsClient
+} from './functions'
+import { generateServiceUrl } from './'
 import {
   type ChainFunction,
   attachAccessTokenMiddleware,
   updateSessionFromResponseMiddleware,
-  sessionRefreshMiddleware,
-} from "./fetch";
+  sessionRefreshMiddleware
+} from './fetch'
 import {
   detectStorage,
   SessionStorage,
   type SessionStorageBackend,
   type Session,
-  refreshSession,
-} from "./session/";
+  refreshSession
+} from './session/'
 
 /**
  * Main client class that provides unified access to all Nhost services.
@@ -39,31 +30,31 @@ export class NhostClient {
    * Authentication client providing methods for user sign-in, sign-up, and session management.
    * Use this client to handle all authentication-related operations.
    */
-  auth: AuthClient;
+  auth: AuthClient
 
   /**
    * Storage client providing methods for file operations (upload, download, delete).
    * Use this client to manage files in your Nhost storage.
    */
-  storage: StorageClient;
+  storage: StorageClient
 
   /**
    * GraphQL client providing methods for executing GraphQL operations against your Hasura backend.
    * Use this client to query and mutate data in your database through GraphQL.
    */
-  graphql: GraphQLClient;
+  graphql: GraphQLClient
 
   /**
    * Functions client providing methods for invoking serverless functions.
    * Use this client to call your custom serverless functions deployed to Nhost.
    */
-  functions: FunctionsClient;
+  functions: FunctionsClient
 
   /**
    * Storage implementation used for persisting session information.
    * This handles saving, retrieving, and managing authentication sessions across requests.
    */
-  sessionStorage: SessionStorage;
+  sessionStorage: SessionStorage
 
   /**
    * Create a new Nhost client. This constructor is reserved for advanced use cases.
@@ -80,13 +71,13 @@ export class NhostClient {
     storage: StorageClient,
     graphql: GraphQLClient,
     functions: FunctionsClient,
-    sessionStorage: SessionStorage,
+    sessionStorage: SessionStorage
   ) {
-    this.auth = auth;
-    this.storage = storage;
-    this.graphql = graphql;
-    this.functions = functions;
-    this.sessionStorage = sessionStorage;
+    this.auth = auth
+    this.storage = storage
+    this.graphql = graphql
+    this.functions = functions
+    this.sessionStorage = sessionStorage
   }
 
   /**
@@ -106,7 +97,7 @@ export class NhostClient {
    * ```
    */
   getUserSession(): Session | null {
-    return this.sessionStorage.get();
+    return this.sessionStorage.get()
   }
 
   /**
@@ -130,7 +121,7 @@ export class NhostClient {
    * ```
    */
   async refreshSession(marginSeconds = 60): Promise<Session | null> {
-    return refreshSession(this.auth, this.sessionStorage, marginSeconds);
+    return refreshSession(this.auth, this.sessionStorage, marginSeconds)
   }
 
   /**
@@ -149,7 +140,7 @@ export class NhostClient {
    * ```
    */
   clearSession(): void {
-    this.sessionStorage.remove();
+    this.sessionStorage.remove()
   }
 }
 
@@ -160,38 +151,38 @@ export interface NhostClientOptions {
   /**
    * Nhost project subdomain (e.g., 'abcdefgh'). Used to construct the base URL for services for the Nhost cloud.
    */
-  subdomain?: string;
+  subdomain?: string
 
   /**
    * Nhost region (e.g., 'eu-central-1'). Used to construct the base URL for services for the Nhost cloud.
    */
-  region?: string;
+  region?: string
 
   /**
    * Complete base URL for the auth service (overrides subdomain/region)
    */
-  authUrl?: string;
+  authUrl?: string
 
   /**
    * Complete base URL for the storage service (overrides subdomain/region)
    */
-  storageUrl?: string;
+  storageUrl?: string
 
   /**
    * Complete base URL for the GraphQL service (overrides subdomain/region)
    */
-  graphqlUrl?: string;
+  graphqlUrl?: string
 
   /**
    * Complete base URL for the functions service (overrides subdomain/region)
    */
-  functionsUrl?: string;
+  functionsUrl?: string
 
   /**
    * Storage backend to use for session persistence. If not provided, the SDK will
    * default to localStorage in the browser or memory in other environments.
    */
-  storage?: SessionStorageBackend;
+  storage?: SessionStorageBackend
 }
 
 /**
@@ -247,55 +238,34 @@ export function createClient(options: NhostClientOptions = {}): NhostClient {
     storageUrl,
     graphqlUrl,
     functionsUrl,
-    storage = detectStorage(),
-  } = options;
+    storage = detectStorage()
+  } = options
 
-  const sessionStorage = new SessionStorage(storage);
+  const sessionStorage = new SessionStorage(storage)
 
   // Determine base URLs for each service
-  const authBaseUrl = generateServiceUrl("auth", subdomain, region, authUrl);
-  const storageBaseUrl = generateServiceUrl(
-    "storage",
-    subdomain,
-    region,
-    storageUrl,
-  );
-  const graphqlBaseUrl = generateServiceUrl(
-    "graphql",
-    subdomain,
-    region,
-    graphqlUrl,
-  );
+  const authBaseUrl = generateServiceUrl('auth', subdomain, region, authUrl)
+  const storageBaseUrl = generateServiceUrl('storage', subdomain, region, storageUrl)
+  const graphqlBaseUrl = generateServiceUrl('graphql', subdomain, region, graphqlUrl)
 
-  const functionsBaseUrl = generateServiceUrl(
-    "functions",
-    subdomain,
-    region,
-    functionsUrl,
-  );
+  const functionsBaseUrl = generateServiceUrl('functions', subdomain, region, functionsUrl)
 
   // Create auth client
-  const auth = createAuthClient(authBaseUrl);
+  const auth = createAuthClient(authBaseUrl)
 
-  const mwChain = getMiddlewareChain(auth, sessionStorage, true);
+  const mwChain = getMiddlewareChain(auth, sessionStorage, true)
 
   for (const mw of mwChain) {
-    auth.pushChainFunction(mw);
+    auth.pushChainFunction(mw)
   }
 
   // Create storage and graphql clients with the refresh and attach token middlewares
-  const storageClient = createStorageClient(storageBaseUrl, mwChain);
-  const graphqlClient = createGraphQLClient(graphqlBaseUrl, mwChain);
-  const functionsClient = createFunctionsClient(functionsBaseUrl, mwChain);
+  const storageClient = createStorageClient(storageBaseUrl, mwChain)
+  const graphqlClient = createGraphQLClient(graphqlBaseUrl, mwChain)
+  const functionsClient = createFunctionsClient(functionsBaseUrl, mwChain)
 
   // Return an initialized NhostClient
-  return new NhostClient(
-    auth,
-    storageClient,
-    graphqlClient,
-    functionsClient,
-    sessionStorage,
-  );
+  return new NhostClient(auth, storageClient, graphqlClient, functionsClient, sessionStorage)
 }
 
 export interface NhostServerClientOptions extends NhostClientOptions {
@@ -304,7 +274,7 @@ export interface NhostServerClientOptions extends NhostClientOptions {
    * Unlike the base options, this field is required for server-side usage
    * as the SDK cannot auto-detect an appropriate storage mechanism.
    */
-  storage: SessionStorageBackend;
+  storage: SessionStorageBackend
 }
 
 /**
@@ -416,79 +386,48 @@ export interface NhostServerClientOptions extends NhostClientOptions {
  * };
  * ```
  */
-export function createServerClient(
-  options: NhostServerClientOptions,
-): NhostClient {
-  const {
-    subdomain,
-    region,
-    authUrl,
-    storageUrl,
-    graphqlUrl,
-    functionsUrl,
-    storage,
-  } = options;
-  const sessionStorage = new SessionStorage(storage);
+export function createServerClient(options: NhostServerClientOptions): NhostClient {
+  const { subdomain, region, authUrl, storageUrl, graphqlUrl, functionsUrl, storage } = options
+  const sessionStorage = new SessionStorage(storage)
 
   // Determine base URLs for each service
-  const authBaseUrl = generateServiceUrl("auth", subdomain, region, authUrl);
-  const storageBaseUrl = generateServiceUrl(
-    "storage",
-    subdomain,
-    region,
-    storageUrl,
-  );
-  const graphqlBaseUrl = generateServiceUrl(
-    "graphql",
-    subdomain,
-    region,
-    graphqlUrl,
-  );
+  const authBaseUrl = generateServiceUrl('auth', subdomain, region, authUrl)
+  const storageBaseUrl = generateServiceUrl('storage', subdomain, region, storageUrl)
+  const graphqlBaseUrl = generateServiceUrl('graphql', subdomain, region, graphqlUrl)
 
-  const functionsBaseUrl = generateServiceUrl(
-    "functions",
-    subdomain,
-    region,
-    functionsUrl,
-  );
+  const functionsBaseUrl = generateServiceUrl('functions', subdomain, region, functionsUrl)
 
   // Create auth client
-  const auth = createAuthClient(authBaseUrl);
+  const auth = createAuthClient(authBaseUrl)
 
-  const mwChain = getMiddlewareChain(auth, sessionStorage, false);
+  const mwChain = getMiddlewareChain(auth, sessionStorage, false)
 
   for (const mw of mwChain) {
-    auth.pushChainFunction(mw);
+    auth.pushChainFunction(mw)
   }
 
   // Create storage and graphql clients with the refresh and attach token middlewares
-  const storageClient = createStorageClient(storageBaseUrl, mwChain);
-  const graphqlClient = createGraphQLClient(graphqlBaseUrl, mwChain);
-  const functionsClient = createFunctionsClient(functionsBaseUrl, mwChain);
+  const storageClient = createStorageClient(storageBaseUrl, mwChain)
+  const graphqlClient = createGraphQLClient(graphqlBaseUrl, mwChain)
+  const functionsClient = createFunctionsClient(functionsBaseUrl, mwChain)
 
   // Return an initialized NhostClient
-  return new NhostClient(
-    auth,
-    storageClient,
-    graphqlClient,
-    functionsClient,
-    sessionStorage,
-  );
+  return new NhostClient(auth, storageClient, graphqlClient, functionsClient, sessionStorage)
 }
 
 function getMiddlewareChain(
   auth: AuthClient,
   storage: SessionStorage,
-  autoRefresh: boolean,
+  autoRefresh: boolean
 ): ChainFunction[] {
   const mwChain = [
     updateSessionFromResponseMiddleware(storage),
-    attachAccessTokenMiddleware(storage),
-  ];
+    attachAccessTokenMiddleware(storage)
+  ]
 
   if (autoRefresh) {
-    mwChain.unshift(sessionRefreshMiddleware(auth, storage));
+    mwChain.unshift(sessionRefreshMiddleware(auth, storage))
   }
 
-  return mwChain;
+  return mwChain
 }

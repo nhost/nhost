@@ -1,17 +1,17 @@
-import { test, expect } from "@jest/globals";
-import { createClient } from "@nhost/nhost-js";
+import { test, expect } from '@jest/globals'
+import { createClient } from '@nhost/nhost-js'
 
-const subdomain = "local";
-const region = "local";
+const subdomain = 'local'
+const region = 'local'
 
-test("mainExample", async () => {
-  const email = `test-${Date.now()}@example.com`;
-  const password = "password123";
+test('mainExample', async () => {
+  const email = `test-${Date.now()}@example.com`
+  const password = 'password123'
 
   const nhost = createClient({
     subdomain,
-    region,
-  });
+    region
+  })
 
   // Sign in with email/password
   // This will create a session and persist it in the storage
@@ -20,17 +20,17 @@ test("mainExample", async () => {
   // automatically
   await nhost.auth.signUpEmailPassword({
     email,
-    password,
-  });
+    password
+  })
 
   // upload a couple of files
   const uplFilesResp = await nhost.storage.uploadFiles({
-    "file[]": [
-      new File(["test1"], "file-1", { type: "text/plain" }),
-      new File(["test2 is larger"], "file-2", { type: "text/plain" }),
-    ],
-  });
-  console.log(JSON.stringify(uplFilesResp, null, 2));
+    'file[]': [
+      new File(['test1'], 'file-1', { type: 'text/plain' }),
+      new File(['test2 is larger'], 'file-2', { type: 'text/plain' })
+    ]
+  })
+  console.log(JSON.stringify(uplFilesResp, null, 2))
   // {
   //   "data": {
   //     "processedFiles": [
@@ -80,10 +80,10 @@ test("mainExample", async () => {
          mimeType
        }
      }
-   `,
-  });
+   `
+  })
 
-  console.log(JSON.stringify(graphResp, null, 2));
+  console.log(JSON.stringify(graphResp, null, 2))
   // {
   //   "body": {
   //     "data": {
@@ -106,30 +106,30 @@ test("mainExample", async () => {
   // }
 
   // make a request to a serverless function
-  const funcResp = await nhost.functions.post("/helloworld", {
-    message: "Hello, World!",
-  });
-  console.log(JSON.stringify(funcResp.body, null, 2));
+  const funcResp = await nhost.functions.post('/helloworld', {
+    message: 'Hello, World!'
+  })
+  console.log(JSON.stringify(funcResp.body, null, 2))
   // {
   //   "message": "Hello, World!"
   // }
 
-  expect(uplFilesResp.status).toBe(201);
+  expect(uplFilesResp.status).toBe(201)
 
-  expect(graphResp.status).toBe(200);
-  expect(graphResp.body.errors).toBeUndefined();
+  expect(graphResp.status).toBe(200)
+  expect(graphResp.body.errors).toBeUndefined()
   expect(graphResp.body.data).toStrictEqual({
     files: [
       {
-        name: "file-1",
+        name: 'file-1',
         size: 5,
-        mimeType: "text/plain",
+        mimeType: 'text/plain'
       },
       {
-        name: "file-2",
+        name: 'file-2',
         size: 15,
-        mimeType: "text/plain",
-      },
-    ],
-  });
-});
+        mimeType: 'text/plain'
+      }
+    ]
+  })
+})

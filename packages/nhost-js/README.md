@@ -18,22 +18,22 @@ pnpm add @nhost/nhost-js@beta
 ## Quick Start
 
 ```typescript
-import { createClient } from "@nhost/nhost-js";
+import { createClient } from '@nhost/nhost-js'
 
 // Initialize the Nhost client
 const nhost = createClient({
-  subdomain: "your-project",
-  region: "eu-central-1",
-});
+  subdomain: 'your-project',
+  region: 'eu-central-1'
+})
 
 // Use authentication features
 const response = await nhost.auth.signInEmailPassword({
-  email: "user@example.com",
-  password: "password123",
-});
+  email: 'user@example.com',
+  password: 'password123'
+})
 
 if (response.body.session) {
-  console.log("Signed in successfully!");
+  console.log('Signed in successfully!')
 }
 
 // Use GraphQL features
@@ -46,28 +46,28 @@ const response = await nhost.graphql.request({
         email
       }
     }
-  `,
-});
+  `
+})
 
-return response.body.data.users;
+return response.body.data.users
 
 // Use storage features
 const response = await nhost.storage.uploadFiles({
-  "file[]": [file],
-});
+  'file[]': [file]
+})
 
-return response.body.processedFiles[0];
+return response.body.processedFiles[0]
 
 // call a serverless function
-const response = await nhost.functions.fetch("/echo", {
-  method: "POST",
+const response = await nhost.functions.fetch('/echo', {
+  method: 'POST',
   body: JSON.stringify({
-    message: "Hello, world!",
+    message: 'Hello, world!'
   }),
   headers: {
-    "Content-Type": "application/json",
-  },
-});
+    'Content-Type': 'application/json'
+  }
+})
 ```
 
 ## Modules

@@ -2,20 +2,20 @@
  * This file is auto-generated. Do not edit manually.
  */
 
-import { FetchError, createEnhancedFetch } from "../fetch";
-import type { ChainFunction, FetchResponse } from "../fetch";
+import { FetchError, createEnhancedFetch } from '../fetch'
+import type { ChainFunction, FetchResponse } from '../fetch'
 
 /**
  * The attestation statement format
  */
 export type AttestationFormat =
-  | "packed"
-  | "tpm"
-  | "android-key"
-  | "android-safetynet"
-  | "fido-u2f"
-  | "apple"
-  | "none";
+  | 'packed'
+  | 'tpm'
+  | 'android-key'
+  | 'android-safetynet'
+  | 'fido-u2f'
+  | 'apple'
+  | 'none'
 
 /**
  * Map of extension outputs from the client
@@ -26,15 +26,15 @@ export interface AuthenticationExtensionsClientOutputs {
   /**
    * Application identifier extension output
    */
-  appid?: boolean;
+  appid?: boolean
   /**
    * Credential properties extension output
    */
-  credProps?: CredentialPropertiesOutput;
+  credProps?: CredentialPropertiesOutput
   /**
    * HMAC secret extension output
    */
-  hmacCreateSecret?: boolean;
+  hmacCreateSecret?: boolean
 }
 
 /**
@@ -47,25 +47,25 @@ export interface AuthenticatorAssertionResponse {
   /**
    * Base64url encoded client data JSON
    */
-  clientDataJSON: string;
+  clientDataJSON: string
   /**
    * Base64url encoded authenticator data
    */
-  authenticatorData: string;
+  authenticatorData: string
   /**
    * Base64url encoded assertion signature
    */
-  signature: string;
+  signature: string
   /**
    * Base64url encoded user handle
    */
-  userHandle?: string;
+  userHandle?: string
 }
 
 /**
  * The authenticator attachment modality
  */
-export type AuthenticatorAttachment = "platform" | "cross-platform";
+export type AuthenticatorAttachment = 'platform' | 'cross-platform'
 
 /**
  * 
@@ -85,31 +85,31 @@ export interface AuthenticatorAttestationResponse {
    * Base64url-encoded binary data
    *    Format - byte
    */
-  clientDataJSON: string;
+  clientDataJSON: string
   /**
    * The authenticator transports
    */
-  transports?: string[];
+  transports?: string[]
   /**
    * Base64url-encoded binary data
    *    Format - byte
    */
-  authenticatorData?: string;
+  authenticatorData?: string
   /**
    * Base64url-encoded binary data
    *    Format - byte
    */
-  publicKey?: string;
+  publicKey?: string
   /**
    * The public key algorithm identifier
    *    Format - int64
    */
-  publicKeyAlgorithm?: number;
+  publicKeyAlgorithm?: number
   /**
    * Base64url-encoded binary data
    *    Format - byte
    */
-  attestationObject: string;
+  attestationObject: string
 }
 
 /**
@@ -122,40 +122,30 @@ export interface AuthenticatorSelection {
   /**
    * The authenticator attachment modality
    */
-  authenticatorAttachment?: AuthenticatorAttachment;
+  authenticatorAttachment?: AuthenticatorAttachment
   /**
    * Whether the authenticator must create a client-side-resident public key credential source
    */
-  requireResidentKey?: boolean;
+  requireResidentKey?: boolean
   /**
    * The resident key requirement
    */
-  residentKey?: ResidentKeyRequirement;
+  residentKey?: ResidentKeyRequirement
   /**
    * A requirement for user verification for the operation
    */
-  userVerification?: UserVerificationRequirement;
+  userVerification?: UserVerificationRequirement
 }
 
 /**
  * The authenticator transports that can be used
  */
-export type AuthenticatorTransport =
-  | "usb"
-  | "nfc"
-  | "ble"
-  | "smart-card"
-  | "hybrid"
-  | "internal";
+export type AuthenticatorTransport = 'usb' | 'nfc' | 'ble' | 'smart-card' | 'hybrid' | 'internal'
 
 /**
  * The attestation conveyance preference
  */
-export type ConveyancePreference =
-  | "none"
-  | "indirect"
-  | "direct"
-  | "enterprise";
+export type ConveyancePreference = 'none' | 'indirect' | 'direct' | 'enterprise'
 
 /**
  * 
@@ -168,12 +158,12 @@ export interface CreatePATRequest {
    * Expiration date of the PAT
    *    Format - date-time
    */
-  expiresAt: string;
+  expiresAt: string
   /**
    *
    *    Example - `{"name":"my-pat","used-by":"my-app-cli"}`
    */
-  metadata?: Record<string, unknown>;
+  metadata?: Record<string, unknown>
 }
 
 /**
@@ -190,13 +180,13 @@ export interface CreatePATResponse {
    *    Example - `"2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"`
    *    Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
    */
-  id: string;
+  id: string
   /**
    * PAT
    *    Example - `"2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"`
    *    Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
    */
-  personalAccessToken: string;
+  personalAccessToken: string
 }
 
 /**
@@ -212,28 +202,28 @@ export interface CredentialAssertionResponse {
   /**
    * The credential's identifier
    */
-  id: string;
+  id: string
   /**
    * The credential type represented by this object
    */
-  type: string;
+  type: string
   /**
    * Base64url-encoded binary data
    *    Format - byte
    */
-  rawId: string;
+  rawId: string
   /**
    * Map of extension outputs from the client
    */
-  clientExtensionResults?: AuthenticationExtensionsClientOutputs;
+  clientExtensionResults?: AuthenticationExtensionsClientOutputs
   /**
    * The authenticator attachment
    */
-  authenticatorAttachment?: string;
+  authenticatorAttachment?: string
   /**
    *
    */
-  response: AuthenticatorAssertionResponse;
+  response: AuthenticatorAssertionResponse
 }
 
 /**
@@ -249,28 +239,28 @@ export interface CredentialCreationResponse {
   /**
    * The credential's identifier
    */
-  id: string;
+  id: string
   /**
    * The credential type represented by this object
    */
-  type: string;
+  type: string
   /**
    * Base64url-encoded binary data
    *    Format - byte
    */
-  rawId: string;
+  rawId: string
   /**
    * Map of extension outputs from the client
    */
-  clientExtensionResults?: AuthenticationExtensionsClientOutputs;
+  clientExtensionResults?: AuthenticationExtensionsClientOutputs
   /**
    * The authenticator attachment
    */
-  authenticatorAttachment?: string;
+  authenticatorAttachment?: string
   /**
    *
    */
-  response: AuthenticatorAttestationResponse;
+  response: AuthenticatorAttestationResponse
 }
 
 /**
@@ -281,11 +271,11 @@ export interface CredentialParameter {
   /**
    * The valid credential types
    */
-  type: CredentialType;
+  type: CredentialType
   /**
    * The cryptographic algorithm identifier
    */
-  alg: number;
+  alg: number
 }
 
 /**
@@ -295,49 +285,49 @@ export interface CredentialPropertiesOutput {
   /**
    * Indicates if the credential is a resident key
    */
-  rk?: boolean;
+  rk?: boolean
 }
 
 /**
  * The valid credential types
  */
-export type CredentialType = "public-key";
+export type CredentialType = 'public-key'
 
 /**
  * Error code identifying the specific application error
  */
 export type ErrorResponseError =
-  | "default-role-must-be-in-allowed-roles"
-  | "disabled-endpoint"
-  | "disabled-user"
-  | "email-already-in-use"
-  | "email-already-verified"
-  | "forbidden-anonymous"
-  | "internal-server-error"
-  | "invalid-email-password"
-  | "invalid-request"
-  | "locale-not-allowed"
-  | "password-too-short"
-  | "password-in-hibp-database"
-  | "redirectTo-not-allowed"
-  | "role-not-allowed"
-  | "signup-disabled"
-  | "unverified-user"
-  | "user-not-anonymous"
-  | "invalid-pat"
-  | "invalid-refresh-token"
-  | "invalid-ticket"
-  | "disabled-mfa-totp"
-  | "no-totp-secret"
-  | "invalid-totp"
-  | "mfa-type-not-found"
-  | "totp-already-active"
-  | "invalid-state"
-  | "oauth-token-echange-failed"
-  | "oauth-profile-fetch-failed"
-  | "oauth-provider-error"
-  | "invalid-otp"
-  | "cannot-send-sms";
+  | 'default-role-must-be-in-allowed-roles'
+  | 'disabled-endpoint'
+  | 'disabled-user'
+  | 'email-already-in-use'
+  | 'email-already-verified'
+  | 'forbidden-anonymous'
+  | 'internal-server-error'
+  | 'invalid-email-password'
+  | 'invalid-request'
+  | 'locale-not-allowed'
+  | 'password-too-short'
+  | 'password-in-hibp-database'
+  | 'redirectTo-not-allowed'
+  | 'role-not-allowed'
+  | 'signup-disabled'
+  | 'unverified-user'
+  | 'user-not-anonymous'
+  | 'invalid-pat'
+  | 'invalid-refresh-token'
+  | 'invalid-ticket'
+  | 'disabled-mfa-totp'
+  | 'no-totp-secret'
+  | 'invalid-totp'
+  | 'mfa-type-not-found'
+  | 'totp-already-active'
+  | 'invalid-state'
+  | 'oauth-token-echange-failed'
+  | 'oauth-profile-fetch-failed'
+  | 'oauth-provider-error'
+  | 'invalid-otp'
+  | 'cannot-send-sms'
 
 /**
  * Standardized error response
@@ -351,22 +341,22 @@ export interface ErrorResponse {
    * HTTP status error code
    *    Example - `400`
    */
-  status: number;
+  status: number
   /**
    * Human-friendly error message
    *    Example - `"Invalid email format"`
    */
-  message: string;
+  message: string
   /**
    * Error code identifying the specific application error
    */
-  error: ErrorResponseError;
+  error: ErrorResponseError
 }
 
 /**
  *
  */
-export type IdTokenProvider = "apple" | "google";
+export type IdTokenProvider = 'apple' | 'google'
 
 /**
  * JSON Web Key for JWT verification
@@ -387,32 +377,32 @@ export interface JWK {
    * Algorithm used with this key
    *    Example - `"RS256"`
    */
-  alg: string;
+  alg: string
   /**
    * RSA public exponent
    *    Example - `"AQAB"`
    */
-  e: string;
+  e: string
   /**
    * Key ID
    *    Example - `"key-id-1"`
    */
-  kid: string;
+  kid: string
   /**
    * Key type
    *    Example - `"RSA"`
    */
-  kty: string;
+  kty: string
   /**
    * RSA modulus
    *    Example - `"abcd1234..."`
    */
-  n: string;
+  n: string
   /**
    * Key usage
    *    Example - `"sig"`
    */
-  use: string;
+  use: string
 }
 
 /**
@@ -422,7 +412,7 @@ export interface JWKSet {
   /**
    * Array of public keys
    */
-  keys: JWK[];
+  keys: JWK[]
 }
 
 /**
@@ -434,15 +424,15 @@ export interface LinkIdTokenRequest {
   /**
    *
    */
-  provider: IdTokenProvider;
+  provider: IdTokenProvider
   /**
    * Apple ID token
    */
-  idToken: string;
+  idToken: string
   /**
    * Nonce used during sign in process
    */
-  nonce?: string;
+  nonce?: string
 }
 
 /**
@@ -454,13 +444,13 @@ export interface MFAChallengePayload {
    * Ticket to use when completing the MFA challenge
    *    Example - `"mfaTotp:abc123def456"`
    */
-  ticket: string;
+  ticket: string
 }
 
 /**
  *
  */
-export type OKResponse = "OK";
+export type OKResponse = 'OK'
 
 /**
  * 
@@ -473,7 +463,7 @@ export interface OptionsRedirectTo {
    *    Example - `"https://my-app.com/catch-redirection"`
    *    Format - uri
    */
-  redirectTo?: string;
+  redirectTo?: string
 }
 
 /**
@@ -494,48 +484,48 @@ export interface PublicKeyCredentialCreationOptions {
   /**
    *
    */
-  rp: RelyingPartyEntity;
+  rp: RelyingPartyEntity
   /**
    *
    */
-  user: UserEntity;
+  user: UserEntity
   /**
    * Base64url-encoded binary data
    *    Format - byte
    */
-  challenge: string;
+  challenge: string
   /**
    * The desired credential types and their respective cryptographic parameters
    */
-  pubKeyCredParams: CredentialParameter[];
+  pubKeyCredParams: CredentialParameter[]
   /**
    * A time, in milliseconds, that the caller is willing to wait for the call to complete
    */
-  timeout?: number;
+  timeout?: number
   /**
    * A list of PublicKeyCredentialDescriptor objects representing public key credentials that are not acceptable to the caller
    */
-  excludeCredentials?: PublicKeyCredentialDescriptor[];
+  excludeCredentials?: PublicKeyCredentialDescriptor[]
   /**
    *
    */
-  authenticatorSelection?: AuthenticatorSelection;
+  authenticatorSelection?: AuthenticatorSelection
   /**
    * Hints to help guide the user through the experience
    */
-  hints?: PublicKeyCredentialHints[];
+  hints?: PublicKeyCredentialHints[]
   /**
    * The attestation conveyance preference
    */
-  attestation?: ConveyancePreference;
+  attestation?: ConveyancePreference
   /**
    * The preferred attestation statement formats
    */
-  attestationFormats?: AttestationFormat[];
+  attestationFormats?: AttestationFormat[]
   /**
    * Additional parameters requesting additional processing by the client and authenticator
    */
-  extensions?: Record<string, unknown>;
+  extensions?: Record<string, unknown>
 }
 
 /**
@@ -548,25 +538,22 @@ export interface PublicKeyCredentialDescriptor {
   /**
    * The valid credential types
    */
-  type: CredentialType;
+  type: CredentialType
   /**
    * Base64url-encoded binary data
    *    Format - byte
    */
-  id: string;
+  id: string
   /**
    * The authenticator transports that can be used
    */
-  transports?: AuthenticatorTransport[];
+  transports?: AuthenticatorTransport[]
 }
 
 /**
  * Hints to help guide the user through the experience
  */
-export type PublicKeyCredentialHints =
-  | "security-key"
-  | "client-device"
-  | "hybrid";
+export type PublicKeyCredentialHints = 'security-key' | 'client-device' | 'hybrid'
 
 /**
  * 
@@ -583,31 +570,31 @@ export interface PublicKeyCredentialRequestOptions {
    * Base64url-encoded binary data
    *    Format - byte
    */
-  challenge: string;
+  challenge: string
   /**
    * A time, in milliseconds, that the caller is willing to wait for the call to complete
    */
-  timeout?: number;
+  timeout?: number
   /**
    * The RP ID the credential should be scoped to
    */
-  rpId?: string;
+  rpId?: string
   /**
    * A list of CredentialDescriptor objects representing public key credentials acceptable to the caller
    */
-  allowCredentials?: PublicKeyCredentialDescriptor[];
+  allowCredentials?: PublicKeyCredentialDescriptor[]
   /**
    * A requirement for user verification for the operation
    */
-  userVerification?: UserVerificationRequirement;
+  userVerification?: UserVerificationRequirement
   /**
    * Hints to help guide the user through the experience
    */
-  hints?: PublicKeyCredentialHints[];
+  hints?: PublicKeyCredentialHints[]
   /**
    * Additional parameters requesting additional processing by the client and authenticator
    */
-  extensions?: Record<string, unknown>;
+  extensions?: Record<string, unknown>
 }
 
 /**
@@ -621,7 +608,7 @@ export interface RefreshTokenRequest {
    *    Example - `"2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"`
    *    Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
    */
-  refreshToken: string;
+  refreshToken: string
 }
 
 /**
@@ -632,17 +619,17 @@ export interface RelyingPartyEntity {
   /**
    * A human-palatable name for the entity
    */
-  name: string;
+  name: string
   /**
    * A unique identifier for the Relying Party entity, which sets the RP ID
    */
-  id: string;
+  id: string
 }
 
 /**
  * The resident key requirement
  */
-export type ResidentKeyRequirement = "discouraged" | "preferred" | "required";
+export type ResidentKeyRequirement = 'discouraged' | 'preferred' | 'required'
 
 /**
  * User authentication session containing tokens and user information
@@ -663,29 +650,29 @@ export interface Session {
    * JWT token for authenticating API requests
    *    Example - `"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."`
    */
-  accessToken: string;
+  accessToken: string
   /**
    * Expiration time of the access token in seconds
    *    Example - `900`
    *    Format - int64
    */
-  accessTokenExpiresIn: number;
+  accessTokenExpiresIn: number
   /**
    * Identifier for the refresh token
    *    Example - `"2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"`
    *    Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
    */
-  refreshTokenId: string;
+  refreshTokenId: string
   /**
    * Token used to refresh the access token
    *    Example - `"2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"`
    *    Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
    */
-  refreshToken: string;
+  refreshToken: string
   /**
    * User profile and account information
    */
-  user?: User;
+  user?: User
 }
 
 /**
@@ -695,7 +682,7 @@ export interface SessionPayload {
   /**
    * User authentication session containing tokens and user information
    */
-  session?: Session;
+  session?: Session
 }
 
 /**
@@ -713,19 +700,19 @@ export interface SignInAnonymousRequest {
    *
    *    Example - `"John Smith"`
    */
-  displayName?: string;
+  displayName?: string
   /**
    * A two-characters locale
    *    Example - `"en"`
    *    MinLength - 2
    *    MaxLength - 2
    */
-  locale?: string;
+  locale?: string
   /**
    *
    *    Example - `{"firstName":"John","lastName":"Smith"}`
    */
-  metadata?: Record<string, unknown>;
+  metadata?: Record<string, unknown>
 }
 
 /**
@@ -743,14 +730,14 @@ export interface SignInEmailPasswordRequest {
    *    Example - `"john.smith@nhost.io"`
    *    Format - email
    */
-  email: string;
+  email: string
   /**
    * User's password
    *    Example - `"Str0ngPassw#ord-94|%"`
    *    MinLength - 3
    *    MaxLength - 50
    */
-  password: string;
+  password: string
 }
 
 /**
@@ -761,11 +748,11 @@ export interface SignInEmailPasswordResponse {
   /**
    * User authentication session containing tokens and user information
    */
-  session?: Session;
+  session?: Session
   /**
    * Challenge payload for multi-factor authentication
    */
-  mfa?: MFAChallengePayload;
+  mfa?: MFAChallengePayload
 }
 
 /**
@@ -778,19 +765,19 @@ export interface SignInIdTokenRequest {
   /**
    *
    */
-  provider: IdTokenProvider;
+  provider: IdTokenProvider
   /**
    * Apple ID token
    */
-  idToken: string;
+  idToken: string
   /**
    * Nonce used during sign in process
    */
-  nonce?: string;
+  nonce?: string
   /**
    *
    */
-  options?: SignUpOptions;
+  options?: SignUpOptions
 }
 
 /**
@@ -803,11 +790,11 @@ export interface SignInMfaTotpRequest {
    * Ticket
    *    Pattern - ^mfaTotp:.*$
    */
-  ticket: string;
+  ticket: string
   /**
    * One time password
    */
-  otp: string;
+  otp: string
 }
 
 /**
@@ -822,11 +809,11 @@ export interface SignInOTPEmailRequest {
    *    Example - `"john.smith@nhost.io"`
    *    Format - email
    */
-  email: string;
+  email: string
   /**
    *
    */
-  options?: SignUpOptions;
+  options?: SignUpOptions
 }
 
 /**
@@ -839,13 +826,13 @@ export interface SignInOTPEmailVerifyRequest {
   /**
    * One time password
    */
-  otp: string;
+  otp: string
   /**
    * A valid email
    *    Example - `"john.smith@nhost.io"`
    *    Format - email
    */
-  email: string;
+  email: string
 }
 
 /**
@@ -855,7 +842,7 @@ export interface SignInOTPEmailVerifyResponse {
   /**
    * User authentication session containing tokens and user information
    */
-  session?: Session;
+  session?: Session
 }
 
 /**
@@ -869,7 +856,7 @@ export interface SignInPATRequest {
    *    Example - `"2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"`
    *    Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
    */
-  personalAccessToken: string;
+  personalAccessToken: string
 }
 
 /**
@@ -884,11 +871,11 @@ export interface SignInPasswordlessEmailRequest {
    *    Example - `"john.smith@nhost.io"`
    *    Format - email
    */
-  email: string;
+  email: string
   /**
    *
    */
-  options?: SignUpOptions;
+  options?: SignUpOptions
 }
 
 /**
@@ -901,11 +888,11 @@ export interface SignInPasswordlessSmsOtpRequest {
    * Phone number of the user
    *    Example - `"+123456789"`
    */
-  phoneNumber: string;
+  phoneNumber: string
   /**
    * One-time password received by SMS
    */
-  otp: string;
+  otp: string
 }
 
 /**
@@ -916,11 +903,11 @@ export interface SignInPasswordlessSmsOtpResponse {
   /**
    * User authentication session containing tokens and user information
    */
-  session?: Session;
+  session?: Session
   /**
    * Challenge payload for multi-factor authentication
    */
-  mfa?: MFAChallengePayload;
+  mfa?: MFAChallengePayload
 }
 
 /**
@@ -933,11 +920,11 @@ export interface SignInPasswordlessSmsRequest {
    * Phone number of the user
    *    Example - `"+123456789"`
    */
-  phoneNumber: string;
+  phoneNumber: string
   /**
    *
    */
-  options?: SignUpOptions;
+  options?: SignUpOptions
 }
 
 /**
@@ -951,7 +938,7 @@ export interface SignInWebauthnRequest {
    *    Example - `"john.smith@nhost.io"`
    *    Format - email
    */
-  email?: string;
+  email?: string
 }
 
 /**
@@ -966,11 +953,11 @@ export interface SignInWebauthnVerifyRequest {
    *    Example - `"john.smith@nhost.io"`
    *    Format - email
    */
-  email?: string;
+  email?: string
   /**
    *
    */
-  credential: CredentialAssertionResponse;
+  credential: CredentialAssertionResponse
 }
 
 /**
@@ -981,11 +968,11 @@ export interface SignOutRequest {
   /**
    * Refresh token for the current session
    */
-  refreshToken?: string;
+  refreshToken?: string
   /**
    * Sign out from all connected devices
    */
-  all?: boolean;
+  all?: boolean
 }
 
 /**
@@ -1004,18 +991,18 @@ export interface SignUpEmailPasswordRequest {
    *    Example - `"john.smith@nhost.io"`
    *    Format - email
    */
-  email: string;
+  email: string
   /**
    * Password for the new user account
    *    Example - `"Str0ngPassw#ord-94|%"`
    *    MinLength - 3
    *    MaxLength - 50
    */
-  password: string;
+  password: string
   /**
    *
    */
-  options?: SignUpOptions;
+  options?: SignUpOptions
 }
 
 /**
@@ -1042,37 +1029,37 @@ export interface SignUpOptions {
    *
    *    Example - `["me","user"]`
    */
-  allowedRoles?: string[];
+  allowedRoles?: string[]
   /**
    *
    *    Example - `"user"`
    */
-  defaultRole?: string;
+  defaultRole?: string
   /**
    *
    *    Example - `"John Smith"`
    *    Pattern - ^[\p{L}\p{N}\p{S} ,.'-]+$
    *    MaxLength - 32
    */
-  displayName?: string;
+  displayName?: string
   /**
    * A two-characters locale
    *    Example - `"en"`
    *    MinLength - 2
    *    MaxLength - 2
    */
-  locale?: string;
+  locale?: string
   /**
    *
    *    Example - `{"firstName":"John","lastName":"Smith"}`
    */
-  metadata?: Record<string, unknown>;
+  metadata?: Record<string, unknown>
   /**
    *
    *    Example - `"https://my-app.com/catch-redirection"`
    *    Format - uri
    */
-  redirectTo?: string;
+  redirectTo?: string
 }
 
 /**
@@ -1087,11 +1074,11 @@ export interface SignUpWebauthnRequest {
    *    Example - `"john.smith@nhost.io"`
    *    Format - email
    */
-  email: string;
+  email: string
   /**
    *
    */
-  options?: SignUpOptions;
+  options?: SignUpOptions
 }
 
 /**
@@ -1103,15 +1090,15 @@ export interface SignUpWebauthnVerifyRequest {
   /**
    *
    */
-  credential: CredentialCreationResponse;
+  credential: CredentialCreationResponse
   /**
    *
    */
-  options?: SignUpOptions;
+  options?: SignUpOptions
   /**
    * Nickname for the security key
    */
-  nickname?: string;
+  nickname?: string
 }
 
 /**
@@ -1125,18 +1112,18 @@ export interface TotpGenerateResponse {
    * URL to QR code image for scanning with an authenticator app
    *    Example - `"data:image/png;base64,iVBORw0KGg..."`
    */
-  imageUrl: string;
+  imageUrl: string
   /**
    * TOTP secret key for manual setup with an authenticator app
    *    Example - `"ABCDEFGHIJK23456"`
    */
-  totpSecret: string;
+  totpSecret: string
 }
 
 /**
  * Base64url-encoded binary data
  */
-export type URLEncodedBase64 = string;
+export type URLEncodedBase64 = string
 
 /**
  * User profile and account information
@@ -1177,84 +1164,82 @@ export interface User {
    * URL to the user's profile picture
    *    Example - `"https://myapp.com/avatars/user123.jpg"`
    */
-  avatarUrl: string;
+  avatarUrl: string
   /**
    * Timestamp when the user account was created
    *    Example - `"2023-01-15T12:34:56Z"`
    *    Format - date-time
    */
-  createdAt: string;
+  createdAt: string
   /**
    * Default authorization role for the user
    *    Example - `"user"`
    */
-  defaultRole: string;
+  defaultRole: string
   /**
    * User's display name
    *    Example - `"John Smith"`
    */
-  displayName: string;
+  displayName: string
   /**
    * User's email address
    *    Example - `"john.smith@nhost.io"`
    *    Format - email
    */
-  email?: string;
+  email?: string
   /**
    * Whether the user's email has been verified
    *    Example - `true`
    */
-  emailVerified: boolean;
+  emailVerified: boolean
   /**
    * Unique identifier for the user
    *    Example - `"2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"`
    *    Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
    */
-  id: string;
+  id: string
   /**
    * Whether this is an anonymous user account
    *    Example - `false`
    */
-  isAnonymous: boolean;
+  isAnonymous: boolean
   /**
    * User's preferred locale (language code)
    *    Example - `"en"`
    *    MinLength - 2
    *    MaxLength - 2
    */
-  locale: string;
+  locale: string
   /**
    * Custom metadata associated with the user
    *    Example - `{"firstName":"John","lastName":"Smith"}`
    */
-  metadata: Record<string, unknown>;
+  metadata: Record<string, unknown>
   /**
    * User's phone number
    *    Example - `"+12025550123"`
    */
-  phoneNumber?: string;
+  phoneNumber?: string
   /**
    * Whether the user's phone number has been verified
    *    Example - `false`
    */
-  phoneNumberVerified: boolean;
+  phoneNumberVerified: boolean
   /**
    * List of roles assigned to the user
    *    Example - `["user","customer"]`
    */
-  roles: string[];
+  roles: string[]
   /**
    * Active MFA type for the user
    */
-  activeMfaType?: string;
+  activeMfaType?: string
 }
 
 /**
  * Which sign-in method to use
  */
-export type UserDeanonymizeRequestSignInMethod =
-  | "email-password"
-  | "passwordless";
+export type UserDeanonymizeRequestSignInMethod = 'email-password' | 'passwordless'
 
 /**
  * 
@@ -1272,28 +1257,28 @@ export interface UserDeanonymizeRequest {
   /**
    * Which sign-in method to use
    */
-  signInMethod: UserDeanonymizeRequestSignInMethod;
+  signInMethod: UserDeanonymizeRequestSignInMethod
   /**
    * A valid email
    *    Example - `"john.smith@nhost.io"`
    *    Format - email
    */
-  email: string;
+  email: string
   /**
    * A password of minimum 3 characters
    *    Example - `"Str0ngPassw#ord-94|%"`
    *    MinLength - 3
    *    MaxLength - 50
    */
-  password?: string;
+  password?: string
   /**
    * Deprecated, will be ignored
    */
-  connection?: string;
+  connection?: string
   /**
    *
    */
-  options?: SignUpOptions;
+  options?: SignUpOptions
 }
 
 /**
@@ -1308,11 +1293,11 @@ export interface UserEmailChangeRequest {
    *    Example - `"john.smith@nhost.io"`
    *    Format - email
    */
-  newEmail: string;
+  newEmail: string
   /**
    *
    */
-  options?: OptionsRedirectTo;
+  options?: OptionsRedirectTo
 }
 
 /**
@@ -1327,11 +1312,11 @@ export interface UserEmailSendVerificationEmailRequest {
    *    Example - `"john.smith@nhost.io"`
    *    Format - email
    */
-  email: string;
+  email: string
   /**
    *
    */
-  options?: OptionsRedirectTo;
+  options?: OptionsRedirectTo
 }
 
 /**
@@ -1343,21 +1328,21 @@ export interface UserEntity {
   /**
    * A human-palatable name for the entity
    */
-  name: string;
+  name: string
   /**
    * A human-palatable name for the user account, intended only for display
    */
-  displayName: string;
+  displayName: string
   /**
    * The user handle of the user account entity
    */
-  id: string;
+  id: string
 }
 
 /**
  * Type of MFA to activate. Use empty string to disable MFA.
  */
-export type UserMfaRequestActiveMfaType = "totp" | "";
+export type UserMfaRequestActiveMfaType = 'totp' | ''
 
 /**
  * Request to activate or deactivate multi-factor authentication
@@ -1370,12 +1355,12 @@ export interface UserMfaRequest {
    * Verification code from the authenticator app when activating MFA
    *    Example - `"123456"`
    */
-  code: string;
+  code: string
   /**
    * Type of MFA to activate. Use empty string to disable MFA.
    *    Example - `"totp"`
    */
-  activeMfaType?: UserMfaRequestActiveMfaType;
+  activeMfaType?: UserMfaRequestActiveMfaType
 }
 
 /**
@@ -1393,12 +1378,12 @@ export interface UserPasswordRequest {
    *    MinLength - 3
    *    MaxLength - 50
    */
-  newPassword: string;
+  newPassword: string
   /**
    * Ticket to reset the password, required if the user is not authenticated
    *    Pattern - ^passwordReset\:.*$
    */
-  ticket?: string;
+  ticket?: string
 }
 
 /**
@@ -1413,20 +1398,17 @@ export interface UserPasswordResetRequest {
    *    Example - `"john.smith@nhost.io"`
    *    Format - email
    */
-  email: string;
+  email: string
   /**
    *
    */
-  options?: OptionsRedirectTo;
+  options?: OptionsRedirectTo
 }
 
 /**
  * A requirement for user verification for the operation
  */
-export type UserVerificationRequirement =
-  | "required"
-  | "preferred"
-  | "discouraged";
+export type UserVerificationRequirement = 'required' | 'preferred' | 'discouraged'
 
 /**
  * 
@@ -1436,11 +1418,11 @@ export interface VerifyAddSecurityKeyRequest {
   /**
    *
    */
-  credential: CredentialCreationResponse;
+  credential: CredentialCreationResponse
   /**
    * Optional nickname for the security key
    */
-  nickname?: string;
+  nickname?: string
 }
 
 /**
@@ -1453,11 +1435,11 @@ export interface VerifyAddSecurityKeyResponse {
    * The ID of the newly added security key
    *    Example - `"123e4567-e89b-12d3-a456-426614174000"`
    */
-  id: string;
+  id: string
   /**
    * The nickname of the security key if provided
    */
-  nickname?: string;
+  nickname?: string
 }
 
 /**
@@ -1467,47 +1449,47 @@ export interface VerifyTokenRequest {
   /**
    * JWT token to verify
    */
-  token?: string;
+  token?: string
 }
 
 /**
  * Target URL for the redirect
  */
-export type RedirectToQuery = string;
+export type RedirectToQuery = string
 
 /**
  *
  */
 export type SignInProvider =
-  | "apple"
-  | "github"
-  | "google"
-  | "linkedin"
-  | "discord"
-  | "spotify"
-  | "twitch"
-  | "gitlab"
-  | "bitbucket"
-  | "workos"
-  | "azuread"
-  | "strava"
-  | "facebook"
-  | "windowslive"
-  | "twitter";
+  | 'apple'
+  | 'github'
+  | 'google'
+  | 'linkedin'
+  | 'discord'
+  | 'spotify'
+  | 'twitch'
+  | 'gitlab'
+  | 'bitbucket'
+  | 'workos'
+  | 'azuread'
+  | 'strava'
+  | 'facebook'
+  | 'windowslive'
+  | 'twitter'
 
 /**
  * Ticket
  */
-export type TicketQuery = string;
+export type TicketQuery = string
 
 /**
  * Type of the ticket
  */
 export type TicketTypeQuery =
-  | "emailVerify"
-  | "emailConfirmChange"
-  | "signinPasswordless"
-  | "passwordReset";
+  | 'emailVerify'
+  | 'emailConfirmChange'
+  | 'signinPasswordless'
+  | 'passwordReset'
 
 /**
  * 
@@ -1518,7 +1500,7 @@ export interface GetVersionResponse200 {
    * The version of the authentication service
    *    Example - `"1.2.3"`
    */
-  version: string;
+  version: string
 }
 
 /**
@@ -1542,37 +1524,37 @@ export interface SignInProviderParams {
    * Array of allowed roles for the user
   
    */
-  allowedRoles?: string[];
+  allowedRoles?: string[]
   /**
    * Default role for the user
   
    */
-  defaultRole?: string;
+  defaultRole?: string
   /**
    * Display name for the user
   
    */
-  displayName?: string;
+  displayName?: string
   /**
    * A two-characters locale
   
    */
-  locale?: string;
+  locale?: string
   /**
    * Additional metadata for the user (JSON encoded string)
   
    */
-  metadata?: Record<string, unknown>;
+  metadata?: Record<string, unknown>
   /**
    * URI to redirect to
   
    */
-  redirectTo?: string;
+  redirectTo?: string
   /**
    * If set, this means that the user is already authenticated and wants to link their account. This needs to be a valid JWT access token.
   
    */
-  connect?: string;
+  connect?: string
 }
 /**
  * Parameters for the verifyTicket method.
@@ -1591,24 +1573,24 @@ export interface VerifyTicketParams {
   
     *    Ticket
    */
-  ticket: TicketQuery;
+  ticket: TicketQuery
   /**
    * Type of the ticket. Deprecated, no longer used
   
     *    Type of the ticket
    */
-  type?: TicketTypeQuery;
+  type?: TicketTypeQuery
   /**
    * Target URL for the redirect
   
     *    Target URL for the redirect
    */
-  redirectTo: RedirectToQuery;
+  redirectTo: RedirectToQuery
 }
 
 export interface Client {
-  baseURL: string;
-  pushChainFunction(chainFunction: ChainFunction): void;
+  baseURL: string
+  pushChainFunction(chainFunction: ChainFunction): void
   /**
      Summary: Get public keys for JWT verification in JWK Set format
      Retrieve the JSON Web Key Set (JWKS) containing public keys used to verify JWT signatures. This endpoint is used by clients to validate access tokens.
@@ -1616,7 +1598,7 @@ export interface Client {
      This method may return different T based on the response code:
      - 200: JWKSet
      */
-  getJWKs(options?: RequestInit): Promise<FetchResponse<JWKSet>>;
+  getJWKs(options?: RequestInit): Promise<FetchResponse<JWKSet>>
 
   /**
      Summary: Elevate access for an already signed in user using FIDO2 Webauthn
@@ -1625,9 +1607,7 @@ export interface Client {
      This method may return different T based on the response code:
      - 200: PublicKeyCredentialRequestOptions
      */
-  elevateWebauthn(
-    options?: RequestInit,
-  ): Promise<FetchResponse<PublicKeyCredentialRequestOptions>>;
+  elevateWebauthn(options?: RequestInit): Promise<FetchResponse<PublicKeyCredentialRequestOptions>>
 
   /**
      Summary: Verify FIDO2 Webauthn authentication using public-key cryptography for elevation
@@ -1638,8 +1618,8 @@ export interface Client {
      */
   verifyElevateWebauthn(
     body: SignInWebauthnVerifyRequest,
-    options?: RequestInit,
-  ): Promise<FetchResponse<SessionPayload>>;
+    options?: RequestInit
+  ): Promise<FetchResponse<SessionPayload>>
 
   /**
      Summary: Health check (GET)
@@ -1648,7 +1628,7 @@ export interface Client {
      This method may return different T based on the response code:
      - 200: OKResponse
      */
-  healthCheckGet(options?: RequestInit): Promise<FetchResponse<OKResponse>>;
+  healthCheckGet(options?: RequestInit): Promise<FetchResponse<OKResponse>>
 
   /**
      Summary: Health check (HEAD)
@@ -1657,7 +1637,7 @@ export interface Client {
      This method may return different T based on the response code:
      - 200: void
      */
-  healthCheckHead(options?: RequestInit): Promise<FetchResponse<void>>;
+  healthCheckHead(options?: RequestInit): Promise<FetchResponse<void>>
 
   /**
      Summary: Link a user account with the provider's account using an id token
@@ -1666,10 +1646,7 @@ export interface Client {
      This method may return different T based on the response code:
      - 200: OKResponse
      */
-  linkIdToken(
-    body: LinkIdTokenRequest,
-    options?: RequestInit,
-  ): Promise<FetchResponse<OKResponse>>;
+  linkIdToken(body: LinkIdTokenRequest, options?: RequestInit): Promise<FetchResponse<OKResponse>>
 
   /**
      Summary: Generate TOTP secret
@@ -1678,9 +1655,7 @@ export interface Client {
      This method may return different T based on the response code:
      - 200: TotpGenerateResponse
      */
-  changeUserMfa(
-    options?: RequestInit,
-  ): Promise<FetchResponse<TotpGenerateResponse>>;
+  changeUserMfa(options?: RequestInit): Promise<FetchResponse<TotpGenerateResponse>>
 
   /**
      Summary: Create a Personal Access Token (PAT)
@@ -1691,8 +1666,8 @@ export interface Client {
      */
   createPAT(
     body: CreatePATRequest,
-    options?: RequestInit,
-  ): Promise<FetchResponse<CreatePATResponse>>;
+    options?: RequestInit
+  ): Promise<FetchResponse<CreatePATResponse>>
 
   /**
      Summary: Sign in anonymously
@@ -1703,8 +1678,8 @@ export interface Client {
      */
   signInAnonymous(
     body?: SignInAnonymousRequest,
-    options?: RequestInit,
-  ): Promise<FetchResponse<SessionPayload>>;
+    options?: RequestInit
+  ): Promise<FetchResponse<SessionPayload>>
 
   /**
      Summary: Sign in with email and password
@@ -1715,8 +1690,8 @@ export interface Client {
      */
   signInEmailPassword(
     body: SignInEmailPasswordRequest,
-    options?: RequestInit,
-  ): Promise<FetchResponse<SignInEmailPasswordResponse>>;
+    options?: RequestInit
+  ): Promise<FetchResponse<SignInEmailPasswordResponse>>
 
   /**
      Summary: Sign in with an ID token
@@ -1727,8 +1702,8 @@ export interface Client {
      */
   signInIdToken(
     body: SignInIdTokenRequest,
-    options?: RequestInit,
-  ): Promise<FetchResponse<SessionPayload>>;
+    options?: RequestInit
+  ): Promise<FetchResponse<SessionPayload>>
 
   /**
      Summary: Verify TOTP for MFA
@@ -1739,8 +1714,8 @@ export interface Client {
      */
   verifySignInMfaTotp(
     body: SignInMfaTotpRequest,
-    options?: RequestInit,
-  ): Promise<FetchResponse<SessionPayload>>;
+    options?: RequestInit
+  ): Promise<FetchResponse<SessionPayload>>
 
   /**
      Summary: Sign in with email OTP
@@ -1751,8 +1726,8 @@ export interface Client {
      */
   signInOTPEmail(
     body: SignInOTPEmailRequest,
-    options?: RequestInit,
-  ): Promise<FetchResponse<OKResponse>>;
+    options?: RequestInit
+  ): Promise<FetchResponse<OKResponse>>
 
   /**
      Summary: Verify email OTP
@@ -1763,8 +1738,8 @@ export interface Client {
      */
   verifySignInOTPEmail(
     body: SignInOTPEmailVerifyRequest,
-    options?: RequestInit,
-  ): Promise<FetchResponse<SignInOTPEmailVerifyResponse>>;
+    options?: RequestInit
+  ): Promise<FetchResponse<SignInOTPEmailVerifyResponse>>
 
   /**
      Summary: Sign in with magic link email
@@ -1775,8 +1750,8 @@ export interface Client {
      */
   signInPasswordlessEmail(
     body: SignInPasswordlessEmailRequest,
-    options?: RequestInit,
-  ): Promise<FetchResponse<OKResponse>>;
+    options?: RequestInit
+  ): Promise<FetchResponse<OKResponse>>
 
   /**
      Summary: Sign in with SMS OTP
@@ -1787,8 +1762,8 @@ export interface Client {
      */
   signInPasswordlessSms(
     body: SignInPasswordlessSmsRequest,
-    options?: RequestInit,
-  ): Promise<FetchResponse<OKResponse>>;
+    options?: RequestInit
+  ): Promise<FetchResponse<OKResponse>>
 
   /**
      Summary: Verify SMS OTP
@@ -1799,8 +1774,8 @@ export interface Client {
      */
   verifySignInPasswordlessSms(
     body: SignInPasswordlessSmsOtpRequest,
-    options?: RequestInit,
-  ): Promise<FetchResponse<SignInPasswordlessSmsOtpResponse>>;
+    options?: RequestInit
+  ): Promise<FetchResponse<SignInPasswordlessSmsOtpResponse>>
 
   /**
      Summary: Sign in with Personal Access Token (PAT)
@@ -1809,10 +1784,7 @@ export interface Client {
      This method may return different T based on the response code:
      - 200: SessionPayload
      */
-  signInPAT(
-    body: SignInPATRequest,
-    options?: RequestInit,
-  ): Promise<FetchResponse<SessionPayload>>;
+  signInPAT(body: SignInPATRequest, options?: RequestInit): Promise<FetchResponse<SessionPayload>>
 
   /**
      Summary: Sign in with an OAuth2 provider
@@ -1823,8 +1795,8 @@ export interface Client {
   signInProviderURL(
     provider: SignInProvider,
     params?: SignInProviderParams,
-    options?: RequestInit,
-  ): string;
+    options?: RequestInit
+  ): string
 
   /**
      Summary: Sign in with Webauthn
@@ -1835,8 +1807,8 @@ export interface Client {
      */
   signInWebauthn(
     body?: SignInWebauthnRequest,
-    options?: RequestInit,
-  ): Promise<FetchResponse<PublicKeyCredentialRequestOptions>>;
+    options?: RequestInit
+  ): Promise<FetchResponse<PublicKeyCredentialRequestOptions>>
 
   /**
      Summary: Verify Webauthn sign-in
@@ -1847,8 +1819,8 @@ export interface Client {
      */
   verifySignInWebauthn(
     body: SignInWebauthnVerifyRequest,
-    options?: RequestInit,
-  ): Promise<FetchResponse<SessionPayload>>;
+    options?: RequestInit
+  ): Promise<FetchResponse<SessionPayload>>
 
   /**
      Summary: Sign out
@@ -1857,10 +1829,7 @@ export interface Client {
      This method may return different T based on the response code:
      - 200: OKResponse
      */
-  signOut(
-    body: SignOutRequest,
-    options?: RequestInit,
-  ): Promise<FetchResponse<OKResponse>>;
+  signOut(body: SignOutRequest, options?: RequestInit): Promise<FetchResponse<OKResponse>>
 
   /**
      Summary: Sign up with email and password
@@ -1871,8 +1840,8 @@ export interface Client {
      */
   signUpEmailPassword(
     body: SignUpEmailPasswordRequest,
-    options?: RequestInit,
-  ): Promise<FetchResponse<SessionPayload>>;
+    options?: RequestInit
+  ): Promise<FetchResponse<SessionPayload>>
 
   /**
      Summary: Sign up with Webauthn
@@ -1883,8 +1852,8 @@ export interface Client {
      */
   signUpWebauthn(
     body: SignUpWebauthnRequest,
-    options?: RequestInit,
-  ): Promise<FetchResponse<PublicKeyCredentialCreationOptions>>;
+    options?: RequestInit
+  ): Promise<FetchResponse<PublicKeyCredentialCreationOptions>>
 
   /**
      Summary: Verify Webauthn sign-up
@@ -1895,8 +1864,8 @@ export interface Client {
      */
   verifySignUpWebauthn(
     body: SignUpWebauthnVerifyRequest,
-    options?: RequestInit,
-  ): Promise<FetchResponse<SessionPayload>>;
+    options?: RequestInit
+  ): Promise<FetchResponse<SessionPayload>>
 
   /**
      Summary: Refresh access token
@@ -1905,10 +1874,7 @@ export interface Client {
      This method may return different T based on the response code:
      - 200: Session
      */
-  refreshToken(
-    body: RefreshTokenRequest,
-    options?: RequestInit,
-  ): Promise<FetchResponse<Session>>;
+  refreshToken(body: RefreshTokenRequest, options?: RequestInit): Promise<FetchResponse<Session>>
 
   /**
      Summary: Verify JWT token
@@ -1917,10 +1883,7 @@ export interface Client {
      This method may return different T based on the response code:
      - 200: string
      */
-  verifyToken(
-    body?: VerifyTokenRequest,
-    options?: RequestInit,
-  ): Promise<FetchResponse<string>>;
+  verifyToken(body?: VerifyTokenRequest, options?: RequestInit): Promise<FetchResponse<string>>
 
   /**
      Summary: Get user information
@@ -1929,7 +1892,7 @@ export interface Client {
      This method may return different T based on the response code:
      - 200: User
      */
-  getUser(options?: RequestInit): Promise<FetchResponse<User>>;
+  getUser(options?: RequestInit): Promise<FetchResponse<User>>
 
   /**
      Summary: Deanonymize an anonymous user
@@ -1940,8 +1903,8 @@ export interface Client {
      */
   deanonymizeUser(
     body: UserDeanonymizeRequest,
-    options?: RequestInit,
-  ): Promise<FetchResponse<OKResponse>>;
+    options?: RequestInit
+  ): Promise<FetchResponse<OKResponse>>
 
   /**
      Summary: Change user email
@@ -1952,8 +1915,8 @@ export interface Client {
      */
   changeUserEmail(
     body: UserEmailChangeRequest,
-    options?: RequestInit,
-  ): Promise<FetchResponse<OKResponse>>;
+    options?: RequestInit
+  ): Promise<FetchResponse<OKResponse>>
 
   /**
      Summary: Send verification email
@@ -1964,8 +1927,8 @@ export interface Client {
      */
   sendVerificationEmail(
     body: UserEmailSendVerificationEmailRequest,
-    options?: RequestInit,
-  ): Promise<FetchResponse<OKResponse>>;
+    options?: RequestInit
+  ): Promise<FetchResponse<OKResponse>>
 
   /**
      Summary: Manage multi-factor authentication
@@ -1976,8 +1939,8 @@ export interface Client {
      */
   verifyChangeUserMfa(
     body: UserMfaRequest,
-    options?: RequestInit,
-  ): Promise<FetchResponse<OKResponse>>;
+    options?: RequestInit
+  ): Promise<FetchResponse<OKResponse>>
 
   /**
      Summary: Change user password
@@ -1988,8 +1951,8 @@ export interface Client {
      */
   changeUserPassword(
     body: UserPasswordRequest,
-    options?: RequestInit,
-  ): Promise<FetchResponse<OKResponse>>;
+    options?: RequestInit
+  ): Promise<FetchResponse<OKResponse>>
 
   /**
      Summary: Request password reset
@@ -2000,8 +1963,8 @@ export interface Client {
      */
   sendPasswordResetEmail(
     body: UserPasswordResetRequest,
-    options?: RequestInit,
-  ): Promise<FetchResponse<OKResponse>>;
+    options?: RequestInit
+  ): Promise<FetchResponse<OKResponse>>
 
   /**
      Summary: Initialize adding of a new webauthn security key
@@ -2010,9 +1973,7 @@ export interface Client {
      This method may return different T based on the response code:
      - 200: PublicKeyCredentialCreationOptions
      */
-  addSecurityKey(
-    options?: RequestInit,
-  ): Promise<FetchResponse<PublicKeyCredentialCreationOptions>>;
+  addSecurityKey(options?: RequestInit): Promise<FetchResponse<PublicKeyCredentialCreationOptions>>
 
   /**
      Summary: Verify adding of a new webauthn security key
@@ -2023,8 +1984,8 @@ export interface Client {
      */
   verifyAddSecurityKey(
     body: VerifyAddSecurityKeyRequest,
-    options?: RequestInit,
-  ): Promise<FetchResponse<VerifyAddSecurityKeyResponse>>;
+    options?: RequestInit
+  ): Promise<FetchResponse<VerifyAddSecurityKeyResponse>>
 
   /**
      Summary: Verify email and authentication tickets
@@ -2032,7 +1993,7 @@ export interface Client {
 
      As this method is a redirect, it returns a URL string instead of a Promise
      */
-  verifyTicketURL(params?: VerifyTicketParams, options?: RequestInit): string;
+  verifyTicketURL(params?: VerifyTicketParams, options?: RequestInit): string
 
   /**
      Summary: Get service version
@@ -2041,1210 +2002,1090 @@ export interface Client {
      This method may return different T based on the response code:
      - 200: GetVersionResponse200
      */
-  getVersion(
-    options?: RequestInit,
-  ): Promise<FetchResponse<GetVersionResponse200>>;
+  getVersion(options?: RequestInit): Promise<FetchResponse<GetVersionResponse200>>
 }
 
-export const createAPIClient = (
-  baseURL: string,
-  chainFunctions: ChainFunction[] = [],
-): Client => {
-  let fetch = createEnhancedFetch(chainFunctions);
+export const createAPIClient = (baseURL: string, chainFunctions: ChainFunction[] = []): Client => {
+  let fetch = createEnhancedFetch(chainFunctions)
 
   const pushChainFunction = (chainFunction: ChainFunction) => {
-    chainFunctions.push(chainFunction);
-    fetch = createEnhancedFetch(chainFunctions);
-  };
-  const getJWKs = async (
-    options?: RequestInit,
-  ): Promise<FetchResponse<JWKSet>> => {
-    const url = baseURL + `/.well-known/jwks.json`;
+    chainFunctions.push(chainFunction)
+    fetch = createEnhancedFetch(chainFunctions)
+  }
+  const getJWKs = async (options?: RequestInit): Promise<FetchResponse<JWKSet>> => {
+    const url = baseURL + `/.well-known/jwks.json`
     const res = await fetch(url, {
       ...options,
-      method: "GET",
+      method: 'GET',
       headers: {
-        ...options?.headers,
-      },
-    });
+        ...options?.headers
+      }
+    })
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text();
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
-      throw new FetchError(payload, res.status, res.headers);
+      const responseBody = [412].includes(res.status) ? null : await res.text()
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
+      throw new FetchError(payload, res.status, res.headers)
     }
 
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: JWKSet = responseBody ? JSON.parse(responseBody) : {};
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text()
+    const payload: JWKSet = responseBody ? JSON.parse(responseBody) : {}
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers,
-    } as FetchResponse<JWKSet>;
-  };
+      headers: res.headers
+    } as FetchResponse<JWKSet>
+  }
 
   const elevateWebauthn = async (
-    options?: RequestInit,
+    options?: RequestInit
   ): Promise<FetchResponse<PublicKeyCredentialRequestOptions>> => {
-    const url = baseURL + `/elevate/webauthn`;
+    const url = baseURL + `/elevate/webauthn`
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        ...options?.headers,
-      },
-    });
+        ...options?.headers
+      }
+    })
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text();
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
-      throw new FetchError(payload, res.status, res.headers);
+      const responseBody = [412].includes(res.status) ? null : await res.text()
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
+      throw new FetchError(payload, res.status, res.headers)
     }
 
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: PublicKeyCredentialRequestOptions = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text()
+    const payload: PublicKeyCredentialRequestOptions = responseBody ? JSON.parse(responseBody) : {}
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers,
-    } as FetchResponse<PublicKeyCredentialRequestOptions>;
-  };
+      headers: res.headers
+    } as FetchResponse<PublicKeyCredentialRequestOptions>
+  }
 
   const verifyElevateWebauthn = async (
     body: SignInWebauthnVerifyRequest,
-    options?: RequestInit,
+    options?: RequestInit
   ): Promise<FetchResponse<SessionPayload>> => {
-    const url = baseURL + `/elevate/webauthn/verify`;
+    const url = baseURL + `/elevate/webauthn/verify`
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
+        'Content-Type': 'application/json',
+        ...options?.headers
       },
-      body: JSON.stringify(body),
-    });
+      body: JSON.stringify(body)
+    })
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text();
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
-      throw new FetchError(payload, res.status, res.headers);
+      const responseBody = [412].includes(res.status) ? null : await res.text()
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
+      throw new FetchError(payload, res.status, res.headers)
     }
 
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: SessionPayload = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text()
+    const payload: SessionPayload = responseBody ? JSON.parse(responseBody) : {}
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers,
-    } as FetchResponse<SessionPayload>;
-  };
+      headers: res.headers
+    } as FetchResponse<SessionPayload>
+  }
 
-  const healthCheckGet = async (
-    options?: RequestInit,
-  ): Promise<FetchResponse<OKResponse>> => {
-    const url = baseURL + `/healthz`;
+  const healthCheckGet = async (options?: RequestInit): Promise<FetchResponse<OKResponse>> => {
+    const url = baseURL + `/healthz`
     const res = await fetch(url, {
       ...options,
-      method: "GET",
+      method: 'GET',
       headers: {
-        ...options?.headers,
-      },
-    });
+        ...options?.headers
+      }
+    })
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text();
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
-      throw new FetchError(payload, res.status, res.headers);
+      const responseBody = [412].includes(res.status) ? null : await res.text()
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
+      throw new FetchError(payload, res.status, res.headers)
     }
 
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {};
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text()
+    const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {}
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers,
-    } as FetchResponse<OKResponse>;
-  };
+      headers: res.headers
+    } as FetchResponse<OKResponse>
+  }
 
-  const healthCheckHead = async (
-    options?: RequestInit,
-  ): Promise<FetchResponse<void>> => {
-    const url = baseURL + `/healthz`;
+  const healthCheckHead = async (options?: RequestInit): Promise<FetchResponse<void>> => {
+    const url = baseURL + `/healthz`
     const res = await fetch(url, {
       ...options,
-      method: "HEAD",
+      method: 'HEAD',
       headers: {
-        ...options?.headers,
-      },
-    });
+        ...options?.headers
+      }
+    })
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text();
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
-      throw new FetchError(payload, res.status, res.headers);
+      const responseBody = [412].includes(res.status) ? null : await res.text()
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
+      throw new FetchError(payload, res.status, res.headers)
     }
 
-    const payload: void = undefined;
+    const payload: void = undefined
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers,
-    } as FetchResponse<void>;
-  };
+      headers: res.headers
+    } as FetchResponse<void>
+  }
 
   const linkIdToken = async (
     body: LinkIdTokenRequest,
-    options?: RequestInit,
+    options?: RequestInit
   ): Promise<FetchResponse<OKResponse>> => {
-    const url = baseURL + `/link/idtoken`;
+    const url = baseURL + `/link/idtoken`
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
+        'Content-Type': 'application/json',
+        ...options?.headers
       },
-      body: JSON.stringify(body),
-    });
+      body: JSON.stringify(body)
+    })
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text();
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
-      throw new FetchError(payload, res.status, res.headers);
+      const responseBody = [412].includes(res.status) ? null : await res.text()
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
+      throw new FetchError(payload, res.status, res.headers)
     }
 
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {};
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text()
+    const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {}
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers,
-    } as FetchResponse<OKResponse>;
-  };
+      headers: res.headers
+    } as FetchResponse<OKResponse>
+  }
 
   const changeUserMfa = async (
-    options?: RequestInit,
+    options?: RequestInit
   ): Promise<FetchResponse<TotpGenerateResponse>> => {
-    const url = baseURL + `/mfa/totp/generate`;
+    const url = baseURL + `/mfa/totp/generate`
     const res = await fetch(url, {
       ...options,
-      method: "GET",
+      method: 'GET',
       headers: {
-        ...options?.headers,
-      },
-    });
+        ...options?.headers
+      }
+    })
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text();
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
-      throw new FetchError(payload, res.status, res.headers);
+      const responseBody = [412].includes(res.status) ? null : await res.text()
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
+      throw new FetchError(payload, res.status, res.headers)
     }
 
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: TotpGenerateResponse = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text()
+    const payload: TotpGenerateResponse = responseBody ? JSON.parse(responseBody) : {}
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers,
-    } as FetchResponse<TotpGenerateResponse>;
-  };
+      headers: res.headers
+    } as FetchResponse<TotpGenerateResponse>
+  }
 
   const createPAT = async (
     body: CreatePATRequest,
-    options?: RequestInit,
+    options?: RequestInit
   ): Promise<FetchResponse<CreatePATResponse>> => {
-    const url = baseURL + `/pat`;
+    const url = baseURL + `/pat`
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
+        'Content-Type': 'application/json',
+        ...options?.headers
       },
-      body: JSON.stringify(body),
-    });
+      body: JSON.stringify(body)
+    })
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text();
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
-      throw new FetchError(payload, res.status, res.headers);
+      const responseBody = [412].includes(res.status) ? null : await res.text()
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
+      throw new FetchError(payload, res.status, res.headers)
     }
 
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: CreatePATResponse = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text()
+    const payload: CreatePATResponse = responseBody ? JSON.parse(responseBody) : {}
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers,
-    } as FetchResponse<CreatePATResponse>;
-  };
+      headers: res.headers
+    } as FetchResponse<CreatePATResponse>
+  }
 
   const signInAnonymous = async (
     body?: SignInAnonymousRequest,
-    options?: RequestInit,
+    options?: RequestInit
   ): Promise<FetchResponse<SessionPayload>> => {
-    const url = baseURL + `/signin/anonymous`;
+    const url = baseURL + `/signin/anonymous`
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
+        'Content-Type': 'application/json',
+        ...options?.headers
       },
-      body: JSON.stringify(body),
-    });
+      body: JSON.stringify(body)
+    })
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text();
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
-      throw new FetchError(payload, res.status, res.headers);
+      const responseBody = [412].includes(res.status) ? null : await res.text()
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
+      throw new FetchError(payload, res.status, res.headers)
     }
 
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: SessionPayload = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text()
+    const payload: SessionPayload = responseBody ? JSON.parse(responseBody) : {}
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers,
-    } as FetchResponse<SessionPayload>;
-  };
+      headers: res.headers
+    } as FetchResponse<SessionPayload>
+  }
 
   const signInEmailPassword = async (
     body: SignInEmailPasswordRequest,
-    options?: RequestInit,
+    options?: RequestInit
   ): Promise<FetchResponse<SignInEmailPasswordResponse>> => {
-    const url = baseURL + `/signin/email-password`;
+    const url = baseURL + `/signin/email-password`
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
+        'Content-Type': 'application/json',
+        ...options?.headers
       },
-      body: JSON.stringify(body),
-    });
+      body: JSON.stringify(body)
+    })
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text();
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
-      throw new FetchError(payload, res.status, res.headers);
+      const responseBody = [412].includes(res.status) ? null : await res.text()
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
+      throw new FetchError(payload, res.status, res.headers)
     }
 
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: SignInEmailPasswordResponse = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text()
+    const payload: SignInEmailPasswordResponse = responseBody ? JSON.parse(responseBody) : {}
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers,
-    } as FetchResponse<SignInEmailPasswordResponse>;
-  };
+      headers: res.headers
+    } as FetchResponse<SignInEmailPasswordResponse>
+  }
 
   const signInIdToken = async (
     body: SignInIdTokenRequest,
-    options?: RequestInit,
+    options?: RequestInit
   ): Promise<FetchResponse<SessionPayload>> => {
-    const url = baseURL + `/signin/idtoken`;
+    const url = baseURL + `/signin/idtoken`
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
+        'Content-Type': 'application/json',
+        ...options?.headers
       },
-      body: JSON.stringify(body),
-    });
+      body: JSON.stringify(body)
+    })
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text();
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
-      throw new FetchError(payload, res.status, res.headers);
+      const responseBody = [412].includes(res.status) ? null : await res.text()
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
+      throw new FetchError(payload, res.status, res.headers)
     }
 
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: SessionPayload = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text()
+    const payload: SessionPayload = responseBody ? JSON.parse(responseBody) : {}
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers,
-    } as FetchResponse<SessionPayload>;
-  };
+      headers: res.headers
+    } as FetchResponse<SessionPayload>
+  }
 
   const verifySignInMfaTotp = async (
     body: SignInMfaTotpRequest,
-    options?: RequestInit,
+    options?: RequestInit
   ): Promise<FetchResponse<SessionPayload>> => {
-    const url = baseURL + `/signin/mfa/totp`;
+    const url = baseURL + `/signin/mfa/totp`
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
+        'Content-Type': 'application/json',
+        ...options?.headers
       },
-      body: JSON.stringify(body),
-    });
+      body: JSON.stringify(body)
+    })
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text();
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
-      throw new FetchError(payload, res.status, res.headers);
+      const responseBody = [412].includes(res.status) ? null : await res.text()
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
+      throw new FetchError(payload, res.status, res.headers)
     }
 
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: SessionPayload = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text()
+    const payload: SessionPayload = responseBody ? JSON.parse(responseBody) : {}
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers,
-    } as FetchResponse<SessionPayload>;
-  };
+      headers: res.headers
+    } as FetchResponse<SessionPayload>
+  }
 
   const signInOTPEmail = async (
     body: SignInOTPEmailRequest,
-    options?: RequestInit,
+    options?: RequestInit
   ): Promise<FetchResponse<OKResponse>> => {
-    const url = baseURL + `/signin/otp/email`;
+    const url = baseURL + `/signin/otp/email`
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
+        'Content-Type': 'application/json',
+        ...options?.headers
       },
-      body: JSON.stringify(body),
-    });
+      body: JSON.stringify(body)
+    })
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text();
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
-      throw new FetchError(payload, res.status, res.headers);
+      const responseBody = [412].includes(res.status) ? null : await res.text()
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
+      throw new FetchError(payload, res.status, res.headers)
     }
 
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {};
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text()
+    const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {}
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers,
-    } as FetchResponse<OKResponse>;
-  };
+      headers: res.headers
+    } as FetchResponse<OKResponse>
+  }
 
   const verifySignInOTPEmail = async (
     body: SignInOTPEmailVerifyRequest,
-    options?: RequestInit,
+    options?: RequestInit
   ): Promise<FetchResponse<SignInOTPEmailVerifyResponse>> => {
-    const url = baseURL + `/signin/otp/email/verify`;
+    const url = baseURL + `/signin/otp/email/verify`
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
+        'Content-Type': 'application/json',
+        ...options?.headers
       },
-      body: JSON.stringify(body),
-    });
+      body: JSON.stringify(body)
+    })
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text();
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
-      throw new FetchError(payload, res.status, res.headers);
+      const responseBody = [412].includes(res.status) ? null : await res.text()
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
+      throw new FetchError(payload, res.status, res.headers)
     }
 
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: SignInOTPEmailVerifyResponse = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text()
+    const payload: SignInOTPEmailVerifyResponse = responseBody ? JSON.parse(responseBody) : {}
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers,
-    } as FetchResponse<SignInOTPEmailVerifyResponse>;
-  };
+      headers: res.headers
+    } as FetchResponse<SignInOTPEmailVerifyResponse>
+  }
 
   const signInPasswordlessEmail = async (
     body: SignInPasswordlessEmailRequest,
-    options?: RequestInit,
+    options?: RequestInit
   ): Promise<FetchResponse<OKResponse>> => {
-    const url = baseURL + `/signin/passwordless/email`;
+    const url = baseURL + `/signin/passwordless/email`
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
+        'Content-Type': 'application/json',
+        ...options?.headers
       },
-      body: JSON.stringify(body),
-    });
+      body: JSON.stringify(body)
+    })
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text();
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
-      throw new FetchError(payload, res.status, res.headers);
+      const responseBody = [412].includes(res.status) ? null : await res.text()
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
+      throw new FetchError(payload, res.status, res.headers)
     }
 
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {};
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text()
+    const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {}
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers,
-    } as FetchResponse<OKResponse>;
-  };
+      headers: res.headers
+    } as FetchResponse<OKResponse>
+  }
 
   const signInPasswordlessSms = async (
     body: SignInPasswordlessSmsRequest,
-    options?: RequestInit,
+    options?: RequestInit
   ): Promise<FetchResponse<OKResponse>> => {
-    const url = baseURL + `/signin/passwordless/sms`;
+    const url = baseURL + `/signin/passwordless/sms`
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
+        'Content-Type': 'application/json',
+        ...options?.headers
       },
-      body: JSON.stringify(body),
-    });
+      body: JSON.stringify(body)
+    })
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text();
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
-      throw new FetchError(payload, res.status, res.headers);
+      const responseBody = [412].includes(res.status) ? null : await res.text()
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
+      throw new FetchError(payload, res.status, res.headers)
     }
 
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {};
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text()
+    const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {}
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers,
-    } as FetchResponse<OKResponse>;
-  };
+      headers: res.headers
+    } as FetchResponse<OKResponse>
+  }
 
   const verifySignInPasswordlessSms = async (
     body: SignInPasswordlessSmsOtpRequest,
-    options?: RequestInit,
+    options?: RequestInit
   ): Promise<FetchResponse<SignInPasswordlessSmsOtpResponse>> => {
-    const url = baseURL + `/signin/passwordless/sms/otp`;
+    const url = baseURL + `/signin/passwordless/sms/otp`
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
+        'Content-Type': 'application/json',
+        ...options?.headers
       },
-      body: JSON.stringify(body),
-    });
+      body: JSON.stringify(body)
+    })
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text();
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
-      throw new FetchError(payload, res.status, res.headers);
+      const responseBody = [412].includes(res.status) ? null : await res.text()
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
+      throw new FetchError(payload, res.status, res.headers)
     }
 
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: SignInPasswordlessSmsOtpResponse = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text()
+    const payload: SignInPasswordlessSmsOtpResponse = responseBody ? JSON.parse(responseBody) : {}
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers,
-    } as FetchResponse<SignInPasswordlessSmsOtpResponse>;
-  };
+      headers: res.headers
+    } as FetchResponse<SignInPasswordlessSmsOtpResponse>
+  }
 
   const signInPAT = async (
     body: SignInPATRequest,
-    options?: RequestInit,
+    options?: RequestInit
   ): Promise<FetchResponse<SessionPayload>> => {
-    const url = baseURL + `/signin/pat`;
+    const url = baseURL + `/signin/pat`
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
+        'Content-Type': 'application/json',
+        ...options?.headers
       },
-      body: JSON.stringify(body),
-    });
+      body: JSON.stringify(body)
+    })
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text();
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
-      throw new FetchError(payload, res.status, res.headers);
+      const responseBody = [412].includes(res.status) ? null : await res.text()
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
+      throw new FetchError(payload, res.status, res.headers)
     }
 
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: SessionPayload = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text()
+    const payload: SessionPayload = responseBody ? JSON.parse(responseBody) : {}
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers,
-    } as FetchResponse<SessionPayload>;
-  };
+      headers: res.headers
+    } as FetchResponse<SessionPayload>
+  }
 
-  const signInProviderURL = (
-    provider: SignInProvider,
-    params?: SignInProviderParams,
-  ): string => {
+  const signInProviderURL = (provider: SignInProvider, params?: SignInProviderParams): string => {
     const encodedParameters =
       params &&
       Object.entries(params)
         .map(([key, value]) => {
           const stringValue = Array.isArray(value)
-            ? value.join(",")
-            : typeof value === "object"
+            ? value.join(',')
+            : typeof value === 'object'
               ? JSON.stringify(value)
-              : (value as string);
-          return `${key}=${encodeURIComponent(stringValue)}`;
+              : (value as string)
+          return `${key}=${encodeURIComponent(stringValue)}`
         })
-        .join("&");
+        .join('&')
 
     const url = encodedParameters
       ? baseURL + `/signin/provider/${provider}?${encodedParameters}`
-      : baseURL + `/signin/provider/${provider}`;
-    return url;
-  };
+      : baseURL + `/signin/provider/${provider}`
+    return url
+  }
 
   const signInWebauthn = async (
     body?: SignInWebauthnRequest,
-    options?: RequestInit,
+    options?: RequestInit
   ): Promise<FetchResponse<PublicKeyCredentialRequestOptions>> => {
-    const url = baseURL + `/signin/webauthn`;
+    const url = baseURL + `/signin/webauthn`
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
+        'Content-Type': 'application/json',
+        ...options?.headers
       },
-      body: JSON.stringify(body),
-    });
+      body: JSON.stringify(body)
+    })
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text();
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
-      throw new FetchError(payload, res.status, res.headers);
+      const responseBody = [412].includes(res.status) ? null : await res.text()
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
+      throw new FetchError(payload, res.status, res.headers)
     }
 
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: PublicKeyCredentialRequestOptions = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text()
+    const payload: PublicKeyCredentialRequestOptions = responseBody ? JSON.parse(responseBody) : {}
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers,
-    } as FetchResponse<PublicKeyCredentialRequestOptions>;
-  };
+      headers: res.headers
+    } as FetchResponse<PublicKeyCredentialRequestOptions>
+  }
 
   const verifySignInWebauthn = async (
     body: SignInWebauthnVerifyRequest,
-    options?: RequestInit,
+    options?: RequestInit
   ): Promise<FetchResponse<SessionPayload>> => {
-    const url = baseURL + `/signin/webauthn/verify`;
+    const url = baseURL + `/signin/webauthn/verify`
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
+        'Content-Type': 'application/json',
+        ...options?.headers
       },
-      body: JSON.stringify(body),
-    });
+      body: JSON.stringify(body)
+    })
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text();
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
-      throw new FetchError(payload, res.status, res.headers);
+      const responseBody = [412].includes(res.status) ? null : await res.text()
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
+      throw new FetchError(payload, res.status, res.headers)
     }
 
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: SessionPayload = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text()
+    const payload: SessionPayload = responseBody ? JSON.parse(responseBody) : {}
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers,
-    } as FetchResponse<SessionPayload>;
-  };
+      headers: res.headers
+    } as FetchResponse<SessionPayload>
+  }
 
   const signOut = async (
     body: SignOutRequest,
-    options?: RequestInit,
+    options?: RequestInit
   ): Promise<FetchResponse<OKResponse>> => {
-    const url = baseURL + `/signout`;
+    const url = baseURL + `/signout`
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
+        'Content-Type': 'application/json',
+        ...options?.headers
       },
-      body: JSON.stringify(body),
-    });
+      body: JSON.stringify(body)
+    })
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text();
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
-      throw new FetchError(payload, res.status, res.headers);
+      const responseBody = [412].includes(res.status) ? null : await res.text()
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
+      throw new FetchError(payload, res.status, res.headers)
     }
 
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {};
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text()
+    const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {}
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers,
-    } as FetchResponse<OKResponse>;
-  };
+      headers: res.headers
+    } as FetchResponse<OKResponse>
+  }
 
   const signUpEmailPassword = async (
     body: SignUpEmailPasswordRequest,
-    options?: RequestInit,
+    options?: RequestInit
   ): Promise<FetchResponse<SessionPayload>> => {
-    const url = baseURL + `/signup/email-password`;
+    const url = baseURL + `/signup/email-password`
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
+        'Content-Type': 'application/json',
+        ...options?.headers
       },
-      body: JSON.stringify(body),
-    });
+      body: JSON.stringify(body)
+    })
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text();
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
-      throw new FetchError(payload, res.status, res.headers);
+      const responseBody = [412].includes(res.status) ? null : await res.text()
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
+      throw new FetchError(payload, res.status, res.headers)
     }
 
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: SessionPayload = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text()
+    const payload: SessionPayload = responseBody ? JSON.parse(responseBody) : {}
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers,
-    } as FetchResponse<SessionPayload>;
-  };
+      headers: res.headers
+    } as FetchResponse<SessionPayload>
+  }
 
   const signUpWebauthn = async (
     body: SignUpWebauthnRequest,
-    options?: RequestInit,
+    options?: RequestInit
   ): Promise<FetchResponse<PublicKeyCredentialCreationOptions>> => {
-    const url = baseURL + `/signup/webauthn`;
+    const url = baseURL + `/signup/webauthn`
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
+        'Content-Type': 'application/json',
+        ...options?.headers
       },
-      body: JSON.stringify(body),
-    });
+      body: JSON.stringify(body)
+    })
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text();
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
-      throw new FetchError(payload, res.status, res.headers);
+      const responseBody = [412].includes(res.status) ? null : await res.text()
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
+      throw new FetchError(payload, res.status, res.headers)
     }
 
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: PublicKeyCredentialCreationOptions = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text()
+    const payload: PublicKeyCredentialCreationOptions = responseBody ? JSON.parse(responseBody) : {}
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers,
-    } as FetchResponse<PublicKeyCredentialCreationOptions>;
-  };
+      headers: res.headers
+    } as FetchResponse<PublicKeyCredentialCreationOptions>
+  }
 
   const verifySignUpWebauthn = async (
     body: SignUpWebauthnVerifyRequest,
-    options?: RequestInit,
+    options?: RequestInit
   ): Promise<FetchResponse<SessionPayload>> => {
-    const url = baseURL + `/signup/webauthn/verify`;
+    const url = baseURL + `/signup/webauthn/verify`
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
+        'Content-Type': 'application/json',
+        ...options?.headers
       },
-      body: JSON.stringify(body),
-    });
+      body: JSON.stringify(body)
+    })
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text();
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
-      throw new FetchError(payload, res.status, res.headers);
+      const responseBody = [412].includes(res.status) ? null : await res.text()
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
+      throw new FetchError(payload, res.status, res.headers)
     }
 
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: SessionPayload = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text()
+    const payload: SessionPayload = responseBody ? JSON.parse(responseBody) : {}
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers,
-    } as FetchResponse<SessionPayload>;
-  };
+      headers: res.headers
+    } as FetchResponse<SessionPayload>
+  }
 
   const refreshToken = async (
     body: RefreshTokenRequest,
-    options?: RequestInit,
+    options?: RequestInit
   ): Promise<FetchResponse<Session>> => {
-    const url = baseURL + `/token`;
+    const url = baseURL + `/token`
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
+        'Content-Type': 'application/json',
+        ...options?.headers
       },
-      body: JSON.stringify(body),
-    });
+      body: JSON.stringify(body)
+    })
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text();
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
-      throw new FetchError(payload, res.status, res.headers);
+      const responseBody = [412].includes(res.status) ? null : await res.text()
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
+      throw new FetchError(payload, res.status, res.headers)
     }
 
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: Session = responseBody ? JSON.parse(responseBody) : {};
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text()
+    const payload: Session = responseBody ? JSON.parse(responseBody) : {}
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers,
-    } as FetchResponse<Session>;
-  };
+      headers: res.headers
+    } as FetchResponse<Session>
+  }
 
   const verifyToken = async (
     body?: VerifyTokenRequest,
-    options?: RequestInit,
+    options?: RequestInit
   ): Promise<FetchResponse<string>> => {
-    const url = baseURL + `/token/verify`;
+    const url = baseURL + `/token/verify`
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
+        'Content-Type': 'application/json',
+        ...options?.headers
       },
-      body: JSON.stringify(body),
-    });
+      body: JSON.stringify(body)
+    })
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text();
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
-      throw new FetchError(payload, res.status, res.headers);
+      const responseBody = [412].includes(res.status) ? null : await res.text()
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
+      throw new FetchError(payload, res.status, res.headers)
     }
 
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: string = responseBody ? JSON.parse(responseBody) : {};
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text()
+    const payload: string = responseBody ? JSON.parse(responseBody) : {}
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers,
-    } as FetchResponse<string>;
-  };
+      headers: res.headers
+    } as FetchResponse<string>
+  }
 
-  const getUser = async (
-    options?: RequestInit,
-  ): Promise<FetchResponse<User>> => {
-    const url = baseURL + `/user`;
+  const getUser = async (options?: RequestInit): Promise<FetchResponse<User>> => {
+    const url = baseURL + `/user`
     const res = await fetch(url, {
       ...options,
-      method: "GET",
+      method: 'GET',
       headers: {
-        ...options?.headers,
-      },
-    });
+        ...options?.headers
+      }
+    })
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text();
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
-      throw new FetchError(payload, res.status, res.headers);
+      const responseBody = [412].includes(res.status) ? null : await res.text()
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
+      throw new FetchError(payload, res.status, res.headers)
     }
 
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: User = responseBody ? JSON.parse(responseBody) : {};
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text()
+    const payload: User = responseBody ? JSON.parse(responseBody) : {}
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers,
-    } as FetchResponse<User>;
-  };
+      headers: res.headers
+    } as FetchResponse<User>
+  }
 
   const deanonymizeUser = async (
     body: UserDeanonymizeRequest,
-    options?: RequestInit,
+    options?: RequestInit
   ): Promise<FetchResponse<OKResponse>> => {
-    const url = baseURL + `/user/deanonymize`;
+    const url = baseURL + `/user/deanonymize`
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
+        'Content-Type': 'application/json',
+        ...options?.headers
       },
-      body: JSON.stringify(body),
-    });
+      body: JSON.stringify(body)
+    })
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text();
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
-      throw new FetchError(payload, res.status, res.headers);
+      const responseBody = [412].includes(res.status) ? null : await res.text()
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
+      throw new FetchError(payload, res.status, res.headers)
     }
 
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {};
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text()
+    const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {}
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers,
-    } as FetchResponse<OKResponse>;
-  };
+      headers: res.headers
+    } as FetchResponse<OKResponse>
+  }
 
   const changeUserEmail = async (
     body: UserEmailChangeRequest,
-    options?: RequestInit,
+    options?: RequestInit
   ): Promise<FetchResponse<OKResponse>> => {
-    const url = baseURL + `/user/email/change`;
+    const url = baseURL + `/user/email/change`
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
+        'Content-Type': 'application/json',
+        ...options?.headers
       },
-      body: JSON.stringify(body),
-    });
+      body: JSON.stringify(body)
+    })
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text();
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
-      throw new FetchError(payload, res.status, res.headers);
+      const responseBody = [412].includes(res.status) ? null : await res.text()
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
+      throw new FetchError(payload, res.status, res.headers)
     }
 
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {};
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text()
+    const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {}
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers,
-    } as FetchResponse<OKResponse>;
-  };
+      headers: res.headers
+    } as FetchResponse<OKResponse>
+  }
 
   const sendVerificationEmail = async (
     body: UserEmailSendVerificationEmailRequest,
-    options?: RequestInit,
+    options?: RequestInit
   ): Promise<FetchResponse<OKResponse>> => {
-    const url = baseURL + `/user/email/send-verification-email`;
+    const url = baseURL + `/user/email/send-verification-email`
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
+        'Content-Type': 'application/json',
+        ...options?.headers
       },
-      body: JSON.stringify(body),
-    });
+      body: JSON.stringify(body)
+    })
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text();
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
-      throw new FetchError(payload, res.status, res.headers);
+      const responseBody = [412].includes(res.status) ? null : await res.text()
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
+      throw new FetchError(payload, res.status, res.headers)
     }
 
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {};
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text()
+    const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {}
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers,
-    } as FetchResponse<OKResponse>;
-  };
+      headers: res.headers
+    } as FetchResponse<OKResponse>
+  }
 
   const verifyChangeUserMfa = async (
     body: UserMfaRequest,
-    options?: RequestInit,
+    options?: RequestInit
   ): Promise<FetchResponse<OKResponse>> => {
-    const url = baseURL + `/user/mfa`;
+    const url = baseURL + `/user/mfa`
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
+        'Content-Type': 'application/json',
+        ...options?.headers
       },
-      body: JSON.stringify(body),
-    });
+      body: JSON.stringify(body)
+    })
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text();
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
-      throw new FetchError(payload, res.status, res.headers);
+      const responseBody = [412].includes(res.status) ? null : await res.text()
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
+      throw new FetchError(payload, res.status, res.headers)
     }
 
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {};
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text()
+    const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {}
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers,
-    } as FetchResponse<OKResponse>;
-  };
+      headers: res.headers
+    } as FetchResponse<OKResponse>
+  }
 
   const changeUserPassword = async (
     body: UserPasswordRequest,
-    options?: RequestInit,
+    options?: RequestInit
   ): Promise<FetchResponse<OKResponse>> => {
-    const url = baseURL + `/user/password`;
+    const url = baseURL + `/user/password`
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
+        'Content-Type': 'application/json',
+        ...options?.headers
       },
-      body: JSON.stringify(body),
-    });
+      body: JSON.stringify(body)
+    })
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text();
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
-      throw new FetchError(payload, res.status, res.headers);
+      const responseBody = [412].includes(res.status) ? null : await res.text()
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
+      throw new FetchError(payload, res.status, res.headers)
     }
 
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {};
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text()
+    const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {}
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers,
-    } as FetchResponse<OKResponse>;
-  };
+      headers: res.headers
+    } as FetchResponse<OKResponse>
+  }
 
   const sendPasswordResetEmail = async (
     body: UserPasswordResetRequest,
-    options?: RequestInit,
+    options?: RequestInit
   ): Promise<FetchResponse<OKResponse>> => {
-    const url = baseURL + `/user/password/reset`;
+    const url = baseURL + `/user/password/reset`
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
+        'Content-Type': 'application/json',
+        ...options?.headers
       },
-      body: JSON.stringify(body),
-    });
+      body: JSON.stringify(body)
+    })
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text();
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
-      throw new FetchError(payload, res.status, res.headers);
+      const responseBody = [412].includes(res.status) ? null : await res.text()
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
+      throw new FetchError(payload, res.status, res.headers)
     }
 
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {};
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text()
+    const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {}
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers,
-    } as FetchResponse<OKResponse>;
-  };
+      headers: res.headers
+    } as FetchResponse<OKResponse>
+  }
 
   const addSecurityKey = async (
-    options?: RequestInit,
+    options?: RequestInit
   ): Promise<FetchResponse<PublicKeyCredentialCreationOptions>> => {
-    const url = baseURL + `/user/webauthn/add`;
+    const url = baseURL + `/user/webauthn/add`
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        ...options?.headers,
-      },
-    });
+        ...options?.headers
+      }
+    })
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text();
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
-      throw new FetchError(payload, res.status, res.headers);
+      const responseBody = [412].includes(res.status) ? null : await res.text()
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
+      throw new FetchError(payload, res.status, res.headers)
     }
 
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: PublicKeyCredentialCreationOptions = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text()
+    const payload: PublicKeyCredentialCreationOptions = responseBody ? JSON.parse(responseBody) : {}
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers,
-    } as FetchResponse<PublicKeyCredentialCreationOptions>;
-  };
+      headers: res.headers
+    } as FetchResponse<PublicKeyCredentialCreationOptions>
+  }
 
   const verifyAddSecurityKey = async (
     body: VerifyAddSecurityKeyRequest,
-    options?: RequestInit,
+    options?: RequestInit
   ): Promise<FetchResponse<VerifyAddSecurityKeyResponse>> => {
-    const url = baseURL + `/user/webauthn/verify`;
+    const url = baseURL + `/user/webauthn/verify`
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
+        'Content-Type': 'application/json',
+        ...options?.headers
       },
-      body: JSON.stringify(body),
-    });
+      body: JSON.stringify(body)
+    })
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text();
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
-      throw new FetchError(payload, res.status, res.headers);
+      const responseBody = [412].includes(res.status) ? null : await res.text()
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
+      throw new FetchError(payload, res.status, res.headers)
     }
 
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: VerifyAddSecurityKeyResponse = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text()
+    const payload: VerifyAddSecurityKeyResponse = responseBody ? JSON.parse(responseBody) : {}
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers,
-    } as FetchResponse<VerifyAddSecurityKeyResponse>;
-  };
+      headers: res.headers
+    } as FetchResponse<VerifyAddSecurityKeyResponse>
+  }
 
   const verifyTicketURL = (params?: VerifyTicketParams): string => {
     const encodedParameters =
@@ -3252,51 +3093,45 @@ export const createAPIClient = (
       Object.entries(params)
         .map(([key, value]) => {
           const stringValue = Array.isArray(value)
-            ? value.join(",")
-            : typeof value === "object"
+            ? value.join(',')
+            : typeof value === 'object'
               ? JSON.stringify(value)
-              : (value as string);
-          return `${key}=${encodeURIComponent(stringValue)}`;
+              : (value as string)
+          return `${key}=${encodeURIComponent(stringValue)}`
         })
-        .join("&");
+        .join('&')
 
-    const url = encodedParameters
-      ? baseURL + `/verify?${encodedParameters}`
-      : baseURL + `/verify`;
-    return url;
-  };
+    const url = encodedParameters ? baseURL + `/verify?${encodedParameters}` : baseURL + `/verify`
+    return url
+  }
 
   const getVersion = async (
-    options?: RequestInit,
+    options?: RequestInit
   ): Promise<FetchResponse<GetVersionResponse200>> => {
-    const url = baseURL + `/version`;
+    const url = baseURL + `/version`
     const res = await fetch(url, {
       ...options,
-      method: "GET",
+      method: 'GET',
       headers: {
-        ...options?.headers,
-      },
-    });
+        ...options?.headers
+      }
+    })
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text();
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
-      throw new FetchError(payload, res.status, res.headers);
+      const responseBody = [412].includes(res.status) ? null : await res.text()
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
+      throw new FetchError(payload, res.status, res.headers)
     }
 
-    const responseBody = [204, 205, 304].includes(res.status)
-      ? null
-      : await res.text();
-    const payload: GetVersionResponse200 = responseBody
-      ? JSON.parse(responseBody)
-      : {};
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text()
+    const payload: GetVersionResponse200 = responseBody ? JSON.parse(responseBody) : {}
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers,
-    } as FetchResponse<GetVersionResponse200>;
-  };
+      headers: res.headers
+    } as FetchResponse<GetVersionResponse200>
+  }
 
   return {
     baseURL,
@@ -3338,6 +3173,6 @@ export const createAPIClient = (
     addSecurityKey,
     verifyAddSecurityKey,
     verifyTicketURL,
-    getVersion,
-  };
-};
+    getVersion
+  }
+}

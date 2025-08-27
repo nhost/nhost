@@ -1,5 +1,5 @@
 {
-  "extends": "../../configs/tsconfig/library.json",
+  "extends": "../../build/configs/tsconfig/library.json",
   "compilerOptions": {
     "lib": ["ESNext", "DOM"],
     "jsx": "react-jsx",

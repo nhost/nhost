@@ -5,32 +5,27 @@
  * a Hasura GraphQL API.
  */
 
-import {
-  createEnhancedFetch,
-  type ChainFunction,
-  type FetchResponse,
-  FetchError,
-} from "../fetch";
+import { createEnhancedFetch, type ChainFunction, type FetchResponse, FetchError } from '../fetch'
 
-import type { TypedDocumentNode } from "@graphql-typed-document-node/core";
+import type { TypedDocumentNode } from '@graphql-typed-document-node/core'
 
 /**
  * Variables object for GraphQL operations.
  * Key-value pairs of variable names and their values.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type GraphQLVariables = Record<string, any>;
+export type GraphQLVariables = Record<string, any>
 
 /**
  * GraphQL request object used for queries and mutations.
  */
 export interface GraphQLRequest<TVariables = GraphQLVariables> {
   /** The GraphQL query or mutation string */
-  query: string;
+  query: string
   /** Optional variables for parameterized queries */
-  variables?: TVariables;
+  variables?: TVariables
   /** Optional name of the operation to execute */
-  operationName?: string;
+  operationName?: string
 }
 
 /**
@@ -38,13 +33,13 @@ export interface GraphQLRequest<TVariables = GraphQLVariables> {
  */
 export interface GraphQLError {
   /** Error message */
-  message: string;
+  message: string
   /** Source locations in the GraphQL document where the error occurred */
-  locations?: { line: number; column: number }[];
+  locations?: { line: number; column: number }[]
   /** Path in the query where the error occurred */
-  path?: string[];
+  path?: string[]
   /** Additional error information specific to the GraphQL implementation */
-  extensions?: { path: string; code: string };
+  extensions?: { path: string; code: string }
 }
 
 /**
@@ -53,9 +48,9 @@ export interface GraphQLError {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface GraphQLResponse<TResponseData = any> {
   /** The data returned from successful execution */
-  data?: TResponseData;
+  data?: TResponseData
   /** Array of errors if execution was unsuccessful or partially successful */
-  errors?: GraphQLError[];
+  errors?: GraphQLError[]
 }
 
 /**
@@ -74,8 +69,8 @@ export interface Client {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   request<TResponseData = any, TVariables = GraphQLVariables>(
     request: GraphQLRequest<TVariables>,
-    options?: RequestInit,
-  ): Promise<FetchResponse<GraphQLResponse<TResponseData>>>;
+    options?: RequestInit
+  ): Promise<FetchResponse<GraphQLResponse<TResponseData>>>
 
   /**
    * Execute a GraphQL query operation using a typed document node
@@ -88,13 +83,13 @@ export interface Client {
   request<TResponseData, TVariables = GraphQLVariables>(
     document: TypedDocumentNode<TResponseData, TVariables>,
     variables?: TVariables,
-    options?: RequestInit,
-  ): Promise<FetchResponse<GraphQLResponse<TResponseData>>>;
+    options?: RequestInit
+  ): Promise<FetchResponse<GraphQLResponse<TResponseData>>>
 
   /**
    * URL for the GraphQL endpoint.
    */
-  url: string;
+  url: string
 }
 
 /**
@@ -108,86 +103,78 @@ export interface Client {
  * @param chainFunctions - Array of middleware functions for the fetch chain
  * @returns GraphQL client with query and mutation methods
  */
-export const createAPIClient = (
-  url: string,
-  chainFunctions: ChainFunction[] = [],
-): Client => {
-  const enhancedFetch = createEnhancedFetch(chainFunctions);
+export const createAPIClient = (url: string, chainFunctions: ChainFunction[] = []): Client => {
+  const enhancedFetch = createEnhancedFetch(chainFunctions)
 
   const executeOperation = async <
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     TResponseData = any,
-    TVariables = GraphQLVariables,
+    TVariables = GraphQLVariables
   >(
     request: GraphQLRequest<TVariables>,
-    options?: RequestInit,
+    options?: RequestInit
   ): Promise<FetchResponse<GraphQLResponse<TResponseData>>> => {
     const response = await enhancedFetch(`${url}`, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify(request),
-      ...options,
-    });
+      ...options
+    })
 
-    const body = await response.text();
+    const body = await response.text()
     const data: GraphQLResponse<TResponseData> = (
       body ? JSON.parse(body) : {}
-    ) as GraphQLResponse<TResponseData>;
+    ) as GraphQLResponse<TResponseData>
 
     const resp = {
       body: data,
       status: response.status,
-      headers: response.headers,
-    };
-
-    if (data.errors) {
-      throw new FetchError(data, response.status, response.headers);
+      headers: response.headers
     }
 
-    return resp;
-  };
+    if (data.errors) {
+      throw new FetchError(data, response.status, response.headers)
+    }
+
+    return resp
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function request<TResponseData = any, TVariables = GraphQLVariables>(
     request: GraphQLRequest<TVariables>,
-    options?: RequestInit,
-  ): Promise<FetchResponse<GraphQLResponse<TResponseData>>>;
+    options?: RequestInit
+  ): Promise<FetchResponse<GraphQLResponse<TResponseData>>>
   function request<TResponseData, TVariables = GraphQLVariables>(
     document: TypedDocumentNode<TResponseData, TVariables>,
     variables?: TVariables,
-    options?: RequestInit,
-  ): Promise<FetchResponse<GraphQLResponse<TResponseData>>>;
+    options?: RequestInit
+  ): Promise<FetchResponse<GraphQLResponse<TResponseData>>>
   function request<TResponseData, TVariables = GraphQLVariables>(
-    requestOrDocument:
-      | GraphQLRequest<TVariables>
-      | TypedDocumentNode<TResponseData, TVariables>,
+    requestOrDocument: GraphQLRequest<TVariables> | TypedDocumentNode<TResponseData, TVariables>,
     variablesOrOptions?: TVariables | RequestInit,
-    options?: RequestInit,
+    options?: RequestInit
   ): Promise<FetchResponse<GraphQLResponse<TResponseData>>> {
-    if (typeof requestOrDocument === "object" && "kind" in requestOrDocument) {
-      const definition = requestOrDocument.definitions[0];
+    if (typeof requestOrDocument === 'object' && 'kind' in requestOrDocument) {
+      const definition = requestOrDocument.definitions[0]
 
       const request: GraphQLRequest<TVariables> = {
-        query: requestOrDocument.loc?.source.body || "",
+        query: requestOrDocument.loc?.source.body || '',
         variables: variablesOrOptions as TVariables,
-        operationName:
-          definition && "name" in definition
-            ? definition.name?.value
-            : undefined,
-      };
-      return executeOperation(request, options);
+        operationName: definition && 'name' in definition ? definition.name?.value : undefined
+      }
+      return executeOperation(request, options)
     } else {
       // Handle GraphQLRequest
-      const request = requestOrDocument;
-      const requestOptions = variablesOrOptions as RequestInit;
-      return executeOperation(request, requestOptions);
+      const request = requestOrDocument
+      const requestOptions = variablesOrOptions as RequestInit
+      return executeOperation(request, requestOptions)
     }
   }
 
   return {
     request,
-    url,
-  } as Client;
-};
+    url
+  } as Client
+}

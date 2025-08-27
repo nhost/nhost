@@ -28,7 +28,7 @@
         nix2containerPkgs = nix2container.packages.${system};
         nixops-lib = nixops.lib { inherit pkgs nix2containerPkgs; };
 
-        nodeModulesLib = import ./nix/node_modules.nix { inherit pkgs nix-filter; };
+        nodeModulesLib = import ./nix/node_modules.nix { inherit self pkgs nix-filter; };
         inherit (nodeModulesLib) node_modules mkNodeDevShell;
 
         codegenf = import ./tools/codegen/project.nix {
@@ -37,6 +37,10 @@
 
         dashboardf = import ./dashboard/project.nix {
           inherit self pkgs nix2containerPkgs nix-filter nixops-lib mkNodeDevShell node_modules;
+        };
+
+        nhost-jsf = import ./packages/nhost-js/project.nix {
+          inherit self pkgs nix-filter nixops-lib mkNodeDevShell node_modules;
         };
 
       in
@@ -55,8 +59,8 @@
             '';
 
           codegen = codegenf.check;
-
           dashboard = dashboardf.check;
+          nhost-js = nhost-jsf.check;
         };
 
         devShells = flake-utils.lib.flattenTree {
@@ -93,13 +97,14 @@
 
           codegen = codegenf.devShell;
           dashboard = dashboardf.devShell;
+          nhost-js = nhost-jsf.devShell;
         };
 
         packages = flake-utils.lib.flattenTree {
           dashboard = dashboardf.package;
           dashboard-docker-image = dashboardf.dockerImage;
-
           codegen = codegenf.package;
+          nhost-js = nhost-jsf.package;
         };
       }
     );
