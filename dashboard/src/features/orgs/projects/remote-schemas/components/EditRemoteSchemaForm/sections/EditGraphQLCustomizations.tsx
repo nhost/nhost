@@ -31,6 +31,7 @@ import type {
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
+import TypeNameCustomizationCombobox from './TypeNameCustomizationCombobox';
 
 export interface EditGraphQLCustomizationsProps {
   remoteSchemaName: string;
@@ -124,12 +125,16 @@ export default function EditGraphQLCustomizations({
     }
   }, [rawFieldNames, setValue]);
 
-  const typeNamesMapping: Record<string, string> =
-    rawTypeNamesMapping &&
-    typeof rawTypeNamesMapping === 'object' &&
-    !Array.isArray(rawTypeNamesMapping)
-      ? (rawTypeNamesMapping as Record<string, string>)
-      : {};
+  const typeNamesMapping: Record<string, string> = useMemo(() => {
+    if (
+      rawTypeNamesMapping &&
+      typeof rawTypeNamesMapping === 'object' &&
+      !Array.isArray(rawTypeNamesMapping)
+    ) {
+      return rawTypeNamesMapping as Record<string, string>;
+    }
+    return {};
+  }, [rawTypeNamesMapping]);
 
   function setTypeNamesMapping(next: Record<string, string>) {
     setValue('definition.customization.type_names.mapping', next, {
@@ -331,61 +336,11 @@ export default function EditGraphQLCustomizations({
           {Object.entries(typeNamesMapping).map(([fromType, toType]) => (
             <Box key={fromType} className="rounded border p-3">
               <Box className="grid grid-cols-1 gap-3 md:grid-cols-3">
-                <Box>
-                  <Text className="font-medium">Type</Text>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <ButtonV3
-                        variant="outline"
-                        role="combobox"
-                        className={cn(
-                          'mt-1 w-full justify-between overflow-hidden text-left',
-                          !fromType && 'text-muted-foreground',
-                        )}
-                      >
-                        <span className="truncate">
-                          {fromType || 'Select a type'}
-                        </span>
-                        <ChevronsUpDown className="ml-2 shrink-0 opacity-50" />
-                      </ButtonV3>
-                    </PopoverTrigger>
-                    <PopoverContent className="max-h-[var(--radix-popover-content-available-height)] w-[var(--radix-popover-trigger-width)] p-0">
-                      <Command>
-                        <CommandInput
-                          placeholder="Search type..."
-                          className="h-9"
-                        />
-                        <CommandList>
-                          <CommandEmpty>No type found.</CommandEmpty>
-                          <CommandGroup>
-                            {schemaTypes.map((t) => (
-                              <CommandItem
-                                value={t.name!}
-                                key={t.name!}
-                                onSelect={() =>
-                                  changeTypeKey(fromType, t.name!)
-                                }
-                                className="flex items-center"
-                              >
-                                <span className="min-w-0 flex-1 truncate">
-                                  {t.name}
-                                </span>
-                                <Check
-                                  className={cn(
-                                    'ml-2 shrink-0',
-                                    t.name === fromType
-                                      ? 'opacity-100'
-                                      : 'opacity-0',
-                                  )}
-                                />
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                </Box>
+                <TypeNameCustomizationCombobox
+                  fromType={fromType}
+                  schemaTypes={schemaTypes}
+                  changeTypeKey={changeTypeKey}
+                />
                 <Box>
                   <Text className="font-medium">New name</Text>
                   <Input

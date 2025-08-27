@@ -3,14 +3,6 @@ import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { Button } from '@/components/ui/v3/button';
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/v3/command';
-import {
   Form,
   FormControl,
   FormField,
@@ -19,22 +11,21 @@ import {
   FormMessage,
 } from '@/components/ui/v3/form';
 import { Input } from '@/components/ui/v3/input';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/v3/popover';
+import { Popover, PopoverTrigger } from '@/components/ui/v3/popover';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useGetRemoteSchemas } from '@/features/orgs/projects/remote-schemas/hooks/useGetRemoteSchemas';
 import { useIntrospectRemoteSchemaQuery } from '@/features/orgs/projects/remote-schemas/hooks/useIntrospectRemoteSchemaQuery';
-import convertIntrospectionToSchema from '@/features/orgs/projects/remote-schemas/utils/convertIntrospectionToSchema';
+import getQueryTypeFields from '@/features/orgs/projects/remote-schemas/utils/getQueryTypeFields';
 import getSourceTypes from '@/features/orgs/projects/remote-schemas/utils/getSourceTypes';
 import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Anchor, Check, ChevronsUpDown } from 'lucide-react';
+import { Anchor, ChevronsUpDown } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import SchemaToArgumentMapSelector from './SchemaToArgumentMapSelector';
+import SourceTypeCombobox from './SourceTypeCombobox';
+import TargetRemoteSchemaCombobox from './TargetRemoteSchemaCombobox';
+import TargetRemoteSchemaFieldCombobox from './TargetRemoteSchemaFieldCombobox';
 
 export interface RemoteSchemaRelationshipFormProps {
   sourceSchema: string;
@@ -123,29 +114,7 @@ export default function RemoteSchemaRelationshipForm({
 
   const sourceTypes = getSourceTypes(sourceIntrospectionData);
 
-  // Convert target introspection to GraphQL schema and extract fields for the selected target field
-  const targetFields = targetIntrospectionData
-    ? (() => {
-        const schema = convertIntrospectionToSchema(targetIntrospectionData);
-        if (!schema) {
-          return [];
-        }
-
-        // const typeMap = schema.getTypeMap();
-        const queryType = schema.getQueryType();
-
-        if (!queryType) {
-          return [];
-        }
-
-        const fields = queryType.getFields();
-
-        return Object.keys(fields).map((fieldName) => ({
-          label: fieldName,
-          value: fieldName,
-        }));
-      })()
-    : [];
+  const targetFields = getQueryTypeFields(targetIntrospectionData);
 
   function handleSubmit(values: z.infer<typeof formSchema>) {
     return onSubmit(values);
@@ -224,70 +193,7 @@ export default function RemoteSchemaRelationshipForm({
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="sourceType"
-              render={({ field }) => (
-                <FormItem className="flex flex-1 flex-col">
-                  <FormLabel>Source Type</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant="outline"
-                          disabled={disabled}
-                          role="combobox"
-                          className={cn(
-                            'w-full justify-between',
-                            !field.value && 'text-muted-foreground',
-                          )}
-                        >
-                          {field.value
-                            ? sourceTypes.find(
-                                (type) => type.value === field.value,
-                              )?.label
-                            : 'Select type'}
-                          <ChevronsUpDown className="opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="max-h-[var(--radix-popover-content-available-height)] w-[var(--radix-popover-trigger-width)] p-0">
-                      <Command>
-                        <CommandInput
-                          placeholder="Search source type..."
-                          className="h-9"
-                        />
-                        <CommandList>
-                          <CommandEmpty>No source type found.</CommandEmpty>
-                          <CommandGroup>
-                            {sourceTypes.map((type) => (
-                              <CommandItem
-                                value={type.label}
-                                key={type.value}
-                                onSelect={() => {
-                                  form.setValue('sourceType', type.value);
-                                }}
-                              >
-                                {type.label}
-                                <Check
-                                  className={cn(
-                                    'ml-auto',
-                                    type.value === field.value
-                                      ? 'opacity-100'
-                                      : 'opacity-0',
-                                  )}
-                                />
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <SourceTypeCombobox sourceTypes={sourceTypes} disabled={disabled} />
           </div>
         </div>
         <div className="flex flex-row items-center justify-center gap-2 border-b-1 border-t-1 border-muted-foreground/20 py-4">
@@ -296,139 +202,19 @@ export default function RemoteSchemaRelationshipForm({
         </div>
         <div className="flex flex-col gap-4 px-6">
           <div className="flex flex-row gap-4">
-            <FormField
-              control={form.control}
-              name="targetRemoteSchema"
-              render={({ field }) => (
-                <FormItem className="flex flex-1 flex-col">
-                  <FormLabel>Target Remote Schema</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          disabled={disabled}
-                          variant="outline"
-                          role="combobox"
-                          className={cn(
-                            'w-full justify-between',
-                            !field.value && 'text-muted-foreground',
-                          )}
-                        >
-                          {field.value
-                            ? remoteSchemas.find(
-                                (schema) => schema.name === field.value,
-                              )?.name
-                            : 'Select remote schema'}
-                          <ChevronsUpDown className="opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="max-h-[var(--radix-popover-content-available-height)] w-[var(--radix-popover-trigger-width)] p-0">
-                      <Command>
-                        <CommandInput
-                          placeholder="Search remote schema..."
-                          className="h-9"
-                        />
-                        <CommandList>
-                          <CommandEmpty>No remote schema found.</CommandEmpty>
-                          <CommandGroup>
-                            {remoteSchemas.map((schema) => (
-                              <CommandItem
-                                value={schema.name}
-                                key={schema.name}
-                                onSelect={() => {
-                                  form.setValue(
-                                    'targetRemoteSchema',
-                                    schema.name,
-                                  );
-                                }}
-                              >
-                                {schema.name}
-                                <Check
-                                  className={cn(
-                                    'ml-auto',
-                                    schema.name === field.value
-                                      ? 'opacity-100'
-                                      : 'opacity-0',
-                                  )}
-                                />
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
+            <TargetRemoteSchemaCombobox
+              disabled={disabled}
+              remoteSchemas={remoteSchemas}
             />
-            <FormField
-              control={form.control}
-              name="targetField"
-              render={({ field }) => (
-                <FormItem className="flex flex-1 flex-col">
-                  <FormLabel>Target Remote Schema Field</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant="outline"
-                          disabled={disabled}
-                          role="combobox"
-                          className={cn(
-                            'w-full justify-between',
-                            !field.value && 'text-muted-foreground',
-                          )}
-                        >
-                          {field.value
-                            ? targetFields.find(
-                                (fieldItem) => fieldItem.value === field.value,
-                              )?.label
-                            : 'Select field'}
-                          <ChevronsUpDown className="opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="max-h-[var(--radix-popover-content-available-height)] w-[var(--radix-popover-trigger-width)] p-0">
-                      <Command>
-                        <CommandInput
-                          placeholder="Search target field..."
-                          className="h-9"
-                        />
-                        <CommandList>
-                          <CommandEmpty>No target field found.</CommandEmpty>
-                          <CommandGroup>
-                            {targetFields.map((fieldItem) => (
-                              <CommandItem
-                                value={fieldItem.label}
-                                key={fieldItem.value}
-                                onSelect={() => {
-                                  form.setValue('targetField', fieldItem.value);
-                                }}
-                              >
-                                {fieldItem.label}
-                                <Check
-                                  className={cn(
-                                    'ml-auto',
-                                    fieldItem.value === field.value
-                                      ? 'opacity-100'
-                                      : 'opacity-0',
-                                  )}
-                                />
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
+            <TargetRemoteSchemaFieldCombobox
+              disabled={disabled}
+              targetFields={targetFields}
             />
           </div>
-          <SchemaToArgumentMapSelector sourceSchema={sourceSchema} />
+          <SchemaToArgumentMapSelector
+            sourceSchema={sourceSchema}
+            disabled={disabled}
+          />
         </div>
         <div className="mt-auto flex justify-between gap-2 border-t-1 border-foreground/20 px-6 pt-4">
           <Button

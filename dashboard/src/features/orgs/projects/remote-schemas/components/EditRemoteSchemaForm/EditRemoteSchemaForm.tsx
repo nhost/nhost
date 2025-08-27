@@ -18,7 +18,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/router';
 import { FormProvider, useForm } from 'react-hook-form';
 import type * as Yup from 'yup';
-import EditGraphQLCustomizations from './components/EditGraphQLCustomizations';
+import EditGraphQLCustomizations from './sections/EditGraphQLCustomizations';
 
 export interface EditRemoteSchemaFormProps
   extends Pick<BaseRemoteSchemaFormProps, 'onCancel' | 'location'> {
