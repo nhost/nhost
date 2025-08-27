@@ -27,6 +27,10 @@ export interface BaseRemoteSchemaRelationshipFormProps {
   ) => void;
   onCancel?: () => void;
   disabled?: boolean;
+  /**
+   * Whether the name input is disabled.
+   */
+  nameInputDisabled?: boolean;
 }
 
 export default function BaseRemoteSchemaRelationshipForm({
@@ -37,6 +41,7 @@ export default function BaseRemoteSchemaRelationshipForm({
   defaultType,
   defaultValues,
   disabled,
+  nameInputDisabled,
 }: BaseRemoteSchemaRelationshipFormProps) {
   const [type, setType] = useState<RemoteSchemaRelationshipType>(
     defaultType ?? 'remote-schema',
@@ -63,6 +68,7 @@ export default function BaseRemoteSchemaRelationshipForm({
           onSubmit={(values) => onSubmit?.(values)}
           submitButtonText={submitButtonText}
           disabled={disabled}
+          nameInputDisabled={nameInputDisabled}
         />
       )}
       {type === 'database' && (
@@ -77,6 +83,7 @@ export default function BaseRemoteSchemaRelationshipForm({
           onSubmit={(values) => onSubmit?.(values)}
           submitButtonText={submitButtonText}
           disabled={disabled}
+          nameInputDisabled={nameInputDisabled}
         />
       )}
     </div>
