@@ -2,14 +2,6 @@ import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { Button } from '@/components/ui/v3/button';
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/v3/command';
-import {
   Form,
   FormControl,
   FormField,
@@ -18,11 +10,7 @@ import {
   FormMessage,
 } from '@/components/ui/v3/form';
 import { Input } from '@/components/ui/v3/input';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/v3/popover';
+import { Popover, PopoverTrigger } from '@/components/ui/v3/popover';
 import {
   Select,
   SelectContent,
@@ -35,10 +23,11 @@ import { useIntrospectRemoteSchemaQuery } from '@/features/orgs/projects/remote-
 import getSourceTypes from '@/features/orgs/projects/remote-schemas/utils/getSourceTypes';
 import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Anchor, Check, ChevronsUpDown } from 'lucide-react';
+import { Anchor, ChevronsUpDown } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import FieldToColumnMapSelector from './FieldToColumnMapSelector';
+import SourceTypeCombobox from './SourceTypeCombobox';
 import TargetTableCombobox from './TargetTableCombobox';
 
 export interface DatabaseRelationshipFormProps {
@@ -185,69 +174,7 @@ export default function DatabaseRelationshipForm({
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="sourceType"
-              render={({ field }) => (
-                <FormItem className="flex flex-1 flex-col">
-                  <FormLabel>Source Type</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          className={cn(
-                            'w-full justify-between',
-                            !field.value && 'text-muted-foreground',
-                          )}
-                        >
-                          {field.value
-                            ? sourceTypes.find(
-                                (type) => type.value === field.value,
-                              )?.label
-                            : 'Select type'}
-                          <ChevronsUpDown className="opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="max-h-[var(--radix-popover-content-available-height)] w-[var(--radix-popover-trigger-width)] p-0">
-                      <Command>
-                        <CommandInput
-                          placeholder="Search source type..."
-                          className="h-9"
-                        />
-                        <CommandList>
-                          <CommandEmpty>No source type found.</CommandEmpty>
-                          <CommandGroup>
-                            {sourceTypes.map((type) => (
-                              <CommandItem
-                                value={type.label}
-                                key={type.value}
-                                onSelect={() => {
-                                  form.setValue('sourceType', type.value);
-                                }}
-                              >
-                                {type.label}
-                                <Check
-                                  className={cn(
-                                    'ml-auto',
-                                    type.value === field.value
-                                      ? 'opacity-100'
-                                      : 'opacity-0',
-                                  )}
-                                />
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <SourceTypeCombobox sourceTypes={sourceTypes} disabled={disabled} />
           </div>
         </div>
         <div className="flex flex-row items-center justify-center gap-2 border-b-1 border-t-1 border-muted-foreground/20 py-4">

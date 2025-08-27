@@ -22,6 +22,7 @@ import {
 import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
 import { cn } from '@/lib/utils';
 import { Check, ChevronsUpDown } from 'lucide-react';
+import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import type { DatabaseRelationshipFormValues } from './DatabaseRelationshipForm';
 
@@ -33,6 +34,7 @@ export default function TargetTableCombobox({
   disabled,
 }: TargetTableComboboxProps) {
   const form = useFormContext<DatabaseRelationshipFormValues>();
+  const [open, setOpen] = useState(false);
 
   // TODO: Support multiple data sources
   const { data } = useDatabaseQuery(['default'], {
@@ -52,6 +54,8 @@ export default function TargetTableCombobox({
         })),
       );
     }
+
+    setOpen(false);
   };
 
   const tables = (data?.tables ?? [])
@@ -68,7 +72,7 @@ export default function TargetTableCombobox({
           ]
         : [],
     )
-    .sort((a, b) => a.label.localeCompare(b.label));
+    .sort((a, b) => a.label.localeCompare(b.label)); // sort alphabetically
 
   return (
     <FormField
@@ -77,7 +81,7 @@ export default function TargetTableCombobox({
       render={({ field }) => (
         <FormItem className="flex flex-1 flex-col">
           <FormLabel>Target Table</FormLabel>
-          <Popover>
+          <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
               <FormControl>
                 <Button
