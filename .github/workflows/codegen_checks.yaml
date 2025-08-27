@@ -36,9 +36,24 @@ jobs:
       - check-permissions
     with:
       NAME: codegen
-      GIT_REF: ${{ github.event.pull_request.head.sha }}
       PATH: tools/codegen
+      GIT_REF: ${{ github.sha }}
 
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
+      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+
+  build_artifacts:
+    uses: ./.github/workflows/wf_build_artifacts.yaml
+    needs:
+      - check-permissions
+    with:
+      NAME: codegen
+      PATH: tools/codegen
+      GIT_REF: ${{ github.sha }}
+      VERSION: 0.0.0-dev # we use a fixed version here to avoid unnecessary rebuilds
+      DOCKER: false
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}

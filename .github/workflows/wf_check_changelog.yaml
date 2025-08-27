@@ -11,6 +11,7 @@ jobs:
   check-changelog:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    if: "!contains(github.event.pull_request.labels.*.name, 'skip-changelog')"
 
     steps:
       - name: "Check out repository"
