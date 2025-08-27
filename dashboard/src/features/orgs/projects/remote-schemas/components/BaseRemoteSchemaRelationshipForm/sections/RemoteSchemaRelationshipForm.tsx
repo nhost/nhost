@@ -28,9 +28,9 @@ import { Spinner } from '@/components/ui/v3/spinner';
 import { useGetRemoteSchemas } from '@/features/orgs/projects/remote-schemas/hooks/useGetRemoteSchemas';
 import { useIntrospectRemoteSchemaQuery } from '@/features/orgs/projects/remote-schemas/hooks/useIntrospectRemoteSchemaQuery';
 import convertIntrospectionToSchema from '@/features/orgs/projects/remote-schemas/utils/convertIntrospectionToSchema';
+import getSourceTypes from '@/features/orgs/projects/remote-schemas/utils/getSourceTypes';
 import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { isObjectType } from 'graphql';
 import { Anchor, Check, ChevronsUpDown } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -121,24 +121,7 @@ export default function RemoteSchemaRelationshipForm({
     },
   );
 
-  // Convert introspection to GraphQL schema and extract object types
-  const sourceTypes = sourceIntrospectionData
-    ? (() => {
-        const schema = convertIntrospectionToSchema(sourceIntrospectionData);
-        if (!schema) {
-          return [];
-        }
-        const typeMap = schema.getTypeMap();
-
-        return Object.values(typeMap)
-          .filter(isObjectType)
-          .filter((type) => !type.name.startsWith('__')) // Filter out introspection types
-          .map((type) => ({
-            label: type.name,
-            value: type.name,
-          }));
-      })()
-    : [];
+  const sourceTypes = getSourceTypes(sourceIntrospectionData);
 
   // Convert target introspection to GraphQL schema and extract fields for the selected target field
   const targetFields = targetIntrospectionData
