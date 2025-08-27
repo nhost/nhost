@@ -81,7 +81,7 @@ enabled = false
 
 [auth.method.emailPassword]
 hibpEnabled = false
-emailVerificationRequired = true
+emailVerificationRequired = false
 passwordMinLength = 9
 
 [auth.method.smsPasswordless]
@@ -152,19 +152,19 @@ limit = 10
 interval = '1h'
 
 [auth.rateLimit.sms]
-limit = 10
+limit = 100000
 interval = '1h'
 
 [auth.rateLimit.bruteForce]
-limit = 10
+limit = 100000
 interval = '5m'
 
 [auth.rateLimit.signups]
-limit = 10
+limit = 100000
 interval = '5m'
 
 [auth.rateLimit.global]
-limit = 100
+limit = 100000
 interval = '1m'
 
 [postgres]

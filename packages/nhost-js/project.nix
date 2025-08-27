@@ -11,13 +11,15 @@ let
       isDirectory
       (matchName "package.json")
       ".npmrc"
+      ".prettierignore"
+      ".prettierrc.js"
       "audit-ci.jsonc"
       "pnpm-workspace.yaml"
       "pnpm-lock.yaml"
       "turbo.json"
       (inDirectory "./build")
       "${submodule}/.prettierignore"
-      "${submodule}/eslint.config.js"
+      "${submodule}/eslint.config.mjs"
       "${submodule}/gen.sh"
       "${submodule}/jest.config.js"
       "${submodule}/tsconfig.eslint.json"
