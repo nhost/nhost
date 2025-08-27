@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "Frontend Configuration",
+  "extends": "./base.json",
+  "compilerOptions": {
+    /* Frontend Specific */
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+
+    /* Module Resolution */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+
+    /* Additional Options */
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "incremental": true,
+
+    /* Next.js Compatibility (ignored by non-Next.js projects) */
+    "plugins": []
+  },
+  "include": ["src/**/*", "**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules", "**/node_modules/*"]
+}

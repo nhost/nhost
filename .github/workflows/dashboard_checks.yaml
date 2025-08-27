@@ -114,7 +114,6 @@ jobs:
     needs:
       - check-permissions
     steps:
-      - uses: actions/checkout@v4
       - uses: actions-ecosystem/action-remove-labels@v1
         with:
           labels: |
