@@ -68,7 +68,12 @@ export default function RemoteSchemaDetails() {
   return (
     <div className="space-y-6 p-4">
       <Box className="grid grid-flow-row gap-4 overflow-hidden rounded-lg border-1 px-4 py-4">
-        <h2 className="text-lg font-semibold">{remoteSchema.name}</h2>
+        <div>
+          <Text variant="h3" className="pb-2">
+            Remote Schema
+          </Text>
+          <Text className="font-semibold">{remoteSchema.name}</Text>
+        </div>
         {showComment && (
           <div>
             <Text variant="h3" className="pb-2">
