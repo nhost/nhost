@@ -4,8 +4,8 @@ import {
   getGraphqlServiceUrl,
   getStorageServiceUrl,
 } from '@/utils/env';
-import { createClient } from '@nhost/nhost-js-beta';
-import { type Session, type SessionStorageBackend } from '@nhost/nhost-js-beta/session';
+import { createClient } from '@nhost/nhost-js';
+import { type Session, type SessionStorageBackend } from '@nhost/nhost-js/session';
 
 const nhost = createClient({
   authUrl: getAuthServiceUrl(),

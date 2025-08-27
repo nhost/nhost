@@ -3,7 +3,7 @@ name: "nhost-js: check changelog"
 on:
   pull_request:
     paths:
-      - '.github/workflows/wf_check.yaml'
+      - '.github/workflows/wf_check_changelog.yaml'
       - '.github/workflows/nhost-js_checks.yaml'
       - 'flake.nix'
       - 'flake.lock'
@@ -16,7 +16,7 @@ on:
       - 'vendor/**'
       - 'tools/codegen/**'
 
-      # dashboard
+      # nhost-js
       - ".npmrc"
       - ".prettierignore"
       - ".prettierrc.js"
@@ -24,8 +24,7 @@ on:
       - "pnpm-workspace.yaml"
       - "pnpm-lock.yaml"
       - "turbo.json"
-      - build/**
-      - dashboard/**
+      - packages/nhost-js/**
 
 jobs:
   check-changelog:
