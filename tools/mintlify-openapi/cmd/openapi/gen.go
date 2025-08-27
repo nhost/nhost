@@ -99,6 +99,10 @@ func process(openAPISpec, outDir string) error {
 		return fmt.Errorf("failed to process OAM files: %w", err)
 	}
 
+	slices.SortFunc(endpoints, func(a, b Endpoint) int {
+		return strings.Compare(a.Path, b.Path)
+	})
+
 	for _, e := range endpoints {
 		fmt.Println(e.Mintlify(outDir)) //nolint:forbidigo
 	}
