@@ -1,5 +1,5 @@
 import { mockSession } from '@/tests/mocks';
-import type { Session } from '@nhost/nhost-js-beta/auth';
+import type { Session } from '@nhost/nhost-js/auth';
 import { rest } from 'msw';
 
 const tokenQuery = rest.post(

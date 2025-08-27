@@ -17,7 +17,7 @@ import {
 } from '@apollo/client';
 import { CacheProvider } from '@emotion/react';
 import { ThemeProvider } from '@mui/material/styles';
-import { createServerClient } from '@nhost/nhost-js-beta';
+import { createServerClient } from '@nhost/nhost-js';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type {
   Queries,
