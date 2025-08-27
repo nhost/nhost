@@ -152,7 +152,6 @@ export default function DatabaseRelationshipForm({
           <FormField
             control={form.control}
             name="name"
-            disabled={nameInputDisabled}
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="flex flex-row items-center gap-2">
@@ -166,7 +165,11 @@ export default function DatabaseRelationshipForm({
                   </Tooltip>
                 </FormLabel>
                 <FormControl>
-                  <Input placeholder="Relationship name" {...field} />
+                  <Input
+                    placeholder="Relationship name"
+                    {...field}
+                    disabled={disabled || nameInputDisabled}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
