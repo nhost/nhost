@@ -47,9 +47,6 @@
   "engines": {
     "node": ">=20"
   },
-  "eslintConfig": {
-    "extends": "./config/.eslintrc.js"
-  },
   "pnpm": {
     "overrides": {
       "trim@<0.0.3": ">=0.0.3",
