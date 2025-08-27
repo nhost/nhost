@@ -45,10 +45,9 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         ref: ${{ inputs.GIT_REF }}
-        fetch-depth: 0
 
     - name: Configure aws
       uses: aws-actions/configure-aws-credentials@v4

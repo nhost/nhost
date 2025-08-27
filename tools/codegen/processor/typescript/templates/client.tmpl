@@ -1,0 +1,214 @@
+{{- define "client_interface" }}
+export interface Client {
+  baseURL: string;
+  pushChainFunction(chainFunction: ChainFunction): void;
+{{- range .Methods }}
+  {{- $method := . }}
+    /**
+     {{- if .Operation.Summary }}
+     Summary: {{ .Operation.Summary }}
+     {{- end }}
+     {{ .Operation.Description }}
+  {{- if .IsRedirect }}
+
+     As this method is a redirect, it returns a URL string instead of a Promise
+     */
+  {{ .Name }}URL(
+  {{- else }}
+
+     This method may return different T based on the response code:
+
+     {{- range $code, $codeMap := .Responses }}
+     {{- if $codeMap }}
+     {{- range $media, $type := $codeMap }}
+     - {{ $code }}: {{ if $type }}{{ $type.Name }}{{ else }}void{{ end }}
+     {{- end }}
+     {{- else }}
+     - {{ $code }}: void
+     {{- end }}
+     {{- end }}
+     */
+  {{ .Name }}(
+    {{- end }}
+    {{- range .PathParameters }}
+    {{ .Name }}: {{ .Type.Name }},
+    {{- end }}
+    {{- range $code, $type := .Bodies }}
+    body{{ if not $method.BodyRequired }}?{{ end }}: {{ $type.Name }},
+    {{- end }}
+    {{- if .HasQueryParameters }}
+    params?: {{ title $method.Name }}Params,
+    {{- end }}
+    options?: RequestInit,
+  {{- if .IsRedirect }}
+  ): string;
+  {{- else }}
+  ): Promise<FetchResponse<{{ .ReturnType }}>>;
+  {{- end }}
+{{ end -}}
+};
+{{- end }}
+
+
+{{- define "client" }}
+export const createAPIClient = (
+  baseURL: string,
+  chainFunctions: ChainFunction[] = [],
+): Client => {
+  let fetch = createEnhancedFetch(chainFunctions);
+
+  const pushChainFunction = (chainFunction: ChainFunction) => {
+    chainFunctions.push(chainFunction);
+    fetch = createEnhancedFetch(chainFunctions);
+  };
+
+{{- range .Methods }}
+  {{- $method := . }}
+  {{- if .IsRedirect }}
+    const  {{ .Name }}URL = (
+  {{- else }}
+    const  {{ .Name }} = async (
+  {{- end }}
+    {{- range .PathParameters }}
+    {{ .Name }}: {{ .Type.Name }},
+    {{- end }}
+    {{- range $code, $type := .Bodies }}
+  {{- if not $method.IsRedirect }}
+    body{{ if not $method.BodyRequired }}?{{ end }}: {{ $type.Name }},
+  {{- end }}
+    {{- end }}
+    {{- if .HasQueryParameters }}
+    params?: {{ title $method.Name }}Params,
+    {{- end }}
+  {{- if .IsRedirect }}
+  ): string => {
+  {{- else }}
+    options?: RequestInit,
+  ): Promise<FetchResponse<{{ .ReturnType }}>> => {
+  {{- end }}
+  {{- if .HasQueryParameters }}
+  const encodedParameters =
+    params &&
+    Object.entries(params)
+      .map(([key, value]) => {
+        const stringValue = Array.isArray(value)
+          ? value.join(',')
+          : typeof value === 'object'
+          ? JSON.stringify(value)
+          : (value as string)
+        return `${key}=${encodeURIComponent(stringValue)}`
+      })
+      .join('&')
+
+    const url =
+     encodedParameters
+        ? baseURL + `{{ .Path }}?${encodedParameters}`
+        : baseURL + `{{ .Path }}`;
+  {{- else }}
+    const url = baseURL + `{{ .Path }}`;
+  {{- end }}
+  {{- if .IsRedirect }}
+    return url;
+  {{- else }}
+  {{- if .RequestJSON }}
+    const res = await fetch(url, {
+      ...options,
+      method: "{{ .Method }}",
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+      },
+      body: JSON.stringify(body),
+    });
+  {{- else if .RequestFormData }}
+    const formData = new FormData();
+
+    {{- range .RequestFormData.Properties }}
+    {{- if eq .Type.Kind "scalar" }}
+    if (body["{{ .Name }}"] !== undefined) {
+      formData.append("{{ .Name }}", body["{{ .Name }}"]);
+    }
+    {{- else if eq .Type.Kind "array" }}
+    if (body["{{ .Name }}"] !== undefined) {
+      body["{{ .Name }}"].forEach((value) =>
+        {{- if eq .Type.Item.Kind "scalar" }}
+          formData.append("{{ .Name }}", value),
+        {{- else if eq .Type.Item.Kind "object" }}
+          formData.append(
+            "{{ .Name }}",
+            new Blob([JSON.stringify(value)], { type: "application/json" }),
+            "",
+          ),
+        {{- else }}
+          TODO {{ .Type.Kind }} {{ .Type.Schema.Schema.Type }}
+        {{- end }}
+      );
+    }
+    {{- else if eq .Type.Kind "object" }}
+    if (body["{{ .Name }}"] !== undefined) {
+      formData.append(
+        "{{ .Name }}",
+        new Blob([JSON.stringify(body["{{ .Name }}"])], { type: "application/json" }),
+        "",
+      );
+    }
+    {{- else }}
+    TODO {{ .Type.Kind }} {{ .Type.Schema.Schema.Type }}
+    {{- end }}
+    {{- end }}
+
+    const res = await fetch(url, {
+      ...options,
+      method: "{{ .Method }}",
+      body: formData,
+    });
+  {{- else if not .RequestHasBody }}
+    const res = await fetch(url, {
+      ...options,
+      method: "{{ .Method }}",
+      headers: {
+        ...options?.headers,
+      },
+    });
+  {{- else }}
+  TODO handle request body
+  {{- end }}
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+    {{ if .ResponseJSON }}
+    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text();
+    const payload: {{ .ReturnType }} = responseBody ? JSON.parse(responseBody) : {};
+    {{ else if .ResponseBinary }}
+    const payload: Blob = await res.blob();
+    {{ else if not .HasResponseBody }}
+    const payload: void = undefined;
+    {{ else }}
+    TODO handle response body
+    {{ end }}
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<{{ .ReturnType }}>;
+{{ end }}
+  };
+{{ end }}
+
+  return {
+    baseURL,
+    pushChainFunction,
+    {{- range .Methods }}
+    {{- if .IsRedirect }}
+      {{ .Name }}URL,
+    {{- else }}
+      {{ .Name }},
+    {{- end }}
+    {{- end }}
+  };
+};
+{{- end }}
