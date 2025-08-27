@@ -54,19 +54,21 @@ export default function TargetTableCombobox({
     }
   };
 
-  const tables = (data?.tables ?? []).flatMap((table) =>
-    table.table_name && table.table_schema
-      ? [
-          {
-            label: `default / ${table.table_schema} / ${table.table_name}`,
-            value: {
-              name: table.table_name,
-              schema: table.table_schema,
+  const tables = (data?.tables ?? [])
+    .flatMap((table) =>
+      table.table_name && table.table_schema
+        ? [
+            {
+              label: `default / ${table.table_schema} / ${table.table_name}`,
+              value: {
+                name: table.table_name,
+                schema: table.table_schema,
+              },
             },
-          },
-        ]
-      : [],
-  );
+          ]
+        : [],
+    )
+    .sort((a, b) => a.label.localeCompare(b.label));
 
   return (
     <FormField
