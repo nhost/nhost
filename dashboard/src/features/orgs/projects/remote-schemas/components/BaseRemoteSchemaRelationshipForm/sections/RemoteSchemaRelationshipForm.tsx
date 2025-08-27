@@ -43,6 +43,10 @@ export interface RemoteSchemaRelationshipFormProps {
   submitButtonText?: string;
   defaultValues?: RemoteSchemaRelationshipFormValues;
   disabled?: boolean;
+  /**
+   * Whether the name input should be disabled.
+   */
+  nameInputDisabled?: boolean;
 }
 
 export type RemoteSchemaRelationshipFormValues = z.infer<typeof formSchema>;
@@ -74,6 +78,7 @@ export default function RemoteSchemaRelationshipForm({
   onCancel,
   defaultValues,
   disabled,
+  nameInputDisabled,
 }: RemoteSchemaRelationshipFormProps) {
   const form = useForm<RemoteSchemaRelationshipFormValues>({
     resolver: zodResolver(formSchema),
@@ -184,6 +189,7 @@ export default function RemoteSchemaRelationshipForm({
           <FormField
             control={form.control}
             name="name"
+            disabled={nameInputDisabled}
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="flex flex-row items-center gap-2">

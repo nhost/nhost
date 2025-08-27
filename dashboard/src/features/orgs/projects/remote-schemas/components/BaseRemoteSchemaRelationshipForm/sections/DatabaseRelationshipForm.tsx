@@ -49,6 +49,10 @@ export interface DatabaseRelationshipFormProps {
   onCancel?: () => void;
   defaultValues?: DatabaseRelationshipFormValues;
   disabled?: boolean;
+  /**
+   * Whether the name input should be disabled.
+   */
+  nameInputDisabled?: boolean;
 }
 
 export type DatabaseRelationshipFormValues = z.infer<typeof formSchema>;
@@ -81,6 +85,7 @@ export default function DatabaseRelationshipForm({
   onCancel,
   defaultValues,
   disabled,
+  nameInputDisabled,
 }: DatabaseRelationshipFormProps) {
   const form = useForm<DatabaseRelationshipFormValues>({
     resolver: zodResolver(formSchema),
@@ -147,6 +152,7 @@ export default function DatabaseRelationshipForm({
           <FormField
             control={form.control}
             name="name"
+            disabled={nameInputDisabled}
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="flex flex-row items-center gap-2">
