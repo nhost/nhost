@@ -223,6 +223,12 @@ export class TestUserEvent {
       await this.user.clear(element);
     });
   }
+
+  async keyboard(sequence: string) {
+    await waitFor(async () => {
+      await this.user.keyboard(sequence);
+    });
+  }
 }
 
 export * from '@testing-library/react';
