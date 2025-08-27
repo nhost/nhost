@@ -1,0 +1,94 @@
+version: "2"
+linters:
+  default: all
+  disable:
+    - canonicalheader
+    - depguard
+    - gomoddirectives
+    - musttag
+    - nlreturn
+    - varnamelen
+    - wsl
+  settings:
+    ireturn:
+      allow:
+        - anon
+        - error
+        - empty
+        - generic
+        - stdlib
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - funlen
+          - goconst
+          - ireturn
+          - revive
+        path: _test\.go
+      - linters:
+          - lll
+        source: '^//go:generate '
+      - linters:
+          - gochecknoglobals
+        text: Version is a global variable
+      - linters:
+          - ireturn
+          - lll
+        path: schema\.resolvers\.go
+      - linters:
+          - containedctx
+          - cyclop
+          - dupl
+          - err113
+          - errname
+          - exhaustive
+          - exhaustruct
+          - forcetypeassert
+          - funlen
+          - gochecknoglobals
+          - gocognit
+          - godot
+          - godox
+          - gosec
+          - ireturn
+          - lll
+          - misspell
+          - mnd
+          - nestif
+          - nilnil
+          - nolintlint
+          - paralleltest
+          - perfsprint
+          - prealloc
+          - revive
+          - staticcheck
+          - tagliatelle
+          - testpackage
+          - thelper
+          - unparam
+          - wrapcheck
+        path: services/watchtower/pkg
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gci
+    - gofmt
+    - gofumpt
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+      - schema\.resolvers\.go
+      - services/watchtower/pkg

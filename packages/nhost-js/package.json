@@ -1,0 +1,126 @@
+{
+  "name": "@nhost/nhost-js",
+  "version": "5.0.0-beta.9",
+  "description": "Nhost JavaScript SDK",
+  "main": "./dist/nhost-js.cjs.js",
+  "module": "./dist/nhost-js.es.js",
+  "types": "./dist/src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "import": "./dist/nhost-js.es.js",
+      "require": "./dist/nhost-js.cjs.js"
+    },
+    "./auth": {
+      "types": "./dist/src/auth/index.d.ts",
+      "import": "./dist/nhost-js/auth.es.js",
+      "require": "./dist/nhost-js/auth.cjs.js"
+    },
+    "./fetch": {
+      "types": "./dist/src/fetch/index.d.ts",
+      "import": "./dist/nhost-js/fetch.es.js",
+      "require": "./dist/nhost-js/fetch.cjs.js"
+    },
+    "./functions": {
+      "types": "./dist/src/functions/index.d.ts",
+      "import": "./dist/nhost-js/functions.es.js",
+      "require": "./dist/nhost-js/functions.cjs.js"
+    },
+    "./graphql": {
+      "types": "./dist/src/graphql/index.d.ts",
+      "import": "./dist/nhost-js/graphql.es.js",
+      "require": "./dist/nhost-js/graphql.cjs.js"
+    },
+    "./session": {
+      "types": "./dist/src/session/index.d.ts",
+      "import": "./dist/nhost-js/session.es.js",
+      "require": "./dist/nhost-js/session.cjs.js"
+    },
+    "./storage": {
+      "types": "./dist/src/storage/index.d.ts",
+      "import": "./dist/nhost-js/storage.es.js",
+      "require": "./dist/nhost-js/storage.cjs.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "auth": [
+        "dist/src/auth/index.d.ts"
+      ],
+      "fetch": [
+        "dist/src/fetch/index.d.ts"
+      ],
+      "functions": [
+        "dist/src/functions/index.d.ts"
+      ],
+      "graphql": [
+        "dist/src/graphql/index.d.ts"
+      ],
+      "session": [
+        "dist/src/session/index.d.ts"
+      ],
+      "storage": [
+        "dist/src/storage/index.d.ts"
+      ]
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "pnpm tsc --watch",
+    "format": "pnpm prettier --write .",
+    "test": "pnpm test:typecheck && pnpm test:lint && pnpm test:format && jest",
+    "test:format": "pnpm prettier --check .",
+    "test:lint": "eslint src",
+    "test:typecheck": "pnpm tsc --noEmit",
+    "build": "rm -rf dist && pnpm build:types && pnpm build:js",
+    "build:types": "pnpm tsc -p tsconfig.json",
+    "build:js": "pnpm vite build --config vite.config.ts && vite build --config vite.umd.config.ts",
+    "generate": "pnpm generate:code && pnpm generate:docs",
+    "generate:code": "./gen.sh",
+    "generate:docs": "./typedoc.sh",
+    "prepublishOnly": "pnpm build && pnpm test"
+  },
+  "keywords": [
+    "nhost",
+    "sdk",
+    "api",
+    "javascript",
+    "typescript"
+  ],
+  "author": "Nhost",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nhost/nhost.git"
+  },
+  "homepage": "https://nhost.io",
+  "bugs": {
+    "url": "https://github.com/nhost/nhost/issues"
+  },
+  "packageManager": "pnpm@10.9.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@graphql-typed-document-node/core": "^3.2.0",
+    "@jest/globals": "^29.7.0",
+    "@rollup/plugin-node-resolve": "^16.0.1",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^22.15.17",
+    "@types/rollup-plugin-peer-deps-external": "^2.2.5",
+    "graphql-tag": "^2.12.6",
+    "jest": "^29.7.0",
+    "openapi3-ts": "^4.4.0",
+    "rollup-plugin-peer-deps-external": "^2.2.4",
+    "terser": "^5.39.0",
+    "ts-jest": "^29.3.2",
+    "typedoc": "^0.28.4",
+    "typedoc-plugin-markdown": "^4.6.3"
+  },
+  "sideEffects": false,
+  "dependencies": {
+    "tslib": "^2.8.1"
+  }
+}

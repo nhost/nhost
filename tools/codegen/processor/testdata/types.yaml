@@ -1,0 +1,98 @@
+openapi: "3.0.0"
+
+components:
+  schemas:
+    StatusEnum:
+      type: string
+      description: "Enumeration of possible status values."
+      enum:
+        - active
+        - inactive
+        - pending
+
+    SimpleObject:
+      type: object
+      description: "This is a simple object schema."
+      properties:
+        id:
+          type: string
+          description: "Unique identifier for the object."
+          example: "abc123"
+        active:
+          type: boolean
+          description: "Indicates if the object is active."
+          example: true
+        age:
+          type: number
+          description: "Age of the object in years."
+          example: 5
+        createdAt:
+          type: string
+          format: date-time
+          description: "Timestamp when the file was created."
+          example: "2023-01-15T12:34:56Z"
+        metadata:
+          type: object
+          additionalProperties: true
+          description: "Custom metadata associated with the file."
+          example: { "alt": "Profile picture", "category": "avatar" }
+        data:
+          type: string
+          format: binary
+          description: "Base64 encoded data of the file."
+        tags:
+          type: array
+          description: "List of tags associated with the object."
+          items:
+            type: string
+            description: "Tags associated with the object."
+            example: "tag1"
+        status:
+          type: string
+          description: "Status of the object."
+          enum:
+            - active
+            - inactive
+            - pending
+          example: "active"
+        statusCode:
+          type: string
+          description: "Status code of the object."
+          enum:
+            - 0
+            - 1
+            - 2
+          example: 0
+        statusMixed:
+          type: string
+          description: "Some people just want to see the world burn."
+          enum:
+            - 0
+            - "One"
+            - true
+          example: 0
+        statusRef:
+          description: "Reference to the status enumeration."
+          $ref: '#/components/schemas/StatusEnum'
+        nested:
+          type: object
+          description: "Nested object containing additional properties."
+          properties:
+            nestedId:
+              type: string
+              description: "Unique identifier for the nested object."
+              example: "nested123"
+            nestedData:
+              type: string
+              description: "Data associated with the nested object."
+              example: "Nested data"
+          required:
+            - nestedId
+      required:
+        - id
+        - active
+        - age
+        - createdAt
+        - metadata
+        - data
+      additionalProperties: false
