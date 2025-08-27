@@ -459,5 +459,28 @@ describe('RemoteSchemaTree', () => {
         '[data-rct-item-id="__subscription.field.postById.arg.id"]',
       ),
     ).toBeInTheDocument();
+
+    // Expand Subscription.postAdded and assert nested Post fields
+    const postAddedField = document.querySelector(
+      '[data-rct-item-id="__subscription.field.postAdded"]',
+    ) as Element | null;
+    expect(postAddedField).toBeInTheDocument();
+    await user.click(postAddedField!);
+    await user.keyboard('{ArrowRight}');
+    expect(
+      document.querySelector(
+        '[data-rct-item-id="__subscription.field.postAdded.field.id"]',
+      ),
+    ).toBeInTheDocument();
+    expect(
+      document.querySelector(
+        '[data-rct-item-id="__subscription.field.postAdded.field.title"]',
+      ),
+    ).toBeInTheDocument();
+    expect(
+      document.querySelector(
+        '[data-rct-item-id="__subscription.field.postAdded.field.author"]',
+      ),
+    ).toBeInTheDocument();
   });
 });
