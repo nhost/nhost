@@ -3,7 +3,8 @@
   "version": "2.34.0",
   "private": true,
   "scripts": {
-    "start": "mintlify dev"
+    "start": "mintlify dev",
+    "check:broken-links": "pnpm exec mintlify broken-links"
   },
   "devDependencies": {
     "mintlify": "^4.0.476"

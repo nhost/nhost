@@ -1,8 +1,9 @@
-package main
+package openapi
 
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"slices"
 	"strings"
 
@@ -14,9 +15,7 @@ title: "%s"
 openapi: %s %s
 ---`
 
-const authReferencePath = "reference/auth"
-
-type OpenAPIMinimal struct {
+type OpenAPIMinimal struct { //nolint:revive
 	Paths map[string]map[string]any
 }
 
@@ -25,16 +24,17 @@ type Endpoint struct {
 	Path   string
 }
 
-func (e Endpoint) Filepath() string {
-	return authReferencePath + "/" + e.Method + strings.ReplaceAll(e.Path, "/", "-") + ".mdx"
+func (e Endpoint) Filepath(outDir string) string {
+	re := regexp.MustCompile(`[/.]`)
+	return outDir + "/" + e.Method + re.ReplaceAllString(e.Path, "-") + ".mdx"
 }
 
 func (e Endpoint) Content() string {
 	return fmt.Sprintf(tpl, e.Path, e.Method, e.Path)
 }
 
-func (e Endpoint) Mintlify() string {
-	return `            "` + strings.Replace(e.Filepath(), ".mdx", "", 1) + `",`
+func (e Endpoint) Mintlify(outDir string) string {
+	return `            "` + strings.Replace(e.Filepath(outDir), ".mdx", "", 1) + `",`
 }
 
 type Endpoints []Endpoint
@@ -44,6 +44,7 @@ func (e Endpoints) Sort() {
 		if a.Path == b.Path {
 			return strings.Compare(a.Method, b.Method)
 		}
+
 		return strings.Compare(a.Path, b.Path)
 	})
 }
@@ -62,15 +63,15 @@ func funcReadOpenAPIFile(filepath string) (*OpenAPIMinimal, error) {
 	return oam, nil
 }
 
-func processOAMFiles(oam *OpenAPIMinimal) (Endpoints, error) {
-	endpoints := make(Endpoints, 0, len(oam.Paths)*2)
+func processOAMFiles(oam *OpenAPIMinimal, outDir string) (Endpoints, error) {
+	endpoints := make(Endpoints, 0, len(oam.Paths)*2) //nolint:mnd
 
 	for path, methods := range oam.Paths {
 		for method := range methods {
 			e := Endpoint{Method: method, Path: path}
 			endpoints = append(endpoints, e)
 
-			if err := os.WriteFile(e.Filepath(), []byte(e.Content()), 0o644); err != nil {
+			if err := os.WriteFile(e.Filepath(outDir), []byte(e.Content()), 0o644); err != nil { //nolint:gosec,mnd
 				return nil, fmt.Errorf("failed to write file: %w", err)
 			}
 		}
@@ -79,48 +80,28 @@ func processOAMFiles(oam *OpenAPIMinimal) (Endpoints, error) {
 	return endpoints, nil
 }
 
-func process() error {
-	if err := os.RemoveAll(authReferencePath); err != nil {
+func process(openAPISpec, outDir string) error {
+	if err := os.RemoveAll(outDir); err != nil {
 		return fmt.Errorf("failed to remove directory: %w", err)
 	}
 
-	if err := os.Mkdir(authReferencePath, 0o755); err != nil {
+	if err := os.Mkdir(outDir, 0o755); err != nil { //nolint:mnd
 		return fmt.Errorf("failed to create directory: %w", err)
 	}
 
-	oam, err := funcReadOpenAPIFile("reference/openapi-auth.yaml")
+	oam, err := funcReadOpenAPIFile(openAPISpec)
 	if err != nil {
-		return fmt.Errorf("failed to read openapi-auth.yaml file: %w", err)
+		return fmt.Errorf("failed to read file: %w", err)
 	}
 
-	endpoints, err := processOAMFiles(oam)
-	if err != nil {
-		return fmt.Errorf("failed to process OAM files: %w", err)
-	}
-
-	oamOld, err := funcReadOpenAPIFile("reference/openapi-auth-old.yaml")
-	if err != nil {
-		return fmt.Errorf("failed to read openapi-auth-old.yaml file: %w", err)
-	}
-
-	endpointsOld, err := processOAMFiles(oamOld)
+	endpoints, err := processOAMFiles(oam, outDir)
 	if err != nil {
 		return fmt.Errorf("failed to process OAM files: %w", err)
 	}
-
-	endpoints = append(endpoints, endpointsOld...)
-	endpoints.Sort()
 
 	for _, e := range endpoints {
-		fmt.Println(e.Mintlify())
+		fmt.Println(e.Mintlify(outDir)) //nolint:forbidigo
 	}
 
 	return nil
-}
-
-func main() {
-	if err := process(); err != nil {
-		fmt.Fprintf(os.Stderr, "error: %v\n", err)
-		os.Exit(1)
-	}
 }
