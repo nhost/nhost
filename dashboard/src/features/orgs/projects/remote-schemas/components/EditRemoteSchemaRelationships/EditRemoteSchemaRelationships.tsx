@@ -140,6 +140,7 @@ export default function EditRemoteSchemaRelationships({
           onCancel?.();
         }}
         disabled={disabled}
+        nameInputDisabled={view === 'edit'}
       />
     );
   }
