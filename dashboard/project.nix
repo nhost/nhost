@@ -68,6 +68,9 @@ rec {
     cp -r ${node_modules}/node_modules/ node_modules
     cp -r ${node_modules}/${submodule}/node_modules/ ${submodule}/node_modules
 
+    mkdir -p packages/nhost-js
+    cp -r ${self.packages.${pkgs.system}.nhost-js}/dist packages/nhost-js/dist
+
     export HOME=$TMPDIR
 
     cd ${submodule}
@@ -130,12 +133,14 @@ rec {
       cp -r ${node_modules}/node_modules/ node_modules
       cp -r ${node_modules}/dashboard/node_modules/ dashboard/node_modules
 
-      pnpm build:dashboard
+      mkdir -p packages/nhost-js
+      cp -r ${self.packages.${pkgs.system}.nhost-js}/dist packages/nhost-js/dist
+
+      cd dashboard
+      pnpm build
     '';
 
     installPhase = ''
-      cd dashboard
-
       cp -r .next/standalone $out
 
       mkdir -p $out/dashboard/.next
@@ -190,4 +195,5 @@ rec {
     }).copyTo}/bin/copy-to dir:$out
   '';
 }
+
 
