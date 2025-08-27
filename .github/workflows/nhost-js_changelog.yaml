@@ -1,0 +1,34 @@
+---
+name: "nhost-js: check changelog"
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/wf_check.yaml'
+      - '.github/workflows/nhost-js_checks.yaml'
+      - 'flake.nix'
+      - 'flake.lock'
+      - 'nix/**'
+      - 'build/**'
+
+      # codegen
+      - 'go.mod'
+      - 'go.sum'
+      - 'vendor/**'
+      - 'tools/codegen/**'
+
+      # dashboard
+      - ".npmrc"
+      - ".prettierignore"
+      - ".prettierrc.js"
+      - "audit-ci.jsonc"
+      - "pnpm-workspace.yaml"
+      - "pnpm-lock.yaml"
+      - "turbo.json"
+      - build/**
+      - dashboard/**
+
+jobs:
+  check-changelog:
+    uses: ./.github/workflows/wf_check_changelog.yaml
+    with:
+      PROJECT_PATH: packages/nhost-js

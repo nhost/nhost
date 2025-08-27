@@ -1,6 +1,7 @@
 packages:
   - 'dashboard'
   - 'docs'
+  - 'packages/**'
   - '!**/test/**'
   - '!out/**'
   - '!**/functions'

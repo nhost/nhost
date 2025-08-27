@@ -1,0 +1,144 @@
+openapi: "3.0.0"
+
+paths:
+  /signin/provider/{provider}:
+    get:
+      summary: Sign in with an OAuth2 provider
+      description: Initiate OAuth2 authentication flow with a social provider. Redirects the user to the provider's authorization page.
+      operationId: signInProvider
+      tags:
+        - authentication
+      parameters:
+        - $ref: "#/components/parameters/SignInProvider"
+        - name: allowedRoles
+          in: query
+          required: false
+          description: Array of allowed roles for the user
+          style: form
+          explode: false
+          schema:
+            type: array
+            items:
+              type: string
+            example:
+              - me
+              - user
+        - name: defaultRole
+          in: query
+          required: false
+          description: Default role for the user
+          schema:
+            type: string
+            example: user
+        - name: displayName
+          in: query
+          required: false
+          description: Display name for the user
+          schema:
+            type: string
+            pattern: ^[\p{L}\p{N}\p{S} ,.'-]+$
+            maxLength: 32
+            example: John Smith
+        - name: locale
+          in: query
+          required: false
+          description: A two-characters locale
+          schema:
+            type: string
+            maxLength: 2
+            minLength: 2
+            example: en
+        - name: metadata
+          in: query
+          required: false
+          description: Additional metadata for the user (JSON encoded string)
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                example:
+                  firstName: John
+                  lastName: Smith
+        - name: redirectTo
+          in: query
+          required: false
+          description: URI to redirect to
+          schema:
+            type: string
+            format: uri
+            example: https://my-app.com/catch-redirection
+        - name: connect
+          in: query
+          required: false
+          description: >-
+            If set, this means that the user is already authenticated and wants to link their account. This needs to be a valid JWT access token.
+          schema:
+            type: string
+
+      responses:
+        "302":
+          description: Redirect to social provider
+          headers:
+            Location:
+              $ref: "#/components/headers/RedirectLocation"
+          content: {}
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+components:
+  parameters:
+    SignInProvider:
+      in: path
+      name: provider
+      required: true
+      description: The name of the social provider
+      schema:
+        type: string
+        enum:
+          - apple
+          - github
+          - google
+          - linkedin
+          - discord
+          - spotify
+          - twitch
+          - gitlab
+          - bitbucket
+          - workos
+          - azuread
+          - strava
+          - facebook
+          - windowslive
+          - twitter
+      deprecated: true
+
+  headers:
+    RedirectLocation:
+      description: URL to redirect to
+      schema:
+        type: string
+        format: uri
+      required: true
+
+  schemas:
+    ErrorResponse:
+      type: object
+      description: "Error information returned by the API."
+      properties:
+        error:
+          type: object
+          additionalProperties: false
+          description: "Error details."
+          properties:
+            message:
+              type: string
+              description: "Human-readable error message."
+              example: "File not found"
+          required:
+            - message
+      additionalProperties: false
