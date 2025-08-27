@@ -10,7 +10,7 @@ import { setContext } from '@apollo/client/link/context';
 import { RetryLink } from '@apollo/client/link/retry';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { getMainDefinition } from '@apollo/client/utilities';
-import type { NhostClient } from '@nhost/nhost-js-beta';
+import type { NhostClient } from '@nhost/nhost-js';
 
 import { createRestartableClient } from './ws';
 

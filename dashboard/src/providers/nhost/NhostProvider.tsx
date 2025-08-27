@@ -1,4 +1,4 @@
-import type { NhostClient } from '@nhost/nhost-js-beta';
+import type { NhostClient } from '@nhost/nhost-js';
 import type { PropsWithChildren } from 'react';
 import { NhostContext } from './NhostContext';
 
