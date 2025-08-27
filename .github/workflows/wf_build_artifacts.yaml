@@ -37,7 +37,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [blacksmith-2vcpu-ubuntu-2404-arm, blacksmith-2vcpu-ubuntu-2404]
+        os: [blacksmith-4vcpu-ubuntu-2404-arm, blacksmith-2vcpu-ubuntu-2404]
       fail-fast: true
 
     runs-on: ${{ matrix.os }}

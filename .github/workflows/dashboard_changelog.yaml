@@ -3,18 +3,36 @@ name: "dashboard: changelog"
 on:
   pull_request:
     paths:
-      - '.github/workflows/wf_build_artifacts.yaml'
-      - '.github/workflows/wf_check.yaml'
+      - '.github/workflows/wf_check_changelog.yaml'
       - '.github/workflows/dashboard_checks.yaml'
-      - 'build/**'
+      - 'flake.nix'
+      - 'flake.lock'
       - 'nix/**'
-      - 'dashboard/**'
-      - 'tools/cuegraph/types/**'
-      - ".npmrc"
+      - 'build/**'
+
+      # dashboard
       - "package.json"
+      - ".npmrc"
       - "pnpm-workspace.yaml"
       - "pnpm-lock.yaml"
       - "turbo.json"
+      - "dashboard/**"
+
+      # codegen
+      - 'go.mod'
+      - 'go.sum'
+      - 'vendor/**'
+      - 'tools/codegen/**'
+
+      # nhost-js
+      - ".npmrc"
+      - ".prettierignore"
+      - ".prettierrc.js"
+      - "audit-ci.jsonc"
+      - "pnpm-workspace.yaml"
+      - "pnpm-lock.yaml"
+      - "turbo.json"
+      - packages/nhost-js/**
   push:
     branches:
       - main

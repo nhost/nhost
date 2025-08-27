@@ -12,7 +12,7 @@ import {
   createClient,
   type NhostClient,
   type NhostClientOptions,
-} from '@nhost/nhost-js-beta';
+} from '@nhost/nhost-js';
 
 export type UseAppClientOptions = NhostClientOptions;
 export type UseAppClientReturn = NhostClient;

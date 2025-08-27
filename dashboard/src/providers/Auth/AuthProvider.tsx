@@ -1,6 +1,6 @@
 import { useNhostClient } from '@/providers/nhost/';
 import { getToastStyleProps } from '@/utils/constants/settings';
-import { type Session } from '@nhost/nhost-js-beta/auth';
+import { type Session } from '@nhost/nhost-js/auth';
 import { useRouter } from 'next/router';
 import {
   type PropsWithChildren,

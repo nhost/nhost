@@ -1,4 +1,4 @@
-import { type Session } from '@nhost/nhost-js-beta/auth';
+import { type Session } from '@nhost/nhost-js/auth';
 import { createContext } from 'react';
 
 export type AuthContextType = {
