@@ -189,7 +189,6 @@ export default function RemoteSchemaRelationshipForm({
           <FormField
             control={form.control}
             name="name"
-            disabled={nameInputDisabled}
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="flex flex-row items-center gap-2">
@@ -206,7 +205,7 @@ export default function RemoteSchemaRelationshipForm({
                   <Input
                     placeholder="Relationship name"
                     {...field}
-                    disabled={disabled}
+                    disabled={disabled || nameInputDisabled}
                   />
                 </FormControl>
                 <FormMessage />
