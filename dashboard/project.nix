@@ -66,11 +66,11 @@ rec {
     chmod +w -R .
 
     cp -r ${node_modules}/node_modules/ node_modules
-    cp -r ${node_modules}/dashboard/node_modules/ dashboard/node_modules
+    cp -r ${node_modules}/${submodule}/node_modules/ ${submodule}/node_modules
 
     export HOME=$TMPDIR
 
-    cd dashboard
+    cd ${submodule}
 
     echo "➜ Running linter"
     pnpm lint
