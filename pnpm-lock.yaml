@@ -247,9 +247,9 @@ importers:
       '@mui/x-date-pickers':
         specifier: ^5.0.20
         version: 5.0.20(@emotion/react@11.11.4(@types/react@18.3.4)(react@18.2.0))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.4)(react@18.2.0))(@types/react@18.3.4)(react@18.2.0))(@mui/material@5.15.19(@emotion/react@11.11.4(@types/react@18.3.4)(react@18.2.0))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.4)(react@18.2.0))(@types/react@18.3.4)(react@18.2.0))(@types/react@18.3.4)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(@mui/system@5.15.15(@emotion/react@11.11.4(@types/react@18.3.4)(react@18.2.0))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.4)(react@18.2.0))(@types/react@18.3.4)(react@18.2.0))(@types/react@18.3.4)(react@18.2.0))(@types/react@18.3.4)(date-fns@2.30.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
-      '@nhost/nhost-js-beta':
-        specifier: npm:@nhost/nhost-js@5.0.0-beta.9
-        version: '@nhost/nhost-js@5.0.0-beta.9'
+      '@nhost/nhost-js':
+        specifier: workspace:^
+        version: link:../packages/nhost-js
       '@radix-ui/react-accordion':
         specifier: ^1.2.1
         version: 1.2.2(@types/react-dom@18.3.0)(@types/react@18.3.4)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -4516,10 +4516,6 @@ packages:
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [win32]
-
-  '@nhost/nhost-js@5.0.0-beta.9':
-    resolution: {integrity: sha512-ynIr7bDxyQYpGijsxWU4RWJeHgd0OcpqnkkeJyYXt0kN8BjkT91nwImcdEmSQ+5TJ+jjhdc+y9csWdcmWtDUUQ==}
-    engines: {node: '>=20'}
 
   '@nicolo-ribaudo/eslint-scope-5-internals@5.1.1-v1':
     resolution: {integrity: sha512-54/JRvkLIzzDWshCWfuhadfrfZVPiElY8Fcgmg1HroEly/EDSszzhBAsarCux+D/kOslTRquNzuyGSmUSTTHGg==}
@@ -18039,8 +18035,6 @@ snapshots:
 
   '@next/swc-win32-x64-msvc@14.2.32':
     optional: true
-
-  '@nhost/nhost-js@5.0.0-beta.9': {}
 
   '@nicolo-ribaudo/eslint-scope-5-internals@5.1.1-v1':
     dependencies:

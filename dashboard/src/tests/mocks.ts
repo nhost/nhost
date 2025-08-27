@@ -2,7 +2,7 @@ import type { Organization, Project } from '@/types/application';
 import { ApplicationStatus } from '@/types/application';
 import { Organization_Status_Enum } from '@/utils/__generated__/graphql';
 import { faker } from '@faker-js/faker';
-import type { Session } from '@nhost/nhost-js-beta/session';
+import type { Session } from '@nhost/nhost-js/session';
 import type { NextRouter } from 'next/router';
 import { vi } from 'vitest';
 

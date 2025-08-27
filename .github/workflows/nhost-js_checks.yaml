@@ -17,7 +17,7 @@ on:
       - 'vendor/**'
       - 'tools/codegen/**'
 
-      # dashboard
+      # nhost-js
       - ".npmrc"
       - ".prettierignore"
       - ".prettierrc.js"
@@ -25,8 +25,7 @@ on:
       - "pnpm-workspace.yaml"
       - "pnpm-lock.yaml"
       - "turbo.json"
-      - build/**
-      - dashboard/**
+      - packages/nhost-js/**
   push:
     branches:
       - main
