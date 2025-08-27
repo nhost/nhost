@@ -1,5 +1,8 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete';
+import {
+  ControlledAutocomplete,
+  defaultFilterGroupedOptions,
+} from '@/components/form/ControlledAutocomplete';
 import { ControlledCheckbox } from '@/components/form/ControlledCheckbox';
 import { Form } from '@/components/form/Form';
 import { InlineCode } from '@/components/presentational/InlineCode';
@@ -90,6 +93,10 @@ export default function BaseColumnForm({
       value: functionName,
     }),
   );
+  const [inputValue, setInputValue] = useState<string>();
+  useEffect(() => {
+    setInputValue(type?.label ?? '');
+  }, [type?.label]);
 
   // react-hook-form's isDirty gets true even if an input field is focused, then
   // immediately unfocused - we can't rely on that information
@@ -132,17 +139,50 @@ export default function BaseColumnForm({
             id="type"
             name="type"
             control={control}
+            aria-label="Type"
             fullWidth
-            placeholder="Select a column type"
-            label="Type"
-            helperText={errors.type?.message}
-            error={Boolean(errors.type)}
-            hideEmptyHelperText
-            autoHighlight
-            className="col-span-8 py-3"
-            variant="inline"
             options={postgresTypeGroups}
             groupBy={(option) => option.group ?? ''}
+            error={Boolean(errors.type)}
+            placeholder="Select a column type"
+            label="Type"
+            hideEmptyHelperText
+            className="col-span-8 py-3"
+            variant="inline"
+            autoHighlight
+            clearOnBlur
+            showCustomOption="first"
+            filterOptions={defaultFilterGroupedOptions}
+            freeSolo
+            inputValue={inputValue}
+            onInputChange={(_event, value) => {
+              // Keep the list scrolled to the top while searching
+              requestAnimationFrame(() => {
+                const listbox = document.querySelector('#type-listbox');
+                if (listbox) {
+                  listbox.scrollTop = 0;
+                }
+              });
+              setInputValue(value);
+            }}
+            renderOption={(props, { label, value, custom }) => {
+              if (custom) {
+                return (
+                  <OptionBase {...props}>
+                    <span>Use type: &quot;{value}&quot;</span>
+                  </OptionBase>
+                );
+              }
+              return (
+                <OptionBase {...props}>
+                  <div className="grid grid-flow-col items-baseline justify-start justify-items-start gap-1.5">
+                    <span>{label}</span>
+
+                    <InlineCode>{value}</InlineCode>
+                  </div>
+                </OptionBase>
+              );
+            }}
             onChange={(_event, value) => {
               setDefaultValueInputText('');
 
@@ -155,16 +195,6 @@ export default function BaseColumnForm({
                 setValue('defaultValue', null);
               }
             }}
-            noOptionsText="No types found"
-            renderOption={(props, { label, value }) => (
-              <OptionBase {...props}>
-                <div className="grid grid-flow-col items-baseline justify-start justify-items-start gap-1.5">
-                  <span>{label}</span>
-
-                  <InlineCode>{value}</InlineCode>
-                </div>
-              </OptionBase>
-            )}
           />
 
           {identityTypes.includes(type?.value) && (

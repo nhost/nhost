@@ -1,4 +1,7 @@
-import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete';
+import {
+  ControlledAutocomplete,
+  defaultFilterGroupedOptions,
+} from '@/components/form/ControlledAutocomplete';
 import { ControlledCheckbox } from '@/components/form/ControlledCheckbox';
 import { InlineCode } from '@/components/presentational/InlineCode';
 import type { CheckboxProps } from '@/components/ui/v2/Checkbox';
@@ -83,9 +86,15 @@ function NameInput({ index }: FieldArrayInputProps) {
 }
 
 function TypeAutocomplete({ index }: FieldArrayInputProps) {
+  const [inputValue, setInputValue] = useState<string>();
   const { setValue } = useFormContext();
   const { errors } = useFormState({ name: `columns.${index}.type` });
   const identityColumnIndex = useWatch({ name: 'identityColumnIndex' });
+  const type = useWatch({ name: `columns.${index}.type` });
+
+  useEffect(() => {
+    setInputValue(type?.label ?? '');
+  }, [type?.label]);
 
   return (
     <ControlledAutocomplete
@@ -96,19 +105,43 @@ function TypeAutocomplete({ index }: FieldArrayInputProps) {
       groupBy={(option) => option.group ?? ''}
       placeholder="Select type"
       hideEmptyHelperText
-      autoHighlight
-      noOptionsText="No types found"
+      freeSolo
+      inputValue={inputValue}
+      onInputChange={(_event, value) => {
+        // Keep the list scrolled to the top while searching
+        requestAnimationFrame(() => {
+          const listbox = document.querySelector(
+            `[id="columns.${index}.type-listbox"]`,
+          );
+          if (listbox) {
+            listbox.scrollTop = 0;
+          }
+        });
+        setInputValue(value);
+      }}
+      clearOnBlur
+      showCustomOption="first"
+      filterOptions={defaultFilterGroupedOptions}
       error={Boolean(errors?.columns?.[index]?.type)}
       helperText={(errors?.columns?.[index]?.type as FieldError)?.message}
-      renderOption={(props, { label, value }) => (
-        <OptionBase {...props}>
-          <div className="grid grid-flow-col items-baseline justify-start justify-items-start gap-1.5">
-            <span>{label}</span>
+      renderOption={(optionProps, { label, value, custom }) => {
+        if (custom) {
+          return (
+            <OptionBase {...optionProps}>
+              <span>Use type: &quot;{value}&quot;</span>
+            </OptionBase>
+          );
+        }
+        return (
+          <OptionBase {...optionProps}>
+            <div className="grid grid-flow-col items-baseline justify-start justify-items-start gap-1.5">
+              <span>{label}</span>
 
-            <InlineCode>{value}</InlineCode>
-          </div>
-        </OptionBase>
-      )}
+              <InlineCode>{value}</InlineCode>
+            </div>
+          </OptionBase>
+        );
+      }}
       onChange={(_event, value) => {
         if (typeof value === 'string' || Array.isArray(value)) {
           return;
