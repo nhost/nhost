@@ -29,12 +29,7 @@ export const POSTGRESQL_INTEGER_TYPES = [
   'oid',
 ];
 
-export const POSTGRESQL_DECIMAL_TYPES = [
-  'decimal',
-  'numeric',
-  'real',
-  'double precision',
-];
+export const POSTGRESQL_DECIMAL_TYPES = ['numeric', 'real', 'double precision'];
 
 /**
  * Character data types in PostgreSQL.
@@ -77,7 +72,11 @@ export const postgresTypeGroups: {
   value: ColumnType;
 }[] = [
   { group: 'String types', label: 'text', value: 'text' },
-  { group: 'String types', label: 'character varying', value: 'varchar' },
+  {
+    group: 'String types',
+    label: 'character varying',
+    value: 'character varying',
+  },
   { group: 'String types', label: 'character', value: 'bpchar' },
 
   { group: 'UUID types', label: 'uuid', value: 'uuid' },
@@ -86,10 +85,13 @@ export const postgresTypeGroups: {
   { group: 'Numeric types', label: 'smallint', value: 'int2' },
   { group: 'Numeric types', label: 'integer', value: 'int4' },
   { group: 'Numeric types', label: 'bigint', value: 'int8' },
-  { group: 'Numeric types', label: 'decimal', value: 'decimal' },
   { group: 'Numeric types', label: 'numeric', value: 'numeric' },
   { group: 'Numeric types', label: 'real', value: 'float4' },
-  { group: 'Numeric types', label: 'double precision', value: 'float8' },
+  {
+    group: 'Numeric types',
+    label: 'double precision',
+    value: 'float8',
+  },
   { group: 'Boolean types', label: 'boolean', value: 'bool' },
   { group: 'Date types', label: 'date', value: 'date' },
   {
@@ -102,8 +104,16 @@ export const postgresTypeGroups: {
     label: 'timestamp with time zone',
     value: 'timestamptz',
   },
-  { group: 'Date types', label: 'time without time zone', value: 'time' },
-  { group: 'Date types', label: 'time with time zone', value: 'timetz' },
+  {
+    group: 'Date types',
+    label: 'time without time zone',
+    value: 'time',
+  },
+  {
+    group: 'Date types',
+    label: 'time with time zone',
+    value: 'timetz',
+  },
   { group: 'Date types', label: 'interval', value: 'interval' },
   { group: 'Binary types', label: 'bytea', value: 'bytea' },
   { group: 'Geometric types', label: 'point', value: 'point' },
@@ -164,7 +174,11 @@ export const postgresTypeGroups: {
     label: 'function with argument types',
     value: 'regprocedure',
   },
-  { group: 'Object Identifier types', label: 'role name', value: 'regrole' },
+  {
+    group: 'Object Identifier types',
+    label: 'role name',
+    value: 'regrole',
+  },
   {
     group: 'Object Identifier types',
     label: 'data type name',

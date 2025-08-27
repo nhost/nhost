@@ -51,7 +51,7 @@ export default function prepareCreateColumnQuery({
   let args: ReturnType<typeof getPreparedHasuraQuery>[] = [
     getPreparedHasuraQuery(
       dataSource,
-      'ALTER TABLE %I.%I ADD %I %I %s %s %s',
+      'ALTER TABLE %I.%I ADD %I %s %s %s %s',
       schema,
       table,
       column.name,

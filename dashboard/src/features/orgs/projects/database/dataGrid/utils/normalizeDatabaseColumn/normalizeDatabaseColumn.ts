@@ -4,6 +4,7 @@ import type {
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { normalizeDefaultValue } from '@/features/orgs/projects/database/dataGrid/utils/normalizeDefaultValue';
 
+import { normalizeColumnType } from '@/features/orgs/projects/database/dataGrid/utils/normalizeColumnType';
 /**
  * Converts a raw database column to a normalized database column.
  *
@@ -19,7 +20,7 @@ export default function normalizeDatabaseColumn(
   return {
     id: rawColumn.column_name,
     name: rawColumn.column_name,
-    type: { value: rawColumn.udt_name, label: rawColumn.udt_name },
+    type: normalizeColumnType(rawColumn),
     isPrimary: rawColumn.is_primary,
     isIdentity: rawColumn.is_identity === 'YES',
     isNullable: rawColumn.is_nullable === 'YES',

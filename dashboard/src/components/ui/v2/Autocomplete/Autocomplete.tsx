@@ -51,7 +51,7 @@ export interface AutocompleteProps<
   TOption extends AutocompleteOption = AutocompleteOption,
 > extends Omit<
       MaterialAutocompleteProps<TOption, boolean, boolean, boolean>,
-      'renderInput' | 'autoSelect' | 'componentsProps'
+      'renderInput' | 'autoSelect' | 'componentsProps' | 'isOptionEqualToValue'
     >,
     Pick<
       InputProps,
@@ -100,11 +100,20 @@ export interface AutocompleteProps<
    *
    * @default 'never'
    */
-  showCustomOption?: 'always' | 'never' | 'auto';
+  showCustomOption?: 'always' | 'never' | 'auto' | 'first';
   /**
    * Custom option label.
    */
   customOptionLabel?: string | ((customOptionLabel: string) => string);
+  isOptionEqualToValue?: (
+    option: AutocompleteOption<string>,
+    value: string | AutocompleteOption<string>,
+  ) => boolean;
+
+  sortByOptions?: (
+    option1: AutocompleteOption<string>,
+    option2: AutocompleteOption<string>,
+  ) => number;
 }
 
 const StyledTag = styled(Chip)(({ theme }) => ({
@@ -213,6 +222,7 @@ function Autocomplete(
     customOptionLabel: externalCustomOptionLabel,
     showCustomOption = 'never',
     'aria-label': ariaLabel,
+    sortByOptions,
     ...props
   }: AutocompleteProps<AutocompleteOption>,
   ref: ForwardedRef<HTMLInputElement>,
@@ -263,6 +273,7 @@ function Autocomplete(
       openOnFocus
       disablePortal
       disableClearable
+      autoFocus={false}
       componentsProps={{
         ...defaultComponentsProps,
         popper: {
@@ -315,7 +326,7 @@ function Autocomplete(
       }}
       isOptionEqualToValue={(
         option,
-        value: string | number | AutocompleteOption<string>,
+        value: string | AutocompleteOption<string>,
       ) => {
         if (!value) {
           return false;
@@ -391,7 +402,24 @@ function Autocomplete(
               if (!inputValue) {
                 return filteredOptions;
               }
+              if (showCustomOption === 'first') {
+                const isInputValueInOptions = filteredOptions.some(
+                  (filteredOption) => filteredOption.label === inputValue,
+                );
 
+                return isInputValueInOptions
+                  ? filteredOptions
+                  : [
+                      {
+                        value: inputValue,
+                        label: inputValue,
+                        dropdownLabel:
+                          customOptionLabel || `Select "${inputValue}"`,
+                        custom: Boolean(inputValue),
+                      },
+                      ...filteredOptions,
+                    ];
+              }
               if (showCustomOption === 'auto') {
                 const isInputValueInOptions = filteredOptions.some(
                   (filteredOption) => filteredOption.label === inputValue,
