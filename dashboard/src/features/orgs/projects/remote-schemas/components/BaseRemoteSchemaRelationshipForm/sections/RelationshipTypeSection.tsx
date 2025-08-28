@@ -1,6 +1,6 @@
 import { Label } from '@/components/ui/v3/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
-import type { RemoteSchemaRelationshipType } from '../../../types/remoteSchemas';
+import type { RemoteSchemaRelationshipType } from '@/features/orgs/projects/remote-schemas/types/remoteSchemas';
 
 export interface RelationshipTypeSectionProps {
   onChange: (value: RemoteSchemaRelationshipType) => void;

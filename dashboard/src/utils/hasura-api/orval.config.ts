@@ -57,6 +57,7 @@ export default defineConfig({
           );
 
           fs.writeFileSync(defaultTsPath, content, 'utf8');
+          // eslint-disable-next-line no-console
           console.log('✅ Updated default.ts to use CustomFetchOptions');
         }
       },

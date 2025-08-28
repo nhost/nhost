@@ -1,5 +1,8 @@
+import type {
+  ArgTreeType,
+  FieldType,
+} from '@/features/orgs/projects/remote-schemas/types';
 import type { GraphQLFieldMap, GraphQLSchema } from 'graphql';
-import type { ArgTreeType, FieldType } from '../types';
 
 /**
  * Sets query_root and mutation_root in UI tree.

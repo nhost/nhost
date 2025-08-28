@@ -1,7 +1,9 @@
-import { RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItem } from '@/utils/hasura-api/generated/schemas/remoteSchemaInfoRemoteRelationshipsItemRelationshipsItem';
-import { DatabaseRelationshipFormValues } from '../components/BaseRemoteSchemaRelationshipForm/sections/DatabaseRelationshipForm';
-import { RemoteSchemaRelationshipFormValues } from '../components/BaseRemoteSchemaRelationshipForm/sections/RemoteSchemaRelationshipForm';
-import { RemoteSchemaRelationshipType } from '../types';
+import type {
+  DatabaseRelationshipFormValues,
+  RemoteSchemaRelationshipFormValues,
+} from '@/features/orgs/projects/remote-schemas/components/BaseRemoteSchemaRelationshipForm/';
+import type { RemoteSchemaRelationshipType } from '@/features/orgs/projects/remote-schemas/types';
+import type { RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItem } from '@/utils/hasura-api/generated/schemas/remoteSchemaInfoRemoteRelationshipsItemRelationshipsItem';
 import { isToRemoteSchemaDefinition } from './guards';
 
 export const getDatabaseRelationshipPayload = (
@@ -37,11 +39,11 @@ const getRemoteSchemaLHSFields = (
   mappings: RemoteSchemaRelationshipFormValues['mappings'],
 ) => {
   const lhsFields = new Set<string>();
-  for (const mapping of mappings) {
+  mappings.forEach((mapping) => {
     if (mapping.type === 'sourceTypeField') {
       lhsFields.add(mapping.value);
     }
-  }
+  });
   return [...lhsFields];
 };
 
