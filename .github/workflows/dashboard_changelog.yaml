@@ -25,6 +25,9 @@ on:
       # dashboard
       - "dashboard/**"
 
+      # nhost-js
+      - packages/nhost-js/**
+
   push:
     branches:
       - main
