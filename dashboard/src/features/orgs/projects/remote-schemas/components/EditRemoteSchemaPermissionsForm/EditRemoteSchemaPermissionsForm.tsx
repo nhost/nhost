@@ -24,10 +24,10 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useGetRemoteSchemas } from '@/features/orgs/projects/remote-schemas/hooks/useGetRemoteSchemas';
 import { useIntrospectRemoteSchemaQuery } from '@/features/orgs/projects/remote-schemas/hooks/useIntrospectRemoteSchemaQuery';
 import type { RemoteSchemaAccessLevel } from '@/features/orgs/projects/remote-schemas/types';
-import { buildSchemaFromRoleDefinition } from '@/features/orgs/projects/remote-schemas/utils/buildSchemaFromRoleDefinition';
+import buildRemoteSchemaFieldTree from '@/features/orgs/projects/remote-schemas/utils/buildRemoteSchemaFieldTree';
 import convertIntrospectionToSchema from '@/features/orgs/projects/remote-schemas/utils/convertIntrospectionToSchema';
+import { createPermissionsSchema } from '@/features/orgs/projects/remote-schemas/utils/createPermissionsSchema';
 import { findRemoteSchemaPermission } from '@/features/orgs/projects/remote-schemas/utils/findRemoteSchemaPermission';
-import { getRemoteSchemaFields } from '@/features/orgs/projects/remote-schemas/utils/getRemoteSchemaFields';
 import type { DialogFormProps } from '@/types/common';
 import {
   useGetHasuraRemoteSchemaPermissionsEnabledQuery,
@@ -170,9 +170,9 @@ export default function EditRemoteSchemaPermissionsForm({
         if (!graphqlSchema) {
           permissionAccess = 'none';
         } else {
-          const remoteFields = getRemoteSchemaFields(
+          const remoteFields = buildRemoteSchemaFieldTree(
             graphqlSchema,
-            buildSchemaFromRoleDefinition(existingPerm?.definition.schema),
+            createPermissionsSchema(existingPerm?.definition.schema),
           );
           permissionAccess = 'full';
 

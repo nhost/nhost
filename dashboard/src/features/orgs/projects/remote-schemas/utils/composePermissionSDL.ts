@@ -6,44 +6,38 @@ import type {
 } from '@/features/orgs/projects/remote-schemas/types';
 import { isEmptyValue } from '@/lib/utils';
 import type { GraphQLInputField } from 'graphql';
-import checkDefaultGQLScalarType from './checkDefaultGQLScalarType';
-import formatArg from './formatArg';
+import isStandardGraphQLScalar from './isStandardGraphQLScalar';
+import stringifyGraphQLValue from './stringifyGraphQLValue';
 
-const checkEmptyType = (type: RemoteSchemaFields) => {
+function hasAnySelectedChild(type: RemoteSchemaFields) {
   const isChecked = (element: FieldType | CustomFieldType) => element.checked;
   if (type.children) {
     return type.children.some(isChecked);
   }
   return undefined;
-};
+}
 
-/**
- * Builds the SDL string for each field / type.
- * @param type - Data source object containing a schema field.
- * @param argTree - Arguments tree in case of types with argument presets.
- * @returns SDL string for passed field.
- */
-const getSDLField = (
+function printTypeSDL(
   type: RemoteSchemaFields,
   argTree: Record<string, any> | null,
-): string => {
-  if (!checkEmptyType(type)) {
+): string {
+  if (!hasAnySelectedChild(type)) {
     return '';
-  } // check if no child is selected for a type
+  }
 
-  let result = ``;
-  const typeName: string = type.name;
+  let result = '';
+  const typeName = type.name;
 
-  // add scalar fields to SDL
+  // Scalars
   if (typeName.startsWith('scalar')) {
-    if (type.typeName && checkDefaultGQLScalarType(type.typeName)) {
-      return result; // if default GQL scalar type, return empty string
+    if (type.typeName && isStandardGraphQLScalar(type.typeName)) {
+      return result;
     }
     result = `${typeName}`;
     return `${result}\n`;
   }
 
-  // add union fields to SDL
+  // Unions
   if (typeName.startsWith('union') && type.children) {
     result = `${typeName} =`;
     type.children.forEach((t) => {
@@ -55,7 +49,7 @@ const getSDLField = (
     return `${result}\n`;
   }
 
-  // add other fields to SDL
+  // Objects / Inputs / Enums
   result = `${typeName}{`;
 
   if (type.children) {
@@ -66,6 +60,7 @@ const getSDLField = (
 
       let fieldStr = f.name;
       let valueStr = '';
+
       // enum types don't have args
       if (!typeName.startsWith('enum')) {
         if (f.args && !isEmptyValue(f.args)) {
@@ -73,19 +68,19 @@ const getSDLField = (
           Object.values(f.args).forEach((arg: GraphQLInputField) => {
             valueStr = `${arg.name} : ${arg.type.toString()}`;
 
-            // add default value after type definition if it exists
+            // default value
             if (arg.defaultValue !== undefined) {
-              const defaultValue = formatArg({
+              const defaultValue = stringifyGraphQLValue({
                 arg,
                 argName: arg.defaultValue as string,
               });
               valueStr = `${valueStr} = ${defaultValue} `;
             }
 
+            // preset directive
             const argName = argTree?.[type?.name]?.[f?.name]?.[arg?.name];
-
             if (argName) {
-              const preset = formatArg({ arg, argName });
+              const preset = stringifyGraphQLValue({ arg, argName });
               if (!isEmptyValue(preset)) {
                 valueStr = `${valueStr} @preset(value: ${preset}) `;
               }
@@ -94,36 +89,28 @@ const getSDLField = (
             fieldStr = `${fieldStr + valueStr} `;
           });
           fieldStr = `${fieldStr})`;
-
           fieldStr = `${fieldStr}: ${f.return} `;
         } else {
-          // normal data type - ie: without arguments/ presets
           fieldStr =
             f.defaultValue === undefined
               ? `${fieldStr} : ${f.return}`
               : `${fieldStr} : ${f.return} = ${f.defaultValue}`;
         }
       }
-      // only need the arg string for input object types
+
       if (typeName.startsWith('input')) {
-        result = `${result}
-      ${valueStr}`;
+        result = `${result}\n      ${valueStr}`;
       } else {
-        result = `${result}
-      ${fieldStr}`;
+        result = `${result}\n      ${fieldStr}`;
       }
       return true;
     });
   }
-  return `${result}\n}`;
-};
 
-/**
- * Generate SDL string having input types and object types.
- * @param types - Remote schema introspection schema.
- * @returns String having all enum types and scalar types.
- */
-export default function generateSDL(
+  return `${result}\n}`;
+}
+
+export default function composePermissionSDL(
   types: RemoteSchemaFields[] | FieldType[],
   argTree: ArgTreeType,
 ) {
@@ -131,7 +118,7 @@ export default function generateSDL(
   let result = '';
 
   types.forEach((type) => {
-    const fieldDef = getSDLField(type, argTree);
+    const fieldDef = printTypeSDL(type, argTree);
 
     if (
       !isEmptyValue(fieldDef) &&
@@ -139,8 +126,7 @@ export default function generateSDL(
       type.name
     ) {
       const name = type.name.split(' ')[1];
-      prefix = `${prefix}
-      query: ${name}`;
+      prefix = `${prefix}\n      query: ${name}`;
     }
     if (
       !isEmptyValue(fieldDef) &&
@@ -148,24 +134,16 @@ export default function generateSDL(
       type.name
     ) {
       const name = type.name.split(' ')[1];
-
-      prefix = `${prefix}
-      mutation: ${name}`;
+      prefix = `${prefix}\n      mutation: ${name}`;
     }
     if (!isEmptyValue(fieldDef)) {
       result = `${result}\n${fieldDef}\n`;
     }
   });
 
-  prefix =
-    prefix === `schema{`
-      ? ''
-      : `${prefix}
-}\n`;
-
+  prefix = prefix === `schema{` ? '' : `${prefix}\n}\n`;
   if (isEmptyValue(result)) {
     return '';
   }
-
   return `${prefix} ${result}`;
 }

@@ -1,9 +1,13 @@
-import { TEST_ORGANIZATION_SLUG, TEST_PROJECT_SUBDOMAIN } from '@/e2e/env';
+import {
+  TEST_ORGANIZATION_SLUG,
+  TEST_PROJECT_REMOTE_SCHEMA_NAME,
+  TEST_PROJECT_SUBDOMAIN,
+} from '@/e2e/env';
 import { expect, test } from '@/e2e/fixtures/auth-hook';
 import { faker } from '@faker-js/faker';
 import { snakeCase } from 'snake-case';
 
-const REMOTE_SCHEMA_TEST_URL = `https://${TEST_PROJECT_SUBDOMAIN}.functions.eu-central-1.staging.nhost.run/v1/bragi_remote_schema`;
+const REMOTE_SCHEMA_TEST_URL = `https://${TEST_PROJECT_SUBDOMAIN}.functions.eu-central-1.staging.nhost.run/v1/${TEST_PROJECT_REMOTE_SCHEMA_NAME}`;
 
 test.describe('Remote Schemas', () => {
   test.beforeEach(async ({ authenticatedNhostPage: page }) => {

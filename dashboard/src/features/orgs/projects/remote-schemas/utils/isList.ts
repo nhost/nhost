@@ -1,22 +1,28 @@
 import { isJSONString } from '@/lib/utils';
 import { type GraphQLInputField, GraphQLList } from 'graphql';
 
-const isArrayString = (str: string) => {
-  try {
-    if (isJSONString(str) && Array.isArray(JSON.parse(str))) {
-      return true;
-    }
-  } catch (e) {
+function isJSONArrayLiteral(str: string) {
+  if (!isJSONString(str)) {
     return false;
   }
-  return false;
-};
+  try {
+    const parsed = JSON.parse(str);
+    return Array.isArray(parsed);
+  } catch {
+    // should be handled by isJSONString
+    return false;
+  }
+}
 
 export default function isList(gqlArg: GraphQLInputField, value: string) {
-  return (
-    gqlArg?.type instanceof GraphQLList &&
-    typeof value === 'string' &&
-    isArrayString(value) &&
-    !value.toLowerCase().startsWith('x-hasura')
-  );
+  if (!(gqlArg?.type instanceof GraphQLList)) {
+    return false;
+  }
+  if (typeof value !== 'string') {
+    return false;
+  }
+  if (value.toLowerCase().startsWith('x-hasura')) {
+    return false;
+  }
+  return isJSONArrayLiteral(value);
 }

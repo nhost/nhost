@@ -4,7 +4,7 @@ import type {
 } from '@/features/orgs/projects/remote-schemas/components/BaseRemoteSchemaRelationshipForm/';
 import type { RemoteSchemaRelationshipType } from '@/features/orgs/projects/remote-schemas/types';
 import type { RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItem } from '@/utils/hasura-api/generated/schemas/remoteSchemaInfoRemoteRelationshipsItemRelationshipsItem';
-import { isToRemoteSchemaDefinition } from './guards';
+import { isToRemoteSchemaRelationshipDefinition } from './guards';
 
 export const getDatabaseRelationshipPayload = (
   values: DatabaseRelationshipFormValues,
@@ -84,7 +84,7 @@ export const getRelationshipFormDefaultValues = (
   sourceRemoteSchema: string,
   typeName: string,
 ): RemoteSchemaRelationshipFormValues | DatabaseRelationshipFormValues => {
-  if (isToRemoteSchemaDefinition(relationship.definition)) {
+  if (isToRemoteSchemaRelationshipDefinition(relationship.definition)) {
     return {
       name: relationship.name,
       sourceRemoteSchema,
@@ -134,7 +134,7 @@ export const getRelationshipFormDefaultValues = (
 export const getRelationshipType = (
   relationship: RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItem,
 ): RemoteSchemaRelationshipType => {
-  if (isToRemoteSchemaDefinition(relationship.definition)) {
+  if (isToRemoteSchemaRelationshipDefinition(relationship.definition)) {
     return 'remote-schema';
   }
 

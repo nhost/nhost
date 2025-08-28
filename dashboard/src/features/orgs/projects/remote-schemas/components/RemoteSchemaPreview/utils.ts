@@ -4,7 +4,6 @@ import React from 'react';
 import type {
   AllowedRootFields,
   ComplexTreeData,
-  HasuraRsFields,
   RelationshipFields,
 } from './types';
 
@@ -60,23 +59,20 @@ const getUnderlyingGraphQLType = (type: any): any => {
   return currentType;
 };
 
-// Helper function to get a readable type string (placed before first usage)
+// Helper function to get a readable type string
 const getFieldTypeString = (type: any): string => {
   if (!type) {
     return 'Unknown';
   }
 
-  // GraphQL.js types have a toString() method that properly formats them
   if (typeof type.toString === 'function') {
     return type.toString();
   }
 
-  // Fallback: try to access the name property
   if (type.name) {
     return type.name;
   }
 
-  // Last resort fallback
   return 'Unknown';
 };
 
@@ -154,10 +150,7 @@ export const buildComplexTreeData = ({
   rootFields,
 }: {
   schema: GraphQLSchema;
-  relationshipFields: RelationshipFields[];
   rootFields: AllowedRootFields;
-  fields: HasuraRsFields;
-  showOnlySelectable?: boolean;
 }): ComplexTreeData => {
   const treeData: ComplexTreeData = {};
 

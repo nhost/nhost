@@ -37,13 +37,13 @@ export function isRemoteSchemaFromUrlDefinition(
 /**
  * Type guard to validate if an object is a ToRemoteSchemaDefinition or a ToSourceDefinition
  */
-export function isToRemoteSchemaDefinition(
+export function isToRemoteSchemaRelationshipDefinition(
   definition: RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItemDefinition,
 ): definition is { to_remote_schema: ToRemoteSchemaRelationshipDefinition } {
   return 'to_remote_schema' in definition && !('to_source' in definition);
 }
 
-export function isToSourceDefinition(
+export function isToSourceRelationshipDefinition(
   definition: RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItemDefinition,
 ): definition is { to_source: ToSourceRelationshipDefinition } {
   return 'to_source' in definition && !('to_remote_schema' in definition);

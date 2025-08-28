@@ -18,8 +18,8 @@ import {
 } from '@/components/ui/v3/table';
 import { useDeleteRemoteSchemaRelationshipMutation } from '@/features/orgs/projects/remote-schemas/hooks/useDeleteRemoteSchemaRelationshipMutation';
 import {
-  isToRemoteSchemaDefinition,
-  isToSourceDefinition,
+  isToRemoteSchemaRelationshipDefinition,
+  isToSourceRelationshipDefinition,
 } from '@/features/orgs/projects/remote-schemas/utils/guards';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type {
@@ -52,11 +52,11 @@ export default function RemoteSchemaRelationshipsInfoTable({
   const getRelationshipType = (
     relationship: RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItem,
   ) => {
-    if (isToRemoteSchemaDefinition(relationship.definition)) {
+    if (isToRemoteSchemaRelationshipDefinition(relationship.definition)) {
       return 'Remote Schema';
     }
 
-    if (isToSourceDefinition(relationship.definition)) {
+    if (isToSourceRelationshipDefinition(relationship.definition)) {
       return relationship.definition.to_source.relationship_type;
     }
 
@@ -67,11 +67,11 @@ export default function RemoteSchemaRelationshipsInfoTable({
   const getRelationshipTarget = (
     relationship: RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItem,
   ) => {
-    if (isToRemoteSchemaDefinition(relationship.definition)) {
+    if (isToRemoteSchemaRelationshipDefinition(relationship.definition)) {
       return relationship.definition.to_remote_schema.remote_schema;
     }
 
-    if (isToSourceDefinition(relationship.definition)) {
+    if (isToSourceRelationshipDefinition(relationship.definition)) {
       return relationship.definition.to_source.source;
     }
 

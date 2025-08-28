@@ -2,7 +2,6 @@ import type {
   GraphQLArgument,
   GraphQLEnumValue,
   GraphQLField,
-  GraphQLInputField,
   GraphQLInputFieldMap,
   GraphQLType,
 } from 'graphql';
@@ -61,11 +60,6 @@ export type RemoteSchemaFields =
       children: FieldType[] | CustomFieldType[];
     }
   | FieldType;
-
-export interface FormatParamArgs {
-  argName: ArgTreeType | string;
-  arg: GraphQLInputField;
-}
 
 export type ChildArgumentType = {
   children?: GraphQLInputFieldMap | GraphQLEnumValue[];

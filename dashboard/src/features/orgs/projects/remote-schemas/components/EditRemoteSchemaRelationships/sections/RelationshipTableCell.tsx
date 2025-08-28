@@ -1,7 +1,7 @@
 import { ArrowRightIcon } from '@/components/ui/v2/icons/ArrowRightIcon';
 import {
-  isToRemoteSchemaDefinition,
-  isToSourceDefinition,
+  isToRemoteSchemaRelationshipDefinition,
+  isToSourceRelationshipDefinition,
 } from '@/features/orgs/projects/remote-schemas/utils/guards';
 import type { RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItem } from '@/utils/hasura-api/generated/schemas';
 
@@ -15,10 +15,10 @@ export default function RelationshipTableCell({
   const { definition } = relationship;
 
   const getLhsLeafs = (): string[] => {
-    if (isToSourceDefinition(definition)) {
+    if (isToSourceRelationshipDefinition(definition)) {
       return Object.keys(definition.to_source.field_mapping || {});
     }
-    if (isToRemoteSchemaDefinition(definition)) {
+    if (isToRemoteSchemaRelationshipDefinition(definition)) {
       return definition.to_remote_schema.lhs_fields || [];
     }
     return [];
@@ -42,7 +42,7 @@ export default function RelationshipTableCell({
   };
 
   const renderRightSide = () => {
-    if (isToRemoteSchemaDefinition(definition)) {
+    if (isToRemoteSchemaRelationshipDefinition(definition)) {
       const rsName = definition.to_remote_schema.remote_schema;
       const path = getRemoteFieldPath(definition.to_remote_schema.remote_field);
 
@@ -65,7 +65,7 @@ export default function RelationshipTableCell({
       );
     }
 
-    if (isToSourceDefinition(definition)) {
+    if (isToSourceRelationshipDefinition(definition)) {
       const tableName =
         definition.to_source.table?.name ??
         // Support string table in case API returns simple form
