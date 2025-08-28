@@ -64,7 +64,7 @@ in
 
     # Generate baseline checksums from the original filtered src
     cd src
-    find . -type f ! -path "./node_modules/*" -path "./deprecated/*" -print0 | xargs -0 sha1sum > $TMPDIR/baseline
+    find . -type f ! -path "./node_modules/*" ! -path "./deprecated/*" -print0 | xargs -0 sha1sum > $TMPDIR/baseline
 
     # Copy and run generate
     cp -r ../src $TMPDIR/generate
