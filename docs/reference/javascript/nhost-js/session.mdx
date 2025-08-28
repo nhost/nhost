@@ -369,7 +369,7 @@ Sets the session in the underlying storage and notifies subscribers
 
 | Parameter | Type                          | Description          |
 | --------- | ----------------------------- | -------------------- |
-| `value`   | [`Session`](auth#session) | The session to store |
+| `value`   | [`Session`](./auth#session) | The session to store |
 
 ###### Returns
 
@@ -439,7 +439,7 @@ User authentication session containing tokens and user information
 
 #### Extends
 
-- [`Session`](auth#session)
+- [`Session`](./auth#session)
 
 #### Properties
 
@@ -454,7 +454,7 @@ Example - `"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."`
 
 ###### Inherited from
 
-[`Session`](auth#session).[`accessToken`](auth#accesstoken)
+[`Session`](./auth#session).[`accessToken`](./auth#accesstoken)
 
 ##### accessTokenExpiresIn
 
@@ -468,7 +468,7 @@ Format - int64
 
 ###### Inherited from
 
-[`Session`](auth#session).[`accessTokenExpiresIn`](auth#accesstokenexpiresin)
+[`Session`](./auth#session).[`accessTokenExpiresIn`](./auth#accesstokenexpiresin)
 
 ##### decodedToken
 
@@ -490,7 +490,7 @@ Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
 
 ###### Inherited from
 
-[`Session`](auth#session).[`refreshToken`](auth#refreshtoken-3)
+[`Session`](./auth#session).[`refreshToken`](./auth#refreshtoken-3)
 
 ##### refreshTokenId
 
@@ -504,7 +504,7 @@ Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
 
 ###### Inherited from
 
-[`Session`](auth#session).[`refreshTokenId`](auth#refreshtokenid)
+[`Session`](./auth#session).[`refreshTokenId`](./auth#refreshtokenid)
 
 ##### user?
 
@@ -516,7 +516,7 @@ User profile and account information
 
 ###### Inherited from
 
-[`Session`](auth#session).[`user`](auth#user-1)
+[`Session`](./auth#session).[`user`](./auth#user-1)
 
 ---
 
@@ -644,7 +644,7 @@ refresh the token using the provided auth client.
 
 | Parameter       | Type                                | Default value | Description                                                                                                                                                                       |
 | --------------- | ----------------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `auth`          | [`Client`](auth#client)         | `undefined`   | The authentication client to use for token refresh                                                                                                                                |
+| `auth`          | [`Client`](./auth#client)         | `undefined`   | The authentication client to use for token refresh                                                                                                                                |
 | `storage`       | [`SessionStorage`](#sessionstorage) | `undefined`   | The session storage implementation                                                                                                                                                |
 | `marginSeconds` | `number`                            | `60`          | The number of seconds before the token expiration to refresh the session. If the token is still valid for this duration, it will not be refreshed. Set to 0 to force the refresh. |
 

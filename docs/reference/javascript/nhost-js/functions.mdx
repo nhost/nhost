@@ -1,5 +1,5 @@
 This is the main module to interact with Nhost's Functions service.
-Typically you would use this module via the main [Nhost client](main#createclient)
+Typically you would use this module via the main [Nhost client](./main#createclient)
 but you can also use it directly if you have a specific use case.
 
 ## Import
@@ -166,7 +166,7 @@ The response body will be automatically parsed based on the content type into th
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;`T`&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`T`&gt;&gt;
 
 Promise with the function response and metadata.
 
@@ -203,7 +203,7 @@ For a more generic request, use the `fetch` method instead.
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;`T`&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`T`&gt;&gt;
 
 Promise with the function response and metadata
 
@@ -226,7 +226,7 @@ and other cross-cutting concerns.
 | Parameter        | Type                                         | Default value | Description                                       |
 | ---------------- | -------------------------------------------- | ------------- | ------------------------------------------------- |
 | `baseURL`        | `string`                                     | `undefined`   | Base URL for the functions endpoint               |
-| `chainFunctions` | [`ChainFunction`](fetch#chainfunction)[] | `[]`          | Array of middleware functions for the fetch chain |
+| `chainFunctions` | [`ChainFunction`](./fetch#chainfunction)[] | `[]`          | Array of middleware functions for the fetch chain |
 
 #### Returns
 

@@ -181,7 +181,7 @@ ensure the most recent token is used.
 
 | Parameter | Type                                           | Description                                        |
 | --------- | ---------------------------------------------- | -------------------------------------------------- |
-| `storage` | [`SessionStorage`](session#sessionstorage) | Storage implementation for retrieving session data |
+| `storage` | [`SessionStorage`](./session#sessionstorage) | Storage implementation for retrieving session data |
 
 #### Returns
 
@@ -259,8 +259,8 @@ doesn't need to manually refresh tokens.
 
 | Parameter                | Type                                           | Description                                                                           |
 | ------------------------ | ---------------------------------------------- | ------------------------------------------------------------------------------------- |
-| `auth`                   | [`Client`](auth#client)                    | Auth API client for token refresh operations                                          |
-| `storage`                | [`SessionStorage`](session#sessionstorage) | Storage implementation for persisting session data                                    |
+| `auth`                   | [`Client`](./auth#client)                    | Auth API client for token refresh operations                                          |
+| `storage`                | [`SessionStorage`](./session#sessionstorage) | Storage implementation for persisting session data                                    |
 | `options?`               | \{ `marginSeconds?`: `number`; \}              | Configuration options for token refresh behavior                                      |
 | `options.marginSeconds?` | `number`                                       | Number of seconds before token expiration to trigger a refresh, default is 60 seconds |
 
@@ -294,7 +294,7 @@ that create or invalidate sessions.
 
 | Parameter | Type                                           | Description                                        |
 | --------- | ---------------------------------------------- | -------------------------------------------------- |
-| `storage` | [`SessionStorage`](session#sessionstorage) | Storage implementation for persisting session data |
+| `storage` | [`SessionStorage`](./session#sessionstorage) | Storage implementation for persisting session data |
 
 #### Returns
 

@@ -1,5 +1,5 @@
 This is the main module to interact with Nhost's Storage service.
-Typically you would use this module via the main [Nhost client](main#createclient)
+Typically you would use this module via the main [Nhost client](./main#createclient)
 but you can also use it directly if you have a specific use case.
 
 ## Import
@@ -168,7 +168,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`DeleteBrokenMetadataResponse200`](#deletebrokenmetadataresponse200)&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`DeleteBrokenMetadataResponse200`](#deletebrokenmetadataresponse200)&gt;&gt;
 
 ##### deleteFile()
 
@@ -192,7 +192,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;`void`&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`void`&gt;&gt;
 
 ##### deleteOrphanedFiles()
 
@@ -215,7 +215,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`DeleteOrphanedFilesResponse200`](#deleteorphanedfilesresponse200)&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`DeleteOrphanedFilesResponse200`](#deleteorphanedfilesresponse200)&gt;&gt;
 
 ##### getFile()
 
@@ -246,7 +246,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;`Blob`&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`Blob`&gt;&gt;
 
 ##### getFileMetadataHeaders()
 
@@ -276,7 +276,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;`void`&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`void`&gt;&gt;
 
 ##### getFilePresignedURL()
 
@@ -301,7 +301,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`PresignedURLResponse`](#presignedurlresponse)&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`PresignedURLResponse`](#presignedurlresponse)&gt;&gt;
 
 ##### getVersion()
 
@@ -324,7 +324,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`VersionInformation`](#versioninformation)&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`VersionInformation`](#versioninformation)&gt;&gt;
 
 ##### listBrokenMetadata()
 
@@ -347,7 +347,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`ListBrokenMetadataResponse200`](#listbrokenmetadataresponse200)&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`ListBrokenMetadataResponse200`](#listbrokenmetadataresponse200)&gt;&gt;
 
 ##### listFilesNotUploaded()
 
@@ -370,7 +370,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`ListFilesNotUploadedResponse200`](#listfilesnotuploadedresponse200)&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`ListFilesNotUploadedResponse200`](#listfilesnotuploadedresponse200)&gt;&gt;
 
 ##### listOrphanedFiles()
 
@@ -393,7 +393,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`ListOrphanedFilesResponse200`](#listorphanedfilesresponse200)&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`ListOrphanedFilesResponse200`](#listorphanedfilesresponse200)&gt;&gt;
 
 ##### pushChainFunction()
 
@@ -405,7 +405,7 @@ pushChainFunction(chainFunction: ChainFunction): void;
 
 | Parameter       | Type                                       |
 | --------------- | ------------------------------------------ |
-| `chainFunction` | [`ChainFunction`](fetch#chainfunction) |
+| `chainFunction` | [`ChainFunction`](./fetch#chainfunction) |
 
 ###### Returns
 
@@ -443,7 +443,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`FileMetadata`](#filemetadata)&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`FileMetadata`](#filemetadata)&gt;&gt;
 
 ##### uploadFiles()
 
@@ -467,7 +467,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`UploadFilesResponse201`](#uploadfilesresponse201)&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`UploadFilesResponse201`](#uploadfilesresponse201)&gt;&gt;
 
 ---
 
@@ -1096,7 +1096,7 @@ function createAPIClient(baseURL: string, chainFunctions: ChainFunction[]): Clie
 | Parameter        | Type                                         | Default value |
 | ---------------- | -------------------------------------------- | ------------- |
 | `baseURL`        | `string`                                     | `undefined`   |
-| `chainFunctions` | [`ChainFunction`](fetch#chainfunction)[] | `[]`          |
+| `chainFunctions` | [`ChainFunction`](./fetch#chainfunction)[] | `[]`          |
 
 #### Returns
 

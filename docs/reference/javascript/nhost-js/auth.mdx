@@ -1,5 +1,5 @@
 This is the main module to interact with Nhost's Auth service.
-Typically you would use this module via the main [Nhost client](main#createclient)
+Typically you would use this module via the main [Nhost client](./main#createclient)
 but you can also use it directly if you have a specific use case.
 
 ## Import
@@ -301,7 +301,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`PublicKeyCredentialCreationOptions`](#publickeycredentialcreationoptions)&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`PublicKeyCredentialCreationOptions`](#publickeycredentialcreationoptions)&gt;&gt;
 
 ##### changeUserEmail()
 
@@ -325,7 +325,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
 
 ##### changeUserMfa()
 
@@ -348,7 +348,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`TotpGenerateResponse`](#totpgenerateresponse)&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`TotpGenerateResponse`](#totpgenerateresponse)&gt;&gt;
 
 ##### changeUserPassword()
 
@@ -372,7 +372,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
 
 ##### createPAT()
 
@@ -396,7 +396,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`CreatePATResponse`](#createpatresponse)&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`CreatePATResponse`](#createpatresponse)&gt;&gt;
 
 ##### deanonymizeUser()
 
@@ -420,7 +420,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
 
 ##### elevateWebauthn()
 
@@ -443,7 +443,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`PublicKeyCredentialRequestOptions`](#publickeycredentialrequestoptions)&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`PublicKeyCredentialRequestOptions`](#publickeycredentialrequestoptions)&gt;&gt;
 
 ##### getJWKs()
 
@@ -466,7 +466,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`JWKSet`](#jwkset)&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`JWKSet`](#jwkset)&gt;&gt;
 
 ##### getUser()
 
@@ -489,7 +489,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`User`](#user-2)&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`User`](#user-2)&gt;&gt;
 
 ##### getVersion()
 
@@ -512,7 +512,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`GetVersionResponse200`](#getversionresponse200)&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`GetVersionResponse200`](#getversionresponse200)&gt;&gt;
 
 ##### healthCheckGet()
 
@@ -535,7 +535,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
 
 ##### healthCheckHead()
 
@@ -558,7 +558,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;`void`&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`void`&gt;&gt;
 
 ##### linkIdToken()
 
@@ -582,7 +582,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
 
 ##### pushChainFunction()
 
@@ -594,7 +594,7 @@ pushChainFunction(chainFunction: ChainFunction): void;
 
 | Parameter       | Type                                       |
 | --------------- | ------------------------------------------ |
-| `chainFunction` | [`ChainFunction`](fetch#chainfunction) |
+| `chainFunction` | [`ChainFunction`](./fetch#chainfunction) |
 
 ###### Returns
 
@@ -622,7 +622,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`Session`](#session)&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`Session`](#session)&gt;&gt;
 
 ##### sendPasswordResetEmail()
 
@@ -646,7 +646,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
 
 ##### sendVerificationEmail()
 
@@ -670,7 +670,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
 
 ##### signInAnonymous()
 
@@ -694,7 +694,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`SessionPayload`](#sessionpayload)&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`SessionPayload`](#sessionpayload)&gt;&gt;
 
 ##### signInEmailPassword()
 
@@ -718,7 +718,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`SignInEmailPasswordResponse`](#signinemailpasswordresponse)&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`SignInEmailPasswordResponse`](#signinemailpasswordresponse)&gt;&gt;
 
 ##### signInIdToken()
 
@@ -742,7 +742,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`SessionPayload`](#sessionpayload)&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`SessionPayload`](#sessionpayload)&gt;&gt;
 
 ##### signInOTPEmail()
 
@@ -766,7 +766,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
 
 ##### signInPasswordlessEmail()
 
@@ -790,7 +790,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
 
 ##### signInPasswordlessSms()
 
@@ -814,7 +814,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
 
 ##### signInPAT()
 
@@ -838,7 +838,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`SessionPayload`](#sessionpayload)&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`SessionPayload`](#sessionpayload)&gt;&gt;
 
 ##### signInProviderURL()
 
@@ -888,7 +888,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`PublicKeyCredentialRequestOptions`](#publickeycredentialrequestoptions)&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`PublicKeyCredentialRequestOptions`](#publickeycredentialrequestoptions)&gt;&gt;
 
 ##### signOut()
 
@@ -912,7 +912,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
 
 ##### signUpEmailPassword()
 
@@ -936,7 +936,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`SessionPayload`](#sessionpayload)&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`SessionPayload`](#sessionpayload)&gt;&gt;
 
 ##### signUpWebauthn()
 
@@ -960,7 +960,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`PublicKeyCredentialCreationOptions`](#publickeycredentialcreationoptions)&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`PublicKeyCredentialCreationOptions`](#publickeycredentialcreationoptions)&gt;&gt;
 
 ##### verifyAddSecurityKey()
 
@@ -984,7 +984,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`VerifyAddSecurityKeyResponse`](#verifyaddsecuritykeyresponse)&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`VerifyAddSecurityKeyResponse`](#verifyaddsecuritykeyresponse)&gt;&gt;
 
 ##### verifyChangeUserMfa()
 
@@ -1008,7 +1008,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
 
 ##### verifyElevateWebauthn()
 
@@ -1032,7 +1032,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`SessionPayload`](#sessionpayload)&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`SessionPayload`](#sessionpayload)&gt;&gt;
 
 ##### verifySignInMfaTotp()
 
@@ -1056,7 +1056,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`SessionPayload`](#sessionpayload)&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`SessionPayload`](#sessionpayload)&gt;&gt;
 
 ##### verifySignInOTPEmail()
 
@@ -1080,7 +1080,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`SignInOTPEmailVerifyResponse`](#signinotpemailverifyresponse)&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`SignInOTPEmailVerifyResponse`](#signinotpemailverifyresponse)&gt;&gt;
 
 ##### verifySignInPasswordlessSms()
 
@@ -1104,7 +1104,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`SignInPasswordlessSmsOtpResponse`](#signinpasswordlesssmsotpresponse)&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`SignInPasswordlessSmsOtpResponse`](#signinpasswordlesssmsotpresponse)&gt;&gt;
 
 ##### verifySignInWebauthn()
 
@@ -1128,7 +1128,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`SessionPayload`](#sessionpayload)&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`SessionPayload`](#sessionpayload)&gt;&gt;
 
 ##### verifySignUpWebauthn()
 
@@ -1152,7 +1152,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`SessionPayload`](#sessionpayload)&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`SessionPayload`](#sessionpayload)&gt;&gt;
 
 ##### verifyTicketURL()
 
@@ -1198,7 +1198,7 @@ This method may return different T based on the response code:
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;`string`&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`string`&gt;&gt;
 
 ---
 
@@ -1840,7 +1840,7 @@ User authentication session containing tokens and user information
 
 #### Extended by
 
-- [`Session`](session#session)
+- [`Session`](./session#session)
 
 #### Properties
 
@@ -3221,7 +3221,7 @@ function createAPIClient(baseURL: string, chainFunctions: ChainFunction[]): Clie
 | Parameter        | Type                                         | Default value |
 | ---------------- | -------------------------------------------- | ------------- |
 | `baseURL`        | `string`                                     | `undefined`   |
-| `chainFunctions` | [`ChainFunction`](fetch#chainfunction)[] | `[]`          |
+| `chainFunctions` | [`ChainFunction`](./fetch#chainfunction)[] | `[]`          |
 
 #### Returns
 

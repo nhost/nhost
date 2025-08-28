@@ -1,5 +1,5 @@
 This is the main module to interact with Nhost's GraphQL service.
-Typically you would use this module via the main [Nhost client](main#createclient)
+Typically you would use this module via the main [Nhost client](./main#createclient)
 but you can also use it directly if you have a specific use case.
 
 ## Import
@@ -249,7 +249,7 @@ Queries are used to fetch data and should not modify any data on the server.
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`GraphQLResponse`](#graphqlresponse)&lt;`TResponseData`&gt;&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`GraphQLResponse`](#graphqlresponse)&lt;`TResponseData`&gt;&gt;&gt;
 
 Promise with the GraphQL response and metadata
 
@@ -281,7 +281,7 @@ Execute a GraphQL query operation using a typed document node
 
 ###### Returns
 
-`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`GraphQLResponse`](#graphqlresponse)&lt;`TResponseData`&gt;&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`GraphQLResponse`](#graphqlresponse)&lt;`TResponseData`&gt;&gt;&gt;
 
 Promise with the GraphQL response and metadata
 
@@ -433,7 +433,7 @@ error handling, and other cross-cutting concerns.
 | Parameter        | Type                                         | Default value | Description                                       |
 | ---------------- | -------------------------------------------- | ------------- | ------------------------------------------------- |
 | `url`            | `string`                                     | `undefined`   | Base URL for the GraphQL endpoint                 |
-| `chainFunctions` | [`ChainFunction`](fetch#chainfunction)[] | `[]`          | Array of middleware functions for the fetch chain |
+| `chainFunctions` | [`ChainFunction`](./fetch#chainfunction)[] | `[]`          | Array of middleware functions for the fetch chain |
 
 #### Returns
 

@@ -37,8 +37,8 @@ fix_mdx_links() {
             # Create a temporary file
             local temp_file=$(mktemp)
 
-            # Replace .mdx) with ) and .mdx# with #
-            sed -e 's/\.mdx)/)/g' -e 's/\.mdx#/#/g' "$file" > "$temp_file"
+            # Replace .mdx) with ) and .mdx# with #, and ensure relative paths start with ./
+            sed -e 's/\.mdx)/)/g' -e 's/\.mdx#/#/g' -e 's/\[\([^]]*\)\](\([^./#][^)]*\))/[\1](\.\/\2)/g' "$file" > "$temp_file"
 
             # Replace the original file with the fixed version
             mv "$temp_file" "$file"
