@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "mintlify dev",
     "generate": "./gen.sh",
-    "test": "pnpm run test:broken-links",
+    "test": "./check_broken_links.sh",
     "test:broken-links": "pnpm exec mintlify broken-links"
   },
   "devDependencies": {
