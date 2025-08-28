@@ -3,22 +3,26 @@ name: "docs: check and build"
 on:
   pull_request:
     paths:
-      - '.github/workflows/wf_build_artifacts.yaml'
       - '.github/workflows/wf_check.yaml'
       - '.github/workflows/dashboard_checks.yaml'
+
+      # common build
       - 'flake.nix'
       - 'flake.lock'
       - 'nix/**'
       - 'build/**'
 
-      # docs
+      # common javascript
       - ".npmrc"
       - ".prettierignore"
       - ".prettierrc.js"
       - "audit-ci.jsonc"
+      - "package.json"
       - "pnpm-workspace.yaml"
       - "pnpm-lock.yaml"
       - "turbo.json"
+
+      # docs
       - docs/**
 
       # nhost-js
@@ -44,7 +48,6 @@ jobs:
     uses: ./.github/workflows/wf_check.yaml
     needs:
       - check-permissions
-      - build_artifacts
     with:
       NAME: docs
       PATH: docs

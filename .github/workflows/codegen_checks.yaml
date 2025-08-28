@@ -6,13 +6,20 @@ on:
     paths:
       - '.github/workflows/wf_check.yaml'
       - '.github/workflows/codegen_checks.yaml'
+
+      # common build
       - 'flake.nix'
       - 'flake.lock'
       - 'nix/**'
       - 'build/**'
+
+      # common go
+      - '.golangci.yaml'
       - 'go.mod'
       - 'go.sum'
       - 'vendor/**'
+
+      # codegen
       - 'tools/codegen/**'
   push:
     branches:
