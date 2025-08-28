@@ -296,7 +296,7 @@
                 "group": "Storage",
                 "icon": "warehouse",
                 "pages": [
-                  "reference/storage/post-files",
+                   "reference/storage/post-files",
                    "reference/storage/head-files-{id}",
                    "reference/storage/get-files-{id}",
                    "reference/storage/delete-files-{id}",

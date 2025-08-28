@@ -13,15 +13,17 @@ import (
 const tpl = `---
 title: "%s"
 openapi: %s %s
+sidebarTitle: %s
 ---`
 
 type OpenAPIMinimal struct { //nolint:revive
-	Paths map[string]map[string]any
+	Paths map[string]map[string]map[string]any
 }
 
 type Endpoint struct {
-	Method string
-	Path   string
+	Method      string
+	OperationID string
+	Path        string
 }
 
 func (e Endpoint) Filepath(outDir string) string {
@@ -30,7 +32,7 @@ func (e Endpoint) Filepath(outDir string) string {
 }
 
 func (e Endpoint) Content() string {
-	return fmt.Sprintf(tpl, e.Path, e.Method, e.Path)
+	return fmt.Sprintf(tpl, e.OperationID, e.Method, e.Path, e.Path)
 }
 
 func (e Endpoint) Mintlify(outDir string) string {
@@ -67,8 +69,13 @@ func processOAMFiles(oam *OpenAPIMinimal, outDir string) (Endpoints, error) {
 	endpoints := make(Endpoints, 0, len(oam.Paths)*2) //nolint:mnd
 
 	for path, methods := range oam.Paths {
-		for method := range methods {
-			e := Endpoint{Method: method, Path: path}
+		for method, data := range methods {
+			operationID, ok := data["operationId"].(string)
+			if !ok {
+				return nil, fmt.Errorf("operationId not found for %s %s", method, path) //nolint:err113
+			}
+
+			e := Endpoint{Method: method, Path: path, OperationID: operationID}
 			endpoints = append(endpoints, e)
 
 			if err := os.WriteFile(e.Filepath(outDir), []byte(e.Content()), 0o644); err != nil { //nolint:gosec,mnd
@@ -100,7 +107,7 @@ func process(openAPISpec, outDir string) error {
 	}
 
 	slices.SortFunc(endpoints, func(a, b Endpoint) int {
-		return strings.Compare(a.Path, b.Path)
+		return strings.Compare(a.OperationID, b.OperationID)
 	})
 
 	for _, e := range endpoints {

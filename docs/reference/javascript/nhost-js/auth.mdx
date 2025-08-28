@@ -2,7 +2,7 @@ This is the main module to interact with Nhost's Auth service.
 Typically you would use this module via the main [Nhost client](./main#createclient)
 but you can also use it directly if you have a specific use case.
 
-## Import
+# Import
 
 You can import and use this package with:
 
@@ -10,7 +10,7 @@ You can import and use this package with:
 import { createClient } from '@nhost/nhost-js/auth'
 ```
 
-## Usage
+# Usage
 
 ```ts
 import { createClient } from '@nhost/nhost-js'
@@ -26,7 +26,7 @@ await nhost.auth.signUpEmailPassword({
 })
 ```
 
-## Error handling
+# Error handling
 
 The SDK will throw errors in most operations if the request returns a status >=300 or
 if the request fails entirely (i.e., due to network errors). The type of the error
@@ -97,15 +97,15 @@ try {
 }
 ```
 
-## Interfaces
+# Interfaces
 
-### AuthenticationExtensionsClientOutputs
+## AuthenticationExtensionsClientOutputs
 
 Map of extension outputs from the client
 
-#### Properties
+### Properties
 
-##### appid?
+#### appid?
 
 ```ts
 optional appid: boolean;
@@ -113,7 +113,7 @@ optional appid: boolean;
 
 Application identifier extension output
 
-##### credProps?
+#### credProps?
 
 ```ts
 optional credProps: CredentialPropertiesOutput;
@@ -121,7 +121,7 @@ optional credProps: CredentialPropertiesOutput;
 
 Credential properties extension output
 
-##### hmacCreateSecret?
+#### hmacCreateSecret?
 
 ```ts
 optional hmacCreateSecret: boolean;
@@ -131,11 +131,11 @@ HMAC secret extension output
 
 ---
 
-### AuthenticatorAssertionResponse
+## AuthenticatorAssertionResponse
 
-#### Properties
+### Properties
 
-##### authenticatorData
+#### authenticatorData
 
 ```ts
 authenticatorData: string
@@ -143,7 +143,7 @@ authenticatorData: string
 
 (`string`) - Base64url encoded authenticator data
 
-##### clientDataJSON
+#### clientDataJSON
 
 ```ts
 clientDataJSON: string
@@ -151,7 +151,7 @@ clientDataJSON: string
 
 (`string`) - Base64url encoded client data JSON
 
-##### signature
+#### signature
 
 ```ts
 signature: string
@@ -159,7 +159,7 @@ signature: string
 
 (`string`) - Base64url encoded assertion signature
 
-##### userHandle?
+#### userHandle?
 
 ```ts
 optional userHandle: string;
@@ -169,11 +169,11 @@ Base64url encoded user handle
 
 ---
 
-### AuthenticatorAttestationResponse
+## AuthenticatorAttestationResponse
 
-#### Properties
+### Properties
 
-##### attestationObject
+#### attestationObject
 
 ```ts
 attestationObject: string
@@ -183,7 +183,7 @@ attestationObject: string
 
 - Format - byte
 
-##### authenticatorData?
+#### authenticatorData?
 
 ```ts
 optional authenticatorData: string;
@@ -192,7 +192,7 @@ optional authenticatorData: string;
 Base64url-encoded binary data
 Format - byte
 
-##### clientDataJSON
+#### clientDataJSON
 
 ```ts
 clientDataJSON: string
@@ -202,7 +202,7 @@ clientDataJSON: string
 
 - Format - byte
 
-##### publicKey?
+#### publicKey?
 
 ```ts
 optional publicKey: string;
@@ -211,7 +211,7 @@ optional publicKey: string;
 Base64url-encoded binary data
 Format - byte
 
-##### publicKeyAlgorithm?
+#### publicKeyAlgorithm?
 
 ```ts
 optional publicKeyAlgorithm: number;
@@ -220,7 +220,7 @@ optional publicKeyAlgorithm: number;
 The public key algorithm identifier
 Format - int64
 
-##### transports?
+#### transports?
 
 ```ts
 optional transports: string[];
@@ -230,11 +230,11 @@ The authenticator transports
 
 ---
 
-### AuthenticatorSelection
+## AuthenticatorSelection
 
-#### Properties
+### Properties
 
-##### authenticatorAttachment?
+#### authenticatorAttachment?
 
 ```ts
 optional authenticatorAttachment: AuthenticatorAttachment;
@@ -242,7 +242,7 @@ optional authenticatorAttachment: AuthenticatorAttachment;
 
 The authenticator attachment modality
 
-##### requireResidentKey?
+#### requireResidentKey?
 
 ```ts
 optional requireResidentKey: boolean;
@@ -250,7 +250,7 @@ optional requireResidentKey: boolean;
 
 Whether the authenticator must create a client-side-resident public key credential source
 
-##### residentKey?
+#### residentKey?
 
 ```ts
 optional residentKey: ResidentKeyRequirement;
@@ -258,7 +258,7 @@ optional residentKey: ResidentKeyRequirement;
 
 The resident key requirement
 
-##### userVerification?
+#### userVerification?
 
 ```ts
 optional userVerification: UserVerificationRequirement;
@@ -268,19 +268,19 @@ A requirement for user verification for the operation
 
 ---
 
-### Client
+## Client
 
-#### Properties
+### Properties
 
-##### baseURL
+#### baseURL
 
 ```ts
 baseURL: string
 ```
 
-#### Methods
+### Methods
 
-##### addSecurityKey()
+#### addSecurityKey()
 
 ```ts
 addSecurityKey(options?: RequestInit): Promise<FetchResponse<PublicKeyCredentialCreationOptions>>;
@@ -293,17 +293,17 @@ This method may return different T based on the response code:
 
 - 200: PublicKeyCredentialCreationOptions
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type          |
 | ---------- | ------------- |
 | `options?` | `RequestInit` |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`PublicKeyCredentialCreationOptions`](#publickeycredentialcreationoptions)&gt;&gt;
 
-##### changeUserEmail()
+#### changeUserEmail()
 
 ```ts
 changeUserEmail(body: UserEmailChangeRequest, options?: RequestInit): Promise<FetchResponse<"OK">>;
@@ -316,18 +316,18 @@ This method may return different T based on the response code:
 
 - 200: OKResponse
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type                                                |
 | ---------- | --------------------------------------------------- |
 | `body`     | [`UserEmailChangeRequest`](#useremailchangerequest) |
 | `options?` | `RequestInit`                                       |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
 
-##### changeUserMfa()
+#### changeUserMfa()
 
 ```ts
 changeUserMfa(options?: RequestInit): Promise<FetchResponse<TotpGenerateResponse>>;
@@ -340,17 +340,17 @@ This method may return different T based on the response code:
 
 - 200: TotpGenerateResponse
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type          |
 | ---------- | ------------- |
 | `options?` | `RequestInit` |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`TotpGenerateResponse`](#totpgenerateresponse)&gt;&gt;
 
-##### changeUserPassword()
+#### changeUserPassword()
 
 ```ts
 changeUserPassword(body: UserPasswordRequest, options?: RequestInit): Promise<FetchResponse<"OK">>;
@@ -363,18 +363,18 @@ This method may return different T based on the response code:
 
 - 200: OKResponse
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type                                          |
 | ---------- | --------------------------------------------- |
 | `body`     | [`UserPasswordRequest`](#userpasswordrequest) |
 | `options?` | `RequestInit`                                 |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
 
-##### createPAT()
+#### createPAT()
 
 ```ts
 createPAT(body: CreatePATRequest, options?: RequestInit): Promise<FetchResponse<CreatePATResponse>>;
@@ -387,18 +387,18 @@ This method may return different T based on the response code:
 
 - 200: CreatePATResponse
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type                                    |
 | ---------- | --------------------------------------- |
 | `body`     | [`CreatePATRequest`](#createpatrequest) |
 | `options?` | `RequestInit`                           |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`CreatePATResponse`](#createpatresponse)&gt;&gt;
 
-##### deanonymizeUser()
+#### deanonymizeUser()
 
 ```ts
 deanonymizeUser(body: UserDeanonymizeRequest, options?: RequestInit): Promise<FetchResponse<"OK">>;
@@ -411,18 +411,18 @@ This method may return different T based on the response code:
 
 - 200: OKResponse
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type                                                |
 | ---------- | --------------------------------------------------- |
 | `body`     | [`UserDeanonymizeRequest`](#userdeanonymizerequest) |
 | `options?` | `RequestInit`                                       |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
 
-##### elevateWebauthn()
+#### elevateWebauthn()
 
 ```ts
 elevateWebauthn(options?: RequestInit): Promise<FetchResponse<PublicKeyCredentialRequestOptions>>;
@@ -435,17 +435,17 @@ This method may return different T based on the response code:
 
 - 200: PublicKeyCredentialRequestOptions
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type          |
 | ---------- | ------------- |
 | `options?` | `RequestInit` |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`PublicKeyCredentialRequestOptions`](#publickeycredentialrequestoptions)&gt;&gt;
 
-##### getJWKs()
+#### getJWKs()
 
 ```ts
 getJWKs(options?: RequestInit): Promise<FetchResponse<JWKSet>>;
@@ -458,17 +458,17 @@ This method may return different T based on the response code:
 
 - 200: JWKSet
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type          |
 | ---------- | ------------- |
 | `options?` | `RequestInit` |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`JWKSet`](#jwkset)&gt;&gt;
 
-##### getUser()
+#### getUser()
 
 ```ts
 getUser(options?: RequestInit): Promise<FetchResponse<User>>;
@@ -481,17 +481,17 @@ This method may return different T based on the response code:
 
 - 200: User
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type          |
 | ---------- | ------------- |
 | `options?` | `RequestInit` |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`User`](#user-2)&gt;&gt;
 
-##### getVersion()
+#### getVersion()
 
 ```ts
 getVersion(options?: RequestInit): Promise<FetchResponse<GetVersionResponse200>>;
@@ -504,17 +504,17 @@ This method may return different T based on the response code:
 
 - 200: GetVersionResponse200
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type          |
 | ---------- | ------------- |
 | `options?` | `RequestInit` |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`GetVersionResponse200`](#getversionresponse200)&gt;&gt;
 
-##### healthCheckGet()
+#### healthCheckGet()
 
 ```ts
 healthCheckGet(options?: RequestInit): Promise<FetchResponse<"OK">>;
@@ -527,17 +527,17 @@ This method may return different T based on the response code:
 
 - 200: OKResponse
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type          |
 | ---------- | ------------- |
 | `options?` | `RequestInit` |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
 
-##### healthCheckHead()
+#### healthCheckHead()
 
 ```ts
 healthCheckHead(options?: RequestInit): Promise<FetchResponse<void>>;
@@ -550,17 +550,17 @@ This method may return different T based on the response code:
 
 - 200: void
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type          |
 | ---------- | ------------- |
 | `options?` | `RequestInit` |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`void`&gt;&gt;
 
-##### linkIdToken()
+#### linkIdToken()
 
 ```ts
 linkIdToken(body: LinkIdTokenRequest, options?: RequestInit): Promise<FetchResponse<"OK">>;
@@ -573,34 +573,34 @@ This method may return different T based on the response code:
 
 - 200: OKResponse
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type                                        |
 | ---------- | ------------------------------------------- |
 | `body`     | [`LinkIdTokenRequest`](#linkidtokenrequest) |
 | `options?` | `RequestInit`                               |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
 
-##### pushChainFunction()
+#### pushChainFunction()
 
 ```ts
 pushChainFunction(chainFunction: ChainFunction): void;
 ```
 
-###### Parameters
+##### Parameters
 
 | Parameter       | Type                                       |
 | --------------- | ------------------------------------------ |
 | `chainFunction` | [`ChainFunction`](./fetch#chainfunction) |
 
-###### Returns
+##### Returns
 
 `void`
 
-##### refreshToken()
+#### refreshToken()
 
 ```ts
 refreshToken(body: RefreshTokenRequest, options?: RequestInit): Promise<FetchResponse<Session>>;
@@ -613,18 +613,18 @@ This method may return different T based on the response code:
 
 - 200: Session
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type                                          |
 | ---------- | --------------------------------------------- |
 | `body`     | [`RefreshTokenRequest`](#refreshtokenrequest) |
 | `options?` | `RequestInit`                                 |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`Session`](#session)&gt;&gt;
 
-##### sendPasswordResetEmail()
+#### sendPasswordResetEmail()
 
 ```ts
 sendPasswordResetEmail(body: UserPasswordResetRequest, options?: RequestInit): Promise<FetchResponse<"OK">>;
@@ -637,18 +637,18 @@ This method may return different T based on the response code:
 
 - 200: OKResponse
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type                                                    |
 | ---------- | ------------------------------------------------------- |
 | `body`     | [`UserPasswordResetRequest`](#userpasswordresetrequest) |
 | `options?` | `RequestInit`                                           |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
 
-##### sendVerificationEmail()
+#### sendVerificationEmail()
 
 ```ts
 sendVerificationEmail(body: UserEmailSendVerificationEmailRequest, options?: RequestInit): Promise<FetchResponse<"OK">>;
@@ -661,18 +661,18 @@ This method may return different T based on the response code:
 
 - 200: OKResponse
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type                                                                              |
 | ---------- | --------------------------------------------------------------------------------- |
 | `body`     | [`UserEmailSendVerificationEmailRequest`](#useremailsendverificationemailrequest) |
 | `options?` | `RequestInit`                                                                     |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
 
-##### signInAnonymous()
+#### signInAnonymous()
 
 ```ts
 signInAnonymous(body?: SignInAnonymousRequest, options?: RequestInit): Promise<FetchResponse<SessionPayload>>;
@@ -685,18 +685,18 @@ This method may return different T based on the response code:
 
 - 200: SessionPayload
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type                                                |
 | ---------- | --------------------------------------------------- |
 | `body?`    | [`SignInAnonymousRequest`](#signinanonymousrequest) |
 | `options?` | `RequestInit`                                       |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`SessionPayload`](#sessionpayload)&gt;&gt;
 
-##### signInEmailPassword()
+#### signInEmailPassword()
 
 ```ts
 signInEmailPassword(body: SignInEmailPasswordRequest, options?: RequestInit): Promise<FetchResponse<SignInEmailPasswordResponse>>;
@@ -709,18 +709,18 @@ This method may return different T based on the response code:
 
 - 200: SignInEmailPasswordResponse
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type                                                        |
 | ---------- | ----------------------------------------------------------- |
 | `body`     | [`SignInEmailPasswordRequest`](#signinemailpasswordrequest) |
 | `options?` | `RequestInit`                                               |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`SignInEmailPasswordResponse`](#signinemailpasswordresponse)&gt;&gt;
 
-##### signInIdToken()
+#### signInIdToken()
 
 ```ts
 signInIdToken(body: SignInIdTokenRequest, options?: RequestInit): Promise<FetchResponse<SessionPayload>>;
@@ -733,18 +733,18 @@ This method may return different T based on the response code:
 
 - 200: SessionPayload
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type                                            |
 | ---------- | ----------------------------------------------- |
 | `body`     | [`SignInIdTokenRequest`](#signinidtokenrequest) |
 | `options?` | `RequestInit`                                   |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`SessionPayload`](#sessionpayload)&gt;&gt;
 
-##### signInOTPEmail()
+#### signInOTPEmail()
 
 ```ts
 signInOTPEmail(body: SignInOTPEmailRequest, options?: RequestInit): Promise<FetchResponse<"OK">>;
@@ -757,18 +757,18 @@ This method may return different T based on the response code:
 
 - 200: OKResponse
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type                                              |
 | ---------- | ------------------------------------------------- |
 | `body`     | [`SignInOTPEmailRequest`](#signinotpemailrequest) |
 | `options?` | `RequestInit`                                     |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
 
-##### signInPasswordlessEmail()
+#### signInPasswordlessEmail()
 
 ```ts
 signInPasswordlessEmail(body: SignInPasswordlessEmailRequest, options?: RequestInit): Promise<FetchResponse<"OK">>;
@@ -781,18 +781,18 @@ This method may return different T based on the response code:
 
 - 200: OKResponse
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type                                                                |
 | ---------- | ------------------------------------------------------------------- |
 | `body`     | [`SignInPasswordlessEmailRequest`](#signinpasswordlessemailrequest) |
 | `options?` | `RequestInit`                                                       |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
 
-##### signInPasswordlessSms()
+#### signInPasswordlessSms()
 
 ```ts
 signInPasswordlessSms(body: SignInPasswordlessSmsRequest, options?: RequestInit): Promise<FetchResponse<"OK">>;
@@ -805,18 +805,18 @@ This method may return different T based on the response code:
 
 - 200: OKResponse
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type                                                            |
 | ---------- | --------------------------------------------------------------- |
 | `body`     | [`SignInPasswordlessSmsRequest`](#signinpasswordlesssmsrequest) |
 | `options?` | `RequestInit`                                                   |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
 
-##### signInPAT()
+#### signInPAT()
 
 ```ts
 signInPAT(body: SignInPATRequest, options?: RequestInit): Promise<FetchResponse<SessionPayload>>;
@@ -829,18 +829,18 @@ This method may return different T based on the response code:
 
 - 200: SessionPayload
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type                                    |
 | ---------- | --------------------------------------- |
 | `body`     | [`SignInPATRequest`](#signinpatrequest) |
 | `options?` | `RequestInit`                           |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`SessionPayload`](#sessionpayload)&gt;&gt;
 
-##### signInProviderURL()
+#### signInProviderURL()
 
 ```ts
 signInProviderURL(
@@ -854,7 +854,7 @@ Initiate OAuth2 authentication flow with a social provider. Redirects the user t
 
 As this method is a redirect, it returns a URL string instead of a Promise
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type                                            |
 | ---------- | ----------------------------------------------- |
@@ -862,11 +862,11 @@ As this method is a redirect, it returns a URL string instead of a Promise
 | `params?`  | [`SignInProviderParams`](#signinproviderparams) |
 | `options?` | `RequestInit`                                   |
 
-###### Returns
+##### Returns
 
 `string`
 
-##### signInWebauthn()
+#### signInWebauthn()
 
 ```ts
 signInWebauthn(body?: SignInWebauthnRequest, options?: RequestInit): Promise<FetchResponse<PublicKeyCredentialRequestOptions>>;
@@ -879,18 +879,18 @@ This method may return different T based on the response code:
 
 - 200: PublicKeyCredentialRequestOptions
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type                                              |
 | ---------- | ------------------------------------------------- |
 | `body?`    | [`SignInWebauthnRequest`](#signinwebauthnrequest) |
 | `options?` | `RequestInit`                                     |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`PublicKeyCredentialRequestOptions`](#publickeycredentialrequestoptions)&gt;&gt;
 
-##### signOut()
+#### signOut()
 
 ```ts
 signOut(body: SignOutRequest, options?: RequestInit): Promise<FetchResponse<"OK">>;
@@ -903,18 +903,18 @@ This method may return different T based on the response code:
 
 - 200: OKResponse
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type                                |
 | ---------- | ----------------------------------- |
 | `body`     | [`SignOutRequest`](#signoutrequest) |
 | `options?` | `RequestInit`                       |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
 
-##### signUpEmailPassword()
+#### signUpEmailPassword()
 
 ```ts
 signUpEmailPassword(body: SignUpEmailPasswordRequest, options?: RequestInit): Promise<FetchResponse<SessionPayload>>;
@@ -927,18 +927,18 @@ This method may return different T based on the response code:
 
 - 200: SessionPayload
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type                                                        |
 | ---------- | ----------------------------------------------------------- |
 | `body`     | [`SignUpEmailPasswordRequest`](#signupemailpasswordrequest) |
 | `options?` | `RequestInit`                                               |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`SessionPayload`](#sessionpayload)&gt;&gt;
 
-##### signUpWebauthn()
+#### signUpWebauthn()
 
 ```ts
 signUpWebauthn(body: SignUpWebauthnRequest, options?: RequestInit): Promise<FetchResponse<PublicKeyCredentialCreationOptions>>;
@@ -951,18 +951,18 @@ This method may return different T based on the response code:
 
 - 200: PublicKeyCredentialCreationOptions
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type                                              |
 | ---------- | ------------------------------------------------- |
 | `body`     | [`SignUpWebauthnRequest`](#signupwebauthnrequest) |
 | `options?` | `RequestInit`                                     |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`PublicKeyCredentialCreationOptions`](#publickeycredentialcreationoptions)&gt;&gt;
 
-##### verifyAddSecurityKey()
+#### verifyAddSecurityKey()
 
 ```ts
 verifyAddSecurityKey(body: VerifyAddSecurityKeyRequest, options?: RequestInit): Promise<FetchResponse<VerifyAddSecurityKeyResponse>>;
@@ -975,18 +975,18 @@ This method may return different T based on the response code:
 
 - 200: VerifyAddSecurityKeyResponse
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type                                                          |
 | ---------- | ------------------------------------------------------------- |
 | `body`     | [`VerifyAddSecurityKeyRequest`](#verifyaddsecuritykeyrequest) |
 | `options?` | `RequestInit`                                                 |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`VerifyAddSecurityKeyResponse`](#verifyaddsecuritykeyresponse)&gt;&gt;
 
-##### verifyChangeUserMfa()
+#### verifyChangeUserMfa()
 
 ```ts
 verifyChangeUserMfa(body: UserMfaRequest, options?: RequestInit): Promise<FetchResponse<"OK">>;
@@ -999,18 +999,18 @@ This method may return different T based on the response code:
 
 - 200: OKResponse
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type                                |
 | ---------- | ----------------------------------- |
 | `body`     | [`UserMfaRequest`](#usermfarequest) |
 | `options?` | `RequestInit`                       |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
 
-##### verifyElevateWebauthn()
+#### verifyElevateWebauthn()
 
 ```ts
 verifyElevateWebauthn(body: SignInWebauthnVerifyRequest, options?: RequestInit): Promise<FetchResponse<SessionPayload>>;
@@ -1023,18 +1023,18 @@ This method may return different T based on the response code:
 
 - 200: SessionPayload
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type                                                          |
 | ---------- | ------------------------------------------------------------- |
 | `body`     | [`SignInWebauthnVerifyRequest`](#signinwebauthnverifyrequest) |
 | `options?` | `RequestInit`                                                 |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`SessionPayload`](#sessionpayload)&gt;&gt;
 
-##### verifySignInMfaTotp()
+#### verifySignInMfaTotp()
 
 ```ts
 verifySignInMfaTotp(body: SignInMfaTotpRequest, options?: RequestInit): Promise<FetchResponse<SessionPayload>>;
@@ -1047,18 +1047,18 @@ This method may return different T based on the response code:
 
 - 200: SessionPayload
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type                                            |
 | ---------- | ----------------------------------------------- |
 | `body`     | [`SignInMfaTotpRequest`](#signinmfatotprequest) |
 | `options?` | `RequestInit`                                   |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`SessionPayload`](#sessionpayload)&gt;&gt;
 
-##### verifySignInOTPEmail()
+#### verifySignInOTPEmail()
 
 ```ts
 verifySignInOTPEmail(body: SignInOTPEmailVerifyRequest, options?: RequestInit): Promise<FetchResponse<SignInOTPEmailVerifyResponse>>;
@@ -1071,18 +1071,18 @@ This method may return different T based on the response code:
 
 - 200: SignInOTPEmailVerifyResponse
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type                                                          |
 | ---------- | ------------------------------------------------------------- |
 | `body`     | [`SignInOTPEmailVerifyRequest`](#signinotpemailverifyrequest) |
 | `options?` | `RequestInit`                                                 |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`SignInOTPEmailVerifyResponse`](#signinotpemailverifyresponse)&gt;&gt;
 
-##### verifySignInPasswordlessSms()
+#### verifySignInPasswordlessSms()
 
 ```ts
 verifySignInPasswordlessSms(body: SignInPasswordlessSmsOtpRequest, options?: RequestInit): Promise<FetchResponse<SignInPasswordlessSmsOtpResponse>>;
@@ -1095,18 +1095,18 @@ This method may return different T based on the response code:
 
 - 200: SignInPasswordlessSmsOtpResponse
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type                                                                  |
 | ---------- | --------------------------------------------------------------------- |
 | `body`     | [`SignInPasswordlessSmsOtpRequest`](#signinpasswordlesssmsotprequest) |
 | `options?` | `RequestInit`                                                         |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`SignInPasswordlessSmsOtpResponse`](#signinpasswordlesssmsotpresponse)&gt;&gt;
 
-##### verifySignInWebauthn()
+#### verifySignInWebauthn()
 
 ```ts
 verifySignInWebauthn(body: SignInWebauthnVerifyRequest, options?: RequestInit): Promise<FetchResponse<SessionPayload>>;
@@ -1119,18 +1119,18 @@ This method may return different T based on the response code:
 
 - 200: SessionPayload
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type                                                          |
 | ---------- | ------------------------------------------------------------- |
 | `body`     | [`SignInWebauthnVerifyRequest`](#signinwebauthnverifyrequest) |
 | `options?` | `RequestInit`                                                 |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`SessionPayload`](#sessionpayload)&gt;&gt;
 
-##### verifySignUpWebauthn()
+#### verifySignUpWebauthn()
 
 ```ts
 verifySignUpWebauthn(body: SignUpWebauthnVerifyRequest, options?: RequestInit): Promise<FetchResponse<SessionPayload>>;
@@ -1143,18 +1143,18 @@ This method may return different T based on the response code:
 
 - 200: SessionPayload
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type                                                          |
 | ---------- | ------------------------------------------------------------- |
 | `body`     | [`SignUpWebauthnVerifyRequest`](#signupwebauthnverifyrequest) |
 | `options?` | `RequestInit`                                                 |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`SessionPayload`](#sessionpayload)&gt;&gt;
 
-##### verifyTicketURL()
+#### verifyTicketURL()
 
 ```ts
 verifyTicketURL(params?: VerifyTicketParams, options?: RequestInit): string;
@@ -1165,18 +1165,18 @@ Verify tickets created by email verification, magic link authentication, or pass
 
 As this method is a redirect, it returns a URL string instead of a Promise
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type                                        |
 | ---------- | ------------------------------------------- |
 | `params?`  | [`VerifyTicketParams`](#verifyticketparams) |
 | `options?` | `RequestInit`                               |
 
-###### Returns
+##### Returns
 
 `string`
 
-##### verifyToken()
+#### verifyToken()
 
 ```ts
 verifyToken(body?: VerifyTokenRequest, options?: RequestInit): Promise<FetchResponse<string>>;
@@ -1189,24 +1189,24 @@ This method may return different T based on the response code:
 
 - 200: string
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type                                        |
 | ---------- | ------------------------------------------- |
 | `body?`    | [`VerifyTokenRequest`](#verifytokenrequest) |
 | `options?` | `RequestInit`                               |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`string`&gt;&gt;
 
 ---
 
-### CreatePATRequest
+## CreatePATRequest
 
-#### Properties
+### Properties
 
-##### expiresAt
+#### expiresAt
 
 ```ts
 expiresAt: string
@@ -1216,7 +1216,7 @@ expiresAt: string
 
 - Format - date-time
 
-##### metadata?
+#### metadata?
 
 ```ts
 optional metadata: Record<string, unknown>;
@@ -1226,11 +1226,11 @@ Example - `{"name":"my-pat","used-by":"my-app-cli"}`
 
 ---
 
-### CreatePATResponse
+## CreatePATResponse
 
-#### Properties
+### Properties
 
-##### id
+#### id
 
 ```ts
 id: string
@@ -1241,7 +1241,7 @@ id: string
 - Example - `"2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"`
 - Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
 
-##### personalAccessToken
+#### personalAccessToken
 
 ```ts
 personalAccessToken: string
@@ -1254,11 +1254,11 @@ personalAccessToken: string
 
 ---
 
-### CredentialAssertionResponse
+## CredentialAssertionResponse
 
-#### Properties
+### Properties
 
-##### authenticatorAttachment?
+#### authenticatorAttachment?
 
 ```ts
 optional authenticatorAttachment: string;
@@ -1266,7 +1266,7 @@ optional authenticatorAttachment: string;
 
 The authenticator attachment
 
-##### clientExtensionResults?
+#### clientExtensionResults?
 
 ```ts
 optional clientExtensionResults: AuthenticationExtensionsClientOutputs;
@@ -1274,7 +1274,7 @@ optional clientExtensionResults: AuthenticationExtensionsClientOutputs;
 
 Map of extension outputs from the client
 
-##### id
+#### id
 
 ```ts
 id: string
@@ -1282,7 +1282,7 @@ id: string
 
 (`string`) - The credential's identifier
 
-##### rawId
+#### rawId
 
 ```ts
 rawId: string
@@ -1292,7 +1292,7 @@ rawId: string
 
 - Format - byte
 
-##### response
+#### response
 
 ```ts
 response: AuthenticatorAssertionResponse
@@ -1300,7 +1300,7 @@ response: AuthenticatorAssertionResponse
 
 (`AuthenticatorAssertionResponse`) -
 
-##### type
+#### type
 
 ```ts
 type: string
@@ -1310,11 +1310,11 @@ type: string
 
 ---
 
-### CredentialCreationResponse
+## CredentialCreationResponse
 
-#### Properties
+### Properties
 
-##### authenticatorAttachment?
+#### authenticatorAttachment?
 
 ```ts
 optional authenticatorAttachment: string;
@@ -1322,7 +1322,7 @@ optional authenticatorAttachment: string;
 
 The authenticator attachment
 
-##### clientExtensionResults?
+#### clientExtensionResults?
 
 ```ts
 optional clientExtensionResults: AuthenticationExtensionsClientOutputs;
@@ -1330,7 +1330,7 @@ optional clientExtensionResults: AuthenticationExtensionsClientOutputs;
 
 Map of extension outputs from the client
 
-##### id
+#### id
 
 ```ts
 id: string
@@ -1338,7 +1338,7 @@ id: string
 
 (`string`) - The credential's identifier
 
-##### rawId
+#### rawId
 
 ```ts
 rawId: string
@@ -1348,7 +1348,7 @@ rawId: string
 
 - Format - byte
 
-##### response
+#### response
 
 ```ts
 response: AuthenticatorAttestationResponse
@@ -1356,7 +1356,7 @@ response: AuthenticatorAttestationResponse
 
 (`AuthenticatorAttestationResponse`) -
 
-##### type
+#### type
 
 ```ts
 type: string
@@ -1366,11 +1366,11 @@ type: string
 
 ---
 
-### CredentialParameter
+## CredentialParameter
 
-#### Properties
+### Properties
 
-##### alg
+#### alg
 
 ```ts
 alg: number
@@ -1378,7 +1378,7 @@ alg: number
 
 (`number`) - The cryptographic algorithm identifier
 
-##### type
+#### type
 
 ```ts
 type: 'public-key'
@@ -1388,13 +1388,13 @@ type: 'public-key'
 
 ---
 
-### CredentialPropertiesOutput
+## CredentialPropertiesOutput
 
 Credential properties extension output
 
-#### Properties
+### Properties
 
-##### rk?
+#### rk?
 
 ```ts
 optional rk: boolean;
@@ -1404,13 +1404,13 @@ Indicates if the credential is a resident key
 
 ---
 
-### ErrorResponse
+## ErrorResponse
 
 Standardized error response
 
-#### Properties
+### Properties
 
-##### error
+#### error
 
 ```ts
 error: ErrorResponseError
@@ -1418,7 +1418,7 @@ error: ErrorResponseError
 
 (`ErrorResponseError`) - Error code identifying the specific application error
 
-##### message
+#### message
 
 ```ts
 message: string
@@ -1428,7 +1428,7 @@ message: string
 
 - Example - `"Invalid email format"`
 
-##### status
+#### status
 
 ```ts
 status: number
@@ -1440,11 +1440,11 @@ status: number
 
 ---
 
-### GetVersionResponse200
+## GetVersionResponse200
 
-#### Properties
+### Properties
 
-##### version
+#### version
 
 ```ts
 version: string
@@ -1456,13 +1456,13 @@ version: string
 
 ---
 
-### JWK
+## JWK
 
 JSON Web Key for JWT verification
 
-#### Properties
+### Properties
 
-##### alg
+#### alg
 
 ```ts
 alg: string
@@ -1472,7 +1472,7 @@ alg: string
 
 - Example - `"RS256"`
 
-##### e
+#### e
 
 ```ts
 e: string
@@ -1482,7 +1482,7 @@ e: string
 
 - Example - `"AQAB"`
 
-##### kid
+#### kid
 
 ```ts
 kid: string
@@ -1492,7 +1492,7 @@ kid: string
 
 - Example - `"key-id-1"`
 
-##### kty
+#### kty
 
 ```ts
 kty: string
@@ -1502,7 +1502,7 @@ kty: string
 
 - Example - `"RSA"`
 
-##### n
+#### n
 
 ```ts
 n: string
@@ -1512,7 +1512,7 @@ n: string
 
 - Example - `"abcd1234..."`
 
-##### use
+#### use
 
 ```ts
 use: string
@@ -1524,13 +1524,13 @@ use: string
 
 ---
 
-### JWKSet
+## JWKSet
 
 JSON Web Key Set for verifying JWT signatures
 
-#### Properties
+### Properties
 
-##### keys
+#### keys
 
 ```ts
 keys: JWK[];
@@ -1540,11 +1540,11 @@ keys: JWK[];
 
 ---
 
-### LinkIdTokenRequest
+## LinkIdTokenRequest
 
-#### Properties
+### Properties
 
-##### idToken
+#### idToken
 
 ```ts
 idToken: string
@@ -1552,7 +1552,7 @@ idToken: string
 
 (`string`) - Apple ID token
 
-##### nonce?
+#### nonce?
 
 ```ts
 optional nonce: string;
@@ -1560,7 +1560,7 @@ optional nonce: string;
 
 Nonce used during sign in process
 
-##### provider
+#### provider
 
 ```ts
 provider: IdTokenProvider
@@ -1570,13 +1570,13 @@ provider: IdTokenProvider
 
 ---
 
-### MFAChallengePayload
+## MFAChallengePayload
 
 Challenge payload for multi-factor authentication
 
-#### Properties
+### Properties
 
-##### ticket
+#### ticket
 
 ```ts
 ticket: string
@@ -1588,11 +1588,11 @@ ticket: string
 
 ---
 
-### OptionsRedirectTo
+## OptionsRedirectTo
 
-#### Properties
+### Properties
 
-##### redirectTo?
+#### redirectTo?
 
 ```ts
 optional redirectTo: string;
@@ -1603,11 +1603,11 @@ Format - uri
 
 ---
 
-### PublicKeyCredentialCreationOptions
+## PublicKeyCredentialCreationOptions
 
-#### Properties
+### Properties
 
-##### attestation?
+#### attestation?
 
 ```ts
 optional attestation: ConveyancePreference;
@@ -1615,7 +1615,7 @@ optional attestation: ConveyancePreference;
 
 The attestation conveyance preference
 
-##### attestationFormats?
+#### attestationFormats?
 
 ```ts
 optional attestationFormats: AttestationFormat[];
@@ -1623,13 +1623,13 @@ optional attestationFormats: AttestationFormat[];
 
 The preferred attestation statement formats
 
-##### authenticatorSelection?
+#### authenticatorSelection?
 
 ```ts
 optional authenticatorSelection: AuthenticatorSelection;
 ```
 
-##### challenge
+#### challenge
 
 ```ts
 challenge: string
@@ -1639,7 +1639,7 @@ challenge: string
 
 - Format - byte
 
-##### excludeCredentials?
+#### excludeCredentials?
 
 ```ts
 optional excludeCredentials: PublicKeyCredentialDescriptor[];
@@ -1647,7 +1647,7 @@ optional excludeCredentials: PublicKeyCredentialDescriptor[];
 
 A list of PublicKeyCredentialDescriptor objects representing public key credentials that are not acceptable to the caller
 
-##### extensions?
+#### extensions?
 
 ```ts
 optional extensions: Record<string, unknown>;
@@ -1655,7 +1655,7 @@ optional extensions: Record<string, unknown>;
 
 Additional parameters requesting additional processing by the client and authenticator
 
-##### hints?
+#### hints?
 
 ```ts
 optional hints: PublicKeyCredentialHints[];
@@ -1663,7 +1663,7 @@ optional hints: PublicKeyCredentialHints[];
 
 Hints to help guide the user through the experience
 
-##### pubKeyCredParams
+#### pubKeyCredParams
 
 ```ts
 pubKeyCredParams: CredentialParameter[];
@@ -1671,7 +1671,7 @@ pubKeyCredParams: CredentialParameter[];
 
 (`CredentialParameter[]`) - The desired credential types and their respective cryptographic parameters
 
-##### rp
+#### rp
 
 ```ts
 rp: RelyingPartyEntity
@@ -1679,7 +1679,7 @@ rp: RelyingPartyEntity
 
 (`RelyingPartyEntity`) -
 
-##### timeout?
+#### timeout?
 
 ```ts
 optional timeout: number;
@@ -1687,7 +1687,7 @@ optional timeout: number;
 
 A time, in milliseconds, that the caller is willing to wait for the call to complete
 
-##### user
+#### user
 
 ```ts
 user: UserEntity
@@ -1697,11 +1697,11 @@ user: UserEntity
 
 ---
 
-### PublicKeyCredentialDescriptor
+## PublicKeyCredentialDescriptor
 
-#### Properties
+### Properties
 
-##### id
+#### id
 
 ```ts
 id: string
@@ -1711,7 +1711,7 @@ id: string
 
 - Format - byte
 
-##### transports?
+#### transports?
 
 ```ts
 optional transports: AuthenticatorTransport[];
@@ -1719,7 +1719,7 @@ optional transports: AuthenticatorTransport[];
 
 The authenticator transports that can be used
 
-##### type
+#### type
 
 ```ts
 type: 'public-key'
@@ -1729,11 +1729,11 @@ type: 'public-key'
 
 ---
 
-### PublicKeyCredentialRequestOptions
+## PublicKeyCredentialRequestOptions
 
-#### Properties
+### Properties
 
-##### allowCredentials?
+#### allowCredentials?
 
 ```ts
 optional allowCredentials: PublicKeyCredentialDescriptor[];
@@ -1741,7 +1741,7 @@ optional allowCredentials: PublicKeyCredentialDescriptor[];
 
 A list of CredentialDescriptor objects representing public key credentials acceptable to the caller
 
-##### challenge
+#### challenge
 
 ```ts
 challenge: string
@@ -1751,7 +1751,7 @@ challenge: string
 
 - Format - byte
 
-##### extensions?
+#### extensions?
 
 ```ts
 optional extensions: Record<string, unknown>;
@@ -1759,7 +1759,7 @@ optional extensions: Record<string, unknown>;
 
 Additional parameters requesting additional processing by the client and authenticator
 
-##### hints?
+#### hints?
 
 ```ts
 optional hints: PublicKeyCredentialHints[];
@@ -1767,7 +1767,7 @@ optional hints: PublicKeyCredentialHints[];
 
 Hints to help guide the user through the experience
 
-##### rpId?
+#### rpId?
 
 ```ts
 optional rpId: string;
@@ -1775,7 +1775,7 @@ optional rpId: string;
 
 The RP ID the credential should be scoped to
 
-##### timeout?
+#### timeout?
 
 ```ts
 optional timeout: number;
@@ -1783,7 +1783,7 @@ optional timeout: number;
 
 A time, in milliseconds, that the caller is willing to wait for the call to complete
 
-##### userVerification?
+#### userVerification?
 
 ```ts
 optional userVerification: UserVerificationRequirement;
@@ -1793,13 +1793,13 @@ A requirement for user verification for the operation
 
 ---
 
-### RefreshTokenRequest
+## RefreshTokenRequest
 
 Request to refresh an access token
 
-#### Properties
+### Properties
 
-##### refreshToken
+#### refreshToken
 
 ```ts
 refreshToken: string
@@ -1812,11 +1812,11 @@ refreshToken: string
 
 ---
 
-### RelyingPartyEntity
+## RelyingPartyEntity
 
-#### Properties
+### Properties
 
-##### id
+#### id
 
 ```ts
 id: string
@@ -1824,7 +1824,7 @@ id: string
 
 (`string`) - A unique identifier for the Relying Party entity, which sets the RP ID
 
-##### name
+#### name
 
 ```ts
 name: string
@@ -1834,17 +1834,17 @@ name: string
 
 ---
 
-### Session
+## Session
 
 User authentication session containing tokens and user information
 
-#### Extended by
+### Extended by
 
 - [`Session`](./session#session)
 
-#### Properties
+### Properties
 
-##### accessToken
+#### accessToken
 
 ```ts
 accessToken: string
@@ -1854,7 +1854,7 @@ accessToken: string
 
 - Example - `"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."`
 
-##### accessTokenExpiresIn
+#### accessTokenExpiresIn
 
 ```ts
 accessTokenExpiresIn: number
@@ -1865,7 +1865,7 @@ accessTokenExpiresIn: number
 - Example - `900`
 - Format - int64
 
-##### refreshToken
+#### refreshToken
 
 ```ts
 refreshToken: string
@@ -1876,7 +1876,7 @@ refreshToken: string
 - Example - `"2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"`
 - Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
 
-##### refreshTokenId
+#### refreshTokenId
 
 ```ts
 refreshTokenId: string
@@ -1887,7 +1887,7 @@ refreshTokenId: string
 - Example - `"2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"`
 - Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
 
-##### user?
+#### user?
 
 ```ts
 optional user: User;
@@ -1897,13 +1897,13 @@ User profile and account information
 
 ---
 
-### SessionPayload
+## SessionPayload
 
 Container for session information
 
-#### Properties
+### Properties
 
-##### session?
+#### session?
 
 ```ts
 optional session: Session;
@@ -1913,11 +1913,11 @@ User authentication session containing tokens and user information
 
 ---
 
-### SignInAnonymousRequest
+## SignInAnonymousRequest
 
-#### Properties
+### Properties
 
-##### displayName?
+#### displayName?
 
 ```ts
 optional displayName: string;
@@ -1925,7 +1925,7 @@ optional displayName: string;
 
 Example - `"John Smith"`
 
-##### locale?
+#### locale?
 
 ```ts
 optional locale: string;
@@ -1936,7 +1936,7 @@ Example - `"en"`
 MinLength - 2
 MaxLength - 2
 
-##### metadata?
+#### metadata?
 
 ```ts
 optional metadata: Record<string, unknown>;
@@ -1946,13 +1946,13 @@ Example - `{"firstName":"John","lastName":"Smith"}`
 
 ---
 
-### SignInEmailPasswordRequest
+## SignInEmailPasswordRequest
 
 Request to authenticate using email and password
 
-#### Properties
+### Properties
 
-##### email
+#### email
 
 ```ts
 email: string
@@ -1963,7 +1963,7 @@ email: string
 - Example - `"john.smith@nhost.io"`
 - Format - email
 
-##### password
+#### password
 
 ```ts
 password: string
@@ -1977,13 +1977,13 @@ password: string
 
 ---
 
-### SignInEmailPasswordResponse
+## SignInEmailPasswordResponse
 
 Response for email-password authentication that may include a session or MFA challenge
 
-#### Properties
+### Properties
 
-##### mfa?
+#### mfa?
 
 ```ts
 optional mfa: MFAChallengePayload;
@@ -1991,7 +1991,7 @@ optional mfa: MFAChallengePayload;
 
 Challenge payload for multi-factor authentication
 
-##### session?
+#### session?
 
 ```ts
 optional session: Session;
@@ -2001,11 +2001,11 @@ User authentication session containing tokens and user information
 
 ---
 
-### SignInIdTokenRequest
+## SignInIdTokenRequest
 
-#### Properties
+### Properties
 
-##### idToken
+#### idToken
 
 ```ts
 idToken: string
@@ -2013,7 +2013,7 @@ idToken: string
 
 (`string`) - Apple ID token
 
-##### nonce?
+#### nonce?
 
 ```ts
 optional nonce: string;
@@ -2021,13 +2021,13 @@ optional nonce: string;
 
 Nonce used during sign in process
 
-##### options?
+#### options?
 
 ```ts
 optional options: SignUpOptions;
 ```
 
-##### provider
+#### provider
 
 ```ts
 provider: IdTokenProvider
@@ -2037,11 +2037,11 @@ provider: IdTokenProvider
 
 ---
 
-### SignInMfaTotpRequest
+## SignInMfaTotpRequest
 
-#### Properties
+### Properties
 
-##### otp
+#### otp
 
 ```ts
 otp: string
@@ -2049,7 +2049,7 @@ otp: string
 
 (`string`) - One time password
 
-##### ticket
+#### ticket
 
 ```ts
 ticket: string
@@ -2061,11 +2061,11 @@ ticket: string
 
 ---
 
-### SignInOTPEmailRequest
+## SignInOTPEmailRequest
 
-#### Properties
+### Properties
 
-##### email
+#### email
 
 ```ts
 email: string
@@ -2076,7 +2076,7 @@ email: string
 - Example - `"john.smith@nhost.io"`
 - Format - email
 
-##### options?
+#### options?
 
 ```ts
 optional options: SignUpOptions;
@@ -2084,11 +2084,11 @@ optional options: SignUpOptions;
 
 ---
 
-### SignInOTPEmailVerifyRequest
+## SignInOTPEmailVerifyRequest
 
-#### Properties
+### Properties
 
-##### email
+#### email
 
 ```ts
 email: string
@@ -2099,7 +2099,7 @@ email: string
 - Example - `"john.smith@nhost.io"`
 - Format - email
 
-##### otp
+#### otp
 
 ```ts
 otp: string
@@ -2109,11 +2109,11 @@ otp: string
 
 ---
 
-### SignInOTPEmailVerifyResponse
+## SignInOTPEmailVerifyResponse
 
-#### Properties
+### Properties
 
-##### session?
+#### session?
 
 ```ts
 optional session: Session;
@@ -2123,11 +2123,11 @@ User authentication session containing tokens and user information
 
 ---
 
-### SignInPasswordlessEmailRequest
+## SignInPasswordlessEmailRequest
 
-#### Properties
+### Properties
 
-##### email
+#### email
 
 ```ts
 email: string
@@ -2138,7 +2138,7 @@ email: string
 - Example - `"john.smith@nhost.io"`
 - Format - email
 
-##### options?
+#### options?
 
 ```ts
 optional options: SignUpOptions;
@@ -2146,11 +2146,11 @@ optional options: SignUpOptions;
 
 ---
 
-### SignInPasswordlessSmsOtpRequest
+## SignInPasswordlessSmsOtpRequest
 
-#### Properties
+### Properties
 
-##### otp
+#### otp
 
 ```ts
 otp: string
@@ -2158,7 +2158,7 @@ otp: string
 
 (`string`) - One-time password received by SMS
 
-##### phoneNumber
+#### phoneNumber
 
 ```ts
 phoneNumber: string
@@ -2170,11 +2170,11 @@ phoneNumber: string
 
 ---
 
-### SignInPasswordlessSmsOtpResponse
+## SignInPasswordlessSmsOtpResponse
 
-#### Properties
+### Properties
 
-##### mfa?
+#### mfa?
 
 ```ts
 optional mfa: MFAChallengePayload;
@@ -2182,7 +2182,7 @@ optional mfa: MFAChallengePayload;
 
 Challenge payload for multi-factor authentication
 
-##### session?
+#### session?
 
 ```ts
 optional session: Session;
@@ -2192,17 +2192,17 @@ User authentication session containing tokens and user information
 
 ---
 
-### SignInPasswordlessSmsRequest
+## SignInPasswordlessSmsRequest
 
-#### Properties
+### Properties
 
-##### options?
+#### options?
 
 ```ts
 optional options: SignUpOptions;
 ```
 
-##### phoneNumber
+#### phoneNumber
 
 ```ts
 phoneNumber: string
@@ -2214,11 +2214,11 @@ phoneNumber: string
 
 ---
 
-### SignInPATRequest
+## SignInPATRequest
 
-#### Properties
+### Properties
 
-##### personalAccessToken
+#### personalAccessToken
 
 ```ts
 personalAccessToken: string
@@ -2231,13 +2231,13 @@ personalAccessToken: string
 
 ---
 
-### SignInProviderParams
+## SignInProviderParams
 
 Parameters for the signInProvider method.
 
-#### Properties
+### Properties
 
-##### allowedRoles?
+#### allowedRoles?
 
 ```ts
 optional allowedRoles: string[];
@@ -2245,7 +2245,7 @@ optional allowedRoles: string[];
 
 Array of allowed roles for the user
 
-##### connect?
+#### connect?
 
 ```ts
 optional connect: string;
@@ -2253,7 +2253,7 @@ optional connect: string;
 
 If set, this means that the user is already authenticated and wants to link their account. This needs to be a valid JWT access token.
 
-##### defaultRole?
+#### defaultRole?
 
 ```ts
 optional defaultRole: string;
@@ -2261,7 +2261,7 @@ optional defaultRole: string;
 
 Default role for the user
 
-##### displayName?
+#### displayName?
 
 ```ts
 optional displayName: string;
@@ -2269,7 +2269,7 @@ optional displayName: string;
 
 Display name for the user
 
-##### locale?
+#### locale?
 
 ```ts
 optional locale: string;
@@ -2277,7 +2277,7 @@ optional locale: string;
 
 A two-characters locale
 
-##### metadata?
+#### metadata?
 
 ```ts
 optional metadata: Record<string, unknown>;
@@ -2285,7 +2285,7 @@ optional metadata: Record<string, unknown>;
 
 Additional metadata for the user (JSON encoded string)
 
-##### redirectTo?
+#### redirectTo?
 
 ```ts
 optional redirectTo: string;
@@ -2295,11 +2295,11 @@ URI to redirect to
 
 ---
 
-### SignInWebauthnRequest
+## SignInWebauthnRequest
 
-#### Properties
+### Properties
 
-##### email?
+#### email?
 
 ```ts
 optional email: string;
@@ -2311,11 +2311,11 @@ Format - email
 
 ---
 
-### SignInWebauthnVerifyRequest
+## SignInWebauthnVerifyRequest
 
-#### Properties
+### Properties
 
-##### credential
+#### credential
 
 ```ts
 credential: CredentialAssertionResponse
@@ -2323,7 +2323,7 @@ credential: CredentialAssertionResponse
 
 (`CredentialAssertionResponse`) -
 
-##### email?
+#### email?
 
 ```ts
 optional email: string;
@@ -2335,11 +2335,11 @@ Format - email
 
 ---
 
-### SignOutRequest
+## SignOutRequest
 
-#### Properties
+### Properties
 
-##### all?
+#### all?
 
 ```ts
 optional all: boolean;
@@ -2347,7 +2347,7 @@ optional all: boolean;
 
 Sign out from all connected devices
 
-##### refreshToken?
+#### refreshToken?
 
 ```ts
 optional refreshToken: string;
@@ -2357,13 +2357,13 @@ Refresh token for the current session
 
 ---
 
-### SignUpEmailPasswordRequest
+## SignUpEmailPasswordRequest
 
 Request to register a new user with email and password
 
-#### Properties
+### Properties
 
-##### email
+#### email
 
 ```ts
 email: string
@@ -2374,13 +2374,13 @@ email: string
 - Example - `"john.smith@nhost.io"`
 - Format - email
 
-##### options?
+#### options?
 
 ```ts
 optional options: SignUpOptions;
 ```
 
-##### password
+#### password
 
 ```ts
 password: string
@@ -2394,11 +2394,11 @@ password: string
 
 ---
 
-### SignUpOptions
+## SignUpOptions
 
-#### Properties
+### Properties
 
-##### allowedRoles?
+#### allowedRoles?
 
 ```ts
 optional allowedRoles: string[];
@@ -2406,7 +2406,7 @@ optional allowedRoles: string[];
 
 Example - `["me","user"]`
 
-##### defaultRole?
+#### defaultRole?
 
 ```ts
 optional defaultRole: string;
@@ -2414,7 +2414,7 @@ optional defaultRole: string;
 
 Example - `"user"`
 
-##### displayName?
+#### displayName?
 
 ```ts
 optional displayName: string;
@@ -2424,7 +2424,7 @@ Example - `"John Smith"`
 Pattern - ^[\p{L}\p{N}\p{S} ,.'-]+$
 MaxLength - 32
 
-##### locale?
+#### locale?
 
 ```ts
 optional locale: string;
@@ -2435,7 +2435,7 @@ Example - `"en"`
 MinLength - 2
 MaxLength - 2
 
-##### metadata?
+#### metadata?
 
 ```ts
 optional metadata: Record<string, unknown>;
@@ -2443,7 +2443,7 @@ optional metadata: Record<string, unknown>;
 
 Example - `{"firstName":"John","lastName":"Smith"}`
 
-##### redirectTo?
+#### redirectTo?
 
 ```ts
 optional redirectTo: string;
@@ -2454,11 +2454,11 @@ Format - uri
 
 ---
 
-### SignUpWebauthnRequest
+## SignUpWebauthnRequest
 
-#### Properties
+### Properties
 
-##### email
+#### email
 
 ```ts
 email: string
@@ -2469,7 +2469,7 @@ email: string
 - Example - `"john.smith@nhost.io"`
 - Format - email
 
-##### options?
+#### options?
 
 ```ts
 optional options: SignUpOptions;
@@ -2477,11 +2477,11 @@ optional options: SignUpOptions;
 
 ---
 
-### SignUpWebauthnVerifyRequest
+## SignUpWebauthnVerifyRequest
 
-#### Properties
+### Properties
 
-##### credential
+#### credential
 
 ```ts
 credential: CredentialCreationResponse
@@ -2489,7 +2489,7 @@ credential: CredentialCreationResponse
 
 (`CredentialCreationResponse`) -
 
-##### nickname?
+#### nickname?
 
 ```ts
 optional nickname: string;
@@ -2497,7 +2497,7 @@ optional nickname: string;
 
 Nickname for the security key
 
-##### options?
+#### options?
 
 ```ts
 optional options: SignUpOptions;
@@ -2505,13 +2505,13 @@ optional options: SignUpOptions;
 
 ---
 
-### TotpGenerateResponse
+## TotpGenerateResponse
 
 Response containing TOTP setup information for MFA
 
-#### Properties
+### Properties
 
-##### imageUrl
+#### imageUrl
 
 ```ts
 imageUrl: string
@@ -2521,7 +2521,7 @@ imageUrl: string
 
 - Example - `"data:image/png;base64,iVBORw0KGg..."`
 
-##### totpSecret
+#### totpSecret
 
 ```ts
 totpSecret: string
@@ -2533,13 +2533,13 @@ totpSecret: string
 
 ---
 
-### User
+## User
 
 User profile and account information
 
-#### Properties
+### Properties
 
-##### activeMfaType?
+#### activeMfaType?
 
 ```ts
 optional activeMfaType: string;
@@ -2547,7 +2547,7 @@ optional activeMfaType: string;
 
 Active MFA type for the user
 
-##### avatarUrl
+#### avatarUrl
 
 ```ts
 avatarUrl: string
@@ -2557,7 +2557,7 @@ avatarUrl: string
 
 - Example - `"https://myapp.com/avatars/user123.jpg"`
 
-##### createdAt
+#### createdAt
 
 ```ts
 createdAt: string
@@ -2568,7 +2568,7 @@ createdAt: string
 - Example - `"2023-01-15T12:34:56Z"`
 - Format - date-time
 
-##### defaultRole
+#### defaultRole
 
 ```ts
 defaultRole: string
@@ -2578,7 +2578,7 @@ defaultRole: string
 
 - Example - `"user"`
 
-##### displayName
+#### displayName
 
 ```ts
 displayName: string
@@ -2588,7 +2588,7 @@ displayName: string
 
 - Example - `"John Smith"`
 
-##### email?
+#### email?
 
 ```ts
 optional email: string;
@@ -2598,7 +2598,7 @@ User's email address
 Example - `"john.smith@nhost.io"`
 Format - email
 
-##### emailVerified
+#### emailVerified
 
 ```ts
 emailVerified: boolean
@@ -2608,7 +2608,7 @@ emailVerified: boolean
 
 - Example - `true`
 
-##### id
+#### id
 
 ```ts
 id: string
@@ -2619,7 +2619,7 @@ id: string
 - Example - `"2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"`
 - Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
 
-##### isAnonymous
+#### isAnonymous
 
 ```ts
 isAnonymous: boolean
@@ -2629,7 +2629,7 @@ isAnonymous: boolean
 
 - Example - `false`
 
-##### locale
+#### locale
 
 ```ts
 locale: string
@@ -2641,7 +2641,7 @@ locale: string
 - MinLength - 2
 - MaxLength - 2
 
-##### metadata
+#### metadata
 
 ```ts
 metadata: Record<string, unknown>
@@ -2651,7 +2651,7 @@ metadata: Record<string, unknown>
 
 - Example - `{"firstName":"John","lastName":"Smith"}`
 
-##### phoneNumber?
+#### phoneNumber?
 
 ```ts
 optional phoneNumber: string;
@@ -2660,7 +2660,7 @@ optional phoneNumber: string;
 User's phone number
 Example - `"+12025550123"`
 
-##### phoneNumberVerified
+#### phoneNumberVerified
 
 ```ts
 phoneNumberVerified: boolean
@@ -2670,7 +2670,7 @@ phoneNumberVerified: boolean
 
 - Example - `false`
 
-##### roles
+#### roles
 
 ```ts
 roles: string[];
@@ -2682,11 +2682,11 @@ roles: string[];
 
 ---
 
-### UserDeanonymizeRequest
+## UserDeanonymizeRequest
 
-#### Properties
+### Properties
 
-##### connection?
+#### connection?
 
 ```ts
 optional connection: string;
@@ -2694,7 +2694,7 @@ optional connection: string;
 
 Deprecated, will be ignored
 
-##### email
+#### email
 
 ```ts
 email: string
@@ -2705,13 +2705,13 @@ email: string
 - Example - `"john.smith@nhost.io"`
 - Format - email
 
-##### options?
+#### options?
 
 ```ts
 optional options: SignUpOptions;
 ```
 
-##### password?
+#### password?
 
 ```ts
 optional password: string;
@@ -2722,7 +2722,7 @@ Example - `"Str0ngPassw#ord-94|%"`
 MinLength - 3
 MaxLength - 50
 
-##### signInMethod
+#### signInMethod
 
 ```ts
 signInMethod: UserDeanonymizeRequestSignInMethod
@@ -2732,11 +2732,11 @@ signInMethod: UserDeanonymizeRequestSignInMethod
 
 ---
 
-### UserEmailChangeRequest
+## UserEmailChangeRequest
 
-#### Properties
+### Properties
 
-##### newEmail
+#### newEmail
 
 ```ts
 newEmail: string
@@ -2747,7 +2747,7 @@ newEmail: string
 - Example - `"john.smith@nhost.io"`
 - Format - email
 
-##### options?
+#### options?
 
 ```ts
 optional options: OptionsRedirectTo;
@@ -2755,11 +2755,11 @@ optional options: OptionsRedirectTo;
 
 ---
 
-### UserEmailSendVerificationEmailRequest
+## UserEmailSendVerificationEmailRequest
 
-#### Properties
+### Properties
 
-##### email
+#### email
 
 ```ts
 email: string
@@ -2770,7 +2770,7 @@ email: string
 - Example - `"john.smith@nhost.io"`
 - Format - email
 
-##### options?
+#### options?
 
 ```ts
 optional options: OptionsRedirectTo;
@@ -2778,11 +2778,11 @@ optional options: OptionsRedirectTo;
 
 ---
 
-### UserEntity
+## UserEntity
 
-#### Properties
+### Properties
 
-##### displayName
+#### displayName
 
 ```ts
 displayName: string
@@ -2790,7 +2790,7 @@ displayName: string
 
 (`string`) - A human-palatable name for the user account, intended only for display
 
-##### id
+#### id
 
 ```ts
 id: string
@@ -2798,7 +2798,7 @@ id: string
 
 (`string`) - The user handle of the user account entity
 
-##### name
+#### name
 
 ```ts
 name: string
@@ -2808,13 +2808,13 @@ name: string
 
 ---
 
-### UserMfaRequest
+## UserMfaRequest
 
 Request to activate or deactivate multi-factor authentication
 
-#### Properties
+### Properties
 
-##### activeMfaType?
+#### activeMfaType?
 
 ```ts
 optional activeMfaType: UserMfaRequestActiveMfaType;
@@ -2823,7 +2823,7 @@ optional activeMfaType: UserMfaRequestActiveMfaType;
 Type of MFA to activate. Use empty string to disable MFA.
 Example - `"totp"`
 
-##### code
+#### code
 
 ```ts
 code: string
@@ -2835,11 +2835,11 @@ code: string
 
 ---
 
-### UserPasswordRequest
+## UserPasswordRequest
 
-#### Properties
+### Properties
 
-##### newPassword
+#### newPassword
 
 ```ts
 newPassword: string
@@ -2851,7 +2851,7 @@ newPassword: string
 - MinLength - 3
 - MaxLength - 50
 
-##### ticket?
+#### ticket?
 
 ```ts
 optional ticket: string;
@@ -2862,11 +2862,11 @@ Pattern - ^passwordReset\:.\*$
 
 ---
 
-### UserPasswordResetRequest
+## UserPasswordResetRequest
 
-#### Properties
+### Properties
 
-##### email
+#### email
 
 ```ts
 email: string
@@ -2877,7 +2877,7 @@ email: string
 - Example - `"john.smith@nhost.io"`
 - Format - email
 
-##### options?
+#### options?
 
 ```ts
 optional options: OptionsRedirectTo;
@@ -2885,11 +2885,11 @@ optional options: OptionsRedirectTo;
 
 ---
 
-### VerifyAddSecurityKeyRequest
+## VerifyAddSecurityKeyRequest
 
-#### Properties
+### Properties
 
-##### credential
+#### credential
 
 ```ts
 credential: CredentialCreationResponse
@@ -2897,7 +2897,7 @@ credential: CredentialCreationResponse
 
 (`CredentialCreationResponse`) -
 
-##### nickname?
+#### nickname?
 
 ```ts
 optional nickname: string;
@@ -2907,11 +2907,11 @@ Optional nickname for the security key
 
 ---
 
-### VerifyAddSecurityKeyResponse
+## VerifyAddSecurityKeyResponse
 
-#### Properties
+### Properties
 
-##### id
+#### id
 
 ```ts
 id: string
@@ -2921,7 +2921,7 @@ id: string
 
 - Example - `"123e4567-e89b-12d3-a456-426614174000"`
 
-##### nickname?
+#### nickname?
 
 ```ts
 optional nickname: string;
@@ -2931,13 +2931,13 @@ The nickname of the security key if provided
 
 ---
 
-### VerifyTicketParams
+## VerifyTicketParams
 
 Parameters for the verifyTicket method.
 
-#### Properties
+### Properties
 
-##### redirectTo
+#### redirectTo
 
 ```ts
 redirectTo: string
@@ -2947,7 +2947,7 @@ redirectTo: string
 
 - Target URL for the redirect
 
-##### ticket
+#### ticket
 
 ```ts
 ticket: string
@@ -2957,7 +2957,7 @@ ticket: string
 
 - Ticket
 
-##### type?
+#### type?
 
 ```ts
 optional type: TicketTypeQuery;
@@ -2969,11 +2969,11 @@ Type of the ticket. Deprecated, no longer used
 
 ---
 
-### VerifyTokenRequest
+## VerifyTokenRequest
 
-#### Properties
+### Properties
 
-##### token?
+#### token?
 
 ```ts
 optional token: string;
@@ -2981,9 +2981,9 @@ optional token: string;
 
 JWT token to verify
 
-## Type Aliases
+# Type Aliases
 
-### AttestationFormat
+## AttestationFormat
 
 ```ts
 type AttestationFormat =
@@ -3000,7 +3000,7 @@ The attestation statement format
 
 ---
 
-### AuthenticatorAttachment
+## AuthenticatorAttachment
 
 ```ts
 type AuthenticatorAttachment = 'platform' | 'cross-platform'
@@ -3010,7 +3010,7 @@ The authenticator attachment modality
 
 ---
 
-### AuthenticatorTransport
+## AuthenticatorTransport
 
 ```ts
 type AuthenticatorTransport = 'usb' | 'nfc' | 'ble' | 'smart-card' | 'hybrid' | 'internal'
@@ -3020,7 +3020,7 @@ The authenticator transports that can be used
 
 ---
 
-### ConveyancePreference
+## ConveyancePreference
 
 ```ts
 type ConveyancePreference = 'none' | 'indirect' | 'direct' | 'enterprise'
@@ -3030,7 +3030,7 @@ The attestation conveyance preference
 
 ---
 
-### CredentialType
+## CredentialType
 
 ```ts
 type CredentialType = 'public-key'
@@ -3040,7 +3040,7 @@ The valid credential types
 
 ---
 
-### ErrorResponseError
+## ErrorResponseError
 
 ```ts
 type ErrorResponseError =
@@ -3081,7 +3081,7 @@ Error code identifying the specific application error
 
 ---
 
-### IdTokenProvider
+## IdTokenProvider
 
 ```ts
 type IdTokenProvider = 'apple' | 'google'
@@ -3089,7 +3089,7 @@ type IdTokenProvider = 'apple' | 'google'
 
 ---
 
-### OKResponse
+## OKResponse
 
 ```ts
 type OKResponse = 'OK'
@@ -3097,7 +3097,7 @@ type OKResponse = 'OK'
 
 ---
 
-### PublicKeyCredentialHints
+## PublicKeyCredentialHints
 
 ```ts
 type PublicKeyCredentialHints = 'security-key' | 'client-device' | 'hybrid'
@@ -3107,7 +3107,7 @@ Hints to help guide the user through the experience
 
 ---
 
-### RedirectToQuery
+## RedirectToQuery
 
 ```ts
 type RedirectToQuery = string
@@ -3117,7 +3117,7 @@ Target URL for the redirect
 
 ---
 
-### ResidentKeyRequirement
+## ResidentKeyRequirement
 
 ```ts
 type ResidentKeyRequirement = 'discouraged' | 'preferred' | 'required'
@@ -3127,7 +3127,7 @@ The resident key requirement
 
 ---
 
-### SignInProvider
+## SignInProvider
 
 ```ts
 type SignInProvider =
@@ -3150,7 +3150,7 @@ type SignInProvider =
 
 ---
 
-### TicketQuery
+## TicketQuery
 
 ```ts
 type TicketQuery = string
@@ -3160,7 +3160,7 @@ Ticket
 
 ---
 
-### TicketTypeQuery
+## TicketTypeQuery
 
 ```ts
 type TicketTypeQuery = 'emailVerify' | 'emailConfirmChange' | 'signinPasswordless' | 'passwordReset'
@@ -3170,7 +3170,7 @@ Type of the ticket
 
 ---
 
-### URLEncodedBase64
+## URLEncodedBase64
 
 ```ts
 type URLEncodedBase64 = string
@@ -3180,7 +3180,7 @@ Base64url-encoded binary data
 
 ---
 
-### UserDeanonymizeRequestSignInMethod
+## UserDeanonymizeRequestSignInMethod
 
 ```ts
 type UserDeanonymizeRequestSignInMethod = 'email-password' | 'passwordless'
@@ -3190,7 +3190,7 @@ Which sign-in method to use
 
 ---
 
-### UserMfaRequestActiveMfaType
+## UserMfaRequestActiveMfaType
 
 ```ts
 type UserMfaRequestActiveMfaType = 'totp' | ''
@@ -3200,7 +3200,7 @@ Type of MFA to activate. Use empty string to disable MFA.
 
 ---
 
-### UserVerificationRequirement
+## UserVerificationRequirement
 
 ```ts
 type UserVerificationRequirement = 'required' | 'preferred' | 'discouraged'
@@ -3208,21 +3208,21 @@ type UserVerificationRequirement = 'required' | 'preferred' | 'discouraged'
 
 A requirement for user verification for the operation
 
-## Functions
+# Functions
 
-### createAPIClient()
+## createAPIClient()
 
 ```ts
 function createAPIClient(baseURL: string, chainFunctions: ChainFunction[]): Client
 ```
 
-#### Parameters
+### Parameters
 
 | Parameter        | Type                                         | Default value |
 | ---------------- | -------------------------------------------- | ------------- |
 | `baseURL`        | `string`                                     | `undefined`   |
 | `chainFunctions` | [`ChainFunction`](./fetch#chainfunction)[] | `[]`          |
 
-#### Returns
+### Returns
 
 [`Client`](#client)

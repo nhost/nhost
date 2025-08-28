@@ -28,21 +28,18 @@ fix_mdx_links() {
 
     echo "Processing files in $folder..."
 
-    # Find all files in the directory (recursively)
-    find "$folder" -type f | while read -r file; do
-        # Check if the file contains the patterns we're looking for
-        if grep -q "\.mdx)" "$file" || grep -q "\.mdx#" "$file"; then
-            echo "Fixing links in: $file"
+    # Find all MDX files in the directory (recursively)
+    find "$folder" -name "*.mdx" -type f | while read -r file; do
+        echo "Processing: $file"
 
-            # Create a temporary file
-            local temp_file=$(mktemp)
+        # Create a temporary file
+        local temp_file=$(mktemp)
 
-            # Replace .mdx) with ) and .mdx# with #, and ensure relative paths start with ./
-            sed -e 's/\.mdx)/)/g' -e 's/\.mdx#/#/g' -e 's/\[\([^]]*\)\](\([^./#][^)]*\))/[\1](\.\/\2)/g' "$file" > "$temp_file"
+        # Replace .mdx) with ) and .mdx# with #, ensure relative paths start with ./, and remove one level of headers
+        sed -e 's/\.mdx)/)/g' -e 's/\.mdx#/#/g' -e 's/\[\([^]]*\)\](\([^./#][^)]*\))/[\1](\.\/\2)/g' -e 's/^#//' "$file" > "$temp_file"
 
-            # Replace the original file with the fixed version
-            mv "$temp_file" "$file"
-        fi
+        # Replace the original file with the fixed version
+        mv "$temp_file" "$file"
     done
 
     echo "Link fixing complete!"
@@ -56,6 +53,7 @@ function build_typedoc() {
     typedoc --options typedoc.json --tsconfig ../packages/nhost-js/tsconfig.json
 
     mv $DOCS_DIR/index.mdx $DOCS_DIR/main.mdx
+    rm $DOCS_DIR/.mdx
 
     fix_mdx_links $DOCS_DIR
 }

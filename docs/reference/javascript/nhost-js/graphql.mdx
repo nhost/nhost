@@ -2,19 +2,19 @@ This is the main module to interact with Nhost's GraphQL service.
 Typically you would use this module via the main [Nhost client](./main#createclient)
 but you can also use it directly if you have a specific use case.
 
-## Import
+# Import
 
 ```ts
 import { createClient } from '@nhost/nhost-js/graphql'
 ```
 
-## Usage
+# Usage
 
 The `request` method provides type-safe GraphQL operations with full TypeScript support.
 You can leverage generics to type your responses and use GraphQL document nodes for better
 integration with third-party libraries.
 
-### Basic Usage
+## Basic Usage
 
 ```ts
 import { createClient } from '@nhost/nhost-js'
@@ -36,7 +36,7 @@ const resp = await nhost.graphql.request({
 })
 ```
 
-### Using String Queries with Type Generics
+## Using String Queries with Type Generics
 
 You can type your GraphQL queries and responses using TypeScript generics:
 
@@ -72,7 +72,7 @@ const resp = await nhost.graphql.request<Movies>({
 })
 ```
 
-### Using GraphQL Document Nodes
+## Using GraphQL Document Nodes
 
 For better integration with third-party libraries like Apollo Client or The Guild's GraphQL
 Code Generator, you can use GraphQL document nodes created with `gql` template literal tags:
@@ -118,7 +118,7 @@ Using document nodes enables:
 - Integration with code generation tools
 - Compatibility with Apollo Client and other GraphQL libraries
 
-## Error handling
+# Error handling
 
 The SDK will throw errors in GraphQL operations that respond with an errors attribute
 with length > 0. The error will be an instance of `FetchError<GraphQLResponse>` and will
@@ -203,15 +203,15 @@ try {
 }
 ```
 
-## Interfaces
+# Interfaces
 
-### Client
+## Client
 
 GraphQL client interface providing methods for executing queries and mutations
 
-#### Properties
+### Properties
 
-##### url
+#### url
 
 ```ts
 url: string
@@ -219,11 +219,11 @@ url: string
 
 URL for the GraphQL endpoint.
 
-#### Methods
+### Methods
 
-##### request()
+#### request()
 
-###### Call Signature
+##### Call Signature
 
 ```ts
 request<TResponseData, TVariables>(request: GraphQLRequest<TVariables>, options?: RequestInit): Promise<FetchResponse<GraphQLResponse<TResponseData>>>;
@@ -233,27 +233,27 @@ Execute a GraphQL query operation
 
 Queries are used to fetch data and should not modify any data on the server.
 
-###### Type Parameters
+##### Type Parameters
 
 | Type Parameter  | Default type                            |
 | --------------- | --------------------------------------- |
 | `TResponseData` | `any`                                   |
 | `TVariables`    | [`GraphQLVariables`](#graphqlvariables) |
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type                                                    | Description                                                    |
 | ---------- | ------------------------------------------------------- | -------------------------------------------------------------- |
 | `request`  | [`GraphQLRequest`](#graphqlrequest)&lt;`TVariables`&gt; | GraphQL request object containing query and optional variables |
 | `options?` | `RequestInit`                                           | Additional fetch options to apply to the request               |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`GraphQLResponse`](#graphqlresponse)&lt;`TResponseData`&gt;&gt;&gt;
 
 Promise with the GraphQL response and metadata
 
-###### Call Signature
+##### Call Signature
 
 ```ts
 request<TResponseData, TVariables>(
@@ -264,14 +264,14 @@ request<TResponseData, TVariables>(
 
 Execute a GraphQL query operation using a typed document node
 
-###### Type Parameters
+##### Type Parameters
 
 | Type Parameter  | Default type                            |
 | --------------- | --------------------------------------- |
 | `TResponseData` | -                                       |
 | `TVariables`    | [`GraphQLVariables`](#graphqlvariables) |
 
-###### Parameters
+##### Parameters
 
 | Parameter    | Type                                                     | Description                                                 |
 | ------------ | -------------------------------------------------------- | ----------------------------------------------------------- |
@@ -279,7 +279,7 @@ Execute a GraphQL query operation using a typed document node
 | `variables?` | `TVariables`                                             | Variables for the GraphQL operation                         |
 | `options?`   | `RequestInit`                                            | Additional fetch options to apply to the request            |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`GraphQLResponse`](#graphqlresponse)&lt;`TResponseData`&gt;&gt;&gt;
 
@@ -287,13 +287,13 @@ Promise with the GraphQL response and metadata
 
 ---
 
-### GraphQLError
+## GraphQLError
 
 Represents a GraphQL error returned from the server.
 
-#### Properties
+### Properties
 
-##### extensions?
+#### extensions?
 
 ```ts
 optional extensions: object;
@@ -306,7 +306,7 @@ Additional error information specific to the GraphQL implementation
 | `code` | `string` |
 | `path` | `string` |
 
-##### locations?
+#### locations?
 
 ```ts
 optional locations: object[];
@@ -319,7 +319,7 @@ Source locations in the GraphQL document where the error occurred
 | `column` | `number` |
 | `line`   | `number` |
 
-##### message
+#### message
 
 ```ts
 message: string
@@ -327,7 +327,7 @@ message: string
 
 Error message
 
-##### path?
+#### path?
 
 ```ts
 optional path: string[];
@@ -337,19 +337,19 @@ Path in the query where the error occurred
 
 ---
 
-### GraphQLRequest&lt;TVariables&gt;
+## GraphQLRequest&lt;TVariables&gt;
 
 GraphQL request object used for queries and mutations.
 
-#### Type Parameters
+### Type Parameters
 
 | Type Parameter | Default type                            |
 | -------------- | --------------------------------------- |
 | `TVariables`   | [`GraphQLVariables`](#graphqlvariables) |
 
-#### Properties
+### Properties
 
-##### operationName?
+#### operationName?
 
 ```ts
 optional operationName: string;
@@ -357,7 +357,7 @@ optional operationName: string;
 
 Optional name of the operation to execute
 
-##### query
+#### query
 
 ```ts
 query: string
@@ -365,7 +365,7 @@ query: string
 
 The GraphQL query or mutation string
 
-##### variables?
+#### variables?
 
 ```ts
 optional variables: TVariables;
@@ -375,19 +375,19 @@ Optional variables for parameterized queries
 
 ---
 
-### GraphQLResponse&lt;TResponseData&gt;
+## GraphQLResponse&lt;TResponseData&gt;
 
 Standard GraphQL response format as defined by the GraphQL specification.
 
-#### Type Parameters
+### Type Parameters
 
 | Type Parameter  | Default type |
 | --------------- | ------------ |
 | `TResponseData` | `any`        |
 
-#### Properties
+### Properties
 
-##### data?
+#### data?
 
 ```ts
 optional data: TResponseData;
@@ -395,7 +395,7 @@ optional data: TResponseData;
 
 The data returned from successful execution
 
-##### errors?
+#### errors?
 
 ```ts
 optional errors: GraphQLError[];
@@ -403,9 +403,9 @@ optional errors: GraphQLError[];
 
 Array of errors if execution was unsuccessful or partially successful
 
-## Type Aliases
+# Type Aliases
 
-### GraphQLVariables
+## GraphQLVariables
 
 ```ts
 type GraphQLVariables = Record<string, any>
@@ -414,9 +414,9 @@ type GraphQLVariables = Record<string, any>
 Variables object for GraphQL operations.
 Key-value pairs of variable names and their values.
 
-## Functions
+# Functions
 
-### createAPIClient()
+## createAPIClient()
 
 ```ts
 function createAPIClient(url: string, chainFunctions: ChainFunction[]): Client
@@ -428,14 +428,14 @@ This client provides methods for executing queries and mutations against
 a GraphQL API, with support for middleware functions to handle authentication,
 error handling, and other cross-cutting concerns.
 
-#### Parameters
+### Parameters
 
 | Parameter        | Type                                         | Default value | Description                                       |
 | ---------------- | -------------------------------------------- | ------------- | ------------------------------------------------- |
 | `url`            | `string`                                     | `undefined`   | Base URL for the GraphQL endpoint                 |
 | `chainFunctions` | [`ChainFunction`](./fetch#chainfunction)[] | `[]`          | Array of middleware functions for the fetch chain |
 
-#### Returns
+### Returns
 
 [`Client`](#client)
 

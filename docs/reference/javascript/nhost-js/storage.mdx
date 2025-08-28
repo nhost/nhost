@@ -2,7 +2,7 @@ This is the main module to interact with Nhost's Storage service.
 Typically you would use this module via the main [Nhost client](./main#createclient)
 but you can also use it directly if you have a specific use case.
 
-## Import
+# Import
 
 You can import and use this package with:
 
@@ -10,7 +10,7 @@ You can import and use this package with:
 import { createClient } from '@nhost/nhost-js/storage'
 ```
 
-## Usage
+# Usage
 
 You can use this library to upload files, download files, and delete files:
 
@@ -68,7 +68,7 @@ await nhost.storage.deleteFile(fileId)
 expect(uploadResp.status).toBe(201)
 ```
 
-## Error handling
+# Error handling
 
 The SDK will throw errors in most operations if the request returns a status >=300 or
 if the request fails entirely (i.e., due to network errors). The type of the error
@@ -133,21 +133,21 @@ try {
 }
 ```
 
-## Interfaces
+# Interfaces
 
-### Client
+## Client
 
-#### Properties
+### Properties
 
-##### baseURL
+#### baseURL
 
 ```ts
 baseURL: string
 ```
 
-#### Methods
+### Methods
 
-##### deleteBrokenMetadata()
+#### deleteBrokenMetadata()
 
 ```ts
 deleteBrokenMetadata(options?: RequestInit): Promise<FetchResponse<DeleteBrokenMetadataResponse200>>;
@@ -160,17 +160,17 @@ This method may return different T based on the response code:
 
 - 200: DeleteBrokenMetadataResponse200
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type          |
 | ---------- | ------------- |
 | `options?` | `RequestInit` |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`DeleteBrokenMetadataResponse200`](#deletebrokenmetadataresponse200)&gt;&gt;
 
-##### deleteFile()
+#### deleteFile()
 
 ```ts
 deleteFile(id: string, options?: RequestInit): Promise<FetchResponse<void>>;
@@ -183,18 +183,18 @@ This method may return different T based on the response code:
 
 - 204: void
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type          |
 | ---------- | ------------- |
 | `id`       | `string`      |
 | `options?` | `RequestInit` |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`void`&gt;&gt;
 
-##### deleteOrphanedFiles()
+#### deleteOrphanedFiles()
 
 ```ts
 deleteOrphanedFiles(options?: RequestInit): Promise<FetchResponse<DeleteOrphanedFilesResponse200>>;
@@ -207,17 +207,17 @@ This method may return different T based on the response code:
 
 - 200: DeleteOrphanedFilesResponse200
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type          |
 | ---------- | ------------- |
 | `options?` | `RequestInit` |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`DeleteOrphanedFilesResponse200`](#deleteorphanedfilesresponse200)&gt;&gt;
 
-##### getFile()
+#### getFile()
 
 ```ts
 getFile(
@@ -236,7 +236,7 @@ This method may return different T based on the response code:
 - 304: void
 - 412: void
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type                              |
 | ---------- | --------------------------------- |
@@ -244,11 +244,11 @@ This method may return different T based on the response code:
 | `params?`  | [`GetFileParams`](#getfileparams) |
 | `options?` | `RequestInit`                     |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`Blob`&gt;&gt;
 
-##### getFileMetadataHeaders()
+#### getFileMetadataHeaders()
 
 ```ts
 getFileMetadataHeaders(
@@ -266,7 +266,7 @@ This method may return different T based on the response code:
 - 304: void
 - 412: void
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type                                                            |
 | ---------- | --------------------------------------------------------------- |
@@ -274,11 +274,11 @@ This method may return different T based on the response code:
 | `params?`  | [`GetFileMetadataHeadersParams`](#getfilemetadataheadersparams) |
 | `options?` | `RequestInit`                                                   |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`void`&gt;&gt;
 
-##### getFilePresignedURL()
+#### getFilePresignedURL()
 
 ```ts
 getFilePresignedURL(id: string, options?: RequestInit): Promise<FetchResponse<PresignedURLResponse>>;
@@ -292,18 +292,18 @@ This method may return different T based on the response code:
 
 - 200: PresignedURLResponse
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type          |
 | ---------- | ------------- |
 | `id`       | `string`      |
 | `options?` | `RequestInit` |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`PresignedURLResponse`](#presignedurlresponse)&gt;&gt;
 
-##### getVersion()
+#### getVersion()
 
 ```ts
 getVersion(options?: RequestInit): Promise<FetchResponse<VersionInformation>>;
@@ -316,17 +316,17 @@ This method may return different T based on the response code:
 
 - 200: VersionInformation
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type          |
 | ---------- | ------------- |
 | `options?` | `RequestInit` |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`VersionInformation`](#versioninformation)&gt;&gt;
 
-##### listBrokenMetadata()
+#### listBrokenMetadata()
 
 ```ts
 listBrokenMetadata(options?: RequestInit): Promise<FetchResponse<ListBrokenMetadataResponse200>>;
@@ -339,17 +339,17 @@ This method may return different T based on the response code:
 
 - 200: ListBrokenMetadataResponse200
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type          |
 | ---------- | ------------- |
 | `options?` | `RequestInit` |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`ListBrokenMetadataResponse200`](#listbrokenmetadataresponse200)&gt;&gt;
 
-##### listFilesNotUploaded()
+#### listFilesNotUploaded()
 
 ```ts
 listFilesNotUploaded(options?: RequestInit): Promise<FetchResponse<ListFilesNotUploadedResponse200>>;
@@ -362,17 +362,17 @@ This method may return different T based on the response code:
 
 - 200: ListFilesNotUploadedResponse200
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type          |
 | ---------- | ------------- |
 | `options?` | `RequestInit` |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`ListFilesNotUploadedResponse200`](#listfilesnotuploadedresponse200)&gt;&gt;
 
-##### listOrphanedFiles()
+#### listOrphanedFiles()
 
 ```ts
 listOrphanedFiles(options?: RequestInit): Promise<FetchResponse<ListOrphanedFilesResponse200>>;
@@ -385,33 +385,33 @@ This method may return different T based on the response code:
 
 - 200: ListOrphanedFilesResponse200
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type          |
 | ---------- | ------------- |
 | `options?` | `RequestInit` |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`ListOrphanedFilesResponse200`](#listorphanedfilesresponse200)&gt;&gt;
 
-##### pushChainFunction()
+#### pushChainFunction()
 
 ```ts
 pushChainFunction(chainFunction: ChainFunction): void;
 ```
 
-###### Parameters
+##### Parameters
 
 | Parameter       | Type                                       |
 | --------------- | ------------------------------------------ |
 | `chainFunction` | [`ChainFunction`](./fetch#chainfunction) |
 
-###### Returns
+##### Returns
 
 `void`
 
-##### replaceFile()
+#### replaceFile()
 
 ```ts
 replaceFile(
@@ -433,7 +433,7 @@ This method may return different T based on the response code:
 
 - 200: FileMetadata
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type                                  |
 | ---------- | ------------------------------------- |
@@ -441,11 +441,11 @@ This method may return different T based on the response code:
 | `body`     | [`ReplaceFileBody`](#replacefilebody) |
 | `options?` | `RequestInit`                         |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`FileMetadata`](#filemetadata)&gt;&gt;
 
-##### uploadFiles()
+#### uploadFiles()
 
 ```ts
 uploadFiles(body: UploadFilesBody, options?: RequestInit): Promise<FetchResponse<UploadFilesResponse201>>;
@@ -458,24 +458,24 @@ This method may return different T based on the response code:
 
 - 201: UploadFilesResponse201
 
-###### Parameters
+##### Parameters
 
 | Parameter  | Type                                  |
 | ---------- | ------------------------------------- |
 | `body`     | [`UploadFilesBody`](#uploadfilesbody) |
 | `options?` | `RequestInit`                         |
 
-###### Returns
+##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`UploadFilesResponse201`](#uploadfilesresponse201)&gt;&gt;
 
 ---
 
-### DeleteBrokenMetadataResponse200
+## DeleteBrokenMetadataResponse200
 
-#### Properties
+### Properties
 
-##### metadata?
+#### metadata?
 
 ```ts
 optional metadata: FileSummary[];
@@ -483,11 +483,11 @@ optional metadata: FileSummary[];
 
 ---
 
-### DeleteOrphanedFilesResponse200
+## DeleteOrphanedFilesResponse200
 
-#### Properties
+### Properties
 
-##### files?
+#### files?
 
 ```ts
 optional files: string[];
@@ -495,13 +495,13 @@ optional files: string[];
 
 ---
 
-### ErrorResponse
+## ErrorResponse
 
 Error information returned by the API.
 
-#### Properties
+### Properties
 
-##### error?
+#### error?
 
 ```ts
 optional error: ErrorResponseError;
@@ -511,13 +511,13 @@ Error details.
 
 ---
 
-### ErrorResponseError
+## ErrorResponseError
 
 Error details.
 
-#### Properties
+### Properties
 
-##### data?
+#### data?
 
 ```ts
 optional data: Record<string, unknown>;
@@ -525,7 +525,7 @@ optional data: Record<string, unknown>;
 
 Additional data related to the error, if any.
 
-##### message
+#### message
 
 ```ts
 message: string
@@ -537,13 +537,13 @@ message: string
 
 ---
 
-### ErrorResponseWithProcessedFiles
+## ErrorResponseWithProcessedFiles
 
 Error information returned by the API.
 
-#### Properties
+### Properties
 
-##### error?
+#### error?
 
 ```ts
 optional error: ErrorResponseWithProcessedFilesError;
@@ -551,7 +551,7 @@ optional error: ErrorResponseWithProcessedFilesError;
 
 Error details.
 
-##### processedFiles?
+#### processedFiles?
 
 ```ts
 optional processedFiles: FileMetadata[];
@@ -561,13 +561,13 @@ List of files that were successfully processed before the error occurred.
 
 ---
 
-### ErrorResponseWithProcessedFilesError
+## ErrorResponseWithProcessedFilesError
 
 Error details.
 
-#### Properties
+### Properties
 
-##### data?
+#### data?
 
 ```ts
 optional data: Record<string, unknown>;
@@ -575,7 +575,7 @@ optional data: Record<string, unknown>;
 
 Additional data related to the error, if any.
 
-##### message
+#### message
 
 ```ts
 message: string
@@ -587,13 +587,13 @@ message: string
 
 ---
 
-### FileMetadata
+## FileMetadata
 
 Comprehensive metadata information about a file in storage.
 
-#### Properties
+### Properties
 
-##### bucketId
+#### bucketId
 
 ```ts
 bucketId: string
@@ -603,7 +603,7 @@ bucketId: string
 
 - Example - `"users-bucket"`
 
-##### createdAt
+#### createdAt
 
 ```ts
 createdAt: string
@@ -614,7 +614,7 @@ createdAt: string
 - Example - `"2023-01-15T12:34:56Z"`
 - Format - date-time
 
-##### etag
+#### etag
 
 ```ts
 etag: string
@@ -624,7 +624,7 @@ etag: string
 
 - Example - `"\"a1b2c3d4e5f6\""`
 
-##### id
+#### id
 
 ```ts
 id: string
@@ -634,7 +634,7 @@ id: string
 
 - Example - `"d5e76ceb-77a2-4153-b7da-1f7c115b2ff2"`
 
-##### isUploaded
+#### isUploaded
 
 ```ts
 isUploaded: boolean
@@ -644,7 +644,7 @@ isUploaded: boolean
 
 - Example - `true`
 
-##### metadata?
+#### metadata?
 
 ```ts
 optional metadata: Record<string, unknown>;
@@ -653,7 +653,7 @@ optional metadata: Record<string, unknown>;
 Custom metadata associated with the file.
 Example - `{"alt":"Profile picture","category":"avatar"}`
 
-##### mimeType
+#### mimeType
 
 ```ts
 mimeType: string
@@ -663,7 +663,7 @@ mimeType: string
 
 - Example - `"image/jpeg"`
 
-##### name
+#### name
 
 ```ts
 name: string
@@ -673,7 +673,7 @@ name: string
 
 - Example - `"profile-picture.jpg"`
 
-##### size
+#### size
 
 ```ts
 size: number
@@ -684,7 +684,7 @@ size: number
 - Example - `245678`
 - Format - int64
 
-##### updatedAt
+#### updatedAt
 
 ```ts
 updatedAt: string
@@ -695,7 +695,7 @@ updatedAt: string
 - Example - `"2023-01-16T09:45:32Z"`
 - Format - date-time
 
-##### uploadedByUserId?
+#### uploadedByUserId?
 
 ```ts
 optional uploadedByUserId: string;
@@ -706,13 +706,13 @@ Example - `"abc123def456"`
 
 ---
 
-### FileSummary
+## FileSummary
 
 Basic information about a file in storage.
 
-#### Properties
+### Properties
 
-##### bucketId
+#### bucketId
 
 ```ts
 bucketId: string
@@ -722,7 +722,7 @@ bucketId: string
 
 - Example - `"users-bucket"`
 
-##### id
+#### id
 
 ```ts
 id: string
@@ -732,7 +732,7 @@ id: string
 
 - Example - `"d5e76ceb-77a2-4153-b7da-1f7c115b2ff2"`
 
-##### isUploaded
+#### isUploaded
 
 ```ts
 isUploaded: boolean
@@ -742,7 +742,7 @@ isUploaded: boolean
 
 - Example - `true`
 
-##### name
+#### name
 
 ```ts
 name: string
@@ -754,13 +754,13 @@ name: string
 
 ---
 
-### GetFileMetadataHeadersParams
+## GetFileMetadataHeadersParams
 
 Parameters for the getFileMetadataHeaders method.
 
-#### Properties
+### Properties
 
-##### b?
+#### b?
 
 ```ts
 optional b: number;
@@ -768,7 +768,7 @@ optional b: number;
 
 Blur the image using this sigma value. Only applies to image files
 
-##### f?
+#### f?
 
 ```ts
 optional f: OutputImageFormat;
@@ -778,7 +778,7 @@ Output format for image files. Use 'auto' for content negotiation based on Accep
 
 - Output format for image files. Use 'auto' for content negotiation based on Accept header
 
-##### h?
+#### h?
 
 ```ts
 optional h: number;
@@ -786,7 +786,7 @@ optional h: number;
 
 Maximum height to resize image to while maintaining aspect ratio. Only applies to image files
 
-##### q?
+#### q?
 
 ```ts
 optional q: number;
@@ -794,7 +794,7 @@ optional q: number;
 
 Image quality (1-100). Only applies to JPEG, WebP and PNG files
 
-##### w?
+#### w?
 
 ```ts
 optional w: number;
@@ -804,13 +804,13 @@ Maximum width to resize image to while maintaining aspect ratio. Only applies to
 
 ---
 
-### GetFileParams
+## GetFileParams
 
 Parameters for the getFile method.
 
-#### Properties
+### Properties
 
-##### b?
+#### b?
 
 ```ts
 optional b: number;
@@ -818,7 +818,7 @@ optional b: number;
 
 Blur the image using this sigma value. Only applies to image files
 
-##### f?
+#### f?
 
 ```ts
 optional f: OutputImageFormat;
@@ -828,7 +828,7 @@ Output format for image files. Use 'auto' for content negotiation based on Accep
 
 - Output format for image files. Use 'auto' for content negotiation based on Accept header
 
-##### h?
+#### h?
 
 ```ts
 optional h: number;
@@ -836,7 +836,7 @@ optional h: number;
 
 Maximum height to resize image to while maintaining aspect ratio. Only applies to image files
 
-##### q?
+#### q?
 
 ```ts
 optional q: number;
@@ -844,7 +844,7 @@ optional q: number;
 
 Image quality (1-100). Only applies to JPEG, WebP and PNG files
 
-##### w?
+#### w?
 
 ```ts
 optional w: number;
@@ -854,23 +854,11 @@ Maximum width to resize image to while maintaining aspect ratio. Only applies to
 
 ---
 
-### ListBrokenMetadataResponse200
+## ListBrokenMetadataResponse200
 
-#### Properties
+### Properties
 
-##### metadata?
-
-```ts
-optional metadata: FileSummary[];
-```
-
----
-
-### ListFilesNotUploadedResponse200
-
-#### Properties
-
-##### metadata?
+#### metadata?
 
 ```ts
 optional metadata: FileSummary[];
@@ -878,11 +866,23 @@ optional metadata: FileSummary[];
 
 ---
 
-### ListOrphanedFilesResponse200
+## ListFilesNotUploadedResponse200
 
-#### Properties
+### Properties
 
-##### files?
+#### metadata?
+
+```ts
+optional metadata: FileSummary[];
+```
+
+---
+
+## ListOrphanedFilesResponse200
+
+### Properties
+
+#### files?
 
 ```ts
 optional files: string[];
@@ -890,13 +890,13 @@ optional files: string[];
 
 ---
 
-### PresignedURLResponse
+## PresignedURLResponse
 
 Contains a presigned URL for direct file operations.
 
-#### Properties
+### Properties
 
-##### expiration
+#### expiration
 
 ```ts
 expiration: number
@@ -906,7 +906,7 @@ expiration: number
 
 - Example - `3600`
 
-##### url
+#### url
 
 ```ts
 url: string
@@ -918,11 +918,11 @@ url: string
 
 ---
 
-### ReplaceFileBody
+## ReplaceFileBody
 
-#### Properties
+### Properties
 
-##### file?
+#### file?
 
 ```ts
 optional file: Blob;
@@ -931,7 +931,7 @@ optional file: Blob;
 New file content to replace the existing file
 Format - binary
 
-##### metadata?
+#### metadata?
 
 ```ts
 optional metadata: UpdateFileMetadata;
@@ -941,13 +941,13 @@ Metadata that can be updated for an existing file.
 
 ---
 
-### UpdateFileMetadata
+## UpdateFileMetadata
 
 Metadata that can be updated for an existing file.
 
-#### Properties
+### Properties
 
-##### metadata?
+#### metadata?
 
 ```ts
 optional metadata: Record<string, unknown>;
@@ -956,7 +956,7 @@ optional metadata: Record<string, unknown>;
 Updated custom metadata to associate with the file.
 Example - `{"alt":"Updated image description","category":"profile"}`
 
-##### name?
+#### name?
 
 ```ts
 optional name: string;
@@ -967,13 +967,13 @@ Example - `"renamed-file.jpg"`
 
 ---
 
-### UploadFileMetadata
+## UploadFileMetadata
 
 Metadata provided when uploading a new file.
 
-#### Properties
+### Properties
 
-##### id?
+#### id?
 
 ```ts
 optional id: string;
@@ -982,7 +982,7 @@ optional id: string;
 Optional custom ID for the file. If not provided, a UUID will be generated.
 Example - `"custom-id-123"`
 
-##### metadata?
+#### metadata?
 
 ```ts
 optional metadata: Record<string, unknown>;
@@ -991,7 +991,7 @@ optional metadata: Record<string, unknown>;
 Custom metadata to associate with the file.
 Example - `{"alt":"Custom image","category":"document"}`
 
-##### name?
+#### name?
 
 ```ts
 optional name: string;
@@ -1002,11 +1002,11 @@ Example - `"custom-filename.png"`
 
 ---
 
-### UploadFilesBody
+## UploadFilesBody
 
-#### Properties
+### Properties
 
-##### bucket-id?
+#### bucket-id?
 
 ```ts
 optional bucket-id: string;
@@ -1015,7 +1015,7 @@ optional bucket-id: string;
 Target bucket identifier where files will be stored.
 Example - `"user-uploads"`
 
-##### file\[\]
+#### file\[\]
 
 ```ts
 file[]: Blob[];
@@ -1023,7 +1023,7 @@ file[]: Blob[];
 
 (`Blob[]`) - Array of files to upload.
 
-##### metadata\[\]?
+#### metadata\[\]?
 
 ```ts
 optional metadata[]: UploadFileMetadata[];
@@ -1033,11 +1033,11 @@ Optional custom metadata for each uploaded file. Must match the order of the fil
 
 ---
 
-### UploadFilesResponse201
+## UploadFilesResponse201
 
-#### Properties
+### Properties
 
-##### processedFiles
+#### processedFiles
 
 ```ts
 processedFiles: FileMetadata[];
@@ -1047,13 +1047,13 @@ processedFiles: FileMetadata[];
 
 ---
 
-### VersionInformation
+## VersionInformation
 
 Contains version information about the storage service.
 
-#### Properties
+### Properties
 
-##### buildVersion
+#### buildVersion
 
 ```ts
 buildVersion: string
@@ -1063,9 +1063,9 @@ buildVersion: string
 
 - Example - `"1.2.3"`
 
-## Type Aliases
+# Type Aliases
 
-### OutputImageFormat
+## OutputImageFormat
 
 ```ts
 type OutputImageFormat = 'auto' | 'same' | 'jpeg' | 'webp' | 'png' | 'avif'
@@ -1075,7 +1075,7 @@ Output format for image files. Use 'auto' for content negotiation based on Accep
 
 ---
 
-### RFC2822Date
+## RFC2822Date
 
 ```ts
 type RFC2822Date = string
@@ -1083,21 +1083,21 @@ type RFC2822Date = string
 
 Date in RFC 2822 format
 
-## Functions
+# Functions
 
-### createAPIClient()
+## createAPIClient()
 
 ```ts
 function createAPIClient(baseURL: string, chainFunctions: ChainFunction[]): Client
 ```
 
-#### Parameters
+### Parameters
 
 | Parameter        | Type                                         | Default value |
 | ---------------- | -------------------------------------------- | ------------- |
 | `baseURL`        | `string`                                     | `undefined`   |
 | `chainFunctions` | [`ChainFunction`](./fetch#chainfunction)[] | `[]`          |
 
-#### Returns
+### Returns
 
 [`Client`](#client)

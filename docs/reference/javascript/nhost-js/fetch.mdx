@@ -7,9 +7,9 @@ authentication token refreshing, error handling, and request/response transforma
 This is an advanced submodule of the Nhost SDK, primarily used internally but it is exposed
 for advanced use cases.
 
-## Classes
+# Classes
 
-### FetchError&lt;T&gt;
+## FetchError&lt;T&gt;
 
 Error class for representing fetch operation failures.
 
@@ -18,19 +18,19 @@ information about failed requests, including the response body,
 status code, and headers. The error message is automatically
 extracted from common error response formats.
 
-#### Extends
+### Extends
 
 - `Error`
 
-#### Type Parameters
+### Type Parameters
 
 | Type Parameter | Default type | Description                   |
 | -------------- | ------------ | ----------------------------- |
 | `T`            | `any`        | The type of the response body |
 
-#### Constructors
+### Constructors
 
-##### Constructor
+#### Constructor
 
 ```ts
 new FetchError<T>(
@@ -41,7 +41,7 @@ new FetchError<T>(
 
 Creates a new FetchError instance
 
-###### Parameters
+##### Parameters
 
 | Parameter | Type      | Description                               |
 | --------- | --------- | ----------------------------------------- |
@@ -49,17 +49,17 @@ Creates a new FetchError instance
 | `status`  | `number`  | The HTTP status code                      |
 | `headers` | `Headers` | The response headers                      |
 
-###### Returns
+##### Returns
 
 [`FetchError`](#fetcherror)&lt;`T`&gt;
 
-###### Overrides
+##### Overrides
 
 ```ts
 Error.constructor
 ```
 
-#### Properties
+### Properties
 
 | Property                       | Type      | Description                             |
 | ------------------------------ | --------- | --------------------------------------- |
@@ -67,24 +67,24 @@ Error.constructor
 | <a id="headers"></a> `headers` | `Headers` | Response headers                        |
 | <a id="status"></a> `status`   | `number`  | HTTP status code of the failed response |
 
-## Interfaces
+# Interfaces
 
-### FetchResponse&lt;T&gt;
+## FetchResponse&lt;T&gt;
 
 Interface representing a structured API response.
 
 This interface provides a consistent structure for responses across the SDK,
 offering access to the parsed response body along with status and headers.
 
-#### Type Parameters
+### Type Parameters
 
 | Type Parameter | Description                   |
 | -------------- | ----------------------------- |
 | `T`            | The type of the response body |
 
-#### Properties
+### Properties
 
-##### body
+#### body
 
 ```ts
 body: T
@@ -92,7 +92,7 @@ body: T
 
 The parsed response body
 
-##### headers
+#### headers
 
 ```ts
 headers: Headers
@@ -100,7 +100,7 @@ headers: Headers
 
 Response headers
 
-##### status
+#### status
 
 ```ts
 status: number
@@ -108,9 +108,9 @@ status: number
 
 HTTP status code of the response
 
-## Type Aliases
+# Type Aliases
 
-### ChainFunction()
+## ChainFunction()
 
 ```ts
 type ChainFunction = (next: FetchFunction) => FetchFunction
@@ -126,19 +126,19 @@ Chain functions can be used to implement:
 - Request and response transformations
 - Logging and metrics
 
-#### Parameters
+### Parameters
 
 | Parameter | Type                              |
 | --------- | --------------------------------- |
 | `next`    | [`FetchFunction`](#fetchfunction) |
 
-#### Returns
+### Returns
 
 [`FetchFunction`](#fetchfunction)
 
 ---
 
-### FetchFunction()
+## FetchFunction()
 
 ```ts
 type FetchFunction = (url: string, options?: RequestInit) => Promise<Response>
@@ -148,20 +148,20 @@ Type definition for a fetch-like function.
 Takes the same parameters as fetch and returns the same type.
 This allows middleware to intercept and modify requests and responses.
 
-#### Parameters
+### Parameters
 
 | Parameter  | Type          |
 | ---------- | ------------- |
 | `url`      | `string`      |
 | `options?` | `RequestInit` |
 
-#### Returns
+### Returns
 
 `Promise`&lt;`Response`&gt;
 
-## Functions
+# Functions
 
-### attachAccessTokenMiddleware()
+## attachAccessTokenMiddleware()
 
 ```ts
 function attachAccessTokenMiddleware(storage: SessionStorage): ChainFunction
@@ -177,13 +177,13 @@ This middleware:
 This middleware should be used after the refresh middleware in the chain to
 ensure the most recent token is used.
 
-#### Parameters
+### Parameters
 
 | Parameter | Type                                           | Description                                        |
 | --------- | ---------------------------------------------- | -------------------------------------------------- |
 | `storage` | [`SessionStorage`](./session#sessionstorage) | Storage implementation for retrieving session data |
 
-#### Returns
+### Returns
 
 [`ChainFunction`](#chainfunction)
 
@@ -191,7 +191,7 @@ A middleware function that adds Authorization headers
 
 ---
 
-### createEnhancedFetch()
+## createEnhancedFetch()
 
 ```ts
 function createEnhancedFetch(chainFunctions: ChainFunction[]): FetchFunction
@@ -204,19 +204,19 @@ wrapping the next one in the chain. This allows each middleware to
 intercept both the request (before calling next) and the response
 (after calling next).
 
-#### Parameters
+### Parameters
 
 | Parameter        | Type                                | Default value | Description                                |
 | ---------------- | ----------------------------------- | ------------- | ------------------------------------------ |
 | `chainFunctions` | [`ChainFunction`](#chainfunction)[] | `[]`          | Array of chain functions to apply in order |
 
-#### Returns
+### Returns
 
 [`FetchFunction`](#fetchfunction)
 
 Enhanced fetch function with all middleware applied
 
-#### Example
+### Example
 
 ```typescript
 // Simple logging middleware
@@ -235,7 +235,7 @@ const response = await enhancedFetch('https://api.example.com/data')
 
 ---
 
-### sessionRefreshMiddleware()
+## sessionRefreshMiddleware()
 
 ```ts
 function sessionRefreshMiddleware(
@@ -255,7 +255,7 @@ This middleware:
 The middleware handles token refresh transparently, so the application
 doesn't need to manually refresh tokens.
 
-#### Parameters
+### Parameters
 
 | Parameter                | Type                                           | Description                                                                           |
 | ------------------------ | ---------------------------------------------- | ------------------------------------------------------------------------------------- |
@@ -264,7 +264,7 @@ doesn't need to manually refresh tokens.
 | `options?`               | \{ `marginSeconds?`: `number`; \}              | Configuration options for token refresh behavior                                      |
 | `options.marginSeconds?` | `number`                                       | Number of seconds before token expiration to trigger a refresh, default is 60 seconds |
 
-#### Returns
+### Returns
 
 [`ChainFunction`](#chainfunction)
 
@@ -272,7 +272,7 @@ A middleware function that can be used in the fetch chain
 
 ---
 
-### updateSessionFromResponseMiddleware()
+## updateSessionFromResponseMiddleware()
 
 ```ts
 function updateSessionFromResponseMiddleware(storage: SessionStorage): ChainFunction
@@ -290,13 +290,13 @@ This middleware:
 This ensures that session data is always up-to-date in storage after operations
 that create or invalidate sessions.
 
-#### Parameters
+### Parameters
 
 | Parameter | Type                                           | Description                                        |
 | --------- | ---------------------------------------------- | -------------------------------------------------- |
 | `storage` | [`SessionStorage`](./session#sessionstorage) | Storage implementation for persisting session data |
 
-#### Returns
+### Returns
 
 [`ChainFunction`](#chainfunction)
 
