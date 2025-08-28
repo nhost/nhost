@@ -1,3 +1,4 @@
+import type { ChildArgumentType } from '@/features/orgs/projects/remote-schemas/types';
 import { isEmptyValue } from '@/lib/utils';
 import {
   type GraphQLInputField,
@@ -5,7 +6,6 @@ import {
   GraphQLList,
   GraphQLNonNull,
 } from 'graphql';
-import type { ChildArgumentType } from '../types';
 
 // method that tells whether the field is nested or not, if nested it returns the children
 export default function getChildArguments(

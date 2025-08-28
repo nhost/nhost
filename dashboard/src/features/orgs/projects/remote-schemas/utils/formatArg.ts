@@ -1,4 +1,4 @@
-import type { FormatParamArgs } from '../types';
+import type { FormatParamArgs } from '@/features/orgs/projects/remote-schemas/types';
 import checkIsEnum from './checkIsEnum';
 import serialiseArgs from './serialiseArgs';
 

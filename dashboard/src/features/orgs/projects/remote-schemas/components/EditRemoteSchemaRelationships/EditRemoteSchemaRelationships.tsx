@@ -56,8 +56,6 @@ export default function EditRemoteSchemaRelationships({
     setSelectedRelationship(relationship);
   };
 
-  console.log(view);
-
   const handleViewRelationship = (
     relationship: RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItem,
   ) => {

@@ -1,12 +1,12 @@
-import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useCreateRemoteSchemaRelationshipMutation } from '../../hooks/useCreateRemoteSchemaRelationshipMutation';
+import BaseRemoteSchemaRelationshipForm from '@/features/orgs/projects/remote-schemas/components/BaseRemoteSchemaRelationshipForm/BaseRemoteSchemaRelationshipForm';
+import type { DatabaseRelationshipFormValues } from '@/features/orgs/projects/remote-schemas/components/BaseRemoteSchemaRelationshipForm/sections/DatabaseRelationshipForm';
+import type { RemoteSchemaRelationshipFormValues } from '@/features/orgs/projects/remote-schemas/components/BaseRemoteSchemaRelationshipForm/sections/RemoteSchemaRelationshipForm';
+import { useCreateRemoteSchemaRelationshipMutation } from '@/features/orgs/projects/remote-schemas/hooks/useCreateRemoteSchemaRelationshipMutation';
 import {
   getDatabaseRelationshipPayload,
   getRemoteSchemaRelationshipPayload,
-} from '../../utils/forms';
-import BaseRemoteSchemaRelationshipForm from '../BaseRemoteSchemaRelationshipForm/BaseRemoteSchemaRelationshipForm';
-import { DatabaseRelationshipFormValues } from '../BaseRemoteSchemaRelationshipForm/sections/DatabaseRelationshipForm';
-import { RemoteSchemaRelationshipFormValues } from '../BaseRemoteSchemaRelationshipForm/sections/RemoteSchemaRelationshipForm';
+} from '@/features/orgs/projects/remote-schemas/utils/forms';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 
 export interface CreateRemoteSchemaRelationshipFormProps {
   /**
@@ -27,8 +27,8 @@ export default function CreateRemoteSchemaRelationshipForm({
 
   const handleDatabaseRelationshipCreate = async (
     values: DatabaseRelationshipFormValues,
-  ) => {
-    return execPromiseWithErrorToast(
+  ) =>
+    execPromiseWithErrorToast(
       async () => {
         const args = getDatabaseRelationshipPayload(values);
         await createRemoteSchemaRelationship({ args });
@@ -42,12 +42,11 @@ export default function CreateRemoteSchemaRelationshipForm({
           'An error occurred while creating the database relationship. Please try again.',
       },
     );
-  };
 
   const handleRemoteSchemaRelationshipCreate = async (
     values: RemoteSchemaRelationshipFormValues,
-  ) => {
-    return execPromiseWithErrorToast(
+  ) =>
+    execPromiseWithErrorToast(
       async () => {
         const args = getRemoteSchemaRelationshipPayload(values);
         await createRemoteSchemaRelationship({ args });
@@ -61,7 +60,6 @@ export default function CreateRemoteSchemaRelationshipForm({
           'An error occurred while creating the remote schema relationship. Please try again.',
       },
     );
-  };
 
   const handleSubmit = (
     values: DatabaseRelationshipFormValues | RemoteSchemaRelationshipFormValues,

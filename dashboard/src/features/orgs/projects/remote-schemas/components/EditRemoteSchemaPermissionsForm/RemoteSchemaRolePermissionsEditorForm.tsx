@@ -24,7 +24,10 @@ import { useAddRemoteSchemaPermissionsMutation } from '@/features/orgs/projects/
 import { useIntrospectRemoteSchemaQuery } from '@/features/orgs/projects/remote-schemas/hooks/useIntrospectRemoteSchemaQuery';
 import { useRemoveRemoteSchemaPermissionsMutation } from '@/features/orgs/projects/remote-schemas/hooks/useRemoveRemoteSchemaPermissionsMutation';
 import { useUpdateRemoteSchemaPermissionsMutation } from '@/features/orgs/projects/remote-schemas/hooks/useUpdateRemoteSchemaPermissionsMutation';
-import type { RemoteSchemaFields } from '@/features/orgs/projects/remote-schemas/types';
+import type {
+  ArgTreeType,
+  RemoteSchemaFields,
+} from '@/features/orgs/projects/remote-schemas/types';
 import { buildSchemaFromRoleDefinition } from '@/features/orgs/projects/remote-schemas/utils/buildSchemaFromRoleDefinition';
 import generateSDL from '@/features/orgs/projects/remote-schemas/utils/generateSDL';
 import getArgTreeFromPermissionSDL from '@/features/orgs/projects/remote-schemas/utils/getArgTreeFromPermissionSDL';
@@ -32,9 +35,6 @@ import getBaseTypeName from '@/features/orgs/projects/remote-schemas/utils/getBa
 import { getRemoteSchemaFields } from '@/features/orgs/projects/remote-schemas/utils/getRemoteSchemaFields';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { DialogFormProps } from '@/types/common';
-
-// Argument tree type for storing preset values
-type ArgTreeType = Record<string, any>;
 
 // Form Schema for react-hook-form with Zod validation
 const FormSchema = z.object({

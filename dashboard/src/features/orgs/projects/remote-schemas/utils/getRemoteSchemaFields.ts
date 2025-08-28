@@ -1,5 +1,5 @@
+import type { RemoteSchemaFields } from '@/features/orgs/projects/remote-schemas/types';
 import type { GraphQLSchema } from 'graphql';
-import type { RemoteSchemaFields } from '../types';
 import { getTree } from './getTree';
 import { getType } from './getType';
 

@@ -1,10 +1,10 @@
+import type { ArgTreeType } from '@/features/orgs/projects/remote-schemas/types';
 import {
   GraphQLEnumType,
   type GraphQLInputType,
   GraphQLList,
   GraphQLNonNull,
 } from 'graphql';
-import type { ArgTreeType } from '../types';
 
 const isEnumType = (type: GraphQLInputType): boolean => {
   if (type instanceof GraphQLList || type instanceof GraphQLNonNull) {

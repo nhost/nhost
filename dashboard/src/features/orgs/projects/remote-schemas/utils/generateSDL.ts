@@ -1,11 +1,11 @@
-import { isEmptyValue } from '@/lib/utils';
-import type { GraphQLInputField } from 'graphql';
 import type {
   ArgTreeType,
   CustomFieldType,
   FieldType,
   RemoteSchemaFields,
-} from '../types';
+} from '@/features/orgs/projects/remote-schemas/types';
+import { isEmptyValue } from '@/lib/utils';
+import type { GraphQLInputField } from 'graphql';
 import checkDefaultGQLScalarType from './checkDefaultGQLScalarType';
 import formatArg from './formatArg';
 

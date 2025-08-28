@@ -2,6 +2,7 @@ import { useTheme } from '@mui/material';
 import type { GraphQLSchema } from 'graphql';
 import React, {
   forwardRef,
+  useCallback,
   useImperativeHandle,
   useMemo,
   useRef,
@@ -23,14 +24,9 @@ export interface RemoteSchemaTreeProps {
    */
   schema: GraphQLSchema;
   relationshipFields: RelationshipFields[];
-  selectedOperation?: string;
   rootFields: AllowedRootFields;
-  setRelationshipFields: React.Dispatch<
-    React.SetStateAction<RelationshipFields[]>
-  >;
   fields: HasuraRsFields;
   showOnlySelectable?: boolean;
-  checkable?: boolean;
   className?: string;
 }
 
@@ -51,11 +47,8 @@ export const RemoteSchemaTree = forwardRef<
       schema,
       relationshipFields,
       rootFields,
-      selectedOperation,
-      setRelationshipFields,
       fields,
       showOnlySelectable = false,
-      checkable = true,
       className,
     },
     ref,
@@ -64,130 +57,81 @@ export const RemoteSchemaTree = forwardRef<
     const environmentRef = useRef<any>(null);
     const theme = useTheme();
 
-    const treeData: ComplexTreeData = useMemo(() => {
-      return buildComplexTreeData({
-        schema,
-        relationshipFields,
-        rootFields,
-        fields,
-        showOnlySelectable,
-      });
-    }, [
-      schema,
-      relationshipFields,
-      rootFields,
-      fields,
-      selectedOperation,
-      showOnlySelectable,
-    ]);
+    const treeData: ComplexTreeData = useMemo(
+      () =>
+        buildComplexTreeData({
+          schema,
+          relationshipFields,
+          rootFields,
+          fields,
+          showOnlySelectable,
+        }),
+      [schema, relationshipFields, rootFields, fields, showOnlySelectable],
+    );
 
     const [focusedItem, setFocusedItem] = useState<string>();
     const [expandedItems, setExpandedItems] = useState<string[]>(['root']);
     const [selectedItems, setSelectedItems] = useState<string[]>([]);
 
     // Function to search through the tree data structure
-    const findItemPath = async (
-      searchTerm: string,
-      searchRoot = 'root',
-    ): Promise<string[] | null> => {
-      const searchInItem = (
-        itemId: string,
-        currentPath: string[],
-      ): string[] | null => {
-        const item = treeData[itemId];
-        if (!item) return null;
+    const findItemPath = useCallback(
+      async (
+        searchTerm: string,
+        searchRoot = 'root',
+      ): Promise<string[] | null> => {
+        const searchInItem = (
+          itemId: string,
+          currentPath: string[],
+        ): string[] | null => {
+          const item = treeData[itemId];
+          if (!item) {
+            return null;
+          }
 
-        // Handle different data types for search
-        let searchableText = '';
-        if (React.isValidElement(item.data)) {
-          // For JSX elements, extract the text content
-          const extractText = (element: any): string => {
-            if (typeof element === 'string') return element;
-            if (typeof element === 'number') return String(element);
-            if (element?.props?.children) {
-              if (Array.isArray(element.props.children)) {
-                return element.props.children.map(extractText).join('');
-              } else {
+          // Handle different data types for search
+          let searchableText = '';
+          if (React.isValidElement(item.data)) {
+            // For JSX elements, extract the text content
+            const extractText = (element: any): string => {
+              if (typeof element === 'string') {
+                return element;
+              }
+              if (typeof element === 'number') {
+                return String(element);
+              }
+              if (element?.props?.children) {
+                if (Array.isArray(element.props.children)) {
+                  return element.props.children.map(extractText).join('');
+                }
                 return extractText(element.props.children);
               }
-            }
-            return '';
-          };
-          searchableText = extractText(item.data);
-        } else if (typeof item.data === 'string') {
-          searchableText = item.data;
-        } else {
-          searchableText = String(item.data);
-        }
-
-        // Check if current item matches the search term (case-insensitive)
-        if (searchableText.toLowerCase().includes(searchTerm.toLowerCase())) {
-          return [...currentPath, itemId];
-        }
-
-        // Search in children
-        if (item.children) {
-          for (const childId of item.children) {
-            const result = searchInItem(childId, [...currentPath, itemId]);
-            if (result) return result;
+              return '';
+            };
+            searchableText = extractText(item.data);
+          } else if (typeof item.data === 'string') {
+            searchableText = item.data;
+          } else {
+            searchableText = String(item.data);
           }
-        }
 
-        return null;
-      };
-
-      return searchInItem(searchRoot, []);
-    };
-
-    // Function to find all matching items (for potential future use)
-    const findAllItemPaths = async (
-      searchTerm: string,
-      searchRoot = 'root',
-    ): Promise<string[][]> => {
-      const results: string[][] = [];
-
-      const searchInItem = (itemId: string, currentPath: string[]): void => {
-        const item = treeData[itemId];
-        if (!item) return;
-
-        // Handle different data types for search (consistent with findItemPath)
-        let searchableText = '';
-        if (React.isValidElement(item.data)) {
-          const extractText = (element: any): string => {
-            if (typeof element === 'string') return element;
-            if (typeof element === 'number') return String(element);
-            if (element?.props?.children) {
-              if (Array.isArray(element.props.children)) {
-                return element.props.children.map(extractText).join('');
-              } else {
-                return extractText(element.props.children);
-              }
-            }
-            return '';
-          };
-          searchableText = extractText(item.data);
-        } else if (typeof item.data === 'string') {
-          searchableText = item.data;
-        } else {
-          searchableText = String(item.data);
-        }
-
-        // Check if current item matches the search term
-        if (searchableText.toLowerCase().includes(searchTerm.toLowerCase())) {
-          results.push([...currentPath, itemId]);
-        }
-
-        // Search in children
-        if (item.children) {
-          for (const childId of item.children) {
-            searchInItem(childId, [...currentPath, itemId]);
+          // Check if current item matches the search term (case-insensitive)
+          if (searchableText.toLowerCase().includes(searchTerm.toLowerCase())) {
+            return [...currentPath, itemId];
           }
-        }
-      };
 
-      searchInItem(searchRoot, []);
-      return results;
-    };
+          let result: string[] | null = null;
+          // Search in children
+          item.children?.some((childId) => {
+            result = searchInItem(childId, [...currentPath, itemId]);
+            return !!result;
+          });
+          return result;
+        };
+
+        return searchInItem(searchRoot, []);
+      },
+      [treeData],
+    );
 
     // Function to expand tree to show a specific item
     const expandToItem = async (path: string[]): Promise<void> => {
@@ -219,7 +163,7 @@ export const RemoteSchemaTree = forwardRef<
           treeRef.current?.focusTree();
         },
       }),
-      [treeData, findItemPath],
+      [findItemPath],
     );
 
     const getItemTitle = (item: any) => {
