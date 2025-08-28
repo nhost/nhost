@@ -6,7 +6,6 @@ import { Search, X } from 'lucide-react';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import type { RemoteSchemaTreeRef } from './RemoteSchemaTree';
 import { RemoteSchemaTree } from './RemoteSchemaTree';
-import type { RelationshipFields } from './types';
 
 export interface RemoteSchemaPreviewProps {
   name: string;
@@ -21,18 +20,6 @@ export default function RemoteSchemaPreview({
     error,
   } = useIntrospectRemoteSchemaQuery(name);
   const treeRef = useRef<RemoteSchemaTreeRef>(null);
-
-  const [relationshipFields, setRelationshipFields] = useState<
-    RelationshipFields[]
-  >([
-    {
-      key: '__query',
-      depth: 0,
-      checkable: false,
-      argValue: null,
-      type: 'field',
-    },
-  ]);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [isSearching, setIsSearching] = useState(false);
@@ -182,11 +169,7 @@ export default function RemoteSchemaPreview({
         <RemoteSchemaTree
           ref={treeRef}
           className="min-h-[400px]"
-          checkable={false}
           schema={schema}
-          fields={['query']}
-          relationshipFields={relationshipFields}
-          setRelationshipFields={setRelationshipFields}
           rootFields={['query', 'mutation', 'subscription']}
         />
       </div>

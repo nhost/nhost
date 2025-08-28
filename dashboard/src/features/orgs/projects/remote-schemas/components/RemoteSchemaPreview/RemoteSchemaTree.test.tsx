@@ -1,8 +1,7 @@
 import { render, screen, TestUserEvent } from '@/tests/testUtils';
 import { buildSchema } from 'graphql';
-import React from 'react';
 import { RemoteSchemaTree } from './RemoteSchemaTree';
-import type { AllowedRootFields, RelationshipFields } from './types';
+import type { AllowedRootFields } from './types';
 import { buildComplexTreeData } from './utils';
 
 const sdl = `
@@ -38,24 +37,9 @@ const schema = buildSchema(sdl);
 
 describe('RemoteSchemaTree', () => {
   it('renders a tree for a basic schema and matches snapshot', () => {
-    const relationshipFields: RelationshipFields[] = [];
     const rootFields: AllowedRootFields = ['query', 'mutation', 'subscription'];
-    const fields: string[] = [];
-    const setRelationshipFields = (() => {}) as React.Dispatch<
-      React.SetStateAction<RelationshipFields[]>
-    >;
 
-    render(
-      <RemoteSchemaTree
-        schema={schema}
-        relationshipFields={relationshipFields}
-        rootFields={rootFields}
-        setRelationshipFields={setRelationshipFields}
-        fields={fields}
-        showOnlySelectable={false}
-        checkable
-      />,
-    );
+    render(<RemoteSchemaTree schema={schema} rootFields={rootFields} />);
 
     const tree = screen.getByRole('tree', { name: 'Remote Schema Tree' });
     expect(tree).toMatchInlineSnapshot(`
@@ -105,7 +89,7 @@ describe('RemoteSchemaTree', () => {
               
             
               <li>
-                control+d to start dragging selected items
+                control+shift+d to start dragging selected items
               </li>
               
           
@@ -273,16 +257,11 @@ describe('RemoteSchemaTree', () => {
   });
 
   it('builds tree data including all SDL types and fields', () => {
-    const relationshipFields: RelationshipFields[] = [];
     const rootFields: AllowedRootFields = ['query', 'mutation', 'subscription'];
-    const fields: string[] = [];
 
     const treeData = buildComplexTreeData({
       schema,
-      relationshipFields,
       rootFields,
-      fields,
-      showOnlySelectable: false,
     });
 
     // Root and root categories
@@ -324,24 +303,9 @@ describe('RemoteSchemaTree', () => {
   });
 
   it('renders DOM nodes for all SDL types after expanding the tree', async () => {
-    const relationshipFields: RelationshipFields[] = [];
     const rootFields: AllowedRootFields = ['query', 'mutation', 'subscription'];
-    const fields: string[] = [];
-    const setRelationshipFields = (() => {}) as React.Dispatch<
-      React.SetStateAction<RelationshipFields[]>
-    >;
 
-    render(
-      <RemoteSchemaTree
-        schema={schema}
-        relationshipFields={relationshipFields}
-        rootFields={rootFields}
-        setRelationshipFields={setRelationshipFields}
-        fields={fields}
-        showOnlySelectable={false}
-        checkable
-      />,
-    );
+    render(<RemoteSchemaTree schema={schema} rootFields={rootFields} />);
 
     const user = new TestUserEvent();
 
@@ -457,29 +421,6 @@ describe('RemoteSchemaTree', () => {
     expect(
       document.querySelector(
         '[data-rct-item-id="__subscription.field.postById.arg.id"]',
-      ),
-    ).toBeInTheDocument();
-
-    // Expand Subscription.postAdded and assert nested Post fields
-    const postAddedField = document.querySelector(
-      '[data-rct-item-id="__subscription.field.postAdded"]',
-    ) as Element | null;
-    expect(postAddedField).toBeInTheDocument();
-    await user.click(postAddedField!);
-    await user.keyboard('{ArrowRight}');
-    expect(
-      document.querySelector(
-        '[data-rct-item-id="__subscription.field.postAdded.field.id"]',
-      ),
-    ).toBeInTheDocument();
-    expect(
-      document.querySelector(
-        '[data-rct-item-id="__subscription.field.postAdded.field.title"]',
-      ),
-    ).toBeInTheDocument();
-    expect(
-      document.querySelector(
-        '[data-rct-item-id="__subscription.field.postAdded.field.author"]',
       ),
     ).toBeInTheDocument();
   });

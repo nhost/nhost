@@ -1,10 +1,7 @@
 import type { GraphQLSchema } from 'graphql';
 
 export default function getSchemaRoots(schema: GraphQLSchema) {
-  if (!schema) {
-    return [];
-  }
-  const res = [schema.getQueryType()?.name]; // query root always present
+  const res = [schema.getQueryType()?.name];
   if (schema.getMutationType()?.name) {
     res.push(schema.getMutationType()?.name);
   }

@@ -21,7 +21,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
 import useIntrospectRemoteSchemaQuery from '@/features/orgs/projects/remote-schemas/hooks/useIntrospectRemoteSchemaQuery/useIntrospectRemoteSchemaQuery';
-import checkDefaultGQLScalarType from '@/features/orgs/projects/remote-schemas/utils/checkDefaultGQLScalarType';
+import isStandardGraphQLScalar from '@/features/orgs/projects/remote-schemas/utils/isStandardGraphQLScalar';
 import { cn } from '@/lib/utils';
 import type {
   GraphQLTypeForVisualization,
@@ -48,7 +48,7 @@ export default function EditGraphQLCustomizations({
     const types = (data?.data?.__schema?.types ??
       []) as GraphQLTypeForVisualization[];
     return types.filter(
-      (t) => Boolean(t?.name) && !checkDefaultGQLScalarType(t.name!),
+      (t) => Boolean(t?.name) && !isStandardGraphQLScalar(t.name!),
     );
   }, [data]);
 

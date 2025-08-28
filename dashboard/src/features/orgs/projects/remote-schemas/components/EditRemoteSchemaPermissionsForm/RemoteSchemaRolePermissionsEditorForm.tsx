@@ -28,11 +28,11 @@ import type {
   ArgTreeType,
   RemoteSchemaFields,
 } from '@/features/orgs/projects/remote-schemas/types';
-import { buildSchemaFromRoleDefinition } from '@/features/orgs/projects/remote-schemas/utils/buildSchemaFromRoleDefinition';
-import generateSDL from '@/features/orgs/projects/remote-schemas/utils/generateSDL';
-import getArgTreeFromPermissionSDL from '@/features/orgs/projects/remote-schemas/utils/getArgTreeFromPermissionSDL';
+import buildRemoteSchemaFieldTree from '@/features/orgs/projects/remote-schemas/utils/buildRemoteSchemaFieldTree';
+import composePermissionSDL from '@/features/orgs/projects/remote-schemas/utils/composePermissionSDL';
+import { createPermissionsSchema } from '@/features/orgs/projects/remote-schemas/utils/createPermissionsSchema';
 import getBaseTypeName from '@/features/orgs/projects/remote-schemas/utils/getBaseTypeName';
-import { getRemoteSchemaFields } from '@/features/orgs/projects/remote-schemas/utils/getRemoteSchemaFields';
+import parsePresetArgTreeFromSDL from '@/features/orgs/projects/remote-schemas/utils/parsePresetArgTreeFromSDL';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { DialogFormProps } from '@/types/common';
 
@@ -153,20 +153,19 @@ export default function RemoteSchemaRolePermissionsEditorForm({
         let newArgTree: ArgTreeType = {};
 
         if (permission?.definition?.schema) {
-          // Use buildSchemaFromRoleDefn to handle @preset directives
-          permissionSchema = buildSchemaFromRoleDefinition(
+          permissionSchema = createPermissionsSchema(
             permission.definition.schema,
           );
 
           // Parse existing presets from the schema definition
-          newArgTree = getArgTreeFromPermissionSDL(
+          newArgTree = parsePresetArgTreeFromSDL(
             permission.definition.schema,
             introspectionSchema,
           );
           setArgTree(newArgTree);
         }
 
-        const fields = getRemoteSchemaFields(
+        const fields = buildRemoteSchemaFieldTree(
           introspectionSchema,
           permissionSchema,
         );
@@ -176,7 +175,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
         if (permissionSchema) {
           setSchemaDefinition(permission.definition.schema);
         } else {
-          const sdl = generateSDL(fields, newArgTree);
+          const sdl = composePermissionSDL(fields, newArgTree);
           setSchemaDefinition(sdl);
         }
       } catch (error) {
@@ -188,7 +187,10 @@ export default function RemoteSchemaRolePermissionsEditorForm({
   // Update schema definition when fields or argTree change
   useEffect(() => {
     if (remoteSchemaFields.length > 0) {
-      const newSchemaDefinition = generateSDL(remoteSchemaFields, argTree);
+      const newSchemaDefinition = composePermissionSDL(
+        remoteSchemaFields,
+        argTree,
+      );
       setSchemaDefinition(newSchemaDefinition);
     }
   }, [remoteSchemaFields, argTree]);
