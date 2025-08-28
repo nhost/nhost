@@ -25,10 +25,12 @@ export default function GraphQLCustomizations() {
 
   if (!isOpen) {
     return (
-      <Box className="space-y-2">
-        <Text variant="h4" className="text-lg font-semibold">
-          GraphQL Customizations
-        </Text>
+      <Box className="space-y-4">
+        <Box className="flex h-8 flex-row items-center justify-between">
+          <Text variant="h4" className="text-lg font-semibold">
+            GraphQL Customizations
+          </Text>
+        </Box>
         <Text variant="body2" color="secondary" className="text-sm">
           Individual Types and Fields will be editable after saving.{' '}
           <a
@@ -81,7 +83,7 @@ export default function GraphQLCustomizations() {
         >
           Read more
         </a>{' '}
-        about Type and Field naming conventions in the official GraphQL spec.
+        in the official GraphQL spec.
       </Text>
 
       <Box className="space-y-4 rounded border p-4">
