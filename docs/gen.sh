@@ -50,7 +50,7 @@ function build_typedoc() {
 
     DOCS_DIR=reference/javascript/nhost-js
 
-    typedoc --options typedoc.json --tsconfig ../packages/nhost-js/tsconfig.json
+    pnpm exec typedoc --options typedoc.json --tsconfig ../packages/nhost-js/tsconfig.json
 
     mv $DOCS_DIR/index.mdx $DOCS_DIR/main.mdx
     rm $DOCS_DIR/.mdx
