@@ -345,6 +345,29 @@
             ]
           },
           {
+            "group": "Client Libraries",
+            "pages": [
+              {
+                "group": "Javascript",
+                "icon": "js",
+                "pages": [
+                  {
+                    "group": "nhost-js",
+                    "pages": [
+                      "reference/javascript/nhost-js/main",
+                      "reference/javascript/nhost-js/auth",
+                      "reference/javascript/nhost-js/functions",
+                      "reference/javascript/nhost-js/graphql",
+                      "reference/javascript/nhost-js/storage",
+                      "reference/javascript/nhost-js/session",
+                      "reference/javascript/nhost-js/fetch"
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
             "group": "Client Libraries (deprecated)",
             "pages": [
               {

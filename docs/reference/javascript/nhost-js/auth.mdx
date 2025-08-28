@@ -1,0 +1,3228 @@
+This is the main module to interact with Nhost's Auth service.
+Typically you would use this module via the main [Nhost client](main#createclient)
+but you can also use it directly if you have a specific use case.
+
+## Import
+
+You can import and use this package with:
+
+```ts
+import { createClient } from '@nhost/nhost-js/auth'
+```
+
+## Usage
+
+```ts
+import { createClient } from '@nhost/nhost-js'
+
+const nhost = createClient({
+  subdomain,
+  region
+})
+
+await nhost.auth.signUpEmailPassword({
+  email,
+  password
+})
+```
+
+## Error handling
+
+The SDK will throw errors in most operations if the request returns a status >=300 or
+if the request fails entirely (i.e., due to network errors). The type of the error
+will be a `FetchError<ErrorResponse>`:
+
+```ts
+import { createClient } from '@nhost/nhost-js'
+import { FetchError } from '@nhost/nhost-js/fetch'
+
+const nhost = createClient({
+  subdomain,
+  region
+})
+
+try {
+  await nhost.auth.signInEmailPassword({
+    email,
+    password
+  })
+} catch (err) {
+  if (!(err instanceof FetchError)) {
+    throw err // Re-throw if it's not a FetchError
+  }
+
+  console.log('Error:', err)
+  // Error: {
+  //   body: {
+  //     error: 'invalid-email-password',
+  //     message: 'Incorrect email or password',
+  //     status: 401
+  //   },
+  //   status: 401,
+  //   headers: {
+  //     'content-length': '88',
+  //     'content-type': 'application/json',
+  //     date: 'Mon, 12 May 2025 08:08:28 GMT'
+  //   }
+  // }
+
+  // error handling...
+}
+```
+
+This type extends the standard `Error` type so if you want to just log the error you can
+do so like this:
+
+```ts
+import { createClient } from '@nhost/nhost-js'
+import { FetchError } from '@nhost/nhost-js/fetch'
+
+const nhost = createClient({
+  subdomain,
+  region
+})
+
+try {
+  await nhost.auth.signInEmailPassword({
+    email,
+    password
+  })
+} catch (err) {
+  if (!(err instanceof Error)) {
+    throw err // Re-throw if it's not an Error
+  }
+
+  console.log('Error:', err.message)
+  // Error: Incorrect email or password
+}
+```
+
+## Interfaces
+
+### AuthenticationExtensionsClientOutputs
+
+Map of extension outputs from the client
+
+#### Properties
+
+##### appid?
+
+```ts
+optional appid: boolean;
+```
+
+Application identifier extension output
+
+##### credProps?
+
+```ts
+optional credProps: CredentialPropertiesOutput;
+```
+
+Credential properties extension output
+
+##### hmacCreateSecret?
+
+```ts
+optional hmacCreateSecret: boolean;
+```
+
+HMAC secret extension output
+
+---
+
+### AuthenticatorAssertionResponse
+
+#### Properties
+
+##### authenticatorData
+
+```ts
+authenticatorData: string
+```
+
+(`string`) - Base64url encoded authenticator data
+
+##### clientDataJSON
+
+```ts
+clientDataJSON: string
+```
+
+(`string`) - Base64url encoded client data JSON
+
+##### signature
+
+```ts
+signature: string
+```
+
+(`string`) - Base64url encoded assertion signature
+
+##### userHandle?
+
+```ts
+optional userHandle: string;
+```
+
+Base64url encoded user handle
+
+---
+
+### AuthenticatorAttestationResponse
+
+#### Properties
+
+##### attestationObject
+
+```ts
+attestationObject: string
+```
+
+(`string`) - Base64url-encoded binary data
+
+- Format - byte
+
+##### authenticatorData?
+
+```ts
+optional authenticatorData: string;
+```
+
+Base64url-encoded binary data
+Format - byte
+
+##### clientDataJSON
+
+```ts
+clientDataJSON: string
+```
+
+(`string`) - Base64url-encoded binary data
+
+- Format - byte
+
+##### publicKey?
+
+```ts
+optional publicKey: string;
+```
+
+Base64url-encoded binary data
+Format - byte
+
+##### publicKeyAlgorithm?
+
+```ts
+optional publicKeyAlgorithm: number;
+```
+
+The public key algorithm identifier
+Format - int64
+
+##### transports?
+
+```ts
+optional transports: string[];
+```
+
+The authenticator transports
+
+---
+
+### AuthenticatorSelection
+
+#### Properties
+
+##### authenticatorAttachment?
+
+```ts
+optional authenticatorAttachment: AuthenticatorAttachment;
+```
+
+The authenticator attachment modality
+
+##### requireResidentKey?
+
+```ts
+optional requireResidentKey: boolean;
+```
+
+Whether the authenticator must create a client-side-resident public key credential source
+
+##### residentKey?
+
+```ts
+optional residentKey: ResidentKeyRequirement;
+```
+
+The resident key requirement
+
+##### userVerification?
+
+```ts
+optional userVerification: UserVerificationRequirement;
+```
+
+A requirement for user verification for the operation
+
+---
+
+### Client
+
+#### Properties
+
+##### baseURL
+
+```ts
+baseURL: string
+```
+
+#### Methods
+
+##### addSecurityKey()
+
+```ts
+addSecurityKey(options?: RequestInit): Promise<FetchResponse<PublicKeyCredentialCreationOptions>>;
+```
+
+Summary: Initialize adding of a new webauthn security key
+Start the process of adding a new WebAuthn security key to the user's account. Returns a challenge that must be completed by the user's authenticator device. Requires elevated permissions.
+
+This method may return different T based on the response code:
+
+- 200: PublicKeyCredentialCreationOptions
+
+###### Parameters
+
+| Parameter  | Type          |
+| ---------- | ------------- |
+| `options?` | `RequestInit` |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`PublicKeyCredentialCreationOptions`](#publickeycredentialcreationoptions)&gt;&gt;
+
+##### changeUserEmail()
+
+```ts
+changeUserEmail(body: UserEmailChangeRequest, options?: RequestInit): Promise<FetchResponse<"OK">>;
+```
+
+Summary: Change user email
+Request to change the authenticated user's email address. A verification email will be sent to the new address to confirm the change. Requires elevated permissions.
+
+This method may return different T based on the response code:
+
+- 200: OKResponse
+
+###### Parameters
+
+| Parameter  | Type                                                |
+| ---------- | --------------------------------------------------- |
+| `body`     | [`UserEmailChangeRequest`](#useremailchangerequest) |
+| `options?` | `RequestInit`                                       |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
+
+##### changeUserMfa()
+
+```ts
+changeUserMfa(options?: RequestInit): Promise<FetchResponse<TotpGenerateResponse>>;
+```
+
+Summary: Generate TOTP secret
+Generate a Time-based One-Time Password (TOTP) secret for setting up multi-factor authentication
+
+This method may return different T based on the response code:
+
+- 200: TotpGenerateResponse
+
+###### Parameters
+
+| Parameter  | Type          |
+| ---------- | ------------- |
+| `options?` | `RequestInit` |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`TotpGenerateResponse`](#totpgenerateresponse)&gt;&gt;
+
+##### changeUserPassword()
+
+```ts
+changeUserPassword(body: UserPasswordRequest, options?: RequestInit): Promise<FetchResponse<"OK">>;
+```
+
+Summary: Change user password
+Change the user's password. The user must be authenticated with elevated permissions or provide a valid password reset ticket.
+
+This method may return different T based on the response code:
+
+- 200: OKResponse
+
+###### Parameters
+
+| Parameter  | Type                                          |
+| ---------- | --------------------------------------------- |
+| `body`     | [`UserPasswordRequest`](#userpasswordrequest) |
+| `options?` | `RequestInit`                                 |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
+
+##### createPAT()
+
+```ts
+createPAT(body: CreatePATRequest, options?: RequestInit): Promise<FetchResponse<CreatePATResponse>>;
+```
+
+Summary: Create a Personal Access Token (PAT)
+Generate a new Personal Access Token for programmatic API access. PATs are long-lived tokens that can be used instead of regular authentication for automated systems. Requires elevated permissions.
+
+This method may return different T based on the response code:
+
+- 200: CreatePATResponse
+
+###### Parameters
+
+| Parameter  | Type                                    |
+| ---------- | --------------------------------------- |
+| `body`     | [`CreatePATRequest`](#createpatrequest) |
+| `options?` | `RequestInit`                           |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`CreatePATResponse`](#createpatresponse)&gt;&gt;
+
+##### deanonymizeUser()
+
+```ts
+deanonymizeUser(body: UserDeanonymizeRequest, options?: RequestInit): Promise<FetchResponse<"OK">>;
+```
+
+Summary: Deanonymize an anonymous user
+Convert an anonymous user to a regular user by adding email and optionally password credentials. A confirmation email will be sent if the server is configured to do so.
+
+This method may return different T based on the response code:
+
+- 200: OKResponse
+
+###### Parameters
+
+| Parameter  | Type                                                |
+| ---------- | --------------------------------------------------- |
+| `body`     | [`UserDeanonymizeRequest`](#userdeanonymizerequest) |
+| `options?` | `RequestInit`                                       |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
+
+##### elevateWebauthn()
+
+```ts
+elevateWebauthn(options?: RequestInit): Promise<FetchResponse<PublicKeyCredentialRequestOptions>>;
+```
+
+Summary: Elevate access for an already signed in user using FIDO2 Webauthn
+Generate a Webauthn challenge for elevating user permissions
+
+This method may return different T based on the response code:
+
+- 200: PublicKeyCredentialRequestOptions
+
+###### Parameters
+
+| Parameter  | Type          |
+| ---------- | ------------- |
+| `options?` | `RequestInit` |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`PublicKeyCredentialRequestOptions`](#publickeycredentialrequestoptions)&gt;&gt;
+
+##### getJWKs()
+
+```ts
+getJWKs(options?: RequestInit): Promise<FetchResponse<JWKSet>>;
+```
+
+Summary: Get public keys for JWT verification in JWK Set format
+Retrieve the JSON Web Key Set (JWKS) containing public keys used to verify JWT signatures. This endpoint is used by clients to validate access tokens.
+
+This method may return different T based on the response code:
+
+- 200: JWKSet
+
+###### Parameters
+
+| Parameter  | Type          |
+| ---------- | ------------- |
+| `options?` | `RequestInit` |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`JWKSet`](#jwkset)&gt;&gt;
+
+##### getUser()
+
+```ts
+getUser(options?: RequestInit): Promise<FetchResponse<User>>;
+```
+
+Summary: Get user information
+Retrieve the authenticated user's profile information including roles, metadata, and account status.
+
+This method may return different T based on the response code:
+
+- 200: User
+
+###### Parameters
+
+| Parameter  | Type          |
+| ---------- | ------------- |
+| `options?` | `RequestInit` |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`User`](#user-2)&gt;&gt;
+
+##### getVersion()
+
+```ts
+getVersion(options?: RequestInit): Promise<FetchResponse<GetVersionResponse200>>;
+```
+
+Summary: Get service version
+Retrieve version information about the authentication service
+
+This method may return different T based on the response code:
+
+- 200: GetVersionResponse200
+
+###### Parameters
+
+| Parameter  | Type          |
+| ---------- | ------------- |
+| `options?` | `RequestInit` |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`GetVersionResponse200`](#getversionresponse200)&gt;&gt;
+
+##### healthCheckGet()
+
+```ts
+healthCheckGet(options?: RequestInit): Promise<FetchResponse<"OK">>;
+```
+
+Summary: Health check (GET)
+Verify if the authentication service is operational using GET method
+
+This method may return different T based on the response code:
+
+- 200: OKResponse
+
+###### Parameters
+
+| Parameter  | Type          |
+| ---------- | ------------- |
+| `options?` | `RequestInit` |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
+
+##### healthCheckHead()
+
+```ts
+healthCheckHead(options?: RequestInit): Promise<FetchResponse<void>>;
+```
+
+Summary: Health check (HEAD)
+Verify if the authentication service is operational using HEAD method
+
+This method may return different T based on the response code:
+
+- 200: void
+
+###### Parameters
+
+| Parameter  | Type          |
+| ---------- | ------------- |
+| `options?` | `RequestInit` |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;`void`&gt;&gt;
+
+##### linkIdToken()
+
+```ts
+linkIdToken(body: LinkIdTokenRequest, options?: RequestInit): Promise<FetchResponse<"OK">>;
+```
+
+Summary: Link a user account with the provider's account using an id token
+Link the authenticated user's account with an external OAuth provider account using an ID token. Requires elevated permissions.
+
+This method may return different T based on the response code:
+
+- 200: OKResponse
+
+###### Parameters
+
+| Parameter  | Type                                        |
+| ---------- | ------------------------------------------- |
+| `body`     | [`LinkIdTokenRequest`](#linkidtokenrequest) |
+| `options?` | `RequestInit`                               |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
+
+##### pushChainFunction()
+
+```ts
+pushChainFunction(chainFunction: ChainFunction): void;
+```
+
+###### Parameters
+
+| Parameter       | Type                                       |
+| --------------- | ------------------------------------------ |
+| `chainFunction` | [`ChainFunction`](fetch#chainfunction) |
+
+###### Returns
+
+`void`
+
+##### refreshToken()
+
+```ts
+refreshToken(body: RefreshTokenRequest, options?: RequestInit): Promise<FetchResponse<Session>>;
+```
+
+Summary: Refresh access token
+Generate a new JWT access token using a valid refresh token. The refresh token used will be revoked and a new one will be issued.
+
+This method may return different T based on the response code:
+
+- 200: Session
+
+###### Parameters
+
+| Parameter  | Type                                          |
+| ---------- | --------------------------------------------- |
+| `body`     | [`RefreshTokenRequest`](#refreshtokenrequest) |
+| `options?` | `RequestInit`                                 |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`Session`](#session)&gt;&gt;
+
+##### sendPasswordResetEmail()
+
+```ts
+sendPasswordResetEmail(body: UserPasswordResetRequest, options?: RequestInit): Promise<FetchResponse<"OK">>;
+```
+
+Summary: Request password reset
+Request a password reset for a user account. An email with a verification link will be sent to the user's email address to complete the password reset process.
+
+This method may return different T based on the response code:
+
+- 200: OKResponse
+
+###### Parameters
+
+| Parameter  | Type                                                    |
+| ---------- | ------------------------------------------------------- |
+| `body`     | [`UserPasswordResetRequest`](#userpasswordresetrequest) |
+| `options?` | `RequestInit`                                           |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
+
+##### sendVerificationEmail()
+
+```ts
+sendVerificationEmail(body: UserEmailSendVerificationEmailRequest, options?: RequestInit): Promise<FetchResponse<"OK">>;
+```
+
+Summary: Send verification email
+Send an email verification link to the specified email address. Used to verify email addresses for new accounts or email changes.
+
+This method may return different T based on the response code:
+
+- 200: OKResponse
+
+###### Parameters
+
+| Parameter  | Type                                                                              |
+| ---------- | --------------------------------------------------------------------------------- |
+| `body`     | [`UserEmailSendVerificationEmailRequest`](#useremailsendverificationemailrequest) |
+| `options?` | `RequestInit`                                                                     |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
+
+##### signInAnonymous()
+
+```ts
+signInAnonymous(body?: SignInAnonymousRequest, options?: RequestInit): Promise<FetchResponse<SessionPayload>>;
+```
+
+Summary: Sign in anonymously
+Create an anonymous user session without providing credentials. Anonymous users can be converted to regular users later via the deanonymize endpoint.
+
+This method may return different T based on the response code:
+
+- 200: SessionPayload
+
+###### Parameters
+
+| Parameter  | Type                                                |
+| ---------- | --------------------------------------------------- |
+| `body?`    | [`SignInAnonymousRequest`](#signinanonymousrequest) |
+| `options?` | `RequestInit`                                       |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`SessionPayload`](#sessionpayload)&gt;&gt;
+
+##### signInEmailPassword()
+
+```ts
+signInEmailPassword(body: SignInEmailPasswordRequest, options?: RequestInit): Promise<FetchResponse<SignInEmailPasswordResponse>>;
+```
+
+Summary: Sign in with email and password
+Authenticate a user with their email and password. Returns a session object or MFA challenge if two-factor authentication is enabled.
+
+This method may return different T based on the response code:
+
+- 200: SignInEmailPasswordResponse
+
+###### Parameters
+
+| Parameter  | Type                                                        |
+| ---------- | ----------------------------------------------------------- |
+| `body`     | [`SignInEmailPasswordRequest`](#signinemailpasswordrequest) |
+| `options?` | `RequestInit`                                               |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`SignInEmailPasswordResponse`](#signinemailpasswordresponse)&gt;&gt;
+
+##### signInIdToken()
+
+```ts
+signInIdToken(body: SignInIdTokenRequest, options?: RequestInit): Promise<FetchResponse<SessionPayload>>;
+```
+
+Summary: Sign in with an ID token
+Authenticate using an ID token from a supported OAuth provider (Apple or Google). Creates a new user account if one doesn't exist.
+
+This method may return different T based on the response code:
+
+- 200: SessionPayload
+
+###### Parameters
+
+| Parameter  | Type                                            |
+| ---------- | ----------------------------------------------- |
+| `body`     | [`SignInIdTokenRequest`](#signinidtokenrequest) |
+| `options?` | `RequestInit`                                   |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`SessionPayload`](#sessionpayload)&gt;&gt;
+
+##### signInOTPEmail()
+
+```ts
+signInOTPEmail(body: SignInOTPEmailRequest, options?: RequestInit): Promise<FetchResponse<"OK">>;
+```
+
+Summary: Sign in with email OTP
+Initiate email-based one-time password authentication. Sends an OTP to the specified email address. If the user doesn't exist, a new account will be created with the provided options.
+
+This method may return different T based on the response code:
+
+- 200: OKResponse
+
+###### Parameters
+
+| Parameter  | Type                                              |
+| ---------- | ------------------------------------------------- |
+| `body`     | [`SignInOTPEmailRequest`](#signinotpemailrequest) |
+| `options?` | `RequestInit`                                     |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
+
+##### signInPasswordlessEmail()
+
+```ts
+signInPasswordlessEmail(body: SignInPasswordlessEmailRequest, options?: RequestInit): Promise<FetchResponse<"OK">>;
+```
+
+Summary: Sign in with magic link email
+Initiate passwordless authentication by sending a magic link to the user's email. If the user doesn't exist, a new account will be created with the provided options.
+
+This method may return different T based on the response code:
+
+- 200: OKResponse
+
+###### Parameters
+
+| Parameter  | Type                                                                |
+| ---------- | ------------------------------------------------------------------- |
+| `body`     | [`SignInPasswordlessEmailRequest`](#signinpasswordlessemailrequest) |
+| `options?` | `RequestInit`                                                       |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
+
+##### signInPasswordlessSms()
+
+```ts
+signInPasswordlessSms(body: SignInPasswordlessSmsRequest, options?: RequestInit): Promise<FetchResponse<"OK">>;
+```
+
+Summary: Sign in with SMS OTP
+Initiate passwordless authentication by sending a one-time password to the user's phone number. If the user doesn't exist, a new account will be created with the provided options.
+
+This method may return different T based on the response code:
+
+- 200: OKResponse
+
+###### Parameters
+
+| Parameter  | Type                                                            |
+| ---------- | --------------------------------------------------------------- |
+| `body`     | [`SignInPasswordlessSmsRequest`](#signinpasswordlesssmsrequest) |
+| `options?` | `RequestInit`                                                   |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
+
+##### signInPAT()
+
+```ts
+signInPAT(body: SignInPATRequest, options?: RequestInit): Promise<FetchResponse<SessionPayload>>;
+```
+
+Summary: Sign in with Personal Access Token (PAT)
+Authenticate using a Personal Access Token. PATs are long-lived tokens that can be used for programmatic access to the API.
+
+This method may return different T based on the response code:
+
+- 200: SessionPayload
+
+###### Parameters
+
+| Parameter  | Type                                    |
+| ---------- | --------------------------------------- |
+| `body`     | [`SignInPATRequest`](#signinpatrequest) |
+| `options?` | `RequestInit`                           |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`SessionPayload`](#sessionpayload)&gt;&gt;
+
+##### signInProviderURL()
+
+```ts
+signInProviderURL(
+   provider: SignInProvider,
+   params?: SignInProviderParams,
+   options?: RequestInit): string;
+```
+
+Summary: Sign in with an OAuth2 provider
+Initiate OAuth2 authentication flow with a social provider. Redirects the user to the provider's authorization page.
+
+As this method is a redirect, it returns a URL string instead of a Promise
+
+###### Parameters
+
+| Parameter  | Type                                            |
+| ---------- | ----------------------------------------------- |
+| `provider` | [`SignInProvider`](#signinprovider)             |
+| `params?`  | [`SignInProviderParams`](#signinproviderparams) |
+| `options?` | `RequestInit`                                   |
+
+###### Returns
+
+`string`
+
+##### signInWebauthn()
+
+```ts
+signInWebauthn(body?: SignInWebauthnRequest, options?: RequestInit): Promise<FetchResponse<PublicKeyCredentialRequestOptions>>;
+```
+
+Summary: Sign in with Webauthn
+Initiate a Webauthn sign-in process by sending a challenge to the user's device. The user must have previously registered a Webauthn credential.
+
+This method may return different T based on the response code:
+
+- 200: PublicKeyCredentialRequestOptions
+
+###### Parameters
+
+| Parameter  | Type                                              |
+| ---------- | ------------------------------------------------- |
+| `body?`    | [`SignInWebauthnRequest`](#signinwebauthnrequest) |
+| `options?` | `RequestInit`                                     |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`PublicKeyCredentialRequestOptions`](#publickeycredentialrequestoptions)&gt;&gt;
+
+##### signOut()
+
+```ts
+signOut(body: SignOutRequest, options?: RequestInit): Promise<FetchResponse<"OK">>;
+```
+
+Summary: Sign out
+End the current user session by invalidating refresh tokens. Optionally sign out from all devices.
+
+This method may return different T based on the response code:
+
+- 200: OKResponse
+
+###### Parameters
+
+| Parameter  | Type                                |
+| ---------- | ----------------------------------- |
+| `body`     | [`SignOutRequest`](#signoutrequest) |
+| `options?` | `RequestInit`                       |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
+
+##### signUpEmailPassword()
+
+```ts
+signUpEmailPassword(body: SignUpEmailPasswordRequest, options?: RequestInit): Promise<FetchResponse<SessionPayload>>;
+```
+
+Summary: Sign up with email and password
+Register a new user account with email and password. Returns a session if email verification is not required, otherwise returns null session.
+
+This method may return different T based on the response code:
+
+- 200: SessionPayload
+
+###### Parameters
+
+| Parameter  | Type                                                        |
+| ---------- | ----------------------------------------------------------- |
+| `body`     | [`SignUpEmailPasswordRequest`](#signupemailpasswordrequest) |
+| `options?` | `RequestInit`                                               |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`SessionPayload`](#sessionpayload)&gt;&gt;
+
+##### signUpWebauthn()
+
+```ts
+signUpWebauthn(body: SignUpWebauthnRequest, options?: RequestInit): Promise<FetchResponse<PublicKeyCredentialCreationOptions>>;
+```
+
+Summary: Sign up with Webauthn
+Initiate a Webauthn sign-up process by sending a challenge to the user's device. The user must not have an existing account.
+
+This method may return different T based on the response code:
+
+- 200: PublicKeyCredentialCreationOptions
+
+###### Parameters
+
+| Parameter  | Type                                              |
+| ---------- | ------------------------------------------------- |
+| `body`     | [`SignUpWebauthnRequest`](#signupwebauthnrequest) |
+| `options?` | `RequestInit`                                     |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`PublicKeyCredentialCreationOptions`](#publickeycredentialcreationoptions)&gt;&gt;
+
+##### verifyAddSecurityKey()
+
+```ts
+verifyAddSecurityKey(body: VerifyAddSecurityKeyRequest, options?: RequestInit): Promise<FetchResponse<VerifyAddSecurityKeyResponse>>;
+```
+
+Summary: Verify adding of a new webauthn security key
+Complete the process of adding a new WebAuthn security key by verifying the authenticator response. Requires elevated permissions.
+
+This method may return different T based on the response code:
+
+- 200: VerifyAddSecurityKeyResponse
+
+###### Parameters
+
+| Parameter  | Type                                                          |
+| ---------- | ------------------------------------------------------------- |
+| `body`     | [`VerifyAddSecurityKeyRequest`](#verifyaddsecuritykeyrequest) |
+| `options?` | `RequestInit`                                                 |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`VerifyAddSecurityKeyResponse`](#verifyaddsecuritykeyresponse)&gt;&gt;
+
+##### verifyChangeUserMfa()
+
+```ts
+verifyChangeUserMfa(body: UserMfaRequest, options?: RequestInit): Promise<FetchResponse<"OK">>;
+```
+
+Summary: Manage multi-factor authentication
+Activate or deactivate multi-factor authentication for the authenticated user
+
+This method may return different T based on the response code:
+
+- 200: OKResponse
+
+###### Parameters
+
+| Parameter  | Type                                |
+| ---------- | ----------------------------------- |
+| `body`     | [`UserMfaRequest`](#usermfarequest) |
+| `options?` | `RequestInit`                       |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
+
+##### verifyElevateWebauthn()
+
+```ts
+verifyElevateWebauthn(body: SignInWebauthnVerifyRequest, options?: RequestInit): Promise<FetchResponse<SessionPayload>>;
+```
+
+Summary: Verify FIDO2 Webauthn authentication using public-key cryptography for elevation
+Complete Webauthn elevation by verifying the authentication response
+
+This method may return different T based on the response code:
+
+- 200: SessionPayload
+
+###### Parameters
+
+| Parameter  | Type                                                          |
+| ---------- | ------------------------------------------------------------- |
+| `body`     | [`SignInWebauthnVerifyRequest`](#signinwebauthnverifyrequest) |
+| `options?` | `RequestInit`                                                 |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`SessionPayload`](#sessionpayload)&gt;&gt;
+
+##### verifySignInMfaTotp()
+
+```ts
+verifySignInMfaTotp(body: SignInMfaTotpRequest, options?: RequestInit): Promise<FetchResponse<SessionPayload>>;
+```
+
+Summary: Verify TOTP for MFA
+Complete the multi-factor authentication by verifying a Time-based One-Time Password (TOTP). Returns a session if validation is successful.
+
+This method may return different T based on the response code:
+
+- 200: SessionPayload
+
+###### Parameters
+
+| Parameter  | Type                                            |
+| ---------- | ----------------------------------------------- |
+| `body`     | [`SignInMfaTotpRequest`](#signinmfatotprequest) |
+| `options?` | `RequestInit`                                   |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`SessionPayload`](#sessionpayload)&gt;&gt;
+
+##### verifySignInOTPEmail()
+
+```ts
+verifySignInOTPEmail(body: SignInOTPEmailVerifyRequest, options?: RequestInit): Promise<FetchResponse<SignInOTPEmailVerifyResponse>>;
+```
+
+Summary: Verify email OTP
+Complete email OTP authentication by verifying the one-time password. Returns a session if validation is successful.
+
+This method may return different T based on the response code:
+
+- 200: SignInOTPEmailVerifyResponse
+
+###### Parameters
+
+| Parameter  | Type                                                          |
+| ---------- | ------------------------------------------------------------- |
+| `body`     | [`SignInOTPEmailVerifyRequest`](#signinotpemailverifyrequest) |
+| `options?` | `RequestInit`                                                 |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`SignInOTPEmailVerifyResponse`](#signinotpemailverifyresponse)&gt;&gt;
+
+##### verifySignInPasswordlessSms()
+
+```ts
+verifySignInPasswordlessSms(body: SignInPasswordlessSmsOtpRequest, options?: RequestInit): Promise<FetchResponse<SignInPasswordlessSmsOtpResponse>>;
+```
+
+Summary: Verify SMS OTP
+Complete passwordless SMS authentication by verifying the one-time password. Returns a session if validation is successful.
+
+This method may return different T based on the response code:
+
+- 200: SignInPasswordlessSmsOtpResponse
+
+###### Parameters
+
+| Parameter  | Type                                                                  |
+| ---------- | --------------------------------------------------------------------- |
+| `body`     | [`SignInPasswordlessSmsOtpRequest`](#signinpasswordlesssmsotprequest) |
+| `options?` | `RequestInit`                                                         |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`SignInPasswordlessSmsOtpResponse`](#signinpasswordlesssmsotpresponse)&gt;&gt;
+
+##### verifySignInWebauthn()
+
+```ts
+verifySignInWebauthn(body: SignInWebauthnVerifyRequest, options?: RequestInit): Promise<FetchResponse<SessionPayload>>;
+```
+
+Summary: Verify Webauthn sign-in
+Complete the Webauthn sign-in process by verifying the response from the user's device. Returns a session if validation is successful.
+
+This method may return different T based on the response code:
+
+- 200: SessionPayload
+
+###### Parameters
+
+| Parameter  | Type                                                          |
+| ---------- | ------------------------------------------------------------- |
+| `body`     | [`SignInWebauthnVerifyRequest`](#signinwebauthnverifyrequest) |
+| `options?` | `RequestInit`                                                 |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`SessionPayload`](#sessionpayload)&gt;&gt;
+
+##### verifySignUpWebauthn()
+
+```ts
+verifySignUpWebauthn(body: SignUpWebauthnVerifyRequest, options?: RequestInit): Promise<FetchResponse<SessionPayload>>;
+```
+
+Summary: Verify Webauthn sign-up
+Complete the Webauthn sign-up process by verifying the response from the user's device. Returns a session if validation is successful.
+
+This method may return different T based on the response code:
+
+- 200: SessionPayload
+
+###### Parameters
+
+| Parameter  | Type                                                          |
+| ---------- | ------------------------------------------------------------- |
+| `body`     | [`SignUpWebauthnVerifyRequest`](#signupwebauthnverifyrequest) |
+| `options?` | `RequestInit`                                                 |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`SessionPayload`](#sessionpayload)&gt;&gt;
+
+##### verifyTicketURL()
+
+```ts
+verifyTicketURL(params?: VerifyTicketParams, options?: RequestInit): string;
+```
+
+Summary: Verify email and authentication tickets
+Verify tickets created by email verification, magic link authentication, or password reset processes. Redirects the user to the appropriate destination upon successful verification.
+
+As this method is a redirect, it returns a URL string instead of a Promise
+
+###### Parameters
+
+| Parameter  | Type                                        |
+| ---------- | ------------------------------------------- |
+| `params?`  | [`VerifyTicketParams`](#verifyticketparams) |
+| `options?` | `RequestInit`                               |
+
+###### Returns
+
+`string`
+
+##### verifyToken()
+
+```ts
+verifyToken(body?: VerifyTokenRequest, options?: RequestInit): Promise<FetchResponse<string>>;
+```
+
+Summary: Verify JWT token
+Verify the validity of a JWT access token. If no request body is provided, the Authorization header will be used for verification.
+
+This method may return different T based on the response code:
+
+- 200: string
+
+###### Parameters
+
+| Parameter  | Type                                        |
+| ---------- | ------------------------------------------- |
+| `body?`    | [`VerifyTokenRequest`](#verifytokenrequest) |
+| `options?` | `RequestInit`                               |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;`string`&gt;&gt;
+
+---
+
+### CreatePATRequest
+
+#### Properties
+
+##### expiresAt
+
+```ts
+expiresAt: string
+```
+
+(`string`) - Expiration date of the PAT
+
+- Format - date-time
+
+##### metadata?
+
+```ts
+optional metadata: Record<string, unknown>;
+```
+
+Example - `{"name":"my-pat","used-by":"my-app-cli"}`
+
+---
+
+### CreatePATResponse
+
+#### Properties
+
+##### id
+
+```ts
+id: string
+```
+
+(`string`) - ID of the PAT
+
+- Example - `"2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"`
+- Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
+
+##### personalAccessToken
+
+```ts
+personalAccessToken: string
+```
+
+(`string`) - PAT
+
+- Example - `"2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"`
+- Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
+
+---
+
+### CredentialAssertionResponse
+
+#### Properties
+
+##### authenticatorAttachment?
+
+```ts
+optional authenticatorAttachment: string;
+```
+
+The authenticator attachment
+
+##### clientExtensionResults?
+
+```ts
+optional clientExtensionResults: AuthenticationExtensionsClientOutputs;
+```
+
+Map of extension outputs from the client
+
+##### id
+
+```ts
+id: string
+```
+
+(`string`) - The credential's identifier
+
+##### rawId
+
+```ts
+rawId: string
+```
+
+(`string`) - Base64url-encoded binary data
+
+- Format - byte
+
+##### response
+
+```ts
+response: AuthenticatorAssertionResponse
+```
+
+(`AuthenticatorAssertionResponse`) -
+
+##### type
+
+```ts
+type: string
+```
+
+(`string`) - The credential type represented by this object
+
+---
+
+### CredentialCreationResponse
+
+#### Properties
+
+##### authenticatorAttachment?
+
+```ts
+optional authenticatorAttachment: string;
+```
+
+The authenticator attachment
+
+##### clientExtensionResults?
+
+```ts
+optional clientExtensionResults: AuthenticationExtensionsClientOutputs;
+```
+
+Map of extension outputs from the client
+
+##### id
+
+```ts
+id: string
+```
+
+(`string`) - The credential's identifier
+
+##### rawId
+
+```ts
+rawId: string
+```
+
+(`string`) - Base64url-encoded binary data
+
+- Format - byte
+
+##### response
+
+```ts
+response: AuthenticatorAttestationResponse
+```
+
+(`AuthenticatorAttestationResponse`) -
+
+##### type
+
+```ts
+type: string
+```
+
+(`string`) - The credential type represented by this object
+
+---
+
+### CredentialParameter
+
+#### Properties
+
+##### alg
+
+```ts
+alg: number
+```
+
+(`number`) - The cryptographic algorithm identifier
+
+##### type
+
+```ts
+type: 'public-key'
+```
+
+(`CredentialType`) - The valid credential types
+
+---
+
+### CredentialPropertiesOutput
+
+Credential properties extension output
+
+#### Properties
+
+##### rk?
+
+```ts
+optional rk: boolean;
+```
+
+Indicates if the credential is a resident key
+
+---
+
+### ErrorResponse
+
+Standardized error response
+
+#### Properties
+
+##### error
+
+```ts
+error: ErrorResponseError
+```
+
+(`ErrorResponseError`) - Error code identifying the specific application error
+
+##### message
+
+```ts
+message: string
+```
+
+(`string`) - Human-friendly error message
+
+- Example - `"Invalid email format"`
+
+##### status
+
+```ts
+status: number
+```
+
+(`number`) - HTTP status error code
+
+- Example - `400`
+
+---
+
+### GetVersionResponse200
+
+#### Properties
+
+##### version
+
+```ts
+version: string
+```
+
+(`string`) - The version of the authentication service
+
+- Example - `"1.2.3"`
+
+---
+
+### JWK
+
+JSON Web Key for JWT verification
+
+#### Properties
+
+##### alg
+
+```ts
+alg: string
+```
+
+(`string`) - Algorithm used with this key
+
+- Example - `"RS256"`
+
+##### e
+
+```ts
+e: string
+```
+
+(`string`) - RSA public exponent
+
+- Example - `"AQAB"`
+
+##### kid
+
+```ts
+kid: string
+```
+
+(`string`) - Key ID
+
+- Example - `"key-id-1"`
+
+##### kty
+
+```ts
+kty: string
+```
+
+(`string`) - Key type
+
+- Example - `"RSA"`
+
+##### n
+
+```ts
+n: string
+```
+
+(`string`) - RSA modulus
+
+- Example - `"abcd1234..."`
+
+##### use
+
+```ts
+use: string
+```
+
+(`string`) - Key usage
+
+- Example - `"sig"`
+
+---
+
+### JWKSet
+
+JSON Web Key Set for verifying JWT signatures
+
+#### Properties
+
+##### keys
+
+```ts
+keys: JWK[];
+```
+
+(`JWK[]`) - Array of public keys
+
+---
+
+### LinkIdTokenRequest
+
+#### Properties
+
+##### idToken
+
+```ts
+idToken: string
+```
+
+(`string`) - Apple ID token
+
+##### nonce?
+
+```ts
+optional nonce: string;
+```
+
+Nonce used during sign in process
+
+##### provider
+
+```ts
+provider: IdTokenProvider
+```
+
+(`IdTokenProvider`) -
+
+---
+
+### MFAChallengePayload
+
+Challenge payload for multi-factor authentication
+
+#### Properties
+
+##### ticket
+
+```ts
+ticket: string
+```
+
+(`string`) - Ticket to use when completing the MFA challenge
+
+- Example - `"mfaTotp:abc123def456"`
+
+---
+
+### OptionsRedirectTo
+
+#### Properties
+
+##### redirectTo?
+
+```ts
+optional redirectTo: string;
+```
+
+Example - `"https://my-app.com/catch-redirection"`
+Format - uri
+
+---
+
+### PublicKeyCredentialCreationOptions
+
+#### Properties
+
+##### attestation?
+
+```ts
+optional attestation: ConveyancePreference;
+```
+
+The attestation conveyance preference
+
+##### attestationFormats?
+
+```ts
+optional attestationFormats: AttestationFormat[];
+```
+
+The preferred attestation statement formats
+
+##### authenticatorSelection?
+
+```ts
+optional authenticatorSelection: AuthenticatorSelection;
+```
+
+##### challenge
+
+```ts
+challenge: string
+```
+
+(`string`) - Base64url-encoded binary data
+
+- Format - byte
+
+##### excludeCredentials?
+
+```ts
+optional excludeCredentials: PublicKeyCredentialDescriptor[];
+```
+
+A list of PublicKeyCredentialDescriptor objects representing public key credentials that are not acceptable to the caller
+
+##### extensions?
+
+```ts
+optional extensions: Record<string, unknown>;
+```
+
+Additional parameters requesting additional processing by the client and authenticator
+
+##### hints?
+
+```ts
+optional hints: PublicKeyCredentialHints[];
+```
+
+Hints to help guide the user through the experience
+
+##### pubKeyCredParams
+
+```ts
+pubKeyCredParams: CredentialParameter[];
+```
+
+(`CredentialParameter[]`) - The desired credential types and their respective cryptographic parameters
+
+##### rp
+
+```ts
+rp: RelyingPartyEntity
+```
+
+(`RelyingPartyEntity`) -
+
+##### timeout?
+
+```ts
+optional timeout: number;
+```
+
+A time, in milliseconds, that the caller is willing to wait for the call to complete
+
+##### user
+
+```ts
+user: UserEntity
+```
+
+(`UserEntity`) -
+
+---
+
+### PublicKeyCredentialDescriptor
+
+#### Properties
+
+##### id
+
+```ts
+id: string
+```
+
+(`string`) - Base64url-encoded binary data
+
+- Format - byte
+
+##### transports?
+
+```ts
+optional transports: AuthenticatorTransport[];
+```
+
+The authenticator transports that can be used
+
+##### type
+
+```ts
+type: 'public-key'
+```
+
+(`CredentialType`) - The valid credential types
+
+---
+
+### PublicKeyCredentialRequestOptions
+
+#### Properties
+
+##### allowCredentials?
+
+```ts
+optional allowCredentials: PublicKeyCredentialDescriptor[];
+```
+
+A list of CredentialDescriptor objects representing public key credentials acceptable to the caller
+
+##### challenge
+
+```ts
+challenge: string
+```
+
+(`string`) - Base64url-encoded binary data
+
+- Format - byte
+
+##### extensions?
+
+```ts
+optional extensions: Record<string, unknown>;
+```
+
+Additional parameters requesting additional processing by the client and authenticator
+
+##### hints?
+
+```ts
+optional hints: PublicKeyCredentialHints[];
+```
+
+Hints to help guide the user through the experience
+
+##### rpId?
+
+```ts
+optional rpId: string;
+```
+
+The RP ID the credential should be scoped to
+
+##### timeout?
+
+```ts
+optional timeout: number;
+```
+
+A time, in milliseconds, that the caller is willing to wait for the call to complete
+
+##### userVerification?
+
+```ts
+optional userVerification: UserVerificationRequirement;
+```
+
+A requirement for user verification for the operation
+
+---
+
+### RefreshTokenRequest
+
+Request to refresh an access token
+
+#### Properties
+
+##### refreshToken
+
+```ts
+refreshToken: string
+```
+
+(`string`) - Refresh token used to generate a new access token
+
+- Example - `"2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"`
+- Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
+
+---
+
+### RelyingPartyEntity
+
+#### Properties
+
+##### id
+
+```ts
+id: string
+```
+
+(`string`) - A unique identifier for the Relying Party entity, which sets the RP ID
+
+##### name
+
+```ts
+name: string
+```
+
+(`string`) - A human-palatable name for the entity
+
+---
+
+### Session
+
+User authentication session containing tokens and user information
+
+#### Extended by
+
+- [`Session`](session#session)
+
+#### Properties
+
+##### accessToken
+
+```ts
+accessToken: string
+```
+
+(`string`) - JWT token for authenticating API requests
+
+- Example - `"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."`
+
+##### accessTokenExpiresIn
+
+```ts
+accessTokenExpiresIn: number
+```
+
+(`number`) - Expiration time of the access token in seconds
+
+- Example - `900`
+- Format - int64
+
+##### refreshToken
+
+```ts
+refreshToken: string
+```
+
+(`string`) - Token used to refresh the access token
+
+- Example - `"2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"`
+- Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
+
+##### refreshTokenId
+
+```ts
+refreshTokenId: string
+```
+
+(`string`) - Identifier for the refresh token
+
+- Example - `"2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"`
+- Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
+
+##### user?
+
+```ts
+optional user: User;
+```
+
+User profile and account information
+
+---
+
+### SessionPayload
+
+Container for session information
+
+#### Properties
+
+##### session?
+
+```ts
+optional session: Session;
+```
+
+User authentication session containing tokens and user information
+
+---
+
+### SignInAnonymousRequest
+
+#### Properties
+
+##### displayName?
+
+```ts
+optional displayName: string;
+```
+
+Example - `"John Smith"`
+
+##### locale?
+
+```ts
+optional locale: string;
+```
+
+A two-characters locale
+Example - `"en"`
+MinLength - 2
+MaxLength - 2
+
+##### metadata?
+
+```ts
+optional metadata: Record<string, unknown>;
+```
+
+Example - `{"firstName":"John","lastName":"Smith"}`
+
+---
+
+### SignInEmailPasswordRequest
+
+Request to authenticate using email and password
+
+#### Properties
+
+##### email
+
+```ts
+email: string
+```
+
+(`string`) - User's email address
+
+- Example - `"john.smith@nhost.io"`
+- Format - email
+
+##### password
+
+```ts
+password: string
+```
+
+(`string`) - User's password
+
+- Example - `"Str0ngPassw#ord-94|%"`
+- MinLength - 3
+- MaxLength - 50
+
+---
+
+### SignInEmailPasswordResponse
+
+Response for email-password authentication that may include a session or MFA challenge
+
+#### Properties
+
+##### mfa?
+
+```ts
+optional mfa: MFAChallengePayload;
+```
+
+Challenge payload for multi-factor authentication
+
+##### session?
+
+```ts
+optional session: Session;
+```
+
+User authentication session containing tokens and user information
+
+---
+
+### SignInIdTokenRequest
+
+#### Properties
+
+##### idToken
+
+```ts
+idToken: string
+```
+
+(`string`) - Apple ID token
+
+##### nonce?
+
+```ts
+optional nonce: string;
+```
+
+Nonce used during sign in process
+
+##### options?
+
+```ts
+optional options: SignUpOptions;
+```
+
+##### provider
+
+```ts
+provider: IdTokenProvider
+```
+
+(`IdTokenProvider`) -
+
+---
+
+### SignInMfaTotpRequest
+
+#### Properties
+
+##### otp
+
+```ts
+otp: string
+```
+
+(`string`) - One time password
+
+##### ticket
+
+```ts
+ticket: string
+```
+
+(`string`) - Ticket
+
+- Pattern - ^mfaTotp:.\*$
+
+---
+
+### SignInOTPEmailRequest
+
+#### Properties
+
+##### email
+
+```ts
+email: string
+```
+
+(`string`) - A valid email
+
+- Example - `"john.smith@nhost.io"`
+- Format - email
+
+##### options?
+
+```ts
+optional options: SignUpOptions;
+```
+
+---
+
+### SignInOTPEmailVerifyRequest
+
+#### Properties
+
+##### email
+
+```ts
+email: string
+```
+
+(`string`) - A valid email
+
+- Example - `"john.smith@nhost.io"`
+- Format - email
+
+##### otp
+
+```ts
+otp: string
+```
+
+(`string`) - One time password
+
+---
+
+### SignInOTPEmailVerifyResponse
+
+#### Properties
+
+##### session?
+
+```ts
+optional session: Session;
+```
+
+User authentication session containing tokens and user information
+
+---
+
+### SignInPasswordlessEmailRequest
+
+#### Properties
+
+##### email
+
+```ts
+email: string
+```
+
+(`string`) - A valid email
+
+- Example - `"john.smith@nhost.io"`
+- Format - email
+
+##### options?
+
+```ts
+optional options: SignUpOptions;
+```
+
+---
+
+### SignInPasswordlessSmsOtpRequest
+
+#### Properties
+
+##### otp
+
+```ts
+otp: string
+```
+
+(`string`) - One-time password received by SMS
+
+##### phoneNumber
+
+```ts
+phoneNumber: string
+```
+
+(`string`) - Phone number of the user
+
+- Example - `"+123456789"`
+
+---
+
+### SignInPasswordlessSmsOtpResponse
+
+#### Properties
+
+##### mfa?
+
+```ts
+optional mfa: MFAChallengePayload;
+```
+
+Challenge payload for multi-factor authentication
+
+##### session?
+
+```ts
+optional session: Session;
+```
+
+User authentication session containing tokens and user information
+
+---
+
+### SignInPasswordlessSmsRequest
+
+#### Properties
+
+##### options?
+
+```ts
+optional options: SignUpOptions;
+```
+
+##### phoneNumber
+
+```ts
+phoneNumber: string
+```
+
+(`string`) - Phone number of the user
+
+- Example - `"+123456789"`
+
+---
+
+### SignInPATRequest
+
+#### Properties
+
+##### personalAccessToken
+
+```ts
+personalAccessToken: string
+```
+
+(`string`) - PAT
+
+- Example - `"2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"`
+- Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
+
+---
+
+### SignInProviderParams
+
+Parameters for the signInProvider method.
+
+#### Properties
+
+##### allowedRoles?
+
+```ts
+optional allowedRoles: string[];
+```
+
+Array of allowed roles for the user
+
+##### connect?
+
+```ts
+optional connect: string;
+```
+
+If set, this means that the user is already authenticated and wants to link their account. This needs to be a valid JWT access token.
+
+##### defaultRole?
+
+```ts
+optional defaultRole: string;
+```
+
+Default role for the user
+
+##### displayName?
+
+```ts
+optional displayName: string;
+```
+
+Display name for the user
+
+##### locale?
+
+```ts
+optional locale: string;
+```
+
+A two-characters locale
+
+##### metadata?
+
+```ts
+optional metadata: Record<string, unknown>;
+```
+
+Additional metadata for the user (JSON encoded string)
+
+##### redirectTo?
+
+```ts
+optional redirectTo: string;
+```
+
+URI to redirect to
+
+---
+
+### SignInWebauthnRequest
+
+#### Properties
+
+##### email?
+
+```ts
+optional email: string;
+```
+
+A valid email
+Example - `"john.smith@nhost.io"`
+Format - email
+
+---
+
+### SignInWebauthnVerifyRequest
+
+#### Properties
+
+##### credential
+
+```ts
+credential: CredentialAssertionResponse
+```
+
+(`CredentialAssertionResponse`) -
+
+##### email?
+
+```ts
+optional email: string;
+```
+
+A valid email. Deprecated, no longer used
+Example - `"john.smith@nhost.io"`
+Format - email
+
+---
+
+### SignOutRequest
+
+#### Properties
+
+##### all?
+
+```ts
+optional all: boolean;
+```
+
+Sign out from all connected devices
+
+##### refreshToken?
+
+```ts
+optional refreshToken: string;
+```
+
+Refresh token for the current session
+
+---
+
+### SignUpEmailPasswordRequest
+
+Request to register a new user with email and password
+
+#### Properties
+
+##### email
+
+```ts
+email: string
+```
+
+(`string`) - Email address for the new user account
+
+- Example - `"john.smith@nhost.io"`
+- Format - email
+
+##### options?
+
+```ts
+optional options: SignUpOptions;
+```
+
+##### password
+
+```ts
+password: string
+```
+
+(`string`) - Password for the new user account
+
+- Example - `"Str0ngPassw#ord-94|%"`
+- MinLength - 3
+- MaxLength - 50
+
+---
+
+### SignUpOptions
+
+#### Properties
+
+##### allowedRoles?
+
+```ts
+optional allowedRoles: string[];
+```
+
+Example - `["me","user"]`
+
+##### defaultRole?
+
+```ts
+optional defaultRole: string;
+```
+
+Example - `"user"`
+
+##### displayName?
+
+```ts
+optional displayName: string;
+```
+
+Example - `"John Smith"`
+Pattern - ^[\p{L}\p{N}\p{S} ,.'-]+$
+MaxLength - 32
+
+##### locale?
+
+```ts
+optional locale: string;
+```
+
+A two-characters locale
+Example - `"en"`
+MinLength - 2
+MaxLength - 2
+
+##### metadata?
+
+```ts
+optional metadata: Record<string, unknown>;
+```
+
+Example - `{"firstName":"John","lastName":"Smith"}`
+
+##### redirectTo?
+
+```ts
+optional redirectTo: string;
+```
+
+Example - `"https://my-app.com/catch-redirection"`
+Format - uri
+
+---
+
+### SignUpWebauthnRequest
+
+#### Properties
+
+##### email
+
+```ts
+email: string
+```
+
+(`string`) - A valid email
+
+- Example - `"john.smith@nhost.io"`
+- Format - email
+
+##### options?
+
+```ts
+optional options: SignUpOptions;
+```
+
+---
+
+### SignUpWebauthnVerifyRequest
+
+#### Properties
+
+##### credential
+
+```ts
+credential: CredentialCreationResponse
+```
+
+(`CredentialCreationResponse`) -
+
+##### nickname?
+
+```ts
+optional nickname: string;
+```
+
+Nickname for the security key
+
+##### options?
+
+```ts
+optional options: SignUpOptions;
+```
+
+---
+
+### TotpGenerateResponse
+
+Response containing TOTP setup information for MFA
+
+#### Properties
+
+##### imageUrl
+
+```ts
+imageUrl: string
+```
+
+(`string`) - URL to QR code image for scanning with an authenticator app
+
+- Example - `"data:image/png;base64,iVBORw0KGg..."`
+
+##### totpSecret
+
+```ts
+totpSecret: string
+```
+
+(`string`) - TOTP secret key for manual setup with an authenticator app
+
+- Example - `"ABCDEFGHIJK23456"`
+
+---
+
+### User
+
+User profile and account information
+
+#### Properties
+
+##### activeMfaType?
+
+```ts
+optional activeMfaType: string;
+```
+
+Active MFA type for the user
+
+##### avatarUrl
+
+```ts
+avatarUrl: string
+```
+
+(`string`) - URL to the user's profile picture
+
+- Example - `"https://myapp.com/avatars/user123.jpg"`
+
+##### createdAt
+
+```ts
+createdAt: string
+```
+
+(`string`) - Timestamp when the user account was created
+
+- Example - `"2023-01-15T12:34:56Z"`
+- Format - date-time
+
+##### defaultRole
+
+```ts
+defaultRole: string
+```
+
+(`string`) - Default authorization role for the user
+
+- Example - `"user"`
+
+##### displayName
+
+```ts
+displayName: string
+```
+
+(`string`) - User's display name
+
+- Example - `"John Smith"`
+
+##### email?
+
+```ts
+optional email: string;
+```
+
+User's email address
+Example - `"john.smith@nhost.io"`
+Format - email
+
+##### emailVerified
+
+```ts
+emailVerified: boolean
+```
+
+(`boolean`) - Whether the user's email has been verified
+
+- Example - `true`
+
+##### id
+
+```ts
+id: string
+```
+
+(`string`) - Unique identifier for the user
+
+- Example - `"2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"`
+- Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
+
+##### isAnonymous
+
+```ts
+isAnonymous: boolean
+```
+
+(`boolean`) - Whether this is an anonymous user account
+
+- Example - `false`
+
+##### locale
+
+```ts
+locale: string
+```
+
+(`string`) - User's preferred locale (language code)
+
+- Example - `"en"`
+- MinLength - 2
+- MaxLength - 2
+
+##### metadata
+
+```ts
+metadata: Record<string, unknown>
+```
+
+(`Record<string, unknown>`) - Custom metadata associated with the user
+
+- Example - `{"firstName":"John","lastName":"Smith"}`
+
+##### phoneNumber?
+
+```ts
+optional phoneNumber: string;
+```
+
+User's phone number
+Example - `"+12025550123"`
+
+##### phoneNumberVerified
+
+```ts
+phoneNumberVerified: boolean
+```
+
+(`boolean`) - Whether the user's phone number has been verified
+
+- Example - `false`
+
+##### roles
+
+```ts
+roles: string[];
+```
+
+(`string[]`) - List of roles assigned to the user
+
+- Example - `["user","customer"]`
+
+---
+
+### UserDeanonymizeRequest
+
+#### Properties
+
+##### connection?
+
+```ts
+optional connection: string;
+```
+
+Deprecated, will be ignored
+
+##### email
+
+```ts
+email: string
+```
+
+(`string`) - A valid email
+
+- Example - `"john.smith@nhost.io"`
+- Format - email
+
+##### options?
+
+```ts
+optional options: SignUpOptions;
+```
+
+##### password?
+
+```ts
+optional password: string;
+```
+
+A password of minimum 3 characters
+Example - `"Str0ngPassw#ord-94|%"`
+MinLength - 3
+MaxLength - 50
+
+##### signInMethod
+
+```ts
+signInMethod: UserDeanonymizeRequestSignInMethod
+```
+
+(`UserDeanonymizeRequestSignInMethod`) - Which sign-in method to use
+
+---
+
+### UserEmailChangeRequest
+
+#### Properties
+
+##### newEmail
+
+```ts
+newEmail: string
+```
+
+(`string`) - A valid email
+
+- Example - `"john.smith@nhost.io"`
+- Format - email
+
+##### options?
+
+```ts
+optional options: OptionsRedirectTo;
+```
+
+---
+
+### UserEmailSendVerificationEmailRequest
+
+#### Properties
+
+##### email
+
+```ts
+email: string
+```
+
+(`string`) - A valid email
+
+- Example - `"john.smith@nhost.io"`
+- Format - email
+
+##### options?
+
+```ts
+optional options: OptionsRedirectTo;
+```
+
+---
+
+### UserEntity
+
+#### Properties
+
+##### displayName
+
+```ts
+displayName: string
+```
+
+(`string`) - A human-palatable name for the user account, intended only for display
+
+##### id
+
+```ts
+id: string
+```
+
+(`string`) - The user handle of the user account entity
+
+##### name
+
+```ts
+name: string
+```
+
+(`string`) - A human-palatable name for the entity
+
+---
+
+### UserMfaRequest
+
+Request to activate or deactivate multi-factor authentication
+
+#### Properties
+
+##### activeMfaType?
+
+```ts
+optional activeMfaType: UserMfaRequestActiveMfaType;
+```
+
+Type of MFA to activate. Use empty string to disable MFA.
+Example - `"totp"`
+
+##### code
+
+```ts
+code: string
+```
+
+(`string`) - Verification code from the authenticator app when activating MFA
+
+- Example - `"123456"`
+
+---
+
+### UserPasswordRequest
+
+#### Properties
+
+##### newPassword
+
+```ts
+newPassword: string
+```
+
+(`string`) - A password of minimum 3 characters
+
+- Example - `"Str0ngPassw#ord-94|%"`
+- MinLength - 3
+- MaxLength - 50
+
+##### ticket?
+
+```ts
+optional ticket: string;
+```
+
+Ticket to reset the password, required if the user is not authenticated
+Pattern - ^passwordReset\:.\*$
+
+---
+
+### UserPasswordResetRequest
+
+#### Properties
+
+##### email
+
+```ts
+email: string
+```
+
+(`string`) - A valid email
+
+- Example - `"john.smith@nhost.io"`
+- Format - email
+
+##### options?
+
+```ts
+optional options: OptionsRedirectTo;
+```
+
+---
+
+### VerifyAddSecurityKeyRequest
+
+#### Properties
+
+##### credential
+
+```ts
+credential: CredentialCreationResponse
+```
+
+(`CredentialCreationResponse`) -
+
+##### nickname?
+
+```ts
+optional nickname: string;
+```
+
+Optional nickname for the security key
+
+---
+
+### VerifyAddSecurityKeyResponse
+
+#### Properties
+
+##### id
+
+```ts
+id: string
+```
+
+(`string`) - The ID of the newly added security key
+
+- Example - `"123e4567-e89b-12d3-a456-426614174000"`
+
+##### nickname?
+
+```ts
+optional nickname: string;
+```
+
+The nickname of the security key if provided
+
+---
+
+### VerifyTicketParams
+
+Parameters for the verifyTicket method.
+
+#### Properties
+
+##### redirectTo
+
+```ts
+redirectTo: string
+```
+
+(RedirectToQuery) - Target URL for the redirect
+
+- Target URL for the redirect
+
+##### ticket
+
+```ts
+ticket: string
+```
+
+(TicketQuery) - Ticket
+
+- Ticket
+
+##### type?
+
+```ts
+optional type: TicketTypeQuery;
+```
+
+Type of the ticket. Deprecated, no longer used
+
+- Type of the ticket
+
+---
+
+### VerifyTokenRequest
+
+#### Properties
+
+##### token?
+
+```ts
+optional token: string;
+```
+
+JWT token to verify
+
+## Type Aliases
+
+### AttestationFormat
+
+```ts
+type AttestationFormat =
+  | 'packed'
+  | 'tpm'
+  | 'android-key'
+  | 'android-safetynet'
+  | 'fido-u2f'
+  | 'apple'
+  | 'none'
+```
+
+The attestation statement format
+
+---
+
+### AuthenticatorAttachment
+
+```ts
+type AuthenticatorAttachment = 'platform' | 'cross-platform'
+```
+
+The authenticator attachment modality
+
+---
+
+### AuthenticatorTransport
+
+```ts
+type AuthenticatorTransport = 'usb' | 'nfc' | 'ble' | 'smart-card' | 'hybrid' | 'internal'
+```
+
+The authenticator transports that can be used
+
+---
+
+### ConveyancePreference
+
+```ts
+type ConveyancePreference = 'none' | 'indirect' | 'direct' | 'enterprise'
+```
+
+The attestation conveyance preference
+
+---
+
+### CredentialType
+
+```ts
+type CredentialType = 'public-key'
+```
+
+The valid credential types
+
+---
+
+### ErrorResponseError
+
+```ts
+type ErrorResponseError =
+  | 'default-role-must-be-in-allowed-roles'
+  | 'disabled-endpoint'
+  | 'disabled-user'
+  | 'email-already-in-use'
+  | 'email-already-verified'
+  | 'forbidden-anonymous'
+  | 'internal-server-error'
+  | 'invalid-email-password'
+  | 'invalid-request'
+  | 'locale-not-allowed'
+  | 'password-too-short'
+  | 'password-in-hibp-database'
+  | 'redirectTo-not-allowed'
+  | 'role-not-allowed'
+  | 'signup-disabled'
+  | 'unverified-user'
+  | 'user-not-anonymous'
+  | 'invalid-pat'
+  | 'invalid-refresh-token'
+  | 'invalid-ticket'
+  | 'disabled-mfa-totp'
+  | 'no-totp-secret'
+  | 'invalid-totp'
+  | 'mfa-type-not-found'
+  | 'totp-already-active'
+  | 'invalid-state'
+  | 'oauth-token-echange-failed'
+  | 'oauth-profile-fetch-failed'
+  | 'oauth-provider-error'
+  | 'invalid-otp'
+  | 'cannot-send-sms'
+```
+
+Error code identifying the specific application error
+
+---
+
+### IdTokenProvider
+
+```ts
+type IdTokenProvider = 'apple' | 'google'
+```
+
+---
+
+### OKResponse
+
+```ts
+type OKResponse = 'OK'
+```
+
+---
+
+### PublicKeyCredentialHints
+
+```ts
+type PublicKeyCredentialHints = 'security-key' | 'client-device' | 'hybrid'
+```
+
+Hints to help guide the user through the experience
+
+---
+
+### RedirectToQuery
+
+```ts
+type RedirectToQuery = string
+```
+
+Target URL for the redirect
+
+---
+
+### ResidentKeyRequirement
+
+```ts
+type ResidentKeyRequirement = 'discouraged' | 'preferred' | 'required'
+```
+
+The resident key requirement
+
+---
+
+### SignInProvider
+
+```ts
+type SignInProvider =
+  | 'apple'
+  | 'github'
+  | 'google'
+  | 'linkedin'
+  | 'discord'
+  | 'spotify'
+  | 'twitch'
+  | 'gitlab'
+  | 'bitbucket'
+  | 'workos'
+  | 'azuread'
+  | 'strava'
+  | 'facebook'
+  | 'windowslive'
+  | 'twitter'
+```
+
+---
+
+### TicketQuery
+
+```ts
+type TicketQuery = string
+```
+
+Ticket
+
+---
+
+### TicketTypeQuery
+
+```ts
+type TicketTypeQuery = 'emailVerify' | 'emailConfirmChange' | 'signinPasswordless' | 'passwordReset'
+```
+
+Type of the ticket
+
+---
+
+### URLEncodedBase64
+
+```ts
+type URLEncodedBase64 = string
+```
+
+Base64url-encoded binary data
+
+---
+
+### UserDeanonymizeRequestSignInMethod
+
+```ts
+type UserDeanonymizeRequestSignInMethod = 'email-password' | 'passwordless'
+```
+
+Which sign-in method to use
+
+---
+
+### UserMfaRequestActiveMfaType
+
+```ts
+type UserMfaRequestActiveMfaType = 'totp' | ''
+```
+
+Type of MFA to activate. Use empty string to disable MFA.
+
+---
+
+### UserVerificationRequirement
+
+```ts
+type UserVerificationRequirement = 'required' | 'preferred' | 'discouraged'
+```
+
+A requirement for user verification for the operation
+
+## Functions
+
+### createAPIClient()
+
+```ts
+function createAPIClient(baseURL: string, chainFunctions: ChainFunction[]): Client
+```
+
+#### Parameters
+
+| Parameter        | Type                                         | Default value |
+| ---------------- | -------------------------------------------- | ------------- |
+| `baseURL`        | `string`                                     | `undefined`   |
+| `chainFunctions` | [`ChainFunction`](fetch#chainfunction)[] | `[]`          |
+
+#### Returns
+
+[`Client`](#client)

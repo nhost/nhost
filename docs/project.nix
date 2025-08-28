@@ -19,6 +19,10 @@ let
       "turbo.json"
       (inDirectory "./build")
       (inDirectory "${submodule}")
+      (and
+        (inDirectory "packages/nhost-js/src")
+        (matchExt "ts")
+      )
     ];
   };
 

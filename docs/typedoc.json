@@ -1,16 +1,16 @@
 {
   "$schema": "https://typedoc.org/schema.json",
   "entryPoints": [
-    "src/index.ts",
-    "src/auth/index.ts",
-    "src/fetch/index.ts",
-    "src/functions/index.ts",
-    "src/graphql/index.ts",
-    "src/session/index.ts",
-    "src/storage/index.ts"
+    "../packages/nhost-js/src/index.ts",
+    "../packages/nhost-js/src/auth/index.ts",
+    "../packages/nhost-js/src/fetch/index.ts",
+    "../packages/nhost-js/src/functions/index.ts",
+    "../packages/nhost-js/src/graphql/index.ts",
+    "../packages/nhost-js/src/session/index.ts",
+    "../packages/nhost-js/src/storage/index.ts"
   ],
   "entryPointStrategy": "expand",
-  "out": "../../docs/reference/javascript/nhost-js",
+  "out": "reference/javascript/nhost-js",
 
   "includeVersion": true,
   "excludePrivate": true,

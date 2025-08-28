@@ -22,5 +22,5 @@ export {
   MemoryStorage,
   CookieStorage
 } from './storageBackend'
-export type { Session } from './session'
+export type { Session, DecodedToken } from './session'
 export { refreshSession } from './refreshSession'

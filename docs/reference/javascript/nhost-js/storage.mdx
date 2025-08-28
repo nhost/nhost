@@ -1,0 +1,1103 @@
+This is the main module to interact with Nhost's Storage service.
+Typically you would use this module via the main [Nhost client](main#createclient)
+but you can also use it directly if you have a specific use case.
+
+## Import
+
+You can import and use this package with:
+
+```ts
+import { createClient } from '@nhost/nhost-js/storage'
+```
+
+## Usage
+
+You can use this library to upload files, download files, and delete files:
+
+```ts
+import { createClient } from '@nhost/nhost-js'
+
+const nhost = createClient({
+  subdomain,
+  region
+})
+
+// Sign up/in to authenticate
+await nhost.auth.signUpEmailPassword({
+  email: `test-${Date.now()}@example.com`,
+  password: 'password123'
+})
+
+// Upload files to storage
+const uploadResp = await nhost.storage.uploadFiles({
+  'file[]': [new File(['test content'], 'test-file.txt', { type: 'text/plain' })]
+})
+console.log(JSON.stringify(uploadResp, null, 2))
+// {
+//   "body": {
+//     "processedFiles": [
+//       {
+//         "id": "412f4ec0-e347-4e1e-ad5a-8fecb6cb51ed",
+//         "name": "test-file.txt",
+//         "size": 12,
+//         "bucketId": "default",
+//         "etag": "\"9473fdd0d880a43c21b7778d34872157\"",
+//         "createdAt": "2025-07-04T08:27:26.018321+00:00",
+//         "updatedAt": "2025-07-04T08:27:26.021849+00:00",
+//         "isUploaded": true,
+//         "mimeType": "text/plain",
+//         "uploadedByUserId": "",
+//         "metadata": null
+//       }
+//     ]
+//   },
+//   "status": 201,
+//   "headers": {}
+// }
+
+const fileId = uploadResp.body.processedFiles[0].id
+
+// Download a file from storage
+const downloadResp = await nhost.storage.getFile(fileId)
+console.log('Downloaded file content:', await downloadResp.body.text())
+// Downloaded file content: test content
+
+// Delete the file
+await nhost.storage.deleteFile(fileId)
+
+expect(uploadResp.status).toBe(201)
+```
+
+## Error handling
+
+The SDK will throw errors in most operations if the request returns a status >=300 or
+if the request fails entirely (i.e., due to network errors). The type of the error
+will be a `FetchError<ErrorResponse>`:
+
+```ts
+import { createClient } from '@nhost/nhost-js'
+import { type ErrorResponse } from '@nhost/nhost-js/storage'
+import { type FetchError } from '@nhost/nhost-js/fetch'
+
+    region
+  })
+
+  try {
+    await nhost.storage.uploadFiles({
+      'file[]': [new File(['test1'], 'file-1', { type: 'text/plain' })]
+    })
+
+    expect(true).toBe(false) // This should not be reached
+    console.log('Error:', err)
+    // Error: {
+    //   body: { error: { message: 'you are not authorized' } },
+    //   status: 403,
+    //   headers: {
+    //     'content-length': '46',
+    //     'content-type': 'application/json; charset=utf-8',
+    //     date: 'Mon, 12 May 2025 08:18:52 GMT'
+    //   }
+    // }
+
+    // error handling...
+
+    expect(err.status).toBe(403)
+  }
+```
+
+This type extends the standard `Error` type so if you want to just log the error you can
+do so like this:
+
+```ts
+import { createClient } from '@nhost/nhost-js'
+import { type ErrorResponse } from '@nhost/nhost-js/storage'
+import { type FetchError } from '@nhost/nhost-js/fetch'
+
+const nhost = createClient({
+  subdomain,
+  region
+})
+
+try {
+  await nhost.storage.uploadFiles({
+    'file[]': [new File(['test1'], 'file-1', { type: 'text/plain' })]
+  })
+} catch (error) {
+  if (!(error instanceof Error)) {
+    throw error // Re-throw if it's not an Error
+  }
+
+  console.log('Error:', error.message)
+  // Error: you are not authorized
+  // error handling...
+}
+```
+
+## Interfaces
+
+### Client
+
+#### Properties
+
+##### baseURL
+
+```ts
+baseURL: string
+```
+
+#### Methods
+
+##### deleteBrokenMetadata()
+
+```ts
+deleteBrokenMetadata(options?: RequestInit): Promise<FetchResponse<DeleteBrokenMetadataResponse200>>;
+```
+
+Summary: Delete broken metadata
+Broken metadata is defined as metadata that has isUploaded = true but there is no file in the storage matching it. This is an admin operation that requires the Hasura admin secret.
+
+This method may return different T based on the response code:
+
+- 200: DeleteBrokenMetadataResponse200
+
+###### Parameters
+
+| Parameter  | Type          |
+| ---------- | ------------- |
+| `options?` | `RequestInit` |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`DeleteBrokenMetadataResponse200`](#deletebrokenmetadataresponse200)&gt;&gt;
+
+##### deleteFile()
+
+```ts
+deleteFile(id: string, options?: RequestInit): Promise<FetchResponse<void>>;
+```
+
+Summary: Delete file
+Permanently delete a file from storage. This removes both the file content and its associated metadata.
+
+This method may return different T based on the response code:
+
+- 204: void
+
+###### Parameters
+
+| Parameter  | Type          |
+| ---------- | ------------- |
+| `id`       | `string`      |
+| `options?` | `RequestInit` |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;`void`&gt;&gt;
+
+##### deleteOrphanedFiles()
+
+```ts
+deleteOrphanedFiles(options?: RequestInit): Promise<FetchResponse<DeleteOrphanedFilesResponse200>>;
+```
+
+Summary: Deletes orphaned files
+Orphaned files are files that are present in the storage but have no associated metadata. This is an admin operation that requires the Hasura admin secret.
+
+This method may return different T based on the response code:
+
+- 200: DeleteOrphanedFilesResponse200
+
+###### Parameters
+
+| Parameter  | Type          |
+| ---------- | ------------- |
+| `options?` | `RequestInit` |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`DeleteOrphanedFilesResponse200`](#deleteorphanedfilesresponse200)&gt;&gt;
+
+##### getFile()
+
+```ts
+getFile(
+   id: string,
+   params?: GetFileParams,
+   options?: RequestInit): Promise<FetchResponse<Blob>>;
+```
+
+Summary: Download file
+Retrieve and download the complete file content. Supports conditional requests, image transformations, and range requests for partial downloads.
+
+This method may return different T based on the response code:
+
+- 200: void
+- 206: void
+- 304: void
+- 412: void
+
+###### Parameters
+
+| Parameter  | Type                              |
+| ---------- | --------------------------------- |
+| `id`       | `string`                          |
+| `params?`  | [`GetFileParams`](#getfileparams) |
+| `options?` | `RequestInit`                     |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;`Blob`&gt;&gt;
+
+##### getFileMetadataHeaders()
+
+```ts
+getFileMetadataHeaders(
+   id: string,
+   params?: GetFileMetadataHeadersParams,
+   options?: RequestInit): Promise<FetchResponse<void>>;
+```
+
+Summary: Check file information
+Retrieve file metadata headers without downloading the file content. Supports conditional requests and provides caching information.
+
+This method may return different T based on the response code:
+
+- 200: void
+- 304: void
+- 412: void
+
+###### Parameters
+
+| Parameter  | Type                                                            |
+| ---------- | --------------------------------------------------------------- |
+| `id`       | `string`                                                        |
+| `params?`  | [`GetFileMetadataHeadersParams`](#getfilemetadataheadersparams) |
+| `options?` | `RequestInit`                                                   |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;`void`&gt;&gt;
+
+##### getFilePresignedURL()
+
+```ts
+getFilePresignedURL(id: string, options?: RequestInit): Promise<FetchResponse<PresignedURLResponse>>;
+```
+
+Summary: Retrieve presigned URL to retrieve the file
+Retrieve presigned URL to retrieve the file. Expiration of the URL is
+determined by bucket configuration
+
+This method may return different T based on the response code:
+
+- 200: PresignedURLResponse
+
+###### Parameters
+
+| Parameter  | Type          |
+| ---------- | ------------- |
+| `id`       | `string`      |
+| `options?` | `RequestInit` |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`PresignedURLResponse`](#presignedurlresponse)&gt;&gt;
+
+##### getVersion()
+
+```ts
+getVersion(options?: RequestInit): Promise<FetchResponse<VersionInformation>>;
+```
+
+Summary: Get service version information
+Retrieves build and version information about the storage service. Useful for monitoring and debugging.
+
+This method may return different T based on the response code:
+
+- 200: VersionInformation
+
+###### Parameters
+
+| Parameter  | Type          |
+| ---------- | ------------- |
+| `options?` | `RequestInit` |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`VersionInformation`](#versioninformation)&gt;&gt;
+
+##### listBrokenMetadata()
+
+```ts
+listBrokenMetadata(options?: RequestInit): Promise<FetchResponse<ListBrokenMetadataResponse200>>;
+```
+
+Summary: Lists broken metadata
+Broken metadata is defined as metadata that has isUploaded = true but there is no file in the storage matching it. This is an admin operation that requires the Hasura admin secret.
+
+This method may return different T based on the response code:
+
+- 200: ListBrokenMetadataResponse200
+
+###### Parameters
+
+| Parameter  | Type          |
+| ---------- | ------------- |
+| `options?` | `RequestInit` |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`ListBrokenMetadataResponse200`](#listbrokenmetadataresponse200)&gt;&gt;
+
+##### listFilesNotUploaded()
+
+```ts
+listFilesNotUploaded(options?: RequestInit): Promise<FetchResponse<ListFilesNotUploadedResponse200>>;
+```
+
+Summary: Lists files that haven't been uploaded
+That is, metadata that has isUploaded = false. This is an admin operation that requires the Hasura admin secret.
+
+This method may return different T based on the response code:
+
+- 200: ListFilesNotUploadedResponse200
+
+###### Parameters
+
+| Parameter  | Type          |
+| ---------- | ------------- |
+| `options?` | `RequestInit` |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`ListFilesNotUploadedResponse200`](#listfilesnotuploadedresponse200)&gt;&gt;
+
+##### listOrphanedFiles()
+
+```ts
+listOrphanedFiles(options?: RequestInit): Promise<FetchResponse<ListOrphanedFilesResponse200>>;
+```
+
+Summary: Lists orphaned files
+Orphaned files are files that are present in the storage but have no associated metadata. This is an admin operation that requires the Hasura admin secret.
+
+This method may return different T based on the response code:
+
+- 200: ListOrphanedFilesResponse200
+
+###### Parameters
+
+| Parameter  | Type          |
+| ---------- | ------------- |
+| `options?` | `RequestInit` |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`ListOrphanedFilesResponse200`](#listorphanedfilesresponse200)&gt;&gt;
+
+##### pushChainFunction()
+
+```ts
+pushChainFunction(chainFunction: ChainFunction): void;
+```
+
+###### Parameters
+
+| Parameter       | Type                                       |
+| --------------- | ------------------------------------------ |
+| `chainFunction` | [`ChainFunction`](fetch#chainfunction) |
+
+###### Returns
+
+`void`
+
+##### replaceFile()
+
+```ts
+replaceFile(
+   id: string,
+   body: ReplaceFileBody,
+   options?: RequestInit): Promise<FetchResponse<FileMetadata>>;
+```
+
+Summary: Replace file
+Replace an existing file with new content while preserving the file ID. The operation follows these steps:
+
+1. The isUploaded flag is set to false to mark the file as being updated
+2. The file content is replaced in the storage backend
+3. File metadata is updated (size, mime-type, isUploaded, etc.)
+
+Each step is atomic, but if a step fails, previous steps will not be automatically rolled back.
+
+This method may return different T based on the response code:
+
+- 200: FileMetadata
+
+###### Parameters
+
+| Parameter  | Type                                  |
+| ---------- | ------------------------------------- |
+| `id`       | `string`                              |
+| `body`     | [`ReplaceFileBody`](#replacefilebody) |
+| `options?` | `RequestInit`                         |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`FileMetadata`](#filemetadata)&gt;&gt;
+
+##### uploadFiles()
+
+```ts
+uploadFiles(body: UploadFilesBody, options?: RequestInit): Promise<FetchResponse<UploadFilesResponse201>>;
+```
+
+Summary: Upload files
+Upload one or more files to a specified bucket. Supports batch uploading with optional custom metadata for each file. If uploading multiple files, either provide metadata for all files or none.
+
+This method may return different T based on the response code:
+
+- 201: UploadFilesResponse201
+
+###### Parameters
+
+| Parameter  | Type                                  |
+| ---------- | ------------------------------------- |
+| `body`     | [`UploadFilesBody`](#uploadfilesbody) |
+| `options?` | `RequestInit`                         |
+
+###### Returns
+
+`Promise`&lt;[`FetchResponse`](fetch#fetchresponse)&lt;[`UploadFilesResponse201`](#uploadfilesresponse201)&gt;&gt;
+
+---
+
+### DeleteBrokenMetadataResponse200
+
+#### Properties
+
+##### metadata?
+
+```ts
+optional metadata: FileSummary[];
+```
+
+---
+
+### DeleteOrphanedFilesResponse200
+
+#### Properties
+
+##### files?
+
+```ts
+optional files: string[];
+```
+
+---
+
+### ErrorResponse
+
+Error information returned by the API.
+
+#### Properties
+
+##### error?
+
+```ts
+optional error: ErrorResponseError;
+```
+
+Error details.
+
+---
+
+### ErrorResponseError
+
+Error details.
+
+#### Properties
+
+##### data?
+
+```ts
+optional data: Record<string, unknown>;
+```
+
+Additional data related to the error, if any.
+
+##### message
+
+```ts
+message: string
+```
+
+(`string`) - Human-readable error message.
+
+- Example - `"File not found"`
+
+---
+
+### ErrorResponseWithProcessedFiles
+
+Error information returned by the API.
+
+#### Properties
+
+##### error?
+
+```ts
+optional error: ErrorResponseWithProcessedFilesError;
+```
+
+Error details.
+
+##### processedFiles?
+
+```ts
+optional processedFiles: FileMetadata[];
+```
+
+List of files that were successfully processed before the error occurred.
+
+---
+
+### ErrorResponseWithProcessedFilesError
+
+Error details.
+
+#### Properties
+
+##### data?
+
+```ts
+optional data: Record<string, unknown>;
+```
+
+Additional data related to the error, if any.
+
+##### message
+
+```ts
+message: string
+```
+
+(`string`) - Human-readable error message.
+
+- Example - `"File not found"`
+
+---
+
+### FileMetadata
+
+Comprehensive metadata information about a file in storage.
+
+#### Properties
+
+##### bucketId
+
+```ts
+bucketId: string
+```
+
+(`string`) - ID of the bucket containing the file.
+
+- Example - `"users-bucket"`
+
+##### createdAt
+
+```ts
+createdAt: string
+```
+
+(`string`) - Timestamp when the file was created.
+
+- Example - `"2023-01-15T12:34:56Z"`
+- Format - date-time
+
+##### etag
+
+```ts
+etag: string
+```
+
+(`string`) - Entity tag for cache validation.
+
+- Example - `"\"a1b2c3d4e5f6\""`
+
+##### id
+
+```ts
+id: string
+```
+
+(`string`) - Unique identifier for the file.
+
+- Example - `"d5e76ceb-77a2-4153-b7da-1f7c115b2ff2"`
+
+##### isUploaded
+
+```ts
+isUploaded: boolean
+```
+
+(`boolean`) - Whether the file has been successfully uploaded.
+
+- Example - `true`
+
+##### metadata?
+
+```ts
+optional metadata: Record<string, unknown>;
+```
+
+Custom metadata associated with the file.
+Example - `{"alt":"Profile picture","category":"avatar"}`
+
+##### mimeType
+
+```ts
+mimeType: string
+```
+
+(`string`) - MIME type of the file.
+
+- Example - `"image/jpeg"`
+
+##### name
+
+```ts
+name: string
+```
+
+(`string`) - Name of the file including extension.
+
+- Example - `"profile-picture.jpg"`
+
+##### size
+
+```ts
+size: number
+```
+
+(`number`) - Size of the file in bytes.
+
+- Example - `245678`
+- Format - int64
+
+##### updatedAt
+
+```ts
+updatedAt: string
+```
+
+(`string`) - Timestamp when the file was last updated.
+
+- Example - `"2023-01-16T09:45:32Z"`
+- Format - date-time
+
+##### uploadedByUserId?
+
+```ts
+optional uploadedByUserId: string;
+```
+
+ID of the user who uploaded the file.
+Example - `"abc123def456"`
+
+---
+
+### FileSummary
+
+Basic information about a file in storage.
+
+#### Properties
+
+##### bucketId
+
+```ts
+bucketId: string
+```
+
+(`string`) - ID of the bucket containing the file.
+
+- Example - `"users-bucket"`
+
+##### id
+
+```ts
+id: string
+```
+
+(`string`) - Unique identifier for the file.
+
+- Example - `"d5e76ceb-77a2-4153-b7da-1f7c115b2ff2"`
+
+##### isUploaded
+
+```ts
+isUploaded: boolean
+```
+
+(`boolean`) - Whether the file has been successfully uploaded.
+
+- Example - `true`
+
+##### name
+
+```ts
+name: string
+```
+
+(`string`) - Name of the file including extension.
+
+- Example - `"profile-picture.jpg"`
+
+---
+
+### GetFileMetadataHeadersParams
+
+Parameters for the getFileMetadataHeaders method.
+
+#### Properties
+
+##### b?
+
+```ts
+optional b: number;
+```
+
+Blur the image using this sigma value. Only applies to image files
+
+##### f?
+
+```ts
+optional f: OutputImageFormat;
+```
+
+Output format for image files. Use 'auto' for content negotiation based on Accept header
+
+- Output format for image files. Use 'auto' for content negotiation based on Accept header
+
+##### h?
+
+```ts
+optional h: number;
+```
+
+Maximum height to resize image to while maintaining aspect ratio. Only applies to image files
+
+##### q?
+
+```ts
+optional q: number;
+```
+
+Image quality (1-100). Only applies to JPEG, WebP and PNG files
+
+##### w?
+
+```ts
+optional w: number;
+```
+
+Maximum width to resize image to while maintaining aspect ratio. Only applies to image files
+
+---
+
+### GetFileParams
+
+Parameters for the getFile method.
+
+#### Properties
+
+##### b?
+
+```ts
+optional b: number;
+```
+
+Blur the image using this sigma value. Only applies to image files
+
+##### f?
+
+```ts
+optional f: OutputImageFormat;
+```
+
+Output format for image files. Use 'auto' for content negotiation based on Accept header
+
+- Output format for image files. Use 'auto' for content negotiation based on Accept header
+
+##### h?
+
+```ts
+optional h: number;
+```
+
+Maximum height to resize image to while maintaining aspect ratio. Only applies to image files
+
+##### q?
+
+```ts
+optional q: number;
+```
+
+Image quality (1-100). Only applies to JPEG, WebP and PNG files
+
+##### w?
+
+```ts
+optional w: number;
+```
+
+Maximum width to resize image to while maintaining aspect ratio. Only applies to image files
+
+---
+
+### ListBrokenMetadataResponse200
+
+#### Properties
+
+##### metadata?
+
+```ts
+optional metadata: FileSummary[];
+```
+
+---
+
+### ListFilesNotUploadedResponse200
+
+#### Properties
+
+##### metadata?
+
+```ts
+optional metadata: FileSummary[];
+```
+
+---
+
+### ListOrphanedFilesResponse200
+
+#### Properties
+
+##### files?
+
+```ts
+optional files: string[];
+```
+
+---
+
+### PresignedURLResponse
+
+Contains a presigned URL for direct file operations.
+
+#### Properties
+
+##### expiration
+
+```ts
+expiration: number
+```
+
+(`number`) - The time in seconds until the URL expires.
+
+- Example - `3600`
+
+##### url
+
+```ts
+url: string
+```
+
+(`string`) - The presigned URL for file operations.
+
+- Example - `"https://storage.example.com/files/abc123?signature=xyz"`
+
+---
+
+### ReplaceFileBody
+
+#### Properties
+
+##### file?
+
+```ts
+optional file: Blob;
+```
+
+New file content to replace the existing file
+Format - binary
+
+##### metadata?
+
+```ts
+optional metadata: UpdateFileMetadata;
+```
+
+Metadata that can be updated for an existing file.
+
+---
+
+### UpdateFileMetadata
+
+Metadata that can be updated for an existing file.
+
+#### Properties
+
+##### metadata?
+
+```ts
+optional metadata: Record<string, unknown>;
+```
+
+Updated custom metadata to associate with the file.
+Example - `{"alt":"Updated image description","category":"profile"}`
+
+##### name?
+
+```ts
+optional name: string;
+```
+
+New name to assign to the file.
+Example - `"renamed-file.jpg"`
+
+---
+
+### UploadFileMetadata
+
+Metadata provided when uploading a new file.
+
+#### Properties
+
+##### id?
+
+```ts
+optional id: string;
+```
+
+Optional custom ID for the file. If not provided, a UUID will be generated.
+Example - `"custom-id-123"`
+
+##### metadata?
+
+```ts
+optional metadata: Record<string, unknown>;
+```
+
+Custom metadata to associate with the file.
+Example - `{"alt":"Custom image","category":"document"}`
+
+##### name?
+
+```ts
+optional name: string;
+```
+
+Name to assign to the file. If not provided, the original filename will be used.
+Example - `"custom-filename.png"`
+
+---
+
+### UploadFilesBody
+
+#### Properties
+
+##### bucket-id?
+
+```ts
+optional bucket-id: string;
+```
+
+Target bucket identifier where files will be stored.
+Example - `"user-uploads"`
+
+##### file\[\]
+
+```ts
+file[]: Blob[];
+```
+
+(`Blob[]`) - Array of files to upload.
+
+##### metadata\[\]?
+
+```ts
+optional metadata[]: UploadFileMetadata[];
+```
+
+Optional custom metadata for each uploaded file. Must match the order of the file[] array.
+
+---
+
+### UploadFilesResponse201
+
+#### Properties
+
+##### processedFiles
+
+```ts
+processedFiles: FileMetadata[];
+```
+
+(`FileMetadata[]`) - List of successfully processed files with their metadata.
+
+---
+
+### VersionInformation
+
+Contains version information about the storage service.
+
+#### Properties
+
+##### buildVersion
+
+```ts
+buildVersion: string
+```
+
+(`string`) - The version number of the storage service build.
+
+- Example - `"1.2.3"`
+
+## Type Aliases
+
+### OutputImageFormat
+
+```ts
+type OutputImageFormat = 'auto' | 'same' | 'jpeg' | 'webp' | 'png' | 'avif'
+```
+
+Output format for image files. Use 'auto' for content negotiation based on Accept header
+
+---
+
+### RFC2822Date
+
+```ts
+type RFC2822Date = string
+```
+
+Date in RFC 2822 format
+
+## Functions
+
+### createAPIClient()
+
+```ts
+function createAPIClient(baseURL: string, chainFunctions: ChainFunction[]): Client
+```
+
+#### Parameters
+
+| Parameter        | Type                                         | Default value |
+| ---------------- | -------------------------------------------- | ------------- |
+| `baseURL`        | `string`                                     | `undefined`   |
+| `chainFunctions` | [`ChainFunction`](fetch#chainfunction)[] | `[]`          |
+
+#### Returns
+
+[`Client`](#client)
