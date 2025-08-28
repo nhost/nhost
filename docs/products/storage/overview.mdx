@@ -30,22 +30,15 @@ You're allowed to add and modify the following:
 
 ### Upload File
 
-When a file is uploaded, the file metadata is inserted into the `storage.files` table and a file `id` is returned. The file's `id` is how you reference and access the file. It's recommended to create your own table to store the uploaded file `id`, to access the file in the future.
+When a file is uploaded, the file metadata is inserted into the `storage.files` table and a file `id` is returned. The file's `id` is how you reference and access the file.
 
 <Tabs>
   <Tab title="JavaScript">
 
 ```js
-await nhost.storage.upload({ file })
-```
-
-Learn more about [`upload()`](/reference/javascript/storage/upload).
-
-  </Tab>
-  <Tab title="HTTP">
-
-```http
-POST https://local.storage.local.nhost.run/v1/files HTTP/1.1
+const uploadResp = await nhost.storage.uploadFiles({
+  'file[]': [new File(['test content'], 'test-file.txt', { type: 'text/plain' })]
+})
 ```
 
   </Tab>
@@ -60,18 +53,14 @@ There are two ways to download a file:
 
 #### Public URL
 
-Public URLs are available for both unauthenticated and authenticated users. Permissions are checked for every file request. To get a public URL for a file, you would normally use the `public` role to set **select** permissions.
+Public URLs are available for both unauthenticated and authenticated users. Permissions are checked for every file request. To get a public URL for a file you can use the following method:
 
 <Tabs>
   <Tab title="JavaScript">
 
 ```js
-await nhost.storage.getPublicUrl({
-  fileId: '<File-ID>'
-})
+const downloadResp = await nhost.storage.getFile(fileId)
 ```
-
-Learn more about [`getPublicUrl()`](/reference/javascript/storage/get-public-url).
 
   </Tab>
   <Tab title="HTTP">
@@ -95,12 +84,9 @@ Pre-signed URLs expire after an expiration time. For files in the `default` buck
   <Tab title="JavaScript">
 
 ```js
-await nhost.storage.getPresignedUrl({
-  fileId: '<File-ID>'
-})
+const resp = await nhost.storage.getFilePresignedURL(fileId)
+// then you can just use resp.url as a src
 ```
-
-Learn more about [`getPresignedUrl()`](/reference/javascript/storage/get-presigned-url).
 
   </Tab>
   <Tab title="HTTP">
@@ -120,10 +106,8 @@ Delete a file and the file metadata in the database.
   <Tab title="JavaScript">
 
 ```js
-const { error } = await nhost.storage.delete({ fileId: 'uuid' })
+await nhost.storage.deletefile(fileId)
 ```
-
-Learn more about [`delete()`](/reference/javascript/storage/delete).
 
   </Tab>
   <Tab title="HTTP">
