@@ -9,7 +9,10 @@ let
     include = with nix-filter.lib; [
       "./flake.lock"
       "./flake.nix"
-      isDirectory
+      (and
+        (inDirectory submodule)
+        isDirectory
+      )
       (and
         (inDirectory submodule)
         (matchExt "nix")
