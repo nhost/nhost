@@ -40,3 +40,13 @@ export function areStrArraysEqual(arr1: string[], arr2: string[]) {
 
   return set1.size === set2.size && [...set1].every((col) => set2.has(col));
 }
+
+
+export function isJSONString(str: string) {
+  try {
+    JSON.parse(str);
+  } catch (e) {
+    return false;
+  }
+  return true;
+}

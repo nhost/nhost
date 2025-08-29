@@ -8,27 +8,25 @@ import { Backdrop } from '@/components/ui/v2/Backdrop';
 import type { BoxProps } from '@/components/ui/v2/Box';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { Chip } from '@/components/ui/v2/Chip';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { DotsHorizontalIcon } from '@/components/ui/v2/icons/DotsHorizontalIcon';
-import { LockIcon } from '@/components/ui/v2/icons/LockIcon';
+import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
+import { LinkIcon } from '@/components/ui/v2/icons/LinkIcon';
 import { PencilIcon } from '@/components/ui/v2/icons/PencilIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
-import { TerminalIcon } from '@/components/ui/v2/icons/TerminalIcon';
 import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { UsersIcon } from '@/components/ui/v2/icons/UsersIcon';
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
-import { Option } from '@/components/ui/v2/Option';
-import { Select } from '@/components/ui/v2/Select';
 import { Text } from '@/components/ui/v2/Text';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
-import { useDeleteTableWithToastMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteTableMutation';
-import { isSchemaLocked } from '@/features/orgs/projects/database/dataGrid/utils/schemaHelpers';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import useGetRemoteSchemas from '@/features/orgs/projects/remote-schemas/hooks/useGetRemoteSchemas/useGetRemoteSchemas';
+import { useRemoveRemoteSchemaMutation } from '@/features/orgs/projects/remote-schemas/hooks/useRemoveRemoteSchemaMutation';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import type { RemoteSchemaInfo } from '@/utils/hasura-api/generated/schemas';
 import { useQueryClient } from '@tanstack/react-query';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
@@ -36,10 +34,10 @@ import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 
-const CreateTableForm = dynamic(
+const CreateRemoteSchemaForm = dynamic(
   () =>
     import(
-      '@/features/orgs/projects/database/dataGrid/components/CreateTableForm/CreateTableForm'
+      '@/features/orgs/projects/remote-schemas/components/CreateRemoteSchemaForm/CreateRemoteSchemaForm'
     ),
   {
     ssr: false,
@@ -47,10 +45,10 @@ const CreateTableForm = dynamic(
   },
 );
 
-const EditTableForm = dynamic(
+const EditRemoteSchemaForm = dynamic(
   () =>
     import(
-      '@/features/orgs/projects/database/dataGrid/components/EditTableForm/EditTableForm'
+      '@/features/orgs/projects/remote-schemas/components/EditRemoteSchemaForm/EditRemoteSchemaForm'
     ),
   {
     ssr: false,
@@ -58,14 +56,24 @@ const EditTableForm = dynamic(
   },
 );
 
-const EditPermissionsForm = dynamic(
+const EditRemoteSchemaPermissionsForm = dynamic(
   () =>
     import(
-      '@/features/orgs/projects/database/dataGrid/components/EditPermissionsForm/EditPermissionsForm'
+      '@/features/orgs/projects/remote-schemas/components/EditRemoteSchemaPermissionsForm/EditRemoteSchemaPermissionsForm'
     ),
   {
     ssr: false,
     loading: () => <FormActivityIndicator />,
+  },
+);
+
+const EditRemoteSchemaRelationships = dynamic(
+  () =>
+    import(
+      '@/features/orgs/projects/remote-schemas/components/EditRemoteSchemaRelationships/EditRemoteSchemaRelationships'
+    ),
+  {
+    ssr: false,
   },
 );
 
@@ -88,172 +96,94 @@ function RemoteSchemaBrowserSidebarContent({
   const router = useRouter();
 
   const {
-    asPath,
-    query: { orgSlug, appSubdomain, dataSourceSlug, schemaSlug, tableSlug },
+    query: { orgSlug, appSubdomain, remoteSchemaSlug },
   } = router;
 
-  const { data, status, error, refetch } = useDatabaseQuery([
-    dataSourceSlug as string,
-  ]);
+  const { data: remoteSchemas, status, refetch, error } = useGetRemoteSchemas();
 
-  const { schemas, tables, metadata } = data || { schemas: [], tables: [] };
+  const { mutateAsync: deleteRemoteSchema } = useRemoveRemoteSchemaMutation();
 
-  const { mutateAsync: deleteTable } = useDeleteTableWithToastMutation();
-
-  const [removableTable, setRemovableTable] = useState<string>();
-  const [optimisticlyRemovedTable, setOptimisticlyRemovedTable] =
+  const [sidebarMenuRemoteSchema, setSidebarMenuRemoteSchema] =
     useState<string>();
-
-  const [selectedSchema, setSelectedSchema] = useState<string>('');
-  const isSelectedSchemaLocked = isSchemaLocked(selectedSchema);
-
-  /**
-   * Table for which the table management dropdown was opened.
-   */
-  const [sidebarMenuTable, setSidebarMenuTable] = useState<string>();
-
-  const sqlEditorHref = `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/default/editor`;
-
-  useEffect(() => {
-    if (selectedSchema) {
-      return;
-    }
-
-    if (schemaSlug) {
-      setSelectedSchema(schemaSlug as string);
-      return;
-    }
-
-    if (schemas && schemas.length > 0) {
-      const publicSchemaIndex = schemas.findIndex(
-        ({ schema_name: schemaName }) => schemaName === 'public',
-      );
-      const index = Math.max(0, publicSchemaIndex);
-      setSelectedSchema(schemas[index].schema_name);
-    }
-  }, [schemaSlug, schemas, selectedSchema]);
 
   if (status === 'loading') {
     return (
       <ActivityIndicator
         delay={1000}
-        label="Loading schemas and tables..."
+        label="Loading remote schemas..."
         className="justify-center"
       />
     );
   }
 
   if (status === 'error') {
-    throw error || new Error('Unknown error occurred. Please try again later.');
+    throw error instanceof Error
+      ? error
+      : new Error('Unknown error occurred. Please try again later.');
   }
 
-  if (metadata?.databaseNotFound) {
-    return null;
-  }
-
-  const tablesInSelectedSchema = tables
-    .filter(({ table_schema: tableSchema }) => tableSchema === selectedSchema)
-    .filter(
-      ({ table_schema: tableSchema, table_name: tableName }) =>
-        `${tableSchema}.${tableName}` !== optimisticlyRemovedTable,
+  const handleDeleteRemoteSchema = async (schema: RemoteSchemaInfo) => {
+    await execPromiseWithErrorToast(
+      async () => {
+        await deleteRemoteSchema({
+          remoteSchema: schema,
+        });
+        refetch();
+      },
+      {
+        loadingMessage: 'Deleting remote schema...',
+        successMessage: 'Remote schema deleted successfully.',
+        errorMessage: 'Failed to delete remote schema',
+      },
     );
+  };
 
-  async function handleDeleteTableConfirmation(schema: string, table: string) {
-    const tablePath = `${schema}.${table}`;
-
-    // We are greying out and disabling it in the sidebar
-    setRemovableTable(tablePath);
-
-    try {
-      let nextTableIndex = null;
-
-      if (tablesInSelectedSchema.length > 1) {
-        // We go to the next table if available or to the previous one if the
-        // current one is the last one in the list
-        const currentTableIndex = tablesInSelectedSchema.findIndex(
-          ({ table_schema: tableSchema, table_name: tableName }) =>
-            `${tableSchema}.${tableName}` === tablePath,
-        );
-
-        nextTableIndex = currentTableIndex + 1;
-
-        if (currentTableIndex + 1 === tablesInSelectedSchema.length) {
-          nextTableIndex = currentTableIndex - 1;
-        }
-      }
-
-      const nextTable = nextTableIndex
-        ? tablesInSelectedSchema[nextTableIndex]
-        : null;
-
-      await deleteTable({ schema, table });
-      queryClient.removeQueries([`${dataSourceSlug}.${schema}.${table}`]);
-
-      // Note: At this point we can optimisticly assume that the table was
-      // removed, so we can improve the UX by removing it from the list right
-      // away, without waiting for the refetch to succeed.
-      setOptimisticlyRemovedTable(tablePath);
-      await refetch();
-
-      // If this was the last table in the schema, we go back to the data
-      // browser's main screen
-      if (!nextTable) {
-        await router.push(
-          `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/${dataSourceSlug}`,
-        );
-
-        return;
-      }
-
-      if (schema === schemaSlug && table === tableSlug) {
-        await router.push(
-          `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/${dataSourceSlug}/${nextTable.table_schema}/${nextTable.table_name}`,
-        );
-      }
-    } catch {
-      // TODO: Introduce logging
-    } finally {
-      setRemovableTable(undefined);
-      setOptimisticlyRemovedTable(undefined);
-    }
-  }
-
-  function handleDeleteTableClick(schema: string, table: string) {
+  function handleDeleteRemoteSchemaClick(schema: RemoteSchemaInfo) {
     openAlertDialog({
-      title: 'Delete Table',
+      title: 'Delete Remote Schema',
       payload: (
         <span>
           Are you sure you want to delete the{' '}
-          <strong className="break-all">{table}</strong> table?
+          <strong className="break-all">{schema.name}</strong> remote schema?
         </span>
       ),
       props: {
         primaryButtonText: 'Delete',
         primaryButtonColor: 'error',
-        onPrimaryAction: () => handleDeleteTableConfirmation(schema, table),
+        onPrimaryAction: () => handleDeleteRemoteSchema(schema),
       },
     });
   }
 
-  function handleEditPermissionClick(
-    schema: string,
-    table: string,
-    disabled?: boolean,
-  ) {
+  function handleEditPermissionClick(schema: string, disabled?: boolean) {
     openDrawer({
       title: (
         <span className="inline-grid grid-flow-col items-center gap-2">
           Permissions
-          <InlineCode className="!text-sm+ font-normal">{table}</InlineCode>
-          <Chip label="Preview" size="small" color="info" component="span" />
+          <InlineCode className="!text-sm+ font-normal">{schema}</InlineCode>
         </span>
       ),
       component: (
-        <EditPermissionsForm
-          disabled={disabled}
-          schema={schema}
-          table={table}
-        />
+        <EditRemoteSchemaPermissionsForm schema={schema} disabled={disabled} />
+      ),
+      props: {
+        PaperProps: {
+          className: 'lg:w-[65%] lg:max-w-7xl',
+        },
+      },
+    });
+  }
+
+  function handleEditRelationshipsClick(schema: string, disabled?: boolean) {
+    openDrawer({
+      title: (
+        <span className="inline-grid grid-flow-col items-center gap-2">
+          Relationships
+          <InlineCode className="!text-sm+ font-normal">{schema}</InlineCode>
+        </span>
+      ),
+      component: (
+        <EditRemoteSchemaRelationships schema={schema} disabled={disabled} />
       ),
       props: {
         PaperProps: {
@@ -264,182 +194,143 @@ function RemoteSchemaBrowserSidebarContent({
   }
 
   return (
-    <Box className="flex h-full flex-col justify-between">
-      <Box className="flex flex-col px-2">
-        {schemas && schemas.length > 0 && (
-          <Select
-            renderValue={(option) => (
-              <span className="grid grid-flow-col items-center gap-1">
-                {option?.label}
-              </span>
-            )}
-            slotProps={{
-              listbox: { className: 'max-w-[220px] min-w-[initial] w-full' },
-              popper: { className: 'max-w-[220px] min-w-[initial] w-full' },
-            }}
-            value={selectedSchema}
-            onChange={(_event, value) => setSelectedSchema(value as string)}
-          >
-            {schemas.map((schema) => (
-              <Option
-                className="grid grid-flow-col items-center gap-1"
-                value={schema.schema_name}
-                key={schema.schema_name}
-              >
-                <Text className="text-sm">
-                  <Text component="span" color="disabled">
-                    schema.
-                  </Text>
-                  <Text component="span" className="font-medium">
-                    {schema.schema_name}
-                  </Text>
-                </Text>
-                {(isSchemaLocked(schema.schema_name) || isGitHubConnected) && (
-                  <LockIcon
-                    className="h-3 w-3"
-                    sx={{ color: 'text.secondary' }}
-                  />
-                )}
-              </Option>
-            ))}
-          </Select>
-        )}
-        {isGitHubConnected && (
-          <Box
-            className="mt-1.5 grid grid-flow-row justify-items-start gap-2 rounded-md p-2"
-            sx={{ backgroundColor: 'grey.200' }}
-          >
-            <Text>
-              Your project is connected to GitHub. Please use the CLI to make
-              schema changes.
-            </Text>
-          </Box>
-        )}
-        {!isSelectedSchemaLocked && (
-          <Button
-            variant="borderless"
-            endIcon={<PlusIcon />}
-            className="mt-1 w-full justify-between px-2"
-            onClick={() => {
-              openDrawer({
-                title: 'Create a New Table',
-                component: (
-                  <CreateTableForm onSubmit={refetch} schema={selectedSchema} />
-                ),
-              });
-              onSidebarItemClick();
-            }}
-            disabled={isGitHubConnected}
-          >
-            New Table
-          </Button>
-        )}
-        {schemas &&
-          schemas.length > 0 &&
-          tablesInSelectedSchema.length === 0 && (
-            <Text className="px-2 py-1.5 text-xs" color="disabled">
-              No tables found.
-            </Text>
-          )}
-        <nav aria-label="Database navigation">
-          {tablesInSelectedSchema.length > 0 && (
-            <List className="grid gap-1 pb-6">
-              {tablesInSelectedSchema.map((table) => {
-                const tablePath = `${table.table_schema}.${table.table_name}`;
-                const isSelected = `${schemaSlug}.${tableSlug}` === tablePath;
-                const isSidebarMenuOpen = sidebarMenuTable === tablePath;
-                return (
-                  <ListItem.Root
-                    className="group"
-                    key={tablePath}
-                    secondaryAction={
-                      <Dropdown.Root
-                        id="table-management-menu"
-                        onOpen={() => setSidebarMenuTable(tablePath)}
-                        onClose={() => setSidebarMenuTable(undefined)}
-                      >
-                        <Dropdown.Trigger
-                          asChild
-                          hideChevron
-                          disabled={tablePath === removableTable}
+    <Box className="flex h-full flex-col px-2">
+      {isGitHubConnected && (
+        <Box className="mt-1.5 flex items-center gap-1 px-2">
+          <InfoIcon className="h-4 w-4" sx={{ color: 'text.secondary' }} />
+          <Text className="text-xs" color="secondary">
+            GitHub connected - use the CLI for remote schema changes
+          </Text>
+        </Box>
+      )}
+      <Button
+        variant="borderless"
+        endIcon={<PlusIcon />}
+        className="mt-1 w-full justify-between px-2"
+        onClick={() => {
+          openDrawer({
+            title: 'Create a New Remote Schema',
+            component: <CreateRemoteSchemaForm onSubmit={refetch} />,
+          });
+          onSidebarItemClick?.();
+        }}
+        disabled={isGitHubConnected}
+      >
+        Add Remote Schema
+      </Button>
+      {remoteSchemas && remoteSchemas.length === 0 && (
+        <Text className="px-2 py-1.5 text-xs" color="disabled">
+          No remote schemas found.
+        </Text>
+      )}
+      <nav aria-label="Database navigation">
+        {remoteSchemas.length > 0 && (
+          <List className="grid gap-1 pb-6">
+            {remoteSchemas.map((remoteSchema) => {
+              const isSelected = remoteSchemaSlug === remoteSchema.name;
+              const isSidebarMenuOpen =
+                sidebarMenuRemoteSchema === remoteSchema.name;
+              return (
+                <ListItem.Root
+                  className="group"
+                  key={remoteSchema.name}
+                  secondaryAction={
+                    <Dropdown.Root
+                      id="remote-schema-management-menu"
+                      onOpen={() =>
+                        setSidebarMenuRemoteSchema(remoteSchema.name)
+                      }
+                      onClose={() => setSidebarMenuRemoteSchema(undefined)}
+                    >
+                      <Dropdown.Trigger asChild hideChevron>
+                        <IconButton
+                          variant="borderless"
+                          color={isSelected ? 'primary' : 'secondary'}
+                          className={twMerge(
+                            !isSelected &&
+                              'opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 group-active:opacity-100',
+                          )}
                         >
-                          <IconButton
-                            variant="borderless"
-                            color={isSelected ? 'primary' : 'secondary'}
-                            className={twMerge(
-                              !isSelected &&
-                                'opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 group-active:opacity-100',
-                            )}
-                          >
-                            <DotsHorizontalIcon />
-                          </IconButton>
-                        </Dropdown.Trigger>
-                        <Dropdown.Content
-                          menu
-                          PaperProps={{ className: 'w-52' }}
-                        >
-                          {isGitHubConnected ? (
-                            <Dropdown.Item
-                              className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
-                              onClick={() =>
-                                handleEditPermissionClick(
-                                  table.table_schema,
-                                  table.table_name,
-                                  true,
-                                )
-                              }
-                            >
-                              <UsersIcon
-                                className="h-4 w-4"
-                                sx={{ color: 'text.secondary' }}
-                              />
-                              <span>View Permissions</span>
-                            </Dropdown.Item>
-                          ) : (
-                            [
-                              !isSelectedSchemaLocked && (
-                                <Dropdown.Item
-                                  key="edit-table"
-                                  className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
-                                  onClick={() =>
-                                    openDrawer({
-                                      title: 'Edit Table',
-                                      component: (
-                                        <EditTableForm
-                                          onSubmit={async () => {
-                                            await queryClient.refetchQueries([
-                                              `${dataSourceSlug}.${table.table_schema}.${table.table_name}`,
-                                            ]);
-                                            await refetch();
-                                          }}
-                                          schema={table.table_schema}
-                                          table={table}
-                                        />
-                                      ),
-                                    })
-                                  }
-                                >
-                                  <PencilIcon
-                                    className="h-4 w-4"
-                                    sx={{ color: 'text.secondary' }}
-                                  />
-                                  <span>Edit Table</span>
-                                </Dropdown.Item>
-                              ),
-                              !isSelectedSchemaLocked && (
-                                <Divider
-                                  key="edit-table-separator"
-                                  component="li"
+                          <DotsHorizontalIcon />
+                        </IconButton>
+                      </Dropdown.Trigger>
+                      <Dropdown.Content menu PaperProps={{ className: 'w-52' }}>
+                        {isGitHubConnected
+                          ? [
+                              <Dropdown.Item
+                                key="view-permissions"
+                                className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+                                onClick={() =>
+                                  handleEditPermissionClick(
+                                    remoteSchema.name,
+                                    true,
+                                  )
+                                }
+                              >
+                                <UsersIcon
+                                  className="h-4 w-4"
+                                  sx={{ color: 'text.secondary' }}
                                 />
-                              ),
+                                <span>View Permissions</span>
+                              </Dropdown.Item>,
+                              <Divider
+                                key="edit-permissions-separator"
+                                component="li"
+                              />,
+                              <Dropdown.Item
+                                key="view-relationships"
+                                className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+                                onClick={() =>
+                                  handleEditRelationshipsClick(
+                                    remoteSchema.name,
+                                    true,
+                                  )
+                                }
+                              >
+                                <LinkIcon
+                                  className="h-4 w-4"
+                                  sx={{ color: 'text.secondary' }}
+                                />
+                                <span>View Relationships</span>
+                              </Dropdown.Item>,
+                            ]
+                          : [
+                              <Dropdown.Item
+                                key="edit-table"
+                                className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+                                onClick={() =>
+                                  openDrawer({
+                                    title: 'Edit Remote Schema',
+                                    component: (
+                                      <EditRemoteSchemaForm
+                                        originalSchema={remoteSchema}
+                                        onSubmit={async () => {
+                                          await queryClient.refetchQueries([
+                                            `remote_schemas`,
+                                            project?.subdomain,
+                                          ]);
+                                          await refetch();
+                                        }}
+                                      />
+                                    ),
+                                  })
+                                }
+                              >
+                                <PencilIcon
+                                  className="h-4 w-4"
+                                  sx={{ color: 'text.secondary' }}
+                                />
+                                <span>Edit Remote Schema</span>
+                              </Dropdown.Item>,
+                              <Divider
+                                key="edit-table-separator"
+                                component="li"
+                              />,
                               <Dropdown.Item
                                 key="edit-permissions"
                                 className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
                                 onClick={() =>
-                                  handleEditPermissionClick(
-                                    table.table_schema,
-                                    table.table_name,
-                                  )
+                                  handleEditPermissionClick(remoteSchema.name)
                                 }
                               >
                                 <UsersIcon
@@ -448,79 +339,73 @@ function RemoteSchemaBrowserSidebarContent({
                                 />
                                 <span>Edit Permissions</span>
                               </Dropdown.Item>,
-                              !isSelectedSchemaLocked && (
-                                <Divider
-                                  key="edit-permissions-separator"
-                                  component="li"
+                              <Divider
+                                key="edit-permissions-separator"
+                                component="li"
+                              />,
+                              <Dropdown.Item
+                                key="edit-relationships"
+                                className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+                                onClick={() =>
+                                  handleEditRelationshipsClick(
+                                    remoteSchema.name,
+                                  )
+                                }
+                              >
+                                <LinkIcon
+                                  className="h-4 w-4"
+                                  sx={{ color: 'text.secondary' }}
                                 />
-                              ),
-                              !isSelectedSchemaLocked && (
-                                <Dropdown.Item
-                                  key="delete-table"
-                                  className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+                                <span>Edit Relationships</span>
+                              </Dropdown.Item>,
+                              <Divider
+                                key="edit-relationships-separator"
+                                component="li"
+                              />,
+                              <Dropdown.Item
+                                key="delete-remote-schema"
+                                className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+                                sx={{ color: 'error.main' }}
+                                onClick={() =>
+                                  handleDeleteRemoteSchemaClick(remoteSchema)
+                                }
+                              >
+                                <TrashIcon
+                                  className="h-4 w-4"
                                   sx={{ color: 'error.main' }}
-                                  onClick={() =>
-                                    handleDeleteTableClick(
-                                      table.table_schema,
-                                      table.table_name,
-                                    )
-                                  }
-                                >
-                                  <TrashIcon
-                                    className="h-4 w-4"
-                                    sx={{ color: 'error.main' }}
-                                  />
-                                  <span>Delete Table</span>
-                                </Dropdown.Item>
-                              ),
-                            ]
-                          )}
-                        </Dropdown.Content>
-                      </Dropdown.Root>
-                    }
+                                />
+                                <span>Delete Remote Schema</span>
+                              </Dropdown.Item>,
+                            ]}
+                      </Dropdown.Content>
+                    </Dropdown.Root>
+                  }
+                >
+                  <ListItem.Button
+                    dense
+                    selected={isSelected}
+                    className="group-focus-within:pr-9 group-hover:pr-9 group-active:pr-9"
+                    sx={{
+                      paddingRight:
+                        (isSelected || isSidebarMenuOpen) &&
+                        '2.25rem !important',
+                    }}
+                    component={NavLink}
+                    href={`/orgs/${orgSlug}/projects/${appSubdomain}/graphql/remote-schemas/${remoteSchema.name}`}
+                    onClick={() => {
+                      if (onSidebarItemClick) {
+                        onSidebarItemClick(`${remoteSchema.name}`);
+                      }
+                    }}
                   >
-                    <ListItem.Button
-                      dense
-                      selected={isSelected}
-                      disabled={tablePath === removableTable}
-                      className="group-focus-within:pr-9 group-hover:pr-9 group-active:pr-9"
-                      sx={{
-                        paddingRight:
-                          (isSelected || isSidebarMenuOpen) &&
-                          '2.25rem !important',
-                      }}
-                      component={NavLink}
-                      href={`/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/default/${table.table_schema}/${table.table_name}`}
-                      onClick={() => {
-                        if (onSidebarItemClick) {
-                          onSidebarItemClick(`default.${tablePath}`);
-                        }
-                      }}
-                    >
-                      <ListItem.Text>{table.table_name}</ListItem.Text>
-                    </ListItem.Button>
-                  </ListItem.Root>
-                );
-              })}
-            </List>
-          )}
-        </nav>
-      </Box>
-
-      <Box className="border-t">
-        <ListItem.Button
-          dense
-          selected={asPath === sqlEditorHref}
-          className="flex border group-focus-within:pr-9 group-hover:pr-9 group-active:pr-9"
-          component={NavLink}
-          href={sqlEditorHref}
-        >
-          <div className="flex w-full flex-row items-center justify-center space-x-4">
-            <TerminalIcon />
-            <span className="flex">SQL Editor</span>
-          </div>
-        </ListItem.Button>
-      </Box>
+                    <ListItem.Text>{remoteSchema.name}</ListItem.Text>
+                  </ListItem.Button>
+                </ListItem.Root>
+              );
+            })}
+          </List>
+        )}
+      </nav>
     </Box>
   );
 }

@@ -1,0 +1,67 @@
+import {
+  TEST_ORGANIZATION_SLUG,
+  TEST_PROJECT_REMOTE_SCHEMA_NAME,
+  TEST_PROJECT_SUBDOMAIN,
+} from '@/e2e/env';
+import { expect, test } from '@/e2e/fixtures/auth-hook';
+import { faker } from '@faker-js/faker';
+import { snakeCase } from 'snake-case';
+
+const REMOTE_SCHEMA_TEST_URL = `https://${TEST_PROJECT_SUBDOMAIN}.functions.eu-central-1.staging.nhost.run/v1/${TEST_PROJECT_REMOTE_SCHEMA_NAME}`;
+
+test.describe('Remote Schemas', () => {
+  test.beforeEach(async ({ authenticatedNhostPage: page }) => {
+    const remoteSchemasRoute = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/graphql/remote-schemas`;
+    await page.goto(remoteSchemasRoute);
+    await page.waitForURL(remoteSchemasRoute);
+  });
+
+  test('should create and delete a remote schema from URL', async ({
+    authenticatedNhostPage: page,
+  }) => {
+    await page.getByRole('button', { name: /add remote schema/i }).click();
+    await expect(page.getByText(/create a new remote schema/i)).toBeVisible();
+
+    const schemaName = snakeCase(`e2e ${faker.lorem.words(2)}`);
+
+    await page.getByPlaceholder(/remote schema name/i).fill(schemaName);
+    await page
+      .getByPlaceholder(/graphql-service\.example\.com/i)
+      .fill(REMOTE_SCHEMA_TEST_URL);
+
+    await page.getByRole('button', { name: /create/i }).click();
+
+    const detailsUrl = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/graphql/remote-schemas/${schemaName}`;
+    await page.waitForURL(detailsUrl);
+
+    await expect(page.getByRole('heading', { name: schemaName })).toBeVisible();
+    await expect(
+      page.locator(`input[value="${REMOTE_SCHEMA_TEST_URL}"]`),
+    ).toBeVisible();
+    await expect(page.getByRole('button', { name: /reload/i })).toBeVisible();
+
+    await expect(
+      page.getByRole('link', { name: schemaName, exact: true }),
+    ).toBeVisible();
+
+    // cleanup: delete the created remote schema
+    const schemaLink = page.getByRole('link', {
+      name: schemaName,
+      exact: true,
+    });
+
+    await schemaLink.hover();
+    await page
+      .getByRole('listitem')
+      .filter({ hasText: schemaName })
+      .getByRole('button')
+      .click();
+
+    await page.getByRole('menuitem', { name: /delete remote schema/i }).click();
+    await page.getByRole('button', { name: /^delete$/i }).click();
+
+    await expect(
+      page.getByRole('link', { name: schemaName, exact: true }),
+    ).toHaveCount(0);
+  });
+});

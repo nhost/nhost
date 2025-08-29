@@ -44,3 +44,9 @@ export const TEST_PERSONAL_ORG_SLUG = process.env.NHOST_TEST_PERSONAL_ORG_SLUG!;
 const freeUserEmails = process.env.NHOST_TEST_FREE_USER_EMAILS!;
 
 export const TEST_FREE_USER_EMAILS: string[] = JSON.parse(freeUserEmails);
+
+/**
+ * Name of the remote schema serverless function to test against.
+ */
+export const TEST_PROJECT_REMOTE_SCHEMA_NAME =
+  process.env.NHOST_TEST_PROJECT_REMOTE_SCHEMA_NAME!;

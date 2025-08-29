@@ -1,18 +1,10 @@
-export interface HasuraRemoteSchemaDefinition {
-  role: string;
-  permission: Partial<{
-    columns: string[];
-    filter: Record<string, any>;
-    check: Record<string, any>;
-    limit: number;
-    allow_aggregations: boolean;
-    query_root_fields: string[];
-    subscription_root_fields: string[];
-    computed_fields: string[];
-    set: Record<string, any>;
-    backend_only: boolean;
-  }>;
-}
+import type {
+  GraphQLArgument,
+  GraphQLEnumValue,
+  GraphQLField,
+  GraphQLInputFieldMap,
+  GraphQLType,
+} from 'graphql';
 
 export type EnvOrValueHeader =
   | {
@@ -26,17 +18,51 @@ export type EnvOrValueHeader =
       value_from_env: string;
     };
 
-export interface MutationOrQueryBaseOptions {
-  /**
-   * Remote Schema name.
-   */
-  name: string;
-  /**
-   * Custom app URL.
-   */
+export interface MetadataOperationOptions {
   appUrl: string;
-  /**
-   * Custom admin secret.
-   */
   adminSecret: string;
 }
+
+export type RemoteSchemaRelationshipType = 'remote-schema' | 'database';
+
+export type PermissionsType = {
+  definition: { schema: string };
+  role: string;
+  remote_schema_name: string;
+  comment: string | null;
+};
+
+export type RemoteSchemaAccessLevel = 'full' | 'partial' | 'none';
+
+export type ArgTreeType = {
+  [key: string]: string | number | ArgTreeType;
+};
+
+export type CustomFieldType = {
+  name: string;
+  checked: boolean;
+  args?: Record<string, GraphQLArgument>;
+  return?: string;
+  typeName?: string;
+  children?: FieldType[];
+  defaultValue?: any;
+  isInputObjectType?: boolean;
+  parentName?: string;
+  expanded?: boolean;
+};
+
+export type FieldType = CustomFieldType & GraphQLField<any, any>;
+
+export type RemoteSchemaFields =
+  | {
+      name: string;
+      typeName: string;
+      children: FieldType[] | CustomFieldType[];
+    }
+  | FieldType;
+
+export type ChildArgumentType = {
+  children?: GraphQLInputFieldMap | GraphQLEnumValue[];
+  path?: string;
+  childrenType?: GraphQLType;
+};
