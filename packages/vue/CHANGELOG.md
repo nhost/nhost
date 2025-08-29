@@ -1,5 +1,11 @@
 # @nhost/vue
 
+## 2.9.8
+
+### Patch Changes
+
+- @nhost/nhost-js@3.3.1
+
 ## 2.9.7
 
 ### Patch Changes

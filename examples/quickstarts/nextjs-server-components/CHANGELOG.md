@@ -1,5 +1,11 @@
 # @nhost-examples/nextjs-server-components
 
+## 0.7.1
+
+### Patch Changes
+
+- @nhost/nhost-js@3.3.1
+
 ## 0.7.0
 
 ### Minor Changes
