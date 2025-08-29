@@ -6,26 +6,34 @@ on:
     paths:
       - '.github/workflows/wf_check.yaml'
       - '.github/workflows/nhost-js_checks.yaml'
+
+      # common build
       - 'flake.nix'
       - 'flake.lock'
       - 'nix/**'
       - 'build/**'
 
-      # codegen
+      # common go
+      - '.golangci.yaml'
       - 'go.mod'
       - 'go.sum'
       - 'vendor/**'
+
+      # codegen
       - 'tools/codegen/**'
 
-      # nhost-js
+      # common javascript
       - ".npmrc"
       - ".prettierignore"
       - ".prettierrc.js"
       - "audit-ci.jsonc"
+      - "package.json"
       - "pnpm-workspace.yaml"
       - "pnpm-lock.yaml"
       - "turbo.json"
-      - packages/nhost-js/**
+
+      # nhost-js
+      - 'packages/nhost-js/**'
   push:
     branches:
       - main

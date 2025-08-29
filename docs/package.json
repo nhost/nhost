@@ -3,9 +3,14 @@
   "version": "2.34.0",
   "private": true,
   "scripts": {
-    "start": "mintlify dev"
+    "dev": "mintlify dev",
+    "generate": "./gen.sh",
+    "test": "./check_broken_links.sh",
+    "test:broken-links": "pnpm exec mintlify broken-links"
   },
   "devDependencies": {
-    "mintlify": "^4.0.476"
+    "mintlify": "^4.2.87",
+    "typedoc": "^0.28.4",
+    "typedoc-plugin-markdown": "^4.6.3"
   }
 }

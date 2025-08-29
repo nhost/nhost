@@ -48,7 +48,7 @@
  * This type extends the standard `Error` type so if you want to just log the error you can
  * do so like this:
  *
- * {@includeCode ./__tests__/docstrings.test.ts:2-4,6,353-376,381}
+ * {@includeCode ./__tests__/docstrings.test.ts:2-4,6,353-372,375}
  *
  * @module graphql
  * @packageDocumentation
