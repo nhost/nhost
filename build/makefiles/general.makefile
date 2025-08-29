@@ -64,7 +64,6 @@ check-dry-run:  ## Returns the derivation of the check
 	@nix build \
 		--dry-run \
 		--json \
-		--print-build-logs \
 		.\#checks.$(ARCH)-$(OS).$(NAME) | jq -r '.[].outputs.out'
 
 
@@ -80,7 +79,6 @@ build-dry-run:  ## Run nix flake check
 	nix build \
 		--dry-run \
 		--json \
-		--print-build-logs \
 		.\#packages.$(ARCH)-$(OS).$(NAME) | jq -r '.[].outputs.out'
 
 
@@ -89,7 +87,6 @@ build-nixops-dry-run:  ## Checks if nixops needs to be rebuilt
 	nix build \
 		--dry-run \
 		--json \
-		--print-build-logs \
 		.\#packages.$(ARCH)-$(OS).nixops | jq -r '.[].outputs.out'
 
 

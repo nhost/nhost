@@ -65,7 +65,7 @@ jobs:
       uses: nix-community/cache-nix-action@v6
       with:
         primary-key: nix-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
-        restore-prefixes-first-match: nix-${{ runner.os }}-${ runner.arch }-
+        restore-prefixes-first-match: nix-${{ runner.os }}-${{ runner.arch }}}-
         gc-max-store-size-linux: 10G
         purge: true
         purge-prefixes: nix-${{ runner.os }}-
