@@ -87,7 +87,7 @@ build-nixops-dry-run:  ## Checks if nixops needs to be rebuilt
 	@nix build \
 		--dry-run \
 		--json \
-		.\#packages.$(ARCH)-$(OS).nixops | jq -r '.[].outputs.out'
+		.\#packages.x86_64-linux.nixops | jq -r '.[].outputs.out'
 
 
 .PHONY: build-docker-image

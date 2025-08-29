@@ -54,7 +54,8 @@ in
 
     installPhase = ''
       mkdir -p $out
-      echo "This is a placeholder package for nixops development environment." > $out/README.md
+      cp -r ${src} $out/
+      find $out/
     '';
   };
 }
