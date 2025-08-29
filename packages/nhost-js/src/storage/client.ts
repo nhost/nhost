@@ -770,9 +770,7 @@ export const createAPIClient = (baseURL: string, chainFunctions: ChainFunction[]
     if (body['metadata'] !== undefined) {
       formData.append(
         'metadata',
-        new Blob([JSON.stringify(body['metadata'])], {
-          type: 'application/json'
-        }),
+        new Blob([JSON.stringify(body['metadata'])], { type: 'application/json' }),
         ''
       )
     }

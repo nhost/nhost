@@ -77,7 +77,7 @@
     "build": "rm -rf dist && pnpm build:types && pnpm build:js",
     "build:types": "pnpm tsc -p tsconfig.json",
     "build:js": "pnpm vite build --config vite.config.ts && vite build --config vite.umd.config.ts",
-    "generate": "pnpm generate:code",
+    "generate": "pnpm generate:code && pnpm format",
     "generate:code": "./gen.sh",
     "prepublishOnly": "pnpm build && pnpm test"
   },

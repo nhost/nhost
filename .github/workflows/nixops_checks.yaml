@@ -1,11 +1,11 @@
 ---
-name: "codegen: check and build"
+name: "nixops: check and build"
 on:
   # pull_request_target:
   pull_request:
     paths:
       - '.github/workflows/wf_check.yaml'
-      - '.github/workflows/codegen_checks.yaml'
+      - '.github/workflows/nixops_checks.yaml'
 
       # common build
       - 'flake.nix'
@@ -13,14 +13,6 @@ on:
       - 'nixops/**'
       - 'build/**'
 
-      # common go
-      - '.golangci.yaml'
-      - 'go.mod'
-      - 'go.sum'
-      - 'vendor/**'
-
-      # codegen
-      - 'tools/codegen/**'
   push:
     branches:
       - main
@@ -42,8 +34,8 @@ jobs:
     needs:
       - check-permissions
     with:
-      NAME: codegen
-      PATH: tools/codegen
+      NAME: nixops
+      PATH: nixops
       GIT_REF: ${{ github.sha }}
 
     secrets:
@@ -56,8 +48,8 @@ jobs:
     needs:
       - check-permissions
     with:
-      NAME: codegen
-      PATH: tools/codegen
+      NAME: nixops
+      PATH: nixops
       GIT_REF: ${{ github.sha }}
       VERSION: 0.0.0-dev # we use a fixed version here to avoid unnecessary rebuilds
       DOCKER: false
