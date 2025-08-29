@@ -14,15 +14,6 @@
           inherit system;
           overlays = [
             (import ./nixops/overlays/default.nix)
-            (import ./nixops/overlay.nix)
-          ];
-        };
-
-        nix-src = nix-filter.lib.filter {
-          root = ./.;
-          include = [
-            nix-filter.lib.isDirectory
-            (nix-filter.lib.matchExt "nix")
           ];
         };
 
@@ -31,19 +22,36 @@
         nix2containerPkgs = nix2container.packages.${system};
         nixops-lib = lib { inherit pkgs nix2containerPkgs; };
 
-        nodeModulesLib = import ./nixops/node_modules.nix { inherit self pkgs nix-filter; };
-        inherit (nodeModulesLib) node_modules mkNodeDevShell;
+        node_modules = nixops-lib.js.mkNodeModules {
+          name = "node-modules";
+          version = "0.0.0-dev";
+
+          src = nix-filter.lib.filter {
+            root = ./.;
+            include = [
+              ./.npmrc
+              ./pnpm-workspace.yaml
+              ./pnpm-lock.yaml
+
+              # find . -name package.json | grep -v node_modules | grep -v deprecated
+              ./package.json
+              ./docs/package.json
+              ./dashboard/package.json
+              ./packages/nhost-js/package.json
+            ];
+          };
+        };
 
         codegenf = import ./tools/codegen/project.nix {
           inherit self pkgs nix-filter nixops-lib;
         };
 
         dashboardf = import ./dashboard/project.nix {
-          inherit self pkgs nix2containerPkgs nix-filter nixops-lib mkNodeDevShell node_modules;
+          inherit self pkgs nix2containerPkgs nix-filter nixops-lib node_modules;
         };
 
         docsf = import ./docs/project.nix {
-          inherit self pkgs nix-filter mkNodeDevShell node_modules;
+          inherit self pkgs nix-filter node_modules;
         };
 
         mintlify-openapif = import ./tools/mintlify-openapi/project.nix {
@@ -51,7 +59,7 @@
         };
 
         nhost-jsf = import ./packages/nhost-js/project.nix {
-          inherit self pkgs nix-filter nixops-lib mkNodeDevShell node_modules;
+          inherit self pkgs nix-filter nixops-lib node_modules;
         };
 
         nixopsf = import ./nixops/project.nix {

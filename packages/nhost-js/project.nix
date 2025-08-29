@@ -1,4 +1,4 @@
-{ self, pkgs, nix-filter, nixops-lib, mkNodeDevShell, node_modules }:
+{ self, pkgs, nix-filter, nixops-lib, node_modules }:
 let
   name = "nhost-js";
   version = "0.0.0-dev";
@@ -38,7 +38,9 @@ let
   nativeBuildInputs = with pkgs; [ pnpm cacert ];
 in
 {
-  devShell = mkNodeDevShell {
+  devShell = nixops-lib.js.devShell {
+    inherit node_modules;
+
     buildInputs = with pkgs;[
       nodePackages.vercel
     ] ++ checkDeps ++ buildInputs ++ nativeBuildInputs;

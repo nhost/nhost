@@ -1,4 +1,4 @@
-{ self, pkgs, nix-filter, mkNodeDevShell, node_modules }:
+{ self, pkgs, nixops-lib, nix-filter, node_modules }:
 let
   name = "docs";
   version = "0.0.0-dev";
@@ -38,7 +38,9 @@ let
   nativeBuildInputs = with pkgs; [ pnpm cacert ];
 in
 {
-  devShell = mkNodeDevShell {
+  devShell = nixops-lib.js.devShell {
+    inherit node_modules;
+
     buildInputs = [
     ] ++ checkDeps ++ buildInputs ++ nativeBuildInputs;
   };

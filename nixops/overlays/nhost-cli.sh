@@ -206,9 +206,6 @@ echo "  x86_64-linux:   $NEW_SHA_X86_64_LINUX"
 
 echo "Updating $NIX_FILE..."
 
-cp "$NIX_FILE" "${NIX_FILE}.bak"
-echo "Backup created at ${NIX_FILE}.bak"
-
 TMP_NIX_FILE=$(mktemp)
 # Ensure main temporary file is cleaned up on exit, error, or interrupt
 # Note: The trap for hash temp files is local to get_platform_hashes
@@ -227,4 +224,3 @@ mv "$TMP_NIX_FILE" "$NIX_FILE"
 echo "Successfully updated $NIX_FILE to version $LATEST_VERSION."
 echo "Please review the changes and commit them."
 echo "You can diff with: git diff $NIX_FILE"
-echo "Or compare with the backup: diff \"${NIX_FILE}.bak\" \"$NIX_FILE\""
