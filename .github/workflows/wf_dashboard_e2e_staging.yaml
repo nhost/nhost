@@ -112,13 +112,15 @@ jobs:
           access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
           substituters = https://cache.nixos.org/?priority=40 s3://nhost-nix-cache?region=eu-central-1&priority=50
           trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ${{ secrets.NIX_CACHE_PUB_KEY }}
+          keep-env-derivations = true
+          keep-outputs = true
 
     - name: Restore and save Nix store
       uses: nix-community/cache-nix-action@v6
       with:
-        primary-key: nix-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
-        restore-prefixes-first-match: nix-${{ runner.os }}-${{ runner.arch }}}-
-        gc-max-store-size-linux: 10G
+        primary-key: nix-${{ runner.os }}-${{ runner.arch }}-${{ inputs.NAME }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
+        restore-prefixes-first-match: nix-${{ runner.os }}-${{ runner.arch }}}-${{ inputs.NAME }}-
+        gc-max-store-size-linux: 2G
         purge: true
         purge-prefixes: nix-${{ runner.os }}-
         purge-created: 0
