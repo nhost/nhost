@@ -77,9 +77,8 @@
     "build": "rm -rf dist && pnpm build:types && pnpm build:js",
     "build:types": "pnpm tsc -p tsconfig.json",
     "build:js": "pnpm vite build --config vite.config.ts && vite build --config vite.umd.config.ts",
-    "generate": "pnpm generate:code && pnpm generate:docs",
+    "generate": "pnpm generate:code",
     "generate:code": "./gen.sh",
-    "generate:docs": "./typedoc.sh",
     "prepublishOnly": "pnpm build && pnpm test"
   },
   "keywords": [
@@ -115,9 +114,7 @@
     "openapi3-ts": "^4.4.0",
     "rollup-plugin-peer-deps-external": "^2.2.4",
     "terser": "^5.39.0",
-    "ts-jest": "^29.3.2",
-    "typedoc": "^0.28.4",
-    "typedoc-plugin-markdown": "^4.6.3"
+    "ts-jest": "^29.3.2"
   },
   "sideEffects": false,
   "dependencies": {

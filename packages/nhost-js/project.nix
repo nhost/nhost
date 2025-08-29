@@ -24,8 +24,6 @@ let
       "${submodule}/jest.config.js"
       "${submodule}/tsconfig.eslint.json"
       "${submodule}/tsconfig.json"
-      "${submodule}/typedoc.json"
-      "${submodule}/typedoc.sh"
       "${submodule}/vite.config.ts"
       "${submodule}/vite.umd.config.ts"
       (inDirectory "${submodule}/api")

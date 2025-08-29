@@ -1,0 +1,60 @@
+---
+title: signUp()
+sidebarTitle: signUp()
+---
+
+Use `nhost.auth.signUp` to sign up a user using email and password. If you want to sign up a user using passwordless email (Magic Link), SMS, or an OAuth provider, use the `signIn` function instead.
+
+```ts
+nhost.auth.signUp({
+  email: 'joe@example.com',
+  password: 'secret-password'
+})
+```
+
+## Parameters
+
+---
+
+**<span className="parameter-name">params</span>** <span className="optional-status">required</span> [`SignUpParams`](/reference/deprecated/javascript/auth/types/sign-up-params)
+**<span className="parameter-name">requestOptions</span>** <span className="optional-status">optional</span> [`RequestOptions`](/reference/deprecated/javascript/auth/types/request-options)
+
+---
+
+## Examples
+
+### Sign up with an email and password
+
+```ts
+nhost.auth.signUp({
+  email: 'joe@example.com',
+  password: 'secret-password'
+})
+```
+
+### Sign up with an email and password and custom headers
+
+```ts
+nhost.auth.signUp(
+  {
+    email: 'joe@example.com',
+    password: 'secret-password'
+  },
+  {
+    headers: {
+      'x-cf-turnstile-response': turnstileResponse
+    }
+  }
+)
+```
+
+### Sign up with a security key
+
+```ts
+nhost.auth.signUp({
+  email: 'joe@example.com',
+  securityKey: true
+})
+
+@docs https://docs.nhost.io/reference/deprecated/javascript/auth/sign-up
+```
