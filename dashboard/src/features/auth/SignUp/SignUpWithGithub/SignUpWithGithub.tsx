@@ -3,7 +3,6 @@ import { GithubAuthButton } from '@/features/auth/AuthProviders/Github/component
 function SignUpWithGithub() {
   return (
     <GithubAuthButton
-      withAnonId
       buttonText="Sign Up with GitHub"
       errorText="An error occurred while trying to sign up using GitHub. Please try again."
     />

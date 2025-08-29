@@ -1,4 +1,3 @@
-import { getAnonId } from '@/lib/segment';
 import { isNotEmptyValue } from '@/lib/utils';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { nhost } from '@/utils/nhost';
@@ -27,7 +26,6 @@ function useGithubAuthentication({
       }
       if (withAnonId) {
         options = {
-          metadata: { anonId: await getAnonId() },
           ...options,
         };
       }
