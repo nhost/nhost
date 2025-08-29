@@ -7,8 +7,12 @@ let
     root = ../.;
     include = with nix-filter.lib; [
       "./flake.lock"
+      "./flake.nix"
       isDirectory
-      (matchExt "nix")
+      (and
+        (inDirectory submodule)
+        (matchExt "nix")
+      )
     ];
   };
 
