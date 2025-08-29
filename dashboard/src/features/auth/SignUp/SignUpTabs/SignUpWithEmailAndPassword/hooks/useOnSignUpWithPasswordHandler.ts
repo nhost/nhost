@@ -1,4 +1,3 @@
-import { getAnonId } from '@/lib/segment';
 import { isEmptyValue } from '@/lib/utils';
 import { useNhostClient } from '@/providers/nhost';
 import { getToastStyleProps } from '@/utils/constants/settings';
@@ -23,7 +22,6 @@ function useOnSignUpWithPasswordHandler() {
           password,
           options: {
             displayName,
-            metadata: { anonId: await getAnonId() },
           },
         },
         {

@@ -1,4 +1,3 @@
-import { getAnonId } from '@/lib/segment';
 import { isEmptyValue } from '@/lib/utils';
 import { useNhostClient } from '@/providers/nhost';
 import { getToastStyleProps } from '@/utils/constants/settings';
@@ -16,14 +15,12 @@ function useOnSignUpWithSecurityKeyHandler() {
     displayName,
     turnstileToken,
   }: SignUpWithSecurityKeyFormValues) {
-    const metadata = { anonId: await getAnonId() };
     try {
       const webAuthnResponse = await nhost.auth.signUpWebauthn(
         {
           email,
           options: {
             displayName,
-            metadata,
           },
         },
         {
@@ -40,7 +37,6 @@ function useOnSignUpWithSecurityKeyHandler() {
         credential,
         options: {
           displayName,
-          metadata,
         },
       });
       if (verifyResponse.status === 200 && isEmptyValue(verifyResponse.body)) {
