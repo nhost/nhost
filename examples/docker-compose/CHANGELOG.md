@@ -1,5 +1,11 @@
 # @nhost-examples/docker-compose
 
+## 0.4.1
+
+### Patch Changes
+
+- 89f6fe6: chore (docker-example): update dashboard image version
+
 ## 0.4.0
 
 ### Minor Changes
