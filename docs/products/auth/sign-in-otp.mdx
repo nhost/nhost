@@ -28,16 +28,10 @@ After the functionality has been enabled the flow is as follows:
 <Tabs>
   <Tab title="javascript">
   ```js
-  nhost.auth.signInEmailOTP('user@example.com')
+  nhost.auth.signInOTPEmail({
+    email: 'user@example.com'
+  })
   ```
-  </Tab>
-
-  <Tab title="react">
-  See [react docs](/reference/react/use-sign-in-email-otp) for details
-  </Tab>
-
-  <Tab title="vue">
-  See [vue docs](/reference/vue/use-sign-in-email-otp) for details
   </Tab>
 
   <Tab title="dart">
@@ -53,16 +47,11 @@ After the functionality has been enabled the flow is as follows:
 <Tabs>
   <Tab title="javascript">
   ```js
-  nhost.auth.verifyEmailOTP('user@example.com', '123456')
+  nhost.auth.verifySignInOTPEmail({
+    email: 'user@example.com',
+    otp: '123456'
+  })
   ```
-  </Tab>
-
-  <Tab title="react">
-  See [react docs](/reference/react/use-sign-in-email-otp) for details
-  </Tab>
-
-  <Tab title="vue">
-  See [vue docs](/reference/vue/use-sign-in-email-otp) for details
   </Tab>
 
   <Tab title="dart">

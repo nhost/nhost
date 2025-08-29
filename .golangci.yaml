@@ -1,22 +1,23 @@
 version: "2"
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
 linters:
   default: all
+  settings:
+    funlen:
+      lines: 65
   disable:
     - canonicalheader
     - depguard
     - gomoddirectives
     - musttag
     - nlreturn
+    - tagliatelle
     - varnamelen
     - wsl
-  settings:
-    ireturn:
-      allow:
-        - anon
-        - error
-        - empty
-        - generic
-        - stdlib
+    - noinlineerr
+    - funcorder
   exclusions:
     generated: lax
     presets:
@@ -27,9 +28,7 @@ linters:
     rules:
       - linters:
           - funlen
-          - goconst
           - ireturn
-          - revive
         path: _test\.go
       - linters:
           - lll
@@ -41,46 +40,12 @@ linters:
           - ireturn
           - lll
         path: schema\.resolvers\.go
-      - linters:
-          - containedctx
-          - cyclop
-          - dupl
-          - err113
-          - errname
-          - exhaustive
-          - exhaustruct
-          - forcetypeassert
-          - funlen
-          - gochecknoglobals
-          - gocognit
-          - godot
-          - godox
-          - gosec
-          - ireturn
-          - lll
-          - misspell
-          - mnd
-          - nestif
-          - nilnil
-          - nolintlint
-          - paralleltest
-          - perfsprint
-          - prealloc
-          - revive
-          - staticcheck
-          - tagliatelle
-          - testpackage
-          - thelper
-          - unparam
-          - wrapcheck
-        path: services/watchtower/pkg
     paths:
       - third_party$
       - builtin$
       - examples$
 formatters:
   enable:
-    - gci
     - gofmt
     - gofumpt
     - goimports
@@ -91,4 +56,3 @@ formatters:
       - builtin$
       - examples$
       - schema\.resolvers\.go
-      - services/watchtower/pkg

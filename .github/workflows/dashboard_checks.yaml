@@ -6,33 +6,27 @@ on:
       - '.github/workflows/wf_build_artifacts.yaml'
       - '.github/workflows/wf_check.yaml'
       - '.github/workflows/dashboard_checks.yaml'
+
+      # common build
       - 'flake.nix'
       - 'flake.lock'
       - 'nix/**'
       - 'build/**'
 
-      # dashboard
-      - "package.json"
-      - ".npmrc"
-      - "pnpm-workspace.yaml"
-      - "pnpm-lock.yaml"
-      - "turbo.json"
-      - "dashboard/**"
-
-      # codegen
-      - 'go.mod'
-      - 'go.sum'
-      - 'vendor/**'
-      - 'tools/codegen/**'
-
-      # nhost-js
+      # common javascript
       - ".npmrc"
       - ".prettierignore"
       - ".prettierrc.js"
       - "audit-ci.jsonc"
+      - "package.json"
       - "pnpm-workspace.yaml"
       - "pnpm-lock.yaml"
       - "turbo.json"
+
+      # dashboard
+      - "dashboard/**"
+
+      # nhost-js
       - packages/nhost-js/**
   push:
     branches:
