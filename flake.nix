@@ -39,6 +39,14 @@
           inherit self pkgs nix2containerPkgs nix-filter nixops-lib mkNodeDevShell node_modules;
         };
 
+        docsf = import ./docs/project.nix {
+          inherit self pkgs nix-filter mkNodeDevShell node_modules;
+        };
+
+        mintlify-openapif = import ./tools/mintlify-openapi/project.nix {
+          inherit self pkgs nix-filter nixops-lib;
+        };
+
         nhost-jsf = import ./packages/nhost-js/project.nix {
           inherit self pkgs nix-filter nixops-lib mkNodeDevShell node_modules;
         };
@@ -60,6 +68,8 @@
 
           codegen = codegenf.check;
           dashboard = dashboardf.check;
+          docs = docsf.check;
+          mintlify-openapi = mintlify-openapif.check;
           nhost-js = nhost-jsf.check;
         };
 
@@ -71,10 +81,13 @@
               nhost-cli
               nodejs
               pnpm_10
-              go
-              golangci-lint
               skopeo
+              go
+              golines
+              gofumpt
+              golangci-lint
               self.packages.${system}.codegen
+              self.packages.${system}.mintlify-openapi
             ];
 
             shellHook = ''
@@ -97,6 +110,8 @@
 
           codegen = codegenf.devShell;
           dashboard = dashboardf.devShell;
+          docs = docsf.devShell;
+          mintlify-openapi = mintlify-openapif.devShell;
           nhost-js = nhost-jsf.devShell;
         };
 
@@ -104,6 +119,7 @@
           dashboard = dashboardf.package;
           dashboard-docker-image = dashboardf.dockerImage;
           codegen = codegenf.package;
+          mintlify-openapi = mintlify-openapif.package;
           nhost-js = nhost-jsf.package;
         };
       }

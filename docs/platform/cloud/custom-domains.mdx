@@ -40,8 +40,6 @@ fqdn = ['functions.custom-domain.com']
 
 For PostgreSQL there is nothing to configure on Nhost's side so as long as you have a CNAME properly configured it should work.
 
-<Note>To connect to your backend using your custom domains instead of the subdomain and region you will have to pass the verious service URLs to the client. You can find the relevant parameters to pass to the client in the reference documentation (i.e. [react](/reference/react/nhost-client#nhostclient))</Note>
-
 For Run services, typically in an `nhost-service.toml` specific to the service:
 
 ```toml
@@ -64,10 +62,10 @@ fqdn = ['my-service.custom-domain.com']
 
 
 <Note>
-After configuring your custom domains don't forget to update your Nhost client to make use of them. For instance, when using our [SDK](/reference/javascript/nhost-js/nhost-client):
+After configuring your custom domains don't forget to update your Nhost client to make use of them. For instance, when using our [SDK](/reference/javascript/nhost-js/main#createclient):
 
 ```js
-const nhost = new NhostClient({
+const nhost = createClient({
   authUrl: 'https://auth.custom-domain.com/v1',
   storageUrl: 'https://subdomain.storage.region.nhost.run/v1',
   graphqlUrl: 'https://hasura.custom-domain.com/v1/graphql',
