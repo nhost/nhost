@@ -57,7 +57,7 @@ jobs:
 
     - uses: cachix/install-nix-action@v31
       with:
-        install_url: "https://releases.nixos.org/nix/nix-2.22.3/install"
+        install_url: "https://releases.nixos.org/nix/nix-2.28.4/install"
         install_options: "--no-daemon"
         extra_nix_config: |
           experimental-features = nix-command flakes
@@ -65,6 +65,18 @@ jobs:
           access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
           substituters = https://cache.nixos.org/?priority=40 s3://nhost-nix-cache?region=eu-central-1&priority=50
           trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ${{ secrets.NIX_CACHE_PUB_KEY }}
+
+    - name: Restore and save Nix store
+      uses: nix-community/cache-nix-action@v6
+      with:
+        primary-key: nix-${{ runner.os }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
+        restore-prefixes-first-match: nix-${{ runner.os }}-
+        gc-max-store-size-linux: 10G
+        purge: true
+        purge-prefixes: nix-${{ runner.os }}-
+        purge-created: 0
+        purge-last-accessed: 0
+        purge-primary-key: never
 
     - name: Trigger Vercel deployment
       id: deploy
