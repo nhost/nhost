@@ -84,7 +84,7 @@ jobs:
       id: verify-nixops-build
       run: |
         export drvPath=$(make build-nixops-dry-run)
-        nix store verify --no-trust --store s3://nhost-nix-cache\?region=eu-central-1 $drvPath \
+        nix path-info --store s3://nhost-nix-cache\?region=eu-central-1 $drvPath \
           || (echo "Wait until nixops is already built and cached and run again" && exit 1)
       if: ${{ inputs.NAME != 'nixops' }}
 
