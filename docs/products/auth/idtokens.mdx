@@ -21,6 +21,7 @@ Once everything is configured you can use an ID token to authenticate users with
 
 <Tabs>
   <Tab title="javascript">
+
   ```js
   nhost.auth.signInIdToken({
     provider: 'google', // The provider name, e.g., 'google', 'apple', etc.
@@ -28,10 +29,7 @@ Once everything is configured you can use an ID token to authenticate users with
     nonce: '...' // Optional: The nonce used during token generation.
   })
   ```
-
   </Tab>
-<Tab title="react">See [react docs](/reference/react/use-sign-in-id-token) for details</Tab>
-<Tab title="vue">See [vue docs](/reference/react/use-sign-in-id-token) for details</Tab>
 
   <Tab title="dart">
   ```dart
@@ -56,8 +54,6 @@ Similarly to the [Social Connect](/products/auth/social-connect) feature, you ca
   ```
 <Note>Keep in mind this is an authenticated method so the user must be logged in already.</Note>
   </Tab>
-<Tab title="react">See [react docs](/reference/react/use-link-id-token) for details</Tab>
-<Tab title="vue">See [vue docs](/reference/vue/use-link-id-token) for details</Tab>
 
   <Tab title="dart">
   ```dart
