@@ -22,7 +22,11 @@ let
       ];
 
       buildPhase = ''
-        pnpm --version
+        export HOME=$TMPDIR/home
+        mkdir -p $HOME
+
+        # Fix the workspace linking issue
+        pnpm config set link-workspace-packages false
         pnpm install --frozen-lockfile
       '';
 
@@ -84,8 +88,6 @@ let
         nativeBuildInputs = jsCheckDeps ++ checkDeps ++ buildInputs ++ nativeBuildInputs;
       }
       ''
-        ${preCheck}
-
         cp -r ${src} src
         chmod +w -R .
 
@@ -100,11 +102,15 @@ let
         pnpm audit-ci
         cd ..
 
+
+        cd src
+
+        ${preCheck}
+
         echo "➜ Running pnpm generate and checking sha1sum of all files"
         SRCROOT=$PWD
 
         # Generate baseline checksums from the original filtered src
-        cd src
         find . -type f ! -path "./node_modules/*" ! -path "./deprecated/*" -print0 | xargs -0 sha1sum > $TMPDIR/baseline
 
         # Copy and run generate

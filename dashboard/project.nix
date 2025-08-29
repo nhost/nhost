@@ -11,6 +11,9 @@ let
       isDirectory
       (matchName "package.json")
       ".npmrc"
+      ".prettierignore"
+      ".prettierrc.js"
+      "audit-ci.jsonc"
       "pnpm-workspace.yaml"
       "pnpm-lock.yaml"
       "turbo.json"
@@ -60,31 +63,14 @@ rec {
 
   entrypoint = pkgs.writeScriptBin "docker-entrypoint.sh" (builtins.readFile ./docker-entrypoint.sh);
 
-  check = pkgs.runCommand "check"
-    {
-      nativeBuildInputs = checkDeps ++ buildInputs ++ nativeBuildInputs;
-    } ''
-    cp -r ${src}/* .
-    chmod +w -R .
+  check = nixops-lib.js.check {
+    inherit src node_modules submodule buildInputs nativeBuildInputs checkDeps;
 
-    cp -r ${node_modules}/node_modules/ node_modules
-    cp -r ${node_modules}/${submodule}/node_modules/ ${submodule}/node_modules
-
-    mkdir -p packages/nhost-js
-    cp -r ${self.packages.${pkgs.system}.nhost-js}/dist packages/nhost-js/dist
-
-    export HOME=$TMPDIR
-
-    cd ${submodule}
-
-    echo "➜ Running linter"
-    pnpm lint
-
-    echo "➜ Running unit tests"
-    pnpm test --run
-
-    mkdir -p $out
-  '';
+    preCheck = ''
+      mkdir -p packages/nhost-js
+      cp -r ${self.packages.${pkgs.system}.nhost-js}/dist packages/nhost-js/dist
+    '';
+  };
 
   check-staging = pkgs.runCommand "check"
     {
