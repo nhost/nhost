@@ -47,11 +47,11 @@
         };
 
         dashboardf = import ./dashboard/project.nix {
-          inherit self pkgs nix2containerPkgs nix-filter nixops-lib node_modules;
+          inherit self pkgs nix-filter nixops-lib node_modules nix2containerPkgs;
         };
 
         docsf = import ./docs/project.nix {
-          inherit self pkgs nix-filter node_modules;
+          inherit self pkgs nix-filter nixops-lib node_modules;
         };
 
         mintlify-openapif = import ./tools/mintlify-openapi/project.nix {

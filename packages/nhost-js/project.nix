@@ -31,7 +31,10 @@ let
     ];
   };
 
-  checkDeps = with pkgs; [ nhost-cli ];
+  checkDeps = with pkgs; [
+    nhost-cli
+    self.packages.${pkgs.system}.codegen
+  ];
 
   buildInputs = with pkgs; [ nodejs ];
 
@@ -46,28 +49,9 @@ in
     ] ++ checkDeps ++ buildInputs ++ nativeBuildInputs;
   };
 
-  check = pkgs.runCommand "check"
-    {
-      nativeBuildInputs = checkDeps ++ buildInputs ++ nativeBuildInputs;
-    } ''
-    cp -r ${src} src
-    chmod +w -R .
-    cd src
-
-    cp -r ${node_modules}/node_modules/ node_modules
-    cp -r ${node_modules}/${submodule}/node_modules/ ${submodule}/node_modules
-
-    echo "➜ Checking dependencies for security issues"
-    pnpm audit-ci
-
-    cd ${submodule}
-
-    echo "➜ Running linters and tests"
-    pnpm test
-
-    mkdir -p $out
-  '';
-
+  check = nixops-lib.js.check {
+    inherit src node_modules submodule buildInputs nativeBuildInputs checkDeps;
+  };
 
   package = pkgs.stdenv.mkDerivation {
     inherit name version src;

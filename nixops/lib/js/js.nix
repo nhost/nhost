@@ -1,5 +1,12 @@
 { pkgs, nix2containerPkgs }:
 let
+  jsCheckDeps = with pkgs; [
+    pnpm_10
+    cacert
+    nodejs
+    playwright-driver
+  ];
+
   mkNodeModules =
     { src
     , name
@@ -12,7 +19,6 @@ let
         pnpm_10
         cacert
         nodejs
-        findutils
       ];
 
       buildPhase = ''
@@ -24,8 +30,8 @@ let
         mkdir -p $out
         cp pnpm-lock.yaml $out/pnpm-lock.yaml
 
-        find . -name package.json -not -path "./node_modules/*" -not -path "./.git/*" | while read -r packagejson; do
-          dir=$(dirname "$packagejson")
+        for absdir in $(pnpm list --recursive --depth=-1 --parseable); do
+          dir=$(realpath --relative-to="$PWD" "$absdir")
           mkdir -p $out/$dir
           cp -r $dir/node_modules $out/$dir/node_modules
           cp $dir/package.json $out/$dir/package.json
@@ -39,11 +45,7 @@ let
     , shellHook ? ""
     }: pkgs.mkShell {
 
-      buildInputs = with pkgs; [
-        nodejs
-        pnpm_10
-        playwright-driver
-      ] ++ buildInputs;
+      buildInputs = jsCheckDeps ++ buildInputs;
 
       shellHook = ''
         CUR_DIR=$(pwd)
@@ -53,8 +55,8 @@ let
         rm -rf node_modules
         ln -sf ${node_modules}/node_modules node_modules
 
-        find . -name package.json -not -path "./node_modules/*" -not -path "./.git/*" | while read -r packagejson; do
-          dir=$(dirname "$packagejson")
+        for absdir in $(pnpm list --recursive --depth=-1 --parseable); do
+          dir=$(realpath --relative-to="$PWD" "$absdir")
           rm -rf $dir/node_modules
           ln -sf ${node_modules}/$dir/node_modules $dir/node_modules
         done
@@ -67,8 +69,60 @@ let
         ${shellHook}
       '';
     };
+
+  check =
+    { src
+    , node_modules
+    , submodule ? ""
+    , buildInputs
+    , nativeBuildInputs
+    , checkDeps ? [ ]
+    , preCheck ? ""
+    , extraCheck ? ""
+    }: pkgs.runCommand "jstests"
+      {
+        nativeBuildInputs = jsCheckDeps ++ checkDeps ++ buildInputs ++ nativeBuildInputs;
+      }
+      ''
+        ${preCheck}
+
+        cp -r ${src} src
+        chmod +w -R .
+
+        echo "➜ Setting up node_modules and checking dependencies for security issues"
+        cd src
+
+        for absdir in $(pnpm list --recursive --depth=-1 --parseable); do
+          dir=$(realpath --relative-to="$PWD" "$absdir")
+          ln -s ${node_modules}/$dir/node_modules $dir/node_modules
+        done
+
+        pnpm audit-ci
+        cd ..
+
+        echo "➜ Running pnpm generate and checking sha1sum of all files"
+        SRCROOT=$PWD
+
+        # Generate baseline checksums from the original filtered src
+        cd src
+        find . -type f ! -path "./node_modules/*" ! -path "./deprecated/*" -print0 | xargs -0 sha1sum > $TMPDIR/baseline
+
+        # Copy and run generate
+        cp -r ../src $TMPDIR/generate
+        cd $TMPDIR/generate
+        pnpm run --dir ${submodule} generate
+
+        # Check only files that existed in the baseline
+        sha1sum -c $TMPDIR/baseline || (echo "❌ ERROR: pnpm generate changed files" && exit 1)
+
+        echo "➜ Running linters and tests"
+        pnpm run --dir ${submodule} test
+
+        ${extraCheck}
+
+        mkdir $out
+      '';
 in
 {
-  inherit mkNodeModules devShell;
+  inherit mkNodeModules devShell check;
 }
-
