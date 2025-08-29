@@ -62,7 +62,7 @@ check:  ## Run nix flake check
 .PHONY: check-dry-run
 check-dry-run:  ## Returns the derivation of the check
 	@nix build \
-		--eval-store auto --dry-run \
+		--dry-run \
 		--json \
 		.\#checks.$(ARCH)-$(OS).$(NAME) | jq -r '.[].outputs.out'
 
@@ -77,7 +77,7 @@ build:  ## Build application and places the binary under ./result/bin
 .PHONY: build-dry-run
 build-dry-run:  ## Run nix flake check
 	@nix build \
-		--eval-store auto --dry-run \
+		--dry-run \
 		--json \
 		.\#packages.$(ARCH)-$(OS).$(NAME) | jq -r '.[].outputs.out'
 
@@ -85,7 +85,7 @@ build-dry-run:  ## Run nix flake check
 .PHONY: build-nixops-dry-run
 build-nixops-dry-run:  ## Checks if nixops needs to be rebuilt
 	@nix build \
-		--eval-store auto --dry-run \
+		--dry-run \
 		--json \
 		.\#packages.$(ARCH)-$(OS).nixops | jq -r '.[].outputs.out'
 
