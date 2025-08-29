@@ -6,10 +6,10 @@ const { version } = require('./package.json');
 
 const cspHeader = `
     default-src 'self' *.nhost.run wss://*.nhost.run nhost.run wss://nhost.run;
-    script-src 'self' 'unsafe-eval' cdn.segment.com js.stripe.com challenges.cloudflare.com;
+    script-src 'self' 'unsafe-eval' cdn.segment.com js.stripe.com challenges.cloudflare.com googletagmanager.com;
     connect-src 'self' *.nhost.run wss://*.nhost.run nhost.run wss://nhost.run discord.com api.segment.io api.segment.com cdn.segment.com nhost.zendesk.com;
     style-src 'self' 'unsafe-inline';
-    img-src 'self' blob: data: avatars.githubusercontent.com s.gravatar.com *.nhost.run nhost.run;
+    img-src 'self' blob: data: github.com avatars.githubusercontent.com s.gravatar.com *.nhost.run nhost.run;
     font-src 'self' data:;
     object-src 'none';
     base-uri 'self';
