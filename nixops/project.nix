@@ -2,6 +2,7 @@
 let
   name = "nixops";
   version = "0.0.0-dev";
+  submodule = "${name}";
 
   src = nix-filter.lib.filter {
     root = ../.;
