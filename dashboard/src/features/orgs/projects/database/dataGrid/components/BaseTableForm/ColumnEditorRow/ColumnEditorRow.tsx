@@ -1,6 +1,10 @@
-import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete';
+import {
+  ControlledAutocomplete,
+  defaultFilterOptions,
+} from '@/components/form/ControlledAutocomplete';
 import { ControlledCheckbox } from '@/components/form/ControlledCheckbox';
 import { InlineCode } from '@/components/presentational/InlineCode';
+import type { AutocompleteOption } from '@/components/ui/v2/Autocomplete';
 import type { CheckboxProps } from '@/components/ui/v2/Checkbox';
 import { Input } from '@/components/ui/v2/Input';
 import { OptionBase } from '@/components/ui/v2/Option';
@@ -97,18 +101,41 @@ function TypeAutocomplete({ index }: FieldArrayInputProps) {
       placeholder="Select type"
       hideEmptyHelperText
       autoHighlight
-      noOptionsText="No types found"
+      clearOnBlur
+      showCustomOption="first"
+      filterOptions={defaultFilterOptions}
+      isOptionEqualToValue={(option, value) => {
+        const typedValue = value as AutocompleteOption<string> & {
+          isUserDefined: boolean;
+        };
+        if (typedValue.custom || typedValue.isUserDefined) {
+          return true;
+        }
+        return (
+          option.value === typedValue.value ||
+          typedValue.value.includes(option.value)
+        );
+      }}
       error={Boolean(errors?.columns?.[index]?.type)}
       helperText={(errors?.columns?.[index]?.type as FieldError)?.message}
-      renderOption={(props, { label, value }) => (
-        <OptionBase {...props}>
-          <div className="grid grid-flow-col items-baseline justify-start justify-items-start gap-1.5">
-            <span>{label}</span>
+      renderOption={(props, { label, value, custom }) => {
+        if (custom) {
+          return (
+            <OptionBase {...props}>
+              <span>Use type: &quot;{value}&quot;</span>
+            </OptionBase>
+          );
+        }
+        return (
+          <OptionBase {...props}>
+            <div className="grid grid-flow-col items-baseline justify-start justify-items-start gap-1.5">
+              <span>{label}</span>
 
-            <InlineCode>{value}</InlineCode>
-          </div>
-        </OptionBase>
-      )}
+              <InlineCode>{value}</InlineCode>
+            </div>
+          </OptionBase>
+        );
+      }}
       onChange={(_event, value) => {
         if (typeof value === 'string' || Array.isArray(value)) {
           return;

@@ -33,6 +33,7 @@ const rawColumn: NormalizedQueryDataRow = {
   udt_catalog: 'postgres',
   udt_schema: 'pg_catalog',
   udt_name: 'uuid',
+  full_data_type: 'uuid',
   scope_catalog: null,
   scope_schema: null,
   scope_name: null,
@@ -70,6 +71,7 @@ test('should normalize a raw database column', () => {
     type: {
       value: 'uuid',
       label: 'uuid',
+      isUserDefined: false,
     },
     defaultValue: {
       value: 'gen_random_uuid()',
@@ -90,6 +92,7 @@ test('should set identity to true if the column is an identity column', () => {
     data_type: 'int4',
     column_default: null,
     is_identity: 'YES',
+    full_data_type: 'int4',
   };
 
   const column = normalizeDatabaseColumn(rawIdentityColumn);
@@ -104,6 +107,7 @@ test('should set identity to true if the column is an identity column', () => {
     type: {
       value: 'int4',
       label: 'int4',
+      isUserDefined: false,
     },
     defaultValue: null,
     comment: null,
@@ -131,6 +135,7 @@ test('should set nullable to true if the column is nullable', () => {
     type: {
       value: 'uuid',
       label: 'uuid',
+      isUserDefined: false,
     },
     defaultValue: {
       value: 'gen_random_uuid()',

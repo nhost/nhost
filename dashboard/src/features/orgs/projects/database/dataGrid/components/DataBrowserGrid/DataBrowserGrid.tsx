@@ -77,21 +77,16 @@ export function createDataGridColumn(
           {column.column_name}
         </span>
 
-        <InlineCode>
-          {column.udt_name}
-          {column.character_maximum_length
-            ? `(${column.character_maximum_length})`
-            : null}
-        </InlineCode>
+        <InlineCode>{column.full_data_type}</InlineCode>
       </div>
     ),
     id: column.column_name,
     accessor: column.column_name,
     sortType: 'basic',
-    width: 200,
+    width: 250,
     isEditable,
     type: 'text',
-    specificType: column.udt_name,
+    specificType: column.full_data_type,
     maxLength: column.character_maximum_length,
     Cell: DataGridTextCell,
     isPrimary: column.is_primary,
@@ -110,7 +105,7 @@ export function createDataGridColumn(
     return {
       ...defaultColumnConfiguration,
       type: 'number',
-      width: 200,
+      width: 250,
       Cell: DataGridIntegerCell,
     };
   }
@@ -119,7 +114,7 @@ export function createDataGridColumn(
     return {
       ...defaultColumnConfiguration,
       type: 'text',
-      width: 200,
+      width: 250,
       Cell: DataGridDecimalCell,
     };
   }
@@ -141,7 +136,7 @@ export function createDataGridColumn(
       ...defaultColumnConfiguration,
       type: 'text',
       isCopiable: true,
-      width: 200,
+      width: 250,
       Cell: DataGridTextCell,
     };
   }
