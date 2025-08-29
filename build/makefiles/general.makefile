@@ -84,6 +84,15 @@ build-dry-run:  ## Run nix flake check
 		.\#packages.$(ARCH)-$(OS).$(NAME)
 
 
+.PHONY: build-nixops-dry-run
+build-nixops-dry-run:  ## Checks if nixops needs to be rebuilt
+	nix build \
+		--dry-run \
+		--json \
+		--print-build-logs \
+		.\#packages.$(ARCH)-$(OS).nixops
+
+
 .PHONY: build-docker-image
 build-docker-image:  ## Build docker container for native architecture
 	nix build $(docker-build-options) --show-trace \

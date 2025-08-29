@@ -61,6 +61,14 @@ jobs:
           substituters = https://cache.nixos.org/?priority=40 s3://nhost-nix-cache?region=eu-central-1&priority=50
           trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ${{ secrets.NIX_CACHE_PUB_KEY }}
 
+    - name: "Verify if nixops is pre-built"
+      id: verify-nixops-build
+      run: |
+        export drvPath=$(make build-nixops-dry-run)
+        nix store verify --no-trust --store s3://nhost-nix-cache\?region=eu-central-1 $drvPath \
+          || (echo "Wait until nixops is already built and cached and run again" && exit 1)
+      if: ${{ inputs.NAME != 'nixops' }}
+
     - name: "Verify if we need to build"
       id: verify-build
       run: |

@@ -1,34 +1,37 @@
 {
   inputs = {
-    nixops.url = "github:nhost/nixops";
-    nixpkgs.follows = "nixops/nixpkgs";
-    flake-utils.follows = "nixops/flake-utils";
-    nix-filter.follows = "nixops/nix-filter";
-    nix2container.follows = "nixops/nix2container";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    flake-utils.url = "github:numtide/flake-utils";
+    nix-filter.url = "github:numtide/nix-filter";
+    nix2container.url = "github:nlewo/nix2container";
+    nix2container.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixops, nixpkgs, flake-utils, nix-filter, nix2container }:
+  outputs = { self, nixpkgs, flake-utils, nix-filter, nix2container }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs {
           inherit system;
           overlays = [
-            nixops.overlays.default
-            (import ./nix/overlay.nix)
+            (import ./nixops/overlays/default.nix)
+            (import ./nixops/overlay.nix)
           ];
         };
 
         nix-src = nix-filter.lib.filter {
           root = ./.;
           include = [
+            nix-filter.lib.isDirectory
             (nix-filter.lib.matchExt "nix")
           ];
         };
 
-        nix2containerPkgs = nix2container.packages.${system};
-        nixops-lib = nixops.lib { inherit pkgs nix2containerPkgs; };
+        lib = import ./nixops/lib/lib.nix;
 
-        nodeModulesLib = import ./nix/node_modules.nix { inherit self pkgs nix-filter; };
+        nix2containerPkgs = nix2container.packages.${system};
+        nixops-lib = lib { inherit pkgs nix2containerPkgs; };
+
+        nodeModulesLib = import ./nixops/node_modules.nix { inherit self pkgs nix-filter; };
         inherit (nodeModulesLib) node_modules mkNodeDevShell;
 
         codegenf = import ./tools/codegen/project.nix {
@@ -51,31 +54,29 @@
           inherit self pkgs nix-filter nixops-lib mkNodeDevShell node_modules;
         };
 
+        nixopsf = import ./nixops/project.nix {
+          inherit self pkgs nix-filter nixops-lib;
+        };
       in
       {
-        checks = {
-          nixpkgs-fmt = pkgs.runCommand "check-nixpkgs-fmt"
-            {
-              nativeBuildInputs = with pkgs;
-                [
-                  nixpkgs-fmt
-                ];
-            }
-            ''
-              mkdir $out
-              nixpkgs-fmt --check ${nix-src}
-            '';
+        #nixops
+        overlays.default = import ./overlays/default.nix;
+        lib = lib;
 
+        checks = {
           codegen = codegenf.check;
           dashboard = dashboardf.check;
           docs = docsf.check;
           mintlify-openapi = mintlify-openapif.check;
           nhost-js = nhost-jsf.check;
+          nixops = nixopsf.check;
         };
 
         devShells = flake-utils.lib.flattenTree {
           default = pkgs.mkShell {
             buildInputs = with pkgs; [
+              gh
+              gnused
               nodePackages.vercel
               playwright-driver
               nhost-cli
@@ -113,6 +114,7 @@
           docs = docsf.devShell;
           mintlify-openapi = mintlify-openapif.devShell;
           nhost-js = nhost-jsf.devShell;
+          nixops = nixopsf.devShell;
         };
 
         packages = flake-utils.lib.flattenTree {
@@ -121,6 +123,7 @@
           codegen = codegenf.package;
           mintlify-openapi = mintlify-openapif.package;
           nhost-js = nhost-jsf.package;
+          nixops = nixopsf.package;
         };
       }
     );
