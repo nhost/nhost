@@ -6,7 +6,7 @@ import { TableContainer } from '@/components/ui/v2/TableContainer';
 import { TableHead } from '@/components/ui/v2/TableHead';
 import { TableRow } from '@/components/ui/v2/TableRow';
 import { Text } from '@/components/ui/v2/Text';
-import { LOGS_SERVICE_TO_LABEL } from '@/features/orgs/projects/logs/utils/constants/services';
+import { CORE_LOG_SERVICE_TO_LABEL } from '@/features/orgs/projects/logs/utils/constants/services';
 import type {
   GetLogsSubscriptionSubscription,
   GetProjectLogsQuery,
@@ -78,7 +78,7 @@ function TextCell({ getValue }: { getValue: () => string }) {
 
 function ServiceCell({ getValue }: { getValue: () => string }) {
   const service = getValue();
-  const serviceLabel = LOGS_SERVICE_TO_LABEL[service] ?? service;
+  const serviceLabel = CORE_LOG_SERVICE_TO_LABEL[service] ?? service;
 
   return <Text className="font-mono text-xs-">{serviceLabel}</Text>;
 }

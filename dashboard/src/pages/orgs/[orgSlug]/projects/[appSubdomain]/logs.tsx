@@ -6,7 +6,7 @@ import {
   LogsHeader,
   type LogsFilterFormValues,
 } from '@/features/orgs/projects/logs/components/LogsHeader';
-import { AvailableLogsService } from '@/features/orgs/projects/logs/utils/constants/services';
+import { CoreLogService } from '@/features/orgs/projects/logs/utils/constants/services';
 import { DEFAULT_LOG_INTERVAL } from '@/utils/constants/common';
 import { subMinutes } from 'date-fns';
 import { useCallback, useState, type ReactElement } from 'react';
@@ -14,7 +14,7 @@ import { useCallback, useState, type ReactElement } from 'react';
 interface LogsFilters {
   from: string;
   to: string | null;
-  service: AvailableLogsService;
+  service: string;
   regexFilter: string;
 }
 
@@ -23,7 +23,7 @@ export default function LogsPage() {
     from: subMinutes(new Date(), DEFAULT_LOG_INTERVAL).toISOString(),
     to: new Date().toISOString(),
     regexFilter: '',
-    service: AvailableLogsService.ALL,
+    service: CoreLogService.ALL,
   }));
 
   const { data, error, loading, refetch } = useProjectLogs(filters);

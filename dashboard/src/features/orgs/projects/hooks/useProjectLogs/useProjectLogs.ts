@@ -1,5 +1,5 @@
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { AvailableLogsService } from '@/features/orgs/projects/logs/utils/constants/services';
+import { CoreLogService } from '@/features/orgs/projects/logs/utils/constants/services';
 import { isNotEmptyValue } from '@/lib/utils';
 import {
   type GetProjectLogsQuery,
@@ -12,7 +12,7 @@ import { useCallback, useEffect, useRef } from 'react';
 export interface UseProjectLogsProps {
   from: string;
   to: string | null;
-  service: AvailableLogsService;
+  service: string;
   regexFilter: string;
 }
 
@@ -71,7 +71,7 @@ function useProjectLogs(props: UseProjectLogsProps) {
         variables: {
           appID: project?.id,
           service:
-            props.service === AvailableLogsService.JOB_BACKUP
+            props.service === CoreLogService.JOB_BACKUP
               ? 'job-backup.+' // Use regex pattern to match any job-backup services
               : props.service,
           from: props.from,
