@@ -8,17 +8,17 @@ import (
 
 	"github.com/nhost/hasura-auth/go/migrations"
 	"github.com/nhost/hasura-auth/go/sql"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 func insertRoles(
-	ctx context.Context, cCtx *cli.Context, db *sql.Queries, logger *slog.Logger,
+	ctx context.Context, cmd *cli.Command, db *sql.Queries, logger *slog.Logger,
 ) error {
 	logger.InfoContext(ctx, "inserting default roles into the database if needed")
 
 	defaultRoles := append(
-		cCtx.StringSlice(flagDefaultAllowedRoles),
-		cCtx.String(flagDefaultRole),
+		cmd.StringSlice(flagDefaultAllowedRoles),
+		cmd.String(flagDefaultRole),
 	)
 
 	roleSet := make(map[string]bool)
@@ -48,11 +48,11 @@ func insertRoles(
 }
 
 func applyMigrations(
-	ctx context.Context, cCtx *cli.Context, db *sql.Queries, logger *slog.Logger,
+	ctx context.Context, cmd *cli.Command, db *sql.Queries, logger *slog.Logger,
 ) error {
-	postgresURL := cCtx.String(flagPostgresMigrationsConnection)
+	postgresURL := cmd.String(flagPostgresMigrationsConnection)
 	if postgresURL == "" {
-		postgresURL = cCtx.String(flagPostgresConnection)
+		postgresURL = cmd.String(flagPostgresConnection)
 	}
 
 	if err := migrations.ApplyPostgresMigration(ctx, postgresURL, logger); err != nil {
@@ -62,8 +62,8 @@ func applyMigrations(
 
 	if err := migrations.ApplyHasuraMetadata(
 		ctx,
-		strings.Replace(cCtx.String(flagGraphqlURL), "/v1/graphql", "/v1/metadata", 1),
-		cCtx.String(flagHasuraAdminSecret),
+		strings.Replace(cmd.String(flagGraphqlURL), "/v1/graphql", "/v1/metadata", 1),
+		cmd.String(flagHasuraAdminSecret),
 	); err != nil {
 		logger.ErrorContext(
 			ctx, "failed to apply hasura metadata", slog.String("error", err.Error()))
@@ -71,5 +71,5 @@ func applyMigrations(
 		return fmt.Errorf("failed to apply hasura metadata: %w", err)
 	}
 
-	return insertRoles(ctx, cCtx, db, logger)
+	return insertRoles(ctx, cmd, db, logger)
 }

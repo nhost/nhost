@@ -28,7 +28,6 @@
             ./bun.lock
             ./bunfig.toml
             ./tsconfig.json
-            ./audit-ci.jsonc
             ./.env.example
             (inDirectory "test")
           ];
@@ -47,6 +46,7 @@
             ./go.sum
             ./.golangci.yaml
             ./docs/openapi.yaml
+            ./docs/cli.md
             ./go/api/server.cfg.yaml
             ./go/api/types.cfg.yaml
             ./go/sql/schema.sh

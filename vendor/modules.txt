@@ -63,8 +63,8 @@ github.com/cloudwego/base64x/internal/native
 github.com/cloudwego/base64x/internal/native/avx2
 github.com/cloudwego/base64x/internal/native/sse
 github.com/cloudwego/base64x/internal/rt
-# github.com/cpuguy83/go-md2man/v2 v2.0.7
-## explicit; go 1.12
+# github.com/cpuguy83/go-md2man/v2 v2.0.2
+## explicit; go 1.11
 github.com/cpuguy83/go-md2man/v2/md2man
 # github.com/fxamacker/cbor/v2 v2.9.0
 ## explicit; go 1.20
@@ -356,9 +356,12 @@ github.com/twitchyliquid64/golang-asm/unsafeheader
 # github.com/ugorji/go/codec v1.3.0
 ## explicit; go 1.21
 github.com/ugorji/go/codec
-# github.com/urfave/cli/v2 v2.27.7
+# github.com/urfave/cli-docs/v3 v3.0.0-alpha6
 ## explicit; go 1.18
-github.com/urfave/cli/v2
+github.com/urfave/cli-docs/v3
+# github.com/urfave/cli/v3 v3.4.1
+## explicit; go 1.22
+github.com/urfave/cli/v3
 # github.com/valyala/bytebufferpool v1.0.0
 ## explicit
 github.com/valyala/bytebufferpool
@@ -368,9 +371,6 @@ github.com/valyala/fasttemplate
 # github.com/x448/float16 v0.8.4
 ## explicit; go 1.11
 github.com/x448/float16
-# github.com/xrash/smetrics v0.0.0-20250705151800-55b8f293f342
-## explicit; go 1.15
-github.com/xrash/smetrics
 # go.uber.org/atomic v1.11.0
 ## explicit; go 1.18
 go.uber.org/atomic

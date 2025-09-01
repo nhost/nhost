@@ -7,23 +7,23 @@ import (
 	"time"
 
 	"github.com/nhost/hasura-auth/go/controller"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
-func getJWTGetter(cCtx *cli.Context, db controller.DBClient) (*controller.JWTGetter, error) {
+func getJWTGetter(cmd *cli.Command, db controller.DBClient) (*controller.JWTGetter, error) {
 	var (
 		rawClaims map[string]string
 		defaults  map[string]any
 	)
 
-	if cCtx.String(flagCustomClaims) != "" {
-		if err := json.Unmarshal([]byte(cCtx.String(flagCustomClaims)), &rawClaims); err != nil {
+	if cmd.String(flagCustomClaims) != "" {
+		if err := json.Unmarshal([]byte(cmd.String(flagCustomClaims)), &rawClaims); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal custom claims: %w", err)
 		}
 	}
 
-	if cCtx.String(flagCustomClaimsDefaults) != "" {
-		if err := json.Unmarshal([]byte(cCtx.String(flagCustomClaimsDefaults)), &defaults); err != nil {
+	if cmd.String(flagCustomClaimsDefaults) != "" {
+		if err := json.Unmarshal([]byte(cmd.String(flagCustomClaimsDefaults)), &defaults); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal custom claims defaults: %w", err)
 		}
 	}
@@ -37,9 +37,9 @@ func getJWTGetter(cCtx *cli.Context, db controller.DBClient) (*controller.JWTGet
 		customClaimer, err = controller.NewCustomClaims(
 			rawClaims,
 			&http.Client{}, //nolint:exhaustruct
-			cCtx.String(flagGraphqlURL),
+			cmd.String(flagGraphqlURL),
 			defaults,
-			controller.CustomClaimerAddAdminSecret(cCtx.String(flagHasuraAdminSecret)),
+			controller.CustomClaimerAddAdminSecret(cmd.String(flagHasuraAdminSecret)),
 		)
 		if err != nil {
 			return nil, fmt.Errorf("error creating custom claimer: %w", err)
@@ -47,10 +47,10 @@ func getJWTGetter(cCtx *cli.Context, db controller.DBClient) (*controller.JWTGet
 	}
 
 	jwtGetter, err := controller.NewJWTGetter(
-		[]byte(cCtx.String(flagHasuraGraphqlJWTSecret)),
-		time.Duration(cCtx.Int(flagAccessTokensExpiresIn))*time.Second,
+		[]byte(cmd.String(flagHasuraGraphqlJWTSecret)),
+		time.Duration(cmd.Int(flagAccessTokensExpiresIn))*time.Second,
 		customClaimer,
-		cCtx.String(flagRequireElevatedClaim),
+		cmd.String(flagRequireElevatedClaim),
 		db,
 	)
 	if err != nil {

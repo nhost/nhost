@@ -1,6 +1,6 @@
-# Nhost Hasura Auth - Go Migration Guide
+# Nhost Hasura Auth - Go Development Guide
 
-We are migrating from Node.js to Go. This document contains patterns, conventions, and workflows for implementing new endpoints and features.
+This document contains patterns, conventions, and workflows for implementing new endpoints and features in the Nhost Hasura Auth Go codebase.
 
 ## Core Principles
 
@@ -14,20 +14,23 @@ We are migrating from Node.js to Go. This document contains patterns, convention
 ```
 go/
 ├── api/                    # OpenAPI specs and generated types
-│   ├── openapi.yaml       # API specification
+│   ├── server.cfg.yaml    # oapi-codegen server generation config
+│   ├── types.cfg.yaml     # oapi-codegen types generation config
 │   ├── server.gen.go      # Generated server code
 │   └── types.gen.go       # Generated types
 ├── controller/            # HTTP handlers and business logic
-│   ├── post_*.go         # Endpoint handlers
-│   ├── *_test.go         # Tests
-│   ├── workflows.go      # Business logic workflows
-│   ├── errors.go         # Error definitions and handling
-│   └── mock/             # Generated mocks
-├── sql/                  # Database layer
-│   ├── query.sql         # SQL queries
-│   ├── query.sql.go      # Generated Go code
-│   └── models.go         # Database models
-└── middleware/           # HTTP middleware
+│   ├── sign_in_*.go       # Endpoint handlers (following naming pattern)
+│   ├── *_test.go          # Tests
+│   ├── workflows.go       # Business logic workflows
+│   ├── errors.go          # Error definitions and handling
+│   ├── controller.go      # Main controller and interfaces
+│   └── mock/              # Generated mocks
+├── sql/                   # Database layer
+│   ├── query.sql          # SQL queries
+│   ├── query.sql.go       # Generated Go code
+│   ├── sqlc.yaml          # sqlc configuration
+│   └── models.go          # Database models
+└── middleware/            # HTTP middleware
 ```
 
 ## Implementing New Endpoints
@@ -42,7 +45,7 @@ paths:
     post:
       summary: Description of what this does
       tags:
-        - your-tag
+        - authentication        # Use existing tags: authentication, security, session, user, system, verification
       security:
         - BearerAuth: []        # For authenticated endpoints
         - {}                    # For optional auth
@@ -103,7 +106,7 @@ WHERE condition = $1;
 
 ### 3. Controller Implementation
 
-Create `go/controller/post_your_endpoint.go`:
+Create `go/controller/your_endpoint.go`:
 
 ```go
 package controller
@@ -115,29 +118,29 @@ import (
     "github.com/nhost/hasura-auth/go/middleware"
 )
 
-func (ctrl *Controller) PostYourEndpoint( //nolint:ireturn
-    ctx context.Context, request api.PostYourEndpointRequestObject,
-) (api.PostYourEndpointResponseObject, error) {
+func (ctrl *Controller) YourEndpoint( //nolint:ireturn
+    ctx context.Context, request api.YourEndpointRequestObject,
+) (api.YourEndpointResponseObject, error) {
     logger := middleware.LoggerFromContext(ctx)
 
     // Validate inputs
     if apiErr := ctrl.wf.ValidateInput(request.Body.Field, logger); apiErr != nil {
-        return api.PostYourEndpoint401JSONResponse(ctrl.respondWithError(apiErr)), nil
+        return ctrl.respondWithError(apiErr), nil
     }
 
     // Get authenticated user if needed
     user, apiErr := ctrl.wf.GetUserFromJWTInContext(ctx, logger)
     if apiErr != nil {
-        return api.PostYourEndpoint401JSONResponse(ctrl.sendError(ErrUnauthenticatedUser)), nil
+        return ctrl.sendError(ErrUnauthenticatedUser), nil
     }
 
     // Business logic
     result, apiErr := ctrl.wf.DoSomething(ctx, user.ID, request.Body.Field, logger)
     if apiErr != nil {
-        return api.PostYourEndpoint401JSONResponse(ctrl.respondWithError(apiErr)), nil
+        return ctrl.respondWithError(apiErr), nil
     }
 
-    return api.PostYourEndpoint200JSONResponse(*result), nil
+    return api.YourEndpoint200JSONResponse(*result), nil
 }
 ```
 
@@ -186,7 +189,7 @@ func (wf *Workflows) DoSomething(
 - Take context, relevant IDs, inputs, and logger as parameters
 - Return result and `*APIError` (not Go error)
 - Log warnings for user errors, errors for system errors
-- Use `pgtype.Text{String: value, Valid: true}` for nullable text fields
+- Use `pgtype.Text{String: value, Valid: true}` for nullable text fields or `sql.Text(value)` helper
 - Handle `pgx.ErrNoRows` specifically for not found cases
 
 ### 5. Error Handling
@@ -211,14 +214,14 @@ If adding new database methods, update `go/controller/controller.go`:
 
 ```go
 type DBClient interface {
-    // ... existing methods
+    // ... existing composed interfaces
     YourNewMethod(ctx context.Context, params YourParams) (YourResult, error)
 }
 ```
 
 ### 7. Testing
 
-Create `go/controller/post_your_endpoint_test.go`:
+Create `go/controller/your_endpoint_test.go`:
 
 ```go
 package controller_test
@@ -235,12 +238,12 @@ import (
     "go.uber.org/mock/gomock"
 )
 
-func TestPostYourEndpoint(t *testing.T) {
+func TestYourEndpoint(t *testing.T) {
     t.Parallel()
 
     userID := uuid.MustParse("db477732-48fa-4289-b694-2886a646b6eb")
 
-    cases := []testRequest[api.PostYourEndpointRequestObject, api.PostYourEndpointResponseObject]{
+    cases := []testRequest[api.YourEndpointRequestObject, api.YourEndpointResponseObject]{
         {
             name:   "success case",
             config: getConfig,
@@ -254,12 +257,12 @@ func TestPostYourEndpoint(t *testing.T) {
 
                 return mock
             },
-            request: api.PostYourEndpointRequestObject{
+            request: api.YourEndpointRequestObject{
                 Body: &api.YourRequest{
                     Field: "test-value",
                 },
             },
-            expectedResponse: api.PostYourEndpoint200JSONResponse(expectedResponse),
+            expectedResponse: api.YourEndpoint200JSONResponse(expectedResponse),
             expectedJWT:      nil,
             jwtTokenFn:       nil,
             getControllerOpts: []getControllerOptsFunc{},
@@ -276,7 +279,7 @@ func TestPostYourEndpoint(t *testing.T) {
 
             c, _ := getController(t, ctrl, tc.config, tc.db, tc.getControllerOpts...)
 
-            resp, err := c.PostYourEndpoint(context.Background(), tc.request)
+            resp, err := c.YourEndpoint(context.Background(), tc.request)
             if err != nil {
                 t.Fatalf("unexpected error: %v", err)
             }
@@ -309,6 +312,10 @@ This generates:
 - SQL client code from queries (`sql/query.sql.go`)
 - Mocks from interfaces (`controller/mock/`)
 
+**Generation directives**:
+- OpenAPI: `//go:generate oapi-codegen -config go/api/server.cfg.yaml docs/openapi.yaml`
+- Mocks: `//go:generate mockgen -package mock -destination mock/controller.go --source=controller.go`
+
 ## Authentication Patterns
 
 ### JWT Authentication
@@ -317,7 +324,7 @@ This generates:
 // Get authenticated user
 user, apiErr := ctrl.wf.GetUserFromJWTInContext(ctx, logger)
 if apiErr != nil {
-    return api.PostEndpoint401JSONResponse(ctrl.sendError(ErrUnauthenticatedUser)), nil
+    return ctrl.sendError(ErrUnauthenticatedUser), nil
 }
 ```
 
@@ -337,6 +344,8 @@ hashedToken := hashRefreshToken([]byte(refreshToken))
 
 // Use proper pgtype for database parameters
 pgtype.Text{String: hashedToken, Valid: true}
+// Or use helper
+sql.Text(hashedToken)
 ```
 
 ## Security Best Practices
@@ -350,7 +359,7 @@ pgtype.Text{String: hashedToken, Valid: true}
 ## Database Best Practices
 
 1. **Use Transactions**: For multi-step operations
-2. **Handle NULL**: Use `pgtype.Text` for nullable fields
+2. **Handle NULL**: Use `pgtype.Text` for nullable fields or `sql.Text()` helper
 3. **Error Handling**: Always check for `pgx.ErrNoRows`
 4. **Parameterized Queries**: Never build SQL strings dynamically
 5. **Naming**: Use descriptive query names following existing patterns
@@ -379,10 +388,10 @@ if apiErr := wf.ValidateUser(user, logger); apiErr != nil {
 
 ```go
 // For client errors (400-level)
-return api.PostEndpoint401JSONResponse(ctrl.sendError(ErrInvalidRequest)), nil
+return ctrl.sendError(ErrInvalidRequest), nil
 
 // For server errors (500-level)
-return api.PostEndpoint401JSONResponse(ctrl.respondWithError(apiErr)), nil
+return ctrl.respondWithError(apiErr), nil
 ```
 
 ## Development Workflow
@@ -404,12 +413,12 @@ return api.PostEndpoint401JSONResponse(ctrl.respondWithError(apiErr)), nil
 - **Tests**: `go test -v ./...`
 - **Coverage**: `go test -v -cover ./...`
 
-## Migration Notes
+## Additional Notes
 
-When migrating from Node.js:
-1. Check existing Node.js implementation for business logic
-2. Identify database operations needed
-3. Map validation rules to Go workflows
-4. Ensure error codes match existing API
-5. Test authentication flows carefully
-6. Verify response formats match exactly
+When implementing new features:
+1. Review existing similar implementations for business logic patterns
+2. Identify required database operations and add appropriate queries
+3. Follow established validation patterns in workflows
+4. Ensure error codes match existing API conventions
+5. Test authentication flows thoroughly
+6. Verify response formats match API specifications

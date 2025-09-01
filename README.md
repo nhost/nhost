@@ -48,9 +48,17 @@ Use [Nhost](https://nhost.io) to start using Hasura Auth in seconds.
 
 ```sh
 git clone https://github.com/nhost/hasura-auth.git
+cd hasura-auth/build/docker-compose
+docker compose up
+```
+
+### Building from Source
+
+```sh
+git clone https://github.com/nhost/hasura-auth.git
 cd hasura-auth
-cp .env.example .env
-docker-compose -f docker-compose-example.yaml up
+go build -o hasura-auth main.go
+./hasura-auth --help
 ```
 
 ## Configuration
@@ -88,15 +96,9 @@ When using asymmetric keys, you can get the JWK Set from the endpoing `.well-kno
 
 ## Reference
 
-- List of the available [environment variables](./docs/environment-variables.md).
+- CLI options and configuration available in the [CLI documentation](./docs/cli.md).
 - The service comes with an [OpenAPI definition](./docs/openapi.yaml) which you can also see [online](https://editor.swagger.io/?url=https://raw.githubusercontent.com/nhost/hasura-auth/main/docs/openapi.yaml).
 - [Database Schema](./docs/schema.md)
-
-## 🤝 Contributing
-
-Contributions and issues are welcome. Please have a look at the [developer's guide](./DEVELOPERS.md) if you want to prepare a pull request.
-
-Feel free to check the issues page.
 
 ## Show your support
 

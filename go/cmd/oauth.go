@@ -1,12 +1,13 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 
 	"github.com/nhost/hasura-auth/go/api"
 	"github.com/nhost/hasura-auth/go/providers"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 //nolint:cyclop
@@ -68,177 +69,178 @@ func getScopes(provider api.SignInProvider, scopes []string) []string {
 
 //nolint:funlen,cyclop
 func getOauth2Providers(
-	cCtx *cli.Context,
+	ctx context.Context,
+	cmd *cli.Command,
 	logger *slog.Logger,
 ) (providers.Map, error) {
 	providersMap := make(providers.Map)
 
-	if cCtx.Bool(flagGoogleEnabled) {
+	if cmd.Bool(flagGoogleEnabled) {
 		providersMap["google"] = providers.NewGoogleProvider(
-			cCtx.String(flagGoogleClientID),
-			cCtx.String(flagGoogleClientSecret),
-			cCtx.String(flagServerURL),
-			getScopes(api.SignInProviderGoogle, cCtx.StringSlice(flagGoogleScope)),
+			cmd.String(flagGoogleClientID),
+			cmd.String(flagGoogleClientSecret),
+			cmd.String(flagServerURL),
+			getScopes(api.SignInProviderGoogle, cmd.StringSlice(flagGoogleScope)),
 		)
 	}
 
-	if cCtx.Bool(flagGithubEnabled) {
+	if cmd.Bool(flagGithubEnabled) {
 		providersMap["github"] = providers.NewGithubProvider(
-			cCtx.String(flagGithubClientID),
-			cCtx.String(flagGithubClientSecret),
-			cCtx.String(flagServerURL),
-			cCtx.String(flagGithubAuthorizationURL),
-			cCtx.String(flagGithubTokenURL),
-			cCtx.String(flagGithubUserProfileURL),
-			getScopes(api.SignInProviderGithub, cCtx.StringSlice(flagGithubScope)),
+			cmd.String(flagGithubClientID),
+			cmd.String(flagGithubClientSecret),
+			cmd.String(flagServerURL),
+			cmd.String(flagGithubAuthorizationURL),
+			cmd.String(flagGithubTokenURL),
+			cmd.String(flagGithubUserProfileURL),
+			getScopes(api.SignInProviderGithub, cmd.StringSlice(flagGithubScope)),
 		)
 	}
 
-	if cCtx.Bool(flagAppleEnabled) {
+	if cmd.Bool(flagAppleEnabled) {
 		clientSecret, err := providers.GenerateClientSecret(
-			cCtx.String(flagAppleTeamID),
-			cCtx.String(flagAppleKeyID),
-			cCtx.String(flagAppleClientID),
-			cCtx.String(flagApplePrivateKey),
+			cmd.String(flagAppleTeamID),
+			cmd.String(flagAppleKeyID),
+			cmd.String(flagAppleClientID),
+			cmd.String(flagApplePrivateKey),
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate Apple client secret: %w", err)
 		}
 
 		providersMap["apple"], err = providers.NewAppleProvider(
-			cCtx.Context,
-			cCtx.String(flagAppleClientID),
+			ctx,
+			cmd.String(flagAppleClientID),
 			clientSecret,
-			cCtx.String(flagServerURL),
-			getScopes(api.SignInProviderApple, cCtx.StringSlice(flagAppleScope)),
+			cmd.String(flagServerURL),
+			getScopes(api.SignInProviderApple, cmd.StringSlice(flagAppleScope)),
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create Apple provider: %w", err)
 		}
 	}
 
-	if cCtx.Bool(flagLinkedInEnabled) {
+	if cmd.Bool(flagLinkedInEnabled) {
 		providersMap["linkedin"] = providers.NewLinkedInProvider(
-			cCtx.String(flagLinkedInClientID),
-			cCtx.String(flagLinkedInClientSecret),
-			cCtx.String(flagServerURL),
-			getScopes(api.SignInProviderLinkedin, cCtx.StringSlice(flagLinkedInScope)),
+			cmd.String(flagLinkedInClientID),
+			cmd.String(flagLinkedInClientSecret),
+			cmd.String(flagServerURL),
+			getScopes(api.SignInProviderLinkedin, cmd.StringSlice(flagLinkedInScope)),
 		)
 	}
 
-	if cCtx.Bool(flagDiscordEnabled) {
+	if cmd.Bool(flagDiscordEnabled) {
 		providersMap["discord"] = providers.NewDiscordProvider(
-			cCtx.String(flagDiscordClientID),
-			cCtx.String(flagDiscordClientSecret),
-			cCtx.String(flagServerURL),
-			getScopes(api.SignInProviderDiscord, cCtx.StringSlice(flagDiscordScope)),
+			cmd.String(flagDiscordClientID),
+			cmd.String(flagDiscordClientSecret),
+			cmd.String(flagServerURL),
+			getScopes(api.SignInProviderDiscord, cmd.StringSlice(flagDiscordScope)),
 		)
 	}
 
-	if cCtx.Bool(flagSpotifyEnabled) {
+	if cmd.Bool(flagSpotifyEnabled) {
 		providersMap["spotify"] = providers.NewSpotifyProvider(
-			cCtx.String(flagSpotifyClientID),
-			cCtx.String(flagSpotifyClientSecret),
-			cCtx.String(flagServerURL),
-			getScopes(api.SignInProviderSpotify, cCtx.StringSlice(flagSpotifyScope)),
+			cmd.String(flagSpotifyClientID),
+			cmd.String(flagSpotifyClientSecret),
+			cmd.String(flagServerURL),
+			getScopes(api.SignInProviderSpotify, cmd.StringSlice(flagSpotifyScope)),
 		)
 	}
 
-	if cCtx.Bool(flagTwitchEnabled) {
+	if cmd.Bool(flagTwitchEnabled) {
 		providersMap["twitch"] = providers.NewTwitchProvider(
-			cCtx.String(flagTwitchClientID),
-			cCtx.String(flagTwitchClientSecret),
-			cCtx.String(flagServerURL),
-			getScopes(api.SignInProviderTwitch, cCtx.StringSlice(flagTwitchScope)),
+			cmd.String(flagTwitchClientID),
+			cmd.String(flagTwitchClientSecret),
+			cmd.String(flagServerURL),
+			getScopes(api.SignInProviderTwitch, cmd.StringSlice(flagTwitchScope)),
 		)
 	}
 
-	if cCtx.Bool(flagGitlabEnabled) {
+	if cmd.Bool(flagGitlabEnabled) {
 		providersMap["gitlab"] = providers.NewGitlabProvider(
-			cCtx.String(flagGitlabClientID),
-			cCtx.String(flagGitlabClientSecret),
-			cCtx.String(flagServerURL),
-			getScopes(api.SignInProviderGitlab, cCtx.StringSlice(flagGitlabScope)),
+			cmd.String(flagGitlabClientID),
+			cmd.String(flagGitlabClientSecret),
+			cmd.String(flagServerURL),
+			getScopes(api.SignInProviderGitlab, cmd.StringSlice(flagGitlabScope)),
 		)
 	}
 
-	if cCtx.Bool(flagBitbucketEnabled) {
+	if cmd.Bool(flagBitbucketEnabled) {
 		providersMap["bitbucket"] = providers.NewBitbucketProvider(
-			cCtx.String(flagBitbucketClientID),
-			cCtx.String(flagBitbucketClientSecret),
-			cCtx.String(flagServerURL),
-			getScopes(api.SignInProviderBitbucket, cCtx.StringSlice(flagBitbucketScope)),
+			cmd.String(flagBitbucketClientID),
+			cmd.String(flagBitbucketClientSecret),
+			cmd.String(flagServerURL),
+			getScopes(api.SignInProviderBitbucket, cmd.StringSlice(flagBitbucketScope)),
 		)
 	}
 
-	if cCtx.Bool(flagWorkosEnabled) {
+	if cmd.Bool(flagWorkosEnabled) {
 		providersMap["workos"] = providers.NewWorkosProvider(
-			cCtx.String(flagWorkosClientID),
-			cCtx.String(flagWorkosClientSecret),
-			cCtx.String(flagServerURL),
-			getScopes(api.SignInProviderWorkos, cCtx.StringSlice(flagWorkosScope)),
-			cCtx.String(flagWorkosDefaultOrganization),
-			cCtx.String(flagWorkosDefaultConnection),
-			cCtx.String(flagWorkosDefaultDomain),
+			cmd.String(flagWorkosClientID),
+			cmd.String(flagWorkosClientSecret),
+			cmd.String(flagServerURL),
+			getScopes(api.SignInProviderWorkos, cmd.StringSlice(flagWorkosScope)),
+			cmd.String(flagWorkosDefaultOrganization),
+			cmd.String(flagWorkosDefaultConnection),
+			cmd.String(flagWorkosDefaultDomain),
 		)
 	}
 
-	if cCtx.Bool(flagAzureadEnabled) {
+	if cmd.Bool(flagAzureadEnabled) {
 		logger.WarnContext(
-			cCtx.Context, "AzureAD provider is deprecated, use EntraID provider instead",
+			ctx, "AzureAD provider is deprecated, use EntraID provider instead",
 		)
 
 		providersMap["azuread"] = providers.NewAzureadProvider(
-			cCtx.String(flagAzureadClientID),
-			cCtx.String(flagAzureadClientSecret),
-			cCtx.String(flagServerURL),
-			cCtx.String(flagAzureadTenant),
-			getScopes(api.SignInProviderAzuread, cCtx.StringSlice(flagAzureadScope)),
+			cmd.String(flagAzureadClientID),
+			cmd.String(flagAzureadClientSecret),
+			cmd.String(flagServerURL),
+			cmd.String(flagAzureadTenant),
+			getScopes(api.SignInProviderAzuread, cmd.StringSlice(flagAzureadScope)),
 		)
 	}
 
-	if cCtx.Bool(flagEntraIDEnabled) {
+	if cmd.Bool(flagEntraIDEnabled) {
 		providersMap["entraid"] = providers.NewEntraIDProvider(
-			cCtx.String(flagEntraIDClientID),
-			cCtx.String(flagEntraIDClientSecret),
-			cCtx.String(flagServerURL),
-			cCtx.String(flagEntraIDTenant),
-			getScopes(api.SignInProviderEntraid, cCtx.StringSlice(flagEntraIDScope)),
+			cmd.String(flagEntraIDClientID),
+			cmd.String(flagEntraIDClientSecret),
+			cmd.String(flagServerURL),
+			cmd.String(flagEntraIDTenant),
+			getScopes(api.SignInProviderEntraid, cmd.StringSlice(flagEntraIDScope)),
 		)
 	}
 
-	if cCtx.Bool(flagFacebookEnabled) {
+	if cmd.Bool(flagFacebookEnabled) {
 		providersMap["facebook"] = providers.NewFacebookProvider(
-			cCtx.String(flagFacebookClientID),
-			cCtx.String(flagFacebookClientSecret),
-			cCtx.String(flagServerURL),
-			getScopes(api.SignInProviderFacebook, cCtx.StringSlice(flagFacebookScope)),
+			cmd.String(flagFacebookClientID),
+			cmd.String(flagFacebookClientSecret),
+			cmd.String(flagServerURL),
+			getScopes(api.SignInProviderFacebook, cmd.StringSlice(flagFacebookScope)),
 		)
 	}
 
-	if cCtx.Bool(flagWindowsliveEnabled) {
+	if cmd.Bool(flagWindowsliveEnabled) {
 		providersMap["windowslive"] = providers.NewWindowsliveProvider(
-			cCtx.String(flagWindowsliveClientID),
-			cCtx.String(flagWindowsliveClientSecret),
-			cCtx.String(flagServerURL),
-			getScopes(api.SignInProviderWindowslive, cCtx.StringSlice(flagWindowsliveScope)),
+			cmd.String(flagWindowsliveClientID),
+			cmd.String(flagWindowsliveClientSecret),
+			cmd.String(flagServerURL),
+			getScopes(api.SignInProviderWindowslive, cmd.StringSlice(flagWindowsliveScope)),
 		)
 	}
 
-	if cCtx.Bool(flagStravaEnabled) {
+	if cmd.Bool(flagStravaEnabled) {
 		providersMap["strava"] = providers.NewStravaProvider(
-			cCtx.String(flagStravaClientID),
-			cCtx.String(flagStravaClientSecret),
-			cCtx.String(flagServerURL),
-			getScopes(api.SignInProviderStrava, cCtx.StringSlice(flagStravaScope)),
+			cmd.String(flagStravaClientID),
+			cmd.String(flagStravaClientSecret),
+			cmd.String(flagServerURL),
+			getScopes(api.SignInProviderStrava, cmd.StringSlice(flagStravaScope)),
 		)
 	}
 
-	if cCtx.Bool(flagTwitterEnabled) {
+	if cmd.Bool(flagTwitterEnabled) {
 		providersMap["twitter"] = providers.NewTwitterProvider(
-			cCtx.String(flagTwitterConsumerKey),
-			cCtx.String(flagTwitterConsumerSecret),
-			cCtx.String(flagServerURL),
+			cmd.String(flagTwitterConsumerKey),
+			cmd.String(flagTwitterConsumerSecret),
+			cmd.String(flagServerURL),
 		)
 	}
 

@@ -14,25 +14,25 @@ import (
 	"github.com/nhost/hasura-auth/go/notifications/postmark"
 	"github.com/nhost/hasura-auth/go/notifications/sms"
 	"github.com/nhost/hasura-auth/go/sql"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 func getSMTPEmailer(
-	cCtx *cli.Context,
+	cmd *cli.Command,
 	templates *notifications.Templates,
 ) (*notifications.Email, error) {
 	headers := make(map[string]string)
-	if cCtx.String(flagSMTPAPIHedaer) != "" {
-		headers["X-SMTPAPI"] = cCtx.String(flagSMTPAPIHedaer)
+	if cmd.String(flagSMTPAPIHedaer) != "" {
+		headers["X-SMTPAPI"] = cmd.String(flagSMTPAPIHedaer)
 	}
 
-	host := cCtx.String(flagSMTPHost)
-	user := cCtx.String(flagSMTPUser)
-	password := cCtx.String(flagSMTPPassword)
+	host := cmd.String(flagSMTPHost)
+	user := cmd.String(flagSMTPUser)
+	password := cmd.String(flagSMTPPassword)
 
 	var auth smtp.Auth
 
-	switch GetEnumValue(cCtx, flagSMTPAuthMethod) {
+	switch cmd.String(flagSMTPAuthMethod) {
 	case "LOGIN":
 		auth = notifications.LoginAuth(user, password, host)
 	case "PLAIN":
@@ -44,20 +44,20 @@ func getSMTPEmailer(
 	}
 
 	return notifications.NewEmail(
-		cCtx.String(flagSMTPHost),
-		uint16(cCtx.Uint(flagSMTPPort)), //nolint:gosec
-		cCtx.Bool(flagSMTPSecure),
+		cmd.String(flagSMTPHost),
+		uint16(cmd.Uint(flagSMTPPort)), //nolint:gosec
+		cmd.Bool(flagSMTPSecure),
 		auth,
-		cCtx.String(flagSMTPSender),
+		cmd.String(flagSMTPSender),
 		headers,
 		templates,
 	), nil
 }
 
-func getTemplates(cCtx *cli.Context, logger *slog.Logger) (*notifications.Templates, error) {
+func getTemplates(cmd *cli.Command, logger *slog.Logger) (*notifications.Templates, error) {
 	var templatesPath string
 	for _, p := range []string{
-		cCtx.String(flagEmailTemplatesPath),
+		cmd.String(flagEmailTemplatesPath),
 		"email-templates",
 		filepath.Join("share", "email-templates"),
 	} {
@@ -73,7 +73,7 @@ func getTemplates(cCtx *cli.Context, logger *slog.Logger) (*notifications.Templa
 
 	templates, err := notifications.NewTemplatesFromFilesystem(
 		templatesPath,
-		cCtx.String(flagDefaultLocale),
+		cmd.String(flagDefaultLocale),
 		logger.With(slog.String("component", "mailer")),
 	)
 	if err != nil {
@@ -84,36 +84,36 @@ func getTemplates(cCtx *cli.Context, logger *slog.Logger) (*notifications.Templa
 }
 
 func getEmailer( //nolint:ireturn
-	cCtx *cli.Context,
+	cmd *cli.Command,
 	logger *slog.Logger,
 ) (controller.Emailer, *notifications.Templates, error) {
-	if cCtx.String(flagSMTPHost) == "postmark" {
-		return postmark.New(cCtx.String(flagSMTPSender), cCtx.String(flagSMTPPassword)), nil, nil
+	if cmd.String(flagSMTPHost) == "postmark" {
+		return postmark.New(cmd.String(flagSMTPSender), cmd.String(flagSMTPPassword)), nil, nil
 	}
 
-	templates, err := getTemplates(cCtx, logger)
+	templates, err := getTemplates(cmd, logger)
 	if err != nil {
 		return nil, nil, fmt.Errorf("problem creating templates: %w", err)
 	}
 
-	emailer, err := getSMTPEmailer(cCtx, templates)
+	emailer, err := getSMTPEmailer(cmd, templates)
 
 	return emailer, templates, err
 }
 
 func getSMS( //nolint:ireturn
-	cCtx *cli.Context,
+	cmd *cli.Command,
 	templates *notifications.Templates,
 	db *sql.Queries,
 	logger *slog.Logger,
 ) (controller.SMSer, error) {
-	if !cCtx.Bool(flagSMSPasswordlessEnabled) {
+	if !cmd.Bool(flagSMSPasswordlessEnabled) {
 		return nil, nil //nolint:nilnil // SMS disabled, return nil client
 	}
 
-	accountSid := cCtx.String(flagSMSTwilioAccountSid)
-	authToken := cCtx.String(flagSMSTwilioAuthToken)
-	messagingServiceID := cCtx.String(flagSMSTwilioMessagingServiceID)
+	accountSid := cmd.String(flagSMSTwilioAccountSid)
+	authToken := cmd.String(flagSMSTwilioAuthToken)
+	messagingServiceID := cmd.String(flagSMSTwilioMessagingServiceID)
 
 	if accountSid == "" || authToken == "" || messagingServiceID == "" {
 		return nil, errors.New("SMS is enabled but Twilio credentials are missing") //nolint:err113
@@ -129,7 +129,7 @@ func getSMS( //nolint:ireturn
 	if templates == nil {
 		var err error
 
-		templates, err = getTemplates(cCtx, logger)
+		templates, err = getTemplates(cmd, logger)
 		if err != nil {
 			return nil, fmt.Errorf("problem creating templates: %w", err)
 		}

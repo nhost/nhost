@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"log/slog"
 	"os"
 	"strings"
@@ -8,7 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/lmittmann/tint"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 func getLogger(debug bool, formatTEXT bool) *slog.Logger {
@@ -60,37 +61,44 @@ func isSecret(name string) bool {
 		strings.Contains(name, "client-secret")
 }
 
-func logFlags(logger *slog.Logger, cCtx *cli.Context) {
+func logFlags(ctx context.Context, logger *slog.Logger, cmd *cli.Command) {
 	processed := make(map[string]struct{})
 
-	flags := make([]any, 0, len(cCtx.App.Flags)+len(cCtx.Command.Flags))
-	for _, flag := range cCtx.App.Flags {
+	flags := make([]any, 0, len(cmd.Root().Flags)+len(cmd.Flags))
+	for _, flag := range cmd.Root().Flags {
 		name := flag.Names()[0]
-		value := cCtx.Generic(name)
+		value := cmd.Generic(name)
 
+		var logValue any = value
 		if isSecret(name) {
-			value = "********"
+			logValue = "********"
 		}
 
-		flags = append(flags, slog.Any(name, value))
+		flags = append(flags, slog.Any(name, logValue))
 
 		processed[name] = struct{}{}
 	}
 
-	for _, flag := range cCtx.Command.Flags {
+	for _, flag := range cmd.Flags {
 		name := flag.Names()[0]
 		if _, ok := processed[name]; ok {
 			continue
 		}
 
-		value := cCtx.Generic(name)
+		value := cmd.Generic(name)
 
+		var logValue any = value
 		if isSecret(name) {
-			value = "********"
+			logValue = "********"
 		}
 
-		flags = append(flags, slog.Any(name, value))
+		flags = append(flags, slog.Any(name, logValue))
 	}
 
-	logger.LogAttrs(cCtx.Context, slog.LevelInfo, "starting program", slog.Group("flags", flags...))
+	logger.LogAttrs(
+		ctx,
+		slog.LevelInfo,
+		"starting program",
+		slog.Group("flags", flags...),
+	)
 }
