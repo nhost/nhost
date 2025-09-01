@@ -275,18 +275,22 @@ func (q *Queries) GetUserByPhoneNumber(ctx context.Context, phoneNumber pgtype.T
 
 const getUserByPhoneNumberAndOTP = `-- name: GetUserByPhoneNumberAndOTP :one
 UPDATE auth.users
-SET otp_hash = NULL, otp_hash_expires_at = now(), phone_number_verified = true
-WHERE phone_number = $1 AND otp_hash = $2 AND otp_hash_expires_at > now() AND otp_method_last_used = 'sms'
+SET otp_hash_expires_at = now(), phone_number_verified = true
+WHERE
+  phone_number = $1
+  AND otp_hash = crypt($2, otp_hash)
+  AND otp_hash_expires_at > now()
+  AND otp_method_last_used = 'sms'
 RETURNING id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge
 `
 
 type GetUserByPhoneNumberAndOTPParams struct {
 	PhoneNumber pgtype.Text
-	OtpHash     pgtype.Text
+	Otp         string
 }
 
 func (q *Queries) GetUserByPhoneNumberAndOTP(ctx context.Context, arg GetUserByPhoneNumberAndOTPParams) (AuthUser, error) {
-	row := q.db.QueryRow(ctx, getUserByPhoneNumberAndOTP, arg.PhoneNumber, arg.OtpHash)
+	row := q.db.QueryRow(ctx, getUserByPhoneNumberAndOTP, arg.PhoneNumber, arg.Otp)
 	var i AuthUser
 	err := row.Scan(
 		&i.ID,
@@ -564,13 +568,13 @@ WITH inserted_user AS (
         default_role,
         metadata
     ) VALUES (
-      $1, $2, $3, $4, $5, $6, COALESCE($17, now()), $8, $9, $10, $11, $12, $13, $14, $15, $16
+    $1, $2, $3, $4, $5, crypt($7, gen_salt('bf')), COALESCE($17, now()), $8, $9, $10, $11, $12, $13, $14, $15, $16
     )
     RETURNING id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge
 )
 INSERT INTO auth.user_roles (user_id, role)
     SELECT inserted_user.id, roles.role
-    FROM inserted_user, unnest($7::TEXT[]) AS roles(role)
+    FROM inserted_user, unnest($6::TEXT[]) AS roles(role)
 RETURNING user_id, (SELECT created_at FROM inserted_user WHERE id = user_id)
 `
 
@@ -580,8 +584,8 @@ type InsertUserParams struct {
 	DisplayName       string
 	AvatarUrl         string
 	PhoneNumber       pgtype.Text
-	OtpHash           pgtype.Text
 	Roles             []string
+	Otp               string
 	OtpMethodLastUsed pgtype.Text
 	Email             pgtype.Text
 	PasswordHash      pgtype.Text
@@ -606,8 +610,8 @@ func (q *Queries) InsertUser(ctx context.Context, arg InsertUserParams) (InsertU
 		arg.DisplayName,
 		arg.AvatarUrl,
 		arg.PhoneNumber,
-		arg.OtpHash,
 		arg.Roles,
+		arg.Otp,
 		arg.OtpMethodLastUsed,
 		arg.Email,
 		arg.PasswordHash,
@@ -1296,14 +1300,16 @@ func (q *Queries) UpdateUserLastSeen(ctx context.Context, id uuid.UUID) (pgtype.
 
 const updateUserOTPHash = `-- name: UpdateUserOTPHash :one
 UPDATE auth.users
-SET (otp_hash, otp_hash_expires_at, otp_method_last_used) = ($2, $3, $4)
+SET otp_hash = crypt($2, gen_salt('bf')),
+    otp_hash_expires_at = $3,
+    otp_method_last_used = $4
 WHERE id = $1
 RETURNING id
 `
 
 type UpdateUserOTPHashParams struct {
 	ID                uuid.UUID
-	OtpHash           pgtype.Text
+	Otp               string
 	OtpHashExpiresAt  pgtype.Timestamptz
 	OtpMethodLastUsed pgtype.Text
 }
@@ -1311,7 +1317,7 @@ type UpdateUserOTPHashParams struct {
 func (q *Queries) UpdateUserOTPHash(ctx context.Context, arg UpdateUserOTPHashParams) (uuid.UUID, error) {
 	row := q.db.QueryRow(ctx, updateUserOTPHash,
 		arg.ID,
-		arg.OtpHash,
+		arg.Otp,
 		arg.OtpHashExpiresAt,
 		arg.OtpMethodLastUsed,
 	)

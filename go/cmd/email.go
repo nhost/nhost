@@ -111,6 +111,26 @@ func getSMS( //nolint:ireturn
 		return nil, nil //nolint:nilnil // SMS disabled, return nil client
 	}
 
+	provider := strings.ToLower(cmd.String(flagSMSProvider))
+	if provider == "" {
+		provider = "twilio" // Default to Twilio for backward compatibility
+	}
+
+	switch strings.ToLower(cmd.String(flagSMSProvider)) {
+	case "twilio":
+		return getTwilioSMS(cmd, templates, db)
+	case "dev":
+		return sms.NewDev(templates, db, logger), nil
+	default:
+		return nil, fmt.Errorf("unsupported SMS provider: %s", provider) //nolint:err113
+	}
+}
+
+func getTwilioSMS( //nolint:ireturn
+	cmd *cli.Command,
+	templates *notifications.Templates,
+	db *sql.Queries,
+) (controller.SMSer, error) {
 	accountSid := cmd.String(flagSMSTwilioAccountSid)
 	authToken := cmd.String(flagSMSTwilioAuthToken)
 	messagingServiceID := cmd.String(flagSMSTwilioMessagingServiceID)
@@ -126,19 +146,8 @@ func getSMS( //nolint:ireturn
 		), nil
 	}
 
-	if templates == nil {
-		var err error
-
-		templates, err = getTemplates(cmd, logger)
-		if err != nil {
-			return nil, fmt.Errorf("problem creating templates: %w", err)
-		}
-	}
-
 	return sms.NewTwilioSMS(
 		templates,
-		controller.GenerateOTP,
-		controller.HashOTP,
 		accountSid,
 		authToken,
 		messagingServiceID,

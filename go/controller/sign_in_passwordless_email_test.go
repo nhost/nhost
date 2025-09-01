@@ -58,8 +58,8 @@ func TestSignInPasswordlessEmail(t *testing.T) { //nolint:maintidx
 						DefaultRole:       "user",
 						Metadata:          []byte("null"),
 						Roles:             []string{"user", "me"},
-						PhoneNumber:       pgtype.Text{},        //nolint:exhaustruct
-						OtpHash:           pgtype.Text{},        //nolint:exhaustruct
+						PhoneNumber:       pgtype.Text{}, //nolint:exhaustruct
+						Otp:               "",
 						OtpHashExpiresAt:  pgtype.Timestamptz{}, //nolint:exhaustruct
 						OtpMethodLastUsed: pgtype.Text{},        //nolint:exhaustruct
 					},
@@ -229,8 +229,8 @@ func TestSignInPasswordlessEmail(t *testing.T) { //nolint:maintidx
 						DefaultRole:       "user",
 						Metadata:          []byte("null"),
 						Roles:             []string{"user", "me"},
-						PhoneNumber:       pgtype.Text{},        //nolint:exhaustruct
-						OtpHash:           pgtype.Text{},        //nolint:exhaustruct
+						PhoneNumber:       pgtype.Text{}, //nolint:exhaustruct
+						Otp:               "",
 						OtpHashExpiresAt:  pgtype.Timestamptz{}, //nolint:exhaustruct
 						OtpMethodLastUsed: pgtype.Text{},        //nolint:exhaustruct
 					},
@@ -354,8 +354,8 @@ func TestSignInPasswordlessEmail(t *testing.T) { //nolint:maintidx
 						DefaultRole:       "user",
 						Metadata:          []byte(`{"asd":"asd"}`),
 						Roles:             []string{"user"},
-						PhoneNumber:       pgtype.Text{},        //nolint:exhaustruct
-						OtpHash:           pgtype.Text{},        //nolint:exhaustruct
+						PhoneNumber:       pgtype.Text{}, //nolint:exhaustruct
+						Otp:               "",
 						OtpHashExpiresAt:  pgtype.Timestamptz{}, //nolint:exhaustruct
 						OtpMethodLastUsed: pgtype.Text{},        //nolint:exhaustruct
 					},

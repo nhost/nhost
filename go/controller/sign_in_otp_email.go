@@ -2,13 +2,25 @@ package controller
 
 import (
 	"context"
+	"crypto/rand"
+	"fmt"
 	"log/slog"
+	"math/big"
 	"time"
 
 	"github.com/nhost/hasura-auth/go/api"
 	"github.com/nhost/hasura-auth/go/middleware"
 	"github.com/nhost/hasura-auth/go/notifications"
 )
+
+func generateOTP() (string, error) {
+	n, err := rand.Int(rand.Reader, big.NewInt(1000000)) //nolint:mnd
+	if err != nil {
+		return "", fmt.Errorf("error generating OTP: %w", err)
+	}
+
+	return fmt.Sprintf("%06d", n), nil
+}
 
 func (ctrl *Controller) SignInOTPEmail( //nolint:ireturn
 	ctx context.Context,
@@ -28,7 +40,7 @@ func (ctrl *Controller) SignInOTPEmail( //nolint:ireturn
 		return ctrl.respondWithError(apiErr), nil
 	}
 
-	otp, _, err := GenerateOTP()
+	otp, err := generateOTP()
 	if err != nil {
 		logger.ErrorContext(ctx, "error generating OTP", logError(err))
 		return ctrl.sendError(ErrInternalServerError), nil

@@ -50,13 +50,13 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 						DisplayName:       "+1234567890",
 						AvatarUrl:         "",
 						PhoneNumber:       sql.Text("+1234567890"),
-						OtpHash:           sql.Text("hashedOTP"),
+						Otp:               "otp",
 						OtpHashExpiresAt:  sql.TimestampTz(time.Now().Add(time.Minute * 5)),
 						OtpMethodLastUsed: sql.Text("sms"),
-						Email:             pgtype.Text{},        //nolint:exhaustruct
-						PasswordHash:      pgtype.Text{},        //nolint:exhaustruct
-						Ticket:            pgtype.Text{},        //nolint:exhaustruct
-						TicketExpiresAt:   pgtype.Timestamptz{}, //nolint:exhaustruct
+						Email:             pgtype.Text{}, //nolint:exhaustruct
+						PasswordHash:      pgtype.Text{}, //nolint:exhaustruct
+						Ticket:            pgtype.Text{}, //nolint:exhaustruct
+						TicketExpiresAt:   sql.TimestampTz(time.Now()),
 						EmailVerified:     false,
 						Locale:            "en",
 						DefaultRole:       "user",
@@ -100,7 +100,7 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 						t.Context(),
 						"+1234567890",
 						"en",
-					).Return("hashedOTP", time.Now().Add(time.Minute*5), nil)
+					).Return("otp", time.Now().Add(time.Minute*5), nil)
 
 					return mock
 				}),
@@ -183,13 +183,13 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 						DisplayName:       "+1234567890",
 						AvatarUrl:         "",
 						PhoneNumber:       sql.Text("+1234567890"),
-						OtpHash:           sql.Text("hashedOTP"),
+						Otp:               "otp",
 						OtpHashExpiresAt:  sql.TimestampTz(time.Now().Add(time.Minute * 5)),
 						OtpMethodLastUsed: sql.Text("sms"),
-						Email:             pgtype.Text{},        //nolint:exhaustruct
-						PasswordHash:      pgtype.Text{},        //nolint:exhaustruct
-						Ticket:            pgtype.Text{},        //nolint:exhaustruct
-						TicketExpiresAt:   pgtype.Timestamptz{}, //nolint:exhaustruct
+						Email:             pgtype.Text{}, //nolint:exhaustruct
+						PasswordHash:      pgtype.Text{}, //nolint:exhaustruct
+						Ticket:            pgtype.Text{}, //nolint:exhaustruct
+						TicketExpiresAt:   sql.TimestampTz(time.Now()),
 						EmailVerified:     false,
 						Locale:            "en",
 						DefaultRole:       "user",
@@ -240,7 +240,7 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 						t.Context(),
 						"+1234567890",
 						"en",
-					).Return("hashedOTP", time.Now().Add(time.Minute*5), nil)
+					).Return("otp", time.Now().Add(time.Minute*5), nil)
 
 					return mock
 				}),
@@ -301,13 +301,13 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 						DisplayName:       "Jane Doe",
 						AvatarUrl:         "",
 						PhoneNumber:       sql.Text("+1234567890"),
-						OtpHash:           sql.Text("hashedOTP"),
+						Otp:               "otp",
 						OtpHashExpiresAt:  sql.TimestampTz(time.Now().Add(time.Minute * 5)),
 						OtpMethodLastUsed: sql.Text("sms"),
-						Email:             pgtype.Text{},        //nolint:exhaustruct
-						PasswordHash:      pgtype.Text{},        //nolint:exhaustruct
-						Ticket:            pgtype.Text{},        //nolint:exhaustruct
-						TicketExpiresAt:   pgtype.Timestamptz{}, //nolint:exhaustruct
+						Email:             pgtype.Text{}, //nolint:exhaustruct
+						PasswordHash:      pgtype.Text{}, //nolint:exhaustruct
+						Ticket:            pgtype.Text{}, //nolint:exhaustruct
+						TicketExpiresAt:   sql.TimestampTz(time.Now()),
 						EmailVerified:     false,
 						Locale:            "fr",
 						DefaultRole:       "user",
@@ -358,7 +358,7 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 						t.Context(),
 						"+1234567890",
 						"fr",
-					).Return("hashedOTP", time.Now().Add(time.Minute*5), nil)
+					).Return("otp", time.Now().Add(time.Minute*5), nil)
 
 					return mock
 				}),
@@ -403,7 +403,7 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 						t.Context(),
 						"+1234567890",
 						"en",
-					).Return("hashedOTP", time.Now().Add(time.Minute*5), nil)
+					).Return("otp", time.Now().Add(time.Minute*5), nil)
 
 					return mock
 				}),
@@ -416,7 +416,7 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
-				mock.EXPECT().GetUserByPhoneNumber(
+				mock.EXPECT().GetUserByPhoneNumber( //nolint:dupl
 					gomock.Any(),
 					sql.Text("+1234567890"),
 				).Return(sql.AuthUser{
@@ -439,10 +439,10 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 					OtpHashExpiresAt:         pgtype.Timestamptz{}, //nolint:exhaustruct
 					DefaultRole:              "",
 					IsAnonymous:              false,
-					TotpSecret:               pgtype.Text{},        //nolint:exhaustruct
-					ActiveMfaType:            pgtype.Text{},        //nolint:exhaustruct
-					Ticket:                   pgtype.Text{},        //nolint:exhaustruct
-					TicketExpiresAt:          pgtype.Timestamptz{}, //nolint:exhaustruct
+					TotpSecret:               pgtype.Text{}, //nolint:exhaustruct
+					ActiveMfaType:            pgtype.Text{}, //nolint:exhaustruct
+					Ticket:                   pgtype.Text{}, //nolint:exhaustruct
+					TicketExpiresAt:          sql.TimestampTz(time.Now()),
 					Metadata:                 []byte{},
 					WebauthnCurrentChallenge: pgtype.Text{}, //nolint:exhaustruct
 				}, nil)
@@ -451,7 +451,7 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 					gomock.Any(),
 					cmpDBParams(sql.UpdateUserOTPHashParams{
 						ID:                userID,
-						OtpHash:           sql.Text("hashedOTP"),
+						Otp:               "otp",
 						OtpHashExpiresAt:  sql.TimestampTz(time.Now().Add(time.Minute * 5)),
 						OtpMethodLastUsed: sql.Text("sms"),
 					},
@@ -488,7 +488,7 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 						t.Context(),
 						"+1234567890",
 						"en",
-					).Return("hashedOTP", time.Now().Add(time.Minute*5), nil)
+					).Return("otp", time.Now().Add(time.Minute*5), nil)
 
 					return mock
 				}),
@@ -501,7 +501,7 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
 				mock := mock.NewMockDBClient(ctrl)
 
-				mock.EXPECT().GetUserByPhoneNumber(
+				mock.EXPECT().GetUserByPhoneNumber( //nolint:dupl
 					gomock.Any(),
 					sql.Text("+1234567890"),
 				).Return(sql.AuthUser{
@@ -524,10 +524,10 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 					OtpHashExpiresAt:         pgtype.Timestamptz{}, //nolint:exhaustruct
 					DefaultRole:              "",
 					IsAnonymous:              false,
-					TotpSecret:               pgtype.Text{},        //nolint:exhaustruct
-					ActiveMfaType:            pgtype.Text{},        //nolint:exhaustruct
-					Ticket:                   pgtype.Text{},        //nolint:exhaustruct
-					TicketExpiresAt:          pgtype.Timestamptz{}, //nolint:exhaustruct
+					TotpSecret:               pgtype.Text{}, //nolint:exhaustruct
+					ActiveMfaType:            pgtype.Text{}, //nolint:exhaustruct
+					Ticket:                   pgtype.Text{}, //nolint:exhaustruct
+					TicketExpiresAt:          sql.TimestampTz(time.Now()),
 					Metadata:                 []byte{},
 					WebauthnCurrentChallenge: pgtype.Text{}, //nolint:exhaustruct
 				}, nil)
@@ -554,7 +554,7 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
 				mock := mock.NewMockDBClient(ctrl)
 
-				mock.EXPECT().GetUserByPhoneNumber(
+				mock.EXPECT().GetUserByPhoneNumber( //nolint:dupl
 					gomock.Any(),
 					sql.Text("+1234567890"),
 				).Return(sql.AuthUser{
@@ -577,10 +577,10 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 					OtpHashExpiresAt:         pgtype.Timestamptz{}, //nolint:exhaustruct
 					DefaultRole:              "",
 					IsAnonymous:              false,
-					TotpSecret:               pgtype.Text{},        //nolint:exhaustruct
-					ActiveMfaType:            pgtype.Text{},        //nolint:exhaustruct
-					Ticket:                   pgtype.Text{},        //nolint:exhaustruct
-					TicketExpiresAt:          pgtype.Timestamptz{}, //nolint:exhaustruct
+					TotpSecret:               pgtype.Text{}, //nolint:exhaustruct
+					ActiveMfaType:            pgtype.Text{}, //nolint:exhaustruct
+					Ticket:                   pgtype.Text{}, //nolint:exhaustruct
+					TicketExpiresAt:          sql.TimestampTz(time.Now()),
 					Metadata:                 []byte{},
 					WebauthnCurrentChallenge: pgtype.Text{}, //nolint:exhaustruct
 				}, nil)

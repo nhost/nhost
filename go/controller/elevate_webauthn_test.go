@@ -46,7 +46,7 @@ func TestElevateWebauthn(t *testing.T) {
 		}
 	}
 
-	credentialIDString := "EuKJAraRGDcmHon-EjDoqoU5Yvk" //nolint:gosec,goconst,nolintlint
+	credentialIDString := "EuKJAraRGDcmHon-EjDoqoU5Yvk" //nolint:gosec
 
 	var credentialID protocol.URLEncodedBase64
 	if err := credentialID.UnmarshalJSON([]byte(credentialIDString)); err != nil {

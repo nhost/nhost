@@ -2,7 +2,9 @@ package sms
 
 import (
 	"context"
+	"crypto/rand"
 	"fmt"
+	"math/big"
 	"time"
 
 	"github.com/nhost/hasura-auth/go/notifications"
@@ -38,36 +40,32 @@ type DB interface {
 }
 
 type SMS struct {
-	backend      GenericSMSProvider
-	otpGenerator func() (string, string, error)
-	otpHasher    func(string) (string, error)
-	templates    *notifications.Templates
-	db           DB
+	backend   GenericSMSProvider
+	templates *notifications.Templates
+	db        DB
 }
 
 func NewSMS(
 	backend GenericSMSProvider,
-	otpGenerator func() (string, string, error),
-	otpHasher func(string) (string, error),
 	templates *notifications.Templates,
 	db DB,
 ) *SMS {
 	return &SMS{
-		backend:      backend,
-		otpGenerator: otpGenerator,
-		otpHasher:    otpHasher,
-		templates:    templates,
-		db:           db,
+		backend:   backend,
+		templates: templates,
+		db:        db,
 	}
 }
 
 func (s *SMS) SendVerificationCode(
 	ctx context.Context, to string, locale string,
 ) (string, time.Time, error) {
-	code, hash, err := s.otpGenerator()
+	n, err := rand.Int(rand.Reader, big.NewInt(1000000)) //nolint:mnd
 	if err != nil {
 		return "", time.Time{}, fmt.Errorf("error generating OTP: %w", err)
 	}
+
+	code := fmt.Sprintf("%06d", n)
 
 	body, err := s.templates.RenderSMS(ctx, locale, notifications.TemplateSMSData{
 		Code: code,
@@ -80,20 +78,15 @@ func (s *SMS) SendVerificationCode(
 		return "", time.Time{}, fmt.Errorf("error sending SMS: %w", err)
 	}
 
-	return hash, time.Now().Add(in5Minutes), nil
+	return code, time.Now().Add(in5Minutes), nil
 }
 
 func (s *SMS) CheckVerificationCode(
 	ctx context.Context, to string, code string,
 ) (sql.AuthUser, error) {
-	otpHash, err := s.otpHasher(code)
-	if err != nil {
-		return sql.AuthUser{}, fmt.Errorf("error hashing OTP: %w", err)
-	}
-
 	user, err := s.db.GetUserByPhoneNumberAndOTP(ctx, sql.GetUserByPhoneNumberAndOTPParams{
 		PhoneNumber: sql.Text(to),
-		OtpHash:     sql.Text(otpHash),
+		Otp:         code,
 	})
 	if err != nil {
 		return sql.AuthUser{}, fmt.Errorf("error getting user by phone number and OTP: %w", err)

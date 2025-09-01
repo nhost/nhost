@@ -58,9 +58,6 @@ type DBClientGetUser interface {
 	GetUserByEmailAndTicket(
 		ctx context.Context, arg sql.GetUserByEmailAndTicketParams,
 	) (sql.AuthUser, error)
-	GetUserByPhoneNumberAndOTP(
-		ctx context.Context, arg sql.GetUserByPhoneNumberAndOTPParams,
-	) (sql.AuthUser, error)
 }
 
 type DBClientInsertUser interface {

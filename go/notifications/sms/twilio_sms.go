@@ -15,8 +15,6 @@ type TwilioSMS struct {
 
 func NewTwilioSMS(
 	templates *notifications.Templates,
-	otpGenerator func() (string, string, error),
-	otpHasher func(string) (string, error),
 	accountSid string, authToken string, messageServiceSid string,
 	db DB,
 ) *SMS {
@@ -30,8 +28,6 @@ func NewTwilioSMS(
 			client: client,
 			from:   messageServiceSid,
 		},
-		otpGenerator,
-		otpHasher,
 		templates,
 		db,
 	)

@@ -1207,7 +1207,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 				tc.expectedResponse,
 				cmp.FilterPath(func(p cmp.Path) bool {
 					if last := p.Last(); last != nil {
-						return last.String() == ".Location" //nolint:goconst
+						return last.String() == ".Location"
 					}
 
 					return false

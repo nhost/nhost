@@ -95,6 +95,7 @@ const (
 	flagGoogleAudience                   = "google-audience"
 	flagOTPEmailEnabled                  = "otp-email-enabled"
 	flagSMSPasswordlessEnabled           = "sms-passwordless-enabled"
+	flagSMSProvider                      = "sms-provider"
 	flagSMSTwilioAccountSid              = "sms-twilio-account-sid"
 	flagSMSTwilioAuthToken               = "sms-twilio-auth-token" //nolint:gosec
 	flagSMSTwilioMessagingServiceID      = "sms-twilio-messaging-service-id"
@@ -664,6 +665,13 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 				Usage:    "Enable SMS passwordless authentication",
 				Category: "sms",
 				Sources:  cli.EnvVars("AUTH_SMS_PASSWORDLESS_ENABLED"),
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagSMSProvider,
+				Usage:    "SMS provider (twilio or modica)",
+				Category: "sms",
+				Value:    "twilio",
+				Sources:  cli.EnvVars("AUTH_SMS_PROVIDER"),
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     flagSMSTwilioAccountSid,

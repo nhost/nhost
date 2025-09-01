@@ -64,8 +64,8 @@ func TestVerifyElevateWebauthn(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				config := getConfig()
 				config.WebauthnRPOrigins = []string{"http://localhost:3000"}
-				config.WebauthnRPID = "localhost"             //nolint:goconst
-				config.WebauthnRPName = "React pollo Example" //nolint:goconst
+				config.WebauthnRPID = "localhost"
+				config.WebauthnRPName = "React pollo Example"
 
 				return config
 			},

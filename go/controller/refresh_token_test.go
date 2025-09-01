@@ -55,7 +55,7 @@ func TestRefreshToken(t *testing.T) { //nolint:maintidx
 
 	userID := uuid.MustParse("db477732-48fa-4289-b694-2886a646b6eb")
 	token := uuid.MustParse("1fb17604-86c7-444e-b337-09a644465f2d")
-	hashedToken := `\x9698157153010b858587119503cbeef0cf288f11775e51cdb6bfd65e930d9310` //nolint:goconst
+	hashedToken := `\x9698157153010b858587119503cbeef0cf288f11775e51cdb6bfd65e930d9310`
 	newTokenID := uuid.MustParse("1fb13604-86c7-4444-a337-09a644465f2d")
 
 	cases := []testRequest[api.RefreshTokenRequestObject, api.RefreshTokenResponseObject]{

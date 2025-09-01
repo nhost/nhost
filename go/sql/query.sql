@@ -42,8 +42,12 @@ RETURNING *;
 
 -- name: GetUserByPhoneNumberAndOTP :one
 UPDATE auth.users
-SET otp_hash = NULL, otp_hash_expires_at = now(), phone_number_verified = true
-WHERE phone_number = $1 AND otp_hash = $2 AND otp_hash_expires_at > now() AND otp_method_last_used = 'sms'
+SET otp_hash_expires_at = now(), phone_number_verified = true
+WHERE
+  phone_number = $1
+  AND otp_hash = crypt(@otp, otp_hash)
+  AND otp_hash_expires_at > now()
+  AND otp_method_last_used = 'sms'
 RETURNING *;
 
 -- name: GetUserByProviderID :one
@@ -77,7 +81,7 @@ WITH inserted_user AS (
         default_role,
         metadata
     ) VALUES (
-      $1, $2, $3, $4, $5, $6, COALESCE(@otp_hash_expires_at, now()), $8, $9, $10, $11, $12, $13, $14, $15, $16
+    $1, $2, $3, $4, $5, crypt(@otp, gen_salt('bf')), COALESCE(@otp_hash_expires_at, now()), $8, $9, $10, $11, $12, $13, $14, $15, $16
     )
     RETURNING *
 )
@@ -387,7 +391,9 @@ WHERE id = $1;
 
 -- name: UpdateUserOTPHash :one
 UPDATE auth.users
-SET (otp_hash, otp_hash_expires_at, otp_method_last_used) = ($2, $3, $4)
+SET otp_hash = crypt(@otp, gen_salt('bf')),
+    otp_hash_expires_at = $3,
+    otp_method_last_used = $4
 WHERE id = $1
 RETURNING id;
 

@@ -160,8 +160,8 @@ func (ctrl *Controller) signinWithTicketSignUp(
 				DefaultRole:       deptr(options.DefaultRole),
 				Metadata:          metadata,
 				Roles:             deptr(options.AllowedRoles),
-				PhoneNumber:       pgtype.Text{},        //nolint:exhaustruct
-				OtpHash:           pgtype.Text{},        //nolint:exhaustruct
+				PhoneNumber:       pgtype.Text{}, //nolint:exhaustruct
+				Otp:               "",
 				OtpHashExpiresAt:  pgtype.Timestamptz{}, //nolint:exhaustruct
 				OtpMethodLastUsed: pgtype.Text{},        //nolint:exhaustruct
 			})

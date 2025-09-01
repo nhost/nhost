@@ -198,21 +198,6 @@ func (mr *MockDBClientGetUserMockRecorder) GetUserByPhoneNumber(ctx, phoneNumber
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByPhoneNumber", reflect.TypeOf((*MockDBClientGetUser)(nil).GetUserByPhoneNumber), ctx, phoneNumber)
 }
 
-// GetUserByPhoneNumberAndOTP mocks base method.
-func (m *MockDBClientGetUser) GetUserByPhoneNumberAndOTP(ctx context.Context, arg sql.GetUserByPhoneNumberAndOTPParams) (sql.AuthUser, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUserByPhoneNumberAndOTP", ctx, arg)
-	ret0, _ := ret[0].(sql.AuthUser)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetUserByPhoneNumberAndOTP indicates an expected call of GetUserByPhoneNumberAndOTP.
-func (mr *MockDBClientGetUserMockRecorder) GetUserByPhoneNumberAndOTP(ctx, arg any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByPhoneNumberAndOTP", reflect.TypeOf((*MockDBClientGetUser)(nil).GetUserByPhoneNumberAndOTP), ctx, arg)
-}
-
 // GetUserByRefreshTokenHash mocks base method.
 func (m *MockDBClientGetUser) GetUserByRefreshTokenHash(ctx context.Context, arg sql.GetUserByRefreshTokenHashParams) (sql.AuthUser, error) {
 	m.ctrl.T.Helper()
@@ -781,21 +766,6 @@ func (m *MockDBClient) GetUserByPhoneNumber(ctx context.Context, phoneNumber pgt
 func (mr *MockDBClientMockRecorder) GetUserByPhoneNumber(ctx, phoneNumber any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByPhoneNumber", reflect.TypeOf((*MockDBClient)(nil).GetUserByPhoneNumber), ctx, phoneNumber)
-}
-
-// GetUserByPhoneNumberAndOTP mocks base method.
-func (m *MockDBClient) GetUserByPhoneNumberAndOTP(ctx context.Context, arg sql.GetUserByPhoneNumberAndOTPParams) (sql.AuthUser, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUserByPhoneNumberAndOTP", ctx, arg)
-	ret0, _ := ret[0].(sql.AuthUser)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetUserByPhoneNumberAndOTP indicates an expected call of GetUserByPhoneNumberAndOTP.
-func (mr *MockDBClientMockRecorder) GetUserByPhoneNumberAndOTP(ctx, arg any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByPhoneNumberAndOTP", reflect.TypeOf((*MockDBClient)(nil).GetUserByPhoneNumberAndOTP), ctx, arg)
 }
 
 // GetUserByProviderID mocks base method.

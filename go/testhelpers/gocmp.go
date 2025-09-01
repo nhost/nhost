@@ -4,7 +4,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-//nolint:ireturn
+//nolint:ireturn,nolintlint
 func FilterPathLast(last []string, opt cmp.Option) cmp.Option {
 	return cmp.FilterPath(
 		func(path cmp.Path) bool {
