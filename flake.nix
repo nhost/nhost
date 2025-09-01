@@ -1,46 +1,57 @@
 {
   inputs = {
-    nixops.url = "github:nhost/nixops";
-    nixpkgs.follows = "nixops/nixpkgs";
-    flake-utils.follows = "nixops/flake-utils";
-    nix-filter.follows = "nixops/nix-filter";
-    nix2container.follows = "nixops/nix2container";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    flake-utils.url = "github:numtide/flake-utils";
+    nix-filter.url = "github:numtide/nix-filter";
+    nix2container.url = "github:nlewo/nix2container";
+    nix2container.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixops, nixpkgs, flake-utils, nix-filter, nix2container }:
+  outputs = { self, nixpkgs, flake-utils, nix-filter, nix2container }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs {
           inherit system;
           overlays = [
-            nixops.overlays.default
-            (import ./nix/overlay.nix)
+            (import ./nixops/overlays/default.nix)
           ];
         };
 
-        nix-src = nix-filter.lib.filter {
-          root = ./.;
-          include = [
-            (nix-filter.lib.matchExt "nix")
-          ];
-        };
+        lib = import ./nixops/lib/lib.nix;
 
         nix2containerPkgs = nix2container.packages.${system};
-        nixops-lib = nixops.lib { inherit pkgs nix2containerPkgs; };
+        nixops-lib = lib { inherit pkgs nix2containerPkgs; };
 
-        nodeModulesLib = import ./nix/node_modules.nix { inherit self pkgs nix-filter; };
-        inherit (nodeModulesLib) node_modules mkNodeDevShell;
+        node_modules = nixops-lib.js.mkNodeModules {
+          name = "node-modules";
+          version = "0.0.0-dev";
+
+          src = nix-filter.lib.filter {
+            root = ./.;
+            include = [
+              ./.npmrc
+              ./pnpm-workspace.yaml
+              ./pnpm-lock.yaml
+
+              # find . -name package.json | grep -v node_modules | grep -v deprecated
+              ./package.json
+              ./docs/package.json
+              ./dashboard/package.json
+              ./packages/nhost-js/package.json
+            ];
+          };
+        };
 
         codegenf = import ./tools/codegen/project.nix {
           inherit self pkgs nix-filter nixops-lib;
         };
 
         dashboardf = import ./dashboard/project.nix {
-          inherit self pkgs nix2containerPkgs nix-filter nixops-lib mkNodeDevShell node_modules;
+          inherit self pkgs nix-filter nixops-lib node_modules nix2containerPkgs;
         };
 
         docsf = import ./docs/project.nix {
-          inherit self pkgs nix-filter mkNodeDevShell node_modules;
+          inherit self pkgs nix-filter nixops-lib node_modules;
         };
 
         mintlify-openapif = import ./tools/mintlify-openapi/project.nix {
@@ -48,34 +59,32 @@
         };
 
         nhost-jsf = import ./packages/nhost-js/project.nix {
-          inherit self pkgs nix-filter nixops-lib mkNodeDevShell node_modules;
+          inherit self pkgs nix-filter nixops-lib node_modules;
         };
 
+        nixopsf = import ./nixops/project.nix {
+          inherit self pkgs nix-filter nixops-lib;
+        };
       in
       {
-        checks = {
-          nixpkgs-fmt = pkgs.runCommand "check-nixpkgs-fmt"
-            {
-              nativeBuildInputs = with pkgs;
-                [
-                  nixpkgs-fmt
-                ];
-            }
-            ''
-              mkdir $out
-              nixpkgs-fmt --check ${nix-src}
-            '';
+        #nixops
+        overlays.default = import ./overlays/default.nix;
+        lib = lib;
 
+        checks = {
           codegen = codegenf.check;
           dashboard = dashboardf.check;
           docs = docsf.check;
           mintlify-openapi = mintlify-openapif.check;
           nhost-js = nhost-jsf.check;
+          nixops = nixopsf.check;
         };
 
         devShells = flake-utils.lib.flattenTree {
           default = pkgs.mkShell {
             buildInputs = with pkgs; [
+              gh
+              gnused
               nodePackages.vercel
               playwright-driver
               nhost-cli
@@ -113,6 +122,7 @@
           docs = docsf.devShell;
           mintlify-openapi = mintlify-openapif.devShell;
           nhost-js = nhost-jsf.devShell;
+          nixops = nixopsf.devShell;
         };
 
         packages = flake-utils.lib.flattenTree {
@@ -121,6 +131,7 @@
           codegen = codegenf.package;
           mintlify-openapi = mintlify-openapif.package;
           nhost-js = nhost-jsf.package;
+          nixops = nixopsf.package;
         };
       }
     );

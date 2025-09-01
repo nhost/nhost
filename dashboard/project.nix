@@ -1,4 +1,4 @@
-{ self, pkgs, nix2containerPkgs, nix-filter, nixops-lib, mkNodeDevShell, node_modules }:
+{ self, pkgs, nix2containerPkgs, nix-filter, nixops-lib, node_modules }:
 let
   name = "dashboard";
   version = "0.0.0-dev";
@@ -11,6 +11,9 @@ let
       isDirectory
       (matchName "package.json")
       ".npmrc"
+      ".prettierignore"
+      ".prettierrc.js"
+      "audit-ci.jsonc"
       "pnpm-workspace.yaml"
       "pnpm-lock.yaml"
       "turbo.json"
@@ -50,7 +53,9 @@ let
   nativeBuildInputs = with pkgs; [ pnpm cacert ];
 in
 rec {
-  devShell = mkNodeDevShell {
+  devShell = nixops-lib.js.devShell {
+    inherit node_modules;
+
     buildInputs = with pkgs;[
       nodePackages.vercel
     ] ++ checkDeps ++ buildInputs ++ nativeBuildInputs;
@@ -58,31 +63,14 @@ rec {
 
   entrypoint = pkgs.writeScriptBin "docker-entrypoint.sh" (builtins.readFile ./docker-entrypoint.sh);
 
-  check = pkgs.runCommand "check"
-    {
-      nativeBuildInputs = checkDeps ++ buildInputs ++ nativeBuildInputs;
-    } ''
-    cp -r ${src}/* .
-    chmod +w -R .
+  check = nixops-lib.js.check {
+    inherit src node_modules submodule buildInputs nativeBuildInputs checkDeps;
 
-    cp -r ${node_modules}/node_modules/ node_modules
-    cp -r ${node_modules}/${submodule}/node_modules/ ${submodule}/node_modules
-
-    mkdir -p packages/nhost-js
-    cp -r ${self.packages.${pkgs.system}.nhost-js}/dist packages/nhost-js/dist
-
-    export HOME=$TMPDIR
-
-    cd ${submodule}
-
-    echo "➜ Running linter"
-    pnpm lint
-
-    echo "➜ Running unit tests"
-    pnpm test --run
-
-    mkdir -p $out
-  '';
+    preCheck = ''
+      mkdir -p packages/nhost-js
+      cp -r ${self.packages.${pkgs.system}.nhost-js}/dist packages/nhost-js/dist
+    '';
+  };
 
   check-staging = pkgs.runCommand "check"
     {
