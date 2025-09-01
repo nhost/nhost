@@ -7,7 +7,7 @@ import { SearchIcon } from '@/components/ui/v2/icons/SearchIcon';
 import { LogsRegexFilter } from '@/features/orgs/projects/common/components/LogsRegexFilter';
 import { LogsServiceFilter } from '@/features/orgs/projects/common/components/LogsServiceFilter';
 import { LogsRangeSelector } from '@/features/orgs/projects/logs/components/LogsRangeSelector';
-import { AvailableLogsService } from '@/features/orgs/projects/logs/utils/constants/services';
+import { CoreLogService } from '@/features/orgs/projects/logs/utils/constants/services';
 import { DEFAULT_LOG_INTERVAL } from '@/utils/constants/common';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { subMinutes } from 'date-fns';
@@ -19,7 +19,7 @@ export const validationSchema = Yup.object({
   from: Yup.string().required(),
   to: Yup.string().nullable(),
   interval: Yup.number().nullable(), // in minutes
-  service: Yup.string().oneOf(Object.values(AvailableLogsService)),
+  service: Yup.string(),
   regexFilter: Yup.string(),
 });
 
@@ -53,7 +53,7 @@ export default function LogsHeader({
       from: subMinutes(new Date(), DEFAULT_LOG_INTERVAL).toISOString(),
       to: new Date().toISOString(),
       regexFilter: '',
-      service: AvailableLogsService.ALL,
+      service: CoreLogService.ALL,
       interval: DEFAULT_LOG_INTERVAL,
     },
     resolver: yupResolver(validationSchema),
