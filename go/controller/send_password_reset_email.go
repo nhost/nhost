@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"time"
 
@@ -26,12 +27,15 @@ func (ctrl *Controller) SendPasswordResetEmail( //nolint:ireturn
 
 	if !ctrl.wf.ValidateEmail(string(request.Body.Email)) {
 		logger.WarnContext(ctx, "email didn't pass access control checks")
-		return ctrl.sendError(ErrInvalidEmailPassword), nil
+		return api.SendPasswordResetEmail200JSONResponse(api.OK), nil
 	}
 
 	user, apiErr := ctrl.wf.GetUserByEmail(ctx, string(request.Body.Email), logger)
-	if apiErr != nil {
+	switch {
+	case errors.Is(apiErr, ErrInternalServerError):
 		return ctrl.respondWithError(apiErr), nil
+	case apiErr != nil:
+		return api.SendPasswordResetEmail200JSONResponse(api.OK), nil //nolint:nilerr
 	}
 
 	ticket := generateTicket(TicketTypePasswordReset)
