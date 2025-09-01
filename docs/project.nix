@@ -1,4 +1,4 @@
-{ self, pkgs, nix-filter, mkNodeDevShell, node_modules }:
+{ self, pkgs, nixops-lib, nix-filter, node_modules }:
 let
   name = "docs";
   version = "0.0.0-dev";
@@ -38,46 +38,14 @@ let
   nativeBuildInputs = with pkgs; [ pnpm cacert ];
 in
 {
-  devShell = mkNodeDevShell {
+  devShell = nixops-lib.js.devShell {
+    inherit node_modules;
+
     buildInputs = [
     ] ++ checkDeps ++ buildInputs ++ nativeBuildInputs;
   };
 
-  check = pkgs.runCommand "check"
-    {
-      nativeBuildInputs = checkDeps ++ buildInputs ++ nativeBuildInputs;
-    } ''
-    cp -r ${src} src
-    chmod +w -R .
-
-    cp -r ${node_modules}/node_modules/ src/node_modules
-    cp -r ${node_modules}/${submodule}/node_modules/ src/${submodule}/node_modules
-    cp -r ${node_modules}/packages/nhost-js/node_modules/ src/packages/nhost-js/node_modules
-
-    echo "➜ Checking dependencies for security issues"
-    cd src
-    pnpm audit-ci
-    cd ..
-
-    echo "➜ Running pnpm generate and checking sha1sum of all files"
-    SRCROOT=$PWD
-
-    # Generate baseline checksums from the original filtered src
-    cd src
-    find . -type f ! -path "./node_modules/*" ! -path "./deprecated/*" -print0 | xargs -0 sha1sum > $TMPDIR/baseline
-
-    # Copy and run generate
-    cp -r ../src $TMPDIR/generate
-    cd $TMPDIR/generate
-    pnpm run --dir ${submodule} generate
-
-    # Check only files that existed in the baseline
-    sha1sum -c $TMPDIR/baseline || (echo "❌ ERROR: pnpm generate changed files" && exit 1)
-
-    echo "➜ Running linters and tests"
-    pnpm run --dir ${submodule} test
-
-    mkdir -p $out
-  '';
+  check = nixops-lib.js.check {
+    inherit src node_modules submodule buildInputs nativeBuildInputs checkDeps;
+  };
 }
-
