@@ -1,0 +1,25 @@
+{
+  "name": "express",
+  "version": "1.0.0",
+  "license": "MIT",
+  "scripts": {
+    "dev": "pnpm ts-node src/index.ts",
+    "build": "tsc",
+    "test": "pnpm test:audit && pnpm test:typecheck && pnpm test:lint && pnpm test:format && echo \"No tests specified\" && exit 0",
+    "test:typecheck": "tsc --noEmit",
+    "test:lint": "eslint .",
+    "test:format": "prettier --check src",
+    "test:audit": "pnpm audit",
+    "format": "prettier --write src"
+  },
+  "dependencies": {
+    "@nhost/nhost-js": "workspace:^",
+    "cookie-parser": "^1.4.7",
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/cookie-parser": "^1.4.8",
+    "@types/express": "^5.0.2",
+    "ts-node": "^10.9.2"
+  }
+}
