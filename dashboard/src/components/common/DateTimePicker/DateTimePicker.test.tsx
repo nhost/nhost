@@ -64,29 +64,29 @@ describe('DateTimePicker', () => {
       await screen.findByRole('button', { name: 'Select' }),
     ).toBeInTheDocument();
 
-    expect(await screen.getByText('March 2025')).toBeInTheDocument();
+    expect(screen.getByText('March 2025')).toBeInTheDocument();
 
     await user.click(
       screen.getByRole('button', { name: 'Go to the Next Month' }),
     );
     expect(screen.getByText('April 2025')).toBeInTheDocument();
 
-    await user.click(await screen.getByText('13'));
+    await user.click(screen.getByText('13'));
 
-    const hoursInput = await screen.getByLabelText('Hours');
+    const hoursInput = screen.getByLabelText('Hours');
     await user.type(hoursInput, '11');
 
-    const minutesInput = await screen.getByLabelText('Minutes');
+    const minutesInput = screen.getByLabelText('Minutes');
     await user.type(minutesInput, '12');
 
-    const secondsInput = await screen.getByLabelText('Seconds');
+    const secondsInput = screen.getByLabelText('Seconds');
     await user.type(secondsInput, '13');
 
-    await user.click(await screen.getByRole('button', { name: 'Select' }));
+    await user.click(screen.getByRole('button', { name: 'Select' }));
 
     await waitFor(async () =>
       expect(
-        await screen.queryByRole('button', { name: 'Select' }),
+        screen.queryByRole('button', { name: 'Select' }),
       ).not.toBeInTheDocument(),
     );
 
@@ -119,7 +119,7 @@ describe('DateTimePicker', () => {
     await user.type(tzInput, 'America/Chicago{ArrowDown}{Enter}');
 
     expect(
-      await screen.queryByPlaceholderText('Search timezones...'),
+      screen.queryByPlaceholderText('Search timezones...'),
     ).not.toBeInTheDocument();
 
     expect(await screen.findByText(/Timezone: /i)).toHaveTextContent(
@@ -148,7 +148,7 @@ describe('DateTimePicker', () => {
       'Timezone: UTC+02:00',
     );
 
-    expect(await screen.getByText('March 2025')).toBeInTheDocument();
+    expect(screen.getByText('March 2025')).toBeInTheDocument();
 
     await user.click(
       screen.getByRole('button', { name: 'Go to the Next Month' }),
@@ -156,7 +156,7 @@ describe('DateTimePicker', () => {
 
     expect(screen.getByText('April 2025')).toBeInTheDocument();
 
-    await user.click(await screen.getByText('18'));
+    await user.click(screen.getByText('18'));
 
     expect(await screen.findByText(/Timezone: /i)).toHaveTextContent(
       'Timezone: UTC+03:00',
@@ -166,9 +166,9 @@ describe('DateTimePicker', () => {
       screen.getByRole('button', { name: 'Go to the Previous Month' }),
     );
 
-    expect(await screen.getByText('March 2025')).toBeInTheDocument();
+    expect(screen.getByText('March 2025')).toBeInTheDocument();
 
-    await user.click(await screen.getByText('21'));
+    await user.click(screen.getByText('21'));
 
     expect(await screen.findByText(/Timezone: /i)).toHaveTextContent(
       'Timezone: UTC+02:00',

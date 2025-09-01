@@ -1,6 +1,6 @@
 import { useProjectLogs } from '@/features/orgs/projects/hooks/useProjectLogs';
 import { LogsBody } from '@/features/orgs/projects/logs/components/LogsBody';
-import { AvailableLogsService } from '@/features/orgs/projects/logs/utils/constants/services';
+import { CoreLogService } from '@/features/orgs/projects/logs/utils/constants/services';
 import { cn, isNotEmptyValue } from '@/lib/utils';
 import { memo, useCallback, useState } from 'react';
 import DeploymentLogsHeader, {
@@ -15,13 +15,13 @@ interface Props {
 function DeploymentServiceLogs({ from, to }: Props) {
   const [filters, setFilters] = useState<DeploymentLogsFormValues>({
     regexFilter: '',
-    service: AvailableLogsService.ALL,
+    service: CoreLogService.ALL,
   });
 
   const { data, error, loading } = useProjectLogs({
     from,
     to,
-    service: filters.service,
+    service: filters.service as string,
     regexFilter: filters.regexFilter,
   });
 

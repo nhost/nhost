@@ -1,5 +1,5 @@
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { AvailableLogsService } from '@/features/orgs/projects/logs/utils/constants/services';
+import { CoreLogService } from '@/features/orgs/projects/logs/utils/constants/services';
 import { mockApplication as mockProject } from '@/tests/mocks';
 import { renderHook } from '@/tests/testUtils';
 import { useGetProjectLogsQuery } from '@/utils/__generated__/graphql';
@@ -69,7 +69,7 @@ describe('useProjectLogs - Subscription Creation & Cleanup', () => {
   const defaultProps: UseProjectLogsProps = {
     from: new Date('2023-01-01').toISOString(),
     to: null, // Real-time mode
-    service: AvailableLogsService.ALL,
+    service: CoreLogService.ALL,
     regexFilter: '',
   };
 
@@ -108,7 +108,7 @@ describe('useProjectLogs - Subscription Creation & Cleanup', () => {
         document: 'GetLogsSubscriptionDocument',
         variables: {
           appID: mockProject.id,
-          service: AvailableLogsService.ALL,
+          service: CoreLogService.ALL,
           from: props.from,
           regexFilter: props.regexFilter,
         },
@@ -179,7 +179,7 @@ describe('useProjectLogs - Subscription Creation & Cleanup', () => {
     it('should clean up subscription when change to live', () => {
       const { rerender } = renderHook(({ props }) => useProjectLogs(props), {
         initialProps: {
-          props: { ...defaultProps, service: AvailableLogsService.ALL },
+          props: { ...defaultProps, service: CoreLogService.ALL },
         },
       });
 
@@ -188,7 +188,7 @@ describe('useProjectLogs - Subscription Creation & Cleanup', () => {
       rerender({
         props: {
           ...defaultProps,
-          service: AvailableLogsService.POSTGRES,
+          service: CoreLogService.POSTGRES,
         },
       });
 
@@ -272,11 +272,11 @@ describe('useProjectLogs - Subscription Creation & Cleanup', () => {
     });
   });
 
-  describe('Handling service chnage', () => {
+  describe('Handling service change', () => {
     it('should handle JOB_BACKUP service with regex pattern', () => {
       const props = {
         ...defaultProps,
-        service: AvailableLogsService.JOB_BACKUP,
+        service: CoreLogService.JOB_BACKUP,
       };
 
       renderHook(() => useProjectLogs(props));
@@ -296,7 +296,7 @@ describe('useProjectLogs - Subscription Creation & Cleanup', () => {
     it('should pass through other service names unchanged', () => {
       const props = {
         ...defaultProps,
-        service: AvailableLogsService.POSTGRES,
+        service: CoreLogService.POSTGRES,
       };
 
       renderHook(() => useProjectLogs(props));
@@ -305,7 +305,7 @@ describe('useProjectLogs - Subscription Creation & Cleanup', () => {
         document: 'GetLogsSubscriptionDocument',
         variables: {
           appID: mockProject.id,
-          service: AvailableLogsService.POSTGRES, // Should remain unchanged
+          service: CoreLogService.POSTGRES, // Should remain unchanged
           from: props.from,
           regexFilter: props.regexFilter,
         },

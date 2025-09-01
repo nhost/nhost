@@ -4,7 +4,7 @@ import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { LogsRegexFilter } from '@/features/orgs/projects/common/components/LogsRegexFilter';
 import { LogsServiceFilter } from '@/features/orgs/projects/common/components/LogsServiceFilter';
-import { AvailableLogsService } from '@/features/orgs/projects/logs/utils/constants/services';
+import { CoreLogService } from '@/features/orgs/projects/logs/utils/constants/services';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { SearchIcon } from 'lucide-react';
 import { memo, useEffect } from 'react';
@@ -13,7 +13,7 @@ import * as Yup from 'yup';
 import DeploymentInfo from './DeploymentInfo';
 
 export const validationSchema = Yup.object({
-  service: Yup.string().oneOf(Object.values(AvailableLogsService)).required(),
+  service: Yup.string(),
   regexFilter: Yup.string().required(),
 }).required();
 
@@ -30,7 +30,7 @@ function DeploymentLogsHeader({ onSubmit, loading, from, to }: Props) {
   const form = useForm<DeploymentLogsFormValues>({
     defaultValues: {
       regexFilter: '',
-      service: AvailableLogsService.ALL,
+      service: CoreLogService.ALL,
     },
     resolver: yupResolver(validationSchema),
     reValidateMode: 'onSubmit',
