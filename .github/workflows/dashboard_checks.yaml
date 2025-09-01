@@ -10,7 +10,7 @@ on:
       # common build
       - 'flake.nix'
       - 'flake.lock'
-      - 'nix/**'
+      - 'nixops/**'
       - 'build/**'
 
       # common javascript
