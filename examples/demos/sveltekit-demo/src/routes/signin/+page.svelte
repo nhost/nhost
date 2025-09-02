@@ -1,13 +1,13 @@
 <script lang="ts">
-import { goto } from "$app/navigation";
-import { page } from "$app/stores";
-import { auth, nhost } from "$lib/nhost/auth";
-import { onMount } from "svelte";
 import type { ErrorResponse } from "@nhost/nhost-js/auth";
 import type { FetchError } from "@nhost/nhost-js/fetch";
-import TabForm from "$lib/components/TabForm.svelte";
+import { onMount } from "svelte";
+import { goto } from "$app/navigation";
+import { page } from "$app/stores";
 import MagicLinkForm from "$lib/components/MagicLinkForm.svelte";
+import TabForm from "$lib/components/TabForm.svelte";
 import WebAuthnSignInForm from "$lib/components/WebAuthnSignInForm.svelte";
+import { auth, nhost } from "$lib/nhost/auth";
 
 let email = $state("");
 let password = $state("");

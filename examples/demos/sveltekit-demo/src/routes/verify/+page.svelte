@@ -1,10 +1,10 @@
 <script lang="ts">
+import type { ErrorResponse } from "@nhost/nhost-js/auth";
+import type { FetchError } from "@nhost/nhost-js/fetch";
 import { onMount } from "svelte";
 import { goto } from "$app/navigation";
 import { page } from "$app/stores";
 import { nhost } from "$lib/nhost/auth";
-import type { ErrorResponse } from "@nhost/nhost-js/auth";
-import type { FetchError } from "@nhost/nhost-js/fetch";
 
 let status: "verifying" | "success" | "error" = "verifying";
 let error = "";

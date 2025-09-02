@@ -2,7 +2,7 @@
 
 import type { ErrorResponse } from "@nhost/nhost-js/auth";
 import type { FetchError } from "@nhost/nhost-js/fetch";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useAuth } from "../lib/nhost/AuthProvider";
 
 export default function ChangePassword() {
@@ -71,7 +71,7 @@ export default function ChangePassword() {
             New Password
           </label>
           <input
-            id="new-password"
+            id={useId()}
             type="password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
@@ -90,7 +90,7 @@ export default function ChangePassword() {
             Confirm Password
           </label>
           <input
-            id="confirm-password"
+            id={useId()}
             type="password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}

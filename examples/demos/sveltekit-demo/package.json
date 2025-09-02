@@ -5,16 +5,15 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
-    "build": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json && vite build",
+    "build": "vite build",
     "preview": "vite preview",
-    "test": "pnpm test:typecheck && pnpm test:lint && pnpm test:format && echo \"No tests specified\" && exit 0",
-    "test:typecheck": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-    "test:lint": "eslint .",
-    "test:format": "prettier --check .",
+    "test": "pnpm test:typecheck && pnpm test:lint && pnpm check",
+    "test:typecheck": "tsc --noEmit",
+    "test:lint": "biome check",
+    "format": "biome format --write",
     "prepare": "svelte-kit sync || echo ''",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-    "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-    "format": "prettier --write ."
+    "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
   },
   "dependencies": {
     "@nhost/nhost-js": "workspace:*",

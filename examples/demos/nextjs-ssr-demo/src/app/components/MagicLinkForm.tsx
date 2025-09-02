@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useId, useState } from "react";
 
 interface MagicLinkFormProps {
   sendMagicLinkAction: (formData: FormData) => Promise<{
@@ -19,6 +19,8 @@ export default function MagicLinkForm({
 }: MagicLinkFormProps) {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const displayNameId = useId();
+  const emailId = useId();
 
   const handleSubmit = async (formData: FormData) => {
     try {
@@ -40,9 +42,9 @@ export default function MagicLinkForm({
     <form action={handleSubmit} className="w-full space-y-5">
       {showDisplayName && (
         <div>
-          <label htmlFor="magic-displayName">Display Name</label>
+          <label htmlFor={displayNameId}>Display Name</label>
           <input
-            id="magic-displayName"
+            id={displayNameId}
             name="displayName"
             type="text"
             required={showDisplayName}
@@ -51,8 +53,8 @@ export default function MagicLinkForm({
       )}
 
       <div>
-        <label htmlFor="magic-email">Email</label>
-        <input id="magic-email" name="email" type="email" required />
+        <label htmlFor={emailId}>Email</label>
+        <input id={emailId} name="email" type="email" required />
       </div>
 
       {error && <div className="alert alert-error mb-4">{error}</div>}

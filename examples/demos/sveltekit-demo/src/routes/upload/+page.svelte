@@ -1,10 +1,10 @@
 <script lang="ts">
+import type { FetchError } from "@nhost/nhost-js/fetch";
+import type { ErrorResponse, FileMetadata } from "@nhost/nhost-js/storage";
 import { onMount } from "svelte";
 import { goto } from "$app/navigation";
 import { auth, nhost } from "$lib/nhost/auth";
 import { formatFileSize } from "$lib/utils";
-import type { FileMetadata, ErrorResponse } from "@nhost/nhost-js/storage";
-import type { FetchError } from "@nhost/nhost-js/fetch";
 
 interface DeleteStatus {
   message: string;
@@ -116,7 +116,7 @@ async function handleUpload() {
 
     // Get the processed file data
     const uploadedFile = response.body.processedFiles?.[0];
-    if (uploadedFile == undefined) {
+    if (uploadedFile === undefined) {
       throw new Error("Failed to upload file");
     }
     uploadResult = uploadedFile;

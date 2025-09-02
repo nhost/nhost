@@ -1,10 +1,10 @@
 {
-  "name": "express",
+  "name": "demos",
   "version": "1.0.0",
   "license": "MIT",
   "scripts": {
-    "test": "pnpm run --filter './**' test",
-    "format": "prettier --write src"
+    "build": "pnpm run --filter './**' build",
+    "test": "pnpm run --filter './**' test"
   },
   "dependencies": {
     "@nhost/nhost-js": "workspace:^",

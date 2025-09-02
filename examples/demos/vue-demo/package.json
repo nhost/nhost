@@ -6,11 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc && vite build",
-    "test": "pnpm test:typecheck && pnpm test:lint && pnpm test:format && echo \"No tests specified\" && exit 0",
+    "test": "pnpm test:typecheck && pnpm test:lint",
     "test:typecheck": "vue-tsc --noEmit",
-    "test:lint": "eslint .",
-    "test:format": "prettier --check .",
-    "format": "prettier --write .",
+    "test:lint": "biome check",
+    "format": "biome format --write",
     "preview": "vite preview"
   },
   "dependencies": {

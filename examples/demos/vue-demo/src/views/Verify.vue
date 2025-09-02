@@ -47,11 +47,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from "vue";
-import { useRoute, useRouter } from "vue-router";
-import { useAuth } from "../lib/nhost/auth";
 import type { ErrorResponse } from "@nhost/nhost-js/auth";
 import { type FetchError } from "@nhost/nhost-js/fetch";
+import { onMounted, onUnmounted, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { useAuth } from "../lib/nhost/auth";
 
 const route = useRoute();
 const router = useRouter();

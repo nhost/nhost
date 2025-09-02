@@ -4,7 +4,7 @@ import type {
 } from "@nhost/nhost-js/auth";
 import type { FetchError } from "@nhost/nhost-js/fetch";
 import { startRegistration } from "@simplewebauthn/browser";
-import { type JSX, useState } from "react";
+import { type JSX, useId, useState } from "react";
 import { useAuth } from "../lib/nhost/AuthProvider";
 import { isWebAuthnSupported } from "../lib/utils";
 
@@ -45,6 +45,9 @@ export default function WebAuthnSignUpForm({
   const [keyNickname, setKeyNickname] = useState<string>("");
   const [challengeData, setChallengeData] =
     useState<PublicKeyCredentialCreationOptions | null>(null);
+  const displayNameId = useId();
+  const emailId = useId();
+  const keyNicknameId = useId();
 
   /**
    * Handles the WebAuthn registration flow (sign up with security key/biometrics)
@@ -149,9 +152,9 @@ export default function WebAuthnSignUpForm({
   return (
     <form onSubmit={startWebAuthnRegistration} className="space-y-5">
       <div>
-        <label htmlFor="webauthnDisplayName">Display Name</label>
+        <label htmlFor={displayNameId}>Display Name</label>
         <input
-          id="webauthnDisplayName"
+          id={displayNameId}
           type="text"
           value={displayName}
           onChange={(e) => setDisplayName(e.target.value)}
@@ -159,9 +162,9 @@ export default function WebAuthnSignUpForm({
       </div>
 
       <div>
-        <label htmlFor="webauthnEmail">Email</label>
+        <label htmlFor={emailId}>Email</label>
         <input
-          id="webauthnEmail"
+          id={emailId}
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -170,9 +173,9 @@ export default function WebAuthnSignUpForm({
       </div>
 
       <div>
-        <label htmlFor="keyNickname">Key Nickname (Optional)</label>
+        <label htmlFor={keyNicknameId}>Key Nickname (Optional)</label>
         <input
-          id="keyNickname"
+          id={keyNicknameId}
           type="text"
           value={keyNickname}
           onChange={(e) => setKeyNickname(e.target.value)}

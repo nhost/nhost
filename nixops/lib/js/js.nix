@@ -4,6 +4,7 @@ let
     pnpm_10
     cacert
     nodejs
+    biome
     playwright-driver
   ];
 

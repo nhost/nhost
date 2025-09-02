@@ -1,8 +1,8 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuth } from "../lib/nhost/auth";
+import Profile from "../views/Profile.vue";
 import SignIn from "../views/SignIn.vue";
 import SignUp from "../views/SignUp.vue";
-import Profile from "../views/Profile.vue";
 import Upload from "../views/Upload.vue";
 import Verify from "../views/Verify.vue";
 

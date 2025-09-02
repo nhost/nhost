@@ -1,10 +1,10 @@
 <script lang="ts">
+import type { ErrorResponse } from "@nhost/nhost-js/auth";
+import type { FetchError, FetchResponse } from "@nhost/nhost-js/fetch";
+import { startRegistration } from "@simplewebauthn/browser";
 import { onMount } from "svelte";
 import { auth, nhost } from "$lib/nhost/auth";
 import { isWebAuthnSupported } from "$lib/utils";
-import type { FetchError, FetchResponse } from "@nhost/nhost-js/fetch";
-import type { ErrorResponse } from "@nhost/nhost-js/auth";
-import { startRegistration } from "@simplewebauthn/browser";
 
 /**
  * Represents a WebAuthn security key stored for a user

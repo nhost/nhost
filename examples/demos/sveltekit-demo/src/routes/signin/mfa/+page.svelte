@@ -1,9 +1,9 @@
 <script lang="ts">
+import type { ErrorResponse } from "@nhost/nhost-js/auth";
+import type { FetchError } from "@nhost/nhost-js/fetch";
 import { goto } from "$app/navigation";
 import { page } from "$app/stores";
 import { auth, nhost } from "$lib/nhost/auth";
-import type { ErrorResponse } from "@nhost/nhost-js/auth";
-import type { FetchError } from "@nhost/nhost-js/fetch";
 
 interface VerificationResponse {
   success?: boolean;

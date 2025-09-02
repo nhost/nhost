@@ -1,6 +1,6 @@
 import { createClient, type NhostClient } from "@nhost/nhost-js";
-import { writable, derived, type Readable } from "svelte/store";
 import type { Session } from "@nhost/nhost-js/auth";
+import { derived, type Readable, writable } from "svelte/store";
 import { browser } from "$app/environment";
 
 /**

@@ -172,12 +172,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
-import { useAuth } from "../../lib/nhost/auth";
-import type { FetchError, FetchResponse } from "@nhost/nhost-js/fetch";
 import type { ErrorResponse } from "@nhost/nhost-js/auth";
-import { isWebAuthnSupported } from "../../lib/utils";
+import type { FetchError, FetchResponse } from "@nhost/nhost-js/fetch";
 import { startRegistration } from "@simplewebauthn/browser";
+import { onMounted, ref } from "vue";
+import { useAuth } from "../../lib/nhost/auth";
+import { isWebAuthnSupported } from "../../lib/utils";
 
 /**
  * Represents a WebAuthn security key stored for a user

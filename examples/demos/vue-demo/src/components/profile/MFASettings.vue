@@ -131,10 +131,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
-import { useAuth } from "../../lib/nhost/auth";
 import { type ErrorResponse } from "@nhost/nhost-js/auth";
 import { type FetchError } from "@nhost/nhost-js/fetch";
+import { ref, watch } from "vue";
+import { useAuth } from "../../lib/nhost/auth";
 
 interface Props {
   initialMfaEnabled: boolean;

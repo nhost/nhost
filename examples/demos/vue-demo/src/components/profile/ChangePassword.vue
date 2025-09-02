@@ -50,10 +50,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
-import { useAuth } from "../../lib/nhost/auth";
 import { type ErrorResponse } from "@nhost/nhost-js/auth";
 import { type FetchError } from "@nhost/nhost-js/fetch";
+import { ref } from "vue";
+import { useAuth } from "../../lib/nhost/auth";
 
 const { nhost } = useAuth();
 

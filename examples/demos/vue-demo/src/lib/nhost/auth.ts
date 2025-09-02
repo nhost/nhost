@@ -1,6 +1,6 @@
-import { reactive, computed } from "vue";
 import { createClient } from "@nhost/nhost-js";
-import { type Session } from "@nhost/nhost-js/auth";
+import type { Session } from "@nhost/nhost-js/auth";
+import { computed, reactive } from "vue";
 
 // Global reactive state
 const authState = reactive({

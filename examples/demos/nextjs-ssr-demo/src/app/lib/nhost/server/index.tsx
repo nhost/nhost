@@ -20,8 +20,8 @@ export async function createNhostClient(): Promise<NhostClient> {
   const cookieStore = await cookies();
 
   const nhost = createServerClient({
-    region: process.env.NHOST_REGION || "local",
-    subdomain: process.env.NHOST_SUBDOMAIN || "local",
+    region: process.env["NHOST_REGION"] || "local",
+    subdomain: process.env["NHOST_SUBDOMAIN"] || "local",
     storage: {
       // storage compatible with Next.js server components
       get: (): Session | null => {
@@ -59,8 +59,8 @@ export async function handleNhostMiddleware(
   response: NextResponse<unknown>,
 ): Promise<Session | null> {
   const nhost = createServerClient({
-    region: process.env.NHOST_REGION || "local",
-    subdomain: process.env.NHOST_SUBDOMAIN || "local",
+    region: process.env["NHOST_REGION"] || "local",
+    subdomain: process.env["NHOST_SUBDOMAIN"] || "local",
     storage: {
       // storage compatible with Next.js middleware
       get: (): Session | null => {

@@ -1,12 +1,12 @@
 <script lang="ts">
-import { goto } from "$app/navigation";
-import { auth, nhost } from "$lib/nhost/auth";
-import { onMount } from "svelte";
 import type { ErrorResponse } from "@nhost/nhost-js/auth";
 import type { FetchError, FetchResponse } from "@nhost/nhost-js/fetch";
-import MFASettings from "$lib/components/MFASettings.svelte";
+import { onMount } from "svelte";
+import { goto } from "$app/navigation";
 import ChangePassword from "$lib/components/ChangePassword.svelte";
+import MFASettings from "$lib/components/MFASettings.svelte";
 import SecurityKeys from "$lib/components/SecurityKeys.svelte";
+import { auth, nhost } from "$lib/nhost/auth";
 
 interface MfaStatusResponse {
   data?: {

@@ -87,14 +87,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue";
-import { useRouter, useRoute } from "vue-router";
-import TabForm from "../components/forms/TabForm.vue";
-import MagicLinkForm from "../components/forms/MagicLinkForm.vue";
-import WebAuthnSignInForm from "../components/forms/WebAuthnSignInForm.vue";
-import { useAuth } from "../lib/nhost/auth";
 import { type ErrorResponse } from "@nhost/nhost-js/auth";
 import { type FetchError } from "@nhost/nhost-js/fetch";
+import { computed, onMounted, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import MagicLinkForm from "../components/forms/MagicLinkForm.vue";
+import TabForm from "../components/forms/TabForm.vue";
+import WebAuthnSignInForm from "../components/forms/WebAuthnSignInForm.vue";
+import { useAuth } from "../lib/nhost/auth";
 
 const { nhost, isAuthenticated } = useAuth();
 const router = useRouter();

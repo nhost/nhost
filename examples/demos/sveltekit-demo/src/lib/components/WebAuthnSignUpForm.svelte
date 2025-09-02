@@ -1,12 +1,12 @@
 <script lang="ts">
-import { nhost } from "$lib/nhost/auth";
-import { isWebAuthnSupported } from "$lib/utils";
 import type {
   ErrorResponse,
   PublicKeyCredentialCreationOptions,
 } from "@nhost/nhost-js/auth";
 import type { FetchError } from "@nhost/nhost-js/fetch";
 import { startRegistration } from "@simplewebauthn/browser";
+import { nhost } from "$lib/nhost/auth";
+import { isWebAuthnSupported } from "$lib/utils";
 
 interface Props {
   email: string;
@@ -99,7 +99,7 @@ async function startWebAuthnRegistration(e: Event) {
       });
 
       // Step 4: Handle registration success
-      if (verifyResponse.body && verifyResponse.body.session) {
+      if (verifyResponse.body?.session) {
         // Success! User is now registered and authenticated
         // At this point:
         // - The user account has been created in the system
@@ -107,7 +107,7 @@ async function startWebAuthnRegistration(e: Event) {
         // - The private key remains securely on the user's device
         // - A session has been established
         window.location.href =
-          redirectTo || window.location.origin + "/profile";
+          redirectTo || `${window.location.origin}/profile`;
       }
     } catch (credError) {
       error = `WebAuthn registration failed: ${(credError as Error).message || "Unknown error"}`;

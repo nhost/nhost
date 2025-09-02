@@ -1,7 +1,7 @@
 <script lang="ts">
-import { nhost } from "$lib/nhost/auth";
 import type { ErrorResponse } from "@nhost/nhost-js/auth";
 import type { FetchError } from "@nhost/nhost-js/fetch";
+import { nhost } from "$lib/nhost/auth";
 
 let newPassword = $state("");
 let confirmPassword = $state("");

@@ -1,8 +1,8 @@
 <script lang="ts">
 import { onMount } from "svelte";
-import { page } from "$app/stores";
 import { goto } from "$app/navigation";
-import { initializeAuth, auth, nhost } from "$lib/nhost/auth";
+import { page } from "$app/stores";
+import { auth, initializeAuth, nhost } from "$lib/nhost/auth";
 import "../app.css";
 
 let { children }: { children?: import("svelte").Snippet } = $props();

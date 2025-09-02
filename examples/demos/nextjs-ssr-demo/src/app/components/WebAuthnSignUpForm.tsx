@@ -3,7 +3,7 @@
 import type { PublicKeyCredentialCreationOptions } from "@nhost/nhost-js/auth";
 import { startRegistration } from "@simplewebauthn/browser";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { isWebAuthnSupported } from "../lib/utils";
 import { signUpWebauthn, verifySignUpWebauthn } from "../signup/actions";
 
@@ -122,9 +122,9 @@ export default function WebAuthnSignUpForm({
   return (
     <form onSubmit={startWebAuthnRegistration} className="space-y-5">
       <div>
-        <label htmlFor="webauthnDisplayName">Display Name</label>
+        <label htmlFor={useId()}>Display Name</label>
         <input
-          id="webauthnDisplayName"
+          id={useId()}
           type="text"
           value={displayName}
           onChange={(e) => setDisplayName(e.target.value)}
@@ -132,9 +132,9 @@ export default function WebAuthnSignUpForm({
       </div>
 
       <div>
-        <label htmlFor="webauthnEmail">Email</label>
+        <label htmlFor={useId()}>Email</label>
         <input
-          id="webauthnEmail"
+          id={useId()}
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -143,9 +143,9 @@ export default function WebAuthnSignUpForm({
       </div>
 
       <div>
-        <label htmlFor="keyNickname">Key Nickname (Optional)</label>
+        <label htmlFor={useId()}>Key Nickname (Optional)</label>
         <input
-          id="keyNickname"
+          id={useId()}
           type="text"
           value={keyNickname}
           onChange={(e) => setKeyNickname(e.target.value)}

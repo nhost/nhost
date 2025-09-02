@@ -1,9 +1,9 @@
 <script lang="ts">
-import { nhost } from "$lib/nhost/auth";
-import { goto } from "$app/navigation";
-import { page } from "$app/stores";
 import type { ErrorResponse } from "@nhost/nhost-js/auth";
 import type { FetchError } from "@nhost/nhost-js/fetch";
+import { goto } from "$app/navigation";
+import { page } from "$app/stores";
+import { nhost } from "$lib/nhost/auth";
 
 interface Props {
   buttonLabel?: string;

@@ -1,6 +1,6 @@
 import type { ErrorResponse } from "@nhost/nhost-js/auth";
 import type { FetchError } from "@nhost/nhost-js/fetch";
-import { type JSX, useEffect, useState } from "react";
+import { type JSX, useEffect, useId, useState } from "react";
 import { useAuth } from "../lib/nhost/AuthProvider";
 
 interface MFASettingsProps {
@@ -15,6 +15,8 @@ export default function MFASettings({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const { nhost } = useAuth();
+  const verificationCodeId = useId();
+  const disableVerificationCodeId = useId();
 
   // Update internal state when prop changes
   useEffect(() => {
@@ -169,9 +171,9 @@ export default function MFASettings({
           </div>
 
           <div>
-            <label htmlFor="verification-code">Verification Code</label>
+            <label htmlFor={verificationCodeId}>Verification Code</label>
             <input
-              id="verification-code"
+              id={verificationCodeId}
               type="text"
               value={verificationCode}
               onChange={(e) => setVerificationCode(e.target.value)}
@@ -209,11 +211,11 @@ export default function MFASettings({
           </p>
 
           <div>
-            <label htmlFor="disable-verification-code">
+            <label htmlFor={disableVerificationCodeId}>
               Current Verification Code
             </label>
             <input
-              id="disable-verification-code"
+              id={disableVerificationCodeId}
               type="text"
               value={disableVerificationCode}
               onChange={(e) => setDisableVerificationCode(e.target.value)}

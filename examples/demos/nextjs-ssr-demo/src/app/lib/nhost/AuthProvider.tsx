@@ -67,8 +67,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const nhost = useMemo(
     () =>
       createClient({
-        region: process.env.NHOST_REGION || "local",
-        subdomain: process.env.NHOST_SUBDOMAIN || "local",
+        region: process.env["NHOST_REGION"] || "local",
+        subdomain: process.env["NHOST_SUBDOMAIN"] || "local",
         storage: new CookieStorage({
           secure: process.env.NODE_ENV === "production",
           sameSite: "lax",

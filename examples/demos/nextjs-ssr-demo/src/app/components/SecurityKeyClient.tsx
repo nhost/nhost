@@ -2,7 +2,7 @@
 
 import { startRegistration } from "@simplewebauthn/browser";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { useAuth } from "../lib/nhost/AuthProvider";
 import { isWebAuthnSupported } from "../lib/utils";
 
@@ -36,6 +36,7 @@ export default function SecurityKeyClient({
   const [errorMessage, setErrorMessage] = useState<string | null>(serverError);
   const [showAddForm, setShowAddForm] = useState(false);
   const [isWebAuthnAvailable, setIsWebAuthnAvailable] = useState(false);
+  const keyNameId = useId();
 
   // Check WebAuthn support after component mounts to prevent hydration mismatch
   useEffect(() => {
@@ -200,14 +201,14 @@ export default function SecurityKeyClient({
           <form onSubmit={registerNewSecurityKey} className="space-y-4">
             <div>
               <label
-                htmlFor="keyName"
+                htmlFor={keyNameId}
                 className="block mb-2 text-sm font-medium"
               >
                 Security Key Name
               </label>
               <input
                 type="text"
-                id="keyName"
+                id={keyNameId}
                 value={keyName}
                 onChange={(e) => setKeyName(e.target.value)}
                 placeholder="e.g., My YubiKey, Touch ID, Windows Hello"

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { signUp } from "./actions";
 
 interface SignUpFormProps {
@@ -31,18 +31,18 @@ export default function SignUpForm({ initialError }: SignUpFormProps) {
   return (
     <form action={handleSubmit} className="space-y-5">
       <div>
-        <label htmlFor="displayName">Display Name</label>
-        <input id="displayName" name="displayName" type="text" required />
+        <label htmlFor={useId()}>Display Name</label>
+        <input id={useId()} name="displayName" type="text" required />
       </div>
 
       <div>
-        <label htmlFor="email">Email</label>
-        <input id="email" name="email" type="email" required />
+        <label htmlFor={useId()}>Email</label>
+        <input id={useId()} name="email" type="email" required />
       </div>
 
       <div>
-        <label htmlFor="password">Password</label>
-        <input id="password" name="password" type="password" required />
+        <label htmlFor={useId()}>Password</label>
+        <input id={useId()} name="password" type="password" required />
       </div>
 
       {error && (

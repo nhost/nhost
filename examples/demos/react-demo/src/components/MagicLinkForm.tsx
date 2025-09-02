@@ -1,6 +1,6 @@
 import type { ErrorResponse } from "@nhost/nhost-js/auth";
 import type { FetchError } from "@nhost/nhost-js/fetch";
-import React, { type JSX, useState } from "react";
+import React, { type JSX, useId, useState } from "react";
 import { useAuth } from "../lib/nhost/AuthProvider";
 
 interface MagicLinkFormProps {
@@ -15,6 +15,7 @@ export default function MagicLinkForm({
   const [success, setSuccess] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const { nhost } = useAuth();
+  const emailId = useId();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -58,9 +59,9 @@ export default function MagicLinkForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       <div>
-        <label htmlFor="magic-email">Email</label>
+        <label htmlFor={emailId}>Email</label>
         <input
-          id="magic-email"
+          id={emailId}
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}

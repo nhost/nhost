@@ -20,13 +20,13 @@
 </template>
 
 <script setup lang="ts">
+import { type ErrorResponse } from "@nhost/nhost-js/auth";
+import { type FetchError } from "@nhost/nhost-js/fetch";
+import { startAuthentication } from "@simplewebauthn/browser";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAuth } from "../../lib/nhost/auth";
-import { type ErrorResponse } from "@nhost/nhost-js/auth";
-import { type FetchError } from "@nhost/nhost-js/fetch";
 import { isWebAuthnSupported } from "../../lib/utils";
-import { startAuthentication } from "@simplewebauthn/browser";
 
 /**
  * WebAuthnSignInForm provides a passwordless authentication flow using WebAuthn (FIDO2) protocol.
@@ -85,7 +85,7 @@ const startWebAuthnSignIn = async (): Promise<void> => {
       });
 
       // Step 4: Handle authentication result
-      if (verifyResponse.body && verifyResponse.body.session) {
+      if (verifyResponse.body?.session) {
         // Authentication successful, redirect to profile page
         router.push("/profile");
       } else {

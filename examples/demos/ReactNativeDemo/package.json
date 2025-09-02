@@ -6,16 +6,13 @@
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
-    "test": "pnpm test:audit && pnpm test:typecheck && pnpm test:lint && pnpm test:format && echo \"No tests specified\" && exit 0",
+    "test": "pnpm test:typecheck && pnpm test:lint",
     "test:typecheck": "tsc --noEmit",
-    "test:lint": "eslint . && expo lint",
-    "test:format": "prettier --check .",
-    "test:audit": "pnpm audit",
-    "format": "prettier --write .",
+    "test:lint": "biome check",
+    "format": "biome format --write",
     "build": "pnpm expo export -p ios -p android",
     "android": "expo start --android",
-    "ios": "expo start --ios",
-    "lint": "expo lint"
+    "ios": "expo start --ios"
   },
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",
@@ -53,7 +50,9 @@
   },
   "devDependencies": {
     "@babel/core": "^7.27.4",
-    "@types/react": "~19.0.14"
+    "@types/react": "~19.0.14",
+    "eslint": "^9.34.0",
+    "eslint-config-expo": "~9.2.0"
   },
   "private": true
 }

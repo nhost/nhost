@@ -1,7 +1,7 @@
 import type { ErrorResponse } from "@nhost/nhost-js/auth";
 import type { FetchError, FetchResponse } from "@nhost/nhost-js/fetch";
 import { startRegistration } from "@simplewebauthn/browser";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useId, useState } from "react";
 import { useAuth } from "../lib/nhost/AuthProvider";
 import { isWebAuthnSupported } from "../lib/utils";
 
@@ -38,6 +38,7 @@ export default function SecurityKeys() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [isWebAuthnAvailable, setIsWebAuthnAvailable] = useState<boolean>(true);
+  const keyNameId = useId();
 
   /**
    * Fetches all registered WebAuthn security keys for the current user
@@ -255,14 +256,14 @@ export default function SecurityKeys() {
           <form onSubmit={registerNewSecurityKey} className="space-y-4">
             <div>
               <label
-                htmlFor="keyName"
+                htmlFor={keyNameId}
                 className="block mb-2 text-sm font-medium"
               >
                 Security Key Name
               </label>
               <input
                 type="text"
-                id="keyName"
+                id={keyNameId}
                 value={keyName}
                 onChange={(e) => setKeyName(e.target.value)}
                 placeholder="e.g., My YubiKey, Touch ID, Windows Hello"

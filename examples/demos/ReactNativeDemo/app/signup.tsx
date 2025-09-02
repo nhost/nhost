@@ -29,7 +29,7 @@ export default function SignUp() {
     "password" | "magic" | "social" | "native"
   >("password");
 
-  const magicLinkSent = params.magic === "success";
+  const magicLinkSent = params["magic"] === "success";
 
   // If already authenticated, redirect to profile
   useEffect(() => {

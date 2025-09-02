@@ -13,6 +13,7 @@ let
       ".prettierignore"
       ".prettierrc.js"
       "audit-ci.jsonc"
+      "biome.json"
       "pnpm-workspace.yaml"
       "pnpm-lock.yaml"
       "turbo.json"

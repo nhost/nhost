@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { verifyMfa } from "../actions";
 
 interface MfaVerificationFormProps {
@@ -40,9 +40,9 @@ export default function MfaVerificationForm({
       <input type="hidden" name="ticket" value={ticket} />
 
       <div>
-        <label htmlFor="otp">Verification Code</label>
+        <label htmlFor={useId()}>Verification Code</label>
         <input
-          id="otp"
+          id={useId()}
           name="otp"
           type="text"
           placeholder="Enter 6-digit code"

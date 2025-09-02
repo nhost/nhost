@@ -1,6 +1,6 @@
 import type { ErrorResponse } from "@nhost/nhost-js/auth";
 import type { FetchError } from "@nhost/nhost-js/fetch";
-import React, { type JSX, useEffect, useState } from "react";
+import React, { type JSX, useEffect, useId, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../lib/nhost/AuthProvider";
 
@@ -21,6 +21,7 @@ export default function MfaVerification(): JSX.Element {
   const [otp, setOtp] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(initialError);
+  const otpId = useId();
 
   // Use effect to handle redirects
   useEffect(() => {
@@ -99,9 +100,9 @@ export default function MfaVerification(): JSX.Element {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label htmlFor="otp">Verification Code</label>
+              <label htmlFor={otpId}>Verification Code</label>
               <input
-                id="otp"
+                id={otpId}
                 name="otp"
                 type="text"
                 placeholder="Enter 6-digit code"

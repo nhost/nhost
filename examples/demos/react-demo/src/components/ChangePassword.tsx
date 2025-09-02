@@ -1,6 +1,6 @@
 import type { ErrorResponse } from "@nhost/nhost-js/auth";
 import type { FetchError } from "@nhost/nhost-js/fetch";
-import { type JSX, useState } from "react";
+import { type JSX, useId, useState } from "react";
 import { useAuth } from "../lib/nhost/AuthProvider";
 
 export default function ChangePassword(): JSX.Element {
@@ -10,6 +10,8 @@ export default function ChangePassword(): JSX.Element {
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<boolean>(false);
   const { nhost } = useAuth();
+  const newPasswordId = useId();
+  const confirmPasswordId = useId();
 
   const handleSubmit = async (
     e: React.FormEvent<HTMLFormElement>,
@@ -66,13 +68,13 @@ export default function ChangePassword(): JSX.Element {
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
           <label
-            htmlFor="new-password"
+            htmlFor={newPasswordId}
             className="block text-sm font-medium mb-1"
           >
             New Password
           </label>
           <input
-            id="new-password"
+            id={newPasswordId}
             type="password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
@@ -85,13 +87,13 @@ export default function ChangePassword(): JSX.Element {
 
         <div className="mb-6">
           <label
-            htmlFor="confirm-password"
+            htmlFor={confirmPasswordId}
             className="block text-sm font-medium mb-1"
           >
             Confirm Password
           </label>
           <input
-            id="confirm-password"
+            id={confirmPasswordId}
             type="password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}

@@ -92,14 +92,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
-import { useRouter } from "vue-router";
-import TabForm from "../components/forms/TabForm.vue";
-import MagicLinkForm from "../components/forms/MagicLinkForm.vue";
-import WebAuthnSignUpForm from "../components/forms/WebAuthnSignUpForm.vue";
-import { useAuth } from "../lib/nhost/auth";
 import { type ErrorResponse } from "@nhost/nhost-js/auth";
 import { type FetchError } from "@nhost/nhost-js/fetch";
+import { onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
+import MagicLinkForm from "../components/forms/MagicLinkForm.vue";
+import TabForm from "../components/forms/TabForm.vue";
+import WebAuthnSignUpForm from "../components/forms/WebAuthnSignUpForm.vue";
+import { useAuth } from "../lib/nhost/auth";
 
 const { nhost, isAuthenticated } = useAuth();
 const router = useRouter();

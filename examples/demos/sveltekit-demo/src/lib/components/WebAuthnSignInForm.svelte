@@ -1,10 +1,10 @@
 <script lang="ts">
-import { goto } from "$app/navigation";
-import { nhost } from "$lib/nhost/auth";
-import { isWebAuthnSupported } from "$lib/utils";
 import type { ErrorResponse } from "@nhost/nhost-js/auth";
 import type { FetchError } from "@nhost/nhost-js/fetch";
 import { startAuthentication } from "@simplewebauthn/browser";
+import { goto } from "$app/navigation";
+import { nhost } from "$lib/nhost/auth";
+import { isWebAuthnSupported } from "$lib/utils";
 
 let isLoading = false;
 let error: string | null = null;
@@ -56,7 +56,7 @@ async function startWebAuthnSignIn(e: Event) {
       });
 
       // Step 4: Handle authentication result
-      if (verifyResponse.body && verifyResponse.body.session) {
+      if (verifyResponse.body?.session) {
         // Authentication successful, redirect to profile page
         void goto("/profile");
       } else {

@@ -6,11 +6,10 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "test": "pnpm test:typecheck && pnpm test:lint && pnpm test:format && echo \"No tests specified\" && exit 0",
+    "test": "pnpm test:typecheck && pnpm test:lint",
     "test:typecheck": "tsc --noEmit",
-    "test:lint": "eslint .",
-    "test:format": "prettier --check .",
-    "format": "prettier --write ."
+    "test:lint": "biome check",
+    "format": "biome format --write"
   },
   "dependencies": {
     "@nhost/nhost-js": "workspace:*",

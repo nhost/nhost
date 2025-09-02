@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useAuth } from "../lib/nhost/AuthProvider";
 
 interface MFASettingsProps {
@@ -24,6 +24,9 @@ export default function MFASettings({ initialMfaEnabled }: MFASettingsProps) {
   // Disabling MFA states
   const [isDisablingMfa, setIsDisablingMfa] = useState(false);
   const [disableVerificationCode, setDisableVerificationCode] = useState("");
+
+  const verificationCodeId = useId();
+  const disableVerificationCodeId = useId();
 
   // Begin MFA setup process
   const handleEnableMfa = async () => {
@@ -172,9 +175,9 @@ export default function MFASettings({ initialMfaEnabled }: MFASettingsProps) {
           </div>
 
           <div>
-            <label htmlFor="verification-code">Verification Code</label>
+            <label htmlFor={verificationCodeId}>Verification Code</label>
             <input
-              id="verification-code"
+              id={verificationCodeId}
               type="text"
               value={verificationCode}
               onChange={(e) => setVerificationCode(e.target.value)}
@@ -212,11 +215,11 @@ export default function MFASettings({ initialMfaEnabled }: MFASettingsProps) {
           </p>
 
           <div>
-            <label htmlFor="disable-verification-code">
+            <label htmlFor={disableVerificationCodeId}>
               Current Verification Code
             </label>
             <input
-              id="disable-verification-code"
+              id={disableVerificationCodeId}
               type="text"
               value={disableVerificationCode}
               onChange={(e) => setDisableVerificationCode(e.target.value)}

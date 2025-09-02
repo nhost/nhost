@@ -53,13 +53,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
-import { useAuth } from "../lib/nhost/auth";
-import MFASettings from "../components/profile/MFASettings.vue";
-import ChangePassword from "../components/profile/ChangePassword.vue";
-import SecurityKeys from "../components/profile/SecurityKeys.vue";
 import type { ErrorResponse } from "@nhost/nhost-js/auth";
 import type { FetchError, FetchResponse } from "@nhost/nhost-js/fetch";
+import { onMounted, ref } from "vue";
+import ChangePassword from "../components/profile/ChangePassword.vue";
+import MFASettings from "../components/profile/MFASettings.vue";
+import SecurityKeys from "../components/profile/SecurityKeys.vue";
+import { useAuth } from "../lib/nhost/auth";
 
 interface MfaStatusResponse {
   data?: {

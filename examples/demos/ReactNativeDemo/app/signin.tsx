@@ -27,7 +27,7 @@ export default function SignIn() {
     "password" | "magic" | "social" | "native"
   >("password");
 
-  const magicLinkSent = params.magic === "success";
+  const magicLinkSent = params["magic"] === "success";
 
   // If already authenticated, redirect to profile
   React.useEffect(() => {

@@ -1,6 +1,6 @@
 import type { ErrorResponse } from "@nhost/nhost-js/auth";
 import type { FetchError } from "@nhost/nhost-js/fetch";
-import { type JSX, useEffect, useState } from "react";
+import { type JSX, useEffect, useId, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import MagicLinkForm from "../components/MagicLinkForm";
 import TabForm from "../components/TabForm";
@@ -19,6 +19,8 @@ export default function SignIn(): JSX.Element {
   const [error, setError] = useState<string | null>(
     params.get("error") || null,
   );
+  const emailId = useId();
+  const passwordId = useId();
 
   const magicLinkSent = params.get("magic") === "success";
   const isVerifying = params.has("fromVerify");
@@ -96,9 +98,9 @@ export default function SignIn(): JSX.Element {
             passwordTabContent={
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
-                  <label htmlFor="email">Email</label>
+                  <label htmlFor={emailId}>Email</label>
                   <input
-                    id="email"
+                    id={emailId}
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -107,9 +109,9 @@ export default function SignIn(): JSX.Element {
                 </div>
 
                 <div>
-                  <label htmlFor="password">Password</label>
+                  <label htmlFor={passwordId}>Password</label>
                   <input
-                    id="password"
+                    id={passwordId}
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}

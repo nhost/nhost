@@ -53,15 +53,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
-import { useAuth } from "../../lib/nhost/auth";
 import {
   type ErrorResponse,
   type PublicKeyCredentialCreationOptions,
 } from "@nhost/nhost-js/auth";
 import { type FetchError } from "@nhost/nhost-js/fetch";
-import { isWebAuthnSupported } from "../../lib/utils";
 import { startRegistration } from "@simplewebauthn/browser";
+import { ref } from "vue";
+import { useAuth } from "../../lib/nhost/auth";
+import { isWebAuthnSupported } from "../../lib/utils";
 
 /**
  * WebAuthn Registration (Sign Up) Flow
@@ -101,6 +101,7 @@ const displayName = ref(props.displayName);
 
 // Watch for changes and emit updates
 import { watch } from "vue";
+
 watch(email, (newValue) => {
   emit("update:email", newValue);
 });
@@ -200,7 +201,7 @@ const startWebAuthnRegistration = async (): Promise<void> => {
       });
 
       // Step 4: Handle registration success
-      if (verifyResponse.body && verifyResponse.body.session) {
+      if (verifyResponse.body?.session) {
         // Success! User is now registered and authenticated
         // At this point:
         // - The user account has been created in the system
@@ -208,7 +209,7 @@ const startWebAuthnRegistration = async (): Promise<void> => {
         // - The private key remains securely on the user's device
         // - A session has been established
         window.location.href =
-          props.redirectTo || window.location.origin + "/profile";
+          props.redirectTo || `${window.location.origin}/profile`;
       }
     } catch (credError) {
       error.value = `WebAuthn registration failed: ${(credError as Error).message || "Unknown error"}`;
