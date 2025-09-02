@@ -1,7 +1,7 @@
-import { useState, useEffect, type JSX } from "react";
+import type { ErrorResponse } from "@nhost/nhost-js/auth";
+import type { FetchError } from "@nhost/nhost-js/fetch";
+import { type JSX, useEffect, useState } from "react";
 import { useAuth } from "../lib/nhost/AuthProvider";
-import { type ErrorResponse } from "@nhost/nhost-js/auth";
-import { type FetchError } from "@nhost/nhost-js/fetch";
 
 interface MFASettingsProps {
   initialMfaEnabled: boolean;
@@ -183,6 +183,7 @@ export default function MFASettings({
 
           <div className="flex space-x-3">
             <button
+              type="button"
               onClick={handleVerifyTotp}
               disabled={isLoading || !verificationCode}
               className="btn btn-primary"
@@ -191,6 +192,7 @@ export default function MFASettings({
             </button>
 
             <button
+              type="button"
               onClick={handleCancelMfaSetup}
               disabled={isLoading}
               className="btn btn-secondary"
@@ -223,6 +225,7 @@ export default function MFASettings({
 
           <div className="flex space-x-3">
             <button
+              type="button"
               onClick={handleDisableMfa}
               disabled={isLoading || !disableVerificationCode}
               className="btn btn-primary"
@@ -231,6 +234,7 @@ export default function MFASettings({
             </button>
 
             <button
+              type="button"
               onClick={handleCancelMfaDisable}
               disabled={isLoading}
               className="btn btn-secondary"
@@ -258,6 +262,7 @@ export default function MFASettings({
 
           {isMfaEnabled ? (
             <button
+              type="button"
               onClick={handleShowDisableMfa}
               disabled={isLoading}
               className="btn btn-secondary"
@@ -266,6 +271,7 @@ export default function MFASettings({
             </button>
           ) : (
             <button
+              type="button"
               onClick={handleEnableMfa}
               disabled={isLoading}
               className="btn btn-primary"

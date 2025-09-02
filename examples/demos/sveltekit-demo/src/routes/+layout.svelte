@@ -1,30 +1,30 @@
 <script lang="ts">
-  import { onMount } from "svelte";
-  import { page } from "$app/stores";
-  import { goto } from "$app/navigation";
-  import { initializeAuth, auth, nhost } from "$lib/nhost/auth";
-  import "../app.css";
+import { onMount } from "svelte";
+import { page } from "$app/stores";
+import { goto } from "$app/navigation";
+import { initializeAuth, auth, nhost } from "$lib/nhost/auth";
+import "../app.css";
 
-  let { children }: { children?: import("svelte").Snippet } = $props();
+let { children }: { children?: import("svelte").Snippet } = $props();
 
-  // Initialize auth when component mounts
-  onMount(() => {
-    return initializeAuth();
-  });
+// Initialize auth when component mounts
+onMount(() => {
+  return initializeAuth();
+});
 
-  // Helper function to determine if a link is active
-  function isActive(path: string): string {
-    return $page.url.pathname === path ? "active" : "";
+// Helper function to determine if a link is active
+function isActive(path: string): string {
+  return $page.url.pathname === path ? "active" : "";
+}
+
+async function handleSignOut() {
+  if ($auth.session) {
+    await nhost.auth.signOut({
+      refreshToken: $auth.session.refreshToken,
+    });
+    void goto("/");
   }
-
-  async function handleSignOut() {
-    if ($auth.session) {
-      await nhost.auth.signOut({
-        refreshToken: $auth.session.refreshToken,
-      });
-      void goto("/");
-    }
-  }
+}
 </script>
 
 <div class="flex-col min-h-screen">

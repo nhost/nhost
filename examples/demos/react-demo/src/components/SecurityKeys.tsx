@@ -1,9 +1,9 @@
-import { useEffect, useState, useCallback } from "react";
-import { useAuth } from "../lib/nhost/AuthProvider";
-import type { FetchError, FetchResponse } from "@nhost/nhost-js/fetch";
 import type { ErrorResponse } from "@nhost/nhost-js/auth";
-import { isWebAuthnSupported } from "../lib/utils";
+import type { FetchError, FetchResponse } from "@nhost/nhost-js/fetch";
 import { startRegistration } from "@simplewebauthn/browser";
+import { useCallback, useEffect, useState } from "react";
+import { useAuth } from "../lib/nhost/AuthProvider";
+import { isWebAuthnSupported } from "../lib/utils";
 
 /**
  * Represents a WebAuthn security key stored for a user
@@ -283,6 +283,8 @@ export default function SecurityKeys() {
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
                       viewBox="0 0 24 24"
+                      role="img"
+                      aria-label="Registering security key"
                     >
                       <circle
                         className="opacity-25"
@@ -343,6 +345,7 @@ export default function SecurityKeys() {
                       </span>
                     </div>
                     <button
+                      type="button"
                       onClick={() => deleteSecurityKey(key.id)}
                       disabled={isDeleting && deletingKeyId === key.id}
                       className="action-icon action-icon-delete"
@@ -356,6 +359,8 @@ export default function SecurityKeys() {
                           strokeWidth="2"
                           strokeLinecap="round"
                           strokeLinejoin="round"
+                          role="img"
+                          aria-label="Loading"
                         >
                           <circle cx="12" cy="12" r="10" />
                           <path d="M12 6v6" />
@@ -368,6 +373,8 @@ export default function SecurityKeys() {
                           strokeWidth="2"
                           strokeLinecap="round"
                           strokeLinejoin="round"
+                          role="img"
+                          aria-label="Delete"
                         >
                           <path d="M3 6h18" />
                           <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
@@ -382,6 +389,7 @@ export default function SecurityKeys() {
           )}
 
           <button
+            type="button"
             onClick={toggleAddForm}
             disabled={!isWebAuthnAvailable}
             className="btn btn-primary"

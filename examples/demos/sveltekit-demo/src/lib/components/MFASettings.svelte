@@ -1,136 +1,136 @@
 <script lang="ts">
-  import { nhost } from "$lib/nhost/auth";
-  import type { ErrorResponse } from "@nhost/nhost-js/auth";
-  import type { FetchError } from "@nhost/nhost-js/fetch";
+import { nhost } from "$lib/nhost/auth";
+import type { ErrorResponse } from "@nhost/nhost-js/auth";
+import type { FetchError } from "@nhost/nhost-js/fetch";
 
-  interface Props {
-    initialMfaEnabled: boolean;
+interface Props {
+  initialMfaEnabled: boolean;
+}
+
+let { initialMfaEnabled }: Props = $props();
+
+let isMfaEnabled = $state(initialMfaEnabled);
+let isLoading = $state(false);
+let error: string | null = $state(null);
+let success: string | null = $state(null);
+
+// MFA setup states
+let isSettingUpMfa = $state(false);
+let totpSecret = $state("");
+let qrCodeUrl = $state("");
+let verificationCode = $state("");
+
+// Disabling MFA states
+let isDisablingMfa = $state(false);
+let disableVerificationCode = $state("");
+
+// Update internal state when prop changes
+$effect(() => {
+  if (initialMfaEnabled !== isMfaEnabled) {
+    isMfaEnabled = initialMfaEnabled;
+  }
+});
+
+// Begin MFA setup process
+async function handleEnableMfa() {
+  isLoading = true;
+  error = null;
+  success = null;
+
+  try {
+    // Generate TOTP secret
+    const response = await nhost.auth.changeUserMfa();
+    totpSecret = response.body.totpSecret;
+    qrCodeUrl = response.body.imageUrl;
+    isSettingUpMfa = true;
+  } catch (err) {
+    const fetchError = err as FetchError<ErrorResponse>;
+    error = `An error occurred while enabling MFA: ${fetchError.message}`;
+  } finally {
+    isLoading = false;
+  }
+}
+
+// Verify TOTP and enable MFA
+async function handleVerifyTotp() {
+  if (!verificationCode) {
+    error = "Please enter the verification code";
+    return;
   }
 
-  let { initialMfaEnabled }: Props = $props();
+  isLoading = true;
+  error = null;
+  success = null;
 
-  let isMfaEnabled = $state(initialMfaEnabled);
-  let isLoading = $state(false);
-  let error: string | null = $state(null);
-  let success: string | null = $state(null);
+  try {
+    // Verify and activate MFA
+    await nhost.auth.verifyChangeUserMfa({
+      activeMfaType: "totp",
+      code: verificationCode,
+    });
 
-  // MFA setup states
-  let isSettingUpMfa = $state(false);
-  let totpSecret = $state("");
-  let qrCodeUrl = $state("");
-  let verificationCode = $state("");
-
-  // Disabling MFA states
-  let isDisablingMfa = $state(false);
-  let disableVerificationCode = $state("");
-
-  // Update internal state when prop changes
-  $effect(() => {
-    if (initialMfaEnabled !== isMfaEnabled) {
-      isMfaEnabled = initialMfaEnabled;
-    }
-  });
-
-  // Begin MFA setup process
-  async function handleEnableMfa() {
-    isLoading = true;
-    error = null;
-    success = null;
-
-    try {
-      // Generate TOTP secret
-      const response = await nhost.auth.changeUserMfa();
-      totpSecret = response.body.totpSecret;
-      qrCodeUrl = response.body.imageUrl;
-      isSettingUpMfa = true;
-    } catch (err) {
-      const fetchError = err as FetchError<ErrorResponse>;
-      error = `An error occurred while enabling MFA: ${fetchError.message}`;
-    } finally {
-      isLoading = false;
-    }
-  }
-
-  // Verify TOTP and enable MFA
-  async function handleVerifyTotp() {
-    if (!verificationCode) {
-      error = "Please enter the verification code";
-      return;
-    }
-
-    isLoading = true;
-    error = null;
-    success = null;
-
-    try {
-      // Verify and activate MFA
-      await nhost.auth.verifyChangeUserMfa({
-        activeMfaType: "totp",
-        code: verificationCode,
-      });
-
-      isMfaEnabled = true;
-      isSettingUpMfa = false;
-      success = "MFA has been successfully enabled.";
-    } catch (err) {
-      const fetchError = err as FetchError<ErrorResponse>;
-      error = `An error occurred while verifying the code: ${fetchError.message}`;
-    } finally {
-      isLoading = false;
-    }
-  }
-
-  // Show disable MFA confirmation
-  function handleShowDisableMfa() {
-    isDisablingMfa = true;
-    error = null;
-    success = null;
-  }
-
-  // Disable MFA
-  async function handleDisableMfa() {
-    if (!disableVerificationCode) {
-      error = "Please enter your verification code to confirm";
-      return;
-    }
-
-    isLoading = true;
-    error = null;
-    success = null;
-
-    try {
-      // Disable MFA by setting activeMfaType to empty string
-      await nhost.auth.verifyChangeUserMfa({
-        activeMfaType: "",
-        code: disableVerificationCode,
-      });
-
-      isMfaEnabled = false;
-      isDisablingMfa = false;
-      disableVerificationCode = "";
-      success = "MFA has been successfully disabled.";
-    } catch (err) {
-      const fetchError = err as FetchError<ErrorResponse>;
-      error = `An error occurred while disabling MFA: ${fetchError.message}`;
-    } finally {
-      isLoading = false;
-    }
-  }
-
-  // Cancel MFA setup
-  function handleCancelMfaSetup() {
+    isMfaEnabled = true;
     isSettingUpMfa = false;
-    totpSecret = "";
-    qrCodeUrl = "";
-    verificationCode = "";
+    success = "MFA has been successfully enabled.";
+  } catch (err) {
+    const fetchError = err as FetchError<ErrorResponse>;
+    error = `An error occurred while verifying the code: ${fetchError.message}`;
+  } finally {
+    isLoading = false;
+  }
+}
+
+// Show disable MFA confirmation
+function handleShowDisableMfa() {
+  isDisablingMfa = true;
+  error = null;
+  success = null;
+}
+
+// Disable MFA
+async function handleDisableMfa() {
+  if (!disableVerificationCode) {
+    error = "Please enter your verification code to confirm";
+    return;
   }
 
-  // Cancel MFA disable
-  function handleCancelMfaDisable() {
+  isLoading = true;
+  error = null;
+  success = null;
+
+  try {
+    // Disable MFA by setting activeMfaType to empty string
+    await nhost.auth.verifyChangeUserMfa({
+      activeMfaType: "",
+      code: disableVerificationCode,
+    });
+
+    isMfaEnabled = false;
     isDisablingMfa = false;
     disableVerificationCode = "";
-    error = null;
+    success = "MFA has been successfully disabled.";
+  } catch (err) {
+    const fetchError = err as FetchError<ErrorResponse>;
+    error = `An error occurred while disabling MFA: ${fetchError.message}`;
+  } finally {
+    isLoading = false;
   }
+}
+
+// Cancel MFA setup
+function handleCancelMfaSetup() {
+  isSettingUpMfa = false;
+  totpSecret = "";
+  qrCodeUrl = "";
+  verificationCode = "";
+}
+
+// Cancel MFA disable
+function handleCancelMfaDisable() {
+  isDisablingMfa = false;
+  disableVerificationCode = "";
+  error = null;
+}
 </script>
 
 <div class="glass-card p-8 mb-6">

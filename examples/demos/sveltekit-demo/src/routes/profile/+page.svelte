@@ -1,58 +1,58 @@
 <script lang="ts">
-  import { goto } from "$app/navigation";
-  import { auth, nhost } from "$lib/nhost/auth";
-  import { onMount } from "svelte";
-  import type { ErrorResponse } from "@nhost/nhost-js/auth";
-  import type { FetchError, FetchResponse } from "@nhost/nhost-js/fetch";
-  import MFASettings from "$lib/components/MFASettings.svelte";
-  import ChangePassword from "$lib/components/ChangePassword.svelte";
-  import SecurityKeys from "$lib/components/SecurityKeys.svelte";
+import { goto } from "$app/navigation";
+import { auth, nhost } from "$lib/nhost/auth";
+import { onMount } from "svelte";
+import type { ErrorResponse } from "@nhost/nhost-js/auth";
+import type { FetchError, FetchResponse } from "@nhost/nhost-js/fetch";
+import MFASettings from "$lib/components/MFASettings.svelte";
+import ChangePassword from "$lib/components/ChangePassword.svelte";
+import SecurityKeys from "$lib/components/SecurityKeys.svelte";
 
-  interface MfaStatusResponse {
-    data?: {
-      user?: {
-        activeMfaType: string | null;
-      };
+interface MfaStatusResponse {
+  data?: {
+    user?: {
+      activeMfaType: string | null;
     };
+  };
+}
+
+let isMfaEnabled = $state(false);
+
+// Redirect if not authenticated
+$effect(() => {
+  if (!$auth.isLoading && !$auth.isAuthenticated) {
+    void goto("/signin");
   }
+});
 
-  let isMfaEnabled = $state(false);
+// Fetch MFA status when user is authenticated
+onMount(async () => {
+  if (!$auth.user?.id) return;
 
-  // Redirect if not authenticated
-  $effect(() => {
-    if (!$auth.isLoading && !$auth.isAuthenticated) {
-      void goto("/signin");
-    }
-  });
-
-  // Fetch MFA status when user is authenticated
-  onMount(async () => {
-    if (!$auth.user?.id) return;
-
-    try {
-      // Correctly structure GraphQL query with parameters
-      const response: FetchResponse<MfaStatusResponse> =
-        await nhost.graphql.request({
-          query: `
+  try {
+    // Correctly structure GraphQL query with parameters
+    const response: FetchResponse<MfaStatusResponse> =
+      await nhost.graphql.request({
+        query: `
             query GetUserMfaStatus($userId: uuid!) {
               user(id: $userId) {
                 activeMfaType
               }
             }
           `,
-          variables: {
-            userId: $auth.user.id,
-          },
-        });
+        variables: {
+          userId: $auth.user.id,
+        },
+      });
 
-      const userData = response.body?.data;
-      const activeMfaType = userData?.user?.activeMfaType;
-      isMfaEnabled = activeMfaType === "totp";
-    } catch (err) {
-      const error = err as FetchError<ErrorResponse>;
-      console.error(`Failed to query MFA status: ${error.message}`);
-    }
-  });
+    const userData = response.body?.data;
+    const activeMfaType = userData?.user?.activeMfaType;
+    isMfaEnabled = activeMfaType === "totp";
+  } catch (err) {
+    const error = err as FetchError<ErrorResponse>;
+    console.error(`Failed to query MFA status: ${error.message}`);
+  }
+});
 </script>
 
 {#if $auth.isLoading}

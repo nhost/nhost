@@ -1,8 +1,8 @@
+import type { ErrorResponse } from "@nhost/nhost-js/auth";
+import type { FetchError } from "@nhost/nhost-js/fetch";
 import { type JSX, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/nhost/AuthProvider";
-import type { ErrorResponse } from "@nhost/nhost-js/auth";
-import { type FetchError } from "@nhost/nhost-js/fetch";
 
 export default function Verify(): JSX.Element {
   const location = useLocation();
@@ -128,6 +128,7 @@ export default function Verify(): JSX.Element {
               )}
 
               <button
+                type="button"
                 onClick={() => navigate("/signin")}
                 className="btn btn-primary"
               >

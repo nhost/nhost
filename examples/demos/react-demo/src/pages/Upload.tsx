@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef, useCallback, type JSX } from "react";
+import type { FetchError } from "@nhost/nhost-js/fetch";
+import type { ErrorResponse, FileMetadata } from "@nhost/nhost-js/storage";
+import { type JSX, useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "../lib/nhost/AuthProvider";
 import { formatFileSize } from "../lib/utils";
-import type { FileMetadata, ErrorResponse } from "@nhost/nhost-js/storage";
-import { type FetchError } from "@nhost/nhost-js/fetch";
 
 interface DeleteStatus {
   message: string;
@@ -58,7 +58,7 @@ export default function Upload(): JSX.Element {
     } finally {
       setIsFetching(false);
     }
-  }, [nhost.graphql, setFiles, setError, setIsFetching]);
+  }, [nhost.graphql]);
 
   // Fetch existing files when component mounts
   useEffect(() => {
@@ -99,7 +99,7 @@ export default function Upload(): JSX.Element {
 
       // Get the processed file data
       const uploadedFile = response.body.processedFiles?.[0];
-      if (uploadedFile == undefined) {
+      if (uploadedFile === undefined) {
         throw new Error("Failed to upload file");
       }
       setUploadResult(uploadedFile);
@@ -261,7 +261,8 @@ export default function Upload(): JSX.Element {
             aria-hidden="true"
             tabIndex={-1}
           />
-          <div
+          <button
+            type="button"
             className="file-upload"
             onClick={() => fileInputRef.current?.click()}
           >
@@ -272,6 +273,8 @@ export default function Upload(): JSX.Element {
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
+              role="img"
+              aria-label="Upload file"
             >
               <path
                 strokeLinecap="round"
@@ -292,7 +295,7 @@ export default function Upload(): JSX.Element {
                 {selectedFile.name} ({formatFileSize(selectedFile.size)})
               </p>
             )}
-          </div>
+          </button>
         </div>
 
         {error && <div className="alert alert-error">{error}</div>}
@@ -302,6 +305,7 @@ export default function Upload(): JSX.Element {
         )}
 
         <button
+          type="button"
           onClick={handleUpload}
           disabled={!selectedFile || uploading}
           className="btn btn-primary w-full"
@@ -346,6 +350,7 @@ export default function Upload(): JSX.Element {
                     <td>
                       <div className="table-actions">
                         <button
+                          type="button"
                           onClick={() =>
                             handleViewFile(
                               file.id || "unknown",
@@ -365,6 +370,8 @@ export default function Upload(): JSX.Element {
                               strokeWidth="2"
                               strokeLinecap="round"
                               strokeLinejoin="round"
+                              role="img"
+                              aria-label="Loading"
                             >
                               <circle cx="12" cy="12" r="10" />
                               <path d="M12 6v6" />
@@ -377,6 +384,8 @@ export default function Upload(): JSX.Element {
                               strokeWidth="2"
                               strokeLinecap="round"
                               strokeLinejoin="round"
+                              role="img"
+                              aria-label="View file"
                             >
                               <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                               <circle cx="12" cy="12" r="3" />
@@ -384,6 +393,7 @@ export default function Upload(): JSX.Element {
                           )}
                         </button>
                         <button
+                          type="button"
                           onClick={() => handleDeleteFile(file.id || "unknown")}
                           disabled={deleting === file.id}
                           className="action-icon action-icon-delete"
@@ -397,6 +407,8 @@ export default function Upload(): JSX.Element {
                               strokeWidth="2"
                               strokeLinecap="round"
                               strokeLinejoin="round"
+                              role="img"
+                              aria-label="Deleting"
                             >
                               <circle cx="12" cy="12" r="10" />
                               <path d="M12 6v6" />
@@ -409,6 +421,8 @@ export default function Upload(): JSX.Element {
                               strokeWidth="2"
                               strokeLinecap="round"
                               strokeLinejoin="round"
+                              role="img"
+                              aria-label="Delete file"
                             >
                               <path d="M3 6h18" />
                               <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />

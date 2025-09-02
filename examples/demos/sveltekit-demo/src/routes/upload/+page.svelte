@@ -1,58 +1,58 @@
 <script lang="ts">
-  import { onMount } from "svelte";
-  import { goto } from "$app/navigation";
-  import { auth, nhost } from "$lib/nhost/auth";
-  import { formatFileSize } from "$lib/utils";
-  import type { FileMetadata, ErrorResponse } from "@nhost/nhost-js/storage";
-  import type { FetchError } from "@nhost/nhost-js/fetch";
+import { onMount } from "svelte";
+import { goto } from "$app/navigation";
+import { auth, nhost } from "$lib/nhost/auth";
+import { formatFileSize } from "$lib/utils";
+import type { FileMetadata, ErrorResponse } from "@nhost/nhost-js/storage";
+import type { FetchError } from "@nhost/nhost-js/fetch";
 
-  interface DeleteStatus {
-    message: string;
-    isError: boolean;
+interface DeleteStatus {
+  message: string;
+  isError: boolean;
+}
+
+interface GraphqlGetFilesResponse {
+  files: FileMetadata[];
+}
+
+let fileInputRef = $state<HTMLInputElement>();
+let selectedFile: File | null = $state(null);
+let uploading = $state(false);
+let uploadResult: FileMetadata | null = $state(null);
+let isFetching = $state(false);
+let error: string | null = $state(null);
+let files = $state<FileMetadata[]>([]);
+let viewingFile: string | null = $state(null);
+let deleting: string | null = $state(null);
+let deleteStatus: DeleteStatus | null = $state(null);
+
+// Redirect if not authenticated
+$effect(() => {
+  if (!$auth.isLoading && !$auth.isAuthenticated) {
+    void goto("/signin");
   }
+});
 
-  interface GraphqlGetFilesResponse {
-    files: FileMetadata[];
+// Load files when authentication is resolved
+$effect(() => {
+  if (
+    !$auth.isLoading &&
+    $auth.isAuthenticated &&
+    files.length === 0 &&
+    !isFetching
+  ) {
+    void fetchFiles();
   }
+});
 
-  let fileInputRef = $state<HTMLInputElement>();
-  let selectedFile: File | null = $state(null);
-  let uploading = $state(false);
-  let uploadResult: FileMetadata | null = $state(null);
-  let isFetching = $state(false);
-  let error: string | null = $state(null);
-  let files = $state<FileMetadata[]>([]);
-  let viewingFile: string | null = $state(null);
-  let deleting: string | null = $state(null);
-  let deleteStatus: DeleteStatus | null = $state(null);
+async function fetchFiles() {
+  isFetching = true;
+  error = null;
 
-  // Redirect if not authenticated
-  $effect(() => {
-    if (!$auth.isLoading && !$auth.isAuthenticated) {
-      void goto("/signin");
-    }
-  });
-
-  // Load files when authentication is resolved
-  $effect(() => {
-    if (
-      !$auth.isLoading &&
-      $auth.isAuthenticated &&
-      files.length === 0 &&
-      !isFetching
-    ) {
-      void fetchFiles();
-    }
-  });
-
-  async function fetchFiles() {
-    isFetching = true;
-    error = null;
-
-    try {
-      // Fetch files using GraphQL query
-      const response = await nhost.graphql.request<GraphqlGetFilesResponse>({
-        query: `query GetFiles {
+  try {
+    // Fetch files using GraphQL query
+    const response = await nhost.graphql.request<GraphqlGetFilesResponse>({
+      query: `query GetFiles {
             files {
               id
               name
@@ -62,126 +62,126 @@
               uploadedByUserId
             }
           }`,
-      });
+    });
 
-      if (response.body.errors) {
-        throw new Error(
-          response.body.errors[0]?.message || "Failed to fetch files",
-        );
-      }
+    if (response.body.errors) {
+      throw new Error(
+        response.body.errors[0]?.message || "Failed to fetch files",
+      );
+    }
 
-      files = response.body.data?.files || [];
-    } catch (err) {
-      console.error("Error fetching files:", err);
-      error = "Failed to load files. Please try refreshing the page.";
-    } finally {
-      isFetching = false;
+    files = response.body.data?.files || [];
+  } catch (err) {
+    console.error("Error fetching files:", err);
+    error = "Failed to load files. Please try refreshing the page.";
+  } finally {
+    isFetching = false;
+  }
+}
+
+// Fetch existing files when component mounts
+onMount(() => {
+  if ($auth.isAuthenticated) {
+    void fetchFiles();
+  }
+});
+
+function handleFileChange(e: Event) {
+  const target = e.target as HTMLInputElement;
+  if (target.files && target.files.length > 0) {
+    const file = target.files[0];
+    if (file) {
+      selectedFile = file;
+      error = null;
+      uploadResult = null;
     }
   }
+}
 
-  // Fetch existing files when component mounts
-  onMount(() => {
-    if ($auth.isAuthenticated) {
-      void fetchFiles();
-    }
-  });
-
-  function handleFileChange(e: Event) {
-    const target = e.target as HTMLInputElement;
-    if (target.files && target.files.length > 0) {
-      const file = target.files[0];
-      if (file) {
-        selectedFile = file;
-        error = null;
-        uploadResult = null;
-      }
-    }
+async function handleUpload() {
+  if (!selectedFile) {
+    error = "Please select a file to upload";
+    return;
   }
 
-  async function handleUpload() {
-    if (!selectedFile) {
-      error = "Please select a file to upload";
-      return;
+  uploading = true;
+  error = null;
+
+  try {
+    // Upload file using Nhost storage
+    const response = await nhost.storage.uploadFiles({
+      "bucket-id": "default",
+      "file[]": [selectedFile],
+    });
+
+    // Get the processed file data
+    const uploadedFile = response.body.processedFiles?.[0];
+    if (uploadedFile == undefined) {
+      throw new Error("Failed to upload file");
+    }
+    uploadResult = uploadedFile;
+
+    // Reset form
+    selectedFile = null;
+    if (fileInputRef) {
+      fileInputRef.value = "";
     }
 
-    uploading = true;
-    error = null;
+    files = [uploadedFile, ...files];
 
-    try {
-      // Upload file using Nhost storage
-      const response = await nhost.storage.uploadFiles({
-        "bucket-id": "default",
-        "file[]": [selectedFile],
-      });
+    // Refresh file list
+    await fetchFiles();
 
-      // Get the processed file data
-      const uploadedFile = response.body.processedFiles?.[0];
-      if (uploadedFile == undefined) {
-        throw new Error("Failed to upload file");
-      }
-      uploadResult = uploadedFile;
-
-      // Reset form
-      selectedFile = null;
-      if (fileInputRef) {
-        fileInputRef.value = "";
-      }
-
-      files = [uploadedFile, ...files];
-
-      // Refresh file list
-      await fetchFiles();
-
-      // Clear success message after 3 seconds
-      setTimeout(() => {
-        uploadResult = null;
-      }, 3000);
-    } catch (err: unknown) {
-      const fetchError = err as FetchError<ErrorResponse>;
-      error = `Failed to upload file: ${fetchError.message}`;
-    } finally {
-      uploading = false;
-    }
+    // Clear success message after 3 seconds
+    setTimeout(() => {
+      uploadResult = null;
+    }, 3000);
+  } catch (err: unknown) {
+    const fetchError = err as FetchError<ErrorResponse>;
+    error = `Failed to upload file: ${fetchError.message}`;
+  } finally {
+    uploading = false;
   }
+}
 
-  // Function to handle viewing a file with proper authorization
-  async function handleViewFile(
-    fileId: string,
-    fileName: string,
-    mimeType: string,
-  ) {
-    viewingFile = fileId;
+// Function to handle viewing a file with proper authorization
+async function handleViewFile(
+  fileId: string,
+  fileName: string,
+  mimeType: string,
+) {
+  viewingFile = fileId;
 
-    try {
-      // Fetch the file with authentication using the SDK
-      const response = await nhost.storage.getFile(fileId);
+  try {
+    // Fetch the file with authentication using the SDK
+    const response = await nhost.storage.getFile(fileId);
 
-      // Create a URL for the blob
-      const url = URL.createObjectURL(response.body);
+    // Create a URL for the blob
+    const url = URL.createObjectURL(response.body);
 
-      // Handle different file types appropriately
-      if (
-        mimeType.startsWith("image/") ||
-        mimeType === "application/pdf" ||
-        mimeType.startsWith("text/") ||
-        mimeType.startsWith("video/") ||
-        mimeType.startsWith("audio/")
-      ) {
-        // For media types that browsers can display natively, just open in a new tab
-        window.open(url, "_blank");
-      } else {
-        // For other file types, trigger download
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = fileName;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+    // Handle different file types appropriately
+    if (
+      mimeType.startsWith("image/") ||
+      mimeType === "application/pdf" ||
+      mimeType.startsWith("text/") ||
+      mimeType.startsWith("video/") ||
+      mimeType.startsWith("audio/")
+    ) {
+      // For media types that browsers can display natively, just open in a new tab
+      window.open(url, "_blank");
+    } else {
+      // For other file types, trigger download
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
 
-        // Optional: Open a small window to inform the user about the download
-        const newWindow = window.open("", "_blank", "width=400,height=200");
-        if (newWindow) {
-          newWindow.document.write(`
+      // Optional: Open a small window to inform the user about the download
+      const newWindow = window.open("", "_blank", "width=400,height=200");
+      if (newWindow) {
+        newWindow.document.write(`
             <html>
             <head>
               <title>File Download</title>
@@ -195,66 +195,66 @@
             </body>
             </html>
           `);
-          newWindow.document.close();
-        }
+        newWindow.document.close();
       }
-    } catch (err) {
-      const fetchError = err as FetchError<ErrorResponse>;
-      error = `Failed to view file: ${fetchError.message}`;
-      console.error("Error viewing file:", err);
-    } finally {
-      viewingFile = null;
     }
+  } catch (err) {
+    const fetchError = err as FetchError<ErrorResponse>;
+    error = `Failed to view file: ${fetchError.message}`;
+    console.error("Error viewing file:", err);
+  } finally {
+    viewingFile = null;
   }
+}
 
-  // Function to handle deleting a file
-  async function handleDeleteFile(fileId: string) {
-    if (!fileId || deleting) return;
+// Function to handle deleting a file
+async function handleDeleteFile(fileId: string) {
+  if (!fileId || deleting) return;
 
-    deleting = fileId;
-    error = null;
-    deleteStatus = null;
+  deleting = fileId;
+  error = null;
+  deleteStatus = null;
 
-    // Get the file name for the status message
-    const fileToDelete = files.find((file) => file.id === fileId);
-    const fileName = fileToDelete?.name || "File";
+  // Get the file name for the status message
+  const fileToDelete = files.find((file) => file.id === fileId);
+  const fileName = fileToDelete?.name || "File";
 
-    try {
-      // Delete the file using the Nhost storage SDK
-      await nhost.storage.deleteFile(fileId);
+  try {
+    // Delete the file using the Nhost storage SDK
+    await nhost.storage.deleteFile(fileId);
 
-      // Show success message
-      deleteStatus = {
-        message: `${fileName} deleted successfully`,
-        isError: false,
-      };
+    // Show success message
+    deleteStatus = {
+      message: `${fileName} deleted successfully`,
+      isError: false,
+    };
 
-      // Update the local files list by removing the deleted file
-      files = files.filter((file) => file.id !== fileId);
+    // Update the local files list by removing the deleted file
+    files = files.filter((file) => file.id !== fileId);
 
-      // Refresh the file list
-      await fetchFiles();
+    // Refresh the file list
+    await fetchFiles();
 
-      // Clear the success message after 3 seconds
-      setTimeout(() => {
-        deleteStatus = null;
-      }, 3000);
-    } catch (err) {
-      // Show error message
-      const fetchError = err as FetchError<ErrorResponse>;
-      deleteStatus = {
-        message: `Failed to delete ${fileName}: ${fetchError.message}`,
-        isError: true,
-      };
-      console.error("Error deleting file:", err);
-    } finally {
-      deleting = null;
-    }
+    // Clear the success message after 3 seconds
+    setTimeout(() => {
+      deleteStatus = null;
+    }, 3000);
+  } catch (err) {
+    // Show error message
+    const fetchError = err as FetchError<ErrorResponse>;
+    deleteStatus = {
+      message: `Failed to delete ${fileName}: ${fetchError.message}`,
+      isError: true,
+    };
+    console.error("Error deleting file:", err);
+  } finally {
+    deleting = null;
   }
+}
 
-  function handleFileUploadClick() {
-    fileInputRef?.click();
-  }
+function handleFileUploadClick() {
+  fileInputRef?.click();
+}
 </script>
 
 {#if $auth.isLoading}

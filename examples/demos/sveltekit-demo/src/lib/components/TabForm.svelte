@@ -1,22 +1,22 @@
 <script lang="ts">
-  import type { Snippet } from "svelte";
+import type { Snippet } from "svelte";
 
-  interface Props {
-    passwordTabContent: Snippet;
-    magicTabContent: Snippet;
-    socialTabContent?: Snippet;
-    webauthnTabContent?: Snippet;
-  }
+interface Props {
+  passwordTabContent: Snippet;
+  magicTabContent: Snippet;
+  socialTabContent?: Snippet;
+  webauthnTabContent?: Snippet;
+}
 
-  let {
-    passwordTabContent,
-    magicTabContent,
-    socialTabContent,
-    webauthnTabContent,
-  }: Props = $props();
+let {
+  passwordTabContent,
+  magicTabContent,
+  socialTabContent,
+  webauthnTabContent,
+}: Props = $props();
 
-  let activeTab: "password" | "magic" | "social" | "webauthn" =
-    $state("password");
+let activeTab: "password" | "magic" | "social" | "webauthn" =
+  $state("password");
 </script>
 
 <div>

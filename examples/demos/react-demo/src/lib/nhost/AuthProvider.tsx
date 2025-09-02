@@ -1,15 +1,15 @@
+import { createClient, type NhostClient } from "@nhost/nhost-js";
+import type { Session } from "@nhost/nhost-js/auth";
 import {
   createContext,
+  type ReactNode,
+  useCallback,
   useContext,
   useEffect,
-  useState,
   useMemo,
   useRef,
-  useCallback,
-  type ReactNode,
+  useState,
 } from "react";
-import { createClient, type NhostClient } from "@nhost/nhost-js";
-import { type Session } from "@nhost/nhost-js/auth";
 
 /**
  * Authentication context interface providing access to user session state and Nhost client.
@@ -81,7 +81,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setIsAuthenticated(!!currentSession);
       }
     },
-    [nhost, setUser, setSession, setIsAuthenticated],
+    [nhost],
   );
 
   // Initialize authentication state and set up cross-tab session synchronization

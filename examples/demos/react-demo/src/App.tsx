@@ -1,19 +1,19 @@
-import { Suspense, lazy, type JSX } from "react";
+import { type JSX, lazy, Suspense } from "react";
 import {
   createBrowserRouter,
-  RouterProvider,
-  Route,
   createRoutesFromElements,
   Navigate,
   Outlet,
+  Route,
+  RouterProvider,
 } from "react-router-dom";
-import { AuthProvider } from "./lib/nhost/AuthProvider";
 import Navigation from "./components/Navigation";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { AuthProvider } from "./lib/nhost/AuthProvider";
 import Home from "./pages/Home";
+import Profile from "./pages/Profile";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
-import Profile from "./pages/Profile";
 import Upload from "./pages/Upload";
 import Verify from "./pages/Verify";
 

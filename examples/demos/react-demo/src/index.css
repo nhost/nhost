@@ -30,10 +30,7 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family:
-    system-ui,
-    -apple-system,
-    sans-serif;
+  font-family: system-ui, -apple-system, sans-serif;
   line-height: 1.6;
   min-height: 100vh;
 }
@@ -56,7 +53,7 @@ body {
 }
 
 .justify-between {
-  justify-between: space-between;
+  justify-content: space-between;
 }
 
 .min-h-screen {
@@ -355,6 +352,10 @@ tr:hover {
   background-color: rgba(31, 41, 55, 0.3);
   cursor: pointer;
   transition: all 0.2s;
+  width: 100%;
+  font: inherit;
+  color: inherit;
+  text-align: center;
 }
 
 .file-upload:hover {

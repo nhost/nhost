@@ -1,12 +1,12 @@
-import { useState, type JSX } from "react";
-import { useAuth } from "../lib/nhost/AuthProvider";
-import {
-  type ErrorResponse,
-  type PublicKeyCredentialCreationOptions,
+import type {
+  ErrorResponse,
+  PublicKeyCredentialCreationOptions,
 } from "@nhost/nhost-js/auth";
-import { type FetchError } from "@nhost/nhost-js/fetch";
-import { isWebAuthnSupported } from "../lib/utils";
+import type { FetchError } from "@nhost/nhost-js/fetch";
 import { startRegistration } from "@simplewebauthn/browser";
+import { type JSX, useState } from "react";
+import { useAuth } from "../lib/nhost/AuthProvider";
+import { isWebAuthnSupported } from "../lib/utils";
 
 /**
  * WebAuthn Registration (Sign Up) Flow
@@ -123,7 +123,7 @@ export default function WebAuthnSignUpForm({
         });
 
         // Step 4: Handle registration success
-        if (verifyResponse.body && verifyResponse.body.session) {
+        if (verifyResponse.body?.session) {
           // Success! User is now registered and authenticated
           // At this point:
           // - The user account has been created in the system
@@ -131,7 +131,7 @@ export default function WebAuthnSignUpForm({
           // - The private key remains securely on the user's device
           // - A session has been established
           window.location.href =
-            redirectTo || window.location.origin + "/profile";
+            redirectTo || `${window.location.origin}/profile`;
         }
       } catch (credError) {
         setError(

@@ -1,81 +1,81 @@
 <script lang="ts">
-  import { goto } from "$app/navigation";
-  import { page } from "$app/stores";
-  import { auth, nhost } from "$lib/nhost/auth";
-  import { onMount } from "svelte";
-  import type { ErrorResponse } from "@nhost/nhost-js/auth";
-  import type { FetchError } from "@nhost/nhost-js/fetch";
-  import TabForm from "$lib/components/TabForm.svelte";
-  import MagicLinkForm from "$lib/components/MagicLinkForm.svelte";
-  import WebAuthnSignInForm from "$lib/components/WebAuthnSignInForm.svelte";
+import { goto } from "$app/navigation";
+import { page } from "$app/stores";
+import { auth, nhost } from "$lib/nhost/auth";
+import { onMount } from "svelte";
+import type { ErrorResponse } from "@nhost/nhost-js/auth";
+import type { FetchError } from "@nhost/nhost-js/fetch";
+import TabForm from "$lib/components/TabForm.svelte";
+import MagicLinkForm from "$lib/components/MagicLinkForm.svelte";
+import WebAuthnSignInForm from "$lib/components/WebAuthnSignInForm.svelte";
 
-  let email = $state("");
-  let password = $state("");
-  let isLoading = $state(false);
-  let error = $state<string | null>(null);
+let email = $state("");
+let password = $state("");
+let isLoading = $state(false);
+let error = $state<string | null>(null);
 
-  let params = $derived(new URLSearchParams($page.url.search));
-  let magicLinkSent = $derived(params.get("magic") === "success");
-  let isVerifying = $derived(params.has("fromVerify"));
+let params = $derived(new URLSearchParams($page.url.search));
+let magicLinkSent = $derived(params.get("magic") === "success");
+let isVerifying = $derived(params.has("fromVerify"));
 
-  // Check for URL error parameter
-  onMount(() => {
-    const urlError = params.get("error");
-    if (urlError) {
-      error = urlError;
-    }
-  });
-
-  // Navigate to profile when authenticated
-  $effect(() => {
-    if ($auth.isAuthenticated && !isVerifying) {
-      void goto("/profile");
-    }
-  });
-
-  async function handleSubmit(e: Event) {
-    e.preventDefault();
-    isLoading = true;
-    error = null;
-
-    try {
-      const response = await nhost.auth.signInEmailPassword({
-        email,
-        password,
-      });
-
-      // Check if MFA is required
-      if (response.body?.mfa) {
-        void goto(`/signin/mfa?ticket=${response.body.mfa.ticket}`);
-        return;
-      }
-
-      // If we have a session, sign in was successful
-      if (response.body?.session) {
-        void goto("/profile");
-      } else {
-        error = "Failed to sign in";
-      }
-    } catch (err) {
-      const fetchError = err as FetchError<ErrorResponse>;
-      error = `An error occurred during sign in: ${fetchError.message}`;
-    } finally {
-      isLoading = false;
-    }
+// Check for URL error parameter
+onMount(() => {
+  const urlError = params.get("error");
+  if (urlError) {
+    error = urlError;
   }
+});
 
-  function handleSocialSignIn(provider: "github") {
-    // Get the current origin (to build the redirect URL)
-    const origin = window.location.origin;
-    const redirectUrl = `${origin}/verify`;
+// Navigate to profile when authenticated
+$effect(() => {
+  if ($auth.isAuthenticated && !isVerifying) {
+    void goto("/profile");
+  }
+});
 
-    // Sign in with the specified provider
-    const url = nhost.auth.signInProviderURL(provider, {
-      redirectTo: redirectUrl,
+async function handleSubmit(e: Event) {
+  e.preventDefault();
+  isLoading = true;
+  error = null;
+
+  try {
+    const response = await nhost.auth.signInEmailPassword({
+      email,
+      password,
     });
 
-    window.location.href = url;
+    // Check if MFA is required
+    if (response.body?.mfa) {
+      void goto(`/signin/mfa?ticket=${response.body.mfa.ticket}`);
+      return;
+    }
+
+    // If we have a session, sign in was successful
+    if (response.body?.session) {
+      void goto("/profile");
+    } else {
+      error = "Failed to sign in";
+    }
+  } catch (err) {
+    const fetchError = err as FetchError<ErrorResponse>;
+    error = `An error occurred during sign in: ${fetchError.message}`;
+  } finally {
+    isLoading = false;
   }
+}
+
+function handleSocialSignIn(provider: "github") {
+  // Get the current origin (to build the redirect URL)
+  const origin = window.location.origin;
+  const redirectUrl = `${origin}/verify`;
+
+  // Sign in with the specified provider
+  const url = nhost.auth.signInProviderURL(provider, {
+    redirectTo: redirectUrl,
+  });
+
+  window.location.href = url;
+}
 </script>
 
 <div class="flex flex-col items-center justify-center">

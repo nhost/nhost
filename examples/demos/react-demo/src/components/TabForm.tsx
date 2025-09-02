@@ -1,4 +1,4 @@
-import { type ReactNode, useState, type JSX } from "react";
+import { type JSX, type ReactNode, useState } from "react";
 
 interface TabFormProps {
   passwordTabContent: ReactNode;
@@ -21,12 +21,14 @@ export default function TabForm({
     <div>
       <div className="tabs-container">
         <button
+          type="button"
           className={`tab-button ${activeTab === "password" ? "tab-active" : ""}`}
           onClick={() => setActiveTab("password")}
         >
           Email + Password
         </button>
         <button
+          type="button"
           className={`tab-button ${activeTab === "magic" ? "tab-active" : ""}`}
           onClick={() => setActiveTab("magic")}
         >
@@ -34,6 +36,7 @@ export default function TabForm({
         </button>
         {socialTabContent && (
           <button
+            type="button"
             className={`tab-button ${activeTab === "social" ? "tab-active" : ""}`}
             onClick={() => setActiveTab("social")}
           >
@@ -42,6 +45,7 @@ export default function TabForm({
         )}
         {webauthnTabContent && (
           <button
+            type="button"
             className={`tab-button ${activeTab === "webauthn" ? "tab-active" : ""}`}
             onClick={() => setActiveTab("webauthn")}
           >

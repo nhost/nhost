@@ -1,59 +1,59 @@
 <script lang="ts">
-  import { onMount } from "svelte";
-  import { auth, nhost } from "$lib/nhost/auth";
-  import { isWebAuthnSupported } from "$lib/utils";
-  import type { FetchError, FetchResponse } from "@nhost/nhost-js/fetch";
-  import type { ErrorResponse } from "@nhost/nhost-js/auth";
-  import { startRegistration } from "@simplewebauthn/browser";
+import { onMount } from "svelte";
+import { auth, nhost } from "$lib/nhost/auth";
+import { isWebAuthnSupported } from "$lib/utils";
+import type { FetchError, FetchResponse } from "@nhost/nhost-js/fetch";
+import type { ErrorResponse } from "@nhost/nhost-js/auth";
+import { startRegistration } from "@simplewebauthn/browser";
 
-  /**
-   * Represents a WebAuthn security key stored for a user
-   * - id: Database ID for the key
-   * - credentialId: WebAuthn credential identifier
-   * - nickname: User-provided friendly name for the key
-   */
-  interface SecurityKey {
-    id: string;
-    credentialId: string;
-    nickname: string | null;
-  }
+/**
+ * Represents a WebAuthn security key stored for a user
+ * - id: Database ID for the key
+ * - credentialId: WebAuthn credential identifier
+ * - nickname: User-provided friendly name for the key
+ */
+interface SecurityKey {
+  id: string;
+  credentialId: string;
+  nickname: string | null;
+}
 
-  /**
-   * GraphQL response format for security keys query
-   */
-  interface SecurityKeysResponse {
-    data?: {
-      authUserSecurityKeys: SecurityKey[];
-    };
-  }
+/**
+ * GraphQL response format for security keys query
+ */
+interface SecurityKeysResponse {
+  data?: {
+    authUserSecurityKeys: SecurityKey[];
+  };
+}
 
-  let securityKeys = $state<SecurityKey[]>([]);
-  let isLoading = $state(true);
-  let isRegistering = $state(false);
-  let isDeleting = $state(false);
-  let deletingKeyId = $state<string | null>(null);
-  let keyName = $state("");
-  let success = $state<string | null>(null);
-  let errorMessage = $state<string | null>(null);
-  let showAddForm = $state(false);
-  let isWebAuthnAvailable = $state(true);
+let securityKeys = $state<SecurityKey[]>([]);
+let isLoading = $state(true);
+let isRegistering = $state(false);
+let isDeleting = $state(false);
+let deletingKeyId = $state<string | null>(null);
+let keyName = $state("");
+let success = $state<string | null>(null);
+let errorMessage = $state<string | null>(null);
+let showAddForm = $state(false);
+let isWebAuthnAvailable = $state(true);
 
-  /**
-   * Fetches all registered WebAuthn security keys for the current user
-   * These are the public keys stored on the server that correspond to
-   * private keys stored securely on the user's devices/authenticators
-   */
-  async function fetchSecurityKeys() {
-    if (!$auth.user?.id) return;
+/**
+ * Fetches all registered WebAuthn security keys for the current user
+ * These are the public keys stored on the server that correspond to
+ * private keys stored securely on the user's devices/authenticators
+ */
+async function fetchSecurityKeys() {
+  if (!$auth.user?.id) return;
 
-    isLoading = true;
-    errorMessage = null;
+  isLoading = true;
+  errorMessage = null;
 
-    try {
-      // Query the database for all security keys registered to this user
-      const response: FetchResponse<SecurityKeysResponse> =
-        await nhost.graphql.request({
-          query: `
+  try {
+    // Query the database for all security keys registered to this user
+    const response: FetchResponse<SecurityKeysResponse> =
+      await nhost.graphql.request({
+        query: `
           query GetUserSecurityKeys {
             authUserSecurityKeys {
               id
@@ -62,144 +62,144 @@
             }
           }
         `,
-        });
+      });
 
-      const userData = response.body?.data;
-      const keys = userData?.authUserSecurityKeys || [];
-      securityKeys = keys;
-    } catch (err) {
-      const error = err as FetchError<ErrorResponse>;
-      errorMessage = `Failed to load security keys: ${error.message}`;
-    } finally {
-      isLoading = false;
-    }
+    const userData = response.body?.data;
+    const keys = userData?.authUserSecurityKeys || [];
+    securityKeys = keys;
+  } catch (err) {
+    const error = err as FetchError<ErrorResponse>;
+    errorMessage = `Failed to load security keys: ${error.message}`;
+  } finally {
+    isLoading = false;
   }
+}
 
-  async function deleteSecurityKey(keyId: string) {
-    if (isDeleting) return;
+async function deleteSecurityKey(keyId: string) {
+  if (isDeleting) return;
 
-    isDeleting = true;
-    deletingKeyId = keyId;
-    success = null;
-    errorMessage = null;
+  isDeleting = true;
+  deletingKeyId = keyId;
+  success = null;
+  errorMessage = null;
 
-    try {
-      // Send request to server to delete the security key
-      // This removes the stored public key from the server database
-      // so it can no longer be used for authentication
-      const response = await nhost.graphql.request({
-        query: `
+  try {
+    // Send request to server to delete the security key
+    // This removes the stored public key from the server database
+    // so it can no longer be used for authentication
+    const response = await nhost.graphql.request({
+      query: `
           mutation DeleteSecurityKey($keyId: uuid!) {
             deleteAuthUserSecurityKey(id: $keyId) {
               id
             }
           }
         `,
-        variables: {
-          keyId,
-        },
-      });
+      variables: {
+        keyId,
+      },
+    });
 
-      if (response.body?.errors) {
-        throw new Error(response.body.errors[0]?.message || "Unknown error");
-      }
-
-      // Update the UI by removing the key from local state
-      securityKeys = securityKeys.filter((key) => key.id !== keyId);
-      success =
-        "Security key deleted successfully! Remember to also remove it from your authenticator app, password manager, or device credential manager to avoid future authentication issues.";
-
-      // Hide success message after 5 seconds (increased to give users time to read the reminder)
-      setTimeout(() => {
-        success = null;
-      }, 5000);
-    } catch (err) {
-      const error = err as Error;
-      errorMessage = `Failed to delete security key: ${error.message}`;
-    } finally {
-      isDeleting = false;
-      deletingKeyId = null;
+    if (response.body?.errors) {
+      throw new Error(response.body.errors[0]?.message || "Unknown error");
     }
+
+    // Update the UI by removing the key from local state
+    securityKeys = securityKeys.filter((key) => key.id !== keyId);
+    success =
+      "Security key deleted successfully! Remember to also remove it from your authenticator app, password manager, or device credential manager to avoid future authentication issues.";
+
+    // Hide success message after 5 seconds (increased to give users time to read the reminder)
+    setTimeout(() => {
+      success = null;
+    }, 5000);
+  } catch (err) {
+    const error = err as Error;
+    errorMessage = `Failed to delete security key: ${error.message}`;
+  } finally {
+    isDeleting = false;
+    deletingKeyId = null;
+  }
+}
+
+async function registerNewSecurityKey(e: Event) {
+  e.preventDefault();
+
+  // Check if browser supports WebAuthn
+  if (!isWebAuthnAvailable) {
+    errorMessage =
+      "WebAuthn is not supported by your browser. Please use a modern browser that supports WebAuthn.";
+    return;
   }
 
-  async function registerNewSecurityKey(e: Event) {
-    e.preventDefault();
+  // Validate key name exists
+  if (!keyName.trim()) {
+    errorMessage = "Please provide a name for your security key";
+    return;
+  }
 
-    // Check if browser supports WebAuthn
-    if (!isWebAuthnAvailable) {
-      errorMessage =
-        "WebAuthn is not supported by your browser. Please use a modern browser that supports WebAuthn.";
+  isRegistering = true;
+  errorMessage = null;
+  success = null;
+
+  try {
+    // Step 1: Request challenge from server
+    // The server generates a random challenge to ensure the registration
+    // is happening in real-time and creates a new credential ID
+    const initResponse = await nhost.auth.addSecurityKey();
+
+    // Step 2: Browser prompts user for security key or biometric verification
+    // The browser creates a new credential pair (public/private) and stores
+    // the private key securely on the device
+    const credential = await startRegistration({
+      optionsJSON: initResponse.body,
+    });
+
+    if (!credential) {
+      errorMessage = "No credential was selected. Please try again.";
       return;
     }
 
-    // Validate key name exists
-    if (!keyName.trim()) {
-      errorMessage = "Please provide a name for your security key";
-      return;
-    }
+    // Step 3: Send credential public key back to server for verification
+    // The server verifies the attestation and stores the public key
+    // associated with the user's account for future authentication
+    await nhost.auth.verifyAddSecurityKey({
+      credential,
+      nickname: keyName.trim(),
+    });
 
-    isRegistering = true;
-    errorMessage = null;
-    success = null;
-
-    try {
-      // Step 1: Request challenge from server
-      // The server generates a random challenge to ensure the registration
-      // is happening in real-time and creates a new credential ID
-      const initResponse = await nhost.auth.addSecurityKey();
-
-      // Step 2: Browser prompts user for security key or biometric verification
-      // The browser creates a new credential pair (public/private) and stores
-      // the private key securely on the device
-      const credential = await startRegistration({
-        optionsJSON: initResponse.body,
-      });
-
-      if (!credential) {
-        errorMessage = "No credential was selected. Please try again.";
-        return;
-      }
-
-      // Step 3: Send credential public key back to server for verification
-      // The server verifies the attestation and stores the public key
-      // associated with the user's account for future authentication
-      await nhost.auth.verifyAddSecurityKey({
-        credential,
-        nickname: keyName.trim(),
-      });
-
-      // Step 4: Registration successful - update UI
-      success = "Security key registered successfully!";
-      keyName = "";
-      showAddForm = false;
-
-      // Refresh the security keys list
-      void fetchSecurityKeys();
-    } catch (err) {
-      const error = err as Error;
-      errorMessage = `Failed to register security key: ${error.message}`;
-    } finally {
-      isRegistering = false;
-    }
-  }
-
-  function toggleAddForm() {
-    showAddForm = !showAddForm;
-    errorMessage = null;
-    success = null;
+    // Step 4: Registration successful - update UI
+    success = "Security key registered successfully!";
     keyName = "";
+    showAddForm = false;
+
+    // Refresh the security keys list
+    void fetchSecurityKeys();
+  } catch (err) {
+    const error = err as Error;
+    errorMessage = `Failed to register security key: ${error.message}`;
+  } finally {
+    isRegistering = false;
   }
+}
 
-  onMount(() => {
-    // Check if the current browser supports WebAuthn
-    // This tests for the presence of the WebAuthn API (PublicKeyCredential and credentials)
-    isWebAuthnAvailable = isWebAuthnSupported();
+function toggleAddForm() {
+  showAddForm = !showAddForm;
+  errorMessage = null;
+  success = null;
+  keyName = "";
+}
 
-    // Load the user's security keys when authenticated
-    if ($auth.isAuthenticated && $auth.user?.id) {
-      void fetchSecurityKeys();
-    }
-  });
+onMount(() => {
+  // Check if the current browser supports WebAuthn
+  // This tests for the presence of the WebAuthn API (PublicKeyCredential and credentials)
+  isWebAuthnAvailable = isWebAuthnSupported();
+
+  // Load the user's security keys when authenticated
+  if ($auth.isAuthenticated && $auth.user?.id) {
+    void fetchSecurityKeys();
+  }
+});
 </script>
 
 <div class="glass-card p-8 mb-6">

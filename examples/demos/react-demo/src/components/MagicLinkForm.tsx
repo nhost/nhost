@@ -1,7 +1,7 @@
+import type { ErrorResponse } from "@nhost/nhost-js/auth";
+import type { FetchError } from "@nhost/nhost-js/fetch";
 import React, { type JSX, useState } from "react";
 import { useAuth } from "../lib/nhost/AuthProvider";
-import type { ErrorResponse } from "@nhost/nhost-js/auth";
-import { type FetchError } from "@nhost/nhost-js/fetch";
 
 interface MagicLinkFormProps {
   buttonLabel?: string;
@@ -44,7 +44,11 @@ export default function MagicLinkForm({
     return (
       <div className="text-center">
         <p className="mb-4">Magic link sent! Check your email to sign in.</p>
-        <button onClick={() => setSuccess(false)} className="btn btn-secondary">
+        <button
+          type="button"
+          onClick={() => setSuccess(false)}
+          className="btn btn-secondary"
+        >
           Try again
         </button>
       </div>

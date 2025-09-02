@@ -1,10 +1,10 @@
-import { useState, type JSX } from "react";
+import type { ErrorResponse } from "@nhost/nhost-js/auth";
+import type { FetchError } from "@nhost/nhost-js/fetch";
+import { startAuthentication } from "@simplewebauthn/browser";
+import { type JSX, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/nhost/AuthProvider";
-import { type ErrorResponse } from "@nhost/nhost-js/auth";
-import { type FetchError } from "@nhost/nhost-js/fetch";
 import { isWebAuthnSupported } from "../lib/utils";
-import { startAuthentication } from "@simplewebauthn/browser";
 
 /**
  * WebAuthnSignInForm provides a passwordless authentication flow using WebAuthn (FIDO2) protocol.
@@ -66,7 +66,7 @@ export default function WebAuthnSignInForm(): JSX.Element {
         });
 
         // Step 4: Handle authentication result
-        if (verifyResponse.body && verifyResponse.body.session) {
+        if (verifyResponse.body?.session) {
           // Authentication successful, redirect to profile page
           navigate("/profile");
         } else {

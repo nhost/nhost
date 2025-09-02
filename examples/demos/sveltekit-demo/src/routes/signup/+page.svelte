@@ -1,79 +1,79 @@
 <script lang="ts">
-  import { goto } from "$app/navigation";
-  import { page } from "$app/stores";
-  import { auth, nhost } from "$lib/nhost/auth";
-  import type { ErrorResponse } from "@nhost/nhost-js/auth";
-  import type { FetchError } from "@nhost/nhost-js/fetch";
-  import TabForm from "$lib/components/TabForm.svelte";
-  import MagicLinkForm from "$lib/components/MagicLinkForm.svelte";
-  import WebAuthnSignUpForm from "$lib/components/WebAuthnSignUpForm.svelte";
+import { goto } from "$app/navigation";
+import { page } from "$app/stores";
+import { auth, nhost } from "$lib/nhost/auth";
+import type { ErrorResponse } from "@nhost/nhost-js/auth";
+import type { FetchError } from "@nhost/nhost-js/fetch";
+import TabForm from "$lib/components/TabForm.svelte";
+import MagicLinkForm from "$lib/components/MagicLinkForm.svelte";
+import WebAuthnSignUpForm from "$lib/components/WebAuthnSignUpForm.svelte";
 
-  let email = $state("");
-  let password = $state("");
-  let displayName = $state("");
-  let isLoading = $state(false);
-  let error = $state<string | null>(null);
+let email = $state("");
+let password = $state("");
+let displayName = $state("");
+let isLoading = $state(false);
+let error = $state<string | null>(null);
 
-  let params = $derived(new URLSearchParams($page.url.search));
-  let magicLinkSent = $derived(params.get("magic") === "success");
+let params = $derived(new URLSearchParams($page.url.search));
+let magicLinkSent = $derived(params.get("magic") === "success");
 
-  // If already authenticated, redirect to profile
-  $effect(() => {
-    if ($auth.isAuthenticated) {
-      void goto("/profile");
-    }
-  });
-
-  async function handleSubmit(e: Event) {
-    e.preventDefault();
-    isLoading = true;
-    error = null;
-
-    try {
-      const response = await nhost.auth.signUpEmailPassword({
-        email,
-        password,
-        options: {
-          displayName,
-        },
-      });
-
-      if (response.body) {
-        // Successfully signed up and automatically signed in
-        void goto("/profile");
-      } else {
-        // Verification email sent
-        void goto("/verify");
-      }
-    } catch (err) {
-      const fetchError = err as FetchError<ErrorResponse>;
-      error = `An error occurred during sign up: ${fetchError.message}`;
-    } finally {
-      isLoading = false;
-    }
+// If already authenticated, redirect to profile
+$effect(() => {
+  if ($auth.isAuthenticated) {
+    void goto("/profile");
   }
+});
 
-  function handleSocialSignIn(provider: "github") {
-    // Get the current origin (to build the redirect URL)
-    const origin = window.location.origin;
-    const redirectUrl = `${origin}/verify`;
+async function handleSubmit(e: Event) {
+  e.preventDefault();
+  isLoading = true;
+  error = null;
 
-    // Sign in with the specified provider
-    const url = nhost.auth.signInProviderURL(provider, {
-      redirectTo: redirectUrl,
+  try {
+    const response = await nhost.auth.signUpEmailPassword({
+      email,
+      password,
+      options: {
+        displayName,
+      },
     });
 
-    window.location.href = url;
+    if (response.body) {
+      // Successfully signed up and automatically signed in
+      void goto("/profile");
+    } else {
+      // Verification email sent
+      void goto("/verify");
+    }
+  } catch (err) {
+    const fetchError = err as FetchError<ErrorResponse>;
+    error = `An error occurred during sign up: ${fetchError.message}`;
+  } finally {
+    isLoading = false;
   }
+}
 
-  // Functions to update email and displayName for WebAuthn component
-  function setEmail(newEmail: string) {
-    email = newEmail;
-  }
+function handleSocialSignIn(provider: "github") {
+  // Get the current origin (to build the redirect URL)
+  const origin = window.location.origin;
+  const redirectUrl = `${origin}/verify`;
 
-  function setDisplayName(newDisplayName: string) {
-    displayName = newDisplayName;
-  }
+  // Sign in with the specified provider
+  const url = nhost.auth.signInProviderURL(provider, {
+    redirectTo: redirectUrl,
+  });
+
+  window.location.href = url;
+}
+
+// Functions to update email and displayName for WebAuthn component
+function setEmail(newEmail: string) {
+  email = newEmail;
+}
+
+function setDisplayName(newDisplayName: string) {
+  displayName = newDisplayName;
+}
 </script>
 
 <div class="flex flex-col items-center justify-center">
