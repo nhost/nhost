@@ -30,7 +30,7 @@ This demo includes the following migrated pages and functionality from the React
 - **Vue Router 4** for navigation
 - **TypeScript** for type safety
 - **Vite** for build tooling and development server
-- **ESLint** and **Prettier** for code quality and formatting
+- **Biome** for code quality and formatting
 - **@simplewebauthn/browser** for WebAuthn/FIDO2 authentication
 - **Nhost SDK** for backend integration
 
@@ -102,15 +102,3 @@ Configure the following in `.env`:
 
 - `VITE_NHOST_REGION` - Nhost region (default: "local")
 - `VITE_NHOST_SUBDOMAIN` - Nhost subdomain (default: "local")
-
-## Available Scripts
-
-- `pnpm dev` - Start development server
-- `pnpm build` - Build for production
-- `pnpm preview` - Preview production build
-- `pnpm test` - Run tests, linting, formatting, and audit checks
-- `pnpm test:typecheck` - Run TypeScript type checking
-- `pnpm test:lint` - Run ESLint
-- `pnpm test:format` - Check code formatting with Prettier
-- `pnpm test:audit` - Run security audit
-- `pnpm format` - Format code with Prettier
