@@ -228,6 +228,8 @@ export default function SecurityKeyClient({
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
                       viewBox="0 0 24 24"
+                      role="img"
+                      aria-label="Loading"
                     >
                       <circle
                         className="opacity-25"
@@ -288,6 +290,7 @@ export default function SecurityKeyClient({
                       </span>
                     </div>
                     <button
+                      type="button"
                       onClick={() => deleteSecurityKey(key.id)}
                       disabled={isDeleting && deletingKeyId === key.id}
                       className="action-icon action-icon-delete"
@@ -301,6 +304,8 @@ export default function SecurityKeyClient({
                           strokeWidth="2"
                           strokeLinecap="round"
                           strokeLinejoin="round"
+                          role="img"
+                          aria-label="Loading"
                         >
                           <circle cx="12" cy="12" r="10" />
                           <path d="M12 6v6" />
@@ -313,6 +318,8 @@ export default function SecurityKeyClient({
                           strokeWidth="2"
                           strokeLinecap="round"
                           strokeLinejoin="round"
+                          role="img"
+                          aria-label="Delete"
                         >
                           <path d="M3 6h18" />
                           <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
@@ -327,6 +334,7 @@ export default function SecurityKeyClient({
           )}
 
           <button
+            type="button"
             onClick={toggleAddForm}
             disabled={!isWebAuthnAvailable}
             className="btn btn-primary"

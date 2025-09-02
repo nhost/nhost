@@ -219,7 +219,8 @@ export default function UploadClient({
             aria-hidden="true"
             tabIndex={-1}
           />
-          <div
+          <button
+            type="button"
             className="file-upload"
             onClick={() => fileInputRef.current?.click()}
           >
@@ -230,6 +231,8 @@ export default function UploadClient({
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
+              role="img"
+              aria-label="Upload file"
             >
               <path
                 strokeLinecap="round"
@@ -250,7 +253,7 @@ export default function UploadClient({
                 {selectedFile.name} ({formatFileSize(selectedFile.size)})
               </p>
             )}
-          </div>
+          </button>
         </div>
 
         {error && <div className="alert alert-error">{error}</div>}
@@ -260,6 +263,7 @@ export default function UploadClient({
         )}
 
         <button
+          type="button"
           onClick={handleUpload}
           disabled={!selectedFile || uploading}
           className="btn btn-primary w-full"
@@ -301,6 +305,7 @@ export default function UploadClient({
                     <td>
                       <div className="table-actions">
                         <button
+                          type="button"
                           onClick={() =>
                             handleViewFile(
                               file.id || "unknown",
@@ -320,6 +325,8 @@ export default function UploadClient({
                               strokeWidth="2"
                               strokeLinecap="round"
                               strokeLinejoin="round"
+                              role="img"
+                              aria-label="Loading"
                             >
                               <circle cx="12" cy="12" r="10"></circle>
                               <path d="M12 6v6"></path>
@@ -332,6 +339,8 @@ export default function UploadClient({
                               strokeWidth="2"
                               strokeLinecap="round"
                               strokeLinejoin="round"
+                              role="img"
+                              aria-label="View"
                             >
                               <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                               <circle cx="12" cy="12" r="3"></circle>
@@ -339,6 +348,7 @@ export default function UploadClient({
                           )}
                         </button>
                         <button
+                          type="button"
                           onClick={() => handleDeleteFile(file.id || "unknown")}
                           disabled={deleting === file.id}
                           className="action-icon action-icon-delete"
@@ -352,6 +362,8 @@ export default function UploadClient({
                               strokeWidth="2"
                               strokeLinecap="round"
                               strokeLinejoin="round"
+                              role="img"
+                              aria-label="Loading"
                             >
                               <circle cx="12" cy="12" r="10"></circle>
                               <path d="M12 6v6"></path>
@@ -364,6 +376,8 @@ export default function UploadClient({
                               strokeWidth="2"
                               strokeLinecap="round"
                               strokeLinejoin="round"
+                              role="img"
+                              aria-label="Delete"
                             >
                               <path d="M3 6h18"></path>
                               <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path>

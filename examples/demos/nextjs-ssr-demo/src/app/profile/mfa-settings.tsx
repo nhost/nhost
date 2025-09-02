@@ -186,6 +186,7 @@ export default function MFASettings({ initialMfaEnabled }: MFASettingsProps) {
 
           <div className="flex space-x-3">
             <button
+              type="button"
               onClick={handleVerifyTotp}
               disabled={isLoading || !verificationCode}
               className="btn btn-primary"
@@ -194,6 +195,7 @@ export default function MFASettings({ initialMfaEnabled }: MFASettingsProps) {
             </button>
 
             <button
+              type="button"
               onClick={handleCancelMfaSetup}
               disabled={isLoading}
               className="btn btn-secondary"
@@ -226,6 +228,7 @@ export default function MFASettings({ initialMfaEnabled }: MFASettingsProps) {
 
           <div className="flex space-x-3">
             <button
+              type="button"
               onClick={handleDisableMfa}
               disabled={isLoading || !disableVerificationCode}
               className="btn btn-primary"
@@ -234,6 +237,7 @@ export default function MFASettings({ initialMfaEnabled }: MFASettingsProps) {
             </button>
 
             <button
+              type="button"
               onClick={handleCancelMfaDisable}
               disabled={isLoading}
               className="btn btn-secondary"
@@ -261,6 +265,7 @@ export default function MFASettings({ initialMfaEnabled }: MFASettingsProps) {
 
           {isMfaEnabled ? (
             <button
+              type="button"
               onClick={handleShowDisableMfa}
               disabled={isLoading}
               className="btn btn-secondary"
@@ -269,6 +274,7 @@ export default function MFASettings({ initialMfaEnabled }: MFASettingsProps) {
             </button>
           ) : (
             <button
+              type="button"
               onClick={handleEnableMfa}
               disabled={isLoading}
               className="btn btn-primary"

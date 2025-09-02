@@ -1,7 +1,7 @@
 "use client";
 
 import { createClient, type NhostClient } from "@nhost/nhost-js";
-import { type Session } from "@nhost/nhost-js/auth";
+import type { Session } from "@nhost/nhost-js/auth";
 import { CookieStorage } from "@nhost/nhost-js/session";
 import { useRouter } from "next/navigation";
 import {
@@ -67,8 +67,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const nhost = useMemo(
     () =>
       createClient({
-        region: process.env["NHOST_REGION"] || "local",
-        subdomain: process.env["NHOST_SUBDOMAIN"] || "local",
+        region: process.env.NHOST_REGION || "local",
+        subdomain: process.env.NHOST_SUBDOMAIN || "local",
         storage: new CookieStorage({
           secure: process.env.NODE_ENV === "production",
           sameSite: "lax",

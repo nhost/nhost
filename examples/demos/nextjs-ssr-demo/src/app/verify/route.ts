@@ -1,5 +1,5 @@
 import type { ErrorResponse } from "@nhost/nhost-js/auth";
-import { type FetchError } from "@nhost/nhost-js/fetch";
+import type { FetchError } from "@nhost/nhost-js/fetch";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { createNhostClient } from "../lib/nhost/server";

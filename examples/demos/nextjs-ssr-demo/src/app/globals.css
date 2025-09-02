@@ -51,7 +51,7 @@ body {
 }
 
 .justify-between {
-  justify-between: space-between;
+  justify-content: space-between;
 }
 
 .min-h-screen {
@@ -350,10 +350,22 @@ tr:hover {
   background-color: rgba(31, 41, 55, 0.3);
   cursor: pointer;
   transition: all 0.2s;
+  width: 100%;
+  min-height: 120px;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  text-align: center;
 }
 
 .file-upload:hover {
   border-color: var(--primary);
+}
+
+/* Reset button styles when used as file-upload */
+button.file-upload {
+  background: rgba(31, 41, 55, 0.3);
+  color: var(--text-color);
 }
 
 /* Footer */

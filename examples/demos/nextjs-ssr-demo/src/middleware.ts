@@ -14,7 +14,7 @@ export async function middleware(request: NextRequest) {
 
   // Check if this is a public route or a public asset
   const isPublicRoute = publicRoutes.some(
-    (route) => path === route || path.startsWith(route + "/"),
+    (route) => path === route || path.startsWith(`${route}/`),
   );
 
   // If it's a public route, allow access without checking auth

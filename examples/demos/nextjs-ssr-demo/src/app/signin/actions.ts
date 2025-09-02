@@ -111,8 +111,7 @@ export async function sendMagicLink(formData: FormData) {
 
   try {
     // Get origin for redirect URL
-    const origin =
-      process.env["NEXT_PUBLIC_APP_URL"] || "http://localhost:3000";
+    const origin = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
     // Get the server Nhost client
     const nhost = await createNhostClient();
@@ -122,7 +121,7 @@ export async function sendMagicLink(formData: FormData) {
       email,
       options: {
         displayName,
-        redirectTo: origin + "/verify",
+        redirectTo: `${origin}/verify`,
       },
     });
 
@@ -146,8 +145,7 @@ export async function sendMagicLink(formData: FormData) {
 export async function getProviderSignInUrl(provider: "github") {
   try {
     // Get origin for redirect URL
-    const origin =
-      process.env["NEXT_PUBLIC_APP_URL"] || "http://localhost:3000";
+    const origin = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
     const redirectTo = `${origin}/verify`;
 
     // Get the server Nhost client
