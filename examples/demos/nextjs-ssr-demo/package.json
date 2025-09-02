@@ -6,6 +6,7 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
+    "generate": "echo 'Nothing to do'",
     "test": "pnpm test:typecheck && pnpm test:lint",
     "test:typecheck": "tsc --noEmit",
     "test:lint": "biome check",

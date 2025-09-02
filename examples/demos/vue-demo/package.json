@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc && vite build",
+    "generate": "echo 'Nothing to do'",
     "test": "pnpm test:typecheck && pnpm test:lint",
     "test:typecheck": "vue-tsc --noEmit",
     "test:lint": "biome check",

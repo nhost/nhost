@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "pnpm ts-node src/index.ts",
     "build": "tsc",
+    "generate": "echo 'Nothing to do'",
     "test": "pnpm test:typecheck && pnpm test:lint",
     "test:typecheck": "tsc --noEmit",
     "test:lint": "biome check",

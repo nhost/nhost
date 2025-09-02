@@ -6,6 +6,7 @@
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
+    "generate": "echo 'Nothing to do'",
     "test": "pnpm test:typecheck && pnpm test:lint",
     "test:typecheck": "tsc --noEmit",
     "test:lint": "biome check",

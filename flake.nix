@@ -37,6 +37,13 @@
               ./package.json
               ./docs/package.json
               ./dashboard/package.json
+              ./examples/demos/react-demo/package.json
+              ./examples/demos/ReactNativeDemo/package.json
+              ./examples/demos/express/package.json
+              ./examples/demos/vue-demo/package.json
+              ./examples/demos/sveltekit-demo/package.json
+              ./examples/demos/package.json
+              ./examples/demos/nextjs-ssr-demo/package.json
               ./packages/nhost-js/package.json
             ];
           };
@@ -47,6 +54,10 @@
         };
 
         dashboardf = import ./dashboard/project.nix {
+          inherit self pkgs nix-filter nixops-lib node_modules nix2containerPkgs;
+        };
+
+        demosf = import ./examples/demos/project.nix {
           inherit self pkgs nix-filter nixops-lib node_modules nix2containerPkgs;
         };
 
@@ -74,6 +85,7 @@
         checks = {
           codegen = codegenf.check;
           dashboard = dashboardf.check;
+          demos = demosf.check;
           docs = docsf.check;
           mintlify-openapi = mintlify-openapif.check;
           nhost-js = nhost-jsf.check;
@@ -120,6 +132,7 @@
 
           codegen = codegenf.devShell;
           dashboard = dashboardf.devShell;
+          demos = demosf.devShell;
           docs = docsf.devShell;
           mintlify-openapi = mintlify-openapif.devShell;
           nhost-js = nhost-jsf.devShell;
@@ -127,9 +140,10 @@
         };
 
         packages = flake-utils.lib.flattenTree {
+          codegen = codegenf.package;
           dashboard = dashboardf.package;
           dashboard-docker-image = dashboardf.dockerImage;
-          codegen = codegenf.package;
+          demos = demosf.package;
           mintlify-openapi = mintlify-openapif.package;
           nhost-js = nhost-jsf.package;
           nixops = nixopsf.package;

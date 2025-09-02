@@ -4,7 +4,8 @@
   "license": "MIT",
   "scripts": {
     "build": "pnpm run --filter './**' build",
-    "test": "pnpm run --filter './**' test"
+    "test": "pnpm run --filter './**' test",
+    "generate": "pnpm run --filter './**' generate"
   },
   "dependencies": {
     "@nhost/nhost-js": "workspace:^",
