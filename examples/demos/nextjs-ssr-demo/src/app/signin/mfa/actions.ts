@@ -1,10 +1,10 @@
 "use server";
 
+import type { ErrorResponse } from "@nhost/nhost-js/auth";
+import type { FetchError } from "@nhost/nhost-js/fetch";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createNhostClient } from "../../lib/nhost/server";
-import type { ErrorResponse } from "@nhost/nhost-js/auth";
-import type { FetchError } from "@nhost/nhost-js/fetch";
 
 /**
  * Verifies MFA code for sign in

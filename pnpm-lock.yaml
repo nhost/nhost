@@ -876,11 +876,14 @@ importers:
         version: 18.2.0(react@18.2.0)
     devDependencies:
       '@types/react':
-        specifier: ^19
-        version: 19.1.12
+        specifier: ^18
+        version: 18.3.24
       '@types/react-dom':
-        specifier: ^19
-        version: 19.1.9(@types/react@19.1.12)
+        specifier: ^18
+        version: 18.3.7(@types/react@18.3.24)
+      globals:
+        specifier: ^16.0.0
+        version: 16.3.0
 
   examples/demos/react-demo:
     dependencies:
@@ -20944,7 +20947,7 @@ snapshots:
 
   '@types/react-table@7.7.20':
     dependencies:
-      '@types/react': 19.1.12
+      '@types/react': 18.3.24
 
   '@types/react-transition-group@4.4.12(@types/react@18.3.24)':
     dependencies:

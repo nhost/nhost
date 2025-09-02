@@ -1,6 +1,6 @@
 import { createNhostClient } from "../lib/nhost/server";
-import SignOutButton from "./SignOutButton";
 import ActiveLink from "./ActiveLink";
+import SignOutButton from "./SignOutButton";
 
 export default async function Navigation() {
   const nhost = await createNhostClient();

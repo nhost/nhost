@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { isWebAuthnSupported } from "../lib/utils";
-import { signInWebauthn, verifySignInWebauthn } from "../signin/actions";
 import type { PublicKeyCredentialRequestOptions } from "@nhost/nhost-js/auth";
 import { startAuthentication } from "@simplewebauthn/browser";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { isWebAuthnSupported } from "../lib/utils";
+import { signInWebauthn, verifySignInWebauthn } from "../signin/actions";
 
 interface WebAuthnSignInFormProps {
   buttonLabel?: string;
@@ -84,16 +84,12 @@ export default function WebAuthnSignInForm({
         }
       } catch (credError) {
         setError(
-          `WebAuthn authentication failed: ${
-            (credError as Error).message || "Unknown error"
-          }`,
+          `WebAuthn authentication failed: ${(credError as Error).message || "Unknown error"}`,
         );
       }
     } catch (err) {
       setError(
-        `An error occurred during WebAuthn sign in: ${
-          (err as Error).message || "Unknown error"
-        }`,
+        `An error occurred during WebAuthn sign in: ${(err as Error).message || "Unknown error"}`,
       );
     } finally {
       setIsLoading(false);

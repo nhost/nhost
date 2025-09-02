@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { startRegistration } from "@simplewebauthn/browser";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useAuth } from "../lib/nhost/AuthProvider";
 import { isWebAuthnSupported } from "../lib/utils";
-import { startRegistration } from "@simplewebauthn/browser";
 
 /**
  * Represents a WebAuthn security key stored for a user

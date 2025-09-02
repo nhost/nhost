@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 interface MagicLinkFormProps {
   sendMagicLinkAction: (formData: FormData) => Promise<{

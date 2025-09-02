@@ -1,19 +1,19 @@
 "use client";
 
+import { createClient, type NhostClient } from "@nhost/nhost-js";
+import { type Session } from "@nhost/nhost-js/auth";
+import { CookieStorage } from "@nhost/nhost-js/session";
+import { useRouter } from "next/navigation";
 import {
   createContext,
+  type ReactNode,
+  useCallback,
   useContext,
   useEffect,
-  useState,
   useMemo,
   useRef,
-  useCallback,
-  type ReactNode,
+  useState,
 } from "react";
-import { useRouter } from "next/navigation";
-import { type Session } from "@nhost/nhost-js/auth";
-import { createClient, type NhostClient } from "@nhost/nhost-js";
-import { CookieStorage } from "@nhost/nhost-js/session";
 
 /**
  * Authentication context interface providing access to user session state and Nhost client.
@@ -98,7 +98,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         router.refresh();
       }
     },
-    [nhost, router, setUser, setSession, setIsAuthenticated],
+    [nhost, router],
   );
 
   // Initialize authentication state and set up cross-tab session synchronization
@@ -147,7 +147,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       document.removeEventListener("visibilitychange", checkSessionOnFocus);
       window.removeEventListener("focus", checkSessionOnFocus);
     };
-  }, [nhost, router, reloadSession]);
+  }, [nhost, reloadSession]);
 
   const value: AuthContextType = {
     user,

@@ -1,6 +1,6 @@
-import { createNhostClient } from "../lib/nhost/server";
-import SecurityKeyClient from "../components/SecurityKeyClient";
 import { Suspense } from "react";
+import SecurityKeyClient from "../components/SecurityKeyClient";
+import { createNhostClient } from "../lib/nhost/server";
 
 /**
  * Represents a WebAuthn security key stored for a user

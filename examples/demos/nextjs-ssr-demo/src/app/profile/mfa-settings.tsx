@@ -1,8 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import { useAuth } from "../lib/nhost/AuthProvider";
-import Image from "next/image";
 
 interface MFASettingsProps {
   initialMfaEnabled: boolean;

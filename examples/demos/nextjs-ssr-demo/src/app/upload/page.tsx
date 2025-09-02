@@ -1,6 +1,6 @@
+import type { FileMetadata } from "@nhost/nhost-js/storage";
 import { createNhostClient } from "../lib/nhost/server";
 import UploadClient from "./client";
-import type { FileMetadata } from "@nhost/nhost-js/storage";
 
 interface GetFilesResponse {
   files: FileMetadata[];

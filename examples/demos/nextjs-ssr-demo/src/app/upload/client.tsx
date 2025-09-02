@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useRef, type ChangeEvent } from "react";
+import type { FileMetadata } from "@nhost/nhost-js/storage";
 import { useRouter } from "next/navigation";
+import { type ChangeEvent, useRef, useState } from "react";
 import { useAuth } from "../lib/nhost/AuthProvider";
 import { formatFileSize } from "../lib/utils";
-import type { FileMetadata } from "@nhost/nhost-js/storage";
 
 interface UploadClientProps {
   initialFiles: FileMetadata[];

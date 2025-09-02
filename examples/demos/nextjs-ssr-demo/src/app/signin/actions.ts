@@ -1,12 +1,12 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
-import { createNhostClient } from "../lib/nhost/server";
 import type {
-  ErrorResponse,
   CredentialAssertionResponse,
+  ErrorResponse,
 } from "@nhost/nhost-js/auth";
 import type { FetchError } from "@nhost/nhost-js/fetch";
+import { revalidatePath } from "next/cache";
+import { createNhostClient } from "../lib/nhost/server";
 
 /**
  * Signs in a user with email and password

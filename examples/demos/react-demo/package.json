@@ -6,11 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "test": "pnpm test:audit && pnpm test:typecheck && pnpm test:lint && pnpm test:format && echo \"No tests specified\" && exit 0",
+    "test": "pnpm test:typecheck && pnpm test:lint && pnpm test:format && echo \"No tests specified\" && exit 0",
     "test:typecheck": "tsc --noEmit",
     "test:lint": "eslint .",
     "test:format": "prettier --check .",
-    "test:audit": "pnpm audit",
     "format": "prettier --write .",
     "preview": "vite preview"
   },

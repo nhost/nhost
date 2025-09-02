@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { useAuth } from "../lib/nhost/AuthProvider";
 import type { ErrorResponse } from "@nhost/nhost-js/auth";
 import type { FetchError } from "@nhost/nhost-js/fetch";
+import { useState } from "react";
+import { useAuth } from "../lib/nhost/AuthProvider";
 
 export default function ChangePassword() {
   const [newPassword, setNewPassword] = useState("");

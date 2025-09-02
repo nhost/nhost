@@ -90,6 +90,7 @@
               nhost-cli
               nodejs
               pnpm_10
+              biome
               skopeo
               go
               golines

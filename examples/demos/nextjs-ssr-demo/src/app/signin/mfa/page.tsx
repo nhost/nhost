@@ -1,5 +1,5 @@
-import { createNhostClient } from "../../lib/nhost/server";
 import { redirect } from "next/navigation";
+import { createNhostClient } from "../../lib/nhost/server";
 import MfaVerificationForm from "./MfaVerificationForm";
 
 export default async function MfaVerification({

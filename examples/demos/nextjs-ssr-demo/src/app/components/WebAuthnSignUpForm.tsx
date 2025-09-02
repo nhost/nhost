@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { isWebAuthnSupported } from "../lib/utils";
-import { signUpWebauthn, verifySignUpWebauthn } from "../signup/actions";
 import type { PublicKeyCredentialCreationOptions } from "@nhost/nhost-js/auth";
 import { startRegistration } from "@simplewebauthn/browser";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { isWebAuthnSupported } from "../lib/utils";
+import { signUpWebauthn, verifySignUpWebauthn } from "../signup/actions";
 
 interface WebAuthnSignUpFormProps {
   buttonLabel?: string;
@@ -107,16 +107,12 @@ export default function WebAuthnSignUpForm({
         }
       } catch (credError) {
         setError(
-          `WebAuthn registration failed: ${
-            (credError as Error).message || "Unknown error"
-          }`,
+          `WebAuthn registration failed: ${(credError as Error).message || "Unknown error"}`,
         );
       }
     } catch (err) {
       setError(
-        `An error occurred during WebAuthn sign up: ${
-          (err as Error).message || "Unknown error"
-        }`,
+        `An error occurred during WebAuthn sign up: ${(err as Error).message || "Unknown error"}`,
       );
     } finally {
       setIsLoading(false);

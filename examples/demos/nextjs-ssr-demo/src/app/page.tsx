@@ -1,5 +1,5 @@
-import { createNhostClient } from "./lib/nhost/server";
 import { redirect } from "next/navigation";
+import { createNhostClient } from "./lib/nhost/server";
 
 export default async function Home() {
   // Check if user is already authenticated

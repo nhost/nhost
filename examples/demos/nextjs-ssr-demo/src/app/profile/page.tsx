@@ -1,6 +1,6 @@
 import { createNhostClient } from "../lib/nhost/server";
-import MFASettings from "./mfa-settings";
 import ChangePassword from "./change-password";
+import MFASettings from "./mfa-settings";
 import SecurityKeys from "./security-keys";
 
 interface GetUserMfaStatusResponse {

@@ -1,10 +1,10 @@
 import Link from "next/link";
-import TabForm from "../components/TabForm";
-import SignInForm from "./SignInForm";
 import MagicLinkForm from "../components/MagicLinkForm";
 import SocialSignIn from "../components/SocialSignIn";
+import TabForm from "../components/TabForm";
 import WebAuthnSignInForm from "../components/WebAuthnSignInForm";
 import { sendMagicLink } from "./actions";
+import SignInForm from "./SignInForm";
 
 export default async function SignIn({
   searchParams,
