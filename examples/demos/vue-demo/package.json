@@ -20,10 +20,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.2.3",
-    "@vue/eslint-config-prettier": "^10.2.0",
-    "@vue/eslint-config-typescript": "^14.5.0",
     "@vue/tsconfig": "^0.7.0",
-    "eslint-plugin-vue": "~10.0.0",
     "jiti": "^2.4.2",
     "npm-run-all2": "^7.0.2",
     "vite-plugin-vue-devtools": "^7.7.2",

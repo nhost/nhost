@@ -50,9 +50,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.27.4",
-    "@types/react": "~19.0.14",
-    "eslint": "^9.34.0",
-    "eslint-config-expo": "~9.2.0"
+    "@types/react": "~19.0.14"
   },
   "private": true
 }
