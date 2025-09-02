@@ -1,24 +1,24 @@
-import React, { useState, useEffect } from "react";
+import { router, useLocalSearchParams } from "expo-router";
+import { useEffect, useState } from "react";
 import {
-  StyleSheet,
-  Text,
-  View,
-  TextInput,
-  TouchableOpacity,
   ActivityIndicator,
   Alert,
+  Keyboard,
   KeyboardAvoidingView,
   ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
   TouchableWithoutFeedback,
-  Keyboard,
+  View,
 } from "react-native";
-import { router, useLocalSearchParams } from "expo-router";
 import { useAuth } from "../lib/nhost/AuthProvider";
 
 export default function MFAVerification() {
   const { nhost } = useAuth();
   const params = useLocalSearchParams();
-  const ticket = params["ticket"] as string;
+  const ticket = params.ticket as string;
 
   const [verificationCode, setVerificationCode] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);

@@ -1,14 +1,14 @@
+import { createClient, type NhostClient } from "@nhost/nhost-js";
+import type { Session } from "@nhost/nhost-js/session";
+import Constants from "expo-constants";
 import {
   createContext,
+  type ReactNode,
   useContext,
   useEffect,
-  useState,
   useMemo,
-  type ReactNode,
+  useState,
 } from "react";
-import { createClient, type NhostClient } from "@nhost/nhost-js";
-import { type Session } from "@nhost/nhost-js/session";
-import Constants from "expo-constants";
 import NhostAsyncStorage from "./AsyncStorage";
 
 interface AuthContextType {
@@ -36,10 +36,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const nhost = useMemo(() => {
     // Get configuration values with type assertion
     const subdomain =
-      (Constants.expoConfig?.extra?.["NHOST_SUBDOMAIN"] as string) ||
+      (Constants.expoConfig?.extra?.NHOST_SUBDOMAIN as string) ||
       "192-168-1-103";
     const region =
-      (Constants.expoConfig?.extra?.["NHOST_REGION"] as string) || "local";
+      (Constants.expoConfig?.extra?.NHOST_REGION as string) || "local";
 
     return createClient({
       subdomain,

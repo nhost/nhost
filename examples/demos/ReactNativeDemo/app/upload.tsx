@@ -1,23 +1,22 @@
-import React, { useState, useEffect, useCallback } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  FlatList,
-  Alert,
-  ActivityIndicator,
-} from "react-native";
-import { Stack } from "expo-router";
+import type { FetchError } from "@nhost/nhost-js/fetch";
+import type { ErrorResponse, FileMetadata } from "@nhost/nhost-js/storage";
 import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system";
+import { Stack } from "expo-router";
 import * as Sharing from "expo-sharing";
-import { useAuth } from "./lib/nhost/AuthProvider";
-import { formatFileSize } from "./lib/utils";
+import { useCallback, useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import ProtectedScreen from "./components/ProtectedScreen";
-import type { FileMetadata, ErrorResponse } from "@nhost/nhost-js/storage";
-import { type FetchError } from "@nhost/nhost-js/fetch";
-import { blobToBase64 } from "./lib/utils";
+import { useAuth } from "./lib/nhost/AuthProvider";
+import { blobToBase64, formatFileSize } from "./lib/utils";
 
 interface DeleteStatus {
   message: string;
@@ -122,7 +121,7 @@ export default function Upload() {
 
       // Get the processed file data
       const uploadedFile = response.body.processedFiles?.[0];
-      if (uploadedFile == undefined) {
+      if (uploadedFile === undefined) {
         throw new Error("Failed to upload file");
       }
 

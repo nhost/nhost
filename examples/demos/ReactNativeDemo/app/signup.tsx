@@ -1,19 +1,19 @@
-import React, { useState, useEffect } from "react";
+import { Link, router, useLocalSearchParams } from "expo-router";
+import { useEffect, useState } from "react";
 import {
-  StyleSheet,
-  Text,
-  View,
-  TextInput,
-  TouchableOpacity,
-  ScrollView,
   ActivityIndicator,
   KeyboardAvoidingView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { router, Link, useLocalSearchParams } from "expo-router";
-import { useAuth } from "./lib/nhost/AuthProvider";
 import MagicLinkForm from "./components/MagicLinkForm";
-import SocialLoginForm from "./components/SocialLoginForm";
 import NativeLoginForm from "./components/NativeLoginForm";
+import SocialLoginForm from "./components/SocialLoginForm";
+import { useAuth } from "./lib/nhost/AuthProvider";
 
 export default function SignUp() {
   const { nhost, isAuthenticated } = useAuth();
@@ -29,7 +29,7 @@ export default function SignUp() {
     "password" | "magic" | "social" | "native"
   >("password");
 
-  const magicLinkSent = params["magic"] === "success";
+  const magicLinkSent = params.magic === "success";
 
   // If already authenticated, redirect to profile
   useEffect(() => {

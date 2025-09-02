@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from "react";
+import { router } from "expo-router";
+import { useEffect, useState } from "react";
 import {
+  Alert,
+  ScrollView,
   StyleSheet,
   Text,
-  View,
-  ScrollView,
   TouchableOpacity,
-  Alert,
+  View,
 } from "react-native";
-import { router } from "expo-router";
-import { useAuth } from "./lib/nhost/AuthProvider";
-import ProtectedScreen from "./components/ProtectedScreen";
 import MFASettings from "./components/MFASettings";
+import ProtectedScreen from "./components/ProtectedScreen";
+import { useAuth } from "./lib/nhost/AuthProvider";
 
 interface MfaStatusResponse {
   user?: {

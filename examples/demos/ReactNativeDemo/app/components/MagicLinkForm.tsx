@@ -1,16 +1,16 @@
-import React, { useState } from "react";
+import type { ErrorResponse } from "@nhost/nhost-js/auth";
+import type { FetchError } from "@nhost/nhost-js/fetch";
+import * as Linking from "expo-linking";
+import { useState } from "react";
 import {
-  View,
+  ActivityIndicator,
+  StyleSheet,
   Text,
   TextInput,
-  StyleSheet,
   TouchableOpacity,
-  ActivityIndicator,
+  View,
 } from "react-native";
 import { useAuth } from "../lib/nhost/AuthProvider";
-import { type ErrorResponse } from "@nhost/nhost-js/auth";
-import { type FetchError } from "@nhost/nhost-js/fetch";
-import * as Linking from "expo-linking";
 
 interface MagicLinkFormProps {
   buttonLabel?: string;

@@ -1,6 +1,6 @@
 import { Stack } from "expo-router";
-import { AuthProvider } from "./lib/nhost/AuthProvider";
 import { Text, View } from "react-native";
+import { AuthProvider } from "./lib/nhost/AuthProvider";
 
 export default function RootLayout() {
   return (
