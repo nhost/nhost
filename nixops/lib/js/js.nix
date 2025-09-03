@@ -92,19 +92,17 @@ let
         cp -r ${src} src
         chmod +w -R .
 
+        echo "➜ Source: ${src}"
+        echo "➜ Workdir: $(realpath src)"
         echo "➜ Setting up node_modules and checking dependencies for security issues"
         cd src
 
         for absdir in $(pnpm list --recursive --depth=-1 --parseable); do
           dir=$(realpath --relative-to="$PWD" "$absdir")
-          ln -s ${node_modules}/$dir/node_modules $dir/node_modules
+          cp -r ${node_modules}/$dir/node_modules $dir/node_modules
         done
 
         pnpm audit-ci
-        cd ..
-
-
-        cd src
 
         ${preCheck}
 

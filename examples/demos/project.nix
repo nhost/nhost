@@ -9,14 +9,14 @@ let
     include = with nix-filter.lib; [
       isDirectory
       (matchName "package.json")
+      ".gitignore"
       ".npmrc"
-      ".prettierignore"
-      ".prettierrc.js"
       "audit-ci.jsonc"
       "biome.json"
       "pnpm-workspace.yaml"
       "pnpm-lock.yaml"
       "turbo.json"
+      (inDirectory "./build")
       (inDirectory "${submodule}")
     ];
   };
@@ -53,24 +53,22 @@ in
     buildInputs = with pkgs; [ nodejs ];
 
     buildPhase = ''
-      cp -r ${src} src
       chmod +w -R .
-      cd src
 
       for absdir in $(pnpm list --recursive --depth=-1 --parseable); do
         dir=$(realpath --relative-to="$PWD" "$absdir")
-        rm -rf $dir/node_modules
-        ln -sf ${node_modules}/$dir/node_modules $dir/node_modules
+        cp -r ${node_modules}/$dir/node_modules $dir/node_modules
       done
 
-      cd ${submodule}
+      mkdir -p packages/nhost-js
+      cp -r ${self.packages.${pkgs.system}.nhost-js}/dist packages/nhost-js/dist
 
+      cd ${submodule}
       pnpm build
     '';
 
     installPhase = ''
       mkdir -p $out
-      cp -r dist $out/dist
     '';
   };
 }

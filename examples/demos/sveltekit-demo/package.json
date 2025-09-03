@@ -5,15 +5,15 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
-    "build": "vite build",
+    "build": "pnpm sync && vite build",
     "preview": "vite preview",
     "generate": "echo 'Nothing to do'",
-    "test": "pnpm test:typecheck && pnpm test:lint && pnpm check",
+    "test": "pnpm sync && pnpm test:typecheck && pnpm test:lint && pnpm check",
     "test:typecheck": "tsc --noEmit",
     "test:lint": "biome check",
     "format": "biome format --write",
-    "prepare": "svelte-kit sync || echo ''",
-    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+    "sync": "svelte-kit sync",
+    "check": "svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
   },
   "dependencies": {
