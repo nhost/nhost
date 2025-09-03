@@ -120,6 +120,8 @@ let
         # Check only files that existed in the baseline
         sha1sum -c $TMPDIR/baseline || (echo "❌ ERROR: pnpm generate changed files" && exit 1)
 
+        cd $SRCROOT
+
         echo "➜ Running linters and tests"
         pnpm run --dir ${submodule} test
 

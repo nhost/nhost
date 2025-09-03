@@ -53,6 +53,9 @@ in
     buildInputs = with pkgs; [ nodejs ];
 
     buildPhase = ''
+      mkdir -p $TMPDIR/home
+      export HOME=$TMPDIR/home
+
       chmod +w -R .
 
       for absdir in $(pnpm list --recursive --depth=-1 --parseable); do
