@@ -1,9 +1,9 @@
-import {
-  DEFAULT_SESSION_KEY,
-  type Session,
-  type SessionStorageBackend,
-} from "@nhost/nhost-js/session";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { type Session } from "@nhost/nhost-js/session";
+import {
+  type SessionStorageBackend,
+  DEFAULT_SESSION_KEY,
+} from "@nhost/nhost-js/session";
 
 /**
  * Custom storage implementation for React Native using AsyncStorage

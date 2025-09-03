@@ -1,8 +1,7 @@
-import { router } from "expo-router";
-import type React from "react";
-import { useEffect } from "react";
-import { ActivityIndicator, Text, View } from "react-native";
+import React, { useEffect } from "react";
+import { View, Text, ActivityIndicator } from "react-native";
 import { useAuth } from "../lib/nhost/AuthProvider";
+import { router } from "expo-router";
 
 type AppRoutes = "/" | "/signin" | "/signup" | "/profile";
 

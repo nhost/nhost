@@ -1,24 +1,24 @@
-import type { ErrorResponse } from "@nhost/nhost-js/auth";
-import type { FetchError } from "@nhost/nhost-js/fetch";
-import * as Clipboard from "expo-clipboard";
-import { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Dimensions,
-  Image,
-  Keyboard,
-  KeyboardAvoidingView,
-  Modal,
-  ScrollView,
-  StyleSheet,
+  View,
   Text,
   TextInput,
   TouchableOpacity,
+  StyleSheet,
+  Image,
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  Modal,
+  Dimensions,
+  KeyboardAvoidingView,
   TouchableWithoutFeedback,
-  View,
+  Keyboard,
 } from "react-native";
+import * as Clipboard from "expo-clipboard";
 import { useAuth } from "../lib/nhost/AuthProvider";
+import { type ErrorResponse } from "@nhost/nhost-js/auth";
+import { type FetchError } from "@nhost/nhost-js/fetch";
 
 interface MFASettingsProps {
   initialMfaEnabled: boolean;

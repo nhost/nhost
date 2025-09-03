@@ -1,12 +1,12 @@
-import { router, useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
+  TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
+import { router, useLocalSearchParams } from "expo-router";
 import { useAuth } from "./lib/nhost/AuthProvider";
 
 export default function Verify() {

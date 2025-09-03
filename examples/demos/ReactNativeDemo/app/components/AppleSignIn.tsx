@@ -1,9 +1,9 @@
-import * as AppleAuthentication from "expo-apple-authentication";
-import * as Crypto from "expo-crypto";
-import { router } from "expo-router";
 import React from "react";
-import { Alert, Platform, StyleSheet } from "react-native";
+import { Platform, StyleSheet, Alert } from "react-native";
+import * as AppleAuthentication from "expo-apple-authentication";
 import { useAuth } from "../lib/nhost/AuthProvider";
+import { router } from "expo-router";
+import * as Crypto from "expo-crypto";
 
 interface AppleSignInProps {
   action: "Sign In" | "Sign Up";

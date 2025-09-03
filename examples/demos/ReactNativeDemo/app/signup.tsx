@@ -1,19 +1,19 @@
-import { Link, router, useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  ScrollView,
   StyleSheet,
   Text,
+  View,
   TextInput,
   TouchableOpacity,
-  View,
+  ScrollView,
+  ActivityIndicator,
+  KeyboardAvoidingView,
 } from "react-native";
-import MagicLinkForm from "./components/MagicLinkForm";
-import NativeLoginForm from "./components/NativeLoginForm";
-import SocialLoginForm from "./components/SocialLoginForm";
+import { router, Link, useLocalSearchParams } from "expo-router";
 import { useAuth } from "./lib/nhost/AuthProvider";
+import MagicLinkForm from "./components/MagicLinkForm";
+import SocialLoginForm from "./components/SocialLoginForm";
+import NativeLoginForm from "./components/NativeLoginForm";
 
 export default function SignUp() {
   const { nhost, isAuthenticated } = useAuth();
