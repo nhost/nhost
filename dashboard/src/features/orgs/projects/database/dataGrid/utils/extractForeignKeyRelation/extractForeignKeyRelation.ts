@@ -42,7 +42,7 @@ export default function extractForeignKeyRelation(
 
   return {
     name,
-    columnName: columnName.replace(/(^\(|\)$)/gi, ''),
+    columnName: columnName.replace(/(^\(|\)$)/gi, '').replaceAll('"', ''),
     referencedSchema,
     referencedTable,
     referencedColumn: referencedColumn.replace(/(^\(|\)$)/gi, ''),

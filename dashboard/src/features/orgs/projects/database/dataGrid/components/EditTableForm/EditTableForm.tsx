@@ -38,7 +38,7 @@ export interface EditTableFormProps
   /**
    * Function to be called when the form is submitted.
    */
-  onSubmit?: () => Promise<void>;
+  onSubmit?: (tableName: string) => Promise<void>;
 }
 
 export default function EditTableForm({
@@ -182,7 +182,7 @@ export default function EditTableForm({
       }
 
       if (onSubmit) {
-        await onSubmit();
+        await onSubmit(updatedTable.name);
       }
 
       if (originalTable.table_name !== updatedTable.name) {
