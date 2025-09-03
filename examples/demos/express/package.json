@@ -1,0 +1,24 @@
+{
+  "name": "express",
+  "version": "1.0.0",
+  "license": "MIT",
+  "scripts": {
+    "dev": "pnpm ts-node src/index.ts",
+    "build": "tsc",
+    "generate": "echo 'Nothing to do'",
+    "test": "pnpm test:typecheck && pnpm test:lint",
+    "test:typecheck": "tsc --noEmit",
+    "test:lint": "biome check",
+    "format": "biome format --write"
+  },
+  "dependencies": {
+    "@nhost/nhost-js": "workspace:^",
+    "cookie-parser": "^1.4.7",
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/cookie-parser": "^1.4.8",
+    "@types/express": "^5.0.2",
+    "ts-node": "^10.9.2"
+  }
+}

@@ -10,5 +10,24 @@
   ell = prev.ell.overrideAttrs (oldAttrs: {
     doCheck = false;
   });
+
+  biome = prev.biome.overrideAttrs (finalAttrs: prevAttrs: rec {
+    pname = "biome";
+    version = "2.2.2";
+
+    src = final.fetchFromGitHub {
+      owner = "biomejs";
+      repo = "biome";
+      rev = "@biomejs/biome@${version}";
+      hash = "sha256-YmDHAsNGN5lsCgiciASdMUM6InbbjaGwyfyEX+XNOxs=";
+    };
+
+    cargoHash = "sha256-l3BQMG/cCxzQizeFGwAEDP8mzLtf/21ojyd+7gzhbtU=";
+
+    cargoDeps = final.rustPlatform.fetchCargoVendor {
+      inherit (finalAttrs) pname src version;
+      hash = finalAttrs.cargoHash;
+    };
+  });
 })
 

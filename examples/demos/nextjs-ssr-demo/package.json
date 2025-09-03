@@ -1,0 +1,27 @@
+{
+  "name": "nextjs-demo",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "generate": "echo 'Nothing to do'",
+    "test": "pnpm test:typecheck && pnpm test:lint",
+    "test:typecheck": "tsc --noEmit",
+    "test:lint": "biome check",
+    "format": "biome format --write"
+  },
+  "dependencies": {
+    "@nhost/nhost-js": "workspace:*",
+    "@simplewebauthn/browser": "^13.1.0",
+    "next": "15.4.7",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "globals": "^16.0.0"
+  }
+}

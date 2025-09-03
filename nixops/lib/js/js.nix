@@ -4,6 +4,7 @@ let
     pnpm_10
     cacert
     nodejs
+    biome
     playwright-driver
   ];
 
@@ -91,19 +92,17 @@ let
         cp -r ${src} src
         chmod +w -R .
 
+        echo "➜ Source: ${src}"
+        echo "➜ Workdir: $(realpath src)"
         echo "➜ Setting up node_modules and checking dependencies for security issues"
         cd src
 
         for absdir in $(pnpm list --recursive --depth=-1 --parseable); do
           dir=$(realpath --relative-to="$PWD" "$absdir")
-          ln -s ${node_modules}/$dir/node_modules $dir/node_modules
+          cp -r ${node_modules}/$dir/node_modules $dir/node_modules
         done
 
         pnpm audit-ci
-        cd ..
-
-
-        cd src
 
         ${preCheck}
 
@@ -120,6 +119,8 @@ let
 
         # Check only files that existed in the baseline
         sha1sum -c $TMPDIR/baseline || (echo "❌ ERROR: pnpm generate changed files" && exit 1)
+
+        cd $SRCROOT
 
         echo "➜ Running linters and tests"
         pnpm run --dir ${submodule} test

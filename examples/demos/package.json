@@ -1,0 +1,20 @@
+{
+  "name": "demos",
+  "version": "1.0.0",
+  "license": "MIT",
+  "scripts": {
+    "build": "pnpm run --sequential --filter './**' build",
+    "test": "pnpm run --sequential --filter './**' test",
+    "generate": "pnpm run --sequential --filter './**' generate"
+  },
+  "dependencies": {
+    "@nhost/nhost-js": "workspace:^",
+    "cookie-parser": "^1.4.7",
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/cookie-parser": "^1.4.8",
+    "@types/express": "^5.0.2",
+    "ts-node": "^10.9.2"
+  }
+}
