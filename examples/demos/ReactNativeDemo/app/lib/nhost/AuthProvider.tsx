@@ -1,14 +1,14 @@
+import { createClient, type NhostClient } from "@nhost/nhost-js";
+import type { Session } from "@nhost/nhost-js/session";
+import Constants from "expo-constants";
 import {
   createContext,
+  type ReactNode,
   useContext,
   useEffect,
-  useState,
   useMemo,
-  type ReactNode,
+  useState,
 } from "react";
-import { createClient, type NhostClient } from "@nhost/nhost-js";
-import { type Session } from "@nhost/nhost-js/session";
-import Constants from "expo-constants";
 import NhostAsyncStorage from "./AsyncStorage";
 
 interface AuthContextType {

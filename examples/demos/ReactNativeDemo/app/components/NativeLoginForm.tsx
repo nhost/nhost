@@ -1,10 +1,9 @@
-import React from "react";
 import {
+  ActivityIndicator,
+  Platform,
   StyleSheet,
   Text,
   View,
-  ActivityIndicator,
-  Platform,
 } from "react-native";
 import AppleSignIn from "./AppleSignIn";
 

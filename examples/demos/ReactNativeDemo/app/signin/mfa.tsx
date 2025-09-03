@@ -1,18 +1,18 @@
-import React, { useState, useEffect } from "react";
+import { router, useLocalSearchParams } from "expo-router";
+import { useEffect, useState } from "react";
 import {
-  StyleSheet,
-  Text,
-  View,
-  TextInput,
-  TouchableOpacity,
   ActivityIndicator,
   Alert,
+  Keyboard,
   KeyboardAvoidingView,
   ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
   TouchableWithoutFeedback,
-  Keyboard,
+  View,
 } from "react-native";
-import { router, useLocalSearchParams } from "expo-router";
 import { useAuth } from "../lib/nhost/AuthProvider";
 
 export default function MFAVerification() {
