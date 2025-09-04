@@ -1,18 +1,54 @@
-{ self, pkgs, nix2containerPkgs, nix-filter, nixops-lib, node_modules }:
+{ self, pkgs, nix2containerPkgs, nix-filter, nixops-lib }:
 let
   name = "demos";
   version = "0.0.0-dev";
   submodule = "examples/${name}";
 
+  node_modules = nixops-lib.js.mkNodeModules {
+    name = "node-modules";
+    version = "0.0.0-dev";
+
+    src = nix-filter.lib.filter {
+      root = ../..;
+      include = [
+        ".npmrc "
+        "package.json"
+        "pnpm-workspace.yaml "
+        "pnpm-lock.yaml"
+        "${submodule}/package.json"
+        "${submodule}/pnpm-lock.yaml"
+        "${submodule}/ReactNativeDemo/package.json"
+        "${submodule}/ReactNativeDemo/pnpm-lock.yaml"
+        "${submodule}/express/package.json"
+        "${submodule}/express/pnpm-lock.yaml"
+        "${submodule}/nextjs-ssr-demo/package.json"
+        "${submodule}/nextjs-ssr-demo/pnpm-lock.yaml"
+        "${submodule}/react-demo/package.json"
+        "${submodule}/react-demo/pnpm-lock.yaml"
+        "${submodule}/sveltekit-demo/package.json"
+        "${submodule}/sveltekit-demo/pnpm-lock.yaml"
+        "${submodule}/vue-demo/package.json"
+        "${submodule}/vue-demo/pnpm-lock.yaml"
+      ];
+    };
+
+    pnpmOpts = "--filter . --filter './${submodule}/**'";
+
+    preBuild = ''
+      mkdir packages
+      cp -r ${self.packages.${pkgs.system}.nhost-js} packages/nhost-js
+    '';
+  };
+
   src = nix-filter.lib.filter {
     root = ../../.;
     include = with nix-filter.lib; [
       isDirectory
-      (matchName "package.json")
       ".gitignore"
       ".npmrc"
       "audit-ci.jsonc"
       "biome.json"
+      "package.json"
       "pnpm-workspace.yaml"
       "pnpm-lock.yaml"
       "turbo.json"
@@ -41,8 +77,8 @@ in
     inherit src node_modules submodule buildInputs nativeBuildInputs checkDeps;
 
     preCheck = ''
-      mkdir -p packages/nhost-js
-      cp -r ${self.packages.${pkgs.system}.nhost-js}/dist packages/nhost-js/dist
+      rm -rf packages/nhost-js
+      cp -r ${self.packages.${pkgs.system}.nhost-js} packages/nhost-js
     '';
   };
 
@@ -60,13 +96,15 @@ in
 
       for absdir in $(pnpm list --recursive --depth=-1 --parseable); do
         dir=$(realpath --relative-to="$PWD" "$absdir")
+        echo "➜ Copying node_modules for $dir"
         cp -r ${node_modules}/$dir/node_modules $dir/node_modules
       done
 
-      mkdir -p packages/nhost-js
-      cp -r ${self.packages.${pkgs.system}.nhost-js}/dist packages/nhost-js/dist
+      rm -rf packages/nhost-js
+      cp -r ${self.packages.${pkgs.system}.nhost-js} packages/nhost-js
 
       cd ${submodule}
+
       pnpm build
     '';
 
@@ -75,6 +113,7 @@ in
     '';
   };
 }
+
 
 
 

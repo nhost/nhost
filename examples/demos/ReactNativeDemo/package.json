@@ -51,7 +51,8 @@
   },
   "devDependencies": {
     "@babel/core": "^7.27.4",
-    "@types/react": "~19.0.14"
+    "@types/react": "~19.0.14",
+    "@types/node": "^22.15.17"
   },
   "private": true
 }

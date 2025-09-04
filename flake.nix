@@ -67,15 +67,15 @@
         };
 
         dashboardf = import ./dashboard/project.nix {
-          inherit self pkgs nix-filter nixops-lib node_modules nix2containerPkgs;
+          inherit self pkgs nix-filter nixops-lib nix2containerPkgs;
         };
 
         demosf = import ./examples/demos/project.nix {
-          inherit self pkgs nix-filter nixops-lib node_modules nix2containerPkgs;
+          inherit self pkgs nix-filter nixops-lib nix2containerPkgs;
         };
 
         docsf = import ./docs/project.nix {
-          inherit self pkgs nix-filter nixops-lib node_modules;
+          inherit self pkgs nix-filter nixops-lib;
         };
 
         mintlify-openapif = import ./tools/mintlify-openapi/project.nix {
@@ -83,7 +83,7 @@
         };
 
         nhost-jsf = import ./packages/nhost-js/project.nix {
-          inherit self pkgs nix-filter nixops-lib node_modules;
+          inherit self pkgs nix-filter nixops-lib;
         };
 
         nixopsf = import ./nixops/project.nix {

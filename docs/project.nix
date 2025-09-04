@@ -1,19 +1,36 @@
-{ self, pkgs, nixops-lib, nix-filter, node_modules }:
+{ self, pkgs, nixops-lib, nix-filter }:
 let
   name = "docs";
   version = "0.0.0-dev";
   created = "1970-01-01T00:00:00Z";
   submodule = "${name}";
 
+  node_modules = nixops-lib.js.mkNodeModules {
+    name = "node-modules";
+    version = "0.0.0-dev";
+
+    src = nix-filter.lib.filter {
+      root = ../.;
+      include = [
+        ".npmrc"
+        "package.json"
+        "pnpm-workspace.yaml"
+        "pnpm-lock.yaml"
+        "${submodule}/package.json"
+        "${submodule}/pnpm-lock.yaml"
+      ];
+    };
+  };
+
   src = nix-filter.lib.filter {
     root = ../.;
     include = with nix-filter.lib; [
       isDirectory
-      (matchName "package.json")
       ".npmrc"
       ".prettierignore"
       ".prettierrc.js"
       "audit-ci.jsonc"
+      "package.json"
       "pnpm-workspace.yaml"
       "pnpm-lock.yaml"
       "turbo.json"
@@ -47,5 +64,11 @@ in
 
   check = nixops-lib.js.check {
     inherit src node_modules submodule buildInputs nativeBuildInputs checkDeps;
+
+    preCheck = ''
+      mkdir -p packages/nhost-js
+      cp -r ${self.packages.${pkgs.system}.nhost-js}/dist packages/nhost-js/dist
+      cp -r ${self.packages.${pkgs.system}.nhost-js}/node_modules packages/nhost-js/node_modules
+    '';
   };
 }

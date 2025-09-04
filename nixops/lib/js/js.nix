@@ -12,6 +12,8 @@ let
     { src
     , name
     , version
+    , preBuild ? ""
+    , pnpmOpts ? ""
     }:
     pkgs.stdenv.mkDerivation {
       inherit name version src;
@@ -28,9 +30,9 @@ let
         export HOME=$TMPDIR/home
         mkdir -p $HOME
 
-        # Fix the workspace linking issue
-        pnpm config set link-workspace-packages false
-        pnpm install --frozen-lockfile
+        ${preBuild}
+
+        pnpm install --frozen-lockfile ${pnpmOpts}
       '';
 
       installPhase = ''
@@ -38,6 +40,7 @@ let
 
         for absdir in $(pnpm list --recursive --depth=-1 --parseable); do
           dir=$(realpath --relative-to="$PWD" "$absdir")
+          echo "➜ Copying node_modules for $dir"
           mkdir -p $out/$dir
           cp -r $dir/node_modules $out/$dir/node_modules
         done
