@@ -166,7 +166,7 @@ describe('prepareUpdateTableQuery', () => {
         {
           id: 'author_id',
           name: 'age',
-          type: { value: 'int2', label: 'int2' },
+          type: { value: 'numeric(10,2)' as any, label: 'numeric(10,2)' },
         },
       ],
       foreignKeyRelations: [],
@@ -186,7 +186,7 @@ describe('prepareUpdateTableQuery', () => {
       'ALTER TABLE public.test_table ALTER COLUMN author_id DROP DEFAULT;',
     );
     expect(transaction[1].args.sql).toBe(
-      'ALTER TABLE public.test_table ALTER COLUMN author_id TYPE int2 USING author_id::int2;',
+      'ALTER TABLE public.test_table ALTER COLUMN author_id TYPE numeric(10,2) USING author_id::numeric(10,2);',
     );
     expect(transaction[2].args.sql).toBe(
       'ALTER TABLE public.test_table RENAME COLUMN author_id TO age;',
