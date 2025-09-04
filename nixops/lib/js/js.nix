@@ -18,8 +18,6 @@ let
     pkgs.stdenv.mkDerivation {
       inherit name version src;
 
-      dontFixup = true;
-
       nativeBuildInputs = with pkgs; [
         pnpm_10
         cacert

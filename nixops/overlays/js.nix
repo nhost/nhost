@@ -1,5 +1,5 @@
 (final: prev: rec {
-  nodejs = final.nodejs_20;
+  nodejs = final.nodejs-slim_20;
   nodePackages = nodejs.pkgs;
 
   pnpm_10 = final.callPackage "${final.path}/pkgs/development/tools/pnpm/generic.nix" {

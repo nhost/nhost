@@ -34,11 +34,11 @@ let
     root = ../.;
     include = with nix-filter.lib; [
       isDirectory
-      (matchName "package.json")
       ".npmrc"
       ".prettierignore"
       ".prettierrc.js"
       "audit-ci.jsonc"
+      "package.json"
       "pnpm-workspace.yaml"
       "pnpm-lock.yaml"
       "turbo.json"
@@ -55,6 +55,8 @@ let
       "${submodule}/graphql.config.yaml"
       "${submodule}/next-env.d.ts"
       "${submodule}/next.config.js"
+      "${submodule}/package.json"
+      "${submodule}/pnpm-lock.yaml"
       "${submodule}/playwright.config.ts"
       "${submodule}/postcss.config.js"
       "${submodule}/prettier.config.js"
