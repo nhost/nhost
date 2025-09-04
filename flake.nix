@@ -29,6 +29,7 @@
           src = nix-filter.lib.filter {
             root = ./.;
             include = [
+              ./.npmrc
               ./pnpm-workspace.yaml
 
               # find . -name package.json | grep -v node_modules | grep -v deprecated
@@ -57,10 +58,6 @@
               ./examples/demos/sveltekit-demo/pnpm-lock.yaml
               ./examples/demos/nextjs-ssr-demo/pnpm-lock.yaml
               ./packages/nhost-js/pnpm-lock.yaml
-
-              # find . -name .npmrc | grep -v node_modules | grep -v deprecated
-              ./.npmrc
-              ./dashboard/.npmrc
             ];
           };
         };
