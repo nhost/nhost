@@ -1,8 +1,12 @@
 packages:
-  - 'dashboard'
-  - 'docs'
-  - 'packages/**'
-  - 'examples/demos/**'
+  - dashboard
+  - docs
+  - packages/**
+  - examples/demos/**
   - '!**/test/**'
   - '!out/**'
   - '!**/functions'
+
+overrides:
+  esbuild@<=0.24.2: '>=0.25.0'
+  vue-template-compiler@>=2.0.0 <3.0.0: '>=3.0.0'
