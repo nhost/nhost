@@ -408,9 +408,9 @@ function DataBrowserSidebarContent({
                                       title: 'Edit Table',
                                       component: (
                                         <EditTableForm
-                                          onSubmit={async () => {
+                                          onSubmit={async (tableName) => {
                                             await queryClient.refetchQueries([
-                                              `${dataSourceSlug}.${table.table_schema}.${table.table_name}`,
+                                              `${dataSourceSlug}.${table.table_schema}.${tableName}`,
                                             ]);
                                             await refetch();
                                           }}
