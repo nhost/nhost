@@ -19,51 +19,19 @@
     "workspace:list": "pnpm ls --depth=-1 -r"
   },
   "devDependencies": {
-    "@eslint/js": "9.26.0",
-    "@types/node": "^20.17.23",
     "audit-ci": "^6.6.1",
-    "eslint": "^8.57.0",
-    "eslint-config-react-app": "^7.0.1",
-    "eslint-plugin-flowtype": "^8.0.3",
-    "eslint-plugin-import": "^2.29.1",
-    "eslint-plugin-jsx-a11y": "^6.8.0",
-    "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^6.2.0",
-    "eslint-plugin-react": "^7.34.2",
-    "eslint-plugin-react-hooks": "^4.6.2",
-    "eslint-plugin-vue": "^9.26.0",
-    "prettier": "^3.3.3",
-    "prettier-plugin-organize-imports": "^4.1.0",
-    "prettier-plugin-tailwindcss": "^0.6.11",
     "turbo": "2.3.3",
     "typescript": "5.8.3",
-    "typescript-eslint": "8.32.0",
     "vite": "^5.4.19",
     "vite-plugin-dts": "^3.9.1",
     "vite-tsconfig-paths": "^4.3.2",
     "vitest": "^0.32.4"
   },
-  "packageManager": "pnpm@10.1.0",
+  "packageManager": "pnpm@10.15.1",
   "engines": {
     "node": ">=20"
   },
   "eslintConfig": {
     "extends": "./config/.eslintrc.js"
-  },
-  "pnpm": {
-    "overrides": {
-      "trim@<0.0.3": ">=0.0.3",
-      "postcss@<8.4.31": ">=8.4.31",
-      "webpack-dev-middleware@<=5.3.3": ">=5.3.4",
-      "braces@<3.0.3": ">=3.0.3",
-      "micromatch@<4.0.8": ">=4.0.8",
-      "rollup@<2.79.2": ">=2.79.2",
-      "esbuild@<=0.24.2": ">=0.25.0",
-      "cookie@<0.7.0": ">=0.7.0",
-      "@babel/runtime@<7.26.10": ">=7.26.10",
-      "undici@>=6.0.0 <6.21.2": ">=6.21.2",
-      "on-headers@<1.1.0": ">=1.1.0",
-      "tmp@<=0.2.3": ">=0.2.4"
-    }
   }
 }

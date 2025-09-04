@@ -16,6 +16,8 @@ let
     pkgs.stdenv.mkDerivation {
       inherit name version src;
 
+      dontFixup = true;
+
       nativeBuildInputs = with pkgs; [
         pnpm_10
         cacert
@@ -33,13 +35,11 @@ let
 
       installPhase = ''
         mkdir -p $out
-        cp pnpm-lock.yaml $out/pnpm-lock.yaml
 
         for absdir in $(pnpm list --recursive --depth=-1 --parseable); do
           dir=$(realpath --relative-to="$PWD" "$absdir")
           mkdir -p $out/$dir
           cp -r $dir/node_modules $out/$dir/node_modules
-          cp $dir/package.json $out/$dir/package.json
         done
       '';
     };

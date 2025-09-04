@@ -29,9 +29,7 @@
           src = nix-filter.lib.filter {
             root = ./.;
             include = [
-              ./.npmrc
               ./pnpm-workspace.yaml
-              ./pnpm-lock.yaml
 
               # find . -name package.json | grep -v node_modules | grep -v deprecated
               ./package.json
@@ -45,6 +43,24 @@
               ./examples/demos/package.json
               ./examples/demos/nextjs-ssr-demo/package.json
               ./packages/nhost-js/package.json
+
+              # find . -name pnpm-lock.yaml | grep -v node_modules | grep -v deprecated
+              ./pnpm-lock.yaml
+              ./docs/pnpm-lock.yaml
+              ./dashboard/pnpm-lock.yaml
+              ./examples/docker-compose/functions/pnpm-lock.yaml
+              ./examples/demos/react-demo/pnpm-lock.yaml
+              ./examples/demos/ReactNativeDemo/pnpm-lock.yaml
+              ./examples/demos/pnpm-lock.yaml
+              ./examples/demos/express/pnpm-lock.yaml
+              ./examples/demos/vue-demo/pnpm-lock.yaml
+              ./examples/demos/sveltekit-demo/pnpm-lock.yaml
+              ./examples/demos/nextjs-ssr-demo/pnpm-lock.yaml
+              ./packages/nhost-js/pnpm-lock.yaml
+
+              # find . -name .npmrc | grep -v node_modules | grep -v deprecated
+              ./.npmrc
+              ./dashboard/.npmrc
             ];
           };
         };
