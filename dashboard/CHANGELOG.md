@@ -1,5 +1,12 @@
 # @nhost/dashboard
 
+## 2.35.1
+
+### Patch Changes
+
+- 397bfc9: fix (dashboard): Parse foreign key relations correctly
+- 92e71a6: fix: minor fixes to csp
+
 ## 2.35.0
 
 ### Minor Changes
