@@ -22,46 +22,6 @@
         nix2containerPkgs = nix2container.packages.${system};
         nixops-lib = lib { inherit pkgs nix2containerPkgs; };
 
-        node_modules = nixops-lib.js.mkNodeModules {
-          name = "node-modules";
-          version = "0.0.0-dev";
-
-          src = nix-filter.lib.filter {
-            root = ./.;
-            include = [
-              ./.npmrc
-              ./pnpm-workspace.yaml
-
-              # find . -name package.json | grep -v node_modules | grep -v deprecated
-              ./package.json
-              ./docs/package.json
-              ./dashboard/package.json
-              ./examples/demos/react-demo/package.json
-              ./examples/demos/ReactNativeDemo/package.json
-              ./examples/demos/express/package.json
-              ./examples/demos/vue-demo/package.json
-              ./examples/demos/sveltekit-demo/package.json
-              ./examples/demos/package.json
-              ./examples/demos/nextjs-ssr-demo/package.json
-              ./packages/nhost-js/package.json
-
-              # find . -name pnpm-lock.yaml | grep -v node_modules | grep -v deprecated
-              ./pnpm-lock.yaml
-              ./docs/pnpm-lock.yaml
-              ./dashboard/pnpm-lock.yaml
-              ./examples/docker-compose/functions/pnpm-lock.yaml
-              ./examples/demos/react-demo/pnpm-lock.yaml
-              ./examples/demos/ReactNativeDemo/pnpm-lock.yaml
-              ./examples/demos/pnpm-lock.yaml
-              ./examples/demos/express/pnpm-lock.yaml
-              ./examples/demos/vue-demo/pnpm-lock.yaml
-              ./examples/demos/sveltekit-demo/pnpm-lock.yaml
-              ./examples/demos/nextjs-ssr-demo/pnpm-lock.yaml
-              ./packages/nhost-js/pnpm-lock.yaml
-            ];
-          };
-        };
-
         codegenf = import ./tools/codegen/project.nix {
           inherit self pkgs nix-filter nixops-lib;
         };
