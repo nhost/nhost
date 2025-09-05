@@ -5,13 +5,18 @@
  * against Nhost serverless functions.
  */
 
-import { createEnhancedFetch, FetchError, type ChainFunction, type FetchResponse } from '../fetch'
+import {
+  type ChainFunction,
+  createEnhancedFetch,
+  FetchError,
+  type FetchResponse,
+} from "../fetch";
 
 /**
  * Functions client interface providing methods for executing serverless function calls
  */
 export interface Client {
-  baseURL: string
+  baseURL: string;
 
   /**
    * Execute a request to a serverless function
@@ -23,8 +28,10 @@ export interface Client {
    * @param path - The path to the serverless function
    * @param options - Additional fetch options to apply to the request
    * @returns Promise with the function response and metadata.    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  fetch<T = any>(path: string, options?: RequestInit): Promise<FetchResponse<T>>
+  fetch<T = unknown>(
+    path: string,
+    options?: RequestInit,
+  ): Promise<FetchResponse<T>>;
 
   /**
    * Executes a POST request to a serverless function with a JSON body
@@ -40,8 +47,11 @@ export interface Client {
    * @param options - Additional fetch options to apply to the request
    * @returns Promise with the function response and metadata
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  post<T = any>(path: string, body?: unknown, options?: RequestInit): Promise<FetchResponse<T>>
+  post<T = unknown>(
+    path: string,
+    body?: unknown,
+    options?: RequestInit,
+  ): Promise<FetchResponse<T>>;
 }
 
 /**
@@ -55,8 +65,11 @@ export interface Client {
  * @param chainFunctions - Array of middleware functions for the fetch chain
  * @returns Functions client with fetch method
  */
-export const createAPIClient = (baseURL: string, chainFunctions: ChainFunction[] = []): Client => {
-  const enhancedFetch = createEnhancedFetch(chainFunctions)
+export const createAPIClient = (
+  baseURL: string,
+  chainFunctions: ChainFunction[] = [],
+): Client => {
+  const enhancedFetch = createEnhancedFetch(chainFunctions);
 
   /**
    * Executes a request to a serverless function and processes the response
@@ -68,34 +81,33 @@ export const createAPIClient = (baseURL: string, chainFunctions: ChainFunction[]
        - text string if the response is text/*
        - Blob if the response is any other type
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const fetch = async <T = any>(
+  const fetch = async <T = unknown>(
     path: string,
-    options?: RequestInit
+    options?: RequestInit,
   ): Promise<FetchResponse<T | string | Blob>> => {
-    const resp = await enhancedFetch(`${baseURL}${path}`, options)
+    const resp = await enhancedFetch(`${baseURL}${path}`, options);
 
-    let body: T | string | Blob
+    let body: T | string | Blob;
     // Process response based on content type
-    if (resp.headers.get('content-type')?.includes('application/json')) {
-      body = (await resp.json()) as T
-    } else if (resp.headers.get('content-type')?.startsWith('text/')) {
-      body = await resp.text()
+    if (resp.headers.get("content-type")?.includes("application/json")) {
+      body = (await resp.json()) as T;
+    } else if (resp.headers.get("content-type")?.startsWith("text/")) {
+      body = await resp.text();
     } else {
-      body = await resp.blob()
+      body = await resp.blob();
     }
 
     // Throw error for non-OK responses
     if (!resp.ok) {
-      throw new FetchError(body, resp.status, resp.headers)
+      throw new FetchError(body, resp.status, resp.headers);
     }
 
     return {
       status: resp.status,
       body,
-      headers: resp.headers
-    }
-  }
+      headers: resp.headers,
+    };
+  };
 
   /**
    * Executes a POST request to a serverless function with a JSON body
@@ -111,31 +123,30 @@ export const createAPIClient = (baseURL: string, chainFunctions: ChainFunction[]
    * @param options - Additional fetch options to apply to the request
    * @returns Promise with the function response and metadata
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const post = async <T = any>(
+  const post = async <T = unknown>(
     path: string,
     body?: unknown,
-    options: RequestInit = {}
+    options: RequestInit = {},
   ): Promise<FetchResponse<T | string | Blob>> => {
     // Ensure the method is POST and set the body
     const requestOptions: RequestInit = {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        ...options.headers
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        ...options.headers,
       },
-      body: body ? JSON.stringify(body) : undefined
-    }
+      body: body ? JSON.stringify(body) : undefined,
+    };
 
-    return fetch<T>(path, requestOptions)
-  }
+    return fetch<T>(path, requestOptions);
+  };
 
   // Return client object with the fetch method
   return {
     baseURL,
     fetch,
-    post
-  } as Client
-}
+    post,
+  } as Client;
+};

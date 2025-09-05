@@ -1,28 +1,30 @@
-import { test, expect } from '@jest/globals'
-import { createClient } from '@nhost/nhost-js'
-import { type ErrorResponse } from '@nhost/nhost-js/storage'
-import { type FetchError } from '@nhost/nhost-js/fetch'
+import { expect, test } from "@jest/globals";
+import { createClient } from "@nhost/nhost-js";
+import type { FetchError } from "@nhost/nhost-js/fetch";
+import type { ErrorResponse } from "@nhost/nhost-js/storage";
 
-test('basic', async () => {
-  const subdomain = 'local'
-  const region = 'local'
+test("basic", async () => {
+  const subdomain = "local";
+  const region = "local";
 
   const nhost = createClient({
     subdomain,
-    region
-  })
+    region,
+  });
 
   // Sign up/in to authenticate
   await nhost.auth.signUpEmailPassword({
     email: `test-${Date.now()}@example.com`,
-    password: 'password123'
-  })
+    password: "password123",
+  });
 
   // Upload files to storage
   const uploadResp = await nhost.storage.uploadFiles({
-    'file[]': [new File(['test content'], 'test-file.txt', { type: 'text/plain' })]
-  })
-  console.log(JSON.stringify(uploadResp, null, 2))
+    "file[]": [
+      new File(["test content"], "test-file.txt", { type: "text/plain" }),
+    ],
+  });
+  console.log(JSON.stringify(uploadResp, null, 2));
   // {
   //   "body": {
   //     "processedFiles": [
@@ -45,40 +47,40 @@ test('basic', async () => {
   //   "headers": {}
   // }
 
-  const fileId = uploadResp.body.processedFiles[0].id
+  const fileId = uploadResp.body.processedFiles[0].id;
 
   // Download a file from storage
-  const downloadResp = await nhost.storage.getFile(fileId)
-  console.log('Downloaded file content:', await downloadResp.body.text())
+  const downloadResp = await nhost.storage.getFile(fileId);
+  console.log("Downloaded file content:", await downloadResp.body.text());
   // Downloaded file content: test content
 
   // Delete the file
-  await nhost.storage.deleteFile(fileId)
+  await nhost.storage.deleteFile(fileId);
 
-  expect(uploadResp.status).toBe(201)
-  expect(uploadResp.body.processedFiles).toHaveLength(1)
-  expect(downloadResp.status).toBe(200)
-  expect(downloadResp.body).toBeInstanceOf(Blob)
-})
+  expect(uploadResp.status).toBe(201);
+  expect(uploadResp.body.processedFiles).toHaveLength(1);
+  expect(downloadResp.status).toBe(200);
+  expect(downloadResp.body).toBeInstanceOf(Blob);
+});
 
-test('error handling for storage', async () => {
-  const subdomain = 'local'
-  const region = 'local'
+test("error handling for storage", async () => {
+  const subdomain = "local";
+  const region = "local";
 
   const nhost = createClient({
     subdomain,
-    region
-  })
+    region,
+  });
 
   try {
     await nhost.storage.uploadFiles({
-      'file[]': [new File(['test1'], 'file-1', { type: 'text/plain' })]
-    })
+      "file[]": [new File(["test1"], "file-1", { type: "text/plain" })],
+    });
 
-    expect(true).toBe(false) // This should not be reached
+    expect(true).toBe(false); // This should not be reached
   } catch (error) {
-    const err = error as FetchError<ErrorResponse>
-    console.log('Error:', err)
+    const err = error as FetchError<ErrorResponse>;
+    console.log("Error:", err);
     // Error: {
     //   body: { error: { message: 'you are not authorized' } },
     //   status: 403,
@@ -91,41 +93,41 @@ test('error handling for storage', async () => {
 
     // error handling...
 
-    expect(err.status).toBe(403)
+    expect(err.status).toBe(403);
     expect(err.body).toStrictEqual({
       error: {
         data: null,
-        message: 'you are not authorized'
+        message: "you are not authorized",
       },
-      processedFiles: []
-    })
+      processedFiles: [],
+    });
   }
-})
+});
 
-test('error handling for storage error type', async () => {
-  const subdomain = 'local'
-  const region = 'local'
+test("error handling for storage error type", async () => {
+  const subdomain = "local";
+  const region = "local";
 
   const nhost = createClient({
     subdomain,
-    region
-  })
+    region,
+  });
 
   try {
     await nhost.storage.uploadFiles({
-      'file[]': [new File(['test1'], 'file-1', { type: 'text/plain' })]
-    })
+      "file[]": [new File(["test1"], "file-1", { type: "text/plain" })],
+    });
 
-    expect(true).toBe(false) // This should not be reached
+    expect(true).toBe(false); // This should not be reached
   } catch (error) {
     if (!(error instanceof Error)) {
-      throw error // Re-throw if it's not an Error
+      throw error; // Re-throw if it's not an Error
     }
 
-    console.log('Error:', error.message)
+    console.log("Error:", error.message);
     // Error: you are not authorized
     // error handling...
 
-    expect(error.message).toBe('you are not authorized')
+    expect(error.message).toBe("you are not authorized");
   }
-})
+});

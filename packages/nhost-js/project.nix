@@ -6,7 +6,7 @@ let
   submodule = "packages/${name}";
 
   node_modules = nixops-lib.js.mkNodeModules {
-    name = "node-modules";
+    name = "node-modules-${name}";
     version = "0.0.0-dev";
 
     src = nix-filter.lib.filter {
@@ -26,9 +26,9 @@ let
     root = ../..;
     include = with nix-filter.lib; [
       isDirectory
+      ".gitignore"
       ".npmrc"
-      ".prettierignore"
-      ".prettierrc.js"
+      "biome.json"
       "audit-ci.jsonc"
       "package.json"
       "pnpm-workspace.yaml"
@@ -36,12 +36,10 @@ let
       "turbo.json"
       (inDirectory "./build")
       "${submodule}/.prettierignore"
-      "${submodule}/eslint.config.mjs"
       "${submodule}/gen.sh"
       "${submodule}/jest.config.js"
       "${submodule}/package.json"
       "${submodule}/pnpm-lock.yaml"
-      "${submodule}/tsconfig.eslint.json"
       "${submodule}/tsconfig.json"
       "${submodule}/vite.config.ts"
       "${submodule}/vite.umd.config.ts"
@@ -96,4 +94,3 @@ in
     '';
   };
 }
-

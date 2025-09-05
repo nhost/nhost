@@ -17,20 +17,20 @@
  *
  * ### Basic Usage
  *
- * {@includeCode ./__tests__/docstrings.test.ts:2,6,12-26}
+ * {@includeCode ./__tests__/docstrings.test.ts:2,6,11-25}
  *
  * ### Using String Queries with Type Generics
  *
  * You can type your GraphQL queries and responses using TypeScript generics:
  *
- * {@includeCode ./__tests__/docstrings.test.ts:2,6,99-125}
+ * {@includeCode ./__tests__/docstrings.test.ts:2,6,97-123}
  *
  * ### Using GraphQL Document Nodes
  *
  * For better integration with third-party libraries like Apollo Client or The Guild's GraphQL
  * Code Generator, you can use GraphQL document nodes created with `gql` template literal tags:
  *
- * {@includeCode ./__tests__/docstrings.test.ts:2,5,6,197-225}
+ * {@includeCode ./__tests__/docstrings.test.ts:2,5,6,195-223}
  *
  * Using document nodes enables:
  * - Better IDE support with syntax highlighting and validation
@@ -43,15 +43,15 @@
  * with length > 0. The error will be an instance of `FetchError<GraphQLResponse>` and will
  * contain the response body with the errors.
  *
- * {@includeCode ./__tests__/docstrings.test.ts:2-4,6,296-336,349}
+ * {@includeCode ./__tests__/docstrings.test.ts:2-4,6,294-334,348}
  *
  * This type extends the standard `Error` type so if you want to just log the error you can
  * do so like this:
  *
- * {@includeCode ./__tests__/docstrings.test.ts:2-4,6,353-372,375}
+ * {@includeCode ./__tests__/docstrings.test.ts:2-4,6,352-375,380}
  *
  * @module graphql
  * @packageDocumentation
  */
 
-export * from './client'
+export * from "./client";

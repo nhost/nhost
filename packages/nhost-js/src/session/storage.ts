@@ -5,29 +5,33 @@
  * across page reloads and browser sessions.
  */
 
-import { type SessionStorageBackend, LocalStorage, MemoryStorage } from './storageBackend'
-import { decodeUserSession, type Session } from './session'
-import type { Session as AuthSession } from '../auth'
+import type { Session as AuthSession } from "../auth";
+import { decodeUserSession, type Session } from "./session";
+import {
+  LocalStorage,
+  MemoryStorage,
+  type SessionStorageBackend,
+} from "./storageBackend";
 
 /**
  * Callback function type for session change subscriptions
  */
-export type SessionChangeCallback = (session: Session | null) => void
+export type SessionChangeCallback = (session: Session | null) => void;
 
 /**
  * A wrapper around any SessionStorageInterface implementation that adds
  * the ability to subscribe to session changes.
  */
 export class SessionStorage {
-  private readonly storage: SessionStorageBackend
-  private subscribers = new Set<SessionChangeCallback>()
+  private readonly storage: SessionStorageBackend;
+  private subscribers = new Set<SessionChangeCallback>();
 
   /**
    * Creates a new SessionStorage instance
    * @param storage - The underlying storage implementation to use
    */
   constructor(storage: SessionStorageBackend) {
-    this.storage = storage
+    this.storage = storage;
   }
 
   /**
@@ -35,7 +39,7 @@ export class SessionStorage {
    * @returns The stored session or null if not found
    */
   get(): Session | null {
-    return this.storage.get()
+    return this.storage.get();
   }
 
   /**
@@ -43,22 +47,22 @@ export class SessionStorage {
    * @param value - The session to store
    */
   set(value: AuthSession): void {
-    const decodedToken = decodeUserSession(value.accessToken)
+    const decodedToken = decodeUserSession(value.accessToken);
     const decodedSession = {
       ...value,
-      decodedToken: decodedToken
-    }
+      decodedToken: decodedToken,
+    };
 
-    this.storage.set(decodedSession)
-    this.notifySubscribers(decodedSession)
+    this.storage.set(decodedSession);
+    this.notifySubscribers(decodedSession);
   }
 
   /**
    * Removes the session from the underlying storage and notifies subscribers
    */
   remove(): void {
-    this.storage.remove()
-    this.notifySubscribers(null)
+    this.storage.remove();
+    this.notifySubscribers(null);
   }
 
   /**
@@ -67,11 +71,11 @@ export class SessionStorage {
    * @returns An unsubscribe function to remove this subscription
    */
   onChange(callback: SessionChangeCallback) {
-    this.subscribers.add(callback)
+    this.subscribers.add(callback);
 
     return () => {
-      this.subscribers.delete(callback)
-    }
+      this.subscribers.delete(callback);
+    };
   }
 
   /**
@@ -81,9 +85,9 @@ export class SessionStorage {
   private notifySubscribers(session: Session | null): void {
     for (const subscriber of this.subscribers) {
       try {
-        subscriber(session)
+        subscriber(session);
       } catch (error) {
-        console.error('Error notifying subscriber:', error)
+        console.error("Error notifying subscriber:", error);
       }
     }
   }
@@ -99,8 +103,8 @@ export class SessionStorage {
  * @returns The best available storage implementation as a SessionStorageBackend
  */
 export const detectStorage = (): SessionStorageBackend => {
-  if (typeof window !== 'undefined') {
-    return new LocalStorage()
+  if (typeof window !== "undefined") {
+    return new LocalStorage();
   }
-  return new MemoryStorage()
-}
+  return new MemoryStorage();
+};

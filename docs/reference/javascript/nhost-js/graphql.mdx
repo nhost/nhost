@@ -126,51 +126,51 @@ contain the response body with the errors.
 
 ```ts
 import { createClient } from '@nhost/nhost-js'
-import { type GraphQLResponse } from '@nhost/nhost-js/graphql'
 import { FetchError } from '@nhost/nhost-js/fetch'
+import type { GraphQLResponse } from '@nhost/nhost-js/graphql'
 
-  const nhost = createClient({
-    subdomain,
-    region
-  })
+const nhost = createClient({
+  subdomain,
+  region
+})
 
-  try {
-    await nhost.graphql.request({
-      query: `
+try {
+  await nhost.graphql.request({
+    query: `
         query GetRestrictedObject {
           restrictedObject {
             restrictedField
           }
         }
       `
-    })
+  })
 
-    expect(true).toBe(false) // This should not be reached
-  } catch (error) {
-    if (!(error instanceof FetchError)) {
-      throw error // Re-throw if it's not a FetchError
-    }
+  expect(true).toBe(false) // This should not be reached
+} catch (error) {
+  if (!(error instanceof FetchError)) {
+    throw error // Re-throw if it's not a FetchError
+  }
 
-    const resp = error as FetchError<GraphQLResponse>
-    console.log('Error:', JSON.stringify(resp.body, null, 2))
-    // Error: {
-    //   "body": {
-    //     "errors": [
-    //       {
-    //         "message": "field 'restrictedObject' not found in type: 'query_root'",
-    //         "extensions": {
-    //           "path": "$.selectionSet.restrictedObject",
-    //           "code": "validation-failed"
-    //         }
-    //       }
-    //     ]
-    //   },
-    //   "status": 200,
-    //   "headers": {}
-    // }
+  const resp = error as FetchError<GraphQLResponse>
+  console.log('Error:', JSON.stringify(resp.body, null, 2))
+  // Error: {
+  //   "body": {
+  //     "errors": [
+  //       {
+  //         "message": "field 'restrictedObject' not found in type: 'query_root'",
+  //         "extensions": {
+  //           "path": "$.selectionSet.restrictedObject",
+  //           "code": "validation-failed"
+  //         }
+  //       }
+  //     ]
+  //   },
+  //   "status": 200,
+  //   "headers": {}
+  // }
 
-    // error handling...
-  const nhost = createClient({
+  // error handling...
+}
 ```
 
 This type extends the standard `Error` type so if you want to just log the error you can
@@ -178,8 +178,13 @@ do so like this:
 
 ```ts
 import { createClient } from '@nhost/nhost-js'
-import { type GraphQLResponse } from '@nhost/nhost-js/graphql'
 import { FetchError } from '@nhost/nhost-js/fetch'
+import type { GraphQLResponse } from '@nhost/nhost-js/graphql'
+
+const nhost = createClient({
+  subdomain,
+  region
+})
 
 try {
   await nhost.graphql.request({
@@ -237,7 +242,7 @@ Queries are used to fetch data and should not modify any data on the server.
 
 | Type Parameter  | Default type                            |
 | --------------- | --------------------------------------- |
-| `TResponseData` | `any`                                   |
+| `TResponseData` | `unknown`                               |
 | `TVariables`    | [`GraphQLVariables`](#graphqlvariables) |
 
 ##### Parameters
@@ -383,7 +388,7 @@ Standard GraphQL response format as defined by the GraphQL specification.
 
 | Type Parameter  | Default type |
 | --------------- | ------------ |
-| `TResponseData` | `any`        |
+| `TResponseData` | `unknown`    |
 
 ### Properties
 
@@ -408,7 +413,7 @@ Array of errors if execution was unsuccessful or partially successful
 ## GraphQLVariables
 
 ```ts
-type GraphQLVariables = Record<string, any>
+type GraphQLVariables = Record<string, unknown>
 ```
 
 Variables object for GraphQL operations.

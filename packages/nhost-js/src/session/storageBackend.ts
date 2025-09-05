@@ -5,7 +5,7 @@
  * across page reloads and browser sessions.
  */
 
-import type { Session } from './session'
+import type { Session } from "./session";
 
 /**
  * Session storage interface for session persistence.
@@ -16,31 +16,31 @@ export interface SessionStorageBackend {
    * Get the current session from storage
    * @returns The stored session or null if not found
    */
-  get(): Session | null
+  get(): Session | null;
 
   /**
    * Set the session in storage
    * @param value - The session to store
    */
-  set(value: Session): void
+  set(value: Session): void;
 
   /**
    * Remove the session from storage
    */
-  remove(): void
+  remove(): void;
 }
 
 /**
  * Default storage key used for storing the Nhost session
  */
-export const DEFAULT_SESSION_KEY = 'nhostSession'
+export const DEFAULT_SESSION_KEY = "nhostSession";
 
 /**
  * Browser localStorage implementation of StorageInterface.
  * Persists the session across page reloads and browser restarts.
  */
 export class LocalStorage implements SessionStorageBackend {
-  private readonly storageKey: string
+  private readonly storageKey: string;
 
   /**
    * Creates a new LocalStorage instance
@@ -48,7 +48,7 @@ export class LocalStorage implements SessionStorageBackend {
    * @param options.storageKey - The key to use in localStorage (defaults to "nhostSession")
    */
   constructor(options?: { storageKey?: string }) {
-    this.storageKey = options?.storageKey || DEFAULT_SESSION_KEY
+    this.storageKey = options?.storageKey || DEFAULT_SESSION_KEY;
   }
 
   /**
@@ -57,11 +57,11 @@ export class LocalStorage implements SessionStorageBackend {
    */
   get(): Session | null {
     try {
-      const value = window.localStorage.getItem(this.storageKey)
-      return value ? (JSON.parse(value) as Session) : null
+      const value = window.localStorage.getItem(this.storageKey);
+      return value ? (JSON.parse(value) as Session) : null;
     } catch {
-      this.remove()
-      return null
+      this.remove();
+      return null;
     }
   }
 
@@ -70,14 +70,14 @@ export class LocalStorage implements SessionStorageBackend {
    * @param value - The session to store
    */
   set(value: Session): void {
-    window.localStorage.setItem(this.storageKey, JSON.stringify(value))
+    window.localStorage.setItem(this.storageKey, JSON.stringify(value));
   }
 
   /**
    * Removes the session from localStorage
    */
   remove(): void {
-    window.localStorage.removeItem(this.storageKey)
+    window.localStorage.removeItem(this.storageKey);
   }
 }
 
@@ -86,14 +86,14 @@ export class LocalStorage implements SessionStorageBackend {
  * persistent storage is not available or desirable.
  */
 export class MemoryStorage implements SessionStorageBackend {
-  private session: Session | null = null
+  private session: Session | null = null;
 
   /**
    * Gets the session from memory
    * @returns The stored session or null if not set
    */
   get(): Session | null {
-    return this.session
+    return this.session;
   }
 
   /**
@@ -101,14 +101,14 @@ export class MemoryStorage implements SessionStorageBackend {
    * @param value - The session to store
    */
   set(value: Session): void {
-    this.session = value
+    this.session = value;
   }
 
   /**
    * Clears the session from memory
    */
   remove(): void {
-    this.session = null
+    this.session = null;
   }
 }
 
@@ -119,10 +119,10 @@ export class MemoryStorage implements SessionStorageBackend {
  * sessions between client and server environments.
  */
 export class CookieStorage implements SessionStorageBackend {
-  private readonly cookieName: string
-  private readonly expirationDays: number
-  private readonly secure: boolean
-  private readonly sameSite: 'strict' | 'lax' | 'none'
+  private readonly cookieName: string;
+  private readonly expirationDays: number;
+  private readonly secure: boolean;
+  private readonly sameSite: "strict" | "lax" | "none";
 
   /**
    * Creates a new CookieStorage instance
@@ -133,15 +133,15 @@ export class CookieStorage implements SessionStorageBackend {
    * @param options.sameSite - SameSite policy for the cookie (defaults to "lax")
    */
   constructor(options?: {
-    cookieName?: string
-    expirationDays?: number
-    secure?: boolean
-    sameSite?: 'strict' | 'lax' | 'none'
+    cookieName?: string;
+    expirationDays?: number;
+    secure?: boolean;
+    sameSite?: "strict" | "lax" | "none";
   }) {
-    this.cookieName = options?.cookieName || DEFAULT_SESSION_KEY
-    this.expirationDays = options?.expirationDays ?? 30
-    this.secure = options?.secure ?? true
-    this.sameSite = options?.sameSite || 'lax'
+    this.cookieName = options?.cookieName || DEFAULT_SESSION_KEY;
+    this.expirationDays = options?.expirationDays ?? 30;
+    this.secure = options?.secure ?? true;
+    this.sameSite = options?.sameSite || "lax";
   }
 
   /**
@@ -149,19 +149,19 @@ export class CookieStorage implements SessionStorageBackend {
    * @returns The stored session or null if not found
    */
   get(): Session | null {
-    const cookies = document.cookie.split(';')
+    const cookies = document.cookie.split(";");
     for (const cookie of cookies) {
-      const [name, value] = cookie.trim().split('=')
+      const [name, value] = cookie.trim().split("=");
       if (name === this.cookieName) {
         try {
-          return JSON.parse(decodeURIComponent(value || '')) as Session
+          return JSON.parse(decodeURIComponent(value || "")) as Session;
         } catch {
-          this.remove()
-          return null
+          this.remove();
+          return null;
         }
       }
     }
-    return null
+    return null;
   }
 
   /**
@@ -169,19 +169,23 @@ export class CookieStorage implements SessionStorageBackend {
    * @param value - The session to store
    */
   set(value: Session): void {
-    const expires = new Date()
-    expires.setTime(expires.getTime() + this.expirationDays * 24 * 60 * 60 * 1000)
+    const expires = new Date();
+    expires.setTime(
+      expires.getTime() + this.expirationDays * 24 * 60 * 60 * 1000,
+    );
 
-    const cookieValue = encodeURIComponent(JSON.stringify(value))
-    const cookieString = `${this.cookieName}=${cookieValue}; expires=${expires.toUTCString()}; path=/; ${this.secure ? 'secure; ' : ''}SameSite=${this.sameSite}`
+    const cookieValue = encodeURIComponent(JSON.stringify(value));
+    const cookieString = `${this.cookieName}=${cookieValue}; expires=${expires.toUTCString()}; path=/; ${this.secure ? "secure; " : ""}SameSite=${this.sameSite}`;
 
-    document.cookie = cookieString
+    // biome-ignore lint/suspicious/noDocumentCookie: this is unnecessary
+    document.cookie = cookieString;
   }
 
   /**
    * Removes the session cookie
    */
   remove(): void {
-    document.cookie = `${this.cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; ${this.secure ? 'secure; ' : ''}SameSite=${this.sameSite}`
+    // biome-ignore lint/suspicious/noDocumentCookie: this is unnecessary
+    document.cookie = `${this.cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; ${this.secure ? "secure; " : ""}SameSite=${this.sameSite}`;
   }
 }

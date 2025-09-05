@@ -23,12 +23,12 @@
  */
 
 export {
+  createClient,
+  createServerClient,
   type NhostClient,
   type NhostClientOptions,
-  createClient,
   type NhostServerClientOptions,
-  createServerClient
-} from './nhost'
+} from "./nhost";
 
 /**
  * Generates a base URL for a Nhost service based on configuration
@@ -40,16 +40,16 @@ export {
  * @returns The base URL for the service
  */
 export const generateServiceUrl = (
-  serviceType: 'auth' | 'storage' | 'graphql' | 'functions',
+  serviceType: "auth" | "storage" | "graphql" | "functions",
   subdomain?: string,
   region?: string,
-  customUrl?: string
+  customUrl?: string,
 ): string => {
   if (customUrl) {
-    return customUrl
+    return customUrl;
   } else if (subdomain && region) {
-    return `https://${subdomain}.${serviceType}.${region}.nhost.run/v1`
+    return `https://${subdomain}.${serviceType}.${region}.nhost.run/v1`;
   } else {
-    return `https://local.${serviceType}.local.nhost.run/v1`
+    return `https://local.${serviceType}.local.nhost.run/v1`;
   }
-}
+};

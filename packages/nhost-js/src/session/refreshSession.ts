@@ -1,29 +1,33 @@
-import { type Client as AuthClient, type ErrorResponse } from '../auth'
-import { type Session } from './session'
-
-import { type SessionStorage } from './storage'
-import type { FetchResponse } from '../fetch'
+import type { Client as AuthClient, ErrorResponse } from "../auth";
+import type { FetchResponse } from "../fetch";
+import type { Session } from "./session";
+import type { SessionStorage } from "./storage";
 
 class DummyLock implements Lock {
   async request(
     _name: string,
-    _options: { mode: 'exclusive' | 'shared' },
-    callback: () => Promise<any> //eslint-disable-line @typescript-eslint/no-explicit-any
+    _options: { mode: "exclusive" | "shared" },
+    // biome-ignore lint/suspicious/noExplicitAny: any
+    callback: () => Promise<any>,
   ) {
-    return callback() //eslint-disable-line @typescript-eslint/no-unsafe-return
+    return callback();
   }
 }
 
 interface Lock {
   request: (
     name: string,
-    options: { mode: 'exclusive' | 'shared' },
-    callback: () => Promise<any> //eslint-disable-line @typescript-eslint/no-explicit-any
-  ) => Promise<any> //eslint-disable-line @typescript-eslint/no-explicit-any
+    options: { mode: "exclusive" | "shared" },
+    // biome-ignore lint/suspicious/noExplicitAny: blah
+    callback: () => Promise<any>,
+    // biome-ignore lint/suspicious/noExplicitAny: blah
+  ) => Promise<any>;
 }
 
 const lock: Lock =
-  typeof navigator !== 'undefined' && navigator.locks ? navigator.locks : new DummyLock()
+  typeof navigator !== "undefined" && navigator.locks
+    ? navigator.locks
+    : new DummyLock();
 
 /**
  * Refreshes the authentication session if needed
@@ -40,27 +44,27 @@ const lock: Lock =
 export const refreshSession = async (
   auth: AuthClient,
   storage: SessionStorage,
-  marginSeconds = 60
+  marginSeconds = 60,
 ): Promise<Session | null> => {
   try {
-    return await _refreshSession(auth, storage, marginSeconds)
+    return await _refreshSession(auth, storage, marginSeconds);
   } catch (error) {
     try {
       // we retry the refresh token in case of transient error
       // or race conditions
-      console.warn('error refreshing session, retrying:', error)
-      return await _refreshSession(auth, storage, marginSeconds)
+      console.warn("error refreshing session, retrying:", error);
+      return await _refreshSession(auth, storage, marginSeconds);
     } catch (error) {
-      const errResponse = error as FetchResponse<ErrorResponse>
+      const errResponse = error as FetchResponse<ErrorResponse>;
       if (errResponse?.status === 401) {
         // this probably means the refresh token is invalid
-        console.error('session probably expired')
-        storage.remove()
+        console.error("session probably expired");
+        storage.remove();
       }
-      return null
+      return null;
     }
   }
-}
+};
 
 /**
  * Internal implementation of the refresh session logic
@@ -74,57 +78,63 @@ export const refreshSession = async (
 const _refreshSession = async (
   auth: AuthClient,
   storage: SessionStorage,
-  marginSeconds = 60
+  marginSeconds = 60,
 ): Promise<Session | null> => {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const { session, needsRefresh }: { session: Session | null; needsRefresh: boolean } =
-    //eslint-disable-next-line @typescript-eslint/require-await
-    await lock.request('nhostSessionLock', { mode: 'shared' }, async () => {
-      return _needsRefresh(storage, marginSeconds)
-    })
+  const {
+    session,
+    needsRefresh,
+  }: { session: Session | null; needsRefresh: boolean } = await lock.request(
+    "nhostSessionLock",
+    { mode: "shared" },
+    async () => {
+      return _needsRefresh(storage, marginSeconds);
+    },
+  );
 
   if (!session) {
-    return null // No session found
+    return null; // No session found
   }
 
   if (!needsRefresh) {
-    return session // No need to refresh
+    return session; // No need to refresh
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const refreshedSession: Session | null = await lock.request(
-    'nhostSessionLock',
-    { mode: 'exclusive' },
+    "nhostSessionLock",
+    { mode: "exclusive" },
     async () => {
-      const { session, needsRefresh, sessionExpired } = _needsRefresh(storage, marginSeconds)
+      const { session, needsRefresh, sessionExpired } = _needsRefresh(
+        storage,
+        marginSeconds,
+      );
 
       if (!session) {
-        return null // No session found
+        return null; // No session found
       }
 
       if (!needsRefresh) {
-        return session // No need to refresh
+        return session; // No need to refresh
       }
 
       try {
         const response = await auth.refreshToken({
-          refreshToken: session.refreshToken
-        })
-        storage.set(response.body)
+          refreshToken: session.refreshToken,
+        });
+        storage.set(response.body);
 
-        return response.body
+        return response.body;
       } catch (error) {
         if (!sessionExpired) {
-          return session
+          return session;
         }
 
-        throw error
+        throw error;
       }
-    }
-  )
+    },
+  );
 
-  return refreshedSession
-}
+  return refreshedSession;
+};
 
 /**
  * Checks if the current session needs to be refreshed based on token expiration
@@ -135,30 +145,30 @@ const _refreshSession = async (
  * @private
  */
 const _needsRefresh = (storage: SessionStorage, marginSeconds = 60) => {
-  const session = storage.get()
+  const session = storage.get();
   if (!session) {
-    return { session: null, needsRefresh: false, sessionExpired: false }
+    return { session: null, needsRefresh: false, sessionExpired: false };
   }
 
   if (!session.decodedToken || !session.decodedToken.exp) {
     // if the session does not have a valid decoded token, treat it as expired
     // as we can't determine its validity
-    return { session, needsRefresh: true, sessionExpired: true }
+    return { session, needsRefresh: true, sessionExpired: true };
   }
 
   // Force refresh if marginSeconds is 0
   if (marginSeconds === 0) {
-    return { session, needsRefresh: true, sessionExpired: false }
+    return { session, needsRefresh: true, sessionExpired: false };
   }
 
-  const currentTime = Date.now()
+  const currentTime = Date.now();
   if (session.decodedToken.exp - currentTime > marginSeconds * 1000) {
-    return { session, needsRefresh: false, sessionExpired: false }
+    return { session, needsRefresh: false, sessionExpired: false };
   }
 
   return {
     session,
     needsRefresh: true,
-    sessionExpired: session.decodedToken.exp < currentTime
-  }
-}
+    sessionExpired: session.decodedToken.exp < currentTime,
+  };
+};

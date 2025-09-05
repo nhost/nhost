@@ -102,10 +102,10 @@ export const createAPIClient = (
 
     const url =
      encodedParameters
-        ? baseURL + `{{ .Path }}?${encodedParameters}`
-        : baseURL + `{{ .Path }}`;
+        ? `${ baseURL }{{ .Path }}?${encodedParameters}`
+        : `${ baseURL }{{ .Path }}`;
   {{- else }}
-    const url = baseURL + `{{ .Path }}`;
+    const url = `${ baseURL }{{ .Path }}`;
   {{- end }}
   {{- if .IsRedirect }}
     return url;
@@ -130,18 +130,19 @@ export const createAPIClient = (
     }
     {{- else if eq .Type.Kind "array" }}
     if (body["{{ .Name }}"] !== undefined) {
-      body["{{ .Name }}"].forEach((value) =>
+      body["{{ .Name }}"].forEach((value) => {
         {{- if eq .Type.Item.Kind "scalar" }}
-          formData.append("{{ .Name }}", value),
+          formData.append("{{ .Name }}", value)
         {{- else if eq .Type.Item.Kind "object" }}
           formData.append(
             "{{ .Name }}",
             new Blob([JSON.stringify(value)], { type: "application/json" }),
             "",
-          ),
+          )
         {{- else }}
           TODO {{ .Type.Kind }} {{ .Type.Schema.Schema.Type }}
         {{- end }}
+        }
       );
     }
     {{- else if eq .Type.Kind "object" }}
@@ -185,7 +186,7 @@ export const createAPIClient = (
     {{ else if .ResponseBinary }}
     const payload: Blob = await res.blob();
     {{ else if not .HasResponseBody }}
-    const payload: void = undefined;
+    const payload: undefined = undefined;
     {{ else }}
     TODO handle response body
     {{ end }}

@@ -1,12 +1,12 @@
-import { Request, Response } from "express";
-import zlib from "zlib";
+import zlib from "node:zlib";
+import type { Request, Response } from "express";
 
 export default (req: Request, res: Response) => {
   const acceptHeader = req.headers.accept || "";
   let content: string | Buffer;
   let contentType: string;
 
-  let p = {
+  const p = {
     body: req.body,
     headers: req.headers,
     method: req.method,

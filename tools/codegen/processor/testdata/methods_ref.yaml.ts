@@ -2,8 +2,8 @@
  * This file is auto-generated. Do not edit manually.
  */
 
-import { FetchError, createEnhancedFetch } from "../fetch";
 import type { ChainFunction, FetchResponse } from "../fetch";
+import { createEnhancedFetch, FetchError } from "../fetch";
 
 /**
  * Contains version information about the storage service.
@@ -728,7 +728,7 @@ export const createAPIClient = (
     body: RefreshTokenRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<Session>> => {
-    const url = baseURL + `/token`;
+    const url = `${ baseURL }/token`;
     const res = await fetch(url, {
       ...options,
       method: "POST",
@@ -761,23 +761,25 @@ export const createAPIClient = (
     body: UploadFilesBody,
     options?: RequestInit,
   ): Promise<FetchResponse<UploadFilesResponse201>> => {
-    const url = baseURL + `/files/`;
+    const url = `${ baseURL }/files/`;
     const formData = new FormData();
     if (body["bucket-id"] !== undefined) {
       formData.append("bucket-id", body["bucket-id"]);
     }
     if (body["metadata[]"] !== undefined) {
-      body["metadata[]"].forEach((value) =>
+      body["metadata[]"].forEach((value) => {
           formData.append(
             "metadata[]",
             new Blob([JSON.stringify(value)], { type: "application/json" }),
             "",
-          ),
+          )
+        }
       );
     }
     if (body["file[]"] !== undefined) {
-      body["file[]"].forEach((value) =>
-          formData.append("file[]", value),
+      body["file[]"].forEach((value) => {
+          formData.append("file[]", value)
+        }
       );
     }
 
@@ -825,8 +827,8 @@ export const createAPIClient = (
 
     const url =
      encodedParameters
-        ? baseURL + `/files/${id}?${encodedParameters}`
-        : baseURL + `/files/${id}`;
+        ? `${ baseURL }/files/${id}?${encodedParameters}`
+        : `${ baseURL }/files/${id}`;
     const res = await fetch(url, {
       ...options,
       method: "HEAD",
@@ -841,7 +843,7 @@ export const createAPIClient = (
       throw new FetchError(payload, res.status, res.headers);
     }
     
-    const payload: void = undefined;
+    const payload: undefined = undefined;
     
 
     return {
@@ -872,8 +874,8 @@ export const createAPIClient = (
 
     const url =
      encodedParameters
-        ? baseURL + `/files/${id}?${encodedParameters}`
-        : baseURL + `/files/${id}`;
+        ? `${ baseURL }/files/${id}?${encodedParameters}`
+        : `${ baseURL }/files/${id}`;
     const res = await fetch(url, {
       ...options,
       method: "GET",
@@ -904,7 +906,7 @@ export const createAPIClient = (
     body?: ReplaceFileBody,
     options?: RequestInit,
   ): Promise<FetchResponse<FileMetadata>> => {
-    const url = baseURL + `/files/${id}`;
+    const url = `${ baseURL }/files/${id}`;
     const formData = new FormData();
     if (body["metadata"] !== undefined) {
       formData.append(
@@ -945,7 +947,7 @@ export const createAPIClient = (
     id: FileId,
     options?: RequestInit,
   ): Promise<FetchResponse<void>> => {
-    const url = baseURL + `/files/${id}`;
+    const url = `${ baseURL }/files/${id}`;
     const res = await fetch(url, {
       ...options,
       method: "DELETE",
@@ -960,7 +962,7 @@ export const createAPIClient = (
       throw new FetchError(payload, res.status, res.headers);
     }
     
-    const payload: void = undefined;
+    const payload: undefined = undefined;
     
 
     return {
@@ -989,8 +991,8 @@ export const createAPIClient = (
 
     const url =
      encodedParameters
-        ? baseURL + `/verify?${encodedParameters}`
-        : baseURL + `/verify`;
+        ? `${ baseURL }/verify?${encodedParameters}`
+        : `${ baseURL }/verify`;
     return url;
   };
 
