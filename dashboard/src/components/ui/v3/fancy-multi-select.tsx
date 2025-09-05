@@ -13,16 +13,17 @@ import { cn } from '@/lib/utils';
 import { Command as CommandPrimitive } from 'cmdk';
 import {
   useCallback,
+  useEffect,
   useMemo,
   useRef,
   useState,
   type KeyboardEvent,
 } from 'react';
 
-type Option = Record<'value' | 'label', string>;
+export type Option = Record<'value' | 'label', string>;
 
 interface FancyMultiSelectProps {
-  defaultValue?: Option[];
+  value?: Option[];
   options?: Option[];
   creatable?: boolean;
   className?: string;
@@ -30,7 +31,7 @@ interface FancyMultiSelectProps {
 }
 
 export function FancyMultiSelect({
-  defaultValue = [],
+  value = [],
   options = [],
   creatable = false,
   className,
@@ -38,8 +39,12 @@ export function FancyMultiSelect({
 }: FancyMultiSelectProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState<Option[]>(defaultValue);
+  const [selected, setSelected] = useState<Option[]>(value);
   const [inputValue, setInputValue] = useState('');
+
+  useEffect(() => {
+    setSelected(value);
+  }, [value]);
 
   const handleUnselect = useCallback((option: Option) => {
     setSelected((prev) => prev.filter((s) => s.value !== option.value));
@@ -115,7 +120,10 @@ export function FancyMultiSelect({
                 key={option.value}
                 variant="outline"
               >
-                <span className="overflow-x-hidden text-ellipsis whitespace-nowrap break-words font-medium">
+                <span
+                  className="overflow-x-hidden text-ellipsis whitespace-nowrap break-words font-medium"
+                  data-testid={`badge-${option.label}`}
+                >
                   {option.label}
                 </span>
                 <button
