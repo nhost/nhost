@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import type { Request, Response } from "express";
 
 export default (req: Request, res: Response) => {
   // if accept is not set or set to text/plain, return plain text

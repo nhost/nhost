@@ -177,6 +177,7 @@ export class CookieStorage implements SessionStorageBackend {
     const cookieValue = encodeURIComponent(JSON.stringify(value));
     const cookieString = `${this.cookieName}=${cookieValue}; expires=${expires.toUTCString()}; path=/; ${this.secure ? "secure; " : ""}SameSite=${this.sameSite}`;
 
+    // biome-ignore lint/suspicious/noDocumentCookie: this is unnecessary
     document.cookie = cookieString;
   }
 
@@ -184,6 +185,7 @@ export class CookieStorage implements SessionStorageBackend {
    * Removes the session cookie
    */
   remove(): void {
+    // biome-ignore lint/suspicious/noDocumentCookie: this is unnecessary
     document.cookie = `${this.cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; ${this.secure ? "secure; " : ""}SameSite=${this.sameSite}`;
   }
 }

@@ -1,7 +1,7 @@
-import { describe, it, expect } from "@jest/globals";
+import { describe, expect, it } from "@jest/globals";
 import { createClient } from "@nhost/nhost-js";
-import type { GraphQLResponse } from "@nhost/nhost-js/graphql";
 import type { FetchError } from "@nhost/nhost-js/fetch";
+import type { GraphQLResponse } from "@nhost/nhost-js/graphql";
 import gql from "graphql-tag";
 
 interface GetUsersResponse {
@@ -101,7 +101,8 @@ describe("Nhost - Sign Up with Email and Password and upload file", () => {
 
       expect(resp.body.errors).toBeDefined();
       expect(resp.body.errors).toHaveLength(1);
-      const errors = resp.body.errors!;
+      // biome-ignore lint/style/noNonNullAssertion: blah
+      const errors = resp.body?.errors!;
       expect(errors[0].message).toBe("not a valid graphql query");
       expect(error.message).toBe("not a valid graphql query");
       expect(errors[0].extensions?.path).toBe("$.query");
@@ -120,6 +121,7 @@ describe("Nhost - Sign Up with Email and Password and upload file", () => {
       const resp = error as FetchError<GraphQLResponse>;
       expect(resp.body.errors).toBeDefined();
       expect(resp.body.errors).toHaveLength(1);
+      // biome-ignore lint/style/noNonNullAssertion: blah
       const errors = resp.body.errors!;
       expect(errors[0]?.message).toBe(
         "field 'restricted' not found in type: 'query_root'",
@@ -197,6 +199,7 @@ describe("Nhost - Sign Up with Email and Password and upload file", () => {
       const resp = error as FetchError<GraphQLResponse>;
       expect(resp.body.errors).toBeDefined();
       expect(resp.body.errors).toHaveLength(1);
+      // biome-ignore lint/style/noNonNullAssertion: blah
       const errors = resp.body.errors!;
       expect(errors[0]?.message).toBe(
         "field 'restricted' not found in type: 'query_root'",

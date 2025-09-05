@@ -2,8 +2,8 @@
  * This file is auto-generated. Do not edit manually.
  */
 
-import { FetchError, createEnhancedFetch } from "../fetch";
 import type { ChainFunction, FetchResponse } from "../fetch";
+import { createEnhancedFetch, FetchError } from "../fetch";
 
 /**
  * The attestation statement format
@@ -2059,7 +2059,7 @@ export const createAPIClient = (
   const getJWKs = async (
     options?: RequestInit,
   ): Promise<FetchResponse<JWKSet>> => {
-    const url = baseURL + `/.well-known/jwks.json`;
+    const url = `${baseURL}/.well-known/jwks.json`;
     const res = await fetch(url, {
       ...options,
       method: "GET",
@@ -2089,7 +2089,7 @@ export const createAPIClient = (
   const elevateWebauthn = async (
     options?: RequestInit,
   ): Promise<FetchResponse<PublicKeyCredentialRequestOptions>> => {
-    const url = baseURL + `/elevate/webauthn`;
+    const url = `${baseURL}/elevate/webauthn`;
     const res = await fetch(url, {
       ...options,
       method: "POST",
@@ -2122,7 +2122,7 @@ export const createAPIClient = (
     body: SignInWebauthnVerifyRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<SessionPayload>> => {
-    const url = baseURL + `/elevate/webauthn/verify`;
+    const url = `${baseURL}/elevate/webauthn/verify`;
     const res = await fetch(url, {
       ...options,
       method: "POST",
@@ -2156,7 +2156,7 @@ export const createAPIClient = (
   const healthCheckGet = async (
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>> => {
-    const url = baseURL + `/healthz`;
+    const url = `${baseURL}/healthz`;
     const res = await fetch(url, {
       ...options,
       method: "GET",
@@ -2186,7 +2186,7 @@ export const createAPIClient = (
   const healthCheckHead = async (
     options?: RequestInit,
   ): Promise<FetchResponse<void>> => {
-    const url = baseURL + `/healthz`;
+    const url = `${baseURL}/healthz`;
     const res = await fetch(url, {
       ...options,
       method: "HEAD",
@@ -2201,7 +2201,7 @@ export const createAPIClient = (
       throw new FetchError(payload, res.status, res.headers);
     }
 
-    const payload: void = undefined;
+    const payload: undefined = undefined;
 
     return {
       body: payload,
@@ -2214,7 +2214,7 @@ export const createAPIClient = (
     body: LinkIdTokenRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>> => {
-    const url = baseURL + `/link/idtoken`;
+    const url = `${baseURL}/link/idtoken`;
     const res = await fetch(url, {
       ...options,
       method: "POST",
@@ -2246,7 +2246,7 @@ export const createAPIClient = (
   const changeUserMfa = async (
     options?: RequestInit,
   ): Promise<FetchResponse<TotpGenerateResponse>> => {
-    const url = baseURL + `/mfa/totp/generate`;
+    const url = `${baseURL}/mfa/totp/generate`;
     const res = await fetch(url, {
       ...options,
       method: "GET",
@@ -2279,7 +2279,7 @@ export const createAPIClient = (
     body: CreatePATRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<CreatePATResponse>> => {
-    const url = baseURL + `/pat`;
+    const url = `${baseURL}/pat`;
     const res = await fetch(url, {
       ...options,
       method: "POST",
@@ -2314,7 +2314,7 @@ export const createAPIClient = (
     body?: SignInAnonymousRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<SessionPayload>> => {
-    const url = baseURL + `/signin/anonymous`;
+    const url = `${baseURL}/signin/anonymous`;
     const res = await fetch(url, {
       ...options,
       method: "POST",
@@ -2349,7 +2349,7 @@ export const createAPIClient = (
     body: SignInEmailPasswordRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<SignInEmailPasswordResponse>> => {
-    const url = baseURL + `/signin/email-password`;
+    const url = `${baseURL}/signin/email-password`;
     const res = await fetch(url, {
       ...options,
       method: "POST",
@@ -2384,7 +2384,7 @@ export const createAPIClient = (
     body: SignInIdTokenRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<SessionPayload>> => {
-    const url = baseURL + `/signin/idtoken`;
+    const url = `${baseURL}/signin/idtoken`;
     const res = await fetch(url, {
       ...options,
       method: "POST",
@@ -2419,7 +2419,7 @@ export const createAPIClient = (
     body: SignInMfaTotpRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<SessionPayload>> => {
-    const url = baseURL + `/signin/mfa/totp`;
+    const url = `${baseURL}/signin/mfa/totp`;
     const res = await fetch(url, {
       ...options,
       method: "POST",
@@ -2454,7 +2454,7 @@ export const createAPIClient = (
     body: SignInOTPEmailRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>> => {
-    const url = baseURL + `/signin/otp/email`;
+    const url = `${baseURL}/signin/otp/email`;
     const res = await fetch(url, {
       ...options,
       method: "POST",
@@ -2487,7 +2487,7 @@ export const createAPIClient = (
     body: SignInOTPEmailVerifyRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<SignInOTPEmailVerifyResponse>> => {
-    const url = baseURL + `/signin/otp/email/verify`;
+    const url = `${baseURL}/signin/otp/email/verify`;
     const res = await fetch(url, {
       ...options,
       method: "POST",
@@ -2522,7 +2522,7 @@ export const createAPIClient = (
     body: SignInPasswordlessEmailRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>> => {
-    const url = baseURL + `/signin/passwordless/email`;
+    const url = `${baseURL}/signin/passwordless/email`;
     const res = await fetch(url, {
       ...options,
       method: "POST",
@@ -2555,7 +2555,7 @@ export const createAPIClient = (
     body: SignInPasswordlessSmsRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>> => {
-    const url = baseURL + `/signin/passwordless/sms`;
+    const url = `${baseURL}/signin/passwordless/sms`;
     const res = await fetch(url, {
       ...options,
       method: "POST",
@@ -2588,7 +2588,7 @@ export const createAPIClient = (
     body: SignInPasswordlessSmsOtpRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<SignInPasswordlessSmsOtpResponse>> => {
-    const url = baseURL + `/signin/passwordless/sms/otp`;
+    const url = `${baseURL}/signin/passwordless/sms/otp`;
     const res = await fetch(url, {
       ...options,
       method: "POST",
@@ -2623,7 +2623,7 @@ export const createAPIClient = (
     body: SignInPATRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<SessionPayload>> => {
-    const url = baseURL + `/signin/pat`;
+    const url = `${baseURL}/signin/pat`;
     const res = await fetch(url, {
       ...options,
       method: "POST",
@@ -2672,8 +2672,8 @@ export const createAPIClient = (
         .join("&");
 
     const url = encodedParameters
-      ? baseURL + `/signin/provider/${provider}?${encodedParameters}`
-      : baseURL + `/signin/provider/${provider}`;
+      ? `${baseURL}/signin/provider/${provider}?${encodedParameters}`
+      : `${baseURL}/signin/provider/${provider}`;
     return url;
   };
 
@@ -2681,7 +2681,7 @@ export const createAPIClient = (
     body?: SignInWebauthnRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<PublicKeyCredentialRequestOptions>> => {
-    const url = baseURL + `/signin/webauthn`;
+    const url = `${baseURL}/signin/webauthn`;
     const res = await fetch(url, {
       ...options,
       method: "POST",
@@ -2716,7 +2716,7 @@ export const createAPIClient = (
     body: SignInWebauthnVerifyRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<SessionPayload>> => {
-    const url = baseURL + `/signin/webauthn/verify`;
+    const url = `${baseURL}/signin/webauthn/verify`;
     const res = await fetch(url, {
       ...options,
       method: "POST",
@@ -2751,7 +2751,7 @@ export const createAPIClient = (
     body: SignOutRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>> => {
-    const url = baseURL + `/signout`;
+    const url = `${baseURL}/signout`;
     const res = await fetch(url, {
       ...options,
       method: "POST",
@@ -2784,7 +2784,7 @@ export const createAPIClient = (
     body: SignUpEmailPasswordRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<SessionPayload>> => {
-    const url = baseURL + `/signup/email-password`;
+    const url = `${baseURL}/signup/email-password`;
     const res = await fetch(url, {
       ...options,
       method: "POST",
@@ -2819,7 +2819,7 @@ export const createAPIClient = (
     body: SignUpWebauthnRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<PublicKeyCredentialCreationOptions>> => {
-    const url = baseURL + `/signup/webauthn`;
+    const url = `${baseURL}/signup/webauthn`;
     const res = await fetch(url, {
       ...options,
       method: "POST",
@@ -2854,7 +2854,7 @@ export const createAPIClient = (
     body: SignUpWebauthnVerifyRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<SessionPayload>> => {
-    const url = baseURL + `/signup/webauthn/verify`;
+    const url = `${baseURL}/signup/webauthn/verify`;
     const res = await fetch(url, {
       ...options,
       method: "POST",
@@ -2889,7 +2889,7 @@ export const createAPIClient = (
     body: RefreshTokenRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<Session>> => {
-    const url = baseURL + `/token`;
+    const url = `${baseURL}/token`;
     const res = await fetch(url, {
       ...options,
       method: "POST",
@@ -2922,7 +2922,7 @@ export const createAPIClient = (
     body?: VerifyTokenRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<string>> => {
-    const url = baseURL + `/token/verify`;
+    const url = `${baseURL}/token/verify`;
     const res = await fetch(url, {
       ...options,
       method: "POST",
@@ -2954,7 +2954,7 @@ export const createAPIClient = (
   const getUser = async (
     options?: RequestInit,
   ): Promise<FetchResponse<User>> => {
-    const url = baseURL + `/user`;
+    const url = `${baseURL}/user`;
     const res = await fetch(url, {
       ...options,
       method: "GET",
@@ -2985,7 +2985,7 @@ export const createAPIClient = (
     body: UserDeanonymizeRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>> => {
-    const url = baseURL + `/user/deanonymize`;
+    const url = `${baseURL}/user/deanonymize`;
     const res = await fetch(url, {
       ...options,
       method: "POST",
@@ -3018,7 +3018,7 @@ export const createAPIClient = (
     body: UserEmailChangeRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>> => {
-    const url = baseURL + `/user/email/change`;
+    const url = `${baseURL}/user/email/change`;
     const res = await fetch(url, {
       ...options,
       method: "POST",
@@ -3051,7 +3051,7 @@ export const createAPIClient = (
     body: UserEmailSendVerificationEmailRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>> => {
-    const url = baseURL + `/user/email/send-verification-email`;
+    const url = `${baseURL}/user/email/send-verification-email`;
     const res = await fetch(url, {
       ...options,
       method: "POST",
@@ -3084,7 +3084,7 @@ export const createAPIClient = (
     body: UserMfaRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>> => {
-    const url = baseURL + `/user/mfa`;
+    const url = `${baseURL}/user/mfa`;
     const res = await fetch(url, {
       ...options,
       method: "POST",
@@ -3117,7 +3117,7 @@ export const createAPIClient = (
     body: UserPasswordRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>> => {
-    const url = baseURL + `/user/password`;
+    const url = `${baseURL}/user/password`;
     const res = await fetch(url, {
       ...options,
       method: "POST",
@@ -3150,7 +3150,7 @@ export const createAPIClient = (
     body: UserPasswordResetRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>> => {
-    const url = baseURL + `/user/password/reset`;
+    const url = `${baseURL}/user/password/reset`;
     const res = await fetch(url, {
       ...options,
       method: "POST",
@@ -3182,7 +3182,7 @@ export const createAPIClient = (
   const addSecurityKey = async (
     options?: RequestInit,
   ): Promise<FetchResponse<PublicKeyCredentialCreationOptions>> => {
-    const url = baseURL + `/user/webauthn/add`;
+    const url = `${baseURL}/user/webauthn/add`;
     const res = await fetch(url, {
       ...options,
       method: "POST",
@@ -3215,7 +3215,7 @@ export const createAPIClient = (
     body: VerifyAddSecurityKeyRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<VerifyAddSecurityKeyResponse>> => {
-    const url = baseURL + `/user/webauthn/verify`;
+    const url = `${baseURL}/user/webauthn/verify`;
     const res = await fetch(url, {
       ...options,
       method: "POST",
@@ -3261,15 +3261,15 @@ export const createAPIClient = (
         .join("&");
 
     const url = encodedParameters
-      ? baseURL + `/verify?${encodedParameters}`
-      : baseURL + `/verify`;
+      ? `${baseURL}/verify?${encodedParameters}`
+      : `${baseURL}/verify`;
     return url;
   };
 
   const getVersion = async (
     options?: RequestInit,
   ): Promise<FetchResponse<GetVersionResponse200>> => {
-    const url = baseURL + `/version`;
+    const url = `${baseURL}/version`;
     const res = await fetch(url, {
       ...options,
       method: "GET",

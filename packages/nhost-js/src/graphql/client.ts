@@ -5,21 +5,19 @@
  * a Hasura GraphQL API.
  */
 
-import {
-  createEnhancedFetch,
-  type ChainFunction,
-  type FetchResponse,
-  FetchError,
-} from "../fetch";
-
 import type { TypedDocumentNode } from "@graphql-typed-document-node/core";
+import {
+  type ChainFunction,
+  createEnhancedFetch,
+  FetchError,
+  type FetchResponse,
+} from "../fetch";
 
 /**
  * Variables object for GraphQL operations.
  * Key-value pairs of variable names and their values.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type GraphQLVariables = Record<string, any>;
+export type GraphQLVariables = Record<string, unknown>;
 
 /**
  * GraphQL request object used for queries and mutations.
@@ -50,8 +48,7 @@ export interface GraphQLError {
 /**
  * Standard GraphQL response format as defined by the GraphQL specification.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export interface GraphQLResponse<TResponseData = any> {
+export interface GraphQLResponse<TResponseData = unknown> {
   /** The data returned from successful execution */
   data?: TResponseData;
   /** Array of errors if execution was unsuccessful or partially successful */
@@ -71,8 +68,7 @@ export interface Client {
    * @param options - Additional fetch options to apply to the request
    * @returns Promise with the GraphQL response and metadata
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  request<TResponseData = any, TVariables = GraphQLVariables>(
+  request<TResponseData = unknown, TVariables = GraphQLVariables>(
     request: GraphQLRequest<TVariables>,
     options?: RequestInit,
   ): Promise<FetchResponse<GraphQLResponse<TResponseData>>>;
@@ -115,8 +111,7 @@ export const createAPIClient = (
   const enhancedFetch = createEnhancedFetch(chainFunctions);
 
   const executeOperation = async <
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    TResponseData = any,
+    TResponseData = unknown,
     TVariables = GraphQLVariables,
   >(
     request: GraphQLRequest<TVariables>,
@@ -149,8 +144,7 @@ export const createAPIClient = (
     return resp;
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  function request<TResponseData = any, TVariables = GraphQLVariables>(
+  function request<TResponseData = unknown, TVariables = GraphQLVariables>(
     request: GraphQLRequest<TVariables>,
     options?: RequestInit,
   ): Promise<FetchResponse<GraphQLResponse<TResponseData>>>;

@@ -1,6 +1,6 @@
-import { describe, it, expect } from "@jest/globals";
+import { describe, expect, it } from "@jest/globals";
 import { createClient } from "@nhost/nhost-js";
-import { type FetchError } from "@nhost/nhost-js/fetch";
+import type { FetchError } from "@nhost/nhost-js/fetch";
 
 interface EchoResponse {
   method: string;

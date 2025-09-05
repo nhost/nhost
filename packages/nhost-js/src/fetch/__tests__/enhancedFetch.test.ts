@@ -1,5 +1,5 @@
-import { describe, beforeEach, test, expect, jest } from "@jest/globals";
-import { createEnhancedFetch, type ChainFunction } from "../index";
+import { beforeEach, describe, expect, jest, test } from "@jest/globals";
+import { type ChainFunction, createEnhancedFetch } from "../index";
 
 const mockFetch = jest.fn();
 
@@ -168,7 +168,6 @@ describe("Enhanced Fetch", () => {
   });
 
   test("errors in middleware should propagate", async () => {
-    // eslint-disable-next-line @typescript-eslint/require-await
     const errorMiddleware: ChainFunction = () => async () => {
       throw new Error("Middleware error");
     };
@@ -215,7 +214,7 @@ describe("Enhanced Fetch", () => {
     const urlModifier: ChainFunction =
       (next) =>
       async (url, options = {}) => {
-        const newUrl = url + "/additional/path";
+        const newUrl = `${url}/additional/path`;
         return next(newUrl, options);
       };
 

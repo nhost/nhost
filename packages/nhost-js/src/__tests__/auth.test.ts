@@ -1,10 +1,10 @@
-import { describe, it, expect } from "@jest/globals";
+import { describe, expect, it } from "@jest/globals";
 import {
   createAPIClient,
-  type SignUpEmailPasswordRequest,
   type ErrorResponse,
+  type SignUpEmailPasswordRequest,
 } from "@nhost/nhost-js/auth";
-import { type FetchError } from "@nhost/nhost-js/fetch";
+import type { FetchError } from "@nhost/nhost-js/fetch";
 
 describe("Nhost Auth - Sign Up with Email and Password", () => {
   const nhostAuth = createAPIClient("https://local.auth.nhost.run/v1");

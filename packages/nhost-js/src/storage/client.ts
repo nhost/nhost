@@ -2,8 +2,8 @@
  * This file is auto-generated. Do not edit manually.
  */
 
-import { FetchError, createEnhancedFetch } from "../fetch";
 import type { ChainFunction, FetchResponse } from "../fetch";
+import { createEnhancedFetch, FetchError } from "../fetch";
 
 /**
  * Date in RFC 2822 format
@@ -626,22 +626,24 @@ export const createAPIClient = (
     body: UploadFilesBody,
     options?: RequestInit,
   ): Promise<FetchResponse<UploadFilesResponse201>> => {
-    const url = baseURL + `/files`;
+    const url = `${baseURL}/files`;
     const formData = new FormData();
     if (body["bucket-id"] !== undefined) {
       formData.append("bucket-id", body["bucket-id"]);
     }
     if (body["metadata[]"] !== undefined) {
-      body["metadata[]"].forEach((value) =>
+      body["metadata[]"].forEach((value) => {
         formData.append(
           "metadata[]",
           new Blob([JSON.stringify(value)], { type: "application/json" }),
           "",
-        ),
-      );
+        );
+      });
     }
     if (body["file[]"] !== undefined) {
-      body["file[]"].forEach((value) => formData.append("file[]", value));
+      body["file[]"].forEach((value) => {
+        formData.append("file[]", value);
+      });
     }
 
     const res = await fetch(url, {
@@ -674,7 +676,7 @@ export const createAPIClient = (
     id: string,
     options?: RequestInit,
   ): Promise<FetchResponse<void>> => {
-    const url = baseURL + `/files/${id}`;
+    const url = `${baseURL}/files/${id}`;
     const res = await fetch(url, {
       ...options,
       method: "DELETE",
@@ -689,7 +691,7 @@ export const createAPIClient = (
       throw new FetchError(payload, res.status, res.headers);
     }
 
-    const payload: void = undefined;
+    const payload: undefined = undefined;
 
     return {
       body: payload,
@@ -717,8 +719,8 @@ export const createAPIClient = (
         .join("&");
 
     const url = encodedParameters
-      ? baseURL + `/files/${id}?${encodedParameters}`
-      : baseURL + `/files/${id}`;
+      ? `${baseURL}/files/${id}?${encodedParameters}`
+      : `${baseURL}/files/${id}`;
     const res = await fetch(url, {
       ...options,
       method: "GET",
@@ -761,8 +763,8 @@ export const createAPIClient = (
         .join("&");
 
     const url = encodedParameters
-      ? baseURL + `/files/${id}?${encodedParameters}`
-      : baseURL + `/files/${id}`;
+      ? `${baseURL}/files/${id}?${encodedParameters}`
+      : `${baseURL}/files/${id}`;
     const res = await fetch(url, {
       ...options,
       method: "HEAD",
@@ -777,7 +779,7 @@ export const createAPIClient = (
       throw new FetchError(payload, res.status, res.headers);
     }
 
-    const payload: void = undefined;
+    const payload: undefined = undefined;
 
     return {
       body: payload,
@@ -791,7 +793,7 @@ export const createAPIClient = (
     body: ReplaceFileBody,
     options?: RequestInit,
   ): Promise<FetchResponse<FileMetadata>> => {
-    const url = baseURL + `/files/${id}`;
+    const url = `${baseURL}/files/${id}`;
     const formData = new FormData();
     if (body["metadata"] !== undefined) {
       formData.append(
@@ -834,7 +836,7 @@ export const createAPIClient = (
     id: string,
     options?: RequestInit,
   ): Promise<FetchResponse<PresignedURLResponse>> => {
-    const url = baseURL + `/files/${id}/presignedurl`;
+    const url = `${baseURL}/files/${id}/presignedurl`;
     const res = await fetch(url, {
       ...options,
       method: "GET",
@@ -866,7 +868,7 @@ export const createAPIClient = (
   const deleteBrokenMetadata = async (
     options?: RequestInit,
   ): Promise<FetchResponse<DeleteBrokenMetadataResponse200>> => {
-    const url = baseURL + `/ops/delete-broken-metadata`;
+    const url = `${baseURL}/ops/delete-broken-metadata`;
     const res = await fetch(url, {
       ...options,
       method: "POST",
@@ -898,7 +900,7 @@ export const createAPIClient = (
   const deleteOrphanedFiles = async (
     options?: RequestInit,
   ): Promise<FetchResponse<DeleteOrphanedFilesResponse200>> => {
-    const url = baseURL + `/ops/delete-orphans`;
+    const url = `${baseURL}/ops/delete-orphans`;
     const res = await fetch(url, {
       ...options,
       method: "POST",
@@ -930,7 +932,7 @@ export const createAPIClient = (
   const listBrokenMetadata = async (
     options?: RequestInit,
   ): Promise<FetchResponse<ListBrokenMetadataResponse200>> => {
-    const url = baseURL + `/ops/list-broken-metadata`;
+    const url = `${baseURL}/ops/list-broken-metadata`;
     const res = await fetch(url, {
       ...options,
       method: "POST",
@@ -962,7 +964,7 @@ export const createAPIClient = (
   const listFilesNotUploaded = async (
     options?: RequestInit,
   ): Promise<FetchResponse<ListFilesNotUploadedResponse200>> => {
-    const url = baseURL + `/ops/list-not-uploaded`;
+    const url = `${baseURL}/ops/list-not-uploaded`;
     const res = await fetch(url, {
       ...options,
       method: "POST",
@@ -994,7 +996,7 @@ export const createAPIClient = (
   const listOrphanedFiles = async (
     options?: RequestInit,
   ): Promise<FetchResponse<ListOrphanedFilesResponse200>> => {
-    const url = baseURL + `/ops/list-orphans`;
+    const url = `${baseURL}/ops/list-orphans`;
     const res = await fetch(url, {
       ...options,
       method: "POST",
@@ -1026,7 +1028,7 @@ export const createAPIClient = (
   const getVersion = async (
     options?: RequestInit,
   ): Promise<FetchResponse<VersionInformation>> => {
-    const url = baseURL + `/version`;
+    const url = `${baseURL}/version`;
     const res = await fetch(url, {
       ...options,
       method: "GET",

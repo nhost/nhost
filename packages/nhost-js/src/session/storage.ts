@@ -5,13 +5,13 @@
  * across page reloads and browser sessions.
  */
 
+import type { Session as AuthSession } from "../auth";
+import { decodeUserSession, type Session } from "./session";
 import {
-  type SessionStorageBackend,
   LocalStorage,
   MemoryStorage,
+  type SessionStorageBackend,
 } from "./storageBackend";
-import { decodeUserSession, type Session } from "./session";
-import type { Session as AuthSession } from "../auth";
 
 /**
  * Callback function type for session change subscriptions

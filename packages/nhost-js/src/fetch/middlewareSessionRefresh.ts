@@ -7,9 +7,9 @@
  */
 
 import type { Client } from "../auth";
-import type { ChainFunction, FetchFunction } from "./fetch";
-import type { SessionStorage } from "../session/storage";
 import { refreshSession } from "../session/refreshSession";
+import type { SessionStorage } from "../session/storage";
+import type { ChainFunction, FetchFunction } from "./fetch";
 
 /**
  * Creates a fetch middleware that automatically refreshes authentication tokens.

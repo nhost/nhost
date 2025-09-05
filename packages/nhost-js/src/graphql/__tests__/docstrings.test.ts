@@ -1,13 +1,12 @@
-import { test, expect } from "@jest/globals";
+import { expect, test } from "@jest/globals";
 import { createClient } from "@nhost/nhost-js";
-import { type GraphQLResponse } from "@nhost/nhost-js/graphql";
 import { FetchError } from "@nhost/nhost-js/fetch";
+import type { GraphQLResponse } from "@nhost/nhost-js/graphql";
 import gql from "graphql-tag";
 
 const subdomain = "local";
 const region = "local";
 
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 test("request", async () => {
   const nhost = createClient({
     subdomain,
@@ -93,7 +92,6 @@ test("request", async () => {
     },
   ]);
 });
-/* eslint-enable @typescript-eslint/no-unsafe-member-access */
 
 test("request typed", async () => {
   const nhost = createClient({
@@ -337,6 +335,7 @@ test("error handling for graphql", async () => {
 
     expect(resp.body.errors).toBeDefined();
     expect(resp.body.errors).toHaveLength(1);
+    // biome-ignore lint/style/noNonNullAssertion: blah
     const errors = resp.body.errors!;
     expect(errors[0]?.message).toBe(
       "field 'restrictedObject' not found in type: 'query_root'",

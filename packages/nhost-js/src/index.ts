@@ -23,11 +23,11 @@
  */
 
 export {
+  createClient,
+  createServerClient,
   type NhostClient,
   type NhostClientOptions,
-  createClient,
   type NhostServerClientOptions,
-  createServerClient,
 } from "./nhost";
 
 /**

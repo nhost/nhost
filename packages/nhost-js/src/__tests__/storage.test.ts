@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeAll } from "@jest/globals";
+import { beforeAll, describe, expect, it } from "@jest/globals";
 import { createClient } from "@nhost/nhost-js";
-import { type ErrorResponse } from "@nhost/nhost-js/storage";
-import { type FetchError } from "@nhost/nhost-js/fetch";
+import type { FetchError } from "@nhost/nhost-js/fetch";
+import type { ErrorResponse } from "@nhost/nhost-js/storage";
 
 describe("Test Storage API", () => {
   const nhost = createClient();

@@ -1,4 +1,4 @@
-import { test, expect } from "@jest/globals";
+import { expect, test } from "@jest/globals";
 import { createClient } from "@nhost/nhost-js";
 import { FetchError } from "@nhost/nhost-js/fetch";
 

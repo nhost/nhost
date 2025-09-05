@@ -1,33 +1,33 @@
+import { generateServiceUrl } from "./";
 import {
-  createAPIClient as createAuthClient,
   type Client as AuthClient,
+  createAPIClient as createAuthClient,
 } from "./auth";
+import {
+  attachAccessTokenMiddleware,
+  type ChainFunction,
+  sessionRefreshMiddleware,
+  updateSessionFromResponseMiddleware,
+} from "./fetch";
+import {
+  createAPIClient as createFunctionsClient,
+  type Client as FunctionsClient,
+} from "./functions";
+import {
+  createAPIClient as createGraphQLClient,
+  type Client as GraphQLClient,
+} from "./graphql";
+import {
+  detectStorage,
+  refreshSession,
+  type Session,
+  SessionStorage,
+  type SessionStorageBackend,
+} from "./session/";
 import {
   createAPIClient as createStorageClient,
   type Client as StorageClient,
 } from "./storage";
-import {
-  type Client as GraphQLClient,
-  createAPIClient as createGraphQLClient,
-} from "./graphql";
-import {
-  type Client as FunctionsClient,
-  createAPIClient as createFunctionsClient,
-} from "./functions";
-import { generateServiceUrl } from "./";
-import {
-  type ChainFunction,
-  attachAccessTokenMiddleware,
-  updateSessionFromResponseMiddleware,
-  sessionRefreshMiddleware,
-} from "./fetch";
-import {
-  detectStorage,
-  SessionStorage,
-  type SessionStorageBackend,
-  type Session,
-  refreshSession,
-} from "./session/";
 
 /**
  * Main client class that provides unified access to all Nhost services.

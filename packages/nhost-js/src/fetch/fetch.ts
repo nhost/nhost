@@ -132,8 +132,7 @@ function extractMessage(body: unknown): string {
  *
  * @template T - The type of the response body
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export class FetchError<T = any> extends Error {
+export class FetchError<T = unknown> extends Error {
   /** The original response body */
   body: T;
   /** HTTP status code of the failed response */

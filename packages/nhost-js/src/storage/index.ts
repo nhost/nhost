@@ -23,12 +23,12 @@
  * if the request fails entirely (i.e., due to network errors). The type of the error
  * will be a `FetchError<ErrorResponse>`:
  *
- * {@includeCode ./__tests__/docstrings.test.ts:2-5,70-78,81-94,102}
+ * {@includeCode ./__tests__/docstrings.test.ts:2-5,70-78,81-94,104}
  *
  * This type extends the standard `Error` type so if you want to just log the error you can
  * do so like this:
  *
- * {@includeCode ./__tests__/docstrings.test.ts:2-5,109-117,120-127,130}
+ * {@includeCode ./__tests__/docstrings.test.ts:2-5,110-119,122-129,132}
  *
  * @module storage
  * @packageDocumentation

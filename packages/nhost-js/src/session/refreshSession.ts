@@ -1,16 +1,16 @@
-import { type Client as AuthClient, type ErrorResponse } from "../auth";
-import { type Session } from "./session";
-
-import { type SessionStorage } from "./storage";
+import type { Client as AuthClient, ErrorResponse } from "../auth";
 import type { FetchResponse } from "../fetch";
+import type { Session } from "./session";
+import type { SessionStorage } from "./storage";
 
 class DummyLock implements Lock {
   async request(
     _name: string,
     _options: { mode: "exclusive" | "shared" },
-    callback: () => Promise<any>, //eslint-disable-line @typescript-eslint/no-explicit-any
+    // biome-ignore lint/suspicious/noExplicitAny: any
+    callback: () => Promise<any>,
   ) {
-    return callback(); //eslint-disable-line @typescript-eslint/no-unsafe-return
+    return callback();
   }
 }
 
@@ -18,8 +18,10 @@ interface Lock {
   request: (
     name: string,
     options: { mode: "exclusive" | "shared" },
-    callback: () => Promise<any>, //eslint-disable-line @typescript-eslint/no-explicit-any
-  ) => Promise<any>; //eslint-disable-line @typescript-eslint/no-explicit-any
+    // biome-ignore lint/suspicious/noExplicitAny: blah
+    callback: () => Promise<any>,
+    // biome-ignore lint/suspicious/noExplicitAny: blah
+  ) => Promise<any>;
 }
 
 const lock: Lock =
@@ -78,15 +80,16 @@ const _refreshSession = async (
   storage: SessionStorage,
   marginSeconds = 60,
 ): Promise<Session | null> => {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const {
     session,
     needsRefresh,
-  }: { session: Session | null; needsRefresh: boolean } =
-    //eslint-disable-next-line @typescript-eslint/require-await
-    await lock.request("nhostSessionLock", { mode: "shared" }, async () => {
+  }: { session: Session | null; needsRefresh: boolean } = await lock.request(
+    "nhostSessionLock",
+    { mode: "shared" },
+    async () => {
       return _needsRefresh(storage, marginSeconds);
-    });
+    },
+  );
 
   if (!session) {
     return null; // No session found
@@ -96,7 +99,6 @@ const _refreshSession = async (
     return session; // No need to refresh
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const refreshedSession: Session | null = await lock.request(
     "nhostSessionLock",
     { mode: "exclusive" },

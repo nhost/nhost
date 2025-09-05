@@ -35,12 +35,10 @@ let
       "turbo.json"
       (inDirectory "./build")
       "${submodule}/.prettierignore"
-      "${submodule}/eslint.config.mjs"
       "${submodule}/gen.sh"
       "${submodule}/jest.config.js"
       "${submodule}/package.json"
       "${submodule}/pnpm-lock.yaml"
-      "${submodule}/tsconfig.eslint.json"
       "${submodule}/tsconfig.json"
       "${submodule}/vite.config.ts"
       "${submodule}/vite.umd.config.ts"

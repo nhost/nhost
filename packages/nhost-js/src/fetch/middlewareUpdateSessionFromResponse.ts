@@ -34,9 +34,9 @@ export const updateSessionFromResponseMiddleware = (
    * @param body - Response data to extract session from
    * @returns Session object if found, null otherwise
    */
-  const sessionExtractor = function (
+  const sessionExtractor = (
     body: Session | SessionPayload | string,
-  ): Session | null {
+  ): Session | null => {
     if (typeof body === "string") {
       return null;
     }
@@ -86,7 +86,7 @@ export const updateSessionFromResponseMiddleware = (
             const session = sessionExtractor(body);
 
             // If session data is found, store it
-            if (session && session.accessToken && session.refreshToken) {
+            if (session?.accessToken && session.refreshToken) {
               storage.set(session);
             }
           }

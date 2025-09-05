@@ -13,11 +13,11 @@
  */
 
 export {
-  type FetchFunction,
   type ChainFunction,
-  type FetchResponse,
-  FetchError,
   createEnhancedFetch,
+  FetchError,
+  type FetchFunction,
+  type FetchResponse,
 } from "./fetch";
 
 /**

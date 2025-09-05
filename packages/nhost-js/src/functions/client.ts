@@ -6,9 +6,9 @@
  */
 
 import {
+  type ChainFunction,
   createEnhancedFetch,
   FetchError,
-  type ChainFunction,
   type FetchResponse,
 } from "../fetch";
 
@@ -28,8 +28,7 @@ export interface Client {
    * @param path - The path to the serverless function
    * @param options - Additional fetch options to apply to the request
    * @returns Promise with the function response and metadata.    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  fetch<T = any>(
+  fetch<T = unknown>(
     path: string,
     options?: RequestInit,
   ): Promise<FetchResponse<T>>;
@@ -48,8 +47,7 @@ export interface Client {
    * @param options - Additional fetch options to apply to the request
    * @returns Promise with the function response and metadata
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  post<T = any>(
+  post<T = unknown>(
     path: string,
     body?: unknown,
     options?: RequestInit,
@@ -83,8 +81,7 @@ export const createAPIClient = (
        - text string if the response is text/*
        - Blob if the response is any other type
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const fetch = async <T = any>(
+  const fetch = async <T = unknown>(
     path: string,
     options?: RequestInit,
   ): Promise<FetchResponse<T | string | Blob>> => {
@@ -126,8 +123,7 @@ export const createAPIClient = (
    * @param options - Additional fetch options to apply to the request
    * @returns Promise with the function response and metadata
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const post = async <T = any>(
+  const post = async <T = unknown>(
     path: string,
     body?: unknown,
     options: RequestInit = {},
