@@ -18,6 +18,8 @@ let
     pkgs.stdenv.mkDerivation {
       inherit name version src;
 
+      dontFixup = true;
+
       nativeBuildInputs = with pkgs; [
         pnpm_10
         cacert
@@ -38,7 +40,7 @@ let
 
         for absdir in $(pnpm list --recursive --depth=-1 --parseable); do
           dir=$(realpath --relative-to="$PWD" "$absdir")
-          echo "➜ Copying node_modules for $dir"
+          echo "  ➜ Copying node_modules for $dir"
           mkdir -p $out/$dir
           cp -r $dir/node_modules $out/$dir/node_modules
         done
@@ -100,6 +102,7 @@ let
 
         for absdir in $(pnpm list --recursive --depth=-1 --parseable); do
           dir=$(realpath --relative-to="$PWD" "$absdir")
+          echo "  ➜ Copying node_modules for $dir"
           cp -r ${node_modules}/$dir/node_modules $dir/node_modules
         done
 
