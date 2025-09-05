@@ -69,3 +69,5 @@ out/
 result
 
 .vitest
+
+.claude
