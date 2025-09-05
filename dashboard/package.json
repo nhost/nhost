@@ -224,5 +224,21 @@
   },
   "msw": {
     "workerDirectory": "public"
+  },
+  "pnpm": {
+    "packageExtensions": {
+      "@uiw/codemirror-theme-bbedit": {
+        "dependencies": {
+          "@babel/runtime": "^7.0.0",
+          "@lezer/highlight": "^1.0.0"
+        }
+      },
+      "@uiw/codemirror-theme-github": {
+        "dependencies": {
+          "@babel/runtime": "^7.0.0",
+          "@lezer/highlight": "^1.0.0"
+        }
+      }
+    }
   }
 }
