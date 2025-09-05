@@ -13,5 +13,20 @@
     "prettier": "^3.5.3",
     "typedoc": "^0.28.4",
     "typedoc-plugin-markdown": "^4.6.3"
+  },
+  "pnpm": {
+    "packageExtensions": {
+      "@mintlify/link-rot@*": {
+        "dependencies": {
+          "react": "*",
+          "react-dom": "*"
+        }
+      },
+      "@mintlify/scraping@*": {
+        "dependencies": {
+          "openapi-types": "*"
+        }
+      }
+    }
   }
 }
