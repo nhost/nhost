@@ -26,6 +26,7 @@ let
     root = ../..;
     include = with nix-filter.lib; [
       isDirectory
+      ".gitignore"
       ".npmrc"
       "biome.json"
       "audit-ci.jsonc"
