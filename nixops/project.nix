@@ -24,6 +24,7 @@ let
 
   # we use this to just build and cache the packages
   buildInputs = with pkgs; [
+    biome
     go
     golangci-lint
     mockgen
