@@ -5,7 +5,7 @@ let
   submodule = "examples/${name}";
 
   node_modules = nixops-lib.js.mkNodeModules {
-    name = "node-modules";
+    name = "node-modules-${name}";
     version = "0.0.0-dev";
 
     src = nix-filter.lib.filter {
@@ -70,8 +70,6 @@ in
     buildInputs = [
     ] ++ checkDeps ++ buildInputs ++ nativeBuildInputs;
   };
-
-  entrypoint = pkgs.writeScriptBin "docker-entrypoint.sh" (builtins.readFile ./docker-entrypoint.sh);
 
   check = nixops-lib.js.check {
     inherit src node_modules submodule buildInputs nativeBuildInputs checkDeps;

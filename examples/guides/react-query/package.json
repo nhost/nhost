@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "pnpm build:codegen && tsc && vite build",
-    "build:codegen": "bash codegen-wrapper.sh",
+    "build": "tsc && vite build",
+    "generate": "bash codegen-wrapper.sh",
     "test": "pnpm test:typecheck && pnpm test:lint",
     "test:typecheck": "tsc --noEmit",
     "test:lint": "biome check",

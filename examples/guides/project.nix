@@ -1,11 +1,11 @@
 { self, pkgs, nix2containerPkgs, nix-filter, nixops-lib }:
 let
-  name = "demos";
+  name = "guides";
   version = "0.0.0-dev";
   submodule = "examples/${name}";
 
   node_modules = nixops-lib.js.mkNodeModules {
-    name = "node-modules";
+    name = "node-modules-${name}";
     version = "0.0.0-dev";
 
     src = nix-filter.lib.filter {
@@ -17,18 +17,10 @@ let
         "pnpm-lock.yaml"
         "${submodule}/package.json"
         "${submodule}/pnpm-lock.yaml"
-        "${submodule}/ReactNativeDemo/package.json"
-        "${submodule}/ReactNativeDemo/pnpm-lock.yaml"
-        "${submodule}/express/package.json"
-        "${submodule}/express/pnpm-lock.yaml"
-        "${submodule}/nextjs-ssr-demo/package.json"
-        "${submodule}/nextjs-ssr-demo/pnpm-lock.yaml"
-        "${submodule}/react-demo/package.json"
-        "${submodule}/react-demo/pnpm-lock.yaml"
-        "${submodule}/sveltekit-demo/package.json"
-        "${submodule}/sveltekit-demo/pnpm-lock.yaml"
-        "${submodule}/vue-demo/package.json"
-        "${submodule}/vue-demo/pnpm-lock.yaml"
+        "${submodule}/react-apollo/package.json"
+        "${submodule}/react-apollo/pnpm-lock.yaml"
+        "${submodule}/react-query/package.json"
+        "${submodule}/react-query/pnpm-lock.yaml"
       ];
     };
 
@@ -71,8 +63,6 @@ in
     ] ++ checkDeps ++ buildInputs ++ nativeBuildInputs;
   };
 
-  entrypoint = pkgs.writeScriptBin "docker-entrypoint.sh" (builtins.readFile ./docker-entrypoint.sh);
-
   check = nixops-lib.js.check {
     inherit src node_modules submodule buildInputs nativeBuildInputs checkDeps;
 
@@ -113,7 +103,3 @@ in
     '';
   };
 }
-
-
-
-

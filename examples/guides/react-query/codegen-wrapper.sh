@@ -13,7 +13,7 @@ if [ -f "$GENERATED_TS_FILE" ]; then
   sed -i -e 's/import type { useAuthenticatedFetcher }/import { useAuthenticatedFetcher }/g' "$GENERATED_TS_FILE"
   echo "Successfully removed \"type\" from useAuthenticatedFetcher import."
   echo "Formatting $GENERATED_TS_FILE..."
-  biome format --write "$GENERATED_TS_FILE"
+  biome check --write "$GENERATED_TS_FILE"
 else
   echo "Error: Generated TypeScript file not found at $GENERATED_TS_FILE"
   exit 1
@@ -22,7 +22,7 @@ fi
 
 if [ -f "$GENERATED_SCHEMA_FILE" ]; then
   echo "Formatting $GENERATED_SCHEMA_FILE..."
-  biome format --write "$GENERATED_SCHEMA_FILE"
+  biome check --write "$GENERATED_SCHEMA_FILE"
   echo "Successfully formatted $GENERATED_SCHEMA_FILE"
 else
   echo "Warning: Generated schema file not found at $GENERATED_SCHEMA_FILE"

@@ -38,6 +38,10 @@
           inherit self pkgs nix-filter nixops-lib;
         };
 
+        guidesf = import ./examples/guides/project.nix {
+          inherit self pkgs nix-filter nixops-lib nix2containerPkgs;
+        };
+
         mintlify-openapif = import ./tools/mintlify-openapi/project.nix {
           inherit self pkgs nix-filter nixops-lib;
         };
@@ -59,6 +63,7 @@
           codegen = codegenf.check;
           dashboard = dashboardf.check;
           demos = demosf.check;
+          guides = guidesf.check;
           docs = docsf.check;
           mintlify-openapi = mintlify-openapif.check;
           nhost-js = nhost-jsf.check;
@@ -106,6 +111,7 @@
           codegen = codegenf.devShell;
           dashboard = dashboardf.devShell;
           demos = demosf.devShell;
+          guides = guidesf.devShell;
           docs = docsf.devShell;
           mintlify-openapi = mintlify-openapif.devShell;
           nhost-js = nhost-jsf.devShell;
@@ -117,6 +123,7 @@
           dashboard = dashboardf.package;
           dashboard-docker-image = dashboardf.dockerImage;
           demos = demosf.package;
+          guides = guidesf.package;
           mintlify-openapi = mintlify-openapif.package;
           nhost-js = nhost-jsf.package;
           nixops = nixopsf.package;

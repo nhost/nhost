@@ -9,7 +9,7 @@ GENERATED_SCHEMA_FILE="schema.graphql"
 
 if [ -f "$GENERATED_TS_FILE" ]; then
   echo "Formatting $GENERATED_TS_FILE..."
-  biome format --write "$GENERATED_TS_FILE"
+  biome check --write "$GENERATED_TS_FILE"
   echo "Successfully formatted $GENERATED_TS_FILE"
 else
   echo "Error: Generated TypeScript file not found at $GENERATED_TS_FILE"
@@ -18,7 +18,7 @@ fi
 
 if [ -f "$GENERATED_SCHEMA_FILE" ]; then
   echo "Formatting $GENERATED_SCHEMA_FILE..."
-  biome format --write "$GENERATED_SCHEMA_FILE"
+  biome check --write "$GENERATED_SCHEMA_FILE"
   echo "Successfully formatted $GENERATED_SCHEMA_FILE"
 else
   echo "Warning: Generated schema file not found at $GENERATED_SCHEMA_FILE"
