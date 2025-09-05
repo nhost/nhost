@@ -1,8 +1,8 @@
-import { useState, type JSX } from "react";
+import type { ErrorResponse } from "@nhost/nhost-js/auth";
+import type { FetchError } from "@nhost/nhost-js/fetch";
+import { type JSX, useId, useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/nhost/AuthProvider";
-import { type ErrorResponse } from "@nhost/nhost-js/auth";
-import { type FetchError } from "@nhost/nhost-js/fetch";
 
 export default function SignUp(): JSX.Element {
   const { nhost, isAuthenticated } = useAuth();
@@ -13,6 +13,9 @@ export default function SignUp(): JSX.Element {
   const [displayName, setDisplayName] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const displayNameId = useId();
+  const emailId = useId();
+  const passwordId = useId();
 
   // If already authenticated, redirect to profile
   if (isAuthenticated) {
@@ -59,14 +62,16 @@ export default function SignUp(): JSX.Element {
 
         <div>
           <div className="tabs-container">
-            <button className="tab-button tab-active">Email + Password</button>
+            <button type="button" className="tab-button tab-active">
+              Email + Password
+            </button>
           </div>
           <div className="tab-content">
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <label htmlFor="displayName">Display Name</label>
+                <label htmlFor={displayNameId}>Display Name</label>
                 <input
-                  id="displayName"
+                  id={displayNameId}
                   type="text"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
@@ -74,9 +79,9 @@ export default function SignUp(): JSX.Element {
               </div>
 
               <div>
-                <label htmlFor="email">Email</label>
+                <label htmlFor={emailId}>Email</label>
                 <input
-                  id="email"
+                  id={emailId}
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -85,9 +90,9 @@ export default function SignUp(): JSX.Element {
               </div>
 
               <div>
-                <label htmlFor="password">Password</label>
+                <label htmlFor={passwordId}>Password</label>
                 <input
-                  id="password"
+                  id={passwordId}
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}

@@ -1,8 +1,8 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
-import App from "./App";
 import { ApolloProvider } from "@apollo/client";
+import App from "./App";
 import { useApolloClient } from "./lib/graphql/apolloClient";
 import { AuthProvider } from "./lib/nhost/AuthProvider";
 

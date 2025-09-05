@@ -53,7 +53,7 @@ body {
 }
 
 .justify-between {
-  justify-between: space-between;
+  justify-content: space-between;
 }
 
 .min-h-screen {

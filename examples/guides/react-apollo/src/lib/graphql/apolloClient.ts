@@ -1,13 +1,13 @@
 import {
   ApolloClient,
-  InMemoryCache,
-  createHttpLink,
   ApolloLink,
+  createHttpLink,
+  InMemoryCache,
 } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
-import { useAuth } from "../nhost/AuthProvider";
-import { useMemo } from "react";
 import type { NhostClient } from "@nhost/nhost-js";
+import { useMemo } from "react";
+import { useAuth } from "../nhost/AuthProvider";
 
 // Create a function that creates an Apollo client using the provided Nhost client
 export const createApolloClient = (nhost: NhostClient) => {
