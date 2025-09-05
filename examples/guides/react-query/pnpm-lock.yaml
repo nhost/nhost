@@ -36,6 +36,12 @@ importers:
       '@graphql-codegen/schema-ast':
         specifier: ^4.1.0
         version: 4.1.0(graphql@16.11.0)
+      '@graphql-codegen/typescript':
+        specifier: ^4.1.6
+        version: 4.1.6(graphql@16.11.0)
+      '@graphql-codegen/typescript-operations':
+        specifier: ^4.6.1
+        version: 4.6.1(graphql@16.11.0)
       '@graphql-codegen/typescript-react-query':
         specifier: ^6.1.1
         version: 6.1.1(graphql@16.11.0)

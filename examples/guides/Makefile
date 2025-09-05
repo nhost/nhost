@@ -4,7 +4,7 @@ include $(ROOT_DIR)/build/makefiles/general.makefile
 
 .PHONY: _dev-env-up
 _dev-env-up:
-	cd ../demos/backend/ && nhost up
+	cd ../demos/backend/ && $(ROOT_DIR)/examples/demos/backend/env-up.sh
 
 
 .PHONY: _dev-env-down
