@@ -94,8 +94,6 @@ export default function SignUpPage() {
     if (window.gtag) {
       return;
     }
-    // eslint-disable-next-line no-console
-    console.log('Initializing...');
     window.dataLayer = window.dataLayer || [];
     function gtag(...args: any[]) {
       window.dataLayer.push(args);
@@ -121,8 +119,6 @@ export default function SignUpPage() {
     };
 
     document.head.appendChild(script);
-    // eslint-disable-next-line no-console
-    console.log('Finished...');
   }, []);
 
   return (

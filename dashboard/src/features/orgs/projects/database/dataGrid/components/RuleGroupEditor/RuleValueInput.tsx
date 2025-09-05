@@ -10,7 +10,10 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/v3/command';
-import { FancyMultiSelect } from '@/components/ui/v3/fancy-multi-select';
+import {
+  FancyMultiSelect,
+  type Option,
+} from '@/components/ui/v3/fancy-multi-select';
 import { FormField, FormItem, FormMessage } from '@/components/ui/v3/form';
 import {
   Popover,
@@ -39,6 +42,27 @@ import { CommandLoading } from 'cmdk';
 import { useState } from 'react';
 import { useController, useFormContext, useWatch } from 'react-hook-form';
 import useRuleGroupEditor from './useRuleGroupEditor';
+
+const xHasuraString = 'x-hasura-';
+
+function getValueForMultiSelect(value: any) {
+  if (Array.isArray(value)) {
+    return value.map((v) => ({ value: v, label: v }));
+    // eslint-disable-next-line no-else-return
+  } else if (
+    typeof value === 'string' &&
+    value.toLocaleLowerCase().includes(xHasuraString)
+  ) {
+    return [
+      {
+        value,
+        label: value,
+        isSystemVariable: true,
+      },
+    ];
+  }
+  return [];
+}
 
 function ColumnSelectorInput({
   name,
@@ -149,28 +173,50 @@ function RuleValueInput({
   }
   const availableHasuraPermissionVariables = getAllPermissionVariables(
     data?.config?.auth?.session?.accessToken?.customClaims,
-  ).map(({ key }) => ({
+  ).map(({ key, isSystemVariable }) => ({
     value: `X-Hasura-${key}`,
     label: `X-Hasura-${key}`,
     group: 'Frequently used',
+    isSystemVariable: !!isSystemVariable,
   }));
 
   if (operator === '_in' || operator === '_nin') {
-    const defaultValue = Array.isArray(field.value) ? field.value : [];
+    const defaultValue = getValueForMultiSelect(field.value);
+
+    // eslint-disable-next-line no-inner-declarations
+    function handleOnChange(value: Option[]) {
+      const typedValue = value as Array<Option & { isSystemVariable: boolean }>;
+      const [firstValue] = typedValue;
+      const [lastElement] = typedValue.slice(-1);
+
+      // first and only element is a system variable
+      if (
+        (firstValue.isSystemVariable ||
+          firstValue.value.toLocaleLowerCase().includes(xHasuraString)) &&
+        typedValue.length === 1
+      ) {
+        setValue(inputName, firstValue.value, { shouldDirty: true });
+        // System variable just added to the list
+      } else if (lastElement.isSystemVariable) {
+        setValue(inputName, lastElement.value, { shouldDirty: true });
+        // list of elements without system variables
+      } else {
+        const filteredAndTransformedValue = (
+          firstValue.isSystemVariable
+            ? typedValue.filter((v) => !v.isSystemVariable)
+            : typedValue
+        ).map((fv) => fv.value);
+        setValue(inputName, filteredAndTransformedValue, { shouldDirty: true });
+      }
+    }
 
     return (
       <FancyMultiSelect
         className={className}
         options={availableHasuraPermissionVariables}
         creatable
-        defaultValue={defaultValue.map((v) => ({ value: v, label: v }))}
-        onChange={(value) => {
-          setValue(
-            inputName,
-            value.map((v) => v.value),
-            { shouldDirty: true },
-          );
-        }}
+        value={defaultValue}
+        onChange={handleOnChange}
       />
     );
   }
