@@ -1,19 +1,36 @@
-{ self, pkgs, nix-filter, nixops-lib, node_modules }:
+{ self, pkgs, nix-filter, nixops-lib }:
 let
   name = "nhost-js";
   version = "0.0.0-dev";
   created = "1970-01-01T00:00:00Z";
   submodule = "packages/${name}";
 
+  node_modules = nixops-lib.js.mkNodeModules {
+    name = "node-modules";
+    version = "0.0.0-dev";
+
+    src = nix-filter.lib.filter {
+      root = ../..;
+      include = [
+        ".npmrc"
+        "package.json"
+        "pnpm-workspace.yaml"
+        "pnpm-lock.yaml"
+        "${submodule}/package.json"
+        "${submodule}/pnpm-lock.yaml"
+      ];
+    };
+  };
+
   src = nix-filter.lib.filter {
     root = ../..;
     include = with nix-filter.lib; [
       isDirectory
-      (matchName "package.json")
       ".npmrc"
       ".prettierignore"
       ".prettierrc.js"
       "audit-ci.jsonc"
+      "package.json"
       "pnpm-workspace.yaml"
       "pnpm-lock.yaml"
       "turbo.json"
@@ -22,6 +39,8 @@ let
       "${submodule}/eslint.config.mjs"
       "${submodule}/gen.sh"
       "${submodule}/jest.config.js"
+      "${submodule}/package.json"
+      "${submodule}/pnpm-lock.yaml"
       "${submodule}/tsconfig.eslint.json"
       "${submodule}/tsconfig.json"
       "${submodule}/vite.config.ts"
@@ -73,8 +92,7 @@ in
     '';
 
     installPhase = ''
-      mkdir -p $out
-      cp -r dist $out/dist
+      cp -r ./ $out
     '';
   };
 }

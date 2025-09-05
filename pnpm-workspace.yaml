@@ -1,7 +1,8 @@
 packages:
-  - 'dashboard'
-  - 'docs'
-  - 'packages/**'
+  - dashboard
+  - docs
+  - packages/**
+  - examples/demos/**
   - '!**/test/**'
   - '!out/**'
   - '!**/functions'

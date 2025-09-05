@@ -4,6 +4,7 @@ let
     pnpm_10
     cacert
     nodejs
+    biome
     playwright-driver
   ];
 
@@ -11,6 +12,8 @@ let
     { src
     , name
     , version
+    , preBuild ? ""
+    , pnpmOpts ? ""
     }:
     pkgs.stdenv.mkDerivation {
       inherit name version src;
@@ -25,20 +28,19 @@ let
         export HOME=$TMPDIR/home
         mkdir -p $HOME
 
-        # Fix the workspace linking issue
-        pnpm config set link-workspace-packages false
-        pnpm install --frozen-lockfile
+        ${preBuild}
+
+        pnpm install --frozen-lockfile ${pnpmOpts}
       '';
 
       installPhase = ''
         mkdir -p $out
-        cp pnpm-lock.yaml $out/pnpm-lock.yaml
 
         for absdir in $(pnpm list --recursive --depth=-1 --parseable); do
           dir=$(realpath --relative-to="$PWD" "$absdir")
+          echo "➜ Copying node_modules for $dir"
           mkdir -p $out/$dir
           cp -r $dir/node_modules $out/$dir/node_modules
-          cp $dir/package.json $out/$dir/package.json
         done
       '';
     };
@@ -91,35 +93,31 @@ let
         cp -r ${src} src
         chmod +w -R .
 
+        echo "➜ Source: ${src}"
+        echo "➜ Workdir: $(realpath src)"
         echo "➜ Setting up node_modules and checking dependencies for security issues"
         cd src
 
         for absdir in $(pnpm list --recursive --depth=-1 --parseable); do
           dir=$(realpath --relative-to="$PWD" "$absdir")
-          ln -s ${node_modules}/$dir/node_modules $dir/node_modules
+          cp -r ${node_modules}/$dir/node_modules $dir/node_modules
         done
 
         pnpm audit-ci
-        cd ..
-
-
-        cd src
 
         ${preCheck}
 
         echo "➜ Running pnpm generate and checking sha1sum of all files"
-        SRCROOT=$PWD
 
         # Generate baseline checksums from the original filtered src
-        find . -type f ! -path "./node_modules/*" ! -path "./deprecated/*" -print0 | xargs -0 sha1sum > $TMPDIR/baseline
+        find . -type f ! -path "*/node_modules/*" ! -path "./deprecated/*" -print0 | xargs -0 sha1sum > $TMPDIR/baseline
 
         # Copy and run generate
-        cp -r ../src $TMPDIR/generate
-        cd $TMPDIR/generate
         pnpm run --dir ${submodule} generate
 
         # Check only files that existed in the baseline
         sha1sum -c $TMPDIR/baseline || (echo "❌ ERROR: pnpm generate changed files" && exit 1)
+
 
         echo "➜ Running linters and tests"
         pnpm run --dir ${submodule} test

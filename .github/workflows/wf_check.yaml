@@ -84,16 +84,16 @@ jobs:
     #       || (echo "Wait until nixops is already built and cached and run again" && exit 1)
     #   if: ${{ inputs.NAME != 'nixops' }}
 
-    # - name: "Verify if we need to build"
-    #   id: verify-build
-    #   run: |
-    #     export drvPath=$(make check-dry-run)
-    #     echo "Derivation path: $drvPath"
-    #     nix path-info --store s3://nhost-nix-cache\?region=eu-central-1 $drvPath \
-    #       && export BUILD_NEEDED=no \
-    #       || export BUILD_NEEDED=yes
-    #     echo BUILD_NEEDED=$BUILD_NEEDED >> $GITHUB_OUTPUT
-    #     echo DERIVATION_PATH=$drvPath >> $GITHUB_OUTPUT
+    - name: "Verify if we need to build"
+      id: verify-build
+      run: |
+        export drvPath=$(make check-dry-run)
+        echo "Derivation path: $drvPath"
+        nix path-info --store s3://nhost-nix-cache\?region=eu-central-1 $drvPath \
+          && export BUILD_NEEDED=no \
+          || export BUILD_NEEDED=yes
+        echo BUILD_NEEDED=$BUILD_NEEDED >> $GITHUB_OUTPUT
+        echo DERIVATION_PATH=$drvPath >> $GITHUB_OUTPUT
 
     - name: "Start containters for integration tests"
       run: |

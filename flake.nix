@@ -31,13 +31,33 @@
             include = [
               ./.npmrc
               ./pnpm-workspace.yaml
-              ./pnpm-lock.yaml
 
               # find . -name package.json | grep -v node_modules | grep -v deprecated
               ./package.json
               ./docs/package.json
               ./dashboard/package.json
+              ./examples/demos/react-demo/package.json
+              ./examples/demos/ReactNativeDemo/package.json
+              ./examples/demos/express/package.json
+              ./examples/demos/vue-demo/package.json
+              ./examples/demos/sveltekit-demo/package.json
+              ./examples/demos/package.json
+              ./examples/demos/nextjs-ssr-demo/package.json
               ./packages/nhost-js/package.json
+
+              # find . -name pnpm-lock.yaml | grep -v node_modules | grep -v deprecated
+              ./pnpm-lock.yaml
+              ./docs/pnpm-lock.yaml
+              ./dashboard/pnpm-lock.yaml
+              ./examples/docker-compose/functions/pnpm-lock.yaml
+              ./examples/demos/react-demo/pnpm-lock.yaml
+              ./examples/demos/ReactNativeDemo/pnpm-lock.yaml
+              ./examples/demos/pnpm-lock.yaml
+              ./examples/demos/express/pnpm-lock.yaml
+              ./examples/demos/vue-demo/pnpm-lock.yaml
+              ./examples/demos/sveltekit-demo/pnpm-lock.yaml
+              ./examples/demos/nextjs-ssr-demo/pnpm-lock.yaml
+              ./packages/nhost-js/pnpm-lock.yaml
             ];
           };
         };
@@ -47,11 +67,15 @@
         };
 
         dashboardf = import ./dashboard/project.nix {
-          inherit self pkgs nix-filter nixops-lib node_modules nix2containerPkgs;
+          inherit self pkgs nix-filter nixops-lib nix2containerPkgs;
+        };
+
+        demosf = import ./examples/demos/project.nix {
+          inherit self pkgs nix-filter nixops-lib nix2containerPkgs;
         };
 
         docsf = import ./docs/project.nix {
-          inherit self pkgs nix-filter nixops-lib node_modules;
+          inherit self pkgs nix-filter nixops-lib;
         };
 
         mintlify-openapif = import ./tools/mintlify-openapi/project.nix {
@@ -59,7 +83,7 @@
         };
 
         nhost-jsf = import ./packages/nhost-js/project.nix {
-          inherit self pkgs nix-filter nixops-lib node_modules;
+          inherit self pkgs nix-filter nixops-lib;
         };
 
         nixopsf = import ./nixops/project.nix {
@@ -74,6 +98,7 @@
         checks = {
           codegen = codegenf.check;
           dashboard = dashboardf.check;
+          demos = demosf.check;
           docs = docsf.check;
           mintlify-openapi = mintlify-openapif.check;
           nhost-js = nhost-jsf.check;
@@ -90,6 +115,7 @@
               nhost-cli
               nodejs
               pnpm_10
+              biome
               skopeo
               go
               golines
@@ -119,6 +145,7 @@
 
           codegen = codegenf.devShell;
           dashboard = dashboardf.devShell;
+          demos = demosf.devShell;
           docs = docsf.devShell;
           mintlify-openapi = mintlify-openapif.devShell;
           nhost-js = nhost-jsf.devShell;
@@ -126,9 +153,10 @@
         };
 
         packages = flake-utils.lib.flattenTree {
+          codegen = codegenf.package;
           dashboard = dashboardf.package;
           dashboard-docker-image = dashboardf.dockerImage;
-          codegen = codegenf.package;
+          demos = demosf.package;
           mintlify-openapi = mintlify-openapif.package;
           nhost-js = nhost-jsf.package;
           nixops = nixopsf.package;

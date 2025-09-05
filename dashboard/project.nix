@@ -1,19 +1,44 @@
-{ self, pkgs, nix2containerPkgs, nix-filter, nixops-lib, node_modules }:
+{ self, pkgs, nix2containerPkgs, nix-filter, nixops-lib }:
 let
   name = "dashboard";
   version = "0.0.0-dev";
   created = "1970-01-01T00:00:00Z";
   submodule = "${name}";
 
+  node_modules = nixops-lib.js.mkNodeModules {
+    name = "node-modules";
+    version = "0.0.0-dev";
+
+    src = nix-filter.lib.filter {
+      root = ./..;
+      include = [
+        ".npmrc"
+        "package.json"
+        "pnpm-workspace.yaml"
+        "pnpm-lock.yaml"
+        "${submodule}/package.json"
+        "${submodule}/pnpm-lock.yaml"
+      ];
+    };
+
+    pnpmOpts = "--filter . --filter './${submodule}/**'";
+
+    preBuild = ''
+      mkdir packages
+      cp -r ${self.packages.${pkgs.system}.nhost-js} packages/nhost-js
+    '';
+  };
+
+
   src = nix-filter.lib.filter {
     root = ../.;
     include = with nix-filter.lib; [
       isDirectory
-      (matchName "package.json")
       ".npmrc"
       ".prettierignore"
       ".prettierrc.js"
       "audit-ci.jsonc"
+      "package.json"
       "pnpm-workspace.yaml"
       "pnpm-lock.yaml"
       "turbo.json"
@@ -30,6 +55,8 @@ let
       "${submodule}/graphql.config.yaml"
       "${submodule}/next-env.d.ts"
       "${submodule}/next.config.js"
+      "${submodule}/package.json"
+      "${submodule}/pnpm-lock.yaml"
       "${submodule}/playwright.config.ts"
       "${submodule}/postcss.config.js"
       "${submodule}/prettier.config.js"
@@ -67,8 +94,8 @@ rec {
     inherit src node_modules submodule buildInputs nativeBuildInputs checkDeps;
 
     preCheck = ''
-      mkdir -p packages/nhost-js
-      cp -r ${self.packages.${pkgs.system}.nhost-js}/dist packages/nhost-js/dist
+      rm -rf packages/nhost-js
+      cp -r ${self.packages.${pkgs.system}.nhost-js} packages/nhost-js
     '';
   };
 
@@ -81,6 +108,9 @@ rec {
 
     cp -r ${node_modules}/node_modules/ node_modules
     cp -r ${node_modules}/dashboard/node_modules/ dashboard/node_modules
+
+    rm -rf packages/nhost-js
+    cp -r ${self.packages.${pkgs.system}.nhost-js} packages/nhost-js
 
     export HOME=$TMPDIR
 
@@ -121,8 +151,8 @@ rec {
       cp -r ${node_modules}/node_modules/ node_modules
       cp -r ${node_modules}/dashboard/node_modules/ dashboard/node_modules
 
-      mkdir -p packages/nhost-js
-      cp -r ${self.packages.${pkgs.system}.nhost-js}/dist packages/nhost-js/dist
+      rm -rf packages/nhost-js
+      cp -r ${self.packages.${pkgs.system}.nhost-js} packages/nhost-js
 
       cd dashboard
       pnpm build
