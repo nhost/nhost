@@ -3,6 +3,7 @@ packages:
   - docs
   - packages/**
   - examples/demos/**
+  - examples/guides/**
   - '!**/test/**'
   - '!out/**'
   - '!**/functions'
