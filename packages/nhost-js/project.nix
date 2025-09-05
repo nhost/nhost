@@ -6,7 +6,7 @@ let
   submodule = "packages/${name}";
 
   node_modules = nixops-lib.js.mkNodeModules {
-    name = "node-modules";
+    name = "node-modules-${name}";
     version = "0.0.0-dev";
 
     src = nix-filter.lib.filter {
@@ -27,8 +27,7 @@ let
     include = with nix-filter.lib; [
       isDirectory
       ".npmrc"
-      ".prettierignore"
-      ".prettierrc.js"
+      "biome.json"
       "audit-ci.jsonc"
       "package.json"
       "pnpm-workspace.yaml"
@@ -96,4 +95,3 @@ in
     '';
   };
 }
-

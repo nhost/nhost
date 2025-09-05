@@ -1,54 +1,54 @@
-import * as fs from 'fs';
-import * as path from 'path';
-import prettier from 'prettier';
-import { render } from '@react-email/components';
-import { EmailConfirmChange } from './email-confirm-change';
-import { EmailVerify } from './email-verify';
-import { PasswordReset } from './password-reset';
-import { SignInPasswordless } from './signin-passwordless';
-import { SignInOTP } from './signin-otp';
+import * as fs from "fs";
+import * as path from "path";
+import prettier from "prettier";
+import { render } from "@react-email/components";
+import { EmailConfirmChange } from "./email-confirm-change";
+import { EmailVerify } from "./email-verify";
+import { PasswordReset } from "./password-reset";
+import { SignInPasswordless } from "./signin-passwordless";
+import { SignInOTP } from "./signin-otp";
 
 function renderEmails(targetLocale: string) {
   const emails = [
     {
-      name: 'email-confirm-change',
+      name: "email-confirm-change",
       body: prettier.format(render(EmailConfirmChange()), {
-        parser: 'html',
+        parser: "html",
         printWidth: 500,
       }),
-      subject: '<subject>',
+      subject: "<subject>",
     },
     {
-      name: 'email-verify',
+      name: "email-verify",
       body: prettier.format(render(EmailVerify()), {
-        parser: 'html',
+        parser: "html",
         printWidth: 500,
       }),
-      subject: '<subject>',
+      subject: "<subject>",
     },
     {
-      name: 'password-reset',
+      name: "password-reset",
       body: prettier.format(render(PasswordReset()), {
-        parser: 'html',
+        parser: "html",
         printWidth: 500,
       }),
-      subject: '<subject>',
+      subject: "<subject>",
     },
     {
-      name: 'signin-passwordless',
+      name: "signin-passwordless",
       body: prettier.format(render(SignInPasswordless()), {
-        parser: 'html',
+        parser: "html",
         printWidth: 500,
       }),
-      subject: '<subject>',
+      subject: "<subject>",
     },
     {
-      name: 'signin-otp',
+      name: "signin-otp",
       body: prettier.format(render(SignInOTP()), {
-        parser: 'html',
+        parser: "html",
         printWidth: 500,
       }),
-      subject: '<subject>',
+      subject: "<subject>",
     },
   ];
 
@@ -66,7 +66,7 @@ function renderEmails(targetLocale: string) {
     fs.writeFileSync(`${targetFolder}/${email.name}/body.html`, email.body);
     fs.writeFileSync(
       `${targetFolder}/${email.name}/subject.txt`,
-      email.subject
+      email.subject,
     );
   });
 }
@@ -75,7 +75,7 @@ const args = process.argv.slice(2);
 const locale = args[0];
 
 if (!locale) {
-  console.error('Please provide a locale for the emails.');
+  console.error("Please provide a locale for the emails.");
   process.exit(1);
 }
 

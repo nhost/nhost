@@ -1,47 +1,47 @@
-import { test, expect } from '@jest/globals'
-import { createClient } from '@nhost/nhost-js'
-import { FetchError } from '@nhost/nhost-js/fetch'
+import { test, expect } from "@jest/globals";
+import { createClient } from "@nhost/nhost-js";
+import { FetchError } from "@nhost/nhost-js/fetch";
 
-const subdomain = 'local'
-const region = 'local'
+const subdomain = "local";
+const region = "local";
 
-test('usage', async () => {
-  const email = `test-${Date.now()}@example.com`
-  const password = 'password123'
+test("usage", async () => {
+  const email = `test-${Date.now()}@example.com`;
+  const password = "password123";
 
   const nhost = createClient({
     subdomain,
-    region
-  })
+    region,
+  });
 
   await nhost.auth.signUpEmailPassword({
     email,
-    password
-  })
-})
+    password,
+  });
+});
 
-test('error handling for auth', async () => {
-  const email = `test-${Date.now()}@example.com`
-  const password = 'password123'
+test("error handling for auth", async () => {
+  const email = `test-${Date.now()}@example.com`;
+  const password = "password123";
 
   const nhost = createClient({
     subdomain,
-    region
-  })
+    region,
+  });
 
   try {
     await nhost.auth.signInEmailPassword({
       email,
-      password
-    })
+      password,
+    });
 
-    expect(true).toBe(false) // This should not be reached
+    expect(true).toBe(false); // This should not be reached
   } catch (err) {
     if (!(err instanceof FetchError)) {
-      throw err // Re-throw if it's not a FetchError
+      throw err; // Re-throw if it's not a FetchError
     }
 
-    console.log('Error:', err)
+    console.log("Error:", err);
     // Error: {
     //   body: {
     //     error: 'invalid-email-password',
@@ -58,39 +58,39 @@ test('error handling for auth', async () => {
 
     // error handling...
 
-    expect(err.status).toBe(401)
+    expect(err.status).toBe(401);
     expect(err.body).toStrictEqual({
-      error: 'invalid-email-password',
-      message: 'Incorrect email or password',
-      status: 401
-    })
+      error: "invalid-email-password",
+      message: "Incorrect email or password",
+      status: 401,
+    });
   }
-})
+});
 
-test('error handling for auth error type', async () => {
-  const email = `test-${Date.now()}@example.com`
-  const password = 'password123'
+test("error handling for auth error type", async () => {
+  const email = `test-${Date.now()}@example.com`;
+  const password = "password123";
 
   const nhost = createClient({
     subdomain,
-    region
-  })
+    region,
+  });
 
   try {
     await nhost.auth.signInEmailPassword({
       email,
-      password
-    })
+      password,
+    });
 
-    expect(true).toBe(false) // This should not be reached
+    expect(true).toBe(false); // This should not be reached
   } catch (err) {
     if (!(err instanceof Error)) {
-      throw err // Re-throw if it's not an Error
+      throw err; // Re-throw if it's not an Error
     }
 
-    console.log('Error:', err.message)
+    console.log("Error:", err.message);
     // Error: Incorrect email or password
 
-    expect(err.message).toBe('Incorrect email or password')
+    expect(err.message).toBe("Incorrect email or password");
   }
-})
+});

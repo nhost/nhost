@@ -6,9 +6,9 @@
  * is properly authenticated.
  */
 
-import type { Session } from '../auth'
-import type { SessionStorage } from '../session/storage'
-import type { ChainFunction, FetchFunction } from './fetch'
+import type { Session } from "../auth";
+import type { SessionStorage } from "../session/storage";
+import type { ChainFunction, FetchFunction } from "./fetch";
 
 /**
  * Creates a fetch middleware that adds the Authorization header with the current access token.
@@ -27,30 +27,30 @@ export const attachAccessTokenMiddleware =
   (storage: SessionStorage): ChainFunction =>
   (next: FetchFunction): FetchFunction =>
   async (url: string, options: RequestInit = {}): Promise<Response> => {
-    const headers = new Headers(options.headers || {})
+    const headers = new Headers(options.headers || {});
 
     // Skip if Authorization header is already set
-    if (headers.has('Authorization')) {
-      return next(url, options)
+    if (headers.has("Authorization")) {
+      return next(url, options);
     }
 
     // Get current session from storage
-    const session = storage.get()
+    const session = storage.get();
 
     if (session?.accessToken) {
       // Add authorization header
       const newOptions = {
         ...options,
-        headers: addAuthorizationHeader(headers, session)
-      }
+        headers: addAuthorizationHeader(headers, session),
+      };
 
       // Continue with the fetch chain
-      return next(url, newOptions)
+      return next(url, newOptions);
     }
 
     // No session or no access token, continue without authorization
-    return next(url, options)
-  }
+    return next(url, options);
+  };
 
 /**
  * Adds the Authorization header with the access token to the request headers
@@ -61,7 +61,7 @@ export const attachAccessTokenMiddleware =
  */
 function addAuthorizationHeader(headers: Headers, session: Session): Headers {
   if (session.accessToken) {
-    headers.set('Authorization', `Bearer ${session.accessToken}`)
+    headers.set("Authorization", `Bearer ${session.accessToken}`);
   }
-  return headers
+  return headers;
 }

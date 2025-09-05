@@ -69,10 +69,9 @@
   ],
   "scripts": {
     "dev": "pnpm tsc --watch",
-    "format": "pnpm prettier --write .",
-    "test": "pnpm test:typecheck && pnpm test:lint && pnpm test:format && jest",
-    "test:format": "pnpm prettier --check .",
-    "test:lint": "eslint src",
+    "format": "biome format --write",
+    "test": "pnpm test:typecheck && pnpm test:lint && jest",
+    "test:lint": "biome check",
     "test:typecheck": "pnpm tsc --noEmit",
     "build": "rm -rf dist && pnpm build:types && pnpm build:js",
     "build:types": "pnpm tsc -p tsconfig.json",
