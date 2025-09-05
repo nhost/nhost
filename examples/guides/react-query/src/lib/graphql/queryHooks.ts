@@ -28,6 +28,6 @@ export const useAuthenticatedFetcher = <TData, TVariables>(
 
       return resp.body.data;
     },
-    [nhost],
+    [nhost, document],
   );
 };

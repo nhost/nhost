@@ -1,11 +1,10 @@
-import { type JSX } from "react";
-import {
-  useGetNinjaTurtlesWithCommentsQuery,
-  useAddCommentMutation,
-} from "../lib/graphql/__generated__/graphql";
-import { useState } from "react";
-import { useAuth } from "../lib/nhost/AuthProvider";
 import { useQueryClient } from "@tanstack/react-query";
+import { type JSX, useState } from "react";
+import {
+  useAddCommentMutation,
+  useGetNinjaTurtlesWithCommentsQuery,
+} from "../lib/graphql/__generated__/graphql";
+import { useAuth } from "../lib/nhost/AuthProvider";
 import "./Home.css";
 
 export default function Home(): JSX.Element {
@@ -81,7 +80,7 @@ export default function Home(): JSX.Element {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString() + " " + date.toLocaleTimeString();
+    return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
   };
 
   return (
@@ -95,6 +94,7 @@ export default function Home(): JSX.Element {
         {ninjaTurtles.map((turtle) => (
           <button
             key={turtle.id}
+            type="button"
             className={`turtle-tab ${activeTabId === turtle.id ? "active" : ""}`}
             onClick={() => setActiveTabId(turtle.id)}
           >
@@ -155,6 +155,7 @@ export default function Home(): JSX.Element {
                   />
                   <div className="comment-actions">
                     <button
+                      type="button"
                       onClick={() => {
                         setActiveCommentId(null);
                         setCommentText("");
@@ -164,6 +165,7 @@ export default function Home(): JSX.Element {
                       Cancel
                     </button>
                     <button
+                      type="button"
                       onClick={() => handleAddComment(turtle.id)}
                       className="btn submit-button"
                     >
@@ -173,6 +175,7 @@ export default function Home(): JSX.Element {
                 </div>
               ) : (
                 <button
+                  type="button"
                   onClick={() => setActiveCommentId(turtle.id)}
                   className="add-comment-button"
                 >
@@ -184,6 +187,8 @@ export default function Home(): JSX.Element {
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
+                    aria-label="Add Comment"
+                    role="img"
                   >
                     <line x1="12" y1="5" x2="12" y2="19"></line>
                     <line x1="5" y1="12" x2="19" y2="12"></line>

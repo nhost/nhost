@@ -1,6 +1,6 @@
+import type { JSX } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../lib/nhost/AuthProvider";
-import { type JSX } from "react";
 
 export default function Navigation(): JSX.Element {
   const { isAuthenticated, nhost, session } = useAuth();
@@ -51,6 +51,7 @@ export default function Navigation(): JSX.Element {
         {isAuthenticated && (
           <div>
             <button
+              type="button"
               onClick={async () => {
                 if (session) {
                   await nhost.auth.signOut({
@@ -68,6 +69,8 @@ export default function Navigation(): JSX.Element {
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
+                aria-label="Sign Out"
+                role="img"
               >
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
                 <polyline points="16 17 21 12 16 7" />

@@ -1,0 +1,7 @@
+{
+  "root": false,
+  "extends": "//",
+  "files": {
+    "includes": ["**", "!src/lib/graphql/__generated__/graphql.ts"]
+  }
+}

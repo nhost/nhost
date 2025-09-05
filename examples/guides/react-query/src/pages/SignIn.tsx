@@ -1,14 +1,16 @@
-import { useState, useEffect, type JSX } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import type { ErrorResponse } from "@nhost/nhost-js/auth";
+import type { FetchError } from "@nhost/nhost-js/fetch";
+import { type JSX, useEffect, useId, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/nhost/AuthProvider";
-import { type ErrorResponse } from "@nhost/nhost-js/auth";
-import { type FetchError } from "@nhost/nhost-js/fetch";
 
 export default function SignIn(): JSX.Element {
   const { nhost, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const params = new URLSearchParams(location.search);
+  const emailId = useId();
+  const passwordId = useId();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -66,14 +68,16 @@ export default function SignIn(): JSX.Element {
         <h2 className="text-2xl mb-6">Sign In</h2>
         <div>
           <div className="tabs-container">
-            <button className="tab-button tab-active">Email + Password</button>
+            <button type="button" className="tab-button tab-active">
+              Email + Password
+            </button>
           </div>
           <div className="tab-content">
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <label htmlFor="email">Email</label>
+                <label htmlFor={emailId}>Email</label>
                 <input
-                  id="email"
+                  id={emailId}
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -82,9 +86,9 @@ export default function SignIn(): JSX.Element {
               </div>
 
               <div>
-                <label htmlFor="password">Password</label>
+                <label htmlFor={passwordId}>Password</label>
                 <input
-                  id="password"
+                  id={passwordId}
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
