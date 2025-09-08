@@ -1,12 +1,41 @@
-# React + Vite
+# Nhost React Quickstart
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This quickstart demonstrates how to build a simple movie database app with React and Nhost's GraphQL API.
 
-Currently, two official plugins are available:
+## What This Example Shows
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Setting up the Nhost client with React
+- Connecting to a local Nhost backend
+- Fetching data using GraphQL queries
+- Displaying data in a responsive table
 
-## Expanding the ESLint configuration
+## Getting Started
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+1. **Start the Nhost backend** (from the `backend/` directory):
+   ```bash
+   cd ../backend
+   cp .secrets.example .secrets
+   nhost up
+   ```
+
+2. **Install dependencies and run the app**:
+   ```bash
+   npm install
+   npm run dev
+   ```
+
+3. **Open your browser** to [http://localhost:5173](http://localhost:5173)
+
+## Key Files
+
+- `src/lib/nhost.js` - Nhost client configuration
+- `src/App.jsx` - Main app component with GraphQL query
+- Uses React hooks (`useState`, `useEffect`) for state management
+
+## Learn More
+
+- [Nhost React Documentation](https://docs.nhost.io/getting-started/quickstart/react)
+- [Nhost GraphQL Documentation](https://docs.nhost.io/graphql)
+- [React Documentation](https://react.dev)
+
+This example is part of the Nhost quickstart collection demonstrating different frontend frameworks.
