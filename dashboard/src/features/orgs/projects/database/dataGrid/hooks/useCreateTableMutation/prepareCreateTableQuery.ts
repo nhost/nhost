@@ -27,7 +27,7 @@ export default function prepareCreateTableQuery({
 }: PrepareCreateTableQueryVariables) {
   let columnsAndConstraints = table.columns
     .map((column) => {
-      const columnBase = format('%I %I', column.name, column.type.value);
+      const columnBase = format('%I %s', column.name, column.type.value);
       const isIdentity = table.identityColumn === column.name;
 
       if (isIdentity) {

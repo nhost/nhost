@@ -4,6 +4,7 @@ import type {
 } from '@/components/ui/v2/Autocomplete';
 import { Autocomplete } from '@/components/ui/v2/Autocomplete';
 import { isNotEmptyValue } from '@/lib/utils';
+import type { MakeRequired } from '@/types/common';
 import { callAll } from '@/utils/callAll';
 import type { FilterOptionsState } from '@mui/material';
 import type { ForwardedRef } from 'react';
@@ -49,6 +50,40 @@ export function defaultFilterOptions(
   });
 
   const result = [...matched, ...otherOptions];
+
+  return result;
+}
+
+export function defaultFilterGroupedOptions(
+  options: AutocompleteOption<string>[],
+  { inputValue }: FilterOptionsState<AutocompleteOption<string>>,
+) {
+  const optionsWithGroup = options as MakeRequired<
+    AutocompleteOption<string>,
+    'group'
+  >[];
+  const inputValueLower = inputValue.toLowerCase();
+  const matchedSet = new Set<string>();
+  const otherOptionsSet = new Set<string>();
+
+  optionsWithGroup.forEach((option) => {
+    const optionLabelLower = option.label.toLowerCase();
+
+    if (optionLabelLower.includes(inputValueLower)) {
+      matchedSet.add(option.group);
+      otherOptionsSet.delete(option.group);
+    } else if (!matchedSet.has(option.group)) {
+      otherOptionsSet.add(option.group);
+    }
+  });
+  const matchedOptions = optionsWithGroup.filter((option) =>
+    matchedSet.has(option.group),
+  );
+  const otherOptions = optionsWithGroup.filter((option) =>
+    otherOptionsSet.has(option.group),
+  );
+
+  const result = [...matchedOptions, ...otherOptions];
 
   return result;
 }

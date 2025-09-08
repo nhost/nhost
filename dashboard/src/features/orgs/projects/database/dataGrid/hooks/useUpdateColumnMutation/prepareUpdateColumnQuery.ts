@@ -57,7 +57,7 @@ export default function prepareUpdateColumnQuery({
       ),
       getPreparedHasuraQuery(
         dataSource,
-        'ALTER TABLE %I.%I ALTER COLUMN %3$I TYPE %4$I USING %3$I::%4$I',
+        'ALTER TABLE %I.%I ALTER COLUMN %3$I TYPE %4$s USING %3$I::%4$s',
         schema,
         table,
         originalColumn.id,

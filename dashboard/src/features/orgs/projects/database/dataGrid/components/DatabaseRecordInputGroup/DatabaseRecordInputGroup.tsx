@@ -112,7 +112,7 @@ export default function DatabaseRecordInputGroup({
             const isMultiline =
               specificType === 'text' ||
               specificType === 'bpchar' ||
-              specificType === 'varchar' ||
+              specificType === 'character varying' ||
               specificType === 'json' ||
               specificType === 'jsonb';
 
