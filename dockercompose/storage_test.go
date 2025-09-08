@@ -68,16 +68,39 @@ func TestStorage(t *testing.T) {
 	t.Parallel()
 
 	cases := []struct {
-		name     string
-		cfg      func() *model.ConfigConfig
-		useTlS   bool
-		expected func() *Service
+		name       string
+		cfg        func() *model.ConfigConfig
+		useTlS     bool
+		exposePort uint
+		expected   func() *Service
 	}{
 		{
-			name:     "success",
-			cfg:      getConfig,
-			useTlS:   false,
-			expected: expectedStorage,
+			name:       "success",
+			cfg:        getConfig,
+			useTlS:     false,
+			exposePort: 0,
+			expected:   expectedStorage,
+		},
+		{
+			name:       "custom port",
+			cfg:        getConfig,
+			useTlS:     false,
+			exposePort: 8080,
+			expected: func() *Service {
+				svc := expectedStorage()
+				svc.Environment["PUBLIC_URL"] = "http://dev.storage.local.nhost.run:8080"
+
+				svc.Ports = []Port{
+					{
+						Mode:      "ingress",
+						Target:    5000,
+						Published: "8080",
+						Protocol:  "tcp",
+					},
+				}
+
+				return svc
+			},
 		},
 	}
 
@@ -85,7 +108,7 @@ func TestStorage(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got, err := storage(tc.cfg(), "dev", tc.useTlS, 444, 0)
+			got, err := storage(tc.cfg(), "dev", tc.useTlS, 444, tc.exposePort)
 			if err != nil {
 				t.Errorf("got error: %v", err)
 			}

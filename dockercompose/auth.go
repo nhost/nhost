@@ -32,8 +32,12 @@ func auth( //nolint:funlen
 	httpPort uint,
 	useTLS bool,
 	nhostFolder string,
-	port uint,
+	exposePort uint,
 ) (*Service, error) {
+	if exposePort != 0 {
+		httpPort = exposePort
+	}
+
 	envars, err := appconfig.HasuraAuthEnv(
 		cfg,
 		"http://graphql:8080/v1/graphql",
@@ -94,7 +98,7 @@ func auth( //nolint:funlen
 				},
 			},
 		}.Labels(),
-		Ports:   ports(port, authPort),
+		Ports:   ports(exposePort, authPort),
 		Restart: "always",
 		Volumes: []Volume{
 			{

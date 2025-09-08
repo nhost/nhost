@@ -35,7 +35,7 @@ func (d *Bzip2Decompressor) Decompress(dst, src string, dir bool, umask os.FileM
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	// Bzip2 compression is second
 	bzipR := bzip2.NewReader(f)

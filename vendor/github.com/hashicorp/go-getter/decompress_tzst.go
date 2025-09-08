@@ -42,7 +42,7 @@ func (d *TarZstdDecompressor) Decompress(dst, src string, dir bool, umask os.Fil
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	// Zstd compression is second
 	zstdR, err := zstd.NewReader(f)

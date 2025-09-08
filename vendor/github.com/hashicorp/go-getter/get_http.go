@@ -208,7 +208,7 @@ func (g *HttpGetter) Get(dst string, u *url.URL) error {
 	}
 
 	// Copy the URL so we can modify it
-	var newU url.URL = *u
+	newU := *u
 	u = &newU
 
 	if g.Netrc {
@@ -264,7 +264,7 @@ func (g *HttpGetter) Get(dst string, u *url.URL) error {
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	body := resp.Body
 
@@ -401,7 +401,7 @@ func (g *HttpGetter) GetFile(dst string, src *url.URL) error {
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	if g.Client == nil {
 		g.Client = httpClient
@@ -439,7 +439,7 @@ func (g *HttpGetter) GetFile(dst string, src *url.URL) error {
 		}
 		headResp, err := g.Client.Do(req)
 		if err == nil {
-			headResp.Body.Close()
+			_ = headResp.Body.Close()
 			if headResp.StatusCode == 200 {
 				// If the HEAD request succeeded, then attempt to set the range
 				// query if we can.
@@ -485,7 +485,7 @@ func (g *HttpGetter) GetFile(dst string, src *url.URL) error {
 	case http.StatusOK, http.StatusPartialContent:
 		// all good
 	default:
-		resp.Body.Close()
+		_ = resp.Body.Close()
 		return fmt.Errorf("bad response code: %d", resp.StatusCode)
 	}
 
@@ -500,7 +500,7 @@ func (g *HttpGetter) GetFile(dst string, src *url.URL) error {
 		fn := filepath.Base(src.EscapedPath())
 		body = g.client.ProgressListener.TrackProgress(fn, currentFileSize, currentFileSize+resp.ContentLength, resp.Body)
 	}
-	defer body.Close()
+	defer func() { _ = body.Close() }()
 
 	n, err := Copy(readCtx, f, body)
 	if err == nil && n < resp.ContentLength {
@@ -518,7 +518,7 @@ func (g *HttpGetter) getSubdir(ctx context.Context, dst, source, subDir string, 
 	if err != nil {
 		return err
 	}
-	defer tdcloser.Close()
+	defer func() { _ = tdcloser.Close() }()
 
 	// Download that into the given directory
 	if err := Get(td, source, opts...); err != nil {

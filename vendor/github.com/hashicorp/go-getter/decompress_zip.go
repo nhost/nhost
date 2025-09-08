@@ -41,7 +41,7 @@ func (d *ZipDecompressor) Decompress(dst, src string, dir bool, umask os.FileMod
 	if err != nil {
 		return err
 	}
-	defer zipR.Close()
+	defer func() { _ = zipR.Close() }()
 
 	// Check the zip integrity
 	if len(zipR.File) == 0 {
@@ -104,14 +104,14 @@ func (d *ZipDecompressor) Decompress(dst, src string, dir bool, umask os.FileMod
 		srcF, err := f.Open()
 		if err != nil {
 			if srcF != nil {
-				srcF.Close()
+				_ = srcF.Close()
 			}
 			return err
 		}
 
 		// Size limit is tracked using the returned file info.
 		err = copyReader(path, srcF, f.Mode(), umask, 0)
-		srcF.Close()
+		_ = srcF.Close()
 		if err != nil {
 			return err
 		}

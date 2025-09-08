@@ -22,6 +22,10 @@ func storage( //nolint:funlen
 	httpPort uint,
 	exposePort uint,
 ) (*Service, error) {
+	if exposePort != 0 {
+		httpPort = exposePort
+	}
+
 	envars, err := appconfig.HasuraStorageEnv(
 		cfg,
 		"http://graphql:8080/v1",

@@ -207,16 +207,18 @@ func TestAuth(t *testing.T) {
 	t.Parallel()
 
 	cases := []struct {
-		name     string
-		cfg      func() *model.ConfigConfig
-		useTlS   bool
-		expected func() *Service
+		name       string
+		cfg        func() *model.ConfigConfig
+		useTlS     bool
+		exposePort uint
+		expected   func() *Service
 	}{
 		{
-			name:     "default",
-			cfg:      getConfig,
-			useTlS:   false,
-			expected: expectedAuth,
+			name:       "default",
+			cfg:        getConfig,
+			useTlS:     false,
+			exposePort: 0,
+			expected:   expectedAuth,
 		},
 		{
 			name: "pre-0.22.0",
@@ -225,7 +227,8 @@ func TestAuth(t *testing.T) {
 				cfg.Auth.Version = ptr("0.21.3")
 				return cfg
 			},
-			useTlS: false,
+			useTlS:     false,
+			exposePort: 0,
 			expected: func() *Service {
 				svc := expectedAuth()
 				svc.Image = "nhost/hasura-auth:0.21.3"
@@ -237,13 +240,34 @@ func TestAuth(t *testing.T) {
 				return svc
 			},
 		},
+		{
+			name:       "custom port",
+			cfg:        getConfig,
+			useTlS:     false,
+			exposePort: 8080,
+			expected: func() *Service {
+				svc := expectedAuth()
+
+				svc.Environment["AUTH_SERVER_URL"] = "http://dev.auth.local.nhost.run:8080/v1"
+				svc.Ports = []Port{
+					{
+						Mode:      "ingress",
+						Target:    4000,
+						Published: "8080",
+						Protocol:  "tcp",
+					},
+				}
+
+				return svc
+			},
+		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got, err := auth(tc.cfg(), "dev", 1336, tc.useTlS, "/tmp/nhost", 0)
+			got, err := auth(tc.cfg(), "dev", 1336, tc.useTlS, "/tmp/nhost", tc.exposePort)
 			if err != nil {
 				t.Errorf("got error: %v", err)
 			}

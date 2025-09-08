@@ -12,6 +12,6 @@ func tmpFile(dir, pattern string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	f.Close()
+	_ = f.Close()
 	return f.Name(), nil
 }

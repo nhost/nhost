@@ -35,14 +35,14 @@ func (d *GzipDecompressor) Decompress(dst, src string, dir bool, umask os.FileMo
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	// gzip compression is second
 	gzipR, err := gzip.NewReader(f)
 	if err != nil {
 		return err
 	}
-	defer gzipR.Close()
+	defer func() { _ = gzipR.Close() }()
 
 	// Copy it out
 	return copyReader(dst, gzipR, 0622, umask, d.FileSizeLimit)

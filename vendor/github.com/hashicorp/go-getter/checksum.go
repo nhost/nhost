@@ -56,13 +56,13 @@ func (cerr *ChecksumError) Error() string {
 func (c *FileChecksum) checksum(source string) error {
 	f, err := os.Open(source)
 	if err != nil {
-		return fmt.Errorf("Failed to open file for checksum: %s", err)
+		return fmt.Errorf("failed to open file for checksum: %s", err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	c.Hash.Reset()
 	if _, err := io.Copy(c.Hash, f); err != nil {
-		return fmt.Errorf("Failed to hash: %s", err)
+		return fmt.Errorf("failed to hash: %s", err)
 	}
 
 	if actual := c.Hash.Sum(nil); !bytes.Equal(actual, c.Value) {
@@ -80,20 +80,24 @@ func (c *FileChecksum) checksum(source string) error {
 // extractChecksum will return a FileChecksum based on the 'checksum'
 // parameter of u.
 // ex:
-//  http://hashicorp.com/terraform?checksum=<checksumValue>
-//  http://hashicorp.com/terraform?checksum=<checksumType>:<checksumValue>
-//  http://hashicorp.com/terraform?checksum=file:<checksum_url>
+//
+//	http://hashicorp.com/terraform?checksum=<checksumValue>
+//	http://hashicorp.com/terraform?checksum=<checksumType>:<checksumValue>
+//	http://hashicorp.com/terraform?checksum=file:<checksum_url>
+//
 // when checksumming from a file, extractChecksum will go get checksum_url
 // in a temporary directory, parse the content of the file then delete it.
 // Content of files are expected to be BSD style or GNU style.
 //
 // BSD-style checksum:
-//  MD5 (file1) = <checksum>
-//  MD5 (file2) = <checksum>
+//
+//	MD5 (file1) = <checksum>
+//	MD5 (file2) = <checksum>
 //
 // GNU-style:
-//  <checksum>  file1
-//  <checksum> *file2
+//
+//	<checksum>  file1
+//	<checksum> *file2
 //
 // see parseChecksumLine for more detail on checksum file parsing
 func (c *Client) extractChecksum(u *url.URL) (*FileChecksum, error) {
@@ -180,7 +184,7 @@ func newChecksumFromValue(checksumValue, filename string) (*FileChecksum, error)
 		c.Hash = sha512.New()
 		c.Type = "sha512"
 	default:
-		return nil, fmt.Errorf("Unknown type for checksum %s", checksumValue)
+		return nil, fmt.Errorf("unknown type for checksum %s", checksumValue)
 	}
 
 	return c, nil
@@ -203,7 +207,7 @@ func (c *Client) ChecksumFromFile(checksumFile string, src *url.URL) (*FileCheck
 	if err != nil {
 		return nil, err
 	}
-	defer os.Remove(tempfile)
+	defer func() { _ = os.Remove(tempfile) }()
 
 	c2 := &Client{
 		Ctx:              c.Ctx,
@@ -253,7 +257,7 @@ func (c *Client) ChecksumFromFile(checksumFile string, src *url.URL) (*FileCheck
 		return nil, fmt.Errorf(
 			"Error opening downloaded file: %s", err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	rd := bufio.NewReader(f)
 	for {
 		line, err := rd.ReadString('\n')
@@ -303,7 +307,7 @@ func parseChecksumLine(line string) (*FileChecksum, error) {
 		if len(parts[1]) <= 2 ||
 			parts[1][0] != '(' || parts[1][len(parts[1])-1] != ')' {
 			return nil, fmt.Errorf(
-				"Unexpected BSD-style-checksum filename format: %s", line)
+				"unexpected BSD-style-checksum filename format: %s", line)
 		}
 		filename := parts[1][1 : len(parts[1])-1]
 		return newChecksumFromType(parts[0], parts[3], filename)

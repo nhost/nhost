@@ -39,7 +39,7 @@ func copyReader(dst string, src io.Reader, fmode, umask os.FileMode, fileSizeLim
 	if err != nil {
 		return err
 	}
-	defer dstF.Close()
+	defer func() { _ = dstF.Close() }()
 
 	if fileSizeLimit > 0 {
 		src = io.LimitReader(src, fileSizeLimit)
@@ -72,13 +72,13 @@ func copyFile(ctx context.Context, dst, src string, disableSymlinks bool, fmode,
 	if err != nil {
 		return 0, err
 	}
-	defer srcF.Close()
+	defer func() { _ = srcF.Close() }()
 
 	dstF, err := os.OpenFile(dst, os.O_RDWR|os.O_CREATE|os.O_TRUNC, fmode)
 	if err != nil {
 		return 0, err
 	}
-	defer dstF.Close()
+	defer func() { _ = dstF.Close() }()
 
 	count, err := Copy(ctx, dstF, srcF)
 	if err != nil {

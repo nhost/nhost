@@ -34,7 +34,6 @@ type GitGetter struct {
 	Timeout time.Duration
 }
 
-var defaultBranchRegexp = regexp.MustCompile(`\s->\sorigin/(.*)`)
 var lsRemoteSymRefRegexp = regexp.MustCompile(`ref: refs/heads/([^\s]+).*`)
 
 func (g *GitGetter) ClientMode(_ *url.URL) (ClientMode, error) {
@@ -83,7 +82,7 @@ func (g *GitGetter) Get(dst string, u *url.URL) error {
 		q.Del("depth")
 
 		// Copy the URL
-		var newU url.URL = *u
+		newU := *u
 		u = &newU
 		u.RawQuery = q.Encode()
 	}
@@ -107,7 +106,7 @@ func (g *GitGetter) Get(dst string, u *url.URL) error {
 			return err
 		}
 		sshKeyFile = fh.Name()
-		defer os.Remove(sshKeyFile)
+		defer func() { _ = os.Remove(sshKeyFile) }()
 
 		// Set the permissions prior to writing the key material.
 		if err := os.Chmod(sshKeyFile, 0600); err != nil {
@@ -116,7 +115,7 @@ func (g *GitGetter) Get(dst string, u *url.URL) error {
 
 		// Write the raw key into the temp file.
 		_, err = fh.Write(raw)
-		fh.Close()
+		_ = fh.Close()
 		if err != nil {
 			return err
 		}
@@ -154,7 +153,7 @@ func (g *GitGetter) GetFile(dst string, u *url.URL) error {
 	if err != nil {
 		return err
 	}
-	defer tdcloser.Close()
+	defer func() { _ = tdcloser.Close() }()
 
 	// Get the filename, and strip the filename from the URL so we can
 	// just get the repository directly.
@@ -303,6 +302,9 @@ func (g *GitGetter) update(ctx context.Context, dst, sshKeyFile string, u *url.U
 
 // fetchSubmodules downloads any configured submodules recursively.
 func (g *GitGetter) fetchSubmodules(ctx context.Context, dst, sshKeyFile string, depth int) error {
+	if g.client != nil {
+		g.client.DisableSymlinks = true
+	}
 	args := []string{"submodule", "update", "--init", "--recursive"}
 	if depth > 0 {
 		args = append(args, "--depth", strconv.Itoa(depth))
@@ -311,22 +313,6 @@ func (g *GitGetter) fetchSubmodules(ctx context.Context, dst, sshKeyFile string,
 	cmd.Dir = dst
 	setupGitEnv(cmd, sshKeyFile)
 	return getRunCommand(cmd)
-}
-
-// findDefaultBranch checks the repo's origin remote for its default branch
-// (generally "master"). "master" is returned if an origin default branch
-// can't be determined.
-func findDefaultBranch(ctx context.Context, dst string) string {
-	var stdoutbuf bytes.Buffer
-	cmd := exec.CommandContext(ctx, "git", "branch", "-r", "--points-at", "refs/remotes/origin/HEAD")
-	cmd.Dir = dst
-	cmd.Stdout = &stdoutbuf
-	err := cmd.Run()
-	matches := defaultBranchRegexp.FindStringSubmatch(stdoutbuf.String())
-	if err != nil || matches == nil {
-		return "master"
-	}
-	return matches[len(matches)-1]
 }
 
 // findRemoteDefaultBranch checks the remote repo's HEAD symref to return the remote repo's
@@ -374,7 +360,7 @@ func setupGitEnv(cmd *exec.Cmd, sshKeyFile string) {
 
 	// We have an SSH key temp file configured, tell ssh about this.
 	if runtime.GOOS == "windows" {
-		sshKeyFile = strings.Replace(sshKeyFile, `\`, `/`, -1)
+		sshKeyFile = strings.ReplaceAll(sshKeyFile, `\`, `/`)
 	}
 	sshCmd = append(sshCmd, "-i", sshKeyFile)
 	env = append(env, strings.Join(sshCmd, " "))
@@ -398,7 +384,7 @@ func checkGitVersion(ctx context.Context, min string) error {
 
 	fields := strings.Fields(string(out))
 	if len(fields) < 3 {
-		return fmt.Errorf("Unexpected 'git version' output: %q", string(out))
+		return fmt.Errorf("unexpected 'git version' output: %q", string(out))
 	}
 	v := fields[2]
 	if runtime.GOOS == "windows" && strings.Contains(v, ".windows.") {
@@ -416,7 +402,7 @@ func checkGitVersion(ctx context.Context, min string) error {
 	}
 
 	if have.LessThan(want) {
-		return fmt.Errorf("Required git version = %s, have %s", want, have)
+		return fmt.Errorf("required git version = %s, have %s", want, have)
 	}
 
 	return nil
@@ -426,13 +412,13 @@ func checkGitVersion(ctx context.Context, min string) error {
 func removeCaseInsensitiveGitDirectory(dst string) error {
 	files, err := os.ReadDir(dst)
 	if err != nil {
-		return fmt.Errorf("Failed to read the destination directory %s during git update", dst)
+		return fmt.Errorf("failed to read the destination directory %s during git update", dst)
 	}
 	for _, f := range files {
 		if strings.EqualFold(f.Name(), ".git") && f.IsDir() {
 			err := os.RemoveAll(filepath.Join(dst, f.Name()))
 			if err != nil {
-				return fmt.Errorf("Failed to remove the .git directory in the destination directory %s during git update", dst)
+				return fmt.Errorf("failed to remove the .git directory in the destination directory %s during git update", dst)
 			}
 		}
 	}
