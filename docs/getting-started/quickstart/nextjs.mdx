@@ -1,8 +1,8 @@
 ---
-title: Setup Nhost with Next.js
-sidebarTitle: Next.js
-description: Get up and running with Nhost and Next.js
-icon: react
+title: Get up and running with Nhost and Next.js
+sidebarTitle: React
+description: Get up and running with Nhost and React
+icon: triangle
 ---
 
 <Steps>
@@ -36,122 +36,108 @@ icon: react
 
   </Step>
 
-  <Step title="permissions">
+  <Step title="Permissions">
     Select the new table `movies` just created, and click in **Edit Permissions** to set the following permissions for the `public` role and `select` action.
 
     ![Permission Rules](/images/quickstarts/react/permissions.png)
 
   </Step>
 
-  <Step title="Setup a Next.js Application">
-    Create a Next.js application.
+  <Step title="Setup the Application">
+    Create the application using standard tooling:
 
     ```bash Terminal
-    npx create-next-app@next-14 --no-eslint \
-        --src-dir \
-        --no-tailwind \
-        --import-alias "@/*" \
-        --js \
-        --app \
-        nhost-nextjs-quickstart
+    npx create-next-app@latest my-app --yes --js
+    cd my-app
     ```
 
   </Step>
 
-  <Step title="Install the Nhost package for Next.js">
-    Navigate to the React application and install `@nhost/nextjs`.
+  <Step title="Install the Nhost package">
+    Navigate to the application and install `@nhost/nhost-js`.
 
     ```bash Terminal
-    cd nhost-nextjs-quickstart && npm install @nhost/nextjs
+    npm install @nhost/nhost-js
     ```
 
   </Step>
 
   <Step title="Configure the Nhost client and fetch the list of movies">
 
-    Create a new file with the following code to creates the Nhost client.
+    <CodeGroup>
 
-    ```js ./src/lib/nhost.js
-    import { NhostClient } from "@nhost/nextjs";
+    ```js ./src/lib/nhost.js lines
+    import { NhostClient } from "@nhost/nhost-js";
 
+    // Replace <subdomain> and <region> with your project's values
     export const nhost = new NhostClient({
       subdomain: "<subdomain>",
       region: "<region>",
     })
     ```
 
-    <Note>Replace `<subdomain>` and `<region>` with the subdomain and region for the project</Note>
-
-    Finally, update `./src/app/page.js` to fetch the list of movies.
-
-    ```js src/app/page.js
-    'use client'
-
-    import { useEffect, useState } from "react";
-    import { NhostProvider } from "@nhost/nextjs";
+    ```js src/app/page.js lines
     import { nhost } from '../lib/nhost'
 
-    const getMovies = `
-      query {
-        movies {
-          title
-          genre
-          rating
-        }
+    async function getMovies() {
+      try {
+        const resp = await nhost.graphql.request({
+          query: `query GetMovies {
+            movies {
+              title
+              director
+              release_year
+              genre
+              rating
+            }
+          }`,
+        })
+        return resp.body?.data?.movies || []
+      } catch (error) {
+        console.error('Failed to fetch movies:', error)
+        return []
       }
-    `;
-
-    function App() {
-      return (
-        <NhostProvider nhost={nhost}>
-          <Home />
-        </NhostProvider>
-      );
     }
 
-    function Home() {
-      const [loading, setLoading] = useState(true);
-      const [movies, setMovies] = useState([]);
-
-      useEffect(() => {
-        async function fetchMovies() {
-          setLoading(true);
-          const { data, error } = await nhost.graphql.request(getMovies);
-
-          setMovies(data.movies);
-          setLoading(false);
-        }
-
-        fetchMovies();
-      }, []);
+    export default async function Home() {
+      const movies = await getMovies()
 
       return (
         <div>
-          {loading ? (
-            <p>Loading...</p>
-          ) : (
-            <table>
-              <tbody>
-                {movies.map((movie, index) => (
-                  <tr key={index}>
-                    <td>{movie.title}</td>
-                    <td>{movie.genre}</td>
-                    <td>{movie.rating}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
+          <h1>Movies</h1>
+          <table>
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Director</th>
+                <th>Release Year</th>
+                <th>Genre</th>
+                <th>Rating</th>
+              </tr>
+            </thead>
+            <tbody>
+              {movies.map((movie, index) => (
+                <tr key={index}>
+                  <td>{movie.title}</td>
+                  <td>{movie.director}</td>
+                  <td>{movie.release_year}</td>
+                  <td>{movie.genre}</td>
+                  <td>{movie.rating}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-      );
+      )
     }
-
-    export default App;
     ```
 
+    </CodeGroup>
   </Step>
 
   <Step title="The end">
     Run your project with `npm run dev` and navigate to `http://localhost:3000` in your browser.
   </Step>
+
 </Steps>
+
