@@ -40,7 +40,7 @@ function NameInput({ index }: FieldArrayInputProps) {
   );
 
   const { errors } = useFormState({
-    name: [`columns`, `columns.${index}.name`],
+    name: [`columns.${index}.name`],
   });
 
   const primaryKeyIndex: number = useWatch({ name: 'primaryKeyIndex' });

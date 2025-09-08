@@ -9,10 +9,10 @@ import { ColumnEditorRow } from './ColumnEditorRow';
 function ColumnErrorMessage() {
   const { errors } = useFormState({ name: 'columns' });
 
-  if (typeof errors?.columns?.message === 'string') {
+  if (typeof errors?.columns?.root?.message === 'string') {
     return (
       <HelperText className="mt-2" error>
-        {errors.columns.message}
+        {errors.columns.root.message}
       </HelperText>
     );
   }
