@@ -36,7 +36,8 @@
               "/getting-started/quickstart/react",
               "/getting-started/quickstart/nextjs",
               "/getting-started/quickstart/vue",
-              "/getting-started/quickstart/sveltekit"
+              "/getting-started/quickstart/sveltekit",
+              "/getting-started/quickstart/reactnative"
             ]
           },
           {

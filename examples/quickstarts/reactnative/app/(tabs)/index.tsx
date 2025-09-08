@@ -5,9 +5,9 @@ import { ThemedView } from '@/components/ThemedView';
 import { nhost } from '@/lib/nhost';
 
 export default function HomeScreen() {
-  const [movies, setMovies] = useState([]);
+  const [movies, setMovies] = useState<unknown[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string|null>(null);
 
   useEffect(() => {
     const fetchMovies = async () => {
