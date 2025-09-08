@@ -1,0 +1,11 @@
+query GetHasuraRemoteSchemaPermissionsEnabled($appId: uuid!) {
+  config(appID: $appId, resolve: false) {
+    id: __typename
+    __typename
+    hasura {
+      settings {
+        enableRemoteSchemaPermissions
+      }
+    }
+  }
+}
