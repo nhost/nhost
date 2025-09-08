@@ -64,8 +64,6 @@ console.log('Downloaded file content:', await downloadResp.body.text())
 
 // Delete the file
 await nhost.storage.deleteFile(fileId)
-
-expect(uploadResp.status).toBe(201)
 ```
 
 # Error handling
@@ -76,33 +74,33 @@ will be a `FetchError<ErrorResponse>`:
 
 ```ts
 import { createClient } from '@nhost/nhost-js'
-import { type ErrorResponse } from '@nhost/nhost-js/storage'
-import { type FetchError } from '@nhost/nhost-js/fetch'
+import type { FetchError } from '@nhost/nhost-js/fetch'
+import type { ErrorResponse } from '@nhost/nhost-js/storage'
 
-    region
+const nhost = createClient({
+  subdomain,
+  region
+})
+
+try {
+  await nhost.storage.uploadFiles({
+    'file[]': [new File(['test1'], 'file-1', { type: 'text/plain' })]
   })
+} catch (error) {
+  const err = error as FetchError<ErrorResponse>
+  console.log('Error:', err)
+  // Error: {
+  //   body: { error: { message: 'you are not authorized' } },
+  //   status: 403,
+  //   headers: {
+  //     'content-length': '46',
+  //     'content-type': 'application/json; charset=utf-8',
+  //     date: 'Mon, 12 May 2025 08:18:52 GMT'
+  //   }
+  // }
 
-  try {
-    await nhost.storage.uploadFiles({
-      'file[]': [new File(['test1'], 'file-1', { type: 'text/plain' })]
-    })
-
-    expect(true).toBe(false) // This should not be reached
-    console.log('Error:', err)
-    // Error: {
-    //   body: { error: { message: 'you are not authorized' } },
-    //   status: 403,
-    //   headers: {
-    //     'content-length': '46',
-    //     'content-type': 'application/json; charset=utf-8',
-    //     date: 'Mon, 12 May 2025 08:18:52 GMT'
-    //   }
-    // }
-
-    // error handling...
-
-    expect(err.status).toBe(403)
-  }
+  // error handling...
+}
 ```
 
 This type extends the standard `Error` type so if you want to just log the error you can
@@ -110,8 +108,8 @@ do so like this:
 
 ```ts
 import { createClient } from '@nhost/nhost-js'
-import { type ErrorResponse } from '@nhost/nhost-js/storage'
-import { type FetchError } from '@nhost/nhost-js/fetch'
+import type { FetchError } from '@nhost/nhost-js/fetch'
+import type { ErrorResponse } from '@nhost/nhost-js/storage'
 
 const nhost = createClient({
   subdomain,

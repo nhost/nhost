@@ -2,8 +2,8 @@
  * This file is auto-generated. Do not edit manually.
  */
 
-import { FetchError, createEnhancedFetch } from "../fetch";
 import type { ChainFunction, FetchResponse } from "../fetch";
+import { createEnhancedFetch, FetchError } from "../fetch";
 
 /**
  * Enumeration of possible status values.

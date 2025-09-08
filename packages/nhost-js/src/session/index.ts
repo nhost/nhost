@@ -14,13 +14,17 @@
  * @packageDocumentation
  */
 
-export { SessionStorage, type SessionChangeCallback, detectStorage } from './storage'
+export { refreshSession } from "./refreshSession";
+export type { DecodedToken, Session } from "./session";
 export {
-  type SessionStorageBackend,
+  detectStorage,
+  type SessionChangeCallback,
+  SessionStorage,
+} from "./storage";
+export {
+  CookieStorage,
   DEFAULT_SESSION_KEY,
   LocalStorage,
   MemoryStorage,
-  CookieStorage
-} from './storageBackend'
-export type { Session, DecodedToken } from './session'
-export { refreshSession } from './refreshSession'
+  type SessionStorageBackend,
+} from "./storageBackend";
