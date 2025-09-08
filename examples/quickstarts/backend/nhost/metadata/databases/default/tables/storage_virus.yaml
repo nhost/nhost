@@ -1,0 +1,42 @@
+table:
+  name: virus
+  schema: storage
+configuration:
+  column_config:
+    created_at:
+      custom_name: createdAt
+    file_id:
+      custom_name: fileId
+    filename:
+      custom_name: filename
+    id:
+      custom_name: id
+    updated_at:
+      custom_name: updatedAt
+    user_session:
+      custom_name: userSession
+    virus:
+      custom_name: virus
+  custom_column_names:
+    created_at: createdAt
+    file_id: fileId
+    filename: filename
+    id: id
+    updated_at: updatedAt
+    user_session: userSession
+    virus: virus
+  custom_name: virus
+  custom_root_fields:
+    delete: deleteViruses
+    delete_by_pk: deleteVirus
+    insert: insertViruses
+    insert_one: insertVirus
+    select: viruses
+    select_aggregate: virusesAggregate
+    select_by_pk: virus
+    update: updateViruses
+    update_by_pk: updateVirus
+object_relationships:
+  - name: file
+    using:
+      foreign_key_constraint_on: file_id

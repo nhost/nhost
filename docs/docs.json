@@ -46,7 +46,9 @@
             "pages": [
               "/getting-started/tutorials/react",
               "/getting-started/tutorials/nextjs",
-              "/getting-started/tutorials/vue"
+              "/getting-started/tutorials/vue",
+              "/getting-started/tutorials/sveltekit",
+              "/getting-started/tutorials/reactnative"
             ]
           }
         ]
