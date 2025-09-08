@@ -4,6 +4,7 @@ packages:
   - packages/**
   - examples/demos/**
   - examples/guides/**
+  - examples/quickstarts/**
   - '!**/test/**'
   - '!out/**'
   - '!**/functions'
