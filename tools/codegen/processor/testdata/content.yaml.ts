@@ -2,8 +2,8 @@
  * This file is auto-generated. Do not edit manually.
  */
 
-import { FetchError, createEnhancedFetch } from "../fetch";
 import type { ChainFunction, FetchResponse } from "../fetch";
+import { createEnhancedFetch, FetchError } from "../fetch";
 
 /**
  * Error details.
@@ -135,8 +135,8 @@ export const createAPIClient = (
 
     const url =
      encodedParameters
-        ? baseURL + `/signin/provider/${provider}?${encodedParameters}`
-        : baseURL + `/signin/provider/${provider}`;
+        ? `${ baseURL }/signin/provider/${provider}?${encodedParameters}`
+        : `${ baseURL }/signin/provider/${provider}`;
     return url;
   };
 
