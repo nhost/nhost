@@ -1,0 +1,189 @@
+[global]
+
+[hasura]
+version = 'v2.46.0-ce'
+adminSecret = '{{ secrets.HASURA_GRAPHQL_ADMIN_SECRET }}'
+webhookSecret = '{{ secrets.NHOST_WEBHOOK_SECRET }}'
+
+[[hasura.jwtSecrets]]
+type = 'HS256'
+key = '{{ secrets.HASURA_GRAPHQL_JWT_SECRET }}'
+
+[hasura.settings]
+corsDomain = ['*']
+devMode = true
+enableAllowList = false
+enableConsole = true
+enableRemoteSchemaPermissions = false
+enabledAPIs = ['metadata', 'graphql', 'pgdump', 'config']
+inferFunctionPermissions = true
+liveQueriesMultiplexedRefetchInterval = 1000
+stringifyNumericTypes = false
+
+[hasura.logs]
+level = 'warn'
+
+[hasura.events]
+httpPoolSize = 100
+
+[functions]
+[functions.node]
+version = 22
+
+[auth]
+version = '0.38.1'
+
+[auth.elevatedPrivileges]
+mode = 'disabled'
+
+[auth.redirections]
+clientUrl = 'http://localhost:3000'
+
+[auth.signUp]
+enabled = true
+disableNewUsers = false
+
+[auth.user]
+[auth.user.roles]
+default = 'user'
+allowed = ['user', 'me']
+
+[auth.user.locale]
+default = 'en'
+allowed = ['en']
+
+[auth.user.gravatar]
+enabled = true
+default = 'blank'
+rating = 'g'
+
+[auth.user.email]
+
+[auth.user.emailDomains]
+
+[auth.session]
+[auth.session.accessToken]
+expiresIn = 900
+
+[auth.session.refreshToken]
+expiresIn = 2592000
+
+[auth.method]
+[auth.method.anonymous]
+enabled = false
+
+[auth.method.emailPasswordless]
+enabled = false
+
+[auth.method.otp]
+[auth.method.otp.email]
+enabled = false
+
+[auth.method.emailPassword]
+hibpEnabled = false
+emailVerificationRequired = true
+passwordMinLength = 9
+
+[auth.method.smsPasswordless]
+enabled = false
+
+[auth.method.oauth]
+[auth.method.oauth.apple]
+enabled = false
+
+[auth.method.oauth.azuread]
+tenant = 'common'
+enabled = false
+
+[auth.method.oauth.bitbucket]
+enabled = false
+
+[auth.method.oauth.discord]
+enabled = false
+
+[auth.method.oauth.facebook]
+enabled = false
+
+[auth.method.oauth.github]
+enabled = false
+
+[auth.method.oauth.gitlab]
+enabled = false
+
+[auth.method.oauth.google]
+enabled = false
+
+[auth.method.oauth.linkedin]
+enabled = false
+
+[auth.method.oauth.spotify]
+enabled = false
+
+[auth.method.oauth.strava]
+enabled = false
+
+[auth.method.oauth.twitch]
+enabled = false
+
+[auth.method.oauth.twitter]
+enabled = false
+
+[auth.method.oauth.windowslive]
+enabled = false
+
+[auth.method.oauth.workos]
+enabled = false
+
+[auth.method.webauthn]
+enabled = false
+
+[auth.method.webauthn.attestation]
+timeout = 60000
+
+[auth.totp]
+enabled = false
+
+[auth.misc]
+concealErrors = false
+
+[auth.rateLimit]
+[auth.rateLimit.emails]
+limit = 10
+interval = '1h'
+
+[auth.rateLimit.sms]
+limit = 10
+interval = '1h'
+
+[auth.rateLimit.bruteForce]
+limit = 10
+interval = '5m'
+
+[auth.rateLimit.signups]
+limit = 10
+interval = '5m'
+
+[auth.rateLimit.global]
+limit = 100
+interval = '1m'
+
+[postgres]
+version = '14.18-20250728-1'
+
+[postgres.resources]
+[postgres.resources.storage]
+capacity = 1
+
+[provider]
+
+[storage]
+version = '0.7.2'
+
+[observability]
+[observability.grafana]
+adminPassword = '{{ secrets.GRAFANA_ADMIN_PASSWORD }}'
+
+[observability.grafana.alerting]
+enabled = false
+
+[observability.grafana.contacts]
