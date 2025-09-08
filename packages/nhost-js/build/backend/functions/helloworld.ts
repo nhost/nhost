@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import type { Request, Response } from "express";
 
 export default (req: Request, res: Response) => {
   // if accept is not set or set to text/plain, return plain text
@@ -7,7 +7,7 @@ export default (req: Request, res: Response) => {
     return res.status(200).send("Hello, World!");
   }
 
-    // if accept is set to application/json, return JSON
+  // if accept is set to application/json, return JSON
   if (req.headers.accept === "application/json") {
     res.setHeader("Content-Type", "application/json");
     return res.status(200).json({ message: "Hello, World!" });

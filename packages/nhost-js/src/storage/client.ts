@@ -2,13 +2,13 @@
  * This file is auto-generated. Do not edit manually.
  */
 
-import { FetchError, createEnhancedFetch } from '../fetch'
-import type { ChainFunction, FetchResponse } from '../fetch'
+import type { ChainFunction, FetchResponse } from "../fetch";
+import { createEnhancedFetch, FetchError } from "../fetch";
 
 /**
  * Date in RFC 2822 format
  */
-export type RFC2822Date = string
+export type RFC2822Date = string;
 
 /**
  * Error details.
@@ -20,11 +20,11 @@ export interface ErrorResponseError {
    * Human-readable error message.
    *    Example - `"File not found"`
    */
-  message: string
+  message: string;
   /**
    * Additional data related to the error, if any.
    */
-  data?: Record<string, unknown>
+  data?: Record<string, unknown>;
 }
 
 /**
@@ -34,7 +34,7 @@ export interface ErrorResponse {
   /**
    * Error details.
    */
-  error?: ErrorResponseError
+  error?: ErrorResponseError;
 }
 
 /**
@@ -47,11 +47,11 @@ export interface ErrorResponseWithProcessedFilesError {
    * Human-readable error message.
    *    Example - `"File not found"`
    */
-  message: string
+  message: string;
   /**
    * Additional data related to the error, if any.
    */
-  data?: Record<string, unknown>
+  data?: Record<string, unknown>;
 }
 
 /**
@@ -62,11 +62,11 @@ export interface ErrorResponseWithProcessedFiles {
   /**
    * List of files that were successfully processed before the error occurred.
    */
-  processedFiles?: FileMetadata[]
+  processedFiles?: FileMetadata[];
   /**
    * Error details.
    */
-  error?: ErrorResponseWithProcessedFilesError
+  error?: ErrorResponseWithProcessedFilesError;
 }
 
 /**
@@ -101,60 +101,60 @@ export interface FileMetadata {
    * Unique identifier for the file.
    *    Example - `"d5e76ceb-77a2-4153-b7da-1f7c115b2ff2"`
    */
-  id: string
+  id: string;
   /**
    * Name of the file including extension.
    *    Example - `"profile-picture.jpg"`
    */
-  name: string
+  name: string;
   /**
    * Size of the file in bytes.
    *    Example - `245678`
    *    Format - int64
    */
-  size: number
+  size: number;
   /**
    * ID of the bucket containing the file.
    *    Example - `"users-bucket"`
    */
-  bucketId: string
+  bucketId: string;
   /**
    * Entity tag for cache validation.
    *    Example - `"\"a1b2c3d4e5f6\""`
    */
-  etag: string
+  etag: string;
   /**
    * Timestamp when the file was created.
    *    Example - `"2023-01-15T12:34:56Z"`
    *    Format - date-time
    */
-  createdAt: string
+  createdAt: string;
   /**
    * Timestamp when the file was last updated.
    *    Example - `"2023-01-16T09:45:32Z"`
    *    Format - date-time
    */
-  updatedAt: string
+  updatedAt: string;
   /**
    * Whether the file has been successfully uploaded.
    *    Example - `true`
    */
-  isUploaded: boolean
+  isUploaded: boolean;
   /**
    * MIME type of the file.
    *    Example - `"image/jpeg"`
    */
-  mimeType: string
+  mimeType: string;
   /**
    * ID of the user who uploaded the file.
    *    Example - `"abc123def456"`
    */
-  uploadedByUserId?: string
+  uploadedByUserId?: string;
   /**
    * Custom metadata associated with the file.
    *    Example - `{"alt":"Profile picture","category":"avatar"}`
    */
-  metadata?: Record<string, unknown>
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -172,22 +172,22 @@ export interface FileSummary {
    * Unique identifier for the file.
    *    Example - `"d5e76ceb-77a2-4153-b7da-1f7c115b2ff2"`
    */
-  id: string
+  id: string;
   /**
    * Name of the file including extension.
    *    Example - `"profile-picture.jpg"`
    */
-  name: string
+  name: string;
   /**
    * ID of the bucket containing the file.
    *    Example - `"users-bucket"`
    */
-  bucketId: string
+  bucketId: string;
   /**
    * Whether the file has been successfully uploaded.
    *    Example - `true`
    */
-  isUploaded: boolean
+  isUploaded: boolean;
 }
 
 /**
@@ -201,12 +201,12 @@ export interface PresignedURLResponse {
    * The presigned URL for file operations.
    *    Example - `"https://storage.example.com/files/abc123?signature=xyz"`
    */
-  url: string
+  url: string;
   /**
    * The time in seconds until the URL expires.
    *    Example - `3600`
    */
-  expiration: number
+  expiration: number;
 }
 
 /**
@@ -220,12 +220,12 @@ export interface UpdateFileMetadata {
    * New name to assign to the file.
    *    Example - `"renamed-file.jpg"`
    */
-  name?: string
+  name?: string;
   /**
    * Updated custom metadata to associate with the file.
    *    Example - `{"alt":"Updated image description","category":"profile"}`
    */
-  metadata?: Record<string, unknown>
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -241,17 +241,17 @@ export interface UploadFileMetadata {
    * Optional custom ID for the file. If not provided, a UUID will be generated.
    *    Example - `"custom-id-123"`
    */
-  id?: string
+  id?: string;
   /**
    * Name to assign to the file. If not provided, the original filename will be used.
    *    Example - `"custom-filename.png"`
    */
-  name?: string
+  name?: string;
   /**
    * Custom metadata to associate with the file.
    *    Example - `{"alt":"Custom image","category":"document"}`
    */
-  metadata?: Record<string, unknown>
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -263,13 +263,19 @@ export interface VersionInformation {
    * The version number of the storage service build.
    *    Example - `"1.2.3"`
    */
-  buildVersion: string
+  buildVersion: string;
 }
 
 /**
  * Output format for image files. Use 'auto' for content negotiation based on Accept header
  */
-export type OutputImageFormat = 'auto' | 'same' | 'jpeg' | 'webp' | 'png' | 'avif'
+export type OutputImageFormat =
+  | "auto"
+  | "same"
+  | "jpeg"
+  | "webp"
+  | "png"
+  | "avif";
 
 /**
  * 
@@ -282,15 +288,15 @@ export interface UploadFilesBody {
    * Target bucket identifier where files will be stored.
    *    Example - `"user-uploads"`
    */
-  'bucket-id'?: string
+  "bucket-id"?: string;
   /**
    * Optional custom metadata for each uploaded file. Must match the order of the file[] array.
    */
-  'metadata[]'?: UploadFileMetadata[]
+  "metadata[]"?: UploadFileMetadata[];
   /**
    * Array of files to upload.
    */
-  'file[]': Blob[]
+  "file[]": Blob[];
 }
 
 /**
@@ -300,7 +306,7 @@ export interface UploadFilesResponse201 {
   /**
    * List of successfully processed files with their metadata.
    */
-  processedFiles: FileMetadata[]
+  processedFiles: FileMetadata[];
 }
 
 /**
@@ -312,12 +318,12 @@ export interface ReplaceFileBody {
   /**
    * Metadata that can be updated for an existing file.
    */
-  metadata?: UpdateFileMetadata
+  metadata?: UpdateFileMetadata;
   /**
    * New file content to replace the existing file
    *    Format - binary
    */
-  file?: Blob
+  file?: Blob;
 }
 
 /**
@@ -327,7 +333,7 @@ export interface DeleteBrokenMetadataResponse200 {
   /**
    *
    */
-  metadata?: FileSummary[]
+  metadata?: FileSummary[];
 }
 
 /**
@@ -337,7 +343,7 @@ export interface DeleteOrphanedFilesResponse200 {
   /**
    *
    */
-  files?: string[]
+  files?: string[];
 }
 
 /**
@@ -347,7 +353,7 @@ export interface ListBrokenMetadataResponse200 {
   /**
    *
    */
-  metadata?: FileSummary[]
+  metadata?: FileSummary[];
 }
 
 /**
@@ -357,7 +363,7 @@ export interface ListFilesNotUploadedResponse200 {
   /**
    *
    */
-  metadata?: FileSummary[]
+  metadata?: FileSummary[];
 }
 
 /**
@@ -367,7 +373,7 @@ export interface ListOrphanedFilesResponse200 {
   /**
    *
    */
-  files?: string[]
+  files?: string[];
 }
 
 /**
@@ -388,28 +394,28 @@ export interface GetFileParams {
    * Image quality (1-100). Only applies to JPEG, WebP and PNG files
   
    */
-  q?: number
+  q?: number;
   /**
    * Maximum height to resize image to while maintaining aspect ratio. Only applies to image files
   
    */
-  h?: number
+  h?: number;
   /**
    * Maximum width to resize image to while maintaining aspect ratio. Only applies to image files
   
    */
-  w?: number
+  w?: number;
   /**
    * Blur the image using this sigma value. Only applies to image files
   
    */
-  b?: number
+  b?: number;
   /**
    * Output format for image files. Use 'auto' for content negotiation based on Accept header
   
     *    Output format for image files. Use 'auto' for content negotiation based on Accept header
    */
-  f?: OutputImageFormat
+  f?: OutputImageFormat;
 }
 /**
  * Parameters for the getFileMetadataHeaders method.
@@ -429,33 +435,33 @@ export interface GetFileMetadataHeadersParams {
    * Image quality (1-100). Only applies to JPEG, WebP and PNG files
   
    */
-  q?: number
+  q?: number;
   /**
    * Maximum height to resize image to while maintaining aspect ratio. Only applies to image files
   
    */
-  h?: number
+  h?: number;
   /**
    * Maximum width to resize image to while maintaining aspect ratio. Only applies to image files
   
    */
-  w?: number
+  w?: number;
   /**
    * Blur the image using this sigma value. Only applies to image files
   
    */
-  b?: number
+  b?: number;
   /**
    * Output format for image files. Use 'auto' for content negotiation based on Accept header
   
     *    Output format for image files. Use 'auto' for content negotiation based on Accept header
    */
-  f?: OutputImageFormat
+  f?: OutputImageFormat;
 }
 
 export interface Client {
-  baseURL: string
-  pushChainFunction(chainFunction: ChainFunction): void
+  baseURL: string;
+  pushChainFunction(chainFunction: ChainFunction): void;
   /**
      Summary: Upload files
      Upload one or more files to a specified bucket. Supports batch uploading with optional custom metadata for each file. If uploading multiple files, either provide metadata for all files or none.
@@ -465,8 +471,8 @@ export interface Client {
      */
   uploadFiles(
     body: UploadFilesBody,
-    options?: RequestInit
-  ): Promise<FetchResponse<UploadFilesResponse201>>
+    options?: RequestInit,
+  ): Promise<FetchResponse<UploadFilesResponse201>>;
 
   /**
      Summary: Delete file
@@ -475,7 +481,7 @@ export interface Client {
      This method may return different T based on the response code:
      - 204: void
      */
-  deleteFile(id: string, options?: RequestInit): Promise<FetchResponse<void>>
+  deleteFile(id: string, options?: RequestInit): Promise<FetchResponse<void>>;
 
   /**
      Summary: Download file
@@ -487,7 +493,11 @@ export interface Client {
      - 304: void
      - 412: void
      */
-  getFile(id: string, params?: GetFileParams, options?: RequestInit): Promise<FetchResponse<Blob>>
+  getFile(
+    id: string,
+    params?: GetFileParams,
+    options?: RequestInit,
+  ): Promise<FetchResponse<Blob>>;
 
   /**
      Summary: Check file information
@@ -501,8 +511,8 @@ export interface Client {
   getFileMetadataHeaders(
     id: string,
     params?: GetFileMetadataHeadersParams,
-    options?: RequestInit
-  ): Promise<FetchResponse<void>>
+    options?: RequestInit,
+  ): Promise<FetchResponse<void>>;
 
   /**
      Summary: Replace file
@@ -520,8 +530,8 @@ Each step is atomic, but if a step fails, previous steps will not be automatical
   replaceFile(
     id: string,
     body: ReplaceFileBody,
-    options?: RequestInit
-  ): Promise<FetchResponse<FileMetadata>>
+    options?: RequestInit,
+  ): Promise<FetchResponse<FileMetadata>>;
 
   /**
      Summary: Retrieve presigned URL to retrieve the file
@@ -534,8 +544,8 @@ determined by bucket configuration
      */
   getFilePresignedURL(
     id: string,
-    options?: RequestInit
-  ): Promise<FetchResponse<PresignedURLResponse>>
+    options?: RequestInit,
+  ): Promise<FetchResponse<PresignedURLResponse>>;
 
   /**
      Summary: Delete broken metadata
@@ -545,8 +555,8 @@ determined by bucket configuration
      - 200: DeleteBrokenMetadataResponse200
      */
   deleteBrokenMetadata(
-    options?: RequestInit
-  ): Promise<FetchResponse<DeleteBrokenMetadataResponse200>>
+    options?: RequestInit,
+  ): Promise<FetchResponse<DeleteBrokenMetadataResponse200>>;
 
   /**
      Summary: Deletes orphaned files
@@ -555,7 +565,9 @@ determined by bucket configuration
      This method may return different T based on the response code:
      - 200: DeleteOrphanedFilesResponse200
      */
-  deleteOrphanedFiles(options?: RequestInit): Promise<FetchResponse<DeleteOrphanedFilesResponse200>>
+  deleteOrphanedFiles(
+    options?: RequestInit,
+  ): Promise<FetchResponse<DeleteOrphanedFilesResponse200>>;
 
   /**
      Summary: Lists broken metadata
@@ -564,7 +576,9 @@ determined by bucket configuration
      This method may return different T based on the response code:
      - 200: ListBrokenMetadataResponse200
      */
-  listBrokenMetadata(options?: RequestInit): Promise<FetchResponse<ListBrokenMetadataResponse200>>
+  listBrokenMetadata(
+    options?: RequestInit,
+  ): Promise<FetchResponse<ListBrokenMetadataResponse200>>;
 
   /**
      Summary: Lists files that haven't been uploaded
@@ -574,8 +588,8 @@ determined by bucket configuration
      - 200: ListFilesNotUploadedResponse200
      */
   listFilesNotUploaded(
-    options?: RequestInit
-  ): Promise<FetchResponse<ListFilesNotUploadedResponse200>>
+    options?: RequestInit,
+  ): Promise<FetchResponse<ListFilesNotUploadedResponse200>>;
 
   /**
      Summary: Lists orphaned files
@@ -584,7 +598,9 @@ determined by bucket configuration
      This method may return different T based on the response code:
      - 200: ListOrphanedFilesResponse200
      */
-  listOrphanedFiles(options?: RequestInit): Promise<FetchResponse<ListOrphanedFilesResponse200>>
+  listOrphanedFiles(
+    options?: RequestInit,
+  ): Promise<FetchResponse<ListOrphanedFilesResponse200>>;
 
   /**
      Summary: Get service version information
@@ -593,407 +609,453 @@ determined by bucket configuration
      This method may return different T based on the response code:
      - 200: VersionInformation
      */
-  getVersion(options?: RequestInit): Promise<FetchResponse<VersionInformation>>
+  getVersion(options?: RequestInit): Promise<FetchResponse<VersionInformation>>;
 }
 
-export const createAPIClient = (baseURL: string, chainFunctions: ChainFunction[] = []): Client => {
-  let fetch = createEnhancedFetch(chainFunctions)
+export const createAPIClient = (
+  baseURL: string,
+  chainFunctions: ChainFunction[] = [],
+): Client => {
+  let fetch = createEnhancedFetch(chainFunctions);
 
   const pushChainFunction = (chainFunction: ChainFunction) => {
-    chainFunctions.push(chainFunction)
-    fetch = createEnhancedFetch(chainFunctions)
-  }
+    chainFunctions.push(chainFunction);
+    fetch = createEnhancedFetch(chainFunctions);
+  };
   const uploadFiles = async (
     body: UploadFilesBody,
-    options?: RequestInit
+    options?: RequestInit,
   ): Promise<FetchResponse<UploadFilesResponse201>> => {
-    const url = baseURL + `/files`
-    const formData = new FormData()
-    if (body['bucket-id'] !== undefined) {
-      formData.append('bucket-id', body['bucket-id'])
+    const url = `${baseURL}/files`;
+    const formData = new FormData();
+    if (body["bucket-id"] !== undefined) {
+      formData.append("bucket-id", body["bucket-id"]);
     }
-    if (body['metadata[]'] !== undefined) {
-      body['metadata[]'].forEach((value) =>
+    if (body["metadata[]"] !== undefined) {
+      body["metadata[]"].forEach((value) => {
         formData.append(
-          'metadata[]',
-          new Blob([JSON.stringify(value)], { type: 'application/json' }),
-          ''
-        )
-      )
+          "metadata[]",
+          new Blob([JSON.stringify(value)], { type: "application/json" }),
+          "",
+        );
+      });
     }
-    if (body['file[]'] !== undefined) {
-      body['file[]'].forEach((value) => formData.append('file[]', value))
+    if (body["file[]"] !== undefined) {
+      body["file[]"].forEach((value) => {
+        formData.append("file[]", value);
+      });
     }
 
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
-      body: formData
-    })
+      method: "POST",
+      body: formData,
+    });
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text()
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
-      throw new FetchError(payload, res.status, res.headers)
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
     }
 
-    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text()
-    const payload: UploadFilesResponse201 = responseBody ? JSON.parse(responseBody) : {}
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: UploadFilesResponse201 = responseBody
+      ? JSON.parse(responseBody)
+      : {};
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers
-    } as FetchResponse<UploadFilesResponse201>
-  }
+      headers: res.headers,
+    } as FetchResponse<UploadFilesResponse201>;
+  };
 
-  const deleteFile = async (id: string, options?: RequestInit): Promise<FetchResponse<void>> => {
-    const url = baseURL + `/files/${id}`
+  const deleteFile = async (
+    id: string,
+    options?: RequestInit,
+  ): Promise<FetchResponse<void>> => {
+    const url = `${baseURL}/files/${id}`;
     const res = await fetch(url, {
       ...options,
-      method: 'DELETE',
+      method: "DELETE",
       headers: {
-        ...options?.headers
-      }
-    })
+        ...options?.headers,
+      },
+    });
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text()
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
-      throw new FetchError(payload, res.status, res.headers)
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
     }
 
-    const payload: void = undefined
+    const payload: undefined = undefined;
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers
-    } as FetchResponse<void>
-  }
+      headers: res.headers,
+    } as FetchResponse<void>;
+  };
 
   const getFile = async (
     id: string,
     params?: GetFileParams,
-    options?: RequestInit
+    options?: RequestInit,
   ): Promise<FetchResponse<Blob>> => {
     const encodedParameters =
       params &&
       Object.entries(params)
         .map(([key, value]) => {
           const stringValue = Array.isArray(value)
-            ? value.join(',')
-            : typeof value === 'object'
+            ? value.join(",")
+            : typeof value === "object"
               ? JSON.stringify(value)
-              : (value as string)
-          return `${key}=${encodeURIComponent(stringValue)}`
+              : (value as string);
+          return `${key}=${encodeURIComponent(stringValue)}`;
         })
-        .join('&')
+        .join("&");
 
     const url = encodedParameters
-      ? baseURL + `/files/${id}?${encodedParameters}`
-      : baseURL + `/files/${id}`
+      ? `${baseURL}/files/${id}?${encodedParameters}`
+      : `${baseURL}/files/${id}`;
     const res = await fetch(url, {
       ...options,
-      method: 'GET',
+      method: "GET",
       headers: {
-        ...options?.headers
-      }
-    })
+        ...options?.headers,
+      },
+    });
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text()
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
-      throw new FetchError(payload, res.status, res.headers)
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
     }
 
-    const payload: Blob = await res.blob()
+    const payload: Blob = await res.blob();
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers
-    } as FetchResponse<Blob>
-  }
+      headers: res.headers,
+    } as FetchResponse<Blob>;
+  };
 
   const getFileMetadataHeaders = async (
     id: string,
     params?: GetFileMetadataHeadersParams,
-    options?: RequestInit
+    options?: RequestInit,
   ): Promise<FetchResponse<void>> => {
     const encodedParameters =
       params &&
       Object.entries(params)
         .map(([key, value]) => {
           const stringValue = Array.isArray(value)
-            ? value.join(',')
-            : typeof value === 'object'
+            ? value.join(",")
+            : typeof value === "object"
               ? JSON.stringify(value)
-              : (value as string)
-          return `${key}=${encodeURIComponent(stringValue)}`
+              : (value as string);
+          return `${key}=${encodeURIComponent(stringValue)}`;
         })
-        .join('&')
+        .join("&");
 
     const url = encodedParameters
-      ? baseURL + `/files/${id}?${encodedParameters}`
-      : baseURL + `/files/${id}`
+      ? `${baseURL}/files/${id}?${encodedParameters}`
+      : `${baseURL}/files/${id}`;
     const res = await fetch(url, {
       ...options,
-      method: 'HEAD',
+      method: "HEAD",
       headers: {
-        ...options?.headers
-      }
-    })
+        ...options?.headers,
+      },
+    });
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text()
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
-      throw new FetchError(payload, res.status, res.headers)
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
     }
 
-    const payload: void = undefined
+    const payload: undefined = undefined;
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers
-    } as FetchResponse<void>
-  }
+      headers: res.headers,
+    } as FetchResponse<void>;
+  };
 
   const replaceFile = async (
     id: string,
     body: ReplaceFileBody,
-    options?: RequestInit
+    options?: RequestInit,
   ): Promise<FetchResponse<FileMetadata>> => {
-    const url = baseURL + `/files/${id}`
-    const formData = new FormData()
-    if (body['metadata'] !== undefined) {
+    const url = `${baseURL}/files/${id}`;
+    const formData = new FormData();
+    if (body["metadata"] !== undefined) {
       formData.append(
-        'metadata',
-        new Blob([JSON.stringify(body['metadata'])], { type: 'application/json' }),
-        ''
-      )
+        "metadata",
+        new Blob([JSON.stringify(body["metadata"])], {
+          type: "application/json",
+        }),
+        "",
+      );
     }
-    if (body['file'] !== undefined) {
-      formData.append('file', body['file'])
+    if (body["file"] !== undefined) {
+      formData.append("file", body["file"]);
     }
 
     const res = await fetch(url, {
       ...options,
-      method: 'PUT',
-      body: formData
-    })
+      method: "PUT",
+      body: formData,
+    });
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text()
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
-      throw new FetchError(payload, res.status, res.headers)
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
     }
 
-    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text()
-    const payload: FileMetadata = responseBody ? JSON.parse(responseBody) : {}
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: FileMetadata = responseBody ? JSON.parse(responseBody) : {};
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers
-    } as FetchResponse<FileMetadata>
-  }
+      headers: res.headers,
+    } as FetchResponse<FileMetadata>;
+  };
 
   const getFilePresignedURL = async (
     id: string,
-    options?: RequestInit
+    options?: RequestInit,
   ): Promise<FetchResponse<PresignedURLResponse>> => {
-    const url = baseURL + `/files/${id}/presignedurl`
+    const url = `${baseURL}/files/${id}/presignedurl`;
     const res = await fetch(url, {
       ...options,
-      method: 'GET',
+      method: "GET",
       headers: {
-        ...options?.headers
-      }
-    })
+        ...options?.headers,
+      },
+    });
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text()
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
-      throw new FetchError(payload, res.status, res.headers)
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
     }
 
-    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text()
-    const payload: PresignedURLResponse = responseBody ? JSON.parse(responseBody) : {}
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: PresignedURLResponse = responseBody
+      ? JSON.parse(responseBody)
+      : {};
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers
-    } as FetchResponse<PresignedURLResponse>
-  }
+      headers: res.headers,
+    } as FetchResponse<PresignedURLResponse>;
+  };
 
   const deleteBrokenMetadata = async (
-    options?: RequestInit
+    options?: RequestInit,
   ): Promise<FetchResponse<DeleteBrokenMetadataResponse200>> => {
-    const url = baseURL + `/ops/delete-broken-metadata`
+    const url = `${baseURL}/ops/delete-broken-metadata`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
-        ...options?.headers
-      }
-    })
+        ...options?.headers,
+      },
+    });
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text()
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
-      throw new FetchError(payload, res.status, res.headers)
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
     }
 
-    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text()
-    const payload: DeleteBrokenMetadataResponse200 = responseBody ? JSON.parse(responseBody) : {}
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: DeleteBrokenMetadataResponse200 = responseBody
+      ? JSON.parse(responseBody)
+      : {};
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers
-    } as FetchResponse<DeleteBrokenMetadataResponse200>
-  }
+      headers: res.headers,
+    } as FetchResponse<DeleteBrokenMetadataResponse200>;
+  };
 
   const deleteOrphanedFiles = async (
-    options?: RequestInit
+    options?: RequestInit,
   ): Promise<FetchResponse<DeleteOrphanedFilesResponse200>> => {
-    const url = baseURL + `/ops/delete-orphans`
+    const url = `${baseURL}/ops/delete-orphans`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
-        ...options?.headers
-      }
-    })
+        ...options?.headers,
+      },
+    });
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text()
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
-      throw new FetchError(payload, res.status, res.headers)
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
     }
 
-    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text()
-    const payload: DeleteOrphanedFilesResponse200 = responseBody ? JSON.parse(responseBody) : {}
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: DeleteOrphanedFilesResponse200 = responseBody
+      ? JSON.parse(responseBody)
+      : {};
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers
-    } as FetchResponse<DeleteOrphanedFilesResponse200>
-  }
+      headers: res.headers,
+    } as FetchResponse<DeleteOrphanedFilesResponse200>;
+  };
 
   const listBrokenMetadata = async (
-    options?: RequestInit
+    options?: RequestInit,
   ): Promise<FetchResponse<ListBrokenMetadataResponse200>> => {
-    const url = baseURL + `/ops/list-broken-metadata`
+    const url = `${baseURL}/ops/list-broken-metadata`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
-        ...options?.headers
-      }
-    })
+        ...options?.headers,
+      },
+    });
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text()
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
-      throw new FetchError(payload, res.status, res.headers)
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
     }
 
-    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text()
-    const payload: ListBrokenMetadataResponse200 = responseBody ? JSON.parse(responseBody) : {}
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: ListBrokenMetadataResponse200 = responseBody
+      ? JSON.parse(responseBody)
+      : {};
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers
-    } as FetchResponse<ListBrokenMetadataResponse200>
-  }
+      headers: res.headers,
+    } as FetchResponse<ListBrokenMetadataResponse200>;
+  };
 
   const listFilesNotUploaded = async (
-    options?: RequestInit
+    options?: RequestInit,
   ): Promise<FetchResponse<ListFilesNotUploadedResponse200>> => {
-    const url = baseURL + `/ops/list-not-uploaded`
+    const url = `${baseURL}/ops/list-not-uploaded`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
-        ...options?.headers
-      }
-    })
+        ...options?.headers,
+      },
+    });
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text()
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
-      throw new FetchError(payload, res.status, res.headers)
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
     }
 
-    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text()
-    const payload: ListFilesNotUploadedResponse200 = responseBody ? JSON.parse(responseBody) : {}
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: ListFilesNotUploadedResponse200 = responseBody
+      ? JSON.parse(responseBody)
+      : {};
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers
-    } as FetchResponse<ListFilesNotUploadedResponse200>
-  }
+      headers: res.headers,
+    } as FetchResponse<ListFilesNotUploadedResponse200>;
+  };
 
   const listOrphanedFiles = async (
-    options?: RequestInit
+    options?: RequestInit,
   ): Promise<FetchResponse<ListOrphanedFilesResponse200>> => {
-    const url = baseURL + `/ops/list-orphans`
+    const url = `${baseURL}/ops/list-orphans`;
     const res = await fetch(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       headers: {
-        ...options?.headers
-      }
-    })
+        ...options?.headers,
+      },
+    });
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text()
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
-      throw new FetchError(payload, res.status, res.headers)
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
     }
 
-    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text()
-    const payload: ListOrphanedFilesResponse200 = responseBody ? JSON.parse(responseBody) : {}
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: ListOrphanedFilesResponse200 = responseBody
+      ? JSON.parse(responseBody)
+      : {};
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers
-    } as FetchResponse<ListOrphanedFilesResponse200>
-  }
+      headers: res.headers,
+    } as FetchResponse<ListOrphanedFilesResponse200>;
+  };
 
-  const getVersion = async (options?: RequestInit): Promise<FetchResponse<VersionInformation>> => {
-    const url = baseURL + `/version`
+  const getVersion = async (
+    options?: RequestInit,
+  ): Promise<FetchResponse<VersionInformation>> => {
+    const url = `${baseURL}/version`;
     const res = await fetch(url, {
       ...options,
-      method: 'GET',
+      method: "GET",
       headers: {
-        ...options?.headers
-      }
-    })
+        ...options?.headers,
+      },
+    });
 
     if (res.status >= 300) {
-      const responseBody = [412].includes(res.status) ? null : await res.text()
-      const payload: unknown = responseBody ? JSON.parse(responseBody) : {}
-      throw new FetchError(payload, res.status, res.headers)
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
     }
 
-    const responseBody = [204, 205, 304].includes(res.status) ? null : await res.text()
-    const payload: VersionInformation = responseBody ? JSON.parse(responseBody) : {}
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: VersionInformation = responseBody
+      ? JSON.parse(responseBody)
+      : {};
 
     return {
       body: payload,
       status: res.status,
-      headers: res.headers
-    } as FetchResponse<VersionInformation>
-  }
+      headers: res.headers,
+    } as FetchResponse<VersionInformation>;
+  };
 
   return {
     baseURL,
@@ -1009,6 +1071,6 @@ export const createAPIClient = (baseURL: string, chainFunctions: ChainFunction[]
     listBrokenMetadata,
     listFilesNotUploaded,
     listOrphanedFiles,
-    getVersion
-  }
-}
+    getVersion,
+  };
+};
