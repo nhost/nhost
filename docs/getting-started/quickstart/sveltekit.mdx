@@ -1,5 +1,5 @@
 ---
-title: Setup Nhost with SvelteKit
+title: Get up and running with Nhost and SvelteKit
 sidebarTitle: SvelteKit
 description: Get up and running with Nhost and SvelteKit
 icon: s
@@ -36,26 +36,25 @@ icon: s
 
   </Step>
 
-  <Step title="permissions">
+  <Step title="Permissions">
     Select the new table `movies` just created, and click in **Edit Permissions** to set the following permissions for the `public` role and `select` action.
 
     ![Permission Rules](/images/quickstarts/react/permissions.png)
 
   </Step>
 
-  <Step title="Setup a SvelteKit Application">
-    Create a SvelteKit application.
+  <Step title="Setup the Application">
+    Create the application using standard tooling:
 
     ```bash Terminal
-    mkdir nhost-sveltekit-quickstart && \
-    cd nhost-sveltekit-quickstart && \
-    npx sv create --template minimal --no-types --no-add-ons --install npm
+    npm create vite@latest my-svelte-app -- --template svelte
+    cd my-svelte-app
     ```
 
   </Step>
 
-  <Step title="Install the Nhost package for SvelteKit">
-    Navigate to the SvelteKit application and install `@nhost/nhost-js`.
+  <Step title="Install the Nhost package">
+    Navigate to the application and install `@nhost/nhost-js`.
 
     ```bash Terminal
     npm install @nhost/nhost-js
@@ -65,69 +64,90 @@ icon: s
 
   <Step title="Configure the Nhost client and fetch the list of movies">
 
-    Create a new file with the following code to creates the Nhost client.
+    <CodeGroup>
 
-    ```js ./src/lib/nhost.js
+    ```js ./src/lib/nhost.js lines
     import { NhostClient } from "@nhost/nhost-js";
 
+    // Replace <subdomain> and <region> with your project's values
     export const nhost = new NhostClient({
       subdomain: "<subdomain>",
       region: "<region>",
     })
     ```
 
-    <Note>Replace `<subdomain>` and `<region>` with the subdomain and region for the project</Note>
-
-    Finally, update `src/routes/+page.svelte` to fetch the list of movies.
-
-    ```js src/routes/+page.svelte
+    ```svelte src/App.svelte lines
     <script>
-      import { onMount } from 'svelte';
-      import { nhost } from '../lib/nhost';
+      import { onMount } from 'svelte'
+      import { nhost } from './lib/nhost'
 
-      let loading = true;
-      let movies = [];
-
-      const getMovies = `
-        query {
-          movies {
-            title
-            genre
-            rating
-          }
-        }
-      `;
+      let movies = []
+      let loading = true
+      let error = null
 
       onMount(async () => {
-        const { data, error } = await nhost.graphql.request(getMovies);
-        if (!error) {
-          movies = data.movies;
+        try {
+          const resp = await nhost.graphql.request({
+            query: `query GetMovies {
+              movies {
+                title
+                director
+                release_year
+                genre
+                rating
+              }
+            }`,
+          })
+
+          movies = resp.body.data.movies || []
+        } catch (err) {
+          error = 'Failed to fetch movies'
+        } finally {
+          loading = false
         }
-        loading = false;
-      });
+      })
     </script>
 
     {#if loading}
-      <p>Loading...</p>
+      <div>Loading...</div>
+    {:else if error}
+      <div>Error: {error}</div>
     {:else}
-      <table>
-        <tbody>
-          {#each movies as movie}
+      <div>
+        <h1>Movies</h1>
+        <table>
+          <thead>
             <tr>
-              <td>{movie.title}</td>
-              <td>{movie.genre}</td>
-              <td>{movie.rating}</td>
+              <th>Title</th>
+              <th>Director</th>
+              <th>Release Year</th>
+              <th>Genre</th>
+              <th>Rating</th>
             </tr>
-          {/each}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {#each movies as movie, index (index)}
+              <tr>
+                <td>{movie.title}</td>
+                <td>{movie.director}</td>
+                <td>{movie.release_year}</td>
+                <td>{movie.genre}</td>
+                <td>{movie.rating}</td>
+              </tr>
+            {/each}
+          </tbody>
+        </table>
+      </div>
     {/if}
     ```
 
+    </CodeGroup>
   </Step>
 
   <Step title="The end">
     Run your project with `npm run dev` and navigate to `http://localhost:5173` in your browser.
-
   </Step>
+
 </Steps>
+
+
