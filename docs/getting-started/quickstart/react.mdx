@@ -6,282 +6,152 @@ icon: react
 ---
 
 <Steps>
-  <Step title="Create Nhost Project">
-    Create your project through the [Nhost Dashboard](https://app.nhost.io).
+  <Step title="Create Project">
+    If you haven't, please create a project through the [Nhost Dashboard](https://app.nhost.io).
   </Step>
 
   <Step title="Setup Database">
-    Navigate to the **SQL Editor** of the database and run the following SQL to create a new table `todos`.
+    Navigate to the **SQL Editor** of the database and run the following SQL to create a new table `movies` with some great movies.
+
+    ```sql SQL Editor
+    CREATE TABLE movies (
+      id SERIAL PRIMARY KEY,
+      title VARCHAR(255) NOT NULL,
+      director VARCHAR(255),
+      release_year INTEGER,
+      genre VARCHAR(100),
+      rating FLOAT
+    );
+
+    INSERT INTO movies (title, director, release_year, genre, rating) VALUES
+      ('Inception', 'Christopher Nolan', 2010, 'Sci-Fi', 8.8),
+      ('The Godfather', 'Francis Ford Coppola', 1972, 'Crime', 9.2),
+      ('Forrest Gump', 'Robert Zemeckis', 1994, 'Drama', 8.8),
+      ('The Matrix', 'Lana Wachowski, Lilly Wachowski', 1999, 'Action', 8.7);
+    ```
 
     <Warning>Make sure the option `Track this` is enabled</Warning>
 
-    ```sql SQL Editor
-    CREATE TABLE todos (
-      id uuid NOT NULL DEFAULT gen_random_uuid(),
-      created_at timestamptz NOT NULL DEFAULT now(),
-      updated_at timestamptz NOT NULL DEFAULT now(),
-      user_id uuid NOT NULL,
-      contents text NOT NULL,
-      PRIMARY KEY (id),
-      FOREIGN KEY (user_id) REFERENCES auth.users(id) ON UPDATE cascade ON DELETE cascade
-    );
-    ```
-
-    ![Create Todos Table](/images/quickstarts/react-native/create-table-todos.png)
+    ![SQL Editor](/images/quickstarts/react/sql-editor.png)
 
   </Step>
 
-  <Step title="Configure the todos table permissions">
-    To set permissions for the new `todos` table, select the table, click on the `...` to open the actions dialog,
-    then click on **Edit Permissions**. Set the following permissions for the `user` role:
+  <Step title="Permissions">
+    Select the new table `movies` just created, and click in **Edit Permissions** to set the following permissions for the `public` role and `select` action.
 
-    1. `Insert`
-        - Set `Row insert permissions` to `Without any checks`
-        - Select all columns except `user_id` on `Column insert permissions`
-        - Add a new `Column preset` and set `Column Name` to `user_id` and `Column Value` to `X-Hasura-User-Id`
-        - Save
-
-    ![Insert Permissions](/images/quickstarts/react-native/todos-insert-permissions.png)
-
-    2. `Select`
-        - Set `Row select permissions` to `With custom check` and fill in the following rule:
-            - Set `Where` to `todos.user_id`
-            - Set the operator to `_eq`
-            - Set the value to `X-Hasura-User-Id`
-        - Select all columns except `user_id` on `Column select permissions`
-        - Save
-
-    ![Select Permissions](/images/quickstarts/react-native/todos-select-permissions.png)
-
-    3. `Update`
-        - Set `Row update permissions` to `With custom check` and fill in the following rule:
-            - Set `Where` to `todos.user_id`
-            - Set the operator to `_eq`
-            - Set the value to `X-Hasura-User-Id`
-        - Select all columns except `user_id` on `Column select permissions`
-        - Save
-
-    ![Update permissions](/images/quickstarts/react-native/todos-update-permissions.png)
-
-    4. `Delete`
-        - Set `Row delete permissions` to `With custom check` and fill in the following rule:
-            - Set `Where` to `todos.user_id`
-            - Set the operator to `_eq`
-            - Set the value to `X-Hasura-User-Id`
-        - Save
-
-    ![Delete permissions](/images/quickstarts/react-native/todos-delete-permissions.png)
+    ![Permission Rules](/images/quickstarts/react/permissions.png)
 
   </Step>
 
-  <Step title="Configure permissions to enable user file uploads">
-    To enable file uploads by users, set the permissions as follows:
-
-    1. Edit the **files** table permissions
-        1. Navigate to the files table within the [Database tab](https://app.nhost.io/_/_/database/browser/default/storage/files)
-        2. Click on the three dots (...) next to the files table
-        3. Click on **Edit Permissions**
-
-    2. Modify the `Insert` permission for the `user` role:
-          1. Set `Row insert permissions` to `Without any checks`
-          2. Select all columns on `Column insert permissions`
-          4. Save
-
-    ![Insert Permissions](/images/quickstarts/react-native/files-insert-permissions.png)
-
-    3. `Select`
-        - Set `Row select permissions` to `With custom check` and fill in the following rule:
-            - Set `Where` to `files.uploaded_by_user_id`
-            - Set the operator to `_eq`
-            - Set the value to `X-Hasura-User-Id`
-        - Select all columns on `Column select permissions`
-        - Save
-
-    ![Select permissions](/images/quickstarts/react-native/files-select-permissions.png)
-
-  </Step>
-
-  <Step title="Bootstrap your React app">
-    Intialize a new React project using the template [`@nhost/react-apollo`](https://www.npmjs.com/package/@nhost/cra-template-react-apollo)
+  <Step title="Setup the Application">
+    Create the application using standard tooling:
 
     ```bash Terminal
-    npx create-react-app myapp --template @nhost/react-apollo
+    npm create vite@latest my-react-app -- --template react
+    cd my-react-app
     ```
 
   </Step>
 
-  <Step title="Connect your React app to the Nhost project">
-    Copy your project's `<subdomain>` and `<region>` values available on the dashboard overview
+  <Step title="Install the Nhost package">
+    Navigate to the application and install `@nhost/nhost-js`.
 
-    ```tsx src/index.tsx
-    const nhost = new NhostClient({
-      subdomain: "<subdomain>", // replace the subdomain value e.g. "hjcuuqweqwezolpolrep"
-      region: "<region>", // replace the region value e.g. "eu-central-1"
-    });
+    ```bash Terminal
+    npm install @nhost/nhost-js
     ```
 
   </Step>
 
-  <Step title="Create the Todos Page and Add It to the Sidebar Navigation">
+  <Step title="Configure the Nhost client and fetch the list of movies">
+
     <CodeGroup>
-      ```tsx src/components/routes/app/todos.tsx
-      import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-      import { Button } from '@/components/ui/button'
-      import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-      import { Input } from '@/components/ui/input'
-      import { gql, useMutation } from '@apollo/client'
-      import { useAuthQuery } from '@nhost/react-apollo'
-      import { Check, Info, Plus, Trash } from 'lucide-react'
-      import { useState } from 'react'
-      import { toast } from 'sonner'
 
-      export default function Todos() {
-        const { data, refetch: refetchTodos } = useAuthQuery<{
-          todos: Array<{
-            id: string
-            contents: string
-          }>
-        }>(gql`
-          query {
-            todos(order_by: { createdAt: desc }) {
-              id
-              contents
-            }
-          }
-        `)
+    ```js ./src/lib/nhost.js lines
+    import { NhostClient } from "@nhost/nhost-js";
 
-        const [contents, setContents] = useState('')
+    // Replace <subdomain> and <region> with your project's values
+    export const nhost = new NhostClient({
+      subdomain: "<subdomain>",
+      region: "<region>",
+    })
+    ```
 
-        const [addTodo] = useMutation<{
-          insertTodo?: {
-            id: string
-            contents: string
-          }
-        }>(gql`
-          mutation ($contents: String!) {
-            insertTodo(object: { contents: $contents }) {
-              id
-              contents
-            }
-          }
-        `)
+    ```js ./src/App.jsx lines
+    import { useEffect, useState } from 'react'
+    import { nhost } from './lib/nhost'
+    import './App.css'
 
-        const [deleteTodo] = useMutation<{
-          deleteNote?: {
-            id: string
-            content: string
-          }
-        }>(gql`
-          mutation deleteTodo($todoId: uuid!) {
-            deleteTodo(id: $todoId) {
-              id
-              contents
-            }
-          }
-        `)
+    function App() {
+      const [movies, setMovies] = useState([])
+      const [loading, setLoading] = useState(true)
+      const [error, setError] = useState(null)
 
-        const handleAddTodo = () => {
-          if (contents) {
-            addTodo({
-              variables: { contents },
-              onCompleted: async () => {
-                setContents('')
-                await refetchTodos()
-              },
-              onError: (error) => {
-                toast.error(error.message)
-              }
+      useEffect(() => {
+        const fetchMovies = async () => {
+          try {
+            const resp = await nhost.graphql.request({
+              query: `query GetMovies {
+                movies {
+                  title
+                  director
+                  release_year
+                  genre
+                  rating
+                }
+              }`,
             })
+
+            setMovies(resp.body.data.movies || [])
+          } catch (err) {
+            setError('Failed to fetch movies')
+          } finally {
+            setLoading(false)
           }
         }
 
-        const handleDeleteTodo = async (todoId: string) => {
-          await deleteTodo({
-            variables: { todoId },
-            onCompleted: async () => {
-              await refetchTodos()
-            },
-            onError: (error) => {
-              toast.error(error.message)
-            }
-          })
+        fetchMovies()
+      }, [])
 
-          await refetchTodos()
-        }
+      if (loading) return <div>Loading...</div>
+      if (error) return <div>Error: {error}</div>
 
-        return (
-          <div className="w-full">
-            <Card className="mb-4">
-              <CardHeader>
-                <CardTitle>Todos</CardTitle>
-              </CardHeader>
-            </Card>
-            <Card className="w-full pt-6">
-              <CardContent className="flex flex-col gap-4">
-                <div className="flex flex-row gap-4">
-                  <Input
-                    value={contents}
-                    onChange={(e) => setContents(e.target.value)}
-                    onKeyDown={(e) => e.code === 'Enter' && handleAddTodo()}
-                  />
-                  <Button className="m-0" onClick={handleAddTodo}>
-                    <Plus />
-                    Add
-                  </Button>
-                </div>
-                <div>
-                  {data?.todos.length === 0 && (
-                    <Alert className="w-full">
-                      <Info className="w-4 h-4" />
-                      <AlertTitle>Empty</AlertTitle>
-                      <AlertDescription className="mt-2">Start by adding a todo</AlertDescription>
-                    </Alert>
-                  )}
-                  {data?.todos.map((todo) => (
-                    <div
-                      key={todo.id}
-                      className="flex flex-row items-center justify-between w-full p-4 border-b last:pb-0 last:border-b-0"
-                    >
-                      <div className="flex flex-row gap-2">
-                        <Check className="w-5 h-5" />
-                        <span>{todo.contents}</span>
-                      </div>
-                      <Button variant="ghost" onClick={() => handleDeleteTodo(todo.id)}>
-                        <Trash className="w-5 h-5" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )
-      }
-      ```
+      return (
+        <div>
+          <h1>Movies</h1>
+          <table>
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Director</th>
+                <th>Release Year</th>
+                <th>Genre</th>
+                <th>Rating</th>
+              </tr>
+            </thead>
+            <tbody>
+              {movies.map((movie, index) => (
+                <tr key={index}>
+                  <td>{movie.title}</td>
+                  <td>{movie.director}</td>
+                  <td>{movie.release_year}</td>
+                  <td>{movie.genre}</td>
+                  <td>{movie.rating}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )
+    }
 
-      ```tsx src/components/routes/app/layout.tsx
-      <nav className="flex flex-col items-center gap-4 px-2 sm:py-5">
-      --
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <NavLink
-            to="/todos"
-            className="flex items-center justify-center transition-colors rounded-lg h-9 w-9 text-muted-foreground hover:text-foreground md:h-8 md:w-8 aria-[current]:bg-accent aria-[current]:text-accent-foreground"
-          >
-            <SquareCheckBig className="w-5 h-5" />
-            <span className="sr-only">Todos</span>
-          </NavLink>
-        </TooltipTrigger>
-        <TooltipContent side="right">Todos</TooltipContent>
-      </Tooltip>
-      --
-      </nav>
-      ```
-      </CodeGroup>
+    export default App
+    ```
 
+    </CodeGroup>
   </Step>
 
-  <Step title="Run the project">
-    Run your project with `npm start` and enter `http://localhost:3000` in your browser.
+  <Step title="The end">
+    Run your project with `npm run dev` and navigate to `http://localhost:5173` in your browser.
   </Step>
+
 </Steps>
