@@ -145,7 +145,6 @@ export const RemoteSchemaTree = forwardRef<
   );
 
   const getItemTitle = (item: any) => {
-    // Handle JSX elements - return them as-is for rendering
     if (React.isValidElement(item.data)) {
       return item.data;
     }

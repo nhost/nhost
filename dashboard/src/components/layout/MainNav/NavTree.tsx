@@ -472,7 +472,6 @@ export default function NavTree() {
                   return;
                 }
 
-                // Special handling for GraphQL item - expand the tree when clicked
                 if (item.data.name === 'GraphQL' && item.isFolder) {
                   if (!context.isExpanded) {
                     context.toggleExpandedState();

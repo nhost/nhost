@@ -3,7 +3,7 @@ import { metadataOperation } from '@/utils/hasura-api/generated/default/default'
 import type { RemoteSchemaInfo } from '@/utils/hasura-api/generated/schemas';
 
 export interface RemoveRemoteSchemaVariables {
-  remoteSchema: RemoteSchemaInfo; // Entire remote schema info is necessary to match the remove migration variables
+  remoteSchema: RemoteSchemaInfo;
 }
 
 export default async function removeRemoteSchema({

@@ -86,7 +86,6 @@ export default function EditGraphQLCustomizations({
     upsertFieldNames(next);
   }
 
-  // Watch field_names/type_names to keep UI reactive and sanitize shapes
   const rawTypeNamesMapping = useWatch({
     name: 'definition.customization.type_names.mapping',
   });
@@ -233,12 +232,12 @@ export default function EditGraphQLCustomizations({
       {/* Hidden input to register field_names so changes mark form as dirty */}
       <input
         type="hidden"
-        {...register('definition.customization.field_names' as any)}
+        {...register('definition.customization.field_names')}
       />
       {/* Hidden input to register type_names.mapping so defaults populate and dirty state tracks */}
       <input
         type="hidden"
-        {...register('definition.customization.type_names.mapping' as any)}
+        {...register('definition.customization.type_names.mapping')}
       />
       <Box className="flex flex-row items-center space-x-2">
         <Text variant="h4" className="text-lg font-semibold">
@@ -266,7 +265,6 @@ export default function EditGraphQLCustomizations({
           />
         </Box>
 
-        {/* Type Names prefix/suffix */}
         <Box className="space-y-3">
           <Box className="flex flex-row items-center space-x-2">
             <Text variant="h4" className="text-lg font-semibold">
@@ -372,7 +370,6 @@ export default function EditGraphQLCustomizations({
         </Box>
       </Box>
 
-      {/* Field Names Mappings */}
       <Box className="space-y-4 rounded border-1 p-4">
         <Box className="flex flex-row items-center justify-between">
           <Box className="flex flex-row items-center space-x-2">

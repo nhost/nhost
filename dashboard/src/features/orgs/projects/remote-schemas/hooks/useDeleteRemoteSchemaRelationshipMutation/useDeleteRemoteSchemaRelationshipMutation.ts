@@ -19,7 +19,7 @@ export interface UseDeleteRemoteSchemaRelationshipMutationOptions {
 }
 
 /**
- * This hook is a wrapper around a fetch call that creates a remote schema relationship.
+ * This hook is a wrapper around a fetch call that deletes a remote schema relationship.
  *
  * @param options - Options to use for the mutation.
  * @returns The result of the mutation.

@@ -43,7 +43,7 @@ export default async function removeRemoteSchemaPermissionsMigration({
               },
             ]
           : [],
-        datasource: 'default', // TODO: Make this dynamic
+        datasource: 'default',
         skip_execution: false,
       },
       {

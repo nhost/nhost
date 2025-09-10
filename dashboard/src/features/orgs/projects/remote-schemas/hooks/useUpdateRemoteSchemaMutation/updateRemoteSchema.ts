@@ -24,7 +24,7 @@ export default async function updateRemoteSchema({
     const response = await metadataOperation(
       {
         type: 'bulk',
-        source: 'default', // TODO: Make this dynamic
+        source: 'default',
         resource_version: resourceVersion,
         args: [
           {

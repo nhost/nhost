@@ -33,7 +33,7 @@ export default async function updateRemoteSchemaMigration({
             args: originalRemoteSchema,
           },
         ],
-        datasource: 'default', // TODO: Make this dynamic
+        datasource: 'default',
       },
       {
         baseUrl: appUrl,

@@ -25,7 +25,7 @@ export default async function updateRemoteSchemaPermissions({
     const response = await metadataOperation(
       {
         type: 'bulk',
-        source: 'default', // TODO: Make this dynamic
+        source: 'default',
         resource_version: resourceVersion,
         args: [
           {

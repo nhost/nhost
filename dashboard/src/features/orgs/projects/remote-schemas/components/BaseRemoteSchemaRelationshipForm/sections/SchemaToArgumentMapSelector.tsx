@@ -125,11 +125,9 @@ export default function SchemaToArgumentMapSelector({
       name: 'mappings',
     });
 
-  // Helper function to check if an argument is selected
   const isArgumentSelected = (argumentName: string) =>
     fields.some((field) => field.argument === argumentName);
 
-  // Helper function to get the index of a mapping for a specific argument
   const getArgumentMappingIndex = (argumentName: string) =>
     fields.findIndex((field) => field.argument === argumentName);
 
@@ -186,7 +184,6 @@ export default function SchemaToArgumentMapSelector({
 
               return (
                 <div key={argument.value} className="space-y-2">
-                  {/* Argument header with checkbox */}
                   <div className="flex items-center space-x-3">
                     <Checkbox
                       id={`arg-${argument.value}`}
@@ -210,10 +207,8 @@ export default function SchemaToArgumentMapSelector({
                     </label>
                   </div>
 
-                  {/* Configuration options when selected */}
                   {isSelected && mappingIndex !== -1 && (
                     <div className="ml-6 flex items-center space-x-0">
-                      {/* Type Selection */}
                       <FormField
                         control={form.control}
                         name={`mappings.${mappingIndex}.type`}

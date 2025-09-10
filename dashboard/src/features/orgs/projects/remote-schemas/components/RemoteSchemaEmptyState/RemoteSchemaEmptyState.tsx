@@ -33,13 +33,6 @@ export default function RemoteSchemaEmptyState({
       {...props}
     >
       <div className="mx-auto">
-        {/* <Image
-          src="/assets/database.svg"
-          width={72}
-          height={72}
-          alt="Database"
-          priority
-        /> */}
         <Anchor className="h-12 w-12" />
       </div>
 

@@ -60,7 +60,6 @@ export default function RemoteSchemaRelationshipsInfoTable({
       return relationship.definition.to_source.relationship_type;
     }
 
-    // Fallback, though this shouldn't happen with proper types
     return 'Unknown';
   };
 

@@ -29,7 +29,7 @@ export default async function removeRemoteSchemaMigration({
             args: remoteSchema,
           },
         ],
-        datasource: 'default', // TODO: Make this dynamic
+        datasource: 'default',
       },
       {
         baseUrl: appUrl,
