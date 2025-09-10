@@ -38,6 +38,7 @@ mode = 'disabled'
 
 [auth.redirections]
 clientUrl = 'http://localhost:3000'
+allowedUrls = ['http://localhost:5173']
 
 [auth.signUp]
 enabled = true
