@@ -13,6 +13,7 @@ let password = $state("");
 let displayName = $state("");
 let isLoading = $state(false);
 let error = $state<string | null>(null);
+let success = $state(false);
 
 let params = $derived(new URLSearchParams($page.url.search));
 let magicLinkSent = $derived(params.get("magic") === "success");
@@ -35,15 +36,16 @@ async function handleSubmit(e: Event) {
       password,
       options: {
         displayName,
+        redirectTo: `${window.location.origin}/verify`,
       },
     });
 
-    if (response.body) {
+    if (response.body?.session) {
       // Successfully signed up and automatically signed in
       void goto("/profile");
     } else {
       // Verification email sent
-      void goto("/verify");
+      success = true;
     }
   } catch (err) {
     const fetchError = err as FetchError<ErrorResponse>;
@@ -80,14 +82,32 @@ function setDisplayName(newDisplayName: string) {
   <h1 class="text-3xl mb-6 gradient-text">Nhost SDK Demo</h1>
 
   <div class="glass-card w-full p-8 mb-6">
-    <h2 class="text-2xl mb-6">Sign Up</h2>
+    {#if success}
+      <h2 class="text-2xl mb-6">Check Your Email</h2>
 
-    {#if magicLinkSent}
-      <div class="text-center">
-        <p class="mb-4">Magic link sent! Check your email to sign up.</p>
-        <a href="/signup" class="btn btn-secondary"> Back to sign up </a>
+      <div class="text-center py-4">
+        <div class="mb-4 p-4 bg-green-100 text-green-700 rounded-md">
+          <p class="mb-2">
+            We've sent a verification link to <strong>{email}</strong>
+          </p>
+          <p>
+            Please check your email and click the verification link to activate your account.
+          </p>
+        </div>
+
+        <a href="/signin" class="btn btn-primary">
+          Back to Sign In
+        </a>
       </div>
     {:else}
+      <h2 class="text-2xl mb-6">Sign Up</h2>
+
+      {#if magicLinkSent}
+        <div class="text-center">
+          <p class="mb-4">Magic link sent! Check your email to sign up.</p>
+          <a href="/signup" class="btn btn-secondary"> Back to sign up </a>
+        </div>
+      {:else}
       <TabForm>
         {#snippet passwordTabContent()}
           <form onsubmit={handleSubmit} class="space-y-5">
@@ -166,6 +186,7 @@ function setDisplayName(newDisplayName: string) {
           />
         {/snippet}
       </TabForm>
+      {/if}
     {/if}
   </div>
 

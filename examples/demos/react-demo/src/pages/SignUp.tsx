@@ -16,6 +16,7 @@ export default function SignUp(): JSX.Element {
   const [displayName, setDisplayName] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
   const displayNameId = useId();
   const emailId = useId();
   const passwordId = useId();
@@ -31,6 +32,7 @@ export default function SignUp(): JSX.Element {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
+    setSuccess(false);
 
     try {
       const response = await nhost.auth.signUpEmailPassword({
@@ -38,15 +40,16 @@ export default function SignUp(): JSX.Element {
         password,
         options: {
           displayName,
+          redirectTo: `${window.location.origin}/verify`,
         },
       });
 
-      if (response.body) {
+      if (response.body?.session) {
         // Successfully signed up and automatically signed in
         navigate("/profile");
       } else {
-        // Verification email sent
-        navigate("/verify");
+        // Verification email sent or user created but needs verification
+        setSuccess(true);
       }
     } catch (err) {
       const error = err as FetchError<ErrorResponse>;
@@ -68,6 +71,38 @@ export default function SignUp(): JSX.Element {
 
     window.location.href = url;
   };
+
+  if (success) {
+    return (
+      <div className="flex flex-col items-center justify-center">
+        <h1 className="text-3xl mb-6 gradient-text">Nhost SDK Demo</h1>
+
+        <div className="glass-card w-full p-8 mb-6">
+          <h2 className="text-2xl mb-6">Check Your Email</h2>
+
+          <div className="text-center py-4">
+            <div className="mb-4 p-4 bg-green-100 text-green-700 rounded-md">
+              <p className="mb-2">
+                We've sent a verification link to <strong>{email}</strong>
+              </p>
+              <p>
+                Please check your email and click the verification link to
+                activate your account.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => navigate("/signin")}
+              className="btn btn-primary"
+            >
+              Back to Sign In
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center justify-center">

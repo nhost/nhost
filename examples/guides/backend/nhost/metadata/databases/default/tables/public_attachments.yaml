@@ -1,0 +1,70 @@
+table:
+  name: attachments
+  schema: public
+configuration:
+  column_config:
+    task_id:
+      custom_name: taskID
+  custom_column_names:
+    task_id: taskID
+  custom_root_fields:
+    delete: deleteAttachments
+    delete_by_pk: deleteAttachment
+    insert: insertAttachments
+    insert_one: insertAttachment
+    select: attachments
+    select_aggregate: attachmentsAggregate
+    select_by_pk: attachment
+    select_stream: attachmentsStream
+    update: updateAttachments
+    update_by_pk: updateAttachment
+    update_many: updateAttachmentsMany
+object_relationships:
+  - name: file
+    using:
+      foreign_key_constraint_on: file_id
+  - name: task
+    using:
+      foreign_key_constraint_on: task_id
+insert_permissions:
+  - role: user
+    permission:
+      check:
+        _and:
+          - file:
+              uploaded_by_user_id:
+                _eq: X-Hasura-User-Id
+          - task:
+              user_id:
+                _eq: X-Hasura-User-Id
+      columns:
+        - file_id
+        - task_id
+    comment: ""
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - file_id
+        - task_id
+      filter:
+        _and:
+          - file:
+              uploaded_by_user_id:
+                _eq: X-Hasura-User-Id
+          - task:
+              user_id:
+                _eq: X-Hasura-User-Id
+    comment: ""
+delete_permissions:
+  - role: user
+    permission:
+      filter:
+        _and:
+          - file:
+              uploaded_by_user_id:
+                _eq: X-Hasura-User-Id
+          - task:
+              user_id:
+                _eq: X-Hasura-User-Id
+    comment: ""

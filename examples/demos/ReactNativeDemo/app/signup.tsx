@@ -1,3 +1,4 @@
+import * as Linking from "expo-linking";
 import { Link, router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -25,6 +26,7 @@ export default function SignUp() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [appleAuthInProgress, setAppleAuthInProgress] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<
     "password" | "magic" | "social" | "native"
   >("password");
@@ -41,6 +43,7 @@ export default function SignUp() {
   const handleSubmit = async () => {
     setIsLoading(true);
     setError(null);
+    setSuccess(false);
 
     try {
       const response = await nhost.auth.signUpEmailPassword({
@@ -48,6 +51,7 @@ export default function SignUp() {
         password,
         options: {
           displayName,
+          redirectTo: Linking.createURL("verify"),
         },
       });
 
@@ -55,8 +59,8 @@ export default function SignUp() {
         // Successfully signed up and automatically signed in
         router.replace("/profile");
       } else {
-        // Verification email might be required
-        router.replace("/signin");
+        // Verification email sent
+        setSuccess(true);
       }
     } catch (err) {
       const errMessage =
@@ -78,157 +82,185 @@ export default function SignUp() {
         <Text style={styles.title}>Nhost SDK Demo</Text>
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Sign Up</Text>
-
-          {magicLinkSent ? (
-            <View style={styles.messageContainer}>
-              <Text style={styles.successText}>
-                Magic link sent! Check your email to sign in.
-              </Text>
-              <TouchableOpacity
-                style={styles.secondaryButton}
-                onPress={() => router.setParams({ magic: "" })}
-              >
-                <Text style={styles.secondaryButtonText}>Back to sign up</Text>
-              </TouchableOpacity>
-            </View>
+          {success ? (
+            <>
+              <Text style={styles.cardTitle}>Check Your Email</Text>
+              <View style={styles.messageContainer}>
+                <View style={styles.successMessageBox}>
+                  <Text style={styles.successText}>
+                    We've sent a verification link to{" "}
+                    <Text style={styles.emailText}>{email}</Text>
+                  </Text>
+                  <Text style={styles.successText}>
+                    Please check your email and click the verification link to
+                    activate your account.
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={() => router.replace("/signin")}
+                >
+                  <Text style={styles.buttonText}>Back to Sign In</Text>
+                </TouchableOpacity>
+              </View>
+            </>
           ) : (
             <>
-              <View style={styles.tabContainer}>
-                <TouchableOpacity
-                  style={[
-                    styles.tabButton,
-                    activeTab === "password" && styles.activeTab,
-                  ]}
-                  onPress={() => setActiveTab("password")}
-                >
-                  <Text
-                    style={[
-                      styles.tabText,
-                      activeTab === "password" && styles.activeTabText,
-                    ]}
-                  >
-                    Password
+              <Text style={styles.cardTitle}>Sign Up</Text>
+
+              {magicLinkSent ? (
+                <View style={styles.messageContainer}>
+                  <Text style={styles.successText}>
+                    Magic link sent! Check your email to sign in.
                   </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[
-                    styles.tabButton,
-                    activeTab === "magic" && styles.activeTab,
-                  ]}
-                  onPress={() => setActiveTab("magic")}
-                >
-                  <Text
-                    style={[
-                      styles.tabText,
-                      activeTab === "magic" && styles.activeTabText,
-                    ]}
+                  <TouchableOpacity
+                    style={styles.secondaryButton}
+                    onPress={() => router.setParams({ magic: "" })}
                   >
-                    Magic Link
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[
-                    styles.tabButton,
-                    activeTab === "social" && styles.activeTab,
-                  ]}
-                  onPress={() => setActiveTab("social")}
-                >
-                  <Text
-                    style={[
-                      styles.tabText,
-                      activeTab === "social" && styles.activeTabText,
-                    ]}
-                  >
-                    Social
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[
-                    styles.tabButton,
-                    activeTab === "native" && styles.activeTab,
-                  ]}
-                  onPress={() => setActiveTab("native")}
-                >
-                  <Text
-                    style={[
-                      styles.tabText,
-                      activeTab === "native" && styles.activeTabText,
-                    ]}
-                  >
-                    Native
-                  </Text>
-                </TouchableOpacity>
-              </View>
-
-              <View style={styles.form}>
-                {activeTab === "password" ? (
-                  <>
-                    <View style={styles.inputGroup}>
-                      <Text style={styles.label}>Display Name</Text>
-                      <TextInput
-                        style={styles.input}
-                        value={displayName}
-                        onChangeText={setDisplayName}
-                        placeholder="Enter your name"
-                        autoCapitalize="words"
-                      />
-                    </View>
-
-                    <View style={styles.inputGroup}>
-                      <Text style={styles.label}>Email</Text>
-                      <TextInput
-                        style={styles.input}
-                        value={email}
-                        onChangeText={setEmail}
-                        placeholder="Enter your email"
-                        keyboardType="email-address"
-                        autoCapitalize="none"
-                        autoComplete="email"
-                      />
-                    </View>
-
-                    <View style={styles.inputGroup}>
-                      <Text style={styles.label}>Password</Text>
-                      <TextInput
-                        style={styles.input}
-                        value={password}
-                        onChangeText={setPassword}
-                        placeholder="Enter your password"
-                        secureTextEntry
-                        autoCapitalize="none"
-                      />
-                      <Text style={styles.helperText}>
-                        Password must be at least 8 characters long
-                      </Text>
-                    </View>
-
-                    {error && <Text style={styles.errorText}>{error}</Text>}
-
+                    <Text style={styles.secondaryButtonText}>
+                      Back to sign up
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <>
+                  <View style={styles.tabContainer}>
                     <TouchableOpacity
-                      style={styles.button}
-                      onPress={handleSubmit}
-                      disabled={isLoading}
+                      style={[
+                        styles.tabButton,
+                        activeTab === "password" && styles.activeTab,
+                      ]}
+                      onPress={() => setActiveTab("password")}
                     >
-                      {isLoading ? (
-                        <ActivityIndicator size="small" color="#fff" />
-                      ) : (
-                        <Text style={styles.buttonText}>Sign Up</Text>
-                      )}
+                      <Text
+                        style={[
+                          styles.tabText,
+                          activeTab === "password" && styles.activeTabText,
+                        ]}
+                      >
+                        Password
+                      </Text>
                     </TouchableOpacity>
-                  </>
-                ) : activeTab === "magic" ? (
-                  <MagicLinkForm buttonLabel="Sign Up with Magic Link" />
-                ) : activeTab === "social" ? (
-                  <SocialLoginForm action="Sign Up" isLoading={isLoading} />
-                ) : (
-                  <NativeLoginForm
-                    action="Sign Up"
-                    isLoading={isLoading || appleAuthInProgress}
-                    setAppleAuthInProgress={setAppleAuthInProgress}
-                  />
-                )}
-              </View>
+                    <TouchableOpacity
+                      style={[
+                        styles.tabButton,
+                        activeTab === "magic" && styles.activeTab,
+                      ]}
+                      onPress={() => setActiveTab("magic")}
+                    >
+                      <Text
+                        style={[
+                          styles.tabText,
+                          activeTab === "magic" && styles.activeTabText,
+                        ]}
+                      >
+                        Magic Link
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[
+                        styles.tabButton,
+                        activeTab === "social" && styles.activeTab,
+                      ]}
+                      onPress={() => setActiveTab("social")}
+                    >
+                      <Text
+                        style={[
+                          styles.tabText,
+                          activeTab === "social" && styles.activeTabText,
+                        ]}
+                      >
+                        Social
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[
+                        styles.tabButton,
+                        activeTab === "native" && styles.activeTab,
+                      ]}
+                      onPress={() => setActiveTab("native")}
+                    >
+                      <Text
+                        style={[
+                          styles.tabText,
+                          activeTab === "native" && styles.activeTabText,
+                        ]}
+                      >
+                        Native
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  <View style={styles.form}>
+                    {activeTab === "password" ? (
+                      <>
+                        <View style={styles.inputGroup}>
+                          <Text style={styles.label}>Display Name</Text>
+                          <TextInput
+                            style={styles.input}
+                            value={displayName}
+                            onChangeText={setDisplayName}
+                            placeholder="Enter your name"
+                            autoCapitalize="words"
+                          />
+                        </View>
+
+                        <View style={styles.inputGroup}>
+                          <Text style={styles.label}>Email</Text>
+                          <TextInput
+                            style={styles.input}
+                            value={email}
+                            onChangeText={setEmail}
+                            placeholder="Enter your email"
+                            keyboardType="email-address"
+                            autoCapitalize="none"
+                            autoComplete="email"
+                          />
+                        </View>
+
+                        <View style={styles.inputGroup}>
+                          <Text style={styles.label}>Password</Text>
+                          <TextInput
+                            style={styles.input}
+                            value={password}
+                            onChangeText={setPassword}
+                            placeholder="Enter your password"
+                            secureTextEntry
+                            autoCapitalize="none"
+                          />
+                          <Text style={styles.helperText}>
+                            Password must be at least 8 characters long
+                          </Text>
+                        </View>
+
+                        {error && <Text style={styles.errorText}>{error}</Text>}
+
+                        <TouchableOpacity
+                          style={styles.button}
+                          onPress={handleSubmit}
+                          disabled={isLoading}
+                        >
+                          {isLoading ? (
+                            <ActivityIndicator size="small" color="#fff" />
+                          ) : (
+                            <Text style={styles.buttonText}>Sign Up</Text>
+                          )}
+                        </TouchableOpacity>
+                      </>
+                    ) : activeTab === "magic" ? (
+                      <MagicLinkForm buttonLabel="Sign Up with Magic Link" />
+                    ) : activeTab === "social" ? (
+                      <SocialLoginForm action="Sign Up" isLoading={isLoading} />
+                    ) : (
+                      <NativeLoginForm
+                        action="Sign Up"
+                        isLoading={isLoading || appleAuthInProgress}
+                        setAppleAuthInProgress={setAppleAuthInProgress}
+                      />
+                    )}
+                  </View>
+                </>
+              )}
             </>
           )}
         </View>
@@ -342,6 +374,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: "center",
     marginBottom: 15,
+  },
+  successMessageBox: {
+    backgroundColor: "#f0fff4",
+    borderColor: "#38a169",
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 20,
+  },
+  emailText: {
+    fontWeight: "bold",
+    color: "#2d3748",
   },
   messageContainer: {
     alignItems: "center",

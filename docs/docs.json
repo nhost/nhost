@@ -50,6 +50,16 @@
               "/getting-started/tutorials/sveltekit",
               "/getting-started/tutorials/reactnative"
             ]
+          },
+          {
+            "group": "Tutorials (II)",
+            "icon": "book",
+            "pages": [
+              "/getting-started/tutorials/create-nhost-project",
+              "/getting-started/tutorials/react/2-protected-routes",
+              "/getting-started/tutorials/react/3-user-authentication",
+              "/getting-started/tutorials/react/4-graphql-operations"
+            ]
           }
         ]
       },

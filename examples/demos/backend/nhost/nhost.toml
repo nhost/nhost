@@ -28,7 +28,7 @@ httpPoolSize = 100
 
 [functions]
 [functions.node]
-version = 20
+version = 22
 
 [auth]
 version = '0.41.1'
@@ -64,7 +64,7 @@ rating = 'g'
 
 [auth.session]
 [auth.session.accessToken]
-expiresIn = 65
+expiresIn = 900
 
 [auth.session.refreshToken]
 expiresIn = 2592000
@@ -82,7 +82,7 @@ enabled = false
 
 [auth.method.emailPassword]
 hibpEnabled = false
-emailVerificationRequired = false
+emailVerificationRequired = true
 passwordMinLength = 9
 
 [auth.method.smsPasswordless]
