@@ -247,16 +247,8 @@ export default function Uploads(): JSX.Element {
           />
           <button
             type="button"
-            className="btn btn-secondary"
+            className="btn btn-secondary file-upload-btn"
             onClick={() => fileInputRef.current?.click()}
-            style={{
-              minHeight: "120px",
-              flexDirection: "column",
-              gap: "0.5rem",
-              width: "100%",
-              border: "2px dashed rgba(255, 255, 255, 0.3)",
-              backgroundColor: "rgba(255, 255, 255, 0.02)"
-            }}
           >
             <svg
               width="40"
@@ -276,7 +268,7 @@ export default function Uploads(): JSX.Element {
             </svg>
             <p>Click to select a file</p>
             {selectedFile && (
-              <p style={{ marginTop: "0.5rem", fontSize: "0.875rem" }}>
+              <p className="file-upload-info">
                 {selectedFile.name} ({formatFileSize(selectedFile.size)})
               </p>
             )}
@@ -337,23 +329,23 @@ export default function Uploads(): JSX.Element {
           </div>
         ) : (
           <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <table className="file-table">
               <thead>
                 <tr>
-                  <th style={{ padding: "0.75rem", textAlign: "left", borderBottom: "1px solid rgba(255, 255, 255, 0.1)", color: "rgba(255, 255, 255, 0.7)" }}>Name</th>
-                  <th style={{ padding: "0.75rem", textAlign: "left", borderBottom: "1px solid rgba(255, 255, 255, 0.1)", color: "rgba(255, 255, 255, 0.7)" }}>Type</th>
-                  <th style={{ padding: "0.75rem", textAlign: "left", borderBottom: "1px solid rgba(255, 255, 255, 0.1)", color: "rgba(255, 255, 255, 0.7)" }}>Size</th>
-                  <th style={{ padding: "0.75rem", textAlign: "center", borderBottom: "1px solid rgba(255, 255, 255, 0.1)", color: "rgba(255, 255, 255, 0.7)" }}>Actions</th>
+                  <th>Name</th>
+                  <th>Type</th>
+                  <th>Size</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {files.map((file) => (
-                  <tr key={file.id} style={{ borderBottom: "1px solid rgba(255, 255, 255, 0.05)" }}>
-                    <td style={{ padding: "0.75rem", color: "white" }}>{file.name}</td>
-                    <td style={{ padding: "0.75rem", color: "rgba(255, 255, 255, 0.7)", fontSize: "0.875rem" }}>{file.mimeType}</td>
-                    <td style={{ padding: "0.75rem", color: "rgba(255, 255, 255, 0.7)", fontSize: "0.875rem" }}>{formatFileSize(file.size || 0)}</td>
-                    <td style={{ padding: "0.75rem" }}>
-                      <div style={{ display: "flex", gap: "0.5rem", justifyContent: "center" }}>
+                  <tr key={file.id}>
+                    <td className="file-name">{file.name}</td>
+                    <td className="file-meta">{file.mimeType}</td>
+                    <td className="file-meta">{formatFileSize(file.size || 0)}</td>
+                    <td>
+                      <div className="file-actions">
                         <button
                           type="button"
                           onClick={() =>

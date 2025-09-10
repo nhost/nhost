@@ -1,7 +1,7 @@
 ---
 title: Protecting Routes and Content in React
 description: Learn how to protect routes and content in a React application using Nhost authentication.
-sidebarTitle: "React: Protecting Routes"
+sidebarTitle: "Protecting Routes"
 icon: lock
 ---
 
@@ -13,7 +13,7 @@ This is **Tutorial 2** in the React Authentication Series. This tutorial builds 
 
 ## React Authentication Series
 
-<CardGroup cols={4}>
+<CardGroup cols={3}>
 <Card title="1. Create Project" icon="plus" href="/getting-started/tutorials/create-nhost-project">
 Set up your Nhost project
 </Card>
@@ -23,11 +23,15 @@ Set up your Nhost project
 </Card>
 
 <Card title="3. User Authentication" icon="user" href="/getting-started/tutorials/react/3-user-authentication">
-Complete auth flow with email verification
+Complete auth flow
 </Card>
 
 <Card title="4. GraphQL Operations" icon="list-check" href="/getting-started/tutorials/react/4-graphql-operations">
 CRUD operations with GraphQL
+</Card>
+
+<Card title="5. File Uploads" icon="upload" href="/getting-started/tutorials/react/5-file-uploads">
+File upload and management
 </Card>
 </CardGroup>
 
@@ -40,7 +44,10 @@ CRUD operations with GraphQL
 ## Step-by-Step Guide
 
 <Steps>
-<Step title="Create a New React App">
+<Step>
+
+### Create a New React App
+
 We'll start by creating a fresh React application using Vite with TypeScript support. Vite provides fast development server and optimized builds for modern React applications.
 
 ```bash
@@ -50,7 +57,10 @@ npm install
 ```
 </Step>
 
-<Step title="Install Required Dependencies">
+<Step>
+
+### Install Required Dependencies
+
 Install the Nhost JavaScript SDK and React Router for client-side routing. The Nhost SDK handles authentication, while React Router enables protected route navigation.
 
 ```bash
@@ -58,7 +68,10 @@ npm install @nhost/nhost-js react-router-dom
 ```
 </Step>
 
-<Step title="Environment Configuration">
+<Step>
+
+### Environment Configuration
+
 Configure your Nhost project connection by creating environment variables. This allows the app to connect to your specific Nhost backend.
 
 Create a `.env` file in your project root:
@@ -73,7 +86,10 @@ Replace `<region>` and `<subdomain>` with the actual values from your Nhost proj
 </Warning>
 </Step>
 
-<Step title="Create the Nhost Auth Provider">
+<Step>
+
+### Create the Nhost Auth Provider
+
 Build the core authentication provider that manages user sessions across your application. This component provides authentication state to all child components and handles cross-tab synchronization.
 
 ```tsx src/lib/nhost/AuthProvider.tsx lines
@@ -255,7 +271,10 @@ export const useAuth = (): AuthContextType => {
 
 </Step>
 
-<Step title="Create the Protected Route Component">
+<Step>
+
+### Create the Protected Route Component
+
 Build a reusable component that wraps protected routes and handles authentication checks. This component prevents unauthorized access and provides loading states during authentication verification.
 
 ```tsx src/components/ProtectedRoute.tsx lines
@@ -292,7 +311,10 @@ export default function ProtectedRoute({
 
 </Step>
 
-<Step title="Create the Profile Page">
+<Step>
+
+### Create the Profile Page
+
 Create a protected page that displays user information. This demonstrates how protected content is rendered and shows the authenticated user's session data.
 
 ```tsx src/pages/Profile.tsx lines
@@ -346,7 +368,10 @@ export default function Profile() {
 
 </Step>
 
-<Step title="Create a Simple Home Page">
+<Step>
+
+### Create a Simple Home Page
+
 Build a public homepage that adapts its content based on authentication status. This shows users different options depending on whether they're signed in.
 
 ```tsx src/pages/Home.tsx lines
@@ -374,7 +399,10 @@ export default function Home() {
 ```
 </Step>
 
-<Step title="Create the Navigation Component">
+<Step>
+
+### Create the Navigation Component
+
 Create a reusable navigation component that provides consistent navigation across all pages. This component adapts its links based on authentication status - showing different options for signed-in and signed-out users.
 
 ```tsx src/components/Navigation.tsx lines
@@ -440,7 +468,10 @@ export default function Navigation() {
 ```
 </Step>
 
-<Step title="Update the Main App Component">
+<Step>
+
+### Update the Main App Component
+
 Configure the application's routing structure with React Router. This sets up the route hierarchy, wraps protected routes with the ProtectedRoute component, includes the navigation component, and provides the authentication context to the entire app.
 
 ```tsx src/App.tsx lines
@@ -495,7 +526,9 @@ export default App;
 ```
 </Step>
 
-<Step title="Add Application Styles">
+<Step>
+
+### Add Application Styles
 
 ```css src/index.css lines
 :root {
@@ -1009,7 +1042,10 @@ label {
 ```
 </Step>
 
-<Step title="Run the Application">
+<Step>
+
+### Run the Application
+
 Start the development server to test your route protection implementation:
 
 ```bash

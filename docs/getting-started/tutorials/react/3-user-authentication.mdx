@@ -1,7 +1,7 @@
 ---
 title: User Authentication in React
 description: Learn how to implement user authentication in a React application using Nhost
-sidebarTitle: "React: User Authentication"
+sidebarTitle: "User Authentication"
 icon: user
 ---
 
@@ -13,7 +13,7 @@ This is **Tutorial 3** in the React Authentication Series. This tutorial creates
 
 ## React Authentication Series
 
-<CardGroup cols={4}>
+<CardGroup cols={3}>
 <Card title="1. Create Project" icon="plus" href="/getting-started/tutorials/create-nhost-project">
 Set up your Nhost project
 </Card>
@@ -29,6 +29,10 @@ Route protection basics
 <Card title="4. GraphQL Operations" icon="list-check" href="/getting-started/tutorials/react/4-graphql-operations">
 CRUD operations with GraphQL
 </Card>
+
+<Card title="5. File Uploads" icon="upload" href="/getting-started/tutorials/react/5-file-uploads">
+File upload and management
+</Card>
 </CardGroup>
 
 ## Prerequisites
@@ -39,7 +43,10 @@ CRUD operations with GraphQL
 ## Step-by-Step Guide
 
 <Steps>
-<Step title="Create a Sign In Page">
+<Step>
+
+### Create the Sign In Page
+
 Build a comprehensive sign-in form with proper error handling and loading states. This page handles user authentication and includes special logic for post-verification sign-in.
 
 ```tsx src/pages/SignIn.tsx lines
@@ -148,7 +155,10 @@ export default function SignIn() {
 
 </Step>
 
-<Step title="Create the Sign Up Page">
+<Step>
+
+### Create the Sign Up Page
+
 Implement user registration with email verification flow. This page collects user information, creates accounts, and guides users through the email verification process.
 
 ```tsx src/pages/SignUp.tsx lines
@@ -299,7 +309,10 @@ className="auth-input"
 
 </Step>
 
-<Step title="Create the Email Verification Page">
+<Step>
+
+### Create the Email Verification Page
+
 Build a dedicated verification page that processes email verification tokens. This page handles the verification flow when users click the email verification link.
 
 ```tsx src/pages/Verify.tsx lines
@@ -466,7 +479,10 @@ Without this configuration, you'll receive a `redirectTo not allowed` error when
 
 </Step>
 
-<Step title="Update the App Component to Include New Routes">
+<Step>
+
+### Update the App Component to Include New Routes
+
 Configure your application's routing structure to include the new authentication pages. This integrates all the authentication flows into your app's navigation.
 
 ```tsx src/App.tsx lines
@@ -527,7 +543,10 @@ export default App;
 ```
 </Step>
 
-<Step title="Run and Test the Application">
+<Step>
+
+### Run and Test the Application
+
 Start your development server and test the complete authentication flow to ensure everything works properly.
 
 ```bash

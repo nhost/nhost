@@ -1,7 +1,7 @@
 ---
 title: GraphQL Operations in React
 description: Learn how to perform GraphQL operations and manage database permissions while building a complete todos application with Nhost and React
-sidebarTitle: "React: GraphQL Operations"
+sidebarTitle: "GraphQL Operations"
 icon: code
 ---
 
@@ -13,7 +13,7 @@ This is **Tutorial 4** in the React Authentication Series. This tutorial focuses
 
 ## React Authentication Series
 
-<CardGroup cols={4}>
+<CardGroup cols={3}>
 <Card title="1. Create Project" icon="plus" href="/getting-started/tutorials/create-nhost-project">
 Set up your Nhost project
 </Card>
@@ -28,6 +28,10 @@ Complete auth flow
 
 <Card title="4. GraphQL Operations" icon="list-check" href="/getting-started/tutorials/react/4-graphql-operations">
 **Current Tutorial** - CRUD operations with GraphQL
+</Card>
+
+<Card title="5. File Uploads" icon="upload" href="/getting-started/tutorials/react/5-file-uploads">
+File upload and management
 </Card>
 </CardGroup>
 
@@ -47,7 +51,10 @@ By the end of this tutorial, you'll have:
 ## Step-by-Step Guide
 
 <Steps>
-<Step title="Create the To-Dos table">
+<Step>
+
+### Create the To-Dos Table
+
 First, we'll perform the database changes to set up the todos table with proper schema and relationships to users.
 
 In your Nhost project dashboard:
@@ -105,7 +112,9 @@ Please make sure to enable **Track this** so that the new table todos is availab
 
 </Step>
 
-<Step title="Set Up Permissions">
+<Step>
+
+### Set Up Permissions
 
 It’s now time to set permission rules for the table you just created. With the table `todos` selected, click on **…**, followed by **Edit Permissions**.
 You will set permissions for the **user** role and actions **insert**, **select**, **update**, and **delete**.
@@ -146,7 +155,10 @@ For deleting todos, we are allowing users to delete rows only where the `user_id
 </Step>
 
 
-<Step title="Create the Todos Page Component">
+<Step>
+
+### Create the Todos Page Component
+
 Now let's implement the React component that uses the database we just configured.
 
 ```tsx src/pages/Todos.tsx lines
@@ -655,7 +667,10 @@ export default function Todos(): JSX.Element {
 
 </Step>
 
-<Step title="Update App Routes">
+<Step>
+
+### Update App Routes
+
 Add the todos page to your application routing.
 
 ```tsx src/App.tsx lines
@@ -719,7 +734,10 @@ export default App;
 
 </Step>
 
-<Step title="Update Navigation Links">
+<Step>
+
+### Update Navigation Links
+
 Add a link to the todos page in the navigation bar.
 
 ```tsx src/components/Navigation.tsx lines
@@ -790,7 +808,10 @@ export default function Navigation() {
 
 </Step>
 
-<Step title="Add Complete Application Styles">
+<Step>
+
+### Add Complete Application Styles
+
 Add comprehensive styles for the todos interface and all application components.
 
 ```css src/index.css lines
@@ -1584,7 +1605,10 @@ label {
 
 </Step>
 
-<Step title="Test Your Complete Application">
+<Step>
+
+### Test Your Complete Application
+
 Run your application and test all the functionality:
 
 ```bash
@@ -1633,6 +1657,10 @@ Expandable todo items, inline editing, completion status, and detailed timestamp
 
 <Card title="<- 3. User Authentication" icon="user" href="/getting-started/tutorials/react/3-user-authentication">
 Complete auth flow
+</Card>
+
+<Card title="5. File Uploads ->" icon="upload" href="/getting-started/tutorials/react/5-file-uploads">
+File upload and management
 </Card>
 
 </CardGroup>
