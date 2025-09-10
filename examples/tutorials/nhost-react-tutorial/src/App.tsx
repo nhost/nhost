@@ -15,6 +15,7 @@ import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import Verify from "./pages/Verify";
 import Todos from "./pages/Todos";
+import Uploads from "./pages/Uploads";
 
 // Root layout component to wrap all routes
 const RootLayout = () => {
@@ -39,6 +40,7 @@ const router = createBrowserRouter(
       <Route element={<ProtectedRoute />}>
         <Route path="profile" element={<Profile />} />
         <Route path="todos" element={<Todos />} />
+        <Route path="uploads" element={<Uploads />} />
       </Route>
       <Route path="*" element={<Navigate to="/" />} />
     </Route>,
