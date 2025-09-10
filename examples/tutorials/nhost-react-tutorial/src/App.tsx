@@ -11,6 +11,9 @@ import Navigation from "./components/Navigation";
 import { AuthProvider } from "./lib/nhost/AuthProvider";
 import Home from "./pages/Home";
 import Profile from "./pages/Profile";
+import SignIn from "./pages/SignIn";
+import SignUp from "./pages/SignUp";
+import Verify from "./pages/Verify";
 
 // Root layout component to wrap all routes
 const RootLayout = () => {
@@ -29,6 +32,9 @@ const router = createBrowserRouter(
   createRoutesFromElements(
     <Route element={<RootLayout />}>
       <Route index element={<Home />} />
+      <Route path="signin" element={<SignIn />} />
+      <Route path="signup" element={<SignUp />} />
+      <Route path="verify" element={<Verify />} />
       <Route element={<ProtectedRoute />}>
         <Route path="profile" element={<Profile />} />
       </Route>
