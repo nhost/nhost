@@ -67,7 +67,7 @@ export default async function updateRemoteSchemaPermissionsMigration({
               },
             ]
           : [],
-        datasource: 'default', // TODO: Make this dynamic
+        datasource: 'default',
         skip_execution: false,
       },
       {

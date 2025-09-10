@@ -153,16 +153,6 @@ export default function RemoteSchemaPreview({
             {isSearching ? 'Searching...' : 'Find'}
           </Button>
         </form>
-
-        {/* Search Message */}
-        {/* {searchMessage && (
-          <Alert
-            severity={searchMessage.includes('Found') ? 'success' : 'warning'}
-            className="mt-2"
-          >
-            {searchMessage}
-          </Alert>
-        )} */}
       </div>
 
       <div className="p-4">

@@ -36,7 +36,6 @@ export default function TargetTableCombobox({
   const form = useFormContext<DatabaseRelationshipFormValues>();
   const [open, setOpen] = useState(false);
 
-  // TODO: Support multiple data sources
   const { data } = useDatabaseQuery(['default'], {
     dataSource: 'default',
   });

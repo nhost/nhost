@@ -27,7 +27,7 @@ export const getDatabaseRelationshipPayload = (
           {},
         ),
         relationship_type: values.relationshipType,
-        source: 'default', // TODO: Make this dynamic
+        source: 'default',
       },
     },
   };

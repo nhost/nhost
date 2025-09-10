@@ -21,7 +21,7 @@ export interface UseGetRemoteSchemasOptions {
 }
 
 /**
- * This hook is a wrapper around a query that gets the remote schemas from the metadata.
+ * This hook is a wrapper around a fetch call that gets the remote schemas from the metadata.
  *
  * @param options - Options to use for the query.
  * @returns The result of the query.

@@ -10,7 +10,6 @@ import { DEFAULT_REMOTE_SCHEMA_TIMEOUT_SECONDS } from '@/features/orgs/projects/
 import type {
   AddRemoteSchemaArgs,
   Headers,
-  HeadersItem,
 } from '@/utils/hasura-api/generated/schemas';
 import { triggerToast } from '@/utils/toast';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -74,21 +73,23 @@ export default function CreateRemoteSchemaForm({
 
   async function handleSubmit(values: BaseRemoteSchemaFormValues) {
     try {
-      const headers: Headers = (
-        values.definition.headers ?? []
-      ).map<HeadersItem>((header) => {
-        if (header.value_from_env) {
-          return {
-            name: header.name,
-            value_from_env: header.value_from_env,
-          };
-        }
-
-        return {
-          name: header.name,
-          value: header.value || '', // value is defined if value_from_env is not defined
-        };
-      });
+      const headers: Headers = values.definition.headers
+        ?.map((header) => {
+          if (header.value_from_env) {
+            return {
+              name: header.name,
+              value_from_env: header.value_from_env,
+            };
+          }
+          if (header.value) {
+            return {
+              name: header.name,
+              value: header.value,
+            };
+          }
+          return null;
+        })
+        .filter(Boolean) as Headers;
 
       const remoteSchema: AddRemoteSchemaArgs = {
         name: values.name,

@@ -67,10 +67,7 @@ export default function RelationshipTableCell({
 
     if (isToSourceRelationshipDefinition(definition)) {
       const tableName =
-        definition.to_source.table?.name ??
-        // Support string table in case API returns simple form
-        (definition.to_source as unknown as { table?: string })?.table ??
-        '';
+        definition.to_source.table?.name ?? definition.to_source?.table ?? '';
       const columns = Object.values(
         definition.to_source.field_mapping || {},
       ) as string[];

@@ -76,7 +76,6 @@ export default function EditRemoteSchemaPermissionsForm({
 
   const localMimirClient = useLocalMimirClient();
 
-  // Get remote schemas data
   const { data: remoteSchemas, refetch: refetchRemoteSchemas } =
     useGetRemoteSchemas();
 
@@ -156,7 +155,6 @@ export default function EditRemoteSchemaPermissionsForm({
     ? convertIntrospectionToSchema(introspectionData)
     : undefined;
 
-  // Helper function to get permission access level for a role
   const getPermissionAccessLevel = (role: string): RemoteSchemaAccessLevel => {
     let permissionAccess: RemoteSchemaAccessLevel;
     if (role === 'admin') {
@@ -225,7 +223,6 @@ export default function EditRemoteSchemaPermissionsForm({
     );
   }
 
-  // Role selection view
   return (
     <Box
       className="flex flex-auto flex-col content-between overflow-hidden border-t-1"

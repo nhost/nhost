@@ -36,13 +36,12 @@ import parsePresetArgTreeFromSDL from '@/features/orgs/projects/remote-schemas/u
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { DialogFormProps } from '@/types/common';
 
-// Form Schema for react-hook-form with Zod validation
-const FormSchema = z.object({
+const rolePermissionsSchema = z.object({
   selectedFields: z.array(z.string()).optional().default([]),
   presetValues: z.any().optional().default({}),
 });
 
-type FormData = z.infer<typeof FormSchema>;
+type RolePermissionsFormValues = z.infer<typeof rolePermissionsSchema>;
 
 export interface RemoteSchemaRolePermissionsEditorFormProps
   extends DialogFormProps {
@@ -103,7 +102,6 @@ export default function RemoteSchemaRolePermissionsEditorForm({
     return String(t ?? '');
   }, []);
 
-  // Count visible types
   const countVisible = useCallback(
     (list: RemoteSchemaFields[]) =>
       list.filter(
@@ -115,9 +113,8 @@ export default function RemoteSchemaRolePermissionsEditorForm({
     [],
   );
 
-  // Initialize form with react-hook-form
-  const form = useForm<FormData>({
-    resolver: zodResolver(FormSchema),
+  const form = useForm<RolePermissionsFormValues>({
+    resolver: zodResolver(rolePermissionsSchema),
     defaultValues: {
       selectedFields: [],
       presetValues: {},
@@ -131,7 +128,6 @@ export default function RemoteSchemaRolePermissionsEditorForm({
     error: schemaError,
   } = useIntrospectRemoteSchemaQuery(remoteSchemaName);
 
-  // Mutations for managing permissions
   const { mutateAsync: addPermission, isLoading: isAddingPermission } =
     useAddRemoteSchemaPermissionsMutation();
   const { mutateAsync: updatePermission, isLoading: isUpdatingPermission } =
@@ -330,7 +326,6 @@ export default function RemoteSchemaRolePermissionsEditorForm({
     [],
   );
 
-  // Handle preset value changes
   const handlePresetChange = useCallback(
     (
       schemaTypeName: string,
@@ -368,7 +363,6 @@ export default function RemoteSchemaRolePermissionsEditorForm({
     [],
   );
 
-  // Save permission
   const handleSavePermission = async () => {
     if (!schemaDefinition) {
       return;
@@ -504,13 +498,11 @@ export default function RemoteSchemaRolePermissionsEditorForm({
       .filter((schemaType) => schemaType.children.length > 0);
   }, [remoteSchemaFields, searchTerm]);
 
-  // Create filtered types set for display logic
   const filteredTypesSet = useMemo(
     () => new Set(filteredFields.map((field) => field.name)),
     [filteredFields],
   );
 
-  // Separate root types from custom types for better organization
   const rootTypes = useMemo(
     () =>
       filteredFields.filter(
@@ -578,7 +570,6 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                 </Text>
               </div>
 
-              {/* Search */}
               <div className="relative space-y-2">
                 <Input
                   placeholder="Search fields and operations..."
@@ -594,9 +585,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                 )}
               </div>
 
-              {/* Schema Fields */}
               <Box className="space-y-6">
-                {/* Root Operations */}
                 {rootTypes.length > 0 && (
                   <div className="space-y-4">
                     <Text className="text-lg font-semibold">
@@ -758,7 +747,6 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                   </div>
                 )}
 
-                {/* Custom Types */}
                 {customTypes.length > 0 && (
                   <div className="space-y-4">
                     <Text className="text-lg font-semibold">Custom Types</Text>
@@ -888,7 +876,6 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                   </div>
                 )}
 
-                {/* No results */}
                 {filteredFields.length === 0 && (
                   <div className="space-y-4">
                     <Text className="text-lg font-semibold">
@@ -906,7 +893,6 @@ export default function RemoteSchemaRolePermissionsEditorForm({
           </Box>
         </div>
 
-        {/* Actions */}
         <Box className="grid flex-shrink-0 gap-2 border-t-1 p-2 sm:grid-flow-col sm:justify-between">
           <Button variant="borderless" color="secondary" onClick={onCancel}>
             Cancel

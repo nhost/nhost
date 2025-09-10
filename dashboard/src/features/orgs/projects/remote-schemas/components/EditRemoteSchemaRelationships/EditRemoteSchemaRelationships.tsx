@@ -28,7 +28,6 @@ export default function EditRemoteSchemaRelationships({
   onCancel,
   disabled,
 }: EditRemoteSchemaRelationshipsProps) {
-  // Tracks the current view shown in the form. If you click on the "Add Relationship" button, the view will be set to "add".
   const [view, setView] = useState<'list' | 'add' | 'edit' | 'view'>('list');
 
   const [selectedRelationship, setSelectedRelationship] =
