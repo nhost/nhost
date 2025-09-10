@@ -32,6 +32,9 @@ export default function Navigation() {
 
           {isAuthenticated ? (
             <>
+              <Link to="/todos" className="nav-link">
+                Todos
+              </Link>
               <Link to="/profile" className="nav-link">
                 Profile
               </Link>

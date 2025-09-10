@@ -485,7 +485,7 @@ Without this configuration, you'll receive a `redirectTo not allowed` error when
 
 Configure your application's routing structure to include the new authentication pages. This integrates all the authentication flows into your app's navigation.
 
-```tsx src/App.tsx lines
+```tsx src/App.tsx lines highlight={14-16,35-37}
 import {
   createBrowserRouter,
   createRoutesFromElements,

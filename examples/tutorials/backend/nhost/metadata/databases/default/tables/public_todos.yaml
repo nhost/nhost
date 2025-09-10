@@ -5,6 +5,8 @@ insert_permissions:
   - role: user
     permission:
       check: {}
+      set:
+        user_id: X-Hasura-User-Id
       columns:
         - title
         - details
