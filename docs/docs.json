@@ -61,6 +61,17 @@
               "/getting-started/tutorials/react/4-graphql-operations",
               "/getting-started/tutorials/react/5-file-uploads"
             ]
+          },
+          {
+            "group": "Tutorial: ToDo App (Next.js)",
+            "icon": "book",
+            "pages": [
+              "/getting-started/tutorials/nextjs/1-introduction",
+              "/getting-started/tutorials/nextjs/2-protected-routes",
+              "/getting-started/tutorials/nextjs/3-user-authentication",
+              "/getting-started/tutorials/nextjs/4-graphql-operations",
+              "/getting-started/tutorials/nextjs/5-file-uploads"
+            ]
           }
         ]
       },
