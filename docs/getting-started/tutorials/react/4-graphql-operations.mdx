@@ -416,9 +416,9 @@ export default function Todos(): JSX.Element {
   }
 
   return (
-    <div className="todos-container">
-      <header className="todos-header">
-        <h1 className="todos-title">
+    <div className="container">
+      <header className="page-header">
+        <h1 className="page-title">
           My Todos
           {!showAddForm && (
             <button
@@ -818,14 +818,6 @@ Add comprehensive styles for the todos interface and all application components.
 /* ... existing styles ... */
 
 /* Todos */
-
-.todos-title {
-  font-weight: 700;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
 
 .todo-form {
   width: 100%;
