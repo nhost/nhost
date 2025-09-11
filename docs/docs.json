@@ -52,10 +52,10 @@
             ]
           },
           {
-            "group": "Tutorials (React)",
+            "group": "Tutorial: ToDo App (React)",
             "icon": "book",
             "pages": [
-              "/getting-started/tutorials/react/1-create-nhost-project",
+              "/getting-started/tutorials/react/1-introduction",
               "/getting-started/tutorials/react/2-protected-routes",
               "/getting-started/tutorials/react/3-user-authentication",
               "/getting-started/tutorials/react/4-graphql-operations",
