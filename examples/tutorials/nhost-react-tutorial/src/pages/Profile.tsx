@@ -5,8 +5,8 @@ export default function Profile() {
 
   return (
     <div className="container">
-      <header className="container-header">
-        <h1 className="container-title">Your Profile</h1>
+      <header className="page-header">
+        <h1 className="page-title">Your Profile</h1>
       </header>
 
       <div className="form-card">

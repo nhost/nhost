@@ -24,7 +24,7 @@ function formatFileSize(bytes: number): string {
 }
 
 
-export default function Uploads(): JSX.Element {
+export default function Files(): JSX.Element {
   const { isAuthenticated, nhost } = useAuth();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -236,8 +236,8 @@ export default function Uploads(): JSX.Element {
 
   return (
     <div className="container">
-      <header className="container-header">
-        <h1 className="todos-title">File Upload</h1>
+      <header className="page-header">
+        <h1 className="page-title">File Upload</h1>
       </header>
 
       <div className="form-card">

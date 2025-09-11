@@ -35,7 +35,7 @@ export default function Navigation() {
               <Link to="/todos" className="nav-link">
                 Todos
               </Link>
-              <Link to="/uploads" className="nav-link">
+              <Link to="/files" className="nav-link">
                 Files
               </Link>
               <Link to="/profile" className="nav-link">

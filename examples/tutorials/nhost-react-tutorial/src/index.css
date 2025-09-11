@@ -3,7 +3,7 @@
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
+  color-scheme: dark;
   color: rgba(255, 255, 255, 0.87);
   background-color: #242424;
 
@@ -119,6 +119,18 @@ label {
   padding: 2rem;
 }
 
+.page-header {
+  margin-bottom: 2rem;
+}
+
+.page-title {
+  font-weight: 700;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
 .margin-bottom {
   margin-bottom: 1rem;
 }
@@ -137,9 +149,6 @@ label {
   position: relative;
 }
 
-.container-header {
-  margin-bottom: 2rem;
-}
 
 /* Status Messages */
 .success-message {
@@ -236,21 +245,6 @@ label {
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-
-  a:hover {
-    color: #747bff;
-  }
-
-  button {
-    background-color: #f9f9f9;
-  }
 }
 
 /* Navigation */
@@ -508,14 +502,6 @@ label {
 }
 
 /* Todos */
-
-.todos-title {
-  font-weight: 700;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
 
 .todo-form {
   width: 100%;

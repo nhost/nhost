@@ -252,9 +252,9 @@ export default function Todos(): JSX.Element {
   }
 
   return (
-    <div className="todos-container">
-      <header className="todos-header">
-        <h1 className="todos-title">
+    <div className="container">
+      <header className="page-header">
+        <h1 className="page-title">
           My Todos
           {!showAddForm && (
             <button
