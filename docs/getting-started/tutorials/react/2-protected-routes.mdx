@@ -381,8 +381,10 @@ export default function Home() {
   const { isAuthenticated, user } = useAuth();
 
   return (
-    <div>
-      <h1>Welcome to Nhost React Demo</h1>
+    <div className="container">
+      <header className="page-header">
+        <h1 className="page-title">Welcome to Nhost React Demo</h1>
+      </header>
 
       {isAuthenticated ? (
         <div>

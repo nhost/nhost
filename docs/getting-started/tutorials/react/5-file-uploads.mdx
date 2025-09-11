@@ -109,7 +109,7 @@ Similarly to downloading files, to delete files users need to be able to delete 
 
 Now let's implement the React component for file upload functionality.
 
-```tsx src/pages/Uploads.tsx lines
+```tsx src/pages/Files.tsx lines
 import type { FileMetadata } from "@nhost/nhost-js/storage";
 import { type JSX, useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "../lib/nhost/AuthProvider";
@@ -136,7 +136,7 @@ function formatFileSize(bytes: number): string {
 }
 
 
-export default function Uploads(): JSX.Element {
+export default function Files(): JSX.Element {
   const { isAuthenticated, nhost } = useAuth();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -538,7 +538,7 @@ import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import Verify from "./pages/Verify";
 import Todos from "./pages/Todos";
-import Uploads from "./pages/Uploads";
+import Files from "./pages/Files";
 
 // Root layout component to wrap all routes
 const RootLayout = () => {
@@ -563,7 +563,7 @@ const router = createBrowserRouter(
       <Route element={<ProtectedRoute />}>
         <Route path="profile" element={<Profile />} />
         <Route path="todos" element={<Todos />} />
-        <Route path="uploads" element={<Uploads />} />
+        <Route path="files" element={<Files />} />
       </Route>
       <Route path="*" element={<Navigate to="/" />} />
     </Route>,
@@ -627,7 +627,7 @@ export default function Navigation() {
               <Link to="/todos" className="nav-link">
                 Todos
               </Link>
-              <Link to="/uploads" className="nav-link">
+              <Link to="/files" className="nav-link">
                 Files
               </Link>
               <Link to="/profile" className="nav-link">
