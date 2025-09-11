@@ -1,4 +1,6 @@
+import { FormField, FormMessage } from '@/components/ui/v3/form';
 import { ColumnAutocomplete } from '@/features/orgs/projects/database/dataGrid/components/ColumnAutocomplete';
+import { cn, isNotEmptyValue } from '@/lib/utils';
 import type { DetailedHTMLProps, HTMLProps } from 'react';
 import { useState } from 'react';
 import { useController, useFormContext } from 'react-hook-form';
@@ -32,7 +34,7 @@ export default function RuleEditorRow({
   ...props
 }: RuleEditorRowProps) {
   const { schema, table } = useRuleGroupEditor();
-  const { control, setValue } = useFormContext();
+  const { control, setValue, clearErrors } = useFormContext();
   const rowName = `${name}.rules.${index}`;
 
   const [selectedTablePath, setSelectedTablePath] = useState<string>('');
@@ -50,38 +52,55 @@ export default function RuleEditorRow({
       )}
       {...props}
     >
-      <ColumnAutocomplete
-        {...autocompleteField}
-        schema={schema}
-        table={table}
-        onChange={({ value, columnMetadata, disableReset }) => {
-          setSelectedTablePath(
-            `${columnMetadata?.table_schema}.${columnMetadata?.table_name}`,
-          );
-          setSelectedColumnType(columnMetadata?.udt_name);
-          setValue(`${rowName}.column`, value, {
-            shouldDirty: true,
-          });
+      <FormField
+        name={`${rowName}.column`}
+        control={control}
+        render={({ fieldState }) => {
+          const hasError = isNotEmptyValue(fieldState.error?.message);
+          return (
+            <div className="flex flex-col gap-2">
+              <ColumnAutocomplete
+                {...autocompleteField}
+                schema={schema}
+                table={table}
+                className={cn({
+                  'border-destructive text-destructive': hasError,
+                })}
+                onChange={({ value, columnMetadata, disableReset }) => {
+                  setSelectedTablePath(
+                    `${columnMetadata?.table_schema}.${columnMetadata?.table_name}`,
+                  );
+                  setSelectedColumnType(columnMetadata?.udt_name);
+                  setValue(`${rowName}.column`, value, {
+                    shouldDirty: true,
+                  });
 
-          if (disableReset) {
-            return;
-          }
+                  if (disableReset) {
+                    return;
+                  }
 
-          setValue(`${rowName}.operator`, '_eq', {
-            shouldDirty: true,
-          });
-          setValue(`${rowName}.value`, '', { shouldDirty: true });
-        }}
-        onInitialized={({ value, columnMetadata }) => {
-          setSelectedTablePath(
-            `${columnMetadata?.table_schema}.${columnMetadata?.table_name}`,
+                  setValue(`${rowName}.operator`, '_eq', {
+                    shouldDirty: true,
+                  });
+                  setValue(`${rowName}.value`, null, { shouldDirty: true });
+                  clearErrors();
+                }}
+                onInitialized={({ value, columnMetadata }) => {
+                  setSelectedTablePath(
+                    `${columnMetadata?.table_schema}.${columnMetadata?.table_name}`,
+                  );
+                  setSelectedColumnType(columnMetadata?.udt_name);
+                  setValue(`${rowName}.column`, value, {
+                    shouldDirty: true,
+                  });
+                }}
+              />
+              <FormMessage />
+            </div>
           );
-          setSelectedColumnType(columnMetadata?.udt_name);
-          setValue(`${rowName}.column`, value, {
-            shouldDirty: true,
-          });
         }}
       />
+
       <OperatorComboBox
         name={rowName}
         selectedColumnType={selectedColumnType}

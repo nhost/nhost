@@ -11,6 +11,7 @@ import {
   CommandList,
 } from '@/components/ui/v3/command';
 import { FancyMultiSelect } from '@/components/ui/v3/fancy-multi-select';
+import { FormField, FormItem, FormMessage } from '@/components/ui/v3/form';
 import {
   Popover,
   PopoverContent,
@@ -32,7 +33,7 @@ import type { HasuraOperator } from '@/features/orgs/projects/database/dataGrid/
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { getAllPermissionVariables } from '@/features/orgs/projects/permissions/settings/utils/getAllPermissionVariables';
-import { cn } from '@/lib/utils';
+import { cn, isNotEmptyValue } from '@/lib/utils';
 import { useGetRolesPermissionsQuery } from '@/utils/__generated__/graphql';
 import { CommandLoading } from 'cmdk';
 import { useState } from 'react';
@@ -93,7 +94,7 @@ export interface RuleValueInputProps {
   selectedTablePath: string;
 }
 
-export default function RuleValueInput({
+function RuleValueInput({
   name,
   selectedTablePath,
   className,
@@ -106,7 +107,6 @@ export default function RuleValueInput({
     name: inputName,
     control,
   });
-
   const [open, setOpen] = useState(false);
   const comboboxValue = useWatch({ name: inputName });
   const operator: HasuraOperator = useWatch({ name: `${name}.operator` });
@@ -121,7 +121,9 @@ export default function RuleValueInput({
   });
 
   if (operator === '_is_null') {
-    const defaultValue = !Array.isArray(comboboxValue) ? comboboxValue : null;
+    const defaultValue = comboboxValue ?? undefined;
+    const triggerClasses =
+      'border hover:bg-accent hover:text-accent-foreground focus:ring-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2';
     return (
       <Select
         disabled={disabled}
@@ -131,7 +133,7 @@ export default function RuleValueInput({
         }}
         defaultValue={defaultValue}
       >
-        <SelectTrigger className="border hover:bg-accent hover:text-accent-foreground focus:ring-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+        <SelectTrigger className={cn(triggerClasses, className)}>
           <SelectValue placeholder="Is null?" />
         </SelectTrigger>
         <SelectContent>
@@ -181,6 +183,7 @@ export default function RuleValueInput({
         schema={schema}
         table={table}
         name={inputName}
+        className={className}
       />
     );
   }
@@ -198,7 +201,7 @@ export default function RuleValueInput({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="justify-between"
+          className={cn('w-full justify-between', className)}
         >
           <span className="truncate">{comboboxLabel}</span>
           <ChevronsUpDown className="h-5 min-h-5 w-5 min-w-5 opacity-50" />
@@ -246,5 +249,39 @@ export default function RuleValueInput({
         </Command>
       </PopoverContent>
     </Popover>
+  );
+}
+
+export default function RuleInputWrapper(props: RuleValueInputProps) {
+  const { name, className } = props;
+
+  const { control } = useFormContext();
+  const inputName = `${name}.value`;
+
+  return (
+    <FormField
+      name={inputName}
+      control={control}
+      render={({ fieldState }) => {
+        const hasError = isNotEmptyValue(fieldState.error?.message);
+        const mergedProps = {
+          ...props,
+          className: cn(
+            {
+              'border-destructive text-destructive': hasError,
+            },
+            className,
+          ),
+        };
+        return (
+          <div className="flex w-full flex-col gap-2">
+            <FormItem>
+              <RuleValueInput {...mergedProps} />
+            </FormItem>
+            <FormMessage />
+          </div>
+        );
+      }}
+    />
   );
 }
