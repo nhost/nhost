@@ -24,7 +24,7 @@ export default async function trackTableMigration({
   adminSecret,
   table,
 }: TrackTableMigrationOptions & TrackTableMigrationVariables) {
-  const response = await fetch(`${getHasuraMigrationsApiUrl()}/apis/migrate`, {
+  const response = await fetch(`${getHasuraMigrationsApiUrl()}`, {
     method: 'POST',
     headers: {
       'x-hasura-admin-secret': adminSecret,

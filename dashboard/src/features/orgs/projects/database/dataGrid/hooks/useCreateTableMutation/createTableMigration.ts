@@ -28,7 +28,7 @@ export default async function createTableMigration({
 }: CreateTableMigrationOptions & CreateTableMigrationVariables) {
   const args = prepareCreateTableQuery({ dataSource, schema, table });
 
-  const response = await fetch(`${getHasuraMigrationsApiUrl()}/apis/migrate`, {
+  const response = await fetch(`${getHasuraMigrationsApiUrl()}`, {
     method: 'POST',
     headers: {
       'x-hasura-admin-secret': adminSecret,

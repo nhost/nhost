@@ -57,7 +57,7 @@ export default async function updateTableMigration({
     return;
   }
 
-  const response = await fetch(`${getHasuraMigrationsApiUrl()}/apis/migrate`, {
+  const response = await fetch(`${getHasuraMigrationsApiUrl()}`, {
     method: 'POST',
     headers: {
       'x-hasura-admin-secret': adminSecret,
