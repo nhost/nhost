@@ -23,6 +23,9 @@ export default async function Navigation() {
               <Link href="/todos" className="nav-link">
                 Todos
               </Link>
+              <Link href="/files" className="nav-link">
+                Files
+              </Link>
               <Link href="/profile" className="nav-link">
                 Profile
               </Link>
