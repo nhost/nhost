@@ -11,15 +11,11 @@ export default async function SignIn({
   const error = params?.error;
 
   return (
-    <div className="flex flex-col items-center justify-center">
-      <h1 className="text-3xl mb-6 gradient-text">Nhost Next.js Demo</h1>
+    <div>
+      <h1>Sign In</h1>
+      <SignInForm initialError={error} />
 
-      <div className="glass-card w-full p-8 mb-6">
-        <h2 className="text-2xl mb-6">Sign In</h2>
-        <SignInForm initialError={error} />
-      </div>
-
-      <div className="mt-4">
+      <div className="auth-links">
         <p>
           Don't have an account? <Link href="/signup">Sign Up</Link>
         </p>

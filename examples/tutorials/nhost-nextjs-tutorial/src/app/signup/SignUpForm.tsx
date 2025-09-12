@@ -39,8 +39,8 @@ export default function SignUpForm({ initialError }: SignUpFormProps) {
   };
 
   return (
-    <form action={handleSubmit} className="space-y-5">
-      <div>
+    <form action={handleSubmit} className="auth-form">
+      <div className="auth-form-field">
         <label htmlFor={displayNameId}>Display Name</label>
         <input
           id={displayNameId}
@@ -51,7 +51,7 @@ export default function SignUpForm({ initialError }: SignUpFormProps) {
         />
       </div>
 
-      <div>
+      <div className="auth-form-field">
         <label htmlFor={emailId}>Email</label>
         <input
           id={emailId}
@@ -62,7 +62,7 @@ export default function SignUpForm({ initialError }: SignUpFormProps) {
         />
       </div>
 
-      <div>
+      <div className="auth-form-field">
         <label htmlFor={passwordId}>Password</label>
         <input
           id={passwordId}
@@ -76,7 +76,7 @@ export default function SignUpForm({ initialError }: SignUpFormProps) {
       </div>
 
       {error && (
-        <div className="alert alert-error">
+        <div className="auth-error">
           {error}
         </div>
       )}
@@ -84,7 +84,7 @@ export default function SignUpForm({ initialError }: SignUpFormProps) {
       <button
         type="submit"
         disabled={isLoading}
-        className="btn btn-primary w-full"
+        className="auth-button primary"
       >
         {isLoading ? "Creating Account..." : "Sign Up"}
       </button>
