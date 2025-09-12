@@ -8,7 +8,7 @@ icon: upload
 This tutorial builds upon the previous GraphQL operations tutorial by demonstrating how to implement file upload functionality with proper storage permissions. You'll learn how to create storage buckets, configure upload permissions, and implement complete file management operations in a React application.
 
 <Info>
-This is **Tutorial 5** in the Full-Stack React Development with Nhost series. This tutorial focuses on file storage, upload operations, and permission-based file access control in a production application.
+This is **Part 5** in the Full-Stack React Development with Nhost series. This tutorial focuses on file storage, upload operations, and permission-based file access control in a production application.
 </Info>
 
 ## Full-Stack React Development with Nhost
@@ -31,7 +31,7 @@ CRUD operations with GraphQL
 </Card>
 
 <Card title="5. File Uploads" icon="upload" href="/getting-started/tutorials/react/5-file-uploads">
-**Current Tutorial** - File upload and management
+**Current** - File upload and management
 </Card>
 </CardGroup>
 
@@ -61,7 +61,7 @@ In your Nhost project dashboard:
 1. Navigate to **Database**
 2. Change to **schema.storage**, then buckets
 3. Now click on `+ Insert` on the top right corner.
-4. As id set `public`, leave the rest of the fields blank and click on Insert at the bottom
+4. As id set `personal`, leave the rest of the fields blank and click on Insert at the bottom
 
 ![Create bucket](/images/tutorials/uploads/1.png)
 
@@ -71,7 +71,7 @@ In your Nhost project dashboard:
 
 ### Configure Storage Permissions
 
-Now we need to set up permissions for the storage bucket to ensure users can only upload, view, and delete their own files.
+Now we need to set up permissions for the storage bucket to ensure the `user` role can only upload, view, and delete their own files.
 
 <Tabs>
 
@@ -95,11 +95,15 @@ To download files users need to be able to query those files. To make sure users
 
 Similarly to downloading files, to delete files users need to be able to delete rows from the `storage.files` table. Again we will use the `uploaded_by_user_id` column and the `bucket_id` to make sure users can only delete their own files.
 
-![download files permissions](/images/tutorials/uploads/3.png)
+![delete files permissions](/images/tutorials/uploads/4.png)
 
 </Tab>
 
 </Tabs>
+
+<Info>
+You can read more about storage permissions [here](/products/storage/overview#permissions)
+</Info>
 
 </Step>
 
