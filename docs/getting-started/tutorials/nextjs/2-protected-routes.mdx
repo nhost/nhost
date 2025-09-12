@@ -51,7 +51,7 @@ File upload and management
 We'll start by creating a fresh Next.js application with TypeScript support. Next.js provides server-side rendering, file-based routing, and optimized builds for modern React applications.
 
 ```bash
-npx create-next-app@latest nhost-nextjs-tutorial --typescript --tailwind --eslint --app
+npx create-next-app@15 nhost-nextjs-tutorial --typescript --eslint --app --no-tailwind --yes
 cd nhost-nextjs-tutorial
 npm install
 ```
@@ -399,7 +399,7 @@ export const useAuth = (): AuthContextType => {
 Create a server-side protected page that displays user information. Since middleware handles route protection, this page can assume the user is authenticated and focus on rendering user data.
 
 ```tsx src/app/profile/page.tsx lines
-import { createNhostClient } from "../lib/nhost/server";
+import { createNhostClient } from "../../lib/nhost/server";
 
 export default async function Profile() {
   // Create the client with async cookie access
@@ -409,42 +409,42 @@ export default async function Profile() {
   // At this point, middleware has ensured we have a session
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Your Profile</h1>
+    <div className="container">
+      <header>
+        <h1>Your Profile</h1>
       </header>
 
-      <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 mb-6">
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">User Information</h3>
-        <div className="space-y-4">
-          <div className="flex flex-col">
-            <strong className="text-gray-700 dark:text-gray-300">Display Name:</strong>
-            <span className="text-gray-900 dark:text-white">{session.user?.displayName || "Not set"}</span>
+      <div className="profile-section">
+        <h3>User Information</h3>
+        <div className="user-info">
+          <div className="info-item">
+            <strong>Display Name:</strong>
+            <span>{session?.user?.displayName || "Not set"}</span>
           </div>
-          <div className="flex flex-col">
-            <strong className="text-gray-700 dark:text-gray-300">Email:</strong>
-            <span className="text-gray-900 dark:text-white">{session.user?.email || "Not available"}</span>
+          <div className="info-item">
+            <strong>Email:</strong>
+            <span>{session?.user?.email || "Not available"}</span>
           </div>
-          <div className="flex flex-col">
-            <strong className="text-gray-700 dark:text-gray-300">User ID:</strong>
-            <span className="text-gray-900 dark:text-white font-mono text-sm">{session.user?.id || "Not available"}</span>
+          <div className="info-item">
+            <strong>User ID:</strong>
+            <span className="user-id">{session?.user?.id || "Not available"}</span>
           </div>
-          <div className="flex flex-col">
-            <strong className="text-gray-700 dark:text-gray-300">Roles:</strong>
-            <span className="text-gray-900 dark:text-white">{session.user?.roles?.join(", ") || "None"}</span>
+          <div className="info-item">
+            <strong>Roles:</strong>
+            <span>{session?.user?.roles?.join(", ") || "None"}</span>
           </div>
-          <div className="flex flex-col">
-            <strong className="text-gray-700 dark:text-gray-300">Email Verified:</strong>
-            <span className={`font-medium ${session.user?.emailVerified ? 'text-green-600' : 'text-red-600'}`}>
-              {session.user?.emailVerified ? "✓ Yes" : "✗ No"}
+          <div className="info-item">
+            <strong>Email Verified:</strong>
+            <span className={session?.user?.emailVerified ? 'verified' : 'unverified'}>
+              {session?.user?.emailVerified ? "✓ Yes" : "✗ No"}
             </span>
           </div>
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Session Information</h3>
-        <pre className="text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 p-4 rounded overflow-auto">
+      <div className="session-section">
+        <h3>Session Information</h3>
+        <pre className="session-data">
           {JSON.stringify(session, null, 2)}
         </pre>
       </div>
@@ -462,16 +462,16 @@ export default async function Profile() {
 Build a public homepage that adapts its content based on authentication status. This shows users different options depending on whether they're signed in.
 
 ```tsx src/app/page.tsx lines
-import { createNhostClient } from "./lib/nhost/server";
+import { createNhostClient } from "../lib/nhost/server";
 
 export default async function Home() {
   const nhost = await createNhostClient();
   const session = nhost.getUserSession();
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Welcome to Nhost Next.js Demo</h1>
+    <div className="container">
+      <header>
+        <h1>Welcome to Nhost Next.js Demo</h1>
       </header>
 
       {session ? (
@@ -505,33 +505,28 @@ export default async function Navigation() {
   const session = nhost.getUserSession();
 
   return (
-    <nav className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-      <div className="max-w-2xl mx-auto px-6 py-4">
-        <div className="flex justify-between items-center">
-          <Link href="/" className="text-xl font-bold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400">
+    <nav className="navigation">
+      <div className="nav-container">
+        <div className="nav-content">
+          <Link href="/" className="logo">
             Nhost Next.js Demo
           </Link>
 
-          <div className="flex items-center space-x-4">
-            <Link href="/" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+          <div className="nav-links">
+            <Link href="/" className="nav-link">
               Home
             </Link>
 
             {session ? (
               <>
-                <Link href="/profile" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+                <Link href="/profile" className="nav-link">
                   Profile
                 </Link>
                 <SignOutButton />
               </>
             ) : (
               <>
-                <Link href="/signin" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
-                  Sign In
-                </Link>
-                <Link href="/signup" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
-                  Sign Up
-                </Link>
+               Placeholder for signin/signup links
               </>
             )}
           </div>
@@ -570,7 +565,7 @@ export default function SignOutButton() {
   return (
     <button
       onClick={handleSignOut}
-      className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 font-medium"
+      className="sign-out-btn"
     >
       Sign Out
     </button>
@@ -588,10 +583,10 @@ Create Next.js middleware to handle route protection at the server level. This m
 ```tsx src/middleware.ts lines
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { handleNhostMiddleware } from "./app/lib/nhost/server";
+import { handleNhostMiddleware } from "./lib/nhost/server";
 
 // Define public routes that don't require authentication
-const publicRoutes = ["/signin", "/signup", "/verify"];
+const publicRoutes = ["/"];
 
 export async function middleware(request: NextRequest) {
   // Create a response that we'll modify as needed
@@ -605,18 +600,20 @@ export async function middleware(request: NextRequest) {
     (route) => path === route || path.startsWith(`${route}/`),
   );
 
+  // Handle Nhost authentication and token refresh
+  // Always call this to ensure session is up-to-date
+  // even for public routes, so that session changes are detected
+  const session = await handleNhostMiddleware(request, response);
+
   // If it's a public route, allow access without checking auth
   if (isPublicRoute) {
     return response;
   }
 
-  // Handle Nhost authentication and token refresh
-  const session = await handleNhostMiddleware(request, response);
-
   // If no session and not a public route, redirect to signin
   if (!session) {
-    const signInUrl = new URL("/signin", request.url);
-    return NextResponse.redirect(signInUrl);
+    const homeUrl = new URL("/", request.url);
+    return NextResponse.redirect(homeUrl);
   }
 
   // Session exists, allow access to protected route
@@ -642,18 +639,177 @@ export const config = {
 
 <Step>
 
+### Create CSS Styles
+
+Create a `src/app/globals.css` file with the following styles for the application:
+
+```css src/app/globals.css lines
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f9f9f9;
+}
+
+.app {
+  min-height: 100vh;
+}
+
+/* Navigation Styles */
+.navigation {
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.nav-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.nav-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0;
+}
+
+.logo {
+  font-size: 20px;
+  font-weight: bold;
+  color: #333;
+  text-decoration: none;
+}
+
+.logo:hover {
+  color: #0066cc;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.nav-link {
+  color: #666;
+  text-decoration: none;
+}
+
+.nav-link:hover {
+  color: #333;
+}
+
+.sign-out-btn {
+  color: #dc2626;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.sign-out-btn:hover {
+  color: #991b1b;
+}
+
+/* Container Styles */
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+header {
+  margin-bottom: 32px;
+}
+
+header h1 {
+  font-size: 32px;
+  font-weight: bold;
+  color: #333;
+  margin: 0;
+}
+
+/* Profile Page Styles */
+.profile-section,
+.session-section {
+  background-color: white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.profile-section h3,
+.session-section h3 {
+  font-size: 18px;
+  font-weight: 500;
+  color: #333;
+  margin: 0 0 16px 0;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.info-item strong {
+  color: #555;
+  font-weight: 600;
+}
+
+.info-item span {
+  color: #333;
+}
+
+.user-id {
+  font-family: monospace;
+  font-size: 14px;
+}
+
+.verified {
+  color: #16a34a;
+  font-weight: 500;
+}
+
+.unverified {
+  color: #dc2626;
+  font-weight: 500;
+}
+
+.session-data {
+  font-size: 14px;
+  color: #666;
+  background-color: #f8f8f8;
+  padding: 16px;
+  border-radius: 4px;
+  overflow: auto;
+  white-space: pre-wrap;
+  margin: 0;
+}
+```
+
+</Step>
+
+<Step>
+
 ### Update the Root Layout
 
 Configure the Next.js root layout to include the authentication provider and navigation. This provides authentication context to all client components and includes the navigation bar on every page.
 
 ```tsx src/app/layout.tsx lines
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
-import Navigation from "./components/Navigation";
-import { AuthProvider } from "./lib/nhost/AuthProvider";
-
-const inter = Inter({ subsets: ["latin"] });
+import Navigation from "../components/Navigation";
+import { AuthProvider } from "../lib/nhost/AuthProvider";
 
 export const metadata: Metadata = {
   title: "Nhost Next.js Tutorial",
@@ -667,9 +823,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body>
         <AuthProvider>
-          <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+          <div className="app">
             <Navigation />
             <main>{children}</main>
           </div>
