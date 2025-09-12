@@ -1,3 +1,4 @@
+import type { ArgTreeType } from '@/features/orgs/projects/remote-schemas/types';
 import type {
   DocumentNode,
   FieldDefinitionNode,
@@ -22,11 +23,11 @@ export default function parsePresetArgTreeFromSDL(
   try {
     const doc: DocumentNode = parse(definition);
     const defs = doc.definitions as DefinitionWithFields[];
-    const argTree: Record<string, any> = {};
+    const argTree: ArgTreeType = {};
 
     defs?.forEach((def) => {
       const defName = def?.name?.value;
-      const hasFields = Array.isArray((def as any)?.fields);
+      const hasFields = Array.isArray(def?.fields);
       if (!defName || !hasFields) {
         return;
       }
@@ -42,14 +43,24 @@ export default function parsePresetArgTreeFromSDL(
 
       if (def.kind === 'InputObjectTypeDefinition') {
         const typeKey = `input ${defName}`;
-        const inputMap: Record<string, any> = { [typeKey]: {} };
+        const typeEntry: ArgTreeType = {};
         def.fields?.forEach((field) => {
           if (field.directives && field.directives.length > 0) {
-            inputMap[typeKey][field.name?.value] = {};
-            inputMap[typeKey][field.name?.value][field.name?.value] =
-              getPresetDirective(field);
+            const fieldName = field.name?.value;
+            if (!fieldName) {
+              return;
+            }
+            const preset = getPresetDirective(field);
+            if (preset !== undefined) {
+              typeEntry[fieldName] = {};
+              (typeEntry[fieldName] as ArgTreeType)[fieldName] =
+                preset as ArgTreeType[keyof ArgTreeType];
+            }
           }
         });
+
+        const inputMap: ArgTreeType = { [typeKey]: typeEntry };
+
         Object.assign(argTree, inputMap);
       }
     });
@@ -58,6 +69,6 @@ export default function parsePresetArgTreeFromSDL(
   } catch (e) {
     // eslint-disable-next-line no-console
     console.error(e);
-    return {};
+    return {} as ArgTreeType;
   }
 }

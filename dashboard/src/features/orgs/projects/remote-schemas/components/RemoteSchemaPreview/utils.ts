@@ -190,7 +190,7 @@ export const buildComplexTreeData = ({
       treeData.root.children!.push(rootFieldKey);
 
       // Add fields of root type
-      const typeFields = (rootType as any).getFields();
+      const typeFields = rootType.getFields();
       Object.values(typeFields).forEach((field: any) => {
         const fieldKey = `${rootFieldKey}.field.${field.name}`;
         const hasArgs = field.args && field.args.length > 0;

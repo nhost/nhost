@@ -1,12 +1,12 @@
 import type {
-  ArgTreeType,
   CustomFieldType,
-  FieldType,
   RemoteSchemaFields,
 } from '@/features/orgs/projects/remote-schemas/types';
 import {
+  type GraphQLArgument,
   GraphQLEnumType,
   type GraphQLFieldMap,
+  type GraphQLInputField,
   GraphQLInputObjectType,
   GraphQLInterfaceType,
   GraphQLObjectType,
@@ -18,9 +18,9 @@ import getSchemaRoots from './getSchemaRoots';
 
 // Returns array of schema fields (query_root and mutation_root)
 function getTree(
-  introspectionSchema: GraphQLSchema | null,
+  introspectionSchema: GraphQLSchema,
   permissionsSchema: GraphQLSchema | null,
-  typeS: string,
+  typeS: 'QUERY' | 'MUTATION',
 ) {
   const baseType =
     typeS === 'QUERY'
@@ -42,10 +42,13 @@ function getTree(
 
   const parentName = `type ${baseType?.name}`;
 
-  return Object.values(baseFields).map((field: any) => {
+  return Object.values(baseFields).map((field) => {
     const { name, args: argArray, type, ...rest } = field;
-    const args = (argArray ?? []).reduce(
-      (p: ArgTreeType, c: FieldType) => ({ ...p, [c.name]: { ...c } }),
+    const args = (argArray ?? []).reduce<Record<string, GraphQLArgument>>(
+      (acc, arg) => {
+        acc[arg.name] = arg;
+        return acc;
+      },
       {},
     );
     const checked = Boolean(permFields && name in permFields);
@@ -57,7 +60,7 @@ function getTree(
       return: type?.toString?.() ?? String(type),
       parentName,
       ...rest,
-    };
+    } satisfies CustomFieldType;
   });
 }
 
@@ -65,10 +68,10 @@ function getTree(
  * Collects input/object/scalar/enum/union/interface types for the types tree.
  */
 function getType(
-  introspectionSchema: GraphQLSchema | null,
+  introspectionSchema: GraphQLSchema,
   permissionsSchema: GraphQLSchema | null,
 ) {
-  const introspectionSchemaFields = introspectionSchema!.getTypeMap();
+  const introspectionSchemaFields = introspectionSchema.getTypeMap();
   const permissionsSchemaFields = permissionsSchema
     ? permissionsSchema.getTypeMap()
     : null;
@@ -80,16 +83,16 @@ function getType(
   const unionTypes: RemoteSchemaFields[] = [];
   const interfaceTypes: RemoteSchemaFields[] = [];
 
-  const roots = introspectionSchema ? getSchemaRoots(introspectionSchema) : [];
+  const roots = getSchemaRoots(introspectionSchema);
 
   const isPermittedType = (typeKey: string) =>
     Boolean(
       permissionsSchema &&
         permissionsSchemaFields &&
-        typeKey in (permissionsSchemaFields as any),
+        typeKey in permissionsSchemaFields,
     );
 
-  Object.entries(introspectionSchemaFields).forEach(([key, value]: any) => {
+  Object.entries(introspectionSchemaFields).forEach(([key, value]) => {
     // Only process concrete GraphQL types
     if (
       !(
@@ -136,7 +139,7 @@ function getType(
       if (value.getInterfaces().length) {
         const implementsString = value
           .getInterfaces()
-          .map((i: any) => i.name)
+          .map((i) => i.name)
           .join('& ');
         type.name = `type ${typeName} implements ${implementsString}`;
       }
@@ -150,14 +153,24 @@ function getType(
       value instanceof GraphQLInputObjectType
     ) {
       const fieldVal = value.getFields();
-      let permissionsFieldVal: GraphQLFieldMap<any, any> = {};
+      const permissionsFieldNames: Record<string, true> = {};
       let isFieldPresent = true;
 
       if (permissionsSchema && permissionsSchemaFields) {
-        if (key in (permissionsSchemaFields as any)) {
-          permissionsFieldVal = (permissionsSchemaFields as any)[
-            key
-          ].getFields();
+        if (key in permissionsSchemaFields) {
+          const permNamedType = permissionsSchemaFields[key];
+          if (
+            permNamedType instanceof GraphQLObjectType ||
+            permNamedType instanceof GraphQLInputObjectType ||
+            permNamedType instanceof GraphQLInterfaceType
+          ) {
+            const permFields = permNamedType.getFields();
+            Object.keys(permFields).forEach((fname) => {
+              permissionsFieldNames[fname] = true;
+            });
+          } else {
+            isFieldPresent = false;
+          }
         } else {
           isFieldPresent = false;
         }
@@ -166,26 +179,29 @@ function getType(
       const childArray: CustomFieldType[] = [];
       Object.entries(fieldVal).forEach(([k, v]) => {
         const checked = Boolean(
-          permissionsSchema && isFieldPresent && k in permissionsFieldVal,
+          permissionsSchema && isFieldPresent && k in permissionsFieldNames,
         );
         const field: CustomFieldType = {
           name: v.name,
           checked,
           return: v.type.toString(),
         };
-        if (v.defaultValue !== undefined) {
+        if ((v as GraphQLInputField).defaultValue !== undefined) {
           field.defaultValue = v.defaultValue;
         }
 
         if (value instanceof GraphQLInputObjectType) {
-          field.args = { [k]: v } as any;
           field.isInputObjectType = true;
           field.parentName = type.name;
         } else if (v.args?.length) {
-          field.args = v.args.reduce(
-            (p: ArgTreeType, c: FieldType) => ({ ...p, [c.name]: { ...c } }),
-            {},
+          const argsMap = (v.args as ReadonlyArray<GraphQLArgument>).reduce(
+            (acc, arg) => {
+              acc[arg.name] = arg;
+              return acc;
+            },
+            {} as Record<string, GraphQLArgument>,
           );
+          field.args = argsMap;
         }
         childArray.push(field);
       });
@@ -202,12 +218,15 @@ function getType(
     // Union types
     if (value instanceof GraphQLUnionType) {
       let isFieldPresent = true;
-      let permissionsTypesVal: any;
+      let permissionsTypesVal: ReadonlyArray<GraphQLObjectType<any, any>> = [];
       if (permissionsSchema && permissionsSchemaFields) {
-        if (key in (permissionsSchemaFields as any)) {
-          permissionsTypesVal = (permissionsSchemaFields as any)[
-            key
-          ].getTypes();
+        if (key in permissionsSchemaFields) {
+          const permNamedType = permissionsSchemaFields[key];
+          if (permNamedType instanceof GraphQLUnionType) {
+            permissionsTypesVal = permNamedType.getTypes();
+          } else {
+            isFieldPresent = false;
+          }
         } else {
           isFieldPresent = false;
         }
@@ -215,9 +234,11 @@ function getType(
       type.name = `union ${typeName}`;
       const typesVal = value.getTypes();
       const childArray: CustomFieldType[] = [];
-      Object.entries(typesVal).forEach(([k, v]) => {
+      typesVal.forEach((v) => {
         const checked = Boolean(
-          permissionsSchema && isFieldPresent && k in permissionsTypesVal,
+          permissionsSchema &&
+            isFieldPresent &&
+            permissionsTypesVal.some((t) => t.name === v.name),
         );
         childArray.push({ name: v.name, checked, return: v.name });
       });
@@ -229,12 +250,21 @@ function getType(
     // Interface types
     if (value instanceof GraphQLInterfaceType) {
       let isFieldPresent = true;
-      let permissionsFieldVal: GraphQLFieldMap<any, any> = {};
+      const permissionsFieldNames: Record<string, true> = {};
       if (permissionsSchema && permissionsSchemaFields) {
-        if (key in (permissionsSchemaFields as any)) {
-          permissionsFieldVal = (permissionsSchemaFields as any)[
-            key
-          ].getFields();
+        if (key in permissionsSchemaFields) {
+          const permNamedType = permissionsSchemaFields[key];
+          if (
+            permNamedType instanceof GraphQLObjectType ||
+            permNamedType instanceof GraphQLInterfaceType
+          ) {
+            const permFields = permNamedType.getFields();
+            Object.keys(permFields).forEach((fname) => {
+              permissionsFieldNames[fname] = true;
+            });
+          } else {
+            isFieldPresent = false;
+          }
         } else {
           isFieldPresent = false;
         }
@@ -244,7 +274,7 @@ function getType(
       const childArray: CustomFieldType[] = [];
       Object.entries(fieldVal).forEach(([k, v]) => {
         const checked = Boolean(
-          permissionsSchema && isFieldPresent && k in permissionsFieldVal,
+          permissionsSchema && isFieldPresent && k in permissionsFieldNames,
         );
         childArray.push({ name: v.name, checked, return: v.type.toString() });
       });

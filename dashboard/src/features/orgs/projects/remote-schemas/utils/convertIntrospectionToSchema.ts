@@ -1,10 +1,11 @@
-import type { IntrospectRemoteSchemaResponse } from '@/utils/hasura-api/generated/schemas';
-import { buildClientSchema, type GraphQLSchema } from 'graphql';
+import {
+  buildClientSchema,
+  type GraphQLSchema,
+  type IntrospectionQuery,
+} from 'graphql';
 
 export default function convertIntrospectionToSchema(
-  introspectionData: IntrospectRemoteSchemaResponse,
+  introspectionData: IntrospectionQuery,
 ): GraphQLSchema | null {
-  return introspectionData?.data
-    ? buildClientSchema(introspectionData.data as any)
-    : null;
+  return buildClientSchema(introspectionData);
 }

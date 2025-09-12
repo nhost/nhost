@@ -37,7 +37,7 @@ function parseConstValue(node?: ValueNode) {
       return null;
     }
     case 'ObjectValue': {
-      const res: Record<string, any> = {};
+      const res: Record<string, unknown> = {};
       (node.fields ?? []).forEach((f: ObjectFieldNode) => {
         res[f.name.value] = parseConstValue(f.value);
       });
@@ -76,7 +76,7 @@ function parseObjectField(arg: ArgumentNode | ObjectFieldNode) {
 }
 
 export default function getPresetDirective(field: InputValueDefinitionNode) {
-  let res: unknown | Record<string, any>;
+  let res: Record<string, unknown> | unknown;
   const preset = field?.directives?.find(
     (dir) => dir?.name?.value === 'preset',
   );

@@ -3,8 +3,8 @@ import { metadataOperation } from '@/utils/hasura-api/generated/default/default'
 import type {
   IntrospectRemoteSchemaArgs,
   IntrospectRemoteSchemaOperation,
-  IntrospectRemoteSchemaResponse,
 } from '@/utils/hasura-api/generated/schemas';
+import { IntrospectionQuery } from 'graphql';
 
 export interface IntrospectRemoteSchemaVariables {
   args: IntrospectRemoteSchemaArgs;
@@ -28,7 +28,7 @@ export default async function introspectRemoteSchema({
     });
 
     if (response.status === 200) {
-      return response.data as IntrospectRemoteSchemaResponse;
+      return response.data as { data: IntrospectionQuery };
     }
 
     throw new Error(response.data.error);

@@ -35,7 +35,7 @@ export default async function createRemoteSchema({
       return response.data;
     }
 
-    throw new Error(response.data.error);
+    throw new Error(response.data?.message);
   } catch (error) {
     console.error(error);
     throw error;

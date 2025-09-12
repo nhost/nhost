@@ -1,5 +1,4 @@
-import type { IntrospectRemoteSchemaResponse } from '@/utils/hasura-api/generated/schemas';
-import { isObjectType } from 'graphql';
+import { type IntrospectionQuery, isObjectType } from 'graphql';
 import convertIntrospectionToSchema from './convertIntrospectionToSchema';
 
 /**
@@ -9,7 +8,7 @@ import convertIntrospectionToSchema from './convertIntrospectionToSchema';
  * introspection types (that start with `__`).
  */
 export default function getSourceTypes(
-  introspectionData: IntrospectRemoteSchemaResponse | undefined,
+  introspectionData: IntrospectionQuery | undefined,
 ) {
   if (!introspectionData) {
     return [];

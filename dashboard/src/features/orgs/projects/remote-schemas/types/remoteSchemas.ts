@@ -15,8 +15,10 @@ export type RemoteSchemaRelationshipType = 'remote-schema' | 'database';
 
 export type RemoteSchemaAccessLevel = 'full' | 'partial' | 'none';
 
+export type ArgLeafType = string | number | boolean | null;
+
 export type ArgTreeType = {
-  [key: string]: string | number | ArgTreeType;
+  [key: string]: ArgLeafType | ArgTreeType;
 };
 
 export type CustomFieldType = {

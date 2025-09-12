@@ -5,11 +5,13 @@
  * API for managing remote schemas in Hasura
  * OpenAPI spec version: 1.0.0
  */
+import type { _IntrospectRemoteSchemaResponseDataSchemaSubscriptionTypeKind } from './_introspectRemoteSchemaResponseDataSchemaSubscriptionTypeKind';
 
 /**
  * @nullable
  */
 export type _IntrospectRemoteSchemaResponseDataSchemaSubscriptionType = {
-  name?: string;
+  name: string;
+  kind: _IntrospectRemoteSchemaResponseDataSchemaSubscriptionTypeKind;
   [key: string]: unknown;
 } | null;

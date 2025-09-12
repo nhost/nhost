@@ -7,9 +7,13 @@
  */
 
 export * from './_introspectRemoteSchemaResponseDataSchema';
+export * from './_introspectRemoteSchemaResponseDataSchemaDirectivesItem';
 export * from './_introspectRemoteSchemaResponseDataSchemaMutationType';
+export * from './_introspectRemoteSchemaResponseDataSchemaMutationTypeKind';
 export * from './_introspectRemoteSchemaResponseDataSchemaQueryType';
+export * from './_introspectRemoteSchemaResponseDataSchemaQueryTypeKind';
 export * from './_introspectRemoteSchemaResponseDataSchemaSubscriptionType';
+export * from './_introspectRemoteSchemaResponseDataSchemaSubscriptionTypeKind';
 export * from './addRemoteSchemaArgs';
 export * from './addRemoteSchemaOperation';
 export * from './addRemoteSchemaOperationType';

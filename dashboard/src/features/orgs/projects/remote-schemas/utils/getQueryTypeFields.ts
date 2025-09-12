@@ -1,4 +1,4 @@
-import type { IntrospectRemoteSchemaResponse } from '@/utils/hasura-api/generated/schemas';
+import { type IntrospectionQuery } from 'graphql';
 import convertIntrospectionToSchema from './convertIntrospectionToSchema';
 
 /**
@@ -7,7 +7,7 @@ import convertIntrospectionToSchema from './convertIntrospectionToSchema';
  * @returns The query type fields in { label: string, value: string } format.
  */
 export default function getQueryTypeFields(
-  introspectionData: IntrospectRemoteSchemaResponse | undefined,
+  introspectionData: IntrospectionQuery | undefined,
 ) {
   if (!introspectionData) {
     return [];

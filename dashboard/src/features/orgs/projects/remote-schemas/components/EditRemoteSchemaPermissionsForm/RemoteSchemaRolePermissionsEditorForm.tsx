@@ -1,5 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { buildClientSchema, type GraphQLSchema } from 'graphql';
+import {
+  buildClientSchema,
+  type GraphQLArgument,
+  type GraphQLSchema,
+} from 'graphql';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -88,7 +92,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
 
   const { data: resourceVersion } = useGetMetadataResourceVersion();
 
-  const getArgTypeString = useCallback((arg: any): string => {
+  const getArgTypeString = useCallback((arg: GraphQLArgument): string => {
     const t = arg?.type;
     if (typeof t === 'string') {
       return t;
@@ -96,9 +100,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
     if (t?.toString) {
       return t.toString();
     }
-    if (t?.inspect) {
-      return t.inspect();
-    }
+
     return String(t ?? '');
   }, []);
 
@@ -139,11 +141,9 @@ export default function RemoteSchemaRolePermissionsEditorForm({
 
   // Build fields when schema is loaded
   useEffect(() => {
-    if (introspectionData?.data) {
+    if (introspectionData) {
       try {
-        const introspectionSchema = buildClientSchema(
-          introspectionData.data as any,
-        );
+        const introspectionSchema = buildClientSchema(introspectionData);
 
         let permissionSchema: GraphQLSchema | null = null;
         let newArgTree: ArgTreeType = {};
@@ -229,15 +229,13 @@ export default function RemoteSchemaRolePermissionsEditorForm({
 
           // Add argument types
           if (currentField.args) {
-            Object.values(currentField.args).forEach((arg: any) => {
+            Object.values(currentField.args).forEach((arg) => {
               let argTypeString = '';
               if (typeof arg === 'object' && arg.type) {
                 if (typeof arg.type === 'string') {
                   argTypeString = arg.type;
                 } else if (arg.type.toString) {
                   argTypeString = arg.type.toString();
-                } else if (arg.type.inspect) {
-                  argTypeString = arg.type.inspect();
                 }
               }
 
@@ -662,7 +660,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                                             Arguments:
                                           </Text>
                                           {Object.values(field.args).map(
-                                            (arg: any) => {
+                                            (arg) => {
                                               const presetValue =
                                                 argTree?.[schemaType.name]?.[
                                                   field.name
@@ -825,7 +823,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                                           Arguments:
                                         </Text>
                                         {Object.values(field.args).map(
-                                          (arg: any) => {
+                                          (arg) => {
                                             const presetValue =
                                               argTree?.[schemaType.name]?.[
                                                 field.name

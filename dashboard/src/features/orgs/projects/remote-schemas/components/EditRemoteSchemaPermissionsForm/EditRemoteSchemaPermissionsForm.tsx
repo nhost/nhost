@@ -93,7 +93,7 @@ export default function EditRemoteSchemaPermissionsForm({
   );
 
   // Get remote schema permissions from metadata
-  const remoteSchema = remoteSchemas?.find((rs: any) => rs.name === schema);
+  const remoteSchema = remoteSchemas?.find((rs) => rs.name === schema);
   const remoteSchemaPermissions = remoteSchema?.permissions || [];
 
   // Get introspection data for permission level comparison
@@ -199,7 +199,7 @@ export default function EditRemoteSchemaPermissionsForm({
   if (isEditing && selectedRole) {
     // Find the existing permission for this role
     const existingPermission = remoteSchemaPermissions.find(
-      (p: any) => p.role === selectedRole,
+      (p) => p.role === selectedRole,
     );
 
     return (
