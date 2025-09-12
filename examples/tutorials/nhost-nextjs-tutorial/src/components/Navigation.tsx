@@ -20,6 +20,9 @@ export default async function Navigation() {
 
           {session ? (
             <>
+              <Link href="/todos" className="nav-link">
+                Todos
+              </Link>
               <Link href="/profile" className="nav-link">
                 Profile
               </Link>
