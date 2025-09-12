@@ -2,6 +2,7 @@ import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/gen
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { getHasuraAdminSecret } from '@/utils/env';
 import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
+import type { HasuraError } from '@/utils/hasura-api/types';
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation } from '@tanstack/react-query';
 import type { CreateRemoteSchemaVariables } from './createRemoteSchema';
@@ -13,7 +14,7 @@ export interface UseCreateRemoteSchemaMutationOptions {
    */
   mutationOptions?: MutationOptions<
     MetadataOperation200,
-    unknown,
+    HasuraError,
     CreateRemoteSchemaVariables
   >;
 }

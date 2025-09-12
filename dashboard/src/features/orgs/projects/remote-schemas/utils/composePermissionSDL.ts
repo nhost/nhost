@@ -19,7 +19,7 @@ function hasAnySelectedChild(type: RemoteSchemaFields) {
 
 function printTypeSDL(
   type: RemoteSchemaFields,
-  argTree: Record<string, any> | null,
+  argTree: Record<string, unknown> | null,
 ): string {
   if (!hasAnySelectedChild(type)) {
     return '';

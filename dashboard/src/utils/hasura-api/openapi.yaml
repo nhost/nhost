@@ -859,36 +859,64 @@ components:
               description: GraphQL schema introspection data
               required:
                 - types
+                - queryType
+                - mutationType
+                - subscriptionType
+                - directives
               properties:
                 queryType:
                   type: object
-                  nullable: true
+                  required:
+                    - name
+                    - kind
                   properties:
                     name:
                       type: string
                       example: Query
+                    kind:
+                      type: string
+                      enum: [OBJECT]
                   additionalProperties: true
                 mutationType:
                   type: object
+                  required:
+                    - name
+                    - kind
                   nullable: true
                   properties:
                     name:
                       type: string
                       example: Mutation
+                    kind:
+                      type: string
+                      enum: [OBJECT]
                   additionalProperties: true
                 subscriptionType:
                   type: object
+                  required:
+                    - name
+                    - kind
                   nullable: true
                   properties:
                     name:
                       type: string
                       example: Subscription
+                    kind:
+                      type: string
+                      enum: [OBJECT]
                   additionalProperties: true
                 types:
                   type: array
                   description: All types in the GraphQL schema
                   items:
                     $ref: '#/components/schemas/GraphQLTypeForVisualization'
+                directives:
+                  type: array
+                  description: All directives in the GraphQL schema
+                  items:
+                    type: object
+                    description: Directive definition
+                    additionalProperties: true
               additionalProperties: true
           additionalProperties: true
       additionalProperties: true

@@ -5,11 +5,13 @@
  * API for managing remote schemas in Hasura
  * OpenAPI spec version: 1.0.0
  */
+import type { _IntrospectRemoteSchemaResponseDataSchemaMutationTypeKind } from './_introspectRemoteSchemaResponseDataSchemaMutationTypeKind';
 
 /**
  * @nullable
  */
 export type _IntrospectRemoteSchemaResponseDataSchemaMutationType = {
-  name?: string;
+  name: string;
+  kind: _IntrospectRemoteSchemaResponseDataSchemaMutationTypeKind;
   [key: string]: unknown;
 } | null;

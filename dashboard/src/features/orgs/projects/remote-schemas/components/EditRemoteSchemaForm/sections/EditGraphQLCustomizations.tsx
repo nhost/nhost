@@ -45,7 +45,7 @@ export default function EditGraphQLCustomizations({
 
   const schemaTypes = useMemo(() => {
     /* eslint-disable-next-line no-underscore-dangle */
-    const types = (data?.data?.__schema?.types ??
+    const types = (data?.__schema?.types ??
       []) as GraphQLTypeForVisualization[];
     return types.filter(
       (t) => Boolean(t?.name) && !isStandardGraphQLScalar(t.name!),

@@ -1,9 +1,9 @@
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { getHasuraAdminSecret } from '@/utils/env';
-import type { IntrospectRemoteSchemaResponse } from '@/utils/hasura-api/generated/schemas';
 import type { UseQueryOptions } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
+import type { IntrospectionQuery } from 'graphql';
 import introspectRemoteSchema from './introspectRemoteSchema';
 
 export interface UseIntrospectRemoteSchemaQueryOptions {
@@ -12,10 +12,10 @@ export interface UseIntrospectRemoteSchemaQueryOptions {
    */
   queryOptions?: Omit<
     UseQueryOptions<
-      IntrospectRemoteSchemaResponse,
+      { data: IntrospectionQuery },
       unknown,
-      IntrospectRemoteSchemaResponse,
-      string[]
+      IntrospectionQuery,
+      readonly ['introspect-remote-schema', string]
     >,
     'queryKey' | 'queryFn'
   >;
@@ -34,9 +34,14 @@ export default function useIntrospectRemoteSchemaQuery(
 ) {
   const { project, loading } = useProject();
 
-  const query = useQuery({
-    queryKey: ['introspect-remote-schema', remoteSchemaName],
-    queryFn: () => {
+  const query = useQuery<
+    { data: IntrospectionQuery },
+    unknown,
+    IntrospectionQuery,
+    readonly ['introspect-remote-schema', string]
+  >(
+    ['introspect-remote-schema', remoteSchemaName],
+    () => {
       const appUrl = generateAppServiceUrl(
         project!.subdomain,
         project!.region,
@@ -56,18 +61,21 @@ export default function useIntrospectRemoteSchemaQuery(
         },
       });
     },
-    // Avoid endless retries/refetches on deterministic errors like "remote schema not found"
-    retry: false,
-    ...queryOptions,
-    enabled: !!(
-      project?.subdomain &&
-      project?.region &&
-      project?.config?.hasura.adminSecret &&
-      remoteSchemaName &&
-      queryOptions?.enabled !== false &&
-      !loading
-    ),
-  });
+    {
+      // Avoid endless retries/refetches on deterministic errors like "remote schema not found"
+      retry: false,
+      ...queryOptions,
+      enabled: !!(
+        project?.subdomain &&
+        project?.region &&
+        project?.config?.hasura.adminSecret &&
+        remoteSchemaName &&
+        queryOptions?.enabled !== false &&
+        !loading
+      ),
+      select: (data) => data.data,
+    },
+  );
 
   return query;
 }

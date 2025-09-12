@@ -28,7 +28,7 @@ export default function getInputFieldChildren(
 
   // Unwrap first-order wrappers (NonNull/List) and inspect inner type
   if (type instanceof GraphQLNonNull || type instanceof GraphQLList) {
-    const innerType = (type as GraphQLNonNull<any> | GraphQLList<any>).ofType;
+    const innerType = type.ofType;
     const { children } = getInputFieldChildren({
       type: innerType,
     } as GraphQLInputField);

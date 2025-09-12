@@ -127,8 +127,7 @@ export default function CreateRemoteSchemaForm({
             >
               <span className="text-left">
                 <strong>Error:</strong>{' '}
-                {(createRemoteSchemaError as any)?.code ===
-                'invalid-configuration'
+                {createRemoteSchemaError?.code === 'invalid-configuration'
                   ? 'cannot continue due to new inconsistent metadata'
                   : createRemoteSchemaError.message}
               </span>

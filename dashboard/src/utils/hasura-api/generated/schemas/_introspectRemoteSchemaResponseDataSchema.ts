@@ -5,6 +5,7 @@
  * API for managing remote schemas in Hasura
  * OpenAPI spec version: 1.0.0
  */
+import type { _IntrospectRemoteSchemaResponseDataSchemaDirectivesItem } from './_introspectRemoteSchemaResponseDataSchemaDirectivesItem';
 import type { _IntrospectRemoteSchemaResponseDataSchemaMutationType } from './_introspectRemoteSchemaResponseDataSchemaMutationType';
 import type { _IntrospectRemoteSchemaResponseDataSchemaQueryType } from './_introspectRemoteSchemaResponseDataSchemaQueryType';
 import type { _IntrospectRemoteSchemaResponseDataSchemaSubscriptionType } from './_introspectRemoteSchemaResponseDataSchemaSubscriptionType';
@@ -14,13 +15,14 @@ import type { GraphQLTypeForVisualization } from './graphQLTypeForVisualization'
  * GraphQL schema introspection data
  */
 export type _IntrospectRemoteSchemaResponseDataSchema = {
+  queryType: _IntrospectRemoteSchemaResponseDataSchemaQueryType;
   /** @nullable */
-  queryType?: _IntrospectRemoteSchemaResponseDataSchemaQueryType;
+  mutationType: _IntrospectRemoteSchemaResponseDataSchemaMutationType;
   /** @nullable */
-  mutationType?: _IntrospectRemoteSchemaResponseDataSchemaMutationType;
-  /** @nullable */
-  subscriptionType?: _IntrospectRemoteSchemaResponseDataSchemaSubscriptionType;
+  subscriptionType: _IntrospectRemoteSchemaResponseDataSchemaSubscriptionType;
   /** All types in the GraphQL schema */
   types: GraphQLTypeForVisualization[];
+  /** All directives in the GraphQL schema */
+  directives: _IntrospectRemoteSchemaResponseDataSchemaDirectivesItem[];
   [key: string]: unknown;
 };
