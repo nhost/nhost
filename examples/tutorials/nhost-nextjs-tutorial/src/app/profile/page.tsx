@@ -5,8 +5,6 @@ export default async function Profile() {
   const nhost = await createNhostClient();
   const session = nhost.getUserSession();
 
-  // At this point, middleware has ensured we have a session
-
   return (
     <div className="container">
       <header className="page-header">
@@ -46,6 +44,5 @@ export default async function Profile() {
         </div>
       </div>
     </div>
-
   );
 }

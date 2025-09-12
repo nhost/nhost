@@ -10,10 +10,6 @@ const key = DEFAULT_SESSION_KEY;
  *
  * We rely on the vanilla createClient method from the Nhost JS SDK and a SessionStorage
  * customized to be able to retrieve the session from cookies in Next.js server components.
- *
- * IMPORTANT!!! We need to disable the auto-refresh token feature as we are handling it in
- * the middleware and server components are not allowed to write to cookies. Any session
- * refreshed in a server component will not be persisted and might lead to issues with the session.
  */
 export async function createNhostClient(): Promise<NhostClient> {
   const cookieStore = await cookies();

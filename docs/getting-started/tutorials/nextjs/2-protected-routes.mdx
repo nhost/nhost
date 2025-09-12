@@ -390,9 +390,72 @@ export const useAuth = (): AuthContextType => {
 
 <Step>
 
+### Create Middleware for Route Protection
+
+Create Next.js middleware to handle route protection at the server level. This middleware runs before any page renders and automatically redirects unauthenticated users from protected routes.
+
+```tsx src/middleware.ts lines
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+import { handleNhostMiddleware } from "./lib/nhost/server";
+
+// Define public routes that don't require authentication
+const publicRoutes = ["/"];
+
+export async function middleware(request: NextRequest) {
+  // Create a response that we'll modify as needed
+  const response = NextResponse.next();
+
+  // Get the current path
+  const path = request.nextUrl.pathname;
+
+  // Check if this is a public route or a public asset
+  const isPublicRoute = publicRoutes.some(
+    (route) => path === route || path.startsWith(`${route}/`),
+  );
+
+  // Handle Nhost authentication and token refresh
+  // Always call this to ensure session is up-to-date
+  // even for public routes, so that session changes are detected
+  const session = await handleNhostMiddleware(request, response);
+
+  // If it's a public route, allow access without checking auth
+  if (isPublicRoute) {
+    return response;
+  }
+
+  // If no session and not a public route, redirect to signin
+  if (!session) {
+    const homeUrl = new URL("/", request.url);
+    return NextResponse.redirect(homeUrl);
+  }
+
+  // Session exists, allow access to protected route
+  return response;
+}
+
+// Define which routes this middleware should run on
+export const config = {
+  matcher: [
+    /*
+     * Match all request paths except:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public files (public directory)
+     */
+    "/((?!_next/static|_next/image|favicon.ico|public).*)",
+  ],
+};
+```
+
+</Step>
+
+<Step>
+
 ### Create the Protected Profile Page
 
-Create a page that displays user information. Note that the page itself doesn't need any special authentication logic - the route protection is handled entirely by the middleware from earlier steps when we set up routing.
+Create a page that displays user information. Note that the page itself doesn't need any special authentication logic - the route protection is handled entirely by the middleware from the previous step.
 
 ```tsx src/app/profile/page.tsx lines
 import { createNhostClient } from "../../lib/nhost/server";
@@ -404,43 +467,41 @@ export default async function Profile() {
 
   return (
     <div className="container">
-      <header>
-        <h1>Your Profile</h1>
+      <header className="page-header">
+        <h1 className="page-title">Your Profile</h1>
       </header>
 
-      <div className="profile-section">
-        <h3>User Information</h3>
-        <div className="user-info">
-          <div className="info-item">
-            <strong>Display Name:</strong>
-            <span>{session?.user?.displayName || "Not set"}</span>
+      <div className="form-card">
+        <h3 className="form-title">User Information</h3>
+        <div className="form-fields">
+          <div className="field-group">
+            <strong>Display Name:</strong> {session?.user?.displayName || "Not set"}
           </div>
-          <div className="info-item">
-            <strong>Email:</strong>
-            <span>{session?.user?.email || "Not available"}</span>
+          <div className="field-group">
+            <strong>Email:</strong> {session?.user?.email || "Not available"}
           </div>
-          <div className="info-item">
-            <strong>User ID:</strong>
-            <span className="user-id">{session?.user?.id || "Not available"}</span>
+          <div className="field-group">
+            <strong>User ID:</strong> {session?.user?.id || "Not available"}
           </div>
-          <div className="info-item">
-            <strong>Roles:</strong>
-            <span>{session?.user?.roles?.join(", ") || "None"}</span>
+          <div className="field-group">
+            <strong>Roles:</strong> {session?.user?.roles?.join(", ") || "None"}
           </div>
-          <div className="info-item">
+          <div className="field-group">
             <strong>Email Verified:</strong>
-            <span className={session?.user?.emailVerified ? 'verified' : 'unverified'}>
+            <span className={session?.user?.emailVerified ? 'email-verified' : 'email-unverified'}>
               {session?.user?.emailVerified ? "✓ Yes" : "✗ No"}
             </span>
           </div>
         </div>
       </div>
 
-      <div className="session-section">
-        <h3>Session Information</h3>
-        <pre className="session-data">
-          {JSON.stringify(session, null, 2)}
-        </pre>
+      <div className="form-card">
+        <h3 className="form-title">Session Information</h3>
+        <div className="description">
+          <pre className="session-display">
+            {JSON.stringify(session, null, 2)}
+          </pre>
+        </div>
       </div>
     </div>
   );
@@ -525,69 +586,6 @@ export default async function Navigation() {
     </nav>
   );
 }
-```
-
-</Step>
-
-<Step>
-
-### Create Middleware for Route Protection
-
-Create Next.js middleware to handle route protection at the server level. This middleware runs before any page renders and automatically redirects unauthenticated users from protected routes.
-
-```tsx src/middleware.ts lines
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
-import { handleNhostMiddleware } from "./lib/nhost/server";
-
-// Define public routes that don't require authentication
-const publicRoutes = ["/"];
-
-export async function middleware(request: NextRequest) {
-  // Create a response that we'll modify as needed
-  const response = NextResponse.next();
-
-  // Get the current path
-  const path = request.nextUrl.pathname;
-
-  // Check if this is a public route or a public asset
-  const isPublicRoute = publicRoutes.some(
-    (route) => path === route || path.startsWith(`${route}/`),
-  );
-
-  // Handle Nhost authentication and token refresh
-  // Always call this to ensure session is up-to-date
-  // even for public routes, so that session changes are detected
-  const session = await handleNhostMiddleware(request, response);
-
-  // If it's a public route, allow access without checking auth
-  if (isPublicRoute) {
-    return response;
-  }
-
-  // If no session and not a public route, redirect to signin
-  if (!session) {
-    const homeUrl = new URL("/", request.url);
-    return NextResponse.redirect(homeUrl);
-  }
-
-  // Session exists, allow access to protected route
-  return response;
-}
-
-// Define which routes this middleware should run on
-export const config = {
-  matcher: [
-    /*
-     * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public files (public directory)
-     */
-    "/((?!_next/static|_next/image|favicon.ico|public).*)",
-  ],
-};
 ```
 
 </Step>

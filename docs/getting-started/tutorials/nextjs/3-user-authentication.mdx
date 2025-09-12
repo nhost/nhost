@@ -658,7 +658,7 @@ export async function signOut() {
 
 ### Update Navigation Component
 
-In this step, we'll create a server-side navigation component that shows different links based on the user's authentication state. The navigation will display "Sign In" and "Sign Up" links for unauthenticated users, and "Profile" and "Sign Out" for authenticated users.
+In this step, we'll update the server-side navigation component that shows different links based on the user's authentication state. The navigation will display "Sign In" and "Sign Up" links for unauthenticated users, and "Profile" and "Sign Out" for authenticated users.
 
 ```tsx src/components/Navigation.tsx lines highlight={3,26,30-35}
 import Link from "next/link";
