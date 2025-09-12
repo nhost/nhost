@@ -77,7 +77,7 @@ export function getHasuraConsoleServiceUrl() {
 export function getHasuraMigrationsApiUrl() {
   return (
     process.env.NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL ||
-    'https://local.hasura.nhost.run/v1/migrations'
+    'https://local.hasura.local.nhost.run/apis/migrate'
   );
 }
 

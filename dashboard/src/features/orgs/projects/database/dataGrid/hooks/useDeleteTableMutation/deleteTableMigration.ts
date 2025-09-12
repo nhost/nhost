@@ -40,7 +40,7 @@ export default async function deleteTable({
     ),
   ];
 
-  const response = await fetch(`${getHasuraMigrationsApiUrl()}/apis/migrate`, {
+  const response = await fetch(`${getHasuraMigrationsApiUrl()}`, {
     method: 'POST',
     headers: {
       'x-hasura-admin-secret': adminSecret,

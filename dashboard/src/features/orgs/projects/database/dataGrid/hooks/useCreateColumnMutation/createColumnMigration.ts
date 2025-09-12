@@ -34,7 +34,7 @@ export default async function createColumnMigration({
     column,
   });
 
-  const response = await fetch(`${getHasuraMigrationsApiUrl()}/apis/migrate`, {
+  const response = await fetch(`${getHasuraMigrationsApiUrl()}`, {
     method: 'POST',
     headers: {
       'x-hasura-admin-secret': adminSecret,
