@@ -23,7 +23,7 @@ export default function SignOutButton() {
   return (
     <button
       onClick={handleSignOut}
-      className="sign-out-btn"
+      className="nav-link nav-button"
     >
       Sign Out
     </button>
