@@ -545,11 +545,11 @@ export default App;
 
 <Step>
 
-### Add Navigation Links
+### Add Navigation Links and Sign Out Functionality
 
-Update the navigation component to include links to the sign-in and sign-up pages, enhancing user accessibility.
+Update the navigation component to include links to the sign-in and sign-up pages, and implement the sign-out.
 
-```tsx src/components/Navigation.tsx lines highlight={47-52}
+```tsx src/components/Navigation.tsx lines highlight={1,5-19,38-43,47-52}
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/nhost/AuthProvider";
 
