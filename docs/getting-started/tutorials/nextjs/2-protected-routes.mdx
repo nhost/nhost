@@ -492,7 +492,6 @@ Create a server-side navigation component that provides consistent navigation ac
 ```tsx src/components/Navigation.tsx lines
 import Link from "next/link";
 import { createNhostClient } from "../lib/nhost/server";
-import SignOutButton from "./SignOutButton";
 
 export default async function Navigation() {
   const nhost = await createNhostClient();
@@ -515,7 +514,6 @@ export default async function Navigation() {
               <Link href="/profile" className="nav-link">
                 Profile
               </Link>
-              <SignOutButton />
             </>
           ) : (
             <>
@@ -529,41 +527,6 @@ export default async function Navigation() {
 }
 ```
 
-Create the client-side SignOutButton component:
-
-```tsx src/components/SignOutButton.tsx lines
-"use client";
-
-import { useRouter } from "next/navigation";
-import { useAuth } from "../lib/nhost/AuthProvider";
-
-export default function SignOutButton() {
-  const { session, nhost } = useAuth();
-  const router = useRouter();
-
-  const handleSignOut = async () => {
-    try {
-      if (session) {
-        await nhost.auth.signOut({
-          refreshToken: session.refreshToken,
-        });
-      }
-      router.push("/");
-    } catch (err: any) {
-      console.error("Error signing out:", err);
-    }
-  };
-
-  return (
-    <button
-      onClick={handleSignOut}
-      className="nav-link nav-button"
-    >
-      Sign Out
-    </button>
-  );
-}
-```
 </Step>
 
 <Step>
@@ -627,6 +590,44 @@ export const config = {
 };
 ```
 
+</Step>
+
+<Step>
+
+### Update the Root Layout
+
+Configure the Next.js root layout to include the authentication provider and navigation. This provides authentication context to all client components and includes the navigation bar on every page.
+
+```tsx src/app/layout.tsx lines
+import type { Metadata } from "next";
+import "./globals.css";
+import Navigation from "../components/Navigation";
+import { AuthProvider } from "../lib/nhost/AuthProvider";
+
+export const metadata: Metadata = {
+  title: "Nhost Next.js Tutorial",
+  description: "Next.js tutorial with Nhost authentication",
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body>
+        <AuthProvider>
+          <Navigation />
+          <div className="app-content">
+            {children}
+          </div>
+        </AuthProvider>
+      </body>
+    </html>
+  );
+}
+```
 </Step>
 
 <Step>
@@ -1134,44 +1135,6 @@ label {
 
 <Step>
 
-### Update the Root Layout
-
-Configure the Next.js root layout to include the authentication provider and navigation. This provides authentication context to all client components and includes the navigation bar on every page.
-
-```tsx src/app/layout.tsx lines
-import type { Metadata } from "next";
-import "./globals.css";
-import Navigation from "../components/Navigation";
-import { AuthProvider } from "../lib/nhost/AuthProvider";
-
-export const metadata: Metadata = {
-  title: "Nhost Next.js Tutorial",
-  description: "Next.js tutorial with Nhost authentication",
-};
-
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <html lang="en">
-      <body>
-        <AuthProvider>
-          <Navigation />
-          <div className="app-content">
-            {children}
-          </div>
-        </AuthProvider>
-      </body>
-    </html>
-  );
-}
-```
-</Step>
-
-<Step>
-
 ### Run and test the Application
 
 Start the development server to test your route protection implementation:
@@ -1188,6 +1151,7 @@ Things to try out:
 
 After we complete the next tutorial on user authentication, you will be able to sign in and access the protected `/profile` page and see how the navigation bar and homepage updates accordingly.
 </Step>
+
 </Steps>
 
 ## How It Works

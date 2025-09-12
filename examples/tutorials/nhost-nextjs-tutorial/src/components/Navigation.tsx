@@ -27,7 +27,12 @@ export default async function Navigation() {
             </>
           ) : (
             <>
-              Placeholder for signin/signup links
+              <Link href="/signin" className="nav-link">
+                Sign In
+              </Link>
+              <Link href="/signup" className="nav-link">
+                Sign Up
+              </Link>
             </>
           )}
         </div>

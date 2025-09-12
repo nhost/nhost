@@ -1,21 +1,17 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useAuth } from "../lib/nhost/AuthProvider";
+import { signOut } from "../lib/nhost/actions";
 
 export default function SignOutButton() {
-  const { session, nhost } = useAuth();
   const router = useRouter();
 
   const handleSignOut = async () => {
     try {
-      if (session) {
-        await nhost.auth.signOut({
-          refreshToken: session.refreshToken,
-        });
-      }
+      await signOut();
       router.push("/");
-    } catch (err: any) {
+      router.refresh(); // Refresh to update server components
+    } catch (err) {
       console.error("Error signing out:", err);
     }
   };
