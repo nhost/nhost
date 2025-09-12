@@ -5,10 +5,10 @@ sidebarTitle: "User Authentication"
 icon: user
 ---
 
-This tutorial builds upon the [Protected Routes tutorial](/getting-started/tutorials/react/2-protected-routes) by adding complete email/password authentication with email verification functionality. You'll implement sign up, sign in, email verification, and sign out features to create a full authentication flow.
+This tutorial part builds upon the [Protected Routes part](/getting-started/tutorials/react/2-protected-routes) by adding complete email/password authentication with email verification functionality. You'll implement sign up, sign in, email verification, and sign out features to create a full authentication flow.
 
 <Info>
-This is **Part 3** in the Full-Stack React Development with Nhost series. This tutorial creates a production-ready authentication system with secure email verification and proper error handling.
+This is **Part 3** in the Full-Stack React Development with Nhost series. This part creates a production-ready authentication system with secure email verification and proper error handling.
 </Info>
 
 ## Full-Stack React Development with Nhost
@@ -37,8 +37,8 @@ File upload and management
 
 ## Prerequisites
 
-- Complete the [Protected Routes tutorial](/getting-started/tutorials/react/2-protected-routes) first
-- The project from the previous tutorial set up and running
+- Complete the [Protected Routes part](/getting-started/tutorials/react/2-protected-routes) first
+- The project from the previous part set up and running
 
 ## Step-by-Step Guide
 
@@ -545,6 +545,76 @@ export default App;
 
 <Step>
 
+### Add Navigation Links
+
+Update the navigation component to include links to the sign-in and sign-up pages, enhancing user accessibility.
+
+```tsx src/components/Navigation.tsx lines highlight={47-52}
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../lib/nhost/AuthProvider";
+
+export default function Navigation() {
+  const { isAuthenticated, session, nhost } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    try {
+      if (session) {
+        await nhost.auth.signOut({
+          refreshToken: session.refreshToken,
+        });
+      }
+      navigate("/");
+    } catch (err: any) {
+      console.error("Error signing out:", err);
+    }
+  };
+
+  return (
+    <nav className="navigation">
+      <div className="nav-container">
+        <Link to="/" className="nav-logo">
+          Nhost React Demo
+        </Link>
+
+        <div className="nav-links">
+          <Link to="/" className="nav-link">
+            Home
+          </Link>
+
+          {isAuthenticated ? (
+            <>
+              <Link to="/profile" className="nav-link">
+                Profile
+              </Link>
+              <button
+                onClick={handleSignOut}
+                className="nav-link nav-button"
+              >
+                Sign Out
+              </button>
+            </>
+          ) : (
+            <>
+              <Link to="/signin" className="nav-link">
+                Sign In
+              </Link>
+              <Link to="/signup" className="nav-link">
+                Sign Up
+              </Link>
+            </>
+          )}
+        </div>
+      </div>
+    </nav>
+  );
+}
+```
+
+</Step>
+
+<Step>
+
 ### Run and Test the Application
 
 Start your development server and test the complete authentication flow to ensure everything works properly.
@@ -552,32 +622,17 @@ Start your development server and test the complete authentication flow to ensur
 ```bash
 npm run dev
 ```
+
+
+Things to try out:
+
+1. Try signing up with a new email address. Check your email for the verification link and click it. See how you are sent to the verification page and then redirected to your profile.
+2. Try signing out and then signing back in with the same credentials.
+3. Notice how navigation links change based on authentication state showing "Sign In" and "Sign Up" when logged out, and "Profile" and "Sign Out" when logged in.
+4. Check how the homepage also reflects the authentication state with appropriate messages.
+
 </Step>
 </Steps>
-
-## Testing the Complete Flow
-
-<AccordionGroup>
-<Accordion title="Step 1: Sign Up" icon="user-plus">
-Navigate to `/signup` and create a new account with your email and password. You'll see a confirmation message to check your email.
-</Accordion>
-
-<Accordion title="Step 2: Check Email" icon="envelope">
-Look for the verification email in your inbox (for local development, access mailhog instead).
-</Accordion>
-
-<Accordion title="Step 3: Verify Email" icon="envelope-circle-check">
-Click the verification link in your email to navigate to `/verify`. You'll see a loading spinner followed by success confirmation.
-</Accordion>
-
-<Accordion title="Step 4: Sign In" icon="unlock">
-Sign out and use your credentials to sign in at `/signin`.
-</Accordion>
-
-<Accordion title="Step 5: Access Profile" icon="circle-user">
-View your protected profile page at `/profile` to see your user information and session data.
-</Accordion>
-</AccordionGroup>
 
 ## Key Features Demonstrated
 

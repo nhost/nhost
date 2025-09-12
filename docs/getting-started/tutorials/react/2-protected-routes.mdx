@@ -5,10 +5,10 @@ sidebarTitle: "Protecting Routes"
 icon: lock
 ---
 
-This tutorial demonstrates how to implement robust route protection in a React application using Nhost authentication. You'll build a complete authentication system with a protected `/profile` page that includes cross-tab session synchronization and automatic redirects. In addition, we will see how to show conditional navigation and content based on authentication status.
+This tutorial part demonstrates how to implement robust route protection in a React application using Nhost authentication. You'll build a complete authentication system with a protected `/profile` page that includes cross-tab session synchronization and automatic redirects. In addition, we will see how to show conditional navigation and content based on authentication status.
 
 <Info>
-This is **Part 2** in the Full-Stack React Development with Nhost series. This tutorial builds a foundation for authentication-protected routes that you can extend to secure any part of your application.
+This is **Part 2** in the Full-Stack React Development with Nhost series. This part builds a foundation for authentication-protected routes that you can extend to secure any part of your application.
 </Info>
 
 ## Full-Stack React Development with Nhost
@@ -37,7 +37,7 @@ File upload and management
 
 ## Prerequisites
 
-- An [Nhost project](/getting-started/tutorials/create-nhost-project)
+- An [Nhost project](/getting-started/tutorials/react/1-introduction) set up
 - Node.js 20+ installed
 - Basic knowledge of React and React Router
 
@@ -315,7 +315,7 @@ export default function ProtectedRoute({
 
 ### Create the Profile Page
 
-Create a protected page that displays user information. This demonstrates how protected content is rendered and shows the authenticated user's session data.
+Create a page that displays user information. Note that the page itself doesn't need any special authentication logic - the route protection is handled entirely by wrapping it with the ProtectedRoute component from the previous step when we set up routing later.
 
 ```tsx src/pages/Profile.tsx lines
 import { useAuth } from "../lib/nhost/AuthProvider";
@@ -454,12 +454,7 @@ export default function Navigation() {
             </>
           ) : (
             <>
-              <Link to="/signin" className="nav-link">
-                Sign In
-              </Link>
-              <Link to="/signup" className="nav-link">
-                Sign Up
-              </Link>
+             Placeholder for signin/signup links
             </>
           )}
         </div>
@@ -531,6 +526,8 @@ export default App;
 <Step>
 
 ### Add Application Styles
+
+Replace the contents of the file `src/index.css` with the following styles to provide a clean and modern look for the application.
 
 ```css src/index.css lines
 :root {
@@ -1041,7 +1038,7 @@ label {
 
 <Step>
 
-### Run the Application
+### Run and test the Application
 
 Start the development server to test your route protection implementation:
 
@@ -1049,9 +1046,14 @@ Start the development server to test your route protection implementation:
 npm run dev
 ```
 
-<Tip>
-Navigate to `http://localhost:5173/profile` to see the route protection in action - you'll be redirected since you're not authenticated yet. Notice how the navigation bar shows different options based on your authentication status.
-</Tip>
+Things to try out:
+
+1. Try navigating to `/profile` - you should be redirected to the homepage `/` since you're not authenticated.
+2. Because you are not signed in, the navigation bar should only show the "Home" link and the placeholder for signin/signup links.
+3. On the homepage, you should see a message indicating that you are not signed in.
+
+After we complete the next tutorial on user authentication, you will be able to sign in and access the protected `/profile` page and see how the navigation bar and homepage updates accordingly.
+
 </Step>
 </Steps>
 
