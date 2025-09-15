@@ -58,4 +58,102 @@ const hasuraMetadataQuery = rest.post(
     ),
 );
 
+export const hasuraRelationShipsMetadataQuery = rest.post(
+  'https://local.hasura.local.nhost.run/v1/metadata',
+  (_req, res, ctx) =>
+    res(
+      ctx.json({
+        resource_version: 26,
+        metadata: {
+          version: 3,
+          sources: [
+            {
+              name: 'default',
+              kind: 'postgres',
+              tables: [
+                {
+                  table: {
+                    name: 'country',
+                    schema: 'public',
+                  },
+                  array_relationships: [
+                    {
+                      name: 'county',
+                      using: {
+                        foreign_key_constraint_on: {
+                          column: 'countryId',
+                          table: {
+                            name: 'county',
+                            schema: 'public',
+                          },
+                        },
+                      },
+                    },
+                  ],
+                },
+                {
+                  table: {
+                    name: 'county',
+                    schema: 'public',
+                  },
+                  object_relationships: [
+                    {
+                      name: 'country',
+                      using: {
+                        foreign_key_constraint_on: 'countryId',
+                      },
+                    },
+                  ],
+                  array_relationships: [
+                    {
+                      name: 'town',
+                      using: {
+                        foreign_key_constraint_on: {
+                          column: 'countyId',
+                          table: {
+                            name: 'town',
+                            schema: 'public',
+                          },
+                        },
+                      },
+                    },
+                  ],
+                },
+                {
+                  table: {
+                    name: 'town',
+                    schema: 'public',
+                  },
+                  object_relationships: [
+                    {
+                      name: 'county',
+                      using: {
+                        foreign_key_constraint_on: 'countyId',
+                      },
+                    },
+                  ],
+                },
+              ],
+              configuration: {
+                connection_info: {
+                  database_url: {
+                    from_env: 'HASURA_GRAPHQL_DATABASE_URL',
+                  },
+                  isolation_level: 'read-committed',
+                  pool_settings: {
+                    connection_lifetime: 600,
+                    idle_timeout: 180,
+                    max_connections: 50,
+                    retries: 1,
+                  },
+                  use_prepared_statements: true,
+                },
+              },
+            },
+          ],
+        },
+      }),
+    ),
+);
+
 export default hasuraMetadataQuery;

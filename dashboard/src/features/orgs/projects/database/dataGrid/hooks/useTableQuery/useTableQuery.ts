@@ -50,6 +50,7 @@ export default function useTableQuery(
         project!.region,
         'hasura',
       );
+
       return fetchTable({
         ...options,
         appUrl: customAppUrl || appUrl,
