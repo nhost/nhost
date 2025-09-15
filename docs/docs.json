@@ -72,6 +72,17 @@
               "/getting-started/tutorials/nextjs/4-graphql-operations",
               "/getting-started/tutorials/nextjs/5-file-uploads"
             ]
+          },
+          {
+            "group": "Tutorial: ToDo App (Vue)",
+            "icon": "book",
+            "pages": [
+              "/getting-started/tutorials/vue/1-introduction",
+              "/getting-started/tutorials/vue/2-protected-routes",
+              "/getting-started/tutorials/vue/3-user-authentication",
+              "/getting-started/tutorials/vue/4-graphql-operations",
+              "/getting-started/tutorials/nextjs/5-file-uploads"
+            ]
           }
         ]
       },
