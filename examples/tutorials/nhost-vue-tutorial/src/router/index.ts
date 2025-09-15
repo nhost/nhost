@@ -5,6 +5,7 @@ import ProfileView from "../views/ProfileView.vue";
 import SignIn from "../views/SignIn.vue";
 import SignUp from "../views/SignUp.vue";
 import Todos from "../views/Todos.vue";
+import Files from "../views/Files.vue";
 import Verify from "../views/Verify.vue";
 
 const router = createRouter({
@@ -43,6 +44,12 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: "/files",
+      name: "Files",
+      component: Files,
+      meta: { requiresAuth: true },
+    },
+    {
       path: "/:pathMatch(.*)*",
       redirect: "/",
     },
@@ -68,4 +75,3 @@ router.beforeEach((to) => {
 });
 
 export default router;
-

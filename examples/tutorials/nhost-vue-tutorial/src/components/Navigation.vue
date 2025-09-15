@@ -14,6 +14,9 @@
           <RouterLink to="/todos" class="nav-link">
             Todos
           </RouterLink>
+          <RouterLink to="/files" class="nav-link">
+            Files
+          </RouterLink>
           <RouterLink to="/profile" class="nav-link">
             Profile
           </RouterLink>
