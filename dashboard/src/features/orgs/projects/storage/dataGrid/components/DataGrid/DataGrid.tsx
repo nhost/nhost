@@ -51,10 +51,6 @@ export interface DataGridProps<TColumnData extends object>
    */
   onInsertRow?: VoidFunction;
   /**
-   * Function to be called when the user wants to insert a new column.
-   */
-  onInsertColumn?: VoidFunction;
-  /**
    * Function to be called when the user wants to remove a column.
    */
   onRemoveColumn?: (column: DataBrowserGridColumn<TColumnData>) => void;
@@ -93,8 +89,6 @@ function DataGrid<TColumnData extends object>(
     controls,
     sortBy,
     onSort,
-    onInsertRow,
-    onInsertColumn,
     onEditColumn,
     onRemoveColumn,
     loading,
@@ -157,7 +151,6 @@ function DataGrid<TColumnData extends object>(
           >
             <DataGridFrame>
               <DataGridHeader
-                onInsertColumn={onInsertColumn}
                 onEditColumn={onEditColumn}
                 onRemoveColumn={onRemoveColumn}
                 {...headerProps}
@@ -166,7 +159,6 @@ function DataGrid<TColumnData extends object>(
               <DataGridBody
                 emptyStateMessage={emptyStateMessage}
                 loading={loading}
-                onInsertRow={onInsertRow}
                 allowInsertColumn={Boolean(onRemoveColumn)}
               />
             </DataGridFrame>

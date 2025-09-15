@@ -3,13 +3,9 @@ import type { BoxProps } from '@/components/ui/v2/Box';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Chip } from '@/components/ui/v2/Chip';
-import { Dropdown } from '@/components/ui/v2/Dropdown';
-import { ColumnIcon } from '@/components/ui/v2/icons/ColumnIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
-import { RowIcon } from '@/components/ui/v2/icons/RowIcon';
 import { useDeleteRecordMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteRecordMutation';
 import type { DataBrowserGridColumn } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
 import type { DataGridPaginationProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPagination';
 import { DataGridPagination } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPagination';
@@ -32,10 +28,6 @@ export interface DataBrowserGridControlsProps extends BoxProps {
    * Function to be called when the button to add a new row is clicked.
    */
   onInsertRowClick?: () => void;
-  /**
-   * Function to be called when the button to add a new column is clicked.
-   */
-  onInsertColumnClick?: () => void;
 }
 
 // TODO: Get rid of Data Browser related code from here. This component should
@@ -45,11 +37,8 @@ export default function DataBrowserGridControls({
   paginationProps,
   refetchData,
   onInsertRowClick,
-  onInsertColumnClick,
   ...props
 }: DataBrowserGridControlsProps) {
-  const { project } = useProject();
-  const isGitHubConnected = !!project?.githubRepository;
   const queryClient = useQueryClient();
   const { openAlertDialog } = useDialog();
 
@@ -172,60 +161,13 @@ export default function DataBrowserGridControls({
               />
             )}
 
-            {(onInsertColumnClick ||
-              (onInsertRowClick && columns.length > 0)) && (
-              <Dropdown.Root>
-                <Dropdown.Trigger asChild hideChevron>
-                  <Button
-                    startIcon={<PlusIcon className="h-4 w-4" />}
-                    size="small"
-                  >
-                    Insert
-                  </Button>
-                </Dropdown.Trigger>
-
-                <Dropdown.Content
-                  menu
-                  PaperProps={{
-                    className: 'w-full max-w-[140px] mt-1 ml-2',
-                  }}
-                  transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-                  anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                >
-                  {onInsertColumnClick && (
-                    <Dropdown.Item
-                      aria-label="Insert Column"
-                      onClick={onInsertColumnClick}
-                      className="grid w-full grid-flow-col items-center gap-2 px-3 py-2 text-sm+ font-medium"
-                      disabled={isGitHubConnected}
-                    >
-                      <ColumnIcon
-                        className="h-4.5 w-4.5"
-                        sx={{ color: 'secondary.800' }}
-                      />
-
-                      <span>Column</span>
-                    </Dropdown.Item>
-                  )}
-
-                  {columns.length > 0 && onInsertRowClick && (
-                    <Dropdown.Item
-                      aria-label="Insert Row"
-                      onClick={onInsertRowClick}
-                      className="grid grid-flow-col items-center gap-2 border-t-1 border-solid px-3 py-2 text-sm+ font-medium"
-                      sx={{ borderColor: 'grey.300' }}
-                    >
-                      <RowIcon
-                        className="h-4.5 w-4.5"
-                        sx={{ color: 'secondary.800' }}
-                      />
-
-                      <span>Row</span>
-                    </Dropdown.Item>
-                  )}
-                </Dropdown.Content>
-              </Dropdown.Root>
-            )}
+            <Button
+              startIcon={<PlusIcon className="h-4 w-4" />}
+              size="small"
+              onClick={onInsertRowClick}
+            >
+              Insert row
+            </Button>
           </div>
         )}
       </div>
