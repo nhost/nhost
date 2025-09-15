@@ -87,7 +87,6 @@ export default function GraphQLCustomizations() {
       </Text>
 
       <Box className="space-y-4 rounded border p-4">
-        {/* Root Field Namespace */}
         <Box className="space-y-2">
           <Box className="flex flex-row items-center space-x-2">
             <Text className="font-medium">Root Field Namespace</Text>
@@ -107,7 +106,6 @@ export default function GraphQLCustomizations() {
           />
         </Box>
 
-        {/* Types Section */}
         <Box className="space-y-3">
           <Box className="flex flex-row items-center space-x-2">
             <Text variant="h4" className="text-lg font-semibold">
@@ -118,7 +116,6 @@ export default function GraphQLCustomizations() {
             </Tooltip>
           </Box>
 
-          {/* Type Prefix */}
           <Box className="space-y-2">
             <Text className="font-medium">Prefix</Text>
             <Input
@@ -133,7 +130,6 @@ export default function GraphQLCustomizations() {
             />
           </Box>
 
-          {/* Type Suffix */}
           <Box className="space-y-2">
             <Text className="font-medium">Suffix</Text>
             <Input
@@ -149,7 +145,6 @@ export default function GraphQLCustomizations() {
           </Box>
         </Box>
 
-        {/* Fields Section */}
         <Box className="space-y-3">
           <Box className="flex flex-row items-center space-x-2">
             <Text variant="h4" className="text-lg font-semibold">
@@ -170,7 +165,6 @@ export default function GraphQLCustomizations() {
               </Text>
             )}
 
-            {/* Query Root Type Name */}
             <Box className="space-y-2">
               <Text className="font-medium">Type Name</Text>
               <Input
@@ -185,7 +179,6 @@ export default function GraphQLCustomizations() {
               />
             </Box>
 
-            {/* Query Root Prefix */}
             <Box className="space-y-2">
               <Text className="font-medium">Prefix</Text>
               <Input
@@ -200,7 +193,6 @@ export default function GraphQLCustomizations() {
               />
             </Box>
 
-            {/* Query Root Suffix */}
             <Box className="space-y-2">
               <Text className="font-medium">Suffix</Text>
               <Input
@@ -226,7 +218,6 @@ export default function GraphQLCustomizations() {
               </Text>
             )}
 
-            {/* Mutation Root Type Name */}
             <Box className="space-y-2">
               <Text className="font-medium">Type Name</Text>
               <Input
@@ -243,7 +234,6 @@ export default function GraphQLCustomizations() {
               />
             </Box>
 
-            {/* Mutation Root Prefix */}
             <Box className="space-y-2">
               <Text className="font-medium">Prefix</Text>
               <Input
@@ -258,7 +248,6 @@ export default function GraphQLCustomizations() {
               />
             </Box>
 
-            {/* Mutation Root Suffix */}
             <Box className="space-y-2">
               <Text className="font-medium">Suffix</Text>
               <Input

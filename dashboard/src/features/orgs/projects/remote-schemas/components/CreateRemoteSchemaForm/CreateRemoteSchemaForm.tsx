@@ -1,5 +1,3 @@
-import { Alert } from '@/components/ui/v2/Alert';
-import { Button } from '@/components/ui/v2/Button';
 import BaseRemoteSchemaForm, {
   type BaseRemoteSchemaFormProps,
   type BaseRemoteSchemaFormValues,
@@ -7,11 +5,11 @@ import BaseRemoteSchemaForm, {
 } from '@/features/orgs/projects/remote-schemas/components/BaseRemoteSchemaForm/BaseRemoteSchemaForm';
 import { useCreateRemoteSchemaMutation } from '@/features/orgs/projects/remote-schemas/hooks/useCreateRemoteSchemaMutation';
 import { DEFAULT_REMOTE_SCHEMA_TIMEOUT_SECONDS } from '@/features/orgs/projects/remote-schemas/utils/constants';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type {
   AddRemoteSchemaArgs,
   Headers,
 } from '@/utils/hasura-api/generated/schemas';
-import { triggerToast } from '@/utils/toast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/router';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -31,11 +29,7 @@ export default function CreateRemoteSchemaForm({
 }: CreateRemoteSchemaFormProps) {
   const router = useRouter();
 
-  const {
-    mutateAsync: createRemoteSchema,
-    error: createRemoteSchemaError,
-    reset: resetCreateRemoteSchemaError,
-  } = useCreateRemoteSchemaMutation();
+  const { mutateAsync: createRemoteSchema } = useCreateRemoteSchemaMutation();
 
   const form = useForm<
     | BaseRemoteSchemaFormValues
@@ -72,80 +66,60 @@ export default function CreateRemoteSchemaForm({
   });
 
   async function handleSubmit(values: BaseRemoteSchemaFormValues) {
-    try {
-      const headers: Headers = values.definition.headers
-        ?.map((header) => {
-          if (header.value_from_env) {
-            return {
-              name: header.name,
-              value_from_env: header.value_from_env,
-            };
+    const headers: Headers = values.definition.headers
+      ?.map((header) => {
+        if (header.value_from_env) {
+          return {
+            name: header.name,
+            value_from_env: header.value_from_env,
+          };
+        }
+        if (header.value) {
+          return {
+            name: header.name,
+            value: header.value,
+          };
+        }
+        return null;
+      })
+      .filter(Boolean) as Headers;
+
+    const remoteSchema: AddRemoteSchemaArgs = {
+      name: values.name,
+      comment: values.comment,
+      definition: {
+        ...values.definition,
+        headers,
+      },
+    };
+
+    await execPromiseWithErrorToast(
+      async () => {
+        try {
+          await createRemoteSchema({ args: remoteSchema });
+          await onSubmit?.();
+
+          await router.push(
+            `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/graphql/remote-schemas/${values.name}`,
+          );
+        } catch (error) {
+          if (error?.code === 'invalid-configuration') {
+            throw new Error('cannot continue due to new inconsistent metadata');
           }
-          if (header.value) {
-            return {
-              name: header.name,
-              value: header.value,
-            };
-          }
-          return null;
-        })
-        .filter(Boolean) as Headers;
-
-      const remoteSchema: AddRemoteSchemaArgs = {
-        name: values.name,
-        comment: values.comment,
-        definition: {
-          ...values.definition,
-          headers,
-        },
-      };
-
-      await createRemoteSchema({ args: remoteSchema });
-
-      if (onSubmit) {
-        await onSubmit();
-      }
-
-      triggerToast('The remote schema has been created successfully.');
-
-      await router.push(
-        `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/graphql/remote-schemas/${values.name}`,
-      );
-    } catch {
-      // This error is handled by the useCreateRemoteSchemaMutation hook.
-    }
+          throw error;
+        }
+      },
+      {
+        loadingMessage: 'Creating remote schema...',
+        successMessage: 'The remote schema has been created successfully.',
+        errorMessage:
+          'An error occurred while creating the remote schema. Please try again.',
+      },
+    );
   }
 
   return (
     <FormProvider {...form}>
-      {!!createRemoteSchemaError &&
-        createRemoteSchemaError instanceof Error && (
-          <div className="-mt-3 mb-4 px-6">
-            <Alert
-              severity="error"
-              className="grid grid-flow-col items-center justify-between px-4 py-3"
-            >
-              <span className="text-left">
-                <strong>Error:</strong>{' '}
-                {createRemoteSchemaError?.code === 'invalid-configuration'
-                  ? 'cannot continue due to new inconsistent metadata'
-                  : createRemoteSchemaError.message}
-              </span>
-
-              <Button
-                variant="borderless"
-                color="secondary"
-                className="p-1"
-                onClick={() => {
-                  resetCreateRemoteSchemaError();
-                }}
-              >
-                Clear
-              </Button>
-            </Alert>
-          </div>
-        )}
-
       <BaseRemoteSchemaForm
         submitButtonText="Create"
         onSubmit={handleSubmit}

@@ -1,4 +1,4 @@
-import { useFormContext, useFormState } from 'react-hook-form';
+import { useFormContext } from 'react-hook-form';
 
 import { Box } from '@/components/ui/v2/Box';
 import { Input } from '@/components/ui/v2/Input';
@@ -15,8 +15,10 @@ export interface RemoteSchemaNameInputProps {
 export default function RemoteSchemaNameInput({
   disabled,
 }: RemoteSchemaNameInputProps) {
-  const { register } = useFormContext<BaseRemoteSchemaFormValues>();
-  const { errors } = useFormState({ name: 'name' });
+  const {
+    register,
+    formState: { errors },
+  } = useFormContext<BaseRemoteSchemaFormValues>();
 
   return (
     <Box className="space-y-2">
@@ -31,13 +33,10 @@ export default function RemoteSchemaNameInput({
         disabled={disabled}
         className=""
         hideEmptyHelperText
-        error={Boolean(errors.name)}
+        error={Boolean(errors?.name)}
         autoComplete="off"
-        variant="inline"
         fullWidth
-        helperText={
-          typeof errors.name?.message === 'string' ? errors.name?.message : ''
-        }
+        helperText={errors?.name?.message}
       />
     </Box>
   );

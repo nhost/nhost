@@ -1,5 +1,3 @@
-import { Alert } from '@/components/ui/v2/Alert';
-import { Button } from '@/components/ui/v2/Button';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import BaseRemoteSchemaForm, {
   type BaseRemoteSchemaFormProps,
@@ -9,11 +7,11 @@ import BaseRemoteSchemaForm, {
 import { useUpdateRemoteSchemaMutation } from '@/features/orgs/projects/remote-schemas/hooks/useUpdateRemoteSchemaMutation';
 import { DEFAULT_REMOTE_SCHEMA_TIMEOUT_SECONDS } from '@/features/orgs/projects/remote-schemas/utils/constants';
 import { isRemoteSchemaFromUrlDefinition } from '@/features/orgs/projects/remote-schemas/utils/guards';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type {
   Headers,
   RemoteSchemaInfo,
 } from '@/utils/hasura-api/generated/schemas';
-import { triggerToast } from '@/utils/toast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/router';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -41,11 +39,7 @@ export default function EditRemoteSchemaForm({
 
   const { data: resourceVersion } = useGetMetadataResourceVersion();
 
-  const {
-    mutateAsync: updateRemoteSchema,
-    error: updateRemoteSchemaError,
-    reset: resetUpdateRemoteSchemaError,
-  } = useUpdateRemoteSchemaMutation();
+  const { mutateAsync: updateRemoteSchema } = useUpdateRemoteSchemaMutation();
 
   const form = useForm<
     | BaseRemoteSchemaFormValues
@@ -77,82 +71,65 @@ export default function EditRemoteSchemaForm({
   });
 
   async function handleSubmit(values: BaseRemoteSchemaFormValues) {
-    try {
-      const headers: Headers = values.definition.headers
-        ?.map((header) => {
-          if (header.value_from_env) {
-            return {
-              name: header.name,
-              value_from_env: header.value_from_env,
-            };
+    const headers: Headers = values.definition.headers
+      ?.map((header) => {
+        if (header.value_from_env) {
+          return {
+            name: header.name,
+            value_from_env: header.value_from_env,
+          };
+        }
+        if (header.value) {
+          return {
+            name: header.name,
+            value: header.value,
+          };
+        }
+        return null;
+      })
+      .filter(Boolean) as Headers;
+
+    const remoteSchema: RemoteSchemaInfo = {
+      ...originalSchema,
+      name: values.name,
+      comment: values.comment,
+      definition: {
+        ...values.definition,
+        headers,
+      },
+    };
+
+    await execPromiseWithErrorToast(
+      async () => {
+        try {
+          await updateRemoteSchema({
+            originalRemoteSchema: originalSchema,
+            updatedRemoteSchema: remoteSchema,
+            resourceVersion,
+          });
+
+          await onSubmit?.();
+
+          await router.push(
+            `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/graphql/remote-schemas/${values.name}`,
+          );
+        } catch (error) {
+          if (error?.code === 'invalid-configuration') {
+            throw new Error('cannot continue due to new inconsistent metadata');
           }
-          if (header.value) {
-            return {
-              name: header.name,
-              value: header.value,
-            };
-          }
-          return null;
-        })
-        .filter(Boolean) as Headers;
-
-      const remoteSchema: RemoteSchemaInfo = {
-        ...originalSchema,
-        name: values.name,
-        comment: values.comment,
-        definition: {
-          ...values.definition,
-          headers,
-        },
-      };
-
-      await updateRemoteSchema({
-        originalRemoteSchema: originalSchema,
-        updatedRemoteSchema: remoteSchema,
-        resourceVersion,
-      });
-
-      if (onSubmit) {
-        await onSubmit();
-      }
-
-      triggerToast('The remote schema has been updated successfully.');
-
-      await router.push(
-        `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/graphql/remote-schemas/${values.name}`,
-      );
-    } catch {
-      // This error is handled by the useUpdateRemoteSchemaMutation hook.
-    }
+          throw error;
+        }
+      },
+      {
+        loadingMessage: 'Updating remote schema...',
+        successMessage: 'The remote schema has been updated successfully.',
+        errorMessage: 'An error occurred while updating the remote schema.',
+      },
+    );
   }
 
   return (
     <FormProvider {...form}>
-      {!!updateRemoteSchemaError &&
-        updateRemoteSchemaError instanceof Error && (
-          <div className="-mt-3 mb-4 px-6">
-            <Alert
-              severity="error"
-              className="grid grid-flow-col items-center justify-between px-4 py-3"
-            >
-              <span className="text-left">
-                <strong>Error:</strong> {updateRemoteSchemaError.message}
-              </span>
-
-              <Button
-                variant="borderless"
-                color="secondary"
-                className="p-1"
-                onClick={() => {
-                  resetUpdateRemoteSchemaError();
-                }}
-              >
-                Clear
-              </Button>
-            </Alert>
-          </div>
-        )}
-
       <BaseRemoteSchemaForm
         submitButtonText="Save"
         onSubmit={handleSubmit}

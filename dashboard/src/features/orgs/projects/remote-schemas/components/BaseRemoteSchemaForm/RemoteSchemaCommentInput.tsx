@@ -28,7 +28,6 @@ export default function RemoteSchemaCommentInput() {
         hideEmptyHelperText
         error={Boolean(errors.comment)}
         autoComplete="off"
-        variant="inline"
         fullWidth
         helperText={
           typeof errors.comment?.message === 'string'
