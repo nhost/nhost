@@ -14,9 +14,20 @@
           <RouterLink to="/profile" class="nav-link">
             Profile
           </RouterLink>
+          <button
+            @click="handleSignOut"
+            class="nav-link nav-button"
+          >
+            Sign Out
+          </button>
         </template>
         <template v-else>
-          Placeholder for signin/signup links
+          <RouterLink to="/signin" class="nav-link">
+            Sign In
+          </RouterLink>
+          <RouterLink to="/signup" class="nav-link">
+            Sign Up
+          </RouterLink>
         </template>
       </div>
     </div>
@@ -24,8 +35,22 @@
 </template>
 
 <script setup lang="ts">
-import { RouterLink } from "vue-router";
+import { RouterLink, useRouter } from "vue-router";
 import { useAuth } from "../lib/nhost/auth";
 
-const { isAuthenticated } = useAuth();
+const { isAuthenticated, session, nhost } = useAuth();
+const router = useRouter();
+
+const handleSignOut = async () => {
+  try {
+    if (session.value) {
+      await nhost.auth.signOut({
+        refreshToken: session.value.refreshToken,
+      });
+    }
+    router.push("/");
+  } catch (err: any) {
+    console.error("Error signing out:", err);
+  }
+};
 </script>

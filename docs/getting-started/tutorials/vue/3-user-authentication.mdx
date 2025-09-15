@@ -515,23 +515,23 @@ export default router;
 
 Update the navigation component to include links to the sign-in and sign-up pages, and implement the sign-out.
 
-```vue src/components/Navigation.vue lines highlight={1,5-19,38-43,47-52}
+```vue src/components/Navigation.vue lines highlight={17-22,25-30,38,41-55}
 <template>
   <nav class="navigation">
     <div class="nav-container">
-      <router-link to="/" class="nav-logo">
+      <RouterLink to="/" class="nav-logo">
         Nhost Vue Demo
-      </router-link>
+      </RouterLink>
 
       <div class="nav-links">
-        <router-link to="/" class="nav-link">
+        <RouterLink to="/" class="nav-link">
           Home
-        </router-link>
+        </RouterLink>
 
         <template v-if="isAuthenticated">
-          <router-link to="/profile" class="nav-link">
+          <RouterLink to="/profile" class="nav-link">
             Profile
-          </router-link>
+          </RouterLink>
           <button
             @click="handleSignOut"
             class="nav-link nav-button"
@@ -539,14 +539,13 @@ Update the navigation component to include links to the sign-in and sign-up page
             Sign Out
           </button>
         </template>
-
         <template v-else>
-          <router-link to="/signin" class="nav-link">
+          <RouterLink to="/signin" class="nav-link">
             Sign In
-          </router-link>
-          <router-link to="/signup" class="nav-link">
+          </RouterLink>
+          <RouterLink to="/signup" class="nav-link">
             Sign Up
-          </router-link>
+          </RouterLink>
         </template>
       </div>
     </div>
@@ -554,7 +553,7 @@ Update the navigation component to include links to the sign-in and sign-up page
 </template>
 
 <script setup lang="ts">
-import { useRouter } from "vue-router";
+import { RouterLink, useRouter } from "vue-router";
 import { useAuth } from "../lib/nhost/auth";
 
 const { isAuthenticated, session, nhost } = useAuth();
