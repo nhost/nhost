@@ -1,5 +1,6 @@
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
+import { HelperText } from '@/components/ui/v2/HelperText';
 import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
@@ -117,17 +118,28 @@ export default function AdditionalHeadersEditor() {
 
         {fields.map((field, index) => {
           const currentValueType = getHeaderValueType(field.id);
+          const headerErrors = (errors as any)?.definition?.headers?.at?.(
+            index,
+          );
+          const nameMessage = headerErrors?.name?.message;
+          const objectLevelMessage =
+            headerErrors?.message ?? headerErrors?.root?.message;
+          const combinedMessage = nameMessage ?? objectLevelMessage;
 
           return (
             <Box key={field.id} className="grid grid-cols-9 items-center gap-4">
+              {combinedMessage && (
+                <HelperText className="col-span-9" error>
+                  {combinedMessage}
+                </HelperText>
+              )}
               <Input
                 {...register(`definition.headers.${index}.name`)}
                 id={`${field.id}-name`}
                 placeholder="Header name"
                 className="col-span-3"
                 hideEmptyHelperText
-                error={!!errors?.definition?.headers?.at?.(index)}
-                helperText={errors?.definition?.headers?.at?.(index)?.message}
+                error={Boolean(combinedMessage)}
                 fullWidth
                 autoComplete="off"
               />
@@ -181,7 +193,8 @@ export default function AdditionalHeadersEditor() {
                       : 'Env var name'
                   }
                   hideEmptyHelperText
-                  error={!!errors?.definition?.headers?.at?.(index)}
+                  error={Boolean(combinedMessage)}
+                  helperText=""
                   fullWidth
                   autoComplete="off"
                 />

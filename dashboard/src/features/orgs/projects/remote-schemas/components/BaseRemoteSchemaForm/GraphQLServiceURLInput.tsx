@@ -3,12 +3,14 @@ import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
-import { useFormContext, useFormState } from 'react-hook-form';
+import { useFormContext } from 'react-hook-form';
 import type { BaseRemoteSchemaFormValues } from './BaseRemoteSchemaForm';
 
 export default function GraphQLServiceURLInput() {
-  const { register } = useFormContext<BaseRemoteSchemaFormValues>();
-  const { errors } = useFormState({ name: 'definition.url' });
+  const {
+    register,
+    formState: { errors },
+  } = useFormContext<BaseRemoteSchemaFormValues>();
 
   return (
     <Box className="space-y-2">
@@ -25,15 +27,10 @@ export default function GraphQLServiceURLInput() {
         placeholder="https://graphql-service.example.com or {{ENV_VAR}}/endpoint_url"
         className=""
         hideEmptyHelperText
-        error={Boolean(errors['definition.url'])}
+        error={Boolean(errors?.definition?.url)}
         autoComplete="off"
-        variant="inline"
         fullWidth
-        helperText={
-          typeof errors['definition.url']?.message === 'string'
-            ? errors['definition.url']?.message
-            : ''
-        }
+        helperText={errors?.definition?.url?.message}
       />
     </Box>
   );

@@ -52,28 +52,35 @@ export interface BaseRemoteSchemaFormProps extends DialogFormProps {
 }
 
 export const baseRemoteSchemaValidationSchema = Yup.object({
-  name: Yup.string().required('This field is required.'),
+  name: Yup.string().required('Name is required.'),
   comment: Yup.string(),
   definition: Yup.object({
-    url: Yup.string().required('This field is required.'),
-    forward_client_headers: Yup.boolean().required('This field is required.'),
+    url: Yup.string()
+      .url('Invalid service URL.')
+      .required('Service URL is required.'),
+    forward_client_headers: Yup.boolean().required(
+      'Forward client headers is required.',
+    ),
     headers: Yup.array().of(
       Yup.object({
-        name: Yup.string().required('This field is required.'),
+        name: Yup.string().required('Header name is required.'),
         value: Yup.string(),
         value_from_env: Yup.string(),
       }).test(
         'has-value-or-env',
-        'Either value or value from environment variable must be provided',
+        'Either value or value from environment variable must be provided.',
         (obj) => {
           const { value, value_from_env } = obj || {};
-          const hasValue = value?.trim() !== '';
-          const hasEnvValue = value_from_env?.trim() !== '';
+          const hasValue = (value ?? '').trim() !== '';
+          const hasEnvValue = (value_from_env ?? '').trim() !== '';
           return hasValue || hasEnvValue;
         },
       ),
     ),
-    timeout_seconds: Yup.number().required('This field is required.'),
+    timeout_seconds: Yup.number()
+      .required('Timeout is required.')
+      .positive('Timeout must be a positive number.')
+      .typeError('Timeout must be a number.'),
     customization: Yup.object({
       root_fields_namespace: Yup.string(),
       type_prefix: Yup.string(),
@@ -89,7 +96,7 @@ export const baseRemoteSchemaValidationSchema = Yup.object({
         suffix: Yup.string(),
       }),
     }),
-  }).required('This field is required.'),
+  }).required('Definition is required.'),
 });
 
 function FormFooter({
@@ -146,17 +153,28 @@ export default function BaseRemoteSchemaForm({
       className="flex flex-auto flex-col content-between overflow-hidden border-t-1"
     >
       <div className="flex-auto overflow-y-auto pb-4">
-        <Box component="section" className="flex flex-col gap-3 px-6 py-6">
-          <RemoteSchemaNameInput disabled={nameInputDisabled} />
-          <RemoteSchemaCommentInput />
+        <Box
+          component="section"
+          className="flex flex-col gap-3 px-6 py-6 md:grid md:grid-cols-8"
+        >
+          <div className="col-span-6">
+            <RemoteSchemaNameInput disabled={nameInputDisabled} />
+          </div>
+          <div className="col-span-6">
+            <RemoteSchemaCommentInput />
+          </div>
         </Box>
 
         <Box
           component="section"
-          className="flex flex-col gap-3 border-t-1 px-6 py-6"
+          className="flex flex-col gap-3 border-t-1 px-6 py-6 md:grid md:grid-cols-8"
         >
-          <GraphQLServiceURLInput />
-          <GraphQLServerTimeoutInput />
+          <div className="col-span-6">
+            <GraphQLServiceURLInput />
+          </div>
+          <div className="col-span-6">
+            <GraphQLServerTimeoutInput />
+          </div>
         </Box>
 
         <Box
