@@ -118,9 +118,7 @@ export default function AdditionalHeadersEditor() {
 
         {fields.map((field, index) => {
           const currentValueType = getHeaderValueType(field.id);
-          const headerErrors = (errors as any)?.definition?.headers?.at?.(
-            index,
-          );
+          const headerErrors = errors?.definition?.headers?.at?.(index);
           const nameMessage = headerErrors?.name?.message;
           const objectLevelMessage =
             headerErrors?.message ?? headerErrors?.root?.message;
