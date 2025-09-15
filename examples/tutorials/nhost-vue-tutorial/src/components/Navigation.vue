@@ -11,6 +11,9 @@
         </RouterLink>
 
         <template v-if="isAuthenticated">
+          <RouterLink to="/todos" class="nav-link">
+            Todos
+          </RouterLink>
           <RouterLink to="/profile" class="nav-link">
             Profile
           </RouterLink>

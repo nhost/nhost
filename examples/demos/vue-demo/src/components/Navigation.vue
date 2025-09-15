@@ -6,6 +6,13 @@
       <div class="navbar-links">
         <template v-if="isAuthenticated">
           <router-link
+            to="/todos"
+            class="nav-link"
+            :class="{ active: $route.path === '/todos' }"
+          >
+            Todos
+          </router-link>
+          <router-link
             to="/profile"
             class="nav-link"
             :class="{ active: $route.path === '/profile' }"
