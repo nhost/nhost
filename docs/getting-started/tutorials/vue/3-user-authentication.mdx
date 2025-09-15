@@ -1,43 +1,43 @@
 ---
-title: User Authentication in React
-description: Learn how to implement user authentication in a React application using Nhost
+title: User Authentication in Vue
+description: Learn how to implement user authentication in a Vue application using Nhost
 sidebarTitle: "User Authentication"
 icon: user
 ---
 
-This tutorial part builds upon the [Protected Routes part](/getting-started/tutorials/react/2-protected-routes) by adding complete email/password authentication with email verification functionality. You'll implement sign up, sign in, email verification, and sign out features to create a full authentication flow.
+This tutorial part builds upon the [Protected Routes part](/getting-started/tutorials/vue/2-protected-routes) by adding complete email/password authentication with email verification functionality. You'll implement sign up, sign in, email verification, and sign out features to create a full authentication flow.
 
 <Info>
-This is **Part 3** in the Full-Stack React Development with Nhost series. This part creates a production-ready authentication system with secure email verification and proper error handling.
+This is **Part 3** in the Full-Stack Vue Development with Nhost series. This part creates a production-ready authentication system with secure email verification and proper error handling.
 </Info>
 
-## Full-Stack React Development with Nhost
+## Full-Stack Vue Development with Nhost
 
 <CardGroup cols={3}>
-<Card title="1. Create Project" icon="plus" href="/getting-started/tutorials/react/1-introduction">
+<Card title="1. Create Project" icon="plus" href="/getting-started/tutorials/vue/1-introduction">
 Set up your Nhost project
 </Card>
 
-<Card title="2. Protected Routes" icon="lock" href="/getting-started/tutorials/react/2-protected-routes">
+<Card title="2. Protected Routes" icon="lock" href="/getting-started/tutorials/vue/2-protected-routes">
 Route protection basics
 </Card>
 
-<Card title="3. User Authentication" icon="user" href="/getting-started/tutorials/react/3-user-authentication">
+<Card title="3. User Authentication" icon="user" href="/getting-started/tutorials/vue/3-user-authentication">
 **Current** - Complete auth flow
 </Card>
 
-<Card title="4. GraphQL Operations" icon="list-check" href="/getting-started/tutorials/react/4-graphql-operations">
+<Card title="4. GraphQL Operations" icon="list-check" href="/getting-started/tutorials/vue/4-graphql-operations">
 CRUD operations with GraphQL
 </Card>
 
-<Card title="5. File Uploads" icon="upload" href="/getting-started/tutorials/react/5-file-uploads">
+<Card title="5. File Uploads" icon="upload" href="/getting-started/tutorials/vue/5-file-uploads">
 File upload and management
 </Card>
 </CardGroup>
 
 ## Prerequisites
 
-- Complete the [Protected Routes part](/getting-started/tutorials/react/2-protected-routes) first
+- Complete the [Protected Routes part](/getting-started/tutorials/vue/2-protected-routes) first
 - The project from the previous part set up and running
 
 ## Step-by-Step Guide
@@ -49,108 +49,103 @@ File upload and management
 
 Build a comprehensive sign-in form with proper error handling and loading states. This page handles user authentication and includes special logic for post-verification sign-in.
 
-```tsx src/pages/SignIn.tsx lines
-import { useState, useEffect, useId } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../lib/nhost/AuthProvider";
+```vue src/views/SignIn.vue lines
+<template>
+  <div>
+    <h1>Sign In</h1>
 
-export default function SignIn() {
-  const { nhost, isAuthenticated } = useAuth();
-  const navigate = useNavigate();
-
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const emailId = useId();
-  const passwordId = useId();
-
-  // Use useEffect for navigation after authentication is confirmed
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate("/profile");
-    }
-  }, [isAuthenticated, navigate]);
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      // Use the signIn function from auth context
-      const response = await nhost.auth.signInEmailPassword({
-        email,
-        password,
-      });
-
-      // If we have a session, sign in was successful
-      if (response.body?.session) {
-        navigate("/profile");
-      } else {
-        setError("Failed to sign in. Please check your credentials.");
-      }
-    } catch (err) {
-      const message = (err as Error).message || "Unknown error";
-      setError(`An error occurred during sign in: ${message}`);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return (
-    <div>
-      <h1>Sign In</h1>
-
-      <form onSubmit={handleSubmit} className="auth-form">
-        <div className="auth-form-field">
-          <label htmlFor={emailId}>Email</label>
-          <input
-            id={emailId}
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="auth-input"
-          />
-        </div>
-
-        <div className="auth-form-field">
-          <label htmlFor={passwordId}>Password</label>
-          <input
-            id={passwordId}
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="auth-input"
-          />
-        </div>
-
-        {error && (
-          <div className="auth-error">
-            {error}
-          </div>
-        )}
-
-        <button
-          type="submit"
-          disabled={isLoading}
-          className={`auth-button secondary`}
-        >
-          {isLoading ? "Signing In..." : "Sign In"}
-        </button>
-      </form>
-
-      <div className="auth-links">
-        <p>
-          Don't have an account? <Link to="/signup">Sign Up</Link>
-        </p>
+    <form @submit.prevent="handleSubmit" class="auth-form">
+      <div class="auth-form-field">
+        <label :for="emailId">Email</label>
+        <input
+          :id="emailId"
+          type="email"
+          v-model="email"
+          required
+          class="auth-input"
+        />
       </div>
+
+      <div class="auth-form-field">
+        <label :for="passwordId">Password</label>
+        <input
+          :id="passwordId"
+          type="password"
+          v-model="password"
+          required
+          class="auth-input"
+        />
+      </div>
+
+      <div v-if="error" class="auth-error">
+        {{ error }}
+      </div>
+
+      <button
+        type="submit"
+        :disabled="isLoading"
+        class="auth-button secondary"
+      >
+        {{ isLoading ? "Signing In..." : "Sign In" }}
+      </button>
+    </form>
+
+    <div class="auth-links">
+      <p>
+        Don't have an account? <router-link to="/signup">Sign Up</router-link>
+      </p>
     </div>
-  );
-}
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted, useId } from "vue";
+import { useRouter } from "vue-router";
+import { useAuth } from "../lib/nhost/auth";
+
+const { nhost, isAuthenticated } = useAuth();
+const router = useRouter();
+
+const email = ref("");
+const password = ref("");
+const isLoading = ref(false);
+const error = ref<string | null>(null);
+
+const emailId = useId();
+const passwordId = useId();
+
+// Use onMounted for navigation after authentication is confirmed
+onMounted(() => {
+  if (isAuthenticated.value) {
+    router.push("/profile");
+  }
+});
+
+const handleSubmit = async () => {
+  isLoading.value = true;
+  error.value = null;
+
+  try {
+    // Use the signIn function from auth context
+    const response = await nhost.auth.signInEmailPassword({
+      email: email.value,
+      password: password.value,
+    });
+
+    // If we have a session, sign in was successful
+    if (response.body?.session) {
+      router.push("/profile");
+    } else {
+      error.value = "Failed to sign in. Please check your credentials.";
+    }
+  } catch (err) {
+    const message = (err as Error).message || "Unknown error";
+    error.value = `An error occurred during sign in: ${message}`;
+  } finally {
+    isLoading.value = false;
+  }
+};
+</script>
 ```
 
 </Step>
@@ -161,150 +156,138 @@ export default function SignIn() {
 
 Implement user registration with email verification flow. This page collects user information, creates accounts, and guides users through the email verification process.
 
-```tsx src/pages/SignUp.tsx lines
-import { useState, useEffect, useId } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../lib/nhost/AuthProvider";
+```vue src/views/SignUp.vue lines
+<template>
+  <div>
+    <h1 v-if="!success">Sign Up</h1>
+    <h1 v-else>Check Your Email</h1>
 
-export default function SignUp() {
-  const { nhost, isAuthenticated } = useAuth();
-  const navigate = useNavigate();
-
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [displayName, setDisplayName] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
-  const displayNameId = useId();
-
-  const emailId = useId();
-  const passwordId = useId();
-
-  // Redirect authenticated users to profile
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate("/profile");
-    }
-  }, [isAuthenticated, navigate]);
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError(null);
-    setSuccess(false);
-
-    try {
-      const response = await nhost.auth.signUpEmailPassword({
-        email,
-        password,
-        options: {
-          displayName,
-          // Set the redirect URL for email verification
-          redirectTo: `${window.location.origin}/verify`,
-        },
-      });
-
-      if (response.body?.session) {
-        // Successfully signed up and automatically signed in
-        navigate("/profile");
-      } else {
-        // Verification email sent
-        setSuccess(true);
-      }
-    } catch (err) {
-      const message = (err as Error).message || "Unknown error";
-      setError(`An error occurred during sign up: ${message}`);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  if (success) {
-    return (
-      <div>
-        <h1>Check Your Email</h1>
-        <div className="success-message">
-          <p>
-            We've sent a verification link to <strong>{email}</strong>
-          </p>
-          <p>
-            Please check your email and click the verification link to activate your account.
-          </p>
-        </div>
-        <p>
-          <Link to="/signin">Back to Sign In</Link>
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div>
-      <h1>Sign Up</h1>
-
-      <form onSubmit={handleSubmit} className="auth-form">
-        <div className="auth-form-field">
-          <label htmlFor={displayNameId}>Display Name</label>
-          <input
-            id={displayNameId}
-            type="text"
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
-            required
-className="auth-input"
-          />
-        </div>
-
-        <div className="auth-form-field">
-          <label htmlFor={emailId}>Email</label>
-          <input
-            id={emailId}
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-className="auth-input"
-          />
-        </div>
-
-        <div className="auth-form-field">
-          <label htmlFor={passwordId}>Password</label>
-          <input
-            id={passwordId}
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={8}
-className="auth-input"
-          />
-          <small className="help-text">Minimum 8 characters</small>
-        </div>
-
-        {error && (
-          <div className="auth-error">
-            {error}
-          </div>
-        )}
-
-        <button
-          type="submit"
-          disabled={isLoading}
-          className={`auth-button primary`}
-        >
-          {isLoading ? "Creating Account..." : "Sign Up"}
-        </button>
-      </form>
-
-      <div className="auth-links">
-        <p>
-          Already have an account? <Link to="/signin">Sign In</Link>
-        </p>
-      </div>
+    <div v-if="success" class="success-message">
+      <p>
+        We've sent a verification link to <strong>{{ email }}</strong>
+      </p>
+      <p>
+        Please check your email and click the verification link to activate your account.
+      </p>
+      <p>
+        <router-link to="/signin">Back to Sign In</router-link>
+      </p>
     </div>
-  );
-}
+
+    <form v-else @submit.prevent="handleSubmit" class="auth-form">
+      <div class="auth-form-field">
+        <label :for="displayNameId">Display Name</label>
+        <input
+          :id="displayNameId"
+          type="text"
+          v-model="displayName"
+          required
+          class="auth-input"
+        />
+      </div>
+
+      <div class="auth-form-field">
+        <label :for="emailId">Email</label>
+        <input
+          :id="emailId"
+          type="email"
+          v-model="email"
+          required
+          class="auth-input"
+        />
+      </div>
+
+      <div class="auth-form-field">
+        <label :for="passwordId">Password</label>
+        <input
+          :id="passwordId"
+          type="password"
+          v-model="password"
+          required
+          minlength="8"
+          class="auth-input"
+        />
+        <small class="help-text">Minimum 8 characters</small>
+      </div>
+
+      <div v-if="error" class="auth-error">
+        {{ error }}
+      </div>
+
+      <button
+        type="submit"
+        :disabled="isLoading"
+        class="auth-button primary"
+      >
+        {{ isLoading ? "Creating Account..." : "Sign Up" }}
+      </button>
+    </form>
+
+    <div v-if="!success" class="auth-links">
+      <p>
+        Already have an account? <router-link to="/signin">Sign In</router-link>
+      </p>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted, useId } from "vue";
+import { useRouter } from "vue-router";
+import { useAuth } from "../lib/nhost/auth";
+
+const { nhost, isAuthenticated } = useAuth();
+const router = useRouter();
+
+const email = ref("");
+const password = ref("");
+const displayName = ref("");
+const isLoading = ref(false);
+const error = ref<string | null>(null);
+const success = ref(false);
+
+const displayNameId = useId();
+const emailId = useId();
+const passwordId = useId();
+
+// Redirect authenticated users to profile
+onMounted(() => {
+  if (isAuthenticated.value) {
+    router.push("/profile");
+  }
+});
+
+const handleSubmit = async () => {
+  isLoading.value = true;
+  error.value = null;
+  success.value = false;
+
+  try {
+    const response = await nhost.auth.signUpEmailPassword({
+      email: email.value,
+      password: password.value,
+      options: {
+        displayName: displayName.value,
+        // Set the redirect URL for email verification
+        redirectTo: `${window.location.origin}/verify`,
+      },
+    });
+
+    if (response.body?.session) {
+      // Successfully signed up and automatically signed in
+      router.push("/profile");
+    } else {
+      // Verification email sent
+      success.value = true;
+    }
+  } catch (err) {
+    const message = (err as Error).message || "Unknown error";
+    error.value = `An error occurred during sign up: ${message}`;
+  } finally {
+    isLoading.value = false;
+  }
+};
+</script>
 ```
 
 </Step>
@@ -315,155 +298,142 @@ className="auth-input"
 
 Build a dedicated verification page that processes email verification tokens. This page handles the verification flow when users click the email verification link.
 
-```tsx src/pages/Verify.tsx lines
-import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "../lib/nhost/AuthProvider";
+```vue src/views/Verify.vue lines
+<template>
+  <div>
+    <h1>Email Verification</h1>
 
-export default function Verify() {
-  const location = useLocation();
-  const navigate = useNavigate();
+    <div class="page-center">
+      <div v-if="status === 'verifying'">
+        <p class="margin-bottom">Verifying your email...</p>
+        <div class="spinner-verify" />
+      </div>
 
-  const [status, setStatus] = useState<"verifying" | "success" | "error">(
-    "verifying",
-  );
-  const [error, setError] = useState<string | null>(null);
-  const [urlParams, setUrlParams] = useState<Record<string, string>>({});
+      <div v-else-if="status === 'success'">
+        <p class="verification-status">
+          ✓ Successfully verified!
+        </p>
+        <p>You'll be redirected to your profile page shortly...</p>
+      </div>
 
-  const { nhost } = useAuth();
+      <div v-else-if="status === 'error'">
+        <p class="verification-status error">
+          Verification failed
+        </p>
+        <p class="margin-bottom">{{ error }}</p>
 
-  useEffect(() => {
-    // Extract the refresh token from the URL
-    const params = new URLSearchParams(location.search);
-    const refreshToken = params.get("refreshToken");
+        <div v-if="Object.keys(urlParams).length > 0" class="debug-panel">
+          <p class="debug-title">
+            URL Parameters:
+          </p>
+          <div
+            v-for="[key, value] in Object.entries(urlParams)"
+            :key="key"
+            class="debug-item"
+          >
+            <span class="debug-key">
+              {{ key }}:
+            </span>
+            <span class="debug-value">{{ value }}</span>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          @click="router.push('/signin')"
+          class="auth-button secondary"
+        >
+          Back to Sign In
+        </button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted, onUnmounted } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { useAuth } from "../lib/nhost/auth";
+
+const route = useRoute();
+const router = useRouter();
+const { nhost } = useAuth();
+
+const status = ref<"verifying" | "success" | "error">("verifying");
+const error = ref<string | null>(null);
+const urlParams = ref<Record<string, string>>({});
+
+// Flag to handle component unmounting during async operations
+let isMounted = true;
+
+onMounted(() => {
+  // Extract the refresh token from the URL
+  const params = new URLSearchParams(route.fullPath.split("?")[1] || "");
+  const refreshToken = params.get("refreshToken");
+
+  if (!refreshToken) {
+    // Collect all URL parameters to display for debugging
+    const allParams: Record<string, string> = {};
+    params.forEach((value, key) => {
+      allParams[key] = value;
+    });
+    urlParams.value = allParams;
+
+    status.value = "error";
+    error.value = "No refresh token found in URL";
+    return;
+  }
+
+  processToken(refreshToken, params);
+});
+
+onUnmounted(() => {
+  isMounted = false;
+});
+
+async function processToken(
+  refreshToken: string,
+  params: URLSearchParams,
+): Promise<void> {
+  try {
+    // First display the verifying message for at least a moment
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    if (!isMounted) return;
 
     if (!refreshToken) {
-      // Collect all URL parameters to display for debugging
+      // Collect all URL parameters to display
       const allParams: Record<string, string> = {};
       params.forEach((value, key) => {
         allParams[key] = value;
       });
-      setUrlParams(allParams);
+      urlParams.value = allParams;
 
-      setStatus("error");
-      setError("No refresh token found in URL");
+      status.value = "error";
+      error.value = "No refresh token found in URL";
       return;
     }
 
-    // Flag to handle component unmounting during async operations
-    let isMounted = true;
+    // Process the token
+    await nhost.auth.refreshToken({ refreshToken });
 
-    async function processToken(): Promise<void> {
-      try {
-        // First display the verifying message for at least a moment
-        await new Promise((resolve) => setTimeout(resolve, 500));
+    if (!isMounted) return;
 
-        if (!isMounted) return;
+    status.value = "success";
 
-        if (!refreshToken) {
-          // Collect all URL parameters to display
-          const allParams: Record<string, string> = {};
-          params.forEach((value, key) => {
-            allParams[key] = value;
-          });
-          setUrlParams(allParams);
+    // Wait to show success message briefly, then redirect
+    setTimeout(() => {
+      if (isMounted) router.push("/profile");
+    }, 1500);
+  } catch (err) {
+    const message = (err as Error).message || "Unknown error";
+    if (!isMounted) return;
 
-          setStatus("error");
-          setError("No refresh token found in URL");
-          return;
-        }
-
-        // Process the token
-        await nhost.auth.refreshToken({ refreshToken });
-
-        if (!isMounted) return;
-
-        setStatus("success");
-
-        // Wait to show success message briefly, then redirect
-        setTimeout(() => {
-          if (isMounted) navigate("/profile");
-        }, 1500);
-      } catch (err) {
-        const message = (err as Error).message || "Unknown error";
-        if (!isMounted) return;
-
-        setStatus("error");
-        setError(`An error occurred during verification: ${message}`);
-      }
-    }
-
-    processToken();
-
-    // Cleanup function
-    return () => {
-      isMounted = false;
-    };
-  }, [location.search, navigate, nhost.auth]);
-
-  return (
-    <div>
-      <h1>Email Verification</h1>
-
-      <div className="page-center">
-        {status === "verifying" && (
-          <div>
-            <p className="margin-bottom">Verifying your email...</p>
-            <div className="spinner-verify" />
-            <style>{`
-              @keyframes spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
-              }
-            `}</style>
-          </div>
-        )}
-
-        {status === "success" && (
-          <div>
-            <p className="verification-status">
-              ✓ Successfully verified!
-            </p>
-            <p>You'll be redirected to your profile page shortly...</p>
-          </div>
-        )}
-
-        {status === "error" && (
-          <div>
-            <p className="verification-status error">
-              Verification failed
-            </p>
-            <p className="margin-bottom">{error}</p>
-
-            {Object.keys(urlParams).length > 0 && (
-              <div className="debug-panel">
-                <p className="debug-title">
-                  URL Parameters:
-                </p>
-                {Object.entries(urlParams).map(([key, value]) => (
-                  <div key={key} className="debug-item">
-                    <span className="debug-key">
-                      {key}:
-                    </span>{" "}
-                    <span className="debug-value">{value}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <button
-              type="button"
-              onClick={() => navigate("/signin")}
-              className="auth-button secondary"
-            >
-              Back to Sign In
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
+    status.value = "error";
+    error.value = `An error occurred during verification: ${message}`;
+  }
 }
+</script>
 ```
 
 <Warning>
@@ -481,65 +451,61 @@ Without this configuration, you'll receive a `redirectTo not allowed` error when
 
 <Step>
 
-### Update the App Component to Include New Routes
+### Update Router Configuration
 
-Configure your application's routing structure to include the new authentication pages. This integrates all the authentication flows into your app's navigation.
+Update your router configuration to include the new authentication routes:
 
-```tsx src/App.tsx lines highlight={14-16,35-37}
-import {
-  createBrowserRouter,
-  createRoutesFromElements,
-  Navigate,
-  Outlet,
-  Route,
-  RouterProvider,
-} from "react-router-dom";
-import ProtectedRoute from "./components/ProtectedRoute";
-import Navigation from "./components/Navigation";
-import { AuthProvider } from "./lib/nhost/AuthProvider";
-import Home from "./pages/Home";
-import Profile from "./pages/Profile";
-import SignIn from "./pages/SignIn";
-import SignUp from "./pages/SignUp";
-import Verify from "./pages/Verify";
+```ts src/router/index.ts lines highlight={5-7,17-31}
+import { createRouter, createWebHistory } from "vue-router";
+import ProtectedRoute from "../components/ProtectedRoute.vue";
+import Home from "../views/Home.vue";
+import Profile from "../views/Profile.vue";
+import SignIn from "../views/SignIn.vue";
+import SignUp from "../views/SignUp.vue";
+import Verify from "../views/Verify.vue";
 
-// Root layout component to wrap all routes
-const RootLayout = () => {
-  return (
-    <>
-      <Navigation />
-      <div className="app-content">
-        <Outlet />
-      </div>
-    </>
-  );
-};
+const router = createRouter({
+  history: createWebHistory(import.meta.env.BASE_URL),
+  routes: [
+    {
+      path: "/",
+      name: "Home",
+      component: Home,
+    },
+    {
+      path: "/signin",
+      name: "SignIn",
+      component: SignIn,
+    },
+    {
+      path: "/signup",
+      name: "SignUp",
+      component: SignUp,
+    },
+    {
+      path: "/verify",
+      name: "Verify",
+      component: Verify,
+    },
+    {
+      path: "/profile",
+      name: "Profile",
+      component: ProtectedRoute,
+      children: [
+        {
+          path: "",
+          component: Profile,
+        },
+      ],
+    },
+    {
+      path: "/:pathMatch(.*)*",
+      redirect: "/",
+    },
+  ],
+});
 
-// Create router with routes
-const router = createBrowserRouter(
-  createRoutesFromElements(
-    <Route element={<RootLayout />}>
-      <Route index element={<Home />} />
-      <Route path="signin" element={<SignIn />} />
-      <Route path="signup" element={<SignUp />} />
-      <Route path="verify" element={<Verify />} />
-      <Route element={<ProtectedRoute />}>
-        <Route path="profile" element={<Profile />} />
-      </Route>
-      <Route path="*" element={<Navigate to="/" />} />
-    </Route>,
-  ),
-);
-
-function App() {
-  return (
-    <AuthProvider>
-      <RouterProvider router={router} />
-    </AuthProvider>
-  );
-}
-
-export default App;
+export default router;
 ```
 </Step>
 
@@ -549,66 +515,64 @@ export default App;
 
 Update the navigation component to include links to the sign-in and sign-up pages, and implement the sign-out.
 
-```tsx src/components/Navigation.tsx lines highlight={1,5-19,38-43,47-52}
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../lib/nhost/AuthProvider";
+```vue src/components/Navigation.vue lines highlight={1,5-19,38-43,47-52}
+<template>
+  <nav class="navigation">
+    <div class="nav-container">
+      <router-link to="/" class="nav-logo">
+        Nhost Vue Demo
+      </router-link>
 
-export default function Navigation() {
-  const { isAuthenticated, session, nhost } = useAuth();
-  const navigate = useNavigate();
+      <div class="nav-links">
+        <router-link to="/" class="nav-link">
+          Home
+        </router-link>
 
-  const handleSignOut = async () => {
-    try {
-      if (session) {
-        await nhost.auth.signOut({
-          refreshToken: session.refreshToken,
-        });
-      }
-      navigate("/");
-    } catch (err: any) {
-      console.error("Error signing out:", err);
-    }
-  };
+        <template v-if="isAuthenticated">
+          <router-link to="/profile" class="nav-link">
+            Profile
+          </router-link>
+          <button
+            @click="handleSignOut"
+            class="nav-link nav-button"
+          >
+            Sign Out
+          </button>
+        </template>
 
-  return (
-    <nav className="navigation">
-      <div className="nav-container">
-        <Link to="/" className="nav-logo">
-          Nhost React Demo
-        </Link>
-
-        <div className="nav-links">
-          <Link to="/" className="nav-link">
-            Home
-          </Link>
-
-          {isAuthenticated ? (
-            <>
-              <Link to="/profile" className="nav-link">
-                Profile
-              </Link>
-              <button
-                onClick={handleSignOut}
-                className="nav-link nav-button"
-              >
-                Sign Out
-              </button>
-            </>
-          ) : (
-            <>
-              <Link to="/signin" className="nav-link">
-                Sign In
-              </Link>
-              <Link to="/signup" className="nav-link">
-                Sign Up
-              </Link>
-            </>
-          )}
-        </div>
+        <template v-else>
+          <router-link to="/signin" class="nav-link">
+            Sign In
+          </router-link>
+          <router-link to="/signup" class="nav-link">
+            Sign Up
+          </router-link>
+        </template>
       </div>
-    </nav>
-  );
-}
+    </div>
+  </nav>
+</template>
+
+<script setup lang="ts">
+import { useRouter } from "vue-router";
+import { useAuth } from "../lib/nhost/auth";
+
+const { isAuthenticated, session, nhost } = useAuth();
+const router = useRouter();
+
+const handleSignOut = async () => {
+  try {
+    if (session.value) {
+      await nhost.auth.signOut({
+        refreshToken: session.value.refreshToken,
+      });
+    }
+    router.push("/");
+  } catch (err: any) {
+    console.error("Error signing out:", err);
+  }
+};
+</script>
 ```
 
 </Step>
