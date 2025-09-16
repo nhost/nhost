@@ -50,9 +50,7 @@ $effect(() => {
     <div class="form-card">
       <h3 class="form-title">Session Information</h3>
       <div class="description">
-        <pre class="session-display">
-          {JSON.stringify($auth.session, null, 2)}
-        </pre>
+        <pre class="session-display">{JSON.stringify($auth.session, null, 2)}</pre>
       </div>
     </div>
   </div>

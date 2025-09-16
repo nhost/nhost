@@ -37,9 +37,19 @@ async function handleSignOut() {
 
         {#if $auth.isAuthenticated}
           <a href="/profile" class={isActive('/profile')}>Profile</a>
+          <button
+            onclick={handleSignOut}
+            class="nav-link nav-button"
+          >
+            Sign Out
+          </button>
         {:else}
-          <!-- Placeholder for signin/signup links -->
-          Placeholder for signin/signup links
+          <a href="/signin" class="nav-link {isActive('/signin')}">
+            Sign In
+          </a>
+          <a href="/signup" class="nav-link {isActive('/signup')}">
+            Sign Up
+          </a>
         {/if}
       </div>
     </div>
