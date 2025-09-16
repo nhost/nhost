@@ -166,16 +166,16 @@ export const buildComplexTreeData = ({
 
   // Add root fields (query, mutation, subscription)
   rootFields.forEach((rootField) => {
-    const typeName = (
-      {
-        query: 'Query',
-        mutation: 'Mutation',
-        subscription: 'Subscription',
-      } as const
-    )[rootField];
-    const rootType = schema.getType(typeName);
+    let rootType;
+    if (rootField === 'query') {
+      rootType = schema.getQueryType();
+    } else if (rootField === 'mutation') {
+      rootType = schema.getMutationType();
+    } else {
+      rootType = schema.getSubscriptionType();
+    }
 
-    if (rootType && 'getFields' in rootType) {
+    if (rootType) {
       const rootFieldKey = `__${rootField}`;
 
       const rootNode = {
