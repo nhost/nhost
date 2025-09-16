@@ -82,8 +82,11 @@ select_permissions:
         - uploaded_by_user_id
         - metadata
       filter:
-        uploaded_by_user_id:
-          _eq: X-Hasura-User-Id
+        _and:
+          - bucket_id:
+              _eq: personal
+          - uploaded_by_user_id:
+              _eq: X-Hasura-User-Id
 delete_permissions:
   - role: user
     permission:

@@ -1,7 +1,7 @@
 [global]
 
 [hasura]
-version = 'v2.46.0-ce'
+version = 'v2.48.5-ce'
 adminSecret = '{{ secrets.HASURA_GRAPHQL_ADMIN_SECRET }}'
 webhookSecret = '{{ secrets.NHOST_WEBHOOK_SECRET }}'
 

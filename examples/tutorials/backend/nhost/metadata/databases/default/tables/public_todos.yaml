@@ -8,9 +8,12 @@ insert_permissions:
       set:
         user_id: X-Hasura-User-Id
       columns:
+        - created_at
+        - updated_at
         - title
         - details
         - completed
+        - user_id
 select_permissions:
   - role: user
     permission:
