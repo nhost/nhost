@@ -83,6 +83,17 @@
               "/getting-started/tutorials/vue/4-graphql-operations",
               "/getting-started/tutorials/vue/5-file-uploads"
             ]
+          },
+          {
+            "group": "Tutorial: ToDo App (Svelte)",
+            "icon": "book",
+            "pages": [
+              "/getting-started/tutorials/svelte/1-introduction",
+              "/getting-started/tutorials/svelte/2-protected-routes",
+              "/getting-started/tutorials/svelte/3-user-authentication",
+              "/getting-started/tutorials/svelte/4-graphql-operations",
+              "/getting-started/tutorials/svelte/5-file-uploads"
+            ]
           }
         ]
       },
