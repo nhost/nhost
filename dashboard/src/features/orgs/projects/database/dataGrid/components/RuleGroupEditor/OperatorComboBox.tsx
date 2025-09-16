@@ -66,7 +66,7 @@ export default function OperatorComboBox({
   selectedColumnType,
 }: OperatorComboBoxProps) {
   const [open, setOpen] = useState(false);
-  const { watch, setValue } = useFormContext();
+  const { watch, setValue, clearErrors } = useFormContext();
 
   const operator = watch(`${name}.operator`);
 
@@ -76,11 +76,10 @@ export default function OperatorComboBox({
   ];
 
   const handleSelect = (value: string) => {
-    if (['_in', '_nin'].includes(value)) {
-      setValue(`${name}.value`, [], { shouldDirty: true });
-    }
-
+    const newValue = ['_in', '_nin'].includes(value) ? [] : null;
+    setValue(`${name}.value`, newValue, { shouldDirty: true });
     setValue(`${name}.operator`, value, { shouldDirty: true });
+    clearErrors();
     setOpen(false);
   };
 

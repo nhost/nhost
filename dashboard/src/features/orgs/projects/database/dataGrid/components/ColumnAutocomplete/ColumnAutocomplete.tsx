@@ -53,6 +53,10 @@ export interface ColumnAutocompleteProps
    * Determines if the autocomplete should allow relationships.
    */
   disableRelationships?: UseColumnGroupsOptions['disableRelationships'];
+  /**
+   * Custom classes
+   */
+  className?: string;
 }
 
 function ColumnAutocomplete(
@@ -62,6 +66,7 @@ function ColumnAutocomplete(
     value: externalValue,
     disableRelationships,
     onChange,
+    className,
     onInitialized,
   }: ColumnAutocompleteProps,
   ref: ForwardedRef<HTMLButtonElement>,
@@ -211,7 +216,7 @@ function ColumnAutocomplete(
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between"
+          className={cn('w-full justify-between', className)}
         >
           {buttonPrefix ? (
             <div className="flex min-w-0 flex-shrink items-center gap-0">

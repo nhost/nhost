@@ -11,7 +11,6 @@ import { prefetchNewAppQuery } from '@/tests/msw/mocks/graphql/prefetchNewAppQue
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import {
   createGraphqlMockResolver,
-  fireEvent,
   mockPointerEvent,
   queryClient,
   render,
@@ -82,18 +81,6 @@ vi.mock('next/router', () => ({
   useRouter: mocks.useRouter,
 }));
 
-async function asyncFireEvent(element: Document | Element | Window | Node) {
-  await waitFor(() => {
-    fireEvent(
-      element,
-      new MouseEvent('click', {
-        bubbles: true,
-        cancelable: true,
-      }),
-    );
-  });
-}
-
 export function DialogWrapper({
   defaultOpen = true,
 }: {
@@ -155,7 +142,7 @@ describe('TransferProjectDialog', () => {
     const submitButton = await screen.findByText('Continue');
     expect(submitButton).toHaveTextContent('Continue');
 
-    asyncFireEvent(submitButton);
+    await TestUserEvent.fireClickEvent(submitButton);
 
     await waitFor(() => {
       expect(submitButton).not.toBeInTheDocument();
@@ -164,7 +151,7 @@ describe('TransferProjectDialog', () => {
     const newOrgTitle = await screen.findByText('New Organization');
     expect(newOrgTitle).toBeInTheDocument();
     const closeButton = await screen.findByText('Close');
-    asyncFireEvent(closeButton);
+    await TestUserEvent.fireClickEvent(closeButton);
     await waitFor(() => {
       expect(newOrgTitle).not.toBeInTheDocument();
     });
@@ -200,7 +187,7 @@ describe('TransferProjectDialog', () => {
 
     const closeButton = await screen.findByText('Close');
 
-    asyncFireEvent(closeButton);
+    await TestUserEvent.fireClickEvent(closeButton);
 
     await waitFor(() => {});
     expect(closeButton).toBeInTheDocument();

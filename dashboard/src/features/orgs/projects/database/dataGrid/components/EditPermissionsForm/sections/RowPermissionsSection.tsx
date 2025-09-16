@@ -5,10 +5,8 @@ import { RadioGroup } from '@/components/ui/v2/RadioGroup';
 import { Text } from '@/components/ui/v2/Text';
 import type { RolePermissionEditorFormValues } from '@/features/orgs/projects/database/dataGrid/components/EditPermissionsForm/RolePermissionEditorForm';
 import { RuleGroupEditor } from '@/features/orgs/projects/database/dataGrid/components/RuleGroupEditor';
-import type {
-  DatabaseAction,
-  RuleGroup,
-} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import type { DatabaseAction } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { isNotEmptyValue } from '@/lib/utils';
 import type { FocusEvent, ReactNode } from 'react';
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
@@ -53,44 +51,30 @@ export default function RowPermissionsSection({
   const { filter } = getValues();
 
   const defaultRowCheckType =
-    filter &&
-    'rules' in filter &&
-    'groups' in filter &&
-    (filter.rules.length > 0 ||
-      filter.groups.length > 0 ||
-      filter.unsupported?.length > 0)
+    isNotEmptyValue(filter?.rules) ||
+    isNotEmptyValue(filter?.groups) ||
+    isNotEmptyValue(filter?.unsupported)
       ? 'custom'
       : 'none';
 
-  const [temporaryPermissions, setTemporaryPermissions] =
-    useState<RuleGroup | null>(null);
-
-  const [rowCheckType, setRowCheckType] = useState<'none' | 'custom' | null>(
-    filter ? defaultRowCheckType : null,
+  const [rowCheckType, setRowCheckType] = useState<'none' | 'custom'>(
+    defaultRowCheckType,
   );
 
   function handleCheckTypeChange(value: typeof rowCheckType) {
     setRowCheckType(value);
 
     if (value === 'none') {
-      setTemporaryPermissions(getValues().filter as RuleGroup);
-
       // Note: https://github.com/react-hook-form/react-hook-form/issues/4055#issuecomment-950145092
       // @ts-ignore
       setValue('filter', {});
-
-      return;
-    }
-
-    setRowCheckType(value);
-    setValue(
-      'filter',
-      temporaryPermissions || {
+    } else {
+      setValue('filter', {
         operator: '_and',
-        rules: [{ column: '', operator: '_eq', value: '' }],
+        rules: [{ column: null, operator: '_eq', value: null }],
         groups: [],
-      },
-    );
+      });
+    }
   }
 
   return (

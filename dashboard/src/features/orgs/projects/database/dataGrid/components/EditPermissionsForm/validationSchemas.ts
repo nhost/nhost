@@ -41,7 +41,7 @@ const ruleGroupSchema = Yup.object().shape({
 });
 
 const baseValidationSchema = Yup.object().shape({
-  filter: ruleGroupSchema.nullable().required('Please select a filter type.'),
+  filter: ruleGroupSchema.nullable(),
   columns: Yup.array().of(Yup.string()).nullable(),
 });
 
