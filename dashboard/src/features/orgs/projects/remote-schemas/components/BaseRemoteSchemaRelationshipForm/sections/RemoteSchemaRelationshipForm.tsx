@@ -85,11 +85,9 @@ export default function RemoteSchemaRelationshipForm({
 
   const { isSubmitting } = form.formState;
 
-  // Fetch all remote schemas for the target schema dropdown
   const { data: remoteSchemas, status: remoteSchemasQueryStatus } =
     useGetRemoteSchemas();
 
-  // Introspect the source remote schema to get its types
   const { data: sourceIntrospectionData } = useIntrospectRemoteSchemaQuery(
     sourceSchema,
     {
@@ -99,10 +97,8 @@ export default function RemoteSchemaRelationshipForm({
     },
   );
 
-  // Watch the selected target remote schema
   const targetRemoteSchemaValue = form.watch('targetRemoteSchema');
 
-  // Introspect the target remote schema to get its fields
   const { data: targetIntrospectionData } = useIntrospectRemoteSchemaQuery(
     targetRemoteSchemaValue,
     {

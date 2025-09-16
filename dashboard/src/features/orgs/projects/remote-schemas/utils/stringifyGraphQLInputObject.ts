@@ -8,7 +8,6 @@ import {
 import getInputFieldChildren from './getInputFieldChildren';
 import isList from './isList';
 
-// Builds a GraphQL input object literal from a nested ArgTree
 export default function stringifyGraphQLInputObject(
   args: ArgTreeType,
   argDef: GraphQLInputField,
@@ -37,7 +36,7 @@ export default function stringifyGraphQLInputObject(
         !value.toLowerCase().startsWith('x-hasura');
 
       if (isEnum) {
-        fieldLiteral = `${key}:${value}`; // enum: no quotes
+        fieldLiteral = `${key}:${value}`;
       } else if (typeof value === 'number') {
         fieldLiteral = `${key}: ${value} `;
       } else if (typeof value === 'string' && isList(gqlArg, value)) {
@@ -63,7 +62,7 @@ export default function stringifyGraphQLInputObject(
   });
 
   if (result === '{') {
-    return undefined; // nothing was added
+    return undefined;
   }
   return `${result}}`;
 }

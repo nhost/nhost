@@ -50,7 +50,6 @@ export default function SchemaToArgumentMapSelectorValue({
       render={({ field: valueField }) => (
         <FormItem className="flex-1">
           {currentType === 'sourceTypeField' ? (
-            // Source field selector
             <>
               <FormLabel>From Source Type Field</FormLabel>
               <Popover open={open} onOpenChange={setOpen}>
@@ -110,7 +109,6 @@ export default function SchemaToArgumentMapSelectorValue({
               </Popover>
             </>
           ) : (
-            // Static value input
             <>
               <FormLabel>Static Value</FormLabel>
               <Input

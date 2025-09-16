@@ -25,10 +25,8 @@ export default function FieldToColumnMapSelector({
   const tableInfo = form.watch('table');
   const { schema, name: table } = tableInfo;
 
-  // Watch the selected source type to get its fields
   const selectedSourceType = form.watch('sourceType');
 
-  // Introspect the source remote schema to get its types
   const { data: introspectionData } = useIntrospectRemoteSchemaQuery(
     sourceSchema,
     {
@@ -38,7 +36,6 @@ export default function FieldToColumnMapSelector({
     },
   );
 
-  // Extract fields from the selected source type
   const sourceFields =
     introspectionData && selectedSourceType
       ? (() => {
@@ -55,7 +52,7 @@ export default function FieldToColumnMapSelector({
             return Object.keys(fields).map((fieldName) => ({
               label: fieldName,
               value: fieldName,
-              type: fields[fieldName].type.toString(), // For display purposes
+              type: fields[fieldName].type.toString(),
             }));
           }
 

@@ -34,9 +34,6 @@ export function isRemoteSchemaFromUrlDefinition(
   return 'url' in definition && !('url_from_env' in definition);
 }
 
-/**
- * Type guard to validate if an object is a ToRemoteSchemaDefinition or a ToSourceDefinition
- */
 export function isToRemoteSchemaRelationshipDefinition(
   definition: RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItemDefinition,
 ): definition is { to_remote_schema: ToRemoteSchemaRelationshipDefinition } {

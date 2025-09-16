@@ -45,7 +45,6 @@ export default function FieldToColumnMapSelectorItem({
 
   const fieldMappings = form.watch('fieldMapping');
 
-  // Function to get available source fields for a specific row index
   const getAvailableSourceFields = (currentIndex: number) => {
     const selectedFieldsInOtherRows = fieldMappings
       .map((mapping, index) =>

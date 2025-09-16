@@ -28,7 +28,6 @@ function printTypeSDL(
   let result = '';
   const typeName = type.name;
 
-  // Scalars
   if (typeName.startsWith('scalar')) {
     if (type.typeName && isStandardGraphQLScalar(type.typeName)) {
       return result;
@@ -37,7 +36,6 @@ function printTypeSDL(
     return `${result}\n`;
   }
 
-  // Unions
   if (typeName.startsWith('union') && type.children) {
     result = `${typeName} =`;
     type.children.forEach((t) => {
@@ -49,7 +47,6 @@ function printTypeSDL(
     return `${result}\n`;
   }
 
-  // Objects / Inputs / Enums
   result = `${typeName}{`;
 
   if (type.children) {
@@ -61,14 +58,12 @@ function printTypeSDL(
       let fieldStr = f.name;
       let valueStr = '';
 
-      // enum types don't have args
       if (!typeName.startsWith('enum')) {
         if (f.args && !isEmptyValue(f.args)) {
           fieldStr = `${fieldStr}(`;
           Object.values(f.args).forEach((arg: GraphQLInputField) => {
             valueStr = `${arg.name} : ${arg.type.toString()}`;
 
-            // default value
             if (arg.defaultValue !== undefined) {
               const defaultValue = stringifyGraphQLValue({
                 arg,
@@ -77,7 +72,6 @@ function printTypeSDL(
               valueStr = `${valueStr} = ${defaultValue} `;
             }
 
-            // preset directive
             const argName = argTree?.[type?.name]?.[f?.name]?.[arg?.name];
             if (argName) {
               const preset = stringifyGraphQLValue({ arg, argName });

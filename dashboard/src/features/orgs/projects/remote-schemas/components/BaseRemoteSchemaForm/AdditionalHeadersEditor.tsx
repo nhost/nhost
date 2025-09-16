@@ -31,7 +31,6 @@ export default function AdditionalHeadersEditor() {
     name: 'definition.headers',
   });
 
-  // Initialize headerTypes based on existing form values
   useEffect(() => {
     const currentHeaders = watch('definition.headers') || [];
     const initialHeaderTypes: Record<string, 'value' | 'value_from_env'> = {};
@@ -39,7 +38,6 @@ export default function AdditionalHeadersEditor() {
     fields.forEach((field, index) => {
       const header = currentHeaders[index];
       if (header) {
-        // Check if header has value_from_env and no value (indicating it's an env var type)
         if (header.value_from_env && !header.value) {
           initialHeaderTypes[field.id] = 'value_from_env';
         } else {
@@ -58,11 +56,9 @@ export default function AdditionalHeadersEditor() {
     index: number,
     fieldId: string,
   ) => {
-    // Clear both fields first, then the user will fill in the selected one
     setValue(`definition.headers.${index}.value`, '');
     setValue(`definition.headers.${index}.value_from_env`, '');
 
-    // Update the state for this specific header
     setHeaderTypes((prev) => ({
       ...prev,
       [fieldId]: valueType,
@@ -73,7 +69,6 @@ export default function AdditionalHeadersEditor() {
     headerTypes[fieldId] || 'value';
 
   const handleRemoveHeader = (index: number, fieldId: string) => {
-    // Clean up the state when removing a header
     setHeaderTypes((prev) => {
       const newState = { ...prev };
       delete newState[fieldId];

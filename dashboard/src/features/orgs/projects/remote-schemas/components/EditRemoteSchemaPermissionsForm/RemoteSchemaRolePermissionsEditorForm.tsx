@@ -87,7 +87,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
   const [remoteSchemaFields, setRemoteSchemaFields] = useState<
     RemoteSchemaFields[]
   >([]);
-  const [argTree, setArgTree] = useState<ArgTreeType>({}); // Store preset values
+  const [argTree, setArgTree] = useState<ArgTreeType>({});
   const [schemaDefinition, setSchemaDefinition] = useState('');
 
   const { data: resourceVersion } = useGetMetadataResourceVersion();
@@ -123,7 +123,6 @@ export default function RemoteSchemaRolePermissionsEditorForm({
     },
   });
 
-  // Fetch remote schema introspection
   const {
     data: introspectionData,
     isLoading: isLoadingSchema,
@@ -139,7 +138,6 @@ export default function RemoteSchemaRolePermissionsEditorForm({
 
   const { openAlertDialog } = useDialog();
 
-  // Build fields when schema is loaded
   useEffect(() => {
     if (introspectionData) {
       try {
@@ -153,7 +151,6 @@ export default function RemoteSchemaRolePermissionsEditorForm({
             permission.definition.schema,
           );
 
-          // Parse existing presets from the schema definition
           newArgTree = parsePresetArgTreeFromSDL(
             permission.definition.schema,
             introspectionSchema,
@@ -167,7 +164,6 @@ export default function RemoteSchemaRolePermissionsEditorForm({
         );
         setRemoteSchemaFields(fields);
 
-        // Generate SDL from the current state
         if (permissionSchema) {
           setSchemaDefinition(permission.definition.schema);
         } else {
@@ -180,7 +176,6 @@ export default function RemoteSchemaRolePermissionsEditorForm({
     }
   }, [introspectionData, permission]);
 
-  // Update schema definition when fields or argTree change
   useEffect(() => {
     if (remoteSchemaFields.length > 0) {
       const newSchemaDefinition = composePermissionSDL(
@@ -191,7 +186,6 @@ export default function RemoteSchemaRolePermissionsEditorForm({
     }
   }, [remoteSchemaFields, argTree]);
 
-  // Handle field selection changes with automatic dependency selection
   const handleFieldToggle = useCallback(
     (schemaTypeIndex: number, fieldIndex: number, checked: boolean) => {
       setRemoteSchemaFields((prev) => {
@@ -205,7 +199,6 @@ export default function RemoteSchemaRolePermissionsEditorForm({
         }
         const currentField = schemaType.children[fieldIndex];
 
-        // Update the current field
         newFields[schemaTypeIndex] = {
           ...schemaType,
           children: (schemaType.children ?? []).map((child, index) =>
@@ -213,11 +206,9 @@ export default function RemoteSchemaRolePermissionsEditorForm({
           ),
         };
 
-        // If checking a field, recursively check all dependencies
         if (checked && currentField.return) {
           const typesToCheck = new Set<string>();
 
-          // Add return type
           const returnBaseType = getBaseTypeName(currentField.return);
           if (
             !['String', 'Int', 'Float', 'Boolean', 'ID'].includes(
@@ -227,7 +218,6 @@ export default function RemoteSchemaRolePermissionsEditorForm({
             typesToCheck.add(returnBaseType);
           }
 
-          // Add argument types
           if (currentField.args) {
             Object.values(currentField.args).forEach((arg) => {
               let argTypeString = '';
@@ -256,14 +246,12 @@ export default function RemoteSchemaRolePermissionsEditorForm({
             baseType: string,
             visited: Set<string> = new Set(),
           ) => {
-            // Skip already visited types
             if (visited.has(baseType)) {
               return;
             }
 
             visited.add(baseType);
 
-            // Find the type in our schema and check all its fields
             const typeNames = [
               `type ${baseType}`,
               `input ${baseType}`,
@@ -278,13 +266,11 @@ export default function RemoteSchemaRolePermissionsEditorForm({
             );
 
             if (depTypeIndex !== -1) {
-              // Only check if not already fully checked to preserve order
               const hasUncheckedFields = (
                 newFields[depTypeIndex].children ?? []
               ).some((child) => !child.checked);
 
               if (hasUncheckedFields) {
-                // Mark all fields in the dependent type as checked
                 newFields[depTypeIndex] = {
                   ...newFields[depTypeIndex],
                   children: newFields[depTypeIndex].children
@@ -295,7 +281,6 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                     : [],
                 };
 
-                // Recursively check dependencies of each field in this type
                 newFields[depTypeIndex].children?.forEach((childField) => {
                   if (childField.return) {
                     const childBaseType = getBaseTypeName(childField.return);
@@ -312,7 +297,6 @@ export default function RemoteSchemaRolePermissionsEditorForm({
             }
           };
 
-          // Check all types we found
           typesToCheck.forEach((baseType) => {
             checkTypeDependencies(baseType);
           });
@@ -341,10 +325,8 @@ export default function RemoteSchemaRolePermissionsEditorForm({
         }
 
         if (value.trim() === '') {
-          // Remove preset if value is empty
           delete newArgTree[schemaTypeName][fieldName][argName];
 
-          // Clean up empty objects
           if (Object.keys(newArgTree[schemaTypeName][fieldName]).length === 0) {
             delete newArgTree[schemaTypeName][fieldName];
           }
@@ -458,7 +440,6 @@ export default function RemoteSchemaRolePermissionsEditorForm({
     });
   };
 
-  // Filter fields based on search term
   const filteredFields = useMemo(() => {
     if (!searchTerm) {
       return remoteSchemaFields;
@@ -814,7 +795,6 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                                     </label>
                                   </div>
 
-                                  {/* Arguments section for custom types */}
                                   {field.expanded &&
                                     field.args &&
                                     Object.values(field.args).length > 0 && (

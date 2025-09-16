@@ -44,7 +44,6 @@ export default function stringifyGraphQLValue({
 }: FormatParamArgs): string | undefined {
   const isEnum = isEnumValueLiteral(argName, arg.type);
 
-  // Nested structures
   if (typeof argName === 'object') {
     if (Array.isArray(argName)) {
       const items = argName.map((item) =>
@@ -55,11 +54,9 @@ export default function stringifyGraphQLValue({
     return stringifyGraphQLInputObject(argName, arg);
   }
 
-  // Primitive literals
   if (typeof argName === 'number' || isEnum) {
     return String(argName);
   }
 
-  // Strings default to quoted representation
   return `"${argName}"`;
 }

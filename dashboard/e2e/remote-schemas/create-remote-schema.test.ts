@@ -44,7 +44,6 @@ test.describe('Remote Schemas', () => {
       page.getByRole('link', { name: schemaName, exact: true }),
     ).toBeVisible();
 
-    // cleanup: delete the created remote schema
     const schemaLink = page.getByRole('link', {
       name: schemaName,
       exact: true,

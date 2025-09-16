@@ -33,12 +33,10 @@ export default function SchemaToArgumentMapSelector({
 }: SchemaToArgumentMapSelectorProps) {
   const form = useFormContext<RemoteSchemaRelationshipFormValues>();
 
-  // Watch form values to reactively get field arguments
   const selectedSourceType = form.watch('sourceType');
   const selectedTargetRemoteSchema = form.watch('targetRemoteSchema');
   const selectedTargetField = form.watch('targetField');
 
-  // Introspect the source remote schema to get its types and fields
   const { data: sourceIntrospectionData } = useIntrospectRemoteSchemaQuery(
     sourceSchema,
     {
@@ -48,7 +46,6 @@ export default function SchemaToArgumentMapSelector({
     },
   );
 
-  // Introspect the target remote schema to get field arguments
   const { data: targetIntrospectionData } = useIntrospectRemoteSchemaQuery(
     selectedTargetRemoteSchema,
     {
@@ -58,7 +55,6 @@ export default function SchemaToArgumentMapSelector({
     },
   );
 
-  // Extract fields from the selected source type
   const sourceFields =
     sourceIntrospectionData && selectedSourceType
       ? (() => {
@@ -77,7 +73,7 @@ export default function SchemaToArgumentMapSelector({
             return Object.keys(fields).map((fieldName) => ({
               label: fieldName,
               value: fieldName,
-              type: fields[fieldName].type.toString(), // For display purposes
+              type: fields[fieldName].type.toString(),
             }));
           }
 
@@ -85,7 +81,6 @@ export default function SchemaToArgumentMapSelector({
         })()
       : [];
 
-  // Extract arguments from the selected target field
   const targetArguments =
     targetIntrospectionData && selectedTargetField
       ? (() => {
@@ -110,12 +105,11 @@ export default function SchemaToArgumentMapSelector({
             return [];
           }
 
-          // Extract the arguments from the field
           return targetFieldObject.args.map((arg) => ({
             label: arg.name,
             value: arg.name,
             type: arg.type.toString(),
-            required: arg.type.toString().includes('!'), // NonNull types end with !
+            required: arg.type.toString().includes('!'),
           }));
         })()
       : [];
@@ -131,17 +125,14 @@ export default function SchemaToArgumentMapSelector({
   const getArgumentMappingIndex = (argumentName: string) =>
     fields.findIndex((field) => field.argument === argumentName);
 
-  // Handle checkbox change
   const handleArgumentToggle = (argumentName: string, checked: boolean) => {
     if (checked) {
-      // Add mapping for this argument
       append({
         argument: argumentName,
         type: 'sourceTypeField',
         value: '',
       });
     } else {
-      // Remove mapping for this argument
       const index = getArgumentMappingIndex(argumentName);
       if (index !== -1) {
         remove(index);
@@ -176,7 +167,6 @@ export default function SchemaToArgumentMapSelector({
               const isSelected = isArgumentSelected(argument.value);
               const mappingIndex = getArgumentMappingIndex(argument.value);
 
-              // Watch the type field for this specific mapping to make it reactive
               const currentType =
                 mappingIndex !== -1
                   ? form.watch(`mappings.${mappingIndex}.type`)

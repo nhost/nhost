@@ -43,7 +43,6 @@ export default function TargetTableCombobox({
   const handleSelectTable = (table: { name: string; schema: string }) => {
     form.setValue('table', table);
 
-    // Reset the reference column for all fields, when changing the target table
     if (form.getValues('fieldMapping').length > 0) {
       form.setValue(
         'fieldMapping',
@@ -71,7 +70,7 @@ export default function TargetTableCombobox({
           ]
         : [],
     )
-    .sort((a, b) => a.label.localeCompare(b.label)); // sort alphabetically
+    .sort((a, b) => a.label.localeCompare(b.label));
 
   return (
     <FormField

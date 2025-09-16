@@ -109,10 +109,9 @@ export const getRelationshipFormDefaultValues = (
             ? 'sourceTypeField'
             : 'staticValue',
       })),
-    } as RemoteSchemaRelationshipFormValues;
+    } satisfies RemoteSchemaRelationshipFormValues;
   }
 
-  // Database Relationship Form Values
   return {
     name: relationship.name,
     sourceRemoteSchema,
@@ -128,7 +127,7 @@ export const getRelationshipFormDefaultValues = (
       referenceColumn,
     })),
     relationshipType: relationship.definition.to_source.relationship_type,
-  } as DatabaseRelationshipFormValues;
+  } satisfies DatabaseRelationshipFormValues;
 };
 
 export const getRelationshipType = (

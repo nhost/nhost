@@ -49,7 +49,6 @@ export const RemoteSchemaTree = forwardRef<
   const [expandedItems, setExpandedItems] = useState<string[]>(['root']);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
 
-  // Function to search through the tree data structure
   const findItemPath = useCallback(
     async (
       searchTerm: string,
@@ -64,10 +63,8 @@ export const RemoteSchemaTree = forwardRef<
           return null;
         }
 
-        // Handle different data types for search
         let searchableText = '';
         if (React.isValidElement(item.data)) {
-          // For JSX elements, extract the text content
           const extractText = (element: any): string => {
             if (typeof element === 'string') {
               return element;
@@ -90,13 +87,11 @@ export const RemoteSchemaTree = forwardRef<
           searchableText = String(item.data);
         }
 
-        // Check if current item matches the search term (case-insensitive)
         if (searchableText.toLowerCase().includes(searchTerm.toLowerCase())) {
           return [...currentPath, itemId];
         }
 
         let result: string[] | null = null;
-        // Search in children
         item.children?.some((childId) => {
           result = searchInItem(childId, [...currentPath, itemId]);
           return !!result;
@@ -109,19 +104,15 @@ export const RemoteSchemaTree = forwardRef<
     [treeData],
   );
 
-  // Function to expand tree to show a specific item
   const expandToItem = async (path: string[]): Promise<void> => {
     if (treeRef.current && path.length > 0) {
-      // Expand all parent items first
       const parentsToExpand = path.slice(0, -1);
       setExpandedItems((prev) => [...new Set([...prev, ...parentsToExpand])]);
 
-      // Use the tree ref to expand the path
       await treeRef.current.expandSubsequently(path);
     }
   };
 
-  // Expose methods through ref
   useImperativeHandle(
     ref,
     () => ({

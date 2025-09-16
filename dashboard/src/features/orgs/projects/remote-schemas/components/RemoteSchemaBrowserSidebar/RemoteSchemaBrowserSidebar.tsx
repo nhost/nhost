@@ -486,7 +486,7 @@ export default function RemoteSchemaBrowserSidebar({
       </Box>
 
       <IconButton
-        className="absolute bottom-4 left-4 z-[38] h-11 w-11 rounded-full md:hidden"
+        className="absolute bottom-4 left-8 z-[38] h-11 w-11 rounded-full md:hidden"
         onClick={toggleExpanded}
         aria-label="Toggle sidebar"
       >

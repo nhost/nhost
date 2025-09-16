@@ -94,8 +94,6 @@ export default function DatabaseRelationshipForm({
 
   const { isSubmitting } = form.formState;
 
-  // Use the sourceSchema prop instead of watching form field
-  // Introspect the source remote schema to get its types
   const { data: introspectionData } = useIntrospectRemoteSchemaQuery(
     sourceSchema,
     {
