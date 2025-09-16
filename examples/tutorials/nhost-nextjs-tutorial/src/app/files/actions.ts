@@ -62,35 +62,3 @@ export async function deleteFileAction(fileId: string, fileName: string): Promis
     return { success: false, error: `Failed to delete ${fileName}: ${message}` };
   }
 }
-
-export async function downloadFileAction(fileId: string, fileName: string) {
-  try {
-    const nhost = await createNhostClient();
-
-    if (!fileId) {
-      throw new Error("File ID is required");
-    }
-
-    const response = await nhost.storage.getFile(fileId);
-
-    if (!response.body) {
-      throw new Error("Failed to download file");
-    }
-
-    // Convert the response to a buffer for proper handling
-    const arrayBuffer = await response.body.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-
-    return {
-      success: true,
-      data: {
-        buffer: buffer,
-        fileName: fileName,
-        mimeType: response.body.type || 'application/octet-stream'
-      }
-    };
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "An unknown error occurred";
-    return { success: false, error: `Failed to download file: ${message}` };
-  }
-}

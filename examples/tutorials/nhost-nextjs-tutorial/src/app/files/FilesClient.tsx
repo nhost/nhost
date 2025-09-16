@@ -110,12 +110,12 @@ export default function FilesClient({
         mimeType.startsWith("video/") ||
         mimeType.startsWith("audio/")
       ) {
-        // Use view route for viewable files (serves inline)
-        const viewUrl = `/files/view/${fileId}?fileName=${encodeURIComponent(fileName)}`;
+        // Use download route for viewable files (inline viewing)
+        const viewUrl = `/files/download/${fileId}?fileName=${encodeURIComponent(fileName)}`;
         window.open(viewUrl, "_blank");
       } else {
-        // Use download route for other file types
-        const downloadUrl = `/files/download/${fileId}?fileName=${encodeURIComponent(fileName)}`;
+        // Use download route for downloads (force download)
+        const downloadUrl = `/files/download/${fileId}?fileName=${encodeURIComponent(fileName)}&download=true`;
         const link = document.createElement("a");
         link.href = downloadUrl;
         link.download = fileName;

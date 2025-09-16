@@ -111,9 +111,140 @@ You can read more about storage permissions [here](/products/storage/overview#pe
 
 ### Create the File Upload System
 
-Now let's implement the Next.js file upload functionality using server and client components. We'll follow the same patterns established in the authentication tutorial, with server components handling data fetching and client components managing user interactions.
+Now let's implement the Next.js file upload functionality using server actions, API routes, and client components. We'll use server actions for upload and delete operations, and API routes for file viewing and downloading.
 
 <Tabs>
+<Tab title="Server Actions">
+
+First, let's create server actions to handle file upload and delete operations. Server actions run on the server and provide a secure way to handle file operations.
+
+```tsx src/app/files/actions.ts
+"use server";
+
+import { createNhostClient } from "../../lib/nhost/server";
+import { revalidatePath } from "next/cache";
+
+export interface ActionResult {
+  success: boolean;
+  error?: string;
+  data?: any;
+}
+
+export async function uploadFileAction(formData: FormData): Promise<ActionResult> {
+  try {
+    const nhost = await createNhostClient();
+    const file = formData.get("file") as File;
+
+    if (!file) {
+      return { success: false, error: "Please select a file to upload" };
+    }
+
+    const response = await nhost.storage.uploadFiles({
+      "bucket-id": "personal",
+      "file[]": [file],
+    });
+
+    const uploadedFile = response.body.processedFiles?.[0];
+    if (!uploadedFile) {
+      return { success: false, error: "Failed to upload file" };
+    }
+
+    revalidatePath("/files");
+    return {
+      success: true,
+      data: {
+        file: uploadedFile,
+        message: "File uploaded successfully!"
+      }
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "An unknown error occurred";
+    return { success: false, error: `Failed to upload file: ${message}` };
+  }
+}
+
+export async function deleteFileAction(fileId: string, fileName: string): Promise<ActionResult> {
+  try {
+    const nhost = await createNhostClient();
+
+    if (!fileId) {
+      return { success: false, error: "File ID is required" };
+    }
+
+    await nhost.storage.deleteFile(fileId);
+
+    revalidatePath("/files");
+    return {
+      success: true,
+      data: { message: `${fileName} deleted successfully` }
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "An unknown error occurred";
+    return { success: false, error: `Failed to delete ${fileName}: ${message}` };
+  }
+}
+```
+
+</Tab>
+<Tab title="API Routes">
+
+Create an API route to handle file viewing and downloading. This route will fetch the file from Nhost storage and return it with appropriate headers to the client.
+
+```tsx src/app/files/download/[fileId]/route.ts
+import { createNhostClient } from "../../../../lib/nhost/server";
+import { NextRequest, NextResponse } from "next/server";
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ fileId: string }> }
+) {
+  try {
+    const nhost = await createNhostClient();
+    const { fileId } = await params;
+    const fileName = request.nextUrl.searchParams.get("fileName") || "file";
+    const download = request.nextUrl.searchParams.get("download") === "true";
+
+    if (!fileId) {
+      return NextResponse.json({ error: "File ID is required" }, { status: 400 });
+    }
+
+    const response = await nhost.storage.getFile(fileId);
+
+    if (!response.body) {
+      return NextResponse.json({ error: "File not found" }, { status: 404 });
+    }
+
+    // Get the file content as an array buffer
+    const arrayBuffer = await response.body.arrayBuffer();
+
+    // Determine content disposition based on download parameter
+    const contentDisposition = download
+      ? `attachment; filename="${fileName}"`
+      : `inline; filename="${fileName}"`;
+
+    // Create the response with appropriate headers
+    return new NextResponse(arrayBuffer, {
+      status: 200,
+      headers: {
+        "Content-Type": response.body.type || "application/octet-stream",
+        "Content-Disposition": contentDisposition,
+        "Content-Length": arrayBuffer.byteLength.toString(),
+        "Cache-Control": response.headers.get("Cache-Control") || "public, max-age=31536000, immutable",
+        "Etag": response.headers.get("ETag") || "",
+        "Last-Modified": response.headers.get("Last-Modified") || "",
+      },
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "An unknown error occurred";
+    return NextResponse.json(
+      { error: `Failed to access file: ${message}` },
+      { status: 500 }
+    );
+  }
+}
+```
+
+</Tab>
 <Tab title="Page Component">
 
 The main files page is a **server component** that fetches the user's files on the server and renders the file management interface. This component runs on the server and can directly access the Nhost client for data fetching.
@@ -178,15 +309,14 @@ export default async function FilesPage() {
 </Tab>
 <Tab title="Client Component">
 
-The files client component is a **client component** that handles all user interactions including file uploads, viewing, and deletion. It manages client-side state and communicates with Nhost's storage API.
+The files client component is a **client component** that handles all user interactions including file uploads, viewing, and deletion. It uses server actions for upload and delete operations, and API routes for file viewing and downloading.
 
 ```tsx src/app/files/FilesClient.tsx
 "use client";
 
 import type { FileMetadata } from "@nhost/nhost-js/storage";
-import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
-import { useAuth } from "../../lib/nhost/AuthProvider";
+import { useRef, useState, useTransition } from "react";
+import { uploadFileAction, deleteFileAction } from "./actions";
 
 interface FilesClientProps {
   initialFiles: FileMetadata[];
@@ -211,9 +341,8 @@ export default function FilesClient({
   initialFiles,
   serverError,
 }: FilesClientProps) {
-  const { nhost } = useAuth();
-  const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [_isPending, startTransition] = useTransition();
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState<boolean>(false);
@@ -244,42 +373,39 @@ export default function FilesClient({
     setUploading(true);
     setError(null);
 
-    try {
-      // Upload file to the personal bucket
-      // The uploadedByUserId is automatically set by the storage permissions
-      const response = await nhost.storage.uploadFiles({
-        "bucket-id": "personal",
-        "file[]": [selectedFile],
-      });
+    startTransition(async () => {
+      try {
+        const formData = new FormData();
+        formData.append("file", selectedFile);
 
-      const uploadedFile = response.body.processedFiles?.[0];
-      if (uploadedFile === undefined) {
-        throw new Error("Failed to upload file");
+        const result = await uploadFileAction(formData);
+
+        if (result.success) {
+          setUploadResult(result.data.file);
+
+          // Clear the form
+          setSelectedFile(null);
+          if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+          }
+
+          // Update the files list
+          setFiles((prevFiles) => [result.data.file, ...prevFiles]);
+
+          // Clear success message after 3 seconds
+          setTimeout(() => {
+            setUploadResult(null);
+          }, 3000);
+        } else {
+          setError(result.error || "Failed to upload file");
+        }
+      } catch (err: unknown) {
+        const message = (err as Error).message || "An unknown error occurred";
+        setError(`Failed to upload file: ${message}`);
+      } finally {
+        setUploading(false);
       }
-      setUploadResult(uploadedFile);
-
-      // Clear the form
-      setSelectedFile(null);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-
-      // Update the files list
-      setFiles((prevFiles) => [uploadedFile, ...prevFiles]);
-
-      // Refresh the page to get updated file list from server
-      router.refresh();
-
-      // Clear success message after 3 seconds
-      setTimeout(() => {
-        setUploadResult(null);
-      }, 3000);
-    } catch (err: unknown) {
-      const message = (err as Error).message || "An unknown error occurred";
-      setError(`Failed to upload file: ${message}`);
-    } finally {
-      setUploading(false);
-    }
+    });
   };
 
   const handleViewFile = async (
@@ -290,11 +416,6 @@ export default function FilesClient({
     setViewingFile(fileId);
 
     try {
-      // Get the file from storage
-      const response = await nhost.storage.getFile(fileId);
-
-      const url = URL.createObjectURL(response.body);
-
       // Handle different file types appropriately
       if (
         mimeType.startsWith("image/") ||
@@ -303,12 +424,14 @@ export default function FilesClient({
         mimeType.startsWith("video/") ||
         mimeType.startsWith("audio/")
       ) {
-        // Open viewable files in new tab
-        window.open(url, "_blank");
+        // Use download route for viewable files (inline viewing)
+        const viewUrl = `/files/download/${fileId}?fileName=${encodeURIComponent(fileName)}`;
+        window.open(viewUrl, "_blank");
       } else {
-        // Download other file types
+        // Use download route for downloads (force download)
+        const downloadUrl = `/files/download/${fileId}?fileName=${encodeURIComponent(fileName)}&download=true`;
         const link = document.createElement("a");
-        link.href = url;
+        link.href = downloadUrl;
         link.download = fileName;
         document.body.appendChild(link);
         link.click();
@@ -350,36 +473,40 @@ export default function FilesClient({
     const fileToDelete = files.find((file) => file.id === fileId);
     const fileName = fileToDelete?.name || "File";
 
-    try {
-      // Delete file from storage
-      // Permissions ensure users can only delete their own files
-      await nhost.storage.deleteFile(fileId);
+    startTransition(async () => {
+      try {
+        const result = await deleteFileAction(fileId, fileName);
 
-      setDeleteStatus({
-        message: `${fileName} deleted successfully`,
-        isError: false,
-      });
+        if (result.success) {
+          setDeleteStatus({
+            message: result.data.message,
+            isError: false,
+          });
 
-      // Remove from local state
-      setFiles(files.filter((file) => file.id !== fileId));
+          // Remove from local state
+          setFiles(files.filter((file) => file.id !== fileId));
 
-      // Refresh the page to get updated file list from server
-      router.refresh();
-
-      // Clear success message after 3 seconds
-      setTimeout(() => {
-        setDeleteStatus(null);
-      }, 3000);
-    } catch (err) {
-      const message = (err as Error).message || "An unknown error occurred";
-      setDeleteStatus({
-        message: `Failed to delete ${fileName}: ${message}`,
-        isError: true,
-      });
-      console.error("Error deleting file:", err);
-    } finally {
-      setDeleting(null);
-    }
+          // Clear success message after 3 seconds
+          setTimeout(() => {
+            setDeleteStatus(null);
+          }, 3000);
+        } else {
+          setDeleteStatus({
+            message: result.error || `Failed to delete ${fileName}`,
+            isError: true,
+          });
+        }
+      } catch (err) {
+        const message = (err as Error).message || "An unknown error occurred";
+        setDeleteStatus({
+          message: `Failed to delete ${fileName}: ${message}`,
+          isError: true,
+        });
+        console.error("Error deleting file:", err);
+      } finally {
+        setDeleting(null);
+      }
+    });
   };
 
   return (
