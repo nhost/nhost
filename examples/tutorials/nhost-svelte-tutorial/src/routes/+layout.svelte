@@ -36,6 +36,7 @@ async function handleSignOut() {
         <a href="/" class="nav-link">Home</a>
 
         {#if $auth.isAuthenticated}
+          <a href="/todos" class={isActive('/todos')}>Todos</a>
           <a href="/profile" class={isActive('/profile')}>Profile</a>
           <button
             onclick={handleSignOut}
