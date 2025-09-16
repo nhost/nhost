@@ -52,3 +52,44 @@ object_relationships:
   - name: bucket
     using:
       foreign_key_constraint_on: bucket_id
+insert_permissions:
+  - role: user
+    permission:
+      check:
+        bucket_id:
+          _eq: personal
+      set:
+        uploaded_by_user_id: X-Hasura-User-Id
+      columns:
+        - id
+        - bucket_id
+        - name
+        - size
+        - mime_type
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - id
+        - created_at
+        - updated_at
+        - bucket_id
+        - name
+        - size
+        - mime_type
+        - etag
+        - is_uploaded
+        - uploaded_by_user_id
+        - metadata
+      filter:
+        _and:
+          - bucket_id:
+              _eq: personal
+          - uploaded_by_user_id:
+              _eq: X-Hasura-User-Id
+delete_permissions:
+  - role: user
+    permission:
+      filter:
+        uploaded_by_user_id:
+          _eq: X-Hasura-User-Id
