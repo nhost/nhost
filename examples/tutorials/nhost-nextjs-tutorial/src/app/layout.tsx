@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Navigation from "../components/Navigation";
-import { AuthProvider } from "../lib/nhost/AuthProvider";
 
 export const metadata: Metadata = {
   title: "Nhost Next.js Tutorial",
@@ -16,12 +15,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <AuthProvider>
-          <Navigation />
-          <div className="app-content">
-            {children}
-          </div>
-        </AuthProvider>
+        <Navigation />
+        <div className="app-content">
+          {children}
+        </div>
       </body>
     </html>
   );

@@ -1,9 +1,8 @@
 "use client";
 
 import type { FileMetadata } from "@nhost/nhost-js/storage";
-import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
-import { useAuth } from "../../lib/nhost/AuthProvider";
+import { useRef, useState, useTransition } from "react";
+import { uploadFileAction, deleteFileAction } from "./actions";
 
 interface FilesClientProps {
   initialFiles: FileMetadata[];
@@ -28,9 +27,8 @@ export default function FilesClient({
   initialFiles,
   serverError,
 }: FilesClientProps) {
-  const { nhost } = useAuth();
-  const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [_isPending, startTransition] = useTransition();
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState<boolean>(false);
@@ -61,42 +59,39 @@ export default function FilesClient({
     setUploading(true);
     setError(null);
 
-    try {
-      // Upload file to the personal bucket
-      // The uploadedByUserId is automatically set by the storage permissions
-      const response = await nhost.storage.uploadFiles({
-        "bucket-id": "personal",
-        "file[]": [selectedFile],
-      });
+    startTransition(async () => {
+      try {
+        const formData = new FormData();
+        formData.append("file", selectedFile);
 
-      const uploadedFile = response.body.processedFiles?.[0];
-      if (uploadedFile === undefined) {
-        throw new Error("Failed to upload file");
+        const result = await uploadFileAction(formData);
+
+        if (result.success) {
+          setUploadResult(result.data.file);
+
+          // Clear the form
+          setSelectedFile(null);
+          if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+          }
+
+          // Update the files list
+          setFiles((prevFiles) => [result.data.file, ...prevFiles]);
+
+          // Clear success message after 3 seconds
+          setTimeout(() => {
+            setUploadResult(null);
+          }, 3000);
+        } else {
+          setError(result.error || "Failed to upload file");
+        }
+      } catch (err: unknown) {
+        const message = (err as Error).message || "An unknown error occurred";
+        setError(`Failed to upload file: ${message}`);
+      } finally {
+        setUploading(false);
       }
-      setUploadResult(uploadedFile);
-
-      // Clear the form
-      setSelectedFile(null);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-
-      // Update the files list
-      setFiles((prevFiles) => [uploadedFile, ...prevFiles]);
-
-      // Refresh the page to get updated file list from server
-      router.refresh();
-
-      // Clear success message after 3 seconds
-      setTimeout(() => {
-        setUploadResult(null);
-      }, 3000);
-    } catch (err: unknown) {
-      const message = (err as Error).message || "An unknown error occurred";
-      setError(`Failed to upload file: ${message}`);
-    } finally {
-      setUploading(false);
-    }
+    });
   };
 
   const handleViewFile = async (
@@ -107,11 +102,6 @@ export default function FilesClient({
     setViewingFile(fileId);
 
     try {
-      // Get the file from storage
-      const response = await nhost.storage.getFile(fileId);
-
-      const url = URL.createObjectURL(response.body);
-
       // Handle different file types appropriately
       if (
         mimeType.startsWith("image/") ||
@@ -120,12 +110,14 @@ export default function FilesClient({
         mimeType.startsWith("video/") ||
         mimeType.startsWith("audio/")
       ) {
-        // Open viewable files in new tab
-        window.open(url, "_blank");
+        // Use view route for viewable files (serves inline)
+        const viewUrl = `/files/view/${fileId}?fileName=${encodeURIComponent(fileName)}`;
+        window.open(viewUrl, "_blank");
       } else {
-        // Download other file types
+        // Use download route for other file types
+        const downloadUrl = `/files/download/${fileId}?fileName=${encodeURIComponent(fileName)}`;
         const link = document.createElement("a");
-        link.href = url;
+        link.href = downloadUrl;
         link.download = fileName;
         document.body.appendChild(link);
         link.click();
@@ -167,36 +159,40 @@ export default function FilesClient({
     const fileToDelete = files.find((file) => file.id === fileId);
     const fileName = fileToDelete?.name || "File";
 
-    try {
-      // Delete file from storage
-      // Permissions ensure users can only delete their own files
-      await nhost.storage.deleteFile(fileId);
+    startTransition(async () => {
+      try {
+        const result = await deleteFileAction(fileId, fileName);
 
-      setDeleteStatus({
-        message: `${fileName} deleted successfully`,
-        isError: false,
-      });
+        if (result.success) {
+          setDeleteStatus({
+            message: result.data.message,
+            isError: false,
+          });
 
-      // Remove from local state
-      setFiles(files.filter((file) => file.id !== fileId));
+          // Remove from local state
+          setFiles(files.filter((file) => file.id !== fileId));
 
-      // Refresh the page to get updated file list from server
-      router.refresh();
-
-      // Clear success message after 3 seconds
-      setTimeout(() => {
-        setDeleteStatus(null);
-      }, 3000);
-    } catch (err) {
-      const message = (err as Error).message || "An unknown error occurred";
-      setDeleteStatus({
-        message: `Failed to delete ${fileName}: ${message}`,
-        isError: true,
-      });
-      console.error("Error deleting file:", err);
-    } finally {
-      setDeleting(null);
-    }
+          // Clear success message after 3 seconds
+          setTimeout(() => {
+            setDeleteStatus(null);
+          }, 3000);
+        } else {
+          setDeleteStatus({
+            message: result.error || `Failed to delete ${fileName}`,
+            isError: true,
+          });
+        }
+      } catch (err) {
+        const message = (err as Error).message || "An unknown error occurred";
+        setDeleteStatus({
+          message: `Failed to delete ${fileName}: ${message}`,
+          isError: true,
+        });
+        console.error("Error deleting file:", err);
+      } finally {
+        setDeleting(null);
+      }
+    });
   };
 
   return (
