@@ -4,7 +4,7 @@ import type {
   IntrospectRemoteSchemaArgs,
   IntrospectRemoteSchemaOperation,
 } from '@/utils/hasura-api/generated/schemas';
-import { IntrospectionQuery } from 'graphql';
+import type { IntrospectionQuery } from 'graphql';
 
 export interface IntrospectRemoteSchemaVariables {
   args: IntrospectRemoteSchemaArgs;

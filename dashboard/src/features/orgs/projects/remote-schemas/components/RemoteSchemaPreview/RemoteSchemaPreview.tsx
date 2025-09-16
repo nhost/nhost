@@ -45,10 +45,8 @@ export default function RemoteSchemaPreview({
         const path = await treeRef.current.findItemPath(searchTerm);
 
         if (path && path.length > 0) {
-          // Expand tree to show the found item
           await treeRef.current.expandToItem(path);
 
-          // Focus and select the found item
           const foundItemId = path[path.length - 1];
           treeRef.current.selectItems([foundItemId]);
           treeRef.current.focusItem(foundItemId);
@@ -119,7 +117,6 @@ export default function RemoteSchemaPreview({
           </div>
         </div>
 
-        {/* Search Input */}
         <form onSubmit={handleSearch} className="flex w-full gap-2">
           <div className="relative flex w-full flex-1 flex-row items-center">
             <Search className="h-4 w-4 text-muted-foreground" />
@@ -160,7 +157,6 @@ export default function RemoteSchemaPreview({
           ref={treeRef}
           className="min-h-[400px]"
           schema={schema}
-          rootFields={['query', 'mutation', 'subscription']}
         />
       </div>
     </div>

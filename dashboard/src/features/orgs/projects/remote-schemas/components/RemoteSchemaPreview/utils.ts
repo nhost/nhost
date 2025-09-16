@@ -1,11 +1,9 @@
 import type { GraphQLSchema } from 'graphql';
 import { HelpCircle } from 'lucide-react';
 import React from 'react';
-import type {
-  AllowedRootFields,
-  ComplexTreeData,
-  RelationshipFields,
-} from './types';
+import type { ComplexTreeData, RelationshipFields } from './types';
+
+export const ROOT_FIELDS = ['query', 'mutation', 'subscription'];
 
 export const getFieldData = (
   key: string,
@@ -19,18 +17,15 @@ export const getFieldData = (
   type,
 });
 
-// Helper function to create styled tree item data
 const createTreeItemData = (
   name: string,
   type: string,
   itemType: 'argument' | 'field' | 'root',
 ): React.ReactNode => {
   if (itemType === 'argument') {
-    // Arguments - normal styling
     return `${name}: ${type}`;
   }
   if (itemType === 'field') {
-    // Sub-fields - grayer with arrow icon
     return React.createElement(
       'div',
       {
@@ -47,7 +42,6 @@ const createTreeItemData = (
       ],
     );
   }
-  // Root items - normal styling
   return `${name}`;
 };
 
@@ -59,7 +53,6 @@ const getUnderlyingGraphQLType = (type: any): any => {
   return currentType;
 };
 
-// Helper function to get a readable type string
 const getFieldTypeString = (type: any): string => {
   if (!type) {
     return 'Unknown';
@@ -98,7 +91,6 @@ const buildNestedFields = (
       const hasNestedFields = isObjectTypeWithFields(field.type);
       const fieldType = getFieldTypeString(field.type);
 
-      // Use styled data for sub-fields with visual indicator
       const fieldData = createTreeItemData(field.name, fieldType, 'field');
 
       tree[fieldKey] = {
@@ -115,12 +107,10 @@ const buildNestedFields = (
       }
       tree[parentKey].children!.push(fieldKey);
 
-      // Add arguments if present
       if (hasArgs) {
         field.args.forEach((arg: any) => {
           const argKey = `${fieldKey}.arg.${arg.name}`;
           const argType = getFieldTypeString(arg.type);
-          // Arguments use normal styling (no visual indicator)
           const argData = createTreeItemData(arg.name, argType, 'argument');
 
           tree[argKey] = {
@@ -137,7 +127,6 @@ const buildNestedFields = (
         });
       }
 
-      // Add nested fields if present (regardless of whether arguments exist)
       if (depth < 3 && hasNestedFields) {
         buildNestedFields(field.type, fieldKey, treeData, depth + 1);
       }
@@ -147,14 +136,12 @@ const buildNestedFields = (
 
 export const buildComplexTreeData = ({
   schema,
-  rootFields,
 }: {
   schema: GraphQLSchema;
-  rootFields: AllowedRootFields;
 }): ComplexTreeData => {
+  const rootFields = ['query', 'mutation', 'subscription'];
   const treeData: ComplexTreeData = {};
 
-  // Add root item
   treeData.root = {
     index: 'root',
     canMove: false,
@@ -164,7 +151,6 @@ export const buildComplexTreeData = ({
     canRename: false,
   };
 
-  // Add root fields (query, mutation, subscription)
   rootFields.forEach((rootField) => {
     let rootType;
     if (rootField === 'query') {
@@ -189,14 +175,12 @@ export const buildComplexTreeData = ({
       treeData[rootFieldKey] = rootNode;
       treeData.root.children!.push(rootFieldKey);
 
-      // Add fields of root type
       const typeFields = rootType.getFields();
       Object.values(typeFields).forEach((field: any) => {
         const fieldKey = `${rootFieldKey}.field.${field.name}`;
         const hasArgs = field.args && field.args.length > 0;
         const hasNestedFields = isObjectTypeWithFields(field.type);
         const fieldType = getFieldTypeString(field.type);
-        // Root level fields use normal styling (not sub-field styling)
         const fieldLabel = `${field.name}: ${fieldType}`;
 
         const node = {
@@ -210,12 +194,10 @@ export const buildComplexTreeData = ({
         treeData[fieldKey] = node;
         treeData[rootFieldKey].children!.push(fieldKey);
 
-        // Add arguments if present
         if (hasArgs) {
           field.args.forEach((arg: any) => {
             const argKey = `${fieldKey}.arg.${arg.name}`;
             const argType = getFieldTypeString(arg.type);
-            // Arguments for root level fields use normal styling
             const argData = createTreeItemData(arg.name, argType, 'argument');
 
             const argNode = {
@@ -230,7 +212,6 @@ export const buildComplexTreeData = ({
           });
         }
 
-        // Add nested fields if present
         if (hasNestedFields) {
           buildNestedFields(field.type, fieldKey, treeData, 1);
         }
