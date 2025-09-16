@@ -244,15 +244,6 @@ onMount(() => {
 function isActive(path: string): string {
   return $page.url.pathname === path ? "nav-link active" : "nav-link";
 }
-
-async function handleSignOut() {
-  if ($auth.session) {
-    await nhost.auth.signOut({
-      refreshToken: $auth.session.refreshToken,
-    });
-    void goto("/");
-  }
-}
 </script>
 
 <div class="app-container">
@@ -342,9 +333,7 @@ $effect(() => {
     <div class="form-card">
       <h3 class="form-title">Session Information</h3>
       <div class="description">
-        <pre class="session-display">
-          {JSON.stringify($auth.session, null, 2)}
-        </pre>
+        <pre class="session-display">{JSON.stringify($auth.session, null, 2)}</pre>
       </div>
     </div>
   </div>
