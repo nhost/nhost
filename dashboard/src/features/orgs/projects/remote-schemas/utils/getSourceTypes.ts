@@ -24,7 +24,7 @@ export default function getSourceTypes(
 
   return Object.values(typeMap)
     .filter(isObjectType)
-    .filter((type) => !type.name.startsWith('__')) // Filter out introspection types
+    .filter((type) => !type.name.startsWith('__'))
     .map((type) => ({
       label: type.name,
       value: type.name,

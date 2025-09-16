@@ -16,7 +16,6 @@ import {
 } from 'graphql';
 import getSchemaRoots from './getSchemaRoots';
 
-// Returns array of schema fields (query_root and mutation_root)
 function getTree(
   introspectionSchema: GraphQLSchema,
   permissionsSchema: GraphQLSchema | null,
@@ -64,9 +63,6 @@ function getTree(
   });
 }
 
-/**
- * Collects input/object/scalar/enum/union/interface types for the types tree.
- */
 function getType(
   introspectionSchema: GraphQLSchema,
   permissionsSchema: GraphQLSchema | null,
@@ -93,7 +89,6 @@ function getType(
     );
 
   Object.entries(introspectionSchemaFields).forEach(([key, value]) => {
-    // Only process concrete GraphQL types
     if (
       !(
         value instanceof GraphQLObjectType ||
@@ -109,15 +104,14 @@ function getType(
 
     const typeName = value.name as string;
     if (roots.includes(typeName)) {
-      return; // skip root operation types
+      return;
     }
     if (typeName.startsWith('__')) {
-      return; // skip introspection types
+      return;
     }
 
     const type: RemoteSchemaFields = { name: ``, typeName, children: [] };
 
-    // Headline by kind
     if (value instanceof GraphQLEnumType) {
       type.name = `enum ${typeName}`;
       const checked = isPermittedType(key);
@@ -147,7 +141,6 @@ function getType(
       type.name = `input ${typeName}`;
     }
 
-    // Fields for object and input types
     if (
       value instanceof GraphQLObjectType ||
       value instanceof GraphQLInputObjectType
@@ -215,7 +208,6 @@ function getType(
       return;
     }
 
-    // Union types
     if (value instanceof GraphQLUnionType) {
       let isFieldPresent = true;
       let permissionsTypesVal: ReadonlyArray<GraphQLObjectType<any, any>> = [];
@@ -247,7 +239,6 @@ function getType(
       return;
     }
 
-    // Interface types
     if (value instanceof GraphQLInterfaceType) {
       let isFieldPresent = true;
       const permissionsFieldNames: Record<string, true> = {};

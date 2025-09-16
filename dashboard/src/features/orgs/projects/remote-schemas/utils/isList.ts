@@ -9,7 +9,6 @@ function isJSONArrayLiteral(str: string) {
     const parsed = JSON.parse(str);
     return Array.isArray(parsed);
   } catch {
-    // should be handled by isJSONString
     return false;
   }
 }

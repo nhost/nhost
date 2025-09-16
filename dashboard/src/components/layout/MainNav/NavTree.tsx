@@ -307,7 +307,6 @@ const createOrganization = (org: Org) => {
       };
     });
 
-    // add the graphql pages
     projectGraphQLPages.forEach((p) => {
       result[`${org.slug}-${_app.subdomain}-graphql-${p.slug}`] = {
         index: `${org.slug}-${_app.subdomain}-graphql-${p.slug}`,

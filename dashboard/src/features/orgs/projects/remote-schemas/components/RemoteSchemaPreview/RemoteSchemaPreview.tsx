@@ -3,7 +3,7 @@ import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
 import useIntrospectRemoteSchemaQuery from '@/features/orgs/projects/remote-schemas/hooks/useIntrospectRemoteSchemaQuery/useIntrospectRemoteSchemaQuery';
 import convertIntrospectionToSchema from '@/features/orgs/projects/remote-schemas/utils/convertIntrospectionToSchema';
 import { Search, X } from 'lucide-react';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import type { RemoteSchemaTreeRef } from './RemoteSchemaTree';
 import { RemoteSchemaTree } from './RemoteSchemaTree';
 
@@ -31,50 +31,44 @@ export default function RemoteSchemaPreview({
     return null;
   }, [introspectionData]);
 
-  const handleSearch = useCallback(
-    async (e?: React.FormEvent) => {
-      e?.preventDefault();
+  const handleSearch = async (e?: React.FormEvent) => {
+    e?.preventDefault();
 
-      if (!searchTerm.trim() || !treeRef.current) {
-        return;
+    if (!searchTerm.trim() || !treeRef.current) {
+      return;
+    }
+
+    setIsSearching(true);
+
+    try {
+      const path = await treeRef.current.findItemPath(searchTerm);
+
+      if (path && path.length > 0) {
+        await treeRef.current.expandToItem(path);
+
+        const foundItemId = path[path.length - 1];
+        treeRef.current.selectItems([foundItemId]);
+        treeRef.current.focusItem(foundItemId);
       }
+    } catch (searchError) {
+      console.error('Search error:', searchError);
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
-      setIsSearching(true);
-
-      try {
-        const path = await treeRef.current.findItemPath(searchTerm);
-
-        if (path && path.length > 0) {
-          await treeRef.current.expandToItem(path);
-
-          const foundItemId = path[path.length - 1];
-          treeRef.current.selectItems([foundItemId]);
-          treeRef.current.focusItem(foundItemId);
-        }
-      } catch (searchError) {
-        console.error('Search error:', searchError);
-      } finally {
-        setIsSearching(false);
-      }
-    },
-    [searchTerm],
-  );
-
-  const handleClearSearch = useCallback(() => {
+  const handleClearSearch = () => {
     setSearchTerm('');
     treeRef.current?.focusTree();
-  }, []);
+  };
 
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === 'Enter') {
-        handleSearch();
-      } else if (e.key === 'Escape') {
-        handleClearSearch();
-      }
-    },
-    [handleSearch, handleClearSearch],
-  );
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    } else if (e.key === 'Escape') {
+      handleClearSearch();
+    }
+  };
 
   if (isLoading) {
     return (

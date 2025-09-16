@@ -22,8 +22,6 @@ function parseConstValue(node?: ValueNode) {
     case 'StringValue':
     case 'BooleanValue':
     case 'EnumValue': {
-      // These nodes all have a .value string representation
-      // Return raw value to preserve previous behavior (no quotes for enums/numbers)
       return (
         node as
           | IntValueNode

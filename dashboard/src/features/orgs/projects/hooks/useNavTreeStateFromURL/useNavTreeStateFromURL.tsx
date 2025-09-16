@@ -74,10 +74,8 @@ const useNavTreeStateFromURL = (): TreeState => {
     if (isGraphQLPage) {
       expandedItems.push(`${orgSlug}-${appSubdomain}-graphql`);
       if (!graphqlSubPage) {
-        // When on /graphql (no sub-page), focus on GraphQL Playground
         focusedItem = `${orgSlug}-${appSubdomain}-graphql-playground`;
       } else {
-        // When on /graphql/sub-page, focus on the specific sub-page
         focusedItem = `${orgSlug}-${appSubdomain}-graphql-${graphqlSubPage}`;
       }
     }

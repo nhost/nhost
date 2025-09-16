@@ -7,7 +7,6 @@ import {
   GraphQLNonNull,
 } from 'graphql';
 
-// Determine if an input field has nested children and return their map
 export default function getInputFieldChildren(
   field: GraphQLInputField,
 ): ChildArgumentType {
@@ -17,7 +16,6 @@ export default function getInputFieldChildren(
 
   const type = field?.type;
 
-  // Direct input object
   if (type instanceof GraphQLInputObjectType && type.getFields) {
     return {
       children: type.getFields(),
@@ -26,7 +24,6 @@ export default function getInputFieldChildren(
     };
   }
 
-  // Unwrap first-order wrappers (NonNull/List) and inspect inner type
   if (type instanceof GraphQLNonNull || type instanceof GraphQLList) {
     const innerType = type.ofType;
     const { children } = getInputFieldChildren({
