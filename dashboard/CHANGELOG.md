@@ -1,5 +1,21 @@
 # @nhost/dashboard
 
+## 2.36.0
+
+### Minor Changes
+
+- a30da08: feat (dashboard): add custom types to column types
+
+### Patch Changes
+
+- 73a7ba8: fix (dashboard): Show errors in row permission rule form
+- 397bfc9: fix (dashboard): Parse foreign key relations correctly
+- 2f4b376: fix (dashboard): allow permission variables with in operator
+- 88836f3: fix (dashboard): use correct fallback endpoint for migration in the CLI
+- ba3c49e: fix (dashboard): Show nested relationships in row permissions
+- 92e71a6: fix: minor fixes to csp
+- 81716d9: fix (dashboard): Show validation error on save when editing database columns
+
 ## 2.35.0
 
 ### Minor Changes
