@@ -1,7 +1,6 @@
 import { render, screen, TestUserEvent } from '@/tests/testUtils';
 import { buildSchema } from 'graphql';
 import { RemoteSchemaTree } from './RemoteSchemaTree';
-import type { AllowedRootFields } from './types';
 import { buildComplexTreeData } from './utils';
 
 const sdl = `
@@ -37,9 +36,7 @@ const schema = buildSchema(sdl);
 
 describe('RemoteSchemaTree', () => {
   it('renders a tree for a basic schema and matches snapshot', () => {
-    const rootFields: AllowedRootFields = ['query', 'mutation', 'subscription'];
-
-    render(<RemoteSchemaTree schema={schema} rootFields={rootFields} />);
+    render(<RemoteSchemaTree schema={schema} />);
 
     const tree = screen.getByRole('tree', { name: 'Remote Schema Tree' });
     expect(tree).toMatchInlineSnapshot(`
@@ -257,14 +254,10 @@ describe('RemoteSchemaTree', () => {
   });
 
   it('builds tree data including all SDL types and fields', () => {
-    const rootFields: AllowedRootFields = ['query', 'mutation', 'subscription'];
-
     const treeData = buildComplexTreeData({
       schema,
-      rootFields,
     });
 
-    // Root and root categories
     expect(treeData).toHaveProperty('root');
     expect(treeData.root.children).toEqual([
       '__query',
@@ -272,30 +265,25 @@ describe('RemoteSchemaTree', () => {
       '__subscription',
     ]);
 
-    // Query root fields
     expect(treeData).toHaveProperty('__query');
     expect(treeData).toHaveProperty('__query.field.hello');
     expect(treeData).toHaveProperty('__query.field.user');
     expect(treeData).toHaveProperty('__query.field.posts');
 
-    // Query.user argument and nested User fields
     expect(treeData).toHaveProperty('__query.field.user.arg.id');
     expect(treeData).toHaveProperty('__query.field.user.field.id');
     expect(treeData).toHaveProperty('__query.field.user.field.name');
     expect(treeData).toHaveProperty('__query.field.user.field.posts');
 
-    // Query.posts nested Post fields
     expect(treeData).toHaveProperty('__query.field.posts.field.id');
     expect(treeData).toHaveProperty('__query.field.posts.field.title');
     expect(treeData).toHaveProperty('__query.field.posts.field.author');
 
-    // Mutation root fields and arguments
     expect(treeData).toHaveProperty('__mutation');
     expect(treeData).toHaveProperty('__mutation.field.updateName');
     expect(treeData).toHaveProperty('__mutation.field.updateName.arg.id');
     expect(treeData).toHaveProperty('__mutation.field.updateName.arg.name');
 
-    // Subscription root fields and arguments
     expect(treeData).toHaveProperty('__subscription');
     expect(treeData).toHaveProperty('__subscription.field.postAdded');
     expect(treeData).toHaveProperty('__subscription.field.postById');
@@ -303,18 +291,14 @@ describe('RemoteSchemaTree', () => {
   });
 
   it('renders DOM nodes for all SDL types after expanding the tree', async () => {
-    const rootFields: AllowedRootFields = ['query', 'mutation', 'subscription'];
-
-    render(<RemoteSchemaTree schema={schema} rootFields={rootFields} />);
+    render(<RemoteSchemaTree schema={schema} />);
 
     const user = new TestUserEvent();
 
-    // Expand Query
     const queryNode = await screen.findByRole('button', { name: 'Query' });
     await user.click(queryNode);
     await user.keyboard('{ArrowRight}');
 
-    // Assert Query children are rendered
     expect(
       await screen.findByRole('button', { name: 'hello: String' }),
     ).toBeInTheDocument();
@@ -325,12 +309,10 @@ describe('RemoteSchemaTree', () => {
       await screen.findByRole('button', { name: 'posts: [Post!]!' }),
     ).toBeInTheDocument();
 
-    // Expand Query.user and assert args and nested fields
     const userField = await screen.findByRole('button', { name: 'user: User' });
     await user.click(userField);
     await user.keyboard('{ArrowRight}');
 
-    // Disambiguate using data attributes since labels can repeat
     expect(
       document.querySelector('[data-rct-item-id="__query.field.user.arg.id"]'),
     ).toBeInTheDocument();
@@ -350,7 +332,6 @@ describe('RemoteSchemaTree', () => {
       ),
     ).toBeInTheDocument();
 
-    // Expand Query.posts and assert nested Post fields
     const postsField = document.querySelector(
       '[data-rct-item-id="__query.field.posts"]',
     ) as Element | null;
@@ -374,7 +355,6 @@ describe('RemoteSchemaTree', () => {
       ),
     ).toBeInTheDocument();
 
-    // Expand Mutation and assert its field and args
     const mutationNode = await screen.findByRole('button', {
       name: 'Mutation',
     });
@@ -400,7 +380,6 @@ describe('RemoteSchemaTree', () => {
       ),
     ).toBeInTheDocument();
 
-    // Expand Subscription and assert its fields/args
     const subscriptionNode = await screen.findByRole('button', {
       name: 'Subscription',
     });

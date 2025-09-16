@@ -10,7 +10,7 @@ import React, {
 } from 'react';
 import { ControlledTreeEnvironment, Tree } from 'react-complex-tree';
 import 'react-complex-tree/lib/style-modern.css';
-import type { AllowedRootFields, ComplexTreeData } from './types';
+import type { ComplexTreeData } from './types';
 import { buildComplexTreeData } from './utils';
 
 export interface RemoteSchemaTreeProps {
@@ -18,7 +18,6 @@ export interface RemoteSchemaTreeProps {
    * GraphQL schema for setting new permissions.
    */
   schema: GraphQLSchema;
-  rootFields: AllowedRootFields;
   className?: string;
 }
 
@@ -33,7 +32,7 @@ export interface RemoteSchemaTreeRef {
 export const RemoteSchemaTree = forwardRef<
   RemoteSchemaTreeRef,
   RemoteSchemaTreeProps
->(({ schema, rootFields, className }, ref) => {
+>(({ schema, className }, ref) => {
   const treeRef = useRef<any>(null);
   const environmentRef = useRef<any>(null);
   const theme = useTheme();
@@ -42,9 +41,8 @@ export const RemoteSchemaTree = forwardRef<
     () =>
       buildComplexTreeData({
         schema,
-        rootFields,
       }),
-    [schema, rootFields],
+    [schema],
   );
 
   const [focusedItem, setFocusedItem] = useState<string>();

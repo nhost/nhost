@@ -1,5 +1,3 @@
-export type AllowedRootFields = ('query' | 'mutation' | 'subscription')[];
-
 type ArgValue = {
   kind: 'field' | 'variable';
   value: string;
