@@ -127,8 +127,6 @@ function ColumnAutocomplete(
     );
   }, [relationshipDotNotation]);
 
-  const activePage = pages[pages.length - 1];
-
   useEffect(() => {
     setActiveRelationship(asyncActiveRelationship);
   }, [asyncActiveRelationship]);
@@ -276,90 +274,52 @@ function ColumnAutocomplete(
             </div>
           ) : null}
           <CommandList>
-            {!activePage && (
-              <>
-                <CommandEmpty>No options found.</CommandEmpty>
-                {tableStatus === 'loading' ||
-                  metadataStatus === 'loading' ||
-                  (!initialized && <CommandLoading>Loading...</CommandLoading>)}
-                <CommandGroup heading="columns">
-                  {columns.map((option) => (
-                    <CommandItem
-                      key={option.value}
-                      value={option.value}
-                      onSelect={handleChange}
-                      className="overflow-x-hidden"
+            <CommandEmpty>No options found.</CommandEmpty>
+            {tableStatus === 'loading' ||
+              metadataStatus === 'loading' ||
+              (!initialized && <CommandLoading>Loading...</CommandLoading>)}
+            <CommandGroup heading="columns">
+              {columns.map((option) => (
+                <CommandItem
+                  key={option.value}
+                  value={option.value}
+                  onSelect={handleChange}
+                  className="overflow-x-hidden"
+                >
+                  <Check
+                    className={cn(
+                      'mr-2 h-4 w-4',
+                      value === option.value ? 'opacity-100' : 'opacity-0',
+                    )}
+                  />
+                  <div className="flex gap-3">
+                    <span
+                      title={option.label}
+                      className="line-clamp-2 break-all"
                     >
-                      <Check
-                        className={cn(
-                          'mr-2 h-4 w-4',
-                          value === option.value ? 'opacity-100' : 'opacity-0',
-                        )}
-                      />
-                      <div className="flex gap-3">
-                        <span
-                          title={option.label}
-                          className="line-clamp-2 break-all"
-                        >
-                          {option.label}
-                        </span>
-                        <div className="flex items-center">
-                          <code className="relative rounded bg-primary px-[0.2rem] font-mono text-white">
-                            {option.metadata?.udt_name || option.value}
-                          </code>
-                        </div>
-                      </div>
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-                {relationships.length > 0 && !disableRelationships && (
-                  <CommandGroup heading="relationships">
-                    {relationships.map((option) => (
-                      <CommandItem
-                        key={option.value}
-                        value={option.value}
-                        onSelect={handleRelationshipChange}
-                      >
-                        {option.label}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                )}
-              </>
-            )}
-            {activePage && (
-              <>
-                <CommandEmpty>No options found.</CommandEmpty>
-                <CommandGroup heading="columns">
-                  {columns.map((option) => (
-                    <CommandItem
-                      key={option.value}
-                      value={option.value}
-                      onSelect={handleChange}
-                    >
-                      <Check
-                        className={cn(
-                          'mr-2 h-4 w-4',
-                          value === option.value ? 'opacity-100' : 'opacity-0',
-                        )}
-                      />
-                      <div className="flex gap-3">
-                        <span
-                          title={option.label}
-                          className="line-clamp-2 break-all"
-                        >
-                          {option.label}
-                        </span>
-                        <div className="flex items-center">
-                          <code className="relative rounded bg-primary px-[0.2rem] font-mono text-white">
-                            {option.metadata?.udt_name || option.value}
-                          </code>
-                        </div>
-                      </div>
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </>
+                      {option.label}
+                    </span>
+                    <div className="flex items-center">
+                      <code className="relative rounded bg-primary px-[0.2rem] font-mono text-white">
+                        {option.metadata?.udt_name || option.value}
+                      </code>
+                    </div>
+                  </div>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+            {relationships.length > 0 && !disableRelationships && (
+              <CommandGroup heading="relationships">
+                {relationships.map((option) => (
+                  <CommandItem
+                    key={option.value}
+                    value={option.value}
+                    onSelect={handleRelationshipChange}
+                  >
+                    {option.label}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
             )}
           </CommandList>
         </Command>

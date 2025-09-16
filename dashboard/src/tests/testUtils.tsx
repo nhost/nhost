@@ -26,6 +26,7 @@ import type {
   waitForOptions,
 } from '@testing-library/react';
 import {
+  fireEvent,
   render as rtlRender,
   waitForElementToBeRemoved as rtlWaitForElementToBeRemoved,
   waitFor,
@@ -221,6 +222,18 @@ export class TestUserEvent {
   async clear(element: Element) {
     await waitFor(async () => {
       await this.user.clear(element);
+    });
+  }
+
+  static async fireClickEvent(element: Document | Element | Window | Node) {
+    await waitFor(() => {
+      fireEvent(
+        element,
+        new MouseEvent('click', {
+          bubbles: true,
+          cancelable: true,
+        }),
+      );
     });
   }
 }
