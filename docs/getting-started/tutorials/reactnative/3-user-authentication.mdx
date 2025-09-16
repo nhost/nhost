@@ -1,0 +1,661 @@
+---
+title: User Authentication in React
+description: Learn how to implement user authentication in a React application using Nhost
+sidebarTitle: "User Authentication"
+icon: user
+---
+
+This tutorial part builds upon the [Protected Routes part](/getting-started/tutorials/react/2-protected-routes) by adding complete email/password authentication with email verification functionality. You'll implement sign up, sign in, email verification, and sign out features to create a full authentication flow.
+
+<Info>
+This is **Part 3** in the Full-Stack React Development with Nhost series. This part creates a production-ready authentication system with secure email verification and proper error handling.
+</Info>
+
+## Full-Stack React Development with Nhost
+
+<CardGroup cols={3}>
+<Card title="1. Create Project" icon="plus" href="/getting-started/tutorials/react/1-introduction">
+Set up your Nhost project
+</Card>
+
+<Card title="2. Protected Routes" icon="lock" href="/getting-started/tutorials/react/2-protected-routes">
+Route protection basics
+</Card>
+
+<Card title="3. User Authentication" icon="user" href="/getting-started/tutorials/react/3-user-authentication">
+**Current** - Complete auth flow
+</Card>
+
+<Card title="4. GraphQL Operations" icon="list-check" href="/getting-started/tutorials/react/4-graphql-operations">
+CRUD operations with GraphQL
+</Card>
+
+<Card title="5. File Uploads" icon="upload" href="/getting-started/tutorials/react/5-file-uploads">
+File upload and management
+</Card>
+</CardGroup>
+
+## Prerequisites
+
+- Complete the [Protected Routes part](/getting-started/tutorials/react/2-protected-routes) first
+- The project from the previous part set up and running
+
+## Step-by-Step Guide
+
+<Steps>
+<Step>
+
+### Create the Sign In Page
+
+Build a comprehensive sign-in form with proper error handling and loading states. This page handles user authentication and includes special logic for post-verification sign-in.
+
+```tsx src/pages/SignIn.tsx lines
+import { useState, useEffect, useId } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../lib/nhost/AuthProvider";
+
+export default function SignIn() {
+  const { nhost, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const emailId = useId();
+  const passwordId = useId();
+
+  // Use useEffect for navigation after authentication is confirmed
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/profile");
+    }
+  }, [isAuthenticated, navigate]);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Use the signIn function from auth context
+      const response = await nhost.auth.signInEmailPassword({
+        email,
+        password,
+      });
+
+      // If we have a session, sign in was successful
+      if (response.body?.session) {
+        navigate("/profile");
+      } else {
+        setError("Failed to sign in. Please check your credentials.");
+      }
+    } catch (err) {
+      const message = (err as Error).message || "Unknown error";
+      setError(`An error occurred during sign in: ${message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div>
+      <h1>Sign In</h1>
+
+      <form onSubmit={handleSubmit} className="auth-form">
+        <div className="auth-form-field">
+          <label htmlFor={emailId}>Email</label>
+          <input
+            id={emailId}
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="auth-input"
+          />
+        </div>
+
+        <div className="auth-form-field">
+          <label htmlFor={passwordId}>Password</label>
+          <input
+            id={passwordId}
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className="auth-input"
+          />
+        </div>
+
+        {error && (
+          <div className="auth-error">
+            {error}
+          </div>
+        )}
+
+        <button
+          type="submit"
+          disabled={isLoading}
+          className={`auth-button secondary`}
+        >
+          {isLoading ? "Signing In..." : "Sign In"}
+        </button>
+      </form>
+
+      <div className="auth-links">
+        <p>
+          Don't have an account? <Link to="/signup">Sign Up</Link>
+        </p>
+      </div>
+    </div>
+  );
+}
+```
+
+</Step>
+
+<Step>
+
+### Create the Sign Up Page
+
+Implement user registration with email verification flow. This page collects user information, creates accounts, and guides users through the email verification process.
+
+```tsx src/pages/SignUp.tsx lines
+import { useState, useEffect, useId } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../lib/nhost/AuthProvider";
+
+export default function SignUp() {
+  const { nhost, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const displayNameId = useId();
+
+  const emailId = useId();
+  const passwordId = useId();
+
+  // Redirect authenticated users to profile
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/profile");
+    }
+  }, [isAuthenticated, navigate]);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+    setSuccess(false);
+
+    try {
+      const response = await nhost.auth.signUpEmailPassword({
+        email,
+        password,
+        options: {
+          displayName,
+          // Set the redirect URL for email verification
+          redirectTo: `${window.location.origin}/verify`,
+        },
+      });
+
+      if (response.body?.session) {
+        // Successfully signed up and automatically signed in
+        navigate("/profile");
+      } else {
+        // Verification email sent
+        setSuccess(true);
+      }
+    } catch (err) {
+      const message = (err as Error).message || "Unknown error";
+      setError(`An error occurred during sign up: ${message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (success) {
+    return (
+      <div>
+        <h1>Check Your Email</h1>
+        <div className="success-message">
+          <p>
+            We've sent a verification link to <strong>{email}</strong>
+          </p>
+          <p>
+            Please check your email and click the verification link to activate your account.
+          </p>
+        </div>
+        <p>
+          <Link to="/signin">Back to Sign In</Link>
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <h1>Sign Up</h1>
+
+      <form onSubmit={handleSubmit} className="auth-form">
+        <div className="auth-form-field">
+          <label htmlFor={displayNameId}>Display Name</label>
+          <input
+            id={displayNameId}
+            type="text"
+            value={displayName}
+            onChange={(e) => setDisplayName(e.target.value)}
+            required
+className="auth-input"
+          />
+        </div>
+
+        <div className="auth-form-field">
+          <label htmlFor={emailId}>Email</label>
+          <input
+            id={emailId}
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+className="auth-input"
+          />
+        </div>
+
+        <div className="auth-form-field">
+          <label htmlFor={passwordId}>Password</label>
+          <input
+            id={passwordId}
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            minLength={8}
+className="auth-input"
+          />
+          <small className="help-text">Minimum 8 characters</small>
+        </div>
+
+        {error && (
+          <div className="auth-error">
+            {error}
+          </div>
+        )}
+
+        <button
+          type="submit"
+          disabled={isLoading}
+          className={`auth-button primary`}
+        >
+          {isLoading ? "Creating Account..." : "Sign Up"}
+        </button>
+      </form>
+
+      <div className="auth-links">
+        <p>
+          Already have an account? <Link to="/signin">Sign In</Link>
+        </p>
+      </div>
+    </div>
+  );
+}
+```
+
+</Step>
+
+<Step>
+
+### Create the Email Verification Page
+
+Build a dedicated verification page that processes email verification tokens. This page handles the verification flow when users click the email verification link.
+
+```tsx src/pages/Verify.tsx lines
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../lib/nhost/AuthProvider";
+
+export default function Verify() {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const [status, setStatus] = useState<"verifying" | "success" | "error">(
+    "verifying",
+  );
+  const [error, setError] = useState<string | null>(null);
+  const [urlParams, setUrlParams] = useState<Record<string, string>>({});
+
+  const { nhost } = useAuth();
+
+  useEffect(() => {
+    // Extract the refresh token from the URL
+    const params = new URLSearchParams(location.search);
+    const refreshToken = params.get("refreshToken");
+
+    if (!refreshToken) {
+      // Collect all URL parameters to display for debugging
+      const allParams: Record<string, string> = {};
+      params.forEach((value, key) => {
+        allParams[key] = value;
+      });
+      setUrlParams(allParams);
+
+      setStatus("error");
+      setError("No refresh token found in URL");
+      return;
+    }
+
+    // Flag to handle component unmounting during async operations
+    let isMounted = true;
+
+    async function processToken(): Promise<void> {
+      try {
+        // First display the verifying message for at least a moment
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        if (!isMounted) return;
+
+        if (!refreshToken) {
+          // Collect all URL parameters to display
+          const allParams: Record<string, string> = {};
+          params.forEach((value, key) => {
+            allParams[key] = value;
+          });
+          setUrlParams(allParams);
+
+          setStatus("error");
+          setError("No refresh token found in URL");
+          return;
+        }
+
+        // Process the token
+        await nhost.auth.refreshToken({ refreshToken });
+
+        if (!isMounted) return;
+
+        setStatus("success");
+
+        // Wait to show success message briefly, then redirect
+        setTimeout(() => {
+          if (isMounted) navigate("/profile");
+        }, 1500);
+      } catch (err) {
+        const message = (err as Error).message || "Unknown error";
+        if (!isMounted) return;
+
+        setStatus("error");
+        setError(`An error occurred during verification: ${message}`);
+      }
+    }
+
+    processToken();
+
+    // Cleanup function
+    return () => {
+      isMounted = false;
+    };
+  }, [location.search, navigate, nhost.auth]);
+
+  return (
+    <div>
+      <h1>Email Verification</h1>
+
+      <div className="page-center">
+        {status === "verifying" && (
+          <div>
+            <p className="margin-bottom">Verifying your email...</p>
+            <div className="spinner-verify" />
+            <style>{`
+              @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+              }
+            `}</style>
+          </div>
+        )}
+
+        {status === "success" && (
+          <div>
+            <p className="verification-status">
+              ✓ Successfully verified!
+            </p>
+            <p>You'll be redirected to your profile page shortly...</p>
+          </div>
+        )}
+
+        {status === "error" && (
+          <div>
+            <p className="verification-status error">
+              Verification failed
+            </p>
+            <p className="margin-bottom">{error}</p>
+
+            {Object.keys(urlParams).length > 0 && (
+              <div className="debug-panel">
+                <p className="debug-title">
+                  URL Parameters:
+                </p>
+                {Object.entries(urlParams).map(([key, value]) => (
+                  <div key={key} className="debug-item">
+                    <span className="debug-key">
+                      {key}:
+                    </span>{" "}
+                    <span className="debug-value">{value}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={() => navigate("/signin")}
+              className="auth-button secondary"
+            >
+              Back to Sign In
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+```
+
+<Warning>
+**Important Configuration Required:** Before testing email verification, you must configure your Nhost project's authentication settings:
+
+1. Go to your Nhost project dashboard
+2. Navigate to **Settings → Authentication**
+3. Add your local development URL (e.g., `http://localhost:5173`) to the **Allowed Redirect URLs** field
+4. Ensure your production domain is also added when deploying
+
+Without this configuration, you'll receive a `redirectTo not allowed` error when users attempt to sign up or verify their email addresses.
+</Warning>
+
+</Step>
+
+<Step>
+
+### Update the App Component to Include New Routes
+
+Configure your application's routing structure to include the new authentication pages. This integrates all the authentication flows into your app's navigation.
+
+```tsx src/App.tsx lines highlight={14-16,35-37}
+import {
+  createBrowserRouter,
+  createRoutesFromElements,
+  Navigate,
+  Outlet,
+  Route,
+  RouterProvider,
+} from "react-router-dom";
+import ProtectedRoute from "./components/ProtectedRoute";
+import Navigation from "./components/Navigation";
+import { AuthProvider } from "./lib/nhost/AuthProvider";
+import Home from "./pages/Home";
+import Profile from "./pages/Profile";
+import SignIn from "./pages/SignIn";
+import SignUp from "./pages/SignUp";
+import Verify from "./pages/Verify";
+
+// Root layout component to wrap all routes
+const RootLayout = () => {
+  return (
+    <>
+      <Navigation />
+      <div className="app-content">
+        <Outlet />
+      </div>
+    </>
+  );
+};
+
+// Create router with routes
+const router = createBrowserRouter(
+  createRoutesFromElements(
+    <Route element={<RootLayout />}>
+      <Route index element={<Home />} />
+      <Route path="signin" element={<SignIn />} />
+      <Route path="signup" element={<SignUp />} />
+      <Route path="verify" element={<Verify />} />
+      <Route element={<ProtectedRoute />}>
+        <Route path="profile" element={<Profile />} />
+      </Route>
+      <Route path="*" element={<Navigate to="/" />} />
+    </Route>,
+  ),
+);
+
+function App() {
+  return (
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
+  );
+}
+
+export default App;
+```
+</Step>
+
+<Step>
+
+### Add Navigation Links and Sign Out Functionality
+
+Update the navigation component to include links to the sign-in and sign-up pages, and implement the sign-out.
+
+```tsx src/components/Navigation.tsx lines highlight={1,5-19,38-43,47-52}
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../lib/nhost/AuthProvider";
+
+export default function Navigation() {
+  const { isAuthenticated, session, nhost } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    try {
+      if (session) {
+        await nhost.auth.signOut({
+          refreshToken: session.refreshToken,
+        });
+      }
+      navigate("/");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error("Error signing out:", message);
+    }
+  };
+
+  return (
+    <nav className="navigation">
+      <div className="nav-container">
+        <Link to="/" className="nav-logo">
+          Nhost React Demo
+        </Link>
+
+        <div className="nav-links">
+          <Link to="/" className="nav-link">
+            Home
+          </Link>
+
+          {isAuthenticated ? (
+            <>
+              <Link to="/profile" className="nav-link">
+                Profile
+              </Link>
+              <button
+                onClick={handleSignOut}
+                className="nav-link nav-button"
+              >
+                Sign Out
+              </button>
+            </>
+          ) : (
+            <>
+              <Link to="/signin" className="nav-link">
+                Sign In
+              </Link>
+              <Link to="/signup" className="nav-link">
+                Sign Up
+              </Link>
+            </>
+          )}
+        </div>
+      </div>
+    </nav>
+  );
+}
+```
+
+</Step>
+
+<Step>
+
+### Run and Test the Application
+
+Start your development server and test the complete authentication flow to ensure everything works properly.
+
+```bash
+npm run dev
+```
+
+
+Things to try out:
+
+1. Try signing up with a new email address. Check your email for the verification link and click it. See how you are sent to the verification page and then redirected to your profile.
+2. Try signing out and then signing back in with the same credentials.
+3. Notice how navigation links change based on authentication state showing "Sign In" and "Sign Up" when logged out, and "Profile" and "Sign Out" when logged in.
+4. Check how the homepage also reflects the authentication state with appropriate messages.
+5. Open multiple tabs and test signing out from one tab to see how other tabs respond. Now sign back in and see the changes propagate across tabs.
+
+</Step>
+</Steps>
+
+## Key Features Demonstrated
+
+<AccordionGroup>
+<Accordion title="Complete Registration Flow" icon="user-plus">
+Full email/password registration with proper form validation and user feedback.
+</Accordion>
+
+<Accordion title="Email Verification" icon="envelope-circle-check">
+Custom `/verify` endpoint that securely processes email verification tokens.
+</Accordion>
+
+<Accordion title="Error Handling" icon="triangle-exclamation">
+Comprehensive error handling for unverified emails, failed authentication, and network issues.
+</Accordion>
+
+<Accordion title="Visual Feedback" icon="eye">
+Loading states, success messages, and clear error displays throughout the authentication flow.
+</Accordion>
+
+<Accordion title="Session Management" icon="clock">
+Complete sign out functionality and proper session state management across the application.
+</Accordion>
+</AccordionGroup>
