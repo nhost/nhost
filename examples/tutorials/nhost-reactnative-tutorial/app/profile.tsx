@@ -1,11 +1,9 @@
-import { useRouter } from "expo-router";
 import { ScrollView, Text, View } from "react-native";
 import ProtectedScreen from "./components/ProtectedScreen";
 import { useAuth } from "./lib/nhost/AuthProvider";
 import { commonStyles, profileStyles } from "./styles/commonStyles";
 
 export default function Profile() {
-  const router = useRouter();
   const { user, session } = useAuth();
 
   return (
