@@ -94,6 +94,17 @@
               "/getting-started/tutorials/svelte/4-graphql-operations",
               "/getting-started/tutorials/svelte/5-file-uploads"
             ]
+          },
+          {
+            "group": "Tutorial: ToDo App (React Native)",
+            "icon": "book",
+            "pages": [
+              "/getting-started/tutorials/reactnative/1-introduction",
+              "/getting-started/tutorials/reactnative/2-protected-routes",
+              "/getting-started/tutorials/reactnative/3-user-authentication",
+              "/getting-started/tutorials/reactnative/4-graphql-operations",
+              "/getting-started/tutorials/reactnative/5-file-uploads"
+            ]
           }
         ]
       },
