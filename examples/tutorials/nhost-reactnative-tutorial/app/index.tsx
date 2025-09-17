@@ -25,9 +25,26 @@ export default function Index() {
             </TouchableOpacity>
           </>
         ) : (
-          <Text style={homeStyles.authMessage}>You are not signed in.</Text>
+          <>
+            <Text style={homeStyles.authMessage}>You are not signed in.</Text>
+
+            <View style={{ gap: 15, width: "100%" }}>
+              <TouchableOpacity
+                style={[commonStyles.button, commonStyles.fullWidth]}
+                onPress={() => router.push("/signin")}
+              >
+                <Text style={commonStyles.buttonText}>Sign In</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[commonStyles.button, commonStyles.buttonSecondary, commonStyles.fullWidth]}
+                onPress={() => router.push("/signup")}
+              >
+                <Text style={commonStyles.buttonText}>Sign Up</Text>
+              </TouchableOpacity>
+            </View>
+          </>
         )}
-        {/* Placeholder for signin/signup buttons - will be added in the next tutorial */}
       </View>
     </View>
   );

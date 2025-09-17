@@ -43,6 +43,10 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "NHOST_REGION": "local",
+      "NHOST_SUBDOMAIN": "192-168-1-108"
     }
   }
 }

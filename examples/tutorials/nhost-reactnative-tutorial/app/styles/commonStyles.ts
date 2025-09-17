@@ -136,6 +136,102 @@ export const commonStyles = StyleSheet.create({
     borderBottomColor: colors.borderLight,
   },
 
+  // Input styles
+  input: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: borderRadius.md,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    fontSize: typography.sizes.md,
+    color: colors.text,
+    backgroundColor: colors.surface,
+    minHeight: 48,
+  },
+
+  helperText: {
+    fontSize: typography.sizes.sm,
+    color: colors.textLight,
+    marginTop: spacing.xs,
+  },
+
+  // Link styles
+  linkContainer: {
+    marginTop: spacing.xl,
+    alignItems: 'center',
+  },
+
+  linkText: {
+    fontSize: typography.sizes.md,
+    color: colors.textLight,
+    textAlign: 'center',
+  },
+
+  link: {
+    color: colors.primary,
+    fontWeight: typography.weights.semibold,
+  },
+
+  // Container styles
+  successContainer: {
+    backgroundColor: colors.background,
+    borderColor: colors.success,
+    borderWidth: 1,
+    borderRadius: borderRadius.md,
+    padding: spacing.lg,
+    marginBottom: spacing.lg,
+  },
+
+  errorContainer: {
+    backgroundColor: colors.background,
+    borderColor: colors.error,
+    borderWidth: 1,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+  },
+
+  debugContainer: {
+    backgroundColor: colors.background,
+    borderColor: colors.warning,
+    borderWidth: 1,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+  },
+
+  debugTitle: {
+    fontSize: typography.sizes.sm,
+    fontWeight: typography.weights.semibold,
+    color: colors.text,
+    marginBottom: spacing.xs,
+  },
+
+  debugItem: {
+    flexDirection: 'row',
+    marginBottom: spacing.xs,
+  },
+
+  debugKey: {
+    fontSize: typography.sizes.sm,
+    fontWeight: typography.weights.medium,
+    color: colors.info,
+    marginRight: spacing.sm,
+    fontFamily: 'monospace',
+  },
+
+  debugValue: {
+    fontSize: typography.sizes.sm,
+    color: colors.textLight,
+    fontFamily: 'monospace',
+    flex: 1,
+  },
+
+  emailText: {
+    fontWeight: typography.weights.bold,
+    color: colors.text,
+  },
+
   // Session info styles
   sessionInfo: {
     backgroundColor: colors.background,
