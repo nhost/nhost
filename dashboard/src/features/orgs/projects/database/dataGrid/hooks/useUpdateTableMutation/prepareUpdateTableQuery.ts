@@ -231,5 +231,18 @@ export default function prepareUpdateTableQuery({
     );
   }
 
+  // args = args.concat(
+  //   ...updatedTable.columns.map(({ name, comment }) =>
+  //     getPreparedHasuraQuery(
+  //       dataSource,
+  //       'COMMENT ON COLUMN %I.%I.%I is %L',
+  //       schema,
+  //       updatedTable.name,
+  //       name,
+  //       isEmptyValue(comment) ? 'NULL' : comment,
+  //     ),
+  //   ),
+  // );
+
   return args;
 }

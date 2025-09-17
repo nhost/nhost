@@ -25,6 +25,7 @@ export default function prepareCreateTableQuery({
   schema,
   table,
 }: PrepareCreateTableQueryVariables) {
+  console.log(table.columns);
   let columnsAndConstraints = table.columns
     .map((column) => {
       const columnBase = format('%I %s', column.name, column.type.value);
@@ -80,6 +81,19 @@ export default function prepareCreateTableQuery({
     );
   }
 
+  const columnComments = table.columns.map(({ comment, name }) =>
+    getPreparedHasuraQuery(
+      dataSource,
+      'COMMENT ON COLUMN %I.%I.%I is %L',
+      schema,
+      table.name,
+      name,
+      comment,
+    ),
+  );
+
+  console.log({ columnComments });
+
   return [
     getPreparedHasuraQuery(
       dataSource,
@@ -88,5 +102,6 @@ export default function prepareCreateTableQuery({
       table.name,
       columnsAndConstraints,
     ),
+    ...columnComments,
   ];
 }

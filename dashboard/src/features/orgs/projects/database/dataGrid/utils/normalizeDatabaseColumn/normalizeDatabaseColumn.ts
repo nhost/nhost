@@ -25,7 +25,7 @@ export default function normalizeDatabaseColumn(
     isIdentity: rawColumn.is_identity === 'YES',
     isNullable: rawColumn.is_nullable === 'YES',
     isUnique: rawColumn.is_unique,
-    comment: rawColumn.comment || null,
+    comment: rawColumn.column_comment || null,
     defaultValue: rawColumn.column_default
       ? {
           value: normalizedDefaultValue,

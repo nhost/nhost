@@ -133,6 +133,7 @@ export default function EditTableForm({
           defaultValue: column.defaultValue,
           isNullable: column.isNullable,
           isUnique: column.isUnique,
+          comment: column.comment || '',
         })),
         primaryKeyIndices,
         identityColumnIndex:
