@@ -9,7 +9,17 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "io.nhost.david-dev-test",
+      "jsEngine": "jsc",
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "This app uses Face ID for signing in",
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": ["reactnativewebdemo"]
+          }
+        ]
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -38,7 +48,8 @@
             "backgroundColor": "#000000"
           }
         }
-      ]
+      ],
+      ["expo-apple-authentication"]
     ],
     "experiments": {
       "typedRoutes": true,

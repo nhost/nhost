@@ -1031,6 +1031,25 @@ export const commonStyles = StyleSheet.create({
   listContainer: {
     paddingBottom: spacing.xl,
   },
+
+  dividerContainer: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    marginVertical: 15,
+  },
+
+  divider: {
+    flex: 1,
+    height: 1,
+    backgroundColor: colors.border,
+  },
+
+  dividerText: {
+    marginHorizontal: 16,
+    fontSize: 14,
+    color: colors.textLight,
+    fontWeight: '500' as const,
+  },
 });
 
 // Specific component styles that might be reused

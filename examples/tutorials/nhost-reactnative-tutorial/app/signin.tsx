@@ -13,6 +13,7 @@ import {
 import { useAuth } from "./lib/nhost/AuthProvider";
 import { commonStyles } from "./styles/commonStyles";
 import { colors } from "./styles/theme";
+import AppleSignInButton from "./components/AppleSignInButton";
 
 export default function SignIn() {
   const { nhost, isAuthenticated } = useAuth();
@@ -66,6 +67,16 @@ export default function SignIn() {
         <Text style={commonStyles.title}>Sign In</Text>
 
         <View style={commonStyles.card}>
+          {/* Apple Sign In Button */}
+          <AppleSignInButton isLoading={isLoading} setIsLoading={setIsLoading} />
+
+          {/* Divider */}
+          <View style={commonStyles.dividerContainer}>
+            <View style={commonStyles.divider} />
+            <Text style={commonStyles.dividerText}>or</Text>
+            <View style={commonStyles.divider} />
+          </View>
+
           <View style={commonStyles.formField}>
             <Text style={commonStyles.labelText}>Email</Text>
             <TextInput
