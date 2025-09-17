@@ -82,7 +82,7 @@ export interface RemoteSchemaBrowserSidebarProps
   /**
    * Function to be called when a sidebar item is clicked.
    */
-  onSidebarItemClick?: (tablePath?: string) => void;
+  onSidebarItemClick?: (remoteSchemaName?: string) => void;
 }
 
 function RemoteSchemaBrowserSidebarContent({
@@ -424,9 +424,9 @@ export default function RemoteSchemaBrowserSidebar({
     setExpanded(!expanded);
   }
 
-  function handleSidebarItemClick(tablePath?: string) {
-    if (onSidebarItemClick && tablePath) {
-      onSidebarItemClick(tablePath);
+  function handleSidebarItemClick(remoteSchemaName?: string) {
+    if (onSidebarItemClick && remoteSchemaName) {
+      onSidebarItemClick(remoteSchemaName);
     }
 
     setExpanded(false);
