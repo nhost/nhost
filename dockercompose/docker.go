@@ -46,7 +46,7 @@ func (d *Docker) HasuraWrapper(
 
 	args = append(
 		args,
-		fmt.Sprintf("hasura/graphql-engine:%s.cli-migrations-v3", hasuraVersion),
+		fmt.Sprintf("nhost/graphql-engine:%s.cli-migrations-v3", hasuraVersion),
 	)
 
 	cmd := exec.CommandContext( //nolint:gosec
