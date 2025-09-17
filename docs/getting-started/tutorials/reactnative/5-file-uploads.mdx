@@ -1,0 +1,710 @@
+---
+title: File Uploads in React
+description: Learn how to implement file upload functionality with storage buckets and permissions while building a complete file management system with Nhost and React
+sidebarTitle: "File Uploads"
+icon: upload
+---
+
+This part builds upon the previous GraphQL operations part by demonstrating how to implement file upload functionality with proper storage permissions. You'll learn how to create storage buckets, configure upload permissions, and implement complete file management operations in a React application.
+
+<Info>
+This is **Part 5** in the Full-Stack React Development with Nhost series. This part focuses on file storage, upload operations, and permission-based file access control in a production application.
+</Info>
+
+## Full-Stack React Development with Nhost
+
+<CardGroup cols={3}>
+<Card title="1. Create Project" icon="plus" href="/getting-started/tutorials/react/1-introduction">
+Set up your Nhost project
+</Card>
+
+<Card title="2. Protected Routes" icon="lock" href="/getting-started/tutorials/react/2-protected-routes">
+Route protection basics
+</Card>
+
+<Card title="3. User Authentication" icon="user" href="/getting-started/tutorials/react/3-user-authentication">
+Complete auth flow
+</Card>
+
+<Card title="4. GraphQL Operations" icon="list-check" href="/getting-started/tutorials/react/4-graphql-operations">
+CRUD operations with GraphQL
+</Card>
+
+<Card title="5. File Uploads" icon="upload" href="/getting-started/tutorials/react/5-file-uploads">
+**Current** - File upload and management
+</Card>
+</CardGroup>
+
+## Prerequisites
+
+- Complete the [GraphQL Operations part](/getting-started/tutorials/react/4-graphql-operations) first
+- The project from the previous part set up and running
+
+## What You'll Build
+
+By the end of this part, you'll have:
+- A **personal bucket** so users can upload their own private files
+- **File upload functionality**
+- **File management interface** for viewing and deleting files
+- **Security permissions** ensuring users can only access their own files
+
+## Step-by-Step Guide
+
+<Steps>
+<Step>
+
+### Create a Personal Storage Bucket
+
+First, we'll create a storage bucket where users can upload their personal files.
+
+In your Nhost project dashboard:
+1. Navigate to **Database**
+2. Change to **schema.storage**, then buckets
+3. Now click on `+ Insert` on the top right corner.
+4. As id set `personal`, leave the rest of the fields blank and click on Insert at the bottom
+
+![Create bucket](/images/tutorials/uploads/1.png)
+
+</Step>
+
+<Step>
+
+### Configure Storage Permissions
+
+Now we need to set up permissions for the storage bucket to ensure the `user` role can only upload, view, and delete their own files.
+
+<Tabs>
+
+<Tab title="Upload">
+
+To upload files we need to grant permissions to insert on the table `storage.files`. Because we want to allow uploading files only to the `personal` bucket we will be using the `bucket_id eq personal` as a custom check. In addition, we are configuring a preset `uploaded_by_user_id = X-Hasura-User-id`, this will automatically extract the user_id from the session and set the column accordingly. Then we can use this in other permissions to allow downloading files and deleting them.
+
+![upload files permissions](/images/tutorials/uploads/2.png)
+
+</Tab>
+
+<Tab title="Download">
+
+To download files users need to be able to query those files. To make sure users can only download files they uploaded we will be leveraging the column `uploaded_by_user_id` column from before and the `bucket_id``.
+
+![download files permissions](/images/tutorials/uploads/3.png)
+
+</Tab>
+
+<Tab title="Delete">
+
+Similarly to downloading files, to delete files users need to be able to delete rows from the `storage.files` table. Again we will use the `uploaded_by_user_id` column and the `bucket_id` to make sure users can only delete their own files.
+
+![delete files permissions](/images/tutorials/uploads/4.png)
+
+</Tab>
+
+</Tabs>
+
+<Info>
+You can read more about storage permissions [here](/products/storage/overview#permissions)
+</Info>
+
+</Step>
+
+<Step>
+
+### Create the File Upload Component
+
+Now let's implement the React component for file upload functionality.
+
+```tsx src/pages/Files.tsx lines
+import type { FileMetadata } from "@nhost/nhost-js/storage";
+import { type JSX, useCallback, useEffect, useRef, useState } from "react";
+import { useAuth } from "../lib/nhost/AuthProvider";
+
+
+interface DeleteStatus {
+  message: string;
+  isError: boolean;
+}
+
+
+interface GraphqlGetFilesResponse {
+  files: FileMetadata[];
+}
+
+
+function formatFileSize(bytes: number): string {
+  if (bytes === 0) return "0 Bytes";
+
+  const sizes: string[] = ["Bytes", "KB", "MB", "GB", "TB"];
+  const i: number = Math.floor(Math.log(bytes) / Math.log(1024));
+
+  return `${parseFloat((bytes / 1024 ** i).toFixed(2))} ${sizes[i]}`;
+}
+
+
+export default function Files(): JSX.Element {
+  const { isAuthenticated, nhost } = useAuth();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState<boolean>(false);
+  const [uploadResult, setUploadResult] = useState<FileMetadata | null>(null);
+  const [isFetching, setIsFetching] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [files, setFiles] = useState<FileMetadata[]>([]);
+  const [viewingFile, setViewingFile] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [deleteStatus, setDeleteStatus] = useState<DeleteStatus | null>(null);
+
+  const fetchFiles = useCallback(async (): Promise<void> => {
+    setIsFetching(true);
+    setError(null);
+
+    try {
+      // Use GraphQL to fetch files from the storage system
+      // Files are automatically filtered by user permissions
+      const response = await nhost.graphql.request<GraphqlGetFilesResponse>({
+        query: `query GetFiles {
+            files {
+              id
+              name
+              size
+              mimeType
+              bucketId
+              uploadedByUserId
+            }
+          }`,
+      });
+
+      if (response.body.errors) {
+        throw new Error(
+          response.body.errors[0]?.message || "Failed to fetch files",
+        );
+      }
+
+      setFiles(response.body.data?.files || []);
+    } catch (err) {
+      console.error("Error fetching files:", err);
+      setError("Failed to load files. Please try refreshing the page.");
+    } finally {
+      setIsFetching(false);
+    }
+  }, [nhost.graphql]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchFiles();
+    }
+  }, [isAuthenticated, fetchFiles]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      if (file) {
+        setSelectedFile(file);
+        setError(null);
+        setUploadResult(null);
+      }
+    }
+  };
+
+  const handleUpload = async (): Promise<void> => {
+    if (!selectedFile) {
+      setError("Please select a file to upload");
+      return;
+    }
+
+    setUploading(true);
+    setError(null);
+
+    try {
+      // Upload file to the personal bucket
+      // The uploadedByUserId is automatically set by the storage permissions
+      const response = await nhost.storage.uploadFiles({
+        "bucket-id": "personal",
+        "file[]": [selectedFile],
+      });
+
+      const uploadedFile = response.body.processedFiles?.[0];
+      if (uploadedFile === undefined) {
+        throw new Error("Failed to upload file");
+      }
+      setUploadResult(uploadedFile);
+
+      // Clear the form
+      setSelectedFile(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+
+      // Update the files list
+      setFiles((prevFiles) => [uploadedFile, ...prevFiles]);
+
+      await fetchFiles();
+
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        setUploadResult(null);
+      }, 3000);
+    } catch (err: unknown) {
+      const message = (err as Error).message || "An unknown error occurred";
+      setError(`Failed to upload file: ${message}`);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleViewFile = async (
+    fileId: string,
+    fileName: string,
+    mimeType: string,
+  ): Promise<void> => {
+    setViewingFile(fileId);
+
+    try {
+      // Get the file from storage
+      const response = await nhost.storage.getFile(fileId);
+
+      const url = URL.createObjectURL(response.body);
+
+      // Handle different file types appropriately
+      if (
+        mimeType.startsWith("image/") ||
+        mimeType === "application/pdf" ||
+        mimeType.startsWith("text/") ||
+        mimeType.startsWith("video/") ||
+        mimeType.startsWith("audio/")
+      ) {
+        // Open viewable files in new tab
+        window.open(url, "_blank");
+      } else {
+        // Download other file types
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        // Show download confirmation
+        const newWindow = window.open("", "_blank", "width=400,height=200");
+        if (newWindow) {
+          newWindow.document.documentElement.innerHTML = `
+            <head>
+              <title>File Download</title>
+              <style>
+                body { font-family: Arial, sans-serif; padding: 20px; text-align: center; }
+              </style>
+            </head>
+            <body>
+              <h3>Downloading: ${fileName}</h3>
+              <p>Your download has started. You can close this window.</p>
+            </body>
+          `;
+        }
+      }
+    } catch (err) {
+      const message = (err as Error).message || "An unknown error occurred";
+      setError(`Failed to view file: ${message}`);
+      console.error("Error viewing file:", err);
+    } finally {
+      setViewingFile(null);
+    }
+  };
+
+  const handleDeleteFile = async (fileId: string): Promise<void> => {
+    if (!fileId || deleting) return;
+
+    setDeleting(fileId);
+    setError(null);
+    setDeleteStatus(null);
+
+    const fileToDelete = files.find((file) => file.id === fileId);
+    const fileName = fileToDelete?.name || "File";
+
+    try {
+      // Delete file from storage
+      // Permissions ensure users can only delete their own files
+      await nhost.storage.deleteFile(fileId);
+
+      setDeleteStatus({
+        message: `${fileName} deleted successfully`,
+        isError: false,
+      });
+
+      // Remove from local state
+      setFiles(files.filter((file) => file.id !== fileId));
+
+      await fetchFiles();
+
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        setDeleteStatus(null);
+      }, 3000);
+    } catch (err) {
+      const message = (err as Error).message || "An unknown error occurred";
+      setDeleteStatus({
+        message: `Failed to delete ${fileName}: ${message}`,
+        isError: true,
+      });
+      console.error("Error deleting file:", err);
+    } finally {
+      setDeleting(null);
+    }
+  };
+
+  return (
+    <div className="container">
+      <header className="page-header">
+        <h1 className="page-title">File Upload</h1>
+      </header>
+
+      <div className="form-card">
+        <h2 className="form-title">Upload a File</h2>
+
+        <div className="field-group">
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            style={{
+              position: "absolute",
+              width: "1px",
+              height: "1px",
+              padding: 0,
+              margin: "-1px",
+              overflow: "hidden",
+              clip: "rect(0,0,0,0)",
+              border: 0,
+            }}
+            aria-hidden="true"
+            tabIndex={-1}
+          />
+          <button
+            type="button"
+            className="btn btn-secondary file-upload-btn"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <svg
+              width="40"
+              height="40"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              role="img"
+              aria-label="Upload file"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+              />
+            </svg>
+            <p>Click to select a file</p>
+            {selectedFile && (
+              <p className="file-upload-info">
+                {selectedFile.name} ({formatFileSize(selectedFile.size)})
+              </p>
+            )}
+          </button>
+        </div>
+
+        {error && <div className="error-message">{error}</div>}
+
+        {uploadResult && (
+          <div className="success-message">File uploaded successfully!</div>
+        )}
+
+        <button
+          type="button"
+          onClick={handleUpload}
+          disabled={!selectedFile || uploading}
+          className="btn btn-primary"
+          style={{ width: "100%" }}
+        >
+          {uploading ? "Uploading..." : "Upload File"}
+        </button>
+      </div>
+
+      <div className="form-card">
+        <h2 className="form-title">Your Files</h2>
+
+        {deleteStatus && (
+          <div className={deleteStatus.isError ? "error-message" : "success-message"}>
+            {deleteStatus.message}
+          </div>
+        )}
+
+        {isFetching ? (
+          <div className="loading-container">
+            <div className="loading-content">
+              <div className="spinner"></div>
+              <span className="loading-text">Loading files...</span>
+            </div>
+          </div>
+        ) : files.length === 0 ? (
+          <div className="empty-state">
+            <svg
+              className="empty-icon"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+              />
+            </svg>
+            <h3 className="empty-title">No files yet</h3>
+            <p className="empty-description">Upload your first file to get started!</p>
+          </div>
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <table className="file-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Type</th>
+                  <th>Size</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {files.map((file) => (
+                  <tr key={file.id}>
+                    <td className="file-name">{file.name}</td>
+                    <td className="file-meta">{file.mimeType}</td>
+                    <td className="file-meta">{formatFileSize(file.size || 0)}</td>
+                    <td>
+                      <div className="file-actions">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleViewFile(
+                              file.id || "unknown",
+                              file.name || "unknown",
+                              file.mimeType || "unknown",
+                            )
+                          }
+                          disabled={viewingFile === file.id}
+                          className="action-btn action-btn-edit"
+                          title="View File"
+                        >
+                          {viewingFile === file.id ? "⏳" : "👁️"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteFile(file.id || "unknown")}
+                          disabled={deleting === file.id}
+                          className="action-btn action-btn-delete"
+                          title="Delete File"
+                        >
+                          {deleting === file.id ? "⏳" : "🗑️"}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+```
+
+</Step>
+
+<Step>
+
+### Update Application Routes
+
+Add the uploads page to your application routing.
+
+```tsx src/App.tsx lines highlight={18,43}
+import {
+  createBrowserRouter,
+  createRoutesFromElements,
+  Navigate,
+  Outlet,
+  Route,
+  RouterProvider,
+} from "react-router-dom";
+import ProtectedRoute from "./components/ProtectedRoute";
+import Navigation from "./components/Navigation";
+import { AuthProvider } from "./lib/nhost/AuthProvider";
+import Home from "./pages/Home";
+import Profile from "./pages/Profile";
+import SignIn from "./pages/SignIn";
+import SignUp from "./pages/SignUp";
+import Verify from "./pages/Verify";
+import Todos from "./pages/Todos";
+import Files from "./pages/Files";
+
+// Root layout component to wrap all routes
+const RootLayout = () => {
+  return (
+    <>
+      <Navigation />
+      <div className="app-content">
+        <Outlet />
+      </div>
+    </>
+  );
+};
+
+// Create router with routes
+const router = createBrowserRouter(
+  createRoutesFromElements(
+    <Route element={<RootLayout />}>
+      <Route index element={<Home />} />
+      <Route path="signin" element={<SignIn />} />
+      <Route path="signup" element={<SignUp />} />
+      <Route path="verify" element={<Verify />} />
+      <Route element={<ProtectedRoute />}>
+        <Route path="profile" element={<Profile />} />
+        <Route path="todos" element={<Todos />} />
+        <Route path="files" element={<Files />} />
+      </Route>
+      <Route path="*" element={<Navigate to="/" />} />
+    </Route>,
+  ),
+);
+
+function App() {
+  return (
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
+  );
+}
+
+export default App;
+```
+
+</Step>
+
+<Step>
+
+### Update Navigation Links
+
+Add a link to the uploads page in the navigation bar.
+
+```tsx src/components/Navigation.tsx lines highlight={38-40}
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../lib/nhost/AuthProvider";
+
+export default function Navigation() {
+  const { isAuthenticated, session, nhost } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    try {
+      if (session) {
+        await nhost.auth.signOut({
+          refreshToken: session.refreshToken,
+        });
+      }
+      navigate("/");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error("Error signing out:", message);
+    }
+  };
+
+  return (
+    <nav className="navigation">
+      <div className="nav-container">
+        <Link to="/" className="nav-logo">
+          Nhost React Demo
+        </Link>
+
+        <div className="nav-links">
+          <Link to="/" className="nav-link">
+            Home
+          </Link>
+
+          {isAuthenticated ? (
+            <>
+              <Link to="/todos" className="nav-link">
+                Todos
+              </Link>
+              <Link to="/files" className="nav-link">
+                Files
+              </Link>
+              <Link to="/profile" className="nav-link">
+                Profile
+              </Link>
+              <button
+                onClick={handleSignOut}
+                className="nav-link nav-button"
+              >
+                Sign Out
+              </button>
+            </>
+          ) : (
+            <>
+              <Link to="/signin" className="nav-link">
+                Sign In
+              </Link>
+              <Link to="/signup" className="nav-link">
+                Sign Up
+              </Link>
+            </>
+          )}
+        </div>
+      </div>
+    </nav>
+  );
+}
+
+```
+
+</Step>
+
+<Step>
+
+### Test Your File Upload System
+
+Run your application and test all the functionality:
+
+```bash
+npm run dev
+```
+
+Things to try out:
+
+1. Try signing in and out and see how the file upload page is only accessible when signed in.
+2. Upload different types of files (images, documents, etc.)
+3. View and delete files
+4. Sign in with another account and verify you cannot see files from the first account
+
+</Step>
+</Steps>
+
+## Key Features Implemented
+
+<AccordionGroup>
+<Accordion title="Storage Bucket" icon="bucket">
+Dedicated personal storage bucket with proper configuration for user file isolation.
+</Accordion>
+
+<Accordion title="File Upload Interface" icon="upload">
+User-friendly upload interface with file selection, preview, and progress feedback.
+</Accordion>
+
+<Accordion title="File Management" icon="folder">
+Complete file listing with metadata, viewing capabilities, and deletion functionality.
+</Accordion>
+
+<Accordion title="File Type Handling" icon="file">
+Intelligent handling of different file types with appropriate viewing/download behavior.
+</Accordion>
+
+<Accordion title="Error Handling" icon="triangle-exclamation">
+Comprehensive error handling with user-friendly messages for upload and management operations.
+</Accordion>
+</AccordionGroup>
