@@ -41,19 +41,8 @@
             ]
           },
           {
-            "group": "Tutorials",
-            "icon": "book",
-            "pages": [
-              "/getting-started/tutorials/react",
-              "/getting-started/tutorials/nextjs",
-              "/getting-started/tutorials/vue",
-              "/getting-started/tutorials/sveltekit",
-              "/getting-started/tutorials/reactnative"
-            ]
-          },
-          {
             "group": "Tutorial: ToDo App (React)",
-            "icon": "book",
+            "icon": "react",
             "pages": [
               "/getting-started/tutorials/react/1-introduction",
               "/getting-started/tutorials/react/2-protected-routes",
@@ -64,7 +53,7 @@
           },
           {
             "group": "Tutorial: ToDo App (Next.js)",
-            "icon": "book",
+            "icon": "triangle",
             "pages": [
               "/getting-started/tutorials/nextjs/1-introduction",
               "/getting-started/tutorials/nextjs/2-protected-routes",
@@ -75,7 +64,7 @@
           },
           {
             "group": "Tutorial: ToDo App (Vue)",
-            "icon": "book",
+            "icon": "vuejs",
             "pages": [
               "/getting-started/tutorials/vue/1-introduction",
               "/getting-started/tutorials/vue/2-protected-routes",
@@ -86,7 +75,7 @@
           },
           {
             "group": "Tutorial: ToDo App (Svelte)",
-            "icon": "book",
+            "icon": "s",
             "pages": [
               "/getting-started/tutorials/svelte/1-introduction",
               "/getting-started/tutorials/svelte/2-protected-routes",
@@ -97,13 +86,14 @@
           },
           {
             "group": "Tutorial: ToDo App (React Native)",
-            "icon": "book",
+            "icon": "mobile-notch",
             "pages": [
               "/getting-started/tutorials/reactnative/1-introduction",
               "/getting-started/tutorials/reactnative/2-protected-routes",
               "/getting-started/tutorials/reactnative/3-user-authentication",
               "/getting-started/tutorials/reactnative/4-graphql-operations",
-              "/getting-started/tutorials/reactnative/5-file-uploads"
+              "/getting-started/tutorials/reactnative/5-file-uploads",
+              "/getting-started/tutorials/reactnative/6-sign-in-with-apple"
             ]
           }
         ]
