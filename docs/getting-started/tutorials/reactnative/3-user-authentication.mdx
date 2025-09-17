@@ -539,22 +539,13 @@ Without this configuration, you'll receive a `redirectTo not allowed` error when
 
 <Step>
 
-### Update the App Layout to Include New Screens
+### Update Home Screen
 
-Configure your application's routing structure to include the new authentication screens. This integrates all the authentication flows into your app's navigation.
-
-The layout file from the previous part already includes the `AuthProvider` and basic navigation setup. You don't need to change it for authentication to work - the screens we've created will automatically be available through Expo Router.
-</Step>
-
-<Step>
-
-### Add Sign Out Functionality and Update Navigation
-
-Update the home screen to include navigation to authentication screens and implement sign-out functionality in the profile screen.
+Update the home screen to include navigation to authentication screens.
 
 Update the home screen:
 
-```tsx app/index.tsx lines highlight={5-7,17-33}
+```tsx app/index.tsx lines highlight={31-45}
 import { useRouter } from "expo-router";
 import { Text, TouchableOpacity, View } from "react-native";
 import { useAuth } from "./lib/nhost/AuthProvider";
@@ -607,6 +598,10 @@ export default function Index() {
   );
 }
 ```
+
+</Step>
+
+<Step title="Add Sign Out Functionality">
 
 Update the profile screen to include sign-out functionality:
 
@@ -705,20 +700,10 @@ export default function Profile() {
         <View style={commonStyles.card}>
           <Text style={commonStyles.cardTitle}>Session Information</Text>
           <View style={commonStyles.sessionInfo}>
-            <Text style={commonStyles.sessionLabel}>Refresh Token ID:</Text>
             <Text
               style={commonStyles.sessionValue}
-              numberOfLines={1}
-              ellipsizeMode="middle"
             >
-              {session?.refreshTokenId || "None"}
-            </Text>
-
-            <Text style={commonStyles.sessionLabel}>Access Token Expires In:</Text>
-            <Text style={commonStyles.sessionValue}>
-              {session?.accessTokenExpiresIn
-                ? `${session.accessTokenExpiresIn}s`
-                : "N/A"}
+              {JSON.stringify(session, null, 2)}
             </Text>
           </View>
         </View>
