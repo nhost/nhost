@@ -1,10 +1,39 @@
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { useRouter } from "expo-router";
+import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import ProtectedScreen from "./components/ProtectedScreen";
 import { useAuth } from "./lib/nhost/AuthProvider";
 import { commonStyles, profileStyles } from "./styles/commonStyles";
 
 export default function Profile() {
-  const { user, session } = useAuth();
+  const router = useRouter();
+  const { user, session, nhost } = useAuth();
+
+  const handleSignOut = async () => {
+    Alert.alert(
+      "Sign Out",
+      "Are you sure you want to sign out?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Sign Out",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              if (session) {
+                await nhost.auth.signOut({
+                  refreshToken: session.refreshToken,
+                });
+              }
+              router.replace("/");
+            } catch (err: unknown) {
+              const message = err instanceof Error ? err.message : String(err);
+              Alert.alert("Error", `Failed to sign out: ${message}`);
+            }
+          },
+        },
+      ]
+    );
+  };
 
   return (
     <ProtectedScreen>
@@ -71,6 +100,12 @@ export default function Profile() {
           </View>
         </View>
 
+        <TouchableOpacity
+          style={[commonStyles.button, { backgroundColor: "#ef4444" }]}
+          onPress={handleSignOut}
+        >
+          <Text style={commonStyles.buttonText}>Sign Out</Text>
+        </TouchableOpacity>
       </ScrollView>
     </ProtectedScreen>
   );

@@ -528,8 +528,7 @@ export default function Verify() {
 1. Go to your Nhost project dashboard
 2. Navigate to **Settings → Authentication**
 3. Add your Expo development URL to the **Allowed Redirect URLs** field:
-   - For Expo Go: `exp://192.168.x.x:8081/--/verify` (replace with your local IP)
-   - For development build: Your custom scheme + `/verify`
+   - For Expo Go: `exp://x.x.x.x:8081/--/verify` (replace with your local IP)
 4. Ensure your production domain is also added when deploying
 
 Without this configuration, you'll receive a `redirectTo not allowed` error when users attempt to sign up or verify their email addresses.
@@ -605,7 +604,7 @@ export default function Index() {
 
 Update the profile screen to include sign-out functionality:
 
-```tsx app/profile.tsx lines highlight={2,8-24,75-80}
+```tsx app/profile.tsx lines highlight={1-2,8-36,103-108}
 import { useRouter } from "expo-router";
 import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import ProtectedScreen from "./components/ProtectedScreen";
@@ -724,14 +723,6 @@ export default function Profile() {
 
 <Step>
 
-### Add Sign Out Functionality and Update Navigation
-
-Update the home screen to include navigation to authentication screens and implement sign-out functionality in the profile screen.
-
-</Step>
-
-<Step>
-
 ### Run and Test the Application
 
 Start your development server and test the complete authentication flow to ensure everything works properly.
@@ -748,11 +739,9 @@ Things to try out:
 
 3. **Navigation**: Notice how the home screen shows different options based on authentication state - showing "Sign In" and "Sign Up" buttons when logged out, and "Go to Profile" when logged in.
 
-4. **Mobile Experience**: Test the keyboard handling, form validation, and responsive design across different screen sizes.
+4. **Error Handling**: Try signing in with invalid credentials to see error handling, or try signing up with a short password to see validation.
 
-5. **Error Handling**: Try signing in with invalid credentials to see error handling, or try signing up with a short password to see validation.
-
-6. **Email Verification**: Test the complete email verification flow in both development and when deployed.
+5. **Email Verification**: Test the complete email verification flow in both development and when deployed.
 
 </Step>
 </Steps>
@@ -772,10 +761,6 @@ Custom `/verify` screen that securely processes email verification tokens with E
 Comprehensive error handling for unverified emails, failed authentication, and network issues with mobile-friendly alerts.
 </Accordion>
 
-<Accordion title="Mobile UX" icon="mobile">
-Keyboard-aware layouts, proper input handling, loading states, and responsive design for optimal mobile experience.
-</Accordion>
-
 <Accordion title="Session Management" icon="clock">
 Complete sign out functionality with confirmation dialogs and proper session state management across the application.
 </Accordion>
@@ -791,6 +776,3 @@ This tutorial demonstrates several key React Native patterns:
 - **Expo Linking**: Proper deep linking for email verification
 - **TouchableOpacity**: Native touch feedback for buttons
 - **ScrollView**: Scrollable content containers with proper keyboard handling
-- **Platform-specific behavior**: iOS vs Android keyboard handling differences
-
-The styling uses the global theme system established in the previous tutorial, maintaining consistency while providing mobile-optimized components and interactions.
