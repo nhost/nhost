@@ -1,6 +1,5 @@
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { getHasuraAdminSecret } from '@/utils/env';
 import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
 import type { HasuraError } from '@/utils/hasura-api/types';
 import type { MutationOptions } from '@tanstack/react-query';
@@ -40,10 +39,7 @@ export default function useCreateRemoteSchemaMutation({
     return createRemoteSchema({
       ...variables,
       appUrl,
-      adminSecret:
-        process.env.NEXT_PUBLIC_ENV === 'dev'
-          ? getHasuraAdminSecret()
-          : project?.config?.hasura.adminSecret!,
+      adminSecret: project?.config?.hasura.adminSecret!,
     });
   }, mutationOptions);
 

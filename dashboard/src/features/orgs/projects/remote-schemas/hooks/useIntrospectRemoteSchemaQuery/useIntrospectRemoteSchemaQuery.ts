@@ -1,6 +1,5 @@
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { getHasuraAdminSecret } from '@/utils/env';
 import type { UseQueryOptions } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import type { IntrospectionQuery } from 'graphql';
@@ -48,10 +47,7 @@ export default function useIntrospectRemoteSchemaQuery(
         'hasura',
       );
 
-      const adminSecret =
-        process.env.NEXT_PUBLIC_ENV === 'dev'
-          ? getHasuraAdminSecret()
-          : project?.config?.hasura.adminSecret!;
+      const adminSecret = project?.config?.hasura.adminSecret!;
 
       return introspectRemoteSchema({
         appUrl,

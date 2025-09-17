@@ -1,7 +1,6 @@
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { getHasuraAdminSecret } from '@/utils/env';
 import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
 import type { SuccessResponse } from '@/utils/hasura-api/generated/schemas/successResponse';
 import type { MutationOptions } from '@tanstack/react-query';
@@ -50,10 +49,7 @@ export default function useUpdateRemoteSchemaPermissionsMutation({
 
     const base = {
       appUrl,
-      adminSecret:
-        process.env.NEXT_PUBLIC_ENV === 'dev'
-          ? getHasuraAdminSecret()
-          : project?.config?.hasura.adminSecret!,
+      adminSecret: project?.config?.hasura.adminSecret!,
     } as const;
 
     if (isPlatform) {
