@@ -14,15 +14,23 @@ export default function Index() {
       <View style={homeStyles.welcomeCard}>
         {isAuthenticated ? (
           <>
-            <Text style={homeStyles.welcomeText}>
-              Hello, {user?.displayName || user?.email}!
-            </Text>
-            <TouchableOpacity
-              style={[commonStyles.button, commonStyles.fullWidth]}
-              onPress={() => router.push("/profile")}
-            >
-              <Text style={commonStyles.buttonText}>Go to Profile</Text>
-            </TouchableOpacity>
+            <View style={{ gap: 15, width: "100%" }}>
+              <Text style={homeStyles.welcomeText}>
+                Hello, {user?.displayName || user?.email}!
+              </Text>
+              <TouchableOpacity
+                style={[commonStyles.button, commonStyles.fullWidth]}
+                onPress={() => router.push("/todos")}
+              >
+                <Text style={commonStyles.buttonText}>My Todos</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[commonStyles.button, commonStyles.fullWidth]}
+                onPress={() => router.push("/profile")}
+              >
+                <Text style={commonStyles.buttonText}>Go to Profile</Text>
+              </TouchableOpacity>
+            </View>
           </>
         ) : (
           <>

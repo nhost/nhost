@@ -808,6 +808,225 @@ export const commonStyles = StyleSheet.create({
   fullWidth: {
     width: '100%',
   },
+
+  // Todo-specific styles
+  todoCard: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.md,
+    padding: spacing.lg,
+    marginBottom: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    ...shadows.small,
+  },
+
+  todoCompleted: {
+    opacity: 0.7,
+    borderColor: colors.success,
+  },
+
+  todoEditForm: {
+    padding: spacing.md,
+  },
+
+  todoHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+
+  todoTitleContainer: {
+    flex: 1,
+    marginRight: spacing.md,
+  },
+
+  todoTitle: {
+    fontSize: typography.sizes.md,
+    fontWeight: typography.weights.medium,
+    color: colors.text,
+    lineHeight: typography.sizes.md * typography.lineHeights.normal,
+  },
+
+  todoTitleCompleted: {
+    textDecorationLine: 'line-through',
+    color: colors.textLight,
+  },
+
+  todoActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  actionButton: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    marginLeft: spacing.xs,
+    borderRadius: borderRadius.sm,
+    backgroundColor: colors.background,
+    minWidth: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  completeButton: {
+    backgroundColor: colors.success + '20',
+  },
+
+  editButton: {
+    backgroundColor: colors.info + '20',
+  },
+
+  deleteButton: {
+    backgroundColor: colors.error + '20',
+  },
+
+  actionButtonText: {
+    fontSize: typography.sizes.md,
+  },
+
+  todoDetails: {
+    marginTop: spacing.md,
+    paddingTop: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.borderLight,
+  },
+
+  todoDescription: {
+    fontSize: typography.sizes.sm,
+    color: colors.textLight,
+    lineHeight: typography.sizes.sm * typography.lineHeights.normal,
+    marginBottom: spacing.sm,
+  },
+
+  todoDescriptionCompleted: {
+    textDecorationLine: 'line-through',
+  },
+
+  todoMeta: {
+    marginTop: spacing.sm,
+  },
+
+  metaText: {
+    fontSize: typography.sizes.xs,
+    color: colors.textLight,
+    marginBottom: spacing.xs,
+  },
+
+  completionBadge: {
+    marginTop: spacing.xs,
+    alignSelf: 'flex-start',
+  },
+
+  completionText: {
+    fontSize: typography.sizes.xs,
+    color: colors.success,
+    fontWeight: typography.weights.medium,
+  },
+
+  // Page layout styles
+  pageHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+  },
+
+  pageTitle: {
+    fontSize: typography.sizes.xl,
+    fontWeight: typography.weights.bold,
+    color: colors.text,
+    flex: 1,
+  },
+
+  addButton: {
+    backgroundColor: colors.primary,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...shadows.medium,
+  },
+
+  addButtonText: {
+    fontSize: typography.sizes.xl,
+    color: colors.surface,
+    fontWeight: typography.weights.bold,
+  },
+
+  // Form styles
+  formFields: {
+    marginTop: spacing.sm,
+  },
+
+  inputLabel: {
+    fontSize: typography.sizes.sm,
+    fontWeight: typography.weights.medium,
+    color: colors.text,
+    marginBottom: spacing.xs,
+  },
+
+  textArea: {
+    minHeight: 80,
+    textAlignVertical: 'top',
+  },
+
+  buttonGroup: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: spacing.lg,
+    gap: spacing.md,
+  },
+
+  primaryButton: {
+    backgroundColor: colors.primary,
+    flex: 1,
+  },
+
+  secondaryButton: {
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+    flex: 1,
+  },
+
+  secondaryButtonText: {
+    color: colors.text,
+  },
+
+  // Content layout styles
+  contentSection: {
+    flex: 1,
+    paddingHorizontal: spacing.lg,
+  },
+
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.xxxl,
+  },
+
+  emptyStateTitle: {
+    fontSize: typography.sizes.lg,
+    fontWeight: typography.weights.semibold,
+    color: colors.text,
+    textAlign: 'center',
+    marginBottom: spacing.sm,
+  },
+
+  emptyStateText: {
+    fontSize: typography.sizes.md,
+    color: colors.textLight,
+    textAlign: 'center',
+    lineHeight: typography.sizes.md * typography.lineHeights.normal,
+  },
+
+  listContainer: {
+    paddingBottom: spacing.xl,
+  },
 });
 
 // Specific component styles that might be reused
@@ -1025,15 +1244,17 @@ export default function Index() {
       <View style={homeStyles.welcomeCard}>
         {isAuthenticated ? (
           <>
-            <Text style={homeStyles.welcomeText}>
-              Hello, {user?.displayName || user?.email}!
-            </Text>
-            <TouchableOpacity
-              style={[commonStyles.button, commonStyles.fullWidth]}
-              onPress={() => router.push("/profile")}
-            >
-              <Text style={commonStyles.buttonText}>Go to Profile</Text>
-            </TouchableOpacity>
+            <View style={{ gap: 15, width: "100%" }}>
+              <Text style={homeStyles.welcomeText}>
+                Hello, {user?.displayName || user?.email}!
+              </Text>
+              <TouchableOpacity
+                style={[commonStyles.button, commonStyles.fullWidth]}
+                onPress={() => router.push("/profile")}
+              >
+                <Text style={commonStyles.buttonText}>Go to Profile</Text>
+              </TouchableOpacity>
+            </View>
           </>
         ) : (
           <Text style={homeStyles.authMessage}>You are not signed in.</Text>

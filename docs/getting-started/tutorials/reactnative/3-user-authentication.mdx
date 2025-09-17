@@ -528,7 +528,7 @@ export default function Verify() {
 1. Go to your Nhost project dashboard
 2. Navigate to **Settings → Authentication**
 3. Add your Expo development URL to the **Allowed Redirect URLs** field:
-   - For Expo Go: `exp://x.x.x.x:8081/--/verify` (replace with your local IP)
+   - For Expo Go: `exp://x.x.x.x:8081/` (replace with your local IP)
 4. Ensure your production domain is also added when deploying
 
 Without this configuration, you'll receive a `redirectTo not allowed` error when users attempt to sign up or verify their email addresses.
@@ -544,7 +544,7 @@ Update the home screen to include navigation to authentication screens.
 
 Update the home screen:
 
-```tsx app/index.tsx lines highlight={31-45}
+```tsx app/index.tsx lines highlight={33-47}
 import { useRouter } from "expo-router";
 import { Text, TouchableOpacity, View } from "react-native";
 import { useAuth } from "./lib/nhost/AuthProvider";
@@ -561,15 +561,17 @@ export default function Index() {
       <View style={homeStyles.welcomeCard}>
         {isAuthenticated ? (
           <>
-            <Text style={homeStyles.welcomeText}>
-              Hello, {user?.displayName || user?.email}!
-            </Text>
-            <TouchableOpacity
-              style={[commonStyles.button, commonStyles.fullWidth]}
-              onPress={() => router.push("/profile")}
-            >
-              <Text style={commonStyles.buttonText}>Go to Profile</Text>
-            </TouchableOpacity>
+            <View style={{ gap: 15, width: "100%" }}>
+              <Text style={homeStyles.welcomeText}>
+                Hello, {user?.displayName || user?.email}!
+              </Text>
+              <TouchableOpacity
+                style={[commonStyles.button, commonStyles.fullWidth]}
+                onPress={() => router.push("/profile")}
+              >
+                <Text style={commonStyles.buttonText}>Go to Profile</Text>
+              </TouchableOpacity>
+            </View>
           </>
         ) : (
           <>
