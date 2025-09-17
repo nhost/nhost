@@ -1,7 +1,6 @@
 import { fetchExportMetadata } from '@/features/orgs/projects/common/utils/fetchExportMetadata';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { getHasuraAdminSecret } from '@/utils/env';
 import type {
   ExportMetadataResponse,
   RemoteSchemaInfo,
@@ -40,10 +39,7 @@ export default function useGetRemoteSchemas({
         'hasura',
       );
 
-      const adminSecret =
-        process.env.NEXT_PUBLIC_ENV === 'dev'
-          ? getHasuraAdminSecret()
-          : project?.config?.hasura.adminSecret!;
+      const adminSecret = project?.config?.hasura.adminSecret!;
 
       return fetchExportMetadata({ appUrl, adminSecret });
     },
