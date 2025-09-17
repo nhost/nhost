@@ -538,7 +538,6 @@ export default function RemoteSchemaRolePermissionsEditorForm({
         <div className="flex flex-auto flex-col overflow-hidden">
           <Box className="flex-1 overflow-y-auto p-6">
             <div className="space-y-6">
-              {/* Header */}
               <div className="grid grid-flow-row gap-2">
                 <Text component="h2" className="!font-bold">
                   Edit Permissions: {remoteSchemaName} - {role}
