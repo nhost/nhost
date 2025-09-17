@@ -1,11 +1,8 @@
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { ArrowDownIcon } from '@/components/ui/v2/icons/ArrowDownIcon';
 import { ArrowUpIcon } from '@/components/ui/v2/icons/ArrowUpIcon';
 import { PencilIcon } from '@/components/ui/v2/icons/PencilIcon';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import type { DataBrowserGridColumn } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import type { DataGridProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
@@ -22,10 +19,7 @@ export interface DataGridHeaderProps<T extends object>
       DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement>,
       'children'
     >,
-    Pick<
-      DataGridProps<T>,
-      'onRemoveColumn' | 'onEditColumn' | 'onInsertColumn'
-    > {
+    Pick<DataGridProps<T>, 'onRemoveColumn' | 'onEditColumn'> {
   /**
    * Props to be passed to component slots.
    */
@@ -38,10 +32,6 @@ export interface DataGridHeaderProps<T extends object>
      * Props to be passed to the `Delete Column` header action item.
      */
     deleteActionProps?: HeaderActionProps;
-    /**
-     * Props to be passed to the `Delete Column` header action item.
-     */
-    insertActionProps?: HeaderActionProps;
   };
 }
 
@@ -51,7 +41,6 @@ export default function DataGridHeader<T extends object>({
   className,
   onRemoveColumn,
   onEditColumn,
-  onInsertColumn,
   componentsProps,
   ...props
 }: DataGridHeaderProps<T>) {
@@ -60,7 +49,7 @@ export default function DataGridHeader<T extends object>({
   return (
     <div
       className={twMerge(
-        'sticky top-0 z-30 inline-flex w-full items-center pr-5',
+        'sticky top-0 z-30 inline-flex w-full items-center',
         className,
       )}
       {...props}
@@ -172,21 +161,6 @@ export default function DataGridHeader<T extends object>({
           </Dropdown.Root>
         );
       })}
-
-      {onInsertColumn && (
-        <Box className="group relative inline-flex w-25 self-stretch overflow-hidden border-b-1 border-r-1 font-display text-xs font-bold focus:outline-none focus-visible:outline-none">
-          <Button
-            onClick={onInsertColumn}
-            variant="borderless"
-            color="secondary"
-            className="h-full w-full rounded-none text-xs hover:shadow-none focus:shadow-none focus:outline-none"
-            aria-label="Insert New Column"
-            disabled={componentsProps?.insertActionProps?.disabled}
-          >
-            <PlusIcon className="h-4 w-4" sx={{ color: 'text.disabled' }} />
-          </Button>
-        </Box>
-      )}
     </div>
   );
 }

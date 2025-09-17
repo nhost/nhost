@@ -35,14 +35,6 @@ import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-const CreateColumnForm = dynamic(
-  () =>
-    import(
-      '@/features/orgs/projects/database/dataGrid/components/CreateColumnForm/CreateColumnForm'
-    ),
-  { ssr: false, loading: () => <FormActivityIndicator /> },
-);
-
 const EditColumnForm = dynamic(
   () =>
     import(
@@ -316,13 +308,6 @@ export default function DataBrowserGrid({
     });
   }
 
-  async function handleInsertColumnClick() {
-    openDrawer({
-      title: 'Insert a New Column',
-      component: <CreateColumnForm onSubmit={refetch} />,
-    });
-  }
-
   async function handleEditColumnClick(
     column: DataBrowserGridColumn<NormalizedQueryDataRow>,
   ) {
@@ -429,7 +414,6 @@ export default function DataBrowserGrid({
       sortBy={sortBy}
       className="pb-17 sm:pb-0"
       onInsertRow={handleInsertRowClick}
-      onInsertColumn={isSchemaEditable ? handleInsertColumnClick : undefined}
       onEditColumn={isSchemaEditable ? handleEditColumnClick : undefined}
       onRemoveColumn={isSchemaEditable ? handleColumnRemoveClick : undefined}
       options={{
@@ -443,14 +427,10 @@ export default function DataBrowserGrid({
         componentsProps: {
           editActionProps: { disabled: isGitHubConnected },
           deleteActionProps: { disabled: isGitHubConnected },
-          insertActionProps: { disabled: isGitHubConnected },
         },
       }}
       controls={
         <DataBrowserGridControls
-          onInsertColumnClick={
-            isSchemaEditable ? handleInsertColumnClick : undefined
-          }
           onInsertRowClick={handleInsertRowClick}
           paginationProps={{
             currentPage: Math.max(currentPage, 1),
