@@ -168,7 +168,6 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
-  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
@@ -587,105 +586,114 @@ export default function Todos() {
     );
   };
 
+  const renderHeader = () => (
+    <>
+      <View style={commonStyles.pageHeader}>
+        <Text style={commonStyles.pageTitle}>My Todos</Text>
+        {!showAddForm && (
+          <TouchableOpacity
+            style={commonStyles.addButton}
+            onPress={() => setShowAddForm(true)}
+          >
+            <Text style={commonStyles.addButtonText}>+</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
+      {error && (
+        <View style={[commonStyles.errorContainer, { marginHorizontal: 16 }]}>
+          <Text style={commonStyles.errorText}>Error: {error}</Text>
+        </View>
+      )}
+
+      {showAddForm && (
+        <View style={[commonStyles.card, { marginHorizontal: 16 }]}>
+          <Text style={commonStyles.cardTitle}>Add New Todo</Text>
+          <View style={commonStyles.formFields}>
+            <View style={commonStyles.fieldGroup}>
+              <Text style={commonStyles.inputLabel}>Title *</Text>
+              <TextInput
+                style={commonStyles.input}
+                value={newTodoTitle}
+                onChangeText={setNewTodoTitle}
+                placeholder="What needs to be done?"
+              />
+            </View>
+            <View style={commonStyles.fieldGroup}>
+              <Text style={commonStyles.inputLabel}>Details</Text>
+              <TextInput
+                style={[commonStyles.input, commonStyles.textArea]}
+                value={newTodoDetails}
+                onChangeText={setNewTodoDetails}
+                placeholder="Add some details (optional)..."
+                multiline
+                numberOfLines={3}
+              />
+            </View>
+            <View style={commonStyles.buttonGroup}>
+              <TouchableOpacity
+                style={[commonStyles.button, commonStyles.primaryButton]}
+                onPress={addTodo}
+                disabled={addingTodo || !newTodoTitle.trim()}
+              >
+                <Text style={commonStyles.buttonText}>
+                  {addingTodo ? "Adding..." : "Add Todo"}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[commonStyles.button, commonStyles.secondaryButton]}
+                onPress={() => {
+                  setShowAddForm(false);
+                  setNewTodoTitle("");
+                  setNewTodoDetails("");
+                }}
+              >
+                <Text style={[commonStyles.buttonText, commonStyles.secondaryButtonText]}>
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      )}
+    </>
+  );
+
+  const renderEmptyState = () => (
+    <View style={commonStyles.emptyState}>
+      <Text style={commonStyles.emptyStateTitle}>No todos yet</Text>
+      <Text style={commonStyles.emptyStateText}>
+        Create your first todo to get started!
+      </Text>
+    </View>
+  );
+
+  if (loading) {
+    return (
+      <ProtectedScreen>
+        <Stack.Screen options={{ title: "My Todos" }} />
+        <View style={commonStyles.loadingContainer}>
+          <ActivityIndicator size="large" color="#6366f1" />
+          <Text style={commonStyles.loadingText}>Loading todos...</Text>
+        </View>
+      </ProtectedScreen>
+    );
+  }
+
   return (
     <ProtectedScreen>
       <Stack.Screen options={{ title: "My Todos" }} />
-      <ScrollView style={commonStyles.container}>
-        <View style={commonStyles.pageHeader}>
-          <Text style={commonStyles.pageTitle}>My Todos</Text>
-          {!showAddForm && (
-            <TouchableOpacity
-              style={commonStyles.addButton}
-              onPress={() => setShowAddForm(true)}
-            >
-              <Text style={commonStyles.addButtonText}>+</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-
-        {error && (
-          <View style={commonStyles.errorContainer}>
-            <Text style={commonStyles.errorText}>Error: {error}</Text>
-          </View>
-        )}
-
-        {showAddForm && (
-          <View style={commonStyles.card}>
-            <Text style={commonStyles.cardTitle}>Add New Todo</Text>
-            <View style={commonStyles.formFields}>
-              <View style={commonStyles.fieldGroup}>
-                <Text style={commonStyles.inputLabel}>Title *</Text>
-                <TextInput
-                  style={commonStyles.input}
-                  value={newTodoTitle}
-                  onChangeText={setNewTodoTitle}
-                  placeholder="What needs to be done?"
-                />
-              </View>
-              <View style={commonStyles.fieldGroup}>
-                <Text style={commonStyles.inputLabel}>Details</Text>
-                <TextInput
-                  style={[commonStyles.input, commonStyles.textArea]}
-                  value={newTodoDetails}
-                  onChangeText={setNewTodoDetails}
-                  placeholder="Add some details (optional)..."
-                  multiline
-                  numberOfLines={3}
-                />
-              </View>
-              <View style={commonStyles.buttonGroup}>
-                <TouchableOpacity
-                  style={[commonStyles.button, commonStyles.primaryButton]}
-                  onPress={addTodo}
-                  disabled={addingTodo || !newTodoTitle.trim()}
-                >
-                  <Text style={commonStyles.buttonText}>
-                    {addingTodo ? "Adding..." : "Add Todo"}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[commonStyles.button, commonStyles.secondaryButton]}
-                  onPress={() => {
-                    setShowAddForm(false);
-                    setNewTodoTitle("");
-                    setNewTodoDetails("");
-                  }}
-                >
-                  <Text style={[commonStyles.buttonText, commonStyles.secondaryButtonText]}>
-                    Cancel
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        )}
-
-        {!showAddForm && (
-          <View style={commonStyles.contentSection}>
-            {loading ? (
-              <View style={commonStyles.loadingContainer}>
-                <ActivityIndicator size="large" color="#6366f1" />
-                <Text style={commonStyles.loadingText}>Loading todos...</Text>
-              </View>
-            ) : todos.length === 0 ? (
-              <View style={commonStyles.emptyState}>
-                <Text style={commonStyles.emptyStateTitle}>No todos yet</Text>
-                <Text style={commonStyles.emptyStateText}>
-                  Create your first todo to get started!
-                </Text>
-              </View>
-            ) : (
-              <FlatList
-                data={todos}
-                renderItem={renderTodoItem}
-                keyExtractor={(item) => item.id}
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={commonStyles.listContainer}
-              />
-            )}
-          </View>
-        )}
-      </ScrollView>
+      <View style={commonStyles.container}>
+        <FlatList
+          data={showAddForm ? [] : todos}
+          renderItem={renderTodoItem}
+          keyExtractor={(item) => item.id}
+          ListHeaderComponent={renderHeader}
+          ListEmptyComponent={!showAddForm ? renderEmptyState : null}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={commonStyles.listContainer}
+        />
+      </View>
     </ProtectedScreen>
   );
 }
