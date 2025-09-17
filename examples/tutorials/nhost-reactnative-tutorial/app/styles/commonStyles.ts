@@ -31,6 +31,7 @@ export const commonStyles = StyleSheet.create({
     borderRadius: borderRadius.lg,
     padding: spacing.lg,
     marginBottom: spacing.xl,
+    width: '100%',
     ...shadows.medium,
   },
 
@@ -238,13 +239,6 @@ export const commonStyles = StyleSheet.create({
     padding: spacing.md,
     borderRadius: borderRadius.sm,
     marginTop: spacing.sm,
-  },
-
-  sessionLabel: {
-    fontSize: typography.sizes.sm,
-    fontWeight: typography.weights.medium,
-    color: colors.text,
-    marginBottom: 2,
   },
 
   sessionValue: {

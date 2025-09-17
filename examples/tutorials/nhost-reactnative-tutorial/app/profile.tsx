@@ -92,20 +92,10 @@ export default function Profile() {
         <View style={commonStyles.card}>
           <Text style={commonStyles.cardTitle}>Session Information</Text>
           <View style={commonStyles.sessionInfo}>
-            <Text style={commonStyles.sessionLabel}>Refresh Token ID:</Text>
             <Text
               style={commonStyles.sessionValue}
-              numberOfLines={1}
-              ellipsizeMode="middle"
             >
-              {session?.refreshTokenId || "None"}
-            </Text>
-
-            <Text style={commonStyles.sessionLabel}>Access Token Expires In:</Text>
-            <Text style={commonStyles.sessionValue}>
-              {session?.accessTokenExpiresIn
-                ? `${session.accessTokenExpiresIn}s`
-                : "N/A"}
+              {JSON.stringify(session, null, 2)}
             </Text>
           </View>
         </View>
