@@ -1068,6 +1068,119 @@ export const homeStyles = StyleSheet.create({
     lineHeight: typography.sizes.md * typography.lineHeights.normal,
   },
 });
+
+// File upload specific styles
+export const fileUploadStyles = StyleSheet.create({
+  fileUpload: {
+    borderWidth: 2,
+    borderColor: colors.border,
+    borderStyle: 'dashed',
+    borderRadius: borderRadius.lg,
+    padding: spacing.xl,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.background,
+    marginBottom: spacing.lg,
+  },
+
+  uploadIcon: {
+    marginBottom: spacing.md,
+  },
+
+  uploadIconText: {
+    fontSize: typography.sizes.xxxl,
+  },
+
+  uploadText: {
+    fontSize: typography.sizes.md,
+    color: colors.textLight,
+    textAlign: 'center',
+  },
+
+  fileName: {
+    marginTop: spacing.sm,
+    color: colors.primary,
+    fontSize: typography.sizes.sm,
+    textAlign: 'center',
+  },
+
+  buttonDisabled: {
+    backgroundColor: colors.textPlaceholder,
+  },
+
+  emptyState: {
+    alignItems: 'center',
+    padding: spacing.xl,
+  },
+
+  emptyIcon: {
+    fontSize: typography.sizes.xxxl,
+    marginBottom: spacing.md,
+  },
+
+  emptyTitle: {
+    fontSize: typography.sizes.lg,
+    fontWeight: typography.weights.semibold,
+    color: colors.text,
+    marginBottom: spacing.xs,
+  },
+
+  emptyDescription: {
+    fontSize: typography.sizes.md,
+    color: colors.textLight,
+    textAlign: 'center',
+  },
+
+  fileList: {
+    maxHeight: 300,
+  },
+
+  fileItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderLight,
+  },
+
+  fileInfo: {
+    flex: 1,
+    paddingRight: spacing.md,
+  },
+
+  fileNameText: {
+    fontSize: typography.sizes.md,
+    fontWeight: typography.weights.medium,
+    color: colors.text,
+    marginBottom: spacing.xs,
+  },
+
+  fileDetails: {
+    fontSize: typography.sizes.sm,
+    color: colors.textLight,
+  },
+
+  fileActions: {
+    flexDirection: 'row',
+  },
+
+  actionButton: {
+    padding: spacing.sm,
+    marginHorizontal: spacing.xs,
+    borderRadius: borderRadius.round,
+    backgroundColor: colors.borderLight,
+  },
+
+  deleteButton: {
+    backgroundColor: colors.errorLight,
+  },
+
+  actionText: {
+    fontSize: typography.sizes.md,
+  },
+});
 ```
 
 </Tab>
