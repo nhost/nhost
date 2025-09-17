@@ -77,7 +77,7 @@ export default function CreateRemoteSchemaForm({
         if (header.value) {
           return {
             name: header.name,
-            value_from_env: header.value_from_env,
+            value: header.value,
           };
         }
         return null;

@@ -137,6 +137,11 @@ const projectSettingsPages = [
     slug: 'roles-and-permissions',
     route: 'roles-and-permissions',
   },
+  {
+    name: 'Events',
+    slug: 'events',
+    route: 'events',
+  },
   { name: 'SMTP', slug: 'smtp', route: 'smtp' },
   { name: 'Git', slug: 'git', route: 'git' },
   {
