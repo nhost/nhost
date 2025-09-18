@@ -1321,19 +1321,17 @@ export default function Index() {
 
       <View style={homeStyles.welcomeCard}>
         {isAuthenticated ? (
-          <>
-            <View style={{ gap: 15, width: "100%" }}>
-              <Text style={homeStyles.welcomeText}>
-                Hello, {user?.displayName || user?.email}!
-              </Text>
-              <TouchableOpacity
-                style={[commonStyles.button, commonStyles.fullWidth]}
-                onPress={() => router.push("/profile")}
-              >
-                <Text style={commonStyles.buttonText}>Go to Profile</Text>
-              </TouchableOpacity>
-            </View>
-          </>
+          <View style={{ gap: 15, width: "100%" }}>
+            <Text style={homeStyles.welcomeText}>
+              Hello, {user?.displayName || user?.email}!
+            </Text>
+            <TouchableOpacity
+              style={[commonStyles.button, commonStyles.fullWidth]}
+              onPress={() => router.push("/profile")}
+            >
+              <Text style={commonStyles.buttonText}>Go to Profile</Text>
+            </TouchableOpacity>
+          </View>
         ) : (
           <Text style={homeStyles.authMessage}>You are not signed in.</Text>
         )}

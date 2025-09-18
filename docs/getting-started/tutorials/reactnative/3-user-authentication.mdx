@@ -565,9 +565,7 @@ Without this configuration, you'll receive a `redirectTo not allowed` error when
 
 Update the home screen to include navigation to authentication screens.
 
-Update the home screen:
-
-```tsx app/index.tsx lines highlight={33-47}
+```tsx app/index.tsx lines highlight={32-46}
 import { useRouter } from "expo-router";
 import { Text, TouchableOpacity, View } from "react-native";
 import { useAuth } from "./lib/nhost/AuthProvider";
@@ -583,19 +581,17 @@ export default function Index() {
 
       <View style={homeStyles.welcomeCard}>
         {isAuthenticated ? (
-          <>
-            <View style={{ gap: 15, width: "100%" }}>
-              <Text style={homeStyles.welcomeText}>
-                Hello, {user?.displayName || user?.email}!
-              </Text>
-              <TouchableOpacity
-                style={[commonStyles.button, commonStyles.fullWidth]}
-                onPress={() => router.push("/profile")}
-              >
-                <Text style={commonStyles.buttonText}>Go to Profile</Text>
-              </TouchableOpacity>
-            </View>
-          </>
+          <View style={{ gap: 15, width: "100%" }}>
+            <Text style={homeStyles.welcomeText}>
+              Hello, {user?.displayName || user?.email}!
+            </Text>
+            <TouchableOpacity
+              style={[commonStyles.button, commonStyles.fullWidth]}
+              onPress={() => router.push("/profile")}
+            >
+              <Text style={commonStyles.buttonText}>Go to Profile</Text>
+            </TouchableOpacity>
+          </View>
         ) : (
           <>
             <Text style={homeStyles.authMessage}>You are not signed in.</Text>
@@ -609,7 +605,11 @@ export default function Index() {
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[commonStyles.button, commonStyles.buttonSecondary, commonStyles.fullWidth]}
+                style={[
+                  commonStyles.button,
+                  commonStyles.buttonSecondary,
+                  commonStyles.fullWidth,
+                ]}
                 onPress={() => router.push("/signup")}
               >
                 <Text style={commonStyles.buttonText}>Sign Up</Text>
