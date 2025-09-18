@@ -53,6 +53,11 @@
         nixopsf = import ./nixops/project.nix {
           inherit self pkgs nix-filter nixops-lib;
         };
+
+        tutorialsf = import ./examples/tutorials/project.nix {
+          inherit self pkgs nix-filter nixops-lib nix2containerPkgs;
+        };
+
       in
       {
         #nixops
@@ -68,6 +73,7 @@
           mintlify-openapi = mintlify-openapif.check;
           nhost-js = nhost-jsf.check;
           nixops = nixopsf.check;
+          tutorials = tutorialsf.check;
         };
 
         devShells = flake-utils.lib.flattenTree {
@@ -116,6 +122,7 @@
           mintlify-openapi = mintlify-openapif.devShell;
           nhost-js = nhost-jsf.devShell;
           nixops = nixopsf.devShell;
+          tutorials = tutorialsf.devShell;
         };
 
         packages = flake-utils.lib.flattenTree {
@@ -127,6 +134,7 @@
           mintlify-openapi = mintlify-openapif.package;
           nhost-js = nhost-jsf.package;
           nixops = nixopsf.package;
+          tutorials = tutorialsf.package;
         };
       }
     );

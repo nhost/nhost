@@ -14,6 +14,7 @@ import Home from "./pages/Home";
 import Profile from "./pages/Profile";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
+import Todos from "./pages/Todos";
 import Upload from "./pages/Upload";
 import Verify from "./pages/Verify";
 
@@ -59,6 +60,7 @@ const router = createBrowserRouter(
       <Route path="verify" element={<Verify />} />
       <Route element={<ProtectedRoute />}>
         <Route path="profile" element={<Profile />} />
+        <Route path="todos" element={<Todos />} />
         <Route path="upload" element={<Upload />} />
       </Route>
       <Route path="*" element={<Navigate to="/" />} />

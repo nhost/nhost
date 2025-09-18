@@ -1,7 +1,7 @@
 [global]
 
 [hasura]
-version = 'v2.46.0-ce'
+version = 'v2.48.5-ce'
 adminSecret = '{{ secrets.HASURA_GRAPHQL_ADMIN_SECRET }}'
 webhookSecret = '{{ secrets.NHOST_WEBHOOK_SECRET }}'
 
@@ -28,7 +28,7 @@ httpPoolSize = 100
 
 [functions]
 [functions.node]
-version = 20
+version = 22
 
 [auth]
 version = '0.41.1'
@@ -64,7 +64,7 @@ rating = 'g'
 
 [auth.session]
 [auth.session.accessToken]
-expiresIn = 65
+expiresIn = 900
 
 [auth.session.refreshToken]
 expiresIn = 2592000
@@ -82,7 +82,7 @@ enabled = false
 
 [auth.method.emailPassword]
 hibpEnabled = false
-emailVerificationRequired = false
+emailVerificationRequired = true
 passwordMinLength = 9
 
 [auth.method.smsPasswordless]

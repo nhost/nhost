@@ -25,6 +25,9 @@ export default function Navigation(): JSX.Element {
                 >
                   Profile
                 </Link>
+                <Link to="/todos" className={`nav-link ${isActive("/todos")}`}>
+                  Todos
+                </Link>
                 <Link
                   to="/upload"
                   className={`nav-link ${isActive("/upload")}`}

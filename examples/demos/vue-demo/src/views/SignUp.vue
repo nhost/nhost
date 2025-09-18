@@ -2,7 +2,30 @@
   <div class="flex flex-col items-center justify-center">
     <h1 class="text-3xl mb-6 gradient-text">Nhost SDK Demo</h1>
 
-    <div class="glass-card w-full p-8 mb-6">
+    <div v-if="success" class="glass-card w-full p-8 mb-6">
+      <h2 class="text-2xl mb-6">Check Your Email</h2>
+
+      <div class="text-center py-4">
+        <div class="mb-4 p-4 bg-green-100 text-green-700 rounded-md">
+          <p class="mb-2">
+            We've sent a verification link to <strong>{{ email }}</strong>
+          </p>
+          <p>
+            Please check your email and click the verification link to activate your account.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          @click="router.push('/signin')"
+          class="btn btn-primary"
+        >
+          Back to Sign In
+        </button>
+      </div>
+    </div>
+
+    <div v-else class="glass-card w-full p-8 mb-6">
       <h2 class="text-2xl mb-6">Sign Up</h2>
 
       <TabForm>
@@ -109,6 +132,7 @@ const password = ref<string>("");
 const displayName = ref<string>("");
 const isLoading = ref<boolean>(false);
 const error = ref<string | null>(null);
+const success = ref<boolean>(false);
 
 // If already authenticated, redirect to profile
 onMounted(() => {
@@ -127,15 +151,16 @@ const handleSubmit = async (): Promise<void> => {
       password: password.value,
       options: {
         displayName: displayName.value,
+        redirectTo: `${window.location.origin}/verify`,
       },
     });
 
-    if (response.body) {
+    if (response.body?.session) {
       // Successfully signed up and automatically signed in
       router.push("/profile");
     } else {
       // Verification email sent
-      router.push("/verify");
+      success.value = true;
     }
   } catch (err) {
     const errorObj = err as FetchError<ErrorResponse>;

@@ -25,12 +25,17 @@ export async function signUp(formData: FormData) {
     // Get the server Nhost client
     const nhost = await createNhostClient();
 
+    // Get origin for redirect URL
+    const origin =
+      process.env["NEXT_PUBLIC_APP_URL"] || "http://localhost:3000";
+
     // Sign up with email and password
     const response = await nhost.auth.signUpEmailPassword({
       email,
       password,
       options: {
         displayName,
+        redirectTo: `${origin}/verify`,
       },
     });
 
@@ -41,6 +46,13 @@ export async function signUp(formData: FormData) {
 
       // Return redirect to profile page
       return { redirect: "/profile" };
+    }
+
+    // If no session but no error, email verification was sent
+    if (response.body) {
+      return {
+        redirect: `/signup?verify=success&email=${encodeURIComponent(email)}`,
+      };
     }
 
     // If we got here, something went wrong

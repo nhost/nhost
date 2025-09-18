@@ -41,14 +41,59 @@
             ]
           },
           {
-            "group": "Tutorials",
-            "icon": "book",
+            "group": "Tutorial: ToDo App (React)",
+            "icon": "react",
             "pages": [
-              "/getting-started/tutorials/react",
-              "/getting-started/tutorials/nextjs",
-              "/getting-started/tutorials/vue",
-              "/getting-started/tutorials/sveltekit",
-              "/getting-started/tutorials/reactnative"
+              "/getting-started/tutorials/react/1-introduction",
+              "/getting-started/tutorials/react/2-protected-routes",
+              "/getting-started/tutorials/react/3-user-authentication",
+              "/getting-started/tutorials/react/4-graphql-operations",
+              "/getting-started/tutorials/react/5-file-uploads"
+            ]
+          },
+          {
+            "group": "Tutorial: ToDo App (Next.js)",
+            "icon": "triangle",
+            "pages": [
+              "/getting-started/tutorials/nextjs/1-introduction",
+              "/getting-started/tutorials/nextjs/2-protected-routes",
+              "/getting-started/tutorials/nextjs/3-user-authentication",
+              "/getting-started/tutorials/nextjs/4-graphql-operations",
+              "/getting-started/tutorials/nextjs/5-file-uploads"
+            ]
+          },
+          {
+            "group": "Tutorial: ToDo App (Vue)",
+            "icon": "vuejs",
+            "pages": [
+              "/getting-started/tutorials/vue/1-introduction",
+              "/getting-started/tutorials/vue/2-protected-routes",
+              "/getting-started/tutorials/vue/3-user-authentication",
+              "/getting-started/tutorials/vue/4-graphql-operations",
+              "/getting-started/tutorials/vue/5-file-uploads"
+            ]
+          },
+          {
+            "group": "Tutorial: ToDo App (Svelte)",
+            "icon": "s",
+            "pages": [
+              "/getting-started/tutorials/svelte/1-introduction",
+              "/getting-started/tutorials/svelte/2-protected-routes",
+              "/getting-started/tutorials/svelte/3-user-authentication",
+              "/getting-started/tutorials/svelte/4-graphql-operations",
+              "/getting-started/tutorials/svelte/5-file-uploads"
+            ]
+          },
+          {
+            "group": "Tutorial: ToDo App (React Native)",
+            "icon": "mobile-notch",
+            "pages": [
+              "/getting-started/tutorials/reactnative/1-introduction",
+              "/getting-started/tutorials/reactnative/2-protected-routes",
+              "/getting-started/tutorials/reactnative/3-user-authentication",
+              "/getting-started/tutorials/reactnative/4-graphql-operations",
+              "/getting-started/tutorials/reactnative/5-file-uploads",
+              "/getting-started/tutorials/reactnative/6-sign-in-with-apple"
             ]
           }
         ]
