@@ -8,10 +8,13 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "run-p type-check \"build-only {@}\" --",
-    "preview": "vite preview",
-    "build-only": "vite build",
-    "type-check": "vue-tsc --build"
+    "build": "vue-tsc && vite build",
+    "generate": "echo 'Nothing to do'",
+    "test": "pnpm test:typecheck && pnpm test:lint",
+    "test:typecheck": "vue-tsc --noEmit",
+    "test:lint": "biome check",
+    "format": "biome format --write",
+    "preview": "vite preview"
   },
   "dependencies": {
     "@nhost/nhost-js": "workspace:^",

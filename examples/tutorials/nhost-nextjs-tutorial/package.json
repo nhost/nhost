@@ -4,9 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
+    "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "generate": "echo 'Nothing to do'",
+    "test": "pnpm test:typecheck && pnpm test:lint",
+    "test:typecheck": "tsc --noEmit",
+    "test:lint": "biome check",
+    "format": "biome format --write"
   },
   "dependencies": {
     "@nhost/nhost-js": "workspace:^",

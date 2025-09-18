@@ -4,12 +4,15 @@
   "version": "1.0.0",
   "scripts": {
     "start": "expo start",
-    "build": "pnpm expo export -p ios -p android",
     "reset-project": "node ./scripts/reset-project.js",
+    "generate": "echo 'Nothing to do'",
+    "test": "pnpm test:typecheck && pnpm test:lint",
+    "test:typecheck": "tsc --noEmit",
+    "test:lint": "biome check",
+    "format": "biome format --write",
+    "build": "pnpm expo export -p ios -p android",
     "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web",
-    "lint": "expo lint"
+    "ios": "expo start --ios"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",
