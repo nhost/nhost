@@ -59,6 +59,11 @@ const projectSettingsPages = [
     slug: 'remote-schemas',
     route: 'remote-schemas',
   },
+  {
+    name: 'Events',
+    slug: 'events',
+    route: 'events',
+  },
   { name: 'SMTP', slug: 'smtp', route: 'smtp' },
   { name: 'Git', slug: 'git', route: 'git' },
   {
