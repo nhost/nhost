@@ -84,10 +84,6 @@ The required packages provide:
 - **expo-apple-authentication**: Native Apple Sign In functionality and Apple-styled sign-in buttons
 - **expo-crypto**: Cryptographic utilities needed for secure nonce generation and hashing
 
-<Note>
-This library only works on iOS devices and simulators running iOS 13+. It will gracefully handle being called on Android or older iOS versions.
-</Note>
-
 </Step>
 
 <Step>
@@ -155,8 +151,8 @@ Add the Sign in with Apple configuration to your `app.json` or `app.config.js`:
       "reactCompiler": true
     },
     "extra": {
-      "NHOST_REGION": "local",
-      "NHOST_SUBDOMAIN": "192-168-1-108"
+      "NHOST_REGION": <region>,
+      "NHOST_SUBDOMAIN": <subdomain>
     }
   }
 }
@@ -685,11 +681,4 @@ Native Apple Sign In button using expo-apple-authentication with proper iOS styl
 Comprehensive error handling for Apple Sign In failures, network issues, and user cancellations with appropriate user feedback.
 </Accordion>
 
-<Accordion title="Cross-Platform Safety" icon="shield-check">
-Graceful handling of platform differences - Apple Sign In only appears on iOS while maintaining functionality on other platforms.
-</Accordion>
-
-<Accordion title="User Data Integration" icon="user-circle">
-Proper handling of Apple Sign In user data including name and email, with fallbacks for privacy-conscious users who choose not to share information.
-</Accordion>
 </AccordionGroup>
