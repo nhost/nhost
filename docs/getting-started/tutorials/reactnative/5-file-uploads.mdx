@@ -203,6 +203,8 @@ export default function Files() {
   const [viewingFile, setViewingFile] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [deleteStatus, setDeleteStatus] = useState<DeleteStatus | null>(null);
+  const [isViewingInProgress, setIsViewingInProgress] =
+    useState<boolean>(false);
 
   const fetchFiles = useCallback(async () => {
     setIsFetching(true);
@@ -239,6 +241,11 @@ export default function Files() {
   }, [fetchFiles]);
 
   const pickDocument = async () => {
+    // Prevent DocumentPicker from opening if we're currently viewing a file
+    if (isViewingInProgress) {
+      return;
+    }
+
     try {
       const result = await DocumentPicker.getDocumentAsync({
         type: "*/*", // All file types
@@ -322,6 +329,7 @@ export default function Files() {
     mimeType: string,
   ) => {
     setViewingFile(fileId);
+    setIsViewingInProgress(true);
 
     try {
       // Fetch the file with authentication using the SDK
@@ -333,11 +341,11 @@ export default function Files() {
 
       // For iOS/Android, we need to save the file to the device first
       // Create a unique temp file path with a timestamp to prevent collisions
-      const fileExtension = fileName.includes(".") ? "" : ".file";
+      const timestamp = Date.now();
       const tempFileName = fileName.includes(".")
         ? fileName
-        : `${fileName}${fileExtension}`;
-      const tempFilePath = `${FileSystem.cacheDirectory}${Date.now()}_${tempFileName}`;
+        : `${fileName}.file`;
+      const tempFilePath = `${FileSystem.cacheDirectory}${timestamp}_${tempFileName}`;
 
       // Get the blob from the response
       const blob = response.body;
@@ -360,6 +368,19 @@ export default function Files() {
           dialogTitle: `View ${fileName}`,
           UTI: mimeType, // for iOS
         });
+
+        // Clean up the temp file after sharing
+        try {
+          await FileSystem.deleteAsync(tempFilePath, { idempotent: true });
+        } catch (cleanupErr) {
+          console.warn("Failed to clean up temp file:", cleanupErr);
+        }
+
+        // Add a delay before allowing new document picker actions
+        // This prevents iOS from triggering file selection dialogs
+        setTimeout(() => {
+          setIsViewingInProgress(false);
+        }, 1000);
       } else {
         throw new Error("Sharing is not available on this device");
       }
@@ -368,6 +389,7 @@ export default function Files() {
       setError(`Failed to view file: ${error.message}`);
       console.error("Error viewing file:", err);
       Alert.alert("Error", `Failed to view file: ${error.message}`);
+      setIsViewingInProgress(false);
     } finally {
       setViewingFile(null);
     }
@@ -598,15 +620,38 @@ export default function Files() {
 
 Update the home screen to include navigation to the new file upload screen.
 
-```tsx app/index.tsx lines highlight={26-31}
+```tsx app/index.tsx lines highlight={51-56}
 import { useRouter } from "expo-router";
-import { Text, TouchableOpacity, View } from "react-native";
+import { Alert, Text, TouchableOpacity, View } from "react-native";
 import { useAuth } from "./lib/nhost/AuthProvider";
 import { commonStyles, homeStyles } from "./styles/commonStyles";
 
 export default function Index() {
   const router = useRouter();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, session, nhost, user } = useAuth();
+
+  const handleSignOut = async () => {
+    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Sign Out",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            if (session) {
+              await nhost.auth.signOut({
+                refreshToken: session.refreshToken,
+              });
+            }
+            router.replace("/");
+          } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err);
+            Alert.alert("Error", `Failed to sign out: ${message}`);
+          }
+        },
+      },
+    ]);
+  };
 
   return (
     <View style={commonStyles.centerContent}>
@@ -618,23 +663,33 @@ export default function Index() {
             <Text style={homeStyles.welcomeText}>
               Hello, {user?.displayName || user?.email}!
             </Text>
+
             <TouchableOpacity
               style={[commonStyles.button, commonStyles.fullWidth]}
               onPress={() => router.push("/todos")}
             >
               <Text style={commonStyles.buttonText}>My Todos</Text>
             </TouchableOpacity>
+
             <TouchableOpacity
               style={[commonStyles.button, commonStyles.fullWidth]}
               onPress={() => router.push("/files")}
             >
               <Text style={commonStyles.buttonText}>My Files</Text>
             </TouchableOpacity>
+
             <TouchableOpacity
               style={[commonStyles.button, commonStyles.fullWidth]}
               onPress={() => router.push("/profile")}
             >
               <Text style={commonStyles.buttonText}>Go to Profile</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[commonStyles.button, { backgroundColor: "#ef4444" }]}
+              onPress={handleSignOut}
+            >
+              <Text style={commonStyles.buttonText}>Sign Out</Text>
             </TouchableOpacity>
           </View>
         ) : (

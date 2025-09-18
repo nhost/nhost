@@ -66,7 +66,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import AppleSignInButton from "./components/AppleSignInButton";
 import { useAuth } from "./lib/nhost/AuthProvider";
 import { commonStyles } from "./styles/commonStyles";
 import { colors } from "./styles/theme";
@@ -123,19 +122,6 @@ export default function SignIn() {
         <Text style={commonStyles.title}>Sign In</Text>
 
         <View style={commonStyles.card}>
-          {/* Apple Sign In Button */}
-          <AppleSignInButton
-            isLoading={isLoading}
-            setIsLoading={setIsLoading}
-          />
-
-          {/* Divider */}
-          <View style={commonStyles.dividerContainer}>
-            <View style={commonStyles.divider} />
-            <Text style={commonStyles.dividerText}>or</Text>
-            <View style={commonStyles.divider} />
-          </View>
-
           <View style={commonStyles.formField}>
             <Text style={commonStyles.labelText}>Email</Text>
             <TextInput
@@ -216,7 +202,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import AppleSignInButton from "./components/AppleSignInButton";
 import { useAuth } from "./lib/nhost/AuthProvider";
 import { commonStyles } from "./styles/commonStyles";
 import { colors } from "./styles/theme";
@@ -305,19 +290,6 @@ export default function SignUp() {
         <Text style={commonStyles.title}>Sign Up</Text>
 
         <View style={commonStyles.card}>
-          {/* Apple Sign In Button */}
-          <AppleSignInButton
-            isLoading={isLoading}
-            setIsLoading={setIsLoading}
-          />
-
-          {/* Divider */}
-          <View style={commonStyles.dividerContainer}>
-            <View style={commonStyles.divider} />
-            <Text style={commonStyles.dividerText}>or</Text>
-            <View style={commonStyles.divider} />
-          </View>
-
           <View style={commonStyles.formField}>
             <Text style={commonStyles.labelText}>Display Name</Text>
             <TextInput
@@ -563,17 +535,40 @@ Without this configuration, you'll receive a `redirectTo not allowed` error when
 
 ### Update Home Screen
 
-Update the home screen to include navigation to authentication screens.
+Update the home screen to include navigation to authentication screens and a button to sign out.
 
-```tsx app/index.tsx lines highlight={32-46}
+```tsx app/index.tsx lines highlight={2, 8-31, 61-78}
 import { useRouter } from "expo-router";
-import { Text, TouchableOpacity, View } from "react-native";
+import { Alert, Text, TouchableOpacity, View } from "react-native";
 import { useAuth } from "./lib/nhost/AuthProvider";
 import { commonStyles, homeStyles } from "./styles/commonStyles";
 
 export default function Index() {
   const router = useRouter();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, session, nhost, user } = useAuth();
+
+  const handleSignOut = async () => {
+    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Sign Out",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            if (session) {
+              await nhost.auth.signOut({
+                refreshToken: session.refreshToken,
+              });
+            }
+            router.replace("/");
+          } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err);
+            Alert.alert("Error", `Failed to sign out: ${message}`);
+          }
+        },
+      },
+    ]);
+  };
 
   return (
     <View style={commonStyles.centerContent}>
@@ -590,6 +585,13 @@ export default function Index() {
               onPress={() => router.push("/profile")}
             >
               <Text style={commonStyles.buttonText}>Go to Profile</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[commonStyles.button, { backgroundColor: "#ef4444" }]}
+              onPress={handleSignOut}
+            >
+              <Text style={commonStyles.buttonText}>Sign Out</Text>
             </TouchableOpacity>
           </View>
         ) : (

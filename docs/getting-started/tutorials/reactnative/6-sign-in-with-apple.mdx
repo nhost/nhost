@@ -109,13 +109,13 @@ Add the Sign in with Apple configuration to your `app.json` or `app.config.js`:
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "io.nhost.david-dev-test",
+      "bundleIdentifier": "io.example.nhost-reactnative-tutorial",
       "jsEngine": "jsc",
       "infoPlist": {
         "NSFaceIDUsageDescription": "This app uses Face ID for signing in",
         "CFBundleURLTypes": [
           {
-            "CFBundleURLSchemes": ["reactnativewebdemo"]
+            "CFBundleURLSchemes": ["nhost-reactnative-tutorial"]
           }
         ]
       }
@@ -302,9 +302,9 @@ const styles = StyleSheet.create({
 
 Now integrate the Apple Sign In button into your existing sign-in screen following the tutorial structure:
 
-```tsx app/signin.tsx lines highlight={16,70-78}
-import { useState, useEffect } from "react";
+```tsx app/signin.tsx lines highlight={13,70-81}
 import { Link, router } from "expo-router";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -315,10 +315,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import AppleSignInButton from "./components/AppleSignInButton";
 import { useAuth } from "./lib/nhost/AuthProvider";
 import { commonStyles } from "./styles/commonStyles";
 import { colors } from "./styles/theme";
-import AppleSignInButton from "./components/AppleSignInButton";
 
 export default function SignIn() {
   const { nhost, isAuthenticated } = useAuth();
@@ -373,7 +373,10 @@ export default function SignIn() {
 
         <View style={commonStyles.card}>
           {/* Apple Sign In Button */}
-          <AppleSignInButton isLoading={isLoading} setIsLoading={setIsLoading} />
+          <AppleSignInButton
+            isLoading={isLoading}
+            setIsLoading={setIsLoading}
+          />
 
           {/* Divider */}
           <View style={commonStyles.dividerContainer}>
@@ -448,10 +451,10 @@ export default function SignIn() {
 
 Also add Apple Sign In to your sign-up screen for consistency:
 
-```tsx app/signup.tsx lines highlight={17,101-109}
-import { useState, useEffect } from "react";
-import { Link, router } from "expo-router";
+```tsx app/signup.tsx lines highlight={14,103-114}
 import * as Linking from "expo-linking";
+import { Link, router } from "expo-router";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -462,10 +465,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import AppleSignInButton from "./components/AppleSignInButton";
 import { useAuth } from "./lib/nhost/AuthProvider";
 import { commonStyles } from "./styles/commonStyles";
 import { colors } from "./styles/theme";
-import AppleSignInButton from "./components/AppleSignInButton";
 
 export default function SignUp() {
   const { nhost, isAuthenticated } = useAuth();
@@ -521,10 +524,12 @@ export default function SignUp() {
         <Text style={commonStyles.title}>Check Your Email</Text>
         <View style={commonStyles.successContainer}>
           <Text style={commonStyles.successText}>
-            We've sent a verification link to <Text style={commonStyles.emailText}>{email}</Text>
+            We've sent a verification link to{" "}
+            <Text style={commonStyles.emailText}>{email}</Text>
           </Text>
           <Text style={[commonStyles.bodyText, commonStyles.textCenter]}>
-            Please check your email and click the verification link to activate your account.
+            Please check your email and click the verification link to activate
+            your account.
           </Text>
         </View>
         <TouchableOpacity
@@ -550,7 +555,10 @@ export default function SignUp() {
 
         <View style={commonStyles.card}>
           {/* Apple Sign In Button */}
-          <AppleSignInButton isLoading={isLoading} setIsLoading={setIsLoading} />
+          <AppleSignInButton
+            isLoading={isLoading}
+            setIsLoading={setIsLoading}
+          />
 
           {/* Divider */}
           <View style={commonStyles.dividerContainer}>
