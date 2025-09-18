@@ -1,6 +1,6 @@
+import { EventsEmptyState } from '@/features/orgs/projects/events/components/EventsEmptyState';
 import { useGetEventTriggers } from '@/features/orgs/projects/events/hooks/useGetEventTriggers';
 import { useRouter } from 'next/router';
-import { EventsEmptyState } from '../EventsEmptyState';
 
 export default function EventTriggerDetails() {
   const router = useRouter();
