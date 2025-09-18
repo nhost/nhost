@@ -9,30 +9,26 @@ export default function Profile() {
   const { user, session, nhost } = useAuth();
 
   const handleSignOut = async () => {
-    Alert.alert(
-      "Sign Out",
-      "Are you sure you want to sign out?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Sign Out",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              if (session) {
-                await nhost.auth.signOut({
-                  refreshToken: session.refreshToken,
-                });
-              }
-              router.replace("/");
-            } catch (err: unknown) {
-              const message = err instanceof Error ? err.message : String(err);
-              Alert.alert("Error", `Failed to sign out: ${message}`);
+    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Sign Out",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            if (session) {
+              await nhost.auth.signOut({
+                refreshToken: session.refreshToken,
+              });
             }
-          },
+            router.replace("/");
+          } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err);
+            Alert.alert("Error", `Failed to sign out: ${message}`);
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   return (
@@ -78,12 +74,18 @@ export default function Profile() {
             </Text>
           </View>
 
-          <View style={[profileStyles.profileItem, profileStyles.profileItemLast]}>
+          <View
+            style={[profileStyles.profileItem, profileStyles.profileItemLast]}
+          >
             <Text style={commonStyles.labelText}>Email Verified:</Text>
-            <Text style={[
-              commonStyles.valueText,
-              user?.emailVerified ? commonStyles.successText : commonStyles.errorText
-            ]}>
+            <Text
+              style={[
+                commonStyles.valueText,
+                user?.emailVerified
+                  ? commonStyles.successText
+                  : commonStyles.errorText,
+              ]}
+            >
               {user?.emailVerified ? "✓ Yes" : "✗ No"}
             </Text>
           </View>
@@ -92,9 +94,7 @@ export default function Profile() {
         <View style={commonStyles.card}>
           <Text style={commonStyles.cardTitle}>Session Information</Text>
           <View style={commonStyles.sessionInfo}>
-            <Text
-              style={commonStyles.sessionValue}
-            >
+            <Text style={commonStyles.sessionValue}>
               {JSON.stringify(session, null, 2)}
             </Text>
           </View>

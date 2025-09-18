@@ -91,4 +91,3 @@ export default class NhostAsyncStorage implements SessionStorageBackend {
     })();
   }
 }
-

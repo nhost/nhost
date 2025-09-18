@@ -1,11 +1,6 @@
-import { useEffect, useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
-import {
-  ActivityIndicator,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
 import { useAuth } from "./lib/nhost/AuthProvider";
 import { commonStyles } from "./styles/commonStyles";
 import { colors } from "./styles/theme";
@@ -120,23 +115,17 @@ export default function Verify() {
 
         {status === "error" && (
           <View style={commonStyles.alignCenter}>
-            <Text style={commonStyles.errorText}>
-              Verification failed
-            </Text>
+            <Text style={commonStyles.errorText}>Verification failed</Text>
             <Text style={[commonStyles.bodyText, commonStyles.marginBottom]}>
               {error}
             </Text>
 
             {Object.keys(urlParams).length > 0 && (
               <View style={commonStyles.debugContainer}>
-                <Text style={commonStyles.debugTitle}>
-                  URL Parameters:
-                </Text>
+                <Text style={commonStyles.debugTitle}>URL Parameters:</Text>
                 {Object.entries(urlParams).map(([key, value]) => (
                   <View key={key} style={commonStyles.debugItem}>
-                    <Text style={commonStyles.debugKey}>
-                      {key}:
-                    </Text>
+                    <Text style={commonStyles.debugKey}>{key}:</Text>
                     <Text style={commonStyles.debugValue}>{value}</Text>
                   </View>
                 ))}

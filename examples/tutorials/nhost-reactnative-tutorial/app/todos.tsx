@@ -1,4 +1,4 @@
-import { Stack, router } from "expo-router";
+import { router, Stack } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -57,7 +57,6 @@ export default function Todos() {
   const [expandedTodos, setExpandedTodos] = useState<Set<string>>(new Set());
   const [addingTodo, setAddingTodo] = useState(false);
   const [updatingTodos, setUpdatingTodos] = useState<Set<string>>(new Set());
-
 
   // Redirect to sign in if not authenticated
   useEffect(() => {
@@ -147,7 +146,10 @@ export default function Todos() {
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to add todo");
-      Alert.alert("Error", err instanceof Error ? err.message : "Failed to add todo");
+      Alert.alert(
+        "Error",
+        err instanceof Error ? err.message : "Failed to add todo",
+      );
     } finally {
       setAddingTodo(false);
     }
@@ -158,7 +160,7 @@ export default function Todos() {
     updates: Partial<Pick<Todo, "title" | "details" | "completed">>,
   ) => {
     try {
-      setUpdatingTodos(prev => new Set([...prev, id]));
+      setUpdatingTodos((prev) => new Set([...prev, id]));
       // Execute GraphQL mutation to update an existing todo by primary key
       // Hasura permissions ensure users can only update their own todos
       const response = await nhost.graphql.request<UpdateTodo>({
@@ -199,9 +201,12 @@ export default function Todos() {
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to update todo");
-      Alert.alert("Error", err instanceof Error ? err.message : "Failed to update todo");
+      Alert.alert(
+        "Error",
+        err instanceof Error ? err.message : "Failed to update todo",
+      );
     } finally {
-      setUpdatingTodos(prev => {
+      setUpdatingTodos((prev) => {
         const newSet = new Set(prev);
         newSet.delete(id);
         return newSet;
@@ -210,54 +215,55 @@ export default function Todos() {
   };
 
   const deleteTodo = async (id: string) => {
-    Alert.alert(
-      "Delete Todo",
-      "Are you sure you want to delete this todo?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              setUpdatingTodos(prev => new Set([...prev, id]));
-              // Execute GraphQL mutation to delete a todo by primary key
-              // Hasura permissions ensure users can only delete their own todos
-              const response = await nhost.graphql.request({
-                query: `
+    Alert.alert("Delete Todo", "Are you sure you want to delete this todo?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            setUpdatingTodos((prev) => new Set([...prev, id]));
+            // Execute GraphQL mutation to delete a todo by primary key
+            // Hasura permissions ensure users can only delete their own todos
+            const response = await nhost.graphql.request({
+              query: `
                   mutation DeleteTodo($id: uuid!) {
                     delete_todos_by_pk(id: $id) {
                       id
                     }
                   }
                 `,
-                variables: {
-                  id,
-                },
-              });
+              variables: {
+                id,
+              },
+            });
 
-              if (response.body.errors) {
-                throw new Error(
-                  response.body.errors[0]?.message || "Failed to delete todo",
-                );
-              }
-
-              setTodos(todos.filter((todo) => todo.id !== id));
-              setError(null);
-            } catch (err) {
-              setError(err instanceof Error ? err.message : "Failed to delete todo");
-              Alert.alert("Error", err instanceof Error ? err.message : "Failed to delete todo");
-            } finally {
-              setUpdatingTodos(prev => {
-                const newSet = new Set(prev);
-                newSet.delete(id);
-                return newSet;
-              });
+            if (response.body.errors) {
+              throw new Error(
+                response.body.errors[0]?.message || "Failed to delete todo",
+              );
             }
-          },
+
+            setTodos(todos.filter((todo) => todo.id !== id));
+            setError(null);
+          } catch (err) {
+            setError(
+              err instanceof Error ? err.message : "Failed to delete todo",
+            );
+            Alert.alert(
+              "Error",
+              err instanceof Error ? err.message : "Failed to delete todo",
+            );
+          } finally {
+            setUpdatingTodos((prev) => {
+              const newSet = new Set(prev);
+              newSet.delete(id);
+              return newSet;
+            });
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const toggleComplete = async (todo: Todo) => {
@@ -299,7 +305,12 @@ export default function Todos() {
     const isExpanded = expandedTodos.has(todo.id);
 
     return (
-      <View style={[commonStyles.todoCard, todo.completed && commonStyles.todoCompleted]}>
+      <View
+        style={[
+          commonStyles.todoCard,
+          todo.completed && commonStyles.todoCompleted,
+        ]}
+      >
         {editingTodo?.id === todo.id ? (
           <View style={commonStyles.todoEditForm}>
             <Text style={commonStyles.inputLabel}>Title</Text>
@@ -342,7 +353,12 @@ export default function Todos() {
                 style={[commonStyles.button, commonStyles.secondaryButton]}
                 onPress={() => setEditingTodo(null)}
               >
-                <Text style={[commonStyles.buttonText, commonStyles.secondaryButtonText]}>
+                <Text
+                  style={[
+                    commonStyles.buttonText,
+                    commonStyles.secondaryButtonText,
+                  ]}
+                >
                   Cancel
                 </Text>
               </TouchableOpacity>
@@ -366,7 +382,10 @@ export default function Todos() {
               </TouchableOpacity>
               <View style={commonStyles.todoActions}>
                 <TouchableOpacity
-                  style={[commonStyles.actionButton, commonStyles.completeButton]}
+                  style={[
+                    commonStyles.actionButton,
+                    commonStyles.completeButton,
+                  ]}
                   onPress={() => toggleComplete(todo)}
                   disabled={isUpdating}
                 >
@@ -410,7 +429,9 @@ export default function Todos() {
                   </Text>
                   {todo.completed && (
                     <View style={commonStyles.completionBadge}>
-                      <Text style={commonStyles.completionText}>✅ Completed</Text>
+                      <Text style={commonStyles.completionText}>
+                        ✅ Completed
+                      </Text>
                     </View>
                   )}
                 </View>
@@ -484,7 +505,12 @@ export default function Todos() {
                   setNewTodoDetails("");
                 }}
               >
-                <Text style={[commonStyles.buttonText, commonStyles.secondaryButtonText]}>
+                <Text
+                  style={[
+                    commonStyles.buttonText,
+                    commonStyles.secondaryButtonText,
+                  ]}
+                >
                   Cancel
                 </Text>
               </TouchableOpacity>

@@ -1,5 +1,5 @@
 import type { FetchError } from "@nhost/nhost-js/fetch";
-import type { FileMetadata, ErrorResponse } from "@nhost/nhost-js/storage";
+import type { ErrorResponse, FileMetadata } from "@nhost/nhost-js/storage";
 import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system";
 import { Stack } from "expo-router";
@@ -306,11 +306,16 @@ export default function Files() {
         <View style={commonStyles.card}>
           <Text style={commonStyles.cardTitle}>Upload a File</Text>
 
-          <TouchableOpacity style={fileUploadStyles.fileUpload} onPress={pickDocument}>
+          <TouchableOpacity
+            style={fileUploadStyles.fileUpload}
+            onPress={pickDocument}
+          >
             <View style={fileUploadStyles.uploadIcon}>
               <Text style={fileUploadStyles.uploadIconText}>⬆️</Text>
             </View>
-            <Text style={fileUploadStyles.uploadText}>Tap to select a file</Text>
+            <Text style={fileUploadStyles.uploadText}>
+              Tap to select a file
+            </Text>
             {selectedFile &&
               !selectedFile.canceled &&
               selectedFile.assets?.[0] && (
@@ -364,7 +369,9 @@ export default function Files() {
             >
               <Text
                 style={
-                  deleteStatus.isError ? commonStyles.errorText : commonStyles.successText
+                  deleteStatus.isError
+                    ? commonStyles.errorText
+                    : commonStyles.successText
                 }
               >
                 {deleteStatus.message}
@@ -392,7 +399,10 @@ export default function Files() {
               renderItem={({ item }) => (
                 <View style={fileUploadStyles.fileItem}>
                   <View style={fileUploadStyles.fileInfo}>
-                    <Text style={fileUploadStyles.fileNameText} numberOfLines={1}>
+                    <Text
+                      style={fileUploadStyles.fileNameText}
+                      numberOfLines={1}
+                    >
                       {item.name}
                     </Text>
                     <Text style={fileUploadStyles.fileDetails}>
@@ -418,7 +428,10 @@ export default function Files() {
                       )}
                     </TouchableOpacity>
                     <TouchableOpacity
-                      style={[fileUploadStyles.actionButton, fileUploadStyles.deleteButton]}
+                      style={[
+                        fileUploadStyles.actionButton,
+                        fileUploadStyles.deleteButton,
+                      ]}
                       onPress={() => handleDeleteFile(item.id || "unknown")}
                       disabled={deleting === item.id}
                     >

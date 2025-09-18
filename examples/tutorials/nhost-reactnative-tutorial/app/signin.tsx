@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
 import { Link, router } from "expo-router";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -10,10 +10,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import AppleSignInButton from "./components/AppleSignInButton";
 import { useAuth } from "./lib/nhost/AuthProvider";
 import { commonStyles } from "./styles/commonStyles";
 import { colors } from "./styles/theme";
-import AppleSignInButton from "./components/AppleSignInButton";
 
 export default function SignIn() {
   const { nhost, isAuthenticated } = useAuth();
@@ -68,7 +68,10 @@ export default function SignIn() {
 
         <View style={commonStyles.card}>
           {/* Apple Sign In Button */}
-          <AppleSignInButton isLoading={isLoading} setIsLoading={setIsLoading} />
+          <AppleSignInButton
+            isLoading={isLoading}
+            setIsLoading={setIsLoading}
+          />
 
           {/* Divider */}
           <View style={commonStyles.dividerContainer}>

@@ -5,36 +5,36 @@
 
 export const colors = {
   // Primary brand colors
-  primary: '#6366f1',
-  primaryHover: '#5855eb',
-  secondary: '#818cf8',
+  primary: "#6366f1",
+  primaryHover: "#5855eb",
+  secondary: "#818cf8",
 
   // Background colors
-  background: '#f5f5f5',
-  surface: '#ffffff',
-  overlay: 'rgba(0, 0, 0, 0.5)',
+  background: "#f5f5f5",
+  surface: "#ffffff",
+  overlay: "rgba(0, 0, 0, 0.5)",
 
   // Text colors
-  text: '#333333',
-  textLight: '#666666',
-  textDark: '#1a1a1a',
-  textPlaceholder: '#999999',
+  text: "#333333",
+  textLight: "#666666",
+  textDark: "#1a1a1a",
+  textPlaceholder: "#999999",
 
   // Status colors
-  success: '#10b981',
-  successLight: '#34d399',
-  error: '#ef4444',
-  errorLight: '#f87171',
-  warning: '#f59e0b',
-  info: '#3b82f6',
+  success: "#10b981",
+  successLight: "#34d399",
+  error: "#ef4444",
+  errorLight: "#f87171",
+  warning: "#f59e0b",
+  info: "#3b82f6",
 
   // Border and divider colors
-  border: '#e5e5e5',
-  borderLight: '#f0f0f0',
-  divider: '#e0e0e0',
+  border: "#e5e5e5",
+  borderLight: "#f0f0f0",
+  divider: "#e0e0e0",
 
   // Shadow color
-  shadow: '#000000',
+  shadow: "#000000",
 };
 
 export const spacing = {
@@ -69,10 +69,10 @@ export const typography = {
 
   // Font weights
   weights: {
-    normal: '400' as const,
-    medium: '500' as const,
-    semibold: '600' as const,
-    bold: '700' as const,
+    normal: "400" as const,
+    medium: "500" as const,
+    semibold: "600" as const,
+    bold: "700" as const,
   },
 
   // Line heights

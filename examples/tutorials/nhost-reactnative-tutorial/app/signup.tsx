@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
-import { Link, router } from "expo-router";
 import * as Linking from "expo-linking";
+import { Link, router } from "expo-router";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -11,10 +11,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import AppleSignInButton from "./components/AppleSignInButton";
 import { useAuth } from "./lib/nhost/AuthProvider";
 import { commonStyles } from "./styles/commonStyles";
 import { colors } from "./styles/theme";
-import AppleSignInButton from "./components/AppleSignInButton";
 
 export default function SignUp() {
   const { nhost, isAuthenticated } = useAuth();
@@ -70,10 +70,12 @@ export default function SignUp() {
         <Text style={commonStyles.title}>Check Your Email</Text>
         <View style={commonStyles.successContainer}>
           <Text style={commonStyles.successText}>
-            We've sent a verification link to <Text style={commonStyles.emailText}>{email}</Text>
+            We've sent a verification link to{" "}
+            <Text style={commonStyles.emailText}>{email}</Text>
           </Text>
           <Text style={[commonStyles.bodyText, commonStyles.textCenter]}>
-            Please check your email and click the verification link to activate your account.
+            Please check your email and click the verification link to activate
+            your account.
           </Text>
         </View>
         <TouchableOpacity
@@ -99,7 +101,10 @@ export default function SignUp() {
 
         <View style={commonStyles.card}>
           {/* Apple Sign In Button */}
-          <AppleSignInButton isLoading={isLoading} setIsLoading={setIsLoading} />
+          <AppleSignInButton
+            isLoading={isLoading}
+            setIsLoading={setIsLoading}
+          />
 
           {/* Divider */}
           <View style={commonStyles.dividerContainer}>

@@ -16,7 +16,7 @@ export default function RootLayout() {
             title: "Home",
             headerStyle: { backgroundColor: colors.primary },
             headerTintColor: colors.surface,
-            headerTitleStyle: { fontWeight: "bold" }
+            headerTitleStyle: { fontWeight: "bold" },
           }}
         />
         <Stack.Screen
@@ -25,7 +25,7 @@ export default function RootLayout() {
             title: "Profile",
             headerStyle: { backgroundColor: colors.primary },
             headerTintColor: colors.surface,
-            headerTitleStyle: { fontWeight: "bold" }
+            headerTitleStyle: { fontWeight: "bold" },
           }}
         />
       </Stack>

@@ -54,8 +54,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const nhost = useMemo(() => {
     // Get configuration values with type assertion
     const subdomain =
-      (Constants.expoConfig?.extra?.["NHOST_SUBDOMAIN"] as string) ||
-      "local";
+      (Constants.expoConfig?.extra?.["NHOST_SUBDOMAIN"] as string) || "local";
     const region =
       (Constants.expoConfig?.extra?.["NHOST_REGION"] as string) || "local";
 

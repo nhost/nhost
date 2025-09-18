@@ -150,99 +150,6 @@ Replace `<region>` and `<subdomain>` with the actual values from your Nhost proj
 Build a storage adapter that enables Nhost to persist sessions using React Native's AsyncStorage. This provides session persistence across app restarts and updates.
 
 ```tsx app/lib/nhost/AsyncStorage.tsx lines
-import {
-  DEFAULT_SESSION_KEY,
-  type Session,
-  type SessionStorageBackend,
-} from "@nhost/nhost-js/session";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
-/**
- * Custom storage implementation for React Native using AsyncStorage
- * to persist the Nhost session on the device.
- *
- * This implementation synchronously works with the SessionStorageBackend interface
- * while ensuring reliable persistence with AsyncStorage for Expo Go.
- */
-export default class NhostAsyncStorage implements SessionStorageBackend {
-  private key: string;
-  private cache: Session | null = null;
-
-  constructor(key: string = DEFAULT_SESSION_KEY) {
-    this.key = key;
-
-    // Immediately try to load from AsyncStorage
-    this.loadFromAsyncStorage();
-  }
-
-  /**
-   * Load the session from AsyncStorage synchronously if possible
-   */
-  private loadFromAsyncStorage(): void {
-    // Try to get cached data from AsyncStorage immediately
-    try {
-      AsyncStorage.getItem(this.key)
-        .then((value) => {
-          if (value) {
-            try {
-              this.cache = JSON.parse(value) as Session;
-            } catch (error) {
-              console.warn("Error parsing session from AsyncStorage:", error);
-              this.cache = null;
-            }
-          }
-        })
-        .catch((error) => {
-          console.warn("Error loading from AsyncStorage:", error);
-        });
-    } catch (error) {
-      console.warn("AsyncStorage access error:", error);
-    }
-  }
-
-  /**
-   * Gets the session from the in-memory cache
-   */
-  get(): Session | null {
-    return this.cache;
-  }
-
-  /**
-   * Sets the session in the in-memory cache and persists to AsyncStorage
-   * Ensures the data gets written by using an immediately invoked async function
-   */
-  set(value: Session): void {
-    // Update cache immediately
-    this.cache = value;
-
-    // Persist to AsyncStorage with better error handling
-    void (async () => {
-      try {
-        await AsyncStorage.setItem(this.key, JSON.stringify(value));
-      } catch (error) {
-        console.warn("Error saving session to AsyncStorage:", error);
-      }
-    })();
-  }
-
-  /**
-   * Removes the session from the in-memory cache and AsyncStorage
-   * Ensures the data gets removed by using an immediately invoked async function
-   */
-  remove(): void {
-    // Clear cache immediately
-    this.cache = null;
-
-    // Remove from AsyncStorage with better error handling
-    void (async () => {
-      try {
-        await AsyncStorage.removeItem(this.key);
-      } catch (error) {
-        console.warn("Error removing session from AsyncStorage:", error);
-      }
-    })();
-  }
-}
 ```
 
 </Step>
@@ -310,8 +217,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const nhost = useMemo(() => {
     // Get configuration values with type assertion
     const subdomain =
-      (Constants.expoConfig?.extra?.["NHOST_SUBDOMAIN"] as string) ||
-      "local";
+      (Constants.expoConfig?.extra?.["NHOST_SUBDOMAIN"] as string) || "local";
     const region =
       (Constants.expoConfig?.extra?.["NHOST_REGION"] as string) || "local";
 
@@ -427,36 +333,36 @@ Create the theme constants file:
 
 export const colors = {
   // Primary brand colors
-  primary: '#6366f1',
-  primaryHover: '#5855eb',
-  secondary: '#818cf8',
+  primary: "#6366f1",
+  primaryHover: "#5855eb",
+  secondary: "#818cf8",
 
   // Background colors
-  background: '#f5f5f5',
-  surface: '#ffffff',
-  overlay: 'rgba(0, 0, 0, 0.5)',
+  background: "#f5f5f5",
+  surface: "#ffffff",
+  overlay: "rgba(0, 0, 0, 0.5)",
 
   // Text colors
-  text: '#333333',
-  textLight: '#666666',
-  textDark: '#1a1a1a',
-  textPlaceholder: '#999999',
+  text: "#333333",
+  textLight: "#666666",
+  textDark: "#1a1a1a",
+  textPlaceholder: "#999999",
 
   // Status colors
-  success: '#10b981',
-  successLight: '#34d399',
-  error: '#ef4444',
-  errorLight: '#f87171',
-  warning: '#f59e0b',
-  info: '#3b82f6',
+  success: "#10b981",
+  successLight: "#34d399",
+  error: "#ef4444",
+  errorLight: "#f87171",
+  warning: "#f59e0b",
+  info: "#3b82f6",
 
   // Border and divider colors
-  border: '#e5e5e5',
-  borderLight: '#f0f0f0',
-  divider: '#e0e0e0',
+  border: "#e5e5e5",
+  borderLight: "#f0f0f0",
+  divider: "#e0e0e0",
 
   // Shadow color
-  shadow: '#000000',
+  shadow: "#000000",
 };
 
 export const spacing = {
@@ -491,10 +397,10 @@ export const typography = {
 
   // Font weights
   weights: {
-    normal: '400' as const,
-    medium: '500' as const,
-    semibold: '600' as const,
-    bold: '700' as const,
+    normal: "400" as const,
+    medium: "500" as const,
+    semibold: "600" as const,
+    bold: "700" as const,
   },
 
   // Line heights
@@ -537,8 +443,8 @@ export const shadows = {
 Create the common styles file:
 
 ```tsx app/styles/commonStyles.ts lines
-import { StyleSheet } from 'react-native';
-import { colors, spacing, borderRadius, typography, shadows } from './theme';
+import { StyleSheet } from "react-native";
+import { borderRadius, colors, shadows, spacing, typography } from "./theme";
 
 /**
  * Common styles used across multiple components.
@@ -559,8 +465,8 @@ export const commonStyles = StyleSheet.create({
 
   centerContent: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: spacing.xl,
   },
 
@@ -570,7 +476,7 @@ export const commonStyles = StyleSheet.create({
     borderRadius: borderRadius.lg,
     padding: spacing.lg,
     marginBottom: spacing.xl,
-    width: '100%',
+    width: "100%",
     ...shadows.medium,
   },
 
@@ -587,8 +493,8 @@ export const commonStyles = StyleSheet.create({
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.xl,
     borderRadius: borderRadius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     minHeight: 48,
   },
 
@@ -600,7 +506,7 @@ export const commonStyles = StyleSheet.create({
     color: colors.surface,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
-    textAlign: 'center',
+    textAlign: "center",
   },
 
   // Text styles
@@ -608,7 +514,7 @@ export const commonStyles = StyleSheet.create({
     fontSize: typography.sizes.xxl,
     fontWeight: typography.weights.bold,
     color: colors.text,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: spacing.xl,
     lineHeight: typography.sizes.xxl * typography.lineHeights.tight,
   },
@@ -652,8 +558,8 @@ export const commonStyles = StyleSheet.create({
   // Loading styles
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     backgroundColor: colors.background,
     padding: spacing.xl,
   },
@@ -662,7 +568,7 @@ export const commonStyles = StyleSheet.create({
     marginTop: spacing.md,
     color: colors.textLight,
     fontSize: typography.sizes.md,
-    textAlign: 'center',
+    textAlign: "center",
   },
 
   // Form styles
@@ -698,13 +604,13 @@ export const commonStyles = StyleSheet.create({
   // Link styles
   linkContainer: {
     marginTop: spacing.xl,
-    alignItems: 'center',
+    alignItems: "center",
   },
 
   linkText: {
     fontSize: typography.sizes.md,
     color: colors.textLight,
-    textAlign: 'center',
+    textAlign: "center",
   },
 
   link: {
@@ -748,7 +654,7 @@ export const commonStyles = StyleSheet.create({
   },
 
   debugItem: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginBottom: spacing.xs,
   },
 
@@ -757,13 +663,13 @@ export const commonStyles = StyleSheet.create({
     fontWeight: typography.weights.medium,
     color: colors.info,
     marginRight: spacing.sm,
-    fontFamily: 'monospace',
+    fontFamily: "monospace",
   },
 
   debugValue: {
     fontSize: typography.sizes.sm,
     color: colors.textLight,
-    fontFamily: 'monospace',
+    fontFamily: "monospace",
     flex: 1,
   },
 
@@ -784,25 +690,25 @@ export const commonStyles = StyleSheet.create({
     fontSize: typography.sizes.sm,
     color: colors.textLight,
     marginBottom: spacing.md,
-    fontFamily: 'monospace',
+    fontFamily: "monospace",
   },
 
   // Utility styles
   row: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
 
   spaceBetween: {
-    justifyContent: 'space-between',
+    justifyContent: "space-between",
   },
 
   alignCenter: {
-    alignItems: 'center',
+    alignItems: "center",
   },
 
   textCenter: {
-    textAlign: 'center',
+    textAlign: "center",
   },
 
   marginBottom: {
@@ -810,7 +716,7 @@ export const commonStyles = StyleSheet.create({
   },
 
   fullWidth: {
-    width: '100%',
+    width: "100%",
   },
 
   // Todo-specific styles
@@ -834,9 +740,9 @@ export const commonStyles = StyleSheet.create({
   },
 
   todoHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
 
   todoTitleContainer: {
@@ -852,13 +758,13 @@ export const commonStyles = StyleSheet.create({
   },
 
   todoTitleCompleted: {
-    textDecorationLine: 'line-through',
+    textDecorationLine: "line-through",
     color: colors.textLight,
   },
 
   todoActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
 
   actionButton: {
@@ -868,20 +774,20 @@ export const commonStyles = StyleSheet.create({
     borderRadius: borderRadius.sm,
     backgroundColor: colors.background,
     minWidth: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   completeButton: {
-    backgroundColor: colors.success + '20',
+    backgroundColor: `${colors.success}20`,
   },
 
   editButton: {
-    backgroundColor: colors.info + '20',
+    backgroundColor: `${colors.info}20`,
   },
 
   deleteButton: {
-    backgroundColor: colors.error + '20',
+    backgroundColor: `${colors.error}20`,
   },
 
   actionButtonText: {
@@ -903,7 +809,7 @@ export const commonStyles = StyleSheet.create({
   },
 
   todoDescriptionCompleted: {
-    textDecorationLine: 'line-through',
+    textDecorationLine: "line-through",
   },
 
   todoMeta: {
@@ -918,7 +824,7 @@ export const commonStyles = StyleSheet.create({
 
   completionBadge: {
     marginTop: spacing.xs,
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
   },
 
   completionText: {
@@ -929,9 +835,9 @@ export const commonStyles = StyleSheet.create({
 
   // Page layout styles
   pageHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
   },
@@ -948,8 +854,8 @@ export const commonStyles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     ...shadows.medium,
   },
 
@@ -973,12 +879,12 @@ export const commonStyles = StyleSheet.create({
 
   textArea: {
     minHeight: 80,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
   },
 
   buttonGroup: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginTop: spacing.lg,
     gap: spacing.md,
   },
@@ -1007,8 +913,8 @@ export const commonStyles = StyleSheet.create({
 
   emptyState: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.xxxl,
   },
@@ -1017,14 +923,14 @@ export const commonStyles = StyleSheet.create({
     fontSize: typography.sizes.lg,
     fontWeight: typography.weights.semibold,
     color: colors.text,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: spacing.sm,
   },
 
   emptyStateText: {
     fontSize: typography.sizes.md,
     color: colors.textLight,
-    textAlign: 'center',
+    textAlign: "center",
     lineHeight: typography.sizes.md * typography.lineHeights.normal,
   },
 
@@ -1033,8 +939,8 @@ export const commonStyles = StyleSheet.create({
   },
 
   dividerContainer: {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
     marginVertical: 15,
   },
 
@@ -1048,7 +954,7 @@ export const commonStyles = StyleSheet.create({
     marginHorizontal: 16,
     fontSize: 14,
     color: colors.textLight,
-    fontWeight: '500' as const,
+    fontWeight: "500" as const,
   },
 });
 
@@ -1067,26 +973,26 @@ export const profileStyles = StyleSheet.create({
 
 export const homeStyles = StyleSheet.create({
   welcomeCard: {
-    width: '100%',
+    width: "100%",
     maxWidth: 400,
     backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
     padding: spacing.xl,
-    alignItems: 'center',
+    alignItems: "center",
     ...shadows.medium,
   },
 
   welcomeText: {
     fontSize: typography.sizes.lg,
     marginBottom: spacing.xl,
-    textAlign: 'center',
+    textAlign: "center",
     color: colors.text,
     lineHeight: typography.sizes.lg * typography.lineHeights.normal,
   },
 
   authMessage: {
     fontSize: typography.sizes.md,
-    textAlign: 'center',
+    textAlign: "center",
     color: colors.textLight,
     lineHeight: typography.sizes.md * typography.lineHeights.normal,
   },
@@ -1097,11 +1003,11 @@ export const fileUploadStyles = StyleSheet.create({
   fileUpload: {
     borderWidth: 2,
     borderColor: colors.border,
-    borderStyle: 'dashed',
+    borderStyle: "dashed",
     borderRadius: borderRadius.lg,
     padding: spacing.xl,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     backgroundColor: colors.background,
     marginBottom: spacing.lg,
   },
@@ -1117,14 +1023,14 @@ export const fileUploadStyles = StyleSheet.create({
   uploadText: {
     fontSize: typography.sizes.md,
     color: colors.textLight,
-    textAlign: 'center',
+    textAlign: "center",
   },
 
   fileName: {
     marginTop: spacing.sm,
     color: colors.primary,
     fontSize: typography.sizes.sm,
-    textAlign: 'center',
+    textAlign: "center",
   },
 
   buttonDisabled: {
@@ -1132,7 +1038,7 @@ export const fileUploadStyles = StyleSheet.create({
   },
 
   emptyState: {
-    alignItems: 'center',
+    alignItems: "center",
     padding: spacing.xl,
   },
 
@@ -1151,7 +1057,7 @@ export const fileUploadStyles = StyleSheet.create({
   emptyDescription: {
     fontSize: typography.sizes.md,
     color: colors.textLight,
-    textAlign: 'center',
+    textAlign: "center",
   },
 
   fileList: {
@@ -1159,9 +1065,9 @@ export const fileUploadStyles = StyleSheet.create({
   },
 
   fileItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.sm,
     borderBottomWidth: 1,
@@ -1186,7 +1092,7 @@ export const fileUploadStyles = StyleSheet.create({
   },
 
   fileActions: {
-    flexDirection: 'row',
+    flexDirection: "row",
   },
 
   actionButton: {
@@ -1277,13 +1183,38 @@ export default function ProtectedScreen({
 Create a screen that displays user information. Note that the screen itself doesn't need any special authentication logic - the screen protection is handled entirely by wrapping it with the ProtectedScreen component from the previous step.
 
 ```tsx app/profile.tsx lines
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { useRouter } from "expo-router";
+import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import ProtectedScreen from "./components/ProtectedScreen";
 import { useAuth } from "./lib/nhost/AuthProvider";
 import { commonStyles, profileStyles } from "./styles/commonStyles";
 
 export default function Profile() {
-  const { user, session } = useAuth();
+  const router = useRouter();
+  const { user, session, nhost } = useAuth();
+
+  const handleSignOut = async () => {
+    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Sign Out",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            if (session) {
+              await nhost.auth.signOut({
+                refreshToken: session.refreshToken,
+              });
+            }
+            router.replace("/");
+          } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err);
+            Alert.alert("Error", `Failed to sign out: ${message}`);
+          }
+        },
+      },
+    ]);
+  };
 
   return (
     <ProtectedScreen>
@@ -1328,12 +1259,18 @@ export default function Profile() {
             </Text>
           </View>
 
-          <View style={[profileStyles.profileItem, profileStyles.profileItemLast]}>
+          <View
+            style={[profileStyles.profileItem, profileStyles.profileItemLast]}
+          >
             <Text style={commonStyles.labelText}>Email Verified:</Text>
-            <Text style={[
-              commonStyles.valueText,
-              user?.emailVerified ? commonStyles.successText : commonStyles.errorText
-            ]}>
+            <Text
+              style={[
+                commonStyles.valueText,
+                user?.emailVerified
+                  ? commonStyles.successText
+                  : commonStyles.errorText,
+              ]}
+            >
               {user?.emailVerified ? "✓ Yes" : "✗ No"}
             </Text>
           </View>
@@ -1342,13 +1279,18 @@ export default function Profile() {
         <View style={commonStyles.card}>
           <Text style={commonStyles.cardTitle}>Session Information</Text>
           <View style={commonStyles.sessionInfo}>
-            <Text
-              style={commonStyles.sessionValue}
-            >
+            <Text style={commonStyles.sessionValue}>
               {JSON.stringify(session, null, 2)}
             </Text>
           </View>
         </View>
+
+        <TouchableOpacity
+          style={[commonStyles.button, { backgroundColor: "#ef4444" }]}
+          onPress={handleSignOut}
+        >
+          <Text style={commonStyles.buttonText}>Sign Out</Text>
+        </TouchableOpacity>
       </ScrollView>
     </ProtectedScreen>
   );
@@ -1428,7 +1370,7 @@ export default function RootLayout() {
             title: "Home",
             headerStyle: { backgroundColor: colors.primary },
             headerTintColor: colors.surface,
-            headerTitleStyle: { fontWeight: "bold" }
+            headerTitleStyle: { fontWeight: "bold" },
           }}
         />
         <Stack.Screen
@@ -1437,7 +1379,7 @@ export default function RootLayout() {
             title: "Profile",
             headerStyle: { backgroundColor: colors.primary },
             headerTintColor: colors.surface,
-            headerTitleStyle: { fontWeight: "bold" }
+            headerTitleStyle: { fontWeight: "bold" },
           }}
         />
       </Stack>
@@ -1445,6 +1387,7 @@ export default function RootLayout() {
   );
 }
 ```
+
 </Step>
 
 <Step>

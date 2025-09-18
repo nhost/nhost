@@ -1,5 +1,5 @@
-import { StyleSheet } from 'react-native';
-import { colors, spacing, borderRadius, typography, shadows } from './theme';
+import { StyleSheet } from "react-native";
+import { borderRadius, colors, shadows, spacing, typography } from "./theme";
 
 /**
  * Common styles used across multiple components.
@@ -20,8 +20,8 @@ export const commonStyles = StyleSheet.create({
 
   centerContent: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: spacing.xl,
   },
 
@@ -31,7 +31,7 @@ export const commonStyles = StyleSheet.create({
     borderRadius: borderRadius.lg,
     padding: spacing.lg,
     marginBottom: spacing.xl,
-    width: '100%',
+    width: "100%",
     ...shadows.medium,
   },
 
@@ -48,8 +48,8 @@ export const commonStyles = StyleSheet.create({
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.xl,
     borderRadius: borderRadius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     minHeight: 48,
   },
 
@@ -61,7 +61,7 @@ export const commonStyles = StyleSheet.create({
     color: colors.surface,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
-    textAlign: 'center',
+    textAlign: "center",
   },
 
   // Text styles
@@ -69,7 +69,7 @@ export const commonStyles = StyleSheet.create({
     fontSize: typography.sizes.xxl,
     fontWeight: typography.weights.bold,
     color: colors.text,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: spacing.xl,
     lineHeight: typography.sizes.xxl * typography.lineHeights.tight,
   },
@@ -113,8 +113,8 @@ export const commonStyles = StyleSheet.create({
   // Loading styles
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     backgroundColor: colors.background,
     padding: spacing.xl,
   },
@@ -123,7 +123,7 @@ export const commonStyles = StyleSheet.create({
     marginTop: spacing.md,
     color: colors.textLight,
     fontSize: typography.sizes.md,
-    textAlign: 'center',
+    textAlign: "center",
   },
 
   // Form styles
@@ -159,13 +159,13 @@ export const commonStyles = StyleSheet.create({
   // Link styles
   linkContainer: {
     marginTop: spacing.xl,
-    alignItems: 'center',
+    alignItems: "center",
   },
 
   linkText: {
     fontSize: typography.sizes.md,
     color: colors.textLight,
-    textAlign: 'center',
+    textAlign: "center",
   },
 
   link: {
@@ -209,7 +209,7 @@ export const commonStyles = StyleSheet.create({
   },
 
   debugItem: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginBottom: spacing.xs,
   },
 
@@ -218,13 +218,13 @@ export const commonStyles = StyleSheet.create({
     fontWeight: typography.weights.medium,
     color: colors.info,
     marginRight: spacing.sm,
-    fontFamily: 'monospace',
+    fontFamily: "monospace",
   },
 
   debugValue: {
     fontSize: typography.sizes.sm,
     color: colors.textLight,
-    fontFamily: 'monospace',
+    fontFamily: "monospace",
     flex: 1,
   },
 
@@ -245,25 +245,25 @@ export const commonStyles = StyleSheet.create({
     fontSize: typography.sizes.sm,
     color: colors.textLight,
     marginBottom: spacing.md,
-    fontFamily: 'monospace',
+    fontFamily: "monospace",
   },
 
   // Utility styles
   row: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
 
   spaceBetween: {
-    justifyContent: 'space-between',
+    justifyContent: "space-between",
   },
 
   alignCenter: {
-    alignItems: 'center',
+    alignItems: "center",
   },
 
   textCenter: {
-    textAlign: 'center',
+    textAlign: "center",
   },
 
   marginBottom: {
@@ -271,7 +271,7 @@ export const commonStyles = StyleSheet.create({
   },
 
   fullWidth: {
-    width: '100%',
+    width: "100%",
   },
 
   // Todo-specific styles
@@ -295,9 +295,9 @@ export const commonStyles = StyleSheet.create({
   },
 
   todoHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
 
   todoTitleContainer: {
@@ -313,13 +313,13 @@ export const commonStyles = StyleSheet.create({
   },
 
   todoTitleCompleted: {
-    textDecorationLine: 'line-through',
+    textDecorationLine: "line-through",
     color: colors.textLight,
   },
 
   todoActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
 
   actionButton: {
@@ -329,20 +329,20 @@ export const commonStyles = StyleSheet.create({
     borderRadius: borderRadius.sm,
     backgroundColor: colors.background,
     minWidth: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   completeButton: {
-    backgroundColor: colors.success + '20',
+    backgroundColor: `${colors.success}20`,
   },
 
   editButton: {
-    backgroundColor: colors.info + '20',
+    backgroundColor: `${colors.info}20`,
   },
 
   deleteButton: {
-    backgroundColor: colors.error + '20',
+    backgroundColor: `${colors.error}20`,
   },
 
   actionButtonText: {
@@ -364,7 +364,7 @@ export const commonStyles = StyleSheet.create({
   },
 
   todoDescriptionCompleted: {
-    textDecorationLine: 'line-through',
+    textDecorationLine: "line-through",
   },
 
   todoMeta: {
@@ -379,7 +379,7 @@ export const commonStyles = StyleSheet.create({
 
   completionBadge: {
     marginTop: spacing.xs,
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
   },
 
   completionText: {
@@ -390,9 +390,9 @@ export const commonStyles = StyleSheet.create({
 
   // Page layout styles
   pageHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
   },
@@ -409,8 +409,8 @@ export const commonStyles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     ...shadows.medium,
   },
 
@@ -434,12 +434,12 @@ export const commonStyles = StyleSheet.create({
 
   textArea: {
     minHeight: 80,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
   },
 
   buttonGroup: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginTop: spacing.lg,
     gap: spacing.md,
   },
@@ -468,8 +468,8 @@ export const commonStyles = StyleSheet.create({
 
   emptyState: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.xxxl,
   },
@@ -478,14 +478,14 @@ export const commonStyles = StyleSheet.create({
     fontSize: typography.sizes.lg,
     fontWeight: typography.weights.semibold,
     color: colors.text,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: spacing.sm,
   },
 
   emptyStateText: {
     fontSize: typography.sizes.md,
     color: colors.textLight,
-    textAlign: 'center',
+    textAlign: "center",
     lineHeight: typography.sizes.md * typography.lineHeights.normal,
   },
 
@@ -494,8 +494,8 @@ export const commonStyles = StyleSheet.create({
   },
 
   dividerContainer: {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
     marginVertical: 15,
   },
 
@@ -509,7 +509,7 @@ export const commonStyles = StyleSheet.create({
     marginHorizontal: 16,
     fontSize: 14,
     color: colors.textLight,
-    fontWeight: '500' as const,
+    fontWeight: "500" as const,
   },
 });
 
@@ -528,26 +528,26 @@ export const profileStyles = StyleSheet.create({
 
 export const homeStyles = StyleSheet.create({
   welcomeCard: {
-    width: '100%',
+    width: "100%",
     maxWidth: 400,
     backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
     padding: spacing.xl,
-    alignItems: 'center',
+    alignItems: "center",
     ...shadows.medium,
   },
 
   welcomeText: {
     fontSize: typography.sizes.lg,
     marginBottom: spacing.xl,
-    textAlign: 'center',
+    textAlign: "center",
     color: colors.text,
     lineHeight: typography.sizes.lg * typography.lineHeights.normal,
   },
 
   authMessage: {
     fontSize: typography.sizes.md,
-    textAlign: 'center',
+    textAlign: "center",
     color: colors.textLight,
     lineHeight: typography.sizes.md * typography.lineHeights.normal,
   },
@@ -558,11 +558,11 @@ export const fileUploadStyles = StyleSheet.create({
   fileUpload: {
     borderWidth: 2,
     borderColor: colors.border,
-    borderStyle: 'dashed',
+    borderStyle: "dashed",
     borderRadius: borderRadius.lg,
     padding: spacing.xl,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     backgroundColor: colors.background,
     marginBottom: spacing.lg,
   },
@@ -578,14 +578,14 @@ export const fileUploadStyles = StyleSheet.create({
   uploadText: {
     fontSize: typography.sizes.md,
     color: colors.textLight,
-    textAlign: 'center',
+    textAlign: "center",
   },
 
   fileName: {
     marginTop: spacing.sm,
     color: colors.primary,
     fontSize: typography.sizes.sm,
-    textAlign: 'center',
+    textAlign: "center",
   },
 
   buttonDisabled: {
@@ -593,7 +593,7 @@ export const fileUploadStyles = StyleSheet.create({
   },
 
   emptyState: {
-    alignItems: 'center',
+    alignItems: "center",
     padding: spacing.xl,
   },
 
@@ -612,7 +612,7 @@ export const fileUploadStyles = StyleSheet.create({
   emptyDescription: {
     fontSize: typography.sizes.md,
     color: colors.textLight,
-    textAlign: 'center',
+    textAlign: "center",
   },
 
   fileList: {
@@ -620,9 +620,9 @@ export const fileUploadStyles = StyleSheet.create({
   },
 
   fileItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.sm,
     borderBottomWidth: 1,
@@ -647,7 +647,7 @@ export const fileUploadStyles = StyleSheet.create({
   },
 
   fileActions: {
-    flexDirection: 'row',
+    flexDirection: "row",
   },
 
   actionButton: {

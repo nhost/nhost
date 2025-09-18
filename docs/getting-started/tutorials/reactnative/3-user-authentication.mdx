@@ -54,8 +54,8 @@ Apple authentication integration
 Build a comprehensive sign-in form with proper error handling and loading states. This screen handles user authentication and includes special logic for post-verification sign-in.
 
 ```tsx app/signin.tsx lines
-import { useState, useEffect } from "react";
 import { Link, router } from "expo-router";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -66,6 +66,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import AppleSignInButton from "./components/AppleSignInButton";
 import { useAuth } from "./lib/nhost/AuthProvider";
 import { commonStyles } from "./styles/commonStyles";
 import { colors } from "./styles/theme";
@@ -122,6 +123,19 @@ export default function SignIn() {
         <Text style={commonStyles.title}>Sign In</Text>
 
         <View style={commonStyles.card}>
+          {/* Apple Sign In Button */}
+          <AppleSignInButton
+            isLoading={isLoading}
+            setIsLoading={setIsLoading}
+          />
+
+          {/* Divider */}
+          <View style={commonStyles.dividerContainer}>
+            <View style={commonStyles.divider} />
+            <Text style={commonStyles.dividerText}>or</Text>
+            <View style={commonStyles.divider} />
+          </View>
+
           <View style={commonStyles.formField}>
             <Text style={commonStyles.labelText}>Email</Text>
             <TextInput
@@ -189,9 +203,9 @@ export default function SignIn() {
 Implement user registration with email verification flow. This screen collects user information, creates accounts, and guides users through the email verification process.
 
 ```tsx app/signup.tsx lines
-import { useState, useEffect } from "react";
-import { Link, router } from "expo-router";
 import * as Linking from "expo-linking";
+import { Link, router } from "expo-router";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -202,6 +216,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import AppleSignInButton from "./components/AppleSignInButton";
 import { useAuth } from "./lib/nhost/AuthProvider";
 import { commonStyles } from "./styles/commonStyles";
 import { colors } from "./styles/theme";
@@ -260,10 +275,12 @@ export default function SignUp() {
         <Text style={commonStyles.title}>Check Your Email</Text>
         <View style={commonStyles.successContainer}>
           <Text style={commonStyles.successText}>
-            We've sent a verification link to <Text style={commonStyles.emailText}>{email}</Text>
+            We've sent a verification link to{" "}
+            <Text style={commonStyles.emailText}>{email}</Text>
           </Text>
           <Text style={[commonStyles.bodyText, commonStyles.textCenter]}>
-            Please check your email and click the verification link to activate your account.
+            Please check your email and click the verification link to activate
+            your account.
           </Text>
         </View>
         <TouchableOpacity
@@ -288,6 +305,19 @@ export default function SignUp() {
         <Text style={commonStyles.title}>Sign Up</Text>
 
         <View style={commonStyles.card}>
+          {/* Apple Sign In Button */}
+          <AppleSignInButton
+            isLoading={isLoading}
+            setIsLoading={setIsLoading}
+          />
+
+          {/* Divider */}
+          <View style={commonStyles.dividerContainer}>
+            <View style={commonStyles.divider} />
+            <Text style={commonStyles.dividerText}>or</Text>
+            <View style={commonStyles.divider} />
+          </View>
+
           <View style={commonStyles.formField}>
             <Text style={commonStyles.labelText}>Display Name</Text>
             <TextInput
@@ -367,14 +397,9 @@ export default function SignUp() {
 Build a dedicated verification screen that processes email verification tokens. This screen handles the verification flow when users click the email verification link.
 
 ```tsx app/verify.tsx lines
-import { useEffect, useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
-import {
-  ActivityIndicator,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
 import { useAuth } from "./lib/nhost/AuthProvider";
 import { commonStyles } from "./styles/commonStyles";
 import { colors } from "./styles/theme";
@@ -489,23 +514,17 @@ export default function Verify() {
 
         {status === "error" && (
           <View style={commonStyles.alignCenter}>
-            <Text style={commonStyles.errorText}>
-              Verification failed
-            </Text>
+            <Text style={commonStyles.errorText}>Verification failed</Text>
             <Text style={[commonStyles.bodyText, commonStyles.marginBottom]}>
               {error}
             </Text>
 
             {Object.keys(urlParams).length > 0 && (
               <View style={commonStyles.debugContainer}>
-                <Text style={commonStyles.debugTitle}>
-                  URL Parameters:
-                </Text>
+                <Text style={commonStyles.debugTitle}>URL Parameters:</Text>
                 {Object.entries(urlParams).map(([key, value]) => (
                   <View key={key} style={commonStyles.debugItem}>
-                    <Text style={commonStyles.debugKey}>
-                      {key}:
-                    </Text>
+                    <Text style={commonStyles.debugKey}>{key}:</Text>
                     <Text style={commonStyles.debugValue}>{value}</Text>
                   </View>
                 ))}
