@@ -6,10 +6,4 @@
  * OpenAPI spec version: 1.0.0
  */
 
-/**
- * @nullable
- */
-export type _IntrospectRemoteSchemaResponseDataSchemaMutationType = {
-  name?: string;
-  [key: string]: unknown;
-} | null;
+export type TransformHeadersAddHeaders = { [key: string]: string };

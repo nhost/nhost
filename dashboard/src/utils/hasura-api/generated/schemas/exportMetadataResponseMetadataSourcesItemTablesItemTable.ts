@@ -6,10 +6,10 @@
  * OpenAPI spec version: 1.0.0
  */
 
-/**
- * @nullable
- */
-export type _IntrospectRemoteSchemaResponseDataSchemaMutationType = {
+export type ExportMetadataResponseMetadataSourcesItemTablesItemTable = {
+  /** Name of the table */
   name?: string;
+  /** Schema of the table */
+  schema?: string;
   [key: string]: unknown;
-} | null;
+};

@@ -7,9 +7,6 @@
  */
 
 /**
- * @nullable
+ * Query params as key-value pairs
  */
-export type _IntrospectRemoteSchemaResponseDataSchemaMutationType = {
-  name?: string;
-  [key: string]: unknown;
-} | null;
+export type RequestTransformationQueryParamsOneOf = { [key: string]: string };
