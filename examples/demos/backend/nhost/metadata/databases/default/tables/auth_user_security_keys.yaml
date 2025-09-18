@@ -35,14 +35,13 @@ select_permissions:
   - role: user
     permission:
       columns:
-        - credential_id
         - id
-        - nickname
         - user_id
+        - credential_id
+        - nickname
       filter:
         user_id:
           _eq: X-Hasura-User-Id
-    comment: ""
 update_permissions:
   - role: user
     permission:
@@ -52,11 +51,3 @@ update_permissions:
         user_id:
           _eq: X-Hasura-User-Id
       check: null
-    comment: ""
-delete_permissions:
-  - role: user
-    permission:
-      filter:
-        user_id:
-          _eq: X-Hasura-User-Id
-    comment: ""
