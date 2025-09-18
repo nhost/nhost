@@ -7,9 +7,6 @@
  */
 
 /**
- * @nullable
+ * Key-value template used when action is 'x_www_form_urlencoded'
  */
-export type _IntrospectRemoteSchemaResponseDataSchemaMutationType = {
-  name?: string;
-  [key: string]: unknown;
-} | null;
+export type BodyTransformFormTemplate = { [key: string]: string };

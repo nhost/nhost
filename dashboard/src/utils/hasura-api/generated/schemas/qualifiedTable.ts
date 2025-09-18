@@ -7,9 +7,11 @@
  */
 
 /**
- * @nullable
+ * Object with table name and schema
  */
-export type _IntrospectRemoteSchemaResponseDataSchemaMutationType = {
-  name?: string;
-  [key: string]: unknown;
-} | null;
+export interface QualifiedTable {
+  /** Name of the table */
+  name: string;
+  /** Schema of the table */
+  schema: string;
+}
