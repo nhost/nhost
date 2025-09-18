@@ -4,12 +4,12 @@ include $(ROOT_DIR)/build/makefiles/general.makefile
 
 .PHONY: _dev-env-up
 _dev-env-up:
-	cd ../backend/ && $(ROOT_DIR)/examples/demos/backend/env-up.sh
+	cd ./backend/ && $(ROOT_DIR)/examples/demos/backend/env-up.sh
 
 
 .PHONY: _dev-env-down
 _dev-env-down:
-	cd ../backend/ && nhost down --volumes
+	cd ./backend/ && nhost down --volumes
 
 
 .PHONY: _dev-env-build
