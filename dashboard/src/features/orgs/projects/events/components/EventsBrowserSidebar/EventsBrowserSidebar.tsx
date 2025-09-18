@@ -14,7 +14,7 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useGetEventTriggers } from '@/features/orgs/projects/events/hooks/useGetEventTriggers';
 import type { EventTriggerUI } from '@/features/orgs/projects/events/types';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { Database, Plus } from 'lucide-react';
+import { Database, Ellipsis, Plus } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
@@ -67,8 +67,19 @@ function EventsBrowserSidebarContent() {
                 </AccordionTrigger>
                 <AccordionContent className="flex flex-col gap-4 text-balance">
                   {eventTriggers.map((eventTrigger) => (
-                    <Button key={eventTrigger.name} variant="secondary">
+                    <Button
+                      className="ml-2 justify-between pr-0 text-left hover:bg-primary-light hover:text-primary"
+                      key={eventTrigger.name}
+                      variant="ghost"
+                    >
                       {eventTrigger.name}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="px-2 hover:bg-primary/10 hover:text-primary"
+                      >
+                        <Ellipsis className="h-5 w-5" />
+                      </Button>
                     </Button>
                   ))}
                 </AccordionContent>
