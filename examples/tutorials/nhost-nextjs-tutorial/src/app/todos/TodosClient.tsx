@@ -1,15 +1,18 @@
 "use client";
 
 import { useId, useState } from "react";
-import type { Todo } from "./page";
 import { addTodo, deleteTodo, updateTodo } from "./actions";
+import type { Todo } from "./page";
 
 interface TodosClientProps {
   initialTodos: Todo[];
   initialError: string | null;
 }
 
-export default function TodosClient({ initialTodos, initialError }: TodosClientProps) {
+export default function TodosClient({
+  initialTodos,
+  initialError,
+}: TodosClientProps) {
   const [todos, setTodos] = useState<Todo[]>(initialTodos);
   const [error, setError] = useState<string | null>(initialError);
   const [newTodoTitle, setNewTodoTitle] = useState("");
@@ -59,7 +62,9 @@ export default function TodosClient({ initialTodos, initialError }: TodosClientP
       const result = await updateTodo(id, updates);
 
       if (result.success && result.todo) {
-        setTodos(todos.map((todo) => (todo.id === id ? result.todo! : todo)));
+        setTodos(
+          todos.map((todo) => (todo.id === id ? (result.todo ?? todo) : todo)),
+        );
         setEditingTodo(null);
         setError(null);
       } else {
@@ -215,7 +220,7 @@ export default function TodosClient({ initialTodos, initialError }: TodosClientP
             todos.map((todo) => (
               <div
                 key={todo.id}
-                className={`todo-card ${todo.completed ? 'completed' : ''}`}
+                className={`todo-card ${todo.completed ? "completed" : ""}`}
               >
                 {editingTodo?.id === todo.id ? (
                   <div className="todo-edit">
@@ -271,7 +276,7 @@ export default function TodosClient({ initialTodos, initialError }: TodosClientP
                     <div className="todo-header">
                       <button
                         type="button"
-                        className={`todo-title-btn ${todo.completed ? 'completed' : ''}`}
+                        className={`todo-title-btn ${todo.completed ? "completed" : ""}`}
                         onClick={() => toggleTodoExpansion(todo.id)}
                       >
                         {todo.title}
@@ -311,7 +316,9 @@ export default function TodosClient({ initialTodos, initialError }: TodosClientP
                     {expandedTodos.has(todo.id) && (
                       <div className="todo-details">
                         {todo.details && (
-                          <div className={`todo-description ${todo.completed ? 'completed' : ''}`}>
+                          <div
+                            className={`todo-description ${todo.completed ? "completed" : ""}`}
+                          >
                             <p>{todo.details}</p>
                           </div>
                         )}
@@ -319,10 +326,12 @@ export default function TodosClient({ initialTodos, initialError }: TodosClientP
                         <div className="todo-meta">
                           <div className="meta-dates">
                             <span className="meta-item">
-                              Created: {new Date(todo.created_at).toLocaleString()}
+                              Created:{" "}
+                              {new Date(todo.created_at).toLocaleString()}
                             </span>
                             <span className="meta-item">
-                              Updated: {new Date(todo.updated_at).toLocaleString()}
+                              Updated:{" "}
+                              {new Date(todo.updated_at).toLocaleString()}
                             </span>
                           </div>
                           {todo.completed && (

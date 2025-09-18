@@ -1,9 +1,9 @@
+import { type NextRequest, NextResponse } from "next/server";
 import { createNhostClient } from "../../../../lib/nhost/server";
-import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ fileId: string }> }
+  { params }: { params: Promise<{ fileId: string }> },
 ) {
   try {
     const nhost = await createNhostClient();
@@ -12,7 +12,10 @@ export async function GET(
     const download = request.nextUrl.searchParams.get("download") === "true";
 
     if (!fileId) {
-      return NextResponse.json({ error: "File ID is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "File ID is required" },
+        { status: 400 },
+      );
     }
 
     const response = await nhost.storage.getFile(fileId);
@@ -36,16 +39,19 @@ export async function GET(
         "Content-Type": response.body.type || "application/octet-stream",
         "Content-Disposition": contentDisposition,
         "Content-Length": arrayBuffer.byteLength.toString(),
-        "Cache-Control": response.headers.get("Cache-Control") || "public, max-age=31536000, immutable",
-        "Etag": response.headers.get("ETag") || "",
+        "Cache-Control":
+          response.headers.get("Cache-Control") ||
+          "public, max-age=31536000, immutable",
+        Etag: response.headers.get("ETag") || "",
         "Last-Modified": response.headers.get("Last-Modified") || "",
       },
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "An unknown error occurred";
+    const message =
+      error instanceof Error ? error.message : "An unknown error occurred";
     return NextResponse.json(
       { error: `Failed to access file: ${message}` },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

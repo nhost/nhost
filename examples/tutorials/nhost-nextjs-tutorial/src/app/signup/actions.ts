@@ -24,7 +24,7 @@ export async function signUp(formData: FormData) {
       options: {
         displayName,
         // Set the redirect URL for email verification
-        redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/verify`,
+        redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/verify`,
       },
     });
 
@@ -34,7 +34,7 @@ export async function signUp(formData: FormData) {
     } else {
       // Verification email sent
       return {
-        redirect: `/signup?verify=success&email=${encodeURIComponent(email)}`
+        redirect: `/signup?verify=success&email=${encodeURIComponent(email)}`,
       };
     }
   } catch (err) {

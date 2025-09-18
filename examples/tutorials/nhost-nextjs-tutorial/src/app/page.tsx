@@ -6,7 +6,7 @@ export default async function Home() {
 
   return (
     <div className="container">
-      <header  className="page-header">
+      <header className="page-header">
         <h1 className="page-title">Welcome to Nhost Next.js Demo</h1>
       </header>
 

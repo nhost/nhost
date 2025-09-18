@@ -75,11 +75,7 @@ export default function SignUpForm({ initialError }: SignUpFormProps) {
         <small className="help-text">Minimum 8 characters</small>
       </div>
 
-      {error && (
-        <div className="auth-error">
-          {error}
-        </div>
-      )}
+      {error && <div className="auth-error">{error}</div>}
 
       <button
         type="submit"

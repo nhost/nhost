@@ -61,11 +61,7 @@ export default function SignInForm({ initialError }: SignInFormProps) {
         />
       </div>
 
-      {error && (
-        <div className="auth-error">
-          {error}
-        </div>
-      )}
+      {error && <div className="auth-error">{error}</div>}
 
       <button
         type="submit"

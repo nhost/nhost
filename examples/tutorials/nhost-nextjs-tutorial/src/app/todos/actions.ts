@@ -9,7 +9,8 @@ import type { Todo } from "./page";
 type ActionResult<T = void> = {
   success: boolean;
   error?: string;
-} & (T extends void ? {} : { todo?: T });
+  todo?: T;
+};
 
 // GraphQL response types
 interface InsertTodoResponse {

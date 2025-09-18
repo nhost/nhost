@@ -61,7 +61,5 @@ export default async function TodosPage() {
     }
   }
 
-  return (
-    <TodosClient initialTodos={initialTodos} initialError={error} />
-  );
+  return <TodosClient initialTodos={initialTodos} initialError={error} />;
 }

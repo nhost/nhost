@@ -15,7 +15,8 @@ export default async function Profile() {
         <h3 className="form-title">User Information</h3>
         <div className="form-fields">
           <div className="field-group">
-            <strong>Display Name:</strong> {session?.user?.displayName || "Not set"}
+            <strong>Display Name:</strong>{" "}
+            {session?.user?.displayName || "Not set"}
           </div>
           <div className="field-group">
             <strong>Email:</strong> {session?.user?.email || "Not available"}
@@ -28,7 +29,13 @@ export default async function Profile() {
           </div>
           <div className="field-group">
             <strong>Email Verified:</strong>
-            <span className={session?.user?.emailVerified ? 'email-verified' : 'email-unverified'}>
+            <span
+              className={
+                session?.user?.emailVerified
+                  ? "email-verified"
+                  : "email-unverified"
+              }
+            >
               {session?.user?.emailVerified ? "✓ Yes" : "✗ No"}
             </span>
           </div>

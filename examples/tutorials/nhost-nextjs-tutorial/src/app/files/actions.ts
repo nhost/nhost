@@ -1,15 +1,27 @@
 "use server";
 
-import { createNhostClient } from "../../lib/nhost/server";
+import type { FileMetadata } from "@nhost/nhost-js/storage";
 import { revalidatePath } from "next/cache";
+import { createNhostClient } from "../../lib/nhost/server";
 
-export interface ActionResult {
+export interface ActionResult<T> {
   success: boolean;
   error?: string;
-  data?: any;
+  data?: T;
 }
 
-export async function uploadFileAction(formData: FormData): Promise<ActionResult> {
+export interface UploadFileData {
+  file: FileMetadata;
+  message: string;
+}
+
+export interface DeleteFileData {
+  message: string;
+}
+
+export async function uploadFileAction(
+  formData: FormData,
+): Promise<ActionResult<UploadFileData>> {
   try {
     const nhost = await createNhostClient();
     const file = formData.get("file") as File;
@@ -33,16 +45,20 @@ export async function uploadFileAction(formData: FormData): Promise<ActionResult
       success: true,
       data: {
         file: uploadedFile,
-        message: "File uploaded successfully!"
-      }
+        message: "File uploaded successfully!",
+      },
     };
   } catch (error) {
-    const message = error instanceof Error ? error.message : "An unknown error occurred";
+    const message =
+      error instanceof Error ? error.message : "An unknown error occurred";
     return { success: false, error: `Failed to upload file: ${message}` };
   }
 }
 
-export async function deleteFileAction(fileId: string, fileName: string): Promise<ActionResult> {
+export async function deleteFileAction(
+  fileId: string,
+  fileName: string,
+): Promise<ActionResult<DeleteFileData>> {
   try {
     const nhost = await createNhostClient();
 
@@ -55,10 +71,14 @@ export async function deleteFileAction(fileId: string, fileName: string): Promis
     revalidatePath("/files");
     return {
       success: true,
-      data: { message: `${fileName} deleted successfully` }
+      data: { message: `${fileName} deleted successfully` },
     };
   } catch (error) {
-    const message = error instanceof Error ? error.message : "An unknown error occurred";
-    return { success: false, error: `Failed to delete ${fileName}: ${message}` };
+    const message =
+      error instanceof Error ? error.message : "An unknown error occurred";
+    return {
+      success: false,
+      error: `Failed to delete ${fileName}: ${message}`,
+    };
   }
 }

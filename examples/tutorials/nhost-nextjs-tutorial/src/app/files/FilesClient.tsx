@@ -2,7 +2,7 @@
 
 import type { FileMetadata } from "@nhost/nhost-js/storage";
 import { useRef, useState, useTransition } from "react";
-import { uploadFileAction, deleteFileAction } from "./actions";
+import { deleteFileAction, uploadFileAction } from "./actions";
 
 interface FilesClientProps {
   initialFiles: FileMetadata[];
@@ -66,8 +66,9 @@ export default function FilesClient({
 
         const result = await uploadFileAction(formData);
 
-        if (result.success) {
-          setUploadResult(result.data.file);
+        if (result.success && result.data) {
+          const file = result.data.file;
+          setUploadResult(file);
 
           // Clear the form
           setSelectedFile(null);
@@ -76,7 +77,7 @@ export default function FilesClient({
           }
 
           // Update the files list
-          setFiles((prevFiles) => [result.data.file, ...prevFiles]);
+          setFiles((prevFiles) => [file, ...prevFiles]);
 
           // Clear success message after 3 seconds
           setTimeout(() => {
@@ -163,7 +164,7 @@ export default function FilesClient({
       try {
         const result = await deleteFileAction(fileId, fileName);
 
-        if (result.success) {
+        if (result.success && result.data) {
           setDeleteStatus({
             message: result.data.message,
             isError: false,
@@ -269,7 +270,11 @@ export default function FilesClient({
         <h2 className="form-title">Your Files</h2>
 
         {deleteStatus && (
-          <div className={deleteStatus.isError ? "error-message" : "success-message"}>
+          <div
+            className={
+              deleteStatus.isError ? "error-message" : "success-message"
+            }
+          >
             {deleteStatus.message}
           </div>
         )}
@@ -291,7 +296,9 @@ export default function FilesClient({
               />
             </svg>
             <h3 className="empty-title">No files yet</h3>
-            <p className="empty-description">Upload your first file to get started!</p>
+            <p className="empty-description">
+              Upload your first file to get started!
+            </p>
           </div>
         ) : (
           <div style={{ overflowX: "auto" }}>
@@ -309,7 +316,9 @@ export default function FilesClient({
                   <tr key={file.id}>
                     <td className="file-name">{file.name}</td>
                     <td className="file-meta">{file.mimeType}</td>
-                    <td className="file-meta">{formatFileSize(file.size || 0)}</td>
+                    <td className="file-meta">
+                      {formatFileSize(file.size || 0)}
+                    </td>
                     <td>
                       <div className="file-actions">
                         <button

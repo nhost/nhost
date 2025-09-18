@@ -25,7 +25,8 @@ export default async function SignUp({
             We've sent a verification link to <strong>{email}</strong>
           </p>
           <p>
-            Please check your email and click the verification link to activate your account.
+            Please check your email and click the verification link to activate
+            your account.
           </p>
         </div>
         <p>

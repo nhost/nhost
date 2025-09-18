@@ -16,21 +16,15 @@ export default async function VerifyError({
       <h1>Email Verification</h1>
 
       <div className="page-center">
-        <p className="verification-status error">
-          Verification failed
-        </p>
+        <p className="verification-status error">Verification failed</p>
         <p className="margin-bottom">{message}</p>
 
         {urlParams.length > 0 && (
           <div className="debug-panel">
-            <p className="debug-title">
-              URL Parameters:
-            </p>
+            <p className="debug-title">URL Parameters:</p>
             {urlParams.map(([key, value]) => (
               <div key={key} className="debug-item">
-                <span className="debug-key">
-                  {key}:
-                </span>{" "}
+                <span className="debug-key">{key}:</span>{" "}
                 <span className="debug-value">{value}</span>
               </div>
             ))}
