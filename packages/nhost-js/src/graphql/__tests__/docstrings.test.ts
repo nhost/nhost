@@ -191,6 +191,59 @@ test("request typed", async () => {
   ]);
 });
 
+test("request with variables", async () => {
+  const nhost = createClient({
+    subdomain,
+    region,
+  });
+
+  const resp = await nhost.graphql.request({
+    query: `query GetMovies($genre: String!) {
+          movies(where: {genre: {_eq: $genre}}) {
+            id
+            title
+            director
+            genre
+          }
+        }`,
+    variables: {
+      genre: "Sci-Fi",
+    },
+  });
+
+  console.log(resp.body.data?.movies);
+  // [
+  //   {
+  //     id: '3d67a6d0-bfb5-444a-9152-aea543ebd171',
+  //     title: 'The Matrix',
+  //     director: 'Lana Wachowski, Lilly Wachowski',
+  //     genre: 'Sci-Fi'
+  //   },
+  //   {
+  //     id: '90f374db-16c1-4db5-ba55-643bf38953d3',
+  //     title: 'Inception',
+  //     director: 'Christopher Nolan',
+  //     genre: 'Sci-Fi'
+  //   },
+  // ]
+
+  expect(resp.body.data).toBeDefined();
+  expect(resp.body.data?.movies).toStrictEqual([
+    {
+      director: "Lana Wachowski, Lilly Wachowski",
+      genre: "Sci-Fi",
+      id: "3d67a6d0-bfb5-444a-9152-aea543ebd171",
+      title: "The Matrix",
+    },
+    {
+      director: "Christopher Nolan",
+      genre: "Sci-Fi",
+      id: "90f374db-16c1-4db5-ba55-643bf38953d3",
+      title: "Inception",
+    },
+  ]);
+});
+
 test("request with qql", async () => {
   const nhost = createClient({
     subdomain,
@@ -210,8 +263,8 @@ test("request with qql", async () => {
   }
 
   const getMoviesQuery = gql`
-    query GetMovies {
-      movies {
+    query GetMovies($genre: String!) {
+      movies(where: { genre: { _eq: $genre } }) {
         id
         title
         director
@@ -220,7 +273,9 @@ test("request with qql", async () => {
     }
   `;
 
-  const resp = await nhost.graphql.request<Movies>(getMoviesQuery);
+  const resp = await nhost.graphql.request<Movies>(getMoviesQuery, {
+    genre: "Sci-Fi",
+  });
   console.log(resp.body.data?.movies);
   // [
   //   {
@@ -235,24 +290,6 @@ test("request with qql", async () => {
   //     director: 'Christopher Nolan',
   //     genre: 'Sci-Fi'
   //   },
-  //   {
-  //     id: '900fa76c-fc79-470d-817b-4dc4412a79e8',
-  //     title: 'The Godfather',
-  //     director: 'Francis Ford Coppola',
-  //     genre: 'Crime'
-  //   },
-  //   {
-  //     id: '2867cadd-2904-482f-b43c-f77ce8412a93',
-  //     title: 'Pulp Fiction',
-  //     director: 'Quentin Tarantino',
-  //     genre: 'Crime'
-  //   },
-  //   {
-  //     id: '8c06c70a-872e-49a7-8770-29355dcd05c6',
-  //     title: 'The Dark Knight',
-  //     director: 'Christopher Nolan',
-  //     genre: 'Action'
-  //   }
   // ]
 
   expect(resp.body.data).toBeDefined();
@@ -268,24 +305,6 @@ test("request with qql", async () => {
       genre: "Sci-Fi",
       id: "90f374db-16c1-4db5-ba55-643bf38953d3",
       title: "Inception",
-    },
-    {
-      director: "Francis Ford Coppola",
-      genre: "Crime",
-      id: "900fa76c-fc79-470d-817b-4dc4412a79e8",
-      title: "The Godfather",
-    },
-    {
-      director: "Quentin Tarantino",
-      genre: "Crime",
-      id: "2867cadd-2904-482f-b43c-f77ce8412a93",
-      title: "Pulp Fiction",
-    },
-    {
-      director: "Christopher Nolan",
-      genre: "Action",
-      id: "8c06c70a-872e-49a7-8770-29355dcd05c6",
-      title: "The Dark Knight",
     },
   ]);
 });
