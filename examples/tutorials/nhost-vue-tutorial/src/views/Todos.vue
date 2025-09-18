@@ -216,7 +216,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, useId } from "vue";
+import { computed, onMounted, ref, useId } from "vue";
 import { useAuth } from "../lib/nhost/auth";
 
 // The interfaces below define the structure of our data

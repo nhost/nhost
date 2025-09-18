@@ -73,7 +73,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, useId } from "vue";
+import { onMounted, ref, useId } from "vue";
 import { useRouter } from "vue-router";
 import { useAuth } from "../lib/nhost/auth";
 

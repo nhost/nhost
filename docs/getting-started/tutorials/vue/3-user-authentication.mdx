@@ -99,7 +99,7 @@ Build a comprehensive sign-in form with proper error handling and loading states
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, useId } from "vue";
+import { onMounted, ref, useId } from "vue";
 import { useRouter } from "vue-router";
 import { useAuth } from "../lib/nhost/auth";
 
@@ -232,7 +232,7 @@ Implement user registration with email verification flow. This page collects use
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, useId } from "vue";
+import { onMounted, ref, useId } from "vue";
 import { useRouter } from "vue-router";
 import { useAuth } from "../lib/nhost/auth";
 
@@ -351,7 +351,7 @@ Build a dedicated verification page that processes email verification tokens. Th
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuth } from "../lib/nhost/auth";
 
@@ -457,9 +457,9 @@ Update your router configuration to include the new authentication routes:
 
 ```ts src/router/index.ts lines highlight={5-7,17-31}
 import { createRouter, createWebHistory } from "vue-router";
-import ProtectedRoute from "../components/ProtectedRoute.vue";
-import Home from "../views/Home.vue";
-import Profile from "../views/Profile.vue";
+import { useAuth } from "../lib/nhost/auth";
+import HomeView from "../views/HomeView.vue";
+import ProfileView from "../views/ProfileView.vue";
 import SignIn from "../views/SignIn.vue";
 import SignUp from "../views/SignUp.vue";
 import Verify from "../views/Verify.vue";
@@ -469,8 +469,8 @@ const router = createRouter({
   routes: [
     {
       path: "/",
-      name: "Home",
-      component: Home,
+      name: "home",
+      component: HomeView,
     },
     {
       path: "/signin",
@@ -489,20 +489,33 @@ const router = createRouter({
     },
     {
       path: "/profile",
-      name: "Profile",
-      component: ProtectedRoute,
-      children: [
-        {
-          path: "",
-          component: Profile,
-        },
-      ],
+      name: "profile",
+      component: ProfileView,
+      meta: { requiresAuth: true },
     },
     {
       path: "/:pathMatch(.*)*",
       redirect: "/",
     },
   ],
+});
+
+// Navigation guard for protected routes
+router.beforeEach((to) => {
+  if (to.meta["requiresAuth"]) {
+    const { isAuthenticated, isLoading } = useAuth();
+
+    // Show loading state while authentication is being checked
+    if (isLoading.value) {
+      // You can return a loading component path or handle loading in the component
+      return true; // Allow navigation, handle loading in component
+    }
+
+    if (!isAuthenticated.value) {
+      return "/"; // Redirect to home page
+    }
+  }
+  return true;
 });
 
 export default router;

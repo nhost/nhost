@@ -1,11 +1,11 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuth } from "../lib/nhost/auth";
+import Files from "../views/Files.vue";
 import HomeView from "../views/HomeView.vue";
 import ProfileView from "../views/ProfileView.vue";
 import SignIn from "../views/SignIn.vue";
 import SignUp from "../views/SignUp.vue";
 import Todos from "../views/Todos.vue";
-import Files from "../views/Files.vue";
 import Verify from "../views/Verify.vue";
 
 const router = createRouter({
