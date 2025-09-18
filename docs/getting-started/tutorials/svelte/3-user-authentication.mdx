@@ -47,48 +47,48 @@ Build a comprehensive sign-in form with proper error handling and loading states
 
 ```svelte src/routes/signin/+page.svelte lines
 <script lang="ts">
-  import type { ErrorResponse } from "@nhost/nhost-js/auth";
-  import type { FetchError } from "@nhost/nhost-js/fetch";
-  import { goto } from "$app/navigation";
-  import { auth, nhost } from "$lib/nhost/auth";
+import type { ErrorResponse } from "@nhost/nhost-js/auth";
+import type { FetchError } from "@nhost/nhost-js/fetch";
+import { goto } from "$app/navigation";
+import { auth, nhost } from "$lib/nhost/auth";
 
-  let email = $state("");
-  let password = $state("");
-  let isLoading = $state(false);
-  let error = $state<string | null>(null);
+let email = $state("");
+let password = $state("");
+let isLoading = $state(false);
+let error = $state<string | null>(null);
 
-  // Navigate to profile when authenticated
-  $effect(() => {
-    if ($auth.isAuthenticated) {
-      void goto("/profile");
-    }
-  });
-
-  async function handleSubmit(e: Event) {
-    e.preventDefault();
-    isLoading = true;
-    error = null;
-
-    try {
-      // Use the signIn function from auth context
-      const response = await nhost.auth.signInEmailPassword({
-        email,
-        password,
-      });
-
-      // If we have a session, sign in was successful
-      if (response.body?.session) {
-        void goto("/profile");
-      } else {
-        error = "Failed to sign in. Please check your credentials.";
-      }
-    } catch (err) {
-      const fetchError = err as FetchError<ErrorResponse>;
-      error = `An error occurred during sign in: ${fetchError.message}`;
-    } finally {
-      isLoading = false;
-    }
+// Navigate to profile when authenticated
+$effect(() => {
+  if ($auth.isAuthenticated) {
+    void goto("/profile");
   }
+});
+
+async function handleSubmit(e: Event) {
+  e.preventDefault();
+  isLoading = true;
+  error = null;
+
+  try {
+    // Use the signIn function from auth context
+    const response = await nhost.auth.signInEmailPassword({
+      email,
+      password,
+    });
+
+    // If we have a session, sign in was successful
+    if (response.body?.session) {
+      void goto("/profile");
+    } else {
+      error = "Failed to sign in. Please check your credentials.";
+    }
+  } catch (err) {
+    const fetchError = err as FetchError<ErrorResponse>;
+    error = `An error occurred during sign in: ${fetchError.message}`;
+  } finally {
+    isLoading = false;
+  }
+}
 </script>
 
 <div>
@@ -150,56 +150,56 @@ Implement user registration with email verification flow. This page collects use
 
 ```svelte src/routes/signup/+page.svelte lines
 <script lang="ts">
-  import type { ErrorResponse } from "@nhost/nhost-js/auth";
-  import type { FetchError } from "@nhost/nhost-js/fetch";
-  import { goto } from "$app/navigation";
-  import { auth, nhost } from "$lib/nhost/auth";
+import type { ErrorResponse } from "@nhost/nhost-js/auth";
+import type { FetchError } from "@nhost/nhost-js/fetch";
+import { goto } from "$app/navigation";
+import { auth, nhost } from "$lib/nhost/auth";
 
-  let email = $state("");
-  let password = $state("");
-  let displayName = $state("");
-  let isLoading = $state(false);
-  let error = $state<string | null>(null);
-  let success = $state(false);
+let email = $state("");
+let password = $state("");
+let displayName = $state("");
+let isLoading = $state(false);
+let error = $state<string | null>(null);
+let success = $state(false);
 
-  // If already authenticated, redirect to profile
-  $effect(() => {
-    if ($auth.isAuthenticated) {
-      void goto("/profile");
-    }
-  });
-
-  async function handleSubmit(e: Event) {
-    e.preventDefault();
-    isLoading = true;
-    error = null;
-    success = false;
-
-    try {
-      const response = await nhost.auth.signUpEmailPassword({
-        email,
-        password,
-        options: {
-          displayName,
-          // Set the redirect URL for email verification
-          redirectTo: `${window.location.origin}/verify`,
-        },
-      });
-
-      if (response.body?.session) {
-        // Successfully signed up and automatically signed in
-        void goto("/profile");
-      } else {
-        // Verification email sent
-        success = true;
-      }
-    } catch (err) {
-      const fetchError = err as FetchError<ErrorResponse>;
-      error = `An error occurred during sign up: ${fetchError.message}`;
-    } finally {
-      isLoading = false;
-    }
+// If already authenticated, redirect to profile
+$effect(() => {
+  if ($auth.isAuthenticated) {
+    void goto("/profile");
   }
+});
+
+async function handleSubmit(e: Event) {
+  e.preventDefault();
+  isLoading = true;
+  error = null;
+  success = false;
+
+  try {
+    const response = await nhost.auth.signUpEmailPassword({
+      email,
+      password,
+      options: {
+        displayName,
+        // Set the redirect URL for email verification
+        redirectTo: `${window.location.origin}/verify`,
+      },
+    });
+
+    if (response.body?.session) {
+      // Successfully signed up and automatically signed in
+      void goto("/profile");
+    } else {
+      // Verification email sent
+      success = true;
+    }
+  } catch (err) {
+    const fetchError = err as FetchError<ErrorResponse>;
+    error = `An error occurred during sign up: ${fetchError.message}`;
+  } finally {
+    isLoading = false;
+  }
+}
 </script>
 
 {#if success}
@@ -291,85 +291,85 @@ Build a dedicated verification page that processes email verification tokens. Th
 
 ```svelte src/routes/verify/+page.svelte lines
 <script lang="ts">
-  import type { ErrorResponse } from "@nhost/nhost-js/auth";
-  import type { FetchError } from "@nhost/nhost-js/fetch";
-  import { onMount } from "svelte";
-  import { goto } from "$app/navigation";
-  import { page } from "$app/stores";
-  import { nhost } from "$lib/nhost/auth";
+import type { ErrorResponse } from "@nhost/nhost-js/auth";
+import type { FetchError } from "@nhost/nhost-js/fetch";
+import { onMount } from "svelte";
+import { goto } from "$app/navigation";
+import { page } from "$app/stores";
+import { nhost } from "$lib/nhost/auth";
 
-  let status: "verifying" | "success" | "error" = "verifying";
-  let error = "";
-  let urlParams: Record<string, string> = {};
+let status: "verifying" | "success" | "error" = "verifying";
+let error = "";
+let urlParams: Record<string, string> = {};
 
-  onMount(() => {
-    // Extract the refresh token from the URL
-    const params = new URLSearchParams($page.url.search);
-    const refreshToken = params.get("refreshToken");
+onMount(() => {
+  // Extract the refresh token from the URL
+  const params = new URLSearchParams($page.url.search);
+  const refreshToken = params.get("refreshToken");
 
-    if (!refreshToken) {
-      // Collect all URL parameters to display for debugging
-      const allParams: Record<string, string> = {};
-      params.forEach((value, key) => {
-        allParams[key] = value;
-      });
-      urlParams = allParams;
+  if (!refreshToken) {
+    // Collect all URL parameters to display for debugging
+    const allParams: Record<string, string> = {};
+    params.forEach((value, key) => {
+      allParams[key] = value;
+    });
+    urlParams = allParams;
 
-      status = "error";
-      error = "No refresh token found in URL";
-      return;
-    }
+    status = "error";
+    error = "No refresh token found in URL";
+    return;
+  }
 
-    // Flag to handle component unmounting during async operations
-    let isMounted = true;
+  // Flag to handle component unmounting during async operations
+  let isMounted = true;
 
-    async function processToken() {
-      try {
-        // First display the verifying message for at least a moment
-        await new Promise((resolve) => setTimeout(resolve, 500));
+  async function processToken() {
+    try {
+      // First display the verifying message for at least a moment
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
-        if (!isMounted) return;
+      if (!isMounted) return;
 
-        if (!refreshToken) {
-          // Collect all URL parameters to display
-          const allParams: Record<string, string> = {};
-          params.forEach((value, key) => {
-            allParams[key] = value;
-          });
-          urlParams = allParams;
-
-          status = "error";
-          error = "No refresh token found in URL";
-          return;
-        }
-
-        // Process the token
-        await nhost.auth.refreshToken({ refreshToken });
-
-        if (!isMounted) return;
-
-        status = "success";
-
-        // Wait to show success message briefly, then redirect
-        setTimeout(() => {
-          if (isMounted) void goto("/profile");
-        }, 1500);
-      } catch (err) {
-        const fetchError = err as FetchError<ErrorResponse>;
-        if (!isMounted) return;
+      if (!refreshToken) {
+        // Collect all URL parameters to display
+        const allParams: Record<string, string> = {};
+        params.forEach((value, key) => {
+          allParams[key] = value;
+        });
+        urlParams = allParams;
 
         status = "error";
-        error = `An error occurred during verification: ${fetchError.message}`;
+        error = "No refresh token found in URL";
+        return;
       }
+
+      // Process the token
+      await nhost.auth.refreshToken({ refreshToken });
+
+      if (!isMounted) return;
+
+      status = "success";
+
+      // Wait to show success message briefly, then redirect
+      setTimeout(() => {
+        if (isMounted) void goto("/profile");
+      }, 1500);
+    } catch (err) {
+      const fetchError = err as FetchError<ErrorResponse>;
+      if (!isMounted) return;
+
+      status = "error";
+      error = `An error occurred during verification: ${fetchError.message}`;
     }
+  }
 
-    void processToken();
+  void processToken();
 
-    // Cleanup function
-    return () => {
-      isMounted = false;
-    };
-  });
+  // Cleanup function
+  return () => {
+    isMounted = false;
+  };
+});
 </script>
 
 <div>

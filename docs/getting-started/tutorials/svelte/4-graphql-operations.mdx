@@ -280,9 +280,7 @@ async function addTodo(e: SubmitEvent) {
     });
 
     if (response.body.errors) {
-      throw new Error(
-        response.body.errors[0]?.message || "Failed to add todo",
-      );
+      throw new Error(response.body.errors[0]?.message || "Failed to add todo");
     }
 
     if (!response.body?.data?.insert_todos_one) {

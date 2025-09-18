@@ -65,7 +65,8 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
-input, textarea {
+input,
+textarea {
   width: 100%;
   padding: 0.875rem 1rem;
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -78,14 +79,16 @@ input, textarea {
   font-family: inherit;
 }
 
-input:focus, textarea:focus {
+input:focus,
+textarea:focus {
   outline: none;
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
   background: rgba(255, 255, 255, 0.08);
 }
 
-input::placeholder, textarea::placeholder {
+input::placeholder,
+textarea::placeholder {
   color: rgba(255, 255, 255, 0.5);
 }
 
@@ -103,8 +106,12 @@ label {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Global Layout */
@@ -148,7 +155,6 @@ label {
   box-sizing: border-box;
   position: relative;
 }
-
 
 /* Status Messages */
 .success-message {
@@ -856,4 +862,3 @@ label {
     gap: 0.25rem;
   }
 }
-

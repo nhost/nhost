@@ -1,54 +1,54 @@
 <script lang="ts">
-  import type { ErrorResponse } from "@nhost/nhost-js/auth";
-  import type { FetchError } from "@nhost/nhost-js/fetch";
-  import { goto } from "$app/navigation";
-  import { auth, nhost } from "$lib/nhost/auth";
+import type { ErrorResponse } from "@nhost/nhost-js/auth";
+import type { FetchError } from "@nhost/nhost-js/fetch";
+import { goto } from "$app/navigation";
+import { auth, nhost } from "$lib/nhost/auth";
 
-  let email = $state("");
-  let password = $state("");
-  let displayName = $state("");
-  let isLoading = $state(false);
-  let error = $state<string | null>(null);
-  let success = $state(false);
+let email = $state("");
+let password = $state("");
+let displayName = $state("");
+let isLoading = $state(false);
+let error = $state<string | null>(null);
+let success = $state(false);
 
-  // If already authenticated, redirect to profile
-  $effect(() => {
-    if ($auth.isAuthenticated) {
-      void goto("/profile");
-    }
-  });
-
-  async function handleSubmit(e: Event) {
-    e.preventDefault();
-    isLoading = true;
-    error = null;
-    success = false;
-
-    try {
-      const response = await nhost.auth.signUpEmailPassword({
-        email,
-        password,
-        options: {
-          displayName,
-          // Set the redirect URL for email verification
-          redirectTo: `${window.location.origin}/verify`,
-        },
-      });
-
-      if (response.body?.session) {
-        // Successfully signed up and automatically signed in
-        void goto("/profile");
-      } else {
-        // Verification email sent
-        success = true;
-      }
-    } catch (err) {
-      const fetchError = err as FetchError<ErrorResponse>;
-      error = `An error occurred during sign up: ${fetchError.message}`;
-    } finally {
-      isLoading = false;
-    }
+// If already authenticated, redirect to profile
+$effect(() => {
+  if ($auth.isAuthenticated) {
+    void goto("/profile");
   }
+});
+
+async function handleSubmit(e: Event) {
+  e.preventDefault();
+  isLoading = true;
+  error = null;
+  success = false;
+
+  try {
+    const response = await nhost.auth.signUpEmailPassword({
+      email,
+      password,
+      options: {
+        displayName,
+        // Set the redirect URL for email verification
+        redirectTo: `${window.location.origin}/verify`,
+      },
+    });
+
+    if (response.body?.session) {
+      // Successfully signed up and automatically signed in
+      void goto("/profile");
+    } else {
+      // Verification email sent
+      success = true;
+    }
+  } catch (err) {
+    const fetchError = err as FetchError<ErrorResponse>;
+    error = `An error occurred during sign up: ${fetchError.message}`;
+  } finally {
+    isLoading = false;
+  }
+}
 </script>
 
 {#if success}

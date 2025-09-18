@@ -1,83 +1,83 @@
 <script lang="ts">
-  import type { ErrorResponse } from "@nhost/nhost-js/auth";
-  import type { FetchError } from "@nhost/nhost-js/fetch";
-  import { onMount } from "svelte";
-  import { goto } from "$app/navigation";
-  import { page } from "$app/stores";
-  import { nhost } from "$lib/nhost/auth";
+import type { ErrorResponse } from "@nhost/nhost-js/auth";
+import type { FetchError } from "@nhost/nhost-js/fetch";
+import { onMount } from "svelte";
+import { goto } from "$app/navigation";
+import { page } from "$app/stores";
+import { nhost } from "$lib/nhost/auth";
 
-  let status: "verifying" | "success" | "error" = "verifying";
-  let error = "";
-  let urlParams: Record<string, string> = {};
+let status: "verifying" | "success" | "error" = "verifying";
+let error = "";
+let urlParams: Record<string, string> = {};
 
-  onMount(() => {
-    // Extract the refresh token from the URL
-    const params = new URLSearchParams($page.url.search);
-    const refreshToken = params.get("refreshToken");
+onMount(() => {
+  // Extract the refresh token from the URL
+  const params = new URLSearchParams($page.url.search);
+  const refreshToken = params.get("refreshToken");
 
-    if (!refreshToken) {
-      // Collect all URL parameters to display for debugging
-      const allParams: Record<string, string> = {};
-      params.forEach((value, key) => {
-        allParams[key] = value;
-      });
-      urlParams = allParams;
+  if (!refreshToken) {
+    // Collect all URL parameters to display for debugging
+    const allParams: Record<string, string> = {};
+    params.forEach((value, key) => {
+      allParams[key] = value;
+    });
+    urlParams = allParams;
 
-      status = "error";
-      error = "No refresh token found in URL";
-      return;
-    }
+    status = "error";
+    error = "No refresh token found in URL";
+    return;
+  }
 
-    // Flag to handle component unmounting during async operations
-    let isMounted = true;
+  // Flag to handle component unmounting during async operations
+  let isMounted = true;
 
-    async function processToken() {
-      try {
-        // First display the verifying message for at least a moment
-        await new Promise((resolve) => setTimeout(resolve, 500));
+  async function processToken() {
+    try {
+      // First display the verifying message for at least a moment
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
-        if (!isMounted) return;
+      if (!isMounted) return;
 
-        if (!refreshToken) {
-          // Collect all URL parameters to display
-          const allParams: Record<string, string> = {};
-          params.forEach((value, key) => {
-            allParams[key] = value;
-          });
-          urlParams = allParams;
-
-          status = "error";
-          error = "No refresh token found in URL";
-          return;
-        }
-
-        // Process the token
-        await nhost.auth.refreshToken({ refreshToken });
-
-        if (!isMounted) return;
-
-        status = "success";
-
-        // Wait to show success message briefly, then redirect
-        setTimeout(() => {
-          if (isMounted) void goto("/profile");
-        }, 1500);
-      } catch (err) {
-        const fetchError = err as FetchError<ErrorResponse>;
-        if (!isMounted) return;
+      if (!refreshToken) {
+        // Collect all URL parameters to display
+        const allParams: Record<string, string> = {};
+        params.forEach((value, key) => {
+          allParams[key] = value;
+        });
+        urlParams = allParams;
 
         status = "error";
-        error = `An error occurred during verification: ${fetchError.message}`;
+        error = "No refresh token found in URL";
+        return;
       }
+
+      // Process the token
+      await nhost.auth.refreshToken({ refreshToken });
+
+      if (!isMounted) return;
+
+      status = "success";
+
+      // Wait to show success message briefly, then redirect
+      setTimeout(() => {
+        if (isMounted) void goto("/profile");
+      }, 1500);
+    } catch (err) {
+      const fetchError = err as FetchError<ErrorResponse>;
+      if (!isMounted) return;
+
+      status = "error";
+      error = `An error occurred during verification: ${fetchError.message}`;
     }
+  }
 
-    void processToken();
+  void processToken();
 
-    // Cleanup function
-    return () => {
-      isMounted = false;
-    };
-  });
+  // Cleanup function
+  return () => {
+    isMounted = false;
+  };
+});
 </script>
 
 <div>

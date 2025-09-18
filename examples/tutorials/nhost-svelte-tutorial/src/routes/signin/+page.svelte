@@ -1,46 +1,46 @@
 <script lang="ts">
-  import type { ErrorResponse } from "@nhost/nhost-js/auth";
-  import type { FetchError } from "@nhost/nhost-js/fetch";
-  import { goto } from "$app/navigation";
-  import { auth, nhost } from "$lib/nhost/auth";
+import type { ErrorResponse } from "@nhost/nhost-js/auth";
+import type { FetchError } from "@nhost/nhost-js/fetch";
+import { goto } from "$app/navigation";
+import { auth, nhost } from "$lib/nhost/auth";
 
-  let email = $state("");
-  let password = $state("");
-  let isLoading = $state(false);
-  let error = $state<string | null>(null);
+let email = $state("");
+let password = $state("");
+let isLoading = $state(false);
+let error = $state<string | null>(null);
 
-  // Navigate to profile when authenticated
-  $effect(() => {
-    if ($auth.isAuthenticated) {
-      void goto("/profile");
-    }
-  });
-
-  async function handleSubmit(e: Event) {
-    e.preventDefault();
-    isLoading = true;
-    error = null;
-
-    try {
-      // Use the signIn function from auth context
-      const response = await nhost.auth.signInEmailPassword({
-        email,
-        password,
-      });
-
-      // If we have a session, sign in was successful
-      if (response.body?.session) {
-        void goto("/profile");
-      } else {
-        error = "Failed to sign in. Please check your credentials.";
-      }
-    } catch (err) {
-      const fetchError = err as FetchError<ErrorResponse>;
-      error = `An error occurred during sign in: ${fetchError.message}`;
-    } finally {
-      isLoading = false;
-    }
+// Navigate to profile when authenticated
+$effect(() => {
+  if ($auth.isAuthenticated) {
+    void goto("/profile");
   }
+});
+
+async function handleSubmit(e: Event) {
+  e.preventDefault();
+  isLoading = true;
+  error = null;
+
+  try {
+    // Use the signIn function from auth context
+    const response = await nhost.auth.signInEmailPassword({
+      email,
+      password,
+    });
+
+    // If we have a session, sign in was successful
+    if (response.body?.session) {
+      void goto("/profile");
+    } else {
+      error = "Failed to sign in. Please check your credentials.";
+    }
+  } catch (err) {
+    const fetchError = err as FetchError<ErrorResponse>;
+    error = `An error occurred during sign in: ${fetchError.message}`;
+  } finally {
+    isLoading = false;
+  }
+}
 </script>
 
 <div>

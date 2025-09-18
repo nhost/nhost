@@ -47,8 +47,9 @@ async function fetchFiles() {
   try {
     // Use GraphQL to fetch files from the storage system
     // Files are automatically filtered by user permissions
-    const response = await $auth.nhost.graphql.request<GraphqlGetFilesResponse>({
-      query: `query GetFiles {
+    const response = await $auth.nhost.graphql.request<GraphqlGetFilesResponse>(
+      {
+        query: `query GetFiles {
           files {
             id
             name
@@ -58,7 +59,8 @@ async function fetchFiles() {
             uploadedByUserId
           }
         }`,
-    });
+      },
+    );
 
     if (response.body.errors) {
       throw new Error(
