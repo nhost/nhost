@@ -19,10 +19,8 @@ export default function RootLayout() {
             headerTitleStyle: { fontWeight: "bold" },
           }}
         />
-        <Stack.Screen
-          name="profile"
-          options={{
-            title: "Profile",
+        <Stack
+          screenOptions={{
             headerStyle: { backgroundColor: colors.primary },
             headerTintColor: colors.surface,
             headerTitleStyle: { fontWeight: "bold" },

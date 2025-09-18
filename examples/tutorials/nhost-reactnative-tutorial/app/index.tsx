@@ -25,6 +25,12 @@ export default function Index() {
             </TouchableOpacity>
             <TouchableOpacity
               style={[commonStyles.button, commonStyles.fullWidth]}
+              onPress={() => router.push("/files")}
+            >
+              <Text style={commonStyles.buttonText}>My Files</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[commonStyles.button, commonStyles.fullWidth]}
               onPress={() => router.push("/profile")}
             >
               <Text style={commonStyles.buttonText}>Go to Profile</Text>
