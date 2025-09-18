@@ -26,7 +26,11 @@ export default function Profile() {
           </div>
           <div className="field-group">
             <strong>Email Verified:</strong>
-            <span className={user?.emailVerified ? 'email-verified' : 'email-unverified'}>
+            <span
+              className={
+                user?.emailVerified ? "email-verified" : "email-unverified"
+              }
+            >
               {user?.emailVerified ? "✓ Yes" : "✗ No"}
             </span>
           </div>

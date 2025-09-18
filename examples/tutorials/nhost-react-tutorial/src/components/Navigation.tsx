@@ -43,6 +43,7 @@ export default function Navigation() {
                 Profile
               </Link>
               <button
+                type="button"
                 onClick={handleSignOut}
                 className="nav-link nav-button"
               >

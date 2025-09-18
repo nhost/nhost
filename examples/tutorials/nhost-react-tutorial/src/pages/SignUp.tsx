@@ -1,4 +1,4 @@
-import { useState, useEffect, useId } from "react";
+import { useEffect, useId, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/nhost/AuthProvider";
 
@@ -65,7 +65,8 @@ export default function SignUp() {
             We've sent a verification link to <strong>{email}</strong>
           </p>
           <p>
-            Please check your email and click the verification link to activate your account.
+            Please check your email and click the verification link to activate
+            your account.
           </p>
         </div>
         <p>
@@ -88,7 +89,7 @@ export default function SignUp() {
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
             required
-className="auth-input"
+            className="auth-input"
           />
         </div>
 
@@ -100,7 +101,7 @@ className="auth-input"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-className="auth-input"
+            className="auth-input"
           />
         </div>
 
@@ -113,16 +114,12 @@ className="auth-input"
             onChange={(e) => setPassword(e.target.value)}
             required
             minLength={8}
-className="auth-input"
+            className="auth-input"
           />
           <small className="help-text">Minimum 8 characters</small>
         </div>
 
-        {error && (
-          <div className="auth-error">
-            {error}
-          </div>
-        )}
+        {error && <div className="auth-error">{error}</div>}
 
         <button
           type="submit"

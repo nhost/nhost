@@ -50,7 +50,7 @@ File upload and management
 Build a comprehensive sign-in form with proper error handling and loading states. This page handles user authentication and includes special logic for post-verification sign-in.
 
 ```tsx src/pages/SignIn.tsx lines
-import { useState, useEffect, useId } from "react";
+import { useEffect, useId, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/nhost/AuthProvider";
 
@@ -128,11 +128,7 @@ export default function SignIn() {
           />
         </div>
 
-        {error && (
-          <div className="auth-error">
-            {error}
-          </div>
-        )}
+        {error && <div className="auth-error">{error}</div>}
 
         <button
           type="submit"
@@ -162,7 +158,7 @@ export default function SignIn() {
 Implement user registration with email verification flow. This page collects user information, creates accounts, and guides users through the email verification process.
 
 ```tsx src/pages/SignUp.tsx lines
-import { useState, useEffect, useId } from "react";
+import { useEffect, useId, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/nhost/AuthProvider";
 
@@ -229,7 +225,8 @@ export default function SignUp() {
             We've sent a verification link to <strong>{email}</strong>
           </p>
           <p>
-            Please check your email and click the verification link to activate your account.
+            Please check your email and click the verification link to activate
+            your account.
           </p>
         </div>
         <p>
@@ -252,7 +249,7 @@ export default function SignUp() {
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
             required
-className="auth-input"
+            className="auth-input"
           />
         </div>
 
@@ -264,7 +261,7 @@ className="auth-input"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-className="auth-input"
+            className="auth-input"
           />
         </div>
 
@@ -277,16 +274,12 @@ className="auth-input"
             onChange={(e) => setPassword(e.target.value)}
             required
             minLength={8}
-className="auth-input"
+            className="auth-input"
           />
           <small className="help-text">Minimum 8 characters</small>
         </div>
 
-        {error && (
-          <div className="auth-error">
-            {error}
-          </div>
-        )}
+        {error && <div className="auth-error">{error}</div>}
 
         <button
           type="submit"
@@ -421,30 +414,22 @@ export default function Verify() {
 
         {status === "success" && (
           <div>
-            <p className="verification-status">
-              ✓ Successfully verified!
-            </p>
+            <p className="verification-status">✓ Successfully verified!</p>
             <p>You'll be redirected to your profile page shortly...</p>
           </div>
         )}
 
         {status === "error" && (
           <div>
-            <p className="verification-status error">
-              Verification failed
-            </p>
+            <p className="verification-status error">Verification failed</p>
             <p className="margin-bottom">{error}</p>
 
             {Object.keys(urlParams).length > 0 && (
               <div className="debug-panel">
-                <p className="debug-title">
-                  URL Parameters:
-                </p>
+                <p className="debug-title">URL Parameters:</p>
                 {Object.entries(urlParams).map(([key, value]) => (
                   <div key={key} className="debug-item">
-                    <span className="debug-key">
-                      {key}:
-                    </span>{" "}
+                    <span className="debug-key">{key}:</span>{" "}
                     <span className="debug-value">{value}</span>
                   </div>
                 ))}
@@ -494,8 +479,8 @@ import {
   Route,
   RouterProvider,
 } from "react-router-dom";
-import ProtectedRoute from "./components/ProtectedRoute";
 import Navigation from "./components/Navigation";
+import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./lib/nhost/AuthProvider";
 import Home from "./pages/Home";
 import Profile from "./pages/Profile";
@@ -589,6 +574,7 @@ export default function Navigation() {
                 Profile
               </Link>
               <button
+                type="button"
                 onClick={handleSignOut}
                 className="nav-link nav-button"
               >

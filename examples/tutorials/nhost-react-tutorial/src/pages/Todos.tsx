@@ -2,7 +2,6 @@ import type { JSX } from "react";
 import { useCallback, useEffect, useId, useState } from "react";
 import { useAuth } from "../lib/nhost/AuthProvider";
 
-
 // The interfaces below define the structure of our data
 // They are not strictly necessary but help with type safety
 
@@ -357,7 +356,7 @@ export default function Todos(): JSX.Element {
               todos.map((todo) => (
                 <div
                   key={todo.id}
-                  className={`todo-card ${todo.completed ? 'completed' : ''}`}
+                  className={`todo-card ${todo.completed ? "completed" : ""}`}
                 >
                   {editingTodo?.id === todo.id ? (
                     <div className="todo-edit">
@@ -413,7 +412,7 @@ export default function Todos(): JSX.Element {
                       <div className="todo-header">
                         <button
                           type="button"
-                          className={`todo-title-btn ${todo.completed ? 'completed' : ''}`}
+                          className={`todo-title-btn ${todo.completed ? "completed" : ""}`}
                           onClick={() => toggleTodoExpansion(todo.id)}
                         >
                           {todo.title}
@@ -453,7 +452,9 @@ export default function Todos(): JSX.Element {
                       {expandedTodos.has(todo.id) && (
                         <div className="todo-details">
                           {todo.details && (
-                            <div className={`todo-description ${todo.completed ? 'completed' : ''}`}>
+                            <div
+                              className={`todo-description ${todo.completed ? "completed" : ""}`}
+                            >
                               <p>{todo.details}</p>
                             </div>
                           )}
@@ -461,10 +462,12 @@ export default function Todos(): JSX.Element {
                           <div className="todo-meta">
                             <div className="meta-dates">
                               <span className="meta-item">
-                                Created: {new Date(todo.created_at).toLocaleString()}
+                                Created:{" "}
+                                {new Date(todo.created_at).toLocaleString()}
                               </span>
                               <span className="meta-item">
-                                Updated: {new Date(todo.updated_at).toLocaleString()}
+                                Updated:{" "}
+                                {new Date(todo.updated_at).toLocaleString()}
                               </span>
                             </div>
                             {todo.completed && (

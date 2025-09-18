@@ -2,17 +2,14 @@ import type { FileMetadata } from "@nhost/nhost-js/storage";
 import { type JSX, useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "../lib/nhost/AuthProvider";
 
-
 interface DeleteStatus {
   message: string;
   isError: boolean;
 }
 
-
 interface GraphqlGetFilesResponse {
   files: FileMetadata[];
 }
-
 
 function formatFileSize(bytes: number): string {
   if (bytes === 0) return "0 Bytes";
@@ -22,7 +19,6 @@ function formatFileSize(bytes: number): string {
 
   return `${parseFloat((bytes / 1024 ** i).toFixed(2))} ${sizes[i]}`;
 }
-
 
 export default function Files(): JSX.Element {
   const { isAuthenticated, nhost } = useAuth();
@@ -312,7 +308,11 @@ export default function Files(): JSX.Element {
         <h2 className="form-title">Your Files</h2>
 
         {deleteStatus && (
-          <div className={deleteStatus.isError ? "error-message" : "success-message"}>
+          <div
+            className={
+              deleteStatus.isError ? "error-message" : "success-message"
+            }
+          >
             {deleteStatus.message}
           </div>
         )}
@@ -341,7 +341,9 @@ export default function Files(): JSX.Element {
               />
             </svg>
             <h3 className="empty-title">No files yet</h3>
-            <p className="empty-description">Upload your first file to get started!</p>
+            <p className="empty-description">
+              Upload your first file to get started!
+            </p>
           </div>
         ) : (
           <div style={{ overflowX: "auto" }}>
@@ -359,7 +361,9 @@ export default function Files(): JSX.Element {
                   <tr key={file.id}>
                     <td className="file-name">{file.name}</td>
                     <td className="file-meta">{file.mimeType}</td>
-                    <td className="file-meta">{formatFileSize(file.size || 0)}</td>
+                    <td className="file-meta">
+                      {formatFileSize(file.size || 0)}
+                    </td>
                     <td>
                       <div className="file-actions">
                         <button

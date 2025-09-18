@@ -103,30 +103,22 @@ export default function Verify() {
 
         {status === "success" && (
           <div>
-            <p className="verification-status">
-              ✓ Successfully verified!
-            </p>
+            <p className="verification-status">✓ Successfully verified!</p>
             <p>You'll be redirected to your profile page shortly...</p>
           </div>
         )}
 
         {status === "error" && (
           <div>
-            <p className="verification-status error">
-              Verification failed
-            </p>
+            <p className="verification-status error">Verification failed</p>
             <p className="margin-bottom">{error}</p>
 
             {Object.keys(urlParams).length > 0 && (
               <div className="debug-panel">
-                <p className="debug-title">
-                  URL Parameters:
-                </p>
+                <p className="debug-title">URL Parameters:</p>
                 {Object.entries(urlParams).map(([key, value]) => (
                   <div key={key} className="debug-item">
-                    <span className="debug-key">
-                      {key}:
-                    </span>{" "}
+                    <span className="debug-key">{key}:</span>{" "}
                     <span className="debug-value">{value}</span>
                   </div>
                 ))}

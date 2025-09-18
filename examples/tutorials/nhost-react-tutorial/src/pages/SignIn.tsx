@@ -1,4 +1,4 @@
-import { useState, useEffect, useId } from "react";
+import { useEffect, useId, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/nhost/AuthProvider";
 
@@ -76,11 +76,7 @@ export default function SignIn() {
           />
         </div>
 
-        {error && (
-          <div className="auth-error">
-            {error}
-          </div>
-        )}
+        {error && <div className="auth-error">{error}</div>}
 
         <button
           type="submit"
