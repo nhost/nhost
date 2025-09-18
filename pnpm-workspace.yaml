@@ -5,6 +5,7 @@ packages:
   - examples/demos/**
   - examples/guides/**
   - examples/quickstarts/**
+  - examples/tutorials/**
   - '!**/test/**'
   - '!out/**'
   - '!**/functions'

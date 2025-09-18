@@ -17,13 +17,15 @@ export async function middleware(request: NextRequest) {
     (route) => path === route || path.startsWith(`${route}/`),
   );
 
+  // this is the only Nhost specific code in this middleware
+  // we call the Nhost middleware even on "public" routes
+  // to refresh the session if needed
+  const session = await handleNhostMiddleware(request, response);
+
   // If it's a public route, allow access without checking auth
   if (isPublicRoute) {
     return response;
   }
-
-  // this is the only Nhost specific code in this middleware
-  const session = await handleNhostMiddleware(request, response);
 
   // If no session and not a public route, redirect to signin
   if (!session) {
