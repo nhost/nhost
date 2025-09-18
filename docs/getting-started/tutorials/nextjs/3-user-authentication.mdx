@@ -151,11 +151,7 @@ export default function SignInForm({ initialError }: SignInFormProps) {
         />
       </div>
 
-      {error && (
-        <div className="auth-error">
-          {error}
-        </div>
-      )}
+      {error && <div className="auth-error">{error}</div>}
 
       <button
         type="submit"
@@ -259,7 +255,8 @@ export default async function SignUp({
             We've sent a verification link to <strong>{email}</strong>
           </p>
           <p>
-            Please check your email and click the verification link to activate your account.
+            Please check your email and click the verification link to activate
+            your account.
           </p>
         </div>
         <p>
@@ -367,11 +364,7 @@ export default function SignUpForm({ initialError }: SignUpFormProps) {
         <small className="help-text">Minimum 8 characters</small>
       </div>
 
-      {error && (
-        <div className="auth-error">
-          {error}
-        </div>
-      )}
+      {error && <div className="auth-error">{error}</div>}
 
       <button
         type="submit"
@@ -417,7 +410,7 @@ export async function signUp(formData: FormData) {
       options: {
         displayName,
         // Set the redirect URL for email verification
-        redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/verify`,
+        redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/verify`,
       },
     });
 
@@ -427,7 +420,7 @@ export async function signUp(formData: FormData) {
     } else {
       // Verification email sent
       return {
-        redirect: `/signup?verify=success&email=${encodeURIComponent(email)}`
+        redirect: `/signup?verify=success&email=${encodeURIComponent(email)}`,
       };
     }
   } catch (err) {
@@ -532,21 +525,15 @@ export default async function VerifyError({
       <h1>Email Verification</h1>
 
       <div className="page-center">
-        <p className="verification-status error">
-          Verification failed
-        </p>
+        <p className="verification-status error">Verification failed</p>
         <p className="margin-bottom">{message}</p>
 
         {urlParams.length > 0 && (
           <div className="debug-panel">
-            <p className="debug-title">
-              URL Parameters:
-            </p>
+            <p className="debug-title">URL Parameters:</p>
             {urlParams.map(([key, value]) => (
               <div key={key} className="debug-item">
-                <span className="debug-key">
-                  {key}:
-                </span>{" "}
+                <span className="debug-key">{key}:</span>{" "}
                 <span className="debug-value">{value}</span>
               </div>
             ))}
@@ -610,6 +597,7 @@ export default function SignOutButton() {
 
   return (
     <button
+      type="button"
       onClick={handleSignOut}
       className="nav-link nav-button"
     >

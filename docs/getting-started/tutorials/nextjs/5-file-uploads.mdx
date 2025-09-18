@@ -121,16 +121,28 @@ First, let's create server actions to handle file upload and delete operations. 
 ```tsx src/app/files/actions.ts
 "use server";
 
-import { createNhostClient } from "../../lib/nhost/server";
+import type { FileMetadata } from "@nhost/nhost-js/storage";
 import { revalidatePath } from "next/cache";
+import { createNhostClient } from "../../lib/nhost/server";
 
-export interface ActionResult {
+export interface ActionResult<T> {
   success: boolean;
   error?: string;
-  data?: any;
+  data?: T;
 }
 
-export async function uploadFileAction(formData: FormData): Promise<ActionResult> {
+export interface UploadFileData {
+  file: FileMetadata;
+  message: string;
+}
+
+export interface DeleteFileData {
+  message: string;
+}
+
+export async function uploadFileAction(
+  formData: FormData,
+): Promise<ActionResult<UploadFileData>> {
   try {
     const nhost = await createNhostClient();
     const file = formData.get("file") as File;
@@ -154,16 +166,20 @@ export async function uploadFileAction(formData: FormData): Promise<ActionResult
       success: true,
       data: {
         file: uploadedFile,
-        message: "File uploaded successfully!"
-      }
+        message: "File uploaded successfully!",
+      },
     };
   } catch (error) {
-    const message = error instanceof Error ? error.message : "An unknown error occurred";
+    const message =
+      error instanceof Error ? error.message : "An unknown error occurred";
     return { success: false, error: `Failed to upload file: ${message}` };
   }
 }
 
-export async function deleteFileAction(fileId: string, fileName: string): Promise<ActionResult> {
+export async function deleteFileAction(
+  fileId: string,
+  fileName: string,
+): Promise<ActionResult<DeleteFileData>> {
   try {
     const nhost = await createNhostClient();
 
@@ -176,11 +192,15 @@ export async function deleteFileAction(fileId: string, fileName: string): Promis
     revalidatePath("/files");
     return {
       success: true,
-      data: { message: `${fileName} deleted successfully` }
+      data: { message: `${fileName} deleted successfully` },
     };
   } catch (error) {
-    const message = error instanceof Error ? error.message : "An unknown error occurred";
-    return { success: false, error: `Failed to delete ${fileName}: ${message}` };
+    const message =
+      error instanceof Error ? error.message : "An unknown error occurred";
+    return {
+      success: false,
+      error: `Failed to delete ${fileName}: ${message}`,
+    };
   }
 }
 ```
@@ -191,12 +211,12 @@ export async function deleteFileAction(fileId: string, fileName: string): Promis
 Create an API route to handle file viewing and downloading. This route will fetch the file from Nhost storage and return it with appropriate headers to the client.
 
 ```tsx src/app/files/download/[fileId]/route.ts
+import { type NextRequest, NextResponse } from "next/server";
 import { createNhostClient } from "../../../../lib/nhost/server";
-import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ fileId: string }> }
+  { params }: { params: Promise<{ fileId: string }> },
 ) {
   try {
     const nhost = await createNhostClient();
@@ -205,7 +225,10 @@ export async function GET(
     const download = request.nextUrl.searchParams.get("download") === "true";
 
     if (!fileId) {
-      return NextResponse.json({ error: "File ID is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "File ID is required" },
+        { status: 400 },
+      );
     }
 
     const response = await nhost.storage.getFile(fileId);
@@ -229,16 +252,19 @@ export async function GET(
         "Content-Type": response.body.type || "application/octet-stream",
         "Content-Disposition": contentDisposition,
         "Content-Length": arrayBuffer.byteLength.toString(),
-        "Cache-Control": response.headers.get("Cache-Control") || "public, max-age=31536000, immutable",
-        "Etag": response.headers.get("ETag") || "",
+        "Cache-Control":
+          response.headers.get("Cache-Control") ||
+          "public, max-age=31536000, immutable",
+        Etag: response.headers.get("ETag") || "",
         "Last-Modified": response.headers.get("Last-Modified") || "",
       },
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "An unknown error occurred";
+    const message =
+      error instanceof Error ? error.message : "An unknown error occurred";
     return NextResponse.json(
       { error: `Failed to access file: ${message}` },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -316,7 +342,7 @@ The files client component is a **client component** that handles all user inter
 
 import type { FileMetadata } from "@nhost/nhost-js/storage";
 import { useRef, useState, useTransition } from "react";
-import { uploadFileAction, deleteFileAction } from "./actions";
+import { deleteFileAction, uploadFileAction } from "./actions";
 
 interface FilesClientProps {
   initialFiles: FileMetadata[];
@@ -380,8 +406,9 @@ export default function FilesClient({
 
         const result = await uploadFileAction(formData);
 
-        if (result.success) {
-          setUploadResult(result.data.file);
+        if (result.success && result.data) {
+          const file = result.data.file;
+          setUploadResult(file);
 
           // Clear the form
           setSelectedFile(null);
@@ -390,7 +417,7 @@ export default function FilesClient({
           }
 
           // Update the files list
-          setFiles((prevFiles) => [result.data.file, ...prevFiles]);
+          setFiles((prevFiles) => [file, ...prevFiles]);
 
           // Clear success message after 3 seconds
           setTimeout(() => {
@@ -477,7 +504,7 @@ export default function FilesClient({
       try {
         const result = await deleteFileAction(fileId, fileName);
 
-        if (result.success) {
+        if (result.success && result.data) {
           setDeleteStatus({
             message: result.data.message,
             isError: false,
@@ -583,7 +610,11 @@ export default function FilesClient({
         <h2 className="form-title">Your Files</h2>
 
         {deleteStatus && (
-          <div className={deleteStatus.isError ? "error-message" : "success-message"}>
+          <div
+            className={
+              deleteStatus.isError ? "error-message" : "success-message"
+            }
+          >
             {deleteStatus.message}
           </div>
         )}
@@ -605,7 +636,9 @@ export default function FilesClient({
               />
             </svg>
             <h3 className="empty-title">No files yet</h3>
-            <p className="empty-description">Upload your first file to get started!</p>
+            <p className="empty-description">
+              Upload your first file to get started!
+            </p>
           </div>
         ) : (
           <div style={{ overflowX: "auto" }}>
@@ -623,7 +656,9 @@ export default function FilesClient({
                   <tr key={file.id}>
                     <td className="file-name">{file.name}</td>
                     <td className="file-meta">{file.mimeType}</td>
-                    <td className="file-meta">{formatFileSize(file.size || 0)}</td>
+                    <td className="file-meta">
+                      {formatFileSize(file.size || 0)}
+                    </td>
                     <td>
                       <div className="file-actions">
                         <button

@@ -273,7 +273,8 @@ export default async function Profile() {
         <h3 className="form-title">User Information</h3>
         <div className="form-fields">
           <div className="field-group">
-            <strong>Display Name:</strong> {session?.user?.displayName || "Not set"}
+            <strong>Display Name:</strong>{" "}
+            {session?.user?.displayName || "Not set"}
           </div>
           <div className="field-group">
             <strong>Email:</strong> {session?.user?.email || "Not available"}
@@ -286,7 +287,13 @@ export default async function Profile() {
           </div>
           <div className="field-group">
             <strong>Email Verified:</strong>
-            <span className={session?.user?.emailVerified ? 'email-verified' : 'email-unverified'}>
+            <span
+              className={
+                session?.user?.emailVerified
+                  ? "email-verified"
+                  : "email-unverified"
+              }
+            >
               {session?.user?.emailVerified ? "✓ Yes" : "✗ No"}
             </span>
           </div>
@@ -323,7 +330,7 @@ export default async function Home() {
 
   return (
     <div className="container">
-      <header  className="page-header">
+      <header className="page-header">
         <h1 className="page-title">Welcome to Nhost Next.js Demo</h1>
       </header>
 
@@ -413,9 +420,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <Navigation />
-        <div className="app-content">
-          {children}
-        </div>
+        <div className="app-content">{children}</div>
       </body>
     </html>
   );
@@ -495,7 +500,8 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
-input, textarea {
+input,
+textarea {
   width: 100%;
   padding: 0.875rem 1rem;
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -508,14 +514,16 @@ input, textarea {
   font-family: inherit;
 }
 
-input:focus, textarea:focus {
+input:focus,
+textarea:focus {
   outline: none;
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
   background: rgba(255, 255, 255, 0.08);
 }
 
-input::placeholder, textarea::placeholder {
+input::placeholder,
+textarea::placeholder {
   color: rgba(255, 255, 255, 0.5);
 }
 
@@ -533,8 +541,12 @@ label {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Global Layout */
@@ -578,7 +590,6 @@ label {
   box-sizing: border-box;
   position: relative;
 }
-
 
 /* Status Messages */
 .success-message {
@@ -1286,7 +1297,6 @@ label {
     gap: 0.25rem;
   }
 }
-
 ```
 
 </Step>
