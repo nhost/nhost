@@ -601,16 +601,14 @@ export default function Todos(): JSX.Element {
                             <div className="flex items-center space-x-3">
                               <span className="flex items-center space-x-1 text-muted">
                                 <span>
-                                  Created: {new Date(
-                                    todo.created_at,
-                                  ).toLocaleString()}
+                                  Created:{" "}
+                                  {new Date(todo.created_at).toLocaleString()}
                                 </span>
                               </span>
                               <span className="flex items-center space-x-1 text-muted">
-                                Updated: <span>
-                                  {new Date(
-                                    todo.updated_at,
-                                  ).toLocaleString()}
+                                Updated:{" "}
+                                <span>
+                                  {new Date(todo.updated_at).toLocaleString()}
                                 </span>
                               </span>
                             </div>

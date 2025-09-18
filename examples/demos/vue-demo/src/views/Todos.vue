@@ -216,7 +216,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, useId } from "vue";
+import { onMounted, ref, useId } from "vue";
 import { useAuth } from "../lib/nhost/auth";
 
 // The interfaces below define the structure of our data
@@ -330,9 +330,7 @@ const addTodo = async () => {
     });
 
     if (response.body.errors) {
-      throw new Error(
-        response.body.errors[0]?.message || "Failed to add todo",
-      );
+      throw new Error(response.body.errors[0]?.message || "Failed to add todo");
     }
 
     if (!response.body?.data?.insert_todos_one) {
@@ -387,7 +385,9 @@ const updateTodo = async (
 
     const updatedTodo = response.body?.data?.update_todos_by_pk;
     if (updatedTodo) {
-      todos.value = todos.value.map((todo) => (todo.id === id ? updatedTodo : todo));
+      todos.value = todos.value.map((todo) =>
+        todo.id === id ? updatedTodo : todo,
+      );
     }
     editingTodo.value = null;
     error.value = null;
