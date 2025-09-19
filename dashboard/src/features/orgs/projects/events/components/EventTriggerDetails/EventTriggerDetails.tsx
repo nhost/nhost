@@ -5,54 +5,9 @@ import {
   TabsTrigger,
 } from '@/components/ui/v3/tabs';
 import { EventsEmptyState } from '@/features/orgs/projects/events/components/EventsEmptyState';
+import { EventTriggerOverview } from '@/features/orgs/projects/events/components/EventTriggerOverview';
 import { useGetEventTriggers } from '@/features/orgs/projects/events/hooks/useGetEventTriggers';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
-import { EventTriggerOverview } from '../EventTriggerOverview';
-
-const data = {
-  dataSource: 'default',
-  table: {
-    name: 'users',
-    schema: 'public',
-  },
-  schema: 'public',
-  name: 'triggername2',
-  definition: {
-    enable_manual: true,
-    insert: {
-      columns: '*',
-    },
-  },
-  retry_conf: {
-    interval_sec: 11,
-    num_retries: 1,
-    timeout_sec: 61,
-  },
-  webhook: 'https://httpbin.org/post',
-  headers: [
-    {
-      name: 'header',
-      value: 'value',
-    },
-    {
-      name: 'header2',
-      value: 'NOTENVVAR',
-    },
-  ],
-  request_transform: {
-    body: {
-      action: 'transform',
-      template:
-        '{\n  "table": {\n    "name": {{$body.table.name}},\n    "schema": {{$body.table.schema}},\n    "something": {{$body.event.data.new.role}}\n  }\n}',
-    },
-    method: 'POST',
-    query_params: 'somekriti',
-    template_engine: 'Kriti',
-    url: '{{$base_url}}/requesturltemplate',
-    version: 2,
-  },
-};
 
 export default function EventTriggerDetails() {
   const router = useRouter();
@@ -81,21 +36,6 @@ export default function EventTriggerDetails() {
       />
     );
   }
-  const [isTransformOpen, setIsTransformOpen] = useState(false);
-
-  const operations: string[] = [];
-  if (eventTrigger.definition?.insert) {
-    operations.push('Insert');
-  }
-  if (eventTrigger.definition?.update) {
-    operations.push('Update');
-  }
-  if (eventTrigger.definition?.delete) {
-    operations.push('Delete');
-  }
-  if (eventTrigger.definition?.enable_manual) {
-    operations.push('Manual (Dashboard)');
-  }
 
   return (
     <div className="p-4">
@@ -119,7 +59,9 @@ export default function EventTriggerDetails() {
           <TabsContent value="overview">
             <EventTriggerOverview eventTrigger={eventTrigger} />
           </TabsContent>
-          <TabsContent value="pending-processed-events"></TabsContent>
+          <TabsContent value="pending-processed-events">
+            <div>Pending/Processed events</div>
+          </TabsContent>
         </Tabs>
       </div>
     </div>

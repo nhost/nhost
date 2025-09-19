@@ -28,6 +28,7 @@ paths:
                 - $ref: '#/components/schemas/RemoteSchemaRemoteRelationshipOperation'
                 - $ref: '#/components/schemas/DeleteRemoteSchemaRemoteRelationshipOperation'
                 - $ref: '#/components/schemas/RemoteSchemaPermissionsBulkOperation'
+                - $ref: '#/components/schemas/GetEventInvocationLogsOperation'
       responses:
         '200':
           description: Operation executed successfully
@@ -42,6 +43,7 @@ paths:
                         example: success
                   - $ref: '#/components/schemas/ExportMetadataResponse'
                   - $ref: '#/components/schemas/IntrospectRemoteSchemaResponse'
+                  - $ref: '#/components/schemas/GetEventInvocationLogsResponse'
         '400':
           description: Bad request
           content:
@@ -1222,3 +1224,179 @@ components:
         schema:
           type: string
           description: Schema of the table
+
+    GetEventInvocationLogsOperation:
+      description: Operation used to fetch the invocation logs for a given event trigger.
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_get_event_invocation_logs]
+        args:
+          $ref: '#/components/schemas/GetEventInvocationLogsArgs'
+
+    GetEventInvocationLogsArgs:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Name of the event trigger
+        source:
+          type: string
+          description: Name of the source database of the trigger
+          default: default
+        limit:
+          type: integer
+          description: Maximum number of invocation logs to be returned in one API call
+          default: 100
+        offset:
+          type: integer
+          default: 0
+
+    GetEventInvocationLogsResponse:
+      type: array
+      description: List of invocation logs for the given event trigger
+      items:
+        $ref: '#/components/schemas/EventInvocationLogEntry'
+
+    EventInvocationLogEntry:
+      type: object
+      description: Event invocation log entry containing request and response details
+      required:
+        - id
+        - trigger_name
+        - event_id
+        - http_status
+        - request
+        - created_at
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the log entry
+          example: d1de2b04-dbb9-4d21-bdaf-25c3dfef3d7b
+        trigger_name:
+          type: string
+          description: Name of the event trigger
+          example: mytrigger
+        event_id:
+          type: string
+          description: Unique identifier for the event
+          example: a7b67072-980d-4cfd-bbfa-a8ee749f453e
+        http_status:
+          type: integer
+          description: HTTP status code of the webhook response
+          example: 200
+        request:
+          type: object
+          description: Details of the HTTP request sent to the webhook
+          required:
+            - headers
+            - payload
+            - version
+          properties:
+            headers:
+              $ref: '#/components/schemas/Headers'
+            payload:
+              type: object
+              description: The event payload sent to the webhook
+              properties:
+                created_at:
+                  type: string
+                  format: date-time
+                  description: When the event was created
+                delivery_info:
+                  type: object
+                  description: Information about the delivery attempt
+                  properties:
+                    current_retry:
+                      type: integer
+                      description: Current retry attempt number
+                    max_retries:
+                      type: integer
+                      description: Maximum number of retries allowed
+                event:
+                  type: object
+                  description: The actual event data
+                  properties:
+                    data:
+                      type: object
+                      description: The data that changed
+                      properties:
+                        new:
+                          type: object
+                          nullable: true
+                          description: New row data (for INSERT and UPDATE)
+                        old:
+                          type: object
+                          nullable: true
+                          description: Old row data (for UPDATE and DELETE)
+                    op:
+                      type: string
+                      enum: [INSERT, UPDATE, DELETE]
+                      description: The operation that triggered the event
+                    session_variables:
+                      type: object
+                      description: Session variables at the time of the event
+                      additionalProperties:
+                        type: string
+                    trace_context:
+                      type: object
+                      description: Tracing context for the event
+                      properties:
+                        sampling_state:
+                          type: string
+                        span_id:
+                          type: string
+                        trace_id:
+                          type: string
+                id:
+                  type: string
+                  description: Event ID
+                table:
+                  $ref: '#/components/schemas/QualifiedTable'
+                trigger:
+                  type: object
+                  description: Trigger information
+                  properties:
+                    name:
+                      type: string
+                      description: Name of the trigger
+              additionalProperties: true
+            version:
+              type: string
+              description: Version of the event payload format
+              example: '2'
+        response:
+          type: object
+          description: Details of the HTTP response from the webhook
+          properties:
+            data:
+              type: object
+              description: Response data from the webhook
+              properties:
+                body:
+                  type: string
+                  description: Response body as string
+                headers:
+                  $ref: '#/components/schemas/Headers'
+                status:
+                  type: integer
+                  description: HTTP status code
+            type:
+              type: string
+              description: Type of response
+              example: webhook_response
+            version:
+              type: string
+              description: Version of the response format
+              example: '2'
+        created_at:
+          type: string
+          format: date-time
+          description: When the log entry was created
+          example: 2025-09-19T16:01:31.086239Z
