@@ -40,6 +40,21 @@ export default function Index() {
             <Text style={homeStyles.welcomeText}>
               Hello, {user?.displayName || user?.email}!
             </Text>
+
+            <TouchableOpacity
+              style={[commonStyles.button, commonStyles.fullWidth]}
+              onPress={() => router.push("/todos")}
+            >
+              <Text style={commonStyles.buttonText}>My Todos</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[commonStyles.button, commonStyles.fullWidth]}
+              onPress={() => router.push("/files")}
+            >
+              <Text style={commonStyles.buttonText}>My Files</Text>
+            </TouchableOpacity>
+
             <TouchableOpacity
               style={[commonStyles.button, commonStyles.fullWidth]}
               onPress={() => router.push("/profile")}
