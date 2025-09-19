@@ -13,9 +13,20 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "io.example.nhost-reactnative-tutorial",
+      "jsEngine": "jsc",
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "This app uses Face ID for signing in",
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": ["nhost-reactnative-tutorial"]
+          }
+        ]
+      }
     },
     "android": {
+      "jsEngine": "jsc",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -26,9 +37,13 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    "plugins": [
+      "expo-router",
+      ["expo-apple-authentication"]
+    ],
     "extra": {
       "NHOST_REGION": "local",
-      "NHOST_SUBDOMAIN": "192-168-1-108",
+      "NHOST_SUBDOMAIN": "192-168-1-108"
     }
   }
 }

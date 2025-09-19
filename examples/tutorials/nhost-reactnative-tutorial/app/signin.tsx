@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import AppleSignInButton from "./components/AppleSignInButton";
 import { useAuth } from "./lib/nhost/AuthProvider";
 import { commonStyles } from "./styles/commonStyles";
 import { colors } from "./styles/theme";
@@ -66,6 +67,19 @@ export default function SignIn() {
         <Text style={commonStyles.title}>Sign In</Text>
 
         <View style={commonStyles.card}>
+          {/* Apple Sign In Button */}
+          <AppleSignInButton
+            isLoading={isLoading}
+            setIsLoading={setIsLoading}
+          />
+
+          {/* Divider */}
+          <View style={commonStyles.dividerContainer}>
+            <View style={commonStyles.divider} />
+            <Text style={commonStyles.dividerText}>or</Text>
+            <View style={commonStyles.divider} />
+          </View>
+
           <View style={commonStyles.formField}>
             <Text style={commonStyles.labelText}>Email</Text>
             <TextInput
