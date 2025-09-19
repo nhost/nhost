@@ -3,10 +3,11 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/v3/collapsible';
+import EventTriggerHeadersTable from '@/features/orgs/projects/events/components/EventTriggerHeadersTable/EventTriggerHeadersTable';
+import { EventTriggerInvocationLogs } from '@/features/orgs/projects/events/components/EventTriggerInvocationLogs';
 import type { EventTriggerUI } from '@/features/orgs/projects/events/types';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
-import EventTriggerHeadersTable from '../EventTriggerHeadersTable/EventTriggerHeadersTable';
 
 export default function EventTriggerOverview({
   eventTrigger,
@@ -14,6 +15,7 @@ export default function EventTriggerOverview({
   eventTrigger: EventTriggerUI;
 }) {
   const [isTransformOpen, setIsTransformOpen] = useState(false);
+  const [isHeadersOpen, setIsHeadersOpen] = useState(false);
   const operations: string[] = [];
   if (eventTrigger.definition.insert) {
     operations.push('Insert');
@@ -129,14 +131,27 @@ export default function EventTriggerOverview({
       )}
 
       {eventTrigger.headers && (
-        <div className="rounded border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
-          <h3 className="mb-3 font-medium text-gray-900 dark:text-gray-100">
-            Request Headers
-          </h3>
-          <div className="overflow-x-auto">
-            <EventTriggerHeadersTable headers={eventTrigger.headers} />
+        <Collapsible open={isHeadersOpen} onOpenChange={setIsHeadersOpen}>
+          <div className="rounded border border-gray-200 dark:border-gray-700">
+            <CollapsibleTrigger className="flex w-full items-center justify-between bg-gray-50 p-4 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700">
+              <h3 className="font-medium text-gray-900 dark:text-gray-100">
+                Request Headers
+              </h3>
+              {isHeadersOpen ? (
+                <ChevronDown className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+              ) : (
+                <ChevronRight className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+              )}
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="border-t border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
+                <div className="overflow-x-auto">
+                  <EventTriggerHeadersTable headers={eventTrigger.headers} />
+                </div>
+              </div>
+            </CollapsibleContent>
           </div>
-        </div>
+        </Collapsible>
       )}
 
       {eventTrigger.request_transform && (
@@ -211,6 +226,7 @@ export default function EventTriggerOverview({
           </div>
         </Collapsible>
       )}
+      <EventTriggerInvocationLogs eventTrigger={eventTrigger} />
     </div>
   );
 }
