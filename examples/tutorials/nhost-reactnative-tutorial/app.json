@@ -37,10 +37,7 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": [
-      "expo-router",
-      ["expo-apple-authentication"]
-    ],
+    "plugins": ["expo-router", ["expo-apple-authentication"]],
     "extra": {
       "NHOST_REGION": "local",
       "NHOST_SUBDOMAIN": "192-168-1-108"
