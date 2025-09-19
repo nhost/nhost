@@ -150,6 +150,10 @@ export const commonStyles = StyleSheet.create({
     minHeight: 48,
   },
 
+  inputPlaceholder: {
+    color: colors.textPlaceholder,
+  },
+
   helperText: {
     fontSize: typography.sizes.sm,
     color: colors.textLight,

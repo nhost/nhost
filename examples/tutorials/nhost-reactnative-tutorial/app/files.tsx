@@ -67,6 +67,8 @@ export default function Files() {
   const [viewingFile, setViewingFile] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [deleteStatus, setDeleteStatus] = useState<DeleteStatus | null>(null);
+  const [isViewingInProgress, setIsViewingInProgress] =
+    useState<boolean>(false);
 
   const fetchFiles = useCallback(async () => {
     setIsFetching(true);
@@ -103,6 +105,11 @@ export default function Files() {
   }, [fetchFiles]);
 
   const pickDocument = async () => {
+    // Prevent DocumentPicker from opening if we're currently viewing a file
+    if (isViewingInProgress) {
+      return;
+    }
+
     try {
       const result = await DocumentPicker.getDocumentAsync({
         type: "*/*", // All file types
@@ -186,6 +193,7 @@ export default function Files() {
     mimeType: string,
   ) => {
     setViewingFile(fileId);
+    setIsViewingInProgress(true);
 
     try {
       // Fetch the file with authentication using the SDK
@@ -197,11 +205,11 @@ export default function Files() {
 
       // For iOS/Android, we need to save the file to the device first
       // Create a unique temp file path with a timestamp to prevent collisions
-      const fileExtension = fileName.includes(".") ? "" : ".file";
+      const timestamp = Date.now();
       const tempFileName = fileName.includes(".")
         ? fileName
-        : `${fileName}${fileExtension}`;
-      const tempFilePath = `${FileSystem.cacheDirectory}${Date.now()}_${tempFileName}`;
+        : `${fileName}.file`;
+      const tempFilePath = `${FileSystem.cacheDirectory}${timestamp}_${tempFileName}`;
 
       // Get the blob from the response
       const blob = response.body;
@@ -224,6 +232,19 @@ export default function Files() {
           dialogTitle: `View ${fileName}`,
           UTI: mimeType, // for iOS
         });
+
+        // Clean up the temp file after sharing
+        try {
+          await FileSystem.deleteAsync(tempFilePath, { idempotent: true });
+        } catch (cleanupErr) {
+          console.warn("Failed to clean up temp file:", cleanupErr);
+        }
+
+        // Add a delay before allowing new document picker actions
+        // This prevents iOS from triggering file selection dialogs
+        setTimeout(() => {
+          setIsViewingInProgress(false);
+        }, 1000);
       } else {
         throw new Error("Sharing is not available on this device");
       }
@@ -232,6 +253,7 @@ export default function Files() {
       setError(`Failed to view file: ${error.message}`);
       console.error("Error viewing file:", err);
       Alert.alert("Error", `Failed to view file: ${error.message}`);
+      setIsViewingInProgress(false);
     } finally {
       setViewingFile(null);
     }
