@@ -1,5 +1,15 @@
 # @nhost/dashboard
 
+## 2.37.0
+
+### Minor Changes
+
+- cc98f33: fix: rename filename typo
+
+### Patch Changes
+
+- 8812d9d: feat (dsashboard): Simplyfy column and row controls in database view
+
 ## 2.36.0
 
 ### Minor Changes
