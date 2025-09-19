@@ -61,8 +61,7 @@ describe('parseEventTriggersFromMetadata', () => {
     const expected: EventTriggerUI = {
       name: 'user_created',
       dataSource: 'default',
-      table: 'users',
-      schema: 'public',
+      table: { name: 'users', schema: 'public' },
       definition: {
         enable_manual: false,
         insert: {
@@ -159,8 +158,7 @@ describe('parseEventTriggersFromMetadata', () => {
     expect(result[0]).toEqual({
       name: 'user_created',
       dataSource: 'default',
-      table: 'users',
-      schema: 'public',
+      table: { name: 'users', schema: 'public' },
       definition: {
         enable_manual: false,
         insert: {
@@ -173,8 +171,7 @@ describe('parseEventTriggersFromMetadata', () => {
     expect(result[1]).toEqual({
       name: 'user_updated',
       dataSource: 'default',
-      table: 'users',
-      schema: 'public',
+      table: { name: 'users', schema: 'public' },
       definition: {
         enable_manual: true,
         update: {
@@ -187,8 +184,7 @@ describe('parseEventTriggersFromMetadata', () => {
     expect(result[2]).toEqual({
       name: 'order_placed',
       dataSource: 'default',
-      table: 'orders',
-      schema: 'public',
+      table: { name: 'orders', schema: 'public' },
       definition: {
         enable_manual: false,
         insert: {
@@ -201,8 +197,7 @@ describe('parseEventTriggersFromMetadata', () => {
     expect(result[3]).toEqual({
       name: 'event_logged',
       dataSource: 'analytics',
-      table: 'events',
-      schema: 'public',
+      table: { name: 'events', schema: 'public' },
       definition: {
         enable_manual: false,
         insert: {

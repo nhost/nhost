@@ -20,8 +20,7 @@ export default function parseEventTriggersFromMetadata(
 
       return (table.event_triggers ?? []).map((trigger) => ({
         ...trigger,
-        table: tableName,
-        schema,
+        table: { name: tableName, schema },
         dataSource,
       }));
     }),

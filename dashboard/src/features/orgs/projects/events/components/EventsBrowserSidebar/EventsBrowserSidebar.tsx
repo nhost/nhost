@@ -76,7 +76,7 @@ function EventsBrowserSidebarContent() {
                     return (
                       <Button
                         className={cn(
-                          'ml-4 justify-between pr-0 text-left hover:bg-primary-light hover:text-primary',
+                          'ml-4 h-fit justify-between py-0 pr-0 text-left hover:bg-primary-light hover:text-primary',
                           isSelected && 'bg-primary-light text-primary',
                         )}
                         key={eventTrigger.name}
