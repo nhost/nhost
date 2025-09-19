@@ -686,6 +686,10 @@ export const commonStyles = StyleSheet.create({
     minHeight: 48,
   },
 
+  inputPlaceholder: {
+    color: colors.textPlaceholder,
+  },
+
   helperText: {
     fontSize: typography.sizes.sm,
     color: colors.textLight,
@@ -1458,11 +1462,9 @@ npm run start
 
 Things to try out:
 
-1. Try navigating to `/profile` - you should be redirected to the homepage `/` since you're not authenticated.
+1. Open the app in Expo Go on your device or simulator.
 2. Because you are not signed in, the home screen should show a message indicating that you are not signed in.
-3. On the home screen, you should see a message indicating that you are not signed in.
-
-After we complete the next tutorial on user authentication, you will be able to sign in and access the protected `/profile` screen and see how the home screen updates accordingly.
+3. Additionally the profle button should not be visible.
 
 </Step>
 </Steps>
@@ -1472,7 +1474,6 @@ After we complete the next tutorial on user authentication, you will be able to 
 1. **AuthProvider**: Manages authentication state using Nhost's client with AsyncStorage and provides it through React Context
 2. **ProtectedScreen**: A wrapper component that checks authentication status before rendering child screens
 3. **Profile Screen**: A protected screen that displays user information, only accessible when authenticated
-4. **Automatic Navigation**: Unauthenticated users are redirected to `/signin`, authenticated users can access `/profile`
 
 ## Key Features Demonstrated
 
