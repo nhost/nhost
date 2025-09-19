@@ -19,48 +19,15 @@ export default function Index() {
             </Text>
             <TouchableOpacity
               style={[commonStyles.button, commonStyles.fullWidth]}
-              onPress={() => router.push("/todos")}
-            >
-              <Text style={commonStyles.buttonText}>My Todos</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[commonStyles.button, commonStyles.fullWidth]}
-              onPress={() => router.push("/files")}
-            >
-              <Text style={commonStyles.buttonText}>My Files</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[commonStyles.button, commonStyles.fullWidth]}
               onPress={() => router.push("/profile")}
             >
               <Text style={commonStyles.buttonText}>Go to Profile</Text>
             </TouchableOpacity>
           </View>
         ) : (
-          <>
-            <Text style={homeStyles.authMessage}>You are not signed in.</Text>
-
-            <View style={{ gap: 15, width: "100%" }}>
-              <TouchableOpacity
-                style={[commonStyles.button, commonStyles.fullWidth]}
-                onPress={() => router.push("/signin")}
-              >
-                <Text style={commonStyles.buttonText}>Sign In</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[
-                  commonStyles.button,
-                  commonStyles.buttonSecondary,
-                  commonStyles.fullWidth,
-                ]}
-                onPress={() => router.push("/signup")}
-              >
-                <Text style={commonStyles.buttonText}>Sign Up</Text>
-              </TouchableOpacity>
-            </View>
-          </>
+          <Text style={homeStyles.authMessage}>You are not signed in.</Text>
         )}
+        {/* Placeholder for signin/signup buttons - will be added in the next tutorial */}
       </View>
     </View>
   );
