@@ -36,6 +36,52 @@ const resp = await nhost.graphql.request({
 })
 ```
 
+## Using Variables
+
+You can pass variables to your GraphQL queries and mutations using the `variables` option:
+
+```ts
+import { createClient } from '@nhost/nhost-js'
+
+const nhost = createClient({
+  subdomain,
+  region
+})
+
+const resp = await nhost.graphql.request({
+  query: `query GetMovies($genre: String!) {
+          movies(where: {genre: {_eq: $genre}}) {
+            id
+            title
+            director
+            genre
+          }
+        }`,
+  variables: {
+    genre: 'Sci-Fi'
+  }
+})
+
+console.log(resp.body.data?.movies)
+// [
+//   {
+//     id: '3d67a6d0-bfb5-444a-9152-aea543ebd171',
+//     title: 'The Matrix',
+//     director: 'Lana Wachowski, Lilly Wachowski',
+//     genre: 'Sci-Fi'
+//   },
+//   {
+//     id: '90f374db-16c1-4db5-ba55-643bf38953d3',
+//     title: 'Inception',
+//     director: 'Christopher Nolan',
+//     genre: 'Sci-Fi'
+//   },
+// ]
+```
+
+This allows you to dynamically pass values to your queries and mutations, making them more
+flexible and reusable.
+
 ## Using String Queries with Type Generics
 
 You can type your GraphQL queries and responses using TypeScript generics:
@@ -99,8 +145,8 @@ interface Movies {
 }
 
 const getMoviesQuery = gql`
-  query GetMovies {
-    movies {
+  query GetMovies($genre: String!) {
+    movies(where: { genre: { _eq: $genre } }) {
       id
       title
       director
@@ -109,7 +155,24 @@ const getMoviesQuery = gql`
   }
 `
 
-const resp = await nhost.graphql.request<Movies>(getMoviesQuery)
+const resp = await nhost.graphql.request<Movies>(getMoviesQuery, {
+  genre: 'Sci-Fi'
+})
+console.log(resp.body.data?.movies)
+// [
+//   {
+//     id: '3d67a6d0-bfb5-444a-9152-aea543ebd171',
+//     title: 'The Matrix',
+//     director: 'Lana Wachowski, Lilly Wachowski',
+//     genre: 'Sci-Fi'
+//   },
+//   {
+//     id: '90f374db-16c1-4db5-ba55-643bf38953d3',
+//     title: 'Inception',
+//     director: 'Christopher Nolan',
+//     genre: 'Sci-Fi'
+//   },
+// ]
 ```
 
 Using document nodes enables:
