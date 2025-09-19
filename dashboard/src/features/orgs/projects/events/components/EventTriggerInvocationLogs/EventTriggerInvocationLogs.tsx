@@ -1,0 +1,134 @@
+import { Button } from '@/components/ui/v3/button';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/v3/table';
+import type { EventTriggerUI } from '@/features/orgs/projects/events/types';
+import { format } from 'date-fns-v4';
+import { Check, Clock, Eye, X } from 'lucide-react';
+import { useState } from 'react';
+
+interface EventTriggerInvocationLogsProps {
+  eventTrigger: EventTriggerUI;
+}
+
+const mockInvocationLogs = [
+  {
+    id: 'd1de2b04-dbb9-4d21-bdaf-25c3dfef3d7b',
+    trigger_name: 'mytrigger',
+    event_id: 'a7b67072-980d-4cfd-bbfa-a8ee749f453e',
+    http_status: 200,
+    request: {
+      headers: [
+        { name: 'Content-Type', value: 'application/json' },
+        { name: 'User-Agent', value: 'hasura-graphql-engine/v2.46.0-ce' },
+      ],
+      payload: {
+        created_at: '2025-09-19T16:01:30.113893',
+        delivery_info: { current_retry: 0, max_retries: 0 },
+        event: {
+          data: {
+            new: { qweqwe: '123123', sadas: 'qweqwe', sadwq: 'ertert' },
+            old: null,
+          },
+          op: 'INSERT',
+          session_variables: { 'x-hasura-role': 'admin' },
+          trace_context: {
+            sampling_state: '1',
+            span_id: 'febb74c5642c81d7',
+            trace_id: '7f25046b3cbd3c06f379de72bcf3b4ad',
+          },
+        },
+        id: 'a7b67072-980d-4cfd-bbfa-a8ee749f453e',
+        table: { name: 'mytable', schema: 'public' },
+        trigger: { name: 'mytrigger' },
+      },
+      version: '2',
+    },
+    response: {
+      data: {
+        body: '{\n  "args": {}, \n  "data": "{\\"created_at\\":\\"2025-09-19T16:01:30.113893\\",\\"delivery_info\\":{\\"current_retry\\":0,\\"max_retries\\":0},\\"event\\":{\\"data\\":{\\"new\\":{\\"qweqwe\\":\\"123123\\",\\"sadas\\":\\"qweqwe\\",\\"sadwq\\":\\"ertert\\"},\\"old\\":null},\\"op\\":\\"INSERT\\",\\"session_variables\\":{\\"x-hasura-role\\":\\"admin\\"},\\"trace_context\\":{\\"sampling_state\\":\\"1\\",\\"span_id\\":\\"febb74c5642c81d7\\",\\"trace_id\\":\\"7f25046b3cbd3c06f379de72bcf3b4ad\\"}},\\"id\\":\\"a7b67072-980d-4cfd-bbfa-a8ee749f453e\\",\\"table\\":{\\"name\\":\\"mytable\\",\\"schema\\":\\"public\\"},\\"trigger\\":{\\"name\\":\\"mytrigger\\"}}", \n  "files": {}, \n  "form": {}, \n  "headers": {\n    "Accept-Encoding": "gzip", \n    "Content-Length": "479", \n    "Content-Type": "application/json", \n    "Host": "httpbin.org", \n    "User-Agent": "hasura-graphql-engine/v2.46.0-ce", \n    "X-Amzn-Trace-Id": "Root=1-68cd7e5a-6d8d68117343fdbd6f658e7f"\n  }, \n  "json": {\n    "created_at": "2025-09-19T16:01:30.113893", \n    "delivery_info": {\n      "current_retry": 0, \n      "max_retries": 0\n    }, \n    "event": {\n      "data": {\n        "new": {\n          "qweqwe": "123123", \n          "sadas": "qweqwe", \n          "sadwq": "ertert"\n        }, \n        "old": null\n      }, \n      "op": "INSERT", \n      "session_variables": {\n        "x-hasura-role": "admin"\n      }, \n      "trace_context": {\n        "sampling_state": "1", \n        "span_id": "febb74c5642c81d7", \n        "trace_id": "7f25046b3cbd3c06f379de72bcf3b4ad"\n      }\n    }, \n    "id": "a7b67072-980d-4cfd-bbfa-a8ee749f453e", \n    "table": {\n      "name": "mytable", \n      "schema": "public"\n    }, \n    "trigger": {\n      "name": "mytrigger"\n    }\n  }, \n  "origin": "18.198.193.195", \n  "url": "https://httpbin.org/post"\n}\n',
+        headers: [
+          { name: 'Date', value: 'Fri, 19 Sep 2025 16:01:31 GMT' },
+          { name: 'Content-Type', value: 'application/json' },
+          { name: 'Content-Length', value: '1722' },
+          { name: 'Connection', value: 'keep-alive' },
+          { name: 'Server', value: 'gunicorn/19.9.0' },
+          { name: 'Access-Control-Allow-Origin', value: '*' },
+          { name: 'Access-Control-Allow-Credentials', value: 'true' },
+        ],
+        status: 200,
+      },
+      type: 'webhook_response',
+      version: '2',
+    },
+    created_at: '2025-09-19T16:01:31.086239Z',
+  },
+];
+
+export default function EventTriggerInvocationLogs({
+  eventTrigger,
+}: EventTriggerInvocationLogsProps) {
+  const [selectedLog, setSelectedLog] = useState<
+    (typeof mockInvocationLogs)[number] | null
+  >(null);
+
+  const getStatusIcon = (status: number) => {
+    if (status >= 200 && status < 300) {
+      return <Check className="h-4 w-4 text-green-600" />;
+    }
+    if (status >= 400) {
+      return <X className="h-4 w-4 text-red-600" />;
+    }
+    return <Clock className="h-4 w-4 text-yellow-600" />;
+  };
+
+  return (
+    <div className="rounded border p-4">
+      <h3 className="mb-3 font-medium">Invocation Logs</h3>
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Created At</TableHead>
+              <TableHead>Delivered</TableHead>
+              <TableHead>ID</TableHead>
+              <TableHead>Event ID</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {mockInvocationLogs.map((log) => (
+              <TableRow key={log.id}>
+                <TableCell className="text-xs">
+                  {format(new Date(log.created_at), 'PPP HH:mm:ss')}
+                </TableCell>
+                <TableCell>{getStatusIcon(log.http_status)}</TableCell>
+                <TableCell className="font-mono text-xs">
+                  {log.id.substring(0, 8)}...
+                </TableCell>
+                <TableCell className="font-mono text-xs">
+                  {log.event_id.substring(0, 8)}...
+                </TableCell>
+                <TableCell>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSelectedLog(log)}
+                    className="h-8 w-8 p-0"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+}
