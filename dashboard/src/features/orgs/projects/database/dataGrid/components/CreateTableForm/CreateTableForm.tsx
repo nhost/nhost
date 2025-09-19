@@ -67,13 +67,14 @@ export default function CreateTableForm({
           isNullable: false,
           isUnique: false,
           isIdentity: false,
+          comment: '',
         },
       ],
       foreignKeyRelations: [],
       primaryKeyIndices: [],
       identityColumnIndex: null,
     },
-    shouldUnregister: true,
+    shouldUnregister: false,
     reValidateMode: 'onSubmit',
     resolver: yupResolver(baseTableValidationSchema),
   });
@@ -96,6 +97,8 @@ export default function CreateTableForm({
             ? values.columns[values.identityColumnIndex]?.name
             : undefined,
       };
+
+      console.log({ values }, values.columns);
 
       await createTable({ table });
       await trackTable({ table });
