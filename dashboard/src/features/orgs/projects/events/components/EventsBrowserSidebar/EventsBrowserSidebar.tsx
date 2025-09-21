@@ -40,6 +40,15 @@ function EventsBrowserSidebarContent() {
     return acc;
   }, {});
 
+  // Sort by name
+  if (eventTriggersByDataSource) {
+    Object.keys(eventTriggersByDataSource).forEach((dataSource) => {
+      eventTriggersByDataSource[dataSource].sort((a, b) =>
+        a.name.localeCompare(b.name),
+      );
+    });
+  }
+
   return (
     <div className="flex h-full flex-col px-2">
       <div className="flex flex-row items-center justify-between">
