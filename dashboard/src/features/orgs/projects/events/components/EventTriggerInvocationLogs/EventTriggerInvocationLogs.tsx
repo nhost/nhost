@@ -27,12 +27,12 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/v3/tabs';
+import useGetEventInvocationLogsQuery from '@/features/orgs/projects/events/hooks/useGetEventInvocationLogs/useGetEventInvocationLogsQuery';
 import type { EventTriggerUI } from '@/features/orgs/projects/events/types';
 import type { EventInvocationLogEntry } from '@/utils/hasura-api/generated/schemas/eventInvocationLogEntry';
 import { format } from 'date-fns-v4';
 import { Check, Clock, Eye, X } from 'lucide-react';
-import { useState } from 'react';
-import useGetEventInvocationLogsQuery from '../../hooks/useGetEventInvocationLogs/useGetEventInvocationLogsQuery';
+import { useEffect, useState } from 'react';
 
 interface EventTriggerInvocationLogsProps {
   eventTrigger: EventTriggerUI;
@@ -102,12 +102,24 @@ export default function EventTriggerInvocationLogs({
   const [offset, setOffset] = useState(0);
   const [limit, setLimit] = useState(10);
 
-  const { data, loading } = useGetEventInvocationLogsQuery({
+  const { data, isLoading } = useGetEventInvocationLogsQuery({
     name: eventTrigger.name,
     limit,
     offset,
     source: eventTrigger.dataSource,
   });
+
+  // Determine navigation state
+  const isLastPage = !!data && data.length < limit;
+  const canGoPrev = !isLoading && offset > 0;
+  const canGoNext = !isLoading && !isLastPage;
+
+  // Safety: if we land on an empty page, step back until we have data or reach 0
+  useEffect(() => {
+    if (!isLoading && data && data.length === 0 && offset > 0) {
+      setOffset((prev) => Math.max(0, prev - limit));
+    }
+  }, [data, isLoading, offset, limit]);
 
   const getStatusIcon = (status: number) => {
     if (status >= 200 && status < 300) {
@@ -143,11 +155,9 @@ export default function EventTriggerInvocationLogs({
                   {format(new Date(log.created_at), 'PPP HH:mm:ss')}
                 </TableCell>
                 <TableCell>{getStatusIcon(log.http_status)}</TableCell>
+                <TableCell className="font-mono text-xs">{log.id}</TableCell>
                 <TableCell className="font-mono text-xs">
-                  {log.id.substring(0, 8)}...
-                </TableCell>
-                <TableCell className="font-mono text-xs">
-                  {log.event_id.substring(0, 8)}...
+                  {log.event_id}
                 </TableCell>
                 <TableCell>
                   <Button
@@ -170,9 +180,10 @@ export default function EventTriggerInvocationLogs({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setOffset(offset - limit)}
+            disabled={!canGoPrev}
+            onClick={() => setOffset((prev) => Math.max(0, prev - limit))}
           >
-            Previous {offset - limit}
+            Previous
           </Button>
           <span className="text-sm text-muted-foreground">
             {offset} - {offset + limit}
@@ -180,16 +191,21 @@ export default function EventTriggerInvocationLogs({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setOffset(offset + limit)}
+            disabled={!canGoNext}
+            onClick={() => canGoNext && setOffset((prev) => prev + limit)}
           >
-            Next {offset + limit}
+            Next
           </Button>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">Rows per page:</span>
           <Select
             defaultValue="10"
-            onValueChange={(value) => setLimit(parseInt(value, 10))}
+            onValueChange={(value) => {
+              setLimit(parseInt(value, 10));
+              // Reset offset to avoid landing on empty pages when page size changes
+              setOffset(0);
+            }}
           >
             <SelectTrigger className="w-[80px]">
               <SelectValue />
