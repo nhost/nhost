@@ -5,14 +5,14 @@
  * API for managing remote schemas in Hasura
  * OpenAPI spec version: 1.0.0
  */
+import type { EventInvocationLogEntryHeaders } from './eventInvocationLogEntryHeaders';
 import type { EventInvocationLogEntryRequestPayload } from './eventInvocationLogEntryRequestPayload';
-import type { Headers } from './headers';
 
 /**
  * Details of the HTTP request sent to the webhook
  */
 export type EventInvocationLogEntryRequest = {
-  headers: Headers;
+  headers: EventInvocationLogEntryHeaders;
   /** The event payload sent to the webhook */
   payload: EventInvocationLogEntryRequestPayload;
   /** Version of the event payload format */

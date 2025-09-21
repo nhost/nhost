@@ -1300,7 +1300,7 @@ components:
             - version
           properties:
             headers:
-              $ref: '#/components/schemas/Headers'
+              $ref: '#/components/schemas/EventInvocationLogEntryHeaders'
             payload:
               type: object
               description: The event payload sent to the webhook
@@ -1383,7 +1383,7 @@ components:
                   type: string
                   description: Response body as string
                 headers:
-                  $ref: '#/components/schemas/Headers'
+                  $ref: '#/components/schemas/EventInvocationLogEntryHeaders'
                 status:
                   type: integer
                   description: HTTP status code
@@ -1400,3 +1400,21 @@ components:
           format: date-time
           description: When the log entry was created
           example: 2025-09-19T16:01:31.086239Z
+
+    EventInvocationLogEntryHeaders:
+      type: array
+      description: HTTP headers sent with the webhook request
+      items:
+        type: object
+        required:
+          - name
+          - value
+        properties:
+          name:
+            type: string
+            description: Header name
+            example: Date
+          value:
+            type: string
+            description: Header value
+            example: 'Sun, 21 Sep 2025 16:13:25 GMT'
