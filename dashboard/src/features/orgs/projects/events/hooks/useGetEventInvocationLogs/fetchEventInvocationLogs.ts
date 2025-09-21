@@ -39,7 +39,12 @@ export default async function fetchExportMetadata({
   try {
     const operation: GetEventInvocationLogsOperation = {
       type: 'pg_get_event_invocation_logs',
-      args,
+      args: {
+        name: args.name,
+        source: args.source,
+        limit: args.limit,
+        offset: args.offset,
+      },
     };
 
     const response = await metadataOperation(operation, {

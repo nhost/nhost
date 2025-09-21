@@ -33,6 +33,8 @@ export * from './dropRemoteSchemaPermissionsStepType';
 export * from './errorResponse';
 export * from './errorResponseInternalItem';
 export * from './eventInvocationLogEntry';
+export * from './eventInvocationLogEntryHeaders';
+export * from './eventInvocationLogEntryHeadersItem';
 export * from './eventInvocationLogEntryRequest';
 export * from './eventInvocationLogEntryRequestPayload';
 export * from './eventInvocationLogEntryRequestPayloadDeliveryInfo';
