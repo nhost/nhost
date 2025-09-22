@@ -6,6 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/v3/dialog';
+import { Input } from '@/components/ui/v3/input';
 import {
   Select,
   SelectContent,
@@ -30,9 +31,125 @@ import {
 import useGetEventInvocationLogsQuery from '@/features/orgs/projects/events/hooks/useGetEventInvocationLogs/useGetEventInvocationLogsQuery';
 import type { EventTriggerUI } from '@/features/orgs/projects/events/types';
 import type { EventInvocationLogEntry } from '@/utils/hasura-api/generated/schemas/eventInvocationLogEntry';
+import {
+  type Column,
+  type ColumnDef,
+  type ColumnFiltersState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getSortedRowModel,
+  type SortingState,
+  type Table as TanStackTable,
+  useReactTable,
+} from '@tanstack/react-table';
 import { format } from 'date-fns-v4';
-import { Check, Clock, Eye, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { ArrowUpDown, Check, Clock, Eye, X } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+
+// Helpers and column cell/header components (module scope to satisfy lint rules)
+function getStatusIcon(status: number) {
+  if (status >= 200 && status < 300) {
+    return <Check className="h-4 w-4 text-green-600" />;
+  }
+  if (status >= 400) {
+    return <X className="h-4 w-4 text-red-600" />;
+  }
+  return <Clock className="h-4 w-4 text-yellow-600" />;
+}
+
+function CreatedAtHeader({
+  column,
+}: {
+  column: Column<EventInvocationLogEntry, unknown>;
+}) {
+  return (
+    <Button
+      variant="ghost"
+      onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+      className="px-0"
+    >
+      Created At
+      <ArrowUpDown className="ml-2 h-4 w-4" />
+    </Button>
+  );
+}
+
+function CreatedAtCell({ createdAt }: { createdAt: string }) {
+  return (
+    <span className="font-mono text-xs">
+      {format(new Date(createdAt), 'PPP HH:mm:ss')}
+    </span>
+  );
+}
+
+function DeliveredCell({ status }: { status: number }) {
+  return getStatusIcon(status);
+}
+
+function IdCell({ id }: { id: string }) {
+  return <span className="font-mono text-xs">{id}</span>;
+}
+
+function EventIdCell({ eventId }: { eventId: string }) {
+  return <span className="font-mono text-xs">{eventId}</span>;
+}
+
+function ActionsCell({
+  row,
+  table,
+}: {
+  row: EventInvocationLogEntry;
+  table: TanStackTable<EventInvocationLogEntry>;
+}) {
+  const meta = table.options.meta as
+    | { onView?: (row: EventInvocationLogEntry) => void }
+    | undefined;
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={() => meta?.onView?.(row)}
+      className="h-8 w-8 p-0"
+    >
+      <Eye className="h-4 w-4" />
+    </Button>
+  );
+}
+
+const columnsBase: ColumnDef<EventInvocationLogEntry>[] = [
+  {
+    id: 'created_at',
+    accessorKey: 'created_at',
+    header: ({ column }) => <CreatedAtHeader column={column} />,
+    cell: ({ row }) => <CreatedAtCell createdAt={row.original.created_at} />,
+  },
+  {
+    id: 'delivered',
+    accessorKey: 'http_status',
+    header: 'Delivered',
+    enableSorting: false,
+    cell: ({ row }) => <DeliveredCell status={row.original.http_status} />,
+  },
+  {
+    id: 'id',
+    accessorKey: 'id',
+    header: 'ID',
+    cell: ({ row }) => <IdCell id={row.original.id} />,
+  },
+  {
+    id: 'event_id',
+    accessorKey: 'event_id',
+    header: 'Event ID',
+    cell: ({ row }) => <EventIdCell eventId={row.original.event_id} />,
+  },
+  {
+    id: 'actions',
+    header: 'Actions',
+    enableSorting: false,
+    cell: ({ row, table }) => <ActionsCell row={row.original} table={table} />,
+  },
+];
 
 interface EventTriggerInvocationLogsProps {
   eventTrigger: EventTriggerUI;
@@ -121,15 +238,27 @@ export default function EventTriggerInvocationLogs({
     }
   }, [data, isLoading, offset, limit]);
 
-  const getStatusIcon = (status: number) => {
-    if (status >= 200 && status < 300) {
-      return <Check className="h-4 w-4 text-green-600" />;
-    }
-    if (status >= 400) {
-      return <X className="h-4 w-4 text-red-600" />;
-    }
-    return <Clock className="h-4 w-4 text-yellow-600" />;
-  };
+  // TanStack Table setup for sorting and filtering (client-side)
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const columns = useMemo(() => columnsBase, []);
+
+  const table = useReactTable({
+    data: data ?? [],
+    columns,
+    state: {
+      sorting,
+      columnFilters,
+    },
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    meta: {
+      onView: (row: EventInvocationLogEntry) => setSelectedLog(row),
+    },
+  });
 
   return (
     <div
@@ -137,40 +266,59 @@ export default function EventTriggerInvocationLogs({
       className="rounded border p-4"
     >
       <h3 className="mb-3 font-medium">Invocation Logs</h3>
+      <div className="flex items-center gap-2 py-2">
+        <Input
+          placeholder="Filter ID..."
+          value={(table.getColumn('id')?.getFilterValue() as string) ?? ''}
+          onChange={(event) =>
+            table.getColumn('id')?.setFilterValue(event.target.value)
+          }
+          className="max-w-sm"
+        />
+      </div>
+
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>Created At</TableHead>
-              <TableHead>Delivered</TableHead>
-              <TableHead>ID</TableHead>
-              <TableHead>Event ID</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {data?.map((log) => (
-              <TableRow key={log.id}>
-                <TableCell className="text-xs">
-                  {format(new Date(log.created_at), 'PPP HH:mm:ss')}
-                </TableCell>
-                <TableCell>{getStatusIcon(log.http_status)}</TableCell>
-                <TableCell className="font-mono text-xs">{log.id}</TableCell>
-                <TableCell className="font-mono text-xs">
-                  {log.event_id}
-                </TableCell>
-                <TableCell>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSelectedLog(log)}
-                    className="h-8 w-8 p-0"
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                </TableCell>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
+                  </TableHead>
+                ))}
               </TableRow>
             ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow key={row.id}>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
+                  No results.
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </div>
