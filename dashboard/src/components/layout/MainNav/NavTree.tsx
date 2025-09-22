@@ -15,7 +15,13 @@ import { Button } from '@/components/ui/v3/button';
 import { useOrgs, type Org } from '@/features/orgs/projects/hooks/useOrgs';
 import { cn, isNotEmptyValue } from '@/lib/utils';
 import { getConfigServerUrl, isPlatform as getIsPlatform } from '@/utils/env';
-import { Box, ChevronDown, ChevronRight, Plus } from 'lucide-react';
+import {
+  Box,
+  CalendarDays,
+  ChevronDown,
+  ChevronRight,
+  Plus,
+} from 'lucide-react';
 import Link from 'next/link';
 import { type ReactElement } from 'react';
 
@@ -101,6 +107,12 @@ const projectPages = [
     slug: 'metrics',
   },
   {
+    name: 'Events',
+    icon: <CalendarDays className="h-4 w-4" />,
+    route: 'events',
+    slug: 'events',
+  },
+  {
     name: 'Settings',
     route: 'settings',
     slug: 'settings',
@@ -137,11 +149,6 @@ const projectSettingsPages = [
     slug: 'roles-and-permissions',
     route: 'roles-and-permissions',
   },
-  {
-    name: 'Events',
-    slug: 'events',
-    route: 'events',
-  },
   { name: 'SMTP', slug: 'smtp', route: 'smtp' },
   { name: 'Git', slug: 'git', route: 'git' },
   {
@@ -162,6 +169,7 @@ const projectSettingsPages = [
   },
   { name: 'AI', slug: 'ai', route: 'ai' },
   { name: 'Observability', slug: 'metrics', route: 'metrics' },
+  { name: 'Events', slug: 'events', route: 'events' },
   { name: 'Configuration Editor', slug: 'editor', route: 'editor' },
 ];
 
@@ -282,7 +290,7 @@ const createOrganization = (org: Org) => {
           isProjectPage: true,
           targetUrl: `/orgs/${org.slug}/projects/${_app.subdomain}/${_page.route}`,
           disabled:
-            (['deployments', 'backups', 'logs', 'metrics'].includes(
+            (['deployments', 'backups', 'logs', 'metrics', 'events'].includes(
               _page.slug,
             ) &&
               isNotPlatform) ||
