@@ -51,10 +51,14 @@ const formSchema = z.object({
     .string()
     .min(1, { message: 'Source remote schema is required' }),
   sourceType: z.string().min(1, { message: 'Source type is required' }),
-  table: z.object({
-    name: z.string().min(1, { message: 'Table name is required' }),
-    schema: z.string().min(1, { message: 'Table schema is required' }),
-  }),
+  table: z
+    .object({
+      name: z.string().min(1, { message: 'Table name is required' }),
+      schema: z.string().min(1, { message: 'Table schema is required' }),
+    })
+    .refine((value) => Boolean(value?.name) && Boolean(value?.schema), {
+      message: 'Target table is required',
+    }),
   relationshipType: z.enum(['array', 'object']),
   fieldMapping: z.array(
     z.object({
@@ -135,6 +139,9 @@ export default function DatabaseRelationshipForm({
                 <FormControl>
                   <Input
                     placeholder="Relationship name"
+                    className={cn({
+                      'border-destructive': form.formState.errors.name,
+                    })}
                     {...field}
                     disabled={disabled || nameInputDisabled}
                   />

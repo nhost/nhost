@@ -57,6 +57,7 @@ export default function SourceTypeCombobox({
                   className={cn(
                     'w-full justify-between',
                     !field.value && 'text-muted-foreground',
+                    { 'border-destructive': form.formState.errors.sourceType },
                   )}
                 >
                   {field.value
@@ -81,7 +82,11 @@ export default function SourceTypeCombobox({
                         value={type.label}
                         key={type.value}
                         onSelect={() => {
-                          form.setValue('sourceType', type.value);
+                          form.setValue('sourceType', type.value, {
+                            shouldValidate: true,
+                            shouldDirty: true,
+                            shouldTouch: true,
+                          });
                           setOpen(false);
                         }}
                       >

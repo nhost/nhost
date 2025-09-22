@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/v3/select';
 import { useIntrospectRemoteSchemaQuery } from '@/features/orgs/projects/remote-schemas/hooks/useIntrospectRemoteSchemaQuery';
 import convertIntrospectionToSchema from '@/features/orgs/projects/remote-schemas/utils/convertIntrospectionToSchema';
+import { cn } from '@/lib/utils';
 import { isObjectType } from 'graphql';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import type { RemoteSchemaRelationshipFormValues } from './RemoteSchemaRelationshipForm';
@@ -211,7 +212,17 @@ export default function SchemaToArgumentMapSelector({
                               disabled={disabled}
                             >
                               <FormControl>
-                                <SelectTrigger className="w-40 rounded-r-none border-r-0">
+                                <SelectTrigger
+                                  className={cn(
+                                    'w-40 rounded-r-none border-r-0',
+                                    {
+                                      'border-destructive':
+                                        form.formState.errors.mappings?.[
+                                          mappingIndex
+                                        ]?.type,
+                                    },
+                                  )}
+                                >
                                   <SelectValue placeholder="Type" />
                                 </SelectTrigger>
                               </FormControl>

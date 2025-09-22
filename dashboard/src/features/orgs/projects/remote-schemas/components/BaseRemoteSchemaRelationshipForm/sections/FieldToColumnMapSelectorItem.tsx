@@ -73,6 +73,11 @@ export default function FieldToColumnMapSelectorItem({
                     className={cn(
                       'w-full justify-between',
                       !sourceFieldControl.value && 'text-muted-foreground',
+                      {
+                        'border-destructive':
+                          form.formState.errors.fieldMapping?.[itemIndex]
+                            ?.sourceField,
+                      },
                     )}
                     disabled={disabled}
                   >
@@ -143,6 +148,11 @@ export default function FieldToColumnMapSelectorItem({
                     className={cn(
                       'w-full justify-between',
                       !columnField.value && 'text-muted-foreground',
+                      {
+                        'border-destructive':
+                          form.formState.errors.fieldMapping?.[itemIndex]
+                            ?.referenceColumn,
+                      },
                     )}
                     disabled={disabled}
                   >

@@ -152,6 +152,9 @@ export default function RemoteSchemaRelationshipForm({
                 <FormControl>
                   <Input
                     placeholder="Relationship name"
+                    className={cn({
+                      'border-destructive': form.formState.errors.name,
+                    })}
                     {...field}
                     disabled={disabled || nameInputDisabled}
                   />

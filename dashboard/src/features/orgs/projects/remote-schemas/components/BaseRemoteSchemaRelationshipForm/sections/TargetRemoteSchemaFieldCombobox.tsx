@@ -54,6 +54,7 @@ export default function TargetRemoteSchemaFieldCombobox({
                   className={cn(
                     'w-full justify-between',
                     !field.value && 'text-muted-foreground',
+                    { 'border-destructive': form.formState.errors.targetField },
                   )}
                 >
                   {field.value
@@ -79,7 +80,11 @@ export default function TargetRemoteSchemaFieldCombobox({
                         value={fieldItem.label}
                         key={fieldItem.value}
                         onSelect={() => {
-                          form.setValue('targetField', fieldItem.value);
+                          form.setValue('targetField', fieldItem.value, {
+                            shouldValidate: true,
+                            shouldDirty: true,
+                            shouldTouch: true,
+                          });
                           setOpen(false);
                         }}
                       >

@@ -79,7 +79,7 @@ export default function FieldToColumnMapSelector({
     });
 
   return (
-    <Box className="space-y-4 rounded border-1 p-4">
+    <Box className="mx-2 space-y-4 rounded border-1 p-4">
       <Box className="flex flex-col space-y-4">
         <Box className="grid grid-cols-8 items-center gap-4">
           <Text className="col-span-3">Source Field</Text>

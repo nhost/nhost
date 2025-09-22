@@ -55,6 +55,10 @@ export default function TargetRemoteSchemaCombobox({
                   className={cn(
                     'w-full justify-between',
                     !field.value && 'text-muted-foreground',
+                    {
+                      'border-destructive':
+                        form.formState.errors.targetRemoteSchema,
+                    },
                   )}
                 >
                   {field.value
@@ -80,7 +84,11 @@ export default function TargetRemoteSchemaCombobox({
                         value={schema.name}
                         key={schema.name}
                         onSelect={() => {
-                          form.setValue('targetRemoteSchema', schema.name);
+                          form.setValue('targetRemoteSchema', schema.name, {
+                            shouldValidate: true,
+                            shouldDirty: true,
+                            shouldTouch: true,
+                          });
                           setOpen(false);
                         }}
                       >

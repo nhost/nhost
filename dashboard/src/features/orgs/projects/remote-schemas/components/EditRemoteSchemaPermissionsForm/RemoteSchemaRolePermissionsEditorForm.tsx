@@ -39,6 +39,8 @@ import getBaseTypeName from '@/features/orgs/projects/remote-schemas/utils/getBa
 import parsePresetArgTreeFromSDL from '@/features/orgs/projects/remote-schemas/utils/parsePresetArgTreeFromSDL';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { DialogFormProps } from '@/types/common';
+import * as CheckboxPrimitive from '@radix-ui/react-checkbox';
+import { Check } from 'lucide-react';
 
 const rolePermissionsSchema = z.object({
   selectedFields: z.array(z.string()).optional().default([]),
@@ -602,9 +604,10 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                                       key={fieldKey}
                                       value={fieldKey}
                                     >
-                                      <AccordionTrigger className="py-2 hover:no-underline">
-                                        <div className="flex items-center space-x-2">
-                                          <Checkbox
+                                      <AccordionTrigger className="justify-start py-2 text-left hover:no-underline">
+                                        <div className="flex w-full items-center justify-start space-x-2 text-left">
+                                          <CheckboxPrimitive.Root
+                                            asChild
                                             id={fieldKey}
                                             checked={field.checked}
                                             onCheckedChange={(checked) =>
@@ -614,9 +617,15 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                                                 checked as boolean,
                                               )
                                             }
-                                            onClick={(e) => e.stopPropagation()}
                                             disabled={disabled}
-                                          />
+                                            className="peer h-4 w-4 shrink-0 rounded-sm border border-primary ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+                                          >
+                                            <span className="peer h-4 w-4 shrink-0 rounded-sm border border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground">
+                                              <CheckboxPrimitive.Indicator className="flex items-center justify-center text-current">
+                                                <Check className="h-4 w-4" />
+                                              </CheckboxPrimitive.Indicator>
+                                            </span>
+                                          </CheckboxPrimitive.Root>
                                           <span className="font-medium">
                                             {field.name}
                                           </span>

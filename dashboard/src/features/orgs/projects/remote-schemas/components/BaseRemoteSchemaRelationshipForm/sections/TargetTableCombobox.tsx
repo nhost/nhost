@@ -41,7 +41,11 @@ export default function TargetTableCombobox({
   });
 
   const handleSelectTable = (table: { name: string; schema: string }) => {
-    form.setValue('table', table);
+    form.setValue('table', table, {
+      shouldValidate: true,
+      shouldDirty: true,
+      shouldTouch: true,
+    });
 
     if (form.getValues('fieldMapping').length > 0) {
       form.setValue(
@@ -50,6 +54,11 @@ export default function TargetTableCombobox({
           ...field,
           referenceColumn: '',
         })),
+        {
+          shouldValidate: true,
+          shouldDirty: true,
+          shouldTouch: true,
+        },
       );
     }
 
