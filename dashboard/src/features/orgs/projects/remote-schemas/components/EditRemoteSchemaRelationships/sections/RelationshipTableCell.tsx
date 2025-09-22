@@ -68,21 +68,21 @@ export default function RelationshipTableCell({
     if (isToSourceRelationshipDefinition(definition)) {
       const tableName =
         definition.to_source.table?.name ?? definition.to_source?.table ?? '';
-      const columns = Object.values(
+      const fieldMappings = Object.entries(
         definition.to_source.field_mapping || {},
-      ) as string[];
+      ) as [string, string][];
 
       return (
         <span className="flex items-center gap-1 text-sm text-foreground">
           <span className="truncate">{tableName}</span>
-          {columns.length > 0 ? <span className="px-1">/</span> : null}
-          {columns.map((col, index) => (
+          {fieldMappings.length > 0 ? <span className="px-1">/</span> : null}
+          {fieldMappings.map(([sourceField, col], index) => (
             <span
-              key={`to-source-col-${tableName}-${col}`}
+              key={`to-source-col-${tableName}-${col}-${sourceField}`}
               className="truncate"
             >
               {col}
-              {index < columns.length - 1 ? (
+              {index < fieldMappings.length - 1 ? (
                 <span className="px-1">,</span>
               ) : null}
             </span>
