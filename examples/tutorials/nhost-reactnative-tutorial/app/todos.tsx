@@ -467,7 +467,7 @@ export default function Todos() {
       )}
 
       {showAddForm && (
-        <View style={[commonStyles.card, { marginHorizontal: 16 }]}>
+        <View style={[commonStyles.card, { marginHorizontal: 16, width: undefined }]}>
           <Text style={commonStyles.cardTitle}>Add New Todo</Text>
           <View style={commonStyles.formFields}>
             <View style={commonStyles.fieldGroup}>
