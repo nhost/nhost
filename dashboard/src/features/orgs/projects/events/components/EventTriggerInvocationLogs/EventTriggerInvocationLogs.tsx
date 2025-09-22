@@ -87,12 +87,55 @@ function DeliveredCell({ status }: { status: number }) {
   return getStatusIcon(status);
 }
 
-function IdCell({ id }: { id: string }) {
-  return <span className="font-mono text-xs">{id}</span>;
+function escapeRegExp(input: string) {
+  return input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-function EventIdCell({ eventId }: { eventId: string }) {
-  return <span className="font-mono text-xs">{eventId}</span>;
+function highlightMatch(text: string, query: string) {
+  if (!query) {
+    return text;
+  }
+
+  const safe = escapeRegExp(query);
+  const regex = new RegExp(safe, 'gi');
+  const nodes: Array<JSX.Element> = [];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null = regex.exec(text);
+
+  while (match) {
+    const start = match.index;
+    const end = start + match[0].length;
+
+    if (start > lastIndex) {
+      const chunk = text.slice(lastIndex, start);
+      nodes.push(<span key={`seg-${lastIndex}`}>{chunk}</span>);
+    }
+
+    nodes.push(
+      <span key={`hit-${start}`} className="rounded bg-yellow-200/60 px-0.5">
+        {match[0]}
+      </span>,
+    );
+
+    lastIndex = end;
+    match = regex.exec(text);
+  }
+
+  if (lastIndex < text.length) {
+    nodes.push(<span key={`seg-${lastIndex}`}>{text.slice(lastIndex)}</span>);
+  }
+
+  return nodes;
+}
+
+function IdCell({ id, query }: { id: string; query: string }) {
+  return <span className="font-mono text-xs">{highlightMatch(id, query)}</span>;
+}
+
+function EventIdCell({ eventId, query }: { eventId: string; query: string }) {
+  return (
+    <span className="font-mono text-xs">{highlightMatch(eventId, query)}</span>
+  );
 }
 
 function ActionsCell({
@@ -135,13 +178,23 @@ const columnsBase: ColumnDef<EventInvocationLogEntry>[] = [
     id: 'id',
     accessorKey: 'id',
     header: 'ID',
-    cell: ({ row }) => <IdCell id={row.original.id} />,
+    cell: ({ row, table }) => (
+      <IdCell
+        id={row.original.id}
+        query={String(table.getColumn('id')?.getFilterValue() ?? '')}
+      />
+    ),
   },
   {
     id: 'event_id',
     accessorKey: 'event_id',
     header: 'Event ID',
-    cell: ({ row }) => <EventIdCell eventId={row.original.event_id} />,
+    cell: ({ row, table }) => (
+      <EventIdCell
+        eventId={row.original.event_id}
+        query={String(table.getColumn('event_id')?.getFilterValue() ?? '')}
+      />
+    ),
   },
   {
     id: 'actions',
@@ -266,12 +319,22 @@ export default function EventTriggerInvocationLogs({
       className="rounded border p-4"
     >
       <h3 className="mb-3 font-medium">Invocation Logs</h3>
-      <div className="flex items-center gap-2 py-2">
+      <div className="flex flex-col gap-2 py-2 sm:flex-row sm:items-center">
         <Input
-          placeholder="Filter ID..."
+          placeholder="Filter by ID..."
           value={(table.getColumn('id')?.getFilterValue() as string) ?? ''}
           onChange={(event) =>
             table.getColumn('id')?.setFilterValue(event.target.value)
+          }
+          className="max-w-sm"
+        />
+        <Input
+          placeholder="Filter by Event ID..."
+          value={
+            (table.getColumn('event_id')?.getFilterValue() as string) ?? ''
+          }
+          onChange={(event) =>
+            table.getColumn('event_id')?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
         />
