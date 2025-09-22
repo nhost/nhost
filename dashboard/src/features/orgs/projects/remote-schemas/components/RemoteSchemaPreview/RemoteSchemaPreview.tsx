@@ -41,7 +41,7 @@ export default function RemoteSchemaPreview({
     setIsSearching(true);
 
     try {
-      const path = await treeRef.current.findItemPath(searchTerm);
+      const path = treeRef.current.findItemPath(searchTerm);
 
       if (path && path.length > 0) {
         await treeRef.current.expandToItem(path);

@@ -8,7 +8,11 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ControlledTreeEnvironment, Tree } from 'react-complex-tree';
+import {
+  ControlledTreeEnvironment,
+  Tree,
+  type TreeRef,
+} from 'react-complex-tree';
 import 'react-complex-tree/lib/style-modern.css';
 import type { ComplexTreeData } from './types';
 import { buildComplexTreeData } from './utils';
@@ -22,7 +26,7 @@ export interface RemoteSchemaTreeProps {
 }
 
 export interface RemoteSchemaTreeRef {
-  findItemPath: (searchTerm: string) => Promise<string[] | null>;
+  findItemPath: (searchTerm: string) => string[] | null;
   expandToItem: (path: string[]) => Promise<void>;
   focusItem: (itemId: string) => void;
   selectItems: (itemIds: string[]) => void;
@@ -33,8 +37,8 @@ export const RemoteSchemaTree = forwardRef<
   RemoteSchemaTreeRef,
   RemoteSchemaTreeProps
 >(({ schema, className }, ref) => {
-  const treeRef = useRef<any>(null);
-  const environmentRef = useRef<any>(null);
+  const treeRef = useRef<TreeRef<string | React.ReactNode>>(null);
+
   const theme = useTheme();
 
   const treeData: ComplexTreeData = useMemo(
@@ -50,10 +54,7 @@ export const RemoteSchemaTree = forwardRef<
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
 
   const findItemPath = useCallback(
-    async (
-      searchTerm: string,
-      searchRoot = 'root',
-    ): Promise<string[] | null> => {
+    (searchTerm: string, searchRoot = 'root'): string[] | null => {
       const searchInItem = (
         itemId: string,
         currentPath: string[],
@@ -157,7 +158,6 @@ export const RemoteSchemaTree = forwardRef<
       }
     >
       <ControlledTreeEnvironment
-        ref={environmentRef}
         items={treeData}
         getItemTitle={getItemTitle}
         viewState={{
