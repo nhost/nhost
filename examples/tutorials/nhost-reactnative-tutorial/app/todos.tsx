@@ -12,6 +12,7 @@ import {
 import ProtectedScreen from "./components/ProtectedScreen";
 import { useAuth } from "./lib/nhost/AuthProvider";
 import { commonStyles } from "./styles/commonStyles";
+import { colors } from "./styles/theme";
 
 // The interfaces below define the structure of our data
 // They are not strictly necessary but help with type safety
@@ -324,6 +325,7 @@ export default function Todos() {
                 })
               }
               placeholder="Enter todo title"
+              placeholderTextColor={colors.textPlaceholder}
             />
             <Text style={commonStyles.inputLabel}>Details</Text>
             <TextInput
@@ -336,6 +338,7 @@ export default function Todos() {
                 })
               }
               placeholder="Enter details (optional)"
+              placeholderTextColor={colors.textPlaceholder}
               multiline
               numberOfLines={3}
             />
@@ -464,7 +467,7 @@ export default function Todos() {
       )}
 
       {showAddForm && (
-        <View style={[commonStyles.card, { marginHorizontal: 16 }]}>
+        <View style={[commonStyles.card, { marginHorizontal: 16, width: undefined }]}>
           <Text style={commonStyles.cardTitle}>Add New Todo</Text>
           <View style={commonStyles.formFields}>
             <View style={commonStyles.fieldGroup}>
@@ -474,6 +477,7 @@ export default function Todos() {
                 value={newTodoTitle}
                 onChangeText={setNewTodoTitle}
                 placeholder="What needs to be done?"
+                placeholderTextColor={colors.textPlaceholder}
               />
             </View>
             <View style={commonStyles.fieldGroup}>
@@ -483,6 +487,7 @@ export default function Todos() {
                 value={newTodoDetails}
                 onChangeText={setNewTodoDetails}
                 placeholder="Add some details (optional)..."
+                placeholderTextColor={colors.textPlaceholder}
                 multiline
                 numberOfLines={3}
               />
@@ -546,14 +551,15 @@ export default function Todos() {
     <ProtectedScreen>
       <Stack.Screen options={{ title: "My Todos" }} />
       <View style={commonStyles.container}>
+        {renderHeader()}
         <FlatList
           data={showAddForm ? [] : todos}
           renderItem={renderTodoItem}
           keyExtractor={(item) => item.id}
-          ListHeaderComponent={renderHeader}
           ListEmptyComponent={!showAddForm ? renderEmptyState : null}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={commonStyles.listContainer}
+          keyboardShouldPersistTaps="handled"
         />
       </View>
     </ProtectedScreen>

@@ -77,7 +77,7 @@ If you are testing this flow in Expo Go, you will need to configure the audience
 Install the necessary packages for Apple Sign In in React Native:
 
 ```bash
-npx expo install expo-apple-authentication@7 expo-crypto@14
+npx expo install expo-apple-authentication@7 expo-crypto@14 --legacy-peer-deps
 ```
 
 The required packages provide:
@@ -92,17 +92,21 @@ The required packages provide:
 
 Add the Sign in with Apple configuration to your `app.json` or `app.config.js`:
 
-```json app.json lines highlight={11-23,52}
+```json app.json lines highlight={15-27,41}
 {
   "expo": {
-    "name": "nhost-reactnative-tutorial",
-    "slug": "nhost-reactnative-tutorial",
+    "name": "nhost-reactnative-tutorial2",
+    "slug": "nhost-reactnative-tutorial2",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "scheme": "nhostreactnativetutorial",
-    "userInterfaceStyle": "automatic",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
     "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "io.example.nhost-reactnative-tutorial",
@@ -118,38 +122,19 @@ Add the Sign in with Apple configuration to your `app.json` or `app.config.js`:
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/favicon.png"
     },
     "plugins": [
       "expo-router",
-      [
-        "expo-splash-screen",
-        {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
-          "dark": {
-            "backgroundColor": "#000000"
-          }
-        }
-      ],
       ["expo-apple-authentication"]
     ],
-    "experiments": {
-      "typedRoutes": true,
-      "reactCompiler": true
-    },
     "extra": {
       "NHOST_REGION": <region>,
       "NHOST_SUBDOMAIN": <subdomain>
