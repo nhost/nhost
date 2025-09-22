@@ -246,7 +246,7 @@ function isActive(path: string): string {
 }
 </script>
 
-<div class="app-container">
+<div class="root">
   <nav class="navigation">
     <div class="nav-container">
       <a href="/" class="nav-logo">Nhost SvelteKit Demo</a>
@@ -382,7 +382,7 @@ import { auth } from "$lib/nhost/auth";
 
 ### Add Application Styles
 
-Replace the contents of the file `src/app.css` with the following styles to provide a clean and modern look for the application. This file will be used across the rest of series.
+Create or replace the contents of the file `src/app.css` with the following styles to provide a clean and modern look for the application. This file will be used across the rest of series.
 
 Note: We've integrated the navigation directly into our `+layout.svelte` file, as SvelteKit handles routing automatically without requiring separate routing configuration.
 
