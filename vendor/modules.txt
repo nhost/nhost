@@ -787,7 +787,7 @@ github.com/twitchyliquid64/golang-asm/unsafeheader
 # github.com/ugorji/go/codec v1.3.0
 ## explicit; go 1.21
 github.com/ugorji/go/codec
-# github.com/ulikunitz/xz v0.5.12
+# github.com/ulikunitz/xz v0.5.15
 ## explicit; go 1.12
 github.com/ulikunitz/xz
 github.com/ulikunitz/xz/internal/hash

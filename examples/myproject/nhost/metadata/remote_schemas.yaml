@@ -12,3 +12,9 @@
         value_from_env: GRAPHITE_WEBHOOK_SECRET
     forward_client_headers: true
   comment: Nhost Graphite remote schema
+- name: hello-world
+  definition:
+    url: '{{NHOST_FUNCTIONS_URL}}/remote-schema'
+    timeout_seconds: 60
+    customization: {}
+  comment: Remote schema example

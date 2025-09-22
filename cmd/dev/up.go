@@ -259,6 +259,13 @@ func restart(
 		return fmt.Errorf("failed to restart services: %w", err)
 	}
 
+	ce.Infoln("Verifying services are healthy...")
+
+	// this ensures that all services are healthy before returning
+	if err := dc.Start(ctx); err != nil {
+		return fmt.Errorf("failed to wait services: %w", err)
+	}
+
 	return nil
 }
 
