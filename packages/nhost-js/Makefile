@@ -1,6 +1,8 @@
 ROOT_DIR?=$(abspath ../../)
 include $(ROOT_DIR)/build/makefiles/general.makefile
 
+TAG_NAME=@nhost/nhost-js
+
 
 .PHONY: _dev-env-up
 _dev-env-up:
