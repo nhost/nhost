@@ -7,8 +7,6 @@ on:
 
 jobs:
   dashboard:
-    needs: extract-project
-    if: needs.extract-project.outputs.project == '@nhost/dashboard'
     uses: ./.github/workflows/wf_deploy_vercel.yaml
     with:
       NAME: dashboard
