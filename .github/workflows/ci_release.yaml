@@ -51,14 +51,13 @@ jobs:
   nhost-js-release:
     needs: extract-project
     if: needs.extract-project.outputs.project == 'packages/nhost-js'
-    runs-on: blacksmith-2vcpu-ubuntu-2404
-    timeout-minutes: 30
-
-    permissions:
-      id-token: write
-      contents: read
-
-    steps:
-    - name: "Deploy nhost-js"
-      run: |
-        echo "Deploying nhost-js version ${{ needs.extract-project.outputs.version }}"
+    uses: ./.github/workflows/wf_release_npm.yaml
+    with:
+      NAME: nhost-js
+      PATH: packages/nhost-js
+      VERSION: ${{ needs.extract-project.outputs.version }}
+    secrets:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
