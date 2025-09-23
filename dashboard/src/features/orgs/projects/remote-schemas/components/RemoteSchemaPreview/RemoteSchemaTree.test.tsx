@@ -1,6 +1,8 @@
 import { render, screen, TestUserEvent } from '@/tests/testUtils';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { buildSchema } from 'graphql';
-import { RemoteSchemaTree } from './RemoteSchemaTree';
+import React from 'react';
+import { RemoteSchemaTree, type RemoteSchemaTreeRef } from './RemoteSchemaTree';
 import { buildComplexTreeData } from './utils';
 
 const sdl = `
@@ -35,222 +37,21 @@ const sdl = `
 const schema = buildSchema(sdl);
 
 describe('RemoteSchemaTree', () => {
-  it('renders a tree for a basic schema and matches snapshot', () => {
-    render(<RemoteSchemaTree schema={schema} />);
+  it('applies dark theme classes/styles on wrapper', () => {
+    const darkTheme = createTheme({ palette: { mode: 'dark' } });
+    const { container } = render(
+      <ThemeProvider theme={darkTheme}>
+        <RemoteSchemaTree schema={schema} />
+      </ThemeProvider>,
+    );
 
-    const tree = screen.getByRole('tree', { name: 'Remote Schema Tree' });
-    expect(tree).toMatchInlineSnapshot(`
-      <div
-        aria-label="Remote Schema Tree"
-        data-rct-tree="schema-tree"
-        role="tree"
-        style="min-height: 30px; position: relative;"
-      >
-        <div
-          id="rct-livedescription-schema-tree"
-          style="clip-path: inset(50%); height: 1px; overflow: hidden; position: absolute; white-space: nowrap; width: 1px;"
-        >
-          <div
-            aria-live="off"
-          >
-            
-          
-            <p>
-              Accessibility guide for tree Remote Schema Tree.
-            </p>
-            
-          
-            <p>
-              
-            Navigate the tree with the arrow keys. Common tree hotkeys apply. Further keybindings are available:
-          
-            </p>
-            
-          
-            <ul>
-              
-            
-              <li>
-                enter to execute primary action on focused item
-              </li>
-              
-            
-              <li>
-                f2 to start renaming the focused item
-              </li>
-              
-            
-              <li>
-                escape to abort renaming an item
-              </li>
-              
-            
-              <li>
-                control+shift+d to start dragging selected items
-              </li>
-              
-          
-            </ul>
-            
-        
-          </div>
-        </div>
-        <ul
-          class="rct-tree-items-container"
-        >
-          <li
-            aria-expanded="false"
-            aria-selected="false"
-            class="rct-tree-item-li rct-tree-item-li-isFolder rct-tree-item-li-focused"
-            role="treeitem"
-          >
-            <div
-              class="rct-tree-item-title-container rct-tree-item-title-container-isFolder rct-tree-item-title-container-focused"
-              data-rct-item-container="true"
-              style="--depthOffset: 10px;"
-            >
-              <div
-                aria-hidden="true"
-                class="rct-tree-item-arrow-isFolder rct-tree-item-arrow"
-                tabindex="-1"
-              >
-                <svg
-                  enable-background="new 0 0 16 16"
-                  version="1.1"
-                  viewBox="0 0 16 16"
-                  x="0px"
-                  xml:space="preserve"
-                  xmlns="http://www.w3.org/2000/svg"
-                  xmlns:xlink="http://www.w3.org/1999/xlink"
-                  y="0px"
-                >
-                  <g>
-                    <g>
-                      <path
-                        class="rct-tree-item-arrow-path"
-                        clip-rule="evenodd"
-                        d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"
-                        fill-rule="evenodd"
-                      />
-                    </g>
-                  </g>
-                </svg>
-              </div>
-              <button
-                class="rct-tree-item-button rct-tree-item-button-isFolder rct-tree-item-button-focused"
-                data-rct-item-focus="true"
-                data-rct-item-id="__query"
-                data-rct-item-interactive="true"
-                tabindex="0"
-                type="button"
-              >
-                Query
-              </button>
-            </div>
-          </li>
-          <li
-            aria-expanded="false"
-            aria-selected="false"
-            class="rct-tree-item-li rct-tree-item-li-isFolder"
-            role="treeitem"
-          >
-            <div
-              class="rct-tree-item-title-container rct-tree-item-title-container-isFolder"
-              data-rct-item-container="true"
-              style="--depthOffset: 10px;"
-            >
-              <div
-                aria-hidden="true"
-                class="rct-tree-item-arrow-isFolder rct-tree-item-arrow"
-                tabindex="-1"
-              >
-                <svg
-                  enable-background="new 0 0 16 16"
-                  version="1.1"
-                  viewBox="0 0 16 16"
-                  x="0px"
-                  xml:space="preserve"
-                  xmlns="http://www.w3.org/2000/svg"
-                  xmlns:xlink="http://www.w3.org/1999/xlink"
-                  y="0px"
-                >
-                  <g>
-                    <g>
-                      <path
-                        class="rct-tree-item-arrow-path"
-                        clip-rule="evenodd"
-                        d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"
-                        fill-rule="evenodd"
-                      />
-                    </g>
-                  </g>
-                </svg>
-              </div>
-              <button
-                class="rct-tree-item-button rct-tree-item-button-isFolder"
-                data-rct-item-focus="false"
-                data-rct-item-id="__mutation"
-                data-rct-item-interactive="true"
-                tabindex="-1"
-                type="button"
-              >
-                Mutation
-              </button>
-            </div>
-          </li>
-          <li
-            aria-expanded="false"
-            aria-selected="false"
-            class="rct-tree-item-li rct-tree-item-li-isFolder"
-            role="treeitem"
-          >
-            <div
-              class="rct-tree-item-title-container rct-tree-item-title-container-isFolder"
-              data-rct-item-container="true"
-              style="--depthOffset: 10px;"
-            >
-              <div
-                aria-hidden="true"
-                class="rct-tree-item-arrow-isFolder rct-tree-item-arrow"
-                tabindex="-1"
-              >
-                <svg
-                  enable-background="new 0 0 16 16"
-                  version="1.1"
-                  viewBox="0 0 16 16"
-                  x="0px"
-                  xml:space="preserve"
-                  xmlns="http://www.w3.org/2000/svg"
-                  xmlns:xlink="http://www.w3.org/1999/xlink"
-                  y="0px"
-                >
-                  <g>
-                    <g>
-                      <path
-                        class="rct-tree-item-arrow-path"
-                        clip-rule="evenodd"
-                        d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"
-                        fill-rule="evenodd"
-                      />
-                    </g>
-                  </g>
-                </svg>
-              </div>
-              <button
-                class="rct-tree-item-button rct-tree-item-button-isFolder"
-                data-rct-item-focus="false"
-                data-rct-item-id="__subscription"
-                data-rct-item-interactive="true"
-                tabindex="-1"
-                type="button"
-              >
-                Subscription
-              </button>
-            </div>
-          </li>
-        </ul>
-      </div>
-    `);
+    const wrapper = container.querySelector('.rct-dark') as HTMLElement | null;
+    expect(wrapper).toBeTruthy();
+    expect(wrapper!).toHaveClass('rct-dark');
+    expect(wrapper).toHaveStyle({
+      backgroundColor: '#171d26',
+      color: '#e3e3e3',
+    });
   });
 
   it('builds tree data including all SDL types and fields', () => {
@@ -401,6 +202,67 @@ describe('RemoteSchemaTree', () => {
       document.querySelector(
         '[data-rct-item-id="__subscription.field.postById.arg.id"]',
       ),
+    ).toBeInTheDocument();
+  });
+
+  it('findItemPath returns the path to the first matching item', () => {
+    const ref = React.createRef<RemoteSchemaTreeRef>();
+    render(<RemoteSchemaTree ref={ref} schema={schema} />);
+
+    expect(ref.current).toBeTruthy();
+
+    const helloPath = ref.current!.findItemPath('hello');
+    expect(helloPath?.[helloPath.length - 1]).toEqual('__query.field.hello');
+
+    const postByIdPath = ref.current!.findItemPath('postById');
+    expect(postByIdPath?.[postByIdPath.length - 1]).toEqual(
+      '__subscription.field.postById',
+    );
+  });
+
+  it('findItemPath is case-insensitive and returns full path including parents', () => {
+    const ref = React.createRef<RemoteSchemaTreeRef>();
+    render(<RemoteSchemaTree ref={ref} schema={schema} />);
+
+    const helloPath = ref.current!.findItemPath('HELLO');
+    expect(helloPath).toEqual(['root', '__query', '__query.field.hello']);
+  });
+
+  it('findItemPath can match a parent item (e.g., Mutation)', () => {
+    const ref = React.createRef<RemoteSchemaTreeRef>();
+    render(<RemoteSchemaTree ref={ref} schema={schema} />);
+
+    const mutationPath = ref.current!.findItemPath('Mutation');
+    expect(mutationPath).toEqual(['root', '__mutation']);
+  });
+
+  it('findItemPath returns null when no item matches', () => {
+    const ref = React.createRef<RemoteSchemaTreeRef>();
+    render(<RemoteSchemaTree ref={ref} schema={schema} />);
+
+    const noMatch = ref.current!.findItemPath('THIS_DOES_NOT_EXIST');
+    expect(noMatch).toBeNull();
+  });
+
+  it('renders correctly when schema uses custom root type names', async () => {
+    const sdlCustom = `
+      type RootQuery { ping: String }
+      type RootMutation { noop: Boolean }
+      type RootSubscription { heartbeat: String }
+      schema { query: RootQuery, mutation: RootMutation, subscription: RootSubscription }
+    `;
+    const customSchema = buildSchema(sdlCustom);
+
+    render(<RemoteSchemaTree schema={customSchema} />);
+
+    expect(
+      await screen.findByRole('button', { name: 'Query' }),
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByRole('button', { name: 'Mutation' }),
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByRole('button', { name: 'Subscription' }),
     ).toBeInTheDocument();
   });
 });
