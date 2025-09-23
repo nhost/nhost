@@ -93,7 +93,7 @@ function EventsBrowserSidebarContent() {
                         variant="ghost"
                       >
                         <Link
-                          href={`/orgs/${orgSlug}/projects/${appSubdomain}/settings/events/event-trigger/${eventTrigger.name}`}
+                          href={`/orgs/${orgSlug}/projects/${appSubdomain}/events/event-trigger/${eventTrigger.name}`}
                         >
                           {eventTrigger.name}
                           <Button
