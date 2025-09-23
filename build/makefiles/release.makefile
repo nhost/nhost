@@ -17,7 +17,7 @@ changelog-get-released:  ## Get changelog for the latest release using git-cliff
 
 .PHONY: changelog-get-unreleased
 changelog-get-unreleased:  ## Get changelog for the following release using git-cliff
-	git cliff -u --bump --tag-pattern $(TAG_PATTERN) $(CLIFF_OPTS) --strip all
+	@git cliff -u --bump --tag-pattern $(TAG_PATTERN) $(CLIFF_OPTS) --strip all
 
 
 .PHONY: changelog-update

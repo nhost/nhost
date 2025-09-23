@@ -50,7 +50,7 @@ jobs:
 
   nhost-js:
     needs: extract-project
-    if: needs.extract-project.outputs.project == 'packages/nhost-js'
+    if: needs.extract-project.outputs.project == 'nhost-js'
     uses: ./.github/workflows/wf_release_npm.yaml
     with:
       NAME: nhost-js

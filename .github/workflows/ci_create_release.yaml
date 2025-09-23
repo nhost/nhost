@@ -66,9 +66,12 @@ jobs:
           exit 1
         fi
 
+        PROJECT_NAME=$(basename $PROJECT)
+
         echo "project=$PROJECT" >> $GITHUB_OUTPUT
+        echo "project_name=$PROJECT_NAME" >> $GITHUB_OUTPUT
         echo "version=$VERSION" >> $GITHUB_OUTPUT
-        echo "tag=$PROJECT@$VERSION" >> $GITHUB_OUTPUT
+        echo "tag=$PROJECT_NAME@$VERSION" >> $GITHUB_OUTPUT
 
     - name: "Get unreleased changelog content"
       id: changelog
