@@ -109,6 +109,12 @@
             ];
           };
 
+          pnpm = pkgs.mkShell {
+            buildInputs = with pkgs; [
+              pnpm_10
+            ];
+          };
+
           skopeo = pkgs.mkShell {
             buildInputs = with pkgs;[
               skopeo

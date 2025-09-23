@@ -78,7 +78,7 @@ jobs:
 
     - name: "Set package version"
       run: |
-        nix develop .#${{ inputs.NAME }} -c pnpm version ${{ inputs.VERSION }} --no-git-tag-version
+        nix develop .#pnpm -c pnpm version ${{ inputs.VERSION }} --no-git-tag-version
 
     - name: "Determine npm tag"
       id: npm-tag
