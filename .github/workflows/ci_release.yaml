@@ -33,7 +33,7 @@ jobs:
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         echo "Extracted project: $PROJECT, version: $VERSION"
 
-  dashboard-release:
+  dashboard:
     needs: extract-project
     if: needs.extract-project.outputs.project == 'dashboard'
     runs-on: blacksmith-2vcpu-ubuntu-2404
@@ -48,7 +48,7 @@ jobs:
       run: |
         echo "Deploying dashboard version ${{ needs.extract-project.outputs.version }}"
 
-  nhost-js-release:
+  nhost-js:
     needs: extract-project
     if: needs.extract-project.outputs.project == 'packages/nhost-js'
     uses: ./.github/workflows/wf_release_npm.yaml
@@ -57,7 +57,7 @@ jobs:
       PATH: packages/nhost-js
       VERSION: ${{ needs.extract-project.outputs.version }}
     secrets:
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
       NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
