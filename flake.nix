@@ -80,6 +80,7 @@
           default = pkgs.mkShell {
             buildInputs = with pkgs; [
               gh
+              git-cliff
               gnused
               nodePackages.vercel
               playwright-driver
@@ -100,6 +101,12 @@
               export PLAYWRIGHT_BROWSERS_PATH=${pkgs.playwright-driver.browsers}
               export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
             '';
+          };
+
+          cliff = pkgs.mkShell {
+            buildInputs = with pkgs; [
+              git-cliff
+            ];
           };
 
           skopeo = pkgs.mkShell {
