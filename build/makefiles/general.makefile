@@ -2,6 +2,8 @@ PROJ_DIR=$(abspath .)
 PROJ=$(subst $(ROOT_DIR)/,,$(PROJ_DIR))
 NAME=$(notdir $(PROJ))
 
+include $(ROOT_DIR)/build/makefiles/release.makefile
+
 ifdef VER
 VERSION=$(shell echo $(VER) | sed -e 's/^v//g' -e 's/\//_/g')
 else
