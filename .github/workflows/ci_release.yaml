@@ -1,0 +1,64 @@
+---
+name: "ci: release"
+on:
+  release:
+    types: [published]
+
+jobs:
+  extract-project:
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    timeout-minutes: 5
+    outputs:
+      project: ${{ steps.extract.outputs.project }}
+      version: ${{ steps.extract.outputs.version }}
+    steps:
+    - name: "Extract project and version from tag"
+      id: extract
+      run: |
+        TAG="${{ github.event.release.tag_name }}"
+
+        PROJECT=$(echo "${TAG}" | cut -d'@' -f1)
+        if [ -z "$PROJECT" ]; then
+          echo "Error: Could not extract project name from tag"
+          exit 1
+        fi
+
+        VERSION=$(echo "${TAG}" | cut -d'@' -f2)
+        if [ -z "$VERSION" ]; then
+          echo "Error: Could not extract version from tag"
+          exit 1
+        fi
+
+        echo "project=$PROJECT" >> $GITHUB_OUTPUT
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "Extracted project: $PROJECT, version: $VERSION"
+
+  dashboard-release:
+    needs: extract-project
+    if: needs.extract-project.outputs.project == 'dashboard'
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    timeout-minutes: 30
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+    - name: "Deploy dashboard"
+      run: |
+        echo "Deploying dashboard version ${{ needs.extract-project.outputs.version }}"
+
+  nhost-js-release:
+    needs: extract-project
+    if: needs.extract-project.outputs.project == 'packages/nhost-js'
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    timeout-minutes: 30
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+    - name: "Deploy nhost-js"
+      run: |
+        echo "Deploying nhost-js version ${{ needs.extract-project.outputs.version }}"
