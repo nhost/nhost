@@ -31,7 +31,7 @@ function ProjectCard({ project }: { project: Project }) {
             {project.region.name}
           </span>
         </div>
-        <ProjectStatusIndicator status={project.appStates[0].stateId} />
+        <ProjectStatusIndicator status={project.appStates[0]?.stateId} />
       </div>
 
       <div className="flex flex-1 flex-row items-start gap-2">

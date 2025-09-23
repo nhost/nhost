@@ -1,6 +1,6 @@
 import { TEST_ORGANIZATION_SLUG, TEST_PROJECT_SUBDOMAIN } from '@/e2e/env';
 import { expect, test } from '@/e2e/fixtures/auth-hook';
-import { prepareTable } from '@/e2e/utils';
+import { prepareTable, toPascalCase } from '@/e2e/utils';
 import { faker } from '@faker-js/faker';
 import { snakeCase } from 'snake-case';
 
@@ -16,7 +16,7 @@ test('should create a simple table', async ({
   await page.getByRole('button', { name: /new table/i }).click();
   await expect(page.getByText(/create a new table/i)).toBeVisible();
 
-  const tableName = snakeCase(faker.lorem.words(3));
+  const tableName = toPascalCase(faker.lorem.words(3));
 
   await prepareTable({
     page,
@@ -38,6 +38,7 @@ test('should create a simple table', async ({
   await expect(
     page.getByRole('link', { name: tableName, exact: true }),
   ).toBeVisible();
+  await expect(page.getByRole('columnheader', { name: 'id' })).toBeVisible();
 });
 
 test('should create a table with unique constraints', async ({
