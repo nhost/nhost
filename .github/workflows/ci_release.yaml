@@ -36,17 +36,18 @@ jobs:
   dashboard:
     needs: extract-project
     if: needs.extract-project.outputs.project == '@nhost/dashboard'
-    runs-on: blacksmith-2vcpu-ubuntu-2404
-    timeout-minutes: 30
-
-    permissions:
-      id-token: write
-      contents: read
-
-    steps:
-    - name: "Deploy dashboard"
-      run: |
-        echo "Deploying dashboard version ${{ needs.extract-project.outputs.version }}"
+    uses: ./.github/workflows/wf_deploy_vercel.yaml
+    with:
+      NAME: dashboard
+      GIT_REF: ${{ github.sha }}
+      ENVIRONMENT: production
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
+      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+      VERCEL_TEAM_ID: ${{ secrets.DASHBOARD_VERCEL_TEAM_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.DASHBOARD_PRODUCTION_VERCEL_PROJECT_ID }}
+      VERCEL_DEPLOY_TOKEN: ${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
 
   nhost-js:
     needs: extract-project
