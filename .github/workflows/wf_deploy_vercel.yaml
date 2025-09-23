@@ -87,7 +87,7 @@ jobs:
         VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
       run: |
         PROD_OPTS=$([ "${{ inputs.ENVIRONMENT }}" = "production" ] && echo "--prod" || echo "")
-        TARGET_OPTS=$([ "${{ inputs.ENVIRONMENT }}" != "production" ] && echo "--target=${{ inputs.ENVIRONMENT }}" || echo "")
+        TARGET_OPTS="--target=${{ inputs.ENVIRONMENT }}"
         echo "Deploying to: ${{ inputs.ENVIRONMENT }}..."
         nix develop .\#vercel -c \
           vercel pull --environment=${{ inputs.ENVIRONMENT }} --token=${{ secrets.VERCEL_DEPLOY_TOKEN }}
