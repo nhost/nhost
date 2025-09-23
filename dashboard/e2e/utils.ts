@@ -312,3 +312,10 @@ export async function loginWithFreeUser(page: Page) {
     timeout: 20000,
   });
 }
+
+export function toPascalCase(str: string, divider = ' ') {
+  return str
+    .split(divider)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join('');
+}

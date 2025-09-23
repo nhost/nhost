@@ -144,7 +144,7 @@ export default async function fetchTable({
                     (
                         SELECT PG_CATALOG.COL_DESCRIPTION(CLS.OID, COLS.ORDINAL_POSITION::INT)
                         FROM PG_CATALOG.PG_CLASS CLS
-                        WHERE CLS.OID = (SELECT '%1$s.%2$s'::REGCLASS::OID) AND CLS.RELNAME = COLS.TABLE_NAME
+                        WHERE CLS.OID = (SELECT '%1$I.%2$I'::REGCLASS::OID) AND CLS.RELNAME = COLS.TABLE_NAME
                     ) AS COLUMN_COMMENT
                 FROM INFORMATION_SCHEMA.COLUMNS COLS
                 WHERE TABLE_SCHEMA = %1$L AND TABLE_NAME = %2$L
