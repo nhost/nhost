@@ -123,6 +123,8 @@
 
           vercel = pkgs.mkShell {
             buildInputs = with pkgs;[
+              pnpm
+              nodejs
               nodePackages.vercel
             ];
           };

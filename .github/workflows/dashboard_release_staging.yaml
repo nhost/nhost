@@ -6,7 +6,7 @@ on:
     #   - main
 
 jobs:
-  dashboard:
+  deploy-vercel:
     uses: ./.github/workflows/wf_deploy_vercel.yaml
     with:
       NAME: dashboard
