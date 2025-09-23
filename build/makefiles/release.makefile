@@ -27,4 +27,4 @@ changelog-update:  ## Update changelog using git-cliff
 
 .PHONY: release-tag-name
 release-tag-name:  ## Get the tag name for the current version
-	echo "$(TAG_NAME)"
+	@echo "$(TAG_NAME)"
