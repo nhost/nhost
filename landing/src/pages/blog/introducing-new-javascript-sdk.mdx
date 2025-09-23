@@ -1,0 +1,134 @@
+import Image from 'next/image'
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Introducing a new Nhost JavaScript SDK: generated from OpenAPI, built for the future',
+  description:
+    'A new, automatically generated JavaScript SDK that simplifies development and prepares the foundation for multi-language support',
+  image: '/images/blog/new-javascript-sdk/sdk-hero.png',
+  date: '2024-12-23',
+  authors: [
+    {
+      name: 'Nuno Pato',
+      title: 'CEO',
+      avatarUrl: '/images/avatars/nuno.jpeg',
+      url: 'https://twitter.com/nunopato',
+    },
+  ],
+  tags: ['Product', 'SDK', 'JavaScript', 'TypeScript', 'Developer Experience'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+We're excited to release a redesigned **JavaScript SDK** and a new approach to how we build and maintain SDKs at Nhost.
+
+## Why we rebuilt our SDK architecture
+
+Our previous SDK ecosystem was built around two problematic patterns. First, we maintained individual packages for each service: **nhost-graphql**, **hasura-auth-js**, and **hasura-storage-js**, with the main **nhost-js** package aggregating them. Very few people were using these individual packages, so there wasn't much benefit to maintaining them separately. Second, we had framework-specific SDKs for React, Vue, and Next.js, multiplying our maintenance burden.
+
+This fragmented approach created several issues:
+
+1. **Complex state management**: our SDKs relied heavily on a complex state machine that was difficult to understand, debug, and extend, leading to bugs with server-side logic and multi-tab synchronization.
+
+2. **Maintenance overhead**: each time we added or modified service APIs (auth, storage), we had to manually implement those changes across all packages and frameworks.
+
+3. **Inconsistency**: manual maintenance across multiple SDKs inevitably led to inconsistencies and version drift between different implementations.
+
+The new generated SDK addresses these fundamental issues. It's dramatically simpler, the entire functions client is just 152 lines of clean, auto-generated code. The complex state machines are gone, replaced by straightforward, predictable code that eliminates the synchronization bugs and complexity that plagued the previous versions.
+
+## Automatic SDK generation from OpenAPI specifications
+
+Our solution was to build an **SDK generator** that automatically creates SDKs from our OpenAPI specifications. This approach consolidates everything into a single **@nhost/nhost-js** package with clean modules for auth, storage, graphql, functions, and complementary modules for things like session management or SSR support.
+
+When we update our APIs, the SDK automatically reflects these changes - no more manual synchronization across multiple packages. The OpenAPI spec becomes the single source of truth, ensuring consistency across all implementations.
+
+While the SDK maintains the familiar **nhost.auth**, **nhost.storage** module structure, the individual functions have been redesigned to be more explicit. Instead of a single **nhost.auth.signIn()** function that inferred the authentication method from arguments, we now have dedicated functions like **nhost.auth.signInEmailPassword()**, **nhost.auth.signInOTPEmail()**, and **nhost.auth.signInIdToken()**.
+
+This makes the API more predictable and easier for both developers and LLMs to work with. We also now ship the OpenAPI specification directly with the SDK.
+
+```typescript
+import { createClient } from "@nhost/nhost-js";
+
+const nhost = createClient({
+  subdomain: "your-project",
+  region: "eu-central-1",
+});
+
+// Clean, predictable authentication
+const response = await nhost.auth.signInEmailPassword({
+  email: "user@example.com",
+  password: "password123",
+});
+
+// Direct GraphQL operations
+const users = await nhost.graphql.request({
+  query: `
+    query GetUsers {
+      users { id displayName email }
+    }
+  `,
+});
+```
+
+This foundation prepares us for multi-language support. The SDK generator is designed to support multiple languages from the same OpenAPI specification. We're planning to replace the existing hand-written SDK for **Dart/Flutter** and expanding into other languages like **Golang**, **Python**, and more based on community demand.
+
+## Transitioning from framework-specific packages
+
+We've deprecated our framework-specific packages (**@nhost/react**, **@nhost/nextjs**, **@nhost/vue**) in favor of the new isomorphic JavaScript SDK. While this requires a bit more initial setup, the consolidation eliminates inconsistencies and version drift, while reducing maintenance burden.
+
+The new approach works universally across all JavaScript environments: Node.js, browsers, and React Native, without framework-specific bloat. More importantly, it ensures that new features and bug fixes are immediately available everywhere, rather than requiring separate updates across multiple packages.
+
+We recognize that this approach requires a bit more manual scaffolding for authentication flows. We're planning to release a complementary **UI library** that will provide ready-to-use auth components that work seamlessly with Next.js, Vue, Svelte, and other popular frameworks.
+
+This approach will give us the best of both worlds: a lean isomorphic core SDK with optional framework-specific UI components for faster development.
+
+## Getting started
+
+The new SDK is still in beta, but we're excited to share it with you. To get started, install the SDK using your favorite package manager:
+
+```bash
+bun install @nhost/nhost-js@beta
+```
+
+```typescript
+import { createClient } from "@nhost/nhost-js";
+
+const nhost = createClient({
+  subdomain: "your-project-subdomain",
+  region: "eu-central-1",
+});
+
+// Authentication
+await nhost.auth.signUpEmailPassword({
+  email: "user@example.com",
+  password: "securePassword123"
+});
+
+// Storage operations
+await nhost.storage.uploadFiles({
+  "file[]": [myFile],
+});
+
+// GraphQL queries
+const data = await nhost.graphql.request({
+  query: "query GetPosts { posts { id title } }"
+});
+
+// Functions
+await nhost.functions.fetch("/my-function", {
+  method: "POST",
+  body: JSON.stringify({ data: "example" })
+});
+```
+
+**If you're building a new app**: start with `@nhost/nhost-js` for the best developer experience and future compatibility.
+
+**If you're using existing framework packages**: while they'll continue to work, we recommend migrating to the new SDK when convenient. Check our [migration guide](https://docs.nhost.io/sdk/migration) for detailed instructions.
+
+**If you're interested in other languages**: our SDK generator is designed to support multiple languages, and we'll be expanding based on community interest and feedback.
+
+This new JavaScript SDK represents progress in our commitment to providing better developer tools. By embracing automatic generation from OpenAPI specifications, we're ensuring that our SDKs stay consistent, up-to-date, and maintainable as Nhost continues to grow.
+
+The foundation we've built extends far beyond JavaScript—it's preparing us for a future where Nhost SDKs are available in every language our community needs, all generated from the same reliable source of truth.
+
+We're excited to see what you build with the new SDK. As always, we'd love your feedback on [Twitter](https://x.com/nhost) or [Discord](https://discord.com/invite/9V7Qb2U).
