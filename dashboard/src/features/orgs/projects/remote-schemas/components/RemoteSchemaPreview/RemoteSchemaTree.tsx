@@ -1,3 +1,4 @@
+import { cn } from '@/lib/utils';
 import { useTheme } from '@mui/material';
 import type { GraphQLSchema } from 'graphql';
 import React, {
@@ -55,6 +56,22 @@ export const RemoteSchemaTree = forwardRef<
 
   const findItemPath = useCallback(
     (searchTerm: string, searchRoot = 'root'): string[] | null => {
+      const lowerSearchTerm = searchTerm.toLowerCase();
+
+      const getText = (data: any): string => {
+        if (React.isValidElement<{ children?: React.ReactNode }>(data)) {
+          const { children } = data.props;
+          if (Array.isArray(children)) {
+            return children.map(getText).join('');
+          }
+          return getText(children);
+        }
+        if (typeof data === 'string' || typeof data === 'number') {
+          return String(data);
+        }
+        return String(data);
+      };
+
       const searchInItem = (
         itemId: string,
         currentPath: string[],
@@ -64,40 +81,20 @@ export const RemoteSchemaTree = forwardRef<
           return null;
         }
 
-        let searchableText = '';
-        if (React.isValidElement(item.data)) {
-          const extractText = (element: any): string => {
-            if (typeof element === 'string') {
-              return element;
-            }
-            if (typeof element === 'number') {
-              return String(element);
-            }
-            if (element?.props?.children) {
-              if (Array.isArray(element.props.children)) {
-                return element.props.children.map(extractText).join('');
-              }
-              return extractText(element.props.children);
-            }
-            return '';
-          };
-          searchableText = extractText(item.data);
-        } else if (typeof item.data === 'string') {
-          searchableText = item.data;
-        } else {
-          searchableText = String(item.data);
-        }
-
-        if (searchableText.toLowerCase().includes(searchTerm.toLowerCase())) {
+        const searchableText = getText(item.data);
+        if (searchableText.toLowerCase().includes(lowerSearchTerm)) {
           return [...currentPath, itemId];
         }
 
-        let result: string[] | null = null;
-        item.children?.some((childId) => {
-          result = searchInItem(childId, [...currentPath, itemId]);
-          return !!result;
-        });
-        return result;
+        let foundPath: string[] | null = null;
+        // eslint-disable-next-line no-restricted-syntax
+        for (const childId of item.children ?? []) {
+          foundPath = searchInItem(childId, [...currentPath, itemId]);
+          if (foundPath) {
+            break;
+          }
+        }
+        return foundPath;
       };
 
       return searchInItem(searchRoot, []);
@@ -147,7 +144,7 @@ export const RemoteSchemaTree = forwardRef<
 
   return (
     <div
-      className={`${className} ${theme.palette.mode === 'dark' ? 'rct-dark' : ''}`}
+      className={cn(className, { 'rct-dark': theme.palette.mode === 'dark' })}
       style={
         theme.palette.mode === 'dark'
           ? {
