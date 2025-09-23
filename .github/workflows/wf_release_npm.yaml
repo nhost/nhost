@@ -92,4 +92,4 @@ jobs:
     - name: "Publish to npm"
       run: |
         echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
-        nix develop .#${{ inputs.NAME }} -c pnpm publish --tag ${{ steps.npm-tag.outputs.tag }} --no-git-checks
+        nix develop .#pnpm -c pnpm publish --tag ${{ steps.npm-tag.outputs.tag }} --no-git-checks
