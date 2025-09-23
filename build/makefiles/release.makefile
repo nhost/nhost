@@ -1,10 +1,10 @@
-TAG_PATTERN="^$(NAME)@\d+\.\d+\.\d+$$"
+TAG_NAME?=$(NAME)
+TAG_PATTERN="^$(TAG_NAME)@\d+\.\d+\.\d+$$"
 
 
 .PHONY: changelog-init
 changelog-init:  ## Initialize changelog using git-cliff
 	@git cliff -u --tag-pattern "$(TAG_PATTERN)" --bump --tag="$(NAME)/$(VERSION)" --output CHANGELOG.md
-
 
 .PHONY: changelog-next-version
 changelog-next-version:  ## Get next version using git-cliff
@@ -23,3 +23,8 @@ changelog-get-unreleased:  ## Get changelog for the following release using git-
 .PHONY: changelog-update
 changelog-update:  ## Update changelog using git-cliff
 	@git cliff -u --bump --tag-pattern $(TAG_PATTERN) $(CLIFF_OPTS) --prepend CHANGELOG.md
+
+
+.PHONY: release-tag-name
+release-tag-name:  ## Get the tag name for the current version
+	echo "$(TAG_NAME)"

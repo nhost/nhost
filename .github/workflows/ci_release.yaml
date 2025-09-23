@@ -35,7 +35,7 @@ jobs:
 
   dashboard:
     needs: extract-project
-    if: needs.extract-project.outputs.project == 'dashboard'
+    if: needs.extract-project.outputs.project == '@nhost/dashboard'
     runs-on: blacksmith-2vcpu-ubuntu-2404
     timeout-minutes: 30
 
@@ -50,7 +50,7 @@ jobs:
 
   nhost-js:
     needs: extract-project
-    if: needs.extract-project.outputs.project == 'nhost-js'
+    if: needs.extract-project.outputs.project == '@nhost/nhost-js'
     uses: ./.github/workflows/wf_release_npm.yaml
     with:
       NAME: nhost-js

@@ -1,6 +1,8 @@
 ROOT_DIR?=$(abspath ../)
 include $(ROOT_DIR)/build/makefiles/general.makefile
 
+TAG_NAME=@nhost/dashboard
+
 
 .PHONY: dev-env-cli-up
 dev-env-cli-up: dev-env-cli-build  ## Starts the CLI using the dev dashboard
