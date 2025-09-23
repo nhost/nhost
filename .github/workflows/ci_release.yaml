@@ -17,13 +17,13 @@ jobs:
       run: |
         TAG="${{ github.event.release.tag_name }}"
 
-        PROJECT=$(echo "${TAG}" | cut -d'@' -f1)
+        PROJECT=$(echo "${TAG}" | sed 's/@[^@]*$//')
         if [ -z "$PROJECT" ]; then
           echo "Error: Could not extract project name from tag"
           exit 1
         fi
 
-        VERSION=$(echo "${TAG}" | cut -d'@' -f2)
+        VERSION=$(echo "${TAG}" | sed 's/.*@//')
         if [ -z "$VERSION" ]; then
           echo "Error: Could not extract version from tag"
           exit 1
