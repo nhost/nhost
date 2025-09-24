@@ -12,7 +12,6 @@ jobs:
       NAME: dashboard
       GIT_REF: ${{ github.sha }}
       ENVIRONMENT: production
-      DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_STAGING }}
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
@@ -20,3 +19,4 @@ jobs:
       VERCEL_TEAM_ID: ${{ secrets.DASHBOARD_VERCEL_TEAM_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.DASHBOARD_STAGING_VERCEL_PROJECT_ID }}
       VERCEL_DEPLOY_TOKEN: ${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
+      DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_STAGING }}

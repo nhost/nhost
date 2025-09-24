@@ -41,7 +41,6 @@ jobs:
       NAME: dashboard
       GIT_REF: ${{ github.sha }}
       ENVIRONMENT: production
-      DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_PRODUCTION }}
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
@@ -49,6 +48,7 @@ jobs:
       VERCEL_TEAM_ID: ${{ secrets.DASHBOARD_VERCEL_TEAM_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.DASHBOARD_PRODUCTION_VERCEL_PROJECT_ID }}
       VERCEL_DEPLOY_TOKEN: ${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
+      DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_PRODUCTION }}
 
   nhost-js:
     needs: extract-project
@@ -58,9 +58,9 @@ jobs:
       NAME: nhost-js
       PATH: packages/nhost-js
       VERSION: ${{ needs.extract-project.outputs.version }}
-      DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_PRODUCTION }}
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
       NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_PRODUCTION }}

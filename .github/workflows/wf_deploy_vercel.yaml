@@ -12,9 +12,6 @@ on:
       ENVIRONMENT:
         required: true
         type: string
-      DISCORD_WEBHOOK:
-        type: string
-        required: false
     secrets:
       AWS_ACCOUNT_ID:
         required: true
@@ -28,6 +25,8 @@ on:
         required: true
       VERCEL_DEPLOY_TOKEN:
         required: true
+      DISCORD_WEBHOOK:
+        required: false
 
     outputs:
       preview-url:
@@ -115,12 +114,12 @@ jobs:
       if: github.event_name == 'pull_request' || github.event_name == 'pull_request_target'
 
     - name: Send Discord notification
-      if: ${{ always() && inputs.DISCORD_WEBHOOK }}
-      uses: tsickert/discord-webhook@v7.0.0
+      if: always()
+      uses: ./.github/actions/discord-notification
       with:
-        webhook-url: ${{ inputs.DISCORD_WEBHOOK }}
-        embed-title: "Deployed ${{ inputs.NAME }} to Vercel"
-        embed-description: |
+        webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+        title: "Deployed ${{ inputs.NAME }} to Vercel"
+        description: |
           **Environment**: ${{ inputs.ENVIRONMENT }}
           **URL**: ${{ steps.deploy.outputs.preview-url }}
           **Triggered by**: ${{ github.actor }}
@@ -129,7 +128,7 @@ jobs:
           **Details**:
           - Git Ref: ${{ inputs.GIT_REF }}
           - Commit: ${{ github.event.pull_request.head.sha || github.sha }}
-        embed-color: ${{ job.status == 'success' && '5763719' || '15548997' }}
+        color: ${{ job.status == 'success' && '5763719' || '15548997' }}
 
     - run: rm -rf .vercel
       if: always()

@@ -98,12 +98,12 @@ jobs:
         nix develop .#pnpm -c pnpm publish --tag ${{ steps.npm-tag.outputs.tag }} --no-git-checks
 
     - name: Send Discord notification
-      if: ${{ always() && inputs.DISCORD_WEBHOOK }}
-      uses: tsickert/discord-webhook@v7.0.0
+      if: always()
+      uses: ./.github/actions/discord-notification
       with:
-        webhook-url: ${{ inputs.DISCORD_WEBHOOK }}
-        embed-title: "Published ${{ inputs.NAME }}@${{ inputs.VERSION }} to npm"
-        embed-description: |
+        webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+        title: "Published ${{ inputs.NAME }}@${{ inputs.VERSION }} to npm"
+        description: |
           **Status**: ${{ job.status }}
           **Tag**: ${{ steps.npm-tag.outputs.tag }}
           **Triggered by**: ${{ github.actor }}
@@ -111,4 +111,4 @@ jobs:
           **Details**:
           - Version: ${{ inputs.VERSION }}
           - Package: ${{ inputs.NAME }}
-        embed-color: ${{ job.status == 'success' && '5763719' || '15548997' }}
+        color: ${{ job.status == 'success' && '5763719' || '15548997' }}
