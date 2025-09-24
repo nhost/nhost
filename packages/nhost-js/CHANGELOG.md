@@ -1,3 +1,13 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+## [@nhost/nhost-js@4.0.1] - 2025-09-24
+
+### ⚙️ Miscellaneous Tasks
+
+- *(docs)* Update README (#3492)
+
 - fix (packages/nhost-js): force refresh correctly if marginSeconds is set to 0 #54
 
 # 5.0.0-beta.9
