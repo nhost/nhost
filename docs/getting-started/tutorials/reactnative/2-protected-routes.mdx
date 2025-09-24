@@ -1,0 +1,1497 @@
+---
+title: Protecting Screens and Content in React Native
+description: Learn how to protect screens and content in a React Native application using Nhost authentication.
+sidebarTitle: "Protecting Screens"
+icon: lock
+---
+
+This tutorial part demonstrates how to implement robust screen protection in a React Native application using Nhost authentication. You'll build a complete authentication system with a protected `/profile` screen that includes cross-device session synchronization and automatic navigation. In addition, we will see how to show conditional navigation and content based on authentication status.
+
+<Info>
+This is **Part 2** in the Full-Stack React Native Development with Nhost series. This part builds a foundation for authentication-protected screens that you can extend to secure any part of your application.
+</Info>
+
+## Full-Stack React Native Development with Nhost
+
+<CardGroup cols={3}>
+<Card title="1. Create Project" icon="plus" href="/getting-started/tutorials/reactnative/1-introduction">
+Set up your Nhost project
+</Card>
+
+<Card title="2. Protected Screens" icon="lock" href="/getting-started/tutorials/reactnative/2-protected-routes">
+**Current** - Screen protection basics
+</Card>
+
+<Card title="3. User Authentication" icon="user" href="/getting-started/tutorials/reactnative/3-user-authentication">
+Complete auth flow
+</Card>
+
+<Card title="4. GraphQL Operations" icon="list-check" href="/getting-started/tutorials/reactnative/4-graphql-operations">
+CRUD operations with GraphQL
+</Card>
+
+<Card title="5. File Uploads" icon="upload" href="/getting-started/tutorials/reactnative/5-file-uploads">
+File upload and management
+</Card>
+
+<Card title="6. Sign in with Apple" icon="apple" href="/getting-started/tutorials/reactnative/6-sign-in-with-apple">
+Apple authentication integration
+</Card>
+</CardGroup>
+
+## Prerequisites
+
+- An [Nhost project](/getting-started/tutorials/reactnative/1-introduction) set up
+- Node.js 20+ installed
+- Expo CLI installed globally (`npm install -g @expo/cli`)
+- Basic knowledge of React Native and Expo Router
+
+## Step-by-Step Guide
+
+<Steps>
+<Step>
+
+### Create a New React Native App
+
+We'll start by creating a fresh React Native application using Expo with TypeScript support. Expo provides fast development tools and optimized builds for modern React Native applications.
+
+```bash
+npx create-expo-app nhost-reactnative-tutorial --template blank-typescript
+cd nhost-reactnative-tutorial
+# we don't need the following files
+rm App.tsx index.ts
+```
+
+</Step>
+
+<Step>
+
+### Install Required Dependencies
+
+Install the Nhost JavaScript SDK and AsyncStorage for client-side routing and storage. The Nhost SDK handles authentication, while AsyncStorage enables persistent session storage.
+
+```bash
+npx expo install @nhost/nhost-js @react-native-async-storage/async-storage@~2 expo-router@~6 expo-constants@~18
+```
+
+</Step>
+
+<Step>
+
+### Configure Expo Router Entry Point
+
+Update your `package.json` to use Expo Router as the main entry point by adding or replacing the `main` field (leave rest of the file unchanged):
+
+```json package.json
+{
+  "main": "expo-router/entry"
+}
+```
+
+</Step>
+
+<Step>
+
+### Environment Configuration
+
+Let's configure our app to connect to your Nhost backend. We'll use Expo's `app.json` to store environment variables.
+
+```json app.json lines highlight="29-32"
+{
+  "expo": {
+    "name": "nhost-reactnative-tutorial",
+    "slug": "nhost-reactnative-tutorial",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "NHOST_REGION": <region>,
+      "NHOST_SUBDOMAIN": <subdomain>
+    }
+  }
+}
+```
+
+<Warning>
+Replace `<region>` and `<subdomain>` with the actual values from your Nhost project dashboard.
+</Warning>
+</Step>
+
+<Step>
+
+### Create the AsyncStorage Adapter
+
+Build a storage adapter that enables Nhost to persist sessions using React Native's AsyncStorage. This provides session persistence across app restarts and updates.
+
+```tsx app/lib/nhost/AsyncStorage.tsx lines
+import {
+  DEFAULT_SESSION_KEY,
+  type Session,
+  type SessionStorageBackend,
+} from "@nhost/nhost-js/session";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+/**
+ * Custom storage implementation for React Native using AsyncStorage
+ * to persist the Nhost session on the device.
+ *
+ * This implementation synchronously works with the SessionStorageBackend interface
+ * while ensuring reliable persistence with AsyncStorage for Expo Go.
+ */
+export default class NhostAsyncStorage implements SessionStorageBackend {
+  private key: string;
+  private cache: Session | null = null;
+
+  constructor(key: string = DEFAULT_SESSION_KEY) {
+    this.key = key;
+
+    // Immediately try to load from AsyncStorage
+    this.loadFromAsyncStorage();
+  }
+
+  /**
+   * Load the session from AsyncStorage synchronously if possible
+   */
+  private loadFromAsyncStorage(): void {
+    // Try to get cached data from AsyncStorage immediately
+    try {
+      AsyncStorage.getItem(this.key)
+        .then((value) => {
+          if (value) {
+            try {
+              this.cache = JSON.parse(value) as Session;
+            } catch (error) {
+              console.warn("Error parsing session from AsyncStorage:", error);
+              this.cache = null;
+            }
+          }
+        })
+        .catch((error) => {
+          console.warn("Error loading from AsyncStorage:", error);
+        });
+    } catch (error) {
+      console.warn("AsyncStorage access error:", error);
+    }
+  }
+
+  /**
+   * Gets the session from the in-memory cache
+   */
+  get(): Session | null {
+    return this.cache;
+  }
+
+  /**
+   * Sets the session in the in-memory cache and persists to AsyncStorage
+   * Ensures the data gets written by using an immediately invoked async function
+   */
+  set(value: Session): void {
+    // Update cache immediately
+    this.cache = value;
+
+    // Persist to AsyncStorage with better error handling
+    void (async () => {
+      try {
+        await AsyncStorage.setItem(this.key, JSON.stringify(value));
+      } catch (error) {
+        console.warn("Error saving session to AsyncStorage:", error);
+      }
+    })();
+  }
+
+  /**
+   * Removes the session from the in-memory cache and AsyncStorage
+   * Ensures the data gets removed by using an immediately invoked async function
+   */
+  remove(): void {
+    // Clear cache immediately
+    this.cache = null;
+
+    // Remove from AsyncStorage with better error handling
+    void (async () => {
+      try {
+        await AsyncStorage.removeItem(this.key);
+      } catch (error) {
+        console.warn("Error removing session from AsyncStorage:", error);
+      }
+    })();
+  }
+}
+```
+
+</Step>
+
+<Step>
+
+### Create the Nhost Auth Provider
+
+Build the core authentication provider that manages user sessions across your application. This component provides authentication state to all child components and handles cross-device synchronization.
+
+```tsx app/lib/nhost/AuthProvider.tsx lines
+import { createClient, type NhostClient } from "@nhost/nhost-js";
+import type { Session } from "@nhost/nhost-js/session";
+import Constants from "expo-constants";
+import {
+  createContext,
+  type ReactNode,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import NhostAsyncStorage from "./AsyncStorage";
+
+/**
+ * Authentication context interface providing access to user session state and Nhost client.
+ * Used throughout the React Native application to access authentication-related data and operations.
+ */
+interface AuthContextType {
+  /** Current authenticated user object, null if not authenticated */
+  user: Session["user"] | null;
+  /** Current session object containing tokens and user data, null if no active session */
+  session: Session | null;
+  /** Boolean indicating if user is currently authenticated */
+  isAuthenticated: boolean;
+  /** Boolean indicating if authentication state is still loading */
+  isLoading: boolean;
+  /** Nhost client instance for making authenticated requests */
+  nhost: NhostClient;
+}
+
+// Create React context for authentication state and nhost client
+const AuthContext = createContext<AuthContextType | null>(null);
+
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+/**
+ * AuthProvider component that provides authentication context to the React Native application.
+ *
+ * This component handles:
+ * - Initializing the Nhost client with AsyncStorage for persistent storage
+ * - Managing authentication state (user, session, loading, authenticated status)
+ * - Cross-device session synchronization using sessionStorage.onChange events
+ * - Async session initialization to work with React Native's AsyncStorage
+ */
+export const AuthProvider = ({ children }: AuthProviderProps) => {
+  const [user, setUser] = useState<Session["user"] | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+
+  // Create the nhost client with persistent storage
+  const nhost = useMemo(() => {
+    // Get configuration values with type assertion
+    const subdomain =
+      (Constants.expoConfig?.extra?.["NHOST_SUBDOMAIN"] as string) || "local";
+    const region =
+      (Constants.expoConfig?.extra?.["NHOST_REGION"] as string) || "local";
+
+    return createClient({
+      subdomain,
+      region,
+      storage: new NhostAsyncStorage(),
+    });
+  }, []);
+
+  useEffect(() => {
+    // Initialize authentication state
+    setIsLoading(true);
+
+    // Allow enough time for AsyncStorage to be read and session to be restored
+    const initializeSession = async () => {
+      try {
+        // Let's wait a bit to ensure AsyncStorage has been read
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        // Now try to get the current session
+        const currentSession = nhost.getUserSession();
+
+        setUser(currentSession?.user || null);
+        setSession(currentSession);
+        setIsAuthenticated(!!currentSession);
+      } catch (error) {
+        console.warn("Error initializing session:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    void initializeSession();
+
+    // Listen for session changes
+    const unsubscribe = nhost.sessionStorage.onChange((currentSession) => {
+      setUser(currentSession?.user || null);
+      setSession(currentSession);
+      setIsAuthenticated(!!currentSession);
+    });
+
+    // Clean up subscription on unmount
+    return () => {
+      unsubscribe();
+    };
+  }, [nhost]);
+
+  // Context value with nhost client directly exposed
+  const value: AuthContextType = {
+    user,
+    session,
+    isAuthenticated,
+    isLoading,
+    nhost,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
+
+/**
+ * Custom hook to access the authentication context.
+ *
+ * Must be used within a component wrapped by AuthProvider.
+ * Provides access to current user session, authentication state, and Nhost client.
+ *
+ * @throws {Error} When used outside of AuthProvider
+ * @returns {AuthContextType} Authentication context containing user, session, and client
+ *
+ * @example
+ * ```tsx
+ * function MyComponent() {
+ *   const { user, isAuthenticated, nhost } = useAuth();
+ *
+ *   if (!isAuthenticated) {
+ *     return <Text>Please sign in</Text>;
+ *   }
+ *
+ *   return <Text>Welcome, {user?.displayName}!</Text>;
+ * }
+ * ```
+ */
+export const useAuth = (): AuthContextType => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};
+
+export default AuthProvider;
+```
+
+</Step>
+
+<Step>
+
+### Create Shared Theme and Styles
+
+Before building components, let's create shared theme constants and common styles to keep our code clean and maintainable. This follows React Native best practices for styling.
+
+<Tabs>
+
+<Tab title="app/styles/theme.ts" >
+
+Create the theme constants file:
+
+```tsx app/styles/theme.ts lines
+/**
+ * Design system constants for consistent theming across the app.
+ * These values are used throughout the application for colors, spacing, and typography.
+ */
+
+export const colors = {
+  // Primary brand colors
+  primary: "#6366f1",
+  primaryHover: "#5855eb",
+  secondary: "#818cf8",
+
+  // Background colors
+  background: "#f5f5f5",
+  surface: "#ffffff",
+  overlay: "rgba(0, 0, 0, 0.5)",
+
+  // Text colors
+  text: "#333333",
+  textLight: "#666666",
+  textDark: "#1a1a1a",
+  textPlaceholder: "#999999",
+
+  // Status colors
+  success: "#10b981",
+  successLight: "#34d399",
+  error: "#ef4444",
+  errorLight: "#f87171",
+  warning: "#f59e0b",
+  info: "#3b82f6",
+
+  // Border and divider colors
+  border: "#e5e5e5",
+  borderLight: "#f0f0f0",
+  divider: "#e0e0e0",
+
+  // Shadow color
+  shadow: "#000000",
+};
+
+export const spacing = {
+  xs: 4,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 20,
+  xxl: 24,
+  xxxl: 32,
+};
+
+export const borderRadius = {
+  sm: 6,
+  md: 8,
+  lg: 10,
+  xl: 12,
+  round: 50,
+};
+
+export const typography = {
+  // Font sizes
+  sizes: {
+    xs: 12,
+    sm: 14,
+    md: 16,
+    lg: 18,
+    xl: 20,
+    xxl: 24,
+    xxxl: 28,
+  },
+
+  // Font weights
+  weights: {
+    normal: "400" as const,
+    medium: "500" as const,
+    semibold: "600" as const,
+    bold: "700" as const,
+  },
+
+  // Line heights
+  lineHeights: {
+    tight: 1.2,
+    normal: 1.4,
+    relaxed: 1.6,
+  },
+};
+
+export const shadows = {
+  small: {
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  medium: {
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  large: {
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+};
+```
+
+</Tab>
+
+<Tab title="app/styles/commonStyles.ts" >
+
+Create the common styles file:
+
+```tsx app/styles/commonStyles.ts lines
+import { StyleSheet } from "react-native";
+import { borderRadius, colors, shadows, spacing, typography } from "./theme";
+
+/**
+ * Common styles used across multiple components.
+ * This promotes consistency and reduces code duplication.
+ */
+
+export const commonStyles = StyleSheet.create({
+  // Layout styles
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+
+  contentContainer: {
+    padding: spacing.xl,
+    paddingBottom: spacing.xxxl + spacing.md,
+  },
+
+  centerContent: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: spacing.xl,
+  },
+
+  // Card styles
+  card: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    marginBottom: spacing.xl,
+    width: "100%",
+    ...shadows.medium,
+  },
+
+  cardTitle: {
+    fontSize: typography.sizes.lg,
+    fontWeight: typography.weights.bold,
+    color: colors.text,
+    marginBottom: spacing.md,
+  },
+
+  // Button styles
+  button: {
+    backgroundColor: colors.primary,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xl,
+    borderRadius: borderRadius.md,
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 48,
+  },
+
+  buttonSecondary: {
+    backgroundColor: colors.secondary,
+  },
+
+  buttonText: {
+    color: colors.surface,
+    fontSize: typography.sizes.md,
+    fontWeight: typography.weights.semibold,
+    textAlign: "center",
+  },
+
+  // Text styles
+  title: {
+    fontSize: typography.sizes.xxl,
+    fontWeight: typography.weights.bold,
+    color: colors.text,
+    textAlign: "center",
+    marginBottom: spacing.xl,
+    lineHeight: typography.sizes.xxl * typography.lineHeights.tight,
+  },
+
+  subtitle: {
+    fontSize: typography.sizes.lg,
+    fontWeight: typography.weights.semibold,
+    color: colors.text,
+    marginBottom: spacing.lg,
+  },
+
+  bodyText: {
+    fontSize: typography.sizes.md,
+    color: colors.textLight,
+    lineHeight: typography.sizes.md * typography.lineHeights.normal,
+  },
+
+  labelText: {
+    fontSize: typography.sizes.md,
+    fontWeight: typography.weights.semibold,
+    color: colors.text,
+    marginBottom: spacing.xs,
+  },
+
+  valueText: {
+    fontSize: typography.sizes.md,
+    color: colors.textLight,
+  },
+
+  // Status text styles
+  successText: {
+    color: colors.success,
+    fontWeight: typography.weights.semibold,
+  },
+
+  errorText: {
+    color: colors.error,
+    fontWeight: typography.weights.semibold,
+  },
+
+  // Loading styles
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: colors.background,
+    padding: spacing.xl,
+  },
+
+  loadingText: {
+    marginTop: spacing.md,
+    color: colors.textLight,
+    fontSize: typography.sizes.md,
+    textAlign: "center",
+  },
+
+  // Form styles
+  formField: {
+    marginBottom: spacing.lg,
+  },
+
+  fieldGroup: {
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderLight,
+  },
+
+  // Input styles
+  input: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: borderRadius.md,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    fontSize: typography.sizes.md,
+    color: colors.text,
+    backgroundColor: colors.surface,
+    minHeight: 48,
+  },
+
+  inputPlaceholder: {
+    color: colors.textPlaceholder,
+  },
+
+  helperText: {
+    fontSize: typography.sizes.sm,
+    color: colors.textLight,
+    marginTop: spacing.xs,
+  },
+
+  // Link styles
+  linkContainer: {
+    marginTop: spacing.xl,
+    alignItems: "center",
+  },
+
+  linkText: {
+    fontSize: typography.sizes.md,
+    color: colors.textLight,
+    textAlign: "center",
+  },
+
+  link: {
+    color: colors.primary,
+    fontWeight: typography.weights.semibold,
+  },
+
+  // Container styles
+  successContainer: {
+    backgroundColor: colors.background,
+    borderColor: colors.success,
+    borderWidth: 1,
+    borderRadius: borderRadius.md,
+    padding: spacing.lg,
+    marginBottom: spacing.lg,
+  },
+
+  errorContainer: {
+    backgroundColor: colors.background,
+    borderColor: colors.error,
+    borderWidth: 1,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+  },
+
+  debugContainer: {
+    backgroundColor: colors.background,
+    borderColor: colors.warning,
+    borderWidth: 1,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+  },
+
+  debugTitle: {
+    fontSize: typography.sizes.sm,
+    fontWeight: typography.weights.semibold,
+    color: colors.text,
+    marginBottom: spacing.xs,
+  },
+
+  debugItem: {
+    flexDirection: "row",
+    marginBottom: spacing.xs,
+  },
+
+  debugKey: {
+    fontSize: typography.sizes.sm,
+    fontWeight: typography.weights.medium,
+    color: colors.info,
+    marginRight: spacing.sm,
+    fontFamily: "monospace",
+  },
+
+  debugValue: {
+    fontSize: typography.sizes.sm,
+    color: colors.textLight,
+    fontFamily: "monospace",
+    flex: 1,
+  },
+
+  emailText: {
+    fontWeight: typography.weights.bold,
+    color: colors.text,
+  },
+
+  // Session info styles
+  sessionInfo: {
+    backgroundColor: colors.background,
+    padding: spacing.md,
+    borderRadius: borderRadius.sm,
+    marginTop: spacing.sm,
+  },
+
+  sessionValue: {
+    fontSize: typography.sizes.sm,
+    color: colors.textLight,
+    marginBottom: spacing.md,
+    fontFamily: "monospace",
+  },
+
+  // Utility styles
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  spaceBetween: {
+    justifyContent: "space-between",
+  },
+
+  alignCenter: {
+    alignItems: "center",
+  },
+
+  textCenter: {
+    textAlign: "center",
+  },
+
+  marginBottom: {
+    marginBottom: spacing.md,
+  },
+
+  fullWidth: {
+    width: "100%",
+  },
+
+  // Todo-specific styles
+  todoCard: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.md,
+    padding: spacing.lg,
+    marginBottom: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    ...shadows.small,
+  },
+
+  todoCompleted: {
+    opacity: 0.7,
+    borderColor: colors.success,
+  },
+
+  todoEditForm: {
+    padding: spacing.md,
+  },
+
+  todoHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+
+  todoTitleContainer: {
+    flex: 1,
+    marginRight: spacing.md,
+  },
+
+  todoTitle: {
+    fontSize: typography.sizes.md,
+    fontWeight: typography.weights.medium,
+    color: colors.text,
+    lineHeight: typography.sizes.md * typography.lineHeights.normal,
+  },
+
+  todoTitleCompleted: {
+    textDecorationLine: "line-through",
+    color: colors.textLight,
+  },
+
+  todoActions: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  actionButton: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    marginLeft: spacing.xs,
+    borderRadius: borderRadius.sm,
+    backgroundColor: colors.background,
+    minWidth: 32,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  completeButton: {
+    backgroundColor: `${colors.success}20`,
+  },
+
+  editButton: {
+    backgroundColor: `${colors.info}20`,
+  },
+
+  deleteButton: {
+    backgroundColor: `${colors.error}20`,
+  },
+
+  actionButtonText: {
+    fontSize: typography.sizes.md,
+  },
+
+  todoDetails: {
+    marginTop: spacing.md,
+    paddingTop: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.borderLight,
+  },
+
+  todoDescription: {
+    fontSize: typography.sizes.sm,
+    color: colors.textLight,
+    lineHeight: typography.sizes.sm * typography.lineHeights.normal,
+    marginBottom: spacing.sm,
+  },
+
+  todoDescriptionCompleted: {
+    textDecorationLine: "line-through",
+  },
+
+  todoMeta: {
+    marginTop: spacing.sm,
+  },
+
+  metaText: {
+    fontSize: typography.sizes.xs,
+    color: colors.textLight,
+    marginBottom: spacing.xs,
+  },
+
+  completionBadge: {
+    marginTop: spacing.xs,
+    alignSelf: "flex-start",
+  },
+
+  completionText: {
+    fontSize: typography.sizes.xs,
+    color: colors.success,
+    fontWeight: typography.weights.medium,
+  },
+
+  // Page layout styles
+  pageHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+  },
+
+  pageTitle: {
+    fontSize: typography.sizes.xl,
+    fontWeight: typography.weights.bold,
+    color: colors.text,
+    flex: 1,
+  },
+
+  addButton: {
+    backgroundColor: colors.primary,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: "center",
+    justifyContent: "center",
+    ...shadows.medium,
+  },
+
+  addButtonText: {
+    fontSize: typography.sizes.xl,
+    color: colors.surface,
+    fontWeight: typography.weights.bold,
+  },
+
+  // Form styles
+  formFields: {
+    marginTop: spacing.sm,
+  },
+
+  inputLabel: {
+    fontSize: typography.sizes.sm,
+    fontWeight: typography.weights.medium,
+    color: colors.text,
+    marginBottom: spacing.xs,
+  },
+
+  textArea: {
+    minHeight: 80,
+    textAlignVertical: "top",
+  },
+
+  buttonGroup: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: spacing.lg,
+    gap: spacing.md,
+  },
+
+  primaryButton: {
+    backgroundColor: colors.primary,
+    flex: 1,
+  },
+
+  secondaryButton: {
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+    flex: 1,
+  },
+
+  secondaryButtonText: {
+    color: colors.text,
+  },
+
+  // Content layout styles
+  contentSection: {
+    flex: 1,
+    paddingHorizontal: spacing.lg,
+  },
+
+  emptyState: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.xxxl,
+  },
+
+  emptyStateTitle: {
+    fontSize: typography.sizes.lg,
+    fontWeight: typography.weights.semibold,
+    color: colors.text,
+    textAlign: "center",
+    marginBottom: spacing.sm,
+  },
+
+  emptyStateText: {
+    fontSize: typography.sizes.md,
+    color: colors.textLight,
+    textAlign: "center",
+    lineHeight: typography.sizes.md * typography.lineHeights.normal,
+  },
+
+  listContainer: {
+    paddingBottom: spacing.xl,
+  },
+
+  dividerContainer: {
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    marginVertical: 15,
+  },
+
+  divider: {
+    flex: 1,
+    height: 1,
+    backgroundColor: colors.border,
+  },
+
+  dividerText: {
+    marginHorizontal: 16,
+    fontSize: 14,
+    color: colors.textLight,
+    fontWeight: "500" as const,
+  },
+});
+
+// Specific component styles that might be reused
+export const profileStyles = StyleSheet.create({
+  profileItem: {
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderLight,
+  },
+
+  profileItemLast: {
+    borderBottomWidth: 0,
+  },
+});
+
+export const homeStyles = StyleSheet.create({
+  welcomeCard: {
+    width: "100%",
+    maxWidth: 400,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    padding: spacing.xl,
+    alignItems: "center",
+    ...shadows.medium,
+  },
+
+  welcomeText: {
+    fontSize: typography.sizes.lg,
+    marginBottom: spacing.xl,
+    textAlign: "center",
+    color: colors.text,
+    lineHeight: typography.sizes.lg * typography.lineHeights.normal,
+  },
+
+  authMessage: {
+    fontSize: typography.sizes.md,
+    textAlign: "center",
+    color: colors.textLight,
+    lineHeight: typography.sizes.md * typography.lineHeights.normal,
+  },
+});
+
+// File upload specific styles
+export const fileUploadStyles = StyleSheet.create({
+  fileUpload: {
+    borderWidth: 2,
+    borderColor: colors.border,
+    borderStyle: "dashed",
+    borderRadius: borderRadius.lg,
+    padding: spacing.xl,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.background,
+    marginBottom: spacing.lg,
+  },
+
+  uploadIcon: {
+    marginBottom: spacing.md,
+  },
+
+  uploadIconText: {
+    fontSize: typography.sizes.xxxl,
+  },
+
+  uploadText: {
+    fontSize: typography.sizes.md,
+    color: colors.textLight,
+    textAlign: "center",
+  },
+
+  fileName: {
+    marginTop: spacing.sm,
+    color: colors.primary,
+    fontSize: typography.sizes.sm,
+    textAlign: "center",
+  },
+
+  buttonDisabled: {
+    backgroundColor: colors.textPlaceholder,
+  },
+
+  emptyState: {
+    alignItems: "center",
+    padding: spacing.xl,
+  },
+
+  emptyIcon: {
+    fontSize: typography.sizes.xxxl,
+    marginBottom: spacing.md,
+  },
+
+  emptyTitle: {
+    fontSize: typography.sizes.lg,
+    fontWeight: typography.weights.semibold,
+    color: colors.text,
+    marginBottom: spacing.xs,
+  },
+
+  emptyDescription: {
+    fontSize: typography.sizes.md,
+    color: colors.textLight,
+    textAlign: "center",
+  },
+
+  fileList: {
+    maxHeight: 300,
+  },
+
+  fileItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderLight,
+  },
+
+  fileInfo: {
+    flex: 1,
+    paddingRight: spacing.md,
+  },
+
+  fileNameText: {
+    fontSize: typography.sizes.md,
+    fontWeight: typography.weights.medium,
+    color: colors.text,
+    marginBottom: spacing.xs,
+  },
+
+  fileDetails: {
+    fontSize: typography.sizes.sm,
+    color: colors.textLight,
+  },
+
+  fileActions: {
+    flexDirection: "row",
+  },
+
+  actionButton: {
+    padding: spacing.sm,
+    marginHorizontal: spacing.xs,
+    borderRadius: borderRadius.round,
+    backgroundColor: colors.borderLight,
+  },
+
+  deleteButton: {
+    backgroundColor: colors.errorLight,
+  },
+
+  actionText: {
+    fontSize: typography.sizes.md,
+  },
+});
+```
+
+</Tab>
+
+</Tabs>
+
+</Step>
+
+<Step>
+
+### Create the Protected Screen Component
+
+Build a reusable component that wraps protected screens and handles authentication checks. This component prevents unauthorized access and provides loading states during authentication verification.
+
+```tsx app/components/ProtectedScreen.tsx lines
+import { router } from "expo-router";
+import type React from "react";
+import { useEffect } from "react";
+import { ActivityIndicator, Text, View } from "react-native";
+import { useAuth } from "../lib/nhost/AuthProvider";
+import { commonStyles } from "../styles/commonStyles";
+import { colors } from "../styles/theme";
+
+type AppRoutes = "/" | "/signin" | "/signup" | "/profile";
+
+interface ProtectedScreenProps {
+  children: React.ReactNode;
+  redirectTo?: AppRoutes;
+}
+
+/**
+ * ProtectedScreen component that wraps screens requiring authentication.
+ * Automatically redirects unauthenticated users to the signin screen.
+ * Shows loading spinner while checking authentication status.
+ */
+export default function ProtectedScreen({
+  children,
+  redirectTo = "/signin",
+}: ProtectedScreenProps) {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.replace(redirectTo);
+    }
+  }, [isAuthenticated, isLoading, redirectTo]);
+
+  if (isLoading) {
+    return (
+      <View style={commonStyles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={commonStyles.loadingText}>Loading...</Text>
+      </View>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null; // Will redirect in useEffect
+  }
+
+  return <>{children}</>;
+}
+```
+
+</Step>
+
+<Step>
+
+### Create the Profile Screen
+
+Create a screen that displays user information. Note that the screen itself doesn't need any special authentication logic - the screen protection is handled entirely by wrapping it with the ProtectedScreen component from the previous step.
+
+```tsx app/profile.tsx lines
+import { ScrollView, Text, View } from "react-native";
+import ProtectedScreen from "./components/ProtectedScreen";
+import { useAuth } from "./lib/nhost/AuthProvider";
+import { commonStyles, profileStyles } from "./styles/commonStyles";
+
+export default function Profile() {
+  const { user, session } = useAuth();
+
+  return (
+    <ProtectedScreen>
+      <ScrollView
+        style={commonStyles.container}
+        contentContainerStyle={commonStyles.contentContainer}
+      >
+        <Text style={commonStyles.title}>Your Profile</Text>
+
+        <View style={commonStyles.card}>
+          <Text style={commonStyles.cardTitle}>User Information</Text>
+
+          <View style={profileStyles.profileItem}>
+            <Text style={commonStyles.labelText}>Display Name:</Text>
+            <Text style={commonStyles.valueText}>
+              {user?.displayName || "Not set"}
+            </Text>
+          </View>
+
+          <View style={profileStyles.profileItem}>
+            <Text style={commonStyles.labelText}>Email:</Text>
+            <Text style={commonStyles.valueText}>
+              {user?.email || "Not available"}
+            </Text>
+          </View>
+
+          <View style={profileStyles.profileItem}>
+            <Text style={commonStyles.labelText}>User ID:</Text>
+            <Text
+              style={commonStyles.valueText}
+              numberOfLines={1}
+              ellipsizeMode="middle"
+            >
+              {user?.id || "Not available"}
+            </Text>
+          </View>
+
+          <View style={profileStyles.profileItem}>
+            <Text style={commonStyles.labelText}>Roles:</Text>
+            <Text style={commonStyles.valueText}>
+              {user?.roles?.join(", ") || "None"}
+            </Text>
+          </View>
+
+          <View
+            style={[profileStyles.profileItem, profileStyles.profileItemLast]}
+          >
+            <Text style={commonStyles.labelText}>Email Verified:</Text>
+            <Text
+              style={[
+                commonStyles.valueText,
+                user?.emailVerified
+                  ? commonStyles.successText
+                  : commonStyles.errorText,
+              ]}
+            >
+              {user?.emailVerified ? "✓ Yes" : "✗ No"}
+            </Text>
+          </View>
+        </View>
+
+        <View style={commonStyles.card}>
+          <Text style={commonStyles.cardTitle}>Session Information</Text>
+          <View style={commonStyles.sessionInfo}>
+            <Text style={commonStyles.sessionValue}>
+              {JSON.stringify(session, null, 2)}
+            </Text>
+          </View>
+        </View>
+      </ScrollView>
+    </ProtectedScreen>
+  );
+}
+
+```
+
+</Step>
+
+<Step>
+
+### Update the Home Screen
+
+Build a public homepage that adapts its content based on authentication status. This shows users different options depending on whether they're signed in.
+
+```tsx app/index.tsx lines
+import { useRouter } from "expo-router";
+import { Text, TouchableOpacity, View } from "react-native";
+import { useAuth } from "./lib/nhost/AuthProvider";
+import { commonStyles, homeStyles } from "./styles/commonStyles";
+
+export default function Index() {
+  const router = useRouter();
+  const { isAuthenticated, user } = useAuth();
+
+  return (
+    <View style={commonStyles.centerContent}>
+      <Text style={commonStyles.title}>Welcome to Nhost React Native Demo</Text>
+
+      <View style={homeStyles.welcomeCard}>
+        {isAuthenticated ? (
+          <View style={{ gap: 15, width: "100%" }}>
+            <Text style={homeStyles.welcomeText}>
+              Hello, {user?.displayName || user?.email}!
+            </Text>
+            <TouchableOpacity
+              style={[commonStyles.button, commonStyles.fullWidth]}
+              onPress={() => router.push("/profile")}
+            >
+              <Text style={commonStyles.buttonText}>Go to Profile</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <Text style={homeStyles.authMessage}>You are not signed in.</Text>
+        )}
+        {/* Placeholder for signin/signup buttons - will be added in the next tutorial */}
+      </View>
+    </View>
+  );
+}
+```
+</Step>
+
+<Step>
+
+### Update the Main App Layout
+
+Configure the application's routing structure with Expo Router. This sets up the route hierarchy, includes the authentication context to the entire app, and configures the navigation.
+
+```tsx app/_layout.tsx lines
+import { Stack } from "expo-router";
+import { AuthProvider } from "./lib/nhost/AuthProvider";
+import { colors } from "./styles/theme";
+
+/**
+ * Root layout component that provides authentication context to the entire app.
+ * Uses Expo Router's Stack navigation for screen management.
+ */
+export default function RootLayout() {
+  return (
+    <AuthProvider>
+      <Stack>
+        <Stack.Screen
+          name="index"
+          options={{
+            title: "Home",
+            headerStyle: { backgroundColor: colors.primary },
+            headerTintColor: colors.surface,
+            headerTitleStyle: { fontWeight: "bold" },
+          }}
+        />
+        <Stack
+          screenOptions={{
+            headerStyle: { backgroundColor: colors.primary },
+            headerTintColor: colors.surface,
+            headerTitleStyle: { fontWeight: "bold" },
+          }}
+        />
+      </Stack>
+    </AuthProvider>
+  );
+}
+```
+
+</Step>
+
+<Step>
+
+### Run and test the Application
+
+Start the development server to test your screen protection implementation:
+
+```bash
+npm run start
+```
+
+Things to try out:
+
+1. Open the app in Expo Go on your device or simulator.
+2. Because you are not signed in, the home screen should show a message indicating that you are not signed in.
+3. Additionally the profle button should not be visible.
+
+</Step>
+</Steps>
+
+## How It Works
+
+1. **AuthProvider**: Manages authentication state using Nhost's client with AsyncStorage and provides it through React Context
+2. **ProtectedScreen**: A wrapper component that checks authentication status before rendering child screens
+3. **Profile Screen**: A protected screen that displays user information, only accessible when authenticated
+
+## Key Features Demonstrated
+
+<AccordionGroup>
+<Accordion title="Screen Protection" icon="shield-check">
+Screens are protected using Expo Router and authentication context, preventing unauthorized access to sensitive areas.
+</Accordion>
+
+<Accordion title="Loading States" icon="spinner">
+Smooth loading indicators are shown during authentication checks to improve user experience.
+</Accordion>
+
+<Accordion title="Automatic Navigation" icon="arrow-right">
+Users are automatically redirected based on their authentication status, ensuring proper navigation flow.
+</Accordion>
+
+<Accordion title="Cross-device Synchronization" icon="arrows-rotate">
+Authentication state is synchronized across multiple devices using Nhost's session storage events with AsyncStorage.
+</Accordion>
+
+<Accordion title="Session Management" icon="circle-user">
+Complete user session and profile information is displayed and managed throughout the application.
+</Accordion>
+</AccordionGroup>

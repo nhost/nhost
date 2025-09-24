@@ -17,18 +17,15 @@ const cspHeader = `
     frame-ancestors 'none';
     frame-src 'self' js.stripe.com challenges.cloudflare.com;
     block-all-mixed-content;
+    upgrade-insecure-requests;
 `;
-
-if (process.env.NEXT_PUBLIC_ENV !== 'development') {
-    cspHeader.concat(` upgrade-insecure-requests;`);
-}
 
 module.exports = withBundleAnalyzer({
   reactStrictMode: false,
   swcMinify: false,
   output: 'standalone',
   experimental: {
-    outputFileTracingRoot: path.join(__dirname, '../../'),
+    outputFileTracingRoot: path.join(__dirname, '../'),
   },
   publicRuntimeConfig: {
     version,

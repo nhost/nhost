@@ -1,0 +1,684 @@
+---
+title: User Authentication in React Native
+description: Learn how to implement user authentication in a React Native application using Nhost
+sidebarTitle: "User Authentication"
+icon: user
+---
+
+This tutorial part builds upon the [Protected Screens part](/getting-started/tutorials/reactnative/2-protected-routes) by adding complete email/password authentication with email verification functionality. You'll implement sign up, sign in, email verification, and sign out features to create a full authentication flow.
+
+<Info>
+This is **Part 3** in the Full-Stack React Native Development with Nhost series. This part creates a production-ready authentication system with secure email verification and proper error handling.
+</Info>
+
+## Full-Stack React Native Development with Nhost
+
+<CardGroup cols={3}>
+<Card title="1. Create Project" icon="plus" href="/getting-started/tutorials/reactnative/1-introduction">
+Set up your Nhost project
+</Card>
+
+<Card title="2. Protected Screens" icon="lock" href="/getting-started/tutorials/reactnative/2-protected-routes">
+Screen protection basics
+</Card>
+
+<Card title="3. User Authentication" icon="user" href="/getting-started/tutorials/reactnative/3-user-authentication">
+**Current** - Complete auth flow
+</Card>
+
+<Card title="4. GraphQL Operations" icon="list-check" href="/getting-started/tutorials/reactnative/4-graphql-operations">
+CRUD operations with GraphQL
+</Card>
+
+<Card title="5. File Uploads" icon="upload" href="/getting-started/tutorials/reactnative/5-file-uploads">
+File upload and management
+</Card>
+
+<Card title="6. Sign in with Apple" icon="apple" href="/getting-started/tutorials/reactnative/6-sign-in-with-apple">
+Apple authentication integration
+</Card>
+</CardGroup>
+
+## Prerequisites
+
+- Complete the [Protected Screens part](/getting-started/tutorials/reactnative/2-protected-routes) first
+- The project from the previous part set up and running
+
+## Step-by-Step Guide
+
+<Steps>
+<Step>
+
+### Create the Sign In Screen
+
+Build a comprehensive sign-in form with proper error handling and loading states. This screen handles user authentication and includes special logic for post-verification sign-in.
+
+```tsx app/signin.tsx lines
+import { Link, router } from "expo-router";
+import { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { useAuth } from "./lib/nhost/AuthProvider";
+import { commonStyles } from "./styles/commonStyles";
+import { colors } from "./styles/theme";
+
+export default function SignIn() {
+  const { nhost, isAuthenticated } = useAuth();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Use useEffect for navigation after authentication is confirmed
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace("/profile");
+    }
+  }, [isAuthenticated]);
+
+  const handleSubmit = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Use the signIn function from auth context
+      const response = await nhost.auth.signInEmailPassword({
+        email,
+        password,
+      });
+
+      // If we have a session, sign in was successful
+      if (response.body?.session) {
+        router.replace("/profile");
+      } else {
+        setError("Failed to sign in. Please check your credentials.");
+      }
+    } catch (err) {
+      const message = (err as Error).message || "Unknown error";
+      setError(`An error occurred during sign in: ${message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={commonStyles.container}
+    >
+      <ScrollView
+        contentContainerStyle={commonStyles.centerContent}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Text style={commonStyles.title}>Sign In</Text>
+
+        <View style={commonStyles.card}>
+          <View style={commonStyles.formField}>
+            <Text style={commonStyles.labelText}>Email</Text>
+            <TextInput
+              style={commonStyles.input}
+              value={email}
+              onChangeText={setEmail}
+              placeholder="Enter your email"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoComplete="email"
+            />
+          </View>
+
+          <View style={commonStyles.formField}>
+            <Text style={commonStyles.labelText}>Password</Text>
+            <TextInput
+              style={commonStyles.input}
+              value={password}
+              onChangeText={setPassword}
+              placeholder="Enter your password"
+              secureTextEntry
+              autoCapitalize="none"
+            />
+          </View>
+
+          {error && (
+            <View style={commonStyles.errorContainer}>
+              <Text style={commonStyles.errorText}>{error}</Text>
+            </View>
+          )}
+
+          <TouchableOpacity
+            style={[commonStyles.button, commonStyles.fullWidth]}
+            onPress={handleSubmit}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator size="small" color={colors.surface} />
+            ) : (
+              <Text style={commonStyles.buttonText}>Sign In</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+
+        <View style={commonStyles.linkContainer}>
+          <Text style={commonStyles.linkText}>
+            Don't have an account?{" "}
+            <Link href="/signup" style={commonStyles.link}>
+              Sign Up
+            </Link>
+          </Text>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+}
+```
+
+</Step>
+
+<Step>
+
+### Create the Sign Up Screen
+
+Implement user registration with email verification flow. This screen collects user information, creates accounts, and guides users through the email verification process.
+
+```tsx app/signup.tsx lines
+import * as Linking from "expo-linking";
+import { Link, router } from "expo-router";
+import { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { useAuth } from "./lib/nhost/AuthProvider";
+import { commonStyles } from "./styles/commonStyles";
+import { colors } from "./styles/theme";
+
+export default function SignUp() {
+  const { nhost, isAuthenticated } = useAuth();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+
+  // Redirect authenticated users to profile
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace("/profile");
+    }
+  }, [isAuthenticated]);
+
+  const handleSubmit = async () => {
+    setIsLoading(true);
+    setError(null);
+    setSuccess(false);
+
+    try {
+      const response = await nhost.auth.signUpEmailPassword({
+        email,
+        password,
+        options: {
+          displayName,
+          // Set the redirect URL for email verification
+          redirectTo: Linking.createURL("verify"),
+        },
+      });
+
+      if (response.body?.session) {
+        // Successfully signed up and automatically signed in
+        router.replace("/profile");
+      } else {
+        // Verification email sent
+        setSuccess(true);
+      }
+    } catch (err) {
+      const message = (err as Error).message || "Unknown error";
+      setError(`An error occurred during sign up: ${message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (success) {
+    return (
+      <View style={commonStyles.centerContent}>
+        <Text style={commonStyles.title}>Check Your Email</Text>
+        <View style={commonStyles.successContainer}>
+          <Text style={commonStyles.successText}>
+            We've sent a verification link to{" "}
+            <Text style={commonStyles.emailText}>{email}</Text>
+          </Text>
+          <Text style={[commonStyles.bodyText, commonStyles.textCenter]}>
+            Please check your email and click the verification link to activate
+            your account.
+          </Text>
+        </View>
+        <TouchableOpacity
+          style={[commonStyles.button, commonStyles.fullWidth]}
+          onPress={() => router.replace("/signin")}
+        >
+          <Text style={commonStyles.buttonText}>Back to Sign In</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  return (
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={commonStyles.container}
+    >
+      <ScrollView
+        contentContainerStyle={commonStyles.centerContent}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Text style={commonStyles.title}>Sign Up</Text>
+
+        <View style={commonStyles.card}>
+          <View style={commonStyles.formField}>
+            <Text style={commonStyles.labelText}>Display Name</Text>
+            <TextInput
+              style={commonStyles.input}
+              value={displayName}
+              onChangeText={setDisplayName}
+              placeholder="Enter your name"
+              autoCapitalize="words"
+            />
+          </View>
+
+          <View style={commonStyles.formField}>
+            <Text style={commonStyles.labelText}>Email</Text>
+            <TextInput
+              style={commonStyles.input}
+              value={email}
+              onChangeText={setEmail}
+              placeholder="Enter your email"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoComplete="email"
+            />
+          </View>
+
+          <View style={commonStyles.formField}>
+            <Text style={commonStyles.labelText}>Password</Text>
+            <TextInput
+              style={commonStyles.input}
+              value={password}
+              onChangeText={setPassword}
+              placeholder="Enter your password"
+              secureTextEntry
+              autoCapitalize="none"
+            />
+            <Text style={commonStyles.helperText}>Minimum 8 characters</Text>
+          </View>
+
+          {error && (
+            <View style={commonStyles.errorContainer}>
+              <Text style={commonStyles.errorText}>{error}</Text>
+            </View>
+          )}
+
+          <TouchableOpacity
+            style={[commonStyles.button, commonStyles.fullWidth]}
+            onPress={handleSubmit}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator size="small" color={colors.surface} />
+            ) : (
+              <Text style={commonStyles.buttonText}>Sign Up</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+
+        <View style={commonStyles.linkContainer}>
+          <Text style={commonStyles.linkText}>
+            Already have an account?{" "}
+            <Link href="/signin" style={commonStyles.link}>
+              Sign In
+            </Link>
+          </Text>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+}
+```
+
+</Step>
+
+<Step>
+
+### Create the Email Verification Screen
+
+Build a dedicated verification screen that processes email verification tokens. This screen handles the verification flow when users click the email verification link.
+
+```tsx app/verify.tsx lines
+import { router, useLocalSearchParams } from "expo-router";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
+import { useAuth } from "./lib/nhost/AuthProvider";
+import { commonStyles } from "./styles/commonStyles";
+import { colors } from "./styles/theme";
+
+export default function Verify() {
+  const params = useLocalSearchParams();
+
+  const [status, setStatus] = useState<"verifying" | "success" | "error">(
+    "verifying",
+  );
+  const [error, setError] = useState<string | null>(null);
+  const [urlParams, setUrlParams] = useState<Record<string, string>>({});
+
+  const { nhost } = useAuth();
+
+  useEffect(() => {
+    // Extract the refresh token from the URL
+    const refreshToken = params.refreshToken as string;
+
+    if (!refreshToken) {
+      // Collect all URL parameters to display for debugging
+      const allParams: Record<string, string> = {};
+      Object.entries(params).forEach(([key, value]) => {
+        if (typeof value === "string") {
+          allParams[key] = value;
+        }
+      });
+      setUrlParams(allParams);
+
+      setStatus("error");
+      setError("No refresh token found in URL");
+      return;
+    }
+
+    // Flag to handle component unmounting during async operations
+    let isMounted = true;
+
+    async function processToken(): Promise<void> {
+      try {
+        // First display the verifying message for at least a moment
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        if (!isMounted) return;
+
+        if (!refreshToken) {
+          // Collect all URL parameters to display
+          const allParams: Record<string, string> = {};
+          Object.entries(params).forEach(([key, value]) => {
+            if (typeof value === "string") {
+              allParams[key] = value;
+            }
+          });
+          setUrlParams(allParams);
+
+          setStatus("error");
+          setError("No refresh token found in URL");
+          return;
+        }
+
+        // Process the token
+        await nhost.auth.refreshToken({ refreshToken });
+
+        if (!isMounted) return;
+
+        setStatus("success");
+
+        // Wait to show success message briefly, then redirect
+        setTimeout(() => {
+          if (isMounted) router.replace("/profile");
+        }, 1500);
+      } catch (err) {
+        const message = (err as Error).message || "Unknown error";
+        if (!isMounted) return;
+
+        setStatus("error");
+        setError(`An error occurred during verification: ${message}`);
+      }
+    }
+
+    processToken();
+
+    // Cleanup function
+    return () => {
+      isMounted = false;
+    };
+  }, [params, nhost.auth]);
+
+  return (
+    <View style={commonStyles.centerContent}>
+      <Text style={commonStyles.title}>Email Verification</Text>
+
+      <View style={commonStyles.card}>
+        {status === "verifying" && (
+          <View style={commonStyles.alignCenter}>
+            <Text style={[commonStyles.bodyText, commonStyles.marginBottom]}>
+              Verifying your email...
+            </Text>
+            <ActivityIndicator size="large" color={colors.primary} />
+          </View>
+        )}
+
+        {status === "success" && (
+          <View style={commonStyles.alignCenter}>
+            <Text style={commonStyles.successText}>
+              ✓ Successfully verified!
+            </Text>
+            <Text style={commonStyles.bodyText}>
+              You'll be redirected to your profile page shortly...
+            </Text>
+          </View>
+        )}
+
+        {status === "error" && (
+          <View style={commonStyles.alignCenter}>
+            <Text style={commonStyles.errorText}>Verification failed</Text>
+            <Text style={[commonStyles.bodyText, commonStyles.marginBottom]}>
+              {error}
+            </Text>
+
+            {Object.keys(urlParams).length > 0 && (
+              <View style={commonStyles.debugContainer}>
+                <Text style={commonStyles.debugTitle}>URL Parameters:</Text>
+                {Object.entries(urlParams).map(([key, value]) => (
+                  <View key={key} style={commonStyles.debugItem}>
+                    <Text style={commonStyles.debugKey}>{key}:</Text>
+                    <Text style={commonStyles.debugValue}>{value}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            <TouchableOpacity
+              style={[commonStyles.button, commonStyles.fullWidth]}
+              onPress={() => router.replace("/signin")}
+            >
+              <Text style={commonStyles.buttonText}>Back to Sign In</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
+    </View>
+  );
+}
+```
+
+<Warning>
+**Important Configuration Required:** Before testing email verification, you must configure your Nhost project's authentication settings:
+
+1. Go to your Nhost project dashboard
+2. Navigate to **Settings → Authentication**
+3. Add your Expo development URL to the **Allowed Redirect URLs** field:
+   - For Expo Go: `exp://x.x.x.x:8081/` (replace with your local IP)
+4. Ensure your production domain is also added when deploying
+
+Without this configuration, you'll receive a `redirectTo not allowed` error when users attempt to sign up or verify their email addresses.
+</Warning>
+
+</Step>
+
+<Step>
+
+### Update Home Screen
+
+Update the home screen to include navigation to authentication screens and a button to sign out.
+
+```tsx app/index.tsx lines highlight={2, 8-31, 50-55, 61-78}
+import { useRouter } from "expo-router";
+import { Alert, Text, TouchableOpacity, View } from "react-native";
+import { useAuth } from "./lib/nhost/AuthProvider";
+import { commonStyles, homeStyles } from "./styles/commonStyles";
+
+export default function Index() {
+  const router = useRouter();
+  const { isAuthenticated, session, nhost, user } = useAuth();
+
+  const handleSignOut = async () => {
+    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Sign Out",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            if (session) {
+              await nhost.auth.signOut({
+                refreshToken: session.refreshToken,
+              });
+            }
+            router.replace("/");
+          } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err);
+            Alert.alert("Error", `Failed to sign out: ${message}`);
+          }
+        },
+      },
+    ]);
+  };
+
+  return (
+    <View style={commonStyles.centerContent}>
+      <Text style={commonStyles.title}>Welcome to Nhost React Native Demo</Text>
+
+      <View style={homeStyles.welcomeCard}>
+        {isAuthenticated ? (
+          <View style={{ gap: 15, width: "100%" }}>
+            <Text style={homeStyles.welcomeText}>
+              Hello, {user?.displayName || user?.email}!
+            </Text>
+            <TouchableOpacity
+              style={[commonStyles.button, commonStyles.fullWidth]}
+              onPress={() => router.push("/profile")}
+            >
+              <Text style={commonStyles.buttonText}>Go to Profile</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[commonStyles.button, { backgroundColor: "#ef4444" }]}
+              onPress={handleSignOut}
+            >
+              <Text style={commonStyles.buttonText}>Sign Out</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <>
+            <Text style={homeStyles.authMessage}>You are not signed in.</Text>
+
+            <View style={{ gap: 15, width: "100%" }}>
+              <TouchableOpacity
+                style={[commonStyles.button, commonStyles.fullWidth]}
+                onPress={() => router.push("/signin")}
+              >
+                <Text style={commonStyles.buttonText}>Sign In</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  commonStyles.button,
+                  commonStyles.buttonSecondary,
+                  commonStyles.fullWidth,
+                ]}
+                onPress={() => router.push("/signup")}
+              >
+                <Text style={commonStyles.buttonText}>Sign Up</Text>
+              </TouchableOpacity>
+            </View>
+          </>
+        )}
+      </View>
+    </View>
+  );
+}
+```
+
+</Step>
+
+<Step>
+
+### Run and Test the Application
+
+Start your development server and test the complete authentication flow to ensure everything works properly.
+
+```bash
+npm run start
+```
+
+Things to try out:
+
+1. **Sign Up Flow**: Try signing up with a new email address. Check your email for the verification link and click it. See how you are sent to the verification screen and then redirected to your profile.
+
+2. **Sign In/Out**: Try signing out and then signing back in with the same credentials.
+
+3. **Navigation**: Notice how the home screen shows different options based on authentication state - showing "Sign In" and "Sign Up" buttons when logged out, and "Go to Profile" when logged in.
+
+4. **Error Handling**: Try signing in with invalid credentials to see error handling, or try signing up with a short password to see validation.
+
+5. **Email Verification**: Test the complete email verification flow in both development and when deployed.
+
+</Step>
+</Steps>
+
+## Key Features Demonstrated
+
+<AccordionGroup>
+<Accordion title="Complete Registration Flow" icon="user-plus">
+Full email/password registration with proper form validation and user feedback optimized for mobile devices.
+</Accordion>
+
+<Accordion title="Email Verification" icon="envelope-circle-check">
+Custom `/verify` screen that securely processes email verification tokens with Expo Linking integration.
+</Accordion>
+
+<Accordion title="Error Handling" icon="triangle-exclamation">
+Comprehensive error handling for unverified emails, failed authentication, and network issues with mobile-friendly alerts.
+</Accordion>
+
+<Accordion title="Session Management" icon="clock">
+Complete sign out functionality with confirmation dialogs and proper session state management across the application.
+</Accordion>
+</AccordionGroup>
+
+## React Native Adaptations Made
+
+This tutorial demonstrates several key React Native patterns:
+
+- **KeyboardAvoidingView**: Ensures forms remain accessible when keyboard is open
+- **ActivityIndicator**: Native loading spinners for better performance
+- **Alert.alert()**: Native confirmation dialogs for important actions
+- **Expo Linking**: Proper deep linking for email verification
+- **TouchableOpacity**: Native touch feedback for buttons
+- **ScrollView**: Scrollable content containers with proper keyboard handling

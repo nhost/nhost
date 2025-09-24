@@ -1,0 +1,134 @@
+name: 'deploy to vercel'
+
+on:
+  workflow_call:
+    inputs:
+      NAME:
+        required: true
+        type: string
+      GIT_REF:
+        required: true
+        type: string
+      ENVIRONMENT:
+        required: true
+        type: string
+    secrets:
+      AWS_ACCOUNT_ID:
+        required: true
+      NIX_CACHE_PUB_KEY:
+        required: true
+      NIX_CACHE_PRIV_KEY:
+        required: true
+      VERCEL_TEAM_ID:
+        required: true
+      VERCEL_PROJECT_ID:
+        required: true
+      VERCEL_DEPLOY_TOKEN:
+        required: true
+      DISCORD_WEBHOOK:
+        required: false
+
+    outputs:
+      preview-url:
+        description: "The preview URL from Vercel deployment"
+        value: ${{ jobs.publish-vercel.outputs.preview-url }}
+
+jobs:
+  publish-vercel:
+    name: Publish to Vercel
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    outputs:
+      preview-url: ${{ steps.deploy.outputs.preview-url }}  # Add this line
+    permissions:
+      id-token: write
+      contents: write
+      actions: read
+      pull-requests: write
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v5
+      with:
+        ref: ${{ inputs.GIT_REF }}
+
+    - name: Configure aws
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-nhost-${{ github.event.repository.name }}
+        aws-region: eu-central-1
+
+    - uses: cachix/install-nix-action@v31
+      with:
+        install_url: "https://releases.nixos.org/nix/nix-2.28.4/install"
+        install_options: "--no-daemon"
+        extra_nix_config: |
+          experimental-features = nix-command flakes
+          sandbox = false
+          access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+          substituters = https://cache.nixos.org/?priority=40 s3://nhost-nix-cache?region=eu-central-1&priority=50
+          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ${{ secrets.NIX_CACHE_PUB_KEY }}
+          keep-env-derivations = true
+          keep-outputs = true
+
+    - name: Restore and save Nix store
+      uses: nix-community/cache-nix-action@v6
+      with:
+        primary-key: nix-${{ inputs.NAME }}-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
+        restore-prefixes-first-match: nix-${{ inputs.NAME }}-${{ runner.os }}-${{ runner.arch }}}-
+        gc-max-store-size-linux: 2G
+        purge: true
+        purge-prefixes: nix-${{ inputs.NAME }}-
+        purge-created: 0
+        purge-last-accessed: 0
+        purge-primary-key: never
+
+    - name: Trigger Vercel deployment
+      id: deploy
+      env:
+        VERCEL_ORG_ID: ${{ secrets.VERCEL_TEAM_ID }}
+        VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      run: |
+        TARGET_OPTS="--target=${{ inputs.ENVIRONMENT }}"
+        echo "Deploying to: ${{ inputs.ENVIRONMENT }}..."
+        nix develop .\#vercel -c \
+          vercel pull --environment=${{ inputs.ENVIRONMENT }} --token=${{ secrets.VERCEL_DEPLOY_TOKEN }}
+        nix develop .\#vercel -c \
+          vercel build $TARGET_OPTS --token=${{ secrets.VERCEL_DEPLOY_TOKEN }}
+        nix develop .\#vercel -c \
+          vercel deploy $TARGET_OPTS --prebuilt --token=${{ secrets.VERCEL_DEPLOY_TOKEN }} | tee /tmp/vercel_output
+
+        PREVIEW_URL=$(cat /tmp/vercel_output)
+        echo "\n🔗🔗🔗 Preview URL: $PREVIEW_URL"
+        echo "preview-url=$PREVIEW_URL" >> $GITHUB_OUTPUT
+
+    - uses: marocchino/sticky-pull-request-comment@v2
+      with:
+        header: "vercel-${{ inputs.NAME }}-${{ inputs.ENVIRONMENT }}"
+        message: |
+          # Vercel Deployment Info - ${{ inputs.NAME }}
+
+          * URL: ${{ steps.deploy.outputs.preview-url }}
+          * Git Ref: `${{ inputs.GIT_REF }}`
+          * Commit: `${{ github.event.pull_request.head.sha || github.sha }}`
+
+      if: github.event_name == 'pull_request' || github.event_name == 'pull_request_target'
+
+    - name: Send Discord notification
+      if: always()
+      uses: ./.github/actions/discord-notification
+      with:
+        webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+        title: "Deployed ${{ inputs.NAME }} to Vercel"
+        description: |
+          **Environment**: ${{ inputs.ENVIRONMENT }}
+          **URL**: ${{ steps.deploy.outputs.preview-url }}
+          **Triggered by**: ${{ github.actor }}
+          **Status**: ${{ job.status }}
+
+          **Details**:
+          - Git Ref: ${{ inputs.GIT_REF }}
+          - Commit: ${{ github.event.pull_request.head.sha || github.sha }}
+        color: ${{ job.status == 'success' && '5763719' || '15548997' }}
+
+    - run: rm -rf .vercel
+      if: always()

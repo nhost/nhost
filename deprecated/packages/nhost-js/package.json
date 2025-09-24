@@ -1,0 +1,77 @@
+{
+  "name": "@nhost/nhost-js",
+  "version": "3.3.1",
+  "description": "Nhost JavaScript SDK",
+  "license": "MIT",
+  "keywords": [
+    "nhost",
+    "hasura",
+    "storage",
+    "auth",
+    "authentication",
+    "graphql",
+    "postgresql",
+    "realtime"
+  ],
+  "author": "Nhost",
+  "homepage": "https://nhost.io",
+  "bugs": "https://github.com/nhost/nhost/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nhost/nhost.git"
+  },
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "source": "src/index.ts",
+  "files": [
+    "dist",
+    "umd",
+    "README.md"
+  ],
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "node": "./dist/index.cjs.js",
+        "default": "./dist/index.esm.js"
+      },
+      "require": "./dist/index.cjs.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "dev": "vite build --config ../../config/vite.lib.dev.config.js",
+    "build": "run-p typecheck build:lib build:umd",
+    "typecheck": "tsc --noEmit",
+    "build:lib": "vite build",
+    "build:umd": "vite build --config ../../config/vite.lib.umd.config.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "prettier": "prettier --check src/",
+    "prettier:fix": "prettier --write src/",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "verify": "run-p prettier lint",
+    "verify:fix": "run-p prettier:fix lint:fix",
+    "typedoc": "typedoc --options ./nhost-js.typedoc.json --tsconfig ./typedoc.tsconfig.json",
+    "docgen": "pnpm typedoc && docgen --config ./nhost-js.docgen.json"
+  },
+  "dependencies": {
+    "@nhost/graphql-js": "workspace:*",
+    "@nhost/hasura-auth-js": "workspace:*",
+    "@nhost/hasura-storage-js": "workspace:*",
+    "isomorphic-unfetch": "^3.1.0"
+  },
+  "devDependencies": {
+    "@nhost/docgen": "workspace:*",
+    "graphql": "16.8.1"
+  },
+  "peerDependencies": {
+    "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0"
+  }
+}

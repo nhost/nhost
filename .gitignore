@@ -65,3 +65,9 @@ out/
 .direnv/
 
 /.vscode/
+
+result
+
+.vitest
+
+.claude

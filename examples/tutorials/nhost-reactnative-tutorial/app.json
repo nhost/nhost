@@ -1,0 +1,46 @@
+{
+  "expo": {
+    "name": "nhost-reactnative-tutorial",
+    "slug": "nhost-reactnative-tutorial",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "io.example.nhost-reactnative-tutorial",
+      "jsEngine": "jsc",
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "This app uses Face ID for signing in",
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": ["nhost-reactnative-tutorial"]
+          }
+        ]
+      }
+    },
+    "android": {
+      "jsEngine": "jsc",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": ["expo-router", ["expo-apple-authentication"]],
+    "extra": {
+      "NHOST_REGION": "local",
+      "NHOST_SUBDOMAIN": "192-168-1-108"
+    }
+  }
+}

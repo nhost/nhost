@@ -1,52 +1,87 @@
-<h1 align="center">@nhost/nhost-js</h1>
-<h2 align="center">Nhost JavaScript SDK</h2>
+# Nhost JavaScript SDK
 
-<p align="center">
-  <img alt="npm" src="https://img.shields.io/npm/v/@nhost/nhost-js">
-  <img alt="npm" src="https://img.shields.io/npm/dm/@nhost/nhost-js">
-  <a href="LICENSE">
-    <img src="https://img.shields.io/badge/license-MIT-yellow.svg" alt="license: MIT" />
-  </a>
-</p>
+The Nhost JavaScript SDK provides a client-side interface to interact with Nhost services, including authentication, storage, and GraphQL operations.
 
-## Documentation
+## Installation
 
-[Reference documentation](https://docs.nhost.io/reference/javascript)
-
-## Install
-
-```
+```bash
+# npm
 npm install @nhost/nhost-js
 
-# or yarn
+# yarn
 yarn add @nhost/nhost-js
+
+# pnpm
+pnpm add @nhost/nhost-js
 ```
 
-### Initialise
+## Quick Start
 
-```js
-import { NhostClient } from '@nhost/nhost-js'
+```typescript
+import { createClient } from '@nhost/nhost-js'
 
-const nhost = new NhostClient({
-  subdomain: '<Your Nhost project subdomain>',
-  region: '<Your Nhost project region>'
+// Initialize the Nhost client
+const nhost = createClient({
+  subdomain: 'your-project',
+  region: 'eu-central-1'
+})
+
+// Use authentication features
+const signinResponse = await nhost.auth.signInEmailPassword({
+  email: 'user@example.com',
+  password: 'password123'
+})
+
+if (signinResponse.body.session) {
+  console.log('Signed in successfully!')
+}
+
+// Use GraphQL features
+const graphqlResponse = await nhost.graphql.request({
+  query: `
+    query GetUsers {
+      users {
+        id
+        displayName
+        email
+      }
+    }
+  `
+})
+
+
+// Use storage features
+const storageResponse = await nhost.storage.uploadFiles({
+  'file[]': [file]
+})
+
+return storageResponse.body.processedFiles[0]
+
+// call a serverless function
+const functionsResponse = await nhost.functions.fetch('/echo', {
+  method: 'POST',
+  body: JSON.stringify({
+    message: 'Hello, world!'
+  }),
+  headers: {
+    'Content-Type': 'application/json'
+  }
 })
 ```
 
-## Features
+## Modules
 
-### GraphQL
+The Nhost SDK consists of several modules:
 
-Access Nhost GraphQL methods using `nhost.graphql`.
+- **Auth**: User authentication and session management
+- **Storage**: File upload, download, and management
+- **GraphQL**: Executing queries and mutations against your Hasura GraphQL API
+- **Functions**: Invoking serverless functions
 
-### Authentication
+## Documentation
 
-Access Nhost Auth methods using `nhost.auth`.
+For detailed documentation and API reference, see the [Nhost Documentation](https://docs.nhost.io).
 
-### Storage
+## License
 
-Access Nhost Storage methods using `nhost.storage`.
-
-### Functions
-
-Access Nhost Functions methods via `nhost.functions`.
+MIT

@@ -1,0 +1,682 @@
+openapi: "3.0.0"
+
+paths:
+  /token:
+    post:
+      summary: "Refresh access token"
+      description: "Generate a new JWT access token using a valid refresh token. The refresh token used will be revoked and a new one will be issued."
+      operationId: refreshToken
+      tags:
+        - session
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshTokenRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+          description: "Access token successfully refreshed"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+  /files/:
+    post:
+      summary: "Upload files"
+      description: "Upload one or more files to a specified bucket. Supports batch uploading with optional custom metadata for each file. If uploading multiple files, either provide metadata for all files or none."
+      operationId: uploadFiles
+      tags:
+        - files
+      security:
+        - Authorization: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                bucket-id:
+                  type: string
+                  description: "Target bucket identifier where files will be stored."
+                  example: "user-uploads"
+                metadata[]:
+                  type: array
+                  description: "Optional custom metadata for each uploaded file. Must match the order of the file[] array."
+                  items:
+                    $ref: "#/components/schemas/FileMetadata"
+                file[]:
+                  description: "Array of files to upload."
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+              required:
+                - file[]
+            encoding:
+              file[]:
+                contentType: application/octet-stream
+      responses:
+        "201":
+          description: "Files successfully uploaded"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  processedFiles:
+                    type: array
+                    description: "List of successfully processed files with their metadata."
+                    items:
+                      $ref: "#/components/schemas/FileMetadata"
+        "400":
+          description: "Error occurred during upload"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /files/{id}:
+    head:
+      summary: "Check file information"
+      description: "Retrieve file metadata headers without downloading the file content. Supports conditional requests and provides caching information."
+      operationId: getFileMetadataHeaders
+      tags:
+        - files
+      security:
+        - Authorization: []
+      parameters:
+        - $ref: "#/components/parameters/FileId"
+        - $ref: "#/components/parameters/IfMatch"
+        - $ref: "#/components/parameters/IfNoneMatch"
+        - $ref: "#/components/parameters/IfModifiedSince"
+        - $ref: "#/components/parameters/IfUnmodifiedSince"
+        - $ref: "#/components/parameters/ImageQuality"
+        - $ref: "#/components/parameters/MaxHeight"
+        - $ref: "#/components/parameters/MaxWidth"
+        - $ref: "#/components/parameters/BlurSigma"
+        - $ref: "#/components/parameters/OutputFormat"
+
+      responses:
+        "200":
+          description: "File information headers retrieved successfully"
+          headers:
+            $ref: "#/components/headers/FileInformationHeaders"
+        "304":
+          description: "File not modified since the condition specified in If-Modified-Since or If-None-Match headers"
+          headers:
+            $ref: "#/components/headers/FileInformationHeaders"
+        "400":
+          description: "Error occurred"
+          headers:
+            $ref: "#/components/headers/ErrorHeaders"
+        "412":
+          description: "Precondition failed for conditional request headers (If-Match, If-Unmodified-Since)"
+          headers:
+            $ref: "#/components/headers/FileInformationHeaders"
+
+    get:
+      summary: "Download file"
+      description: "Retrieve and download the complete file content. Supports conditional requests, image transformations, and range requests for partial downloads."
+      operationId: getFile
+      tags:
+        - files
+      security:
+        - Authorization: []
+      parameters:
+        - $ref: "#/components/parameters/FileId"
+        - $ref: "#/components/parameters/IfMatch"
+        - $ref: "#/components/parameters/IfNoneMatch"
+        - $ref: "#/components/parameters/IfModifiedSince"
+        - $ref: "#/components/parameters/IfUnmodifiedSince"
+        - $ref: "#/components/parameters/ImageQuality"
+        - $ref: "#/components/parameters/MaxHeight"
+        - $ref: "#/components/parameters/MaxWidth"
+        - $ref: "#/components/parameters/BlurSigma"
+        - $ref: "#/components/parameters/OutputFormat"
+      responses:
+        "200":
+          description: "File content retrieved successfully"
+          headers:
+            $ref: "#/components/headers/FileInformationHeaders"
+          content:
+            application/octet-stream: {}
+        "304":
+          description: "File not modified since the condition specified in If-Modified-Since or If-None-Match headers"
+          headers:
+            $ref: "#/components/headers/FileInformationHeaders"
+        "412":
+          description: "Precondition failed for conditional request headers (If-Match, If-Unmodified-Since, If-None-Match)"
+          headers:
+            $ref: "#/components/headers/FileInformationHeaders"
+        "400":
+          description: "Error occurred"
+          headers:
+            $ref: "#/components/headers/ErrorHeaders"
+
+    put:
+      summary: "Replace file"
+      description: |
+        Replace an existing file with new content while preserving the file ID. The operation follows these steps:
+        1. The isUploaded flag is set to false to mark the file as being updated
+        2. The file content is replaced in the storage backend
+        3. File metadata is updated (size, mime-type, isUploaded, etc.)
+
+        Each step is atomic, but if a step fails, previous steps will not be automatically rolled back.
+      operationId: replaceFile
+      tags:
+        - files
+      security:
+        - Authorization: []
+      parameters:
+        - $ref: "#/components/parameters/FileId"
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                metadata:
+                  $ref: "#/components/schemas/UpdateFileMetadata"
+                  description: "Optional metadata to update for the file"
+                file:
+                  description: "New file content to replace the existing file"
+                  type: string
+                  format: binary
+              required:
+                - file
+            encoding:
+              file:
+                contentType: application/octet-stream
+      responses:
+        "200":
+          description: "File successfully replaced"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileMetadata"
+        "400":
+          description: "Error occurred during file replacement"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    delete:
+      summary: "Delete file"
+      description: "Permanently delete a file from storage. This removes both the file content and its associated metadata."
+      operationId: deleteFile
+      tags:
+        - files
+      security:
+        - Authorization: []
+      parameters:
+        - $ref: "#/components/parameters/FileId"
+      responses:
+        "204":
+          description: "File successfully deleted"
+        "400":
+          description: "Error occurred during file deletion"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /verify:
+    get:
+      summary: >-
+        Verify tickets created by email verification, email passwordless authentication (magic link),
+        or password reset
+      operationId: verifyTicket
+      tags:
+        - verify
+      parameters:
+        - $ref: "#/components/parameters/TicketQuery"
+        - $ref: "#/components/parameters/RedirectToQuery"
+      responses:
+        302:
+          description: Redirect response
+          headers:
+            Location:
+              $ref: "#/components/headers/RedirectLocation"
+          content: {}
+
+components:
+  securitySchemes:
+    Authorization:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "Bearer authentication token for authorizing client requests. Generated via Nhost Auth service."
+    X-Hasura-Admin-Secret:
+      type: apiKey
+      name: X-Hasura-Admin-Secret
+      in: header
+      description: "Hasura admin secret key for backend/administrative operations."
+
+  parameters:
+    FileId:
+      name: id
+      required: true
+      in: path
+      schema:
+        description: "Unique identifier of the file"
+        type: string
+    IfMatch:
+      name: if-match
+      in: header
+      schema:
+        description: "Only return the file if the current ETag matches one of the values provided"
+        type: string
+    IfNoneMatch:
+      name: if-none-match
+      in: header
+      schema:
+        description: "Only return the file if the current ETag does not match any of the values provided"
+        type: string
+    IfModifiedSince:
+      name: if-modified-since
+      in: header
+      schema:
+        description: "Only return the file if it has been modified after the given date"
+        type: string
+        format: date-time
+    IfUnmodifiedSince:
+      name: if-unmodified-since
+      in: header
+      schema:
+        description: "Only return the file if it has not been modified after the given date"
+        type: string
+        format: date-time
+    ImageQuality:
+      name: q
+      in: query
+      schema:
+        description: "Image quality (1-100). Only applies to JPEG, WebP and PNG files"
+        type: number
+        minimum: 1
+        maximum: 100
+    MaxHeight:
+      name: h
+      in: query
+      schema:
+        description: "Maximum height to resize image to while maintaining aspect ratio. Only applies to image files"
+        type: number
+        minimum: 1
+    MaxWidth:
+      name: w
+      in: query
+      schema:
+        description: "Maximum width to resize image to while maintaining aspect ratio. Only applies to image files"
+        type: number
+        minimum: 1
+    BlurSigma:
+      name: b
+      in: query
+      schema:
+        description: "Blur the image using this sigma value. Only applies to image files"
+        type: number
+        minimum: 0
+    OutputFormat:
+      name: f
+      in: query
+      schema:
+        type: string
+        default: same
+        description: "Format to convert the image to. If 'auto', the format is determined based on the Accept header."
+        enum:
+          - auto
+          - same
+          - jpeg
+          - webp
+          - png
+          - avif
+    TicketQuery:
+      in: query
+      name: ticket
+      description: Ticket
+      required: true
+      schema:
+        type: string
+        description: Ticket
+        example: "verifyEmail:xxxxxxxx"
+    TicketTypeQuery:
+      in: query
+      name: type
+      description: Type of the ticket. Deprecated, no longer used
+      required: false
+      schema:
+        type: string
+        enum:
+          - emailVerify
+          - emailConfirmChange
+          - signinPasswordless
+          - passwordReset
+        description: Type of the ticket
+        example: email-verification
+      deprecated: true
+    RedirectToQuery:
+      in: query
+      name: redirectTo
+      description: Target URL for the redirect
+      required: true
+      schema:
+        description: Target URL for the redirect
+        type: string
+        format: uri
+        example: https://my-app.com/catch-redirection
+
+  headers:
+    RedirectLocation:
+      description: URL to redirect to
+      schema:
+        type: string
+        format: uri
+      required: true
+
+    FileInformationHeaders:
+      type: object
+      properties:
+        Cache-Control:
+          description: "Directives for caching mechanisms"
+          schema:
+            type: string
+        Content-Length:
+          description: "Size of the file in bytes"
+          schema:
+            type: number
+        Content-Type:
+          description: "MIME type of the file"
+          schema:
+            type: string
+        Etag:
+          description: "Entity tag for cache validation"
+          schema:
+            type: string
+        Last-Modified:
+          description: "Date and time the file was last modified"
+          schema:
+            type: string
+            format: date-time
+
+    ErrorHeaders:
+      type: object
+      properties:
+        X-Error:
+          description: "Error message details"
+          schema:
+            type: string
+
+  schemas:
+    VersionInformation:
+      type: object
+      description: "Contains version information about the storage service."
+      properties:
+        buildVersion:
+          type: string
+          description: "The version number of the storage service build."
+          example: "1.2.3"
+      additionalProperties: false
+
+    FileSummary:
+      type: object
+      description: "Basic information about a file in storage."
+      properties:
+        id:
+          type: string
+          description: "Unique identifier for the file."
+          example: "d5e76ceb-77a2-4153-b7da-1f7c115b2ff2"
+        name:
+          type: string
+          description: "Name of the file including extension."
+          example: "profile-picture.jpg"
+        bucketId:
+          type: string
+          description: "ID of the bucket containing the file."
+          example: "users-bucket"
+        isUploaded:
+          type: boolean
+          description: "Whether the file has been successfully uploaded."
+          example: true
+      additionalProperties: false
+
+    FileMetadata:
+      type: object
+      description: "Comprehensive metadata information about a file in storage."
+      properties:
+        id:
+          type: string
+          description: "Unique identifier for the file."
+          example: "d5e76ceb-77a2-4153-b7da-1f7c115b2ff2"
+        name:
+          type: string
+          description: "Name of the file including extension."
+          example: "profile-picture.jpg"
+        size:
+          type: number
+          description: "Size of the file in bytes."
+          example: 245678
+        bucketId:
+          type: string
+          description: "ID of the bucket containing the file."
+          example: "users-bucket"
+        etag:
+          type: string
+          description: "Entity tag for cache validation."
+          example: '"a1b2c3d4e5f6"'
+        createdAt:
+          type: string
+          format: date-time
+          description: "Timestamp when the file was created."
+          example: "2023-01-15T12:34:56Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: "Timestamp when the file was last updated."
+          example: "2023-01-16T09:45:32Z"
+        isUploaded:
+          type: boolean
+          description: "Whether the file has been successfully uploaded."
+          example: true
+        mimeType:
+          type: string
+          description: "MIME type of the file."
+          example: "image/jpeg"
+        uploadedByUserId:
+          type: string
+          description: "ID of the user who uploaded the file."
+          example: "abc123def456"
+        metadata:
+          type: object
+          additionalProperties: true
+          description: "Custom metadata associated with the file."
+          example: { "alt": "Profile picture", "category": "avatar" }
+      additionalProperties: false
+
+    UploadFileMetadata:
+      type: object
+      description: "Metadata provided when uploading a new file."
+      properties:
+        id:
+          type: string
+          description: "Optional custom ID for the file. If not provided, a UUID will be generated."
+          example: "custom-id-123"
+        name:
+          type: string
+          description: "Name to assign to the file. If not provided, the original filename will be used."
+          example: "custom-filename.png"
+        metadata:
+          type: object
+          additionalProperties: true
+          description: "Custom metadata to associate with the file."
+          example: { "alt": "Custom image", "category": "document" }
+      additionalProperties: false
+
+    UpdateFileMetadata:
+      type: object
+      description: "Metadata that can be updated for an existing file."
+      properties:
+        name:
+          type: string
+          description: "New name to assign to the file."
+          example: "renamed-file.jpg"
+        metadata:
+          type: object
+          additionalProperties: true
+          description: "Updated custom metadata to associate with the file."
+          example: { "alt": "Updated image description", "category": "profile" }
+      additionalProperties: false
+
+    ErrorResponse:
+      type: object
+      description: "Error information returned by the API."
+      properties:
+        error:
+          type: object
+          additionalProperties: false
+          description: "Error details."
+          properties:
+            message:
+              type: string
+              description: "Human-readable error message."
+              example: "File not found"
+          required:
+            - message
+      additionalProperties: false
+
+    RefreshTokenRequest:
+      type: object
+      description: "Request to refresh an access token"
+      additionalProperties: false
+      properties:
+        refreshToken:
+          description: "Refresh token used to generate a new access token"
+          example: "2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"
+          pattern: \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
+          type: string
+      required:
+        - refreshToken
+
+    Session:
+      type: object
+      description: "User authentication session containing tokens and user information"
+      additionalProperties: false
+      properties:
+        accessToken:
+          type: string
+          description: "JWT token for authenticating API requests"
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        accessTokenExpiresIn:
+          type: integer
+          format: int64
+          description: "Expiration time of the access token in seconds"
+          example: 900
+        refreshTokenId:
+          description: "Identifier for the refresh token"
+          example: "2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"
+          pattern: \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
+          type: string
+        refreshToken:
+          description: "Token used to refresh the access token"
+          example: "2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"
+          pattern: \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
+          type: string
+        user:
+          $ref: "#/components/schemas/User"
+          description: "Information about the authenticated user"
+      required:
+        - accessToken
+        - accessTokenExpiresIn
+        - refreshToken
+        - refreshTokenId
+
+    User:
+      type: object
+      description: "User profile and account information"
+      additionalProperties: false
+      properties:
+        avatarUrl:
+          type: string
+          description: "URL to the user's profile picture"
+          example: "https://myapp.com/avatars/user123.jpg"
+        createdAt:
+          format: date-time
+          type: string
+          description: "Timestamp when the user account was created"
+          example: "2023-01-15T12:34:56Z"
+        defaultRole:
+          example: "user"
+          type: string
+          description: "Default authorization role for the user"
+        displayName:
+          example: "John Smith"
+          type: string
+          description: "User's display name"
+        email:
+          description: "User's email address"
+          example: "john.smith@nhost.io"
+          format: email
+          type: string
+        emailVerified:
+          type: boolean
+          description: "Whether the user's email has been verified"
+          example: true
+        id:
+          description: "Unique identifier for the user"
+          example: "2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"
+          pattern: \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
+          type: string
+        isAnonymous:
+          type: boolean
+          description: "Whether this is an anonymous user account"
+          example: false
+        locale:
+          description: "User's preferred locale (language code)"
+          example: "en"
+          maxLength: 2
+          minLength: 2
+          type: string
+        metadata:
+          type: object
+          additionalProperties: true
+          description: "Custom metadata associated with the user"
+          example:
+            firstName: "John"
+            lastName: "Smith"
+          properties: {}
+        phoneNumber:
+          type: string
+          description: "User's phone number"
+          example: "+12025550123"
+        phoneNumberVerified:
+          type: boolean
+          description: "Whether the user's phone number has been verified"
+          example: false
+        roles:
+          example:
+            - "user"
+            - "customer"
+          type: array
+          description: "List of roles assigned to the user"
+          items:
+            type: string
+      required:
+        - avatarUrl
+        - createdAt
+        - defaultRole
+        - displayName
+        - emailVerified
+        - id
+        - isAnonymous
+        - locale
+        - metadata
+        - phoneNumberVerified
+        - roles

@@ -1,10 +1,11 @@
 packages:
-  - 'packages/**'
-  - 'integrations/**'
-  - 'dashboard'
-  - 'docs'
+  - dashboard
+  - docs
+  - packages/**
+  - examples/demos/**
+  - examples/guides/**
+  - examples/quickstarts/**
+  - examples/tutorials/**
   - '!**/test/**'
   - '!out/**'
-  - 'examples/**'
-  - '!templates/**'
   - '!**/functions'

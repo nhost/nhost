@@ -1,0 +1,217 @@
+/* Custom styles for Ninja Turtles tabs interface */
+.ninja-turtles-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.ninja-turtles-title {
+  text-align: center;
+  margin-bottom: 25px;
+  color: #1a9c44;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Tab navigation */
+.turtle-tabs {
+  display: flex;
+  border-bottom: 2px solid #1a9c44;
+  margin-bottom: 20px;
+  overflow-x: auto;
+}
+
+.turtle-tab {
+  padding: 10px 20px;
+  margin-right: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text-secondary);
+  transition: all 0.3s ease;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  position: relative;
+  outline: none;
+}
+
+.turtle-tab:hover {
+  color: var(--text-primary);
+  background: rgba(26, 156, 68, 0.1);
+}
+
+.turtle-tab.active {
+  color: white;
+  background: #1a9c44;
+}
+
+/* Turtle Card Styles */
+.turtle-card {
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  animation: fadeIn 0.5s;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.turtle-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.turtle-name {
+  color: #1a9c44;
+  font-weight: 700;
+}
+
+.turtle-description {
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+.turtle-date {
+  font-size: 0.85rem;
+  margin-bottom: 20px;
+  color: var(--text-muted);
+}
+
+/* Comments section */
+.comments-section {
+  margin-top: 25px;
+  border-top: 1px solid var(--border-color);
+  padding-top: 15px;
+}
+
+.comments-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 15px;
+  color: #1a9c44;
+}
+
+.comment-card {
+  margin-bottom: 15px;
+  padding: 12px;
+  border-radius: 6px;
+  background-color: rgba(26, 156, 68, 0.05);
+  border: 1px solid rgba(26, 156, 68, 0.1);
+}
+
+.comment-text {
+  margin-bottom: 8px;
+}
+
+.comment-meta {
+  display: flex;
+  align-items: center;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.comment-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #1a9c44;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  margin-right: 8px;
+}
+
+/* Comment form */
+.comment-form {
+  margin-top: 20px;
+}
+
+.comment-textarea {
+  width: 100%;
+  background-color: rgba(31, 41, 55, 0.8);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 10px;
+  color: white;
+  transition: all 0.2s;
+  margin-bottom: 10px;
+}
+
+.comment-textarea:focus {
+  border-color: #1a9c44;
+  box-shadow: 0 0 0 2px rgba(26, 156, 68, 0.2);
+  outline: none;
+}
+
+.comment-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.cancel-button {
+  background-color: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+}
+
+.cancel-button:hover {
+  background-color: rgba(31, 41, 55, 0.8);
+}
+
+.submit-button {
+  background-color: #1a9c44;
+  color: white;
+}
+
+.submit-button:hover {
+  background-color: #148035;
+}
+
+.add-comment-button {
+  display: inline-flex;
+  align-items: center;
+  color: #1a9c44;
+  background: none;
+  border: none;
+  padding: 5px 0;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.add-comment-button:hover {
+  color: #148035;
+  text-decoration: underline;
+}
+
+.add-comment-button svg {
+  width: 14px;
+  height: 14px;
+  margin-right: 5px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .turtle-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+
+  .turtle-tab {
+    flex: 0 0 auto;
+  }
+}

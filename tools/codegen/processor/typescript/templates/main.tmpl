@@ -1,0 +1,48 @@
+/**
+ * This file is auto-generated. Do not edit manually.
+ */
+
+import type { ChainFunction, FetchResponse } from "../fetch";
+import { createEnhancedFetch, FetchError } from "../fetch";
+
+
+{{- range .Types }}
+{{ if eq .Kind "object" }}
+{{ template "renderObject" . }}
+{{ else if eq .Kind "enum" }}
+/**
+ * {{ .Schema.Schema.Description }}
+ */
+export type {{ .Name }} = {{ join .Values " | " }};
+{{ else if eq .Kind "alias" }}
+/**
+ * {{ .Alias.Schema.Schema.Description }}
+ */
+export type {{ .Name }} = {{ .Alias.Name }};
+{{ else }}
+------ NOT IMPLEMENTED
+{{- end -}}
+{{- end }}
+
+{{- range .Methods }}
+{{- if .HasQueryParameters }}
+/**
+ * Parameters for the {{ .Name }} method.
+{{- range .QueryParameters }}
+    @property {{ .Name }}{{ if not .Required}}?{{ end }} ({{ .Type.Name }}) - {{ template "renderParamAttributeHelp" .Parameter }}
+{{- end -}}
+ */
+export interface {{ title .Name }}Params {
+{{- range .QueryParameters }}
+  /**
+   * {{ template "renderParamAttributeHelp" .Parameter }}
+   */
+  {{ .Name }}{{ if not .Required}}?{{ end }}: {{ .Type.Name }};
+{{- end }}
+}
+{{- end }}
+{{- end }}
+
+{{ template "client_interface" . }}
+
+{{ template "client" . }}

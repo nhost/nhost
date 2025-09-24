@@ -1,148 +1,156 @@
 {
   inputs = {
-    nixops.url = "github:nhost/nixops";
-    nixpkgs.follows = "nixops/nixpkgs";
-    flake-utils.follows = "nixops/flake-utils";
-    nix-filter.follows = "nixops/nix-filter";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    flake-utils.url = "github:numtide/flake-utils";
+    nix-filter.url = "github:numtide/nix-filter";
+    nix2container.url = "github:nlewo/nix2container";
+    nix2container.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixops, nixpkgs, flake-utils, nix-filter }:
+  outputs = { self, nixpkgs, flake-utils, nix-filter, nix2container }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs {
           inherit system;
           overlays = [
-            nixops.overlays.default
-            (import ./nix/overlay.nix)
+            (import ./nixops/overlays/default.nix)
           ];
         };
 
-        nix-src = nix-filter.lib.filter {
-          root = ./.;
-          include = [
-            (nix-filter.lib.matchExt "nix")
-          ];
+        lib = import ./nixops/lib/lib.nix;
+
+        nix2containerPkgs = nix2container.packages.${system};
+        nixops-lib = lib { inherit pkgs nix2containerPkgs; };
+
+        codegenf = import ./tools/codegen/project.nix {
+          inherit self pkgs nix-filter nixops-lib;
         };
 
-        buildInputs = with pkgs; [
-        ];
-
-        nativeBuildInputs = with pkgs; [
-        ];
-
-        node_modules = pkgs.stdenv.mkDerivation {
-          version = "0.0.0-dev";
-
-          pname = "node_modules";
-
-          nativeBuildInputs = with pkgs; [
-            pnpm_10
-            cacert
-            nodejs
-          ];
-
-          src = nix-filter.lib.filter {
-            root = ./.;
-            include = [
-              ./.npmrc
-              ./pnpm-workspace.yaml
-              # find . -name package.json | grep -v node_modules
-              ./docs/package.json
-              ./dashboard/package.json
-              ./integrations/stripe-graphql-js/package.json
-              ./integrations/google-translation/package.json
-              ./integrations/react-urql/package.json
-              ./integrations/react-apollo/package.json
-              ./integrations/apollo/package.json
-              ./package.json
-              ./examples/react-gqty/package.json
-              ./examples/cli/package.json
-              ./examples/vue-quickstart/package.json
-              ./examples/serverless-functions/package.json
-              ./examples/vue-apollo/package.json
-              ./examples/codegen-react-urql/package.json
-              ./examples/react-apollo/package.json
-              ./examples/multi-tenant-one-to-many/package.json
-              ./examples/node-storage/package.json
-              ./examples/nextjs/package.json
-              ./examples/codegen-react-query/package.json
-              ./examples/docker-compose/package.json
-              ./examples/docker-compose/functions/package.json
-              ./examples/seed-data-storage/package.json
-              ./examples/codegen-react-apollo/package.json
-              ./examples/quickstarts/nhost-backend/functions/package.json
-              ./examples/quickstarts/nextjs-server-components/package.json
-              ./examples/quickstarts/sveltekit/package.json
-              ./packages/graphql-js/package.json
-              ./packages/nhost-js/package.json
-              ./packages/nhost-js/functions/package.json
-              ./packages/vue/package.json
-              ./packages/hasura-storage-js/package.json
-              ./packages/hasura-storage-js/functions/package.json
-              ./packages/sync-versions/package.json
-              ./packages/nextjs/package.json
-              ./packages/docgen/package.json
-              ./packages/hasura-auth-js/package.json
-              ./packages/hasura-auth-js/functions/package.json
-              ./packages/react/package.json
-              #find . -name pnpm-lock.yaml | grep -v node_modules
-              ./pnpm-lock.yaml
-              ./examples/cli/pnpm-lock.yaml
-              ./examples/vue-apollo/pnpm-lock.yaml
-              ./examples/react-apollo/pnpm-lock.yaml
-              ./examples/node-storage/pnpm-lock.yaml
-              ./examples/nextjs/pnpm-lock.yaml
-              ./examples/quickstarts/nhost-backend/functions/pnpm-lock.yaml
-              ./examples/quickstarts/sveltekit/pnpm-lock.yaml
-              ./packages/nhost-js/functions/pnpm-lock.yaml
-              ./packages/hasura-storage-js/functions/pnpm-lock.yaml
-              ./packages/hasura-auth-js/functions/pnpm-lock.yaml
-            ];
-          };
-
-          buildPhase = ''
-            pnpm --version
-            pnpm install --frozen-lockfile
-          '';
-
-          installPhase = ''
-            mkdir -p $out
-            cp -r node_modules $out
-          '';
+        dashboardf = import ./dashboard/project.nix {
+          inherit self pkgs nix-filter nixops-lib nix2containerPkgs;
         };
+
+        demosf = import ./examples/demos/project.nix {
+          inherit self pkgs nix-filter nixops-lib nix2containerPkgs;
+        };
+
+        docsf = import ./docs/project.nix {
+          inherit self pkgs nix-filter nixops-lib;
+        };
+
+        guidesf = import ./examples/guides/project.nix {
+          inherit self pkgs nix-filter nixops-lib nix2containerPkgs;
+        };
+
+        mintlify-openapif = import ./tools/mintlify-openapi/project.nix {
+          inherit self pkgs nix-filter nixops-lib;
+        };
+
+        nhost-jsf = import ./packages/nhost-js/project.nix {
+          inherit self pkgs nix-filter nixops-lib;
+        };
+
+        nixopsf = import ./nixops/project.nix {
+          inherit self pkgs nix-filter nixops-lib;
+        };
+
+        tutorialsf = import ./examples/tutorials/project.nix {
+          inherit self pkgs nix-filter nixops-lib nix2containerPkgs;
+        };
+
       in
       {
+        #nixops
+        overlays.default = import ./overlays/default.nix;
+        lib = lib;
+
         checks = {
-          nixpkgs-fmt = pkgs.runCommand "check-nixpkgs-fmt"
-            {
-              nativeBuildInputs = with pkgs;
-                [
-                  nixpkgs-fmt
-                ];
-            }
-            ''
-              mkdir $out
-              nixpkgs-fmt --check ${nix-src}
-            '';
+          codegen = codegenf.check;
+          dashboard = dashboardf.check;
+          demos = demosf.check;
+          guides = guidesf.check;
+          docs = docsf.check;
+          mintlify-openapi = mintlify-openapif.check;
+          nhost-js = nhost-jsf.check;
+          nixops = nixopsf.check;
+          tutorials = tutorialsf.check;
         };
 
-        devShells = flake-utils.lib.flattenTree rec {
+        devShells = flake-utils.lib.flattenTree {
           default = pkgs.mkShell {
             buildInputs = with pkgs; [
+              gh
+              git-cliff
+              gnused
+              nodePackages.vercel
+              playwright-driver
               nhost-cli
               nodejs
               pnpm_10
+              biome
+              skopeo
               go
+              golines
+              gofumpt
               golangci-lint
-            ] ++ buildInputs ++ nativeBuildInputs;
+              self.packages.${system}.codegen
+              self.packages.${system}.mintlify-openapi
+            ];
 
-            # shellHook = ''
-            #   rm -rf node_modules
-            #   ln -sf ${node_modules}/node_modules/ node_modules
-            # '';
+            shellHook = ''
+              export PLAYWRIGHT_BROWSERS_PATH=${pkgs.playwright-driver.browsers}
+              export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
+            '';
           };
+
+          cliff = pkgs.mkShell {
+            buildInputs = with pkgs; [
+              git-cliff
+            ];
+          };
+
+          pnpm = pkgs.mkShell {
+            buildInputs = with pkgs; [
+              pnpm_10
+            ];
+          };
+
+          skopeo = pkgs.mkShell {
+            buildInputs = with pkgs;[
+              skopeo
+            ];
+          };
+
+          vercel = pkgs.mkShell {
+            buildInputs = with pkgs;[
+              pnpm
+              nodejs
+              nodePackages.vercel
+            ];
+          };
+
+          codegen = codegenf.devShell;
+          dashboard = dashboardf.devShell;
+          demos = demosf.devShell;
+          guides = guidesf.devShell;
+          docs = docsf.devShell;
+          mintlify-openapi = mintlify-openapif.devShell;
+          nhost-js = nhost-jsf.devShell;
+          nixops = nixopsf.devShell;
+          tutorials = tutorialsf.devShell;
         };
 
+        packages = flake-utils.lib.flattenTree {
+          codegen = codegenf.package;
+          dashboard = dashboardf.package;
+          dashboard-docker-image = dashboardf.dockerImage;
+          demos = demosf.package;
+          guides = guidesf.package;
+          mintlify-openapi = mintlify-openapif.package;
+          nhost-js = nhost-jsf.package;
+          nixops = nixopsf.package;
+          tutorials = tutorialsf.package;
+        };
       }
     );
 }

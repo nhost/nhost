@@ -1,0 +1,31 @@
+{
+  "name": "nhost-reactnative-tutorial",
+  "version": "1.0.0",
+  "main": "expo-router/entry",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web"
+  },
+  "dependencies": {
+    "@nhost/nhost-js": "workspace:^",
+    "@react-native-async-storage/async-storage": "~2",
+    "expo": "~54.0.9",
+    "expo-apple-authentication": "7",
+    "expo-constants": "~18",
+    "expo-crypto": "14",
+    "expo-document-picker": "13",
+    "expo-file-system": "18",
+    "expo-router": "~6",
+    "expo-sharing": "13",
+    "expo-status-bar": "~3.0.8",
+    "react": "19.1.0",
+    "react-native": "0.81.4"
+  },
+  "devDependencies": {
+    "@types/react": "~19.1.0",
+    "typescript": "~5.9.2"
+  },
+  "private": true
+}
