@@ -73,12 +73,12 @@ const nhost = createClient({
   region: 'eu-central-1'
 })
 
-const response = await nhost.auth.signInEmailPassword({
+await nhost.auth.signInEmailPassword({
   email: 'user@example.com',
   password: 'password123'
 })
 
-const response = await nhost.graphql.request({
+await nhost.graphql.request({
   query: `
     query GetUsers {
       users {
