@@ -8,6 +8,7 @@ import { EventTriggerInvocationLogs } from '@/features/orgs/projects/events/comp
 import type { EventTriggerUI } from '@/features/orgs/projects/events/types';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
+import TriggerOperationsSection from './sections/TriggerOperationsSection';
 
 export default function EventTriggerOverview({
   eventTrigger,
@@ -16,19 +17,6 @@ export default function EventTriggerOverview({
 }) {
   const [isTransformOpen, setIsTransformOpen] = useState(false);
   const [isHeadersOpen, setIsHeadersOpen] = useState(false);
-  const operations: string[] = [];
-  if (eventTrigger.definition.insert) {
-    operations.push('Insert');
-  }
-  if (eventTrigger.definition.update) {
-    operations.push('Update');
-  }
-  if (eventTrigger.definition.delete) {
-    operations.push('Delete');
-  }
-  if (eventTrigger.definition.enable_manual) {
-    operations.push('Manual (Dashboard)');
-  }
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -65,38 +53,14 @@ export default function EventTriggerOverview({
             Webhook Handler
           </h3>
           <div className="text-sm">
-            <div className="break-all rounded bg-gray-100 p-2 font-mono text-xs text-gray-900 dark:bg-gray-700 dark:text-gray-100">
+            <div className="break-all rounded bg-muted p-2 font-mono">
               {eventTrigger.webhook}
             </div>
           </div>
         </div>
       </div>
 
-      <div className="rounded border border-gray-200 p-4 dark:border-gray-700">
-        <h3 className="mb-3 font-medium text-gray-900 dark:text-gray-100">
-          Trigger Operations
-        </h3>
-        <div className="mb-3 flex flex-wrap gap-2">
-          {operations.map((operation) => (
-            <span
-              key={operation}
-              className="rounded bg-gray-200 px-2 py-1 text-xs text-gray-800 dark:bg-gray-600 dark:text-gray-200"
-            >
-              {operation}
-            </span>
-          ))}
-        </div>
-        {eventTrigger.definition.insert && (
-          <div className="text-sm">
-            <span className="text-gray-600 dark:text-gray-400">
-              Insert Columns:{' '}
-            </span>
-            <span className="font-mono text-gray-900 dark:text-gray-100">
-              {eventTrigger.definition.insert.columns}
-            </span>
-          </div>
-        )}
-      </div>
+      <TriggerOperationsSection eventTrigger={eventTrigger} />
 
       {eventTrigger.retry_conf && (
         <div className="rounded border border-gray-200 p-4 dark:border-gray-700">
@@ -210,7 +174,7 @@ export default function EventTriggerOverview({
                   <div className="mb-1 font-medium text-gray-900 dark:text-gray-100">
                     Body Template:
                   </div>
-                  <div className="whitespace-pre-wrap rounded p-2 font-mono text-xs text-gray-900 dark:text-gray-100">
+                  <div className="whitespace-pre-wrap rounded bg-gray-100 p-2 font-mono text-xs text-gray-900 dark:bg-gray-700 dark:text-gray-100">
                     {eventTrigger.request_transform.body?.template}
                   </div>
                 </div>
