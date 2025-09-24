@@ -1,3 +1,8 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+## [@nhost/dashboard@2.37.1] - 2025-09-24
 # @nhost/dashboard
 
 ## 2.37.0
