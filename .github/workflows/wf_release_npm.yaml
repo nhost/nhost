@@ -21,7 +21,6 @@ on:
       NIX_CACHE_PRIV_KEY:
         required: true
       DISCORD_WEBHOOK:
-        type: string
         required: false
 
 jobs:
