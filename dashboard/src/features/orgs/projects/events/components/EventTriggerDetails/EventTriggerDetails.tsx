@@ -38,8 +38,8 @@ export default function EventTriggerDetails() {
   }
 
   return (
-    <div className="bg-background p-4">
-      <div className="max-w-full rounded-lg">
+    <div className="w-full px-10 py-8">
+      <div className="mx-auto w-full max-w-5xl rounded-lg bg-background p-4">
         <div className="mb-6">
           <h1 className="mb-1 text-xl font-semibold text-gray-900 dark:text-gray-100">
             {eventTrigger.name}
