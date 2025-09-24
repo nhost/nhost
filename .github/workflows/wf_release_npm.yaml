@@ -11,6 +11,9 @@ on:
       VERSION:
         type: string
         required: true
+      DISCORD_WEBHOOK:
+        type: string
+        required: false
     secrets:
       NPM_TOKEN:
         required: true
@@ -20,8 +23,6 @@ on:
         required: true
       NIX_CACHE_PRIV_KEY:
         required: true
-      DISCORD_WEBHOOK:
-        required: false
 
 jobs:
   release:
@@ -96,19 +97,18 @@ jobs:
         echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
         nix develop .#pnpm -c pnpm publish --tag ${{ steps.npm-tag.outputs.tag }} --no-git-checks
 
-    - name: Check if Discord webhook is configured
-      id: discord-check
-      run: echo "enabled=${{ secrets.DISCORD_WEBHOOK != '' }}" >> $GITHUB_OUTPUT
     - name: Send Discord notification
-      if: ${{ always() && steps.discord-check.outputs.enabled == 'true' }}
+      if: ${{ always() && inputs.DISCORD_WEBHOOK }}
       uses: tsickert/discord-webhook@v7.0.0
       with:
-        webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+        webhook-url: ${{ inputs.DISCORD_WEBHOOK }}
         embed-title: "Published ${{ inputs.NAME }}@${{ inputs.VERSION }} to npm"
         embed-description: |
-          **Status**: ${{ inputs.success && 'success' || 'failure' }}
+          **Status**: ${{ job.status }}
+          **Tag**: ${{ steps.npm-tag.outputs.tag }}
           **Triggered by**: ${{ github.actor }}
 
-          **Inputs**:
-          - Git Ref: ${{ inputs.git_ref }}
-        embed-color: ${{ inputs.success && '5763719' || '15548997' }}
+          **Details**:
+          - Version: ${{ inputs.VERSION }}
+          - Package: ${{ inputs.NAME }}
+        embed-color: ${{ job.status == 'success' && '5763719' || '15548997' }}

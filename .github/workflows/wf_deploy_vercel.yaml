@@ -114,22 +114,22 @@ jobs:
 
       if: github.event_name == 'pull_request' || github.event_name == 'pull_request_target'
 
-    - name: Check if Discord webhook is configured
-      id: discord-check
-      run: echo "enabled=${{ secrets.DISCORD_WEBHOOK != '' }}" >> $GITHUB_OUTPUT
     - name: Send Discord notification
-      if: ${{ always() && steps.discord-check.outputs.enabled == 'true' }}
+      if: ${{ always() && inputs.DISCORD_WEBHOOK }}
       uses: tsickert/discord-webhook@v7.0.0
       with:
-        webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
-        embed-title: "Published ${{ inputs.NAME }}@${{ inputs.VERSION }} to npm"
+        webhook-url: ${{ inputs.DISCORD_WEBHOOK }}
+        embed-title: "Deployed ${{ inputs.NAME }} to Vercel"
         embed-description: |
-          **Status**: ${{ inputs.success && 'success' || 'failure' }}
+          **Environment**: ${{ inputs.ENVIRONMENT }}
+          **URL**: ${{ steps.deploy.outputs.preview-url }}
           **Triggered by**: ${{ github.actor }}
+          **Status**: ${{ job.status }}
 
-          **Inputs**:
-          - Git Ref: ${{ inputs.git_ref }}
-        embed-color: ${{ inputs.success && '5763719' || '15548997' }}
+          **Details**:
+          - Git Ref: ${{ inputs.GIT_REF }}
+          - Commit: ${{ github.event.pull_request.head.sha || github.sha }}
+        embed-color: ${{ job.status == 'success' && '5763719' || '15548997' }}
 
     - run: rm -rf .vercel
       if: always()
