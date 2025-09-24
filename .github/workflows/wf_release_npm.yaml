@@ -97,7 +97,7 @@ jobs:
         nix develop .#pnpm -c pnpm publish --tag ${{ steps.npm-tag.outputs.tag }} --no-git-checks
 
     - name: Send Discord notification
-      if: always() && secrets.DISCORD_WEBHOOK != ''
+      if: ${{ always() && secrets.DISCORD_WEBHOOK != '' }}
       uses: tsickert/discord-webhook@v7.0.0
       with:
         webhook-url: ${{ secrets.DISCORD_WEBHOOK }}

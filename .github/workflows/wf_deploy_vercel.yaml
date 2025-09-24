@@ -115,7 +115,7 @@ jobs:
       if: github.event_name == 'pull_request' || github.event_name == 'pull_request_target'
 
     - name: Send Discord notification
-      if: always() && secrets.DISCORD_WEBHOOK != ''
+      if: ${{ always() && secrets.DISCORD_WEBHOOK != '' }}
       uses: tsickert/discord-webhook@v7.0.0
       with:
         webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
