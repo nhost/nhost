@@ -1,0 +1,106 @@
+---
+name: 'dashboard: release'
+
+on:
+  workflow_call:
+    inputs:
+      NAME:
+        required: true
+        type: string
+      GIT_REF:
+        required: true
+        type: string
+      VERSION:
+        required: true
+        type: string
+    secrets:
+      AWS_ACCOUNT_ID:
+        required: true
+      NIX_CACHE_PUB_KEY:
+        required: true
+      NIX_CACHE_PRIV_KEY:
+        required: true
+      VERCEL_TEAM_ID:
+        required: true
+      VERCEL_PROJECT_ID:
+        required: true
+      VERCEL_DEPLOY_TOKEN:
+        required: true
+      DISCORD_WEBHOOK:
+        required: false
+      GH_PAT:
+        required: true
+      DOCKER_USERNAME:
+        required: true
+      DOCKER_PASSWORD:
+        required: true
+
+jobs:
+  deploy-vercel:
+    uses: ./.github/workflows/wf_deploy_vercel.yaml
+    with:
+      NAME: dashboard
+      GIT_REF: ${{ inputs.GIT_REF }}
+      ENVIRONMENT: production
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+      VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      VERCEL_DEPLOY_TOKEN: ${{ secrets.VERCEL_DEPLOY_TOKEN }}
+      DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+
+  build_artifacts:
+    uses: ./.github/workflows/wf_build_artifacts.yaml
+    with:
+      NAME: dashboard
+      PATH: dashboard
+      GIT_REF: ${{ inputs.GIT_REF }}
+      VERSION: ${{ inputs.VERSION }}
+      DOCKER: true
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+
+  push-docker:
+    uses: ./.github/workflows/wf_docker_push_image.yaml
+    needs:
+      - build_artifacts
+    with:
+      NAME: dashboard
+      PATH: dashboard
+      VERSION: ${{ inputs.VERSION }}
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+  bump-cli:
+    name: Bump Dashboard version in the Nhost CLI
+    runs-on: ubuntu-latest
+    needs:
+      - push-docker
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          repository: nhost/cli
+          token: ${{ secrets.GH_PAT }}
+
+      - name: Bump version in source code
+        run: |
+          find . -type f -exec sed -i 's/"nhost\/dashboard:[^"]*"/"nhost\/dashboard:${{ inputs.VERSION }}"/g' {} +
+
+      - name: "Create Pull Request"
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GH_PAT }}
+          title: "chore: bump nhost/dashboard to ${{ inputs.VERSION }}"
+          commit-message: "chore: bump nhost/dashboard to ${{ inputs.VERSION }}"
+          committer: GitHub <noreply@github.com>
+          author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
+          body: |
+            This PR bumps the Nhost Dashboard Docker image to version ${{ needs.version.outputs.dashboardVersion }}.
+          branch: bump-dashboard-version
+          delete-branch: true
