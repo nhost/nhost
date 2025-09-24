@@ -39,7 +39,7 @@ jobs:
       GIT_REF: ${{ inputs.GIT_REF }}
       ENVIRONMENT: production
     secrets:
-      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
       NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
       VERCEL_TEAM_ID: ${{ secrets.DASHBOARD_VERCEL_TEAM_ID }}
@@ -56,7 +56,7 @@ jobs:
       VERSION: 0.0.0-dev # we use a fixed version here to avoid unnecessary rebuilds
       DOCKER: true
     secrets:
-      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
       NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
 
