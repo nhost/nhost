@@ -25,6 +25,8 @@ on:
         required: true
       VERCEL_DEPLOY_TOKEN:
         required: true
+      DISCORD_WEBHOOK:
+        required: false
 
     outputs:
       preview-url:
@@ -86,15 +88,14 @@ jobs:
         VERCEL_ORG_ID: ${{ secrets.VERCEL_TEAM_ID }}
         VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
       run: |
-        PROD_OPTS=$([ "${{ inputs.ENVIRONMENT }}" = "production" ] && echo "--prod" || echo "")
-        TARGET_OPTS=$([ "${{ inputs.ENVIRONMENT }}" != "production" ] && echo "--target=${{ inputs.ENVIRONMENT }}" || echo "")
+        TARGET_OPTS="--target=${{ inputs.ENVIRONMENT }}"
         echo "Deploying to: ${{ inputs.ENVIRONMENT }}..."
         nix develop .\#vercel -c \
           vercel pull --environment=${{ inputs.ENVIRONMENT }} --token=${{ secrets.VERCEL_DEPLOY_TOKEN }}
         nix develop .\#vercel -c \
           vercel build $TARGET_OPTS --token=${{ secrets.VERCEL_DEPLOY_TOKEN }}
         nix develop .\#vercel -c \
-          vercel deploy $PROD_OPTS --prebuilt --token=${{ secrets.VERCEL_DEPLOY_TOKEN }} | tee /tmp/vercel_output
+          vercel deploy $TARGET_OPTS --prebuilt --token=${{ secrets.VERCEL_DEPLOY_TOKEN }} | tee /tmp/vercel_output
 
         PREVIEW_URL=$(cat /tmp/vercel_output)
         echo "\n🔗🔗🔗 Preview URL: $PREVIEW_URL"
@@ -111,6 +112,23 @@ jobs:
           * Commit: `${{ github.event.pull_request.head.sha || github.sha }}`
 
       if: github.event_name == 'pull_request' || github.event_name == 'pull_request_target'
+
+    - name: Send Discord notification
+      if: always()
+      uses: ./.github/actions/discord-notification
+      with:
+        webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+        title: "Deployed ${{ inputs.NAME }} to Vercel"
+        description: |
+          **Environment**: ${{ inputs.ENVIRONMENT }}
+          **URL**: ${{ steps.deploy.outputs.preview-url }}
+          **Triggered by**: ${{ github.actor }}
+          **Status**: ${{ job.status }}
+
+          **Details**:
+          - Git Ref: ${{ inputs.GIT_REF }}
+          - Commit: ${{ github.event.pull_request.head.sha || github.sha }}
+        color: ${{ job.status == 'success' && '5763719' || '15548997' }}
 
     - run: rm -rf .vercel
       if: always()

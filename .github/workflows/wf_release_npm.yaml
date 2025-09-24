@@ -11,6 +11,9 @@ on:
       VERSION:
         type: string
         required: true
+      DISCORD_WEBHOOK:
+        type: string
+        required: false
     secrets:
       NPM_TOKEN:
         required: true
@@ -93,3 +96,19 @@ jobs:
       run: |
         echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
         nix develop .#pnpm -c pnpm publish --tag ${{ steps.npm-tag.outputs.tag }} --no-git-checks
+
+    - name: Send Discord notification
+      if: always()
+      uses: ./.github/actions/discord-notification
+      with:
+        webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+        title: "Published ${{ inputs.NAME }}@${{ inputs.VERSION }} to npm"
+        description: |
+          **Status**: ${{ job.status }}
+          **Tag**: ${{ steps.npm-tag.outputs.tag }}
+          **Triggered by**: ${{ github.actor }}
+
+          **Details**:
+          - Version: ${{ inputs.VERSION }}
+          - Package: ${{ inputs.NAME }}
+        color: ${{ job.status == 'success' && '5763719' || '15548997' }}
