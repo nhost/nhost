@@ -16,14 +16,14 @@ import type { QualifiedTable } from './qualifiedTable';
 export type EventInvocationLogEntryRequestPayload = {
   /** When the event was created */
   created_at?: string;
-  /** Information about the delivery attempt */
+  /** Contains information about message delivery retries. */
   delivery_info?: EventInvocationLogEntryRequestPayloadDeliveryInfo;
-  /** The actual event data */
+  /** Represents an event and related data. */
   event?: EventInvocationLogEntryRequestPayloadEvent;
   /** Event ID */
   id?: string;
   table?: QualifiedTable;
-  /** Trigger information */
+  /** Represents information about the trigger. */
   trigger?: EventInvocationLogEntryRequestPayloadTrigger;
   [key: string]: unknown;
 };

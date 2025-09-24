@@ -29,6 +29,7 @@ paths:
                 - $ref: '#/components/schemas/DeleteRemoteSchemaRemoteRelationshipOperation'
                 - $ref: '#/components/schemas/RemoteSchemaPermissionsBulkOperation'
                 - $ref: '#/components/schemas/GetEventInvocationLogsOperation'
+                - $ref: '#/components/schemas/GetEventLogsOperation'
       responses:
         '200':
           description: Operation executed successfully
@@ -44,6 +45,7 @@ paths:
                   - $ref: '#/components/schemas/ExportMetadataResponse'
                   - $ref: '#/components/schemas/IntrospectRemoteSchemaResponse'
                   - $ref: '#/components/schemas/GetEventInvocationLogsResponse'
+                  - $ref: '#/components/schemas/GetEventLogsResponse'
         '400':
           description: Bad request
           content:
@@ -1277,7 +1279,7 @@ components:
       properties:
         id:
           type: string
-          description: Unique identifier for the log entry
+          description: Represents a UUID for invocation.
           example: d1de2b04-dbb9-4d21-bdaf-25c3dfef3d7b
         trigger_name:
           type: string
@@ -1311,49 +1313,51 @@ components:
                   description: When the event was created
                 delivery_info:
                   type: object
-                  description: Information about the delivery attempt
+                  description: Contains information about message delivery retries.
                   properties:
                     current_retry:
                       type: integer
-                      description: Current retry attempt number
+                      description: Represents the current retry number.
                     max_retries:
                       type: integer
-                      description: Maximum number of retries allowed
+                      description: Represents the maximum number of retries.
                 event:
                   type: object
-                  description: The actual event data
+                  description: Represents an event and related data.
                   properties:
                     data:
                       type: object
-                      description: The data that changed
+                      description: Contains data related to the event.
                       properties:
                         new:
                           type: object
-                          nullable: true
-                          description: New row data (for INSERT and UPDATE)
+                          description: Object representing the new data associated with the event, with each key-value pair representing a column name and its value.
                         old:
                           type: object
                           nullable: true
-                          description: Old row data (for UPDATE and DELETE)
+                          description: Represents old data associated with the event or `null` if not applicable.
                     op:
                       type: string
-                      enum: [INSERT, UPDATE, DELETE]
-                      description: The operation that triggered the event
+                      enum: [INSERT, UPDATE, DELETE, MANUAL]
+                      description: Represents the name of the operation.
                     session_variables:
                       type: object
-                      description: Session variables at the time of the event
+                      description: Key-value pairs of session variables (i.e. "x-hasura-*" variables) and their values (NULL if no session variables found) (**Only available for Postgres**)
+                      nullable: true
                       additionalProperties:
                         type: string
                     trace_context:
                       type: object
-                      description: Tracing context for the event
+                      description: Contains trace context information.
                       properties:
                         sampling_state:
                           type: string
                         span_id:
                           type: string
+                          description: Represents the span ID for tracing.
                         trace_id:
                           type: string
+                          description: Represents the trace ID for tracing.
                 id:
                   type: string
                   description: Event ID
@@ -1361,11 +1365,11 @@ components:
                   $ref: '#/components/schemas/QualifiedTable'
                 trigger:
                   type: object
-                  description: Trigger information
+                  description: Represents information about the trigger.
                   properties:
                     name:
                       type: string
-                      description: Name of the trigger
+                      description: Represents the name of the trigger.
               additionalProperties: true
             version:
               type: string
@@ -1398,7 +1402,7 @@ components:
         created_at:
           type: string
           format: date-time
-          description: When the log entry was created
+          description: Represents a timestamp value for the invocation of the trigger.
           example: 2025-09-19T16:01:31.086239Z
 
     EventInvocationLogEntryHeaders:
@@ -1418,3 +1422,114 @@ components:
             type: string
             description: Header value
             example: 'Sun, 21 Sep 2025 16:13:25 GMT'
+
+    GetEventLogsOperation:
+      description: Operation used to fetch the event logs for a given event trigger. (Both pending and delivered)
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_get_event_logs]
+        args:
+          $ref: '#/components/schemas/GetEventLogsArgs'
+
+    GetEventLogsArgs:
+      allOf:
+        - $ref: '#/components/schemas/GetEventInvocationLogsArgs'
+        - type: object
+          properties:
+            status:
+              description: Type of event logs to be fetched. If `status` is not provided then all types of status are included
+              type: string
+              enum: [pending, delivered]
+
+    GetEventLogsResponse:
+      type: array
+      description: List of event logs for the given event trigger
+      items:
+        $ref: '#/components/schemas/EventLogEntry'
+
+    EventLogEntry:
+      type: object
+      description: Event log entry containing payload and delivery details
+      required:
+        - id
+        - schema_name
+        - table_name
+        - trigger_name
+        - payload
+        - delivered
+        - error
+        - tries
+        - created_at
+        - locked
+        - next_retry_at
+        - archived
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the log entry
+          example: 6301c9e1-b649-4861-9419-68b4cbf9382a
+        schema_name:
+          type: string
+          description: Represents the schema name of the table.
+          example: public
+        table_name:
+          type: string
+          description: Represents the name of the table.
+          example: mytable
+        trigger_name:
+          type: string
+          description: Represents the name of the trigger.
+          example: mytrigger
+        payload:
+          type: object
+          properties:
+            data:
+              type: object
+              properties:
+                new:
+                  type: object
+                  description: Object representing the new data associated with the event, with each key-value pair representing a column name and its value.
+                  additionalProperties: true
+                old:
+                  type: object
+                  description: Represents old data associated with the event or null if not applicable.
+                  additionalProperties: true
+                  nullable: true
+            op:
+              description: Represents the name of the operation.
+              type: string
+              enum: [INSERT, UPDATE, DELETE, MANUAL]
+            session_variables:
+              type: object
+              description: Key-value pairs of session variables (i.e. "x-hasura-*" variables) and their values (NULL if no session variables found)
+              nullable: true
+              additionalProperties:
+                type: string
+            trace_context:
+              type: object
+              description: Contains trace context information.
+              additionalProperties:
+                type: string
+
+        delivered:
+          type: boolean
+        error:
+          type: boolean
+        tries:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+          description: Represents a timestamp value for the creation of the log entry.
+          example: 2025-09-19T16:01:31.086239Z
+        next_retry_at:
+          type: string
+          format: date-time
+          nullable: true
+
+      additionalProperties: true

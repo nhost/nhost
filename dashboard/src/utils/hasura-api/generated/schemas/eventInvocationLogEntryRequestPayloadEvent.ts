@@ -11,15 +11,18 @@ import type { EventInvocationLogEntryRequestPayloadEventSessionVariables } from 
 import type { EventInvocationLogEntryRequestPayloadEventTraceContext } from './eventInvocationLogEntryRequestPayloadEventTraceContext';
 
 /**
- * The actual event data
+ * Represents an event and related data.
  */
 export type EventInvocationLogEntryRequestPayloadEvent = {
-  /** The data that changed */
+  /** Contains data related to the event. */
   data?: EventInvocationLogEntryRequestPayloadEventData;
-  /** The operation that triggered the event */
+  /** Represents the name of the operation. */
   op?: EventInvocationLogEntryRequestPayloadEventOp;
-  /** Session variables at the time of the event */
+  /**
+   * Key-value pairs of session variables (i.e. "x-hasura-*" variables) and their values (NULL if no session variables found) (**Only available for Postgres**)
+   * @nullable
+   */
   session_variables?: EventInvocationLogEntryRequestPayloadEventSessionVariables;
-  /** Tracing context for the event */
+  /** Contains trace context information. */
   trace_context?: EventInvocationLogEntryRequestPayloadEventTraceContext;
 };

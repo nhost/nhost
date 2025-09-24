@@ -7,9 +7,9 @@
  */
 
 /**
- * Represents old data associated with the event or `null` if not applicable.
+ * Key-value pairs of session variables (i.e. "x-hasura-*" variables) and their values (NULL if no session variables found)
  * @nullable
  */
-export type EventInvocationLogEntryRequestPayloadEventDataOld = {
-  [key: string]: unknown;
+export type EventLogEntryPayloadSessionVariables = {
+  [key: string]: string;
 } | null;

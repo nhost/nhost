@@ -7,8 +7,9 @@
  */
 
 /**
- * Session variables at the time of the event
+ * Key-value pairs of session variables (i.e. "x-hasura-*" variables) and their values (NULL if no session variables found) (**Only available for Postgres**)
+ * @nullable
  */
 export type EventInvocationLogEntryRequestPayloadEventSessionVariables = {
   [key: string]: string;
-};
+} | null;
