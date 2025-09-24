@@ -3,6 +3,7 @@
 All notable changes to this project will be documented in this file.
 
 ## [@nhost/nhost-js@4.0.1] - 2025-09-24
+## [@nhost/nhost-js@4.0.1] - 2025-09-24
 
 ### ⚙️ Miscellaneous Tasks
 
