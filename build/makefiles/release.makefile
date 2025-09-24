@@ -8,7 +8,7 @@ changelog-init:  ## Initialize changelog using git-cliff
 
 .PHONY: changelog-next-version
 changelog-next-version:  ## Get next version using git-cliff
-	@git cliff -u --bumped-version --tag-pattern $(TAG_PATTERN) $(CLIFF_OPTS) | awk -F\@ '{print $$2}'
+	@git cliff -u --bumped-version --tag-pattern $(TAG_PATTERN) $(CLIFF_OPTS) | sed 's/.*@//'
 
 .PHONY: changelog-get-released
 changelog-get-released:  ## Get changelog for the latest release using git-cliff
