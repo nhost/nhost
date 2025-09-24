@@ -27,17 +27,17 @@ const nhost = createClient({
 })
 
 // Use authentication features
-const response = await nhost.auth.signInEmailPassword({
+const signinResponse = await nhost.auth.signInEmailPassword({
   email: 'user@example.com',
   password: 'password123'
 })
 
-if (response.body.session) {
+if (signinResponse.body.session) {
   console.log('Signed in successfully!')
 }
 
 // Use GraphQL features
-const response = await nhost.graphql.request({
+const graphqlResponse = await nhost.graphql.request({
   query: `
     query GetUsers {
       users {
@@ -49,17 +49,16 @@ const response = await nhost.graphql.request({
   `
 })
 
-return response.body.data.users
 
 // Use storage features
-const response = await nhost.storage.uploadFiles({
+const storageResponse = await nhost.storage.uploadFiles({
   'file[]': [file]
 })
 
-return response.body.processedFiles[0]
+return storageResponse.body.processedFiles[0]
 
 // call a serverless function
-const response = await nhost.functions.fetch('/echo', {
+const functionsResponse = await nhost.functions.fetch('/echo', {
   method: 'POST',
   body: JSON.stringify({
     message: 'Hello, world!'
