@@ -86,10 +86,7 @@ jobs:
 
       - name: Bump version in source code
         run: |
-          IMAGE=$(echo ${{ env.DASHBOARD_PACKAGE }} | sed 's/@\(.\+\)\/\(.\+\)/\1\\\/\2/g')
-          VERSION="${{ inputs.VERSION }}"
-          EXPRESSION='s/"'$IMAGE':[0-9]\+\.[0-9]\+\.[0-9]\+"/"'$IMAGE':'$VERSION'"/g'
-          find ./ -type f -exec sed -i -e $EXPRESSION {} \;
+          find . -type f -exec sed -i 's/"nhost\/dashboard:[^"]*"/"nhost\/dashboard:${{ inputs.VERSION }}"/g' {} +
 
       - name: "Create Pull Request"
         uses: peter-evans/create-pull-request@v7
