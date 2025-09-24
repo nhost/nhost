@@ -5,8 +5,8 @@ export const article = {
   title: 'The new Nhost JavaScript SDK: generated, simplified, isomorphic',
   description:
     'A new, automatically generated JavaScript SDK that simplifies development and prepares the foundation for multi-language support',
-  image: '/images/blog/new-javascript-sdk/sdk-hero.png',
-  date: '2024-12-23',
+  image: '/images/blog/og-sdk.png',
+  date: '2025-09-24',
   authors: [
     {
       name: 'Nuno Pato',
@@ -88,7 +88,7 @@ We recognize that this approach requires more manual scaffolding for authenticat
 The new SDK is now available. To get started, install the SDK using your favorite package manager:
 
 ```bash
-bun install @nhost/nhost-js@^5.0.0
+npm install @nhost/nhost-js@^4.0.0
 ```
 
 ```typescript
@@ -124,7 +124,7 @@ await nhost.functions.fetch("/my-function", {
 
 **If you're building a new app**: start with **@nhost/nhost-js** for the best developer experience and future compatibility.
 
-**If you're using existing packages** (nhost-js < 5.x or framework packages): we'll continue to support them with security patches and bug fixes for at least 6 months, but they won't receive new functionality. While there's no immediate rush to migrate, we recommend starting to plan your transition to the new SDK. Check our [migration guide](https://docs.nhost.io/sdk/migration) for detailed instructions.
+**If you're using existing packages** (nhost-js < 4.x or framework packages): we'll continue to support them with security patches and bug fixes for at least 6 months, but they won't receive new functionality. While there's no immediate rush to migrate, we recommend starting to plan your transition to the new SDK. Check out our [quickstart guides & tutorials](https://docs.nhost.io/getting-started/overview) for various frameworks and the [JavaScript SDK reference](https://docs.nhost.io/reference/javascript/nhost-js/main) for detailed documentation. We're also working on a migration guide and will release it soon.
 
 **If you're interested in other languages**: our SDK generator is designed to support multiple languages, and we'll be expanding based on community interest and feedback.
 
