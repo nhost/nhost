@@ -56,9 +56,10 @@ jobs:
       id: version
       run: |
         cd ${{ matrix.project }}
+        TAG_NAME=$(make release-tag-name)
         VERSION=$(nix develop .\#cliff -c make changelog-next-version)
-        if git tag | grep -q "${{ matrix.project }}@$VERSION"; then
-          echo "Tag ${{ matrix.project }}/$VERSION already exists, skipping release preparation"
+        if git tag | grep -q "$TAG_NAME@$VERSION"; then
+          echo "Tag $TAG_NAME/$VERSION already exists, skipping release preparation"
         else
           echo "Tag does not exist, proceeding with release preparation"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
