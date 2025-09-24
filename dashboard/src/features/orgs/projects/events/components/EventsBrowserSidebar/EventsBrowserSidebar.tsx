@@ -79,32 +79,49 @@ function EventsBrowserSidebarContent() {
                   {dataSource}
                   <Database className="h-4 w-4 !rotate-0" />
                 </AccordionTrigger>
-                <AccordionContent className="flex flex-col gap-4 text-balance">
+                <AccordionContent className="flex flex-col gap-1 text-balance pl-4">
                   {eventTriggers.map((eventTrigger) => {
                     const isSelected = eventTrigger.name === eventTriggerSlug;
                     return (
+                      // {
+                      //   'bg-[#ebf3ff] hover:bg-[#ebf3ff] dark:bg-muted':
+                      //     context.isFocused,
+                      // },
                       <Button
                         className={cn(
-                          'ml-4 h-fit justify-between py-0 pr-0 text-left hover:bg-primary-light hover:text-primary',
-                          isSelected && 'bg-primary-light text-primary',
+                          'flex h-9 max-w-52 flex-row justify-between gap-2 bg-background px-2 text-foreground hover:bg-accent dark:hover:bg-muted',
+                          isSelected &&
+                            'bg-[#ebf3ff] hover:bg-[#ebf3ff] dark:bg-muted',
                         )}
                         key={eventTrigger.name}
                         asChild
                         variant="ghost"
                       >
                         <Link
+                          shallow
                           href={`/orgs/${orgSlug}/projects/${appSubdomain}/events/event-trigger/${eventTrigger.name}`}
+                          className="flex w-full items-center gap-2"
                         >
-                          {eventTrigger.name}
+                          <span
+                            className={cn(
+                              'min-w-0 flex-1 truncate',
+                              isSelected && 'text-primary hover:text-primary',
+                            )}
+                          >
+                            {eventTrigger.name}
+                          </span>
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="px-2 hover:bg-primary/10 hover:text-primary"
+                            className={cn(
+                              'px-1 hover:bg-accent/90 dark:hover:bg-muted/90',
+                              isSelected && 'text-primary hover:text-primary',
+                            )}
                             onClick={(e) => {
                               e.preventDefault();
                             }}
                           >
-                            <Ellipsis className="h-5 w-5" />
+                            <Ellipsis className="h-6 w-6" />
                           </Button>
                         </Link>
                       </Button>
