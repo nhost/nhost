@@ -2,8 +2,8 @@
 name: "dashboard: release staging"
 on:
   push:
-    # branches:
-    #   - main
+    branches:
+      - main
 
 jobs:
   deploy-vercel:
