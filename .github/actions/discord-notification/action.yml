@@ -1,0 +1,29 @@
+name: 'Discord Notification'
+description: 'Send a Discord notification with conditional check'
+
+inputs:
+  webhook-url:
+    description: 'Discord webhook URL'
+    required: true
+  title:
+    description: 'Embed title'
+    required: true
+  description:
+    description: 'Embed description'
+    required: true
+  color:
+    description: 'Embed color (decimal number)'
+    required: false
+    default: '5763719'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Send Discord notification
+      if: ${{ inputs.webhook-url }}
+      uses: tsickert/discord-webhook@v7.0.0
+      with:
+        webhook-url: ${{ inputs.webhook-url }}
+        embed-title: ${{ inputs.title }}
+        embed-description: ${{ inputs.description }}
+        embed-color: ${{ inputs.color }}
