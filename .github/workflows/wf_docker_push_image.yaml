@@ -19,7 +19,7 @@ on:
         required: true
 
 jobs:
-  push-to-ecr:
+  push-to-registry:
     runs-on: ubuntu-latest
     timeout-minutes: 30
 

@@ -50,6 +50,8 @@ jobs:
       VERCEL_DEPLOY_TOKEN: ${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
       DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_PRODUCTION }}
       GH_PAT: ${{ secrets.GH_PAT }}
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
   nhost-js:
     needs: extract-project
