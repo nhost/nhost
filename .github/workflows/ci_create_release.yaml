@@ -66,6 +66,8 @@ jobs:
           exit 1
         fi
 
+        cd $PROJECT
+
         PROJECT_NAME=$(make release-tag-name)
 
         echo "project=$PROJECT" >> $GITHUB_OUTPUT
