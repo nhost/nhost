@@ -32,7 +32,7 @@ export default function EventTriggerOverview({
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <div className="rounded border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
+        <div className="rounded border border-gray-200 p-4 dark:border-gray-700">
           <h3 className="mb-3 font-medium text-gray-900 dark:text-gray-100">
             Database & Table
           </h3>
@@ -60,7 +60,7 @@ export default function EventTriggerOverview({
           </div>
         </div>
 
-        <div className="rounded border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
+        <div className="rounded border border-gray-200 p-4 dark:border-gray-700">
           <h3 className="mb-3 font-medium text-gray-900 dark:text-gray-100">
             Webhook Handler
           </h3>
@@ -72,7 +72,7 @@ export default function EventTriggerOverview({
         </div>
       </div>
 
-      <div className="rounded border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
+      <div className="rounded border border-gray-200 p-4 dark:border-gray-700">
         <h3 className="mb-3 font-medium text-gray-900 dark:text-gray-100">
           Trigger Operations
         </h3>
@@ -99,7 +99,7 @@ export default function EventTriggerOverview({
       </div>
 
       {eventTrigger.retry_conf && (
-        <div className="rounded border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
+        <div className="rounded border border-gray-200 p-4 dark:border-gray-700">
           <h3 className="mb-3 font-medium text-gray-900 dark:text-gray-100">
             Retry Configuration
           </h3>
@@ -133,7 +133,7 @@ export default function EventTriggerOverview({
       {eventTrigger.headers && (
         <Collapsible open={isHeadersOpen} onOpenChange={setIsHeadersOpen}>
           <div className="rounded border border-gray-200 dark:border-gray-700">
-            <CollapsibleTrigger className="flex w-full items-center justify-between bg-gray-50 p-4 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700">
+            <CollapsibleTrigger className="flex w-full items-center justify-between p-4 hover:bg-gray-100 dark:hover:bg-gray-700">
               <h3 className="font-medium text-gray-900 dark:text-gray-100">
                 Request Headers
               </h3>
@@ -144,7 +144,7 @@ export default function EventTriggerOverview({
               )}
             </CollapsibleTrigger>
             <CollapsibleContent>
-              <div className="border-t border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
+              <div className="border-t border-gray-200 p-4 dark:border-gray-700">
                 <div className="overflow-x-auto">
                   <EventTriggerHeadersTable headers={eventTrigger.headers} />
                 </div>
@@ -157,7 +157,7 @@ export default function EventTriggerOverview({
       {eventTrigger.request_transform && (
         <Collapsible open={isTransformOpen} onOpenChange={setIsTransformOpen}>
           <div className="rounded border border-gray-200 dark:border-gray-700">
-            <CollapsibleTrigger className="flex w-full items-center justify-between bg-gray-50 p-4 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700">
+            <CollapsibleTrigger className="flex w-full items-center justify-between p-4 hover:bg-gray-100 dark:hover:bg-gray-700">
               <h3 className="font-medium text-gray-900 dark:text-gray-100">
                 Request Transform Configuration
               </h3>
@@ -168,7 +168,7 @@ export default function EventTriggerOverview({
               )}
             </CollapsibleTrigger>
             <CollapsibleContent>
-              <div className="space-y-4 border-t border-gray-200 bg-gray-50 p-4 pt-4 dark:border-gray-700 dark:bg-gray-800">
+              <div className="space-y-4 border-t border-gray-200 p-4 pt-4 dark:border-gray-700">
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <span className="text-gray-600 dark:text-gray-400">
@@ -192,7 +192,7 @@ export default function EventTriggerOverview({
                   <div className="mb-1 font-medium text-gray-900 dark:text-gray-100">
                     URL Template:
                   </div>
-                  <div className="rounded bg-gray-100 p-2 font-mono text-xs text-gray-900 dark:bg-gray-700 dark:text-gray-100">
+                  <div className="rounded p-2 font-mono text-xs text-gray-900 dark:text-gray-100">
                     {eventTrigger.request_transform?.url}
                   </div>
                 </div>
@@ -201,7 +201,7 @@ export default function EventTriggerOverview({
                   <div className="mb-1 font-medium text-gray-900 dark:text-gray-100">
                     Query Parameters:
                   </div>
-                  <div className="rounded bg-gray-100 p-2 font-mono text-xs text-gray-900 dark:bg-gray-700 dark:text-gray-100">
+                  <div className="rounded p-2 font-mono text-xs text-gray-900 dark:text-gray-100">
                     {eventTrigger.request_transform?.query_params?.toString()}
                   </div>
                 </div>
@@ -210,7 +210,7 @@ export default function EventTriggerOverview({
                   <div className="mb-1 font-medium text-gray-900 dark:text-gray-100">
                     Body Template:
                   </div>
-                  <div className="whitespace-pre-wrap rounded bg-gray-100 p-2 font-mono text-xs text-gray-900 dark:bg-gray-700 dark:text-gray-100">
+                  <div className="whitespace-pre-wrap rounded p-2 font-mono text-xs text-gray-900 dark:text-gray-100">
                     {eventTrigger.request_transform.body?.template}
                   </div>
                 </div>
