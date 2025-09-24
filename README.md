@@ -65,23 +65,30 @@ Since Nhost is 100% open source, you can self-host the whole Nhost stack. Check 
 
 Install the `@nhost/nhost-js` package and start building your app:
 
-```jsx
-import { NhostClient } from '@nhost/nhost-js'
+```ts
+import { createClient } from '@nhost/nhost-js'
 
-const nhost = new NhostClient({
-  subdomain: '<your-subdomain>',
-  region: '<your-region>'
+const nhost = createClient({
+  subdomain: 'your-project',
+  region: 'eu-central-1'
 })
 
-await nhost.auth.signIn({ email: 'user@domain.com', password: 'userPassword' })
+const response = await nhost.auth.signInEmailPassword({
+  email: 'user@example.com',
+  password: 'password123'
+})
 
-await nhost.graphql.request(`{
-  users {
-    id
-    displayName
-    email
-  }
-}`)
+const response = await nhost.graphql.request({
+  query: `
+    query GetUsers {
+      users {
+        id
+        displayName
+        email
+      }
+    }
+  `
+})
 ```
 
 ## Frontend Agnostic
@@ -103,19 +110,8 @@ Nhost is frontend agnostic, which means Nhost works with all frontend frameworks
 
 ## Nhost Clients
 
-- [JavaScript/TypeScript](https://docs.nhost.io/reference/javascript/nhost-js/nhost-client)
+- [JavaScript/TypeScript](https://docs.nhost.io/reference/javascript/nhost-js/main)
 - [Dart and Flutter](https://github.com/nhost/nhost-dart)
-- [React](https://docs.nhost.io/reference/react/nhost-client)
-- [Next.js](https://docs.nhost.io/reference/nextjs/nhost-client)
-- [Vue](https://docs.nhost.io/reference/vue/nhost-client)
-
-## Integrations
-
-- [Apollo](./integrations/apollo#nhostapollo)
-- [React Apollo](./integrations/react-apollo#nhostreact-apollo)
-- [React URQL](./integrations/react-urql#nhostreact-urql)
-- [Stripe GraphQL API](./integrations/stripe-graphql-js#nhoststripe-graphql-js)
-- [Google Translation GraphQL API](./integrations/google-translation#nhostgoogle-translation)
 
 ## Applications
 

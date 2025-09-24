@@ -6,13 +6,13 @@ The Nhost JavaScript SDK provides a client-side interface to interact with Nhost
 
 ```bash
 # npm
-npm install @nhost/nhost-js@beta
+npm install @nhost/nhost-js
 
 # yarn
-yarn add @nhost/nhost-js@beta
+yarn add @nhost/nhost-js
 
 # pnpm
-pnpm add @nhost/nhost-js@beta
+pnpm add @nhost/nhost-js
 ```
 
 ## Quick Start
