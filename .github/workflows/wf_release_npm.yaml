@@ -96,8 +96,11 @@ jobs:
         echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
         nix develop .#pnpm -c pnpm publish --tag ${{ steps.npm-tag.outputs.tag }} --no-git-checks
 
+    - name: Check if Discord webhook is configured
+      id: discord-check
+      run: echo "enabled=${{ secrets.DISCORD_WEBHOOK != '' }}" >> $GITHUB_OUTPUT
     - name: Send Discord notification
-      if: ${{ always() && secrets.DISCORD_WEBHOOK != '' }}
+      if: ${{ always() && steps.discord-check.outputs.enabled == 'true' }}
       uses: tsickert/discord-webhook@v7.0.0
       with:
         webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
