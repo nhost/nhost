@@ -25,6 +25,8 @@ on:
         required: true
       VERCEL_DEPLOY_TOKEN:
         required: true
+      DISCORD_WEBHOOK:
+        required: false
 
     outputs:
       preview-url:
@@ -111,6 +113,20 @@ jobs:
           * Commit: `${{ github.event.pull_request.head.sha || github.sha }}`
 
       if: github.event_name == 'pull_request' || github.event_name == 'pull_request_target'
+
+    - name: Send Discord notification
+      if: always() && secrets.DISCORD_WEBHOOK != ''
+      uses: tsickert/discord-webhook@v7.0.0
+      with:
+        webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+        embed-title: "Vercel Deployment - ${{ inputs.NAME }} (${{ inputs.ENVIRONMENT }})"
+        embed-description: |
+          **Status**: ${{ inputs.success && 'success' || 'failure' }}
+          **Triggered by**: ${{ github.actor }}
+
+          **Inputs**:
+          - Git Ref: ${{ inputs.git_ref }}
+        embed-color: ${{ inputs.success && '5763719' || '15548997' }}
 
     - run: rm -rf .vercel
       if: always()

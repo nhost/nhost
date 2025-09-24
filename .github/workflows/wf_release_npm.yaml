@@ -20,6 +20,8 @@ on:
         required: true
       NIX_CACHE_PRIV_KEY:
         required: true
+      DISCORD_WEBHOOK:
+        required: false
 
 jobs:
   release:
@@ -93,3 +95,17 @@ jobs:
       run: |
         echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
         nix develop .#pnpm -c pnpm publish --tag ${{ steps.npm-tag.outputs.tag }} --no-git-checks
+
+    - name: Send Discord notification
+      if: always() && secrets.DISCORD_WEBHOOK != ''
+      uses: tsickert/discord-webhook@v7.0.0
+      with:
+        webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+        embed-title: "Published ${{ inputs.NAME }}@${{ inputs.VERSION }} to npm"
+        embed-description: |
+          **Status**: ${{ inputs.success && 'success' || 'failure' }}
+          **Triggered by**: ${{ github.actor }}
+
+          **Inputs**:
+          - Git Ref: ${{ inputs.git_ref }}
+        embed-color: ${{ inputs.success && '5763719' || '15548997' }}
