@@ -7,11 +7,11 @@
  */
 
 /**
- * Information about the delivery attempt
+ * Contains information about message delivery retries.
  */
 export type EventInvocationLogEntryRequestPayloadDeliveryInfo = {
-  /** Current retry attempt number */
+  /** Represents the current retry number. */
   current_retry?: number;
-  /** Maximum number of retries allowed */
+  /** Represents the maximum number of retries. */
   max_retries?: number;
 };

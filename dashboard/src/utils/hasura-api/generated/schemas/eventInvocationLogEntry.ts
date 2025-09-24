@@ -12,7 +12,7 @@ import type { EventInvocationLogEntryResponse } from './eventInvocationLogEntryR
  * Event invocation log entry containing request and response details
  */
 export interface EventInvocationLogEntry {
-  /** Unique identifier for the log entry */
+  /** Represents a UUID for invocation. */
   id: string;
   /** Name of the event trigger */
   trigger_name: string;
@@ -24,6 +24,6 @@ export interface EventInvocationLogEntry {
   request: EventInvocationLogEntryRequest;
   /** Details of the HTTP response from the webhook */
   response?: EventInvocationLogEntryResponse;
-  /** When the log entry was created */
+  /** Represents a timestamp value for the invocation of the trigger. */
   created_at: string;
 }

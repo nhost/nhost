@@ -9,16 +9,13 @@ import type { EventInvocationLogEntryRequestPayloadEventDataNew } from './eventI
 import type { EventInvocationLogEntryRequestPayloadEventDataOld } from './eventInvocationLogEntryRequestPayloadEventDataOld';
 
 /**
- * The data that changed
+ * Contains data related to the event.
  */
 export type EventInvocationLogEntryRequestPayloadEventData = {
-  /**
-   * New row data (for INSERT and UPDATE)
-   * @nullable
-   */
+  /** Object representing the new data associated with the event, with each key-value pair representing a column name and its value. */
   new?: EventInvocationLogEntryRequestPayloadEventDataNew;
   /**
-   * Old row data (for UPDATE and DELETE)
+   * Represents old data associated with the event or `null` if not applicable.
    * @nullable
    */
   old?: EventInvocationLogEntryRequestPayloadEventDataOld;

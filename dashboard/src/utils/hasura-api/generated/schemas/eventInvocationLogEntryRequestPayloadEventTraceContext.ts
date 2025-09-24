@@ -7,10 +7,12 @@
  */
 
 /**
- * Tracing context for the event
+ * Contains trace context information.
  */
 export type EventInvocationLogEntryRequestPayloadEventTraceContext = {
   sampling_state?: string;
+  /** Represents the span ID for tracing. */
   span_id?: string;
+  /** Represents the trace ID for tracing. */
   trace_id?: string;
 };

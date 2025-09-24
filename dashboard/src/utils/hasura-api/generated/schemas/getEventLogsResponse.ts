@@ -5,11 +5,9 @@
  * API for managing remote schemas in Hasura
  * OpenAPI spec version: 1.0.0
  */
+import type { EventLogEntry } from './eventLogEntry';
 
 /**
- * Represents information about the trigger.
+ * List of event logs for the given event trigger
  */
-export type EventInvocationLogEntryRequestPayloadTrigger = {
-  /** Represents the name of the trigger. */
-  name?: string;
-};
+export type GetEventLogsResponse = EventLogEntry[];

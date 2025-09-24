@@ -7,9 +7,7 @@
  */
 
 /**
- * Represents information about the trigger.
+ * Represents old data associated with the event or null if not applicable.
+ * @nullable
  */
-export type EventInvocationLogEntryRequestPayloadTrigger = {
-  /** Represents the name of the trigger. */
-  name?: string;
-};
+export type EventLogEntryPayloadDataOld = { [key: string]: unknown } | null;

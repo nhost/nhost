@@ -7,9 +7,6 @@
  */
 
 /**
- * Represents information about the trigger.
+ * Contains trace context information.
  */
-export type EventInvocationLogEntryRequestPayloadTrigger = {
-  /** Represents the name of the trigger. */
-  name?: string;
-};
+export type EventLogEntryPayloadTraceContext = { [key: string]: string };
