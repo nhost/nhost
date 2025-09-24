@@ -32,7 +32,11 @@ export default function EventTriggerHeadersTable({
               <TableRow key={header.name}>
                 <TableCell className="font-medium">{header.name}</TableCell>
                 <TableCell>From env var</TableCell>
-                <TableCell>{header.value_from_env}</TableCell>
+                <TableCell>
+                  <span className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono">
+                    {header.value_from_env}
+                  </span>
+                </TableCell>
               </TableRow>
             );
           }
@@ -41,7 +45,11 @@ export default function EventTriggerHeadersTable({
             <TableRow key={header.name}>
               <TableCell className="font-medium">{header.name}</TableCell>
               <TableCell>Value</TableCell>
-              <TableCell>{header.value}</TableCell>
+              <TableCell>
+                <span className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono">
+                  {header.value}
+                </span>
+              </TableCell>
             </TableRow>
           );
         })}
