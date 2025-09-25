@@ -61,10 +61,6 @@ rec {
 
   package = nixops-lib.go.package {
     inherit name description version src submodule ldflags buildInputs nativeBuildInputs;
-
-    postInstall = ''
-      mv $out/bin/${name} $out/bin/nhost
-    '';
   };
 
   dockerImage = nixops-lib.go.docker-image {
