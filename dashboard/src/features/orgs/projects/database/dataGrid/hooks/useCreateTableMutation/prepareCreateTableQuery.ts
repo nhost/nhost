@@ -2,7 +2,10 @@ import type {
   DatabaseTable,
   MutationOrQueryBaseOptions,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { getPreparedHasuraQuery } from '@/features/orgs/projects/database/dataGrid/utils/hasuraQueryHelpers';
+import {
+  getPreparedHasuraQuery,
+  type HasuraOperation,
+} from '@/features/orgs/projects/database/dataGrid/utils/hasuraQueryHelpers';
 import { isNotEmptyValue } from '@/lib/utils';
 import { format } from 'node-pg-format';
 
@@ -80,6 +83,23 @@ export default function prepareCreateTableQuery({
     );
   }
 
+  const hasColumnComments = table.columns.some(({ comment }) =>
+    isNotEmptyValue(comment),
+  );
+  let columnComments: HasuraOperation[] = [];
+  if (hasColumnComments) {
+    columnComments = table.columns.map(({ comment, name }) =>
+      getPreparedHasuraQuery(
+        dataSource,
+        'COMMENT ON COLUMN %I.%I.%I is %L',
+        schema,
+        table.name,
+        name,
+        comment,
+      ),
+    );
+  }
+
   return [
     getPreparedHasuraQuery(
       dataSource,
@@ -88,5 +108,6 @@ export default function prepareCreateTableQuery({
       table.name,
       columnsAndConstraints,
     ),
+    ...columnComments,
   ];
 }

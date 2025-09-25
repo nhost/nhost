@@ -17,7 +17,7 @@ import MaterialAutocomplete, {
   autocompleteClasses as materialAutocompleteClasses,
 } from '@mui/material/Autocomplete';
 import clsx from 'clsx';
-import type { ForwardedRef } from 'react';
+import type { DetailedHTMLProps, ForwardedRef, HTMLProps } from 'react';
 import { forwardRef, useEffect, useState } from 'react';
 
 export interface AutocompleteOption<TValue = string> {
@@ -81,6 +81,9 @@ export interface AutocompleteProps<
      * Props passed to the input component.
      */
     input?: Partial<Omit<InputProps, 'ref'>>;
+    inputRoot?: Partial<
+      DetailedHTMLProps<HTMLProps<HTMLInputElement>, HTMLInputElement>
+    > & { 'data-testid'?: string };
     /**
      * Props passed to the input's `FormControl` component.
      */
@@ -471,7 +474,10 @@ function Autocomplete(
                   }
                 : null,
             },
-            inputRoot: { 'aria-label': ariaLabel },
+            inputRoot: {
+              'aria-label': ariaLabel,
+              ...slotProps.inputRoot,
+            },
             label: InputLabelProps,
             formControl: formControlSlotProps,
           }}

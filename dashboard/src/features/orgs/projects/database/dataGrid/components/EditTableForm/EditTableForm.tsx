@@ -133,6 +133,7 @@ export default function EditTableForm({
           defaultValue: column.defaultValue,
           isNullable: column.isNullable,
           isUnique: column.isUnique,
+          comment: column.comment || '',
         })),
         primaryKeyIndices,
         identityColumnIndex:
@@ -153,7 +154,7 @@ export default function EditTableForm({
 
   async function handleSubmit(values: BaseTableFormValues) {
     const primaryKey = values.primaryKeyIndices.map<string>(
-      (primaryKeys, primaryKeyIndex) => values.columns[primaryKeyIndex].name,
+      (primaryKeys) => values.columns[primaryKeys].name,
     );
     try {
       const updatedTable: DatabaseTable = {

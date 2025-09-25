@@ -60,6 +60,7 @@ export default function ForeignKeyEditorSection() {
     validateDuplicateRelation(values);
     append(values);
   }
+  const primaryKeyIndices = getValues('primaryKeyIndices');
 
   return (
     <section className="grid grid-flow-row gap-2 px-6">
@@ -71,15 +72,13 @@ export default function ForeignKeyEditorSection() {
         <ForeignKeyEditorRow
           index={index}
           onEdit={() => {
-            const primaryKeyIndex = getValues('primaryKeyIndex');
-
             openDialog({
               title: 'Edit Foreign Key Relation',
               component: (
                 <EditForeignKeyForm
                   foreignKeyRelation={fields[index] as ForeignKeyRelation}
                   availableColumns={columns.map((column, columnIndex) =>
-                    columnIndex === primaryKeyIndex
+                    primaryKeyIndices.includes(`${columnIndex}`)
                       ? { ...column, isPrimary: true }
                       : column,
                   )}
@@ -109,8 +108,6 @@ export default function ForeignKeyEditorSection() {
         }}
         disabled={columnsWithNameAndType?.length === 0}
         onClick={() => {
-          const primaryKeyIndex = getValues('primaryKeyIndex');
-
           openDialog({
             title: (
               <span className="grid grid-flow-row">
@@ -125,7 +122,7 @@ export default function ForeignKeyEditorSection() {
             component: (
               <CreateForeignKeyForm
                 availableColumns={columns.map((column, index) =>
-                  index === primaryKeyIndex
+                  primaryKeyIndices.includes(`${index}`)
                     ? { ...column, isPrimary: true }
                     : column,
                 )}

@@ -7,6 +7,7 @@ import { InlineCode } from '@/components/presentational/InlineCode';
 import type { CheckboxProps } from '@/components/ui/v2/Checkbox';
 import { Input } from '@/components/ui/v2/Input';
 import { OptionBase } from '@/components/ui/v2/Option';
+
 import type {
   ColumnType,
   ForeignKeyRelation,
@@ -17,10 +18,12 @@ import {
   postgresTypeGroups,
 } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
 import clsx from 'clsx';
+
 import type { PropsWithoutRef } from 'react';
 import { memo, useEffect, useState } from 'react';
 import type { FieldError } from 'react-hook-form';
 import { useFormContext, useFormState, useWatch } from 'react-hook-form';
+import ColumnComment from './ColumnComment';
 import { RemoveButton } from './RemoveButton';
 
 export interface FieldArrayInputProps {
@@ -43,7 +46,7 @@ function NameInput({ index }: FieldArrayInputProps) {
     name: [`columns.${index}.name`],
   });
 
-  const primaryKeyIndex: number = useWatch({ name: 'primaryKeyIndex' });
+  const primaryKeyIndices: string[] = useWatch({ name: 'primaryKeyIndices' });
 
   return (
     <Input
@@ -61,17 +64,12 @@ function NameInput({ index }: FieldArrayInputProps) {
             clearErrors('columns');
           }
 
-          if (!event.target.value && primaryKeyIndex === index) {
-            setValue('primaryKeyIndex', null);
+          if (!event.target.value && primaryKeyIndices.includes(`${index}`)) {
+            const updatedPrimaryKeyIndices = primaryKeyIndices.filter(
+              (pk) => pk !== `${index}`,
+            );
 
-            return;
-          }
-
-          if (
-            event.target.value &&
-            (primaryKeyIndex === null || typeof primaryKeyIndex === 'undefined')
-          ) {
-            setValue('primaryKeyIndex', index);
+            setValue('primaryKeyIndices', updatedPrimaryKeyIndices);
           }
         },
       })}
@@ -81,6 +79,7 @@ function NameInput({ index }: FieldArrayInputProps) {
       hideEmptyHelperText
       error={Boolean(errors?.columns?.[index]?.name)}
       helperText={errors?.columns?.[index]?.name?.message}
+      inputProps={{ 'data-testid': `columns.${index}.name` }}
     />
   );
 }
@@ -98,6 +97,11 @@ function TypeAutocomplete({ index }: FieldArrayInputProps) {
 
   return (
     <ControlledAutocomplete
+      slotProps={{
+        inputRoot: {
+          'data-testid': `columns.${index}.type`,
+        },
+      }}
       id={`columns.${index}.type`}
       name={`columns.${index}.type`}
       aria-label="Type"
@@ -201,6 +205,9 @@ function DefaultValueAutocomplete({ index }: FieldArrayInputProps) {
       freeSolo
       slotProps={{
         paper: { className: clsx(availableFunctions.length === 0 && 'hidden') },
+        inputRoot: {
+          'data-testid': `columns.${index}.defaultValue`,
+        },
       }}
       disabled={isIdentity}
       noOptionsText="Enter a custom default value"
@@ -225,10 +232,10 @@ function Checkbox({
   index,
   ...props
 }: FieldArrayInputProps & PropsWithoutRef<CheckboxProps>) {
-  const primaryKeyIndex = useWatch({ name: 'primaryKeyIndex' });
+  const primaryKeyIndices = useWatch({ name: 'primaryKeyIndices' });
   const identityColumnIndex = useWatch({ name: 'identityColumnIndex' });
 
-  const isPrimary = primaryKeyIndex === index;
+  const isPrimary = primaryKeyIndices.includes(`${index}`);
   const isIdentity = identityColumnIndex === index;
 
   return (
@@ -249,28 +256,39 @@ export interface ColumnEditorRowProps extends FieldArrayInputProps {
 }
 
 const ColumnEditorRow = memo(({ index, remove }: ColumnEditorRowProps) => (
-  <div role="row" className="grid w-full grid-cols-12 gap-1">
-    <div role="cell" className="col-span-3">
+  <div role="row" className="flex w-full gap-2">
+    <div role="cell" className="w-52 flex-none">
       <NameInput index={index} />
     </div>
 
-    <div role="cell" className="col-span-3">
+    <div role="cell" className="w-52 flex-none">
       <TypeAutocomplete index={index} />
     </div>
 
-    <div role="cell" className="col-span-3">
+    <div role="cell" className="w-52 flex-none">
       <DefaultValueAutocomplete index={index} />
     </div>
 
-    <div role="cell" className="col-span-1 flex justify-center py-3">
+    <div role="cell" className="flex w-8 flex-none items-center justify-center">
+      <ColumnComment index={index} />
+    </div>
+
+    <div
+      role="cell"
+      className="flex w-13 flex-none items-center justify-center"
+    >
       <Checkbox
         name={`columns.${index}.isNullable`}
         aria-label="Nullable"
         index={index}
+        data-testid={`columns.${index}.isNullable`}
       />
     </div>
 
-    <div role="cell" className="col-span-1 flex justify-center py-3">
+    <div
+      role="cell"
+      className="flex w-13 flex-none items-center justify-center"
+    >
       <Checkbox
         name={`columns.${index}.isUnique`}
         aria-label="Unique"
@@ -278,7 +296,7 @@ const ColumnEditorRow = memo(({ index, remove }: ColumnEditorRowProps) => (
       />
     </div>
 
-    <div role="cell" className="col-span-1 flex justify-center py-0.5">
+    <div role="cell" className="flex w-9 flex-none items-center justify-center">
       <RemoveButton
         index={index}
         onClick={() => {

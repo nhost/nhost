@@ -36,11 +36,7 @@ export const POSTGRESQL_DECIMAL_TYPES = ['numeric', 'real', 'double precision'];
  *
  * @docs https://www.postgresql.org/docs/current/datatype-character.html
  */
-export const POSTGRESQL_CHARACTER_TYPES = [
-  'character varying',
-  'character',
-  'text',
-];
+export const POSTGRESQL_CHARACTER_TYPES = ['varchar', 'character', 'text'];
 
 /**
  * JSON data types in PostgreSQL.
@@ -75,7 +71,7 @@ export const postgresTypeGroups: {
   {
     group: 'String types',
     label: 'character varying',
-    value: 'character varying',
+    value: 'varchar',
   },
   { group: 'String types', label: 'character', value: 'bpchar' },
 

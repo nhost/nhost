@@ -101,6 +101,12 @@ test('should create a table with nullable columns', async ({
   await expect(
     page.getByRole('link', { name: tableName, exact: true }),
   ).toBeVisible();
+  await page
+    .locator(`li:has-text("${tableName}") #table-management-menu button`)
+    .click();
+  await page.getByText('Edit Table').click();
+  expect(page.locator('h2:has-text("Edit Table")')).toBeVisible();
+  expect(page.locator('div[data-testid="id"]')).toBeVisible();
 });
 
 test('should create a table with an identity column', async ({
@@ -116,15 +122,15 @@ test('should create a table with an identity column', async ({
     name: tableName,
     primaryKeys: ['id'],
     columns: [
-      { name: 'id', type: 'int4' },
+      { name: 'id', type: 'uuid', defaultValue: 'gen_random_uuid()' },
       { name: 'title', type: 'text', nullable: true },
       { name: 'description', type: 'text', nullable: true },
+      { name: 'identity_column', type: 'int4' },
     ],
   });
 
-  // await page.getByRole('button', { name: /identity/i }).click();
   await page.getByLabel('Identity').click();
-  await page.getByRole('option', { name: /id/i }).click();
+  await page.getByRole('option', { name: /identity_column/i }).click();
 
   // create table
   await page.getByRole('button', { name: /create/i }).click();
@@ -136,6 +142,17 @@ test('should create a table with an identity column', async ({
   await expect(
     page.getByRole('link', { name: tableName, exact: true }),
   ).toBeVisible();
+  await page
+    .locator(`li:has-text("${tableName}") #table-management-menu button`)
+    .click();
+  await page.getByText('Edit Table').click();
+  expect(page.locator('h2:has-text("Edit Table")')).toBeVisible();
+  expect(
+    page.locator('button#identityColumnIndex :has-text("identity_column")'),
+  ).toBeVisible();
+  expect(page.locator('[id="columns.3.defaultValue"]')).toBeDisabled();
+  expect(page.locator('[name="columns.3.isNullable"]')).toBeDisabled();
+  expect(page.locator('[name="columns.3.isUnique"]')).toBeDisabled();
 });
 
 test('should create table with foreign key constraint', async ({
@@ -292,4 +309,11 @@ test('should be able to create a table with a composite key', async ({
   await expect(
     page.getByRole('link', { name: tableName, exact: true }),
   ).toBeVisible();
+
+  await page
+    .locator(`li:has-text("${tableName}") #table-management-menu button`)
+    .click();
+  await page.getByText('Edit Table').click();
+  expect(page.locator('div[data-testid="id"]')).toBeVisible();
+  expect(page.locator('div[data-testid="second_id"]')).toBeVisible();
 });

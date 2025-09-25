@@ -15,8 +15,13 @@
   },
   "scripts": {
     "build:dashboard": "turbo run build --filter=@nhost/dashboard",
+    "build:nhost-js": "turbo run build --filter=@nhost/nhost-js",
     "audit-ci": "pnpm exec audit-ci --config ./audit-ci.jsonc",
-    "workspace:list": "pnpm ls --depth=-1 -r"
+    "workspace:list": "pnpm ls --depth=-1 -r",
+    "clean:all": "pnpm clean && rm -rf ./{{packages,examples/**,templates/**}/*,docs,dashboard}/{.nhost,node_modules} node_modules",
+    "clean": "rm -rf ./{{packages,examples/**}/*,docs,dashboard}/{dist,umd,.next,.turbo,coverage}",
+    "clean:install": "pnpm clean:all && pnpm install",
+    "dev:dashboard": "turbo run dev --filter=@nhost/dashboard"
   },
   "devDependencies": {
     "audit-ci": "^6.6.1",

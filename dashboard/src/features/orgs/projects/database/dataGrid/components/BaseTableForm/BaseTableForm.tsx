@@ -86,6 +86,9 @@ function NameInput() {
       {...register('name')}
       id="name"
       fullWidth
+      inputProps={{
+        'data-testid': 'tableNameInput',
+      }}
       label="Name"
       helperText={
         typeof errors.name?.message === 'string' ? errors.name?.message : ''

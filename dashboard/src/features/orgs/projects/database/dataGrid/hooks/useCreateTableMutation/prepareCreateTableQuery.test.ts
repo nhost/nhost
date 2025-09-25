@@ -67,7 +67,6 @@ describe('prepareCreateTableQuery', () => {
       schema: 'public',
       table,
     });
-
     expect(transaction).toHaveLength(1);
     expect(transaction[0].args.sql).toBe(
       'CREATE TABLE public.test_table (id uuid NOT NULL, name text NOT NULL, author_id uuid NOT NULL, PRIMARY KEY (id), FOREIGN KEY (author_id) REFERENCES public.authors (id) ON UPDATE RESTRICT ON DELETE RESTRICT);',
@@ -242,6 +241,39 @@ describe('prepareCreateTableQuery', () => {
     expect(transaction).toHaveLength(1);
     expect(transaction[0].args.sql).toBe(
       'CREATE TABLE public.test_table (id uuid NOT NULL, name varchar(10) NOT NULL);',
+    );
+  });
+
+  test('should add comments to columns', () => {
+    const table: DatabaseTable = {
+      name: 'test_table',
+      columns: [
+        {
+          name: 'id',
+          type: { value: 'uuid', label: 'UUID' },
+          comment: 'Primary key comment',
+        },
+        {
+          name: 'name',
+          type: { value: 'text', label: 'Text' },
+          comment: 'Text comment',
+        },
+      ],
+      primaryKey: ['id'],
+    };
+
+    const transaction = prepareCreateTableQuery({
+      dataSource: 'default',
+      schema: 'public',
+      table,
+    });
+
+    expect(transaction).toHaveLength(3);
+    expect(transaction[1].args.sql).toBe(
+      "COMMENT ON COLUMN public.test_table.id is 'Primary key comment';",
+    );
+    expect(transaction[2].args.sql).toBe(
+      "COMMENT ON COLUMN public.test_table.name is 'Text comment';",
     );
   });
 });
