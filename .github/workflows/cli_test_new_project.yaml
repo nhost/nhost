@@ -102,6 +102,9 @@ jobs:
         unzip /home/runner/artifacts/cli-artifact-x86_64-0.0.0-dev/result.zip
         alias nhost=/home/runner/result/bin/cli
         find result
+        pwd
+        echo "pwd: $(pwd)"
+        ls -la $(pwd)/result/bin/cli
         ls -la /home/runner/result/bin/cli
 
         mkdir new-project
