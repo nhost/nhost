@@ -19,7 +19,7 @@ on:
       NIX_CACHE_PRIV_KEY:
         required: true
       NHOST_PAT:
-        required: false
+        required: true
 
 jobs:
   tests:
