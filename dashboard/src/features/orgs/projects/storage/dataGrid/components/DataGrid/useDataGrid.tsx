@@ -10,6 +10,8 @@ import {
   useTable,
 } from 'react-table';
 
+export const SELECTION_SYMBOL = Symbol('selection');
+
 export interface UseDataGridBaseOptions {
   /**
    * Determines whether data grid columns are selectable.
@@ -75,7 +77,7 @@ export default function useDataGrid<T extends object>(
       allowSelection
         ? hooks.visibleColumns.push((columns) => [
             {
-              id: 'selection',
+              id: 'selection-column',
               Header: ({ rows, getToggleAllRowsSelectedProps }: any) => (
                 <Checkbox
                   disabled={rows.length === 0}

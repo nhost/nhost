@@ -1,7 +1,6 @@
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
-import type { DataBrowserGridColumn } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import type { UseDataGridOptions } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid/useDataGrid';
 import { DataGridBody } from '@/features/orgs/projects/storage/dataGrid/components/DataGridBody';
 import { DataGridConfigProvider } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
@@ -51,14 +50,6 @@ export interface DataGridProps<TColumnData extends object>
    */
   onInsertRow?: VoidFunction;
   /**
-   * Function to be called when the user wants to remove a column.
-   */
-  onRemoveColumn?: (column: DataBrowserGridColumn<TColumnData>) => void;
-  /**
-   * Function to be called when the user wants to edit a column.
-   */
-  onEditColumn?: (column: DataBrowserGridColumn<TColumnData>) => void;
-  /**
    * Determines whether or not data is loading.
    */
   loading?: boolean;
@@ -73,7 +64,7 @@ export interface DataGridProps<TColumnData extends object>
   /**
    * Props to be passed to the `DataGridHeader` component.
    */
-  headerProps?: DataGridHeaderProps<TColumnData>;
+  headerProps?: DataGridHeaderProps;
 }
 
 function DataGrid<TColumnData extends object>(
@@ -89,8 +80,6 @@ function DataGrid<TColumnData extends object>(
     controls,
     sortBy,
     onSort,
-    onEditColumn,
-    onRemoveColumn,
     loading,
     className,
   }: DataGridProps<TColumnData>,
@@ -150,16 +139,11 @@ function DataGrid<TColumnData extends object>(
             )}
           >
             <DataGridFrame>
-              <DataGridHeader
-                onEditColumn={onEditColumn}
-                onRemoveColumn={onRemoveColumn}
-                {...headerProps}
-              />
+              <DataGridHeader {...headerProps} />
 
               <DataGridBody
                 emptyStateMessage={emptyStateMessage}
                 loading={loading}
-                allowInsertColumn={Boolean(onRemoveColumn)}
               />
             </DataGridFrame>
           </Box>
