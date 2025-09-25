@@ -66,4 +66,57 @@ rec {
   dockerImage = nixops-lib.go.docker-image {
     inherit name package created version buildInputs;
   };
+
+  cli-arm64-darwin = (nixops-lib.go.package {
+    inherit name submodule description src version ldflags buildInputs nativeBuildInputs;
+  }).overrideAttrs (old: old // {
+    env = {
+      GOOS = "darwin";
+      GOARCH = "arm64";
+      CGO_ENABLED = "0";
+    };
+  });
+
+  cli-amd64-darwin = (nixops-lib.go.package {
+    inherit name submodule description src version ldflags buildInputs nativeBuildInputs;
+  }).overrideAttrs (old: old // {
+    env = {
+      GOOS = "darwin";
+      GOARCH = "amd64";
+      CGO_ENABLED = "0";
+    };
+  });
+
+  cli-arm64-linux = (nixops-lib.go.package {
+    inherit name submodule description src version ldflags buildInputs nativeBuildInputs;
+  }).overrideAttrs (old: old // {
+    env = {
+      GOOS = "linux";
+      GOARCH = "arm64";
+      CGO_ENABLED = "0";
+    };
+  });
+
+  cli-amd64-linux = (nixops-lib.go.package {
+    inherit name submodule description src version ldflags buildInputs nativeBuildInputs;
+  }).overrideAttrs (old: old // {
+    env = {
+      GOOS = "linux";
+      GOARCH = "amd64";
+      CGO_ENABLED = "0";
+    };
+  });
+
+  cli-multiplatform = pkgs.runCommand "cli-multiplatform-${version}"
+    {
+      meta = {
+        description = "Multi-platform ${description} binaries";
+      };
+    } ''
+    mkdir -p $out/bin
+    cp ${cli-arm64-darwin}/bin/${name} $out/bin/${name}-arm64-darwin
+    cp ${cli-amd64-darwin}/bin/${name} $out/bin/${name}-amd64-darwin
+    cp ${cli-arm64-linux}/bin/${name} $out/bin/${name}-arm64-linux
+    cp ${cli-amd64-linux}/bin/${name} $out/bin/${name}-amd64-linux
+  '';
 }

@@ -100,7 +100,9 @@ jobs:
         export NHOST_CONFIGSERVER_IMAGE=cli:0.0.0-dev
 
         unzip /home/runner/artifacts/cli-artifact-x86_64-0.0.0-dev/result.zip
-        alias nhost=$(pwd)/result/bin/cli
+        alias nhost=/home/runner/result/bin/cli
+        find result
+        ls -la /home/runner/result/bin/cli
 
         mkdir new-project
         cd new-project

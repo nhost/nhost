@@ -18,7 +18,7 @@ NC='\033[0m'
 # basic variables
 INSTALL_PATH=${INSTALL_PATH:-"/usr/local/bin"}
 NEED_SUDO=${NEED_SUDO:-1}
-REPO="nhost/cli"
+REPO="nhost/nhost"
 
 # check for existing installation
 hasCli=$(which nhost)
@@ -96,7 +96,7 @@ suffix="-${platform}-${arch}"
 
 if [[ "$platform" != 'windows' ]]; then
     extension=".tar.gz"
-else 
+else
     extension='.zip'
 fi
 
@@ -119,7 +119,7 @@ try chmod +x $targetFile
 
 if [[ "$platform" != 'windows' ]]; then
     try tar -xvf $targetFile
-else 
+else
     try unzip $targetFile
 fi
 
