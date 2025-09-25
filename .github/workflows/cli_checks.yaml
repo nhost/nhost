@@ -53,7 +53,7 @@ jobs:
       NHOST_PAT: ${{ secrets.NHOST_PAT }}
 
   build_artifacts:
-    uses: ./.github/workflows/wf_build_artifacts.yaml
+    uses: ./.github/workflows/cli_test_new_project.yaml
     needs:
       - check-permissions
     with:
