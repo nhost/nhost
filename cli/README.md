@@ -2,15 +2,6 @@
   <h1 style="font-size: 3em; font-weight: bold;">Nhost CLI</h1>
 </div>
 
-<div align="center">
-
-[![Go Report Card](https://goreportcard.com/badge/github.com/nhost/cli)](https://goreportcard.com/report/github.com/nhost/cli)
-<a href="https://twitter.com/nhost" target="_blank" rel="noopener noreferrer">
-<img src="https://img.shields.io/twitter/follow/nhost?style=social" alt="Twitter Follow Badge"/>
-</a>
-
-</div>
-
 [Nhost](http://nhost.io) is an open-source Firebase alternative with GraphQL.
 
 The Nhost CLI is used to set up a local development environment. This environment will automatically track database migrations and Hasura metadata.
@@ -33,7 +24,7 @@ It's recommended to use the Nhost CLI and the [Nhost GitHub Integration](https:/
 ### Install the Nhost CLI
 
 ```bash
-sudo curl -L https://raw.githubusercontent.com/nhost/cli/main/get.sh | bash
+sudo curl -L https://raw.githubusercontent.com/nhost/nhost/main/cli/get.sh | bash
 ```
 
 ### Initialize a project

@@ -113,10 +113,11 @@ rec {
         description = "Multi-platform ${description} binaries";
       };
     } ''
-    mkdir -p $out/bin
-    cp ${cli-arm64-darwin}/bin/${name} $out/bin/${name}-arm64-darwin
-    cp ${cli-amd64-darwin}/bin/${name} $out/bin/${name}-amd64-darwin
-    cp ${cli-arm64-linux}/bin/${name} $out/bin/${name}-arm64-linux
-    cp ${cli-amd64-linux}/bin/${name} $out/bin/${name}-amd64-linux
+    mkdir -p $out/{darwin,linux}/{arm64,amd64}
+
+    cp ${cli-arm64-darwin}/bin/${name} $out/darwin/arm64/cli
+    cp ${cli-amd64-darwin}/bin/${name} $out/darwin/amd64/cli
+    cp ${cli-arm64-linux}/bin/${name} $out/linux/arm64/cli
+    cp ${cli-amd64-linux}/bin/${name} $out/linux/amd64/cli
   '';
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"strings"
 
 	"github.com/nhost/nhost/cli/clienv"
 	"github.com/nhost/nhost/cli/software"
@@ -42,7 +43,14 @@ func commandUpgrade(cCtx *cli.Context) error {
 
 	ce.Infoln("Upgrading to %s...", latest.TagName)
 
-	want := fmt.Sprintf("cli-%s-%s-%s.tar.gz", latest.TagName, runtime.GOOS, runtime.GOARCH)
+	version := latest.TagName
+	s := strings.Split(latest.TagName, "@")
+
+	if len(s) == 2 { //nolint:mnd
+		version = s[1]
+	}
+
+	want := fmt.Sprintf("cli-%s-%s-%s.tar.gz", version, runtime.GOOS, runtime.GOARCH)
 
 	var url string
 
