@@ -99,7 +99,8 @@ jobs:
         export NHOST_DOMAIN=staging.nhost.run
         export NHOST_CONFIGSERVER_IMAGE=cli:0.0.0-dev
 
-        alias nhost=/home/runner/artifacts/cli-artifact-x86_64-0.0.0-dev/bin/cli
+        unzip /home/runner/artifacts/cli-artifact-x86_64-0.0.0-dev/result.zip
+        alias nhost=$(pwd)/bin/cli
 
         mkdir new-project
         cd new-project
