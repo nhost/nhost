@@ -4,8 +4,10 @@ on:
   # pull_request_target:
   pull_request:
     paths:
+      - '.github/workflows/cli_checks.yaml'
       - '.github/workflows/wf_check.yaml'
-      - '.github/workflows/cli.yaml'
+      - '.github/workflows/wf_build_artifacts.yaml'
+      - '.github/workflows/cli_test_new_project.yaml'
 
       # common build
       - 'flake.nix'
@@ -61,11 +63,27 @@ jobs:
       PATH: cli
       GIT_REF: ${{ github.sha }}
       VERSION: 0.0.0-dev # we use a fixed version here to avoid unnecessary rebuilds
-      DOCKER: false
+      DOCKER: true
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
       NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+
+  test_cli_build:
+    uses: ./.github/workflows/cli_test_new_project.yaml
+    needs:
+      - check-permissions
+      - build_artifacts
+    with:
+      NAME: cli
+      PATH: cli
+      GIT_REF: ${{ github.sha }}
+
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
+      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+      NHOST_PAT: ${{ secrets.NHOST_PAT }}
 
   remove_label:
     runs-on: ubuntu-latest

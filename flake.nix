@@ -160,6 +160,7 @@
 
         packages = flake-utils.lib.flattenTree {
           cli = clif.package;
+          cli-multiplatform = clif.cli-multiplatform;
           cli-docker-image = clif.dockerImage;
           codegen = codegenf.package;
           dashboard = dashboardf.package;
