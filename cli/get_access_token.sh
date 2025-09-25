@@ -1,4 +1,4 @@
-#!bin/sh
+#!/usr/bin/env bash
 set -uo pipefail
 
 output=`curl \
