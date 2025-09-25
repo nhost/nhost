@@ -1,0 +1,137 @@
+---
+name: "cli: release"
+on:
+  workflow_call:
+    inputs:
+      NAME:
+        required: true
+        type: string
+      GIT_REF:
+        required: true
+        type: string
+      VERSION:
+        required: true
+        type: string
+    secrets:
+      AWS_ACCOUNT_ID:
+        required: true
+      NIX_CACHE_PUB_KEY:
+        required: true
+      NIX_CACHE_PRIV_KEY:
+        required: true
+      DOCKER_USERNAME:
+        required: true
+      DOCKER_PASSWORD:
+        required: true
+
+jobs:
+  build_artifacts:
+    uses: ./.github/workflows/wf_build_artifacts.yaml
+    with:
+      NAME: cli
+      PATH: cli
+      GIT_REF: ${{ inputs.GIT_REF }}
+      VERSION: ${{ inputs.VERSION }}
+      DOCKER: true
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+
+  push-docker:
+    uses: ./.github/workflows/wf_docker_push_image.yaml
+    needs:
+      - build_artifacts
+    with:
+      NAME: cli
+      PATH: cli
+      VERSION: ${{ inputs.VERSION }}
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+  build-multiplatform:
+    permissions:
+      id-token: write
+      contents: write
+
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    timeout-minutes: 180
+
+    steps:
+    - name: "Check out repository"
+      uses: actions/checkout@v5
+      with:
+        ref: ${{ inputs.GIT_REF }}
+
+    - name: Configure aws
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-nhost-${{ github.event.repository.name }}
+        aws-region: eu-central-1
+
+    - uses: cachix/install-nix-action@v31
+      with:
+        install_url: "https://releases.nixos.org/nix/nix-2.28.4/install"
+        install_options: "--no-daemon"
+        extra_nix_config: |
+          experimental-features = nix-command flakes
+          sandbox = false
+          access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+          substituters = https://cache.nixos.org/?priority=40 s3://nhost-nix-cache?region=eu-central-1&priority=50
+          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ${{ secrets.NIX_CACHE_PUB_KEY }}
+          keep-env-derivations = true
+          keep-outputs = true
+
+    - name: Restore and save Nix store
+      uses: nix-community/cache-nix-action@v6
+      with:
+        primary-key: nix-${{ inputs.NAME }}-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
+        restore-prefixes-first-match: nix-${{ inputs.NAME }}-${{ runner.os }}-${{ runner.arch }}}-
+        gc-max-store-size-linux: 2G
+        purge: true
+        purge-prefixes: nix-${{ inputs.NAME }}-
+        purge-created: 0
+        purge-last-accessed: 0
+        purge-primary-key: never
+
+    - name: Compute common env vars
+      id: vars
+      run: |
+        echo "VERSION=$(make get-version VER=${{ inputs.VERSION }})" >> $GITHUB_OUTPUT
+        ARCH=$([ "${{ runner.arch }}" == "X64" ] && echo "x86_64" || echo "aarch64")
+        echo "ARCH=${ARCH}" >> $GITHUB_OUTPUT
+
+    - name: "Build artifact"
+      run: |
+        make build-multiplatform
+
+    - name: "Upload assets"
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+      run: |
+        export VERSION=${{ steps.vars.outputs.VERSION }}
+
+        mkdir upload
+
+        tar cvzf upload/cli-$VERSION-darwin-amd64.tar.gz -C result/darwin/amd64 cli
+        tar cvzf upload/cli-$VERSION-darwin-arm64.tar.gz -C result/darwin/arm64 cli
+        tar cvzf upload/cli-$VERSION-linux-amd64.tar.gz -C result/linux/amd64 cli
+        tar cvzf upload/cli-$VERSION-linux-arm64.tar.gz -C result/linux/arm64 cli
+
+        cd upload
+        find . -type f -exec sha256sum {} + > ../checksums.txt
+        cd ..
+
+        cat checksums.txt
+
+        gh release upload \
+          --clobber "${{ github.ref_name }}" \
+          ./upload/* checksums.txt
+
+    - name: "Cache build"
+      run: |
+        nix store sign --key-file <(echo "${{ secrets.NIX_CACHE_PRIV_KEY }}") --all
+        find /nix/store -maxdepth 1 -name "*-*" -type d | xargs -n 25 nix copy --to s3://nhost-nix-cache\?region=eu-central-1
+      if: always()

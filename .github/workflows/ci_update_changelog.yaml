@@ -13,7 +13,7 @@ jobs:
 
     strategy:
       matrix:
-        project: [dashboard, packages/nhost-js]
+        project: [cli, dashboard, packages/nhost-js]
 
     permissions:
       id-token: write
