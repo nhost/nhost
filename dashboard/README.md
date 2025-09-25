@@ -167,6 +167,7 @@ NHOST_TEST_PROJECT_ADMIN_SECRET=<test_project_admin_secret>
 - `NHOST_TEST_PERSONAL_ORG_SLUG`: Slug of the personal organization that contains the test project
 - `NHOST_TEST_PROJECT_NAME`: Name of the test project
 - `NHOST_TEST_PROJECT_SUBDOMAIN`: Subdomain of the test project
+- `NHOST_TEST_PROJECT_REMOTE_SCHEMA_NAME`: Name of the remote schema for the test project
 - `NHOST_TEST_PROJECT_ADMIN_SECRET`: Admin secret of the test project
 
 Make sure to copy the organization and project information from the [Nhost Dashboard](https://app.nhost.io/).
