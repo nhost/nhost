@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"golang.org/x/mod/semver"
 )
@@ -25,13 +26,45 @@ func NewManager() *Manager {
 	}
 }
 
+func (mgr *Manager) filterReleases(releases Releases, version string) Releases {
+	if !strings.HasPrefix(version, "v") {
+		version = "v" + version
+	}
+
+	// filter pre-releases and older releases
+	r := make(Releases, 0, len(releases))
+	for _, release := range releases {
+		s := strings.Split(release.TagName, "@")
+		if len(s) != 2 { //nolint:mnd
+			continue
+		}
+
+		releaseName := s[0]
+		releaseVersion := s[1]
+
+		if !strings.HasPrefix(releaseVersion, "v") {
+			releaseVersion = "v" + releaseVersion
+		}
+
+		if releaseName != "cli" ||
+			release.Prerelease ||
+			semver.Compare(version, releaseVersion) >= 0 {
+			continue
+		}
+
+		r = append(r, release)
+	}
+
+	return r
+}
+
 func (mgr *Manager) GetReleases(ctx context.Context, version string) (Releases, error) {
 	var releases Releases
 
 	req, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodGet,
-		"https://api.github.com/repos/nhost/cli/releases?per_page=100",
+		"https://api.github.com/repos/nhost/nhost/releases?per_page=100",
 		nil,
 	)
 	if err != nil {
@@ -62,15 +95,7 @@ func (mgr *Manager) GetReleases(ctx context.Context, version string) (Releases, 
 	}
 
 	// filter pre-releases and older releases
-	r := make(Releases, 0, len(releases))
-	for _, release := range releases {
-		switch {
-		case release.Prerelease:
-		case semver.Compare(version, release.TagName) >= 0:
-		default:
-			r = append(r, release)
-		}
-	}
+	r := mgr.filterReleases(releases, version)
 
 	mgr.cache = r
 
