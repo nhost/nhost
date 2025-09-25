@@ -100,14 +100,13 @@ jobs:
         export NHOST_CONFIGSERVER_IMAGE=cli:0.0.0-dev
 
         unzip /home/runner/artifacts/cli-artifact-x86_64-0.0.0-dev/result.zip
-        alias nhost=/home/runner/_work/nhost/nhost/cli/result/bin/cli
 
         mkdir new-project
         cd new-project
-        nhost login --pat ${{ secrets.NHOST_PAT }}
-        nhost init
-        nhost up --down-on-error
-        nhost down
+        /home/runner/_work/nhost/nhost/cli/result/bin/cli login --pat ${{ secrets.NHOST_PAT }}
+        /home/runner/_work/nhost/nhost/cli/result/bin/cli init
+        /home/runner/_work/nhost/nhost/cli/result/bin/cli up --down-on-error
+        /home/runner/_work/nhost/nhost/cli/result/bin/cli down --volumes
 
     - name: "Cache build"
       run: |
