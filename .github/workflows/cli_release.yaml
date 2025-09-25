@@ -57,6 +57,10 @@ jobs:
       id-token: write
       contents: write
 
+    defaults:
+      run:
+        working-directory: cli
+
     runs-on: blacksmith-2vcpu-ubuntu-2404
     timeout-minutes: 180
 
