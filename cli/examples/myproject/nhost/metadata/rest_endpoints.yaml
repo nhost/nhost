@@ -1,0 +1,9 @@
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: animals
+  methods:
+    - GET
+  name: animals
+  url: animals

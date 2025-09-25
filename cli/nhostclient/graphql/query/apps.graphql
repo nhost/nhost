@@ -1,0 +1,34 @@
+query GetOrganizationsAndWorkspacesApps {
+  organizations {
+    name
+    apps {
+      ...AppSummaryFragment
+    }
+  }
+  workspaces {
+    name
+    apps {
+      ...AppSummaryFragment
+    }
+  }
+}
+
+fragment AppSummaryFragment on apps {
+  id
+  name
+  subdomain
+  region {
+    name
+  }
+}
+
+query GetHasuraAdminSecret($appID: uuid!) {
+  app(id: $appID) {
+    config(resolve: true) {
+      hasura {
+        version
+        adminSecret
+      }
+    }
+  }
+}

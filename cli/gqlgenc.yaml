@@ -1,0 +1,35 @@
+model:
+  filename: models_gen.go # https://github.com/99designs/gqlgen/tree/master/plugin/modelgen
+client:
+  filename: client_gen.go
+models:
+  Int:
+    model: github.com/99designs/gqlgen/graphql.Int64
+  bigint:
+    model:
+      - github.com/99designs/gqlgen/graphql.Int64
+  timestamptz:
+    model:
+      - github.com/99designs/gqlgen/graphql.Time
+  jsonb:
+    model:
+      - github.com/99designs/gqlgen/graphql.Map
+  ConfigPort:
+    model:
+      - github.com/99designs/gqlgen/graphql.Uint32
+  ConfigUint8:
+    model:
+      - github.com/99designs/gqlgen/graphql.Uint32
+  ConfigUint32:
+    model:
+      - github.com/99designs/gqlgen/graphql.Uint32
+
+endpoint:
+  url: https://mytpiiwxeyrvlqrxuknp.graphql.eu-central-1.nhost.run/v1
+  headers:
+    Authorization: Bearer $NHOST_ACCESS_TOKEN # # support environment variables
+
+query:
+  - query/*.graphql
+generate:
+  clientV2: true

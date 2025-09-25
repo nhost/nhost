@@ -1,0 +1,53 @@
+---
+name: "build certificate weekly"
+on:
+  schedule:
+    - cron: '0 0 * * 1'
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Configure aws
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        role-to-assume: arn:aws:iam::796351718684:role/github-actions-nhost-cli
+        aws-region: eu-central-1
+
+    - name: fetch let's encrypt cert
+      id: certs
+      run: |
+        .github/cert.sh
+
+        echo "CERT_FULL_CHAIN<<EOF" >> $GITHUB_OUTPUT
+        sudo cat /tmp/letsencrypt/live/local.db.nhost.run/fullchain.pem >> "$GITHUB_OUTPUT"
+        echo EOF >> $GITHUB_OUTPUT
+
+        echo "CERT_PRIV_KEY<<EOF" >> $GITHUB_OUTPUT
+        sudo cat /tmp/letsencrypt/live/local.db.nhost.run/privkey.pem >> "$GITHUB_OUTPUT"
+        echo EOF >> $GITHUB_OUTPUT
+      shell: bash
+
+    - uses: hmanzur/actions-set-secret@v2.0.0
+      with:
+        name: 'CERT_FULL_CHAIN'
+        value: "${{ steps.certs.outputs.CERT_FULL_CHAIN }}"
+        repository: nhost/cli
+        token: ${{ secrets.GH_PAT }}
+
+    - uses: hmanzur/actions-set-secret@v2.0.0
+      with:
+        name: 'CERT_PRIV_KEY'
+        value: "${{ steps.certs.outputs.CERT_PRIV_KEY }}"
+        repository: nhost/cli
+        token: ${{ secrets.GH_PAT }}

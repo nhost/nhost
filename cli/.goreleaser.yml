@@ -1,0 +1,31 @@
+project_name: cli
+builds:
+  - env:
+      - "CGO_ENABLED=0"
+    goos:
+      - "darwin"
+      - "linux"
+    goarch:
+      - "arm64"
+      - "amd64"
+    ldflags:
+      - -s -w -X "main.Version=v{{.Version}}"
+    ignore:
+      - goos: windows
+        goarch: arm64
+archives:
+  - name_template: "{{ .ProjectName }}-v{{.Version}}-{{ .Os }}-{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
+    rlcp: true
+    format_overrides:
+      - goos: "windows"
+        format: "zip"
+    files:
+      - none*
+checksum:
+  name_template: "checksums.txt"
+snapshot:
+  name_template: "{{ .Tag }}-next"
+changelog:
+  skip: true
+release:
+  disable: true

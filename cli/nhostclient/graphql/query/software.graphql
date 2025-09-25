@@ -1,0 +1,6 @@
+query GetSoftwareVersions {
+  softwareVersions {
+    software
+    version
+  }
+}

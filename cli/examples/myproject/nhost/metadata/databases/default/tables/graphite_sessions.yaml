@@ -1,0 +1,37 @@
+table:
+  name: sessions
+  schema: graphite
+configuration:
+  column_config:
+    assistant_id:
+      custom_name: assistantID
+    created_at:
+      custom_name: createdAt
+    id:
+      custom_name: id
+    session_id:
+      custom_name: sessionID
+    updated_at:
+      custom_name: updatedAt
+    user_id:
+      custom_name: userID
+  custom_column_names:
+    assistant_id: assistantID
+    created_at: createdAt
+    id: id
+    session_id: sessionID
+    updated_at: updatedAt
+    user_id: userID
+  custom_name: _graphiteSessions
+  custom_root_fields:
+    delete: _deleteGraphiteSessions
+    delete_by_pk: _deleteGraphiteSession
+    insert: _insertGraphiteSessions
+    insert_one: _insertGraphiteSession
+    select: _graphiteSessions
+    select_aggregate: _graphiteSessionAggregate
+    select_by_pk: _graphiteSession
+    select_stream: _graphiteSessionStream
+    update: _updateGraphiteSessions
+    update_by_pk: _updateGraphiteSession
+    update_many: _updateManyGraphiteSessions
