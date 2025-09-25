@@ -19,6 +19,8 @@ on:
         required: true
       NIX_CACHE_PRIV_KEY:
         required: true
+      GH_PAT:
+        required: true
       DOCKER_USERNAME:
         required: true
       DOCKER_PASSWORD:
