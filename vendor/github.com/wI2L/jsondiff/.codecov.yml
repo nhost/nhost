@@ -1,8 +1,0 @@
-coverage:
-  range: 80..90
-  status:
-    # Prevent small variations of coverage from failing CI.
-    project:
-      default:
-        threshold: 3%
-    patch: off
