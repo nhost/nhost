@@ -18,7 +18,7 @@ const (
 
 var (
 	cfgFile *string
-	rootCmd = &cobra.Command{
+	rootCmd = &cobra.Command{ //nolint:exhaustruct
 		Use:        name,
 		Aliases:    []string{},
 		SuggestFor: []string{},

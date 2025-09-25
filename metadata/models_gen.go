@@ -3,9 +3,11 @@
 package metadata
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"strconv"
+	"time"
 )
 
 // Boolean expression to compare columns of type "Boolean". All fields are combined with logical 'AND'.
@@ -69,18 +71,18 @@ type StringComparisonExp struct {
 
 // columns and relationships of "storage.buckets"
 type Buckets struct {
-	CacheControl       *string `json:"cacheControl,omitempty"`
-	CreatedAt          string  `json:"createdAt"`
-	DownloadExpiration int64   `json:"downloadExpiration"`
+	CacheControl       *string   `json:"cacheControl,omitempty"`
+	CreatedAt          time.Time `json:"createdAt"`
+	DownloadExpiration int64     `json:"downloadExpiration"`
 	// An array relationship
 	Files []*Files `json:"files"`
 	// An aggregate relationship
-	FilesAggregate       FilesAggregate `json:"files_aggregate"`
-	ID                   string         `json:"id"`
-	MaxUploadFileSize    int64          `json:"maxUploadFileSize"`
-	MinUploadFileSize    int64          `json:"minUploadFileSize"`
-	PresignedUrlsEnabled bool           `json:"presignedUrlsEnabled"`
-	UpdatedAt            string         `json:"updatedAt"`
+	FilesAggregate       *FilesAggregate `json:"files_aggregate"`
+	ID                   string          `json:"id"`
+	MaxUploadFileSize    int64           `json:"maxUploadFileSize"`
+	MinUploadFileSize    int64           `json:"minUploadFileSize"`
+	PresignedUrlsEnabled bool            `json:"presignedUrlsEnabled"`
+	UpdatedAt            time.Time       `json:"updatedAt"`
 }
 
 // aggregated selection of "storage.buckets"
@@ -138,36 +140,36 @@ type BucketsIncInput struct {
 // input type for inserting data into table "storage.buckets"
 type BucketsInsertInput struct {
 	CacheControl         *string                 `json:"cacheControl,omitempty"`
-	CreatedAt            *string                 `json:"createdAt,omitempty"`
+	CreatedAt            *time.Time              `json:"createdAt,omitempty"`
 	DownloadExpiration   *int64                  `json:"downloadExpiration,omitempty"`
 	Files                *FilesArrRelInsertInput `json:"files,omitempty"`
 	ID                   *string                 `json:"id,omitempty"`
 	MaxUploadFileSize    *int64                  `json:"maxUploadFileSize,omitempty"`
 	MinUploadFileSize    *int64                  `json:"minUploadFileSize,omitempty"`
 	PresignedUrlsEnabled *bool                   `json:"presignedUrlsEnabled,omitempty"`
-	UpdatedAt            *string                 `json:"updatedAt,omitempty"`
+	UpdatedAt            *time.Time              `json:"updatedAt,omitempty"`
 }
 
 // aggregate max on columns
 type BucketsMaxFields struct {
-	CacheControl       *string `json:"cacheControl,omitempty"`
-	CreatedAt          *string `json:"createdAt,omitempty"`
-	DownloadExpiration *int64  `json:"downloadExpiration,omitempty"`
-	ID                 *string `json:"id,omitempty"`
-	MaxUploadFileSize  *int64  `json:"maxUploadFileSize,omitempty"`
-	MinUploadFileSize  *int64  `json:"minUploadFileSize,omitempty"`
-	UpdatedAt          *string `json:"updatedAt,omitempty"`
+	CacheControl       *string    `json:"cacheControl,omitempty"`
+	CreatedAt          *time.Time `json:"createdAt,omitempty"`
+	DownloadExpiration *int64     `json:"downloadExpiration,omitempty"`
+	ID                 *string    `json:"id,omitempty"`
+	MaxUploadFileSize  *int64     `json:"maxUploadFileSize,omitempty"`
+	MinUploadFileSize  *int64     `json:"minUploadFileSize,omitempty"`
+	UpdatedAt          *time.Time `json:"updatedAt,omitempty"`
 }
 
 // aggregate min on columns
 type BucketsMinFields struct {
-	CacheControl       *string `json:"cacheControl,omitempty"`
-	CreatedAt          *string `json:"createdAt,omitempty"`
-	DownloadExpiration *int64  `json:"downloadExpiration,omitempty"`
-	ID                 *string `json:"id,omitempty"`
-	MaxUploadFileSize  *int64  `json:"maxUploadFileSize,omitempty"`
-	MinUploadFileSize  *int64  `json:"minUploadFileSize,omitempty"`
-	UpdatedAt          *string `json:"updatedAt,omitempty"`
+	CacheControl       *string    `json:"cacheControl,omitempty"`
+	CreatedAt          *time.Time `json:"createdAt,omitempty"`
+	DownloadExpiration *int64     `json:"downloadExpiration,omitempty"`
+	ID                 *string    `json:"id,omitempty"`
+	MaxUploadFileSize  *int64     `json:"maxUploadFileSize,omitempty"`
+	MinUploadFileSize  *int64     `json:"minUploadFileSize,omitempty"`
+	UpdatedAt          *time.Time `json:"updatedAt,omitempty"`
 }
 
 // response of any mutation on the table "storage.buckets"
@@ -180,7 +182,7 @@ type BucketsMutationResponse struct {
 
 // input type for inserting object relation for remote table "storage.buckets"
 type BucketsObjRelInsertInput struct {
-	Data BucketsInsertInput `json:"data"`
+	Data *BucketsInsertInput `json:"data"`
 	// upsert condition
 	OnConflict *BucketsOnConflict `json:"on_conflict,omitempty"`
 }
@@ -212,14 +214,14 @@ type BucketsPkColumnsInput struct {
 
 // input type for updating data in table "storage.buckets"
 type BucketsSetInput struct {
-	CacheControl         *string `json:"cacheControl,omitempty"`
-	CreatedAt            *string `json:"createdAt,omitempty"`
-	DownloadExpiration   *int64  `json:"downloadExpiration,omitempty"`
-	ID                   *string `json:"id,omitempty"`
-	MaxUploadFileSize    *int64  `json:"maxUploadFileSize,omitempty"`
-	MinUploadFileSize    *int64  `json:"minUploadFileSize,omitempty"`
-	PresignedUrlsEnabled *bool   `json:"presignedUrlsEnabled,omitempty"`
-	UpdatedAt            *string `json:"updatedAt,omitempty"`
+	CacheControl         *string    `json:"cacheControl,omitempty"`
+	CreatedAt            *time.Time `json:"createdAt,omitempty"`
+	DownloadExpiration   *int64     `json:"downloadExpiration,omitempty"`
+	ID                   *string    `json:"id,omitempty"`
+	MaxUploadFileSize    *int64     `json:"maxUploadFileSize,omitempty"`
+	MinUploadFileSize    *int64     `json:"minUploadFileSize,omitempty"`
+	PresignedUrlsEnabled *bool      `json:"presignedUrlsEnabled,omitempty"`
+	UpdatedAt            *time.Time `json:"updatedAt,omitempty"`
 }
 
 // aggregate stddev on columns
@@ -246,21 +248,21 @@ type BucketsStddevSampFields struct {
 // Streaming cursor of the table "buckets"
 type BucketsStreamCursorInput struct {
 	// Stream column input with initial value
-	InitialValue BucketsStreamCursorValueInput `json:"initial_value"`
+	InitialValue *BucketsStreamCursorValueInput `json:"initial_value"`
 	// cursor ordering
 	Ordering *CursorOrdering `json:"ordering,omitempty"`
 }
 
 // Initial value of the column from where the streaming should start
 type BucketsStreamCursorValueInput struct {
-	CacheControl         *string `json:"cacheControl,omitempty"`
-	CreatedAt            *string `json:"createdAt,omitempty"`
-	DownloadExpiration   *int64  `json:"downloadExpiration,omitempty"`
-	ID                   *string `json:"id,omitempty"`
-	MaxUploadFileSize    *int64  `json:"maxUploadFileSize,omitempty"`
-	MinUploadFileSize    *int64  `json:"minUploadFileSize,omitempty"`
-	PresignedUrlsEnabled *bool   `json:"presignedUrlsEnabled,omitempty"`
-	UpdatedAt            *string `json:"updatedAt,omitempty"`
+	CacheControl         *string    `json:"cacheControl,omitempty"`
+	CreatedAt            *time.Time `json:"createdAt,omitempty"`
+	DownloadExpiration   *int64     `json:"downloadExpiration,omitempty"`
+	ID                   *string    `json:"id,omitempty"`
+	MaxUploadFileSize    *int64     `json:"maxUploadFileSize,omitempty"`
+	MinUploadFileSize    *int64     `json:"minUploadFileSize,omitempty"`
+	PresignedUrlsEnabled *bool      `json:"presignedUrlsEnabled,omitempty"`
+	UpdatedAt            *time.Time `json:"updatedAt,omitempty"`
 }
 
 // aggregate sum on columns
@@ -276,7 +278,7 @@ type BucketsUpdates struct {
 	// sets the columns of the filtered rows to the given values
 	Set *BucketsSetInput `json:"_set,omitempty"`
 	// filter the rows which have to be updated
-	Where BucketsBoolExp `json:"where"`
+	Where *BucketsBoolExp `json:"where"`
 }
 
 // aggregate var_pop on columns
@@ -303,18 +305,18 @@ type BucketsVarianceFields struct {
 // columns and relationships of "storage.files"
 type Files struct {
 	// An object relationship
-	Bucket           Buckets                `json:"bucket"`
-	BucketID         string                 `json:"bucketId"`
-	CreatedAt        string                 `json:"createdAt"`
-	Etag             *string                `json:"etag,omitempty"`
-	ID               string                 `json:"id"`
-	IsUploaded       *bool                  `json:"isUploaded,omitempty"`
-	Metadata         map[string]interface{} `json:"metadata,omitempty"`
-	MimeType         *string                `json:"mimeType,omitempty"`
-	Name             *string                `json:"name,omitempty"`
-	Size             *int64                 `json:"size,omitempty"`
-	UpdatedAt        string                 `json:"updatedAt"`
-	UploadedByUserID *string                `json:"uploadedByUserId,omitempty"`
+	Bucket           *Buckets       `json:"bucket"`
+	BucketID         string         `json:"bucketId"`
+	CreatedAt        time.Time      `json:"createdAt"`
+	Etag             *string        `json:"etag,omitempty"`
+	ID               string         `json:"id"`
+	IsUploaded       *bool          `json:"isUploaded,omitempty"`
+	Metadata         map[string]any `json:"metadata,omitempty"`
+	MimeType         *string        `json:"mimeType,omitempty"`
+	Name             *string        `json:"name,omitempty"`
+	Size             *int64         `json:"size,omitempty"`
+	UpdatedAt        time.Time      `json:"updatedAt"`
+	UploadedByUserID *string        `json:"uploadedByUserId,omitempty"`
 }
 
 // aggregated selection of "storage.files"
@@ -333,21 +335,21 @@ type FilesAggregateBoolExpBoolAnd struct {
 	Arguments FilesSelectColumnFilesAggregateBoolExpBoolAndArgumentsColumns `json:"arguments"`
 	Distinct  *bool                                                         `json:"distinct,omitempty"`
 	Filter    *FilesBoolExp                                                 `json:"filter,omitempty"`
-	Predicate BooleanComparisonExp                                          `json:"predicate"`
+	Predicate *BooleanComparisonExp                                         `json:"predicate"`
 }
 
 type FilesAggregateBoolExpBoolOr struct {
 	Arguments FilesSelectColumnFilesAggregateBoolExpBoolOrArgumentsColumns `json:"arguments"`
 	Distinct  *bool                                                        `json:"distinct,omitempty"`
 	Filter    *FilesBoolExp                                                `json:"filter,omitempty"`
-	Predicate BooleanComparisonExp                                         `json:"predicate"`
+	Predicate *BooleanComparisonExp                                        `json:"predicate"`
 }
 
 type FilesAggregateBoolExpCount struct {
 	Arguments []FilesSelectColumn `json:"arguments,omitempty"`
 	Distinct  *bool               `json:"distinct,omitempty"`
 	Filter    *FilesBoolExp       `json:"filter,omitempty"`
-	Predicate IntComparisonExp    `json:"predicate"`
+	Predicate *IntComparisonExp   `json:"predicate"`
 }
 
 // aggregate fields of "storage.files"
@@ -382,7 +384,7 @@ type FilesAggregateOrderBy struct {
 
 // append existing jsonb value of filtered columns with new jsonb value
 type FilesAppendInput struct {
-	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	Metadata map[string]any `json:"metadata,omitempty"`
 }
 
 // input type for inserting array relation for remote table "storage.files"
@@ -445,29 +447,29 @@ type FilesIncInput struct {
 type FilesInsertInput struct {
 	Bucket           *BucketsObjRelInsertInput `json:"bucket,omitempty"`
 	BucketID         *string                   `json:"bucketId,omitempty"`
-	CreatedAt        *string                   `json:"createdAt,omitempty"`
+	CreatedAt        *time.Time                `json:"createdAt,omitempty"`
 	Etag             *string                   `json:"etag,omitempty"`
 	ID               *string                   `json:"id,omitempty"`
 	IsUploaded       *bool                     `json:"isUploaded,omitempty"`
-	Metadata         map[string]interface{}    `json:"metadata,omitempty"`
+	Metadata         map[string]any            `json:"metadata,omitempty"`
 	MimeType         *string                   `json:"mimeType,omitempty"`
 	Name             *string                   `json:"name,omitempty"`
 	Size             *int64                    `json:"size,omitempty"`
-	UpdatedAt        *string                   `json:"updatedAt,omitempty"`
+	UpdatedAt        *time.Time                `json:"updatedAt,omitempty"`
 	UploadedByUserID *string                   `json:"uploadedByUserId,omitempty"`
 }
 
 // aggregate max on columns
 type FilesMaxFields struct {
-	BucketID         *string `json:"bucketId,omitempty"`
-	CreatedAt        *string `json:"createdAt,omitempty"`
-	Etag             *string `json:"etag,omitempty"`
-	ID               *string `json:"id,omitempty"`
-	MimeType         *string `json:"mimeType,omitempty"`
-	Name             *string `json:"name,omitempty"`
-	Size             *int64  `json:"size,omitempty"`
-	UpdatedAt        *string `json:"updatedAt,omitempty"`
-	UploadedByUserID *string `json:"uploadedByUserId,omitempty"`
+	BucketID         *string    `json:"bucketId,omitempty"`
+	CreatedAt        *time.Time `json:"createdAt,omitempty"`
+	Etag             *string    `json:"etag,omitempty"`
+	ID               *string    `json:"id,omitempty"`
+	MimeType         *string    `json:"mimeType,omitempty"`
+	Name             *string    `json:"name,omitempty"`
+	Size             *int64     `json:"size,omitempty"`
+	UpdatedAt        *time.Time `json:"updatedAt,omitempty"`
+	UploadedByUserID *string    `json:"uploadedByUserId,omitempty"`
 }
 
 // order by max() on columns of table "storage.files"
@@ -485,15 +487,15 @@ type FilesMaxOrderBy struct {
 
 // aggregate min on columns
 type FilesMinFields struct {
-	BucketID         *string `json:"bucketId,omitempty"`
-	CreatedAt        *string `json:"createdAt,omitempty"`
-	Etag             *string `json:"etag,omitempty"`
-	ID               *string `json:"id,omitempty"`
-	MimeType         *string `json:"mimeType,omitempty"`
-	Name             *string `json:"name,omitempty"`
-	Size             *int64  `json:"size,omitempty"`
-	UpdatedAt        *string `json:"updatedAt,omitempty"`
-	UploadedByUserID *string `json:"uploadedByUserId,omitempty"`
+	BucketID         *string    `json:"bucketId,omitempty"`
+	CreatedAt        *time.Time `json:"createdAt,omitempty"`
+	Etag             *string    `json:"etag,omitempty"`
+	ID               *string    `json:"id,omitempty"`
+	MimeType         *string    `json:"mimeType,omitempty"`
+	Name             *string    `json:"name,omitempty"`
+	Size             *int64     `json:"size,omitempty"`
+	UpdatedAt        *time.Time `json:"updatedAt,omitempty"`
+	UploadedByUserID *string    `json:"uploadedByUserId,omitempty"`
 }
 
 // order by min() on columns of table "storage.files"
@@ -519,7 +521,7 @@ type FilesMutationResponse struct {
 
 // input type for inserting object relation for remote table "storage.files"
 type FilesObjRelInsertInput struct {
-	Data FilesInsertInput `json:"data"`
+	Data *FilesInsertInput `json:"data"`
 	// upsert condition
 	OnConflict *FilesOnConflict `json:"on_conflict,omitempty"`
 }
@@ -554,22 +556,22 @@ type FilesPkColumnsInput struct {
 
 // prepend existing jsonb value of filtered columns with new jsonb value
 type FilesPrependInput struct {
-	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	Metadata map[string]any `json:"metadata,omitempty"`
 }
 
 // input type for updating data in table "storage.files"
 type FilesSetInput struct {
-	BucketID         *string                `json:"bucketId,omitempty"`
-	CreatedAt        *string                `json:"createdAt,omitempty"`
-	Etag             *string                `json:"etag,omitempty"`
-	ID               *string                `json:"id,omitempty"`
-	IsUploaded       *bool                  `json:"isUploaded,omitempty"`
-	Metadata         map[string]interface{} `json:"metadata,omitempty"`
-	MimeType         *string                `json:"mimeType,omitempty"`
-	Name             *string                `json:"name,omitempty"`
-	Size             *int64                 `json:"size,omitempty"`
-	UpdatedAt        *string                `json:"updatedAt,omitempty"`
-	UploadedByUserID *string                `json:"uploadedByUserId,omitempty"`
+	BucketID         *string        `json:"bucketId,omitempty"`
+	CreatedAt        *time.Time     `json:"createdAt,omitempty"`
+	Etag             *string        `json:"etag,omitempty"`
+	ID               *string        `json:"id,omitempty"`
+	IsUploaded       *bool          `json:"isUploaded,omitempty"`
+	Metadata         map[string]any `json:"metadata,omitempty"`
+	MimeType         *string        `json:"mimeType,omitempty"`
+	Name             *string        `json:"name,omitempty"`
+	Size             *int64         `json:"size,omitempty"`
+	UpdatedAt        *time.Time     `json:"updatedAt,omitempty"`
+	UploadedByUserID *string        `json:"uploadedByUserId,omitempty"`
 }
 
 // aggregate stddev on columns
@@ -605,24 +607,24 @@ type FilesStddevSampOrderBy struct {
 // Streaming cursor of the table "files"
 type FilesStreamCursorInput struct {
 	// Stream column input with initial value
-	InitialValue FilesStreamCursorValueInput `json:"initial_value"`
+	InitialValue *FilesStreamCursorValueInput `json:"initial_value"`
 	// cursor ordering
 	Ordering *CursorOrdering `json:"ordering,omitempty"`
 }
 
 // Initial value of the column from where the streaming should start
 type FilesStreamCursorValueInput struct {
-	BucketID         *string                `json:"bucketId,omitempty"`
-	CreatedAt        *string                `json:"createdAt,omitempty"`
-	Etag             *string                `json:"etag,omitempty"`
-	ID               *string                `json:"id,omitempty"`
-	IsUploaded       *bool                  `json:"isUploaded,omitempty"`
-	Metadata         map[string]interface{} `json:"metadata,omitempty"`
-	MimeType         *string                `json:"mimeType,omitempty"`
-	Name             *string                `json:"name,omitempty"`
-	Size             *int64                 `json:"size,omitempty"`
-	UpdatedAt        *string                `json:"updatedAt,omitempty"`
-	UploadedByUserID *string                `json:"uploadedByUserId,omitempty"`
+	BucketID         *string        `json:"bucketId,omitempty"`
+	CreatedAt        *time.Time     `json:"createdAt,omitempty"`
+	Etag             *string        `json:"etag,omitempty"`
+	ID               *string        `json:"id,omitempty"`
+	IsUploaded       *bool          `json:"isUploaded,omitempty"`
+	Metadata         map[string]any `json:"metadata,omitempty"`
+	MimeType         *string        `json:"mimeType,omitempty"`
+	Name             *string        `json:"name,omitempty"`
+	Size             *int64         `json:"size,omitempty"`
+	UpdatedAt        *time.Time     `json:"updatedAt,omitempty"`
+	UploadedByUserID *string        `json:"uploadedByUserId,omitempty"`
 }
 
 // aggregate sum on columns
@@ -651,7 +653,7 @@ type FilesUpdates struct {
 	// sets the columns of the filtered rows to the given values
 	Set *FilesSetInput `json:"_set,omitempty"`
 	// filter the rows which have to be updated
-	Where FilesBoolExp `json:"where"`
+	Where *FilesBoolExp `json:"where"`
 }
 
 // aggregate var_pop on columns
@@ -692,24 +694,31 @@ type JsonbCastExp struct {
 type JsonbComparisonExp struct {
 	Cast *JsonbCastExp `json:"_cast,omitempty"`
 	// is the column contained in the given json value
-	ContainedIn map[string]interface{} `json:"_contained_in,omitempty"`
+	ContainedIn map[string]any `json:"_contained_in,omitempty"`
 	// does the column contain the given json value at the top level
-	Contains map[string]interface{} `json:"_contains,omitempty"`
-	Eq       map[string]interface{} `json:"_eq,omitempty"`
-	Gt       map[string]interface{} `json:"_gt,omitempty"`
-	Gte      map[string]interface{} `json:"_gte,omitempty"`
+	Contains map[string]any `json:"_contains,omitempty"`
+	Eq       map[string]any `json:"_eq,omitempty"`
+	Gt       map[string]any `json:"_gt,omitempty"`
+	Gte      map[string]any `json:"_gte,omitempty"`
 	// does the string exist as a top-level key in the column
 	HasKey *string `json:"_has_key,omitempty"`
 	// do all of these strings exist as top-level keys in the column
 	HasKeysAll []string `json:"_has_keys_all,omitempty"`
 	// do any of these strings exist as top-level keys in the column
-	HasKeysAny []string                 `json:"_has_keys_any,omitempty"`
-	In         []map[string]interface{} `json:"_in,omitempty"`
-	IsNull     *bool                    `json:"_is_null,omitempty"`
-	Lt         map[string]interface{}   `json:"_lt,omitempty"`
-	Lte        map[string]interface{}   `json:"_lte,omitempty"`
-	Neq        map[string]interface{}   `json:"_neq,omitempty"`
-	Nin        []map[string]interface{} `json:"_nin,omitempty"`
+	HasKeysAny []string         `json:"_has_keys_any,omitempty"`
+	In         []map[string]any `json:"_in,omitempty"`
+	IsNull     *bool            `json:"_is_null,omitempty"`
+	Lt         map[string]any   `json:"_lt,omitempty"`
+	Lte        map[string]any   `json:"_lte,omitempty"`
+	Neq        map[string]any   `json:"_neq,omitempty"`
+	Nin        []map[string]any `json:"_nin,omitempty"`
+}
+
+// mutation root
+type MutationRoot struct {
+}
+
+type QueryRoot struct {
 }
 
 type SubscriptionRoot struct {
@@ -718,7 +727,7 @@ type SubscriptionRoot struct {
 	// fetch data from the table: "storage.buckets"
 	Buckets []*Buckets `json:"buckets"`
 	// fetch aggregated fields from the table: "storage.buckets"
-	BucketsAggregate BucketsAggregate `json:"bucketsAggregate"`
+	BucketsAggregate *BucketsAggregate `json:"bucketsAggregate"`
 	// fetch data from the table in a streaming manner: "storage.buckets"
 	BucketsStream []*Buckets `json:"buckets_stream"`
 	// fetch data from the table: "storage.files" using primary key columns
@@ -726,7 +735,7 @@ type SubscriptionRoot struct {
 	// An array relationship
 	Files []*Files `json:"files"`
 	// fetch aggregated fields from the table: "storage.files"
-	FilesAggregate FilesAggregate `json:"filesAggregate"`
+	FilesAggregate *FilesAggregate `json:"filesAggregate"`
 	// fetch data from the table in a streaming manner: "storage.files"
 	FilesStream []*Files `json:"files_stream"`
 	// fetch data from the table: "storage.virus" using primary key columns
@@ -736,20 +745,20 @@ type SubscriptionRoot struct {
 	// fetch data from the table: "storage.virus"
 	Viruses []*Virus `json:"viruses"`
 	// fetch aggregated fields from the table: "storage.virus"
-	VirusesAggregate VirusAggregate `json:"virusesAggregate"`
+	VirusesAggregate *VirusAggregate `json:"virusesAggregate"`
 }
 
 // Boolean expression to compare columns of type "timestamptz". All fields are combined with logical 'AND'.
 type TimestamptzComparisonExp struct {
-	Eq     *string  `json:"_eq,omitempty"`
-	Gt     *string  `json:"_gt,omitempty"`
-	Gte    *string  `json:"_gte,omitempty"`
-	In     []string `json:"_in,omitempty"`
-	IsNull *bool    `json:"_is_null,omitempty"`
-	Lt     *string  `json:"_lt,omitempty"`
-	Lte    *string  `json:"_lte,omitempty"`
-	Neq    *string  `json:"_neq,omitempty"`
-	Nin    []string `json:"_nin,omitempty"`
+	Eq     *time.Time   `json:"_eq,omitempty"`
+	Gt     *time.Time   `json:"_gt,omitempty"`
+	Gte    *time.Time   `json:"_gte,omitempty"`
+	In     []*time.Time `json:"_in,omitempty"`
+	IsNull *bool        `json:"_is_null,omitempty"`
+	Lt     *time.Time   `json:"_lt,omitempty"`
+	Lte    *time.Time   `json:"_lte,omitempty"`
+	Neq    *time.Time   `json:"_neq,omitempty"`
+	Nin    []*time.Time `json:"_nin,omitempty"`
 }
 
 // Boolean expression to compare columns of type "uuid". All fields are combined with logical 'AND'.
@@ -767,15 +776,15 @@ type UUIDComparisonExp struct {
 
 // columns and relationships of "storage.virus"
 type Virus struct {
-	CreatedAt string `json:"createdAt"`
+	CreatedAt time.Time `json:"createdAt"`
 	// An object relationship
-	File        Files                  `json:"file"`
-	FileID      string                 `json:"fileId"`
-	Filename    string                 `json:"filename"`
-	ID          string                 `json:"id"`
-	UpdatedAt   string                 `json:"updatedAt"`
-	UserSession map[string]interface{} `json:"userSession"`
-	Virus       string                 `json:"virus"`
+	File        *Files         `json:"file"`
+	FileID      string         `json:"fileId"`
+	Filename    string         `json:"filename"`
+	ID          string         `json:"id"`
+	UpdatedAt   time.Time      `json:"updatedAt"`
+	UserSession map[string]any `json:"userSession"`
+	Virus       string         `json:"virus"`
 }
 
 // aggregated selection of "storage.virus"
@@ -793,7 +802,7 @@ type VirusAggregateFields struct {
 
 // append existing jsonb value of filtered columns with new jsonb value
 type VirusAppendInput struct {
-	UserSession map[string]interface{} `json:"userSession,omitempty"`
+	UserSession map[string]any `json:"userSession,omitempty"`
 }
 
 // Boolean expression to filter rows from the table "storage.virus". All fields are combined with a logical 'AND'.
@@ -828,34 +837,34 @@ type VirusDeleteKeyInput struct {
 
 // input type for inserting data into table "storage.virus"
 type VirusInsertInput struct {
-	CreatedAt   *string                 `json:"createdAt,omitempty"`
+	CreatedAt   *time.Time              `json:"createdAt,omitempty"`
 	File        *FilesObjRelInsertInput `json:"file,omitempty"`
 	FileID      *string                 `json:"fileId,omitempty"`
 	Filename    *string                 `json:"filename,omitempty"`
 	ID          *string                 `json:"id,omitempty"`
-	UpdatedAt   *string                 `json:"updatedAt,omitempty"`
-	UserSession map[string]interface{}  `json:"userSession,omitempty"`
+	UpdatedAt   *time.Time              `json:"updatedAt,omitempty"`
+	UserSession map[string]any          `json:"userSession,omitempty"`
 	Virus       *string                 `json:"virus,omitempty"`
 }
 
 // aggregate max on columns
 type VirusMaxFields struct {
-	CreatedAt *string `json:"createdAt,omitempty"`
-	FileID    *string `json:"fileId,omitempty"`
-	Filename  *string `json:"filename,omitempty"`
-	ID        *string `json:"id,omitempty"`
-	UpdatedAt *string `json:"updatedAt,omitempty"`
-	Virus     *string `json:"virus,omitempty"`
+	CreatedAt *time.Time `json:"createdAt,omitempty"`
+	FileID    *string    `json:"fileId,omitempty"`
+	Filename  *string    `json:"filename,omitempty"`
+	ID        *string    `json:"id,omitempty"`
+	UpdatedAt *time.Time `json:"updatedAt,omitempty"`
+	Virus     *string    `json:"virus,omitempty"`
 }
 
 // aggregate min on columns
 type VirusMinFields struct {
-	CreatedAt *string `json:"createdAt,omitempty"`
-	FileID    *string `json:"fileId,omitempty"`
-	Filename  *string `json:"filename,omitempty"`
-	ID        *string `json:"id,omitempty"`
-	UpdatedAt *string `json:"updatedAt,omitempty"`
-	Virus     *string `json:"virus,omitempty"`
+	CreatedAt *time.Time `json:"createdAt,omitempty"`
+	FileID    *string    `json:"fileId,omitempty"`
+	Filename  *string    `json:"filename,omitempty"`
+	ID        *string    `json:"id,omitempty"`
+	UpdatedAt *time.Time `json:"updatedAt,omitempty"`
+	Virus     *string    `json:"virus,omitempty"`
 }
 
 // response of any mutation on the table "storage.virus"
@@ -892,37 +901,37 @@ type VirusPkColumnsInput struct {
 
 // prepend existing jsonb value of filtered columns with new jsonb value
 type VirusPrependInput struct {
-	UserSession map[string]interface{} `json:"userSession,omitempty"`
+	UserSession map[string]any `json:"userSession,omitempty"`
 }
 
 // input type for updating data in table "storage.virus"
 type VirusSetInput struct {
-	CreatedAt   *string                `json:"createdAt,omitempty"`
-	FileID      *string                `json:"fileId,omitempty"`
-	Filename    *string                `json:"filename,omitempty"`
-	ID          *string                `json:"id,omitempty"`
-	UpdatedAt   *string                `json:"updatedAt,omitempty"`
-	UserSession map[string]interface{} `json:"userSession,omitempty"`
-	Virus       *string                `json:"virus,omitempty"`
+	CreatedAt   *time.Time     `json:"createdAt,omitempty"`
+	FileID      *string        `json:"fileId,omitempty"`
+	Filename    *string        `json:"filename,omitempty"`
+	ID          *string        `json:"id,omitempty"`
+	UpdatedAt   *time.Time     `json:"updatedAt,omitempty"`
+	UserSession map[string]any `json:"userSession,omitempty"`
+	Virus       *string        `json:"virus,omitempty"`
 }
 
 // Streaming cursor of the table "virus"
 type VirusStreamCursorInput struct {
 	// Stream column input with initial value
-	InitialValue VirusStreamCursorValueInput `json:"initial_value"`
+	InitialValue *VirusStreamCursorValueInput `json:"initial_value"`
 	// cursor ordering
 	Ordering *CursorOrdering `json:"ordering,omitempty"`
 }
 
 // Initial value of the column from where the streaming should start
 type VirusStreamCursorValueInput struct {
-	CreatedAt   *string                `json:"createdAt,omitempty"`
-	FileID      *string                `json:"fileId,omitempty"`
-	Filename    *string                `json:"filename,omitempty"`
-	ID          *string                `json:"id,omitempty"`
-	UpdatedAt   *string                `json:"updatedAt,omitempty"`
-	UserSession map[string]interface{} `json:"userSession,omitempty"`
-	Virus       *string                `json:"virus,omitempty"`
+	CreatedAt   *time.Time     `json:"createdAt,omitempty"`
+	FileID      *string        `json:"fileId,omitempty"`
+	Filename    *string        `json:"filename,omitempty"`
+	ID          *string        `json:"id,omitempty"`
+	UpdatedAt   *time.Time     `json:"updatedAt,omitempty"`
+	UserSession map[string]any `json:"userSession,omitempty"`
+	Virus       *string        `json:"virus,omitempty"`
 }
 
 type VirusUpdates struct {
@@ -939,7 +948,7 @@ type VirusUpdates struct {
 	// sets the columns of the filtered rows to the given values
 	Set *VirusSetInput `json:"_set,omitempty"`
 	// filter the rows which have to be updated
-	Where VirusBoolExp `json:"where"`
+	Where *VirusBoolExp `json:"where"`
 }
 
 // unique or primary key constraints on table "storage.buckets"
@@ -966,7 +975,7 @@ func (e BucketsConstraint) String() string {
 	return string(e)
 }
 
-func (e *BucketsConstraint) UnmarshalGQL(v interface{}) error {
+func (e *BucketsConstraint) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -981,6 +990,20 @@ func (e *BucketsConstraint) UnmarshalGQL(v interface{}) error {
 
 func (e BucketsConstraint) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *BucketsConstraint) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e BucketsConstraint) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
 }
 
 // select columns of table "storage.buckets"
@@ -1028,7 +1051,7 @@ func (e BucketsSelectColumn) String() string {
 	return string(e)
 }
 
-func (e *BucketsSelectColumn) UnmarshalGQL(v interface{}) error {
+func (e *BucketsSelectColumn) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -1043,6 +1066,20 @@ func (e *BucketsSelectColumn) UnmarshalGQL(v interface{}) error {
 
 func (e BucketsSelectColumn) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *BucketsSelectColumn) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e BucketsSelectColumn) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
 }
 
 // update columns of table "storage.buckets"
@@ -1090,7 +1127,7 @@ func (e BucketsUpdateColumn) String() string {
 	return string(e)
 }
 
-func (e *BucketsUpdateColumn) UnmarshalGQL(v interface{}) error {
+func (e *BucketsUpdateColumn) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -1105,6 +1142,20 @@ func (e *BucketsUpdateColumn) UnmarshalGQL(v interface{}) error {
 
 func (e BucketsUpdateColumn) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *BucketsUpdateColumn) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e BucketsUpdateColumn) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
 }
 
 // ordering argument of a cursor
@@ -1134,7 +1185,7 @@ func (e CursorOrdering) String() string {
 	return string(e)
 }
 
-func (e *CursorOrdering) UnmarshalGQL(v interface{}) error {
+func (e *CursorOrdering) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -1149,6 +1200,20 @@ func (e *CursorOrdering) UnmarshalGQL(v interface{}) error {
 
 func (e CursorOrdering) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *CursorOrdering) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e CursorOrdering) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
 }
 
 // unique or primary key constraints on table "storage.files"
@@ -1175,7 +1240,7 @@ func (e FilesConstraint) String() string {
 	return string(e)
 }
 
-func (e *FilesConstraint) UnmarshalGQL(v interface{}) error {
+func (e *FilesConstraint) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -1190,6 +1255,20 @@ func (e *FilesConstraint) UnmarshalGQL(v interface{}) error {
 
 func (e FilesConstraint) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *FilesConstraint) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e FilesConstraint) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
 }
 
 // select columns of table "storage.files"
@@ -1246,7 +1325,7 @@ func (e FilesSelectColumn) String() string {
 	return string(e)
 }
 
-func (e *FilesSelectColumn) UnmarshalGQL(v interface{}) error {
+func (e *FilesSelectColumn) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -1261,6 +1340,20 @@ func (e *FilesSelectColumn) UnmarshalGQL(v interface{}) error {
 
 func (e FilesSelectColumn) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *FilesSelectColumn) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e FilesSelectColumn) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
 }
 
 // select "files_aggregate_bool_exp_bool_and_arguments_columns" columns of table "storage.files"
@@ -1287,7 +1380,7 @@ func (e FilesSelectColumnFilesAggregateBoolExpBoolAndArgumentsColumns) String() 
 	return string(e)
 }
 
-func (e *FilesSelectColumnFilesAggregateBoolExpBoolAndArgumentsColumns) UnmarshalGQL(v interface{}) error {
+func (e *FilesSelectColumnFilesAggregateBoolExpBoolAndArgumentsColumns) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -1302,6 +1395,20 @@ func (e *FilesSelectColumnFilesAggregateBoolExpBoolAndArgumentsColumns) Unmarsha
 
 func (e FilesSelectColumnFilesAggregateBoolExpBoolAndArgumentsColumns) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *FilesSelectColumnFilesAggregateBoolExpBoolAndArgumentsColumns) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e FilesSelectColumnFilesAggregateBoolExpBoolAndArgumentsColumns) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
 }
 
 // select "files_aggregate_bool_exp_bool_or_arguments_columns" columns of table "storage.files"
@@ -1328,7 +1435,7 @@ func (e FilesSelectColumnFilesAggregateBoolExpBoolOrArgumentsColumns) String() s
 	return string(e)
 }
 
-func (e *FilesSelectColumnFilesAggregateBoolExpBoolOrArgumentsColumns) UnmarshalGQL(v interface{}) error {
+func (e *FilesSelectColumnFilesAggregateBoolExpBoolOrArgumentsColumns) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -1343,6 +1450,20 @@ func (e *FilesSelectColumnFilesAggregateBoolExpBoolOrArgumentsColumns) Unmarshal
 
 func (e FilesSelectColumnFilesAggregateBoolExpBoolOrArgumentsColumns) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *FilesSelectColumnFilesAggregateBoolExpBoolOrArgumentsColumns) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e FilesSelectColumnFilesAggregateBoolExpBoolOrArgumentsColumns) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
 }
 
 // update columns of table "storage.files"
@@ -1399,7 +1520,7 @@ func (e FilesUpdateColumn) String() string {
 	return string(e)
 }
 
-func (e *FilesUpdateColumn) UnmarshalGQL(v interface{}) error {
+func (e *FilesUpdateColumn) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -1414,6 +1535,20 @@ func (e *FilesUpdateColumn) UnmarshalGQL(v interface{}) error {
 
 func (e FilesUpdateColumn) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *FilesUpdateColumn) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e FilesUpdateColumn) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
 }
 
 // column ordering options
@@ -1455,7 +1590,7 @@ func (e OrderBy) String() string {
 	return string(e)
 }
 
-func (e *OrderBy) UnmarshalGQL(v interface{}) error {
+func (e *OrderBy) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -1470,6 +1605,20 @@ func (e *OrderBy) UnmarshalGQL(v interface{}) error {
 
 func (e OrderBy) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *OrderBy) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e OrderBy) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
 }
 
 // unique or primary key constraints on table "storage.virus"
@@ -1496,7 +1645,7 @@ func (e VirusConstraint) String() string {
 	return string(e)
 }
 
-func (e *VirusConstraint) UnmarshalGQL(v interface{}) error {
+func (e *VirusConstraint) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -1511,6 +1660,20 @@ func (e *VirusConstraint) UnmarshalGQL(v interface{}) error {
 
 func (e VirusConstraint) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *VirusConstraint) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e VirusConstraint) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
 }
 
 // select columns of table "storage.virus"
@@ -1555,7 +1718,7 @@ func (e VirusSelectColumn) String() string {
 	return string(e)
 }
 
-func (e *VirusSelectColumn) UnmarshalGQL(v interface{}) error {
+func (e *VirusSelectColumn) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -1570,6 +1733,20 @@ func (e *VirusSelectColumn) UnmarshalGQL(v interface{}) error {
 
 func (e VirusSelectColumn) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *VirusSelectColumn) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e VirusSelectColumn) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
 }
 
 // update columns of table "storage.virus"
@@ -1614,7 +1791,7 @@ func (e VirusUpdateColumn) String() string {
 	return string(e)
 }
 
-func (e *VirusUpdateColumn) UnmarshalGQL(v interface{}) error {
+func (e *VirusUpdateColumn) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -1629,4 +1806,18 @@ func (e *VirusUpdateColumn) UnmarshalGQL(v interface{}) error {
 
 func (e VirusUpdateColumn) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *VirusUpdateColumn) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e VirusUpdateColumn) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
 }

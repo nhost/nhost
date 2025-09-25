@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/Yamashou/gqlgenc/clientv2"
+	"github.com/nhost/hasura-storage/api"
 	"github.com/nhost/hasura-storage/controller"
 )
 
@@ -20,6 +22,7 @@ func parseGraphqlError(err error) *controller.APIError {
 		if !ok {
 			return controller.InternalServerError(err)
 		}
+
 		switch code {
 		case "access-denied", "validation-failed", "permission-error":
 			return controller.ForbiddenError(ghErr, "you are not authorized")
@@ -49,24 +52,25 @@ func (md *BucketMetadataFragment) ToControllerType() controller.BucketMetadata {
 		MaxUploadFile:        int(md.GetMaxUploadFileSize()),
 		PresignedURLsEnabled: md.GetPresignedUrlsEnabled(),
 		DownloadExpiration:   int(md.GetDownloadExpiration()),
-		CreatedAt:            md.GetCreatedAt(),
-		UpdatedAt:            md.GetUpdatedAt(),
+		CreatedAt:            md.GetCreatedAt().Format(time.RFC3339),
+		UpdatedAt:            md.GetUpdatedAt().Format(time.RFC3339),
 		CacheControl:         *md.GetCacheControl(),
 	}
 }
 
-func (md *FileMetadataFragment) ToControllerType() controller.FileMetadata {
-	return controller.FileMetadata{
-		ID:         md.GetID(),
-		Name:       *md.GetName(),
-		Size:       *md.GetSize(),
-		BucketID:   md.GetBucketID(),
-		ETag:       *md.GetEtag(),
-		CreatedAt:  md.GetCreatedAt(),
-		UpdatedAt:  md.GetUpdatedAt(),
-		IsUploaded: *md.GetIsUploaded(),
-		MimeType:   *md.GetMimeType(),
-		Metadata:   md.GetMetadata(),
+func (md *FileMetadataFragment) ToControllerType() api.FileMetadata {
+	return api.FileMetadata{
+		Id:               md.GetID(),
+		Name:             *md.GetName(),
+		Size:             *md.GetSize(),
+		BucketId:         md.GetBucketID(),
+		Etag:             *md.GetEtag(),
+		CreatedAt:        *md.GetCreatedAt(),
+		UpdatedAt:        *md.GetUpdatedAt(),
+		IsUploaded:       *md.GetIsUploaded(),
+		MimeType:         *md.GetMimeType(),
+		Metadata:         ptr(md.GetMetadata()),
+		UploadedByUserId: md.GetUploadedByUserID(),
 	}
 }
 
@@ -75,7 +79,7 @@ func WithHeaders(header http.Header) clientv2.RequestInterceptor {
 		ctx context.Context,
 		req *http.Request,
 		gqlInfo *clientv2.GQLRequestInfo,
-		res interface{},
+		res any,
 		next clientv2.RequestInterceptorFunc,
 	) error {
 		for k, v := range header {
@@ -83,6 +87,7 @@ func WithHeaders(header http.Header) clientv2.RequestInterceptor {
 				req.Header.Add(k, vv)
 			}
 		}
+
 		return next(ctx, req, gqlInfo, res)
 	}
 }
@@ -94,9 +99,9 @@ type Hasura struct {
 func NewHasura(endpoint string) *Hasura {
 	return &Hasura{
 		cl: NewClient(
-			&http.Client{},
+			&http.Client{}, //nolint:exhaustruct
 			endpoint,
-			&clientv2.Options{},
+			&clientv2.Options{}, //nolint:exhaustruct
 		),
 	}
 }
@@ -130,7 +135,7 @@ func (h *Hasura) InitializeFile(
 ) *controller.APIError {
 	_, err := h.cl.InsertFile(
 		ctx,
-		FilesInsertInput{
+		FilesInsertInput{ //nolint:exhaustruct
 			BucketID: ptr(bucketID),
 			ID:       ptr(fileID),
 			MimeType: ptr(mimeType),
@@ -152,11 +157,11 @@ func (h *Hasura) PopulateMetadata(
 	fileID, name string, size int64, bucketID, etag string, isUploaded bool, mimeType string,
 	metadata map[string]any,
 	headers http.Header,
-) (controller.FileMetadata, *controller.APIError) {
+) (api.FileMetadata, *controller.APIError) {
 	resp, err := h.cl.UpdateFile(
 		ctx,
 		fileID,
-		FilesSetInput{
+		FilesSetInput{ //nolint:exhaustruct
 			BucketID:   ptr(bucketID),
 			Etag:       ptr(etag),
 			IsUploaded: ptr(isUploaded),
@@ -169,11 +174,11 @@ func (h *Hasura) PopulateMetadata(
 	)
 	if err != nil {
 		aerr := parseGraphqlError(err)
-		return controller.FileMetadata{}, aerr.ExtendError("problem populating file metadata")
+		return api.FileMetadata{}, aerr.ExtendError("problem populating file metadata")
 	}
 
 	if resp.UpdateFile == nil || resp.UpdateFile.ID == "" {
-		return controller.FileMetadata{}, controller.ErrFileNotFound
+		return api.FileMetadata{}, controller.ErrFileNotFound
 	}
 
 	return resp.UpdateFile.ToControllerType(), nil
@@ -183,7 +188,7 @@ func (h *Hasura) GetFileByID(
 	ctx context.Context,
 	fileID string,
 	headers http.Header,
-) (controller.FileMetadata, *controller.APIError) {
+) (api.FileMetadata, *controller.APIError) {
 	resp, err := h.cl.GetFile(
 		ctx,
 		fileID,
@@ -191,11 +196,11 @@ func (h *Hasura) GetFileByID(
 	)
 	if err != nil {
 		aerr := parseGraphqlError(err)
-		return controller.FileMetadata{}, aerr.ExtendError("problem getting file metadata")
+		return api.FileMetadata{}, aerr.ExtendError("problem getting file metadata")
 	}
 
 	if resp.File == nil || resp.File.ID == "" {
-		return controller.FileMetadata{}, controller.ErrFileNotFound
+		return api.FileMetadata{}, controller.ErrFileNotFound
 	}
 
 	return resp.File.ToControllerType(), nil
@@ -207,7 +212,7 @@ func (h *Hasura) SetIsUploaded(
 	resp, err := h.cl.UpdateFile(
 		ctx,
 		fileID,
-		FilesSetInput{
+		FilesSetInput{ //nolint:exhaustruct
 			IsUploaded: ptr(isUploaded),
 		},
 		WithHeaders(headers),
@@ -275,7 +280,7 @@ func (h *Hasura) InsertVirus(
 ) *controller.APIError {
 	_, err := h.cl.InsertVirus(
 		ctx,
-		VirusInsertInput{
+		VirusInsertInput{ //nolint:exhaustruct
 			FileID:      ptr(fileID),
 			Filename:    ptr(filename),
 			UserSession: userSession,

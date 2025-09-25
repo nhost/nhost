@@ -1,22 +1,19 @@
 package controller
 
 import (
-	"fmt"
-	"net/http"
+	"context"
 	"path"
 
-	"github.com/gin-gonic/gin"
+	"github.com/nhost/hasura-storage/api"
+	"github.com/nhost/hasura-storage/middleware"
 )
 
 type ListBrokenMetadataResponse struct {
 	Metadata []FileSummary `json:"metadata"`
 }
 
-func (ctrl *Controller) listBrokenMetadata(ctx *gin.Context) ([]FileSummary, *APIError) {
-	filesInHasura, apiErr := ctrl.metadataStorage.ListFiles(
-		ctx.Request.Context(),
-		ctx.Request.Header,
-	)
+func (ctrl *Controller) listBrokenMetadata(ctx context.Context) ([]FileSummary, *APIError) {
+	filesInHasura, apiErr := ctrl.metadataStorage.ListFiles(ctx, nil)
 	if apiErr != nil {
 		return nil, apiErr
 	}
@@ -45,20 +42,32 @@ func (ctrl *Controller) listBrokenMetadata(ctx *gin.Context) ([]FileSummary, *AP
 	return missing, nil
 }
 
-func (ctrl *Controller) ListBrokenMetadata(ctx *gin.Context) {
-	files, apiErr := ctrl.listBrokenMetadata(ctx)
-	if apiErr != nil {
-		_ = ctx.Error(fmt.Errorf("problem processing request: %w", apiErr))
-
-		ctx.JSON(apiErr.statusCode, apiErr.PublicResponse())
-
-		return
+func fileListSummary(files []FileSummary) *[]api.FileSummary {
+	apiFiles := make([]api.FileSummary, len(files))
+	for i, f := range files {
+		apiFiles[i] = api.FileSummary{
+			Id:         f.ID,
+			Name:       f.Name,
+			IsUploaded: f.IsUploaded,
+			BucketId:   f.BucketID,
+		}
 	}
 
-	ctx.JSON(
-		http.StatusOK,
-		ListBrokenMetadataResponse{
-			files,
-		},
-	)
+	return &apiFiles
+}
+
+func (ctrl *Controller) ListBrokenMetadata( //nolint:ireturn
+	ctx context.Context, _ api.ListBrokenMetadataRequestObject,
+) (api.ListBrokenMetadataResponseObject, error) {
+	logger := middleware.LoggerFromContext(ctx)
+
+	files, apiErr := ctrl.listBrokenMetadata(ctx)
+	if apiErr != nil {
+		logger.WithError(apiErr).Error("failed to list broken metadata")
+		return apiErr, nil
+	}
+
+	return api.ListBrokenMetadata200JSONResponse{
+		Metadata: fileListSummary(files),
+	}, nil
 }

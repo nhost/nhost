@@ -22,6 +22,7 @@ func deptr[T any](p *T) T { //nolint:ireturn
 	if p == nil {
 		return *new(T)
 	}
+
 	return *p
 }
 
@@ -39,18 +40,20 @@ func parseS3Error(resp *http.Response) *controller.APIError {
 				fmt.Errorf("problem reading S3 error, status code %d: %w", resp.StatusCode, err),
 			)
 		}
+
 		return controller.InternalServerError(
-			fmt.Errorf( //nolint: goerr113
+			fmt.Errorf( //nolint: err113
 				"problem parsing S3 error, status code %d: %s",
 				resp.StatusCode,
 				b,
 			),
 		)
 	}
+
 	return controller.NewAPIError(
 		resp.StatusCode,
 		s3Error.Message,
-		errors.New(s3Error.Message), //nolint: goerr113
+		errors.New(s3Error.Message), //nolint: err113
 		nil,
 	)
 }
@@ -98,7 +101,7 @@ func (s *S3) PutFile(
 	}
 
 	object, err := s.client.PutObject(ctx,
-		&s3.PutObjectInput{
+		&s3.PutObjectInput{ //nolint:exhaustruct
 			Body:        content,
 			Bucket:      s.bucket,
 			Key:         aws.String(key),
@@ -115,7 +118,7 @@ func (s *S3) PutFile(
 func (s *S3) GetFile(
 	ctx context.Context,
 	filepath string,
-	headers http.Header,
+	downloadRange *string,
 ) (*controller.File, *controller.APIError) {
 	key, err := url.JoinPath(s.rootFolder, filepath)
 	if err != nil {
@@ -123,14 +126,14 @@ func (s *S3) GetFile(
 	}
 
 	object, err := s.client.GetObject(ctx,
-		&s3.GetObjectInput{
+		&s3.GetObjectInput{ //nolint:exhaustruct
 			Bucket: s.bucket,
 			Key:    aws.String(key),
 			// IfMatch:           new(string),
 			// IfModifiedSince:   &time.Time{},
 			// IfNoneMatch:       new(string),
 			// IfUnmodifiedSince: &time.Time{},
-			Range: aws.String(headers.Get("Range")),
+			Range: downloadRange,
 		},
 	)
 	if err != nil {
@@ -169,8 +172,9 @@ func (s *S3) CreatePresignedURL(
 	}
 
 	presignClient := s3.NewPresignClient(s.client)
+
 	request, err := presignClient.PresignGetObject(ctx,
-		&s3.GetObjectInput{ //nolint:exhaustivestruct
+		&s3.GetObjectInput{ //nolint:exhaustruct
 			Bucket: s.bucket,
 			Key:    aws.String(key),
 		},
@@ -200,27 +204,33 @@ func (s *S3) GetFileWithPresignedURL(
 	if s.rootFolder != "" {
 		filepath = s.rootFolder + "/" + filepath
 	}
+
 	url := fmt.Sprintf("%s/%s/%s?%s", s.url, *s.bucket, filepath, signature)
+
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return nil, controller.InternalServerError(fmt.Errorf("problem creating request: %w", err))
 	}
+
 	req.Header = headers
 
-	client := http.Client{}
+	client := http.Client{} //nolint:exhaustruct
+
 	resp, err := client.Do(req) //nolint:bodyclose //we are actually returning the body
 	if err != nil {
 		return nil, controller.InternalServerError(fmt.Errorf("problem getting file: %w", err))
 	}
 
-	if !(resp.StatusCode == http.StatusOK ||
-		resp.StatusCode == http.StatusPartialContent ||
-		resp.StatusCode == http.StatusNotModified) {
+	if resp.StatusCode != http.StatusOK &&
+		resp.StatusCode != http.StatusPartialContent &&
+		resp.StatusCode != http.StatusNotModified {
 		return nil, parseS3Error(resp)
 	}
 
 	respHeaders := make(http.Header)
+
 	var length int64
+
 	switch resp.StatusCode {
 	case http.StatusOK, http.StatusPartialContent:
 		respHeaders = http.Header{
@@ -255,7 +265,7 @@ func (s *S3) DeleteFile(ctx context.Context, filepath string) *controller.APIErr
 	}
 
 	if _, err := s.client.DeleteObject(ctx,
-		&s3.DeleteObjectInput{
+		&s3.DeleteObjectInput{ //nolint:exhaustruct
 			Bucket: s.bucket,
 			Key:    aws.String(key),
 		}); err != nil {
@@ -267,7 +277,7 @@ func (s *S3) DeleteFile(ctx context.Context, filepath string) *controller.APIErr
 
 func (s *S3) ListFiles(ctx context.Context) ([]string, *controller.APIError) {
 	objects, err := s.client.ListObjects(ctx,
-		&s3.ListObjectsInput{
+		&s3.ListObjectsInput{ //nolint:exhaustruct
 			Bucket: s.bucket,
 			Prefix: aws.String(s.rootFolder + "/"),
 		})

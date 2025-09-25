@@ -1,9 +1,12 @@
 package clamd
 
-import "fmt"
+import (
+	"context"
+	"fmt"
+)
 
-func (c *Client) Ping() error {
-	conn, err := c.Dial()
+func (c *Client) Ping(ctx context.Context) error {
+	conn, err := c.Dial(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to dial: %w", err)
 	}
@@ -19,7 +22,7 @@ func (c *Client) Ping() error {
 	}
 
 	if string(response) != "PONG\n" {
-		return fmt.Errorf("unknown response: %s", string(response)) //nolint:goerr113
+		return fmt.Errorf("unknown response: %s", string(response)) //nolint:err113
 	}
 
 	return nil

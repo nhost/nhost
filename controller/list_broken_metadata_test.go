@@ -1,11 +1,9 @@
 package controller_test
 
 import (
-	"encoding/json"
-	"net/http"
-	"net/http/httptest"
 	"testing"
 
+	"github.com/nhost/hasura-storage/api"
 	"github.com/nhost/hasura-storage/controller"
 	"github.com/nhost/hasura-storage/controller/mock"
 	"github.com/sirupsen/logrus"
@@ -17,23 +15,23 @@ func TestListBrokenMetadata(t *testing.T) {
 
 	cases := []struct {
 		name     string
-		expected controller.ListBrokenMetadataResponse
+		expected api.ListBrokenMetadata200JSONResponse
 	}{
 		{
 			name: "successful",
-			expected: controller.ListBrokenMetadataResponse{
-				Metadata: []controller.FileSummary{
+			expected: api.ListBrokenMetadata200JSONResponse{
+				Metadata: &[]api.FileSummary{
 					{
-						ID:         "b3b4e653-ca59-412c-a165-92d251c3fe86",
+						Id:         "b3b4e653-ca59-412c-a165-92d251c3fe86",
 						Name:       "file-1.txt",
 						IsUploaded: true,
-						BucketID:   "default",
+						BucketId:   "default",
 					},
 					{
-						ID:         "e6aad336-ad79-4df7-a09b-5782f71948f4",
+						Id:         "e6aad336-ad79-4df7-a09b-5782f71948f4",
 						Name:       "file-1.txt",
 						IsUploaded: true,
-						BucketID:   "default",
+						BucketId:   "default",
 					},
 				},
 			},
@@ -101,26 +99,15 @@ func TestListBrokenMetadata(t *testing.T) {
 				logger,
 			)
 
-			router, _ := ctrl.SetupRouter(nil, "/v1", []string{"*"}, false, ginLogger(logger))
-
-			responseRecorder := httptest.NewRecorder()
-
-			req, _ := http.NewRequestWithContext(
+			resp, err := ctrl.ListBrokenMetadata(
 				t.Context(),
-				"POST",
-				"/v1/ops/list-broken-metadata",
-				nil,
+				api.ListBrokenMetadataRequestObject{},
 			)
-
-			router.ServeHTTP(responseRecorder, req)
-
-			assert(t, 200, responseRecorder.Code)
-
-			resp := &controller.ListBrokenMetadataResponse{}
-			if err := json.Unmarshal(responseRecorder.Body.Bytes(), &resp); err != nil {
-				t.Fatal(err)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
 			}
-			assert(t, &tc.expected, resp)
+
+			assert(t, tc.expected, resp)
 		})
 	}
 }

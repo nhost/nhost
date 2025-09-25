@@ -108,11 +108,13 @@ func TestManipulate(t *testing.T) {
 
 func BenchmarkManipulate(b *testing.B) {
 	transformer := image.NewTransformer()
+
 	orig, err := os.Open("testdata/nhost.jpg")
 	if err != nil {
 		b.Fatal(err)
 	}
 	defer orig.Close()
+
 	for range 100 {
 		_, _ = orig.Seek(0, 0)
 

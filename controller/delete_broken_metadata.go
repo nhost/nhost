@@ -1,20 +1,22 @@
 package controller
 
 import (
-	"fmt"
-	"net/http"
+	"context"
 
-	"github.com/gin-gonic/gin"
+	"github.com/nhost/hasura-storage/api"
+	"github.com/nhost/hasura-storage/middleware"
 )
 
-func (ctrl *Controller) deleteBrokenMetadata(ctx *gin.Context) ([]FileSummary, *APIError) {
+func (ctrl *Controller) deleteBrokenMetadata(
+	ctx context.Context,
+) ([]FileSummary, *APIError) {
 	missing, apiErr := ctrl.listBrokenMetadata(ctx)
 	if apiErr != nil {
 		return nil, apiErr
 	}
 
 	for _, m := range missing {
-		if apiErr := ctrl.metadataStorage.DeleteFileByID(ctx.Request.Context(), m.ID, ctx.Request.Header); apiErr != nil {
+		if apiErr := ctrl.metadataStorage.DeleteFileByID(ctx, m.ID, nil); apiErr != nil {
 			return nil, apiErr
 		}
 	}
@@ -22,20 +24,19 @@ func (ctrl *Controller) deleteBrokenMetadata(ctx *gin.Context) ([]FileSummary, *
 	return missing, nil
 }
 
-func (ctrl *Controller) DeleteBrokenMetadata(ctx *gin.Context) {
+func (ctrl *Controller) DeleteBrokenMetadata( //nolint:ireturn
+	ctx context.Context,
+	_ api.DeleteBrokenMetadataRequestObject,
+) (api.DeleteBrokenMetadataResponseObject, error) {
+	logger := middleware.LoggerFromContext(ctx)
+
 	files, apiErr := ctrl.deleteBrokenMetadata(ctx)
 	if apiErr != nil {
-		_ = ctx.Error(fmt.Errorf("problem processing request: %w", apiErr))
-
-		ctx.JSON(apiErr.statusCode, apiErr.PublicResponse())
-
-		return
+		logger.WithError(apiErr).Error("failed to delete broken metadata")
+		return apiErr, nil
 	}
 
-	ctx.JSON(
-		http.StatusOK,
-		ListBrokenMetadataResponse{
-			files,
-		},
-	)
+	return api.DeleteBrokenMetadata200JSONResponse{
+		Metadata: fileListSummary(files),
+	}, nil
 }

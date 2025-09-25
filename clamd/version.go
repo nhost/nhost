@@ -1,6 +1,7 @@
 package clamd
 
 import (
+	"context"
 	"fmt"
 	"strings"
 )
@@ -11,13 +12,14 @@ type Version struct {
 
 func parseVersion(response []byte) Version {
 	parts := strings.SplitN(string(response), " ", 2) //nolint:mnd
+
 	return Version{
 		Version: parts[1],
 	}
 }
 
-func (c *Client) Version() (Version, error) {
-	conn, err := c.Dial()
+func (c *Client) Version(ctx context.Context) (Version, error) {
+	conn, err := c.Dial(ctx)
 	if err != nil {
 		return Version{}, fmt.Errorf("failed to dial: %w", err)
 	}

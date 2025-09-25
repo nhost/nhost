@@ -42,7 +42,7 @@ query GetFile($id: uuid!) {
   }
 }
 
-query ListFilesSummary() {
+query ListFilesSummary {
   files {
     ...FileMetadataSummaryFragment
   }

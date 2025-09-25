@@ -44,7 +44,7 @@ func TestClamdInstream(t *testing.T) {
 			}
 			defer f.Close()
 
-			err = client.InStream(f)
+			err = client.InStream(t.Context(), f)
 			if diff := cmp.Diff(tc.expectedError, err); diff != "" {
 				t.Errorf("unexpected error (-want +got):\n%s", diff)
 			}

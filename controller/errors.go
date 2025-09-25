@@ -1,12 +1,21 @@
 package controller
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
+
+	"github.com/nhost/hasura-storage/api"
 )
 
 var (
+	ErrUnexpectedStatusCode = &APIError{
+		http.StatusInternalServerError,
+		"unexpected status code",
+		errors.New("unexpected status code"), //nolint
+		nil,
+	}
 	ErrMultipartFormFileNotFound = &APIError{
 		http.StatusBadRequest,
 		"file[] not found in Multipart form",
@@ -62,6 +71,72 @@ type APIError struct {
 	publicMessage string
 	err           error
 	data          map[string]any
+}
+
+func (a *APIError) visit(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("X-Error", a.publicMessage)
+	w.WriteHeader(a.statusCode)
+
+	errorResponse := api.ErrorResponse{
+		Error: &struct {
+			Data    *map[string]any `json:"data,omitempty"`
+			Message string          `json:"message"`
+		}{
+			Data:    &a.data,
+			Message: a.publicMessage,
+		},
+	}
+
+	return json.NewEncoder(w).Encode(errorResponse) //nolint:wrapcheck
+}
+
+func (a *APIError) VisitUploadFilesResponse(w http.ResponseWriter) error {
+	return a.visit(w)
+}
+
+func (a *APIError) VisitReplaceFileResponse(w http.ResponseWriter) error {
+	return a.visit(w)
+}
+
+func (a *APIError) VisitGetFileResponse(w http.ResponseWriter) error {
+	return a.visit(w)
+}
+
+func (a *APIError) VisitGetFileMetadataHeadersResponse(w http.ResponseWriter) error {
+	return a.visit(w)
+}
+
+func (a *APIError) VisitGetFilePresignedURLResponse(w http.ResponseWriter) error {
+	return a.visit(w)
+}
+
+func (a *APIError) VisitGetFileWithPresignedURLResponse(w http.ResponseWriter) error {
+	return a.visit(w)
+}
+
+func (a *APIError) VisitDeleteFileResponse(w http.ResponseWriter) error {
+	return a.visit(w)
+}
+
+func (a *APIError) VisitDeleteBrokenMetadataResponse(w http.ResponseWriter) error {
+	return a.visit(w)
+}
+
+func (a *APIError) VisitListBrokenMetadataResponse(w http.ResponseWriter) error {
+	return a.visit(w)
+}
+
+func (a *APIError) VisitListOrphanedFilesResponse(w http.ResponseWriter) error {
+	return a.visit(w)
+}
+
+func (a *APIError) VisitDeleteOrphanedFilesResponse(w http.ResponseWriter) error {
+	return a.visit(w)
+}
+
+func (a *APIError) VisitListFilesNotUploadedResponse(w http.ResponseWriter) error {
+	return a.visit(w)
 }
 
 func InternalServerError(err error) *APIError {
@@ -122,6 +197,7 @@ func WrongMetadataFormatError(err error) *APIError {
 		statusCode:    http.StatusBadRequest,
 		publicMessage: "couldn't decode metadata",
 		err:           err,
+		data:          nil,
 	}
 }
 
@@ -130,6 +206,7 @@ func BadDataError(err error, publicMessage string) *APIError {
 		statusCode:    http.StatusBadRequest,
 		publicMessage: publicMessage,
 		err:           err,
+		data:          nil,
 	}
 }
 
@@ -151,7 +228,16 @@ func (a *APIError) StatusCode() int {
 	if a == nil {
 		return 0
 	}
+
 	return a.statusCode
+}
+
+func (a *APIError) PublicMessage() string {
+	if a == nil {
+		return ""
+	}
+
+	return a.publicMessage
 }
 
 func (a *APIError) PublicResponse() *ErrorResponse {
@@ -179,6 +265,7 @@ func (a *APIError) GetDataString(k string) string {
 	if !ok {
 		return ""
 	}
+
 	return s
 }
 
@@ -186,5 +273,6 @@ func (a *APIError) SetData(k string, v any) {
 	if a.data == nil {
 		a.data = make(map[string]any)
 	}
+
 	a.data[k] = v
 }

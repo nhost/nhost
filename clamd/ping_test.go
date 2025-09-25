@@ -26,7 +26,7 @@ func TestClamdPing(t *testing.T) {
 				t.Fatalf("failed to dial: %v", err)
 			}
 
-			if err := client.Ping(); err != nil {
+			if err := client.Ping(t.Context()); err != nil {
 				t.Fatalf("failed to get version: %v", err)
 			}
 		})

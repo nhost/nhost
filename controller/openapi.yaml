@@ -1,150 +1,47 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/OAI/OpenAPI-Specification/main/schemas/v3.0/schema.yaml
----
-openapi: 3.0.3
+openapi: "3.0.0"
 info:
-  description: Hasura Storage is amazing
   version: 1.0.0
-  title: Hasura Storage
+  title: "Nhost Storage API"
+  description: "Nhost Storage API - A service for managing and serving files with powerful access control capabilities"
   license:
-    name: LICENSE-TBD
-    url: https://LICENSE-TBD
+    name: "Apache License 2.0"
+    url: "https://www.apache.org/licenses/LICENSE-2.0"
+  contact:
+    name: "Nhost Support"
+    email: "support@nhost.io"
+    url: "https://nhost.io"
+
 servers:
-  - url: http://{domain}:{port}/v1
-    description: The development API server
-    variables:
-      domain:
-        default: localhost
-      port:
-        default: '8000'
-security:
-  - Authorization: []
-  - X-Hasura-Admin-Secret: []
-components:
-  securitySchemes:
-    Authorization:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-      description: API key to authorize requests.
-    X-Hasura-Admin-Secret:
-      type: apiKey
-      name: X-Hasura-Admin-Secret
-      in: header
-      description: Hasura admin secret
-  schemas:
-    VersionInformation:
-      type: object
-      properties:
-        buildVersion:
-          type: string
-    FileSummary:
-      type: object
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-        bucketId:
-          type: string
-        isUploaded:
-          type: boolean
-    FileMetadata:
-      type: object
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-        size:
-          type: number
-        bucketId:
-          type: string
-        eTag:
-          type: string
-        createdAt:
-          type: string
-          format: date-time
-        updatedAt:
-          type: string
-          format: date-time
-        isUploaded:
-          type: boolean
-        mimeType:
-          type: string
-        uploadedByUserId:
-          type: string
-        metadata:
-          type: object
-          additionalProperties: true
-    UploadFileMetadata:
-      type: object
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-        metadata:
-          type: object
-          additionalProperties: true
-    UpdateFileMetadata:
-      type: object
-      properties:
-        name:
-          type: string
-        metadata:
-          type: object
-          additionalProperties: true
-    PresignedURLResponse:
-      type: object
-      properties:
-        url:
-          type: string
-        expiration:
-          type: number
-    Error:
-      type: object
-      properties:
-        error:
-          type: object
-          properties:
-            message:
-              type: string
+  - url: "https://{subdomain}.storage.{region}.nhost.run/v1"
+    description: "Nhost Storage API Server"
+
+tags:
+  - name: documentation
+    description: API documentation
+  - name: excludeme
+    description: Internal operations excluded from public docs
+  - name: files
+    description: File management operations
+  - name: operations
+    description: Administrative operations
+  - name: storage
+    description: Storage operations and presigned URLs
+  - name: system
+    description: System information
 
 paths:
-  /openapi.yaml:
-    get:
-      summary: Return this schema definition
-      tags:
-        - documentation
-      responses:
-        '200':
-          description: Return this schema definition
-          content:
-            application/x-yaml:
-              schema:
-                type: object
-  /version:
-    get:
-      summary: Retrieve build information about the server
-      tags:
-        - documentation
-      responses:
-        '200':
-          description: Return build information
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/VersionInformation'
-
-  /files/:
+  /files:
     post:
-      summary: Upload one or more files
-      description: You can upload more than one file by sending several file[]. Sending the metadata[] for files is optional but if you are uploading many files you need to either specify the metadata for all or for none.
+      summary: "Upload files"
+      description: "Upload one or more files to a specified bucket. Supports batch uploading with optional custom metadata for each file. If uploading multiple files, either provide metadata for all files or none."
+      operationId: uploadFiles
       tags:
-        - storage
+        - files
       security:
         - Authorization: []
       requestBody:
+        description: "File upload data including files and optional metadata"
+        required: true
         content:
           multipart/form-data:
             schema:
@@ -152,399 +49,453 @@ paths:
               properties:
                 bucket-id:
                   type: string
-                  description: Bucket to upload the files to
+                  description: "Target bucket identifier where files will be stored."
+                  example: "user-uploads"
                 metadata[]:
                   type: array
-                  description: (Optional) Set the following metadata for the uploaded files instead of letting the server do it automatically. See "UploadFileMetadata".
+                  description: "Optional custom metadata for each uploaded file. Must match the order of the file[] array."
                   items:
-                    $ref: '#/components/schemas/UploadFileMetadata'
+                    $ref: "#/components/schemas/UploadFileMetadata"
                 file[]:
-                  description: Array of files to upload.
+                  description: "Array of files to upload."
                   type: array
                   items:
                     type: string
                     format: binary
-            encoding:
-              file[]:
-                contentType: application/octet-stream
+              required:
+                - file[]
       responses:
-        '201':
-          description: File was uploaded successfully
+        "201":
+          description: "Files successfully uploaded"
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  ProcessedFiles:
+                  processedFiles:
                     type: array
+                    description: "List of successfully processed files with their metadata."
                     items:
-                      $ref: '#/components/schemas/FileMetadata'
+                      $ref: "#/components/schemas/FileMetadata"
+                required:
+                  - processedFiles
         default:
-          description: En error occured
+          description: "Error occurred during upload"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-  /files/{id}:
-    head:
-      summary: Retrieve information about a file
-      description: Retrieve information about a file
-      tags:
-        - storage
-      security:
-        - Authorization: []
-      parameters:
-        - name: id
-          required: true
-          in: path
-          schema:
-            type: string
-        - name: if-match
-          description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Match
-          in: header
-          schema:
-            type: string
-        - name: if-none-match
-          description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-None-Match
-          in: header
-          schema:
-            type: string
-        - name: if-modified-since
-          description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Modified-Since
-          in: header
-          schema:
-            type: string
-        - name: if-unmodified-since
-          description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Unmodified-Since
-          in: header
-          schema:
-            type: string
-        - name: q
-          description: Quality of the image. Only applies to jpeg, webp and png files
-          in: query
-          schema:
-            type: number
-        - name: h
-          description: Resize image up to h maintaining aspect ratio. Only applies to jpeg, webp and png files
-          in: query
-          schema:
-            type: number
-        - name: w
-          description: Resize image up to w maintaining aspect ratio. Only applies to jpeg, webp and png files
-          in: query
-          schema:
-            type: number
-        - name: b
-          description: Blur the image according to this sigma value. Only applies to jpeg, webp and png files
-          in: query
-          schema:
-            type: number
-        - name: f
-          description: Format to output the image in. Only applies to images. If `same` the image will be returned in the same format as it was uploaded. If `auto` the server will choose the first match in the Accept header from the client following the order `avif`, `webp`, `jpeg`, `png`.
-          in: query
-          schema:
-            type: string
-            default: same
-            enum:
-              - auto
-              - same
-              - jpeg
-              - webp
-              - png
-              - avif
+                $ref: "#/components/schemas/ErrorResponseWithProcessedFiles"
 
-      responses:
-        '200':
-          description: File information gathered successfully
-          headers:
-            Cache-Control:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
-              schema:
-                type: string
-            Content-Length:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Length
-              schema:
-                type: number
-            Content-Type:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type
-              schema:
-                type: string
-            Etag:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Etag
-              schema:
-                type: string
-            Last-Modified:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Last-Modified
-              schema:
-                type: string
-        '304':
-          description: |
-            File hasn't been modified based on:
-            - file modification time is older than If-Modified-Since
-            - etag matches one of If-None-Match
-          headers:
-            Cache-Control:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
-              schema:
-                type: string
-            Content-Length:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Length
-              schema:
-                type: number
-            Content-Type:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type
-              schema:
-                type: string
-            Etag:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Etag
-              schema:
-                type: string
-            Last-Modified:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Last-Modified
-              schema:
-                type: string
-        '412':
-          description: |
-            Some of the conditions specified in the headers failed to match. For instance:
-              - etag doesn't match one of If-Match
-              - if-unmodified-since is false
-          headers:
-            Cache-Control:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
-              schema:
-                type: string
-            Content-Length:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Length
-              schema:
-                type: number
-            Content-Type:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type
-              schema:
-                type: string
-            Etag:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Etag
-              schema:
-                type: string
-            Last-Modified:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Last-Modified
-              schema:
-                type: string
-        default:
-          description: Some error occurred
-          headers:
-            X-Error:
-              description: An error message
-              schema:
-                type: string
-    get:
-      summary: Retrieve contents of file
-      description: Retrieve contents of file
+  /files/{id}:
+    delete:
+      summary: "Delete file"
+      description: "Permanently delete a file from storage. This removes both the file content and its associated metadata."
+      operationId: deleteFile
       tags:
-        - storage
+        - files
       security:
         - Authorization: []
       parameters:
         - name: id
           required: true
           in: path
+          description: "Unique identifier of the file to delete"
+          schema:
+            type: string
+      responses:
+        "204":
+          description: "File successfully deleted"
+        default:
+          description: "Error occurred during file deletion"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    get:
+      summary: "Download file"
+      description: "Retrieve and download the complete file content. Supports conditional requests, image transformations, and range requests for partial downloads."
+      operationId: getFile
+      tags:
+        - files
+      security:
+        - Authorization: []
+      parameters:
+        - name: id
+          required: true
+          in: path
+          description: "Unique identifier of the file to download"
           schema:
             type: string
         - name: if-match
-          description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Match
+          description: "Only return the file if the current ETag matches one of the values provided"
           in: header
           schema:
             type: string
         - name: if-none-match
-          description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-None-Match
+          description: "Only return the file if the current ETag does not match any of the values provided"
           in: header
           schema:
             type: string
         - name: if-modified-since
-          description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Modified-Since
+          description: "Only return the file if it has been modified after the given date"
           in: header
           schema:
-            type: string
+            $ref: '#/components/schemas/RFC2822Date'
         - name: if-unmodified-since
-          description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Unmodified-Since
+          description: "Only return the file if it has not been modified after the given date"
+          in: header
+          schema:
+            $ref: '#/components/schemas/RFC2822Date'
+        - name: q
+          description: "Image quality (1-100). Only applies to JPEG, WebP and PNG files"
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+        - name: h
+          description: "Maximum height to resize image to while maintaining aspect ratio. Only applies to image files"
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+        - name: w
+          description: "Maximum width to resize image to while maintaining aspect ratio. Only applies to image files"
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+        - name: b
+          description: "Blur the image using this sigma value. Only applies to image files"
+          in: query
+          schema:
+            type: number
+            minimum: 0
+        - name: f
+          description: "Output format for image files. Use 'auto' for content negotiation based on Accept header"
+          in: query
+          schema:
+            $ref: '#/components/schemas/OutputImageFormat'
+        - name: Range
+          description: "Range of bytes to retrieve from the file. Format: bytes=start-end"
           in: header
           schema:
             type: string
-        - name: q
-          description: Quality of the image. Only applies to jpeg, webp and png files
-          in: query
-          schema:
-            type: number
-        - name: h
-          description: Resize image up to h maintaining aspect ratio. Only applies to jpeg, webp and png files
-          in: query
-          schema:
-            type: number
-        - name: w
-          description: Resize image up to w maintaining aspect ratio. Only applies to jpeg, webp and png files
-          in: query
-          schema:
-            type: number
-        - name: b
-          description: Blur the image according to this sigma value. Only applies to jpeg, webp and png files
-          in: query
-          schema:
-            type: number
+            pattern: '^bytes=(\d+-\d*|\d*-\d+)(,(\d+-\d*|\d*-\d+))*$'
       responses:
-        '200':
-          description: File gathered successfully
+        "200":
+          description: "File content retrieved successfully"
           headers:
             Cache-Control:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
+              description: "Directives for caching mechanisms"
               schema:
                 type: string
-            Content-Length:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Length
-              schema:
-                type: number
             Content-Type:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type
+              description: "MIME type of the file"
               schema:
                 type: string
             Etag:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Etag
+              description: "Entity tag for cache validation"
+              schema:
+                type: string
+            Content-Disposition:
+              description: "Indicates if the content should be displayed inline or as an attachment"
               schema:
                 type: string
             Last-Modified:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Last-Modified
+              description: "Date and time the file was last modified"
+              schema:
+                type: string
+                format: date-time
+            Surrogate-Key:
+              description: "Cache key for surrogate caching"
+              schema:
+                type: string
+            Surrogate-Control:
+              description: "Cache control directives for surrogate caching"
+              schema:
+                type: string
+            Accept-Ranges:
+              description: Always set to bytes. https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Ranges
               schema:
                 type: string
           content:
             application/octet-stream: {}
-        '304':
-          description: |
-            File hasn't been modified based on:
-            - file modification time is older than If-Modified-Since
+        "206":
+          description: "Partial file content retrieved successfully"
           headers:
             Cache-Control:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
+              description: "Directives for caching mechanisms"
               schema:
                 type: string
-            Content-Length:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Length
-              schema:
-                type: number
             Content-Type:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type
+              description: "MIME type of the file"
+              schema:
+                type: string
+            Content-Range:
+              description: "Range of bytes returned in the response"
               schema:
                 type: string
             Etag:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Etag
+              description: "Entity tag for cache validation"
+              schema:
+                type: string
+            Content-Disposition:
+              description: "Indicates if the content should be displayed inline or as an attachment"
               schema:
                 type: string
             Last-Modified:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Last-Modified
+              description: "Date and time the file was last modified"
               schema:
                 type: string
-        '412':
-          description: |
-            Some of the conditions specified in the headers failed to match. For instance:
-              - etag doesn't match one of If-Match
-              - etag matches one of If-None-Match
-              - if-unmodified-since is false
+                format: date-time
+            Surrogate-Key:
+              description: "Cache key for surrogate caching"
+              schema:
+                type: string
+            Surrogate-Control:
+              description: "Cache control directives for surrogate caching"
+              schema:
+                type: string
+          content:
+            application/octet-stream: {}
+        "304":
+          description: "File not modified since the condition specified in If-Modified-Since or If-None-Match headers"
           headers:
             Cache-Control:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
-              schema:
-                type: string
-            Content-Length:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Length
-              schema:
-                type: number
-            Content-Type:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type
+              description: "Directives for caching mechanisms"
               schema:
                 type: string
             Etag:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Etag
+              description: "Entity tag for cache validation"
               schema:
                 type: string
-            Last-Modified:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Last-Modified
+            Surrogate-Control:
+              description: "Cache control directives for surrogate caching"
+              schema:
+                type: string
+        "412":
+          description: "Precondition failed for conditional request headers (If-Match, If-Unmodified-Since, If-None-Match)"
+          headers:
+            Cache-Control:
+              description: "Directives for caching mechanisms"
+              schema:
+                type: string
+            Etag:
+              description: "Entity tag for cache validation"
+              schema:
+                type: string
+            Surrogate-Control:
+              description: "Cache control directives for surrogate caching"
               schema:
                 type: string
         default:
-          description: Some error occurred
+          description: "Error occurred"
           headers:
             X-Error:
-              description: An error message
+              description: "Error message details"
               schema:
                 type: string
-    put:
-      summary: Replace an existing file with a new one
-      description: |
-        Replace the contents of an existing file. The workflow to replace a file is as follows:
-          1. Set isUploaded flag to false
-          2. Replace contents of the file in the storage backend
-          3. Update file metadata (size, mime-type, isUploaded, etc)
 
-        Each individual state is atomic but if a step fails, previous steps won't be undone
+    head:
+      summary: "Check file information"
+      description: "Retrieve file metadata headers without downloading the file content. Supports conditional requests and provides caching information."
+      operationId: getFileMetadataHeaders
       tags:
-        - storage
+        - files
       security:
         - Authorization: []
       parameters:
         - name: id
           required: true
           in: path
+          description: "Unique identifier of the file to check"
+          schema:
+            type: string
+        - name: if-match
+          description: "Only return the file if the current ETag matches one of the values provided"
+          in: header
+          schema:
+            type: string
+        - name: if-none-match
+          description: "Only return the file if the current ETag does not match any of the values provided"
+          in: header
+          schema:
+            type: string
+        - name: if-modified-since
+          description: "Only return the file if it has been modified after the given date"
+          in: header
+          schema:
+            $ref: '#/components/schemas/RFC2822Date'
+        - name: if-unmodified-since
+          description: "Only return the file if it has not been modified after the given date"
+          in: header
+          schema:
+            $ref: '#/components/schemas/RFC2822Date'
+        - name: q
+          description: "Image quality (1-100). Only applies to JPEG, WebP and PNG files"
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+        - name: h
+          description: "Maximum height to resize image to while maintaining aspect ratio. Only applies to image files"
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+        - name: w
+          description: "Maximum width to resize image to while maintaining aspect ratio. Only applies to image files"
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+        - name: b
+          description: "Blur the image using this sigma value. Only applies to image files"
+          in: query
+          schema:
+            type: number
+            minimum: 0
+        - name: f
+          description: "Output format for image files. Use 'auto' for content negotiation based on Accept header"
+          in: query
+          schema:
+            $ref: '#/components/schemas/OutputImageFormat'
+
+      responses:
+        "200":
+          description: "File information headers retrieved successfully"
+          headers:
+            Cache-Control:
+              description: "Directives for caching mechanisms"
+              schema:
+                type: string
+            Content-Type:
+              description: "MIME type of the file"
+              schema:
+                type: string
+            Content-Length:
+              description: "Size of the file in bytes"
+              schema:
+                type: integer
+            Etag:
+              description: "Entity tag for cache validation"
+              schema:
+                type: string
+            Content-Disposition:
+              description: "Indicates if the content should be displayed inline or as an attachment"
+              schema:
+                type: string
+            Last-Modified:
+              description: "Date and time the file was last modified"
+              schema:
+                type: string
+                format: date-time
+            Accept-Ranges:
+              description: "Always set to bytes. https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Ranges"
+              schema:
+                type: string
+            Surrogate-Key:
+              description: "Cache key for surrogate caching"
+              schema:
+                type: string
+            Surrogate-Control:
+              description: "Cache control directives for surrogate caching"
+              schema:
+                type: string
+        "304":
+          description: "File not modified since the condition specified in If-Modified-Since or If-None-Match headers"
+          headers:
+            Cache-Control:
+              description: "Directives for caching mechanisms"
+              schema:
+                type: string
+            Etag:
+              description: "Entity tag for cache validation"
+              schema:
+                type: string
+            Surrogate-Control:
+              description: "Cache control directives for surrogate caching"
+              schema:
+                type: string
+        "412":
+          description: "Precondition failed for conditional request headers (If-Match, If-Unmodified-Since)"
+          headers:
+            Cache-Control:
+              description: "Directives for caching mechanisms"
+              schema:
+                type: string
+            Etag:
+              description: "Entity tag for cache validation"
+              schema:
+                type: string
+            Surrogate-Control:
+              description: "Cache control directives for surrogate caching"
+              schema:
+                type: string
+        default:
+          description: "Error occurred"
+          headers:
+            X-Error:
+              description: "Error message details"
+              schema:
+                type: string
+
+    put:
+      summary: "Replace file"
+      description: |
+        Replace an existing file with new content while preserving the file ID. The operation follows these steps:
+        1. The isUploaded flag is set to false to mark the file as being updated
+        2. The file content is replaced in the storage backend
+        3. File metadata is updated (size, mime-type, isUploaded, etc.)
+
+        Each step is atomic, but if a step fails, previous steps will not be automatically rolled back.
+      operationId: replaceFile
+      tags:
+        - files
+      security:
+        - Authorization: []
+      parameters:
+        - name: id
+          required: true
+          in: path
+          description: "Unique identifier of the file to replace"
           schema:
             type: string
       requestBody:
+        description: "File replacement data including new file content and optional metadata"
+        required: true
         content:
           multipart/form-data:
             schema:
               type: object
               properties:
                 metadata:
-                  $ref: '#/components/schemas/UpdateFileMetadata'
+                  $ref: "#/components/schemas/UpdateFileMetadata"
                 file:
-                  description: New contents of the file to upload.
-            encoding:
-              file:
-                contentType: application/octet-stream
+                  description: "New file content to replace the existing file"
+                  type: string
+                  format: binary
       responses:
-        '200':
-          description: File was uploaded successfully
+        "200":
+          description: "File successfully replaced"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/FileMetadata'
+                $ref: "#/components/schemas/FileMetadata"
         default:
-          description: En error occured
+          description: "Error occurred during file replacement"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-    delete:
-      summary: Delete a file
-      description: Delete a file
-      tags:
-        - storage
-      security:
-        - Authorization: []
-      parameters:
-        - name: id
-          required: true
-          in: path
-          schema:
-            type: string
-      responses:
-        '204':
-          description: File was deleted successfully
-        default:
-          description: En error occured
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/ErrorResponse"
 
   /files/{id}/presignedurl:
     get:
       summary: Retrieve presigned URL to retrieve the file
+      operationId: getFilePresignedURL
       description: |
         Retrieve presigned URL to retrieve the file. Expiration of the URL is
         determined by bucket configuration
@@ -556,35 +507,39 @@ paths:
         - name: id
           required: true
           in: path
+          description: "Unique identifier of the file"
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: File gathered successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PresignedURLResponse'
+                $ref: "#/components/schemas/PresignedURLResponse"
 
         default:
           description: Some error occurred
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/ErrorResponse"
 
   /files/{id}/presignedurl/contents:
     get:
       summary: Retrieve contents of file
+      operationId: getFileWithPresignedURL
       description: Retrieve contents of file
       tags:
         - storage
+        - excludeme
       security:
         - Authorization: []
       parameters:
         - name: id
           required: true
           in: path
+          description: "Unique identifier of the file"
           schema:
             type: string
         - name: X-Amz-Algorithm
@@ -623,68 +578,111 @@ paths:
           in: query
           schema:
             type: string
+        - name: X-Amz-Checksum-Mode
+          description: Use presignedurl endpoint to generate this automatically
+          required: true
+          in: query
+          schema:
+            type: string
+        - name: X-Amz-Security-Token
+          description: Use presignedurl endpoint to generate this automatically
+          required: false
+          in: query
+          schema:
+            type: string
+        - name: x-id
+          description: Use presignedurl endpoint to generate this automatically
+          required: true
+          in: query
+          schema:
+            type: string
         - name: if-match
-          description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Match
+          description: "Only return the file if the current ETag matches one of the values provided"
           in: header
           schema:
             type: string
         - name: if-none-match
-          description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-None-Match
+          description: "Only return the file if the current ETag does not match any of the values provided"
           in: header
           schema:
             type: string
         - name: if-modified-since
-          description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Modified-Since
+          description: "Only return the file if it has been modified after the given date"
           in: header
           schema:
-            type: string
+            $ref: '#/components/schemas/RFC2822Date'
         - name: if-unmodified-since
-          description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Unmodified-Since
+          description: "Only return the file if it has not been modified after the given date"
+          in: header
+          schema:
+            $ref: '#/components/schemas/RFC2822Date'
+        - name: q
+          description: "Image quality (1-100). Only applies to JPEG, WebP and PNG files"
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+        - name: h
+          description: "Maximum height to resize image to while maintaining aspect ratio. Only applies to image files"
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+        - name: w
+          description: "Maximum width to resize image to while maintaining aspect ratio. Only applies to image files"
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+        - name: b
+          description: "Blur the image using this sigma value. Only applies to image files"
+          in: query
+          schema:
+            type: number
+            minimum: 0
+        - name: f
+          description: "Output format for image files. Use 'auto' for content negotiation based on Accept header"
+          in: query
+          schema:
+            $ref: '#/components/schemas/OutputImageFormat'
+        - name: Range
+          description: "Range of bytes to retrieve from the file. Format: bytes=start-end"
           in: header
           schema:
             type: string
-        - name: q
-          description: Quality of the image. Only applies to jpeg, webp and png files
-          in: query
-          schema:
-            type: number
-        - name: h
-          description: Resize image up to h maintaining aspect ratio. Only applies to jpeg, webp and png files
-          in: query
-          schema:
-            type: number
-        - name: w
-          description: Resize image up to w maintaining aspect ratio. Only applies to jpeg, webp and png files
-          in: query
-          schema:
-            type: number
-        - name: b
-          description: Blur the image according to this sigma value. Only applies to jpeg, webp and png files
-          in: query
-          schema:
-            type: number
+            pattern: '^bytes=(\d+-\d*|\d*-\d+)(,(\d+-\d*|\d*-\d+))*$'
       responses:
-        '200':
-          description: File gathered successfully
+        "200":
+          description: "File content retrieved successfully"
           headers:
             Cache-Control:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
+              description: "Directives for caching mechanisms"
               schema:
                 type: string
-            Content-Length:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Length
-              schema:
-                type: number
             Content-Type:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type
+              description: "MIME type of the file"
               schema:
                 type: string
             Etag:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Etag
+              description: "Entity tag for cache validation"
+              schema:
+                type: string
+            Content-Disposition:
+              description: "Indicates if the content should be displayed inline or as an attachment"
               schema:
                 type: string
             Last-Modified:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Last-Modified
+              description: "Date and time the file was last modified"
+              schema:
+                type: string
+                format: date-time
+            Surrogate-Key:
+              description: "Cache key for surrogate caching"
+              schema:
+                type: string
+            Surrogate-Control:
+              description: "Cache control directives for surrogate caching"
               schema:
                 type: string
             Accept-Ranges:
@@ -693,136 +691,143 @@ paths:
                 type: string
           content:
             application/octet-stream: {}
-        '206':
-          description: File partially gathered successfully
+        "206":
+          description: "Partial file content retrieved successfully"
           headers:
             Cache-Control:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
+              description: "Directives for caching mechanisms"
               schema:
                 type: string
-            Content-Length:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Length
-              schema:
-                type: number
             Content-Type:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type
-              schema:
-                type: string
-            Etag:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Etag
-              schema:
-                type: string
-            Last-Modified:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Last-Modified
-              schema:
-                type: string
-            Accept-Ranges:
-              description: Always set to bytes. https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Ranges
+              description: "MIME type of the file"
               schema:
                 type: string
             Content-Range:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Range
+              description: "Range of bytes returned in the response"
+              schema:
+                type: string
+            Etag:
+              description: "Entity tag for cache validation"
+              schema:
+                type: string
+            Content-Disposition:
+              description: "Indicates if the content should be displayed inline or as an attachment"
+              schema:
+                type: string
+            Last-Modified:
+              description: "Date and time the file was last modified"
+              schema:
+                type: string
+                format: date-time
+            Surrogate-Key:
+              description: "Cache key for surrogate caching"
+              schema:
+                type: string
+            Surrogate-Control:
+              description: "Cache control directives for surrogate caching"
               schema:
                 type: string
           content:
             application/octet-stream: {}
-        '304':
-          description: |
-            File hasn't been modified based on:
-            - file modification time is older than If-Modified-Since
+        "304":
+          description: "File not modified since the condition specified in If-Modified-Since or If-None-Match headers"
           headers:
             Cache-Control:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
-              schema:
-                type: string
-            Content-Length:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Length
-              schema:
-                type: number
-            Content-Type:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type
+              description: "Directives for caching mechanisms"
               schema:
                 type: string
             Etag:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Etag
+              description: "Entity tag for cache validation"
               schema:
                 type: string
-            Last-Modified:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Last-Modified
+            Surrogate-Control:
+              description: "Cache control directives for surrogate caching"
               schema:
                 type: string
-        '412':
-          description: |
-            Some of the conditions specified in the headers failed to match. For instance:
-              - etag doesn't match one of If-Match
-              - etag matches one of If-None-Match
-              - if-unmodified-since is false
+        "412":
+          description: "Precondition failed for conditional request headers (If-Match, If-Unmodified-Since, If-None-Match)"
           headers:
             Cache-Control:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
-              schema:
-                type: string
-            Content-Length:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Length
-              schema:
-                type: number
-            Content-Type:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type
+              description: "Directives for caching mechanisms"
               schema:
                 type: string
             Etag:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Etag
+              description: "Entity tag for cache validation"
               schema:
                 type: string
-            Last-Modified:
-              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Last-Modified
+            Surrogate-Control:
+              description: "Cache control directives for surrogate caching"
               schema:
                 type: string
         default:
-          description: Some error occurred
+          description: "Error occurred"
           headers:
             X-Error:
-              description: An error message
+              description: "Error message details"
               schema:
                 type: string
 
-  /ops/list-orphans:
+  /openapi.yaml:
+    get:
+      summary: "Get OpenAPI specification"
+      description: "Returns the OpenAPI schema definition for this API, allowing clients to understand the available endpoints and models."
+      operationId: getOpenAPISpec
+      tags:
+        - documentation
+        - excludeme
+      responses:
+        "200":
+          description: "OpenAPI schema definition"
+          content:
+            application/x-yaml:
+              schema:
+                type: object
+        default:
+          description: "Error occurred"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /ops/delete-broken-metadata:
     post:
-      summary: Lists orphaned files
-      description: Orphaned files are files that are present in the storage but have no associated metadata
+      summary: Delete broken metadata
+      operationId: deleteBrokenMetadata
+      description: Broken metadata is defined as metadata that has isUploaded = true but there is no file in the storage matching it. This is an admin operation that requires the Hasura admin secret.
       tags:
         - operations
       security:
         - X-Hasura-Admin-Secret: []
       responses:
-        '200':
-          description: Successfully computed orphaned files
+        "200":
+          description: Successfully deleted broken metadata
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  files:
+                  metadata:
                     type: array
                     items:
-                      type: string
+                      $ref: "#/components/schemas/FileSummary"
         default:
           description: En error occured
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/ErrorResponse"
 
   /ops/delete-orphans:
     post:
       summary: Deletes orphaned files
-      description: Orphaned files are files that are present in the storage but have no associated metadata
+      operationId: deleteOrphanedFiles
+      description: Orphaned files are files that are present in the storage but have no associated metadata. This is an admin operation that requires the Hasura admin secret.
       tags:
         - operations
       security:
         - X-Hasura-Admin-Secret: []
       responses:
-        '200':
+        "200":
           description: Successfully deleted orphaned files
           content:
             application/json:
@@ -838,18 +843,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/ErrorResponse"
 
   /ops/list-broken-metadata:
     post:
       summary: Lists broken metadata
-      description: Broken metadata is defined as metadata that has isUploaded = true but there is no file in the storage matching it
+      operationId: listBrokenMetadata
+      description: Broken metadata is defined as metadata that has isUploaded = true but there is no file in the storage matching it. This is an admin operation that requires the Hasura admin secret.
       tags:
         - operations
       security:
         - X-Hasura-Admin-Secret: []
       responses:
-        '200':
+        "200":
           description: Successfully computed broken metadata
           content:
             application/json:
@@ -859,51 +865,25 @@ paths:
                   metadata:
                     type: array
                     items:
-                      $ref: '#/components/schemas/FileSummary'
+                      $ref: "#/components/schemas/FileSummary"
         default:
           description: En error occured
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-
-  /ops/delete-broken-metadata:
-    post:
-      summary: Delete broken metadata
-      description: Broken metadata is defined as metadata that has isUploaded = true but there is no file in the storage matching it
-      tags:
-        - operations
-      security:
-        - X-Hasura-Admin-Secret: []
-      responses:
-        '200':
-          description: Successfully deleted broken metadata
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  metadata:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/FileSummary'
-        default:
-          description: En error occured
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/ErrorResponse"
 
   /ops/list-not-uploaded:
     post:
       summary: Lists files that haven't been uploaded
-      description: That is, metadata that has isUploaded = false
+      operationId: listFilesNotUploaded
+      description: That is, metadata that has isUploaded = false. This is an admin operation that requires the Hasura admin secret.
       tags:
         - operations
       security:
         - X-Hasura-Admin-Secret: []
       responses:
-        '200':
+        "200":
           description: Successfully checked files not uploaded
           content:
             application/json:
@@ -913,10 +893,294 @@ paths:
                   metadata:
                     type: array
                     items:
-                      $ref: '#/components/schemas/FileSummary'
+                      $ref: "#/components/schemas/FileSummary"
         default:
           description: En error occured
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /ops/list-orphans:
+    post:
+      summary: Lists orphaned files
+      operationId: listOrphanedFiles
+      description: Orphaned files are files that are present in the storage but have no associated metadata. This is an admin operation that requires the Hasura admin secret.
+      tags:
+        - operations
+      security:
+        - X-Hasura-Admin-Secret: []
+      responses:
+        "200":
+          description: Successfully computed orphaned files
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  files:
+                    type: array
+                    items:
+                      type: string
+        default:
+          description: En error occured
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /version:
+    get:
+      summary: "Get service version information"
+      description: "Retrieves build and version information about the storage service. Useful for monitoring and debugging."
+      operationId: getVersion
+      tags:
+        - system
+      responses:
+        "200":
+          description: "Version information successfully retrieved"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VersionInformation"
+        default:
+          description: "Error occurred"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  securitySchemes:
+    Authorization:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: API key to authorize requests.
+    X-Hasura-Admin-Secret:
+      type: apiKey
+      name: X-Hasura-Admin-Secret
+      in: header
+      description: "Hasura admin secret key for backend/administrative operations."
+
+  schemas:
+    RFC2822Date:
+      type: string
+      description: "Date in RFC 2822 format"
+      pattern: '^(Mon|Tue|Wed|Thu|Fri|Sat|Sun), \d{1,2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4} \d{2}:\d{2}:\d{2} \w+$'
+      example: "Tue, 12 Aug 2025 12:03:50 GMT"
+      x-go-type: Time
+
+    ErrorResponse:
+      type: object
+      description: "Error information returned by the API."
+      properties:
+        error:
+          type: object
+          additionalProperties: false
+          description: "Error details."
+          properties:
+            message:
+              type: string
+              description: "Human-readable error message."
+              example: "File not found"
+            data:
+              type: object
+              additionalProperties: true
+              description: "Additional data related to the error, if any."
+          required:
+            - message
+      additionalProperties: false
+
+    ErrorResponseWithProcessedFiles:
+      type: object
+      description: "Error information returned by the API."
+      properties:
+        processedFiles:
+          type: array
+          description: "List of files that were successfully processed before the error occurred."
+          items:
+            $ref: "#/components/schemas/FileMetadata"
+        error:
+          type: object
+          additionalProperties: false
+          description: "Error details."
+          properties:
+            message:
+              type: string
+              description: "Human-readable error message."
+              example: "File not found"
+            data:
+              type: object
+              additionalProperties: true
+              description: "Additional data related to the error, if any."
+          required:
+            - message
+      additionalProperties: false
+
+    FileMetadata:
+      type: object
+      description: "Comprehensive metadata information about a file in storage."
+      properties:
+        id:
+          type: string
+          description: "Unique identifier for the file."
+          example: "d5e76ceb-77a2-4153-b7da-1f7c115b2ff2"
+        name:
+          type: string
+          description: "Name of the file including extension."
+          example: "profile-picture.jpg"
+        size:
+          description: "Size of the file in bytes."
+          type: integer
+          format: int64
+          example: 245678
+        bucketId:
+          type: string
+          description: "ID of the bucket containing the file."
+          example: "users-bucket"
+        etag:
+          type: string
+          description: "Entity tag for cache validation."
+          example: '"a1b2c3d4e5f6"'
+        createdAt:
+          type: string
+          format: date-time
+          description: "Timestamp when the file was created."
+          example: "2023-01-15T12:34:56Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: "Timestamp when the file was last updated."
+          example: "2023-01-16T09:45:32Z"
+        isUploaded:
+          type: boolean
+          description: "Whether the file has been successfully uploaded."
+          example: true
+        mimeType:
+          type: string
+          description: "MIME type of the file."
+          example: "image/jpeg"
+        uploadedByUserId:
+          type: string
+          description: "ID of the user who uploaded the file."
+          example: "abc123def456"
+        metadata:
+          type: object
+          additionalProperties: true
+          description: "Custom metadata associated with the file."
+          example: { "alt": "Profile picture", "category": "avatar" }
+      required:
+        - id
+        - name
+        - size
+        - bucketId
+        - etag
+        - createdAt
+        - updatedAt
+        - isUploaded
+        - mimeType
+      additionalProperties: false
+
+    FileSummary:
+      type: object
+      description: "Basic information about a file in storage."
+      properties:
+        id:
+          type: string
+          description: "Unique identifier for the file."
+          example: "d5e76ceb-77a2-4153-b7da-1f7c115b2ff2"
+        name:
+          type: string
+          description: "Name of the file including extension."
+          example: "profile-picture.jpg"
+        bucketId:
+          type: string
+          description: "ID of the bucket containing the file."
+          example: "users-bucket"
+        isUploaded:
+          type: boolean
+          description: "Whether the file has been successfully uploaded."
+          example: true
+      additionalProperties: false
+      required:
+        - id
+        - name
+        - bucketId
+        - isUploaded
+
+    PresignedURLResponse:
+      type: object
+      description: "Contains a presigned URL for direct file operations."
+      properties:
+        url:
+          type: string
+          description: "The presigned URL for file operations."
+          example: "https://storage.example.com/files/abc123?signature=xyz"
+        expiration:
+          type: integer
+          description: "The time in seconds until the URL expires."
+          example: 3600
+      required:
+        - url
+        - expiration
+      additionalProperties: false
+
+    UpdateFileMetadata:
+      type: object
+      description: "Metadata that can be updated for an existing file."
+      properties:
+        name:
+          type: string
+          description: "New name to assign to the file."
+          example: "renamed-file.jpg"
+        metadata:
+          type: object
+          additionalProperties: true
+          description: "Updated custom metadata to associate with the file."
+          example: { "alt": "Updated image description", "category": "profile" }
+      additionalProperties: false
+
+    UploadFileMetadata:
+      type: object
+      description: "Metadata provided when uploading a new file."
+      properties:
+        id:
+          type: string
+          description: "Optional custom ID for the file. If not provided, a UUID will be generated."
+          example: "custom-id-123"
+        name:
+          type: string
+          description: "Name to assign to the file. If not provided, the original filename will be used."
+          example: "custom-filename.png"
+        metadata:
+          type: object
+          additionalProperties: true
+          description: "Custom metadata to associate with the file."
+          example: { "alt": "Custom image", "category": "document" }
+      additionalProperties: false
+
+    VersionInformation:
+      type: object
+      description: "Contains version information about the storage service."
+      additionalProperties: false
+      properties:
+        buildVersion:
+          type: string
+          description: "The version number of the storage service build."
+          example: "1.2.3"
+      required:
+        - buildVersion
+
+    OutputImageFormat:
+      type: string
+      description: "Output format for image files. Use 'auto' for content negotiation based on Accept header"
+      default: same
+      enum:
+        - auto
+        - same
+        - jpeg
+        - webp
+        - png
+        - avif
+      example: same

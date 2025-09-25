@@ -1,32 +1,55 @@
----
+version: "2"
 linters:
-    enable-all: true
-    disable:
-      - varnamelen
-      - gomoddirectives
-      - nlreturn
-      - wsl
-      - usestdlibvars # needs to be fixed
-      - exhaustruct   # needs to be fixed
-      - depguard
-      - tenv
-
-issues:
-  exclude-rules:
-    - path: cmd/
-      linters:
-        - gochecknoinits
-        - gochecknoglobals
-    - linters:
-        - lll
-      source: "^//go:generate "
-    - path: controller/version.go
-      linters:
-        - gochecknoglobals
-    - path: _test\.go
-      linters:
-        - funlen
-        - ireturn
-    - path: image/image.go
-      linters:
-        - nosnakecase
+  default: all
+  disable:
+    - depguard
+    - gomoddirectives
+    - nlreturn
+    - usestdlibvars
+    - varnamelen
+    - wsl
+    - noinlineerr
+    - funcorder
+    - canonicalheader
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - gochecknoglobals
+          - gochecknoinits
+        path: cmd/
+      - linters:
+          - lll
+        source: '^//go:generate '
+      - linters:
+          - gochecknoglobals
+        path: controller/version.go
+      - linters:
+          - funlen
+          - ireturn
+          - exhaustruct
+        path: _test\.go
+      - linters:
+          - nosnakecase
+        path: image/image.go
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gci
+    - gofmt
+    - gofumpt
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

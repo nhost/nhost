@@ -13,6 +13,7 @@ func addBoolFlag(
 	help string,
 ) {
 	flags.Bool(name, defaultValue, help)
+
 	if err := viper.BindPFlag(name, flags.Lookup(name)); err != nil {
 		cobra.CheckErr(err)
 	}
@@ -20,6 +21,7 @@ func addBoolFlag(
 
 func addStringFlag(flags *pflag.FlagSet, name string, defaultValue string, help string) {
 	flags.String(name, defaultValue, help)
+
 	if err := viper.BindPFlag(name, flags.Lookup(name)); err != nil {
 		cobra.CheckErr(err)
 	}
@@ -27,6 +29,7 @@ func addStringFlag(flags *pflag.FlagSet, name string, defaultValue string, help 
 
 func addStringArrayFlag(flags *pflag.FlagSet, name string, defaultValue []string, help string) {
 	flags.StringArray(name, defaultValue, help)
+
 	if err := viper.BindPFlag(name, flags.Lookup(name)); err != nil {
 		cobra.CheckErr(err)
 	}

@@ -1,88 +1,144 @@
-//go:build integration
-// +build integration
-
 package client_test
 
 import (
 	"context"
-	"os"
+	"net/http"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
 	"github.com/nhost/hasura-storage/client"
-	"github.com/nhost/hasura-storage/controller"
 )
 
 func TestDeleteFile(t *testing.T) {
-	baseURL := "http://localhost:8000/v1"
-	cl := client.New(baseURL, os.Getenv("HASURA_AUTH_BEARER"))
+	t.Parallel()
+
+	cl, err := client.NewClientWithResponses(testBaseURL)
+	if err != nil {
+		t.Fatalf("failed to create client: %v", err)
+	}
 
 	id1 := uuid.NewString()
+	id2 := uuid.NewString()
 
-	file := fileHelper{
-		path: "testdata/alphabet.txt",
-		id:   id1,
-	}
-
-	_, err := uploadFiles(t, cl, file)
-	if err != nil {
-		t.Fatal(err)
-	}
+	uploadInitialFile(t, cl, id1, id2)
 
 	cases := []struct {
-		name        string
-		fileID      string
-		expectedErr error
+		name               string
+		id                 string
+		interceptor        func(ctx context.Context, req *http.Request) error
+		expectedStatusCode int
+		expectedHeader     http.Header
+		expectedCmpOpts    []cmp.Option
+		expectedErr        *client.ErrorResponse
 	}{
 		{
-			name:   "success",
-			fileID: id1,
+			name:               "simple delete",
+			id:                 id1,
+			interceptor:        WithAccessToken(accessTokenValidUser),
+			expectedStatusCode: http.StatusNoContent,
+			expectedHeader: http.Header{
+				"Date": {"Mon, 21 Jul 2025 14:45:00 GMT"},
+			},
+			expectedCmpOpts: []cmp.Option{
+				cmpopts.IgnoreFields(client.FileMetadata{}, "Id"),
+			},
+			expectedErr: nil,
 		},
 		{
-			name:   "wrong id",
-			fileID: "asdadasdads",
-			expectedErr: &client.APIResponseError{
-				StatusCode: 400,
-				ErrorResponse: &controller.ErrorResponse{
-					Message: `{"networkErrors":null,"graphqlErrors":[{"message":"invalid input syntax for type uuid: \"asdadasdads\"","extensions":{"code":"data-exception","path":"$"}}]}`,
+			name:               "wrong id",
+			id:                 uuid.NewString(),
+			interceptor:        WithAccessToken(accessTokenValidUser),
+			expectedStatusCode: http.StatusNotFound,
+			expectedHeader: http.Header{
+				"Content-Length": {"51"},
+				"Content-Type":   {"application/json"},
+				"Date":           {"Mon, 21 Jul 2025 14:45:00 GMT"},
+				"X-Error":        {"file not found"},
+			},
+			expectedCmpOpts: []cmp.Option{
+				cmpopts.IgnoreFields(client.FileMetadata{}, "Id"),
+			},
+			expectedErr: &client.ErrorResponse{
+				Error: &struct {
+					Data    *map[string]any `json:"data,omitempty"`
+					Message string          `json:"message"`
+				}{
+					Data:    nil,
+					Message: "file not found",
 				},
-				Response: nil,
 			},
 		},
 		{
-			name:   "not found",
-			fileID: "08c75a05-1b6a-42aa-b5ba-d9e1d5f3e8ca",
-			expectedErr: &client.APIResponseError{
-				StatusCode: 404,
-				ErrorResponse: &controller.ErrorResponse{
-					Message: "file not found",
+			name:               "no permissions",
+			id:                 uuid.NewString(),
+			interceptor:        nil,
+			expectedStatusCode: http.StatusForbidden,
+			expectedHeader: http.Header{
+				"Content-Length": {"59"},
+				"Content-Type":   {"application/json"},
+				"Date":           {"Mon, 21 Jul 2025 14:45:00 GMT"},
+				"X-Error":        {"you are not authorized"},
+			},
+			expectedCmpOpts: []cmp.Option{
+				cmpopts.IgnoreFields(client.FileMetadata{}, "Id"),
+			},
+			expectedErr: &client.ErrorResponse{
+				Error: &struct {
+					Data    *map[string]any `json:"data,omitempty"`
+					Message string          `json:"message"`
+				}{
+					Data:    nil,
+					Message: "you are not authorized",
 				},
-				Response: nil,
 			},
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := cl.DeleteFile(context.Background(), tc.fileID)
+			t.Parallel()
 
-			if !cmp.Equal(err, tc.expectedErr) {
-				t.Error(cmp.Diff(err, tc.expectedErr))
+			var interceptor []client.RequestEditorFn
+			if tc.interceptor != nil {
+				interceptor = []client.RequestEditorFn{
+					tc.interceptor,
+				}
 			}
 
-			if err == nil {
-				_, err := cl.GetFile(context.Background(), tc.fileID)
-				fileNotFoundErr := &client.APIResponseError{
-					StatusCode: 404,
-					ErrorResponse: &controller.ErrorResponse{
-						Message: "file not found",
-					},
-					Response: nil,
-				}
-				if !cmp.Equal(err, fileNotFoundErr) {
-					t.Error(cmp.Diff(err, fileNotFoundErr))
-				}
+			resp, err := cl.DeleteFileWithResponse(
+				t.Context(),
+				tc.id,
+				interceptor...,
+			)
+			if err != nil {
+				t.Fatalf("failed to delete file: %v", err)
+			}
+
+			if resp.StatusCode() != tc.expectedStatusCode {
+				t.Errorf(
+					"expected status code %d, got %d", tc.expectedStatusCode, resp.StatusCode(),
+				)
+			}
+
+			opts := append(
+				cmp.Options{
+					cmpopts.IgnoreFields(client.FileMetadata{}, "CreatedAt", "UpdatedAt"),
+				},
+				tc.expectedCmpOpts...,
+			)
+
+			if diff := cmp.Diff(resp.JSONDefault, tc.expectedErr, opts); diff != "" {
+				t.Errorf("unexpected error response: %s", diff)
+			}
+
+			if diff := cmp.Diff(
+				resp.HTTPResponse.Header,
+				tc.expectedHeader,
+				IgnoreResponseHeaders(),
+			); diff != "" {
+				t.Errorf("unexpected headers: %s", diff)
 			}
 		})
 	}

@@ -10,13 +10,15 @@ models:
   jsonb:
     model:
       - github.com/99designs/gqlgen/graphql.Map
+  timestamptz:
+    model:
+      - github.com/99designs/gqlgen/graphql.Time
 
 endpoint:
   url: http://localhost:8080/v1/graphql
   headers:
-    X-Hasura-admin-secret: "hello123"
+    X-Hasura-admin-secret: "nhost-admin-secret"
 query:
   - "./metadata/*.graphql"
 generate:
   clientV2: true
-  omitEmptyTypes: true

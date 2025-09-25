@@ -1,13 +1,14 @@
 package clamd
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
 )
 
-func (c *Client) InStream(r io.ReaderAt) error { //nolint: cyclop
-	conn, err := c.Dial()
+func (c *Client) InStream(ctx context.Context, r io.ReaderAt) error { //nolint: cyclop
+	conn, err := c.Dial(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to dial: %w", err)
 	}
@@ -18,6 +19,7 @@ func (c *Client) InStream(r io.ReaderAt) error { //nolint: cyclop
 	}
 
 	var iter int64
+
 	for {
 		buf := make([]byte, chunkSize)
 
@@ -33,6 +35,7 @@ func (c *Client) InStream(r io.ReaderAt) error { //nolint: cyclop
 		if errors.Is(err, io.EOF) {
 			break
 		}
+
 		if err != nil {
 			return fmt.Errorf("failed to read chunk: %w", err)
 		}

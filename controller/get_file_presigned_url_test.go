@@ -1,12 +1,11 @@
 package controller_test
 
 import (
-	"encoding/json"
-	"net/http"
-	"net/http/httptest"
+	"fmt"
 	"testing"
 	"time"
 
+	"github.com/nhost/hasura-storage/api"
 	"github.com/nhost/hasura-storage/controller"
 	"github.com/nhost/hasura-storage/controller/mock"
 	"github.com/sirupsen/logrus"
@@ -49,17 +48,17 @@ func TestGetFilePresignedURL(t *testing.T) {
 			if tc.fileFound {
 				metadataStorage.EXPECT().GetFileByID(
 					gomock.Any(), "55af1e60-0f28-454e-885e-ea6aab2bb288", gomock.Any(),
-				).Return(controller.FileMetadata{
-					ID:               "55af1e60-0f28-454e-885e-ea6aab2bb288",
+				).Return(api.FileMetadata{
+					Id:               "55af1e60-0f28-454e-885e-ea6aab2bb288",
 					Name:             "my-file.txt",
 					Size:             64,
-					BucketID:         "default",
-					ETag:             "\"55af1e60-0f28-454e-885e-ea6aab2bb288\"",
-					CreatedAt:        "2021-12-27T09:58:11Z",
-					UpdatedAt:        "2021-12-27T09:58:11Z",
+					BucketId:         "default",
+					Etag:             "\"55af1e60-0f28-454e-885e-ea6aab2bb288\"",
+					CreatedAt:        time.Date(2021, 12, 27, 9, 58, 11, 0, time.UTC),
+					UpdatedAt:        time.Date(2021, 12, 27, 9, 58, 11, 0, time.UTC),
 					IsUploaded:       true,
 					MimeType:         "text/plain; charset=utf-8",
-					UploadedByUserID: "0f7f0ff0-f945-4597-89e1-3636b16775cd",
+					UploadedByUserId: nil,
 				}, nil)
 
 				metadataStorage.EXPECT().GetBucketByID(
@@ -83,7 +82,7 @@ func TestGetFilePresignedURL(t *testing.T) {
 			} else {
 				metadataStorage.EXPECT().GetFileByID(
 					gomock.Any(), "55af1e60-0f28-454e-885e-ea6aab2bb288", gomock.Any(),
-				).Return(controller.FileMetadata{},
+				).Return(api.FileMetadata{},
 					controller.ErrFileNotFound)
 			}
 
@@ -98,42 +97,24 @@ func TestGetFilePresignedURL(t *testing.T) {
 				logger,
 			)
 
-			router, _ := ctrl.SetupRouter(nil, "/v1", []string{"*"}, false, ginLogger(logger))
-
-			responseRecorder := httptest.NewRecorder()
-
-			req, err := http.NewRequestWithContext(
+			resp, err := ctrl.GetFilePresignedURL(
 				t.Context(),
-				"GET",
-				"/v1/files/55af1e60-0f28-454e-885e-ea6aab2bb288/presignedurl",
-				nil,
+				api.GetFilePresignedURLRequestObject{
+					Id: "55af1e60-0f28-454e-885e-ea6aab2bb288",
+				},
 			)
 			if err != nil {
-				t.Fatal(err)
-			}
-
-			router.ServeHTTP(responseRecorder, req)
-
-			assert(t, tc.expectedStatus, responseRecorder.Code)
-
-			assert(t, responseRecorder.Header(), http.Header{
-				"Content-Type": {"application/json; charset=utf-8"},
-			})
-
-			resp := &controller.GetFilePresignedURLResponse{}
-			if err := json.Unmarshal(responseRecorder.Body.Bytes(), resp); err != nil {
-				t.Error(err)
+				t.Fatalf("unexpected error: %v", err)
 			}
 
 			if tc.fileFound {
-				assert(t, resp, &controller.GetFilePresignedURLResponse{
-					URL:        "http://asd/v1/files/55af1e60-0f28-454e-885e-ea6aab2bb288/presignedurl/content?this-is-the-signature", //nolint: lll
+				expectedResp := api.GetFilePresignedURL200JSONResponse{
+					Url:        "http://asd/v1/files/55af1e60-0f28-454e-885e-ea6aab2bb288/presignedurl/contents?this-is-the-signature",
 					Expiration: 30,
-				})
+				}
+				assert(t, expectedResp, resp)
 			} else {
-				assert(t, resp, &controller.GetFilePresignedURLResponse{
-					Error: &controller.ErrorResponse{Message: "file not found"},
-				})
+				assert(t, "*controller.APIError", fmt.Sprintf("%T", resp))
 			}
 		})
 	}

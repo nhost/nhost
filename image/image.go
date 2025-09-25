@@ -29,7 +29,7 @@ const (
 type Options struct {
 	Height         int
 	Width          int
-	Blur           float64
+	Blur           float32
 	Quality        int
 	OriginalFormat ImageType
 	Format         ImageType
@@ -55,6 +55,7 @@ func (o Options) FormatMimeType() string {
 	case ImageTypeAVIF:
 		return "image/avif"
 	}
+
 	return ""
 }
 
@@ -69,6 +70,7 @@ func (o Options) FileExtension() string {
 	case ImageTypeAVIF:
 		return "avif"
 	}
+
 	return ""
 }
 
@@ -103,8 +105,10 @@ func (t *Transformer) Shutdown() {
 }
 
 func export(image *vips.ImageRef, opts Options) ([]byte, error) {
-	var b []byte
-	var err error
+	var (
+		b   []byte
+		err error
+	)
 
 	switch opts.Format {
 	case ImageTypeJPEG:
@@ -147,7 +151,7 @@ func processImage(image *vips.ImageRef, opts Options) error {
 	}
 
 	if opts.Blur > 0 {
-		if err := image.GaussianBlur(opts.Blur); err != nil {
+		if err := image.GaussianBlur(float64(opts.Blur)); err != nil {
 			return fmt.Errorf("failed to blur: %w", err)
 		}
 	}
@@ -163,6 +167,7 @@ func (t *Transformer) Run(
 ) error {
 	// this is to avoid processing too many images at the same time in order to save memory
 	<-t.workers
+
 	defer func() { t.workers <- struct{}{} }()
 
 	buf, _ := t.pool.Get().(*bytes.Buffer)
@@ -172,6 +177,7 @@ func (t *Transformer) Run(
 	if length > math.MaxUint32 {
 		panic("length is too big")
 	}
+
 	if l := int(length); buf.Len() < l {
 		buf.Grow(l)
 	}

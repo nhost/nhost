@@ -21,6 +21,7 @@ import (
 
 const (
 	headerToRemoveCacheControl = "X-Remove-Cache-Control-If-Not-Modified"
+	fileChangedContextKey      = "middleware.cdn.file_changed"
 )
 
 type fastly struct {
@@ -28,8 +29,18 @@ type fastly struct {
 	apiKey    string
 }
 
+func FileChangedToContext(ctx context.Context, id string) {
+	ginCtx, ok := ctx.(*gin.Context)
+	if !ok {
+		return
+	}
+
+	ginCtx.Set(fileChangedContextKey, id)
+}
+
 func (fst *fastly) purge(ctx context.Context, key string) error {
-	client := &http.Client{}
+	client := &http.Client{} //nolint:exhaustruct
+
 	req, err := http.NewRequestWithContext(
 		ctx,
 		"POST",
@@ -39,7 +50,9 @@ func (fst *fastly) purge(ctx context.Context, key string) error {
 	if err != nil {
 		return fmt.Errorf("failed to create purge request: %w", err)
 	}
+
 	req.Header.Set("Fastly-Key", fst.apiKey)
+
 	resp, err := client.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to purge: %w", err)
@@ -47,7 +60,7 @@ func (fst *fastly) purge(ctx context.Context, key string) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("failed to purge: %s", resp.Status) //nolint: goerr113
+		return fmt.Errorf("failed to purge: %s", resp.Status) //nolint: err113
 	}
 
 	return nil
@@ -55,9 +68,9 @@ func (fst *fastly) purge(ctx context.Context, key string) error {
 
 func New(serviceID string, apiKey string, logger *logrus.Logger) gin.HandlerFunc {
 	fst := &fastly{serviceID, apiKey}
+
 	return func(ctx *gin.Context) {
 		// before request
-
 		ctx.Next()
 
 		// after request
@@ -73,13 +86,10 @@ func New(serviceID string, apiKey string, logger *logrus.Logger) gin.HandlerFunc
 			ctx.Writer.Header().Del("Surrogate-Control")
 		}
 
-		if id, ok := ctx.Get("FileChanged"); ok {
+		if id := ctx.GetString(fileChangedContextKey); id != "" {
 			logger.WithField("key", id).Debug("purging file from cdn")
-			ids, ok := id.(string)
-			if !ok {
-				logger.WithField("key", id).Error("failed to cast key to string")
-			}
-			if err := fst.purge(ctx, ids); err != nil {
+
+			if err := fst.purge(ctx, id); err != nil {
 				logger.WithField("key", id).WithError(err).Error("failed to purge file from cdn")
 			}
 		}

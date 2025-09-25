@@ -1,5 +1,6 @@
 .direnv
 .envrc
+.envrc.custom
 bin
 result
 go.work

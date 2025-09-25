@@ -1,349 +1,454 @@
-//go:build integration
-// +build integration
-
 package client_test
 
 import (
-	"crypto/sha256"
-	"fmt"
-	"io"
+	"context"
+	"net/http"
 	"os"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
 	"github.com/nhost/hasura-storage/client"
-	"github.com/nhost/hasura-storage/controller"
-	"golang.org/x/net/context"
 )
 
-func TestGetFile(t *testing.T) {
-	baseURL := "http://localhost:8000/v1"
-	cl := client.New(baseURL, os.Getenv("HASURA_AUTH_BEARER"))
+func uploadInitialFile(t *testing.T, cl client.ClientWithResponsesInterface, id1, id2 string) {
+	t.Helper()
 
-	files := []fileHelper{
-		{
-			path: "testdata/alphabet.txt",
-			id:   uuid.NewString(),
-		},
-		{
-			path: "testdata/nhost.jpg",
-			id:   uuid.NewString(),
-		},
-	}
-
-	testFiles, err := uploadFiles(t, cl, files...)
+	f, err := os.OpenFile("testdata/nhost.jpg", os.O_RDONLY, 0o644)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("failed to read test file: %v", err)
 	}
+	defer f.Close()
+
+	body, contentType, err := client.CreateUploadMultiForm(
+		"default",
+		client.NewFile(
+			"testfile.txt",
+			strings.NewReader("Hello, World!"),
+			&client.UploadFileMetadata{
+				Id: ptr(id1),
+			},
+		),
+		client.NewFile(
+			"nhost.jpg",
+			f,
+			&client.UploadFileMetadata{
+				Id: ptr(id2),
+			},
+		),
+	)
+	if err != nil {
+		t.Fatalf("failed to create upload multi-form: %v", err)
+	}
+
+	resp, err := cl.UploadFilesWithBodyWithResponse(
+		t.Context(),
+		contentType,
+		body,
+		WithAccessToken(accessTokenValidUser),
+	)
+	if err != nil {
+		t.Fatalf("failed to upload files: %v", err)
+	}
+
+	if resp.JSONDefault != nil {
+		t.Fatalf("unexpected error response: %v", resp.JSONDefault)
+	}
+
+	if len(resp.JSON201.ProcessedFiles) == 0 {
+		t.Fatal("no files were processed")
+	}
+}
+
+func TestGetFile(t *testing.T) { //nolint:maintidx
+	t.Parallel()
+
+	cl, err := client.NewClientWithResponses(testBaseURL)
+	if err != nil {
+		t.Fatalf("failed to create client: %v", err)
+	}
+
+	id1 := uuid.NewString()
+	id2 := uuid.NewString()
+
+	uploadInitialFile(t, cl, id1, id2)
 
 	cases := []struct {
-		name        string
-		id          string
-		expected    *client.FileInformationHeaderWithReader
-		expectedSha string
-		expectedErr error
-		opts        []client.GetFileInformationOpt
+		name               string
+		id                 string
+		params             *client.GetFileParams
+		interceptor        func(ctx context.Context, req *http.Request) error
+		expectedStatusCode int
+		expectedBody       string
+		expectedHeaders    http.Header
 	}{
 		{
-			name: "get file, range",
-			id:   testFiles.ProcessedFiles[0].ID,
-			opts: []client.GetFileInformationOpt{client.WithRange("bytes=1-3")},
-			expected: &client.FileInformationHeaderWithReader{
-				Filename: "alphabet.txt",
-				FileInformationHeader: &client.FileInformationHeader{
-					CacheControl:  "max-age=3600",
-					ContentLength: 3,
-					ContentType:   "text/plain; charset=utf-8",
-					Etag:          `"588be441fe7a59460850b0aa3e1c5a65"`,
-					LastModified:  "Tue, 18 Jan 2022 13:18:04 UTC",
-					StatusCode:    206,
-				},
-			},
-			expectedSha: "f7000c92088f827e35e0280d3b6ae7afbaccbc9ad5c9f9159df5f0202852107c",
-		},
-		{
-			name: "get file, if-match==etag",
-			id:   testFiles.ProcessedFiles[0].ID,
-			opts: []client.GetFileInformationOpt{
-				client.WithIfMatch(testFiles.ProcessedFiles[0].ETag),
-			},
-			expected: &client.FileInformationHeaderWithReader{
-				Filename: "alphabet.txt",
-				FileInformationHeader: &client.FileInformationHeader{
-					CacheControl:  "max-age=3600",
-					ContentLength: 63,
-					ContentType:   "text/plain; charset=utf-8",
-					Etag:          `"588be441fe7a59460850b0aa3e1c5a65"`,
-					LastModified:  "Tue, 18 Jan 2022 13:18:04 UTC",
-					StatusCode:    200,
-				},
-			},
-			expectedSha: "2e7ef00280a48b02e0d77d4727db841b311a7c12e755b43f66ead3e451a9611e",
-		},
-		{
-			name: "get file, if-match!=etag",
-			id:   testFiles.ProcessedFiles[0].ID,
-			opts: []client.GetFileInformationOpt{client.WithIfMatch("garbage")},
-			expected: &client.FileInformationHeaderWithReader{
-				FileInformationHeader: &client.FileInformationHeader{
-					CacheControl:  "max-age=3600",
-					ContentLength: 63,
-					ContentType:   "text/plain; charset=utf-8",
-					Etag:          `"588be441fe7a59460850b0aa3e1c5a65"`,
-					LastModified:  "Tue, 18 Jan 2022 13:18:04 UTC",
-					StatusCode:    412,
-				},
+			name:               "simple get",
+			id:                 id1,
+			params:             nil,
+			interceptor:        WithAccessToken(accessTokenValidUser),
+			expectedStatusCode: http.StatusOK,
+			expectedBody:       "Hello, World!",
+			expectedHeaders: http.Header{
+				"Accept-Ranges":       []string{"bytes"},
+				"Cache-Control":       []string{"max-age=3600"},
+				"Content-Disposition": []string{`inline; filename="testfile.txt"`},
+				"Content-Length":      []string{"13"},
+				"Content-Type":        []string{"text/plain; charset=utf-8"},
+				"Date":                []string{"Mon, 21 Jul 2025 13:24:53 GMT"},
+				"Etag":                []string{`"65a8e27d8879283831b664bd8b7f0ad4"`},
+				"Last-Modified":       []string{"2025-07-21 13:24:53.586273 +0000 +0000"},
+				"Surrogate-Control":   []string{"max-age=3600"},
+				"Surrogate-Key":       []string{"d505075a-ee28-4a02-b27a-5973fd2ea35f"},
 			},
 		},
 		{
-			name: "get file, if-none-match==etag",
-			id:   testFiles.ProcessedFiles[0].ID,
-			opts: []client.GetFileInformationOpt{
-				client.WithNoneMatch(testFiles.ProcessedFiles[0].ETag),
+			name: "IfMatch matches",
+			id:   id1,
+			params: &client.GetFileParams{
+				IfMatch: ptr(`"65a8e27d8879283831b664bd8b7f0ad4"`),
 			},
-			expected: &client.FileInformationHeaderWithReader{
-				FileInformationHeader: &client.FileInformationHeader{
-					CacheControl:  "max-age=3600",
-					ContentLength: 0,
-					ContentType:   "",
-					Etag:          `"588be441fe7a59460850b0aa3e1c5a65"`,
-					LastModified:  "Tue, 18 Jan 2022 13:18:04 UTC",
-					StatusCode:    304,
-				},
-			},
-		},
-		{
-			name: "get file, if-none-match!=etag",
-			id:   testFiles.ProcessedFiles[0].ID,
-			opts: []client.GetFileInformationOpt{client.WithNoneMatch("garbage")},
-			expected: &client.FileInformationHeaderWithReader{
-				Filename: "alphabet.txt",
-				FileInformationHeader: &client.FileInformationHeader{
-					CacheControl:  "max-age=3600",
-					ContentLength: 63,
-					ContentType:   "text/plain; charset=utf-8",
-					Etag:          `"588be441fe7a59460850b0aa3e1c5a65"`,
-					LastModified:  "Tue, 18 Jan 2022 13:18:04 UTC",
-					StatusCode:    200,
-				},
-			},
-			expectedSha: "2e7ef00280a48b02e0d77d4727db841b311a7c12e755b43f66ead3e451a9611e",
-		},
-		{
-			name: "get file, if-modified-since!=date",
-			id:   testFiles.ProcessedFiles[0].ID,
-			opts: []client.GetFileInformationOpt{
-				client.WithIfModifiedSince("Thu, 23 Dec 2025 10:00:00 UTC"),
-			},
-			expected: &client.FileInformationHeaderWithReader{
-				FileInformationHeader: &client.FileInformationHeader{
-					CacheControl:  "max-age=3600",
-					ContentLength: 0,
-					ContentType:   "",
-					Etag:          `"588be441fe7a59460850b0aa3e1c5a65"`,
-					LastModified:  "Tue, 18 Jan 2022 13:18:04 UTC",
-					StatusCode:    304,
-				},
+			interceptor:        WithAccessToken(accessTokenValidUser),
+			expectedStatusCode: http.StatusOK,
+			expectedBody:       "Hello, World!",
+			expectedHeaders: http.Header{
+				"Accept-Ranges":       []string{"bytes"},
+				"Cache-Control":       []string{"max-age=3600"},
+				"Content-Disposition": []string{`inline; filename="testfile.txt"`},
+				"Content-Length":      []string{"13"},
+				"Content-Type":        []string{"text/plain; charset=utf-8"},
+				"Date":                []string{"Mon, 21 Jul 2025 13:24:53 GMT"},
+				"Etag":                []string{`"65a8e27d8879283831b664bd8b7f0ad4"`},
+				"Last-Modified":       []string{"2025-07-21 13:24:53.586273 +0000 +0000"},
+				"Surrogate-Control":   []string{"max-age=3600"},
+				"Surrogate-Key":       []string{"d505075a-ee28-4a02-b27a-5973fd2ea35f"},
 			},
 		},
 		{
-			name: "get file, if-modified-since==date",
-			id:   testFiles.ProcessedFiles[0].ID,
-			opts: []client.GetFileInformationOpt{
-				client.WithIfModifiedSince("Thu, 23 Dec 2020 10:00:00 UTC"),
+			name: "IfMatch does not match",
+			id:   id1,
+			params: &client.GetFileParams{
+				IfMatch: ptr(`"85a8e27d8879283831b664bd8b7f0ad4"`),
 			},
-			expected: &client.FileInformationHeaderWithReader{
-				Filename: "alphabet.txt",
-				FileInformationHeader: &client.FileInformationHeader{
-					CacheControl:  "max-age=3600",
-					ContentLength: 63,
-					ContentType:   "text/plain; charset=utf-8",
-					Etag:          `"588be441fe7a59460850b0aa3e1c5a65"`,
-					LastModified:  "Tue, 18 Jan 2022 13:18:04 UTC",
-					StatusCode:    200,
-				},
-			},
-			expectedSha: "2e7ef00280a48b02e0d77d4727db841b311a7c12e755b43f66ead3e451a9611e",
-		},
-		{
-			name: "get file, if-unmodified-since!=date",
-			id:   testFiles.ProcessedFiles[0].ID,
-			opts: []client.GetFileInformationOpt{
-				client.WithIfUnmodifiedSince("Thu, 23 Dec 2025 10:00:00 UTC"),
-			},
-			expected: &client.FileInformationHeaderWithReader{
-				Filename: "alphabet.txt",
-				FileInformationHeader: &client.FileInformationHeader{
-					CacheControl:  "max-age=3600",
-					ContentLength: 63,
-					ContentType:   "text/plain; charset=utf-8",
-					Etag:          `"588be441fe7a59460850b0aa3e1c5a65"`,
-					LastModified:  "Tue, 18 Jan 2022 13:18:04 UTC",
-					StatusCode:    200,
-				},
-			},
-			expectedSha: "2e7ef00280a48b02e0d77d4727db841b311a7c12e755b43f66ead3e451a9611e",
-		},
-		{
-			name: "get file, if-unmodified-since==date",
-			id:   testFiles.ProcessedFiles[0].ID,
-			opts: []client.GetFileInformationOpt{
-				client.WithIfUnmodifiedSince("Thu, 23 Dec 2020 10:00:00 UTC"),
-			},
-			expected: &client.FileInformationHeaderWithReader{
-				FileInformationHeader: &client.FileInformationHeader{
-					CacheControl:  "max-age=3600",
-					ContentLength: 63,
-					ContentType:   "text/plain; charset=utf-8",
-					Etag:          `"588be441fe7a59460850b0aa3e1c5a65"`,
-					LastModified:  "Tue, 18 Jan 2022 13:18:04 UTC",
-					StatusCode:    412,
-				},
+			interceptor:        WithAccessToken(accessTokenValidUser),
+			expectedStatusCode: http.StatusPreconditionFailed,
+			expectedBody:       "",
+			expectedHeaders: http.Header{
+				"Cache-Control":     []string{"max-age=3600"},
+				"Content-Length":    []string{"0"},
+				"Date":              []string{"Mon, 21 Jul 2025 13:24:53 GMT"},
+				"Etag":              []string{`"65a8e27d8879283831b664bd8b7f0ad4"`},
+				"Last-Modified":     []string{"2025-07-21 13:24:53.586273 +0000 +0000"},
+				"Surrogate-Control": []string{"max-age=3600"},
+				"Surrogate-Key":     []string{"d505075a-ee28-4a02-b27a-5973fd2ea35f"},
 			},
 		},
 		{
-			name: "bad id",
-			id:   "asdadasdads",
-			expectedErr: &client.APIResponseError{
-				StatusCode: 400,
-				ErrorResponse: &controller.ErrorResponse{
-					Message: `{"networkErrors":null,"graphqlErrors":[{"message":"invalid input syntax for type uuid: \"asdadasdads\"","extensions":{"code":"data-exception","path":"$"}}]}`,
-				},
-				Response: nil,
+			name: "IfNoneMatch matches",
+			id:   id1,
+			params: &client.GetFileParams{
+				IfNoneMatch: ptr(`"65a8e27d8879283831b664bd8b7f0ad4"`),
+			},
+			interceptor:        WithAccessToken(accessTokenValidUser),
+			expectedStatusCode: http.StatusNotModified,
+			expectedBody:       "",
+			expectedHeaders: http.Header{
+				"Cache-Control":     []string{"max-age=3600"},
+				"Date":              []string{"Mon, 21 Jul 2025 13:24:53 GMT"},
+				"Etag":              []string{`"65a8e27d8879283831b664bd8b7f0ad4"`},
+				"Last-Modified":     []string{"2025-07-21 13:24:53.586273 +0000 +0000"},
+				"Surrogate-Control": []string{"max-age=3600"},
+				"Surrogate-Key":     []string{"d505075a-ee28-4a02-b27a-5973fd2ea35f"},
 			},
 		},
 		{
-			name: "not found",
-			id:   "93aa5806-3050-4810-817a-c917245bb6c1",
-			expectedErr: &client.APIResponseError{
-				StatusCode: 404,
-				ErrorResponse: &controller.ErrorResponse{
-					Message: "file not found",
-				},
-				Response: nil,
+			name: "IfNoneMatch does not match",
+			id:   id1,
+			params: &client.GetFileParams{
+				IfNoneMatch: ptr(`"85a8e27d8879283831b664bd8b7f0ad4"`),
+			},
+			interceptor:        WithAccessToken(accessTokenValidUser),
+			expectedStatusCode: http.StatusOK,
+			expectedBody:       "Hello, World!",
+			expectedHeaders: http.Header{
+				"Accept-Ranges":       []string{"bytes"},
+				"Cache-Control":       []string{"max-age=3600"},
+				"Content-Disposition": []string{`inline; filename="testfile.txt"`},
+				"Content-Length":      []string{"13"},
+				"Content-Type":        []string{"text/plain; charset=utf-8"},
+				"Date":                []string{"Mon, 21 Jul 2025 13:24:53 GMT"},
+				"Etag":                []string{`"65a8e27d8879283831b664bd8b7f0ad4"`},
+				"Last-Modified":       []string{"2025-07-21 13:24:53.586273 +0000 +0000"},
+				"Surrogate-Control":   []string{"max-age=3600"},
+				"Surrogate-Key":       []string{"d505075a-ee28-4a02-b27a-5973fd2ea35f"},
 			},
 		},
-
 		{
-			name: "get image, if-match==etag",
-			id:   testFiles.ProcessedFiles[1].ID,
-			opts: []client.GetFileInformationOpt{
-				client.WithIfMatch(testFiles.ProcessedFiles[1].ETag),
+			name: "IfModifiedSince matches",
+			id:   id1,
+			params: &client.GetFileParams{
+				IfModifiedSince: ptr(client.NewTime(time.Now().Add(-time.Hour))),
 			},
-			expected: &client.FileInformationHeaderWithReader{
-				Filename: "nhost.jpg",
-				FileInformationHeader: &client.FileInformationHeader{
-					CacheControl:  "max-age=3600",
-					ContentLength: 33399,
-					ContentType:   "image/jpeg",
-					Etag:          `"78b676e65ebc31f0bb1f2f0d05098572"`,
-					LastModified:  "Tue, 18 Jan 2022 13:18:04 UTC",
-					StatusCode:    200,
-				},
+			interceptor:        WithAccessToken(accessTokenValidUser),
+			expectedStatusCode: http.StatusOK,
+			expectedBody:       "Hello, World!",
+			expectedHeaders: http.Header{
+				"Accept-Ranges":       []string{"bytes"},
+				"Cache-Control":       []string{"max-age=3600"},
+				"Content-Disposition": []string{`inline; filename="testfile.txt"`},
+				"Content-Length":      []string{"13"},
+				"Content-Type":        []string{"text/plain; charset=utf-8"},
+				"Date":                []string{"Mon, 21 Jul 2025 13:24:53 GMT"},
+				"Etag":                []string{`"65a8e27d8879283831b664bd8b7f0ad4"`},
+				"Last-Modified":       []string{"2025-07-21 13:24:53.586273 +0000 +0000"},
+				"Surrogate-Control":   []string{"max-age=3600"},
+				"Surrogate-Key":       []string{"d505075a-ee28-4a02-b27a-5973fd2ea35f"},
 			},
-			expectedSha: "7f2ed9ccb9259bef6e317b4e51e935f61e632dbad5d2ac36430c51b0390aab64",
 		},
 		{
-			name: "get image manipulated, if-match==etag",
-			id:   testFiles.ProcessedFiles[1].ID,
-			opts: []client.GetFileInformationOpt{
-				client.WithIfMatch(
-					`"e913f1f35e9e833dd73b4ef9e0d7470db9e40520165528dde01b3b02ce8d53ec"`,
-				),
-				client.WithImageSize(600, 200),
-				client.WithImageQuality(50),
-				client.WithImageBlur(5),
+			name: "IfModifiedSince does not match",
+			id:   id1,
+			params: &client.GetFileParams{
+				IfModifiedSince: ptr(client.NewTime(time.Now().Add(time.Hour))),
 			},
-			expected: &client.FileInformationHeaderWithReader{
-				Filename: "nhost.jpg",
-				FileInformationHeader: &client.FileInformationHeader{
-					CacheControl:  "max-age=3600",
-					ContentLength: 12602,
-					ContentType:   "image/jpeg",
-					Etag:          `"e913f1f35e9e833dd73b4ef9e0d7470db9e40520165528dde01b3b02ce8d53ec"`,
-					LastModified:  "Tue, 18 Jan 2022 13:18:04 UTC",
-					StatusCode:    200,
-				},
+			interceptor:        WithAccessToken(accessTokenValidUser),
+			expectedStatusCode: http.StatusNotModified,
+			expectedBody:       "",
+			expectedHeaders: http.Header{
+				"Cache-Control":     []string{"max-age=3600"},
+				"Date":              []string{"Mon, 21 Jul 2025 13:24:53 GMT"},
+				"Etag":              []string{`"65a8e27d8879283831b664bd8b7f0ad4"`},
+				"Last-Modified":     []string{"2025-07-21 13:24:53.586273 +0000 +0000"},
+				"Surrogate-Control": []string{"max-age=3600"},
+				"Surrogate-Key":     []string{"d505075a-ee28-4a02-b27a-5973fd2ea35f"},
 			},
-			expectedSha: "e913f1f35e9e833dd73b4ef9e0d7470db9e40520165528dde01b3b02ce8d53ec",
 		},
 		{
-			name: "get image manipulated, if-match!=etag",
-			id:   testFiles.ProcessedFiles[1].ID,
-			opts: []client.GetFileInformationOpt{
-				client.WithIfMatch(`"I don't match"`),
-				client.WithImageSize(600, 200),
-				client.WithImageQuality(50),
-				client.WithImageBlur(5),
+			name: "IfUnmodifiedSince matches",
+			id:   id1,
+			params: &client.GetFileParams{
+				IfUnmodifiedSince: ptr(client.NewTime(time.Now().Add(-time.Hour))),
 			},
-			expected: &client.FileInformationHeaderWithReader{
-				FileInformationHeader: &client.FileInformationHeader{
-					CacheControl:  "max-age=3600",
-					ContentLength: 12602,
-					ContentType:   "image/jpeg",
-					Etag:          `"e913f1f35e9e833dd73b4ef9e0d7470db9e40520165528dde01b3b02ce8d53ec"`,
-					LastModified:  "Tue, 18 Jan 2022 13:18:04 UTC",
-					StatusCode:    412,
-				},
+			interceptor:        WithAccessToken(accessTokenValidUser),
+			expectedStatusCode: http.StatusPreconditionFailed,
+			expectedBody:       "",
+			expectedHeaders: http.Header{
+				"Cache-Control":     []string{"max-age=3600"},
+				"Content-Length":    []string{"0"},
+				"Date":              []string{"Mon, 21 Jul 2025 13:24:53 GMT"},
+				"Etag":              []string{`"65a8e27d8879283831b664bd8b7f0ad4"`},
+				"Last-Modified":     []string{"2025-07-21 13:24:53.586273 +0000 +0000"},
+				"Surrogate-Control": []string{"max-age=3600"},
+				"Surrogate-Key":     []string{"d505075a-ee28-4a02-b27a-5973fd2ea35f"},
 			},
-			expectedSha: "",
 		},
 		{
-			name: "get text file manipulated",
-			id:   testFiles.ProcessedFiles[0].ID,
-			opts: []client.GetFileInformationOpt{
-				client.WithImageSize(600, 200),
-				client.WithImageQuality(50),
-				client.WithImageBlur(5),
+			name: "IfUnmodifiedSince does not match",
+			id:   id1,
+			params: &client.GetFileParams{
+				IfUnmodifiedSince: ptr(client.NewTime(time.Now().Add(time.Hour))),
 			},
-			expectedErr: &client.APIResponseError{
-				StatusCode: 400,
-				ErrorResponse: &controller.ErrorResponse{
-					Message: "image manipulation features are not supported for 'text/plain; charset=utf-8'",
-				},
-				Response: nil,
+			interceptor:        WithAccessToken(accessTokenValidUser),
+			expectedStatusCode: http.StatusOK,
+			expectedBody:       "Hello, World!",
+			expectedHeaders: http.Header{
+				"Accept-Ranges":       []string{"bytes"},
+				"Cache-Control":       []string{"max-age=3600"},
+				"Content-Disposition": []string{`inline; filename="testfile.txt"`},
+				"Content-Length":      []string{"13"},
+				"Content-Type":        []string{"text/plain; charset=utf-8"},
+				"Date":                []string{"Mon, 21 Jul 2025 13:24:53 GMT"},
+				"Etag":                []string{`"65a8e27d8879283831b664bd8b7f0ad4"`},
+				"Last-Modified":       []string{"2025-07-21 13:24:53.586273 +0000 +0000"},
+				"Surrogate-Control":   []string{"max-age=3600"},
+				"Surrogate-Key":       []string{"d505075a-ee28-4a02-b27a-5973fd2ea35f"},
+			},
+		},
+		{
+			name:   "x-hasura-admin-secret",
+			id:     id1,
+			params: nil,
+			interceptor: WithHeaders(http.Header{
+				"x-hasura-admin-secret": []string{"nhost-admin-secret"},
+			}),
+			expectedStatusCode: http.StatusOK,
+			expectedBody:       "Hello, World!",
+			expectedHeaders: http.Header{
+				"Accept-Ranges":       []string{"bytes"},
+				"Cache-Control":       []string{"max-age=3600"},
+				"Content-Disposition": []string{`inline; filename="testfile.txt"`},
+				"Content-Length":      []string{"13"},
+				"Content-Type":        []string{"text/plain; charset=utf-8"},
+				"Date":                []string{"Mon, 21 Jul 2025 13:24:53 GMT"},
+				"Etag":                []string{`"65a8e27d8879283831b664bd8b7f0ad4"`},
+				"Last-Modified":       []string{"2025-07-21 13:24:53.586273 +0000 +0000"},
+				"Surrogate-Control":   []string{"max-age=3600"},
+				"Surrogate-Key":       []string{"d505075a-ee28-4a02-b27a-5973fd2ea35f"},
+			},
+		},
+		{
+			name:   "x-hasura-role",
+			id:     id1,
+			params: nil,
+			interceptor: WithHeaders(http.Header{
+				"x-hasura-admin-secret": []string{"nhost-admin-secret"},
+				"x-hasura-role":         []string{"user"},
+			}),
+			expectedStatusCode: http.StatusForbidden,
+			expectedBody:       "{\"error\":{\"data\":null,\"message\":\"you are not authorized\"}}\n",
+			expectedHeaders: http.Header{
+				"Content-Length": {"59"},
+				"Content-Type":   {"application/json"},
+				"Date":           {"Mon, 21 Jul 2025 13:44:26 GMT"},
+				"X-Error":        {"you are not authorized"},
+			},
+		},
+		{
+			name:               "unauthenticated request",
+			id:                 id1,
+			params:             nil,
+			interceptor:        nil,
+			expectedStatusCode: http.StatusForbidden,
+			expectedBody:       "{\"error\":{\"data\":null,\"message\":\"you are not authorized\"}}\n",
+			expectedHeaders: http.Header{
+				"Content-Length": {"59"},
+				"Content-Type":   {"application/json"},
+				"Date":           {"Mon, 21 Jul 2025 13:44:26 GMT"},
+				"X-Error":        {"you are not authorized"},
+			},
+		},
+		{
+			name: "range",
+			id:   id1,
+			params: &client.GetFileParams{
+				Range: ptr("bytes=0-4"),
+			},
+			interceptor:        WithAccessToken(accessTokenValidUser),
+			expectedStatusCode: http.StatusPartialContent,
+			expectedBody:       "Hello",
+			expectedHeaders: http.Header{
+				"Cache-Control":       []string{"max-age=3600"},
+				"Content-Disposition": []string{`inline; filename="testfile.txt"`},
+				"Content-Length":      []string{"5"},
+				"Content-Range":       []string{"bytes 0-4/13"},
+				"Content-Type":        []string{"text/plain; charset=utf-8"},
+				"Date":                []string{"Mon, 21 Jul 2025 13:24:53 GMT"},
+				"Etag":                []string{`"65a8e27d8879283831b664bd8b7f0ad4"`},
+				"Last-Modified":       []string{"2025-07-21 13:24:53.586273 +0000 +0000"},
+				"Surrogate-Control":   []string{"max-age=3600"},
+				"Surrogate-Key":       []string{"d505075a-ee28-4a02-b27a-5973fd2ea35f"},
+			},
+		},
+		{
+			name: "range middle",
+			id:   id1,
+			params: &client.GetFileParams{
+				Range: ptr("bytes=2-8"),
+			},
+			interceptor:        WithAccessToken(accessTokenValidUser),
+			expectedStatusCode: http.StatusPartialContent,
+			expectedBody:       "llo, Wo",
+			expectedHeaders: http.Header{
+				"Cache-Control":       []string{"max-age=3600"},
+				"Content-Disposition": []string{`inline; filename="testfile.txt"`},
+				"Content-Length":      []string{"7"},
+				"Content-Range":       []string{"bytes 2-8/13"},
+				"Content-Type":        []string{"text/plain; charset=utf-8"},
+				"Date":                []string{"Mon, 21 Jul 2025 13:24:53 GMT"},
+				"Etag":                []string{`"65a8e27d8879283831b664bd8b7f0ad4"`},
+				"Last-Modified":       []string{"2025-07-21 13:24:53.586273 +0000 +0000"},
+				"Surrogate-Control":   []string{"max-age=3600"},
+				"Surrogate-Key":       []string{"d505075a-ee28-4a02-b27a-5973fd2ea35f"},
+			},
+		},
+		{
+			name:               "image",
+			id:                 id2,
+			params:             nil,
+			interceptor:        WithAccessToken(accessTokenValidUser),
+			expectedStatusCode: http.StatusOK,
+			expectedBody:       "ignoreme",
+			expectedHeaders: http.Header{
+				"Accept-Ranges":       []string{"bytes"},
+				"Cache-Control":       []string{"max-age=3600"},
+				"Content-Disposition": []string{`inline; filename="nhost.jpg"`},
+				"Content-Length":      []string{"33399"},
+				"Content-Type":        []string{"image/jpeg"},
+				"Date":                []string{"Mon, 21 Jul 2025 13:24:53 GMT"},
+				"Etag":                []string{`"78b676e65ebc31f0bb1f2f0d05098572"`},
+				"Last-Modified":       []string{"2025-07-21 13:24:53.586273 +0000 +0000"},
+				"Surrogate-Control":   []string{"max-age=3600"},
+				"Surrogate-Key":       []string{id2},
+			},
+		},
+		{
+			name: "image manipulation",
+			id:   id2,
+			params: &client.GetFileParams{
+				Q: ptr(80),
+				H: ptr(100),
+				W: ptr(100),
+				B: ptr(float32(0.10)),
+			},
+			interceptor:        WithAccessToken(accessTokenValidUser),
+			expectedStatusCode: http.StatusOK,
+			expectedBody:       "ignoreme",
+			expectedHeaders: http.Header{
+				"Accept-Ranges":       []string{"bytes"},
+				"Cache-Control":       []string{"max-age=3600"},
+				"Content-Disposition": []string{`inline; filename="nhost.jpg"`},
+				"Content-Length":      []string{"8709"},
+				"Content-Type":        []string{"image/jpeg"},
+				"Date":                []string{"Mon, 21 Jul 2025 13:24:53 GMT"},
+				"Etag":                []string{`"78b676e65ebc31f0bb1f2f0d05098572"`},
+				"Last-Modified":       []string{"2025-07-21 13:24:53.586273 +0000 +0000"},
+				"Surrogate-Control":   []string{"max-age=3600"},
+				"Surrogate-Key":       []string{id2},
 			},
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			got, err := cl.GetFile(context.Background(), tc.id, tc.opts...)
+			t.Parallel()
 
-			if !cmp.Equal(err, tc.expectedErr) {
-				t.Error(cmp.Diff(err, tc.expectedErr))
-			}
-
-			copts := cmp.Options{
-				cmpopts.IgnoreFields(client.FileInformationHeaderWithReader{}, "Body"),
-				cmpopts.IgnoreFields(client.FileInformationHeader{}, "LastModified"),
-			}
-
-			if !cmp.Equal(got, tc.expected, copts...) {
-				t.Error(cmp.Diff(got, tc.expected, copts...))
-			}
-
-			if got == nil {
-				return
-			}
-
-			if got.Body == nil && tc.expectedSha != "" {
-				t.Error("expected a file but got no body")
-			} else if got.Body != nil && tc.expectedSha == "" {
-				t.Error("didn't expect a body but got one")
-			} else if got.Body == nil && tc.expectedSha == "" {
-			} else {
-				hash := sha256.New()
-				_, err := io.Copy(hash, got.Body)
-				if err != nil {
-					t.Fatal(err)
+			var interceptor []client.RequestEditorFn
+			if tc.interceptor != nil {
+				interceptor = []client.RequestEditorFn{
+					tc.interceptor,
 				}
-				sha := fmt.Sprintf("%x", hash.Sum(nil))
-				if !cmp.Equal(sha, tc.expectedSha) {
-					t.Error(cmp.Diff(sha, tc.expectedSha))
+			}
+
+			resp, err := cl.GetFileWithResponse(
+				t.Context(),
+				tc.id,
+				tc.params,
+				interceptor...,
+			)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			if resp.StatusCode() != tc.expectedStatusCode {
+				t.Errorf(
+					"expected status code %d, got %d", tc.expectedStatusCode, resp.StatusCode(),
+				)
+			}
+
+			if tc.expectedBody != "ignoreme" {
+				if diff := cmp.Diff(string(resp.Body), tc.expectedBody); diff != "" {
+					t.Errorf("unexpected response body: %s", diff)
 				}
+			}
+
+			if diff := cmp.Diff(
+				resp.HTTPResponse.Header,
+				tc.expectedHeaders,
+				IgnoreResponseHeaders(),
+			); diff != "" {
+				t.Errorf("unexpected response headers: %s", diff)
 			}
 		})
 	}

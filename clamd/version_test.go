@@ -30,7 +30,7 @@ func TestClamdVersion(t *testing.T) {
 				t.Fatalf("failed to dial: %v", err)
 			}
 
-			version, err := client.Version()
+			version, err := client.Version(t.Context())
 			if err != nil {
 				t.Fatalf("failed to get version: %v", err)
 			}

@@ -1,12 +1,13 @@
 package controller
 
 import (
+	"context"
 	"errors"
 	"fmt"
-	"net/http"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/nhost/hasura-storage/api"
+	"github.com/nhost/hasura-storage/middleware"
 )
 
 type GetFilePresignedURLResponse struct {
@@ -19,59 +20,46 @@ type GetFilePresignedURLRequest struct {
 	FileID string
 }
 
-func (ctrl *Controller) getFilePresignedURLParse(ctx *gin.Context) GetFilePresignedURLRequest {
-	return GetFilePresignedURLRequest{
-		FileID: ctx.Param("id"),
-	}
-}
-
-func (ctrl *Controller) getFilePresignedURL(
-	ctx *gin.Context,
-) (GetFilePresignedURLResponse, *APIError) {
-	req := ctrl.getFilePresignedURLParse(ctx)
+func (ctrl *Controller) GetFilePresignedURL( //nolint:ireturn
+	ctx context.Context, request api.GetFilePresignedURLRequestObject,
+) (api.GetFilePresignedURLResponseObject, error) {
+	logger := middleware.LoggerFromContext(ctx)
+	sessionHeaders := middleware.SessionHeadersFromContext(ctx)
 
 	fileMetadata, bucketMetadata, apiErr := ctrl.getFileMetadata(
-		ctx.Request.Context(), req.FileID, true, ctx.Request.Header,
+		ctx, request.Id, true, sessionHeaders,
 	)
 	if apiErr != nil {
-		return GetFilePresignedURLResponse{}, apiErr
+		logger.WithError(apiErr).Error("error getting file metadata")
+		return apiErr, nil
 	}
 
 	if !bucketMetadata.PresignedURLsEnabled {
-		err := errors.New( //nolint: goerr113
+		err := errors.New( //nolint: err113
 			"presigned URLs are not enabled on the bucket where this file is located in",
 		)
-		return GetFilePresignedURLResponse{}, ForbiddenError(err, err.Error())
+		logger.WithError(err).Error("presigned URLs not enabled for bucket")
+
+		return ForbiddenError(err, err.Error()), nil
 	}
 
 	signature, apiErr := ctrl.contentStorage.CreatePresignedURL(
 		ctx,
-		fileMetadata.ID,
+		fileMetadata.Id,
 		time.Duration(bucketMetadata.DownloadExpiration)*time.Second,
 	)
 	if apiErr != nil {
-		return GetFilePresignedURLResponse{},
-			apiErr.ExtendError(
-				"problem creating presigned URL for file " + fileMetadata.Name,
-			)
+		logger.WithError(apiErr).Error("error creating presigned URL for file")
+		return apiErr, nil
 	}
 
 	url := fmt.Sprintf(
-		"%s%s/files/%s/presignedurl/content?%s",
-		ctrl.publicURL, ctrl.apiRootPrefix, fileMetadata.ID, signature,
+		"%s%s/files/%s/presignedurl/contents?%s",
+		ctrl.publicURL, ctrl.apiRootPrefix, fileMetadata.Id, signature,
 	)
-	return GetFilePresignedURLResponse{nil, url, bucketMetadata.DownloadExpiration}, nil
-}
 
-func (ctrl *Controller) GetFilePresignedURL(ctx *gin.Context) {
-	resp, apiErr := ctrl.getFilePresignedURL(ctx)
-	if apiErr != nil {
-		_ = ctx.Error(apiErr)
-
-		ctx.JSON(apiErr.statusCode, GetFilePresignedURLResponse{Error: apiErr.PublicResponse()})
-
-		return
-	}
-
-	ctx.JSON(http.StatusOK, resp)
+	return api.GetFilePresignedURL200JSONResponse{
+		Expiration: bucketMetadata.DownloadExpiration,
+		Url:        url,
+	}, nil
 }

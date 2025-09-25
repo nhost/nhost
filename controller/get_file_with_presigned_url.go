@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -9,19 +10,14 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/nhost/hasura-storage/api"
+	"github.com/nhost/hasura-storage/middleware"
+	"github.com/sirupsen/logrus"
 )
 
 const (
 	amzDateFormat = "20060102T150405Z"
 )
-
-type GetFileWithPresignedURLRequest struct {
-	fileID    string
-	signature string
-	headers   getFileInformationHeaders
-	Expires   int
-}
 
 type File struct {
 	ContentType   string
@@ -32,13 +28,13 @@ type File struct {
 	ExtraHeaders  http.Header
 }
 
-func expiresIn(urlValues url.Values) (int, *APIError) {
-	amzExpires, err := strconv.Atoi(urlValues.Get("X-Amz-Expires"))
+func expiresIn(xAmzExpires string, datestr string) (int, *APIError) {
+	amzExpires, err := strconv.Atoi(xAmzExpires)
 	if err != nil {
 		return 0, BadDataError(err, fmt.Sprintf("problem parsing X-Amz-Expires: %s", err))
 	}
 
-	date, err := time.Parse(amzDateFormat, urlValues.Get("X-Amz-Date"))
+	date, err := time.Parse(amzDateFormat, datestr)
 	if err != nil {
 		return 0, BadDataError(err, fmt.Sprintf("problem parsing X-Amz-Date: %s", err))
 	}
@@ -47,7 +43,7 @@ func expiresIn(urlValues url.Values) (int, *APIError) {
 
 	if expires <= 0 {
 		return 0, BadDataError(
-			errors.New("signature already expired"), //nolint: goerr113
+			errors.New("signature already expired"), //nolint: err113
 			"signature already expired",
 		)
 	}
@@ -55,86 +51,151 @@ func expiresIn(urlValues url.Values) (int, *APIError) {
 	return int(expires.Seconds()), nil
 }
 
-func (ctrl *Controller) getFileWithPresignedURLParse(
-	ctx *gin.Context,
-) (GetFileWithPresignedURLRequest, *APIError) {
-	var headers getFileInformationHeaders
-	if err := ctx.ShouldBindHeader(&headers); err != nil {
-		return GetFileWithPresignedURLRequest{}, //nolint: exhaustruct
-			InternalServerError(fmt.Errorf("problem parsing request headers: %w", err))
+func getAmazonSignature(request api.GetFileWithPresignedURLRequestObject) string {
+	if request.Params.XAmzSecurityToken == nil {
+		return fmt.Sprintf(
+			"X-Amz-Algorithm=%s&X-Amz-Credential=%s&X-Amz-Date=%s&X-Amz-Expires=%s&X-Amz-Signature=%s&X-Amz-SignedHeaders=%s&X-Amz-Checksum-Mode=%s&x-id=%s", //nolint:lll
+			url.QueryEscape(request.Params.XAmzAlgorithm),
+			url.QueryEscape(request.Params.XAmzCredential),
+			url.QueryEscape(request.Params.XAmzDate),
+			url.QueryEscape(request.Params.XAmzExpires),
+			url.QueryEscape(request.Params.XAmzSignature),
+			url.QueryEscape(request.Params.XAmzSignedHeaders),
+			url.QueryEscape(request.Params.XAmzChecksumMode),
+			url.QueryEscape(request.Params.XId),
+		)
 	}
 
-	expires, apiErr := expiresIn(ctx.Request.URL.Query())
-	if apiErr != nil {
-		return GetFileWithPresignedURLRequest{}, apiErr //nolint: exhaustruct
-	}
-
-	signature := make(url.Values, len(ctx.Request.URL.Query()))
-	for k, v := range ctx.Request.URL.Query() {
-		switch k {
-		case "w", "h", "q", "b", "f":
-		default:
-			signature[k] = v
-		}
-	}
-
-	return GetFileWithPresignedURLRequest{
-		fileID:    ctx.Param("id"),
-		signature: signature.Encode(),
-		headers:   headers,
-		Expires:   expires,
-	}, nil
+	return fmt.Sprintf(
+		"X-Amz-Algorithm=%s&X-Amz-Credential=%s&X-Amz-Date=%s&X-Amz-Expires=%s&X-Amz-Signature=%s&X-Amz-SignedHeaders=%s&X-Amz-Security-Token=%s&X-Amz-Checksum-Mode=%s&x-id=%s", //nolint:lll
+		url.QueryEscape(request.Params.XAmzAlgorithm),
+		url.QueryEscape(request.Params.XAmzCredential),
+		url.QueryEscape(request.Params.XAmzDate),
+		url.QueryEscape(request.Params.XAmzExpires),
+		url.QueryEscape(request.Params.XAmzSignature),
+		url.QueryEscape(request.Params.XAmzSignedHeaders),
+		url.QueryEscape(deptr(request.Params.XAmzSecurityToken)),
+		url.QueryEscape(request.Params.XAmzChecksumMode),
+		url.QueryEscape(request.Params.XId),
+	)
 }
 
-func (ctrl *Controller) getFileWithPresignedURL(ctx *gin.Context) (*FileResponse, *APIError) {
-	req, apiErr := ctrl.getFileWithPresignedURLParse(ctx)
-	if apiErr != nil {
-		return nil, apiErr
+func (ctrl *Controller) getFileWithPresignedURLResponseObject( //nolint: ireturn,funlen,dupl
+	file *processedFile,
+	logger logrus.FieldLogger,
+) api.GetFileWithPresignedURLResponseObject {
+	switch file.statusCode {
+	case http.StatusOK:
+		return api.GetFileWithPresignedURL200ApplicationoctetStreamResponse{
+			Body: file.body,
+			Headers: api.GetFileWithPresignedURL200ResponseHeaders{
+				AcceptRanges: "bytes",
+				CacheControl: file.cacheControl,
+				ContentDisposition: fmt.Sprintf(
+					`inline; filename="%s"`,
+					url.QueryEscape(file.filename),
+				),
+				ContentType:      file.mimeType,
+				Etag:             file.fileMetadata.Etag,
+				LastModified:     file.fileMetadata.UpdatedAt,
+				SurrogateControl: file.cacheControl,
+				SurrogateKey:     file.fileMetadata.Id,
+			},
+			ContentLength: file.contentLength,
+		}
+	case http.StatusPartialContent:
+		return api.GetFileWithPresignedURL206ApplicationoctetStreamResponse{
+			Body: file.body,
+			Headers: api.GetFileWithPresignedURL206ResponseHeaders{
+				CacheControl: file.cacheControl,
+				ContentDisposition: fmt.Sprintf(
+					`inline; filename="%s"`,
+					url.QueryEscape(file.filename),
+				),
+				ContentRange:     file.extraHeaders.Get("Content-Range"),
+				ContentType:      file.mimeType,
+				Etag:             file.fileMetadata.Etag,
+				LastModified:     file.fileMetadata.UpdatedAt,
+				SurrogateControl: file.cacheControl,
+				SurrogateKey:     file.fileMetadata.Id,
+			},
+			ContentLength: file.contentLength,
+		}
+	case http.StatusNotModified:
+		return api.GetFileWithPresignedURL304Response{
+			Headers: api.GetFileWithPresignedURL304ResponseHeaders{
+				CacheControl:     file.cacheControl,
+				Etag:             file.fileMetadata.Etag,
+				SurrogateControl: file.cacheControl,
+			},
+		}
+	case http.StatusPreconditionFailed:
+		return api.GetFileWithPresignedURL412Response{
+			Headers: api.GetFileWithPresignedURL412ResponseHeaders{
+				CacheControl:     file.cacheControl,
+				Etag:             file.fileMetadata.Etag,
+				SurrogateControl: file.cacheControl,
+			},
+		}
+	default:
+		logger.WithField("statusCode", file.statusCode).
+			Error("unexpected status code from download")
+
+		return ErrUnexpectedStatusCode
 	}
+}
+
+func (ctrl *Controller) GetFileWithPresignedURL( //nolint: ireturn
+	ctx context.Context,
+	request api.GetFileWithPresignedURLRequestObject,
+) (api.GetFileWithPresignedURLResponseObject, error) {
+	logger := middleware.LoggerFromContext(ctx)
+	acceptHeader := middleware.AcceptHeaderFromContext(ctx)
 
 	fileMetadata, _, apiErr := ctrl.getFileMetadata(
-		ctx.Request.Context(),
-		req.fileID,
+		ctx,
+		request.Id,
 		true,
 		http.Header{"x-hasura-admin-secret": []string{ctrl.hasuraAdminSecret}},
 	)
 	if apiErr != nil {
-		return nil, apiErr
+		logger.WithError(apiErr).Error("failed to get file metadata")
+		return apiErr, nil
+	}
+
+	var httpHeaders http.Header
+	if request.Params.Range != nil && !request.Params.HasImageManipulationOptions() {
+		httpHeaders = http.Header{
+			"Range": []string{*request.Params.Range},
+		}
+	}
+
+	expires, apiErr := expiresIn(request.Params.XAmzExpires, request.Params.XAmzDate)
+	if apiErr != nil {
+		logger.WithError(apiErr).Error("failed to parse expiration time")
+		return apiErr, nil
 	}
 
 	downloadFunc := func() (*File, *APIError) {
 		return ctrl.contentStorage.GetFileWithPresignedURL(
-			ctx.Request.Context(),
-			req.fileID,
-			req.signature,
-			ctx.Request.Header,
+			ctx,
+			request.Id,
+			getAmazonSignature(request),
+			httpHeaders,
 		)
 	}
+
+	processedFile, apiErr := ctrl.processFileToDownload(
+		downloadFunc,
+		fileMetadata,
+		fmt.Sprintf("max-age=%d", expires),
+		request.Params,
+		acceptHeader,
+	)
 	if apiErr != nil {
+		logger.WithError(apiErr).Error("failed to process file for download")
 		return nil, apiErr
 	}
 
-	return ctrl.processFileToDownload(
-		ctx,
-		downloadFunc,
-		fileMetadata,
-		fmt.Sprintf("max-age=%d", req.Expires),
-		nil,
-	)
-}
-
-func (ctrl *Controller) GetFileWithPresignedURL(ctx *gin.Context) {
-	fileResponse, apiErr := ctrl.getFileWithPresignedURL(ctx)
-	if apiErr != nil {
-		_ = ctx.Error(apiErr)
-
-		ctx.JSON(apiErr.statusCode, GetFileResponse{apiErr.PublicResponse()})
-
-		return
-	}
-
-	defer fileResponse.body.Close()
-
-	fileResponse.disableSurrageControlHeader = true
-	fileResponse.Write(ctx)
+	return ctrl.getFileWithPresignedURLResponseObject(processedFile, logger), nil
 }

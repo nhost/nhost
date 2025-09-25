@@ -3,13 +3,11 @@ package controller
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"net/http"
 	"time"
 
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
+	"github.com/nhost/hasura-storage/api"
 	"github.com/nhost/hasura-storage/image"
 	"github.com/sirupsen/logrus"
 )
@@ -32,23 +30,9 @@ type BucketMetadata struct {
 	CacheControl         string
 }
 
-type FileMetadata struct {
-	ID               string         `json:"id"`
-	Name             string         `json:"name"`
-	Size             int64          `json:"size"`
-	BucketID         string         `json:"bucketId"`
-	ETag             string         `json:"etag"`
-	CreatedAt        string         `json:"createdAt"`
-	UpdatedAt        string         `json:"updatedAt"`
-	IsUploaded       bool           `json:"isUploaded"`
-	MimeType         string         `json:"mimeType"`
-	UploadedByUserID string         `json:"uploadedByUserId"`
-	Metadata         map[string]any `json:"metadata"`
-}
-
 type MetadataStorage interface {
 	GetBucketByID(ctx context.Context, id string, headers http.Header) (BucketMetadata, *APIError)
-	GetFileByID(ctx context.Context, id string, headers http.Header) (FileMetadata, *APIError)
+	GetFileByID(ctx context.Context, id string, headers http.Header) (api.FileMetadata, *APIError)
 	InitializeFile(
 		ctx context.Context,
 		id, name string, size int64, bucketID, mimeType string,
@@ -58,7 +42,7 @@ type MetadataStorage interface {
 		ctx context.Context,
 		id, name string, size int64, bucketID, etag string, IsUploaded bool, mimeType string,
 		metadata map[string]any,
-		headers http.Header) (FileMetadata, *APIError,
+		headers http.Header) (api.FileMetadata, *APIError,
 	)
 	SetIsUploaded(
 		ctx context.Context,
@@ -82,7 +66,7 @@ type ContentStorage interface {
 		content io.ReadSeeker,
 		filepath, contentType string,
 	) (string, *APIError)
-	GetFile(ctx context.Context, filepath string, headers http.Header) (*File, *APIError)
+	GetFile(ctx context.Context, filepath string, downloadRange *string) (*File, *APIError)
 	CreatePresignedURL(
 		ctx context.Context,
 		filepath string,
@@ -96,7 +80,7 @@ type ContentStorage interface {
 }
 
 type Antivirus interface {
-	ScanReader(r io.ReaderAt) *APIError
+	ScanReader(ctx context.Context, r io.ReaderAt) *APIError
 }
 
 type Controller struct {
@@ -130,83 +114,4 @@ func New(
 		av,
 		logger,
 	}
-}
-
-func corsConfig(allowedOrigins []string) cors.Config {
-	return cors.Config{
-		AllowOrigins: allowedOrigins,
-		AllowMethods: []string{"GET", "PUT", "POST", "HEAD", "DELETE"},
-		AllowHeaders: []string{
-			"Authorization", "Origin", "if-match", "if-none-match", "if-modified-since", "if-unmodified-since",
-			"x-hasura-admin-secret", "x-nhost-bucket-id", "x-nhost-file-name", "x-nhost-file-id",
-			"x-hasura-role",
-		},
-		ExposeHeaders: []string{
-			"Content-Length", "Content-Type", "Cache-Control", "ETag", "Last-Modified", "X-Error",
-		},
-		MaxAge: 12 * time.Hour, //nolint: mnd
-	}
-}
-
-func (ctrl *Controller) SetupRouter(
-	trustedProxies []string,
-	apiRootPrefix string,
-	corsOrigins []string,
-	corsAllowCredentials bool,
-	middleware ...gin.HandlerFunc,
-) (*gin.Engine, error) {
-	router := gin.New()
-	if err := router.SetTrustedProxies(trustedProxies); err != nil {
-		return nil, fmt.Errorf("problem setting trusted proxies: %w", err)
-	}
-
-	// lower values make uploads slower but keeps service memory usage low
-	router.MaxMultipartMemory = 1 << 20 //nolint:mnd  // 1 MB
-	router.Use(gin.Recovery())
-
-	for _, mw := range middleware {
-		router.Use(mw)
-	}
-
-	corsConfig := corsConfig(corsOrigins)
-	if corsAllowCredentials {
-		corsConfig.AllowCredentials = true
-	}
-
-	router.Use(cors.New(corsConfig))
-
-	router.GET("/healthz", ctrl.Health)
-
-	apiRoot := router.Group(apiRootPrefix)
-	{
-		apiRoot.GET("/openapi.yaml", ctrl.OpenAPI)
-		apiRoot.GET("/version", ctrl.Version)
-	}
-	files := apiRoot.Group("/files")
-	{
-		files.POST("", ctrl.UploadFile) // To delete
-		files.POST("/", ctrl.UploadFile)
-		files.GET("/:id", ctrl.GetFile)
-		files.HEAD("/:id", ctrl.GetFileInformation)
-		files.PUT("/:id", ctrl.UpdateFile)
-		files.DELETE("/:id", ctrl.DeleteFile)
-		files.GET("/:id/presignedurl", ctrl.GetFilePresignedURL)
-		files.GET("/:id/presignedurl/content", ctrl.GetFileWithPresignedURL)
-	}
-
-	ops := apiRoot.Group("/ops")
-	{
-		ops.POST("list-orphans", ctrl.ListOrphans)
-		ops.POST("delete-orphans", ctrl.DeleteOrphans)
-		ops.POST("list-broken-metadata", ctrl.ListBrokenMetadata)
-		ops.POST("delete-broken-metadata", ctrl.DeleteBrokenMetadata)
-		ops.POST("list-not-uploaded", ctrl.ListNotUploaded)
-	}
-	return router, nil
-}
-
-func (ctrl *Controller) Health(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, gin.H{
-		"healthz": "ok",
-	})
 }

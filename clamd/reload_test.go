@@ -26,7 +26,7 @@ func TestClamdReload(t *testing.T) {
 				t.Fatalf("failed to dial: %v", err)
 			}
 
-			if err := client.Reload(); err != nil {
+			if err := client.Reload(t.Context()); err != nil {
 				t.Fatalf("failed to get version: %v", err)
 			}
 		})

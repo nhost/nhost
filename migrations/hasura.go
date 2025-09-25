@@ -51,18 +51,21 @@ func postMetadata(baseURL, hasuraSecret string, data interface{}) error {
 
 	if resp.StatusCode != http.StatusOK {
 		var errResponse *hasuraErrResponse
+
 		b, _ := io.ReadAll(resp.Body)
 		if err := json.Unmarshal(b, &errResponse); err != nil {
-			return fmt.Errorf( //nolint: goerr113
+			return fmt.Errorf( //nolint: err113
 				"status_code: %d\nresponse: %s",
 				resp.StatusCode,
 				b,
 			)
 		}
+
 		if errResponse.Code == "already-tracked" || errResponse.Code == "already-exists" {
 			return nil
 		}
-		return fmt.Errorf("status_code: %d\nresponse: %s", resp.StatusCode, b) //nolint: goerr113
+
+		return fmt.Errorf("status_code: %d\nresponse: %s", resp.StatusCode, b) //nolint: err113
 	}
 
 	return nil

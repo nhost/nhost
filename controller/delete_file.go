@@ -1,37 +1,32 @@
 package controller
 
 import (
-	"fmt"
-	"net/http"
+	"context"
 
-	"github.com/gin-gonic/gin"
+	"github.com/nhost/hasura-storage/api"
+	"github.com/nhost/hasura-storage/middleware"
+	"github.com/nhost/hasura-storage/middleware/cdn/fastly"
 )
 
-func (ctrl *Controller) deleteFile(ctx *gin.Context) *APIError {
-	id := ctx.Param("id")
+func (ctrl *Controller) DeleteFile( //nolint:ireturn
+	ctx context.Context,
+	request api.DeleteFileRequestObject,
+) (api.DeleteFileResponseObject, error) {
+	logger := middleware.LoggerFromContext(ctx)
+	sessionHeaders := middleware.SessionHeadersFromContext(ctx)
 
-	apiErr := ctrl.metadataStorage.DeleteFileByID(ctx.Request.Context(), id, ctx.Request.Header)
+	apiErr := ctrl.metadataStorage.DeleteFileByID(ctx, request.Id, sessionHeaders)
 	if apiErr != nil {
-		return apiErr
+		logger.WithError(apiErr).Error("problem deleting file metadata")
+		return apiErr, nil
 	}
 
-	if apiErr := ctrl.contentStorage.DeleteFile(ctx, id); apiErr != nil {
-		return apiErr
+	if apiErr := ctrl.contentStorage.DeleteFile(ctx, request.Id); apiErr != nil {
+		logger.WithError(apiErr).Error("problem deleting file content")
+		return apiErr, nil
 	}
 
-	ctx.Set("FileChanged", id)
+	fastly.FileChangedToContext(ctx, request.Id)
 
-	return nil
-}
-
-func (ctrl *Controller) DeleteFile(ctx *gin.Context) {
-	if apiErr := ctrl.deleteFile(ctx); apiErr != nil {
-		_ = ctx.Error(fmt.Errorf("problem processing request: %w", apiErr))
-
-		ctx.JSON(apiErr.statusCode, apiErr.PublicResponse())
-
-		return
-	}
-
-	ctx.Status(http.StatusNoContent)
+	return api.DeleteFile204Response{}, nil
 }

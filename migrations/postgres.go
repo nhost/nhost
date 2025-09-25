@@ -22,6 +22,7 @@ func ApplyPostgresMigration(postgresURL string) error {
 		return fmt.Errorf("problem connecting to postgres: %w", err)
 	}
 
+	//nolint:exhaustruct
 	driver, err := postgres.WithInstance(db, &postgres.Config{SchemaName: schemaName})
 	if err != nil {
 		return fmt.Errorf("problem creating postgres driver: %w", err)

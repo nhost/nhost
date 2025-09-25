@@ -2,49 +2,28 @@ package controller
 
 import (
 	"bytes"
-	"crypto/sha256"
+	"context"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"slices"
-	"strconv"
 	"strings"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/nhost/hasura-storage/api"
 	"github.com/nhost/hasura-storage/image"
+	"github.com/nhost/hasura-storage/middleware"
+	"github.com/sirupsen/logrus"
 )
 
-// Only used if the request fails.
-type GetFileResponse struct {
-	Error *ErrorResponse `json:"error"`
-}
-
-func getQueryInt(ctx *gin.Context, param string) (int, *APIError) {
-	s, ok := ctx.GetQuery(param)
-	if !ok {
-		return 0, nil
-	}
-	x, err := strconv.Atoi(s)
-	if err != nil {
-		return 0, BadDataError(err, fmt.Sprintf("query parameter %s must be an int", param))
+func deptr[T any](v *T) T { //nolint:ireturn
+	if v == nil {
+		var zero T
+		return zero
 	}
 
-	return x, nil
-}
-
-func getQueryFloat(ctx *gin.Context, param string) (float64, *APIError) {
-	s, ok := ctx.GetQuery(param)
-	if !ok {
-		return 0, nil
-	}
-	x, err := strconv.ParseFloat(s, 32)
-	if err != nil {
-		return 0, BadDataError(err, fmt.Sprintf("query parameter %s must be an int", param))
-	}
-
-	return x, nil
+	return *v
 }
 
 func mimeTypeToImageType(mimeType string) (image.ImageType, *APIError) {
@@ -59,7 +38,7 @@ func mimeTypeToImageType(mimeType string) (image.ImageType, *APIError) {
 		return image.ImageTypeAVIF, nil
 	default:
 		return 0, BadDataError(
-			fmt.Errorf( //nolint: goerr113
+			fmt.Errorf( //nolint: err113
 				"image manipulation features are not supported for '%s'", mimeType,
 			),
 			fmt.Sprintf("image manipulation features are not supported for '%s'", mimeType),
@@ -68,11 +47,12 @@ func mimeTypeToImageType(mimeType string) (image.ImageType, *APIError) {
 }
 
 func chooseImageFormat( //nolint: cyclop
-	ctx *gin.Context,
+	params ImageManipulationOptionsGetter,
 	mimeType string,
+	acceptHeader []string,
 ) (image.ImageType, image.ImageType, *APIError) {
-	format, found := ctx.GetQuery("f")
-	if !found {
+	format := deptr(params.GetF())
+	if format == "" {
 		format = "same"
 	}
 
@@ -82,19 +62,18 @@ func chooseImageFormat( //nolint: cyclop
 	}
 
 	switch format {
-	case "", "same":
+	case "", api.Same:
 		return originalFormat, originalFormat, nil
-	case "webp":
+	case api.Webp:
 		return originalFormat, image.ImageTypeWEBP, nil
-	case "png":
+	case api.Png:
 		return originalFormat, image.ImageTypePNG, nil
-	case "jpeg":
+	case api.Jpeg:
 		return originalFormat, image.ImageTypeJPEG, nil
-	case "avif":
+	case api.Avif:
 		return originalFormat, image.ImageTypeAVIF, nil
-	case "auto":
-		acceptHeaders := ctx.Request.Header.Values("Accept")
-		for _, acceptHeader := range acceptHeaders {
+	case api.Auto:
+		for _, acceptHeader := range acceptHeader {
 			acceptedTypes := strings.Split(acceptHeader, ",")
 			switch {
 			case slices.Contains(acceptedTypes, "image/avif"):
@@ -107,48 +86,45 @@ func chooseImageFormat( //nolint: cyclop
 				return originalFormat, image.ImageTypePNG, nil
 			}
 		}
+
 		return originalFormat, originalFormat, nil
 	default:
 		return 0, 0, BadDataError(
-			//nolint: goerr113
+			//nolint: err113
 			fmt.Errorf("format must be one of: same, webp, png, jpeg, avif, auto. Got: %s", format),
-			"format must be one of: same, webp, png, jpeg, avif, auto. Got: "+format,
+			"format must be one of: same, webp, png, jpeg, avif, auto. Got: "+string(format),
 		)
 	}
 }
 
-func getImageManipulationOptions(ctx *gin.Context, mimeType string) (image.Options, *APIError) {
-	w, err := getQueryInt(ctx, "w")
-	if err != nil {
-		return image.Options{}, err
-	}
-	h, err := getQueryInt(ctx, "h")
-	if err != nil {
-		return image.Options{}, err
-	}
+type ImageManipulationOptionsGetter interface {
+	GetH() *int
+	GetW() *int
+	GetB() *float32
+	GetQ() *int
+	GetF() *api.OutputImageFormat
+}
 
-	q, err := getQueryInt(ctx, "q")
-	if err != nil {
-		return image.Options{}, err
-	}
-
-	b, err := getQueryFloat(ctx, "b")
-	if err != nil {
-		return image.Options{}, err
-	}
-
-	_, outpufFormatFound := ctx.GetQuery("f")
+func getImageManipulationOptions(
+	params ImageManipulationOptionsGetter,
+	mimeType string,
+	acceptHeader []string,
+) (image.Options, *APIError) {
+	outputFormatFound := deptr(params.GetF()) != ""
 
 	opts := image.Options{
-		Height:  h,
-		Width:   w,
-		Blur:    b,
-		Quality: q,
+		Height:         deptr(params.GetH()),
+		Width:          deptr(params.GetW()),
+		Blur:           deptr(params.GetB()),
+		Quality:        deptr(params.GetQ()),
+		OriginalFormat: 0,
+		Format:         0,
 	}
-	if !opts.IsEmpty() || outpufFormatFound {
-		orig, format, err := chooseImageFormat(ctx, mimeType)
+	if !opts.IsEmpty() || outputFormatFound {
+		orig, format, err := chooseImageFormat(params, mimeType, acceptHeader)
 		opts.Format = format
 		opts.OriginalFormat = orig
+
 		if err != nil {
 			return image.Options{}, err
 		}
@@ -171,29 +147,18 @@ func (p *FakeReadCloserWrapper) Close() error {
 
 func (ctrl *Controller) manipulateImage(
 	object io.ReadCloser, size uint64, opts image.Options,
-) (io.ReadCloser, int64, string, *APIError) {
+) (io.ReadCloser, int64, *APIError) {
 	defer object.Close()
 
 	buf := &bytes.Buffer{}
 	if err := ctrl.imageTransformer.Run(object, size, buf, opts); err != nil {
-		return nil, 0, "", InternalServerError(err)
+		return nil, 0, InternalServerError(err)
 	}
 
-	image := NewP(buf.Bytes())
-	hash := sha256.New()
-	if _, err := io.Copy(hash, image); err != nil {
-		return nil, 0, "", InternalServerError(err)
-	}
-	if _, err := image.Seek(0, 0); err != nil {
-		return nil, 0, "", InternalServerError(err)
-	}
-
-	etag := fmt.Sprintf("\"%x\"", hash.Sum(nil))
-
-	return NewP(buf.Bytes()), int64(buf.Len()), etag, nil
+	return NewP(buf.Bytes()), int64(buf.Len()), nil
 }
 
-func getFileNameAndMimeType(fileMetadata FileMetadata, opts image.Options) (string, string) {
+func getFileNameAndMimeType(fileMetadata api.FileMetadata, opts image.Options) (string, string) {
 	filename := fileMetadata.Name
 	mimeType := fileMetadata.MimeType
 
@@ -207,44 +172,54 @@ func getFileNameAndMimeType(fileMetadata FileMetadata, opts image.Options) (stri
 
 type getFileFunc func() (*File, *APIError)
 
-func (ctrl *Controller) processFileToDownload( //nolint: funlen
-	ctx *gin.Context,
+type processFiler interface {
+	ImageManipulationOptionsGetter
+	ConditionalChecksGetter
+}
+
+type processedFile struct {
+	statusCode    int
+	body          io.ReadCloser
+	fileMetadata  api.FileMetadata
+	filename      string
+	cacheControl  string
+	mimeType      string
+	contentLength int64
+	extraHeaders  http.Header
+}
+
+func (ctrl *Controller) processFileToDownload(
 	downloadFunc getFileFunc,
-	fileMetadata FileMetadata,
+	fileMetadata api.FileMetadata,
 	cacheControl string,
-	infoHeaders *getFileInformationHeaders,
-) (*FileResponse, *APIError) {
-	opts, apiErr := getImageManipulationOptions(ctx, fileMetadata.MimeType)
+	params processFiler,
+	acceptHeader []string,
+) (*processedFile, *APIError) {
+	opts, apiErr := getImageManipulationOptions(params, fileMetadata.MimeType, acceptHeader)
 	if apiErr != nil {
 		return nil, apiErr
 	}
 
-	// we remove this header if image manipulation options are specified
-	// because we pass them as is to the storage backend which means
-	// we'd get a partial file prior to performing the image manipulation
-	rangeHeader := ctx.Request.Header.Get("Range")
-	if !opts.IsEmpty() {
-		ctx.Request.Header.Set("Range", "")
-	}
 	download, apiErr := downloadFunc()
 	if apiErr != nil {
 		return nil, apiErr
 	}
-	ctx.Request.Header.Set("Range", rangeHeader)
 
-	updateAt, apiErr := timeFromRFC3339ToRFC1123(fileMetadata.UpdatedAt)
-	if apiErr != nil {
-		return nil, apiErr
+	if download.ContentLength == fileMetadata.Size {
+		// we force this in case they included a Content-Range header
+		// but the file is not actually partial
+		download.StatusCode = http.StatusOK
 	}
+
+	updateAt := fileMetadata.UpdatedAt.Format(time.RFC1123)
 
 	body := download.Body
 	contentLength := download.ContentLength
-	etag := download.Etag
 
 	if !opts.IsEmpty() {
 		defer body.Close()
 
-		body, contentLength, etag, apiErr = ctrl.manipulateImage(
+		body, contentLength, apiErr = ctrl.manipulateImage(
 			body, uint64(contentLength), opts, //nolint:gosec
 		)
 		if apiErr != nil {
@@ -252,83 +227,132 @@ func (ctrl *Controller) processFileToDownload( //nolint: funlen
 		}
 
 		updateAt = time.Now().Format(time.RFC3339)
-
-		if _, ok := download.ExtraHeaders["Content-Range"]; ok {
-			download.ExtraHeaders["Content-Range"] = []string{
-				fmt.Sprintf("bytes 0-%d/%d", contentLength-1, contentLength),
-			}
-		}
 	}
 
-	statusCode := download.StatusCode
-	if infoHeaders != nil {
-		statusCode, apiErr = checkConditionals(etag, updateAt, infoHeaders, download.StatusCode)
-		if apiErr != nil {
-			return nil, apiErr
-		}
-	}
-
-	filename, mimeType := getFileNameAndMimeType(fileMetadata, opts)
-
-	return NewFileResponse(
-		fileMetadata.ID,
-		mimeType,
-		contentLength,
-		etag,
-		cacheControl,
+	statusCode, apiErr := checkConditionals(
+		fileMetadata.Etag,
 		updateAt,
-		statusCode,
-		body,
-		filename,
-		download.ExtraHeaders,
-	), nil
-}
-
-func (ctrl *Controller) getFileProcess(ctx *gin.Context) (*FileResponse, *APIError) {
-	req, apiErr := ctrl.getFileParse(ctx)
-	if apiErr != nil {
-		return nil, apiErr
-	}
-
-	fileMetadata, bucketMetadata, apiErr := ctrl.getFileMetadata(
-		ctx.Request.Context(), req.fileID, true, ctx.Request.Header,
+		params,
+		download.StatusCode,
 	)
 	if apiErr != nil {
 		return nil, apiErr
 	}
 
-	downloadFunc := func() (*File, *APIError) {
-		return ctrl.contentStorage.GetFile(ctx, fileMetadata.ID, ctx.Request.Header)
-	}
+	filename, mimeType := getFileNameAndMimeType(fileMetadata, opts)
 
-	response, apiErr := ctrl.processFileToDownload(
-		ctx, downloadFunc, fileMetadata, bucketMetadata.CacheControl, &req.headers)
-	if apiErr != nil {
-		return nil, apiErr
-	}
-
-	if response.statusCode == http.StatusOK {
-		// if we want to download files at some point prepend `attachment;` before filename
-		response.headers.Add(
-			"Content-Disposition",
-			fmt.Sprintf(`inline; filename="%s"`, url.QueryEscape(fileMetadata.Name)),
-		)
-	}
-
-	return response, nil
+	return &processedFile{
+		statusCode:    statusCode,
+		body:          body,
+		fileMetadata:  fileMetadata,
+		filename:      filename,
+		cacheControl:  cacheControl,
+		mimeType:      mimeType,
+		contentLength: contentLength,
+		extraHeaders:  download.ExtraHeaders,
+	}, nil
 }
 
-func (ctrl *Controller) GetFile(ctx *gin.Context) {
-	response, apiErr := ctrl.getFileProcess(ctx)
+func (ctrl *Controller) getFileResponse( //nolint: ireturn,funlen,dupl
+	file *processedFile,
+	logger logrus.FieldLogger,
+) api.GetFileResponseObject {
+	switch file.statusCode {
+	case http.StatusOK:
+		return api.GetFile200ApplicationoctetStreamResponse{
+			Body: file.body,
+			Headers: api.GetFile200ResponseHeaders{
+				AcceptRanges: "bytes",
+				CacheControl: file.cacheControl,
+				ContentDisposition: fmt.Sprintf(
+					`inline; filename="%s"`,
+					url.QueryEscape(file.filename),
+				),
+				ContentType:      file.mimeType,
+				Etag:             file.fileMetadata.Etag,
+				LastModified:     file.fileMetadata.UpdatedAt,
+				SurrogateControl: file.cacheControl,
+				SurrogateKey:     file.fileMetadata.Id,
+			},
+			ContentLength: file.contentLength,
+		}
+	case http.StatusPartialContent:
+		return api.GetFile206ApplicationoctetStreamResponse{
+			Body: file.body,
+			Headers: api.GetFile206ResponseHeaders{
+				CacheControl: file.cacheControl,
+				ContentDisposition: fmt.Sprintf(
+					`inline; filename="%s"`,
+					url.QueryEscape(file.filename),
+				),
+				ContentRange:     file.extraHeaders.Get("Content-Range"),
+				ContentType:      file.mimeType,
+				Etag:             file.fileMetadata.Etag,
+				LastModified:     file.fileMetadata.UpdatedAt,
+				SurrogateControl: file.cacheControl,
+				SurrogateKey:     file.fileMetadata.Id,
+			},
+			ContentLength: file.contentLength,
+		}
+	case http.StatusNotModified:
+		return api.GetFile304Response{
+			Headers: api.GetFile304ResponseHeaders{
+				CacheControl:     file.cacheControl,
+				Etag:             file.fileMetadata.Etag,
+				SurrogateControl: file.cacheControl,
+			},
+		}
+	case http.StatusPreconditionFailed:
+		return api.GetFile412Response{
+			Headers: api.GetFile412ResponseHeaders{
+				CacheControl:     file.cacheControl,
+				Etag:             file.fileMetadata.Etag,
+				SurrogateControl: file.cacheControl,
+			},
+		}
+	default:
+		logger.WithField("statusCode", file.statusCode).
+			Error("unexpected status code from download")
+
+		return ErrUnexpectedStatusCode
+	}
+}
+
+func (ctrl *Controller) GetFile( //nolint:ireturn
+	ctx context.Context,
+	request api.GetFileRequestObject,
+) (api.GetFileResponseObject, error) {
+	logger := middleware.LoggerFromContext(ctx)
+	sessionHeaders := middleware.SessionHeadersFromContext(ctx)
+	acceptHeader := middleware.AcceptHeaderFromContext(ctx)
+
+	fileMetadata, bucketMetadata, apiErr := ctrl.getFileMetadata(
+		ctx, request.Id, true, sessionHeaders,
+	)
 	if apiErr != nil {
-		_ = ctx.Error(apiErr)
-
-		ctx.JSON(apiErr.statusCode, GetFileResponse{apiErr.PublicResponse()})
-
-		return
+		logger.WithError(apiErr).Error("failed to get file metadata")
+		return apiErr, nil
 	}
 
-	defer response.body.Close()
+	downloadFunc := func() (*File, *APIError) {
+		if request.Params.HasImageManipulationOptions() {
+			return ctrl.contentStorage.GetFile(ctx, fileMetadata.Id, nil)
+		}
 
-	response.Write(ctx)
+		return ctrl.contentStorage.GetFile(ctx, fileMetadata.Id, request.Params.Range)
+	}
+
+	processedFile, apiErr := ctrl.processFileToDownload(
+		downloadFunc,
+		fileMetadata,
+		bucketMetadata.CacheControl,
+		request.Params,
+		acceptHeader,
+	)
+	if apiErr != nil {
+		logger.WithError(apiErr).Error("failed to process file for download")
+		return apiErr, nil
+	}
+
+	return ctrl.getFileResponse(processedFile, logger), nil
 }

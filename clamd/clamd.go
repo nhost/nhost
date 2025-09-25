@@ -1,6 +1,7 @@
 package clamd
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"net/url"
@@ -20,45 +21,49 @@ func NewClient(addr string) (*Client, error) {
 	}
 
 	if url.Scheme != "tcp" {
-		return nil, fmt.Errorf("invalid scheme: %s", url.Scheme) //nolint:goerr113
+		return nil, fmt.Errorf("invalid scheme: %s", url.Scheme) //nolint:err113
 	}
 
 	return &Client{url.Host}, nil
 }
 
-func (c *Client) Dial() (net.Conn, error) {
-	conn, err := net.Dial("tcp", c.addr)
-	if err != nil {
-		return nil, fmt.Errorf("failed to dial: %w", err)
+func (c *Client) Dial(ctx context.Context) (net.Conn, error) {
+	dialer := net.Dialer{ //nolint:exhaustruct
+		Deadline: time.Now().Add(1 * time.Minute),
+		Timeout:  time.Minute,
 	}
 
-	if err := conn.SetDeadline(time.Now().Add(1 * time.Minute)); err != nil {
-		return nil, fmt.Errorf("failed to set deadline: %w", err)
+	conn, err := dialer.DialContext(ctx, "tcp", c.addr)
+	if err != nil {
+		return nil, fmt.Errorf("failed to dial: %w", err)
 	}
 
 	return conn, nil
 }
 
 func sendCommand(conn net.Conn, command string) error {
-	if _, err := conn.Write(
-		[]byte(fmt.Sprintf("n%s\n", command)),
-	); err != nil {
+	if _, err := fmt.Fprintf(conn,
+		"n%s\n", command); err != nil {
 		return fmt.Errorf("failed to write command: %w", err)
 	}
+
 	return nil
 }
 
 func readResponse(conn net.Conn) ([]byte, error) {
 	buf := make([]byte, 1024) //nolint:mnd
+
 	n, err := conn.Read(buf)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read response: %w", err)
 	}
+
 	return buf[:n], nil
 }
 
 func sendChunk(conn net.Conn, data []byte) error {
 	var buf [4]byte
+
 	lenData := len(data)
 	buf[0] = byte(lenData >> 24) //nolint:mnd
 	buf[1] = byte(lenData >> 16) //nolint:mnd

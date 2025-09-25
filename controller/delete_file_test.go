@@ -1,10 +1,9 @@
 package controller_test
 
 import (
-	"net/http"
-	"net/http/httptest"
 	"testing"
 
+	"github.com/nhost/hasura-storage/api"
 	"github.com/nhost/hasura-storage/controller"
 	"github.com/nhost/hasura-storage/controller/mock"
 	"github.com/sirupsen/logrus"
@@ -15,13 +14,12 @@ func TestDeleteFile(t *testing.T) {
 	t.Parallel()
 
 	cases := []struct {
-		name             string
-		expectedStatus   int
-		expectedResponse []byte
+		name     string
+		expected api.DeleteFileResponseObject
 	}{
 		{
-			name:           "success",
-			expectedStatus: 204,
+			name:     "success",
+			expected: api.DeleteFile204Response{},
 		},
 	}
 
@@ -60,21 +58,17 @@ func TestDeleteFile(t *testing.T) {
 				logger,
 			)
 
-			router, _ := ctrl.SetupRouter(nil, "/v1", []string{"*"}, false, ginLogger(logger))
-
-			responseRecorder := httptest.NewRecorder()
-
-			req, _ := http.NewRequestWithContext(
+			resp, err := ctrl.DeleteFile(
 				t.Context(),
-				"DELETE",
-				"/v1/files/55af1e60-0f28-454e-885e-ea6aab2bb288",
-				nil,
+				api.DeleteFileRequestObject{
+					Id: "55af1e60-0f28-454e-885e-ea6aab2bb288",
+				},
 			)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
 
-			router.ServeHTTP(responseRecorder, req)
-
-			assert(t, tc.expectedStatus, responseRecorder.Code)
-			assert(t, tc.expectedResponse, responseRecorder.Body.Bytes())
+			assert(t, tc.expected, resp)
 		})
 	}
 }

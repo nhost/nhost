@@ -1,9 +1,11 @@
 package controller
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/nhost/hasura-storage/api"
 )
 
 var buildVersion string
@@ -23,4 +25,13 @@ func (ctrl *Controller) Version(ctx *gin.Context) {
 			BuildVersion: buildVersion,
 		},
 	)
+}
+
+func (ctrl *Controller) GetVersion( //nolint:ireturn
+	_ context.Context,
+	_ api.GetVersionRequestObject,
+) (api.GetVersionResponseObject, error) {
+	return api.GetVersion200JSONResponse{
+		BuildVersion: buildVersion,
+	}, nil
 }

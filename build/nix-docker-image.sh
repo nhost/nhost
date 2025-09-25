@@ -17,12 +17,12 @@ if [[ $NIX_BUILD_NATIVE -eq 1 ]]; then
         esac
     fi
 
-    nix build .\#packages.${SYSTEM}.$IMAGE --print-build-logs && docker load < result
+    nix build .\#packages.${SYSTEM}.$IMAGE --print-build-logs
     exit $?
 fi
 
 if [[ ( $? -eq 0 ) && ( `uname` == "Linux" ) ]]; then
-    nix build .\#$IMAGE --print-build-logs && docker load < result
+    nix build .\#$IMAGE --print-build-logs
     exit $?
 fi
 

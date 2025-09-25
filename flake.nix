@@ -6,9 +6,10 @@
     nixpkgs.follows = "nixops/nixpkgs";
     flake-utils.follows = "nixops/flake-utils";
     nix-filter.follows = "nixops/nix-filter";
+    nix2container.follows = "nixops/nix2container";
   };
 
-  outputs = { self, nixops, nixpkgs, flake-utils, nix-filter }:
+  outputs = { self, nixops, nixpkgs, flake-utils, nix-filter, nix2container }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         localOverlay = import ./nix/overlay.nix;
@@ -30,10 +31,11 @@
             ./.golangci.yaml
             ./gqlgenc.yml
             ./controller/openapi.yaml
-            ./image/image.c
-            ./image/image.h
+            ./api/types.cfg.yaml
+            ./api/server.cfg.yaml
             (inDirectory "migrations/postgres")
-            ./gqlgenc.yml
+            ./gqlgenc.yaml
+            ./metadata/metadata.graphql
             isDirectory
             (inDirectory "vendor")
             (inDirectory "clamd/testdata")
@@ -47,6 +49,15 @@
           ];
         };
 
+        openapi-src = nix-filter.lib.filter {
+          root = ./.;
+          include = [
+            ./controller/openapi.yaml
+            ./vacuum.yaml
+            ./vacuum-ignore.yaml
+          ];
+        };
+
         nix-src = nix-filter.lib.filter {
           root = ./.;
           include = [
@@ -54,7 +65,8 @@
           ];
         };
 
-        nixops-lib = nixops.lib { inherit pkgs; };
+        nix2containerPkgs = nix2container.packages.${system};
+        nixops-lib = nixops.lib { inherit pkgs nix2containerPkgs; };
 
         buildInputs = with pkgs; [
           vips
@@ -68,12 +80,14 @@
 
         checkDeps = with pkgs; [
           mockgen
+          oapi-codegen
           gqlgenc
-
+          vacuum-go
         ];
 
         name = "hasura-storage";
         version = "0.0.0-dev";
+        created = "1970-01-01T00:00:00Z";
         module = "github.com/nhost/hasura-storage";
         tags = [ "integration" ];
 
@@ -85,6 +99,22 @@
       {
         checks = {
           nixpkgs-fmt = nixops-lib.nix.check { src = nix-src; };
+
+          openapi = pkgs.runCommand "check-openapi"
+            {
+              nativeBuildInputs = with pkgs;
+                [
+                  vacuum-go
+                ];
+            }
+            ''
+              vacuum lint \
+                -dqb -n info \
+                --ruleset ${openapi-src}/vacuum.yaml \
+                --ignore-file ${openapi-src}/vacuum-ignore.yaml \
+                ${openapi-src}/controller/openapi.yaml
+              mkdir -p $out
+            '';
 
           go-checks = nixops-lib.go.check {
             inherit src ldflags tags buildInputs nativeBuildInputs checkDeps;
@@ -101,6 +131,7 @@
           default = nixops-lib.go.devShell {
             buildInputs = with pkgs; [
               go-migrate
+              skopeo
               ccls
             ] ++ buildInputs ++ nativeBuildInputs ++ checkDeps;
           };
@@ -114,14 +145,15 @@
           };
 
           docker-image = nixops-lib.go.docker-image {
-            inherit name version buildInputs;
+            inherit name created version buildInputs;
 
             package = hasuraStorage;
 
             config = {
               Env = [
-                "TMPDIR=/"
                 "MALLOC_ARENA_MAX=2"
+                "TMPDIR=/tmp"
+                "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
               ];
             };
           };

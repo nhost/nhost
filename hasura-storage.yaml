@@ -2,7 +2,7 @@
 debug: true
 hasura-endpoint: http://localhost:8080/v1
 hasura-metadata: true
-hasura-graphql-admin-secret: hello123
+hasura-graphql-admin-secret: nhost-admin-secret
 s3-endpoint: "http://localhost:9000"
 s3-access-key: "5a7bdb5f42c41e0622bf61d6e08d5537"
 s3-secret-key: "9e1c40c65a615a5b52f52aeeaf549944ec53acb1dff4a0bf01fb58e969f915c8"
