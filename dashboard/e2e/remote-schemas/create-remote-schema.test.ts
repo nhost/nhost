@@ -31,12 +31,12 @@ test.describe('Remote Schemas', () => {
 
     await page.getByRole('button', { name: /create/i }).click();
 
-    const detailsUrl = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/graphql/remote-schemas/${schemaName}`;
-    await page.waitForURL(detailsUrl);
-
     await page.waitForSelector(
       'div:has-text("The remote schema has been created successfully.")',
     );
+
+    const detailsUrl = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/graphql/remote-schemas/${schemaName}`;
+    await page.waitForURL(detailsUrl);
 
     await expect(
       page.getByRole('link', { name: schemaName, exact: true }),
