@@ -54,8 +54,12 @@ get-version:  ## Return version
 	@echo $(VERSION)
 
 
+.PHONY: _check-pre
+_check-pre:  ## Pre-checks before running nix flake check
+
+
 .PHONY: check
-check:  ## Run nix flake check
+check: _check-pre ## Run nix flake check
 	nix build \
 		--print-build-logs \
 		.\#checks.$(ARCH)-$(OS).$(NAME)

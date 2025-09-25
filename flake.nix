@@ -22,6 +22,10 @@
         nix2containerPkgs = nix2container.packages.${system};
         nixops-lib = lib { inherit pkgs nix2containerPkgs; };
 
+        clif = import ./cli/project.nix {
+          inherit self pkgs nix-filter nixops-lib;
+        };
+
         codegenf = import ./tools/codegen/project.nix {
           inherit self pkgs nix-filter nixops-lib;
         };
@@ -65,6 +69,7 @@
         lib = lib;
 
         checks = {
+          cli = clif.check;
           codegen = codegenf.check;
           dashboard = dashboardf.check;
           demos = demosf.check;
@@ -79,20 +84,32 @@
         devShells = flake-utils.lib.flattenTree {
           default = pkgs.mkShell {
             buildInputs = with pkgs; [
+              # general
               gh
               git-cliff
               gnused
+              skopeo
+
+              # to-remove
+              nhost-cli
+
+              # dashboard
               nodePackages.vercel
               playwright-driver
-              nhost-cli
+
+              # javascript
               nodejs
               pnpm_10
               biome
-              skopeo
+
+              # go
               go
               golines
               gofumpt
               golangci-lint
+              gqlgenc
+
+              # internal packages
               self.packages.${system}.codegen
               self.packages.${system}.mintlify-openapi
             ];
@@ -129,6 +146,7 @@
             ];
           };
 
+          cli = clif.devShell;
           codegen = codegenf.devShell;
           dashboard = dashboardf.devShell;
           demos = demosf.devShell;
@@ -141,6 +159,8 @@
         };
 
         packages = flake-utils.lib.flattenTree {
+          cli = clif.package;
+          cli-docker-image = clif.dockerImage;
           codegen = codegenf.package;
           dashboard = dashboardf.package;
           dashboard-docker-image = dashboardf.dockerImage;

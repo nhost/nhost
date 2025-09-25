@@ -71,3 +71,5 @@ result
 .vitest
 
 .claude
+
+letsencrypt/*
