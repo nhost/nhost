@@ -8,7 +8,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/nhost/cli/nhostclient/graphql"
+	"github.com/nhost/nhost/cli/nhostclient/graphql"
 )
 
 func Printlist(ce *CliEnv, orgs *graphql.GetOrganizationsAndWorkspacesApps) error {

@@ -7,9 +7,9 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/nhost/be/services/mimir/model"
-	"github.com/nhost/cli/clienv"
-	"github.com/nhost/cli/cmd/config"
-	"github.com/nhost/cli/project/env"
+	"github.com/nhost/nhost/cli/clienv"
+	"github.com/nhost/nhost/cli/cmd/config"
+	"github.com/nhost/nhost/cli/project/env"
 )
 
 func ptr[T any](t T) *T {

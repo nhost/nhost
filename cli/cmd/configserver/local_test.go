@@ -8,7 +8,7 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/nhost/be/services/mimir/graph"
 	"github.com/nhost/be/services/mimir/model"
-	"github.com/nhost/cli/cmd/configserver"
+	"github.com/nhost/nhost/cli/cmd/configserver"
 )
 
 const rawConfig = `[hasura]

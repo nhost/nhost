@@ -8,10 +8,10 @@ import (
 	"os"
 
 	"github.com/nhost/be/services/mimir/model"
-	"github.com/nhost/cli/clienv"
-	"github.com/nhost/cli/nhostclient/graphql"
-	"github.com/nhost/cli/project/env"
-	"github.com/nhost/cli/system"
+	"github.com/nhost/nhost/cli/clienv"
+	"github.com/nhost/nhost/cli/nhostclient/graphql"
+	"github.com/nhost/nhost/cli/project/env"
+	"github.com/nhost/nhost/cli/system"
 	"github.com/pelletier/go-toml/v2"
 	"github.com/urfave/cli/v2"
 )

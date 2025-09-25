@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/nhost/cli/nhostclient/credentials"
-	"github.com/nhost/cli/nhostclient/graphql"
+	"github.com/nhost/nhost/cli/nhostclient/credentials"
+	"github.com/nhost/nhost/cli/nhostclient/graphql"
 )
 
 const (

@@ -10,7 +10,7 @@ import (
 
 	"github.com/nhost/be/services/mimir/graph"
 	"github.com/nhost/be/services/mimir/model"
-	"github.com/nhost/cli/project/env"
+	"github.com/nhost/nhost/cli/project/env"
 	"github.com/pelletier/go-toml/v2"
 	"github.com/sirupsen/logrus"
 )

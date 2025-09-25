@@ -5,8 +5,8 @@ import (
 	"regexp"
 
 	"github.com/nhost/be/services/mimir/model"
-	"github.com/nhost/cli/clienv"
-	"github.com/nhost/cli/project/env"
+	"github.com/nhost/nhost/cli/clienv"
+	"github.com/nhost/nhost/cli/project/env"
 	"github.com/urfave/cli/v2"
 )
 

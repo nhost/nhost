@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/nhost/cli/nhostclient"
+	"github.com/nhost/nhost/cli/nhostclient"
 )
 
 func TestMakeJSONRequest(t *testing.T) {

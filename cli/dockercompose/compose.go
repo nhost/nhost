@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/nhost/be/services/mimir/model"
-	"github.com/nhost/cli/ssl"
+	"github.com/nhost/nhost/cli/ssl"
 )
 
 const (

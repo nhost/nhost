@@ -10,11 +10,11 @@ import (
 	"text/tabwriter"
 	"time"
 
-	"github.com/nhost/cli/clienv"
-	"github.com/nhost/cli/cmd/config"
-	"github.com/nhost/cli/cmd/software"
-	"github.com/nhost/cli/dockercompose"
-	"github.com/nhost/cli/nhostclient/graphql"
+	"github.com/nhost/nhost/cli/clienv"
+	"github.com/nhost/nhost/cli/cmd/config"
+	"github.com/nhost/nhost/cli/cmd/software"
+	"github.com/nhost/nhost/cli/dockercompose"
+	"github.com/nhost/nhost/cli/nhostclient/graphql"
 	"github.com/urfave/cli/v2"
 )
 

@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/nhost/cli/nhostclient/graphql"
+	"github.com/nhost/nhost/cli/nhostclient/graphql"
 )
 
 func getRemoteAppInfo(

@@ -7,11 +7,11 @@ import (
 	"strings"
 
 	"github.com/nhost/be/services/mimir/model"
-	"github.com/nhost/cli/clienv"
-	"github.com/nhost/cli/cmd/config"
-	"github.com/nhost/cli/nhostclient/graphql"
-	"github.com/nhost/cli/project/env"
-	"github.com/nhost/cli/software"
+	"github.com/nhost/nhost/cli/clienv"
+	"github.com/nhost/nhost/cli/cmd/config"
+	"github.com/nhost/nhost/cli/nhostclient/graphql"
+	"github.com/nhost/nhost/cli/project/env"
+	"github.com/nhost/nhost/cli/software"
 	"github.com/urfave/cli/v2"
 )
 
@@ -52,7 +52,7 @@ func checkCLIVersion(
 
 	ce.Warnln("🟡 A new version of Nhost CLI is available: %s", latest.TagName)
 	ce.Println("   You can upgrade the CLI by running `nhost sw upgrade`")
-	ce.Println("   More info: https://github.com/nhost/cli/releases")
+	ce.Println("   More info: https://github.com/nhost/nhost/cli/releases")
 
 	return nil
 }

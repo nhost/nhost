@@ -11,7 +11,7 @@ import (
 	"sort"
 
 	"github.com/nhost/be/services/mimir/model"
-	"github.com/nhost/cli/clienv"
+	"github.com/nhost/nhost/cli/clienv"
 	"github.com/pelletier/go-toml/v2"
 	"github.com/urfave/cli/v2"
 	"github.com/wI2L/jsondiff"

@@ -1,7 +1,7 @@
 package user
 
 import (
-	"github.com/nhost/cli/clienv"
+	"github.com/nhost/nhost/cli/clienv"
 	"github.com/urfave/cli/v2"
 )
 

@@ -8,8 +8,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/nhost/cli/nhostclient"
-	"github.com/nhost/cli/nhostclient/graphql"
+	"github.com/nhost/nhost/cli/nhostclient"
+	"github.com/nhost/nhost/cli/nhostclient/graphql"
 	"github.com/urfave/cli/v2"
 )
 

@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/nhost/cli/clienv"
-	"github.com/nhost/cli/project"
-	"github.com/nhost/cli/project/env"
+	"github.com/nhost/nhost/cli/clienv"
+	"github.com/nhost/nhost/cli/project"
+	"github.com/nhost/nhost/cli/project/env"
 	"github.com/pelletier/go-toml/v2"
 	"github.com/urfave/cli/v2"
 )

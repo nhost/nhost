@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/nhost/cli/clienv"
-	"github.com/nhost/cli/nhostclient/graphql"
+	"github.com/nhost/nhost/cli/clienv"
+	"github.com/nhost/nhost/cli/nhostclient/graphql"
 	"github.com/urfave/cli/v2"
 )
 

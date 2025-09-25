@@ -17,9 +17,9 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/nhost/cli/nhostclient"
-	"github.com/nhost/cli/nhostclient/credentials"
-	"github.com/nhost/cli/ssl"
+	"github.com/nhost/nhost/cli/nhostclient"
+	"github.com/nhost/nhost/cli/nhostclient/credentials"
+	"github.com/nhost/nhost/cli/ssl"
 )
 
 func savePAT(

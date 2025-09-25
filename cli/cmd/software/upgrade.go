@@ -5,8 +5,8 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/nhost/cli/clienv"
-	"github.com/nhost/cli/software"
+	"github.com/nhost/nhost/cli/clienv"
+	"github.com/nhost/nhost/cli/software"
 	"github.com/urfave/cli/v2"
 )
 

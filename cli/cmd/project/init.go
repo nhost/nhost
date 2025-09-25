@@ -11,9 +11,9 @@ import (
 
 	"github.com/hashicorp/go-getter"
 	"github.com/nhost/be/services/mimir/model"
-	"github.com/nhost/cli/clienv"
-	"github.com/nhost/cli/cmd/config"
-	"github.com/nhost/cli/dockercompose"
+	"github.com/nhost/nhost/cli/clienv"
+	"github.com/nhost/nhost/cli/cmd/config"
+	"github.com/nhost/nhost/cli/dockercompose"
 	"github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v3"
 )
