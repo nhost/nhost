@@ -18,6 +18,8 @@ on:
         required: true
       NIX_CACHE_PRIV_KEY:
         required: true
+      NHOST_PAT:
+        required: false
 
 jobs:
   tests:
@@ -27,6 +29,9 @@ jobs:
     defaults:
       run:
         working-directory: ${{ inputs.PATH }}
+
+    env:
+      NHOST_PAT: ${{ secrets.NHOST_PAT }}
 
     permissions:
       id-token: write
