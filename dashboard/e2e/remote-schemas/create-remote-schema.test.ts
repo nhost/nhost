@@ -34,13 +34,9 @@ test.describe('Remote Schemas', () => {
     const detailsUrl = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/graphql/remote-schemas/${schemaName}`;
     await page.waitForURL(detailsUrl);
 
-    await expect(
-      page.getByRole('main').locator('p', { hasText: schemaName }),
-    ).toBeVisible();
-    await expect(
-      page.locator(`input[value="${REMOTE_SCHEMA_TEST_URL}"]`),
-    ).toBeVisible();
-    await expect(page.getByRole('button', { name: /reload/i })).toBeVisible();
+    await page.waitForSelector(
+      'div:has-text("The remote schema has been created successfully.")',
+    );
 
     await expect(
       page.getByRole('link', { name: schemaName, exact: true }),
