@@ -4,8 +4,10 @@ on:
   # pull_request_target:
   pull_request:
     paths:
+      - '.github/workflows/cli_checks.yaml'
       - '.github/workflows/wf_check.yaml'
-      - '.github/workflows/cli.yaml'
+      - '.github/workflows/wf_build_artifacts.yaml'
+      - '.github/workflows/cli_test_new_project.yaml'
 
       # common build
       - 'flake.nix'
@@ -53,7 +55,7 @@ jobs:
       NHOST_PAT: ${{ secrets.NHOST_PAT }}
 
   build_artifacts:
-    uses: ./.github/workflows/cli_test_new_project.yaml
+    uses: ./.github/workflows/wf_build_artifacts.yaml
     needs:
       - check-permissions
     with:
@@ -68,7 +70,7 @@ jobs:
       NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
 
   test_cli_build:
-    uses: ./.github/workflows/wf_check.yaml
+    uses: ./.github/workflows/cli_test_new_project.yaml
     needs:
       - check-permissions
       - build_artifacts
