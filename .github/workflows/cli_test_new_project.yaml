@@ -103,10 +103,10 @@ jobs:
 
         mkdir new-project
         cd new-project
-        /home/runner/_work/nhost/nhost/cli/result/bin/cli login --pat ${{ secrets.NHOST_PAT }}
-        /home/runner/_work/nhost/nhost/cli/result/bin/cli init
-        /home/runner/_work/nhost/nhost/cli/result/bin/cli up --down-on-error
-        /home/runner/_work/nhost/nhost/cli/result/bin/cli down --volumes
+        /home/runner/_work/nhost/nhost/cli/result/bin/nhost login --pat ${{ secrets.NHOST_PAT }}
+        /home/runner/_work/nhost/nhost/cli/result/bin/nhost init
+        /home/runner/_work/nhost/nhost/cli/result/bin/nhost up --down-on-error
+        /home/runner/_work/nhost/nhost/cli/result/bin/nhost down --volumes
 
     - name: "Cache build"
       run: |
