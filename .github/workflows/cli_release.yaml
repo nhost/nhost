@@ -3,9 +3,6 @@ name: "cli: release"
 on:
   workflow_call:
     inputs:
-      NAME:
-        required: true
-        type: string
       GIT_REF:
         required: true
         type: string
@@ -79,7 +76,7 @@ jobs:
     - name: Setup Nix with Cache
       uses: ./.github/actions/setup-nix
       with:
-        NAME: ${{ inputs.NAME }}
+        NAME: cli
         NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

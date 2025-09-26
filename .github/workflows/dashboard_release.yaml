@@ -4,9 +4,6 @@ name: 'dashboard: release'
 on:
   workflow_call:
     inputs:
-      NAME:
-        required: true
-        type: string
       GIT_REF:
         required: true
         type: string
