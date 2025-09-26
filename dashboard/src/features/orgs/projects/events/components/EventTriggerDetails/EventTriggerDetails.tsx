@@ -53,9 +53,7 @@ export default function EventTriggerDetails() {
         <Tabs defaultValue="overview">
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="pending-processed-events">
-              Pending/Processed events
-            </TabsTrigger>
+            <TabsTrigger value="pending-processed-events">Events</TabsTrigger>
           </TabsList>
           <TabsContent value="overview">
             <EventTriggerOverview eventTrigger={eventTrigger} />

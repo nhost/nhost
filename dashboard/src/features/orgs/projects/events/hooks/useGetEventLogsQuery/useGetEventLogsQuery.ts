@@ -1,4 +1,3 @@
-/** TODO: Implement this hook */
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type {
@@ -23,9 +22,8 @@ export interface UseGetEventLogsQueryOptions {
 }
 
 /**
- * This hook is a wrapper around a fetch call that introspects a remote schema.
+ * This hook is a wrapper around a fetch call that gets all the event logs for a given event trigger.
  *
- * @param eventTriggerName - Name of the event trigger to get the event logs for
  * @param args - Arguments for the query.
  * @param args.name - Name of the event trigger to get the event logs for
  * @param args.source - Name of the source database of the trigger
