@@ -1,0 +1,4 @@
+operation-dont-include-error-responses:
+- $.paths['/files/{id}'].get.responses
+- $.paths['/files/{id}'].head.responses
+- $.paths['/files/{id}/presignedurl/contents'].get.responses
