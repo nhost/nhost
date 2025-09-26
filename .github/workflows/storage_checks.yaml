@@ -44,7 +44,7 @@ jobs:
       - check-permissions
     with:
       NAME: storage
-      PATH: storage
+      PATH: services/storage
       GIT_REF: ${{ github.sha }}
 
     secrets:
@@ -59,7 +59,7 @@ jobs:
       - check-permissions
     with:
       NAME: storage
-      PATH: storage
+      PATH: services/storage
       GIT_REF: ${{ github.sha }}
       VERSION: 0.0.0-dev # we use a fixed version here to avoid unnecessary rebuilds
       DOCKER: true
