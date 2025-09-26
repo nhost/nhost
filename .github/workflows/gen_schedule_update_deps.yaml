@@ -23,7 +23,7 @@ jobs:
         role-to-assume: arn:aws:iam::${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}:role/github-actions-nhost-${{ github.event.repository.name }}
         aws-region: eu-central-1
 
-    - uses: nixbuild/nix-quick-install-action@v26
+    - uses: nixbuild/nix-quick-install-action@v34
       with:
         nix_version: 2.16.2
         nix_conf: |
