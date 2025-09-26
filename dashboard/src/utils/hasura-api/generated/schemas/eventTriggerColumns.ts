@@ -6,9 +6,4 @@
  * OpenAPI spec version: 1.0.0
  */
 
-/**
- * Directive definition
- */
-export type _IntrospectRemoteSchemaResponseDataSchemaDirectivesItem = {
-  [key: string]: unknown;
-};
+export type EventTriggerColumns = '*' | string[];

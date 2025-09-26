@@ -6,10 +6,16 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { ExportMetadataResponse } from './exportMetadataResponse';
+import type { GetEventAndInvocationLogsByIdResponse } from './getEventAndInvocationLogsByIdResponse';
+import type { GetEventInvocationLogsResponse } from './getEventInvocationLogsResponse';
+import type { GetEventLogsResponse } from './getEventLogsResponse';
 import type { IntrospectRemoteSchemaResponse } from './introspectRemoteSchemaResponse';
 import type { MetadataOperation200OneOf } from './metadataOperation200OneOf';
 
 export type MetadataOperation200 =
   | MetadataOperation200OneOf
   | ExportMetadataResponse
-  | IntrospectRemoteSchemaResponse;
+  | IntrospectRemoteSchemaResponse
+  | GetEventInvocationLogsResponse
+  | GetEventLogsResponse
+  | GetEventAndInvocationLogsByIdResponse;
