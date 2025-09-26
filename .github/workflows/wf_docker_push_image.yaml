@@ -11,6 +11,10 @@ on:
       VERSION:
         type: string
         required: true
+      CONTAINER_REGISTRY:
+        type: string
+        required: false
+        default: nhost
 
     secrets:
       DOCKER_USERNAME:
@@ -61,7 +65,7 @@ jobs:
         run: |
           export NAME=${{ inputs.NAME }}
           export VERSION=${{ steps.vars.outputs.VERSION }}
-          export CONTAINER_REGISTRY=nhost
+          export CONTAINER_REGISTRY=${{ inputs.CONTAINER_REGISTRY }}
           export CONTAINER_NAME=$CONTAINER_REGISTRY/$NAME
 
           for ARCH in "x86_64" "aarch64"; do
