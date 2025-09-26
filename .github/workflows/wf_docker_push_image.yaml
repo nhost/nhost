@@ -11,16 +11,14 @@ on:
       VERSION:
         type: string
         required: true
-      CONTAINER_REGISTRY:
-        type: string
-        required: false
-        default: nhost
 
     secrets:
       DOCKER_USERNAME:
         required: true
       DOCKER_PASSWORD:
         required: true
+      ECR_REGISTRY:
+        required: false
 
 jobs:
   push-to-registry:
@@ -41,6 +39,12 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
+
+      - name: Configure aws
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-nhost-${{ github.event.repository.name }}
+          aws-region: eu-central-1
 
       - name: "Compute common env vars"
         id: vars
@@ -65,7 +69,7 @@ jobs:
         run: |
           export NAME=${{ inputs.NAME }}
           export VERSION=${{ steps.vars.outputs.VERSION }}
-          export CONTAINER_REGISTRY=${{ inputs.CONTAINER_REGISTRY }}
+          export CONTAINER_REGISTRY=${{ secrets.ECR_REGISTRY || 'nhost' }}
           export CONTAINER_NAME=$CONTAINER_REGISTRY/$NAME
 
           for ARCH in "x86_64" "aarch64"; do
