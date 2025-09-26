@@ -44,12 +44,11 @@ jobs:
       PATH: services/storage
       VERSION: ${{ inputs.VERSION }}
     secrets:
-      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
   push-docker-ecr:
-    uses: ./.github/workflows/wf_docker_push_image.yaml
+    uses: ./.github/workflows/wf_docker_push_image_ecr.yaml
     needs:
       - build_artifacts
     with:
@@ -58,6 +57,4 @@ jobs:
       VERSION: ${{ inputs.VERSION }}
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
       CONTAINER_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-central-1.amazonaws.com
