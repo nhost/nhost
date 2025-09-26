@@ -1,0 +1,24 @@
+model:
+  filename: ./metadata/models_gen.go # https://github.com/99designs/gqlgen/tree/master/plugin/modelgen
+client:
+  filename: ./metadata/client_gen.go
+
+models:
+  Int:
+    model:
+      - github.com/99designs/gqlgen/graphql.Int64
+  jsonb:
+    model:
+      - github.com/99designs/gqlgen/graphql.Map
+  timestamptz:
+    model:
+      - github.com/99designs/gqlgen/graphql.Time
+
+endpoint:
+  url: http://localhost:8080/v1/graphql
+  headers:
+    X-Hasura-admin-secret: "nhost-admin-secret"
+query:
+  - "./metadata/*.graphql"
+generate:
+  clientV2: true

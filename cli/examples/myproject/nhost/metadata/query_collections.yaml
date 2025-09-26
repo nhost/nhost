@@ -1,0 +1,10 @@
+- name: allowed-queries
+  definition:
+    queries:
+      - name: animals
+        query: |
+          query animals {
+            animals {
+              name
+            }
+          }

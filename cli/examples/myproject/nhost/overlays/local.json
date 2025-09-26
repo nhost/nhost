@@ -1,0 +1,15 @@
+[
+  {
+    "value": {
+      "name": "ENVIRONMENT",
+      "value": "development"
+    },
+    "op": "add",
+    "path": "/global/environment/-"
+  },
+  {
+    "value": "hej",
+    "op": "replace",
+    "path": "/global/environment/0/value"
+  }
+]

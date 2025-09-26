@@ -1,0 +1,22 @@
+extends: [[spectral:oas, all]]
+rules:
+  operation-4xx-response: false
+  operation-singular-tag: false
+  description-duplication: false
+  oas3-missing-example: false
+  component-description: false
+  operation-default-response:
+    description: Operation must have a default response
+    given: $.paths[*][*].responses
+    severity: error
+    then:
+      field: default
+      function: truthy
+  operation-dont-include-error-responses:
+    description: Operation must not include responses for 4xx|5xx status codes
+    given: $.paths[*][*].responses
+    severity: error
+    then:
+      function: pattern
+      functionOptions:
+        notMatch: "^[4-5][0-9]+$"

@@ -1,0 +1,86 @@
+version: "2"
+linters:
+  enable:
+    - asciicheck
+    - copyloopvar
+    - dogsled
+    - durationcheck
+    - errorlint
+    - gosec
+    - misspell
+    - nakedret
+    - nilerr
+    - nolintlint
+    - perfsprint
+    - revive
+    - testifylint
+    - usestdlibvars
+    - wastedassign
+  settings:
+    gosec:
+      includes:
+        - G102
+        - G106
+        - G108
+        - G109
+        - G111
+        - G112
+        - G201
+        - G203
+    perfsprint:
+      int-conversion: true
+      err-error: true
+      errorf: true
+      sprintf1: true
+      strconcat: true
+    testifylint:
+      enable-all: true
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - structcheck
+          - unused
+        text: '`data` is unused'
+      - linters:
+          - staticcheck
+        text: 'SA1019:'
+      - linters:
+          - revive
+        text: 'var-naming:'
+      - linters:
+          - revive
+        text: 'exported:'
+      - linters:
+          - gosec
+        path: _test\.go
+      - linters:
+          - revive
+        path: _test\.go
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gci
+    - gofmt
+    - gofumpt
+    - goimports
+  settings:
+    gofmt:
+      rewrite-rules:
+        - pattern: 'interface{}'
+          replacement: 'any'
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+      - gin.go

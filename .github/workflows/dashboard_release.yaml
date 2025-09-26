@@ -83,20 +83,19 @@ jobs:
       - push-docker
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
         with:
-          repository: nhost/cli
           token: ${{ secrets.GH_PAT }}
 
       - name: Bump version in source code
         run: |
-          find . -type f -exec sed -i 's/"nhost\/dashboard:[^"]*"/"nhost\/dashboard:${{ inputs.VERSION }}"/g' {} +
+          find cli -type f -exec sed -i 's/"nhost\/dashboard:[^"]*"/"nhost\/dashboard:${{ inputs.VERSION }}"/g' {} +
 
       - name: "Create Pull Request"
         uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.GH_PAT }}
-          title: "chore: bump nhost/dashboard to ${{ inputs.VERSION }}"
+          title: "chore(cli): bump nhost/dashboard to ${{ inputs.VERSION }}"
           commit-message: "chore: bump nhost/dashboard to ${{ inputs.VERSION }}"
           committer: GitHub <noreply@github.com>
           author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>

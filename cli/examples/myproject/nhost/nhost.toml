@@ -1,0 +1,184 @@
+[global]
+[[global.environment]]
+name = 'GREET'
+value = 'Sayonara'
+
+[hasura]
+version = 'v2.46.0-ce'
+adminSecret = '{{ secrets.HASURA_GRAPHQL_ADMIN_SECRET }}'
+webhookSecret = '{{ secrets.NHOST_WEBHOOK_SECRET }}'
+
+[[hasura.jwtSecrets]]
+type = 'RS256'
+key = '{{ secrets.JWT_PUBLIC_KEY }}'
+signingKey = '{{ secrets.JWT_PRIVATE_KEY }}'
+kid = 'bskhwtelkajsd'
+
+[hasura.settings]
+corsDomain = ['https://local.dashboard.nhost.run', 'https://app.nhost.io', 'https://staging.app.nhost.io', 'https://zero.app.io', 'https://one.app.io', 'https://two.app.io']
+enableRemoteSchemaPermissions = false
+liveQueriesMultiplexedRefetchInterval = 3000
+
+[functions]
+[functions.node]
+version = 22
+
+[auth]
+version = '0.41.0'
+
+[auth.redirections]
+clientUrl = 'http://localhost:3000'
+
+[auth.signUp]
+enabled = true
+
+[auth.user]
+[auth.user.roles]
+default = 'user'
+allowed = ['user', 'me']
+
+[auth.user.locale]
+default = 'en'
+allowed = ['en']
+
+[auth.user.gravatar]
+enabled = true
+default = 'blank'
+rating = 'g'
+
+[auth.user.email]
+
+[auth.user.emailDomains]
+
+[auth.session]
+[auth.session.accessToken]
+expiresIn = 900
+
+[[auth.session.accessToken.customClaims]]
+key = "spirit-animal"
+value = "animals[0].id"
+default = "00000000-0000-0000-0000-000000000000"
+
+[auth.session.refreshToken]
+expiresIn = 2592000
+
+[auth.method]
+[auth.method.anonymous]
+enabled = false
+
+[auth.method.emailPasswordless]
+enabled = false
+
+[auth.method.emailPassword]
+hibpEnabled = false
+emailVerificationRequired = false
+passwordMinLength = 9
+
+[auth.method.smsPasswordless]
+enabled = false
+
+[auth.method.oauth]
+[auth.method.oauth.apple]
+enabled = false
+
+[auth.method.oauth.azuread]
+tenant = 'common'
+enabled = false
+
+[auth.method.oauth.bitbucket]
+enabled = false
+
+[auth.method.oauth.discord]
+enabled = false
+
+[auth.method.oauth.facebook]
+enabled = false
+
+[auth.method.oauth.github]
+enabled = false
+
+[auth.method.oauth.gitlab]
+enabled = false
+
+[auth.method.oauth.google]
+enabled = false
+
+[auth.method.oauth.linkedin]
+enabled = false
+
+[auth.method.oauth.spotify]
+enabled = false
+
+[auth.method.oauth.strava]
+enabled = false
+
+[auth.method.oauth.twitch]
+enabled = false
+
+[auth.method.oauth.twitter]
+enabled = false
+
+[auth.method.oauth.windowslive]
+enabled = false
+
+[auth.method.oauth.workos]
+enabled = false
+
+[auth.method.webauthn]
+enabled = false
+
+[auth.method.webauthn.attestation]
+timeout = 60000
+
+[auth.totp]
+enabled = false
+
+[postgres]
+version = '14.18-20250728-1'
+
+[postgres.resources.storage]
+capacity = 1
+
+[postgres.settings]
+maxConnections = 100
+sharedBuffers = '256MB'
+effectiveCacheSize = '768MB'
+maintenanceWorkMem = '64MB'
+checkpointCompletionTarget = 0.9
+walBuffers = '-1'
+defaultStatisticsTarget = 100
+randomPageCost = 1.1
+effectiveIOConcurrency = 200
+workMem = '1310kB'
+hugePages = 'off'
+minWalSize = '80MB'
+maxWalSize = '1GB'
+maxWorkerProcesses = 8
+maxParallelWorkersPerGather = 2
+maxParallelWorkers = 8
+maxParallelMaintenanceWorkers = 2
+
+[provider]
+
+[storage]
+version = '0.7.1'
+
+[ai]
+version = '0.8.0'
+webhookSecret = '{{ secrets.GRAPHITE_WEBHOOK_SECRET }}'
+
+[ai.resources]
+[ai.resources.compute]
+cpu = 125
+memory = 256
+
+[ai.openai]
+organization = ''
+apiKey = '{{ secrets.OPENAI_API_KEY }}'
+
+[ai.autoEmbeddings]
+synchPeriodMinutes = 5
+
+[observability]
+[observability.grafana]
+adminPassword = '{{ secrets.GRAFANA_ADMIN_PASSWORD }}'

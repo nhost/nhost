@@ -1,0 +1,18 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    queries: "query.sql"
+    schema: "../../console-next/schema.sql"
+    database:
+      uri: postgresql://mimir@localhost:5432/local
+    gen:
+      go:
+        package: "nhost"
+        out: "."
+        sql_package: "pgx/v5"
+        emit_interface: true
+        overrides:
+          - db_type: "uuid"
+            go_type:
+              import: "github.com/google/uuid"
+              type: "UUID"

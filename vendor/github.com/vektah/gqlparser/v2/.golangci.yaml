@@ -1,0 +1,67 @@
+version: "2"
+run:
+  tests: true
+linters:
+  default: none
+  enable:
+    - bodyclose
+    - dupl
+    - errcheck
+    - gocritic
+    - govet
+    - ineffassign
+    - misspell
+    - nakedret
+    - prealloc
+    - revive
+    - staticcheck
+    - testifylint
+    - unconvert
+    - unused
+  settings:
+    errcheck:
+      exclude-functions:
+        - (io.Writer).Write
+        - io.Copy
+        - io.WriteString
+    revive:
+      enable-all-rules: false
+      rules:
+        - name: empty-lines
+    testifylint:
+      disable-all: true
+      enable:
+        - bool-compare
+        - compares
+        - error-is-as
+        - error-nil
+        - expected-actual
+        - nil-compare
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - dupl
+          - errcheck
+        path: _test\.go
+    paths:
+      - bin
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - bin
+      - third_party$
+      - builtin$
+      - examples$

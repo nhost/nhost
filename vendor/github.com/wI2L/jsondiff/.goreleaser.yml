@@ -1,0 +1,13 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+version: 2
+project_name: jsondiff
+release:
+  github:
+    owner: wI2L
+    name: jsondiff
+  draft: true
+  prerelease: auto
+env_files:
+  github_token: ~/.goreleaser_github_token
+builds:
+  - skip: true

@@ -1,0 +1,91 @@
+---
+name: "gen: update depenendencies"
+on:
+  schedule:
+    - cron: '0 2 1 2,5,8,11 *'
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: write
+      pull-requests: write
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Configure aws
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: arn:aws:iam::${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}:role/github-actions-nhost-${{ github.event.repository.name }}
+        aws-region: eu-central-1
+
+    - uses: nixbuild/nix-quick-install-action@v26
+      with:
+        nix_version: 2.16.2
+        nix_conf: |
+          experimental-features = nix-command flakes
+          sandbox = false
+          access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+          substituters = https://cache.nixos.org/?priority=40 s3://nhost-nix-cache?region=eu-central-1&priority=50
+          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ${{ secrets.NIX_CACHE_PUB_KEY }}
+
+    - name: Cache nix store
+      uses: actions/cache@v4
+      with:
+        path: /nix
+        key: nix-update-deps-${{ hashFiles('flakes.nix', 'flake.lock') }}
+
+    - name: Update nix flakes
+      run: nix flake update
+
+    - uses: shaunco/ssh-agent@git-repo-mapping
+      with:
+        ssh-private-key: |
+          ${{ secrets.NHOST_BE_DEPLOY_SSH_PRIVATE_KEY}}
+        repo-mappings: |
+          github.com/nhost/be
+
+    - name: Update golang dependencies
+      run: |
+        export GOPRIVATE=github.com/nhost/be
+        nix develop -c bash -c "
+          go mod tidy
+          go get -u $(cat go.mod | grep nhost\/be | tr ' ' '@') ./...
+          go mod tidy
+          go mod vendor
+        "
+
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v6
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: Update dependencies
+        committer: GitHub <noreply@github.com>
+        author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
+        signoff: false
+        branch: automated/update-deps
+        delete-branch: true
+        title: '[Scheduled] Update dependencies'
+        body: |
+          Dependencies updated
+
+          Note - If you see this PR and the checks haven't run, close and reopen the PR. See https://github.com/peter-evans/create-pull-request/blob/main/docs/concepts-guidelines.md#triggering-further-workflow-runs
+        labels: |
+          dependencies
+        draft: false
+
+    - name: "Cache nix store on s3"
+      run: |
+        echo ${{ secrets.NIX_CACHE_PRIV_KEY }} > cache-priv-key.pem
+        nix build .\#devShells.x86_64-linux.default
+        nix store sign --key-file cache-priv-key.pem --all
+        nix copy --to s3://nhost-nix-cache\?region=eu-central-1 .\#devShells.x86_64-linux.default
+
+    - run: rm cache-priv-key.pem
+      if: always()

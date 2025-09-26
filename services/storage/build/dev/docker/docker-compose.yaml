@@ -1,0 +1,72 @@
+services:
+  postgres:
+    container_name: hasura-storage-postgres
+    image: postgres:13
+    restart: unless-stopped
+    volumes:
+      - ./initdb.d:/docker-entrypoint-initdb.d:ro
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-hejsan}
+
+  graphql-engine:
+    container_name: hasura-storage-graphql
+    image: nhost/graphql-engine:v2.25.1-ce
+    depends_on:
+      - postgres
+      - minio
+    restart: unless-stopped
+    ports:
+      - '8080:8080'
+    environment:
+      HASURA_GRAPHQL_DATABASE_URL: ${HASURA_GRAPHQL_DATABASE_URL:-postgres://postgres:hejsan@postgres:5432/postgres}
+      HASURA_GRAPHQL_ENABLE_CONSOLE: ${HASURA_GRAPHQL_ENABLE_CONSOLE:-true}
+      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET:-nhost-admin-secret}
+      HASURA_GRAPHQL_JWT_SECRET: ${HASURA_GRAPHQL_JWT_SECRET:-{"type":"HS256", "key":"5152fa850c02dc222631cca898ed1485821a70912a6e3649c49076912daa3b62182ba013315915d64f40cddfbb8b58eb5bd11ba225336a6af45bbae07ca873f3"}}
+      HASURA_GRAPHQL_UNAUTHORIZED_ROLE: ${HASURA_GRAPHQL_UNAUTHORIZED_ROLE:-public}
+      HASURA_GRAPHQL_LOG_LEVEL: ${HASURA_GRAPHQL_LOG_LEVEL:-info}
+      HASURA_GRAPHQL_DEV_MODE: ${HASURA_GRAPHQL_DEV_MODE:-false}
+
+  minio:
+    container_name: hasura-storage-minio
+    build:
+      context: minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY:-5a7bdb5f42c41e0622bf61d6e08d5537}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY:-9e1c40c65a615a5b52f52aeeaf549944ec53acb1dff4a0bf01fb58e969f915c8}
+    command: server --address 0.0.0.0:9000 --console-address 0.0.0.0:32765 /tmp
+    ports:
+      - '9000:9000'
+      - '32765:32765'
+
+  storage:
+    container_name: hasura-storage-storage
+    image: hasura-storage:0.0.0-dev
+    depends_on:
+      - graphql-engine
+    restart: unless-stopped
+    ports:
+      - '8000:8000'
+    environment:
+      DEBUG: "true"
+      HASURA_METADATA: 1
+      HASURA_ENDPOINT: http://graphql-engine:8080/v1
+      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET:-nhost-admin-secret}
+      S3_ENDPOINT: http://minio:9000
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-5a7bdb5f42c41e0622bf61d6e08d5537}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-9e1c40c65a615a5b52f52aeeaf549944ec53acb1dff4a0bf01fb58e969f915c8}
+      S3_BUCKET: "default"
+      S3_ROOT_FOLDER: "f215cf48-7458-4596-9aa5-2159fc6a3caf"
+      POSTGRES_MIGRATIONS: 1
+      POSTGRES_MIGRATIONS_SOURCE: ${HASURA_GRAPHQL_DATABASE_URL:-postgres://postgres:hejsan@postgres:5432/postgres?sslmode=disable}
+      CLAMAV_SERVER: tcp://clamd:3310
+    command: serve
+
+  clamd:
+    container_name: hasura-storage-clamd
+    image: nhost/clamav:0.1.2
+    restart: unless-stopped
+    ports:
+      - '3310:3310'

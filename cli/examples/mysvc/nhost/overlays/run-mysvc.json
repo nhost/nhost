@@ -1,0 +1,19 @@
+[
+  {
+    "value": {
+      "name": "ENVIRONMENT",
+      "value": "development"
+    },
+    "op": "add",
+    "path": "/environment/-"
+  },
+  {
+    "value": "mysvc",
+    "op": "replace",
+    "path": "/name"
+  },
+  {
+    "op": "remove",
+    "path": "/ports"
+  }
+]

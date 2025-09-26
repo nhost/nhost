@@ -1,0 +1,35 @@
+run:
+  timeout: 10m
+linters:
+  disable-all: true
+  enable:
+    - dupl
+    - dupword
+    - forbidigo
+    - gocritic
+    - gofumpt
+    - goimports
+    - misspell
+    - prealloc
+    - revive
+    - revive
+    - stylecheck
+    - thelper
+    - tparallel
+    - unconvert
+    - unparam
+    - unused
+    - wastedassign
+    - whitespace
+linters-settings:
+  gofmt:
+    simplify: true
+  dupl:
+    threshold: 400
+  funlen:
+    lines: 120
+issues:
+  exclude-rules:
+    - path: (.+)_test.go
+      linters:
+        - funlen
