@@ -15,10 +15,6 @@ on:
     secrets:
       AWS_ACCOUNT_ID:
         required: true
-      DOCKER_USERNAME:
-        required: true
-      DOCKER_PASSWORD:
-        required: true
       CONTAINER_REGISTRY:
         required: true
 
