@@ -1,0 +1,63 @@
+---
+name: "storage: release"
+on:
+  workflow_call:
+    inputs:
+      GIT_REF:
+        required: true
+        type: string
+      VERSION:
+        required: true
+        type: string
+    secrets:
+      AWS_ACCOUNT_ID:
+        required: true
+      AWS_REGION:
+        required: true
+      NIX_CACHE_PUB_KEY:
+        required: true
+      NIX_CACHE_PRIV_KEY:
+        required: true
+      DOCKER_USERNAME:
+        required: true
+      DOCKER_PASSWORD:
+        required: true
+
+jobs:
+  build_artifacts:
+    uses: ./.github/workflows/wf_build_artifacts.yaml
+    with:
+      NAME: storage
+      PATH: services/storage
+      GIT_REF: ${{ inputs.GIT_REF }}
+      VERSION: ${{ inputs.VERSION }}
+      DOCKER: true
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+
+  push-docker-hub:
+    uses: ./.github/workflows/wf_docker_push_image.yaml
+    needs:
+      - build_artifacts
+    with:
+      NAME: storage
+      PATH: services/storage
+      VERSION: ${{ inputs.VERSION }}
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+  push-docker-ecr:
+    uses: ./.github/workflows/wf_docker_push_image.yaml
+    needs:
+      - build_artifacts
+    with:
+      NAME: storage
+      PATH: services/storage
+      VERSION: ${{ inputs.VERSION }}
+      CONTAINER_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-central-1.amazonaws.com
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
