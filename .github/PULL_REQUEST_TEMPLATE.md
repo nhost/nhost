@@ -23,8 +23,10 @@ Where `TYPE` is:
 Where `PKG` is:
 
 - `ci`: For general changes to the build and/or CI/CD pipeline
+- `cli`: For changes to the Nhost CLI
 - `codegen`: For changes to the code generator
 - `dashboard`: For changes to the Nhost Dashboard
+- `deps`: For changes to dependencies
 - `docs`: For changes to the documentation
 - `examples`: For changes to the examples
 - `mintlify-openapi`: For changes to the Mintlify OpenAPI tool

@@ -1,0 +1,35 @@
+---
+name: "release"
+on:
+  release:
+    types: [published]
+
+jobs:
+  tests:
+    uses: ./.github/workflows/wf_check.yaml
+    secrets:
+      NHOST_PAT: ${{ secrets.NHOST_PAT }}
+
+  build_artifacts:
+    strategy:
+      matrix:
+        GOOS: ["darwin", "linux"]
+        GOARCH: ["amd64", "arm64"]
+    uses: ./.github/workflows/wf_build_artifacts.yaml
+    with:
+      GOOS: ${{ matrix.GOOS }}
+      GOARCH: ${{ matrix.GOARCH }}
+      VERSION: ${{ github.ref_name }}
+    secrets:
+      NHOST_PAT: ${{ secrets.NHOST_PAT }}
+
+  publish:
+    uses: ./.github/workflows/wf_publish.yaml
+    needs:
+      - tests
+      - build_artifacts
+    with:
+      VERSION: ${{ github.ref_name }}
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}

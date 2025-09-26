@@ -1,0 +1,8 @@
+mutation DeleteRefreshToken($where: authRefreshTokens_bool_exp!) {
+    deleteAuthRefreshTokens(where: $where) {
+        affected_rows
+        returning {
+            __typename
+        }
+    }
+}

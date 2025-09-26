@@ -1,0 +1,7 @@
+[
+  {
+    "value": "nhost/bun-generator:0.0.4",
+    "op": "replace",
+    "path": "/image/image"
+  }
+]

@@ -1,0 +1,34 @@
+table:
+  name: assistants
+  schema: graphite
+configuration:
+  column_config:
+    assistant_id:
+      custom_name: assistantID
+    created_at:
+      custom_name: createdAt
+    data:
+      custom_name: data
+    id:
+      custom_name: id
+    updated_at:
+      custom_name: updatedAt
+  custom_column_names:
+    assistant_id: assistantID
+    created_at: createdAt
+    data: data
+    id: id
+    updated_at: updatedAt
+  custom_name: _graphiteAssistants
+  custom_root_fields:
+    delete: _deleteGraphiteAssistants
+    delete_by_pk: _deleteGraphiteAssistant
+    insert: _insertGraphiteAssistants
+    insert_one: _insertGraphiteAssistant
+    select: _graphiteAssistants
+    select_aggregate: _graphiteAssistantAggregate
+    select_by_pk: _graphiteAssistant
+    select_stream: _graphiteAssistantStream
+    update: _updateGraphiteAssistants
+    update_by_pk: _updateGraphiteAssistant
+    update_many: _updateManyGraphiteAssistants

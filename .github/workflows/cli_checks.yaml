@@ -1,0 +1,97 @@
+---
+name: "cli: check and build"
+on:
+  # pull_request_target:
+  pull_request:
+    paths:
+      - '.github/workflows/cli_checks.yaml'
+      - '.github/workflows/wf_check.yaml'
+      - '.github/workflows/wf_build_artifacts.yaml'
+      - '.github/workflows/cli_test_new_project.yaml'
+
+      # common build
+      - 'flake.nix'
+      - 'flake.lock'
+      - 'nixops/**'
+      - 'build/**'
+
+      # common go
+      - '.golangci.yaml'
+      - 'go.mod'
+      - 'go.sum'
+      - 'vendor/**'
+
+      # cli
+      - 'cli/**'
+  push:
+    branches:
+      - main
+
+jobs:
+  check-permissions:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "github.event_name: ${{ github.event_name }}"
+          echo "github.event.pull_request.author_association: ${{ github.event.pull_request.author_association }}"
+      - name: "This task will run and fail if user has no permissions and label safe_to_test isn't present"
+        if: "github.event_name == 'pull_request_target' && ! ( contains(github.event.pull_request.labels.*.name, 'safe_to_test') || contains(fromJson('[\"OWNER\", \"MEMBER\", \"COLLABORATOR\"]'), github.event.pull_request.author_association) )"
+        run: |
+          exit 1
+
+  tests:
+    uses: ./.github/workflows/wf_check.yaml
+    needs:
+      - check-permissions
+    with:
+      NAME: cli
+      PATH: cli
+      GIT_REF: ${{ github.sha }}
+
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
+      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+      NHOST_PAT: ${{ secrets.NHOST_PAT }}
+
+  build_artifacts:
+    uses: ./.github/workflows/wf_build_artifacts.yaml
+    needs:
+      - check-permissions
+    with:
+      NAME: cli
+      PATH: cli
+      GIT_REF: ${{ github.sha }}
+      VERSION: 0.0.0-dev # we use a fixed version here to avoid unnecessary rebuilds
+      DOCKER: true
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
+      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+
+  test_cli_build:
+    uses: ./.github/workflows/cli_test_new_project.yaml
+    needs:
+      - check-permissions
+      - build_artifacts
+    with:
+      NAME: cli
+      PATH: cli
+      GIT_REF: ${{ github.sha }}
+
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
+      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+      NHOST_PAT: ${{ secrets.NHOST_PAT }}
+
+  remove_label:
+    runs-on: ubuntu-latest
+    needs:
+      - check-permissions
+    steps:
+      - uses: actions-ecosystem/action-remove-labels@v1
+        with:
+          labels: |
+            safe_to_test
+    if: contains(github.event.pull_request.labels.*.name, 'safe_to_test')

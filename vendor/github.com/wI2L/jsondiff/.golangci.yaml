@@ -1,0 +1,52 @@
+version: "2"
+linters:
+  default: none
+  enable:
+    - dupl
+    - dupword
+    - forbidigo
+    - gocritic
+    - misspell
+    - prealloc
+    - revive
+    - staticcheck
+    - thelper
+    - tparallel
+    - unconvert
+    - unparam
+    - unused
+    - wastedassign
+    - whitespace
+  settings:
+    dupl:
+      threshold: 400
+    funlen:
+      lines: 120
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - funlen
+        path: (.+)_test.go
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gofumpt
+    - goimports
+  settings:
+    gofmt:
+      simplify: true
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

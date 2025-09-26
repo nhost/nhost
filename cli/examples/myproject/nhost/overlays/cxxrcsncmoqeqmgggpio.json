@@ -1,0 +1,25 @@
+[
+  {
+    "op": "replace",
+    "path": "/auth/redirections/clientUrl",
+    "value": "https://staging.app.io"
+  },
+  {
+    "op": "add",
+    "path": "/global/environment/2",
+    "value": {
+      "name": "ENVIRONMENT",
+      "value": "staging"
+    }
+  },
+  {
+    "op": "replace",
+    "path": "/hasura/settings/enableRemoteSchemaPermissions",
+    "value": true
+  },
+  {
+    "op": "replace",
+    "path": "/hasura/version",
+    "value": "v2.25.1-ce"
+  }
+]
