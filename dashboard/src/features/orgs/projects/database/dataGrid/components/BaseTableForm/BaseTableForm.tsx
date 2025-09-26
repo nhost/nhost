@@ -4,7 +4,6 @@ import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
-import { baseColumnValidationSchema } from '@/features/orgs/projects/database/dataGrid/components/BaseColumnForm';
 import type {
   DatabaseTable,
   ForeignKeyRelation,
@@ -50,6 +49,23 @@ export interface BaseTableFormProps extends DialogFormProps {
    */
   submitButtonText?: string;
 }
+
+export const baseColumnValidationSchema = Yup.object().shape({
+  name: Yup.string()
+    .required('This field is required.')
+    .matches(
+      /^([A-Za-z]|_)+/i,
+      'Column name must start with a letter or underscore.',
+    )
+    .matches(
+      /^\w+$/i,
+      'Column name must contain only letters, numbers, or underscores.',
+    ),
+  type: Yup.object()
+    .shape({ value: Yup.string().required() })
+    .required('This field is required.')
+    .nullable(),
+});
 
 export const baseTableValidationSchema = Yup.object({
   name: Yup.string()
