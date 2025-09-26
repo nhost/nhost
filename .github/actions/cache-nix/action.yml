@@ -11,5 +11,5 @@ runs:
     - name: "Cache build"
       shell: bash
       run: |
-        nix store sign --key-file <(echo "${{ secrets.NIX_CACHE_PRIV_KEY }}") --all
+        nix store sign --key-file <(echo "${{ inputs.NIX_CACHE_PRIV_KEY }}") --all
         nix copy --to 's3://nhost-nix-cache?region=eu-central-1' --substitute-on-destination --all

@@ -22,7 +22,7 @@ runs:
         extra_nix_config: |
           experimental-features = nix-command flakes
           sandbox = false
-          access-tokens = github.com=${{ inputs.GITHUB)TOKEN }}
+          access-tokens = github.com=${{ inputs.GITHUB_TOKEN }}
           substituters = https://cache.nixos.org/?priority=40 s3://nhost-nix-cache?region=eu-central-1&priority=50
           trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ${{ inputs.NIX_CACHE_PUB_KEY }}
           keep-env-derivations = true
