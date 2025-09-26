@@ -6,7 +6,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/go-cmp/cmp"
-	"github.com/nhost/hasura-storage/controller"
+	"github.com/nhost/nhost/services/storage/controller"
 )
 
 func TestGetUserSession(t *testing.T) {

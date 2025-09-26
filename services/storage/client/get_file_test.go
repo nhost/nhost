@@ -10,7 +10,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/uuid"
-	"github.com/nhost/hasura-storage/client"
+	"github.com/nhost/nhost/services/storage/client"
 )
 
 func uploadInitialFile(t *testing.T, cl client.ClientWithResponsesInterface, id1, id2 string) {

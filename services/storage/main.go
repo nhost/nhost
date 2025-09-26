@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/nhost/hasura-storage/cmd"
+	"github.com/nhost/nhost/services/storage/cmd"
 )
 
 //go:generate oapi-codegen -config api/server.cfg.yaml controller/openapi.yaml

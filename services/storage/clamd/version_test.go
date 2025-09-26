@@ -3,7 +3,7 @@ package clamd_test
 import (
 	"testing"
 
-	"github.com/nhost/hasura-storage/clamd"
+	"github.com/nhost/nhost/services/storage/clamd"
 )
 
 func TestClamdVersion(t *testing.T) {

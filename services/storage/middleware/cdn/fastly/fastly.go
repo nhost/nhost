@@ -43,7 +43,7 @@ func (fst *fastly) purge(ctx context.Context, key string) error {
 
 	req, err := http.NewRequestWithContext(
 		ctx,
-		"POST",
+		http.MethodPost,
 		fmt.Sprintf("https://api.fastly.com/service/%s/purge/%s", fst.serviceID, key),
 		nil,
 	)

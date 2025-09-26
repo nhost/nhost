@@ -1,43 +1,43 @@
-# Hasura Storage
+# Storage
 
-Hasura storage is a service that adds a storage service on top of hasura and any s3-compatible storage service. The goal is to be able to leverage the cloud storage service while also leveraging hasura features like its graphql API, permissions, actions, presets, etc...
+Storage is a service that adds a storage service on top of hasura and any s3-compatible storage service. The goal is to be able to leverage the cloud storage service while also leveraging hasura features like its graphql API, permissions, actions, presets, etc...
 
 ## Workflows
 
-To understand what hasura-storage does we can look at the two main workflows to upload and retrieve files.
+To understand what Storage does we can look at the two main workflows to upload and retrieve files.
 
 ### Uploading files
 
-When a user wants to upload a file hasura-storage will first check with hasura if the user is allowed to do so, if it the file will be uploaded to s3 and, on completion, file metadata will be stored in hasura.
+When a user wants to upload a file Storage will first check with hasura if the user is allowed to do so, if it the file will be uploaded to s3 and, on completion, file metadata will be stored in hasura.
 
 ``` mermaid
 sequenceDiagram
     actor User
     autonumber
-    User->>+hasura-storage: upload file
-    hasura-storage->>+hasura: check permissions
-    hasura->>-hasura-storage: return if user can upload file
-    hasura-storage->>+s3: upload file
-    s3->>-hasura-storage: file information
-    hasura-storage->>+hasura: file metadata
-    hasura->>-hasura-storage: success
-    hasura-storage->>-User: file metadata
+    User->>+Storage: upload file
+    Storage->>+hasura: check permissions
+    hasura->>-Storage: return if user can upload file
+    Storage->>+s3: upload file
+    s3->>-Storage: file information
+    Storage->>+hasura: file metadata
+    hasura->>-Storage: success
+    Storage->>-User: file metadata
 ```
 
 ### Retrieving files
 
-Similarly, when retrieving files, hasura-storage will first check with hasura if the user has permissions to retrieve the file and if the user is allowed, it will forward the file to the user:
+Similarly, when retrieving files, Storage will first check with hasura if the user has permissions to retrieve the file and if the user is allowed, it will forward the file to the user:
 
 ``` mermaid
 sequenceDiagram
     actor User
     autonumber
-    User->>+hasura-storage: request file
-    hasura-storage->>+hasura: check permissions
-    hasura->>-hasura-storage: return if user can access file
-    hasura-storage->>+s3: request file
-    s3->>-hasura-storage: file
-    hasura-storage->>-User: file
+    User->>+Storage: request file
+    Storage->>+hasura: check permissions
+    hasura->>-Storage: return if user can access file
+    Storage->>+s3: request file
+    s3->>-Storage: file
+    Storage->>-User: file
 ```
 
 ## Features
@@ -54,7 +54,7 @@ The main features of the service are:
 
 ## Antivirus
 
-Integration with [clamav](https://www.clamav.net) antivirus relies on an external [clamd](https://docs.clamav.net/manual/Usage/Scanning.html#clamd) service. When a file is uploaded `hasura-storage` will create the file metadata first and then check if the file is clean with `clamd` via its TCP socket. If the file is clean the rest of the process will continue as usual. If a virus is found details about the virus will be added to the `virus` table and the rest of the process will be aborted.
+Integration with [clamav](https://www.clamav.net) antivirus relies on an external [clamd](https://docs.clamav.net/manual/Usage/Scanning.html#clamd) service. When a file is uploaded `Storage` will create the file metadata first and then check if the file is clean with `clamd` via its TCP socket. If the file is clean the rest of the process will continue as usual. If a virus is found details about the virus will be added to the `virus` table and the rest of the process will be aborted.
 
 ``` mermaid
 sequenceDiagram
@@ -75,7 +75,7 @@ This feature can be enabled with the flag `--clamav-server string`, where `strin
 
 ## OpenAPI
 
-The service comes with an [OpenAPI definition](/controller/openapi.yaml) which you can also see [online](https://editor.swagger.io/?url=https://raw.githubusercontent.com/nhost/hasura-storage/main/controller/openapi.yaml).
+The service comes with an [OpenAPI definition](/controller/openapi.yaml) which you can also see [online](https://editor.swagger.io/?url=https://raw.githubusercontent.com/nhost/Storage/main/controller/openapi.yaml).
 
 ## Using the service
 
@@ -88,7 +88,7 @@ Requirements:
 1. [hasura](https://hasura.io) running, which in turns needs [postgres or any other supported database](https://hasura.io/docs/latest/graphql/core/databases/index/#supported-databases).
 2. An s3-compatible service. For instance, [AWS S3](https://aws.amazon.com/s3/), [minio](https://min.io), etc...
 
-A fully working example using docker-compose can be found [here](/build/dev/docker/). Just remember to replace the image `hasura-storage:dev` with a valid [docker image](https://hub.docker.com/r/nhost/hasura-storage/tags), for instance, `nhost/hasura-storage:0.1.5`.
+A fully working example using docker-compose can be found [here](/build/dev/docker/). Just remember to replace the image `Storage:dev` with a valid [docker image](https://hub.docker.com/r/nhost/storage/tags), for instance, `nhost/storage:0.1.5`.
 
 ## Contributing
 

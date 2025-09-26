@@ -3,9 +3,9 @@ package controller
 import (
 	"context"
 
-	"github.com/nhost/hasura-storage/api"
-	"github.com/nhost/hasura-storage/middleware"
-	"github.com/nhost/hasura-storage/middleware/cdn/fastly"
+	"github.com/nhost/nhost/services/storage/api"
+	"github.com/nhost/nhost/services/storage/middleware"
+	"github.com/nhost/nhost/services/storage/middleware/cdn/fastly"
 )
 
 func (ctrl *Controller) DeleteFile( //nolint:ireturn
