@@ -4,6 +4,32 @@ on:
   push:
     branches:
       - main
+    paths:
+      - '.github/workflows/wf_build_artifacts.yaml'
+      - '.github/workflows/wf_check.yaml'
+      - '.github/workflows/dashboard_checks.yaml'
+
+      # common build
+      - 'flake.nix'
+      - 'flake.lock'
+      - 'nixops/**'
+      - 'build/**'
+
+      # common javascript
+      - ".npmrc"
+      - ".prettierignore"
+      - ".prettierrc.js"
+      - "audit-ci.jsonc"
+      - "package.json"
+      - "pnpm-workspace.yaml"
+      - "pnpm-lock.yaml"
+      - "turbo.json"
+
+      # dashboard
+      - "dashboard/**"
+
+      # nhost-js
+      - packages/nhost-js/**
 
 jobs:
   deploy-vercel:

@@ -71,6 +71,7 @@ jobs:
       GIT_REF: ${{ github.sha }}
       VERSION: 0.0.0-dev # we use a fixed version here to avoid unnecessary rebuilds
       DOCKER: true
+      OS_MATRIX: '["blacksmith-2vcpu-ubuntu-2404"]'
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
@@ -93,7 +94,7 @@ jobs:
 
 
   e2e_staging:
-    uses: ./.github/workflows/wf_dashboard_e2e_staging.yaml
+    uses: ./.github/workflows/dashboard_e2e_staging.yaml
     needs:
       - check-permissions
       - deploy-vercel
