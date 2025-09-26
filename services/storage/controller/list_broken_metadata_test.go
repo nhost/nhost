@@ -3,9 +3,9 @@ package controller_test
 import (
 	"testing"
 
-	"github.com/nhost/hasura-storage/api"
-	"github.com/nhost/hasura-storage/controller"
-	"github.com/nhost/hasura-storage/controller/mock"
+	"github.com/nhost/nhost/services/storage/api"
+	"github.com/nhost/nhost/services/storage/controller"
+	"github.com/nhost/nhost/services/storage/controller/mock"
 	"github.com/sirupsen/logrus"
 	gomock "go.uber.org/mock/gomock"
 )

@@ -26,6 +26,7 @@ linters:
       - legacy
       - std-error-handling
     rules:
+      # general rules
       - linters:
           - funlen
           - ireturn
@@ -40,10 +41,26 @@ linters:
           - ireturn
           - lll
         path: schema\.resolvers\.go
+
+      # storage service specific rules
+      - linters:
+          - gochecknoglobals
+          - gochecknoinits
+        path: services/storage/cmd/
+      - linters:
+          - gochecknoglobals
+        path: services/storage/cmd/controller/version.go
+      - linters:
+          - funlen
+          - ireturn
+          - exhaustruct
+        path: services/storage/.*_test\.go
+
     paths:
       - third_party$
       - builtin$
       - examples$
+
 formatters:
   enable:
     - gofmt

@@ -4,8 +4,8 @@ import (
 	"context"
 	"path"
 
-	"github.com/nhost/hasura-storage/api"
-	"github.com/nhost/hasura-storage/middleware"
+	"github.com/nhost/nhost/services/storage/api"
+	"github.com/nhost/nhost/services/storage/middleware"
 )
 
 type ListBrokenMetadataResponse struct {

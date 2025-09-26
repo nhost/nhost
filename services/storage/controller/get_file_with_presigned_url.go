@@ -10,8 +10,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/nhost/hasura-storage/api"
-	"github.com/nhost/hasura-storage/middleware"
+	"github.com/nhost/nhost/services/storage/api"
+	"github.com/nhost/nhost/services/storage/middleware"
 	"github.com/sirupsen/logrus"
 )
 
@@ -80,7 +80,7 @@ func getAmazonSignature(request api.GetFileWithPresignedURLRequestObject) string
 	)
 }
 
-func (ctrl *Controller) getFileWithPresignedURLResponseObject( //nolint: ireturn,funlen,dupl
+func (ctrl *Controller) getFileWithPresignedURLResponseObject( //nolint: ireturn,dupl
 	file *processedFile,
 	logger logrus.FieldLogger,
 ) api.GetFileWithPresignedURLResponseObject {

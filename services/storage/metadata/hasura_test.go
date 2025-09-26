@@ -13,9 +13,9 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
-	"github.com/nhost/hasura-storage/api"
-	"github.com/nhost/hasura-storage/controller"
-	"github.com/nhost/hasura-storage/metadata"
+	"github.com/nhost/nhost/services/storage/api"
+	"github.com/nhost/nhost/services/storage/controller"
+	"github.com/nhost/nhost/services/storage/metadata"
 )
 
 const (

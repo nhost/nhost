@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	"github.com/nhost/hasura-storage/api"
+	"github.com/nhost/nhost/services/storage/api"
 	gomock "go.uber.org/mock/gomock"
 )
 

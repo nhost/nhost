@@ -9,8 +9,8 @@ import (
 
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/google/uuid"
-	"github.com/nhost/hasura-storage/api"
-	"github.com/nhost/hasura-storage/middleware"
+	"github.com/nhost/nhost/services/storage/api"
+	"github.com/nhost/nhost/services/storage/middleware"
 )
 
 const maxFormMemory = 1 << 20 // 1 MB

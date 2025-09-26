@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/Yamashou/gqlgenc/clientv2"
-	"github.com/nhost/hasura-storage/api"
-	"github.com/nhost/hasura-storage/controller"
+	"github.com/nhost/nhost/services/storage/api"
+	"github.com/nhost/nhost/services/storage/controller"
 )
 
 func ptr[T any](x T) *T {

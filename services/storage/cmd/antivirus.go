@@ -5,8 +5,8 @@ import (
 	"errors"
 	"io"
 
-	"github.com/nhost/hasura-storage/clamd"
-	"github.com/nhost/hasura-storage/controller"
+	"github.com/nhost/nhost/services/storage/clamd"
+	"github.com/nhost/nhost/services/storage/controller"
 )
 
 type DummyAntivirus struct{}
