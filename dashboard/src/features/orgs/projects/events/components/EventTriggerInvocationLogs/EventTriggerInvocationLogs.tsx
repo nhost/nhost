@@ -83,7 +83,7 @@ function CreatedAtCell({ createdAt }: { createdAt: string }) {
   );
 }
 
-function DeliveredCell({ status }: { status: number }) {
+function HttpStatusCell({ status }: { status: number }) {
   return getStatusIcon(status);
 }
 
@@ -168,11 +168,11 @@ const columnsBase: ColumnDef<EventInvocationLogEntry>[] = [
     cell: ({ row }) => <CreatedAtCell createdAt={row.original.created_at} />,
   },
   {
-    id: 'delivered',
+    id: 'http_status',
     accessorKey: 'http_status',
-    header: 'Delivered',
+    header: 'Status',
     enableSorting: false,
-    cell: ({ row }) => <DeliveredCell status={row.original.http_status} />,
+    cell: ({ row }) => <HttpStatusCell status={row.original.http_status} />,
   },
   {
     id: 'id',

@@ -22,17 +22,19 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/v3/table';
-import useGetEventLogsQuery from '@/features/orgs/projects/events/hooks/useGetEventLogsQuery/useGetEventLogsQuery';
-import type { EventTriggerUI } from '@/features/orgs/projects/events/types';
-import { cn } from '@/lib/utils';
-import type { EventLogEntry } from '@/utils/hasura-api/generated/schemas/eventLogEntry';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/v3/tabs';
+import type { EventInvocationLogEntry } from '@/utils/hasura-api/generated/schemas/eventInvocationLogEntry';
 import {
   type Column,
   type ColumnDef,
   type ColumnFiltersState,
   flexRender,
   getCoreRowModel,
-  getExpandedRowModel,
   getFilteredRowModel,
   getSortedRowModel,
   type SortingState,
@@ -40,22 +42,25 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { format } from 'date-fns-v4';
-import { ArrowUpDown, Check, Eye, X } from 'lucide-react';
-import { Fragment, useEffect, useMemo, useState } from 'react';
-import { EventTriggerInvocationLogsNode } from '../EventTriggerInvocationLogsNode';
+import { ArrowUpDown, Check, Clock, Eye, X } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { useGetEventAndInvocationLogsById } from '../../hooks/useGetEventAndInvocationLogsById';
 
 // Helpers and column cell/header components (module scope to satisfy lint rules)
-function getDeliveredIcon(delivered: boolean) {
-  if (delivered) {
+function getStatusIcon(status: number) {
+  if (status >= 200 && status < 300) {
     return <Check className="h-4 w-4 text-green-600" />;
   }
-  return <X className="h-4 w-4 text-red-600" />;
+  if (status >= 400) {
+    return <X className="h-4 w-4 text-red-600" />;
+  }
+  return <Clock className="h-4 w-4 text-yellow-600" />;
 }
 
 function CreatedAtHeader({
   column,
 }: {
-  column: Column<EventLogEntry, unknown>;
+  column: Column<EventInvocationLogEntry, unknown>;
 }) {
   return (
     <Button
@@ -77,8 +82,8 @@ function CreatedAtCell({ createdAt }: { createdAt: string }) {
   );
 }
 
-function DeliveredCell({ delivered }: { delivered: boolean }) {
-  return getDeliveredIcon(delivered);
+function HttpStatusCell({ status }: { status: number }) {
+  return getStatusIcon(status);
 }
 
 function escapeRegExp(input: string) {
@@ -130,11 +135,11 @@ function ActionsCell({
   row,
   table,
 }: {
-  row: EventLogEntry;
-  table: TanStackTable<EventLogEntry>;
+  row: EventInvocationLogEntry;
+  table: TanStackTable<EventInvocationLogEntry>;
 }) {
   const meta = table.options.meta as
-    | { onView?: (row: EventLogEntry) => void }
+    | { onView?: (row: EventInvocationLogEntry) => void }
     | undefined;
   return (
     <Button
@@ -148,7 +153,7 @@ function ActionsCell({
   );
 }
 
-const columnsBase: ColumnDef<EventLogEntry>[] = [
+const columnsBase: ColumnDef<EventInvocationLogEntry>[] = [
   {
     id: 'created_at',
     accessorKey: 'created_at',
@@ -156,11 +161,11 @@ const columnsBase: ColumnDef<EventLogEntry>[] = [
     cell: ({ row }) => <CreatedAtCell createdAt={row.original.created_at} />,
   },
   {
-    id: 'delivered',
-    accessorKey: 'delivered',
-    header: 'Delivered',
+    id: 'http_status',
+    accessorKey: 'http_status',
+    header: 'Status',
     enableSorting: false,
-    cell: ({ row }) => <DeliveredCell delivered={row.original.delivered} />,
+    cell: ({ row }) => <HttpStatusCell status={row.original.http_status} />,
   },
   {
     id: 'id',
@@ -174,15 +179,6 @@ const columnsBase: ColumnDef<EventLogEntry>[] = [
     ),
   },
   {
-    id: 'tries',
-    accessorKey: 'tries',
-    header: 'Tries',
-    enableSorting: false,
-    cell: ({ row }) => (
-      <span className="font-mono text-xs">{row.original.tries}</span>
-    ),
-  },
-  {
     id: 'actions',
     header: 'Actions',
     enableSorting: false,
@@ -191,35 +187,40 @@ const columnsBase: ColumnDef<EventLogEntry>[] = [
 ];
 
 interface EventTriggerInvocationLogsProps {
-  eventTrigger: EventTriggerUI;
+  eventId: string;
+  source: string;
 }
 
-export default function EventTriggerEventLogs({
-  eventTrigger,
+export default function EventTriggerInvocationLogs({
+  eventId,
+  source,
 }: EventTriggerInvocationLogsProps) {
-  const [selectedLog, setSelectedLog] = useState<EventLogEntry | null>(null);
+  const [selectedLog, setSelectedLog] =
+    useState<EventInvocationLogEntry | null>(null);
 
   const [offset, setOffset] = useState(0);
   const [limit, setLimit] = useState(10);
 
-  const { data, isLoading } = useGetEventLogsQuery({
-    name: eventTrigger.name,
-    limit,
-    offset,
-    source: eventTrigger.dataSource,
+  const { data, isLoading } = useGetEventAndInvocationLogsById({
+    event_id: eventId,
+    source,
+    invocation_log_limit: limit,
+    invocation_log_offset: offset,
   });
 
+  const invocations = data?.invocations;
+
   // Determine navigation state
-  const isLastPage = !!data && data.length < limit;
+  const isLastPage = !!invocations && invocations?.length < limit;
   const canGoPrev = !isLoading && offset > 0;
   const canGoNext = !isLoading && !isLastPage;
 
   // Safety: if we land on an empty page, step back until we have data or reach 0
   useEffect(() => {
-    if (!isLoading && data && data.length === 0 && offset > 0) {
+    if (!isLoading && invocations && invocations.length === 0 && offset > 0) {
       setOffset((prev) => Math.max(0, prev - limit));
     }
-  }, [data, isLoading, offset, limit]);
+  }, [invocations, isLoading, offset, limit]);
 
   // TanStack Table setup for sorting and filtering (client-side)
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -227,39 +228,33 @@ export default function EventTriggerEventLogs({
   const columns = useMemo(() => columnsBase, []);
 
   const table = useReactTable({
-    data: data ?? [],
+    data: invocations ?? [],
     columns,
     state: {
       sorting,
       columnFilters,
     },
-    getRowId: (row) => row.id,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    getExpandedRowModel: getExpandedRowModel(),
-    getRowCanExpand: (row) => true,
     meta: {
-      onView: (row: EventLogEntry) => setSelectedLog(row),
+      onView: (row: EventInvocationLogEntry) => setSelectedLog(row),
     },
   });
 
   return (
-    <div
-      data-event-trigger-name={eventTrigger.table.name}
-      className="rounded border p-4"
-    >
-      <h3 className="mb-3 font-medium">Events</h3>
-      <div className="flex flex-col gap-2 py-2 sm:flex-row sm:items-center">
+    <div data-event-id={eventId} className="border-t p-4 pl-8">
+      <h3 className="mb-3 font-medium">Related invocations</h3>
+      <div className="flex w-full flex-col">
         <Input
-          placeholder="Filter by ID..."
+          placeholder="Filter invocation log by ID..."
           value={(table.getColumn('id')?.getFilterValue() as string) ?? ''}
           onChange={(event) =>
             table.getColumn('id')?.setFilterValue(event.target.value)
           }
-          className="max-w-sm"
+          className="w-full max-w-sm"
         />
       </div>
 
@@ -284,39 +279,16 @@ export default function EventTriggerEventLogs({
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <Fragment key={row.id}>
-                  <TableRow
-                    onClick={(e) => {
-                      console.log('clicked');
-                      row.getToggleExpandedHandler()();
-                    }}
-                    className={cn('cursor-pointer')}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext(),
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                  {row.getIsExpanded() && (
-                    <TableRow key={`${row.id}-expanded`}>
-                      <TableCell colSpan={columns.length} className="p-0">
-                        <EventTriggerInvocationLogsNode
-                          eventId={row.id}
-                          source={eventTrigger.dataSource}
-                        />
-                      </TableCell>
-                    </TableRow>
-                    // <TableRow key={`${row.id}-expanded`}>
-                    //   <TableCell colSpan={columns.length}>
-                    //     <div>Custom UI</div>
-                    //   </TableCell>
-                    // </TableRow>
-                  )}
-                </Fragment>
+                <TableRow key={row.id}>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
               ))
             ) : (
               <TableRow>
@@ -389,43 +361,107 @@ export default function EventTriggerEventLogs({
         <DialogContent className="max-h-[80vh] max-w-4xl overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-foreground">
-              Event Log Details
+              Invocation Log Details
             </DialogTitle>
           </DialogHeader>
           {selectedLog && (
-            <div className="space-y-4">
-              <div className="flex flex-wrap items-center gap-4 text-sm">
+            <Tabs defaultValue="request" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="request">Request</TabsTrigger>
+                <TabsTrigger value="response">Response</TabsTrigger>
+              </TabsList>
+              <TabsContent value="request" className="space-y-4">
                 <div>
-                  <span className="font-medium">Delivered: </span>
-                  <span className="font-mono">
-                    {selectedLog.delivered ? 'true' : 'false'}
-                  </span>
+                  <h4 className="mb-2 font-medium text-foreground">Headers</h4>
+                  <div className="rounded border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Name</TableHead>
+                          <TableHead>Value</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {selectedLog.request.headers.map((header) => (
+                          <TableRow key={header.name}>
+                            <TableCell className="font-mono text-foreground">
+                              {header.name}
+                            </TableCell>
+                            <TableCell className="font-mono text-muted-foreground">
+                              {header.value}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
                 </div>
                 <div>
-                  <span className="font-medium">Error: </span>
-                  <span className="font-mono">
-                    {selectedLog.error ? 'true' : 'false'}
-                  </span>
+                  <h4 className="mb-2 font-medium text-foreground">Payload</h4>
+                  <CodeBlock
+                    className="py-2"
+                    copyToClipboardToastTitle={`${selectedLog.trigger_name} payload`}
+                  >
+                    {JSON.stringify(selectedLog.request.payload, null, 2)}
+                  </CodeBlock>
+                  {/* <pre className="overflow-x-auto rounded bg-muted p-3 text-xs text-muted-foreground">
+                    {JSON.stringify(selectedLog.request.payload, null, 2)}
+                  </pre> */}
+                </div>
+              </TabsContent>
+              <TabsContent value="response" className="space-y-4">
+                <div className="flex items-center gap-4 text-sm">
+                  <div>
+                    <span className="font-medium">Status: </span>
+                    <span
+                      className={`font-mono ${selectedLog.http_status >= 200 && selectedLog.http_status < 300 ? 'text-green-600' : 'text-red-600'}`}
+                    >
+                      {selectedLog.response?.data?.status}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="font-medium">Type: </span>
+                    <span className="font-mono">
+                      {selectedLog.response?.type}
+                    </span>
+                  </div>
                 </div>
                 <div>
-                  <span className="font-medium">Tries: </span>
-                  <span className="font-mono">{selectedLog.tries}</span>
+                  <h4 className="mb-2 font-medium">Headers</h4>
+                  <div className="rounded border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Name</TableHead>
+                          <TableHead>Value</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {selectedLog.response?.data?.headers?.map((header) => (
+                          <TableRow key={header.name}>
+                            <TableCell className="font-mono">
+                              {header.name}
+                            </TableCell>
+                            <TableCell className="font-mono text-muted-foreground">
+                              {header.value}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
                 </div>
                 <div>
-                  <span className="font-medium">Created At: </span>
-                  <span className="font-mono">{selectedLog.created_at}</span>
+                  <h4 className="mb-2 font-medium">Response Body</h4>
+                  <CodeBlock
+                    className="w-full max-w-full whitespace-pre-wrap break-all"
+                    copyToClipboardToastTitle={`${selectedLog.trigger_name} response body`}
+                  >
+                    {selectedLog.response?.data?.body}
+                  </CodeBlock>
                 </div>
-              </div>
-              <div>
-                <h4 className="mb-2 font-medium text-foreground">Payload</h4>
-                <CodeBlock
-                  className="py-2"
-                  copyToClipboardToastTitle={`${selectedLog.trigger_name} payload`}
-                >
-                  {JSON.stringify(selectedLog.payload, null, 2)}
-                </CodeBlock>
-              </div>
-            </div>
+              </TabsContent>
+            </Tabs>
           )}
         </DialogContent>
       </Dialog>

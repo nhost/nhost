@@ -7,12 +7,12 @@ import type {
 } from '@/utils/hasura-api/generated/schemas';
 
 /**
- * This function fetches the invocation logs for a given event trigger.
+ * This function fetches the event logs for a given event trigger.
  *
  * @param appUrl - The URL of the app service.
  * @param adminSecret - The admin secret of the project.
  * @param args - The arguments for the metadata operation.
- * @returns The invocation logs for the given event trigger.
+ * @returns The event logs for the given event trigger.
  *
  * Example payload:
  * {
@@ -41,9 +41,9 @@ export default async function fetchExportMetadata({
       type: 'pg_get_event_logs',
       args: {
         name: args.name,
-        source: args.source,
-        limit: args.limit,
-        offset: args.offset,
+        source: args.source ?? 'default',
+        limit: args.limit ?? 100,
+        offset: args.offset ?? 0,
       },
     };
 

@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
-  title: Hasura Remote Schema API
-  description: API for managing remote schemas in Hasura
+  title: Hasura API
+  description: API for managing remote schemas and events in Hasura
   version: 1.0.0
 
 security:
@@ -30,6 +30,7 @@ paths:
                 - $ref: '#/components/schemas/RemoteSchemaPermissionsBulkOperation'
                 - $ref: '#/components/schemas/GetEventInvocationLogsOperation'
                 - $ref: '#/components/schemas/GetEventLogsOperation'
+                - $ref: '#/components/schemas/GetEventAndInvocationLogsByIdOperation'
       responses:
         '200':
           description: Operation executed successfully
@@ -46,6 +47,7 @@ paths:
                   - $ref: '#/components/schemas/IntrospectRemoteSchemaResponse'
                   - $ref: '#/components/schemas/GetEventInvocationLogsResponse'
                   - $ref: '#/components/schemas/GetEventLogsResponse'
+                  - $ref: '#/components/schemas/GetEventAndInvocationLogsByIdResponse'
         '400':
           description: Bad request
           content:
@@ -1533,3 +1535,48 @@ components:
           nullable: true
 
       additionalProperties: true
+
+    GetEventAndInvocationLogsByIdOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_get_event_by_id]
+        args:
+          $ref: '#/components/schemas/GetEventAndInvocationLogsByIdArgs'
+
+    GetEventAndInvocationLogsByIdArgs:
+      type: object
+      required:
+        - event_id
+      properties:
+        event_id:
+          type: string
+          description: ID of the event
+          example: 6301c9e1-b649-4861-9419-68b4cbf9382a
+        source:
+          type: string
+          description: Name of the source database of the trigger
+          default: default
+        invocation_log_limit:
+          type: integer
+          description: Maximum number of invocation logs to be returned in one API call
+          default: 100
+        invocation_log_offset:
+          type: integer
+          description: Starting point from where the invocation logs need to be returned
+          default: 0
+
+    GetEventAndInvocationLogsByIdResponse:
+      type: object
+      properties:
+        event:
+          $ref: '#/components/schemas/EventLogEntry'
+        invocations:
+          type: array
+          description: List of invocation logs for the given event id
+          items:
+            $ref: '#/components/schemas/EventInvocationLogEntry'

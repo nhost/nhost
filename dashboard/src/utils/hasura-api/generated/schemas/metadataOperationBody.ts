@@ -8,6 +8,7 @@
 import type { AddRemoteSchemaOperation } from './addRemoteSchemaOperation';
 import type { DeleteRemoteSchemaRemoteRelationshipOperation } from './deleteRemoteSchemaRemoteRelationshipOperation';
 import type { ExportMetadata } from './exportMetadata';
+import type { GetEventAndInvocationLogsByIdOperation } from './getEventAndInvocationLogsByIdOperation';
 import type { GetEventInvocationLogsOperation } from './getEventInvocationLogsOperation';
 import type { GetEventLogsOperation } from './getEventLogsOperation';
 import type { IntrospectRemoteSchemaOperation } from './introspectRemoteSchemaOperation';
@@ -28,4 +29,5 @@ export type MetadataOperationBody =
   | DeleteRemoteSchemaRemoteRelationshipOperation
   | RemoteSchemaPermissionsBulkOperation
   | GetEventInvocationLogsOperation
-  | GetEventLogsOperation;
+  | GetEventLogsOperation
+  | GetEventAndInvocationLogsByIdOperation;
