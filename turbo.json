@@ -3,29 +3,11 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", "umd/**", "build/**", ".next/**"]
-    },
-    "@nhost-examples/react-apollo#build": {
-      "dependsOn": ["^build"],
-      "outputs": ["dist/**"],
-      "env": ["VITE_NHOST_SUBDOMAIN", "VITE_NHOST_REGION"]
-    },
-    "@nhost-examples/sveltekit#build": {
-      "dependsOn": ["^build"],
-      "outputs": [".svelte-kit/**", ".vercel/**"],
-      "env": ["PUBLIC_NHOST_SUBDOMAIN", "PUBLIC_NHOST_REGION", "ENABLE_EXPERIMENTAL_COREPACK"]
-    },
-    "@nhost-examples/vue-apollo#build": {
-      "dependsOn": ["^build"],
-      "outputs": ["dist/**"],
-      "env": ["VITE_NHOST_SUBDOMAIN", "VITE_NHOST_REGION"]
-    },
-    "@nhost/docs#build": {
-      "cache": false
+      "outputs": ["dist/**", ".next/**"]
     },
     "@nhost/dashboard#build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".next/**"],
+      "outputs": [".next/**"],
       "env": [
         "NEXT_TELEMETRY_DISABLED",
         "NEXT_PUBLIC_NHOST_PLATFORM",
@@ -34,29 +16,15 @@
         "NEXT_PUBLIC_ENV"
       ]
     },
-    "@nhost/sync-versions#start": {
-      "cache": false
-    },
     "test": {
       "dependsOn": ["^build"],
       "outputs": ["coverage/**"]
     },
-    "e2e": {
-      "dependsOn": ["^build"],
-      "outputs": []
-    },
     "dev": {
       "cache": false
     },
-    "docgen": {
-      "cache": false,
-      "dependsOn": ["^build"]
-    },
     "lint": {
       "dependsOn": ["^build"],
-      "outputs": []
-    },
-    "lint:fix": {
       "outputs": []
     },
     "start": {}

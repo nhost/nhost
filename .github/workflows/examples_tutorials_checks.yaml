@@ -77,6 +77,7 @@ jobs:
       GIT_REF: ${{ github.sha }}
       VERSION: 0.0.0-dev # we use a fixed version here to avoid unnecessary rebuilds
       DOCKER: false
+      OS_MATRIX: '["blacksmith-2vcpu-ubuntu-2404"]'
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
