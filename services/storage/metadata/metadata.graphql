@@ -1,0 +1,73 @@
+fragment FileMetadataFragment on files {
+  id
+  name
+  size
+  bucketId
+  etag
+  createdAt
+  updatedAt
+  isUploaded
+  mimeType
+  uploadedByUserId
+  metadata
+}
+
+fragment FileMetadataSummaryFragment on files {
+  id
+  name
+  bucketId
+  isUploaded
+}
+
+fragment BucketMetadataFragment on buckets {
+  id
+  minUploadFileSize
+  maxUploadFileSize
+  presignedUrlsEnabled
+  downloadExpiration
+  createdAt
+  updatedAt
+  cacheControl
+}
+
+query GetBucket($id: String!) {
+  bucket(id: $id) {
+    ...BucketMetadataFragment
+  }
+}
+
+query GetFile($id: uuid!) {
+  file(id: $id) {
+    ...FileMetadataFragment
+  }
+}
+
+query ListFilesSummary {
+  files {
+    ...FileMetadataSummaryFragment
+  }
+}
+
+mutation InsertFile($object: files_insert_input!) {
+  insertFile(object: $object) {
+    id
+  }
+}
+
+mutation UpdateFile($id: uuid!, $_set: files_set_input!) {
+  updateFile(pk_columns: {id: $id}, _set: $_set) {
+    ...FileMetadataFragment
+  }
+}
+
+mutation DeleteFile($id: uuid!) {
+  deleteFile(id: $id) {
+    id
+  }
+}
+
+mutation InsertVirus($object: virus_insert_input!) {
+  insertVirus(object: $object) {
+    id
+  }
+}
