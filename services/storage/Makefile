@@ -15,7 +15,7 @@ _dev-env-down:
 
 
 .PHONY: _dev-env-build
-_dev-env-build:
+_dev-env-build: build-docker-image
 	docker compose -f ${DOCKER_DEV_ENV_PATH}/docker-compose.yaml build
 
 
