@@ -7,7 +7,7 @@ updates:
       interval: "daily"
       time: "04:00"
     commit-message:
-      prefix: "chore"
+      prefix: "chore(ci)"
     labels:
       - "dependencies"
       - "github_actions"
