@@ -12,8 +12,6 @@ on:
     secrets:
       AWS_ACCOUNT_ID:
         required: true
-      AWS_REGION:
-        required: true
       NIX_CACHE_PUB_KEY:
         required: true
       NIX_CACHE_PRIV_KEY:
