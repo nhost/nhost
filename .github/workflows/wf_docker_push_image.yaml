@@ -13,6 +13,8 @@ on:
         required: true
 
     secrets:
+      AWS_ACCOUNT_ID:
+        required: true
       DOCKER_USERNAME:
         required: true
       DOCKER_PASSWORD:
