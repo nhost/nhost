@@ -1,4 +1,4 @@
-import { isEmptyValue } from './utils';
+import { isEmptyValue, isJSONString } from './utils';
 
 test('returns true when the value is undefined or "undefined"', () => {
   expect(isEmptyValue(undefined)).toBe(true)
@@ -32,4 +32,12 @@ test('returns false when the value is has at least one property or the array has
 test('returns false when the value is either a number or string', () => {
   expect(isEmptyValue(1234)).toBe(false)
   expect(isEmptyValue('Hello there')).toBe(false)
+})
+
+test('returns true when the value is a valid JSON string', () => {
+  expect(isJSONString('{"foo": "bar"}')).toBe(true)
+})
+
+test('returns false when the value is not a valid JSON string', () => {
+  expect(isJSONString('{"foo": "bar"')).toBe(false)
 })
