@@ -11,9 +11,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/nhost/hasura-storage/api"
-	"github.com/nhost/hasura-storage/image"
-	"github.com/nhost/hasura-storage/middleware"
+	"github.com/nhost/nhost/services/storage/api"
+	"github.com/nhost/nhost/services/storage/image"
+	"github.com/nhost/nhost/services/storage/middleware"
 	"github.com/sirupsen/logrus"
 )
 
@@ -253,7 +253,7 @@ func (ctrl *Controller) processFileToDownload(
 	}, nil
 }
 
-func (ctrl *Controller) getFileResponse( //nolint: ireturn,funlen,dupl
+func (ctrl *Controller) getFileResponse( //nolint: ireturn,dupl
 	file *processedFile,
 	logger logrus.FieldLogger,
 ) api.GetFileResponseObject {

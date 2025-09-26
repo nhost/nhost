@@ -19,8 +19,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	"github.com/nhost/hasura-storage/controller"
-	"github.com/nhost/hasura-storage/storage"
+	"github.com/nhost/nhost/services/storage/controller"
+	"github.com/nhost/nhost/services/storage/storage"
 	"github.com/sirupsen/logrus"
 )
 

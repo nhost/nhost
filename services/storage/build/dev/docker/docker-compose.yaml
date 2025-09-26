@@ -1,6 +1,6 @@
 services:
   postgres:
-    container_name: hasura-storage-postgres
+    container_name: storage-postgres
     image: postgres:13
     restart: unless-stopped
     volumes:
@@ -11,7 +11,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-hejsan}
 
   graphql-engine:
-    container_name: hasura-storage-graphql
+    container_name: storage-graphql
     image: nhost/graphql-engine:v2.25.1-ce
     depends_on:
       - postgres
@@ -29,7 +29,7 @@ services:
       HASURA_GRAPHQL_DEV_MODE: ${HASURA_GRAPHQL_DEV_MODE:-false}
 
   minio:
-    container_name: hasura-storage-minio
+    container_name: storage-minio
     build:
       context: minio
     restart: unless-stopped
@@ -42,8 +42,8 @@ services:
       - '32765:32765'
 
   storage:
-    container_name: hasura-storage-storage
-    image: hasura-storage:0.0.0-dev
+    container_name: storage-storage
+    image: storage:0.0.0-dev
     depends_on:
       - graphql-engine
     restart: unless-stopped
@@ -65,7 +65,7 @@ services:
     command: serve
 
   clamd:
-    container_name: hasura-storage-clamd
+    container_name: storage-clamd
     image: nhost/clamav:0.1.2
     restart: unless-stopped
     ports:

@@ -58,6 +58,10 @@
           inherit self pkgs nix-filter nixops-lib;
         };
 
+        storagef = import ./services/storage/project.nix {
+          inherit self pkgs nix-filter nixops-lib;
+        };
+
         tutorialsf = import ./examples/tutorials/project.nix {
           inherit self pkgs nix-filter nixops-lib nix2containerPkgs;
         };
@@ -78,6 +82,7 @@
           mintlify-openapi = mintlify-openapif.check;
           nhost-js = nhost-jsf.check;
           nixops = nixopsf.check;
+          storage = storagef.check;
           tutorials = tutorialsf.check;
         };
 
@@ -155,6 +160,7 @@
           mintlify-openapi = mintlify-openapif.devShell;
           nhost-js = nhost-jsf.devShell;
           nixops = nixopsf.devShell;
+          storage = storagef.devShell;
           tutorials = tutorialsf.devShell;
         };
 
@@ -170,6 +176,9 @@
           mintlify-openapi = mintlify-openapif.package;
           nhost-js = nhost-jsf.package;
           nixops = nixopsf.package;
+          storage = storagef.package;
+          storage-docker-image = storagef.dockerImage;
+          clamav-docker-image = storagef.clamav-docker-image;
           tutorials = tutorialsf.package;
         };
       }

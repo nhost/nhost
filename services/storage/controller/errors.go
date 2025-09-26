@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/nhost/hasura-storage/api"
+	"github.com/nhost/nhost/services/storage/api"
 )
 
 var (

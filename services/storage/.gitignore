@@ -1,8 +1,0 @@
-.direnv
-.envrc
-.envrc.custom
-bin
-result
-go.work
-go.work.sum
-.ccls-cache

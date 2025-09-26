@@ -14,7 +14,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/nhost/hasura-storage/controller"
+	"github.com/nhost/nhost/services/storage/controller"
 	"github.com/sirupsen/logrus"
 )
 
@@ -207,7 +207,7 @@ func (s *S3) GetFileWithPresignedURL(
 
 	url := fmt.Sprintf("%s/%s/%s?%s", s.url, *s.bucket, filepath, signature)
 
-	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, controller.InternalServerError(fmt.Errorf("problem creating request: %w", err))
 	}

@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/nhost/hasura-storage/api"
+	"github.com/nhost/nhost/services/storage/api"
 )
 
 //go:embed openapi.yaml

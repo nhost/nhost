@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/nhost/hasura-storage/clamd"
+	"github.com/nhost/nhost/services/storage/clamd"
 )
 
 func TestClamdInstream(t *testing.T) {

@@ -5,13 +5,13 @@ import (
 	"os"
 	"strings"
 
-	"github.com/nhost/hasura-storage/controller"
+	"github.com/nhost/nhost/services/storage/controller"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
 const (
-	name       = "hasura-storage"
+	name       = "storage"
 	debugFlag  = "debug"
 	configFlag = "config"
 )
@@ -22,7 +22,7 @@ var (
 		Use:        name,
 		Aliases:    []string{},
 		SuggestFor: []string{},
-		Short:      "Hasura Storage utilizes hasura and s3 to build a cloud storage",
+		Short:      "Storage utilizes hasura and s3 to build a cloud storage",
 		Version:    controller.Version(),
 	}
 )

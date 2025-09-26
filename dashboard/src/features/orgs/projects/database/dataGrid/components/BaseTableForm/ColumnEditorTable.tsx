@@ -25,9 +25,9 @@ export default function ColumnEditorTable() {
 
   return (
     <>
-      <div role="table" className="col-span-8">
-        <div className="sticky top-0 z-10 grid w-full grid-cols-12 gap-1 pb-2 pt-1">
-          <div role="columnheader" className="col-span-3">
+      <div role="table" className="col-span-8 overflow-x-auto">
+        <div className="sticky top-0 z-10 flex w-full gap-2 pb-2 pt-1">
+          <div role="columnheader" className="w-52 flex-none">
             <InputLabel as="span">
               Name
               <Text component="span" color="error">
@@ -36,7 +36,7 @@ export default function ColumnEditorTable() {
             </InputLabel>
           </div>
 
-          <div role="columnheader" className="col-span-3">
+          <div role="columnheader" className="w-52 flex-none">
             <InputLabel as="span">
               Type
               <Text component="span" color="error">
@@ -45,24 +45,30 @@ export default function ColumnEditorTable() {
             </InputLabel>
           </div>
 
-          <div role="columnheader" className="col-span-3">
+          <div role="columnheader" className="w-52 flex-none">
             <InputLabel as="span">Default Value</InputLabel>
           </div>
+          <div role="columnheader" className="w-8 flex-none">
+            <InputLabel as="span" className="hidden">
+              Comment
+            </InputLabel>
+          </div>
 
-          <div role="columnheader" className="col-span-1 truncate text-center">
+          <div role="columnheader" className="w-13 flex-none text-center">
             <InputLabel as="span" className="truncate">
               Nullable
             </InputLabel>
           </div>
 
-          <div role="columnheader" className="col-span-1 truncate text-center">
+          <div role="columnheader" className="w-13 flex-none text-center">
             <InputLabel as="span" className="truncate">
               Unique
             </InputLabel>
           </div>
+          <div className="flex w-9 flex-auto" />
         </div>
 
-        <div role="rowgroup" className="grid w-full grid-flow-row gap-2">
+        <div role="rowgroup" className="grid w-full grid-flow-row gap-1">
           {fields.map((field, index) => (
             <ColumnEditorRow key={field.id} index={index} remove={remove} />
           ))}
@@ -82,6 +88,7 @@ export default function ColumnEditorTable() {
               isNullable: false,
               isUnique: false,
               isIdentity: false,
+              comment: null,
             })
           }
           startIcon={<PlusIcon />}

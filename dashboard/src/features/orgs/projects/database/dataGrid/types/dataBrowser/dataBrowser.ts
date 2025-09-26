@@ -220,7 +220,7 @@ export interface ColumnInsertOptions {
 /**
  * User defined column type of a character field in PostgreSQL.
  */
-export type CharacterColumnType = 'character varying' | 'bpchar' | 'text';
+export type CharacterColumnType = 'varchar' | 'bpchar' | 'text';
 
 /**
  * User defined column type of a boolean field in PostgreSQL.
@@ -249,7 +249,6 @@ export type DateColumnType =
 export type NumericColumnType =
   | 'oid'
   | 'numeric'
-  | 'int'
   | 'int2'
   | 'int4'
   | 'serial'

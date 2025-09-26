@@ -16,8 +16,8 @@ import (
 	reflect "reflect"
 	time "time"
 
-	api "github.com/nhost/hasura-storage/api"
-	controller "github.com/nhost/hasura-storage/controller"
+	api "github.com/nhost/nhost/services/storage/api"
+	controller "github.com/nhost/nhost/services/storage/controller"
 	gomock "go.uber.org/mock/gomock"
 )
 

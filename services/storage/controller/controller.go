@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/nhost/hasura-storage/api"
-	"github.com/nhost/hasura-storage/image"
+	"github.com/nhost/nhost/services/storage/api"
+	"github.com/nhost/nhost/services/storage/image"
 	"github.com/sirupsen/logrus"
 )
 
