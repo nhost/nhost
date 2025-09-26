@@ -235,12 +235,6 @@ export class TestUserEvent {
     });
   }
 
-  async keyboard(sequence: string) {
-    await waitFor(async () => {
-      await this.user.keyboard(sequence);
-    });
-  }
-
   static async fireClickEvent(element: Document | Element | Window | Node) {
     await waitFor(() => {
       fireEvent(
