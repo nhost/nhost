@@ -1,0 +1,15 @@
+name: 'Cache Nix to S3'
+description: 'Copy Nix store to S3-backed cache'
+inputs:
+  NIX_CACHE_PRIV_KEY:
+    description: 'Nix cache private key'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: "Cache build"
+      shell: bash
+      run: |
+        nix store sign --key-file <(echo "${{ inputs.NIX_CACHE_PRIV_KEY }}") --all
+        nix copy --to 's3://nhost-nix-cache?region=eu-central-1' --substitute-on-destination --all
