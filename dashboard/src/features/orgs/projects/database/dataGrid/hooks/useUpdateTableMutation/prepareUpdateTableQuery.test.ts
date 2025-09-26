@@ -515,4 +515,71 @@ describe('prepareUpdateTableQuery', () => {
     expect(dropConstraintQuery).toBeDefined();
     expect(addPrimaryKeyQuery).toBeUndefined();
   });
+  test('should prepare a query for adding comment to with the old table name', () => {
+    const updatedTable: DatabaseTable = {
+      name: 'test_table_renamed',
+      primaryKey: ['id'],
+      columns: [
+        {
+          id: 'id',
+          name: 'id',
+          type: { value: 'uuid', label: 'UUID' },
+          defaultValue: {
+            value: 'gen_random_uuid()',
+            label: 'gen_random_uuid()',
+          },
+        },
+        {
+          id: 'author_id',
+          name: 'author_id',
+          type: { value: 'int4', label: 'int4' },
+          comment: 'Author id',
+        },
+      ],
+      foreignKeyRelations: [],
+    };
+
+    const transaction = prepareUpdateTableQuery({
+      dataSource: 'default',
+      schema: 'public',
+      originalTable,
+      updatedTable,
+      originalColumns,
+      originalForeignKeyRelations: [],
+    });
+
+    expect(transaction).toHaveLength(2);
+    expect(transaction[0].args.sql).toBe(
+      "COMMENT ON COLUMN public.test_table.author_id IS 'Author id';",
+    );
+  });
+
+  test('should prepare a query for adding comment to the table', () => {
+    const updatedTable: DatabaseTable = {
+      name: 'test_table',
+      primaryKey: ['id'],
+      columns: originalColumns.map((c, index) => ({
+        ...c,
+        comment: `comment ${index}`,
+      })),
+      foreignKeyRelations: [],
+    };
+
+    const transaction = prepareUpdateTableQuery({
+      dataSource: 'default',
+      schema: 'public',
+      originalTable,
+      updatedTable,
+      originalColumns,
+      originalForeignKeyRelations: [],
+    });
+
+    expect(transaction).toHaveLength(2);
+    expect(transaction[0].args.sql).toBe(
+      "COMMENT ON COLUMN public.test_table.id IS 'comment 0';",
+    );
+    expect(transaction[1].args.sql).toBe(
+      "COMMENT ON COLUMN public.test_table.author_id IS 'comment 1';",
+    );
+  });
 });

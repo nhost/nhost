@@ -67,13 +67,14 @@ export default function CreateTableForm({
           isNullable: false,
           isUnique: false,
           isIdentity: false,
+          comment: '',
         },
       ],
       foreignKeyRelations: [],
       primaryKeyIndices: [],
       identityColumnIndex: null,
     },
-    shouldUnregister: true,
+    shouldUnregister: false,
     reValidateMode: 'onSubmit',
     resolver: yupResolver(baseTableValidationSchema),
   });
@@ -86,6 +87,7 @@ export default function CreateTableForm({
       ],
       [],
     );
+
     try {
       const table: DatabaseTable = {
         ...values,

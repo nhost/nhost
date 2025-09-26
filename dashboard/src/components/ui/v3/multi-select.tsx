@@ -244,6 +244,7 @@ export function MultiSelectValue({
             variant="outline"
             data-selected-item
             className="group flex items-center gap-1"
+            data-testid={items.get(value)}
             key={value}
             onClick={
               clickToRemove
@@ -256,7 +257,10 @@ export function MultiSelectValue({
           >
             {items.get(value)}
             {clickToRemove && (
-              <XIcon className="size-2 text-muted-foreground group-hover:text-destructive" />
+              <XIcon
+                className="size-2 text-muted-foreground group-hover:text-destructive"
+                data-testid={`${items.get(value)}-remove`}
+              />
             )}
           </Badge>
         ))}

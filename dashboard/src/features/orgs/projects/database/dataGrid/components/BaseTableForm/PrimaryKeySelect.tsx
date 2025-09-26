@@ -75,5 +75,3 @@ export default function PrimaryKeySelect() {
     </div>
   );
 }
-// #1e293b
-// #1b2534

@@ -219,6 +219,16 @@ export class TestUserEvent {
     });
   }
 
+  async keyboard(value: string) {
+    await waitFor(async () => {
+      await this.user.keyboard(value);
+    });
+  }
+
+  async keyboardWithoutWaitFor(value: string) {
+    await this.user.keyboard(value);
+  }
+
   async clear(element: Element) {
     await waitFor(async () => {
       await this.user.clear(element);
@@ -234,6 +244,17 @@ export class TestUserEvent {
           cancelable: true,
         }),
       );
+    });
+  }
+
+  static async fireTypeEvent(element: Element, text: string) {
+    await waitFor(() => {
+      fireEvent.change(element, {
+        target: { value: text },
+      });
+      fireEvent.input(element, {
+        target: { value: text },
+      });
     });
   }
 }

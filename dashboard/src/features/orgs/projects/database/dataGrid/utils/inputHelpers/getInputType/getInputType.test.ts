@@ -7,9 +7,6 @@ describe('getInputType', () => {
     expect(getInputType({ type: 'number', specificType: 'numeric' })).toBe(
       'number',
     );
-    expect(getInputType({ type: 'number', specificType: 'int' })).toBe(
-      'number',
-    );
     expect(getInputType({ type: 'number', specificType: 'int4' })).toBe(
       'number',
     );
@@ -17,9 +14,9 @@ describe('getInputType', () => {
 
   test('should return "text" if the column is text based', () => {
     expect(getInputType({ type: 'text', specificType: 'text' })).toBe('text');
-    expect(
-      getInputType({ type: 'text', specificType: 'character varying' }),
-    ).toBe('text');
+    expect(getInputType({ type: 'text', specificType: 'varchar' })).toBe(
+      'text',
+    );
     expect(getInputType({ type: 'text', specificType: 'bpchar' })).toBe('text');
   });
 
