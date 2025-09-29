@@ -1,6 +1,6 @@
 final: prev: rec {
-  postgresql_14_18 = prev.postgresql_14.overrideAttrs
-    (finalAttrs: previousAttrs: rec {
+  postgresql_14_18 = (prev.postgresql_14.override { systemdSupport = false; })
+    .overrideAttrs (finalAttrs: previousAttrs: rec {
       pname = "postgresql";
       version = "14.18";
 
@@ -28,8 +28,8 @@ final: prev: rec {
     '';
   };
 
-  postgresql_15_13 = prev.postgresql_15.overrideAttrs
-    (finalAttrs: previousAttrs: rec {
+  postgresql_15_13 = (prev.postgresql_15.override { systemdSupport = false; })
+    .overrideAttrs (finalAttrs: previousAttrs: rec {
       pname = "postgresql";
       version = "15.13";
 
@@ -54,8 +54,8 @@ final: prev: rec {
     '';
   };
 
-  postgresql_16_9 = prev.postgresql_16.overrideAttrs
-    (finalAttrs: previousAttrs: rec {
+  postgresql_16_9 = (prev.postgresql_16.override { systemdSupport = false; })
+    .overrideAttrs (finalAttrs: previousAttrs: rec {
       pname = "postgresql";
       version = "16.9";
 
@@ -80,8 +80,8 @@ final: prev: rec {
     '';
   };
 
-  postgresql_17_5 = prev.postgresql_17.overrideAttrs
-    (finalAttrs: previousAttrs: rec {
+  postgresql_17_5 = (prev.postgresql_17.override { systemdSupport = false; })
+    .overrideAttrs (finalAttrs: previousAttrs: rec {
       pname = "postgresql";
       version = "17.5";
 
