@@ -74,7 +74,7 @@ jobs:
       NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
 
   test_cli_build:
-    uses: ./.github/workflows/cli_test_new_project.yaml
+    uses: ./.github/workflows/cli_wf_test_new_project.yaml
     needs:
       - check-permissions
       - build_artifacts

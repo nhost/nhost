@@ -36,7 +36,7 @@ jobs:
   cli:
     needs: extract-project
     if: needs.extract-project.outputs.project == 'cli'
-    uses: ./.github/workflows/cli_release.yaml
+    uses: ./.github/workflows/cli_wf_release.yaml
     with:
       GIT_REF: ${{ github.sha }}
       VERSION: ${{ needs.extract-project.outputs.version }}
@@ -51,7 +51,7 @@ jobs:
   dashboard:
     needs: extract-project
     if: needs.extract-project.outputs.project == '@nhost/dashboard'
-    uses: ./.github/workflows/dashboard_release.yaml
+    uses: ./.github/workflows/dashboard_wf_release.yaml
     with:
       GIT_REF: ${{ github.sha }}
       VERSION: ${{ needs.extract-project.outputs.version }}
@@ -85,7 +85,7 @@ jobs:
   storage:
     needs: extract-project
     if: needs.extract-project.outputs.project == 'storage'
-    uses: ./.github/workflows/storage_release.yaml
+    uses: ./.github/workflows/storage_wf_release.yaml
     with:
       GIT_REF: ${{ github.sha }}
       VERSION: ${{ needs.extract-project.outputs.version }}

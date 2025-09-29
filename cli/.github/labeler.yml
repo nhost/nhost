@@ -1,8 +1,0 @@
-labels:
-  'feature':
-    - '^(?i:feat)'
-    - '^(?i:feature)'
-  'fix':
-    - '^(?i:fix)'
-  'chore':
-    - '^(?i:chore)'

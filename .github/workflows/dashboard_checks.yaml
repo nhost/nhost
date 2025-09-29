@@ -99,7 +99,7 @@ jobs:
 
 
   e2e_staging:
-    uses: ./.github/workflows/dashboard_e2e_staging.yaml
+    uses: ./.github/workflows/dashboard_wf_e2e_staging.yaml
     needs:
       - check-permissions
       - deploy-vercel
