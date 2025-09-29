@@ -37,7 +37,7 @@ const columns: (Column<StoredFile> & {
   isPrimary?: boolean;
 })[] = [
   {
-    id: 'preview',
+    id: 'preview-column',
     Header: PreviewHeader,
     accessor: 'preview',
     Cell: (cellProps) => (
