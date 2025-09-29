@@ -1,51 +1,28 @@
-import { Divider } from '@/components/ui/v2/Divider';
-import { Dropdown } from '@/components/ui/v2/Dropdown';
-import { ArrowDownIcon } from '@/components/ui/v2/icons/ArrowDownIcon';
-import { ArrowUpIcon } from '@/components/ui/v2/icons/ArrowUpIcon';
-import { PencilIcon } from '@/components/ui/v2/icons/PencilIcon';
-import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import type { DataBrowserGridColumn } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import type { DataGridProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
 import { DataGridHeaderButton } from '@/features/orgs/projects/storage/dataGrid/components/DataGridHeaderButton';
+import { cn } from '@/lib/utils';
+import { useTheme } from '@mui/material';
 import type { DetailedHTMLProps, HTMLProps } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 export interface HeaderActionProps
   extends DetailedHTMLProps<HTMLProps<HTMLElement>, HTMLElement> {}
 
-export interface DataGridHeaderProps<T extends object>
+export interface DataGridHeaderProps
   extends Omit<
-      DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement>,
-      'children'
-    >,
-    Pick<DataGridProps<T>, 'onRemoveColumn' | 'onEditColumn'> {
-  /**
-   * Props to be passed to component slots.
-   */
-  componentsProps?: {
-    /**
-     * Props to be passed to the `Edit Column` header action item.
-     */
-    editActionProps?: HeaderActionProps;
-    /**
-     * Props to be passed to the `Delete Column` header action item.
-     */
-    deleteActionProps?: HeaderActionProps;
-  };
-}
+    DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement>,
+    'children'
+  > {}
 
 // TODO: Get rid of Data Browser related code from here. This component should
 // be generic and not depend on Data Browser related data types and logic.
-export default function DataGridHeader<T extends object>({
+export default function DataGridHeader({
   className,
-  onRemoveColumn,
-  onEditColumn,
-  componentsProps,
   ...props
-}: DataGridHeaderProps<T>) {
-  const { flatHeaders } = useDataGridConfig<T>();
-
+}: DataGridHeaderProps) {
+  const { flatHeaders } = useDataGridConfig();
+  const theme = useTheme();
   return (
     <div
       className={twMerge(
@@ -54,111 +31,44 @@ export default function DataGridHeader<T extends object>({
       )}
       {...props}
     >
-      {flatHeaders.map((column: DataBrowserGridColumn<T>) => {
+      {flatHeaders.map((column: DataBrowserGridColumn) => {
+        const sortByProps = column.getSortByToggleProps();
         const headerProps = column.getHeaderProps({
-          style: { display: 'inline-grid' },
+          style: { display: 'inline-flex' },
+          ...sortByProps,
         });
 
         return (
-          <Dropdown.Root
-            sx={{
-              backgroundColor: (theme) =>
-                column.isDisabled
-                  ? theme.palette.background.default
-                  : theme.palette.background.paper,
-              color: 'text.primary',
-              borderColor: 'grey.300',
-            }}
-            className={twMerge(
+          <div
+            className={cn(
               'group relative inline-flex self-stretch overflow-hidden font-display text-xs font-bold focus:outline-none focus-visible:outline-none',
               'border-b-1 border-r-1',
-              column.id === 'selection' && 'sticky left-0 max-w-2',
+              { 'sticky left-0 max-w-2': column.id === 'selection-column' },
+              'dark:text-[#dfecf5]',
             )}
             style={{
               ...headerProps.style,
+              backgroundColor: column.isDisabled
+                ? theme.palette.background.default
+                : theme.palette.background.paper,
               maxWidth:
-                column.id === 'selection' ? 32 : headerProps.style?.maxWidth,
+                column.id === 'selection-column'
+                  ? 32
+                  : headerProps.style?.maxWidth,
               width:
-                column.id === 'selection' ? '100%' : headerProps.style?.width,
+                column.id === 'selection-column'
+                  ? '100%'
+                  : headerProps.style?.width,
               zIndex:
-                column.id === 'selection' ? 10 : headerProps.style?.zIndex,
+                column.id === 'selection-column'
+                  ? 10
+                  : headerProps.style?.zIndex,
               position: undefined,
             }}
             key={column.id}
           >
-            <DataGridHeaderButton
-              column={column}
-              headerProps={headerProps}
-              onRemoveColumn={onRemoveColumn}
-            />
-            <Dropdown.Content
-              menu
-              PaperProps={{ className: 'w-52 mt-1' }}
-              className="p-0"
-            >
-              {onEditColumn && (
-                <Dropdown.Item
-                  onClick={() => onEditColumn(column)}
-                  className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
-                  disabled={componentsProps?.editActionProps?.disabled}
-                >
-                  <PencilIcon
-                    className="h-4 w-4"
-                    sx={{ color: 'text.secondary' }}
-                  />
-
-                  <span>Edit Column</span>
-                </Dropdown.Item>
-              )}
-
-              {onEditColumn && <Divider component="li" sx={{ margin: 0 }} />}
-
-              {!column.disableSortBy && (
-                <Dropdown.Item
-                  onClick={() => column.toggleSortBy(false)}
-                  className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
-                >
-                  <ArrowUpIcon
-                    className="h-4 w-4"
-                    sx={{ color: 'text.secondary' }}
-                  />
-
-                  <span>Sort Ascending</span>
-                </Dropdown.Item>
-              )}
-
-              {!column.disableSortBy && (
-                <Dropdown.Item
-                  onClick={() => column.toggleSortBy(true)}
-                  className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
-                >
-                  <ArrowDownIcon
-                    className="h-4 w-4"
-                    sx={{ color: 'text.secondary' }}
-                  />
-
-                  <span>Sort Descending</span>
-                </Dropdown.Item>
-              )}
-
-              {onRemoveColumn && !column.isPrimary && (
-                <Divider component="li" className="my-1" />
-              )}
-
-              {onRemoveColumn && !column.isPrimary && (
-                <Dropdown.Item
-                  onClick={() => onRemoveColumn(column)}
-                  className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
-                  disabled={componentsProps?.deleteActionProps?.disabled}
-                  sx={{ color: 'error.main' }}
-                >
-                  <TrashIcon className="h-4 w-4" sx={{ color: 'error.main' }} />
-
-                  <span>Delete Column</span>
-                </Dropdown.Item>
-              )}
-            </Dropdown.Content>
-          </Dropdown.Root>
+            <DataGridHeaderButton column={column} headerProps={headerProps} />
+          </div>
         );
       })}
     </div>

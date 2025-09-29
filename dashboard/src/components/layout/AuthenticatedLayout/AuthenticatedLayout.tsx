@@ -64,7 +64,11 @@ export default function AuthenticatedLayout({
     router.push('/orgs/local/projects/local');
   }, [isPlatform, router]);
 
-  if ((isPlatform && isLoading) || isSigningOut) {
+  if (
+    (isPlatform && isLoading) ||
+    isSigningOut ||
+    (isPlatform && !isAuthenticated)
+  ) {
     return (
       <BaseLayout className="h-full" {...props}>
         <Header className="flex max-h-[59px] flex-auto py-1" />

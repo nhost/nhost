@@ -98,6 +98,7 @@ jobs:
           committer: GitHub <noreply@github.com>
           author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
           body: |
-            This PR bumps the Nhost Dashboard Docker image to version ${{ needs.version.outputs.dashboardVersion }}.
+            This PR bumps the Nhost Dashboard Docker image to version ${{ inputs.VERSION }}.
           branch: bump-dashboard-version
+          base: main
           delete-branch: true
