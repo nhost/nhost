@@ -1,4 +1,27 @@
-(final: prev: rec {
+(final: prev:
+let
+  biome_version = "2.2.4";
+  biome_dist = {
+    aarch64-darwin = {
+      url = "https://github.com/biomejs/biome/releases/download/%40biomejs%2Fbiome%40${biome_version}/biome-darwin-arm64";
+      sha256 = "1z0qb6a21qwk93gpqvfvi01w472fs982vn7hg5my1c0bandnmgy6";
+    };
+    x86_64-darwin = {
+      url = "https://github.com/biomejs/biome/releases/download/%40biomejs%2Fbiome%40${biome_version}/biome-darwin-x64";
+      sha256 = "1nx29wszaxnhs08gsljqw64z5hlbarnq6yvkvylh680q4nkirw93";
+    };
+    aarch64-linux = {
+      url = "https://github.com/biomejs/biome/releases/download/%40biomejs%2Fbiome%40${biome_version}/biome-linux-arm64";
+      sha256 = "1wy3za2h38ky358dac3jf3jhhqjqvz0x7cbqhc46j2821b8vr7i4";
+    };
+    x86_64-linux = {
+      url = "https://github.com/biomejs/biome/releases/download/%40biomejs%2Fbiome%40${biome_version}/biome-linux-x64";
+      sha256 = "1i63hawgaajnwadbhh3aq68kbgyvahk6px1iy096slcrbd423pid";
+    };
+  };
+in
+rec{
+
   nodejs = final.nodejs_20;
   nodePackages = nodejs.pkgs;
 
@@ -11,23 +34,22 @@
     doCheck = false;
   });
 
-  biome = prev.biome.overrideAttrs (finalAttrs: prevAttrs: rec {
+  biome = final.stdenv.mkDerivation {
     pname = "biome";
-    version = "2.2.2";
+    version = biome_version;
 
-    src = final.fetchFromGitHub {
-      owner = "biomejs";
-      repo = "biome";
-      rev = "@biomejs/biome@${version}";
-      hash = "sha256-YmDHAsNGN5lsCgiciASdMUM6InbbjaGwyfyEX+XNOxs=";
+    src = final.fetchurl {
+      inherit (biome_dist.${final.stdenvNoCC.hostPlatform.system} or
+        (throw "Unsupported system: ${final.stdenvNoCC.hostPlatform.system}")) url sha256;
     };
 
-    cargoHash = "sha256-l3BQMG/cCxzQizeFGwAEDP8mzLtf/21ojyd+7gzhbtU=";
+    dontUnpack = true;
 
-    cargoDeps = final.rustPlatform.fetchCargoVendor {
-      inherit (finalAttrs) pname src version;
-      hash = finalAttrs.cargoHash;
-    };
-  });
+    installPhase = ''
+      mkdir -p $out/bin
+      cp $src $out/bin/biome
+      chmod +x $out/bin/biome
+    '';
+  };
+
 })
-
