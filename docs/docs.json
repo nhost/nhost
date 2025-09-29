@@ -189,7 +189,15 @@
               "/products/graphql/overview",
               "/products/graphql/configuring-hasura",
               "/products/graphql/permissions",
-              "/products/graphql/advanced-features"
+              "/products/graphql/advanced-features",
+              {
+                "group": "Guides",
+                "icon": "book",
+                "pages": [
+                  "/products/graphql/guides/react-apollo",
+                  "/products/graphql/guides/react-query"
+                ]
+              }
             ]
           },
           {
