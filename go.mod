@@ -22,7 +22,7 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-getter v1.8.1
-	github.com/nhost/be v0.0.0-20250826134155-48638c4b3f6a
+	github.com/nhost/be v0.0.0-20250929114305-7c64a8d5dab0
 	github.com/oapi-codegen/gin-middleware v1.0.2
 	github.com/oapi-codegen/runtime v1.1.1
 	github.com/pb33f/libopenapi v0.21.12
