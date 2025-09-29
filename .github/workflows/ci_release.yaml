@@ -38,7 +38,6 @@ jobs:
     if: needs.extract-project.outputs.project == 'cli'
     uses: ./.github/workflows/cli_release.yaml
     with:
-      NAME: dashboard
       GIT_REF: ${{ github.sha }}
       VERSION: ${{ needs.extract-project.outputs.version }}
     secrets:
@@ -54,7 +53,6 @@ jobs:
     if: needs.extract-project.outputs.project == '@nhost/dashboard'
     uses: ./.github/workflows/dashboard_release.yaml
     with:
-      NAME: dashboard
       GIT_REF: ${{ github.sha }}
       VERSION: ${{ needs.extract-project.outputs.version }}
     secrets:
@@ -83,3 +81,17 @@ jobs:
       NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_PRODUCTION }}
+
+  storage:
+    needs: extract-project
+    if: needs.extract-project.outputs.project == 'storage'
+    uses: ./.github/workflows/storage_release.yaml
+    with:
+      GIT_REF: ${{ github.sha }}
+      VERSION: ${{ needs.extract-project.outputs.version }}
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
+      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}

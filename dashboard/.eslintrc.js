@@ -9,6 +9,7 @@ module.exports = {
     project: './tsconfig.json',
   },
   ignorePatterns: [
+    'src/utils/hasura-api/generated/',
     '**/.eslintrc.js',
     '**/prettier.config.js',
     '**/next.config.js',

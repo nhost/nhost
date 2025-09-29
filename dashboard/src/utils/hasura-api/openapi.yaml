@@ -1,0 +1,1007 @@
+openapi: 3.0.0
+info:
+  title: Hasura Remote Schema API
+  description: API for managing remote schemas in Hasura
+  version: 1.0.0
+
+security:
+  - adminSecret: []
+
+paths:
+  /v1/metadata:
+    post:
+      summary: Metadata API endpoint
+      description: Endpoint for all metadata operations
+      operationId: metadataOperation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/ExportMetadata'
+                - $ref: '#/components/schemas/AddRemoteSchemaOperation'
+                - $ref: '#/components/schemas/UpdateRemoteSchemaBulkOperation'
+                - $ref: '#/components/schemas/RemoveRemoteSchemaOperation'
+                - $ref: '#/components/schemas/ReloadRemoteSchemaOperation'
+                - $ref: '#/components/schemas/IntrospectRemoteSchemaOperation'
+                - $ref: '#/components/schemas/RemoteSchemaRemoteRelationshipOperation'
+                - $ref: '#/components/schemas/DeleteRemoteSchemaRemoteRelationshipOperation'
+                - $ref: '#/components/schemas/RemoteSchemaPermissionsBulkOperation'
+      responses:
+        '200':
+          description: Operation executed successfully
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: object
+                    properties:
+                      message:
+                        type: string
+                        example: success
+                  - $ref: '#/components/schemas/ExportMetadataResponse'
+                  - $ref: '#/components/schemas/IntrospectRemoteSchemaResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /apis/migrate:
+    post:
+      summary: Execute a migration
+      description: Executes a migration with the provided up and down steps
+      operationId: executeMigration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MigrationRequest'
+      responses:
+        '200':
+          description: Migration executed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: internal_error
+                message: "{\n  \"error\": \"query execution failed\",\n  \"path\": \"$[0]\",\n  \"code\": \"postgres-error\",\n  \"internal\": {\n    \"arguments\": [],\n    \"error\": {\n      \"description\": null,\n      \"exec_status\": \"FatalError\",\n      \"hint\": null,\n      \"message\": \"syntax error at or near \\\":\\\"\",\n      \"status_code\": \"42601\"\n    },\n    \"prepared\": false,\n    \"statement\": \"CREATE TABLE asd ( id TEXT ):;\"\n  }\n}"
+
+components:
+  securitySchemes:
+    adminSecret:
+      type: apiKey
+      in: header
+      name: x-hasura-admin-secret
+
+  schemas:
+    RemoteSchemaPermissionsStepArgs:
+      type: object
+      required:
+        - remote_schema
+        - role
+      properties:
+        remote_schema:
+          type: string
+          description: Name of the remote schema
+          example: my_remote_schema
+        role:
+          type: string
+          description: Name of the role
+          example: user
+        definition:
+          $ref: '#/components/schemas/RemoteSchemaPermissionsDefinition'
+
+    AddRemoteSchemaPermissionsStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [add_remote_schema_permissions]
+          description: Use to add permissions to a remote schema
+        args:
+          $ref: '#/components/schemas/RemoteSchemaPermissionsStepArgs'
+
+    DropRemoteSchemaPermissionsStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [drop_remote_schema_permissions]
+        args:
+          $ref: '#/components/schemas/RemoteSchemaPermissionsStepArgs'
+
+    AddRemoteSchemaStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [add_remote_schema]
+        args:
+          $ref: '#/components/schemas/AddRemoteSchemaArgs'
+
+    UpdateRemoteSchemaStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [update_remote_schema]
+        args:
+          $ref: '#/components/schemas/RemoteSchemaInfo'
+
+    RemoveRemoteSchemaStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [remove_remote_schema]
+        args:
+          $ref: '#/components/schemas/RemoveRemoteSchemaArgs'
+
+    MigrationStep:
+      oneOf:
+        - $ref: '#/components/schemas/AddRemoteSchemaPermissionsStep'
+        - $ref: '#/components/schemas/DropRemoteSchemaPermissionsStep'
+        - $ref: '#/components/schemas/UpdateRemoteSchemaStep'
+        - $ref: '#/components/schemas/RemoveRemoteSchemaStep'
+        - $ref: '#/components/schemas/AddRemoteSchemaStep'
+
+    MigrationRequest:
+      type: object
+      required:
+        - name
+        - up
+        - datasource
+      properties:
+        name:
+          type: string
+          description: Name of the migration
+          example: save_remote_schema_permission
+        up:
+          type: array
+          description: Steps to execute for the migration. Always provide a down migration as well when creating a migration that modifies the schema
+          items:
+            $ref: '#/components/schemas/MigrationStep'
+        down:
+          type: array
+          description: Steps to execute to revert the migration. Always provide this when creating a migration that modifies the schema
+          items:
+            $ref: '#/components/schemas/MigrationStep'
+        datasource:
+          type: string
+          description: The data source to use
+          example: default
+        skip_execution:
+          type: boolean
+          description: Whether to skip the execution of the migration
+          default: false
+
+    SuccessResponse:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of the created migration with a timestamp
+          example: 1745093409829_my_migration
+
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Error code
+          example: invalid-configuration
+        error:
+          type: string
+          description: Object error message
+          example: "Inconsistent object: environment variable 'asdf' not set"
+        message:
+          type: string
+          description: The error message for the client
+        internal:
+          type: array
+          description: Internal error details
+          items:
+            type: object
+            additionalProperties: true
+        path:
+          type: string
+          description: JSON path where the error occurred
+          example: '$.args'
+
+    ExportMetadata:
+      type: object
+      required:
+        - type
+        - version
+        - args
+      properties:
+        type:
+          type: string
+          enum: [export_metadata]
+          description: Type of operation to export the current metadata from the server
+        version:
+          type: integer
+          description: Version of the metadata to export
+          example: 2
+        args:
+          type: object
+          description: Arguments for the export metadata operation (usually empty object)
+          default: {}
+
+    ExportMetadataResponse:
+      type: object
+      required:
+        - resource_version
+        - metadata
+      description: The complete Hasura metadata as JSON
+      properties:
+        resource_version:
+          type: integer
+          description: Resource version number
+          example: 161
+        metadata:
+          type: object
+          description: Complete metadata configuration
+          properties:
+            version:
+              type: integer
+              description: Metadata version
+              example: 3
+            sources:
+              type: array
+              description: List of data sources
+              items:
+                type: object
+                additionalProperties: true
+            remote_schemas:
+              type: array
+              description: List of remote GraphQL schemas
+              items:
+                $ref: '#/components/schemas/RemoteSchemaInfo'
+          additionalProperties: true
+
+    RemoteSchemaInfo:
+      type: object
+      description: Information about a remote schema
+      required:
+        - name
+        - definition
+      properties:
+        name:
+          type: string
+          description: Name of the remote schema
+          example: asdf2
+        definition:
+          $ref: '#/components/schemas/RemoteSchemaDefinition'
+        comment:
+          type: string
+          description: Comment for the remote schema
+          example: External GraphQL service
+        remote_relationships:
+          type: array
+          description: Remote relationships for the remote schema
+          items:
+            type: object
+            required:
+              - type_name
+              - relationships
+            properties:
+              type_name:
+                type: string
+                description: Name of the type in the remote schema
+                example: User
+              relationships:
+                type: array
+                description: List of relationships for this type
+                items:
+                  type: object
+                  required:
+                    - name
+                    - definition
+                  properties:
+                    name:
+                      type: string
+                      description: Name of the relationship
+                      example: user
+                    definition:
+                      type: object
+                      description: Relationship definition
+                      oneOf:
+                        - type: object
+                          required:
+                            - to_remote_schema
+                          properties:
+                            to_remote_schema:
+                              $ref: '#/components/schemas/ToRemoteSchemaRelationshipDefinition'
+                        - type: object
+                          required:
+                            - to_source
+                          properties:
+                            to_source:
+                              $ref: '#/components/schemas/ToSourceRelationshipDefinition'
+        permissions:
+          type: array
+          description: Permissions for the remote schema
+          items:
+            type: object
+            required:
+              - role
+              - definition
+            properties:
+              role:
+                type: string
+                description: Role name for the permission
+                example: user
+              definition:
+                type: object
+                description: Permission definition
+                required:
+                  - schema
+                properties:
+                  schema:
+                    type: string
+                    description: GraphQL schema definition for this role
+                    example: 'schema { query: Query } type Query { hello: String }'
+
+    RemoteSchemaDefinitionFromUrl:
+      type: object
+      description: Remote schema definition using direct URL
+      required:
+        - url
+      properties:
+        url:
+          type: string
+          description: URL of the GraphQL server
+          example: https://sharp-glowing-muskmelon.glitch.me/
+        timeout_seconds:
+          type: integer
+          description: Timeout in seconds
+          example: 60
+        forward_client_headers:
+          type: boolean
+          description: Forward client headers to the remote schema
+          default: false
+        headers:
+          $ref: '#/components/schemas/Headers'
+        customization:
+          $ref: '#/components/schemas/RemoteSchemaCustomization'
+
+    RemoteSchemaDefinitionFromEnv:
+      type: object
+      description: Remote schema definition using URL from environment variable
+      required:
+        - url_from_env
+      properties:
+        url_from_env:
+          type: string
+          description: Environment variable name containing the GraphQL server URL
+          example: REMOTE_SCHEMA_URL
+        timeout_seconds:
+          type: integer
+          description: Timeout in seconds
+          example: 60
+        forward_client_headers:
+          type: boolean
+          description: Forward client headers to the remote schema
+          default: false
+        headers:
+          $ref: '#/components/schemas/Headers'
+        customization:
+          $ref: '#/components/schemas/RemoteSchemaCustomization'
+
+    RemoteSchemaCustomization:
+      type: object
+      description: Customization options for the remote schema
+      properties:
+        root_fields_namespace:
+          type: string
+          description: Namespace for root fields
+          example: your_field_name
+        type_names:
+          type: object
+          description: Type name customization options
+          properties:
+            prefix:
+              type: string
+              description: Prefix to add to all type names
+              example: your_type_name_prefix
+            suffix:
+              type: string
+              description: Suffix to add to all type names
+              example: your_type_name_suffix
+            mapping:
+              type: object
+              description: Mapping of original type names to new type names
+              additionalProperties:
+                type: string
+              example:
+                some_type_name: some_new_type_name
+        field_names:
+          type: array
+          description: Field name customization options
+          items:
+            type: object
+            properties:
+              parent_type:
+                type: string
+                description: Parent type name
+                example: your_type_name
+              prefix:
+                type: string
+                description: Prefix to add to field names
+                example: your_field_name_prefix
+              suffix:
+                type: string
+                description: Suffix to add to field names
+                example: your_field_name_suffix
+              mapping:
+                type: object
+                description: Mapping of original field names to new field names
+                additionalProperties:
+                  type: string
+                example:
+                  some_field_name: some_new_field_name
+
+    RemoteSchemaDefinition:
+      description: Remote schema definition - can use direct URL or environment variable
+      oneOf:
+        - $ref: '#/components/schemas/RemoteSchemaDefinitionFromUrl'
+        - $ref: '#/components/schemas/RemoteSchemaDefinitionFromEnv'
+
+    Headers:
+      type: array
+      description: Headers to be sent with the request
+      items:
+        oneOf:
+          - $ref: '#/components/schemas/HeaderWithValue'
+          - $ref: '#/components/schemas/HeaderWithEnv'
+
+    HeaderWithValue:
+      type: object
+      required:
+        - name
+        - value
+      properties:
+        name:
+          type: string
+          description: Name of the header
+          example: X-Hasura-User-Id
+        value:
+          type: string
+          description: Value of the header
+          example: 123e4567-e89b-4444-4444-444444444000
+
+    HeaderWithEnv:
+      type: object
+      required:
+        - name
+        - value_from_env
+      properties:
+        name:
+          type: string
+          description: Name of the header
+          example: X-Hasura-User-Id
+        value_from_env:
+          type: string
+          description: Environment variable name to get the value from
+          example: HASURA_USER_ID
+
+    AddRemoteSchemaArgs:
+      type: object
+      required:
+        - name
+        - definition
+      properties:
+        name:
+          type: string
+          description: Name of the remote schema
+          example: my_remote_schema
+        definition:
+          $ref: '#/components/schemas/RemoteSchemaDefinition'
+        comment:
+          type: string
+          description: Comment for the remote schema
+          example: External GraphQL service
+
+    AddRemoteSchemaOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [add_remote_schema]
+          description: Type of operation to add a remote schema
+        args:
+          $ref: '#/components/schemas/AddRemoteSchemaArgs'
+
+    UpdateRemoteSchemaBulkOperation:
+      type: object
+      required:
+        - type
+        - source
+        - resource_version
+        - args
+      properties:
+        type:
+          type: string
+          enum: [bulk]
+          description: Type of operation to update remote schemas
+        source:
+          type: string
+          description: Source of the operation
+          example: default
+        resource_version:
+          type: integer
+          description: Resource version of the operation
+          example: 1
+        args:
+          type: array
+          items:
+            $ref: '#/components/schemas/UpdateRemoteSchemaStep'
+
+    RemoveRemoteSchemaArgs:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Name of the remote schema to remove
+          example: my_remote_schema
+
+    RemoveRemoteSchemaOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [remove_remote_schema]
+          description: Type of operation to remove a remote schema
+        args:
+          $ref: '#/components/schemas/RemoveRemoteSchemaArgs'
+
+    ReloadRemoteSchemaArgs:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Name of the remote schema to reload
+          example: my_remote_schema
+
+    ReloadRemoteSchemaOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [reload_remote_schema]
+          description: Type of operation to reload a remote schema
+        args:
+          $ref: '#/components/schemas/ReloadRemoteSchemaArgs'
+
+    RemoteSchemaPermissionsDefinition:
+      type: object
+      description: Permission definition
+      required:
+        - schema
+      properties:
+        schema:
+          type: string
+          description: GraphQL schema definition for this role
+          example: 'schema { query: Query } type Query { hello: String }'
+
+    RemoteSchemaPermissionsBulkOperation:
+      type: object
+      required:
+        - type
+        - source
+        - resource_version
+        - args
+      properties:
+        type:
+          type: string
+          enum: [bulk]
+          description: Type of operation to add or drop remote schema permissions
+        args:
+          type: array
+          items:
+            oneOf:
+              - $ref: '#/components/schemas/AddRemoteSchemaPermissionsStep'
+              - $ref: '#/components/schemas/DropRemoteSchemaPermissionsStep'
+
+        source:
+          type: string
+          description: Source of the operation
+          example: default
+        resource_version:
+          type: integer
+          description: Resource version of the operation
+          example: 1
+
+    CreateRemoteSchemaRemoteRelationshipArgs:
+      type: object
+      required:
+        - name
+        - remote_schema
+        - type_name
+        - definition
+      properties:
+        name:
+          type: string
+          description: Name of the relationship. This will be used as the field name in the source type
+          example: relationship_name
+        remote_schema:
+          type: string
+          description: Name of the source remote schema
+          example: order-remote-schema
+        type_name:
+          type: string
+          description: Name of the type in the remote schema
+          example: Order
+        definition:
+          type: object
+          description: Relationship definition
+          oneOf:
+            - type: object
+              required:
+                - to_remote_schema
+              properties:
+                to_remote_schema:
+                  $ref: '#/components/schemas/ToRemoteSchemaRelationshipDefinition'
+            - type: object
+              required:
+                - to_source
+              properties:
+                to_source:
+                  $ref: '#/components/schemas/ToSourceRelationshipDefinition'
+
+    ToRemoteSchemaRelationshipDefinition:
+      type: object
+      description: Definition for relationship to another remote schema
+      required:
+        - remote_schema
+        - lhs_fields
+        - remote_field
+      properties:
+        remote_schema:
+          type: string
+          description: Name of the target remote schema
+          example: user-remote-schema
+        lhs_fields:
+          type: array
+          description: Fields from the source type to use in the relationship
+          items:
+            type: string
+          example: ['user_id']
+        remote_field:
+          type: object
+          description: Remote field configuration
+          additionalProperties:
+            type: object
+            properties:
+              arguments:
+                type: object
+                description: Arguments to pass to the remote field
+                additionalProperties:
+                  type: string
+                example:
+                  id: '$user_id'
+          example:
+            user:
+              arguments:
+                id: '$user_id'
+
+    ToSourceRelationshipDefinition:
+      type: object
+      description: Definition for relationship to a database source
+      required:
+        - source
+        - table
+        - relationship_type
+        - field_mapping
+      properties:
+        source:
+          type: string
+          description: Name of the database source
+          example: default
+        table:
+          type: object
+          description: Target table information
+          required:
+            - name
+            - schema
+          properties:
+            name:
+              type: string
+              description: Name of the table
+              example: plans
+            schema:
+              type: string
+              description: Schema name of the table
+              example: public
+        relationship_type:
+          type: string
+          enum: [object, array]
+          description: Type of relationship - object for one-to-one, array for one-to-many
+          example: array
+        field_mapping:
+          type: object
+          description: Mapping from remote schema fields to database table columns
+          additionalProperties:
+            type: string
+          example:
+            Description: id
+            Amount: updated_at
+
+    UpdateRemoteSchemaRemoteRelationshipArgs:
+      $ref: '#/components/schemas/CreateRemoteSchemaRemoteRelationshipArgs'
+
+    RemoteSchemaRemoteRelationshipOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum:
+            [
+              create_remote_schema_remote_relationship,
+              update_remote_schema_remote_relationship,
+            ]
+          description: Type of operation to create a remote schema relationship
+        args:
+          oneOf:
+            - $ref: '#/components/schemas/CreateRemoteSchemaRemoteRelationshipArgs'
+            - $ref: '#/components/schemas/UpdateRemoteSchemaRemoteRelationshipArgs'
+
+    DeleteRemoteSchemaRemoteRelationshipArgs:
+      type: object
+      required:
+        - name
+        - remote_schema
+        - type_name
+      properties:
+        name:
+          type: string
+          description: Name of the relationship to delete
+          example: relationship_name
+        remote_schema:
+          type: string
+          description: Name of the source remote schema
+          example: order-remote-schema
+        type_name:
+          type: string
+          description: Name of the type in the remote schema
+          example: Order
+
+    DeleteRemoteSchemaRemoteRelationshipOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [delete_remote_schema_remote_relationship]
+          description: Type of operation to delete a remote schema relationship
+        args:
+          $ref: '#/components/schemas/DeleteRemoteSchemaRemoteRelationshipArgs'
+
+    IntrospectRemoteSchemaArgs:
+      $ref: '#/components/schemas/ReloadRemoteSchemaArgs'
+
+    IntrospectRemoteSchemaOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [introspect_remote_schema]
+          description: Type of operation to introspect a remote schema
+        args:
+          $ref: '#/components/schemas/IntrospectRemoteSchemaArgs'
+
+    IntrospectRemoteSchemaResponse:
+      type: object
+      description: GraphQL schema introspection response for tree visualization
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - __schema
+          properties:
+            __schema:
+              type: object
+              description: GraphQL schema introspection data
+              required:
+                - types
+                - queryType
+                - mutationType
+                - subscriptionType
+                - directives
+              properties:
+                queryType:
+                  type: object
+                  required:
+                    - name
+                    - kind
+                  properties:
+                    name:
+                      type: string
+                      example: Query
+                    kind:
+                      type: string
+                      enum: [OBJECT]
+                  additionalProperties: true
+                mutationType:
+                  type: object
+                  required:
+                    - name
+                    - kind
+                  nullable: true
+                  properties:
+                    name:
+                      type: string
+                      example: Mutation
+                    kind:
+                      type: string
+                      enum: [OBJECT]
+                  additionalProperties: true
+                subscriptionType:
+                  type: object
+                  required:
+                    - name
+                    - kind
+                  nullable: true
+                  properties:
+                    name:
+                      type: string
+                      example: Subscription
+                    kind:
+                      type: string
+                      enum: [OBJECT]
+                  additionalProperties: true
+                types:
+                  type: array
+                  description: All types in the GraphQL schema
+                  items:
+                    $ref: '#/components/schemas/GraphQLTypeForVisualization'
+                directives:
+                  type: array
+                  description: All directives in the GraphQL schema
+                  items:
+                    type: object
+                    description: Directive definition
+                    additionalProperties: true
+              additionalProperties: true
+          additionalProperties: true
+      additionalProperties: true
+
+    GraphQLTypeForVisualization:
+      type: object
+      description: GraphQL type definition for tree visualization
+      required:
+        - kind
+        - name
+      properties:
+        kind:
+          type: string
+          enum:
+            [
+              SCALAR,
+              OBJECT,
+              INTERFACE,
+              UNION,
+              ENUM,
+              INPUT_OBJECT,
+              LIST,
+              NON_NULL,
+            ]
+          description: The kind of GraphQL type
+        name:
+          type: string
+          nullable: true
+          description: Name of the type (null for wrapper types like LIST/NON_NULL)
+        description:
+          type: string
+          nullable: true
+          description: Description of the type
+        fields:
+          type: array
+          nullable: true
+          description: Fields for OBJECT and INTERFACE types (basic info for tree visualization)
+          items:
+            type: object
+            required:
+              - name
+              - type
+            properties:
+              name:
+                type: string
+                description: Name of the field
+              description:
+                type: string
+                nullable: true
+                description: Description of the field
+              type:
+                $ref: '#/components/schemas/GraphQLTypeForVisualization'
+                description: Return type of the field
+            additionalProperties: true
+        interfaces:
+          type: array
+          nullable: true
+          description: Interfaces implemented by OBJECT types
+          items:
+            $ref: '#/components/schemas/GraphQLTypeForVisualization'
+        enumValues:
+          type: array
+          nullable: true
+          description: Values for ENUM types
+          items:
+            type: object
+            required:
+              - name
+            properties:
+              name:
+                type: string
+                description: Name of the enum value
+              description:
+                type: string
+                nullable: true
+                description: Description of the enum value
+            additionalProperties: true
+        possibleTypes:
+          type: array
+          nullable: true
+          description: Possible types for UNION and INTERFACE types
+          items:
+            $ref: '#/components/schemas/GraphQLTypeForVisualization'
+        ofType:
+          $ref: '#/components/schemas/GraphQLTypeForVisualization'
+          nullable: true
+          description: Wrapped type for LIST and NON_NULL types
+      additionalProperties: true
