@@ -8,7 +8,9 @@
   };
 
   outputs = { self, nixpkgs, flake-utils, nix-filter, nix2container }:
-    flake-utils.lib.eachDefaultSystem (system:
+    {
+      lib = import ./nixops/lib/lib.nix;
+    } // flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs {
           inherit system;
@@ -68,7 +70,6 @@
       {
         #nixops
         overlays.default = import ./overlays/default.nix;
-        lib = import ./nixops/lib/lib.nix;
 
         checks = {
           cli = clif.check;
