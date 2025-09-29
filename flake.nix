@@ -11,7 +11,7 @@
     {
       #nixops
       lib = import ./nixops/lib/lib.nix;
-      overlays.default = import ./overlays/default.nix;
+      overlays.default = import ./nixops/overlays/default.nix;
     } // flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs {
