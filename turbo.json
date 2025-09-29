@@ -3,60 +3,43 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", "umd/**", "build/**", ".next/**"]
-    },
-    "@nhost-examples/react-apollo#build": {
-      "dependsOn": ["^build"],
-      "outputs": ["dist/**"],
-      "env": ["VITE_NHOST_SUBDOMAIN", "VITE_NHOST_REGION"]
-    },
-    "@nhost-examples/sveltekit#build": {
-      "dependsOn": ["^build"],
-      "outputs": [".svelte-kit/**", ".vercel/**"],
-      "env": ["PUBLIC_NHOST_SUBDOMAIN", "PUBLIC_NHOST_REGION", "ENABLE_EXPERIMENTAL_COREPACK"]
-    },
-    "@nhost-examples/vue-apollo#build": {
-      "dependsOn": ["^build"],
-      "outputs": ["dist/**"],
-      "env": ["VITE_NHOST_SUBDOMAIN", "VITE_NHOST_REGION"]
-    },
-    "@nhost/docs#build": {
-      "cache": false
+      "outputs": ["dist/**", ".next/**"]
     },
     "@nhost/dashboard#build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".next/**"],
+      "outputs": [".next/**"],
       "env": [
         "NEXT_TELEMETRY_DISABLED",
         "NEXT_PUBLIC_NHOST_PLATFORM",
         "NEXT_PUBLIC_NHOST_MIGRATIONS_URL",
         "NEXT_PUBLIC_NHOST_HASURA_URL",
-        "NEXT_PUBLIC_ENV"
+        "NEXT_PUBLIC_ENV",
+        "NEXT_PUBLIC_NHOST_ADMIN_SECRET",
+        "NEXT_PUBLIC_NHOST_AUTH_URL",
+        "NEXT_PUBLIC_NHOST_DATABASE_URL",
+        "NEXT_PUBLIC_NHOST_GRAPHQL_URL",
+        "NEXT_PUBLIC_NHOST_STORAGE_URL",
+        "NEXT_PUBLIC_NHOST_FUNCTIONS_URL",
+        "NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL",
+        "NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL",
+        "NEXT_PUBLIC_NHOST_HASURA_API_URL",
+        "NEXT_PUBLIC_NHOST_CONFIGSERVER_URL",
+        "NEXT_PUBLIC_NHOST_BRAGI_WEBSOCKET",
+        "NEXT_PUBLIC_DISCORD_LOGGING",
+        "NEXT_PUBLIC_ZENDESK_USER_EMAIL",
+        "NEXT_PUBLIC_ZENDESK_API_KEY",
+        "NEXT_PUBLIC_ZENDESK_URL"
       ]
-    },
-    "@nhost/sync-versions#start": {
-      "cache": false
     },
     "test": {
       "dependsOn": ["^build"],
       "outputs": ["coverage/**"]
     },
-    "e2e": {
-      "dependsOn": ["^build"],
-      "outputs": []
-    },
     "dev": {
       "cache": false
     },
-    "docgen": {
-      "cache": false,
-      "dependsOn": ["^build"]
-    },
     "lint": {
       "dependsOn": ["^build"],
-      "outputs": []
-    },
-    "lint:fix": {
       "outputs": []
     },
     "start": {}

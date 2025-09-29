@@ -27,6 +27,8 @@ on:
         required: true
       DISCORD_WEBHOOK:
         required: false
+      TURBO_TOKEN:
+        required: true
 
     outputs:
       preview-url:
@@ -69,6 +71,8 @@ jobs:
       env:
         VERCEL_ORG_ID: ${{ secrets.VERCEL_TEAM_ID }}
         VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+        TURBO_TEAM: nhost
       run: |
         TARGET_OPTS="--target=${{ inputs.ENVIRONMENT }}"
         echo "Deploying to: ${{ inputs.ENVIRONMENT }}..."

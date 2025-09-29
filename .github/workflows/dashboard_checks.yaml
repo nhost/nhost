@@ -32,6 +32,10 @@ on:
     branches:
       - main
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || format('push-{0}', github.sha) }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   check-permissions:
     runs-on: ubuntu-latest
@@ -59,6 +63,7 @@ jobs:
       VERCEL_TEAM_ID: ${{ secrets.DASHBOARD_VERCEL_TEAM_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.DASHBOARD_STAGING_VERCEL_PROJECT_ID }}
       VERCEL_DEPLOY_TOKEN: ${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
+      TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
 
 
   build_artifacts:
@@ -71,6 +76,7 @@ jobs:
       GIT_REF: ${{ github.sha }}
       VERSION: 0.0.0-dev # we use a fixed version here to avoid unnecessary rebuilds
       DOCKER: true
+      OS_MATRIX: '["blacksmith-2vcpu-ubuntu-2404"]'
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
@@ -93,7 +99,7 @@ jobs:
 
 
   e2e_staging:
-    uses: ./.github/workflows/wf_dashboard_e2e_staging.yaml
+    uses: ./.github/workflows/dashboard_wf_e2e_staging.yaml
     needs:
       - check-permissions
       - deploy-vercel

@@ -1,8 +1,6 @@
 name: "CodeQL"
 
 on:
-  push: {}
-  pull_request: {}
   schedule:
     - cron: '20 23 * * 3'
 
@@ -18,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [ 'javascript' ]
+        language: [ 'javascript', 'go' ]
         # CodeQL supports [ 'cpp', 'csharp', 'go', 'java', 'javascript', 'python', 'ruby' ]
         # Learn more about CodeQL language support at https://git.io/codeql-language-support
 
