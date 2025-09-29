@@ -59,6 +59,10 @@ on:
       PLAYWRIGHT_REPORT_ENCRYPTION_KEY:
         required: true
 
+concurrency:
+  group: dashboard-e2e-staging
+  cancel-in-progress: false
+
 env:
   NEXT_PUBLIC_ENV: dev
   NEXT_TELEMETRY_DISABLED: 1
