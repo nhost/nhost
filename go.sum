@@ -341,8 +341,8 @@ github.com/muesli/termenv v0.16.0 h1:S5AlUN9dENB57rsbnkPyfdGuWIlkmzJjbFf0Tf5FWUc
 github.com/muesli/termenv v0.16.0/go.mod h1:ZRfOIKPFDYQoDFF4Olj7/QJbW60Ol/kL1pU3VfY/Cnk=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 h1:C3w9PqII01/Oq1c1nUAm88MOHcQC9l5mIlSMApZMrHA=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822/go.mod h1:+n7T8mK8HuQTcFwEeznm/DIxMOiR9yIdICNftLE1DvQ=
-github.com/nhost/be v0.0.0-20250826134155-48638c4b3f6a h1:X0diMLIRQBKobQ4W5di8fPqwakLFchJdzAtamO97Vrs=
-github.com/nhost/be v0.0.0-20250826134155-48638c4b3f6a/go.mod h1:iRPhO+qcQzTtNQ7PaQMJAcEw0tgWzgjzcGWgJ4ifrUo=
+github.com/nhost/be v0.0.0-20250929153845-6db3e5249d33 h1:BNFN3Mw4zY6LEmVc7RXkHSVvHtovDSm7Oesb7IUt27o=
+github.com/nhost/be v0.0.0-20250929153845-6db3e5249d33/go.mod h1:feVvqP3dft8hWbp9zNZExdGKbFEYv8aLYohfyAeINNQ=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
 github.com/oapi-codegen/gin-middleware v1.0.2 h1:/H99UzvHQAUxXK8pzdcGAZgjCVeXdFDAUUWaJT0k0eI=
 github.com/oapi-codegen/gin-middleware v1.0.2/go.mod h1:2HJDQjH8jzK2/k/VKcWl+/T41H7ai2bKa6dN3AA2GpA=
