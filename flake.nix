@@ -70,7 +70,7 @@
       {
         #nixops
         overlays.default = import ./overlays/default.nix;
-        lib = lib;
+        lib = import ./nixops/lib/lib.nix;
 
         checks = {
           cli = clif.check;
