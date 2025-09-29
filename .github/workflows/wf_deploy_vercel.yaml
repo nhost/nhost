@@ -29,8 +29,6 @@ on:
         required: false
       TURBO_TOKEN:
         required: true
-      TURBO_TEAM:
-        required: true
 
     outputs:
       preview-url:
@@ -74,7 +72,7 @@ jobs:
         VERCEL_ORG_ID: ${{ secrets.VERCEL_TEAM_ID }}
         VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-        TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+        TURBO_TEAM: nhost
       run: |
         TARGET_OPTS="--target=${{ inputs.ENVIRONMENT }}"
         echo "Deploying to: ${{ inputs.ENVIRONMENT }}..."
