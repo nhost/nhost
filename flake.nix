@@ -9,7 +9,9 @@
 
   outputs = { self, nixpkgs, flake-utils, nix-filter, nix2container }:
     {
+      #nixops
       lib = import ./nixops/lib/lib.nix;
+      overlays.default = import ./overlays/default.nix;
     } // flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs {
@@ -68,9 +70,6 @@
 
       in
       {
-        #nixops
-        overlays.default = import ./overlays/default.nix;
-
         checks = {
           cli = clif.check;
           codegen = codegenf.check;
