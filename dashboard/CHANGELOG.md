@@ -1,3 +1,20 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+## [@nhost/dashboard@2.38.0] - 2025-09-29
+
+### 🚀 Features
+
+- *(dashboard)* Add remote schemas (#3299)
+- *(dashboard)* Datatable column header redesign (#3500)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(ci)* Add e2e remote schema name repository variable to CI workflow (#3502)
+- *(dashboard)* Fix defects in basetable form and add comment to columns (#3475)
+
 # @nhost/dashboard
 
 ## 2.37.0

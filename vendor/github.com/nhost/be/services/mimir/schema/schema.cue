@@ -133,9 +133,9 @@ import (
 
 #ResourcesCompute: {
     // milicpus, 1000 milicpus = 1 cpu
-    cpu: uint32 & >=250 & <=15000
+    cpu: uint32 & >=250 & <=30000
     // MiB: 128MiB to 30GiB
-    memory: uint32 & >=128 & <=30720
+    memory: uint32 & >=128 & <=62464
 
     // validate CPU steps of 250 milicpus
     _validateCPUSteps250: (mod(cpu, 250) == 0) & true @cuegraph(skip)

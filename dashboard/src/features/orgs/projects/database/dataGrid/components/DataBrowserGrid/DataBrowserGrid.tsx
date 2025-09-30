@@ -1,11 +1,9 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import { FormActivityIndicator } from '@/components/form/FormActivityIndicator';
-import { InlineCode } from '@/components/presentational/InlineCode';
-import { KeyIcon } from '@/components/ui/v2/icons/KeyIcon';
+import { InlineCode } from '@/components/ui/v3/inline-code';
 import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
 import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
 import { DataBrowserGridControls } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGridControls';
-import { useDeleteColumnWithToastMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteColumnMutation';
 import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
 import type { UpdateRecordVariables } from '@/features/orgs/projects/database/dataGrid/hooks/useUpdateRecordMutation';
 import { useUpdateRecordWithToastMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useUpdateRecordMutation';
@@ -21,8 +19,6 @@ import {
   POSTGRESQL_INTEGER_TYPES,
   POSTGRESQL_JSON_TYPES,
 } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
-import { isSchemaLocked } from '@/features/orgs/projects/database/dataGrid/utils/schemaHelpers';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { DataGridProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import { DataGrid } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import { DataGridBooleanCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridBooleanCell';
@@ -31,17 +27,10 @@ import { DataGridDecimalCell } from '@/features/orgs/projects/storage/dataGrid/c
 import { DataGridIntegerCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridIntegerCell';
 import { DataGridTextCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridTextCell';
 import { useQueryClient } from '@tanstack/react-query';
+import { KeyRound } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-
-const EditColumnForm = dynamic(
-  () =>
-    import(
-      '@/features/orgs/projects/database/dataGrid/components/EditColumnForm/EditColumnForm'
-    ),
-  { ssr: false, loading: () => <FormActivityIndicator /> },
-);
 
 const CreateRecordForm = dynamic(
   () =>
@@ -63,7 +52,7 @@ export function createDataGridColumn(
   const defaultColumnConfiguration = {
     Header: () => (
       <div className="grid grid-flow-col items-center justify-start gap-1 font-normal">
-        {column.is_primary && <KeyIcon className="text-sm" />}
+        {column.is_primary && <KeyRound width={14} height={14} />}
 
         <span className="truncate font-bold" title={column.column_name}>
           {column.column_name}
@@ -167,23 +156,15 @@ export default function DataBrowserGrid({
     ...router
   } = useRouter();
   const currentTablePath = useTablePath();
-  const isSchemaEditable = !isSchemaLocked(schemaSlug as string);
-  const { openDrawer, openAlertDialog } = useDialog();
 
-  const { project } = useProject();
-  const isGitHubConnected = !!project?.githubRepository;
+  const { openDrawer } = useDialog();
 
   const limit = 25;
   const [currentOffset, setCurrentOffset] = useState<number>(
     parseInt(page as string, 10) - 1 || 0,
   );
 
-  const [removableColumnId, setRemovableColumnId] = useState<string>();
-  const [optimisticlyRemovedColumnId, setOptimisticlyRemovedColumnId] =
-    useState<string>();
-
   const { mutateAsync: updateRow } = useUpdateRecordWithToastMutation();
-  const { mutateAsync: deleteColumn } = useDeleteColumnWithToastMutation();
 
   const { data, status, error, refetch } = useTableQuery(
     [currentTablePath, limit, currentOffset, sortBy],
@@ -271,26 +252,16 @@ export default function DataBrowserGrid({
 
   const memoizedColumns = useMemo(
     () =>
-      columns
-        .map((column) => ({
-          ...createDataGridColumn(column, true),
-          onCellEdit: async (variables: UpdateRecordVariables) => {
-            const result = await updateRow(variables);
-            await queryClient.invalidateQueries([currentTablePath]);
+      columns.map((column) => ({
+        ...createDataGridColumn(column, true),
+        onCellEdit: async (variables: UpdateRecordVariables) => {
+          const result = await updateRow(variables);
+          await queryClient.invalidateQueries([currentTablePath]);
 
-            return result;
-          },
-          isDisabled: removableColumnId === column.column_name,
-        }))
-        .filter((column) => column.id !== optimisticlyRemovedColumnId),
-    [
-      columns,
-      currentTablePath,
-      optimisticlyRemovedColumnId,
-      queryClient,
-      removableColumnId,
-      updateRow,
-    ],
+          return result;
+        },
+      })),
+    [columns, currentTablePath, queryClient, updateRow],
   );
 
   const memoizedData = useMemo(() => rows, [rows]);
@@ -305,58 +276,6 @@ export default function DataBrowserGrid({
           onSubmit={refetch}
         />
       ),
-    });
-  }
-
-  async function handleEditColumnClick(
-    column: DataBrowserGridColumn<NormalizedQueryDataRow>,
-  ) {
-    openDrawer({
-      title: 'Edit Column',
-      component: (
-        <EditColumnForm
-          column={column}
-          onSubmit={() => queryClient.refetchQueries([currentTablePath])}
-        />
-      ),
-    });
-  }
-
-  async function handleColumnDeleteConfirmation(
-    column: DataBrowserGridColumn<NormalizedQueryDataRow>,
-  ) {
-    try {
-      // We are greying out and disabling it in the grid
-      setRemovableColumnId(column.id);
-      await deleteColumn({ column });
-
-      // Note: At this point we can optimistically assume that the column was
-      // removed, so we can improve the UX by removing it from the grid right
-      // away, without waiting for the refetch to succeed.
-      setOptimisticlyRemovedColumnId(column.id);
-      await queryClient.refetchQueries([currentTablePath]);
-    } finally {
-      setRemovableColumnId(undefined);
-      setOptimisticlyRemovedColumnId(undefined);
-    }
-  }
-
-  async function handleColumnRemoveClick(
-    column: DataBrowserGridColumn<NormalizedQueryDataRow>,
-  ) {
-    openAlertDialog({
-      title: 'Delete column',
-      payload: (
-        <span>
-          Are you sure you want to delete the{' '}
-          <strong className="break-all">{column.id}</strong> column?
-        </span>
-      ),
-      props: {
-        primaryButtonText: 'Delete',
-        primaryButtonColor: 'error',
-        onPrimaryAction: () => handleColumnDeleteConfirmation(column),
-      },
     });
   }
 
@@ -414,20 +333,12 @@ export default function DataBrowserGrid({
       sortBy={sortBy}
       className="pb-17 sm:pb-0"
       onInsertRow={handleInsertRowClick}
-      onEditColumn={isSchemaEditable ? handleEditColumnClick : undefined}
-      onRemoveColumn={isSchemaEditable ? handleColumnRemoveClick : undefined}
       options={{
         manualSortBy: true,
         disableMultiSort: true,
         autoResetSortBy: false,
         autoResetSelectedRows: false,
         autoResetResize: false,
-      }}
-      headerProps={{
-        componentsProps: {
-          editActionProps: { disabled: isGitHubConnected },
-          deleteActionProps: { disabled: isGitHubConnected },
-        },
       }}
       controls={
         <DataBrowserGridControls

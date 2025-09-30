@@ -1,37 +1,33 @@
-import { Box } from '@/components/ui/v2/Box';
-import { Dropdown } from '@/components/ui/v2/Dropdown';
-import { ArrowDownIcon } from '@/components/ui/v2/icons/ArrowDownIcon';
-import { ArrowUpIcon } from '@/components/ui/v2/icons/ArrowUpIcon';
+import { Button } from '@/components/ui/v3/button';
 import type { DataBrowserGridColumn } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
+import { ArrowDown, ArrowUp } from 'lucide-react';
 import type { TableHeaderProps } from 'react-table';
 import { twMerge } from 'tailwind-merge';
 
 interface DataGridHeaderButtonProps<T extends object> {
   column: DataBrowserGridColumn<T>;
   headerProps: TableHeaderProps;
-  onRemoveColumn?: (column: DataBrowserGridColumn<T>) => void;
 }
 
 export default function DataGridHeaderButton<T extends object>({
   column,
   headerProps,
-  onRemoveColumn,
 }: DataGridHeaderButtonProps<T>) {
   const { allowSort, allowResize } = useDataGridConfig();
 
-  if (column.id === 'selection') {
+  if (column.id === 'selection-column') {
     return (
       <span
         {...headerProps}
-        className="relative grid w-full grid-flow-col items-center justify-between p-2"
+        className="!inline-flex h-8 w-8 items-center justify-center"
       >
         {column.render('Header')}
       </span>
     );
   }
 
-  if (column.id === 'preview') {
+  if (column.id === 'preview-column') {
     return (
       <div className="focus:outline-none motion-safe:transition-colors">
         {column.render('Header')}
@@ -40,30 +36,30 @@ export default function DataGridHeaderButton<T extends object>({
   }
 
   return (
-    <Dropdown.Trigger
-      className={twMerge('focus:outline-none motion-safe:transition-colors')}
-      disabled={column.isDisabled || (column.disableSortBy && !onRemoveColumn)}
-      hideChevron
+    <Button
+      variant="ghost"
+      className={twMerge(
+        'h-fit p-0 text-xs focus:outline-none motion-safe:transition-colors dark:hover:bg-[#21262d]',
+      )}
+      disabled={column.isDisabled || column.disableSortBy}
     >
-      <span
+      <div
         {...headerProps}
-        className="relative grid w-full grid-flow-col items-center justify-between p-2"
+        className="relative !flex h-full w-full grid-flow-col items-center justify-between p-2"
       >
         {column.render('Header')}
-
         {allowSort && (
-          <Box component="span" sx={{ color: 'text.primary' }}>
+          <span>
             {column.isSorted && !column.isSortedDesc && (
-              <ArrowUpIcon className="h-3 w-3" />
+              <ArrowUp className="h-3 w-3" />
             )}
 
             {column.isSorted && column.isSortedDesc && (
-              <ArrowDownIcon className="h-3 w-3" />
+              <ArrowDown className="h-3 w-3" />
             )}
-          </Box>
+          </span>
         )}
-      </span>
-
+      </div>
       {allowResize && !column.disableResizing && (
         <span
           {...column.getResizerProps({
@@ -72,6 +68,6 @@ export default function DataGridHeaderButton<T extends object>({
           className="absolute -right-0.5 bottom-0 top-0 z-10 h-full w-1.5 group-hover:bg-slate-900 group-hover:bg-opacity-20 group-active:bg-slate-900 group-active:bg-opacity-20 motion-safe:transition-colors"
         />
       )}
-    </Dropdown.Trigger>
+    </Button>
   );
 }
