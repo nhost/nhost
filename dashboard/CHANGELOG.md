@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [@nhost/dashboard@2.38.1] - 2025-09-30
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Delay generating auth service url when creating users (#3530)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(ci)* Bump aws-actions/configure-aws-credentials from 4 to 5 (#3522)
+
 ## [@nhost/dashboard@2.38.0] - 2025-09-29
 
 ### 🚀 Features
