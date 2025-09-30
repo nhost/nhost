@@ -21,6 +21,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENAI_KEY: ${{ secrets.OPENAI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          config.model: "anthropic/claude-sonnet-4-20250514"
-          config.model_turbo: "anthropic/claude-sonnet-4-20250514"
+          config.model: ${{ vars.GEN_AI_MODEL }}
+          config.model_turbo: $${{ vars.GEN_AI_MODEL_TURBO }}
           ignore.glob: "['pnpm-lock.yaml','**/pnpm-lock.yaml', 'vendor/**','**/client_gen.go','**/models_gen.go','**/generated.go','**/*.gen.go']"

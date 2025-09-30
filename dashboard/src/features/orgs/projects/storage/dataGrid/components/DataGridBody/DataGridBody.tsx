@@ -193,7 +193,7 @@ export default function DataGridBody<T extends object>({
                 cell.value !== 0 &&
                 !cell.value &&
                 column.type !== 'boolean' &&
-                column.id !== 'selection' &&
+                column.id !== 'selection-column' &&
                 column.isDisabled;
 
               return (
@@ -213,7 +213,7 @@ export default function DataGridBody<T extends object>({
                     'h-12 font-display text-xs motion-safe:transition-colors',
                     'border-b-1 border-r-1',
                     'scroll-ml-8 scroll-mt-[57px]',
-                    column.id === 'selection' &&
+                    column.id === 'selection-column' &&
                       'sticky left-0 z-20 justify-center px-0',
                   )}
                   isEditable={!column.isDisabled && column.isEditable}

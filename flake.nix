@@ -8,7 +8,11 @@
   };
 
   outputs = { self, nixpkgs, flake-utils, nix-filter, nix2container }:
-    flake-utils.lib.eachDefaultSystem (system:
+    {
+      #nixops
+      lib = import ./nixops/lib/lib.nix;
+      overlays.default = import ./nixops/overlays/default.nix;
+    } // flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs {
           inherit system;
@@ -17,10 +21,8 @@
           ];
         };
 
-        lib = import ./nixops/lib/lib.nix;
-
         nix2containerPkgs = nix2container.packages.${system};
-        nixops-lib = lib { inherit pkgs nix2containerPkgs; };
+        nixops-lib = (import ./nixops/lib/lib.nix) { inherit pkgs nix2containerPkgs; };
 
         clif = import ./cli/project.nix {
           inherit self pkgs nix-filter nixops-lib;
@@ -68,10 +70,6 @@
 
       in
       {
-        #nixops
-        overlays.default = import ./overlays/default.nix;
-        lib = lib;
-
         checks = {
           cli = clif.check;
           codegen = codegenf.check;

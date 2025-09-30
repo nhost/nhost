@@ -75,7 +75,7 @@ export default function useDataGrid<T extends object>(
       allowSelection
         ? hooks.visibleColumns.push((columns) => [
             {
-              id: 'selection',
+              id: 'selection-column',
               Header: ({ rows, getToggleAllRowsSelectedProps }: any) => (
                 <Checkbox
                   disabled={rows.length === 0}
