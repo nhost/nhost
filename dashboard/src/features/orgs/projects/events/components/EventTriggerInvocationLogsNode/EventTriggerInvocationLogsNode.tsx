@@ -1,10 +1,12 @@
 import { CodeBlock } from '@/components/presentational/CodeBlock';
+import { HoverCardTimestamp } from '@/components/presentational/HoverCardTimestamp';
 import { Button } from '@/components/ui/v3/button';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from '@/components/ui/v3/dialog';
 import { Input } from '@/components/ui/v3/input';
 import {
@@ -28,6 +30,7 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/v3/tabs';
+import { useGetEventAndInvocationLogsById } from '@/features/orgs/projects/events/hooks/useGetEventAndInvocationLogsById';
 import type { EventInvocationLogEntry } from '@/utils/hasura-api/generated/schemas/eventInvocationLogEntry';
 import {
   type Column,
@@ -41,20 +44,22 @@ import {
   type Table as TanStackTable,
   useReactTable,
 } from '@tanstack/react-table';
-import { format } from 'date-fns-v4';
-import { ArrowUpDown, Check, Clock, Eye, X } from 'lucide-react';
+import { ArrowUpDown, CalendarSync, Eye } from 'lucide-react';
+import type { Dispatch, SetStateAction } from 'react';
 import { useEffect, useMemo, useState } from 'react';
-import { useGetEventAndInvocationLogsById } from '../../hooks/useGetEventAndInvocationLogsById';
 
 // Helpers and column cell/header components (module scope to satisfy lint rules)
 function getStatusIcon(status: number) {
   if (status >= 200 && status < 300) {
-    return <Check className="h-4 w-4 text-green-600" />;
+    return <span className="font-mono text-xs text-green-600">{status}</span>;
   }
   if (status >= 400) {
-    return <X className="h-4 w-4 text-red-600" />;
+    return <span className="font-mono text-xs text-red-600">{status}</span>;
   }
-  return <Clock className="h-4 w-4 text-yellow-600" />;
+  if (status === null) {
+    return <span className="font-mono text-xs text-yellow-600">NULL</span>;
+  }
+  return <span className="font-mono text-xs text-yellow-600">{status}</span>;
 }
 
 function CreatedAtHeader({
@@ -76,9 +81,13 @@ function CreatedAtHeader({
 
 function CreatedAtCell({ createdAt }: { createdAt: string }) {
   return (
-    <span className="font-mono text-xs">
-      {format(new Date(createdAt), 'PPP HH:mm:ss')}
-    </span>
+    <HoverCardTimestamp
+      date={new Date(createdAt)}
+      className="-m-4 block w-full p-4 font-mono text-xs"
+    />
+    // <span className="font-mono text-xs">
+    //   {format(new Date(createdAt), 'PPP HH:mm:ss')}
+    // </span>
   );
 }
 
@@ -139,17 +148,159 @@ function ActionsCell({
   table: TanStackTable<EventInvocationLogEntry>;
 }) {
   const meta = table.options.meta as
-    | { onView?: (row: EventInvocationLogEntry) => void }
+    | {
+        onView?: (row: EventInvocationLogEntry) => void;
+        selectedLog?: EventInvocationLogEntry | null;
+        setSelectedLog?: Dispatch<
+          SetStateAction<EventInvocationLogEntry | null>
+        >;
+      }
     | undefined;
+
+  const [open, setOpen] = useState(false);
+
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen);
+    if (!newOpen) {
+      setTimeout(() => {
+        meta?.setSelectedLog?.(null);
+      }, 100);
+    }
+  };
+
+  const handleRedeliver = () => {};
+
   return (
-    <Button
-      variant="ghost"
-      size="sm"
-      onClick={() => meta?.onView?.(row)}
-      className="h-8 w-8 p-0"
-    >
-      <Eye className="h-4 w-4" />
-    </Button>
+    <div className="flex items-center gap-1">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={handleRedeliver}
+        className="-ml-1 h-8 w-8 p-0"
+      >
+        <CalendarSync className="h-4 w-4" />
+      </Button>
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <DialogTrigger asChild>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => meta?.onView?.(row)}
+            className="h-8 w-8 p-0"
+          >
+            <Eye className="h-4 w-4" />
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="max-h-[80vh] max-w-4xl overflow-y-auto text-foreground">
+          <DialogHeader>
+            <DialogTitle className="text-foreground">
+              Invocation Log Details
+            </DialogTitle>
+          </DialogHeader>
+          {meta?.selectedLog && (
+            <Tabs defaultValue="request" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="request">Request</TabsTrigger>
+                <TabsTrigger value="response">Response</TabsTrigger>
+              </TabsList>
+              <TabsContent value="request" className="space-y-4">
+                <div>
+                  <h4 className="mb-2 font-medium text-foreground">Headers</h4>
+                  <div className="rounded border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Name</TableHead>
+                          <TableHead>Value</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {meta.selectedLog.request.headers.map((header) => (
+                          <TableRow key={header.name}>
+                            <TableCell className="font-mono text-foreground">
+                              {header.name}
+                            </TableCell>
+                            <TableCell className="font-mono text-muted-foreground">
+                              {header.value}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="mb-2 font-medium text-foreground">Payload</h4>
+                  <CodeBlock
+                    className="py-2"
+                    copyToClipboardToastTitle={`${meta.selectedLog.trigger_name} payload`}
+                  >
+                    {JSON.stringify(meta.selectedLog.request.payload, null, 2)}
+                  </CodeBlock>
+                  {/* <pre className="overflow-x-auto rounded bg-muted p-3 text-xs text-muted-foreground">
+                    {JSON.stringify(selectedLog.request.payload, null, 2)}
+                  </pre> */}
+                </div>
+              </TabsContent>
+              <TabsContent value="response" className="space-y-4">
+                <div className="flex items-center gap-4 text-sm">
+                  <div>
+                    <span className="font-medium">Status: </span>
+                    <span
+                      className={`font-mono ${meta.selectedLog.http_status >= 200 && meta.selectedLog.http_status < 300 ? 'text-green-600' : 'text-red-600'}`}
+                    >
+                      {meta.selectedLog.response?.data?.status}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="font-medium">Type: </span>
+                    <span className="font-mono">
+                      {meta.selectedLog.response?.type}
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="mb-2 font-medium">Headers</h4>
+                  <div className="rounded border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Name</TableHead>
+                          <TableHead>Value</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {meta.selectedLog.response?.data?.headers?.map(
+                          (header) => (
+                            <TableRow key={header.name}>
+                              <TableCell className="font-mono">
+                                {header.name}
+                              </TableCell>
+                              <TableCell className="font-mono text-muted-foreground">
+                                {header.value}
+                              </TableCell>
+                            </TableRow>
+                          ),
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="mb-2 font-medium">Response Body</h4>
+                  <CodeBlock
+                    className="w-full max-w-full whitespace-pre-wrap break-all"
+                    copyToClipboardToastTitle={`${meta.selectedLog.trigger_name} response body`}
+                  >
+                    {meta.selectedLog.response?.data?.body}
+                  </CodeBlock>
+                </div>
+              </TabsContent>
+            </Tabs>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }
 
@@ -210,19 +361,16 @@ export default function EventTriggerInvocationLogs({
 
   const invocations = data?.invocations;
 
-  // Determine navigation state
   const isLastPage = !!invocations && invocations?.length < limit;
   const canGoPrev = !isLoading && offset > 0;
   const canGoNext = !isLoading && !isLastPage;
 
-  // Safety: if we land on an empty page, step back until we have data or reach 0
   useEffect(() => {
     if (!isLoading && invocations && invocations.length === 0 && offset > 0) {
       setOffset((prev) => Math.max(0, prev - limit));
     }
   }, [invocations, isLoading, offset, limit]);
 
-  // TanStack Table setup for sorting and filtering (client-side)
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const columns = useMemo(() => columnsBase, []);
@@ -241,11 +389,16 @@ export default function EventTriggerInvocationLogs({
     getFilteredRowModel: getFilteredRowModel(),
     meta: {
       onView: (row: EventInvocationLogEntry) => setSelectedLog(row),
+      selectedLog,
+      setSelectedLog,
     },
   });
 
   return (
-    <div data-event-id={eventId} className="border-t p-4 pl-8">
+    <div
+      data-event-id={eventId}
+      className="border-t bg-muted p-4 pl-8 dark:bg-muted/40"
+    >
       <h3 className="mb-3 font-medium">Related invocations</h3>
       <div className="flex w-full flex-col">
         <Input
@@ -356,115 +509,6 @@ export default function EventTriggerInvocationLogs({
           </Select>
         </div>
       </div>
-
-      <Dialog open={!!selectedLog} onOpenChange={() => setSelectedLog(null)}>
-        <DialogContent className="max-h-[80vh] max-w-4xl overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-foreground">
-              Invocation Log Details
-            </DialogTitle>
-          </DialogHeader>
-          {selectedLog && (
-            <Tabs defaultValue="request" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="request">Request</TabsTrigger>
-                <TabsTrigger value="response">Response</TabsTrigger>
-              </TabsList>
-              <TabsContent value="request" className="space-y-4">
-                <div>
-                  <h4 className="mb-2 font-medium text-foreground">Headers</h4>
-                  <div className="rounded border">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Name</TableHead>
-                          <TableHead>Value</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {selectedLog.request.headers.map((header) => (
-                          <TableRow key={header.name}>
-                            <TableCell className="font-mono text-foreground">
-                              {header.name}
-                            </TableCell>
-                            <TableCell className="font-mono text-muted-foreground">
-                              {header.value}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </div>
-                <div>
-                  <h4 className="mb-2 font-medium text-foreground">Payload</h4>
-                  <CodeBlock
-                    className="py-2"
-                    copyToClipboardToastTitle={`${selectedLog.trigger_name} payload`}
-                  >
-                    {JSON.stringify(selectedLog.request.payload, null, 2)}
-                  </CodeBlock>
-                  {/* <pre className="overflow-x-auto rounded bg-muted p-3 text-xs text-muted-foreground">
-                    {JSON.stringify(selectedLog.request.payload, null, 2)}
-                  </pre> */}
-                </div>
-              </TabsContent>
-              <TabsContent value="response" className="space-y-4">
-                <div className="flex items-center gap-4 text-sm">
-                  <div>
-                    <span className="font-medium">Status: </span>
-                    <span
-                      className={`font-mono ${selectedLog.http_status >= 200 && selectedLog.http_status < 300 ? 'text-green-600' : 'text-red-600'}`}
-                    >
-                      {selectedLog.response?.data?.status}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="font-medium">Type: </span>
-                    <span className="font-mono">
-                      {selectedLog.response?.type}
-                    </span>
-                  </div>
-                </div>
-                <div>
-                  <h4 className="mb-2 font-medium">Headers</h4>
-                  <div className="rounded border">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Name</TableHead>
-                          <TableHead>Value</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {selectedLog.response?.data?.headers?.map((header) => (
-                          <TableRow key={header.name}>
-                            <TableCell className="font-mono">
-                              {header.name}
-                            </TableCell>
-                            <TableCell className="font-mono text-muted-foreground">
-                              {header.value}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </div>
-                <div>
-                  <h4 className="mb-2 font-medium">Response Body</h4>
-                  <CodeBlock
-                    className="w-full max-w-full whitespace-pre-wrap break-all"
-                    copyToClipboardToastTitle={`${selectedLog.trigger_name} response body`}
-                  >
-                    {selectedLog.response?.data?.body}
-                  </CodeBlock>
-                </div>
-              </TabsContent>
-            </Tabs>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

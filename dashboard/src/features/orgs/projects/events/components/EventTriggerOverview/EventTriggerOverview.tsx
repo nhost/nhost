@@ -4,7 +4,6 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/v3/collapsible';
 import EventTriggerHeadersTable from '@/features/orgs/projects/events/components/EventTriggerHeadersTable/EventTriggerHeadersTable';
-import { EventTriggerInvocationLogs } from '@/features/orgs/projects/events/components/EventTriggerInvocationLogs';
 import type { EventTriggerUI } from '@/features/orgs/projects/events/types';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
@@ -190,7 +189,7 @@ export default function EventTriggerOverview({
           </div>
         </Collapsible>
       )}
-      <EventTriggerInvocationLogs eventTrigger={eventTrigger} />
+      {/* <EventTriggerInvocationLogs eventTrigger={eventTrigger} /> */}
     </div>
   );
 }

@@ -1,11 +1,4 @@
-import { CodeBlock } from '@/components/presentational/CodeBlock';
 import { Button } from '@/components/ui/v3/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/v3/dialog';
 import { Input } from '@/components/ui/v3/input';
 import {
   Select,
@@ -182,12 +175,12 @@ const columnsBase: ColumnDef<EventLogEntry>[] = [
       <span className="font-mono text-xs">{row.original.tries}</span>
     ),
   },
-  {
-    id: 'actions',
-    header: 'Actions',
-    enableSorting: false,
-    cell: ({ row, table }) => <ActionsCell row={row.original} table={table} />,
-  },
+  // {
+  //   id: 'actions',
+  //   header: 'Actions',
+  //   enableSorting: false,
+  //   cell: ({ row, table }) => <ActionsCell row={row.original} table={table} />,
+  // },
 ];
 
 interface EventTriggerInvocationLogsProps {
@@ -209,19 +202,16 @@ export default function EventTriggerEventLogs({
     source: eventTrigger.dataSource,
   });
 
-  // Determine navigation state
   const isLastPage = !!data && data.length < limit;
   const canGoPrev = !isLoading && offset > 0;
   const canGoNext = !isLoading && !isLastPage;
 
-  // Safety: if we land on an empty page, step back until we have data or reach 0
   useEffect(() => {
     if (!isLoading && data && data.length === 0 && offset > 0) {
       setOffset((prev) => Math.max(0, prev - limit));
     }
   }, [data, isLoading, offset, limit]);
 
-  // TanStack Table setup for sorting and filtering (client-side)
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const columns = useMemo(() => columnsBase, []);
@@ -310,11 +300,6 @@ export default function EventTriggerEventLogs({
                         />
                       </TableCell>
                     </TableRow>
-                    // <TableRow key={`${row.id}-expanded`}>
-                    //   <TableCell colSpan={columns.length}>
-                    //     <div>Custom UI</div>
-                    //   </TableCell>
-                    // </TableRow>
                   )}
                 </Fragment>
               ))
@@ -385,7 +370,7 @@ export default function EventTriggerEventLogs({
         </div>
       </div>
 
-      <Dialog open={!!selectedLog} onOpenChange={() => setSelectedLog(null)}>
+      {/* <Dialog open={!!selectedLog} onOpenChange={() => setSelectedLog(null)}>
         <DialogContent className="max-h-[80vh] max-w-4xl overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-foreground">
@@ -428,7 +413,7 @@ export default function EventTriggerEventLogs({
             </div>
           )}
         </DialogContent>
-      </Dialog>
+      </Dialog> */}
     </div>
   );
 }
