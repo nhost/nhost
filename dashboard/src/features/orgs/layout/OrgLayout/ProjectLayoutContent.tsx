@@ -12,6 +12,7 @@ import { ApplicationUnpausing } from '@/features/orgs/projects/common/components
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useProjectWithState } from '@/features/orgs/projects/hooks/useProjectWithState';
+import { isEmptyValue } from '@/lib/utils';
 import { useAuth } from '@/providers/Auth';
 import { ApplicationStatus } from '@/types/application';
 import { getConfigServerUrl, isPlatform as isPlatformFn } from '@/utils/env';
@@ -186,6 +187,15 @@ function ProjectLayoutContent({
   // Handle error state
   if (error) {
     throw error;
+  }
+
+  if (
+    isUserLoggedIn &&
+    isEmptyValue(project) &&
+    !loading &&
+    isEmptyValue(error)
+  ) {
+    throw new Error('Could not load project. Please try again later.');
   }
 
   return (

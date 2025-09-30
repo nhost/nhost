@@ -10,6 +10,7 @@
     "start": "next start",
     "lint": "next lint --max-warnings 0",
     "test": "vitest --run",
+    "test:watch": "vitest",
     "generate": "echo 'This needs to be fixed.'",
     "codegen": "DOTENV_CONFIG_PATH=./.env.local graphql-codegen -r dotenv/config --config graphql.config.yaml --errors-only",
     "codegen-graphite": "graphql-codegen --config graphite.graphql.config.yaml --errors-only",

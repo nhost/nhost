@@ -65,37 +65,39 @@ export default function CreateUserForm({
     onDirtyStateChange(isDirty, location);
   }, [isDirty, location, onDirtyStateChange]);
 
-  const baseAuthUrl =
-    isNotEmptyValue(project?.subdomain) && isNotEmptyValue(project?.region)
-      ? generateAppServiceUrl(project!.subdomain, project!.region, 'auth')
-      : '';
-
-  const signUpUrl = `${baseAuthUrl}/signup/email-password`;
-
   async function handleCreateUser({ email, password }: CreateUserFormValues) {
     setCreateUserFormError(null);
 
     await execPromiseWithErrorToast(
       async () => {
-        await fetch(signUpUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password }),
-        }).then(async (res) => {
+        if (isNotEmptyValue(project)) {
+          const baseAuthUrl = generateAppServiceUrl(
+            project.subdomain,
+            project.region,
+            'auth',
+          );
+          const signUpUrl = `${baseAuthUrl}/signup/email-password`;
+
+          const res = await fetch(signUpUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password }),
+          });
+
           const data = await res.json();
 
-          if (res.ok) {
-            return data;
+          if (!res.ok) {
+            if (res.status === 409) {
+              setError('email', { message: data?.message });
+            }
+            throw new Error(data?.message || 'Something went wrong.');
           }
 
-          if (res.status === 409) {
-            setError('email', { message: data?.message });
-          }
+          onSubmit?.();
 
-          throw new Error(data?.message || 'Something went wrong.');
-        });
-
-        onSubmit?.();
+          return data;
+        }
+        throw new Error('Something went wrong. Please try again later.');
       },
       {
         loadingMessage: 'Creating user...',
