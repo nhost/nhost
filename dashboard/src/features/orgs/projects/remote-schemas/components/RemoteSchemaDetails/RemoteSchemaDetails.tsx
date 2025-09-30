@@ -89,7 +89,7 @@ export default function RemoteSchemaDetails() {
                 ? 'GraphQL Service URL'
                 : 'GraphQL Service URL (from environment)'}
             </Text>
-            <Tooltip title="The URL of the GraphQL service to be used as a remote schemaEnvironment variables and secrets are available using the {{VARIABLE}} tag. Environment variable templating is available for this field. Example: https://{{ENV_VAR}}/endpoint_url.">
+            <Tooltip title="The URL of the GraphQL service to be used as a remote schema.">
               <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
             </Tooltip>
           </Box>

@@ -16,7 +16,7 @@ export default function GraphQLServiceURLInput() {
     <Box className="space-y-2">
       <Box className="flex flex-row items-center space-x-2">
         <Text>GraphQL Service URL</Text>
-        <Tooltip title="The URL of the GraphQL service to be used as a remote schemaEnvironment variables and secrets are available using the {{VARIABLE}} tag. Environment variable templating is available for this field. Example: https://{{ENV_VAR}}/endpoint_url.">
+        <Tooltip title="The URL of the GraphQL service to be used as a remote schema. Environment variables and secrets are available using the {{VARIABLE}} tag. Example: https://{{ENV_VAR}}/endpoint_url.">
           <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
         </Tooltip>
       </Box>
