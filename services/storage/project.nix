@@ -42,7 +42,7 @@ let
 
   tags = [ ];
   ldflags = [
-    "-X ${submodule}/controller.buildVersion=${version}"
+    "-X github.com/nhost/nhost/${submodule}/controller.buildVersion=${version}"
   ];
 
   checkDeps = with pkgs; [
