@@ -1393,6 +1393,11 @@ components:
                 status:
                   type: integer
                   description: HTTP status code
+                message:
+                  type: string
+                  description: Error message
+                  example: '{"message":"Connection failure: ...}'
+
             type:
               type: string
               description: Type of response

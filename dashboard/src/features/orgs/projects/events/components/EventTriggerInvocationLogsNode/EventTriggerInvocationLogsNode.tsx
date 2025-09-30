@@ -48,16 +48,15 @@ import { ArrowUpDown, CalendarSync, Eye } from 'lucide-react';
 import type { Dispatch, SetStateAction } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 
-// Helpers and column cell/header components (module scope to satisfy lint rules)
-function getStatusIcon(status: number) {
+function getStatusText(status?: number) {
+  if (!status) {
+    return <span className="font-mono text-xs text-yellow-600">NULL</span>;
+  }
   if (status >= 200 && status < 300) {
     return <span className="font-mono text-xs text-green-600">{status}</span>;
   }
   if (status >= 400) {
     return <span className="font-mono text-xs text-red-600">{status}</span>;
-  }
-  if (status === null) {
-    return <span className="font-mono text-xs text-yellow-600">NULL</span>;
   }
   return <span className="font-mono text-xs text-yellow-600">{status}</span>;
 }
@@ -92,7 +91,7 @@ function CreatedAtCell({ createdAt }: { createdAt: string }) {
 }
 
 function HttpStatusCell({ status }: { status: number }) {
-  return getStatusIcon(status);
+  return getStatusText(status);
 }
 
 function escapeRegExp(input: string) {
@@ -170,13 +169,15 @@ function ActionsCell({
 
   const handleRedeliver = () => {};
 
+  console.log(meta?.selectedLog?.response?.data);
+
   return (
     <div className="flex items-center gap-1">
       <Button
         variant="ghost"
         size="sm"
         onClick={handleRedeliver}
-        className="-ml-1 h-8 w-8 p-0"
+        className="-ml-1 hidden h-8 w-8 p-0"
       >
         <CalendarSync className="h-4 w-4" />
       </Button>
@@ -197,6 +198,42 @@ function ActionsCell({
               Invocation Log Details
             </DialogTitle>
           </DialogHeader>
+          <div className="grid grid-cols-2 gap-4 rounded border p-4">
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span className="text-sm font-medium text-muted-foreground">
+                  ID:
+                </span>
+                <span className="font-mono text-sm text-foreground">
+                  {meta?.selectedLog?.id}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm font-medium text-muted-foreground">
+                  Event ID:
+                </span>
+                <span className="font-mono text-sm text-foreground">
+                  {meta?.selectedLog?.event_id}
+                </span>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span className="text-sm font-medium text-muted-foreground">
+                  HTTP Status:
+                </span>
+                {getStatusText(meta?.selectedLog?.http_status)}
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm font-medium text-muted-foreground">
+                  Created:
+                </span>
+                <span className="font-mono text-sm text-foreground">
+                  {meta?.selectedLog?.created_at}
+                </span>
+              </div>
+            </div>
+          </div>
           {meta?.selectedLog && (
             <Tabs defaultValue="request" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
@@ -246,11 +283,7 @@ function ActionsCell({
                 <div className="flex items-center gap-4 text-sm">
                   <div>
                     <span className="font-medium">Status: </span>
-                    <span
-                      className={`font-mono ${meta.selectedLog.http_status >= 200 && meta.selectedLog.http_status < 300 ? 'text-green-600' : 'text-red-600'}`}
-                    >
-                      {meta.selectedLog.response?.data?.status}
-                    </span>
+                    {getStatusText(meta.selectedLog.response?.data?.status)}
                   </div>
                   <div>
                     <span className="font-medium">Type: </span>
@@ -292,7 +325,8 @@ function ActionsCell({
                     className="w-full max-w-full whitespace-pre-wrap break-all"
                     copyToClipboardToastTitle={`${meta.selectedLog.trigger_name} response body`}
                   >
-                    {meta.selectedLog.response?.data?.body}
+                    {meta.selectedLog.response?.data?.body ??
+                      meta.selectedLog.response?.data?.message}
                   </CodeBlock>
                 </div>
               </TabsContent>
