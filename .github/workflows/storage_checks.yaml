@@ -21,7 +21,7 @@ on:
       - 'vendor/**'
 
       # storage
-      - 'storage/**'
+      - 'services/storage/**'
   push:
     branches:
       - main
