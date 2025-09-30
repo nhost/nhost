@@ -1,6 +1,6 @@
 services:
     auth:
-        image: nhost/hasura-auth:0.40.2
+        image: nhost/auth:0.40.2
         depends_on:
             graphql:
                 condition: service_healthy
@@ -405,7 +405,7 @@ services:
               read_only: true
 
     storage:
-        image: nhost/hasura-storage:0.7.2
+        image: nhost/storage:0.7.2
         depends_on:
             graphql:
                 condition: service_healthy

@@ -10,7 +10,7 @@ import (
 func expectedAuth() *Service {
 	//nolint:lll
 	return &Service{
-		Image:   "nhost/hasura-auth:0.31.0",
+		Image:   "nhost/auth:0.31.0",
 		Command: nil,
 		DependsOn: map[string]DependsOn{
 			"graphql":  {Condition: "service_healthy"},
@@ -231,7 +231,7 @@ func TestAuth(t *testing.T) {
 			exposePort: 0,
 			expected: func() *Service {
 				svc := expectedAuth()
-				svc.Image = "nhost/hasura-auth:0.21.3"
+				svc.Image = "nhost/auth:0.21.3"
 				svc.Labels["traefik.http.middlewares.replace-auth.replacepathregex.regex"] = "/v1(/|$$)(.*)"
 				svc.Labels["traefik.http.middlewares.replace-auth.replacepathregex.replacement"] = "/$$2"
 				svc.Labels["traefik.http.routers.auth.middlewares"] = "replace-auth"

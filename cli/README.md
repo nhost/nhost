@@ -12,9 +12,9 @@ It's recommended to use the Nhost CLI and the [Nhost GitHub Integration](https:/
 
 - [Nhost Dashboard](https://github.com/nhost/nhost/tree/main/dashboard)
 - [Postgres Database](https://www.postgresql.org/)
-- [Hasura's GraphQL Engine](https://github.com/hasura/graphql-engine)
-- [Hasura Auth](https://github.com/nhost/hasura-auth)
-- [Hasura Storage](https://github.com/nhost/hasura-storage)
+- [GraphQL Engine](https://github.com/hasura/graphql-engine)
+- [Auth](https://github.com/nhost/hasura-auth)
+- [Storage](https://github.com/nhost/nhost/main/storage)
 - [Nhost Serverless Functions](https://github.com/nhost/functions)
 - [Minio S3](https://github.com/minio/minio)
 - [Mailhog](https://github.com/mailhog/MailHog)
