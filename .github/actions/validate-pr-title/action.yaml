@@ -1,0 +1,41 @@
+---
+name: "Validate PR Title"
+description: "Validates that PR title follows the required format: TYPE(PKG): SUMMARY"
+inputs:
+  pr_title:
+    description: "The PR title to validate"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: "Validate PR title format"
+      shell: bash
+      run: |
+        PR_TITLE="${{ inputs.pr_title }}"
+
+        echo "Validating PR title: $PR_TITLE"
+
+        # Define valid types and packages
+        VALID_TYPES="feat|fix|chore"
+        VALID_PKGS="ci|cli|codegen|dashboard|deps|docs|examples|mintlify-openapi|nhost-js|nixops|storage"
+
+        # Check if title matches the pattern TYPE(PKG): SUMMARY
+        if [[ ! "$PR_TITLE" =~ ^(${VALID_TYPES})\((${VALID_PKGS})\):\ .+ ]]; then
+          echo "❌ PR title does not follow the required format!"
+          echo ""
+          echo "Expected format: TYPE(PKG): SUMMARY"
+          echo ""
+          echo "Valid TYPEs:"
+          echo "  - feat:   mark this pull request as a feature"
+          echo "  - fix:    mark this pull request as a bug fix"
+          echo "  - chore:  mark this pull request as a maintenance item"
+          echo ""
+          echo "Valid PKGs:"
+          echo "  - ci, cli, codegen, dashboard, deps, docs, examples,"
+          echo "  - mintlify-openapi, nhost-js, nixops, storage"
+          echo ""
+          echo "Example: feat(cli): add new command for database migrations"
+          exit 1
+        fi
+
+        echo "✅ PR title is valid!"
