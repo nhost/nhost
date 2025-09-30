@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [@nhost/dashboard@2.38.2] - 2025-09-30
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Update remote schemas url tooltip (#3540)
+
 ## [@nhost/dashboard@2.38.1] - 2025-09-30
 
 ### 🐛 Bug Fixes
