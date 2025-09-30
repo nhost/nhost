@@ -53,6 +53,12 @@ jobs:
       with:
         ref: ${{ inputs.GIT_REF }}
 
+    - name: "Validate PR title"
+      uses: ./.github/actions/validate-pr-title
+      with:
+        pr_title: ${{ github.event.pull_request.title }}
+      if: ${{ github.event_name == 'pull_request' }}
+
     - name: Configure aws
       uses: aws-actions/configure-aws-credentials@v5
       with:
