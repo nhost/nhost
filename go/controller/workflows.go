@@ -721,14 +721,14 @@ func (wf *Workflows) ChangeEmail(
 func (wf *Workflows) ChangePassword(
 	ctx context.Context,
 	userID uuid.UUID,
-	newPassord string,
+	newPassword string,
 	logger *slog.Logger,
 ) *APIError {
-	if err := wf.ValidatePassword(ctx, newPassord, logger); err != nil {
+	if err := wf.ValidatePassword(ctx, newPassword, logger); err != nil {
 		return err
 	}
 
-	hashedPassword, err := hashPassword(newPassord)
+	hashedPassword, err := hashPassword(newPassword)
 	if err != nil {
 		logger.ErrorContext(ctx, "error hashing password", logError(err))
 		return ErrInternalServerError

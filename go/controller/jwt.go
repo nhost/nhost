@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log/slog"
 	"reflect"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -362,7 +363,11 @@ func (j *JWTGetter) ToContext(ctx context.Context, jwtToken *jwt.Token) context.
 	return context.WithValue(ctx, JWTContextKey, jwtToken) //nolint:revive,staticcheck
 }
 
-func (j *JWTGetter) verifyElevatedClaim(ctx context.Context, token *jwt.Token) (bool, error) {
+func (j *JWTGetter) verifyElevatedClaim(
+	ctx context.Context,
+	token *jwt.Token,
+	requestPath string,
+) (bool, error) {
 	if j.elevatedClaimMode == "disabled" {
 		return true, nil
 	}
@@ -372,7 +377,7 @@ func (j *JWTGetter) verifyElevatedClaim(ctx context.Context, token *jwt.Token) (
 		return false, fmt.Errorf("error getting user id from subject: %w", err)
 	}
 
-	if j.elevatedClaimMode == "recommended" {
+	if j.isElevatedClaimOptional(requestPath) {
 		userID, err := uuid.Parse(u)
 		if err != nil {
 			return false, fmt.Errorf("error parsing user id: %w", err)
@@ -391,6 +396,16 @@ func (j *JWTGetter) verifyElevatedClaim(ctx context.Context, token *jwt.Token) (
 	elevatedClaim := j.GetCustomClaim(token, "x-hasura-auth-elevated")
 
 	return elevatedClaim == u, nil
+}
+
+func (j *JWTGetter) isElevatedClaimOptional(requestPath string) bool {
+	return j.elevatedClaimMode == "recommended" ||
+		slices.Contains(
+			[]string{
+				"/user/webauthn/add",
+				"/user/webauthn/verify",
+			},
+			requestPath)
 }
 
 func (j *JWTGetter) MiddlewareFunc(
@@ -413,7 +428,12 @@ func (j *JWTGetter) MiddlewareFunc(
 	}
 
 	if input.SecuritySchemeName == "BearerAuthElevated" {
-		found, err := j.verifyElevatedClaim(ctx, jwtToken)
+		var requestPath string
+		if input.RequestValidationInput.Request.URL != nil {
+			requestPath = input.RequestValidationInput.Request.URL.Path
+		}
+
+		found, err := j.verifyElevatedClaim(ctx, jwtToken, requestPath)
 		if err != nil {
 			return fmt.Errorf("error verifying elevated claim: %w", err)
 		}
