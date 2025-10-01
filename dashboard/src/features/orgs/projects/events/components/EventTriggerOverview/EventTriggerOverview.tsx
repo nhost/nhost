@@ -49,11 +49,15 @@ export default function EventTriggerOverview({
 
         <div className="rounded border border-gray-200 p-4 dark:border-gray-700">
           <h3 className="mb-3 font-medium text-gray-900 dark:text-gray-100">
-            Webhook Handler
+            {'webhook' in eventTrigger
+              ? 'Webhook Handler'
+              : 'Webhook Handler (from environment)'}
           </h3>
           <div className="text-sm">
             <div className="break-all rounded bg-muted p-2 font-mono">
-              {eventTrigger.webhook}
+              {'webhook' in eventTrigger
+                ? eventTrigger.webhook
+                : eventTrigger.webhook_from_env}
             </div>
           </div>
         </div>

@@ -1036,11 +1036,11 @@ components:
           $ref: '#/components/schemas/RetryConf'
         webhook:
           type: string
-          description: Webhook URL. Supports template variables like {{ENV_VAR}}/some/path
+          description: Event Trigger Webhook URL. A String value which supports templating environment variables enclosed in {{ and }}.
           example: '{{SERVICE_URL}}/hooks'
         webhook_from_env:
           type: string
-          description: Environment variable containing the webhook URL
+          description: Environment variable name of webhook (Deprecated in favour of WebhookURL)
           example: SERVICE_ENDPOINT
         headers:
           description: List of headers to be sent with the webhook
