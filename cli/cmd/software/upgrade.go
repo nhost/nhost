@@ -1,6 +1,7 @@
 package software
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"runtime"
@@ -8,7 +9,7 @@ import (
 
 	"github.com/nhost/nhost/cli/clienv"
 	"github.com/nhost/nhost/cli/software"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 func CommandUpgrade() *cli.Command {
@@ -20,12 +21,12 @@ func CommandUpgrade() *cli.Command {
 	}
 }
 
-func commandUpgrade(cCtx *cli.Context) error {
-	ce := clienv.FromCLI(cCtx)
+func commandUpgrade(ctx context.Context, cmd *cli.Command) error {
+	ce := clienv.FromCLI(cmd)
 
 	mgr := software.NewManager()
 
-	releases, err := mgr.GetReleases(cCtx.Context, cCtx.App.Version)
+	releases, err := mgr.GetReleases(ctx, cmd.Root().Version)
 	if err != nil {
 		return fmt.Errorf("failed to get releases: %w", err)
 	}
@@ -36,7 +37,7 @@ func commandUpgrade(cCtx *cli.Context) error {
 	}
 
 	latest := releases[0]
-	if latest.TagName == cCtx.App.Version {
+	if latest.TagName == cmd.Root().Version {
 		ce.Infoln("You have the latest version. Hurray!")
 		return nil
 	}
@@ -71,20 +72,20 @@ func commandUpgrade(cCtx *cli.Context) error {
 	defer os.Remove(tmpFile.Name())
 	defer tmpFile.Close()
 
-	if err := mgr.DownloadAsset(cCtx.Context, url, tmpFile); err != nil {
+	if err := mgr.DownloadAsset(ctx, url, tmpFile); err != nil {
 		return fmt.Errorf("failed to download asset: %w", err)
 	}
 
-	return install(cCtx, ce, tmpFile.Name())
+	return install(cmd, ce, tmpFile.Name())
 }
 
-func install(cCtx *cli.Context, ce *clienv.CliEnv, tmpFile string) error {
+func install(cmd *cli.Command, ce *clienv.CliEnv, tmpFile string) error {
 	curBin, err := os.Executable()
 	if err != nil {
 		return fmt.Errorf("failed to find installed CLI: %w", err)
 	}
 
-	if cCtx.App.Version == devVersion || cCtx.App.Version == "" {
+	if cmd.Root().Version == devVersion || cmd.Root().Version == "" {
 		// we are in dev mode, we fake curBin for testing
 		curBin = "/tmp/nhost"
 	}

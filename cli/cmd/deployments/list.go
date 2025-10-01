@@ -1,12 +1,13 @@
 package deployments
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	"github.com/nhost/nhost/cli/clienv"
 	"github.com/nhost/nhost/cli/nhostclient/graphql"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 func CommandList() *cli.Command {
@@ -77,21 +78,21 @@ func printDeployments(ce *clienv.CliEnv, deployments []*graphql.ListDeployments_
 	ce.Println("%s", clienv.Table(id, date, duration, status, user, ref, message))
 }
 
-func commandList(cCtx *cli.Context) error {
-	ce := clienv.FromCLI(cCtx)
+func commandList(ctx context.Context, cmd *cli.Command) error {
+	ce := clienv.FromCLI(cmd)
 
-	proj, err := ce.GetAppInfo(cCtx.Context, cCtx.String(flagSubdomain))
+	proj, err := ce.GetAppInfo(ctx, cmd.String(flagSubdomain))
 	if err != nil {
 		return fmt.Errorf("failed to get app info: %w", err)
 	}
 
-	cl, err := ce.GetNhostClient(cCtx.Context)
+	cl, err := ce.GetNhostClient(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get nhost client: %w", err)
 	}
 
 	deployments, err := cl.ListDeployments(
-		cCtx.Context,
+		ctx,
 		proj.ID,
 	)
 	if err != nil {

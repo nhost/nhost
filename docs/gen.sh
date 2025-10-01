@@ -58,5 +58,11 @@ function build_typedoc() {
     fix_mdx_links $DOCS_DIR
 }
 
+function build_cli_docs() {
+    echo "⚒️⚒️⚒️ Building CLI documentation..."
+    cli docs > reference/cli/nhost.mdx
+}
+
 build_openapi
 build_typedoc
+build_cli_docs

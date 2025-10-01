@@ -1,11 +1,12 @@
 package software
 
 import (
+	"context"
 	"fmt"
 	"os"
 
 	"github.com/nhost/nhost/cli/clienv"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 const (
@@ -22,29 +23,29 @@ func CommandUninstall() *cli.Command {
 			&cli.BoolFlag{ //nolint:exhaustruct
 				Name:        forceFlag,
 				Usage:       "Force uninstall without confirmation",
-				EnvVars:     []string{"NHOST_FORCE_UNINSTALL"},
+				Sources:     cli.EnvVars("NHOST_FORCE_UNINSTALL"),
 				DefaultText: "false",
 			},
 		},
 	}
 }
 
-func commandUninstall(cCtx *cli.Context) error {
-	ce := clienv.FromCLI(cCtx)
+func commandUninstall(ctx context.Context, cmd *cli.Command) error {
+	ce := clienv.FromCLI(cmd)
 
 	path, err := os.Executable()
 	if err != nil {
 		return fmt.Errorf("failed to find installed CLI: %w", err)
 	}
 
-	if cCtx.App.Version == devVersion || cCtx.App.Version == "" {
+	if cmd.Root().Version == devVersion || cmd.Root().Version == "" {
 		// we fake it in dev mode
 		path = "/tmp/nhost"
 	}
 
 	ce.Infoln("Found Nhost cli in %s", path)
 
-	if !cCtx.Bool(forceFlag) {
+	if !cmd.Bool(forceFlag) {
 		ce.PromptMessage("Are you sure you want to uninstall Nhost CLI? [y/N] ")
 
 		resp, err := ce.PromptInput(false)

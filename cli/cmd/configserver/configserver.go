@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/nhost/be/services/mimir/graph"
 	cors "github.com/rs/cors/wrapper/gin"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 const (
@@ -48,27 +48,27 @@ func Command() *cli.Command {
 				Name:     enablePlaygroundFlag,
 				Usage:    "enable graphql playground (under /v1)",
 				Category: "server",
-				EnvVars:  []string{"ENABLE_PLAYGROUND"},
+				Sources:  cli.EnvVars("ENABLE_PLAYGROUND"),
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     storageLocalConfigPath,
 				Usage:    "Path to the local mimir config file",
 				Value:    "/tmp/root/nhost/nhost.toml",
 				Category: "plugins",
-				EnvVars:  []string{"STORAGE_LOCAL_CONFIG_PATH"},
+				Sources:  cli.EnvVars("STORAGE_LOCAL_CONFIG_PATH"),
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     storageLocalSecretsPath,
 				Usage:    "Path to the local mimir secrets file",
 				Value:    "/tmp/root/.secrets",
 				Category: "plugins",
-				EnvVars:  []string{"STORAGE_LOCAL_SECRETS_PATH"},
+				Sources:  cli.EnvVars("STORAGE_LOCAL_SECRETS_PATH"),
 			},
 			&cli.StringSliceFlag{ //nolint: exhaustruct
 				Name:     storageLocalRunServicesPath,
 				Usage:    "Path to the local mimir run services files",
 				Category: "plugins",
-				EnvVars:  []string{"STORAGE_LOCAL_RUN_SERVICES_PATH"},
+				Sources:  cli.EnvVars("STORAGE_LOCAL_RUN_SERVICES_PATH"),
 			},
 		},
 		Action: serve,
@@ -103,14 +103,14 @@ func runServicesFiles(runServices ...string) map[string]string {
 	return m
 }
 
-func serve(cCtx *cli.Context) error {
-	logger := getLogger(cCtx.Bool(debugFlag), cCtx.Bool(logFormatJSONFlag))
-	logger.Info(cCtx.App.Name + " v" + cCtx.App.Version)
-	logFlags(logger, cCtx)
+func serve(ctx context.Context, cmd *cli.Command) error {
+	logger := getLogger(cmd.Bool(debugFlag), cmd.Bool(logFormatJSONFlag))
+	logger.Info(cmd.Root().Name + " v" + cmd.Root().Version)
+	logFlags(logger, cmd)
 
-	configFile := cCtx.String(storageLocalConfigPath)
-	secretsFile := cCtx.String(storageLocalSecretsPath)
-	runServices := runServicesFiles(cCtx.StringSlice(storageLocalRunServicesPath)...)
+	configFile := cmd.String(storageLocalConfigPath)
+	secretsFile := cmd.String(storageLocalSecretsPath)
+	runServices := runServicesFiles(cmd.StringSlice(storageLocalRunServicesPath)...)
 
 	st := NewLocal(configFile, secretsFile, runServices)
 
@@ -131,13 +131,13 @@ func serve(cCtx *cli.Context) error {
 		resolver,
 		dummyMiddleware,
 		dummyMiddleware2,
-		cCtx.Bool(enablePlaygroundFlag),
-		cCtx.App.Version,
+		cmd.Bool(enablePlaygroundFlag),
+		cmd.Root().Version,
 		[]graphql.FieldMiddleware{},
 		gin.Recovery(),
 		cors.Default(),
 	)
-	if err := r.Run(cCtx.String(bindFlag)); err != nil {
+	if err := r.Run(cmd.String(bindFlag)); err != nil {
 		return fmt.Errorf("failed to run gin: %w", err)
 	}
 

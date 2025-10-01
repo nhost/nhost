@@ -1,13 +1,14 @@
 package config
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/be/services/mimir/schema"
 	"github.com/nhost/nhost/cli/clienv"
 	"github.com/pelletier/go-toml/v2"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 func CommandExample() *cli.Command {
@@ -22,8 +23,8 @@ func CommandExample() *cli.Command {
 
 func ptr[T any](v T) *T { return &v }
 
-func commandExample(cCtx *cli.Context) error { //nolint:funlen,maintidx
-	ce := clienv.FromCLI(cCtx)
+func commandExample(ctx context.Context, cmd *cli.Command) error { //nolint:funlen,maintidx
+	ce := clienv.FromCLI(cmd)
 
 	//nolint:mnd
 	cfg := model.ConfigConfig{

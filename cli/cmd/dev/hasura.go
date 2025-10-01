@@ -1,13 +1,14 @@
 package dev
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/nhost/cli/clienv"
 	"github.com/nhost/nhost/cli/dockercompose"
 	"github.com/pelletier/go-toml/v2"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 func CommandHasura() *cli.Command {
@@ -21,8 +22,8 @@ func CommandHasura() *cli.Command {
 	}
 }
 
-func commandHasura(cCtx *cli.Context) error {
-	ce := clienv.FromCLI(cCtx)
+func commandHasura(ctx context.Context, cmd *cli.Command) error {
+	ce := clienv.FromCLI(cmd)
 
 	cfg := &model.ConfigConfig{} //nolint:exhaustruct
 	if err := clienv.UnmarshalFile(ce.Path.NhostToml(), cfg, toml.Unmarshal); err != nil {
@@ -32,10 +33,10 @@ func commandHasura(cCtx *cli.Context) error {
 	docker := dockercompose.NewDocker()
 
 	return docker.HasuraWrapper( //nolint:wrapcheck
-		cCtx.Context,
+		ctx,
 		ce.LocalSubdomain(),
 		ce.Path.NhostFolder(),
 		*cfg.Hasura.Version,
-		cCtx.Args().Slice()...,
+		cmd.Args().Slice()...,
 	)
 }

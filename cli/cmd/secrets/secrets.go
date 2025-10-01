@@ -1,6 +1,6 @@
 package secrets
 
-import "github.com/urfave/cli/v2"
+import "github.com/urfave/cli/v3"
 
 const flagSubdomain = "subdomain"
 
@@ -9,7 +9,7 @@ func commonFlags() []cli.Flag {
 		&cli.StringFlag{ //nolint:exhaustruct
 			Name:    flagSubdomain,
 			Usage:   "Project's subdomain to operate on, defaults to linked project",
-			EnvVars: []string{"NHOST_SUBDOMAIN"},
+			Sources: cli.EnvVars("NHOST_SUBDOMAIN"),
 		},
 	}
 }
@@ -19,7 +19,7 @@ func Command() *cli.Command {
 		Name:    "secrets",
 		Aliases: []string{},
 		Usage:   "Manage secrets",
-		Subcommands: []*cli.Command{
+		Commands: []*cli.Command{
 			CommandCreate(),
 			CommandDelete(),
 			CommandList(),

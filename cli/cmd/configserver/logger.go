@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 func getLogger(debug bool, formatJSON bool) *logrus.Logger {
@@ -29,15 +29,15 @@ func getLogger(debug bool, formatJSON bool) *logrus.Logger {
 	return logger
 }
 
-func logFlags(logger logrus.FieldLogger, cCtx *cli.Context) {
+func logFlags(logger logrus.FieldLogger, cmd *cli.Command) {
 	fields := logrus.Fields{}
 
-	for _, flag := range cCtx.App.Flags {
+	for _, flag := range cmd.Root().Flags {
 		name := flag.Names()[0]
-		fields[name] = cCtx.Generic(name)
+		fields[name] = cmd.Value(name)
 	}
 
-	for _, flag := range cCtx.Command.Flags {
+	for _, flag := range cmd.Flags {
 		name := flag.Names()[0]
 		if strings.Contains(name, "pass") ||
 			strings.Contains(name, "token") ||
@@ -47,7 +47,7 @@ func logFlags(logger logrus.FieldLogger, cCtx *cli.Context) {
 			continue
 		}
 
-		fields[name] = cCtx.Generic(name)
+		fields[name] = cmd.Value(name)
 	}
 
 	logger.WithFields(fields).Info("started with settings")
