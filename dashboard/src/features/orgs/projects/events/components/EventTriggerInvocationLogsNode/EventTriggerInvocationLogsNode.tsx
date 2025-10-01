@@ -30,6 +30,12 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/v3/tabs';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
+import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import { useGetEventAndInvocationLogsById } from '@/features/orgs/projects/events/hooks/useGetEventAndInvocationLogsById';
 import type { EventInvocationLogEntry } from '@/utils/hasura-api/generated/schemas/eventInvocationLogEntry';
 import {
@@ -82,7 +88,7 @@ function CreatedAtCell({ createdAt }: { createdAt: string }) {
   return (
     <HoverCardTimestamp
       date={new Date(createdAt)}
-      className="-m-4 block w-full p-4 font-mono text-xs"
+      className="-m-4 block w-full truncate py-4 pl-4 font-mono text-xs"
     />
     // <span className="font-mono text-xs">
     //   {format(new Date(createdAt), 'PPP HH:mm:ss')}
@@ -136,7 +142,12 @@ function highlightMatch(text: string, query: string) {
 }
 
 function IdCell({ id, query }: { id: string; query: string }) {
-  return <span className="font-mono text-xs">{highlightMatch(id, query)}</span>;
+  return (
+    <TextWithTooltip
+      className="font-mono text-xs"
+      text={highlightMatch(id, query)}
+    />
+  );
 }
 
 function ActionsCell({
@@ -169,18 +180,23 @@ function ActionsCell({
 
   const handleRedeliver = () => {};
 
-  console.log(meta?.selectedLog?.response?.data);
-
   return (
     <div className="flex items-center gap-1">
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={handleRedeliver}
-        className="-ml-1 hidden h-8 w-8 p-0"
-      >
-        <CalendarSync className="h-4 w-4" />
-      </Button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleRedeliver}
+            className="-ml-1 h-8 w-8 p-0"
+          >
+            <CalendarSync className="h-4 w-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>Redeliver Event Invocation</p>
+        </TooltipContent>
+      </Tooltip>
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogTrigger asChild>
           <Button
@@ -274,9 +290,6 @@ function ActionsCell({
                   >
                     {JSON.stringify(meta.selectedLog.request.payload, null, 2)}
                   </CodeBlock>
-                  {/* <pre className="overflow-x-auto rounded bg-muted p-3 text-xs text-muted-foreground">
-                    {JSON.stringify(selectedLog.request.payload, null, 2)}
-                  </pre> */}
                 </div>
               </TabsContent>
               <TabsContent value="response" className="space-y-4">
@@ -342,12 +355,18 @@ const columnsBase: ColumnDef<EventInvocationLogEntry>[] = [
   {
     id: 'created_at',
     accessorKey: 'created_at',
+    minSize: 50,
+    size: 68,
+    maxSize: 68,
     header: ({ column }) => <CreatedAtHeader column={column} />,
     cell: ({ row }) => <CreatedAtCell createdAt={row.original.created_at} />,
   },
   {
     id: 'http_status',
     accessorKey: 'http_status',
+    minSize: 70,
+    size: 70,
+    maxSize: 70,
     header: 'Status',
     enableSorting: false,
     cell: ({ row }) => <HttpStatusCell status={row.original.http_status} />,
@@ -356,6 +375,9 @@ const columnsBase: ColumnDef<EventInvocationLogEntry>[] = [
     id: 'id',
     accessorKey: 'id',
     header: 'ID',
+    minSize: 40,
+    size: 280,
+    maxSize: 600,
     cell: ({ row, table }) => (
       <IdCell
         id={row.original.id}
@@ -365,6 +387,9 @@ const columnsBase: ColumnDef<EventInvocationLogEntry>[] = [
   },
   {
     id: 'actions',
+    minSize: 80,
+    size: 80,
+    maxSize: 80,
     header: 'Actions',
     enableSorting: false,
     cell: ({ row, table }) => <ActionsCell row={row.original} table={table} />,
@@ -447,11 +472,19 @@ export default function EventTriggerInvocationLogs({
 
       <div className="overflow-x-auto">
         <Table>
+          <colgroup>
+            {table.getAllLeafColumns().map((col) => (
+              <col key={col.id} style={{ width: col.getSize() }} />
+            ))}
+          </colgroup>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
+                  <TableHead
+                    key={header.id}
+                    style={{ width: header.getSize() }}
+                  >
                     {header.isPlaceholder
                       ? null
                       : flexRender(
@@ -468,7 +501,11 @@ export default function EventTriggerInvocationLogs({
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell
+                      key={cell.id}
+                      className={`${cell.column.id === 'id' ? 'max-w-0 truncate' : ''}`}
+                      style={{ width: cell.column.getSize() }}
+                    >
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext(),
