@@ -67,7 +67,7 @@ func auth( //nolint:funlen
 	}
 
 	svc := &Service{
-		Image: "nhost/hasura-auth:" + *cfg.Auth.Version,
+		Image: "nhost/auth:" + *cfg.Auth.Version,
 		DependsOn: map[string]DependsOn{
 			"graphql": {
 				Condition: "service_healthy",

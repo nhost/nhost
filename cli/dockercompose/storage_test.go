@@ -9,7 +9,7 @@ import (
 
 func expectedStorage() *Service {
 	return &Service{
-		Image: "nhost/hasura-storage:0.2.5",
+		Image: "nhost/storage:0.2.5",
 		DependsOn: map[string]DependsOn{
 			"graphql":  {Condition: "service_healthy"},
 			"minio":    {Condition: "service_started"},

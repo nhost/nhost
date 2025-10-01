@@ -111,11 +111,11 @@ func CheckVersions(
 
 	checkServiceVersion(
 		ce, graphql.SoftwareTypeEnumAuth, *cfg.GetAuth().GetVersion(), swv,
-		"https://github.com/nhost/hasura-auth/releases",
+		"https://github.com/nhost/nhost/releases",
 	)
 	checkServiceVersion(
 		ce, graphql.SoftwareTypeEnumStorage, *cfg.GetStorage().GetVersion(), swv,
-		"https://github.com/nhost/hasura-storage/releases",
+		"https://github.com/nhost/nhost/releases",
 	)
 	checkServiceVersion(
 		ce, graphql.SoftwareTypeEnumPostgreSQL, *cfg.GetPostgres().GetVersion(), swv,
