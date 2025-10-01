@@ -1,0 +1,1191 @@
+---
+title: 'Migration Guide: Deprecated SDKs to Unified JavaScript SDK'
+description: 'Learn how to migrate from the deprecated SDKs to the new unified JavaScript SDK'
+---
+
+This guide helps you migrate from Nhost's deprecated SDKs to the new unified JavaScript SDK (`@nhost/nhost-js` v4.x+).
+
+## Overview
+
+**What's Deprecated:**
+- `@nhost/nhost-js` v3.x (and earlier v2.x)
+- `@nhost/react`
+- `@nhost/nextjs`
+- `@nhost/vue`
+- Service-specific packages: `@nhost/hasura-auth-js`, `@nhost/hasura-storage-js`
+
+**What's New:**
+- `@nhost/nhost-js` v4.x+ - Single unified, framework-agnostic SDK
+
+<Note>
+The deprecated SDKs are still available in the [Client Libraries (deprecated)](/reference/deprecated/javascript/nhost-js/nhost-client) section but are no longer maintained.
+</Note>
+
+---
+
+## Part 1: JavaScript SDK Migration (`@nhost/nhost-js` v3.x → v4.x)
+
+This section covers migrating from the old vanilla JavaScript SDK to the new one. If you're migrating from React/Next.js/Vue, skip to [Part 2](#part-2-react-sdk-migration).
+
+### Client Initialization
+
+<CodeGroup>
+```javascript v3.x
+import { NhostClient } from '@nhost/nhost-js'
+
+const nhost = new NhostClient({
+  subdomain: 'your-subdomain',
+  region: 'your-region'
+})
+```
+
+```javascript v4.x
+import { createClient } from '@nhost/nhost-js'
+
+const nhost = createClient({
+  subdomain: 'your-subdomain',
+  region: 'your-region'
+})
+```
+</CodeGroup>
+
+### Key Changes
+
+#### 1. Constructor → Factory Function
+- **v3.x**: `new NhostClient()`
+- **v4.x**: `createClient()`
+
+#### 2. Parameter Structure
+All methods now use **options objects** instead of positional parameters:
+
+<CodeGroup>
+```javascript v3.x
+await nhost.auth.signIn({ email, password })
+await nhost.storage.upload({ file, name: 'custom-name' })
+await nhost.graphql.request(query, variables)
+```
+
+```javascript v4.x
+await nhost.auth.signInEmailPassword({ email, password })
+await nhost.storage.uploadFiles({ "file[]": [file] })
+await nhost.graphql.request({ document: query, variables })
+```
+</CodeGroup>
+
+#### 3. Return Values
+Error handling moved from result objects to try/catch:
+
+<CodeGroup>
+```javascript v3.x
+const result = await nhost.auth.signIn({ email, password })
+if (result.error) {
+  console.error(result.error.message)
+} else {
+  // Success
+}
+```
+
+```javascript v4.x
+try {
+  const response = await nhost.auth.signInEmailPassword({ email, password })
+
+  if (response.body?.session) {
+    // Success
+  }
+} catch (error) {
+  console.error(error.message)
+}
+```
+</CodeGroup>
+
+### Authentication Methods
+
+| v3.x | v4.x | Notes |
+|------|------|-------|
+| `auth.signIn({ email, password })` | `auth.signInEmailPassword({ email, password })` | More specific method name |
+| `auth.signUp({ email, password })` | `auth.signUpEmailPassword({ email, password, options })` | Options nested |
+| `auth.signOut()` | `auth.signOut({ refreshToken })` | Now requires refresh token |
+| `auth.changeEmail(email)` | `auth.changeUserEmail({ newEmail, options })` | Renamed, options object |
+| `auth.changePassword(password)` | `auth.changeUserPassword({ newPassword })` | Renamed, options object |
+| `auth.resetPassword(email)` | `auth.resetPassword({ email })` | Options object |
+| `auth.sendVerificationEmail(email)` | `auth.sendVerificationEmail({ email })` | Options object |
+| `auth.getUser()` | `getUserSession()?.user` | Access via session |
+| `auth.getSession()` | `getUserSession()` | Renamed method |
+| `auth.getAccessToken()` | `getUserSession()?.accessToken` | Access via session |
+| `auth.refreshSession()` | Handled automatically | Auto-refresh built-in |
+
+### WebAuthn / Security Keys
+
+| v3.x | v4.x | Notes |
+|------|------|-------|
+| Not available | `auth.addSecurityKey()` + `auth.verifyAddSecurityKey()` | Two-step process, requires `@simplewebauthn/browser` |
+| Not available | `auth.signInWebauthn()` | Browser WebAuthn integration |
+| Not available | `auth.signUpWebauthn()` + `auth.verifySignUpWebauthn()` | Two-step registration |
+| Not available | `auth.elevateWebauthn()` + `auth.verifyElevateWebauthn()` | For elevated permissions |
+
+<Note>
+WebAuthn features require installing `@simplewebauthn/browser` and manually integrating with browser APIs.
+</Note>
+
+### Multi-Factor Authentication (MFA)
+
+| v3.x | v4.x | Notes |
+|------|------|-------|
+| Not available | `auth.changeUserMfa()` | Returns `totpSecret` and `imageUrl` (QR code) |
+| Not available | `auth.verifyChangeUserMfa({ activeMfaType: 'totp', code })` | Activate/disable MFA |
+
+### Social Providers (OAuth)
+
+| v3.x | v4.x | Notes |
+|------|------|-------|
+| `auth.signIn({ provider: 'github' })` | `auth.signInProviderURL('github', { redirectTo })` | Returns URL string |
+| Options in method | Pass `{ connect: accessToken }` | For connecting provider to existing account |
+
+### Storage Methods
+
+| v3.x | v4.x | Notes |
+|------|------|-------|
+| `storage.upload({ file, name })` | `storage.uploadFiles({ "file[]": [file] })` | Different parameter structure |
+| `storage.download(fileId)` | `storage.getFile({ fileId })` | Renamed method |
+| `storage.delete(fileId)` | `storage.deleteFile({ fileId })` | Options object |
+| `storage.getPresignedUrl(fileId)` | `storage.getPresignedUrl({ fileId })` | Options object |
+| `storage.getPublicUrl(fileId)` | `storage.getPublicUrl({ fileId })` | Options object |
+
+### GraphQL Methods
+
+| v3.x | v4.x | Notes |
+|------|------|-------|
+| `graphql.request(query, variables)` | `graphql.request({ document: query, variables })` | Options object with `document` key |
+
+### Functions Methods
+
+| v3.x | v4.x | Notes |
+|------|------|-------|
+| `functions.call(path, body)` | `functions.call({ url: path, body })` | Options object |
+
+### Migration Checklist (JavaScript SDK)
+
+- [ ] Replace `new NhostClient()` with `createClient()`
+- [ ] Update all method calls to use options objects
+- [ ] Replace result checking (`result.error`) with try/catch
+- [ ] Update `signIn` → `signInEmailPassword`
+- [ ] Update `signUp` → `signUpEmailPassword`
+- [ ] Pass `refreshToken` to `signOut()`
+- [ ] Update `changeEmail` → `changeUserEmail`
+- [ ] Update `changePassword` → `changeUserPassword`
+- [ ] Update session/user access to use `getUserSession()`
+- [ ] Update storage `upload()` → `uploadFiles()` with `"file[]"` key
+- [ ] Update GraphQL requests to use `document` key
+- [ ] Update storage download/delete to use new method names
+
+---
+
+## Part 2: React SDK Migration (`@nhost/react` → `@nhost/nhost-js`)
+
+This section covers migrating React applications from the deprecated `@nhost/react` package to using the vanilla JavaScript SDK with custom React patterns.
+
+### Overview of Changes
+
+The old `@nhost/react` package provided:
+- Ready-made hooks (`useSignInEmailPassword`, `useUserData`, etc.)
+- Built-in providers (`NhostProvider`, `NhostApolloProvider`)
+- Automatic state management
+
+The new approach requires:
+- Using vanilla `@nhost/nhost-js` SDK
+- Creating your own custom providers and hooks
+- Manual state management with React hooks
+
+### Package Installation
+
+<CodeGroup>
+```bash Old
+npm install @nhost/react @nhost/react-apollo
+```
+
+```bash New
+npm install @nhost/nhost-js
+```
+</CodeGroup>
+
+### Provider Setup
+
+#### Step 1: Create Nhost Provider
+
+Create a context provider to share the Nhost client instance:
+
+```tsx
+// providers/nhost/NhostProvider.tsx
+import { createClient, type NhostClient } from '@nhost/nhost-js'
+import { createContext, useContext, type PropsWithChildren } from 'react'
+
+const NhostContext = createContext<NhostClient | null>(null)
+
+export function NhostProvider({
+  nhost,
+  children
+}: PropsWithChildren<{ nhost: NhostClient }>) {
+  return (
+    <NhostContext.Provider value={nhost}>
+      {children}
+    </NhostContext.Provider>
+  )
+}
+
+export function useNhostClient() {
+  const context = useContext(NhostContext)
+  if (!context) {
+    throw new Error('useNhostClient must be used within NhostProvider')
+  }
+  return context
+}
+```
+
+#### Step 2: Create Auth Provider
+
+Create a provider to manage authentication state:
+
+```tsx
+// providers/auth/AuthProvider.tsx
+import { useNhostClient } from '@/providers/nhost'
+import { type Session } from '@nhost/nhost-js/auth'
+import { createContext, useContext, useEffect, useState, type PropsWithChildren } from 'react'
+
+type AuthContextType = {
+  user: Session['user'] | null
+  session: Session | null
+  isAuthenticated: boolean
+  isLoading: boolean
+  signout: () => Promise<void>
+}
+
+const AuthContext = createContext<AuthContextType | null>(null)
+
+export function AuthProvider({ children }: PropsWithChildren) {
+  const nhost = useNhostClient()
+  const [session, setSession] = useState<Session | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    // Subscribe to session changes
+    const unsubscribe = nhost.sessionStorage.onChange(setSession)
+
+    // Listen for storage events (cross-tab synchronization)
+    const storageEventListener = (event: StorageEvent) => {
+      if (event.key === 'nhostSession') {
+        const newSession = event.newValue ? JSON.parse(event.newValue) : null
+        setSession(newSession)
+      }
+    }
+
+    window.addEventListener('storage', storageEventListener)
+
+    return () => {
+      unsubscribe()
+      window.removeEventListener('storage', storageEventListener)
+    }
+  }, [nhost])
+
+  useEffect(() => {
+    async function initializeSession() {
+      setIsLoading(true)
+      const currentSession = nhost.getUserSession()
+      setSession(currentSession)
+      setIsLoading(false)
+    }
+    initializeSession()
+  }, [nhost])
+
+  const signout = async () => {
+    await nhost.auth.signOut({ refreshToken: session!.refreshToken })
+    setSession(null)
+  }
+
+  return (
+    <AuthContext.Provider
+      value={{
+        user: session?.user || null,
+        session,
+        isAuthenticated: !!session,
+        isLoading,
+        signout
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  )
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext)
+  if (!context) {
+    throw new Error('useAuth must be used within AuthProvider')
+  }
+  return context
+}
+```
+
+#### Step 3: Create Apollo Provider (Optional)
+
+If using GraphQL with Apollo Client:
+
+```tsx
+// providers/apollo/NhostApolloProvider.tsx
+import { ApolloClient, ApolloProvider, InMemoryCache, createHttpLink } from '@apollo/client'
+import { setContext } from '@apollo/client/link/context'
+import { useNhostClient } from '@/providers/nhost'
+import { useState, useEffect, type PropsWithChildren } from 'react'
+
+export function NhostApolloProvider({ children }: PropsWithChildren) {
+  const nhost = useNhostClient()
+  const [client, setClient] = useState<ApolloClient<any> | null>(null)
+
+  useEffect(() => {
+    const httpLink = createHttpLink({
+      uri: nhost.graphql.getUrl()
+    })
+
+    const authLink = setContext((_, { headers }) => {
+      const session = nhost.getUserSession()
+      return {
+        headers: {
+          ...headers,
+          ...(session?.accessToken && {
+            authorization: `Bearer ${session.accessToken}`
+          })
+        }
+      }
+    })
+
+    const apolloClient = new ApolloClient({
+      link: authLink.concat(httpLink),
+      cache: new InMemoryCache()
+    })
+
+    setClient(apolloClient)
+  }, [nhost])
+
+  if (!client) return null
+
+  return <ApolloProvider client={client}>{children}</ApolloProvider>
+}
+```
+
+#### Step 4: Update main.tsx
+
+```tsx
+// main.tsx
+import { createClient } from '@nhost/nhost-js'
+import { NhostProvider } from './providers/nhost'
+import { AuthProvider } from './providers/auth'
+import { NhostApolloProvider } from './providers/apollo' // optional
+
+const nhost = createClient({
+  subdomain: import.meta.env.VITE_NHOST_SUBDOMAIN || 'local',
+  region: import.meta.env.VITE_NHOST_REGION
+})
+
+root.render(
+  <NhostProvider nhost={nhost}>
+    <AuthProvider>
+      <NhostApolloProvider>
+        <App />
+      </NhostApolloProvider>
+    </AuthProvider>
+  </NhostProvider>
+)
+```
+
+### Hook Migration Examples
+
+#### Authentication Status
+
+<CodeGroup>
+```tsx @nhost/react
+import { useAuthenticationStatus } from '@nhost/react'
+
+function AuthGate({ children }) {
+  const { isLoading, isAuthenticated } = useAuthenticationStatus()
+
+  if (isLoading) return <Loading />
+  if (!isAuthenticated) return <Navigate to="/sign-in" />
+
+  return <>{children}</>
+}
+```
+
+```tsx @nhost/nhost-js
+import { useAuth } from '@/providers/auth'
+
+function AuthGate({ children }) {
+  const { isLoading, isAuthenticated } = useAuth()
+
+  if (isLoading) return <Loading />
+  if (!isAuthenticated) return <Navigate to="/sign-in" />
+
+  return <>{children}</>
+}
+```
+</CodeGroup>
+
+#### Sign In with Email/Password
+
+<CodeGroup>
+```tsx @nhost/react
+import { useSignInEmailPassword } from '@nhost/react'
+
+function SignIn() {
+  const { signInEmailPassword } = useSignInEmailPassword()
+
+  const handleSubmit = async (email, password) => {
+    const result = await signInEmailPassword(email, password)
+
+    if (result.isError) {
+      toast.error(result.error.message)
+    } else if (result.needsEmailVerification) {
+      setShowVerificationDialog(true)
+    } else if (result.isSuccess) {
+      navigate('/')
+    }
+  }
+
+  return <form onSubmit={handleSubmit}>...</form>
+}
+```
+
+```tsx @nhost/nhost-js
+import { useNhostClient } from '@/providers/nhost'
+import { useState } from 'react'
+
+function SignIn() {
+  const nhost = useNhostClient()
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleSubmit = async (email, password) => {
+    setIsLoading(true)
+
+    try {
+      const response = await nhost.auth.signInEmailPassword({ email, password })
+
+      if (response.body?.mfa) {
+        navigate(`/mfa?ticket=${response.body.mfa.ticket}`)
+        return
+      }
+
+      if (response.body?.session) {
+        navigate('/')
+      } else {
+        toast.error('Failed to sign in')
+      }
+    } catch (error) {
+      if (error.body?.error === 'unverified-user') {
+        await nhost.auth.sendVerificationEmail({ email })
+        setShowVerificationDialog(true)
+      } else {
+        toast.error(error.message)
+      }
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return <form onSubmit={handleSubmit}>...</form>
+}
+```
+</CodeGroup>
+
+#### Sign Up with Email/Password
+
+<CodeGroup>
+```tsx @nhost/react
+import { useSignUpEmailPassword } from '@nhost/react'
+
+function SignUp() {
+  const { signUpEmailPassword } = useSignUpEmailPassword()
+
+  const handleSubmit = async (email, password, metadata) => {
+    const result = await signUpEmailPassword(email, password, {
+      metadata,
+      redirectTo: window.location.origin
+    })
+
+    if (result.isError) {
+      toast.error(result.error.message)
+    } else if (result.needsEmailVerification) {
+      setShowVerificationDialog(true)
+    } else {
+      navigate('/')
+    }
+  }
+
+  return <form onSubmit={handleSubmit}>...</form>
+}
+```
+
+```tsx @nhost/nhost-js
+import { useNhostClient } from '@/providers/nhost'
+import { useState } from 'react'
+
+function SignUp() {
+  const nhost = useNhostClient()
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleSubmit = async (email, password, metadata) => {
+    setIsLoading(true)
+
+    try {
+      const result = await nhost.auth.signUpEmailPassword({
+        email,
+        password,
+        options: {
+          metadata,
+          redirectTo: window.location.origin
+        }
+      })
+
+      if (result.body.session) {
+        navigate('/')
+      } else {
+        // No session means email verification required
+        setShowVerificationDialog(true)
+      }
+    } catch (error) {
+      toast.error(error.message)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return <form onSubmit={handleSubmit}>...</form>
+}
+```
+</CodeGroup>
+
+#### Change Email
+
+<CodeGroup>
+```tsx @nhost/react
+import { useChangeEmail, useUserEmail } from '@nhost/react'
+
+function ChangeEmail() {
+  const email = useUserEmail()
+  const { changeEmail } = useChangeEmail({ redirectTo: '/profile' })
+
+  const handleChange = async (newEmail) => {
+    const result = await changeEmail(newEmail)
+
+    if (result.needsEmailVerification) {
+      toast.info('Please check your inbox')
+    }
+    if (result.error) {
+      toast.error(result.error.message)
+    }
+  }
+
+  return <input defaultValue={email} onSubmit={handleChange} />
+}
+```
+
+```tsx @nhost/nhost-js
+import { useNhostClient } from '@/providers/nhost'
+import { useAuth } from '@/providers/auth'
+import { useState } from 'react'
+
+function ChangeEmail() {
+  const nhost = useNhostClient()
+  const { user } = useAuth()
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleChange = async (newEmail) => {
+    if (newEmail === user?.email) {
+      toast.error('You need to set a different email')
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      await nhost.auth.changeUserEmail({
+        newEmail,
+        options: {
+          redirectTo: `${window.location.origin}/profile`
+        }
+      })
+
+      toast.info('Please check your inbox and follow the link')
+    } catch (error) {
+      toast.error('Failed to change email')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return <input defaultValue={user?.email} onSubmit={handleChange} />
+}
+```
+</CodeGroup>
+
+#### File Upload
+
+<CodeGroup>
+```tsx @nhost/react
+import { useFileUpload } from '@nhost/react'
+
+function FileUpload() {
+  const { upload, isUploading, isUploaded, isError } = useFileUpload()
+
+  const handleUpload = async (file) => {
+    await upload({ file, name: `custom-${file.name}` })
+  }
+
+  return (
+    <div>
+      {isUploading && <p>Uploading...</p>}
+      {isUploaded && <p>Success!</p>}
+      {isError && <p>Error!</p>}
+      <input type="file" onChange={e => handleUpload(e.target.files[0])} />
+    </div>
+  )
+}
+```
+
+```tsx @nhost/nhost-js
+import { useNhostClient } from '@/providers/nhost'
+import { useState } from 'react'
+
+function FileUpload() {
+  const nhost = useNhostClient()
+  const [isUploading, setIsUploading] = useState(false)
+  const [isUploaded, setIsUploaded] = useState(false)
+  const [isError, setIsError] = useState(false)
+
+  const handleUpload = async (file) => {
+    setIsUploading(true)
+    setIsError(false)
+
+    try {
+      await nhost.storage.uploadFiles({ "file[]": [file] })
+      setIsUploaded(true)
+    } catch (error) {
+      setIsError(true)
+      console.error(error)
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
+  return (
+    <div>
+      {isUploading && <p>Uploading...</p>}
+      {isUploaded && <p>Success!</p>}
+      {isError && <p>Error!</p>}
+      <input type="file" onChange={e => handleUpload(e.target.files[0])} />
+    </div>
+  )
+}
+```
+</CodeGroup>
+
+#### User Data Access
+
+<CodeGroup>
+```tsx @nhost/react
+import { useUserData, useUserId, useUserEmail } from '@nhost/react'
+
+function UserProfile() {
+  const userData = useUserData()
+  const userId = useUserId()
+  const email = useUserEmail()
+
+  return (
+    <div>
+      <p>User ID: {userId}</p>
+      <p>Email: {email}</p>
+      <pre>{JSON.stringify(userData, null, 2)}</pre>
+    </div>
+  )
+}
+```
+
+```tsx @nhost/nhost-js
+import { useAuth } from '@/providers/auth'
+
+function UserProfile() {
+  const { user } = useAuth()
+
+  return (
+    <div>
+      <p>User ID: {user?.id}</p>
+      <p>Email: {user?.email}</p>
+      <pre>{JSON.stringify(user, null, 2)}</pre>
+    </div>
+  )
+}
+```
+</CodeGroup>
+
+### Advanced Features (React)
+
+#### WebAuthn / Security Keys
+
+Install the required dependency:
+
+```bash
+npm install @simplewebauthn/browser
+```
+
+**Adding a Security Key:**
+
+```tsx
+import { useNhostClient } from '@/providers/nhost'
+import { startRegistration } from '@simplewebauthn/browser'
+import { useState } from 'react'
+
+function AddSecurityKey() {
+  const nhost = useNhostClient()
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleAdd = async (nickname) => {
+    setIsLoading(true)
+
+    try {
+      // Step 1: Get WebAuthn options from server
+      const webAuthnOptions = await nhost.auth.addSecurityKey()
+
+      // Step 2: Prompt user to use their security key
+      const credential = await startRegistration(webAuthnOptions.body)
+
+      // Step 3: Verify and save the credential
+      const result = await nhost.auth.verifyAddSecurityKey({
+        credential,
+        nickname
+      })
+
+      if (result.body) {
+        toast.success('Security key added')
+      }
+    } catch (error) {
+      toast.error('Failed to add security key')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <button onClick={() => handleAdd('My Key')} disabled={isLoading}>
+      {isLoading ? 'Adding...' : 'Add Security Key'}
+    </button>
+  )
+}
+```
+
+**Sign In with Security Key:**
+
+```tsx
+import { useNhostClient } from '@/providers/nhost'
+import { useState } from 'react'
+
+function SignInWithKey() {
+  const nhost = useNhostClient()
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleSignIn = async () => {
+    setIsLoading(true)
+
+    try {
+      // WebAuthn sign in (browser prompts for security key)
+      const response = await nhost.auth.signInWebauthn()
+
+      if (response.body?.session) {
+        navigate('/')
+      }
+    } catch (error) {
+      if (error.body?.error === 'unverified-user') {
+        toast.error('Please verify your email first')
+      } else {
+        toast.error(error.message || 'Sign in failed')
+      }
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <button onClick={handleSignIn} disabled={isLoading}>
+      {isLoading ? 'Signing In...' : 'Sign In with Security Key'}
+    </button>
+  )
+}
+```
+
+#### Multi-Factor Authentication (MFA)
+
+**Enable MFA:**
+
+```tsx
+import { useNhostClient } from '@/providers/nhost'
+import { useState } from 'react'
+
+function EnableMfa() {
+  const nhost = useNhostClient()
+  const [isLoading, setIsLoading] = useState(false)
+  const [totpSecret, setTotpSecret] = useState('')
+  const [qrCodeUrl, setQrCodeUrl] = useState('')
+  const [code, setCode] = useState('')
+  const [isGenerated, setIsGenerated] = useState(false)
+
+  const generate = async () => {
+    setIsLoading(true)
+
+    try {
+      // Generate TOTP secret
+      const response = await nhost.auth.changeUserMfa()
+
+      setTotpSecret(response.body.totpSecret)
+      setQrCodeUrl(response.body.imageUrl)
+      setIsGenerated(true)
+    } catch (error) {
+      toast.error(`Failed to generate QR code: ${error.message}`)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const activate = async () => {
+    if (!code.trim()) {
+      toast.error('Please enter verification code')
+      return
+    }
+
+    setIsLoading(true)
+
+    try {
+      // Verify and activate MFA
+      await nhost.auth.verifyChangeUserMfa({
+        activeMfaType: 'totp',
+        code
+      })
+
+      toast.success('MFA activated')
+      setIsGenerated(false)
+      setCode('')
+    } catch (error) {
+      toast.error(`Failed to activate: ${error.message}`)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <div>
+      {!isGenerated && (
+        <button onClick={generate} disabled={isLoading}>
+          {isLoading ? 'Generating...' : 'Generate QR Code'}
+        </button>
+      )}
+      {isGenerated && (
+        <>
+          <img src={qrCodeUrl} alt="QR Code" />
+          <input
+            value={code}
+            onChange={e => setCode(e.target.value)}
+            placeholder="Enter 6-digit code"
+            maxLength={6}
+          />
+          <button onClick={activate} disabled={isLoading}>
+            {isLoading ? 'Activating...' : 'Activate'}
+          </button>
+        </>
+      )}
+    </div>
+  )
+}
+```
+
+**Disable MFA:**
+
+```tsx
+const disableMfa = async (verificationCode) => {
+  try {
+    await nhost.auth.verifyChangeUserMfa({
+      activeMfaType: '',  // Empty string disables MFA
+      code: verificationCode
+    })
+
+    toast.success('MFA disabled')
+  } catch (error) {
+    toast.error(`Failed to disable MFA: ${error.message}`)
+  }
+}
+```
+
+#### Elevated Permissions
+
+Create a custom hook for elevation management:
+
+```tsx
+// hooks/useSecurity.ts
+import { useCallback, useEffect, useState } from 'react'
+import { useNhostClient } from '@/providers/nhost'
+import { useAuth } from '@/providers/auth'
+import { startAuthentication } from '@simplewebauthn/browser'
+
+export function useSecurity() {
+  const nhost = useNhostClient()
+  const { user } = useAuth()
+  const [securityKeys, setSecurityKeys] = useState([])
+  const [isLoading, setIsLoading] = useState(false)
+
+  // Check if user has elevated permissions
+  const isElevated = Boolean(
+    nhost.getUserSession()?.decodedToken?.['https://hasura.io/jwt/claims']?.[
+      'x-hasura-auth-elevated'
+    ]
+  )
+
+  const hasSecurityKeys = securityKeys.length > 0
+  const requiresElevation = !isElevated && hasSecurityKeys
+
+  // Fetch user's security keys
+  const fetchSecurityKeys = useCallback(async () => {
+    if (!user?.id) return
+
+    setIsLoading(true)
+    try {
+      const response = await nhost.graphql.request({
+        query: `
+          query securityKeys($userId: uuid!) {
+            authUserSecurityKeys(where: { userId: { _eq: $userId } }) {
+              id
+              nickname
+            }
+          }
+        `,
+        variables: { userId: user.id }
+      })
+
+      if (response.body.data?.authUserSecurityKeys) {
+        setSecurityKeys(response.body.data.authUserSecurityKeys)
+      }
+    } catch (error) {
+      console.error('Failed to fetch security keys:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [user?.id, nhost])
+
+  // Elevate permissions
+  const checkElevation = useCallback(async () => {
+    if (!requiresElevation) return
+
+    try {
+      // Step 1: Get WebAuthn challenge
+      const elevateResponse = await nhost.auth.elevateWebauthn()
+
+      // Step 2: User authenticates with security key
+      const credential = await startAuthentication(elevateResponse.body)
+
+      // Step 3: Verify and get elevated session
+      const verifyResponse = await nhost.auth.verifyElevateWebauthn({
+        email: nhost.getUserSession()?.user?.email,
+        credential
+      })
+
+      // Update session with elevated token
+      if (verifyResponse.body.session) {
+        nhost.sessionStorage.set(verifyResponse.body.session)
+      } else {
+        throw new Error('Failed to get elevated session')
+      }
+    } catch (error) {
+      console.error('Elevation error:', error)
+      throw new Error('Could not elevate permissions')
+    }
+  }, [requiresElevation, nhost])
+
+  useEffect(() => {
+    fetchSecurityKeys()
+  }, [fetchSecurityKeys])
+
+  return {
+    hasSecurityKeys,
+    securityKeys,
+    isElevated,
+    isLoading,
+    requiresElevation,
+    checkElevation,
+    refreshSecurityKeys: fetchSecurityKeys
+  }
+}
+```
+
+**Using elevated permissions:**
+
+```tsx
+import { useSecurity } from '@/hooks/useSecurity'
+import { useNhostClient } from '@/providers/nhost'
+
+function ChangeEmail() {
+  const nhost = useNhostClient()
+  const { requiresElevation, checkElevation } = useSecurity()
+
+  const handleChange = async (newEmail) => {
+    // Check if elevation is needed
+    if (requiresElevation) {
+      try {
+        await checkElevation()
+      } catch {
+        toast.error('Could not elevate permissions')
+        return
+      }
+    }
+
+    // Perform sensitive operation
+    try {
+      await nhost.auth.changeUserEmail({
+        newEmail,
+        options: { redirectTo: `${window.location.origin}/profile` }
+      })
+
+      toast.success('Email change initiated')
+    } catch (error) {
+      toast.error('Failed to change email')
+    }
+  }
+
+  return <input onSubmit={handleChange} />
+}
+```
+
+#### Social Providers (OAuth)
+
+**Sign In / Sign Up with OAuth:**
+
+```tsx
+import { useNhostClient } from '@/providers/nhost'
+import { Link } from 'react-router-dom'
+
+function OAuthButtons() {
+  const nhost = useNhostClient()
+
+  // Generate OAuth URLs for each provider
+  const github = nhost.auth.signInProviderURL('github', {
+    redirectTo: window.location.origin
+  })
+
+  const google = nhost.auth.signInProviderURL('google', {
+    redirectTo: window.location.origin
+  })
+
+  const apple = nhost.auth.signInProviderURL('apple', {
+    redirectTo: window.location.origin
+  })
+
+  return (
+    <div>
+      <Link to={github}>Sign in with GitHub</Link>
+      <Link to={google}>Sign in with Google</Link>
+      <Link to={apple}>Sign in with Apple</Link>
+    </div>
+  )
+}
+```
+
+**Optional: Create a custom hook:**
+
+```tsx
+// hooks/useProviderLink.ts
+import { useNhostClient } from '@/providers/nhost'
+import type { SignInProvider, SignInProviderParams } from '@nhost/nhost-js/auth'
+
+export function useProviderLink(
+  provider: SignInProvider,
+  options?: SignInProviderParams
+): string {
+  const nhost = useNhostClient()
+
+  return nhost.auth.signInProviderURL(provider, {
+    redirectTo: window.location.origin,
+    ...options
+  })
+}
+```
+
+**Using the custom hook:**
+
+```tsx
+function OAuthButtons() {
+  const github = useProviderLink('github')
+  const google = useProviderLink('google')
+  const apple = useProviderLink('apple')
+
+  return (
+    <div>
+      <Link to={github}>Sign in with GitHub</Link>
+      <Link to={google}>Sign in with Google</Link>
+      <Link to={apple}>Sign in with Apple</Link>
+    </div>
+  )
+}
+```
+
+**Connect Provider to Existing Account:**
+
+```tsx
+import { useNhostClient } from '@/providers/nhost'
+import { useAuth } from '@/providers/auth'
+import { Link } from 'react-router-dom'
+
+function ConnectGithub() {
+  const nhost = useNhostClient()
+  const { session } = useAuth()
+
+  const github = nhost.auth.signInProviderURL('github', {
+    connect: session?.accessToken,  // Pass access token
+    redirectTo: `${window.location.origin}/profile`
+  })
+
+  return <Link to={github}>Connect GitHub</Link>
+}
+```
+
+**Available OAuth Providers:**
+
+The following providers are supported (use their string identifier with `signInProviderURL()`):
+- `'github'`, `'google'`, `'apple'`, `'facebook'`, `'linkedin'`, `'discord'`, `'spotify'`, `'twitch'`, `'gitlab'`, `'bitbucket'`, `'workos'`, `'twitter'`, `'windowslive'`, `'strava'`, `'azuread'` (deprecated, use `'entraid'`), `'entraid'`
+
+### Migration Checklist (React)
+
+- [ ] Replace `@nhost/react` with `@nhost/nhost-js`
+- [ ] Create custom `NhostProvider` and `useNhostClient()` hook
+- [ ] Create custom `AuthProvider` and `useAuth()` hook
+- [ ] Create `NhostApolloProvider` if using GraphQL
+- [ ] Replace all `use*` hooks with direct SDK calls
+- [ ] Implement manual loading/error state management with `useState`
+- [ ] Replace result checking (`result.isError`) with try/catch
+- [ ] Update all auth operations to check response bodies
+- [ ] Install `@simplewebauthn/browser` if using WebAuthn
+- [ ] Create `useSecurity()` hook if using elevated permissions
+- [ ] Update OAuth provider links to use individual `signInProviderURL()` calls
+- [ ] Test all authentication flows
+- [ ] Test file upload/download functionality
+- [ ] Test GraphQL integration
+
+---
+
+## Need Help?
+
+If you encounter issues during migration:
+
+- Check the [JavaScript SDK Reference](/reference/javascript/nhost-js/main)
+- Review the [Auth API Reference](/reference/auth/post-signin-email-password)
+- Review the [Storage API Reference](/reference/storage/post-files)
+- Visit our [Support Portal](https://app.nhost.io/support)
+
+## Next Steps
+
+After migrating your code:
+
+1. **Test thoroughly** - Ensure all authentication and data flows work correctly
+2. **Remove deprecated packages** - Clean up old dependencies
+3. **Update CI/CD** - Update any build scripts that reference old package names
+4. **Monitor errors** - Watch for any runtime issues in production

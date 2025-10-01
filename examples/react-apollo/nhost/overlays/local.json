@@ -1,0 +1,120 @@
+[
+  {
+    "value": "disabled",
+    "op": "replace",
+    "path": "/auth/elevatedPrivileges/mode"
+  },
+  {
+    "op": "remove",
+    "path": "/auth/method/oauth/apple/clientId"
+  },
+  {
+    "value": false,
+    "op": "replace",
+    "path": "/auth/method/oauth/apple/enabled"
+  },
+  {
+    "op": "remove",
+    "path": "/auth/method/oauth/apple/keyId"
+  },
+  {
+    "op": "remove",
+    "path": "/auth/method/oauth/apple/privateKey"
+  },
+  {
+    "op": "remove",
+    "path": "/auth/method/oauth/apple/teamId"
+  },
+  {
+    "value": "localhost",
+    "op": "replace",
+    "path": "/auth/method/webauthn/relyingParty/id"
+  },
+  {
+    "value": "http://localhost:3000",
+    "op": "replace",
+    "path": "/auth/method/webauthn/relyingParty/origins/0"
+  },
+  {
+    "value": {
+      "bruteForce": {
+        "interval": "5m",
+        "limit": 100
+      },
+      "emails": {
+        "interval": "1h",
+        "limit": 100
+      },
+      "global": {
+        "interval": "1m",
+        "limit": 1000
+      },
+      "signups": {
+        "interval": "5m",
+        "limit": 100
+      },
+      "sms": {
+        "interval": "1h",
+        "limit": 100
+      }
+    },
+    "op": "add",
+    "path": "/auth/rateLimit"
+  },
+  {
+    "value": "http://localhost:3000",
+    "op": "replace",
+    "path": "/auth/redirections/allowedUrls/0"
+  },
+  {
+    "value": "http://localhost:3000/profile",
+    "op": "replace",
+    "path": "/auth/redirections/allowedUrls/1"
+  },
+  {
+    "op": "remove",
+    "path": "/auth/redirections/allowedUrls/2"
+  },
+  {
+    "op": "remove",
+    "path": "/auth/redirections/allowedUrls/2"
+  },
+  {
+    "op": "remove",
+    "path": "/auth/redirections/allowedUrls/2"
+  },
+  {
+    "op": "remove",
+    "path": "/auth/redirections/allowedUrls/2"
+  },
+  {
+    "op": "remove",
+    "path": "/auth/redirections/allowedUrls/2"
+  },
+  {
+    "op": "remove",
+    "path": "/auth/redirections/allowedUrls/2"
+  },
+  {
+    "op": "remove",
+    "path": "/auth/redirections/allowedUrls/2"
+  },
+  {
+    "value": "http://localhost:3000",
+    "op": "replace",
+    "path": "/auth/redirections/clientUrl"
+  },
+  {
+    "value": {
+      "host": "smtp.test.com",
+      "method": "LOGIN",
+      "password": "test123123",
+      "port": 587,
+      "secure": false,
+      "sender": "test@nhost.io",
+      "user": "test"
+    },
+    "op": "add",
+    "path": "/provider/smtp"
+  }
+]
