@@ -22,7 +22,7 @@ func CommandDefault() *cli.Command {
 	}
 }
 
-func commandDefault(ctx context.Context, cmd *cli.Command) error {
+func commandDefault(_ context.Context, cmd *cli.Command) error {
 	ce := clienv.FromCLI(cmd)
 
 	if err := os.MkdirAll(ce.Path.NhostFolder(), 0o755); err != nil { //nolint:mnd

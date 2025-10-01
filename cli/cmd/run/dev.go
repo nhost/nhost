@@ -50,7 +50,7 @@ func escape(s string) string {
 	return re.ReplaceAllString(s, "\\$0")
 }
 
-func commandConfigDev(ctx context.Context, cmd *cli.Command) error {
+func commandConfigDev(_ context.Context, cmd *cli.Command) error {
 	ce := clienv.FromCLI(cmd)
 
 	var secrets model.Secrets

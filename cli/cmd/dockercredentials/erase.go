@@ -16,7 +16,7 @@ func CommandErase() *cli.Command {
 	}
 }
 
-func actionErase(ctx context.Context, cmd *cli.Command) error {
+func actionErase(_ context.Context, cmd *cli.Command) error {
 	_, _ = cmd.Root().Writer.Write([]byte("Please, use the nhost CLI to logout\n"))
 	return nil
 }

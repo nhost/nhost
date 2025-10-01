@@ -23,7 +23,7 @@ func CommandExample() *cli.Command {
 
 func ptr[T any](v T) *T { return &v }
 
-func commandExample(ctx context.Context, cmd *cli.Command) error { //nolint:funlen,maintidx
+func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen,maintidx
 	ce := clienv.FromCLI(cmd)
 
 	//nolint:mnd

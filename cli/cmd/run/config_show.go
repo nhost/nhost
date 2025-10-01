@@ -35,7 +35,7 @@ func CommandConfigShow() *cli.Command {
 	}
 }
 
-func commandConfigShow(ctx context.Context, cmd *cli.Command) error {
+func commandConfigShow(_ context.Context, cmd *cli.Command) error {
 	ce := clienv.FromCLI(cmd)
 
 	var secrets model.Secrets

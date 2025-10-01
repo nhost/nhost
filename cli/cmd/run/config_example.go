@@ -25,7 +25,7 @@ func CommandConfigExample() *cli.Command {
 	}
 }
 
-func commandConfigExample(ctx context.Context, cmd *cli.Command) error { //nolint:funlen
+func commandConfigExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 	ce := clienv.FromCLI(cmd)
 
 	//nolint:mnd

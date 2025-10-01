@@ -60,7 +60,7 @@ function build_typedoc() {
 
 function build_cli_docs() {
     echo "⚒️⚒️⚒️ Building CLI documentation..."
-    cli docs > reference/cli/nhost.mdx
+    cli docs > reference/cli/commands.mdx
 }
 
 build_openapi

@@ -16,7 +16,7 @@ func CommandStore() *cli.Command {
 	}
 }
 
-func actionStore(ctx context.Context, cmd *cli.Command) error {
+func actionStore(_ context.Context, cmd *cli.Command) error {
 	_, _ = cmd.Root().Writer.Write([]byte("Please, use the nhost CLI to login\n"))
 	return nil
 }

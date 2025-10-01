@@ -37,7 +37,7 @@ func CommandConfigEditImage() *cli.Command {
 	}
 }
 
-func commandConfigEditImage(ctx context.Context, cmd *cli.Command) error {
+func commandConfigEditImage(_ context.Context, cmd *cli.Command) error {
 	var cfg model.ConfigRunServiceConfig
 	if err := clienv.UnmarshalFile(cmd.String(flagConfig), &cfg, toml.Unmarshal); err != nil {
 		return fmt.Errorf("failed to unmarshal config: %w", err)

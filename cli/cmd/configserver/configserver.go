@@ -103,7 +103,7 @@ func runServicesFiles(runServices ...string) map[string]string {
 	return m
 }
 
-func serve(ctx context.Context, cmd *cli.Command) error {
+func serve(_ context.Context, cmd *cli.Command) error {
 	logger := getLogger(cmd.Bool(debugFlag), cmd.Bool(logFormatJSONFlag))
 	logger.Info(cmd.Root().Name + " v" + cmd.Root().Version)
 	logFlags(logger, cmd)
