@@ -36,6 +36,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
+import { HttpStatusText } from '@/features/orgs/projects/events/components/HttpStatusText';
 import { useGetEventAndInvocationLogsById } from '@/features/orgs/projects/events/hooks/useGetEventAndInvocationLogsById';
 import type { EventInvocationLogEntry } from '@/utils/hasura-api/generated/schemas/eventInvocationLogEntry';
 import {
@@ -53,19 +54,6 @@ import {
 import { ArrowUpDown, CalendarSync, Eye } from 'lucide-react';
 import type { Dispatch, SetStateAction } from 'react';
 import { useEffect, useMemo, useState } from 'react';
-
-function getStatusText(status?: number) {
-  if (!status) {
-    return <span className="font-mono text-xs text-yellow-600">NULL</span>;
-  }
-  if (status >= 200 && status < 300) {
-    return <span className="font-mono text-xs text-green-600">{status}</span>;
-  }
-  if (status >= 400) {
-    return <span className="font-mono text-xs text-red-600">{status}</span>;
-  }
-  return <span className="font-mono text-xs text-yellow-600">{status}</span>;
-}
 
 function CreatedAtHeader({
   column,
@@ -90,14 +78,7 @@ function CreatedAtCell({ createdAt }: { createdAt: string }) {
       date={new Date(createdAt)}
       className="-m-4 block w-full truncate py-4 pl-4 font-mono text-xs"
     />
-    // <span className="font-mono text-xs">
-    //   {format(new Date(createdAt), 'PPP HH:mm:ss')}
-    // </span>
   );
-}
-
-function HttpStatusCell({ status }: { status: number }) {
-  return getStatusText(status);
 }
 
 function escapeRegExp(input: string) {
@@ -145,6 +126,7 @@ function IdCell({ id, query }: { id: string; query: string }) {
   return (
     <TextWithTooltip
       className="font-mono text-xs"
+      containerClassName="cursor-text"
       text={highlightMatch(id, query)}
     />
   );
@@ -208,7 +190,7 @@ function ActionsCell({
             <Eye className="h-4 w-4" />
           </Button>
         </DialogTrigger>
-        <DialogContent className="max-h-[80vh] max-w-4xl overflow-y-auto text-foreground">
+        <DialogContent className="flex h-[80vh] max-w-4xl flex-col overflow-y-auto text-foreground">
           <DialogHeader>
             <DialogTitle className="text-foreground">
               Invocation Log Details
@@ -238,7 +220,10 @@ function ActionsCell({
                 <span className="text-sm font-medium text-muted-foreground">
                   HTTP Status:
                 </span>
-                {getStatusText(meta?.selectedLog?.http_status)}
+                <HttpStatusText
+                  className="text-sm"
+                  status={meta?.selectedLog?.http_status}
+                />
               </div>
               <div className="flex justify-between">
                 <span className="text-sm font-medium text-muted-foreground">
@@ -285,7 +270,7 @@ function ActionsCell({
                 <div>
                   <h4 className="mb-2 font-medium text-foreground">Payload</h4>
                   <CodeBlock
-                    className="py-2"
+                    className="rounded py-2"
                     copyToClipboardToastTitle={`${meta.selectedLog.trigger_name} payload`}
                   >
                     {JSON.stringify(meta.selectedLog.request.payload, null, 2)}
@@ -296,7 +281,10 @@ function ActionsCell({
                 <div className="flex items-center gap-4 text-sm">
                   <div>
                     <span className="font-medium">Status: </span>
-                    {getStatusText(meta.selectedLog.response?.data?.status)}
+                    <HttpStatusText
+                      className="text-sm"
+                      status={meta.selectedLog.response?.data?.status}
+                    />
                   </div>
                   <div>
                     <span className="font-medium">Type: </span>
@@ -335,7 +323,7 @@ function ActionsCell({
                 <div>
                   <h4 className="mb-2 font-medium">Response Body</h4>
                   <CodeBlock
-                    className="w-full max-w-full whitespace-pre-wrap break-all"
+                    className="w-full max-w-full whitespace-pre-wrap break-all rounded py-2"
                     copyToClipboardToastTitle={`${meta.selectedLog.trigger_name} response body`}
                   >
                     {meta.selectedLog.response?.data?.body ??
@@ -369,7 +357,7 @@ const columnsBase: ColumnDef<EventInvocationLogEntry>[] = [
     maxSize: 70,
     header: 'Status',
     enableSorting: false,
-    cell: ({ row }) => <HttpStatusCell status={row.original.http_status} />,
+    cell: ({ row }) => <HttpStatusText status={row.original.http_status} />,
   },
   {
     id: 'id',

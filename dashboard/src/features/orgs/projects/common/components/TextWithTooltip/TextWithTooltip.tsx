@@ -11,10 +11,12 @@ import { type ReactNode, useEffect, useRef, useState } from 'react';
 interface TextWithTooltipProps {
   text: string | number | ReactNode;
   className?: string;
+  containerClassName?: string;
 }
 
 export default function TextWithTooltip({
   text,
+  containerClassName,
   className,
 }: TextWithTooltipProps) {
   const [isTruncated, setIsTruncated] = useState<boolean>(false);
@@ -45,7 +47,7 @@ export default function TextWithTooltip({
 
   return (
     <TooltipProvider delayDuration={100} disableHoverableContent>
-      <div className={cn(!isTruncated && 'cursor-text')}>
+      <div className={containerClassName}>
         <Tooltip>
           <TooltipTrigger disabled={!isTruncated} asChild>
             <div

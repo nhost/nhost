@@ -10,6 +10,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/v3/accordion';
 import { Button } from '@/components/ui/v3/button';
+import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useGetEventTriggers } from '@/features/orgs/projects/events/hooks/useGetEventTriggers';
 import type { EventTriggerUI } from '@/features/orgs/projects/events/types';
@@ -83,10 +84,6 @@ function EventsBrowserSidebarContent() {
                   {eventTriggers.map((eventTrigger) => {
                     const isSelected = eventTrigger.name === eventTriggerSlug;
                     return (
-                      // {
-                      //   'bg-[#ebf3ff] hover:bg-[#ebf3ff] dark:bg-muted':
-                      //     context.isFocused,
-                      // },
                       <Button
                         className={cn(
                           'flex h-9 max-w-52 flex-row justify-between gap-2 bg-background px-2 text-foreground hover:bg-accent dark:hover:bg-muted',
@@ -102,14 +99,13 @@ function EventsBrowserSidebarContent() {
                           href={`/orgs/${orgSlug}/projects/${appSubdomain}/events/event-trigger/${eventTrigger.name}`}
                           className="flex w-full items-center gap-2"
                         >
-                          <span
+                          <TextWithTooltip
+                            containerClassName="max-w-36"
                             className={cn(
-                              'min-w-0 flex-1 truncate',
                               isSelected && 'text-primary hover:text-primary',
                             )}
-                          >
-                            {eventTrigger.name}
-                          </span>
+                            text={eventTrigger.name}
+                          />
                           <Button
                             variant="ghost"
                             size="sm"
