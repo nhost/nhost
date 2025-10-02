@@ -6,7 +6,9 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/nhost/nhost/cli/clienv"
 	"github.com/pelletier/go-toml/v2"
+	"github.com/urfave/cli/v3"
 )
 
 func ptr[T any](v T) *T {
@@ -80,18 +82,14 @@ type Project struct {
 	AllowMutations []string `json:"allow_mutations" toml:"allow_mutations"`
 }
 
-func GetConfigPath() string {
-	configHome := os.Getenv("XDG_CONFIG_HOME")
-	if configHome == "" {
-		homeDir, err := os.UserHomeDir()
-		if err != nil {
-			return "mcp-nhost.toml"
-		}
-
-		configHome = filepath.Join(homeDir, ".config")
+func GetConfigPath(cmd *cli.Command) string {
+	configPath := cmd.String("config-file")
+	if configPath != "" {
+		return configPath
 	}
 
-	return filepath.Join(configHome, "nhost", "mcp-nhost.toml")
+	ce := clienv.FromCLI(cmd)
+	return filepath.Join(ce.Path.DotNhostFolder(), "mcp-nhost.toml")
 }
 
 func Load(path string) (*Config, error) {

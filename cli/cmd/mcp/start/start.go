@@ -15,7 +15,6 @@ import (
 )
 
 const (
-	flagConfigFile      = "config-file"
 	flagNhostAuthURL    = "nhost-auth-url"
 	flagNhostGraphqlURL = "nhost-graphql-url"
 	flagBind            = "bind"
@@ -48,12 +47,6 @@ func Command() *cli.Command {
 		Name:  "start",
 		Usage: "Starts the MCP server",
 		Flags: []cli.Flag{
-			&cli.StringFlag{ //nolint:exhaustruct
-				Name:    flagConfigFile,
-				Usage:   "Path to the config file",
-				Value:   config.GetConfigPath(),
-				Sources: cli.EnvVars("CONFIG_FILE"),
-			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:     flagNhostAuthURL,
 				Usage:    "Nhost auth URL",
@@ -128,7 +121,7 @@ func action(ctx context.Context, cmd *cli.Command) error {
 }
 
 func getConfig(cmd *cli.Command) (*config.Config, error) {
-	configPath := cmd.String(flagConfigFile)
+	configPath := config.GetConfigPath(cmd)
 	if configPath == "" {
 		return nil, cli.Exit("config file path is required", 1)
 	}
