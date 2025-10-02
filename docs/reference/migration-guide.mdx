@@ -1,14 +1,17 @@
 ---
-title: 'Migration Guide: Deprecated SDKs to Unified JavaScript SDK'
+title: 'Migration guide to our new JavaScript SDK' 
+sidebarTitle: 'Migration Guide'
 description: 'Learn how to migrate from the deprecated SDKs to the new unified JavaScript SDK'
 ---
 
-This guide helps you migrate from Nhost's deprecated SDKs to the new unified JavaScript SDK (`@nhost/nhost-js` v4.x+).
+This guide helps you migrate from our deprecated SDKs to the new unified JavaScript SDK (`@nhost/nhost-js` v4.x+).
+
+In case you missed it, please read our [announcement blog post](https://nhost.io/blog/introducing-new-javascript-sdk) for more information.
 
 ## Overview
 
 **What's Deprecated:**
-- `@nhost/nhost-js` v3.x (and earlier v2.x)
+- `@nhost/nhost-js` < v4.x 
 - `@nhost/react`
 - `@nhost/nextjs`
 - `@nhost/vue`
@@ -23,9 +26,9 @@ The deprecated SDKs are still available in the [Client Libraries (deprecated)](/
 
 ---
 
-## Part 1: JavaScript SDK Migration (`@nhost/nhost-js` v3.x → v4.x)
+## `@nhost/nhost-js` v3.x → v4.x
 
-This section covers migrating from the old vanilla JavaScript SDK to the new one. If you're migrating from React/Next.js/Vue, skip to [Part 2](#part-2-react-sdk-migration).
+This section covers migrating from the old vanilla JavaScript SDK to the new one. If you're migrating from React/Next.js/Vue, skip to the section on [React](#%40nhost%2Freact-→-%40nhost%2Fnhost-js).
 
 ### Client Initialization
 
@@ -163,31 +166,20 @@ WebAuthn features require installing `@simplewebauthn/browser` and manually inte
 |------|------|-------|
 | `functions.call(path, body)` | `functions.call({ url: path, body })` | Options object |
 
-### Migration Checklist (JavaScript SDK)
-
-- [ ] Replace `new NhostClient()` with `createClient()`
-- [ ] Update all method calls to use options objects
-- [ ] Replace result checking (`result.error`) with try/catch
-- [ ] Update `signIn` → `signInEmailPassword`
-- [ ] Update `signUp` → `signUpEmailPassword`
-- [ ] Pass `refreshToken` to `signOut()`
-- [ ] Update `changeEmail` → `changeUserEmail`
-- [ ] Update `changePassword` → `changeUserPassword`
-- [ ] Update session/user access to use `getUserSession()`
-- [ ] Update storage `upload()` → `uploadFiles()` with `"file[]"` key
-- [ ] Update GraphQL requests to use `document` key
-- [ ] Update storage download/delete to use new method names
-
 ---
 
-## Part 2: React SDK Migration (`@nhost/react` → `@nhost/nhost-js`)
+## `@nhost/react` → `@nhost/nhost-js`
 
 This section covers migrating React applications from the deprecated `@nhost/react` package to using the vanilla JavaScript SDK with custom React patterns.
+
+<Note>
+While this guide uses React, the same changes apply to other frameworks like Next.js and Vue.js. You'll need to adapt the provider patterns and state management to your framework (e.g., using Vue's `provide`/`inject` or composables instead of React Context and hooks).
+</Note>
 
 ### Overview of Changes
 
 The old `@nhost/react` package provided:
-- Ready-made hooks (`useSignInEmailPassword`, `useUserData`, etc.)
+- Ready-made hooks (`useSignInEmailPassword`, `useUserData`, etc)
 - Built-in providers (`NhostProvider`, `NhostApolloProvider`)
 - Automatic state management
 
@@ -1147,28 +1139,6 @@ function ConnectGithub() {
   return <Link to={github}>Connect GitHub</Link>
 }
 ```
-
-**Available OAuth Providers:**
-
-The following providers are supported (use their string identifier with `signInProviderURL()`):
-- `'github'`, `'google'`, `'apple'`, `'facebook'`, `'linkedin'`, `'discord'`, `'spotify'`, `'twitch'`, `'gitlab'`, `'bitbucket'`, `'workos'`, `'twitter'`, `'windowslive'`, `'strava'`, `'azuread'` (deprecated, use `'entraid'`), `'entraid'`
-
-### Migration Checklist (React)
-
-- [ ] Replace `@nhost/react` with `@nhost/nhost-js`
-- [ ] Create custom `NhostProvider` and `useNhostClient()` hook
-- [ ] Create custom `AuthProvider` and `useAuth()` hook
-- [ ] Create `NhostApolloProvider` if using GraphQL
-- [ ] Replace all `use*` hooks with direct SDK calls
-- [ ] Implement manual loading/error state management with `useState`
-- [ ] Replace result checking (`result.isError`) with try/catch
-- [ ] Update all auth operations to check response bodies
-- [ ] Install `@simplewebauthn/browser` if using WebAuthn
-- [ ] Create `useSecurity()` hook if using elevated permissions
-- [ ] Update OAuth provider links to use individual `signInProviderURL()` calls
-- [ ] Test all authentication flows
-- [ ] Test file upload/download functionality
-- [ ] Test GraphQL integration
 
 ---
 

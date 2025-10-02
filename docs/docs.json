@@ -402,13 +402,7 @@
           {
             "group": "Client Libraries",
             "pages": [
-              {
-                "group": "Migration Guide",
-                "icon": "arrow-right-arrow-left",
-                "pages": [
-                  "reference/migration-guide"
-                ]
-              },
+                  "reference/migration-guide",
               {
                 "group": "Javascript",
                 "icon": "js",
