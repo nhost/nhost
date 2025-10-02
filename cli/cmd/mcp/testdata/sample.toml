@@ -1,0 +1,20 @@
+[cloud]
+pat = 'your-personal-access-token'
+enable_mutations = true
+
+[local]
+admin_secret = 'nhost-admin-secret'
+
+[[projects]]
+subdomain = 'asdasdasdasdasd'
+region = 'eu-central-1'
+admin_secret = 'your-admin-secret-1'
+allow_queries = ['*']
+allow_mutations = ['*']
+
+[[projects]]
+subdomain = 'qweqweqweqweqwe'
+region = 'us-east-1'
+pat = 'pat-for-qweqweqweqweqwe'
+allow_queries = ['getComments']
+allow_mutations = ['insertComment', 'updateComment', 'deleteComment']

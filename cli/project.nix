@@ -24,6 +24,13 @@ let
       (inDirectory "${submodule}/cmd/config/testdata")
       (inDirectory "${submodule}/cmd/project/templates")
       (inDirectory "${submodule}/nhostclient/graphql/query/")
+
+      "${submodule}/mcp/nhost/auth/openapi.yaml"
+      "${submodule}/mcp/nhost/graphql/openapi.yaml"
+      "${submodule}/mcp/tools/cloud/schema.graphql"
+      "${submodule}/mcp/tools/cloud/schema-with-mutations.graphql"
+      (inDirectory "${submodule}/cmd/mcp/testdata")
+      (inDirectory "${submodule}/mcp/graphql/testdata")
     ];
   };
 
@@ -37,7 +44,7 @@ let
     curl
     cacert
     gqlgenc
-
+    oapi-codegen
   ];
 
   buildInputs = [ ];
