@@ -55,7 +55,10 @@ rec {
   };
 
   devShell = nixops-lib.go.devShell {
-    buildInputs = [
+    buildInputs = with pkgs; [
+      certbot-full
+      python312Packages.certbot-dns-route53
+
     ] ++ checkDeps ++ buildInputs ++ nativeBuildInputs;
   };
 
