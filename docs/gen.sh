@@ -61,6 +61,7 @@ function build_typedoc() {
 function build_cli_docs() {
     echo "⚒️⚒️⚒️ Building CLI documentation..."
     cli docs > reference/cli/commands.mdx
+    cat reference/cli/commands.mdx
 }
 
 build_openapi
