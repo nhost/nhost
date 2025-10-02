@@ -9,7 +9,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/hashicorp/go-getter"
+	"github.com/hashicorp/go-getter/v2"
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/nhost/cli/clienv"
 	"github.com/nhost/nhost/cli/cmd/config"
@@ -129,17 +129,12 @@ func initInit(
 		return err
 	}
 
-	getclient := &getter.Client{ //nolint:exhaustruct
-		Ctx:  ctx,
-		Src:  "github.com/nhost/hasura-auth/email-templates",
-		Dst:  "nhost/emails",
-		Mode: getter.ClientModeAny,
-		Detectors: []getter.Detector{
-			&getter.GitHubDetector{},
-		},
-	}
-
-	if err := getclient.Get(); err != nil {
+	getclient := &getter.Client{}                    //nolint:exhaustruct
+	if _, err := getclient.Get(ctx, &getter.Request{ //nolint:exhaustruct
+		Src:             "git::https://github.com/nhost/hasura-auth.git//email-templates",
+		Dst:             "nhost/emails",
+		DisableSymlinks: true,
+	}); err != nil {
 		return fmt.Errorf("failed to download email templates: %w", err)
 	}
 
