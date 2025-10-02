@@ -41,7 +41,7 @@ func auth( //nolint:funlen
 	envars, err := appconfig.HasuraAuthEnv(
 		cfg,
 		"http://graphql:8080/v1/graphql",
-		URL(subdomain, "auth", httpPort, useTLS)+"/v1",
+		URL(subdomain, "auth", httpPort, useTLS && exposePort == 0)+"/v1",
 		"postgres://nhost_hasura@postgres:5432/local",
 		"postgres://nhost_auth_admin@postgres:5432/local",
 		&model.ConfigSmtp{
