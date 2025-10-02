@@ -14,8 +14,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/providers/auth";
 import { useNhostClient } from "@/providers/nhost";
-import { FetchError } from "@nhost/nhost-js/fetch";
-import { ErrorResponse } from "@nhost/nhost-js/auth";
+import { type FetchError } from "@nhost/nhost-js/fetch";
+import { type ErrorResponse } from "@nhost/nhost-js/auth";
 
 export default function SignInSecurityKey() {
   const { user } = useAuth();

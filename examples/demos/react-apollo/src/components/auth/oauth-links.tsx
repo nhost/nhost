@@ -3,7 +3,8 @@ import {
   SiApple,
   SiGithub,
   SiGoogle,
-  SiLinkedin,
+  // SiLinkedin,
+  // SiLinkerd,
   SiDiscord,
   SiSpotify,
   SiTwitch,
@@ -75,7 +76,7 @@ export default function OAuthLinks() {
           "bg-[#0073B1] text-white hover:opacity-90 hover:no-underline",
         )}
       >
-        <SiLinkedin className="w-4 h-4" />
+        {/* <SiLinkedin className="w-4 h-4" /> */}
         <span className="flex-1 text-center">Continue with LinkedIn</span>
       </Link>
 
