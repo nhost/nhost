@@ -12,8 +12,8 @@ import {
 import { Button } from '@/components/ui/v3/button';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { useGetEventTriggers } from '@/features/orgs/projects/events/hooks/useGetEventTriggers';
-import type { EventTriggerViewModel } from '@/features/orgs/projects/events/types';
+import { useGetEventTriggers } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventTriggers';
+import type { EventTriggerViewModel } from '@/features/orgs/projects/events/event-triggers/types';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { cn } from '@/lib/utils';
 import { Database, Ellipsis, Plus } from 'lucide-react';

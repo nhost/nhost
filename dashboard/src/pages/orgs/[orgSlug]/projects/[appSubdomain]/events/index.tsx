@@ -1,9 +1,9 @@
 import { Box } from '@/components/ui/v2/Box';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
-import { EventsBrowserSidebar } from '@/features/orgs/projects/events/components/EventsBrowserSidebar';
-import { EventsEmptyState } from '@/features/orgs/projects/events/components/EventsEmptyState';
-import { useGetEventTriggers } from '@/features/orgs/projects/events/hooks/useGetEventTriggers';
+import { EventsBrowserSidebar } from '@/features/orgs/projects/events/common/components/EventsBrowserSidebar';
+import { EventsEmptyState } from '@/features/orgs/projects/events/common/components/EventsEmptyState';
+import { useGetEventTriggers } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventTriggers';
 import type { ReactElement } from 'react';
 
 export default function EventsPage() {

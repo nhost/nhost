@@ -1,4 +1,4 @@
-import type { EventTriggerViewModel } from '@/features/orgs/projects/events/types';
+import type { EventTriggerViewModel } from '@/features/orgs/projects/events/event-triggers/types';
 import type { ExportMetadataResponseMetadata } from '@/utils/hasura-api/generated/schemas';
 
 export default function parseEventTriggersFromMetadata(

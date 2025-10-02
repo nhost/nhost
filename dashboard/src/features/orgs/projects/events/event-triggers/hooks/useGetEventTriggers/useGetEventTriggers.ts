@@ -1,7 +1,7 @@
 import { fetchExportMetadata } from '@/features/orgs/projects/common/utils/fetchExportMetadata';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
-import type { EventTriggerViewModel } from '@/features/orgs/projects/events/types';
-import parseEventTriggersFromMetadata from '@/features/orgs/projects/events/utils/parseEventTriggersFromMetadata/parseEventTriggersFromMetadata';
+import type { EventTriggerViewModel } from '@/features/orgs/projects/events/event-triggers/types';
+import parseEventTriggersFromMetadata from '@/features/orgs/projects/events/event-triggers/utils/parseEventTriggersFromMetadata/parseEventTriggersFromMetadata';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { ExportMetadataResponse } from '@/utils/hasura-api/generated/schemas';
 import type { UseQueryOptions } from '@tanstack/react-query';

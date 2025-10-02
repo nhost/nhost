@@ -15,8 +15,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/v3/table';
-import useGetEventLogsQuery from '@/features/orgs/projects/events/hooks/useGetEventLogsQuery/useGetEventLogsQuery';
-import type { EventTriggerViewModel } from '@/features/orgs/projects/events/types';
+import { EventTriggerInvocationLogsDataTable } from '@/features/orgs/projects/events/components/EventTriggerInvocationLogsDataTable';
+import useGetEventLogsQuery from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventLogsQuery/useGetEventLogsQuery';
+import type { EventTriggerViewModel } from '@/features/orgs/projects/events/event-triggers/types';
 import { cn } from '@/lib/utils';
 import type { EventLogEntry } from '@/utils/hasura-api/generated/schemas/eventLogEntry';
 import {
@@ -29,20 +30,17 @@ import {
   getFilteredRowModel,
   getSortedRowModel,
   type SortingState,
-  type Table as TanStackTable,
   useReactTable,
 } from '@tanstack/react-table';
 import { format } from 'date-fns-v4';
-import { ArrowUpDown, Check, Eye, X } from 'lucide-react';
+import { ArrowUpDown, Check, X } from 'lucide-react';
 import { Fragment, useEffect, useMemo, useState } from 'react';
-import { EventTriggerInvocationLogsNode } from '../EventTriggerInvocationLogsNode';
 
-// Helpers and column cell/header components (module scope to satisfy lint rules)
 function getDeliveredIcon(delivered: boolean) {
   if (delivered) {
-    return <Check className="h-4 w-4 text-green-600" />;
+    return <Check className="h-4 w-4 text-green-600 dark:text-green-400" />;
   }
-  return <X className="h-4 w-4 text-red-600" />;
+  return <X className="h-4 w-4 text-red-600 dark:text-red-400" />;
 }
 
 function CreatedAtHeader({
@@ -119,28 +117,6 @@ function IdCell({ id, query }: { id: string; query: string }) {
   return <span className="font-mono text-xs">{highlightMatch(id, query)}</span>;
 }
 
-function ActionsCell({
-  row,
-  table,
-}: {
-  row: EventLogEntry;
-  table: TanStackTable<EventLogEntry>;
-}) {
-  const meta = table.options.meta as
-    | { onView?: (row: EventLogEntry) => void }
-    | undefined;
-  return (
-    <Button
-      variant="ghost"
-      size="sm"
-      onClick={() => meta?.onView?.(row)}
-      className="h-8 w-8 p-0"
-    >
-      <Eye className="h-4 w-4" />
-    </Button>
-  );
-}
-
 const columnsBase: ColumnDef<EventLogEntry>[] = [
   {
     id: 'created_at',
@@ -183,15 +159,13 @@ const columnsBase: ColumnDef<EventLogEntry>[] = [
   // },
 ];
 
-interface EventTriggerInvocationLogsProps {
+interface EventTriggerEventsDataTableProps {
   eventTrigger: EventTriggerViewModel;
 }
 
-export default function EventTriggerEventLogs({
+export default function EventTriggerEventsDataTable({
   eventTrigger,
-}: EventTriggerInvocationLogsProps) {
-  const [selectedLog, setSelectedLog] = useState<EventLogEntry | null>(null);
-
+}: EventTriggerEventsDataTableProps) {
   const [offset, setOffset] = useState(0);
   const [limit, setLimit] = useState(10);
 
@@ -230,10 +204,7 @@ export default function EventTriggerEventLogs({
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
-    getRowCanExpand: (row) => true,
-    meta: {
-      onView: (row: EventLogEntry) => setSelectedLog(row),
-    },
+    getRowCanExpand: () => true,
   });
 
   return (
@@ -276,10 +247,7 @@ export default function EventTriggerEventLogs({
               table.getRowModel().rows.map((row) => (
                 <Fragment key={row.id}>
                   <TableRow
-                    onClick={(e) => {
-                      console.log('clicked');
-                      row.getToggleExpandedHandler()();
-                    }}
+                    onClick={row.getToggleExpandedHandler()}
                     className={cn('cursor-pointer')}
                   >
                     {row.getVisibleCells().map((cell) => (
@@ -294,7 +262,7 @@ export default function EventTriggerEventLogs({
                   {row.getIsExpanded() && (
                     <TableRow key={`${row.id}-expanded`}>
                       <TableCell colSpan={columns.length} className="p-0">
-                        <EventTriggerInvocationLogsNode
+                        <EventTriggerInvocationLogsDataTable
                           eventId={row.id}
                           source={eventTrigger.dataSource}
                         />
@@ -369,51 +337,6 @@ export default function EventTriggerEventLogs({
           </Select>
         </div>
       </div>
-
-      {/* <Dialog open={!!selectedLog} onOpenChange={() => setSelectedLog(null)}>
-        <DialogContent className="max-h-[80vh] max-w-4xl overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-foreground">
-              Event Log Details
-            </DialogTitle>
-          </DialogHeader>
-          {selectedLog && (
-            <div className="space-y-4">
-              <div className="flex flex-wrap items-center gap-4 text-sm">
-                <div>
-                  <span className="font-medium">Delivered: </span>
-                  <span className="font-mono">
-                    {selectedLog.delivered ? 'true' : 'false'}
-                  </span>
-                </div>
-                <div>
-                  <span className="font-medium">Error: </span>
-                  <span className="font-mono">
-                    {selectedLog.error ? 'true' : 'false'}
-                  </span>
-                </div>
-                <div>
-                  <span className="font-medium">Tries: </span>
-                  <span className="font-mono">{selectedLog.tries}</span>
-                </div>
-                <div>
-                  <span className="font-medium">Created At: </span>
-                  <span className="font-mono">{selectedLog.created_at}</span>
-                </div>
-              </div>
-              <div>
-                <h4 className="mb-2 font-medium text-foreground">Payload</h4>
-                <CodeBlock
-                  className="py-2"
-                  copyToClipboardToastTitle={`${selectedLog.trigger_name} payload`}
-                >
-                  {JSON.stringify(selectedLog.payload, null, 2)}
-                </CodeBlock>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog> */}
     </div>
   );
 }

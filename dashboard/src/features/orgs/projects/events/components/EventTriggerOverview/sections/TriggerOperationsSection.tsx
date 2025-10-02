@@ -1,4 +1,4 @@
-import type { EventTriggerViewModel } from '@/features/orgs/projects/events/types';
+import type { EventTriggerViewModel } from '@/features/orgs/projects/events/event-triggers/types';
 
 export default function TriggerOperationsSection({
   eventTrigger,

@@ -4,10 +4,10 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/v3/tabs';
-import { EventsEmptyState } from '@/features/orgs/projects/events/components/EventsEmptyState';
-import { EventTriggerEventLogs } from '@/features/orgs/projects/events/components/EventTriggerEventLogs';
+import { EventsEmptyState } from '@/features/orgs/projects/events/common/components/EventsEmptyState';
+import { EventTriggerEventsDataTable } from '@/features/orgs/projects/events/components/EventTriggerEventsDataTable';
 import { EventTriggerOverview } from '@/features/orgs/projects/events/components/EventTriggerOverview';
-import { useGetEventTriggers } from '@/features/orgs/projects/events/hooks/useGetEventTriggers';
+import { useGetEventTriggers } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventTriggers';
 import { useRouter } from 'next/router';
 
 export default function EventTriggerDetails() {
@@ -59,7 +59,7 @@ export default function EventTriggerDetails() {
             <EventTriggerOverview eventTrigger={eventTrigger} />
           </TabsContent>
           <TabsContent value="pending-processed-events">
-            <EventTriggerEventLogs eventTrigger={eventTrigger} />
+            <EventTriggerEventsDataTable eventTrigger={eventTrigger} />
           </TabsContent>
         </Tabs>
       </div>

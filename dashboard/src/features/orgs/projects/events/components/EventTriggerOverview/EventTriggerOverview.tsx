@@ -4,7 +4,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/v3/collapsible';
 import EventTriggerHeadersTable from '@/features/orgs/projects/events/components/EventTriggerHeadersTable/EventTriggerHeadersTable';
-import type { EventTriggerViewModel } from '@/features/orgs/projects/events/types';
+import type { EventTriggerViewModel } from '@/features/orgs/projects/events/event-triggers/types';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 import TriggerOperationsSection from './sections/TriggerOperationsSection';
