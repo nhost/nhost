@@ -15,7 +15,7 @@ import (
 	"github.com/nhost/nhost/cli/nhostclient/graphql"
 	"github.com/nhost/nhost/cli/project/env"
 	"github.com/pelletier/go-toml/v2"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 const (
@@ -35,17 +35,17 @@ func CommandConfigValidate() *cli.Command {
 				Aliases: []string{},
 				Usage:   "Service configuration file",
 				Value:   "nhost-run-service.toml",
-				EnvVars: []string{"NHOST_RUN_SERVICE_CONFIG"},
+				Sources: cli.EnvVars("NHOST_RUN_SERVICE_CONFIG"),
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagOverlayName,
 				Usage:   "If specified, apply this overlay",
-				EnvVars: []string{"NHOST_SERVICE_OVERLAY_NAME"},
+				Sources: cli.EnvVars("NHOST_SERVICE_OVERLAY_NAME"),
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagServiceID,
 				Usage:   "If specified, apply this overlay and remote secrets for this service",
-				EnvVars: []string{"NHOST_RUN_SERVICE_ID"},
+				Sources: cli.EnvVars("NHOST_RUN_SERVICE_ID"),
 			},
 		},
 	}
@@ -157,35 +157,35 @@ func getRemoteSecrets(
 	return respToSecrets(secretsResp.GetAppSecrets()), appID, nil
 }
 
-func commandConfigValidate(cCtx *cli.Context) error {
+func commandConfigValidate(ctx context.Context, cmd *cli.Command) error {
 	var (
 		overlayName string
 		serviceID   string
 	)
 
 	switch {
-	case cCtx.String(flagServiceID) != "" && cCtx.String(flagOverlayName) != "":
+	case cmd.String(flagServiceID) != "" && cmd.String(flagOverlayName) != "":
 		return errors.New("cannot specify both service id and overlay name") //nolint:err113
-	case cCtx.String(flagServiceID) != "":
-		serviceID = cCtx.String(flagServiceID)
+	case cmd.String(flagServiceID) != "":
+		serviceID = cmd.String(flagServiceID)
 		overlayName = serviceID
-	case cCtx.String(flagOverlayName) != "":
-		overlayName = cCtx.String(flagOverlayName)
+	case cmd.String(flagOverlayName) != "":
+		overlayName = cmd.String(flagOverlayName)
 	}
 
-	ce := clienv.FromCLI(cCtx)
+	ce := clienv.FromCLI(cmd)
 
 	var secrets model.Secrets
 
 	ce.Infoln("Getting secrets...")
 
 	if serviceID != "" {
-		cl, err := ce.GetNhostClient(cCtx.Context)
+		cl, err := ce.GetNhostClient(ctx)
 		if err != nil {
 			return fmt.Errorf("failed to get nhost client: %w", err)
 		}
 
-		secrets, _, err = getRemoteSecrets(cCtx.Context, cl, serviceID)
+		secrets, _, err = getRemoteSecrets(ctx, cl, serviceID)
 		if err != nil {
 			return err
 		}
@@ -202,7 +202,7 @@ func commandConfigValidate(cCtx *cli.Context) error {
 
 	if _, err := Validate(
 		ce,
-		cCtx.String(flagConfig),
+		cmd.String(flagConfig),
 		overlayName,
 		secrets,
 		false,

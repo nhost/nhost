@@ -8,7 +8,7 @@ import (
 	"os"
 
 	"github.com/nhost/nhost/cli/clienv"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 const (
@@ -26,14 +26,14 @@ func CommandGet() *cli.Command {
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagAuthURL,
 				Usage:   "Nhost auth URL",
-				EnvVars: []string{"NHOST_CLI_AUTH_URL"},
+				Sources: cli.EnvVars("NHOST_CLI_AUTH_URL"),
 				Value:   "https://otsispdzcwxyqzbfntmj.auth.eu-central-1.nhost.run/v1",
 				Hidden:  true,
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagGraphqlURL,
 				Usage:   "Nhost GraphQL URL",
-				EnvVars: []string{"NHOST_CLI_GRAPHQL_URL"},
+				Sources: cli.EnvVars("NHOST_CLI_GRAPHQL_URL"),
 				Value:   "https://otsispdzcwxyqzbfntmj.graphql.eu-central-1.nhost.run/v1",
 				Hidden:  true,
 			},
@@ -69,15 +69,15 @@ type response struct {
 	Secret    string `json:"Secret"`
 }
 
-func actionGet(c *cli.Context) error {
-	scanner := bufio.NewScanner(c.App.Reader)
+func actionGet(ctx context.Context, cmd *cli.Command) error {
+	scanner := bufio.NewScanner(cmd.Root().Reader)
 
 	var input string
 	for scanner.Scan() {
 		input += scanner.Text()
 	}
 
-	token, err := getToken(c.Context, c.String(flagAuthURL), c.String(flagGraphqlURL))
+	token, err := getToken(ctx, cmd.String(flagAuthURL), cmd.String(flagGraphqlURL))
 	if err != nil {
 		return err
 	}
@@ -91,7 +91,7 @@ func actionGet(c *cli.Context) error {
 		return fmt.Errorf("failed to marshal response: %w", err)
 	}
 
-	if _, err = c.App.Writer.Write(b); err != nil {
+	if _, err = cmd.Root().Writer.Write(b); err != nil {
 		return fmt.Errorf("failed to write response: %w", err)
 	}
 

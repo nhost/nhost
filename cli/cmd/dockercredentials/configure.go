@@ -8,7 +8,7 @@ import (
 	"os/exec"
 
 	"github.com/nhost/nhost/cli/clienv"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 const (
@@ -35,13 +35,13 @@ func CommandConfigure() *cli.Command {
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagDockerConfig,
 				Usage:   "Path to docker config file",
-				EnvVars: []string{"DOCKER_CONFIG"},
+				Sources: cli.EnvVars("DOCKER_CONFIG"),
 				Value:   home + "/.docker/config.json",
 			},
 			&cli.BoolFlag{ //nolint:exhaustruct
 				Name:    flagNoInteractive,
 				Usage:   "Do not prompt for confirmation",
-				EnvVars: []string{"NO_INTERACTIVE"},
+				Sources: cli.EnvVars("NO_INTERACTIVE"),
 				Value:   false,
 			},
 		},
@@ -140,21 +140,21 @@ func configureDocker(dockerConfig string) error {
 	return nil
 }
 
-func actionConfigure(c *cli.Context) error {
-	ce := clienv.FromCLI(c)
+func actionConfigure(ctx context.Context, cmd *cli.Command) error {
+	ce := clienv.FromCLI(cmd)
 
-	if err := writeScript(c.Context, ce); err != nil {
+	if err := writeScript(ctx, ce); err != nil {
 		return err
 	}
 
-	if c.Bool(flagNoInteractive) {
-		return configureDocker(c.String(flagDockerConfig))
+	if cmd.Bool(flagNoInteractive) {
+		return configureDocker(cmd.String(flagDockerConfig))
 	}
 
 	//nolint:lll
 	ce.PromptMessage(
 		"I am about to configure docker to authenticate with Nhost's registry. This will modify your docker config file on %s. Should I continue? [y/N] ",
-		c.String(flagDockerConfig),
+		cmd.String(flagDockerConfig),
 	)
 
 	v, err := ce.PromptInput(false)
@@ -163,7 +163,7 @@ func actionConfigure(c *cli.Context) error {
 	}
 
 	if v == "y" || v == "Y" {
-		return configureDocker(c.String(flagDockerConfig))
+		return configureDocker(cmd.String(flagDockerConfig))
 	}
 
 	return nil

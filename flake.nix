@@ -93,7 +93,10 @@
               gnused
               skopeo
 
-              # to-remove
+              # cli
+              certbot-full
+              python312Packages.certbot-dns-route53
+
               nhost-cli
 
               # dashboard

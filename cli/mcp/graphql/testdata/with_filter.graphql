@@ -1,0 +1,6220 @@
+scalar Boolean
+
+scalar ConfigEmail
+
+scalar ConfigHasuraAPIs
+
+scalar ConfigInt32
+
+scalar ConfigLocale
+
+scalar ConfigPort
+
+scalar ConfigRunServiceName
+
+scalar ConfigUint
+
+scalar ConfigUint32
+
+scalar ConfigUint8
+
+scalar ConfigUrl
+
+scalar ConfigUserRole
+
+scalar Float
+
+scalar Int
+
+scalar String
+
+scalar bigint
+
+scalar bpchar
+
+scalar bytea
+
+scalar citext
+
+scalar jsonb
+
+scalar smallint
+
+scalar timestamptz
+
+scalar uuid
+
+type ConfigAI {
+  autoEmbeddings: ConfigAIAutoEmbeddings
+  openai: ConfigAIOpenai!
+  resources: ConfigAIResources!
+  version: String
+  webhookSecret: String!
+}
+
+type ConfigAIAutoEmbeddings {
+  synchPeriodMinutes: ConfigUint32
+}
+
+type ConfigAIOpenai {
+  apiKey: String!
+  organization: String
+}
+
+type ConfigAIResources {
+  compute: ConfigComputeResources!
+}
+
+type ConfigAuth {
+  elevatedPrivileges: ConfigAuthElevatedPrivileges
+  method: ConfigAuthMethod
+  misc: ConfigAuthMisc
+  rateLimit: ConfigAuthRateLimit
+  redirections: ConfigAuthRedirections
+  """Resources for the service"""
+resources: ConfigResources
+  session: ConfigAuthSession
+  signUp: ConfigAuthSignUp
+  totp: ConfigAuthTotp
+  user: ConfigAuthUser
+  """Version of auth, you can see available versions in the URL below:
+https://hub.docker.com/r/nhost/hasura-auth/tags
+
+Releases:
+
+https://github.com/nhost/hasura-auth/releases"""
+version: String
+}
+
+type ConfigAuthElevatedPrivileges {
+  mode: String
+}
+
+type ConfigAuthMethod {
+  anonymous: ConfigAuthMethodAnonymous
+  emailPassword: ConfigAuthMethodEmailPassword
+  emailPasswordless: ConfigAuthMethodEmailPasswordless
+  oauth: ConfigAuthMethodOauth
+  otp: ConfigAuthMethodOtp
+  smsPasswordless: ConfigAuthMethodSmsPasswordless
+  webauthn: ConfigAuthMethodWebauthn
+}
+
+type ConfigAuthMethodAnonymous {
+  enabled: Boolean
+}
+
+type ConfigAuthMethodEmailPassword {
+  emailVerificationRequired: Boolean
+  """Disabling email+password sign in is not implmented yet
+enabled: bool | *true"""
+hibpEnabled: Boolean
+  passwordMinLength: ConfigUint8
+}
+
+type ConfigAuthMethodEmailPasswordless {
+  enabled: Boolean
+}
+
+type ConfigAuthMethodOauth {
+  apple: ConfigAuthMethodOauthApple
+  azuread: ConfigAuthMethodOauthAzuread
+  bitbucket: ConfigStandardOauthProvider
+  discord: ConfigStandardOauthProviderWithScope
+  facebook: ConfigStandardOauthProviderWithScope
+  github: ConfigStandardOauthProviderWithScope
+  gitlab: ConfigStandardOauthProviderWithScope
+  google: ConfigStandardOauthProviderWithScope
+  linkedin: ConfigStandardOauthProviderWithScope
+  spotify: ConfigStandardOauthProviderWithScope
+  strava: ConfigStandardOauthProviderWithScope
+  twitch: ConfigStandardOauthProviderWithScope
+  twitter: ConfigAuthMethodOauthTwitter
+  windowslive: ConfigStandardOauthProviderWithScope
+  workos: ConfigAuthMethodOauthWorkos
+}
+
+type ConfigAuthMethodOauthApple {
+  audience: String
+  clientId: String
+  enabled: Boolean
+  keyId: String
+  privateKey: String
+  scope: [String!]
+  teamId: String
+}
+
+type ConfigAuthMethodOauthAzuread {
+  clientId: String
+  clientSecret: String
+  enabled: Boolean
+  tenant: String
+}
+
+type ConfigAuthMethodOauthTwitter {
+  consumerKey: String
+  consumerSecret: String
+  enabled: Boolean
+}
+
+type ConfigAuthMethodOauthWorkos {
+  clientId: String
+  clientSecret: String
+  connection: String
+  enabled: Boolean
+  organization: String
+}
+
+type ConfigAuthMethodOtp {
+  email: ConfigAuthMethodOtpEmail
+}
+
+type ConfigAuthMethodOtpEmail {
+  enabled: Boolean
+}
+
+type ConfigAuthMethodSmsPasswordless {
+  enabled: Boolean
+}
+
+type ConfigAuthMethodWebauthn {
+  attestation: ConfigAuthMethodWebauthnAttestation
+  enabled: Boolean
+  relyingParty: ConfigAuthMethodWebauthnRelyingParty
+}
+
+type ConfigAuthMethodWebauthnAttestation {
+  timeout: ConfigUint32
+}
+
+type ConfigAuthMethodWebauthnRelyingParty {
+  id: String
+  name: String
+  origins: [ConfigUrl!]
+}
+
+type ConfigAuthMisc {
+  concealErrors: Boolean
+}
+
+type ConfigAuthRateLimit {
+  bruteForce: ConfigRateLimit
+  emails: ConfigRateLimit
+  global: ConfigRateLimit
+  signups: ConfigRateLimit
+  sms: ConfigRateLimit
+}
+
+type ConfigAuthRedirections {
+  """AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS"""
+allowedUrls: [String!]
+  """AUTH_CLIENT_URL"""
+clientUrl: ConfigUrl
+}
+
+type ConfigAuthSession {
+  accessToken: ConfigAuthSessionAccessToken
+  refreshToken: ConfigAuthSessionRefreshToken
+}
+
+type ConfigAuthSessionAccessToken {
+  """AUTH_JWT_CUSTOM_CLAIMS"""
+customClaims: [ConfigAuthsessionaccessTokenCustomClaims!]
+  """AUTH_ACCESS_TOKEN_EXPIRES_IN"""
+expiresIn: ConfigUint32
+}
+
+type ConfigAuthSessionRefreshToken {
+  """AUTH_REFRESH_TOKEN_EXPIRES_IN"""
+expiresIn: ConfigUint32
+}
+
+type ConfigAuthSignUp {
+  """AUTH_DISABLE_NEW_USERS"""
+disableNewUsers: Boolean
+  """Inverse of AUTH_DISABLE_SIGNUP"""
+enabled: Boolean
+  turnstile: ConfigAuthSignUpTurnstile
+}
+
+type ConfigAuthSignUpTurnstile {
+  secretKey: String!
+}
+
+type ConfigAuthTotp {
+  enabled: Boolean
+  issuer: String
+}
+
+type ConfigAuthUser {
+  email: ConfigAuthUserEmail
+  emailDomains: ConfigAuthUserEmailDomains
+  gravatar: ConfigAuthUserGravatar
+  locale: ConfigAuthUserLocale
+  roles: ConfigAuthUserRoles
+}
+
+type ConfigAuthUserEmail {
+  """AUTH_ACCESS_CONTROL_ALLOWED_EMAILS"""
+allowed: [ConfigEmail!]
+  """AUTH_ACCESS_CONTROL_BLOCKED_EMAILS"""
+blocked: [ConfigEmail!]
+}
+
+type ConfigAuthUserEmailDomains {
+  """AUTH_ACCESS_CONTROL_ALLOWED_EMAIL_DOMAINS"""
+allowed: [String!]
+  """AUTH_ACCESS_CONTROL_BLOCKED_EMAIL_DOMAINS"""
+blocked: [String!]
+}
+
+type ConfigAuthUserGravatar {
+  default: String
+  """AUTH_GRAVATAR_ENABLED"""
+enabled: Boolean
+  rating: String
+}
+
+type ConfigAuthUserLocale {
+  """AUTH_LOCALE_ALLOWED_LOCALES"""
+allowed: [ConfigLocale!]
+  """AUTH_LOCALE_DEFAULT"""
+default: ConfigLocale
+}
+
+type ConfigAuthUserRoles {
+  """AUTH_USER_DEFAULT_ALLOWED_ROLES"""
+allowed: [ConfigUserRole!]
+  """AUTH_USER_DEFAULT_ROLE"""
+default: ConfigUserRole
+}
+
+type ConfigAuthsessionaccessTokenCustomClaims {
+  key: String!
+  value: String!
+}
+
+type ConfigAutoscaler {
+  maxReplicas: ConfigUint8!
+}
+
+type ConfigClaimMap {
+  claim: String!
+  default: String
+  path: String
+  value: String
+}
+
+type ConfigComputeResources {
+  """milicpus, 1000 milicpus = 1 cpu"""
+cpu: ConfigUint32!
+  """MiB: 128MiB to 30GiB"""
+memory: ConfigUint32!
+}
+
+type ConfigConfig {
+  """Configuration for graphite service"""
+ai: ConfigAI
+  """Configuration for auth service"""
+auth: ConfigAuth
+  """Configuration for functions service"""
+functions: ConfigFunctions
+  """Global configuration that applies to all services"""
+global: ConfigGlobal
+  """Advanced configuration for GraphQL"""
+graphql: ConfigGraphql
+  """Configuration for hasura"""
+hasura: ConfigHasura!
+  """Configuration for observability service"""
+observability: ConfigObservability!
+  """Configuration for postgres service"""
+postgres: ConfigPostgres!
+  """Configuration for third party providers like SMTP, SMS, etc."""
+provider: ConfigProvider
+  """Configuration for storage service"""
+storage: ConfigStorage
+}
+
+type ConfigEnvironmentVariable {
+  name: String!
+  """Value of the environment variable"""
+value: String!
+}
+
+type ConfigFunctions {
+  node: ConfigFunctionsNode
+  rateLimit: ConfigRateLimit
+  resources: ConfigFunctionsResources
+}
+
+type ConfigFunctionsNode {
+  version: Int
+}
+
+type ConfigFunctionsResources {
+  networking: ConfigNetworking
+}
+
+type ConfigGlobal {
+  """User-defined environment variables that are spread over all services"""
+environment: [ConfigGlobalEnvironmentVariable!]
+}
+
+type ConfigGlobalEnvironmentVariable {
+  name: String!
+  """Value of the environment variable"""
+value: String!
+}
+
+type ConfigGrafana {
+  adminPassword: String!
+  alerting: ConfigGrafanaAlerting
+  contacts: ConfigGrafanaContacts
+  smtp: ConfigGrafanaSmtp
+}
+
+type ConfigGrafanaAlerting {
+  enabled: Boolean
+}
+
+type ConfigGrafanaContacts {
+  discord: [ConfigGrafanacontactsDiscord!]
+  emails: [String!]
+  pagerduty: [ConfigGrafanacontactsPagerduty!]
+  slack: [ConfigGrafanacontactsSlack!]
+  webhook: [ConfigGrafanacontactsWebhook!]
+}
+
+type ConfigGrafanaSmtp {
+  host: String!
+  password: String!
+  port: ConfigPort!
+  sender: String!
+  user: String!
+}
+
+type ConfigGrafanacontactsDiscord {
+  avatarUrl: String!
+  url: String!
+}
+
+type ConfigGrafanacontactsPagerduty {
+  class: String!
+  component: String!
+  group: String!
+  integrationKey: String!
+  severity: String!
+}
+
+type ConfigGrafanacontactsSlack {
+  endpointURL: String!
+  iconEmoji: String!
+  iconURL: String!
+  mentionChannel: String!
+  mentionGroups: [String!]!
+  mentionUsers: [String!]!
+  recipient: String!
+  token: String!
+  url: String!
+  username: String!
+}
+
+type ConfigGrafanacontactsWebhook {
+  authorizationCredentials: String!
+  authorizationScheme: String!
+  httpMethod: String!
+  maxAlerts: Int!
+  password: String!
+  url: String!
+  username: String!
+}
+
+type ConfigGraphql {
+  security: ConfigGraphqlSecurity
+}
+
+type ConfigGraphqlSecurity {
+  forbidAminSecret: Boolean
+  maxDepthQueries: ConfigUint
+}
+
+type ConfigHasura {
+  """Admin secret"""
+adminSecret: String!
+  authHook: ConfigHasuraAuthHook
+  events: ConfigHasuraEvents
+  """JWT Secrets configuration"""
+jwtSecrets: [ConfigJWTSecret!]
+  logs: ConfigHasuraLogs
+  rateLimit: ConfigRateLimit
+  """Resources for the service"""
+resources: ConfigResources
+  """Configuration for hasura services
+Reference: https://hasura.io/docs/latest/deployment/graphql-engine-flags/reference/"""
+settings: ConfigHasuraSettings
+  """Version of hasura, you can see available versions in the URL below:
+https://hub.docker.com/r/hasura/graphql-engine/tags"""
+version: String
+  """Webhook secret"""
+webhookSecret: String!
+}
+
+type ConfigHasuraAuthHook {
+  mode: String
+  """HASURA_GRAPHQL_AUTH_HOOK_SEND_REQUEST_BODY"""
+sendRequestBody: Boolean
+  """HASURA_GRAPHQL_AUTH_HOOK"""
+url: String!
+}
+
+type ConfigHasuraEvents {
+  """HASURA_GRAPHQL_EVENTS_HTTP_POOL_SIZE"""
+httpPoolSize: ConfigUint32
+}
+
+type ConfigHasuraLogs {
+  level: String
+}
+
+type ConfigHasuraSettings {
+  """HASURA_GRAPHQL_CORS_DOMAIN"""
+corsDomain: [ConfigUrl!]
+  """HASURA_GRAPHQL_DEV_MODE"""
+devMode: Boolean
+  """HASURA_GRAPHQL_ENABLE_ALLOWLIST"""
+enableAllowList: Boolean
+  """HASURA_GRAPHQL_ENABLE_CONSOLE"""
+enableConsole: Boolean
+  """HASURA_GRAPHQL_ENABLE_REMOTE_SCHEMA_PERMISSIONS"""
+enableRemoteSchemaPermissions: Boolean
+  """HASURA_GRAPHQL_ENABLED_APIS"""
+enabledAPIs: [ConfigHasuraAPIs!]
+  """HASURA_GRAPHQL_INFER_FUNCTION_PERMISSIONS"""
+inferFunctionPermissions: Boolean
+  """HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL"""
+liveQueriesMultiplexedRefetchInterval: ConfigUint32
+  """HASURA_GRAPHQL_STRINGIFY_NUMERIC_TYPES"""
+stringifyNumericTypes: Boolean
+}
+
+type ConfigHealthCheck {
+  initialDelaySeconds: Int
+  port: ConfigPort!
+  probePeriodSeconds: Int
+}
+
+type ConfigIngress {
+  fqdn: [String!]
+  tls: ConfigIngressTls
+}
+
+type ConfigIngressTls {
+  clientCA: String
+}
+
+type ConfigJWTSecret {
+  allowed_skew: ConfigUint32
+  audience: String
+  claims_format: String
+  claims_map: [ConfigClaimMap!]
+  claims_namespace: String
+  claims_namespace_path: String
+  header: String
+  issuer: String
+  jwk_url: ConfigUrl
+  key: String
+  kid: String
+  signingKey: String
+  type: String
+}
+
+type ConfigNetworking {
+  ingresses: [ConfigIngress!]
+}
+
+type ConfigObservability {
+  grafana: ConfigGrafana!
+}
+
+type ConfigPostgres {
+  pitr: ConfigPostgresPitr
+  """Resources for the service"""
+resources: ConfigPostgresResources!
+  settings: ConfigPostgresSettings
+  """Version of postgres, you can see available versions in the URL below:
+https://hub.docker.com/r/nhost/postgres/tags"""
+version: String
+}
+
+type ConfigPostgresPitr {
+  retention: ConfigUint8
+}
+
+type ConfigPostgresResources {
+  compute: ConfigResourcesCompute
+  enablePublicAccess: Boolean
+  replicas: Int
+  storage: ConfigPostgresResourcesStorage!
+}
+
+type ConfigPostgresResourcesStorage {
+  capacity: ConfigUint32!
+}
+
+type ConfigPostgresSettings {
+  archiveTimeout: ConfigInt32
+  checkpointCompletionTarget: Float
+  defaultStatisticsTarget: ConfigInt32
+  effectiveCacheSize: String
+  effectiveIOConcurrency: ConfigInt32
+  hugePages: String
+  jit: String
+  maintenanceWorkMem: String
+  maxConnections: ConfigInt32
+  maxParallelMaintenanceWorkers: ConfigInt32
+  maxParallelWorkers: ConfigInt32
+  maxParallelWorkersPerGather: ConfigInt32
+  maxReplicationSlots: ConfigInt32
+  maxWalSenders: ConfigInt32
+  maxWalSize: String
+  maxWorkerProcesses: ConfigInt32
+  minWalSize: String
+  randomPageCost: Float
+  sharedBuffers: String
+  walBuffers: String
+  walLevel: String
+  workMem: String
+}
+
+type ConfigProvider {
+  sms: ConfigSms
+  smtp: ConfigSmtp
+}
+
+type ConfigRateLimit {
+  interval: String!
+  limit: ConfigUint32!
+}
+
+type ConfigResources {
+  autoscaler: ConfigAutoscaler
+  compute: ConfigResourcesCompute
+  networking: ConfigNetworking
+  """Number of replicas for a service"""
+replicas: ConfigUint8
+}
+
+type ConfigResourcesCompute {
+  """milicpus, 1000 milicpus = 1 cpu"""
+cpu: ConfigUint32!
+  """MiB: 128MiB to 30GiB"""
+memory: ConfigUint32!
+}
+
+type ConfigRunServiceConfig {
+  command: [String!]
+  environment: [ConfigEnvironmentVariable!]
+  healthCheck: ConfigHealthCheck
+  image: ConfigRunServiceImage!
+  name: ConfigRunServiceName!
+  ports: [ConfigRunServicePort!]
+  resources: ConfigRunServiceResources!
+}
+
+type ConfigRunServiceImage {
+  image: String!
+  """content of "auths", i.e., { "auths": $THIS }"""
+pullCredentials: String
+}
+
+type ConfigRunServicePort {
+  ingresses: [ConfigIngress!]
+  port: ConfigPort!
+  publish: Boolean
+  rateLimit: ConfigRateLimit
+  type: String!
+}
+
+type ConfigRunServiceResources {
+  autoscaler: ConfigAutoscaler
+  compute: ConfigComputeResources!
+  """Number of replicas for a service"""
+replicas: ConfigUint8!
+  storage: [ConfigRunServiceResourcesStorage!]
+}
+
+type ConfigRunServiceResourcesStorage {
+  """GiB"""
+capacity: ConfigUint32!
+  """name of the volume, changing it will cause data loss"""
+name: ConfigRunServiceName!
+  path: String!
+}
+
+type ConfigSms {
+  accountSid: String!
+  authToken: String!
+  messagingServiceId: String!
+  provider: String
+}
+
+type ConfigSmtp {
+  host: String!
+  method: String!
+  password: String!
+  port: ConfigPort!
+  secure: Boolean!
+  sender: String!
+  user: String!
+}
+
+type ConfigStandardOauthProvider {
+  clientId: String
+  clientSecret: String
+  enabled: Boolean
+}
+
+type ConfigStandardOauthProviderWithScope {
+  audience: String
+  clientId: String
+  clientSecret: String
+  enabled: Boolean
+  scope: [String!]
+}
+
+type ConfigStorage {
+  antivirus: ConfigStorageAntivirus
+  rateLimit: ConfigRateLimit
+  """Networking (custom domains at the moment) are not allowed as we need to do further
+configurations in the CDN. We will enable it again in the future."""
+resources: ConfigResources
+  """Version of storage service, you can see available versions in the URL below:
+https://hub.docker.com/r/nhost/hasura-storage/tags
+
+Releases:
+
+https://github.com/nhost/hasura-storage/releases"""
+version: String
+}
+
+type ConfigStorageAntivirus {
+  server: String
+}
+
+type ConfigSystemConfig {
+  auth: ConfigSystemConfigAuth
+  graphql: ConfigSystemConfigGraphql
+  persistentVolumesEncrypted: Boolean
+  postgres: ConfigSystemConfigPostgres!
+}
+
+type ConfigSystemConfigAuth {
+  email: ConfigSystemConfigAuthEmail
+}
+
+type ConfigSystemConfigAuthEmail {
+  templates: ConfigSystemConfigAuthEmailTemplates
+}
+
+type ConfigSystemConfigAuthEmailTemplates {
+  s3Key: String
+}
+
+type ConfigSystemConfigGraphql {
+  """manually enable graphi on a per-service basis
+by default it follows the plan"""
+featureAdvancedGraphql: Boolean
+}
+
+type ConfigSystemConfigPostgres {
+  connectionString: ConfigSystemConfigPostgresConnectionString!
+  database: String!
+  disk: ConfigSystemConfigPostgresDisk
+  enabled: Boolean
+  majorVersion: String
+}
+
+type ConfigSystemConfigPostgresConnectionString {
+  auth: String!
+  backup: String!
+  hasura: String!
+  storage: String!
+}
+
+type ConfigSystemConfigPostgresDisk {
+  iops: ConfigUint32
+  tput: ConfigUint32
+}
+
+type appStateHistory {
+  """An object relationship"""
+app: apps!
+  appId: uuid!
+  """An object relationship"""
+appState: appStates!
+  createdAt: timestamptz!
+  id: uuid!
+  message: String
+  stateId: Int!
+}
+
+type appStateHistory_aggregate {
+  aggregate: appStateHistory_aggregate_fields
+  nodes: [appStateHistory!]!
+}
+
+type appStateHistory_aggregate_fields {
+  avg: appStateHistory_avg_fields
+  count(columns: [appStateHistory_select_column!], distinct: Boolean): Int!
+  max: appStateHistory_max_fields
+  min: appStateHistory_min_fields
+  stddev: appStateHistory_stddev_fields
+  stddev_pop: appStateHistory_stddev_pop_fields
+  stddev_samp: appStateHistory_stddev_samp_fields
+  sum: appStateHistory_sum_fields
+  var_pop: appStateHistory_var_pop_fields
+  var_samp: appStateHistory_var_samp_fields
+  variance: appStateHistory_variance_fields
+}
+
+type appStateHistory_avg_fields {
+  stateId: Float
+}
+
+type appStateHistory_max_fields {
+  appId: uuid
+  createdAt: timestamptz
+  id: uuid
+  message: String
+  stateId: Int
+}
+
+type appStateHistory_min_fields {
+  appId: uuid
+  createdAt: timestamptz
+  id: uuid
+  message: String
+  stateId: Int
+}
+
+type appStateHistory_stddev_fields {
+  stateId: Float
+}
+
+type appStateHistory_stddev_pop_fields {
+  stateId: Float
+}
+
+type appStateHistory_stddev_samp_fields {
+  stateId: Float
+}
+
+type appStateHistory_sum_fields {
+  stateId: Int
+}
+
+type appStateHistory_var_pop_fields {
+  stateId: Float
+}
+
+type appStateHistory_var_samp_fields {
+  stateId: Float
+}
+
+type appStateHistory_variance_fields {
+  stateId: Float
+}
+
+type appStates {
+  """An array relationship"""
+appStates(distinct_on: [appStateHistory_select_column!], limit: Int, offset: Int, order_by: [appStateHistory_order_by!], where: appStateHistory_bool_exp): [appStateHistory!]!
+  """An aggregate relationship"""
+appStates_aggregate(distinct_on: [appStateHistory_select_column!], limit: Int, offset: Int, order_by: [appStateHistory_order_by!], where: appStateHistory_bool_exp): appStateHistory_aggregate!
+  """An array relationship"""
+apps(distinct_on: [apps_select_column!], limit: Int, offset: Int, order_by: [apps_order_by!], where: apps_bool_exp): [apps!]!
+  """An aggregate relationship"""
+apps_aggregate(distinct_on: [apps_select_column!], limit: Int, offset: Int, order_by: [apps_order_by!], where: apps_bool_exp): apps_aggregate!
+  id: Int!
+  name: String!
+}
+
+type apps {
+  appSecrets: [ConfigEnvironmentVariable!]!
+  """An array relationship"""
+appStates(distinct_on: [appStateHistory_select_column!], limit: Int, offset: Int, order_by: [appStateHistory_order_by!], where: appStateHistory_bool_exp): [appStateHistory!]!
+  """An aggregate relationship"""
+appStates_aggregate(distinct_on: [appStateHistory_select_column!], limit: Int, offset: Int, order_by: [appStateHistory_order_by!], where: appStateHistory_bool_exp): appStateHistory_aggregate!
+  automaticDeploys: Boolean!
+  """An array relationship"""
+backups(distinct_on: [backups_select_column!], limit: Int, offset: Int, order_by: [backups_order_by!], where: backups_bool_exp): [backups!]!
+  """An aggregate relationship"""
+backups_aggregate(distinct_on: [backups_select_column!], limit: Int, offset: Int, order_by: [backups_order_by!], where: backups_bool_exp): backups_aggregate!
+  """An object relationship"""
+billingDedicatedCompute: billing_dedicated_compute
+  """An object relationship"""
+billingSubscriptions: billing_subscriptions
+  config(resolve: Boolean!): ConfigConfig
+  createdAt: timestamptz!
+  """An object relationship"""
+creator: users
+  creatorUserId: uuid
+  currentState: Int
+  """An array relationship"""
+deployments(distinct_on: [deployments_select_column!], limit: Int, offset: Int, order_by: [deployments_order_by!], where: deployments_bool_exp): [deployments!]!
+  """An aggregate relationship"""
+deployments_aggregate(distinct_on: [deployments_select_column!], limit: Int, offset: Int, order_by: [deployments_order_by!], where: deployments_bool_exp): deployments_aggregate!
+  """An object relationship"""
+desiredAppState: appStates!
+  desiredState: Int!
+  """An array relationship"""
+featureFlags(distinct_on: [featureFlags_select_column!], limit: Int, offset: Int, order_by: [featureFlags_order_by!], where: featureFlags_bool_exp): [featureFlags!]!
+  """An aggregate relationship"""
+featureFlags_aggregate(distinct_on: [featureFlags_select_column!], limit: Int, offset: Int, order_by: [featureFlags_order_by!], where: featureFlags_bool_exp): featureFlags_aggregate!
+  """An object relationship"""
+githubRepository: githubRepositories
+  githubRepositoryId: uuid
+  id: uuid!
+  isLocked: Boolean
+  isLockedReason: String
+  """An object relationship"""
+legacyPlan: plans
+  legacyPlanID: uuid
+  legacyStripeSubscriptionId: String
+  metadataFunctions(path: String): jsonb!
+  mimirConfigEnc: String
+  mimirSecretsEnc: String
+  mimirSystemConfigEnc: String
+  name: String!
+  nhostBaseFolder: String!
+  """An object relationship"""
+organization: organizations
+  organizationID: uuid
+  """An object relationship"""
+region: regions!
+  regionId: uuid!
+  repositoryProductionBranch: String!
+  """An array relationship"""
+runServices(distinct_on: [run_service_select_column!], limit: Int, offset: Int, order_by: [run_service_order_by!], where: run_service_bool_exp): [run_service!]!
+  """An aggregate relationship"""
+runServices_aggregate(distinct_on: [run_service_select_column!], limit: Int, offset: Int, order_by: [run_service_order_by!], where: run_service_bool_exp): run_service_aggregate!
+  slug: String!
+  stateMatch: Boolean
+  subdomain: String!
+  systemConfig: ConfigSystemConfig
+  updatedAt: timestamptz!
+  """An object relationship"""
+workspace: workspaces
+  workspaceId: uuid
+}
+
+type apps_aggregate {
+  aggregate: apps_aggregate_fields
+  nodes: [apps!]!
+}
+
+type apps_aggregate_fields {
+  avg: apps_avg_fields
+  count(columns: [apps_select_column!], distinct: Boolean): Int!
+  max: apps_max_fields
+  min: apps_min_fields
+  stddev: apps_stddev_fields
+  stddev_pop: apps_stddev_pop_fields
+  stddev_samp: apps_stddev_samp_fields
+  sum: apps_sum_fields
+  var_pop: apps_var_pop_fields
+  var_samp: apps_var_samp_fields
+  variance: apps_variance_fields
+}
+
+type apps_avg_fields {
+  currentState: Float
+  desiredState: Float
+}
+
+type apps_max_fields {
+  createdAt: timestamptz
+  creatorUserId: uuid
+  currentState: Int
+  desiredState: Int
+  githubRepositoryId: uuid
+  id: uuid
+  isLockedReason: String
+  legacyPlanID: uuid
+  legacyStripeSubscriptionId: String
+  mimirConfigEnc: String
+  mimirSecretsEnc: String
+  mimirSystemConfigEnc: String
+  name: String
+  nhostBaseFolder: String
+  organizationID: uuid
+  regionId: uuid
+  repositoryProductionBranch: String
+  slug: String
+  subdomain: String
+  updatedAt: timestamptz
+  workspaceId: uuid
+}
+
+type apps_min_fields {
+  createdAt: timestamptz
+  creatorUserId: uuid
+  currentState: Int
+  desiredState: Int
+  githubRepositoryId: uuid
+  id: uuid
+  isLockedReason: String
+  legacyPlanID: uuid
+  legacyStripeSubscriptionId: String
+  mimirConfigEnc: String
+  mimirSecretsEnc: String
+  mimirSystemConfigEnc: String
+  name: String
+  nhostBaseFolder: String
+  organizationID: uuid
+  regionId: uuid
+  repositoryProductionBranch: String
+  slug: String
+  subdomain: String
+  updatedAt: timestamptz
+  workspaceId: uuid
+}
+
+type apps_stddev_fields {
+  currentState: Float
+  desiredState: Float
+}
+
+type apps_stddev_pop_fields {
+  currentState: Float
+  desiredState: Float
+}
+
+type apps_stddev_samp_fields {
+  currentState: Float
+  desiredState: Float
+}
+
+type apps_sum_fields {
+  currentState: Int
+  desiredState: Int
+}
+
+type apps_var_pop_fields {
+  currentState: Float
+  desiredState: Float
+}
+
+type apps_var_samp_fields {
+  currentState: Float
+  desiredState: Float
+}
+
+type apps_variance_fields {
+  currentState: Float
+  desiredState: Float
+}
+
+type authProviders {
+  id: String!
+  """An array relationship"""
+userProviders(distinct_on: [authUserProviders_select_column!], limit: Int, offset: Int, order_by: [authUserProviders_order_by!], where: authUserProviders_bool_exp): [authUserProviders!]!
+  """An aggregate relationship"""
+userProviders_aggregate(distinct_on: [authUserProviders_select_column!], limit: Int, offset: Int, order_by: [authUserProviders_order_by!], where: authUserProviders_bool_exp): authUserProviders_aggregate!
+}
+
+type authRefreshTokens {
+  createdAt: timestamptz!
+  expiresAt: timestamptz!
+  id: uuid!
+  metadata(path: String): jsonb
+  refreshTokenHash: String
+  type: authRefreshTokenTypes_enum!
+  """An object relationship"""
+user: users!
+  userId: uuid!
+}
+
+type authRefreshTokens_aggregate {
+  aggregate: authRefreshTokens_aggregate_fields
+  nodes: [authRefreshTokens!]!
+}
+
+type authRefreshTokens_aggregate_fields {
+  count(columns: [authRefreshTokens_select_column!], distinct: Boolean): Int!
+  max: authRefreshTokens_max_fields
+  min: authRefreshTokens_min_fields
+}
+
+type authRefreshTokens_max_fields {
+  createdAt: timestamptz
+  expiresAt: timestamptz
+  id: uuid
+  refreshTokenHash: String
+  userId: uuid
+}
+
+type authRefreshTokens_min_fields {
+  createdAt: timestamptz
+  expiresAt: timestamptz
+  id: uuid
+  refreshTokenHash: String
+  userId: uuid
+}
+
+type authRoles {
+  role: String!
+  """An array relationship"""
+userRoles(distinct_on: [authUserRoles_select_column!], limit: Int, offset: Int, order_by: [authUserRoles_order_by!], where: authUserRoles_bool_exp): [authUserRoles!]!
+  """An aggregate relationship"""
+userRoles_aggregate(distinct_on: [authUserRoles_select_column!], limit: Int, offset: Int, order_by: [authUserRoles_order_by!], where: authUserRoles_bool_exp): authUserRoles_aggregate!
+  """An array relationship"""
+usersByDefaultRole(distinct_on: [users_select_column!], limit: Int, offset: Int, order_by: [users_order_by!], where: users_bool_exp): [users!]!
+  """An aggregate relationship"""
+usersByDefaultRole_aggregate(distinct_on: [users_select_column!], limit: Int, offset: Int, order_by: [users_order_by!], where: users_bool_exp): users_aggregate!
+}
+
+type authUserProviders {
+  accessToken: String!
+  createdAt: timestamptz!
+  id: uuid!
+  """An object relationship"""
+provider: authProviders!
+  providerId: String!
+  providerUserId: String!
+  refreshToken: String
+  updatedAt: timestamptz!
+  """An object relationship"""
+user: users!
+  userId: uuid!
+}
+
+type authUserProviders_aggregate {
+  aggregate: authUserProviders_aggregate_fields
+  nodes: [authUserProviders!]!
+}
+
+type authUserProviders_aggregate_fields {
+  count(columns: [authUserProviders_select_column!], distinct: Boolean): Int!
+  max: authUserProviders_max_fields
+  min: authUserProviders_min_fields
+}
+
+type authUserProviders_max_fields {
+  accessToken: String
+  createdAt: timestamptz
+  id: uuid
+  providerId: String
+  providerUserId: String
+  refreshToken: String
+  updatedAt: timestamptz
+  userId: uuid
+}
+
+type authUserProviders_min_fields {
+  accessToken: String
+  createdAt: timestamptz
+  id: uuid
+  providerId: String
+  providerUserId: String
+  refreshToken: String
+  updatedAt: timestamptz
+  userId: uuid
+}
+
+type authUserRoles {
+  createdAt: timestamptz!
+  id: uuid!
+  role: String!
+  """An object relationship"""
+roleByRole: authRoles!
+  """An object relationship"""
+user: users!
+  userId: uuid!
+}
+
+type authUserRoles_aggregate {
+  aggregate: authUserRoles_aggregate_fields
+  nodes: [authUserRoles!]!
+}
+
+type authUserRoles_aggregate_fields {
+  count(columns: [authUserRoles_select_column!], distinct: Boolean): Int!
+  max: authUserRoles_max_fields
+  min: authUserRoles_min_fields
+}
+
+type authUserRoles_max_fields {
+  createdAt: timestamptz
+  id: uuid
+  role: String
+  userId: uuid
+}
+
+type authUserRoles_min_fields {
+  createdAt: timestamptz
+  id: uuid
+  role: String
+  userId: uuid
+}
+
+type authUserSecurityKeys {
+  counter: bigint!
+  credentialId: String!
+  credentialPublicKey: bytea
+  id: uuid!
+  nickname: String
+  transports: String!
+  """An object relationship"""
+user: users!
+  userId: uuid!
+}
+
+type authUserSecurityKeys_aggregate {
+  aggregate: authUserSecurityKeys_aggregate_fields
+  nodes: [authUserSecurityKeys!]!
+}
+
+type authUserSecurityKeys_aggregate_fields {
+  avg: authUserSecurityKeys_avg_fields
+  count(columns: [authUserSecurityKeys_select_column!], distinct: Boolean): Int!
+  max: authUserSecurityKeys_max_fields
+  min: authUserSecurityKeys_min_fields
+  stddev: authUserSecurityKeys_stddev_fields
+  stddev_pop: authUserSecurityKeys_stddev_pop_fields
+  stddev_samp: authUserSecurityKeys_stddev_samp_fields
+  sum: authUserSecurityKeys_sum_fields
+  var_pop: authUserSecurityKeys_var_pop_fields
+  var_samp: authUserSecurityKeys_var_samp_fields
+  variance: authUserSecurityKeys_variance_fields
+}
+
+type authUserSecurityKeys_avg_fields {
+  counter: Float
+}
+
+type authUserSecurityKeys_max_fields {
+  counter: bigint
+  credentialId: String
+  id: uuid
+  nickname: String
+  transports: String
+  userId: uuid
+}
+
+type authUserSecurityKeys_min_fields {
+  counter: bigint
+  credentialId: String
+  id: uuid
+  nickname: String
+  transports: String
+  userId: uuid
+}
+
+type authUserSecurityKeys_stddev_fields {
+  counter: Float
+}
+
+type authUserSecurityKeys_stddev_pop_fields {
+  counter: Float
+}
+
+type authUserSecurityKeys_stddev_samp_fields {
+  counter: Float
+}
+
+type authUserSecurityKeys_sum_fields {
+  counter: bigint
+}
+
+type authUserSecurityKeys_var_pop_fields {
+  counter: Float
+}
+
+type authUserSecurityKeys_var_samp_fields {
+  counter: Float
+}
+
+type authUserSecurityKeys_variance_fields {
+  counter: Float
+}
+
+type backups {
+  """An object relationship"""
+app: apps!
+  appId: uuid!
+  completedAt: timestamptz
+  createdAt: timestamptz!
+  expiresAt: timestamptz
+  id: uuid!
+  size: bigint!
+}
+
+type backups_aggregate {
+  aggregate: backups_aggregate_fields
+  nodes: [backups!]!
+}
+
+type backups_aggregate_fields {
+  avg: backups_avg_fields
+  count(columns: [backups_select_column!], distinct: Boolean): Int!
+  max: backups_max_fields
+  min: backups_min_fields
+  stddev: backups_stddev_fields
+  stddev_pop: backups_stddev_pop_fields
+  stddev_samp: backups_stddev_samp_fields
+  sum: backups_sum_fields
+  var_pop: backups_var_pop_fields
+  var_samp: backups_var_samp_fields
+  variance: backups_variance_fields
+}
+
+type backups_avg_fields {
+  size: Float
+}
+
+type backups_max_fields {
+  appId: uuid
+  completedAt: timestamptz
+  createdAt: timestamptz
+  expiresAt: timestamptz
+  id: uuid
+  size: bigint
+}
+
+type backups_min_fields {
+  appId: uuid
+  completedAt: timestamptz
+  createdAt: timestamptz
+  expiresAt: timestamptz
+  id: uuid
+  size: bigint
+}
+
+type backups_stddev_fields {
+  size: Float
+}
+
+type backups_stddev_pop_fields {
+  size: Float
+}
+
+type backups_stddev_samp_fields {
+  size: Float
+}
+
+type backups_sum_fields {
+  size: bigint
+}
+
+type backups_var_pop_fields {
+  size: Float
+}
+
+type backups_var_samp_fields {
+  size: Float
+}
+
+type backups_variance_fields {
+  size: Float
+}
+
+type billing_dedicated_compute {
+  """An object relationship"""
+app: apps
+  appID: uuid!
+  createdAt: timestamptz!
+  id: uuid!
+  organizationID: uuid
+  totalMillicores: Int!
+  updatedAt: timestamptz!
+}
+
+type billing_reports {
+  appID: uuid!
+  createdAt: timestamptz!
+  id: uuid!
+  organizationID: uuid
+  pending: Boolean!
+  reportEnds: timestamptz!
+  reportStarts: timestamptz!
+  stripeSubscriptionID: String!
+  type: billing_report_type_enum!
+  updatedAt: timestamptz!
+  value: Int!
+}
+
+type billing_reports_aggregate {
+  aggregate: billing_reports_aggregate_fields
+  nodes: [billing_reports!]!
+}
+
+type billing_reports_aggregate_fields {
+  avg: billing_reports_avg_fields
+  count(columns: [billing_reports_select_column!], distinct: Boolean): Int!
+  max: billing_reports_max_fields
+  min: billing_reports_min_fields
+  stddev: billing_reports_stddev_fields
+  stddev_pop: billing_reports_stddev_pop_fields
+  stddev_samp: billing_reports_stddev_samp_fields
+  sum: billing_reports_sum_fields
+  var_pop: billing_reports_var_pop_fields
+  var_samp: billing_reports_var_samp_fields
+  variance: billing_reports_variance_fields
+}
+
+type billing_reports_avg_fields {
+  value: Float
+}
+
+type billing_reports_max_fields {
+  appID: uuid
+  createdAt: timestamptz
+  id: uuid
+  organizationID: uuid
+  reportEnds: timestamptz
+  reportStarts: timestamptz
+  stripeSubscriptionID: String
+  updatedAt: timestamptz
+  value: Int
+}
+
+type billing_reports_min_fields {
+  appID: uuid
+  createdAt: timestamptz
+  id: uuid
+  organizationID: uuid
+  reportEnds: timestamptz
+  reportStarts: timestamptz
+  stripeSubscriptionID: String
+  updatedAt: timestamptz
+  value: Int
+}
+
+type billing_reports_stddev_fields {
+  value: Float
+}
+
+type billing_reports_stddev_pop_fields {
+  value: Float
+}
+
+type billing_reports_stddev_samp_fields {
+  value: Float
+}
+
+type billing_reports_sum_fields {
+  value: Int
+}
+
+type billing_reports_var_pop_fields {
+  value: Float
+}
+
+type billing_reports_var_samp_fields {
+  value: Float
+}
+
+type billing_reports_variance_fields {
+  value: Float
+}
+
+type billing_resources {
+  appID: uuid!
+  createdAt: timestamptz!
+  customDomains: Int!
+  functionsAmount: Int!
+  id: uuid!
+  organizationID: uuid
+  persistentVolume: Int!
+  pitr: Int!
+  updatedAt: timestamptz!
+}
+
+type billing_subscriptions {
+  """An object relationship"""
+app: apps
+  appID: uuid!
+  createdAt: timestamptz!
+  customDomains: String
+  dedicatedCompute: String
+  egress: String
+  functions: String
+  functionsAmount: String
+  id: uuid!
+  persistentVolume: String
+  """An array relationship"""
+reports(distinct_on: [billing_reports_select_column!], limit: Int, offset: Int, order_by: [billing_reports_order_by!], where: billing_reports_bool_exp): [billing_reports!]!
+  """An aggregate relationship"""
+reports_aggregate(distinct_on: [billing_reports_select_column!], limit: Int, offset: Int, order_by: [billing_reports_order_by!], where: billing_reports_bool_exp): billing_reports_aggregate!
+  """An object relationship"""
+resources: billing_resources
+  updatedAt: timestamptz!
+}
+
+type cliTokens {
+  createdAt: timestamptz!
+  id: uuid!
+  token: uuid!
+  updatedAt: timestamptz!
+  """An object relationship"""
+user: users!
+  userId: uuid!
+}
+
+type cliTokens_aggregate {
+  aggregate: cliTokens_aggregate_fields
+  nodes: [cliTokens!]!
+}
+
+type cliTokens_aggregate_fields {
+  count(columns: [cliTokens_select_column!], distinct: Boolean): Int!
+  max: cliTokens_max_fields
+  min: cliTokens_min_fields
+}
+
+type cliTokens_max_fields {
+  createdAt: timestamptz
+  id: uuid
+  token: uuid
+  updatedAt: timestamptz
+  userId: uuid
+}
+
+type cliTokens_min_fields {
+  createdAt: timestamptz
+  id: uuid
+  token: uuid
+  updatedAt: timestamptz
+  userId: uuid
+}
+
+type continents {
+  """Continent code"""
+code: bpchar!
+  """An array relationship"""
+countries(distinct_on: [countries_select_column!], limit: Int, offset: Int, order_by: [countries_order_by!], where: countries_bool_exp): [countries!]!
+  """An aggregate relationship"""
+countries_aggregate(distinct_on: [countries_select_column!], limit: Int, offset: Int, order_by: [countries_order_by!], where: countries_bool_exp): countries_aggregate!
+  """Continent name"""
+name: String
+}
+
+type countries {
+  """Two-letter country code (ISO 3166-1 alpha-2)"""
+code: bpchar!
+  """An object relationship"""
+continent: continents!
+  continentCode: bpchar!
+  emojiFlag: String
+  """Full English country name"""
+fullName: String
+  """Three-letter country code (ISO 3166-1 alpha-3)"""
+iso3: bpchar
+  """Three-letter country code (ISO 3166-1 numeric)"""
+isoNumber: smallint
+  """An array relationship"""
+locations(distinct_on: [regions_select_column!], limit: Int, offset: Int, order_by: [regions_order_by!], where: regions_bool_exp): [regions!]!
+  """An aggregate relationship"""
+locations_aggregate(distinct_on: [regions_select_column!], limit: Int, offset: Int, order_by: [regions_order_by!], where: regions_bool_exp): regions_aggregate!
+  """English country name"""
+name: String!
+  """An array relationship"""
+workspaces(distinct_on: [workspaces_select_column!], limit: Int, offset: Int, order_by: [workspaces_order_by!], where: workspaces_bool_exp): [workspaces!]!
+  """An aggregate relationship"""
+workspaces_aggregate(distinct_on: [workspaces_select_column!], limit: Int, offset: Int, order_by: [workspaces_order_by!], where: workspaces_bool_exp): workspaces_aggregate!
+}
+
+type countries_aggregate {
+  aggregate: countries_aggregate_fields
+  nodes: [countries!]!
+}
+
+type countries_aggregate_fields {
+  avg: countries_avg_fields
+  count(columns: [countries_select_column!], distinct: Boolean): Int!
+  max: countries_max_fields
+  min: countries_min_fields
+  stddev: countries_stddev_fields
+  stddev_pop: countries_stddev_pop_fields
+  stddev_samp: countries_stddev_samp_fields
+  sum: countries_sum_fields
+  var_pop: countries_var_pop_fields
+  var_samp: countries_var_samp_fields
+  variance: countries_variance_fields
+}
+
+type countries_avg_fields {
+  """Three-letter country code (ISO 3166-1 numeric)"""
+isoNumber: Float
+}
+
+type countries_max_fields {
+  """Two-letter country code (ISO 3166-1 alpha-2)"""
+code: bpchar
+  continentCode: bpchar
+  emojiFlag: String
+  """Full English country name"""
+fullName: String
+  """Three-letter country code (ISO 3166-1 alpha-3)"""
+iso3: bpchar
+  """Three-letter country code (ISO 3166-1 numeric)"""
+isoNumber: smallint
+  """English country name"""
+name: String
+}
+
+type countries_min_fields {
+  """Two-letter country code (ISO 3166-1 alpha-2)"""
+code: bpchar
+  continentCode: bpchar
+  emojiFlag: String
+  """Full English country name"""
+fullName: String
+  """Three-letter country code (ISO 3166-1 alpha-3)"""
+iso3: bpchar
+  """Three-letter country code (ISO 3166-1 numeric)"""
+isoNumber: smallint
+  """English country name"""
+name: String
+}
+
+type countries_stddev_fields {
+  """Three-letter country code (ISO 3166-1 numeric)"""
+isoNumber: Float
+}
+
+type countries_stddev_pop_fields {
+  """Three-letter country code (ISO 3166-1 numeric)"""
+isoNumber: Float
+}
+
+type countries_stddev_samp_fields {
+  """Three-letter country code (ISO 3166-1 numeric)"""
+isoNumber: Float
+}
+
+type countries_sum_fields {
+  """Three-letter country code (ISO 3166-1 numeric)"""
+isoNumber: smallint
+}
+
+type countries_var_pop_fields {
+  """Three-letter country code (ISO 3166-1 numeric)"""
+isoNumber: Float
+}
+
+type countries_var_samp_fields {
+  """Three-letter country code (ISO 3166-1 numeric)"""
+isoNumber: Float
+}
+
+type countries_variance_fields {
+  """Three-letter country code (ISO 3166-1 numeric)"""
+isoNumber: Float
+}
+
+type deploymentLogs {
+  createdAt: timestamptz!
+  """An object relationship"""
+deployment: deployments!
+  deploymentId: uuid!
+  id: uuid!
+  message: String!
+}
+
+type deploymentLogs_aggregate {
+  aggregate: deploymentLogs_aggregate_fields
+  nodes: [deploymentLogs!]!
+}
+
+type deploymentLogs_aggregate_fields {
+  count(columns: [deploymentLogs_select_column!], distinct: Boolean): Int!
+  max: deploymentLogs_max_fields
+  min: deploymentLogs_min_fields
+}
+
+type deploymentLogs_max_fields {
+  createdAt: timestamptz
+  deploymentId: uuid
+  id: uuid
+  message: String
+}
+
+type deploymentLogs_min_fields {
+  createdAt: timestamptz
+  deploymentId: uuid
+  id: uuid
+  message: String
+}
+
+type deployments {
+  """An object relationship"""
+app: apps!
+  appId: uuid!
+  commitMessage: String
+  commitSHA: String!
+  commitUserAvatarUrl: String
+  commitUserName: String
+  deploymentEndedAt: timestamptz
+  """An array relationship"""
+deploymentLogs(distinct_on: [deploymentLogs_select_column!], limit: Int, offset: Int, order_by: [deploymentLogs_order_by!], where: deploymentLogs_bool_exp): [deploymentLogs!]!
+  """An aggregate relationship"""
+deploymentLogs_aggregate(distinct_on: [deploymentLogs_select_column!], limit: Int, offset: Int, order_by: [deploymentLogs_order_by!], where: deploymentLogs_bool_exp): deploymentLogs_aggregate!
+  deploymentStartedAt: timestamptz
+  deploymentStatus: String
+  functionsEndedAt: timestamptz
+  functionsStartedAt: timestamptz
+  functionsStatus: String
+  id: uuid!
+  metadataEndedAt: timestamptz
+  metadataStartedAt: timestamptz
+  metadataStatus: String
+  migrationsEndedAt: timestamptz
+  migrationsStartedAt: timestamptz
+  migrationsStatus: String
+}
+
+type deployments_aggregate {
+  aggregate: deployments_aggregate_fields
+  nodes: [deployments!]!
+}
+
+type deployments_aggregate_fields {
+  count(columns: [deployments_select_column!], distinct: Boolean): Int!
+  max: deployments_max_fields
+  min: deployments_min_fields
+}
+
+type deployments_max_fields {
+  appId: uuid
+  commitMessage: String
+  commitSHA: String
+  commitUserAvatarUrl: String
+  commitUserName: String
+  deploymentEndedAt: timestamptz
+  deploymentStartedAt: timestamptz
+  deploymentStatus: String
+  functionsEndedAt: timestamptz
+  functionsStartedAt: timestamptz
+  functionsStatus: String
+  id: uuid
+  metadataEndedAt: timestamptz
+  metadataStartedAt: timestamptz
+  metadataStatus: String
+  migrationsEndedAt: timestamptz
+  migrationsStartedAt: timestamptz
+  migrationsStatus: String
+}
+
+type deployments_min_fields {
+  appId: uuid
+  commitMessage: String
+  commitSHA: String
+  commitUserAvatarUrl: String
+  commitUserName: String
+  deploymentEndedAt: timestamptz
+  deploymentStartedAt: timestamptz
+  deploymentStatus: String
+  functionsEndedAt: timestamptz
+  functionsStartedAt: timestamptz
+  functionsStatus: String
+  id: uuid
+  metadataEndedAt: timestamptz
+  metadataStartedAt: timestamptz
+  metadataStatus: String
+  migrationsEndedAt: timestamptz
+  migrationsStartedAt: timestamptz
+  migrationsStatus: String
+}
+
+type featureFlags {
+  """An object relationship"""
+app: apps!
+  appId: uuid!
+  description: String!
+  id: uuid!
+  name: String!
+  value: String!
+}
+
+type featureFlags_aggregate {
+  aggregate: featureFlags_aggregate_fields
+  nodes: [featureFlags!]!
+}
+
+type featureFlags_aggregate_fields {
+  count(columns: [featureFlags_select_column!], distinct: Boolean): Int!
+  max: featureFlags_max_fields
+  min: featureFlags_min_fields
+}
+
+type featureFlags_max_fields {
+  appId: uuid
+  description: String
+  id: uuid
+  name: String
+  value: String
+}
+
+type featureFlags_min_fields {
+  appId: uuid
+  description: String
+  id: uuid
+  name: String
+  value: String
+}
+
+type githubAppInstallations {
+  accountAvatarUrl: String
+  accountLogin: String
+  accountNodeId: String
+  accountType: String
+  createdAt: timestamptz!
+  externalGithubAppInstallationId: Int
+  githubData(path: String): jsonb
+  """An array relationship"""
+githubRepositories(distinct_on: [githubRepositories_select_column!], limit: Int, offset: Int, order_by: [githubRepositories_order_by!], where: githubRepositories_bool_exp): [githubRepositories!]!
+  """An aggregate relationship"""
+githubRepositories_aggregate(distinct_on: [githubRepositories_select_column!], limit: Int, offset: Int, order_by: [githubRepositories_order_by!], where: githubRepositories_bool_exp): githubRepositories_aggregate!
+  id: uuid!
+  updatedAt: timestamptz!
+  """An object relationship"""
+user: users
+  userId: uuid
+}
+
+type githubAppInstallations_aggregate {
+  aggregate: githubAppInstallations_aggregate_fields
+  nodes: [githubAppInstallations!]!
+}
+
+type githubAppInstallations_aggregate_fields {
+  avg: githubAppInstallations_avg_fields
+  count(columns: [githubAppInstallations_select_column!], distinct: Boolean): Int!
+  max: githubAppInstallations_max_fields
+  min: githubAppInstallations_min_fields
+  stddev: githubAppInstallations_stddev_fields
+  stddev_pop: githubAppInstallations_stddev_pop_fields
+  stddev_samp: githubAppInstallations_stddev_samp_fields
+  sum: githubAppInstallations_sum_fields
+  var_pop: githubAppInstallations_var_pop_fields
+  var_samp: githubAppInstallations_var_samp_fields
+  variance: githubAppInstallations_variance_fields
+}
+
+type githubAppInstallations_avg_fields {
+  externalGithubAppInstallationId: Float
+}
+
+type githubAppInstallations_max_fields {
+  accountAvatarUrl: String
+  accountLogin: String
+  accountNodeId: String
+  accountType: String
+  createdAt: timestamptz
+  externalGithubAppInstallationId: Int
+  id: uuid
+  updatedAt: timestamptz
+  userId: uuid
+}
+
+type githubAppInstallations_min_fields {
+  accountAvatarUrl: String
+  accountLogin: String
+  accountNodeId: String
+  accountType: String
+  createdAt: timestamptz
+  externalGithubAppInstallationId: Int
+  id: uuid
+  updatedAt: timestamptz
+  userId: uuid
+}
+
+type githubAppInstallations_stddev_fields {
+  externalGithubAppInstallationId: Float
+}
+
+type githubAppInstallations_stddev_pop_fields {
+  externalGithubAppInstallationId: Float
+}
+
+type githubAppInstallations_stddev_samp_fields {
+  externalGithubAppInstallationId: Float
+}
+
+type githubAppInstallations_sum_fields {
+  externalGithubAppInstallationId: Int
+}
+
+type githubAppInstallations_var_pop_fields {
+  externalGithubAppInstallationId: Float
+}
+
+type githubAppInstallations_var_samp_fields {
+  externalGithubAppInstallationId: Float
+}
+
+type githubAppInstallations_variance_fields {
+  externalGithubAppInstallationId: Float
+}
+
+type githubRepositories {
+  """An array relationship"""
+apps(distinct_on: [apps_select_column!], limit: Int, offset: Int, order_by: [apps_order_by!], where: apps_bool_exp): [apps!]!
+  """An aggregate relationship"""
+apps_aggregate(distinct_on: [apps_select_column!], limit: Int, offset: Int, order_by: [apps_order_by!], where: apps_bool_exp): apps_aggregate!
+  createdAt: timestamptz!
+  externalGithubAppRepositoryNodeId: String!
+  fullName: String!
+  """An object relationship"""
+githubAppInstallation: githubAppInstallations!
+  githubAppInstallationId: uuid!
+  id: uuid!
+  name: String!
+  private: Boolean!
+  updatedAt: timestamptz!
+}
+
+type githubRepositories_aggregate {
+  aggregate: githubRepositories_aggregate_fields
+  nodes: [githubRepositories!]!
+}
+
+type githubRepositories_aggregate_fields {
+  count(columns: [githubRepositories_select_column!], distinct: Boolean): Int!
+  max: githubRepositories_max_fields
+  min: githubRepositories_min_fields
+}
+
+type githubRepositories_max_fields {
+  createdAt: timestamptz
+  externalGithubAppRepositoryNodeId: String
+  fullName: String
+  githubAppInstallationId: uuid
+  id: uuid
+  name: String
+  updatedAt: timestamptz
+}
+
+type githubRepositories_min_fields {
+  createdAt: timestamptz
+  externalGithubAppRepositoryNodeId: String
+  fullName: String
+  githubAppInstallationId: uuid
+  id: uuid
+  name: String
+  updatedAt: timestamptz
+}
+
+type organization_member_invites {
+  createdAt: timestamptz!
+  email: citext!
+  id: uuid!
+  """An object relationship"""
+organization: organizations!
+  organizationID: uuid!
+  role: organization_members_role_enum!
+  updateAt: timestamptz!
+  """An object relationship"""
+user: users
+}
+
+type organization_member_invites_aggregate {
+  aggregate: organization_member_invites_aggregate_fields
+  nodes: [organization_member_invites!]!
+}
+
+type organization_member_invites_aggregate_fields {
+  count(columns: [organization_member_invites_select_column!], distinct: Boolean): Int!
+  max: organization_member_invites_max_fields
+  min: organization_member_invites_min_fields
+}
+
+type organization_member_invites_max_fields {
+  createdAt: timestamptz
+  email: citext
+  id: uuid
+  organizationID: uuid
+  updateAt: timestamptz
+}
+
+type organization_member_invites_min_fields {
+  createdAt: timestamptz
+  email: citext
+  id: uuid
+  organizationID: uuid
+  updateAt: timestamptz
+}
+
+type organization_members {
+  createdAt: timestamptz!
+  id: uuid!
+  """An object relationship"""
+organization: organizations!
+  organizatonID: uuid!
+  role: organization_members_role_enum!
+  updatedAt: timestamptz!
+  """An object relationship"""
+user: users!
+  userID: uuid!
+}
+
+type organization_members_aggregate {
+  aggregate: organization_members_aggregate_fields
+  nodes: [organization_members!]!
+}
+
+type organization_members_aggregate_fields {
+  count(columns: [organization_members_select_column!], distinct: Boolean): Int!
+  max: organization_members_max_fields
+  min: organization_members_min_fields
+}
+
+type organization_members_max_fields {
+  createdAt: timestamptz
+  id: uuid
+  organizatonID: uuid
+  updatedAt: timestamptz
+  userID: uuid
+}
+
+type organization_members_min_fields {
+  createdAt: timestamptz
+  id: uuid
+  organizatonID: uuid
+  updatedAt: timestamptz
+  userID: uuid
+}
+
+type organizations {
+  """An array relationship"""
+allowedPrivateRegions(distinct_on: [regions_allowed_organization_select_column!], limit: Int, offset: Int, order_by: [regions_allowed_organization_order_by!], where: regions_allowed_organization_bool_exp): [regions_allowed_organization!]!
+  """An aggregate relationship"""
+allowedPrivateRegions_aggregate(distinct_on: [regions_allowed_organization_select_column!], limit: Int, offset: Int, order_by: [regions_allowed_organization_order_by!], where: regions_allowed_organization_bool_exp): regions_allowed_organization_aggregate!
+  """An array relationship"""
+apps(distinct_on: [apps_select_column!], limit: Int, offset: Int, order_by: [apps_order_by!], where: apps_bool_exp): [apps!]!
+  """An aggregate relationship"""
+apps_aggregate(distinct_on: [apps_select_column!], limit: Int, offset: Int, order_by: [apps_order_by!], where: apps_bool_exp): apps_aggregate!
+  createdAt: timestamptz!
+  current_threshold: organization_costs_thresholds_enum!
+  id: uuid!
+  """An array relationship"""
+invites(distinct_on: [organization_member_invites_select_column!], limit: Int, offset: Int, order_by: [organization_member_invites_order_by!], where: organization_member_invites_bool_exp): [organization_member_invites!]!
+  """An aggregate relationship"""
+invites_aggregate(distinct_on: [organization_member_invites_select_column!], limit: Int, offset: Int, order_by: [organization_member_invites_order_by!], where: organization_member_invites_bool_exp): organization_member_invites_aggregate!
+  """An array relationship"""
+members(distinct_on: [organization_members_select_column!], limit: Int, offset: Int, order_by: [organization_members_order_by!], where: organization_members_bool_exp): [organization_members!]!
+  """An aggregate relationship"""
+members_aggregate(distinct_on: [organization_members_select_column!], limit: Int, offset: Int, order_by: [organization_members_order_by!], where: organization_members_bool_exp): organization_members_aggregate!
+  name: String!
+  """An object relationship"""
+plan: plans!
+  planID: uuid!
+  slug: String!
+  status: organization_status_enum!
+  status_comment: String
+  stripeCustomerID: String
+  stripeSubscriptionID: String
+  threshold: Int!
+  updatedAt: timestamptz!
+}
+
+type organizations_aggregate {
+  aggregate: organizations_aggregate_fields
+  nodes: [organizations!]!
+}
+
+type organizations_aggregate_fields {
+  avg: organizations_avg_fields
+  count(columns: [organizations_select_column!], distinct: Boolean): Int!
+  max: organizations_max_fields
+  min: organizations_min_fields
+  stddev: organizations_stddev_fields
+  stddev_pop: organizations_stddev_pop_fields
+  stddev_samp: organizations_stddev_samp_fields
+  sum: organizations_sum_fields
+  var_pop: organizations_var_pop_fields
+  var_samp: organizations_var_samp_fields
+  variance: organizations_variance_fields
+}
+
+type organizations_avg_fields {
+  threshold: Float
+}
+
+type organizations_max_fields {
+  createdAt: timestamptz
+  id: uuid
+  name: String
+  planID: uuid
+  slug: String
+  status_comment: String
+  stripeCustomerID: String
+  stripeSubscriptionID: String
+  threshold: Int
+  updatedAt: timestamptz
+}
+
+type organizations_min_fields {
+  createdAt: timestamptz
+  id: uuid
+  name: String
+  planID: uuid
+  slug: String
+  status_comment: String
+  stripeCustomerID: String
+  stripeSubscriptionID: String
+  threshold: Int
+  updatedAt: timestamptz
+}
+
+type organizations_stddev_fields {
+  threshold: Float
+}
+
+type organizations_stddev_pop_fields {
+  threshold: Float
+}
+
+type organizations_stddev_samp_fields {
+  threshold: Float
+}
+
+type organizations_sum_fields {
+  threshold: Int
+}
+
+type organizations_var_pop_fields {
+  threshold: Float
+}
+
+type organizations_var_samp_fields {
+  threshold: Float
+}
+
+type organizations_variance_fields {
+  threshold: Float
+}
+
+type paymentMethods {
+  addedByUserId: uuid!
+  cardBrand: String!
+  cardExpMonth: Int!
+  cardExpYear: Int!
+  cardLast4: String!
+  createdAt: timestamptz!
+  id: uuid!
+  isDefault: Boolean!
+  stripePaymentMethodId: String!
+  """An object relationship"""
+user: users!
+  """An object relationship"""
+workspace: workspaces!
+  workspaceId: uuid!
+}
+
+type paymentMethods_aggregate {
+  aggregate: paymentMethods_aggregate_fields
+  nodes: [paymentMethods!]!
+}
+
+type paymentMethods_aggregate_fields {
+  avg: paymentMethods_avg_fields
+  count(columns: [paymentMethods_select_column!], distinct: Boolean): Int!
+  max: paymentMethods_max_fields
+  min: paymentMethods_min_fields
+  stddev: paymentMethods_stddev_fields
+  stddev_pop: paymentMethods_stddev_pop_fields
+  stddev_samp: paymentMethods_stddev_samp_fields
+  sum: paymentMethods_sum_fields
+  var_pop: paymentMethods_var_pop_fields
+  var_samp: paymentMethods_var_samp_fields
+  variance: paymentMethods_variance_fields
+}
+
+type paymentMethods_avg_fields {
+  cardExpMonth: Float
+  cardExpYear: Float
+}
+
+type paymentMethods_max_fields {
+  addedByUserId: uuid
+  cardBrand: String
+  cardExpMonth: Int
+  cardExpYear: Int
+  cardLast4: String
+  createdAt: timestamptz
+  id: uuid
+  stripePaymentMethodId: String
+  workspaceId: uuid
+}
+
+type paymentMethods_min_fields {
+  addedByUserId: uuid
+  cardBrand: String
+  cardExpMonth: Int
+  cardExpYear: Int
+  cardLast4: String
+  createdAt: timestamptz
+  id: uuid
+  stripePaymentMethodId: String
+  workspaceId: uuid
+}
+
+type paymentMethods_stddev_fields {
+  cardExpMonth: Float
+  cardExpYear: Float
+}
+
+type paymentMethods_stddev_pop_fields {
+  cardExpMonth: Float
+  cardExpYear: Float
+}
+
+type paymentMethods_stddev_samp_fields {
+  cardExpMonth: Float
+  cardExpYear: Float
+}
+
+type paymentMethods_sum_fields {
+  cardExpMonth: Int
+  cardExpYear: Int
+}
+
+type paymentMethods_var_pop_fields {
+  cardExpMonth: Float
+  cardExpYear: Float
+}
+
+type paymentMethods_var_samp_fields {
+  cardExpMonth: Float
+  cardExpYear: Float
+}
+
+type paymentMethods_variance_fields {
+  cardExpMonth: Float
+  cardExpYear: Float
+}
+
+type plans {
+  """An array relationship"""
+apps(distinct_on: [apps_select_column!], limit: Int, offset: Int, order_by: [apps_order_by!], where: apps_bool_exp): [apps!]!
+  """An aggregate relationship"""
+apps_aggregate(distinct_on: [apps_select_column!], limit: Int, offset: Int, order_by: [apps_order_by!], where: apps_bool_exp): apps_aggregate!
+  createdAt: timestamptz!
+  deprecated: Boolean!
+  featureAdvancedGraphql: Boolean!
+  featureBackupEnabled: Boolean!
+  featureBackupRetentionDays: Int!
+  featureCustomDomainsEnabled: Boolean!
+  featureCustomEmailTemplatesEnabled: Boolean!
+  featureCustomResources: Boolean!
+  """Weather or not to deploy email templates for git deployments"""
+featureDeployEmailTemplates: Boolean!
+  """Function execution timeout in seconds"""
+featureFunctionExecutionTimeout: Int!
+  featureMaxDbSize: Int!
+  featureMaxFilesSize: Int
+  """Max number of functions to deploy per git deployment"""
+featureMaxNumberOfFunctionsPerDeployment: Int!
+  id: uuid!
+  individual: Boolean!
+  isDefault: Boolean!
+  isFree: Boolean!
+  isPublic: Boolean!
+  name: String!
+  """An array relationship"""
+organizations(distinct_on: [organizations_select_column!], limit: Int, offset: Int, order_by: [organizations_order_by!], where: organizations_bool_exp): [organizations!]!
+  """An aggregate relationship"""
+organizations_aggregate(distinct_on: [organizations_select_column!], limit: Int, offset: Int, order_by: [organizations_order_by!], where: organizations_bool_exp): organizations_aggregate!
+  price: Int!
+  sort: Int!
+  stripePriceIDCustomDomains: String!
+  stripePriceIDDedicatedCompute: String!
+  stripePriceIDEgressUsageMB: String!
+  stripePriceIDFunctionsAmount: String!
+  stripePriceIDFunctionsUsageSeconds: String!
+  stripePriceIDPersistentVolumesGB: String!
+  stripePriceId: String!
+  stripe_price_id_pitr: String!
+  upatedAt: timestamptz!
+}
+
+type region_type {
+  comment: String!
+  """An array relationship"""
+regions(distinct_on: [regions_select_column!], limit: Int, offset: Int, order_by: [regions_order_by!], where: regions_bool_exp): [regions!]!
+  """An aggregate relationship"""
+regions_aggregate(distinct_on: [regions_select_column!], limit: Int, offset: Int, order_by: [regions_order_by!], where: regions_bool_exp): regions_aggregate!
+  type: String!
+}
+
+type regions {
+  active: Boolean!
+  """An array relationship"""
+allowedOrganizations(distinct_on: [regions_allowed_organization_select_column!], limit: Int, offset: Int, order_by: [regions_allowed_organization_order_by!], where: regions_allowed_organization_bool_exp): [regions_allowed_organization!]!
+  """An aggregate relationship"""
+allowedOrganizations_aggregate(distinct_on: [regions_allowed_organization_select_column!], limit: Int, offset: Int, order_by: [regions_allowed_organization_order_by!], where: regions_allowed_organization_bool_exp): regions_allowed_organization_aggregate!
+  """An object relationship"""
+allowedWorkspaces: regions_allowed_workspace
+  """An array relationship"""
+apps(distinct_on: [apps_select_column!], limit: Int, offset: Int, order_by: [apps_order_by!], where: apps_bool_exp): [apps!]!
+  """An aggregate relationship"""
+apps_aggregate(distinct_on: [apps_select_column!], limit: Int, offset: Int, order_by: [apps_order_by!], where: apps_bool_exp): apps_aggregate!
+  awsName: String!
+  city: String!
+  """An object relationship"""
+country: countries!
+  countryCode: String!
+  createdAt: timestamptz!
+  description: String
+  domain: String!
+  id: uuid!
+  isGdprCompliant: Boolean!
+  name: String!
+  """An object relationship"""
+region_type: region_type!
+  """An array relationship"""
+regions_allowed_workspaces(distinct_on: [regions_allowed_workspace_select_column!], limit: Int, offset: Int, order_by: [regions_allowed_workspace_order_by!], where: regions_allowed_workspace_bool_exp): [regions_allowed_workspace!]!
+  """An aggregate relationship"""
+regions_allowed_workspaces_aggregate(distinct_on: [regions_allowed_workspace_select_column!], limit: Int, offset: Int, order_by: [regions_allowed_workspace_order_by!], where: regions_allowed_workspace_bool_exp): regions_allowed_workspace_aggregate!
+  type: region_type_enum!
+  updatedAt: timestamptz!
+}
+
+type regions_aggregate {
+  aggregate: regions_aggregate_fields
+  nodes: [regions!]!
+}
+
+type regions_aggregate_fields {
+  count(columns: [regions_select_column!], distinct: Boolean): Int!
+  max: regions_max_fields
+  min: regions_min_fields
+}
+
+type regions_allowed_organization {
+  createdAt: timestamptz!
+  description: String!
+  id: uuid!
+  """An object relationship"""
+organization: organizations!
+  organizationID: uuid!
+  """An object relationship"""
+region: regions!
+  regionID: uuid!
+  updatedAt: timestamptz!
+}
+
+type regions_allowed_organization_aggregate {
+  aggregate: regions_allowed_organization_aggregate_fields
+  nodes: [regions_allowed_organization!]!
+}
+
+type regions_allowed_organization_aggregate_fields {
+  count(columns: [regions_allowed_organization_select_column!], distinct: Boolean): Int!
+  max: regions_allowed_organization_max_fields
+  min: regions_allowed_organization_min_fields
+}
+
+type regions_allowed_organization_max_fields {
+  createdAt: timestamptz
+  description: String
+  id: uuid
+  organizationID: uuid
+  regionID: uuid
+  updatedAt: timestamptz
+}
+
+type regions_allowed_organization_min_fields {
+  createdAt: timestamptz
+  description: String
+  id: uuid
+  organizationID: uuid
+  regionID: uuid
+  updatedAt: timestamptz
+}
+
+type regions_allowed_workspace {
+  created_at: timestamptz!
+  description: String!
+  id: uuid!
+  """An object relationship"""
+region: regions
+  region_id: uuid!
+  updated_at: timestamptz!
+  """An object relationship"""
+workspace: workspaces
+  workspace_id: uuid!
+}
+
+type regions_allowed_workspace_aggregate {
+  aggregate: regions_allowed_workspace_aggregate_fields
+  nodes: [regions_allowed_workspace!]!
+}
+
+type regions_allowed_workspace_aggregate_fields {
+  count(columns: [regions_allowed_workspace_select_column!], distinct: Boolean): Int!
+  max: regions_allowed_workspace_max_fields
+  min: regions_allowed_workspace_min_fields
+}
+
+type regions_allowed_workspace_max_fields {
+  created_at: timestamptz
+  description: String
+  id: uuid
+  region_id: uuid
+  updated_at: timestamptz
+  workspace_id: uuid
+}
+
+type regions_allowed_workspace_min_fields {
+  created_at: timestamptz
+  description: String
+  id: uuid
+  region_id: uuid
+  updated_at: timestamptz
+  workspace_id: uuid
+}
+
+type regions_max_fields {
+  awsName: String
+  city: String
+  countryCode: String
+  createdAt: timestamptz
+  description: String
+  domain: String
+  id: uuid
+  name: String
+  updatedAt: timestamptz
+}
+
+type regions_min_fields {
+  awsName: String
+  city: String
+  countryCode: String
+  createdAt: timestamptz
+  description: String
+  domain: String
+  id: uuid
+  name: String
+  updatedAt: timestamptz
+}
+
+type run_service {
+  """An object relationship"""
+app: apps!
+  appID: uuid!
+  config(resolve: Boolean!): ConfigRunServiceConfig
+  createdAt: timestamptz!
+  id: uuid!
+  mimirConfigEnc: String
+  subdomain: String!
+  updatedAt: timestamptz!
+}
+
+type run_service_aggregate {
+  aggregate: run_service_aggregate_fields
+  nodes: [run_service!]!
+}
+
+type run_service_aggregate_fields {
+  count(columns: [run_service_select_column!], distinct: Boolean): Int!
+  max: run_service_max_fields
+  min: run_service_min_fields
+}
+
+type run_service_max_fields {
+  appID: uuid
+  createdAt: timestamptz
+  id: uuid
+  mimirConfigEnc: String
+  subdomain: String
+  updatedAt: timestamptz
+}
+
+type run_service_min_fields {
+  appID: uuid
+  createdAt: timestamptz
+  id: uuid
+  mimirConfigEnc: String
+  subdomain: String
+  updatedAt: timestamptz
+}
+
+type users {
+  activeMfaType: String
+  """An array relationship"""
+apps(distinct_on: [apps_select_column!], limit: Int, offset: Int, order_by: [apps_order_by!], where: apps_bool_exp): [apps!]!
+  """An aggregate relationship"""
+apps_aggregate(distinct_on: [apps_select_column!], limit: Int, offset: Int, order_by: [apps_order_by!], where: apps_bool_exp): apps_aggregate!
+  avatarUrl: String!
+  """An array relationship"""
+cliTokens(distinct_on: [cliTokens_select_column!], limit: Int, offset: Int, order_by: [cliTokens_order_by!], where: cliTokens_bool_exp): [cliTokens!]!
+  """An aggregate relationship"""
+cliTokens_aggregate(distinct_on: [cliTokens_select_column!], limit: Int, offset: Int, order_by: [cliTokens_order_by!], where: cliTokens_bool_exp): cliTokens_aggregate!
+  createdAt: timestamptz!
+  """An array relationship"""
+creatorOfWorkspaces(distinct_on: [workspaces_select_column!], limit: Int, offset: Int, order_by: [workspaces_order_by!], where: workspaces_bool_exp): [workspaces!]!
+  """An aggregate relationship"""
+creatorOfWorkspaces_aggregate(distinct_on: [workspaces_select_column!], limit: Int, offset: Int, order_by: [workspaces_order_by!], where: workspaces_bool_exp): workspaces_aggregate!
+  currentChallenge: String
+  defaultRole: String!
+  """An object relationship"""
+defaultRoleByRole: authRoles!
+  disabled: Boolean!
+  displayName: String!
+  email: citext
+  emailVerified: Boolean!
+  """An array relationship"""
+github_app_installations(distinct_on: [githubAppInstallations_select_column!], limit: Int, offset: Int, order_by: [githubAppInstallations_order_by!], where: githubAppInstallations_bool_exp): [githubAppInstallations!]!
+  """An aggregate relationship"""
+github_app_installations_aggregate(distinct_on: [githubAppInstallations_select_column!], limit: Int, offset: Int, order_by: [githubAppInstallations_order_by!], where: githubAppInstallations_bool_exp): githubAppInstallations_aggregate!
+  id: uuid!
+  isAnonymous: Boolean!
+  lastSeen: timestamptz
+  locale: String!
+  metadata(path: String): jsonb
+  newEmail: citext
+  """An array relationship"""
+organizationMembership(distinct_on: [organization_members_select_column!], limit: Int, offset: Int, order_by: [organization_members_order_by!], where: organization_members_bool_exp): [organization_members!]!
+  """An aggregate relationship"""
+organizationMembership_aggregate(distinct_on: [organization_members_select_column!], limit: Int, offset: Int, order_by: [organization_members_order_by!], where: organization_members_bool_exp): organization_members_aggregate!
+  otpHash: String
+  otpHashExpiresAt: timestamptz!
+  otpMethodLastUsed: String
+  passwordHash: String
+  """An array relationship"""
+payment_methods(distinct_on: [paymentMethods_select_column!], limit: Int, offset: Int, order_by: [paymentMethods_order_by!], where: paymentMethods_bool_exp): [paymentMethods!]!
+  """An aggregate relationship"""
+payment_methods_aggregate(distinct_on: [paymentMethods_select_column!], limit: Int, offset: Int, order_by: [paymentMethods_order_by!], where: paymentMethods_bool_exp): paymentMethods_aggregate!
+  phoneNumber: String
+  phoneNumberVerified: Boolean!
+  """An array relationship"""
+refreshTokens(distinct_on: [authRefreshTokens_select_column!], limit: Int, offset: Int, order_by: [authRefreshTokens_order_by!], where: authRefreshTokens_bool_exp): [authRefreshTokens!]!
+  """An aggregate relationship"""
+refreshTokens_aggregate(distinct_on: [authRefreshTokens_select_column!], limit: Int, offset: Int, order_by: [authRefreshTokens_order_by!], where: authRefreshTokens_bool_exp): authRefreshTokens_aggregate!
+  """An object relationship"""
+role: authRoles!
+  """An array relationship"""
+roles(distinct_on: [authUserRoles_select_column!], limit: Int, offset: Int, order_by: [authUserRoles_order_by!], where: authUserRoles_bool_exp): [authUserRoles!]!
+  """An aggregate relationship"""
+roles_aggregate(distinct_on: [authUserRoles_select_column!], limit: Int, offset: Int, order_by: [authUserRoles_order_by!], where: authUserRoles_bool_exp): authUserRoles_aggregate!
+  """An array relationship"""
+securityKeys(distinct_on: [authUserSecurityKeys_select_column!], limit: Int, offset: Int, order_by: [authUserSecurityKeys_order_by!], where: authUserSecurityKeys_bool_exp): [authUserSecurityKeys!]!
+  """An aggregate relationship"""
+securityKeys_aggregate(distinct_on: [authUserSecurityKeys_select_column!], limit: Int, offset: Int, order_by: [authUserSecurityKeys_order_by!], where: authUserSecurityKeys_bool_exp): authUserSecurityKeys_aggregate!
+  ticket: String
+  ticketExpiresAt: timestamptz!
+  totpSecret: String
+  updatedAt: timestamptz!
+  """An array relationship"""
+userProviders(distinct_on: [authUserProviders_select_column!], limit: Int, offset: Int, order_by: [authUserProviders_order_by!], where: authUserProviders_bool_exp): [authUserProviders!]!
+  """An aggregate relationship"""
+userProviders_aggregate(distinct_on: [authUserProviders_select_column!], limit: Int, offset: Int, order_by: [authUserProviders_order_by!], where: authUserProviders_bool_exp): authUserProviders_aggregate!
+  """An array relationship"""
+workspaceMemberInvitesByInvitedByUserId(distinct_on: [workspaceMemberInvites_select_column!], limit: Int, offset: Int, order_by: [workspaceMemberInvites_order_by!], where: workspaceMemberInvites_bool_exp): [workspaceMemberInvites!]!
+  """An aggregate relationship"""
+workspaceMemberInvitesByInvitedByUserId_aggregate(distinct_on: [workspaceMemberInvites_select_column!], limit: Int, offset: Int, order_by: [workspaceMemberInvites_order_by!], where: workspaceMemberInvites_bool_exp): workspaceMemberInvites_aggregate!
+  """An array relationship"""
+workspaceMembers(distinct_on: [workspaceMembers_select_column!], limit: Int, offset: Int, order_by: [workspaceMembers_order_by!], where: workspaceMembers_bool_exp): [workspaceMembers!]!
+  """An aggregate relationship"""
+workspaceMembers_aggregate(distinct_on: [workspaceMembers_select_column!], limit: Int, offset: Int, order_by: [workspaceMembers_order_by!], where: workspaceMembers_bool_exp): workspaceMembers_aggregate!
+  """An array relationship"""
+workspace_member_invites(distinct_on: [workspaceMemberInvites_select_column!], limit: Int, offset: Int, order_by: [workspaceMemberInvites_order_by!], where: workspaceMemberInvites_bool_exp): [workspaceMemberInvites!]!
+  """An aggregate relationship"""
+workspace_member_invites_aggregate(distinct_on: [workspaceMemberInvites_select_column!], limit: Int, offset: Int, order_by: [workspaceMemberInvites_order_by!], where: workspaceMemberInvites_bool_exp): workspaceMemberInvites_aggregate!
+}
+
+type users_aggregate {
+  aggregate: users_aggregate_fields
+  nodes: [users!]!
+}
+
+type users_aggregate_fields {
+  count(columns: [users_select_column!], distinct: Boolean): Int!
+  max: users_max_fields
+  min: users_min_fields
+}
+
+type users_max_fields {
+  activeMfaType: String
+  avatarUrl: String
+  createdAt: timestamptz
+  currentChallenge: String
+  defaultRole: String
+  displayName: String
+  email: citext
+  id: uuid
+  lastSeen: timestamptz
+  locale: String
+  newEmail: citext
+  otpHash: String
+  otpHashExpiresAt: timestamptz
+  otpMethodLastUsed: String
+  passwordHash: String
+  phoneNumber: String
+  ticket: String
+  ticketExpiresAt: timestamptz
+  totpSecret: String
+  updatedAt: timestamptz
+}
+
+type users_min_fields {
+  activeMfaType: String
+  avatarUrl: String
+  createdAt: timestamptz
+  currentChallenge: String
+  defaultRole: String
+  displayName: String
+  email: citext
+  id: uuid
+  lastSeen: timestamptz
+  locale: String
+  newEmail: citext
+  otpHash: String
+  otpHashExpiresAt: timestamptz
+  otpMethodLastUsed: String
+  passwordHash: String
+  phoneNumber: String
+  ticket: String
+  ticketExpiresAt: timestamptz
+  totpSecret: String
+  updatedAt: timestamptz
+}
+
+type workspaceMemberInvites {
+  createdAt: timestamptz!
+  email: citext!
+  id: uuid!
+  """An object relationship"""
+invitedByUser: users!
+  invitedByUserId: uuid!
+  isAccepted: Boolean
+  """owner or member"""
+memberType: String!
+  updatedAt: timestamptz!
+  """An object relationship"""
+userByEmail: users
+  """An object relationship"""
+workspace: workspaces!
+  workspaceId: uuid!
+}
+
+type workspaceMemberInvites_aggregate {
+  aggregate: workspaceMemberInvites_aggregate_fields
+  nodes: [workspaceMemberInvites!]!
+}
+
+type workspaceMemberInvites_aggregate_fields {
+  count(columns: [workspaceMemberInvites_select_column!], distinct: Boolean): Int!
+  max: workspaceMemberInvites_max_fields
+  min: workspaceMemberInvites_min_fields
+}
+
+type workspaceMemberInvites_max_fields {
+  createdAt: timestamptz
+  email: citext
+  id: uuid
+  invitedByUserId: uuid
+  """owner or member"""
+memberType: String
+  updatedAt: timestamptz
+  workspaceId: uuid
+}
+
+type workspaceMemberInvites_min_fields {
+  createdAt: timestamptz
+  email: citext
+  id: uuid
+  invitedByUserId: uuid
+  """owner or member"""
+memberType: String
+  updatedAt: timestamptz
+  workspaceId: uuid
+}
+
+type workspaceMembers {
+  createdAt: timestamptz!
+  id: uuid!
+  """owner or member"""
+type: String!
+  updatedAt: timestamptz!
+  """An object relationship"""
+user: users!
+  userId: uuid!
+  """An object relationship"""
+workspace: workspaces!
+  workspaceId: uuid!
+}
+
+type workspaceMembers_aggregate {
+  aggregate: workspaceMembers_aggregate_fields
+  nodes: [workspaceMembers!]!
+}
+
+type workspaceMembers_aggregate_fields {
+  count(columns: [workspaceMembers_select_column!], distinct: Boolean): Int!
+  max: workspaceMembers_max_fields
+  min: workspaceMembers_min_fields
+}
+
+type workspaceMembers_max_fields {
+  createdAt: timestamptz
+  id: uuid
+  """owner or member"""
+type: String
+  updatedAt: timestamptz
+  userId: uuid
+  workspaceId: uuid
+}
+
+type workspaceMembers_min_fields {
+  createdAt: timestamptz
+  id: uuid
+  """owner or member"""
+type: String
+  updatedAt: timestamptz
+  userId: uuid
+  workspaceId: uuid
+}
+
+type workspaces {
+  """City, district, suburb, town, or village."""
+addressCity: String!
+  """An object relationship"""
+addressCountry: countries
+  """Two-letter country code (ISO 3166-1 alpha-2)."""
+addressCountryCode: String
+  """Address line 1 (e.g., street, PO Box, or company name)."""
+addressLine1: String!
+  """Address line 2 (e.g., apartment, suite, unit, or building)."""
+addressLine2: String!
+  """ZIP or postal code."""
+addressPostalCode: String!
+  """State, county, province, or region."""
+addressState: String!
+  """An object relationship"""
+allowedPrivateRegions: regions_allowed_workspace
+  """An array relationship"""
+apps(distinct_on: [apps_select_column!], limit: Int, offset: Int, order_by: [apps_order_by!], where: apps_bool_exp): [apps!]!
+  """An aggregate relationship"""
+apps_aggregate(distinct_on: [apps_select_column!], limit: Int, offset: Int, order_by: [apps_order_by!], where: apps_bool_exp): apps_aggregate!
+  companyName: String!
+  createdAt: timestamptz!
+  """An object relationship"""
+creatorUser: users
+  creatorUserId: uuid
+  email: String!
+  id: uuid!
+  name: String!
+  """An object relationship"""
+paymentMethod: paymentMethods
+  """An array relationship"""
+paymentMethods(distinct_on: [paymentMethods_select_column!], limit: Int, offset: Int, order_by: [paymentMethods_order_by!], where: paymentMethods_bool_exp): [paymentMethods!]!
+  """An aggregate relationship"""
+paymentMethods_aggregate(distinct_on: [paymentMethods_select_column!], limit: Int, offset: Int, order_by: [paymentMethods_order_by!], where: paymentMethods_bool_exp): paymentMethods_aggregate!
+  """An array relationship"""
+regions_allowed_workspaces(distinct_on: [regions_allowed_workspace_select_column!], limit: Int, offset: Int, order_by: [regions_allowed_workspace_order_by!], where: regions_allowed_workspace_bool_exp): [regions_allowed_workspace!]!
+  """An aggregate relationship"""
+regions_allowed_workspaces_aggregate(distinct_on: [regions_allowed_workspace_select_column!], limit: Int, offset: Int, order_by: [regions_allowed_workspace_order_by!], where: regions_allowed_workspace_bool_exp): regions_allowed_workspace_aggregate!
+  slug: String!
+  stripeCustomerId: String
+  taxIdType: String!
+  taxIdValue: String!
+  updatedAt: timestamptz!
+  """An array relationship"""
+workspaceMemberInvites(distinct_on: [workspaceMemberInvites_select_column!], limit: Int, offset: Int, order_by: [workspaceMemberInvites_order_by!], where: workspaceMemberInvites_bool_exp): [workspaceMemberInvites!]!
+  """An aggregate relationship"""
+workspaceMemberInvites_aggregate(distinct_on: [workspaceMemberInvites_select_column!], limit: Int, offset: Int, order_by: [workspaceMemberInvites_order_by!], where: workspaceMemberInvites_bool_exp): workspaceMemberInvites_aggregate!
+  """An array relationship"""
+workspaceMembers(distinct_on: [workspaceMembers_select_column!], limit: Int, offset: Int, order_by: [workspaceMembers_order_by!], where: workspaceMembers_bool_exp): [workspaceMembers!]!
+  """An aggregate relationship"""
+workspaceMembers_aggregate(distinct_on: [workspaceMembers_select_column!], limit: Int, offset: Int, order_by: [workspaceMembers_order_by!], where: workspaceMembers_bool_exp): workspaceMembers_aggregate!
+}
+
+type workspaces_aggregate {
+  aggregate: workspaces_aggregate_fields
+  nodes: [workspaces!]!
+}
+
+type workspaces_aggregate_fields {
+  count(columns: [workspaces_select_column!], distinct: Boolean): Int!
+  max: workspaces_max_fields
+  min: workspaces_min_fields
+}
+
+type workspaces_max_fields {
+  """City, district, suburb, town, or village."""
+addressCity: String
+  """Two-letter country code (ISO 3166-1 alpha-2)."""
+addressCountryCode: String
+  """Address line 1 (e.g., street, PO Box, or company name)."""
+addressLine1: String
+  """Address line 2 (e.g., apartment, suite, unit, or building)."""
+addressLine2: String
+  """ZIP or postal code."""
+addressPostalCode: String
+  """State, county, province, or region."""
+addressState: String
+  companyName: String
+  createdAt: timestamptz
+  creatorUserId: uuid
+  email: String
+  id: uuid
+  name: String
+  slug: String
+  stripeCustomerId: String
+  taxIdType: String
+  taxIdValue: String
+  updatedAt: timestamptz
+}
+
+type workspaces_min_fields {
+  """City, district, suburb, town, or village."""
+addressCity: String
+  """Two-letter country code (ISO 3166-1 alpha-2)."""
+addressCountryCode: String
+  """Address line 1 (e.g., street, PO Box, or company name)."""
+addressLine1: String
+  """Address line 2 (e.g., apartment, suite, unit, or building)."""
+addressLine2: String
+  """ZIP or postal code."""
+addressPostalCode: String
+  """State, county, province, or region."""
+addressState: String
+  companyName: String
+  createdAt: timestamptz
+  creatorUserId: uuid
+  email: String
+  id: uuid
+  name: String
+  slug: String
+  stripeCustomerId: String
+  taxIdType: String
+  taxIdValue: String
+  updatedAt: timestamptz
+}
+
+input Boolean_comparison_exp {
+  _eq: Boolean
+  _gt: Boolean
+  _gte: Boolean
+  _in: [Boolean!]
+  _is_null: Boolean
+  _lt: Boolean
+  _lte: Boolean
+  _neq: Boolean
+  _nin: [Boolean!]
+}
+
+input ConfigAIAutoEmbeddingsUpdateInput {
+  synchPeriodMinutes: ConfigUint32
+}
+
+input ConfigAIOpenaiUpdateInput {
+  apiKey: String
+  organization: String
+}
+
+input ConfigAIResourcesUpdateInput {
+  compute: ConfigComputeResourcesUpdateInput
+}
+
+input ConfigAIUpdateInput {
+  autoEmbeddings: ConfigAIAutoEmbeddingsUpdateInput
+  openai: ConfigAIOpenaiUpdateInput
+  resources: ConfigAIResourcesUpdateInput
+  version: String
+  webhookSecret: String
+}
+
+input ConfigAuthElevatedPrivilegesUpdateInput {
+  mode: String
+}
+
+input ConfigAuthMethodAnonymousUpdateInput {
+  enabled: Boolean
+}
+
+input ConfigAuthMethodEmailPasswordUpdateInput {
+  emailVerificationRequired: Boolean
+  hibpEnabled: Boolean
+  passwordMinLength: ConfigUint8
+}
+
+input ConfigAuthMethodEmailPasswordlessUpdateInput {
+  enabled: Boolean
+}
+
+input ConfigAuthMethodOauthAppleUpdateInput {
+  audience: String
+  clientId: String
+  enabled: Boolean
+  keyId: String
+  privateKey: String
+  scope: [String!]
+  teamId: String
+}
+
+input ConfigAuthMethodOauthAzureadUpdateInput {
+  clientId: String
+  clientSecret: String
+  enabled: Boolean
+  tenant: String
+}
+
+input ConfigAuthMethodOauthTwitterUpdateInput {
+  consumerKey: String
+  consumerSecret: String
+  enabled: Boolean
+}
+
+input ConfigAuthMethodOauthUpdateInput {
+  apple: ConfigAuthMethodOauthAppleUpdateInput
+  azuread: ConfigAuthMethodOauthAzureadUpdateInput
+  bitbucket: ConfigStandardOauthProviderUpdateInput
+  discord: ConfigStandardOauthProviderWithScopeUpdateInput
+  facebook: ConfigStandardOauthProviderWithScopeUpdateInput
+  github: ConfigStandardOauthProviderWithScopeUpdateInput
+  gitlab: ConfigStandardOauthProviderWithScopeUpdateInput
+  google: ConfigStandardOauthProviderWithScopeUpdateInput
+  linkedin: ConfigStandardOauthProviderWithScopeUpdateInput
+  spotify: ConfigStandardOauthProviderWithScopeUpdateInput
+  strava: ConfigStandardOauthProviderWithScopeUpdateInput
+  twitch: ConfigStandardOauthProviderWithScopeUpdateInput
+  twitter: ConfigAuthMethodOauthTwitterUpdateInput
+  windowslive: ConfigStandardOauthProviderWithScopeUpdateInput
+  workos: ConfigAuthMethodOauthWorkosUpdateInput
+}
+
+input ConfigAuthMethodOauthWorkosUpdateInput {
+  clientId: String
+  clientSecret: String
+  connection: String
+  enabled: Boolean
+  organization: String
+}
+
+input ConfigAuthMethodOtpEmailUpdateInput {
+  enabled: Boolean
+}
+
+input ConfigAuthMethodOtpUpdateInput {
+  email: ConfigAuthMethodOtpEmailUpdateInput
+}
+
+input ConfigAuthMethodSmsPasswordlessUpdateInput {
+  enabled: Boolean
+}
+
+input ConfigAuthMethodUpdateInput {
+  anonymous: ConfigAuthMethodAnonymousUpdateInput
+  emailPassword: ConfigAuthMethodEmailPasswordUpdateInput
+  emailPasswordless: ConfigAuthMethodEmailPasswordlessUpdateInput
+  oauth: ConfigAuthMethodOauthUpdateInput
+  otp: ConfigAuthMethodOtpUpdateInput
+  smsPasswordless: ConfigAuthMethodSmsPasswordlessUpdateInput
+  webauthn: ConfigAuthMethodWebauthnUpdateInput
+}
+
+input ConfigAuthMethodWebauthnAttestationUpdateInput {
+  timeout: ConfigUint32
+}
+
+input ConfigAuthMethodWebauthnRelyingPartyUpdateInput {
+  id: String
+  name: String
+  origins: [ConfigUrl!]
+}
+
+input ConfigAuthMethodWebauthnUpdateInput {
+  attestation: ConfigAuthMethodWebauthnAttestationUpdateInput
+  enabled: Boolean
+  relyingParty: ConfigAuthMethodWebauthnRelyingPartyUpdateInput
+}
+
+input ConfigAuthMiscUpdateInput {
+  concealErrors: Boolean
+}
+
+input ConfigAuthRateLimitUpdateInput {
+  bruteForce: ConfigRateLimitUpdateInput
+  emails: ConfigRateLimitUpdateInput
+  global: ConfigRateLimitUpdateInput
+  signups: ConfigRateLimitUpdateInput
+  sms: ConfigRateLimitUpdateInput
+}
+
+input ConfigAuthRedirectionsUpdateInput {
+  allowedUrls: [String!]
+  clientUrl: ConfigUrl
+}
+
+input ConfigAuthSessionAccessTokenUpdateInput {
+  customClaims: [ConfigAuthsessionaccessTokenCustomClaimsUpdateInput!]
+  expiresIn: ConfigUint32
+}
+
+input ConfigAuthSessionRefreshTokenUpdateInput {
+  expiresIn: ConfigUint32
+}
+
+input ConfigAuthSessionUpdateInput {
+  accessToken: ConfigAuthSessionAccessTokenUpdateInput
+  refreshToken: ConfigAuthSessionRefreshTokenUpdateInput
+}
+
+input ConfigAuthSignUpTurnstileUpdateInput {
+  secretKey: String
+}
+
+input ConfigAuthSignUpUpdateInput {
+  disableNewUsers: Boolean
+  enabled: Boolean
+  turnstile: ConfigAuthSignUpTurnstileUpdateInput
+}
+
+input ConfigAuthTotpUpdateInput {
+  enabled: Boolean
+  issuer: String
+}
+
+input ConfigAuthUpdateInput {
+  elevatedPrivileges: ConfigAuthElevatedPrivilegesUpdateInput
+  method: ConfigAuthMethodUpdateInput
+  misc: ConfigAuthMiscUpdateInput
+  rateLimit: ConfigAuthRateLimitUpdateInput
+  redirections: ConfigAuthRedirectionsUpdateInput
+  resources: ConfigResourcesUpdateInput
+  session: ConfigAuthSessionUpdateInput
+  signUp: ConfigAuthSignUpUpdateInput
+  totp: ConfigAuthTotpUpdateInput
+  user: ConfigAuthUserUpdateInput
+  version: String
+}
+
+input ConfigAuthUserEmailDomainsUpdateInput {
+  allowed: [String!]
+  blocked: [String!]
+}
+
+input ConfigAuthUserEmailUpdateInput {
+  allowed: [ConfigEmail!]
+  blocked: [ConfigEmail!]
+}
+
+input ConfigAuthUserGravatarUpdateInput {
+  default: String
+  enabled: Boolean
+  rating: String
+}
+
+input ConfigAuthUserLocaleUpdateInput {
+  allowed: [ConfigLocale!]
+  default: ConfigLocale
+}
+
+input ConfigAuthUserRolesUpdateInput {
+  allowed: [ConfigUserRole!]
+  default: ConfigUserRole
+}
+
+input ConfigAuthUserUpdateInput {
+  email: ConfigAuthUserEmailUpdateInput
+  emailDomains: ConfigAuthUserEmailDomainsUpdateInput
+  gravatar: ConfigAuthUserGravatarUpdateInput
+  locale: ConfigAuthUserLocaleUpdateInput
+  roles: ConfigAuthUserRolesUpdateInput
+}
+
+input ConfigAuthsessionaccessTokenCustomClaimsUpdateInput {
+  key: String
+  value: String
+}
+
+input ConfigAutoscalerUpdateInput {
+  maxReplicas: ConfigUint8
+}
+
+input ConfigClaimMapUpdateInput {
+  claim: String
+  default: String
+  path: String
+  value: String
+}
+
+input ConfigComputeResourcesUpdateInput {
+  cpu: ConfigUint32
+  memory: ConfigUint32
+}
+
+input ConfigConfigUpdateInput {
+  ai: ConfigAIUpdateInput
+  auth: ConfigAuthUpdateInput
+  functions: ConfigFunctionsUpdateInput
+  global: ConfigGlobalUpdateInput
+  graphql: ConfigGraphqlUpdateInput
+  hasura: ConfigHasuraUpdateInput
+  observability: ConfigObservabilityUpdateInput
+  postgres: ConfigPostgresUpdateInput
+  provider: ConfigProviderUpdateInput
+  storage: ConfigStorageUpdateInput
+}
+
+input ConfigFunctionsNodeUpdateInput {
+  version: Int
+}
+
+input ConfigFunctionsResourcesUpdateInput {
+  networking: ConfigNetworkingUpdateInput
+}
+
+input ConfigFunctionsUpdateInput {
+  node: ConfigFunctionsNodeUpdateInput
+  rateLimit: ConfigRateLimitUpdateInput
+  resources: ConfigFunctionsResourcesUpdateInput
+}
+
+input ConfigGlobalEnvironmentVariableUpdateInput {
+  name: String
+  value: String
+}
+
+input ConfigGlobalUpdateInput {
+  environment: [ConfigGlobalEnvironmentVariableUpdateInput!]
+}
+
+input ConfigGrafanaAlertingUpdateInput {
+  enabled: Boolean
+}
+
+input ConfigGrafanaContactsUpdateInput {
+  discord: [ConfigGrafanacontactsDiscordUpdateInput!]
+  emails: [String!]
+  pagerduty: [ConfigGrafanacontactsPagerdutyUpdateInput!]
+  slack: [ConfigGrafanacontactsSlackUpdateInput!]
+  webhook: [ConfigGrafanacontactsWebhookUpdateInput!]
+}
+
+input ConfigGrafanaSmtpUpdateInput {
+  host: String
+  password: String
+  port: ConfigPort
+  sender: String
+  user: String
+}
+
+input ConfigGrafanaUpdateInput {
+  adminPassword: String
+  alerting: ConfigGrafanaAlertingUpdateInput
+  contacts: ConfigGrafanaContactsUpdateInput
+  smtp: ConfigGrafanaSmtpUpdateInput
+}
+
+input ConfigGrafanacontactsDiscordUpdateInput {
+  avatarUrl: String
+  url: String
+}
+
+input ConfigGrafanacontactsPagerdutyUpdateInput {
+  class: String
+  component: String
+  group: String
+  integrationKey: String
+  severity: String
+}
+
+input ConfigGrafanacontactsSlackUpdateInput {
+  endpointURL: String
+  iconEmoji: String
+  iconURL: String
+  mentionChannel: String
+  mentionGroups: [String!]
+  mentionUsers: [String!]
+  recipient: String
+  token: String
+  url: String
+  username: String
+}
+
+input ConfigGrafanacontactsWebhookUpdateInput {
+  authorizationCredentials: String
+  authorizationScheme: String
+  httpMethod: String
+  maxAlerts: Int
+  password: String
+  url: String
+  username: String
+}
+
+input ConfigGraphqlSecurityUpdateInput {
+  forbidAminSecret: Boolean
+  maxDepthQueries: ConfigUint
+}
+
+input ConfigGraphqlUpdateInput {
+  security: ConfigGraphqlSecurityUpdateInput
+}
+
+input ConfigHasuraAuthHookUpdateInput {
+  mode: String
+  sendRequestBody: Boolean
+  url: String
+}
+
+input ConfigHasuraEventsUpdateInput {
+  httpPoolSize: ConfigUint32
+}
+
+input ConfigHasuraLogsUpdateInput {
+  level: String
+}
+
+input ConfigHasuraSettingsUpdateInput {
+  corsDomain: [ConfigUrl!]
+  devMode: Boolean
+  enableAllowList: Boolean
+  enableConsole: Boolean
+  enableRemoteSchemaPermissions: Boolean
+  enabledAPIs: [ConfigHasuraAPIs!]
+  inferFunctionPermissions: Boolean
+  liveQueriesMultiplexedRefetchInterval: ConfigUint32
+  stringifyNumericTypes: Boolean
+}
+
+input ConfigHasuraUpdateInput {
+  adminSecret: String
+  authHook: ConfigHasuraAuthHookUpdateInput
+  events: ConfigHasuraEventsUpdateInput
+  jwtSecrets: [ConfigJWTSecretUpdateInput!]
+  logs: ConfigHasuraLogsUpdateInput
+  rateLimit: ConfigRateLimitUpdateInput
+  resources: ConfigResourcesUpdateInput
+  settings: ConfigHasuraSettingsUpdateInput
+  version: String
+  webhookSecret: String
+}
+
+input ConfigIngressTlsUpdateInput {
+  clientCA: String
+}
+
+input ConfigIngressUpdateInput {
+  fqdn: [String!]
+  tls: ConfigIngressTlsUpdateInput
+}
+
+input ConfigJWTSecretUpdateInput {
+  allowed_skew: ConfigUint32
+  audience: String
+  claims_format: String
+  claims_map: [ConfigClaimMapUpdateInput!]
+  claims_namespace: String
+  claims_namespace_path: String
+  header: String
+  issuer: String
+  jwk_url: ConfigUrl
+  key: String
+  kid: String
+  signingKey: String
+  type: String
+}
+
+input ConfigNetworkingUpdateInput {
+  ingresses: [ConfigIngressUpdateInput!]
+}
+
+input ConfigObservabilityUpdateInput {
+  grafana: ConfigGrafanaUpdateInput
+}
+
+input ConfigPostgresPitrUpdateInput {
+  retention: ConfigUint8
+}
+
+input ConfigPostgresResourcesStorageUpdateInput {
+  capacity: ConfigUint32
+}
+
+input ConfigPostgresResourcesUpdateInput {
+  compute: ConfigResourcesComputeUpdateInput
+  enablePublicAccess: Boolean
+  replicas: Int
+  storage: ConfigPostgresResourcesStorageUpdateInput
+}
+
+input ConfigPostgresSettingsUpdateInput {
+  archiveTimeout: ConfigInt32
+  checkpointCompletionTarget: Float
+  defaultStatisticsTarget: ConfigInt32
+  effectiveCacheSize: String
+  effectiveIOConcurrency: ConfigInt32
+  hugePages: String
+  jit: String
+  maintenanceWorkMem: String
+  maxConnections: ConfigInt32
+  maxParallelMaintenanceWorkers: ConfigInt32
+  maxParallelWorkers: ConfigInt32
+  maxParallelWorkersPerGather: ConfigInt32
+  maxReplicationSlots: ConfigInt32
+  maxWalSenders: ConfigInt32
+  maxWalSize: String
+  maxWorkerProcesses: ConfigInt32
+  minWalSize: String
+  randomPageCost: Float
+  sharedBuffers: String
+  walBuffers: String
+  walLevel: String
+  workMem: String
+}
+
+input ConfigPostgresUpdateInput {
+  pitr: ConfigPostgresPitrUpdateInput
+  resources: ConfigPostgresResourcesUpdateInput
+  settings: ConfigPostgresSettingsUpdateInput
+  version: String
+}
+
+input ConfigProviderUpdateInput {
+  sms: ConfigSmsUpdateInput
+  smtp: ConfigSmtpUpdateInput
+}
+
+input ConfigRateLimitUpdateInput {
+  interval: String
+  limit: ConfigUint32
+}
+
+input ConfigResourcesComputeUpdateInput {
+  cpu: ConfigUint32
+  memory: ConfigUint32
+}
+
+input ConfigResourcesUpdateInput {
+  autoscaler: ConfigAutoscalerUpdateInput
+  compute: ConfigResourcesComputeUpdateInput
+  networking: ConfigNetworkingUpdateInput
+  replicas: ConfigUint8
+}
+
+input ConfigSmsUpdateInput {
+  accountSid: String
+  authToken: String
+  messagingServiceId: String
+  provider: String
+}
+
+input ConfigSmtpUpdateInput {
+  host: String
+  method: String
+  password: String
+  port: ConfigPort
+  secure: Boolean
+  sender: String
+  user: String
+}
+
+input ConfigStandardOauthProviderUpdateInput {
+  clientId: String
+  clientSecret: String
+  enabled: Boolean
+}
+
+input ConfigStandardOauthProviderWithScopeUpdateInput {
+  audience: String
+  clientId: String
+  clientSecret: String
+  enabled: Boolean
+  scope: [String!]
+}
+
+input ConfigStorageAntivirusUpdateInput {
+  server: String
+}
+
+input ConfigStorageUpdateInput {
+  antivirus: ConfigStorageAntivirusUpdateInput
+  rateLimit: ConfigRateLimitUpdateInput
+  resources: ConfigResourcesUpdateInput
+  version: String
+}
+
+input Int_comparison_exp {
+  _eq: Int
+  _gt: Int
+  _gte: Int
+  _in: [Int!]
+  _is_null: Boolean
+  _lt: Int
+  _lte: Int
+  _neq: Int
+  _nin: [Int!]
+}
+
+input String_comparison_exp {
+  _eq: String
+  _gt: String
+  _gte: String
+  """does the column match the given case-insensitive pattern"""
+  _ilike: String
+  _in: [String!]
+  """does the column match the given POSIX regular expression, case insensitive"""
+  _iregex: String
+  _is_null: Boolean
+  """does the column match the given pattern"""
+  _like: String
+  _lt: String
+  _lte: String
+  _neq: String
+  """does the column NOT match the given case-insensitive pattern"""
+  _nilike: String
+  _nin: [String!]
+  """does the column NOT match the given POSIX regular expression, case insensitive"""
+  _niregex: String
+  """does the column NOT match the given pattern"""
+  _nlike: String
+  """does the column NOT match the given POSIX regular expression, case sensitive"""
+  _nregex: String
+  """does the column NOT match the given SQL regular expression"""
+  _nsimilar: String
+  """does the column match the given POSIX regular expression, case sensitive"""
+  _regex: String
+  """does the column match the given SQL regular expression"""
+  _similar: String
+}
+
+input appStateHistory_aggregate_bool_exp {
+  count: appStateHistory_aggregate_bool_exp_count
+}
+
+input appStateHistory_aggregate_bool_exp_count {
+  arguments: [appStateHistory_select_column!]
+  distinct: Boolean
+  filter: appStateHistory_bool_exp
+  predicate: Int_comparison_exp!
+}
+
+input appStateHistory_aggregate_order_by {
+  avg: appStateHistory_avg_order_by
+  count: order_by
+  max: appStateHistory_max_order_by
+  min: appStateHistory_min_order_by
+  stddev: appStateHistory_stddev_order_by
+  stddev_pop: appStateHistory_stddev_pop_order_by
+  stddev_samp: appStateHistory_stddev_samp_order_by
+  sum: appStateHistory_sum_order_by
+  var_pop: appStateHistory_var_pop_order_by
+  var_samp: appStateHistory_var_samp_order_by
+  variance: appStateHistory_variance_order_by
+}
+
+input appStateHistory_avg_order_by {
+  stateId: order_by
+}
+
+input appStateHistory_bool_exp {
+  _and: [appStateHistory_bool_exp!]
+  _not: appStateHistory_bool_exp
+  _or: [appStateHistory_bool_exp!]
+  app: apps_bool_exp
+  appId: uuid_comparison_exp
+  appState: appStates_bool_exp
+  createdAt: timestamptz_comparison_exp
+  id: uuid_comparison_exp
+  message: String_comparison_exp
+  stateId: Int_comparison_exp
+}
+
+input appStateHistory_max_order_by {
+  appId: order_by
+  createdAt: order_by
+  id: order_by
+  message: order_by
+  stateId: order_by
+}
+
+input appStateHistory_min_order_by {
+  appId: order_by
+  createdAt: order_by
+  id: order_by
+  message: order_by
+  stateId: order_by
+}
+
+input appStateHistory_stddev_order_by {
+  stateId: order_by
+}
+
+input appStateHistory_stddev_pop_order_by {
+  stateId: order_by
+}
+
+input appStateHistory_stddev_samp_order_by {
+  stateId: order_by
+}
+
+input appStateHistory_sum_order_by {
+  stateId: order_by
+}
+
+input appStateHistory_var_pop_order_by {
+  stateId: order_by
+}
+
+input appStateHistory_var_samp_order_by {
+  stateId: order_by
+}
+
+input appStateHistory_variance_order_by {
+  stateId: order_by
+}
+
+input appStates_bool_exp {
+  _and: [appStates_bool_exp!]
+  _not: appStates_bool_exp
+  _or: [appStates_bool_exp!]
+  appStates: appStateHistory_bool_exp
+  appStates_aggregate: appStateHistory_aggregate_bool_exp
+  apps: apps_bool_exp
+  apps_aggregate: apps_aggregate_bool_exp
+  id: Int_comparison_exp
+  name: String_comparison_exp
+}
+
+input appStates_order_by {
+  appStates_aggregate: appStateHistory_aggregate_order_by
+  apps_aggregate: apps_aggregate_order_by
+  id: order_by
+  name: order_by
+}
+
+input apps_aggregate_bool_exp {
+  bool_and: apps_aggregate_bool_exp_bool_and
+  bool_or: apps_aggregate_bool_exp_bool_or
+  count: apps_aggregate_bool_exp_count
+}
+
+input apps_aggregate_bool_exp_bool_and {
+  arguments: apps_select_column_apps_aggregate_bool_exp_bool_and_arguments_columns!
+  distinct: Boolean
+  filter: apps_bool_exp
+  predicate: Boolean_comparison_exp!
+}
+
+input apps_aggregate_bool_exp_bool_or {
+  arguments: apps_select_column_apps_aggregate_bool_exp_bool_or_arguments_columns!
+  distinct: Boolean
+  filter: apps_bool_exp
+  predicate: Boolean_comparison_exp!
+}
+
+input apps_aggregate_bool_exp_count {
+  arguments: [apps_select_column!]
+  distinct: Boolean
+  filter: apps_bool_exp
+  predicate: Int_comparison_exp!
+}
+
+input apps_aggregate_order_by {
+  avg: apps_avg_order_by
+  count: order_by
+  max: apps_max_order_by
+  min: apps_min_order_by
+  stddev: apps_stddev_order_by
+  stddev_pop: apps_stddev_pop_order_by
+  stddev_samp: apps_stddev_samp_order_by
+  sum: apps_sum_order_by
+  var_pop: apps_var_pop_order_by
+  var_samp: apps_var_samp_order_by
+  variance: apps_variance_order_by
+}
+
+input apps_append_input {
+  metadataFunctions: jsonb
+}
+
+input apps_avg_order_by {
+  currentState: order_by
+  desiredState: order_by
+}
+
+input apps_bool_exp {
+  _and: [apps_bool_exp!]
+  _not: apps_bool_exp
+  _or: [apps_bool_exp!]
+  appStates: appStateHistory_bool_exp
+  appStates_aggregate: appStateHistory_aggregate_bool_exp
+  automaticDeploys: Boolean_comparison_exp
+  backups: backups_bool_exp
+  backups_aggregate: backups_aggregate_bool_exp
+  billingDedicatedCompute: billing_dedicated_compute_bool_exp
+  billingSubscriptions: billing_subscriptions_bool_exp
+  createdAt: timestamptz_comparison_exp
+  creator: users_bool_exp
+  creatorUserId: uuid_comparison_exp
+  currentState: Int_comparison_exp
+  deployments: deployments_bool_exp
+  deployments_aggregate: deployments_aggregate_bool_exp
+  desiredAppState: appStates_bool_exp
+  desiredState: Int_comparison_exp
+  featureFlags: featureFlags_bool_exp
+  featureFlags_aggregate: featureFlags_aggregate_bool_exp
+  githubRepository: githubRepositories_bool_exp
+  githubRepositoryId: uuid_comparison_exp
+  id: uuid_comparison_exp
+  isLocked: Boolean_comparison_exp
+  isLockedReason: String_comparison_exp
+  legacyPlan: plans_bool_exp
+  legacyPlanID: uuid_comparison_exp
+  legacyStripeSubscriptionId: String_comparison_exp
+  metadataFunctions: jsonb_comparison_exp
+  mimirConfigEnc: String_comparison_exp
+  mimirSecretsEnc: String_comparison_exp
+  mimirSystemConfigEnc: String_comparison_exp
+  name: String_comparison_exp
+  nhostBaseFolder: String_comparison_exp
+  organization: organizations_bool_exp
+  organizationID: uuid_comparison_exp
+  region: regions_bool_exp
+  regionId: uuid_comparison_exp
+  repositoryProductionBranch: String_comparison_exp
+  runServices: run_service_bool_exp
+  runServices_aggregate: run_service_aggregate_bool_exp
+  slug: String_comparison_exp
+  stateMatch: Boolean_comparison_exp
+  subdomain: String_comparison_exp
+  updatedAt: timestamptz_comparison_exp
+  workspace: workspaces_bool_exp
+  workspaceId: uuid_comparison_exp
+}
+
+input apps_delete_at_path_input {
+  metadataFunctions: [String!]
+}
+
+input apps_delete_elem_input {
+  metadataFunctions: Int
+}
+
+input apps_delete_key_input {
+  metadataFunctions: String
+}
+
+input apps_inc_input {
+  currentState: Int
+  desiredState: Int
+}
+
+input apps_max_order_by {
+  createdAt: order_by
+  creatorUserId: order_by
+  currentState: order_by
+  desiredState: order_by
+  githubRepositoryId: order_by
+  id: order_by
+  isLockedReason: order_by
+  legacyPlanID: order_by
+  legacyStripeSubscriptionId: order_by
+  mimirConfigEnc: order_by
+  mimirSecretsEnc: order_by
+  mimirSystemConfigEnc: order_by
+  name: order_by
+  nhostBaseFolder: order_by
+  organizationID: order_by
+  regionId: order_by
+  repositoryProductionBranch: order_by
+  slug: order_by
+  subdomain: order_by
+  updatedAt: order_by
+  workspaceId: order_by
+}
+
+input apps_min_order_by {
+  createdAt: order_by
+  creatorUserId: order_by
+  currentState: order_by
+  desiredState: order_by
+  githubRepositoryId: order_by
+  id: order_by
+  isLockedReason: order_by
+  legacyPlanID: order_by
+  legacyStripeSubscriptionId: order_by
+  mimirConfigEnc: order_by
+  mimirSecretsEnc: order_by
+  mimirSystemConfigEnc: order_by
+  name: order_by
+  nhostBaseFolder: order_by
+  organizationID: order_by
+  regionId: order_by
+  repositoryProductionBranch: order_by
+  slug: order_by
+  subdomain: order_by
+  updatedAt: order_by
+  workspaceId: order_by
+}
+
+input apps_order_by {
+  appStates_aggregate: appStateHistory_aggregate_order_by
+  automaticDeploys: order_by
+  backups_aggregate: backups_aggregate_order_by
+  billingDedicatedCompute: billing_dedicated_compute_order_by
+  billingSubscriptions: billing_subscriptions_order_by
+  createdAt: order_by
+  creator: users_order_by
+  creatorUserId: order_by
+  currentState: order_by
+  deployments_aggregate: deployments_aggregate_order_by
+  desiredAppState: appStates_order_by
+  desiredState: order_by
+  featureFlags_aggregate: featureFlags_aggregate_order_by
+  githubRepository: githubRepositories_order_by
+  githubRepositoryId: order_by
+  id: order_by
+  isLocked: order_by
+  isLockedReason: order_by
+  legacyPlan: plans_order_by
+  legacyPlanID: order_by
+  legacyStripeSubscriptionId: order_by
+  metadataFunctions: order_by
+  mimirConfigEnc: order_by
+  mimirSecretsEnc: order_by
+  mimirSystemConfigEnc: order_by
+  name: order_by
+  nhostBaseFolder: order_by
+  organization: organizations_order_by
+  organizationID: order_by
+  region: regions_order_by
+  regionId: order_by
+  repositoryProductionBranch: order_by
+  runServices_aggregate: run_service_aggregate_order_by
+  slug: order_by
+  stateMatch: order_by
+  subdomain: order_by
+  updatedAt: order_by
+  workspace: workspaces_order_by
+  workspaceId: order_by
+}
+
+input apps_pk_columns_input {
+  id: uuid!
+}
+
+input apps_prepend_input {
+  metadataFunctions: jsonb
+}
+
+input apps_set_input {
+  automaticDeploys: Boolean
+  createdAt: timestamptz
+  creatorUserId: uuid
+  currentState: Int
+  desiredState: Int
+  githubRepositoryId: uuid
+  id: uuid
+  isLocked: Boolean
+  isLockedReason: String
+  legacyPlanID: uuid
+  legacyStripeSubscriptionId: String
+  metadataFunctions: jsonb
+  mimirConfigEnc: String
+  mimirSecretsEnc: String
+  mimirSystemConfigEnc: String
+  name: String
+  nhostBaseFolder: String
+  organizationID: uuid
+  regionId: uuid
+  repositoryProductionBranch: String
+  slug: String
+  subdomain: String
+  updatedAt: timestamptz
+  workspaceId: uuid
+}
+
+input apps_stddev_order_by {
+  currentState: order_by
+  desiredState: order_by
+}
+
+input apps_stddev_pop_order_by {
+  currentState: order_by
+  desiredState: order_by
+}
+
+input apps_stddev_samp_order_by {
+  currentState: order_by
+  desiredState: order_by
+}
+
+input apps_sum_order_by {
+  currentState: order_by
+  desiredState: order_by
+}
+
+input apps_var_pop_order_by {
+  currentState: order_by
+  desiredState: order_by
+}
+
+input apps_var_samp_order_by {
+  currentState: order_by
+  desiredState: order_by
+}
+
+input apps_variance_order_by {
+  currentState: order_by
+  desiredState: order_by
+}
+
+input authProviders_bool_exp {
+  _and: [authProviders_bool_exp!]
+  _not: authProviders_bool_exp
+  _or: [authProviders_bool_exp!]
+  id: String_comparison_exp
+  userProviders: authUserProviders_bool_exp
+  userProviders_aggregate: authUserProviders_aggregate_bool_exp
+}
+
+input authRefreshTokenTypes_enum_comparison_exp {
+  _eq: authRefreshTokenTypes_enum
+  _in: [authRefreshTokenTypes_enum!]
+  _is_null: Boolean
+  _neq: authRefreshTokenTypes_enum
+  _nin: [authRefreshTokenTypes_enum!]
+}
+
+input authRefreshTokens_aggregate_bool_exp {
+  count: authRefreshTokens_aggregate_bool_exp_count
+}
+
+input authRefreshTokens_aggregate_bool_exp_count {
+  arguments: [authRefreshTokens_select_column!]
+  distinct: Boolean
+  filter: authRefreshTokens_bool_exp
+  predicate: Int_comparison_exp!
+}
+
+input authRefreshTokens_aggregate_order_by {
+  count: order_by
+  max: authRefreshTokens_max_order_by
+  min: authRefreshTokens_min_order_by
+}
+
+input authRefreshTokens_bool_exp {
+  _and: [authRefreshTokens_bool_exp!]
+  _not: authRefreshTokens_bool_exp
+  _or: [authRefreshTokens_bool_exp!]
+  createdAt: timestamptz_comparison_exp
+  expiresAt: timestamptz_comparison_exp
+  id: uuid_comparison_exp
+  metadata: jsonb_comparison_exp
+  refreshTokenHash: String_comparison_exp
+  type: authRefreshTokenTypes_enum_comparison_exp
+  user: users_bool_exp
+  userId: uuid_comparison_exp
+}
+
+input authRefreshTokens_max_order_by {
+  createdAt: order_by
+  expiresAt: order_by
+  id: order_by
+  refreshTokenHash: order_by
+  userId: order_by
+}
+
+input authRefreshTokens_min_order_by {
+  createdAt: order_by
+  expiresAt: order_by
+  id: order_by
+  refreshTokenHash: order_by
+  userId: order_by
+}
+
+input authRoles_bool_exp {
+  _and: [authRoles_bool_exp!]
+  _not: authRoles_bool_exp
+  _or: [authRoles_bool_exp!]
+  role: String_comparison_exp
+  userRoles: authUserRoles_bool_exp
+  userRoles_aggregate: authUserRoles_aggregate_bool_exp
+  usersByDefaultRole: users_bool_exp
+  usersByDefaultRole_aggregate: users_aggregate_bool_exp
+}
+
+input authRoles_order_by {
+  role: order_by
+  userRoles_aggregate: authUserRoles_aggregate_order_by
+  usersByDefaultRole_aggregate: users_aggregate_order_by
+}
+
+input authUserProviders_aggregate_bool_exp {
+  count: authUserProviders_aggregate_bool_exp_count
+}
+
+input authUserProviders_aggregate_bool_exp_count {
+  arguments: [authUserProviders_select_column!]
+  distinct: Boolean
+  filter: authUserProviders_bool_exp
+  predicate: Int_comparison_exp!
+}
+
+input authUserProviders_aggregate_order_by {
+  count: order_by
+  max: authUserProviders_max_order_by
+  min: authUserProviders_min_order_by
+}
+
+input authUserProviders_bool_exp {
+  _and: [authUserProviders_bool_exp!]
+  _not: authUserProviders_bool_exp
+  _or: [authUserProviders_bool_exp!]
+  accessToken: String_comparison_exp
+  createdAt: timestamptz_comparison_exp
+  id: uuid_comparison_exp
+  provider: authProviders_bool_exp
+  providerId: String_comparison_exp
+  providerUserId: String_comparison_exp
+  refreshToken: String_comparison_exp
+  updatedAt: timestamptz_comparison_exp
+  user: users_bool_exp
+  userId: uuid_comparison_exp
+}
+
+input authUserProviders_max_order_by {
+  accessToken: order_by
+  createdAt: order_by
+  id: order_by
+  providerId: order_by
+  providerUserId: order_by
+  refreshToken: order_by
+  updatedAt: order_by
+  userId: order_by
+}
+
+input authUserProviders_min_order_by {
+  accessToken: order_by
+  createdAt: order_by
+  id: order_by
+  providerId: order_by
+  providerUserId: order_by
+  refreshToken: order_by
+  updatedAt: order_by
+  userId: order_by
+}
+
+input authUserRoles_aggregate_bool_exp {
+  count: authUserRoles_aggregate_bool_exp_count
+}
+
+input authUserRoles_aggregate_bool_exp_count {
+  arguments: [authUserRoles_select_column!]
+  distinct: Boolean
+  filter: authUserRoles_bool_exp
+  predicate: Int_comparison_exp!
+}
+
+input authUserRoles_aggregate_order_by {
+  count: order_by
+  max: authUserRoles_max_order_by
+  min: authUserRoles_min_order_by
+}
+
+input authUserRoles_bool_exp {
+  _and: [authUserRoles_bool_exp!]
+  _not: authUserRoles_bool_exp
+  _or: [authUserRoles_bool_exp!]
+  createdAt: timestamptz_comparison_exp
+  id: uuid_comparison_exp
+  role: String_comparison_exp
+  roleByRole: authRoles_bool_exp
+  user: users_bool_exp
+  userId: uuid_comparison_exp
+}
+
+input authUserRoles_max_order_by {
+  createdAt: order_by
+  id: order_by
+  role: order_by
+  userId: order_by
+}
+
+input authUserRoles_min_order_by {
+  createdAt: order_by
+  id: order_by
+  role: order_by
+  userId: order_by
+}
+
+input authUserSecurityKeys_aggregate_bool_exp {
+  count: authUserSecurityKeys_aggregate_bool_exp_count
+}
+
+input authUserSecurityKeys_aggregate_bool_exp_count {
+  arguments: [authUserSecurityKeys_select_column!]
+  distinct: Boolean
+  filter: authUserSecurityKeys_bool_exp
+  predicate: Int_comparison_exp!
+}
+
+input authUserSecurityKeys_aggregate_order_by {
+  avg: authUserSecurityKeys_avg_order_by
+  count: order_by
+  max: authUserSecurityKeys_max_order_by
+  min: authUserSecurityKeys_min_order_by
+  stddev: authUserSecurityKeys_stddev_order_by
+  stddev_pop: authUserSecurityKeys_stddev_pop_order_by
+  stddev_samp: authUserSecurityKeys_stddev_samp_order_by
+  sum: authUserSecurityKeys_sum_order_by
+  var_pop: authUserSecurityKeys_var_pop_order_by
+  var_samp: authUserSecurityKeys_var_samp_order_by
+  variance: authUserSecurityKeys_variance_order_by
+}
+
+input authUserSecurityKeys_avg_order_by {
+  counter: order_by
+}
+
+input authUserSecurityKeys_bool_exp {
+  _and: [authUserSecurityKeys_bool_exp!]
+  _not: authUserSecurityKeys_bool_exp
+  _or: [authUserSecurityKeys_bool_exp!]
+  counter: bigint_comparison_exp
+  credentialId: String_comparison_exp
+  credentialPublicKey: bytea_comparison_exp
+  id: uuid_comparison_exp
+  nickname: String_comparison_exp
+  transports: String_comparison_exp
+  user: users_bool_exp
+  userId: uuid_comparison_exp
+}
+
+input authUserSecurityKeys_max_order_by {
+  counter: order_by
+  credentialId: order_by
+  id: order_by
+  nickname: order_by
+  transports: order_by
+  userId: order_by
+}
+
+input authUserSecurityKeys_min_order_by {
+  counter: order_by
+  credentialId: order_by
+  id: order_by
+  nickname: order_by
+  transports: order_by
+  userId: order_by
+}
+
+input authUserSecurityKeys_stddev_order_by {
+  counter: order_by
+}
+
+input authUserSecurityKeys_stddev_pop_order_by {
+  counter: order_by
+}
+
+input authUserSecurityKeys_stddev_samp_order_by {
+  counter: order_by
+}
+
+input authUserSecurityKeys_sum_order_by {
+  counter: order_by
+}
+
+input authUserSecurityKeys_var_pop_order_by {
+  counter: order_by
+}
+
+input authUserSecurityKeys_var_samp_order_by {
+  counter: order_by
+}
+
+input authUserSecurityKeys_variance_order_by {
+  counter: order_by
+}
+
+input backups_aggregate_bool_exp {
+  count: backups_aggregate_bool_exp_count
+}
+
+input backups_aggregate_bool_exp_count {
+  arguments: [backups_select_column!]
+  distinct: Boolean
+  filter: backups_bool_exp
+  predicate: Int_comparison_exp!
+}
+
+input backups_aggregate_order_by {
+  avg: backups_avg_order_by
+  count: order_by
+  max: backups_max_order_by
+  min: backups_min_order_by
+  stddev: backups_stddev_order_by
+  stddev_pop: backups_stddev_pop_order_by
+  stddev_samp: backups_stddev_samp_order_by
+  sum: backups_sum_order_by
+  var_pop: backups_var_pop_order_by
+  var_samp: backups_var_samp_order_by
+  variance: backups_variance_order_by
+}
+
+input backups_avg_order_by {
+  size: order_by
+}
+
+input backups_bool_exp {
+  _and: [backups_bool_exp!]
+  _not: backups_bool_exp
+  _or: [backups_bool_exp!]
+  app: apps_bool_exp
+  appId: uuid_comparison_exp
+  completedAt: timestamptz_comparison_exp
+  createdAt: timestamptz_comparison_exp
+  expiresAt: timestamptz_comparison_exp
+  id: uuid_comparison_exp
+  size: bigint_comparison_exp
+}
+
+input backups_max_order_by {
+  appId: order_by
+  completedAt: order_by
+  createdAt: order_by
+  expiresAt: order_by
+  id: order_by
+  size: order_by
+}
+
+input backups_min_order_by {
+  appId: order_by
+  completedAt: order_by
+  createdAt: order_by
+  expiresAt: order_by
+  id: order_by
+  size: order_by
+}
+
+input backups_stddev_order_by {
+  size: order_by
+}
+
+input backups_stddev_pop_order_by {
+  size: order_by
+}
+
+input backups_stddev_samp_order_by {
+  size: order_by
+}
+
+input backups_sum_order_by {
+  size: order_by
+}
+
+input backups_var_pop_order_by {
+  size: order_by
+}
+
+input backups_var_samp_order_by {
+  size: order_by
+}
+
+input backups_variance_order_by {
+  size: order_by
+}
+
+input bigint_comparison_exp {
+  _eq: bigint
+  _gt: bigint
+  _gte: bigint
+  _in: [bigint!]
+  _is_null: Boolean
+  _lt: bigint
+  _lte: bigint
+  _neq: bigint
+  _nin: [bigint!]
+}
+
+input billing_dedicated_compute_bool_exp {
+  _and: [billing_dedicated_compute_bool_exp!]
+  _not: billing_dedicated_compute_bool_exp
+  _or: [billing_dedicated_compute_bool_exp!]
+  app: apps_bool_exp
+  appID: uuid_comparison_exp
+  createdAt: timestamptz_comparison_exp
+  id: uuid_comparison_exp
+  organizationID: uuid_comparison_exp
+  totalMillicores: Int_comparison_exp
+  updatedAt: timestamptz_comparison_exp
+}
+
+input billing_dedicated_compute_order_by {
+  app: apps_order_by
+  appID: order_by
+  createdAt: order_by
+  id: order_by
+  organizationID: order_by
+  totalMillicores: order_by
+  updatedAt: order_by
+}
+
+input billing_report_type_enum_comparison_exp {
+  _eq: billing_report_type_enum
+  _in: [billing_report_type_enum!]
+  _is_null: Boolean
+  _neq: billing_report_type_enum
+  _nin: [billing_report_type_enum!]
+}
+
+input billing_reports_aggregate_bool_exp {
+  bool_and: billing_reports_aggregate_bool_exp_bool_and
+  bool_or: billing_reports_aggregate_bool_exp_bool_or
+  count: billing_reports_aggregate_bool_exp_count
+}
+
+input billing_reports_aggregate_bool_exp_bool_and {
+  arguments: billing_reports_select_column_billing_reports_aggregate_bool_exp_bool_and_arguments_columns!
+  distinct: Boolean
+  filter: billing_reports_bool_exp
+  predicate: Boolean_comparison_exp!
+}
+
+input billing_reports_aggregate_bool_exp_bool_or {
+  arguments: billing_reports_select_column_billing_reports_aggregate_bool_exp_bool_or_arguments_columns!
+  distinct: Boolean
+  filter: billing_reports_bool_exp
+  predicate: Boolean_comparison_exp!
+}
+
+input billing_reports_aggregate_bool_exp_count {
+  arguments: [billing_reports_select_column!]
+  distinct: Boolean
+  filter: billing_reports_bool_exp
+  predicate: Int_comparison_exp!
+}
+
+input billing_reports_aggregate_order_by {
+  avg: billing_reports_avg_order_by
+  count: order_by
+  max: billing_reports_max_order_by
+  min: billing_reports_min_order_by
+  stddev: billing_reports_stddev_order_by
+  stddev_pop: billing_reports_stddev_pop_order_by
+  stddev_samp: billing_reports_stddev_samp_order_by
+  sum: billing_reports_sum_order_by
+  var_pop: billing_reports_var_pop_order_by
+  var_samp: billing_reports_var_samp_order_by
+  variance: billing_reports_variance_order_by
+}
+
+input billing_reports_avg_order_by {
+  value: order_by
+}
+
+input billing_reports_bool_exp {
+  _and: [billing_reports_bool_exp!]
+  _not: billing_reports_bool_exp
+  _or: [billing_reports_bool_exp!]
+  appID: uuid_comparison_exp
+  createdAt: timestamptz_comparison_exp
+  id: uuid_comparison_exp
+  organizationID: uuid_comparison_exp
+  pending: Boolean_comparison_exp
+  reportEnds: timestamptz_comparison_exp
+  reportStarts: timestamptz_comparison_exp
+  stripeSubscriptionID: String_comparison_exp
+  type: billing_report_type_enum_comparison_exp
+  updatedAt: timestamptz_comparison_exp
+  value: Int_comparison_exp
+}
+
+input billing_reports_max_order_by {
+  appID: order_by
+  createdAt: order_by
+  id: order_by
+  organizationID: order_by
+  reportEnds: order_by
+  reportStarts: order_by
+  stripeSubscriptionID: order_by
+  updatedAt: order_by
+  value: order_by
+}
+
+input billing_reports_min_order_by {
+  appID: order_by
+  createdAt: order_by
+  id: order_by
+  organizationID: order_by
+  reportEnds: order_by
+  reportStarts: order_by
+  stripeSubscriptionID: order_by
+  updatedAt: order_by
+  value: order_by
+}
+
+input billing_reports_stddev_order_by {
+  value: order_by
+}
+
+input billing_reports_stddev_pop_order_by {
+  value: order_by
+}
+
+input billing_reports_stddev_samp_order_by {
+  value: order_by
+}
+
+input billing_reports_sum_order_by {
+  value: order_by
+}
+
+input billing_reports_var_pop_order_by {
+  value: order_by
+}
+
+input billing_reports_var_samp_order_by {
+  value: order_by
+}
+
+input billing_reports_variance_order_by {
+  value: order_by
+}
+
+input billing_resources_bool_exp {
+  _and: [billing_resources_bool_exp!]
+  _not: billing_resources_bool_exp
+  _or: [billing_resources_bool_exp!]
+  appID: uuid_comparison_exp
+  createdAt: timestamptz_comparison_exp
+  customDomains: Int_comparison_exp
+  functionsAmount: Int_comparison_exp
+  id: uuid_comparison_exp
+  organizationID: uuid_comparison_exp
+  persistentVolume: Int_comparison_exp
+  pitr: Int_comparison_exp
+  updatedAt: timestamptz_comparison_exp
+}
+
+input billing_resources_order_by {
+  appID: order_by
+  createdAt: order_by
+  customDomains: order_by
+  functionsAmount: order_by
+  id: order_by
+  organizationID: order_by
+  persistentVolume: order_by
+  pitr: order_by
+  updatedAt: order_by
+}
+
+input billing_subscriptions_bool_exp {
+  _and: [billing_subscriptions_bool_exp!]
+  _not: billing_subscriptions_bool_exp
+  _or: [billing_subscriptions_bool_exp!]
+  app: apps_bool_exp
+  appID: uuid_comparison_exp
+  createdAt: timestamptz_comparison_exp
+  customDomains: String_comparison_exp
+  dedicatedCompute: String_comparison_exp
+  egress: String_comparison_exp
+  functions: String_comparison_exp
+  functionsAmount: String_comparison_exp
+  id: uuid_comparison_exp
+  persistentVolume: String_comparison_exp
+  reports: billing_reports_bool_exp
+  reports_aggregate: billing_reports_aggregate_bool_exp
+  resources: billing_resources_bool_exp
+  updatedAt: timestamptz_comparison_exp
+}
+
+input billing_subscriptions_order_by {
+  app: apps_order_by
+  appID: order_by
+  createdAt: order_by
+  customDomains: order_by
+  dedicatedCompute: order_by
+  egress: order_by
+  functions: order_by
+  functionsAmount: order_by
+  id: order_by
+  persistentVolume: order_by
+  reports_aggregate: billing_reports_aggregate_order_by
+  resources: billing_resources_order_by
+  updatedAt: order_by
+}
+
+input bpchar_comparison_exp {
+  _eq: bpchar
+  _gt: bpchar
+  _gte: bpchar
+  """does the column match the given case-insensitive pattern"""
+  _ilike: bpchar
+  _in: [bpchar!]
+  """does the column match the given POSIX regular expression, case insensitive"""
+  _iregex: bpchar
+  _is_null: Boolean
+  """does the column match the given pattern"""
+  _like: bpchar
+  _lt: bpchar
+  _lte: bpchar
+  _neq: bpchar
+  """does the column NOT match the given case-insensitive pattern"""
+  _nilike: bpchar
+  _nin: [bpchar!]
+  """does the column NOT match the given POSIX regular expression, case insensitive"""
+  _niregex: bpchar
+  """does the column NOT match the given pattern"""
+  _nlike: bpchar
+  """does the column NOT match the given POSIX regular expression, case sensitive"""
+  _nregex: bpchar
+  """does the column NOT match the given SQL regular expression"""
+  _nsimilar: bpchar
+  """does the column match the given POSIX regular expression, case sensitive"""
+  _regex: bpchar
+  """does the column match the given SQL regular expression"""
+  _similar: bpchar
+}
+
+input bytea_comparison_exp {
+  _eq: bytea
+  _gt: bytea
+  _gte: bytea
+  _in: [bytea!]
+  _is_null: Boolean
+  _lt: bytea
+  _lte: bytea
+  _neq: bytea
+  _nin: [bytea!]
+}
+
+input citext_comparison_exp {
+  _eq: citext
+  _gt: citext
+  _gte: citext
+  """does the column match the given case-insensitive pattern"""
+  _ilike: citext
+  _in: [citext!]
+  """does the column match the given POSIX regular expression, case insensitive"""
+  _iregex: citext
+  _is_null: Boolean
+  """does the column match the given pattern"""
+  _like: citext
+  _lt: citext
+  _lte: citext
+  _neq: citext
+  """does the column NOT match the given case-insensitive pattern"""
+  _nilike: citext
+  _nin: [citext!]
+  """does the column NOT match the given POSIX regular expression, case insensitive"""
+  _niregex: citext
+  """does the column NOT match the given pattern"""
+  _nlike: citext
+  """does the column NOT match the given POSIX regular expression, case sensitive"""
+  _nregex: citext
+  """does the column NOT match the given SQL regular expression"""
+  _nsimilar: citext
+  """does the column match the given POSIX regular expression, case sensitive"""
+  _regex: citext
+  """does the column match the given SQL regular expression"""
+  _similar: citext
+}
+
+input cliTokens_aggregate_bool_exp {
+  count: cliTokens_aggregate_bool_exp_count
+}
+
+input cliTokens_aggregate_bool_exp_count {
+  arguments: [cliTokens_select_column!]
+  distinct: Boolean
+  filter: cliTokens_bool_exp
+  predicate: Int_comparison_exp!
+}
+
+input cliTokens_aggregate_order_by {
+  count: order_by
+  max: cliTokens_max_order_by
+  min: cliTokens_min_order_by
+}
+
+input cliTokens_bool_exp {
+  _and: [cliTokens_bool_exp!]
+  _not: cliTokens_bool_exp
+  _or: [cliTokens_bool_exp!]
+  createdAt: timestamptz_comparison_exp
+  id: uuid_comparison_exp
+  token: uuid_comparison_exp
+  updatedAt: timestamptz_comparison_exp
+  user: users_bool_exp
+  userId: uuid_comparison_exp
+}
+
+input cliTokens_max_order_by {
+  createdAt: order_by
+  id: order_by
+  token: order_by
+  updatedAt: order_by
+  userId: order_by
+}
+
+input cliTokens_min_order_by {
+  createdAt: order_by
+  id: order_by
+  token: order_by
+  updatedAt: order_by
+  userId: order_by
+}
+
+input continents_bool_exp {
+  _and: [continents_bool_exp!]
+  _not: continents_bool_exp
+  _or: [continents_bool_exp!]
+  code: bpchar_comparison_exp
+  countries: countries_bool_exp
+  countries_aggregate: countries_aggregate_bool_exp
+  name: String_comparison_exp
+}
+
+input continents_order_by {
+  code: order_by
+  countries_aggregate: countries_aggregate_order_by
+  name: order_by
+}
+
+input countries_aggregate_bool_exp {
+  count: countries_aggregate_bool_exp_count
+}
+
+input countries_aggregate_bool_exp_count {
+  arguments: [countries_select_column!]
+  distinct: Boolean
+  filter: countries_bool_exp
+  predicate: Int_comparison_exp!
+}
+
+input countries_aggregate_order_by {
+  avg: countries_avg_order_by
+  count: order_by
+  max: countries_max_order_by
+  min: countries_min_order_by
+  stddev: countries_stddev_order_by
+  stddev_pop: countries_stddev_pop_order_by
+  stddev_samp: countries_stddev_samp_order_by
+  sum: countries_sum_order_by
+  var_pop: countries_var_pop_order_by
+  var_samp: countries_var_samp_order_by
+  variance: countries_variance_order_by
+}
+
+input countries_avg_order_by {
+  """Three-letter country code (ISO 3166-1 numeric)"""
+  isoNumber: order_by
+}
+
+input countries_bool_exp {
+  _and: [countries_bool_exp!]
+  _not: countries_bool_exp
+  _or: [countries_bool_exp!]
+  code: bpchar_comparison_exp
+  continent: continents_bool_exp
+  continentCode: bpchar_comparison_exp
+  emojiFlag: String_comparison_exp
+  fullName: String_comparison_exp
+  iso3: bpchar_comparison_exp
+  isoNumber: smallint_comparison_exp
+  locations: regions_bool_exp
+  locations_aggregate: regions_aggregate_bool_exp
+  name: String_comparison_exp
+  workspaces: workspaces_bool_exp
+  workspaces_aggregate: workspaces_aggregate_bool_exp
+}
+
+input countries_max_order_by {
+  """Two-letter country code (ISO 3166-1 alpha-2)"""
+  code: order_by
+  continentCode: order_by
+  emojiFlag: order_by
+  """Full English country name"""
+  fullName: order_by
+  """Three-letter country code (ISO 3166-1 alpha-3)"""
+  iso3: order_by
+  """Three-letter country code (ISO 3166-1 numeric)"""
+  isoNumber: order_by
+  """English country name"""
+  name: order_by
+}
+
+input countries_min_order_by {
+  """Two-letter country code (ISO 3166-1 alpha-2)"""
+  code: order_by
+  continentCode: order_by
+  emojiFlag: order_by
+  """Full English country name"""
+  fullName: order_by
+  """Three-letter country code (ISO 3166-1 alpha-3)"""
+  iso3: order_by
+  """Three-letter country code (ISO 3166-1 numeric)"""
+  isoNumber: order_by
+  """English country name"""
+  name: order_by
+}
+
+input countries_order_by {
+  code: order_by
+  continent: continents_order_by
+  continentCode: order_by
+  emojiFlag: order_by
+  fullName: order_by
+  iso3: order_by
+  isoNumber: order_by
+  locations_aggregate: regions_aggregate_order_by
+  name: order_by
+  workspaces_aggregate: workspaces_aggregate_order_by
+}
+
+input countries_stddev_order_by {
+  """Three-letter country code (ISO 3166-1 numeric)"""
+  isoNumber: order_by
+}
+
+input countries_stddev_pop_order_by {
+  """Three-letter country code (ISO 3166-1 numeric)"""
+  isoNumber: order_by
+}
+
+input countries_stddev_samp_order_by {
+  """Three-letter country code (ISO 3166-1 numeric)"""
+  isoNumber: order_by
+}
+
+input countries_sum_order_by {
+  """Three-letter country code (ISO 3166-1 numeric)"""
+  isoNumber: order_by
+}
+
+input countries_var_pop_order_by {
+  """Three-letter country code (ISO 3166-1 numeric)"""
+  isoNumber: order_by
+}
+
+input countries_var_samp_order_by {
+  """Three-letter country code (ISO 3166-1 numeric)"""
+  isoNumber: order_by
+}
+
+input countries_variance_order_by {
+  """Three-letter country code (ISO 3166-1 numeric)"""
+  isoNumber: order_by
+}
+
+input deploymentLogs_aggregate_bool_exp {
+  count: deploymentLogs_aggregate_bool_exp_count
+}
+
+input deploymentLogs_aggregate_bool_exp_count {
+  arguments: [deploymentLogs_select_column!]
+  distinct: Boolean
+  filter: deploymentLogs_bool_exp
+  predicate: Int_comparison_exp!
+}
+
+input deploymentLogs_bool_exp {
+  _and: [deploymentLogs_bool_exp!]
+  _not: deploymentLogs_bool_exp
+  _or: [deploymentLogs_bool_exp!]
+  createdAt: timestamptz_comparison_exp
+  deployment: deployments_bool_exp
+  deploymentId: uuid_comparison_exp
+  id: uuid_comparison_exp
+  message: String_comparison_exp
+}
+
+input deployments_aggregate_bool_exp {
+  count: deployments_aggregate_bool_exp_count
+}
+
+input deployments_aggregate_bool_exp_count {
+  arguments: [deployments_select_column!]
+  distinct: Boolean
+  filter: deployments_bool_exp
+  predicate: Int_comparison_exp!
+}
+
+input deployments_aggregate_order_by {
+  count: order_by
+  max: deployments_max_order_by
+  min: deployments_min_order_by
+}
+
+input deployments_bool_exp {
+  _and: [deployments_bool_exp!]
+  _not: deployments_bool_exp
+  _or: [deployments_bool_exp!]
+  app: apps_bool_exp
+  appId: uuid_comparison_exp
+  commitMessage: String_comparison_exp
+  commitSHA: String_comparison_exp
+  commitUserAvatarUrl: String_comparison_exp
+  commitUserName: String_comparison_exp
+  deploymentEndedAt: timestamptz_comparison_exp
+  deploymentLogs: deploymentLogs_bool_exp
+  deploymentLogs_aggregate: deploymentLogs_aggregate_bool_exp
+  deploymentStartedAt: timestamptz_comparison_exp
+  deploymentStatus: String_comparison_exp
+  functionsEndedAt: timestamptz_comparison_exp
+  functionsStartedAt: timestamptz_comparison_exp
+  functionsStatus: String_comparison_exp
+  id: uuid_comparison_exp
+  metadataEndedAt: timestamptz_comparison_exp
+  metadataStartedAt: timestamptz_comparison_exp
+  metadataStatus: String_comparison_exp
+  migrationsEndedAt: timestamptz_comparison_exp
+  migrationsStartedAt: timestamptz_comparison_exp
+  migrationsStatus: String_comparison_exp
+}
+
+input deployments_max_order_by {
+  appId: order_by
+  commitMessage: order_by
+  commitSHA: order_by
+  commitUserAvatarUrl: order_by
+  commitUserName: order_by
+  deploymentEndedAt: order_by
+  deploymentStartedAt: order_by
+  deploymentStatus: order_by
+  functionsEndedAt: order_by
+  functionsStartedAt: order_by
+  functionsStatus: order_by
+  id: order_by
+  metadataEndedAt: order_by
+  metadataStartedAt: order_by
+  metadataStatus: order_by
+  migrationsEndedAt: order_by
+  migrationsStartedAt: order_by
+  migrationsStatus: order_by
+}
+
+input deployments_min_order_by {
+  appId: order_by
+  commitMessage: order_by
+  commitSHA: order_by
+  commitUserAvatarUrl: order_by
+  commitUserName: order_by
+  deploymentEndedAt: order_by
+  deploymentStartedAt: order_by
+  deploymentStatus: order_by
+  functionsEndedAt: order_by
+  functionsStartedAt: order_by
+  functionsStatus: order_by
+  id: order_by
+  metadataEndedAt: order_by
+  metadataStartedAt: order_by
+  metadataStatus: order_by
+  migrationsEndedAt: order_by
+  migrationsStartedAt: order_by
+  migrationsStatus: order_by
+}
+
+input featureFlags_aggregate_bool_exp {
+  count: featureFlags_aggregate_bool_exp_count
+}
+
+input featureFlags_aggregate_bool_exp_count {
+  arguments: [featureFlags_select_column!]
+  distinct: Boolean
+  filter: featureFlags_bool_exp
+  predicate: Int_comparison_exp!
+}
+
+input featureFlags_aggregate_order_by {
+  count: order_by
+  max: featureFlags_max_order_by
+  min: featureFlags_min_order_by
+}
+
+input featureFlags_bool_exp {
+  _and: [featureFlags_bool_exp!]
+  _not: featureFlags_bool_exp
+  _or: [featureFlags_bool_exp!]
+  app: apps_bool_exp
+  appId: uuid_comparison_exp
+  description: String_comparison_exp
+  id: uuid_comparison_exp
+  name: String_comparison_exp
+  value: String_comparison_exp
+}
+
+input featureFlags_max_order_by {
+  appId: order_by
+  description: order_by
+  id: order_by
+  name: order_by
+  value: order_by
+}
+
+input featureFlags_min_order_by {
+  appId: order_by
+  description: order_by
+  id: order_by
+  name: order_by
+  value: order_by
+}
+
+input githubAppInstallations_aggregate_bool_exp {
+  count: githubAppInstallations_aggregate_bool_exp_count
+}
+
+input githubAppInstallations_aggregate_bool_exp_count {
+  arguments: [githubAppInstallations_select_column!]
+  distinct: Boolean
+  filter: githubAppInstallations_bool_exp
+  predicate: Int_comparison_exp!
+}
+
+input githubAppInstallations_aggregate_order_by {
+  avg: githubAppInstallations_avg_order_by
+  count: order_by
+  max: githubAppInstallations_max_order_by
+  min: githubAppInstallations_min_order_by
+  stddev: githubAppInstallations_stddev_order_by
+  stddev_pop: githubAppInstallations_stddev_pop_order_by
+  stddev_samp: githubAppInstallations_stddev_samp_order_by
+  sum: githubAppInstallations_sum_order_by
+  var_pop: githubAppInstallations_var_pop_order_by
+  var_samp: githubAppInstallations_var_samp_order_by
+  variance: githubAppInstallations_variance_order_by
+}
+
+input githubAppInstallations_avg_order_by {
+  externalGithubAppInstallationId: order_by
+}
+
+input githubAppInstallations_bool_exp {
+  _and: [githubAppInstallations_bool_exp!]
+  _not: githubAppInstallations_bool_exp
+  _or: [githubAppInstallations_bool_exp!]
+  accountAvatarUrl: String_comparison_exp
+  accountLogin: String_comparison_exp
+  accountNodeId: String_comparison_exp
+  accountType: String_comparison_exp
+  createdAt: timestamptz_comparison_exp
+  externalGithubAppInstallationId: Int_comparison_exp
+  githubData: jsonb_comparison_exp
+  githubRepositories: githubRepositories_bool_exp
+  githubRepositories_aggregate: githubRepositories_aggregate_bool_exp
+  id: uuid_comparison_exp
+  updatedAt: timestamptz_comparison_exp
+  user: users_bool_exp
+  userId: uuid_comparison_exp
+}
+
+input githubAppInstallations_max_order_by {
+  accountAvatarUrl: order_by
+  accountLogin: order_by
+  accountNodeId: order_by
+  accountType: order_by
+  createdAt: order_by
+  externalGithubAppInstallationId: order_by
+  id: order_by
+  updatedAt: order_by
+  userId: order_by
+}
+
+input githubAppInstallations_min_order_by {
+  accountAvatarUrl: order_by
+  accountLogin: order_by
+  accountNodeId: order_by
+  accountType: order_by
+  createdAt: order_by
+  externalGithubAppInstallationId: order_by
+  id: order_by
+  updatedAt: order_by
+  userId: order_by
+}
+
+input githubAppInstallations_order_by {
+  accountAvatarUrl: order_by
+  accountLogin: order_by
+  accountNodeId: order_by
+  accountType: order_by
+  createdAt: order_by
+  externalGithubAppInstallationId: order_by
+  githubData: order_by
+  githubRepositories_aggregate: githubRepositories_aggregate_order_by
+  id: order_by
+  updatedAt: order_by
+  user: users_order_by
+  userId: order_by
+}
+
+input githubAppInstallations_stddev_order_by {
+  externalGithubAppInstallationId: order_by
+}
+
+input githubAppInstallations_stddev_pop_order_by {
+  externalGithubAppInstallationId: order_by
+}
+
+input githubAppInstallations_stddev_samp_order_by {
+  externalGithubAppInstallationId: order_by
+}
+
+input githubAppInstallations_sum_order_by {
+  externalGithubAppInstallationId: order_by
+}
+
+input githubAppInstallations_var_pop_order_by {
+  externalGithubAppInstallationId: order_by
+}
+
+input githubAppInstallations_var_samp_order_by {
+  externalGithubAppInstallationId: order_by
+}
+
+input githubAppInstallations_variance_order_by {
+  externalGithubAppInstallationId: order_by
+}
+
+input githubRepositories_aggregate_bool_exp {
+  bool_and: githubRepositories_aggregate_bool_exp_bool_and
+  bool_or: githubRepositories_aggregate_bool_exp_bool_or
+  count: githubRepositories_aggregate_bool_exp_count
+}
+
+input githubRepositories_aggregate_bool_exp_bool_and {
+  arguments: githubRepositories_select_column_githubRepositories_aggregate_bool_exp_bool_and_arguments_columns!
+  distinct: Boolean
+  filter: githubRepositories_bool_exp
+  predicate: Boolean_comparison_exp!
+}
+
+input githubRepositories_aggregate_bool_exp_bool_or {
+  arguments: githubRepositories_select_column_githubRepositories_aggregate_bool_exp_bool_or_arguments_columns!
+  distinct: Boolean
+  filter: githubRepositories_bool_exp
+  predicate: Boolean_comparison_exp!
+}
+
+input githubRepositories_aggregate_bool_exp_count {
+  arguments: [githubRepositories_select_column!]
+  distinct: Boolean
+  filter: githubRepositories_bool_exp
+  predicate: Int_comparison_exp!
+}
+
+input githubRepositories_aggregate_order_by {
+  count: order_by
+  max: githubRepositories_max_order_by
+  min: githubRepositories_min_order_by
+}
+
+input githubRepositories_bool_exp {
+  _and: [githubRepositories_bool_exp!]
+  _not: githubRepositories_bool_exp
+  _or: [githubRepositories_bool_exp!]
+  apps: apps_bool_exp
+  apps_aggregate: apps_aggregate_bool_exp
+  createdAt: timestamptz_comparison_exp
+  externalGithubAppRepositoryNodeId: String_comparison_exp
+  fullName: String_comparison_exp
+  githubAppInstallation: githubAppInstallations_bool_exp
+  githubAppInstallationId: uuid_comparison_exp
+  id: uuid_comparison_exp
+  name: String_comparison_exp
+  private: Boolean_comparison_exp
+  updatedAt: timestamptz_comparison_exp
+}
+
+input githubRepositories_max_order_by {
+  createdAt: order_by
+  externalGithubAppRepositoryNodeId: order_by
+  fullName: order_by
+  githubAppInstallationId: order_by
+  id: order_by
+  name: order_by
+  updatedAt: order_by
+}
+
+input githubRepositories_min_order_by {
+  createdAt: order_by
+  externalGithubAppRepositoryNodeId: order_by
+  fullName: order_by
+  githubAppInstallationId: order_by
+  id: order_by
+  name: order_by
+  updatedAt: order_by
+}
+
+input githubRepositories_order_by {
+  apps_aggregate: apps_aggregate_order_by
+  createdAt: order_by
+  externalGithubAppRepositoryNodeId: order_by
+  fullName: order_by
+  githubAppInstallation: githubAppInstallations_order_by
+  githubAppInstallationId: order_by
+  id: order_by
+  name: order_by
+  private: order_by
+  updatedAt: order_by
+}
+
+input jsonb_cast_exp {
+  String: String_comparison_exp
+}
+
+input jsonb_comparison_exp {
+  _cast: jsonb_cast_exp
+  """is the column contained in the given json value"""
+  _contained_in: jsonb
+  """does the column contain the given json value at the top level"""
+  _contains: jsonb
+  _eq: jsonb
+  _gt: jsonb
+  _gte: jsonb
+  """does the string exist as a top-level key in the column"""
+  _has_key: String
+  """do all of these strings exist as top-level keys in the column"""
+  _has_keys_all: [String!]
+  """do any of these strings exist as top-level keys in the column"""
+  _has_keys_any: [String!]
+  _in: [jsonb!]
+  _is_null: Boolean
+  _lt: jsonb
+  _lte: jsonb
+  _neq: jsonb
+  _nin: [jsonb!]
+}
+
+input organization_costs_thresholds_enum_comparison_exp {
+  _eq: organization_costs_thresholds_enum
+  _in: [organization_costs_thresholds_enum!]
+  _is_null: Boolean
+  _neq: organization_costs_thresholds_enum
+  _nin: [organization_costs_thresholds_enum!]
+}
+
+input organization_member_invites_aggregate_bool_exp {
+  count: organization_member_invites_aggregate_bool_exp_count
+}
+
+input organization_member_invites_aggregate_bool_exp_count {
+  arguments: [organization_member_invites_select_column!]
+  distinct: Boolean
+  filter: organization_member_invites_bool_exp
+  predicate: Int_comparison_exp!
+}
+
+input organization_member_invites_aggregate_order_by {
+  count: order_by
+  max: organization_member_invites_max_order_by
+  min: organization_member_invites_min_order_by
+}
+
+input organization_member_invites_bool_exp {
+  _and: [organization_member_invites_bool_exp!]
+  _not: organization_member_invites_bool_exp
+  _or: [organization_member_invites_bool_exp!]
+  createdAt: timestamptz_comparison_exp
+  email: citext_comparison_exp
+  id: uuid_comparison_exp
+  organization: organizations_bool_exp
+  organizationID: uuid_comparison_exp
+  role: organization_members_role_enum_comparison_exp
+  updateAt: timestamptz_comparison_exp
+  user: users_bool_exp
+}
+
+input organization_member_invites_max_order_by {
+  createdAt: order_by
+  email: order_by
+  id: order_by
+  organizationID: order_by
+  updateAt: order_by
+}
+
+input organization_member_invites_min_order_by {
+  createdAt: order_by
+  email: order_by
+  id: order_by
+  organizationID: order_by
+  updateAt: order_by
+}
+
+input organization_members_aggregate_bool_exp {
+  count: organization_members_aggregate_bool_exp_count
+}
+
+input organization_members_aggregate_bool_exp_count {
+  arguments: [organization_members_select_column!]
+  distinct: Boolean
+  filter: organization_members_bool_exp
+  predicate: Int_comparison_exp!
+}
+
+input organization_members_aggregate_order_by {
+  count: order_by
+  max: organization_members_max_order_by
+  min: organization_members_min_order_by
+}
+
+input organization_members_bool_exp {
+  _and: [organization_members_bool_exp!]
+  _not: organization_members_bool_exp
+  _or: [organization_members_bool_exp!]
+  createdAt: timestamptz_comparison_exp
+  id: uuid_comparison_exp
+  organization: organizations_bool_exp
+  organizatonID: uuid_comparison_exp
+  role: organization_members_role_enum_comparison_exp
+  updatedAt: timestamptz_comparison_exp
+  user: users_bool_exp
+  userID: uuid_comparison_exp
+}
+
+input organization_members_max_order_by {
+  createdAt: order_by
+  id: order_by
+  organizatonID: order_by
+  updatedAt: order_by
+  userID: order_by
+}
+
+input organization_members_min_order_by {
+  createdAt: order_by
+  id: order_by
+  organizatonID: order_by
+  updatedAt: order_by
+  userID: order_by
+}
+
+input organization_members_role_enum_comparison_exp {
+  _eq: organization_members_role_enum
+  _in: [organization_members_role_enum!]
+  _is_null: Boolean
+  _neq: organization_members_role_enum
+  _nin: [organization_members_role_enum!]
+}
+
+input organization_status_enum_comparison_exp {
+  _eq: organization_status_enum
+  _in: [organization_status_enum!]
+  _is_null: Boolean
+  _neq: organization_status_enum
+  _nin: [organization_status_enum!]
+}
+
+input organizations_aggregate_bool_exp {
+  count: organizations_aggregate_bool_exp_count
+}
+
+input organizations_aggregate_bool_exp_count {
+  arguments: [organizations_select_column!]
+  distinct: Boolean
+  filter: organizations_bool_exp
+  predicate: Int_comparison_exp!
+}
+
+input organizations_aggregate_order_by {
+  avg: organizations_avg_order_by
+  count: order_by
+  max: organizations_max_order_by
+  min: organizations_min_order_by
+  stddev: organizations_stddev_order_by
+  stddev_pop: organizations_stddev_pop_order_by
+  stddev_samp: organizations_stddev_samp_order_by
+  sum: organizations_sum_order_by
+  var_pop: organizations_var_pop_order_by
+  var_samp: organizations_var_samp_order_by
+  variance: organizations_variance_order_by
+}
+
+input organizations_avg_order_by {
+  threshold: order_by
+}
+
+input organizations_bool_exp {
+  _and: [organizations_bool_exp!]
+  _not: organizations_bool_exp
+  _or: [organizations_bool_exp!]
+  allowedPrivateRegions: regions_allowed_organization_bool_exp
+  allowedPrivateRegions_aggregate: regions_allowed_organization_aggregate_bool_exp
+  apps: apps_bool_exp
+  apps_aggregate: apps_aggregate_bool_exp
+  createdAt: timestamptz_comparison_exp
+  current_threshold: organization_costs_thresholds_enum_comparison_exp
+  id: uuid_comparison_exp
+  invites: organization_member_invites_bool_exp
+  invites_aggregate: organization_member_invites_aggregate_bool_exp
+  members: organization_members_bool_exp
+  members_aggregate: organization_members_aggregate_bool_exp
+  name: String_comparison_exp
+  plan: plans_bool_exp
+  planID: uuid_comparison_exp
+  slug: String_comparison_exp
+  status: organization_status_enum_comparison_exp
+  status_comment: String_comparison_exp
+  stripeCustomerID: String_comparison_exp
+  stripeSubscriptionID: String_comparison_exp
+  threshold: Int_comparison_exp
+  updatedAt: timestamptz_comparison_exp
+}
+
+input organizations_max_order_by {
+  createdAt: order_by
+  id: order_by
+  name: order_by
+  planID: order_by
+  slug: order_by
+  status_comment: order_by
+  stripeCustomerID: order_by
+  stripeSubscriptionID: order_by
+  threshold: order_by
+  updatedAt: order_by
+}
+
+input organizations_min_order_by {
+  createdAt: order_by
+  id: order_by
+  name: order_by
+  planID: order_by
+  slug: order_by
+  status_comment: order_by
+  stripeCustomerID: order_by
+  stripeSubscriptionID: order_by
+  threshold: order_by
+  updatedAt: order_by
+}
+
+input organizations_order_by {
+  allowedPrivateRegions_aggregate: regions_allowed_organization_aggregate_order_by
+  apps_aggregate: apps_aggregate_order_by
+  createdAt: order_by
+  current_threshold: order_by
+  id: order_by
+  invites_aggregate: organization_member_invites_aggregate_order_by
+  members_aggregate: organization_members_aggregate_order_by
+  name: order_by
+  plan: plans_order_by
+  planID: order_by
+  slug: order_by
+  status: order_by
+  status_comment: order_by
+  stripeCustomerID: order_by
+  stripeSubscriptionID: order_by
+  threshold: order_by
+  updatedAt: order_by
+}
+
+input organizations_stddev_order_by {
+  threshold: order_by
+}
+
+input organizations_stddev_pop_order_by {
+  threshold: order_by
+}
+
+input organizations_stddev_samp_order_by {
+  threshold: order_by
+}
+
+input organizations_sum_order_by {
+  threshold: order_by
+}
+
+input organizations_var_pop_order_by {
+  threshold: order_by
+}
+
+input organizations_var_samp_order_by {
+  threshold: order_by
+}
+
+input organizations_variance_order_by {
+  threshold: order_by
+}
+
+input paymentMethods_aggregate_bool_exp {
+  bool_and: paymentMethods_aggregate_bool_exp_bool_and
+  bool_or: paymentMethods_aggregate_bool_exp_bool_or
+  count: paymentMethods_aggregate_bool_exp_count
+}
+
+input paymentMethods_aggregate_bool_exp_bool_and {
+  arguments: paymentMethods_select_column_paymentMethods_aggregate_bool_exp_bool_and_arguments_columns!
+  distinct: Boolean
+  filter: paymentMethods_bool_exp
+  predicate: Boolean_comparison_exp!
+}
+
+input paymentMethods_aggregate_bool_exp_bool_or {
+  arguments: paymentMethods_select_column_paymentMethods_aggregate_bool_exp_bool_or_arguments_columns!
+  distinct: Boolean
+  filter: paymentMethods_bool_exp
+  predicate: Boolean_comparison_exp!
+}
+
+input paymentMethods_aggregate_bool_exp_count {
+  arguments: [paymentMethods_select_column!]
+  distinct: Boolean
+  filter: paymentMethods_bool_exp
+  predicate: Int_comparison_exp!
+}
+
+input paymentMethods_aggregate_order_by {
+  avg: paymentMethods_avg_order_by
+  count: order_by
+  max: paymentMethods_max_order_by
+  min: paymentMethods_min_order_by
+  stddev: paymentMethods_stddev_order_by
+  stddev_pop: paymentMethods_stddev_pop_order_by
+  stddev_samp: paymentMethods_stddev_samp_order_by
+  sum: paymentMethods_sum_order_by
+  var_pop: paymentMethods_var_pop_order_by
+  var_samp: paymentMethods_var_samp_order_by
+  variance: paymentMethods_variance_order_by
+}
+
+input paymentMethods_avg_order_by {
+  cardExpMonth: order_by
+  cardExpYear: order_by
+}
+
+input paymentMethods_bool_exp {
+  _and: [paymentMethods_bool_exp!]
+  _not: paymentMethods_bool_exp
+  _or: [paymentMethods_bool_exp!]
+  addedByUserId: uuid_comparison_exp
+  cardBrand: String_comparison_exp
+  cardExpMonth: Int_comparison_exp
+  cardExpYear: Int_comparison_exp
+  cardLast4: String_comparison_exp
+  createdAt: timestamptz_comparison_exp
+  id: uuid_comparison_exp
+  isDefault: Boolean_comparison_exp
+  stripePaymentMethodId: String_comparison_exp
+  user: users_bool_exp
+  workspace: workspaces_bool_exp
+  workspaceId: uuid_comparison_exp
+}
+
+input paymentMethods_max_order_by {
+  addedByUserId: order_by
+  cardBrand: order_by
+  cardExpMonth: order_by
+  cardExpYear: order_by
+  cardLast4: order_by
+  createdAt: order_by
+  id: order_by
+  stripePaymentMethodId: order_by
+  workspaceId: order_by
+}
+
+input paymentMethods_min_order_by {
+  addedByUserId: order_by
+  cardBrand: order_by
+  cardExpMonth: order_by
+  cardExpYear: order_by
+  cardLast4: order_by
+  createdAt: order_by
+  id: order_by
+  stripePaymentMethodId: order_by
+  workspaceId: order_by
+}
+
+input paymentMethods_order_by {
+  addedByUserId: order_by
+  cardBrand: order_by
+  cardExpMonth: order_by
+  cardExpYear: order_by
+  cardLast4: order_by
+  createdAt: order_by
+  id: order_by
+  isDefault: order_by
+  stripePaymentMethodId: order_by
+  user: users_order_by
+  workspace: workspaces_order_by
+  workspaceId: order_by
+}
+
+input paymentMethods_stddev_order_by {
+  cardExpMonth: order_by
+  cardExpYear: order_by
+}
+
+input paymentMethods_stddev_pop_order_by {
+  cardExpMonth: order_by
+  cardExpYear: order_by
+}
+
+input paymentMethods_stddev_samp_order_by {
+  cardExpMonth: order_by
+  cardExpYear: order_by
+}
+
+input paymentMethods_sum_order_by {
+  cardExpMonth: order_by
+  cardExpYear: order_by
+}
+
+input paymentMethods_var_pop_order_by {
+  cardExpMonth: order_by
+  cardExpYear: order_by
+}
+
+input paymentMethods_var_samp_order_by {
+  cardExpMonth: order_by
+  cardExpYear: order_by
+}
+
+input paymentMethods_variance_order_by {
+  cardExpMonth: order_by
+  cardExpYear: order_by
+}
+
+input plans_bool_exp {
+  _and: [plans_bool_exp!]
+  _not: plans_bool_exp
+  _or: [plans_bool_exp!]
+  apps: apps_bool_exp
+  apps_aggregate: apps_aggregate_bool_exp
+  createdAt: timestamptz_comparison_exp
+  deprecated: Boolean_comparison_exp
+  featureAdvancedGraphql: Boolean_comparison_exp
+  featureBackupEnabled: Boolean_comparison_exp
+  featureBackupRetentionDays: Int_comparison_exp
+  featureCustomDomainsEnabled: Boolean_comparison_exp
+  featureCustomEmailTemplatesEnabled: Boolean_comparison_exp
+  featureCustomResources: Boolean_comparison_exp
+  featureDeployEmailTemplates: Boolean_comparison_exp
+  featureFunctionExecutionTimeout: Int_comparison_exp
+  featureMaxDbSize: Int_comparison_exp
+  featureMaxFilesSize: Int_comparison_exp
+  featureMaxNumberOfFunctionsPerDeployment: Int_comparison_exp
+  id: uuid_comparison_exp
+  individual: Boolean_comparison_exp
+  isDefault: Boolean_comparison_exp
+  isFree: Boolean_comparison_exp
+  isPublic: Boolean_comparison_exp
+  name: String_comparison_exp
+  organizations: organizations_bool_exp
+  organizations_aggregate: organizations_aggregate_bool_exp
+  price: Int_comparison_exp
+  sort: Int_comparison_exp
+  stripePriceIDCustomDomains: String_comparison_exp
+  stripePriceIDDedicatedCompute: String_comparison_exp
+  stripePriceIDEgressUsageMB: String_comparison_exp
+  stripePriceIDFunctionsAmount: String_comparison_exp
+  stripePriceIDFunctionsUsageSeconds: String_comparison_exp
+  stripePriceIDPersistentVolumesGB: String_comparison_exp
+  stripePriceId: String_comparison_exp
+  stripe_price_id_pitr: String_comparison_exp
+  upatedAt: timestamptz_comparison_exp
+}
+
+input plans_order_by {
+  apps_aggregate: apps_aggregate_order_by
+  createdAt: order_by
+  deprecated: order_by
+  featureAdvancedGraphql: order_by
+  featureBackupEnabled: order_by
+  featureBackupRetentionDays: order_by
+  featureCustomDomainsEnabled: order_by
+  featureCustomEmailTemplatesEnabled: order_by
+  featureCustomResources: order_by
+  featureDeployEmailTemplates: order_by
+  featureFunctionExecutionTimeout: order_by
+  featureMaxDbSize: order_by
+  featureMaxFilesSize: order_by
+  featureMaxNumberOfFunctionsPerDeployment: order_by
+  id: order_by
+  individual: order_by
+  isDefault: order_by
+  isFree: order_by
+  isPublic: order_by
+  name: order_by
+  organizations_aggregate: organizations_aggregate_order_by
+  price: order_by
+  sort: order_by
+  stripePriceIDCustomDomains: order_by
+  stripePriceIDDedicatedCompute: order_by
+  stripePriceIDEgressUsageMB: order_by
+  stripePriceIDFunctionsAmount: order_by
+  stripePriceIDFunctionsUsageSeconds: order_by
+  stripePriceIDPersistentVolumesGB: order_by
+  stripePriceId: order_by
+  stripe_price_id_pitr: order_by
+  upatedAt: order_by
+}
+
+input region_type_bool_exp {
+  _and: [region_type_bool_exp!]
+  _not: region_type_bool_exp
+  _or: [region_type_bool_exp!]
+  comment: String_comparison_exp
+  regions: regions_bool_exp
+  regions_aggregate: regions_aggregate_bool_exp
+  type: String_comparison_exp
+}
+
+input region_type_enum_comparison_exp {
+  _eq: region_type_enum
+  _in: [region_type_enum!]
+  _is_null: Boolean
+  _neq: region_type_enum
+  _nin: [region_type_enum!]
+}
+
+input region_type_order_by {
+  comment: order_by
+  regions_aggregate: regions_aggregate_order_by
+  type: order_by
+}
+
+input regions_aggregate_bool_exp {
+  bool_and: regions_aggregate_bool_exp_bool_and
+  bool_or: regions_aggregate_bool_exp_bool_or
+  count: regions_aggregate_bool_exp_count
+}
+
+input regions_aggregate_bool_exp_bool_and {
+  arguments: regions_select_column_regions_aggregate_bool_exp_bool_and_arguments_columns!
+  distinct: Boolean
+  filter: regions_bool_exp
+  predicate: Boolean_comparison_exp!
+}
+
+input regions_aggregate_bool_exp_bool_or {
+  arguments: regions_select_column_regions_aggregate_bool_exp_bool_or_arguments_columns!
+  distinct: Boolean
+  filter: regions_bool_exp
+  predicate: Boolean_comparison_exp!
+}
+
+input regions_aggregate_bool_exp_count {
+  arguments: [regions_select_column!]
+  distinct: Boolean
+  filter: regions_bool_exp
+  predicate: Int_comparison_exp!
+}
+
+input regions_aggregate_order_by {
+  count: order_by
+  max: regions_max_order_by
+  min: regions_min_order_by
+}
+
+input regions_allowed_organization_aggregate_bool_exp {
+  count: regions_allowed_organization_aggregate_bool_exp_count
+}
+
+input regions_allowed_organization_aggregate_bool_exp_count {
+  arguments: [regions_allowed_organization_select_column!]
+  distinct: Boolean
+  filter: regions_allowed_organization_bool_exp
+  predicate: Int_comparison_exp!
+}
+
+input regions_allowed_organization_aggregate_order_by {
+  count: order_by
+  max: regions_allowed_organization_max_order_by
+  min: regions_allowed_organization_min_order_by
+}
+
+input regions_allowed_organization_bool_exp {
+  _and: [regions_allowed_organization_bool_exp!]
+  _not: regions_allowed_organization_bool_exp
+  _or: [regions_allowed_organization_bool_exp!]
+  createdAt: timestamptz_comparison_exp
+  description: String_comparison_exp
+  id: uuid_comparison_exp
+  organization: organizations_bool_exp
+  organizationID: uuid_comparison_exp
+  region: regions_bool_exp
+  regionID: uuid_comparison_exp
+  updatedAt: timestamptz_comparison_exp
+}
+
+input regions_allowed_organization_max_order_by {
+  createdAt: order_by
+  description: order_by
+  id: order_by
+  organizationID: order_by
+  regionID: order_by
+  updatedAt: order_by
+}
+
+input regions_allowed_organization_min_order_by {
+  createdAt: order_by
+  description: order_by
+  id: order_by
+  organizationID: order_by
+  regionID: order_by
+  updatedAt: order_by
+}
+
+input regions_allowed_workspace_aggregate_bool_exp {
+  count: regions_allowed_workspace_aggregate_bool_exp_count
+}
+
+input regions_allowed_workspace_aggregate_bool_exp_count {
+  arguments: [regions_allowed_workspace_select_column!]
+  distinct: Boolean
+  filter: regions_allowed_workspace_bool_exp
+  predicate: Int_comparison_exp!
+}
+
+input regions_allowed_workspace_aggregate_order_by {
+  count: order_by
+  max: regions_allowed_workspace_max_order_by
+  min: regions_allowed_workspace_min_order_by
+}
+
+input regions_allowed_workspace_bool_exp {
+  _and: [regions_allowed_workspace_bool_exp!]
+  _not: regions_allowed_workspace_bool_exp
+  _or: [regions_allowed_workspace_bool_exp!]
+  created_at: timestamptz_comparison_exp
+  description: String_comparison_exp
+  id: uuid_comparison_exp
+  region: regions_bool_exp
+  region_id: uuid_comparison_exp
+  updated_at: timestamptz_comparison_exp
+  workspace: workspaces_bool_exp
+  workspace_id: uuid_comparison_exp
+}
+
+input regions_allowed_workspace_max_order_by {
+  created_at: order_by
+  description: order_by
+  id: order_by
+  region_id: order_by
+  updated_at: order_by
+  workspace_id: order_by
+}
+
+input regions_allowed_workspace_min_order_by {
+  created_at: order_by
+  description: order_by
+  id: order_by
+  region_id: order_by
+  updated_at: order_by
+  workspace_id: order_by
+}
+
+input regions_allowed_workspace_order_by {
+  created_at: order_by
+  description: order_by
+  id: order_by
+  region: regions_order_by
+  region_id: order_by
+  updated_at: order_by
+  workspace: workspaces_order_by
+  workspace_id: order_by
+}
+
+input regions_bool_exp {
+  _and: [regions_bool_exp!]
+  _not: regions_bool_exp
+  _or: [regions_bool_exp!]
+  active: Boolean_comparison_exp
+  allowedOrganizations: regions_allowed_organization_bool_exp
+  allowedOrganizations_aggregate: regions_allowed_organization_aggregate_bool_exp
+  allowedWorkspaces: regions_allowed_workspace_bool_exp
+  apps: apps_bool_exp
+  apps_aggregate: apps_aggregate_bool_exp
+  awsName: String_comparison_exp
+  city: String_comparison_exp
+  country: countries_bool_exp
+  countryCode: String_comparison_exp
+  createdAt: timestamptz_comparison_exp
+  description: String_comparison_exp
+  domain: String_comparison_exp
+  id: uuid_comparison_exp
+  isGdprCompliant: Boolean_comparison_exp
+  name: String_comparison_exp
+  region_type: region_type_bool_exp
+  regions_allowed_workspaces: regions_allowed_workspace_bool_exp
+  regions_allowed_workspaces_aggregate: regions_allowed_workspace_aggregate_bool_exp
+  type: region_type_enum_comparison_exp
+  updatedAt: timestamptz_comparison_exp
+}
+
+input regions_max_order_by {
+  awsName: order_by
+  city: order_by
+  countryCode: order_by
+  createdAt: order_by
+  description: order_by
+  domain: order_by
+  id: order_by
+  name: order_by
+  updatedAt: order_by
+}
+
+input regions_min_order_by {
+  awsName: order_by
+  city: order_by
+  countryCode: order_by
+  createdAt: order_by
+  description: order_by
+  domain: order_by
+  id: order_by
+  name: order_by
+  updatedAt: order_by
+}
+
+input regions_order_by {
+  active: order_by
+  allowedOrganizations_aggregate: regions_allowed_organization_aggregate_order_by
+  allowedWorkspaces: regions_allowed_workspace_order_by
+  apps_aggregate: apps_aggregate_order_by
+  awsName: order_by
+  city: order_by
+  country: countries_order_by
+  countryCode: order_by
+  createdAt: order_by
+  description: order_by
+  domain: order_by
+  id: order_by
+  isGdprCompliant: order_by
+  name: order_by
+  region_type: region_type_order_by
+  regions_allowed_workspaces_aggregate: regions_allowed_workspace_aggregate_order_by
+  type: order_by
+  updatedAt: order_by
+}
+
+input run_service_aggregate_bool_exp {
+  count: run_service_aggregate_bool_exp_count
+}
+
+input run_service_aggregate_bool_exp_count {
+  arguments: [run_service_select_column!]
+  distinct: Boolean
+  filter: run_service_bool_exp
+  predicate: Int_comparison_exp!
+}
+
+input run_service_aggregate_order_by {
+  count: order_by
+  max: run_service_max_order_by
+  min: run_service_min_order_by
+}
+
+input run_service_bool_exp {
+  _and: [run_service_bool_exp!]
+  _not: run_service_bool_exp
+  _or: [run_service_bool_exp!]
+  app: apps_bool_exp
+  appID: uuid_comparison_exp
+  createdAt: timestamptz_comparison_exp
+  id: uuid_comparison_exp
+  mimirConfigEnc: String_comparison_exp
+  subdomain: String_comparison_exp
+  updatedAt: timestamptz_comparison_exp
+}
+
+input run_service_max_order_by {
+  appID: order_by
+  createdAt: order_by
+  id: order_by
+  mimirConfigEnc: order_by
+  subdomain: order_by
+  updatedAt: order_by
+}
+
+input run_service_min_order_by {
+  appID: order_by
+  createdAt: order_by
+  id: order_by
+  mimirConfigEnc: order_by
+  subdomain: order_by
+  updatedAt: order_by
+}
+
+input smallint_comparison_exp {
+  _eq: smallint
+  _gt: smallint
+  _gte: smallint
+  _in: [smallint!]
+  _is_null: Boolean
+  _lt: smallint
+  _lte: smallint
+  _neq: smallint
+  _nin: [smallint!]
+}
+
+input timestamptz_comparison_exp {
+  _eq: timestamptz
+  _gt: timestamptz
+  _gte: timestamptz
+  _in: [timestamptz!]
+  _is_null: Boolean
+  _lt: timestamptz
+  _lte: timestamptz
+  _neq: timestamptz
+  _nin: [timestamptz!]
+}
+
+input users_aggregate_bool_exp {
+  bool_and: users_aggregate_bool_exp_bool_and
+  bool_or: users_aggregate_bool_exp_bool_or
+  count: users_aggregate_bool_exp_count
+}
+
+input users_aggregate_bool_exp_bool_and {
+  arguments: users_select_column_users_aggregate_bool_exp_bool_and_arguments_columns!
+  distinct: Boolean
+  filter: users_bool_exp
+  predicate: Boolean_comparison_exp!
+}
+
+input users_aggregate_bool_exp_bool_or {
+  arguments: users_select_column_users_aggregate_bool_exp_bool_or_arguments_columns!
+  distinct: Boolean
+  filter: users_bool_exp
+  predicate: Boolean_comparison_exp!
+}
+
+input users_aggregate_bool_exp_count {
+  arguments: [users_select_column!]
+  distinct: Boolean
+  filter: users_bool_exp
+  predicate: Int_comparison_exp!
+}
+
+input users_aggregate_order_by {
+  count: order_by
+  max: users_max_order_by
+  min: users_min_order_by
+}
+
+input users_bool_exp {
+  _and: [users_bool_exp!]
+  _not: users_bool_exp
+  _or: [users_bool_exp!]
+  activeMfaType: String_comparison_exp
+  apps: apps_bool_exp
+  apps_aggregate: apps_aggregate_bool_exp
+  avatarUrl: String_comparison_exp
+  cliTokens: cliTokens_bool_exp
+  cliTokens_aggregate: cliTokens_aggregate_bool_exp
+  createdAt: timestamptz_comparison_exp
+  creatorOfWorkspaces: workspaces_bool_exp
+  creatorOfWorkspaces_aggregate: workspaces_aggregate_bool_exp
+  currentChallenge: String_comparison_exp
+  defaultRole: String_comparison_exp
+  defaultRoleByRole: authRoles_bool_exp
+  disabled: Boolean_comparison_exp
+  displayName: String_comparison_exp
+  email: citext_comparison_exp
+  emailVerified: Boolean_comparison_exp
+  github_app_installations: githubAppInstallations_bool_exp
+  github_app_installations_aggregate: githubAppInstallations_aggregate_bool_exp
+  id: uuid_comparison_exp
+  isAnonymous: Boolean_comparison_exp
+  lastSeen: timestamptz_comparison_exp
+  locale: String_comparison_exp
+  metadata: jsonb_comparison_exp
+  newEmail: citext_comparison_exp
+  organizationMembership: organization_members_bool_exp
+  organizationMembership_aggregate: organization_members_aggregate_bool_exp
+  otpHash: String_comparison_exp
+  otpHashExpiresAt: timestamptz_comparison_exp
+  otpMethodLastUsed: String_comparison_exp
+  passwordHash: String_comparison_exp
+  payment_methods: paymentMethods_bool_exp
+  payment_methods_aggregate: paymentMethods_aggregate_bool_exp
+  phoneNumber: String_comparison_exp
+  phoneNumberVerified: Boolean_comparison_exp
+  refreshTokens: authRefreshTokens_bool_exp
+  refreshTokens_aggregate: authRefreshTokens_aggregate_bool_exp
+  role: authRoles_bool_exp
+  roles: authUserRoles_bool_exp
+  roles_aggregate: authUserRoles_aggregate_bool_exp
+  securityKeys: authUserSecurityKeys_bool_exp
+  securityKeys_aggregate: authUserSecurityKeys_aggregate_bool_exp
+  ticket: String_comparison_exp
+  ticketExpiresAt: timestamptz_comparison_exp
+  totpSecret: String_comparison_exp
+  updatedAt: timestamptz_comparison_exp
+  userProviders: authUserProviders_bool_exp
+  userProviders_aggregate: authUserProviders_aggregate_bool_exp
+  workspaceMemberInvitesByInvitedByUserId: workspaceMemberInvites_bool_exp
+  workspaceMemberInvitesByInvitedByUserId_aggregate: workspaceMemberInvites_aggregate_bool_exp
+  workspaceMembers: workspaceMembers_bool_exp
+  workspaceMembers_aggregate: workspaceMembers_aggregate_bool_exp
+  workspace_member_invites: workspaceMemberInvites_bool_exp
+  workspace_member_invites_aggregate: workspaceMemberInvites_aggregate_bool_exp
+}
+
+input users_max_order_by {
+  activeMfaType: order_by
+  avatarUrl: order_by
+  createdAt: order_by
+  currentChallenge: order_by
+  defaultRole: order_by
+  displayName: order_by
+  email: order_by
+  id: order_by
+  lastSeen: order_by
+  locale: order_by
+  newEmail: order_by
+  otpHash: order_by
+  otpHashExpiresAt: order_by
+  otpMethodLastUsed: order_by
+  passwordHash: order_by
+  phoneNumber: order_by
+  ticket: order_by
+  ticketExpiresAt: order_by
+  totpSecret: order_by
+  updatedAt: order_by
+}
+
+input users_min_order_by {
+  activeMfaType: order_by
+  avatarUrl: order_by
+  createdAt: order_by
+  currentChallenge: order_by
+  defaultRole: order_by
+  displayName: order_by
+  email: order_by
+  id: order_by
+  lastSeen: order_by
+  locale: order_by
+  newEmail: order_by
+  otpHash: order_by
+  otpHashExpiresAt: order_by
+  otpMethodLastUsed: order_by
+  passwordHash: order_by
+  phoneNumber: order_by
+  ticket: order_by
+  ticketExpiresAt: order_by
+  totpSecret: order_by
+  updatedAt: order_by
+}
+
+input users_order_by {
+  activeMfaType: order_by
+  apps_aggregate: apps_aggregate_order_by
+  avatarUrl: order_by
+  cliTokens_aggregate: cliTokens_aggregate_order_by
+  createdAt: order_by
+  creatorOfWorkspaces_aggregate: workspaces_aggregate_order_by
+  currentChallenge: order_by
+  defaultRole: order_by
+  defaultRoleByRole: authRoles_order_by
+  disabled: order_by
+  displayName: order_by
+  email: order_by
+  emailVerified: order_by
+  github_app_installations_aggregate: githubAppInstallations_aggregate_order_by
+  id: order_by
+  isAnonymous: order_by
+  lastSeen: order_by
+  locale: order_by
+  metadata: order_by
+  newEmail: order_by
+  organizationMembership_aggregate: organization_members_aggregate_order_by
+  otpHash: order_by
+  otpHashExpiresAt: order_by
+  otpMethodLastUsed: order_by
+  passwordHash: order_by
+  payment_methods_aggregate: paymentMethods_aggregate_order_by
+  phoneNumber: order_by
+  phoneNumberVerified: order_by
+  refreshTokens_aggregate: authRefreshTokens_aggregate_order_by
+  role: authRoles_order_by
+  roles_aggregate: authUserRoles_aggregate_order_by
+  securityKeys_aggregate: authUserSecurityKeys_aggregate_order_by
+  ticket: order_by
+  ticketExpiresAt: order_by
+  totpSecret: order_by
+  updatedAt: order_by
+  userProviders_aggregate: authUserProviders_aggregate_order_by
+  workspaceMemberInvitesByInvitedByUserId_aggregate: workspaceMemberInvites_aggregate_order_by
+  workspaceMembers_aggregate: workspaceMembers_aggregate_order_by
+  workspace_member_invites_aggregate: workspaceMemberInvites_aggregate_order_by
+}
+
+input uuid_comparison_exp {
+  _eq: uuid
+  _gt: uuid
+  _gte: uuid
+  _in: [uuid!]
+  _is_null: Boolean
+  _lt: uuid
+  _lte: uuid
+  _neq: uuid
+  _nin: [uuid!]
+}
+
+input workspaceMemberInvites_aggregate_bool_exp {
+  bool_and: workspaceMemberInvites_aggregate_bool_exp_bool_and
+  bool_or: workspaceMemberInvites_aggregate_bool_exp_bool_or
+  count: workspaceMemberInvites_aggregate_bool_exp_count
+}
+
+input workspaceMemberInvites_aggregate_bool_exp_bool_and {
+  arguments: workspaceMemberInvites_select_column_workspaceMemberInvites_aggregate_bool_exp_bool_and_arguments_columns!
+  distinct: Boolean
+  filter: workspaceMemberInvites_bool_exp
+  predicate: Boolean_comparison_exp!
+}
+
+input workspaceMemberInvites_aggregate_bool_exp_bool_or {
+  arguments: workspaceMemberInvites_select_column_workspaceMemberInvites_aggregate_bool_exp_bool_or_arguments_columns!
+  distinct: Boolean
+  filter: workspaceMemberInvites_bool_exp
+  predicate: Boolean_comparison_exp!
+}
+
+input workspaceMemberInvites_aggregate_bool_exp_count {
+  arguments: [workspaceMemberInvites_select_column!]
+  distinct: Boolean
+  filter: workspaceMemberInvites_bool_exp
+  predicate: Int_comparison_exp!
+}
+
+input workspaceMemberInvites_aggregate_order_by {
+  count: order_by
+  max: workspaceMemberInvites_max_order_by
+  min: workspaceMemberInvites_min_order_by
+}
+
+input workspaceMemberInvites_bool_exp {
+  _and: [workspaceMemberInvites_bool_exp!]
+  _not: workspaceMemberInvites_bool_exp
+  _or: [workspaceMemberInvites_bool_exp!]
+  createdAt: timestamptz_comparison_exp
+  email: citext_comparison_exp
+  id: uuid_comparison_exp
+  invitedByUser: users_bool_exp
+  invitedByUserId: uuid_comparison_exp
+  isAccepted: Boolean_comparison_exp
+  memberType: String_comparison_exp
+  updatedAt: timestamptz_comparison_exp
+  userByEmail: users_bool_exp
+  workspace: workspaces_bool_exp
+  workspaceId: uuid_comparison_exp
+}
+
+input workspaceMemberInvites_max_order_by {
+  createdAt: order_by
+  email: order_by
+  id: order_by
+  invitedByUserId: order_by
+  """owner or member"""
+  memberType: order_by
+  updatedAt: order_by
+  workspaceId: order_by
+}
+
+input workspaceMemberInvites_min_order_by {
+  createdAt: order_by
+  email: order_by
+  id: order_by
+  invitedByUserId: order_by
+  """owner or member"""
+  memberType: order_by
+  updatedAt: order_by
+  workspaceId: order_by
+}
+
+input workspaceMembers_aggregate_bool_exp {
+  count: workspaceMembers_aggregate_bool_exp_count
+}
+
+input workspaceMembers_aggregate_bool_exp_count {
+  arguments: [workspaceMembers_select_column!]
+  distinct: Boolean
+  filter: workspaceMembers_bool_exp
+  predicate: Int_comparison_exp!
+}
+
+input workspaceMembers_aggregate_order_by {
+  count: order_by
+  max: workspaceMembers_max_order_by
+  min: workspaceMembers_min_order_by
+}
+
+input workspaceMembers_bool_exp {
+  _and: [workspaceMembers_bool_exp!]
+  _not: workspaceMembers_bool_exp
+  _or: [workspaceMembers_bool_exp!]
+  createdAt: timestamptz_comparison_exp
+  id: uuid_comparison_exp
+  type: String_comparison_exp
+  updatedAt: timestamptz_comparison_exp
+  user: users_bool_exp
+  userId: uuid_comparison_exp
+  workspace: workspaces_bool_exp
+  workspaceId: uuid_comparison_exp
+}
+
+input workspaceMembers_max_order_by {
+  createdAt: order_by
+  id: order_by
+  """owner or member"""
+  type: order_by
+  updatedAt: order_by
+  userId: order_by
+  workspaceId: order_by
+}
+
+input workspaceMembers_min_order_by {
+  createdAt: order_by
+  id: order_by
+  """owner or member"""
+  type: order_by
+  updatedAt: order_by
+  userId: order_by
+  workspaceId: order_by
+}
+
+input workspaces_aggregate_bool_exp {
+  count: workspaces_aggregate_bool_exp_count
+}
+
+input workspaces_aggregate_bool_exp_count {
+  arguments: [workspaces_select_column!]
+  distinct: Boolean
+  filter: workspaces_bool_exp
+  predicate: Int_comparison_exp!
+}
+
+input workspaces_aggregate_order_by {
+  count: order_by
+  max: workspaces_max_order_by
+  min: workspaces_min_order_by
+}
+
+input workspaces_bool_exp {
+  _and: [workspaces_bool_exp!]
+  _not: workspaces_bool_exp
+  _or: [workspaces_bool_exp!]
+  addressCity: String_comparison_exp
+  addressCountry: countries_bool_exp
+  addressCountryCode: String_comparison_exp
+  addressLine1: String_comparison_exp
+  addressLine2: String_comparison_exp
+  addressPostalCode: String_comparison_exp
+  addressState: String_comparison_exp
+  allowedPrivateRegions: regions_allowed_workspace_bool_exp
+  apps: apps_bool_exp
+  apps_aggregate: apps_aggregate_bool_exp
+  companyName: String_comparison_exp
+  createdAt: timestamptz_comparison_exp
+  creatorUser: users_bool_exp
+  creatorUserId: uuid_comparison_exp
+  email: String_comparison_exp
+  id: uuid_comparison_exp
+  name: String_comparison_exp
+  paymentMethod: paymentMethods_bool_exp
+  paymentMethods: paymentMethods_bool_exp
+  paymentMethods_aggregate: paymentMethods_aggregate_bool_exp
+  regions_allowed_workspaces: regions_allowed_workspace_bool_exp
+  regions_allowed_workspaces_aggregate: regions_allowed_workspace_aggregate_bool_exp
+  slug: String_comparison_exp
+  stripeCustomerId: String_comparison_exp
+  taxIdType: String_comparison_exp
+  taxIdValue: String_comparison_exp
+  updatedAt: timestamptz_comparison_exp
+  workspaceMemberInvites: workspaceMemberInvites_bool_exp
+  workspaceMemberInvites_aggregate: workspaceMemberInvites_aggregate_bool_exp
+  workspaceMembers: workspaceMembers_bool_exp
+  workspaceMembers_aggregate: workspaceMembers_aggregate_bool_exp
+}
+
+input workspaces_max_order_by {
+  """City, district, suburb, town, or village."""
+  addressCity: order_by
+  """Two-letter country code (ISO 3166-1 alpha-2)."""
+  addressCountryCode: order_by
+  """Address line 1 (e.g., street, PO Box, or company name)."""
+  addressLine1: order_by
+  """Address line 2 (e.g., apartment, suite, unit, or building)."""
+  addressLine2: order_by
+  """ZIP or postal code."""
+  addressPostalCode: order_by
+  """State, county, province, or region."""
+  addressState: order_by
+  companyName: order_by
+  createdAt: order_by
+  creatorUserId: order_by
+  email: order_by
+  id: order_by
+  name: order_by
+  slug: order_by
+  stripeCustomerId: order_by
+  taxIdType: order_by
+  taxIdValue: order_by
+  updatedAt: order_by
+}
+
+input workspaces_min_order_by {
+  """City, district, suburb, town, or village."""
+  addressCity: order_by
+  """Two-letter country code (ISO 3166-1 alpha-2)."""
+  addressCountryCode: order_by
+  """Address line 1 (e.g., street, PO Box, or company name)."""
+  addressLine1: order_by
+  """Address line 2 (e.g., apartment, suite, unit, or building)."""
+  addressLine2: order_by
+  """ZIP or postal code."""
+  addressPostalCode: order_by
+  """State, county, province, or region."""
+  addressState: order_by
+  companyName: order_by
+  createdAt: order_by
+  creatorUserId: order_by
+  email: order_by
+  id: order_by
+  name: order_by
+  slug: order_by
+  stripeCustomerId: order_by
+  taxIdType: order_by
+  taxIdValue: order_by
+  updatedAt: order_by
+}
+
+input workspaces_order_by {
+  addressCity: order_by
+  addressCountry: countries_order_by
+  addressCountryCode: order_by
+  addressLine1: order_by
+  addressLine2: order_by
+  addressPostalCode: order_by
+  addressState: order_by
+  allowedPrivateRegions: regions_allowed_workspace_order_by
+  apps_aggregate: apps_aggregate_order_by
+  companyName: order_by
+  createdAt: order_by
+  creatorUser: users_order_by
+  creatorUserId: order_by
+  email: order_by
+  id: order_by
+  name: order_by
+  paymentMethod: paymentMethods_order_by
+  paymentMethods_aggregate: paymentMethods_aggregate_order_by
+  regions_allowed_workspaces_aggregate: regions_allowed_workspace_aggregate_order_by
+  slug: order_by
+  stripeCustomerId: order_by
+  taxIdType: order_by
+  taxIdValue: order_by
+  updatedAt: order_by
+  workspaceMemberInvites_aggregate: workspaceMemberInvites_aggregate_order_by
+  workspaceMembers_aggregate: workspaceMembers_aggregate_order_by
+}
+
+type Query {
+  """fetch data from the table: "apps" using primary key columns"""
+app(id: uuid!): apps
+  """An array relationship"""
+apps(distinct_on: [apps_select_column!], limit: Int, offset: Int, order_by: [apps_order_by!], where: apps_bool_exp): [apps!]!
+}
+
+type Mutation {
+  """update single row of the table: "apps""""
+updateApp(_append: apps_append_input, _delete_at_path: apps_delete_at_path_input, _delete_elem: apps_delete_elem_input, _delete_key: apps_delete_key_input, _inc: apps_inc_input, _prepend: apps_prepend_input, _set: apps_set_input, pk_columns: apps_pk_columns_input!): apps
+  updateConfig(appID: uuid!, config: ConfigConfigUpdateInput!): ConfigConfig!
+}
+

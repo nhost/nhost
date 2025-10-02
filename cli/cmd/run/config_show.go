@@ -1,13 +1,14 @@
 package run
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/nhost/cli/clienv"
 	"github.com/nhost/nhost/cli/project/env"
 	"github.com/pelletier/go-toml/v2"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 func CommandConfigShow() *cli.Command {
@@ -23,19 +24,19 @@ func CommandConfigShow() *cli.Command {
 				Aliases: []string{},
 				Usage:   "Service configuration file",
 				Value:   "nhost-run-service.toml",
-				EnvVars: []string{"NHOST_RUN_SERVICE_CONFIG"},
+				Sources: cli.EnvVars("NHOST_RUN_SERVICE_CONFIG"),
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagOverlayName,
 				Usage:   "If specified, apply this overlay",
-				EnvVars: []string{"NHOST_RUN_SERVICE_ID", "NHOST_SERVICE_OVERLAY_NAME"},
+				Sources: cli.EnvVars("NHOST_RUN_SERVICE_ID", "NHOST_SERVICE_OVERLAY_NAME"),
 			},
 		},
 	}
 }
 
-func commandConfigShow(cCtx *cli.Context) error {
-	ce := clienv.FromCLI(cCtx)
+func commandConfigShow(_ context.Context, cmd *cli.Command) error {
+	ce := clienv.FromCLI(cmd)
 
 	var secrets model.Secrets
 	if err := clienv.UnmarshalFile(ce.Path.Secrets(), &secrets, env.Unmarshal); err != nil {
@@ -47,8 +48,8 @@ func commandConfigShow(cCtx *cli.Context) error {
 
 	cfg, err := Validate(
 		ce,
-		cCtx.String(flagConfig),
-		cCtx.String(flagOverlayName),
+		cmd.String(flagConfig),
+		cmd.String(flagOverlayName),
 		secrets,
 		false,
 	)

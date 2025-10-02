@@ -7,7 +7,7 @@ import (
 
 	"github.com/nhost/nhost/cli/clienv"
 	"github.com/nhost/nhost/cli/nhostclient/graphql"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 const (
@@ -40,7 +40,7 @@ func CommandNew() *cli.Command {
 				&cli.StringFlag{ //nolint:exhaustruct
 					Name:     flagRef,
 					Usage:    "Git reference",
-					EnvVars:  []string{"GITHUB_SHA"},
+					Sources:  cli.EnvVars("GITHUB_SHA"),
 					Required: true,
 				},
 				&cli.StringFlag{ //nolint:exhaustruct
@@ -51,7 +51,7 @@ func CommandNew() *cli.Command {
 				&cli.StringFlag{ //nolint:exhaustruct
 					Name:     flagUser,
 					Usage:    "Commit user name",
-					EnvVars:  []string{"GITHUB_ACTOR"},
+					Sources:  cli.EnvVars("GITHUB_ACTOR"),
 					Required: true,
 				},
 				&cli.StringFlag{ //nolint:exhaustruct
@@ -67,28 +67,28 @@ func ptr[i any](v i) *i {
 	return &v
 }
 
-func commandNew(cCtx *cli.Context) error {
-	ce := clienv.FromCLI(cCtx)
+func commandNew(ctx context.Context, cmd *cli.Command) error {
+	ce := clienv.FromCLI(cmd)
 
-	cl, err := ce.GetNhostClient(cCtx.Context)
+	cl, err := ce.GetNhostClient(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get nhost client: %w", err)
 	}
 
-	proj, err := ce.GetAppInfo(cCtx.Context, cCtx.String(flagSubdomain))
+	proj, err := ce.GetAppInfo(ctx, cmd.String(flagSubdomain))
 	if err != nil {
 		return fmt.Errorf("failed to get app info: %w", err)
 	}
 
 	resp, err := cl.InsertDeployment(
-		cCtx.Context,
+		ctx,
 		graphql.DeploymentsInsertInput{
 			App:                 nil,
 			AppID:               ptr(proj.ID),
-			CommitMessage:       ptr(cCtx.String(flagMessage)),
-			CommitSha:           ptr(cCtx.String(flagRef)),
-			CommitUserAvatarURL: ptr(cCtx.String(flagUserAvatarURL)),
-			CommitUserName:      ptr(cCtx.String(flagUser)),
+			CommitMessage:       ptr(cmd.String(flagMessage)),
+			CommitSha:           ptr(cmd.String(flagRef)),
+			CommitUserAvatarURL: ptr(cmd.String(flagUserAvatarURL)),
+			CommitUserName:      ptr(cmd.String(flagUser)),
 			DeploymentStatus:    ptr("SCHEDULED"),
 		},
 	)
@@ -98,13 +98,13 @@ func commandNew(cCtx *cli.Context) error {
 
 	ce.Println("Deployment created: %s", resp.InsertDeployment.ID)
 
-	if cCtx.Bool(flagFollow) {
+	if cmd.Bool(flagFollow) {
 		ce.Println("")
 
-		ctx, cancel := context.WithTimeout(cCtx.Context, cCtx.Duration(flagTimeout))
+		ctxWithTimeout, cancel := context.WithTimeout(ctx, cmd.Duration(flagTimeout))
 		defer cancel()
 
-		status, err := showLogsFollow(ctx, ce, cl, resp.InsertDeployment.ID)
+		status, err := showLogsFollow(ctxWithTimeout, ce, cl, resp.InsertDeployment.ID)
 		if err != nil {
 			return fmt.Errorf("error streaming logs: %w", err)
 		}

@@ -1,13 +1,14 @@
 package run
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/nhost/cli/clienv"
 	"github.com/nhost/nhost/cli/project/env"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 const (
@@ -28,17 +29,17 @@ func CommandEnv() *cli.Command {
 				Aliases: []string{},
 				Usage:   "Service configuration file",
 				Value:   "nhost-run-service.toml",
-				EnvVars: []string{"NHOST_RUN_SERVICE_CONFIG"},
+				Sources: cli.EnvVars("NHOST_RUN_SERVICE_CONFIG"),
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagOverlayName,
 				Usage:   "If specified, apply this overlay",
-				EnvVars: []string{"NHOST_RUN_SERVICE_ID", "NHOST_SERVICE_OVERLAY_NAME"},
+				Sources: cli.EnvVars("NHOST_RUN_SERVICE_ID", "NHOST_SERVICE_OVERLAY_NAME"),
 			},
 			&cli.BoolFlag{ //nolint:exhaustruct
 				Name:    flagDevPrependExport,
 				Usage:   "Prepend 'export' to each line",
-				EnvVars: []string{"NHOST_RuN_SERVICE_ENV_PREPEND_EXPORT"},
+				Sources: cli.EnvVars("NHOST_RuN_SERVICE_ENV_PREPEND_EXPORT"),
 			},
 		},
 	}
@@ -49,8 +50,8 @@ func escape(s string) string {
 	return re.ReplaceAllString(s, "\\$0")
 }
 
-func commandConfigDev(cCtx *cli.Context) error {
-	ce := clienv.FromCLI(cCtx)
+func commandConfigDev(_ context.Context, cmd *cli.Command) error {
+	ce := clienv.FromCLI(cmd)
 
 	var secrets model.Secrets
 	if err := clienv.UnmarshalFile(ce.Path.Secrets(), &secrets, env.Unmarshal); err != nil {
@@ -62,8 +63,8 @@ func commandConfigDev(cCtx *cli.Context) error {
 
 	cfg, err := Validate(
 		ce,
-		cCtx.String(flagConfig),
-		cCtx.String(flagOverlayName),
+		cmd.String(flagConfig),
+		cmd.String(flagOverlayName),
 		secrets,
 		false,
 	)
@@ -73,7 +74,7 @@ func commandConfigDev(cCtx *cli.Context) error {
 
 	for _, v := range cfg.GetEnvironment() {
 		value := escape(v.Value)
-		if cCtx.Bool(flagDevPrependExport) {
+		if cmd.Bool(flagDevPrependExport) {
 			ce.Println("export %s=\"%s\"", v.Name, value)
 		} else {
 			ce.Println("%s=\"%s\"", v.Name, value)

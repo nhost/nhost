@@ -19,7 +19,7 @@ import (
 	"github.com/nhost/nhost/cli/cmd/software"
 	"github.com/nhost/nhost/cli/dockercompose"
 	"github.com/nhost/nhost/cli/project/env"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 func deptr[T any](t *T) T { //nolint:ireturn
@@ -63,25 +63,25 @@ func CommandUp() *cli.Command { //nolint:funlen
 				Name:    flagHTTPPort,
 				Usage:   "HTTP port to listen on",
 				Value:   defaultHTTPPort,
-				EnvVars: []string{"NHOST_HTTP_PORT"},
+				Sources: cli.EnvVars("NHOST_HTTP_PORT"),
 			},
 			&cli.BoolFlag{ //nolint:exhaustruct
 				Name:    flagDisableTLS,
 				Usage:   "Disable TLS",
 				Value:   false,
-				EnvVars: []string{"NHOST_DISABLE_TLS"},
+				Sources: cli.EnvVars("NHOST_DISABLE_TLS"),
 			},
 			&cli.UintFlag{ //nolint:exhaustruct
 				Name:    flagPostgresPort,
 				Usage:   "Postgres port to listen on",
 				Value:   defaultPostgresPort,
-				EnvVars: []string{"NHOST_POSTGRES_PORT"},
+				Sources: cli.EnvVars("NHOST_POSTGRES_PORT"),
 			},
 			&cli.BoolFlag{ //nolint:exhaustruct
 				Name:    flagApplySeeds,
 				Usage:   "Apply seeds. If the .nhost folder does not exist, seeds will be applied regardless of this flag",
 				Value:   false,
-				EnvVars: []string{"NHOST_APPLY_SEEDS"},
+				Sources: cli.EnvVars("NHOST_APPLY_SEEDS"),
 			},
 			&cli.UintFlag{ //nolint:exhaustruct
 				Name:  flagAuthPort,
@@ -112,38 +112,38 @@ func CommandUp() *cli.Command { //nolint:funlen
 				Name:    flagDashboardVersion,
 				Usage:   "Dashboard version to use",
 				Value:   "nhost/dashboard:2.38.0",
-				EnvVars: []string{"NHOST_DASHBOARD_VERSION"},
+				Sources: cli.EnvVars("NHOST_DASHBOARD_VERSION"),
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagConfigserverImage,
 				Hidden:  true,
 				Value:   "",
-				EnvVars: []string{"NHOST_CONFIGSERVER_IMAGE"},
+				Sources: cli.EnvVars("NHOST_CONFIGSERVER_IMAGE"),
 			},
 			&cli.StringSliceFlag{ //nolint:exhaustruct
 				Name:    flagRunService,
 				Usage:   "Run service to add to the development environment. Can be passed multiple times. Comma-separated values are also accepted. Format: /path/to/run-service.toml[:overlay_name]", //nolint:lll
-				EnvVars: []string{"NHOST_RUN_SERVICE"},
+				Sources: cli.EnvVars("NHOST_RUN_SERVICE"),
 			},
 			&cli.BoolFlag{ //nolint:exhaustruct
 				Name:    flagDownOnError,
 				Usage:   "Skip confirmation",
-				EnvVars: []string{"NHOST_YES"},
+				Sources: cli.EnvVars("NHOST_YES"),
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagCACertificates,
 				Usage:   "Mounts and everrides path to CA certificates in the containers",
-				EnvVars: []string{"NHOST_CA_CERTIFICATES"},
+				Sources: cli.EnvVars("NHOST_CA_CERTIFICATES"),
 			},
 		},
-		Subcommands: []*cli.Command{
+		Commands: []*cli.Command{
 			CommandCloud(),
 		},
 	}
 }
 
-func commandUp(cCtx *cli.Context) error {
-	ce := clienv.FromCLI(cCtx)
+func commandUp(ctx context.Context, cmd *cli.Command) error {
+	ce := clienv.FromCLI(cmd)
 
 	// projname to be root directory
 
@@ -159,33 +159,33 @@ func commandUp(cCtx *cli.Context) error {
 		)
 	}
 
-	configserverImage := cCtx.String(flagConfigserverImage)
+	configserverImage := cmd.String(flagConfigserverImage)
 	if configserverImage == "" {
-		configserverImage = "nhost/cli:" + cCtx.App.Version
+		configserverImage = "nhost/cli:" + cmd.Root().Version
 	}
 
-	applySeeds := cCtx.Bool(flagApplySeeds) || !clienv.PathExists(ce.Path.DotNhostFolder())
+	applySeeds := cmd.Bool(flagApplySeeds) || !clienv.PathExists(ce.Path.DotNhostFolder())
 
 	return Up(
-		cCtx.Context,
+		ctx,
 		ce,
-		cCtx.App.Version,
-		cCtx.Uint(flagHTTPPort),
-		!cCtx.Bool(flagDisableTLS),
-		cCtx.Uint(flagPostgresPort),
+		cmd.Root().Version,
+		cmd.Uint(flagHTTPPort),
+		!cmd.Bool(flagDisableTLS),
+		cmd.Uint(flagPostgresPort),
 		applySeeds,
 		dockercompose.ExposePorts{
-			Auth:      cCtx.Uint(flagAuthPort),
-			Storage:   cCtx.Uint(flagStoragePort),
-			Graphql:   cCtx.Uint(flagsHasuraPort),
-			Console:   cCtx.Uint(flagsHasuraConsolePort),
-			Functions: cCtx.Uint(flagsFunctionsPort),
+			Auth:      cmd.Uint(flagAuthPort),
+			Storage:   cmd.Uint(flagStoragePort),
+			Graphql:   cmd.Uint(flagsHasuraPort),
+			Console:   cmd.Uint(flagsHasuraConsolePort),
+			Functions: cmd.Uint(flagsFunctionsPort),
 		},
-		cCtx.String(flagDashboardVersion),
+		cmd.String(flagDashboardVersion),
 		configserverImage,
-		cCtx.String(flagCACertificates),
-		cCtx.StringSlice(flagRunService),
-		cCtx.Bool(flagDownOnError),
+		cmd.String(flagCACertificates),
+		cmd.StringSlice(flagRunService),
+		cmd.Bool(flagDownOnError),
 	)
 }
 

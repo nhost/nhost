@@ -10,7 +10,7 @@ import (
 
 	"github.com/nhost/nhost/cli/nhostclient"
 	"github.com/nhost/nhost/cli/nhostclient/graphql"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 func sanitizeName(name string) string {
@@ -55,28 +55,28 @@ func New(
 	}
 }
 
-func FromCLI(cCtx *cli.Context) *CliEnv {
+func FromCLI(cmd *cli.Command) *CliEnv {
 	cwd, err := os.Getwd()
 	if err != nil {
 		panic(err)
 	}
 
 	return &CliEnv{
-		stdout: cCtx.App.Writer,
-		stderr: cCtx.App.ErrWriter,
+		stdout: cmd.Writer,
+		stderr: cmd.ErrWriter,
 		Path: NewPathStructure(
 			cwd,
-			cCtx.String(flagRootFolder),
-			cCtx.String(flagDotNhostFolder),
-			cCtx.String(flagNhostFolder),
+			cmd.String(flagRootFolder),
+			cmd.String(flagDotNhostFolder),
+			cmd.String(flagNhostFolder),
 		),
-		authURL:        cCtx.String(flagAuthURL),
-		graphqlURL:     cCtx.String(flagGraphqlURL),
-		branch:         cCtx.String(flagBranch),
-		projectName:    sanitizeName(cCtx.String(flagProjectName)),
+		authURL:        cmd.String(flagAuthURL),
+		graphqlURL:     cmd.String(flagGraphqlURL),
+		branch:         cmd.String(flagBranch),
+		projectName:    sanitizeName(cmd.String(flagProjectName)),
 		nhclient:       nil,
 		nhpublicclient: nil,
-		localSubdomain: cCtx.String(flagLocalSubdomain),
+		localSubdomain: cmd.String(flagLocalSubdomain),
 	}
 }
 

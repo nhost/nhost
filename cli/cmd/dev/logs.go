@@ -1,9 +1,11 @@
 package dev
 
 import (
+	"context"
+
 	"github.com/nhost/nhost/cli/clienv"
 	"github.com/nhost/nhost/cli/dockercompose"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 func CommandLogs() *cli.Command {
@@ -17,12 +19,12 @@ func CommandLogs() *cli.Command {
 	}
 }
 
-func commandLogs(cCtx *cli.Context) error {
-	ce := clienv.FromCLI(cCtx)
+func commandLogs(ctx context.Context, cmd *cli.Command) error {
+	ce := clienv.FromCLI(cmd)
 
 	dc := dockercompose.New(ce.Path.WorkingDir(), ce.Path.DockerCompose(), ce.ProjectName())
 
-	if err := dc.Logs(cCtx.Context, cCtx.Args().Slice()...); err != nil {
+	if err := dc.Logs(ctx, cmd.Args().Slice()...); err != nil {
 		ce.Warnln("%s", err)
 	}
 

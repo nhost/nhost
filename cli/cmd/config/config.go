@@ -1,6 +1,6 @@
 package config
 
-import "github.com/urfave/cli/v2"
+import "github.com/urfave/cli/v3"
 
 const flagSubdomain = "subdomain"
 
@@ -9,7 +9,7 @@ func Command() *cli.Command {
 		Name:    "config",
 		Aliases: []string{},
 		Usage:   "Perform config operations",
-		Subcommands: []*cli.Command{
+		Commands: []*cli.Command{
 			CommandDefault(),
 			CommandExample(),
 			CommandApply(),

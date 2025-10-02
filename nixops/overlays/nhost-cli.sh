@@ -4,7 +4,7 @@ set -eou pipefail
 
 # --- Configuration ---
 REPO_OWNER="nhost"
-REPO_NAME="cli"
+REPO_NAME="nhost"
 
 # Determine the directory where this script is located
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
@@ -23,15 +23,17 @@ get_latest_version() {
     echo "Warning: GitHub CLI 'gh' is not authenticated. Attempting anonymous API call via gh." >&2
     echo "For higher rate limits, please run 'gh auth login'." >&2
   fi
-  echo "Fetching latest version using 'gh api'..." >&2
-  latest_tag=$(gh api "repos/${REPO_OWNER}/${REPO_NAME}/releases/latest" --jq '.tag_name' 2>/dev/null)
+  echo "Fetching latest CLI tag using 'gh api'..." >&2
+  # Fetch tags and find the first one starting with 'cli@'
+  latest_tag=$(gh api "repos/${REPO_OWNER}/${REPO_NAME}/tags" --paginate --jq '.[].name | select(startswith("cli@"))' | head -n 1)
   if [ -z "$latest_tag" ]; then
-    echo "Error: Could not fetch or parse the latest version tag using 'gh api'." >&2
-    echo "Command was: gh api \"repos/${REPO_OWNER}/${REPO_NAME}/releases/latest\" --jq '.tag_name'" >&2
-    gh api "repos/${REPO_OWNER}/${REPO_NAME}/releases/latest" >&2 || true
+    echo "Error: Could not fetch or parse the latest CLI tag using 'gh api'." >&2
+    echo "Command was: gh api \"repos/${REPO_OWNER}/${REPO_NAME}/tags\" --jq '.[].name | select(startswith(\"cli@\"))'" >&2
     return 1
   fi
-  echo "$latest_tag"
+  # Extract version number from cli@x.y.z
+  local version_number="${latest_tag#cli@}"
+  echo "$version_number"
 }
 
 get_current_version() {
@@ -45,9 +47,9 @@ get_current_version() {
 }
 
 get_platform_hashes() {
-  local version_tag="$1"
+  local version_number="$1"
 
-  if [ -z "$version_tag" ]; then
+  if [ -z "$version_number" ]; then
     echo "Error: No version provided to get_platform_hashes function." >&2
     return 1
   fi
@@ -57,7 +59,7 @@ get_platform_hashes() {
       return 1
   fi
 
-  echo "Prefetching hashes for version $version_tag in parallel..." >&2
+  echo "Prefetching hashes for version $version_number in parallel..." >&2
 
   local platforms_and_suffixes=(
     "darwin-arm64"  # aarch64-darwin
@@ -65,6 +67,9 @@ get_platform_hashes() {
     "linux-arm64"   # aarch64-linux
     "linux-amd64"   # x86_64-linux
   )
+
+  # URL-encode the tag (cli@version)
+  local encoded_tag="cli%40${version_number}"
 
   local pids=()
   local temp_files=()
@@ -81,7 +86,7 @@ get_platform_hashes() {
   trap cleanup_temp_files EXIT SIGINT SIGTERM
 
   for suffix in "${platforms_and_suffixes[@]}"; do
-    local url="https://github.com/nhost/cli/releases/download/${version_tag}/cli-${version_tag}-${suffix}.tar.gz"
+    local url="https://github.com/nhost/nhost/releases/download/${encoded_tag}/cli-${version_number}-${suffix}.tar.gz"
     local temp_file
     temp_file=$(mktemp --tmpdir nhost-hash-prefetch.XXXXXX)
     temp_files+=("$temp_file")
@@ -171,7 +176,7 @@ echo "New version available. Updating from $CURRENT_VERSION to $LATEST_VERSION..
 
 HASHES_STR=$(get_platform_hashes "$LATEST_VERSION")
 if [ $? -ne 0 ]; then
-    echo "Error: Failed to get platform hashes for version $LATEST_VERSION." >&2
+    echo "Error: Failed to get platform hashes for CLI version $LATEST_VERSION." >&2
     exit 1
 fi
 mapfile -t HASHES <<< "$HASHES_STR"

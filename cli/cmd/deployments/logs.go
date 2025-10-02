@@ -8,7 +8,7 @@ import (
 
 	"github.com/nhost/nhost/cli/clienv"
 	"github.com/nhost/nhost/cli/nhostclient"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 const (
@@ -101,28 +101,28 @@ func showLogsFollow(
 	}
 }
 
-func commandLogs(cCtx *cli.Context) error {
-	deploymentID := cCtx.Args().First()
+func commandLogs(ctx context.Context, cmd *cli.Command) error {
+	deploymentID := cmd.Args().First()
 	if deploymentID == "" {
 		return errors.New("deployment_id is required") //nolint:err113
 	}
 
-	ce := clienv.FromCLI(cCtx)
+	ce := clienv.FromCLI(cmd)
 
-	cl, err := ce.GetNhostClient(cCtx.Context)
+	cl, err := ce.GetNhostClient(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get nhost client: %w", err)
 	}
 
-	if cCtx.Bool(flagFollow) {
-		ctx, cancel := context.WithTimeout(cCtx.Context, cCtx.Duration(flagTimeout))
+	if cmd.Bool(flagFollow) {
+		ctxWithTimeout, cancel := context.WithTimeout(ctx, cmd.Duration(flagTimeout))
 		defer cancel()
 
-		if _, err := showLogsFollow(ctx, ce, cl, deploymentID); err != nil {
+		if _, err := showLogsFollow(ctxWithTimeout, ce, cl, deploymentID); err != nil {
 			return err
 		}
 	} else {
-		if err := showLogsSimple(cCtx.Context, ce, cl, deploymentID); err != nil {
+		if err := showLogsSimple(ctx, ce, cl, deploymentID); err != nil {
 			return err
 		}
 	}

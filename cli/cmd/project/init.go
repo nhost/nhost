@@ -9,12 +9,12 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/hashicorp/go-getter"
+	"github.com/hashicorp/go-getter/v2"
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/nhost/cli/clienv"
 	"github.com/nhost/nhost/cli/cmd/config"
 	"github.com/nhost/nhost/cli/dockercompose"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 	"gopkg.in/yaml.v3"
 )
 
@@ -75,14 +75,14 @@ func CommandInit() *cli.Command {
 				Name:    flagRemote,
 				Usage:   "Initialize pulling configuration, migrations and metadata from the linked project",
 				Value:   false,
-				EnvVars: []string{"NHOST_REMOTE"},
+				Sources: cli.EnvVars("NHOST_REMOTE"),
 			},
 		},
 	}
 }
 
-func commandInit(cCtx *cli.Context) error {
-	ce := clienv.FromCLI(cCtx)
+func commandInit(ctx context.Context, cmd *cli.Command) error {
+	ce := clienv.FromCLI(cmd)
 
 	if clienv.PathExists(ce.Path.NhostFolder()) {
 		return errors.New("nhost folder already exists") //nolint:err113
@@ -98,12 +98,12 @@ func commandInit(cCtx *cli.Context) error {
 		return fmt.Errorf("failed to initialize configuration: %w", err)
 	}
 
-	if cCtx.Bool(flagRemote) {
-		if err := InitRemote(cCtx.Context, ce); err != nil {
+	if cmd.Bool(flagRemote) {
+		if err := InitRemote(ctx, ce); err != nil {
 			return fmt.Errorf("failed to initialize remote project: %w", err)
 		}
 	} else {
-		if err := initInit(cCtx.Context, ce.Path); err != nil {
+		if err := initInit(ctx, ce.Path); err != nil {
 			return fmt.Errorf("failed to initialize project: %w", err)
 		}
 	}
@@ -129,17 +129,12 @@ func initInit(
 		return err
 	}
 
-	getclient := &getter.Client{ //nolint:exhaustruct
-		Ctx:  ctx,
-		Src:  "github.com/nhost/hasura-auth/email-templates",
-		Dst:  "nhost/emails",
-		Mode: getter.ClientModeAny,
-		Detectors: []getter.Detector{
-			&getter.GitHubDetector{},
-		},
-	}
-
-	if err := getclient.Get(); err != nil {
+	getclient := &getter.Client{}                    //nolint:exhaustruct
+	if _, err := getclient.Get(ctx, &getter.Request{ //nolint:exhaustruct
+		Src:             "git::https://github.com/nhost/hasura-auth.git//email-templates",
+		Dst:             "nhost/emails",
+		DisableSymlinks: true,
+	}); err != nil {
 		return fmt.Errorf("failed to download email templates: %w", err)
 	}
 

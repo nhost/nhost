@@ -132,7 +132,7 @@ func expectedAuth() *Service {
 			"AUTH_RATE_LIMIT_SMS_INTERVAL":              "5m",
 			"AUTH_REFRESH_TOKEN_EXPIRES_IN":             "99",
 			"AUTH_REQUIRE_ELEVATED_CLAIM":               "required",
-			"AUTH_SERVER_URL":                           "http://dev.auth.local.nhost.run:1336/v1",
+			"AUTH_SERVER_URL":                           "https://dev.auth.local.nhost.run:1336/v1",
 			"AUTH_SMS_PASSWORDLESS_ENABLED":             "true",
 			"AUTH_SMS_PROVIDER":                         "twilio",
 			"AUTH_SMS_TWILIO_ACCOUNT_SID":               "smsAccountSid",
@@ -186,7 +186,7 @@ func expectedAuth() *Service {
 			"traefik.http.routers.auth.entrypoints":               "web",
 			"traefik.http.routers.auth.rule":                      "(HostRegexp(`^.+\\.auth\\.local\\.nhost\\.run$`) || Host(`local.auth.nhost.run`))",
 			"traefik.http.routers.auth.service":                   "auth",
-			"traefik.http.routers.auth.tls":                       "false",
+			"traefik.http.routers.auth.tls":                       "true",
 			"traefik.http.services.auth.loadbalancer.server.port": "4000",
 		},
 		Ports:   nil,
@@ -216,7 +216,7 @@ func TestAuth(t *testing.T) {
 		{
 			name:       "default",
 			cfg:        getConfig,
-			useTlS:     false,
+			useTlS:     true,
 			exposePort: 0,
 			expected:   expectedAuth,
 		},
@@ -227,7 +227,7 @@ func TestAuth(t *testing.T) {
 				cfg.Auth.Version = ptr("0.21.3")
 				return cfg
 			},
-			useTlS:     false,
+			useTlS:     true,
 			exposePort: 0,
 			expected: func() *Service {
 				svc := expectedAuth()
@@ -243,7 +243,7 @@ func TestAuth(t *testing.T) {
 		{
 			name:       "custom port",
 			cfg:        getConfig,
-			useTlS:     false,
+			useTlS:     true,
 			exposePort: 8080,
 			expected: func() *Service {
 				svc := expectedAuth()

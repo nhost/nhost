@@ -1,13 +1,14 @@
 package run
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/nhost/cli/clienv"
 	"github.com/pelletier/go-toml/v2"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 const flagServiceID = "service-id"
@@ -23,36 +24,36 @@ func CommandConfigPull() *cli.Command {
 				Aliases: []string{},
 				Usage:   "Service configuration file",
 				Value:   "nhost-run-service.toml",
-				EnvVars: []string{"NHOST_RUN_SERVICE_CONFIG"},
+				Sources: cli.EnvVars("NHOST_RUN_SERVICE_CONFIG"),
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:     flagServiceID,
 				Usage:    "Service ID to update",
 				Required: true,
-				EnvVars:  []string{"NHOST_RUN_SERVICE_ID"},
+				Sources:  cli.EnvVars("NHOST_RUN_SERVICE_ID"),
 			},
 		},
 		Action: commandConfigPull,
 	}
 }
 
-func commandConfigPull(cCtx *cli.Context) error {
-	ce := clienv.FromCLI(cCtx)
+func commandConfigPull(ctx context.Context, cmd *cli.Command) error {
+	ce := clienv.FromCLI(cmd)
 
-	cl, err := ce.GetNhostClient(cCtx.Context)
+	cl, err := ce.GetNhostClient(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get nhost client: %w", err)
 	}
 
-	appID, err := getAppIDFromServiceID(cCtx.Context, cl, cCtx.String(flagServiceID))
+	appID, err := getAppIDFromServiceID(ctx, cl, cmd.String(flagServiceID))
 	if err != nil {
 		return err
 	}
 
 	resp, err := cl.GetRunServiceConfigRawJSON(
-		cCtx.Context,
+		ctx,
 		appID,
-		cCtx.String(flagServiceID),
+		cmd.String(flagServiceID),
 		false,
 	)
 	if err != nil {
@@ -64,7 +65,7 @@ func commandConfigPull(cCtx *cli.Context) error {
 		return fmt.Errorf("failed to unmarshal config: %w", err)
 	}
 
-	if err := clienv.MarshalFile(v, cCtx.String(flagConfig), toml.Marshal); err != nil {
+	if err := clienv.MarshalFile(v, cmd.String(flagConfig), toml.Marshal); err != nil {
 		return fmt.Errorf("failed to save config to file: %w", err)
 	}
 

@@ -1,6 +1,6 @@
 package software
 
-import "github.com/urfave/cli/v2"
+import "github.com/urfave/cli/v3"
 
 const (
 	devVersion = "dev"
@@ -11,7 +11,7 @@ func Command() *cli.Command {
 		Name:    "sw",
 		Aliases: []string{},
 		Usage:   "Perform software management operations",
-		Subcommands: []*cli.Command{
+		Commands: []*cli.Command{
 			CommandUninstall(),
 			CommandUpgrade(),
 			CommandVersion(),
