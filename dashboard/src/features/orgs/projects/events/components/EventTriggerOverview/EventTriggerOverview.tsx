@@ -4,7 +4,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/v3/collapsible';
 import EventTriggerHeadersTable from '@/features/orgs/projects/events/components/EventTriggerHeadersTable/EventTriggerHeadersTable';
-import type { EventTriggerUI } from '@/features/orgs/projects/events/types';
+import type { EventTriggerViewModel } from '@/features/orgs/projects/events/types';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 import TriggerOperationsSection from './sections/TriggerOperationsSection';
@@ -12,7 +12,7 @@ import TriggerOperationsSection from './sections/TriggerOperationsSection';
 export default function EventTriggerOverview({
   eventTrigger,
 }: {
-  eventTrigger: EventTriggerUI;
+  eventTrigger: EventTriggerViewModel;
 }) {
   const [isTransformOpen, setIsTransformOpen] = useState(false);
   const [isHeadersOpen, setIsHeadersOpen] = useState(false);
@@ -193,7 +193,6 @@ export default function EventTriggerOverview({
           </div>
         </Collapsible>
       )}
-      {/* <EventTriggerInvocationLogs eventTrigger={eventTrigger} /> */}
     </div>
   );
 }

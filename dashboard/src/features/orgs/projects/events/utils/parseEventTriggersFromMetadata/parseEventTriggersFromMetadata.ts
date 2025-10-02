@@ -1,9 +1,9 @@
-import type { EventTriggerUI } from '@/features/orgs/projects/events/types';
+import type { EventTriggerViewModel } from '@/features/orgs/projects/events/types';
 import type { ExportMetadataResponseMetadata } from '@/utils/hasura-api/generated/schemas';
 
 export default function parseEventTriggersFromMetadata(
   metadata: ExportMetadataResponseMetadata,
-): EventTriggerUI[] {
+): EventTriggerViewModel[] {
   if (!metadata?.sources) {
     return [];
   }
@@ -24,5 +24,5 @@ export default function parseEventTriggersFromMetadata(
         dataSource,
       }));
     }),
-  ) satisfies EventTriggerUI[];
+  ) satisfies EventTriggerViewModel[];
 }

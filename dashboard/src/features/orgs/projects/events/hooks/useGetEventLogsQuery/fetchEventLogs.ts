@@ -30,7 +30,7 @@ export interface FetchEventLogsVariables {
   args: GetEventLogsArgs;
 }
 
-export default async function fetchExportMetadata({
+export default async function fetchEventLogs({
   appUrl,
   adminSecret,
   args,

@@ -1,6 +1,6 @@
 import { fetchExportMetadata } from '@/features/orgs/projects/common/utils/fetchExportMetadata';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
-import type { EventTriggerUI } from '@/features/orgs/projects/events/types';
+import type { EventTriggerViewModel } from '@/features/orgs/projects/events/types';
 import parseEventTriggersFromMetadata from '@/features/orgs/projects/events/utils/parseEventTriggersFromMetadata/parseEventTriggersFromMetadata';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { ExportMetadataResponse } from '@/utils/hasura-api/generated/schemas';
@@ -14,7 +14,7 @@ export interface UseGetEventTriggersOptions {
   queryOptions?: UseQueryOptions<
     ExportMetadataResponse,
     unknown,
-    EventTriggerUI[]
+    EventTriggerViewModel[]
   >;
 }
 
@@ -29,7 +29,11 @@ export default function useGetEventTriggers({
 }: UseGetEventTriggersOptions = {}) {
   const { project, loading } = useProject();
 
-  const query = useQuery<ExportMetadataResponse, unknown, EventTriggerUI[]>(
+  const query = useQuery<
+    ExportMetadataResponse,
+    unknown,
+    EventTriggerViewModel[]
+  >(
     ['export-metadata', project?.subdomain],
     () => {
       const appUrl = generateAppServiceUrl(

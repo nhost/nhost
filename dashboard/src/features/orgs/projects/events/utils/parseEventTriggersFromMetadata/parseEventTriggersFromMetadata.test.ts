@@ -1,4 +1,4 @@
-import type { EventTriggerUI } from '@/features/orgs/projects/events/types';
+import type { EventTriggerViewModel } from '@/features/orgs/projects/events/types';
 import type { ExportMetadataResponseMetadata } from '@/utils/hasura-api/generated/schemas';
 import { describe, expect, it } from 'vitest';
 import parseEventTriggersFromMetadata from './parseEventTriggersFromMetadata';
@@ -58,7 +58,7 @@ describe('parseEventTriggersFromMetadata', () => {
 
     expect(result).toHaveLength(1);
 
-    const expected: EventTriggerUI = {
+    const expected: EventTriggerViewModel = {
       name: 'user_created',
       dataSource: 'default',
       table: { name: 'users', schema: 'public' },

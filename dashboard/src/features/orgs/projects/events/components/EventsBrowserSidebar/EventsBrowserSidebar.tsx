@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/v3/button';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useGetEventTriggers } from '@/features/orgs/projects/events/hooks/useGetEventTriggers';
-import type { EventTriggerUI } from '@/features/orgs/projects/events/types';
+import type { EventTriggerViewModel } from '@/features/orgs/projects/events/types';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { cn } from '@/lib/utils';
 import { Database, Ellipsis, Plus } from 'lucide-react';
@@ -31,7 +31,7 @@ function EventsBrowserSidebarContent() {
   const { data } = useGetEventTriggers();
 
   const eventTriggersByDataSource = data?.reduce<
-    Record<string, EventTriggerUI[]>
+    Record<string, EventTriggerViewModel[]>
   >((acc, eventTrigger) => {
     const key = eventTrigger.dataSource;
     if (!acc[key]) {

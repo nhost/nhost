@@ -1,9 +1,9 @@
-import type { EventTriggerUI } from '@/features/orgs/projects/events/types';
+import type { EventTriggerViewModel } from '@/features/orgs/projects/events/types';
 
 export default function TriggerOperationsSection({
   eventTrigger,
 }: {
-  eventTrigger: EventTriggerUI;
+  eventTrigger: EventTriggerViewModel;
 }) {
   const operations: string[] = [];
   if (eventTrigger.definition.insert) {

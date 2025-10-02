@@ -16,7 +16,7 @@ import {
   TableRow,
 } from '@/components/ui/v3/table';
 import useGetEventLogsQuery from '@/features/orgs/projects/events/hooks/useGetEventLogsQuery/useGetEventLogsQuery';
-import type { EventTriggerUI } from '@/features/orgs/projects/events/types';
+import type { EventTriggerViewModel } from '@/features/orgs/projects/events/types';
 import { cn } from '@/lib/utils';
 import type { EventLogEntry } from '@/utils/hasura-api/generated/schemas/eventLogEntry';
 import {
@@ -184,7 +184,7 @@ const columnsBase: ColumnDef<EventLogEntry>[] = [
 ];
 
 interface EventTriggerInvocationLogsProps {
-  eventTrigger: EventTriggerUI;
+  eventTrigger: EventTriggerViewModel;
 }
 
 export default function EventTriggerEventLogs({
