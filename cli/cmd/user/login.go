@@ -1,8 +1,10 @@
 package user
 
 import (
+	"context"
+
 	"github.com/nhost/nhost/cli/clienv"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 const (
@@ -21,26 +23,26 @@ func CommandLogin() *cli.Command {
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagPAT,
 				Usage:   "Use this Personal Access Token instead of generating a new one with your email/password",
-				EnvVars: []string{"NHOST_PAT"},
+				Sources: cli.EnvVars("NHOST_PAT"),
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagEmail,
 				Usage:   "Email address",
-				EnvVars: []string{"NHOST_EMAIL"},
+				Sources: cli.EnvVars("NHOST_EMAIL"),
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagPassword,
 				Usage:   "Password",
-				EnvVars: []string{"NHOST_PASSWORD"},
+				Sources: cli.EnvVars("NHOST_PASSWORD"),
 			},
 		},
 	}
 }
 
-func commandLogin(cCtx *cli.Context) error {
-	ce := clienv.FromCLI(cCtx)
+func commandLogin(ctx context.Context, cmd *cli.Command) error {
+	ce := clienv.FromCLI(cmd)
 	_, err := ce.Login(
-		cCtx.Context, cCtx.String(flagPAT), cCtx.String(flagEmail), cCtx.String(flagPassword),
+		ctx, cmd.String(flagPAT), cmd.String(flagEmail), cmd.String(flagPassword),
 	)
 
 	return err //nolint:wrapcheck

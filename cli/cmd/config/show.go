@@ -1,13 +1,14 @@
 package config
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/nhost/cli/clienv"
 	"github.com/nhost/nhost/cli/project/env"
 	"github.com/pelletier/go-toml/v2"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 func CommandShow() *cli.Command {
@@ -21,14 +22,14 @@ func CommandShow() *cli.Command {
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagSubdomain,
 				Usage:   "Show this subdomain's rendered configuration. Defaults to base configuration",
-				EnvVars: []string{"NHOST_SUBDOMAIN"},
+				Sources: cli.EnvVars("NHOST_SUBDOMAIN"),
 			},
 		},
 	}
 }
 
-func commandShow(c *cli.Context) error {
-	ce := clienv.FromCLI(c)
+func commandShow(_ context.Context, cmd *cli.Command) error {
+	ce := clienv.FromCLI(cmd)
 
 	var secrets model.Secrets
 	if err := clienv.UnmarshalFile(ce.Path.Secrets(), &secrets, env.Unmarshal); err != nil {
@@ -38,7 +39,7 @@ func commandShow(c *cli.Context) error {
 		)
 	}
 
-	cfg, err := Validate(ce, c.String(flagSubdomain), secrets)
+	cfg, err := Validate(ce, cmd.String(flagSubdomain), secrets)
 	if err != nil {
 		return err
 	}

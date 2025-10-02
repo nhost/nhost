@@ -12,7 +12,7 @@ import (
 	"github.com/nhost/nhost/cli/nhostclient/graphql"
 	"github.com/nhost/nhost/cli/project/env"
 	"github.com/nhost/nhost/cli/software"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 func CommandVersion() *cli.Command {
@@ -132,8 +132,8 @@ func CheckVersions(
 	return checkCLIVersion(ctx, ce, appVersion)
 }
 
-func commandVersion(cCtx *cli.Context) error {
-	ce := clienv.FromCLI(cCtx)
+func commandVersion(ctx context.Context, cmd *cli.Command) error {
+	ce := clienv.FromCLI(cmd)
 
 	var (
 		cfg *model.ConfigConfig
@@ -157,5 +157,5 @@ func commandVersion(cCtx *cli.Context) error {
 		ce.Warnln("🟡 No Nhost project found")
 	}
 
-	return CheckVersions(cCtx.Context, ce, cfg, cCtx.App.Version)
+	return CheckVersions(ctx, ce, cfg, cmd.Root().Version)
 }

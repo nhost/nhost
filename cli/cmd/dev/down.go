@@ -1,9 +1,11 @@
 package dev
 
 import (
+	"context"
+
 	"github.com/nhost/nhost/cli/clienv"
 	"github.com/nhost/nhost/cli/dockercompose"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 const (
@@ -26,12 +28,12 @@ func CommandDown() *cli.Command {
 	}
 }
 
-func commandDown(cCtx *cli.Context) error {
-	ce := clienv.FromCLI(cCtx)
+func commandDown(ctx context.Context, cmd *cli.Command) error {
+	ce := clienv.FromCLI(cmd)
 
 	dc := dockercompose.New(ce.Path.WorkingDir(), ce.Path.DockerCompose(), ce.ProjectName())
 
-	if err := dc.Stop(cCtx.Context, cCtx.Bool(flagVolumes)); err != nil {
+	if err := dc.Stop(ctx, cmd.Bool(flagVolumes)); err != nil {
 		ce.Warnln("failed to stop Nhost development environment: %s", err)
 	}
 

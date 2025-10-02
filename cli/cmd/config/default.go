@@ -1,6 +1,7 @@
 package config
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -8,7 +9,7 @@ import (
 	"github.com/nhost/nhost/cli/project"
 	"github.com/nhost/nhost/cli/project/env"
 	"github.com/pelletier/go-toml/v2"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 func CommandDefault() *cli.Command {
@@ -21,8 +22,8 @@ func CommandDefault() *cli.Command {
 	}
 }
 
-func commandDefault(cCtx *cli.Context) error {
-	ce := clienv.FromCLI(cCtx)
+func commandDefault(_ context.Context, cmd *cli.Command) error {
+	ce := clienv.FromCLI(cmd)
 
 	if err := os.MkdirAll(ce.Path.NhostFolder(), 0o755); err != nil { //nolint:mnd
 		return fmt.Errorf("failed to create nhost folder: %w", err)

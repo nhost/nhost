@@ -1,6 +1,7 @@
 package run
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -8,7 +9,7 @@ import (
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/nhost/cli/clienv"
 	"github.com/nhost/nhost/cli/cmd/config"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 const flagEditor = "editor"
@@ -25,31 +26,31 @@ func CommandConfigEdit() *cli.Command {
 				Usage:    "Service configuration file",
 				Value:    "nhost-run-service.toml",
 				Required: true,
-				EnvVars:  []string{"NHOST_RUN_SERVICE_CONFIG"},
+				Sources:  cli.EnvVars("NHOST_RUN_SERVICE_CONFIG"),
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagEditor,
 				Usage:   "Editor to use",
 				Value:   "vim",
-				EnvVars: []string{"EDITOR"},
+				Sources: cli.EnvVars("EDITOR"),
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagOverlayName,
 				Usage:   "If specified, apply this overlay",
-				EnvVars: []string{"NHOST_RUN_SERVICE_ID", "NHOST_SERVICE_OVERLAY_NAME"},
+				Sources: cli.EnvVars("NHOST_RUN_SERVICE_ID", "NHOST_SERVICE_OVERLAY_NAME"),
 			},
 		},
 		Action: commandConfigEdit,
 	}
 }
 
-func commandConfigEdit(cCtx *cli.Context) error {
-	ce := clienv.FromCLI(cCtx)
+func commandConfigEdit(ctx context.Context, cmd *cli.Command) error {
+	ce := clienv.FromCLI(cmd)
 
-	overlayName := cCtx.String(flagOverlayName)
+	overlayName := cmd.String(flagOverlayName)
 	if overlayName == "" {
 		if err := config.EditFile(
-			cCtx.Context, cCtx.String(flagEditor), cCtx.String(flagConfig),
+			ctx, cmd.String(flagEditor), cmd.String(flagConfig),
 		); err != nil {
 			return fmt.Errorf("failed to edit config: %w", err)
 		}
@@ -58,7 +59,7 @@ func commandConfigEdit(cCtx *cli.Context) error {
 	}
 
 	if err := os.MkdirAll(ce.Path.RunServiceOverlaysFolder(
-		cCtx.String(flagConfig),
+		cmd.String(flagConfig),
 	), 0o755); err != nil { //nolint:mnd
 		return fmt.Errorf("failed to create json patches directory: %w", err)
 	}
@@ -72,21 +73,21 @@ func commandConfigEdit(cCtx *cli.Context) error {
 	tmpfileName := filepath.Join(tmpdir, "nhost.toml")
 
 	if err := config.CopyConfig[model.ConfigRunServiceConfig](
-		cCtx.String(flagConfig),
+		cmd.String(flagConfig),
 		tmpfileName,
-		ce.Path.RunServiceOverlay(cCtx.String(flagConfig), overlayName),
+		ce.Path.RunServiceOverlay(cmd.String(flagConfig), overlayName),
 	); err != nil {
 		return fmt.Errorf("failed to copy config: %w", err)
 	}
 
-	if err := config.EditFile(cCtx.Context, cCtx.String(flagEditor), tmpfileName); err != nil {
+	if err := config.EditFile(ctx, cmd.String(flagEditor), tmpfileName); err != nil {
 		return fmt.Errorf("failed to edit config: %w", err)
 	}
 
 	if err := config.GenerateJSONPatch(
-		cCtx.String(flagConfig),
+		cmd.String(flagConfig),
 		tmpfileName,
-		ce.Path.RunServiceOverlay(cCtx.String(flagConfig), overlayName),
+		ce.Path.RunServiceOverlay(cmd.String(flagConfig), overlayName),
 	); err != nil {
 		return fmt.Errorf("failed to generate json patch: %w", err)
 	}

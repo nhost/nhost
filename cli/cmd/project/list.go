@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/nhost/nhost/cli/clienv"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 func CommandList() *cli.Command {
@@ -18,9 +18,9 @@ func CommandList() *cli.Command {
 	}
 }
 
-func commandList(cCtx *cli.Context) error {
-	ce := clienv.FromCLI(cCtx)
-	return List(cCtx.Context, ce)
+func commandList(ctx context.Context, cmd *cli.Command) error {
+	ce := clienv.FromCLI(cmd)
+	return List(ctx, ce)
 }
 
 func List(ctx context.Context, ce *clienv.CliEnv) error {

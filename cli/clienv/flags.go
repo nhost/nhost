@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/go-git/go-git/v5"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 const (
@@ -53,42 +53,42 @@ func Flags() ([]cli.Flag, error) {
 		&cli.StringFlag{ //nolint:exhaustruct
 			Name:    flagAuthURL,
 			Usage:   "Nhost auth URL",
-			EnvVars: []string{"NHOST_CLI_AUTH_URL"},
+			Sources: cli.EnvVars("NHOST_CLI_AUTH_URL"),
 			Value:   "https://otsispdzcwxyqzbfntmj.auth.eu-central-1.nhost.run/v1",
 			Hidden:  true,
 		},
 		&cli.StringFlag{ //nolint:exhaustruct
 			Name:    flagGraphqlURL,
 			Usage:   "Nhost GraphQL URL",
-			EnvVars: []string{"NHOST_CLI_GRAPHQL_URL"},
+			Sources: cli.EnvVars("NHOST_CLI_GRAPHQL_URL"),
 			Value:   "https://otsispdzcwxyqzbfntmj.graphql.eu-central-1.nhost.run/v1",
 			Hidden:  true,
 		},
 		&cli.StringFlag{ //nolint:exhaustruct
 			Name:    flagBranch,
 			Usage:   "Git branch name. If not set, it will be detected from the current git repository. This flag is used to dynamically create docker volumes for each branch. If you want to have a static volume name or if you are not using git, set this flag to a static value.", //nolint:lll
-			EnvVars: []string{"BRANCH"},
+			Sources: cli.EnvVars("BRANCH"),
 			Value:   branch,
 			Hidden:  false,
 		},
 		&cli.StringFlag{ //nolint:exhaustruct
 			Name:     flagRootFolder,
 			Usage:    "Root folder of project\n\t",
-			EnvVars:  []string{"NHOST_ROOT_FOLDER"},
+			Sources:  cli.EnvVars("NHOST_ROOT_FOLDER"),
 			Value:    workingDir,
 			Category: "Project structure",
 		},
 		&cli.StringFlag{ //nolint:exhaustruct
 			Name:     flagDotNhostFolder,
 			Usage:    "Path to .nhost folder\n\t",
-			EnvVars:  []string{"NHOST_DOT_NHOST_FOLDER"},
+			Sources:  cli.EnvVars("NHOST_DOT_NHOST_FOLDER"),
 			Value:    dotNhostFolder,
 			Category: "Project structure",
 		},
 		&cli.StringFlag{ //nolint:exhaustruct
 			Name:     flagNhostFolder,
 			Usage:    "Path to nhost folder\n\t",
-			EnvVars:  []string{"NHOST_NHOST_FOLDER"},
+			Sources:  cli.EnvVars("NHOST_NHOST_FOLDER"),
 			Value:    nhostFolder,
 			Category: "Project structure",
 		},
@@ -96,13 +96,13 @@ func Flags() ([]cli.Flag, error) {
 			Name:    flagProjectName,
 			Usage:   "Project name",
 			Value:   filepath.Base(fullWorkingDir),
-			EnvVars: []string{"NHOST_PROJECT_NAME"},
+			Sources: cli.EnvVars("NHOST_PROJECT_NAME"),
 		},
 		&cli.StringFlag{ //nolint:exhaustruct
 			Name:    flagLocalSubdomain,
 			Usage:   "Local subdomain to reach the development environment",
 			Value:   "local",
-			EnvVars: []string{"NHOST_LOCAL_SUBDOMAIN"},
+			Sources: cli.EnvVars("NHOST_LOCAL_SUBDOMAIN"),
 		},
 	}, nil
 }

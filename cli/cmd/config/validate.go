@@ -13,7 +13,7 @@ import (
 	"github.com/nhost/nhost/cli/clienv"
 	"github.com/nhost/nhost/cli/project/env"
 	"github.com/pelletier/go-toml/v2"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 	jsonpatch "gopkg.in/evanphx/json-patch.v5"
 )
 
@@ -27,24 +27,24 @@ func CommandValidate() *cli.Command {
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagSubdomain,
 				Usage:   "Validate this subdomain's configuration. Defaults to linked project",
-				EnvVars: []string{"NHOST_SUBDOMAIN"},
+				Sources: cli.EnvVars("NHOST_SUBDOMAIN"),
 			},
 		},
 	}
 }
 
-func commandValidate(cCtx *cli.Context) error {
-	ce := clienv.FromCLI(cCtx)
+func commandValidate(ctx context.Context, cmd *cli.Command) error {
+	ce := clienv.FromCLI(cmd)
 
-	subdomain := cCtx.String(flagSubdomain)
+	subdomain := cmd.String(flagSubdomain)
 	if subdomain != "" && subdomain != "local" {
-		proj, err := ce.GetAppInfo(cCtx.Context, cCtx.String(flagSubdomain))
+		proj, err := ce.GetAppInfo(ctx, cmd.String(flagSubdomain))
 		if err != nil {
 			return fmt.Errorf("failed to get app info: %w", err)
 		}
 
 		_, _, err = ValidateRemote(
-			cCtx.Context,
+			ctx,
 			ce,
 			proj.GetSubdomain(),
 			proj.GetID(),

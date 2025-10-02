@@ -1,11 +1,12 @@
 package secrets
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
 	"github.com/nhost/nhost/cli/clienv"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 func CommandDelete() *cli.Command {
@@ -19,27 +20,27 @@ func CommandDelete() *cli.Command {
 	}
 }
 
-func commandDelete(cCtx *cli.Context) error {
-	if cCtx.NArg() != 1 {
+func commandDelete(ctx context.Context, cmd *cli.Command) error {
+	if cmd.NArg() != 1 {
 		return errors.New("invalid number of arguments") //nolint:err113
 	}
 
-	ce := clienv.FromCLI(cCtx)
+	ce := clienv.FromCLI(cmd)
 
-	proj, err := ce.GetAppInfo(cCtx.Context, cCtx.String(flagSubdomain))
+	proj, err := ce.GetAppInfo(ctx, cmd.String(flagSubdomain))
 	if err != nil {
 		return fmt.Errorf("failed to get app info: %w", err)
 	}
 
-	cl, err := ce.GetNhostClient(cCtx.Context)
+	cl, err := ce.GetNhostClient(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get nhost client: %w", err)
 	}
 
 	if _, err := cl.DeleteSecret(
-		cCtx.Context,
+		ctx,
 		proj.ID,
-		cCtx.Args().Get(0),
+		cmd.Args().Get(0),
 	); err != nil {
 		return fmt.Errorf("failed to delete secret: %w", err)
 	}

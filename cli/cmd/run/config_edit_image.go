@@ -1,12 +1,13 @@
 package run
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/nhost/cli/clienv"
 	"github.com/pelletier/go-toml/v2"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 const flagImage = "image"
@@ -22,29 +23,29 @@ func CommandConfigEditImage() *cli.Command {
 				Aliases: []string{},
 				Usage:   "Service configuration file",
 				Value:   "nhost-run-service.toml",
-				EnvVars: []string{"NHOST_RUN_SERVICE_CONFIG"},
+				Sources: cli.EnvVars("NHOST_RUN_SERVICE_CONFIG"),
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:     flagImage,
 				Aliases:  []string{},
 				Usage:    "Image to use",
 				Required: true,
-				EnvVars:  []string{"NHOST_RUN_SERVICE_IMAGE"},
+				Sources:  cli.EnvVars("NHOST_RUN_SERVICE_IMAGE"),
 			},
 		},
 		Action: commandConfigEditImage,
 	}
 }
 
-func commandConfigEditImage(cCtx *cli.Context) error {
+func commandConfigEditImage(_ context.Context, cmd *cli.Command) error {
 	var cfg model.ConfigRunServiceConfig
-	if err := clienv.UnmarshalFile(cCtx.String(flagConfig), &cfg, toml.Unmarshal); err != nil {
+	if err := clienv.UnmarshalFile(cmd.String(flagConfig), &cfg, toml.Unmarshal); err != nil {
 		return fmt.Errorf("failed to unmarshal config: %w", err)
 	}
 
-	cfg.Image.Image = cCtx.String(flagImage)
+	cfg.Image.Image = cmd.String(flagImage)
 
-	if err := clienv.MarshalFile(cfg, cCtx.String(flagConfig), toml.Marshal); err != nil {
+	if err := clienv.MarshalFile(cfg, cmd.String(flagConfig), toml.Marshal); err != nil {
 		return fmt.Errorf("failed to marshal config: %w", err)
 	}
 

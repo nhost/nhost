@@ -13,7 +13,7 @@ import (
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/nhost/cli/clienv"
 	"github.com/pelletier/go-toml/v2"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 	"github.com/wI2L/jsondiff"
 )
 
@@ -31,13 +31,13 @@ func CommandEdit() *cli.Command {
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagSubdomain,
 				Usage:   "If specified, edit this subdomain's overlay, otherwise edit base configuation",
-				EnvVars: []string{"NHOST_SUBDOMAIN"},
+				Sources: cli.EnvVars("NHOST_SUBDOMAIN"),
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagEditor,
 				Usage:   "Editor to use",
 				Value:   "vim",
-				EnvVars: []string{"EDITOR"},
+				Sources: cli.EnvVars("EDITOR"),
 			},
 		},
 	}
@@ -139,11 +139,11 @@ func GenerateJSONPatch(origfilepath, newfilepath, dst string) error {
 	return nil
 }
 
-func edit(cCtx *cli.Context) error {
-	ce := clienv.FromCLI(cCtx)
+func edit(ctx context.Context, cmd *cli.Command) error {
+	ce := clienv.FromCLI(cmd)
 
-	if cCtx.String(flagSubdomain) == "" {
-		if err := EditFile(cCtx.Context, cCtx.String(flagEditor), ce.Path.NhostToml()); err != nil {
+	if cmd.String(flagSubdomain) == "" {
+		if err := EditFile(ctx, cmd.String(flagEditor), ce.Path.NhostToml()); err != nil {
 			return fmt.Errorf("failed to edit config: %w", err)
 		}
 
@@ -163,17 +163,17 @@ func edit(cCtx *cli.Context) error {
 	tmpfileName := filepath.Join(tmpdir, "nhost.toml")
 
 	if err := CopyConfig[model.ConfigConfig](
-		ce.Path.NhostToml(), tmpfileName, ce.Path.Overlay(cCtx.String(flagSubdomain)),
+		ce.Path.NhostToml(), tmpfileName, ce.Path.Overlay(cmd.String(flagSubdomain)),
 	); err != nil {
 		return fmt.Errorf("failed to copy config: %w", err)
 	}
 
-	if err := EditFile(cCtx.Context, cCtx.String(flagEditor), tmpfileName); err != nil {
+	if err := EditFile(ctx, cmd.String(flagEditor), tmpfileName); err != nil {
 		return fmt.Errorf("failed to edit config: %w", err)
 	}
 
 	if err := GenerateJSONPatch(
-		ce.Path.NhostToml(), tmpfileName, ce.Path.Overlay(cCtx.String(flagSubdomain)),
+		ce.Path.NhostToml(), tmpfileName, ce.Path.Overlay(cmd.String(flagSubdomain)),
 	); err != nil {
 		return fmt.Errorf("failed to generate json patch: %w", err)
 	}

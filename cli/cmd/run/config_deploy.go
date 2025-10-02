@@ -1,13 +1,14 @@
 package run
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/nhost/cli/clienv"
 	"github.com/nhost/nhost/cli/nhostclient/graphql"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 func CommandConfigDeploy() *cli.Command {
@@ -23,13 +24,13 @@ func CommandConfigDeploy() *cli.Command {
 				Usage:    "Service configuration file",
 				Value:    "nhost-run-service.toml",
 				Required: true,
-				EnvVars:  []string{"NHOST_RUN_SERVICE_CONFIG"},
+				Sources:  cli.EnvVars("NHOST_RUN_SERVICE_CONFIG"),
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:     flagServiceID,
 				Usage:    "Service ID to update. Applies overlay of the same name",
 				Required: true,
-				EnvVars:  []string{"NHOST_RUN_SERVICE_ID"},
+				Sources:  cli.EnvVars("NHOST_RUN_SERVICE_ID"),
 			},
 		},
 	}
@@ -49,23 +50,23 @@ func transform[T, V any](t *T) (*V, error) {
 	return &v, nil
 }
 
-func commandConfigDeploy(cCtx *cli.Context) error {
-	ce := clienv.FromCLI(cCtx)
+func commandConfigDeploy(ctx context.Context, cmd *cli.Command) error {
+	ce := clienv.FromCLI(cmd)
 
-	cl, err := ce.GetNhostClient(cCtx.Context)
+	cl, err := ce.GetNhostClient(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get nhost client: %w", err)
 	}
 
-	secrets, appID, err := getRemoteSecrets(cCtx.Context, cl, cCtx.String(flagServiceID))
+	secrets, appID, err := getRemoteSecrets(ctx, cl, cmd.String(flagServiceID))
 	if err != nil {
 		return err
 	}
 
 	cfg, err := Validate(
 		ce,
-		cCtx.String(flagConfig),
-		cCtx.String(flagServiceID),
+		cmd.String(flagConfig),
+		cmd.String(flagServiceID),
 		secrets,
 		true,
 	)
@@ -81,9 +82,9 @@ func commandConfigDeploy(cCtx *cli.Context) error {
 	}
 
 	if _, err := cl.ReplaceRunServiceConfig(
-		cCtx.Context,
+		ctx,
 		appID,
-		cCtx.String(flagServiceID),
+		cmd.String(flagServiceID),
 		*replaceConfig,
 	); err != nil {
 		return fmt.Errorf("failed to replace service config: %w", err)

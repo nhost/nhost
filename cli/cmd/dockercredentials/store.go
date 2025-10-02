@@ -1,7 +1,9 @@
 package dockercredentials
 
 import (
-	"github.com/urfave/cli/v2"
+	"context"
+
+	"github.com/urfave/cli/v3"
 )
 
 func CommandStore() *cli.Command {
@@ -14,7 +16,7 @@ func CommandStore() *cli.Command {
 	}
 }
 
-func actionStore(c *cli.Context) error {
-	_, _ = c.App.Writer.Write([]byte("Please, use the nhost CLI to login\n"))
+func actionStore(_ context.Context, cmd *cli.Command) error {
+	_, _ = cmd.Root().Writer.Write([]byte("Please, use the nhost CLI to login\n"))
 	return nil
 }

@@ -13,7 +13,7 @@ import (
 	"github.com/nhost/nhost/cli/project/env"
 	"github.com/nhost/nhost/cli/system"
 	"github.com/pelletier/go-toml/v2"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 const (
@@ -36,21 +36,21 @@ func CommandPull() *cli.Command {
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagSubdomain,
 				Usage:   "Pull this subdomain's configuration. Defaults to linked project",
-				EnvVars: []string{"NHOST_SUBDOMAIN"},
+				Sources: cli.EnvVars("NHOST_SUBDOMAIN"),
 			},
 			&cli.BoolFlag{ //nolint:exhaustruct
 				Name:    flagYes,
 				Usage:   "Skip confirmation",
-				EnvVars: []string{"NHOST_YES"},
+				Sources: cli.EnvVars("NHOST_YES"),
 			},
 		},
 	}
 }
 
-func commandPull(cCtx *cli.Context) error {
-	ce := clienv.FromCLI(cCtx)
+func commandPull(ctx context.Context, cmd *cli.Command) error {
+	ce := clienv.FromCLI(cmd)
 
-	skipConfirmation := cCtx.Bool(flagYes)
+	skipConfirmation := cmd.Bool(flagYes)
 
 	if !skipConfirmation {
 		if err := verifyFile(ce, ce.Path.NhostToml()); err != nil {
@@ -66,12 +66,12 @@ func commandPull(cCtx *cli.Context) error {
 		}
 	}
 
-	proj, err := ce.GetAppInfo(cCtx.Context, cCtx.String(flagSubdomain))
+	proj, err := ce.GetAppInfo(ctx, cmd.String(flagSubdomain))
 	if err != nil {
 		return fmt.Errorf("failed to get app info: %w", err)
 	}
 
-	_, err = Pull(cCtx.Context, ce, proj, writeSecrets)
+	_, err = Pull(ctx, ce, proj, writeSecrets)
 
 	return err
 }

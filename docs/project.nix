@@ -48,7 +48,10 @@ let
     ];
   };
 
-  checkDeps = [ self.packages.${pkgs.system}.mintlify-openapi ];
+  checkDeps = [
+    self.packages.${pkgs.system}.cli
+    self.packages.${pkgs.system}.mintlify-openapi
+  ];
 
   buildInputs = with pkgs; [ nodejs ];
 

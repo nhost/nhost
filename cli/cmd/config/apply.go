@@ -8,7 +8,7 @@ import (
 
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/nhost/cli/clienv"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 func CommandApply() *cli.Command {
@@ -22,38 +22,42 @@ func CommandApply() *cli.Command {
 				Name:     flagSubdomain,
 				Usage:    "Subdomain of the Nhost project to apply configuration to. Defaults to linked project",
 				Required: true,
-				EnvVars:  []string{"NHOST_SUBDOMAIN"},
+				Sources:  cli.EnvVars("NHOST_SUBDOMAIN"),
 			},
 			&cli.BoolFlag{ //nolint:exhaustruct
 				Name:    flagYes,
 				Usage:   "Skip confirmation",
-				EnvVars: []string{"NHOST_YES"},
+				Sources: cli.EnvVars("NHOST_YES"),
 			},
 		},
 	}
 }
 
-func commandApply(cCtx *cli.Context) error {
-	ce := clienv.FromCLI(cCtx)
+func commandApply(ctx context.Context, cmd *cli.Command) error {
+	ce := clienv.FromCLI(cmd)
 
-	proj, err := ce.GetAppInfo(cCtx.Context, cCtx.String(flagSubdomain))
+	proj, err := ce.GetAppInfo(ctx, cmd.String(flagSubdomain))
 	if err != nil {
-		return fmt.Errorf("failed to get app info: %w", err)
+		return cli.Exit(fmt.Sprintf("Failed to get app info: %v", err), 1)
 	}
 
 	ce.Infoln("Validating configuration...")
 
 	cfg, _, err := ValidateRemote(
-		cCtx.Context,
+		ctx,
 		ce,
 		proj.GetSubdomain(),
 		proj.GetID(),
 	)
 	if err != nil {
-		return err
+		return cli.Exit(err.Error(), 1)
 	}
 
-	return Apply(cCtx.Context, ce, proj.ID, cfg, cCtx.Bool(flagYes))
+	if err := Apply(ctx, ce, proj.ID, cfg, cmd.Bool(flagYes)); err != nil {
+		return cli.Exit(err.Error(), 1)
+	}
+
+	return nil
 }
 
 func Apply(
