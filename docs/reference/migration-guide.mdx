@@ -4,7 +4,7 @@ sidebarTitle: 'Migration Guide'
 description: 'Learn how to migrate from the deprecated SDKs to the new unified JavaScript SDK'
 ---
 
-This guide helps you migrate from our deprecated SDKs to the new unified JavaScript SDK (`@nhost/nhost-js` v4.x+).
+This guide helps you migrate from our deprecated SDKs to the new unified JavaScript SDK (`@nhost/nhost-js` v4.x+), which is isomorphic and auto-generated.
 
 In case you missed it, please read our [announcement blog post](https://nhost.io/blog/introducing-new-javascript-sdk) for more information.
 
@@ -107,24 +107,24 @@ try {
 |------|------|-------|
 | `auth.signIn({ email, password })` | `auth.signInEmailPassword({ email, password })` | More specific method name |
 | `auth.signUp({ email, password })` | `auth.signUpEmailPassword({ email, password, options })` | Options nested |
-| `auth.signOut()` | `auth.signOut({ refreshToken })` | Now requires refresh token |
+| `auth.signOut()` | `auth.signOut()` |  |
 | `auth.changeEmail(email)` | `auth.changeUserEmail({ newEmail, options })` | Renamed, options object |
 | `auth.changePassword(password)` | `auth.changeUserPassword({ newPassword })` | Renamed, options object |
-| `auth.resetPassword(email)` | `auth.resetPassword({ email })` | Options object |
+| `auth.resetPassword(email)` | `auth.sendPasswordResetEmail({ email })` | Options object |
 | `auth.sendVerificationEmail(email)` | `auth.sendVerificationEmail({ email })` | Options object |
-| `auth.getUser()` | `getUserSession()?.user` | Access via session |
+| `auth.getUser()` | `auth.getUser()` | Alternatively access via session |
 | `auth.getSession()` | `getUserSession()` | Renamed method |
 | `auth.getAccessToken()` | `getUserSession()?.accessToken` | Access via session |
-| `auth.refreshSession()` | Handled automatically | Auto-refresh built-in |
+| `auth.refreshSession()` | `refreshSession(marginSeconds)` | Added a margin parameter in seconds  |
 
 ### WebAuthn / Security Keys
 
 | v3.x | v4.x | Notes |
 |------|------|-------|
-| Not available | `auth.addSecurityKey()` + `auth.verifyAddSecurityKey()` | Two-step process, requires `@simplewebauthn/browser` |
-| Not available | `auth.signInWebauthn()` | Browser WebAuthn integration |
-| Not available | `auth.signUpWebauthn()` + `auth.verifySignUpWebauthn()` | Two-step registration |
-| Not available | `auth.elevateWebauthn()` + `auth.verifyElevateWebauthn()` | For elevated permissions |
+| `auth.addSecurityKey(nickname?)` | `auth.addSecurityKey()` + `auth.verifyAddSecurityKey()` | Two-step process, requires `@simplewebauthn/browser` |
+| `auth.signInSecurityKey()` | `auth.signInWebauthn()` | Browser WebAuthn integration |
+| `auth.signUp({ email, securityKey: true })` | `auth.signUpWebauthn()` + `auth.verifySignUpWebauthn()` | Two-step registration |
+| `auth.elevateEmailSecurityKey(email)` | `auth.elevateWebauthn()` + `auth.verifyElevateWebauthn()` | For elevated permissions |
 
 <Note>
 WebAuthn features require installing `@simplewebauthn/browser` and manually integrating with browser APIs.
@@ -134,8 +134,8 @@ WebAuthn features require installing `@simplewebauthn/browser` and manually inte
 
 | v3.x | v4.x | Notes |
 |------|------|-------|
-| Not available | `auth.changeUserMfa()` | Returns `totpSecret` and `imageUrl` (QR code) |
-| Not available | `auth.verifyChangeUserMfa({ activeMfaType: 'totp', code })` | Activate/disable MFA |
+| MFA machine with `generateQrCode()` | `auth.changeUserMfa()` | v3.x used state machines, v4.x uses direct methods |
+| MFA machine with `activateMfa(code)` / `disableMfa(code)` | `auth.verifyChangeUserMfa({ activeMfaType: 'totp', code })` | Activate/disable MFA |
 
 ### Social Providers (OAuth)
 
@@ -149,22 +149,22 @@ WebAuthn features require installing `@simplewebauthn/browser` and manually inte
 | v3.x | v4.x | Notes |
 |------|------|-------|
 | `storage.upload({ file, name })` | `storage.uploadFiles({ "file[]": [file] })` | Different parameter structure |
-| `storage.download(fileId)` | `storage.getFile({ fileId })` | Renamed method |
-| `storage.delete(fileId)` | `storage.deleteFile({ fileId })` | Options object |
-| `storage.getPresignedUrl(fileId)` | `storage.getPresignedUrl({ fileId })` | Options object |
-| `storage.getPublicUrl(fileId)` | `storage.getPublicUrl({ fileId })` | Options object |
+| `storage.download({ fileId })` | `storage.getFile(fileId)` | Renamed method, uses positional parameter |
+| `storage.delete({ fileId })` | `storage.deleteFile(fileId)` | Renamed method, uses positional parameter |
+| `storage.getPresignedUrl({ fileId })` | `storage.getFilePresignedURL(fileId)` | Renamed method, uses positional parameter |
+| `storage.getPublicUrl({ fileId })` | `${nhost.storage.baseURL}/files/${fileId}` | Construct URL manually |
 
 ### GraphQL Methods
 
 | v3.x | v4.x | Notes |
 |------|------|-------|
-| `graphql.request(query, variables)` | `graphql.request({ document: query, variables })` | Options object with `document` key |
+| `graphql.request(query, variables)` | `graphql.request({ query, variables })` | Options object with `query` key |
 
 ### Functions Methods
 
 | v3.x | v4.x | Notes |
 |------|------|-------|
-| `functions.call(path, body)` | `functions.call({ url: path, body })` | Options object |
+| `functions.call(path, body)` | `functions.post(path, body)` | Renamed method |
 
 ---
 
@@ -1147,7 +1147,7 @@ function ConnectGithub() {
 If you encounter issues during migration:
 
 - Check the [JavaScript SDK Reference](/reference/javascript/nhost-js/main)
-- Review the [Auth API Reference](/reference/auth/post-signin-email-password)
+- Review the [Auth API Reference](/reference/overview)
 - Review the [Storage API Reference](/reference/storage/post-files)
 - Visit our [Support Portal](https://app.nhost.io/support)
 
@@ -1157,5 +1157,4 @@ After migrating your code:
 
 1. **Test thoroughly** - Ensure all authentication and data flows work correctly
 2. **Remove deprecated packages** - Clean up old dependencies
-3. **Update CI/CD** - Update any build scripts that reference old package names
-4. **Monitor errors** - Watch for any runtime issues in production
+3. **Monitor errors** - Watch for any runtime issues in production
