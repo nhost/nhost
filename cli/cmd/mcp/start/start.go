@@ -72,7 +72,7 @@ func Command() *cli.Command {
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:     flagBind,
-				Usage:    "Bind address in the form <host>:<port>. If omitted use stdio",
+				Usage:    "Bind address in the form $host:$port. If omitted use stdio",
 				Required: false,
 				Category: "General",
 				Sources:  cli.EnvVars("BIND"),

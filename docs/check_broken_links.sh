@@ -2,6 +2,5 @@
 
 set -euo pipefail
 
-output=$(pnpm exec mintlify broken-links)
-echo "$output"
-echo "$output" | grep -q "success"
+pnpm exec mintlify broken-links | tee $TMPDIR/broken_links_output.txt
+grep -q "success" $TMPDIR/broken_links_output.txt

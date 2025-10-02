@@ -27,6 +27,9 @@ on:
 
       # nhost-js
       - packages/nhost-js/**
+
+      # cli
+      - cli/**
   push:
     branches:
       - main
