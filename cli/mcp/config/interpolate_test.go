@@ -1,4 +1,4 @@
-package config
+package config //nolint:testpackage
 
 import (
 	"os"
@@ -245,6 +245,10 @@ allow_queries = ["*"]
 	}
 
 	if *config.Projects[0].AdminSecret != "project-secret" {
-		t.Errorf("config.Projects[0].AdminSecret = %q, want %q", *config.Projects[0].AdminSecret, "project-secret")
+		t.Errorf(
+			"config.Projects[0].AdminSecret = %q, want %q",
+			*config.Projects[0].AdminSecret,
+			"project-secret",
+		)
 	}
 }
