@@ -4,7 +4,7 @@ import { Box } from '@/components/ui/v2/Box';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { EventsBrowserSidebar } from '@/features/orgs/projects/events/common/components/EventsBrowserSidebar';
-import { EventTriggerDetails } from '@/features/orgs/projects/events/event-triggers/components/EventTriggerDetails';
+import { EventTriggerView } from '@/features/orgs/projects/events/event-triggers/components/EventTriggerView';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { ReactElement } from 'react';
 
@@ -18,7 +18,7 @@ export default function EventTriggerDetailsPage() {
 
   return (
     <RetryableErrorBoundary>
-      <EventTriggerDetails />
+      <EventTriggerView />
     </RetryableErrorBoundary>
   );
 }
