@@ -1,9 +1,11 @@
+/* eslint-disable no-await-in-loop */
 import {
   TEST_FREE_USER_EMAILS,
   TEST_ORGANIZATION_SLUG,
   TEST_PROJECT_SUBDOMAIN,
   TEST_USER_PASSWORD,
 } from '@/e2e/env';
+import { expect } from '@/e2e/fixtures/auth-hook';
 import { faker } from '@faker-js/faker';
 import { type Page } from '@playwright/test';
 import { add, format } from 'date-fns-v4';
@@ -125,11 +127,23 @@ export async function prepareTable({
     ),
   );
   await page.getByLabel('Primary Key').click();
-  await Promise.all(
-    primaryKeys.map(async (primaryKey) => {
-      await page.getByRole('option', { name: primaryKey, exact: true }).click();
-    }),
-  );
+
+  await page
+    .getByRole('option', { name: columns[0].name, exact: true })
+    .waitFor({ timeout: 1000 });
+  expect(
+    page.getByRole('option', { name: columns[0].name, exact: true }),
+  ).toBeVisible();
+  // eslint-disable-next-line no-restricted-syntax
+  for (const primaryKey of primaryKeys) {
+    await page.waitForTimeout(1000);
+    await page.getByRole('option', { name: primaryKey, exact: true }).click();
+    // eslint-disable-next-line no-console
+    console.log({ primaryKey });
+    await page
+      .locator(`div[data-testid="${primaryKey}"]`)
+      .waitFor({ timeout: 1000 });
+  }
   await page.getByText('Create a New Table').click();
 }
 

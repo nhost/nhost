@@ -13,7 +13,7 @@ export default defineConfig({
   },
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
-  retries: 2,
+  retries: 0,
   workers: 1,
   reporter: 'html',
   use: {
