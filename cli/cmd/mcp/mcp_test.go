@@ -24,9 +24,7 @@ func ptr[T any](v T) *T {
 	return &v
 }
 
-func TestStart(t *testing.T) { //nolint:cyclop,maintidx
-	t.Parallel()
-
+func TestStart(t *testing.T) { //nolint:cyclop,maintidx,paralleltest
 	loginCmd := user.CommandLogin()
 	mcpCmd := nhostmcp.Command()
 
