@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [cli@1.34.0] - 2025-10-03
+
+### 🚀 Features
+
+- *(cli)* Added mcp server functionality from mcp-nhost (#3550)
+- *(cli)* Mcp: move configuration to .nhost folder and integrate cloud credentials (#3555)
+- *(cli)* Mcp: added support for environment variables in the configuration (#3556)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(nixops)* Update nhost-cli (#3554)
+
 ## [cli@1.33.0] - 2025-10-02
 
 ### 🚀 Features
