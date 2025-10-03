@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/nhost/nhost/cli/clienv"
 	"github.com/pelletier/go-toml/v2"
@@ -90,13 +91,14 @@ func GetConfigPath(cmd *cli.Command) string {
 }
 
 func Load(path string) (*Config, error) {
-	f, err := os.OpenFile(path, os.O_RDONLY, 0o600) //nolint:mnd
+	content, err := os.ReadFile(path)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open config file: %w", err)
+		return nil, fmt.Errorf("failed to read config file: %w", err)
 	}
-	defer f.Close()
 
-	decoder := toml.NewDecoder(f)
+	interpolated := interpolateEnv(string(content), os.Getenv)
+
+	decoder := toml.NewDecoder(strings.NewReader(interpolated))
 	decoder.DisallowUnknownFields()
 
 	var config Config
