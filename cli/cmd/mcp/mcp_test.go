@@ -13,6 +13,7 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 	nhostmcp "github.com/nhost/nhost/cli/cmd/mcp"
 	"github.com/nhost/nhost/cli/cmd/mcp/start"
+	"github.com/nhost/nhost/cli/cmd/user"
 	"github.com/nhost/nhost/cli/mcp/tools/cloud"
 	"github.com/nhost/nhost/cli/mcp/tools/docs"
 	"github.com/nhost/nhost/cli/mcp/tools/local"
@@ -23,16 +24,27 @@ func ptr[T any](v T) *T {
 	return &v
 }
 
-func TestStart(t *testing.T) { //nolint:cyclop,maintidx
-	t.Parallel()
-
-	cmd := nhostmcp.Command()
+func TestStart(t *testing.T) { //nolint:cyclop,maintidx,paralleltest
+	loginCmd := user.CommandLogin()
+	mcpCmd := nhostmcp.Command()
 
 	buf := bytes.NewBuffer(nil)
-	cmd.Writer = buf
+	mcpCmd.Writer = buf
 
 	go func() {
-		if err := cmd.Run(
+		t.Setenv("HOME", t.TempDir())
+
+		if err := loginCmd.Run(
+			context.Background(),
+			[]string{
+				"main",
+				"--pat=user-pat",
+			},
+		); err != nil {
+			panic(err)
+		}
+
+		if err := mcpCmd.Run(
 			context.Background(),
 			[]string{
 				"main",
@@ -54,7 +66,7 @@ func TestStart(t *testing.T) { //nolint:cyclop,maintidx
 
 	mcpClient := client.NewClient(transportClient)
 
-	if err := mcpClient.Start(context.Background()); err != nil {
+	if err := mcpClient.Start(t.Context()); err != nil {
 		t.Fatalf("failed to start mcp client: %v", err)
 	}
 	defer mcpClient.Close()
