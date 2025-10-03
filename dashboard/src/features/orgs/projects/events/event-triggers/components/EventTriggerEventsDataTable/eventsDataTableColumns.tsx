@@ -61,6 +61,12 @@ const columns: ColumnDef<EventLogEntry>[] = [
           row.original.id,
           String(table.getColumn('id')?.getFilterValue() ?? ''),
         )}
+        slotProps={{
+          container: {
+            // Prevent row expansion when clicking to select and copy the ID text
+            onClick: (event) => event.stopPropagation(),
+          },
+        }}
       />
     ),
   },

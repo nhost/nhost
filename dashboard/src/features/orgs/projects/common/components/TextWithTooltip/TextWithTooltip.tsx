@@ -12,12 +12,17 @@ interface TextWithTooltipProps {
   text: string | number | ReactNode;
   className?: string;
   containerClassName?: string;
+  slotProps?: {
+    container?: React.HTMLAttributes<HTMLDivElement>;
+  };
 }
 
 export default function TextWithTooltip({
   text,
   containerClassName,
   className,
+  slotProps,
+  ...props
 }: TextWithTooltipProps) {
   const [isTruncated, setIsTruncated] = useState<boolean>(false);
   const textRef = useRef<HTMLDivElement>(null);
@@ -46,8 +51,8 @@ export default function TextWithTooltip({
   }, []);
 
   return (
-    <TooltipProvider delayDuration={100} disableHoverableContent>
-      <div className={containerClassName}>
+    <TooltipProvider delayDuration={100} disableHoverableContent {...props}>
+      <div className={containerClassName} {...slotProps?.container}>
         <Tooltip>
           <TooltipTrigger disabled={!isTruncated} asChild>
             <div
