@@ -1,3 +1,4 @@
+import { highlightMatch } from '@/features/orgs/utils/highlightMatch';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@mui/material';
 import type { GraphQLSchema } from 'graphql';
@@ -24,10 +25,11 @@ export interface RemoteSchemaTreeProps {
    */
   schema: GraphQLSchema;
   className?: string;
+  highlightTerm?: string;
 }
 
 export interface RemoteSchemaTreeRef {
-  findItemPath: (searchTerm: string) => string[] | null;
+  findAllItemPaths: (searchTerm: string) => string[][];
   expandToItem: (path: string[]) => Promise<void>;
   focusItem: (itemId: string) => void;
   selectItems: (itemIds: string[]) => void;
@@ -37,7 +39,7 @@ export interface RemoteSchemaTreeRef {
 export const RemoteSchemaTree = forwardRef<
   RemoteSchemaTreeRef,
   RemoteSchemaTreeProps
->(({ schema, className }, ref) => {
+>(({ schema, className, highlightTerm }, ref) => {
   const treeRef = useRef<TreeRef<string | React.ReactNode>>(null);
 
   const theme = useTheme();
@@ -54,8 +56,8 @@ export const RemoteSchemaTree = forwardRef<
   const [expandedItems, setExpandedItems] = useState<string[]>(['root']);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
 
-  const findItemPath = useCallback(
-    (searchTerm: string, searchRoot = 'root'): string[] | null => {
+  const findAllItemPaths = useCallback(
+    (searchTerm: string, searchRoot = 'root'): string[][] => {
       const lowerSearchTerm = searchTerm.toLowerCase();
 
       const getText = (data: any): string => {
@@ -72,32 +74,30 @@ export const RemoteSchemaTree = forwardRef<
         return String(data);
       };
 
-      const searchInItem = (
+      const collectInItem = (
         itemId: string,
         currentPath: string[],
-      ): string[] | null => {
+        acc: string[][],
+      ): void => {
         const item = treeData[itemId];
         if (!item) {
-          return null;
+          return;
         }
 
         const searchableText = getText(item.data);
         if (searchableText.toLowerCase().includes(lowerSearchTerm)) {
-          return [...currentPath, itemId];
+          acc.push([...currentPath, itemId]);
         }
 
-        let foundPath: string[] | null = null;
         // eslint-disable-next-line no-restricted-syntax
         for (const childId of item.children ?? []) {
-          foundPath = searchInItem(childId, [...currentPath, itemId]);
-          if (foundPath) {
-            break;
-          }
+          collectInItem(childId, [...currentPath, itemId], acc);
         }
-        return foundPath;
       };
 
-      return searchInItem(searchRoot, []);
+      const results: string[][] = [];
+      collectInItem(searchRoot, [], results);
+      return results;
     },
     [treeData],
   );
@@ -114,7 +114,7 @@ export const RemoteSchemaTree = forwardRef<
   useImperativeHandle(
     ref,
     () => ({
-      findItemPath,
+      findAllItemPaths,
       expandToItem,
       focusItem: (itemId: string) => {
         setFocusedItem(itemId);
@@ -128,7 +128,7 @@ export const RemoteSchemaTree = forwardRef<
         treeRef.current?.focusTree();
       },
     }),
-    [findItemPath],
+    [findAllItemPaths],
   );
 
   const getItemTitle = (item: any) => {
@@ -140,6 +140,37 @@ export const RemoteSchemaTree = forwardRef<
       return item.data;
     }
     return String(item.data);
+  };
+
+  const highlightNode = (
+    node: React.ReactNode,
+    term?: string,
+  ): React.ReactNode => {
+    const search = term?.trim();
+    if (!search) {
+      return node;
+    }
+
+    if (typeof node === 'string' || typeof node === 'number') {
+      const text = String(node);
+      return highlightMatch(text, search);
+    }
+
+    if (Array.isArray(node)) {
+      return React.Children.map(node as React.ReactNode[], (child) =>
+        highlightNode(child, search),
+      );
+    }
+
+    if (React.isValidElement(node)) {
+      const childProps: any = {};
+      if (node.props && 'children' in node.props) {
+        childProps.children = highlightNode(node.props.children, search);
+      }
+      return React.cloneElement(node, childProps);
+    }
+
+    return node;
   };
 
   return (
@@ -157,6 +188,9 @@ export const RemoteSchemaTree = forwardRef<
       <ControlledTreeEnvironment
         items={treeData}
         getItemTitle={getItemTitle}
+        renderItemTitle={({ title }) => (
+          <span>{highlightNode(title, highlightTerm)}</span>
+        )}
         viewState={{
           'schema-tree': {
             focusedItem,
@@ -174,6 +208,7 @@ export const RemoteSchemaTree = forwardRef<
           )
         }
         onSelectItems={(items) => setSelectedItems(items.map(String))}
+        canSearch={false}
       >
         <Tree
           ref={treeRef}
