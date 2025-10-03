@@ -90,7 +90,6 @@ describe('useEventTriggerPagination', () => {
       }),
     );
 
-    // Initial call
     expect(lastArgs).toEqual({ limit: 10, offset: 0 });
 
     result.current.goNext();

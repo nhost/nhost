@@ -8,9 +8,17 @@ import { Check, X } from 'lucide-react';
 
 function DeliveredCell({ delivered }: { delivered: boolean }) {
   if (delivered) {
-    return <Check className="h-4 w-4 text-green-600 dark:text-green-400" />;
+    return (
+      <div className="flex items-center justify-center">
+        <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
+      </div>
+    );
   }
-  return <X className="h-4 w-4 text-red-600 dark:text-red-400" />;
+  return (
+    <div className="flex items-center justify-center">
+      <X className="h-4 w-4 text-red-600 dark:text-red-400" />
+    </div>
+  );
 }
 
 const columns: ColumnDef<EventLogEntry>[] = [

@@ -96,7 +96,7 @@ export default function EventTriggerEventsDataTable({
         />
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="">
         <Table>
           <colgroup>
             {table.getAllLeafColumns().map((col) => (
@@ -106,8 +106,12 @@ export default function EventTriggerEventsDataTable({
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
+                {headerGroup.headers.map((header, index) => (
+                  <TableHead
+                    key={header.id}
+                    className={index === 0 ? 'pl-1' : ''}
+                    style={{ width: header.getSize() }}
+                  >
                     {header.isPlaceholder
                       ? null
                       : flexRender(
@@ -124,7 +128,10 @@ export default function EventTriggerEventsDataTable({
               skeletonRowKeys.map((key) => (
                 <TableRow key={`skeleton-${key}`}>
                   {table.getAllLeafColumns().map((col) => (
-                    <TableCell key={`skeleton-cell-${col.id}`}>
+                    <TableCell
+                      key={`skeleton-cell-${col.id}`}
+                      style={{ width: col.getSize() }}
+                    >
                       <Skeleton className="h-4 w-full" />
                     </TableCell>
                   ))}
@@ -140,7 +147,11 @@ export default function EventTriggerEventsDataTable({
                     className={cn('cursor-pointer')}
                   >
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
+                      <TableCell
+                        key={cell.id}
+                        className={`${cell.column.id === 'id' ? 'max-w-0 truncate' : ''}`}
+                        style={{ width: cell.column.getSize() }}
+                      >
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext(),
