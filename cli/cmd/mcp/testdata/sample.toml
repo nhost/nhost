@@ -1,5 +1,4 @@
 [cloud]
-pat = 'your-personal-access-token'
 enable_mutations = true
 
 [local]

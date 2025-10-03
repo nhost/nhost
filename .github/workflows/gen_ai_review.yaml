@@ -23,4 +23,5 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           config.model: ${{ vars.GEN_AI_MODEL }}
           config.model_turbo: $${{ vars.GEN_AI_MODEL_TURBO }}
+          config.max_model_tokens: 200000
           ignore.glob: "['pnpm-lock.yaml','**/pnpm-lock.yaml', 'vendor/**','**/client_gen.go','**/models_gen.go','**/generated.go','**/*.gen.go']"

@@ -6,7 +6,9 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/nhost/nhost/cli/clienv"
 	"github.com/pelletier/go-toml/v2"
+	"github.com/urfave/cli/v3"
 )
 
 func ptr[T any](v T) *T {
@@ -33,10 +35,6 @@ type Config struct {
 }
 
 type Cloud struct {
-	// Personal Access Token to authenticate with the Nhost Cloud API. You can get one
-	// on the following URL: https://app.nhost.io/account
-	PAT string `json:"pat" toml:"pat"`
-
 	// If enabled you can run mutations against the Nhost Cloud to manipulate project's configurations
 	// amongst other things. Queries are always allowed if this section is configured.
 	EnableMutations bool `json:"enable_mutations" toml:"enable_mutations"`
@@ -80,18 +78,15 @@ type Project struct {
 	AllowMutations []string `json:"allow_mutations" toml:"allow_mutations"`
 }
 
-func GetConfigPath() string {
-	configHome := os.Getenv("XDG_CONFIG_HOME")
-	if configHome == "" {
-		homeDir, err := os.UserHomeDir()
-		if err != nil {
-			return "mcp-nhost.toml"
-		}
-
-		configHome = filepath.Join(homeDir, ".config")
+func GetConfigPath(cmd *cli.Command) string {
+	configPath := cmd.String("config-file")
+	if configPath != "" {
+		return configPath
 	}
 
-	return filepath.Join(configHome, "nhost", "mcp-nhost.toml")
+	ce := clienv.FromCLI(cmd)
+
+	return filepath.Join(ce.Path.DotNhostFolder(), "mcp-nhost.toml")
 }
 
 func Load(path string) (*Config, error) {

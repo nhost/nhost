@@ -83,5 +83,5 @@ func (t *Tool) handleConfigGetServerSchema(
 		},
 	)
 
-	return mcp.NewToolResultStructured(schema, schema), nil
+	return mcp.NewToolResultText(schema), nil
 }

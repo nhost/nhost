@@ -358,13 +358,13 @@ Shows a list of commands or help for one command
 
 Model Context Protocol (MCP) related commands
 
+**--config-file**="": Configuration file path. Defaults to $NHOST_DOT_NHOST_FOLDER/nhost-mcp.toml
+
 **--help, -h**: show help
 
 ### config
 
 Generate and save configuration file
-
-**--config-file**="": Configuration file path (default: /homeless-shelter/.config/nhost/mcp-nhost.toml)
 
 **--confirm**: Skip confirmation prompt
 
@@ -373,8 +373,6 @@ Generate and save configuration file
 #### dump
 
 Dump the configuration to stdout for verification
-
-**--config-file**="": Path to the config file (default: /homeless-shelter/.config/nhost/mcp-nhost.toml)
 
 **--help, -h**: show help
 
@@ -391,8 +389,6 @@ Shows a list of commands or help for one command
 Starts the MCP server
 
 **--bind**="": Bind address in the form $host:$port. If omitted use stdio
-
-**--config-file**="": Path to the config file (default: /homeless-shelter/.config/nhost/mcp-nhost.toml)
 
 **--help, -h**: show help
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/mark3labs/mcp-go/server"
+	"github.com/nhost/nhost/cli/clienv"
 	"github.com/nhost/nhost/cli/mcp/config"
 	"github.com/nhost/nhost/cli/mcp/nhost/auth"
 	"github.com/nhost/nhost/cli/mcp/tools/cloud"
@@ -15,7 +16,6 @@ import (
 )
 
 const (
-	flagConfigFile      = "config-file"
 	flagNhostAuthURL    = "nhost-auth-url"
 	flagNhostGraphqlURL = "nhost-graphql-url"
 	flagBind            = "bind"
@@ -48,12 +48,6 @@ func Command() *cli.Command {
 		Name:  "start",
 		Usage: "Starts the MCP server",
 		Flags: []cli.Flag{
-			&cli.StringFlag{ //nolint:exhaustruct
-				Name:    flagConfigFile,
-				Usage:   "Path to the config file",
-				Value:   config.GetConfigPath(),
-				Sources: cli.EnvVars("CONFIG_FILE"),
-			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:     flagNhostAuthURL,
 				Usage:    "Nhost auth URL",
@@ -96,6 +90,7 @@ func action(ctx context.Context, cmd *cli.Command) error {
 
 	if cfg.Cloud != nil {
 		if err := registerCloud(
+			cmd,
 			mcpServer,
 			cfg,
 			cmd.String(flagNhostAuthURL),
@@ -128,7 +123,7 @@ func action(ctx context.Context, cmd *cli.Command) error {
 }
 
 func getConfig(cmd *cli.Command) (*config.Config, error) {
-	configPath := cmd.String(flagConfigFile)
+	configPath := config.GetConfigPath(cmd)
 	if configPath == "" {
 		return nil, cli.Exit("config file path is required", 1)
 	}
@@ -143,14 +138,22 @@ func getConfig(cmd *cli.Command) (*config.Config, error) {
 }
 
 func registerCloud(
+	cmd *cli.Command,
 	mcpServer *server.MCPServer,
 	cfg *config.Config,
 	authURL string,
 	graphqlURL string,
 ) error {
+	ce := clienv.FromCLI(cmd)
+
+	creds, err := ce.Credentials()
+	if err != nil {
+		return fmt.Errorf("failed to load credentials: %w", err)
+	}
+
 	interceptor, err := auth.WithPAT(
 		authURL,
-		cfg.Cloud.PAT,
+		creds.PersonalAccessToken,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create PAT interceptor: %w", err)

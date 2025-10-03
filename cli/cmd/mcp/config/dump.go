@@ -10,7 +10,7 @@ import (
 )
 
 func actionDump(_ context.Context, cmd *cli.Command) error {
-	configPath := cmd.String(flagConfigFile)
+	configPath := config.GetConfigPath(cmd)
 	if configPath == "" {
 		return cli.Exit("config file path is required", 1)
 	}
