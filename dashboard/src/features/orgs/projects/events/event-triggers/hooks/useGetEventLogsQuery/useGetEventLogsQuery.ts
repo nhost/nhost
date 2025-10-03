@@ -6,6 +6,7 @@ import type {
 } from '@/utils/hasura-api/generated/schemas';
 import { useQuery, type UseQueryOptions } from '@tanstack/react-query';
 import fetchEventLogs from './fetchEventLogs';
+
 export interface UseGetEventLogsQueryOptions {
   /**
    * Props passed to the underlying query hook.
@@ -62,7 +63,6 @@ export default function useGetEventLogsQuery(
       });
     },
     {
-      keepPreviousData: true,
       ...queryOptions,
       enabled: !!(
         project?.subdomain &&

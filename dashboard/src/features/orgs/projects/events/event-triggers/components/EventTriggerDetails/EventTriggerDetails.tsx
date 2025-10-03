@@ -5,8 +5,8 @@ import {
   TabsTrigger,
 } from '@/components/ui/v3/tabs';
 import { EventsEmptyState } from '@/features/orgs/projects/events/common/components/EventsEmptyState';
-import { EventTriggerEventsDataTable } from '@/features/orgs/projects/events/components/EventTriggerEventsDataTable';
-import { EventTriggerOverview } from '@/features/orgs/projects/events/components/EventTriggerOverview';
+import { EventTriggerEventsDataTable } from '@/features/orgs/projects/events/event-triggers/components/EventTriggerEventsDataTable';
+import { EventTriggerOverview } from '@/features/orgs/projects/events/event-triggers/components/EventTriggerOverview';
 import { useGetEventTriggers } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventTriggers';
 import { useRouter } from 'next/router';
 

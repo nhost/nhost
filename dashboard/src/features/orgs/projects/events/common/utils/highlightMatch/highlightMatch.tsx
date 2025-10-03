@@ -23,7 +23,10 @@ export default function highlightMatch(text: string, query: string) {
     }
 
     nodes.push(
-      <mark key={`hit-${start}`} className="rounded bg-yellow-200/60 px-0.5">
+      <mark
+        key={`hit-${start}`}
+        className="rounded bg-yellow-300/60 px-0.5 dark:bg-yellow-200/60"
+      >
         {match[0]}
       </mark>,
     );

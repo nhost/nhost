@@ -68,7 +68,6 @@ export default function useGetEventAndInvocationLogsById(
       });
     },
     {
-      keepPreviousData: true,
       ...queryOptions,
       enabled: !!(
         project?.subdomain &&

@@ -1,12 +1,5 @@
-import { Button } from '@/components/ui/v3/button';
 import { Input } from '@/components/ui/v3/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/v3/select';
+import { Skeleton } from '@/components/ui/v3/skeleton';
 import {
   Table,
   TableBody,
@@ -15,6 +8,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/v3/table';
+import PaginationControls from '@/features/orgs/projects/events/common/components/PaginationControls/PaginationControls';
+import useEventTriggerPagination from '@/features/orgs/projects/events/event-triggers/hooks/useEventTriggerPagination/useEventTriggerPagination';
 import { useGetEventAndInvocationLogsById } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventAndInvocationLogsById';
 import type { EventInvocationLogEntry } from '@/utils/hasura-api/generated/schemas/eventInvocationLogEntry';
 import {
@@ -26,13 +21,16 @@ import {
   type SortingState,
   useReactTable,
 } from '@tanstack/react-table';
-import { useEffect, useState } from 'react';
-import columns from './columns';
+import { useState } from 'react';
+import columns from './invocationDataTableColumns';
+// import removed: useGetEventInvocationLogsQuery
 
 interface EventTriggerInvocationLogsDataTableProps {
   eventId: string;
   source: string;
 }
+
+const skeletonRowKeys = ['s1', 's2', 's3'];
 
 export default function EventTriggerInvocationLogsDataTable({
   eventId,
@@ -41,27 +39,28 @@ export default function EventTriggerInvocationLogsDataTable({
   const [selectedLog, setSelectedLog] =
     useState<EventInvocationLogEntry | null>(null);
 
-  const [offset, setOffset] = useState(0);
-  const [limit, setLimit] = useState(10);
-
-  const { data, isLoading } = useGetEventAndInvocationLogsById({
-    event_id: eventId,
-    source,
-    invocation_log_limit: limit,
-    invocation_log_offset: offset,
+  const {
+    offset,
+    limit,
+    setLimitAndReset,
+    goPrev,
+    goNext,
+    canGoPrev,
+    canGoNext,
+    data,
+    isLoading,
+  } = useEventTriggerPagination({
+    useQueryHook: useGetEventAndInvocationLogsById,
+    getQueryArgs: (limitArg, offsetArg) => ({
+      event_id: eventId,
+      source,
+      invocation_log_limit: limitArg,
+      invocation_log_offset: offsetArg,
+    }),
+    getPageLength: (resp) => resp?.invocations?.length,
   });
 
   const invocations = data?.invocations;
-
-  const isLastPage = !!invocations && invocations?.length < limit;
-  const canGoPrev = !isLoading && offset > 0;
-  const canGoNext = !isLoading && !isLastPage;
-
-  useEffect(() => {
-    if (!isLoading && invocations && invocations.length === 0 && offset > 0) {
-      setOffset((prev) => Math.max(0, prev - limit));
-    }
-  }, [invocations, isLoading, offset, limit]);
 
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -127,7 +126,22 @@ export default function EventTriggerInvocationLogsDataTable({
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {isLoading &&
+              skeletonRowKeys.map((key) => (
+                <TableRow key={`skeleton-${key}`}>
+                  {table.getAllLeafColumns().map((col) => (
+                    <TableCell
+                      key={`skeleton-cell-${col.id}`}
+                      style={{ width: col.getSize() }}
+                    >
+                      <Skeleton className="h-4 w-full" />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+
+            {!isLoading &&
+              table.getRowModel().rows?.length > 0 &&
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
@@ -143,8 +157,9 @@ export default function EventTriggerInvocationLogsDataTable({
                     </TableCell>
                   ))}
                 </TableRow>
-              ))
-            ) : (
+              ))}
+
+            {!isLoading && table.getRowModel().rows?.length === 0 && (
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
@@ -158,58 +173,15 @@ export default function EventTriggerInvocationLogsDataTable({
         </Table>
       </div>
 
-      <div className="flex items-center justify-between gap-4 py-4">
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={!canGoPrev}
-            onClick={() => setOffset((prev) => Math.max(0, prev - limit))}
-          >
-            Previous
-          </Button>
-          <span className="text-sm text-muted-foreground">
-            {offset} - {offset + limit}
-          </span>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={!canGoNext}
-            onClick={() => canGoNext && setOffset((prev) => prev + limit)}
-          >
-            Next
-          </Button>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">Rows per page:</span>
-          <Select
-            defaultValue="10"
-            onValueChange={(value) => {
-              setLimit(parseInt(value, 10));
-              // Reset offset to avoid landing on empty pages when page size changes
-              setOffset(0);
-            }}
-          >
-            <SelectTrigger className="w-[80px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="10" onClick={() => setLimit(10)}>
-                10
-              </SelectItem>
-              <SelectItem value="25" onClick={() => setLimit(25)}>
-                25
-              </SelectItem>
-              <SelectItem value="50" onClick={() => setLimit(50)}>
-                50
-              </SelectItem>
-              <SelectItem value="100" onClick={() => setLimit(100)}>
-                100
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+      <PaginationControls
+        offset={offset}
+        limit={limit}
+        canGoPrev={canGoPrev}
+        canGoNext={canGoNext}
+        onPrev={goPrev}
+        onNext={() => canGoNext && goNext()}
+        onChangeLimit={setLimitAndReset}
+      />
     </div>
   );
 }
