@@ -34,6 +34,8 @@ func TestStart(t *testing.T) { //nolint:cyclop,maintidx
 	mcpCmd.Writer = buf
 
 	go func() {
+		t.Setenv("HOME", t.TempDir())
+
 		if err := loginCmd.Run(
 			context.Background(),
 			[]string{
