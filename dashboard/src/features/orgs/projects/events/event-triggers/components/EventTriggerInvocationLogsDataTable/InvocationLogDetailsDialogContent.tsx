@@ -37,13 +37,13 @@ export default function InvocationLogDetailsDialogContent({
       </DialogHeader>
       <div className="grid grid-cols-2 gap-4 rounded border p-4">
         <div className="space-y-2">
-          <div className="flex justify-between">
+          <div className="flex justify-between gap-1">
             <span className="text-sm font-medium text-muted-foreground">
               ID:
             </span>
             <span className="font-mono text-sm text-foreground">{log?.id}</span>
           </div>
-          <div className="flex justify-between">
+          <div className="flex justify-between gap-1">
             <span className="text-sm font-medium text-muted-foreground">
               Event ID:
             </span>
@@ -53,13 +53,13 @@ export default function InvocationLogDetailsDialogContent({
           </div>
         </div>
         <div className="space-y-2">
-          <div className="flex justify-between">
+          <div className="flex justify-between gap-1">
             <span className="text-sm font-medium text-muted-foreground">
               HTTP Status:
             </span>
             <HttpStatusText className="text-sm" status={log?.http_status} />
           </div>
-          <div className="flex justify-between">
+          <div className="flex justify-between gap-1">
             <span className="text-sm font-medium text-muted-foreground">
               Created:
             </span>

@@ -97,80 +97,72 @@ export default function EventTriggerInvocationLogsDataTable({
         />
       </div>
 
-      <div className="overflow-x-auto">
-        <Table>
-          <colgroup>
-            {table.getAllLeafColumns().map((col) => (
-              <col key={col.id} style={{ width: col.getSize() }} />
-            ))}
-          </colgroup>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header, index) => (
-                  <TableHead
-                    className={index === 0 ? 'pl-1' : ''}
-                    key={header.id}
-                    style={{ width: header.getSize() }}
+      <Table>
+        <colgroup>
+          {table.getAllLeafColumns().map((col) => (
+            <col key={col.id} style={{ width: col.getSize() }} />
+          ))}
+        </colgroup>
+        <TableHeader>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id}>
+              {headerGroup.headers.map((header, index) => (
+                <TableHead
+                  className={index === 0 ? 'pl-1' : ''}
+                  key={header.id}
+                  style={{ width: header.getSize() }}
+                >
+                  {header.isPlaceholder
+                    ? null
+                    : flexRender(
+                        header.column.columnDef.header,
+                        header.getContext(),
+                      )}
+                </TableHead>
+              ))}
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody>
+          {isLoading &&
+            skeletonRowKeys.map((key) => (
+              <TableRow key={`skeleton-${key}`}>
+                {table.getAllLeafColumns().map((col) => (
+                  <TableCell
+                    key={`skeleton-cell-${col.id}`}
+                    style={{ width: col.getSize() }}
                   >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
-                  </TableHead>
+                    <Skeleton className="h-4 w-full" />
+                  </TableCell>
                 ))}
               </TableRow>
             ))}
-          </TableHeader>
-          <TableBody>
-            {isLoading &&
-              skeletonRowKeys.map((key) => (
-                <TableRow key={`skeleton-${key}`}>
-                  {table.getAllLeafColumns().map((col) => (
-                    <TableCell
-                      key={`skeleton-cell-${col.id}`}
-                      style={{ width: col.getSize() }}
-                    >
-                      <Skeleton className="h-4 w-full" />
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))}
 
-            {!isLoading &&
-              table.getRowModel().rows?.length > 0 &&
-              table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell
-                      key={cell.id}
-                      className={`${cell.column.id === 'id' ? 'max-w-0 truncate' : ''}`}
-                      style={{ width: cell.column.getSize() }}
-                    >
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))}
-
-            {!isLoading && table.getRowModel().rows?.length === 0 && (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  No results.
-                </TableCell>
+          {!isLoading &&
+            table.getRowModel().rows?.length > 0 &&
+            table.getRowModel().rows.map((row) => (
+              <TableRow key={row.id}>
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell
+                    key={cell.id}
+                    className={`${cell.column.id === 'id' ? 'max-w-0 truncate' : ''}`}
+                    style={{ width: cell.column.getSize() }}
+                  >
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </TableCell>
+                ))}
               </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+            ))}
+
+          {!isLoading && table.getRowModel().rows?.length === 0 && (
+            <TableRow>
+              <TableCell colSpan={columns.length} className="h-24 text-center">
+                No results.
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
 
       <PaginationControls
         offset={offset}

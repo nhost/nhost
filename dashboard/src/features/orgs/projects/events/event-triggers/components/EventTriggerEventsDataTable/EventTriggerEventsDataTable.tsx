@@ -96,95 +96,90 @@ export default function EventTriggerEventsDataTable({
         />
       </div>
 
-      <div className="">
-        <Table>
-          <colgroup>
-            {table.getAllLeafColumns().map((col) => (
-              <col key={col.id} style={{ width: col.getSize() }} />
-            ))}
-          </colgroup>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header, index) => (
-                  <TableHead
-                    key={header.id}
-                    className={index === 0 ? 'pl-1' : ''}
-                    style={{ width: header.getSize() }}
+      <Table>
+        <colgroup>
+          {table.getAllLeafColumns().map((col) => (
+            <col key={col.id} style={{ width: col.getSize() }} />
+          ))}
+        </colgroup>
+        <TableHeader>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id}>
+              {headerGroup.headers.map((header, index) => (
+                <TableHead
+                  key={header.id}
+                  className={index === 0 ? 'pl-1' : ''}
+                  style={{ width: header.getSize() }}
+                >
+                  {header.isPlaceholder
+                    ? null
+                    : flexRender(
+                        header.column.columnDef.header,
+                        header.getContext(),
+                      )}
+                </TableHead>
+              ))}
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody>
+          {isLoading &&
+            skeletonRowKeys.map((key) => (
+              <TableRow key={`skeleton-${key}`}>
+                {table.getAllLeafColumns().map((col) => (
+                  <TableCell
+                    key={`skeleton-cell-${col.id}`}
+                    style={{ width: col.getSize() }}
                   >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
-                  </TableHead>
+                    <Skeleton className="h-4 w-full" />
+                  </TableCell>
                 ))}
               </TableRow>
             ))}
-          </TableHeader>
-          <TableBody>
-            {isLoading &&
-              skeletonRowKeys.map((key) => (
-                <TableRow key={`skeleton-${key}`}>
-                  {table.getAllLeafColumns().map((col) => (
+
+          {!isLoading &&
+            table.getRowModel().rows?.length > 0 &&
+            table.getRowModel().rows.map((row) => (
+              <Fragment key={row.id}>
+                <TableRow
+                  onClick={row.getToggleExpandedHandler()}
+                  className={cn('cursor-pointer')}
+                >
+                  {row.getVisibleCells().map((cell) => (
                     <TableCell
-                      key={`skeleton-cell-${col.id}`}
-                      style={{ width: col.getSize() }}
+                      key={cell.id}
+                      className={`${cell.column.id === 'id' ? 'max-w-0 truncate' : ''}`}
+                      style={{ width: cell.column.getSize() }}
                     >
-                      <Skeleton className="h-4 w-full" />
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
-              ))}
-
-            {!isLoading &&
-              table.getRowModel().rows?.length > 0 &&
-              table.getRowModel().rows.map((row) => (
-                <Fragment key={row.id}>
-                  <TableRow
-                    onClick={row.getToggleExpandedHandler()}
-                    className={cn('cursor-pointer')}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell
-                        key={cell.id}
-                        className={`${cell.column.id === 'id' ? 'max-w-0 truncate' : ''}`}
-                        style={{ width: cell.column.getSize() }}
-                      >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext(),
-                        )}
-                      </TableCell>
-                    ))}
+                {row.getIsExpanded() && (
+                  <TableRow key={`${row.id}-expanded`}>
+                    <TableCell colSpan={columns.length} className="p-0">
+                      <EventTriggerInvocationLogsDataTable
+                        eventId={row.id}
+                        source={eventTrigger.dataSource}
+                      />
+                    </TableCell>
                   </TableRow>
-                  {row.getIsExpanded() && (
-                    <TableRow key={`${row.id}-expanded`}>
-                      <TableCell colSpan={columns.length} className="p-0">
-                        <EventTriggerInvocationLogsDataTable
-                          eventId={row.id}
-                          source={eventTrigger.dataSource}
-                        />
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </Fragment>
-              ))}
+                )}
+              </Fragment>
+            ))}
 
-            {!isLoading && table.getRowModel().rows?.length === 0 && (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  No results.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+          {!isLoading && table.getRowModel().rows?.length === 0 && (
+            <TableRow>
+              <TableCell colSpan={columns.length} className="h-24 text-center">
+                No results.
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
 
       <PaginationControls
         offset={offset}
