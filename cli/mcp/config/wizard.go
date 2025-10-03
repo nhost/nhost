@@ -41,13 +41,9 @@ func wizardCloud(reader *bufio.Reader) *Cloud {
 	fmt.Println("   You can view and configure projects as you would in the dashboard.")
 
 	if promptYesNo(reader, "Enable Nhost Cloud access?") {
-		pat := promptString(
-			reader,
-			"Enter Personal Access Token (from https://app.nhost.io/account):",
-		)
+		fmt.Println("  Note: If you haven't already, run `nhost login` to authenticate.")
 
 		return &Cloud{
-			PAT:             pat,
 			EnableMutations: true,
 		}
 	}

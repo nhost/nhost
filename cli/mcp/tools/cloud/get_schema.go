@@ -38,5 +38,5 @@ func (t *Tool) handleGetGraphqlSchema(
 		schema = schemaGraphqlWithMutations
 	}
 
-	return mcp.NewToolResultStructured(schema, schema), nil
+	return mcp.NewToolResultText(schema), nil
 }

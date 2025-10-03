@@ -29,3 +29,12 @@ func (ce *CliEnv) LoadSession(
 
 	return session, nil
 }
+
+func (ce *CliEnv) Credentials() (credentials.Credentials, error) {
+	var creds credentials.Credentials
+	if err := UnmarshalFile(ce.Path.AuthFile(), &creds, json.Unmarshal); err != nil {
+		return credentials.Credentials{}, fmt.Errorf("failed to load credentials: %w", err)
+	}
+
+	return creds, nil
+}

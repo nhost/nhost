@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/mark3labs/mcp-go/server"
+	"github.com/nhost/nhost/cli/clienv"
 	"github.com/nhost/nhost/cli/mcp/config"
 	"github.com/nhost/nhost/cli/mcp/nhost/auth"
 	"github.com/nhost/nhost/cli/mcp/tools/cloud"
@@ -89,6 +90,7 @@ func action(ctx context.Context, cmd *cli.Command) error {
 
 	if cfg.Cloud != nil {
 		if err := registerCloud(
+			cmd,
 			mcpServer,
 			cfg,
 			cmd.String(flagNhostAuthURL),
@@ -136,14 +138,22 @@ func getConfig(cmd *cli.Command) (*config.Config, error) {
 }
 
 func registerCloud(
+	cmd *cli.Command,
 	mcpServer *server.MCPServer,
 	cfg *config.Config,
 	authURL string,
 	graphqlURL string,
 ) error {
+	ce := clienv.FromCLI(cmd)
+
+	creds, err := ce.Credentials()
+	if err != nil {
+		return fmt.Errorf("failed to load credentials: %w", err)
+	}
+
 	interceptor, err := auth.WithPAT(
 		authURL,
-		cfg.Cloud.PAT,
+		creds.PersonalAccessToken,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create PAT interceptor: %w", err)

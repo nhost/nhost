@@ -35,10 +35,6 @@ type Config struct {
 }
 
 type Cloud struct {
-	// Personal Access Token to authenticate with the Nhost Cloud API. You can get one
-	// on the following URL: https://app.nhost.io/account
-	PAT string `json:"pat" toml:"pat"`
-
 	// If enabled you can run mutations against the Nhost Cloud to manipulate project's configurations
 	// amongst other things. Queries are always allowed if this section is configured.
 	EnableMutations bool `json:"enable_mutations" toml:"enable_mutations"`
@@ -89,6 +85,7 @@ func GetConfigPath(cmd *cli.Command) string {
 	}
 
 	ce := clienv.FromCLI(cmd)
+
 	return filepath.Join(ce.Path.DotNhostFolder(), "mcp-nhost.toml")
 }
 

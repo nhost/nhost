@@ -104,5 +104,5 @@ func (t *Tool) handleGetGraphqlSchema(
 		},
 	)
 
-	return mcp.NewToolResultStructured(schema, schema), nil
+	return mcp.NewToolResultText(schema), nil
 }
