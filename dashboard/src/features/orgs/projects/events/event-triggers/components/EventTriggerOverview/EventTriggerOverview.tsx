@@ -1,3 +1,4 @@
+import CopyToClipboardButton from '@/components/presentational/CopyToClipboardButton/CopyToClipboardButton';
 import {
   Collapsible,
   CollapsibleContent,
@@ -54,10 +55,20 @@ export default function EventTriggerOverview({
               : 'Webhook Handler (from environment)'}
           </h3>
           <div className="text-sm">
-            <div className="break-all rounded bg-muted p-2 font-mono">
-              {'webhook' in eventTrigger
-                ? eventTrigger.webhook
-                : eventTrigger.webhook_from_env}
+            <div className="flex items-center justify-between gap-2 break-all rounded bg-muted p-2 font-mono">
+              <span>
+                {'webhook' in eventTrigger
+                  ? eventTrigger.webhook
+                  : eventTrigger.webhook_from_env}
+              </span>
+              <CopyToClipboardButton
+                textToCopy={
+                  'webhook' in eventTrigger
+                    ? eventTrigger.webhook
+                    : eventTrigger.webhook_from_env
+                }
+                title="Copy webhook URL"
+              />
             </div>
           </div>
         </div>

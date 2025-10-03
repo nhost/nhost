@@ -10,6 +10,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/v3/accordion';
 import { Button } from '@/components/ui/v3/button';
+import { Skeleton } from '@/components/ui/v3/skeleton';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useGetEventTriggers } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventTriggers';
@@ -28,7 +29,34 @@ export interface EventsBrowserSidebarProps extends Omit<BoxProps, 'children'> {}
 function EventsBrowserSidebarContent() {
   const router = useRouter();
   const { orgSlug, appSubdomain, eventTriggerSlug } = router.query;
-  const { data } = useGetEventTriggers();
+  const { data, isLoading } = useGetEventTriggers();
+
+  if (isLoading) {
+    return (
+      <div className="flex h-full flex-col px-2">
+        <div className="flex flex-row items-center justify-between">
+          <Skeleton className="h-6 w-40" />
+          <Skeleton className="h-9 w-9 rounded-md" />
+        </div>
+
+        <div className="mt-3 flex flex-col gap-4">
+          {[0, 1].map((groupIndex) => (
+            <div key={groupIndex} className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-4 w-28" />
+                <Skeleton className="h-4 w-4 rounded-md" />
+              </div>
+              <div className="flex flex-col gap-1 pl-4">
+                {[0, 1, 2].map((itemIndex) => (
+                  <Skeleton key={itemIndex} className="h-9 w-52" />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   const eventTriggersByDataSource = data?.reduce<
     Record<string, EventTriggerViewModel[]>
@@ -41,7 +69,6 @@ function EventsBrowserSidebarContent() {
     return acc;
   }, {});
 
-  // Sort by name
   if (eventTriggersByDataSource) {
     Object.keys(eventTriggersByDataSource).forEach((dataSource) => {
       eventTriggersByDataSource[dataSource].sort((a, b) =>

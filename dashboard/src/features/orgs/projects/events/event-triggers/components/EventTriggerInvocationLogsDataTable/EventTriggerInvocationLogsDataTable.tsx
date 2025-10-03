@@ -23,7 +23,6 @@ import {
 } from '@tanstack/react-table';
 import { useState } from 'react';
 import columns from './invocationDataTableColumns';
-// import removed: useGetEventInvocationLogsQuery
 
 interface EventTriggerInvocationLogsDataTableProps {
   eventId: string;
