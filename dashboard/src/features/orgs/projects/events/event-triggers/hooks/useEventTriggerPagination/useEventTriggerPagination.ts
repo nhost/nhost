@@ -80,7 +80,6 @@ export default function useEventTriggerPagination<TArgs, TData = unknown[]>({
     setOffset(0);
   }, []);
 
-  // Reset offset when identity changes
   useEffect(() => {
     setOffset(0);
   }, [resetKey]);
