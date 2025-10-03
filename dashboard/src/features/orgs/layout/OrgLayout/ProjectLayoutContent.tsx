@@ -78,7 +78,10 @@ function ProjectLayoutContent({
       const blockedPausedProjectPages = [
         'database',
         'database/browser/[dataSourceSlug]',
+        'database/browser/[dataSourceSlug]/[schemaSlug]/[tableSlug]',
         'graphql',
+        'graphql/remote-schemas',
+        'graphql/remote-schemas/[remoteSchemaSlug]',
         'hasura',
         'users',
         'storage',
