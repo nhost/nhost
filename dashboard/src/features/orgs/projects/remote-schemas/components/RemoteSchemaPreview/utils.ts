@@ -1,3 +1,4 @@
+import highlightMatch from '@/features/orgs/utils/highlightMatch/highlightMatch';
 import type { GraphQLSchema } from 'graphql';
 import { HelpCircle } from 'lucide-react';
 import React from 'react';
@@ -220,4 +221,52 @@ export const buildComplexTreeData = ({
   });
 
   return treeData;
+};
+
+export const getText = (data: any): string => {
+  if (React.isValidElement<{ children?: React.ReactNode }>(data)) {
+    const { children } = data.props;
+    if (Array.isArray(children)) {
+      return children.map(getText).join('');
+    }
+    if (children === undefined || children === null) {
+      return '';
+    }
+    return getText(children);
+  }
+  if (typeof data === 'string' || typeof data === 'number') {
+    return String(data);
+  }
+  return String(data);
+};
+
+export const highlightNode = (
+  node: React.ReactNode,
+  term?: string,
+): React.ReactNode => {
+  const search = term?.trim();
+  if (!search) {
+    return node;
+  }
+
+  if (typeof node === 'string' || typeof node === 'number') {
+    const text = String(node);
+    return highlightMatch(text, search);
+  }
+
+  if (Array.isArray(node)) {
+    return React.Children.map(node as React.ReactNode[], (child) =>
+      highlightNode(child, search),
+    );
+  }
+
+  if (React.isValidElement(node)) {
+    const childProps: any = {};
+    if (node.props && 'children' in node.props) {
+      childProps.children = highlightNode(node.props.children, search);
+    }
+    return React.cloneElement(node, childProps);
+  }
+
+  return node;
 };

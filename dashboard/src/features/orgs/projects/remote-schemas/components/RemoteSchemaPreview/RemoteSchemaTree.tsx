@@ -1,4 +1,3 @@
-import { highlightMatch } from '@/features/orgs/utils/highlightMatch';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@mui/material';
 import type { GraphQLSchema } from 'graphql';
@@ -17,7 +16,7 @@ import {
 } from 'react-complex-tree';
 import 'react-complex-tree/lib/style-modern.css';
 import type { ComplexTreeData } from './types';
-import { buildComplexTreeData } from './utils';
+import { buildComplexTreeData, getText, highlightNode } from './utils';
 
 export interface RemoteSchemaTreeProps {
   /**
@@ -59,20 +58,6 @@ export const RemoteSchemaTree = forwardRef<
   const findAllItemPaths = useCallback(
     (searchTerm: string, searchRoot = 'root'): string[][] => {
       const lowerSearchTerm = searchTerm.toLowerCase();
-
-      const getText = (data: any): string => {
-        if (React.isValidElement<{ children?: React.ReactNode }>(data)) {
-          const { children } = data.props;
-          if (Array.isArray(children)) {
-            return children.map(getText).join('');
-          }
-          return getText(children);
-        }
-        if (typeof data === 'string' || typeof data === 'number') {
-          return String(data);
-        }
-        return String(data);
-      };
 
       const collectInItem = (
         itemId: string,
@@ -140,37 +125,6 @@ export const RemoteSchemaTree = forwardRef<
       return item.data;
     }
     return String(item.data);
-  };
-
-  const highlightNode = (
-    node: React.ReactNode,
-    term?: string,
-  ): React.ReactNode => {
-    const search = term?.trim();
-    if (!search) {
-      return node;
-    }
-
-    if (typeof node === 'string' || typeof node === 'number') {
-      const text = String(node);
-      return highlightMatch(text, search);
-    }
-
-    if (Array.isArray(node)) {
-      return React.Children.map(node as React.ReactNode[], (child) =>
-        highlightNode(child, search),
-      );
-    }
-
-    if (React.isValidElement(node)) {
-      const childProps: any = {};
-      if (node.props && 'children' in node.props) {
-        childProps.children = highlightNode(node.props.children, search);
-      }
-      return React.cloneElement(node, childProps);
-    }
-
-    return node;
   };
 
   return (

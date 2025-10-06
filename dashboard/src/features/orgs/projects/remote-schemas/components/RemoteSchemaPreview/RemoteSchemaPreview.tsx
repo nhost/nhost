@@ -2,8 +2,10 @@ import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
 import { Input } from '@/components/ui/v3/input';
 import useIntrospectRemoteSchemaQuery from '@/features/orgs/projects/remote-schemas/hooks/useIntrospectRemoteSchemaQuery/useIntrospectRemoteSchemaQuery';
 import convertIntrospectionToSchema from '@/features/orgs/projects/remote-schemas/utils/convertIntrospectionToSchema';
+import { getToastStyleProps } from '@/utils/constants/settings';
 import { SearchIcon, XIcon } from 'lucide-react';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { toast } from 'react-hot-toast';
 import type { RemoteSchemaTreeRef } from './RemoteSchemaTree';
 import { RemoteSchemaTree } from './RemoteSchemaTree';
 
@@ -66,75 +68,51 @@ export default function RemoteSchemaPreview({
         await navigateToMatch(allPaths, 0);
       }
     } catch (searchError) {
-      console.error('Search error:', searchError);
+      toast.error(
+        searchError?.message || 'An error occurred. Please try again.',
+        getToastStyleProps(),
+      );
     } finally {
       setIsSearching(false);
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' && matches.length > 0) {
       e.preventDefault();
-      if (!searchTerm.trim()) {
-        return;
-      }
-      if (matches.length > 0) {
-        const step = e.shiftKey ? -1 : 1;
-        const nextIndex = (matchIndex + step + matches.length) % matches.length;
-        setMatchIndex(nextIndex);
-        navigateToMatch(matches, nextIndex);
-      } else {
-        handleSearch();
-      }
-    } else if (e.key === 'Escape') {
-      setSearchTerm('');
-      setMatches([]);
-      setMatchIndex(0);
-      setHasSearched(false);
+      const step = e.shiftKey ? -1 : 1;
+      const nextIndex = (matchIndex + step + matches.length) % matches.length;
+      setMatchIndex(nextIndex);
+      navigateToMatch(matches, nextIndex);
     }
   };
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement | null;
+      if (e.key !== 'Enter') {
+        return;
+      }
+      const { target } = e;
       const inTree =
         treeContainerRef.current?.contains(target as Node) ?? false;
-      const isSearchInput = target === searchInputRef.current;
-
-      if (e.key === 'Enter' && searchTerm.trim() && inTree && !isSearchInput) {
-        e.preventDefault();
-        e.stopPropagation();
-        if (matches.length > 0) {
-          const step = e.shiftKey ? -1 : 1;
-          const nextIndex =
-            (matchIndex + step + matches.length) % matches.length;
-          setMatchIndex(nextIndex);
-          navigateToMatch(matches, nextIndex);
-        } else if (treeRef.current) {
-          const allPaths = treeRef.current.findAllItemPaths(searchTerm);
-          setMatches(allPaths);
-          setHasSearched(true);
-          if (allPaths.length > 0) {
-            const startIndex = e.shiftKey ? allPaths.length - 1 : 0;
-            setMatchIndex(startIndex);
-            navigateToMatch(allPaths, startIndex);
-          }
-        }
+      const isNotSearchInput = target !== searchInputRef.current;
+      if (!inTree || !isNotSearchInput) {
+        return;
+      }
+      if (matches.length === 0) {
+        return;
       }
 
-      if (e.key === 'Escape' && inTree && !isSearchInput) {
-        e.preventDefault();
-        e.stopPropagation();
-        setSearchTerm('');
-        setMatches([]);
-        setMatchIndex(0);
-        setHasSearched(false);
-      }
+      e.preventDefault();
+      e.stopPropagation();
+      const step = e.shiftKey ? -1 : 1;
+      const nextIndex = (matchIndex + step + matches.length) % matches.length;
+      setMatchIndex(nextIndex);
+      navigateToMatch(matches, nextIndex);
     };
-
     window.addEventListener('keydown', onKeyDown, { capture: true });
     return () => window.removeEventListener('keydown', onKeyDown, true);
-  }, [searchTerm, matches, matchIndex]);
+  }, [matches, matchIndex]);
 
   if (isLoading) {
     return (
@@ -202,6 +180,7 @@ export default function RemoteSchemaPreview({
               <Button
                 variant="ghost"
                 size="icon"
+                type="button"
                 onClick={() => {
                   setSearchTerm('');
                   setMatches([]);
