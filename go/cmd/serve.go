@@ -99,6 +99,8 @@ const (
 	flagSMSTwilioAccountSid              = "sms-twilio-account-sid"
 	flagSMSTwilioAuthToken               = "sms-twilio-auth-token" //nolint:gosec
 	flagSMSTwilioMessagingServiceID      = "sms-twilio-messaging-service-id"
+	flagSMSModicaUsername                = "sms-modica-username"
+	flagSMSModicaPassword                = "sms-modica-password" //nolint:gosec
 	flagAnonymousUsersEnabled            = "enable-anonymous-users"
 	flagMfaEnabled                       = "mfa-enabled"
 	flagMfaTotpIssuer                    = "mfa-totp-issuer"
@@ -690,6 +692,18 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 				Usage:    "Twilio Messaging Service ID for SMS",
 				Category: "sms",
 				Sources:  cli.EnvVars("AUTH_SMS_TWILIO_MESSAGING_SERVICE_ID"),
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagSMSModicaUsername,
+				Usage:    "Modica username for SMS",
+				Category: "sms",
+				Sources:  cli.EnvVars("AUTH_SMS_MODICA_USERNAME"),
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagSMSModicaPassword,
+				Usage:    "Modica password for SMS",
+				Category: "sms",
+				Sources:  cli.EnvVars("AUTH_SMS_MODICA_PASSWORD"),
 			},
 			&cli.BoolFlag{ //nolint: exhaustruct
 				Name:     flagAnonymousUsersEnabled,

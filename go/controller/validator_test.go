@@ -55,9 +55,12 @@ func getConfig() *controller.Config {
 		MfaEnabled:                  true,
 		ServerPrefix:                "",
 		SMSPasswordlessEnabled:      true,
+		SMSProvider:                 "twilio",
 		SMSTwilioAccountSid:         "smsAccountSid",
 		SMSTwilioAuthToken:          "smsAuthToken",
 		SMSTwilioMessagingServiceID: "smsMessagingServiceID",
+		SMSModicaUsername:           "modicaUsername",
+		SMSModicaPassword:           "modicaPassword",
 	}
 }
 

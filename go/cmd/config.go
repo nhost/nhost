@@ -112,9 +112,12 @@ func getConfig(cmd *cli.Command) (controller.Config, error) { //nolint:funlen
 		WebauhtnAttestationTimeout:  cmd.Duration(flagWebauthnAttestationTimeout),
 		OTPEmailEnabled:             cmd.Bool(flagOTPEmailEnabled),
 		SMSPasswordlessEnabled:      cmd.Bool(flagSMSPasswordlessEnabled),
+		SMSProvider:                 cmd.String(flagSMSProvider),
 		SMSTwilioAccountSid:         cmd.String(flagSMSTwilioAccountSid),
 		SMSTwilioAuthToken:          cmd.String(flagSMSTwilioAuthToken),
 		SMSTwilioMessagingServiceID: cmd.String(flagSMSTwilioMessagingServiceID),
+		SMSModicaUsername:           cmd.String(flagSMSModicaUsername),
+		SMSModicaPassword:           cmd.String(flagSMSModicaPassword),
 		MfaEnabled:                  cmd.Bool(flagMfaEnabled),
 		ServerPrefix:                cmd.String(flagAPIPrefix),
 	}, nil

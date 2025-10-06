@@ -64,9 +64,12 @@ type Config struct {
 	WebauhtnAttestationTimeout  time.Duration `json:"AUTH_WEBAUTHN_ATTESTATION_TIMEOUT"`
 	OTPEmailEnabled             bool          `json:"AUTH_OTP_EMAIL_ENABLED"`
 	SMSPasswordlessEnabled      bool          `json:"AUTH_SMS_PASSWORDLESS_ENABLED"`
+	SMSProvider                 string        `json:"AUTH_SMS_PROVIDER"`
 	SMSTwilioAccountSid         string        `json:"AUTH_SMS_TWILIO_ACCOUNT_SID"`
 	SMSTwilioAuthToken          string        `json:"AUTH_SMS_TWILIO_AUTH_TOKEN"`
 	SMSTwilioMessagingServiceID string        `json:"AUTH_SMS_TWILIO_MESSAGING_SERVICE_ID"`
+	SMSModicaUsername           string        `json:"AUTH_SMS_MODICA_USERNAME"`
+	SMSModicaPassword           string        `json:"AUTH_SMS_MODICA_PASSWORD"`
 	ServerPrefix                string        `json:"AUTH_SERVER_PREFIX"`
 }
 

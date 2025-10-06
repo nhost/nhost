@@ -111,6 +111,8 @@ auth
 [--refresh-token-expires-in]=[value]
 [--require-elevated-claim]=[value]
 [--server-url]=[value]
+[--sms-modica-password]=[value]
+[--sms-modica-username]=[value]
 [--sms-passwordless-enabled]
 [--sms-provider]=[value]
 [--sms-twilio-account-sid]=[value]
@@ -373,6 +375,10 @@ auth [GLOBAL OPTIONS] [command [COMMAND OPTIONS]] [ARGUMENTS...]
 **--require-elevated-claim**="": Require x-hasura-auth-elevated claim to perform certain actions: create PATs, change email and/or password, enable/disable MFA and add security keys. If set to `recommended` the claim check is only performed if the user has a security key attached. If set to `required` the only action that won't require the claim is setting a security key for the first time. (default: disabled)
 
 **--server-url**="": Server URL of where Auth service is running. This value is to used as a callback in email templates and for the OAuth authentication process
+
+**--sms-modica-password**="": Modica password for SMS
+
+**--sms-modica-username**="": Modica username for SMS
 
 **--sms-passwordless-enabled**: Enable SMS passwordless authentication
 

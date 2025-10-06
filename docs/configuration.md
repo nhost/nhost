@@ -85,7 +85,32 @@ Hasura Auth supports email [passwordless authentication](https://en.wikipedia.or
 
 Set `AUTH_EMAIL_PASSWORDLESS_ENABLED` to `true` to enable passwordless authentication.
 
-<!-- TODO ## Passwordless with SMS -->
+### Passwordless with SMS
+
+Hasura Auth supports SMS [passwordless authentication](https://en.wikipedia.org/wiki/Passwordless_authentication). It requires an SMS provider to be configured properly.
+
+Set `AUTH_SMS_PASSWORDLESS_ENABLED` to `true` to enable SMS passwordless authentication.
+
+#### SMS Provider Configuration
+
+Configure the SMS provider using the `AUTH_SMS_PROVIDER` environment variable:
+
+```bash
+AUTH_SMS_PROVIDER=twilio  # or modica
+```
+
+**Twilio Configuration:**
+```bash
+AUTH_SMS_TWILIO_ACCOUNT_SID=your_account_sid
+AUTH_SMS_TWILIO_AUTH_TOKEN=your_auth_token
+AUTH_SMS_TWILIO_MESSAGING_SERVICE_ID=your_messaging_service_id
+```
+
+**Modica Group Configuration:**
+```bash
+AUTH_SMS_MODICA_USERNAME=your_username
+AUTH_SMS_MODICA_PASSWORD=your_password
+```
 
 ### FIDO2 Webauthn
 
