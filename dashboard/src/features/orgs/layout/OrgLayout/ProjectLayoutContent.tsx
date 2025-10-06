@@ -85,6 +85,7 @@ function ProjectLayoutContent({
         'hasura',
         'users',
         'storage',
+        'run',
         'ai/auto-embeddings',
         'ai/assistants',
         'metrics',
