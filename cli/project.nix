@@ -27,8 +27,9 @@ let
 
       "${submodule}/mcp/nhost/auth/openapi.yaml"
       "${submodule}/mcp/nhost/graphql/openapi.yaml"
-      "${submodule}/mcp/tools/cloud/schema.graphql"
-      "${submodule}/mcp/tools/cloud/schema-with-mutations.graphql"
+      "${submodule}/mcp/tools/schemas/cloud_schema.graphql"
+      "${submodule}/mcp/tools/schemas/cloud_schema-with-mutations.graphql"
+      "${submodule}/mcp/tools/schemas/nhost_toml_schema.cue"
       (inDirectory "${submodule}/cmd/mcp/testdata")
       (inDirectory "${submodule}/mcp/graphql/testdata")
     ];

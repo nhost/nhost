@@ -151,6 +151,9 @@ echo  '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"project-graphql-
 
 # search
 echo  '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"search","arguments":{"query":"how to enable magic links"}},"id":1}' | mcp-nhost start
+
+# resources
+echo  '{"jsonrpc":"2.0","method":"resources/read","params":{"uri":"schema://asdsadasd"},"id":1}' | go run main.go mcp start
 ```
 
 ## Roadmap

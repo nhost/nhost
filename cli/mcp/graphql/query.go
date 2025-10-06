@@ -45,8 +45,8 @@ func CheckAllowedGraphqlQuery( //nolint:cyclop
 	queryString string,
 ) error {
 	if allowedQueries == nil && allowedMutations == nil {
-		// nil means unrestricted
-		return nil
+		// nil means nothing allowed
+		return fmt.Errorf("%w: %s", ErrQueryNotAllowed, queryString)
 	}
 
 	if len(allowedQueries) == 0 && len(allowedMutations) == 0 {

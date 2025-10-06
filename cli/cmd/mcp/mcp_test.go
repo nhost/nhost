@@ -16,8 +16,8 @@ import (
 	"github.com/nhost/nhost/cli/cmd/user"
 	"github.com/nhost/nhost/cli/mcp/tools/cloud"
 	"github.com/nhost/nhost/cli/mcp/tools/docs"
-	"github.com/nhost/nhost/cli/mcp/tools/local"
 	"github.com/nhost/nhost/cli/mcp/tools/project"
+	"github.com/nhost/nhost/cli/mcp/tools/schemas"
 )
 
 func ptr[T any](v T) *T {
@@ -108,7 +108,11 @@ func TestStart(t *testing.T) { //nolint:cyclop,maintidx,paralleltest
 				Name:    "mcp",
 				Version: "",
 			},
-			Instructions: start.ServerInstructions,
+			Instructions: start.ServerInstructions + `Configured projects:
+- local (local): Local development project running via the Nhost CLI
+- asdasdasdasdasd (eu-central-1): Staging project for my awesome app
+- qweqweqweqweqwe (us-east-1): Production project for my awesome app
+`,
 			Result: mcp.Result{
 				Meta: nil,
 			},
@@ -130,22 +134,6 @@ func TestStart(t *testing.T) { //nolint:cyclop,maintidx,paralleltest
 		//nolint:exhaustruct,lll
 		&mcp.ListToolsResult{
 			Tools: []mcp.Tool{
-				{
-					Name:        "cloud-get-graphql-schema",
-					Description: cloud.ToolGetGraphqlSchemaInstructions,
-					InputSchema: mcp.ToolInputSchema{
-						Type:       "object",
-						Properties: nil,
-						Required:   nil,
-					},
-					Annotations: mcp.ToolAnnotation{
-						Title:           "Get GraphQL Schema for Nhost Cloud Platform",
-						ReadOnlyHint:    ptr(true),
-						DestructiveHint: ptr(false),
-						IdempotentHint:  ptr(true),
-						OpenWorldHint:   ptr(true),
-					},
-				},
 				{
 					Name:        "cloud-graphql-query",
 					Description: cloud.ToolGraphqlQueryInstructions,
@@ -172,24 +160,33 @@ func TestStart(t *testing.T) { //nolint:cyclop,maintidx,paralleltest
 					},
 				},
 				{
-					Name:        "local-config-server-get-schema",
-					Description: local.ToolConfigServerSchemaInstructions,
+					Name:        "get-schema",
+					Description: schemas.ToolGetGraphqlSchemaInstructions,
 					InputSchema: mcp.ToolInputSchema{
 						Type: "object",
 						Properties: map[string]any{
-							"includeMutations": map[string]any{
-								"description": "include mutations in the schema",
-								"type":        "boolean",
+							"role": map[string]any{
+								"default":     string("user"),
+								"description": string("Role to use when fetching the schema. Useful only services `local` and `project`"),
+								"type":        string("string"),
 							},
-							"includeQueries": map[string]any{
-								"description": "include queries in the schema",
-								"type":        "boolean",
+							"service": map[string]any{
+								"enum": []any{
+									string("nhost"), string("config-schema"), string("graphql-management"),
+									string("project"),
+								},
+								"type": string("string"),
+							},
+							"subdomain": map[string]any{
+								"description": string("Project to get the GraphQL schema for. Required when service is `project`"),
+								"enum":        []any{string("local"), string("asdasdasdasdasd"), string("qweqweqweqweqwe")},
+								"type":        string("string"),
 							},
 						},
-						Required: []string{"includeQueries", "includeMutations"},
+						Required: []string{"service"},
 					},
 					Annotations: mcp.ToolAnnotation{
-						Title:           "Get GraphQL Schema for Nhost Config Server",
+						Title:           "Get GraphQL/API schema for various services",
 						ReadOnlyHint:    ptr(true),
 						DestructiveHint: ptr(false),
 						IdempotentHint:  ptr(true),
@@ -197,109 +194,7 @@ func TestStart(t *testing.T) { //nolint:cyclop,maintidx,paralleltest
 					},
 				},
 				{
-					Name:        "local-config-server-query",
-					Description: local.ToolConfigServerQueryInstructions,
-					InputSchema: mcp.ToolInputSchema{
-						Type: "object",
-						Properties: map[string]any{
-							"query": map[string]any{
-								"description": "graphql query to perform",
-								"type":        "string",
-							},
-							"variables": map[string]any{
-								"description": "variables to use in the query",
-								"type":        "string",
-							},
-						},
-						Required: []string{"query"},
-					},
-					Annotations: mcp.ToolAnnotation{
-						Title:           "Perform GraphQL Query on Nhost Config Server",
-						ReadOnlyHint:    ptr(false),
-						DestructiveHint: ptr(true),
-						IdempotentHint:  ptr(false),
-						OpenWorldHint:   ptr(true),
-					},
-				},
-				{
-					Name:        "local-get-graphql-schema",
-					Description: local.ToolGetGraphqlSchemaInstructions,
-					InputSchema: mcp.ToolInputSchema{
-						Type: "object",
-						Properties: map[string]any{
-							"role": map[string]any{
-								"description": "role to use when executing queries. Default to user but make sure the user is aware",
-								"type":        "string",
-							},
-						},
-						Required: []string{"role"},
-					},
-					Annotations: mcp.ToolAnnotation{
-						Title:           "Get GraphQL Schema for Nhost Development Project",
-						ReadOnlyHint:    ptr(true),
-						DestructiveHint: ptr(false),
-						IdempotentHint:  ptr(true),
-						OpenWorldHint:   ptr(true),
-					},
-				},
-				{
-					Name:        "local-graphql-query",
-					Description: local.ToolGraphqlQueryInstructions,
-					InputSchema: mcp.ToolInputSchema{
-						Type: "object",
-						Properties: map[string]any{
-							"query": map[string]any{
-								"description": "graphql query to perform",
-								"type":        "string",
-							},
-							"role": map[string]any{
-								"description": "role to use when executing queries. Default to user but make sure the user is aware. Keep in mind the schema depends on the role so if you retrieved the schema for a different role previously retrieve it for this role beforehand as it might differ",
-								"type":        "string",
-							},
-							"variables": map[string]any{
-								"additionalProperties": true,
-								"description":          "variables to use in the query",
-								"properties":           map[string]any{},
-								"type":                 "object",
-							},
-						},
-						Required: []string{"query", "role"},
-					},
-					Annotations: mcp.ToolAnnotation{
-						Title:           "Perform GraphQL Query on Nhost Development Project",
-						ReadOnlyHint:    ptr(false),
-						DestructiveHint: ptr(true),
-						IdempotentHint:  ptr(false),
-						OpenWorldHint:   ptr(true),
-					},
-				},
-				{
-					Name:        "project-get-graphql-schema",
-					Description: project.ToolGetGraphqlSchemaInstructions,
-					InputSchema: mcp.ToolInputSchema{
-						Type: "object",
-						Properties: map[string]any{
-							"projectSubdomain": map[string]any{
-								"description": "Project to get the GraphQL schema for. Must be one of asdasdasdasdasd, qweqweqweqweqwe, otherwise you don't have access to it. You can use cloud-* tools to resolve subdomains and map them to names",
-								"type":        "string",
-							},
-							"role": map[string]any{
-								"description": "role to use when executing queries. Default to user but make sure the user is aware",
-								"type":        "string",
-							},
-						},
-						Required: []string{"role", "projectSubdomain"},
-					},
-					Annotations: mcp.ToolAnnotation{
-						Title:           "Get GraphQL Schema for Nhost Project running on Nhost Cloud",
-						ReadOnlyHint:    ptr(true),
-						DestructiveHint: ptr(false),
-						IdempotentHint:  ptr(true),
-						OpenWorldHint:   ptr(true),
-					},
-				},
-				{
-					Name:        "project-graphql-query",
+					Name:        "graphql-query",
 					Description: project.ToolGraphqlQueryInstructions,
 					InputSchema: mcp.ToolInputSchema{
 						Type: "object",
@@ -308,13 +203,19 @@ func TestStart(t *testing.T) { //nolint:cyclop,maintidx,paralleltest
 								"description": "graphql query to perform",
 								"type":        "string",
 							},
-							"projectSubdomain": map[string]any{
-								"description": "Project to get the GraphQL schema for. Must be one of asdasdasdasdasd, qweqweqweqweqwe, otherwise you don't have access to it. You can use cloud-* tools to resolve subdomains and map them to names",
+							"subdomain": map[string]any{
+								"description": "Project to perform the GraphQL query against",
 								"type":        "string",
+								"enum": []any{
+									string("local"),
+									string("asdasdasdasdasd"),
+									string("qweqweqweqweqwe"),
+								},
 							},
 							"role": map[string]any{
 								"description": "role to use when executing queries. Default to user but make sure the user is aware. Keep in mind the schema depends on the role so if you retrieved the schema for a different role previously retrieve it for this role beforehand as it might differ",
 								"type":        "string",
+								"default":     "user",
 							},
 							"userId": map[string]any{
 								"description": string("Overrides X-Hasura-User-Id in the GraphQL query/mutation. Credentials must allow it (i.e. admin secret must be in use)"),
@@ -325,7 +226,7 @@ func TestStart(t *testing.T) { //nolint:cyclop,maintidx,paralleltest
 								"type":        "string",
 							},
 						},
-						Required: []string{"query", "projectSubdomain", "role"},
+						Required: []string{"query", "subdomain"},
 					},
 					Annotations: mcp.ToolAnnotation{
 						Title:           "Perform GraphQL Query on Nhost Project running on Nhost Cloud",
@@ -336,36 +237,26 @@ func TestStart(t *testing.T) { //nolint:cyclop,maintidx,paralleltest
 					},
 				},
 				{
-					Name:        "local-get-management-graphql-schema",
-					Description: local.ToolGetGraphqlManagementSchemaInstructions,
-					InputSchema: mcp.ToolInputSchema{
-						Type:       "object",
-						Properties: nil,
-					},
-					Annotations: mcp.ToolAnnotation{
-						Title:           "Get GraphQL's Management Schema for Nhost Development Project",
-						ReadOnlyHint:    ptr(true),
-						IdempotentHint:  ptr(true),
-						DestructiveHint: ptr(false),
-						OpenWorldHint:   ptr(true),
-					},
-				},
-				{
-					Name:        "local-manage-graphql",
-					Description: local.ToolManageGraphqlInstructions,
+					Name:        "manage-graphql",
+					Description: project.ToolManageGraphqlInstructions,
 					InputSchema: mcp.ToolInputSchema{
 						Type: "object",
 						Properties: map[string]any{
 							"body": map[string]any{
-								"description": string("The body for the HTTP request"),
-								"type":        string("string"),
+								"description": "The body for the HTTP request",
+								"type":        "string",
 							},
-							"endpoint": map[string]any{
-								"description": string("The GraphQL management endpoint to query. Use https://local.hasura.local.nhost.run as base URL"),
-								"type":        string("string"),
+							"subdomain": map[string]any{
+								"description": "Project to perform the GraphQL management operation against",
+								"type":        "string",
+								"enum": []any{
+									string("local"),
+									string("asdasdasdasdasd"),
+									string("qweqweqweqweqwe"),
+								},
 							},
 						},
-						Required: []string{"endpoint", "body"},
+						Required: []string{"subdomain", "body"},
 					},
 					Annotations: mcp.ToolAnnotation{
 						Title:           "Manage GraphQL's Metadata on an Nhost Development Project",

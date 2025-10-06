@@ -25,7 +25,6 @@ type GraphqlQueryRequest struct {
 }
 
 func (t *Tool) registerGraphqlQuery(mcpServer *server.MCPServer) {
-	t.registerGetGraphqlSchema(mcpServer)
 	queryTool := mcp.NewTool(
 		ToolGraphqlQueryName,
 		mcp.WithDescription(ToolGraphqlQueryInstructions),

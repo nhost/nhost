@@ -3,6 +3,8 @@ package config //nolint:testpackage
 import (
 	"os"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 func TestInterpolateEnv(t *testing.T) {
@@ -134,7 +136,9 @@ func TestInterpolateEnvRealWorld(t *testing.T) {
 		return envVars[key]
 	}
 
-	input := `[local]
+	input := `[[projects]]
+subdomain = "local"
+region = "local"
 admin_secret = "$ADMIN_SECRET"
 
 [[projects]]
@@ -143,7 +147,9 @@ admin_secret = "$ADMIN_SECRET"
 # Price is $$100
 `
 
-	expected := `[local]
+	expected := `[[projects]]
+subdomain = "local"
+region = "local"
 admin_secret = "super-secret-key"
 
 [[projects]]
@@ -191,9 +197,13 @@ func TestIsAlphaNumUnderscore(t *testing.T) {
 	}
 }
 
+func ptr[T any](v T) *T {
+	return &v
+}
+
 func TestLoadWithInterpolation(t *testing.T) {
 	// Create a temporary config file
-	content := `[local]
+	content := `[[projects]]
 admin_secret = "$TEST_ADMIN_SECRET"
 
 [[projects]]
@@ -222,33 +232,25 @@ allow_queries = ["*"]
 	t.Setenv("TEST_PROJECT_SECRET", "project-secret")
 
 	// Load config
-	config, err := Load(tmpfile.Name())
+	cfg, err := Load(tmpfile.Name())
 	if err != nil {
 		t.Fatalf("Load() error = %v", err)
 	}
 
-	// Verify interpolation worked
-	if config.Local == nil {
-		t.Fatal("config.Local is nil")
-	}
-
-	if config.Local.AdminSecret != "local-secret" {
-		t.Errorf("config.Local.AdminSecret = %q, want %q", config.Local.AdminSecret, "local-secret")
-	}
-
-	if len(config.Projects) != 1 {
-		t.Fatalf("len(config.Projects) = %d, want 1", len(config.Projects))
-	}
-
-	if config.Projects[0].AdminSecret == nil {
-		t.Fatal("config.Projects[0].AdminSecret is nil")
-	}
-
-	if *config.Projects[0].AdminSecret != "project-secret" {
-		t.Errorf(
-			"config.Projects[0].AdminSecret = %q, want %q",
-			*config.Projects[0].AdminSecret,
-			"project-secret",
-		)
+	if diff := cmp.Diff(cfg, &Config{
+		Cloud: nil,
+		Projects: ProjectList{
+			{ //nolint:exhaustruct
+				AdminSecret: ptr("local-secret"),
+			},
+			{ //nolint:exhaustruct
+				Subdomain:    "myapp",
+				Region:       "us-east-1",
+				AdminSecret:  ptr("project-secret"),
+				AllowQueries: []string{"*"},
+			},
+		},
+	}); diff != "" {
+		t.Errorf("diff = %s", diff)
 	}
 }
