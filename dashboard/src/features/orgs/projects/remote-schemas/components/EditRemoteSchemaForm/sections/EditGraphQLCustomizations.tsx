@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
+import { PencilIcon } from '@/components/ui/v2/icons/PencilIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { Button as ButtonV3 } from '@/components/ui/v3/button';
@@ -29,7 +30,7 @@ import type {
   RemoteSchemaCustomizationFieldNamesItem,
 } from '@/utils/hasura-api/generated/schemas';
 import { Check, ChevronsUpDown } from 'lucide-react';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Controller,
   useFieldArray,
@@ -45,6 +46,7 @@ export interface EditGraphQLCustomizationsProps {
 export default function EditGraphQLCustomizations({
   remoteSchemaName,
 }: EditGraphQLCustomizationsProps) {
+  const [isOpen, setIsOpen] = useState(false);
   const { data, isLoading, error } =
     useIntrospectRemoteSchemaQuery(remoteSchemaName);
 
@@ -189,12 +191,40 @@ export default function EditGraphQLCustomizations({
     );
   }
 
-  return (
-    <Box className="space-y-4">
-      <Box className="flex flex-row items-center space-x-2">
+  if (!isOpen) {
+    return (
+      <Box className="space-y-4">
         <Text variant="h4" className="text-lg font-semibold">
           GraphQL Customizations
         </Text>
+        <Button
+          variant="outlined"
+          color="primary"
+          size="small"
+          startIcon={<PencilIcon />}
+          onClick={() => setIsOpen(true)}
+          className="mt-2 px-2"
+        >
+          Edit GraphQL Customization
+        </Button>
+      </Box>
+    );
+  }
+
+  return (
+    <Box className="space-y-4">
+      <Box className="flex flex-row items-center justify-between">
+        <Text variant="h4" className="text-lg font-semibold">
+          GraphQL Customizations
+        </Text>
+        <Button
+          variant="outlined"
+          color="secondary"
+          size="small"
+          onClick={() => setIsOpen(false)}
+        >
+          Close
+        </Button>
       </Box>
 
       <Box className="space-y-4 rounded border-1 p-4">
@@ -206,7 +236,10 @@ export default function EditGraphQLCustomizations({
             </Tooltip>
           </Box>
           <Input
-            {...register('definition.customization.root_fields_namespace')}
+            {...register('definition.customization.root_fields_namespace', {
+              setValueAs: (v) =>
+                typeof v === 'string' && v.trim() === '' ? undefined : v,
+            })}
             id="definition.customization.root_fields_namespace"
             name="definition.customization.root_fields_namespace"
             placeholder="namespace_"
@@ -310,10 +343,10 @@ export default function EditGraphQLCustomizations({
                     )}
                   />
                 </Box>
-                <Box className="flex items-end justify-end md:justify-start">
+                <Box className="flex">
                   <Button
                     variant="borderless"
-                    className="col-span-1"
+                    className="h-10 self-end"
                     color="error"
                     onClick={() => removeTypeRemap(fromType)}
                   >
@@ -480,10 +513,10 @@ export default function EditGraphQLCustomizations({
                       fullWidth
                     />
                   </Box>
-                  <Box className="flex items-end justify-end md:justify-start">
+                  <Box className="flex">
                     <Button
                       variant="borderless"
-                      className="col-span-1"
+                      className="h-10 self-end"
                       color="error"
                       onClick={() => removeFieldName(index)}
                     >
@@ -492,42 +525,46 @@ export default function EditGraphQLCustomizations({
                   </Box>
                 </Box>
 
-                <Box className="mt-3 space-y-2">
-                  <Text className="font-medium">Field remaps</Text>
-                  <Box className="space-y-2">
-                    {fields.map((f) => {
-                      const key = f.name;
-                      return (
-                        <Box
-                          key={key}
-                          className="grid grid-cols-1 gap-2 md:grid-cols-2"
-                        >
-                          <Input
-                            disabled
-                            value={key}
-                            variant="inline"
-                            fullWidth
-                          />
-                          <Controller
-                            control={control}
-                            name={`definition.customization.field_names.${index}.mapping.${key}`}
-                            render={({ field }) => (
-                              <Input
-                                value={field.value ?? ''}
-                                onChange={(e) => field.onChange(e.target.value)}
-                                placeholder="new_field_name"
-                                hideEmptyHelperText
-                                autoComplete="off"
-                                variant="inline"
-                                fullWidth
-                              />
-                            )}
-                          />
-                        </Box>
-                      );
-                    })}
+                {fields.length > 0 && (
+                  <Box className="mt-3 space-y-2">
+                    <Text className="font-medium">Field remaps</Text>
+                    <Box className="space-y-2">
+                      {fields.map((f) => {
+                        const key = f.name;
+                        return (
+                          <Box
+                            key={key}
+                            className="grid grid-cols-1 gap-2 md:grid-cols-2"
+                          >
+                            <Input
+                              disabled
+                              value={key}
+                              variant="inline"
+                              fullWidth
+                            />
+                            <Controller
+                              control={control}
+                              name={`definition.customization.field_names.${index}.mapping.${key}`}
+                              render={({ field }) => (
+                                <Input
+                                  value={field.value ?? ''}
+                                  onChange={(e) =>
+                                    field.onChange(e.target.value)
+                                  }
+                                  placeholder="new_field_name"
+                                  hideEmptyHelperText
+                                  autoComplete="off"
+                                  variant="inline"
+                                  fullWidth
+                                />
+                              )}
+                            />
+                          </Box>
+                        );
+                      })}
+                    </Box>
                   </Box>
-                </Box>
+                )}
               </Box>
             );
           })}
