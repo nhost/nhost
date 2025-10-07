@@ -5,11 +5,13 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
+import useRedeliverEventMutation from '@/features/orgs/projects/events/event-triggers/hooks/useRedeliverEventMutation/useRedeliverEventMutation';
 import type { EventInvocationLogEntry } from '@/utils/hasura-api/generated/schemas/eventInvocationLogEntry';
 import type { Table as TanStackTable } from '@tanstack/react-table';
 import { CalendarSync, Eye } from 'lucide-react';
-import { useState, type Dispatch, type SetStateAction } from 'react';
+import { useState } from 'react';
 import InvocationLogDetailsDialogContent from './InvocationLogDetailsDialogContent';
+import type { EventTriggerInvocationLogsDataTableMeta } from './types';
 
 export default function InvocationLogActionsCell({
   row,
@@ -19,14 +21,11 @@ export default function InvocationLogActionsCell({
   table: TanStackTable<EventInvocationLogEntry>;
 }) {
   const meta = table.options.meta as
-    | {
-        onView?: (row: EventInvocationLogEntry) => void;
-        selectedLog?: EventInvocationLogEntry | null;
-        setSelectedLog?: Dispatch<
-          SetStateAction<EventInvocationLogEntry | null>
-        >;
-      }
+    | EventTriggerInvocationLogsDataTableMeta
     | undefined;
+
+  const { mutateAsync: redeliverEvent, isLoading: isRedelivering } =
+    useRedeliverEventMutation();
 
   const [open, setOpen] = useState(false);
 
@@ -39,7 +38,13 @@ export default function InvocationLogActionsCell({
     }
   };
 
-  const handleRedeliver = () => {};
+  const handleRedeliver = async () => {
+    await redeliverEvent({
+      args: {
+        event_id: row.event_id,
+      },
+    });
+  };
 
   return (
     <div className="flex items-center gap-1">
@@ -50,7 +55,7 @@ export default function InvocationLogActionsCell({
             size="sm"
             onClick={handleRedeliver}
             className="-ml-1 h-8 w-8 p-0"
-            disabled
+            disabled={isRedelivering}
           >
             <CalendarSync className="h-4 w-4" />
           </Button>
