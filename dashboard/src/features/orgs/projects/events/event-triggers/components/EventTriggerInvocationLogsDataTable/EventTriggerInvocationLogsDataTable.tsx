@@ -23,6 +23,7 @@ import {
 } from '@tanstack/react-table';
 import { useState } from 'react';
 import columns from './invocationDataTableColumns';
+import type { EventTriggerInvocationLogsDataTableMeta } from './types';
 
 interface EventTriggerInvocationLogsDataTableProps {
   eventId: string;
@@ -80,7 +81,7 @@ export default function EventTriggerInvocationLogsDataTable({
       onView: (row: EventInvocationLogEntry) => setSelectedLog(row),
       selectedLog,
       setSelectedLog,
-    },
+    } satisfies EventTriggerInvocationLogsDataTableMeta,
   });
 
   return (
