@@ -15,8 +15,9 @@ import {
   type TreeRef,
 } from 'react-complex-tree';
 import 'react-complex-tree/lib/style-modern.css';
+import getText from './getText';
 import type { ComplexTreeData } from './types';
-import { buildComplexTreeData, getText, highlightNode } from './utils';
+import { buildComplexTreeData, highlightNode } from './utils';
 
 export interface RemoteSchemaTreeProps {
   /**

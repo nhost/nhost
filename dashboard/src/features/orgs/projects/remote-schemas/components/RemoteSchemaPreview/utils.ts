@@ -223,23 +223,6 @@ export const buildComplexTreeData = ({
   return treeData;
 };
 
-export const getText = (data: any): string => {
-  if (React.isValidElement<{ children?: React.ReactNode }>(data)) {
-    const { children } = data.props;
-    if (Array.isArray(children)) {
-      return children.map(getText).join('');
-    }
-    if (children === undefined || children === null) {
-      return '';
-    }
-    return getText(children);
-  }
-  if (typeof data === 'string' || typeof data === 'number') {
-    return String(data);
-  }
-  return String(data);
-};
-
 export const highlightNode = (
   node: React.ReactNode,
   term?: string,
