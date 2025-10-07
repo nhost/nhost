@@ -1,7 +1,4 @@
 import type {
-  HeadersItem,
-  HeaderWithEnv,
-  HeaderWithValue,
   RemoteSchemaDefinition,
   RemoteSchemaDefinitionFromEnv,
   RemoteSchemaDefinitionFromUrl,
@@ -9,18 +6,6 @@ import type {
   ToRemoteSchemaRelationshipDefinition,
   ToSourceRelationshipDefinition,
 } from '@/utils/hasura-api/generated/schemas';
-
-export function isHeaderWithEnvValue(
-  header: HeadersItem,
-): header is HeaderWithEnv {
-  return 'value_from_env' in header && !('value' in header);
-}
-
-export function isHeaderWithValue(
-  header: HeadersItem,
-): header is HeaderWithValue {
-  return !('value_from_env' in header) && 'value' in header;
-}
 
 export function isRemoteSchemaFromEnvDefinition(
   definition: RemoteSchemaDefinition,
