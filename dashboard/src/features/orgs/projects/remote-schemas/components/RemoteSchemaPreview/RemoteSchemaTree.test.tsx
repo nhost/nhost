@@ -205,43 +205,45 @@ describe('RemoteSchemaTree', () => {
     ).toBeInTheDocument();
   });
 
-  it('findItemPath returns the path to the first matching item', () => {
+  it('findAllItemPaths returns paths to matching items', () => {
     const ref = React.createRef<RemoteSchemaTreeRef>();
     render(<RemoteSchemaTree ref={ref} schema={schema} />);
 
     expect(ref.current).toBeTruthy();
 
-    const helloPath = ref.current!.findItemPath('hello');
-    expect(helloPath?.[helloPath.length - 1]).toEqual('__query.field.hello');
+    const helloPaths = ref.current!.findAllItemPaths('hello');
+    expect(helloPaths[0]?.[helloPaths[0].length - 1]).toEqual(
+      '__query.field.hello',
+    );
 
-    const postByIdPath = ref.current!.findItemPath('postById');
-    expect(postByIdPath?.[postByIdPath.length - 1]).toEqual(
+    const postByIdPaths = ref.current!.findAllItemPaths('postById');
+    expect(postByIdPaths[0]?.[postByIdPaths[0].length - 1]).toEqual(
       '__subscription.field.postById',
     );
   });
 
-  it('findItemPath is case-insensitive and returns full path including parents', () => {
+  it('findAllItemPaths is case-insensitive and returns full path including parents', () => {
     const ref = React.createRef<RemoteSchemaTreeRef>();
     render(<RemoteSchemaTree ref={ref} schema={schema} />);
 
-    const helloPath = ref.current!.findItemPath('HELLO');
-    expect(helloPath).toEqual(['root', '__query', '__query.field.hello']);
+    const helloPaths = ref.current!.findAllItemPaths('HELLO');
+    expect(helloPaths[0]).toEqual(['root', '__query', '__query.field.hello']);
   });
 
-  it('findItemPath can match a parent item (e.g., Mutation)', () => {
+  it('findAllItemPaths can match a parent item (e.g., Mutation)', () => {
     const ref = React.createRef<RemoteSchemaTreeRef>();
     render(<RemoteSchemaTree ref={ref} schema={schema} />);
 
-    const mutationPath = ref.current!.findItemPath('Mutation');
-    expect(mutationPath).toEqual(['root', '__mutation']);
+    const mutationPaths = ref.current!.findAllItemPaths('Mutation');
+    expect(mutationPaths[0]).toEqual(['root', '__mutation']);
   });
 
-  it('findItemPath returns null when no item matches', () => {
+  it('findAllItemPaths returns empty array when no item matches', () => {
     const ref = React.createRef<RemoteSchemaTreeRef>();
     render(<RemoteSchemaTree ref={ref} schema={schema} />);
 
-    const noMatch = ref.current!.findItemPath('THIS_DOES_NOT_EXIST');
-    expect(noMatch).toBeNull();
+    const noMatches = ref.current!.findAllItemPaths('THIS_DOES_NOT_EXIST');
+    expect(noMatches).toEqual([]);
   });
 
   it('renders correctly when schema uses custom root type names', async () => {
