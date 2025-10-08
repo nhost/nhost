@@ -5,8 +5,9 @@
  * API for managing remote schemas and events in Hasura
  * OpenAPI spec version: 1.0.0
  */
+import type { BodyTransform } from './bodyTransform';
 
 /**
- * The key/value pairs to be used in a x-www-url-formencoded body. The values can be transfomation templates.
+ * A template script for transforming the request body.
  */
-export type BodyTransformFormTemplate = { [key: string]: string };
+export type RequestTransformationBody = string | BodyTransform;
