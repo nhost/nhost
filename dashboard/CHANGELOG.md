@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [@nhost/dashboard@2.38.3] - 2025-10-07
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Show paused banner in remote schemas/database page if project is paused (#3557)
+- *(dashboard)* Show paused banner in Run page (#3564)
+- *(dashboard)* Remote schema edit graphql customizations, default value for root field namespace is empty (#3565)
+- *(dashboard)* Improve remote schema preview search (#3558)
+
 ## [@nhost/dashboard@2.38.2] - 2025-09-30
 
 ### 🐛 Bug Fixes

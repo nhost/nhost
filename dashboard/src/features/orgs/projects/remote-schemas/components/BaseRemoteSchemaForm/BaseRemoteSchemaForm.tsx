@@ -186,6 +186,8 @@ export default function BaseRemoteSchemaForm({
           </Text>
           <ForwardClientHeadersToggle />
           <AdditionalHeadersEditor />
+        </Box>
+        <Box className="border-t-1 px-6 py-6">
           {graphQLCustomizationsSlot ?? <GraphQLCustomizations />}
         </Box>
       </div>

@@ -21,6 +21,8 @@ let
         "${submodule}/react-apollo/pnpm-lock.yaml"
         "${submodule}/react-query/package.json"
         "${submodule}/react-query/pnpm-lock.yaml"
+        "${submodule}/react-urql/package.json"
+        "${submodule}/react-urql/pnpm-lock.yaml"
       ];
     };
 
