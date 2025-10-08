@@ -1,9 +1,4 @@
-import {
-  type UseMutationOptions,
-  type UseQueryOptions,
-  useMutation,
-  useQuery,
-} from "@tanstack/react-query";
+import type { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/core";
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = {
@@ -24,31 +19,6 @@ export type Incremental<T> =
   | {
       [P in keyof T]?: P extends " $fragmentName" | "__typename" ? T[P] : never;
     };
-
-function fetcher<TData, TVariables>(
-  endpoint: string,
-  requestInit: RequestInit,
-  query: string,
-  variables?: TVariables,
-) {
-  return async (): Promise<TData> => {
-    const res = await fetch(endpoint, {
-      method: "POST",
-      ...requestInit,
-      body: JSON.stringify({ query, variables }),
-    });
-
-    const json = await res.json();
-
-    if (json.errors) {
-      const { message } = json.errors[0];
-
-      throw new Error(message);
-    }
-
-    return json.data;
-  };
-}
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
   ID: { input: string; output: string };
@@ -6875,129 +6845,159 @@ export type AddCommentMutation = {
   } | null;
 };
 
-export const GetNinjaTurtlesWithCommentsDocument = `
-    query GetNinjaTurtlesWithComments {
-  ninjaTurtles {
-    id
-    name
-    description
-    createdAt
-    updatedAt
-    comments {
-      id
-      comment
-      createdAt
-      user {
-        id
-        displayName
-        email
-      }
-    }
-  }
-}
-    `;
-
-export const useGetNinjaTurtlesWithCommentsQuery = <
-  TData = GetNinjaTurtlesWithCommentsQuery,
-  TError = unknown,
->(
-  dataSource: { endpoint: string; fetchParams?: RequestInit },
-  variables?: GetNinjaTurtlesWithCommentsQueryVariables,
-  options?: Omit<
-    UseQueryOptions<GetNinjaTurtlesWithCommentsQuery, TError, TData>,
-    "queryKey"
-  > & {
-    queryKey?: UseQueryOptions<
-      GetNinjaTurtlesWithCommentsQuery,
-      TError,
-      TData
-    >["queryKey"];
-  },
-) => {
-  return useQuery<GetNinjaTurtlesWithCommentsQuery, TError, TData>({
-    queryKey:
-      variables === undefined
-        ? ["GetNinjaTurtlesWithComments"]
-        : ["GetNinjaTurtlesWithComments", variables],
-    queryFn: fetcher<
-      GetNinjaTurtlesWithCommentsQuery,
-      GetNinjaTurtlesWithCommentsQueryVariables
-    >(
-      dataSource.endpoint,
-      dataSource.fetchParams || {},
-      GetNinjaTurtlesWithCommentsDocument,
-      variables,
-    ),
-    ...options,
-  });
-};
-
-useGetNinjaTurtlesWithCommentsQuery.getKey = (
-  variables?: GetNinjaTurtlesWithCommentsQueryVariables,
-) =>
-  variables === undefined
-    ? ["GetNinjaTurtlesWithComments"]
-    : ["GetNinjaTurtlesWithComments", variables];
-
-useGetNinjaTurtlesWithCommentsQuery.fetcher = (
-  dataSource: { endpoint: string; fetchParams?: RequestInit },
-  variables?: GetNinjaTurtlesWithCommentsQueryVariables,
-) =>
-  fetcher<
-    GetNinjaTurtlesWithCommentsQuery,
-    GetNinjaTurtlesWithCommentsQueryVariables
-  >(
-    dataSource.endpoint,
-    dataSource.fetchParams || {},
-    GetNinjaTurtlesWithCommentsDocument,
-    variables,
-  );
-
-export const AddCommentDocument = `
-    mutation AddComment($ninjaTurtleId: uuid!, $comment: String!) {
-  insertComment(object: {ninjaTurtleId: $ninjaTurtleId, comment: $comment}) {
-    id
-    comment
-    createdAt
-    ninjaTurtleId
-  }
-}
-    `;
-
-export const useAddCommentMutation = <TError = unknown, TContext = unknown>(
-  dataSource: { endpoint: string; fetchParams?: RequestInit },
-  options?: UseMutationOptions<
-    AddCommentMutation,
-    TError,
-    AddCommentMutationVariables,
-    TContext
-  >,
-) => {
-  return useMutation<
-    AddCommentMutation,
-    TError,
-    AddCommentMutationVariables,
-    TContext
-  >({
-    mutationKey: ["AddComment"],
-    mutationFn: (variables?: AddCommentMutationVariables) =>
-      fetcher<AddCommentMutation, AddCommentMutationVariables>(
-        dataSource.endpoint,
-        dataSource.fetchParams || {},
-        AddCommentDocument,
-        variables,
-      )(),
-    ...options,
-  });
-};
-
-useAddCommentMutation.fetcher = (
-  dataSource: { endpoint: string; fetchParams?: RequestInit },
-  variables: AddCommentMutationVariables,
-) =>
-  fetcher<AddCommentMutation, AddCommentMutationVariables>(
-    dataSource.endpoint,
-    dataSource.fetchParams || {},
-    AddCommentDocument,
-    variables,
-  );
+export const GetNinjaTurtlesWithCommentsDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "GetNinjaTurtlesWithComments" },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "ninjaTurtles" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "name" } },
+                { kind: "Field", name: { kind: "Name", value: "description" } },
+                { kind: "Field", name: { kind: "Name", value: "createdAt" } },
+                { kind: "Field", name: { kind: "Name", value: "updatedAt" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "comments" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "comment" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "createdAt" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "user" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "id" },
+                            },
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "displayName" },
+                            },
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "email" },
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  GetNinjaTurtlesWithCommentsQuery,
+  GetNinjaTurtlesWithCommentsQueryVariables
+>;
+export const AddCommentDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "AddComment" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "ninjaTurtleId" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: { kind: "NamedType", name: { kind: "Name", value: "uuid" } },
+          },
+        },
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "comment" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "insertComment" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "object" },
+                value: {
+                  kind: "ObjectValue",
+                  fields: [
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "ninjaTurtleId" },
+                      value: {
+                        kind: "Variable",
+                        name: { kind: "Name", value: "ninjaTurtleId" },
+                      },
+                    },
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "comment" },
+                      value: {
+                        kind: "Variable",
+                        name: { kind: "Name", value: "comment" },
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "comment" } },
+                { kind: "Field", name: { kind: "Name", value: "createdAt" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "ninjaTurtleId" },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<AddCommentMutation, AddCommentMutationVariables>;

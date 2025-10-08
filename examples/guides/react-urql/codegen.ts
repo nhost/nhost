@@ -15,11 +15,7 @@ const config: CodegenConfig = {
   generates: {
     "./src/lib/graphql/__generated__/graphql.ts": {
       documents: ["src/lib/graphql/**/*.graphql"],
-      plugins: [
-        "typescript",
-        "typescript-operations",
-        "typescript-react-query",
-      ],
+      plugins: ["typescript", "typescript-operations", "typed-document-node"],
       config: {
         scalars: {
           UUID: "string",
@@ -30,10 +26,7 @@ const config: CodegenConfig = {
           bytea: "Buffer",
           citext: "string",
         },
-        exposeQueryKeys: true,
-        exposeFetcher: true,
         useTypeImports: true,
-        reactQueryVersion: 5,
       },
     },
     "./schema.graphql": {
