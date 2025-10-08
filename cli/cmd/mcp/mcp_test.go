@@ -185,8 +185,7 @@ config validate after making changes to your nhost.toml file to ensure it is val
 						Type: "object",
 						Properties: map[string]any{
 							"role": map[string]any{
-								"default":     string("user"),
-								"description": string("Role to use when fetching the schema"),
+								"description": string("role to use when executing queries. Keep in mind the schema depends on the role so if you retrieved the schema for a different role previously retrieve it for this role beforehand as it might differ"),
 								"type":        string("string"),
 							},
 							"subdomain": map[string]any{
@@ -194,8 +193,21 @@ config validate after making changes to your nhost.toml file to ensure it is val
 								"enum":        []any{string("local"), string("asdasdasdasdasd"), string("qweqweqweqweqwe")},
 								"type":        string("string"),
 							},
+							"mutations": map[string]any{
+								"description": string("list of mutations to fetch"),
+								"type":        string("array"),
+							},
+							"queries": map[string]any{
+								"description": string("list of queries to fetch"),
+								"type":        string("array"),
+							},
+							"summary": map[string]any{
+								"default":     bool(true),
+								"description": string("only return a summary of the schema"),
+								"type":        string("boolean"),
+							},
 						},
-						Required: []string{"subdomain"},
+						Required: []string{"role", "subdomain"},
 					},
 					Annotations: mcp.ToolAnnotation{
 						Title:           "Get GraphQL/API schema for various services",
@@ -225,9 +237,8 @@ config validate after making changes to your nhost.toml file to ensure it is val
 								},
 							},
 							"role": map[string]any{
-								"description": "role to use when executing queries. Default to user but make sure the user is aware. Keep in mind the schema depends on the role so if you retrieved the schema for a different role previously retrieve it for this role beforehand as it might differ",
+								"description": "role to use when executing queries. Keep in mind the schema depends on the role so if you retrieved the schema for a different role previously retrieve it for this role beforehand as it might differ",
 								"type":        "string",
-								"default":     "user",
 							},
 							"userId": map[string]any{
 								"description": string("Overrides X-Hasura-User-Id in the GraphQL query/mutation. Credentials must allow it (i.e. admin secret must be in use)"),
@@ -238,7 +249,7 @@ config validate after making changes to your nhost.toml file to ensure it is val
 								"type":        "string",
 							},
 						},
-						Required: []string{"query", "subdomain"},
+						Required: []string{"query", "subdomain", "role"},
 					},
 					Annotations: mcp.ToolAnnotation{
 						Title:           "Perform GraphQL Query on Nhost Project running on Nhost Cloud",
