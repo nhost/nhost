@@ -96,8 +96,14 @@ func TestStart(t *testing.T) { //nolint:cyclop,maintidx,paralleltest
 				Experimental: nil,
 				Logging:      nil,
 				Prompts:      nil,
-				Resources:    nil,
-				Sampling:     nil,
+				Resources: &struct {
+					Subscribe   bool "json:\"subscribe,omitempty\""
+					ListChanged bool "json:\"listChanged,omitempty\""
+				}{
+					Subscribe:   false,
+					ListChanged: false,
+				},
+				Sampling: nil,
 				Tools: &struct {
 					ListChanged bool "json:\"listChanged,omitempty\""
 				}{
@@ -296,24 +302,60 @@ func TestStart(t *testing.T) { //nolint:cyclop,maintidx,paralleltest
 		t.Errorf("ListToolsResult mismatch (-want +got):\n%s", diff)
 	}
 
-	if res.Capabilities.Resources != nil {
-		resources, err := mcpClient.ListResources(
-			context.Background(),
-			mcp.ListResourcesRequest{}, //nolint:exhaustruct
-		)
-		if err != nil {
-			t.Fatalf("failed to list resources: %v", err)
-		}
+	resources, err := mcpClient.ListResources(
+		context.Background(),
+		mcp.ListResourcesRequest{}, //nolint:exhaustruct
+	)
+	if err != nil {
+		t.Fatalf("failed to list resources: %v", err)
+	}
 
-		if diff := cmp.Diff(
-			resources,
-			//nolint:exhaustruct
-			&mcp.ListResourcesResult{
-				Resources: []mcp.Resource{},
+	if diff := cmp.Diff(
+		resources,
+		//nolint:exhaustruct
+		&mcp.ListResourcesResult{
+			Resources: []mcp.Resource{
+				{
+					Annotated: mcp.Annotated{
+						Annotations: &mcp.Annotations{
+							Audience: []mcp.Role{"agent"},
+							Priority: 9,
+						},
+					},
+					URI:         "schema://graphql-management",
+					Name:        "graphql-management",
+					Description: "",
+					MIMEType:    "text/plain",
+				},
+
+				{
+					Annotated: mcp.Annotated{
+						Annotations: &mcp.Annotations{
+							Audience: []mcp.Role{"agent"},
+							Priority: 9,
+						},
+					},
+					URI:         "schema://nhost-cloud",
+					Name:        "nhost-cloud",
+					Description: "",
+					MIMEType:    "text/plain",
+				},
+				{
+					Annotated: mcp.Annotated{
+						Annotations: &mcp.Annotations{
+							Audience: []mcp.Role{"agent"},
+							Priority: 9,
+						},
+					},
+					URI:         "schema://nhost.toml",
+					Name:        "nhost.toml",
+					Description: "",
+					MIMEType:    "text/plain",
+				},
 			},
-		); diff != "" {
-			t.Errorf("ListResourcesResult mismatch (-want +got):\n%s", diff)
-		}
+		},
+	); diff != "" {
+		t.Errorf("ListResourcesResult mismatch (-want +got):\n%s", diff)
 	}
 
 	if res.Capabilities.Prompts != nil {

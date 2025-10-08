@@ -24,7 +24,7 @@ const (
 
 		## Metadata changes
 
-		* When changing metadata always use the /apis/migrate endpoint
+		* When changing metadata ALWAYS use the /apis/migrate endpoint
 		* Always perform a bulk request to avoid
 		  having to perform multiple requests
 		* The admin user always has full permissions to everything by default, no need to configure
@@ -56,6 +56,7 @@ const (
 type ManageGraphqlRequest struct {
 	Body      string `json:"body"`
 	Subdomain string `json:"subdomain"`
+	Path      string `json:"path"`
 }
 
 func (t *Tool) registerManageGraphql(mcpServer *server.MCPServer) {
@@ -75,6 +76,11 @@ func (t *Tool) registerManageGraphql(mcpServer *server.MCPServer) {
 			"subdomain",
 			mcp.Description("Project to perform the GraphQL management operation against"),
 			mcp.Enum(t.cfg.Projects.Subdomains()...),
+			mcp.Required(),
+		),
+		mcp.WithString(
+			"path",
+			mcp.Description("The path for the HTTP request"),
 			mcp.Required(),
 		),
 		mcp.WithString(
@@ -165,7 +171,7 @@ func (t *Tool) handleManageGraphql(
 	}
 
 	response, err := genericQuery(
-		ctx, project.GetHasuraURL(), args.Body, http.MethodPost, headers, interceptors,
+		ctx, project.GetHasuraURL()+args.Path, args.Body, http.MethodPost, headers, interceptors,
 	)
 	if err != nil {
 		return mcp.NewToolResultErrorFromErr("failed to execute query", err), nil

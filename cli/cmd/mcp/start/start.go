@@ -8,6 +8,7 @@ import (
 	"github.com/nhost/nhost/cli/clienv"
 	"github.com/nhost/nhost/cli/mcp/config"
 	"github.com/nhost/nhost/cli/mcp/nhost/auth"
+	"github.com/nhost/nhost/cli/mcp/resources"
 	"github.com/nhost/nhost/cli/mcp/tools/cloud"
 	"github.com/nhost/nhost/cli/mcp/tools/docs"
 	"github.com/nhost/nhost/cli/mcp/tools/project"
@@ -25,21 +26,20 @@ const (
 	// this seems to be largely ignored by clients, or at least by cursor.
 	// we also need to look into roots and resources as those might be helpful.
 	ServerInstructions = `
-This is an MCP server to interact with Nhost Cloud and with projects running on it and
-also with Nhost local development projects.
+This is an MCP server to interact with the Nhost Cloud and with Nhost projects.
 
 Important notes to anyone using this MCP server. Do not use this MCP server without
 following these instructions:
 
 1. Make sure you are clear on which environment the user wants to operate against.
-2. Before attempting to call any tool *-graphql-query, always make sure you read the various
-   resources and use the get-schema tool to get the required schemas
-3. Apps and projects are the same and while users may talk about projects in the GraphQL
+2. Before attempting to call any tool, always make sure you list resources, roots, and
+   resource templates to understand what is available.
+3. Apps and projects are the same and while users may talk about projects in Nhost's GraphQL
    api those are referred as apps.
-4. IDs are always UUIDs so if you have anything else (like an app/project name) you may need
-   to first get the ID using the *-graphql-query tool.
-5. If you have an error querying the GraphQL API, please check the schema again. The schema may
+4. If you have an error querying the GraphQL API, please check the schema again. The schema may
    have changed and the query you are using may be invalid.
+5. Always follow the instructions provided by each tool. If you need to deviate from these
+   instructions, please, confirm with the user before doing so.
 `
 )
 
@@ -90,6 +90,10 @@ func action(ctx context.Context, cmd *cli.Command) error {
 		cmd.Root().Version,
 		server.WithInstructions(ServerInstructions),
 	)
+
+	if err := resources.Register(cfg, mcpServer); err != nil {
+		return cli.Exit(fmt.Sprintf("failed to register resources: %s", err), 1)
+	}
 
 	if cfg.Cloud != nil {
 		if err := registerCloud(
