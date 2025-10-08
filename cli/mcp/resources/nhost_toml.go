@@ -11,10 +11,11 @@ import (
 //go:embed nhost_toml_schema.cue
 var schemaNhostToml string
 
-const NhostTomlURI = "schema://nhost.toml"
-
-const NhostTomlDescription = `Cuelang schema for the nhost.toml configuration file. Run nhost
+const (
+	NhostTomlResourceURI         = "schema://nhost.toml"
+	NhostTomlResourceDescription = `Cuelang schema for the nhost.toml configuration file. Run nhost
 config validate after making changes to your nhost.toml file to ensure it is valid.`
+)
 
 type NhostToml struct{}
 
@@ -25,7 +26,7 @@ func NewNhostToml() *NhostToml {
 func (t *NhostToml) Register(server *server.MCPServer) {
 	server.AddResource(
 		mcp.Resource{
-			URI:  NhostTomlURI,
+			URI:  NhostTomlResourceURI,
 			Name: "nhost.toml",
 			Annotated: mcp.Annotated{
 				Annotations: &mcp.Annotations{
@@ -33,7 +34,7 @@ func (t *NhostToml) Register(server *server.MCPServer) {
 					Priority: 9.0, //nolint:mnd
 				},
 			},
-			Description: NhostTomlDescription,
+			Description: NhostTomlResourceDescription,
 			MIMEType:    "text/plain",
 			Meta:        nil,
 		},

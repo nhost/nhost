@@ -8,9 +8,12 @@ import (
 	"github.com/nhost/nhost/cli/mcp/nhost/graphql"
 )
 
-const GraphqlManagementDescription = `GraphQL's management schema for an Nhost project.
+const (
+	GraphqlManagementResourceURI = "schema://graphql-management"
+	GraphqlManagementDescription = `GraphQL's management schema for an Nhost project.
 This tool is useful to properly understand how manage hasura metadata, migrations,
 permissions, remote schemas, etc.`
+)
 
 type GraphqlManagement struct{}
 
@@ -21,7 +24,7 @@ func NewGraphqlManagement() *GraphqlManagement {
 func (t *GraphqlManagement) Register(server *server.MCPServer) {
 	server.AddResource(
 		mcp.Resource{
-			URI:  "schema://graphql-management",
+			URI:  GraphqlManagementResourceURI,
 			Name: "graphql-management",
 			Annotated: mcp.Annotated{
 				Annotations: &mcp.Annotations{

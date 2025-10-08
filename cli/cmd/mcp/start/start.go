@@ -83,7 +83,10 @@ func action(ctx context.Context, cmd *cli.Command) error {
 	}
 
 	ServerInstructions := ServerInstructions
+	ServerInstructions += "\n\n"
 	ServerInstructions += cfg.Projects.Instructions()
+	ServerInstructions += "\n"
+	ServerInstructions += resources.Instructions()
 
 	mcpServer := server.NewMCPServer(
 		cmd.Root().Name,

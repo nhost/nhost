@@ -69,9 +69,9 @@ func (t *Tool) registerGraphqlQuery(mcpServer *server.MCPServer) {
 		mcp.WithString(
 			"role",
 			mcp.Description(
-				"role to use when executing queries. Default to user but make sure the user is aware. Keep in mind the schema depends on the role so if you retrieved the schema for a different role previously retrieve it for this role beforehand as it might differ", //nolint:lll
+				"role to use when executing queries. Keep in mind the schema depends on the role so if you retrieved the schema for a different role previously retrieve it for this role beforehand as it might differ", //nolint:lll
 			),
-			mcp.DefaultString("user"),
+			mcp.Required(),
 		),
 		mcp.WithString(
 			"userId",

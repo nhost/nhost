@@ -25,8 +25,28 @@ type GetGraphqlSchemaRequest struct {
 	ProjectSubdomain string `json:"projectSubdomain"`
 }
 
+func toQueries(q []string) []graphql.Queries {
+	if q == nil {
+		return nil
+	}
+
+	queries := make([]graphql.Queries, len(q))
+	for i, v := range q {
+		queries[i] = graphql.Queries{
+			Name:           v,
+			DisableNesting: false,
+		}
+	}
+
+	return queries
+}
+
 func (t *Tool) handleProjectGraphqlSchema(
-	ctx context.Context, role string, subdomain string,
+	ctx context.Context,
+	role string,
+	subdomain string,
+	summary bool,
+	queries, mutations []string,
 ) (string, error) {
 	project, err := t.cfg.Projects.Get(subdomain)
 	if err != nil {
@@ -50,20 +70,25 @@ func (t *Tool) handleProjectGraphqlSchema(
 		graphql.IntrospectionQuery,
 		nil,
 		&introspection,
-		nil,
+		[]string{"*"},
 		nil,
 		interceptors...,
 	); err != nil {
 		return "", fmt.Errorf("failed to query GraphQL schema: %w", err)
 	}
 
-	schema := graphql.ParseSchema(
-		introspection,
-		graphql.Filter{
-			AllowQueries:   nil,
-			AllowMutations: nil,
-		},
-	)
+	var schema string
+	if summary {
+		schema = graphql.SummarizeSchema(introspection)
+	} else {
+		schema = graphql.ParseSchema(
+			introspection,
+			graphql.Filter{
+				AllowQueries:   toQueries(queries),
+				AllowMutations: toQueries(mutations),
+			},
+		)
+	}
 
 	return schema, nil
 }

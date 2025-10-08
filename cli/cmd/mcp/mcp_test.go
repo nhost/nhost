@@ -14,6 +14,7 @@ import (
 	nhostmcp "github.com/nhost/nhost/cli/cmd/mcp"
 	"github.com/nhost/nhost/cli/cmd/mcp/start"
 	"github.com/nhost/nhost/cli/cmd/user"
+	"github.com/nhost/nhost/cli/mcp/resources"
 	"github.com/nhost/nhost/cli/mcp/tools/cloud"
 	"github.com/nhost/nhost/cli/mcp/tools/docs"
 	"github.com/nhost/nhost/cli/mcp/tools/project"
@@ -114,10 +115,22 @@ func TestStart(t *testing.T) { //nolint:cyclop,maintidx,paralleltest
 				Name:    "mcp",
 				Version: "",
 			},
-			Instructions: start.ServerInstructions + `Configured projects:
+			Instructions: start.ServerInstructions + `
+
+Configured projects:
 - local (local): Local development project running via the Nhost CLI
 - asdasdasdasdasd (eu-central-1): Staging project for my awesome app
 - qweqweqweqweqwe (us-east-1): Production project for my awesome app
+
+The following resources are available:
+
+- schema://nhost-cloud: Schema to interact with the Nhost Cloud. Projects are equivalent
+to apps in the schema. IDs are typically uuids.
+- schema://graphql-management: GraphQL's management schema for an Nhost project.
+This tool is useful to properly understand how manage hasura metadata, migrations,
+permissions, remote schemas, etc.
+- schema://nhost.toml: Cuelang schema for the nhost.toml configuration file. Run nhost
+config validate after making changes to your nhost.toml file to ensure it is valid.
 `,
 			Result: mcp.Result{
 				Meta: nil,
@@ -173,15 +186,8 @@ func TestStart(t *testing.T) { //nolint:cyclop,maintidx,paralleltest
 						Properties: map[string]any{
 							"role": map[string]any{
 								"default":     string("user"),
-								"description": string("Role to use when fetching the schema. Useful only services `local` and `project`"),
+								"description": string("Role to use when fetching the schema"),
 								"type":        string("string"),
-							},
-							"service": map[string]any{
-								"enum": []any{
-									string("nhost"), string("config-schema"), string("graphql-management"),
-									string("project"),
-								},
-								"type": string("string"),
 							},
 							"subdomain": map[string]any{
 								"description": string("Project to get the GraphQL schema for. Required when service is `project`"),
@@ -189,7 +195,7 @@ func TestStart(t *testing.T) { //nolint:cyclop,maintidx,paralleltest
 								"type":        string("string"),
 							},
 						},
-						Required: []string{"service"},
+						Required: []string{"subdomain"},
 					},
 					Annotations: mcp.ToolAnnotation{
 						Title:           "Get GraphQL/API schema for various services",
@@ -252,6 +258,10 @@ func TestStart(t *testing.T) { //nolint:cyclop,maintidx,paralleltest
 								"description": "The body for the HTTP request",
 								"type":        "string",
 							},
+							"path": map[string]any{
+								"description": "The path for the HTTP request",
+								"type":        "string",
+							},
 							"subdomain": map[string]any{
 								"description": "Project to perform the GraphQL management operation against",
 								"type":        "string",
@@ -262,7 +272,7 @@ func TestStart(t *testing.T) { //nolint:cyclop,maintidx,paralleltest
 								},
 							},
 						},
-						Required: []string{"subdomain", "body"},
+						Required: []string{"subdomain", "path", "body"},
 					},
 					Annotations: mcp.ToolAnnotation{
 						Title:           "Manage GraphQL's Metadata on an Nhost Development Project",
@@ -302,7 +312,7 @@ func TestStart(t *testing.T) { //nolint:cyclop,maintidx,paralleltest
 		t.Errorf("ListToolsResult mismatch (-want +got):\n%s", diff)
 	}
 
-	resources, err := mcpClient.ListResources(
+	resourceList, err := mcpClient.ListResources(
 		context.Background(),
 		mcp.ListResourcesRequest{}, //nolint:exhaustruct
 	)
@@ -311,7 +321,7 @@ func TestStart(t *testing.T) { //nolint:cyclop,maintidx,paralleltest
 	}
 
 	if diff := cmp.Diff(
-		resources,
+		resourceList,
 		//nolint:exhaustruct
 		&mcp.ListResourcesResult{
 			Resources: []mcp.Resource{
@@ -324,7 +334,7 @@ func TestStart(t *testing.T) { //nolint:cyclop,maintidx,paralleltest
 					},
 					URI:         "schema://graphql-management",
 					Name:        "graphql-management",
-					Description: "",
+					Description: resources.GraphqlManagementDescription,
 					MIMEType:    "text/plain",
 				},
 
@@ -337,7 +347,7 @@ func TestStart(t *testing.T) { //nolint:cyclop,maintidx,paralleltest
 					},
 					URI:         "schema://nhost-cloud",
 					Name:        "nhost-cloud",
-					Description: "",
+					Description: resources.CloudDescription,
 					MIMEType:    "text/plain",
 				},
 				{
@@ -349,7 +359,7 @@ func TestStart(t *testing.T) { //nolint:cyclop,maintidx,paralleltest
 					},
 					URI:         "schema://nhost.toml",
 					Name:        "nhost.toml",
-					Description: "",
+					Description: resources.NhostTomlResourceDescription,
 					MIMEType:    "text/plain",
 				},
 			},

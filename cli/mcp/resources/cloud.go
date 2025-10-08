@@ -15,8 +15,11 @@ var schemaGraphql string
 //go:embed cloud_schema-with-mutations.graphql
 var schemaGraphqlWithMutations string
 
-const CloudDescription = `Schema to interact with the Nhost Cloud. Projects are equivalent
+const (
+	CloudResourceURI = "schema://nhost-cloud"
+	CloudDescription = `Schema to interact with the Nhost Cloud. Projects are equivalent
 to apps in the schema. IDs are typically uuids.`
+)
 
 type Cloud struct {
 	schema string
@@ -36,7 +39,7 @@ func NewCloud(cfg *config.Config) *Cloud {
 func (t *Cloud) Register(server *server.MCPServer) {
 	server.AddResource(
 		mcp.Resource{
-			URI:  "schema://nhost-cloud",
+			URI:  CloudResourceURI,
 			Name: "nhost-cloud",
 			Annotated: mcp.Annotated{
 				Annotations: &mcp.Annotations{

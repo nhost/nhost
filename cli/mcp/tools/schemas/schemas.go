@@ -47,16 +47,11 @@ func (t *Tool) Register(mcpServer *server.MCPServer) {
 			},
 		),
 		mcp.WithString(
-			"service",
-			mcp.Enum("project"),
-			mcp.Required(),
-		),
-		mcp.WithString(
 			"role",
 			mcp.Description(
-				"Role to use when fetching the schema. Useful only services `local` and `project`",
+				"role to use when executing queries. Keep in mind the schema depends on the role so if you retrieved the schema for a different role previously retrieve it for this role beforehand as it might differ", //nolint:lll
 			),
-			mcp.DefaultString("user"),
+			mcp.Required(),
 		),
 		mcp.WithString(
 			"subdomain",
@@ -64,6 +59,20 @@ func (t *Tool) Register(mcpServer *server.MCPServer) {
 				"Project to get the GraphQL schema for. Required when service is `project`",
 			),
 			mcp.Enum(t.cfg.Projects.Subdomains()...),
+			mcp.Required(),
+		),
+		mcp.WithBoolean(
+			"summary",
+			mcp.Description("only return a summary of the schema"),
+			mcp.DefaultBool(true),
+		),
+		mcp.WithArray(
+			"queries",
+			mcp.Description("list of queries to fetch"),
+		),
+		mcp.WithArray(
+			"mutations",
+			mcp.Description("list of mutations to fetch"),
 		),
 	)
 
@@ -71,25 +80,19 @@ func (t *Tool) Register(mcpServer *server.MCPServer) {
 }
 
 type HandleRequest struct {
-	Service   string `json:"service"`
-	Role      string `json:"role,omitempty"`
-	Subdomain string `json:"subdomain,omitempty"`
+	Role      string   `json:"role,omitempty"`
+	Subdomain string   `json:"subdomain,omitempty"`
+	Summary   bool     `json:"summary,omitempty"`
+	Queries   []string `json:"queries,omitempty"`
+	Mutations []string `json:"mutations,omitempty"`
 }
 
 func (t *Tool) handle(
 	ctx context.Context, _ mcp.CallToolRequest, args HandleRequest,
 ) (*mcp.CallToolResult, error) {
-	var (
-		schema string
-		err    error
+	schema, err := t.handleProjectGraphqlSchema(
+		ctx, args.Role, args.Subdomain, args.Summary, args.Queries, args.Mutations,
 	)
-	switch args.Service {
-	case "project":
-		schema, err = t.handleProjectGraphqlSchema(ctx, args.Role, args.Subdomain)
-	default:
-		return mcp.NewToolResultError("unknown service: " + args.Service), nil
-	}
-
 	if err != nil {
 		return mcp.NewToolResultError(err.Error()), nil
 	}

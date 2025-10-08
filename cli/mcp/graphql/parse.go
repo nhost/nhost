@@ -1,6 +1,7 @@
 package graphql
 
 import (
+	"encoding/json"
 	"fmt"
 	"sort"
 	"strings"
@@ -84,6 +85,30 @@ func ParseSchema(response ResponseIntrospection, filter Filter) string { //nolin
 	}
 
 	return render(neededQueries, neededMutations, neededTypes)
+}
+
+func SummarizeSchema(response ResponseIntrospection) string {
+	summary := map[string][]string{
+		"query": make([]string, len(response.Data.Schema.QueryType.Fields)),
+	}
+
+	for i, query := range response.Data.Schema.QueryType.Fields {
+		summary["query"][i] = query.Name
+	}
+
+	if response.Data.Schema.MutationType != nil {
+		summary["mutation"] = make([]string, len(response.Data.Schema.MutationType.Fields))
+		for _, mutation := range response.Data.Schema.MutationType.Fields {
+			summary["mutation"] = append(summary["mutation"], mutation.Name)
+		}
+	}
+
+	b, err := json.MarshalIndent(summary, "", "  ")
+	if err != nil {
+		return fmt.Sprintf("failed to marshal summary: %v", err)
+	}
+
+	return string(b)
 }
 
 func filterNestedArgs(

@@ -24,6 +24,10 @@ func checkAllowedOperation(
 	selectionSet ast.SelectionSet,
 	allowed []string,
 ) error {
+	if slices.Contains(allowed, "*") {
+		return nil
+	}
+
 	for _, v := range selectionSet {
 		if v, ok := v.(*ast.Field); ok {
 			if len(v.SelectionSet) > 0 && !slices.Contains(allowed, v.Name) {

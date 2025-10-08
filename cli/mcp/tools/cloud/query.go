@@ -59,7 +59,7 @@ func (t *Tool) handleGraphqlQuery(
 
 	allowedMutations := []string{}
 	if t.withMutations {
-		allowedMutations = nil
+		allowedMutations = []string{"*"}
 	}
 
 	var resp graphql.Response[any]
@@ -69,7 +69,7 @@ func (t *Tool) handleGraphqlQuery(
 		args.Query,
 		args.Variables,
 		&resp,
-		nil,
+		[]string{"*"},
 		allowedMutations,
 		t.interceptors...,
 	); err != nil {
