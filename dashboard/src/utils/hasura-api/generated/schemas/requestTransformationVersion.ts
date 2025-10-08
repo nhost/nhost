@@ -14,6 +14,6 @@ export type RequestTransformationVersion =
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const RequestTransformationVersion = {
-  NUMBER_1: 1,
-  NUMBER_2: 2,
+  NUMBER_1: '1',
+  NUMBER_2: '2',
 } as const;
