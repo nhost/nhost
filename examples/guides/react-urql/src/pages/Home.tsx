@@ -1,8 +1,8 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { type JSX, useState } from "react";
+import { useMutation, useQuery } from "urql";
 import {
-  useAddCommentMutation,
-  useGetNinjaTurtlesWithCommentsQuery,
+  AddCommentDocument,
+  GetNinjaTurtlesWithCommentsDocument,
 } from "../lib/graphql/__generated__/graphql";
 import { useAuth } from "../lib/nhost/AuthProvider";
 import "./Home.css";
@@ -13,24 +13,17 @@ export default function Home(): JSX.Element {
   const [commentText, setCommentText] = useState("");
   const [activeTabId, setActiveTabId] = useState<string | null>(null);
 
-  const queryClient = useQueryClient();
-
-  const {
-    data,
-    isLoading: loading,
-    error,
-  } = useGetNinjaTurtlesWithCommentsQuery();
-
-  const { mutate: addComment } = useAddCommentMutation({
-    onSuccess: () => {
-      setCommentText("");
-      setActiveCommentId(null);
-      // Invalidate and refetch the ninja turtles query to get updated data
-      queryClient.invalidateQueries({
-        queryKey: ["GetNinjaTurtlesWithComments"],
-      });
-    },
+  const [{ data, fetching: loading, error }] = useQuery({
+    query: GetNinjaTurtlesWithCommentsDocument,
   });
+
+  // Log the full error for debugging
+  if (error) {
+    console.error("GraphQL Error:", error);
+    console.error("GraphQL Error details:", JSON.stringify(error, null, 2));
+  }
+
+  const [, addComment] = useMutation(AddCommentDocument);
 
   // If authentication is still loading, show a loading state
   if (isLoading) {
@@ -41,13 +34,18 @@ export default function Home(): JSX.Element {
     );
   }
 
-  const handleAddComment = (turtleId: string) => {
+  const handleAddComment = async (turtleId: string) => {
     if (!commentText.trim()) return;
 
-    addComment({
+    const result = await addComment({
       ninjaTurtleId: turtleId,
       comment: commentText,
     });
+
+    if (!result.error) {
+      setCommentText("");
+      setActiveCommentId(null);
+    }
   };
 
   if (loading)

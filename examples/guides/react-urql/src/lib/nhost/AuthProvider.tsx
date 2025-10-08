@@ -65,7 +65,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   /**
    * Handles session reload when refresh token changes.
    * This detects when the session has been updated from other tabs.
-   * Unlike the Next.js version, this only updates local state without server synchronization.
    *
    * @param currentRefreshTokenId - The current refresh token ID to compare against stored value
    */

@@ -1,34 +1,32 @@
-# React Query with Nhost SDK
+# React with urql and Nhost SDK
 
-This guide demonstrates how to integrate GraphQL queries and mutations with React using TanStack Query (React Query) and the Nhost SDK.
+This guide demonstrates how to integrate GraphQL queries and mutations with React using urql and the Nhost SDK.
 
 ## Setup
 
 ### 1. Install Dependencies
 
 ```bash
-npm install @tanstack/react-query @nhost/nhost-js graphql
+npm install urql @urql/exchange-auth @nhost/nhost-js graphql @graphql-typed-document-node/core
 # or
-yarn add @tanstack/react-query @nhost/nhost-js graphql
+yarn add urql @urql/exchange-auth @nhost/nhost-js graphql @graphql-typed-document-node/core
 # or
-pnpm add @tanstack/react-query @nhost/nhost-js graphql
+pnpm add urql @urql/exchange-auth @nhost/nhost-js graphql @graphql-typed-document-node/core
 ```
 
-For development, add React Query DevTools:
+### 2. Install GraphQL CodeGen for Development
 
 ```bash
-npm install -D @tanstack/react-query-devtools
+npm install -D @graphql-codegen/cli @graphql-codegen/typescript @graphql-codegen/typescript-operations @graphql-codegen/typed-document-node @graphql-codegen/schema-ast
+# or
+yarn add -D @graphql-codegen/cli @graphql-codegen/typescript @graphql-codegen/typescript-operations @graphql-codegen/typed-document-node @graphql-codegen/schema-ast
+# or
+pnpm add -D @graphql-codegen/cli @graphql-codegen/typescript @graphql-codegen/typescript-operations @graphql-codegen/typed-document-node @graphql-codegen/schema-ast
 ```
 
-### 2. Generate Types with GraphQL CodeGen
+### 3. Configure GraphQL CodeGen
 
-Install GraphQL CodeGen:
-
-```bash
-npm install -D @graphql-codegen/cli @graphql-codegen/typescript @graphql-codegen/typescript-operations @graphql-codegen/schema-ast
-```
-
-Set up `codegen.ts`:
+Create a `codegen.ts` file in your project root:
 
 ```typescript
 import type { CodegenConfig } from "@graphql-codegen/cli";
@@ -48,11 +46,7 @@ const config: CodegenConfig = {
   generates: {
     "./src/lib/graphql/__generated__/graphql.ts": {
       documents: ["src/lib/graphql/**/*.graphql"],
-      plugins: [
-        "typescript",
-        "typescript-operations",
-        "typescript-react-query",
-      ],
+      plugins: ["typescript", "typescript-operations", "typed-document-node"],
       config: {
         scalars: {
           UUID: "string",
@@ -63,14 +57,7 @@ const config: CodegenConfig = {
           bytea: "Buffer",
           citext: "string",
         },
-        exposeQueryKeys: true,
-        exposeFetcher: true,
-        fetcher: {
-          func: "../queryHooks#useAuthenticatedFetcher",
-          isReactHook: true,
-        },
         useTypeImports: true,
-        reactQueryVersion: 5,
       },
     },
     "./schema.graphql": {
@@ -85,6 +72,16 @@ const config: CodegenConfig = {
 export default config;
 ```
 
+Add a script to your `package.json`:
+
+```json
+{
+  "scripts": {
+    "generate": "graphql-codegen --config codegen.ts"
+  }
+}
+```
+
 ## Integration Guide
 
 ### 1. Create an Auth Provider
@@ -92,17 +89,19 @@ export default config;
 Create an authentication context to manage the user session:
 
 ```typescript
-// src/lib/nhost/AuthProvider.tsx
+// src/lib/nhost/AuthProvider.tsx (see file for full code)
+import { createClient, type NhostClient } from "@nhost/nhost-js";
+import type { Session } from "@nhost/nhost-js/auth";
 import {
   createContext,
+  type ReactNode,
+  useCallback,
   useContext,
   useEffect,
-  useState,
   useMemo,
-  type ReactNode,
+  useRef,
+  useState,
 } from "react";
-import { createClient, type NhostClient } from "@nhost/nhost-js";
-import { type Session } from "@nhost/nhost-js/auth";
 
 interface AuthContextType {
   user: Session["user"] | null;
@@ -169,86 +168,82 @@ export const useAuth = (): AuthContextType => {
 };
 ```
 
-### 2. Create Query Provider
+### 2. Create urql Provider
 
-Set up React Query with the Nhost client:
-
-```typescript
-// src/lib/graphql/QueryProvider.tsx
-import { type ReactNode } from "react";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { QueryClient } from "@tanstack/react-query";
-
-interface QueryProviderProps {
-  children: ReactNode;
-}
-
-export function QueryProvider({ children }: QueryProviderProps) {
-  // Create the query client
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        staleTime: 10 * 1000, // 10 seconds
-        refetchOnWindowFocus: true,
-        retry: 1,
-      },
-    },
-  });
-
-  return (
-    <QueryClientProvider client={queryClient}>
-      {children}
-      <ReactQueryDevtools initialIsOpen={false} />
-    </QueryClientProvider>
-  );
-}
-```
-
-### 3. Create Authenticated Fetcher Hook
-
-Create a utility to make authenticated GraphQL requests with the Nhost client:
+Set up the urql client with authentication:
 
 ```typescript
-// src/lib/graphql/queryHooks.ts
-import { useCallback } from "react";
+// src/lib/graphql/UrqlProvider.tsx
+import { authExchange } from "@urql/exchange-auth";
+import type { ReactNode } from "react";
+import {
+  type Client,
+  cacheExchange,
+  createClient,
+  fetchExchange,
+  Provider,
+} from "urql";
 import { useAuth } from "../nhost/AuthProvider";
 
-// This wrapper returns a fetcher function that uses the authenticated nhost client
-export const useAuthenticatedFetcher = <TData, TVariables>(
-  document: string | { query: string; variables?: TVariables },
-) => {
+export const UrqlProvider = ({ children }: { children: ReactNode }) => {
   const { nhost } = useAuth();
 
-  return useCallback(
-    async (variables?: TVariables): Promise<TData> => {
-      // Handle both string format or document object format
-      const query = typeof document === "string" ? document : document.query;
-      const documentVariables =
-        typeof document === "object" ? document.variables : undefined;
-      const mergedVariables = variables || documentVariables;
+  const client: Client = createClient({
+    url:
+      import.meta.env.VITE_NHOST_GRAPHQL_URL ||
+      "https://local.graphql.local.nhost.run/v1",
+    // Force POST requests (Hasura interprets GET requests as persisted queries)
+    preferGetMethod: false,
+    exchanges: [
+      cacheExchange,
+      authExchange(async (utils) => {
+        return {
+          addAuthToOperation(operation) {
+            const session = nhost.getUserSession();
+            if (!session?.accessToken) {
+              return operation;
+            }
 
-      const resp = await nhost.graphql.request<TData>({
-        query,
-        variables: mergedVariables as Record<string, unknown>,
-      });
+            return utils.appendHeaders(operation, {
+              Authorization: `Bearer ${session.accessToken}`,
+            });
+          },
+          didAuthError(error) {
+            return error.graphQLErrors.some((e) =>
+              e.message.includes("JWTExpired"),
+            );
+          },
+          async refreshAuth() {
+            const currentSession = nhost.getUserSession();
+            if (!currentSession?.refreshToken) {
+              return;
+            }
 
-      if (!resp.body.data) {
-        throw new Error(
-          `Response does not contain data: ${JSON.stringify(resp.body)}`,
-        );
-      }
+            try {
+              await nhost.refreshSession(60);
+            } catch (e: unknown) {
+              console.error(
+                "Error refreshing session:",
+                e instanceof Error ? e : "Unknown error",
+              );
+              await nhost.auth.signOut({
+                refreshToken: currentSession.refreshToken,
+              });
+            }
+          },
+        };
+      }),
+      fetchExchange,
+    ],
+  });
 
-      return resp.body.data;
-    },
-    [nhost],
-  );
+  return <Provider value={client}>{children}</Provider>;
 };
 ```
 
-### 4. Set Up Your App Providers
+### 3. Set Up Your App Providers
 
-Wrap your application with the Auth and Query providers:
+Wrap your application with the Auth and urql providers:
 
 ```tsx
 // src/main.tsx
@@ -256,16 +251,15 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import App from "./App";
+import { UrqlProvider } from "./lib/graphql/UrqlProvider";
 import { AuthProvider } from "./lib/nhost/AuthProvider";
-import { QueryProvider } from "./lib/graphql/QueryProvider";
 
-// Root component that sets up providers
 const Root = () => (
   <React.StrictMode>
     <AuthProvider>
-      <QueryProvider>
+      <UrqlProvider>
         <App />
-      </QueryProvider>
+      </UrqlProvider>
     </AuthProvider>
   </React.StrictMode>
 );
@@ -276,127 +270,104 @@ if (!rootElement) throw new Error("Root element not found");
 createRoot(rootElement).render(<Root />);
 ```
 
-### 5. Define GraphQL Operations
+### 4. Define GraphQL Operations
 
 Create a GraphQL file with your queries and mutations:
 
 ```graphql
-# src/lib/graphql/operations.graphql
+# src/lib/graphql/queries.graphql
 query GetNinjaTurtlesWithComments {
   ninjaTurtles {
     id
     name
     description
     createdAt
+    updatedAt
     comments {
       id
       comment
       createdAt
       user {
         id
-        email
         displayName
+        email
       }
     }
   }
 }
 
 mutation AddComment($ninjaTurtleId: uuid!, $comment: String!) {
-  insert_comments_one(
-    object: { ninjaTurtleId: $ninjaTurtleId, comment: $comment }
-  ) {
+  insertComment(object: { ninjaTurtleId: $ninjaTurtleId, comment: $comment }) {
     id
+    comment
+    createdAt
+    ninjaTurtleId
   }
 }
 ```
 
-### 6. Generate TypeScript Types
+### 5. Generate TypeScript Types
 
 Run the code generator:
 
 ```bash
-npx graphql-codegen
-```
-
-You can also add a script to your package.json:
-
-```json
-{
-  "scripts": {
-    "codegen": "graphql-codegen --config codegen.ts"
-  }
-}
-```
-
-Then run:
-
-```bash
-npm run codegen
+npm run generate
 # or
-yarn codegen
+yarn generate
 # or
-pnpm codegen
+pnpm generate
 ```
 
-### 7. Use in Components
+This will generate typed document nodes in `src/lib/graphql/__generated__/graphql.ts`.
 
-Finally, you can use the generated React Query hooks in your components:
+### 6. Use in Components
+
+Use the generated document nodes with urql hooks in your components:
 
 ```tsx
 // src/pages/Home.tsx
-import { type JSX } from "react";
+import { type JSX, useState } from "react";
+import { useMutation, useQuery } from "urql";
 import {
-  useGetNinjaTurtlesWithCommentsQuery,
-  useAddCommentMutation,
+  AddCommentDocument,
+  GetNinjaTurtlesWithCommentsDocument,
 } from "../lib/graphql/__generated__/graphql";
-import { useState } from "react";
 import { useAuth } from "../lib/nhost/AuthProvider";
-import { Navigate } from "react-router-dom";
-import { useQueryClient } from "@tanstack/react-query";
 
 export default function Home(): JSX.Element {
   const { isLoading } = useAuth();
   const [activeCommentId, setActiveCommentId] = useState<string | null>(null);
   const [commentText, setCommentText] = useState("");
 
-  const queryClient = useQueryClient();
-
   // Query for data
-  const {
-    data,
-    isLoading: loading,
-    error,
-  } = useGetNinjaTurtlesWithCommentsQuery();
+  const [{ data, fetching: loading, error }] = useQuery({
+    query: GetNinjaTurtlesWithCommentsDocument,
+  });
 
   // Mutation hook
-  const { mutate: addComment } = useAddCommentMutation({
-    onSuccess: () => {
-      setCommentText("");
-      setActiveCommentId(null);
-      // Invalidate and refetch the ninja turtles query to get updated data
-      queryClient.invalidateQueries({
-        queryKey: ["GetNinjaTurtlesWithComments"],
-      });
-    },
-  });
+  const [, addComment] = useMutation(AddCommentDocument);
 
   if (isLoading) {
     return <div>Loading...</div>;
   }
 
-  const handleAddComment = (turtleId: string) => {
+  const handleAddComment = async (turtleId: string) => {
     if (!commentText.trim()) return;
 
-    addComment({
+    const result = await addComment({
       ninjaTurtleId: turtleId,
       comment: commentText,
     });
+
+    if (!result.error) {
+      setCommentText("");
+      setActiveCommentId(null);
+    }
   };
 
   if (loading) return <div>Loading ninja turtles...</div>;
   if (error) return <div>Error: {error.message}</div>;
 
-  // Access the data
   const ninjaTurtles = data?.ninjaTurtles || [];
 
   return (
@@ -452,42 +423,31 @@ export default function Home(): JSX.Element {
 }
 ```
 
-## Appendix: Known GraphQL CodeGen Issues
+## Key Features
 
-When using GraphQL Code Generator with both `useTypeImports: true` and a custom fetcher that's a React hook, there's a known bug ([issue #824](https://github.com/dotansimha/graphql-code-generator-community/issues/824)) that causes incorrect import statements in the generated code.
+- **Type Safety**: Full TypeScript support with generated types from your GraphQL schema
+- **Authentication**: Automatic token management with Nhost's auth exchange
+- **Token Refresh**: Automatic JWT token refresh when expired
+- **Caching**: Built-in document caching with urql's cache exchange
+- **POST Requests**: Configured to use POST requests (Hasura compatibility)
 
-The problem occurs because when `useTypeImports` is enabled, the generator incorrectly adds the `type` keyword to the import statement for your custom fetcher function:
+## Important Configuration Notes
 
-```ts
-import type { useAuthenticatedFetcher } from "../queryHooks";
-```
+### Hasura Compatibility
 
-Since `useAuthenticatedFetcher` is a React hook that needs to be executed at runtime (not just used as a type), this causes TypeScript errors because the function can't be called when imported as a type.
+When using urql with Hasura, it's important to set `preferGetMethod: false` in the client configuration. This is because:
 
-To fix this issue, you need to modify the generated file to remove the `type` keyword from the import statement. This can be done with a post-processing wrapper script (`codegen-wrapper.sh`):
+- urql v5 defaults to using GET requests for queries (for better HTTP caching)
+- Hasura interprets GET requests as persisted query attempts
+- Setting `preferGetMethod: false` forces POST requests for all operations
 
-```bash
-#!/bin/bash
-# due to bug https://github.com/dotansimha/graphql-code-generator-community/issues/824
+### Authentication Exchange
 
-# Exit immediately if a command exits with a non-zero status.
-set -e
+The `authExchange` from `@urql/exchange-auth` handles:
 
-echo "Running GraphQL code generator..."
-# Run the original codegen command
-pnpm graphql-codegen --config codegen.ts
+- Adding the JWT access token to every request
+- Detecting authentication errors (expired tokens)
+- Automatically refreshing tokens when needed
+- Signing out users when token refresh fails
 
-# Path to the generated file
-GENERATED_FILE="src/lib/graphql/__generated__/graphql.ts"
-
-echo "Fixing import in $GENERATED_FILE..."
-if [ -f "$GENERATED_FILE" ]; then
-  sed -i -e 's/import type { useAuthenticatedFetcher }/import { useAuthenticatedFetcher }/g' "$GENERATED_FILE"
-  echo "Successfully removed \"type\" from useAuthenticatedFetcher import."
-else
-  echo "Error: Generated file not found at $GENERATED_FILE"
-  exit 1
-fi
-
-echo "All tasks completed successfully."
-```
+This ensures seamless authenticated GraphQL requests throughout your application.
