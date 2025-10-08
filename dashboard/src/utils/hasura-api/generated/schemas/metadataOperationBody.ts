@@ -5,6 +5,7 @@
  * API for managing remote schemas and events in Hasura
  * OpenAPI spec version: 1.0.0
  */
+import type { AddEventTriggerBulkOperation } from './addEventTriggerBulkOperation';
 import type { AddRemoteSchemaOperation } from './addRemoteSchemaOperation';
 import type { DeleteRemoteSchemaRemoteRelationshipOperation } from './deleteRemoteSchemaRemoteRelationshipOperation';
 import type { ExportMetadata } from './exportMetadata';
@@ -32,4 +33,5 @@ export type MetadataOperationBody =
   | GetEventInvocationLogsOperation
   | GetEventLogsOperation
   | GetEventAndInvocationLogsByIdOperation
-  | RedeliverEventOperation;
+  | RedeliverEventOperation
+  | AddEventTriggerBulkOperation;
