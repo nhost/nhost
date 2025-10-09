@@ -66,7 +66,6 @@ let
       "${submodule}/tsconfig.test.json"
       "${submodule}/vitest.config.ts"
       "${submodule}/vitest.global-setup.ts"
-      (inDirectory "${submodule}/.storybook")
       (inDirectory "${submodule}/e2e")
       (inDirectory "${submodule}/public")
       (inDirectory "${submodule}/src")
@@ -213,5 +212,3 @@ rec {
     }).copyTo}/bin/copy-to dir:$out
   '';
 }
-
-

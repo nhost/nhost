@@ -62,20 +62,6 @@ NEXT_PUBLIC_NHOST_HASURA_API_URL=https://local.hasura.local.nhost.run
 
 This will connect the Nhost Dashboard to your locally running Nhost backend.
 
-### Storybook
-
-Components are documented using [Storybook](https://storybook.js.org/). To run Storybook, run the following command:
-
-```bash
-pnpm storybook
-```
-
-By default, Storybook will run on port `6006`. You can change this by passing the `--port` flag:
-
-```bash
-pnpm storybook --port 6007
-```
-
 ### General Environment Variables
 
 | Name                             | Description                                                                                                                                                                                                          |
