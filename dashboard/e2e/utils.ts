@@ -8,6 +8,7 @@ import {
   TEST_USER_PASSWORD,
 } from '@/e2e/env';
 import { expect } from '@/e2e/fixtures/auth-hook';
+import { isEmptyValue } from '@/lib/utils';
 import { faker } from '@faker-js/faker';
 import { type Page } from '@playwright/test';
 import { add, format } from 'date-fns-v4';
@@ -359,13 +360,13 @@ export async function cleanupRemoteSchemaTestIfNeeded(page: Page) {
 
   const schemaLinkToDelete = page.getByRole('link', { name: /^e2e_\w+_\w+$/ });
 
-  if (!schemaLinkToDelete) {
+  if (isEmptyValue(schemaLinkToDelete)) {
     return;
   }
 
-  const schemaName = await schemaLinkToDelete.textContent();
+  const schemaName = (await schemaLinkToDelete.textContent())?.trim();
 
-  if (!schemaName) {
+  if (isEmptyValue(schemaName)) {
     return;
   }
 
