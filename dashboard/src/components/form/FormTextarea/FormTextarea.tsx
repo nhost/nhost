@@ -6,7 +6,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/v3/form';
-import { Input } from '@/components/ui/v3/input';
+import { Textarea } from '@/components/ui/v3/textarea';
 import { cn } from '@/lib/utils';
 import type { ReactNode } from 'react';
 import type { Control, FieldPath, FieldValues } from 'react-hook-form';
@@ -14,7 +14,7 @@ import type { Control, FieldPath, FieldValues } from 'react-hook-form';
 const inputClasses =
   '!bg-transparent aria-[invalid=true]:border-red-500 aria-[invalid=true]:focus:border-red-500 aria-[invalid=true]:focus:ring-red-500';
 
-interface FormInputProps<
+interface FormTextareaProps<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 > {
@@ -23,12 +23,11 @@ interface FormInputProps<
   label: ReactNode;
   placeholder?: string;
   className?: string;
-  type?: string;
   inline?: boolean;
   helperText?: string | null;
 }
 
-function FormInput<
+function FormTextarea<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 >({
@@ -37,10 +36,9 @@ function FormInput<
   label,
   placeholder,
   className = '',
-  type = 'text',
   inline,
   helperText,
-}: FormInputProps<TFieldValues, TName>) {
+}: FormTextareaProps<TFieldValues, TName>) {
   return (
     <FormField
       control={control}
@@ -66,12 +64,10 @@ function FormInput<
             )}
           >
             <FormControl>
-              <Input
-                type={type}
+              <Textarea
                 placeholder={placeholder}
                 {...field}
                 className={cn(inputClasses, className)}
-                wrapperClassName={cn({ 'w-full': inline })}
               />
             </FormControl>
             {!!helperText && (
@@ -87,4 +83,4 @@ function FormInput<
   );
 }
 
-export default FormInput;
+export default FormTextarea;
