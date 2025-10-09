@@ -41,12 +41,13 @@ export const TEST_USER_PASSWORD = process.env.NHOST_TEST_USER_PASSWORD!;
 
 export const TEST_PERSONAL_ORG_SLUG = process.env.NHOST_TEST_PERSONAL_ORG_SLUG!;
 
-const freeUserEmails = process.env.NHOST_TEST_FREE_USER_EMAILS!;
-
-export const TEST_FREE_USER_EMAILS: string[] = JSON.parse(freeUserEmails);
+export const TEST_ONBOARDING_USER = process.env.NHOST_TEST_ONBOARDING_USER!;
 
 /**
  * Name of the remote schema serverless function to test against.
  */
 export const TEST_PROJECT_REMOTE_SCHEMA_NAME =
   process.env.NHOST_TEST_PROJECT_REMOTE_SCHEMA_NAME!;
+
+export const TEST_STAGING_SUBDOMAIN = process.env.NHOST_TEST_STAGING_SUBDOMAIN!;
+export const TEST_STAGING_REGION = process.env.NHOST_TEST_STAGING_REGION!;
