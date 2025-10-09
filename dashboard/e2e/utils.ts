@@ -8,6 +8,7 @@ import {
   TEST_USER_PASSWORD,
 } from '@/e2e/env';
 import { expect } from '@/e2e/fixtures/auth-hook';
+import { isEmptyValue } from '@/lib/utils';
 import { faker } from '@faker-js/faker';
 import { type Page } from '@playwright/test';
 import { add, format } from 'date-fns-v4';
@@ -350,4 +351,32 @@ export async function cleanupOnboardingTestIfNeeded() {
     console.log(error);
     throw error;
   }
+}
+
+export async function cleanupRemoteSchemaTestIfNeeded(page: Page) {
+  const remoteSchemasRoute = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/graphql/remote-schemas`;
+  await page.goto(remoteSchemasRoute);
+  await page.waitForURL(remoteSchemasRoute);
+
+  const schemaLinkToDelete = page.getByRole('link', { name: /^e2e_\w+_\w+$/ });
+
+  if (isEmptyValue(schemaLinkToDelete)) {
+    return;
+  }
+
+  const schemaName = (await schemaLinkToDelete.textContent())?.trim();
+
+  if (isEmptyValue(schemaName)) {
+    return;
+  }
+
+  await schemaLinkToDelete.hover();
+  await page
+    .getByRole('listitem')
+    .filter({ hasText: schemaName })
+    .getByRole('button')
+    .click();
+
+  await page.getByRole('menuitem', { name: /delete remote schema/i }).click();
+  await page.getByRole('button', { name: /^delete$/i }).click();
 }
