@@ -1,0 +1,28 @@
+query GetNinjaTurtlesWithComments {
+  ninjaTurtles {
+    id
+    name
+    description
+    createdAt
+    updatedAt
+    comments {
+      id
+      comment
+      createdAt
+      user {
+        id
+        displayName
+        email
+      }
+    }
+  }
+}
+
+mutation AddComment($ninjaTurtleId: uuid!, $comment: String!) {
+  insertComment(object: { ninjaTurtleId: $ninjaTurtleId, comment: $comment }) {
+    id
+    comment
+    createdAt
+    ninjaTurtleId
+  }
+}

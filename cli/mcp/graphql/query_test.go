@@ -22,7 +22,21 @@ func TestCheckAllowedGraphqlQuery(t *testing.T) {
 			query:            `query { user(id: 1) { name } }`,
 			allowedQueries:   nil,
 			allowedMutations: nil,
-			expectedError:    nil,
+			expectedError:    graphql.ErrQueryNotAllowed,
+		},
+		{
+			name:             "nil,",
+			query:            `query { user(id: 1) { name } }`,
+			allowedQueries:   nil,
+			allowedMutations: []string{"user"},
+			expectedError:    graphql.ErrQueryNotAllowed,
+		},
+		{
+			name:             ",nil",
+			query:            `mutation { user(id: 1) { name } }`,
+			allowedQueries:   []string{"user"},
+			allowedMutations: nil,
+			expectedError:    graphql.ErrQueryNotAllowed,
 		},
 		{
 			name:             "no query allowed",

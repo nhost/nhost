@@ -195,7 +195,8 @@
                 "icon": "book",
                 "pages": [
                   "/products/graphql/guides/react-apollo",
-                  "/products/graphql/guides/react-query"
+                  "/products/graphql/guides/react-query",
+                  "/products/graphql/guides/react-urql"
                 ]
               }
             ]
@@ -278,7 +279,17 @@
               "/platform/cli/migrate-config",
               "/platform/cli/multiple-projects",
               "/platform/cli/configuration-overlays",
-              "/platform/cli/seeds"
+              "/platform/cli/seeds",
+              {
+                "group": "MCP Server",
+                "icon": "brain",
+                "pages": [
+                  "/platform/cli/mcp/overview",
+                  "/platform/cli/mcp/configuration",
+                  "/platform/cli/mcp/clients",
+                  "/platform/cli/mcp/troubleshooting"
+                ]
+              }
             ]
           },
           {

@@ -28,7 +28,7 @@ httpPoolSize = 100
 
 [functions]
 [functions.node]
-version = 20
+version = 22
 
 [auth]
 version = '0.41.1'
@@ -74,7 +74,7 @@ expiresIn = 2592000
 enabled = false
 
 [auth.method.emailPasswordless]
-enabled = true
+enabled = false
 
 [auth.method.otp]
 [auth.method.otp.email]
@@ -90,12 +90,7 @@ enabled = false
 
 [auth.method.oauth]
 [auth.method.oauth.apple]
-enabled = true
-teamId = '{{ secrets.APPLE_TEAM_ID }}'
-clientId = '{{ secrets.APPLE_CLIENT_ID }}'
-audience = '{{ secrets.APPLE_AUDIENCE }}'
-keyId = '{{ secrets.APPLE_KEY_ID }}'
-privateKey = '{{ secrets.APPLE_PRIVATE_KEY }}'
+enabled = false
 
 [auth.method.oauth.azuread]
 tenant = 'common'
@@ -107,13 +102,15 @@ enabled = false
 [auth.method.oauth.discord]
 enabled = false
 
+[auth.method.oauth.entraid]
+tenant = 'common'
+enabled = false
+
 [auth.method.oauth.facebook]
 enabled = false
 
 [auth.method.oauth.github]
-enabled = true
-clientId = '{{ secrets.GITHUB_CLIENT_ID }}'
-clientSecret = '{{ secrets.GITHUB_CLIENT_SECRET }}'
+enabled = false
 
 [auth.method.oauth.gitlab]
 enabled = false
@@ -143,19 +140,13 @@ enabled = false
 enabled = false
 
 [auth.method.webauthn]
-enabled = true
-
-[auth.method.webauthn.relyingParty]
-id = 'localhost'
-name = 'nhost-sdk-experiment'
-origins = ['http://localhost:3000', 'http://localhost:5173']
+enabled = false
 
 [auth.method.webauthn.attestation]
 timeout = 60000
 
 [auth.totp]
-enabled = true
-issuer = 'new-sdk'
+enabled = false
 
 [auth.misc]
 concealErrors = false
@@ -166,23 +157,23 @@ limit = 10
 interval = '1h'
 
 [auth.rateLimit.sms]
-limit = 100
+limit = 10
 interval = '1h'
 
 [auth.rateLimit.bruteForce]
-limit = 100
+limit = 10
 interval = '5m'
 
 [auth.rateLimit.signups]
-limit = 100
+limit = 10
 interval = '5m'
 
 [auth.rateLimit.global]
-limit = 1000
+limit = 100
 interval = '1m'
 
 [postgres]
-version = '17.5-20250728-1'
+version = '14.18-20250728-1'
 
 [postgres.resources]
 [postgres.resources.storage]
@@ -191,7 +182,7 @@ capacity = 1
 [provider]
 
 [storage]
-version = '0.8.0-beta3'
+version = '0.7.2'
 
 [observability]
 [observability.grafana]
