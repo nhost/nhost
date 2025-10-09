@@ -25,11 +25,14 @@ func RunWizard() (*Config, error) {
 
 	projects := wizardProject(reader)
 
+	if localConfig != nil {
+		projects = append(projects, *localConfig)
+	}
+
 	fmt.Println()
 
 	return &Config{
 		Cloud:    cloudConfig,
-		Local:    localConfig,
 		Projects: projects,
 	}, nil
 }
@@ -52,7 +55,7 @@ func wizardCloud(reader *bufio.Reader) *Cloud {
 }
 
 //nolint:forbidigo
-func wizardLocal(reader *bufio.Reader) *Local {
+func wizardLocal(reader *bufio.Reader) *Project {
 	fmt.Println("2. Local Development Access")
 	fmt.Println("   This allows LLMs to interact with your local Nhost environment,")
 	fmt.Println("   including project configuration and GraphQL API access.")
@@ -64,10 +67,18 @@ func wizardLocal(reader *bufio.Reader) *Local {
 			adminSecret = "nhost-admin-secret" //nolint:gosec
 		}
 
-		return &Local{
-			AdminSecret:     adminSecret,
-			ConfigServerURL: nil,
-			GraphqlURL:      nil,
+		return &Project{
+			Subdomain:      "local",
+			Region:         "local",
+			Description:    "Local development project running via the Nhost CLI",
+			AdminSecret:    &adminSecret,
+			PAT:            nil,
+			ManageMetadata: true,
+			AllowQueries:   []string{"*"},
+			AllowMutations: []string{"*"},
+			AuthURL:        "",
+			GraphqlURL:     "",
+			HasuraURL:      "",
 		}
 	}
 
@@ -91,16 +102,29 @@ func wizardProject(reader *bufio.Reader) []Project {
 	if promptYesNo(reader, "Configure project access?") {
 		for {
 			project := Project{
+				Description:    "",
 				Subdomain:      "",
 				Region:         "",
 				AdminSecret:    nil,
 				PAT:            nil,
+				ManageMetadata: false,
 				AllowQueries:   []string{"*"},
 				AllowMutations: []string{"*"},
+				GraphqlURL:     "",
+				AuthURL:        "",
+				HasuraURL:      "",
 			}
 
 			project.Subdomain = promptString(reader, "Project subdomain:")
 			project.Region = promptString(reader, "Project region:")
+			project.Description = promptString(
+				reader,
+				"Project description to provide additional information to LLMs:",
+			)
+			project.ManageMetadata = promptYesNo(
+				reader,
+				"Allow managing metadata (tables, relationships, permissions, etc)?",
+			)
 
 			authType := promptChoice(
 				reader,

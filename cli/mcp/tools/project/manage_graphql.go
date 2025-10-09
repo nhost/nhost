@@ -1,4 +1,4 @@
-package local
+package project
 
 import (
 	"context"
@@ -10,22 +10,21 @@ import (
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
+	"github.com/nhost/nhost/cli/mcp/nhost/auth"
 )
 
 const (
-	ToolManageGraphqlName         = "local-manage-graphql"
+	ToolManageGraphqlName         = "manage-graphql"
 	ToolManageGraphqlInstructions = `
-		Query GraphQL's management endpoints on an Nhost development project running locally via
-		the Nhost CLI. This tool is useful to manage hasura metadata, migrations, permissions,
-		remote schemas, database migrations, etc. It also allows to interact with the underlying
-		database directly.
+		Query GraphQL's management endpoints on an Nhost project running. This tool is useful to
+		manage hasura metadata, migrations, permissions, remote schemas, database migrations,
+		etc. It also allows to interact with the underlying database directly.
 
-		* Do not forget to use the base url in the endpoint.
 		* Before using this tool always describe in natural languate what you are about to do.
 
 		## Metadata changes
 
-		* When changing metadata always use the /apis/migrate endpoint
+		* When changing metadata ALWAYS use the /apis/migrate endpoint
 		* Always perform a bulk request to avoid
 		  having to perform multiple requests
 		* The admin user always has full permissions to everything by default, no need to configure
@@ -55,8 +54,9 @@ const (
 )
 
 type ManageGraphqlRequest struct {
-	Endpoint string `json:"endpoint"`
-	Body     string `json:"body"`
+	Body      string `json:"body"`
+	Subdomain string `json:"subdomain"`
+	Path      string `json:"path"`
 }
 
 func (t *Tool) registerManageGraphql(mcpServer *server.MCPServer) {
@@ -73,10 +73,14 @@ func (t *Tool) registerManageGraphql(mcpServer *server.MCPServer) {
 			},
 		),
 		mcp.WithString(
-			"endpoint",
-			mcp.Description(
-				"The GraphQL management endpoint to query. Use https://local.hasura.local.nhost.run as base URL",
-			),
+			"subdomain",
+			mcp.Description("Project to perform the GraphQL management operation against"),
+			mcp.Enum(t.cfg.Projects.Subdomains()...),
+			mcp.Required(),
+		),
+		mcp.WithString(
+			"path",
+			mcp.Description("The path for the HTTP request"),
 			mcp.Required(),
 		),
 		mcp.WithString(
@@ -137,20 +141,37 @@ func genericQuery(
 func (t *Tool) handleManageGraphql(
 	ctx context.Context, _ mcp.CallToolRequest, args ManageGraphqlRequest,
 ) (*mcp.CallToolResult, error) {
-	if args.Endpoint == "" {
-		return mcp.NewToolResultError("endpoint is required"), nil
-	}
-
 	if args.Body == "" {
 		return mcp.NewToolResultError("body is required"), nil
+	}
+
+	if args.Subdomain == "" {
+		return mcp.NewToolResultError("projectSubdomain is required"), nil
+	}
+
+	project, err := t.cfg.Projects.Get(args.Subdomain)
+	if err != nil {
+		return mcp.NewToolResultErrorFromErr("failed to get project configuration", err), nil
+	}
+
+	if !project.ManageMetadata {
+		return mcp.NewToolResultError("project does not allow metadata management"), nil
+	}
+
+	if project.AdminSecret == nil {
+		return mcp.NewToolResultError("project does not have an admin secret configured"), nil
 	}
 
 	headers := http.Header{}
 	headers.Add("Content-Type", "application/json")
 	headers.Add("Accept", "application/json")
 
+	interceptors := []func(ctx context.Context, req *http.Request) error{
+		auth.WithAdminSecret(*project.AdminSecret),
+	}
+
 	response, err := genericQuery(
-		ctx, args.Endpoint, args.Body, http.MethodPost, headers, t.interceptors,
+		ctx, project.GetHasuraURL()+args.Path, args.Body, http.MethodPost, headers, interceptors,
 	)
 	if err != nil {
 		return mcp.NewToolResultErrorFromErr("failed to execute query", err), nil
