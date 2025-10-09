@@ -5,9 +5,9 @@ import (
 	"log/slog"
 
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/nhost/hasura-auth/go/api"
-	"github.com/nhost/hasura-auth/go/middleware"
-	"github.com/nhost/hasura-auth/go/sql"
+	"github.com/nhost/nhost/services/auth/go/api"
+	"github.com/nhost/nhost/services/auth/go/middleware"
+	"github.com/nhost/nhost/services/auth/go/sql"
 )
 
 func (ctrl *Controller) postUserMfaDeactivate( //nolint:ireturn

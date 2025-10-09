@@ -5,10 +5,10 @@ import (
 	"log/slog"
 	"net/url"
 
-	"github.com/nhost/hasura-auth/go/api"
-	"github.com/nhost/hasura-auth/go/middleware"
-	"github.com/nhost/hasura-auth/go/oidc"
-	"github.com/nhost/hasura-auth/go/providers"
+	"github.com/nhost/nhost/services/auth/go/api"
+	"github.com/nhost/nhost/services/auth/go/middleware"
+	"github.com/nhost/nhost/services/auth/go/oidc"
+	"github.com/nhost/nhost/services/auth/go/providers"
 )
 
 type providerCallbackData struct {

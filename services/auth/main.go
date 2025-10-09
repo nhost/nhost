@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/nhost/hasura-auth/go/cmd"
+	"github.com/nhost/nhost/services/auth/go/cmd"
 	docs "github.com/urfave/cli-docs/v3"
 	"github.com/urfave/cli/v3"
 )

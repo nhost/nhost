@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/nhost/hasura-auth/go/notifications"
+	"github.com/nhost/nhost/services/auth/go/notifications"
 )
 
 func TestGetRawTemplates(t *testing.T) {

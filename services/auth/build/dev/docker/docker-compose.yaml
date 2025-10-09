@@ -1,7 +1,7 @@
 services:
     auth:
-        image: nhost/hasura-auth:0.0.0-dev
-        # image: nhost/hasura-auth:0.25.0
+        image: auth:0.0.0-dev
+        # image: nhost/auth:0.44.0
         command: serve
         depends_on:
             graphql:

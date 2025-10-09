@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 
-	"github.com/nhost/hasura-auth/go/api"
-	"github.com/nhost/hasura-auth/go/middleware"
-	"github.com/nhost/hasura-auth/go/sql"
+	"github.com/nhost/nhost/services/auth/go/api"
+	"github.com/nhost/nhost/services/auth/go/middleware"
+	"github.com/nhost/nhost/services/auth/go/sql"
 )
 
 func (ctrl *Controller) RefreshToken( //nolint:ireturn

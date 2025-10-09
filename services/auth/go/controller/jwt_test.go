@@ -16,8 +16,8 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
-	"github.com/nhost/hasura-auth/go/controller"
-	"github.com/nhost/hasura-auth/go/controller/mock"
+	"github.com/nhost/nhost/services/auth/go/controller"
+	"github.com/nhost/nhost/services/auth/go/controller/mock"
 	ginmiddleware "github.com/oapi-codegen/gin-middleware"
 	"go.uber.org/mock/gomock"
 )

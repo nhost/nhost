@@ -8,10 +8,10 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/nhost/hasura-auth/go/notifications"
-	"github.com/nhost/hasura-auth/go/oidc"
-	"github.com/nhost/hasura-auth/go/providers"
-	"github.com/nhost/hasura-auth/go/sql"
+	"github.com/nhost/nhost/services/auth/go/notifications"
+	"github.com/nhost/nhost/services/auth/go/oidc"
+	"github.com/nhost/nhost/services/auth/go/providers"
+	"github.com/nhost/nhost/services/auth/go/sql"
 )
 
 const (

@@ -2,7 +2,7 @@
   "name": "hasura-auth",
   "license": "MIT",
   "repository": {
-    "url": "git://github.com/nhost/hasura-auth.git",
+    "url": "git://github.com/nhost/nhost/services/auth.git",
     "type": "git"
   },
   "devDependencies": {

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/nhost/hasura-auth/go/oidc"
-	"github.com/nhost/hasura-auth/go/providers/oauth1"
+	"github.com/nhost/nhost/services/auth/go/oidc"
+	"github.com/nhost/nhost/services/auth/go/providers/oauth1"
 )
 
 type Twitter struct {

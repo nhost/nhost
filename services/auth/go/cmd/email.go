@@ -9,11 +9,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/nhost/hasura-auth/go/controller"
-	"github.com/nhost/hasura-auth/go/notifications"
-	"github.com/nhost/hasura-auth/go/notifications/postmark"
-	"github.com/nhost/hasura-auth/go/notifications/sms"
-	"github.com/nhost/hasura-auth/go/sql"
+	"github.com/nhost/nhost/services/auth/go/controller"
+	"github.com/nhost/nhost/services/auth/go/notifications"
+	"github.com/nhost/nhost/services/auth/go/notifications/postmark"
+	"github.com/nhost/nhost/services/auth/go/notifications/sms"
+	"github.com/nhost/nhost/services/auth/go/sql"
 	"github.com/urfave/cli/v3"
 )
 

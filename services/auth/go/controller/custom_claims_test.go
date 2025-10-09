@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/nhost/hasura-auth/go/controller"
+	"github.com/nhost/nhost/services/auth/go/controller"
 )
 
 func TestCustomClaims(t *testing.T) {

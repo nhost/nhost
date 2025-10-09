@@ -11,7 +11,7 @@ import (
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/google/uuid"
-	"github.com/nhost/hasura-auth/go/api"
+	"github.com/nhost/nhost/services/auth/go/api"
 )
 
 type WebauthnUser struct {

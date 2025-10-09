@@ -8,7 +8,7 @@ import (
 	"fmt"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/nhost/hasura-auth/go/api"
+	"github.com/nhost/nhost/services/auth/go/api"
 )
 
 func GetClaim[T any](token *jwt.Token, claim string) (T, error) { //nolint:ireturn

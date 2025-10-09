@@ -3,8 +3,8 @@ package controller
 import (
 	"context"
 
-	"github.com/nhost/hasura-auth/go/api"
-	"github.com/nhost/hasura-auth/go/middleware"
+	"github.com/nhost/nhost/services/auth/go/api"
+	"github.com/nhost/nhost/services/auth/go/middleware"
 )
 
 func (ctrl *Controller) VerifyToken( //nolint:ireturn

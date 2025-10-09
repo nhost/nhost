@@ -7,8 +7,8 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/nhost/hasura-auth/go/notifications"
-	"github.com/nhost/hasura-auth/go/sql"
+	"github.com/nhost/nhost/services/auth/go/notifications"
+	"github.com/nhost/nhost/services/auth/go/sql"
 )
 
 const (

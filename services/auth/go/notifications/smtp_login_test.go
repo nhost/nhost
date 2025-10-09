@@ -3,7 +3,7 @@ package notifications_test
 import (
 	"testing"
 
-	"github.com/nhost/hasura-auth/go/notifications"
+	"github.com/nhost/nhost/services/auth/go/notifications"
 )
 
 func TestSMTPAuthLogin(t *testing.T) {

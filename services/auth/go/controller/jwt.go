@@ -17,7 +17,7 @@ import (
 	"github.com/getkin/kin-openapi/openapi3filter"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
-	"github.com/nhost/hasura-auth/go/api"
+	"github.com/nhost/nhost/services/auth/go/api"
 	ginmiddleware "github.com/oapi-codegen/gin-middleware"
 )
 

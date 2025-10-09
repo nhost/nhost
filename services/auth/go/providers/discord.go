@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/nhost/hasura-auth/go/oidc"
+	"github.com/nhost/nhost/services/auth/go/oidc"
 	"golang.org/x/oauth2"
 )
 

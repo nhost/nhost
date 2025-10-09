@@ -3,7 +3,7 @@ package hibp_test
 import (
 	"testing"
 
-	"github.com/nhost/hasura-auth/go/hibp"
+	"github.com/nhost/nhost/services/auth/go/hibp"
 )
 
 func TestIsPasswordPwned(t *testing.T) {

@@ -23,11 +23,11 @@ See the [CLI documentation](./cli.md) for all available configuration options in
 
 ### Email templates
 
-You can create your own templates to customize the emails that will be sent to the users. You can have a look at the [official email templates](https://github.com/nhost/hasura-auth/tree/main/email-templates) to understand how they are structured.
+You can create your own templates to customize the emails that will be sent to the users. You can have a look at the [official email templates](https://github.com/nhost/nhost/services/auth/tree/main/email-templates) to understand how they are structured.
 
 #### Within Docker
 
-When using Docker, you can mount your own email templates from the local file system. You can have a look at this [docker-compose example](https://github.com/nhost/hasura-auth/blob/16df3e84b6c9a4f888b2ff07bd85afc34f8ed051/docker-compose-example.yaml#L41) to see how to set it up.
+When using Docker, you can mount your own email templates from the local file system. You can have a look at this [docker-compose example](https://github.com/nhost/nhost/services/auth/blob/16df3e84b6c9a4f888b2ff07bd85afc34f8ed051/docker-compose-example.yaml#L41) to see how to set it up.
 
 ---
 

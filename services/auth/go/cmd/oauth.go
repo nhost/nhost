@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/nhost/hasura-auth/go/api"
-	"github.com/nhost/hasura-auth/go/providers"
+	"github.com/nhost/nhost/services/auth/go/api"
+	"github.com/nhost/nhost/services/auth/go/providers"
 	"github.com/urfave/cli/v3"
 )
 

@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/nhost/hasura-auth/go/api"
-	"github.com/nhost/hasura-auth/go/oidc"
+	"github.com/nhost/nhost/services/auth/go/api"
+	"github.com/nhost/nhost/services/auth/go/oidc"
 )
 
 func testProviderValidator(

@@ -11,11 +11,11 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/nhost/hasura-auth/go/api"
-	"github.com/nhost/hasura-auth/go/controller"
-	"github.com/nhost/hasura-auth/go/controller/mock"
-	"github.com/nhost/hasura-auth/go/oidc"
-	"github.com/nhost/hasura-auth/go/sql"
+	"github.com/nhost/nhost/services/auth/go/api"
+	"github.com/nhost/nhost/services/auth/go/controller"
+	"github.com/nhost/nhost/services/auth/go/controller/mock"
+	"github.com/nhost/nhost/services/auth/go/oidc"
+	"github.com/nhost/nhost/services/auth/go/sql"
 	"go.uber.org/mock/gomock"
 )
 

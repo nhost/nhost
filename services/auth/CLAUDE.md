@@ -114,8 +114,8 @@ package controller
 import (
     "context"
 
-    "github.com/nhost/hasura-auth/go/api"
-    "github.com/nhost/hasura-auth/go/middleware"
+    "github.com/nhost/nhost/services/auth/go/api"
+    "github.com/nhost/nhost/services/auth/go/middleware"
 )
 
 func (ctrl *Controller) YourEndpoint( //nolint:ireturn
@@ -232,9 +232,9 @@ import (
 
     "github.com/google/go-cmp/cmp"
     "github.com/google/uuid"
-    "github.com/nhost/hasura-auth/go/api"
-    "github.com/nhost/hasura-auth/go/controller"
-    "github.com/nhost/hasura-auth/go/controller/mock"
+    "github.com/nhost/nhost/services/auth/go/api"
+    "github.com/nhost/nhost/services/auth/go/controller"
+    "github.com/nhost/nhost/services/auth/go/controller/mock"
     "go.uber.org/mock/gomock"
 )
 

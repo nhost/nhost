@@ -7,8 +7,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/nhost/hasura-auth/go/notifications"
-	"github.com/nhost/hasura-auth/go/notifications/postmark"
+	"github.com/nhost/nhost/services/auth/go/notifications"
+	"github.com/nhost/nhost/services/auth/go/notifications/postmark"
 )
 
 func TestSendWithTemplate(t *testing.T) {

@@ -4,9 +4,9 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/nhost/hasura-auth/go/api"
-	"github.com/nhost/hasura-auth/go/controller"
-	"github.com/nhost/hasura-auth/go/controller/mock"
+	"github.com/nhost/nhost/services/auth/go/api"
+	"github.com/nhost/nhost/services/auth/go/controller"
+	"github.com/nhost/nhost/services/auth/go/controller/mock"
 	"go.uber.org/mock/gomock"
 )
 

@@ -10,7 +10,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/nhost/hasura-auth/go/api"
+	"github.com/nhost/nhost/services/auth/go/api"
 )
 
 type APIError struct {

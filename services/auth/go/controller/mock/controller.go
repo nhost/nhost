@@ -16,8 +16,8 @@ import (
 
 	uuid "github.com/google/uuid"
 	pgtype "github.com/jackc/pgx/v5/pgtype"
-	notifications "github.com/nhost/hasura-auth/go/notifications"
-	sql "github.com/nhost/hasura-auth/go/sql"
+	notifications "github.com/nhost/nhost/services/auth/go/notifications"
+	sql "github.com/nhost/nhost/services/auth/go/sql"
 	gomock "go.uber.org/mock/gomock"
 )
 

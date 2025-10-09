@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/nhost/hasura-auth/go/middleware/ratelimit"
+	"github.com/nhost/nhost/services/auth/go/middleware/ratelimit"
 )
 
 func count(

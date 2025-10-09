@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/nhost/hasura-auth/go/controller"
+	"github.com/nhost/nhost/services/auth/go/controller"
 	"github.com/urfave/cli/v3"
 )
 

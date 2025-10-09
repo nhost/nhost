@@ -4,7 +4,7 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/nhost/hasura-auth/go/controller"
+	"github.com/nhost/nhost/services/auth/go/controller"
 )
 
 func TestGenLink(t *testing.T) {

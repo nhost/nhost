@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/nhost/hasura-auth/go/api"
+	"github.com/nhost/nhost/services/auth/go/api"
 )
 
 type State struct {

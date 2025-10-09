@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/nhost/hasura-auth/go/controller"
+	"github.com/nhost/nhost/services/auth/go/controller"
 )
 
 func ptr[T any](x T) *T { return &x }

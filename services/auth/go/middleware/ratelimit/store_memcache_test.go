@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/bradfitz/gomemcache/memcache"
-	"github.com/nhost/hasura-auth/go/middleware/ratelimit"
+	"github.com/nhost/nhost/services/auth/go/middleware/ratelimit"
 )
 
 func TestNewMemcacheStore(t *testing.T) {

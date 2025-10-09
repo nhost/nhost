@@ -6,9 +6,9 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/nhost/hasura-auth/go/api"
-	"github.com/nhost/hasura-auth/go/middleware"
-	"github.com/nhost/hasura-auth/go/notifications"
+	"github.com/nhost/nhost/services/auth/go/api"
+	"github.com/nhost/nhost/services/auth/go/middleware"
+	"github.com/nhost/nhost/services/auth/go/notifications"
 )
 
 func (ctrl *Controller) SendPasswordResetEmail( //nolint:ireturn

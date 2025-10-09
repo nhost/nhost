@@ -6,8 +6,8 @@ import (
 	"log/slog"
 	"strings"
 
-	"github.com/nhost/hasura-auth/go/migrations"
-	"github.com/nhost/hasura-auth/go/sql"
+	"github.com/nhost/nhost/services/auth/go/migrations"
+	"github.com/nhost/nhost/services/auth/go/sql"
 	"github.com/urfave/cli/v3"
 )
 

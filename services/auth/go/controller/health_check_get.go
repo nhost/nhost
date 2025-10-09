@@ -3,7 +3,7 @@ package controller
 import (
 	"context"
 
-	"github.com/nhost/hasura-auth/go/api"
+	"github.com/nhost/nhost/services/auth/go/api"
 )
 
 func (ctrl *Controller) HealthCheckGet( //nolint:ireturn

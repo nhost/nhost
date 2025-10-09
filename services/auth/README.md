@@ -12,8 +12,8 @@
   <a href="https://prettier.io">
     <img src="https://img.shields.io/badge/code_style-prettier-ff69b4.svg" alt="code style: prettier" />
   </a>
-  <a href="https://github.com/nhost/hasura-auth/actions?query=workflow%Build+branch%3Amain+event%3Apush">
-    <img src="https://github.com/nhost/hasura-auth/workflows/Build/badge.svg?branch=main"/>
+  <a href="https://github.com/nhost/nhost/services/auth/actions?query=workflow%Build+branch%3Amain+event%3Apush">
+    <img src="https://github.com/nhost/nhost/services/auth/workflows/Build/badge.svg?branch=main"/>
   </a>
   <a href="https://codecov.io/gh/nhost/hasura-auth/branch/main">
     <img src="https://codecov.io/gh/nhost/hasura-auth/branch/main/graph/badge.svg"
@@ -47,7 +47,7 @@ Use [Nhost](https://nhost.io) to start using Hasura Auth in seconds.
 ### Using Docker-compose
 
 ```sh
-git clone https://github.com/nhost/hasura-auth.git
+git clone https://github.com/nhost/nhost/services/auth.git
 cd hasura-auth/build/docker-compose
 docker compose up
 ```
@@ -55,7 +55,7 @@ docker compose up
 ### Building from Source
 
 ```sh
-git clone https://github.com/nhost/hasura-auth.git
+git clone https://github.com/nhost/nhost/services/auth.git
 cd hasura-auth
 go build -o hasura-auth main.go
 ./hasura-auth --help

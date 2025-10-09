@@ -3,7 +3,7 @@ package controller_test
 import (
 	"testing"
 
-	"github.com/nhost/hasura-auth/go/controller"
+	"github.com/nhost/nhost/services/auth/go/controller"
 )
 
 func TestGravatarTest(t *testing.T) {

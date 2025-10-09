@@ -3,7 +3,7 @@ package sms
 import (
 	"fmt"
 
-	"github.com/nhost/hasura-auth/go/notifications"
+	"github.com/nhost/nhost/services/auth/go/notifications"
 	"github.com/twilio/twilio-go"
 	twilioApi "github.com/twilio/twilio-go/rest/api/v2010"
 )
