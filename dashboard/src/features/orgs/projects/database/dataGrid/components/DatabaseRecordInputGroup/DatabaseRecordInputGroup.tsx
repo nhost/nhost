@@ -79,6 +79,8 @@ export default function DatabaseRecordInputGroup({
     formState: { errors },
   } = useFormContext();
 
+  const unUsedVAriable = 'Hello there';
+
   return (
     <Box component="section" className={twMerge('py-3', className)} {...props}>
       {title && (
