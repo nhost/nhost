@@ -1,0 +1,174 @@
+services:
+    auth:
+        image: nhost/hasura-auth:0.0.0-dev
+        # image: nhost/hasura-auth:0.25.0
+        command: serve
+        depends_on:
+            graphql:
+                condition: service_healthy
+            postgres:
+                condition: service_healthy
+        ports:
+            - mode: ingress
+              target: 4000
+              published: "4000"
+              protocol: tcp
+        environment:
+            AUTH_ENABLE_CHANGE_ENV: "true"
+            AUTH_API_PREFIX: ""
+            HASURA_GRAPHQL_DATABASE_URL: "postgres://postgres:postgres@postgres:5432/local?sslmode=disable"
+            HASURA_GRAPHQL_JWT_SECRET: '{"type":"HS256", "key":"5152fa850c02dc222631cca898ed1485821a70912a6e3649c49076912daa3b62182ba013315915d64f40cddfbb8b58eb5bd11ba225336a6af45bbae07ca873f3","issuer":"hasura-auth"}'
+            HASURA_GRAPHQL_ADMIN_SECRET: nhost-admin-secret
+            HASURA_GRAPHQL_GRAPHQL_URL: http://graphql:8080/v1/graphql
+            AUTH_PORT: 4000
+            AUTH_SERVER_URL: http://127.0.0.2:4000
+            AUTH_USER_DEFAULT_ALLOWED_ROLES: 'me,user,editor'
+            AUTH_SMTP_AUTH_METHOD: PLAIN
+            AUTH_SMTP_HOST: mailhog
+            AUTH_SMTP_PASS: password
+            AUTH_SMTP_PORT: "1025"
+            AUTH_SMTP_SECURE: "false"
+            AUTH_SMTP_SENDER: hasura-auth@example.com
+            AUTH_SMTP_USER: user
+            AUTH_LOG_LEVEL: debug
+            AUTH_CLIENT_URL: 'http://localhost:3000'
+            AUTH_LOG_FORMAT_TEXT: 'true'
+            AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: 'false'
+        healthcheck:
+            test:
+                - CMD
+                - wget
+                - --spider
+                - -S
+                - http://localhost:4000/healthz
+            timeout: 60s
+            interval: 10s
+            start_period: 10s
+        restart: always
+
+    graphql:
+        image: nhost/graphql-engine:v2.33.4-ce
+        depends_on:
+            postgres:
+                condition: service_healthy
+        environment:
+            HASURA_GRAPHQL_ADMIN_INTERNAL_ERRORS: "true"
+            HASURA_GRAPHQL_ADMIN_SECRET: nhost-admin-secret
+            HASURA_GRAPHQL_CONSOLE_ASSETS_DIR: /srv/console-assets
+            HASURA_GRAPHQL_CORS_DOMAIN: '*'
+            HASURA_GRAPHQL_DATABASE_URL: postgres://nhost_hasura@postgres:5432/local
+            HASURA_GRAPHQL_DEV_MODE: "true"
+            HASURA_GRAPHQL_DISABLE_CORS: "false"
+            HASURA_GRAPHQL_ENABLE_ALLOWLIST: "false"
+            HASURA_GRAPHQL_ENABLE_CONSOLE: "true"
+            HASURA_GRAPHQL_ENABLE_REMOTE_SCHEMA_PERMISSIONS: "false"
+            HASURA_GRAPHQL_ENABLE_TELEMETRY: "false"
+            HASURA_GRAPHQL_ENABLED_APIS: metadata,graphql,pgdump,config
+            HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup,http-log,webhook-log,websocket-log
+            HASURA_GRAPHQL_EVENTS_HTTP_POOL_SIZE: "100"
+            # HASURA_GRAPHQL_JWT_SECRET: '{"jwk_url":"http://auth:4000/.well-known/jwks.json"}'
+            HASURA_GRAPHQL_JWT_SECRET: '{"type":"RS256", "key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0M9zJVMJV8TgNPT9p737\nKR1XyWL9PSePXdcyk9aWcusG/m2OGsvuAgbMuDQx+Pns9PH9hd1kl53yfpTXOp3T\n13Uqox3IuHMlx8JyS+raqURSAew8/RkQ8nq+68XBBr9atDvVcSknS+jtZGH6Du1V\ntUy7Sz8VTVQuXDURF1Aa2wwNkRkC/wg5X0BXfN4Felh+mpK05PZbqJcRA5dbDlWk\n5nkdKbCG3urmtfF8brh6SlV7xBODJbqQws6E9WTclDQXWjmjcVNVSJE7OblZj1JB\nNGMN9rjUSS1kiRozhMtSlRv9MHAsz3e05MnvbyMWtoRpH8iLs0jmf8uucEBkMS/6\nBQIDAQAB\n-----END PUBLIC KEY-----","signing_key":"-----BEGIN PRIVATE KEY-----\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDQz3MlUwlXxOA0\n9P2nvfspHVfJYv09J49d1zKT1pZy6wb+bY4ay+4CBsy4NDH4+ez08f2F3WSXnfJ+\nlNc6ndPXdSqjHci4cyXHwnJL6tqpRFIB7Dz9GRDyer7rxcEGv1q0O9VxKSdL6O1k\nYfoO7VW1TLtLPxVNVC5cNREXUBrbDA2RGQL/CDlfQFd83gV6WH6akrTk9luolxED\nl1sOVaTmeR0psIbe6ua18XxuuHpKVXvEE4MlupDCzoT1ZNyUNBdaOaNxU1VIkTs5\nuVmPUkE0Yw32uNRJLWSJGjOEy1KVG/0wcCzPd7Tkye9vIxa2hGkfyIuzSOZ/y65w\nQGQxL/oFAgMBAAECggEBAKO3g1hoWpLuUbwzug2i7yG1V/cWHees9MNmzskLHrrL\ne5hQ3XI1Ik+EdU6X3faQPjFu6o/indQiitakbHwQ8t+jheKOn6m+3ohY9LSBVyAP\n6RyI1Oi8loUHqFnDmyxnK/7USu2GjsD9x+NEzoKVovWbS94bf+A5eH/jO5tDu0qy\nJMoe2jLx5IQQwLuvmQ+5ccZOUSQLG4/9Bw7g4xdroSvyVH27g9hqmEuY2orhcMm3\nlvlAx3PIH/kjKtpnP6MIBDhznlJ/VqAHhT/zC9xIwohyVGymoyDhdNSpn5N2QmWK\nKsneTdYdWz/oMB+HtcmvSoI4saEv1tlGEOTTINyBpwECgYEA+vrMFKhIoS3EbNiS\n5mSw/ejHl+60hsORGahPaYoXDfbDr2lyG58OfGu+l0qIe5SX4ueHo+ydhN70GR4l\nrtX9R+8uV9hb4B9e/hTZZnnAyFZrZSPfx4ZtPeyAlL+zhIGwxTy4BrbuxgynGict\nu+7XgbOYesDGRCvc4/1HKOgnf9kCgYEA1Py22UkY1iQQ4JNkfI1U6XqrydlMy1BG\nYSglI37UkVGUWG1hry+HCdhxHupBeUspZ/4vzKCLO1A1RlkCi9+TcOpY8UBqo1uq\nBaBPSlWD7T4oTOEPvANqT43SJ+RFkjtfVvDDtXBImO0+Nu57FmD6pMZJtvsxFkQB\nZKP6Mx3Q3A0CgYEAmGQJ4I0htIQmnXSPFceT1EgwUOdGxAEhLHQO6+VGBFuODAc5\nmt3kHNYLHq/J2UerRcIRkQ4NwuzhSBMPDG6wYKow+HPNrXM+6YXdTySkUsBuazXy\nHaNY112v4SHZLZ7Vp50rnCAdMTHjkLSzR0ZJol5bOkWs3R3I/MIAIC1+NlkCgYEA\n0kevP1er7cAt6Yub6lyfOOSkNuUTrKfU1JeOEz1lIRQqIiPcDdoeuNm41Yzyl45d\nkw6ioqTe0fCeqJW4reBO8Wxt48J1hlM5ydQ8dGd5mQGFSGHr5vR4QZMDqd710SpN\nNsj+cGQrSNDyW8mYPMACtiwPG1llXVZHCdXbcBw/2QECgYABLllfHVarmMwKTLWo\n8rRdEsIwcD/VxOxG4BxL6rZNQ4ADd8pL+9TohZeWp8wvlDGU7yB9wgyaD62Mhyog\nAGJt5Y/twAPTiVEi+0jVCXraLwPZpQFafw7p/x33eHkhwOTqlwlkRNlvrVk6A29I\nU0PVQZdMwEj/CPZVeCJ4DX63qQ==\n-----END PRIVATE KEY-----","issuer":"hasura-auth"}'
+            HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_BATCH_SIZE: "100"
+            HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL: "1000"
+            HASURA_GRAPHQL_LOG_LEVEL: warn
+            HASURA_GRAPHQL_PG_CONNECTIONS: "50"
+            HASURA_GRAPHQL_PG_TIMEOUT: "180"
+            HASURA_GRAPHQL_STRINGIFY_NUMERIC_TYPES: "false"
+            HASURA_GRAPHQL_TX_ISOLATION: read-committed
+            HASURA_GRAPHQL_UNAUTHORIZED_ROLE: public
+            HASURA_GRAPHQL_USE_PREPARED_STATEMENTS: "true"
+            HASURA_GRAPHQL_WS_READ_COOKIE: "false"
+            GRAPHITE_WEBHOOK_SECRET: graphite-secret
+        ports:
+            - mode: ingress
+              target: 8080
+              published: "8080"
+              protocol: tcp
+        healthcheck:
+            test:
+                - CMD-SHELL
+                - curl http://localhost:8080/healthz > /dev/null 2>&1
+            timeout: 60s
+            interval: 10s
+            start_period: 10s
+        restart: always
+
+    postgres:
+        image: nhost/postgres:14.6-20231018-1
+        command:
+            - postgres
+            - -c
+            - config_file=/etc/postgresql.conf
+            - -c
+            - hba_file=/etc/pg_hba_local.conf
+        environment:
+            PGDATA: /var/lib/postgresql/data/pgdata
+            POSTGRES_DB: local
+            POSTGRES_PASSWORD: postgres
+            POSTGRES_USER: postgres
+        healthcheck:
+            test:
+                - CMD-SHELL
+                - pg_isready -U postgres
+                - -d
+                - postgres
+                - -q
+            timeout: 60s
+            interval: 10s
+            start_period: 10s
+        ports:
+            - mode: ingress
+              target: 5432
+              published: "5432"
+              protocol: tcp
+        restart: always
+        volumes:
+            - type: volume
+              source: pgdata
+              target: /var/lib/postgresql/data/pgdata
+            - type: bind
+              source: ./pg_hba_local.conf
+              target: /etc/pg_hba_local.conf
+              read_only: true
+
+    memcached:
+        image: memcached:1.6
+        ports:
+            - mode: ingress
+              target: 11211
+              published: "11211"
+              protocol: tcp
+        restart: always
+
+    mailhog:
+        image: jcalonso/mailhog:v1.0.1
+        ports:
+            - mode: ingress
+              target: 1025
+              published: "1025"
+              protocol: tcp
+            - mode: ingress
+              target: 8025
+              published: "8025"
+              protocol: tcp
+        environment:
+            SMTP_HOST: mailhog
+            SMTP_PASS: password
+            SMTP_PORT: "1025"
+            SMTP_SECURE: "false"
+            SMTP_SENDER: hasura-auth@example.com
+            SMTP_USER: user
+        restart: always
+
+    nginx:
+      image: nginx:alpine
+      ports:
+        - "443:443"
+      volumes:
+        - ./nginx/html:/usr/share/nginx/html
+        - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+        - ./nginx//ssl:/etc/nginx/ssl
+      restart: unless-stopped
+
+volumes:
+    pgdata: {}

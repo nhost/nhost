@@ -1,0 +1,17 @@
+.git
+.github
+.vscode
+coverage
+docs
+examples
+mock-config
+node_modules
+*.sh
+.editorconfig
+.prettierignore
+config.yaml
+docker-compose*
+Dockerfile*
+npm-debug.log
+yarn-error.log
+**/*.pem

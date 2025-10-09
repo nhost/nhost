@@ -1,0 +1,59 @@
+version: "2"
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+linters:
+  default: all
+  settings:
+    funlen:
+      lines: 65
+  disable:
+    - canonicalheader
+    - depguard
+    - gomoddirectives
+    - musttag
+    - nlreturn
+    - tagliatelle
+    - varnamelen
+    - wsl
+    - noinlineerr
+    - funcorder
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - funlen
+          - ireturn
+          - goconst
+        path: _test\.go
+      - linters:
+          - lll
+        source: '^//go:generate '
+      - linters:
+          - gochecknoglobals
+        text: Version is a global variable
+      - linters:
+          - ireturn
+          - lll
+        path: schema\.resolvers\.go
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gofmt
+    - gofumpt
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+      - schema\.resolvers\.go
