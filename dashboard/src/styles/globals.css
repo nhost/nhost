@@ -235,7 +235,8 @@ body {
     --popover-foreground: 222.2 84% 4.9%;
     --primary: 216 100% 40%;
     --primary-foreground: 210 40% 98%;
-    --secondary: 204 29% 97%;
+    --secondary: 216 17.07% 40.2%;
+    /*--secondary: 216 100% 96.08%;*/
     --secondary-foreground: 222.2 47.4% 11.2%;
     --muted: 0 0% 98%;
     --muted-foreground: 215.4 16.3% 46.9%;
@@ -252,10 +253,18 @@ body {
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
+    --paper: 0, 0%, 100%;
+    --divider: 210 16.67% 92.94%;
+    --disabled: 215.56 15.79% 66.47%;
+    --background-default: 0, 0%, 98%;
+    --text-primary: 215.71 38.89% 21.18%;
+    --data-cell-bg: 204 29.41% 96.67%;
+    --primary-main: 216 100% 40.2%;
+    --table-selected: 216 100% 96.08%;
   }
 
   .dark {
-    --background: 216 25% 12%;
+    --background: 216 24.59% 11.96%;
     --foreground: 210 40% 98%;
     --card: 216 25% 12%;
     --card-foreground: 210 40% 98%;
@@ -263,7 +272,8 @@ body {
     --popover-foreground: 210 40% 98%;
     --primary: 216 100% 61%;
     --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
+    --secondary: 203.57 17.72% 69.02%;
+    /*--secondary: 216 31.65% 15.49%;*/
     --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
@@ -279,6 +289,14 @@ body {
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
+    --paper: 216 24.58% 11.96%;
+    --divider: 210deg 12.96% 21.18%;
+    --disabled: 211.58 8.92% 58.24%;
+    --text-primary: 204.55 52.38% 91.76%;
+    --background-default: 210, 23%, 11%;
+    --data-cell-bg: 215 15.38% 15.29%;
+    --primary-main: 215.88 100% 60.98%;
+    --table-selected: 216 31.65% 15.49%;
   }
 }
 
@@ -297,4 +315,8 @@ body {
 
 ::-webkit-scrollbar-thumb {
   @apply rounded-full border-[1px] border-solid border-transparent bg-muted-foreground/50 bg-clip-padding;
+}
+
+.box {
+  @apply border-divider bg-paper text-primary-text;
 }

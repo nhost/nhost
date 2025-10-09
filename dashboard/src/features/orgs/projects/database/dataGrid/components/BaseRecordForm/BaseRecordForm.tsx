@@ -1,12 +1,12 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
+import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
 import { DatabaseRecordInputGroup } from '@/features/orgs/projects/database/dataGrid/components/DatabaseRecordInputGroup';
 import type {
   ColumnInsertOptions,
   DataBrowserGridColumn,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { cn } from '@/lib/utils';
 import type { DialogFormProps } from '@/types/common';
 import { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
@@ -153,16 +153,19 @@ export default function BaseRecordForm({
             description="These columns are nullable and don't require a value."
             columns={optionalColumns}
             autoFocusFirstInput={requiredColumns.length === 0}
-            sx={{ borderTopWidth: requiredColumns.length > 0 ? 1 : 0 }}
-            className="px-6 pt-3"
+            className={cn(
+              'px-6 pt-3',
+              requiredColumns.length > 0 ? 'border-t-1' : 'border-t-0',
+            )}
           />
         )}
       </div>
 
-      <Box className="grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 p-2">
+      <div className="box grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 p-2">
         <Button
-          variant="borderless"
-          color="secondary"
+          variant="outline"
+          className="border-none"
+          size="sm"
           onClick={onCancel}
           tabIndex={isDirty ? -1 : 0}
         >
@@ -172,12 +175,13 @@ export default function BaseRecordForm({
         <Button
           loading={isSubmitting}
           disabled={isSubmitting}
+          size="sm"
           type="submit"
           className="justify-self-end"
         >
           {submitButtonText}
         </Button>
-      </Box>
+      </div>
     </Form>
   );
 }
