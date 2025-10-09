@@ -351,3 +351,31 @@ export async function cleanupOnboardingTestIfNeeded() {
     throw error;
   }
 }
+
+export async function cleanupRemoteSchemaTestIfNeeded(page: Page) {
+  const remoteSchemasRoute = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/graphql/remote-schemas`;
+  await page.goto(remoteSchemasRoute);
+  await page.waitForURL(remoteSchemasRoute);
+
+  const schemaLinkToDelete = page.getByRole('link', { name: /^e2e_\w+_\w+$/ });
+
+  if (!schemaLinkToDelete) {
+    return;
+  }
+
+  const schemaName = await schemaLinkToDelete.textContent();
+
+  if (!schemaName) {
+    return;
+  }
+
+  await schemaLinkToDelete.hover();
+  await page
+    .getByRole('listitem')
+    .filter({ hasText: schemaName })
+    .getByRole('button')
+    .click();
+
+  await page.getByRole('menuitem', { name: /delete remote schema/i }).click();
+  await page.getByRole('button', { name: /^delete$/i }).click();
+}
