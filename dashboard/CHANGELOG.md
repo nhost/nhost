@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [@nhost/dashboard@2.38.4] - 2025-10-09
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Remove NODE_ENV from restricted env vars (#3573)
+
 ## [@nhost/dashboard@2.38.3] - 2025-10-07
 
 ### 🐛 Bug Fixes
