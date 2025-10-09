@@ -22,6 +22,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
+import CreateEventTriggerForm from '../../../event-triggers/components/CreateEventTriggerForm/CreateEventTriggerForm';
 import EventsBrowserSidebarSkeleton from './EventsBrowserSidebarSkeleton';
 
 export interface EventsBrowserSidebarProps extends Omit<BoxProps, 'children'> {}
@@ -30,6 +31,7 @@ function EventsBrowserSidebarContent() {
   const router = useRouter();
   const { orgSlug, appSubdomain, eventTriggerSlug } = router.query;
   const { data, isLoading, error } = useGetEventTriggers();
+  const [open, setOpen] = useState(false);
 
   if (isLoading) {
     return <EventsBrowserSidebarSkeleton />;
@@ -66,90 +68,97 @@ function EventsBrowserSidebarContent() {
     });
   }
 
-  return (
-    <div className="flex h-full flex-col px-2">
-      <div className="flex flex-row items-center justify-between">
-        <p className="font-semibold leading-7 [&:not(:first-child)]:mt-6">
-          Event Triggers ({data?.length ?? 0})
-        </p>
+  const handleAddEventTrigger = () => {
+    setOpen(true);
+  };
 
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="Add event trigger"
-          disabled
-        >
-          <Plus className="h-5 w-5 text-primary dark:text-foreground" />
-        </Button>
-      </div>
-      <div className="flex flex-row gap-2">
-        <Accordion
-          type="single"
-          collapsible
-          className="w-full"
-          defaultValue="default"
-        >
-          {Object.entries(eventTriggersByDataSource ?? {}).map(
-            ([dataSource, eventTriggers]) => (
-              <AccordionItem
-                key={dataSource}
-                value={dataSource}
-                id={dataSource}
-              >
-                <AccordionTrigger className="flex-row-reverse justify-end gap-2 [&[data-state=closed]>svg:last-child]:-rotate-90 [&[data-state=open]>svg:last-child]:rotate-0">
-                  {dataSource}
-                  <Database className="h-4 w-4 !rotate-0" />
-                </AccordionTrigger>
-                <AccordionContent className="flex flex-col gap-1 text-balance pl-4">
-                  {eventTriggers.map((eventTrigger) => {
-                    const isSelected = eventTrigger.name === eventTriggerSlug;
-                    return (
-                      <Button
-                        className={cn(
-                          'flex h-9 max-w-52 flex-row justify-between gap-2 bg-background px-2 text-foreground hover:bg-accent dark:hover:bg-muted',
-                          isSelected &&
-                            'bg-[#ebf3ff] hover:bg-[#ebf3ff] dark:bg-muted',
-                        )}
-                        key={eventTrigger.name}
-                        asChild
-                        variant="ghost"
-                      >
-                        <Link
-                          href={`/orgs/${orgSlug}/projects/${appSubdomain}/events/event-trigger/${eventTrigger.name}`}
-                          className="flex w-full items-center gap-2"
+  return (
+    <>
+      <div className="flex h-full flex-col px-2">
+        <div className="flex flex-row items-center justify-between">
+          <p className="font-semibold leading-7 [&:not(:first-child)]:mt-6">
+            Event Triggers ({data?.length ?? 0})
+          </p>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Add event trigger"
+            onClick={handleAddEventTrigger}
+          >
+            <Plus className="h-5 w-5 text-primary dark:text-foreground" />
+          </Button>
+        </div>
+        <div className="flex flex-row gap-2">
+          <Accordion
+            type="single"
+            collapsible
+            className="w-full"
+            defaultValue="default"
+          >
+            {Object.entries(eventTriggersByDataSource ?? {}).map(
+              ([dataSource, eventTriggers]) => (
+                <AccordionItem
+                  key={dataSource}
+                  value={dataSource}
+                  id={dataSource}
+                >
+                  <AccordionTrigger className="flex-row-reverse justify-end gap-2 [&[data-state=closed]>svg:last-child]:-rotate-90 [&[data-state=open]>svg:last-child]:rotate-0">
+                    {dataSource}
+                    <Database className="h-4 w-4 !rotate-0" />
+                  </AccordionTrigger>
+                  <AccordionContent className="flex flex-col gap-1 text-balance pl-4">
+                    {eventTriggers.map((eventTrigger) => {
+                      const isSelected = eventTrigger.name === eventTriggerSlug;
+                      return (
+                        <Button
+                          className={cn(
+                            'flex h-9 max-w-52 flex-row justify-between gap-2 bg-background px-2 text-foreground hover:bg-accent dark:hover:bg-muted',
+                            isSelected &&
+                              'bg-[#ebf3ff] hover:bg-[#ebf3ff] dark:bg-muted',
+                          )}
+                          key={eventTrigger.name}
+                          asChild
+                          variant="ghost"
                         >
-                          <TextWithTooltip
-                            containerClassName="max-w-36"
-                            className={cn(
-                              isSelected && 'text-primary hover:text-primary',
-                            )}
-                            text={eventTrigger.name}
-                          />
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className={cn(
-                              'px-1 hover:bg-accent/90 dark:hover:bg-muted/90',
-                              isSelected && 'text-primary hover:text-primary',
-                            )}
-                            onClick={(e) => {
-                              e.preventDefault();
-                            }}
-                            disabled
+                          <Link
+                            href={`/orgs/${orgSlug}/projects/${appSubdomain}/events/event-trigger/${eventTrigger.name}`}
+                            className="flex w-full items-center gap-2"
                           >
-                            <Ellipsis className="h-6 w-6" />
-                          </Button>
-                        </Link>
-                      </Button>
-                    );
-                  })}
-                </AccordionContent>
-              </AccordionItem>
-            ),
-          )}
-        </Accordion>
+                            <TextWithTooltip
+                              containerClassName="max-w-36"
+                              className={cn(
+                                isSelected && 'text-primary hover:text-primary',
+                              )}
+                              text={eventTrigger.name}
+                            />
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className={cn(
+                                'px-1 hover:bg-accent/90 dark:hover:bg-muted/90',
+                                isSelected && 'text-primary hover:text-primary',
+                              )}
+                              onClick={(e) => {
+                                e.preventDefault();
+                              }}
+                              disabled
+                            >
+                              <Ellipsis className="h-6 w-6" />
+                            </Button>
+                          </Link>
+                        </Button>
+                      );
+                    })}
+                  </AccordionContent>
+                </AccordionItem>
+              ),
+            )}
+          </Accordion>
+        </div>
       </div>
-    </div>
+      <CreateEventTriggerForm open={open} onOpenChange={setOpen} />
+    </>
   );
 }
 
