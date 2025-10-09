@@ -14,7 +14,7 @@ import (
 const (
 	ToolGraphqlQueryName = "graphql-query"
 	//nolint:lll
-	ToolGraphqlQueryInstructions = `Execute a GraphQL query against a Nhost project. This tool is useful to query and mutate data. If you run into issues executing queries, retrieve the schema again in case the schema has changed. If you get an error indicating the query or mutation is not allowed the user may have disabled them in the server, don't retry and tell the user they need to enable them when starting mcp-nhost`
+	ToolGraphqlQueryInstructions = `Execute a GraphQL query against a Nhost project. This tool is useful to query and mutate data. If you run into issues executing queries, retrieve the schema again in case the schema has changed. If you get an error indicating the query or mutation is not allowed the user may have disabled them in the server, don't retry and tell the user they need to enable them when starting nhost's mcp`
 )
 
 func ptr[T any](v T) *T {
