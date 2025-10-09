@@ -35,14 +35,12 @@ let
     oapi-codegen
     nhost-cli
     skopeo
-    postgresql_14_18-client
-    postgresql_15_13-client
-    postgresql_16_9-client
-    postgresql_17_5-client
-    postgresql_14_18
-    postgresql_15_13
-    postgresql_16_9
-    postgresql_17_5
+    postgresql_16_10-client
+    postgresql_17_6-client
+    postgresql_18_0-client
+    postgresql_16_10
+    postgresql_17_6
+    postgresql_18_0
   ];
 
   nativeBuildInputs = [ ];
