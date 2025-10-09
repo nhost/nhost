@@ -12,7 +12,7 @@ import (
 const (
 	ToolGraphqlQueryName = "cloud-graphql-query"
 	//nolint:lll
-	ToolGraphqlQueryInstructions = `Execute a GraphQL query against the Nhost Cloud to perform operations on projects and organizations. It also allows configuring projects hosted on Nhost Cloud. Make sure you got the schema before attempting to execute any query. If you get an error while performing a query refresh the schema in case something has changed or you did something wrong. If you get an error indicating mutations are not allowed the user may have disabled them in the server, don't retry and ask the user they need to pass --with-cloud-mutations when starting mcp-nhost to enable them. Projects are apps.`
+	ToolGraphqlQueryInstructions = `Execute a GraphQL query against the Nhost Cloud to perform operations on projects and organizations. It also allows configuring projects hosted on Nhost Cloud. Make sure you got the schema before attempting to execute any query. If you get an error while performing a query refresh the schema in case something has changed or you did something wrong. If you get an error indicating mutations are not allowed the user may have disabled them in the server, don't retry and ask the user they need to pass --with-cloud-mutations when starting nhost's mcp to enable them. Projects are apps.`
 )
 
 func ptr[T any](v T) *T {
