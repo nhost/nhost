@@ -1,9 +1,11 @@
-import { Box } from '@/components/ui/v2/Box';
-import type { TextProps } from '@/components/ui/v2/Text';
-import { Text } from '@/components/ui/v2/Text';
-import type { DetailedHTMLProps, ForwardedRef, HTMLProps } from 'react';
+import { cn } from '@/lib/utils';
+import type {
+  DetailedHTMLProps,
+  ForwardedRef,
+  HTMLAttributes,
+  HTMLProps,
+} from 'react';
 import { forwardRef } from 'react';
-import { twMerge } from 'tailwind-merge';
 
 export type ReadOnlyToggleProps = Omit<
   DetailedHTMLProps<HTMLProps<HTMLSpanElement>, HTMLSpanElement>,
@@ -24,7 +26,7 @@ export type ReadOnlyToggleProps = Omit<
     /**
      * Props passed to the label.
      */
-    label?: TextProps;
+    label?: HTMLAttributes<HTMLSpanElement>;
   };
 };
 
@@ -36,58 +38,44 @@ function ReadOnlyToggle(
     <span
       {...props}
       {...(slotProps?.root || {})}
-      className={twMerge(
+      className={cn(
         'inline-grid h-full w-full grid-flow-col items-center justify-start gap-1.5',
         slotProps?.root?.className,
         className,
       )}
       ref={ref}
     >
-      <Box
-        component="span"
-        sx={{
-          backgroundColor: (theme) => {
-            if (checked) {
-              return theme.palette.mode === 'dark' ? 'grey.400' : 'grey.700';
-            }
-
-            return 'transparent';
+      <span
+        className={cn(
+          'box-border inline-grid h-3 w-5 items-center rounded-full border-1 border-primary-text bg-transparent px-0.5',
+          checked && 'justify-end',
+          {
+            'border-transparent bg-primary-text px-0.5 dark:bg-[#363a43]':
+              checked,
           },
-          borderColor: checked ? 'transparent' : 'grey.700',
-        }}
-        className={twMerge(
-          'box-border inline-grid h-3 w-5 items-center rounded-full border-1 px-0.5',
-          checked === true && 'justify-end',
         )}
       >
-        <Box
-          component="span"
-          sx={{
-            backgroundColor: (theme) => {
-              if (checked) {
-                return theme.palette.mode === 'dark' ? 'grey.700' : 'grey.200';
-              }
-
-              return 'grey.700';
+        <span
+          className={cn(
+            'inline-block h-2 w-2 rounded-full border-primary-text bg-primary-text',
+            {
+              'border-transparent bg-data-cell-bg px-0.5 dark:bg-[#f4f7f9]':
+                checked,
+              'my-px h-px justify-self-center': checked === null,
             },
-          }}
-          className={twMerge(
-            'inline-block h-2 w-2 rounded-full',
-            checked === null && 'my-px h-px justify-self-center',
           )}
         />
-      </Box>
+      </span>
 
-      <Text
+      <span
         {...(slotProps?.label || {})}
-        component="span"
-        className={twMerge(
+        className={cn(
           'truncate !text-xs font-normal',
           slotProps?.label?.className,
         )}
       >
         {String(checked)}
-      </Text>
+      </span>
     </span>
   );
 }

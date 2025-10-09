@@ -1,9 +1,9 @@
 import { Button } from '@/components/ui/v3/button';
 import type { DataBrowserGridColumn } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
+import { cn } from '@/lib/utils';
 import { ArrowDown, ArrowUp } from 'lucide-react';
 import type { TableHeaderProps } from 'react-table';
-import { twMerge } from 'tailwind-merge';
 
 interface DataGridHeaderButtonProps<T extends object> {
   column: DataBrowserGridColumn<T>;
@@ -38,7 +38,7 @@ export default function DataGridHeaderButton<T extends object>({
   return (
     <Button
       variant="ghost"
-      className={twMerge(
+      className={cn(
         'h-fit p-0 text-xs focus:outline-none motion-safe:transition-colors dark:hover:bg-[#21262d]',
       )}
       disabled={column.isDisabled || column.disableSortBy}

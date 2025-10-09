@@ -1,4 +1,3 @@
-import { Text } from '@/components/ui/v2/Text';
 import {
   Select,
   SelectContent,
@@ -70,9 +69,9 @@ export default function RuleGroupControls({
           </SelectContent>
         </Select>
       ) : (
-        <Text className="p-2 !font-medium">
+        <p className="p-2 !font-medium">
           {operatorDictionary[currentOperator]}
-        </Text>
+        </p>
       )}
     </div>
   );

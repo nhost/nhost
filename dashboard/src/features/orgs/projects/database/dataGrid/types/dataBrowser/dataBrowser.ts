@@ -480,6 +480,7 @@ export interface DataBrowserGridColumn<TData extends object = {}>
    * Determines whether or not the cell content is copiable.
    */
   isCopiable?: boolean;
+  dataType?: string;
 }
 
 /**
