@@ -3,6 +3,10 @@
 name = 'GREET'
 value = 'Sayonara'
 
+[[global.environment]]
+name = 'NODE_ENV'
+value = 'production'
+
 [hasura]
 version = 'v2.46.0-ce'
 adminSecret = '{{ secrets.HASURA_GRAPHQL_ADMIN_SECRET }}'
