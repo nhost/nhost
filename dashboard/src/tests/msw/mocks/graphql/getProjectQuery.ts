@@ -33,3 +33,27 @@ export const getNotFoundProjectStateQuery = nhostGraphQLLink.query(
       },
     }),
 );
+
+export const getProjectStateQuery = (appStates?: any) =>
+  nhostGraphQLLink.query('getProjectState', (_req, res, ctx) =>
+    res(
+      ctx.data({
+        apps: [
+          {
+            ...mockApplication,
+            appStates: appStates || mockApplication.appStates,
+          },
+        ],
+      }),
+    ),
+  );
+
+export const getNotFoundProjectStateQuery = nhostGraphQLLink.query(
+  'getProjectState',
+  (_req, res, ctx) =>
+    res(
+      ctx.data({
+        apps: [],
+      }),
+    ),
+);
