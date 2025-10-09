@@ -1,42 +1,32 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import { NavLink } from '@/components/common/NavLink';
 import { FormActivityIndicator } from '@/components/form/FormActivityIndicator';
-import { InlineCode } from '@/components/presentational/InlineCode';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Backdrop } from '@/components/ui/v2/Backdrop';
-import type { BoxProps } from '@/components/ui/v2/Box';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { Chip } from '@/components/ui/v2/Chip';
-import { Divider } from '@/components/ui/v2/Divider';
-import { Dropdown } from '@/components/ui/v2/Dropdown';
-import { IconButton } from '@/components/ui/v2/IconButton';
-import { DotsHorizontalIcon } from '@/components/ui/v2/icons/DotsHorizontalIcon';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
-import { LockIcon } from '@/components/ui/v2/icons/LockIcon';
-import { PencilIcon } from '@/components/ui/v2/icons/PencilIcon';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
-import { TerminalIcon } from '@/components/ui/v2/icons/TerminalIcon';
-import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
-import { UsersIcon } from '@/components/ui/v2/icons/UsersIcon';
-import { List } from '@/components/ui/v2/List';
-import { ListItem } from '@/components/ui/v2/ListItem';
-import { Option } from '@/components/ui/v2/Option';
-import { Select } from '@/components/ui/v2/Select';
-import { Text } from '@/components/ui/v2/Text';
+import { Badge } from '@/components/ui/v3/badge';
+import { Button } from '@/components/ui/v3/button';
+import { InlineCode } from '@/components/ui/v3/inline-code';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/v3/select';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
 import { useDeleteTableWithToastMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteTableMutation';
 import { isSchemaLocked } from '@/features/orgs/projects/database/dataGrid/utils/schemaHelpers';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
+import { cn, isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import { useQueryClient } from '@tanstack/react-query';
+import { Info, Lock, Plus, Terminal } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
+import NextLink from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import { twMerge } from 'tailwind-merge';
+import TableActions from './TableActions';
 
 const CreateTableForm = dynamic(
   () =>
@@ -71,16 +61,17 @@ const EditPermissionsForm = dynamic(
   },
 );
 
-export interface DataBrowserSidebarProps extends Omit<BoxProps, 'children'> {
-  /**
-   * Function to be called when a sidebar item is clicked.
-   */
+export interface DataBrowserSidebarProps {
+  className?: string;
+}
+
+export interface DataBrowserSidebarContentProps {
   onSidebarItemClick?: (tablePath?: string) => void;
 }
 
 function DataBrowserSidebarContent({
   onSidebarItemClick,
-}: Pick<DataBrowserSidebarProps, 'onSidebarItemClick'>) {
+}: DataBrowserSidebarContentProps) {
   const queryClient = useQueryClient();
   const { openDrawer, openAlertDialog } = useDialog();
   const { project } = useProject();
@@ -136,11 +127,12 @@ function DataBrowserSidebarContent({
 
   if (status === 'loading') {
     return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading schemas and tables..."
-        className="justify-center"
-      />
+      <Spinner
+        wrapperClassName="flex-row text-[12px] leading-[1.66] font-normal gap-1"
+        className="h-4 w-4 justify-center"
+      >
+        Loading schemas and tables...
+      </Spinner>
     );
   }
 
@@ -252,7 +244,9 @@ function DataBrowserSidebarContent({
         <span className="inline-grid grid-flow-col items-center gap-2">
           Permissions
           <InlineCode className="!text-sm+ font-normal">{table}</InlineCode>
-          <Chip label="Preview" size="small" color="info" component="span" />
+          <Badge variant="secondary" className="text-primary">
+            Preview
+          </Badge>
         </span>
       ),
       component: (
@@ -271,59 +265,46 @@ function DataBrowserSidebarContent({
   }
 
   return (
-    <Box className="flex h-full flex-col justify-between">
-      <Box className="flex flex-col px-2">
+    <div className="flex h-full flex-col justify-between">
+      <div className="box flex flex-col px-2">
         {schemas && schemas.length > 0 && (
-          <Select
-            renderValue={(option) => (
-              <span className="grid grid-flow-col items-center gap-1">
-                {option?.label}
-              </span>
-            )}
-            slotProps={{
-              listbox: { className: 'max-w-[220px] min-w-[initial] w-full' },
-              popper: { className: 'max-w-[220px] min-w-[initial] w-full' },
-            }}
-            value={selectedSchema}
-            onChange={(_event, value) => setSelectedSchema(value as string)}
-          >
-            {schemas.map((schema) => (
-              <Option
-                className="grid grid-flow-col items-center gap-1"
-                value={schema.schema_name}
-                key={schema.schema_name}
-              >
-                <Text className="text-sm">
-                  <Text component="span" color="disabled">
-                    schema.
-                  </Text>
-                  <Text component="span" className="font-medium">
-                    {schema.schema_name}
-                  </Text>
-                </Text>
-                {(isSchemaLocked(schema.schema_name) || isGitHubConnected) && (
-                  <LockIcon
-                    className="h-3 w-3"
-                    sx={{ color: 'text.secondary' }}
-                  />
-                )}
-              </Option>
-            ))}
+          <Select value={selectedSchema} onValueChange={setSelectedSchema}>
+            <SelectTrigger className="w-full min-w-[initial] max-w-[220px]">
+              <SelectValue placeholder="Is null?" />
+            </SelectTrigger>
+            <SelectContent>
+              {schemas.map((schema) => (
+                <SelectItem value={schema.schema_name} key={schema.schema_name}>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm">
+                      <span className="text-disabled">schema.</span>
+                      <span className="font-medium">{schema.schema_name}</span>
+                    </p>
+                    {(isSchemaLocked(schema.schema_name) ||
+                      isGitHubConnected) && (
+                      <Lock
+                        className="text-[#556378] dark:text-[#a2b3be]"
+                        size={12}
+                      />
+                    )}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
           </Select>
         )}
         {isGitHubConnected && (
-          <Box className="mt-1.5 flex items-center gap-1 px-2">
-            <InfoIcon className="h-4 w-4" sx={{ color: 'text.secondary' }} />
-            <Text className="text-xs" color="secondary">
+          <div className="box mt-1.5 flex items-center gap-1 px-2">
+            <Info className="h-4 w-4 text-disabled" />
+            <p className="text-xs text-disabled">
               GitHub connected - use the CLI for schema changes
-            </Text>
-          </Box>
+            </p>
+          </div>
         )}
         {!isSelectedSchemaLocked && (
           <Button
-            variant="borderless"
-            endIcon={<PlusIcon />}
-            className="mt-1 w-full justify-between px-2"
+            variant="link"
+            className="mt-1 flex w-full justify-between px-[0.625rem] !text-sm+ text-primary hover:bg-accent hover:no-underline disabled:text-disabled"
             onClick={() => {
               openDrawer({
                 title: 'Create a New Table',
@@ -335,202 +316,136 @@ function DataBrowserSidebarContent({
             }}
             disabled={isGitHubConnected}
           >
-            New Table
+            New Table <Plus className="h-4 w-4" />
           </Button>
         )}
         {isNotEmptyValue(schemas) && isEmptyValue(tablesInSelectedSchema) && (
-          <Text className="px-2 py-1.5 text-xs" color="disabled">
-            No tables found.
-          </Text>
+          <p className="px-2 py-1.5 text-xs text-disabled">No tables found.</p>
         )}
         <nav aria-label="Database navigation">
           {isNotEmptyValue(tablesInSelectedSchema) && (
-            <List className="grid gap-1 pb-6">
+            <ul className="w-full max-w-full pb-6">
               {tablesInSelectedSchema.map((table) => {
                 const tablePath = `${table.table_schema}.${table.table_name}`;
                 const isSelected = `${schemaSlug}.${tableSlug}` === tablePath;
                 const isSidebarMenuOpen = sidebarMenuTable === tablePath;
                 return (
-                  <ListItem.Root
-                    className="group"
-                    key={tablePath}
-                    secondaryAction={
-                      <Dropdown.Root
-                        id="table-management-menu"
-                        onOpen={() => setSidebarMenuTable(tablePath)}
-                        onClose={() => setSidebarMenuTable(undefined)}
-                      >
-                        <Dropdown.Trigger
-                          asChild
-                          hideChevron
-                          disabled={tablePath === removableTable}
-                        >
-                          <IconButton
-                            variant="borderless"
-                            color={isSelected ? 'primary' : 'secondary'}
-                            className={twMerge(
-                              !isSelected &&
-                                'opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 group-active:opacity-100',
-                            )}
-                          >
-                            <DotsHorizontalIcon />
-                          </IconButton>
-                        </Dropdown.Trigger>
-                        <Dropdown.Content
-                          menu
-                          PaperProps={{ className: 'w-52' }}
-                        >
-                          {isGitHubConnected ? (
-                            <Dropdown.Item
-                              className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
-                              onClick={() =>
-                                handleEditPermissionClick(
-                                  table.table_schema,
-                                  table.table_name,
-                                  true,
-                                )
-                              }
-                            >
-                              <UsersIcon
-                                className="h-4 w-4"
-                                sx={{ color: 'text.secondary' }}
-                              />
-                              <span>View Permissions</span>
-                            </Dropdown.Item>
-                          ) : (
-                            [
-                              !isSelectedSchemaLocked && (
-                                <Dropdown.Item
-                                  key="edit-table"
-                                  className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
-                                  onClick={() =>
-                                    openDrawer({
-                                      title: 'Edit Table',
-                                      component: (
-                                        <EditTableForm
-                                          onSubmit={async (tableName) => {
-                                            await queryClient.refetchQueries([
-                                              `${dataSourceSlug}.${table.table_schema}.${tableName}`,
-                                            ]);
-                                            await refetch();
-                                          }}
-                                          schema={table.table_schema}
-                                          table={table}
-                                        />
-                                      ),
-                                    })
-                                  }
-                                >
-                                  <PencilIcon
-                                    className="h-4 w-4"
-                                    sx={{ color: 'text.secondary' }}
-                                  />
-                                  <span>Edit Table</span>
-                                </Dropdown.Item>
-                              ),
-                              !isSelectedSchemaLocked && (
-                                <Divider
-                                  key="edit-table-separator"
-                                  component="li"
-                                />
-                              ),
-                              <Dropdown.Item
-                                key="edit-permissions"
-                                className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
-                                onClick={() =>
-                                  handleEditPermissionClick(
-                                    table.table_schema,
-                                    table.table_name,
-                                  )
-                                }
-                              >
-                                <UsersIcon
-                                  className="h-4 w-4"
-                                  sx={{ color: 'text.secondary' }}
-                                />
-                                <span>Edit Permissions</span>
-                              </Dropdown.Item>,
-                              !isSelectedSchemaLocked && (
-                                <Divider
-                                  key="edit-permissions-separator"
-                                  component="li"
-                                />
-                              ),
-                              !isSelectedSchemaLocked && (
-                                <Dropdown.Item
-                                  key="delete-table"
-                                  className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
-                                  sx={{ color: 'error.main' }}
-                                  onClick={() =>
-                                    handleDeleteTableClick(
-                                      table.table_schema,
-                                      table.table_name,
-                                    )
-                                  }
-                                >
-                                  <TrashIcon
-                                    className="h-4 w-4"
-                                    sx={{ color: 'error.main' }}
-                                  />
-                                  <span>Delete Table</span>
-                                </Dropdown.Item>
-                              ),
-                            ]
-                          )}
-                        </Dropdown.Content>
-                      </Dropdown.Root>
-                    }
-                  >
-                    <ListItem.Button
-                      dense
-                      selected={isSelected}
+                  <li className="group pb-1" key={tablePath}>
+                    <Button
+                      asChild
+                      variant="link"
+                      size="sm"
                       disabled={tablePath === removableTable}
-                      className="group-focus-within:pr-9 group-hover:pr-9 group-active:pr-9"
-                      sx={{
-                        paddingRight:
-                          (isSelected || isSidebarMenuOpen) &&
-                          '2.25rem !important',
-                      }}
-                      component={NavLink}
-                      href={`/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/default/${table.table_schema}/${table.table_name}`}
-                      onClick={() => {
-                        if (onSidebarItemClick) {
-                          onSidebarItemClick(`default.${tablePath}`);
-                        }
-                      }}
+                      className={cn(
+                        'flex w-full max-w-full justify-between pl-0 text-sm+ hover:bg-accent hover:no-underline',
+                        {
+                          'bg-table-selected': isSelected,
+                        },
+                      )}
                     >
-                      <ListItem.Text>{table.table_name}</ListItem.Text>
-                    </ListItem.Button>
-                  </ListItem.Root>
+                      <div>
+                        <NextLink
+                          className={cn(
+                            'flex h-full w-[calc(100%-1.6rem)] items-center p-[0.625rem] pr-0 text-left',
+                            {
+                              'text-primary-main': isSelected,
+                            },
+                          )}
+                          onClick={() => {
+                            if (onSidebarItemClick) {
+                              onSidebarItemClick(`default.${tablePath}`);
+                            }
+                          }}
+                          href={`/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/default/${table.table_schema}/${table.table_name}`}
+                        >
+                          <span className="!truncate text-ellipsis">
+                            {table.table_name}
+                          </span>
+                        </NextLink>
+                        <TableActions
+                          tableName={table.table_name}
+                          disabled={tablePath === removableTable}
+                          open={isSidebarMenuOpen}
+                          onOpen={() => setSidebarMenuTable(tablePath)}
+                          onClose={() => setSidebarMenuTable(undefined)}
+                          className={cn(
+                            'relative z-10 opacity-0 group-hover:opacity-100',
+                            {
+                              'opacity-100': isSelected || isSidebarMenuOpen,
+                            },
+                          )}
+                          isSelectedNotSchemaLocked={!isSelectedSchemaLocked}
+                          onViewPermissions={() =>
+                            handleEditPermissionClick(
+                              table.table_schema,
+                              table.table_name,
+                              true,
+                            )
+                          }
+                          onEditTable={() =>
+                            openDrawer({
+                              title: 'Edit Table',
+                              component: (
+                                <EditTableForm
+                                  onSubmit={async (tableName) => {
+                                    await queryClient.refetchQueries([
+                                      `${dataSourceSlug}.${table.table_schema}.${tableName}`,
+                                    ]);
+                                    await refetch();
+                                  }}
+                                  schema={table.table_schema}
+                                  table={table}
+                                />
+                              ),
+                            })
+                          }
+                          onEditPermissions={() =>
+                            handleEditPermissionClick(
+                              table.table_schema,
+                              table.table_name,
+                            )
+                          }
+                          onDelete={() =>
+                            handleDeleteTableClick(
+                              table.table_schema,
+                              table.table_name,
+                            )
+                          }
+                        />
+                      </div>
+                    </Button>
+                  </li>
                 );
               })}
-            </List>
+            </ul>
           )}
         </nav>
-      </Box>
+      </div>
 
-      <Box className="border-t">
-        <ListItem.Button
-          dense
-          selected={asPath === sqlEditorHref}
-          className="flex border group-focus-within:pr-9 group-hover:pr-9 group-active:pr-9"
-          component={NavLink}
-          href={sqlEditorHref}
+      <div className="box border-t">
+        <Button
+          size="sm"
+          variant="link"
+          asChild
+          className={cn(
+            'flex rounded-none border text-sm+ hover:bg-accent hover:no-underline group-focus-within:pr-9 group-hover:pr-9 group-active:pr-9',
+            { 'bg-table-selected text-primary-main': asPath === sqlEditorHref },
+          )}
         >
-          <div className="flex w-full flex-row items-center justify-center space-x-4">
-            <TerminalIcon />
-            <span className="flex">SQL Editor</span>
-          </div>
-        </ListItem.Button>
-      </Box>
-    </Box>
+          <NextLink href={sqlEditorHref}>
+            <div className="flex w-full flex-row items-center justify-center space-x-4">
+              <Terminal />
+              <span className="flex">SQL Editor</span>
+            </div>
+          </NextLink>
+        </Button>
+      </div>
+    </div>
   );
 }
 
 export default function DataBrowserSidebar({
   className,
-  onSidebarItemClick,
-  ...props
 }: DataBrowserSidebarProps) {
   const isPlatform = useIsPlatform();
   const { project } = useProject();
@@ -541,11 +456,7 @@ export default function DataBrowserSidebar({
     setExpanded(!expanded);
   }
 
-  function handleSidebarItemClick(tablePath?: string) {
-    if (onSidebarItemClick && tablePath) {
-      onSidebarItemClick(tablePath);
-    }
-
+  function handleSidebarItemClick() {
     setExpanded(false);
   }
 
@@ -586,24 +497,24 @@ export default function DataBrowserSidebar({
         }}
       />
 
-      <Box
-        component="aside"
-        className={twMerge(
-          'absolute top-0 z-[35] h-full w-full overflow-auto border-r-1 pb-17 pt-2 motion-safe:transition-transform sm:relative sm:z-0 sm:h-full sm:pb-0 sm:pt-2.5 sm:transition-none',
+      <aside
+        className={cn(
+          'box absolute top-0 z-[35] h-full w-full overflow-auto border-r-1 pb-17 pt-2 motion-safe:transition-transform sm:relative sm:z-0 sm:h-full sm:pb-0 sm:pt-2.5 sm:transition-none',
           expanded ? 'translate-x-0' : '-translate-x-full sm:translate-x-0',
           className,
         )}
-        {...props}
       >
         <RetryableErrorBoundary>
           <DataBrowserSidebarContent
             onSidebarItemClick={handleSidebarItemClick}
           />
         </RetryableErrorBoundary>
-      </Box>
+      </aside>
 
-      <IconButton
-        className="absolute bottom-4 left-8 z-[38] h-11 w-11 rounded-full md:hidden"
+      <Button
+        variant="outline"
+        size="icon"
+        className="absolute bottom-4 left-8 z-[38] h-11 w-11 rounded-full bg-primary md:hidden"
         onClick={toggleExpanded}
         aria-label="Toggle sidebar"
       >
@@ -613,7 +524,7 @@ export default function DataBrowserSidebar({
           src="/assets/table.svg"
           alt="A monochrome table"
         />
-      </IconButton>
+      </Button>
     </>
   );
 }
