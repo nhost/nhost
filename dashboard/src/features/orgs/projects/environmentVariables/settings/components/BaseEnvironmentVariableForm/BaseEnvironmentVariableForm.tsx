@@ -50,7 +50,6 @@ export const baseEnvironmentVariableFormValidationSchema = Yup.object({
           'TERM',
           'NODE_VERSION',
           'YARN_VERSION',
-          'NODE_ENV',
           'HOME',
         ].includes(value),
     )
