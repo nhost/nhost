@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [cli@1.34.0] - 2025-10-09
+
+### 🚀 Features
+
+- *(cli)* Added mcp server functionality from mcp-nhost (#3550)
+- *(cli)* Mcp: move configuration to .nhost folder and integrate cloud credentials (#3555)
+- *(cli)* Mcp: added support for environment variables in the configuration (#3556)
+- *(cli)* MCP refactor and documentation prior to official release (#3571)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Remove NODE_ENV from restricted env vars (#3573)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(nixops)* Update nhost-cli (#3554)
+- *(cli)* Bump nhost/dashboard to 2.38.4 (#3539)
+
 ## [cli@1.33.0] - 2025-10-02
 
 ### 🚀 Features
