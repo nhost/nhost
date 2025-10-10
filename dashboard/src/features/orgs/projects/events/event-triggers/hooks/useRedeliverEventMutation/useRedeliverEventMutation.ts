@@ -5,7 +5,7 @@ import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation } from '@tanstack/react-query';
 import redeliverEvent, { type RedeliverEventVariables } from './redeliverEvent';
 
-export interface UseAddRemoteSchemaPermissionsMutationOptions {
+export interface UseRedeliverEventMutationOptions {
   /**
    * Props passed to the underlying mutation hook.
    */
@@ -24,7 +24,7 @@ export interface UseAddRemoteSchemaPermissionsMutationOptions {
  */
 export default function useRedeliverEventMutation({
   mutationOptions,
-}: UseAddRemoteSchemaPermissionsMutationOptions = {}) {
+}: UseRedeliverEventMutationOptions = {}) {
   const { project } = useProject();
 
   const mutation = useMutation<
