@@ -1110,30 +1110,6 @@ components:
           description: Number of seconds to wait for the webhook response before timing out
           default: 60
 
-    AutoEventTriggerCleanupConfig:
-      type: object
-      description: Auto-cleanup configuration for event logs
-      required:
-        - schedule
-        - clear_older_than
-      properties:
-        schedule:
-          type: string
-          description: Cron expression at which the cleanup should be invoked.
-          example: 0 0 * * *
-        clear_older_than:
-          type: integer
-          description: Event logs retention period (in hours). 168 hours of retention period means that the logs older than 7 days will be removed.
-          example: 168
-        batch_size:
-          type: integer
-          description: Maximum number of logs to delete in a single statement during the cleanup action. If there are more events to be cleaned than the batch_size then the cleanup action will execute multiple statements sequentially until all old event logs are cleared.
-          default: 10000
-        timeout:
-          type: integer
-          description: Maximum time (in seconds) that a batch can take during the cleanup process. If a batch times out, the cleanup process is halted.
-          default: 60
-
     RequestTransformation:
       type: object
       description: Request transformation
