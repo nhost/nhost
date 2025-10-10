@@ -1,25 +1,4 @@
-<h1 align="center">Hasura Auth</h1>
-<h2 align="center">Authentication for Hasura</h2>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/version-2.2.1-blue.svg?cacheSeconds=2592000" />
-  <a href="LICENSE">
-    <img src="https://img.shields.io/badge/license-MIT-yellow.svg" alt="license: MIT" />
-  </a>
-  <a href="https://commitizen.github.io/cz-cli">
-    <img src="https://img.shields.io/badge/commitizen-friendly-brightgreen.svg" alt="commitizen: friendly" />
-  </a>
-  <a href="https://prettier.io">
-    <img src="https://img.shields.io/badge/code_style-prettier-ff69b4.svg" alt="code style: prettier" />
-  </a>
-  <a href="https://github.com/nhost/nhost/services/auth/actions?query=workflow%Build+branch%3Amain+event%3Apush">
-    <img src="https://github.com/nhost/nhost/services/auth/workflows/Build/badge.svg?branch=main"/>
-  </a>
-  <a href="https://codecov.io/gh/nhost/hasura-auth/branch/main">
-    <img src="https://codecov.io/gh/nhost/hasura-auth/branch/main/graph/badge.svg"
-    />
-  </a>
-</p>
+# Auth
 
 ## Core Features
 
@@ -40,25 +19,16 @@
 - [**OAuth providers**](./docs/workflows/oauth-providers.md): Facebook, Google, GitHub, Twitter, Apple, Azure AD, LinkedIn, Windows Live, Spotify, Strava, GitLab, BitBucket, Discord, WorkOS.
 - [**Security keys with WebAuthn**](./docs/workflows/webauthn.md)
 
-## Deploy Hasura Auth in Seconds
+## Deploy Auth in Seconds
 
 Use [Nhost](https://nhost.io) to start using Hasura Auth in seconds.
 
 ### Using Docker-compose
 
 ```sh
-git clone https://github.com/nhost/nhost/services/auth.git
-cd hasura-auth/build/docker-compose
+git clone https://github.com/nhost/nhost.git
+cd services/auth/build/docker-compose
 docker compose up
-```
-
-### Building from Source
-
-```sh
-git clone https://github.com/nhost/nhost/services/auth.git
-cd hasura-auth
-go build -o hasura-auth main.go
-./hasura-auth --help
 ```
 
 ## Configuration

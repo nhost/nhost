@@ -1,5 +1,5 @@
 {
-  "name": "hasura-auth",
+  "name": "auth",
   "license": "MIT",
   "repository": {
     "url": "git://github.com/nhost/nhost/services/auth.git",

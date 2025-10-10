@@ -16,7 +16,7 @@ AUTH_SMTP_HOST=smtp.example.com
 AUTH_SMTP_PORT=1025
 AUTH_SMTP_USER=user
 AUTH_SMTP_PASS=password
-AUTH_SMTP_SENDER=hasura-auth@example.com
+AUTH_SMTP_SENDER=auth@example.com
 ```
 
 See the [CLI documentation](./cli.md) for all available configuration options including SMTP settings.
@@ -121,7 +121,7 @@ Hasura Auth supports [Webauthn authentication](https://en.wikipedia.org/wiki/Web
 Enabling and configuring of the Webauthn can be done by setting these env variables:
 
 ```bash
-AUTH_SERVER_URL=https://hasura-auth.com
+AUTH_SERVER_URL=https://nhost-auth.com
 AUTH_WEBAUTHN_ENABLED=true
 AUTH_WEBAUTHN_RP_NAME='My App'
 AUTH_WEBAUTHN_RP_ORIGINS=https://my-app.vercel.com

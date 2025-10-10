@@ -459,7 +459,7 @@ func mailhog(subdomain, volumeName string, useTLS bool) *Service {
 			"SMTP_PASS":   "password",
 			"SMTP_PORT":   "1025",
 			"SMTP_SECURE": "false",
-			"SMTP_SENDER": "hasura-auth@example.com",
+			"SMTP_SENDER": "auth@example.com",
 			"SMTP_USER":   "user",
 		},
 		ExtraHosts:  extraHosts(subdomain),

@@ -28,7 +28,7 @@ services:
             AUTH_SMTP_PASS: password
             AUTH_SMTP_PORT: "1025"
             AUTH_SMTP_SECURE: "false"
-            AUTH_SMTP_SENDER: hasura-auth@example.com
+            AUTH_SMTP_SENDER: auth@example.com
             AUTH_SMTP_USER: user
             AUTH_LOG_LEVEL: debug
             AUTH_CLIENT_URL: 'http://localhost:3000'
@@ -156,7 +156,7 @@ services:
             SMTP_PASS: password
             SMTP_PORT: "1025"
             SMTP_SECURE: "false"
-            SMTP_SENDER: hasura-auth@example.com
+            SMTP_SENDER: auth@example.com
             SMTP_USER: user
         restart: always
 
