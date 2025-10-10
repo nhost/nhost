@@ -35,6 +35,18 @@ let
     ];
   };
 
+  node-src = nix-filter.lib.filter {
+    root = ./.;
+    include = with nix-filter.lib;[
+      ./package.json
+      ./bun.lock
+      ./bunfig.toml
+      ./tsconfig.json
+      ./.env.example
+      (inDirectory "test")
+    ];
+  };
+
   tags = [ ];
   ldflags = [
     "-X main.Version=${version}"
@@ -47,11 +59,42 @@ let
     sqlc
     postgresql_17_5-client
     vacuum-go
+    bun
   ];
 
   buildInputs = [ ];
 
   nativeBuildInputs = [ ];
+
+  node_modules-builder = pkgs.stdenv.mkDerivation {
+    inherit version;
+
+    pname = "node_modules-builder";
+
+    nativeBuildInputs = with pkgs; [
+      bun
+      cacert
+    ];
+
+    src = nix-filter.lib.filter {
+      root = ./.;
+      include = [
+        ./package.json
+        ./bun.lock
+        ./bunfig.toml
+      ];
+    };
+
+    buildPhase = ''
+      bun install --frozen-lockfile
+      rm -r node_modules/.cache
+    '';
+
+    installPhase = ''
+      mkdir -p $out
+      cp -r node_modules $out
+    '';
+  };
 in
 rec {
   check = nixops-lib.go.check {
@@ -63,6 +106,18 @@ rec {
         -dqb -n info \
         --ruleset ${src}/${submodule}/vacuum.yaml \
         ${src}/${submodule}/docs/openapi.yaml
+      echo ""
+    '';
+
+    extraCheck = ''
+      echo "➜ Running e2e tests..."
+      mkdir -p $TMPDIR/auth
+      cd $TMPDIR/auth
+      cp -r ${node-src}/* .
+      cp -r ${node-src}/.* .
+      ln -s ${node_modules-builder}/node_modules node_modules
+
+      bun test --env-file .env.example
     '';
   };
 
