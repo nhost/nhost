@@ -1660,13 +1660,11 @@ components:
         response_transform:
           description: Attaches a Response Transformation to the Event Trigger.
           $ref: '#/components/schemas/ResponseTransformation'
-        cleanup_config:
-          description: Cleanup config for the auto cleanup process
-          $ref: '#/components/schemas/AutoEventTriggerCleanupConfig'
         trigger_on_replication:
           type: boolean
           description: Specification for enabling/disabling the Event Trigger during logical replication
           default: false
+      additionalProperties: true
 
     AddEventTriggerBulkOperation:
       type: object
