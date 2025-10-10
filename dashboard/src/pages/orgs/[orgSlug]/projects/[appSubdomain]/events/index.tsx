@@ -1,10 +1,31 @@
 import { Box } from '@/components/ui/v2/Box';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { EventsBrowserSidebar } from '@/features/orgs/projects/events/common/components/EventsBrowserSidebar';
 import { EventsEmptyState } from '@/features/orgs/projects/events/common/components/EventsEmptyState';
+import { useGetEventTriggers } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventTriggers';
 import type { ReactElement } from 'react';
 
 export default function EventsPage() {
+  const { data: eventTriggers, isLoading } = useGetEventTriggers();
+
+  if (isLoading) {
+    return (
+      <div className="flex h-full justify-center">
+        <Spinner />
+      </div>
+    );
+  }
+
+  if (eventTriggers && eventTriggers.length === 0) {
+    return (
+      <EventsEmptyState
+        title="Events"
+        description="Select an event from the sidebar to get started."
+      />
+    );
+  }
+
   return (
     <EventsEmptyState
       title="Events"

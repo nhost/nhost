@@ -7,8 +7,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/v3/table';
-import { isHeaderWithEnvValue } from '@/features/orgs/projects/remote-schemas/utils/guards';
 import type { Headers } from '@/utils/hasura-api/generated/schemas';
+import { isHeaderWithEnvValue } from '@/utils/hasura-api/guards';
 
 export interface RemoteSchemaHeadersTableProps {
   headers: Headers;
