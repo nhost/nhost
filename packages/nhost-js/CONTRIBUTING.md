@@ -2,19 +2,15 @@
 
 ## Requirements
 
+We use nix to manage the development environment, the build process and for running tests.
+
 ### With Nix (Recommended)
 
 Run `nix develop \#nhost-js` to get a complete development environment.
 
 ### Without Nix
 
-Check `project.nix` (checkDeps, buildInputs, buildNativeInputs) for manual dependency installation.
-
-Required tools:
-- Node.js (>=20)
-- pnpm (package manager)
-- nhost-cli
-- Custom codegen tool (from nhost monorepo)
+Check `project.nix` (checkDeps, buildInputs, buildNativeInputs) for manual dependency installation. Alternatively, you can run `make nixops-container-env` in the root of the repository to enter a Docker container with nix and all dependencies pre-installed (note it is a large image).
 
 ## Development Workflow
 

@@ -2,21 +2,15 @@
 
 ## Requirements
 
+We use nix to manage the development environment, the build process and for running tests.
+
 ### With Nix (Recommended)
 
 Run `nix develop \#cli` to get a complete development environment.
 
 ### Without Nix
 
-Check `project.nix` (checkDeps, buildInputs, buildNativeInputs) for manual dependency installation.
-
-Required tools:
-- Go
-- golangci-lint
-- golines
-- gqlgenc
-- oapi-codegen
-- Docker (for dev environment)
+Check `project.nix` (checkDeps, buildInputs, buildNativeInputs) for manual dependency installation. Alternatively, you can run `make nixops-container-env` in the root of the repository to enter a Docker container with nix and all dependencies pre-installed (note it is a large image).
 
 ## Development Workflow
 
@@ -63,6 +57,19 @@ Build and import Docker image with skopeo:
 make build-docker-image
 ```
 
+If you run the command above inside the dockerized nixops-container-env and you get an error like:
+
+```
+FATA[0000] writing blob: io: read/write on closed pipe
+```
+
+then you need to run the following command outside of the container (needs skopeo installed on the host):
+
+```bash
+cd cli
+make build-docker-image-import-bare
+```
+
 ### Multi-Platform Builds
 
 Build for multiple platforms (Darwin/Linux, ARM64/AMD64):
@@ -75,5 +82,3 @@ This produces binaries for:
 - darwin/amd64
 - linux/arm64
 - linux/amd64
-
-> **Note:** Works with and without Nix. Without Nix, a Docker container is used as the build environment, which may be slower.

@@ -110,6 +110,11 @@ build-docker-image:  ## Build docker container for native architecture
 		skopeo copy --insecure-policy dir:./result docker-daemon:$(NAME):$(VERSION)
 
 
+.PHONY: build-docker-image-import-bare
+build-docker-image-import-bare:
+	skopeo copy --insecure-policy dir:./result docker-daemon:$(NAME):$(VERSION)
+
+
 .PHONY: dev-env-up
 dev-env-up: _dev-env-build _dev-env-up ## Starts development environment
 
