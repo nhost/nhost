@@ -154,6 +154,9 @@ export default function EventTriggerEventsDataTable({
                     <TableCell colSpan={columns.length} className="p-0">
                       <EventTriggerInvocationLogsDataTable
                         eventId={row.id}
+                        retryTimeoutSeconds={
+                          eventTrigger.retry_conf?.timeout_sec
+                        }
                         source={eventTrigger.dataSource}
                       />
                     </TableCell>

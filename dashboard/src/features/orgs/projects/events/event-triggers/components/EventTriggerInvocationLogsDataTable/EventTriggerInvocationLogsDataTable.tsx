@@ -25,6 +25,7 @@ import type { EventTriggerInvocationLogsDataTableMeta } from './types';
 interface EventTriggerInvocationLogsDataTableProps {
   eventId: string;
   source: string;
+  retryTimeoutSeconds?: number;
 }
 
 const skeletonRowKeys = ['s1', 's2', 's3'];
@@ -32,9 +33,11 @@ const skeletonRowKeys = ['s1', 's2', 's3'];
 export default function EventTriggerInvocationLogsDataTable({
   eventId,
   source,
+  retryTimeoutSeconds,
 }: EventTriggerInvocationLogsDataTableProps) {
   const [selectedLog, setSelectedLog] =
     useState<EventInvocationLogEntry | null>(null);
+  const [pendingSkeletonIds, setPendingSkeletonIds] = useState<string[]>([]);
 
   const {
     offset,
@@ -46,6 +49,8 @@ export default function EventTriggerInvocationLogsDataTable({
     hasNoNextPage,
     data,
     isLoading,
+    isInitialLoading,
+    refetch: refetchInvocations,
   } = useEventTriggerPagination({
     useQueryHook: useGetEventAndInvocationLogsById,
     getQueryArgs: (limitArg, offsetArg) => ({
@@ -67,12 +72,23 @@ export default function EventTriggerInvocationLogsDataTable({
     state: {
       sorting,
     },
+    getRowId: (row) => row.id,
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     meta: {
       selectedLog,
       setSelectedLog,
+      addPendingSkeleton: () => {
+        const id = `pending-skeleton-${Date.now()}`;
+        setPendingSkeletonIds((prev) => [id, ...prev]);
+        return id;
+      },
+      removePendingSkeleton: (id: string) => {
+        setPendingSkeletonIds((prev) => prev.filter((s) => s !== id));
+      },
+      refetchInvocations,
+      retryTimeoutSeconds,
     } satisfies EventTriggerInvocationLogsDataTableMeta,
   });
 
@@ -107,7 +123,7 @@ export default function EventTriggerInvocationLogsDataTable({
           ))}
         </TableHeader>
         <TableBody>
-          {isLoading &&
+          {isInitialLoading &&
             skeletonRowKeys.map((key) => (
               <TableRow key={`skeleton-${key}`}>
                 {table.getAllLeafColumns().map((col) => (
@@ -120,6 +136,23 @@ export default function EventTriggerInvocationLogsDataTable({
                 ))}
               </TableRow>
             ))}
+
+          {pendingSkeletonIds.map((id) => (
+            <TableRow key={id} data-state="skeleton">
+              <TableCell>
+                <Skeleton className="h-4 w-24" />
+              </TableCell>
+              <TableCell>
+                <Skeleton className="h-4 w-10" />
+              </TableCell>
+              <TableCell>
+                <Skeleton className="h-4 w-40" />
+              </TableCell>
+              <TableCell>
+                <Skeleton className="h-8 w-16" />
+              </TableCell>
+            </TableRow>
+          ))}
 
           {!isLoading &&
             table.getRowModel().rows?.length > 0 &&
@@ -137,13 +170,18 @@ export default function EventTriggerInvocationLogsDataTable({
               </TableRow>
             ))}
 
-          {!isLoading && table.getRowModel().rows?.length === 0 && (
-            <TableRow>
-              <TableCell colSpan={columns.length} className="h-24 text-center">
-                No results.
-              </TableCell>
-            </TableRow>
-          )}
+          {!isLoading &&
+            table.getRowModel().rows?.length === 0 &&
+            pendingSkeletonIds.length === 0 && (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
+                  No results.
+                </TableCell>
+              </TableRow>
+            )}
         </TableBody>
       </Table>
 
