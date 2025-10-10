@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [storage@0.8.2] - 2025-10-10
+
+### ⚙️ Miscellaneous Tasks
+
+- *(auth)* Change some references to deprecated hasura-auth (#3584)
+
 ## [storage@0.8.1] - 2025-09-30
 
 ### 🐛 Bug Fixes
