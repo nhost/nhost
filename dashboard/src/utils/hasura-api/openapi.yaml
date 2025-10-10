@@ -1048,12 +1048,10 @@ components:
         request_transform:
           description: Attaches a Request Transformation to the Event Trigger.
           $ref: '#/components/schemas/RequestTransformation'
-        cleanup_config:
-          description: Cleanup config for the auto cleanup process
-          $ref: '#/components/schemas/AutoEventTriggerCleanupConfig'
         trigger_on_replication:
           type: boolean
           description: Specification for enabling/disabling the Event Trigger during logical replication
+      additionalProperties: true
 
     EventTriggerDefinition:
       type: object
@@ -1101,47 +1099,15 @@ components:
         num_retries:
           type: integer
           description: Number of times to retry delivery
-          example: 0
+          default: 0
         interval_sec:
           type: integer
           description: Number of seconds to wait between retries
-          example: 10
+          default: 10
         timeout_sec:
           type: integer
           description: Number of seconds to wait for the webhook response before timing out
-          example: 60
-
-    AutoEventTriggerCleanupConfig:
-      type: object
-      description: Auto-cleanup configuration for event logs
-      required:
-        - schedule
-        - clear_older_than
-      properties:
-        schedule:
-          type: string
-          description: Cron expression at which the cleanup should be invoked.
-          example: 0 0 * * *
-        clear_older_than:
-          type: integer
-          description: Event logs retention period (in hours). 168 hours of retention period means that the logs older than 7 days will be removed.
-          example: 168
-        batch_size:
-          type: integer
-          description: Maximum number of logs to delete in a single statement during the cleanup action. If there are more events to be cleaned than the batch_size then the cleanup action will execute multiple statements sequentially until all old event logs are cleared.
-          default: 10000
-        timeout:
-          type: integer
-          description: Maximum time (in seconds) that a batch can take during the cleanup process. If a batch times out, the cleanup process is halted.
           default: 60
-        clean_invocation_logs:
-          type: boolean
-          description: Should corresponding invocation logs be cleaned.
-          default: false
-        paused:
-          type: boolean
-          description: Is the auto-cleanup process paused.
-          default: false
 
     RequestTransformation:
       type: object
