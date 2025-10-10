@@ -1,36 +1,36 @@
-openapi: '3.0.0'
+openapi: "3.0.0"
 
 info:
   version: 1.0.0
-  title: 'Nhost Authentication API'
-  description: 'Comprehensive authentication service for managing user identities, sessions, and authentication methods'
+  title: "Nhost Authentication API"
+  description: "Comprehensive authentication service for managing user identities, sessions, and authentication methods"
   license:
-    name: 'MIT License'
-    url: 'https://opensource.org/licenses/MIT'
+    name: "MIT License"
+    url: "https://opensource.org/licenses/MIT"
   contact:
-    name: 'Nhost Support'
-    email: 'support@nhost.io'
-    url: 'https://nhost.io'
+    name: "Nhost Support"
+    email: "support@nhost.io"
+    url: "https://nhost.io"
 
 servers:
-  - url: 'https://{subdomain}.auth.{region}.nhost.run/v1'
-    description: 'Nhost Authentication API Server'
+  - url: "https://{subdomain}.auth.{region}.nhost.run/v1"
+    description: "Nhost Authentication API Server"
 
 tags:
   - name: authentication
-    description: 'User authentication operations including sign-in, sign-up, and various authentication methods (email/password, passwordless, OAuth, WebAuthn, MFA)'
+    description: "User authentication operations including sign-in, sign-up, and various authentication methods (email/password, passwordless, OAuth, WebAuthn, MFA)"
   - name: security
-    description: 'Security-related operations including Personal Access Tokens, WebAuthn management, account elevation, and account linking'
+    description: "Security-related operations including Personal Access Tokens, WebAuthn management, account elevation, and account linking"
   - name: session
-    description: 'Session management operations including token refresh, verification, and sign-out'
+    description: "Session management operations including token refresh, verification, and sign-out"
   - name: user
-    description: 'User profile and account management operations including email/password changes, MFA configuration, and profile updates'
+    description: "User profile and account management operations including email/password changes, MFA configuration, and profile updates"
   - name: system
-    description: 'System operations including health checks, service version, and public key endpoints'
+    description: "System operations including health checks, service version, and public key endpoints"
   - name: verification
-    description: 'Email and ticket verification operations for confirming user actions'
+    description: "Email and ticket verification operations for confirming user actions"
   - name: excludeme
-    description: 'These operations are not intended to be used directly by clients and should be excluded from client SDKs'
+    description: "These operations are not intended to be used directly by clients and should be excluded from client SDKs"
 
 paths:
   /.well-known/jwks.json:
@@ -41,19 +41,19 @@ paths:
       tags:
         - system
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/JWKSet'
+                $ref: "#/components/schemas/JWKSet"
           description: >-
             The public keys in JWK Set format
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: 'An error occurred while processing the request'
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
 
   /elevate/webauthn:
     post:
@@ -65,18 +65,18 @@ paths:
       security:
         - BearerAuth: []
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PublicKeyCredentialRequestOptions'
+                $ref: "#/components/schemas/PublicKeyCredentialRequestOptions"
           description: >-
             Challenge sent for elevation
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
           description: An error occurred while processing the request
 
   /elevate/webauthn/verify:
@@ -93,21 +93,21 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SignInWebauthnVerifyRequest'
+              $ref: "#/components/schemas/SignInWebauthnVerifyRequest"
         required: true
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SessionPayload'
+                $ref: "#/components/schemas/SessionPayload"
           description: >-
             Elevated successfully
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
           description: An error occurred while processing the request
 
   /healthz:
@@ -118,18 +118,18 @@ paths:
       tags:
         - system
       responses:
-        '200':
-          description: 'Service is healthy and operational'
+        "200":
+          description: "Service is healthy and operational"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OKResponse'
+                $ref: "#/components/schemas/OKResponse"
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: 'An error occurred while processing the request'
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
 
     head:
       summary: Health check (HEAD)
@@ -138,14 +138,14 @@ paths:
       tags:
         - system
       responses:
-        '200':
-          description: 'Service is healthy and operational'
+        "200":
+          description: "Service is healthy and operational"
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: 'An error occurred while processing the request'
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
 
   /link/idtoken:
     post:
@@ -161,22 +161,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/LinkIdTokenRequest'
+              $ref: "#/components/schemas/LinkIdTokenRequest"
         required: true
       responses:
-        '200':
+        "200":
           description: >-
             Identity linked successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OKResponse'
+                $ref: "#/components/schemas/OKResponse"
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: 'An error occurred while processing the request'
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
 
   /mfa/totp/generate:
     get:
@@ -188,18 +188,18 @@ paths:
       security:
         - BearerAuth: []
       responses:
-        '200':
-          description: 'TOTP secret successfully generated'
+        "200":
+          description: "TOTP secret successfully generated"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TotpGenerateResponse'
+                $ref: "#/components/schemas/TotpGenerateResponse"
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: 'An error occurred while processing the request'
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
 
   /pat:
     post:
@@ -215,22 +215,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreatePATRequest'
+              $ref: "#/components/schemas/CreatePATRequest"
         required: true
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CreatePATResponse'
+                $ref: "#/components/schemas/CreatePATResponse"
           description: >-
             Successfully created a Personal Access Token
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: 'An error occurred while processing the request'
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
 
   /signin/anonymous:
     post:
@@ -244,22 +244,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SignInAnonymousRequest'
+              $ref: "#/components/schemas/SignInAnonymousRequest"
         required: false
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SessionPayload'
+                $ref: "#/components/schemas/SessionPayload"
           description: >-
             Successfully signed in
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: 'An error occurred while processing the request'
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
 
   /signin/email-password:
     post:
@@ -273,21 +273,21 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SignInEmailPasswordRequest'
+              $ref: "#/components/schemas/SignInEmailPasswordRequest"
         required: true
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SignInEmailPasswordResponse'
-          description: 'Authentication successful. If MFA is enabled, a challenge will be returned instead of a session.'
+                $ref: "#/components/schemas/SignInEmailPasswordResponse"
+          description: "Authentication successful. If MFA is enabled, a challenge will be returned instead of a session."
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: 'An error occurred while processing the request'
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
 
   /signin/idtoken:
     post:
@@ -301,22 +301,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SignInIdTokenRequest'
+              $ref: "#/components/schemas/SignInIdTokenRequest"
         required: true
       responses:
-        '200':
+        "200":
           description: >-
             Successfully signed in
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SessionPayload'
+                $ref: "#/components/schemas/SessionPayload"
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: 'An error occurred while processing the request'
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
 
   /signin/mfa/totp:
     post:
@@ -330,21 +330,21 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SignInMfaTotpRequest'
+              $ref: "#/components/schemas/SignInMfaTotpRequest"
         required: true
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SessionPayload'
-          description: 'MFA verification successful, session created'
+                $ref: "#/components/schemas/SessionPayload"
+          description: "MFA verification successful, session created"
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: 'An error occurred while processing the request'
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
 
   /signin/otp/email:
     post:
@@ -358,22 +358,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SignInOTPEmailRequest'
+              $ref: "#/components/schemas/SignInOTPEmailRequest"
         required: true
       responses:
-        '200':
+        "200":
           description: >-
             OTP sent to user's email successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OKResponse'
+                $ref: "#/components/schemas/OKResponse"
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: 'An error occurred while processing the request'
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
 
   /signin/otp/email/verify:
     post:
@@ -387,22 +387,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SignInOTPEmailVerifyRequest'
+              $ref: "#/components/schemas/SignInOTPEmailVerifyRequest"
         required: true
       responses:
-        '200':
+        "200":
           description: >-
             Magic link sent to user's email successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SignInOTPEmailVerifyResponse'
+                $ref: "#/components/schemas/SignInOTPEmailVerifyResponse"
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: 'An error occurred while processing the request'
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
 
   /signin/passwordless/email:
     post:
@@ -416,21 +416,21 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SignInPasswordlessEmailRequest'
+              $ref: "#/components/schemas/SignInPasswordlessEmailRequest"
         required: true
       responses:
-        '200':
-          description: 'Magic link email sent successfully'
+        "200":
+          description: "Magic link email sent successfully"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OKResponse'
+                $ref: "#/components/schemas/OKResponse"
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: 'An error occurred while processing the request'
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
 
   /signin/passwordless/sms:
     post:
@@ -458,8 +458,8 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: 'An error occurred while processing the request'
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
 
   /signin/passwordless/sms/otp:
     post:
@@ -486,8 +486,8 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: 'An error occurred while processing the request'
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
 
   /signin/pat:
     post:
@@ -501,22 +501,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SignInPATRequest'
+              $ref: "#/components/schemas/SignInPATRequest"
         required: true
       responses:
-        '200':
+        "200":
           description: >-
             Successfully signed in
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SessionPayload'
+                $ref: "#/components/schemas/SessionPayload"
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: 'An error occurred while processing the request'
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
 
   /signin/provider/{provider}:
     get:
@@ -526,7 +526,7 @@ paths:
       tags:
         - authentication
       parameters:
-        - $ref: '#/components/parameters/SignInProvider'
+        - $ref: "#/components/parameters/SignInProvider"
         - name: allowedRoles
           in: query
           required: false
@@ -594,18 +594,18 @@ paths:
             type: string
 
       responses:
-        '302':
+        "302":
           description: Redirect to social provider
           headers:
             Location:
-              $ref: '#/components/headers/RedirectLocation'
+              $ref: "#/components/headers/RedirectLocation"
           content: {}
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: 'An error occurred while processing the request'
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
 
   /signin/provider/{provider}/callback:
     get:
@@ -616,7 +616,7 @@ paths:
         - authentication
         - excludeme
       parameters:
-        - $ref: '#/components/parameters/SignInProvider'
+        - $ref: "#/components/parameters/SignInProvider"
         - name: code
           in: query
           description: Authorization code provided by the authentication provider
@@ -664,18 +664,18 @@ paths:
           schema:
             type: string
       responses:
-        '302':
+        "302":
           description: Redirect to client application after successful authentication
           headers:
             Location:
-              $ref: '#/components/headers/RedirectLocation'
+              $ref: "#/components/headers/RedirectLocation"
           content: {}
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: 'An error occurred while processing the request'
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
 
     post:
       summary: OAuth2 provider callback endpoint (form_post)
@@ -685,7 +685,7 @@ paths:
         - authentication
         - excludeme
       parameters:
-        - $ref: '#/components/parameters/SignInProvider'
+        - $ref: "#/components/parameters/SignInProvider"
       requestBody:
         description: OAuth2 provider callback data including authorization code, ID token, and state
         required: true
@@ -725,18 +725,18 @@ paths:
                 - state
               additionalProperties: true
       responses:
-        '302':
+        "302":
           description: Redirect to client application after successful authentication
           headers:
             Location:
-              $ref: '#/components/headers/RedirectLocation'
+              $ref: "#/components/headers/RedirectLocation"
           content: {}
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: 'An error occurred while processing the request'
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
 
   /signin/webauthn:
     post:
@@ -750,22 +750,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SignInWebauthnRequest'
+              $ref: "#/components/schemas/SignInWebauthnRequest"
         required: false
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PublicKeyCredentialRequestOptions'
+                $ref: "#/components/schemas/PublicKeyCredentialRequestOptions"
           description: >-
             Challenge sent
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: 'An error occurred while processing the request'
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
 
       tags:
         - authentication
@@ -782,22 +782,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SignInWebauthnVerifyRequest'
+              $ref: "#/components/schemas/SignInWebauthnVerifyRequest"
         required: true
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SessionPayload'
+                $ref: "#/components/schemas/SessionPayload"
           description: >-
             Sign in successful
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: 'An error occurred while processing the request'
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
 
       tags:
         - authentication
@@ -818,20 +818,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SignOutRequest'
+              $ref: "#/components/schemas/SignOutRequest"
       responses:
-        '200':
-          description: 'Successfully signed out'
+        "200":
+          description: "Successfully signed out"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OKResponse'
+                $ref: "#/components/schemas/OKResponse"
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: 'An error occurred while processing the request'
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
 
   /signup/email-password:
     post:
@@ -845,21 +845,21 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SignUpEmailPasswordRequest'
+              $ref: "#/components/schemas/SignUpEmailPasswordRequest"
         required: true
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SessionPayload'
-          description: 'Registration successful. If email verification is required, session will be null.'
+                $ref: "#/components/schemas/SessionPayload"
+          description: "Registration successful. If email verification is required, session will be null."
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: 'An error occurred while processing the request'
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
 
   /signup/webauthn:
     post:
@@ -873,22 +873,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SignUpWebauthnRequest'
+              $ref: "#/components/schemas/SignUpWebauthnRequest"
         required: true
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PublicKeyCredentialCreationOptions'
+                $ref: "#/components/schemas/PublicKeyCredentialCreationOptions"
           description: >-
             Challenge sent
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: 'An error occurred while processing the request'
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
 
       tags:
         - authentication
@@ -905,22 +905,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SignUpWebauthnVerifyRequest'
+              $ref: "#/components/schemas/SignUpWebauthnVerifyRequest"
         required: true
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SessionPayload'
+                $ref: "#/components/schemas/SessionPayload"
           description: >-
             Sign up successful
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: 'An error occurred while processing the request'
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
 
       tags:
         - authentication
@@ -938,21 +938,21 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RefreshTokenRequest'
+              $ref: "#/components/schemas/RefreshTokenRequest"
         required: true
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Session'
-          description: 'Access token successfully refreshed'
+                $ref: "#/components/schemas/Session"
+          description: "Access token successfully refreshed"
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: 'An error occurred while processing the request'
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
 
   /token/verify:
     post:
@@ -976,14 +976,14 @@ paths:
             application/json:
               schema:
                 type: string
-                example: 'OK'
+                example: "OK"
           description: Valid JWT token
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: 'An error occurred while processing the request'
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
 
   /user:
     get:
@@ -1005,8 +1005,8 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: 'An error occurred while processing the request'
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
 
   /user/deanonymize:
     post:
@@ -1022,22 +1022,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserDeanonymizeRequest'
+              $ref: "#/components/schemas/UserDeanonymizeRequest"
         required: true
       responses:
-        '200':
+        "200":
           description: >-
             User deanonymized successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OKResponse'
+                $ref: "#/components/schemas/OKResponse"
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: 'An error occurred while processing the request'
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
 
   /user/email/change:
     post:
@@ -1053,22 +1053,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserEmailChangeRequest'
+              $ref: "#/components/schemas/UserEmailChangeRequest"
         required: true
       responses:
-        '200':
+        "200":
           description: >-
             Email change requested. An email with a verification link has been sent to the new address
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OKResponse'
+                $ref: "#/components/schemas/OKResponse"
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: 'An error occurred while processing the request'
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
 
   /user/email/send-verification-email:
     post:
@@ -1082,22 +1082,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserEmailSendVerificationEmailRequest'
+              $ref: "#/components/schemas/UserEmailSendVerificationEmailRequest"
         required: true
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OKResponse'
+                $ref: "#/components/schemas/OKResponse"
           description: >-
             Email verification email sent successfully
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: 'An error occurred while processing the request'
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
 
   /user/mfa:
     post:
@@ -1113,21 +1113,21 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserMfaRequest'
+              $ref: "#/components/schemas/UserMfaRequest"
         required: true
       responses:
-        '200':
-          description: 'MFA status successfully updated'
+        "200":
+          description: "MFA status successfully updated"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OKResponse'
+                $ref: "#/components/schemas/OKResponse"
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: 'An error occurred while processing the request'
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
 
   /user/password:
     post:
@@ -1144,22 +1144,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserPasswordRequest'
+              $ref: "#/components/schemas/UserPasswordRequest"
         required: true
       responses:
-        '200':
+        "200":
           description: >-
             Password changed successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OKResponse'
+                $ref: "#/components/schemas/OKResponse"
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: 'An error occurred while processing the request'
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
 
   /user/password/reset:
     post:
@@ -1173,22 +1173,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserPasswordResetRequest'
+              $ref: "#/components/schemas/UserPasswordResetRequest"
         required: true
       responses:
-        '200':
+        "200":
           description: >-
             Password reset requested
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OKResponse'
+                $ref: "#/components/schemas/OKResponse"
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: 'An error occurred while processing the request'
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
 
   /user/webauthn/add:
     post:
@@ -1200,18 +1200,18 @@ paths:
       security:
         - BearerAuthElevated: []
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PublicKeyCredentialCreationOptions'
+                $ref: "#/components/schemas/PublicKeyCredentialCreationOptions"
           description: >-
             Challenge created for registering a new security key
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
           description: An error occurred while processing the request
 
   /user/webauthn/verify:
@@ -1228,21 +1228,21 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/VerifyAddSecurityKeyRequest'
+              $ref: "#/components/schemas/VerifyAddSecurityKeyRequest"
         required: true
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/VerifyAddSecurityKeyResponse'
+                $ref: "#/components/schemas/VerifyAddSecurityKeyResponse"
           description: >-
             Security key successfully added
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
           description: An error occurred while processing the request
 
   /verify:
@@ -1253,22 +1253,22 @@ paths:
       tags:
         - verification
       parameters:
-        - $ref: '#/components/parameters/TicketQuery'
-        - $ref: '#/components/parameters/TicketTypeQuery'
-        - $ref: '#/components/parameters/RedirectToQuery'
+        - $ref: "#/components/parameters/TicketQuery"
+        - $ref: "#/components/parameters/TicketTypeQuery"
+        - $ref: "#/components/parameters/RedirectToQuery"
       responses:
-        '302':
+        "302":
           description: Redirect response
           headers:
             Location:
-              $ref: '#/components/headers/RedirectLocation'
+              $ref: "#/components/headers/RedirectLocation"
           content: {}
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: 'An error occurred while processing the request'
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
 
   /version:
     get:
@@ -1278,8 +1278,8 @@ paths:
       tags:
         - system
       responses:
-        '200':
-          description: 'Version information successfully retrieved'
+        "200":
+          description: "Version information successfully retrieved"
           content:
             application/json:
               schema:
@@ -1288,27 +1288,27 @@ paths:
                 properties:
                   version:
                     type: string
-                    description: 'The version of the authentication service'
-                    example: '1.2.3'
+                    description: "The version of the authentication service"
+                    example: "1.2.3"
                 required:
                   - version
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: 'An error occurred while processing the request'
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
 
 components:
   securitySchemes:
     BearerAuth:
       type: http
       scheme: bearer
-      description: 'Bearer authentication with JWT access token. Used to authenticate requests to protected endpoints.'
+      description: "Bearer authentication with JWT access token. Used to authenticate requests to protected endpoints."
     BearerAuthElevated:
       type: http
       scheme: bearer
-      description: 'Bearer authentication that requires elevated permissions. Used for sensitive operations that may require additional security measures such as recent authentication. For details see https://docs.nhost.io/guides/auth/elevated-permissions'
+      description: "Bearer authentication that requires elevated permissions. Used for sensitive operations that may require additional security measures such as recent authentication. For details see https://docs.nhost.io/guides/auth/elevated-permissions"
 
   schemas:
     AttestationFormat:
@@ -1337,7 +1337,7 @@ components:
           type: boolean
           description: Application identifier extension output
         credProps:
-          $ref: '#/components/schemas/CredentialPropertiesOutput'
+          $ref: "#/components/schemas/CredentialPropertiesOutput"
         hmacCreateSecret:
           type: boolean
           description: HMAC secret extension output
@@ -1376,22 +1376,22 @@ components:
       additionalProperties: false
       properties:
         clientDataJSON:
-          $ref: '#/components/schemas/URLEncodedBase64'
+          $ref: "#/components/schemas/URLEncodedBase64"
         transports:
           type: array
           items:
             type: string
           description: The authenticator transports
         authenticatorData:
-          $ref: '#/components/schemas/URLEncodedBase64'
+          $ref: "#/components/schemas/URLEncodedBase64"
         publicKey:
-          $ref: '#/components/schemas/URLEncodedBase64'
+          $ref: "#/components/schemas/URLEncodedBase64"
         publicKeyAlgorithm:
           type: integer
           format: int64
           description: The public key algorithm identifier
         attestationObject:
-          $ref: '#/components/schemas/URLEncodedBase64'
+          $ref: "#/components/schemas/URLEncodedBase64"
       required:
         - clientDataJSON
         - attestationObject
@@ -1401,14 +1401,14 @@ components:
       additionalProperties: false
       properties:
         authenticatorAttachment:
-          $ref: '#/components/schemas/AuthenticatorAttachment'
+          $ref: "#/components/schemas/AuthenticatorAttachment"
         requireResidentKey:
           type: boolean
           description: Whether the authenticator must create a client-side-resident public key credential source
         residentKey:
-          $ref: '#/components/schemas/ResidentKeyRequirement'
+          $ref: "#/components/schemas/ResidentKeyRequirement"
         userVerification:
-          $ref: '#/components/schemas/UserVerificationRequirement'
+          $ref: "#/components/schemas/UserVerificationRequirement"
 
     AuthenticatorTransport:
       type: string
@@ -1483,14 +1483,14 @@ components:
           type: string
           description: The credential type represented by this object
         rawId:
-          $ref: '#/components/schemas/URLEncodedBase64'
+          $ref: "#/components/schemas/URLEncodedBase64"
         clientExtensionResults:
-          $ref: '#/components/schemas/AuthenticationExtensionsClientOutputs'
+          $ref: "#/components/schemas/AuthenticationExtensionsClientOutputs"
         authenticatorAttachment:
           type: string
           description: The authenticator attachment
         response:
-          $ref: '#/components/schemas/AuthenticatorAssertionResponse'
+          $ref: "#/components/schemas/AuthenticatorAssertionResponse"
       required:
         - id
         - type
@@ -1512,14 +1512,14 @@ components:
           type: string
           description: The credential type represented by this object
         rawId:
-          $ref: '#/components/schemas/URLEncodedBase64'
+          $ref: "#/components/schemas/URLEncodedBase64"
         clientExtensionResults:
-          $ref: '#/components/schemas/AuthenticationExtensionsClientOutputs'
+          $ref: "#/components/schemas/AuthenticationExtensionsClientOutputs"
         authenticatorAttachment:
           type: string
           description: The authenticator attachment
         response:
-          $ref: '#/components/schemas/AuthenticatorAttestationResponse'
+          $ref: "#/components/schemas/AuthenticatorAttestationResponse"
       required:
         - id
         - type
@@ -1531,7 +1531,7 @@ components:
       additionalProperties: false
       properties:
         type:
-          $ref: '#/components/schemas/CredentialType'
+          $ref: "#/components/schemas/CredentialType"
         alg:
           type: integer
           description: The cryptographic algorithm identifier
@@ -1556,19 +1556,19 @@ components:
 
     ErrorResponse:
       type: object
-      description: 'Standardized error response'
+      description: "Standardized error response"
       additionalProperties: false
       properties:
         status:
-          description: 'HTTP status error code'
+          description: "HTTP status error code"
           type: integer
           example: 400
         message:
-          description: 'Human-friendly error message'
+          description: "Human-friendly error message"
           type: string
-          example: 'Invalid email format'
+          example: "Invalid email format"
         error:
-          description: 'Error code identifying the specific application error'
+          description: "Error code identifying the specific application error"
           type: string
           enum:
             - default-role-must-be-in-allowed-roles
@@ -1616,33 +1616,33 @@ components:
 
     JWK:
       type: object
-      description: 'JSON Web Key for JWT verification'
+      description: "JSON Web Key for JWT verification"
       additionalProperties: false
       properties:
         alg:
           type: string
-          description: 'Algorithm used with this key'
-          example: 'RS256'
+          description: "Algorithm used with this key"
+          example: "RS256"
         e:
           type: string
-          description: 'RSA public exponent'
-          example: 'AQAB'
+          description: "RSA public exponent"
+          example: "AQAB"
         kid:
           type: string
-          description: 'Key ID'
-          example: 'key-id-1'
+          description: "Key ID"
+          example: "key-id-1"
         kty:
           type: string
-          description: 'Key type'
-          example: 'RSA'
+          description: "Key type"
+          example: "RSA"
         n:
           type: string
-          description: 'RSA modulus'
-          example: 'abcd1234...'
+          description: "RSA modulus"
+          example: "abcd1234..."
         use:
           type: string
-          description: 'Key usage'
-          example: 'sig'
+          description: "Key usage"
+          example: "sig"
       required:
         - alg
         - e
@@ -1653,14 +1653,14 @@ components:
 
     JWKSet:
       type: object
-      description: 'JSON Web Key Set for verifying JWT signatures'
+      description: "JSON Web Key Set for verifying JWT signatures"
       additionalProperties: false
       properties:
         keys:
           type: array
-          description: 'Array of public keys'
+          description: "Array of public keys"
           items:
-            $ref: '#/components/schemas/JWK'
+            $ref: "#/components/schemas/JWK"
       required:
         - keys
 
@@ -1669,7 +1669,7 @@ components:
       additionalProperties: false
       properties:
         provider:
-          $ref: '#/components/schemas/IdTokenProvider'
+          $ref: "#/components/schemas/IdTokenProvider"
         idToken:
           type: string
           description: Apple ID token
@@ -1682,13 +1682,13 @@ components:
 
     MFAChallengePayload:
       type: object
-      description: 'Challenge payload for multi-factor authentication'
+      description: "Challenge payload for multi-factor authentication"
       additionalProperties: false
       properties:
         ticket:
           type: string
-          description: 'Ticket to use when completing the MFA challenge'
-          example: 'mfaTotp:abc123def456'
+          description: "Ticket to use when completing the MFA challenge"
+          example: "mfaTotp:abc123def456"
       required:
         - ticket
 
@@ -1716,15 +1716,15 @@ components:
       additionalProperties: false
       properties:
         rp:
-          $ref: '#/components/schemas/RelyingPartyEntity'
+          $ref: "#/components/schemas/RelyingPartyEntity"
         user:
-          $ref: '#/components/schemas/UserEntity'
+          $ref: "#/components/schemas/UserEntity"
         challenge:
-          $ref: '#/components/schemas/URLEncodedBase64'
+          $ref: "#/components/schemas/URLEncodedBase64"
         pubKeyCredParams:
           type: array
           items:
-            $ref: '#/components/schemas/CredentialParameter'
+            $ref: "#/components/schemas/CredentialParameter"
           description: The desired credential types and their respective cryptographic parameters
         timeout:
           type: integer
@@ -1732,24 +1732,24 @@ components:
         excludeCredentials:
           type: array
           items:
-            $ref: '#/components/schemas/PublicKeyCredentialDescriptor'
+            $ref: "#/components/schemas/PublicKeyCredentialDescriptor"
           description: A list of PublicKeyCredentialDescriptor objects representing public key credentials that are not acceptable to the caller
         authenticatorSelection:
-          $ref: '#/components/schemas/AuthenticatorSelection'
+          $ref: "#/components/schemas/AuthenticatorSelection"
         hints:
           type: array
           items:
-            $ref: '#/components/schemas/PublicKeyCredentialHints'
+            $ref: "#/components/schemas/PublicKeyCredentialHints"
           description: Hints to help guide the user through the experience
         attestation:
-          $ref: '#/components/schemas/ConveyancePreference'
+          $ref: "#/components/schemas/ConveyancePreference"
         attestationFormats:
           type: array
           items:
-            $ref: '#/components/schemas/AttestationFormat'
+            $ref: "#/components/schemas/AttestationFormat"
           description: The preferred attestation statement formats
         extensions:
-          $ref: '#/components/schemas/AuthenticationExtensions'
+          $ref: "#/components/schemas/AuthenticationExtensions"
       required:
         - rp
         - user
@@ -1761,13 +1761,13 @@ components:
       additionalProperties: false
       properties:
         type:
-          $ref: '#/components/schemas/CredentialType'
+          $ref: "#/components/schemas/CredentialType"
         id:
-          $ref: '#/components/schemas/URLEncodedBase64'
+          $ref: "#/components/schemas/URLEncodedBase64"
         transports:
           type: array
           items:
-            $ref: '#/components/schemas/AuthenticatorTransport'
+            $ref: "#/components/schemas/AuthenticatorTransport"
           description: The authenticator transports that can be used
       required:
         - type
@@ -1790,7 +1790,7 @@ components:
       additionalProperties: false
       properties:
         challenge:
-          $ref: '#/components/schemas/URLEncodedBase64'
+          $ref: "#/components/schemas/URLEncodedBase64"
         timeout:
           type: integer
           description: A time, in milliseconds, that the caller is willing to wait for the call to complete
@@ -1800,28 +1800,28 @@ components:
         allowCredentials:
           type: array
           items:
-            $ref: '#/components/schemas/PublicKeyCredentialDescriptor'
+            $ref: "#/components/schemas/PublicKeyCredentialDescriptor"
           description: A list of CredentialDescriptor objects representing public key credentials acceptable to the caller
         userVerification:
-          $ref: '#/components/schemas/UserVerificationRequirement'
+          $ref: "#/components/schemas/UserVerificationRequirement"
         hints:
           type: array
           items:
-            $ref: '#/components/schemas/PublicKeyCredentialHints'
+            $ref: "#/components/schemas/PublicKeyCredentialHints"
           description: Hints to help guide the user through the experience
         extensions:
-          $ref: '#/components/schemas/AuthenticationExtensions'
+          $ref: "#/components/schemas/AuthenticationExtensions"
       required:
         - challenge
 
     RefreshTokenRequest:
       type: object
-      description: 'Request to refresh an access token'
+      description: "Request to refresh an access token"
       additionalProperties: false
       properties:
         refreshToken:
-          description: 'Refresh token used to generate a new access token'
-          example: '2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24'
+          description: "Refresh token used to generate a new access token"
+          example: "2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"
           pattern: \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
           type: string
       required:
@@ -1852,30 +1852,30 @@ components:
 
     Session:
       type: object
-      description: 'User authentication session containing tokens and user information'
+      description: "User authentication session containing tokens and user information"
       additionalProperties: false
       properties:
         accessToken:
           type: string
-          description: 'JWT token for authenticating API requests'
-          example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+          description: "JWT token for authenticating API requests"
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
         accessTokenExpiresIn:
           type: integer
           format: int64
-          description: 'Expiration time of the access token in seconds'
+          description: "Expiration time of the access token in seconds"
           example: 900
         refreshTokenId:
-          description: 'Identifier for the refresh token'
-          example: '2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24'
+          description: "Identifier for the refresh token"
+          example: "2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"
           pattern: \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
           type: string
         refreshToken:
-          description: 'Token used to refresh the access token'
-          example: '2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24'
+          description: "Token used to refresh the access token"
+          example: "2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"
           pattern: \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
           type: string
         user:
-          $ref: '#/components/schemas/User'
+          $ref: "#/components/schemas/User"
       required:
         - accessToken
         - accessTokenExpiresIn
@@ -1884,11 +1884,11 @@ components:
 
     SessionPayload:
       type: object
-      description: 'Container for session information'
+      description: "Container for session information"
       additionalProperties: false
       properties:
         session:
-          $ref: '#/components/schemas/Session'
+          $ref: "#/components/schemas/Session"
 
     SignInAnonymousRequest:
       type: object
@@ -1913,17 +1913,17 @@ components:
 
     SignInEmailPasswordRequest:
       type: object
-      description: 'Request to authenticate using email and password'
+      description: "Request to authenticate using email and password"
       additionalProperties: false
       properties:
         email:
           description: "User's email address"
-          example: 'john.smith@nhost.io'
+          example: "john.smith@nhost.io"
           format: email
           type: string
         password:
           description: "User's password"
-          example: 'Str0ngPassw#ord-94|%'
+          example: "Str0ngPassw#ord-94|%"
           minLength: 3
           maxLength: 50
           type: string
@@ -1933,20 +1933,20 @@ components:
 
     SignInEmailPasswordResponse:
       type: object
-      description: 'Response for email-password authentication that may include a session or MFA challenge'
+      description: "Response for email-password authentication that may include a session or MFA challenge"
       additionalProperties: false
       properties:
         session:
-          $ref: '#/components/schemas/Session'
+          $ref: "#/components/schemas/Session"
         mfa:
-          $ref: '#/components/schemas/MFAChallengePayload'
+          $ref: "#/components/schemas/MFAChallengePayload"
 
     SignInIdTokenRequest:
       type: object
       additionalProperties: false
       properties:
         provider:
-          $ref: '#/components/schemas/IdTokenProvider'
+          $ref: "#/components/schemas/IdTokenProvider"
         idToken:
           type: string
           description: Apple ID token
@@ -1954,7 +1954,7 @@ components:
           type: string
           description: Nonce used during sign in process
         options:
-          $ref: '#/components/schemas/SignUpOptions'
+          $ref: "#/components/schemas/SignUpOptions"
       required:
         - provider
         - idToken
@@ -1984,7 +1984,7 @@ components:
           format: email
           type: string
         options:
-          $ref: '#/components/schemas/SignUpOptions'
+          $ref: "#/components/schemas/SignUpOptions"
       required:
         - email
 
@@ -2009,7 +2009,7 @@ components:
       additionalProperties: false
       properties:
         session:
-          $ref: '#/components/schemas/Session'
+          $ref: "#/components/schemas/Session"
 
     SignInPATRequest:
       type: object
@@ -2033,7 +2033,7 @@ components:
           format: email
           type: string
         options:
-          $ref: '#/components/schemas/SignUpOptions'
+          $ref: "#/components/schemas/SignUpOptions"
       required:
         - email
 
@@ -2095,7 +2095,7 @@ components:
           type: string
           deprecated: true
         credential:
-          $ref: '#/components/schemas/CredentialAssertionResponse'
+          $ref: "#/components/schemas/CredentialAssertionResponse"
       required:
         - credential
 
@@ -2112,22 +2112,22 @@ components:
 
     SignUpEmailPasswordRequest:
       type: object
-      description: 'Request to register a new user with email and password'
+      description: "Request to register a new user with email and password"
       additionalProperties: false
       properties:
         email:
-          description: 'Email address for the new user account'
-          example: 'john.smith@nhost.io'
+          description: "Email address for the new user account"
+          example: "john.smith@nhost.io"
           format: email
           type: string
         password:
-          description: 'Password for the new user account'
-          example: 'Str0ngPassw#ord-94|%'
+          description: "Password for the new user account"
+          example: "Str0ngPassw#ord-94|%"
           minLength: 3
           maxLength: 50
           type: string
         options:
-          $ref: '#/components/schemas/SignUpOptions'
+          $ref: "#/components/schemas/SignUpOptions"
       required:
         - email
         - password
@@ -2181,7 +2181,7 @@ components:
           format: email
           type: string
         options:
-          $ref: '#/components/schemas/SignUpOptions'
+          $ref: "#/components/schemas/SignUpOptions"
       required:
         - email
 
@@ -2190,9 +2190,9 @@ components:
       additionalProperties: false
       properties:
         credential:
-          $ref: '#/components/schemas/CredentialCreationResponse'
+          $ref: "#/components/schemas/CredentialCreationResponse"
         options:
-          $ref: '#/components/schemas/SignUpOptions'
+          $ref: "#/components/schemas/SignUpOptions"
         nickname:
           description: Nickname for the security key
           type: string
@@ -2201,17 +2201,17 @@ components:
 
     TotpGenerateResponse:
       type: object
-      description: 'Response containing TOTP setup information for MFA'
+      description: "Response containing TOTP setup information for MFA"
       additionalProperties: false
       properties:
         imageUrl:
           type: string
-          description: 'URL to QR code image for scanning with an authenticator app'
-          example: 'data:image/png;base64,iVBORw0KGg...'
+          description: "URL to QR code image for scanning with an authenticator app"
+          example: "data:image/png;base64,iVBORw0KGg..."
         totpSecret:
           type: string
-          description: 'TOTP secret key for manual setup with an authenticator app'
-          example: 'ABCDEFGHIJK23456'
+          description: "TOTP secret key for manual setup with an authenticator app"
+          example: "ABCDEFGHIJK23456"
       required:
         - imageUrl
         - totpSecret
@@ -2223,29 +2223,29 @@ components:
 
     User:
       type: object
-      description: 'User profile and account information'
+      description: "User profile and account information"
       additionalProperties: false
       properties:
         avatarUrl:
           type: string
           description: "URL to the user's profile picture"
-          example: 'https://myapp.com/avatars/user123.jpg'
+          example: "https://myapp.com/avatars/user123.jpg"
         createdAt:
           format: date-time
           type: string
-          description: 'Timestamp when the user account was created'
-          example: '2023-01-15T12:34:56Z'
+          description: "Timestamp when the user account was created"
+          example: "2023-01-15T12:34:56Z"
         defaultRole:
-          example: 'user'
+          example: "user"
           type: string
-          description: 'Default authorization role for the user'
+          description: "Default authorization role for the user"
         displayName:
-          example: 'John Smith'
+          example: "John Smith"
           type: string
           description: "User's display name"
         email:
           description: "User's email address"
-          example: 'john.smith@nhost.io'
+          example: "john.smith@nhost.io"
           format: email
           type: string
         emailVerified:
@@ -2253,42 +2253,42 @@ components:
           description: "Whether the user's email has been verified"
           example: true
         id:
-          description: 'Unique identifier for the user'
-          example: '2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24'
+          description: "Unique identifier for the user"
+          example: "2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"
           pattern: \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
           type: string
         isAnonymous:
           type: boolean
-          description: 'Whether this is an anonymous user account'
+          description: "Whether this is an anonymous user account"
           example: false
         locale:
           description: "User's preferred locale (language code)"
-          example: 'en'
+          example: "en"
           maxLength: 2
           minLength: 2
           type: string
         metadata:
           type: object
           additionalProperties: true
-          description: 'Custom metadata associated with the user'
+          description: "Custom metadata associated with the user"
           example:
-            firstName: 'John'
-            lastName: 'Smith'
+            firstName: "John"
+            lastName: "Smith"
           properties: {}
         phoneNumber:
           type: string
           description: "User's phone number"
-          example: '+12025550123'
+          example: "+12025550123"
         phoneNumberVerified:
           type: boolean
           description: "Whether the user's phone number has been verified"
           example: false
         roles:
           example:
-            - 'user'
-            - 'customer'
+            - "user"
+            - "customer"
           type: array
-          description: 'List of roles assigned to the user'
+          description: "List of roles assigned to the user"
           items:
             type: string
         activeMfaType:
@@ -2334,7 +2334,7 @@ components:
           description: Deprecated, will be ignored
           type: string
         options:
-          $ref: '#/components/schemas/SignUpOptions'
+          $ref: "#/components/schemas/SignUpOptions"
       required:
         - signInMethod
         - email
@@ -2349,7 +2349,7 @@ components:
           format: email
           type: string
         options:
-          $ref: '#/components/schemas/OptionsRedirectTo'
+          $ref: "#/components/schemas/OptionsRedirectTo"
       required:
         - newEmail
 
@@ -2363,7 +2363,7 @@ components:
           format: email
           type: string
         options:
-          $ref: '#/components/schemas/OptionsRedirectTo'
+          $ref: "#/components/schemas/OptionsRedirectTo"
       required:
         - email
 
@@ -2387,18 +2387,18 @@ components:
 
     UserMfaRequest:
       type: object
-      description: 'Request to activate or deactivate multi-factor authentication'
+      description: "Request to activate or deactivate multi-factor authentication"
       additionalProperties: false
       properties:
         code:
           type: string
-          description: 'Verification code from the authenticator app when activating MFA'
-          example: '123456'
+          description: "Verification code from the authenticator app when activating MFA"
+          example: "123456"
         activeMfaType:
           type: string
-          enum: [totp, '']
-          description: 'Type of MFA to activate. Use empty string to disable MFA.'
-          example: 'totp'
+          enum: [totp, ""]
+          description: "Type of MFA to activate. Use empty string to disable MFA."
+          example: "totp"
       required:
         - code
 
@@ -2429,7 +2429,7 @@ components:
           format: email
           type: string
         options:
-          $ref: '#/components/schemas/OptionsRedirectTo'
+          $ref: "#/components/schemas/OptionsRedirectTo"
       required:
         - email
 
@@ -2447,7 +2447,7 @@ components:
       additionalProperties: false
       properties:
         credential:
-          $ref: '#/components/schemas/CredentialCreationResponse'
+          $ref: "#/components/schemas/CredentialCreationResponse"
         nickname:
           type: string
           description: Optional nickname for the security key
@@ -2461,7 +2461,7 @@ components:
         id:
           type: string
           description: The ID of the newly added security key
-          example: '123e4567-e89b-12d3-a456-426614174000'
+          example: "123e4567-e89b-12d3-a456-426614174000"
         nickname:
           type: string
           description: The nickname of the security key if provided
@@ -2507,6 +2507,7 @@ components:
           - bitbucket
           - workos
           - azuread
+          - entraid
           - strava
           - facebook
           - windowslive
@@ -2521,7 +2522,7 @@ components:
       schema:
         type: string
         description: Ticket
-        example: 'verifyEmail:xxxxxxxx'
+        example: "verifyEmail:xxxxxxxx"
 
     TicketTypeQuery:
       in: query
@@ -2546,3 +2547,4 @@ components:
         type: string
         format: uri
       required: true
+

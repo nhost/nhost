@@ -28,6 +28,10 @@ on:
       # nhost-js
       - packages/nhost-js/**
 
+      # apis
+      - 'services/auth/docs/openapi.yaml'
+      - 'services/storage/controller/openapi.yaml'
+
       # cli
       - cli/**
   push:
