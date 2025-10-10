@@ -73,23 +73,7 @@ sequenceDiagram
 
 This feature can be enabled with the flag `--clamav-server string`, where `string` is the tcp address for the clamd service.
 
-## OpenAPI
+## Documentation
 
-The service comes with an [OpenAPI definition](/controller/openapi.yaml) which you can also see [online](https://editor.swagger.io/?url=https://raw.githubusercontent.com/nhost/Storage/main/controller/openapi.yaml).
-
-## Using the service
-
-Easiest way to get started is by using [nhost](https://nhost.io)'s free tier but if you want to self-host you can easily do it yourself as well.
-
-### Self-hosting the service
-
-Requirements:
-
-1. [hasura](https://hasura.io) running, which in turns needs [postgres or any other supported database](https://hasura.io/docs/latest/graphql/core/databases/index/#supported-databases).
-2. An s3-compatible service. For instance, [AWS S3](https://aws.amazon.com/s3/), [minio](https://min.io), etc...
-
-A fully working example using docker-compose can be found [here](/build/dev/docker/). Just remember to replace the image `Storage:dev` with a valid [docker image](https://hub.docker.com/r/nhost/storage/tags), for instance, `nhost/storage:0.1.5`.
-
-## Contributing
-
-If you need help or want to contribute it is recommended to read the [contributing](/CONTRIBUTING.md) information first. In addition, if you plan to contribute with code it is also encouraged to read the [development](/DEVELOPMENT.md) guide.
+- [Official Documentation](https://docs.nhost.io/products/storage/overview).
+- [OpenAPI schema](https://docs.nhost.io/reference/storage/post-files)
