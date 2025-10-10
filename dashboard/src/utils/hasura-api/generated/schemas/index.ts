@@ -17,7 +17,6 @@ export * from './addRemoteSchemaPermissionsStep';
 export * from './addRemoteSchemaPermissionsStepType';
 export * from './addRemoteSchemaStep';
 export * from './addRemoteSchemaStepType';
-export * from './autoEventTriggerCleanupConfig';
 export * from './bodyTransform';
 export * from './bodyTransformAction';
 export * from './bodyTransformFormTemplate';
