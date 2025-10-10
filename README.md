@@ -12,7 +12,7 @@
 <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
 <a href="https://nhost.io/blog">Blog</a>
 <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
-<a href="https://twitter.com/nhost">Twitter</a>
+<a href="https://x.com/nhost">X</a>
 <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
 <a href="https://nhost.io/discord">Discord</a>
 <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
@@ -36,7 +36,7 @@ Nhost consists of open source software:
 - Authentication: [Auth](https://github.com/nhost/nhost/tree/main/services/auth)
 - Storage: [Storage](https://github.com/nhost/nhost/tree/main/services/storage)
 - Serverless Functions: Node.js (JavaScript and TypeScript)
-- [Nhost CLI](https://docs.nhost.io/platform/cli/local-development) for local development
+- [Nhost CLI](https://github.com/nhost/nhost/tree/main/cli) for local development
 
 ## Architecture of Nhost
 
@@ -107,7 +107,6 @@ Nhost is frontend agnostic, which means Nhost works with all frontend frameworks
 # Resources
 
 - Start developing locally with the [Nhost CLI](https://docs.nhost.io/platform/cli/local-development)
-
 ## Nhost Clients
 
 - [JavaScript/TypeScript](https://docs.nhost.io/reference/javascript/nhost-js/main)

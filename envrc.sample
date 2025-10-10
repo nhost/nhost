@@ -1,0 +1,6 @@
+watch_file ../../flake.nix ../../nix/*.nix project.nix ./.envrc.custom
+use flake .\#$(basename $PWD)
+
+if [[ -f .envrc.custom ]]; then
+    . ./.envrc.custom
+fi
