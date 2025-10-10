@@ -6,6 +6,9 @@
  * OpenAPI spec version: 1.0.0
  */
 
+/**
+ * Replace the Content-Type with this value.
+ */
 export type RequestTransformationContentType =
   (typeof RequestTransformationContentType)[keyof typeof RequestTransformationContentType];
 
