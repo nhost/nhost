@@ -19,18 +19,6 @@
 - [**OAuth providers**](./docs/workflows/oauth-providers.md): Facebook, Google, GitHub, Twitter, Apple, Azure AD, LinkedIn, Windows Live, Spotify, Strava, GitLab, BitBucket, Discord, WorkOS.
 - [**Security keys with WebAuthn**](./docs/workflows/webauthn.md)
 
-## Deploy Auth in Seconds
-
-Use [Nhost](https://nhost.io) to start using Hasura Auth in seconds.
-
-### Using Docker-compose
-
-```sh
-git clone https://github.com/nhost/nhost.git
-cd services/auth/build/docker-compose
-docker compose up
-```
-
 ## Configuration
 
 Read our [configuration guide](./docs/configuration.md) to customise the Hasura Auth settings.
