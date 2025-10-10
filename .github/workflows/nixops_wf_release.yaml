@@ -16,6 +16,7 @@ jobs:
       PATH: nixops
       GIT_REF: ${{ inputs.GIT_REF }}
       VERSION: latest
+      DOCKER: true
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
