@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [@nhost/nhost-js@4.0.2] - 2025-10-10
+
+### ⚙️ Miscellaneous Tasks
+
+- *(nhost-js)* Generate code from local API definitions (#3583)
+
 ## [@nhost/nhost-js@4.0.1] - 2025-09-24
 
 ### ⚙️ Miscellaneous Tasks
