@@ -3,6 +3,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 type QueryResult<TData> = {
   data: TData | undefined;
   isLoading: boolean;
+  isInitialLoading: boolean;
+  refetch?: () => Promise<unknown> | void;
 };
 
 export interface UseEventTriggerPaginationOptions<TArgs, TData = unknown[]> {
@@ -40,6 +42,8 @@ export interface UseEventTriggerPaginationResult<TData = unknown[]> {
   canGoNext: boolean;
   data: TData | undefined;
   isLoading: boolean;
+  isInitialLoading: boolean;
+  refetch?: () => Promise<unknown> | void;
 }
 
 export default function useEventTriggerPagination<TArgs, TData = unknown[]>({
@@ -55,7 +59,9 @@ export default function useEventTriggerPagination<TArgs, TData = unknown[]>({
   const [offset, setOffset] = useState(0);
   const [limit, setLimit] = useState(initialLimit);
 
-  const { data, isLoading } = useQueryHook(getQueryArgs(limit, offset));
+  const { data, isLoading, isInitialLoading, refetch } = useQueryHook(
+    getQueryArgs(limit, offset),
+  );
 
   const pageLength = useMemo(() => {
     if (getPageLength) {
@@ -102,5 +108,7 @@ export default function useEventTriggerPagination<TArgs, TData = unknown[]>({
     canGoNext,
     data,
     isLoading,
+    isInitialLoading,
+    refetch,
   };
 }

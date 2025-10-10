@@ -5,4 +5,8 @@ export interface EventTriggerInvocationLogsDataTableMeta {
   onView: (row: EventInvocationLogEntry) => void;
   selectedLog: EventInvocationLogEntry | null;
   setSelectedLog: Dispatch<SetStateAction<EventInvocationLogEntry | null>>;
+  addPendingSkeleton?: () => string;
+  removePendingSkeleton?: (id: string) => void;
+  refetchInvocations?: () => Promise<unknown> | void;
+  retryTimeoutSeconds?: number;
 }
