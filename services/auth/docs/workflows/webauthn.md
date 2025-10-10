@@ -1,6 +1,6 @@
 # Security Keys with WebAuthn
 
-Hasura-auth implements the WebAuthn protocol to sign in with security keys, also referred as authenticators in the WebAuthn protocol.
+Auth implements the WebAuthn protocol to sign in with security keys, also referred as authenticators in the WebAuthn protocol.
 
 A user needs first to sign up with another method, for instance email+password, passwordless email or Oauth, then to add their security key to their account.
 

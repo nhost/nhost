@@ -1,12 +1,12 @@
 package fastly
 
 /*
-To create a key for your service suitable for hasura-storage:
+To create a key for your service suitable for storage:
 
 curl -D - -X POST --location "https://api.fastly.com/tokens" \
   -H "Content-Type: application/json" \
   -H "Accept: application/json" \
-  -d '{"name":"hasura-storage-purge-key","username":"me@example.com",\
+  -d '{"name":"storage-purge-key","username":"me@example.com",\
         "password":"superDuperSecret","scope":"purge_select","services":["SERVICE_ID"]}'
 */
 

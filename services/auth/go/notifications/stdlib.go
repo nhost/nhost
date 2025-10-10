@@ -72,7 +72,7 @@ func sendMail( //nolint:funlen,cyclop
 	}
 	defer c.Close()
 
-	if err = c.Hello("hasura-auth"); err != nil {
+	if err = c.Hello("nhost-auth"); err != nil {
 		return err //nolint:wrapcheck
 	}
 

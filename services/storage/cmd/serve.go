@@ -332,7 +332,7 @@ func init() { //nolint:funlen
 
 var serveCmd = &cobra.Command{ //nolint:exhaustruct
 	Use:   "serve",
-	Short: "Starts hasura-storage server",
+	Short: "Starts storage server",
 	Run: func(cmd *cobra.Command, _ []string) {
 		logger := getLogger()
 

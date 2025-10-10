@@ -47,7 +47,7 @@ func auth( //nolint:funlen
 		&model.ConfigSmtp{
 			User:     "user",
 			Password: "password",
-			Sender:   "hasura-auth@example.com",
+			Sender:   "auth@example.com",
 			Host:     "mailhog",
 			Port:     1025, //nolint:mnd
 			Secure:   false,

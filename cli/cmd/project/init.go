@@ -131,7 +131,7 @@ func initInit(
 
 	getclient := &getter.Client{}                    //nolint:exhaustruct
 	if _, err := getclient.Get(ctx, &getter.Request{ //nolint:exhaustruct
-		Src:             "git::https://github.com/nhost/hasura-auth.git//email-templates",
+		Src:             "git::https://github.com/nhost/auth.git//services/auth/email-templates",
 		Dst:             "nhost/emails",
 		DisableSymlinks: true,
 	}); err != nil {
