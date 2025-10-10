@@ -5,7 +5,6 @@
  * API for managing remote schemas and events in Hasura
  * OpenAPI spec version: 1.0.0
  */
-import type { AutoEventTriggerCleanupConfig } from './autoEventTriggerCleanupConfig';
 import type { Headers } from './headers';
 import type { OperationSpec } from './operationSpec';
 import type { QualifiedTable } from './qualifiedTable';
@@ -42,8 +41,7 @@ export interface CreateEventTriggerArgs {
   request_transform?: RequestTransformation;
   /** Attaches a Response Transformation to the Event Trigger. */
   response_transform?: ResponseTransformation;
-  /** Cleanup config for the auto cleanup process */
-  cleanup_config?: AutoEventTriggerCleanupConfig;
   /** Specification for enabling/disabling the Event Trigger during logical replication */
   trigger_on_replication?: boolean;
+  [key: string]: unknown;
 }
