@@ -32,6 +32,7 @@ linters:
       - linters:
           - funlen
           - ireturn
+          - goconst
         path: _test\.go
       - linters:
           - lll

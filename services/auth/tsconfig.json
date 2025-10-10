@@ -1,0 +1,27 @@
+{
+  "ts-node": {
+    "files": true
+  },
+  "exclude": ["node_modules"],
+  "include": ["src/**/*.ts", "test/**/*.ts", "types/**/*.ts"],
+  "compilerOptions": {
+    "lib": ["dom", "es2020"],
+    "paths": {
+      "@config": ["config"],
+      "@/*": ["./*"]
+    },
+    "jsx": "react-jsx",
+    "noImplicitAny": false,
+    "outDir": "dist",
+    "noUnusedLocals": true,
+    "module": "commonjs",
+    "strict": true,
+    "target": "es2019",
+    "baseUrl": "src",
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "strictNullChecks": true,
+    "resolveJsonModule": false,
+    "inlineSourceMap": true
+  }
+}

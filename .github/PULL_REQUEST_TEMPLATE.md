@@ -22,6 +22,7 @@ Where `TYPE` is:
 
 Where `PKG` is:
 
+- `auth`: For changes to the Nhost Auth service
 - `ci`: For general changes to the build and/or CI/CD pipeline
 - `cli`: For changes to the Nhost CLI
 - `codegen`: For changes to the code generator
@@ -32,7 +33,7 @@ Where `PKG` is:
 - `mintlify-openapi`: For changes to the Mintlify OpenAPI tool
 - `nhost-js`: For changes to the Nhost JavaScript SDK
 - `nixops`: For changes to the NixOps
-- `storage`: For changes to the Nhost Storage
+- `storage`: For changes to the Nhost Storage service
 
 Where `SUMMARY` is a short description of what the PR does.
 
