@@ -2,11 +2,11 @@
 name: "nixops: release"
 on:
   push:
-    # branches:
-    #   - main
-    # paths:
-    #   - 'flake.lock'
-    #   - 'nixops/project.nix'
+    branches:
+      - main
+    paths:
+      - 'flake.lock'
+      - 'nixops/project.nix'
 
 jobs:
   build_artifacts:
