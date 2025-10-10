@@ -54,6 +54,11 @@ get-version:  ## Return version
 	@echo $(VERSION)
 
 
+.PHONY: develop
+develop:  ## Start a nix develop shell
+	nix develop .\#$(NAME)
+
+
 .PHONY: _check-pre
 _check-pre:  ## Pre-checks before running nix flake check
 
