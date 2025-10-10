@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [cli@1.34.1] - 2025-10-10
+
+### 🐛 Bug Fixes
+
+- *(cli)* Remove references to mcp-nhost (#3575)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(auth)* Change some references to deprecated hasura-auth (#3584)
+
 ## [cli@1.34.0] - 2025-10-09
 
 ### 🚀 Features
