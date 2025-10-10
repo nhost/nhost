@@ -1,13 +1,10 @@
 import { expect, test } from '@/e2e/fixtures/auth-hook';
 import {
+  cleanupOnboardingTestIfNeeded,
   getCardExpiration,
   getOrgSlugFromUrl,
-  getProjectSlugFromUrl,
   gotoUrl,
   loginWithFreeUser,
-  setFreeUserStarterOrgSlug,
-  setNewProjectName,
-  setNewProjectSlug,
 } from '@/e2e/utils';
 import { faker } from '@faker-js/faker';
 import type { Page } from '@playwright/test';
@@ -15,13 +12,15 @@ import type { Page } from '@playwright/test';
 let page: Page;
 
 test.beforeAll(async ({ browser }) => {
+  await cleanupOnboardingTestIfNeeded();
+
   page = await browser.newPage();
   await loginWithFreeUser(page);
 });
 
 test('user should be able to finish onboarding', async () => {
   await gotoUrl(page, `/onboarding`);
-  expect(page.getByText('Welcome to Nhost!')).toBeVisible();
+  await expect(page.getByText('Welcome to Nhost!')).toBeVisible();
   const organizationName = faker.lorem.words(3).slice(0, 32);
 
   await page.getByLabel('Organization Name').fill(organizationName);
@@ -68,34 +67,28 @@ test('user should be able to finish onboarding', async () => {
     .getByTestId('hosted-payment-submit-button')
     .click({ force: true });
 
-  expect(
+  await expect(
     page.getByText('Processing new organization request').first(),
   ).toBeVisible();
   await page.waitForSelector(
     'div:has-text("Organization created successfully. Redirecting...")',
   );
 
-  expect(page.getByText('Create Your First Project')).toBeVisible();
+  await expect(page.getByText('Create Your First Project')).toBeVisible();
 
   const projectName = faker.lorem.words(3).slice(0, 32);
   await page.getByLabel('Project Name').fill(projectName);
 
   await page.getByText('Create Project', { exact: true }).click();
 
-  expect(page.getByText('Creating your project...')).toBeVisible();
-  expect(page.getByText('Project created successfully!')).toBeVisible();
+  await expect(page.getByText('Creating your project...')).toBeVisible();
+  await expect(page.getByText('Project created successfully!')).toBeVisible();
 
-  expect(page.getByText('Internal info')).toBeVisible();
+  await expect(page.getByText('Internal info')).toBeVisible();
 
   await page.waitForSelector('h3:has-text("Project Health")', {
     timeout: 180000,
   });
-
-  const newProjectSlug = getProjectSlugFromUrl(page.url());
-  setNewProjectSlug(newProjectSlug);
-  setNewProjectName(organizationName);
-  const newOrgSlug = getOrgSlugFromUrl(page.url());
-  setFreeUserStarterOrgSlug(newOrgSlug);
 });
 
 test('should delete the new organization', async () => {
@@ -107,12 +100,12 @@ test('should delete the new organization', async () => {
   await page.getByRole('button', { name: 'Delete' }).click();
 
   await page.waitForSelector('h2:has-text("Delete Organization")');
-  expect(page.getByTestId('deleteOrgButton')).toBeDisabled();
+  await expect(page.getByTestId('deleteOrgButton')).toBeDisabled();
 
   await page.getByLabel("I'm sure I want to delete this Organization").click();
-  expect(page.getByTestId('deleteOrgButton')).toBeDisabled();
+  await expect(page.getByTestId('deleteOrgButton')).toBeDisabled();
   await page.getByLabel('I understand this action cannot be undone').click();
-  expect(page.getByTestId('deleteOrgButton')).not.toBeDisabled();
+  await expect(page.getByTestId('deleteOrgButton')).not.toBeDisabled();
 
   await page.getByTestId('deleteOrgButton').click();
 
@@ -145,7 +138,7 @@ test('should be able to upgrade an organization', async () => {
   await page.getByRole('link', { name: 'Billing' }).click();
 
   await page.waitForSelector('h4:has-text("Subscription plan")');
-  expect(page.getByText('Upgrade')).toBeEnabled();
+  await expect(page.getByText('Upgrade')).toBeEnabled();
   await page.getByText('Upgrade').click();
   await page.waitForSelector('h2:has-text("Upgrade Organization")');
 
@@ -205,12 +198,12 @@ test('should be able to upgrade an organization', async () => {
   await page.getByRole('button', { name: 'Delete' }).click();
 
   await page.waitForSelector('h2:has-text("Delete Organization")');
-  expect(page.getByTestId('deleteOrgButton')).toBeDisabled();
+  await expect(page.getByTestId('deleteOrgButton')).toBeDisabled();
 
   await page.getByLabel("I'm sure I want to delete this Organization").click();
-  expect(page.getByTestId('deleteOrgButton')).toBeDisabled();
+  await expect(page.getByTestId('deleteOrgButton')).toBeDisabled();
   await page.getByLabel('I understand this action cannot be undone').click();
-  expect(page.getByTestId('deleteOrgButton')).not.toBeDisabled();
+  await expect(page.getByTestId('deleteOrgButton')).not.toBeDisabled();
 
   await page.getByTestId('deleteOrgButton').click();
 

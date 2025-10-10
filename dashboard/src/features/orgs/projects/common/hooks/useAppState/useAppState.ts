@@ -1,5 +1,8 @@
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useProjectWithState } from '@/features/orgs/projects/hooks/useProjectWithState';
+import { isNotEmptyValue } from '@/lib/utils';
 import { ApplicationStatus } from '@/types/application';
+import { useEffect } from 'react';
 
 /**
  * This hook returns the current application state. If the application state
@@ -7,27 +10,19 @@ import { ApplicationStatus } from '@/types/application';
  */
 export default function useAppState(): {
   state: ApplicationStatus;
-  message?: string | null;
 } {
-  const { project } = useProjectWithState();
-  const noApplication = !project;
+  const { project, projectNotFound } = useProjectWithState();
+  const { refetch } = useProject();
 
-  if (noApplication) {
-    return { state: ApplicationStatus.Empty };
-  }
-
-  const emptyApplicationStates = !project.appStates;
-
-  if (noApplication || emptyApplicationStates) {
-    return { state: ApplicationStatus.Empty };
-  }
-
-  if (project.appStates?.length === 0) {
-    return { state: ApplicationStatus.Empty };
-  }
+  useEffect(() => {
+    if (projectNotFound) {
+      refetch();
+    }
+  }, [projectNotFound, refetch]);
 
   return {
-    state: project.appStates[0].stateId,
-    message: project.appStates[0].message,
+    state: isNotEmptyValue(project?.appStates?.[0])
+      ? project.appStates[0].stateId
+      : ApplicationStatus.Empty,
   };
 }

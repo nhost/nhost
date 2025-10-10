@@ -1,5 +1,8 @@
 import { mockApplication } from '@/tests/mocks';
-import { getProjectQuery } from '@/tests/msw/mocks/graphql/getProjectQuery';
+import {
+  getProjectQuery,
+  getProjectStateQuery,
+} from '@/tests/msw/mocks/graphql/getProjectQuery';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import {
   createGraphqlMockResolver,
@@ -29,7 +32,7 @@ function TestComponent() {
   );
 }
 
-const server = setupServer(tokenQuery);
+const server = setupServer(tokenQuery, getProjectStateQuery());
 
 const getUseRouterObject = (
   route: string = '/orgs/[orgSlug]/projects/[appSubdomain]',
