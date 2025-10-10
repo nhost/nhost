@@ -40,8 +40,8 @@ let
         (inDirectory "packages/nhost-js/src")
         (matchExt "ts")
       )
-      ../packages/nhost-js/api/auth.yaml
-      ../packages/nhost-js/api/storage.yaml
+      ../../services/auth/docs/openapi.yaml
+      ../../services/storage/controller/openapi.yaml
       ../packages/nhost-js/tsconfig.json
       ../build/configs/tsconfig/library.json
       ../build/configs/tsconfig/base.json
