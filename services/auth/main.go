@@ -57,7 +57,6 @@ func markdownDocs() *cli.Command {
 
 //go:generate oapi-codegen -config go/api/server.cfg.yaml docs/openapi.yaml
 //go:generate oapi-codegen -config go/api/types.cfg.yaml docs/openapi.yaml
-//go:generate go run main.go docs --output docs/cli.md
 func main() {
 	serveCmd := cmd.CommandServe()
 	app := &cli.Command{ //nolint:exhaustruct

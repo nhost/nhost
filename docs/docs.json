@@ -148,6 +148,22 @@
                 ]
               },
               {
+                "group": "Workflows",
+                "icon": "diagram-project",
+                "pages": [
+                  "/products/auth/workflows/email-password",
+                  "/products/auth/workflows/oauth-providers",
+                  "/products/auth/workflows/passwordless-email",
+                  "/products/auth/workflows/passwordless-sms",
+                  "/products/auth/workflows/webauthn",
+                  "/products/auth/workflows/anonymous-users",
+                  "/products/auth/workflows/change-email",
+                  "/products/auth/workflows/change-password",
+                  "/products/auth/workflows/reset-password",
+                  "/products/auth/workflows/refresh-token"
+                ]
+              },
+              {
                 "group": "Security",
                 "icon": "shield",
                 "pages": [
