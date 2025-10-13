@@ -20,7 +20,7 @@ _dev-env-build: build-docker-image
 
 
 .PHONY: dev-env-up-short
-dev-env-up-short:  ## Starts development environment without hasura-storage
+dev-env-up-short:  ## Starts development environment without storage
 	docker compose -f ${DOCKER_DEV_ENV_PATH}/docker-compose.yaml up -d postgres graphql-engine minio clamd
 
 

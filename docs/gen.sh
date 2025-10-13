@@ -4,8 +4,9 @@ set -euo pipefail
 
 function build_openapi() {
     echo "⚒️⚒️⚒️ Building OpenAPI reference..."
-    cp ../packages/nhost-js/api/auth.yaml reference/
-    cp ../packages/nhost-js/api/storage.yaml reference/
+    cp ../services/auth/docs/openapi.yaml reference/auth.yaml
+    cp ../services/storage/controller/openapi.yaml reference/storage.yaml
+
 
     echo "⚒️⚒️⚒️ Generating documentation from OpenAPI specs for Auth service..."
     mintlify-openapi openapi \

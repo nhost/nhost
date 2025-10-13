@@ -1,0 +1,26 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    queries: "query.sql"
+    schema: "auth_schema_dump.sql"
+    database:
+      uri: postgresql://postgres:postgres@localhost:5432/local
+    gen:
+      go:
+        package: "sql"
+        out: "."
+        sql_package: "pgx/v5"
+        overrides:
+          - db_type: "uuid"
+            go_type:
+              import: "github.com/google/uuid"
+              type: "UUID"
+          - column: auth.users.email
+            go_type:
+              type: "pgtype.Text"
+          - column: auth.users.new_email
+            go_type:
+              type: "pgtype.Text"
+          - column: auth.refresh_tokens.type
+            go_type:
+              type: "RefreshTokenType"

@@ -1490,6 +1490,7 @@ export type SignInProvider =
   | "bitbucket"
   | "workos"
   | "azuread"
+  | "entraid"
   | "strava"
   | "facebook"
   | "windowslive"

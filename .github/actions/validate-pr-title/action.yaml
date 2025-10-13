@@ -17,7 +17,7 @@ runs:
 
         # Define valid types and packages
         VALID_TYPES="feat|fix|chore"
-        VALID_PKGS="ci|cli|codegen|dashboard|deps|docs|examples|mintlify-openapi|nhost-js|nixops|storage"
+        VALID_PKGS="auth|ci|cli|codegen|dashboard|deps|docs|examples|mintlify-openapi|nhost-js|nixops|storage"
 
         # Check if title matches the pattern TYPE(PKG): SUMMARY
         if [[ ! "$PR_TITLE" =~ ^(${VALID_TYPES})\((${VALID_PKGS})\):\ .+ ]]; then
@@ -31,7 +31,7 @@ runs:
           echo "  - chore:  mark this pull request as a maintenance item"
           echo ""
           echo "Valid PKGs:"
-          echo "  - ci, cli, codegen, dashboard, deps, docs, examples,"
+          echo "  - auth, ci, cli, codegen, dashboard, deps, docs, examples,"
           echo "  - mintlify-openapi, nhost-js, nixops, storage"
           echo ""
           echo "Example: feat(cli): add new command for database migrations"

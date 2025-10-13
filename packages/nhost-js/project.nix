@@ -43,8 +43,9 @@ let
       "${submodule}/tsconfig.json"
       "${submodule}/vite.config.ts"
       "${submodule}/vite.umd.config.ts"
-      (inDirectory "${submodule}/api")
       (inDirectory "${submodule}/src")
+      ../../services/auth/docs/openapi.yaml
+      ../../services/storage/controller/openapi.yaml
     ];
   };
 

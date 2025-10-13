@@ -143,7 +143,7 @@ func expectedAuth() *Service {
 			"AUTH_SMTP_PASS":                            "password",
 			"AUTH_SMTP_PORT":                            "1025",
 			"AUTH_SMTP_SECURE":                          "false",
-			"AUTH_SMTP_SENDER":                          "hasura-auth@example.com",
+			"AUTH_SMTP_SENDER":                          "auth@example.com",
 			"AUTH_SMTP_USER":                            "user",
 			"AUTH_USER_DEFAULT_ALLOWED_ROLES":           "user,admin",
 			"AUTH_USER_DEFAULT_ROLE":                    "user",
