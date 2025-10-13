@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [cli@1.34.1] - 2025-10-13
+
+### 🐛 Bug Fixes
+
+- *(cli)* Remove references to mcp-nhost (#3575)
+- *(cli)* Workaround os.Rename issues when src and dst are on different partitions (#3599)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(auth)* Change some references to deprecated hasura-auth (#3584)
+- *(docs)* Udpated README.md and CONTRIBUTING.md (#3587)
+
 ## [cli@1.34.0] - 2025-10-09
 
 ### 🚀 Features
