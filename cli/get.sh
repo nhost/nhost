@@ -47,9 +47,6 @@ else
     release="cli@$version"
 fi
 
-echo "Requested release: $release"
-echo "Version to install: $version"
-
 # check version exists
 if [ ! $version ]; then
     log "${YELLOW}"
