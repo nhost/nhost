@@ -140,5 +140,9 @@ rec {
 
   dockerImage = nixops-lib.go.docker-image {
     inherit name package created version buildInputs;
+
+    contents = with pkgs; [
+      wget # do not remove, useful for docker healthchecks
+    ];
   };
 }
