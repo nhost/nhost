@@ -2,12 +2,15 @@
 import {
   TEST_ONBOARDING_USER,
   TEST_ORGANIZATION_SLUG,
+  TEST_PROJECT_ADMIN_SECRET,
   TEST_PROJECT_SUBDOMAIN,
   TEST_STAGING_REGION,
   TEST_STAGING_SUBDOMAIN,
   TEST_USER_PASSWORD,
 } from '@/e2e/env';
 import { expect } from '@/e2e/fixtures/auth-hook';
+import { isEmptyValue } from '@/lib/utils';
+import type { ExportMetadataResponse } from '@/utils/hasura-api/generated/schemas';
 import { faker } from '@faker-js/faker';
 import { type Page } from '@playwright/test';
 import { add, format } from 'date-fns-v4';
@@ -348,6 +351,65 @@ export async function cleanupOnboardingTestIfNeeded() {
   } catch (error) {
     // eslint-disable-next-line no-console
     console.log(error);
+    throw error;
+  }
+}
+
+export async function cleanupRemoteSchemaTestIfNeeded() {
+  try {
+    const response = await fetch(
+      `https://${TEST_PROJECT_SUBDOMAIN}.hasura.eu-central-1.staging.nhost.run/v1/metadata`,
+      {
+        method: 'POST',
+        headers: {
+          'x-hasura-admin-secret': TEST_PROJECT_ADMIN_SECRET,
+        },
+        body: JSON.stringify({
+          type: 'export_metadata',
+          version: 2,
+          args: {},
+        }),
+      },
+    );
+    const data = (await response.json()) as ExportMetadataResponse;
+
+    const remoteSchemas = data.metadata?.remote_schemas;
+
+    if (isEmptyValue(remoteSchemas)) {
+      return;
+    }
+
+    const schemasToDelete = remoteSchemas!.filter((remoteSchema) =>
+      /^e2e_\w+_\w+$/.test(remoteSchema.name),
+    );
+
+    await Promise.all(
+      schemasToDelete.map((remoteSchema) =>
+        fetch(
+          `https://${TEST_PROJECT_SUBDOMAIN}.hasura.eu-central-1.staging.nhost.run/v1/metadata`,
+          {
+            method: 'POST',
+            headers: {
+              'x-hasura-admin-secret': TEST_PROJECT_ADMIN_SECRET,
+            },
+            body: JSON.stringify({
+              args: [
+                {
+                  type: 'remove_remote_schema',
+                  args: {
+                    name: remoteSchema.name,
+                  },
+                },
+              ],
+              source: 'default',
+              type: 'bulk',
+            }),
+          },
+        ),
+      ),
+    );
+  } catch (error) {
+    console.error(error);
     throw error;
   }
 }
