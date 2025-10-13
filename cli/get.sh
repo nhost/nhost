@@ -44,7 +44,7 @@ if [[ "$version" == "latest" ]]; then
     release=$(curl --silent https://api.github.com/repos/nhost/nhost/releases\?per_page=100 | grep tag_name | grep \"cli\@ | head -n 1 | sed 's/.*"tag_name": "\([^"]*\)".*/\1/')
     version=$( echo $release | sed 's/.*@//')
 else
-    release="cli@$release"
+    release="cli@$version"
 fi
 
 # check version exists
