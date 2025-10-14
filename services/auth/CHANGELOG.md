@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [auth@0.42.3] - 2025-10-14
+
+### ⚙️ Miscellaneous Tasks
+
+- *(storage)* Migrate to urfave and slog libraries (#3606)
+
 ## [auth@0.42.2] - 2025-10-13
 
 ### ⚙️ Miscellaneous Tasks
