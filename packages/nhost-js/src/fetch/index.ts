@@ -45,3 +45,5 @@ export { sessionRefreshMiddleware } from "./middlewareSessionRefresh";
  * @returns A middleware function that updates session storage
  */
 export { updateSessionFromResponseMiddleware } from "./middlewareUpdateSessionFromResponse";
+
+export { withHeadersMiddleware } from "./middlewareWithHeaders";
