@@ -1,5 +1,5 @@
 import { expect, test } from "@jest/globals";
-import { createClient, createAdminClient } from "@nhost/nhost-js";
+import { createAdminClient, createClient } from "@nhost/nhost-js";
 
 const subdomain = "local";
 const region = "local";
@@ -144,7 +144,7 @@ test("adminClient", async () => {
       sessionVariables: {
         "user-id": "54058C42-51F7-4B37-8B69-C89A841D2221",
       },
-    }
+    },
   });
 
   // upload a couple of files

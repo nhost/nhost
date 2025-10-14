@@ -286,7 +286,12 @@ export function createClient(options: NhostClientOptions = {}): NhostClient {
   // Create auth client
   const auth = createAuthClient(authBaseUrl);
 
-  const mwChain = getMiddlewareChain(auth, sessionStorage, true, chainFunctions);
+  const mwChain = getMiddlewareChain(
+    auth,
+    sessionStorage,
+    true,
+    chainFunctions,
+  );
 
   for (const mw of mwChain) {
     auth.pushChainFunction(mw);
@@ -465,7 +470,12 @@ export function createServerClient(
   // Create auth client
   const auth = createAuthClient(authBaseUrl);
 
-  const mwChain = getMiddlewareChain(auth, sessionStorage, false, chainFunctions);
+  const mwChain = getMiddlewareChain(
+    auth,
+    sessionStorage,
+    false,
+    chainFunctions,
+  );
 
   for (const mw of mwChain) {
     auth.pushChainFunction(mw);
@@ -581,7 +591,10 @@ export function createCustomClient(
   // Create storage, graphql, and functions clients with only the custom chain functions
   const storageClient = createStorageClient(storageBaseUrl, chainFunctions);
   const graphqlClient = createGraphQLClient(graphqlBaseUrl, chainFunctions);
-  const functionsClient = createFunctionsClient(functionsBaseUrl, chainFunctions);
+  const functionsClient = createFunctionsClient(
+    functionsBaseUrl,
+    chainFunctions,
+  );
 
   // Return an initialized NhostClient
   return new NhostClient(
@@ -708,9 +721,18 @@ export function createAdminClient(
   const serviceChainFunctions = [adminMiddleware, ...chainFunctions];
 
   // Create storage, graphql, and functions clients with admin middleware
-  const storageClient = createStorageClient(storageBaseUrl, serviceChainFunctions);
-  const graphqlClient = createGraphQLClient(graphqlBaseUrl, serviceChainFunctions);
-  const functionsClient = createFunctionsClient(functionsBaseUrl, serviceChainFunctions);
+  const storageClient = createStorageClient(
+    storageBaseUrl,
+    serviceChainFunctions,
+  );
+  const graphqlClient = createGraphQLClient(
+    graphqlBaseUrl,
+    serviceChainFunctions,
+  );
+  const functionsClient = createFunctionsClient(
+    functionsBaseUrl,
+    serviceChainFunctions,
+  );
 
   // Return an initialized NhostClient
   return new NhostClient(

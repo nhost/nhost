@@ -108,9 +108,7 @@ export const withAdminSessionMiddleware =
     if (options.sessionVariables) {
       for (const [key, value] of Object.entries(options.sessionVariables)) {
         // Ensure the key has the x-hasura- prefix
-        const headerKey = key.startsWith("x-hasura-")
-          ? key
-          : `x-hasura-${key}`;
+        const headerKey = key.startsWith("x-hasura-") ? key : `x-hasura-${key}`;
 
         // Only set if not already present in the request
         if (!headers.has(headerKey)) {

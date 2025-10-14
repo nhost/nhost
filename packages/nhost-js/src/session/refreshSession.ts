@@ -24,10 +24,7 @@ interface Lock {
   ) => Promise<any>;
 }
 
-const lock: Lock =
-  typeof navigator !== "undefined" && navigator.locks
-    ? navigator.locks
-    : new DummyLock();
+const lock: Lock = navigator?.locks ? navigator.locks : new DummyLock();
 
 /**
  * Refreshes the authentication session if needed
