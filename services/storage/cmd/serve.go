@@ -3,8 +3,8 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -24,33 +24,33 @@ import (
 	"github.com/nhost/nhost/services/storage/migrations"
 	"github.com/nhost/nhost/services/storage/storage"
 	ginmiddleware "github.com/oapi-codegen/gin-middleware"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
+	"github.com/urfave/cli/v3"
 )
 
 const (
-	publicURLFlag                = "public-url"
-	apiRootPrefixFlag            = "api-root-prefix"
-	bindFlag                     = "bind"
-	hasuraEndpointFlag           = "hasura-endpoint"
-	hasuraMetadataFlag           = "hasura-metadata"
-	hasuraAdminSecretFlag        = "hasura-graphql-admin-secret" //nolint: gosec
-	s3EndpointFlag               = "s3-endpoint"
-	s3AccessKeyFlag              = "s3-access-key"
-	s3SecretKeyFlag              = "s3-secret-key" //nolint: gosec
-	s3RegionFlag                 = "s3-region"
-	s3BucketFlag                 = "s3-bucket"
-	s3RootFolderFlag             = "s3-root-folder"
-	s3DisableHTTPS               = "s3-disable-http"
-	postgresMigrationsFlag       = "postgres-migrations"
-	postgresMigrationsSourceFlag = "postgres-migrations-source"
-	fastlyServiceFlag            = "fastly-service"
-	fastlyKeyFlag                = "fastly-key"
-	corsAllowOriginsFlag         = "cors-allow-origins"
-	corsAllowCredentialsFlag     = "cors-allow-credentials" //nolint: gosec
-	clamavServerFlag             = "clamav-server"
-	hasuraDBNameFlag             = "hasura-db-name"
+	flagDebug                    = "debug"
+	flagLogFormatTEXT            = "log-format-text"
+	flagPublicURL                = "public-url"
+	flagAPIRootPrefix            = "api-root-prefix"
+	flagBind                     = "bind"
+	flagHasuraEndpoint           = "hasura-endpoint"
+	flagHasuraMetadata           = "hasura-metadata"
+	flagHasuraAdminSecret        = "hasura-graphql-admin-secret" //nolint: gosec
+	flagS3Endpoint               = "s3-endpoint"
+	flagS3AccessKey              = "s3-access-key"
+	flagS3SecretKey              = "s3-secret-key" //nolint: gosec
+	flagS3Region                 = "s3-region"
+	flagS3Bucket                 = "s3-bucket"
+	flagS3RootFolder             = "s3-root-folder"
+	flagS3DisableHTTPS           = "s3-disable-https"
+	flagPostgresMigrations       = "postgres-migrations"
+	flagPostgresMigrationsSource = "postgres-migrations-source"
+	flagFastlyService            = "fastly-service"
+	flagFastlyKey                = "fastly-key"
+	flagCorsAllowOrigins         = "cors-allow-origins"
+	flagCorsAllowCredentials     = "cors-allow-credentials" //nolint: gosec
+	flagClamavServer             = "clamav-server"
+	flagHasuraDBName             = "hasura-db-name"
 )
 
 func getCorsMiddleware(
@@ -81,10 +81,13 @@ func getGin( //nolint:funlen
 	metadataStorage controller.MetadataStorage,
 	contentStorage controller.ContentStorage,
 	imageTransformer *image.Transformer,
-	logger *logrus.Logger,
+	logger *slog.Logger,
 	debug bool,
 	corsAllowOrigins []string,
 	corsAllowCredentials bool,
+	fastlyService string,
+	fastlyKey string,
+	clamavServer string,
 ) (*http.Server, error) {
 	router := gin.New()
 
@@ -113,18 +116,17 @@ func getGin( //nolint:funlen
 		gin.Recovery(),
 	}
 
-	fastlyService := viper.GetString(fastlyServiceFlag)
 	if fastlyService != "" {
-		logger.Info("enabling fastly middleware")
+		logger.InfoContext(context.Background(), "enabling fastly middleware")
 		handlers = append(
 			handlers,
-			fastly.New(fastlyService, viper.GetString(fastlyKeyFlag), logger),
+			fastly.New(fastlyService, fastlyKey, logger),
 		)
 	}
 
 	router.Use(handlers...)
 
-	av, err := getAv(viper.GetString(clamavServerFlag))
+	av, err := getAv(clamavServer)
 	if err != nil {
 		return nil, fmt.Errorf("problem trying to get av: %w", err)
 	}
@@ -177,15 +179,19 @@ func getContentStorage(
 	ctx context.Context,
 	s3Endpoint, region, s3AccessKey, s3SecretKey, bucket, rootFolder string,
 	disableHTTPS bool,
-	logger *logrus.Logger,
+	logger *slog.Logger,
 ) *storage.S3 {
 	var (
 		cfg aws.Config
 		err error
 	)
 
+	if region == "" {
+		region = "no-region"
+	}
+
 	if s3AccessKey != "" && s3SecretKey != "" {
-		logger.Info("Using static aws credentials")
+		logger.InfoContext(ctx, "Using static aws credentials")
 
 		cfg, err = config.LoadDefaultConfig(
 			ctx,
@@ -195,7 +201,7 @@ func getContentStorage(
 			),
 		)
 	} else {
-		logger.Info("Using default configuration for aws credentials")
+		logger.InfoContext(ctx, "Using default configuration for aws credentials")
 
 		cfg, err = config.LoadDefaultConfig(ctx, config.WithRegion(region))
 	}
@@ -217,211 +223,273 @@ func getContentStorage(
 	return st
 }
 
-func applymigrations(
+func applyMigrations(
+	ctx context.Context,
 	postgresMigrations bool,
 	postgresSource string,
 	hasuraMetadata bool,
 	hasuraEndpoint string,
 	hasuraSecret string,
 	hasuraDBName string,
-	logger *logrus.Logger,
-) {
+	logger *slog.Logger,
+) error {
 	if postgresMigrations {
-		if postgresSource == "" {
-			logger.Error("you need to specify " + postgresMigrationsSourceFlag)
-			os.Exit(1)
-		}
-
-		logger.Info("applying postgres migrations")
+		logger.InfoContext(ctx, "applying postgres migrations")
 
 		if err := migrations.ApplyPostgresMigration(postgresSource); err != nil {
-			logger.Errorf("problem applying postgres migrations: %s", err.Error())
-			os.Exit(1)
+			return fmt.Errorf("problem applying postgres migrations: %w", err)
 		}
 	}
 
 	if hasuraMetadata {
-		logger.Info("applying hasura metadata")
+		logger.InfoContext(ctx, "applying hasura metadata")
 
-		if err := migrations.ApplyHasuraMetadata(hasuraEndpoint, hasuraSecret, hasuraDBName); err != nil {
-			logger.Errorf("problem applying hasura metadata: %s", err.Error())
-			os.Exit(1)
+		if err := migrations.ApplyHasuraMetadata(
+			ctx, hasuraEndpoint, hasuraSecret, hasuraDBName,
+		); err != nil {
+			return fmt.Errorf("problem applying hasura metadata: %w", err)
 		}
 	}
+
+	return nil
 }
 
-func init() { //nolint:funlen
-	rootCmd.AddCommand(serveCmd)
-
-	{
-		addStringFlag(
-			serveCmd.Flags(),
-			publicURLFlag,
-			"http://localhost:8000",
-			"public URL of the service",
-		)
-		addStringFlag(serveCmd.Flags(), apiRootPrefixFlag, "/v1", "API root prefix")
-		addStringFlag(serveCmd.Flags(), bindFlag, ":8000", "bind the service to this address")
-	}
-
-	{
-		addStringFlag(
-			serveCmd.Flags(),
-			hasuraEndpointFlag,
-			"",
-			"Use this endpoint when connecting using graphql as metadata storage",
-		)
-	}
-
-	{
-		addStringFlag(serveCmd.Flags(), s3EndpointFlag, "", "S3 Endpoint")
-		addStringFlag(serveCmd.Flags(), s3AccessKeyFlag, "", "S3 Access key")
-		addStringFlag(serveCmd.Flags(), s3SecretKeyFlag, "", "S3 Secret key")
-		addStringFlag(serveCmd.Flags(), s3RegionFlag, "no-region", "S3 region")
-		addStringFlag(serveCmd.Flags(), s3BucketFlag, "", "S3 bucket")
-		addStringFlag(
-			serveCmd.Flags(),
-			s3RootFolderFlag,
-			"",
-			"All buckets will be created inside this root",
-		)
-	}
-
-	{
-		addBoolFlag(serveCmd.Flags(), postgresMigrationsFlag, false, "Apply Postgres migrations")
-		addStringFlag(
-			serveCmd.Flags(),
-			postgresMigrationsSourceFlag,
-			"",
-			"postgres connection, i.e. postgres://user@pass:localhost:5432/mydb",
-		)
-		addStringFlag(serveCmd.Flags(), hasuraDBNameFlag, "default", "Hasura database name")
-	}
-
-	{
-		addBoolFlag(serveCmd.Flags(), hasuraMetadataFlag, false, "Apply Hasura's metadata")
-		addStringFlag(serveCmd.Flags(), hasuraAdminSecretFlag, "", "")
-	}
-
-	{
-		addStringFlag(
-			serveCmd.Flags(),
-			fastlyServiceFlag,
-			"",
-			"Enable Fastly middleware and enable automated purges",
-		)
-		addStringFlag(serveCmd.Flags(), fastlyKeyFlag, "", "Fastly CDN Key to authenticate purges")
-	}
-
-	{
-		addStringArrayFlag(
-			serveCmd.Flags(),
-			corsAllowOriginsFlag,
-			[]string{"*"},
-			"CORS allow origins",
-		)
-		addBoolFlag(serveCmd.Flags(), corsAllowCredentialsFlag, false, "CORS allow credentials")
-		addStringFlag(
-			serveCmd.Flags(),
-			clamavServerFlag,
-			"",
-			"If set, use ClamAV to scan files. Example: tcp://clamavd:3310",
-		)
+func CommandServe() *cli.Command { //nolint:funlen
+	return &cli.Command{ //nolint:exhaustruct
+		Name:  "serve",
+		Usage: "Start storage server",
+		Flags: []cli.Flag{
+			&cli.BoolFlag{ //nolint:exhaustruct
+				Name:     flagDebug,
+				Usage:    "enable debug messages",
+				Category: "general",
+				Sources:  cli.EnvVars("DEBUG"),
+			},
+			&cli.BoolFlag{ //nolint: exhaustruct
+				Name:     flagLogFormatTEXT,
+				Usage:    "format logs in plain text",
+				Category: "general",
+				Value:    false,
+				Sources:  cli.EnvVars("LOG_FORMAT_TEXT"),
+			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:     flagPublicURL,
+				Usage:    "public URL of the service",
+				Value:    "http://localhost:8000",
+				Category: "server",
+				Sources:  cli.EnvVars("PUBLIC_URL"),
+			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:     flagAPIRootPrefix,
+				Usage:    "API root prefix",
+				Value:    "/v1",
+				Category: "server",
+				Sources:  cli.EnvVars("API_ROOT_PREFIX"),
+			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:     flagBind,
+				Usage:    "bind the service to this address",
+				Value:    ":8000",
+				Category: "server",
+				Sources:  cli.EnvVars("BIND"),
+			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:     flagHasuraEndpoint,
+				Usage:    "Use this endpoint when connecting using graphql as metadata storage",
+				Category: "hasura",
+				Sources:  cli.EnvVars("HASURA_ENDPOINT"),
+			},
+			&cli.BoolFlag{ //nolint:exhaustruct
+				Name:     flagHasuraMetadata,
+				Usage:    "Apply Hasura's metadata",
+				Category: "hasura",
+				Sources:  cli.EnvVars("HASURA_METADATA"),
+			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:     flagHasuraAdminSecret,
+				Usage:    "Hasura admin secret",
+				Category: "hasura",
+				Sources: cli.EnvVars(
+					"HASURA_GRAPHQL_ADMIN_SECRET",
+					"HASURA_GRAPHQL_ADMIN_SECRET",
+				),
+			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:     flagHasuraDBName,
+				Usage:    "Hasura database name",
+				Value:    "default",
+				Category: "hasura",
+				Sources:  cli.EnvVars("HASURA_DB_NAME"),
+			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:     flagS3Endpoint,
+				Usage:    "S3 Endpoint",
+				Category: "s3",
+				Sources:  cli.EnvVars("S3_ENDPOINT"),
+			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:     flagS3AccessKey,
+				Usage:    "S3 Access key",
+				Category: "s3",
+				Sources:  cli.EnvVars("S3_ACCESS_KEY"),
+			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:     flagS3SecretKey,
+				Usage:    "S3 Secret key",
+				Category: "s3",
+				Sources:  cli.EnvVars("S3_SECRET_KEY"),
+			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:     flagS3Region,
+				Usage:    "S3 region",
+				Value:    "no-region",
+				Category: "s3",
+				Sources:  cli.EnvVars("S3_REGION"),
+			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:     flagS3Bucket,
+				Usage:    "S3 bucket",
+				Category: "s3",
+				Sources:  cli.EnvVars("S3_BUCKET"),
+			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:     flagS3RootFolder,
+				Usage:    "All buckets will be created inside this root",
+				Category: "s3",
+				Sources:  cli.EnvVars("S3_ROOT_FOLDER"),
+			},
+			&cli.BoolFlag{ //nolint:exhaustruct
+				Name:     flagS3DisableHTTPS,
+				Usage:    "Disable HTTPS for S3",
+				Category: "s3",
+				Sources:  cli.EnvVars("S3_DISABLE_HTTPS"),
+			},
+			&cli.BoolFlag{ //nolint:exhaustruct
+				Name:     flagPostgresMigrations,
+				Usage:    "Apply Postgres migrations",
+				Category: "postgres",
+				Sources:  cli.EnvVars("POSTGRES_MIGRATIONS"),
+			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:     flagPostgresMigrationsSource,
+				Usage:    "postgres connection, i.e. postgres://user@pass:localhost:5432/mydb",
+				Category: "postgres",
+				Required: true,
+				Sources:  cli.EnvVars("POSTGRES_MIGRATIONS_SOURCE"),
+			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:     flagFastlyService,
+				Usage:    "Enable Fastly middleware and enable automated purges",
+				Category: "cdn",
+				Sources:  cli.EnvVars("FASTLY_SERVICE"),
+			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:     flagFastlyKey,
+				Usage:    "Fastly CDN Key to authenticate purges",
+				Category: "cdn",
+				Sources:  cli.EnvVars("FASTLY_KEY"),
+			},
+			&cli.StringSliceFlag{ //nolint:exhaustruct
+				Name:     flagCorsAllowOrigins,
+				Usage:    "CORS allow origins",
+				Value:    []string{"*"},
+				Category: "cors",
+				Sources:  cli.EnvVars("CORS_ALLOW_ORIGINS"),
+			},
+			&cli.BoolFlag{ //nolint:exhaustruct
+				Name:     flagCorsAllowCredentials,
+				Usage:    "CORS allow credentials",
+				Category: "cors",
+				Sources:  cli.EnvVars("CORS_ALLOW_CREDENTIALS"),
+			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:     flagClamavServer,
+				Usage:    "If set, use ClamAV to scan files. Example: tcp://clamavd:3310",
+				Category: "antivirus",
+				Sources:  cli.EnvVars("CLAMAV_SERVER"),
+			},
+		},
+		Action: serve,
 	}
 }
 
-var serveCmd = &cobra.Command{ //nolint:exhaustruct
-	Use:   "serve",
-	Short: "Starts storage server",
-	Run: func(cmd *cobra.Command, _ []string) {
-		logger := getLogger()
+func serve(ctx context.Context, cmd *cli.Command) error { //nolint:funlen
+	logger := getLogger(cmd.Bool(flagDebug), cmd.Bool(flagLogFormatTEXT))
+	logger.InfoContext(ctx, cmd.Root().Name+" v"+cmd.Root().Version)
+	logFlags(ctx, logger, cmd)
 
-		logger.Info("storage version ", controller.Version())
+	imageTransformer := image.NewTransformer()
+	defer imageTransformer.Shutdown()
 
-		ctx, cancel := context.WithCancel(cmd.Context())
+	servCtx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	contentStorage := getContentStorage(
+		servCtx,
+		cmd.String(flagS3Endpoint),
+		cmd.String(flagS3Region),
+		cmd.String(flagS3AccessKey),
+		cmd.String(flagS3SecretKey),
+		cmd.String(flagS3Bucket),
+		cmd.String(flagS3RootFolder),
+		cmd.Bool(flagS3DisableHTTPS),
+		logger,
+	)
+
+	if err := applyMigrations(
+		ctx,
+		cmd.Bool(flagPostgresMigrations),
+		cmd.String(flagPostgresMigrationsSource),
+		cmd.Bool(flagHasuraMetadata),
+		cmd.String(flagHasuraEndpoint),
+		cmd.String(flagHasuraAdminSecret),
+		cmd.String(flagHasuraDBName),
+		logger,
+	); err != nil {
+		return err
+	}
+
+	metadataStorage := getMetadataStorage(
+		cmd.String(flagHasuraEndpoint) + "/graphql",
+	)
+
+	server, err := getGin( //nolint: contextcheck
+		cmd.String(flagBind),
+		cmd.String(flagPublicURL),
+		cmd.String(flagAPIRootPrefix),
+		cmd.String(flagHasuraAdminSecret),
+		metadataStorage,
+		contentStorage,
+		imageTransformer,
+		logger,
+		cmd.Bool(flagDebug),
+		cmd.StringSlice(flagCorsAllowOrigins),
+		cmd.Bool(flagCorsAllowCredentials),
+		cmd.String(flagFastlyService),
+		cmd.String(flagFastlyKey),
+		cmd.String(flagClamavServer),
+	)
+	if err != nil {
+		return err
+	}
+
+	go func() {
 		defer cancel()
 
-		if viper.GetBool(debugFlag) {
-			logger.SetLevel(logrus.DebugLevel)
-			gin.SetMode(gin.DebugMode)
-		} else {
-			logger.SetLevel(logrus.InfoLevel)
-			gin.SetMode(gin.ReleaseMode)
+		logger.InfoContext(servCtx, "starting server")
+
+		if err := server.ListenAndServe(); err != nil {
+			logger.ErrorContext(servCtx, "server failed", slog.String("error", err.Error()))
 		}
+	}()
 
-		imageTransformer := image.NewTransformer()
-		defer imageTransformer.Shutdown()
+	<-servCtx.Done()
 
-		logger.WithFields(
-			logrus.Fields{
-				debugFlag:              viper.GetBool(debugFlag),
-				bindFlag:               viper.GetString(bindFlag),
-				hasuraEndpointFlag:     viper.GetString(hasuraEndpointFlag),
-				postgresMigrationsFlag: viper.GetBool(postgresMigrationsFlag),
-				hasuraMetadataFlag:     viper.GetBool(hasuraMetadataFlag),
-				s3EndpointFlag:         viper.GetString(s3EndpointFlag),
-				s3RegionFlag:           viper.GetString(s3RegionFlag),
-				s3BucketFlag:           viper.GetString(s3BucketFlag),
-				s3RootFolderFlag:       viper.GetString(s3RootFolderFlag),
-				clamavServerFlag:       viper.GetString(clamavServerFlag),
-				hasuraDBNameFlag:       viper.GetString(hasuraDBNameFlag),
-			},
-		).Debug("parameters")
+	logger.InfoContext(ctx, "shutting down server")
 
-		contentStorage := getContentStorage(
-			ctx,
-			viper.GetString(s3EndpointFlag),
-			viper.GetString(s3RegionFlag),
-			viper.GetString(s3AccessKeyFlag),
-			viper.GetString(s3SecretKeyFlag),
-			viper.GetString(s3BucketFlag),
-			viper.GetString(s3RootFolderFlag),
-			viper.GetBool(s3DisableHTTPS),
-			logger,
-		)
+	if err := server.Shutdown(ctx); err != nil {
+		logger.ErrorContext(ctx, "problem shutting down server", slog.String("error", err.Error()))
+	}
 
-		applymigrations(
-			viper.GetBool(postgresMigrationsFlag),
-			viper.GetString(postgresMigrationsSourceFlag),
-			viper.GetBool(hasuraMetadataFlag),
-			viper.GetString(hasuraEndpointFlag),
-			viper.GetString(hasuraAdminSecretFlag),
-			viper.GetString(hasuraDBNameFlag),
-			logger,
-		)
-
-		metadataStorage := getMetadataStorage(
-			viper.GetString(hasuraEndpointFlag) + "/graphql",
-		)
-		server, err := getGin(
-			viper.GetString(bindFlag),
-			viper.GetString(publicURLFlag),
-			viper.GetString(apiRootPrefixFlag),
-			viper.GetString(hasuraAdminSecretFlag),
-			metadataStorage,
-			contentStorage,
-			imageTransformer,
-			logger,
-			viper.GetBool(debugFlag),
-			viper.GetStringSlice(corsAllowOriginsFlag),
-			viper.GetBool(corsAllowCredentialsFlag),
-		)
-		cobra.CheckErr(err)
-
-		go func() {
-			defer cancel()
-			logger.Info("starting server")
-			if err := server.ListenAndServe(); err != nil {
-				logger.Error("server failed", logrus.Fields{
-					"error": err,
-				})
-			}
-		}()
-
-		<-ctx.Done()
-
-		logger.Info("shutting down server")
-		err = server.Shutdown(ctx)
-		cobra.CheckErr(err)
-	},
+	return nil
 }

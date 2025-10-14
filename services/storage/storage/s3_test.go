@@ -6,6 +6,7 @@ package storage_test
 import (
 	"context"
 	"io"
+	"log/slog"
 	"net/http"
 	"os"
 	"slices"
@@ -21,11 +22,10 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/nhost/nhost/services/storage/controller"
 	"github.com/nhost/nhost/services/storage/storage"
-	"github.com/sirupsen/logrus"
 )
 
 func getS3() *storage.S3 {
-	logger := logrus.New()
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 	ctx := context.Background()
 	config, err := config.LoadDefaultConfig(ctx,
 		config.WithRegion("eu-central-1"),
@@ -38,7 +38,7 @@ func getS3() *storage.S3 {
 		),
 	)
 	if err != nil {
-		logger.Error(err)
+		logger.ErrorContext(ctx, "config load failed", slog.String("error", err.Error()))
 	}
 	url := "http://localhost:9000"
 	client := s3.NewFromConfig(config,

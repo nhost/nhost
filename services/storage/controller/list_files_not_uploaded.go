@@ -3,6 +3,7 @@ package controller
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -55,7 +56,10 @@ func (ctrl *Controller) ListFilesNotUploaded( //nolint:ireturn
 
 	files, apiErr := ctrl.listNotUploaded(ctx)
 	if apiErr != nil {
-		logger.WithError(apiErr).Error("failed to list not uploaded files")
+		logger.ErrorContext(
+			ctx, "failed to list not uploaded files", slog.String("error", apiErr.Error()),
+		)
+
 		return apiErr, nil
 	}
 

@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/nhost/nhost/services/storage/api"
 	"github.com/nhost/nhost/services/storage/middleware"
@@ -32,7 +33,10 @@ func (ctrl *Controller) DeleteBrokenMetadata( //nolint:ireturn
 
 	files, apiErr := ctrl.deleteBrokenMetadata(ctx)
 	if apiErr != nil {
-		logger.WithError(apiErr).Error("failed to delete broken metadata")
+		logger.ErrorContext(
+			ctx, "failed to delete broken metadata", slog.String("error", apiErr.Error()),
+		)
+
 		return apiErr, nil
 	}
 

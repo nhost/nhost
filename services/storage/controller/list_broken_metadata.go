@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"log/slog"
 	"path"
 
 	"github.com/nhost/nhost/services/storage/api"
@@ -63,7 +64,10 @@ func (ctrl *Controller) ListBrokenMetadata( //nolint:ireturn
 
 	files, apiErr := ctrl.listBrokenMetadata(ctx)
 	if apiErr != nil {
-		logger.WithError(apiErr).Error("failed to list broken metadata")
+		logger.ErrorContext(
+			ctx, "failed to list broken metadata", slog.String("error", apiErr.Error()),
+		)
+
 		return apiErr, nil
 	}
 

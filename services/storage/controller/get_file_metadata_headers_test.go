@@ -1,6 +1,8 @@
 package controller_test
 
 import (
+	"log/slog"
+	"os"
 	"testing"
 	"time"
 
@@ -8,7 +10,6 @@ import (
 	"github.com/nhost/nhost/services/storage/controller"
 	"github.com/nhost/nhost/services/storage/controller/mock"
 	"github.com/nhost/nhost/services/storage/image"
-	"github.com/sirupsen/logrus"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -194,8 +195,7 @@ func TestGetFileInfo(t *testing.T) {
 		},
 	}
 
-	logger := logrus.New()
-	logger.SetLevel(logrus.ErrorLevel)
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

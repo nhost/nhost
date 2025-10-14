@@ -2,35 +2,35 @@ package middleware
 
 import (
 	"context"
+	"log/slog"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 )
 
 type loggerCtxKey struct{}
 
 // Stores the logger in the context.
-func LoggerToContext(ctx context.Context, logger logrus.FieldLogger) context.Context {
+func LoggerToContext(ctx context.Context, logger *slog.Logger) context.Context {
 	return context.WithValue(ctx, loggerCtxKey{}, logger)
 }
 
 // Retrieves the logger from the context. It creates a new one if it can't be found.
-func LoggerFromContext(ctx context.Context) logrus.FieldLogger { //nolint:contextcheck,ireturn
+func LoggerFromContext(ctx context.Context) *slog.Logger { //nolint:contextcheck
 	ginCtx, ok := ctx.(*gin.Context)
 	if ok {
 		ctx = ginCtx.Request.Context()
 	}
 
-	logger, ok := ctx.Value(loggerCtxKey{}).(logrus.FieldLogger)
+	logger, ok := ctx.Value(loggerCtxKey{}).(*slog.Logger)
 	if !ok {
-		return logrus.New()
+		return slog.Default()
 	}
 
 	return logger
 }
 
-func Logger(logger logrus.FieldLogger) gin.HandlerFunc {
+func Logger(logger *slog.Logger) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		startTime := time.Now()
 
@@ -39,14 +39,20 @@ func Logger(logger logrus.FieldLogger) gin.HandlerFunc {
 		clientIP := ctx.ClientIP()
 		reqMethod := ctx.Request.Method
 		reqURL := ctx.Request.RequestURI
-		logger := logger.WithFields(logrus.Fields{
-			"trace_id":       trace.TraceID,
-			"span_id":        trace.SpanID,
-			"parent_span_id": trace.ParentSpanID,
-			"client_ip":      clientIP,
-			"request_method": reqMethod,
-			"request_url":    reqURL,
-		})
+		logger := logger.With(
+			slog.Group(
+				"trace",
+				slog.String("trace_id", trace.TraceID),
+				slog.String("span_id", trace.SpanID),
+				slog.String("parent_span_id", trace.ParentSpanID),
+			),
+			slog.Group(
+				"request",
+				slog.String("client_ip", clientIP),
+				slog.String("method", reqMethod),
+				slog.String("url", reqURL),
+			),
+		)
 		ctx.Request = ctx.Request.WithContext(
 			LoggerToContext(ctx.Request.Context(), logger),
 		)
@@ -55,18 +61,19 @@ func Logger(logger logrus.FieldLogger) gin.HandlerFunc {
 		latencyTime := time.Since(startTime)
 		statusCode := ctx.Writer.Status()
 
-		logger = logger.WithFields(logrus.Fields{
-			"status_code":  statusCode,
-			"latency_time": latencyTime,
-			"errors":       ctx.Errors.Errors(),
-		})
+		logger = logger.With(slog.Group(
+			"response",
+			slog.Int("status_code", statusCode),
+			slog.Duration("latency_time", latencyTime),
+			slog.Any("errors", ctx.Errors.Errors()),
+		))
 
 		TraceToHTTPHeaders(trace, ctx.Writer.Header())
 
 		if len(ctx.Errors.Errors()) > 0 {
-			logger.Error("call completed with errors")
+			logger.ErrorContext(ctx, "call completed with errors")
 		} else {
-			logger.Info("call completed")
+			logger.InfoContext(ctx, "call completed")
 		}
 	}
 }
