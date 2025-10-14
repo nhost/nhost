@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/nhost/nhost/services/storage/api"
 	"github.com/nhost/nhost/services/storage/middleware"
@@ -17,12 +18,18 @@ func (ctrl *Controller) DeleteFile( //nolint:ireturn
 
 	apiErr := ctrl.metadataStorage.DeleteFileByID(ctx, request.Id, sessionHeaders)
 	if apiErr != nil {
-		logger.WithError(apiErr).Error("problem deleting file metadata")
+		logger.ErrorContext(
+			ctx, "problem deleting file metadata", slog.String("error", apiErr.Error()),
+		)
+
 		return apiErr, nil
 	}
 
 	if apiErr := ctrl.contentStorage.DeleteFile(ctx, request.Id); apiErr != nil {
-		logger.WithError(apiErr).Error("problem deleting file content")
+		logger.ErrorContext(
+			ctx, "problem deleting file content", slog.String("error", apiErr.Error()),
+		)
+
 		return apiErr, nil
 	}
 

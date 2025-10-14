@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"path"
 
@@ -50,7 +51,10 @@ func (ctrl *Controller) ListOrphanedFiles( //nolint:ireturn
 
 	files, apiErr := ctrl.listOrphans(ctx)
 	if apiErr != nil {
-		logger.WithError(apiErr).Error("failed to delete orphaned files")
+		logger.ErrorContext(
+			ctx, "failed to list orphaned files", slog.String("error", apiErr.Error()),
+		)
+
 		return apiErr, nil
 	}
 

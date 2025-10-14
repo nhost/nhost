@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/nhost/nhost/services/storage/api"
 	"github.com/nhost/nhost/services/storage/middleware"
@@ -30,7 +31,10 @@ func (ctrl *Controller) DeleteOrphanedFiles( //nolint:ireturn
 
 	files, apiErr := ctrl.deleteOrphans(ctx)
 	if apiErr != nil {
-		logger.WithError(apiErr).Error("failed to delete orphaned files")
+		logger.ErrorContext(
+			ctx, "failed to delete orphaned files", slog.String("error", apiErr.Error()),
+		)
+
 		return apiErr, nil
 	}
 

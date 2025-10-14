@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -15,7 +16,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/nhost/nhost/services/storage/controller"
-	"github.com/sirupsen/logrus"
 )
 
 func deptr[T any](p *T) T { //nolint:ireturn
@@ -63,7 +63,7 @@ type S3 struct {
 	bucket     *string
 	rootFolder string
 	url        string
-	logger     *logrus.Logger
+	logger     *slog.Logger
 }
 
 func NewS3(
@@ -71,7 +71,7 @@ func NewS3(
 	bucket string,
 	rootFolder string,
 	url string,
-	logger *logrus.Logger,
+	logger *slog.Logger,
 ) *S3 {
 	return &S3{
 		client:     client,
