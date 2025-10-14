@@ -52,11 +52,11 @@ function UpgradeNotification({ description }: Props) {
           <ArrowSquareOutIcon className="ml-1 h-4 w-4" />
         </Link>
         <OpenTransferDialogButton onClick={handleTransferDialogOpen} />
-        <TransferProjectDialog
-          open={transferProjectDialogOpen}
-          setOpen={setTransferProjectDialogOpen}
-        />
       </Text>
+      <TransferProjectDialog
+        open={transferProjectDialogOpen}
+        setOpen={setTransferProjectDialogOpen}
+      />
     </Alert>
   );
 }

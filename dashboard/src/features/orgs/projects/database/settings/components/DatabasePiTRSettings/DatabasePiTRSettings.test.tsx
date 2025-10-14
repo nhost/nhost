@@ -3,6 +3,7 @@ import { render, screen, TestUserEvent } from '@/tests/testUtils';
 import { vi } from 'vitest';
 import DatabasePiTRSettings from './DatabasePiTRSettings';
 
+import { getOrganizations } from '@/tests/msw/mocks/graphql/getOrganizationQuery';
 import { getProjectQuery } from '@/tests/msw/mocks/graphql/getProjectQuery';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import { setupServer } from 'msw/node';
@@ -75,7 +76,7 @@ vi.mock('@/features/orgs/components/common/TransferProjectDialog', async () => {
   };
 });
 
-const server = setupServer(tokenQuery);
+const server = setupServer(tokenQuery, getOrganizations);
 
 describe('DatabasePiTRSettings', () => {
   beforeAll(() => {

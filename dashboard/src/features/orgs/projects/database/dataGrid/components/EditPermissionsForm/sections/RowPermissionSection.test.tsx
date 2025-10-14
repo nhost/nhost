@@ -127,6 +127,10 @@ describe('RowPermissionsSection', () => {
     process.env.NEXT_PUBLIC_ENV = 'dev';
     server.listen();
   });
+  beforeEach(() => {
+    server.restoreHandlers();
+    server.resetHandlers();
+  });
 
   afterAll(() => {
     server.close();

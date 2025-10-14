@@ -9,7 +9,7 @@
     "test:broken-links": "pnpm exec mintlify broken-links"
   },
   "devDependencies": {
-    "mintlify": "^4.2.87",
+    "mintlify": "^4.2.158",
     "prettier": "^3.5.3",
     "typedoc": "^0.28.4",
     "typedoc-plugin-markdown": "^4.6.3"

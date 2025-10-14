@@ -1,11 +1,11 @@
+import { HttpResponse } from 'msw';
 import nhostGraphQLLink from './nhostGraphQLLink';
 
 const permissionVariablesQuery = nhostGraphQLLink.query(
   'GetRolesPermissions',
-  (_req, res, ctx) =>
-    res(
-      ctx.delay(250),
-      ctx.data({
+  async () =>
+    HttpResponse.json({
+      data: {
         config: {
           auth: {
             user: {
@@ -32,8 +32,8 @@ const permissionVariablesQuery = nhostGraphQLLink.query(
             },
           },
         },
-      }),
-    ),
+      },
+    }),
 );
 
 export default permissionVariablesQuery;

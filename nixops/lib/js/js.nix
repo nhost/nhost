@@ -104,9 +104,11 @@ let
           dir=$(realpath --relative-to="$PWD" "$absdir")
           echo "  ➜ Copying node_modules for $dir"
           cp -r ${node_modules}/$dir/node_modules $dir/node_modules
-        done
 
-        pnpm audit-ci
+          echo "  ➜ Running pnpm audit-ci for $dir"
+          pnpm audit-ci --directory $dir
+
+        done
 
         ${preCheck}
 

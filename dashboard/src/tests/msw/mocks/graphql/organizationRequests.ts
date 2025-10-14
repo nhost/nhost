@@ -1,15 +1,16 @@
+import { HttpResponse } from 'msw';
 import nhostGraphQLLink from './nhostGraphQLLink';
 
 export const organizationMemberInvites = nhostGraphQLLink.query(
   'organizationMemberInvites',
-  (_req, res, ctx) => res(ctx.data({ organizationMemberInvites: [] })),
+  () => HttpResponse.json({ data: { organizationMemberInvites: [] } }),
 );
 
 export const organizationNewRequests = nhostGraphQLLink.query(
   'organizationNewRequests',
-  (_req, res, ctx) =>
-    res(
-      ctx.data({
+  () =>
+    HttpResponse.json({
+      data: {
         organizationNewRequests: [
           {
             id: 'org-request-id-1',
@@ -17,6 +18,6 @@ export const organizationNewRequests = nhostGraphQLLink.query(
             __typename: 'organization_new_request',
           },
         ],
-      }),
-    ),
+      },
+    }),
 );

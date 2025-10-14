@@ -1,10 +1,11 @@
+import { HttpResponse } from 'msw';
 import nhostGraphQLLink from './nhostGraphQLLink';
 
 export const prefetchNewAppQuery = nhostGraphQLLink.query(
   'PrefetchNewApp',
-  (_req, res, ctx) =>
-    res(
-      ctx.data({
+  () =>
+    HttpResponse.json({
+      data: {
         regions: [
           {
             id: 'dd6f8e01-35a9-4ba6-8dc6-ed972f2db93c',
@@ -67,6 +68,6 @@ export const prefetchNewAppQuery = nhostGraphQLLink.query(
             __typename: 'plans',
           },
         ],
-      }),
-    ),
+      },
+    }),
 );
