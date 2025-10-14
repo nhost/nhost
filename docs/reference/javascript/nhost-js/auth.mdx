@@ -590,11 +590,13 @@ This method may return different T based on the response code:
 pushChainFunction(chainFunction: ChainFunction): void;
 ```
 
+Add a middleware function to the fetch chain
+
 ##### Parameters
 
-| Parameter       | Type                                       |
-| --------------- | ------------------------------------------ |
-| `chainFunction` | [`ChainFunction`](./fetch#chainfunction) |
+| Parameter       | Type                                       | Description                    |
+| --------------- | ------------------------------------------ | ------------------------------ |
+| `chainFunction` | [`ChainFunction`](./fetch#chainfunction) | The middleware function to add |
 
 ##### Returns
 

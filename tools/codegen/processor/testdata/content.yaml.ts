@@ -91,6 +91,10 @@ export interface SignInProviderParams {
 
 export interface Client {
   baseURL: string;
+
+  /** Add a middleware function to the fetch chain
+   * @param chainFunction - The middleware function to add
+   */
   pushChainFunction(chainFunction: ChainFunction): void;
     /**
      Summary: Sign in with an OAuth2 provider

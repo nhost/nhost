@@ -138,6 +138,10 @@ export interface SimpleObject {
 
 export interface Client {
   baseURL: string;
+
+  /** Add a middleware function to the fetch chain
+   * @param chainFunction - The middleware function to add
+   */
   pushChainFunction(chainFunction: ChainFunction): void;};
 
 

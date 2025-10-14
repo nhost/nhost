@@ -18,6 +18,11 @@ import {
 export interface Client {
   baseURL: string;
 
+  /** Add a middleware function to the fetch chain
+   * @param chainFunction - The middleware function to add
+   */
+  pushChainFunction(chainFunction: ChainFunction): void;
+
   /**
    * Execute a request to a serverless function
    * The response body will be automatically parsed based on the content type into the following types:
@@ -27,7 +32,8 @@ export interface Client {
    *
    * @param path - The path to the serverless function
    * @param options - Additional fetch options to apply to the request
-   * @returns Promise with the function response and metadata.    */
+   * @returns Promise with the function response and metadata.
+   */
   fetch<T = unknown>(
     path: string,
     options?: RequestInit,
@@ -69,7 +75,12 @@ export const createAPIClient = (
   baseURL: string,
   chainFunctions: ChainFunction[] = [],
 ): Client => {
-  const enhancedFetch = createEnhancedFetch(chainFunctions);
+  let enhancedFetch = createEnhancedFetch(chainFunctions);
+
+  const pushChainFunction = (chainFunction: ChainFunction) => {
+    chainFunctions.push(chainFunction);
+    enhancedFetch = createEnhancedFetch(chainFunctions);
+  };
 
   /**
    * Executes a request to a serverless function and processes the response
@@ -148,5 +159,6 @@ export const createAPIClient = (
     baseURL,
     fetch,
     post,
+    pushChainFunction,
   } as Client;
 };
