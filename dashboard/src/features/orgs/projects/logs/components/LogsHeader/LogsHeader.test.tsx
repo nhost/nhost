@@ -20,6 +20,17 @@ const mockServices = [
   'job-backup',
 ];
 
+Object.defineProperty(HTMLElement.prototype, 'getBoundingClientRect', {
+  value: vi.fn(() => ({
+    width: 100,
+    height: 40,
+    top: 0,
+    left: 0,
+    bottom: 40,
+    right: 100,
+  })),
+});
+
 vi.mock('@/features/orgs/projects/hooks/useProject', async () => ({
   useProject: () => ({ project: mockApplication }),
 }));

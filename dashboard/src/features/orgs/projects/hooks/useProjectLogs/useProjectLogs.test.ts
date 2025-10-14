@@ -82,6 +82,7 @@ describe('useProjectLogs - Subscription Creation & Cleanup', () => {
       loading: false,
       error: undefined,
       refetch: vi.fn(),
+      projectNotFound: false,
     });
 
     // Mock subscribeToMore to return an unsubscribe function
@@ -133,6 +134,7 @@ describe('useProjectLogs - Subscription Creation & Cleanup', () => {
         loading: true,
         error: undefined,
         refetch: vi.fn(),
+        projectNotFound: false,
       });
 
       renderHook(() => useProjectLogs(defaultProps));
@@ -146,6 +148,7 @@ describe('useProjectLogs - Subscription Creation & Cleanup', () => {
         loading: false,
         error: undefined,
         refetch: vi.fn(),
+        projectNotFound: false,
       });
 
       renderHook(() => useProjectLogs(defaultProps));

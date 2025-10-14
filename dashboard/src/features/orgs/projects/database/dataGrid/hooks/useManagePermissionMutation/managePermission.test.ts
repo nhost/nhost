@@ -1,4 +1,4 @@
-import { rest } from 'msw';
+import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 import type { ManagePermissionOptions } from './managePermission';
 import managePermission from './managePermission';
@@ -12,9 +12,7 @@ const defaultParameters: ManagePermissionOptions = {
 };
 
 const server = setupServer(
-  rest.post('http://localhost:1337/v1/metadata', (_req, res, ctx) =>
-    res(ctx.json({})),
-  ),
+  http.post('http://localhost:1337/v1/metadata', () => HttpResponse.json({})),
 );
 
 beforeAll(() => server.listen());

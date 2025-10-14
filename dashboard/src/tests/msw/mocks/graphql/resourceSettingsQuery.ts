@@ -1,13 +1,13 @@
+import { HttpResponse } from 'msw';
 import nhostGraphQLLink from './nhostGraphQLLink';
-
 /**
  * Use this handler to simulate the initial state of the allocated resources.
  */
 export const resourcesUnavailableQuery = nhostGraphQLLink.query(
   'GetResources',
-  (_req, res, ctx) =>
-    res(
-      ctx.data({
+  () =>
+    HttpResponse.json({
+      data: {
         config: {
           __typename: 'ConfigConfig',
           postgres: {
@@ -23,8 +23,8 @@ export const resourcesUnavailableQuery = nhostGraphQLLink.query(
             resources: null,
           },
         },
-      }),
-    ),
+      },
+    }),
 );
 
 /**
@@ -32,9 +32,9 @@ export const resourcesUnavailableQuery = nhostGraphQLLink.query(
  */
 export const resourcesAvailableQuery = nhostGraphQLLink.query(
   'GetResources',
-  (_req, res, ctx) =>
-    res(
-      ctx.data({
+  () =>
+    HttpResponse.json({
+      data: {
         config: {
           __typename: 'ConfigConfig',
           postgres: {
@@ -86,8 +86,8 @@ export const resourcesAvailableQuery = nhostGraphQLLink.query(
             },
           },
         },
-      }),
-    ),
+      },
+    }),
 );
 
 /**
@@ -95,9 +95,9 @@ export const resourcesAvailableQuery = nhostGraphQLLink.query(
  */
 export const resourcesUpdatedQuery = nhostGraphQLLink.query(
   'GetResources',
-  (_req, res, ctx) =>
-    res(
-      ctx.data({
+  () =>
+    HttpResponse.json({
+      data: {
         config: {
           __typename: 'ConfigConfig',
           postgres: {
@@ -137,6 +137,6 @@ export const resourcesUpdatedQuery = nhostGraphQLLink.query(
             },
           },
         },
-      }),
-    ),
+      },
+    }),
 );

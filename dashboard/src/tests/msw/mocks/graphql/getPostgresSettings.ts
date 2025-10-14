@@ -1,10 +1,11 @@
+import { HttpResponse } from 'msw';
 import nhostGraphQLLink from './nhostGraphQLLink';
 
 export const getPostgresSettings = nhostGraphQLLink.query(
   'GetPostgresSettings',
-  (_req, res, ctx) =>
-    res(
-      ctx.data({
+  () =>
+    HttpResponse.json({
+      data: {
         systemConfig: {
           postgres: {
             database: 'gnlivtcgjxctuujxpslj',
@@ -29,15 +30,15 @@ export const getPostgresSettings = nhostGraphQLLink.query(
             __typename: 'ConfigPostgres',
           },
         },
-      }),
-    ),
+      },
+    }),
 );
 
 export const getPiTRNotEnabledPostgresSettings = nhostGraphQLLink.query(
   'GetPostgresSettings',
-  (_req, res, ctx) =>
-    res(
-      ctx.data({
+  () =>
+    HttpResponse.json({
+      data: {
         systemConfig: {
           postgres: {
             database: 'gnlivtcgjxctuujxpslj',
@@ -62,8 +63,6 @@ export const getPiTRNotEnabledPostgresSettings = nhostGraphQLLink.query(
             __typename: 'ConfigPostgres',
           },
         },
-      }),
-    ),
+      },
+    }),
 );
-
-// {"data":}

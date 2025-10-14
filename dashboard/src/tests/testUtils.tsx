@@ -35,6 +35,7 @@ import userEvent, {
   type Options,
   type UserEvent,
 } from '@testing-library/user-event';
+import { HttpResponse } from 'msw';
 import { RouterContext } from 'next/dist/shared/lib/router-context.shared-runtime';
 import type { PropsWithChildren, ReactElement } from 'react';
 import { Toaster } from 'react-hot-toast';
@@ -154,9 +155,9 @@ const graphqlRequestHandlerFactory = (
   type: 'mutation' | 'query',
   responsePromise: any,
 ) =>
-  nhostGraphQLLink[type](operationName, async (_req, res, ctx) => {
+  nhostGraphQLLink[type](operationName, async () => {
     const data = await responsePromise;
-    return res(ctx.data(data));
+    return HttpResponse.json({ data });
   });
 /* Helper function to pause responses to be able to test loading states */
 export const createGraphqlMockResolver = (
