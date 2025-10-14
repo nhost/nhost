@@ -19,11 +19,23 @@
  *
  * {@includeCode ./__tests__/docstrings.test.ts:11-115}
  *
+ * ### Creating an admin client
+ *
+ * You can also create an admin client if needed. This client will have admin access to the database
+ * and will bypass permissions. Additionally, it can impersonate users and set any role or session
+ * variable.
+ *
+ * IMPORTANT!!! Keep your admin secret safe and never expose it in client-side code.
+ *
+ * {@includeCode ./__tests__/docstrings.test.ts:138-195}
+ *
  * @packageDocumentation
  */
 
 export {
+  createAdminClient,
   createClient,
+  createCustomClient,
   createServerClient,
   type NhostClient,
   type NhostClientOptions,

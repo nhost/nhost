@@ -54,7 +54,7 @@ console.log(JSON.stringify(uplFilesResp, null, 2))
 //         "updatedAt": "2025-05-09T17:26:04.589692+00:00",
 //         "isUploaded": true,
 //         "mimeType": "text/plain",
-//         "uploadedByUserId": "",
+//         "uploadedByUserId": "3357aada-b6c7-4af1-9655-1307ca2883a2",
 //         "metadata": null
 //       },
 //       {
@@ -67,7 +67,7 @@ console.log(JSON.stringify(uplFilesResp, null, 2))
 //         "updatedAt": "2025-05-09T17:26:04.596831+00:00",
 //         "isUploaded": true,
 //         "mimeType": "text/plain",
-//         "uploadedByUserId": "",
+//         "uploadedByUserId": "3357aada-b6c7-4af1-9655-1307ca2883a2",
 //         "metadata": null
 //       }
 //     ]
@@ -122,6 +122,75 @@ const funcResp = await nhost.functions.post('/helloworld', {
 console.log(JSON.stringify(funcResp.body, null, 2))
 // {
 //   "message": "Hello, World!"
+// }
+```
+
+## Creating an admin client
+
+You can also create an admin client if needed. This client will have admin access to the database
+and will bypass permissions. Additionally, it can impersonate users and set any role or session
+variable.
+
+IMPORTANT!!! Keep your admin secret safe and never expose it in client-side code.
+
+```ts
+const nhost = createAdminClient({
+  subdomain,
+  region,
+  adminSession: {
+    adminSecret: 'nhost-admin-secret',
+    role: 'user',
+    sessionVariables: {
+      'user-id': '54058C42-51F7-4B37-8B69-C89A841D2221'
+    }
+  }
+})
+
+// upload a couple of files
+const uplFilesResp = await nhost.storage.uploadFiles({
+  'file[]': [
+    new File(['test1'], 'file-1', { type: 'text/plain' }),
+    new File(['test2 is larger'], 'file-2', { type: 'text/plain' })
+  ]
+})
+console.log(JSON.stringify(uplFilesResp, null, 2))
+// {
+//   "data": {
+//     "processedFiles": [
+//       {
+//         "id": "c0e83185-0ce5-435c-bd46-9841adc30699",
+//         "name": "file-1",
+//         "size": 5,
+//         "bucketId": "default",
+//         "etag": "\"5a105e8b9d40e1329780d62ea2265d8a\"",
+//         "createdAt": "2025-05-09T17:26:04.579839+00:00",
+//         "updatedAt": "2025-05-09T17:26:04.589692+00:00",
+//         "isUploaded": true,
+//         "mimeType": "text/plain",
+//         "uploadedByUserId": "54058c42-51f7-4b37-8b69-c89a841d2221",
+//         "metadata": null
+//       },
+//       {
+//         "id": "3f189004-21fd-42d0-be1d-1ead021ab167",
+//         "name": "file-2",
+//         "size": 15,
+//         "bucketId": "default",
+//         "etag": "\"302e888c5e289fe6b02115b748771ee9\"",
+//         "createdAt": "2025-05-09T17:26:04.59245+00:00",
+//         "updatedAt": "2025-05-09T17:26:04.596831+00:00",
+//         "isUploaded": true,
+//         "mimeType": "text/plain",
+//         "uploadedByUserId": "54058c42-51f7-4b37-8b69-c89a841d2221",
+//         "metadata": null
+//       }
+//     ]
+//   },
+//   "status": 201,
+//   "headers": {
+//     "content-length": "644",
+//     "content-type": "application/json; charset=utf-8",
+//     "date": "Fri, 09 May 2025 17:26:04 GMT"
+//   }
 // }
 ```
 
@@ -287,6 +356,15 @@ optional authUrl: string;
 
 Complete base URL for the auth service (overrides subdomain/region)
 
+#### chainFunctions?
+
+```ts
+optional chainFunctions: ChainFunction[];
+```
+
+Additional chain functions to be added to all clients (auth, storage, graphql, functions).
+These functions will be executed in the order they are provided, after the default middleware chain.
+
 #### functionsUrl?
 
 ```ts
@@ -359,6 +437,19 @@ Complete base URL for the auth service (overrides subdomain/region)
 ##### Inherited from
 
 [`NhostClientOptions`](#nhostclientoptions).[`authUrl`](#authurl)
+
+#### chainFunctions?
+
+```ts
+optional chainFunctions: ChainFunction[];
+```
+
+Additional chain functions to be added to all clients (auth, storage, graphql, functions).
+These functions will be executed in the order they are provided, after the default middleware chain.
+
+##### Inherited from
+
+[`NhostClientOptions`](#nhostclientoptions).[`chainFunctions`](#chainfunctions)
 
 #### functionsUrl?
 
@@ -436,6 +527,80 @@ Nhost project subdomain (e.g., 'abcdefgh'). Used to construct the base URL for s
 
 # Functions
 
+## createAdminClient()
+
+```ts
+function createAdminClient(options: NhostAdminClientOptions): NhostClient
+```
+
+Creates and configures a new Nhost client instance with admin privileges.
+
+This helper method instantiates a fully configured Nhost client with admin access by:
+
+- Applying the admin session middleware (including admin secret, optional role, and session variables)
+  to storage, graphql, and functions clients
+- Leaving the auth client without admin middleware
+- Optionally applying additional custom chain functions if provided
+
+Unlike `createClient` and `createServerClient`, this function does NOT include any default
+middleware (session refresh, token attachment, session updates) unless you explicitly provide
+additional chain functions.
+
+**Security Warning**: Never use this function in client-side code or expose the admin secret
+to end users. Admin secrets grant unrestricted access to your entire database. This should
+only be used in trusted server-side environments.
+
+### Parameters
+
+| Parameter | Type                      | Description                                                        |
+| --------- | ------------------------- | ------------------------------------------------------------------ |
+| `options` | `NhostAdminClientOptions` | Configuration options for the admin client (requires adminSession) |
+
+### Returns
+
+[`NhostClient`](#nhostclient)
+
+A configured Nhost client with admin privileges on storage, graphql, and functions
+
+### Example
+
+```ts
+// Create an admin client with just the admin secret
+const adminNhost = createAdminClient({
+  subdomain: 'myproject',
+  region: 'eu-central-1',
+  adminSession: {
+    adminSecret: process.env.NHOST_ADMIN_SECRET
+  }
+})
+
+// Create an admin client with role and session variables
+const adminNhost = createAdminClient({
+  subdomain: 'myproject',
+  region: 'eu-central-1',
+  adminSession: {
+    adminSecret: process.env.NHOST_ADMIN_SECRET,
+    role: 'user',
+    sessionVariables: {
+      'user-id': '123',
+      'org-id': '456'
+    }
+  }
+})
+
+// Create an admin client with additional custom middleware
+const adminNhost = createAdminClient({
+  subdomain: 'myproject',
+  region: 'eu-central-1',
+  adminSession: {
+    adminSecret: process.env.NHOST_ADMIN_SECRET
+  },
+  chainFunctions: [customLoggingMiddleware]
+})
+```
+
+---
+
 ## createClient()
 
 ```ts
@@ -494,6 +659,63 @@ const nhost = createClient({
   storage: new CookieStorage({
     secure: import.meta.env.ENVIRONMENT === 'production'
   })
+})
+```
+
+---
+
+## createCustomClient()
+
+```ts
+function createCustomClient(options: NhostCustomClientOptions): NhostClient
+```
+
+Creates and configures a new Nhost client instance with custom middleware only.
+
+This helper method instantiates a fully configured Nhost client with NO default middleware.
+Only the chain functions you explicitly provide will be applied to all service clients.
+
+Unlike `createClient` and `createServerClient`, this function does NOT include:
+
+- Automatic session refresh middleware
+- Access token attachment middleware
+- Session update from response middleware
+
+This gives you complete control over the middleware chain, useful for:
+
+- Custom authentication flows
+- Advanced caching strategies
+- Custom header management
+- Special logging or monitoring requirements
+- Create admin clients with the admin secret
+
+### Parameters
+
+| Parameter | Type                       | Description                                                           |
+| --------- | -------------------------- | --------------------------------------------------------------------- |
+| `options` | `NhostCustomClientOptions` | Configuration options for the custom client (requires chainFunctions) |
+
+### Returns
+
+[`NhostClient`](#nhostclient)
+
+A configured Nhost client with only your custom middleware
+
+### Example
+
+```ts
+// Create a client with custom logging middleware
+const customLoggingMiddleware: ChainFunction = async (request, next) => {
+  console.log('Request:', request.url)
+  const response = await next(request)
+  console.log('Response:', response.status)
+  return response
+}
+
+const nhost = createCustomClient({
+  subdomain: 'abcdefgh',
+  region: 'eu-central-1',
+  chainFunctions: [customLoggingMiddleware]
 })
 ```
 
