@@ -18,6 +18,9 @@ import {
 export interface Client {
   baseURL: string;
 
+  /** Add a middleware function to the fetch chain
+   * @param chainFunction - The middleware function to add
+   */
   pushChainFunction(chainFunction: ChainFunction): void;
 
   /**
@@ -29,7 +32,8 @@ export interface Client {
    *
    * @param path - The path to the serverless function
    * @param options - Additional fetch options to apply to the request
-   * @returns Promise with the function response and metadata.    */
+   * @returns Promise with the function response and metadata.
+   */
   fetch<T = unknown>(
     path: string,
     options?: RequestInit,
