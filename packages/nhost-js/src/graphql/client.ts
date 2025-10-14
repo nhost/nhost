@@ -92,6 +92,9 @@ export interface Client {
    */
   url: string;
 
+  /** Add a middleware function to the fetch chain
+   * @param chainFunction - The middleware function to add
+   */
   pushChainFunction(chainFunction: ChainFunction): void;
 }
 
