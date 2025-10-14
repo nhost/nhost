@@ -67,14 +67,13 @@ func logFlags(ctx context.Context, logger *slog.Logger, cmd *cli.Command) {
 	flags := make([]any, 0, len(cmd.Root().Flags)+len(cmd.Flags))
 	for _, flag := range cmd.Root().Flags {
 		name := flag.Names()[0]
-		value := cmd.Generic(name)
+		value := cmd.Value(name)
 
-		var logValue any = value
 		if isSecret(name) {
-			logValue = "********"
+			value = "********"
 		}
 
-		flags = append(flags, slog.Any(name, logValue))
+		flags = append(flags, slog.Any(name, value))
 
 		processed[name] = struct{}{}
 	}

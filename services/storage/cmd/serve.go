@@ -186,6 +186,10 @@ func getContentStorage(
 		err error
 	)
 
+	if region == "" {
+		region = "no-region"
+	}
+
 	if s3AccessKey != "" && s3SecretKey != "" {
 		logger.InfoContext(ctx, "Using static aws credentials")
 
