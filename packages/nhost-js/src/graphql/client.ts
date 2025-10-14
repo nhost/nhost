@@ -91,6 +91,8 @@ export interface Client {
    * URL for the GraphQL endpoint.
    */
   url: string;
+
+  pushChainFunction(chainFunction: ChainFunction): void;
 }
 
 /**
@@ -108,7 +110,12 @@ export const createAPIClient = (
   url: string,
   chainFunctions: ChainFunction[] = [],
 ): Client => {
-  const enhancedFetch = createEnhancedFetch(chainFunctions);
+  let enhancedFetch = createEnhancedFetch(chainFunctions);
+
+  const pushChainFunction = (chainFunction: ChainFunction) => {
+    chainFunctions.push(chainFunction);
+    enhancedFetch = createEnhancedFetch(chainFunctions);
+  };
 
   const executeOperation = async <
     TResponseData = unknown,
@@ -183,5 +190,6 @@ export const createAPIClient = (
   return {
     request,
     url,
+    pushChainFunction,
   } as Client;
 };

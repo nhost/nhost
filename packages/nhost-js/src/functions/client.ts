@@ -18,6 +18,8 @@ import {
 export interface Client {
   baseURL: string;
 
+  pushChainFunction(chainFunction: ChainFunction): void;
+
   /**
    * Execute a request to a serverless function
    * The response body will be automatically parsed based on the content type into the following types:
@@ -69,7 +71,12 @@ export const createAPIClient = (
   baseURL: string,
   chainFunctions: ChainFunction[] = [],
 ): Client => {
-  const enhancedFetch = createEnhancedFetch(chainFunctions);
+  let enhancedFetch = createEnhancedFetch(chainFunctions);
+
+  const pushChainFunction = (chainFunction: ChainFunction) => {
+    chainFunctions.push(chainFunction);
+    enhancedFetch = createEnhancedFetch(chainFunctions);
+  };
 
   /**
    * Executes a request to a serverless function and processes the response
@@ -148,5 +155,6 @@ export const createAPIClient = (
     baseURL,
     fetch,
     post,
+    pushChainFunction,
   } as Client;
 };
