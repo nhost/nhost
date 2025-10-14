@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [cli@1.34.2] - 2025-10-14
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Minor fix to download script when specifying version (#3602)
+
 ## [cli@1.34.1] - 2025-10-13
 
 ### 🐛 Bug Fixes
