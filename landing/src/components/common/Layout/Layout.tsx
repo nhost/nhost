@@ -1,4 +1,4 @@
-import { Inter } from '@next/font/google'
+import { Inter } from 'next/font/google'
 import { NextSeo, NextSeoProps } from 'next-seo'
 import { DetailedHTMLProps, HTMLProps } from 'react'
 import { twMerge } from 'tailwind-merge'
