@@ -47,7 +47,7 @@ export type ClientConfigurationFn = (clients: {
  * Built-in configuration for client-side applications.
  * Includes automatic session refresh, token attachment, and session updates.
  */
-export const withClientDefaults: ClientConfigurationFn = ({
+export const withClientSideSessionMiddleware: ClientConfigurationFn = ({
   auth,
   storage,
   graphql,
@@ -73,7 +73,7 @@ export const withClientDefaults: ClientConfigurationFn = ({
  * Includes token attachment and session updates, but NOT automatic session refresh
  * to prevent race conditions in server contexts.
  */
-export const withServerDefaults: ClientConfigurationFn = ({
+export const withServerSideSessionMiddleware: ClientConfigurationFn = ({
   auth,
   storage,
   graphql,
@@ -103,7 +103,7 @@ export const withServerDefaults: ClientConfigurationFn = ({
  * @param adminSession - Admin session options including admin secret, role, and session variables
  * @returns Configuration function that sets up admin middleware
  */
-export function withAdminDefaults(
+export function withAdminSession(
   adminSession: AdminSessionOptions,
 ): ClientConfigurationFn {
   return ({ storage, graphql, functions }) => {
@@ -330,7 +330,7 @@ export interface NhostClientOptions {
  *   subdomain: 'abcdefgh',
  *   region: 'eu-central-1',
  *   configure: [
- *     withClientDefaults(auth, sessionStorage),
+ *     withClientSideSessionMiddleware,
  *     withChainFunctions([customLoggingMiddleware])
  *   ]
  * });
@@ -340,7 +340,7 @@ export interface NhostClientOptions {
  *   subdomain,
  *   region,
  *   configure: [
- *     withAdminDefaults({
+ *     withAdminSession({
  *       adminSecret: "nhost-admin-secret",
  *       role: "user",
  *       sessionVariables: {
@@ -474,7 +474,7 @@ export function createClient(options: NhostClientOptions = {}): NhostClient {
   return createNhostClient({
     ...options,
     storage,
-    configure: [withClientDefaults, ...(options.configure ?? [])],
+    configure: [withClientSideSessionMiddleware, ...(options.configure ?? [])],
   });
 }
 
@@ -609,6 +609,6 @@ export function createServerClient(
 ): NhostClient {
   return createNhostClient({
     ...options,
-    configure: [withServerDefaults, ...(options.configure ?? [])],
+    configure: [withServerSideSessionMiddleware, ...(options.configure ?? [])],
   });
 }

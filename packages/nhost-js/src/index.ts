@@ -40,9 +40,9 @@ export {
   type NhostClient,
   type NhostClientOptions,
   type NhostServerClientOptions,
-  withAdminDefaults,
-  withClientDefaults,
-  withServerDefaults,
+  withAdminSession,
+  withClientSideSessionMiddleware,
+  withServerSideSessionMiddleware,
 } from "./nhost";
 
 /**

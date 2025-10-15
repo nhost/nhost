@@ -138,7 +138,7 @@ const nhost = createNhostClient({
   subdomain,
   region,
   configure: [
-    withAdminDefaults({
+    withAdminSession({
       adminSecret: 'nhost-admin-secret',
       role: 'user',
       sessionVariables: {
@@ -555,10 +555,10 @@ Configuration function that receives all clients and can configure them
 
 # Variables
 
-## withClientDefaults
+## withClientSideSessionMiddleware
 
 ```ts
-const withClientDefaults: ClientConfigurationFn
+const withClientSideSessionMiddleware: ClientConfigurationFn
 ```
 
 Built-in configuration for client-side applications.
@@ -566,10 +566,10 @@ Includes automatic session refresh, token attachment, and session updates.
 
 ---
 
-## withServerDefaults
+## withServerSideSessionMiddleware
 
 ```ts
-const withServerDefaults: ClientConfigurationFn
+const withServerSideSessionMiddleware: ClientConfigurationFn
 ```
 
 Built-in configuration for server-side applications.
@@ -686,10 +686,7 @@ const nhost = createNhostClient({
 const nhost = createNhostClient({
   subdomain: 'abcdefgh',
   region: 'eu-central-1',
-  configure: [
-    withClientDefaults(auth, sessionStorage),
-    withChainFunctions([customLoggingMiddleware])
-  ]
+  configure: [withClientSideSessionMiddleware, withChainFunctions([customLoggingMiddleware])]
 })
 
 // Create an admin client
@@ -697,7 +694,7 @@ const nhost = createNhostClient({
   subdomain,
   region,
   configure: [
-    withAdminDefaults({
+    withAdminSession({
       adminSecret: 'nhost-admin-secret',
       role: 'user',
       sessionVariables: {
@@ -876,10 +873,10 @@ The base URL for the service
 
 ---
 
-## withAdminDefaults()
+## withAdminSession()
 
 ```ts
-function withAdminDefaults(adminSession: AdminSessionOptions): ClientConfigurationFn
+function withAdminSession(adminSession: AdminSessionOptions): ClientConfigurationFn
 ```
 
 Configuration for admin clients with elevated privileges.

@@ -2,7 +2,7 @@ import { expect, test } from "@jest/globals";
 import {
   createClient,
   createNhostClient,
-  withAdminDefaults,
+  withAdminSession,
 } from "@nhost/nhost-js";
 
 const subdomain = "local";
@@ -143,7 +143,7 @@ test("adminClient", async () => {
     subdomain,
     region,
     configure: [
-      withAdminDefaults({
+      withAdminSession({
         adminSecret: "nhost-admin-secret",
         role: "user",
         sessionVariables: {
