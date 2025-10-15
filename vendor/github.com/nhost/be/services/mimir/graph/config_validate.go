@@ -21,30 +21,6 @@ const (
 	pitrMinVersion = 20250311
 )
 
-func (r *mutationResolver) configValidateVerifyPersistentVolumeEncryption(
-	desiredState int32,
-	oldApp *App,
-	newApp *App,
-) error {
-	if oldApp == nil {
-		return nil
-	}
-
-	oldEncrypted := deptr(oldApp.SystemConfig.GetPersistentVolumesEncrypted())
-	newEncrypted := deptr(newApp.SystemConfig.GetPersistentVolumesEncrypted())
-
-	if oldEncrypted && !newEncrypted {
-		return ErrPersVolEncryptionCantBeDis
-	}
-
-	if !oldEncrypted && newEncrypted &&
-		!slices.Contains([]int32{appPaused, appEmpty}, desiredState) {
-		return ErrPersVolEncryptionCantBeChanged
-	}
-
-	return nil
-}
-
 func (r *mutationResolver) configValidateVerifyPostgresVersionChange(
 	desiredState int32,
 	oldApp *App,
@@ -130,12 +106,6 @@ func (r *mutationResolver) configValidate(
 	}
 
 	if err := r.configValidateVerifyPostgresVersionChange(
-		desiredState, oldApp, newApp,
-	); err != nil {
-		return err
-	}
-
-	if err := r.configValidateVerifyPersistentVolumeEncryption(
 		desiredState, oldApp, newApp,
 	); err != nil {
 		return err

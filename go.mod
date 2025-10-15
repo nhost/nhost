@@ -29,7 +29,7 @@ require (
 	github.com/jackc/pgx/v5 v5.7.2
 	github.com/lmittmann/tint v1.0.7
 	github.com/mark3labs/mcp-go v0.41.1
-	github.com/nhost/be v0.0.0-20250929153845-6db3e5249d33
+	github.com/nhost/be v0.0.0-20251015125528-facecfb60cea
 	github.com/oapi-codegen/gin-middleware v1.0.2
 	github.com/oapi-codegen/runtime v1.1.1
 	github.com/pb33f/libopenapi v0.21.12
