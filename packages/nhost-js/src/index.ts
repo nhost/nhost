@@ -33,16 +33,16 @@
  */
 
 export {
+  type ClientConfigurationFn,
   createClient,
   createNhostClient,
   createServerClient,
-  withAdminDefaults,
-  withClientDefaults,
-  withServerDefaults,
   type NhostClient,
   type NhostClientOptions,
   type NhostServerClientOptions,
-  type ClientConfigurationFn,
+  withAdminDefaults,
+  withClientDefaults,
+  withServerDefaults,
 } from "./nhost";
 
 /**
