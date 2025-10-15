@@ -69,6 +69,51 @@ Error.constructor
 
 # Interfaces
 
+## AdminSessionOptions
+
+Configuration options for admin session middleware
+
+### Properties
+
+#### adminSecret
+
+```ts
+adminSecret: string
+```
+
+Hasura admin secret for elevated permissions (sets x-hasura-admin-secret header)
+
+#### role?
+
+```ts
+optional role: string;
+```
+
+Hasura role to use for the request (sets x-hasura-role header)
+
+#### sessionVariables?
+
+```ts
+optional sessionVariables: Record<string, string>;
+```
+
+Additional Hasura session variables to attach to requests.
+Keys will be automatically prefixed with 'x-hasura-' if not already present.
+
+##### Example
+
+```ts
+{
+  'user-id': '123',
+  'org-id': '456'
+}
+// Results in headers:
+// x-hasura-user-id: 123
+// x-hasura-org-id: 456
+```
+
+---
+
 ## FetchResponse&lt;T&gt;
 
 Interface representing a structured API response.
@@ -301,3 +346,151 @@ that create or invalidate sessions.
 [`ChainFunction`](#chainfunction)
 
 A middleware function that can be used in the fetch chain
+
+---
+
+## withAdminSessionMiddleware()
+
+```ts
+function withAdminSessionMiddleware(options: AdminSessionOptions): ChainFunction
+```
+
+Creates a fetch middleware that attaches the Hasura admin secret and optional session variables to requests.
+
+This middleware:
+
+1. Sets the x-hasura-admin-secret header, which grants full admin access to Hasura
+2. Optionally sets the x-hasura-role header if a role is provided
+3. Optionally sets additional x-hasura-\* headers for custom session variables
+
+**Security Warning**: Never use this middleware in client-side code or expose
+the admin secret to end users. Admin secrets grant unrestricted access to your
+entire database. This should only be used in trusted server-side environments.
+
+The middleware preserves request-specific headers when they conflict with the
+admin session configuration.
+
+### Parameters
+
+| Parameter | Type                                          | Description                                                               |
+| --------- | --------------------------------------------- | ------------------------------------------------------------------------- |
+| `options` | [`AdminSessionOptions`](#adminsessionoptions) | Admin session options including admin secret, role, and session variables |
+
+### Returns
+
+[`ChainFunction`](#chainfunction)
+
+A middleware function that can be used in the fetch chain
+
+### Example
+
+```ts
+// Create middleware with admin secret only
+const adminMiddleware = withAdminSessionMiddleware({
+  adminSecret: process.env.NHOST_ADMIN_SECRET
+})
+
+// Create middleware with admin secret and role
+const adminUserMiddleware = withAdminSessionMiddleware({
+  adminSecret: process.env.NHOST_ADMIN_SECRET,
+  role: 'user'
+})
+
+// Create middleware with admin secret, role, and custom session variables
+const fullMiddleware = withAdminSessionMiddleware({
+  adminSecret: process.env.NHOST_ADMIN_SECRET,
+  role: 'user',
+  sessionVariables: {
+    'user-id': '123',
+    'org-id': '456'
+  }
+})
+
+// Use with createCustomClient for an admin client
+const adminClient = createCustomClient({
+  subdomain: 'myproject',
+  region: 'eu-central-1',
+  chainFunctions: [adminMiddleware]
+})
+```
+
+---
+
+## withHeadersMiddleware()
+
+```ts
+function withHeadersMiddleware(defaultHeaders: HeadersInit): ChainFunction
+```
+
+Creates a fetch middleware that attaches default headers to requests.
+
+This middleware:
+
+1. Merges default headers with request-specific headers
+2. Preserves request-specific headers when they conflict with defaults
+
+The middleware ensures consistent headers across requests while allowing
+individual requests to override defaults as needed.
+
+### Parameters
+
+| Parameter        | Type          | Description                               |
+| ---------------- | ------------- | ----------------------------------------- |
+| `defaultHeaders` | `HeadersInit` | Default headers to attach to all requests |
+
+### Returns
+
+[`ChainFunction`](#chainfunction)
+
+A middleware function that can be used in the fetch chain
+
+---
+
+## withRoleMiddleware()
+
+```ts
+function withRoleMiddleware(role: string): ChainFunction
+```
+
+Creates a fetch middleware that sets the Hasura role header.
+
+This middleware sets the x-hasura-role header for all requests, allowing
+you to specify which role's permissions should be used. This works with
+authenticated sessions where the user has access to the specified role.
+
+Unlike `withAdminSessionMiddleware`, this does not bypass permission rules
+but instead uses the permission rules defined for the specified role.
+
+The middleware preserves request-specific headers when they conflict with
+the role configuration.
+
+### Parameters
+
+| Parameter | Type     | Description                         |
+| --------- | -------- | ----------------------------------- |
+| `role`    | `string` | The Hasura role to use for requests |
+
+### Returns
+
+[`ChainFunction`](#chainfunction)
+
+A middleware function that can be used in the fetch chain
+
+### Example
+
+```ts
+// Use with createClient to default all requests to a specific role
+const nhost = createClient({
+  subdomain: 'myproject',
+  region: 'eu-central-1',
+  chainFunctions: [withRoleMiddleware('moderator')]
+})
+
+// Use with createServerClient for server-side requests
+const serverNhost = createServerClient({
+  subdomain: 'myproject',
+  region: 'eu-central-1',
+  storage: myServerStorage,
+  chainFunctions: [withRoleMiddleware('moderator')]
+})
+```

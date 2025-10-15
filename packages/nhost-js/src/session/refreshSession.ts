@@ -25,6 +25,7 @@ interface Lock {
 }
 
 const lock: Lock =
+  // biome-ignore lint/complexity/useOptionalChain: this check breaks non-browser environments
   typeof navigator !== "undefined" && navigator.locks
     ? navigator.locks
     : new DummyLock();

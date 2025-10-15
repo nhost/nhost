@@ -45,3 +45,22 @@ export { sessionRefreshMiddleware } from "./middlewareSessionRefresh";
  * @returns A middleware function that updates session storage
  */
 export { updateSessionFromResponseMiddleware } from "./middlewareUpdateSessionFromResponse";
+/**
+ * Middleware for attaching Hasura admin secret for elevated permissions.
+ *
+ * @param options - Admin session options including the admin secret
+ * @returns A middleware function that adds x-hasura-admin-secret header
+ */
+export {
+  type AdminSessionOptions,
+  withAdminSessionMiddleware,
+} from "./middlewareWithAdminSession";
+export { withHeadersMiddleware } from "./middlewareWithHeaders";
+
+/**
+ * Middleware for setting the Hasura role header for requests.
+ *
+ * @param role - The Hasura role to use for requests
+ * @returns A middleware function that adds x-hasura-role header
+ */
+export { withRoleMiddleware } from "./middlewareWithRole";
