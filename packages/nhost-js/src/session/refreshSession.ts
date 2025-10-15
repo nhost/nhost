@@ -24,7 +24,11 @@ interface Lock {
   ) => Promise<any>;
 }
 
-const lock: Lock = navigator?.locks ? navigator.locks : new DummyLock();
+const lock: Lock =
+  // biome-ignore lint/complexity/useOptionalChain: this check breaks non-browser environments
+  typeof navigator !== "undefined" && navigator.locks
+    ? navigator.locks
+    : new DummyLock();
 
 /**
  * Refreshes the authentication session if needed

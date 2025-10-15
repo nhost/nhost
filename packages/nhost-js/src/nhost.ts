@@ -32,6 +32,110 @@ import {
 } from "./storage";
 
 /**
+ * Configuration function that receives all clients and can configure them
+ * (e.g., by attaching middleware, setting up interceptors, etc.)
+ */
+export type ClientConfigurationFn = (clients: {
+  auth: AuthClient;
+  storage: StorageClient;
+  graphql: GraphQLClient;
+  functions: FunctionsClient;
+  sessionStorage: SessionStorage;
+}) => void;
+
+/**
+ * Built-in configuration for client-side applications.
+ * Includes automatic session refresh, token attachment, and session updates.
+ */
+export const withClientDefaults: ClientConfigurationFn = ({
+  auth,
+  storage,
+  graphql,
+  functions,
+  sessionStorage,
+}) => {
+  const mwChain: ChainFunction[] = [
+    sessionRefreshMiddleware(auth, sessionStorage),
+    updateSessionFromResponseMiddleware(sessionStorage),
+    attachAccessTokenMiddleware(sessionStorage),
+  ];
+
+  for (const mw of mwChain) {
+    auth.pushChainFunction(mw);
+    storage.pushChainFunction(mw);
+    graphql.pushChainFunction(mw);
+    functions.pushChainFunction(mw);
+  }
+};
+
+/**
+ * Built-in configuration for server-side applications.
+ * Includes token attachment and session updates, but NOT automatic session refresh
+ * to prevent race conditions in server contexts.
+ */
+export const withServerDefaults: ClientConfigurationFn = ({
+  auth,
+  storage,
+  graphql,
+  functions,
+  sessionStorage,
+}) => {
+  const mwChain: ChainFunction[] = [
+    updateSessionFromResponseMiddleware(sessionStorage),
+    attachAccessTokenMiddleware(sessionStorage),
+  ];
+
+  for (const mw of mwChain) {
+    auth.pushChainFunction(mw);
+    storage.pushChainFunction(mw);
+    graphql.pushChainFunction(mw);
+    functions.pushChainFunction(mw);
+  }
+};
+
+/**
+ * Configuration for admin clients with elevated privileges.
+ * Applies admin session middleware to storage, graphql, and functions clients only.
+ *
+ * **Security Warning**: Never use this in client-side code. Admin secrets grant
+ * unrestricted access to your entire database.
+ *
+ * @param adminSession - Admin session options including admin secret, role, and session variables
+ * @returns Configuration function that sets up admin middleware
+ */
+export function withAdminDefaults(
+  adminSession: AdminSessionOptions,
+): ClientConfigurationFn {
+  return ({ storage, graphql, functions }) => {
+    const adminMiddleware = withAdminSessionMiddleware(adminSession);
+
+    storage.pushChainFunction(adminMiddleware);
+    graphql.pushChainFunction(adminMiddleware);
+    functions.pushChainFunction(adminMiddleware);
+  };
+}
+
+/**
+ * Configuration for adding custom chain functions to all clients.
+ * Useful for adding custom middleware like logging, caching, or custom headers.
+ *
+ * @param chainFunctions - Array of chain functions to apply to all clients
+ * @returns Configuration function that sets up custom middleware
+ */
+export function withChainFunctions(
+  chainFunctions: ChainFunction[],
+): ClientConfigurationFn {
+  return ({ auth, storage, graphql, functions }) => {
+    for (const mw of chainFunctions) {
+      auth.pushChainFunction(mw);
+      storage.pushChainFunction(mw);
+      graphql.pushChainFunction(mw);
+      functions.pushChainFunction(mw);
+    }
+  };
+}
+
+/**
  * Main client class that provides unified access to all Nhost services.
  * This class serves as the central interface for interacting with Nhost's
  * authentication, storage, GraphQL, and serverless functions capabilities.
@@ -196,10 +300,120 @@ export interface NhostClientOptions {
   storage?: SessionStorageBackend;
 
   /**
-   * Additional chain functions to be added to all clients (auth, storage, graphql, functions).
-   * These functions will be executed in the order they are provided, after the default middleware chain.
+   * Configuration functions to be applied to the client after initialization.
+   * These functions receive all clients and can attach middleware or perform other setup.
    */
-  chainFunctions?: ChainFunction[];
+  configure?: ClientConfigurationFn[];
+}
+
+/**
+ * Creates and configures a new Nhost client instance with custom configuration.
+ *
+ * This is the main factory function for creating Nhost clients. It instantiates
+ * all service clients (auth, storage, graphql, functions) and applies the provided
+ * configuration functions to set up middleware and other customizations.
+ *
+ * @param options - Configuration options for the client
+ * @returns A configured Nhost client
+ *
+ * @example
+ * ```ts
+ * // Create a basic client with no middleware
+ * const nhost = createNhostClient({
+ *   subdomain: 'abcdefgh',
+ *   region: 'eu-central-1',
+ *   configure: []
+ * });
+ *
+ * // Create a client with custom configuration
+ * const nhost = createNhostClient({
+ *   subdomain: 'abcdefgh',
+ *   region: 'eu-central-1',
+ *   configure: [
+ *     withClientDefaults(auth, sessionStorage),
+ *     withChainFunctions([customLoggingMiddleware])
+ *   ]
+ * });
+ *
+ * // Create an admin client
+ * const nhost = createNhostClient({
+ *   subdomain,
+ *   region,
+ *   configure: [
+ *     withAdminDefaults({
+ *       adminSecret: "nhost-admin-secret",
+ *       role: "user",
+ *       sessionVariables: {
+ *         "user-id": "54058C42-51F7-4B37-8B69-C89A841D2221",
+ *       },
+ *     }),
+ *   ],
+ * });
+
+ * ```
+ */
+export function createNhostClient(
+  options: NhostClientOptions = {},
+): NhostClient {
+  const {
+    subdomain,
+    region,
+    authUrl,
+    storageUrl,
+    graphqlUrl,
+    functionsUrl,
+    storage = detectStorage(),
+    configure = [],
+  } = options;
+
+  const sessionStorage = new SessionStorage(storage);
+
+  // Determine base URLs for each service
+  const authBaseUrl = generateServiceUrl("auth", subdomain, region, authUrl);
+  const storageBaseUrl = generateServiceUrl(
+    "storage",
+    subdomain,
+    region,
+    storageUrl,
+  );
+  const graphqlBaseUrl = generateServiceUrl(
+    "graphql",
+    subdomain,
+    region,
+    graphqlUrl,
+  );
+  const functionsBaseUrl = generateServiceUrl(
+    "functions",
+    subdomain,
+    region,
+    functionsUrl,
+  );
+
+  // Create all clients
+  const auth = createAuthClient(authBaseUrl);
+  const storageClient = createStorageClient(storageBaseUrl, []);
+  const graphqlClient = createGraphQLClient(graphqlBaseUrl, []);
+  const functionsClient = createFunctionsClient(functionsBaseUrl, []);
+
+  // Apply configuration functions
+  for (const configFn of configure) {
+    configFn({
+      auth,
+      storage: storageClient,
+      graphql: graphqlClient,
+      functions: functionsClient,
+      sessionStorage,
+    });
+  }
+
+  // Return an initialized NhostClient
+  return new NhostClient(
+    auth,
+    storageClient,
+    graphqlClient,
+    functionsClient,
+    sessionStorage,
+  );
 }
 
 /**
@@ -245,71 +459,23 @@ export interface NhostClientOptions {
  *      secure: import.meta.env.ENVIRONMENT === 'production',
  *   })
  * });
+ *
+ * // Create client with additional custom middleware
+ * const nhost = createClient({
+ *   subdomain: 'abcdefgh',
+ *   region: 'eu-central-1',
+ *   configure: [customLoggingMiddleware]
+ * });
  * ```
  */
 export function createClient(options: NhostClientOptions = {}): NhostClient {
-  const {
-    subdomain,
-    region,
-    authUrl,
-    storageUrl,
-    graphqlUrl,
-    functionsUrl,
-    storage = detectStorage(),
-    chainFunctions = [],
-  } = options;
+  const storage = options.storage ?? detectStorage();
 
-  const sessionStorage = new SessionStorage(storage);
-
-  // Determine base URLs for each service
-  const authBaseUrl = generateServiceUrl("auth", subdomain, region, authUrl);
-  const storageBaseUrl = generateServiceUrl(
-    "storage",
-    subdomain,
-    region,
-    storageUrl,
-  );
-  const graphqlBaseUrl = generateServiceUrl(
-    "graphql",
-    subdomain,
-    region,
-    graphqlUrl,
-  );
-
-  const functionsBaseUrl = generateServiceUrl(
-    "functions",
-    subdomain,
-    region,
-    functionsUrl,
-  );
-
-  // Create auth client
-  const auth = createAuthClient(authBaseUrl);
-
-  const mwChain = getMiddlewareChain(
-    auth,
-    sessionStorage,
-    true,
-    chainFunctions,
-  );
-
-  for (const mw of mwChain) {
-    auth.pushChainFunction(mw);
-  }
-
-  // Create storage and graphql clients with the refresh and attach token middlewares
-  const storageClient = createStorageClient(storageBaseUrl, mwChain);
-  const graphqlClient = createGraphQLClient(graphqlBaseUrl, mwChain);
-  const functionsClient = createFunctionsClient(functionsBaseUrl, mwChain);
-
-  // Return an initialized NhostClient
-  return new NhostClient(
-    auth,
-    storageClient,
-    graphqlClient,
-    functionsClient,
-    sessionStorage,
-  );
+  return createNhostClient({
+    ...options,
+    storage,
+    configure: [withClientDefaults, ...(options.configure ?? [])],
+  });
 }
 
 export interface NhostServerClientOptions extends NhostClientOptions {
@@ -428,339 +594,21 @@ export interface NhostServerClientOptions extends NhostClientOptions {
  *     },
  *   });
  * };
+ *
+ * // Example with additional custom middleware
+ * const nhost = createServerClient({
+ *   region: process.env["NHOST_REGION"] || "local",
+ *   subdomain: process.env["NHOST_SUBDOMAIN"] || "local",
+ *   storage: myStorage,
+ *   configure: [customLoggingMiddleware]
+ * });
  * ```
  */
 export function createServerClient(
   options: NhostServerClientOptions,
 ): NhostClient {
-  const {
-    subdomain,
-    region,
-    authUrl,
-    storageUrl,
-    graphqlUrl,
-    functionsUrl,
-    storage,
-    chainFunctions = [],
-  } = options;
-  const sessionStorage = new SessionStorage(storage);
-
-  // Determine base URLs for each service
-  const authBaseUrl = generateServiceUrl("auth", subdomain, region, authUrl);
-  const storageBaseUrl = generateServiceUrl(
-    "storage",
-    subdomain,
-    region,
-    storageUrl,
-  );
-  const graphqlBaseUrl = generateServiceUrl(
-    "graphql",
-    subdomain,
-    region,
-    graphqlUrl,
-  );
-
-  const functionsBaseUrl = generateServiceUrl(
-    "functions",
-    subdomain,
-    region,
-    functionsUrl,
-  );
-
-  // Create auth client
-  const auth = createAuthClient(authBaseUrl);
-
-  const mwChain = getMiddlewareChain(
-    auth,
-    sessionStorage,
-    false,
-    chainFunctions,
-  );
-
-  for (const mw of mwChain) {
-    auth.pushChainFunction(mw);
-  }
-
-  // Create storage and graphql clients with the refresh and attach token middlewares
-  const storageClient = createStorageClient(storageBaseUrl, mwChain);
-  const graphqlClient = createGraphQLClient(graphqlBaseUrl, mwChain);
-  const functionsClient = createFunctionsClient(functionsBaseUrl, mwChain);
-
-  // Return an initialized NhostClient
-  return new NhostClient(
-    auth,
-    storageClient,
-    graphqlClient,
-    functionsClient,
-    sessionStorage,
-  );
-}
-
-export interface NhostCustomClientOptions extends NhostClientOptions {
-  /**
-   * Chain functions to be added to all clients (auth, storage, graphql, functions).
-   * Unlike createClient and createServerClient, this is the ONLY middleware that will be applied.
-   * No default middleware (session refresh, token attachment, session updates) will be included.
-   */
-  chainFunctions: ChainFunction[];
-}
-
-/**
- * Creates and configures a new Nhost client instance with custom middleware only.
- *
- * This helper method instantiates a fully configured Nhost client with NO default middleware.
- * Only the chain functions you explicitly provide will be applied to all service clients.
- *
- * Unlike `createClient` and `createServerClient`, this function does NOT include:
- * - Automatic session refresh middleware
- * - Access token attachment middleware
- * - Session update from response middleware
- *
- * This gives you complete control over the middleware chain, useful for:
- * - Custom authentication flows
- * - Advanced caching strategies
- * - Custom header management
- * - Special logging or monitoring requirements
- * - Create admin clients with the admin secret
- *
- * @param options - Configuration options for the custom client (requires chainFunctions)
- * @returns A configured Nhost client with only your custom middleware
- *
- * @example
- * ```ts
- * // Create a client with custom logging middleware
- * const customLoggingMiddleware: ChainFunction = async (request, next) => {
- *   console.log('Request:', request.url);
- *   const response = await next(request);
- *   console.log('Response:', response.status);
- *   return response;
- * };
- *
- * const nhost = createCustomClient({
- *   subdomain: 'abcdefgh',
- *   region: 'eu-central-1',
- *   chainFunctions: [customLoggingMiddleware]
- * });
- * ```
- */
-export function createCustomClient(
-  options: NhostCustomClientOptions,
-): NhostClient {
-  const {
-    subdomain,
-    region,
-    authUrl,
-    storageUrl,
-    graphqlUrl,
-    functionsUrl,
-    storage = detectStorage(),
-    chainFunctions,
-  } = options;
-  const sessionStorage = new SessionStorage(storage);
-
-  // Determine base URLs for each service
-  const authBaseUrl = generateServiceUrl("auth", subdomain, region, authUrl);
-  const storageBaseUrl = generateServiceUrl(
-    "storage",
-    subdomain,
-    region,
-    storageUrl,
-  );
-  const graphqlBaseUrl = generateServiceUrl(
-    "graphql",
-    subdomain,
-    region,
-    graphqlUrl,
-  );
-
-  const functionsBaseUrl = generateServiceUrl(
-    "functions",
-    subdomain,
-    region,
-    functionsUrl,
-  );
-
-  // Create auth client
-  const auth = createAuthClient(authBaseUrl);
-
-  // Use only the custom chain functions provided by the user
-  for (const mw of chainFunctions) {
-    auth.pushChainFunction(mw);
-  }
-
-  // Create storage, graphql, and functions clients with only the custom chain functions
-  const storageClient = createStorageClient(storageBaseUrl, chainFunctions);
-  const graphqlClient = createGraphQLClient(graphqlBaseUrl, chainFunctions);
-  const functionsClient = createFunctionsClient(
-    functionsBaseUrl,
-    chainFunctions,
-  );
-
-  // Return an initialized NhostClient
-  return new NhostClient(
-    auth,
-    storageClient,
-    graphqlClient,
-    functionsClient,
-    sessionStorage,
-  );
-}
-
-export interface NhostAdminClientOptions extends NhostClientOptions {
-  /**
-   * Admin session configuration including admin secret, optional role, and session variables.
-   * This will be applied to storage, graphql, and functions clients but NOT to the auth client.
-   */
-  adminSession: AdminSessionOptions;
-}
-
-/**
- * Creates and configures a new Nhost client instance with admin privileges.
- *
- * This helper method instantiates a fully configured Nhost client with admin access by:
- * - Applying the admin session middleware (including admin secret, optional role, and session variables)
- *   to storage, graphql, and functions clients
- * - Leaving the auth client without admin middleware
- * - Optionally applying additional custom chain functions if provided
- *
- * Unlike `createClient` and `createServerClient`, this function does NOT include any default
- * middleware (session refresh, token attachment, session updates) unless you explicitly provide
- * additional chain functions.
- *
- * **Security Warning**: Never use this function in client-side code or expose the admin secret
- * to end users. Admin secrets grant unrestricted access to your entire database. This should
- * only be used in trusted server-side environments.
- *
- * @param options - Configuration options for the admin client (requires adminSession)
- * @returns A configured Nhost client with admin privileges on storage, graphql, and functions
- *
- * @example
- * ```ts
- * // Create an admin client with just the admin secret
- * const adminNhost = createAdminClient({
- *   subdomain: 'myproject',
- *   region: 'eu-central-1',
- *   adminSession: {
- *     adminSecret: process.env.NHOST_ADMIN_SECRET
- *   }
- * });
- *
- * // Create an admin client with role and session variables
- * const adminNhost = createAdminClient({
- *   subdomain: 'myproject',
- *   region: 'eu-central-1',
- *   adminSession: {
- *     adminSecret: process.env.NHOST_ADMIN_SECRET,
- *     role: 'user',
- *     sessionVariables: {
- *       'user-id': '123',
- *       'org-id': '456'
- *     }
- *   }
- * });
- *
- * // Create an admin client with additional custom middleware
- * const adminNhost = createAdminClient({
- *   subdomain: 'myproject',
- *   region: 'eu-central-1',
- *   adminSession: {
- *     adminSecret: process.env.NHOST_ADMIN_SECRET
- *   },
- *   chainFunctions: [customLoggingMiddleware]
- * });
- * ```
- */
-export function createAdminClient(
-  options: NhostAdminClientOptions,
-): NhostClient {
-  const {
-    subdomain,
-    region,
-    authUrl,
-    storageUrl,
-    graphqlUrl,
-    functionsUrl,
-    storage = detectStorage(),
-    adminSession,
-    chainFunctions = [],
-  } = options;
-  const sessionStorage = new SessionStorage(storage);
-
-  // Determine base URLs for each service
-  const authBaseUrl = generateServiceUrl("auth", subdomain, region, authUrl);
-  const storageBaseUrl = generateServiceUrl(
-    "storage",
-    subdomain,
-    region,
-    storageUrl,
-  );
-  const graphqlBaseUrl = generateServiceUrl(
-    "graphql",
-    subdomain,
-    region,
-    graphqlUrl,
-  );
-
-  const functionsBaseUrl = generateServiceUrl(
-    "functions",
-    subdomain,
-    region,
-    functionsUrl,
-  );
-
-  // Create auth client without admin middleware
-  const auth = createAuthClient(authBaseUrl);
-
-  // Apply only custom chain functions to auth (no admin middleware)
-  for (const mw of chainFunctions) {
-    auth.pushChainFunction(mw);
-  }
-
-  // Create middleware chain for storage, graphql, and functions with admin session
-  const adminMiddleware = withAdminSessionMiddleware(adminSession);
-  const serviceChainFunctions = [adminMiddleware, ...chainFunctions];
-
-  // Create storage, graphql, and functions clients with admin middleware
-  const storageClient = createStorageClient(
-    storageBaseUrl,
-    serviceChainFunctions,
-  );
-  const graphqlClient = createGraphQLClient(
-    graphqlBaseUrl,
-    serviceChainFunctions,
-  );
-  const functionsClient = createFunctionsClient(
-    functionsBaseUrl,
-    serviceChainFunctions,
-  );
-
-  // Return an initialized NhostClient
-  return new NhostClient(
-    auth,
-    storageClient,
-    graphqlClient,
-    functionsClient,
-    sessionStorage,
-  );
-}
-
-function getMiddlewareChain(
-  auth: AuthClient,
-  storage: SessionStorage,
-  autoRefresh: boolean,
-  chainFunctions: ChainFunction[] = [],
-): ChainFunction[] {
-  const mwChain = [
-    updateSessionFromResponseMiddleware(storage),
-    attachAccessTokenMiddleware(storage),
-  ];
-
-  if (autoRefresh) {
-    mwChain.unshift(sessionRefreshMiddleware(auth, storage));
-  }
-
-  // Add custom chain functions at the end
-  mwChain.push(...chainFunctions);
-
-  return mwChain;
+  return createNhostClient({
+    ...options,
+    configure: [withServerDefaults, ...(options.configure ?? [])],
+  });
 }

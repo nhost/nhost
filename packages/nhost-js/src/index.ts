@@ -17,7 +17,7 @@
  *
  * Create a client instance to interact with Nhost services:
  *
- * {@includeCode ./__tests__/docstrings.test.ts:11-115}
+ * {@includeCode ./__tests__/docstrings.test.ts:15-119}
  *
  * ### Creating an admin client
  *
@@ -27,19 +27,22 @@
  *
  * IMPORTANT!!! Keep your admin secret safe and never expose it in client-side code.
  *
- * {@includeCode ./__tests__/docstrings.test.ts:138-195}
+ * {@includeCode ./__tests__/docstrings.test.ts:142-201}
  *
  * @packageDocumentation
  */
 
 export {
-  createAdminClient,
   createClient,
-  createCustomClient,
+  createNhostClient,
   createServerClient,
+  withAdminDefaults,
+  withClientDefaults,
+  withServerDefaults,
   type NhostClient,
   type NhostClientOptions,
   type NhostServerClientOptions,
+  type ClientConfigurationFn,
 } from "./nhost";
 
 /**

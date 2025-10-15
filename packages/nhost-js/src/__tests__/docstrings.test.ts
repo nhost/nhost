@@ -1,5 +1,9 @@
 import { expect, test } from "@jest/globals";
-import { createAdminClient, createClient } from "@nhost/nhost-js";
+import {
+  createClient,
+  createNhostClient,
+  withAdminDefaults,
+} from "@nhost/nhost-js";
 
 const subdomain = "local";
 const region = "local";
@@ -135,16 +139,18 @@ test("mainExample", async () => {
 });
 
 test("adminClient", async () => {
-  const nhost = createAdminClient({
+  const nhost = createNhostClient({
     subdomain,
     region,
-    adminSession: {
-      adminSecret: "nhost-admin-secret",
-      role: "user",
-      sessionVariables: {
-        "user-id": "54058C42-51F7-4B37-8B69-C89A841D2221",
-      },
-    },
+    configure: [
+      withAdminDefaults({
+        adminSecret: "nhost-admin-secret",
+        role: "user",
+        sessionVariables: {
+          "user-id": "54058C42-51F7-4B37-8B69-C89A841D2221",
+        },
+      }),
+    ],
   });
 
   // upload a couple of files
