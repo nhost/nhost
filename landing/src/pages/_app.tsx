@@ -22,14 +22,14 @@ export default function App({ Component, pageProps }: LandingPageProps) {
   return (
     <AnnouncementProvider>
       <DefaultSeo
-        defaultTitle="Nhost: The Open Source Firebase Alternative with GraphQL"
+        defaultTitle="Nhost: Launch in minutes. Scale without limits"
         titleTemplate="%s | Nhost"
-        description="Nhost is an open source Firebase alternative with GraphQL, built with the following things in mind: Open Source, GraphQL, SQL, Great Developer Experience"
+        description="Nhost is a fully managed, extensible backend platform designed for speed, flexibility, and scale - without the infrastructure headaches."
         openGraph={{
           images: [
             {
               url: `${baseUrl()}/images/og-new.png`,
-              alt: 'Nhost: The Open Source Firebase Alternative with GraphQL',
+              alt: 'Nhost: Launch in minutes. Scale without limits',
             },
           ],
         }}
