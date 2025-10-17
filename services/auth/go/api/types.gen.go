@@ -206,22 +206,42 @@ const (
 
 // Defines values for SignInProviderCallbackPostParamsProvider.
 const (
-	Apple       SignInProviderCallbackPostParamsProvider = "apple"
-	Azuread     SignInProviderCallbackPostParamsProvider = "azuread"
-	Bitbucket   SignInProviderCallbackPostParamsProvider = "bitbucket"
-	Discord     SignInProviderCallbackPostParamsProvider = "discord"
-	Entraid     SignInProviderCallbackPostParamsProvider = "entraid"
-	Facebook    SignInProviderCallbackPostParamsProvider = "facebook"
-	Github      SignInProviderCallbackPostParamsProvider = "github"
-	Gitlab      SignInProviderCallbackPostParamsProvider = "gitlab"
-	Google      SignInProviderCallbackPostParamsProvider = "google"
-	Linkedin    SignInProviderCallbackPostParamsProvider = "linkedin"
-	Spotify     SignInProviderCallbackPostParamsProvider = "spotify"
-	Strava      SignInProviderCallbackPostParamsProvider = "strava"
-	Twitch      SignInProviderCallbackPostParamsProvider = "twitch"
-	Twitter     SignInProviderCallbackPostParamsProvider = "twitter"
-	Windowslive SignInProviderCallbackPostParamsProvider = "windowslive"
-	Workos      SignInProviderCallbackPostParamsProvider = "workos"
+	SignInProviderCallbackPostParamsProviderApple       SignInProviderCallbackPostParamsProvider = "apple"
+	SignInProviderCallbackPostParamsProviderAzuread     SignInProviderCallbackPostParamsProvider = "azuread"
+	SignInProviderCallbackPostParamsProviderBitbucket   SignInProviderCallbackPostParamsProvider = "bitbucket"
+	SignInProviderCallbackPostParamsProviderDiscord     SignInProviderCallbackPostParamsProvider = "discord"
+	SignInProviderCallbackPostParamsProviderEntraid     SignInProviderCallbackPostParamsProvider = "entraid"
+	SignInProviderCallbackPostParamsProviderFacebook    SignInProviderCallbackPostParamsProvider = "facebook"
+	SignInProviderCallbackPostParamsProviderGithub      SignInProviderCallbackPostParamsProvider = "github"
+	SignInProviderCallbackPostParamsProviderGitlab      SignInProviderCallbackPostParamsProvider = "gitlab"
+	SignInProviderCallbackPostParamsProviderGoogle      SignInProviderCallbackPostParamsProvider = "google"
+	SignInProviderCallbackPostParamsProviderLinkedin    SignInProviderCallbackPostParamsProvider = "linkedin"
+	SignInProviderCallbackPostParamsProviderSpotify     SignInProviderCallbackPostParamsProvider = "spotify"
+	SignInProviderCallbackPostParamsProviderStrava      SignInProviderCallbackPostParamsProvider = "strava"
+	SignInProviderCallbackPostParamsProviderTwitch      SignInProviderCallbackPostParamsProvider = "twitch"
+	SignInProviderCallbackPostParamsProviderTwitter     SignInProviderCallbackPostParamsProvider = "twitter"
+	SignInProviderCallbackPostParamsProviderWindowslive SignInProviderCallbackPostParamsProvider = "windowslive"
+	SignInProviderCallbackPostParamsProviderWorkos      SignInProviderCallbackPostParamsProvider = "workos"
+)
+
+// Defines values for GetProviderTokensParamsProvider.
+const (
+	GetProviderTokensParamsProviderApple       GetProviderTokensParamsProvider = "apple"
+	GetProviderTokensParamsProviderAzuread     GetProviderTokensParamsProvider = "azuread"
+	GetProviderTokensParamsProviderBitbucket   GetProviderTokensParamsProvider = "bitbucket"
+	GetProviderTokensParamsProviderDiscord     GetProviderTokensParamsProvider = "discord"
+	GetProviderTokensParamsProviderEntraid     GetProviderTokensParamsProvider = "entraid"
+	GetProviderTokensParamsProviderFacebook    GetProviderTokensParamsProvider = "facebook"
+	GetProviderTokensParamsProviderGithub      GetProviderTokensParamsProvider = "github"
+	GetProviderTokensParamsProviderGitlab      GetProviderTokensParamsProvider = "gitlab"
+	GetProviderTokensParamsProviderGoogle      GetProviderTokensParamsProvider = "google"
+	GetProviderTokensParamsProviderLinkedin    GetProviderTokensParamsProvider = "linkedin"
+	GetProviderTokensParamsProviderSpotify     GetProviderTokensParamsProvider = "spotify"
+	GetProviderTokensParamsProviderStrava      GetProviderTokensParamsProvider = "strava"
+	GetProviderTokensParamsProviderTwitch      GetProviderTokensParamsProvider = "twitch"
+	GetProviderTokensParamsProviderTwitter     GetProviderTokensParamsProvider = "twitter"
+	GetProviderTokensParamsProviderWindowslive GetProviderTokensParamsProvider = "windowslive"
+	GetProviderTokensParamsProviderWorkos      GetProviderTokensParamsProvider = "workos"
 )
 
 // Defines values for VerifyTicketParamsType.
@@ -365,6 +385,15 @@ type ErrorResponse struct {
 
 // ErrorResponseError Error code identifying the specific application error
 type ErrorResponseError string
+
+// GetProviderTokensResponse OAuth2 provider tokens retrieved from cookies
+type GetProviderTokensResponse struct {
+	// AccessToken OAuth2 provider access token
+	AccessToken string `json:"accessToken"`
+
+	// RefreshToken OAuth2 provider refresh token (if available)
+	RefreshToken *string `json:"refreshToken"`
+}
 
 // IdTokenProvider defines model for IdTokenProvider.
 type IdTokenProvider string
@@ -906,6 +935,15 @@ type SignInProviderCallbackPostFormdataBody struct {
 
 // SignInProviderCallbackPostParamsProvider defines parameters for SignInProviderCallbackPost.
 type SignInProviderCallbackPostParamsProvider string
+
+// GetProviderTokensParams defines parameters for GetProviderTokens.
+type GetProviderTokensParams struct {
+	// Cookie Cookies containing ProviderRefreshToken and ProviderAccessToken
+	Cookie string `json:"Cookie"`
+}
+
+// GetProviderTokensParamsProvider defines parameters for GetProviderTokens.
+type GetProviderTokensParamsProvider string
 
 // VerifyTicketParams defines parameters for VerifyTicket.
 type VerifyTicketParams struct {

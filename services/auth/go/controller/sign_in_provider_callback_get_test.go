@@ -131,7 +131,8 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			expectedResponse: api.SignInProviderCallbackGet302Response{
 				Headers: api.SignInProviderCallbackGet302ResponseHeaders{
-					Location: `^http://localhost:3000\?refreshToken=.*$`,
+					Location:  `^http://localhost:3000\?refreshToken=.*$`,
+					SetCookie: "fakeProviderTokens=%7B%22accessToken%22%3A%22valid-accesstoken-1%22%2C%22refreshToken%22%3A%22valid-refreshtoken-1%22%7D; Path=/; Max-Age=604800; HttpOnly; Secure; SameSite=Strict", //nolint:lll
 				},
 			},
 			expectedJWT:       nil,
@@ -205,7 +206,8 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			expectedResponse: api.SignInProviderCallbackGet302Response{
 				Headers: api.SignInProviderCallbackGet302ResponseHeaders{
-					Location: `^http://localhost:3000/redirect/me/here\?refreshToken=.*$`,
+					Location:  `^http://localhost:3000/redirect/me/here\?refreshToken=.*$`,
+					SetCookie: "fakeProviderTokens=%7B%22accessToken%22%3A%22valid-accesstoken-1%22%2C%22refreshToken%22%3A%22valid-refreshtoken-1%22%7D; Path=/; Max-Age=604800; HttpOnly; Secure; SameSite=Strict", //nolint:lll
 				},
 			},
 			expectedJWT:       nil,
@@ -443,7 +445,8 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			expectedResponse: api.SignInProviderCallbackGet302Response{
 				Headers: api.SignInProviderCallbackGet302ResponseHeaders{
-					Location: `^http://localhost:3000\?refreshToken=.*$`,
+					Location:  `^http://localhost:3000\?refreshToken=.*$`,
+					SetCookie: "fakeProviderTokens=%7B%22accessToken%22%3A%22valid-accesstoken-1%22%2C%22refreshToken%22%3A%22valid-refreshtoken-1%22%7D; Path=/; Max-Age=604800; HttpOnly; Secure; SameSite=Strict", //nolint:lll
 				},
 			},
 			expectedJWT:       nil,
@@ -555,7 +558,8 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			expectedResponse: api.SignInProviderCallbackGet302Response{
 				Headers: api.SignInProviderCallbackGet302ResponseHeaders{
-					Location: `^http://localhost:3000\?refreshToken=.*$`,
+					Location:  `^http://localhost:3000\?refreshToken=.*$`,
+					SetCookie: "fakeProviderTokens=%7B%22accessToken%22%3A%22valid-accesstoken-1%22%2C%22refreshToken%22%3A%22valid-refreshtoken-1%22%7D; Path=/; Max-Age=604800; HttpOnly; Secure; SameSite=Strict", //nolint:lll
 				},
 			},
 			expectedJWT:       nil,
@@ -725,7 +729,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 				Provider: "fake",
 			},
 			expectedResponse: controller.ErrorRedirectResponse{
-				Headers: api.SignInProviderCallbackGet302ResponseHeaders{
+				Headers: struct{ Location string }{
 					Location: `http://localhost:3000?error=oauth-provider-error&errorDescription=Provider+returned+an+error&provider_error=error-coming-from-provider&provider_error_description=This+is+an+error+coming+from+the+provider&provider_error_url=https%3A%2F%2Fexample.com%2Ferror`, //nolint:lll
 				},
 			},
@@ -810,7 +814,8 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			expectedResponse: api.SignInProviderCallbackGet302Response{
 				Headers: api.SignInProviderCallbackGet302ResponseHeaders{
-					Location: `^http://localhost:3000/connect-success$`,
+					Location:  `^http://localhost:3000/connect-success$`,
+					SetCookie: "fakeProviderTokens=%7B%22accessToken%22%3A%22valid-accesstoken-1%22%2C%22refreshToken%22%3A%22valid-refreshtoken-1%22%7D; Path=/; Max-Age=604800; HttpOnly; Secure; SameSite=Strict", //nolint:lll
 				},
 			},
 			expectedJWT:       nil,
@@ -1073,7 +1078,8 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			expectedResponse: api.SignInProviderCallbackGet302Response{
 				Headers: api.SignInProviderCallbackGet302ResponseHeaders{
-					Location: `^http://localhost:3000\?refreshToken=.*$`,
+					Location:  `^http://localhost:3000\?refreshToken=.*$`,
+					SetCookie: "fakeProviderTokens=%7B%22accessToken%22%3A%22valid-accesstoken-empty-email%22%2C%22refreshToken%22%3A%22valid-refreshtoken-empty-email%22%7D; Path=/; Max-Age=604800; HttpOnly; Secure; SameSite=Strict", //nolint:lll
 				},
 			},
 			expectedJWT:       nil,
