@@ -15,14 +15,10 @@ import (
 func getCookie(
 	ctx context.Context, name string, cookieHeader string, logger *slog.Logger,
 ) *http.Cookie {
-	cookies := strings.Split(cookieHeader, ";")
+	cookies := strings.SplitSeq(cookieHeader, ";")
 
-	var (
-		cookie *http.Cookie
-		err    error
-	)
-	for _, c := range cookies {
-		cookie, err = http.ParseSetCookie(c)
+	for c := range cookies {
+		cookie, err := http.ParseSetCookie(c)
 		if err != nil {
 			logger.WarnContext(ctx, "error parsing cookie", logError(err))
 			continue
