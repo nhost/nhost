@@ -2,14 +2,12 @@ import { Button } from '@/components/ui/v3/button';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from '@/components/ui/v3/form';
 import { Input } from '@/components/ui/v3/input';
-import { Label } from '@/components/ui/v3/label';
 import {
   Sheet,
   SheetClose,
@@ -26,11 +24,62 @@ import { z } from 'zod';
 export interface CreateEventTriggerFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSubmit: (data: z.infer<typeof formSchema>) => void;
 }
 
-const formSchema = z.object({
-  username: z.string().min(1, { message: 'Username is required' }),
-});
+const formSchema = z
+  .object({
+    triggerName: z
+      .string()
+      .min(1, { message: 'Trigger name is required' })
+      .max(42, { message: 'Trigger name must be at most 42 characters' })
+      .regex(/^[a-zA-Z0-9_-]+$/, {
+        message:
+          'Trigger name can only contain alphanumeric characters, underscores, and hyphens',
+      }),
+    dataSource: z.string({ required_error: 'Data source is required' }),
+    tableName: z.string({ required_error: 'Table name is required' }),
+    tableSchema: z.string({ required_error: 'Schema name is required' }),
+    webhook: z
+      .string()
+      .min(1, { message: 'Webhook is required' })
+      .url({ message: 'Invalid webhook URL' }),
+    triggerOperations: z
+      .array(z.enum(['insert', 'update', 'delete', 'manual']))
+      .refine((value) => value.some((item) => item), {
+        message: 'At least one trigger operation is required',
+      }),
+    updateTriggerOn: z.enum(['all', 'choose']).optional(),
+    updateTriggerColumns: z.array(z.string()).optional(),
+    retryConf: z.object({
+      numRetries: z.number().min(0),
+      intervalSec: z.number().min(0),
+      timeoutSec: z.number().min(0),
+    }),
+    headers: z.array(
+      z
+        .object({
+          name: z.string().min(1),
+          value: z.string().min(1).optional(),
+          valueFromEnv: z.string().min(1).optional(),
+        })
+        .refine((item) => item.value || item.valueFromEnv, {
+          message: 'Value is required',
+        }),
+    ),
+  })
+  .refine(
+    (data) => {
+      if (data.updateTriggerOn === 'all') {
+        return (data.updateTriggerColumns?.length ?? 0) > 0;
+      }
+      return true;
+    },
+    {
+      message: 'At least one column is required for update trigger',
+      path: ['updateTriggerColumns'],
+    },
+  );
 
 export default function CreateEventTriggerForm({
   open,
@@ -39,56 +88,50 @@ export default function CreateEventTriggerForm({
 }: CreateEventTriggerFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      username: '',
-    },
+    defaultValues: {},
   });
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-xl md:w-4xl sm:max-w-4xl">
-        <SheetHeader>
-          <SheetTitle>Edit profile</SheetTitle>
-          <SheetDescription>
-            Make changes to your profile here. Click save when you&apos;re done.
-          </SheetDescription>
-        </SheetHeader>
+      <SheetContent className="w-xl md:w-4xl flex flex-auto flex-col pb-4 sm:max-w-4xl">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            <FormField
-              control={form.control}
-              name="username"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Username</FormLabel>
-                  <FormControl>
-                    <Input placeholder="shadcn" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    This is your public display name.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button type="submit">Submit</Button>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex flex-auto flex-col space-y-8"
+          >
+            <SheetHeader>
+              <SheetTitle>Create a New Event Trigger</SheetTitle>
+              <SheetDescription>
+                Make changes to your event trigger here. Click save when
+                you&apos;re done.
+              </SheetDescription>
+            </SheetHeader>
+            <div className="flex flex-auto">
+              <FormField
+                control={form.control}
+                name="triggerName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Trigger Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="trigger_name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <SheetFooter>
+              <div className="flex flex-1 flex-row items-start justify-between gap-2">
+                <SheetClose asChild>
+                  <Button variant="ghost" className="text-foreground">
+                    Cancel
+                  </Button>
+                </SheetClose>
+                <Button type="submit">Create</Button>
+              </div>
+            </SheetFooter>
           </form>
         </Form>
-        <div className="grid flex-1 auto-rows-min gap-6 px-4">
-          <div className="grid gap-3">
-            <Label htmlFor="sheet-demo-name">Name</Label>
-            <Input id="sheet-demo-name" defaultValue="Pedro Duarte" />
-          </div>
-          <div className="grid gap-3">
-            <Label htmlFor="sheet-demo-username">Username</Label>
-            <Input id="sheet-demo-username" defaultValue="@peduarte" />
-          </div>
-        </div>
-        <SheetFooter>
-          <Button type="submit">Save changes</Button>
-          <SheetClose asChild>
-            <Button variant="outline">Close</Button>
-          </SheetClose>
-        </SheetFooter>
       </SheetContent>
     </Sheet>
   );
