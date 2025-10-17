@@ -29,7 +29,6 @@
     "@codemirror/language": "^6.10.1",
     "@codemirror/legacy-modes": "^6.4.0",
     "@date-fns/tz": "^1.2.0",
-    "@date-fns/utc": "^2.1.1",
     "@emotion/cache": "^11.11.0",
     "@emotion/react": "^11.11.4",
     "@emotion/server": "^11.11.0",
