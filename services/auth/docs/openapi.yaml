@@ -610,7 +610,7 @@ paths:
   /signin/provider/{provider}/callback:
     get:
       summary: OAuth2 provider callback endpoint
-      description: Handles the callback from OAuth2 providers after user authorization. Processes the authorization code and creates a user session.
+      description: Handles the callback from OAuth2 providers after user authorization. Processes the authorization code and creates a user session. A cookie with token information is set upon successful authentication. This cookie can be retrieved via the getProviderTokens endpoint
       operationId: signInProviderCallbackGet
       tags:
         - authentication
@@ -1201,7 +1201,7 @@ paths:
   /user/provider/{provider}/tokens:
     get:
       summary: Get OAuth2 provider tokens from cookies
-      description: Retrieves the OAuth2 provider access and refresh tokens from cookies set during the OAuth2 callback. This endpoint must be called immediately after completing the OAuth2 flow to ensure the tokens are correct.
+      description: Retrieves the OAuth2 provider access and refresh tokens from cookies set during the OAuth2 callback. This endpoint must be called immediately after completing the OAuth2 flow to ensure the tokens are correct. The cookies will be removed after calling this endpoint.
       operationId: getProviderTokens
       tags:
         - authentication
@@ -2574,7 +2574,6 @@ components:
           - facebook
           - windowslive
           - twitter
-      deprecated: true
 
     TicketQuery:
       in: query

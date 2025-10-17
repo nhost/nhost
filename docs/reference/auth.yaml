@@ -610,7 +610,7 @@ paths:
   /signin/provider/{provider}/callback:
     get:
       summary: OAuth2 provider callback endpoint
-      description: Handles the callback from OAuth2 providers after user authorization. Processes the authorization code and creates a user session.
+      description: Handles the callback from OAuth2 providers after user authorization. Processes the authorization code and creates a user session. A cookie with token information is set upon successful authentication. This cookie can be retrieved via the getProviderTokens endpoint
       operationId: signInProviderCallbackGet
       tags:
         - authentication
@@ -669,6 +669,10 @@ paths:
           headers:
             Location:
               $ref: "#/components/headers/RedirectLocation"
+            Set-Cookie:
+              description: Sets cookie with token information
+              schema:
+                type: string
           content: {}
         default:
           content:
@@ -730,6 +734,10 @@ paths:
           headers:
             Location:
               $ref: "#/components/headers/RedirectLocation"
+            Set-Cookie:
+              description: Sets cookie with token information
+              schema:
+                type: string
           content: {}
         default:
           content:
@@ -1190,6 +1198,42 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: "An error occurred while processing the request"
 
+  /user/provider/{provider}/tokens:
+    get:
+      summary: Get OAuth2 provider tokens from cookies
+      description: Retrieves the OAuth2 provider access and refresh tokens from cookies set during the OAuth2 callback. This endpoint must be called immediately after completing the OAuth2 flow to ensure the tokens are correct. The cookies will be removed after calling this endpoint.
+      operationId: getProviderTokens
+      tags:
+        - authentication
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/SignInProvider"
+        - name: Cookie
+          in: header
+          required: true
+          description: Cookies containing ProviderRefreshToken and ProviderAccessToken
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successfully retrieved provider tokens
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetProviderTokensResponse"
+          headers:
+            Set-Cookie:
+              description: Removes cookie with token information
+              schema:
+                type: string
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
   /user/webauthn/add:
     post:
       summary: Initialize adding of a new webauthn security key
@@ -1606,6 +1650,24 @@ components:
         - status
         - message
         - error
+
+    GetProviderTokensResponse:
+      type: object
+      description: "OAuth2 provider tokens retrieved from cookies"
+      additionalProperties: false
+      properties:
+        accessToken:
+          type: string
+          description: "OAuth2 provider access token"
+          example: "ya29.a0AfH6SMBx..."
+        refreshToken:
+          type: string
+          nullable: true
+          description: "OAuth2 provider refresh token (if available)"
+          example: "1//0gK8..."
+      required:
+        - accessToken
+
 
     IdTokenProvider:
       type: string
@@ -2512,7 +2574,6 @@ components:
           - facebook
           - windowslive
           - twitter
-      deprecated: true
 
     TicketQuery:
       in: query
