@@ -1124,3 +1124,57 @@ func (mr *MockDBClientMockRecorder) UpdateUserVerifyEmail(ctx, id any) *gomock.C
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserVerifyEmail", reflect.TypeOf((*MockDBClient)(nil).UpdateUserVerifyEmail), ctx, id)
 }
+
+// MockEncrypter is a mock of Encrypter interface.
+type MockEncrypter struct {
+	ctrl     *gomock.Controller
+	recorder *MockEncrypterMockRecorder
+	isgomock struct{}
+}
+
+// MockEncrypterMockRecorder is the mock recorder for MockEncrypter.
+type MockEncrypterMockRecorder struct {
+	mock *MockEncrypter
+}
+
+// NewMockEncrypter creates a new mock instance.
+func NewMockEncrypter(ctrl *gomock.Controller) *MockEncrypter {
+	mock := &MockEncrypter{ctrl: ctrl}
+	mock.recorder = &MockEncrypterMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockEncrypter) EXPECT() *MockEncrypterMockRecorder {
+	return m.recorder
+}
+
+// Decrypt mocks base method.
+func (m *MockEncrypter) Decrypt(cipherText []byte) ([]byte, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Decrypt", cipherText)
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Decrypt indicates an expected call of Decrypt.
+func (mr *MockEncrypterMockRecorder) Decrypt(cipherText any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Decrypt", reflect.TypeOf((*MockEncrypter)(nil).Decrypt), cipherText)
+}
+
+// Encrypt mocks base method.
+func (m *MockEncrypter) Encrypt(plainText []byte) ([]byte, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Encrypt", plainText)
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Encrypt indicates an expected call of Encrypt.
+func (mr *MockEncrypterMockRecorder) Encrypt(plainText any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Encrypt", reflect.TypeOf((*MockEncrypter)(nil).Encrypt), plainText)
+}

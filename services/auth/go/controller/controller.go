@@ -130,8 +130,14 @@ type DBClient interface { //nolint:interfacebloat
 	) ([]sql.RefreshTokenAndGetUserRolesRow, error)
 }
 
+type Encrypter interface {
+	Encrypt(plainText []byte) ([]byte, error)
+	Decrypt(cipherText []byte) ([]byte, error)
+}
+
 type Controller struct {
 	totp             *Totp
+	encrypter        Encrypter
 	idTokenValidator *oidc.IDTokenValidatorProviders
 	wf               *Workflows
 	config           Config
@@ -150,6 +156,7 @@ func New(
 	providers providers.Map,
 	idTokenValidator *oidc.IDTokenValidatorProviders,
 	totp *Totp,
+	encrypter Encrypter,
 	version string,
 ) (*Controller, error) {
 	validator, err := NewWorkflows(
@@ -182,6 +189,7 @@ func New(
 		Webauthn:         wa,
 		idTokenValidator: idTokenValidator,
 		totp:             totp,
+		encrypter:        encrypter,
 		version:          version,
 		Providers:        providers,
 	}, nil
