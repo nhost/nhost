@@ -20,7 +20,7 @@ func ptr[T any](v T) *T {
 	return &v
 }
 
-func deptr[T any](v *T) T { //nolint:ireturn
+func deptr[T any](v *T) T { //nolint:ireturn,nolintlint
 	if v == nil {
 		var zero T
 		return zero

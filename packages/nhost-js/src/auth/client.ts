@@ -364,6 +364,25 @@ export interface ErrorResponse {
 }
 
 /**
+ * OAuth2 provider tokens retrieved from cookies
+ @property accessToken (`string`) - OAuth2 provider access token
+    *    Example - `"ya29.a0AfH6SMBx..."`
+ @property refreshToken? (`string`) - OAuth2 provider refresh token (if available)
+    *    Example - `"1//0gK8..."`*/
+export interface GetProviderTokensResponse {
+  /**
+   * OAuth2 provider access token
+   *    Example - `"ya29.a0AfH6SMBx..."`
+   */
+  accessToken: string;
+  /**
+   * OAuth2 provider refresh token (if available)
+   *    Example - `"1//0gK8..."`
+   */
+  refreshToken?: string;
+}
+
+/**
  *
  */
 export type IdTokenProvider = "apple" | "google";
@@ -2009,6 +2028,18 @@ export interface Client {
   ): Promise<FetchResponse<OKResponse>>;
 
   /**
+     Summary: Get OAuth2 provider tokens from cookies
+     Retrieves the OAuth2 provider access and refresh tokens from cookies set during the OAuth2 callback. This endpoint must be called immediately after completing the OAuth2 flow to ensure the tokens are correct. The cookies will be removed after calling this endpoint.
+
+     This method may return different T based on the response code:
+     - 200: GetProviderTokensResponse
+     */
+  getProviderTokens(
+    provider: SignInProvider,
+    options?: RequestInit,
+  ): Promise<FetchResponse<GetProviderTokensResponse>>;
+
+  /**
      Summary: Initialize adding of a new webauthn security key
      Start the process of adding a new WebAuthn security key to the user's account. Returns a challenge that must be completed by the user's authenticator device. Requires elevated permissions.
 
@@ -3184,6 +3215,39 @@ export const createAPIClient = (
     } as FetchResponse<OKResponse>;
   };
 
+  const getProviderTokens = async (
+    provider: SignInProvider,
+    options?: RequestInit,
+  ): Promise<FetchResponse<GetProviderTokensResponse>> => {
+    const url = `${baseURL}/user/provider/${provider}/tokens`;
+    const res = await fetch(url, {
+      ...options,
+      method: "GET",
+      headers: {
+        ...options?.headers,
+      },
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: GetProviderTokensResponse = responseBody
+      ? JSON.parse(responseBody)
+      : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<GetProviderTokensResponse>;
+  };
+
   const addSecurityKey = async (
     options?: RequestInit,
   ): Promise<FetchResponse<PublicKeyCredentialCreationOptions>> => {
@@ -3340,6 +3404,7 @@ export const createAPIClient = (
     verifyChangeUserMfa,
     changeUserPassword,
     sendPasswordResetEmail,
+    getProviderTokens,
     addSecurityKey,
     verifyAddSecurityKey,
     verifyTicketURL,

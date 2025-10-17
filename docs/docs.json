@@ -368,6 +368,7 @@
                     "reference/auth/post-user-mfa",
                     "reference/auth/post-user-password",
                     "reference/auth/post-user-password-reset",
+                    "reference/auth/get-user-provider-{provider}-tokens",
                     "reference/auth/post-user-webauthn-add",
                     "reference/auth/post-user-webauthn-verify",
                     "reference/auth/get-verify",

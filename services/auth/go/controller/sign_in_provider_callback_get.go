@@ -2,13 +2,20 @@ package controller
 
 import (
 	"context"
+	"encoding/json"
 	"log/slog"
+	"net/http"
 	"net/url"
 
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/middleware"
 	"github.com/nhost/nhost/services/auth/go/oidc"
 	"github.com/nhost/nhost/services/auth/go/providers"
+)
+
+const (
+	sevenDaysInSeconds        = 7 * 24 * 60 * 60
+	cookieSuffixProviderToken = "ProviderTokens"
 )
 
 type providerCallbackData struct {
@@ -78,15 +85,17 @@ func (ctrl *Controller) signinProviderProviderCallbackOauthFlow(
 	ctx context.Context,
 	req providerCallbackData,
 	logger *slog.Logger,
-) (oidc.Profile, *APIError) {
+) (oidc.Profile, string, string, *APIError) {
 	p := ctrl.Providers.Get(req.Provider)
 	if p == nil {
 		logger.ErrorContext(ctx, "provider not enabled")
-		return oidc.Profile{}, ErrDisabledEndpoint
+		return oidc.Profile{}, "", "", ErrDisabledEndpoint
 	}
 
-	var profile oidc.Profile
-
+	var (
+		profile                   oidc.Profile
+		refreshToken, accessToken string
+	)
 	switch {
 	case p.IsOauth1():
 		accessTokenValue, accessTokenSecret, err := p.Oauth1().AccessToken(
@@ -94,40 +103,45 @@ func (ctrl *Controller) signinProviderProviderCallbackOauthFlow(
 		)
 		if err != nil {
 			logger.ErrorContext(ctx, "failed to request token", logError(err))
-			return oidc.Profile{}, ErrOauthProfileFetchFailed
+			return oidc.Profile{}, "", "", ErrOauthProfileFetchFailed
 		}
 
 		profile, err = p.Oauth1().GetProfile(ctx, accessTokenValue, accessTokenSecret)
 		if err != nil {
 			logger.ErrorContext(ctx, "failed to get user info", logError(err))
-			return oidc.Profile{}, ErrOauthProfileFetchFailed
+			return oidc.Profile{}, "", "", ErrOauthProfileFetchFailed
 		}
+
+		accessToken = accessTokenValue
 	default:
 		token, err := p.Oauth2().Exchange(ctx, deptr(req.Code))
 		if err != nil {
 			logger.ErrorContext(ctx, "failed to exchange token", logError(err))
-			return oidc.Profile{}, ErrOauthTokenExchangeFailed
+			return oidc.Profile{}, "", "", ErrOauthTokenExchangeFailed
 		}
 
 		profile, err = p.Oauth2().GetProfile(ctx, token.AccessToken, req.IDToken, req.Extras)
 		if err != nil {
 			logger.ErrorContext(ctx, "failed to get user info", logError(err))
-			return oidc.Profile{}, ErrOauthProfileFetchFailed
+			return oidc.Profile{}, "", "", ErrOauthProfileFetchFailed
 		}
+
+		refreshToken = token.RefreshToken
+		accessToken = token.AccessToken
 	}
 
 	if profile.ProviderUserID == "" {
 		logger.ErrorContext(ctx, "provider user id is empty")
-		return oidc.Profile{}, ErrOauthProfileFetchFailed
+		return oidc.Profile{}, "", "", ErrOauthProfileFetchFailed
 	}
 
-	return profile, nil
+	return profile, refreshToken, accessToken, nil
 }
 
 func (ctrl *Controller) signinProviderProviderCallback(
 	ctx context.Context,
 	req providerCallbackData,
-) (*url.URL, *APIError) {
+) (*url.URL, string, string, *APIError) {
 	logger := middleware.LoggerFromContext(ctx)
 
 	options, connnect, redirectTo, apiErr := ctrl.signinProviderProviderCallbackValidate(
@@ -136,26 +150,30 @@ func (ctrl *Controller) signinProviderProviderCallback(
 		logger,
 	)
 	if apiErr != nil {
-		return redirectTo, apiErr
+		return redirectTo, "", "", apiErr
 	}
 
-	profile, apiErr := ctrl.signinProviderProviderCallbackOauthFlow(ctx, req, logger)
+	profile, provRefreshToken, provAccessToken, apiErr := ctrl.signinProviderProviderCallbackOauthFlow(
+		ctx,
+		req,
+		logger,
+	)
 	if apiErr != nil {
-		return redirectTo, apiErr
+		return redirectTo, "", "", apiErr
 	}
 
 	if connnect != nil {
 		if apiErr := ctrl.signinProviderProviderCallbackConnect(
 			ctx, *connnect, req.Provider, profile, logger,
 		); apiErr != nil {
-			return redirectTo, apiErr
+			return redirectTo, "", "", apiErr
 		}
 	} else {
 		session, apiErr := ctrl.providerSignInFlow(
 			ctx, profile, req.Provider, options, logger,
 		)
 		if apiErr != nil {
-			return redirectTo, apiErr
+			return redirectTo, "", "", apiErr
 		}
 
 		if session != nil {
@@ -165,7 +183,7 @@ func (ctrl *Controller) signinProviderProviderCallback(
 		}
 	}
 
-	return redirectTo, nil
+	return redirectTo, provRefreshToken, provAccessToken, nil
 }
 
 func (ctrl *Controller) SignInProviderCallbackGet( //nolint:ireturn
@@ -185,7 +203,7 @@ func (ctrl *Controller) SignInProviderCallbackGet( //nolint:ireturn
 		ErrorURI:         req.Params.ErrorUri,
 	}
 
-	redirectTo, apiErr := ctrl.signinProviderProviderCallback(
+	redirectTo, provRefreshToken, provAccessToken, apiErr := ctrl.signinProviderProviderCallback(
 		ctx,
 		providerCallbackData,
 	)
@@ -196,6 +214,13 @@ func (ctrl *Controller) SignInProviderCallbackGet( //nolint:ireturn
 	return api.SignInProviderCallbackGet302Response{
 		Headers: api.SignInProviderCallbackGet302ResponseHeaders{
 			Location: redirectTo.String(),
+			SetCookie: providerCookies(
+				string(req.Provider),
+				provRefreshToken,
+				provAccessToken,
+				ctrl.config.UseSecureCookies(),
+				sevenDaysInSeconds,
+			),
 		},
 	}, nil
 }
@@ -241,6 +266,36 @@ func (ctrl *Controller) signinProviderProviderCallbackConnect(
 	return nil
 }
 
+func providerCookies(
+	providerName, refreshToken, accessToken string, secure bool, maxAge int,
+) string {
+	var b []byte
+	if accessToken == "" && refreshToken == "" {
+		b = []byte(``)
+	} else {
+		var err error
+
+		b, err = json.Marshal(map[string]string{
+			"refreshToken": refreshToken,
+			"accessToken":  accessToken,
+		})
+		if err != nil {
+			// This should never happen
+			panic(err)
+		}
+	}
+
+	return (&http.Cookie{ //nolint:exhaustruct
+		Name:     providerName + cookieSuffixProviderToken,
+		Value:    url.QueryEscape(string(b)),
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   secure,
+		SameSite: http.SameSiteStrictMode,
+		MaxAge:   maxAge,
+	}).String()
+}
+
 func (ctrl *Controller) SignInProviderCallbackPost( //nolint:ireturn
 	ctx context.Context,
 	req api.SignInProviderCallbackPostRequestObject,
@@ -260,7 +315,7 @@ func (ctrl *Controller) SignInProviderCallbackPost( //nolint:ireturn
 		ErrorURI:         req.Body.ErrorUri,
 	}
 
-	redirectTo, apiErr := ctrl.signinProviderProviderCallback(
+	redirectTo, provRefreshToken, provAccessToken, apiErr := ctrl.signinProviderProviderCallback(
 		ctx,
 		providerCallbackData,
 	)
@@ -271,6 +326,15 @@ func (ctrl *Controller) SignInProviderCallbackPost( //nolint:ireturn
 	return api.SignInProviderCallbackPost302Response{
 		Headers: api.SignInProviderCallbackPost302ResponseHeaders{
 			Location: redirectTo.String(),
+			SetCookie: providerCookies(
+				string(
+					req.Provider,
+				),
+				provRefreshToken,
+				provAccessToken,
+				ctrl.config.UseSecureCookies(),
+				sevenDaysInSeconds,
+			),
 		},
 	}, nil
 }

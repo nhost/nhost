@@ -468,6 +468,30 @@ This method may return different T based on the response code:
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`JWKSet`](#jwkset)&gt;&gt;
 
+#### getProviderTokens()
+
+```ts
+getProviderTokens(provider: SignInProvider, options?: RequestInit): Promise<FetchResponse<GetProviderTokensResponse>>;
+```
+
+Summary: Get OAuth2 provider tokens from cookies
+Retrieves the OAuth2 provider access and refresh tokens from cookies set during the OAuth2 callback. This endpoint must be called immediately after completing the OAuth2 flow to ensure the tokens are correct. The cookies will be removed after calling this endpoint.
+
+This method may return different T based on the response code:
+
+- 200: GetProviderTokensResponse
+
+##### Parameters
+
+| Parameter  | Type                                |
+| ---------- | ----------------------------------- |
+| `provider` | [`SignInProvider`](#signinprovider) |
+| `options?` | `RequestInit`                       |
+
+##### Returns
+
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`GetProviderTokensResponse`](#getprovidertokensresponse)&gt;&gt;
+
 #### getUser()
 
 ```ts
@@ -1439,6 +1463,33 @@ status: number
 (`number`) - HTTP status error code
 
 - Example - `400`
+
+---
+
+## GetProviderTokensResponse
+
+OAuth2 provider tokens retrieved from cookies
+
+### Properties
+
+#### accessToken
+
+```ts
+accessToken: string
+```
+
+(`string`) - OAuth2 provider access token
+
+- Example - `"ya29.a0AfH6SMBx..."`
+
+#### refreshToken?
+
+```ts
+optional refreshToken: string;
+```
+
+OAuth2 provider refresh token (if available)
+Example - `"1//0gK8..."`
 
 ---
 
