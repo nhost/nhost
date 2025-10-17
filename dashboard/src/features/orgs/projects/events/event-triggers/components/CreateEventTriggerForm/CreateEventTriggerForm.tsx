@@ -16,7 +16,7 @@ import {
   SheetFooter,
   SheetHeader,
   SheetTitle,
-} from '@/components/ui/v3/sheet';
+} from '@/components/ui/v3/sheet-drawer';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -92,14 +92,16 @@ export default function CreateEventTriggerForm({
   });
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-xl md:w-4xl flex flex-auto flex-col pb-4 sm:max-w-4xl">
+      <SheetContent className="w-xl md:w-4xl flex flex-auto flex-col p-6 sm:max-w-4xl">
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="flex flex-auto flex-col space-y-8"
+            className="flex flex-auto flex-col gap-4"
           >
-            <SheetHeader>
-              <SheetTitle>Create a New Event Trigger</SheetTitle>
+            <SheetHeader className="p-0">
+              <SheetTitle className="text-lg">
+                Create a New Event Trigger
+              </SheetTitle>
               <SheetDescription>
                 Make changes to your event trigger here. Click save when
                 you&apos;re done.
@@ -120,7 +122,7 @@ export default function CreateEventTriggerForm({
                 )}
               />
             </div>
-            <SheetFooter>
+            <SheetFooter className="p-0">
               <div className="flex flex-1 flex-row items-start justify-between gap-2">
                 <SheetClose asChild>
                   <Button variant="ghost" className="text-foreground">
