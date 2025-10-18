@@ -79,7 +79,7 @@ function EventsBrowserSidebarContent() {
         >
           {Object.entries(eventTriggersByDataSource ?? {}).map(
             ([dataSource, eventTriggers]) => (
-              <AccordionItem value={dataSource}>
+              <AccordionItem value={dataSource} id={dataSource}>
                 <AccordionTrigger className="flex-row-reverse justify-end gap-2 [&[data-state=closed]>svg:last-child]:-rotate-90 [&[data-state=open]>svg:last-child]:rotate-0">
                   {dataSource}
                   <Database className="h-4 w-4 !rotate-0" />
