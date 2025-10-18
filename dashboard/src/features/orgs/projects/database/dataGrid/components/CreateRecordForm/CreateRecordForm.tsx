@@ -1,5 +1,5 @@
-import { Alert } from '@/components/ui/v2/Alert';
-import { Button } from '@/components/ui/v2/Button';
+import { Alert } from '@/components/ui/v3/alert';
+import { Button } from '@/components/ui/v3/button';
 import type { BaseRecordFormProps } from '@/features/orgs/projects/database/dataGrid/components/BaseRecordForm';
 import { BaseRecordForm } from '@/features/orgs/projects/database/dataGrid/components/BaseRecordForm';
 import { useCreateRecordMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateRecordMutation';
@@ -30,7 +30,7 @@ export default function CreateRecordForm({
         return { ...defaultValues, [column.id]: column.defaultValue };
       }
 
-      return { ...defaultValues, [column.id]: null };
+      return { ...defaultValues, [column.id]: '' };
     }, {}),
     reValidateMode: 'onSubmit',
     resolver: yupResolver(validationSchema),
@@ -55,18 +55,17 @@ export default function CreateRecordForm({
       {error && error instanceof Error ? (
         <div className="-mt-3 mb-4 px-6">
           <Alert
-            severity="error"
-            className="grid grid-flow-col items-center justify-between px-4 py-3"
+            variant="destructive"
+            className="grid grid-flow-col items-center justify-between border-none bg-[#f1315433] px-4 py-3"
           >
             <span className="text-left">
               <strong>Error:</strong> {error.message}
             </span>
-
             <Button
-              variant="borderless"
-              color="error"
-              size="small"
               onClick={reset}
+              size="sm"
+              variant="destructive"
+              className="bg-transparent text-[#c91737] hover:bg-[#f131541a]"
             >
               Clear
             </Button>

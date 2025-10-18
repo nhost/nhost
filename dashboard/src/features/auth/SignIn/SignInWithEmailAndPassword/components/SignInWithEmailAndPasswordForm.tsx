@@ -24,12 +24,14 @@ function SignInWithEmailAndPassword({ onSubmit, isLoading }: Props) {
           label="Email"
           name="email"
           type="email"
+          placeholder="Email"
         />
         <FormInput
           control={form.control}
           label="Password"
           name="password"
           type="password"
+          placeholder="Password"
         />
         <NextLink
           href="/password/new"

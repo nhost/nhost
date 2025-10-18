@@ -43,7 +43,7 @@ function ReadOnlyToggle(
       )}
       ref={ref}
     >
-      <Box
+      <span
         component="span"
         sx={{
           backgroundColor: (theme) => {
@@ -76,7 +76,7 @@ function ReadOnlyToggle(
             checked === null && 'my-px h-px justify-self-center',
           )}
         />
-      </Box>
+      </span>
 
       <Text
         {...(slotProps?.label || {})}
