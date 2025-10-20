@@ -73,7 +73,8 @@ func postMetadata(ctx context.Context, url, hasuraSecret string, data any) error
 			)
 		}
 
-		if errResponse.Code == errorCodeAlreadyTracked || errResponse.Code == errorCodeAlreadyExists {
+		if errResponse.Code == errorCodeAlreadyTracked ||
+			errResponse.Code == errorCodeAlreadyExists {
 			return &metadataError{
 				code: errResponse.Code,
 				msg:  errResponse.Error,
@@ -277,7 +278,9 @@ func applyArrayRelationships(
 				Source: table.Args.Source,
 				Table:  table.Args.Table,
 				Name:   rel.Name,
-				Using:  CreateArrayRelationshipUsing{ForeignKeyConstraintOn: rel.Using.ForeignKeyConstraintOn},
+				Using: CreateArrayRelationshipUsing{
+					ForeignKeyConstraintOn: rel.Using.ForeignKeyConstraintOn,
+				},
 			},
 		}
 
