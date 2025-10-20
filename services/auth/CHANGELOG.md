@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [auth@0.42.4] - 2025-10-20
+
+### 🐛 Bug Fixes
+
+- *(auth)* Apply relationships on new projects (#3617)
+
 ## [auth@0.42.3] - 2025-10-20
 
 ### 🐛 Bug Fixes
