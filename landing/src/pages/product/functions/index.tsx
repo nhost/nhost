@@ -51,9 +51,11 @@ export default async (req, res) => {
     }
   \`
 
-  const { data } = await nhost.graphql.request(CUSTOMERS)
+  const { body } = await nhost.graphql.request({
+    query: CUSTOMERS
+  })
 
-  res.status(200).send({data});
+  res.status(200).send({ data: body.data })
 }`,
   stripe: `import { Request, Response } from 'express'
 
@@ -79,7 +81,7 @@ export default async function handler(req: NhostRequest, res: NhostResponse) {
     event = stripe.webhooks.constructEvent(req.rawBody, sig, endpointSecret)
   } catch (err: any) {
     console.log(err)
-    return res.status(400).send('Webhook Error');
+    return res.status(400).send('Webhook Error')
   }
 
   if (!event) {
@@ -285,7 +287,7 @@ export default function FunctionsPage() {
         <div className="mx-auto mt-12 grid max-w-xs grid-cols-1 content-start justify-start gap-6 sm:max-w-2xl sm:auto-rows-fr sm:grid-cols-2 lg:max-w-5xl lg:grid-cols-3">
           <Card className="relative grid grid-flow-row place-content-center place-items-center gap-4 shadow-lg transition-all duration-300 hover:shadow-xl sm:row-span-15">
             <div className="relative">
-              <LineGrid className="object-top-left left-1/2 top-1/2 mx-auto h-40 w-40 -translate-y-1/2 -translate-x-1/2" />
+              <LineGrid className="object-top-left left-1/2 top-1/2 mx-auto h-40 w-40 -translate-x-1/2 -translate-y-1/2" />
               <Glow className="animate-pulse" />
               <Image
                 src="/common/logo-circle.svg"

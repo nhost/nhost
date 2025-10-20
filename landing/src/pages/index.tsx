@@ -2,13 +2,13 @@ import { ScaleSection } from '@/components/home/ScaleSection'
 import { CTASection } from '@/components/common/CTASection'
 import { Layout } from '@/components/common/Layout'
 import { SectionHeading } from '@/components/common/SectionHeading'
-import { ExamplesSection } from '@/components/home/ExamplesSection'
 import { HeroSection } from '@/components/home/HeroSection'
 import TrustedBySection from '@/components/home/TrustedBySection/TrustedBySection'
 import { WorkflowSection } from '@/components/home/WorkflowSection'
 import { ProductSection } from '@/components/product/ProductSection'
 import { ReactElement } from 'react'
 import { LovedBySection } from '@/components/home/LovedBySection'
+import { FrameworksSection } from '@/components/home/FrameworksSection'
 
 export default function IndexPage() {
   return (
@@ -29,7 +29,7 @@ export default function IndexPage() {
       <LovedBySection />
       <ScaleSection />
       <WorkflowSection />
-      <ExamplesSection />
+      <FrameworksSection />
       <CTASection />
     </>
   )

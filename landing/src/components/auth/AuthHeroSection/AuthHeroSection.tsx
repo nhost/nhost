@@ -8,7 +8,7 @@ import { ProductIcon } from '@/components/common/ProductIcon'
 import { SectionHeading } from '@/components/common/SectionHeading'
 import Image from 'next/image'
 
-const heroExample = `await nhost.auth.signUp({
+const heroExample = `await nhost.auth.signUpEmailPassword({
   email: 'joe@example.com',
   password: 'secret-password'
 })`
@@ -98,7 +98,7 @@ export default function AuthHeroSection() {
           language="typescript"
           disableGlow
           disableLineGrid
-          className="absolute -right-3 -bottom-6 z-20 max-w-sm animate-fade-in-delay shadow-lg xl:-right-5 xl:-bottom-12"
+          className="absolute -bottom-6 -right-3 z-20 max-w-sm animate-fade-in-delay shadow-lg xl:-bottom-12 xl:-right-5"
         >
           {heroExample}
         </CodeSnippet>

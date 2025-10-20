@@ -8,17 +8,20 @@ import { ProductIcon } from '@/components/common/ProductIcon'
 import { SectionHeading } from '@/components/common/SectionHeading'
 import Image from 'next/image'
 
-const heroExample = `
-const { fileMetadata } = await nhost.storage.upload({ file })
+const heroExample = `const { body } = await nhost.storage.uploadFiles({ 
+  'file[]': [file]
+})
 
-const url = nhost.storage.getPublicUrl({
-  fileId: fileMetadata.id,
-  transformation: {
-    width: 400,
-    height: 300,
-    quality: 80
+const fileMetadata = body.processedFiles?.[0];
+
+const response = await nhost.storage.getFile(fileMetadata.id, 
+  {
+    w: 400,
+    h: 300,
+    q: 80
   }
-})`
+)
+`
 
 export default function StorageHeroSection() {
   return (
@@ -41,7 +44,7 @@ export default function StorageHeroSection() {
         <SectionHeading
           title={
             <>
-              Scalable file {' '}
+              Scalable file{' '}
               <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">
                 storage
               </span>
@@ -98,7 +101,7 @@ export default function StorageHeroSection() {
           width={1920}
           height={991}
           alt="The Nhost Dashboard's storage page"
-          className="relative z-10 mx-auto h-auto w-full animate-slide-middle-up object-contain"
+          className="relative z-10 mx-auto mb-32 h-auto w-full animate-slide-middle-up object-contain md:mb-0"
           priority
           sizes="(max-width: 1024px) 50vw, 60vw"
         />
@@ -107,7 +110,7 @@ export default function StorageHeroSection() {
           language="typescript"
           disableGlow
           disableLineGrid
-          className="absolute -right-3 -bottom-6 z-20 max-w-sm animate-fade-in-delay shadow-lg xl:-right-5 xl:-bottom-12"
+          className="absolute right-0 top-0 z-10 mx-auto mt-4 max-w-sm animate-fade-in-delay shadow-lg sm:-bottom-6 sm:-right-3 xl:-bottom-12 xl:-right-5"
         >
           {heroExample}
         </CodeSnippet>

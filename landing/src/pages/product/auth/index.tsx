@@ -18,24 +18,24 @@ import { twMerge } from 'tailwind-merge'
 
 const codeSnippets = {
   signUp: `
-await nhost.auth.signUp({
+await nhost.auth.signUpEmailPassword({
   email: 'joe@example.com',
   password: 'secret-password'
 })
 `,
   signIn: `
-await nhost.auth.signIn({
+await nhost.auth.signInEmailPassword({
   email: 'joe@example.com',
   password: 'secret-password'
 })
 `,
   resetPassword: `
-await nhost.auth.resetPassword({
+await nhost.auth.sendPasswordResetEmail({
   email: 'joe@example.com'
 })
 `,
   oauthSignIn: `
-await nhost.auth.signIn({
+await nhost.auth.signInProviderURL({
   provider: 'google'
 })
 `,
@@ -170,8 +170,7 @@ export default function AuthPage() {
               <div
                 className={twMerge(
                   'absolute z-10 h-full w-full',
-                  inView &&
-                    `auth-example-connectors-${activeExampleNumber}`,
+                  inView && `auth-example-connectors-${activeExampleNumber}`,
                 )}
               >
                 <div
@@ -313,7 +312,7 @@ export default function AuthPage() {
         <div className="mx-auto mt-16 grid max-w-xs grid-cols-1 content-start justify-start gap-6 sm:max-w-2xl sm:auto-rows-fr sm:grid-cols-2 lg:max-w-5xl lg:grid-cols-3">
           <Card className="relative grid grid-flow-row place-content-center place-items-center gap-4 shadow-lg transition-all duration-300 hover:shadow-xl sm:row-span-15">
             <div className="relative">
-              <LineGrid className="object-top-left left-1/2 top-1/2 mx-auto h-40 w-40 -translate-y-1/2 -translate-x-1/2" />
+              <LineGrid className="object-top-left left-1/2 top-1/2 mx-auto h-40 w-40 -translate-x-1/2 -translate-y-1/2" />
               <Glow className="animate-pulse" />
               <Image
                 src="/common/logo-circle.svg"

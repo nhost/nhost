@@ -97,7 +97,7 @@ export default function Header({
         <Link
           href="/"
           onClick={() => setMobileMenuVisible(false)}
-          className="transition-opacity hover:opacity-90"
+          className="px-2 transition-opacity hover:opacity-90"
         >
           <Image
             src="/common/logo.svg"
@@ -177,7 +177,7 @@ export default function Header({
             <span className="truncate">{stargazersCount}</span>
           </a>
 
-          <div className="hidden grid-flow-col gap-3 lg:grid">
+          <div className="hidden grid-flow-col gap-3 pr-2 lg:grid">
             <Button
               href="https://app.nhost.io/signin"
               target="_blank"

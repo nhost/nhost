@@ -18,21 +18,23 @@ import { twMerge } from 'tailwind-merge'
 
 const codeSnippets = {
   uploadFile: `
-await nhost.storage.upload({ file })
+await nhost.storage.uploadFiles({ 
+  'file[]': [file]
+})
 `,
   getPublicUrl: `
-nhost.storage.getPublicUrl({ fileId: 'file-id' })
+const url = \`\${nhost.storage.baseURL}/files/file-id\`
 `,
   getPresignedUrl: `
-const { presignedUrl, error } = await nhost.storage.getPresignedUrl({
-  fileId: 'file-id'
-})
+const { body } = await nhost.storage.getFilePresignedUrl(
+  'file-id'
+)
 `,
   transformImage: `
-const publicUrl = nhost.storage.getPublicUrl({
-  fileId: 'file-id',
-  width: 200
-})
+const publicUrl = nhost.storage.getFile(
+  'file-id',
+  { w: 200 }
+)
 `,
 }
 
@@ -117,7 +119,7 @@ export default function StoragePage() {
             ref={ref}
             className="relative order-1 w-full max-w-3xl xl:order-2"
           >
-            <div className="relative z-20 grid grid-flow-col justify-around xl:justify-evenly">
+            <div className="relative z-20 grid grid-flow-col justify-around gap-2 xl:justify-evenly">
               <ExampleSelectorButton
                 active={selectedExample === 'uploadFile'}
                 onClick={() => setSelectedExample('uploadFile')}
@@ -151,8 +153,7 @@ export default function StoragePage() {
               <div
                 className={twMerge(
                   'absolute z-10 h-full w-full',
-                  inView &&
-                    `storage-example-connectors-${activeExampleNumber}`,
+                  inView && `storage-example-connectors-${activeExampleNumber}`,
                 )}
               >
                 <div
@@ -203,7 +204,7 @@ export default function StoragePage() {
         <div className="mx-auto mt-12 grid max-w-xs grid-cols-1 content-start justify-start gap-6 sm:max-w-2xl sm:auto-rows-fr sm:grid-cols-2 lg:max-w-5xl lg:grid-cols-3">
           <Card className="relative grid grid-flow-row place-content-center place-items-center gap-4 shadow-lg transition-all duration-300 hover:shadow-xl sm:row-span-15">
             <div className="relative">
-              <LineGrid className="object-top-left left-1/2 top-1/2 mx-auto h-40 w-40 -translate-y-1/2 -translate-x-1/2" />
+              <LineGrid className="object-top-left left-1/2 top-1/2 mx-auto h-40 w-40 -translate-x-1/2 -translate-y-1/2" />
               <Glow className="animate-pulse" />
               <Image
                 src="/common/logo-circle.svg"
