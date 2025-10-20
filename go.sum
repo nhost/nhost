@@ -342,6 +342,8 @@ github.com/nhost/be v0.0.0-20250929153845-6db3e5249d33 h1:BNFN3Mw4zY6LEmVc7RXkHS
 github.com/nhost/be v0.0.0-20250929153845-6db3e5249d33/go.mod h1:feVvqP3dft8hWbp9zNZExdGKbFEYv8aLYohfyAeINNQ=
 github.com/nhost/be v0.0.0-20251015125528-facecfb60cea h1:QQMCKMdkOkVN5PlZB/iiBSdQL6u84JIVppWf7hC5OoU=
 github.com/nhost/be v0.0.0-20251015125528-facecfb60cea/go.mod h1:feVvqP3dft8hWbp9zNZExdGKbFEYv8aLYohfyAeINNQ=
+github.com/nhost/be v0.0.0-20251020104454-acc8934d2c11 h1:5uPnBt2gjVkRpjUEJ8uS/q+FpvpTQJ+CN6zLCBYcfPA=
+github.com/nhost/be v0.0.0-20251020104454-acc8934d2c11/go.mod h1:feVvqP3dft8hWbp9zNZExdGKbFEYv8aLYohfyAeINNQ=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
 github.com/oapi-codegen/gin-middleware v1.0.2 h1:/H99UzvHQAUxXK8pzdcGAZgjCVeXdFDAUUWaJT0k0eI=
 github.com/oapi-codegen/gin-middleware v1.0.2/go.mod h1:2HJDQjH8jzK2/k/VKcWl+/T41H7ai2bKa6dN3AA2GpA=
