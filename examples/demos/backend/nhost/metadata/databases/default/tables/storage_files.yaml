@@ -57,7 +57,7 @@ insert_permissions:
     permission:
       check:
         bucket_id:
-          _eq: personal
+          _eq: default
       set:
         uploaded_by_user_id: X-Hasura-User-Id
       columns:
@@ -84,7 +84,7 @@ select_permissions:
       filter:
         _and:
           - bucket_id:
-              _eq: personal
+              _eq: default
           - uploaded_by_user_id:
               _eq: X-Hasura-User-Id
 delete_permissions:
