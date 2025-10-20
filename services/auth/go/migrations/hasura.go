@@ -303,32 +303,6 @@ func applyArrayRelationships(
 	return nil
 }
 
-func updateHasuraMetadata(
-	ctx context.Context,
-	url, hasuraSecret string,
-	table TrackTable,
-) error {
-	// Table already tracked, update customization and relationships
-	if err := applyTableCustomization(ctx, url, hasuraSecret, table); err != nil {
-		return fmt.Errorf(
-			"problem updating customization for table %s.%s: %w",
-			table.Args.Table.Schema,
-			table.Args.Table.Name,
-			err,
-		)
-	}
-
-	if err := applyObjectRelationships(ctx, url, hasuraSecret, table); err != nil {
-		return err
-	}
-
-	if err := applyArrayRelationships(ctx, url, hasuraSecret, table); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func ApplyHasuraMetadata( //nolint: funlen,maintidx
 	ctx context.Context,
 	url, hasuraSecret string,
@@ -777,26 +751,37 @@ func ApplyHasuraMetadata( //nolint: funlen,maintidx
 		},
 	}
 
-	// Track each table with retry logic for already-tracked tables
 	for _, table := range authTables {
 		err := postMetadata(ctx, url, hasuraSecret, table)
 		if err != nil {
 			var metaErr *metadataError
 			if ok := errors.As(err, &metaErr); ok && metaErr.Code() == errorCodeAlreadyTracked {
-				// Table already tracked, update customization and relationships
-				if err := updateHasuraMetadata(ctx, url, hasuraSecret, table); err != nil {
-					return err
+				if err := applyTableCustomization(ctx, url, hasuraSecret, table); err != nil {
+					return fmt.Errorf(
+						"problem updating customization for table %s.%s: %w",
+						table.Args.Table.Schema,
+						table.Args.Table.Name,
+						err,
+					)
 				}
-
-				continue
+			} else {
+				return fmt.Errorf(
+					"problem adding metadata for table %s.%s: %w",
+					table.Args.Table.Schema,
+					table.Args.Table.Name,
+					err,
+				)
 			}
+		}
+	}
 
-			return fmt.Errorf(
-				"problem adding metadata for table %s.%s: %w",
-				table.Args.Table.Schema,
-				table.Args.Table.Name,
-				err,
-			)
+	for _, table := range authTables {
+		if err := applyObjectRelationships(ctx, url, hasuraSecret, table); err != nil {
+			return err
+		}
+
+		if err := applyArrayRelationships(ctx, url, hasuraSecret, table); err != nil {
+			return err
 		}
 	}
 
