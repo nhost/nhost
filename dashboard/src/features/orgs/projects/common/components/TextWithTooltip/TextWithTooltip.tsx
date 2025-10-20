@@ -1,11 +1,9 @@
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
 import { cn } from '@/lib/utils';
-import { TooltipPortal } from '@radix-ui/react-tooltip';
 import { type ReactNode, useEffect, useRef, useState } from 'react';
 
 interface TextWithTooltipProps {
@@ -22,7 +20,6 @@ export default function TextWithTooltip({
   containerClassName,
   className,
   slotProps,
-  ...props
 }: TextWithTooltipProps) {
   const [isTruncated, setIsTruncated] = useState<boolean>(false);
   const textRef = useRef<HTMLDivElement>(null);
@@ -51,26 +48,22 @@ export default function TextWithTooltip({
   }, []);
 
   return (
-    <TooltipProvider delayDuration={100} disableHoverableContent {...props}>
-      <div className={containerClassName} {...slotProps?.container}>
-        <Tooltip>
-          <TooltipTrigger disabled={!isTruncated} asChild>
-            <div
-              ref={textRef}
-              className={cn(
-                'truncate',
-                !isTruncated && 'pointer-events-none',
-                className,
-              )}
-            >
-              {text}
-            </div>
-          </TooltipTrigger>
-          <TooltipPortal>
-            <TooltipContent>{text}</TooltipContent>
-          </TooltipPortal>
-        </Tooltip>
-      </div>
-    </TooltipProvider>
+    <div className={containerClassName} {...slotProps?.container}>
+      <Tooltip>
+        <TooltipTrigger disabled={!isTruncated} asChild>
+          <div
+            ref={textRef}
+            className={cn(
+              'truncate',
+              !isTruncated && 'pointer-events-none',
+              className,
+            )}
+          >
+            {text}
+          </div>
+        </TooltipTrigger>
+        <TooltipContent>{text}</TooltipContent>
+      </Tooltip>
+    </div>
   );
 }

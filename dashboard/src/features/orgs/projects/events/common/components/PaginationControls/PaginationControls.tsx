@@ -10,8 +10,8 @@ import {
 export interface PaginationControlsProps {
   offset: number;
   limit: number;
-  canGoPrev: boolean;
-  canGoNext: boolean;
+  hasNoPreviousPage: boolean;
+  hasNoNextPage: boolean;
   onPrev: () => void;
   onNext: () => void;
   onChangeLimit: (value: number) => void;
@@ -20,8 +20,8 @@ export interface PaginationControlsProps {
 export default function PaginationControls({
   offset,
   limit,
-  canGoPrev,
-  canGoNext,
+  hasNoPreviousPage,
+  hasNoNextPage,
   onPrev,
   onNext,
   onChangeLimit,
@@ -32,7 +32,7 @@ export default function PaginationControls({
         <Button
           variant="outline"
           size="sm"
-          disabled={!canGoPrev}
+          disabled={hasNoPreviousPage}
           onClick={onPrev}
         >
           Previous
@@ -43,7 +43,7 @@ export default function PaginationControls({
         <Button
           variant="outline"
           size="sm"
-          disabled={!canGoNext}
+          disabled={hasNoNextPage}
           onClick={onNext}
         >
           Next

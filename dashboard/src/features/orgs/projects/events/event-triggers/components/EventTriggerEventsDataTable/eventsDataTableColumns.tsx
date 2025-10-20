@@ -1,7 +1,7 @@
 import { HoverCardTimestamp } from '@/components/presentational/HoverCardTimestamp';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
-import { highlightMatch } from '@/features/orgs/projects/events/common/utils/highlightMatch';
 import { CreatedAtHeader } from '@/features/orgs/projects/events/event-triggers/components/CreatedAtHeader';
+import { highlightMatch } from '@/features/orgs/utils/highlightMatch';
 import type { EventLogEntry } from '@/utils/hasura-api/generated/schemas';
 import { type ColumnDef } from '@tanstack/react-table';
 import { Check, X } from 'lucide-react';

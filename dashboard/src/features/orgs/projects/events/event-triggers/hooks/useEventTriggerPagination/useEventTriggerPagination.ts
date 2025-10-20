@@ -35,9 +35,8 @@ export interface UseEventTriggerPaginationResult<TData = unknown[]> {
   setLimitAndReset: (newLimit: number) => void;
   goPrev: () => void;
   goNext: () => void;
-  isLastPage: boolean;
-  canGoPrev: boolean;
-  canGoNext: boolean;
+  hasNoPreviousPage: boolean;
+  hasNoNextPage: boolean;
   data: TData | undefined;
   isLoading: boolean;
 }
@@ -86,8 +85,9 @@ export default function useEventTriggerPagination<TArgs, TData = unknown[]>({
 
   const isLastPage =
     typeof pageLength === 'number' ? pageLength < limit : false;
-  const canGoPrev = !isLoading && offset > 0;
-  const canGoNext = !isLoading && !isLastPage;
+
+  const hasNoPreviousPage = !isLoading && offset <= 0;
+  const hasNoNextPage = !isLoading && isLastPage;
 
   return {
     offset,
@@ -97,9 +97,8 @@ export default function useEventTriggerPagination<TArgs, TData = unknown[]>({
     setLimitAndReset,
     goPrev,
     goNext,
-    isLastPage,
-    canGoPrev,
-    canGoNext,
+    hasNoPreviousPage,
+    hasNoNextPage,
     data,
     isLoading,
   };

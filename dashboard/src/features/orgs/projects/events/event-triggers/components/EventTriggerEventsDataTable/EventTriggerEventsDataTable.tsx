@@ -1,6 +1,4 @@
-//
 import { Input } from '@/components/ui/v3/input';
-//
 import { Skeleton } from '@/components/ui/v3/skeleton';
 import {
   Table,
@@ -15,7 +13,7 @@ import { EventTriggerInvocationLogsDataTable } from '@/features/orgs/projects/ev
 import useEventTriggerPagination from '@/features/orgs/projects/events/event-triggers/hooks/useEventTriggerPagination/useEventTriggerPagination';
 import useGetEventLogsQuery from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventLogsQuery/useGetEventLogsQuery';
 import type { EventTriggerViewModel } from '@/features/orgs/projects/events/event-triggers/types';
-import { cn } from '@/lib/utils';
+import { cn, isNotEmptyValue } from '@/lib/utils';
 import {
   type ColumnFiltersState,
   flexRender,
@@ -42,8 +40,8 @@ export default function EventTriggerEventsDataTable({
     setLimitAndReset,
     goPrev,
     goNext,
-    canGoPrev,
-    canGoNext,
+    hasNoPreviousPage,
+    hasNoNextPage,
     data,
     isLoading,
   } = useEventTriggerPagination({
@@ -138,18 +136,28 @@ export default function EventTriggerEventsDataTable({
             ))}
 
           {!isLoading &&
-            table.getRowModel().rows?.length > 0 &&
+            isNotEmptyValue(table.getRowModel().rows) &&
             table.getRowModel().rows.map((row) => (
               <Fragment key={row.id}>
                 <TableRow
                   onClick={row.getToggleExpandedHandler()}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      row.getToggleExpandedHandler()();
+                    }
+                  }}
+                  tabIndex={0}
+                  role="button"
+                  aria-expanded={row.getIsExpanded()}
                   className={cn('cursor-pointer')}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
                       key={cell.id}
-                      className={`${cell.column.id === 'id' ? 'max-w-0 truncate' : ''}`}
-                      style={{ width: cell.column.getSize() }}
+                      className={cn({
+                        'max-w-0 truncate': cell.column.id === 'id',
+                      })}
                     >
                       {flexRender(
                         cell.column.columnDef.cell,
@@ -184,10 +192,10 @@ export default function EventTriggerEventsDataTable({
       <PaginationControls
         offset={offset}
         limit={limit}
-        canGoPrev={canGoPrev}
-        canGoNext={canGoNext}
+        hasNoPreviousPage={hasNoPreviousPage}
+        hasNoNextPage={hasNoNextPage}
         onPrev={goPrev}
-        onNext={() => canGoNext && goNext()}
+        onNext={() => !hasNoNextPage && goNext()}
         onChangeLimit={setLimitAndReset}
       />
     </div>

@@ -22,7 +22,7 @@ import { HttpStatusText } from '@/features/orgs/projects/events/common/component
 import type { EventInvocationLogEntry } from '@/utils/hasura-api/generated/schemas';
 
 interface InvocationLogDetailsDialogContentProps {
-  log?: EventInvocationLogEntry | null;
+  log: EventInvocationLogEntry | null;
 }
 
 export default function InvocationLogDetailsDialogContent({

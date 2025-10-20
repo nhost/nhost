@@ -23,6 +23,7 @@ import {
 } from '@tanstack/react-table';
 import { useState } from 'react';
 import columns from './invocationDataTableColumns';
+import type { EventTriggerInvocationLogsDataTableMeta } from './types';
 
 interface EventTriggerInvocationLogsDataTableProps {
   eventId: string;
@@ -44,8 +45,8 @@ export default function EventTriggerInvocationLogsDataTable({
     setLimitAndReset,
     goPrev,
     goNext,
-    canGoPrev,
-    canGoNext,
+    hasNoPreviousPage,
+    hasNoNextPage,
     data,
     isLoading,
   } = useEventTriggerPagination({
@@ -77,10 +78,9 @@ export default function EventTriggerInvocationLogsDataTable({
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     meta: {
-      onView: (row: EventInvocationLogEntry) => setSelectedLog(row),
       selectedLog,
       setSelectedLog,
-    },
+    } satisfies EventTriggerInvocationLogsDataTableMeta,
   });
 
   return (
@@ -167,10 +167,10 @@ export default function EventTriggerInvocationLogsDataTable({
       <PaginationControls
         offset={offset}
         limit={limit}
-        canGoPrev={canGoPrev}
-        canGoNext={canGoNext}
+        hasNoPreviousPage={hasNoPreviousPage}
+        hasNoNextPage={hasNoNextPage}
         onPrev={goPrev}
-        onNext={() => canGoNext && goNext()}
+        onNext={() => !hasNoNextPage && goNext()}
         onChangeLimit={setLimitAndReset}
       />
     </div>

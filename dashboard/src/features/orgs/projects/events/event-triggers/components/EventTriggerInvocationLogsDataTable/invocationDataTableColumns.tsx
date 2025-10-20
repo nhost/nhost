@@ -2,7 +2,7 @@ import { HoverCardTimestamp } from '@/components/presentational/HoverCardTimesta
 import { Button } from '@/components/ui/v3/button';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import { HttpStatusText } from '@/features/orgs/projects/events/common/components/HttpStatusText';
-import { highlightMatch } from '@/features/orgs/projects/events/common/utils/highlightMatch';
+import { highlightMatch } from '@/features/orgs/utils/highlightMatch';
 import { cn } from '@/lib/utils';
 import type { EventInvocationLogEntry } from '@/utils/hasura-api/generated/schemas/eventInvocationLogEntry';
 import { type Column, type ColumnDef } from '@tanstack/react-table';

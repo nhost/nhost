@@ -12,7 +12,7 @@ export default function CreatedAtHeader<TData, TValue>({
     <Button
       variant="ghost"
       size="sm"
-      onClick={() => column.toggleSorting(undefined)}
+      onClick={() => column.toggleSorting()}
       className="flex items-center justify-between gap-2"
     >
       <span>Created At</span>
