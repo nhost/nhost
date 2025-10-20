@@ -25,6 +25,6 @@
     "@vitejs/plugin-react": "^5.0.0",
     "globals": "^16.3.0",
     "typescript": "~5.8.3",
-    "vite": "^7.1.2"
+    "vite": "^7.1.11"
   }
 }
