@@ -44,7 +44,7 @@ export default function InvocationLogActionsCell({
     const hasNew = currentIds.some((id) => !prevIds.includes(id));
     if (hasNew) {
       if (skeletonId) {
-        meta?.removePendingSkeleton?.(skeletonId);
+        meta.removePendingSkeleton?.(skeletonId);
         setSkeletonId(null);
       }
       if (intervalRef.current) {
@@ -70,7 +70,7 @@ export default function InvocationLogActionsCell({
   };
 
   const handleRedeliver = async () => {
-    if (!meta?.addPendingSkeleton) {
+    if (!meta.addPendingSkeleton) {
       toast.error('Failed to redeliver event', getToastStyleProps());
       return;
     }
@@ -93,7 +93,7 @@ export default function InvocationLogActionsCell({
 
     const start = Date.now();
     const timeoutMs =
-      (meta?.retryTimeoutSeconds ?? DEFAULT_RETRY_TIMEOUT_SECONDS) * 1000;
+      (meta.retryTimeoutSeconds ?? DEFAULT_RETRY_TIMEOUT_SECONDS) * 1000;
 
     intervalRef.current = setInterval(() => {
       const elapsed = Date.now() - start;
@@ -103,7 +103,7 @@ export default function InvocationLogActionsCell({
         return;
       }
       try {
-        meta?.refetchInvocations?.();
+        meta.refetchInvocations?.();
       } catch (error) {
         if (intervalRef.current) {
           clearInterval(intervalRef.current);
