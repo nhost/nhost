@@ -4,6 +4,7 @@ import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { EventsBrowserSidebar } from '@/features/orgs/projects/events/common/components/EventsBrowserSidebar';
 import { EventsEmptyState } from '@/features/orgs/projects/events/common/components/EventsEmptyState';
 import { useGetEventTriggers } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventTriggers';
+import { isNotEmptyValue } from '@/lib/utils';
 import type { ReactElement } from 'react';
 
 export default function EventsPage() {
@@ -17,11 +18,11 @@ export default function EventsPage() {
     );
   }
 
-  if (eventTriggers && eventTriggers.length === 0) {
+  if (isNotEmptyValue(eventTriggers) && eventTriggers.length === 0) {
     return (
       <EventsEmptyState
         title="Events"
-        description="Select an event from the sidebar to get started."
+        description="Add an event to get started."
       />
     );
   }

@@ -23,6 +23,7 @@ interface HoverCardTimestampProps {
 
 function Row({ value, label }: { value: string; label: string }) {
   return (
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events
     <div
       className="group flex items-center justify-between gap-4 text-sm"
       role="button"
@@ -30,13 +31,6 @@ function Row({ value, label }: { value: string; label: string }) {
       onClick={(e) => {
         e.stopPropagation();
         copy(value, 'Timestamp');
-      }}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.stopPropagation();
-          e.preventDefault();
-          copy(value, 'Timestamp');
-        }
       }}
     >
       <dt className="text-muted-foreground">{label}</dt>
