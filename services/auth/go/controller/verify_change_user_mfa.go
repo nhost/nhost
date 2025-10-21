@@ -28,7 +28,13 @@ func (ctrl *Controller) postUserMfaDeactivate( //nolint:ireturn
 		return ctrl.sendError(ErrNoTotpSecret)
 	}
 
-	valid := ctrl.totp.Validate(req.Body.Code, user.TotpSecret.String)
+	totpSecret, err := ctrl.encrypter.Decrypt([]byte(user.TotpSecret.String))
+	if err != nil {
+		logger.ErrorContext(ctx, "failed to decrypt totp secret", logError(err))
+		return ctrl.sendError(ErrInternalServerError)
+	}
+
+	valid := ctrl.totp.Validate(req.Body.Code, string(totpSecret))
 	if !valid {
 		logger.WarnContext(ctx, "invalid totp")
 		return ctrl.sendError(ErrInvalidTotp)
@@ -65,7 +71,13 @@ func (ctrl *Controller) postUserMfaActivate( //nolint:ireturn
 		return ctrl.sendError(ErrNoTotpSecret)
 	}
 
-	valid := ctrl.totp.Validate(req.Body.Code, user.TotpSecret.String)
+	totpSecret, err := ctrl.encrypter.Decrypt([]byte(user.TotpSecret.String))
+	if err != nil {
+		logger.ErrorContext(ctx, "failed to decrypt totp secret", logError(err))
+		return ctrl.sendError(ErrInternalServerError)
+	}
+
+	valid := ctrl.totp.Validate(req.Body.Code, string(totpSecret))
 	if !valid {
 		logger.WarnContext(ctx, "invalid totp")
 		return ctrl.sendError(ErrInvalidTotp)

@@ -16,6 +16,8 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
+const encryptedTotpSecret = "fcceaa61a188729ca5e57108030cd5fde120365a986d3f4e1af1fafa598e8e99092128318cfb8fc1facbb870cbd2c90c5714b2914170bd69c868e906576f2a516da9e48c4237d87432342b6cf45392a2" //nolint:lll,gosec
+
 func fakeNow(t time.Time) func() time.Time {
 	return func() time.Time {
 		return t
@@ -40,7 +42,7 @@ func getUserSigninMfaTotp(userID uuid.UUID) sql.AuthUser {
 			"$2a$10$pyv7eu9ioQcFnLSz7u/enex22P3ORdh6z6116Vj5a3vSjo0oxFa1u",
 		),
 		EmailVerified: true,
-		TotpSecret:    sql.Text("FEWCQAIILM6UOYZCPFYRAPAUCIFUUUK3JUZXWKJIN4ORQNK4EQCQ"),
+		TotpSecret:    sql.Text(encryptedTotpSecret),
 		ActiveMfaType: sql.Text("totp"),
 	}
 }

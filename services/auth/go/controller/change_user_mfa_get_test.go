@@ -13,9 +13,18 @@ import (
 	"github.com/nhost/nhost/services/auth/go/controller"
 	"github.com/nhost/nhost/services/auth/go/controller/mock"
 	"github.com/nhost/nhost/services/auth/go/sql"
-	"github.com/nhost/nhost/services/auth/go/testhelpers"
 	"go.uber.org/mock/gomock"
 )
+
+type fakeEncrypter struct{}
+
+func (e *fakeEncrypter) Encrypt(_ []byte) ([]byte, error) {
+	return []byte("encrypted-data"), nil
+}
+
+func (e *fakeEncrypter) Decrypt(_ []byte) ([]byte, error) {
+	return []byte("decrypted-data"), nil
+}
 
 func ImageURLComparer() cmp.Option {
 	return cmp.FilterPath(func(p cmp.Path) bool {
@@ -78,15 +87,9 @@ func TestGetMfaTotpGenerate(t *testing.T) {
 					gomock.Any(),
 					cmpDBParams(
 						sql.UpdateUserTotpSecretParams{
-							ID: userID,
-							TotpSecret: sql.Text(
-								"FEWCQAIILM6UOYZCPFYRAPAUCIFUUUK3JUZXWKJIN4ORQNK4EQCQ",
-							),
+							ID:         userID,
+							TotpSecret: sql.Text("encrypted-data"),
 						},
-						testhelpers.FilterPathLast(
-							[]string{".TotpSecret", "text()"},
-							cmp.Comparer(cmpTicket),
-						),
 					),
 				).Return(nil)
 
@@ -97,9 +100,11 @@ func TestGetMfaTotpGenerate(t *testing.T) {
 				ImageUrl:   "data:image/png;base64,",
 				TotpSecret: "AIRVH6M4V422LZI6IRBN5SCEO6BWVIW3G6PLKKTENHMGZYRALPOQ",
 			},
-			expectedJWT:       nil,
-			jwtTokenFn:        jwtTokenFn,
-			getControllerOpts: nil,
+			expectedJWT: nil,
+			jwtTokenFn:  jwtTokenFn,
+			getControllerOpts: []getControllerOptsFunc{
+				withEncrypter(&fakeEncrypter{}),
+			},
 		},
 
 		{
