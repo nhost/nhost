@@ -14,6 +14,7 @@ import (
 	"github.com/nhost/nhost/services/auth/docs"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/controller"
+	crypto "github.com/nhost/nhost/services/auth/go/cryto"
 	"github.com/nhost/nhost/services/auth/go/hibp"
 	"github.com/nhost/nhost/services/auth/go/middleware"
 	"github.com/nhost/nhost/services/auth/go/middleware/ratelimit"
@@ -29,6 +30,7 @@ const (
 	flagPort                             = "port"
 	flagDebug                            = "debug"
 	flagLogFormatTEXT                    = "log-format-text"
+	flagEncryptionKey                    = "encryption-key"
 	flagTrustedProxies                   = "trusted-proxies"
 	flagPostgresConnection               = "postgres"
 	flagPostgresMigrationsConnection     = "postgres-migrations"
@@ -210,6 +212,13 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 				Usage:    "format logs in plain text",
 				Category: "general",
 				Sources:  cli.EnvVars("AUTH_LOG_FORMAT_TEXT"),
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagEncryptionKey,
+				Usage:    "32 bytes encryption key used to encrypt sensitive data. Must be a hex-encoded string",
+				Category: "security",
+				Sources:  cli.EnvVars("AUTH_ENCRYPTION_KEY"),
+				Required: true,
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     flagPostgresConnection,
@@ -1288,7 +1297,11 @@ func getDependencies( //nolint:ireturn
 }
 
 func getGoServer( //nolint:funlen
-	ctx context.Context, cmd *cli.Command, db *sql.Queries, logger *slog.Logger,
+	ctx context.Context,
+	cmd *cli.Command,
+	db *sql.Queries,
+	encrypter *crypto.Encrypter,
+	logger *slog.Logger,
 ) (*http.Server, error) {
 	router := gin.New()
 
@@ -1347,6 +1360,7 @@ func getGoServer( //nolint:funlen
 		oauthProviders,
 		idTokenValidator,
 		controller.NewTotp(cmd.String(flagMfaTotpIssuer), time.Now),
+		encrypter,
 		cmd.Root().Version,
 	)
 	if err != nil {
@@ -1410,12 +1424,17 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 	}
 	defer pool.Close()
 
+	encrypter, err := crypto.NewEncrypterFromString(cmd.String(flagEncryptionKey))
+	if err != nil {
+		return fmt.Errorf("problem creating encrypter: %w", err)
+	}
+
 	db := sql.New(pool)
-	if err := applyMigrations(servCtx, cmd, db, logger); err != nil {
+	if err := applyMigrations(servCtx, cmd, db, encrypter, logger); err != nil {
 		return fmt.Errorf("failed to apply migrations: %w", err)
 	}
 
-	server, err := getGoServer(ctx, cmd, db, logger)
+	server, err := getGoServer(ctx, cmd, db, encrypter, logger)
 	if err != nil {
 		return fmt.Errorf("failed to create server: %w", err)
 	}

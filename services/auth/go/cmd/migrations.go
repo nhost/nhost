@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"strings"
 
+	crypto "github.com/nhost/nhost/services/auth/go/cryto"
 	"github.com/nhost/nhost/services/auth/go/migrations"
 	"github.com/nhost/nhost/services/auth/go/sql"
 	"github.com/urfave/cli/v3"
@@ -48,7 +49,11 @@ func insertRoles(
 }
 
 func applyMigrations(
-	ctx context.Context, cmd *cli.Command, db *sql.Queries, logger *slog.Logger,
+	ctx context.Context,
+	cmd *cli.Command,
+	db *sql.Queries,
+	encrypter *crypto.Encrypter,
+	logger *slog.Logger,
 ) error {
 	postgresURL := cmd.String(flagPostgresMigrationsConnection)
 	if postgresURL == "" {
@@ -69,6 +74,16 @@ func applyMigrations(
 			ctx, "failed to apply hasura metadata", slog.String("error", err.Error()))
 
 		return fmt.Errorf("failed to apply hasura metadata: %w", err)
+	}
+
+	if err := migrations.EncryptTOTPSecrets(ctx, db, encrypter, logger); err != nil {
+		logger.ErrorContext(
+			ctx,
+			"failed to encrypt TOTP secrets",
+			slog.String("error", err.Error()),
+		)
+
+		return fmt.Errorf("failed to encrypt TOTP secrets: %w", err)
 	}
 
 	return insertRoles(ctx, cmd, db, logger)

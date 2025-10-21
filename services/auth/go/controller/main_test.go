@@ -15,6 +15,7 @@ import (
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/controller"
 	"github.com/nhost/nhost/services/auth/go/controller/mock"
+	crypto "github.com/nhost/nhost/services/auth/go/cryto"
 	"github.com/nhost/nhost/services/auth/go/oidc"
 	"github.com/nhost/nhost/services/auth/go/providers"
 	"github.com/nhost/nhost/services/auth/go/testhelpers"
@@ -180,6 +181,7 @@ type getControllerOpts struct {
 	hibp                      func(*gomock.Controller) *mock.MockHIBPClient
 	idTokenValidatorProviders func(t *testing.T) *oidc.IDTokenValidatorProviders
 	totp                      *controller.Totp
+	encrypter                 controller.Encrypter
 }
 
 type getControllerOptsFunc func(*getControllerOpts)
@@ -222,7 +224,13 @@ func withTotp(totp *controller.Totp) getControllerOptsFunc {
 	}
 }
 
-func getController(
+func withEncrypter(encrypter controller.Encrypter) getControllerOptsFunc {
+	return func(o *getControllerOpts) {
+		o.encrypter = encrypter
+	}
+}
+
+func getController( //nolint:cyclop
 	t *testing.T,
 	ctrl *gomock.Controller,
 	configFn func() *controller.Config,
@@ -278,6 +286,17 @@ func getController(
 		controllerOpts.totp = controller.NewTotp("auth", time.Now)
 	}
 
+	if controllerOpts.encrypter == nil {
+		encrypter, err := crypto.NewEncrypterFromString(
+			"41e7109ea7cfff9e4100d29bbd58bacab0258d0fc4c0495746ed0cf166650f9d",
+		)
+		if err != nil {
+			t.Fatalf("failed to create encrypter: %v", err)
+		}
+
+		controllerOpts.encrypter = encrypter
+	}
+
 	c, err := controller.New(
 		db(ctrl),
 		config,
@@ -295,6 +314,7 @@ func getController(
 		},
 		idTokenValidator,
 		controllerOpts.totp,
+		controllerOpts.encrypter,
 		"dev",
 	)
 	if err != nil {

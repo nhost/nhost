@@ -402,3 +402,7 @@ INSERT INTO auth.roles (role)
 SELECT unnest(@roles::TEXT[])
 ON CONFLICT (role) DO NOTHING
 RETURNING role;
+
+-- name: GetUsersWithUnencryptedTOTPSecret :many
+SELECT * FROM auth.users
+WHERE LENGTH(totp_secret) < 64;
