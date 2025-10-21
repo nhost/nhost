@@ -9,6 +9,7 @@ import { EventTriggerEventsDataTable } from '@/features/orgs/projects/events/eve
 import EventTriggerViewSkeleton from '@/features/orgs/projects/events/event-triggers/components/EventTriggerView/EventTriggerViewSkeleton';
 import EventTriggerOverview from '@/features/orgs/projects/events/event-triggers/components/EventTriggerView/sections/EventTriggerOverview';
 import { useGetEventTriggers } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventTriggers';
+import { isEmptyValue } from '@/lib/utils';
 import { useRouter } from 'next/router';
 
 export default function EventTriggerView() {
@@ -16,7 +17,7 @@ export default function EventTriggerView() {
 
   const { eventTriggerSlug } = router.query;
 
-  const { data: eventTriggers, isLoading } = useGetEventTriggers();
+  const { data: eventTriggers, isLoading, error } = useGetEventTriggers();
 
   const eventTrigger = eventTriggers?.find(
     (trigger) => trigger.name === eventTriggerSlug,
@@ -26,14 +27,31 @@ export default function EventTriggerView() {
     return <EventTriggerViewSkeleton />;
   }
 
-  if (!eventTrigger) {
+  if (error instanceof Error) {
     return (
       <EventsEmptyState
         title="Event trigger not found"
         description={
           <span>
             Event trigger{' '}
-            <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold">
+            <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-medium">
+              {eventTriggerSlug}
+            </code>{' '}
+            could not be loaded.
+          </span>
+        }
+      />
+    );
+  }
+
+  if (isEmptyValue(eventTrigger)) {
+    return (
+      <EventsEmptyState
+        title="Event trigger not found"
+        description={
+          <span>
+            Event trigger{' '}
+            <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-medium">
               {eventTriggerSlug}
             </code>{' '}
             does not exist.
@@ -48,7 +66,7 @@ export default function EventTriggerView() {
       <div className="mx-auto w-full max-w-5xl rounded-lg bg-background p-4">
         <div className="mb-6">
           <h1 className="mb-1 text-xl font-semibold text-gray-900 dark:text-gray-100">
-            {eventTrigger.name}
+            {eventTrigger!.name}
           </h1>
           <p className="text-sm text-gray-600 dark:text-gray-400">
             Event Trigger Configuration
@@ -61,10 +79,10 @@ export default function EventTriggerView() {
             <TabsTrigger value="pending-processed-events">Events</TabsTrigger>
           </TabsList>
           <TabsContent value="overview">
-            <EventTriggerOverview eventTrigger={eventTrigger} />
+            <EventTriggerOverview eventTrigger={eventTrigger!} />
           </TabsContent>
           <TabsContent value="pending-processed-events">
-            <EventTriggerEventsDataTable eventTrigger={eventTrigger} />
+            <EventTriggerEventsDataTable eventTrigger={eventTrigger!} />
           </TabsContent>
         </Tabs>
       </div>

@@ -29,10 +29,22 @@ export interface EventsBrowserSidebarProps extends Omit<BoxProps, 'children'> {}
 function EventsBrowserSidebarContent() {
   const router = useRouter();
   const { orgSlug, appSubdomain, eventTriggerSlug } = router.query;
-  const { data, isLoading } = useGetEventTriggers();
+  const { data, isLoading, error } = useGetEventTriggers();
 
   if (isLoading) {
     return <EventsBrowserSidebarSkeleton />;
+  }
+
+  if (error instanceof Error) {
+    return (
+      <div className="flex h-full flex-col px-2">
+        <div className="flex flex-row items-center justify-between">
+          <p className="font-medium leading-7 [&:not(:first-child)]:mt-6">
+            Events could not be loaded.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   const eventTriggersByDataSource = data?.reduce<

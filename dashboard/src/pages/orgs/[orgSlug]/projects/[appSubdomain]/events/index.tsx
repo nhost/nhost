@@ -4,11 +4,11 @@ import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { EventsBrowserSidebar } from '@/features/orgs/projects/events/common/components/EventsBrowserSidebar';
 import { EventsEmptyState } from '@/features/orgs/projects/events/common/components/EventsEmptyState';
 import { useGetEventTriggers } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventTriggers';
-import { isNotEmptyValue } from '@/lib/utils';
+
 import type { ReactElement } from 'react';
 
 export default function EventsPage() {
-  const { data: eventTriggers, isLoading } = useGetEventTriggers();
+  const { data: eventTriggers, isLoading, error } = useGetEventTriggers();
 
   if (isLoading) {
     return (
@@ -18,7 +18,16 @@ export default function EventsPage() {
     );
   }
 
-  if (isNotEmptyValue(eventTriggers) && eventTriggers.length === 0) {
+  if (error instanceof Error) {
+    return (
+      <EventsEmptyState
+        title="Events"
+        description="An error occurred while fetching events."
+      />
+    );
+  }
+
+  if (Array.isArray(eventTriggers) && eventTriggers.length === 0) {
     return (
       <EventsEmptyState
         title="Events"
@@ -43,7 +52,6 @@ EventsPage.getLayout = function getLayout(page: ReactElement) {
       }}
     >
       <EventsBrowserSidebar className="w-full max-w-sidebar" />
-
       <Box
         className="flex w-full flex-auto flex-col overflow-x-hidden"
         sx={{ backgroundColor: 'background.default' }}
