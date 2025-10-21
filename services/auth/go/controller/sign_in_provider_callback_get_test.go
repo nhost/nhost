@@ -120,7 +120,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 					),
 				).Return(insertResponse, nil)
 
-				mock.EXPECT().UpdateProviderTokens(
+				mock.EXPECT().UpdateProviderSession(
 					gomock.Any(),
 					gomock.Any(),
 				).Return(nil)
@@ -190,7 +190,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 					),
 				).Return(insertResponse, nil)
 
-				mock.EXPECT().UpdateProviderTokens(
+				mock.EXPECT().UpdateProviderSession(
 					gomock.Any(),
 					gomock.Any(),
 				).Return(nil)
@@ -442,7 +442,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 					gomock.Any(), userID,
 				).Return(sql.TimestampTz(time.Now()), nil)
 
-				mock.EXPECT().UpdateProviderTokens(
+				mock.EXPECT().UpdateProviderSession(
 					gomock.Any(),
 					gomock.Any(),
 				).Return(nil)
@@ -559,7 +559,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 					gomock.Any(), userID,
 				).Return(sql.TimestampTz(time.Now()), nil)
 
-				mock.EXPECT().UpdateProviderTokens(
+				mock.EXPECT().UpdateProviderSession(
 					gomock.Any(),
 					gomock.Any(),
 				).Return(nil)
@@ -817,7 +817,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 					}, nil,
 				)
 
-				mock.EXPECT().UpdateProviderTokens(
+				mock.EXPECT().UpdateProviderSession(
 					gomock.Any(),
 					gomock.Any(),
 				).Return(nil)
@@ -1087,7 +1087,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 					),
 				).Return(insertResponse, nil)
 
-				mock.EXPECT().UpdateProviderTokens(
+				mock.EXPECT().UpdateProviderSession(
 					gomock.Any(),
 					gomock.Any(),
 				).Return(nil)

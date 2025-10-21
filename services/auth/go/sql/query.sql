@@ -407,7 +407,7 @@ RETURNING role;
 SELECT * FROM auth.users
 WHERE LENGTH(totp_secret) < 64;
 
--- name: UpdateProviderTokens :exec
+-- name: UpdateProviderSession :exec
 UPDATE auth.user_providers
-SET access_token = $3, refresh_token = $4
+SET access_token = $3
 WHERE provider_user_id = $1 AND provider_id = $2;
