@@ -471,15 +471,15 @@ This method may return different T based on the response code:
 #### getProviderTokens()
 
 ```ts
-getProviderTokens(provider: SignInProvider, options?: RequestInit): Promise<FetchResponse<GetProviderTokensResponse>>;
+getProviderTokens(provider: SignInProvider, options?: RequestInit): Promise<FetchResponse<ProviderSession>>;
 ```
 
-Summary: Get OAuth2 provider tokens from cookies
-Retrieves the OAuth2 provider access and refresh tokens from cookies set during the OAuth2 callback. This endpoint must be called immediately after completing the OAuth2 flow to ensure the tokens are correct. The cookies will be removed after calling this endpoint.
+Summary: Retrieve OAuth2 provider tokens from callback
+After successful OAuth2 authentication, retrieve the provider session containing access token, refresh token, and expiration information for the specified provider. To ensure the data isn't stale this endpoint must be called immediately after the OAuth callback to obtain the tokens. The session is cleared from the database during this call, so subsequent calls will fail without going through the sign-in flow again. It is the user's responsibility to store the session safely (e.g., in browser local storage).
 
 This method may return different T based on the response code:
 
-- 200: GetProviderTokensResponse
+- 200: ProviderSession
 
 ##### Parameters
 
@@ -490,7 +490,7 @@ This method may return different T based on the response code:
 
 ##### Returns
 
-`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`GetProviderTokensResponse`](#getprovidertokensresponse)&gt;&gt;
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`ProviderSession`](#providersession)&gt;&gt;
 
 #### getUser()
 
@@ -625,6 +625,34 @@ Add a middleware function to the fetch chain
 ##### Returns
 
 `void`
+
+#### refreshProviderToken()
+
+```ts
+refreshProviderToken(
+   provider: SignInProvider,
+   body: RefreshProviderTokenRequest,
+   options?: RequestInit): Promise<FetchResponse<ProviderSession>>;
+```
+
+Summary: Refresh OAuth2 provider tokens
+Refresh the OAuth2 provider access token using a valid refresh token. Returns a new provider session with updated access token, refresh token (if rotated by provider), and expiration information. This endpoint allows maintaining long-lived access to provider APIs without requiring the user to re-authenticate.
+
+This method may return different T based on the response code:
+
+- 200: ProviderSession
+
+##### Parameters
+
+| Parameter  | Type                                                          |
+| ---------- | ------------------------------------------------------------- |
+| `provider` | [`SignInProvider`](#signinprovider)                           |
+| `body`     | [`RefreshProviderTokenRequest`](#refreshprovidertokenrequest) |
+| `options?` | `RequestInit`                                                 |
+
+##### Returns
+
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`ProviderSession`](#providersession)&gt;&gt;
 
 #### refreshToken()
 
@@ -1466,33 +1494,6 @@ status: number
 
 ---
 
-## GetProviderTokensResponse
-
-OAuth2 provider tokens retrieved from cookies
-
-### Properties
-
-#### accessToken
-
-```ts
-accessToken: string
-```
-
-(`string`) - OAuth2 provider access token
-
-- Example - `"ya29.a0AfH6SMBx..."`
-
-#### refreshToken?
-
-```ts
-optional refreshToken: string;
-```
-
-OAuth2 provider refresh token (if available)
-Example - `"1//0gK8..."`
-
----
-
 ## GetVersionResponse200
 
 ### Properties
@@ -1653,6 +1654,43 @@ optional redirectTo: string;
 
 Example - `"https://my-app.com/catch-redirection"`
 Format - uri
+
+---
+
+## ProviderSession
+
+OAuth2 provider session containing access and refresh tokens
+
+### Properties
+
+#### accessToken
+
+```ts
+accessToken: string
+```
+
+(`string`) - OAuth2 provider access token for API calls
+
+- Example - `"ya29.a0AfH6SMBx..."`
+
+#### expiresIn
+
+```ts
+expiresIn: number
+```
+
+(`number`) - Number of seconds until the access token expires
+
+- Example - `3599`
+
+#### refreshToken?
+
+```ts
+optional refreshToken: string;
+```
+
+OAuth2 provider refresh token for obtaining new access tokens (if provided by the provider)
+Example - `"1//0gK8..."`
 
 ---
 
@@ -1843,6 +1881,24 @@ optional userVerification: UserVerificationRequirement;
 ```
 
 A requirement for user verification for the operation
+
+---
+
+## RefreshProviderTokenRequest
+
+Request to refresh OAuth2 provider tokens
+
+### Properties
+
+#### refreshToken
+
+```ts
+refreshToken: string
+```
+
+(`string`) - OAuth2 provider refresh token obtained from previous authentication
+
+- Example - `"1//0gK8..."`
 
 ---
 

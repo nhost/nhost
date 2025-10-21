@@ -3,10 +3,11 @@ package controller
 import (
 	"context"
 	"encoding/json"
-	"golang.org/x/oauth2"
 	"log/slog"
 	"net/url"
 	"time"
+
+	"golang.org/x/oauth2"
 
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/middleware"

@@ -610,7 +610,7 @@ paths:
   /signin/provider/{provider}/callback:
     get:
       summary: OAuth2 provider callback endpoint
-      description: Handles the callback from OAuth2 providers after user authorization. Processes the authorization code and creates a user session. A cookie with token information is set upon successful authentication. This cookie can be retrieved via the getProviderTokens endpoint
+      description: Handles the callback from OAuth2 providers after user authorization. Processes the authorization code and creates a user session.
       operationId: signInProviderCallbackGet
       tags:
         - authentication
@@ -669,10 +669,6 @@ paths:
           headers:
             Location:
               $ref: "#/components/headers/RedirectLocation"
-            Set-Cookie:
-              description: Sets cookie with token information
-              schema:
-                type: string
           content: {}
         default:
           content:
@@ -734,11 +730,32 @@ paths:
           headers:
             Location:
               $ref: "#/components/headers/RedirectLocation"
-            Set-Cookie:
-              description: Sets cookie with token information
-              schema:
-                type: string
           content: {}
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+  /signin/provider/{provider}/callback/tokens:
+    get:
+      summary: Retrieve OAuth2 provider tokens from callback
+      description: After successful OAuth2 authentication, retrieve the provider session containing access token, refresh token, and expiration information for the specified provider. To ensure the data isn't stale this endpoint must be called immediately after the OAuth callback to obtain the tokens. The session is cleared from the database during this call, so subsequent calls will fail without going through the sign-in flow again. It is the user's responsibility to store the session safely (e.g., in browser local storage).
+      operationId: getProviderTokens
+      tags:
+        - authentication
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/SignInProvider"
+      responses:
+        "200":
+          description: Successfully retrieved provider session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProviderSession"
         default:
           content:
             application/json:
@@ -955,6 +972,38 @@ paths:
               schema:
                 $ref: "#/components/schemas/Session"
           description: "Access token successfully refreshed"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+  /token/provider/{provider}:
+    post:
+      summary: Refresh OAuth2 provider tokens
+      description: Refresh the OAuth2 provider access token using a valid refresh token. Returns a new provider session with updated access token, refresh token (if rotated by provider), and expiration information. This endpoint allows maintaining long-lived access to provider APIs without requiring the user to re-authenticate.
+      operationId: refreshProviderToken
+      tags:
+        - authentication
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/SignInProvider"
+      requestBody:
+        description: Provider refresh token to exchange for a new access token
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshProviderTokenRequest"
+        required: true
+      responses:
+        "200":
+          description: Successfully refreshed provider tokens
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProviderSession"
         default:
           content:
             application/json:
@@ -1191,42 +1240,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/OKResponse"
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-          description: "An error occurred while processing the request"
-
-  /user/provider/{provider}/tokens:
-    get:
-      summary: Get OAuth2 provider tokens from cookies
-      description: Retrieves the OAuth2 provider access and refresh tokens from cookies set during the OAuth2 callback. This endpoint must be called immediately after completing the OAuth2 flow to ensure the tokens are correct. The cookies will be removed after calling this endpoint.
-      operationId: getProviderTokens
-      tags:
-        - authentication
-      security:
-        - BearerAuth: []
-      parameters:
-        - $ref: "#/components/parameters/SignInProvider"
-        - name: Cookie
-          in: header
-          required: true
-          description: Cookies containing ProviderRefreshToken and ProviderAccessToken
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Successfully retrieved provider tokens
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/GetProviderTokensResponse"
-          headers:
-            Set-Cookie:
-              description: Removes cookie with token information
-              schema:
-                type: string
         default:
           content:
             application/json:
@@ -1651,24 +1664,6 @@ components:
         - message
         - error
 
-    GetProviderTokensResponse:
-      type: object
-      description: "OAuth2 provider tokens retrieved from cookies"
-      additionalProperties: false
-      properties:
-        accessToken:
-          type: string
-          description: "OAuth2 provider access token"
-          example: "ya29.a0AfH6SMBx..."
-        refreshToken:
-          type: string
-          nullable: true
-          description: "OAuth2 provider refresh token (if available)"
-          example: "1//0gK8..."
-      required:
-        - accessToken
-
-
     IdTokenProvider:
       type: string
       additionalProperties: false
@@ -1875,6 +1870,40 @@ components:
           $ref: "#/components/schemas/AuthenticationExtensions"
       required:
         - challenge
+
+    ProviderSession:
+      type: object
+      description: "OAuth2 provider session containing access and refresh tokens"
+      additionalProperties: false
+      properties:
+        accessToken:
+          type: string
+          description: "OAuth2 provider access token for API calls"
+          example: "ya29.a0AfH6SMBx..."
+        expiresIn:
+          type: integer
+          description: "Number of seconds until the access token expires"
+          example: 3599
+        refreshToken:
+          type: string
+          nullable: true
+          description: "OAuth2 provider refresh token for obtaining new access tokens (if provided by the provider)"
+          example: "1//0gK8..."
+      required:
+        - accessToken
+        - expiresIn
+
+    RefreshProviderTokenRequest:
+      type: object
+      description: "Request to refresh OAuth2 provider tokens"
+      additionalProperties: false
+      properties:
+        refreshToken:
+          type: string
+          description: "OAuth2 provider refresh token obtained from previous authentication"
+          example: "1//0gK8..."
+      required:
+        - refreshToken
 
     RefreshTokenRequest:
       type: object
