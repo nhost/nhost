@@ -3,6 +3,7 @@
   "$schema": "https://github.com/IBM/audit-ci/raw/main/docs/schema.json",
   "moderate": true,
   "allowlist": [
-    "GHSA-9965-vmph-33xx" // https://github.com/advisories/GHSA-9965-vmph-33xx Update package once have a fix
+    "GHSA-9965-vmph-33xx", // https://github.com/advisories/GHSA-9965-vmph-33xx Update package once have a fix
+    "GHSA-7mvr-c777-76hp" // https://github.com/advisories/GHSA-7mvr-c777-76hp Update package once Nix side is also updated
   ]
 }
