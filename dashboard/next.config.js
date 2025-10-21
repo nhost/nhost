@@ -4,21 +4,57 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 });
 const { version } = require('./package.json');
 
-const cspHeader = `
-    default-src 'self' *.nhost.run wss://*.nhost.run nhost.run wss://nhost.run;
-    script-src 'self' 'unsafe-eval' cdn.segment.com js.stripe.com challenges.cloudflare.com googletagmanager.com;
-    connect-src 'self' *.nhost.run wss://*.nhost.run nhost.run wss://nhost.run discord.com api.segment.io api.segment.com cdn.segment.com nhost.zendesk.com;
-    style-src 'self' 'unsafe-inline';
-    img-src 'self' blob: data: github.com avatars.githubusercontent.com s.gravatar.com *.nhost.run nhost.run;
-    font-src 'self' data:;
-    object-src 'none';
-    base-uri 'self';
-    form-action 'self';
-    frame-ancestors 'none';
-    frame-src 'self' js.stripe.com challenges.cloudflare.com;
-    block-all-mixed-content;
-    upgrade-insecure-requests;
-`;
+function getCspHeader() {
+  // Default to strict mode for security (backward compatible with original hardcoded CSP)
+  // Self-hosted deployments should explicitly set CSP_MODE=permissive
+  const mode = process.env.CSP_MODE || 'strict';
+
+  if (mode === 'permissive' || mode === 'disabled') {
+    return null;
+  }
+
+  // Common CSP directives shared between strict and custom modes
+  const commonDirectives = [
+    "style-src 'self' 'unsafe-inline'",
+    "font-src 'self' data:",
+    "object-src 'none'",
+    "frame-ancestors 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-src 'self' js.stripe.com challenges.cloudflare.com",
+    "block-all-mixed-content",
+    "upgrade-insecure-requests",
+  ];
+
+  if (mode === 'strict') {
+    // Nhost Cloud policy - matches original hardcoded CSP
+    return [
+      "default-src 'self' *.nhost.run wss://*.nhost.run nhost.run wss://nhost.run",
+      ...commonDirectives,
+      "connect-src 'self' *.nhost.run wss://*.nhost.run nhost.run wss://nhost.run discord.com api.segment.io api.segment.com cdn.segment.com nhost.zendesk.com",
+      "script-src 'self' 'unsafe-eval' cdn.segment.com js.stripe.com challenges.cloudflare.com googletagmanager.com",
+      "img-src 'self' blob: data: github.com avatars.githubusercontent.com s.gravatar.com *.nhost.run nhost.run",
+    ].join('; ');
+  }
+
+  if (mode === 'custom') {
+    // User-defined domains for self-hosted deployments
+    const defaultSrc = process.env.CSP_DEFAULT_SRC || "'self'";
+    const connectSrc = process.env.CSP_CONNECT_SRC || "'self'";
+    const scriptSrc = process.env.CSP_SCRIPT_SRC || "'self' 'unsafe-eval'";
+    const imgSrc = process.env.CSP_IMG_SRC || "'self' data: blob:";
+
+    return [
+      `default-src ${defaultSrc}`,
+      ...commonDirectives,
+      `connect-src ${connectSrc}`,
+      `script-src ${scriptSrc}`,
+      `img-src ${imgSrc}`,
+    ].join('; ');
+  }
+
+  return null;
+}
 
 module.exports = withBundleAnalyzer({
   reactStrictMode: false,
@@ -34,13 +70,19 @@ module.exports = withBundleAnalyzer({
     dirs: ['src'],
   },
   async headers() {
+    const cspHeader = getCspHeader();
+
+    if (!cspHeader) {
+      return []; // No CSP headers
+    }
+
     return [
       {
-        source: '/(.*)',
+        source: '/:path*',
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: cspHeader.replace(/\s+/g, ' ').trim(),
+            value: cspHeader,
           },
           {
             key: 'X-Frame-Options',
