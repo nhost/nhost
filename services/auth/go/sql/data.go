@@ -4,6 +4,7 @@ package sql
 import (
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -13,6 +14,13 @@ const (
 	RefreshTokenTypeRegular RefreshTokenType = "regular"
 	RefreshTokenTypePAT     RefreshTokenType = "pat"
 )
+
+func UUID(value uuid.UUID) pgtype.UUID {
+	return pgtype.UUID{
+		Bytes: value,
+		Valid: true,
+	}
+}
 
 func Text[T ~string](value T) pgtype.Text {
 	return pgtype.Text{

@@ -411,3 +411,14 @@ WHERE LENGTH(totp_secret) < 64;
 UPDATE auth.user_providers
 SET access_token = $3
 WHERE provider_user_id = $1 AND provider_id = $2;
+
+-- name: GetProviderSession :one
+WITH old_token AS (
+  SELECT access_token
+  FROM auth.user_providers
+  WHERE user_id = @user_id AND provider_id = @provider_id
+)
+UPDATE auth.user_providers
+SET access_token = ''
+WHERE user_id = @user_id AND provider_id = @provider_id
+RETURNING (SELECT access_token FROM old_token);

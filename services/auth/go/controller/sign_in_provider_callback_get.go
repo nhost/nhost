@@ -3,8 +3,10 @@ package controller
 import (
 	"context"
 	"encoding/json"
+	"golang.org/x/oauth2"
 	"log/slog"
 	"net/url"
+	"time"
 
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/middleware"
@@ -76,6 +78,19 @@ func (ctrl *Controller) signinProviderProviderCallbackValidate(
 	return stateData.Options, stateData.Connect, optionsRedirectTo, nil
 }
 
+func tokenToProviderSession(token *oauth2.Token) api.ProviderSession {
+	expiresIn := int(token.ExpiresIn)
+	if expiresIn == 0 && !token.Expiry.IsZero() {
+		expiresIn = int(time.Until(token.Expiry).Seconds())
+	}
+
+	return api.ProviderSession{
+		AccessToken:  token.AccessToken,
+		ExpiresIn:    expiresIn,
+		RefreshToken: ptr(token.RefreshToken),
+	}
+}
+
 func (ctrl *Controller) signinProviderProviderCallbackOauthFlow(
 	ctx context.Context,
 	req providerCallbackData,
@@ -121,9 +136,7 @@ func (ctrl *Controller) signinProviderProviderCallbackOauthFlow(
 			return oidc.Profile{}, api.ProviderSession{}, ErrOauthProfileFetchFailed
 		}
 
-		providerSession.AccessToken = token.AccessToken
-		providerSession.ExpiresIn = int(token.ExpiresIn)
-		providerSession.RefreshToken = ptr(token.RefreshToken)
+		providerSession = tokenToProviderSession(token)
 	}
 
 	if profile.ProviderUserID == "" {

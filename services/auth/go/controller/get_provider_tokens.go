@@ -2,33 +2,14 @@ package controller
 
 import (
 	"context"
-	"log/slog"
-	"net/http"
-	"strings"
+	"encoding/json"
+	"errors"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/middleware"
+	"github.com/nhost/nhost/services/auth/go/sql"
 )
-
-func getCookie(
-	ctx context.Context, name string, cookieHeader string, logger *slog.Logger,
-) *http.Cookie {
-	cookies := strings.SplitSeq(cookieHeader, ";")
-
-	for c := range cookies {
-		cookie, err := http.ParseSetCookie(c)
-		if err != nil {
-			logger.WarnContext(ctx, "error parsing cookie", logError(err))
-			continue
-		}
-
-		if cookie.Name == name {
-			return cookie
-		}
-	}
-
-	return nil
-}
 
 func (ctrl *Controller) GetProviderTokens( //nolint:ireturn
 	ctx context.Context,
@@ -37,16 +18,43 @@ func (ctrl *Controller) GetProviderTokens( //nolint:ireturn
 	logger := middleware.LoggerFromContext(ctx)
 	logger = logger.With("provider", req.Provider)
 
-	_, apiErr := ctrl.wf.GetJWTInContext(ctx, logger)
+	user, apiErr := ctrl.wf.GetUserFromJWTInContext(ctx, logger)
 	if apiErr != nil {
 		return ctrl.sendError(apiErr), nil
 	}
 
-	accessToken := "fixme"
-	refreshToken := "fixme"
+	sessionEnc, err := ctrl.wf.db.GetProviderSession(
+		ctx, sql.GetProviderSessionParams{
+			UserID:     sql.UUID(user.ID),
+			ProviderID: sql.Text(req.Provider),
+		},
+	)
+	if errors.Is(err, pgx.ErrNoRows) {
+		logger.InfoContext(ctx, "no provider session found")
 
-	return api.GetProviderTokens200JSONResponse{
-		AccessToken:  accessToken,
-		RefreshToken: ptr(refreshToken),
-	}, nil
+		return api.GetProviderTokens200JSONResponse{
+			AccessToken:  "",
+			ExpiresIn:    0,
+			RefreshToken: nil,
+		}, nil
+	}
+
+	if err != nil {
+		logger.ErrorContext(ctx, "failed to get provider session", logError(err))
+		return ctrl.sendError(ErrInternalServerError), nil
+	}
+
+	b, err := ctrl.encrypter.Decrypt([]byte(sessionEnc))
+	if err != nil {
+		logger.ErrorContext(ctx, "failed to decrypt provider session", logError(err))
+		return ctrl.sendError(ErrInternalServerError), nil
+	}
+
+	var session api.ProviderSession
+	if err := json.Unmarshal(b, &session); err != nil {
+		logger.ErrorContext(ctx, "failed to unmarshal provider session", logError(err))
+		return ctrl.sendError(ErrInternalServerError), nil
+	}
+
+	return api.GetProviderTokens200JSONResponse(session), nil
 }

@@ -164,6 +164,10 @@ func (response ErrorResponse) VisitVerifySignUpWebauthnResponse(w http.ResponseW
 	return response.visit(w)
 }
 
+func (response ErrorResponse) VisitRefreshProviderTokenResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
 func (response ErrorResponse) VisitRefreshTokenResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }

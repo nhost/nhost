@@ -128,6 +128,8 @@ type DBClient interface { //nolint:interfacebloat
 		ctx context.Context,
 		arg sql.RefreshTokenAndGetUserRolesParams,
 	) ([]sql.RefreshTokenAndGetUserRolesRow, error)
+
+	GetProviderSession(ctx context.Context, arg sql.GetProviderSessionParams) (string, error)
 	UpdateProviderSession(ctx context.Context, arg sql.UpdateProviderSessionParams) error
 }
 

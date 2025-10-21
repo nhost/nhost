@@ -693,6 +693,21 @@ func (mr *MockDBClientMockRecorder) FindUserProviderByProviderId(ctx, arg any) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindUserProviderByProviderId", reflect.TypeOf((*MockDBClient)(nil).FindUserProviderByProviderId), ctx, arg)
 }
 
+// GetProviderSession mocks base method.
+func (m *MockDBClient) GetProviderSession(ctx context.Context, arg sql.GetProviderSessionParams) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetProviderSession", ctx, arg)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetProviderSession indicates an expected call of GetProviderSession.
+func (mr *MockDBClientMockRecorder) GetProviderSession(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProviderSession", reflect.TypeOf((*MockDBClient)(nil).GetProviderSession), ctx, arg)
+}
+
 // GetSecurityKeys mocks base method.
 func (m *MockDBClient) GetSecurityKeys(ctx context.Context, userID uuid.UUID) ([]sql.AuthUserSecurityKey, error) {
 	m.ctrl.T.Helper()
