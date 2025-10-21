@@ -128,6 +128,7 @@ type DBClient interface { //nolint:interfacebloat
 		ctx context.Context,
 		arg sql.RefreshTokenAndGetUserRolesParams,
 	) ([]sql.RefreshTokenAndGetUserRolesRow, error)
+	UpdateProviderTokens(ctx context.Context, arg sql.UpdateProviderTokensParams) error
 }
 
 type Encrypter interface {

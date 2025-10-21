@@ -1158,6 +1158,29 @@ func (q *Queries) RefreshTokenAndGetUserRoles(ctx context.Context, arg RefreshTo
 	return items, nil
 }
 
+const updateProviderTokens = `-- name: UpdateProviderTokens :exec
+UPDATE auth.user_providers
+SET access_token = $3, refresh_token = $4
+WHERE provider_user_id = $1 AND provider_id = $2
+`
+
+type UpdateProviderTokensParams struct {
+	ProviderUserID string
+	ProviderID     string
+	AccessToken    string
+	RefreshToken   pgtype.Text
+}
+
+func (q *Queries) UpdateProviderTokens(ctx context.Context, arg UpdateProviderTokensParams) error {
+	_, err := q.db.Exec(ctx, updateProviderTokens,
+		arg.ProviderUserID,
+		arg.ProviderID,
+		arg.AccessToken,
+		arg.RefreshToken,
+	)
+	return err
+}
+
 const updateUserActiveMFAType = `-- name: UpdateUserActiveMFAType :exec
 UPDATE auth.users
 SET active_mfa_type = $2

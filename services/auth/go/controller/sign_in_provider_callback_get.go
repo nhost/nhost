@@ -2,20 +2,15 @@ package controller
 
 import (
 	"context"
-	"encoding/json"
 	"log/slog"
-	"net/http"
 	"net/url"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/middleware"
 	"github.com/nhost/nhost/services/auth/go/oidc"
 	"github.com/nhost/nhost/services/auth/go/providers"
-)
-
-const (
-	sevenDaysInSeconds        = 7 * 24 * 60 * 60
-	cookieSuffixProviderToken = "ProviderTokens"
+	"github.com/nhost/nhost/services/auth/go/sql"
 )
 
 type providerCallbackData struct {
@@ -138,10 +133,37 @@ func (ctrl *Controller) signinProviderProviderCallbackOauthFlow(
 	return profile, refreshToken, accessToken, nil
 }
 
+func encryptProviderTokens(
+	ctx context.Context,
+	encrypter Encrypter,
+	accessToken string,
+	refreshToken string,
+	logger *slog.Logger,
+) (string, pgtype.Text, *APIError) {
+	accessTokenEnc, err := encrypter.Encrypt([]byte(accessToken))
+	if err != nil {
+		logger.ErrorContext(ctx, "failed to encrypt provider access token", logError(err))
+		return "", pgtype.Text{}, ErrInternalServerError
+	}
+
+	var refreshTokenEnc pgtype.Text
+	if refreshToken != "" {
+		enc, err := encrypter.Encrypt([]byte(refreshToken))
+		if err != nil {
+			logger.ErrorContext(ctx, "failed to encrypt provider refresh token", logError(err))
+			return "", pgtype.Text{}, ErrInternalServerError
+		}
+
+		refreshTokenEnc = sql.Text(string(enc))
+	}
+
+	return string(accessTokenEnc), refreshTokenEnc, nil
+}
+
 func (ctrl *Controller) signinProviderProviderCallback(
 	ctx context.Context,
 	req providerCallbackData,
-) (*url.URL, string, string, *APIError) {
+) (*url.URL, *APIError) {
 	logger := middleware.LoggerFromContext(ctx)
 
 	options, connnect, redirectTo, apiErr := ctrl.signinProviderProviderCallbackValidate(
@@ -150,7 +172,7 @@ func (ctrl *Controller) signinProviderProviderCallback(
 		logger,
 	)
 	if apiErr != nil {
-		return redirectTo, "", "", apiErr
+		return redirectTo, apiErr
 	}
 
 	profile, provRefreshToken, provAccessToken, apiErr := ctrl.signinProviderProviderCallbackOauthFlow(
@@ -159,21 +181,21 @@ func (ctrl *Controller) signinProviderProviderCallback(
 		logger,
 	)
 	if apiErr != nil {
-		return redirectTo, "", "", apiErr
+		return redirectTo, apiErr
 	}
 
 	if connnect != nil {
 		if apiErr := ctrl.signinProviderProviderCallbackConnect(
 			ctx, *connnect, req.Provider, profile, logger,
 		); apiErr != nil {
-			return redirectTo, "", "", apiErr
+			return redirectTo, apiErr
 		}
 	} else {
 		session, apiErr := ctrl.providerSignInFlow(
 			ctx, profile, req.Provider, options, logger,
 		)
 		if apiErr != nil {
-			return redirectTo, "", "", apiErr
+			return redirectTo, apiErr
 		}
 
 		if session != nil {
@@ -183,7 +205,24 @@ func (ctrl *Controller) signinProviderProviderCallback(
 		}
 	}
 
-	return redirectTo, provRefreshToken, provAccessToken, nil
+	accessTokenEnc, provRefreshTokenEnc, apiErr := encryptProviderTokens(
+		ctx, ctrl.encrypter, provAccessToken, provRefreshToken, logger,
+	)
+	if apiErr != nil {
+		return redirectTo, apiErr
+	}
+
+	if err := ctrl.wf.db.UpdateProviderTokens(ctx, sql.UpdateProviderTokensParams{
+		ProviderID:     req.Provider,
+		ProviderUserID: profile.ProviderUserID,
+		AccessToken:    accessTokenEnc,
+		RefreshToken:   provRefreshTokenEnc,
+	}); err != nil {
+		logger.ErrorContext(ctx, "failed to update provider tokens", logError(err))
+		return redirectTo, ErrInternalServerError
+	}
+
+	return redirectTo, nil
 }
 
 func (ctrl *Controller) SignInProviderCallbackGet( //nolint:ireturn
@@ -203,7 +242,7 @@ func (ctrl *Controller) SignInProviderCallbackGet( //nolint:ireturn
 		ErrorURI:         req.Params.ErrorUri,
 	}
 
-	redirectTo, provRefreshToken, provAccessToken, apiErr := ctrl.signinProviderProviderCallback(
+	redirectTo, apiErr := ctrl.signinProviderProviderCallback(
 		ctx,
 		providerCallbackData,
 	)
@@ -214,13 +253,6 @@ func (ctrl *Controller) SignInProviderCallbackGet( //nolint:ireturn
 	return api.SignInProviderCallbackGet302Response{
 		Headers: api.SignInProviderCallbackGet302ResponseHeaders{
 			Location: redirectTo.String(),
-			SetCookie: providerCookies(
-				string(req.Provider),
-				provRefreshToken,
-				provAccessToken,
-				ctrl.config.UseSecureCookies(),
-				sevenDaysInSeconds,
-			),
 		},
 	}, nil
 }
@@ -266,36 +298,6 @@ func (ctrl *Controller) signinProviderProviderCallbackConnect(
 	return nil
 }
 
-func providerCookies(
-	providerName, refreshToken, accessToken string, secure bool, maxAge int,
-) string {
-	var b []byte
-	if accessToken == "" && refreshToken == "" {
-		b = []byte(``)
-	} else {
-		var err error
-
-		b, err = json.Marshal(map[string]string{
-			"refreshToken": refreshToken,
-			"accessToken":  accessToken,
-		})
-		if err != nil {
-			// This should never happen
-			panic(err)
-		}
-	}
-
-	return (&http.Cookie{ //nolint:exhaustruct
-		Name:     providerName + cookieSuffixProviderToken,
-		Value:    url.QueryEscape(string(b)),
-		Path:     "/",
-		HttpOnly: true,
-		Secure:   secure,
-		SameSite: http.SameSiteStrictMode,
-		MaxAge:   maxAge,
-	}).String()
-}
-
 func (ctrl *Controller) SignInProviderCallbackPost( //nolint:ireturn
 	ctx context.Context,
 	req api.SignInProviderCallbackPostRequestObject,
@@ -315,7 +317,7 @@ func (ctrl *Controller) SignInProviderCallbackPost( //nolint:ireturn
 		ErrorURI:         req.Body.ErrorUri,
 	}
 
-	redirectTo, provRefreshToken, provAccessToken, apiErr := ctrl.signinProviderProviderCallback(
+	redirectTo, apiErr := ctrl.signinProviderProviderCallback(
 		ctx,
 		providerCallbackData,
 	)
@@ -326,15 +328,6 @@ func (ctrl *Controller) SignInProviderCallbackPost( //nolint:ireturn
 	return api.SignInProviderCallbackPost302Response{
 		Headers: api.SignInProviderCallbackPost302ResponseHeaders{
 			Location: redirectTo.String(),
-			SetCookie: providerCookies(
-				string(
-					req.Provider,
-				),
-				provRefreshToken,
-				provAccessToken,
-				ctrl.config.UseSecureCookies(),
-				sevenDaysInSeconds,
-			),
 		},
 	}, nil
 }

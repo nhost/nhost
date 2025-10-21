@@ -386,7 +386,7 @@ type ErrorResponse struct {
 // ErrorResponseError Error code identifying the specific application error
 type ErrorResponseError string
 
-// GetProviderTokensResponse OAuth2 provider tokens retrieved from cookies
+// GetProviderTokensResponse OAuth2 provider tokens
 type GetProviderTokensResponse struct {
 	// AccessToken OAuth2 provider access token
 	AccessToken string `json:"accessToken"`
@@ -935,12 +935,6 @@ type SignInProviderCallbackPostFormdataBody struct {
 
 // SignInProviderCallbackPostParamsProvider defines parameters for SignInProviderCallbackPost.
 type SignInProviderCallbackPostParamsProvider string
-
-// GetProviderTokensParams defines parameters for GetProviderTokens.
-type GetProviderTokensParams struct {
-	// Cookie Cookies containing ProviderRefreshToken and ProviderAccessToken
-	Cookie string `json:"Cookie"`
-}
 
 // GetProviderTokensParamsProvider defines parameters for GetProviderTokens.
 type GetProviderTokensParamsProvider string

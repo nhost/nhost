@@ -42,7 +42,7 @@ func TestGetProviderTokens(t *testing.T) {
 
 	cases := []testRequest[api.GetProviderTokensRequestObject, api.GetProviderTokensResponseObject]{
 		{
-			name:   "success - one cookie",
+			name:   "success",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
@@ -50,99 +50,10 @@ func TestGetProviderTokens(t *testing.T) {
 			},
 			request: api.GetProviderTokensRequestObject{
 				Provider: "fake",
-				Params: api.GetProviderTokensParams{
-					Cookie: "fakeProviderTokens=%7B%22accessToken%22%3A%22valid-accesstoken-1%22%2C%22refreshToken%22%3A%22valid-refreshtoken-1%22%7D;", //nolint:lll
-				},
 			},
 			expectedResponse: api.GetProviderTokens200JSONResponse{
-				Headers: api.GetProviderTokens200ResponseHeaders{
-					SetCookie: "fakeProviderTokens=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Strict",
-				},
-				Body: api.GetProviderTokensResponse{
-					AccessToken:  "valid-accesstoken-1",
-					RefreshToken: ptr("valid-refreshtoken-1"),
-				},
-			},
-			expectedJWT:       nil,
-			jwtTokenFn:        jwtTokenFn,
-			getControllerOpts: nil,
-		},
-
-		{
-			name:   "success - more cookies",
-			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient {
-				mock := mock.NewMockDBClient(ctrl)
-				return mock
-			},
-			request: api.GetProviderTokensRequestObject{
-				Provider: "fake",
-				Params: api.GetProviderTokensParams{
-					Cookie: "someCookie=; fakeProviderTokens=%7B%22accessToken%22%3A%22valid-accesstoken-1%22%2C%22refreshToken%22%3A%22valid-refreshtoken-1%22%7D;", //nolint:lll
-				},
-			},
-			expectedResponse: api.GetProviderTokens200JSONResponse{
-				Headers: api.GetProviderTokens200ResponseHeaders{
-					SetCookie: "fakeProviderTokens=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Strict",
-				},
-				Body: api.GetProviderTokensResponse{
-					AccessToken:  "valid-accesstoken-1",
-					RefreshToken: ptr("valid-refreshtoken-1"),
-				},
-			},
-			expectedJWT:       nil,
-			jwtTokenFn:        jwtTokenFn,
-			getControllerOpts: nil,
-		},
-
-		{
-			name:   "success - missing cookie",
-			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient {
-				mock := mock.NewMockDBClient(ctrl)
-				return mock
-			},
-			request: api.GetProviderTokensRequestObject{
-				Provider: "fake",
-				Params: api.GetProviderTokensParams{
-					Cookie: "someCookie=;",
-				},
-			},
-			expectedResponse: api.GetProviderTokens200JSONResponse{
-				Headers: api.GetProviderTokens200ResponseHeaders{
-					SetCookie: "fakeProviderTokens=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Strict",
-				},
-				Body: api.GetProviderTokensResponse{
-					AccessToken:  "",
-					RefreshToken: nil,
-				},
-			},
-			expectedJWT:       nil,
-			jwtTokenFn:        jwtTokenFn,
-			getControllerOpts: nil,
-		},
-
-		{
-			name:   "success - no cookies",
-			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient {
-				mock := mock.NewMockDBClient(ctrl)
-				return mock
-			},
-			request: api.GetProviderTokensRequestObject{
-				Provider: "fake",
-				Params: api.GetProviderTokensParams{
-					Cookie: "",
-				},
-			},
-			expectedResponse: api.GetProviderTokens200JSONResponse{
-				Headers: api.GetProviderTokens200ResponseHeaders{
-					SetCookie: "fakeProviderTokens=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Strict",
-				},
-				Body: api.GetProviderTokensResponse{
-					AccessToken:  "",
-					RefreshToken: nil,
-				},
+				AccessToken:  "valid-accesstoken-1",
+				RefreshToken: ptr("valid-refreshtoken-1"),
 			},
 			expectedJWT:       nil,
 			jwtTokenFn:        jwtTokenFn,
@@ -159,9 +70,6 @@ func TestGetProviderTokens(t *testing.T) {
 			},
 			request: api.GetProviderTokensRequestObject{
 				Provider: "fake",
-				Params: api.GetProviderTokensParams{
-					Cookie: "someCookie=;",
-				},
 			},
 			expectedResponse: controller.ErrorResponse{
 				Error:   "invalid-request",

@@ -978,6 +978,20 @@ func (mr *MockDBClientMockRecorder) RefreshTokenAndGetUserRoles(ctx, arg any) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RefreshTokenAndGetUserRoles", reflect.TypeOf((*MockDBClient)(nil).RefreshTokenAndGetUserRoles), ctx, arg)
 }
 
+// UpdateProviderTokens mocks base method.
+func (m *MockDBClient) UpdateProviderTokens(ctx context.Context, arg sql.UpdateProviderTokensParams) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateProviderTokens", ctx, arg)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateProviderTokens indicates an expected call of UpdateProviderTokens.
+func (mr *MockDBClientMockRecorder) UpdateProviderTokens(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateProviderTokens", reflect.TypeOf((*MockDBClient)(nil).UpdateProviderTokens), ctx, arg)
+}
+
 // UpdateUserActiveMFAType mocks base method.
 func (m *MockDBClient) UpdateUserActiveMFAType(ctx context.Context, arg sql.UpdateUserActiveMFATypeParams) error {
 	m.ctrl.T.Helper()

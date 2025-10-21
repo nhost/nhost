@@ -77,7 +77,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 		{ //nolint:dupl
 			name:   "signup",
 			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
+			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().GetUserByProviderID(
@@ -120,6 +120,11 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 					),
 				).Return(insertResponse, nil)
 
+				mock.EXPECT().UpdateProviderTokens(
+					gomock.Any(),
+					gomock.Any(),
+				).Return(nil)
+
 				return mock
 			},
 			request: api.SignInProviderCallbackGetRequestObject{
@@ -131,8 +136,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			expectedResponse: api.SignInProviderCallbackGet302Response{
 				Headers: api.SignInProviderCallbackGet302ResponseHeaders{
-					Location:  `^http://localhost:3000\?refreshToken=.*$`,
-					SetCookie: "fakeProviderTokens=%7B%22accessToken%22%3A%22valid-accesstoken-1%22%2C%22refreshToken%22%3A%22valid-refreshtoken-1%22%7D; Path=/; Max-Age=604800; HttpOnly; Secure; SameSite=Strict", //nolint:lll
+					Location: `^http://localhost:3000\?refreshToken=.*$`,
 				},
 			},
 			expectedJWT:       nil,
@@ -143,7 +147,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 		{
 			name:   "signup - with options",
 			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
+			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().GetUserByProviderID(
@@ -186,6 +190,11 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 					),
 				).Return(insertResponse, nil)
 
+				mock.EXPECT().UpdateProviderTokens(
+					gomock.Any(),
+					gomock.Any(),
+				).Return(nil)
+
 				return mock
 			},
 			request: api.SignInProviderCallbackGetRequestObject{
@@ -206,8 +215,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			expectedResponse: api.SignInProviderCallbackGet302Response{
 				Headers: api.SignInProviderCallbackGet302ResponseHeaders{
-					Location:  `^http://localhost:3000/redirect/me/here\?refreshToken=.*$`,
-					SetCookie: "fakeProviderTokens=%7B%22accessToken%22%3A%22valid-accesstoken-1%22%2C%22refreshToken%22%3A%22valid-refreshtoken-1%22%7D; Path=/; Max-Age=604800; HttpOnly; Secure; SameSite=Strict", //nolint:lll
+					Location: `^http://localhost:3000/redirect/me/here\?refreshToken=.*$`,
 				},
 			},
 			expectedJWT:       nil,
@@ -369,7 +377,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 		{
 			name:   "signin - simple - provider id found",
 			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
+			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().GetUserByProviderID( //nolint:dupl
@@ -434,6 +442,11 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 					gomock.Any(), userID,
 				).Return(sql.TimestampTz(time.Now()), nil)
 
+				mock.EXPECT().UpdateProviderTokens(
+					gomock.Any(),
+					gomock.Any(),
+				).Return(nil)
+
 				return mock
 			},
 			request: api.SignInProviderCallbackGetRequestObject{
@@ -445,8 +458,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			expectedResponse: api.SignInProviderCallbackGet302Response{
 				Headers: api.SignInProviderCallbackGet302ResponseHeaders{
-					Location:  `^http://localhost:3000\?refreshToken=.*$`,
-					SetCookie: "fakeProviderTokens=%7B%22accessToken%22%3A%22valid-accesstoken-1%22%2C%22refreshToken%22%3A%22valid-refreshtoken-1%22%7D; Path=/; Max-Age=604800; HttpOnly; Secure; SameSite=Strict", //nolint:lll
+					Location: `^http://localhost:3000\?refreshToken=.*$`,
 				},
 			},
 			expectedJWT:       nil,
@@ -457,7 +469,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 		{
 			name:   "signin - simple - email found",
 			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
+			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().GetUserByProviderID(
@@ -468,7 +480,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 					},
 				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
 
-				mock.EXPECT().GetUserByEmail(
+				mock.EXPECT().GetUserByEmail( //nolint:dupl
 					gomock.Any(),
 					sql.Text("user1@fake.com"),
 				).Return(
@@ -547,6 +559,11 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 					gomock.Any(), userID,
 				).Return(sql.TimestampTz(time.Now()), nil)
 
+				mock.EXPECT().UpdateProviderTokens(
+					gomock.Any(),
+					gomock.Any(),
+				).Return(nil)
+
 				return mock
 			},
 			request: api.SignInProviderCallbackGetRequestObject{
@@ -558,8 +575,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			expectedResponse: api.SignInProviderCallbackGet302Response{
 				Headers: api.SignInProviderCallbackGet302ResponseHeaders{
-					Location:  `^http://localhost:3000\?refreshToken=.*$`,
-					SetCookie: "fakeProviderTokens=%7B%22accessToken%22%3A%22valid-accesstoken-1%22%2C%22refreshToken%22%3A%22valid-refreshtoken-1%22%7D; Path=/; Max-Age=604800; HttpOnly; Secure; SameSite=Strict", //nolint:lll
+					Location: `^http://localhost:3000\?refreshToken=.*$`,
 				},
 			},
 			expectedJWT:       nil,
@@ -801,6 +817,11 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 					}, nil,
 				)
 
+				mock.EXPECT().UpdateProviderTokens(
+					gomock.Any(),
+					gomock.Any(),
+				).Return(nil)
+
 				return mock
 			},
 			request: api.SignInProviderCallbackGetRequestObject{
@@ -814,8 +835,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			expectedResponse: api.SignInProviderCallbackGet302Response{
 				Headers: api.SignInProviderCallbackGet302ResponseHeaders{
-					Location:  `^http://localhost:3000/connect-success$`,
-					SetCookie: "fakeProviderTokens=%7B%22accessToken%22%3A%22valid-accesstoken-1%22%2C%22refreshToken%22%3A%22valid-refreshtoken-1%22%7D; Path=/; Max-Age=604800; HttpOnly; Secure; SameSite=Strict", //nolint:lll
+					Location: `^http://localhost:3000/connect-success$`,
 				},
 			},
 			expectedJWT:       nil,
@@ -1024,7 +1044,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 		{ //nolint:dupl
 			name:   "signup - empty email",
 			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
+			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().GetUserByProviderID(
@@ -1067,6 +1087,11 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 					),
 				).Return(insertResponse, nil)
 
+				mock.EXPECT().UpdateProviderTokens(
+					gomock.Any(),
+					gomock.Any(),
+				).Return(nil)
+
 				return mock
 			},
 			request: api.SignInProviderCallbackGetRequestObject{
@@ -1078,8 +1103,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			expectedResponse: api.SignInProviderCallbackGet302Response{
 				Headers: api.SignInProviderCallbackGet302ResponseHeaders{
-					Location:  `^http://localhost:3000\?refreshToken=.*$`,
-					SetCookie: "fakeProviderTokens=%7B%22accessToken%22%3A%22valid-accesstoken-empty-email%22%2C%22refreshToken%22%3A%22valid-refreshtoken-empty-email%22%7D; Path=/; Max-Age=604800; HttpOnly; Secure; SameSite=Strict", //nolint:lll
+					Location: `^http://localhost:3000\?refreshToken=.*$`,
 				},
 			},
 			expectedJWT:       nil,
