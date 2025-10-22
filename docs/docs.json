@@ -721,11 +721,11 @@
     },
     {
       "source": "/products/auth/social-connect",
-      "destionation": "products/auth/providers/connect",
+      "destination": "products/auth/providers/connect"
     },
     {
       "source": "/products/auth/idtokens",
-      "destination": "products/auth/providers/idtokens",
+      "destination": "products/auth/providers/idtokens"
     }
   ],
   "logo": {
