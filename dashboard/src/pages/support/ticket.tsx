@@ -46,9 +46,6 @@ const StyledInput = styled(Input)({
   [`& .${inputClasses.input}`]: {
     backgroundColor: 'transparent !important',
   },
-  [`& .${inputClasses.input}`]: {
-    fontSize: '1rem',
-  },
 });
 
 function TicketPage() {
@@ -137,7 +134,7 @@ function TicketPage() {
     >
       <div className="flex w-full max-w-3xl flex-col">
         <div className="mb-4 flex flex-col items-center">
-          <Text variant="h4" className="text-base font-bold">
+          <Text variant="h4" className="font-bold">
             Nhost Support
           </Text>
           <Text variant="h4">How can we help you?</Text>
@@ -163,7 +160,7 @@ function TicketPage() {
                     error={!!errors.organization}
                     helperText={errors.organization?.message}
                     renderValue={(option) => (
-                      <span className="inline-grid grid-flow-col items-center gap-2 text-base">
+                      <span className="inline-grid grid-flow-col items-center gap-2">
                         {option?.label}
                       </span>
                     )}
@@ -190,7 +187,7 @@ function TicketPage() {
                     error={!!errors.project}
                     helperText={errors.project?.message}
                     renderValue={(option) => (
-                      <span className="inline-grid grid-flow-col items-center gap-2 text-base">
+                      <span className="inline-grid grid-flow-col items-center gap-2">
                         {option?.label}
                       </span>
                     )}
@@ -217,11 +214,6 @@ function TicketPage() {
                     fullWidth
                     multiple
                     aria-label="Services"
-                    sx={{
-                      '& .MuiInputBase-input': {
-                        fontSize: '1rem',
-                      },
-                    }}
                     options={[
                       'Dashboard',
                       'Database',
@@ -248,7 +240,7 @@ function TicketPage() {
                     error={!!errors.priority}
                     helperText={errors.priority?.message}
                     renderValue={(option) => (
-                      <span className="inline-grid grid-flow-col items-center gap-2 text-base">
+                      <span className="inline-grid grid-flow-col items-center gap-2">
                         {option?.label}
                       </span>
                     )}
@@ -299,7 +291,6 @@ function TicketPage() {
                     inputProps={{ min: 2, max: 128 }}
                     error={!!errors.subject}
                     helperText={errors.subject?.message}
-                    className="text-base"
                   />
 
                   <StyledInput
@@ -314,7 +305,6 @@ function TicketPage() {
                     }}
                     error={!!errors.description}
                     helperText={errors.description?.message}
-                    className="text-base"
                   />
 
                   <Box className="ml-auto flex flex-col gap-4 lg:w-80">
@@ -326,7 +316,7 @@ function TicketPage() {
                       className="text-base hover:!bg-white hover:!bg-opacity-10 focus:ring-0"
                       size="large"
                       type="submit"
-                      startIcon={<Mail className="size-3" />}
+                      startIcon={<Mail className="size-4" />}
                       disabled={isSubmitting}
                       loading={isSubmitting}
                     >
