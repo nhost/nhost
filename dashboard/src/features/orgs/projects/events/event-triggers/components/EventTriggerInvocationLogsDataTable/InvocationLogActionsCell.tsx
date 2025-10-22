@@ -1,6 +1,5 @@
-import { Button } from '@/components/ui/v3/button';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Dialog, DialogTrigger } from '@/components/ui/v3/dialog';
-import { Spinner } from '@/components/ui/v3/spinner';
 import {
   Tooltip,
   TooltipContent,
@@ -38,8 +37,10 @@ export default function InvocationLogActionsCell({
 
   const tableRows = table.getCoreRowModel().rows;
 
+  const isRedeliverDisabled = isRedelivering || !!skeletonId;
+
   useEffect(() => {
-    const currentIds = tableRows.map((i) => i.original.id);
+    const currentIds = tableRows.map((tableRow) => tableRow.original.id);
     const prevIds = prevIdsRef.current;
     const hasNew = currentIds.some((id) => !prevIds.includes(id));
     if (hasNew) {
@@ -118,19 +119,16 @@ export default function InvocationLogActionsCell({
     <div className="flex items-center gap-1">
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button
+          <ButtonWithLoading
             variant="ghost"
             size="sm"
             onClick={handleRedeliver}
             className="-ml-1 h-8 w-8 p-0"
-            disabled={isRedelivering || !!skeletonId}
+            disabled={isRedeliverDisabled}
+            loading={isRedeliverDisabled}
           >
-            {isRedelivering || skeletonId ? (
-              <Spinner size="small" />
-            ) : (
-              <CalendarSync className="h-4 w-4" />
-            )}
-          </Button>
+            {!isRedeliverDisabled && <CalendarSync className="h-4 w-4" />}
+          </ButtonWithLoading>
         </TooltipTrigger>
         <TooltipContent>
           <p>Redeliver Event Invocation</p>
