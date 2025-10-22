@@ -13,7 +13,9 @@ ID tokens serve as a secure proof that a user has already been authenticated by 
 
 ## Usage
 
-To use ID tokens, you need to configure supported identity providers (currently [apple](/products/auth/social/sign-in-apple) and [google](/products/auth/social/sign-in-google)) and make sure the `audience` is set correctly.
+<Note>
+To use ID tokens, you need to configure supported identity providers (currently [apple](/products/auth/providers/sign-in-apple) and [google](/products/auth/providers/sign-in-google)) and make sure the `audience` is set correctly.
+</Note>
 
 ### Sign in
 
@@ -41,7 +43,7 @@ Once everything is configured you can use an ID token to authenticate users with
 
 ### Link Provider to existing user
 
-Similarly to the [Social Connect](/products/auth/social-connect) feature, you can link an identity provider to an existing user:
+Similarly to the [Provider Connect](/products/auth/providers/connect) feature, you can link an identity provider to an existing user:
 
 <Tabs>
   <Tab title="javascript">
@@ -69,10 +71,4 @@ Below you can find some examples on how to extract an ID Token from various iden
 
 ### React Native
 
-#### Apple
-
-For an example on how to authenticate using "Sign in with Apple" on iOS using React Native you can refer to our [sample component](https://github.com/nhost/nhost/blob/main/examples/react_native/src/components/SignInWithAppleButton.tsx).
-
-#### Google
-
-For an example on how to authenticate using "Sign in with Google" on Android using React Native you can refer to our [sample component](https://github.com/nhost/nhost/blob/main/examples/react_native/src/components/SignInWithGoogleButton.tsx).
+Please, refer to our [React Native Tutorial](/getting-started/tutorials/reactnative/1-introduction) on how to implement Sign in with Apple and Google Sign-In in your React Native app.

@@ -80,6 +80,30 @@ func (q *Queries) FindUserProviderByProviderId(ctx context.Context, arg FindUser
 	return i, err
 }
 
+const getProviderSession = `-- name: GetProviderSession :one
+WITH old_token AS (
+  SELECT access_token
+  FROM auth.user_providers
+  WHERE user_id = $1 AND provider_id = $2
+)
+UPDATE auth.user_providers
+SET access_token = ''
+WHERE user_id = $1 AND provider_id = $2
+RETURNING (SELECT access_token FROM old_token)
+`
+
+type GetProviderSessionParams struct {
+	UserID     pgtype.UUID
+	ProviderID pgtype.Text
+}
+
+func (q *Queries) GetProviderSession(ctx context.Context, arg GetProviderSessionParams) (string, error) {
+	row := q.db.QueryRow(ctx, getProviderSession, arg.UserID, arg.ProviderID)
+	var access_token string
+	err := row.Scan(&access_token)
+	return access_token, err
+}
+
 const getSecurityKeys = `-- name: GetSecurityKeys :many
 SELECT id, user_id, credential_id, credential_public_key, counter, transports, nickname
 FROM auth.user_security_keys
@@ -1156,6 +1180,23 @@ func (q *Queries) RefreshTokenAndGetUserRoles(ctx context.Context, arg RefreshTo
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateProviderSession = `-- name: UpdateProviderSession :exec
+UPDATE auth.user_providers
+SET access_token = $3
+WHERE provider_user_id = $1 AND provider_id = $2
+`
+
+type UpdateProviderSessionParams struct {
+	ProviderUserID string
+	ProviderID     string
+	AccessToken    string
+}
+
+func (q *Queries) UpdateProviderSession(ctx context.Context, arg UpdateProviderSessionParams) error {
+	_, err := q.db.Exec(ctx, updateProviderSession, arg.ProviderUserID, arg.ProviderID, arg.AccessToken)
+	return err
 }
 
 const updateUserActiveMFAType = `-- name: UpdateUserActiveMFAType :exec

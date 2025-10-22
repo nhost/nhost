@@ -61,7 +61,7 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 		{
 			name:   "signup - simple",
 			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
+			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().GetUserByProviderID(
@@ -169,7 +169,7 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 		{
 			name:   "signup - with options",
 			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
+			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().GetUserByProviderID(
@@ -433,7 +433,7 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 		{
 			name:   "signin - simple - provider id found",
 			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
+			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().GetUserByProviderID( //nolint:dupl
@@ -563,7 +563,7 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 		{
 			name:   "signin - simple - user id found",
 			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
+			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().GetUserByProviderID(
@@ -574,7 +574,7 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 					},
 				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
 
-				mock.EXPECT().GetUserByEmail(
+				mock.EXPECT().GetUserByEmail( //nolint:dupl
 					gomock.Any(),
 					sql.Text("jane@myapp.local"),
 				).Return(

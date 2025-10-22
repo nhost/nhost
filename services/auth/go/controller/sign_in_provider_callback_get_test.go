@@ -77,7 +77,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 		{ //nolint:dupl
 			name:   "signup",
 			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
+			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().GetUserByProviderID(
@@ -120,6 +120,11 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 					),
 				).Return(insertResponse, nil)
 
+				mock.EXPECT().UpdateProviderSession(
+					gomock.Any(),
+					gomock.Any(),
+				).Return(nil)
+
 				return mock
 			},
 			request: api.SignInProviderCallbackGetRequestObject{
@@ -142,7 +147,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 		{
 			name:   "signup - with options",
 			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
+			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().GetUserByProviderID(
@@ -184,6 +189,11 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 						),
 					),
 				).Return(insertResponse, nil)
+
+				mock.EXPECT().UpdateProviderSession(
+					gomock.Any(),
+					gomock.Any(),
+				).Return(nil)
 
 				return mock
 			},
@@ -367,7 +377,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 		{
 			name:   "signin - simple - provider id found",
 			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
+			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().GetUserByProviderID( //nolint:dupl
@@ -432,6 +442,11 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 					gomock.Any(), userID,
 				).Return(sql.TimestampTz(time.Now()), nil)
 
+				mock.EXPECT().UpdateProviderSession(
+					gomock.Any(),
+					gomock.Any(),
+				).Return(nil)
+
 				return mock
 			},
 			request: api.SignInProviderCallbackGetRequestObject{
@@ -454,7 +469,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 		{
 			name:   "signin - simple - email found",
 			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
+			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().GetUserByProviderID(
@@ -465,7 +480,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 					},
 				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
 
-				mock.EXPECT().GetUserByEmail(
+				mock.EXPECT().GetUserByEmail( //nolint:dupl
 					gomock.Any(),
 					sql.Text("user1@fake.com"),
 				).Return(
@@ -543,6 +558,11 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().UpdateUserLastSeen(
 					gomock.Any(), userID,
 				).Return(sql.TimestampTz(time.Now()), nil)
+
+				mock.EXPECT().UpdateProviderSession(
+					gomock.Any(),
+					gomock.Any(),
+				).Return(nil)
 
 				return mock
 			},
@@ -725,7 +745,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 				Provider: "fake",
 			},
 			expectedResponse: controller.ErrorRedirectResponse{
-				Headers: api.SignInProviderCallbackGet302ResponseHeaders{
+				Headers: struct{ Location string }{
 					Location: `http://localhost:3000?error=oauth-provider-error&errorDescription=Provider+returned+an+error&provider_error=error-coming-from-provider&provider_error_description=This+is+an+error+coming+from+the+provider&provider_error_url=https%3A%2F%2Fexample.com%2Ferror`, //nolint:lll
 				},
 			},
@@ -796,6 +816,11 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 						ProviderUserID: "1234567890",
 					}, nil,
 				)
+
+				mock.EXPECT().UpdateProviderSession(
+					gomock.Any(),
+					gomock.Any(),
+				).Return(nil)
 
 				return mock
 			},
@@ -1019,7 +1044,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 		{ //nolint:dupl
 			name:   "signup - empty email",
 			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
+			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().GetUserByProviderID(
@@ -1061,6 +1086,11 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 						),
 					),
 				).Return(insertResponse, nil)
+
+				mock.EXPECT().UpdateProviderSession(
+					gomock.Any(),
+					gomock.Any(),
+				).Return(nil)
 
 				return mock
 			},

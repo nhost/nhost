@@ -2,13 +2,18 @@ package controller
 
 import (
 	"context"
+	"encoding/json"
 	"log/slog"
 	"net/url"
+	"time"
+
+	"golang.org/x/oauth2"
 
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/middleware"
 	"github.com/nhost/nhost/services/auth/go/oidc"
 	"github.com/nhost/nhost/services/auth/go/providers"
+	"github.com/nhost/nhost/services/auth/go/sql"
 )
 
 type providerCallbackData struct {
@@ -74,19 +79,34 @@ func (ctrl *Controller) signinProviderProviderCallbackValidate(
 	return stateData.Options, stateData.Connect, optionsRedirectTo, nil
 }
 
+func tokenToProviderSession(token *oauth2.Token) api.ProviderSession {
+	expiresIn := int(token.ExpiresIn)
+	if expiresIn == 0 && !token.Expiry.IsZero() {
+		expiresIn = int(time.Until(token.Expiry).Seconds())
+	}
+
+	return api.ProviderSession{
+		AccessToken:  token.AccessToken,
+		ExpiresIn:    expiresIn,
+		RefreshToken: ptr(token.RefreshToken),
+	}
+}
+
 func (ctrl *Controller) signinProviderProviderCallbackOauthFlow(
 	ctx context.Context,
 	req providerCallbackData,
 	logger *slog.Logger,
-) (oidc.Profile, *APIError) {
+) (oidc.Profile, api.ProviderSession, *APIError) {
 	p := ctrl.Providers.Get(req.Provider)
 	if p == nil {
 		logger.ErrorContext(ctx, "provider not enabled")
-		return oidc.Profile{}, ErrDisabledEndpoint
+		return oidc.Profile{}, api.ProviderSession{}, ErrDisabledEndpoint
 	}
 
-	var profile oidc.Profile
-
+	var (
+		profile         oidc.Profile
+		providerSession api.ProviderSession
+	)
 	switch {
 	case p.IsOauth1():
 		accessTokenValue, accessTokenSecret, err := p.Oauth1().AccessToken(
@@ -94,34 +114,59 @@ func (ctrl *Controller) signinProviderProviderCallbackOauthFlow(
 		)
 		if err != nil {
 			logger.ErrorContext(ctx, "failed to request token", logError(err))
-			return oidc.Profile{}, ErrOauthProfileFetchFailed
+			return oidc.Profile{}, api.ProviderSession{}, ErrOauthProfileFetchFailed
 		}
 
 		profile, err = p.Oauth1().GetProfile(ctx, accessTokenValue, accessTokenSecret)
 		if err != nil {
 			logger.ErrorContext(ctx, "failed to get user info", logError(err))
-			return oidc.Profile{}, ErrOauthProfileFetchFailed
+			return oidc.Profile{}, api.ProviderSession{}, ErrOauthProfileFetchFailed
 		}
+
+		providerSession.AccessToken = accessTokenValue
 	default:
 		token, err := p.Oauth2().Exchange(ctx, deptr(req.Code))
 		if err != nil {
 			logger.ErrorContext(ctx, "failed to exchange token", logError(err))
-			return oidc.Profile{}, ErrOauthTokenExchangeFailed
+			return oidc.Profile{}, api.ProviderSession{}, ErrOauthTokenExchangeFailed
 		}
 
 		profile, err = p.Oauth2().GetProfile(ctx, token.AccessToken, req.IDToken, req.Extras)
 		if err != nil {
 			logger.ErrorContext(ctx, "failed to get user info", logError(err))
-			return oidc.Profile{}, ErrOauthProfileFetchFailed
+			return oidc.Profile{}, api.ProviderSession{}, ErrOauthProfileFetchFailed
 		}
+
+		providerSession = tokenToProviderSession(token)
 	}
 
 	if profile.ProviderUserID == "" {
 		logger.ErrorContext(ctx, "provider user id is empty")
-		return oidc.Profile{}, ErrOauthProfileFetchFailed
+		return oidc.Profile{}, api.ProviderSession{}, ErrOauthProfileFetchFailed
 	}
 
-	return profile, nil
+	return profile, providerSession, nil
+}
+
+func encryptProviderSession(
+	ctx context.Context,
+	encrypter Encrypter,
+	providerSession api.ProviderSession,
+	logger *slog.Logger,
+) (string, *APIError) {
+	b, err := json.Marshal(providerSession)
+	if err != nil {
+		logger.ErrorContext(ctx, "failed to marshal provider session", logError(err))
+		return "", ErrInternalServerError
+	}
+
+	providerSessionEnc, err := encrypter.Encrypt(b)
+	if err != nil {
+		logger.ErrorContext(ctx, "failed to encrypt provider session", logError(err))
+		return "", ErrInternalServerError
+	}
+
+	return string(providerSessionEnc), nil
 }
 
 func (ctrl *Controller) signinProviderProviderCallback(
@@ -139,7 +184,11 @@ func (ctrl *Controller) signinProviderProviderCallback(
 		return redirectTo, apiErr
 	}
 
-	profile, apiErr := ctrl.signinProviderProviderCallbackOauthFlow(ctx, req, logger)
+	profile, providerSession, apiErr := ctrl.signinProviderProviderCallbackOauthFlow(
+		ctx,
+		req,
+		logger,
+	)
 	if apiErr != nil {
 		return redirectTo, apiErr
 	}
@@ -163,6 +212,22 @@ func (ctrl *Controller) signinProviderProviderCallback(
 			values.Add("refreshToken", session.RefreshToken)
 			redirectTo.RawQuery = values.Encode()
 		}
+	}
+
+	providerSessionEnc, apiErr := encryptProviderSession(
+		ctx, ctrl.encrypter, providerSession, logger,
+	)
+	if apiErr != nil {
+		return redirectTo, apiErr
+	}
+
+	if err := ctrl.wf.db.UpdateProviderSession(ctx, sql.UpdateProviderSessionParams{
+		ProviderID:     req.Provider,
+		ProviderUserID: profile.ProviderUserID,
+		AccessToken:    providerSessionEnc,
+	}); err != nil {
+		logger.ErrorContext(ctx, "failed to update provider tokens", logError(err))
+		return redirectTo, ErrInternalServerError
 	}
 
 	return redirectTo, nil
