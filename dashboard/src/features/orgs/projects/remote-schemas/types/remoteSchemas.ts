@@ -6,11 +6,6 @@ import type {
   GraphQLType,
 } from 'graphql';
 
-export interface MetadataOperationOptions {
-  appUrl: string;
-  adminSecret: string;
-}
-
 export type RemoteSchemaRelationshipType = 'remote-schema' | 'database';
 
 export type RemoteSchemaAccessLevel = 'full' | 'partial' | 'none';
