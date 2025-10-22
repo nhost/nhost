@@ -45,9 +45,9 @@ export default async function handler(
 
     // Validate required environment variables
     if (
-      !process.env.NEXT_PUBLIC_ZENDESK_USER_EMAIL ||
-      !process.env.NEXT_PUBLIC_ZENDESK_API_KEY ||
-      !process.env.NEXT_PUBLIC_ZENDESK_URL
+      !process.env.NEXT_ZENDESK_USER_EMAIL ||
+      !process.env.NEXT_ZENDESK_API_KEY ||
+      !process.env.NEXT_ZENDESK_URL
     ) {
       return res.status(500).json({
         success: false,
@@ -74,6 +74,7 @@ export default async function handler(
     const token = req.headers.authorization?.split(' ')[1];
 
     try {
+      // we use this to verify the owner of the JWT token has access to the project
       const resp = await nhostRoutesClient.graphql.request<GetProjectResponse>(
         {
           query: `query GetProject($subdomain: String!){
@@ -92,7 +93,7 @@ export default async function handler(
         },
       );
 
-      if (resp.body.data?.apps.length === 0) {
+      if (resp.body.data?.apps.length !== 1) {
         return res.status(400).json({
           success: false,
           error: 'Invalid project subdomain',
@@ -106,11 +107,11 @@ export default async function handler(
     }
 
     const auth = btoa(
-      `${process.env.NEXT_PUBLIC_ZENDESK_USER_EMAIL}/token:${process.env.NEXT_PUBLIC_ZENDESK_API_KEY}`,
+      `${process.env.NEXT_ZENDESK_USER_EMAIL}/token:${process.env.NEXT_ZENDESK_API_KEY}`,
     );
 
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_ZENDESK_URL}/api/v2/requests.json`,
+      `${process.env.NEXT_ZENDESK_URL}/api/v2/requests.json`,
       {
         method: 'POST',
         headers: {

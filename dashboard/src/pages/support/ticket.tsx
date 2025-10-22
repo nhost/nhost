@@ -70,6 +70,7 @@ function TicketPage() {
 
   const selectedOrganization = watch('organization');
   const user = useUserData();
+  const token = useAccessToken();
 
   const { data: organizationsData } = useGetOrganizationsQuery({
     variables: {
@@ -91,8 +92,6 @@ function TicketPage() {
 
   const handleSubmit = async (formValues: CreateTicketFormValues) => {
     const { project, services, priority, subject, description } = formValues;
-
-    const token = useAccessToken();
 
     await execPromiseWithErrorToast(
       async () => {
