@@ -4,7 +4,7 @@ type QueryResult<TData> = {
   data: TData | undefined;
   isLoading: boolean;
   isInitialLoading: boolean;
-  refetch?: () => Promise<unknown> | void;
+  refetch: () => Promise<unknown> | void;
 };
 
 export interface UseEventTriggerPaginationOptions<TArgs, TData = unknown[]> {
@@ -43,7 +43,7 @@ export interface UseEventTriggerPaginationResult<TData = unknown[]> {
   data: TData | undefined;
   isLoading: boolean;
   isInitialLoading: boolean;
-  refetch?: () => Promise<unknown> | void;
+  refetch: () => Promise<unknown> | void;
 }
 
 export default function useEventTriggerPagination<TArgs, TData = unknown[]>({

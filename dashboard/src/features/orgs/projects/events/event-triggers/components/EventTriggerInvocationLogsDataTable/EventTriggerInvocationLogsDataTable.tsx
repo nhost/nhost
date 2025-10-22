@@ -25,7 +25,7 @@ import type { EventTriggerInvocationLogsDataTableMeta } from './types';
 interface EventTriggerInvocationLogsDataTableProps {
   eventId: string;
   source: string;
-  retryTimeoutSeconds?: number;
+  retryTimeoutSeconds: number;
 }
 
 const skeletonRowKeys = ['s1', 's2', 's3'];
