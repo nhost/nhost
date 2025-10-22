@@ -122,29 +122,37 @@
                 "group": "Sign In Methods",
                 "pages": [
                   {
-                    "group": "Social Providers",
+                    "group": "Providers",
                     "icon": "at",
                     "pages": [
-                      "products/auth/social/sign-in-apple",
-                      "products/auth/social/sign-in-azuread",
-                      "products/auth/social/sign-in-discord",
-                      "products/auth/social/sign-in-entraid",
-                      "products/auth/social/sign-in-facebook",
-                      "products/auth/social/sign-in-github",
-                      "products/auth/social/sign-in-google",
-                      "products/auth/social/sign-in-linkedin",
-                      "products/auth/social/sign-in-spotify",
-                      "products/auth/social/sign-in-twitch",
-                      "products/auth/social/sign-in-workos"
+                      "products/auth/providers/overview",
+                      "products/auth/providers/tokens",
+                      "products/auth/providers/connect",
+                      "products/auth/providers/idtokens",
+                      {
+                        "group": "Configuration",
+                        "icon": "gear",
+                        "pages": [
+                          "products/auth/providers/sign-in-apple",
+                          "products/auth/providers/sign-in-azuread",
+                          "products/auth/providers/sign-in-discord",
+                          "products/auth/providers/sign-in-entraid",
+                          "products/auth/providers/sign-in-facebook",
+                          "products/auth/providers/sign-in-github",
+                          "products/auth/providers/sign-in-google",
+                          "products/auth/providers/sign-in-linkedin",
+                          "products/auth/providers/sign-in-spotify",
+                          "products/auth/providers/sign-in-twitch",
+                          "products/auth/providers/sign-in-workos"
+                        ]
+                      }
                     ]
                   },
-                  "/products/auth/social-connect",
                   "/products/auth/sign-in-email-password",
                   "/products/auth/sign-in-otp",
                   "/products/auth/sign-in-magic-link",
                   "/products/auth/sign-in-sms-otp",
-                  "/products/auth/webauthn",
-                  "/products/auth/idtokens"
+                  "/products/auth/webauthn"
                 ]
               },
               {
@@ -706,6 +714,20 @@
       }
     ]
   },
+  "redirects": [
+    {
+      "source": "/products/auth/social/:slug*",
+      "destination": "/products/auth/providers/:slug*"
+    },
+    {
+      "source": "/products/auth/social-connect",
+      "destionation": "products/auth/providers/connect",
+    },
+    {
+      "source": "/products/auth/idtokens",
+      "destination": "products/auth/providers/idtokens",
+    }
+  ],
   "logo": {
     "light": "/images/logo/light.svg",
     "dark": "/images/logo/dark.svg"
