@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [@nhost/dashboard@2.39.0] - 2025-10-22
+
+### 🚀 Features
+
+- *(dashboard)* Move zendesk request to API route (#3628)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Fix flaky e2e tests (#3536)
+- *(dashboard)* Run audit and lint in dashboard (#3578)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(dashboard)* Cleanup e2e remote schemas test before run (#3581)
+
 ## [@nhost/dashboard@2.38.4] - 2025-10-09
 
 ### 🐛 Bug Fixes
