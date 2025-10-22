@@ -1,4 +1,3 @@
-import { Input } from '@/components/ui/v3/input';
 import { Skeleton } from '@/components/ui/v3/skeleton';
 import {
   Table,
@@ -15,11 +14,9 @@ import useGetEventLogsQuery from '@/features/orgs/projects/events/event-triggers
 import type { EventTriggerViewModel } from '@/features/orgs/projects/events/event-triggers/types';
 import { cn, isNotEmptyValue } from '@/lib/utils';
 import {
-  type ColumnFiltersState,
   flexRender,
   getCoreRowModel,
   getExpandedRowModel,
-  getFilteredRowModel,
   getSortedRowModel,
   type SortingState,
   useReactTable,
@@ -56,21 +53,17 @@ export default function EventTriggerEventsDataTable({
   });
 
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
   const table = useReactTable({
     data: data ?? [],
     columns,
     state: {
       sorting,
-      columnFilters,
     },
     getRowId: (row) => row.id,
     onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
     getRowCanExpand: () => true,
   });
@@ -83,16 +76,6 @@ export default function EventTriggerEventsDataTable({
   return (
     <div className="rounded border p-4">
       <h3 className="mb-3 font-medium">Events</h3>
-      <div className="flex w-full flex-col gap-2 py-2 sm:flex-row sm:items-center">
-        <Input
-          placeholder="Filter by ID..."
-          value={(table.getColumn('id')?.getFilterValue() as string) ?? ''}
-          onChange={(event) =>
-            table.getColumn('id')?.setFilterValue(event.target.value)
-          }
-          className="max-w-sm"
-        />
-      </div>
 
       <Table>
         <colgroup>

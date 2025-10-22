@@ -1,4 +1,3 @@
-import { Input } from '@/components/ui/v3/input';
 import { Skeleton } from '@/components/ui/v3/skeleton';
 import {
   Table,
@@ -13,10 +12,8 @@ import useEventTriggerPagination from '@/features/orgs/projects/events/event-tri
 import { useGetEventAndInvocationLogsById } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventAndInvocationLogsById';
 import type { EventInvocationLogEntry } from '@/utils/hasura-api/generated/schemas/eventInvocationLogEntry';
 import {
-  type ColumnFiltersState,
   flexRender,
   getCoreRowModel,
-  getFilteredRowModel,
   getSortedRowModel,
   type SortingState,
   useReactTable,
@@ -63,20 +60,16 @@ export default function EventTriggerInvocationLogsDataTable({
   const invocations = data?.invocations;
 
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
   const table = useReactTable({
     data: invocations ?? [],
     columns,
     state: {
       sorting,
-      columnFilters,
     },
     onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     meta: {
       selectedLog,
       setSelectedLog,
@@ -86,16 +79,6 @@ export default function EventTriggerInvocationLogsDataTable({
   return (
     <div className="border-t bg-muted p-4 pl-8 dark:bg-muted/40">
       <h3 className="mb-3 font-medium">Related invocations</h3>
-      <div className="flex w-full flex-col">
-        <Input
-          placeholder="Filter invocation log by ID..."
-          value={(table.getColumn('id')?.getFilterValue() as string) ?? ''}
-          onChange={(event) =>
-            table.getColumn('id')?.setFilterValue(event.target.value)
-          }
-          className="w-full max-w-sm"
-        />
-      </div>
 
       <Table>
         <colgroup>
