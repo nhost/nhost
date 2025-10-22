@@ -651,6 +651,9 @@ import (
 			iops: uint32 | *3000
 			tput: uint32 | *125
 		}
+
+        encryptColumnKey?: string & =~"^[0-9a-fA-F]{64}$"    // 32 bytes hex-encoded key
+        oldEncryptColumnKey?: string & =~"^[0-9a-fA-F]{64}$" // for key rotation
 	}
 
 	persistentVolumesEncrypted: bool | *false
