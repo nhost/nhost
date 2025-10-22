@@ -10,6 +10,7 @@ import { Input, inputClasses } from '@/components/ui/v2/Input';
 import { Option } from '@/components/ui/v2/Option';
 import { Text } from '@/components/ui/v2/Text';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { useAccessToken } from '@/hooks/useAccessToken';
 import { useUserData } from '@/hooks/useUserData';
 import {
   useGetOrganizationsQuery,
@@ -36,7 +37,6 @@ const validationSchema = Yup.object({
   priority: Yup.string().label('Priority').required(),
   subject: Yup.string().label('Subject').required(),
   description: Yup.string().label('Description').required(),
-  ccs: Yup.string().label('CCs').optional(),
 });
 
 export type CreateTicketFormValues = Yup.InferType<typeof validationSchema>;
@@ -58,7 +58,6 @@ function TicketPage() {
       priority: '',
       subject: '',
       description: '',
-      ccs: '',
     },
     resolver: yupResolver(validationSchema),
   });
@@ -91,56 +90,34 @@ function TicketPage() {
   };
 
   const handleSubmit = async (formValues: CreateTicketFormValues) => {
-    const { project, services, priority, subject, description, ccs } =
-      formValues;
+    const { project, services, priority, subject, description } = formValues;
 
-    const auth = btoa(
-      `${process.env.NEXT_PUBLIC_ZENDESK_USER_EMAIL}/token:${process.env.NEXT_PUBLIC_ZENDESK_API_KEY}`,
-    );
-    const emails = ccs
-      ?.replace(/ /g, '')
-      .split(',')
-      .map((email) => ({ user_email: email }));
+    const token = useAccessToken();
 
     await execPromiseWithErrorToast(
       async () => {
-        await fetch(
-          `${process.env.NEXT_PUBLIC_ZENDESK_URL}/api/v2/requests.json`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Basic ${auth}`,
-            },
-            body: JSON.stringify({
-              request: {
-                subject,
-                comment: {
-                  body: description,
-                },
-                priority,
-                requester: {
-                  name: user?.displayName,
-                  email: user?.email,
-                },
-                email_ccs: emails,
-                custom_fields: [
-                  // these custom field IDs come from zendesk
-                  {
-                    id: 19502784542098,
-                    value: project,
-                  },
-                  {
-                    id: 19922709880978,
-                    value: services.map((service) =>
-                      service.value?.toLowerCase(),
-                    ),
-                  },
-                ],
-              },
-            }),
+        const response = await fetch('/api/support/create-ticket', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
           },
-        );
+          body: JSON.stringify({
+            project,
+            services,
+            priority,
+            subject,
+            description,
+            userName: user?.displayName,
+            userEmail: user?.email,
+          }),
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to create ticket');
+        }
+
         form.reset();
       },
       {
@@ -328,21 +305,6 @@ function TicketPage() {
                     }}
                     error={!!errors.description}
                     helperText={errors.description?.message}
-                  />
-
-                  <Divider />
-
-                  <Text className="mt-4 font-bold">Notifications</Text>
-
-                  <StyledInput
-                    {...register('ccs')}
-                    id="ccs"
-                    label="CCs"
-                    placeholder="Comma separated list of emails you want to share this ticket with."
-                    fullWidth
-                    inputProps={{ min: 2, max: 128 }}
-                    error={!!errors.ccs}
-                    helperText={errors.ccs?.message}
                   />
 
                   <Box className="ml-auto flex w-80 flex-col gap-4">
