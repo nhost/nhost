@@ -5,7 +5,6 @@ import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
-import { EnvelopeIcon } from '@/components/ui/v2/icons/EnvelopeIcon';
 import { Input, inputClasses } from '@/components/ui/v2/Input';
 import { Option } from '@/components/ui/v2/Option';
 import { Text } from '@/components/ui/v2/Text';
@@ -18,6 +17,7 @@ import {
 } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { styled } from '@mui/material';
+import { Mail } from 'lucide-react';
 import { type ReactElement } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
@@ -28,7 +28,7 @@ type Organization = Omit<
 >;
 
 const validationSchema = Yup.object({
-  organization: Yup.string().label('Organization'),
+  organization: Yup.string().label('Organization').required(),
   project: Yup.string().label('Project').required(),
   services: Yup.array()
     .of(Yup.object({ label: Yup.string(), value: Yup.string() }))
@@ -167,7 +167,7 @@ function TicketPage() {
                   >
                     {organizations.map((organization) => (
                       <Option
-                        key={organization.name}
+                        key={organization.id}
                         value={organization.id}
                         label={organization.name}
                       >
@@ -237,6 +237,8 @@ function TicketPage() {
                     slotProps={{
                       root: { className: 'grid grid-flow-col gap-1 mb-4' },
                     }}
+                    error={!!errors.priority}
+                    helperText={errors.priority?.message}
                     renderValue={(option) => (
                       <span className="inline-grid grid-flow-col items-center gap-2">
                         {option?.label}
@@ -315,7 +317,7 @@ function TicketPage() {
                       className="hover:!bg-white hover:!bg-opacity-10 focus:ring-0"
                       size="large"
                       type="submit"
-                      startIcon={<EnvelopeIcon />}
+                      startIcon={<Mail className="size-4" />}
                       disabled={isSubmitting}
                       loading={isSubmitting}
                     >
