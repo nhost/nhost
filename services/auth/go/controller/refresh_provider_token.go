@@ -20,6 +20,11 @@ func (ctrl *Controller) RefreshProviderToken( //nolint:ireturn
 		return ctrl.sendError(ErrDisabledEndpoint), nil
 	}
 
+	if !provider.IsOauth2() {
+		logger.ErrorContext(ctx, "provider does not support OAuth2")
+		return ctrl.sendError(ErrOauthProviderError), nil
+	}
+
 	token, err := provider.Oauth2().Exchange(
 		ctx,
 		"",

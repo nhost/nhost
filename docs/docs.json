@@ -160,7 +160,6 @@
                 "icon": "diagram-project",
                 "pages": [
                   "/products/auth/workflows/email-password",
-                  "/products/auth/workflows/oauth-providers",
                   "/products/auth/workflows/passwordless-email",
                   "/products/auth/workflows/passwordless-sms",
                   "/products/auth/workflows/webauthn",
