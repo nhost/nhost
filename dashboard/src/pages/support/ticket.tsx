@@ -46,6 +46,9 @@ const StyledInput = styled(Input)({
   [`& .${inputClasses.input}`]: {
     backgroundColor: 'transparent !important',
   },
+  [`& .${inputClasses.input}`]: {
+    fontSize: '1rem',
+  },
 });
 
 function TicketPage() {
@@ -134,7 +137,7 @@ function TicketPage() {
     >
       <div className="flex w-full max-w-3xl flex-col">
         <div className="mb-4 flex flex-col items-center">
-          <Text variant="h4" className="font-bold">
+          <Text variant="h4" className="text-base font-bold">
             Nhost Support
           </Text>
           <Text variant="h4">How can we help you?</Text>
@@ -160,7 +163,7 @@ function TicketPage() {
                     error={!!errors.organization}
                     helperText={errors.organization?.message}
                     renderValue={(option) => (
-                      <span className="inline-grid grid-flow-col items-center gap-2">
+                      <span className="inline-grid grid-flow-col items-center gap-2 text-base">
                         {option?.label}
                       </span>
                     )}
@@ -187,7 +190,7 @@ function TicketPage() {
                     error={!!errors.project}
                     helperText={errors.project?.message}
                     renderValue={(option) => (
-                      <span className="inline-grid grid-flow-col items-center gap-2">
+                      <span className="inline-grid grid-flow-col items-center gap-2 text-base">
                         {option?.label}
                       </span>
                     )}
@@ -214,6 +217,11 @@ function TicketPage() {
                     fullWidth
                     multiple
                     aria-label="Services"
+                    sx={{
+                      '& .MuiInputBase-input': {
+                        fontSize: '1rem',
+                      },
+                    }}
                     options={[
                       'Dashboard',
                       'Database',
@@ -240,7 +248,7 @@ function TicketPage() {
                     error={!!errors.priority}
                     helperText={errors.priority?.message}
                     renderValue={(option) => (
-                      <span className="inline-grid grid-flow-col items-center gap-2">
+                      <span className="inline-grid grid-flow-col items-center gap-2 text-base">
                         {option?.label}
                       </span>
                     )}
@@ -288,10 +296,10 @@ function TicketPage() {
                     label="Subject"
                     placeholder="Summary of the problem you are experiencing"
                     fullWidth
-                    autoFocus
                     inputProps={{ min: 2, max: 128 }}
                     error={!!errors.subject}
                     helperText={errors.subject?.message}
+                    className="text-base"
                   />
 
                   <StyledInput
@@ -306,18 +314,19 @@ function TicketPage() {
                     }}
                     error={!!errors.description}
                     helperText={errors.description?.message}
+                    className="text-base"
                   />
 
-                  <Box className="ml-auto flex w-80 flex-col gap-4">
+                  <Box className="ml-auto flex flex-col gap-4 lg:w-80">
                     <Text color="secondary" className="text-right text-sm">
                       We will contact you at <strong>{user?.email}</strong>
                     </Text>
                     <Button
                       variant="outlined"
-                      className="hover:!bg-white hover:!bg-opacity-10 focus:ring-0"
+                      className="text-base hover:!bg-white hover:!bg-opacity-10 focus:ring-0"
                       size="large"
                       type="submit"
-                      startIcon={<Mail className="size-4" />}
+                      startIcon={<Mail className="size-3" />}
                       disabled={isSubmitting}
                       loading={isSubmitting}
                     >
@@ -336,7 +345,7 @@ function TicketPage() {
 
 TicketPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <AuthenticatedLayout title="Help & Support | Nhost">
+    <AuthenticatedLayout title="Help & Support | Nhost" withMainNav={false}>
       {page}
     </AuthenticatedLayout>
   );
