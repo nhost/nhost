@@ -85,6 +85,7 @@ export function createDataGridColumn(
     return {
       ...defaultColumnConfiguration,
       type: 'number',
+      isCopiable: true,
       width: 250,
       Cell: DataGridNumericCell,
     };
@@ -127,6 +128,7 @@ export function createDataGridColumn(
       ...defaultColumnConfiguration,
       type: 'date',
       width: 200,
+      isCopiable: true,
       Cell: DataGridDateCell,
     };
   }

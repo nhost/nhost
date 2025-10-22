@@ -64,6 +64,10 @@ export interface DataGridProps<TColumnData extends object>
    * Props to be passed to the `DataGridHeader` component.
    */
   headerProps?: DataGridHeaderProps;
+  /**
+   * Determines whether the Grid is used for displaying files.
+   */
+  isFileDataGrid?: boolean;
 }
 
 function DataGrid<TColumnData extends object>(
@@ -81,6 +85,7 @@ function DataGrid<TColumnData extends object>(
     onSort,
     loading,
     className,
+    isFileDataGrid,
   }: DataGridProps<TColumnData>,
   ref: ForwardedRef<HTMLDivElement>,
 ) {
@@ -140,6 +145,7 @@ function DataGrid<TColumnData extends object>(
               <DataGridHeader {...headerProps} />
 
               <DataGridBody
+                isFileDataGrid={isFileDataGrid}
                 emptyStateMessage={emptyStateMessage}
                 loading={loading}
               />

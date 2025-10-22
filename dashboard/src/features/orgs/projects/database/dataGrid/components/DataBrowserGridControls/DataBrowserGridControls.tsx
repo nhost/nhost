@@ -7,12 +7,14 @@ import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/com
 import type { DataGridPaginationProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPagination';
 import { DataGridPagination } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPagination';
 import { cn } from '@/lib/utils';
+
 import { triggerToast } from '@/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import type { Row } from 'react-table';
 import { twMerge } from 'tailwind-merge';
+import DataTableDesignPopup from './DataTableDesignPopup';
 
 export interface DataBrowserGridControlsProps {
   /**
@@ -155,7 +157,7 @@ export default function DataBrowserGridControls({
                 {...restPaginationProps}
               />
             )}
-
+            <DataTableDesignPopup />
             <Button onClick={onInsertRowClick} size="sm">
               <Plus className="h-4 w-4" /> Insert row
             </Button>

@@ -85,6 +85,7 @@ export default function useDataGrid<T extends object>(
                 }
                 return (
                   <Checkbox
+                    className="border-[#21324b] data-[state=checked]:!border-transparent dark:border-[#dfecf5]"
                     disabled={rows.length === 0}
                     {...props}
                     style={{
@@ -106,6 +107,7 @@ export default function useDataGrid<T extends object>(
                 }
                 return (
                   <Checkbox
+                    className="border-[#21324b] data-[state=checked]:!border-transparent dark:border-[#dfecf5]"
                     {...props}
                     // disable selection if row is just a upload preview
                     checked={originalValue.uploading ? false : row.isSelected}
