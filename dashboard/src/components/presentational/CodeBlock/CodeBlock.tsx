@@ -100,7 +100,7 @@ export const CodeBlock = forwardRef(
           theme.palette.mode === 'dark' ? 'grey.200' : 'grey.200',
       }}
       className={clsx(
-        'not-prose relative mt-5 px-2',
+        'not-prose relative mt-5 w-full min-w-0 max-w-full px-2',
         filename && 'pt-2',
         className,
       )}
@@ -124,8 +124,8 @@ export const CodeBlock = forwardRef(
           className="absolute right-3 top-0"
         />
       )}
-      <pre className="overflow-x-auto">
-        <code className="font-mono">{children}</code>
+      <pre className="w-full max-w-full whitespace-pre-wrap break-words">
+        <code className="break-all font-mono">{children}</code>
       </pre>
     </Box>
   ),
