@@ -36,7 +36,7 @@ describe('useEventTriggerPagination', () => {
     );
 
     expect(result.current.isLastPage).toBe(true);
-    expect(result.current.canGoNext).toBe(false);
+    expect(result.current.hasNoNextPage).toBe(true);
   });
 
   it('cannot go next when current page has fewer rows than limit', () => {
@@ -52,7 +52,7 @@ describe('useEventTriggerPagination', () => {
     );
 
     expect(result.current.isLastPage).toBe(true);
-    expect(result.current.canGoNext).toBe(false);
+    expect(result.current.hasNoNextPage).toBe(true);
   });
 
   it('uses getPageLength for non-array responses', () => {
@@ -70,7 +70,7 @@ describe('useEventTriggerPagination', () => {
     );
 
     expect(result.current.isLastPage).toBe(true);
-    expect(result.current.canGoNext).toBe(false);
+    expect(result.current.hasNoNextPage).toBe(true);
   });
 
   it('calls getQueryArgs with current limit and offset', async () => {

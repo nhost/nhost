@@ -37,6 +37,7 @@ export interface UseEventTriggerPaginationResult<TData = unknown[]> {
   goNext: () => void;
   hasNoPreviousPage: boolean;
   hasNoNextPage: boolean;
+  isLastPage: boolean;
   data: TData | undefined;
   isLoading: boolean;
 }
@@ -99,6 +100,7 @@ export default function useEventTriggerPagination<TArgs, TData = unknown[]>({
     goNext,
     hasNoPreviousPage,
     hasNoNextPage,
+    isLastPage,
     data,
     isLoading,
   };
