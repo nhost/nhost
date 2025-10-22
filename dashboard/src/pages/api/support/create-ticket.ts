@@ -1,6 +1,5 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
 import { nhostRoutesClient } from '@/utils/nhost';
-
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 export type CreateTicketRequest = {
   project: string;
@@ -28,7 +27,9 @@ export default async function handler(
   res: NextApiResponse<CreateTicketResponse>,
 ) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ success: false, error: 'Method not allowed' });
+    return res
+      .status(405)
+      .json({ success: false, error: 'Method not allowed' });
   }
 
   try {
@@ -43,43 +44,64 @@ export default async function handler(
     } = req.body as CreateTicketRequest;
 
     // Validate required environment variables
-    if (!process.env.NEXT_PUBLIC_ZENDESK_USER_EMAIL || !process.env.NEXT_PUBLIC_ZENDESK_API_KEY || !process.env.NEXT_PUBLIC_ZENDESK_URL) {
+    if (
+      !process.env.NEXT_PUBLIC_ZENDESK_USER_EMAIL ||
+      !process.env.NEXT_PUBLIC_ZENDESK_API_KEY ||
+      !process.env.NEXT_PUBLIC_ZENDESK_URL
+    ) {
       return res.status(500).json({
         success: false,
-        error: 'Zendesk configuration is missing'
+        error: 'Zendesk configuration is missing',
       });
     }
 
     // Validate required fields
-    if (!project || !services || !priority || !subject || !description || !userName || !userEmail) {
+    if (
+      !project ||
+      !services ||
+      !priority ||
+      !subject ||
+      !description ||
+      !userName ||
+      !userEmail
+    ) {
       return res.status(400).json({
         success: false,
-        error: 'Missing required fields'
+        error: 'Missing required fields',
       });
     }
 
+    const token = req.headers.authorization?.split(' ')[1];
+
     try {
-      const resp = await nhostRoutesClient.graphql.request<GetProjectResponse>({
-        query: `query GetProject($subdomain: String!){
+      const resp = await nhostRoutesClient.graphql.request<GetProjectResponse>(
+        {
+          query: `query GetProject($subdomain: String!){
             apps(where: {subdomain: {_eq: $subdomain}}) {
               id
             }
           }`,
-        variables: {
-          subdomain: project,
+          variables: {
+            subdomain: project,
+          },
         },
-      });
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
 
       if (resp.body.data?.apps.length === 0) {
         return res.status(400).json({
           success: false,
-          error: 'Invalid project subdomain'
+          error: 'Invalid project subdomain',
         });
       }
     } catch (error) {
       return res.status(400).json({
         success: false,
-        error: 'Invalid project subdomain'
+        error: 'Invalid project subdomain',
       });
     }
 
@@ -114,9 +136,7 @@ export default async function handler(
               },
               {
                 id: 19922709880978,
-                value: services.map((service) =>
-                  service.value?.toLowerCase(),
-                ),
+                value: services.map((service) => service.value?.toLowerCase()),
               },
             ],
           },
@@ -129,7 +149,7 @@ export default async function handler(
       console.error('Zendesk API error:', errorText);
       return res.status(response.status).json({
         success: false,
-        error: `Failed to create ticket: ${response.statusText}`
+        error: `Failed to create ticket: ${response.statusText}`,
       });
     }
 
@@ -138,7 +158,7 @@ export default async function handler(
     console.error('Error creating ticket:', error);
     return res.status(500).json({
       success: false,
-      error: 'An unexpected error occurred'
+      error: 'An unexpected error occurred',
     });
   }
 }
