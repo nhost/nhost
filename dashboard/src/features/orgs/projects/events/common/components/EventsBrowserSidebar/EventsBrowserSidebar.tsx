@@ -11,7 +11,16 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/v3/accordion';
-import { Button } from '@/components/ui/v3/button';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/v3/dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,10 +31,12 @@ import {
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import CreateEventTriggerForm from '@/features/orgs/projects/events/event-triggers/components/CreateEventTriggerForm/CreateEventTriggerForm';
+import { useDeleteEventTriggerMutation } from '@/features/orgs/projects/events/event-triggers/hooks/useDeleteEventTriggerMutation';
 import { useGetEventTriggers } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventTriggers';
 import type { EventTriggerViewModel } from '@/features/orgs/projects/events/event-triggers/types';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { cn } from '@/lib/utils';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { cn, isEmptyValue } from '@/lib/utils';
 import { Database, Ellipsis, Plus } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -41,6 +52,47 @@ function EventsBrowserSidebarContent() {
   const { orgSlug, appSubdomain, eventTriggerSlug } = router.query;
   const { data, isLoading, error } = useGetEventTriggers();
   const [open, setOpen] = useState(false);
+
+  const [showDeleteEventTriggerDialog, setShowDeleteEventTriggerDialog] =
+    useState(false);
+  const [eventTriggerToDelete, setEventTriggerToDelete] = useState<
+    string | null
+  >(null);
+
+  const { mutateAsync: deleteEventTrigger, isLoading: isDeletingEventTrigger } =
+    useDeleteEventTriggerMutation();
+
+  const handleDeleteEventTriggerDropdownClick = (eventTriggerName: string) => {
+    setEventTriggerToDelete(eventTriggerName);
+    setShowDeleteEventTriggerDialog(true);
+  };
+
+  const handleDeleteDialogClick = async () => {
+    await execPromiseWithErrorToast(
+      async () => {
+        if (isEmptyValue(eventTriggerToDelete)) {
+          throw new Error(
+            'Error deleting event trigger, no event trigger to delete',
+          );
+        }
+
+        const deleteEventTriggerPromise = deleteEventTrigger({
+          args: {
+            name: eventTriggerToDelete!,
+          },
+        });
+
+        await deleteEventTriggerPromise;
+      },
+      {
+        loadingMessage: 'Deleting event trigger...',
+        successMessage: 'Event trigger deleted successfully.',
+        errorMessage: 'An error occurred while deleting the event trigger.',
+      },
+    );
+    setShowDeleteEventTriggerDialog(false);
+    setEventTriggerToDelete(null);
+  };
 
   if (isLoading) {
     return <EventsBrowserSidebarSkeleton />;
@@ -141,7 +193,7 @@ function EventsBrowserSidebarContent() {
                               )}
                               text={eventTrigger.name}
                             />
-                            <DropdownMenu>
+                            <DropdownMenu modal={false}>
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -160,12 +212,19 @@ function EventsBrowserSidebarContent() {
                                 </DropdownMenuTrigger>
                               </Button>
                               <DropdownMenuContent align="start">
-                                <DropdownMenuItem className="disabled flex cursor-pointer items-center gap-2 !text-sm+ font-medium">
+                                <DropdownMenuItem className="disabled flex cursor-pointer items-center gap-2 !text-sm+ font-medium line-through">
                                   <PencilIcon className="size-4 text-muted-foreground" />
                                   Edit Event Trigger
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator className="my-0" />
-                                <DropdownMenuItem className="flex cursor-pointer items-center gap-2 !text-sm+ font-medium text-destructive focus:text-destructive">
+                                <DropdownMenuItem
+                                  onSelect={() =>
+                                    handleDeleteEventTriggerDropdownClick(
+                                      eventTrigger.name,
+                                    )
+                                  }
+                                  className="flex cursor-pointer items-center gap-2 !text-sm+ font-medium text-destructive focus:text-destructive"
+                                >
                                   <TrashIcon className="size-4" />
                                   Delete Event Trigger
                                 </DropdownMenuItem>
@@ -181,6 +240,44 @@ function EventsBrowserSidebarContent() {
             )}
           </Accordion>
         </div>
+        <Dialog
+          open={showDeleteEventTriggerDialog}
+          onOpenChange={setShowDeleteEventTriggerDialog}
+        >
+          <DialogContent
+            className="sm:max-w-[425px]"
+            hideCloseButton
+            disableOutsideClick={isDeletingEventTrigger}
+          >
+            <DialogHeader>
+              <DialogTitle className="text-foreground">
+                Delete Event Trigger
+              </DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete the{' '}
+                <span className="rounded-md bg-muted px-1 py-0.5 font-mono">
+                  {eventTriggerToDelete}
+                </span>{' '}
+                event trigger?
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="gap-2 sm:flex sm:flex-col sm:space-x-0">
+              <ButtonWithLoading
+                variant="destructive"
+                className="!text-sm+ text-foreground"
+                onClick={handleDeleteDialogClick}
+                loading={isDeletingEventTrigger}
+              >
+                Delete
+              </ButtonWithLoading>
+              <DialogClose asChild>
+                <Button variant="outline" className="!text-sm+ text-foreground">
+                  Cancel
+                </Button>
+              </DialogClose>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
       <CreateEventTriggerForm
         open={open}
