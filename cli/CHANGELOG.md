@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [cli@1.34.3] - 2025-10-23
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Update schema (#3622)
+
 ## [cli@1.34.2] - 2025-10-20
 
 ### ⚙️ Miscellaneous Tasks
