@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [@nhost/nhost-js@4.1.0] - 2025-10-23
+
+### 🚀 Features
+
+- *(nhost-js)* Added pushChainFunction to functions and graphql clients (#3610)
+- *(nhost-js)* Added various middlewares to work with headers and customizable createNhostClient (#3612)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Run audit and lint in dashboard (#3578)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(nhost-js)* Generate code from local API definitions (#3583)
+- *(docs)* Udpated README.md and CONTRIBUTING.md (#3587)
+
 ## [@nhost/nhost-js@4.0.1] - 2025-09-24
 
 ### ⚙️ Miscellaneous Tasks
