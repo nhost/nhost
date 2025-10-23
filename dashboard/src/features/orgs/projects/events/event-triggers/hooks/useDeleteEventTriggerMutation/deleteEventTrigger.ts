@@ -1,27 +1,49 @@
-export interface DeleteEventTriggerOptions {
-  appUrl: string;
-  adminSecret: string;
-}
+import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
+import type {
+  DeleteEventTriggerBulkOperation,
+  DeleteEventTriggerStepArgs,
+} from '@/utils/hasura-api/generated/schemas';
+import type { MetadataOperationOptions } from '@/utils/hasura-api/types';
 
 export interface DeleteEventTriggerVariables {
-  args: DeleteEventTriggerArgs;
-}
-
-interface DeleteEventTriggerArgs {
-  name: string;
+  args: DeleteEventTriggerStepArgs;
+  resourceVersion?: number;
 }
 
 export async function deleteEventTrigger({
   appUrl,
   adminSecret,
   args,
-}: DeleteEventTriggerOptions & DeleteEventTriggerVariables) {
-  const mypromise = new Promise((resolve) => {
-    setTimeout(() => {
-      resolve([{ message: 'success' }]);
-    }, 2000);
-  });
+  resourceVersion,
+}: MetadataOperationOptions & DeleteEventTriggerVariables) {
+  try {
+    const response = await metadataOperation(
+      {
+        type: 'bulk',
+        source: args.source ?? 'default',
+        resource_version: resourceVersion,
+        args: [
+          {
+            type: 'pg_delete_event_trigger',
+            args: {
+              ...args,
+            },
+          },
+        ],
+      } satisfies DeleteEventTriggerBulkOperation,
+      {
+        baseUrl: appUrl,
+        adminSecret,
+      },
+    );
 
-  const result = await mypromise;
-  result;
+    if (response.status === 200) {
+      return response.data;
+    }
+
+    throw new Error(response.data.error);
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
 }
