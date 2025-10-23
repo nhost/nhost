@@ -1,22 +1,27 @@
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import type { SuccessResponse } from '@/utils/hasura-api/generated/schemas';
 import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
-import type { HasuraError } from '@/utils/hasura-api/types';
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation } from '@tanstack/react-query';
 import {
   deleteEventTrigger,
   type DeleteEventTriggerVariables,
 } from './deleteEventTrigger';
+import {
+  deleteEventTriggerMigration,
+  type DeleteEventTriggerMigrationVariables,
+} from './deleteEventTriggerMigration';
 
 export interface UseDeleteEventTriggerMutationOptions {
   /**
    * Props passed to the underlying mutation hook.
    */
   mutationOptions?: MutationOptions<
-    MetadataOperation200,
-    HasuraError,
-    DeleteEventTriggerVariables
+    SuccessResponse | MetadataOperation200,
+    unknown,
+    DeleteEventTriggerVariables | DeleteEventTriggerMigrationVariables
   >;
 }
 
@@ -30,18 +35,34 @@ export default function useDeleteEventTriggerMutation({
   mutationOptions,
 }: UseDeleteEventTriggerMutationOptions = {}) {
   const { project } = useProject();
+  const isPlatform = useIsPlatform();
 
-  const mutation = useMutation((variables) => {
+  const mutation = useMutation<
+    SuccessResponse | MetadataOperation200,
+    unknown,
+    DeleteEventTriggerVariables | DeleteEventTriggerMigrationVariables
+  >((variables) => {
     const appUrl = generateAppServiceUrl(
       project!.subdomain,
       project!.region,
       'hasura',
     );
 
-    return deleteEventTrigger({
+    const base = {
       appUrl,
       adminSecret: project?.config?.hasura.adminSecret!,
-      args: variables.args,
+    } as const;
+
+    if (isPlatform) {
+      return deleteEventTrigger({
+        ...(variables as DeleteEventTriggerVariables),
+        ...base,
+      });
+    }
+
+    return deleteEventTriggerMigration({
+      ...(variables as DeleteEventTriggerMigrationVariables),
+      ...base,
     });
   }, mutationOptions);
 

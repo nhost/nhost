@@ -29,6 +29,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/v3/dropdown-menu';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
+import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import CreateEventTriggerForm from '@/features/orgs/projects/events/event-triggers/components/CreateEventTriggerForm/CreateEventTriggerForm';
 import { useDeleteEventTriggerMutation } from '@/features/orgs/projects/events/event-triggers/hooks/useDeleteEventTriggerMutation';
@@ -67,10 +68,19 @@ function EventsBrowserSidebarContent() {
     setShowDeleteEventTriggerDialog(true);
   };
 
+  const { data: resourceVersion } = useGetMetadataResourceVersion();
+
   const handleDeleteDialogClick = async () => {
     await execPromiseWithErrorToast(
       async () => {
-        if (isEmptyValue(eventTriggerToDelete)) {
+        const originalEventTrigger = data?.find(
+          (eventTrigger) => eventTrigger.name === eventTriggerToDelete,
+        );
+
+        if (
+          isEmptyValue(eventTriggerToDelete) ||
+          isEmptyValue(originalEventTrigger)
+        ) {
           throw new Error(
             'Error deleting event trigger, no event trigger to delete',
           );
@@ -79,7 +89,10 @@ function EventsBrowserSidebarContent() {
         const deleteEventTriggerPromise = deleteEventTrigger({
           args: {
             name: eventTriggerToDelete!,
+            source: originalEventTrigger?.dataSource,
           },
+          resourceVersion,
+          originalEventTrigger,
         });
 
         await deleteEventTriggerPromise;
