@@ -82,6 +82,15 @@ This will connect the Nhost Dashboard to your locally running Nhost backend.
 | `NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL` | The URL of Hasura's Migrations service. When working locally, point it to the Migrations service started by the CLI.                                                                                   |
 | `NEXT_PUBLIC_NHOST_HASURA_API_URL`            | The URL of Hasura's Schema and Metadata API. When working locally, point it to the Schema and Metadata API started by the CLI. When self-hosting, point it to the self-hosted Schema and Metadata API. |
 
+### Content Security Policy (CSP) Configuration
+
+The dashboard supports build-time CSP configuration to enable self-hosted deployments on custom domains.
+
+| Name         | Description                                                                                                                                                                                                                              |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `CSP_MODE`   | Controls CSP behavior. Options: `nhost` (default, uses Nhost Cloud CSP), `disabled` (no CSP headers), `custom` (use custom CSP via `CSP_HEADER`). For self-hosted deployments on custom domains, set to `disabled` or `custom`.          |
+| `CSP_HEADER` | Custom Content Security Policy header value. Only used when `CSP_MODE=custom`. Should be a complete CSP string (e.g., `default-src 'self'; script-src 'self' 'unsafe-eval'; ...`).                                                       |
+
 ### Other Environment Variables
 
 | Name                                    | Description                                                                                 |
