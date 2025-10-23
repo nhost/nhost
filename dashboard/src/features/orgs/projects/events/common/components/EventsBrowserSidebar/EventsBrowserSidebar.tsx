@@ -12,6 +12,7 @@ import {
 import { Button } from '@/components/ui/v3/button';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import CreateEventTriggerForm from '@/features/orgs/projects/events/event-triggers/components/CreateEventTriggerForm/CreateEventTriggerForm';
 import { useGetEventTriggers } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventTriggers';
 import type { EventTriggerViewModel } from '@/features/orgs/projects/events/event-triggers/types';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -22,7 +23,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
-import CreateEventTriggerForm from '../../../event-triggers/components/CreateEventTriggerForm/CreateEventTriggerForm';
 import EventsBrowserSidebarSkeleton from './EventsBrowserSidebarSkeleton';
 
 export interface EventsBrowserSidebarProps extends Omit<BoxProps, 'children'> {}
