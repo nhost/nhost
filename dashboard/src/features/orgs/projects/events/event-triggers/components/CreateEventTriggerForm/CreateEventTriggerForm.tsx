@@ -47,7 +47,7 @@ import UpdateTriggerColumnsSection from './sections/UpdateTriggerColumnsSection'
 export interface CreateEventTriggerFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: z.infer<typeof formSchema>) => void;
+  onSubmit?: (data: z.infer<typeof formSchema>) => void;
 }
 
 const formSchema = z
