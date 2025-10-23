@@ -7,8 +7,6 @@
  */
 import type { AddRemoteSchemaPermissionsStep } from './addRemoteSchemaPermissionsStep';
 import type { AddRemoteSchemaStep } from './addRemoteSchemaStep';
-import type { CreateEventTriggerStep } from './createEventTriggerStep';
-import type { DeleteEventTriggerStep } from './deleteEventTriggerStep';
 import type { DropRemoteSchemaPermissionsStep } from './dropRemoteSchemaPermissionsStep';
 import type { RemoveRemoteSchemaStep } from './removeRemoteSchemaStep';
 import type { UpdateRemoteSchemaStep } from './updateRemoteSchemaStep';
@@ -18,6 +16,4 @@ export type MigrationStep =
   | DropRemoteSchemaPermissionsStep
   | UpdateRemoteSchemaStep
   | RemoveRemoteSchemaStep
-  | AddRemoteSchemaStep
-  | CreateEventTriggerStep
-  | DeleteEventTriggerStep;
+  | AddRemoteSchemaStep;

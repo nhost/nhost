@@ -225,8 +225,6 @@ components:
         - $ref: '#/components/schemas/UpdateRemoteSchemaStep'
         - $ref: '#/components/schemas/RemoveRemoteSchemaStep'
         - $ref: '#/components/schemas/AddRemoteSchemaStep'
-        - $ref: '#/components/schemas/CreateEventTriggerStep'
-        - $ref: '#/components/schemas/DeleteEventTriggerStep'
 
     MigrationRequest:
       type: object
