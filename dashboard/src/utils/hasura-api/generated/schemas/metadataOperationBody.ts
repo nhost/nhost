@@ -7,6 +7,7 @@
  */
 import type { AddEventTriggerBulkOperation } from './addEventTriggerBulkOperation';
 import type { AddRemoteSchemaOperation } from './addRemoteSchemaOperation';
+import type { DeleteEventTriggerBulkOperation } from './deleteEventTriggerBulkOperation';
 import type { DeleteRemoteSchemaRemoteRelationshipOperation } from './deleteRemoteSchemaRemoteRelationshipOperation';
 import type { ExportMetadata } from './exportMetadata';
 import type { GetEventAndInvocationLogsByIdOperation } from './getEventAndInvocationLogsByIdOperation';
@@ -34,4 +35,5 @@ export type MetadataOperationBody =
   | GetEventLogsOperation
   | GetEventAndInvocationLogsByIdOperation
   | RedeliverEventOperation
-  | AddEventTriggerBulkOperation;
+  | AddEventTriggerBulkOperation
+  | DeleteEventTriggerBulkOperation;

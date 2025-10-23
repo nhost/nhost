@@ -33,6 +33,7 @@ paths:
                 - $ref: '#/components/schemas/GetEventAndInvocationLogsByIdOperation'
                 - $ref: '#/components/schemas/RedeliverEventOperation'
                 - $ref: '#/components/schemas/AddEventTriggerBulkOperation'
+                - $ref: '#/components/schemas/DeleteEventTriggerBulkOperation'
       responses:
         '200':
           description: Operation executed successfully
@@ -50,6 +51,15 @@ paths:
                   - $ref: '#/components/schemas/GetEventInvocationLogsResponse'
                   - $ref: '#/components/schemas/GetEventLogsResponse'
                   - $ref: '#/components/schemas/GetEventAndInvocationLogsByIdResponse'
+                  - type: array
+                    description: List of success messages for bulk operations
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                          example: success
+
         '400':
           description: Bad request
           content:
@@ -176,6 +186,29 @@ components:
         args:
           $ref: '#/components/schemas/RemoveRemoteSchemaArgs'
 
+    DeleteEventTriggerStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_delete_event_trigger]
+        args:
+          type: object
+          required:
+            - name
+          properties:
+            name:
+              type: string
+              description: Name of the Event Trigger
+              example: my_event_trigger
+            source:
+              type: string
+              description: Name of the source database of the trigger
+              default: default
+
     MigrationStep:
       oneOf:
         - $ref: '#/components/schemas/AddRemoteSchemaPermissionsStep'
@@ -183,6 +216,8 @@ components:
         - $ref: '#/components/schemas/UpdateRemoteSchemaStep'
         - $ref: '#/components/schemas/RemoveRemoteSchemaStep'
         - $ref: '#/components/schemas/AddRemoteSchemaStep'
+        - $ref: '#/components/schemas/CreateEventTriggerStep'
+        - $ref: '#/components/schemas/DeleteEventTriggerStep'
 
     MigrationRequest:
       type: object
@@ -1705,3 +1740,27 @@ components:
           enum: [pg_create_event_trigger]
         args:
           $ref: '#/components/schemas/CreateEventTriggerArgs'
+
+    DeleteEventTriggerBulkOperation:
+      type: object
+      required:
+        - type
+        - args
+        - source
+      properties:
+        type:
+          type: string
+          enum: [bulk]
+          description: Execute multiple operations in a single query
+        source:
+          type: string
+          description: Source of the operation
+          example: default
+        resource_version:
+          type: integer
+          description: Resource version of the operation
+          example: 1
+        args:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeleteEventTriggerStep'
