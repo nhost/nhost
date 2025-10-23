@@ -1308,7 +1308,7 @@ components:
     BearerAuthElevated:
       type: http
       scheme: bearer
-      description: "Bearer authentication that requires elevated permissions. Used for sensitive operations that may require additional security measures such as recent authentication. For details see https://docs.nhost.io/guides/auth/elevated-permissions"
+      description: "Bearer authentication that requires elevated permissions. Used for sensitive operations that may require additional security measures such as recent authentication. For details see https://docs.nhost.io/products/auth/elevated-permissions"
 
   schemas:
     AttestationFormat:

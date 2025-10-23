@@ -32,16 +32,22 @@ func (ctrl *Controller) ChangeUserMfa( //nolint:ireturn
 		accountName = user.ID.String()
 	}
 
-	secret, imgBase64, err := ctrl.totp.Generate(accountName)
+	plainSecret, imgBase64, err := ctrl.totp.Generate(accountName)
 	if err != nil {
 		logger.ErrorContext(ctx, "failed to generate TOTP: %v", logError(err))
+		return ctrl.sendError(ErrInternalServerError), nil
+	}
+
+	secret, err := ctrl.encrypter.Encrypt([]byte(plainSecret))
+	if err != nil {
+		logger.ErrorContext(ctx, "failed to encrypt TOTP secret: %v", logError(err))
 		return ctrl.sendError(ErrInternalServerError), nil
 	}
 
 	if err := ctrl.wf.db.UpdateUserTotpSecret(
 		ctx, sql.UpdateUserTotpSecretParams{
 			ID:         user.ID,
-			TotpSecret: sql.Text(secret),
+			TotpSecret: sql.Text(string(secret)),
 		},
 	); err != nil {
 		logger.ErrorContext(ctx, "failed to update TOTP secret: %v", logError(err))
@@ -50,6 +56,6 @@ func (ctrl *Controller) ChangeUserMfa( //nolint:ireturn
 
 	return api.ChangeUserMfa200JSONResponse{
 		ImageUrl:   "data:image/png;base64," + imgBase64,
-		TotpSecret: secret,
+		TotpSecret: plainSecret,
 	}, nil
 }

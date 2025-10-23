@@ -70,18 +70,28 @@ type ConfigAIUpdateInput struct {
 	WebhookSecret  *string                            `json:"webhookSecret,omitempty"`
 }
 
+// Configuration for auth service
+// You can find more information about the configuration here:
+// https://github.com/nhost/hasura-auth/blob/main/docs/environment-variables.md
 type ConfigAuth struct {
 	ElevatedPrivileges *ConfigAuthElevatedPrivileges `json:"elevatedPrivileges,omitempty"`
 	Method             *ConfigAuthMethod             `json:"method,omitempty"`
 	Misc               *ConfigAuthMisc               `json:"misc,omitempty"`
 	RateLimit          *ConfigAuthRateLimit          `json:"rateLimit,omitempty"`
 	Redirections       *ConfigAuthRedirections       `json:"redirections,omitempty"`
-	Resources          *ConfigResources              `json:"resources,omitempty"`
-	Session            *ConfigAuthSession            `json:"session,omitempty"`
-	SignUp             *ConfigAuthSignUp             `json:"signUp,omitempty"`
-	Totp               *ConfigAuthTotp               `json:"totp,omitempty"`
-	User               *ConfigAuthUser               `json:"user,omitempty"`
-	Version            *string                       `json:"version,omitempty"`
+	// Resources for the service
+	Resources *ConfigResources   `json:"resources,omitempty"`
+	Session   *ConfigAuthSession `json:"session,omitempty"`
+	SignUp    *ConfigAuthSignUp  `json:"signUp,omitempty"`
+	Totp      *ConfigAuthTotp    `json:"totp,omitempty"`
+	User      *ConfigAuthUser    `json:"user,omitempty"`
+	// Version of auth, you can see available versions in the URL below:
+	// https://hub.docker.com/r/nhost/hasura-auth/tags
+	//
+	// Releases:
+	//
+	// https://github.com/nhost/hasura-auth/releases
+	Version *string `json:"version,omitempty"`
 }
 
 type ConfigAuthElevatedPrivileges struct {
@@ -111,9 +121,11 @@ type ConfigAuthMethodAnonymousUpdateInput struct {
 }
 
 type ConfigAuthMethodEmailPassword struct {
-	EmailVerificationRequired *bool   `json:"emailVerificationRequired,omitempty"`
-	HibpEnabled               *bool   `json:"hibpEnabled,omitempty"`
-	PasswordMinLength         *uint32 `json:"passwordMinLength,omitempty"`
+	EmailVerificationRequired *bool `json:"emailVerificationRequired,omitempty"`
+	// Disabling email+password sign in is not implmented yet
+	// enabled: bool | *true
+	HibpEnabled       *bool   `json:"hibpEnabled,omitempty"`
+	PasswordMinLength *uint32 `json:"passwordMinLength,omitempty"`
 }
 
 type ConfigAuthMethodEmailPasswordUpdateInput struct {
@@ -335,8 +347,10 @@ type ConfigAuthRateLimitUpdateInput struct {
 }
 
 type ConfigAuthRedirections struct {
+	// AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS
 	AllowedUrls []string `json:"allowedUrls,omitempty"`
-	ClientURL   *string  `json:"clientUrl,omitempty"`
+	// AUTH_CLIENT_URL
+	ClientURL *string `json:"clientUrl,omitempty"`
 }
 
 type ConfigAuthRedirectionsUpdateInput struct {
@@ -350,8 +364,10 @@ type ConfigAuthSession struct {
 }
 
 type ConfigAuthSessionAccessToken struct {
+	// AUTH_JWT_CUSTOM_CLAIMS
 	CustomClaims []*ConfigAuthsessionaccessTokenCustomClaims `json:"customClaims,omitempty"`
-	ExpiresIn    *uint32                                     `json:"expiresIn,omitempty"`
+	// AUTH_ACCESS_TOKEN_EXPIRES_IN
+	ExpiresIn *uint32 `json:"expiresIn,omitempty"`
 }
 
 type ConfigAuthSessionAccessTokenUpdateInput struct {
@@ -360,6 +376,7 @@ type ConfigAuthSessionAccessTokenUpdateInput struct {
 }
 
 type ConfigAuthSessionRefreshToken struct {
+	// AUTH_REFRESH_TOKEN_EXPIRES_IN
 	ExpiresIn *uint32 `json:"expiresIn,omitempty"`
 }
 
@@ -373,9 +390,11 @@ type ConfigAuthSessionUpdateInput struct {
 }
 
 type ConfigAuthSignUp struct {
-	DisableNewUsers *bool                      `json:"disableNewUsers,omitempty"`
-	Enabled         *bool                      `json:"enabled,omitempty"`
-	Turnstile       *ConfigAuthSignUpTurnstile `json:"turnstile,omitempty"`
+	// AUTH_DISABLE_NEW_USERS
+	DisableNewUsers *bool `json:"disableNewUsers,omitempty"`
+	// Inverse of AUTH_DISABLE_SIGNUP
+	Enabled   *bool                      `json:"enabled,omitempty"`
+	Turnstile *ConfigAuthSignUpTurnstile `json:"turnstile,omitempty"`
 }
 
 type ConfigAuthSignUpTurnstile struct {
@@ -425,12 +444,16 @@ type ConfigAuthUser struct {
 }
 
 type ConfigAuthUserEmail struct {
+	// AUTH_ACCESS_CONTROL_ALLOWED_EMAILS
 	Allowed []string `json:"allowed,omitempty"`
+	// AUTH_ACCESS_CONTROL_BLOCKED_EMAILS
 	Blocked []string `json:"blocked,omitempty"`
 }
 
 type ConfigAuthUserEmailDomains struct {
+	// AUTH_ACCESS_CONTROL_ALLOWED_EMAIL_DOMAINS
 	Allowed []string `json:"allowed,omitempty"`
+	// AUTH_ACCESS_CONTROL_BLOCKED_EMAIL_DOMAINS
 	Blocked []string `json:"blocked,omitempty"`
 }
 
@@ -446,6 +469,7 @@ type ConfigAuthUserEmailUpdateInput struct {
 
 type ConfigAuthUserGravatar struct {
 	Default *string `json:"default,omitempty"`
+	// AUTH_GRAVATAR_ENABLED
 	Enabled *bool   `json:"enabled,omitempty"`
 	Rating  *string `json:"rating,omitempty"`
 }
@@ -457,8 +481,10 @@ type ConfigAuthUserGravatarUpdateInput struct {
 }
 
 type ConfigAuthUserLocale struct {
+	// AUTH_LOCALE_ALLOWED_LOCALES
 	Allowed []string `json:"allowed,omitempty"`
-	Default *string  `json:"default,omitempty"`
+	// AUTH_LOCALE_DEFAULT
+	Default *string `json:"default,omitempty"`
 }
 
 type ConfigAuthUserLocaleUpdateInput struct {
@@ -467,8 +493,10 @@ type ConfigAuthUserLocaleUpdateInput struct {
 }
 
 type ConfigAuthUserRoles struct {
+	// AUTH_USER_DEFAULT_ALLOWED_ROLES
 	Allowed []string `json:"allowed,omitempty"`
-	Default *string  `json:"default,omitempty"`
+	// AUTH_USER_DEFAULT_ROLE
+	Default *string `json:"default,omitempty"`
 }
 
 type ConfigAuthUserRolesUpdateInput struct {
@@ -484,6 +512,7 @@ type ConfigAuthUserUpdateInput struct {
 	Roles        *ConfigAuthUserRolesUpdateInput        `json:"roles,omitempty"`
 }
 
+// AUTH_JWT_CUSTOM_CLAIMS
 type ConfigAuthsessionaccessTokenCustomClaims struct {
 	Default *string `json:"default,omitempty"`
 	Key     string  `json:"key"`
@@ -522,8 +551,11 @@ type ConfigClaimMapUpdateInput struct {
 	Value   *string `json:"value,omitempty"`
 }
 
+// Resource configuration for a service
 type ConfigComputeResources struct {
-	CPU    uint32 `json:"cpu"`
+	// milicpus, 1000 milicpus = 1 cpu
+	CPU uint32 `json:"cpu"`
+	// MiB: 128MiB to 30GiB
 	Memory uint32 `json:"memory"`
 }
 
@@ -537,17 +569,28 @@ type ConfigComputeResourcesUpdateInput struct {
 	Memory *uint32 `json:"memory,omitempty"`
 }
 
+// main entrypoint to the configuration
 type ConfigConfig struct {
-	Ai            *ConfigAi            `json:"ai,omitempty"`
-	Auth          *ConfigAuth          `json:"auth,omitempty"`
-	Functions     *ConfigFunctions     `json:"functions,omitempty"`
-	Global        *ConfigGlobal        `json:"global,omitempty"`
-	Graphql       *ConfigGraphql       `json:"graphql,omitempty"`
-	Hasura        *ConfigHasura        `json:"hasura"`
+	// Configuration for graphite service
+	Ai *ConfigAi `json:"ai,omitempty"`
+	// Configuration for auth service
+	Auth *ConfigAuth `json:"auth,omitempty"`
+	// Configuration for functions service
+	Functions *ConfigFunctions `json:"functions,omitempty"`
+	// Global configuration that applies to all services
+	Global *ConfigGlobal `json:"global,omitempty"`
+	// Advanced configuration for GraphQL
+	Graphql *ConfigGraphql `json:"graphql,omitempty"`
+	// Configuration for hasura
+	Hasura *ConfigHasura `json:"hasura"`
+	// Configuration for observability service
 	Observability *ConfigObservability `json:"observability"`
-	Postgres      *ConfigPostgres      `json:"postgres"`
-	Provider      *ConfigProvider      `json:"provider,omitempty"`
-	Storage       *ConfigStorage       `json:"storage,omitempty"`
+	// Configuration for postgres service
+	Postgres *ConfigPostgres `json:"postgres"`
+	// Configuration for third party providers like SMTP, SMS, etc.
+	Provider *ConfigProvider `json:"provider,omitempty"`
+	// Configuration for storage service
+	Storage *ConfigStorage `json:"storage,omitempty"`
 }
 
 type ConfigConfigUpdateInput struct {
@@ -564,7 +607,8 @@ type ConfigConfigUpdateInput struct {
 }
 
 type ConfigEnvironmentVariable struct {
-	Name  string `json:"name"`
+	Name string `json:"name"`
+	// Value of the environment variable
 	Value string `json:"value"`
 }
 
@@ -578,6 +622,7 @@ type ConfigEnvironmentVariableUpdateInput struct {
 	Value *string `json:"value,omitempty"`
 }
 
+// Configuration for functions service
 type ConfigFunctions struct {
 	Node      *ConfigFunctionsNode      `json:"node,omitempty"`
 	RateLimit *ConfigRateLimit          `json:"rateLimit,omitempty"`
@@ -606,12 +651,15 @@ type ConfigFunctionsUpdateInput struct {
 	Resources *ConfigFunctionsResourcesUpdateInput `json:"resources,omitempty"`
 }
 
+// Global configuration that applies to all services
 type ConfigGlobal struct {
+	// User-defined environment variables that are spread over all services
 	Environment []*ConfigGlobalEnvironmentVariable `json:"environment,omitempty"`
 }
 
 type ConfigGlobalEnvironmentVariable struct {
-	Name  string `json:"name"`
+	Name string `json:"name"`
+	// Value of the environment variable
 	Value string `json:"value"`
 }
 
@@ -768,23 +816,34 @@ type ConfigGraphqlUpdateInput struct {
 	Security *ConfigGraphqlSecurityUpdateInput `json:"security,omitempty"`
 }
 
+// Configuration for hasura service
 type ConfigHasura struct {
-	AdminSecret   string                `json:"adminSecret"`
-	AuthHook      *ConfigHasuraAuthHook `json:"authHook,omitempty"`
-	Events        *ConfigHasuraEvents   `json:"events,omitempty"`
-	JwtSecrets    []*ConfigJWTSecret    `json:"jwtSecrets,omitempty"`
-	Logs          *ConfigHasuraLogs     `json:"logs,omitempty"`
-	RateLimit     *ConfigRateLimit      `json:"rateLimit,omitempty"`
-	Resources     *ConfigResources      `json:"resources,omitempty"`
-	Settings      *ConfigHasuraSettings `json:"settings,omitempty"`
-	Version       *string               `json:"version,omitempty"`
-	WebhookSecret string                `json:"webhookSecret"`
+	// Admin secret
+	AdminSecret string                `json:"adminSecret"`
+	AuthHook    *ConfigHasuraAuthHook `json:"authHook,omitempty"`
+	Events      *ConfigHasuraEvents   `json:"events,omitempty"`
+	// JWT Secrets configuration
+	JwtSecrets []*ConfigJWTSecret `json:"jwtSecrets,omitempty"`
+	Logs       *ConfigHasuraLogs  `json:"logs,omitempty"`
+	RateLimit  *ConfigRateLimit   `json:"rateLimit,omitempty"`
+	// Resources for the service
+	Resources *ConfigResources `json:"resources,omitempty"`
+	// Configuration for hasura services
+	// Reference: https://hasura.io/docs/latest/deployment/graphql-engine-flags/reference/
+	Settings *ConfigHasuraSettings `json:"settings,omitempty"`
+	// Version of hasura, you can see available versions in the URL below:
+	// https://hub.docker.com/r/hasura/graphql-engine/tags
+	Version *string `json:"version,omitempty"`
+	// Webhook secret
+	WebhookSecret string `json:"webhookSecret"`
 }
 
 type ConfigHasuraAuthHook struct {
-	Mode            *string `json:"mode,omitempty"`
-	SendRequestBody *bool   `json:"sendRequestBody,omitempty"`
-	URL             string  `json:"url"`
+	Mode *string `json:"mode,omitempty"`
+	// HASURA_GRAPHQL_AUTH_HOOK_SEND_REQUEST_BODY
+	SendRequestBody *bool `json:"sendRequestBody,omitempty"`
+	// HASURA_GRAPHQL_AUTH_HOOK
+	URL string `json:"url"`
 }
 
 type ConfigHasuraAuthHookUpdateInput struct {
@@ -794,6 +853,7 @@ type ConfigHasuraAuthHookUpdateInput struct {
 }
 
 type ConfigHasuraEvents struct {
+	// HASURA_GRAPHQL_EVENTS_HTTP_POOL_SIZE
 	HTTPPoolSize *uint32 `json:"httpPoolSize,omitempty"`
 }
 
@@ -809,16 +869,27 @@ type ConfigHasuraLogsUpdateInput struct {
 	Level *string `json:"level,omitempty"`
 }
 
+// Configuration for hasura services
+// Reference: https://hasura.io/docs/latest/deployment/graphql-engine-flags/reference/
 type ConfigHasuraSettings struct {
-	CorsDomain                            []string `json:"corsDomain,omitempty"`
-	DevMode                               *bool    `json:"devMode,omitempty"`
-	EnableAllowList                       *bool    `json:"enableAllowList,omitempty"`
-	EnableConsole                         *bool    `json:"enableConsole,omitempty"`
-	EnableRemoteSchemaPermissions         *bool    `json:"enableRemoteSchemaPermissions,omitempty"`
-	EnabledAPIs                           []string `json:"enabledAPIs,omitempty"`
-	InferFunctionPermissions              *bool    `json:"inferFunctionPermissions,omitempty"`
-	LiveQueriesMultiplexedRefetchInterval *uint32  `json:"liveQueriesMultiplexedRefetchInterval,omitempty"`
-	StringifyNumericTypes                 *bool    `json:"stringifyNumericTypes,omitempty"`
+	// HASURA_GRAPHQL_CORS_DOMAIN
+	CorsDomain []string `json:"corsDomain,omitempty"`
+	// HASURA_GRAPHQL_DEV_MODE
+	DevMode *bool `json:"devMode,omitempty"`
+	// HASURA_GRAPHQL_ENABLE_ALLOWLIST
+	EnableAllowList *bool `json:"enableAllowList,omitempty"`
+	// HASURA_GRAPHQL_ENABLE_CONSOLE
+	EnableConsole *bool `json:"enableConsole,omitempty"`
+	// HASURA_GRAPHQL_ENABLE_REMOTE_SCHEMA_PERMISSIONS
+	EnableRemoteSchemaPermissions *bool `json:"enableRemoteSchemaPermissions,omitempty"`
+	// HASURA_GRAPHQL_ENABLED_APIS
+	EnabledAPIs []string `json:"enabledAPIs,omitempty"`
+	// HASURA_GRAPHQL_INFER_FUNCTION_PERMISSIONS
+	InferFunctionPermissions *bool `json:"inferFunctionPermissions,omitempty"`
+	// HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL
+	LiveQueriesMultiplexedRefetchInterval *uint32 `json:"liveQueriesMultiplexedRefetchInterval,omitempty"`
+	// HASURA_GRAPHQL_STRINGIFY_NUMERIC_TYPES
+	StringifyNumericTypes *bool `json:"stringifyNumericTypes,omitempty"`
 }
 
 type ConfigHasuraSettingsUpdateInput struct {
@@ -891,6 +962,7 @@ type ConfigIngressUpdateInput struct {
 	TLS  *ConfigIngressTLSUpdateInput `json:"tls,omitempty"`
 }
 
+// See https://hasura.io/docs/latest/auth/authentication/jwt/
 type ConfigJWTSecret struct {
 	AllowedSkew         *uint32           `json:"allowed_skew,omitempty"`
 	Audience            *string           `json:"audience,omitempty"`
@@ -939,11 +1011,15 @@ type ConfigObservabilityUpdateInput struct {
 	Grafana *ConfigGrafanaUpdateInput `json:"grafana,omitempty"`
 }
 
+// Configuration for postgres service
 type ConfigPostgres struct {
-	Pitr      *ConfigPostgresPitr      `json:"pitr,omitempty"`
+	Pitr *ConfigPostgresPitr `json:"pitr,omitempty"`
+	// Resources for the service
 	Resources *ConfigPostgresResources `json:"resources"`
 	Settings  *ConfigPostgresSettings  `json:"settings,omitempty"`
-	Version   *string                  `json:"version,omitempty"`
+	// Version of postgres, you can see available versions in the URL below:
+	// https://hub.docker.com/r/nhost/postgres/tags
+	Version *string `json:"version,omitempty"`
 }
 
 type ConfigPostgresPitr struct {
@@ -954,6 +1030,7 @@ type ConfigPostgresPitrUpdateInput struct {
 	Retention *uint32 `json:"retention,omitempty"`
 }
 
+// Resources for the service
 type ConfigPostgresResources struct {
 	Compute            *ConfigResourcesCompute         `json:"compute,omitempty"`
 	EnablePublicAccess *bool                           `json:"enablePublicAccess,omitempty"`
@@ -1060,15 +1137,19 @@ type ConfigRateLimitUpdateInput struct {
 	Limit    *uint32 `json:"limit,omitempty"`
 }
 
+// Resource configuration for a service
 type ConfigResources struct {
 	Autoscaler *ConfigAutoscaler       `json:"autoscaler,omitempty"`
 	Compute    *ConfigResourcesCompute `json:"compute,omitempty"`
 	Networking *ConfigNetworking       `json:"networking,omitempty"`
-	Replicas   *uint32                 `json:"replicas,omitempty"`
+	// Number of replicas for a service
+	Replicas *uint32 `json:"replicas,omitempty"`
 }
 
 type ConfigResourcesCompute struct {
-	CPU    uint32 `json:"cpu"`
+	// milicpus, 1000 milicpus = 1 cpu
+	CPU uint32 `json:"cpu"`
+	// MiB: 128MiB to 30GiB
 	Memory uint32 `json:"memory"`
 }
 
@@ -1120,7 +1201,8 @@ type ConfigRunServiceConfigWithID struct {
 }
 
 type ConfigRunServiceImage struct {
-	Image           string  `json:"image"`
+	Image string `json:"image"`
+	// content of "auths", i.e., { "auths": $THIS }
 	PullCredentials *string `json:"pullCredentials,omitempty"`
 }
 
@@ -1158,11 +1240,13 @@ type ConfigRunServicePortUpdateInput struct {
 	Type      *string                     `json:"type,omitempty"`
 }
 
+// Resource configuration for a service
 type ConfigRunServiceResources struct {
-	Autoscaler *ConfigAutoscaler                   `json:"autoscaler,omitempty"`
-	Compute    *ConfigComputeResources             `json:"compute"`
-	Replicas   uint32                              `json:"replicas"`
-	Storage    []*ConfigRunServiceResourcesStorage `json:"storage,omitempty"`
+	Autoscaler *ConfigAutoscaler       `json:"autoscaler,omitempty"`
+	Compute    *ConfigComputeResources `json:"compute"`
+	// Number of replicas for a service
+	Replicas uint32                              `json:"replicas"`
+	Storage  []*ConfigRunServiceResourcesStorage `json:"storage,omitempty"`
 }
 
 type ConfigRunServiceResourcesInsertInput struct {
@@ -1173,9 +1257,11 @@ type ConfigRunServiceResourcesInsertInput struct {
 }
 
 type ConfigRunServiceResourcesStorage struct {
+	// GiB
 	Capacity uint32 `json:"capacity"`
-	Name     string `json:"name"`
-	Path     string `json:"path"`
+	// name of the volume, changing it will cause data loss
+	Name string `json:"name"`
+	Path string `json:"path"`
 }
 
 type ConfigRunServiceResourcesStorageInsertInput struct {
@@ -1259,11 +1345,20 @@ type ConfigStandardOauthProviderWithScopeUpdateInput struct {
 	Scope        []string `json:"scope,omitempty"`
 }
 
+// Configuration for storage service
 type ConfigStorage struct {
 	Antivirus *ConfigStorageAntivirus `json:"antivirus,omitempty"`
 	RateLimit *ConfigRateLimit        `json:"rateLimit,omitempty"`
-	Resources *ConfigResources        `json:"resources,omitempty"`
-	Version   *string                 `json:"version,omitempty"`
+	// Networking (custom domains at the moment) are not allowed as we need to do further
+	// configurations in the CDN. We will enable it again in the future.
+	Resources *ConfigResources `json:"resources,omitempty"`
+	// Version of storage service, you can see available versions in the URL below:
+	// https://hub.docker.com/r/nhost/hasura-storage/tags
+	//
+	// Releases:
+	//
+	// https://github.com/nhost/hasura-storage/releases
+	Version *string `json:"version,omitempty"`
 }
 
 type ConfigStorageAntivirus struct {
@@ -1301,6 +1396,8 @@ type ConfigSystemConfigAuthEmailTemplates struct {
 }
 
 type ConfigSystemConfigGraphql struct {
+	// manually enable graphi on a per-service basis
+	// by default it follows the plan
 	FeatureAdvancedGraphql *bool `json:"featureAdvancedGraphql,omitempty"`
 }
 
@@ -1718,7 +1815,8 @@ type Apps struct {
 	AppStates        []*AppStateHistory `json:"appStates"`
 	AutomaticDeploys bool               `json:"automaticDeploys"`
 	// An array relationship
-	Backups   []*Backups    `json:"backups"`
+	Backups []*Backups `json:"backups"`
+	// main entrypoint to the configuration
 	Config    *ConfigConfig `json:"config,omitempty"`
 	CreatedAt time.Time     `json:"createdAt"`
 	// An object relationship

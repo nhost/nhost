@@ -494,6 +494,57 @@ func (q *Queries) GetUserRoles(ctx context.Context, userID uuid.UUID) ([]AuthUse
 	return items, nil
 }
 
+const getUsersWithUnencryptedTOTPSecret = `-- name: GetUsersWithUnencryptedTOTPSecret :many
+SELECT id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge FROM auth.users
+WHERE LENGTH(totp_secret) < 64
+`
+
+func (q *Queries) GetUsersWithUnencryptedTOTPSecret(ctx context.Context) ([]AuthUser, error) {
+	rows, err := q.db.Query(ctx, getUsersWithUnencryptedTOTPSecret)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AuthUser
+	for rows.Next() {
+		var i AuthUser
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.LastSeen,
+			&i.Disabled,
+			&i.DisplayName,
+			&i.AvatarUrl,
+			&i.Locale,
+			&i.Email,
+			&i.PhoneNumber,
+			&i.PasswordHash,
+			&i.EmailVerified,
+			&i.PhoneNumberVerified,
+			&i.NewEmail,
+			&i.OtpMethodLastUsed,
+			&i.OtpHash,
+			&i.OtpHashExpiresAt,
+			&i.DefaultRole,
+			&i.IsAnonymous,
+			&i.TotpSecret,
+			&i.ActiveMfaType,
+			&i.Ticket,
+			&i.TicketExpiresAt,
+			&i.Metadata,
+			&i.WebauthnCurrentChallenge,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const insertRefreshtoken = `-- name: InsertRefreshtoken :one
 INSERT INTO auth.refresh_tokens (user_id, refresh_token_hash, expires_at, type, metadata)
 VALUES ($1, $2, $3, $4, $5)

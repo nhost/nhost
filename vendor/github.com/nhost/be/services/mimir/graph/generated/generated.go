@@ -688,11 +688,13 @@ type ComplexityRoot struct {
 	}
 
 	ConfigSystemConfigPostgres struct {
-		ConnectionString func(childComplexity int) int
-		Database         func(childComplexity int) int
-		Disk             func(childComplexity int) int
-		Enabled          func(childComplexity int) int
-		MajorVersion     func(childComplexity int) int
+		ConnectionString    func(childComplexity int) int
+		Database            func(childComplexity int) int
+		Disk                func(childComplexity int) int
+		Enabled             func(childComplexity int) int
+		EncryptColumnKey    func(childComplexity int) int
+		MajorVersion        func(childComplexity int) int
+		OldEncryptColumnKey func(childComplexity int) int
 	}
 
 	ConfigSystemConfigPostgresConnectionString struct {
@@ -3208,12 +3210,26 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.ConfigSystemConfigPostgres.Enabled(childComplexity), true
 
+	case "ConfigSystemConfigPostgres.encryptColumnKey":
+		if e.complexity.ConfigSystemConfigPostgres.EncryptColumnKey == nil {
+			break
+		}
+
+		return e.complexity.ConfigSystemConfigPostgres.EncryptColumnKey(childComplexity), true
+
 	case "ConfigSystemConfigPostgres.majorVersion":
 		if e.complexity.ConfigSystemConfigPostgres.MajorVersion == nil {
 			break
 		}
 
 		return e.complexity.ConfigSystemConfigPostgres.MajorVersion(childComplexity), true
+
+	case "ConfigSystemConfigPostgres.oldEncryptColumnKey":
+		if e.complexity.ConfigSystemConfigPostgres.OldEncryptColumnKey == nil {
+			break
+		}
+
+		return e.complexity.ConfigSystemConfigPostgres.OldEncryptColumnKey(childComplexity), true
 
 	case "ConfigSystemConfigPostgresConnectionString.auth":
 		if e.complexity.ConfigSystemConfigPostgresConnectionString.Auth == nil {
@@ -8235,27 +8251,39 @@ type ConfigSystemConfigPostgres {
     """
 
     """
+    disk: ConfigSystemConfigPostgresDisk
+    """
+
+    """
+    encryptColumnKey: String
+    """
+
+    """
     database: String!
     """
 
     """
-    disk: ConfigSystemConfigPostgresDisk
+    oldEncryptColumnKey: String
 }
 
 input ConfigSystemConfigPostgresUpdateInput {
     enabled: Boolean
     majorVersion: String
     connectionString: ConfigSystemConfigPostgresConnectionStringUpdateInput
-    database: String
     disk: ConfigSystemConfigPostgresDiskUpdateInput
+    encryptColumnKey: String
+    database: String
+    oldEncryptColumnKey: String
 }
 
 input ConfigSystemConfigPostgresInsertInput {
     enabled: Boolean
     majorVersion: String
     connectionString: ConfigSystemConfigPostgresConnectionStringInsertInput!
-    database: String!
     disk: ConfigSystemConfigPostgresDiskInsertInput
+    encryptColumnKey: String
+    database: String!
+    oldEncryptColumnKey: String
 }
 
 input ConfigSystemConfigPostgresComparisonExp {
@@ -8265,8 +8293,10 @@ input ConfigSystemConfigPostgresComparisonExp {
     enabled: ConfigBooleanComparisonExp
     majorVersion: ConfigStringComparisonExp
     connectionString: ConfigSystemConfigPostgresConnectionStringComparisonExp
-    database: ConfigStringComparisonExp
     disk: ConfigSystemConfigPostgresDiskComparisonExp
+    encryptColumnKey: ConfigStringComparisonExp
+    database: ConfigStringComparisonExp
+    oldEncryptColumnKey: ConfigStringComparisonExp
 }
 
 """
@@ -25447,10 +25477,14 @@ func (ec *executionContext) fieldContext_ConfigSystemConfig_postgres(_ context.C
 				return ec.fieldContext_ConfigSystemConfigPostgres_majorVersion(ctx, field)
 			case "connectionString":
 				return ec.fieldContext_ConfigSystemConfigPostgres_connectionString(ctx, field)
-			case "database":
-				return ec.fieldContext_ConfigSystemConfigPostgres_database(ctx, field)
 			case "disk":
 				return ec.fieldContext_ConfigSystemConfigPostgres_disk(ctx, field)
+			case "encryptColumnKey":
+				return ec.fieldContext_ConfigSystemConfigPostgres_encryptColumnKey(ctx, field)
+			case "database":
+				return ec.fieldContext_ConfigSystemConfigPostgres_database(ctx, field)
+			case "oldEncryptColumnKey":
+				return ec.fieldContext_ConfigSystemConfigPostgres_oldEncryptColumnKey(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ConfigSystemConfigPostgres", field.Name)
 		},
@@ -25807,6 +25841,94 @@ func (ec *executionContext) fieldContext_ConfigSystemConfigPostgres_connectionSt
 	return fc, nil
 }
 
+func (ec *executionContext) _ConfigSystemConfigPostgres_disk(ctx context.Context, field graphql.CollectedField, obj *model.ConfigSystemConfigPostgres) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigSystemConfigPostgres_disk(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Disk, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.ConfigSystemConfigPostgresDisk)
+	fc.Result = res
+	return ec.marshalOConfigSystemConfigPostgresDisk2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresDisk(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigSystemConfigPostgres_disk(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigSystemConfigPostgres",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "iops":
+				return ec.fieldContext_ConfigSystemConfigPostgresDisk_iops(ctx, field)
+			case "tput":
+				return ec.fieldContext_ConfigSystemConfigPostgresDisk_tput(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConfigSystemConfigPostgresDisk", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigSystemConfigPostgres_encryptColumnKey(ctx context.Context, field graphql.CollectedField, obj *model.ConfigSystemConfigPostgres) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigSystemConfigPostgres_encryptColumnKey(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EncryptColumnKey, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigSystemConfigPostgres_encryptColumnKey(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigSystemConfigPostgres",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ConfigSystemConfigPostgres_database(ctx context.Context, field graphql.CollectedField, obj *model.ConfigSystemConfigPostgres) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ConfigSystemConfigPostgres_database(ctx, field)
 	if err != nil {
@@ -25851,8 +25973,8 @@ func (ec *executionContext) fieldContext_ConfigSystemConfigPostgres_database(_ c
 	return fc, nil
 }
 
-func (ec *executionContext) _ConfigSystemConfigPostgres_disk(ctx context.Context, field graphql.CollectedField, obj *model.ConfigSystemConfigPostgres) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ConfigSystemConfigPostgres_disk(ctx, field)
+func (ec *executionContext) _ConfigSystemConfigPostgres_oldEncryptColumnKey(ctx context.Context, field graphql.CollectedField, obj *model.ConfigSystemConfigPostgres) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigSystemConfigPostgres_oldEncryptColumnKey(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -25865,7 +25987,7 @@ func (ec *executionContext) _ConfigSystemConfigPostgres_disk(ctx context.Context
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Disk, nil
+		return obj.OldEncryptColumnKey, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -25874,25 +25996,19 @@ func (ec *executionContext) _ConfigSystemConfigPostgres_disk(ctx context.Context
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model.ConfigSystemConfigPostgresDisk)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalOConfigSystemConfigPostgresDisk2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresDisk(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ConfigSystemConfigPostgres_disk(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ConfigSystemConfigPostgres_oldEncryptColumnKey(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ConfigSystemConfigPostgres",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "iops":
-				return ec.fieldContext_ConfigSystemConfigPostgresDisk_iops(ctx, field)
-			case "tput":
-				return ec.fieldContext_ConfigSystemConfigPostgresDisk_tput(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type ConfigSystemConfigPostgresDisk", field.Name)
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -41018,7 +41134,7 @@ func (ec *executionContext) unmarshalInputConfigSystemConfigPostgresComparisonEx
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "enabled", "majorVersion", "connectionString", "database", "disk"}
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "enabled", "majorVersion", "connectionString", "disk", "encryptColumnKey", "database", "oldEncryptColumnKey"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -41067,13 +41183,6 @@ func (ec *executionContext) unmarshalInputConfigSystemConfigPostgresComparisonEx
 				return it, err
 			}
 			it.ConnectionString = data
-		case "database":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("database"))
-			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Database = data
 		case "disk":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("disk"))
 			data, err := ec.unmarshalOConfigSystemConfigPostgresDiskComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresDiskComparisonExp(ctx, v)
@@ -41081,6 +41190,27 @@ func (ec *executionContext) unmarshalInputConfigSystemConfigPostgresComparisonEx
 				return it, err
 			}
 			it.Disk = data
+		case "encryptColumnKey":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("encryptColumnKey"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.EncryptColumnKey = data
+		case "database":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("database"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Database = data
+		case "oldEncryptColumnKey":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("oldEncryptColumnKey"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OldEncryptColumnKey = data
 		}
 	}
 
@@ -41300,7 +41430,7 @@ func (ec *executionContext) unmarshalInputConfigSystemConfigPostgresInsertInput(
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"enabled", "majorVersion", "connectionString", "database", "disk"}
+	fieldsInOrder := [...]string{"enabled", "majorVersion", "connectionString", "disk", "encryptColumnKey", "database", "oldEncryptColumnKey"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -41328,13 +41458,6 @@ func (ec *executionContext) unmarshalInputConfigSystemConfigPostgresInsertInput(
 				return it, err
 			}
 			it.ConnectionString = data
-		case "database":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("database"))
-			data, err := ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Database = data
 		case "disk":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("disk"))
 			data, err := ec.unmarshalOConfigSystemConfigPostgresDiskInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresDiskInsertInput(ctx, v)
@@ -41342,6 +41465,27 @@ func (ec *executionContext) unmarshalInputConfigSystemConfigPostgresInsertInput(
 				return it, err
 			}
 			it.Disk = data
+		case "encryptColumnKey":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("encryptColumnKey"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.EncryptColumnKey = data
+		case "database":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("database"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Database = data
+		case "oldEncryptColumnKey":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("oldEncryptColumnKey"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OldEncryptColumnKey = data
 		}
 	}
 
@@ -46042,13 +46186,17 @@ func (ec *executionContext) _ConfigSystemConfigPostgres(ctx context.Context, sel
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "disk":
+			out.Values[i] = ec._ConfigSystemConfigPostgres_disk(ctx, field, obj)
+		case "encryptColumnKey":
+			out.Values[i] = ec._ConfigSystemConfigPostgres_encryptColumnKey(ctx, field, obj)
 		case "database":
 			out.Values[i] = ec._ConfigSystemConfigPostgres_database(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "disk":
-			out.Values[i] = ec._ConfigSystemConfigPostgres_disk(ctx, field, obj)
+		case "oldEncryptColumnKey":
+			out.Values[i] = ec._ConfigSystemConfigPostgres_oldEncryptColumnKey(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

@@ -20,6 +20,7 @@ services:
             HASURA_GRAPHQL_JWT_SECRET: '{"type":"HS256", "key":"5152fa850c02dc222631cca898ed1485821a70912a6e3649c49076912daa3b62182ba013315915d64f40cddfbb8b58eb5bd11ba225336a6af45bbae07ca873f3","issuer":"hasura-auth"}'
             HASURA_GRAPHQL_ADMIN_SECRET: nhost-admin-secret
             HASURA_GRAPHQL_GRAPHQL_URL: http://graphql:8080/v1/graphql
+            AUTH_ENCRYPTION_KEY: 5181f67e2844e4b60d571fa346cac9c37fc00d1ff519212eae6cead138e639ba
             AUTH_PORT: 4000
             AUTH_SERVER_URL: http://127.0.0.2:4000
             AUTH_USER_DEFAULT_ALLOWED_ROLES: 'me,user,editor'

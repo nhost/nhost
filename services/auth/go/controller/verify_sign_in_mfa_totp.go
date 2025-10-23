@@ -32,7 +32,13 @@ func (ctrl *Controller) VerifySignInMfaTotp( //nolint:ireturn
 		return ctrl.sendError(ErrNoTotpSecret), nil
 	}
 
-	valid := ctrl.totp.Validate(req.Body.Otp, user.TotpSecret.String)
+	totpSecret, err := ctrl.encrypter.Decrypt([]byte(user.TotpSecret.String))
+	if err != nil {
+		logger.ErrorContext(ctx, "failed to decrypt totp secret", logError(err))
+		return ctrl.sendError(ErrInternalServerError), nil
+	}
+
+	valid := ctrl.totp.Validate(req.Body.Otp, string(totpSecret))
 	if !valid {
 		logger.WarnContext(ctx, "invalid totp")
 		return ctrl.sendError(ErrInvalidTotp), nil

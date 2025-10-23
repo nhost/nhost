@@ -1,8 +1,7 @@
 ---
 name: "nhost-js: check and build"
 on:
-  # pull_request_target:
-  pull_request:
+  pull_request_target:
     paths:
       - '.github/workflows/wf_check.yaml'
       - '.github/workflows/nhost-js_checks.yaml'

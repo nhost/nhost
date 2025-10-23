@@ -58,7 +58,7 @@ func TestVerifyChangeUserMfa(t *testing.T) { //nolint:maintidx
 				).Return(sql.AuthUser{ //nolint:exhaustruct
 					ID:            userID,
 					Email:         sql.Text("user@acme.local"),
-					TotpSecret:    sql.Text("FEWCQAIILM6UOYZCPFYRAPAUCIFUUUK3JUZXWKJIN4ORQNK4EQCQ"),
+					TotpSecret:    sql.Text(encryptedTotpSecret),
 					ActiveMfaType: pgtype.Text{}, //nolint:exhaustruct
 				}, nil)
 
@@ -101,7 +101,7 @@ func TestVerifyChangeUserMfa(t *testing.T) { //nolint:maintidx
 				).Return(sql.AuthUser{ //nolint:exhaustruct
 					ID:            userID,
 					Email:         sql.Text("user@acme.local"),
-					TotpSecret:    sql.Text("FEWCQAIILM6UOYZCPFYRAPAUCIFUUUK3JUZXWKJIN4ORQNK4EQCQ"),
+					TotpSecret:    sql.Text(encryptedTotpSecret),
 					ActiveMfaType: sql.Text("totp"),
 				}, nil)
 
@@ -140,7 +140,7 @@ func TestVerifyChangeUserMfa(t *testing.T) { //nolint:maintidx
 				).Return(sql.AuthUser{ //nolint:exhaustruct
 					ID:            userID,
 					Email:         sql.Text("user@acme.local"),
-					TotpSecret:    sql.Text("FEWCQAIILM6UOYZCPFYRAPAUCIFUUUK3JUZXWKJIN4ORQNK4EQCQ"),
+					TotpSecret:    sql.Text(encryptedTotpSecret),
 					ActiveMfaType: pgtype.Text{}, //nolint:exhaustruct
 				}, nil)
 
@@ -179,7 +179,7 @@ func TestVerifyChangeUserMfa(t *testing.T) { //nolint:maintidx
 				).Return(sql.AuthUser{ //nolint:exhaustruct
 					ID:            userID,
 					Email:         sql.Text("user@acme.local"),
-					TotpSecret:    sql.Text("FEWCQAIILM6UOYZCPFYRAPAUCIFUUUK3JUZXWKJIN4ORQNK4EQCQ"),
+					TotpSecret:    sql.Text(encryptedTotpSecret),
 					ActiveMfaType: sql.Text("totp"),
 				}, nil)
 
@@ -261,7 +261,7 @@ func TestVerifyChangeUserMfa(t *testing.T) { //nolint:maintidx
 				).Return(sql.AuthUser{ //nolint:exhaustruct
 					ID:            userID,
 					Email:         sql.Text("user@acme.local"),
-					TotpSecret:    sql.Text("FEWCQAIILM6UOYZCPFYRAPAUCIFUUUK3JUZXWKJIN4ORQNK4EQCQ"),
+					TotpSecret:    sql.Text(encryptedTotpSecret),
 					ActiveMfaType: sql.Text("totp"),
 				}, nil)
 
