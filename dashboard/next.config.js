@@ -5,35 +5,29 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 const { version } = require('./package.json');
 
 function getCspHeader() {
-  // Default to "nhost" mode (backward compatible with original hardcoded CSP)
-  // Self-hosted deployments can set CSP_MODE=disabled or CSP_MODE=custom
-  const mode = process.env.CSP_MODE || 'nhost';
-
-  if (mode === 'disabled') {
-    return null;
+  switch (process.env.CSP_MODE) {
+    case 'disabled':
+      return null;
+    case 'custom':
+      return process.env.CSP_HEADER || null;
+    case 'nhost':
+    default:
+      return [
+        "default-src 'self' *.nhost.run wss://*.nhost.run nhost.run wss://nhost.run",
+        "script-src 'self' 'unsafe-eval' cdn.segment.com js.stripe.com challenges.cloudflare.com googletagmanager.com",
+        "connect-src 'self' *.nhost.run wss://*.nhost.run nhost.run wss://nhost.run discord.com api.segment.io api.segment.com cdn.segment.com nhost.zendesk.com",
+        "style-src 'self' 'unsafe-inline'",
+        "img-src 'self' blob: data: github.com avatars.githubusercontent.com s.gravatar.com *.nhost.run nhost.run",
+        "font-src 'self' data:",
+        "object-src 'none'",
+        "base-uri 'self'",
+        "form-action 'self'",
+        "frame-ancestors 'none'",
+        "frame-src 'self' js.stripe.com challenges.cloudflare.com",
+        "block-all-mixed-content",
+        "upgrade-insecure-requests",
+      ].join('; ') + ';';
   }
-
-  if (mode === 'custom') {
-    // User provides complete CSP header via CSP_HEADER environment variable
-    return process.env.CSP_HEADER || null;
-  }
-
-  // Default "nhost" mode - original hardcoded CSP for Nhost Cloud
-  return [
-    "default-src 'self' *.nhost.run wss://*.nhost.run nhost.run wss://nhost.run",
-    "script-src 'self' 'unsafe-eval' cdn.segment.com js.stripe.com challenges.cloudflare.com googletagmanager.com",
-    "connect-src 'self' *.nhost.run wss://*.nhost.run nhost.run wss://nhost.run discord.com api.segment.io api.segment.com cdn.segment.com nhost.zendesk.com",
-    "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' blob: data: github.com avatars.githubusercontent.com s.gravatar.com *.nhost.run nhost.run",
-    "font-src 'self' data:",
-    "object-src 'none'",
-    "base-uri 'self'",
-    "form-action 'self'",
-    "frame-ancestors 'none'",
-    "frame-src 'self' js.stripe.com challenges.cloudflare.com",
-    "block-all-mixed-content",
-    "upgrade-insecure-requests",
-  ].join('; ') + ';';
 }
 
 module.exports = withBundleAnalyzer({
