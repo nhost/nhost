@@ -49,9 +49,6 @@ paths:
                   - $ref: '#/components/schemas/GetEventInvocationLogsResponse'
                   - $ref: '#/components/schemas/GetEventLogsResponse'
                   - $ref: '#/components/schemas/GetEventAndInvocationLogsByIdResponse'
-                  - $ref: '#/components/schemas/GetEventInvocationLogsResponse'
-                  - $ref: '#/components/schemas/GetEventLogsResponse'
-                  - $ref: '#/components/schemas/GetEventAndInvocationLogsByIdResponse'
         '400':
           description: Bad request
           content:
