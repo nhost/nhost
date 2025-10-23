@@ -33,6 +33,7 @@ func expectedAuth() *Service {
 			"AUTH_DISABLE_SIGNUP":                       "false",
 			"AUTH_EMAIL_PASSWORDLESS_ENABLED":           "true",
 			"AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED": "true",
+			"AUTH_ENCRYPTION_KEY":                       "5181f67e2844e4b60d571fa346cac9c37fc00d1ff519212eae6cead138e639ba",
 			"AUTH_GRAVATAR_DEFAULT":                     "gravatarDefault",
 			"AUTH_GRAVATAR_ENABLED":                     "true",
 			"AUTH_GRAVATAR_RATING":                      "gravatarRating",
