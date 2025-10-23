@@ -3,6 +3,8 @@ import { Backdrop } from '@/components/ui/v2/Backdrop';
 import type { BoxProps } from '@/components/ui/v2/Box';
 import { Box } from '@/components/ui/v2/Box';
 import { IconButton } from '@/components/ui/v2/IconButton';
+import { PencilIcon } from '@/components/ui/v2/icons/PencilIcon';
+import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import {
   Accordion,
   AccordionContent,
@@ -10,6 +12,13 @@ import {
   AccordionTrigger,
 } from '@/components/ui/v3/accordion';
 import { Button } from '@/components/ui/v3/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/v3/dropdown-menu';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import CreateEventTriggerForm from '@/features/orgs/projects/events/event-triggers/components/CreateEventTriggerForm/CreateEventTriggerForm';
@@ -132,20 +141,36 @@ function EventsBrowserSidebarContent() {
                               )}
                               text={eventTrigger.name}
                             />
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className={cn(
-                                'px-1 hover:bg-accent/90 dark:hover:bg-muted/90',
-                                isSelected && 'text-primary hover:text-primary',
-                              )}
-                              onClick={(e) => {
-                                e.preventDefault();
-                              }}
-                              disabled
-                            >
-                              <Ellipsis className="h-6 w-6" />
-                            </Button>
+                            <DropdownMenu>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className={cn(
+                                  'px-1 hover:bg-accent/90 dark:hover:bg-muted/90',
+                                  isSelected &&
+                                    'text-primary hover:text-primary',
+                                )}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                }}
+                                asChild
+                              >
+                                <DropdownMenuTrigger>
+                                  <Ellipsis className="h-6 w-6" />
+                                </DropdownMenuTrigger>
+                              </Button>
+                              <DropdownMenuContent align="start">
+                                <DropdownMenuItem className="disabled flex cursor-pointer items-center gap-2 !text-sm+ font-medium">
+                                  <PencilIcon className="size-4 text-muted-foreground" />
+                                  Edit Event Trigger
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator className="my-0" />
+                                <DropdownMenuItem className="flex cursor-pointer items-center gap-2 !text-sm+ font-medium text-destructive focus:text-destructive">
+                                  <TrashIcon className="size-4" />
+                                  Delete Event Trigger
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </Link>
                         </Button>
                       );
@@ -157,7 +182,11 @@ function EventsBrowserSidebarContent() {
           </Accordion>
         </div>
       </div>
-      <CreateEventTriggerForm open={open} onOpenChange={setOpen} />
+      <CreateEventTriggerForm
+        open={open}
+        onOpenChange={setOpen}
+        onSubmit={() => {}}
+      />
     </>
   );
 }
