@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [@nhost/dashboard@2.40.0] - 2025-10-23
+
+### 🚀 Features
+
+- *(dashboard)* Allow configuring CSP header (#3627)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(dashboard)* Various improvements to support ticket page (#3630)
+
 ## [@nhost/dashboard@2.39.0] - 2025-10-22
 
 ### 🚀 Features
