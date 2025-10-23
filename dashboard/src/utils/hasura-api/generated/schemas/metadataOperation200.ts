@@ -18,4 +18,7 @@ export type MetadataOperation200 =
   | IntrospectRemoteSchemaResponse
   | GetEventInvocationLogsResponse
   | GetEventLogsResponse
+  | GetEventAndInvocationLogsByIdResponse
+  | GetEventInvocationLogsResponse
+  | GetEventLogsResponse
   | GetEventAndInvocationLogsByIdResponse;

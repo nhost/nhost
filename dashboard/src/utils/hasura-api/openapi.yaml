@@ -2,8 +2,6 @@ openapi: 3.0.0
 info:
   title: Hasura API
   description: API for managing remote schemas and events in Hasura
-  title: Hasura API
-  description: API for managing remote schemas and events in Hasura
   version: 1.0.0
 
 security:
@@ -295,41 +293,6 @@ components:
               description: List of data sources
               items:
                 type: object
-                properties:
-                  name:
-                    type: string
-                    description: Name of the data source
-                    example: default
-                  kind:
-                    type: string
-                    description: Kind of the data source
-                    example: postgres
-                  tables:
-                    type: array
-                    description: List of tables in the data source
-                    items:
-                      type: object
-                      required:
-                        - table
-                      properties:
-                        table:
-                          type: object
-                          properties:
-                            name:
-                              type: string
-                              description: Name of the table
-                              example: users
-                            schema:
-                              type: string
-                              description: Schema of the table
-                              example: public
-                          additionalProperties: true
-                        event_triggers:
-                          type: array
-                          description: List of event triggers for the table
-                          items:
-                            type: object
-                            $ref: '#/components/schemas/EventTrigger'
                 properties:
                   name:
                     type: string
@@ -944,7 +907,6 @@ components:
               properties:
                 queryType:
                   type: object
-                  nullable: true
                   nullable: true
                   properties:
                     name:
