@@ -4194,27 +4194,39 @@ type ConfigSystemConfigPostgres {
     """
 
     """
+    disk: ConfigSystemConfigPostgresDisk
+    """
+
+    """
+    encryptColumnKey: String
+    """
+
+    """
     database: String!
     """
 
     """
-    disk: ConfigSystemConfigPostgresDisk
+    oldEncryptColumnKey: String
 }
 
 input ConfigSystemConfigPostgresUpdateInput {
     enabled: Boolean
     majorVersion: String
     connectionString: ConfigSystemConfigPostgresConnectionStringUpdateInput
-    database: String
     disk: ConfigSystemConfigPostgresDiskUpdateInput
+    encryptColumnKey: String
+    database: String
+    oldEncryptColumnKey: String
 }
 
 input ConfigSystemConfigPostgresInsertInput {
     enabled: Boolean
     majorVersion: String
     connectionString: ConfigSystemConfigPostgresConnectionStringInsertInput!
-    database: String!
     disk: ConfigSystemConfigPostgresDiskInsertInput
+    encryptColumnKey: String
+    database: String!
+    oldEncryptColumnKey: String
 }
 
 input ConfigSystemConfigPostgresComparisonExp {
@@ -4224,8 +4236,10 @@ input ConfigSystemConfigPostgresComparisonExp {
     enabled: ConfigBooleanComparisonExp
     majorVersion: ConfigStringComparisonExp
     connectionString: ConfigSystemConfigPostgresConnectionStringComparisonExp
-    database: ConfigStringComparisonExp
     disk: ConfigSystemConfigPostgresDiskComparisonExp
+    encryptColumnKey: ConfigStringComparisonExp
+    database: ConfigStringComparisonExp
+    oldEncryptColumnKey: ConfigStringComparisonExp
 }
 
 """

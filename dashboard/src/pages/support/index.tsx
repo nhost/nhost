@@ -12,7 +12,9 @@ function SupportPage() {
   return (
     <Box className="h-full overflow-auto pb-4">
       <Box className="flex w-full justify-start border-b-1 px-4 py-3">
-        <Logo className="w-6 cursor-pointer" />
+        <Link href="https://app.nhost.io" rel="noopener noreferrer">
+          <Logo className="w-6" />
+        </Link>
       </Box>
 
       <div className="flex flex-col items-center justify-center">

@@ -166,6 +166,12 @@ rec {
     '';
   };
 
+  packageWithDisabledCSP = package.overrideAttrs (oldAttrs: {
+    configurePhase = oldAttrs.configurePhase + ''
+      export CSP_MODE=disabled
+    '';
+  });
+
   dockerImage = pkgs.runCommand "image-as-dir" { } ''
     ${(nix2containerPkgs.nix2container.buildImage {
       inherit name created;
@@ -175,7 +181,7 @@ rec {
       copyToRoot = pkgs.buildEnv {
         name = "image";
         paths = [
-          package
+          packageWithDisabledCSP
           (pkgs.writeTextFile {
             name = "tmp-file";
             text = ''

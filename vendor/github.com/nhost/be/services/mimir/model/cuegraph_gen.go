@@ -27181,9 +27181,13 @@ type ConfigSystemConfigPostgres struct {
 
 	ConnectionString *ConfigSystemConfigPostgresConnectionString `json:"connectionString,omitempty" toml:"connectionString,omitempty"`
 
+	Disk *ConfigSystemConfigPostgresDisk `json:"disk,omitempty" toml:"disk,omitempty"`
+
+	EncryptColumnKey *string `json:"encryptColumnKey" toml:"encryptColumnKey"`
+
 	Database string `json:"database" toml:"database"`
 
-	Disk *ConfigSystemConfigPostgresDisk `json:"disk,omitempty" toml:"disk,omitempty"`
+	OldEncryptColumnKey *string `json:"oldEncryptColumnKey" toml:"oldEncryptColumnKey"`
 }
 
 func (o *ConfigSystemConfigPostgres) MarshalJSON() ([]byte, error) {
@@ -27197,9 +27201,15 @@ func (o *ConfigSystemConfigPostgres) MarshalJSON() ([]byte, error) {
 	if o.ConnectionString != nil {
 		m["connectionString"] = o.ConnectionString
 	}
-	m["database"] = o.Database
 	if o.Disk != nil {
 		m["disk"] = o.Disk
+	}
+	if o.EncryptColumnKey != nil {
+		m["encryptColumnKey"] = o.EncryptColumnKey
+	}
+	m["database"] = o.Database
+	if o.OldEncryptColumnKey != nil {
+		m["oldEncryptColumnKey"] = o.OldEncryptColumnKey
 	}
 	return json.Marshal(m)
 }
@@ -27225,13 +27235,6 @@ func (o *ConfigSystemConfigPostgres) GetConnectionString() *ConfigSystemConfigPo
 	return o.ConnectionString
 }
 
-func (o *ConfigSystemConfigPostgres) GetDatabase() string {
-	if o == nil {
-		o = &ConfigSystemConfigPostgres{}
-	}
-	return o.Database
-}
-
 func (o *ConfigSystemConfigPostgres) GetDisk() *ConfigSystemConfigPostgresDisk {
 	if o == nil {
 		return nil
@@ -27239,17 +27242,42 @@ func (o *ConfigSystemConfigPostgres) GetDisk() *ConfigSystemConfigPostgresDisk {
 	return o.Disk
 }
 
+func (o *ConfigSystemConfigPostgres) GetEncryptColumnKey() *string {
+	if o == nil {
+		o = &ConfigSystemConfigPostgres{}
+	}
+	return o.EncryptColumnKey
+}
+
+func (o *ConfigSystemConfigPostgres) GetDatabase() string {
+	if o == nil {
+		o = &ConfigSystemConfigPostgres{}
+	}
+	return o.Database
+}
+
+func (o *ConfigSystemConfigPostgres) GetOldEncryptColumnKey() *string {
+	if o == nil {
+		o = &ConfigSystemConfigPostgres{}
+	}
+	return o.OldEncryptColumnKey
+}
+
 type ConfigSystemConfigPostgresUpdateInput struct {
-	Enabled               *bool                                                  `json:"enabled,omitempty" toml:"enabled,omitempty"`
-	IsSetEnabled          bool                                                   `json:"-"`
-	MajorVersion          *string                                                `json:"majorVersion,omitempty" toml:"majorVersion,omitempty"`
-	IsSetMajorVersion     bool                                                   `json:"-"`
-	ConnectionString      *ConfigSystemConfigPostgresConnectionStringUpdateInput `json:"connectionString,omitempty" toml:"connectionString,omitempty"`
-	IsSetConnectionString bool                                                   `json:"-"`
-	Database              *string                                                `json:"database,omitempty" toml:"database,omitempty"`
-	IsSetDatabase         bool                                                   `json:"-"`
-	Disk                  *ConfigSystemConfigPostgresDiskUpdateInput             `json:"disk,omitempty" toml:"disk,omitempty"`
-	IsSetDisk             bool                                                   `json:"-"`
+	Enabled                  *bool                                                  `json:"enabled,omitempty" toml:"enabled,omitempty"`
+	IsSetEnabled             bool                                                   `json:"-"`
+	MajorVersion             *string                                                `json:"majorVersion,omitempty" toml:"majorVersion,omitempty"`
+	IsSetMajorVersion        bool                                                   `json:"-"`
+	ConnectionString         *ConfigSystemConfigPostgresConnectionStringUpdateInput `json:"connectionString,omitempty" toml:"connectionString,omitempty"`
+	IsSetConnectionString    bool                                                   `json:"-"`
+	Disk                     *ConfigSystemConfigPostgresDiskUpdateInput             `json:"disk,omitempty" toml:"disk,omitempty"`
+	IsSetDisk                bool                                                   `json:"-"`
+	EncryptColumnKey         *string                                                `json:"encryptColumnKey,omitempty" toml:"encryptColumnKey,omitempty"`
+	IsSetEncryptColumnKey    bool                                                   `json:"-"`
+	Database                 *string                                                `json:"database,omitempty" toml:"database,omitempty"`
+	IsSetDatabase            bool                                                   `json:"-"`
+	OldEncryptColumnKey      *string                                                `json:"oldEncryptColumnKey,omitempty" toml:"oldEncryptColumnKey,omitempty"`
+	IsSetOldEncryptColumnKey bool                                                   `json:"-"`
 }
 
 func (o *ConfigSystemConfigPostgresUpdateInput) UnmarshalGQL(v interface{}) error {
@@ -27301,6 +27329,33 @@ func (o *ConfigSystemConfigPostgresUpdateInput) UnmarshalGQL(v interface{}) erro
 		}
 		o.IsSetConnectionString = true
 	}
+	if x, ok := m["disk"]; ok {
+		if x != nil {
+			t := &ConfigSystemConfigPostgresDiskUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Disk = t
+		}
+		o.IsSetDisk = true
+	}
+	if v, ok := m["encryptColumnKey"]; ok {
+		if v == nil {
+			o.EncryptColumnKey = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.EncryptColumnKey = &x
+		}
+		o.IsSetEncryptColumnKey = true
+	}
 	if v, ok := m["database"]; ok {
 		if v == nil {
 			o.Database = nil
@@ -27318,15 +27373,22 @@ func (o *ConfigSystemConfigPostgresUpdateInput) UnmarshalGQL(v interface{}) erro
 		}
 		o.IsSetDatabase = true
 	}
-	if x, ok := m["disk"]; ok {
-		if x != nil {
-			t := &ConfigSystemConfigPostgresDiskUpdateInput{}
-			if err := t.UnmarshalGQL(x); err != nil {
+	if v, ok := m["oldEncryptColumnKey"]; ok {
+		if v == nil {
+			o.OldEncryptColumnKey = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
 				return err
 			}
-			o.Disk = t
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.OldEncryptColumnKey = &x
 		}
-		o.IsSetDisk = true
+		o.IsSetOldEncryptColumnKey = true
 	}
 
 	return nil
@@ -27360,6 +27422,20 @@ func (o *ConfigSystemConfigPostgresUpdateInput) GetConnectionString() *ConfigSys
 	return o.ConnectionString
 }
 
+func (o *ConfigSystemConfigPostgresUpdateInput) GetDisk() *ConfigSystemConfigPostgresDiskUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Disk
+}
+
+func (o *ConfigSystemConfigPostgresUpdateInput) GetEncryptColumnKey() *string {
+	if o == nil {
+		o = &ConfigSystemConfigPostgresUpdateInput{}
+	}
+	return o.EncryptColumnKey
+}
+
 func (o *ConfigSystemConfigPostgresUpdateInput) GetDatabase() *string {
 	if o == nil {
 		o = &ConfigSystemConfigPostgresUpdateInput{}
@@ -27367,11 +27443,11 @@ func (o *ConfigSystemConfigPostgresUpdateInput) GetDatabase() *string {
 	return o.Database
 }
 
-func (o *ConfigSystemConfigPostgresUpdateInput) GetDisk() *ConfigSystemConfigPostgresDiskUpdateInput {
+func (o *ConfigSystemConfigPostgresUpdateInput) GetOldEncryptColumnKey() *string {
 	if o == nil {
-		return nil
+		o = &ConfigSystemConfigPostgresUpdateInput{}
 	}
-	return o.Disk
+	return o.OldEncryptColumnKey
 }
 
 func (s *ConfigSystemConfigPostgres) Update(v *ConfigSystemConfigPostgresUpdateInput) {
@@ -27394,11 +27470,6 @@ func (s *ConfigSystemConfigPostgres) Update(v *ConfigSystemConfigPostgresUpdateI
 			s.ConnectionString.Update(v.ConnectionString)
 		}
 	}
-	if v.IsSetDatabase || v.Database != nil {
-		if v.Database != nil {
-			s.Database = *v.Database
-		}
-	}
 	if v.IsSetDisk || v.Disk != nil {
 		if v.Disk == nil {
 			s.Disk = nil
@@ -27409,14 +27480,27 @@ func (s *ConfigSystemConfigPostgres) Update(v *ConfigSystemConfigPostgresUpdateI
 			s.Disk.Update(v.Disk)
 		}
 	}
+	if v.IsSetEncryptColumnKey || v.EncryptColumnKey != nil {
+		s.EncryptColumnKey = v.EncryptColumnKey
+	}
+	if v.IsSetDatabase || v.Database != nil {
+		if v.Database != nil {
+			s.Database = *v.Database
+		}
+	}
+	if v.IsSetOldEncryptColumnKey || v.OldEncryptColumnKey != nil {
+		s.OldEncryptColumnKey = v.OldEncryptColumnKey
+	}
 }
 
 type ConfigSystemConfigPostgresInsertInput struct {
-	Enabled          *bool                                                  `json:"enabled,omitempty" toml:"enabled,omitempty"`
-	MajorVersion     *string                                                `json:"majorVersion,omitempty" toml:"majorVersion,omitempty"`
-	ConnectionString *ConfigSystemConfigPostgresConnectionStringInsertInput `json:"connectionString,omitempty" toml:"connectionString,omitempty"`
-	Database         string                                                 `json:"database,omitempty" toml:"database,omitempty"`
-	Disk             *ConfigSystemConfigPostgresDiskInsertInput             `json:"disk,omitempty" toml:"disk,omitempty"`
+	Enabled             *bool                                                  `json:"enabled,omitempty" toml:"enabled,omitempty"`
+	MajorVersion        *string                                                `json:"majorVersion,omitempty" toml:"majorVersion,omitempty"`
+	ConnectionString    *ConfigSystemConfigPostgresConnectionStringInsertInput `json:"connectionString,omitempty" toml:"connectionString,omitempty"`
+	Disk                *ConfigSystemConfigPostgresDiskInsertInput             `json:"disk,omitempty" toml:"disk,omitempty"`
+	EncryptColumnKey    *string                                                `json:"encryptColumnKey,omitempty" toml:"encryptColumnKey,omitempty"`
+	Database            string                                                 `json:"database,omitempty" toml:"database,omitempty"`
+	OldEncryptColumnKey *string                                                `json:"oldEncryptColumnKey,omitempty" toml:"oldEncryptColumnKey,omitempty"`
 }
 
 func (o *ConfigSystemConfigPostgresInsertInput) GetEnabled() *bool {
@@ -27440,6 +27524,20 @@ func (o *ConfigSystemConfigPostgresInsertInput) GetConnectionString() *ConfigSys
 	return o.ConnectionString
 }
 
+func (o *ConfigSystemConfigPostgresInsertInput) GetDisk() *ConfigSystemConfigPostgresDiskInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Disk
+}
+
+func (o *ConfigSystemConfigPostgresInsertInput) GetEncryptColumnKey() *string {
+	if o == nil {
+		o = &ConfigSystemConfigPostgresInsertInput{}
+	}
+	return o.EncryptColumnKey
+}
+
 func (o *ConfigSystemConfigPostgresInsertInput) GetDatabase() string {
 	if o == nil {
 		o = &ConfigSystemConfigPostgresInsertInput{}
@@ -27447,11 +27545,11 @@ func (o *ConfigSystemConfigPostgresInsertInput) GetDatabase() string {
 	return o.Database
 }
 
-func (o *ConfigSystemConfigPostgresInsertInput) GetDisk() *ConfigSystemConfigPostgresDiskInsertInput {
+func (o *ConfigSystemConfigPostgresInsertInput) GetOldEncryptColumnKey() *string {
 	if o == nil {
-		return nil
+		o = &ConfigSystemConfigPostgresInsertInput{}
 	}
-	return o.Disk
+	return o.OldEncryptColumnKey
 }
 
 func (s *ConfigSystemConfigPostgres) Insert(v *ConfigSystemConfigPostgresInsertInput) {
@@ -27463,13 +27561,15 @@ func (s *ConfigSystemConfigPostgres) Insert(v *ConfigSystemConfigPostgresInsertI
 		}
 		s.ConnectionString.Insert(v.ConnectionString)
 	}
-	s.Database = v.Database
 	if v.Disk != nil {
 		if s.Disk == nil {
 			s.Disk = &ConfigSystemConfigPostgresDisk{}
 		}
 		s.Disk.Insert(v.Disk)
 	}
+	s.EncryptColumnKey = v.EncryptColumnKey
+	s.Database = v.Database
+	s.OldEncryptColumnKey = v.OldEncryptColumnKey
 }
 
 func (s *ConfigSystemConfigPostgres) Clone() *ConfigSystemConfigPostgres {
@@ -27481,20 +27581,24 @@ func (s *ConfigSystemConfigPostgres) Clone() *ConfigSystemConfigPostgres {
 	v.Enabled = s.Enabled
 	v.MajorVersion = s.MajorVersion
 	v.ConnectionString = s.ConnectionString.Clone()
-	v.Database = s.Database
 	v.Disk = s.Disk.Clone()
+	v.EncryptColumnKey = s.EncryptColumnKey
+	v.Database = s.Database
+	v.OldEncryptColumnKey = s.OldEncryptColumnKey
 	return v
 }
 
 type ConfigSystemConfigPostgresComparisonExp struct {
-	And              []*ConfigSystemConfigPostgresComparisonExp               `json:"_and,omitempty"`
-	Not              *ConfigSystemConfigPostgresComparisonExp                 `json:"_not,omitempty"`
-	Or               []*ConfigSystemConfigPostgresComparisonExp               `json:"_or,omitempty"`
-	Enabled          *ConfigBooleanComparisonExp                              `json:"enabled,omitempty"`
-	MajorVersion     *ConfigStringComparisonExp                               `json:"majorVersion,omitempty"`
-	ConnectionString *ConfigSystemConfigPostgresConnectionStringComparisonExp `json:"connectionString,omitempty"`
-	Database         *ConfigStringComparisonExp                               `json:"database,omitempty"`
-	Disk             *ConfigSystemConfigPostgresDiskComparisonExp             `json:"disk,omitempty"`
+	And                 []*ConfigSystemConfigPostgresComparisonExp               `json:"_and,omitempty"`
+	Not                 *ConfigSystemConfigPostgresComparisonExp                 `json:"_not,omitempty"`
+	Or                  []*ConfigSystemConfigPostgresComparisonExp               `json:"_or,omitempty"`
+	Enabled             *ConfigBooleanComparisonExp                              `json:"enabled,omitempty"`
+	MajorVersion        *ConfigStringComparisonExp                               `json:"majorVersion,omitempty"`
+	ConnectionString    *ConfigSystemConfigPostgresConnectionStringComparisonExp `json:"connectionString,omitempty"`
+	Disk                *ConfigSystemConfigPostgresDiskComparisonExp             `json:"disk,omitempty"`
+	EncryptColumnKey    *ConfigStringComparisonExp                               `json:"encryptColumnKey,omitempty"`
+	Database            *ConfigStringComparisonExp                               `json:"database,omitempty"`
+	OldEncryptColumnKey *ConfigStringComparisonExp                               `json:"oldEncryptColumnKey,omitempty"`
 }
 
 func (exp *ConfigSystemConfigPostgresComparisonExp) Matches(o *ConfigSystemConfigPostgres) bool {
@@ -27517,10 +27621,16 @@ func (exp *ConfigSystemConfigPostgresComparisonExp) Matches(o *ConfigSystemConfi
 	if !exp.ConnectionString.Matches(o.ConnectionString) {
 		return false
 	}
+	if !exp.Disk.Matches(o.Disk) {
+		return false
+	}
+	if o.EncryptColumnKey != nil && !exp.EncryptColumnKey.Matches(*o.EncryptColumnKey) {
+		return false
+	}
 	if !exp.Database.Matches(o.Database) {
 		return false
 	}
-	if !exp.Disk.Matches(o.Disk) {
+	if o.OldEncryptColumnKey != nil && !exp.OldEncryptColumnKey.Matches(*o.OldEncryptColumnKey) {
 		return false
 	}
 

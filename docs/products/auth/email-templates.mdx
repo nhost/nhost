@@ -120,20 +120,25 @@ sender = 'myapp@mydomain.com'
 It is very important that the `host` is set exactly to `postmark`.
 </Warning>
 
-2. In postmark you need to create thre templates for each locale with the following alias:
+2. In postmark you need to create three templates for each locale with the following alias:
 
-- $locale.email-change
+- $locale.email-confirm-change
 - $locale.email-verify
 - $locale.password-reset
 
 For instance:
 
-- en.email-change
+- en.email-confirm-change
 - en.email-verify
 - en.password-reset
-- se.email-change
+- se.email-confirm-change
 - se.email-verify
 - se.password-reset
+
+Additionally, if you want to use the passwordless sign-in or OTP sign-in emails, you need to create the following templates as well:
+
+- $locale.signin-passwordless
+- $locale.signin-otp
 
 After these two steps have been completed, the Auth service will leverage these templates instead of the ones described in the previous section.
 

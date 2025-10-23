@@ -56,6 +56,7 @@ func auth( //nolint:funlen
 		false,
 		false,
 		"00000000-0000-0000-0000-000000000000",
+		"5181f67e2844e4b60d571fa346cac9c37fc00d1ff519212eae6cead138e639ba",
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get hasura env vars: %w", err)

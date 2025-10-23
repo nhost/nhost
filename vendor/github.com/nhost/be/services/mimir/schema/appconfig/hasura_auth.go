@@ -14,6 +14,7 @@ const (
 	secretHasuraAuthHasuraAdminSecret     = "adminSecret"
 	secretHasuraAuthJWTSecret             = "jwtSecret"
 	secretHasuraAuthSMTPPassword          = "smtpPassword"
+	secretHasuraAuthEncryptionKey         = "encryptionKey"
 )
 
 type oauthsettings interface {
@@ -85,6 +86,7 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx,gocyclo,gocognit
 	isCustomSMTP bool,
 	autoScalerEnabled bool,
 	appID string,
+	encryptionKey string,
 ) ([]EnvVar, error) {
 	customClaims := make(
 		map[string]string,
@@ -161,6 +163,12 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx,gocyclo,gocognit
 			Value:      hasuraGraphqlURL,
 			IsSecret:   false,
 			SecretName: "",
+		},
+		{
+			Name:       "AUTH_ENCRYPTION_KEY",
+			SecretName: secretHasuraAuthEncryptionKey,
+			Value:      encryptionKey,
+			IsSecret:   true,
 		},
 		{
 			Name: "AUTH_ACCESS_TOKEN_EXPIRES_IN",
