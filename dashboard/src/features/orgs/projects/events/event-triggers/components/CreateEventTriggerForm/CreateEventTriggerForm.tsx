@@ -49,6 +49,7 @@ import { useMemo } from 'react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { z } from 'zod';
+import RetryConfigurationSection from './sections/RetryConfigurationSection';
 import UpdateTriggerColumnsSection from './sections/UpdateTriggerColumnsSection';
 
 export interface CreateEventTriggerFormProps {
@@ -524,25 +525,15 @@ export default function CreateEventTriggerForm({
               <FieldSeparator />
               <Accordion type="multiple" className="">
                 <AccordionItem value="retry-configuration" className="px-6">
-                  <AccordionTrigger className="text-foreground">
-                    Retry Configuration
+                  <AccordionTrigger className="pt-0 text-base text-foreground">
+                    Advanced Settings
                   </AccordionTrigger>
                   <AccordionContent>
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                    Morbi lobortis lacus risus. Nunc dui dolor, mollis quis
-                    euismod non, accumsan a leo. Nunc sed tristique tellus. In
-                    dapibus finibus ligula vitae fringilla. Quisque fermentum
-                    lacinia gravida. Vivamus faucibus diam quis est rutrum, id
-                    ornare nisl pretium. Fusce lacinia ante eget ipsum tristique
-                    iaculis. Vivamus et semper erat. Mauris efficitur diam sed
-                    velit eleifend, id posuere sapien volutpat. Pellentesque
-                    bibendum sed neque sit amet vulputate. Sed odio turpis,
-                    volutpat id tortor a, aliquam luctus purus. Sed tempus
-                    rutrum porta.
+                    <RetryConfigurationSection />
                   </AccordionContent>
                 </AccordionItem>
                 <AccordionItem value="headers" className="px-6">
-                  <AccordionTrigger className="text-foreground">
+                  <AccordionTrigger className="text-base text-foreground">
                     Headers
                   </AccordionTrigger>
                   <AccordionContent>
@@ -563,7 +554,7 @@ export default function CreateEventTriggerForm({
                   value="configure-rest-connectors"
                   className="px-6"
                 >
-                  <AccordionTrigger className="text-foreground">
+                  <AccordionTrigger className="text-base text-foreground">
                     Configure REST Connectors
                   </AccordionTrigger>
                   <AccordionContent>
