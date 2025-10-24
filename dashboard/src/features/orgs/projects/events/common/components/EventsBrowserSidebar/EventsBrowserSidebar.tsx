@@ -179,66 +179,73 @@ function EventsBrowserSidebarContent() {
                     {eventTriggers.map((eventTrigger) => {
                       const isSelected = eventTrigger.name === eventTriggerSlug;
                       return (
-                        <Button
-                          className={cn(
-                            'flex h-9 max-w-52 flex-row justify-between gap-2 bg-background px-2 text-foreground hover:bg-accent dark:hover:bg-muted',
-                            isSelected &&
-                              'bg-[#ebf3ff] hover:bg-[#ebf3ff] dark:bg-muted',
-                          )}
-                          key={eventTrigger.name}
-                          asChild
-                          variant="ghost"
-                        >
-                          <Link
-                            href={`/orgs/${orgSlug}/projects/${appSubdomain}/events/event-trigger/${eventTrigger.name}`}
-                            className="flex w-full items-center gap-2"
+                        <div className="group relative flex">
+                          <Button
+                            className={cn(
+                              'flex h-9 max-w-52 flex-row justify-between gap-2 bg-background px-2 text-foreground hover:bg-accent dark:hover:bg-theme-grey-200',
+                              {
+                                'bg-[#ebf3ff] hover:bg-[#ebf3ff] dark:bg-muted dark:hover:bg-muted':
+                                  isSelected,
+                              },
+                            )}
+                            key={eventTrigger.name}
+                            asChild
+                            variant="ghost"
                           >
-                            <TextWithTooltip
-                              containerClassName="max-w-36"
-                              className={cn(
-                                isSelected && 'text-primary hover:text-primary',
-                              )}
-                              text={eventTrigger.name}
-                            />
-                            <DropdownMenu modal={false}>
-                              <Button
-                                variant="ghost"
-                                size="sm"
+                            <Link
+                              href={`/orgs/${orgSlug}/projects/${appSubdomain}/events/event-trigger/${eventTrigger.name}`}
+                              className="flex w-full items-center gap-2"
+                            >
+                              <TextWithTooltip
+                                containerClassName="max-w-36"
                                 className={cn(
-                                  'px-1 hover:bg-accent/90 dark:hover:bg-muted/90',
                                   isSelected &&
                                     'text-primary hover:text-primary',
                                 )}
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                }}
-                                asChild
+                                text={eventTrigger.name}
+                              />
+                            </Link>
+                          </Button>
+                          <DropdownMenu modal={false}>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className={cn(
+                                'invisible absolute right-2 top-1 h-7 w-7 px-0.5 hover:bg-[#eaedf0] group-hover:visible dark:hover:bg-[#2f363d]',
+                                {
+                                  'visible bg-[#ebf3ff] text-primary hover:bg-[#ebf3ff] hover:text-primary dark:bg-muted dark:hover:bg-muted':
+                                    isSelected,
+                                },
+                              )}
+                              onClick={(e) => {
+                                e.preventDefault();
+                              }}
+                              asChild
+                            >
+                              <DropdownMenuTrigger className="">
+                                <Ellipsis className="h-6 w-6" />
+                              </DropdownMenuTrigger>
+                            </Button>
+                            <DropdownMenuContent align="start">
+                              <DropdownMenuItem className="disabled flex cursor-pointer items-center gap-2 !text-sm+ font-medium line-through">
+                                <PencilIcon className="size-4 text-muted-foreground" />
+                                Edit Event Trigger
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator className="my-0" />
+                              <DropdownMenuItem
+                                onSelect={() =>
+                                  handleDeleteEventTriggerDropdownClick(
+                                    eventTrigger.name,
+                                  )
+                                }
+                                className="flex cursor-pointer items-center gap-2 !text-sm+ font-medium text-destructive focus:text-destructive"
                               >
-                                <DropdownMenuTrigger>
-                                  <Ellipsis className="h-6 w-6" />
-                                </DropdownMenuTrigger>
-                              </Button>
-                              <DropdownMenuContent align="start">
-                                <DropdownMenuItem className="disabled flex cursor-pointer items-center gap-2 !text-sm+ font-medium line-through">
-                                  <PencilIcon className="size-4 text-muted-foreground" />
-                                  Edit Event Trigger
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator className="my-0" />
-                                <DropdownMenuItem
-                                  onSelect={() =>
-                                    handleDeleteEventTriggerDropdownClick(
-                                      eventTrigger.name,
-                                    )
-                                  }
-                                  className="flex cursor-pointer items-center gap-2 !text-sm+ font-medium text-destructive focus:text-destructive"
-                                >
-                                  <TrashIcon className="size-4" />
-                                  Delete Event Trigger
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </Link>
-                        </Button>
+                                <TrashIcon className="size-4" />
+                                Delete Event Trigger
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       );
                     })}
                   </AccordionContent>
@@ -271,7 +278,7 @@ function EventsBrowserSidebarContent() {
             <DialogFooter className="gap-2 sm:flex sm:flex-col sm:space-x-0">
               <ButtonWithLoading
                 variant="destructive"
-                className="!text-sm+ text-foreground"
+                className="!text-sm+ text-white"
                 onClick={handleDeleteDialogClick}
                 loading={isDeletingEventTrigger}
               >
