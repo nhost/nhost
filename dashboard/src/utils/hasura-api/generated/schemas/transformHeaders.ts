@@ -7,10 +7,9 @@
  */
 import type { TransformHeadersAddHeaders } from './transformHeadersAddHeaders';
 
-/**
- * Request headers transformation
- */
 export interface TransformHeaders {
+  /** A map of Header Key Value pairs to be added to the request. */
   add_headers?: TransformHeadersAddHeaders;
+  /** Headers to be removed from the request. */
   remove_headers?: string[];
 }

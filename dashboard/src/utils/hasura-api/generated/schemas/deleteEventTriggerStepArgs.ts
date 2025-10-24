@@ -6,9 +6,9 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export interface HeaderWithEnv {
-  /** Name of the header */
+export type DeleteEventTriggerStepArgs = {
+  /** Name of the Event Trigger */
   name: string;
-  /** Name of the environment variable which holds the value of the header */
-  value_from_env: string;
-}
+  /** Name of the source database of the trigger */
+  source?: string;
+};

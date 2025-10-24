@@ -190,13 +190,18 @@ export default function EventTriggerOverview({
                     Body Template:
                   </div>
                   <div className="whitespace-pre-wrap rounded bg-gray-100 p-2 font-mono text-xs text-gray-900 dark:bg-gray-700 dark:text-gray-100">
-                    {eventTrigger.request_transform.body?.template}
+                    {typeof eventTrigger.request_transform.body === 'string'
+                      ? eventTrigger.request_transform.body
+                      : eventTrigger.request_transform.body?.template}
                   </div>
                 </div>
 
                 <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400">
                   <span>
-                    Action: {eventTrigger.request_transform.body?.action}
+                    Action:{' '}
+                    {typeof eventTrigger.request_transform.body === 'object'
+                      ? eventTrigger.request_transform.body?.action
+                      : 'N/A'}
                   </span>
                   <span>Version: {eventTrigger.request_transform.version}</span>
                 </div>
