@@ -9,10 +9,11 @@ import type { EventTriggerColumns } from './eventTriggerColumns';
 
 /**
  * Operation specification
+ * @nullable
  */
-export interface OperationSpec {
+export type OperationSpec = {
   /** List of columns or "*" to listen to changes */
   columns: EventTriggerColumns;
   /** List of columns or "*" to send as part of webhook payload */
   payload?: EventTriggerColumns;
-}
+} | null;

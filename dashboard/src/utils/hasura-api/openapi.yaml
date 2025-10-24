@@ -32,7 +32,7 @@ paths:
                 - $ref: '#/components/schemas/GetEventLogsOperation'
                 - $ref: '#/components/schemas/GetEventAndInvocationLogsByIdOperation'
                 - $ref: '#/components/schemas/RedeliverEventOperation'
-                - $ref: '#/components/schemas/AddEventTriggerBulkOperation'
+                - $ref: '#/components/schemas/CreateEventTriggerBulkOperation'
                 - $ref: '#/components/schemas/DeleteEventTriggerBulkOperation'
       responses:
         '200':
@@ -66,6 +66,15 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
         '500':
           description: Internal server error
           content:
@@ -1109,6 +1118,7 @@ components:
 
     OperationSpec:
       type: object
+      nullable: true
       description: Operation specification
       required:
         - columns
@@ -1662,10 +1672,12 @@ components:
           default: default
         webhook:
           type: string
+          nullable: true
           description: Webhook URL. Supports template variables like {{ENV_VAR}}/some/path
           example: '{{SERVICE_URL}}/hooks'
         webhook_from_env:
           type: string
+          nullable: true
           description: Environment variable containing the webhook URL
           example: SERVICE_ENDPOINT
         insert:
@@ -1701,13 +1713,12 @@ components:
           default: false
       additionalProperties: true
 
-    AddEventTriggerBulkOperation:
+    CreateEventTriggerBulkOperation:
       type: object
       description: Create a new Event Trigger or replace an existing Event Trigger.
       required:
         - type
         - source
-        - resource_version
         - args
       properties:
         type:
@@ -1724,7 +1735,7 @@ components:
           example: default
         resource_version:
           type: integer
-          description: Resource version of the operation
+          description: Version of the resource that you are targeting for replacement
           example: 1
 
     CreateEventTriggerStep:
