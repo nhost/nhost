@@ -130,9 +130,12 @@ export default function AuthenticatedLayout({
         {withMainNav && mainNavPinned && isMdOrLarger && <PinnedMainNav />}
 
         <div
-          className={cn('relative flex h-full w-full flex-row bg-accent', {
-            'overflow-x-auto': mainNavPinned && isMdOrLarger && withMainNav,
-          })}
+          className={cn(
+            'bg-accent-background relative flex h-full w-full flex-row',
+            {
+              'overflow-x-auto': mainNavPinned && isMdOrLarger && withMainNav,
+            },
+          )}
         >
           {withMainNav && (!mainNavPinned || !isMdOrLarger) && (
             <div className="flex h-full w-6 justify-center">

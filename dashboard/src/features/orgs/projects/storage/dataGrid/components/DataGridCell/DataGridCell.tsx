@@ -1,18 +1,18 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import type { BoxProps } from '@/components/ui/v2/Box';
-import { Box } from '@/components/ui/v2/Box';
-import { Tooltip, useTooltip } from '@/components/ui/v2/Tooltip';
+import { useTooltip } from '@/components/ui/v2/Tooltip';
 import type {
   ColumnType,
   DataBrowserGridCell,
   DataBrowserGridCellProps,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { cn } from '@/lib/utils';
 import { triggerToast } from '@/utils/toast';
 import type {
   FocusEvent,
   JSXElementConstructor,
   KeyboardEvent,
   MouseEvent,
+  PropsWithChildren,
   ReactElement,
   ReactNode,
   ReactPortal,
@@ -24,9 +24,14 @@ import {
   useEffect,
   useState,
 } from 'react';
-import { twMerge } from 'tailwind-merge';
 import DataGridCellProvider from './DataGridCellProvider';
 import useDataGridCell from './useDataGridCell';
+
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 
 export interface CommonDataGridCellProps<TData extends object, TValue = any>
   extends DataBrowserGridCellProps<TData, TValue> {
@@ -54,7 +59,7 @@ export interface CommonDataGridCellProps<TData extends object, TValue = any>
   onTemporaryValueChange?: (value: TValue) => void;
 }
 
-export interface DataGridCellProps<TData extends object> extends BoxProps {
+export interface DataGridCellProps<TData extends object> {
   /**
    * Current cell's props.
    */
@@ -67,6 +72,8 @@ export interface DataGridCellProps<TData extends object> extends BoxProps {
    * Determines the column's type.
    */
   columnType?: ColumnType;
+  className?: string;
+  id?: string;
 }
 
 function DataGridCellContent<TData extends object = {}>({
@@ -79,7 +86,7 @@ function DataGridCellContent<TData extends object = {}>({
     row,
   },
   ...props
-}: DataGridCellProps<TData>) {
+}: PropsWithChildren<DataGridCellProps<TData>>) {
   const { openAlertDialog } = useDialog();
 
   const {
@@ -194,6 +201,8 @@ function DataGridCellContent<TData extends object = {}>({
         },
       });
 
+      focusCell();
+      cancelEditCell();
       // Syncing optimistic value with server-side value
       setTemporaryValue(data.original[id.toString()]);
       setOptimisticValue(data.original[id.toString()]);
@@ -203,17 +212,31 @@ function DataGridCellContent<TData extends object = {}>({
       // Resetting values
       setTemporaryValue(latestOptimisticValue);
       setOptimisticValue(latestOptimisticValue);
+      activateInput();
     }
   }
 
   async function handleBlur(event: FocusEvent<HTMLDivElement>) {
     // We are deselecting cell only if focus target is not a descendant of it.
-    if (!isEditable || event.currentTarget.contains(event.relatedTarget)) {
+    const { id: currentRowId } = row.original as { id: string };
+    const isTargetDropdownMenu =
+      event.relatedTarget?.id === currentRowId ||
+      event.relatedTarget?.parentElement?.id === currentRowId;
+
+    if (
+      !isEditable ||
+      event.currentTarget.contains(event.relatedTarget) ||
+      (isEditing && type === 'boolean' && isTargetDropdownMenu)
+    ) {
       return;
     }
 
-    await handleSave(temporaryValue);
-    closeTooltip();
+    if (type !== 'boolean') {
+      await handleSave(temporaryValue);
+    }
+    if (tooltipOpen) {
+      closeTooltip();
+    }
     deselectCell();
   }
 
@@ -227,8 +250,7 @@ function DataGridCellContent<TData extends object = {}>({
     if (!isNullable) {
       openTooltip(
         <span>
-          <strong>{id}</strong>
-          is non-nullable.
+          <strong>{id}</strong> is non-nullable.
         </span>,
       );
 
@@ -308,14 +330,14 @@ function DataGridCellContent<TData extends object = {}>({
   }
 
   const content = (
-    <Box
+    <div
       ref={cellRef}
-      className={twMerge(
-        'relative grid h-full w-full cursor-default grid-flow-col items-center gap-1',
+      className={cn(
+        'box relative grid h-full w-full cursor-default grid-flow-col items-center gap-1 bg-gray-200 px-2 py-1.5',
         isEditable &&
           'focus-within:outline-none focus-within:ring-0 focus:ring-0',
         isSelected && 'shadow-outline',
-        isEditing ? 'p-0.5 shadow-outline-dark' : 'px-2 py-1.5',
+        isEditing && 'shadow-outline-dark',
         className,
       )}
       onFocus={handleFocus}
@@ -324,7 +346,6 @@ function DataGridCellContent<TData extends object = {}>({
       tabIndex={isEditable ? 0 : undefined}
       onClick={handleClick}
       role="textbox"
-      sx={{ backgroundColor: 'transparent' }}
       {...props}
     >
       {Children.map(
@@ -338,7 +359,7 @@ function DataGridCellContent<TData extends object = {}>({
           if (!isValidElement(child)) {
             return null;
           }
-
+          const { id: rowId } = row.original as { id: string };
           return cloneElement(child, {
             ...child.props,
             onSave: handleSave,
@@ -346,22 +367,26 @@ function DataGridCellContent<TData extends object = {}>({
             onOptimisticValueChange: setOptimisticValue,
             temporaryValue,
             onTemporaryValueChange: setTemporaryValue,
+            rowId,
           });
         },
       )}
-    </Box>
+    </div>
   );
 
   if (isEditable) {
     return (
       <Tooltip
-        disableHoverListener
-        disableFocusListener
+        delayDuration={100}
         open={tooltipOpen}
-        title={tooltipTitle || ''}
-        TransitionProps={{ onExited: resetTooltipTitle }}
+        onOpenChange={(newState) => {
+          if (!newState) {
+            resetTooltipTitle();
+          }
+        }}
       >
-        {content}
+        <TooltipTrigger asChild>{content}</TooltipTrigger>
+        <TooltipContent>{tooltipTitle}</TooltipContent>
       </Tooltip>
     );
   }
@@ -370,7 +395,7 @@ function DataGridCellContent<TData extends object = {}>({
 }
 
 export default function DataGridCell<TData extends object>(
-  props: DataGridCellProps<TData>,
+  props: PropsWithChildren<DataGridCellProps<TData>>,
 ) {
   return (
     <DataGridCellProvider>

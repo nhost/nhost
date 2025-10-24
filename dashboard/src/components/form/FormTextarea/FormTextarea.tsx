@@ -6,16 +6,16 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/v3/form';
-import { Input } from '@/components/ui/v3/input';
+import { Textarea } from '@/components/ui/v3/textarea';
 import { cn } from '@/lib/utils';
-import { type ForwardedRef, forwardRef, type ReactNode } from 'react';
+import { forwardRef, type ForwardedRef, type ReactNode } from 'react';
 import type { Control, FieldPath, FieldValues } from 'react-hook-form';
 import { mergeRefs } from 'react-merge-refs';
 
 const inputClasses =
   '!bg-transparent aria-[invalid=true]:border-red-500 aria-[invalid=true]:focus:border-red-500 aria-[invalid=true]:focus:ring-red-500';
 
-interface FormInputProps<
+interface FormTextareaProps<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 > {
@@ -24,12 +24,11 @@ interface FormInputProps<
   label: ReactNode;
   placeholder?: string;
   className?: string;
-  type?: string;
   inline?: boolean;
   helperText?: string | null;
 }
 
-function InnerFormInput<
+function InnerFormTextarea<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 >(
@@ -39,11 +38,10 @@ function InnerFormInput<
     label,
     placeholder,
     className = '',
-    type = 'text',
     inline,
     helperText,
-  }: FormInputProps<TFieldValues, TName>,
-  ref: ForwardedRef<HTMLInputElement>,
+  }: FormTextareaProps<TFieldValues, TName>,
+  ref: ForwardedRef<HTMLTextAreaElement>,
 ) {
   return (
     <FormField
@@ -68,13 +66,11 @@ function InnerFormInput<
             })}
           >
             <FormControl>
-              <Input
-                type={type}
+              <Textarea
                 placeholder={placeholder}
                 {...field}
                 ref={mergeRefs([field.ref, ref])}
                 className={cn(inputClasses, className)}
-                wrapperClassName={cn({ 'w-full': !inline })}
               />
             </FormControl>
             {!!helperText && (
@@ -90,13 +86,13 @@ function InnerFormInput<
   );
 }
 
-const FormInput = forwardRef(InnerFormInput) as <
+const FormTextarea = forwardRef(InnerFormTextarea) as <
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 >(
-  props: FormInputProps<TFieldValues, TName> & {
-    ref?: ForwardedRef<HTMLInputElement>;
+  props: FormTextareaProps<TFieldValues, TName> & {
+    ref: ForwardedRef<HTMLTextAreaElement>;
   },
-) => ReturnType<typeof InnerFormInput>;
+) => ReturnType<typeof InnerFormTextarea>;
 
-export default FormInput;
+export default FormTextarea;
