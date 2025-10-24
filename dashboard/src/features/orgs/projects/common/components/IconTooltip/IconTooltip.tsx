@@ -14,7 +14,7 @@ export default function IconTooltip({ children }: IconTooltipProps) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <Info className="size-4" />
+        <Info className="size-4 text-primary" />
       </TooltipTrigger>
       <TooltipContent>{children}</TooltipContent>
     </Tooltip>
