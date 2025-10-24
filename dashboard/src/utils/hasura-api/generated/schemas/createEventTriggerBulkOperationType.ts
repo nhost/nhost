@@ -9,10 +9,10 @@
 /**
  * Type of operation to create event triggers
  */
-export type AddEventTriggerBulkOperationType =
-  (typeof AddEventTriggerBulkOperationType)[keyof typeof AddEventTriggerBulkOperationType];
+export type CreateEventTriggerBulkOperationType =
+  (typeof CreateEventTriggerBulkOperationType)[keyof typeof CreateEventTriggerBulkOperationType];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
-export const AddEventTriggerBulkOperationType = {
+export const CreateEventTriggerBulkOperationType = {
   bulk: 'bulk',
 } as const;

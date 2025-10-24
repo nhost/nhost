@@ -5,18 +5,18 @@
  * API for managing remote schemas and events in Hasura
  * OpenAPI spec version: 1.0.0
  */
-import type { AddEventTriggerBulkOperationType } from './addEventTriggerBulkOperationType';
+import type { CreateEventTriggerBulkOperationType } from './createEventTriggerBulkOperationType';
 import type { CreateEventTriggerStep } from './createEventTriggerStep';
 
 /**
  * Create a new Event Trigger or replace an existing Event Trigger.
  */
-export interface AddEventTriggerBulkOperation {
+export interface CreateEventTriggerBulkOperation {
   /** Type of operation to create event triggers */
-  type: AddEventTriggerBulkOperationType;
+  type: CreateEventTriggerBulkOperationType;
   args: CreateEventTriggerStep[];
   /** Source of the operation */
   source: string;
-  /** Resource version of the operation */
-  resource_version: number;
+  /** Version of the resource that you are targeting for replacement */
+  resource_version?: number;
 }
