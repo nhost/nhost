@@ -1,4 +1,10 @@
 import ErrorToast from '@/components/ui/v2/ErrorToast/ErrorToast';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/v3/accordion';
 import { Button } from '@/components/ui/v3/button';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import {
@@ -21,6 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
+import { Separator } from '@/components/ui/v3/separator';
 import {
   Sheet,
   SheetClose,
@@ -182,7 +189,7 @@ export default function CreateEventTriggerForm({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-xl md:w-4xl flex flex-auto flex-col sm:max-w-4xl">
+      <SheetContent className="w-xl md:w-4xl flex flex-auto flex-col gap-0 sm:max-w-4xl">
         <SheetHeader className="p-6">
           <SheetTitle className="text-lg">
             Create a New Event Trigger
@@ -192,11 +199,12 @@ export default function CreateEventTriggerForm({
             you&apos;re done.
           </SheetDescription>
         </SheetHeader>
+        <Separator />
         <FormProvider {...form}>
           <form
             id="create-event-trigger-form"
             onSubmit={form.handleSubmit(handleSubmit)}
-            className="flex flex-auto flex-col gap-4"
+            className="flex flex-auto flex-col gap-4 overflow-y-auto pt-7"
           >
             <FieldGroup className="flex flex-auto">
               <FieldSet className="px-6">
@@ -485,10 +493,7 @@ export default function CreateEventTriggerForm({
                 name="webhook"
                 control={form.control}
                 render={({ field, fieldState }) => (
-                  <FieldSet
-                    data-invalid={fieldState.invalid}
-                    className="flex flex-auto px-6"
-                  >
+                  <FieldSet data-invalid={fieldState.invalid} className="px-6">
                     <FieldLegend className="flex flex-row items-center gap-2 text-foreground">
                       Webhook (HTTP/S) Handler{' '}
                       <FieldDescription>
@@ -516,10 +521,70 @@ export default function CreateEventTriggerForm({
                   </FieldSet>
                 )}
               />
+              <FieldSeparator />
+              <Accordion type="multiple" className="">
+                <AccordionItem value="retry-configuration" className="px-6">
+                  <AccordionTrigger className="text-foreground">
+                    Retry Configuration
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                    Morbi lobortis lacus risus. Nunc dui dolor, mollis quis
+                    euismod non, accumsan a leo. Nunc sed tristique tellus. In
+                    dapibus finibus ligula vitae fringilla. Quisque fermentum
+                    lacinia gravida. Vivamus faucibus diam quis est rutrum, id
+                    ornare nisl pretium. Fusce lacinia ante eget ipsum tristique
+                    iaculis. Vivamus et semper erat. Mauris efficitur diam sed
+                    velit eleifend, id posuere sapien volutpat. Pellentesque
+                    bibendum sed neque sit amet vulputate. Sed odio turpis,
+                    volutpat id tortor a, aliquam luctus purus. Sed tempus
+                    rutrum porta.
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="headers" className="px-6">
+                  <AccordionTrigger className="text-foreground">
+                    Headers
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                    Morbi lobortis lacus risus. Nunc dui dolor, mollis quis
+                    euismod non, accumsan a leo. Nunc sed tristique tellus. In
+                    dapibus finibus ligula vitae fringilla. Quisque fermentum
+                    lacinia gravida. Vivamus faucibus diam quis est rutrum, id
+                    ornare nisl pretium. Fusce lacinia ante eget ipsum tristique
+                    iaculis. Vivamus et semper erat. Mauris efficitur diam sed
+                    velit eleifend, id posuere sapien volutpat. Pellentesque
+                    bibendum sed neque sit amet vulputate. Sed odio turpis,
+                    volutpat id tortor a, aliquam luctus purus. Sed tempus
+                    rutrum porta.
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem
+                  value="configure-rest-connectors"
+                  className="px-6"
+                >
+                  <AccordionTrigger className="text-foreground">
+                    Configure REST Connectors
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                    Morbi lobortis lacus risus. Nunc dui dolor, mollis quis
+                    euismod non, accumsan a leo. Nunc sed tristique tellus. In
+                    dapibus finibus ligula vitae fringilla. Quisque fermentum
+                    lacinia gravida. Vivamus faucibus diam quis est rutrum, id
+                    ornare nisl pretium. Fusce lacinia ante eget ipsum tristique
+                    iaculis. Vivamus et semper erat. Mauris efficitur diam sed
+                    velit eleifend, id posuere sapien volutpat. Pellentesque
+                    bibendum sed neque sit amet vulputate. Sed odio turpis,
+                    volutpat id tortor a, aliquam luctus purus. Sed tempus
+                    rutrum porta.
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
             </FieldGroup>
           </form>
         </FormProvider>
-        <SheetFooter className="border-t p-2">
+        <SheetFooter className="flex-shrink-0 border-t p-2">
           <div className="flex flex-1 flex-row items-start justify-between gap-2">
             <SheetClose asChild>
               <Button variant="ghost" className="text-foreground">
