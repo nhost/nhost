@@ -86,16 +86,10 @@ function EventsBrowserSidebarContent() {
           );
         }
 
-        const deleteEventTriggerPromise = deleteEventTrigger({
-          args: {
-            name: eventTriggerToDelete!,
-            source: originalEventTrigger?.dataSource,
-          },
+        await deleteEventTrigger({
+          originalEventTrigger: originalEventTrigger!,
           resourceVersion,
-          originalEventTrigger,
         });
-
-        await deleteEventTriggerPromise;
       },
       {
         loadingMessage: 'Deleting event trigger...',

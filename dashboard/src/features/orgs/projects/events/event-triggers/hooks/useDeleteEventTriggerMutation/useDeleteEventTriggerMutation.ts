@@ -1,18 +1,24 @@
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
+import type { EventTriggerViewModel } from '@/features/orgs/projects/events/event-triggers/types';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { SuccessResponse } from '@/utils/hasura-api/generated/schemas';
 import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation } from '@tanstack/react-query';
-import {
-  deleteEventTrigger,
-  type DeleteEventTriggerVariables,
-} from './deleteEventTrigger';
-import {
-  deleteEventTriggerMigration,
-  type DeleteEventTriggerMigrationVariables,
-} from './deleteEventTriggerMigration';
+import { deleteEventTrigger } from './deleteEventTrigger';
+import { deleteEventTriggerMigration } from './deleteEventTriggerMigration';
+
+export interface DeleteEventTriggerMutationVariables {
+  /**
+   * The original event trigger to delete.
+   */
+  originalEventTrigger: EventTriggerViewModel;
+  /**
+   * The resource version for (platform mode only).
+   */
+  resourceVersion?: number;
+}
 
 export interface UseDeleteEventTriggerMutationOptions {
   /**
@@ -21,7 +27,7 @@ export interface UseDeleteEventTriggerMutationOptions {
   mutationOptions?: MutationOptions<
     SuccessResponse | MetadataOperation200,
     unknown,
-    DeleteEventTriggerVariables | DeleteEventTriggerMigrationVariables
+    DeleteEventTriggerMutationVariables
   >;
 }
 
@@ -40,7 +46,7 @@ export default function useDeleteEventTriggerMutation({
   const mutation = useMutation<
     SuccessResponse | MetadataOperation200,
     unknown,
-    DeleteEventTriggerVariables | DeleteEventTriggerMigrationVariables
+    DeleteEventTriggerMutationVariables
   >((variables) => {
     const appUrl = generateAppServiceUrl(
       project!.subdomain,
@@ -55,13 +61,17 @@ export default function useDeleteEventTriggerMutation({
 
     if (isPlatform) {
       return deleteEventTrigger({
-        ...(variables as DeleteEventTriggerVariables),
+        args: {
+          name: variables.originalEventTrigger.name,
+          source: variables.originalEventTrigger.dataSource,
+        },
+        resourceVersion: variables.resourceVersion,
         ...base,
       });
     }
 
     return deleteEventTriggerMigration({
-      ...(variables as DeleteEventTriggerMigrationVariables),
+      originalEventTrigger: variables.originalEventTrigger,
       ...base,
     });
   }, mutationOptions);
