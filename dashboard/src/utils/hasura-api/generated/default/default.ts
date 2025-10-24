@@ -8,6 +8,7 @@
 import type {
   ErrorResponse,
   MetadataOperation200,
+  MetadataOperation401,
   MetadataOperationBody,
   MigrationRequest,
   SuccessResponse,
@@ -30,6 +31,11 @@ export type metadataOperationResponse400 = {
   status: 400;
 };
 
+export type metadataOperationResponse401 = {
+  data: MetadataOperation401;
+  status: 401;
+};
+
 export type metadataOperationResponse500 = {
   data: ErrorResponse;
   status: 500;
@@ -38,6 +44,7 @@ export type metadataOperationResponse500 = {
 export type metadataOperationResponseComposite =
   | metadataOperationResponse200
   | metadataOperationResponse400
+  | metadataOperationResponse401
   | metadataOperationResponse500;
 
 export type metadataOperationResponse = metadataOperationResponseComposite & {

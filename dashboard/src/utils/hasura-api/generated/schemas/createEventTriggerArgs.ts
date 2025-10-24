@@ -19,10 +19,16 @@ export interface CreateEventTriggerArgs {
   table: QualifiedTable;
   /** Name of the source database of the table */
   source?: string;
-  /** Webhook URL. Supports template variables like {{ENV_VAR}}/some/path */
-  webhook?: string;
-  /** Environment variable containing the webhook URL */
-  webhook_from_env?: string;
+  /**
+   * Webhook URL. Supports template variables like {{ENV_VAR}}/some/path
+   * @nullable
+   */
+  webhook?: string | null;
+  /**
+   * Environment variable containing the webhook URL
+   * @nullable
+   */
+  webhook_from_env?: string | null;
   /** Specification for the insert operation */
   insert?: OperationSpec;
   /** Specification for the update operation */
