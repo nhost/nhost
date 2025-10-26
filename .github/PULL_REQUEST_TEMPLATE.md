@@ -8,7 +8,7 @@
 
 --- Delete everything below this line before submitting your PR ---
 
-> **Note on AI-assisted contributions:** Contributions with the help of AI are permitted, but you are ultimately responsible for the quality of your submission and for ensuring it follows our contributing guidelines. PRs that do not meet our standards will be closed without further review.
+> **Note on AI-assisted contributions:** Contributions with the help of AI are permitted, but you are ultimately responsible for the quality of your submission and for ensuring it follows our contributing guidelines. **The PR description must be written in your own words and be clear and concise**. PRs that do not meet our standards will be closed without further review.
 
 ### PR title format
 
