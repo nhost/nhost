@@ -10,13 +10,19 @@ import {
 import { Input } from '@/components/ui/v3/input';
 import { IconTooltip } from '@/features/orgs/projects/common/components/IconTooltip';
 import { Controller, useFormContext } from 'react-hook-form';
-import { CreateEventTriggerFormValues } from '../CreateEventTriggerForm';
+import type { CreateEventTriggerFormValues } from '../CreateEventTriggerFormTypes';
 
-export default function RetryConfigurationSection() {
+interface RetryConfigurationSectionProps {
+  className?: string;
+}
+
+export default function RetryConfigurationSection({
+  className,
+}: RetryConfigurationSectionProps) {
   const form = useFormContext<CreateEventTriggerFormValues>();
 
   return (
-    <FieldSet>
+    <FieldSet className={className}>
       <FieldLegend className="text-foreground">Retry Configuration</FieldLegend>
       <FieldDescription>
         Configuration to retry the webhook in case of failure
@@ -42,7 +48,7 @@ export default function RetryConfigurationSection() {
                 {...field}
                 id="numRetries"
                 aria-invalid={fieldState.invalid}
-                placeholder="0"
+                placeholder="number of retries (default: 0)"
                 type="number"
                 min="0"
                 className="text-foreground"
@@ -71,7 +77,7 @@ export default function RetryConfigurationSection() {
                 {...field}
                 id="intervalSec"
                 aria-invalid={fieldState.invalid}
-                placeholder="10"
+                placeholder="retry interval (default: 10)"
                 type="number"
                 min="0"
                 className="text-foreground"
@@ -100,7 +106,7 @@ export default function RetryConfigurationSection() {
                 {...field}
                 id="timeoutSec"
                 aria-invalid={fieldState.invalid}
-                placeholder="10"
+                placeholder="timeout (default: 60)"
                 type="number"
                 min="0"
                 className="text-foreground"
