@@ -16,6 +16,15 @@ Contributions are made to Nhost repos via Issues and Pull Requests (PRs). A few 
 - We work hard to make sure issues are handled on time, but it could take a while to investigate the root cause depending on the impact. A friendly ping in the comment thread to the submitter or a contributor can help draw attention if your issue is blocking.
 - If you've never contributed before, see [the first-timer's guide](https://github.com/firstcontributions/first-contributions) for resources and tips on getting started.
 
+### AI-Assisted Contributions
+
+We have specific policies regarding AI-assisted contributions:
+
+- **Issues**: Bug reports and feature requests that are clearly AI-generated will not be accepted and will be closed immediately. Please write your issues in your own words to ensure they are clear, specific, and contain the necessary context.
+- **Pull Requests**: Contributions with the help of AI are permitted, but you are ultimately responsible for the quality of your submission and for ensuring it follows our contributing guidelines. PRs that do not meet our standards will be closed without further review.
+
+In all cases, contributors must ensure their submissions are thoughtful, well-tested, and meet the project's quality standards.
+
 ### Issues
 
 Issues should be used to report problems with Nhost, request a new feature, or discuss potential changes before a PR is created.

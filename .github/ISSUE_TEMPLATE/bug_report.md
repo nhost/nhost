@@ -7,6 +7,8 @@ assignees: ''
 
 ---
 
+> **Note:** Bug reports that are clearly AI-generated will not be accepted and will be closed immediately. Please write your bug report in your own words.
+
 **Describe the bug**
 A clear and concise description of what the bug is.
 
