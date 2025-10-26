@@ -51,6 +51,7 @@ import {
   type CreateEventTriggerFormValues,
 } from './CreateEventTriggerFormTypes';
 import { HeadersSection } from './sections/HeadersSection';
+import RequestOptionsSection from './sections/RequestOptionsSection';
 import RetryConfigurationSection from './sections/RetryConfigurationSection';
 import UpdateTriggerColumnsSection from './sections/UpdateTriggerColumnsSection';
 
@@ -495,17 +496,7 @@ export default function CreateEventTriggerForm({
                     Configure REST Connectors
                   </AccordionTrigger>
                   <AccordionContent>
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                    Morbi lobortis lacus risus. Nunc dui dolor, mollis quis
-                    euismod non, accumsan a leo. Nunc sed tristique tellus. In
-                    dapibus finibus ligula vitae fringilla. Quisque fermentum
-                    lacinia gravida. Vivamus faucibus diam quis est rutrum, id
-                    ornare nisl pretium. Fusce lacinia ante eget ipsum tristique
-                    iaculis. Vivamus et semper erat. Mauris efficitur diam sed
-                    velit eleifend, id posuere sapien volutpat. Pellentesque
-                    bibendum sed neque sit amet vulputate. Sed odio turpis,
-                    volutpat id tortor a, aliquam luctus purus. Sed tempus
-                    rutrum porta.
+                    <RequestOptionsSection />
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>
