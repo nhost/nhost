@@ -20,6 +20,19 @@ export const triggerOperations = [
 
 export const updateTriggerOnOptions = ['all', 'choose'] as const;
 
+export const requestTransformMethods = [
+  'GET',
+  'POST',
+  'PUT',
+  'PATCH',
+  'DELETE',
+] as const;
+
+export const requestTransformQueryParamsTypeOptions = [
+  'Key Value',
+  'URL string template',
+] as const;
+
 export const validationSchema = z
   .object({
     triggerName: z
@@ -57,6 +70,31 @@ export const validationSchema = z
         value: z.string().min(1),
       }),
     ),
+    requestTransform: z
+      .object({
+        method: z.enum(requestTransformMethods),
+        urlTemplate: z.string().optional(),
+        queryParams: z.discriminatedUnion('queryParamsType', [
+          z.object({
+            queryParamsType: z.literal(
+              requestTransformQueryParamsTypeOptions[0],
+            ),
+            queryParams: z.array(
+              z.object({
+                key: z.string(),
+                value: z.string(),
+              }),
+            ),
+          }),
+          z.object({
+            queryParamsType: z.literal(
+              requestTransformQueryParamsTypeOptions[1],
+            ),
+            queryParamsURL: z.string(),
+          }),
+        ]),
+      })
+      .optional(),
   })
   .refine(
     (data) => {
