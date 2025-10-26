@@ -1659,6 +1659,15 @@ components:
       required:
         - name
         - table
+        - webhook
+        - webhook_from_env
+        - insert
+        - update
+        - delete
+        - retry_conf
+        - enable_manual
+        - headers
+        - replace
       properties:
         name:
           type: string
@@ -1711,7 +1720,6 @@ components:
           type: boolean
           description: Specification for enabling/disabling the Event Trigger during logical replication
           default: false
-      additionalProperties: true
 
     CreateEventTriggerBulkOperation:
       type: object

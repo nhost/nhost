@@ -23,31 +23,30 @@ export interface CreateEventTriggerArgs {
    * Webhook URL. Supports template variables like {{ENV_VAR}}/some/path
    * @nullable
    */
-  webhook?: string | null;
+  webhook: string | null;
   /**
    * Environment variable containing the webhook URL
    * @nullable
    */
-  webhook_from_env?: string | null;
+  webhook_from_env: string | null;
   /** Specification for the insert operation */
-  insert?: OperationSpec;
+  insert: OperationSpec;
   /** Specification for the update operation */
-  update?: OperationSpec;
+  update: OperationSpec;
   /** Specification for the delete operation */
-  delete?: OperationSpec;
+  delete: OperationSpec;
   /** List of headers to be sent with the webhook */
-  headers?: Headers;
+  headers: Headers;
   /** Retry configuration if event delivery fails */
-  retry_conf?: RetryConf;
+  retry_conf: RetryConf;
   /** If set to true, the Event Trigger is replaced with the new definition */
-  replace?: boolean;
+  replace: boolean;
   /** If set to true, the Event Trigger can be invoked manually */
-  enable_manual?: boolean;
+  enable_manual: boolean;
   /** Attaches a Request Transformation to the Event Trigger. */
   request_transform?: RequestTransformation;
   /** Attaches a Response Transformation to the Event Trigger. */
   response_transform?: ResponseTransformation;
   /** Specification for enabling/disabling the Event Trigger during logical replication */
   trigger_on_replication?: boolean;
-  [key: string]: unknown;
 }
