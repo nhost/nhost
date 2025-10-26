@@ -8,7 +8,7 @@ import {
   FieldSet,
 } from '@/components/ui/v3/field';
 import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
-import type { CreateEventTriggerFormValues } from '@/features/orgs/projects/events/event-triggers/components/CreateEventTriggerForm/CreateEventTriggerForm';
+import type { CreateEventTriggerFormValues } from '@/features/orgs/projects/events/event-triggers/components/CreateEventTriggerForm/CreateEventTriggerFormTypes';
 import { isEmptyValue } from '@/lib/utils';
 import { Controller, useFormContext } from 'react-hook-form';
 

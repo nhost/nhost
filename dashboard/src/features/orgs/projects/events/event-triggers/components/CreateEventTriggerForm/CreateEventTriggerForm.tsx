@@ -40,76 +40,25 @@ import {
 import { IconTooltip } from '@/features/orgs/projects/common/components/IconTooltip';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import { useGetMetadata } from '@/features/orgs/projects/common/hooks/useGetMetadata';
-import {
-  TRIGGER_OPERATIONS,
-  UPDATE_TRIGGER_ON,
-} from '@/features/orgs/projects/events/event-triggers/constants';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMemo } from 'react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
-import { z } from 'zod';
+import {
+  triggerOperations,
+  updateTriggerOnOptions,
+  validationSchema,
+  type CreateEventTriggerFormValues,
+} from './CreateEventTriggerFormTypes';
+import { HeadersSection } from './sections/HeadersSection';
 import RetryConfigurationSection from './sections/RetryConfigurationSection';
 import UpdateTriggerColumnsSection from './sections/UpdateTriggerColumnsSection';
 
 export interface CreateEventTriggerFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit?: (data: z.infer<typeof formSchema>) => void;
+  onSubmit?: (data: CreateEventTriggerFormValues) => void;
 }
-
-const formSchema = z
-  .object({
-    triggerName: z
-      .string()
-      .min(1, { message: 'Trigger name is required' })
-      .max(42, { message: 'Trigger name must be at most 42 characters' })
-      .regex(/^[a-zA-Z0-9_-]+$/, {
-        message:
-          'Trigger name can only contain alphanumeric characters, underscores, and hyphens',
-      }),
-    dataSource: z.string({ required_error: 'Data source is required' }),
-    tableName: z.string({ required_error: 'Table name is required' }),
-    tableSchema: z.string({ required_error: 'Schema name is required' }),
-    webhook: z.string().min(1, { message: 'Webhook is required' }),
-    triggerOperations: z
-      .array(z.enum(TRIGGER_OPERATIONS))
-      .refine((value) => value.some((item) => item), {
-        message: 'At least one trigger operation is required',
-      }),
-    updateTriggerOn: z.enum(UPDATE_TRIGGER_ON).optional(),
-    updateTriggerColumns: z.array(z.string()),
-    retryConf: z.object({
-      numRetries: z.number().min(0),
-      intervalSec: z.number().min(0),
-      timeoutSec: z.number().min(0),
-    }),
-    headers: z.array(
-      z
-        .object({
-          name: z.string().min(1),
-          value: z.string().min(1).optional(),
-          valueFromEnv: z.string().min(1).optional(),
-        })
-        .refine((item) => item.value || item.valueFromEnv, {
-          message: 'Value is required',
-        }),
-    ),
-  })
-  .refine(
-    (data) => {
-      if (data.updateTriggerOn === 'choose') {
-        return (data.updateTriggerColumns?.length ?? 0) > 0;
-      }
-      return true;
-    },
-    {
-      message: 'At least one column is required for update trigger',
-      path: ['updateTriggerColumns'],
-    },
-  );
-
-export type CreateEventTriggerFormValues = z.infer<typeof formSchema>;
 
 export default function CreateEventTriggerForm({
   open,
@@ -120,7 +69,7 @@ export default function CreateEventTriggerForm({
   const dataSources = metadata?.sources?.map((source) => source.name!) ?? [];
 
   const form = useForm<CreateEventTriggerFormValues>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(validationSchema),
     defaultValues: {
       triggerName: '',
       dataSource: '',
@@ -396,7 +345,7 @@ export default function CreateEventTriggerForm({
                         />{' '}
                         table:
                       </FieldDescription>
-                      {TRIGGER_OPERATIONS.map((operation) => (
+                      {triggerOperations.map((operation) => (
                         <Field
                           key={operation}
                           orientation="horizontal"
@@ -456,26 +405,28 @@ export default function CreateEventTriggerForm({
                           aria-invalid={fieldState.invalid}
                           className="flex flex-row items-center gap-12"
                         >
-                          {UPDATE_TRIGGER_ON.map((updateTriggerOn) => (
-                            <Field
-                              key={updateTriggerOn}
-                              orientation="horizontal"
-                              data-invalid={fieldState.invalid}
-                              className="w-auto"
-                            >
-                              <RadioGroupItem
-                                value={updateTriggerOn}
-                                id={`update-trigger-on-${updateTriggerOn}`}
-                                aria-invalid={fieldState.invalid}
-                              />
-                              <FieldLabel
-                                htmlFor={`update-trigger-on-${updateTriggerOn}`}
-                                className="font-normal text-foreground"
+                          {updateTriggerOnOptions.map(
+                            (updateTriggerOnValue) => (
+                              <Field
+                                key={updateTriggerOnValue}
+                                orientation="horizontal"
+                                data-invalid={fieldState.invalid}
+                                className="w-auto"
                               >
-                                {updateTriggerOn}
-                              </FieldLabel>
-                            </Field>
-                          ))}
+                                <RadioGroupItem
+                                  value={updateTriggerOnValue}
+                                  id={`update-trigger-on-${updateTriggerOnValue}`}
+                                  aria-invalid={fieldState.invalid}
+                                />
+                                <FieldLabel
+                                  htmlFor={`update-trigger-on-${updateTriggerOnValue}`}
+                                  className="font-normal text-foreground"
+                                >
+                                  {updateTriggerOnValue}
+                                </FieldLabel>
+                              </Field>
+                            ),
+                          )}
                         </RadioGroup>
                         {fieldState.invalid && (
                           <FieldError errors={[fieldState.error]} />
@@ -526,28 +477,14 @@ export default function CreateEventTriggerForm({
               <Accordion type="multiple" className="">
                 <AccordionItem value="retry-configuration" className="px-6">
                   <AccordionTrigger className="pt-0 text-base text-foreground">
-                    Advanced Settings
+                    Retry and Headers Settings
                   </AccordionTrigger>
                   <AccordionContent>
-                    <RetryConfigurationSection />
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="headers" className="px-6">
-                  <AccordionTrigger className="text-base text-foreground">
-                    Headers
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                    Morbi lobortis lacus risus. Nunc dui dolor, mollis quis
-                    euismod non, accumsan a leo. Nunc sed tristique tellus. In
-                    dapibus finibus ligula vitae fringilla. Quisque fermentum
-                    lacinia gravida. Vivamus faucibus diam quis est rutrum, id
-                    ornare nisl pretium. Fusce lacinia ante eget ipsum tristique
-                    iaculis. Vivamus et semper erat. Mauris efficitur diam sed
-                    velit eleifend, id posuere sapien volutpat. Pellentesque
-                    bibendum sed neque sit amet vulputate. Sed odio turpis,
-                    volutpat id tortor a, aliquam luctus purus. Sed tempus
-                    rutrum porta.
+                    <div className="flex flex-col gap-8 border-l">
+                      <RetryConfigurationSection className="pl-4" />
+                      <FieldSeparator />
+                      <HeadersSection className="pl-4" />
+                    </div>
                   </AccordionContent>
                 </AccordionItem>
                 <AccordionItem
