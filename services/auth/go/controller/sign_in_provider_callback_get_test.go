@@ -37,6 +37,7 @@ func getState(
 				Metadata:     options.Metadata,
 				RedirectTo:   options.RedirectTo,
 			},
+			"state": "some-random-state",
 		},
 		time.Now().Add(time.Minute),
 	)
@@ -136,7 +137,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			expectedResponse: api.SignInProviderCallbackGet302Response{
 				Headers: api.SignInProviderCallbackGet302ResponseHeaders{
-					Location: `^http://localhost:3000\?refreshToken=.*$`,
+					Location: `^http://localhost:3000\?refreshToken=[\w+-]+&state=some-random-state$`,
 				},
 			},
 			expectedJWT:       nil,
@@ -215,7 +216,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			expectedResponse: api.SignInProviderCallbackGet302Response{
 				Headers: api.SignInProviderCallbackGet302ResponseHeaders{
-					Location: `^http://localhost:3000/redirect/me/here\?refreshToken=.*$`,
+					Location: `^http://localhost:3000/redirect/me/here\?refreshToken=[\w+-]+&state=some-random-state$`,
 				},
 			},
 			expectedJWT:       nil,
@@ -257,7 +258,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			expectedResponse: controller.ErrorRedirectResponse{
 				Headers: struct{ Location string }{
-					Location: `^http://localhost:3000\?error=signup-disabled&errorDescription=.*$`,
+					Location: `^http://localhost:3000\?error=signup-disabled&errorDescription=Sign\+up\+is\+disabled.&state=some-random-state$`, //nolint:lll
 				},
 			},
 			expectedJWT:       nil,
@@ -324,7 +325,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			expectedResponse: controller.ErrorRedirectResponse{
 				Headers: struct{ Location string }{
-					Location: `^http://localhost:3000\?error=disabled-user&errorDescription=.*$`,
+					Location: `^http://localhost:3000\?error=disabled-user&errorDescription=User\+is\+disabled&state=some-random-state$`, //nolint:lll
 				},
 			},
 			expectedJWT:       nil,
@@ -366,7 +367,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			expectedResponse: controller.ErrorRedirectResponse{
 				Headers: struct{ Location string }{
-					Location: `^http://localhost:3000\?error=invalid-email-password&errorDescription=.*$`,
+					Location: `^http://localhost:3000\?error=invalid-email-password&errorDescription=Incorrect\+email\+or\+password&state=some-random-state$`, //nolint:lll
 				},
 			},
 			expectedJWT:       nil,
@@ -458,7 +459,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			expectedResponse: api.SignInProviderCallbackGet302Response{
 				Headers: api.SignInProviderCallbackGet302ResponseHeaders{
-					Location: `^http://localhost:3000\?refreshToken=.*$`,
+					Location: `^http://localhost:3000\?refreshToken=[\w+-]+&state=some-random-state$`,
 				},
 			},
 			expectedJWT:       nil,
@@ -575,7 +576,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			expectedResponse: api.SignInProviderCallbackGet302Response{
 				Headers: api.SignInProviderCallbackGet302ResponseHeaders{
-					Location: `^http://localhost:3000\?refreshToken=.*$`,
+					Location: `^http://localhost:3000\?refreshToken=[\w+-]+&state=some-random-state$`,
 				},
 			},
 			expectedJWT:       nil,
@@ -640,7 +641,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			expectedResponse: controller.ErrorRedirectResponse{
 				Headers: struct{ Location string }{
-					Location: `^http://localhost:3000\?error=disabled-user&errorDescription=.*$`,
+					Location: `^http://localhost:3000\?error=disabled-user&errorDescription=User\+is\+disabled&state=some-random-state$`, //nolint:lll
 				},
 			},
 			expectedJWT:       nil,
@@ -717,7 +718,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			expectedResponse: controller.ErrorRedirectResponse{
 				Headers: struct{ Location string }{
-					Location: `http://localhost:3000?error=disabled-endpoint&errorDescription=This+endpoint+is+disabled`,
+					Location: `^http://localhost:3000\?error=disabled-endpoint&errorDescription=This\+endpoint\+is\+disabled&state=some-random-state$`, //nolint:lll
 				},
 			},
 			expectedJWT:       nil,
@@ -746,7 +747,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			expectedResponse: controller.ErrorRedirectResponse{
 				Headers: struct{ Location string }{
-					Location: `http://localhost:3000?error=oauth-provider-error&errorDescription=Provider+returned+an+error&provider_error=error-coming-from-provider&provider_error_description=This+is+an+error+coming+from+the+provider&provider_error_url=https%3A%2F%2Fexample.com%2Ferror`, //nolint:lll
+					Location: `^http://localhost:3000\?error=oauth-provider-error&errorDescription=Provider\+returned\+an\+error&provider_error=error-coming-from-provider&provider_error_description=This\+is\+an\+error\+coming\+from\+the\+provider&provider_error_url=https%3A%2F%2Fexample.com%2Ferror&state=some-random-state$`, //nolint:lll //nolint:lll
 				},
 			},
 			expectedJWT:       nil,
@@ -835,7 +836,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			expectedResponse: api.SignInProviderCallbackGet302Response{
 				Headers: api.SignInProviderCallbackGet302ResponseHeaders{
-					Location: `^http://localhost:3000/connect-success$`,
+					Location: `^http://localhost:3000/connect-success\?state=some-random-state$`,
 				},
 			},
 			expectedJWT:       nil,
@@ -898,7 +899,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			expectedResponse: controller.ErrorRedirectResponse{
 				Headers: struct{ Location string }{
-					Location: `^http://localhost:3000/connect-success\?error=disabled-user&errorDescription=.*$`,
+					Location: `^http://localhost:3000/connect-success\?error=disabled-user&errorDescription=User\+is\+disabled&state=some-random-state$`, //nolint:lll
 				},
 			},
 			expectedJWT:       nil,
@@ -930,7 +931,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			expectedResponse: controller.ErrorRedirectResponse{
 				Headers: struct{ Location string }{
-					Location: `^http://localhost:3000/connect-success\?error=invalid-email-password&errorDescription=.*$`,
+					Location: `^http://localhost:3000/connect-success\?error=invalid-email-password&errorDescription=Incorrect\+email\+or\+password&state=some-random-state$`, //nolint:lll
 				},
 			},
 			expectedJWT:       nil,
@@ -1005,7 +1006,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			expectedResponse: controller.ErrorRedirectResponse{
 				Headers: struct{ Location string }{
-					Location: `^http://localhost:3000/connect-success\?error=invalid-request&errorDescription=.*$`,
+					Location: `^http://localhost:3000/connect-success\?error=invalid-request&errorDescription=The\+request\+payload\+is\+incorrect&state=some-random-state$`, //nolint:lll
 				},
 			},
 			expectedJWT:       nil,
@@ -1033,7 +1034,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			expectedResponse: controller.ErrorRedirectResponse{
 				Headers: struct{ Location string }{
-					Location: `^http://localhost:3000/connect-success\?error=invalid-request&errorDescription=.*$`,
+					Location: `^http://localhost:3000/connect-success\?error=invalid-request&errorDescription=The\+request\+payload\+is\+incorrect&state=some-random-state$`, //nolint:lll
 				},
 			},
 			expectedJWT:       nil,
@@ -1103,7 +1104,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			expectedResponse: api.SignInProviderCallbackGet302Response{
 				Headers: api.SignInProviderCallbackGet302ResponseHeaders{
-					Location: `^http://localhost:3000\?refreshToken=.*$`,
+					Location: `^http://localhost:3000\?refreshToken=[\w+-]+&state=some-random-state$`,
 				},
 			},
 			expectedJWT:       nil,
@@ -1145,7 +1146,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			expectedResponse: controller.ErrorRedirectResponse{
 				Headers: struct{ Location string }{
-					Location: `^http://localhost:3000\?error=signup-disabled&errorDescription=.*$`,
+					Location: `^http://localhost:3000\?error=signup-disabled&errorDescription=Sign\+up\+is\+disabled.&state=some-random-state$`, //nolint:lll
 				},
 			},
 			expectedJWT:       nil,
@@ -1212,7 +1213,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			expectedResponse: controller.ErrorRedirectResponse{
 				Headers: struct{ Location string }{
-					Location: `^http://localhost:3000\?error=disabled-user&errorDescription=.*$`,
+					Location: `^http://localhost:3000\?error=disabled-user&errorDescription=User\+is\+disabled&state=some-random-state$`, //nolint:lll
 				},
 			},
 			expectedJWT:       nil,

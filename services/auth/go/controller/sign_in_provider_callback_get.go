@@ -29,6 +29,24 @@ type providerCallbackData struct {
 	Extras           map[string]any
 }
 
+func (ctrl *Controller) getStateData(
+	ctx context.Context, state string, logger *slog.Logger,
+) (*providers.State, *APIError) {
+	stateToken, err := ctrl.wf.jwtGetter.Validate(state)
+	if err != nil {
+		logger.ErrorContext(ctx, "invalid state token", logError(err))
+		return nil, ErrInvalidState
+	}
+
+	stateData := &providers.State{} //nolint:exhaustruct
+	if err := stateData.Decode(stateToken.Claims); err != nil {
+		logger.ErrorContext(ctx, "error decoding state token", logError(err))
+		return nil, ErrInvalidState
+	}
+
+	return stateData, nil
+}
+
 func (ctrl *Controller) signinProviderProviderCallbackValidate(
 	ctx context.Context,
 	req providerCallbackData,
@@ -36,16 +54,9 @@ func (ctrl *Controller) signinProviderProviderCallbackValidate(
 ) (*api.SignUpOptions, *string, *url.URL, *APIError) {
 	redirectTo := ctrl.config.ClientURL
 
-	stateToken, err := ctrl.wf.jwtGetter.Validate(req.State)
-	if err != nil {
-		logger.ErrorContext(ctx, "invalid state token", logError(err))
-		return nil, nil, redirectTo, ErrInvalidState
-	}
-
-	stateData := &providers.State{} //nolint:exhaustruct
-	if err := stateData.Decode(stateToken.Claims); err != nil {
-		logger.ErrorContext(ctx, "error decoding state token", logError(err))
-		return nil, nil, redirectTo, ErrInvalidState
+	stateData, apiErr := ctrl.getStateData(ctx, req.State, logger)
+	if apiErr != nil {
+		return nil, nil, redirectTo, apiErr
 	}
 
 	// we just care about the redirect URL for now, the rest is handled by the signin flow
@@ -65,6 +76,11 @@ func (ctrl *Controller) signinProviderProviderCallbackValidate(
 		values.Add("provider_error", deptr(req.Error))
 		values.Add("provider_error_description", deptr(req.ErrorDescription))
 		values.Add("provider_error_url", deptr(req.ErrorURI))
+
+		if stateData.State != nil && *stateData.State != "" {
+			values.Add("state", *stateData.State)
+		}
+
 		redirectTo.RawQuery = values.Encode()
 
 		return nil, nil, redirectTo, ErrOauthProviderError
@@ -74,6 +90,12 @@ func (ctrl *Controller) signinProviderProviderCallbackValidate(
 	if err != nil {
 		logger.ErrorContext(ctx, "error parsing redirect URL", logError(err))
 		return nil, nil, redirectTo, ErrInvalidRequest
+	}
+
+	if stateData.State != nil && *stateData.State != "" {
+		values := optionsRedirectTo.Query()
+		values.Add("state", *stateData.State)
+		optionsRedirectTo.RawQuery = values.Encode()
 	}
 
 	return stateData.Options, stateData.Connect, optionsRedirectTo, nil
