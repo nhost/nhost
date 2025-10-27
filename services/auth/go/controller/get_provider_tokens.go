@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/nhost/nhost/services/auth/go/api"
@@ -35,6 +36,7 @@ func (ctrl *Controller) GetProviderTokens( //nolint:ireturn
 		return api.GetProviderTokens200JSONResponse{
 			AccessToken:  "",
 			ExpiresIn:    0,
+			ExpiresAt:    time.Time{},
 			RefreshToken: nil,
 		}, nil
 	}

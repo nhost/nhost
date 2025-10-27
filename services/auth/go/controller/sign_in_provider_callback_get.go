@@ -85,9 +85,15 @@ func tokenToProviderSession(token *oauth2.Token) api.ProviderSession {
 		expiresIn = int(time.Until(token.Expiry).Seconds())
 	}
 
+	expiresAt := token.Expiry
+	if token.Expiry.IsZero() {
+		expiresAt = time.Now().Add(time.Duration(expiresIn) * time.Second)
+	}
+
 	return api.ProviderSession{
 		AccessToken:  token.AccessToken,
 		ExpiresIn:    expiresIn,
+		ExpiresAt:    expiresAt,
 		RefreshToken: ptr(token.RefreshToken),
 	}
 }

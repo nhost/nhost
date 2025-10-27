@@ -616,6 +616,9 @@ export interface PublicKeyCredentialRequestOptions {
     *    Example - `"ya29.a0AfH6SMBx..."`
  @property expiresIn (`number`) - Number of seconds until the access token expires
     *    Example - `3599`
+ @property expiresAt (`string`) - Timestamp when the access token expires
+    *    Example - `"2024-12-31T23:59:59Z"`
+    *    Format - date-time
  @property refreshToken? (`string`) - OAuth2 provider refresh token for obtaining new access tokens (if provided by the provider)
     *    Example - `"1//0gK8..."`*/
 export interface ProviderSession {
@@ -629,6 +632,12 @@ export interface ProviderSession {
    *    Example - `3599`
    */
   expiresIn: number;
+  /**
+   * Timestamp when the access token expires
+   *    Example - `"2024-12-31T23:59:59Z"`
+   *    Format - date-time
+   */
+  expiresAt: string;
   /**
    * OAuth2 provider refresh token for obtaining new access tokens (if provided by the provider)
    *    Example - `"1//0gK8..."`

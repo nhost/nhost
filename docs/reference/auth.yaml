@@ -1884,6 +1884,11 @@ components:
           type: integer
           description: "Number of seconds until the access token expires"
           example: 3599
+        expiresAt:
+          type: string
+          format: date-time
+          description: "Timestamp when the access token expires"
+          example: "2024-12-31T23:59:59Z"
         refreshToken:
           type: string
           nullable: true
@@ -1892,6 +1897,7 @@ components:
       required:
         - accessToken
         - expiresIn
+        - expiresAt
 
     RefreshProviderTokenRequest:
       type: object

@@ -465,6 +465,9 @@ type ProviderSession struct {
 	// AccessToken OAuth2 provider access token for API calls
 	AccessToken string `json:"accessToken"`
 
+	// ExpiresAt Timestamp when the access token expires
+	ExpiresAt time.Time `json:"expiresAt"`
+
 	// ExpiresIn Number of seconds until the access token expires
 	ExpiresIn int `json:"expiresIn"`
 

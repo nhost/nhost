@@ -7,12 +7,14 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/controller"
 	"github.com/nhost/nhost/services/auth/go/controller/mock"
 	"github.com/nhost/nhost/services/auth/go/sql"
+	"github.com/nhost/nhost/services/auth/go/testhelpers"
 	"go.uber.org/mock/gomock"
 )
 
@@ -69,7 +71,7 @@ func TestGetProviderTokens(t *testing.T) {
 						UserID:     sql.UUID(userID),
 						ProviderID: sql.Text("fake"),
 					},
-				).Return("804d6a8c952d1e87b5bba465d131890b802dc4c86ba676bc66d6fcc4cb659b43cf29df27fafb7a17813a88a676ffa5f372e84c70829e74d517c9fc05c03bcd838cc2fb15c5b675c520674cd3beed7bcf21f2f852a0f8a8fc183bd93aa51111c2de2405ca8c52df34e7bbfc45a901c8f5a235363f1ca3a879", nil) //nolint:lll
+				).Return("1c6d0df04134afec1c9a3e95b4bdc48cf62780df72b537b8158845b6b71400c225f7d686cf2ca656553f7e4f771d29f6ba53b12f700d34ddab0386b92a541cdebdb15a294bcb00bbafd5cfb0072aeca0792b81a3be3a2316090b814ac3d04ef6b19eb4246ef89b461ce62abb165c5553a5a1766b1cf3bd19a3ada61abf1347fcaef1b43c134c21d8a6597aa7f2349ae3795ee7edff31ee44933b28e273bd53c768b7a5d8b5e898", nil) //nolint:lll
 
 				return mock
 			},
@@ -79,6 +81,7 @@ func TestGetProviderTokens(t *testing.T) {
 			expectedResponse: api.GetProviderTokens200JSONResponse{
 				AccessToken:  "valid-accesstoken-1",
 				ExpiresIn:    9000,
+				ExpiresAt:    time.Date(2025, 10, 27, 12, 29, 7, 0, time.UTC),
 				RefreshToken: ptr("valid-refreshtoken-1"),
 			},
 			expectedJWT:       nil,
@@ -149,6 +152,7 @@ func TestGetProviderTokens(t *testing.T) {
 			expectedResponse: api.GetProviderTokens200JSONResponse{
 				AccessToken:  "",
 				ExpiresIn:    0,
+				ExpiresAt:    time.Time{},
 				RefreshToken: nil,
 			},
 			expectedJWT:       nil,
@@ -232,6 +236,9 @@ func TestGetProviderTokens(t *testing.T) {
 
 			assertRequest(
 				ctx, t, c.GetProviderTokens, tc.request, tc.expectedResponse,
+				testhelpers.FilterPathLast(
+					[]string{".ExpiresAt"}, cmpopts.EquateApproxTime(time.Hour),
+				),
 			)
 		})
 	}
