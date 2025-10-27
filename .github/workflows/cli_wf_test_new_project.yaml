@@ -63,7 +63,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: "Get artifacts"
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v6
       with:
         path: ~/artifacts
 
