@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [cli@1.34.3] - 2025-10-27
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Update schema (#3622)
+- *(cli)* Bump nhost/dashboard to 2.40.0 (#3629)
+
 ## [cli@1.34.2] - 2025-10-20
 
 ### ⚙️ Miscellaneous Tasks
