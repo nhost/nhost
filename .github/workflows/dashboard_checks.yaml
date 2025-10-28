@@ -54,7 +54,7 @@ jobs:
       - check-permissions
     with:
       NAME: dashboard
-      GIT_REF: ${{ github.sha }}
+      GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
       ENVIRONMENT: preview
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
@@ -73,7 +73,7 @@ jobs:
     with:
       NAME: dashboard
       PATH: dashboard
-      GIT_REF: ${{ github.sha }}
+      GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
       VERSION: 0.0.0-dev # we use a fixed version here to avoid unnecessary rebuilds
       DOCKER: true
       OS_MATRIX: '["blacksmith-2vcpu-ubuntu-2404"]'
@@ -91,7 +91,7 @@ jobs:
     with:
       NAME: dashboard
       PATH: dashboard
-      GIT_REF: ${{ github.sha }}
+      GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
@@ -107,7 +107,7 @@ jobs:
     with:
       NAME: dashboard
       PATH: dashboard
-      GIT_REF: ${{ github.sha }}
+      GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
       NHOST_TEST_DASHBOARD_URL: ${{ needs.deploy-vercel.outputs.preview-url }}
       NHOST_TEST_PROJECT_NAME: ${{ vars.NHOST_TEST_PROJECT_NAME }}
       NHOST_TEST_ORGANIZATION_NAME: ${{ vars.NHOST_TEST_ORGANIZATION_NAME }}
