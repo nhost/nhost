@@ -5,12 +5,13 @@ import { cn } from '@/lib/utils';
 export interface InputProps
   extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'prefix'> {
   prefix?: React.ReactNode;
+  wrapperClassName?: string;
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, prefix, ...props }, ref) => {
+  ({ className, type, prefix, wrapperClassName, ...props }, ref) => {
     return (
-      <div className="relative flex items-center">
+      <div className={cn('relative flex items-center', wrapperClassName)}>
         {prefix && (
           <span className="pointer-events-none absolute left-3 flex items-center text-muted-foreground">
             {prefix}
