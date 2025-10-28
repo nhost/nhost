@@ -23,7 +23,7 @@ export default function SocialProvidersSettings() {
       if (typeof window !== 'undefined') {
         return nhost.auth.signInProviderURL('github', {
           connect: token,
-          redirectTo: `${window.location.origin}/account`,
+          redirectTo: `${window.location.origin}/account?signinProvider=github`,
         });
       }
       return '';

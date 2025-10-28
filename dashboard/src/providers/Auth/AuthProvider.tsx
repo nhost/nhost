@@ -21,7 +21,13 @@ function AuthProvider({ children }: PropsWithChildren) {
     pathname,
     push,
   } = useRouter();
-  const { refreshToken, error, errorDescription, ...remainingQuery } = query;
+  const {
+    refreshToken,
+    error,
+    errorDescription,
+    signinProvider,
+    ...remainingQuery
+  } = query;
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSigningOut, setIsSigningOut] = useState(false);
@@ -63,6 +69,22 @@ function AuthProvider({ children }: PropsWithChildren) {
         });
         setSession(sessionResponse.body);
         removeQueryParamsFromURL();
+
+        // fetch and store provider tokens if signinProvider is specified
+        if (sessionResponse.body && signinProvider === 'github') {
+          try {
+            const providerTokensResponse =
+              await nhost.auth.getProviderTokens(signinProvider);
+            if (providerTokensResponse.body) {
+              localStorage.setItem(
+                `nhost_provider_tokens_${signinProvider}`,
+                JSON.stringify(providerTokensResponse.body),
+              );
+            }
+          } catch (err) {
+            console.error('Failed to fetch provider tokens:', err);
+          }
+        }
       } else {
         const currentSession = nhost.getUserSession();
         setSession(currentSession);
