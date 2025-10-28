@@ -67,6 +67,7 @@ func (ctrl *Controller) SignInProvider( //nolint:ireturn
 				Metadata:     req.Params.Metadata,
 				RedirectTo:   req.Params.RedirectTo,
 			},
+			"state": req.Params.State,
 		},
 		time.Now().Add(time.Minute),
 	)

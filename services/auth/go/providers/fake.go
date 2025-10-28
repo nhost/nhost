@@ -43,13 +43,17 @@ func (f *FakeProvider) Exchange(
 	switch code {
 	case "valid-code-1":
 		return &oauth2.Token{ //nolint:exhaustruct
-			AccessToken: "valid-accesstoken-1",
-			TokenType:   "Bearer",
+			AccessToken:  "valid-accesstoken-1",
+			RefreshToken: "valid-refreshtoken-1",
+			TokenType:    "Bearer",
+			ExpiresIn:    9000, //nolint:mnd
 		}, nil
 	case "valid-code-empty-email":
 		return &oauth2.Token{ //nolint:exhaustruct
-			AccessToken: "valid-accesstoken-empty-email",
-			TokenType:   "Bearer",
+			AccessToken:  "valid-accesstoken-empty-email",
+			RefreshToken: "valid-refreshtoken-empty-email",
+			TokenType:    "Bearer",
+			ExpiresIn:    9000, //nolint:mnd
 		}, nil
 	default:
 		return nil, errors.New("invalid code") //nolint:err113

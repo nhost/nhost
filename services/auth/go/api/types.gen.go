@@ -206,22 +206,62 @@ const (
 
 // Defines values for SignInProviderCallbackPostParamsProvider.
 const (
-	Apple       SignInProviderCallbackPostParamsProvider = "apple"
-	Azuread     SignInProviderCallbackPostParamsProvider = "azuread"
-	Bitbucket   SignInProviderCallbackPostParamsProvider = "bitbucket"
-	Discord     SignInProviderCallbackPostParamsProvider = "discord"
-	Entraid     SignInProviderCallbackPostParamsProvider = "entraid"
-	Facebook    SignInProviderCallbackPostParamsProvider = "facebook"
-	Github      SignInProviderCallbackPostParamsProvider = "github"
-	Gitlab      SignInProviderCallbackPostParamsProvider = "gitlab"
-	Google      SignInProviderCallbackPostParamsProvider = "google"
-	Linkedin    SignInProviderCallbackPostParamsProvider = "linkedin"
-	Spotify     SignInProviderCallbackPostParamsProvider = "spotify"
-	Strava      SignInProviderCallbackPostParamsProvider = "strava"
-	Twitch      SignInProviderCallbackPostParamsProvider = "twitch"
-	Twitter     SignInProviderCallbackPostParamsProvider = "twitter"
-	Windowslive SignInProviderCallbackPostParamsProvider = "windowslive"
-	Workos      SignInProviderCallbackPostParamsProvider = "workos"
+	SignInProviderCallbackPostParamsProviderApple       SignInProviderCallbackPostParamsProvider = "apple"
+	SignInProviderCallbackPostParamsProviderAzuread     SignInProviderCallbackPostParamsProvider = "azuread"
+	SignInProviderCallbackPostParamsProviderBitbucket   SignInProviderCallbackPostParamsProvider = "bitbucket"
+	SignInProviderCallbackPostParamsProviderDiscord     SignInProviderCallbackPostParamsProvider = "discord"
+	SignInProviderCallbackPostParamsProviderEntraid     SignInProviderCallbackPostParamsProvider = "entraid"
+	SignInProviderCallbackPostParamsProviderFacebook    SignInProviderCallbackPostParamsProvider = "facebook"
+	SignInProviderCallbackPostParamsProviderGithub      SignInProviderCallbackPostParamsProvider = "github"
+	SignInProviderCallbackPostParamsProviderGitlab      SignInProviderCallbackPostParamsProvider = "gitlab"
+	SignInProviderCallbackPostParamsProviderGoogle      SignInProviderCallbackPostParamsProvider = "google"
+	SignInProviderCallbackPostParamsProviderLinkedin    SignInProviderCallbackPostParamsProvider = "linkedin"
+	SignInProviderCallbackPostParamsProviderSpotify     SignInProviderCallbackPostParamsProvider = "spotify"
+	SignInProviderCallbackPostParamsProviderStrava      SignInProviderCallbackPostParamsProvider = "strava"
+	SignInProviderCallbackPostParamsProviderTwitch      SignInProviderCallbackPostParamsProvider = "twitch"
+	SignInProviderCallbackPostParamsProviderTwitter     SignInProviderCallbackPostParamsProvider = "twitter"
+	SignInProviderCallbackPostParamsProviderWindowslive SignInProviderCallbackPostParamsProvider = "windowslive"
+	SignInProviderCallbackPostParamsProviderWorkos      SignInProviderCallbackPostParamsProvider = "workos"
+)
+
+// Defines values for GetProviderTokensParamsProvider.
+const (
+	GetProviderTokensParamsProviderApple       GetProviderTokensParamsProvider = "apple"
+	GetProviderTokensParamsProviderAzuread     GetProviderTokensParamsProvider = "azuread"
+	GetProviderTokensParamsProviderBitbucket   GetProviderTokensParamsProvider = "bitbucket"
+	GetProviderTokensParamsProviderDiscord     GetProviderTokensParamsProvider = "discord"
+	GetProviderTokensParamsProviderEntraid     GetProviderTokensParamsProvider = "entraid"
+	GetProviderTokensParamsProviderFacebook    GetProviderTokensParamsProvider = "facebook"
+	GetProviderTokensParamsProviderGithub      GetProviderTokensParamsProvider = "github"
+	GetProviderTokensParamsProviderGitlab      GetProviderTokensParamsProvider = "gitlab"
+	GetProviderTokensParamsProviderGoogle      GetProviderTokensParamsProvider = "google"
+	GetProviderTokensParamsProviderLinkedin    GetProviderTokensParamsProvider = "linkedin"
+	GetProviderTokensParamsProviderSpotify     GetProviderTokensParamsProvider = "spotify"
+	GetProviderTokensParamsProviderStrava      GetProviderTokensParamsProvider = "strava"
+	GetProviderTokensParamsProviderTwitch      GetProviderTokensParamsProvider = "twitch"
+	GetProviderTokensParamsProviderTwitter     GetProviderTokensParamsProvider = "twitter"
+	GetProviderTokensParamsProviderWindowslive GetProviderTokensParamsProvider = "windowslive"
+	GetProviderTokensParamsProviderWorkos      GetProviderTokensParamsProvider = "workos"
+)
+
+// Defines values for RefreshProviderTokenParamsProvider.
+const (
+	Apple       RefreshProviderTokenParamsProvider = "apple"
+	Azuread     RefreshProviderTokenParamsProvider = "azuread"
+	Bitbucket   RefreshProviderTokenParamsProvider = "bitbucket"
+	Discord     RefreshProviderTokenParamsProvider = "discord"
+	Entraid     RefreshProviderTokenParamsProvider = "entraid"
+	Facebook    RefreshProviderTokenParamsProvider = "facebook"
+	Github      RefreshProviderTokenParamsProvider = "github"
+	Gitlab      RefreshProviderTokenParamsProvider = "gitlab"
+	Google      RefreshProviderTokenParamsProvider = "google"
+	Linkedin    RefreshProviderTokenParamsProvider = "linkedin"
+	Spotify     RefreshProviderTokenParamsProvider = "spotify"
+	Strava      RefreshProviderTokenParamsProvider = "strava"
+	Twitch      RefreshProviderTokenParamsProvider = "twitch"
+	Twitter     RefreshProviderTokenParamsProvider = "twitter"
+	Windowslive RefreshProviderTokenParamsProvider = "windowslive"
+	Workos      RefreshProviderTokenParamsProvider = "workos"
 )
 
 // Defines values for VerifyTicketParamsType.
@@ -420,6 +460,21 @@ type OptionsRedirectTo struct {
 	RedirectTo *string `json:"redirectTo,omitempty"`
 }
 
+// ProviderSession OAuth2 provider session containing access and refresh tokens
+type ProviderSession struct {
+	// AccessToken OAuth2 provider access token for API calls
+	AccessToken string `json:"accessToken"`
+
+	// ExpiresAt Timestamp when the access token expires
+	ExpiresAt time.Time `json:"expiresAt"`
+
+	// ExpiresIn Number of seconds until the access token expires
+	ExpiresIn int `json:"expiresIn"`
+
+	// RefreshToken OAuth2 provider refresh token for obtaining new access tokens (if provided by the provider)
+	RefreshToken *string `json:"refreshToken"`
+}
+
 // PublicKeyCredentialCreationOptions defines model for PublicKeyCredentialCreationOptions.
 type PublicKeyCredentialCreationOptions = protocol.PublicKeyCredentialCreationOptions
 
@@ -440,6 +495,12 @@ type PublicKeyCredentialHints string
 
 // PublicKeyCredentialRequestOptions defines model for PublicKeyCredentialRequestOptions.
 type PublicKeyCredentialRequestOptions = protocol.PublicKeyCredentialRequestOptions
+
+// RefreshProviderTokenRequest Request to refresh OAuth2 provider tokens
+type RefreshProviderTokenRequest struct {
+	// RefreshToken OAuth2 provider refresh token obtained from previous authentication
+	RefreshToken string `json:"refreshToken"`
+}
 
 // RefreshTokenRequest Request to refresh an access token
 type RefreshTokenRequest struct {
@@ -844,6 +905,9 @@ type SignInProviderParams struct {
 
 	// Connect If set, this means that the user is already authenticated and wants to link their account. This needs to be a valid JWT access token.
 	Connect *string `form:"connect,omitempty" json:"connect,omitempty"`
+
+	// State Opaque state value to be returned by the provider
+	State *string `form:"state,omitempty" json:"state,omitempty"`
 }
 
 // SignInProviderParamsProvider defines parameters for SignInProvider.
@@ -906,6 +970,12 @@ type SignInProviderCallbackPostFormdataBody struct {
 
 // SignInProviderCallbackPostParamsProvider defines parameters for SignInProviderCallbackPost.
 type SignInProviderCallbackPostParamsProvider string
+
+// GetProviderTokensParamsProvider defines parameters for GetProviderTokens.
+type GetProviderTokensParamsProvider string
+
+// RefreshProviderTokenParamsProvider defines parameters for RefreshProviderToken.
+type RefreshProviderTokenParamsProvider string
 
 // VerifyTicketParams defines parameters for VerifyTicket.
 type VerifyTicketParams struct {
@@ -984,6 +1054,9 @@ type VerifySignUpWebauthnJSONRequestBody = SignUpWebauthnVerifyRequest
 
 // RefreshTokenJSONRequestBody defines body for RefreshToken for application/json ContentType.
 type RefreshTokenJSONRequestBody = RefreshTokenRequest
+
+// RefreshProviderTokenJSONRequestBody defines body for RefreshProviderToken for application/json ContentType.
+type RefreshProviderTokenJSONRequestBody = RefreshProviderTokenRequest
 
 // VerifyTokenJSONRequestBody defines body for VerifyToken for application/json ContentType.
 type VerifyTokenJSONRequestBody = VerifyTokenRequest

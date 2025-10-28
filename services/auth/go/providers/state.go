@@ -11,12 +11,14 @@ import (
 type State struct {
 	Connect *string
 	Options *api.SignUpOptions
+	State   *string
 }
 
 func (s *State) Encode() jwt.MapClaims {
 	return jwt.MapClaims{
 		"connect": s.Connect,
 		"options": s.Options,
+		"state":   s.State,
 	}
 }
 

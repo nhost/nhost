@@ -611,6 +611,53 @@ export interface PublicKeyCredentialRequestOptions {
 }
 
 /**
+ * OAuth2 provider session containing access and refresh tokens
+ @property accessToken (`string`) - OAuth2 provider access token for API calls
+    *    Example - `"ya29.a0AfH6SMBx..."`
+ @property expiresIn (`number`) - Number of seconds until the access token expires
+    *    Example - `3599`
+ @property expiresAt (`string`) - Timestamp when the access token expires
+    *    Example - `"2024-12-31T23:59:59Z"`
+    *    Format - date-time
+ @property refreshToken? (`string`) - OAuth2 provider refresh token for obtaining new access tokens (if provided by the provider)
+    *    Example - `"1//0gK8..."`*/
+export interface ProviderSession {
+  /**
+   * OAuth2 provider access token for API calls
+   *    Example - `"ya29.a0AfH6SMBx..."`
+   */
+  accessToken: string;
+  /**
+   * Number of seconds until the access token expires
+   *    Example - `3599`
+   */
+  expiresIn: number;
+  /**
+   * Timestamp when the access token expires
+   *    Example - `"2024-12-31T23:59:59Z"`
+   *    Format - date-time
+   */
+  expiresAt: string;
+  /**
+   * OAuth2 provider refresh token for obtaining new access tokens (if provided by the provider)
+   *    Example - `"1//0gK8..."`
+   */
+  refreshToken?: string;
+}
+
+/**
+ * Request to refresh OAuth2 provider tokens
+ @property refreshToken (`string`) - OAuth2 provider refresh token obtained from previous authentication
+    *    Example - `"1//0gK8..."`*/
+export interface RefreshProviderTokenRequest {
+  /**
+   * OAuth2 provider refresh token obtained from previous authentication
+   *    Example - `"1//0gK8..."`
+   */
+  refreshToken: string;
+}
+
+/**
  * Request to refresh an access token
  @property refreshToken (`string`) - Refresh token used to generate a new access token
     *    Example - `"2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"`
@@ -1832,6 +1879,18 @@ export interface Client {
   ): string;
 
   /**
+     Summary: Retrieve OAuth2 provider tokens from callback
+     After successful OAuth2 authentication, retrieve the provider session containing access token, refresh token, and expiration information for the specified provider. To ensure the data isn't stale this endpoint must be called immediately after the OAuth callback to obtain the tokens. The session is cleared from the database during this call, so subsequent calls will fail without going through the sign-in flow again. It is the user's responsibility to store the session safely (e.g., in browser local storage).
+
+     This method may return different T based on the response code:
+     - 200: ProviderSession
+     */
+  getProviderTokens(
+    provider: SignInProvider,
+    options?: RequestInit,
+  ): Promise<FetchResponse<ProviderSession>>;
+
+  /**
      Summary: Sign in with Webauthn
      Initiate a Webauthn sign-in process by sending a challenge to the user's device. The user must have previously registered a Webauthn credential.
 
@@ -1914,6 +1973,19 @@ export interface Client {
     body: RefreshTokenRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<Session>>;
+
+  /**
+     Summary: Refresh OAuth2 provider tokens
+     Refresh the OAuth2 provider access token using a valid refresh token. Returns a new provider session with updated access token, refresh token (if rotated by provider), and expiration information. This endpoint allows maintaining long-lived access to provider APIs without requiring the user to re-authenticate.
+
+     This method may return different T based on the response code:
+     - 200: ProviderSession
+     */
+  refreshProviderToken(
+    provider: SignInProvider,
+    body: RefreshProviderTokenRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<ProviderSession>>;
 
   /**
      Summary: Verify JWT token
@@ -2682,6 +2754,39 @@ export const createAPIClient = (
     return url;
   };
 
+  const getProviderTokens = async (
+    provider: SignInProvider,
+    options?: RequestInit,
+  ): Promise<FetchResponse<ProviderSession>> => {
+    const url = `${baseURL}/signin/provider/${provider}/callback/tokens`;
+    const res = await fetch(url, {
+      ...options,
+      method: "GET",
+      headers: {
+        ...options?.headers,
+      },
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: ProviderSession = responseBody
+      ? JSON.parse(responseBody)
+      : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<ProviderSession>;
+  };
+
   const signInWebauthn = async (
     body?: SignInWebauthnRequest,
     options?: RequestInit,
@@ -2921,6 +3026,42 @@ export const createAPIClient = (
       status: res.status,
       headers: res.headers,
     } as FetchResponse<Session>;
+  };
+
+  const refreshProviderToken = async (
+    provider: SignInProvider,
+    body: RefreshProviderTokenRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<ProviderSession>> => {
+    const url = `${baseURL}/token/provider/${provider}`;
+    const res = await fetch(url, {
+      ...options,
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: ProviderSession = responseBody
+      ? JSON.parse(responseBody)
+      : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<ProviderSession>;
   };
 
   const verifyToken = async (
@@ -3325,6 +3466,7 @@ export const createAPIClient = (
     verifySignInPasswordlessSms,
     signInPAT,
     signInProviderURL,
+    getProviderTokens,
     signInWebauthn,
     verifySignInWebauthn,
     signOut,
@@ -3332,6 +3474,7 @@ export const createAPIClient = (
     signUpWebauthn,
     verifySignUpWebauthn,
     refreshToken,
+    refreshProviderToken,
     verifyToken,
     getUser,
     deanonymizeUser,

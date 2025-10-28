@@ -142,7 +142,7 @@ export default function SpotifyProviderSettings() {
               loading: formState.isSubmitting,
             },
           }}
-          docsLink="https://docs.nhost.io/products/auth/social/sign-in-spotify"
+          docsLink="https://docs.nhost.io/products/auth/providers/sign-in-spotify"
           docsTitle="how to sign in users with Spotify"
           icon="/assets/brands/spotify.svg"
           switchId="enabled"

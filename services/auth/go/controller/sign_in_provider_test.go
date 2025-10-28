@@ -37,7 +37,7 @@ func TestSignInProvider(t *testing.T) {
 		},
 
 		{
-			name:   "success with options",
+			name:   "success with options and state",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
@@ -53,6 +53,7 @@ func TestSignInProvider(t *testing.T) {
 					Metadata:     ptr(map[string]interface{}{"key": "value"}),
 					RedirectTo:   ptr("http://localhost:3000/redirect"),
 					Connect:      ptr("asdasd"),
+					State:        ptr("custom-state"),
 				},
 				Provider: "fake",
 			},

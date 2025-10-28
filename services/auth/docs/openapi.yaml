@@ -592,6 +592,12 @@ paths:
             If set, this means that the user is already authenticated and wants to link their account. This needs to be a valid JWT access token.
           schema:
             type: string
+        - name: state
+          in: query
+          required: false
+          description: Opaque state value to be returned by the provider
+          schema:
+            type: string
 
       responses:
         "302":
@@ -731,6 +737,31 @@ paths:
             Location:
               $ref: "#/components/headers/RedirectLocation"
           content: {}
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+  /signin/provider/{provider}/callback/tokens:
+    get:
+      summary: Retrieve OAuth2 provider tokens from callback
+      description: After successful OAuth2 authentication, retrieve the provider session containing access token, refresh token, and expiration information for the specified provider. To ensure the data isn't stale this endpoint must be called immediately after the OAuth callback to obtain the tokens. The session is cleared from the database during this call, so subsequent calls will fail without going through the sign-in flow again. It is the user's responsibility to store the session safely (e.g., in browser local storage).
+      operationId: getProviderTokens
+      tags:
+        - authentication
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/SignInProvider"
+      responses:
+        "200":
+          description: Successfully retrieved provider session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProviderSession"
         default:
           content:
             application/json:
@@ -947,6 +978,38 @@ paths:
               schema:
                 $ref: "#/components/schemas/Session"
           description: "Access token successfully refreshed"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+  /token/provider/{provider}:
+    post:
+      summary: Refresh OAuth2 provider tokens
+      description: Refresh the OAuth2 provider access token using a valid refresh token. Returns a new provider session with updated access token, refresh token (if rotated by provider), and expiration information. This endpoint allows maintaining long-lived access to provider APIs without requiring the user to re-authenticate.
+      operationId: refreshProviderToken
+      tags:
+        - authentication
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/SignInProvider"
+      requestBody:
+        description: Provider refresh token to exchange for a new access token
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshProviderTokenRequest"
+        required: true
+      responses:
+        "200":
+          description: Successfully refreshed provider tokens
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProviderSession"
         default:
           content:
             application/json:
@@ -1814,6 +1877,46 @@ components:
       required:
         - challenge
 
+    ProviderSession:
+      type: object
+      description: "OAuth2 provider session containing access and refresh tokens"
+      additionalProperties: false
+      properties:
+        accessToken:
+          type: string
+          description: "OAuth2 provider access token for API calls"
+          example: "ya29.a0AfH6SMBx..."
+        expiresIn:
+          type: integer
+          description: "Number of seconds until the access token expires"
+          example: 3599
+        expiresAt:
+          type: string
+          format: date-time
+          description: "Timestamp when the access token expires"
+          example: "2024-12-31T23:59:59Z"
+        refreshToken:
+          type: string
+          nullable: true
+          description: "OAuth2 provider refresh token for obtaining new access tokens (if provided by the provider)"
+          example: "1//0gK8..."
+      required:
+        - accessToken
+        - expiresIn
+        - expiresAt
+
+    RefreshProviderTokenRequest:
+      type: object
+      description: "Request to refresh OAuth2 provider tokens"
+      additionalProperties: false
+      properties:
+        refreshToken:
+          type: string
+          description: "OAuth2 provider refresh token obtained from previous authentication"
+          example: "1//0gK8..."
+      required:
+        - refreshToken
+
     RefreshTokenRequest:
       type: object
       description: "Request to refresh an access token"
@@ -2512,7 +2615,6 @@ components:
           - facebook
           - windowslive
           - twitter
-      deprecated: true
 
     TicketQuery:
       in: query
