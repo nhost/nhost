@@ -496,7 +496,9 @@ export default function CreateEventTriggerForm({
                     Configure REST Connectors
                   </AccordionTrigger>
                   <AccordionContent>
-                    <RequestOptionsSection />
+                    <div className="flex flex-col gap-8 border-l">
+                      <RequestOptionsSection className="pl-4" />
+                    </div>
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>
