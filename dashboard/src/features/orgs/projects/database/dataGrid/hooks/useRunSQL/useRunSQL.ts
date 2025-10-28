@@ -3,7 +3,7 @@ import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/gen
 import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { getToastStyleProps } from '@/utils/constants/settings';
-import { getHasuraAdminSecret } from '@/utils/env';
+import { getHasuraAdminSecret, getHasuraMigrationsApiUrl } from '@/utils/env';
 import { parseIdentifiersFromSQL } from '@/utils/sql';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
@@ -53,7 +53,10 @@ export default function useRunSQL(
     isCascade: boolean,
   ) => {
     try {
-      const migrationApiResponse = await fetch(`${appUrl}/apis/migrate`, {
+      const url = isPlatform
+        ? `${appUrl}/apis/migrate`
+        : getHasuraMigrationsApiUrl();
+      const migrationApiResponse = await fetch(url, {
         method: 'POST',
         headers: { 'x-hasura-admin-secret': adminSecret },
         body: JSON.stringify({
