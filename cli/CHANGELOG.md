@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [cli@1.34.4] - 2025-10-28
+
+### 🐛 Bug Fixes
+
+- *(cli)* Update NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL correctly (#3643)
+
 ## [cli@1.34.3] - 2025-10-27
 
 ### ⚙️ Miscellaneous Tasks
