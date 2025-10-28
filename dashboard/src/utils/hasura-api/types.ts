@@ -6,3 +6,8 @@ export interface MetadataOperationOptions {
   appUrl: string;
   adminSecret: string;
 }
+
+export interface MigrationOperationOptions {
+  appUrl: string;
+  adminSecret: string;
+}

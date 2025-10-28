@@ -7,6 +7,6 @@
  */
 
 /**
- * Key-value template used when action is 'x_www_form_urlencoded'
+ * The key/value pairs to be used in a x-www-url-formencoded body. The values can be transfomation templates.
  */
 export type BodyTransformFormTemplate = { [key: string]: string };
