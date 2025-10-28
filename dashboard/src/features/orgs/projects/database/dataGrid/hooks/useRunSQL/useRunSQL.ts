@@ -8,6 +8,7 @@ import { parseIdentifiersFromSQL } from '@/utils/sql';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
+import { getHasuraMigrationsApiUrl } from '../../../../../../../utils/env/env';
 
 export default function useRunSQL(
   sqlCode: string,
@@ -53,7 +54,10 @@ export default function useRunSQL(
     isCascade: boolean,
   ) => {
     try {
-      const migrationApiResponse = await fetch(`${appUrl}/apis/migrate`, {
+      const url = isPlatform
+        ? `${appUrl}/apis/migrate`
+        : getHasuraMigrationsApiUrl();
+      const migrationApiResponse = await fetch(url, {
         method: 'POST',
         headers: { 'x-hasura-admin-secret': adminSecret },
         body: JSON.stringify({
@@ -118,7 +122,11 @@ export default function useRunSQL(
         };
       }
 
-      const response = await fetch(`${appUrl}/v2/query`, {
+      const url = isPlatform
+        ? `${appUrl}/v2/query`
+        : getHasuraMigrationsApiUrl();
+
+      const response = await fetch(url, {
         method: 'POST',
         headers: { 'x-hasura-admin-secret': adminSecret },
         body: JSON.stringify({
@@ -182,10 +190,12 @@ export default function useRunSQL(
   };
 
   const trackAll = async (objects: any[]): Promise<Response[]> => {
-    const apiPath = isPlatform ? '/v1/metadata' : '/apis/migrate';
+    const url = isPlatform
+      ? `${appUrl}/v1/metadata`
+      : getHasuraMigrationsApiUrl();
     const responses: Response[] = await Promise.all(
       objects.map((object) =>
-        fetch(`${appUrl}${apiPath}`, {
+        fetch(url, {
           method: 'POST',
           headers: { 'x-hasura-admin-secret': adminSecret },
           body: JSON.stringify(object),
