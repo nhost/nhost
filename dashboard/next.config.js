@@ -50,20 +50,12 @@ module.exports = withBundleAnalyzer({
       return []; // No CSP headers
     }
 
-    const cspHeader = getCspHeader();
-
-    if (!cspHeader) {
-      return []; // No CSP headers
-    }
-
     return [
       {
-        source: '/:path*',
         source: '/:path*',
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: cspHeader,
             value: cspHeader,
           },
           {
