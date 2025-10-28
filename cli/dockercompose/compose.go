@@ -344,7 +344,7 @@ func dashboard(
 				subdomain, "hasura", httpPort, useTLS,
 			) + "/console",
 			"NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL": URL(
-				subdomain, "hasura", httpPort, useTLS),
+				subdomain, "hasura", httpPort, useTLS) + "/apis/migrate",
 			"NEXT_PUBLIC_NHOST_STORAGE_URL": URL(
 				subdomain, "storage", httpPort, useTLS) + "/v1",
 		},
