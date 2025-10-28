@@ -17,13 +17,6 @@ export * from './addRemoteSchemaPermissionsStep';
 export * from './addRemoteSchemaPermissionsStepType';
 export * from './addRemoteSchemaStep';
 export * from './addRemoteSchemaStepType';
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-export * from './autoEventTriggerCleanupConfig';
->>>>>>> 441228b66 (feat: event trigger visualizations)
-=======
->>>>>>> 8830263f4 (chore: remove autocleanupconfig)
 export * from './bodyTransform';
 export * from './bodyTransformAction';
 export * from './bodyTransformFormTemplate';
