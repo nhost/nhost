@@ -1071,6 +1071,7 @@ components:
       required:
         - name
         - definition
+        - retry_conf
       properties:
         name:
           type: string
