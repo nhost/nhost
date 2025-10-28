@@ -7,6 +7,12 @@ import {
   FieldLegend,
   FieldSet,
 } from '@/components/ui/v3/field';
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupText,
+} from '@/components/ui/v3/input-group';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
 import {
   requestTransformMethods,
@@ -14,20 +20,29 @@ import {
 } from '@/features/orgs/projects/events/event-triggers/components/CreateEventTriggerForm/CreateEventTriggerFormTypes';
 import { Controller, useFormContext } from 'react-hook-form';
 
-export default function RequestOptionsSection() {
+interface RequestOptionsSectionProps {
+  className?: string;
+}
+
+export default function RequestOptionsSection({
+  className,
+}: RequestOptionsSectionProps) {
   const form = useFormContext<CreateEventTriggerFormValues>();
   return (
-    <FieldSet className="px-6">
+    <FieldSet className={className}>
       <FieldLegend className="text-foreground">Request Options</FieldLegend>
       <FieldDescription>
         Configuration to transform the request before sending it to the webhook
       </FieldDescription>
-      <FieldGroup className="flex flex-col gap-8 lg:flex-row">
+      <FieldGroup className="flex flex-col gap-8">
         <Controller
           name="requestTransform.method"
           control={form.control}
           render={({ field, fieldState }) => (
-            <FieldSet data-invalid={fieldState.invalid}>
+            <FieldSet
+              data-invalid={fieldState.invalid}
+              className="flex lg:flex-row"
+            >
               <FieldLegend variant="label" className="text-foreground">
                 Request Method
               </FieldLegend>
@@ -61,6 +76,36 @@ export default function RequestOptionsSection() {
               </RadioGroup>
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </FieldSet>
+          )}
+        />
+        <Controller
+          name="requestTransform.urlTemplate"
+          control={form.control}
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid} className="max-w-lg">
+              <FieldLabel
+                htmlFor="requestTransform.urlTemplate"
+                className="text-foreground"
+              >
+                Request URL Template
+              </FieldLabel>
+              <InputGroup>
+                <InputGroupAddon className="border-r pr-2">
+                  <InputGroupText>{'{{$base_url}}'}</InputGroupText>
+                </InputGroupAddon>
+                <InputGroupInput
+                  {...field}
+                  id="requestTransform.urlTemplate"
+                  aria-invalid={fieldState.invalid}
+                  placeholder="URL Template (Optional)..."
+                  className="w-full pl-2 text-foreground"
+                  wrapperClassName="w-full"
+                />
+                {fieldState.invalid && (
+                  <FieldError errors={[fieldState.error]} />
+                )}
+              </InputGroup>
+            </Field>
           )}
         />
       </FieldGroup>
