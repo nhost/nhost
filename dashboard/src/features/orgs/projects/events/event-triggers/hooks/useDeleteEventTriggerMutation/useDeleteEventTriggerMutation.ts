@@ -15,7 +15,7 @@ export interface DeleteEventTriggerMutationVariables {
    */
   originalEventTrigger: EventTriggerViewModel;
   /**
-   * The resource version for (platform mode only).
+   * The resource version of the metadata.
    */
   resourceVersion?: number;
 }
