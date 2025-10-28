@@ -2,7 +2,7 @@ import { GithubAuthButton } from '@/features/auth/AuthProviders/Github/component
 import { useHostName } from '@/features/orgs/projects/common/hooks/useHostName';
 
 function SignUpWithGithub() {
-  const redirectTo = `${useHostName()}/github-app?signinProvider=github&state=normal-path`;
+  const redirectTo = useHostName();
   return (
     <GithubAuthButton
       redirectTo={redirectTo}
