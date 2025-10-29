@@ -11103,6 +11103,7 @@ export type Deployments = {
   commitSHA: Scalars['String'];
   commitUserAvatarUrl?: Maybe<Scalars['String']>;
   commitUserName?: Maybe<Scalars['String']>;
+  createdAt: Scalars['timestamptz'];
   deploymentEndedAt?: Maybe<Scalars['timestamptz']>;
   /** An array relationship */
   deploymentLogs: Array<DeploymentLogs>;
@@ -11200,6 +11201,7 @@ export type Deployments_Bool_Exp = {
   commitSHA?: InputMaybe<String_Comparison_Exp>;
   commitUserAvatarUrl?: InputMaybe<String_Comparison_Exp>;
   commitUserName?: InputMaybe<String_Comparison_Exp>;
+  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   deploymentEndedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   deploymentLogs?: InputMaybe<DeploymentLogs_Bool_Exp>;
   deploymentLogs_aggregate?: InputMaybe<DeploymentLogs_Aggregate_Bool_Exp>;
@@ -11231,6 +11233,7 @@ export type Deployments_Insert_Input = {
   commitSHA?: InputMaybe<Scalars['String']>;
   commitUserAvatarUrl?: InputMaybe<Scalars['String']>;
   commitUserName?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
   deploymentEndedAt?: InputMaybe<Scalars['timestamptz']>;
   deploymentLogs?: InputMaybe<DeploymentLogs_Arr_Rel_Insert_Input>;
   deploymentStartedAt?: InputMaybe<Scalars['timestamptz']>;
@@ -11255,6 +11258,7 @@ export type Deployments_Max_Fields = {
   commitSHA?: Maybe<Scalars['String']>;
   commitUserAvatarUrl?: Maybe<Scalars['String']>;
   commitUserName?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
   deploymentEndedAt?: Maybe<Scalars['timestamptz']>;
   deploymentStartedAt?: Maybe<Scalars['timestamptz']>;
   deploymentStatus?: Maybe<Scalars['String']>;
@@ -11277,6 +11281,7 @@ export type Deployments_Max_Order_By = {
   commitSHA?: InputMaybe<Order_By>;
   commitUserAvatarUrl?: InputMaybe<Order_By>;
   commitUserName?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
   deploymentEndedAt?: InputMaybe<Order_By>;
   deploymentStartedAt?: InputMaybe<Order_By>;
   deploymentStatus?: InputMaybe<Order_By>;
@@ -11300,6 +11305,7 @@ export type Deployments_Min_Fields = {
   commitSHA?: Maybe<Scalars['String']>;
   commitUserAvatarUrl?: Maybe<Scalars['String']>;
   commitUserName?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
   deploymentEndedAt?: Maybe<Scalars['timestamptz']>;
   deploymentStartedAt?: Maybe<Scalars['timestamptz']>;
   deploymentStatus?: Maybe<Scalars['String']>;
@@ -11322,6 +11328,7 @@ export type Deployments_Min_Order_By = {
   commitSHA?: InputMaybe<Order_By>;
   commitUserAvatarUrl?: InputMaybe<Order_By>;
   commitUserName?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
   deploymentEndedAt?: InputMaybe<Order_By>;
   deploymentStartedAt?: InputMaybe<Order_By>;
   deploymentStatus?: InputMaybe<Order_By>;
@@ -11368,6 +11375,7 @@ export type Deployments_Order_By = {
   commitSHA?: InputMaybe<Order_By>;
   commitUserAvatarUrl?: InputMaybe<Order_By>;
   commitUserName?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
   deploymentEndedAt?: InputMaybe<Order_By>;
   deploymentLogs_aggregate?: InputMaybe<DeploymentLogs_Aggregate_Order_By>;
   deploymentStartedAt?: InputMaybe<Order_By>;
@@ -11401,6 +11409,8 @@ export enum Deployments_Select_Column {
   CommitUserAvatarUrl = 'commitUserAvatarUrl',
   /** column name */
   CommitUserName = 'commitUserName',
+  /** column name */
+  CreatedAt = 'createdAt',
   /** column name */
   DeploymentEndedAt = 'deploymentEndedAt',
   /** column name */
@@ -11436,6 +11446,7 @@ export type Deployments_Set_Input = {
   commitSHA?: InputMaybe<Scalars['String']>;
   commitUserAvatarUrl?: InputMaybe<Scalars['String']>;
   commitUserName?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
   deploymentEndedAt?: InputMaybe<Scalars['timestamptz']>;
   deploymentStartedAt?: InputMaybe<Scalars['timestamptz']>;
   deploymentStatus?: InputMaybe<Scalars['String']>;
@@ -11466,6 +11477,7 @@ export type Deployments_Stream_Cursor_Value_Input = {
   commitSHA?: InputMaybe<Scalars['String']>;
   commitUserAvatarUrl?: InputMaybe<Scalars['String']>;
   commitUserName?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
   deploymentEndedAt?: InputMaybe<Scalars['timestamptz']>;
   deploymentStartedAt?: InputMaybe<Scalars['timestamptz']>;
   deploymentStatus?: InputMaybe<Scalars['String']>;
@@ -11493,6 +11505,8 @@ export enum Deployments_Update_Column {
   CommitUserAvatarUrl = 'commitUserAvatarUrl',
   /** column name */
   CommitUserName = 'commitUserName',
+  /** column name */
+  CreatedAt = 'createdAt',
   /** column name */
   DeploymentEndedAt = 'deploymentEndedAt',
   /** column name */
