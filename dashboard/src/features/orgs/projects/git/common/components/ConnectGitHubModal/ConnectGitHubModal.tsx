@@ -214,7 +214,29 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
 
   if (loading || loadingProject || loadingOrg || loadingGithubConnected) {
     return (
-      <ActivityIndicator delay={500} label="Loading GitHub repositories..." />
+      <div className="w-[653px] px-1">
+        <div className="flex flex-col">
+          <div className="mx-auto text-center">
+            <div className="mx-auto h-8 w-8">
+              <GitHubIcon className="h-8 w-8" />
+            </div>
+          </div>
+          <div>
+            <Text className="mt-2.5 text-center text-lg font-medium">
+              Loading repositories...
+            </Text>
+            <Text className="text-center text-xs font-normal" color="secondary">
+              Fetching your GitHub repositories
+            </Text>
+            <div className="mb-2 mt-6 flex w-full">
+              <Input placeholder="Search..." fullWidth disabled value="" />
+            </div>
+          </div>
+          <div className="flex h-import items-center justify-center border-y">
+            <ActivityIndicator delay={0} label="" />
+          </div>
+        </div>
+      </div>
     );
   }
 
