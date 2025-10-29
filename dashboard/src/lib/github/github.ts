@@ -1,9 +1,19 @@
+interface GitHubAppInstallation {
+  id: number;
+  account?: {
+    login: string;
+    avatar_url: string;
+    [key: string]: unknown;
+  }
+  [key: string]: unknown;
+}
+
 /**
  * Lists all GitHub App installations accessible to the user
  * @param accessToken - The GitHub OAuth access token
  * @returns Array of app installations
  */
-export async function listGitHubAppInstallations(accessToken: string) {
+export async function listGitHubAppInstallations(accessToken: string): Promise<GitHubAppInstallation[]> {
   const response = await fetch('https://api.github.com/user/installations', {
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -20,6 +30,14 @@ export async function listGitHubAppInstallations(accessToken: string) {
   return data.installations;
 }
 
+interface  GitHubRepo {
+  id: number;
+  node_id: string;
+  name: string;
+  full_name: string;
+  [key: string]: unknown;
+}
+
 /**
  * Lists all repositories accessible through GitHub App installations
  * @param accessToken - The GitHub OAuth access token
@@ -29,7 +47,7 @@ export async function listGitHubInstallationRepos(accessToken: string) {
   const installations = await listGitHubAppInstallations(accessToken);
 
   const reposByInstallation = await Promise.all(
-    installations.map(async (installation: any) => {
+    installations.map(async (installation) => {
       const response = await fetch(
         `https://api.github.com/user/installations/${installation.id}/repositories`,
         {
@@ -50,7 +68,7 @@ export async function listGitHubInstallationRepos(accessToken: string) {
       const data = await response.json();
       return {
         installation,
-        repositories: data.repositories,
+        repositories: data.repositories as GitHubRepo[],
       };
     })
   );
