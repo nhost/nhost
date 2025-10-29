@@ -6,7 +6,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 export interface EditRepositorySettingsProps {
   close?: () => void;
   openConnectGithubModal?: () => void;
-  selectedRepoId: string;
+  selectedRepoId?: string;
   connectGithubModalState?: ConnectGitHubModalState;
   handleSelectAnotherRepository?: () => void;
 }

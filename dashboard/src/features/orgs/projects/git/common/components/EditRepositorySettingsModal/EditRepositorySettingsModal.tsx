@@ -6,14 +6,14 @@ import { Text } from '@/components/ui/v2/Text';
 import { EditRepositoryAndBranchSettings } from '@/features/orgs/projects/git/common/components/EditRepositoryAndBranchSettings';
 import type { EditRepositorySettingsFormData } from '@/features/orgs/projects/git/common/components/EditRepositorySettings';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { useConnectGithubRepoMutation } from '@/generated/graphql';
+import { useUpdateApplicationMutation } from '@/generated/graphql';
 import { analytics } from '@/lib/segment';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { triggerToast } from '@/utils/toast';
 import { useFormContext } from 'react-hook-form';
 
 export interface EditRepositorySettingsModalProps {
-  selectedRepoId: string;
+  selectedRepoId?: string;
   close?: () => void;
   handleSelectAnotherRepository?: () => void;
 }
@@ -33,29 +33,45 @@ export default function EditRepositorySettingsModal({
 
   const { project, refetch: refetchProject } = useProject();
 
-  const [connectGithubRepo, { loading }] = useConnectGithubRepoMutation();
+  const [updateApp, { loading }] = useUpdateApplicationMutation();
 
   const handleEditGitHubIntegration = async (
     data: EditRepositorySettingsFormData,
   ) => {
     try {
-      await connectGithubRepo({
-        variables: {
-          appID: project?.id,
-          githubNodeID: selectedRepoId,
-          productionBranch: data.productionBranch,
-          baseFolder: data.repoBaseFolder,
-        },
-      });
+      if (!project?.githubRepository || selectedRepoId) {
+        await updateApp({
+          variables: {
+            appId: project?.id,
+            app: {
+              githubRepositoryId: selectedRepoId,
+              repositoryProductionBranch: data.productionBranch,
+              nhostBaseFolder: data.repoBaseFolder,
+            },
+          },
+        });
 
-      analytics.track('Project Connected to GitHub', {
-        projectId: project?.id,
-        projectName: project?.name,
-        projectSubdomain: project?.subdomain,
-        repositoryId: selectedRepoId,
-        productionBranch: data.productionBranch,
-        baseFolder: data.repoBaseFolder,
-      });
+        if (selectedRepoId) {
+          analytics.track('Project Connected to GitHub', {
+            projectId: project?.id,
+            projectName: project?.name,
+            projectSubdomain: project?.subdomain,
+            repositoryId: selectedRepoId,
+            productionBranch: data.productionBranch,
+            baseFolder: data.repoBaseFolder,
+          });
+        }
+      } else {
+        await updateApp({
+          variables: {
+            appId: project.id,
+            app: {
+              repositoryProductionBranch: data.productionBranch,
+              nhostBaseFolder: data.repoBaseFolder,
+            },
+          },
+        });
+      }
 
       await refetchProject();
 
