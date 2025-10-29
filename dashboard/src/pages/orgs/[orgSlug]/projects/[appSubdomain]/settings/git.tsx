@@ -6,33 +6,34 @@ import { BaseDirectorySettings } from '@/features/orgs/projects/git/settings/com
 import { DeploymentBranchSettings } from '@/features/orgs/projects/git/settings/components/DeploymentBranchSettings';
 import { GitConnectionSettings } from '@/features/orgs/projects/git/settings/components/GitConnectionSettings';
 import { useRouter } from 'next/router';
-import { useEffect, type ReactElement } from 'react';
+import { useCallback, useEffect, type ReactElement } from 'react';
 
 export default function GitSettingsPage() {
   const router = useRouter();
+  const { 'github-modal': githubModal, ...remainingQuery } = router.query;
   const { openGitHubModal } = useGitHubModal();
+
+  const removeQueryParamsFromURL = useCallback(() => {
+    router.replace(
+      { pathname: router.pathname, query: remainingQuery },
+      undefined,
+      {
+        shallow: true,
+      },
+    );
+  }, [router.replace, remainingQuery, router.pathname]);
 
   useEffect(() => {
     if (!router.isReady) {
       return;
     }
 
-    if (router.query.openGitHubModal === 'true') {
-      router.replace(
-        {
-          pathname: router.pathname,
-          query: {
-            orgSlug: router.query.orgSlug,
-            appSubdomain: router.query.appSubdomain,
-          },
-        },
-        undefined,
-        { shallow: true },
-      );
+    if (typeof githubModal === 'string') {
+      removeQueryParamsFromURL();
 
       openGitHubModal();
     }
-  }, [router, openGitHubModal]);
+  }, [githubModal, openGitHubModal]);
 
   return (
     <Container

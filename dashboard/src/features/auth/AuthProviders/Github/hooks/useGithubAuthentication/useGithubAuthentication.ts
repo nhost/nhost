@@ -30,9 +30,7 @@ function useGithubAuthentication({
         };
       }
 
-      let redirectURL = nhost.auth.signInProviderURL('github', options);
-      redirectURL += '&state=normal-path';
-      console.log(redirectURL);
+      const redirectURL = nhost.auth.signInProviderURL('github', options);
       window.location.href = redirectURL;
     },
     {
