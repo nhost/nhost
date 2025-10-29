@@ -84,7 +84,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
       if (typeof window !== 'undefined') {
         return nhost.auth.signInProviderURL('github', {
           connect: token,
-          redirectTo: `${hostname}?signinProvider=github`,
+          redirectTo: `${window.location.origin}?signinProvider=github&state=signin-refresh:${org.slug}:${project!.subdomain}`,
         });
       }
       return '';
@@ -227,7 +227,6 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
         <NavLink
           href={github}
           passHref
-          target="_blank"
           rel="noreferrer noopener"
           legacyBehavior
         >
@@ -309,11 +308,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
         </div>
 
         <Button
-          href={process.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL}
-          // Both `target` and `rel` are available when `href` is set. This is
-          // a limitation of MUI.
-          // @ts-ignore
-          target="_blank"
+          href={`${process.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL}?state=install-github-app:${org.slug}:${project!.subdomain}`}
           rel="noreferrer noopener"
           endIcon={<ArrowSquareOutIcon className="h-4 w-4" />}
         >
@@ -373,8 +368,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
             </List>
 
             <Link
-              href={process.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL}
-              target="_blank"
+              href={`${process.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL}?state=install-github-app:${org.slug}:${project!.subdomain}`}
               rel="noreferrer noopener"
               underline="hover"
               className="grid grid-flow-col items-center justify-start gap-1"
@@ -463,7 +457,6 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
             account?{' '}
             <Link
               href={`${process.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL}?state=install-github-app:${org.slug}:${project!.subdomain}`}
-              target="_blank"
               rel="noreferrer noopener"
               className="text-xs font-medium"
               underline="hover"
