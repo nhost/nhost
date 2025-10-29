@@ -1584,6 +1584,8 @@ export interface GetVersionResponse200 {
     @property redirectTo? (string) - URI to redirect to
   
     @property connect? (string) - If set, this means that the user is already authenticated and wants to link their account. This needs to be a valid JWT access token.
+  
+    @property state? (string) - Opaque state value to be returned by the provider
   */
 export interface SignInProviderParams {
   /**
@@ -1621,6 +1623,11 @@ export interface SignInProviderParams {
   
    */
   connect?: string;
+  /**
+   * Opaque state value to be returned by the provider
+  
+   */
+  state?: string;
 }
 /**
  * Parameters for the verifyTicket method.
