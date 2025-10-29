@@ -22,12 +22,18 @@ function SignUpWithSecurityKeyForm() {
         onSubmit={form.handleSubmit(onSignUpWithSecurityKey)}
         className="grid grid-flow-row gap-4 bg-transparent"
       >
-        <FormInput control={form.control} label="Name" name="displayName" />
+        <FormInput
+          control={form.control}
+          label="Name"
+          name="displayName"
+          placeholder="Name"
+        />
         <FormInput
           control={form.control}
           label="Email"
           name="email"
           type="email"
+          placeholder="Email"
         />
         <FormField
           control={form.control}

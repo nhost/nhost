@@ -15,16 +15,14 @@ import { normalizeDefaultValue } from '@/features/orgs/projects/database/dataGri
 import {
   POSTGRESQL_CHARACTER_TYPES,
   POSTGRESQL_DATE_TIME_TYPES,
-  POSTGRESQL_DECIMAL_TYPES,
-  POSTGRESQL_INTEGER_TYPES,
   POSTGRESQL_JSON_TYPES,
+  POSTGRESQL_NUMERIC_TYPES,
 } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
 import type { DataGridProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import { DataGrid } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import { DataGridBooleanCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridBooleanCell';
 import { DataGridDateCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridDateCell';
-import { DataGridDecimalCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridDecimalCell';
-import { DataGridIntegerCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridIntegerCell';
+import { DataGridNumericCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridNumericCell';
 import { DataGridTextCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridTextCell';
 import { useQueryClient } from '@tanstack/react-query';
 import { KeyRound } from 'lucide-react';
@@ -68,6 +66,7 @@ export function createDataGridColumn(
     isEditable,
     type: 'text',
     specificType: column.full_data_type,
+    dataType: column.data_type,
     maxLength: column.character_maximum_length,
     Cell: DataGridTextCell,
     isPrimary: column.is_primary,
@@ -82,21 +81,12 @@ export function createDataGridColumn(
     foreignKeyRelation: column.foreign_key_relation,
   };
 
-  if (POSTGRESQL_INTEGER_TYPES.includes(column.data_type)) {
+  if (POSTGRESQL_NUMERIC_TYPES.includes(column.data_type)) {
     return {
       ...defaultColumnConfiguration,
       type: 'number',
       width: 250,
-      Cell: DataGridIntegerCell,
-    };
-  }
-
-  if (POSTGRESQL_DECIMAL_TYPES.includes(column.data_type)) {
-    return {
-      ...defaultColumnConfiguration,
-      type: 'text',
-      width: 250,
-      Cell: DataGridDecimalCell,
+      Cell: DataGridNumericCell,
     };
   }
 

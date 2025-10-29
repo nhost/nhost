@@ -1,6 +1,5 @@
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { Box } from '@/components/ui/v2/Box';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
@@ -46,12 +45,9 @@ DataBrowserTableDetailsPage.getLayout = function getLayout(page: ReactElement) {
     >
       <DataBrowserSidebar className="w-full max-w-sidebar" />
 
-      <Box
-        className="flex w-full flex-auto flex-col overflow-x-hidden"
-        sx={{ backgroundColor: 'background.default' }}
-      >
+      <div className="box flex w-full flex-auto flex-col overflow-x-hidden">
         {page}
-      </Box>
+      </div>
     </OrgLayout>
   );
 };
