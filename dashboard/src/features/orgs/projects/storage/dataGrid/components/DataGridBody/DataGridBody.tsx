@@ -1,13 +1,11 @@
-import { Box } from '@/components/ui/v2/Box';
 import type { DataBrowserGridColumn } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import type { DataGridProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid/DataGrid';
 import { DataGridCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridCell';
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
-import { isNotEmptyValue } from '@/lib/utils';
+import { cn, isNotEmptyValue } from '@/lib/utils';
 import type { DetailedHTMLProps, HTMLProps, KeyboardEvent } from 'react';
 import { useRef } from 'react';
 import type { Row } from 'react-table';
-import { twMerge } from 'tailwind-merge';
 
 export interface DataGridBodyProps<T extends object>
   extends Omit<
@@ -143,29 +141,28 @@ export default function DataGridBody<T extends object>({
   ) => {
     // Grey out files not uploaded
     if (!row.values.isUploaded) {
-      return 'grey.200';
+      return '!bg-data-cell-bg';
     }
 
     if (column.isDisabled) {
-      return 'grey.100';
+      return '!bg-grey-100';
     }
 
-    return 'background.paper';
+    return '!bg-paper';
   };
 
   return (
     <div {...getTableBodyProps()} ref={bodyRef} {...props}>
       {rows.length === 0 && !loading && (
         <div className="flex flex-nowrap">
-          <Box
-            className="inline-flex h-12 items-center border-b-1 border-r-1 px-2 py-1.5 text-xs"
-            sx={{ color: 'text.secondary' }}
+          <div
+            className="box inline-flex h-12 items-center border-b-1 border-r-1 px-2 py-1.5 text-xs !text-[#a2b3be]"
             style={{
               width: totalColumnsWidth,
             }}
           >
             {emptyStateMessage}
-          </Box>
+          </div>
         </div>
       )}
 
@@ -182,7 +179,7 @@ export default function DataGridBody<T extends object>({
           <div
             {...rowProps}
             id={row.id}
-            className="flex scroll-mt-10"
+            className="group flex scroll-mt-10"
             role="row"
             onKeyDown={(event) => handleKeyDown(event, row)}
             tabIndex={-1}
@@ -205,16 +202,14 @@ export default function DataGridBody<T extends object>({
                     },
                   })}
                   cell={cell}
-                  sx={{
-                    backgroundColor: getBackgroundCellColor(row, column),
-                    color: isCellDisabled ? 'text.secondary' : 'text.primary',
-                  }}
-                  className={twMerge(
+                  className={cn(
                     'h-12 font-display text-xs motion-safe:transition-colors',
                     'border-b-1 border-r-1',
                     'scroll-ml-8 scroll-mt-[57px]',
                     column.id === 'selection-column' &&
                       'sticky left-0 z-20 justify-center px-0',
+                    getBackgroundCellColor(row, column),
+                    isCellDisabled ? 'text-secondary' : 'text-primary',
                   )}
                   isEditable={!column.isDisabled && column.isEditable}
                   id={cellIndex.toString()}

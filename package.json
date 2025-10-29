@@ -21,6 +21,7 @@
     "clean:all": "pnpm clean && rm -rf ./{{packages,examples/**,templates/**}/*,docs,dashboard}/{.nhost,node_modules} node_modules",
     "clean": "rm -rf ./{{packages,examples/**}/*,docs,dashboard}/{dist,umd,.next,.turbo,coverage}",
     "clean:install": "pnpm clean:all && pnpm install",
+    "clean:build": "pnpm clean:install && pnpm build:nhost-js",
     "dev:dashboard": "turbo run dev --filter=@nhost/dashboard"
   },
   "devDependencies": {

@@ -22,18 +22,25 @@ function SignUpWithEmailAndPasswordForm() {
         onSubmit={form.handleSubmit(onSignUpWithPassword)}
         className="grid grid-flow-row gap-4 bg-transparent"
       >
-        <FormInput control={form.control} label="Name" name="displayName" />
+        <FormInput
+          control={form.control}
+          label="Name"
+          name="displayName"
+          placeholder="Name"
+        />
         <FormInput
           control={form.control}
           label="Email"
           name="email"
           type="email"
+          placeholder="Email"
         />
         <FormInput
           control={form.control}
           label="Password"
           name="password"
           type="password"
+          placeholder="Password"
         />
         <FormField
           control={form.control}
