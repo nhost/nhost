@@ -204,8 +204,12 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
 
   useEffect(() => () => handleFilterChange.cancel(), [handleFilterChange]);
 
-  if (error || errorGithubConnected) {
-    throw new Error('Error fetching GitHub data');
+  if (error) {
+    throw error;
+  }
+
+  if (errorGithubConnected instanceof Error) {
+    throw errorGithubConnected;
   }
 
   if (loading || loadingProject || loadingOrg || loadingGithubConnected) {
