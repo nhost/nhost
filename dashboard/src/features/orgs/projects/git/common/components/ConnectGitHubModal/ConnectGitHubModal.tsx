@@ -18,7 +18,7 @@ import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useGetAuthUserProvidersQuery } from '@/generated/graphql';
 import { useAccessToken } from '@/hooks/useAccessToken';
-import { listGitHubInstallationRepos } from '@/lib/github/github';
+import { listGitHubInstallationRepos } from '@/lib/github';
 import { nhost } from '@/utils/nhost';
 import { Divider } from '@mui/material';
 import debounce from 'lodash.debounce';
