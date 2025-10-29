@@ -27,6 +27,7 @@ function AuthProvider({ children }: PropsWithChildren) {
     error,
     errorDescription,
     signinProvider,
+    state,
     provider_state: providerState,
     ...remainingQuery
   } = query;
@@ -90,6 +91,18 @@ function AuthProvider({ children }: PropsWithChildren) {
       } else {
         const currentSession = nhost.getUserSession();
         setSession(currentSession);
+      }
+
+      if (
+        state &&
+        typeof state === 'string' &&
+        state.startsWith('signin-refresh:')
+      ) {
+        const [, orgSlug, projectSubdomain] = state.split(':');
+        removeQueryParamsFromURL();
+        await push(
+          `/orgs/${orgSlug}/projects/${projectSubdomain}/settings/git?github-modal`,
+        );
       }
 
       // handle OAuth redirect errors (e.g., error=unverified-user, error=invalid-state)
