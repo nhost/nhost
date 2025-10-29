@@ -10,21 +10,18 @@ import { useCallback, useEffect, type ReactElement } from 'react';
 
 export default function GitSettingsPage() {
   const router = useRouter();
+  const { pathname, replace, isReady: isRouterReady } = router;
   const { 'github-modal': githubModal, ...remainingQuery } = router.query;
   const { openGitHubModal } = useGitHubModal();
 
   const removeQueryParamsFromURL = useCallback(() => {
-    router.replace(
-      { pathname: router.pathname, query: remainingQuery },
-      undefined,
-      {
-        shallow: true,
-      },
-    );
-  }, [router.replace, remainingQuery, router.pathname]);
+    replace({ pathname, query: remainingQuery }, undefined, {
+      shallow: true,
+    });
+  }, [replace, remainingQuery, pathname]);
 
   useEffect(() => {
-    if (!router.isReady) {
+    if (!isRouterReady) {
       return;
     }
 
@@ -33,7 +30,8 @@ export default function GitSettingsPage() {
 
       openGitHubModal();
     }
-  }, [githubModal, openGitHubModal]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [githubModal, isRouterReady]);
 
   return (
     <Container
