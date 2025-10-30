@@ -5,7 +5,7 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { SuccessResponse } from '@/utils/hasura-api/generated/schemas';
 import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
 import type { MutationOptions } from '@tanstack/react-query';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { deleteEventTrigger } from './deleteEventTrigger';
 import { deleteEventTriggerMigration } from './deleteEventTriggerMigration';
 
@@ -42,39 +42,50 @@ export default function useDeleteEventTriggerMutation({
 }: UseDeleteEventTriggerMutationOptions = {}) {
   const { project } = useProject();
   const isPlatform = useIsPlatform();
+  const queryClient = useQueryClient();
 
   const mutation = useMutation<
     SuccessResponse | MetadataOperation200,
     unknown,
     DeleteEventTriggerMutationVariables
-  >((variables) => {
-    const appUrl = generateAppServiceUrl(
-      project!.subdomain,
-      project!.region,
-      'hasura',
-    );
+  >(
+    (variables) => {
+      const appUrl = generateAppServiceUrl(
+        project!.subdomain,
+        project!.region,
+        'hasura',
+      );
 
-    const base = {
-      appUrl,
-      adminSecret: project?.config?.hasura.adminSecret!,
-    } as const;
+      const base = {
+        appUrl,
+        adminSecret: project?.config?.hasura.adminSecret!,
+      } as const;
 
-    if (isPlatform) {
-      return deleteEventTrigger({
-        args: {
-          name: variables.originalEventTrigger.name,
-          source: variables.originalEventTrigger.dataSource,
-        },
-        resourceVersion: variables.resourceVersion,
+      if (isPlatform) {
+        return deleteEventTrigger({
+          args: {
+            name: variables.originalEventTrigger.name,
+            source: variables.originalEventTrigger.dataSource,
+          },
+          resourceVersion: variables.resourceVersion,
+          ...base,
+        });
+      }
+
+      return deleteEventTriggerMigration({
+        originalEventTrigger: variables.originalEventTrigger,
         ...base,
       });
-    }
-
-    return deleteEventTriggerMigration({
-      originalEventTrigger: variables.originalEventTrigger,
-      ...base,
-    });
-  }, mutationOptions);
+    },
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: ['export-metadata', project?.subdomain],
+        });
+      },
+      ...mutationOptions,
+    },
+  );
 
   return mutation;
 }

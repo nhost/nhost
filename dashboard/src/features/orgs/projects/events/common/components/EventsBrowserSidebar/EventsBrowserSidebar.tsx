@@ -90,6 +90,7 @@ function EventsBrowserSidebarContent() {
           originalEventTrigger: originalEventTrigger!,
           resourceVersion,
         });
+        router.push(`/orgs/${orgSlug}/projects/${appSubdomain}/events`);
       },
       {
         loadingMessage: 'Deleting event trigger...',
