@@ -65,14 +65,14 @@ func TestManipulate(t *testing.T) {
 		{
 			name:     "webp to avif",
 			filename: "testdata/nhost.webp",
-			sum:      "4031ccce9a3d040dc558a2797d8b9d4194c2d91fc317e19e0e50ba0ddfe60db7",
+			sum:      "e0a5fb177567987b16b379ce2f263cc319c4f7f5e7145c9ae81682b02c7a9f6d",
 			size:     17784,
 			options:  image.Options{Width: 300, Height: 100, Blur: 2, Format: image.ImageTypeAVIF},
 		},
 		{
 			name:     "jpeg to avif, no image manipulation",
 			filename: "testdata/nhost.jpg",
-			sum:      "a18cfaa7b7ce67047654abd4dc3604c85f82e1e088744969db8625b061a94492",
+			sum:      "cd3f0137250dcc145ee9f1e63733c30bccfc6ad1c058b2be719ea9e8148029db",
 			size:     17784,
 			options:  image.Options{Format: image.ImageTypeAVIF},
 		},
