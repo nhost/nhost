@@ -244,7 +244,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
 
   if (ConnectGitHubModalState === 'GITHUB_CONNECTION_REQUIRED') {
     return (
-      <div className="grid grid-flow-row justify-center gap-4 p-0.5">
+      <div className="flex w-[453px] flex-col items-center justify-center gap-5 px-1 py-1">
         <p className="text-center text-foreground">
           You need to connect your GitHub account to continue.
         </p>
@@ -255,12 +255,12 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
           legacyBehavior
         >
           <Button
-            className=""
+            className="w-full max-w-72"
             variant="outlined"
             color="secondary"
             startIcon={<GitHubIcon />}
           >
-            Connect with GitHub
+            Connect to GitHub
           </Button>
         </NavLink>
       </div>
@@ -269,13 +269,14 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
 
   if (ConnectGitHubModalState === 'EXPIRED_GITHUB_SESSION') {
     return (
-      <div className="grid grid-flow-row justify-center gap-2 p-0.5">
+      <div className="flex w-[453px] flex-col items-center justify-center gap-5 px-1 py-1">
         <p className="text-center text-foreground">
           Please sign in with GitHub to continue.
         </p>
         <GithubAuthButton
           redirectTo={`${hostname}?signinProvider=github&state=signin-refresh:${org.slug}:${project!.subdomain}`}
           buttonText="Sign in with GitHub"
+          className="w-full max-w-72 gap-2 !bg-primary !text-white disabled:!text-white disabled:!text-opacity-60 dark:!bg-white dark:!text-black dark:disabled:!text-black"
         />
       </div>
     );
