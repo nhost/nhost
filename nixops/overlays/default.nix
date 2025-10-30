@@ -4,6 +4,10 @@ final: prev:
     doCheck = false;
   });
 
+  linux-pam = prev.linux-pam.overrideAttrs (oldAttrs: {
+    outputs = [ "out" ];
+  });
+
   nhost-cli = final.callPackage ./nhost-cli.nix { inherit final; };
 }
 // import ./go.nix final prev
