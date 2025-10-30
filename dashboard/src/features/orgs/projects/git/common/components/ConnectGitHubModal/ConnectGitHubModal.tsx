@@ -119,8 +119,10 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
         }
 
         const parsedTokens = JSON.parse(storedTokens);
-        const { refreshToken, expiresAt } = parsedTokens;
+        const { refreshToken, expiresAt: expiresAtString } = parsedTokens;
         let accessToken = parsedTokens?.accessToken;
+
+        const expiresAt = new Date(expiresAtString).getTime();
 
         const currentTime = Date.now();
         const marginSeconds = 60;
@@ -269,7 +271,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
     return (
       <div className="grid grid-flow-row justify-center gap-2 p-0.5">
         <p className="text-center text-foreground">
-          Your session has expired. Please sign in with GitHub to continue.
+          Please sign in with GitHub to continue.
         </p>
         <GithubAuthButton
           redirectTo={`${hostname}?signinProvider=github&state=signin-refresh:${org.slug}:${project!.subdomain}`}
