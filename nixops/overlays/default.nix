@@ -5,12 +5,9 @@ final: prev:
   });
 
   linux-pam = prev.linux-pam.overrideAttrs (oldAttrs: {
-    outputs = [ "out" ];
+    outputs = [ "out" "scripts" ];
 
-    postInstall = ''
-      rm sbin/pam_namespace_helper
-      rm etc/security/namespace.init
-    '';
+
   });
 
   nhost-cli = final.callPackage ./nhost-cli.nix { inherit final; };
