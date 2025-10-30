@@ -3,20 +3,41 @@ import { Backdrop } from '@/components/ui/v2/Backdrop';
 import type { BoxProps } from '@/components/ui/v2/Box';
 import { Box } from '@/components/ui/v2/Box';
 import { IconButton } from '@/components/ui/v2/IconButton';
+import { PencilIcon } from '@/components/ui/v2/icons/PencilIcon';
+import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/v3/accordion';
-import { Button } from '@/components/ui/v3/button';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/v3/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/v3/dropdown-menu';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
+import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import CreateEventTriggerForm from '@/features/orgs/projects/events/event-triggers/components/CreateEventTriggerForm/CreateEventTriggerForm';
+import { useDeleteEventTriggerMutation } from '@/features/orgs/projects/events/event-triggers/hooks/useDeleteEventTriggerMutation';
 import { useGetEventTriggers } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventTriggers';
 import type { EventTriggerViewModel } from '@/features/orgs/projects/events/event-triggers/types';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { cn } from '@/lib/utils';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { cn, isEmptyValue } from '@/lib/utils';
 import { Database, Ellipsis, Plus } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -32,6 +53,54 @@ function EventsBrowserSidebarContent() {
   const { orgSlug, appSubdomain, eventTriggerSlug } = router.query;
   const { data, isLoading, error } = useGetEventTriggers();
   const [open, setOpen] = useState(false);
+
+  const [showDeleteEventTriggerDialog, setShowDeleteEventTriggerDialog] =
+    useState(false);
+  const [eventTriggerToDelete, setEventTriggerToDelete] = useState<
+    string | null
+  >(null);
+
+  const { mutateAsync: deleteEventTrigger, isLoading: isDeletingEventTrigger } =
+    useDeleteEventTriggerMutation();
+
+  const handleDeleteEventTriggerDropdownClick = (eventTriggerName: string) => {
+    setEventTriggerToDelete(eventTriggerName);
+    setShowDeleteEventTriggerDialog(true);
+  };
+
+  const { data: resourceVersion } = useGetMetadataResourceVersion();
+
+  const handleDeleteDialogClick = async () => {
+    await execPromiseWithErrorToast(
+      async () => {
+        const originalEventTrigger = data?.find(
+          (eventTrigger) => eventTrigger.name === eventTriggerToDelete,
+        );
+
+        if (
+          isEmptyValue(eventTriggerToDelete) ||
+          isEmptyValue(originalEventTrigger)
+        ) {
+          throw new Error(
+            'Error deleting event trigger, no event trigger to delete',
+          );
+        }
+
+        await deleteEventTrigger({
+          originalEventTrigger: originalEventTrigger!,
+          resourceVersion,
+        });
+        router.push(`/orgs/${orgSlug}/projects/${appSubdomain}/events`);
+      },
+      {
+        loadingMessage: 'Deleting event trigger...',
+        successMessage: 'Event trigger deleted successfully.',
+        errorMessage: 'An error occurred while deleting the event trigger.',
+      },
+    );
+    setShowDeleteEventTriggerDialog(false);
+    setEventTriggerToDelete(null);
+  };
 
   if (isLoading) {
     return <EventsBrowserSidebarSkeleton />;
@@ -111,43 +180,73 @@ function EventsBrowserSidebarContent() {
                     {eventTriggers.map((eventTrigger) => {
                       const isSelected = eventTrigger.name === eventTriggerSlug;
                       return (
-                        <Button
-                          className={cn(
-                            'flex h-9 max-w-52 flex-row justify-between gap-2 bg-background px-2 text-foreground hover:bg-accent dark:hover:bg-muted',
-                            isSelected &&
-                              'bg-[#ebf3ff] hover:bg-[#ebf3ff] dark:bg-muted',
-                          )}
-                          key={eventTrigger.name}
-                          asChild
-                          variant="ghost"
-                        >
-                          <Link
-                            href={`/orgs/${orgSlug}/projects/${appSubdomain}/events/event-trigger/${eventTrigger.name}`}
-                            className="flex w-full items-center gap-2"
+                        <div className="group relative flex">
+                          <Button
+                            className={cn(
+                              'flex h-9 max-w-52 flex-row justify-between gap-2 bg-background px-2 text-foreground hover:bg-accent dark:hover:bg-theme-grey-200',
+                              {
+                                'bg-[#ebf3ff] hover:bg-[#ebf3ff] dark:bg-muted dark:hover:bg-muted':
+                                  isSelected,
+                              },
+                            )}
+                            key={eventTrigger.name}
+                            asChild
+                            variant="ghost"
                           >
-                            <TextWithTooltip
-                              containerClassName="max-w-36"
-                              className={cn(
-                                isSelected && 'text-primary hover:text-primary',
-                              )}
-                              text={eventTrigger.name}
-                            />
+                            <Link
+                              href={`/orgs/${orgSlug}/projects/${appSubdomain}/events/event-trigger/${eventTrigger.name}`}
+                              className="flex w-full items-center gap-2"
+                            >
+                              <TextWithTooltip
+                                containerClassName="max-w-36"
+                                className={cn(
+                                  isSelected &&
+                                    'text-primary hover:text-primary',
+                                )}
+                                text={eventTrigger.name}
+                              />
+                            </Link>
+                          </Button>
+                          <DropdownMenu modal={false}>
                             <Button
                               variant="ghost"
                               size="sm"
                               className={cn(
-                                'px-1 hover:bg-accent/90 dark:hover:bg-muted/90',
-                                isSelected && 'text-primary hover:text-primary',
+                                'invisible absolute right-2 top-1 h-7 w-7 px-0.5 hover:bg-[#eaedf0] group-hover:visible dark:hover:bg-[#2f363d]',
+                                {
+                                  'visible bg-[#ebf3ff] text-primary hover:bg-[#ebf3ff] hover:text-primary dark:bg-muted dark:hover:bg-muted':
+                                    isSelected,
+                                },
                               )}
                               onClick={(e) => {
                                 e.preventDefault();
                               }}
-                              disabled
+                              asChild
                             >
-                              <Ellipsis className="h-6 w-6" />
+                              <DropdownMenuTrigger className="">
+                                <Ellipsis className="h-6 w-6" />
+                              </DropdownMenuTrigger>
                             </Button>
-                          </Link>
-                        </Button>
+                            <DropdownMenuContent align="start">
+                              <DropdownMenuItem className="disabled flex cursor-pointer items-center gap-2 !text-sm+ font-medium line-through">
+                                <PencilIcon className="size-4 text-muted-foreground" />
+                                Edit Event Trigger
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator className="my-0" />
+                              <DropdownMenuItem
+                                onSelect={() =>
+                                  handleDeleteEventTriggerDropdownClick(
+                                    eventTrigger.name,
+                                  )
+                                }
+                                className="flex cursor-pointer items-center gap-2 !text-sm+ font-medium text-destructive focus:text-destructive"
+                              >
+                                <TrashIcon className="size-4" />
+                                Delete Event Trigger
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       );
                     })}
                   </AccordionContent>
@@ -156,8 +255,50 @@ function EventsBrowserSidebarContent() {
             )}
           </Accordion>
         </div>
+        <Dialog
+          open={showDeleteEventTriggerDialog}
+          onOpenChange={setShowDeleteEventTriggerDialog}
+        >
+          <DialogContent
+            className="sm:max-w-[425px]"
+            hideCloseButton
+            disableOutsideClick={isDeletingEventTrigger}
+          >
+            <DialogHeader>
+              <DialogTitle className="text-foreground">
+                Delete Event Trigger
+              </DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete the{' '}
+                <span className="rounded-md bg-muted px-1 py-0.5 font-mono">
+                  {eventTriggerToDelete}
+                </span>{' '}
+                event trigger?
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="gap-2 sm:flex sm:flex-col sm:space-x-0">
+              <ButtonWithLoading
+                variant="destructive"
+                className="!text-sm+ text-white"
+                onClick={handleDeleteDialogClick}
+                loading={isDeletingEventTrigger}
+              >
+                Delete
+              </ButtonWithLoading>
+              <DialogClose asChild>
+                <Button variant="outline" className="!text-sm+ text-foreground">
+                  Cancel
+                </Button>
+              </DialogClose>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
-      <CreateEventTriggerForm open={open} onOpenChange={setOpen} />
+      <CreateEventTriggerForm
+        open={open}
+        onOpenChange={setOpen}
+        onSubmit={() => {}}
+      />
     </>
   );
 }
