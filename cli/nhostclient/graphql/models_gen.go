@@ -2823,6 +2823,7 @@ type Deployments struct {
 	CommitSha           string     `json:"commitSHA"`
 	CommitUserAvatarURL *string    `json:"commitUserAvatarUrl,omitempty"`
 	CommitUserName      *string    `json:"commitUserName,omitempty"`
+	CreatedAt           time.Time  `json:"createdAt"`
 	DeploymentEndedAt   *time.Time `json:"deploymentEndedAt,omitempty"`
 	// An array relationship
 	DeploymentLogs      []*DeploymentLogs `json:"deploymentLogs"`
@@ -2865,6 +2866,7 @@ type DeploymentsBoolExp struct {
 	CommitSha           *StringComparisonExp      `json:"commitSHA,omitempty"`
 	CommitUserAvatarURL *StringComparisonExp      `json:"commitUserAvatarUrl,omitempty"`
 	CommitUserName      *StringComparisonExp      `json:"commitUserName,omitempty"`
+	CreatedAt           *TimestamptzComparisonExp `json:"createdAt,omitempty"`
 	DeploymentEndedAt   *TimestamptzComparisonExp `json:"deploymentEndedAt,omitempty"`
 	DeploymentLogs      *DeploymentLogsBoolExp    `json:"deploymentLogs,omitempty"`
 	DeploymentStartedAt *TimestamptzComparisonExp `json:"deploymentStartedAt,omitempty"`
@@ -2899,6 +2901,7 @@ type DeploymentsMaxOrderBy struct {
 	CommitSha           *OrderBy `json:"commitSHA,omitempty"`
 	CommitUserAvatarURL *OrderBy `json:"commitUserAvatarUrl,omitempty"`
 	CommitUserName      *OrderBy `json:"commitUserName,omitempty"`
+	CreatedAt           *OrderBy `json:"createdAt,omitempty"`
 	DeploymentEndedAt   *OrderBy `json:"deploymentEndedAt,omitempty"`
 	DeploymentStartedAt *OrderBy `json:"deploymentStartedAt,omitempty"`
 	DeploymentStatus    *OrderBy `json:"deploymentStatus,omitempty"`
@@ -2921,6 +2924,7 @@ type DeploymentsMinOrderBy struct {
 	CommitSha           *OrderBy `json:"commitSHA,omitempty"`
 	CommitUserAvatarURL *OrderBy `json:"commitUserAvatarUrl,omitempty"`
 	CommitUserName      *OrderBy `json:"commitUserName,omitempty"`
+	CreatedAt           *OrderBy `json:"createdAt,omitempty"`
 	DeploymentEndedAt   *OrderBy `json:"deploymentEndedAt,omitempty"`
 	DeploymentStartedAt *OrderBy `json:"deploymentStartedAt,omitempty"`
 	DeploymentStatus    *OrderBy `json:"deploymentStatus,omitempty"`
@@ -2959,6 +2963,7 @@ type DeploymentsOrderBy struct {
 	CommitSha               *OrderBy                        `json:"commitSHA,omitempty"`
 	CommitUserAvatarURL     *OrderBy                        `json:"commitUserAvatarUrl,omitempty"`
 	CommitUserName          *OrderBy                        `json:"commitUserName,omitempty"`
+	CreatedAt               *OrderBy                        `json:"createdAt,omitempty"`
 	DeploymentEndedAt       *OrderBy                        `json:"deploymentEndedAt,omitempty"`
 	DeploymentLogsAggregate *DeploymentLogsAggregateOrderBy `json:"deploymentLogs_aggregate,omitempty"`
 	DeploymentStartedAt     *OrderBy                        `json:"deploymentStartedAt,omitempty"`
@@ -2990,6 +2995,7 @@ type DeploymentsStreamCursorValueInput struct {
 	CommitSha           *string    `json:"commitSHA,omitempty"`
 	CommitUserAvatarURL *string    `json:"commitUserAvatarUrl,omitempty"`
 	CommitUserName      *string    `json:"commitUserName,omitempty"`
+	CreatedAt           *time.Time `json:"createdAt,omitempty"`
 	DeploymentEndedAt   *time.Time `json:"deploymentEndedAt,omitempty"`
 	DeploymentStartedAt *time.Time `json:"deploymentStartedAt,omitempty"`
 	DeploymentStatus    *string    `json:"deploymentStatus,omitempty"`
@@ -6983,6 +6989,8 @@ const (
 	// column name
 	DeploymentsSelectColumnCommitUserName DeploymentsSelectColumn = "commitUserName"
 	// column name
+	DeploymentsSelectColumnCreatedAt DeploymentsSelectColumn = "createdAt"
+	// column name
 	DeploymentsSelectColumnDeploymentEndedAt DeploymentsSelectColumn = "deploymentEndedAt"
 	// column name
 	DeploymentsSelectColumnDeploymentStartedAt DeploymentsSelectColumn = "deploymentStartedAt"
@@ -7016,6 +7024,7 @@ var AllDeploymentsSelectColumn = []DeploymentsSelectColumn{
 	DeploymentsSelectColumnCommitSha,
 	DeploymentsSelectColumnCommitUserAvatarURL,
 	DeploymentsSelectColumnCommitUserName,
+	DeploymentsSelectColumnCreatedAt,
 	DeploymentsSelectColumnDeploymentEndedAt,
 	DeploymentsSelectColumnDeploymentStartedAt,
 	DeploymentsSelectColumnDeploymentStatus,
@@ -7033,7 +7042,7 @@ var AllDeploymentsSelectColumn = []DeploymentsSelectColumn{
 
 func (e DeploymentsSelectColumn) IsValid() bool {
 	switch e {
-	case DeploymentsSelectColumnAppID, DeploymentsSelectColumnCommitMessage, DeploymentsSelectColumnCommitSha, DeploymentsSelectColumnCommitUserAvatarURL, DeploymentsSelectColumnCommitUserName, DeploymentsSelectColumnDeploymentEndedAt, DeploymentsSelectColumnDeploymentStartedAt, DeploymentsSelectColumnDeploymentStatus, DeploymentsSelectColumnFunctionsEndedAt, DeploymentsSelectColumnFunctionsStartedAt, DeploymentsSelectColumnFunctionsStatus, DeploymentsSelectColumnID, DeploymentsSelectColumnMetadataEndedAt, DeploymentsSelectColumnMetadataStartedAt, DeploymentsSelectColumnMetadataStatus, DeploymentsSelectColumnMigrationsEndedAt, DeploymentsSelectColumnMigrationsStartedAt, DeploymentsSelectColumnMigrationsStatus:
+	case DeploymentsSelectColumnAppID, DeploymentsSelectColumnCommitMessage, DeploymentsSelectColumnCommitSha, DeploymentsSelectColumnCommitUserAvatarURL, DeploymentsSelectColumnCommitUserName, DeploymentsSelectColumnCreatedAt, DeploymentsSelectColumnDeploymentEndedAt, DeploymentsSelectColumnDeploymentStartedAt, DeploymentsSelectColumnDeploymentStatus, DeploymentsSelectColumnFunctionsEndedAt, DeploymentsSelectColumnFunctionsStartedAt, DeploymentsSelectColumnFunctionsStatus, DeploymentsSelectColumnID, DeploymentsSelectColumnMetadataEndedAt, DeploymentsSelectColumnMetadataStartedAt, DeploymentsSelectColumnMetadataStatus, DeploymentsSelectColumnMigrationsEndedAt, DeploymentsSelectColumnMigrationsStartedAt, DeploymentsSelectColumnMigrationsStatus:
 		return true
 	}
 	return false
