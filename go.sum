@@ -338,14 +338,6 @@ github.com/muesli/termenv v0.16.0/go.mod h1:ZRfOIKPFDYQoDFF4Olj7/QJbW60Ol/kL1pU3
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 h1:C3w9PqII01/Oq1c1nUAm88MOHcQC9l5mIlSMApZMrHA=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822/go.mod h1:+n7T8mK8HuQTcFwEeznm/DIxMOiR9yIdICNftLE1DvQ=
 github.com/mxk/go-flowrate v0.0.0-20140419014527-cca7078d478f/go.mod h1:ZdcZmHo+o7JKHSa8/e818NopupXU1YMK5fe1lsApnBw=
-github.com/nhost/be v0.0.0-20250929153845-6db3e5249d33 h1:BNFN3Mw4zY6LEmVc7RXkHSVvHtovDSm7Oesb7IUt27o=
-github.com/nhost/be v0.0.0-20250929153845-6db3e5249d33/go.mod h1:feVvqP3dft8hWbp9zNZExdGKbFEYv8aLYohfyAeINNQ=
-github.com/nhost/be v0.0.0-20251015125528-facecfb60cea h1:QQMCKMdkOkVN5PlZB/iiBSdQL6u84JIVppWf7hC5OoU=
-github.com/nhost/be v0.0.0-20251015125528-facecfb60cea/go.mod h1:feVvqP3dft8hWbp9zNZExdGKbFEYv8aLYohfyAeINNQ=
-github.com/nhost/be v0.0.0-20251020104454-acc8934d2c11 h1:5uPnBt2gjVkRpjUEJ8uS/q+FpvpTQJ+CN6zLCBYcfPA=
-github.com/nhost/be v0.0.0-20251020104454-acc8934d2c11/go.mod h1:feVvqP3dft8hWbp9zNZExdGKbFEYv8aLYohfyAeINNQ=
-github.com/nhost/be v0.0.0-20251020115144-85e0542ecec0 h1:MRWnaC1Aoir6JPr4v4C2TAVG5KBIgsOdWiDeII5HQYg=
-github.com/nhost/be v0.0.0-20251020115144-85e0542ecec0/go.mod h1:feVvqP3dft8hWbp9zNZExdGKbFEYv8aLYohfyAeINNQ=
 github.com/nhost/be v0.0.0-20251021065906-8abc7d8dfa48 h1:+Oh4Rbr1psWlBaQTakoBYFNB8jBioiXuimNMaNPLTHk=
 github.com/nhost/be v0.0.0-20251021065906-8abc7d8dfa48/go.mod h1:feVvqP3dft8hWbp9zNZExdGKbFEYv8aLYohfyAeINNQ=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=

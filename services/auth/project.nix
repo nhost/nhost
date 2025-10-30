@@ -22,6 +22,7 @@ let
       ./docs/cli.md
       ./docs/openapi.yaml
       ./vacuum.yaml
+      ./vacuum-ignore.yaml
 
       ./go/api/server.cfg.yaml
       ./go/api/types.cfg.yaml
@@ -104,6 +105,7 @@ rec {
       echo "➜ Checking OpenAPI spec..."
       vacuum lint \
         -dqb -n info \
+        --ignore-file ${src}/${submodule}/vacuum-ignore.yaml \
         --ruleset ${src}/${submodule}/vacuum.yaml \
         ${src}/${submodule}/docs/openapi.yaml
       echo ""
