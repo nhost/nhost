@@ -18,13 +18,15 @@ import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useGetAuthUserProvidersQuery } from '@/generated/graphql';
 import { useAccessToken } from '@/hooks/useAccessToken';
-import { listGitHubInstallationRepos } from '@/lib/github';
+import { GitHubAPIError, listGitHubInstallationRepos } from '@/lib/github';
+import { getToastStyleProps } from '@/utils/constants/settings';
 import { nhost } from '@/utils/nhost';
 import { Divider } from '@mui/material';
 import debounce from 'lodash.debounce';
 import NavLink from 'next/link';
 import type { ChangeEvent } from 'react';
 import { Fragment, useEffect, useMemo, useState } from 'react';
+import toast from 'react-hot-toast';
 
 export type ConnectGitHubModalState =
   | 'CONNECTING'
@@ -183,12 +185,19 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
         setLoading(false);
       } catch (err) {
         console.error('Error fetching GitHub data:', err);
-        setError(err as Error);
-        setLoading(false);
+        if (err instanceof GitHubAPIError && err.status === 401) {
+          setConnectGitHubModalState('EXPIRED_GITHUB_SESSION');
+          setLoading(false);
+          return;
+        }
+
+        toast.error(err?.message, getToastStyleProps());
+        close?.();
       }
     };
 
     fetchGitHubData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isGithubConnected, loadingGithubConnected]);
 
   const handleSelectAnotherRepository = () => {

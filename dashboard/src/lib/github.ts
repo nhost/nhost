@@ -1,3 +1,17 @@
+/**
+ * Custom error class for GitHub API errors that preserves HTTP status codes
+ */
+export class GitHubAPIError extends Error {
+  constructor(
+    message: string,
+    public status: number,
+    public statusText: string,
+  ) {
+    super(message);
+    this.name = 'GitHubAPIError';
+  }
+}
+
 interface GitHubAppInstallation {
   id: number;
   account?: {
@@ -23,7 +37,11 @@ export async function listGitHubAppInstallations(accessToken: string): Promise<G
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to list installations: ${response.statusText}`);
+    throw new GitHubAPIError(
+      `Failed to list installations: ${response.statusText}`,
+      response.status,
+      response.statusText
+    );
   }
 
   const data = await response.json();
@@ -60,8 +78,10 @@ export async function listGitHubInstallationRepos(accessToken: string) {
       );
 
       if (!response.ok) {
-        throw new Error(
-          `Failed to list repos for installation ${installation.id}: ${response.statusText}`
+        throw new GitHubAPIError(
+          `Failed to list repos for installation ${installation.id}: ${response.statusText}`,
+          response.status,
+          response.statusText
         );
       }
 
