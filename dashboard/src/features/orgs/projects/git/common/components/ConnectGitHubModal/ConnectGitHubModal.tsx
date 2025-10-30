@@ -67,7 +67,6 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
   const [selectedRepoId, setSelectedRepoId] = useState<string | null>(null);
   const [githubData, setGithubData] = useState<GitHubData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
   const { project, loading: loadingProject } = useProject();
   const { org, loading: loadingOrg } = useCurrentOrg();
   const hostname = useHostName();
@@ -214,10 +213,6 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
   );
 
   useEffect(() => () => handleFilterChange.cancel(), [handleFilterChange]);
-
-  if (error) {
-    throw error;
-  }
 
   if (errorGithubConnected instanceof Error) {
     throw errorGithubConnected;
