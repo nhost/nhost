@@ -1,11 +1,11 @@
 final: prev: rec {
-  go = prev.go_1_24.overrideAttrs
+  go = prev.go_1_25.overrideAttrs
     (finalAttrs: previousAttrs: rec {
-      version = "1.24.9";
+      version = "1.25.3";
 
       src = final.fetchurl {
         url = "https://go.dev/dl/go${version}.src.tar.gz";
-        sha256 = "sha256-xy+BulT+AO/n8+dJnUAJeSRogbE7d16am7hVQcEb5pU=";
+        sha256 = "sha256-qBpLpZPQAV4QxR4mfeP/B8eskU38oDfZUX0ClRcJd5U=";
       };
 
     });
@@ -30,16 +30,16 @@ final: prev: rec {
     ];
   });
 
-  golines = final.buildGoModule rec {
+  golines = final.buildGoModule {
     pname = "golines";
-    version = "0.13.0-beta";
+    version = "0.14.0-beta";
     src = final.fetchFromGitHub {
       owner = "segmentio";
       repo = "golines";
-      rev = "fc305205784a70b4cfc17397654f4c94e3153ce4";
-      sha256 = "sha256-ZdCR4ZC1+Llyt/rcX0RGisM98u6rq9/ECUuHEMV+Kkc=";
+      rev = "8f32f0f7e89c30f572c7f2cd3b2a48016b9d8bbf";
+      sha256 = "sha256-Y4q3xpGw8bAi87zJ48+LVbdgOc7HB1lRdYhlsF1YcVA=";
     };
-    vendorHash = "sha256-mmdaHm3YL/2eB/r3Sskd9liljKAe3/c8T0z5KIUHeK0=";
+    vendorHash = "sha256-94IXh9iBAE0jJXovaElY8oFdXE6hxYg0Ww0ZEHLnEwc=";
     meta = with final.lib; {
       description = "A golang formatter that fixes long lines";
       homepage = "https://github.com/segmentio/golines";
@@ -92,7 +92,7 @@ final: prev: rec {
     };
   };
 
-  oapi-codegen = prev.oapi-codegen.overrideAttrs (oldAttrs: rec {
+  oapi-codegen = prev.oapi-codegen.overrideAttrs (oldAttrs: {
     version = "2.6.0-beta0";
     src = final.fetchFromGitHub {
       owner = "dbarrosop";
