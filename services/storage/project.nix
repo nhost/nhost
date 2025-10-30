@@ -68,7 +68,6 @@ let
       libheif
     ];
     mesonFlags = [
-      "-Dgtk_doc=false"
       "-Dcgif=disabled"
       "-Dspng=disabled"
       "-Dpdfium=disabled"
