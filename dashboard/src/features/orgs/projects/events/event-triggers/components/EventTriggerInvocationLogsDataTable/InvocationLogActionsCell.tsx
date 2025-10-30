@@ -8,10 +8,12 @@ import {
 import { DEFAULT_RETRY_TIMEOUT_SECONDS } from '@/features/orgs/projects/events/event-triggers/constants';
 import useRedeliverEventMutation from '@/features/orgs/projects/events/event-triggers/hooks/useRedeliverEventMutation/useRedeliverEventMutation';
 import { getToastStyleProps } from '@/utils/constants/settings';
+import type { GetEventAndInvocationLogsByIdResponse } from '@/utils/hasura-api/generated/schemas';
 import type { EventInvocationLogEntry } from '@/utils/hasura-api/generated/schemas/eventInvocationLogEntry';
+import type { UseQueryResult } from '@tanstack/react-query';
 import type { Table as TanStackTable } from '@tanstack/react-table';
 import { CalendarSync, Eye } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import InvocationLogDetailsDialogContent from './InvocationLogDetailsDialogContent';
 import type { EventTriggerInvocationLogsDataTableMeta } from './types';
@@ -30,36 +32,27 @@ export default function InvocationLogActionsCell({
 
   const [open, setOpen] = useState(false);
 
-  const prevIdsRef = useRef<string[]>([]);
-  const [skeletonId, setSkeletonId] = useState<string | null>(null);
   const loadingToastIdRef = useRef<string | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [isThisRedeliverActionLoading, setIsThisRedeliverActionLoading] =
+    useState(false);
 
   const tableRows = table.getCoreRowModel().rows;
 
-  const isRedeliverDisabled = isRedelivering || !!skeletonId;
+  const isRedeliverDisabled = isRedelivering || meta.isRedeliverPending;
 
-  useEffect(() => {
-    const currentIds = tableRows.map((tableRow) => tableRow.original.id);
-    const prevIds = prevIdsRef.current;
-    const hasNew = currentIds.some((id) => !prevIds.includes(id));
-    if (hasNew) {
-      if (skeletonId) {
-        meta.removePendingSkeleton?.(skeletonId);
-        setSkeletonId(null);
-      }
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-      if (loadingToastIdRef.current) {
-        toast.dismiss(loadingToastIdRef.current);
-        loadingToastIdRef.current = null;
-      }
+  const cleanState = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
     }
-    prevIdsRef.current = currentIds;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [skeletonId, tableRows]);
+    if (loadingToastIdRef.current) {
+      toast.dismiss(loadingToastIdRef.current);
+      loadingToastIdRef.current = null;
+    }
+    setIsThisRedeliverActionLoading(false);
+    meta.setIsRedeliverPending(false);
+  };
 
   const handleOpenChange = (newOpen: boolean) => {
     setOpen(newOpen);
@@ -71,11 +64,8 @@ export default function InvocationLogActionsCell({
   };
 
   const handleRedeliver = async () => {
-    if (!meta.addPendingSkeleton) {
-      toast.error('Failed to redeliver event', getToastStyleProps());
-      return;
-    }
-    setSkeletonId(meta.addPendingSkeleton());
+    meta.setIsRedeliverPending(true);
+    setIsThisRedeliverActionLoading(true);
 
     try {
       await redeliverEvent({
@@ -96,7 +86,7 @@ export default function InvocationLogActionsCell({
     const timeoutMs =
       (meta.retryTimeoutSeconds ?? DEFAULT_RETRY_TIMEOUT_SECONDS) * 1000;
 
-    intervalRef.current = setInterval(() => {
+    intervalRef.current = setInterval(async () => {
       const elapsed = Date.now() - start;
       if (elapsed >= timeoutMs && intervalRef.current) {
         clearInterval(intervalRef.current);
@@ -104,13 +94,21 @@ export default function InvocationLogActionsCell({
         return;
       }
       try {
-        meta.refetchInvocations?.();
-      } catch (error) {
-        if (intervalRef.current) {
-          clearInterval(intervalRef.current);
+        const { data, error } =
+          (await meta.refetchInvocations()) as UseQueryResult<GetEventAndInvocationLogsByIdResponse>;
+        if (error) {
+          throw new Error('Failed to fetch invocation logs');
         }
-        intervalRef.current = null;
-        loadingToastIdRef.current = null;
+
+        const originalIds = tableRows.map((tableRow) => tableRow.original.id);
+        const newIds = data?.invocations?.map((invocation) => invocation.id);
+        const hasNew = newIds?.some((id) => !originalIds.includes(id));
+        if (hasNew) {
+          cleanState();
+        }
+      } catch (error) {
+        toast.error(error?.message, getToastStyleProps());
+        cleanState();
       }
     }, 5000);
   };
@@ -125,9 +123,12 @@ export default function InvocationLogActionsCell({
             onClick={handleRedeliver}
             className="-ml-1 h-8 w-8 p-0"
             disabled={isRedeliverDisabled}
-            loading={isRedeliverDisabled}
+            loading={isThisRedeliverActionLoading}
+            loaderClassName="mr-0 size-5"
           >
-            {!isRedeliverDisabled && <CalendarSync className="h-4 w-4" />}
+            {!isThisRedeliverActionLoading && (
+              <CalendarSync className="size-4" />
+            )}
           </ButtonWithLoading>
         </TooltipTrigger>
         <TooltipContent>

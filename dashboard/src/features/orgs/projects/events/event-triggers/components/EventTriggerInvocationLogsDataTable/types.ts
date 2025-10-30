@@ -4,8 +4,8 @@ import type { Dispatch, SetStateAction } from 'react';
 export interface EventTriggerInvocationLogsDataTableMeta {
   selectedLog: EventInvocationLogEntry | null;
   setSelectedLog: Dispatch<SetStateAction<EventInvocationLogEntry | null>>;
-  addPendingSkeleton: () => string;
-  removePendingSkeleton: (id: string) => void;
+  isRedeliverPending: boolean;
+  setIsRedeliverPending: Dispatch<SetStateAction<boolean>>;
   refetchInvocations: () => Promise<unknown> | void;
   retryTimeoutSeconds: number;
 }

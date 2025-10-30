@@ -37,7 +37,7 @@ export default function EventTriggerInvocationLogsDataTable({
 }: EventTriggerInvocationLogsDataTableProps) {
   const [selectedLog, setSelectedLog] =
     useState<EventInvocationLogEntry | null>(null);
-  const [pendingSkeletonIds, setPendingSkeletonIds] = useState<string[]>([]);
+  const [isRedeliverPending, setIsRedeliverPending] = useState(false);
 
   const {
     offset,
@@ -79,14 +79,8 @@ export default function EventTriggerInvocationLogsDataTable({
     meta: {
       selectedLog,
       setSelectedLog,
-      addPendingSkeleton: () => {
-        const id = `pending-skeleton-${Date.now()}`;
-        setPendingSkeletonIds((prev) => [id, ...prev]);
-        return id;
-      },
-      removePendingSkeleton: (id: string) => {
-        setPendingSkeletonIds((prev) => prev.filter((s) => s !== id));
-      },
+      isRedeliverPending,
+      setIsRedeliverPending,
       refetchInvocations,
       retryTimeoutSeconds,
     } satisfies EventTriggerInvocationLogsDataTableMeta,
@@ -137,8 +131,8 @@ export default function EventTriggerInvocationLogsDataTable({
               </TableRow>
             ))}
 
-          {pendingSkeletonIds.map((id) => (
-            <TableRow key={id} data-state="skeleton">
+          {isRedeliverPending && (
+            <TableRow data-state="skeleton">
               <TableCell>
                 <Skeleton className="h-4 w-24" />
               </TableCell>
@@ -152,7 +146,7 @@ export default function EventTriggerInvocationLogsDataTable({
                 <Skeleton className="h-8 w-16" />
               </TableCell>
             </TableRow>
-          ))}
+          )}
 
           {!isLoading &&
             table.getRowModel().rows?.length > 0 &&
@@ -172,7 +166,7 @@ export default function EventTriggerInvocationLogsDataTable({
 
           {!isLoading &&
             table.getRowModel().rows?.length === 0 &&
-            pendingSkeletonIds.length === 0 && (
+            !isRedeliverPending && (
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
