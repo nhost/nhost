@@ -105,7 +105,7 @@ rec {
       echo "➜ Checking OpenAPI spec..."
       vacuum lint \
         -dqb -n info \
-        --ignore-file ${src}/${submodule}/vacuum-ignore.yaml
+        --ignore-file ${src}/${submodule}/vacuum-ignore.yaml \
         --ruleset ${src}/${submodule}/vacuum.yaml \
         ${src}/${submodule}/docs/openapi.yaml
       echo ""
