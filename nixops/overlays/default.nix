@@ -6,6 +6,8 @@ final: prev:
 
   linux-pam = prev.linux-pam.overrideAttrs (oldAttrs: {
     outputs = [ "out" ];
+
+    postInstall = "";
   });
 
   nhost-cli = final.callPackage ./nhost-cli.nix { inherit final; };
@@ -13,3 +15,4 @@ final: prev:
 // import ./go.nix final prev
 // import ./js.nix final prev
   // import ./postgres.nix final prev
+
