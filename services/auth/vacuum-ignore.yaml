@@ -1,0 +1,4 @@
+camel-case-properties:
+- $.paths['/signin/provider/{provider}/callback'].post.requestBody.content['application/x-www-form-urlencoded'].schema.properties['id_token']
+- $.paths['/signin/provider/{provider}/callback'].post.requestBody.content['application/x-www-form-urlencoded'].schema.properties['error_description']
+- $.paths['/signin/provider/{provider}/callback'].post.requestBody.content['application/x-www-form-urlencoded'].schema.properties['error_uri']
