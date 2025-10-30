@@ -11,14 +11,28 @@ import { Link } from '@/components/ui/v2/Link';
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
+import { GithubAuthButton } from '@/features/auth/AuthProviders/Github/components/GithubAuthButton';
+import { useHostName } from '@/features/orgs/projects/common/hooks/useHostName';
 import { EditRepositorySettings } from '@/features/orgs/projects/git/common/components/EditRepositorySettings';
-import { useGetGithubRepositoriesQuery } from '@/generated/graphql';
+import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { useGetAuthUserProvidersQuery } from '@/generated/graphql';
+import { useAccessToken } from '@/hooks/useAccessToken';
+import { GitHubAPIError, listGitHubInstallationRepos } from '@/lib/github';
+import { getToastStyleProps } from '@/utils/constants/settings';
+import { nhost } from '@/utils/nhost';
 import { Divider } from '@mui/material';
 import debounce from 'lodash.debounce';
+import NavLink from 'next/link';
 import type { ChangeEvent } from 'react';
 import { Fragment, useEffect, useMemo, useState } from 'react';
+import toast from 'react-hot-toast';
 
-export type ConnectGitHubModalState = 'CONNECTING' | 'EDITING';
+export type ConnectGitHubModalState =
+  | 'CONNECTING'
+  | 'EDITING'
+  | 'EXPIRED_GITHUB_SESSION'
+  | 'GITHUB_CONNECTION_REQUIRED';
 
 export interface ConnectGitHubModalProps {
   /**
@@ -28,18 +42,162 @@ export interface ConnectGitHubModalProps {
   close?: VoidFunction;
 }
 
+interface GitHubData {
+  githubAppInstallations: Array<{
+    id: number;
+    accountLogin?: string;
+    accountAvatarUrl?: string;
+  }>;
+  githubRepositories: Array<{
+    id: number;
+    node_id: string;
+    name: string;
+    fullName: string;
+    githubAppInstallation: {
+      accountLogin?: string;
+      accountAvatarUrl?: string;
+    };
+  }>;
+}
+
 export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
   const [filter, setFilter] = useState('');
   const [ConnectGitHubModalState, setConnectGitHubModalState] =
     useState<ConnectGitHubModalState>('CONNECTING');
   const [selectedRepoId, setSelectedRepoId] = useState<string | null>(null);
+  const [githubData, setGithubData] = useState<GitHubData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const { project, loading: loadingProject } = useProject();
+  const { org, loading: loadingOrg } = useCurrentOrg();
+  const hostname = useHostName();
+  const token = useAccessToken();
+  const {
+    data,
+    loading: loadingGithubConnected,
+    error: errorGithubConnected,
+  } = useGetAuthUserProvidersQuery();
+  const isGithubConnected = data?.authUserProviders?.some(
+    (item) => item.providerId === 'github',
+  );
 
-  const { data, loading, error, startPolling } =
-    useGetGithubRepositoriesQuery();
+  const github = useMemo(
+    () => {
+      if (typeof window !== 'undefined') {
+        return nhost.auth.signInProviderURL('github', {
+          connect: token,
+          redirectTo: `${window.location.origin}?signinProvider=github&state=signin-refresh:${org.slug}:${project!.subdomain}`,
+        });
+      }
+      return '';
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [token],
+  );
 
   useEffect(() => {
-    startPolling(2000);
-  }, [startPolling]);
+    if (loadingGithubConnected) {
+      return;
+    }
+
+    const fetchGitHubData = async () => {
+      try {
+        setLoading(true);
+
+        if (!isGithubConnected) {
+          setConnectGitHubModalState('GITHUB_CONNECTION_REQUIRED');
+          setLoading(false);
+          return;
+        }
+
+        // Get stored GitHub provider tokens from localStorage
+        const storedTokens = localStorage.getItem(
+          'nhost_provider_tokens_github',
+        );
+        if (!storedTokens) {
+          setConnectGitHubModalState('EXPIRED_GITHUB_SESSION');
+          setLoading(false);
+          return;
+        }
+
+        const parsedTokens = JSON.parse(storedTokens);
+        const { refreshToken, expiresAt: expiresAtString } = parsedTokens;
+        let accessToken = parsedTokens?.accessToken;
+
+        const expiresAt = new Date(expiresAtString).getTime();
+
+        const currentTime = Date.now();
+        const marginSeconds = 60;
+        if (expiresAt - currentTime < marginSeconds * 1000) {
+          if (!refreshToken) {
+            setConnectGitHubModalState('EXPIRED_GITHUB_SESSION');
+            setLoading(false);
+            return;
+          }
+
+          // Refresh the GitHub provider token
+          const refreshResponse = await nhost.auth.refreshProviderToken(
+            'github',
+            { refreshToken },
+          );
+
+          if (!refreshResponse.body) {
+            // If no tokens found or refresh failed, show GitHub sign-in modal
+            setConnectGitHubModalState('EXPIRED_GITHUB_SESSION');
+            setLoading(false);
+            return;
+          }
+
+          // Save the new tokens to localStorage
+          localStorage.setItem(
+            'nhost_provider_tokens_github',
+            JSON.stringify(refreshResponse.body),
+          );
+
+          accessToken = refreshResponse.body.accessToken;
+        }
+
+        // Fetch GitHub installations and repositories with the new access token
+        const installations = await listGitHubInstallationRepos(accessToken);
+
+        // Transform the data to match the expected format
+        const transformedData = {
+          githubAppInstallations: installations.map((item) => ({
+            id: item.installation.id,
+            accountLogin: item.installation.account?.login,
+            accountAvatarUrl: item.installation.account?.avatar_url,
+          })),
+          githubRepositories: installations.flatMap((item) =>
+            item.repositories.map((repo) => ({
+              id: repo.id,
+              node_id: repo.node_id,
+              name: repo.name,
+              fullName: repo.full_name,
+              githubAppInstallation: {
+                accountLogin: item.installation.account?.login,
+                accountAvatarUrl: item.installation.account?.avatar_url,
+              },
+            })),
+          ),
+        };
+
+        setGithubData(transformedData);
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching GitHub data:', err);
+        if (err instanceof GitHubAPIError && err.status === 401) {
+          setConnectGitHubModalState('EXPIRED_GITHUB_SESSION');
+          setLoading(false);
+          return;
+        }
+
+        toast.error(err?.message, getToastStyleProps());
+        close?.();
+      }
+    };
+
+    fetchGitHubData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isGithubConnected, loadingGithubConnected]);
 
   const handleSelectAnotherRepository = () => {
     setSelectedRepoId(null);
@@ -56,13 +214,75 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
 
   useEffect(() => () => handleFilterChange.cancel(), [handleFilterChange]);
 
-  if (error) {
-    throw error;
+  if (errorGithubConnected instanceof Error) {
+    throw errorGithubConnected;
   }
 
-  if (loading) {
+  if (loading || loadingProject || loadingOrg || loadingGithubConnected) {
     return (
-      <ActivityIndicator delay={500} label="Loading GitHub repositories..." />
+      <div className="w-[653px] px-1">
+        <div className="flex flex-col">
+          <div className="mx-auto text-center">
+            <div className="mx-auto h-8 w-8">
+              <GitHubIcon className="h-8 w-8" />
+            </div>
+          </div>
+          <div>
+            <Text className="mt-2.5 text-center text-lg font-medium">
+              Loading repositories...
+            </Text>
+            <Text className="text-center text-xs font-normal" color="secondary">
+              Fetching your GitHub repositories
+            </Text>
+            <div className="mb-2 mt-6 flex w-full">
+              <Input placeholder="Search..." fullWidth disabled value="" />
+            </div>
+          </div>
+          <div className="flex h-import items-center justify-center border-y">
+            <ActivityIndicator delay={0} label="" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (ConnectGitHubModalState === 'GITHUB_CONNECTION_REQUIRED') {
+    return (
+      <div className="flex w-[453px] flex-col items-center justify-center gap-5 px-1 py-1">
+        <p className="text-center text-foreground">
+          You need to connect your GitHub account to continue.
+        </p>
+        <NavLink
+          href={github}
+          passHref
+          rel="noreferrer noopener"
+          legacyBehavior
+        >
+          <Button
+            className="w-full max-w-72"
+            variant="outlined"
+            color="secondary"
+            startIcon={<GitHubIcon />}
+          >
+            Connect to GitHub
+          </Button>
+        </NavLink>
+      </div>
+    );
+  }
+
+  if (ConnectGitHubModalState === 'EXPIRED_GITHUB_SESSION') {
+    return (
+      <div className="flex w-[453px] flex-col items-center justify-center gap-5 px-1 py-1">
+        <p className="text-center text-foreground">
+          Please sign in with GitHub to continue.
+        </p>
+        <GithubAuthButton
+          redirectTo={`${hostname}?signinProvider=github&state=signin-refresh:${org.slug}:${project!.subdomain}`}
+          buttonText="Sign in with GitHub"
+          className="w-full max-w-72 gap-2 !bg-primary !text-white disabled:!text-white disabled:!text-opacity-60 dark:!bg-white dark:!text-black dark:disabled:!text-black"
+        />
+      </div>
     );
   }
 
@@ -78,25 +298,27 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
     );
   }
 
-  const { githubAppInstallations } = data || {};
+  const { githubAppInstallations } = githubData || {};
 
-  const filteredGitHubAppInstallations = data?.githubAppInstallations.filter(
-    (githubApp) => !!githubApp.accountLogin,
-  );
+  const filteredGitHubAppInstallations =
+    githubData?.githubAppInstallations.filter(
+      (githubApp) => !!githubApp.accountLogin,
+    );
 
-  const filteredGitHubRepositories = data?.githubRepositories.filter(
+  const filteredGitHubRepositories = githubData?.githubRepositories.filter(
     (repo) => !!repo.githubAppInstallation,
   );
 
   const filteredGitHubAppInstallationsNullValues =
-    data?.githubAppInstallations.filter((githubApp) => !!githubApp.accountLogin)
-      .length === 0;
+    githubData?.githubAppInstallations.filter(
+      (githubApp) => !!githubApp.accountLogin,
+    ).length === 0;
 
   const faultyGitHubInstallation =
     githubAppInstallations?.length === 0 ||
     filteredGitHubAppInstallationsNullValues;
 
-  const noRepositoriesAdded = data?.githubRepositories.length === 0;
+  const noRepositoriesAdded = githubData?.githubRepositories.length === 0;
 
   if (faultyGitHubInstallation) {
     return (
@@ -115,11 +337,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
         </div>
 
         <Button
-          href={process.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL}
-          // Both `target` and `rel` are available when `href` is set. This is
-          // a limitation of MUI.
-          // @ts-ignore
-          target="_blank"
+          href={`${process.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL}?state=install-github-app:${org.slug}:${project!.subdomain}`}
           rel="noreferrer noopener"
           endIcon={<ArrowSquareOutIcon className="h-4 w-4" />}
         >
@@ -179,8 +397,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
             </List>
 
             <Link
-              href={process.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL}
-              target="_blank"
+              href={`${process.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL}?state=install-github-app:${org.slug}:${project!.subdomain}`}
               rel="noreferrer noopener"
               underline="hover"
               className="grid grid-flow-col items-center justify-start gap-1"
@@ -199,8 +416,8 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
                 className="text-center text-xs font-normal"
                 color="secondary"
               >
-                Showing repositories from {data?.githubAppInstallations.length}{' '}
-                GitHub account(s)
+                Showing repositories from{' '}
+                {githubData?.githubAppInstallations.length} GitHub account(s)
               </Text>
               <div className="mb-2 mt-6 flex w-full">
                 <Input
@@ -226,7 +443,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
                           <Button
                             variant="borderless"
                             color="primary"
-                            onClick={() => setSelectedRepoId(repo.id)}
+                            onClick={() => setSelectedRepoId(repo.node_id)}
                           >
                             Connect
                           </Button>
@@ -268,8 +485,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
             Do you miss a repository, or do you need to connect another GitHub
             account?{' '}
             <Link
-              href={process.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL}
-              target="_blank"
+              href={`${process.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL}?state=install-github-app:${org.slug}:${project!.subdomain}`}
               rel="noreferrer noopener"
               className="text-xs font-medium"
               underline="hover"

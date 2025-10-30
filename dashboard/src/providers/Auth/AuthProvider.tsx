@@ -1,3 +1,4 @@
+import { isNotEmptyValue } from '@/lib/utils';
 import { useNhostClient } from '@/providers/nhost/';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { type Session } from '@nhost/nhost-js/auth';
@@ -21,7 +22,15 @@ function AuthProvider({ children }: PropsWithChildren) {
     pathname,
     push,
   } = useRouter();
-  const { refreshToken, error, errorDescription, ...remainingQuery } = query;
+  const {
+    refreshToken,
+    error,
+    errorDescription,
+    signinProvider,
+    state,
+    provider_state: providerState,
+    ...remainingQuery
+  } = query;
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSigningOut, setIsSigningOut] = useState(false);
@@ -63,24 +72,71 @@ function AuthProvider({ children }: PropsWithChildren) {
         });
         setSession(sessionResponse.body);
         removeQueryParamsFromURL();
+
+        // fetch and store provider tokens if signinProvider is specified
+        if (sessionResponse.body && signinProvider === 'github') {
+          try {
+            const providerTokensResponse =
+              await nhost.auth.getProviderTokens(signinProvider);
+            if (providerTokensResponse.body) {
+              localStorage.setItem(
+                `nhost_provider_tokens_${signinProvider}`,
+                JSON.stringify(providerTokensResponse.body),
+              );
+            }
+          } catch (err) {
+            console.error('Failed to fetch provider tokens:', err);
+          }
+        }
       } else {
         const currentSession = nhost.getUserSession();
         setSession(currentSession);
       }
 
-      // handle OAuth redirect errors (e.g., error=unverified-user)
+      if (
+        state &&
+        typeof state === 'string' &&
+        state.startsWith('signin-refresh:')
+      ) {
+        const [, orgSlug, projectSubdomain] = state.split(':');
+        removeQueryParamsFromURL();
+        await push(
+          `/orgs/${orgSlug}/projects/${projectSubdomain}/settings/git?github-modal`,
+        );
+      }
+
+      // handle OAuth redirect errors (e.g., error=unverified-user, error=invalid-state)
       if (typeof error === 'string') {
-        if (error === 'unverified-user') {
-          removeQueryParamsFromURL();
-          await push('/email/verify');
-        } else {
-          const description =
-            typeof errorDescription === 'string'
-              ? errorDescription
-              : 'An error occurred during the sign-in process. Please try again.';
-          toast.error(description, getToastStyleProps());
-          removeQueryParamsFromURL();
-          await push('/signin');
+        switch (error) {
+          case 'unverified-user': {
+            removeQueryParamsFromURL();
+            await push('/email/verify');
+            break;
+          }
+
+          case 'invalid-state': {
+            if (
+              isNotEmptyValue(providerState) &&
+              typeof providerState === 'string'
+            ) {
+              const [, orgSlug, projectSubdomain] = providerState.split(':');
+              removeQueryParamsFromURL();
+              await push(
+                `/orgs/${orgSlug}/projects/${projectSubdomain}/settings/git?github-modal`,
+              );
+              break;
+            }
+            // Fall through to default error handling if state search param is invalid
+          }
+          default: {
+            const description =
+              typeof errorDescription === 'string'
+                ? errorDescription
+                : 'An error occurred during the sign-in process. Please try again.';
+            toast.error(description, getToastStyleProps());
+            removeQueryParamsFromURL();
+            await push('/signin');
+          }
         }
       }
 

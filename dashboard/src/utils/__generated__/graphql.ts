@@ -3118,7 +3118,9 @@ export type ConfigSystemConfigPostgres = {
   database: Scalars['String'];
   disk?: Maybe<ConfigSystemConfigPostgresDisk>;
   enabled?: Maybe<Scalars['Boolean']>;
+  encryptColumnKey?: Maybe<Scalars['String']>;
   majorVersion?: Maybe<Scalars['String']>;
+  oldEncryptColumnKey?: Maybe<Scalars['String']>;
 };
 
 export type ConfigSystemConfigPostgresComparisonExp = {
@@ -3129,7 +3131,9 @@ export type ConfigSystemConfigPostgresComparisonExp = {
   database?: InputMaybe<ConfigStringComparisonExp>;
   disk?: InputMaybe<ConfigSystemConfigPostgresDiskComparisonExp>;
   enabled?: InputMaybe<ConfigBooleanComparisonExp>;
+  encryptColumnKey?: InputMaybe<ConfigStringComparisonExp>;
   majorVersion?: InputMaybe<ConfigStringComparisonExp>;
+  oldEncryptColumnKey?: InputMaybe<ConfigStringComparisonExp>;
 };
 
 export type ConfigSystemConfigPostgresConnectionString = {
@@ -3193,7 +3197,9 @@ export type ConfigSystemConfigPostgresInsertInput = {
   database: Scalars['String'];
   disk?: InputMaybe<ConfigSystemConfigPostgresDiskInsertInput>;
   enabled?: InputMaybe<Scalars['Boolean']>;
+  encryptColumnKey?: InputMaybe<Scalars['String']>;
   majorVersion?: InputMaybe<Scalars['String']>;
+  oldEncryptColumnKey?: InputMaybe<Scalars['String']>;
 };
 
 export type ConfigSystemConfigPostgresUpdateInput = {
@@ -3201,7 +3207,9 @@ export type ConfigSystemConfigPostgresUpdateInput = {
   database?: InputMaybe<Scalars['String']>;
   disk?: InputMaybe<ConfigSystemConfigPostgresDiskUpdateInput>;
   enabled?: InputMaybe<Scalars['Boolean']>;
+  encryptColumnKey?: InputMaybe<Scalars['String']>;
   majorVersion?: InputMaybe<Scalars['String']>;
+  oldEncryptColumnKey?: InputMaybe<Scalars['String']>;
 };
 
 export type ConfigSystemConfigUpdateInput = {
@@ -4426,6 +4434,7 @@ export type Apps = {
   billingDedicatedCompute?: Maybe<Billing_Dedicated_Compute>;
   /** An object relationship */
   billingSubscriptions?: Maybe<Billing_Subscriptions>;
+  /** main entrypoint to the configuration */
   config?: Maybe<ConfigConfig>;
   createdAt: Scalars['timestamptz'];
   /** An object relationship */
@@ -11094,6 +11103,7 @@ export type Deployments = {
   commitSHA: Scalars['String'];
   commitUserAvatarUrl?: Maybe<Scalars['String']>;
   commitUserName?: Maybe<Scalars['String']>;
+  createdAt: Scalars['timestamptz'];
   deploymentEndedAt?: Maybe<Scalars['timestamptz']>;
   /** An array relationship */
   deploymentLogs: Array<DeploymentLogs>;
@@ -11191,6 +11201,7 @@ export type Deployments_Bool_Exp = {
   commitSHA?: InputMaybe<String_Comparison_Exp>;
   commitUserAvatarUrl?: InputMaybe<String_Comparison_Exp>;
   commitUserName?: InputMaybe<String_Comparison_Exp>;
+  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   deploymentEndedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   deploymentLogs?: InputMaybe<DeploymentLogs_Bool_Exp>;
   deploymentLogs_aggregate?: InputMaybe<DeploymentLogs_Aggregate_Bool_Exp>;
@@ -11222,6 +11233,7 @@ export type Deployments_Insert_Input = {
   commitSHA?: InputMaybe<Scalars['String']>;
   commitUserAvatarUrl?: InputMaybe<Scalars['String']>;
   commitUserName?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
   deploymentEndedAt?: InputMaybe<Scalars['timestamptz']>;
   deploymentLogs?: InputMaybe<DeploymentLogs_Arr_Rel_Insert_Input>;
   deploymentStartedAt?: InputMaybe<Scalars['timestamptz']>;
@@ -11246,6 +11258,7 @@ export type Deployments_Max_Fields = {
   commitSHA?: Maybe<Scalars['String']>;
   commitUserAvatarUrl?: Maybe<Scalars['String']>;
   commitUserName?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
   deploymentEndedAt?: Maybe<Scalars['timestamptz']>;
   deploymentStartedAt?: Maybe<Scalars['timestamptz']>;
   deploymentStatus?: Maybe<Scalars['String']>;
@@ -11268,6 +11281,7 @@ export type Deployments_Max_Order_By = {
   commitSHA?: InputMaybe<Order_By>;
   commitUserAvatarUrl?: InputMaybe<Order_By>;
   commitUserName?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
   deploymentEndedAt?: InputMaybe<Order_By>;
   deploymentStartedAt?: InputMaybe<Order_By>;
   deploymentStatus?: InputMaybe<Order_By>;
@@ -11291,6 +11305,7 @@ export type Deployments_Min_Fields = {
   commitSHA?: Maybe<Scalars['String']>;
   commitUserAvatarUrl?: Maybe<Scalars['String']>;
   commitUserName?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
   deploymentEndedAt?: Maybe<Scalars['timestamptz']>;
   deploymentStartedAt?: Maybe<Scalars['timestamptz']>;
   deploymentStatus?: Maybe<Scalars['String']>;
@@ -11313,6 +11328,7 @@ export type Deployments_Min_Order_By = {
   commitSHA?: InputMaybe<Order_By>;
   commitUserAvatarUrl?: InputMaybe<Order_By>;
   commitUserName?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
   deploymentEndedAt?: InputMaybe<Order_By>;
   deploymentStartedAt?: InputMaybe<Order_By>;
   deploymentStatus?: InputMaybe<Order_By>;
@@ -11359,6 +11375,7 @@ export type Deployments_Order_By = {
   commitSHA?: InputMaybe<Order_By>;
   commitUserAvatarUrl?: InputMaybe<Order_By>;
   commitUserName?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
   deploymentEndedAt?: InputMaybe<Order_By>;
   deploymentLogs_aggregate?: InputMaybe<DeploymentLogs_Aggregate_Order_By>;
   deploymentStartedAt?: InputMaybe<Order_By>;
@@ -11392,6 +11409,8 @@ export enum Deployments_Select_Column {
   CommitUserAvatarUrl = 'commitUserAvatarUrl',
   /** column name */
   CommitUserName = 'commitUserName',
+  /** column name */
+  CreatedAt = 'createdAt',
   /** column name */
   DeploymentEndedAt = 'deploymentEndedAt',
   /** column name */
@@ -11427,6 +11446,7 @@ export type Deployments_Set_Input = {
   commitSHA?: InputMaybe<Scalars['String']>;
   commitUserAvatarUrl?: InputMaybe<Scalars['String']>;
   commitUserName?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
   deploymentEndedAt?: InputMaybe<Scalars['timestamptz']>;
   deploymentStartedAt?: InputMaybe<Scalars['timestamptz']>;
   deploymentStatus?: InputMaybe<Scalars['String']>;
@@ -11457,6 +11477,7 @@ export type Deployments_Stream_Cursor_Value_Input = {
   commitSHA?: InputMaybe<Scalars['String']>;
   commitUserAvatarUrl?: InputMaybe<Scalars['String']>;
   commitUserName?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
   deploymentEndedAt?: InputMaybe<Scalars['timestamptz']>;
   deploymentStartedAt?: InputMaybe<Scalars['timestamptz']>;
   deploymentStatus?: InputMaybe<Scalars['String']>;
@@ -11484,6 +11505,8 @@ export enum Deployments_Update_Column {
   CommitUserAvatarUrl = 'commitUserAvatarUrl',
   /** column name */
   CommitUserName = 'commitUserName',
+  /** column name */
+  CreatedAt = 'createdAt',
   /** column name */
   DeploymentEndedAt = 'deploymentEndedAt',
   /** column name */
@@ -13067,6 +13090,7 @@ export type Mutation_Root = {
   billingUpgradeFreeOrganization: Scalars['String'];
   billingUploadReports: Scalars['Boolean'];
   changeDatabaseVersion: Scalars['Boolean'];
+  connectGithubRepo: Scalars['Boolean'];
   /** delete single row from the table: "announcements_read" */
   deleteAnnouncementRead?: Maybe<Announcements_Read>;
   /** delete data from the table: "announcements_read" */
@@ -13965,6 +13989,15 @@ export type Mutation_RootChangeDatabaseVersionArgs = {
   appID: Scalars['uuid'];
   force?: InputMaybe<Scalars['Boolean']>;
   version: Scalars['String'];
+};
+
+
+/** mutation root */
+export type Mutation_RootConnectGithubRepoArgs = {
+  appID: Scalars['uuid'];
+  baseFolder: Scalars['String'];
+  githubNodeID: Scalars['String'];
+  productionBranch: Scalars['String'];
 };
 
 
@@ -27517,6 +27550,16 @@ export type ResetDatabasePasswordMutationVariables = Exact<{
 
 export type ResetDatabasePasswordMutation = { __typename?: 'mutation_root', resetPostgresPassword: boolean };
 
+export type ConnectGithubRepoMutationVariables = Exact<{
+  appID: Scalars['uuid'];
+  githubNodeID: Scalars['String'];
+  productionBranch: Scalars['String'];
+  baseFolder: Scalars['String'];
+}>;
+
+
+export type ConnectGithubRepoMutation = { __typename?: 'mutation_root', connectGithubRepo: boolean };
+
 export type GetHasuraSettingsQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
@@ -29446,6 +29489,45 @@ export function useResetDatabasePasswordMutation(baseOptions?: Apollo.MutationHo
 export type ResetDatabasePasswordMutationHookResult = ReturnType<typeof useResetDatabasePasswordMutation>;
 export type ResetDatabasePasswordMutationResult = Apollo.MutationResult<ResetDatabasePasswordMutation>;
 export type ResetDatabasePasswordMutationOptions = Apollo.BaseMutationOptions<ResetDatabasePasswordMutation, ResetDatabasePasswordMutationVariables>;
+export const ConnectGithubRepoDocument = gql`
+    mutation ConnectGithubRepo($appID: uuid!, $githubNodeID: String!, $productionBranch: String!, $baseFolder: String!) {
+  connectGithubRepo(
+    appID: $appID
+    githubNodeID: $githubNodeID
+    productionBranch: $productionBranch
+    baseFolder: $baseFolder
+  )
+}
+    `;
+export type ConnectGithubRepoMutationFn = Apollo.MutationFunction<ConnectGithubRepoMutation, ConnectGithubRepoMutationVariables>;
+
+/**
+ * __useConnectGithubRepoMutation__
+ *
+ * To run a mutation, you first call `useConnectGithubRepoMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useConnectGithubRepoMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [connectGithubRepoMutation, { data, loading, error }] = useConnectGithubRepoMutation({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *      githubNodeID: // value for 'githubNodeID'
+ *      productionBranch: // value for 'productionBranch'
+ *      baseFolder: // value for 'baseFolder'
+ *   },
+ * });
+ */
+export function useConnectGithubRepoMutation(baseOptions?: Apollo.MutationHookOptions<ConnectGithubRepoMutation, ConnectGithubRepoMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ConnectGithubRepoMutation, ConnectGithubRepoMutationVariables>(ConnectGithubRepoDocument, options);
+      }
+export type ConnectGithubRepoMutationHookResult = ReturnType<typeof useConnectGithubRepoMutation>;
+export type ConnectGithubRepoMutationResult = Apollo.MutationResult<ConnectGithubRepoMutation>;
+export type ConnectGithubRepoMutationOptions = Apollo.BaseMutationOptions<ConnectGithubRepoMutation, ConnectGithubRepoMutationVariables>;
 export const GetHasuraSettingsDocument = gql`
     query GetHasuraSettings($appId: uuid!) {
   config(appID: $appId, resolve: false) {
