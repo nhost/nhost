@@ -88,13 +88,12 @@ function TicketPage() {
 
   const slaLevel = selectedOrg?.plan?.slaLevel;
   const canSetPriority = slaLevel && slaLevel !== 'none';
-  const isPriorityLocked = !!selectedOrganization && !canSetPriority;
 
   useEffect(() => {
-    if (isPriorityLocked && priority !== 'low') {
+    if (!!selectedOrganization && !canSetPriority && priority !== 'low') {
       setValue('priority', 'low', { shouldValidate: true });
     }
-  }, [isPriorityLocked, priority, setValue]);
+  }, [selectedOrganization, canSetPriority, priority, setValue]);
 
   const getAvailableProjects = () => {
     if (selectedOrganization) {
@@ -109,7 +108,6 @@ function TicketPage() {
   const handleSubmit = async (formValues: CreateTicketFormValues) => {
     const { project, services, priority, subject, description } = formValues;
 
-    const finalPriority = isPriorityLocked ? 'low' : priority;
     const currentSlaLevel = selectedOrg?.plan?.slaLevel ?? null;
     await execPromiseWithErrorToast(
       async () => {
@@ -122,7 +120,7 @@ function TicketPage() {
           body: JSON.stringify({
             project,
             services,
-            priority: finalPriority,
+            priority,
             subject,
             description,
             userName: user?.displayName,
@@ -253,13 +251,13 @@ function TicketPage() {
                     name="priority"
                     label="Priority"
                     placeholder="Priority"
-                    disabled={isPriorityLocked}
+                    disabled={!!selectedOrganization && !canSetPriority}
                     slotProps={{
                       root: { className: 'grid grid-flow-col gap-1 mb-4' },
                     }}
                     error={!!errors.priority}
                     helperText={
-                      isPriorityLocked
+                      !!selectedOrganization && !canSetPriority
                         ? 'Priority is locked to "Low" for your current plan'
                         : errors.priority?.message
                     }
