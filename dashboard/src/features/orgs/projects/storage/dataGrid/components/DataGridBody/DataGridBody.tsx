@@ -3,6 +3,7 @@ import type { DataGridProps } from '@/features/orgs/projects/storage/dataGrid/co
 import { DataGridCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridCell';
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
 import { cn, isNotEmptyValue } from '@/lib/utils';
+import { useDataTableDesignContext } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/database/browser/[dataSourceSlug]/[schemaSlug]/test';
 import type { DetailedHTMLProps, HTMLProps, KeyboardEvent } from 'react';
 import { useRef } from 'react';
 import type { Row } from 'react-table';
@@ -13,10 +14,7 @@ export interface DataGridBodyProps<T extends object>
       'children'
     >,
     Pick<DataGridProps<T>, 'emptyStateMessage' | 'loading'> {
-  /**
-   * Determines whether column insertion is allowed.
-   */
-  allowInsertColumn?: boolean;
+  isFileDataGrid?: boolean;
 }
 
 // TODO: Get rid of Data Browser related code from here. This component should
@@ -24,11 +22,12 @@ export interface DataGridBodyProps<T extends object>
 export default function DataGridBody<T extends object>({
   emptyStateMessage = 'No data is available',
   loading,
-  allowInsertColumn,
+  isFileDataGrid,
   ...props
 }: DataGridBodyProps<T>) {
   const { getTableBodyProps, totalColumnsWidth, rows, prepareRow } =
     useDataGridConfig<T>();
+  const context = useDataTableDesignContext();
 
   const bodyRef = useRef<HTMLDivElement | null>(null);
 
@@ -135,28 +134,12 @@ export default function DataGridBody<T extends object>({
     }
   }
 
-  const getBackgroundCellColor = (
-    row: Row<T>,
-    column: DataBrowserGridColumn<T>,
-  ) => {
-    // Grey out files not uploaded
-    if (!row.values.isUploaded) {
-      return '!bg-data-cell-bg';
-    }
-
-    if (column.isDisabled) {
-      return '!bg-grey-100';
-    }
-
-    return '!bg-paper';
-  };
-
   return (
     <div {...getTableBodyProps()} ref={bodyRef} {...props}>
       {rows.length === 0 && !loading && (
         <div className="flex flex-nowrap">
           <div
-            className="box inline-flex h-12 items-center border-b-1 border-r-1 px-2 py-1.5 text-xs !text-[#a2b3be]"
+            className="box inline-flex h-12 items-center border-b-1 border-r-1 px-2 py-1.5 text-xs dark:!text-[#a2b3be]"
             style={{
               width: totalColumnsWidth,
             }}
@@ -179,7 +162,10 @@ export default function DataGridBody<T extends object>({
           <div
             {...rowProps}
             id={row.id}
-            className="group flex scroll-mt-10"
+            className="flex scroll-mt-10"
+            style={{
+              height: context.rowHeight,
+            }}
             role="row"
             onKeyDown={(event) => handleKeyDown(event, row)}
             tabIndex={-1}
@@ -197,19 +183,22 @@ export default function DataGridBody<T extends object>({
                 <DataGridCell
                   {...cell.getCellProps({
                     style: {
-                      display: 'inline-flex',
-                      alignItems: 'center',
+                      borderRightWidth: context.hideColumnBorders
+                        ? '0px'
+                        : '1px',
                     },
                   })}
                   cell={cell}
                   className={cn(
-                    'h-12 font-display text-xs motion-safe:transition-colors',
-                    'border-b-1 border-r-1',
+                    'group !inline-flex items-center font-display text-xs motion-safe:transition-colors',
+                    'border-b-1',
                     'scroll-ml-8 scroll-mt-[57px]',
                     column.id === 'selection-column' &&
                       'sticky left-0 z-20 justify-center px-0',
-                    getBackgroundCellColor(row, column),
-                    isCellDisabled ? 'text-secondary' : 'text-primary',
+                    isCellDisabled ? 'text-secondary' : 'text-primary-text',
+                    isFileDataGrid && !row.values.isUploaded
+                      ? 'bg-disabled'
+                      : 'bg-data-cell-bg hover:bg-data-cell-bg-hover',
                   )}
                   isEditable={!column.isDisabled && column.isEditable}
                   id={cellIndex.toString()}

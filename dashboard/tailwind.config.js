@@ -24,6 +24,7 @@ module.exports = {
         divider: 'hsl(var(--divider))',
         disabled: 'hsl(var(--disabled))',
         'data-cell-bg': 'hsl(var(--data-cell-bg))',
+        'data-cell-bg-hover': 'hsl(var(--data-cell-bg-hover))',
         'primary-text': 'hsl(var(--primary-text))',
         'primary-main': 'hsl(var(--primary-main))',
         'primary-highlight': 'hsl(var(--primary-highlight))',

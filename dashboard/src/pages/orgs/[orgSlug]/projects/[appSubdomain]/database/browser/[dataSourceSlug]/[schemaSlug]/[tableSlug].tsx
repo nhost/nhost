@@ -9,6 +9,7 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { ReactElement } from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import type { SortingRule } from 'react-table';
+import DataTableDesignProvider from './test';
 
 export default function DataBrowserTableDetailsPage() {
   const { project } = useProject();
@@ -31,7 +32,9 @@ export default function DataBrowserTableDetailsPage() {
 
   return (
     <RetryableErrorBoundary>
-      <DataBrowserGrid sortBy={sortBy} onSort={handleSortByChange} />
+      <DataTableDesignProvider>
+        <DataBrowserGrid sortBy={sortBy} onSort={handleSortByChange} />
+      </DataTableDesignProvider>
     </RetryableErrorBoundary>
   );
 }
