@@ -3118,7 +3118,9 @@ export type ConfigSystemConfigPostgres = {
   database: Scalars['String'];
   disk?: Maybe<ConfigSystemConfigPostgresDisk>;
   enabled?: Maybe<Scalars['Boolean']>;
+  encryptColumnKey?: Maybe<Scalars['String']>;
   majorVersion?: Maybe<Scalars['String']>;
+  oldEncryptColumnKey?: Maybe<Scalars['String']>;
 };
 
 export type ConfigSystemConfigPostgresComparisonExp = {
@@ -3129,7 +3131,9 @@ export type ConfigSystemConfigPostgresComparisonExp = {
   database?: InputMaybe<ConfigStringComparisonExp>;
   disk?: InputMaybe<ConfigSystemConfigPostgresDiskComparisonExp>;
   enabled?: InputMaybe<ConfigBooleanComparisonExp>;
+  encryptColumnKey?: InputMaybe<ConfigStringComparisonExp>;
   majorVersion?: InputMaybe<ConfigStringComparisonExp>;
+  oldEncryptColumnKey?: InputMaybe<ConfigStringComparisonExp>;
 };
 
 export type ConfigSystemConfigPostgresConnectionString = {
@@ -3193,7 +3197,9 @@ export type ConfigSystemConfigPostgresInsertInput = {
   database: Scalars['String'];
   disk?: InputMaybe<ConfigSystemConfigPostgresDiskInsertInput>;
   enabled?: InputMaybe<Scalars['Boolean']>;
+  encryptColumnKey?: InputMaybe<Scalars['String']>;
   majorVersion?: InputMaybe<Scalars['String']>;
+  oldEncryptColumnKey?: InputMaybe<Scalars['String']>;
 };
 
 export type ConfigSystemConfigPostgresUpdateInput = {
@@ -3201,7 +3207,9 @@ export type ConfigSystemConfigPostgresUpdateInput = {
   database?: InputMaybe<Scalars['String']>;
   disk?: InputMaybe<ConfigSystemConfigPostgresDiskUpdateInput>;
   enabled?: InputMaybe<Scalars['Boolean']>;
+  encryptColumnKey?: InputMaybe<Scalars['String']>;
   majorVersion?: InputMaybe<Scalars['String']>;
+  oldEncryptColumnKey?: InputMaybe<Scalars['String']>;
 };
 
 export type ConfigSystemConfigUpdateInput = {
@@ -4426,6 +4434,7 @@ export type Apps = {
   billingDedicatedCompute?: Maybe<Billing_Dedicated_Compute>;
   /** An object relationship */
   billingSubscriptions?: Maybe<Billing_Subscriptions>;
+  /** main entrypoint to the configuration */
   config?: Maybe<ConfigConfig>;
   createdAt: Scalars['timestamptz'];
   /** An object relationship */
@@ -11094,6 +11103,7 @@ export type Deployments = {
   commitSHA: Scalars['String'];
   commitUserAvatarUrl?: Maybe<Scalars['String']>;
   commitUserName?: Maybe<Scalars['String']>;
+  createdAt: Scalars['timestamptz'];
   deploymentEndedAt?: Maybe<Scalars['timestamptz']>;
   /** An array relationship */
   deploymentLogs: Array<DeploymentLogs>;
@@ -11191,6 +11201,7 @@ export type Deployments_Bool_Exp = {
   commitSHA?: InputMaybe<String_Comparison_Exp>;
   commitUserAvatarUrl?: InputMaybe<String_Comparison_Exp>;
   commitUserName?: InputMaybe<String_Comparison_Exp>;
+  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   deploymentEndedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   deploymentLogs?: InputMaybe<DeploymentLogs_Bool_Exp>;
   deploymentLogs_aggregate?: InputMaybe<DeploymentLogs_Aggregate_Bool_Exp>;
@@ -11222,6 +11233,7 @@ export type Deployments_Insert_Input = {
   commitSHA?: InputMaybe<Scalars['String']>;
   commitUserAvatarUrl?: InputMaybe<Scalars['String']>;
   commitUserName?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
   deploymentEndedAt?: InputMaybe<Scalars['timestamptz']>;
   deploymentLogs?: InputMaybe<DeploymentLogs_Arr_Rel_Insert_Input>;
   deploymentStartedAt?: InputMaybe<Scalars['timestamptz']>;
@@ -11246,6 +11258,7 @@ export type Deployments_Max_Fields = {
   commitSHA?: Maybe<Scalars['String']>;
   commitUserAvatarUrl?: Maybe<Scalars['String']>;
   commitUserName?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
   deploymentEndedAt?: Maybe<Scalars['timestamptz']>;
   deploymentStartedAt?: Maybe<Scalars['timestamptz']>;
   deploymentStatus?: Maybe<Scalars['String']>;
@@ -11268,6 +11281,7 @@ export type Deployments_Max_Order_By = {
   commitSHA?: InputMaybe<Order_By>;
   commitUserAvatarUrl?: InputMaybe<Order_By>;
   commitUserName?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
   deploymentEndedAt?: InputMaybe<Order_By>;
   deploymentStartedAt?: InputMaybe<Order_By>;
   deploymentStatus?: InputMaybe<Order_By>;
@@ -11291,6 +11305,7 @@ export type Deployments_Min_Fields = {
   commitSHA?: Maybe<Scalars['String']>;
   commitUserAvatarUrl?: Maybe<Scalars['String']>;
   commitUserName?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
   deploymentEndedAt?: Maybe<Scalars['timestamptz']>;
   deploymentStartedAt?: Maybe<Scalars['timestamptz']>;
   deploymentStatus?: Maybe<Scalars['String']>;
@@ -11313,6 +11328,7 @@ export type Deployments_Min_Order_By = {
   commitSHA?: InputMaybe<Order_By>;
   commitUserAvatarUrl?: InputMaybe<Order_By>;
   commitUserName?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
   deploymentEndedAt?: InputMaybe<Order_By>;
   deploymentStartedAt?: InputMaybe<Order_By>;
   deploymentStatus?: InputMaybe<Order_By>;
@@ -11359,6 +11375,7 @@ export type Deployments_Order_By = {
   commitSHA?: InputMaybe<Order_By>;
   commitUserAvatarUrl?: InputMaybe<Order_By>;
   commitUserName?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
   deploymentEndedAt?: InputMaybe<Order_By>;
   deploymentLogs_aggregate?: InputMaybe<DeploymentLogs_Aggregate_Order_By>;
   deploymentStartedAt?: InputMaybe<Order_By>;
@@ -11392,6 +11409,8 @@ export enum Deployments_Select_Column {
   CommitUserAvatarUrl = 'commitUserAvatarUrl',
   /** column name */
   CommitUserName = 'commitUserName',
+  /** column name */
+  CreatedAt = 'createdAt',
   /** column name */
   DeploymentEndedAt = 'deploymentEndedAt',
   /** column name */
@@ -11427,6 +11446,7 @@ export type Deployments_Set_Input = {
   commitSHA?: InputMaybe<Scalars['String']>;
   commitUserAvatarUrl?: InputMaybe<Scalars['String']>;
   commitUserName?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
   deploymentEndedAt?: InputMaybe<Scalars['timestamptz']>;
   deploymentStartedAt?: InputMaybe<Scalars['timestamptz']>;
   deploymentStatus?: InputMaybe<Scalars['String']>;
@@ -11457,6 +11477,7 @@ export type Deployments_Stream_Cursor_Value_Input = {
   commitSHA?: InputMaybe<Scalars['String']>;
   commitUserAvatarUrl?: InputMaybe<Scalars['String']>;
   commitUserName?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
   deploymentEndedAt?: InputMaybe<Scalars['timestamptz']>;
   deploymentStartedAt?: InputMaybe<Scalars['timestamptz']>;
   deploymentStatus?: InputMaybe<Scalars['String']>;
@@ -11484,6 +11505,8 @@ export enum Deployments_Update_Column {
   CommitUserAvatarUrl = 'commitUserAvatarUrl',
   /** column name */
   CommitUserName = 'commitUserName',
+  /** column name */
+  CreatedAt = 'createdAt',
   /** column name */
   DeploymentEndedAt = 'deploymentEndedAt',
   /** column name */
@@ -13067,6 +13090,7 @@ export type Mutation_Root = {
   billingUpgradeFreeOrganization: Scalars['String'];
   billingUploadReports: Scalars['Boolean'];
   changeDatabaseVersion: Scalars['Boolean'];
+  connectGithubRepo: Scalars['Boolean'];
   /** delete single row from the table: "announcements_read" */
   deleteAnnouncementRead?: Maybe<Announcements_Read>;
   /** delete data from the table: "announcements_read" */
@@ -13965,6 +13989,15 @@ export type Mutation_RootChangeDatabaseVersionArgs = {
   appID: Scalars['uuid'];
   force?: InputMaybe<Scalars['Boolean']>;
   version: Scalars['String'];
+};
+
+
+/** mutation root */
+export type Mutation_RootConnectGithubRepoArgs = {
+  appID: Scalars['uuid'];
+  baseFolder: Scalars['String'];
+  githubNodeID: Scalars['String'];
+  productionBranch: Scalars['String'];
 };
 
 
@@ -18847,6 +18880,7 @@ export type Plans = {
   /** An aggregate relationship */
   organizations_aggregate: Organizations_Aggregate;
   price: Scalars['Int'];
+  slaLevel: Scalars['String'];
   sort: Scalars['Int'];
   stripePriceIDCustomDomains: Scalars['String'];
   stripePriceIDDedicatedCompute: Scalars['String'];
@@ -18972,6 +19006,7 @@ export type Plans_Bool_Exp = {
   organizations?: InputMaybe<Organizations_Bool_Exp>;
   organizations_aggregate?: InputMaybe<Organizations_Aggregate_Bool_Exp>;
   price?: InputMaybe<Int_Comparison_Exp>;
+  slaLevel?: InputMaybe<String_Comparison_Exp>;
   sort?: InputMaybe<Int_Comparison_Exp>;
   stripePriceIDCustomDomains?: InputMaybe<String_Comparison_Exp>;
   stripePriceIDDedicatedCompute?: InputMaybe<String_Comparison_Exp>;
@@ -19030,6 +19065,7 @@ export type Plans_Insert_Input = {
   name?: InputMaybe<Scalars['String']>;
   organizations?: InputMaybe<Organizations_Arr_Rel_Insert_Input>;
   price?: InputMaybe<Scalars['Int']>;
+  slaLevel?: InputMaybe<Scalars['String']>;
   sort?: InputMaybe<Scalars['Int']>;
   stripePriceIDCustomDomains?: InputMaybe<Scalars['String']>;
   stripePriceIDDedicatedCompute?: InputMaybe<Scalars['String']>;
@@ -19056,6 +19092,7 @@ export type Plans_Max_Fields = {
   id?: Maybe<Scalars['uuid']>;
   name?: Maybe<Scalars['String']>;
   price?: Maybe<Scalars['Int']>;
+  slaLevel?: Maybe<Scalars['String']>;
   sort?: Maybe<Scalars['Int']>;
   stripePriceIDCustomDomains?: Maybe<Scalars['String']>;
   stripePriceIDDedicatedCompute?: Maybe<Scalars['String']>;
@@ -19082,6 +19119,7 @@ export type Plans_Min_Fields = {
   id?: Maybe<Scalars['uuid']>;
   name?: Maybe<Scalars['String']>;
   price?: Maybe<Scalars['Int']>;
+  slaLevel?: Maybe<Scalars['String']>;
   sort?: Maybe<Scalars['Int']>;
   stripePriceIDCustomDomains?: Maybe<Scalars['String']>;
   stripePriceIDDedicatedCompute?: Maybe<Scalars['String']>;
@@ -19141,6 +19179,7 @@ export type Plans_Order_By = {
   name?: InputMaybe<Order_By>;
   organizations_aggregate?: InputMaybe<Organizations_Aggregate_Order_By>;
   price?: InputMaybe<Order_By>;
+  slaLevel?: InputMaybe<Order_By>;
   sort?: InputMaybe<Order_By>;
   stripePriceIDCustomDomains?: InputMaybe<Order_By>;
   stripePriceIDDedicatedCompute?: InputMaybe<Order_By>;
@@ -19201,6 +19240,8 @@ export enum Plans_Select_Column {
   /** column name */
   Price = 'price',
   /** column name */
+  SlaLevel = 'slaLevel',
+  /** column name */
   Sort = 'sort',
   /** column name */
   StripePriceIdCustomDomains = 'stripePriceIDCustomDomains',
@@ -19247,6 +19288,7 @@ export type Plans_Set_Input = {
   isPublic?: InputMaybe<Scalars['Boolean']>;
   name?: InputMaybe<Scalars['String']>;
   price?: InputMaybe<Scalars['Int']>;
+  slaLevel?: InputMaybe<Scalars['String']>;
   sort?: InputMaybe<Scalars['Int']>;
   stripePriceIDCustomDomains?: InputMaybe<Scalars['String']>;
   stripePriceIDDedicatedCompute?: InputMaybe<Scalars['String']>;
@@ -19334,6 +19376,7 @@ export type Plans_Stream_Cursor_Value_Input = {
   isPublic?: InputMaybe<Scalars['Boolean']>;
   name?: InputMaybe<Scalars['String']>;
   price?: InputMaybe<Scalars['Int']>;
+  slaLevel?: InputMaybe<Scalars['String']>;
   sort?: InputMaybe<Scalars['Int']>;
   stripePriceIDCustomDomains?: InputMaybe<Scalars['String']>;
   stripePriceIDDedicatedCompute?: InputMaybe<Scalars['String']>;
@@ -19402,6 +19445,8 @@ export enum Plans_Update_Column {
   Name = 'name',
   /** column name */
   Price = 'price',
+  /** column name */
+  SlaLevel = 'slaLevel',
   /** column name */
   Sort = 'sort',
   /** column name */
@@ -22690,8 +22735,6 @@ export enum Software_Type_Constraint {
 export enum Software_Type_Enum {
   /** Hasura Auth */
   Auth = 'Auth',
-  /** Nhost AI service */
-  Graphite = 'Graphite',
   /** Hasura GraphQL Engine */
   Hasura = 'Hasura',
   /** PostgreSQL Database */
@@ -28027,7 +28070,7 @@ export type GetOrganizationsQueryVariables = Exact<{
 }>;
 
 
-export type GetOrganizationsQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, plan: { __typename?: 'plans', id: any, name: string, price: number, deprecated: boolean, individual: boolean, isFree: boolean, featureMaxDbSize: number }, apps: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, legacyPlan?: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number } | null, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }>, members: Array<{ __typename?: 'organization_members', id: any, role: Organization_Members_Role_Enum, user: { __typename?: 'users', id: any, email?: any | null, displayName: string, avatarUrl: string } }> }> };
+export type GetOrganizationsQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, plan: { __typename?: 'plans', id: any, name: string, price: number, deprecated: boolean, individual: boolean, isFree: boolean, featureMaxDbSize: number, slaLevel: string }, apps: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, legacyPlan?: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number } | null, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }>, members: Array<{ __typename?: 'organization_members', id: any, role: Organization_Members_Role_Enum, user: { __typename?: 'users', id: any, email?: any | null, displayName: string, avatarUrl: string } }> }> };
 
 export type GetOrganizationPlansQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -32376,6 +32419,7 @@ export const GetOrganizationsDocument = gql`
       individual
       isFree
       featureMaxDbSize
+      slaLevel
     }
     apps(order_by: {name: asc}) {
       ...Project

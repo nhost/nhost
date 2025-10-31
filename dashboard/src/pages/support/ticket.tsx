@@ -18,7 +18,7 @@ import {
 import { yupResolver } from '@hookform/resolvers/yup';
 import { styled } from '@mui/material';
 import { Mail } from 'lucide-react';
-import { type ReactElement } from 'react';
+import { useEffect, type ReactElement } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
@@ -65,10 +65,12 @@ function TicketPage() {
   const {
     register,
     watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = form;
 
   const selectedOrganization = watch('organization');
+  const priority = watch('priority');
   const user = useUserData();
   const token = useAccessToken();
 
@@ -79,6 +81,23 @@ function TicketPage() {
   });
 
   const organizations: Organization[] = organizationsData?.organizations || [];
+
+  // Get selected organization details
+  const selectedOrg = selectedOrganization
+    ? organizations.find((org) => org.id === selectedOrganization)
+    : null;
+
+  // Check if SLA level allows priority selection
+  const slaLevel = selectedOrg?.plan?.slaLevel;
+  const canSetPriority = slaLevel && slaLevel !== 'none';
+  const isPriorityLocked = !!selectedOrganization && !canSetPriority;
+
+  // Lock priority to "low" when organization changes and SLA level is "none"
+  useEffect(() => {
+    if (isPriorityLocked && priority !== 'low') {
+      setValue('priority', 'low', { shouldValidate: true });
+    }
+  }, [isPriorityLocked, priority, setValue]);
 
   const getAvailableProjects = () => {
     if (selectedOrganization) {
@@ -93,6 +112,10 @@ function TicketPage() {
   const handleSubmit = async (formValues: CreateTicketFormValues) => {
     const { project, services, priority, subject, description } = formValues;
 
+    // Ensure priority is "low" if not allowed
+    const finalPriority = isPriorityLocked ? 'low' : priority;
+    // Get SLA level from the selected organization
+    const currentSlaLevel = selectedOrg?.plan?.slaLevel ?? null;
     await execPromiseWithErrorToast(
       async () => {
         const response = await fetch('/api/support/create-ticket', {
@@ -104,11 +127,12 @@ function TicketPage() {
           body: JSON.stringify({
             project,
             services,
-            priority,
+            priority: finalPriority,
             subject,
             description,
             userName: user?.displayName,
             userEmail: user?.email,
+            slaLevel: currentSlaLevel,
           }),
         });
 
@@ -234,11 +258,16 @@ function TicketPage() {
                     name="priority"
                     label="Priority"
                     placeholder="Priority"
+                    disabled={isPriorityLocked}
                     slotProps={{
                       root: { className: 'grid grid-flow-col gap-1 mb-4' },
                     }}
                     error={!!errors.priority}
-                    helperText={errors.priority?.message}
+                    helperText={
+                      isPriorityLocked
+                        ? 'Priority is locked to "Low" for your current plan'
+                        : errors.priority?.message
+                    }
                     renderValue={(option) => (
                       <span className="inline-grid grid-flow-col items-center gap-2">
                         {option?.label}
