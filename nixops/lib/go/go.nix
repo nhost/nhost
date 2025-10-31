@@ -56,12 +56,17 @@ in
     { buildInputs ? [ ]
     , shellHook ? ""
     }: pkgs.mkShell {
-      inherit shellHook;
-
       buildInputs = with pkgs; [
         gnumake
         nixpkgs-fmt
       ] ++ goCheckDeps ++ buildInputs;
+
+      shellHook = shellHook + pkgs.lib.optionalString pkgs.stdenv.isDarwin ''
+        export SDKROOT=${pkgs.apple-sdk_26}
+        export SDKROOT_FOR_TARGET=${pkgs.apple-sdk_26}
+        export DEVELOPER_DIR=${pkgs.apple-sdk_26}
+        export DEVELOPER_DIR_FOR_TARGET=${pkgs.apple-sdk_26}
+      '';
     };
 
   check =
