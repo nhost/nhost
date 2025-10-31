@@ -9,6 +9,7 @@ export type CreateTicketRequest = {
   description: string;
   userName: string;
   userEmail: string;
+  slaLevel: string | null;
 };
 
 export type CreateTicketResponse = {
@@ -41,6 +42,7 @@ export default async function handler(
       description,
       userName,
       userEmail,
+      slaLevel,
     } = req.body as CreateTicketRequest;
 
     // Validate required environment variables
@@ -132,12 +134,16 @@ export default async function handler(
             custom_fields: [
               // these custom field IDs come from zendesk
               {
-                id: 19502784542098,
+                id: 19502784542098, // field Project Subdomain
                 value: project,
               },
               {
-                id: 19922709880978,
+                id: 19922709880978, // field Affected Services
                 value: services.map((service) => service.value?.toLowerCase()),
+              },
+              {
+                id: 30691138027538,  // field SLA 
+                value: slaLevel,
               },
             ],
           },

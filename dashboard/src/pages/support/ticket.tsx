@@ -18,7 +18,7 @@ import {
 import { yupResolver } from '@hookform/resolvers/yup';
 import { styled } from '@mui/material';
 import { Mail } from 'lucide-react';
-import { type ReactElement } from 'react';
+import { useEffect, type ReactElement } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
@@ -65,10 +65,12 @@ function TicketPage() {
   const {
     register,
     watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = form;
 
   const selectedOrganization = watch('organization');
+  const priority = watch('priority');
   const user = useUserData();
   const token = useAccessToken();
 
@@ -79,6 +81,19 @@ function TicketPage() {
   });
 
   const organizations: Organization[] = organizationsData?.organizations || [];
+
+  const selectedOrg = selectedOrganization
+    ? organizations.find((org) => org.id === selectedOrganization)
+    : null;
+
+  const slaLevel = selectedOrg?.plan?.slaLevel;
+  const canSetPriority = slaLevel && slaLevel !== 'none';
+
+  useEffect(() => {
+    if (!!selectedOrganization && !canSetPriority && priority !== 'low') {
+      setValue('priority', 'low', { shouldValidate: true });
+    }
+  }, [selectedOrganization, canSetPriority, priority, setValue]);
 
   const getAvailableProjects = () => {
     if (selectedOrganization) {
@@ -93,6 +108,7 @@ function TicketPage() {
   const handleSubmit = async (formValues: CreateTicketFormValues) => {
     const { project, services, priority, subject, description } = formValues;
 
+    const currentSlaLevel = selectedOrg?.plan?.slaLevel ?? null;
     await execPromiseWithErrorToast(
       async () => {
         const response = await fetch('/api/support/create-ticket', {
@@ -109,6 +125,7 @@ function TicketPage() {
             description,
             userName: user?.displayName,
             userEmail: user?.email,
+            slaLevel: currentSlaLevel,
           }),
         });
 
@@ -234,11 +251,16 @@ function TicketPage() {
                     name="priority"
                     label="Priority"
                     placeholder="Priority"
+                    disabled={!!selectedOrganization && !canSetPriority}
                     slotProps={{
                       root: { className: 'grid grid-flow-col gap-1 mb-4' },
                     }}
                     error={!!errors.priority}
-                    helperText={errors.priority?.message}
+                    helperText={
+                      !!selectedOrganization && !canSetPriority
+                        ? 'Priority is locked to "Low" for your current plan'
+                        : errors.priority?.message
+                    }
                     renderValue={(option) => (
                       <span className="inline-grid grid-flow-col items-center gap-2">
                         {option?.label}
