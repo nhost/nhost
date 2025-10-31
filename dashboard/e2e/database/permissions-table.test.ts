@@ -41,7 +41,7 @@ test('should create a table with role permissions to select row', async ({
 
   // Press three horizontal dots more options button next to the table name
   await page
-    .locator(`li:has-text("${tableName}") #table-management-menu button`)
+    .locator(`li:has-text("${tableName}") #table-management-menu-${tableName}`)
     .click();
 
   await page.getByRole('menuitem', { name: /edit permissions/i }).click();
@@ -89,7 +89,7 @@ test('should create a table with role permissions and a custom check to select r
 
   // Press three horizontal dots more options button next to the table name
   await page
-    .locator(`li:has-text("${tableName}") #table-management-menu button`)
+    .locator(`li:has-text("${tableName}") #table-management-menu-${tableName}`)
     .click();
 
   await page.getByRole('menuitem', { name: /edit permissions/i }).click();
@@ -114,7 +114,7 @@ test('should create a table with role permissions and a custom check to select r
 
   await page.getByText('Select variable...', { exact: true }).click();
 
-  const variableSelector = await page.locator('input[role="combobox"]');
+  const variableSelector = page.locator('input[role="combobox"]');
 
   await variableSelector.fill('X-Hasura-User-Id');
 

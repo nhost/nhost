@@ -1,17 +1,20 @@
-import { Modal } from '@/components/ui/v1/Modal';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Box } from '@/components/ui/v2/Box';
-import { IconButton } from '@/components/ui/v2/IconButton';
 import { AudioPreviewIcon } from '@/components/ui/v2/icons/AudioPreviewIcon';
-import { FilePreviewIcon } from '@/components/ui/v2/icons/FilePreviewIcon';
 import { PDFPreviewIcon } from '@/components/ui/v2/icons/PDFPreviewIcon';
 import { VideoPreviewIcon } from '@/components/ui/v2/icons/VideoPreviewIcon';
-import { XIcon } from '@/components/ui/v2/icons/XIcon';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/v3/dialog';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { useAppClient } from '@/features/orgs/projects/hooks/useAppClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { usePreviewToggle } from '@/features/orgs/projects/storage/dataGrid/hooks/usePreviewToggle';
+import { cn } from '@/lib/utils';
 import { getHasuraAdminSecret } from '@/utils/env';
-import clsx from 'clsx';
+import { FileText } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useEffect, useReducer, useState } from 'react';
 import type { CellProps } from 'react-table';
@@ -246,124 +249,119 @@ export default function DataGridPreviewCell<TData extends object>({
     }
   }
 
+  function handleClose(openState: boolean) {
+    if (!openState) {
+      setShowModal(false);
+      dispatch({ type: 'CLEAR_PREVIEW' });
+    }
+  }
+
   if (loading) {
-    return <ActivityIndicator delay={500} className="mx-auto" />;
+    return (
+      <div className="flex w-full justify-center">
+        <Spinner className="mx-auto h-4 w-4" />
+      </div>
+    );
   }
 
   if (error) {
     return (
-      <Box
-        className="grid w-full grid-flow-col items-center justify-center gap-1 text-center"
-        sx={{ color: 'error.main' }}
-      >
-        <FilePreviewIcon error /> Error
-      </Box>
+      <div className="box grid w-full grid-flow-col items-center justify-center gap-1 text-center !text-error-main">
+        <FileText className="text-error-main" /> Error
+      </div>
     );
   }
-
   return (
-    <>
-      <Modal
-        wrapperClassName="items-center"
-        showModal={showModal}
-        close={() => setShowModal(false)}
-        afterLeave={() => dispatch({ type: 'CLEAR_PREVIEW' })}
-        className={clsx(
-          previewableImages.includes(mimeType) || isVideo || isAudio
-            ? 'mx-12 flex h-screen items-center justify-center'
-            : 'mt-4 inline-block h-near-screen w-full px-12',
-        )}
-      >
-        <Box
-          className={clsx(
-            !isJson && 'bg-checker-pattern',
-            'relative mx-auto flex overflow-hidden rounded-md',
-          )}
-          sx={{
-            backgroundColor: isJson ? 'background.default' : undefined,
-            color: 'text.primary',
-          }}
+    <Dialog open={showModal} onOpenChange={handleClose}>
+      <DialogTrigger asChild>
+        <button
+          type="button"
+          aria-label={alt}
+          onClick={handleOpenPreview}
+          className={cn('flex h-full w-full items-center justify-center')}
         >
-          {!previewLoading && (
-            <IconButton
-              aria-label="Close"
-              variant="borderless"
-              color="secondary"
-              className="absolute right-2 top-2 z-50 p-2"
-              sx={{
-                [`&:hover, &:active, &:focus`]: {
-                  backgroundColor: (theme) => {
-                    if (isAudio || isVideo || isJson) {
-                      return 'common.black';
-                    }
-
-                    return theme.palette.mode === 'dark'
-                      ? 'grey.800'
-                      : 'grey.200';
-                  },
-                },
-              }}
-              onClick={() => setShowModal(false)}
-            >
-              <XIcon
-                className="h-5 w-5"
-                sx={{
-                  color: (theme) => {
-                    if (isAudio || isVideo || isJson) {
-                      return 'common.white';
-                    }
-
-                    return theme.palette.mode === 'dark'
-                      ? 'grey.100'
-                      : 'grey.700';
-                  },
-                }}
-              />
-            </IconButton>
-          )}
-
-          {previewLoading && !previewUrl && (
-            <ActivityIndicator
-              delay={500}
-              className="mx-auto"
-              label="Loading preview..."
-            />
-          )}
-
-          {previewError && (
-            <Box
-              className="px-6 py-3.5 pr-12 text-start font-medium"
-              sx={{ color: 'error.main' }}
-            >
-              <p>Error: Preview can&apos;t be loaded.</p>
-
-              <p>{previewError.message}</p>
-            </Box>
-          )}
-
-          {previewUrl && isImage && (
-            <picture className="h-auto max-h-near-screen min-h-38 min-w-38">
-              <source srcSet={previewUrl} type={mimeType} />
+          {previewEnabled &&
+          previewableImages.includes(mimeType) &&
+          objectUrl ? (
+            <picture className="h-full w-20">
+              <source srcSet={objectUrl} type={mimeType} />
               <img
-                src={previewUrl}
+                src={objectUrl}
                 alt={alt}
                 className="h-full w-full object-scale-down"
               />
             </picture>
-          )}
+          ) : (
+            <>
+              {isVideo && <VideoPreviewIcon className="h-5 w-5" />}
 
+              {isAudio && <AudioPreviewIcon className="h-5 w-5" />}
+
+              {mimeType === 'application/pdf' && (
+                <PDFPreviewIcon className="h-5 w-5" />
+              )}
+
+              {!isVideo &&
+                !isAudio &&
+                mimeType !== 'application/pdf' &&
+                fallbackPreview}
+            </>
+          )}
+        </button>
+      </DialogTrigger>
+      <DialogContent
+        closeButtonClassName={cn({ 'text-white': isVideo || isAudio })}
+        className={cn(
+          { 'bg-checker-pattern': !isJson && !previewError },
+          { 'p-0': isVideo || isAudio },
+          isAudio ? '!w-auto' : 'h-[90vh] min-w-[96vw]',
+          'flex items-center justify-center overflow-hidden rounded-md',
+        )}
+      >
+        <>
+          <DialogTitle className="hidden">{alt}</DialogTitle>
+          <DialogDescription className="hidden">{alt}</DialogDescription>
+          {previewLoading && !previewUrl && (
+            <Spinner
+              className={cn('h-5 w-5', {
+                '!stroke-[#1e324b]': !isJson,
+              })}
+              wrapperClassName={cn('flex-row gap-1 text-xs', {
+                'text-disabled': isJson,
+                'text-gray-600': !isJson,
+              })}
+            >
+              Loading preview...
+            </Spinner>
+          )}
+          {previewError && (
+            <div className="px-6 py-3.5 pr-12 text-start font-medium !text-error-main">
+              <p>Error: Preview can&apos;t be loaded.</p>
+
+              <p>{previewError?.message}</p>
+            </div>
+          )}
+          {previewUrl && isImage && (
+            <picture className="flex h-full max-h-full items-center justify-center">
+              <source srcSet={previewUrl} type={mimeType} />
+              <img
+                src={previewUrl}
+                alt={alt}
+                className="h-full max-w-full object-contain"
+              />
+            </picture>
+          )}
           {previewUrl && isVideo && (
             <video
               autoPlay
               controls
-              className="h-auto max-h-near-screen w-full bg-black"
+              className="h-full w-full rounded-sm bg-black"
             >
               <track kind="captions" />
               <source src={previewUrl} type={mimeType} />
               Your browser does not support the video tag.
             </video>
           )}
-
           {previewUrl && isAudio && (
             <audio autoPlay controls className="h-28 bg-black">
               <track kind="captions" />
@@ -371,7 +369,6 @@ export default function DataGridPreviewCell<TData extends object>({
               Your browser does not support the audio tag.
             </audio>
           )}
-
           {!previewLoading &&
             previewUrl &&
             !previewableImages.includes(mimeType) &&
@@ -383,52 +380,8 @@ export default function DataGridPreviewCell<TData extends object>({
                 title="File preview"
               />
             )}
-        </Box>
-      </Modal>
-
-      <div className="flex h-full w-full justify-center">
-        {previewEnabled && previewableImages.includes(mimeType) && objectUrl ? (
-          <button
-            type="button"
-            aria-label={alt}
-            onClick={handleOpenPreview}
-            className="mx-auto h-full"
-          >
-            <picture className="h-full w-20">
-              <source srcSet={objectUrl} type={mimeType} />
-              <img
-                src={objectUrl}
-                alt={alt}
-                className="h-full w-full object-scale-down"
-              />
-            </picture>
-          </button>
-        ) : null}
-
-        {(!previewableImages.includes(mimeType) ||
-          !objectUrl ||
-          !previewEnabled) && (
-          <button
-            type="button"
-            onClick={handleOpenPreview}
-            aria-label={alt}
-            className="grid h-full w-full items-center justify-center self-center"
-          >
-            {isVideo && <VideoPreviewIcon className="h-5 w-5" />}
-
-            {isAudio && <AudioPreviewIcon className="h-5 w-5" />}
-
-            {mimeType === 'application/pdf' && (
-              <PDFPreviewIcon className="h-5 w-5" />
-            )}
-
-            {!isVideo &&
-              !isAudio &&
-              mimeType !== 'application/pdf' &&
-              fallbackPreview}
-          </button>
-        )}
-      </div>
-    </>
+        </>
+      </DialogContent>
+    </Dialog>
   );
 }

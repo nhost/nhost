@@ -1,4 +1,4 @@
-import { Checkbox } from '@/components/ui/v2/Checkbox';
+import { Checkbox } from '@/components/ui/v3/checkbox';
 import type { MutableRefObject } from 'react';
 import { useMemo } from 'react';
 import type { PluginHook, TableInstance, TableOptions } from 'react-table';
@@ -76,25 +76,41 @@ export default function useDataGrid<T extends object>(
         ? hooks.visibleColumns.push((columns) => [
             {
               id: 'selection-column',
-              Header: ({ rows, getToggleAllRowsSelectedProps }: any) => (
-                <Checkbox
-                  disabled={rows.length === 0}
-                  {...getToggleAllRowsSelectedProps({ style: null })}
-                  style={{
-                    ...getToggleAllRowsSelectedProps().style,
-                    cursor: rows.length === 0 ? 'default' : 'pointer',
-                  }}
-                />
-              ),
+              Header: ({ rows, getToggleAllRowsSelectedProps }: any) => {
+                const { indeterminate, style, onChange, ...props } =
+                  getToggleAllRowsSelectedProps();
+
+                function handleCheckedChange(newCheckedState: boolean) {
+                  onChange({ target: { checked: newCheckedState } });
+                }
+                return (
+                  <Checkbox
+                    disabled={rows.length === 0}
+                    {...props}
+                    style={{
+                      ...style,
+                      cursor: rows.length === 0 ? 'default' : 'pointer',
+                    }}
+                    onCheckedChange={handleCheckedChange}
+                  />
+                );
+              },
               Cell: ({ row }: any) => {
                 const originalValue = row.original as any;
 
+                const { indeterminate, onChange, ...props } =
+                  row.getToggleRowSelectedProps();
+
+                function handleCheckedChange(newCheckedState: boolean) {
+                  onChange({ target: { checked: newCheckedState } });
+                }
                 return (
                   <Checkbox
-                    {...row.getToggleRowSelectedProps()}
+                    {...props}
                     // disable selection if row is just a upload preview
                     checked={originalValue.uploading ? false : row.isSelected}
                     disabled={originalValue.uploading}
+                    onCheckedChange={handleCheckedChange}
                   />
                 );
               },

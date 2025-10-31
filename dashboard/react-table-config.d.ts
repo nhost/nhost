@@ -64,7 +64,6 @@ declare module 'react-table' {
 
   export interface Cell<
     D extends Record<string, unknown> = Record<string, unknown>,
-    V = any,
   > extends UseGroupByCellProps<D>,
       UseRowStateCellProps<D> {}
 

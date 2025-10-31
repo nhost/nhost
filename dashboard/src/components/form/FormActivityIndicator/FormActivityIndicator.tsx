@@ -1,26 +1,25 @@
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import type { BoxProps } from '@/components/ui/v2/Box';
-import { Box } from '@/components/ui/v2/Box';
-import { twMerge } from 'tailwind-merge';
+import { Spinner } from '@/components/ui/v3/spinner';
+import { cn } from '@/lib/utils';
 
-export interface FormActivityIndicatorProps extends BoxProps {}
+export interface FormActivityIndicatorProps {
+  className?: string;
+}
 
 export default function FormActivityIndicator({
   className,
   ...props
 }: FormActivityIndicatorProps) {
   return (
-    <Box
+    <div
       {...props}
-      className={twMerge(
-        'grid items-center justify-center px-6 py-4',
+      className={cn(
+        'box grid h-full items-center justify-center px-6 py-4',
         className,
       )}
     >
-      <ActivityIndicator
-        circularProgressProps={{ className: 'w-5 h-5' }}
-        label="Loading form..."
-      />
-    </Box>
+      <Spinner className="h-5 w-5" wrapperClassName="flex-row gap-1">
+        Loading form...
+      </Spinner>
+    </div>
   );
 }

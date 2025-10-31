@@ -1,4 +1,5 @@
-import { showLoadingToast, triggerToast } from '@/utils/toast';
+import { getToastStyleProps } from '@/utils/constants/settings';
+import { showLoadingToast } from '@/utils/toast';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import type { UseUpdateRecordMutationOptions } from './useUpdateRecordMutation';
@@ -24,6 +25,7 @@ export default function useUpdateRecordWithToastMutation(
     if (status === 'loading') {
       const loadingToastId = showLoadingToast('Saving data...', {
         id: 'data-browser-data-save',
+        ...getToastStyleProps(),
       });
 
       setToastId(loadingToastId);
@@ -35,9 +37,13 @@ export default function useUpdateRecordWithToastMutation(
     }
 
     if (status === 'success' && toastId) {
-      toast.remove(toastId);
-
-      triggerToast('Your changes were successfully saved.');
+      setTimeout(() => {
+        toast.remove(toastId);
+        toast.success(
+          'Your changes were successfully saved.',
+          getToastStyleProps(),
+        );
+      }, 300);
     }
   }, [status, toastId]);
 
