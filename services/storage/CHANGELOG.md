@@ -1,3 +1,9 @@
+## [storage@0.8.3] - 2025-10-31
+
+### ⚙️ Miscellaneous Tasks
+
+- *(nixops)* Bump go to 1.25.3 and nixpkgs due to CVEs (#3652)
+
 # Changelog
 
 All notable changes to this project will be documented in this file.
