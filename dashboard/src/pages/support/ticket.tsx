@@ -82,17 +82,14 @@ function TicketPage() {
 
   const organizations: Organization[] = organizationsData?.organizations || [];
 
-  // Get selected organization details
   const selectedOrg = selectedOrganization
     ? organizations.find((org) => org.id === selectedOrganization)
     : null;
 
-  // Check if SLA level allows priority selection
   const slaLevel = selectedOrg?.plan?.slaLevel;
   const canSetPriority = slaLevel && slaLevel !== 'none';
   const isPriorityLocked = !!selectedOrganization && !canSetPriority;
 
-  // Lock priority to "low" when organization changes and SLA level is "none"
   useEffect(() => {
     if (isPriorityLocked && priority !== 'low') {
       setValue('priority', 'low', { shouldValidate: true });
@@ -112,9 +109,7 @@ function TicketPage() {
   const handleSubmit = async (formValues: CreateTicketFormValues) => {
     const { project, services, priority, subject, description } = formValues;
 
-    // Ensure priority is "low" if not allowed
     const finalPriority = isPriorityLocked ? 'low' : priority;
-    // Get SLA level from the selected organization
     const currentSlaLevel = selectedOrg?.plan?.slaLevel ?? null;
     await execPromiseWithErrorToast(
       async () => {
