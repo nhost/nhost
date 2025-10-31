@@ -666,7 +666,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			expectedResponse: controller.ErrorRedirectResponse{
 				Headers: struct{ Location string }{
-					Location: `http://localhost:3000?error=invalid-state&errorDescription=Invalid+state`,
+					Location: `^http://localhost:3000\?error=invalid-state&errorDescription=Invalid\+state&provider_state=wrong-state$`, //nolint:lll
 				},
 			},
 			expectedJWT:       nil,
