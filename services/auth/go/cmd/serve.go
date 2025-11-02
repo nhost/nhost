@@ -21,7 +21,6 @@ import (
 	"github.com/nhost/nhost/services/auth/go/oidc"
 	"github.com/nhost/nhost/services/auth/go/providers"
 	"github.com/nhost/nhost/services/auth/go/sql"
-	ginmiddleware "github.com/oapi-codegen/gin-middleware"
 	"github.com/urfave/cli/v3"
 )
 
@@ -1368,22 +1367,27 @@ func getGoServer( //nolint:funlen
 	}
 
 	handler := api.NewStrictHandler(ctrl, []api.StrictMiddlewareFunc{})
-	mw := api.MiddlewareFunc(ginmiddleware.OapiRequestValidatorWithOptions(
-		doc,
-		&ginmiddleware.Options{ //nolint:exhaustruct
-			Options: openapi3filter.Options{ //nolint:exhaustruct
-				AuthenticationFunc: jwtGetter.MiddlewareFunc,
-			},
-			SilenceServersWarning: true,
+	opts := &Options{ //nolint:exhaustruct
+		Options: openapi3filter.Options{ //nolint:exhaustruct
+			AuthenticationFunc: jwtGetter.MiddlewareFunc,
 		},
+	}
+	opts.Options.WithCustomSchemaErrorFunc(func(err *openapi3.SchemaError) string {
+		return "asdasd"
+	})
+
+	mw := api.MiddlewareFunc(OapiRequestValidatorWithOptions(
+		doc, opts,
 	))
 	api.RegisterHandlersWithOptions(
 		router,
 		handler,
 		api.GinServerOptions{
-			BaseURL:      cmd.String(flagAPIPrefix),
-			Middlewares:  []api.MiddlewareFunc{mw},
-			ErrorHandler: nil,
+			BaseURL:     cmd.String(flagAPIPrefix),
+			Middlewares: []api.MiddlewareFunc{mw},
+			ErrorHandler: func(c *gin.Context, err error, statusCode int) {
+				fmt.Println(666, err)
+			},
 		},
 	)
 

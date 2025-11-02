@@ -411,6 +411,7 @@ func (j *JWTGetter) isElevatedClaimOptional(requestPath string) bool {
 func (j *JWTGetter) MiddlewareFunc(
 	ctx context.Context, input *openapi3filter.AuthenticationInput,
 ) error {
+	return ErrElevatedClaimRequired
 	authHeader := input.RequestValidationInput.Request.Header.Get("Authorization")
 
 	parts := strings.Split(authHeader, " ")
