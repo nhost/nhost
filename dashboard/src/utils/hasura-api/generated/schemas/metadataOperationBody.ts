@@ -12,6 +12,7 @@ import type { GetEventAndInvocationLogsByIdOperation } from './getEventAndInvoca
 import type { GetEventInvocationLogsOperation } from './getEventInvocationLogsOperation';
 import type { GetEventLogsOperation } from './getEventLogsOperation';
 import type { IntrospectRemoteSchemaOperation } from './introspectRemoteSchemaOperation';
+import type { RedeliverEventOperation } from './redeliverEventOperation';
 import type { ReloadRemoteSchemaOperation } from './reloadRemoteSchemaOperation';
 import type { RemoteSchemaPermissionsBulkOperation } from './remoteSchemaPermissionsBulkOperation';
 import type { RemoteSchemaRemoteRelationshipOperation } from './remoteSchemaRemoteRelationshipOperation';
@@ -30,4 +31,5 @@ export type MetadataOperationBody =
   | RemoteSchemaPermissionsBulkOperation
   | GetEventInvocationLogsOperation
   | GetEventLogsOperation
-  | GetEventAndInvocationLogsByIdOperation;
+  | GetEventAndInvocationLogsByIdOperation
+  | RedeliverEventOperation;
