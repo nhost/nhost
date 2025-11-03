@@ -1,4 +1,4 @@
-import type { CreateEventTriggerFormValues } from '@/features/orgs/projects/events/event-triggers/components/CreateEventTriggerForm/CreateEventTriggerFormTypes';
+import type { CreateEventTriggerFormValues } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/CreateEventTriggerFormTypes';
 import type { CreateEventTriggerArgs } from '@/utils/hasura-api/generated/schemas';
 import type { OperationSpec } from '@/utils/hasura-api/generated/schemas/operationSpec';
 

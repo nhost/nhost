@@ -8,12 +8,12 @@ import {
   FieldSet,
 } from '@/components/ui/v3/field';
 import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
-import type { CreateEventTriggerFormValues } from '@/features/orgs/projects/events/event-triggers/components/CreateEventTriggerForm/CreateEventTriggerFormTypes';
+import type { BaseEventTriggerFormValues } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerFormTypes';
 import { isEmptyValue } from '@/lib/utils';
 import { Controller, useFormContext } from 'react-hook-form';
 
 export default function UpdateTriggerColumnsSection() {
-  const { watch, control } = useFormContext<CreateEventTriggerFormValues>();
+  const { watch, control } = useFormContext<BaseEventTriggerFormValues>();
 
   const selectedTableSchema = watch('tableSchema');
   const selectedTableName = watch('tableName');

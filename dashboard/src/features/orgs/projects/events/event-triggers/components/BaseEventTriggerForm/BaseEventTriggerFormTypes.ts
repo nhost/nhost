@@ -11,12 +11,14 @@ export const headerTypes = [
   },
 ] as const;
 
-export const triggerOperations = [
+export const ALL_TRIGGER_OPERATIONS = [
   'insert',
   'update',
   'delete',
   'manual',
 ] as const;
+
+export type TriggerOperation = (typeof ALL_TRIGGER_OPERATIONS)[number];
 
 export const updateTriggerOnOptions = ['all', 'choose'] as const;
 
@@ -48,12 +50,12 @@ export const validationSchema = z
     tableSchema: z.string({ required_error: 'Schema name is required' }),
     webhook: z.string().min(1, { message: 'Webhook is required' }),
     triggerOperations: z
-      .array(z.enum(triggerOperations))
+      .array(z.enum(ALL_TRIGGER_OPERATIONS))
       .refine((value) => value.some((item) => item), {
         message: 'At least one trigger operation is required',
       }),
     updateTriggerOn: z.enum(updateTriggerOnOptions).optional(),
-    updateTriggerColumns: z.array(z.string()),
+    updateTriggerColumns: z.array(z.string()).optional(),
     retryConf: z.object({
       numRetries: z.coerce.number().min(0).default(0),
       intervalSec: z.coerce.number().min(0).default(10),
@@ -109,4 +111,6 @@ export const validationSchema = z
     },
   );
 
-export type CreateEventTriggerFormValues = z.infer<typeof validationSchema>;
+export type BaseEventTriggerFormValues = z.infer<typeof validationSchema>;
+
+export type BaseEventTriggerFormInitialData = BaseEventTriggerFormValues;

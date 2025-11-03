@@ -9,8 +9,8 @@ import {
 } from '@/components/ui/v3/field';
 import { Input } from '@/components/ui/v3/input';
 import { IconTooltip } from '@/features/orgs/projects/common/components/IconTooltip';
+import type { BaseEventTriggerFormValues } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerFormTypes';
 import { Controller, useFormContext } from 'react-hook-form';
-import type { CreateEventTriggerFormValues } from '../CreateEventTriggerFormTypes';
 
 interface RetryConfigurationSectionProps {
   className?: string;
@@ -19,7 +19,7 @@ interface RetryConfigurationSectionProps {
 export default function RetryConfigurationSection({
   className,
 }: RetryConfigurationSectionProps) {
-  const form = useFormContext<CreateEventTriggerFormValues>();
+  const form = useFormContext<BaseEventTriggerFormValues>();
 
   return (
     <FieldSet className={className}>
