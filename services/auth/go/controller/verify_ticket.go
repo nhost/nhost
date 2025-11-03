@@ -80,7 +80,7 @@ func (ctrl *Controller) VerifyTicket( //nolint:ireturn
 		return ctrl.sendError(ErrInternalServerError), nil
 	}
 
-	redirectTo = generateRedirectURL(redirectTo, map[string]string{
+	redirectTo = appendURLValues(redirectTo, map[string]string{
 		"refreshToken": session.RefreshToken,
 		"type":         string(ticketType),
 	})
