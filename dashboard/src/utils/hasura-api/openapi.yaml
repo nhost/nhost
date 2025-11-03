@@ -31,6 +31,7 @@ paths:
                 - $ref: '#/components/schemas/GetEventInvocationLogsOperation'
                 - $ref: '#/components/schemas/GetEventLogsOperation'
                 - $ref: '#/components/schemas/GetEventAndInvocationLogsByIdOperation'
+                - $ref: '#/components/schemas/RedeliverEventOperation'
       responses:
         '200':
           description: Operation executed successfully
@@ -1551,3 +1552,26 @@ components:
           description: List of invocation logs for the given event id
           items:
             $ref: '#/components/schemas/EventInvocationLogEntry'
+
+    RedeliverEventOperation:
+      description: is used to redeliver an existing event. For example, if an event is marked as error ( say it did not succeed after retries), you can redeliver it using this API. Note that this will reset the count of retries so far. If the event fails to deliver, it will be retried automatically according to its `retry_conf`.
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_redeliver_event]
+        args:
+          $ref: '#/components/schemas/RedeliverEventArgs'
+
+    RedeliverEventArgs:
+      type: object
+      required:
+        - event_id
+      properties:
+        event_id:
+          type: string
+          description: UUID of the event
+          example: 6301c9e1-b649-4861-9419-68b4cbf9382a
