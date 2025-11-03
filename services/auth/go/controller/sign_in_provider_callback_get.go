@@ -47,13 +47,18 @@ func (ctrl *Controller) getStateData(
 	return stateData, nil
 }
 
-func attachURLValues(u *url.URL, values map[string]string) {
+func appendURLValues(u *url.URL, values map[string]string) *url.URL {
+	n := *u
+	u = &n
+
 	q := u.Query()
 	for k, v := range values {
 		q.Set(k, v)
 	}
 
 	u.RawQuery = q.Encode()
+
+	return u
 }
 
 func (ctrl *Controller) signinProviderProviderCallbackValidate(
@@ -65,7 +70,7 @@ func (ctrl *Controller) signinProviderProviderCallbackValidate(
 
 	stateData, apiErr := ctrl.getStateData(ctx, req.State, logger)
 	if apiErr != nil {
-		attachURLValues(redirectTo, map[string]string{
+		redirectTo = appendURLValues(redirectTo, map[string]string{
 			"provider_state": req.State,
 		})
 
@@ -95,7 +100,7 @@ func (ctrl *Controller) signinProviderProviderCallbackValidate(
 			values["state"] = *stateData.State
 		}
 
-		attachURLValues(redirectTo, values)
+		redirectTo = appendURLValues(redirectTo, values)
 
 		return nil, nil, redirectTo, ErrOauthProviderError
 	}
@@ -107,7 +112,7 @@ func (ctrl *Controller) signinProviderProviderCallbackValidate(
 	}
 
 	if stateData.State != nil && *stateData.State != "" {
-		attachURLValues(optionsRedirectTo, map[string]string{
+		optionsRedirectTo = appendURLValues(optionsRedirectTo, map[string]string{
 			"state": *stateData.State,
 		})
 	}
