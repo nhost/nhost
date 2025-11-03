@@ -56,11 +56,13 @@ Button.displayName = 'Button';
 
 const ButtonWithLoading = React.forwardRef<
   HTMLButtonElement,
-  ButtonProps & { loading?: boolean }
->(({ loading, disabled, children, ...props }, ref) => {
+  ButtonProps & { loading?: boolean; loaderClassName?: string }
+>(({ loading, disabled, children, loaderClassName, ...props }, ref) => {
   return (
     <Button disabled={loading || disabled} ref={ref} {...props}>
-      {loading && <Loader2 className="mr-2 animate-spin" />}
+      {loading && (
+        <Loader2 className={cn('mr-2 animate-spin', loaderClassName)} />
+      )}
       {children}
     </Button>
   );

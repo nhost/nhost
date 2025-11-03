@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/v3/table';
 import PaginationControls from '@/features/orgs/projects/events/common/components/PaginationControls/PaginationControls';
 import { EventTriggerInvocationLogsDataTable } from '@/features/orgs/projects/events/event-triggers/components/EventTriggerInvocationLogsDataTable';
+import { DEFAULT_RETRY_TIMEOUT_SECONDS } from '@/features/orgs/projects/events/event-triggers/constants';
 import useEventTriggerPagination from '@/features/orgs/projects/events/event-triggers/hooks/useEventTriggerPagination/useEventTriggerPagination';
 import useGetEventLogsQuery from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventLogsQuery/useGetEventLogsQuery';
 import type { EventTriggerViewModel } from '@/features/orgs/projects/events/event-triggers/types';
@@ -154,6 +155,10 @@ export default function EventTriggerEventsDataTable({
                     <TableCell colSpan={columns.length} className="p-0">
                       <EventTriggerInvocationLogsDataTable
                         eventId={row.id}
+                        retryTimeoutSeconds={
+                          eventTrigger.retry_conf?.timeout_sec ??
+                          DEFAULT_RETRY_TIMEOUT_SECONDS
+                        }
                         source={eventTrigger.dataSource}
                       />
                     </TableCell>
