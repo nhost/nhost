@@ -1,4 +1,4 @@
-import type { CreateEventTriggerFormValues } from '@/features/orgs/projects/events/event-triggers/components/CreateEventTriggerForm';
+import type { CreateEventTriggerFormValues } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm';
 import type { CreateEventTriggerArgs } from '@/utils/hasura-api/generated/schemas';
 import { describe, expect, it } from 'vitest';
 import buildCreateEventTriggerDTO from './buildCreateEventTriggerDTO';

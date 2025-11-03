@@ -21,8 +21,8 @@ import {
 import { IconTooltip } from '@/features/orgs/projects/common/components/IconTooltip';
 import {
   headerTypes,
-  type CreateEventTriggerFormValues,
-} from '@/features/orgs/projects/events/event-triggers/components/CreateEventTriggerForm/CreateEventTriggerFormTypes';
+  type BaseEventTriggerFormValues,
+} from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerFormTypes';
 import { cn } from '@/lib/utils';
 import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
 
@@ -30,8 +30,8 @@ interface HeadersSectionProps {
   className?: string;
 }
 
-export function HeadersSection({ className }: HeadersSectionProps) {
-  const form = useFormContext<CreateEventTriggerFormValues>();
+export default function HeadersSection({ className }: HeadersSectionProps) {
+  const form = useFormContext<BaseEventTriggerFormValues>();
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: 'headers',
@@ -108,7 +108,7 @@ export function HeadersSection({ className }: HeadersSectionProps) {
                       <SelectTrigger
                         id={`headers.${index}.type`}
                         aria-invalid={fieldState.invalid}
-                        className="min-w-[120px] max-w-60 rounded-r-none border-r-0 text-foreground"
+                        className="relative min-w-[120px] max-w-60 rounded-r-none border-r-0 text-foreground focus:z-10"
                       >
                         <SelectValue placeholder="Select type" />
                       </SelectTrigger>
@@ -143,7 +143,7 @@ export function HeadersSection({ className }: HeadersSectionProps) {
                       id={`headers.${index}.value`}
                       aria-invalid={fieldState.invalid}
                       placeholder="Header value"
-                      className="rounded-l-none text-foreground"
+                      className="relative rounded-l-none text-foreground focus:z-10"
                       autoComplete="off"
                     />
                     {fieldState.invalid && (

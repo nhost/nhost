@@ -16,8 +16,8 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
 import {
   requestTransformMethods,
-  type CreateEventTriggerFormValues,
-} from '@/features/orgs/projects/events/event-triggers/components/CreateEventTriggerForm/CreateEventTriggerFormTypes';
+  type BaseEventTriggerFormValues,
+} from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerFormTypes';
 import { Controller, useFormContext } from 'react-hook-form';
 
 interface RequestOptionsSectionProps {
@@ -27,7 +27,7 @@ interface RequestOptionsSectionProps {
 export default function RequestOptionsSection({
   className,
 }: RequestOptionsSectionProps) {
-  const form = useFormContext<CreateEventTriggerFormValues>();
+  const form = useFormContext<BaseEventTriggerFormValues>();
   return (
     <FieldSet className={className}>
       <FieldLegend className="text-foreground">Request Options</FieldLegend>
