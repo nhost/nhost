@@ -14,9 +14,10 @@ import (
 	"github.com/nhost/nhost/services/auth/go/controller"
 )
 
+type ContextKey string
+
 const (
-	GinContextKey = "oapi-codegen/gin-context"
-	UserDataKey   = "oapi-codegen/user-data"
+	GinContextKey ContextKey = "nhost-oapi/gin-context"
 )
 
 // ErrorHandler is called when there is an error in validation.
@@ -31,34 +32,34 @@ type Options struct {
 
 func HandleError(c *gin.Context, err error) {
 	var (
-		reqErr      *openapi3filter.RequestError
-		schemaErr   *openapi3.SchemaError
-		authErr     *AuthenticatorError
-		securityErr *openapi3filter.SecurityRequirementsError
+		errReq    *openapi3filter.RequestError
+		errSchema *openapi3.SchemaError
+		errAuth   *AuthenticatorError
+		errSec    *openapi3filter.SecurityRequirementsError
 	)
 	switch {
 	case errors.Is(err, controller.ErrElevatedClaimRequired):
 		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Elevated claim required"})
-	case errors.As(err, &schemaErr):
+	case errors.As(err, &errSchema):
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"error":  "schema-validation-error",
-			"reason": schemaErr.Reason,
+			"reason": errSchema.Reason,
 		})
-	case errors.As(err, &reqErr):
+	case errors.As(err, &errReq):
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"error":  "request-validation-error",
-			"reason": reqErr.Err.Error(),
+			"reason": errReq.Err.Error(),
 		})
-	case errors.As(err, &authErr):
+	case errors.As(err, &errAuth):
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-			"error":          authErr.Code,
-			"reason":         authErr.Message,
-			"securityScheme": authErr.Scheme,
+			"error":          errAuth.Code,
+			"reason":         errAuth.Message,
+			"securityScheme": errAuth.Scheme,
 		})
-	case errors.As(err, &securityErr):
+	case errors.As(err, &errSec):
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 			"error":  "unauthorized",
-			"reason": securityErr.Error(),
+			"reason": errSec.Error(),
 		})
 	default:
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -98,29 +99,14 @@ func ValidateRequestFromContext(c *gin.Context, router routers.Router, options *
 		Route:      route,
 	}
 
-	// Pass the gin context into the request validator, so that any callbacks
-	// which it invokes make it available.
-	requestContext := context.WithValue(context.Background(), GinContextKey, c) //nolint:staticcheck
-
 	if options != nil {
 		validationInput.Options = &options.Options
 		validationInput.ParamDecoder = options.ParamDecoder
 	}
 
-	err = openapi3filter.ValidateRequest(requestContext, validationInput)
-	if err != nil {
-		{
-			var e *openapi3filter.RequestError
-			var e1 *openapi3filter.SecurityRequirementsError
-			switch {
-			case errors.As(err, &e):
-				return fmt.Errorf("error in openapi3filter.RequestError: %w", e)
-			case errors.As(err, &e1):
-				return fmt.Errorf("error in openapi3filter.SecurityRequirementsError: %w", e1)
-			default:
-				return fmt.Errorf("error validating request: %w", err)
-			}
-		}
+	requestContext := context.WithValue(c.Request.Context(), GinContextKey, c)
+	if err := openapi3filter.ValidateRequest(requestContext, validationInput); err != nil {
+		return err //nolint:wrapcheck
 	}
 
 	return nil
