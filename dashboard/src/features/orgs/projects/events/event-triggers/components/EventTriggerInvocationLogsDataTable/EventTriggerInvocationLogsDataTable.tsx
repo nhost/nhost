@@ -164,18 +164,13 @@ export default function EventTriggerInvocationLogsDataTable({
               </TableRow>
             ))}
 
-          {!isLoading &&
-            table.getRowModel().rows?.length === 0 &&
-            !isRedeliverPending && (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  No results.
-                </TableCell>
-              </TableRow>
-            )}
+          {!isLoading && table.getRowModel().rows?.length === 0 && (
+            <TableRow>
+              <TableCell colSpan={columns.length} className="h-24 text-center">
+                No results.
+              </TableCell>
+            </TableRow>
+          )}
         </TableBody>
       </Table>
 

@@ -41,7 +41,7 @@ export default function InvocationLogActionsCell({
 
   const isRedeliverDisabled = isRedelivering || meta.isRedeliverPending;
 
-  const cleanState = () => {
+  const resetState = () => {
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
@@ -104,11 +104,11 @@ export default function InvocationLogActionsCell({
         const newIds = data?.invocations?.map((invocation) => invocation.id);
         const hasNew = newIds?.some((id) => !originalIds.includes(id));
         if (hasNew) {
-          cleanState();
+          resetState();
         }
       } catch (error) {
         toast.error(error?.message, getToastStyleProps());
-        cleanState();
+        resetState();
       }
     }, 5000);
   };
