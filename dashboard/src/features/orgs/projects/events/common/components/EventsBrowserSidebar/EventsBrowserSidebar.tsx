@@ -58,7 +58,6 @@ function EventsBrowserSidebarContent() {
       ? parseEventTriggerFormInitialData(selectedEventTrigger)
       : undefined;
     setEditEventTriggerInitialData(initialData);
-    console.log(initialData);
     setEditEventTriggerFormOpen(true);
   };
 
