@@ -16,9 +16,13 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
 import {
   requestTransformMethods,
+  requestTransformQueryParamsTypeOptions,
   type BaseEventTriggerFormValues,
 } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerFormTypes';
 import { Controller, useFormContext } from 'react-hook-form';
+import KeyValueQueryParams from './KeyValueQueryParams';
+import RequestURLTransformPreview from './RequestURLTransformPreview';
+import URLTemplateQueryParams from './URLTemplateQueryParams';
 
 interface RequestOptionsSectionProps {
   className?: string;
@@ -28,6 +32,10 @@ export default function RequestOptionsSection({
   className,
 }: RequestOptionsSectionProps) {
   const form = useFormContext<BaseEventTriggerFormValues>();
+  const { watch } = form;
+
+  const queryParamsType = watch('requestTransform.queryParams.queryParamsType');
+
   return (
     <FieldSet className={className}>
       <FieldLegend className="text-foreground">Request Options</FieldLegend>
@@ -108,6 +116,58 @@ export default function RequestOptionsSection({
             </Field>
           )}
         />
+        <Controller
+          name="requestTransform.queryParams.queryParamsType"
+          control={form.control}
+          render={({ field, fieldState }) => (
+            <FieldSet
+              data-invalid={fieldState.invalid}
+              className="flex lg:flex-row"
+            >
+              <FieldLegend variant="label" className="text-foreground">
+                Query params type
+              </FieldLegend>
+              <RadioGroup
+                name={field.name}
+                value={field.value}
+                defaultValue={requestTransformQueryParamsTypeOptions[0]}
+                onValueChange={field.onChange}
+                aria-invalid={fieldState.invalid}
+                className="flex flex-row items-center gap-12"
+              >
+                {requestTransformQueryParamsTypeOptions.map(
+                  (requestTransformQueryParamsType) => (
+                    <Field
+                      key={requestTransformQueryParamsType}
+                      orientation="horizontal"
+                      data-invalid={fieldState.invalid}
+                      className="w-auto"
+                    >
+                      <RadioGroupItem
+                        value={requestTransformQueryParamsType}
+                        id={`request-transform-query-params-type-${requestTransformQueryParamsType}`}
+                        aria-invalid={fieldState.invalid}
+                      />
+                      <FieldLabel
+                        htmlFor={`request-transform-query-params-type-${requestTransformQueryParamsType}`}
+                        className="font-normal text-foreground"
+                      >
+                        {requestTransformQueryParamsType}
+                      </FieldLabel>
+                    </Field>
+                  ),
+                )}
+              </RadioGroup>
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </FieldSet>
+          )}
+        />
+        {queryParamsType === 'Key Value' ? (
+          <KeyValueQueryParams />
+        ) : (
+          <URLTemplateQueryParams />
+        )}
+        <RequestURLTransformPreview />
       </FieldGroup>
     </FieldSet>
   );
