@@ -7,7 +7,7 @@ import type {
 } from '@/utils/hasura-api/generated/schemas';
 import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
 import type { MutationOptions } from '@tanstack/react-query';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import createEventTrigger from './createEventTrigger';
 import createEventTriggerMigration from './createEventTriggerMigration';
 
@@ -44,36 +44,47 @@ export default function useCreateEventTriggerMutation({
 }: UseCreateEventTriggerMutationOptions = {}) {
   const { project } = useProject();
   const isPlatform = useIsPlatform();
+  const queryClient = useQueryClient();
 
   const mutation = useMutation<
     SuccessResponse | MetadataOperation200,
     unknown,
     CreateEventTriggerMutationVariables
-  >((variables) => {
-    const appUrl = generateAppServiceUrl(
-      project!.subdomain,
-      project!.region,
-      'hasura',
-    );
+  >(
+    (variables) => {
+      const appUrl = generateAppServiceUrl(
+        project!.subdomain,
+        project!.region,
+        'hasura',
+      );
 
-    const base = {
-      appUrl,
-      adminSecret: project?.config?.hasura.adminSecret!,
-    } as const;
+      const base = {
+        appUrl,
+        adminSecret: project?.config?.hasura.adminSecret!,
+      } as const;
 
-    if (isPlatform) {
-      return createEventTrigger({
+      if (isPlatform) {
+        return createEventTrigger({
+          args: variables.args,
+          resourceVersion: variables.resourceVersion,
+          ...base,
+        });
+      }
+
+      return createEventTriggerMigration({
         args: variables.args,
-        resourceVersion: variables.resourceVersion,
         ...base,
       });
-    }
-
-    return createEventTriggerMigration({
-      args: variables.args,
-      ...base,
-    });
-  }, mutationOptions);
+    },
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: ['export-metadata', project?.subdomain],
+        });
+      },
+      ...mutationOptions,
+    },
+  );
 
   return mutation;
 }
