@@ -27,7 +27,6 @@ export default async function createEventTrigger({
             type: 'pg_create_event_trigger',
             args: {
               ...args,
-              replace: false,
             },
           },
         ],
