@@ -108,16 +108,16 @@ function Providers({ children }: PropsWithChildren<{}>) {
         <QueryClientProvider client={queryClient}>
           <CacheProvider value={emotionCache}>
             <NhostProvider nhost={nhost}>
-              <AuthProvider>
-                <ApolloProvider client={mockClient}>
+              <ApolloProvider client={mockClient}>
+                <AuthProvider>
                   <UIProvider>
                     <Toaster position="bottom-center" />
                     <ThemeProvider theme={theme}>
                       <DialogProvider>{children}</DialogProvider>
                     </ThemeProvider>
                   </UIProvider>
-                </ApolloProvider>
-              </AuthProvider>
+                </AuthProvider>
+              </ApolloProvider>
             </NhostProvider>
           </CacheProvider>
         </QueryClientProvider>

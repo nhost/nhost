@@ -1,0 +1,13 @@
+mutation ConnectGithubRepo(
+  $appID: uuid!
+  $githubNodeID: String!
+  $productionBranch: String!
+  $baseFolder: String!
+) {
+  connectGithubRepo(
+    appID: $appID
+    githubNodeID: $githubNodeID
+    productionBranch: $productionBranch
+    baseFolder: $baseFolder
+  )
+}
