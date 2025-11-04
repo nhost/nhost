@@ -5,7 +5,7 @@ import (
 	"log/slog"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/nhost/nhost/lib/oapi/middleware"
+	oapimw "github.com/nhost/nhost/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
 )
 
@@ -61,7 +61,7 @@ func (ctrl *Controller) ChangeUserPassword( //nolint:ireturn
 	ctx context.Context,
 	request api.ChangeUserPasswordRequestObject,
 ) (api.ChangeUserPasswordResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
 
 	jwtToken, ok := ctrl.wf.jwtGetter.FromContext(ctx)
 	if ok {

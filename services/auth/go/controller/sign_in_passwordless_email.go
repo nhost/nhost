@@ -9,7 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/nhost/nhost/lib/oapi/middleware"
+	oapimw "github.com/nhost/nhost/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/notifications"
 	"github.com/nhost/nhost/services/auth/go/sql"
@@ -19,7 +19,7 @@ func (ctrl *Controller) SignInPasswordlessEmail( //nolint:ireturn
 	ctx context.Context,
 	request api.SignInPasswordlessEmailRequestObject,
 ) (api.SignInPasswordlessEmailResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx).
+	logger := oapimw.LoggerFromContext(ctx).
 		With(slog.String("email", string(request.Body.Email)))
 
 	if !ctrl.config.EmailPasswordlessEnabled {

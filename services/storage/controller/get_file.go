@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	oapimw "github.com/nhost/nhost/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/storage/api"
 	"github.com/nhost/nhost/services/storage/image"
 	"github.com/nhost/nhost/services/storage/middleware"
@@ -324,7 +325,7 @@ func (ctrl *Controller) GetFile( //nolint:ireturn
 	ctx context.Context,
 	request api.GetFileRequestObject,
 ) (api.GetFileResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
 	sessionHeaders := middleware.SessionHeadersFromContext(ctx)
 	acceptHeader := middleware.AcceptHeaderFromContext(ctx)
 

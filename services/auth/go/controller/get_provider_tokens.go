@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/nhost/nhost/lib/oapi/middleware"
+	oapimw "github.com/nhost/nhost/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/sql"
 )
@@ -16,7 +16,7 @@ func (ctrl *Controller) GetProviderTokens( //nolint:ireturn
 	ctx context.Context,
 	req api.GetProviderTokensRequestObject,
 ) (api.GetProviderTokensResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
 	logger = logger.With("provider", req.Provider)
 
 	user, apiErr := ctrl.wf.GetUserFromJWTInContext(ctx, logger)

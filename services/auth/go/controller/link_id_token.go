@@ -3,14 +3,14 @@ package controller
 import (
 	"context"
 
-	"github.com/nhost/nhost/lib/oapi/middleware"
+	oapimw "github.com/nhost/nhost/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
 )
 
 func (ctrl *Controller) LinkIdToken( //nolint:ireturn,revive
 	ctx context.Context, req api.LinkIdTokenRequestObject,
 ) (api.LinkIdTokenResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
 
 	profile, apiErr := ctrl.wf.GetOIDCProfileFromIDToken(
 		ctx,

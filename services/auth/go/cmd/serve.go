@@ -1295,7 +1295,18 @@ func getDependencies( //nolint:ireturn
 	return emailer, sms, jwtGetter, idTokenValidator, nil
 }
 
-func getGoServer( //nolint:funlen
+func getCORSOptions() oapimw.CORSOptions {
+	return oapimw.CORSOptions{
+		AllowedOrigins:   []string{"*"},
+		AllowedMethods:   []string{"POST", "GET"},
+		AllowedHeaders:   nil,
+		ExposedHeaders:   []string{},
+		AllowCredentials: true,
+		MaxAge:           "86400",
+	}
+}
+
+func getGoServer(
 	ctx context.Context,
 	cmd *cli.Command,
 	db *sql.Queries,
@@ -1309,18 +1320,11 @@ func getGoServer( //nolint:funlen
 
 	handler := api.NewStrictHandler(ctrl, []api.StrictMiddlewareFunc{})
 
-	router, mw, err := oapi.NewRouter(
+	router, mw, err := oapi.NewRouter( //nolint:contextcheck
 		docs.OpenAPISchema,
 		cmd.String(flagAPIPrefix),
 		jwtGetter.MiddlewareFunc,
-		oapimw.CORSOptions{
-			AllowedOrigins:   []string{"*"},
-			AllowedMethods:   []string{"POST", "GET"},
-			AllowedHeaders:   []string{}, // Will reflect requested headers when empty
-			ExposedHeaders:   []string{},
-			AllowCredentials: true,
-			MaxAge:           "86400",
-		},
+		getCORSOptions(),
 		logger,
 	)
 	if err != nil {

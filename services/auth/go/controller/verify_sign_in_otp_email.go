@@ -4,7 +4,7 @@ import (
 	"context"
 	"log/slog"
 
-	"github.com/nhost/nhost/lib/oapi/middleware"
+	oapimw "github.com/nhost/nhost/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
 )
 
@@ -12,7 +12,7 @@ func (ctrl *Controller) VerifySignInOTPEmail( //nolint:ireturn
 	ctx context.Context,
 	request api.VerifySignInOTPEmailRequestObject,
 ) (api.VerifySignInOTPEmailResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx).
+	logger := oapimw.LoggerFromContext(ctx).
 		With(slog.String("email", string(request.Body.Email)))
 
 	user, apiErr := ctrl.wf.GetUserByEmailAndTicket(

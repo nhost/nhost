@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/nhost/nhost/lib/oapi/middleware"
+	oapimw "github.com/nhost/nhost/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/notifications"
 )
@@ -15,7 +15,7 @@ func (ctrl *Controller) SendPasswordResetEmail( //nolint:ireturn
 	ctx context.Context,
 	request api.SendPasswordResetEmailRequestObject,
 ) (api.SendPasswordResetEmailResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx).
+	logger := oapimw.LoggerFromContext(ctx).
 		With(slog.String("email", string(request.Body.Email)))
 
 	options, err := ctrl.wf.ValidateOptionsRedirectTo(ctx, request.Body.Options, logger)

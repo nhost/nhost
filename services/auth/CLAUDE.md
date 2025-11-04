@@ -115,13 +115,13 @@ import (
     "context"
 
     "github.com/nhost/nhost/services/auth/go/api"
-    "github.com/nhost/nhost/services/auth/go/middleware"
+    oapimw "github.com/nhost/nhost/lib/oapi/middleware"
 )
 
 func (ctrl *Controller) YourEndpoint( //nolint:ireturn
     ctx context.Context, request api.YourEndpointRequestObject,
 ) (api.YourEndpointResponseObject, error) {
-    logger := middleware.LoggerFromContext(ctx)
+    logger := oapimw.LoggerFromContext(ctx)
 
     // Validate inputs
     if apiErr := ctrl.wf.ValidateInput(request.Body.Field, logger); apiErr != nil {

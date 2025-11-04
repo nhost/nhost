@@ -10,7 +10,7 @@ import (
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/google/uuid"
-	"github.com/nhost/nhost/lib/oapi/middleware"
+	oapimw "github.com/nhost/nhost/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
 )
 
@@ -70,7 +70,7 @@ func (ctrl *Controller) VerifySignInWebauthn( //nolint:ireturn
 	ctx context.Context,
 	request api.VerifySignInWebauthnRequestObject,
 ) (api.VerifySignInWebauthnResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
 
 	if !ctrl.config.WebauthnEnabled {
 		logger.ErrorContext(ctx, "webauthn is disabled")

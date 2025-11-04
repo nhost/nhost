@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/nhost/nhost/lib/oapi/middleware"
+	oapimw "github.com/nhost/nhost/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/sql"
 )
@@ -12,7 +12,7 @@ import (
 func (ctrl *Controller) RefreshToken( //nolint:ireturn
 	ctx context.Context, request api.RefreshTokenRequestObject,
 ) (api.RefreshTokenResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
 
 	user, apiErr := ctrl.wf.GetUserByRefreshTokenHash(
 		ctx,

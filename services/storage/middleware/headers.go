@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/getkin/kin-openapi/openapi3filter"
-	ginmiddleware "github.com/oapi-codegen/gin-middleware"
+	"github.com/nhost/nhost/lib/oapi"
 )
 
 const HeadersContextKey = "request.headers"
@@ -55,7 +55,7 @@ func AuthenticationFunc(adminSecret string) openapi3filter.AuthenticationFunc {
 			}
 		}
 
-		c := ginmiddleware.GetGinContext(ctx)
+		c := oapi.GetGinContext(ctx)
 		c.Set(HeadersContextKey, input.RequestValidationInput.Request.Header)
 
 		return nil

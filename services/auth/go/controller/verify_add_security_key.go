@@ -5,7 +5,7 @@ import (
 	"encoding/base64"
 
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/nhost/nhost/lib/oapi/middleware"
+	oapimw "github.com/nhost/nhost/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/sql"
 )
@@ -14,7 +14,7 @@ func (ctrl *Controller) VerifyAddSecurityKey( //nolint:ireturn
 	ctx context.Context,
 	request api.VerifyAddSecurityKeyRequestObject,
 ) (api.VerifyAddSecurityKeyResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
 
 	if !ctrl.config.WebauthnEnabled {
 		logger.ErrorContext(ctx, "webauthn is disabled")

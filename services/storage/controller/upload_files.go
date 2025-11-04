@@ -10,6 +10,7 @@ import (
 
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/google/uuid"
+	oapimw "github.com/nhost/nhost/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/storage/api"
 	"github.com/nhost/nhost/services/storage/middleware"
 )
@@ -249,7 +250,7 @@ func parseUploadRequest(form *multipart.Form) (uploadFileRequest, *APIError) {
 func (ctrl *Controller) UploadFiles( //nolint:ireturn
 	ctx context.Context, request api.UploadFilesRequestObject,
 ) (api.UploadFilesResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
 	sessionHeaders := middleware.SessionHeadersFromContext(ctx)
 
 	form, err := request.Body.ReadForm(maxFormMemory)

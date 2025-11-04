@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/nhost/nhost/lib/oapi/middleware"
+	oapimw "github.com/nhost/nhost/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/oapi-codegen/runtime/types"
 )
@@ -12,7 +12,7 @@ import (
 func (ctrl *Controller) GetUser( //nolint:ireturn
 	ctx context.Context, _ api.GetUserRequestObject,
 ) (api.GetUserResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
 
 	// Get authenticated user from JWT
 	user, apiErr := ctrl.wf.GetUserFromJWTInContext(ctx, logger)

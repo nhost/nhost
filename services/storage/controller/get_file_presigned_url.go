@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"time"
 
+	oapimw "github.com/nhost/nhost/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/storage/api"
 	"github.com/nhost/nhost/services/storage/middleware"
 )
@@ -24,7 +25,7 @@ type GetFilePresignedURLRequest struct {
 func (ctrl *Controller) GetFilePresignedURL( //nolint:ireturn
 	ctx context.Context, request api.GetFilePresignedURLRequestObject,
 ) (api.GetFilePresignedURLResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
 	logger = logger.With("file_id", request.Id)
 
 	sessionHeaders := middleware.SessionHeadersFromContext(ctx)

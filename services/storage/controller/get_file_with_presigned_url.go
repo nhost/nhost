@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"time"
 
+	oapimw "github.com/nhost/nhost/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/storage/api"
 	"github.com/nhost/nhost/services/storage/middleware"
 )
@@ -151,7 +152,7 @@ func (ctrl *Controller) GetFileWithPresignedURL( //nolint: ireturn
 	ctx context.Context,
 	request api.GetFileWithPresignedURLRequestObject,
 ) (api.GetFileWithPresignedURLResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
 	acceptHeader := middleware.AcceptHeaderFromContext(ctx)
 
 	fileMetadata, _, apiErr := ctrl.getFileMetadata(

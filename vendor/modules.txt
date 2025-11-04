@@ -409,9 +409,6 @@ github.com/getkin/kin-openapi/routers
 github.com/getkin/kin-openapi/routers/gorillamux
 github.com/getkin/kin-openapi/routers/legacy
 github.com/getkin/kin-openapi/routers/legacy/pathpattern
-# github.com/gin-contrib/cors v1.7.3
-## explicit; go 1.21.0
-github.com/gin-contrib/cors
 # github.com/gin-contrib/sse v1.1.0
 ## explicit; go 1.23
 github.com/gin-contrib/sse
@@ -733,9 +730,6 @@ github.com/nhost/be/services/mimir/nhost
 github.com/nhost/be/services/mimir/schema
 github.com/nhost/be/services/mimir/schema/appconfig
 github.com/nhost/be/tools/cuegraph/types
-# github.com/oapi-codegen/gin-middleware v1.0.2
-## explicit; go 1.20
-github.com/oapi-codegen/gin-middleware
 # github.com/oapi-codegen/runtime v1.1.1
 ## explicit; go 1.20
 github.com/oapi-codegen/runtime

@@ -9,7 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/nhost/nhost/lib/oapi/middleware"
+	oapimw "github.com/nhost/nhost/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/oidc"
 	"github.com/nhost/nhost/services/auth/go/sql"
@@ -45,7 +45,7 @@ func (ctrl *Controller) postSigninIdtokenCheckUserExists(
 func (ctrl *Controller) SignInIdToken( //nolint:ireturn,revive
 	ctx context.Context, req api.SignInIdTokenRequestObject,
 ) (api.SignInIdTokenResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
 
 	profile, apiError := ctrl.wf.GetOIDCProfileFromIDToken(
 		ctx,

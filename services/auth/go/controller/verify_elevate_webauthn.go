@@ -7,7 +7,7 @@ import (
 
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
-	"github.com/nhost/nhost/lib/oapi/middleware"
+	oapimw "github.com/nhost/nhost/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/sql"
 )
@@ -16,7 +16,7 @@ func (ctrl *Controller) VerifyElevateWebauthn( //nolint:ireturn
 	ctx context.Context,
 	request api.VerifyElevateWebauthnRequestObject,
 ) (api.VerifyElevateWebauthnResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
 
 	if !ctrl.config.WebauthnEnabled {
 		logger.ErrorContext(ctx, "webauthn is disabled")
