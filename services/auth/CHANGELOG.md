@@ -1,3 +1,23 @@
+## [auth@0.43.0] - 2025-11-04
+
+### 🚀 Features
+
+- *(auth)* Encrypt TOTP secret (#3619)
+- *(auth)* Added endpoints to retrieve and refresh oauth2 providers' tokens (#3614)
+- *(auth)* If the callback state is wrong send back to the redirectTo as provider_state (#3649)
+- *(internal/lib)* Common oapi middleware for go services (#3663)
+
+
+### 🐛 Bug Fixes
+
+- *(auth)* Dont mutate client URL (#3660)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(docs)* Fix broken link in openapi spec and minor mistakes in postmark integration info (#3621)
+- *(nixops)* Bump go to 1.25.3 and nixpkgs due to CVEs (#3652)
+
 # Changelog
 
 All notable changes to this project will be documented in this file.
