@@ -9,8 +9,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/nhost/nhost/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
-	"github.com/nhost/nhost/services/auth/go/middleware"
 	"github.com/nhost/nhost/services/auth/go/oidc"
 	"github.com/nhost/nhost/services/auth/go/sql"
 	"github.com/oapi-codegen/runtime/types"

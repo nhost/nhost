@@ -14,6 +14,7 @@ import (
 	"github.com/nhost/nhost/lib/oapi"
 	"github.com/nhost/nhost/lib/oapi/example/api"
 	"github.com/nhost/nhost/lib/oapi/example/controller"
+	"github.com/nhost/nhost/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/docs"
 )
 
@@ -55,12 +56,28 @@ func setupRouter(logger *slog.Logger) (*gin.Engine, error) {
 	ctrl := controller.NewController()
 	handler := api.NewStrictHandler(ctrl, []api.StrictMiddlewareFunc{})
 
-	router, err := oapi.NewRouter(
-		docs.OpenAPISchema, apiPrefix, handler, api.RegisterHandlersWithOptions, authFn, logger,
+	router, mw, err := oapi.NewRouter(
+		docs.OpenAPISchema,
+		apiPrefix,
+		authFn,
+		middleware.CORSOptions{ //nolint:exhaustruct
+			AllowedOrigins: []string{"*"},
+		},
+		logger,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create oapi router: %w", err)
 	}
+
+	api.RegisterHandlersWithOptions(
+		router,
+		handler,
+		api.GinServerOptions{
+			BaseURL:      apiPrefix,
+			Middlewares:  []api.MiddlewareFunc{mw},
+			ErrorHandler: nil,
+		},
+	)
 
 	return router, nil
 }

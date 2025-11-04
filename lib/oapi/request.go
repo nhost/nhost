@@ -11,7 +11,6 @@ import (
 	"github.com/getkin/kin-openapi/routers"
 	"github.com/getkin/kin-openapi/routers/gorillamux"
 	"github.com/gin-gonic/gin"
-	"github.com/nhost/nhost/services/auth/go/controller"
 )
 
 type ContextKey string
@@ -28,8 +27,6 @@ func handleError(c *gin.Context, err error) {
 		errSec    *openapi3filter.SecurityRequirementsError
 	)
 	switch {
-	case errors.Is(err, controller.ErrElevatedClaimRequired):
-		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Elevated claim required"})
 	case errors.As(err, &errSchema):
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"error":  "schema-validation-error",
@@ -114,4 +111,18 @@ func validateRequestFromContext(
 	}
 
 	return nil
+}
+
+func GetGinContext(c context.Context) *gin.Context {
+	v := c.Value(GinContextKey)
+	if v == nil {
+		return nil
+	}
+
+	ginCtx, ok := v.(*gin.Context)
+	if !ok {
+		return nil
+	}
+
+	return ginCtx
 }

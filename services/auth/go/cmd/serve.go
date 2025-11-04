@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/bradfitz/gomemcache/memcache"
-	"github.com/getkin/kin-openapi/openapi3"
-	"github.com/getkin/kin-openapi/openapi3filter"
 	"github.com/gin-gonic/gin"
+	"github.com/nhost/nhost/lib/oapi"
+	oapimw "github.com/nhost/nhost/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/docs"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/controller"
@@ -1302,94 +1302,50 @@ func getGoServer( //nolint:funlen
 	encrypter *crypto.Encrypter,
 	logger *slog.Logger,
 ) (*http.Server, error) {
-	router := gin.New()
-
-	loader := openapi3.NewLoader()
-
-	doc, err := loader.LoadFromData(docs.OpenAPISchema)
-	if err != nil {
-		return nil, fmt.Errorf("failed to load OpenAPI schema: %w", err)
-	}
-
-	doc.AddServer(&openapi3.Server{ //nolint:exhaustruct
-		URL: cmd.String(flagAPIPrefix),
-	})
-
-	handlers := []gin.HandlerFunc{
-		// ginmiddleware.OapiRequestValidator(doc),
-		gin.Recovery(),
-		cors(),
-		middleware.Logger(logger), //nolint:contextcheck
-	}
-
-	if cmd.Bool(flagRateLimitEnable) {
-		handlers = append(handlers, getRateLimiter(cmd, logger)) //nolint:contextcheck
-	}
-
-	if cmd.String(flagTurnstileSecret) != "" {
-		handlers = append(handlers, middleware.Tunrstile( //nolint:contextcheck
-			cmd.String(flagTurnstileSecret), cmd.String(flagAPIPrefix)),
-		)
-	}
-
-	router.Use(handlers...)
-
-	config, err := getConfig(cmd)
-	if err != nil {
-		return nil, fmt.Errorf("problem creating config: %w", err)
-	}
-
-	emailer, smsClient, jwtGetter, idTokenValidator, err := getDependencies(ctx, cmd, db, logger)
+	ctrl, jwtGetter, err := getController(ctx, cmd, db, encrypter, logger)
 	if err != nil {
 		return nil, err
 	}
 
-	oauthProviders, err := getOauth2Providers(ctx, cmd, logger)
-	if err != nil {
-		return nil, fmt.Errorf("problem creating oauth providers: %w", err)
-	}
+	handler := api.NewStrictHandler(ctrl, []api.StrictMiddlewareFunc{})
 
-	ctrl, err := controller.New(
-		db,
-		config,
-		jwtGetter,
-		emailer,
-		smsClient,
-		hibp.NewClient(),
-		oauthProviders,
-		idTokenValidator,
-		controller.NewTotp(cmd.String(flagMfaTotpIssuer), time.Now),
-		encrypter,
-		cmd.Root().Version,
+	router, mw, err := oapi.NewRouter(
+		docs.OpenAPISchema,
+		cmd.String(flagAPIPrefix),
+		jwtGetter.MiddlewareFunc,
+		oapimw.CORSOptions{
+			AllowedOrigins:   []string{"*"},
+			AllowedMethods:   []string{"POST", "GET"},
+			AllowedHeaders:   []string{}, // Will reflect requested headers when empty
+			ExposedHeaders:   []string{},
+			AllowCredentials: true,
+			MaxAge:           "86400",
+		},
+		logger,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create controller: %w", err)
+		return nil, fmt.Errorf("failed to create router: %w", err)
 	}
 
-	handler := api.NewStrictHandler(ctrl, []api.StrictMiddlewareFunc{})
-	opts := &Options{ //nolint:exhaustruct
-		Options: openapi3filter.Options{ //nolint:exhaustruct
-			AuthenticationFunc: jwtGetter.MiddlewareFunc,
-		},
-	}
-	opts.Options.WithCustomSchemaErrorFunc(func(err *openapi3.SchemaError) string {
-		return "asdasd"
-	})
-
-	mw := api.MiddlewareFunc(OapiRequestValidatorWithOptions(
-		doc, opts,
-	))
 	api.RegisterHandlersWithOptions(
 		router,
 		handler,
 		api.GinServerOptions{
-			BaseURL:     cmd.String(flagAPIPrefix),
-			Middlewares: []api.MiddlewareFunc{mw},
-			ErrorHandler: func(c *gin.Context, err error, statusCode int) {
-				fmt.Println(666, err)
-			},
+			BaseURL:      cmd.String(flagAPIPrefix),
+			Middlewares:  []api.MiddlewareFunc{mw},
+			ErrorHandler: nil,
 		},
 	)
+
+	if cmd.Bool(flagRateLimitEnable) {
+		router.Use(getRateLimiter(cmd, logger)) //nolint:contextcheck
+	}
+
+	if cmd.String(flagTurnstileSecret) != "" {
+		router.Use(middleware.Tunrstile( //nolint:contextcheck
+			cmd.String(flagTurnstileSecret), cmd.String(flagAPIPrefix),
+		))
+	}
 
 	if cmd.Bool(flagEnableChangeEnv) {
 		router.POST(cmd.String(flagAPIPrefix)+"/change-env", ctrl.PostChangeEnv)
@@ -1412,6 +1368,48 @@ func getGoServer( //nolint:funlen
 	}
 
 	return server, nil
+}
+
+func getController(
+	ctx context.Context,
+	cmd *cli.Command,
+	db *sql.Queries,
+	encrypter *crypto.Encrypter,
+	logger *slog.Logger,
+) (*controller.Controller, *controller.JWTGetter, error) {
+	config, err := getConfig(cmd)
+	if err != nil {
+		return nil, nil, fmt.Errorf("problem creating config: %w", err)
+	}
+
+	emailer, smsClient, jwtGetter, idTokenValidator, err := getDependencies(ctx, cmd, db, logger)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	oauthProviders, err := getOauth2Providers(ctx, cmd, logger)
+	if err != nil {
+		return nil, nil, fmt.Errorf("problem creating oauth providers: %w", err)
+	}
+
+	ctrl, err := controller.New(
+		db,
+		config,
+		jwtGetter,
+		emailer,
+		smsClient,
+		hibp.NewClient(),
+		oauthProviders,
+		idTokenValidator,
+		controller.NewTotp(cmd.String(flagMfaTotpIssuer), time.Now),
+		encrypter,
+		cmd.Root().Version,
+	)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to create controller: %w", err)
+	}
+
+	return ctrl, jwtGetter, nil
 }
 
 func serve(ctx context.Context, cmd *cli.Command) error {

@@ -9,7 +9,7 @@ import (
 	"github.com/getkin/kin-openapi/openapi3filter"
 	"github.com/gin-gonic/gin"
 	"github.com/nhost/nhost/lib/oapi/example/api"
-	"github.com/nhost/nhost/services/auth/go/middleware"
+	"github.com/nhost/nhost/lib/oapi/middleware"
 )
 
 func surfaceErrorsMiddleWare(c *gin.Context) {
@@ -35,21 +35,21 @@ func surfaceErrorsMiddleWare(c *gin.Context) {
 	}
 }
 
-func NewRouter[T any](
+// NewRouter creates a Gin router with OpenAPI request validation middleware.
+func NewRouter(
 	schema []byte,
 	apiPrefix string,
-	handler T,
-	registerHandlerFn func(gin.IRouter, T, api.GinServerOptions),
 	authenticationFunc openapi3filter.AuthenticationFunc,
+	corsOptions middleware.CORSOptions,
 	logger *slog.Logger,
-) (*gin.Engine, error) {
+) (*gin.Engine, func(c *gin.Context), error) {
 	router := gin.New()
 
 	loader := openapi3.NewLoader()
 
 	doc, err := loader.LoadFromData(schema)
 	if err != nil {
-		return nil, fmt.Errorf("failed to load OpenAPI schema: %w", err)
+		return nil, nil, fmt.Errorf("failed to load OpenAPI schema: %w", err)
 	}
 
 	doc.AddServer(&openapi3.Server{ //nolint:exhaustruct
@@ -58,21 +58,12 @@ func NewRouter[T any](
 
 	router.Use(
 		gin.Recovery(),
-		middleware.Logger(logger),
 		surfaceErrorsMiddleWare,
+		middleware.Logger(logger),
+		middleware.CORS(corsOptions),
 	)
 
 	mw := api.MiddlewareFunc(requestValidatorWithOptions(doc, authenticationFunc))
 
-	registerHandlerFn(
-		router,
-		handler,
-		api.GinServerOptions{
-			BaseURL:      apiPrefix,
-			Middlewares:  []api.MiddlewareFunc{mw},
-			ErrorHandler: nil,
-		},
-	)
-
-	return router, nil
+	return router, mw, nil
 }

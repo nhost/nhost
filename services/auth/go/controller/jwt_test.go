@@ -3,7 +3,6 @@ package controller_test
 import (
 	"context"
 	"crypto"
-	"errors"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -16,9 +15,9 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
+	"github.com/nhost/nhost/lib/oapi"
 	"github.com/nhost/nhost/services/auth/go/controller"
 	"github.com/nhost/nhost/services/auth/go/controller/mock"
-	ginmiddleware "github.com/oapi-codegen/gin-middleware"
 	"go.uber.org/mock/gomock"
 )
 
@@ -535,8 +534,12 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 				SecurityScheme:     nil,
 				Scopes:             []string{},
 			},
-			expected:    nil,
-			expectedErr: controller.ErrElevatedClaimRequired,
+			expected: nil,
+			expectedErr: &oapi.AuthenticatorError{
+				Scheme:  "BearerAuthElevated",
+				Code:    "unauthorized",
+				Message: "elevated claim required",
+			},
 		},
 
 		{
@@ -559,8 +562,12 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 				SecurityScheme:     nil,
 				Scopes:             []string{},
 			},
-			expected:    nil,
-			expectedErr: controller.ErrElevatedClaimRequired,
+			expected: nil,
+			expectedErr: &oapi.AuthenticatorError{
+				Scheme:  "BearerAuthElevated",
+				Code:    "unauthorized",
+				Message: "elevated claim required",
+			},
 		},
 
 		{
@@ -763,13 +770,13 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 			//nolint
 			ctx := context.WithValue(
 				context.Background(),
-				ginmiddleware.GinContextKey,
+				oapi.GinContextKey,
 				&gin.Context{},
 			)
 
 			err = jwtGetter.MiddlewareFunc(ctx, tc.request)
-			if !errors.Is(err, tc.expectedErr) {
-				t.Errorf("err = %v; want %v", err, tc.expectedErr)
+			if diff := cmp.Diff(err, tc.expectedErr); diff != "" {
+				t.Errorf("err mismatch (-want +got):\n%s", diff)
 			}
 
 			got, _ := jwtGetter.FromContext(ctx)

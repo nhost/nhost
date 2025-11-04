@@ -30,6 +30,7 @@ func LoggerFromContext(ctx context.Context) *slog.Logger { //nolint:contextcheck
 	return logger
 }
 
+// Logger is a Gin middleware that logs HTTP requests and responses using slog.
 func Logger(logger *slog.Logger) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		startTime := time.Now()

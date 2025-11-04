@@ -17,6 +17,7 @@ on:
       - '.golangci.yaml'
       - 'go.mod'
       - 'go.sum'
+      - 'lib/**'
       - 'vendor/**'
 
       # storage

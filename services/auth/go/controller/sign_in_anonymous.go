@@ -5,8 +5,8 @@ import (
 	"log/slog"
 	"slices"
 
+	"github.com/nhost/nhost/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
-	"github.com/nhost/nhost/services/auth/go/middleware"
 )
 
 func (ctrl *Controller) postSigninAnonymousValidateRequest(

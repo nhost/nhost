@@ -67,7 +67,9 @@ func TestRequests(t *testing.T) {
 			headers: map[string]string{
 				"Content-Type": "application/json",
 			},
-			body:             strings.NewReader(`{"email": "bad@email.com", "password": "p4ssw0rd"}`),
+			body: strings.NewReader(
+				`{"email": "bad@email.com", "password": "p4ssw0rd"}`,
+			),
 			expectedStatus:   http.StatusConflict,
 			expectedResponse: "{\"error\":\"disabled-user\",\"message\":\"The user account is disabled.\",\"status\":409}\n", //nolint:lll
 		},
@@ -79,7 +81,9 @@ func TestRequests(t *testing.T) {
 			headers: map[string]string{
 				"Content-Type": "application/json",
 			},
-			body:             strings.NewReader(`{"email": "crash@email.com", "password": "p4ssw0rd"}`),
+			body: strings.NewReader(
+				`{"email": "crash@email.com", "password": "p4ssw0rd"}`,
+			),
 			expectedStatus:   http.StatusInternalServerError,
 			expectedResponse: `{"errors":"internal-server-error","message":"simulated server crash"}`,
 		},
@@ -103,7 +107,9 @@ func TestRequests(t *testing.T) {
 			headers: map[string]string{
 				"Content-Type": "application/json",
 			},
-			body:             strings.NewReader(`{"wrong":"asd", "email": "asd@asd.com", "password": "p4ssw0rd"}`),
+			body: strings.NewReader(
+				`{"wrong":"asd", "email": "asd@asd.com", "password": "p4ssw0rd"}`,
+			),
 			expectedStatus:   http.StatusBadRequest,
 			expectedResponse: `{"error":"schema-validation-error","reason":"property \"wrong\" is unsupported"}`,
 		},
