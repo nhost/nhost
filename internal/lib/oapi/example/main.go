@@ -15,7 +15,6 @@ import (
 	"github.com/nhost/nhost/internal/lib/oapi/example/api"
 	"github.com/nhost/nhost/internal/lib/oapi/example/controller"
 	"github.com/nhost/nhost/internal/lib/oapi/middleware"
-	"github.com/nhost/nhost/services/auth/docs"
 )
 
 const apiPrefix = "/"
@@ -57,7 +56,7 @@ func setupRouter(logger *slog.Logger) (*gin.Engine, error) {
 	handler := api.NewStrictHandler(ctrl, []api.StrictMiddlewareFunc{})
 
 	router, mw, err := oapi.NewRouter(
-		docs.OpenAPISchema,
+		api.OpenAPISchema,
 		apiPrefix,
 		authFn,
 		middleware.CORSOptions{ //nolint:exhaustruct
