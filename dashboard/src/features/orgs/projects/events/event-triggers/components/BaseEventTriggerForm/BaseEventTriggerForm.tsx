@@ -70,6 +70,7 @@ export interface BaseEventTriggerFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: BaseEventTriggerFormValues) => void;
+  isEditing?: boolean;
   submitButtonText?: string;
   titleText?: string;
   descriptionText?: string;
@@ -78,6 +79,7 @@ export interface BaseEventTriggerFormProps {
 export default function BaseEventTriggerForm({
   initialData,
   open,
+  isEditing,
   onOpenChange,
   onSubmit,
   titleText = 'Create a New Event Trigger',
@@ -197,6 +199,7 @@ export default function BaseEventTriggerForm({
                   <Controller
                     name="triggerName"
                     control={form.control}
+                    disabled={isEditing}
                     render={({ field, fieldState }) => (
                       <Field data-invalid={fieldState.invalid}>
                         <FieldLabel
@@ -223,6 +226,7 @@ export default function BaseEventTriggerForm({
                     <Controller
                       name="dataSource"
                       control={form.control}
+                      disabled={isEditing}
                       render={({ field, fieldState }) => (
                         <Field
                           orientation="responsive"
@@ -243,6 +247,7 @@ export default function BaseEventTriggerForm({
                           <Select
                             name={field.name}
                             value={field.value}
+                            disabled={isEditing}
                             onValueChange={field.onChange}
                           >
                             <SelectTrigger
@@ -267,6 +272,7 @@ export default function BaseEventTriggerForm({
                       <Controller
                         name="tableSchema"
                         control={form.control}
+                        disabled={isEditing}
                         render={({ field, fieldState }) => (
                           <Field
                             orientation="responsive"
@@ -288,7 +294,7 @@ export default function BaseEventTriggerForm({
                               name={field.name}
                               value={field.value}
                               onValueChange={field.onChange}
-                              disabled={!selectedDataSource}
+                              disabled={!selectedDataSource || isEditing}
                             >
                               <SelectTrigger
                                 id="tableSchema"
@@ -314,6 +320,7 @@ export default function BaseEventTriggerForm({
                       <Controller
                         name="tableName"
                         control={form.control}
+                        disabled={isEditing}
                         render={({ field, fieldState }) => (
                           <Field
                             orientation="responsive"
@@ -334,7 +341,7 @@ export default function BaseEventTriggerForm({
                               name={field.name}
                               value={field.value}
                               onValueChange={field.onChange}
-                              disabled={!selectedTableSchema}
+                              disabled={!selectedTableSchema || isEditing}
                             >
                               <SelectTrigger
                                 id="tableName"
