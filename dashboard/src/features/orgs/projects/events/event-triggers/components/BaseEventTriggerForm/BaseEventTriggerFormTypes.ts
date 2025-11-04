@@ -111,6 +111,23 @@ export const validationSchema = z
     },
   );
 
+export const defaultFormValues: BaseEventTriggerFormValues = {
+  triggerName: '',
+  dataSource: '',
+  tableName: '',
+  tableSchema: '',
+  webhook: '',
+  triggerOperations: [],
+  updateTriggerOn: 'all',
+  updateTriggerColumns: [],
+  retryConf: {
+    numRetries: 0,
+    intervalSec: 10,
+    timeoutSec: 60,
+  },
+  headers: [],
+};
+
 export type BaseEventTriggerFormValues = z.infer<typeof validationSchema>;
 
 export type BaseEventTriggerFormInitialData = BaseEventTriggerFormValues;
