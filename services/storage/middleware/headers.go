@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/getkin/kin-openapi/openapi3filter"
-	"github.com/nhost/nhost/lib/oapi"
+	"github.com/nhost/nhost/internal/lib/oapi"
 )
 
 const HeadersContextKey = "request.headers"

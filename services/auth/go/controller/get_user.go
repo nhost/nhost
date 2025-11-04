@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
-	oapimw "github.com/nhost/nhost/lib/oapi/middleware"
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/oapi-codegen/runtime/types"
 )

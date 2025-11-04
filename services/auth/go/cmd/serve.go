@@ -9,8 +9,8 @@ import (
 
 	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/gin-gonic/gin"
-	"github.com/nhost/nhost/lib/oapi"
-	oapimw "github.com/nhost/nhost/lib/oapi/middleware"
+	"github.com/nhost/nhost/internal/lib/oapi"
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/docs"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/controller"

@@ -8,8 +8,8 @@ import (
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/getkin/kin-openapi/openapi3filter"
 	"github.com/gin-gonic/gin"
-	"github.com/nhost/nhost/lib/oapi/example/api"
-	"github.com/nhost/nhost/lib/oapi/middleware"
+	"github.com/nhost/nhost/internal/lib/oapi/example/api"
+	"github.com/nhost/nhost/internal/lib/oapi/middleware"
 )
 
 func surfaceErrorsMiddleWare(c *gin.Context) {

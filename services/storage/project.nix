@@ -34,7 +34,7 @@ let
       (inDirectory "${submodule}/image/testdata")
       (inDirectory "${submodule}/storage/testdata")
 
-      (inDirectory ../../lib/oapi)
+      (inDirectory ../../internal/lib/oapi)
     ];
 
     exclude = with nix-filter.lib; [

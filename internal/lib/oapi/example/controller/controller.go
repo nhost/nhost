@@ -5,7 +5,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/nhost/nhost/lib/oapi/example/api"
+	"github.com/nhost/nhost/internal/lib/oapi/example/api"
 )
 
 type Controller struct{}

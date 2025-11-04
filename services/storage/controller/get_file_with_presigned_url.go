@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"time"
 
-	oapimw "github.com/nhost/nhost/lib/oapi/middleware"
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/storage/api"
 	"github.com/nhost/nhost/services/storage/middleware"
 )

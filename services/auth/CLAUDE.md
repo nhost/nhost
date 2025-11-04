@@ -115,7 +115,7 @@ import (
     "context"
 
     "github.com/nhost/nhost/services/auth/go/api"
-    oapimw "github.com/nhost/nhost/lib/oapi/middleware"
+    oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 )
 
 func (ctrl *Controller) YourEndpoint( //nolint:ireturn

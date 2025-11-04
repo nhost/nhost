@@ -5,7 +5,7 @@ import (
 	"log/slog"
 
 	"github.com/golang-jwt/jwt/v5"
-	oapimw "github.com/nhost/nhost/lib/oapi/middleware"
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
 )
 

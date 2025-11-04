@@ -7,7 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/go-cmp/cmp"
-	"github.com/nhost/nhost/lib/oapi/middleware"
+	"github.com/nhost/nhost/internal/lib/oapi/middleware"
 )
 
 func TestCORS(t *testing.T) { //nolint:maintidx
