@@ -34,6 +34,7 @@ export async function listGitHubAppInstallations(accessToken: string): Promise<G
       Accept: 'application/vnd.github+json',
       'X-GitHub-Api-Version': '2022-11-28',
     },
+    cache: 'no-cache',
   });
 
   if (!response.ok) {
@@ -74,6 +75,7 @@ export async function listGitHubInstallationRepos(accessToken: string) {
             Accept: 'application/vnd.github+json',
             'X-GitHub-Api-Version': '2022-11-28',
           },
+          cache: 'no-cache',
         }
       );
 
