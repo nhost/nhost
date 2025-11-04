@@ -523,7 +523,7 @@ func (ctrl *Controller) sendRedirectError(
 ) ErrorRedirectResponse {
 	errResponse := ctrl.getError(err)
 
-	redirectURL = generateRedirectURL(redirectURL, map[string]string{
+	redirectURL = appendURLValues(redirectURL, map[string]string{
 		"error":            string(errResponse.Error),
 		"errorDescription": errResponse.Message,
 	})
@@ -564,18 +564,4 @@ func sqlIsDuplcateError(err error, fkey string) bool {
 
 	return strings.Contains(err.Error(), "SQLSTATE 23505") &&
 		strings.Contains(err.Error(), fkey)
-}
-
-func generateRedirectURL(
-	redirectTo *url.URL,
-	opts map[string]string,
-) *url.URL {
-	q := redirectTo.Query()
-	for k, v := range opts {
-		q.Set(k, v)
-	}
-
-	redirectTo.RawQuery = q.Encode()
-
-	return redirectTo
 }
