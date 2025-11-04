@@ -126,6 +126,14 @@ export const defaultFormValues: BaseEventTriggerFormValues = {
     timeoutSec: 60,
   },
   headers: [],
+  requestTransform: {
+    method: 'POST',
+    urlTemplate: '',
+    queryParams: {
+      queryParamsType: 'Key Value',
+      queryParams: [],
+    },
+  },
 };
 
 export type BaseEventTriggerFormValues = z.infer<typeof validationSchema>;

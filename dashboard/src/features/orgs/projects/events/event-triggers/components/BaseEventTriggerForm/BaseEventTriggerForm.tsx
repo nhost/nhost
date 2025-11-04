@@ -61,7 +61,7 @@ import {
   type BaseEventTriggerFormValues,
 } from './BaseEventTriggerFormTypes';
 import HeadersSection from './sections/HeadersSection';
-import RequestOptionsSection from './sections/RequestOptionsSection';
+import { RequestOptionsSection } from './sections/RequestOptionsSection';
 import RetryConfigurationSection from './sections/RetryConfigurationSection';
 import UpdateTriggerColumnsSection from './sections/UpdateTriggerColumnsSection';
 
@@ -577,11 +577,12 @@ export default function BaseEventTriggerForm({
         open={showUnsavedChangesDialog}
         onOpenChange={setShowUnsavedChangesDialog}
       >
-        <AlertDialogContent>
+        <AlertDialogContent className="text-foreground">
           <AlertDialogHeader>
             <AlertDialogTitle>Unsaved changes</AlertDialogTitle>
             <AlertDialogDescription>
-              You have unsaved changes. Are you sure you want to discard them?
+              You have unsaved local changes. Are you sure you want to discard
+              them?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
