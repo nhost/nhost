@@ -2,7 +2,7 @@ import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/h
 import { BaseEventTriggerForm } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm';
 import type { BaseEventTriggerFormValues } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerFormTypes';
 import { useCreateEventTriggerMutation } from '@/features/orgs/projects/events/event-triggers/hooks/useCreateEventTriggerMutation';
-import { buildCreateEventTriggerDTO } from '@/features/orgs/projects/events/event-triggers/utils/buildCreateEventTriggerDTO';
+import { buildEventTriggerDTO } from '@/features/orgs/projects/events/event-triggers/utils/buildEventTriggerDTO';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 
 export interface CreateEventTriggerFormProps {
@@ -20,7 +20,7 @@ export default function CreateEventTriggerForm({
   const { data: resourceVersion } = useGetMetadataResourceVersion();
 
   const handleSubmit = async (data: BaseEventTriggerFormValues) => {
-    const eventTriggerDTO = buildCreateEventTriggerDTO(data);
+    const eventTriggerDTO = buildEventTriggerDTO({ formValues: data });
     await execPromiseWithErrorToast(
       async () => {
         await createEventTrigger({
