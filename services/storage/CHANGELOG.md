@@ -1,3 +1,14 @@
+## [storage@0.9.0] - 2025-11-04
+
+### 🚀 Features
+
+- *(internal/lib)* Common oapi middleware for go services (#3663)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(nixops)* Bump go to 1.25.3 and nixpkgs due to CVEs (#3652)
+
 # Changelog
 
 All notable changes to this project will be documented in this file.
