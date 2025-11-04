@@ -92,8 +92,6 @@ export default function BaseEventTriggerForm({
 
   const dataSources = metadata?.sources?.map((source) => source.name!) ?? [];
 
-  console.log('initialData', initialData);
-
   const form = useForm<BaseEventTriggerFormValues>({
     resolver: zodResolver(validationSchema),
     defaultValues: initialData ?? defaultFormValues,
@@ -105,12 +103,8 @@ export default function BaseEventTriggerForm({
     if (initialData) {
       reset(initialData);
     }
-
-    if (open && !initialData) {
-      reset(defaultFormValues);
-    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, initialData]);
+  }, [initialData]);
 
   const selectedDataSource = watch('dataSource');
   const selectedTableSchema = watch('tableSchema');
@@ -140,8 +134,8 @@ export default function BaseEventTriggerForm({
     [selectedDataSource, selectedTableSchema, metadata],
   );
 
-  // const { errors } = form.formState;
-  // console.log(errors);
+  const { errors } = form.formState;
+  console.log('errors', errors);
 
   const handleOpenChange = (newOpen: boolean) => {
     // If trying to close the sheet and form has unsaved changes, show confirmation
@@ -188,7 +182,7 @@ export default function BaseEventTriggerForm({
             <SheetDescription>{descriptionText}</SheetDescription>
           </SheetHeader>
           <Separator />
-          <FormProvider {...form}>
+          <FormProvider key={open ? 'open' : 'closed'} {...form}>
             <form
               id="create-event-trigger-form"
               onSubmit={form.handleSubmit(onSubmit)}
@@ -199,7 +193,6 @@ export default function BaseEventTriggerForm({
                   <Controller
                     name="triggerName"
                     control={form.control}
-                    disabled={isEditing}
                     render={({ field, fieldState }) => (
                       <Field data-invalid={fieldState.invalid}>
                         <FieldLabel
@@ -210,6 +203,7 @@ export default function BaseEventTriggerForm({
                         </FieldLabel>
                         <Input
                           {...field}
+                          disabled={isEditing}
                           id="triggerName"
                           aria-invalid={fieldState.invalid}
                           placeholder="trigger_name"
@@ -226,7 +220,6 @@ export default function BaseEventTriggerForm({
                     <Controller
                       name="dataSource"
                       control={form.control}
-                      disabled={isEditing}
                       render={({ field, fieldState }) => (
                         <Field
                           orientation="responsive"
@@ -272,7 +265,6 @@ export default function BaseEventTriggerForm({
                       <Controller
                         name="tableSchema"
                         control={form.control}
-                        disabled={isEditing}
                         render={({ field, fieldState }) => (
                           <Field
                             orientation="responsive"
@@ -293,8 +285,8 @@ export default function BaseEventTriggerForm({
                             <Select
                               name={field.name}
                               value={field.value}
-                              onValueChange={field.onChange}
                               disabled={!selectedDataSource || isEditing}
+                              onValueChange={field.onChange}
                             >
                               <SelectTrigger
                                 id="tableSchema"
@@ -320,7 +312,6 @@ export default function BaseEventTriggerForm({
                       <Controller
                         name="tableName"
                         control={form.control}
-                        disabled={isEditing}
                         render={({ field, fieldState }) => (
                           <Field
                             orientation="responsive"
@@ -571,8 +562,10 @@ export default function BaseEventTriggerForm({
               <ButtonWithLoading
                 type="submit"
                 form="create-event-trigger-form"
-                loading={form.formState.isSubmitting || !form.formState.isDirty}
-                disabled={form.formState.isSubmitting}
+                loading={form.formState.isSubmitting}
+                disabled={
+                  form.formState.isSubmitting || !form.formState.isDirty
+                }
               >
                 {submitButtonText}
               </ButtonWithLoading>

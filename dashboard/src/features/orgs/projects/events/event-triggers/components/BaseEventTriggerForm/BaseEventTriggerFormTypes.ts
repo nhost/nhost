@@ -38,7 +38,7 @@ export const requestTransformQueryParamsTypeOptions = [
 export const validationSchema = z
   .object({
     triggerName: z
-      .string()
+      .string({ required_error: 'Trigger name is required' })
       .min(1, { message: 'Trigger name is required' })
       .max(42, { message: 'Trigger name must be at most 42 characters' })
       .regex(/^[a-zA-Z0-9_-]+$/, {
@@ -47,7 +47,7 @@ export const validationSchema = z
       }),
     dataSource: z.string({ required_error: 'Data source is required' }),
     tableName: z.string({ required_error: 'Table name is required' }),
-    tableSchema: z.string({ required_error: 'Schema name is required' }),
+    tableSchema: z.string({ required_error: 'Schema required' }),
     webhook: z.string().min(1, { message: 'Webhook is required' }),
     triggerOperations: z
       .array(z.enum(ALL_TRIGGER_OPERATIONS))

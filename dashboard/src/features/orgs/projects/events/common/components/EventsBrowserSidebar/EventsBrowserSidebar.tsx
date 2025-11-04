@@ -240,7 +240,12 @@ function EventsBrowserSidebarContent() {
         initialData={editEventTriggerInitialData}
         open={editEventTriggerFormOpen}
         onOpenChange={setEditEventTriggerFormOpen}
-        onSubmit={() => {}}
+        onSubmit={(newEventTrigger) => {
+          setEditEventTriggerFormOpen(false);
+          router.push(
+            `/orgs/${orgSlug}/projects/${appSubdomain}/events/event-trigger/${newEventTrigger.triggerName}`,
+          );
+        }}
       />
     </>
   );
