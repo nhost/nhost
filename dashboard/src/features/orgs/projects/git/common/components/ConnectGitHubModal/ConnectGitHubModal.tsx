@@ -213,7 +213,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
 
   if (errorGithubConnected instanceof Error) {
     return (
-      <div className="w-[653px] px-1">
+      <div className="px-1 md:w-[653px]">
         <div className="flex flex-col">
           <div className="mx-auto text-center">
             <div className="mx-auto h-8 w-8">
@@ -233,7 +233,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
 
   if (loading || loadingProject || loadingOrg || loadingGithubConnected) {
     return (
-      <div className="w-[653px] px-1">
+      <div className="px-1 md:w-[653px]">
         <div className="flex flex-col">
           <div className="mx-auto text-center">
             <div className="mx-auto h-8 w-8">
@@ -261,7 +261,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
 
   if (ConnectGitHubModalState === 'GITHUB_CONNECTION_REQUIRED') {
     return (
-      <div className="flex w-[653px] flex-col items-center justify-center gap-5 px-1 py-1">
+      <div className="flex flex-col items-center justify-center gap-5 px-1 py-1 md:w-[653px]">
         <p className="text-center text-foreground">
           You need to connect your GitHub account to continue.
         </p>
@@ -286,7 +286,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
 
   if (ConnectGitHubModalState === 'EXPIRED_GITHUB_SESSION') {
     return (
-      <div className="flex w-[653px] flex-col items-center justify-center gap-5 px-1 py-1">
+      <div className="flex w-full flex-col items-center justify-center gap-5 px-1 py-1 md:w-[653px]">
         <p className="text-center text-foreground">
           Please sign in with GitHub to continue.
         </p>
