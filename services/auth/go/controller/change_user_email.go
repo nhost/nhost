@@ -3,15 +3,15 @@ package controller
 import (
 	"context"
 
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
-	"github.com/nhost/nhost/services/auth/go/middleware"
 	"github.com/nhost/nhost/services/auth/go/notifications"
 )
 
 func (ctrl *Controller) ChangeUserEmail( //nolint:ireturn
 	ctx context.Context, request api.ChangeUserEmailRequestObject,
 ) (api.ChangeUserEmailResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
 
 	options, apiErr := ctrl.wf.ValidateOptionsRedirectTo(ctx, request.Body.Options, logger)
 	if apiErr != nil {

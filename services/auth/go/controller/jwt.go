@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log/slog"
 	"reflect"
@@ -17,8 +16,8 @@ import (
 	"github.com/getkin/kin-openapi/openapi3filter"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	"github.com/nhost/nhost/internal/lib/oapi"
 	"github.com/nhost/nhost/services/auth/go/api"
-	ginmiddleware "github.com/oapi-codegen/gin-middleware"
 )
 
 const JWTContextKey = "nhost/auth/jwt"
@@ -340,7 +339,7 @@ func (j *JWTGetter) Validate(accessToken string) (*jwt.Token, error) {
 func (j *JWTGetter) FromContext(ctx context.Context) (*jwt.Token, bool) {
 	token, ok := ctx.Value(JWTContextKey).(*jwt.Token)
 	if !ok { //nolint:nestif
-		c := ginmiddleware.GetGinContext(ctx)
+		c := oapi.GetGinContext(ctx)
 		if c != nil {
 			a, ok := c.Get(JWTContextKey)
 			if !ok {
@@ -415,16 +414,28 @@ func (j *JWTGetter) MiddlewareFunc(
 
 	parts := strings.Split(authHeader, " ")
 	if len(parts) != 2 || parts[0] != "Bearer" {
-		return errors.New("invalid authorization header") //nolint:err113
+		return &oapi.AuthenticatorError{
+			Scheme:  input.SecuritySchemeName,
+			Code:    "unauthorized",
+			Message: "missing or malformed authorization header",
+		}
 	}
 
 	jwtToken, err := j.Validate(parts[1])
 	if err != nil {
-		return fmt.Errorf("error validating token: %w", err)
+		return &oapi.AuthenticatorError{
+			Scheme:  input.SecuritySchemeName,
+			Code:    "unauthorized",
+			Message: fmt.Sprintf("error validating token: %s", err),
+		}
 	}
 
 	if !jwtToken.Valid {
-		return errors.New("invalid token") //nolint:err113
+		return &oapi.AuthenticatorError{
+			Scheme:  input.SecuritySchemeName,
+			Code:    "unauthorized",
+			Message: "invalid token",
+		}
 	}
 
 	if input.SecuritySchemeName == "BearerAuthElevated" {
@@ -435,15 +446,23 @@ func (j *JWTGetter) MiddlewareFunc(
 
 		found, err := j.verifyElevatedClaim(ctx, jwtToken, requestPath)
 		if err != nil {
-			return fmt.Errorf("error verifying elevated claim: %w", err)
+			return &oapi.AuthenticatorError{
+				Scheme:  input.SecuritySchemeName,
+				Code:    "unauthorized",
+				Message: fmt.Sprintf("error verifying elevated claim: %s", err),
+			}
 		}
 
 		if !found {
-			return ErrElevatedClaimRequired
+			return &oapi.AuthenticatorError{
+				Scheme:  input.SecuritySchemeName,
+				Code:    "unauthorized",
+				Message: "elevated claim required",
+			}
 		}
 	}
 
-	c := ginmiddleware.GetGinContext(ctx)
+	c := oapi.GetGinContext(ctx)
 	c.Set(JWTContextKey, jwtToken)
 
 	return nil

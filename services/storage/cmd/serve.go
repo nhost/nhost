@@ -11,10 +11,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/getkin/kin-openapi/openapi3"
-	"github.com/getkin/kin-openapi/openapi3filter"
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/nhost/nhost/internal/lib/oapi"
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/storage/api"
 	"github.com/nhost/nhost/services/storage/controller"
 	"github.com/nhost/nhost/services/storage/image"
@@ -23,7 +22,6 @@ import (
 	"github.com/nhost/nhost/services/storage/middleware/cdn/fastly"
 	"github.com/nhost/nhost/services/storage/migrations"
 	"github.com/nhost/nhost/services/storage/storage"
-	ginmiddleware "github.com/oapi-codegen/gin-middleware"
 	"github.com/urfave/cli/v3"
 )
 
@@ -53,88 +51,39 @@ const (
 	flagHasuraDBName             = "hasura-db-name"
 )
 
-func getCorsMiddleware(
-	corsAllowOrigins []string,
-	corsAllowCredentials bool,
-) gin.HandlerFunc {
-	return cors.New(cors.Config{ //nolint:exhaustruct
-		AllowOrigins: corsAllowOrigins,
-		AllowMethods: []string{"GET", "PUT", "POST", "HEAD", "DELETE"},
-		AllowHeaders: []string{
+func getCORSOptions(cmd *cli.Command) oapimw.CORSOptions {
+	return oapimw.CORSOptions{
+		AllowedOrigins: cmd.StringSlice(flagCorsAllowOrigins),
+		AllowedMethods: []string{"GET", "PUT", "POST", "HEAD", "DELETE"},
+		AllowedHeaders: []string{
 			"Authorization", "Origin", "if-match", "if-none-match", "if-modified-since", "if-unmodified-since",
 			"x-hasura-admin-secret", "x-nhost-bucket-id", "x-nhost-file-name", "x-nhost-file-id",
 			"x-hasura-role",
 		},
-		ExposeHeaders: []string{
+		ExposedHeaders: []string{
 			"Content-Length", "Content-Type", "Cache-Control", "ETag", "Last-Modified", "X-Error",
 		},
-		AllowCredentials: corsAllowCredentials,
-		MaxAge:           12 * time.Hour, //nolint: mnd
-	})
+		AllowCredentials: cmd.Bool(flagCorsAllowCredentials),
+		MaxAge:           "86400",
+	}
 }
 
-func getGin( //nolint:funlen
-	bind string,
-	publicURL string,
-	apiRootPrefix string,
-	hasuraAdminSecret string,
+func getServer(
+	cmd *cli.Command,
 	metadataStorage controller.MetadataStorage,
 	contentStorage controller.ContentStorage,
 	imageTransformer *image.Transformer,
 	logger *slog.Logger,
-	debug bool,
-	corsAllowOrigins []string,
-	corsAllowCredentials bool,
-	fastlyService string,
-	fastlyKey string,
-	clamavServer string,
 ) (*http.Server, error) {
-	router := gin.New()
-
-	router.GET("/healthz", func(c *gin.Context) {
-		c.String(http.StatusOK, "ok")
-	})
-
-	if !debug {
-		gin.SetMode(gin.ReleaseMode)
-	}
-
-	loader := openapi3.NewLoader()
-
-	doc, err := loader.LoadFromData(controller.OpenAPISchema)
-	if err != nil {
-		return nil, fmt.Errorf("failed to load OpenAPI schema: %w", err)
-	}
-
-	doc.AddServer(&openapi3.Server{ //nolint:exhaustruct
-		URL: apiRootPrefix,
-	})
-
-	handlers := []gin.HandlerFunc{
-		middleware.Logger(logger),
-		getCorsMiddleware(corsAllowOrigins, corsAllowCredentials),
-		gin.Recovery(),
-	}
-
-	if fastlyService != "" {
-		logger.InfoContext(context.Background(), "enabling fastly middleware")
-		handlers = append(
-			handlers,
-			fastly.New(fastlyService, fastlyKey, logger),
-		)
-	}
-
-	router.Use(handlers...)
-
-	av, err := getAv(clamavServer)
+	av, err := getAv(cmd.String(flagClamavServer))
 	if err != nil {
 		return nil, fmt.Errorf("problem trying to get av: %w", err)
 	}
 
 	ctrl := controller.New(
-		publicURL,
-		apiRootPrefix,
-		hasuraAdminSecret,
+		cmd.String(flagPublicURL),
+		cmd.String(flagAPIRootPrefix),
+		cmd.String(flagHasuraAdminSecret),
 		metadataStorage,
 		contentStorage,
 		imageTransformer,
@@ -143,27 +92,41 @@ func getGin( //nolint:funlen
 	)
 
 	handler := api.NewStrictHandler(ctrl, []api.StrictMiddlewareFunc{})
-	mw := api.MiddlewareFunc(ginmiddleware.OapiRequestValidatorWithOptions(
-		doc,
-		&ginmiddleware.Options{ //nolint:exhaustruct
-			Options: openapi3filter.Options{ //nolint:exhaustruct
-				AuthenticationFunc: middleware.AuthenticationFunc(hasuraAdminSecret),
-			},
-			SilenceServersWarning: true,
-		},
-	))
+
+	router, mw, err := oapi.NewRouter(
+		controller.OpenAPISchema,
+		cmd.String(flagAPIRootPrefix),
+		middleware.AuthenticationFunc(cmd.String(flagHasuraAdminSecret)),
+		getCORSOptions(cmd),
+		logger,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create router: %w", err)
+	}
+
+	router.GET("/healthz", func(c *gin.Context) {
+		c.String(http.StatusOK, "ok")
+	})
+
+	if cmd.String(flagFastlyService) != "" {
+		logger.InfoContext(context.Background(), "enabling fastly middleware")
+		router.Use(
+			fastly.New(cmd.String(flagFastlyService), cmd.String(flagFastlyKey), logger),
+		)
+	}
+
 	api.RegisterHandlersWithOptions(
 		router,
 		handler,
 		api.GinServerOptions{
-			BaseURL:      apiRootPrefix,
+			BaseURL:      cmd.String(flagAPIRootPrefix),
 			Middlewares:  []api.MiddlewareFunc{mw},
 			ErrorHandler: nil,
 		},
 	)
 
 	server := &http.Server{ //nolint:exhaustruct
-		Addr:              bind,
+		Addr:              cmd.String(flagBind),
 		Handler:           router,
 		ReadHeaderTimeout: 5 * time.Second, //nolint:mnd
 	}
@@ -453,21 +416,12 @@ func serve(ctx context.Context, cmd *cli.Command) error { //nolint:funlen
 		cmd.String(flagHasuraEndpoint) + "/graphql",
 	)
 
-	server, err := getGin( //nolint: contextcheck
-		cmd.String(flagBind),
-		cmd.String(flagPublicURL),
-		cmd.String(flagAPIRootPrefix),
-		cmd.String(flagHasuraAdminSecret),
+	server, err := getServer( //nolint: contextcheck
+		cmd,
 		metadataStorage,
 		contentStorage,
 		imageTransformer,
 		logger,
-		cmd.Bool(flagDebug),
-		cmd.StringSlice(flagCorsAllowOrigins),
-		cmd.Bool(flagCorsAllowCredentials),
-		cmd.String(flagFastlyService),
-		cmd.String(flagFastlyKey),
-		cmd.String(flagClamavServer),
 	)
 	if err != nil {
 		return err

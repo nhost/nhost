@@ -119,6 +119,7 @@
               gofumpt
               golangci-lint
               gqlgenc
+              oapi-codegen
 
               # internal packages
               self.packages.${system}.codegen

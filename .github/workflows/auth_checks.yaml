@@ -17,6 +17,7 @@ on:
       - '.golangci.yaml'
       - 'go.mod'
       - 'go.sum'
+      - 'internal/lib/**'
       - 'vendor/**'
 
       # auth

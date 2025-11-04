@@ -3,8 +3,8 @@ package controller
 import (
 	"context"
 
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
-	"github.com/nhost/nhost/services/auth/go/middleware"
 	"github.com/nhost/nhost/services/auth/go/sql"
 )
 
@@ -12,7 +12,7 @@ func (ctrl *Controller) SignInPAT( //nolint:ireturn
 	ctx context.Context,
 	request api.SignInPATRequestObject,
 ) (api.SignInPATResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
 
 	user, apiErr := ctrl.wf.GetUserByRefreshTokenHash(
 		ctx,

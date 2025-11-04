@@ -16,7 +16,6 @@ require (
 	github.com/davidbyttow/govips/v2 v2.16.0
 	github.com/gabriel-vasile/mimetype v1.4.8
 	github.com/getkin/kin-openapi v0.133.0
-	github.com/gin-contrib/cors v1.7.3
 	github.com/gin-gonic/gin v1.11.0
 	github.com/go-git/go-git/v5 v5.16.2
 	github.com/go-webauthn/webauthn v0.12.2
@@ -30,7 +29,6 @@ require (
 	github.com/lmittmann/tint v1.0.7
 	github.com/mark3labs/mcp-go v0.41.1
 	github.com/nhost/be v0.0.0-20251021065906-8abc7d8dfa48
-	github.com/oapi-codegen/gin-middleware v1.0.2
 	github.com/oapi-codegen/runtime v1.1.1
 	github.com/pb33f/libopenapi v0.21.12
 	github.com/pelletier/go-toml/v2 v2.2.4

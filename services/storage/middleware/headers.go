@@ -2,17 +2,14 @@ package middleware
 
 import (
 	"context"
-	"errors"
 	"net/http"
 	"strings"
 
 	"github.com/getkin/kin-openapi/openapi3filter"
-	ginmiddleware "github.com/oapi-codegen/gin-middleware"
+	"github.com/nhost/nhost/internal/lib/oapi"
 )
 
 const HeadersContextKey = "request.headers"
-
-var ErrUnauthorized = errors.New("unauthorized")
 
 func SessionHeadersFromContext(ctx context.Context) http.Header {
 	headers, _ := ctx.Value(HeadersContextKey).(http.Header)
@@ -51,11 +48,15 @@ func AuthenticationFunc(adminSecret string) openapi3filter.AuthenticationFunc {
 				"X-Hasura-Admin-Secret",
 			)
 			if adminSecretHeader != adminSecret {
-				return ErrUnauthorized
+				return &oapi.AuthenticatorError{
+					Scheme:  input.SecuritySchemeName,
+					Code:    "unauthorized",
+					Message: "invalid credentials",
+				}
 			}
 		}
 
-		c := ginmiddleware.GetGinContext(ctx)
+		c := oapi.GetGinContext(ctx)
 		c.Set(HeadersContextKey, input.RequestValidationInput.Request.Header)
 
 		return nil

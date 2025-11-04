@@ -4,15 +4,15 @@ import (
 	"context"
 	"log/slog"
 
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
-	"github.com/nhost/nhost/services/auth/go/middleware"
 )
 
 func (ctrl *Controller) VerifySignInPasswordlessSms( //nolint:ireturn
 	ctx context.Context,
 	request api.VerifySignInPasswordlessSmsRequestObject,
 ) (api.VerifySignInPasswordlessSmsResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx).
+	logger := oapimw.LoggerFromContext(ctx).
 		With(slog.String("phoneNumber", request.Body.PhoneNumber))
 
 	if !ctrl.config.SMSPasswordlessEnabled {

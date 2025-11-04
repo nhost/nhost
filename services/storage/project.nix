@@ -33,6 +33,8 @@ let
       (inDirectory "${submodule}/client/testdata")
       (inDirectory "${submodule}/image/testdata")
       (inDirectory "${submodule}/storage/testdata")
+
+      (inDirectory ../../internal/lib/oapi)
     ];
 
     exclude = with nix-filter.lib; [

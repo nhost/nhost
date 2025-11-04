@@ -24,6 +24,8 @@ let
       ./vacuum.yaml
       ./vacuum-ignore.yaml
 
+      (inDirectory ../../internal/lib/oapi)
+
       ./go/api/server.cfg.yaml
       ./go/api/types.cfg.yaml
       ./go/sql/schema.sh

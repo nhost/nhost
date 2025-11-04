@@ -21,8 +21,6 @@ func (e *APIError) Error() string {
 	return fmt.Sprintf("API error: %s", e.t)
 }
 
-var ErrElevatedClaimRequired = errors.New("elevated-claim-required")
-
 var (
 	ErrJWTConfiguration = errors.New("jwt-configuration")
 

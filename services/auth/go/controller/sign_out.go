@@ -3,14 +3,14 @@ package controller
 import (
 	"context"
 
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
-	"github.com/nhost/nhost/services/auth/go/middleware"
 )
 
 func (ctrl *Controller) SignOut( //nolint:ireturn
 	ctx context.Context, request api.SignOutRequestObject,
 ) (api.SignOutResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
 
 	if deptr(request.Body.All) {
 		userID, apiErr := ctrl.wf.GetJWTInContext(ctx, logger)
