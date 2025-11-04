@@ -1,9 +1,9 @@
-import type { CreateEventTriggerFormValues } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/CreateEventTriggerFormTypes';
+import type { BaseEventTriggerFormValues } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerFormTypes';
 import type { CreateEventTriggerArgs } from '@/utils/hasura-api/generated/schemas';
 import type { OperationSpec } from '@/utils/hasura-api/generated/schemas/operationSpec';
 
 export default function buildCreateEventTriggerDTO(
-  values: CreateEventTriggerFormValues,
+  values: BaseEventTriggerFormValues,
 ): CreateEventTriggerArgs {
   const headers = values.headers.map((header) => {
     if (header.type === 'fromEnv') {
@@ -35,7 +35,7 @@ export default function buildCreateEventTriggerDTO(
   const update: OperationSpec = values.triggerOperations.includes('update')
     ? {
         columns:
-          values.updateTriggerOn === 'all' ? '*' : values.updateTriggerColumns,
+          values.updateTriggerOn === 'all' ? '*' : values.updateTriggerColumns!,
       }
     : null;
 

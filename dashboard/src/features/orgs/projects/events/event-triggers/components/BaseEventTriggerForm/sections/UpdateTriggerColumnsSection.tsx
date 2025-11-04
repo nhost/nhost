@@ -66,8 +66,10 @@ export default function UpdateTriggerColumnsSection() {
                     checked={field.value?.includes(column)}
                     onCheckedChange={(checked) => {
                       const newValue = checked
-                        ? [...field.value, column]
-                        : field.value.filter((value) => value !== column);
+                        ? [...(field.value ?? []), column]
+                        : (field.value ?? []).filter(
+                            (value) => value !== column,
+                          );
                       field.onChange(newValue);
                     }}
                   />
