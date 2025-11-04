@@ -41,8 +41,10 @@ func TestCORS(t *testing.T) { //nolint:maintidx
 				"Access-Control-Allow-Methods":     []string{"GET, POST"},
 				"Access-Control-Allow-Headers":     []string{"Content-Type, Authorization"},
 				"Access-Control-Allow-Credentials": []string{"false"},
-				"Vary":                             []string{"Origin, Access-Control-Request-Method"},
-				"Content-Length":                   []string{"0"},
+				"Vary": []string{
+					"Origin, Access-Control-Request-Method",
+				},
+				"Content-Length": []string{"0"},
 			},
 			expectNext: false,
 		},

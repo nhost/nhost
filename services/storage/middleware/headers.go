@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"context"
-	"errors"
 	"net/http"
 	"strings"
 
@@ -11,8 +10,6 @@ import (
 )
 
 const HeadersContextKey = "request.headers"
-
-var ErrUnauthorized = errors.New("unauthorized")
 
 func SessionHeadersFromContext(ctx context.Context) http.Header {
 	headers, _ := ctx.Value(HeadersContextKey).(http.Header)
@@ -51,7 +48,11 @@ func AuthenticationFunc(adminSecret string) openapi3filter.AuthenticationFunc {
 				"X-Hasura-Admin-Secret",
 			)
 			if adminSecretHeader != adminSecret {
-				return ErrUnauthorized
+				return &oapi.AuthenticatorError{
+					Scheme:  input.SecuritySchemeName,
+					Code:    "unauthorized",
+					Message: "invalid credentials",
+				}
 			}
 		}
 
