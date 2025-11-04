@@ -3,11 +3,11 @@ import Stripe from 'stripe'
 
 import { UserHasuraClaims } from './types'
 
-if (!process.env.STRIPE_SECRET_KEY) {
+if (!process.env['STRIPE_SECRET_KEY']) {
   throw new Error('STRIPE_SECRET_KEY env var is not set')
 }
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+export const stripe = new Stripe(process.env['STRIPE_SECRET_KEY'], {
   apiVersion: '2022-11-15'
 })
 
@@ -21,11 +21,11 @@ export const getUserClaims = (req: Request): UserHasuraClaims | undefined => {
       return undefined
     }
 
-    if (!process.env.NHOST_JWT_SECRET) {
+    if (!process.env['NHOST_JWT_SECRET']) {
       throw new Error('NHOST_JWT_SECRET env var is not set')
     }
 
-    const jwtSecret = JSON.parse(process.env.NHOST_JWT_SECRET)
+    const jwtSecret = JSON.parse(process.env['NHOST_JWT_SECRET'])
 
     const decodedToken = jwt.verify(accessToken, jwtSecret.key) as any
     return decodedToken['https://hasura.io/jwt/claims'] as UserHasuraClaims

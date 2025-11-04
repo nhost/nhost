@@ -1,7 +1,7 @@
 import { createServer } from 'http'
-import { Context, createStripeGraphQLServer } from '../src/index'
+import { type Context, createStripeGraphQLServer } from '../src/index'
 
-const isAllowed = (stripeCustomerId: string, context: Context) => {
+const isAllowed = (_stripeCustomerId: string, context: Context) => {
   const { isAdmin } = context
 
   if (isAdmin) {
