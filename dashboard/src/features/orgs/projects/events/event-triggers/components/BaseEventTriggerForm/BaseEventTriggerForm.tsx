@@ -61,6 +61,7 @@ import {
   type BaseEventTriggerFormValues,
 } from './BaseEventTriggerFormTypes';
 import HeadersSection from './sections/HeadersSection';
+import PayloadTransformSection from './sections/PayloadTransformSection/PayloadTransformSection';
 import { RequestOptionsSection } from './sections/RequestOptionsSection';
 import RetryConfigurationSection from './sections/RetryConfigurationSection';
 import UpdateTriggerColumnsSection from './sections/UpdateTriggerColumnsSection';
@@ -541,6 +542,8 @@ export default function BaseEventTriggerForm({
                     <AccordionContent>
                       <div className="flex flex-col gap-8 border-l">
                         <RequestOptionsSection className="pl-4" />
+                        <FieldSeparator />
+                        <PayloadTransformSection className="pl-4" />
                       </div>
                     </AccordionContent>
                   </AccordionItem>

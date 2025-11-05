@@ -1,3 +1,4 @@
+import { getSampleInputPayload } from '@/features/orgs/projects/events/event-triggers/utils/getSampleInputPayload';
 import { z } from 'zod';
 
 export const headerTypes = [
@@ -72,6 +73,12 @@ export const validationSchema = z
         value: z.string().min(1),
       }),
     ),
+    sampleContext: z.array(
+      z.object({
+        key: z.string().min(1),
+        value: z.string().min(1),
+      }),
+    ),
     requestTransform: z
       .object({
         method: z.enum(requestTransformMethods),
@@ -93,6 +100,31 @@ export const validationSchema = z
               requestTransformQueryParamsTypeOptions[1],
             ),
             queryParamsURL: z.string(),
+          }),
+        ]),
+      })
+      .optional(),
+    payloadTransform: z
+      .object({
+        sampleInput: z.string(),
+        requestBodyTransform: z.discriminatedUnion('requestBodyTransformType', [
+          z.object({
+            requestBodyTransformType: z.literal('disabled'),
+          }),
+          z.object({
+            requestBodyTransformType: z.literal('application/json'),
+            template: z.string(),
+          }),
+          z.object({
+            requestBodyTransformType: z.literal(
+              'application/x-www-form-urlencoded',
+            ),
+            formTemplate: z.array(
+              z.object({
+                key: z.string(),
+                value: z.string(),
+              }),
+            ),
           }),
         ]),
       })
@@ -126,12 +158,29 @@ export const defaultFormValues: BaseEventTriggerFormValues = {
     timeoutSec: 60,
   },
   headers: [],
+  sampleContext: [],
   requestTransform: {
     method: 'POST',
     urlTemplate: '',
     queryParams: {
       queryParamsType: 'Key Value',
       queryParams: [],
+    },
+  },
+  payloadTransform: {
+    sampleInput: getSampleInputPayload({}),
+    requestBodyTransform: {
+      requestBodyTransformType: 'application/json',
+      template: JSON.stringify(
+        {
+          table: {
+            name: `{{$body.table.name}}`,
+            schema: `{{$body.table.schema}}`,
+          },
+        },
+        null,
+        2,
+      ),
     },
   },
 };

@@ -7,6 +7,7 @@ import {
   FieldLegend,
   FieldSet,
 } from '@/components/ui/v3/field';
+import { Skeleton } from '@/components/ui/v3/skeleton';
 import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
 import type { BaseEventTriggerFormValues } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerFormTypes';
 import { isEmptyValue } from '@/lib/utils';
@@ -18,7 +19,7 @@ export default function UpdateTriggerColumnsSection() {
   const selectedTableSchema = watch('tableSchema');
   const selectedTableName = watch('tableName');
 
-  const { data: selectedTableData } = useTableQuery(
+  const { data: selectedTableData, isLoading } = useTableQuery(
     [`default.${selectedTableSchema}.${selectedTableName}`],
     {
       schema: selectedTableSchema,
@@ -29,10 +30,26 @@ export default function UpdateTriggerColumnsSection() {
     },
   );
 
+  console.log('selectedTableData', selectedTableData?.columns[0]?.data_type);
+
   const columns =
     selectedTableData?.columns
       ?.map((column) => (column.column_name as string) ?? null)
       .filter(Boolean) ?? [];
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col gap-4">
+        <Skeleton className="h-4 w-full max-w-xs" />
+        <div className="flex max-w-lg flex-row gap-6">
+          <Skeleton className="h-6 w-full" />
+          <Skeleton className="h-6 w-full" />
+          <Skeleton className="h-6 w-full" />
+          <Skeleton className="h-6 w-full" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Controller

@@ -11,3 +11,5 @@ export interface MigrationOperationOptions {
   appUrl: string;
   adminSecret: string;
 }
+
+export type ColumnValue = string | number | boolean;
