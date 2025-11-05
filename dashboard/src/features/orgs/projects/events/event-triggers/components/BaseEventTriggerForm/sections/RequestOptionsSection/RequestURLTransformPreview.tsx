@@ -4,6 +4,9 @@ import type { BaseEventTriggerFormValues } from '@/features/orgs/projects/events
 import { useTestWebhookTransformQuery } from '@/features/orgs/projects/events/event-triggers/hooks/useTestWebhookTransformQuery';
 import buildTestWebhookTransformDTO from '@/features/orgs/projects/events/event-triggers/utils/buildTestWebhookTransformDTO/buildTestWebhookTransformDTO';
 import { isEmptyValue } from '@/lib/utils';
+import type { TestWebhookTransformArgs } from '@/utils/hasura-api/generated/schemas';
+import debounce from 'lodash.debounce';
+import { useEffect, useMemo, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 
 export default function RequestURLTransformPreview() {
@@ -11,11 +14,28 @@ export default function RequestURLTransformPreview() {
   const values = form.watch();
   const args = buildTestWebhookTransformDTO({ formValues: values });
 
-  const { data, isLoading, error } = useTestWebhookTransformQuery(args);
+  const [debouncedArgs, setDebouncedArgs] =
+    useState<TestWebhookTransformArgs>(args);
+
+  const debouncedSetArgs = useMemo(
+    () =>
+      debounce((nextArgs: TestWebhookTransformArgs) => {
+        setDebouncedArgs(nextArgs);
+      }, 5000),
+    [],
+  );
+
+  useEffect(() => {
+    debouncedSetArgs(args);
+    return () => debouncedSetArgs.cancel();
+  }, [args, debouncedSetArgs]);
+
+  const { data, isLoading, error } =
+    useTestWebhookTransformQuery(debouncedArgs);
 
   const url = data?.webhook_url;
 
-  if (error && error.code === 'validation-failed') {
+  if (error) {
     return (
       <div className="flex flex-col gap-2">
         <h3 className="text-sm font-medium text-foreground">
@@ -23,7 +43,7 @@ export default function RequestURLTransformPreview() {
         </h3>
         <Alert variant="destructive" className="max-w-lg">
           <AlertTitle>Validation failed</AlertTitle>
-          <AlertDescription>{error.error}</AlertDescription>
+          <AlertDescription>{error.message}</AlertDescription>
         </Alert>
       </div>
     );

@@ -135,11 +135,7 @@ export default function BaseEventTriggerForm({
     [selectedDataSource, selectedTableSchema, metadata],
   );
 
-  const { errors } = form.formState;
-  console.log('errors', errors);
-
   const handleOpenChange = (newOpen: boolean) => {
-    // If trying to close the sheet and form has unsaved changes, show confirmation
     if (!newOpen && form.formState.isDirty) {
       setShowUnsavedChangesDialog(true);
     } else {

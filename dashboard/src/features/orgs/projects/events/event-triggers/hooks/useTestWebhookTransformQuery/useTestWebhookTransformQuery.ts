@@ -54,6 +54,7 @@ export default function useTestWebhookTransformQuery(
     },
     {
       ...queryOptions,
+      retry: false,
       enabled: !!(
         project?.subdomain &&
         project?.region &&
