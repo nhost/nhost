@@ -30,8 +30,6 @@ export default function UpdateTriggerColumnsSection() {
     },
   );
 
-  console.log('selectedTableData', selectedTableData?.columns[0]?.data_type);
-
   const columns =
     selectedTableData?.columns
       ?.map((column) => (column.column_name as string) ?? null)

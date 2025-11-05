@@ -34,8 +34,6 @@ export default function TransformedRequestBody() {
   const { data, isLoading, error } =
     useTestWebhookTransformQuery(debouncedArgs);
 
-  console.log('error', error);
-
   return (
     <Field>
       <FieldLabel className="text-foreground">

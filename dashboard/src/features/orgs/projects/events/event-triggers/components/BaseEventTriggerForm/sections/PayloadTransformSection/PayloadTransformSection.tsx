@@ -48,7 +48,7 @@ export default function PayloadTransformSection({
   const selectedTableSchema = watch('tableSchema');
   const selectedTableName = watch('tableName');
 
-  const { data: selectedTableData, isLoading } = useTableQuery(
+  const { data: selectedTableData } = useTableQuery(
     [`default.${selectedTableSchema}.${selectedTableName}`],
     {
       schema: selectedTableSchema,
