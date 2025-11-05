@@ -1,9 +1,69 @@
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
+import { Skeleton } from '@/components/ui/v3/skeleton';
+import type { BaseEventTriggerFormValues } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerFormTypes';
+import { useTestWebhookTransformQuery } from '@/features/orgs/projects/events/event-triggers/hooks/useTestWebhookTransformQuery';
+import buildTestWebhookTransformDTO from '@/features/orgs/projects/events/event-triggers/utils/buildTestWebhookTransformDTO/buildTestWebhookTransformDTO';
+import { isEmptyValue } from '@/lib/utils';
+import { useFormContext } from 'react-hook-form';
+
 export default function RequestURLTransformPreview() {
+  const form = useFormContext<BaseEventTriggerFormValues>();
+  const values = form.watch();
+  const args = buildTestWebhookTransformDTO({ formValues: values });
+
+  const { data, isLoading, error } = useTestWebhookTransformQuery(args);
+
+  const url = data?.webhook_url;
+
+  if (error && error.code === 'validation-failed') {
+    return (
+      <div className="flex flex-col gap-2">
+        <h3 className="text-sm font-medium text-foreground">
+          URL transform preview
+        </h3>
+        <Alert variant="destructive" className="max-w-lg">
+          <AlertTitle>Validation failed</AlertTitle>
+          <AlertDescription>{error.error}</AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  if (isEmptyValue(values.webhook) || error) {
+    return (
+      <div className="flex flex-col gap-2">
+        <h3 className="text-sm font-medium text-foreground">
+          URL transform preview
+        </h3>
+        <Alert variant="destructive" className="max-w-lg">
+          <AlertTitle>Error with webhook handler</AlertTitle>
+          <AlertDescription>
+            Please configure your webhook handler to generate request url
+            transform
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  if (isLoading || isEmptyValue(url)) {
+    return (
+      <div className="flex flex-col gap-2">
+        <h3 className="text-sm font-medium text-foreground">
+          URL transform preview (loading...)
+        </h3>
+        <Skeleton className="h-4 w-full max-w-lg" />
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-2">
-      <h3 className="text-sm font-medium">URL transform preview</h3>
-      <p className="max-w-lg rounded-md bg-muted-foreground/20 p-2 font-mono text-sm text-muted-foreground dark:bg-muted">
-        https://example.com/api/v1/users?name=John&age=30
+      <h3 className="text-sm font-medium text-foreground">
+        URL transform preview
+      </h3>
+      <p className="max-w-lg rounded-md bg-muted-foreground/10 p-2 font-mono text-sm text-muted-foreground dark:bg-muted">
+        {url}
       </p>
     </div>
   );

@@ -34,6 +34,7 @@ paths:
                 - $ref: '#/components/schemas/RedeliverEventOperation'
                 - $ref: '#/components/schemas/CreateEventTriggerBulkOperation'
                 - $ref: '#/components/schemas/DeleteEventTriggerBulkOperation'
+                - $ref: '#/components/schemas/TestWebhookTransformOperation'
       responses:
         '200':
           description: Operation executed successfully
@@ -51,6 +52,7 @@ paths:
                   - $ref: '#/components/schemas/GetEventInvocationLogsResponse'
                   - $ref: '#/components/schemas/GetEventLogsResponse'
                   - $ref: '#/components/schemas/GetEventAndInvocationLogsByIdResponse'
+                  - $ref: '#/components/schemas/TestWebhookTransformResponse'
                   - type: array
                     description: List of success messages for bulk operations
                     items:
@@ -1165,9 +1167,9 @@ components:
       properties:
         version:
           description: Sets the RequestTransformation schema version. Version 1 uses a String for the body field and Version 2 takes a BodyTransform.
-          type: string
-          enum: ['1', '2']
-          default: '1'
+          type: integer
+          enum: [1, 2]
+          default: 1
         method:
           description: Change the request method to this value.
           type: string
@@ -1784,3 +1786,63 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/DeleteEventTriggerStep'
+
+    TestWebhookTransformOperation:
+      type: object
+      description: Operation used to test out request transformations using mock data.
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [test_webhook_transform]
+        args:
+          $ref: '#/components/schemas/TestWebhookTransformArgs'
+
+    TestWebhookTransformArgs:
+      type: object
+      required:
+        - webhook_url
+        - body
+        - env
+        - request_transform
+        - session_variables
+      properties:
+        webhook_url:
+          description: Webhook URL to be tested
+          type: string
+        body:
+          type: object
+          additionalProperties: true
+        env:
+          type: object
+          description: Sample Context environment variables for testing the connector
+          additionalProperties:
+            type: string
+        request_transform:
+          $ref: '#/components/schemas/RequestTransformation'
+        session_variables:
+          type: object
+          additionalProperties:
+            type: string
+
+    TestWebhookTransformResponse:
+      type: object
+      required:
+        - body
+        - headers
+        - method
+        - webhook_url
+      properties:
+        body:
+          type: object
+          description: Transformed request body for preview
+          additionalProperties: true
+        headers:
+          $ref: '#/components/schemas/Headers'
+        method:
+          type: string
+        webhook_url:
+          type: string
+          description: Webhook URL for transform preview
