@@ -61,9 +61,7 @@ function EventsBrowserSidebarContent() {
     setEditEventTriggerFormOpen(true);
   };
 
-  const handleDeleteEventTriggerDropdownClick = (
-    eventTriggerName: string,
-  ) => {};
+  const handleDeleteEventTriggerDropdownClick = () => {};
 
   if (isLoading) {
     return <EventsBrowserSidebarSkeleton />;
@@ -205,9 +203,7 @@ function EventsBrowserSidebarContent() {
                               <DropdownMenuSeparator className="my-0" />
                               <DropdownMenuItem
                                 onSelect={() =>
-                                  handleDeleteEventTriggerDropdownClick(
-                                    eventTrigger.name,
-                                  )
+                                  handleDeleteEventTriggerDropdownClick()
                                 }
                                 className="flex cursor-pointer items-center gap-2 !text-sm+ font-medium text-destructive focus:text-destructive"
                               >

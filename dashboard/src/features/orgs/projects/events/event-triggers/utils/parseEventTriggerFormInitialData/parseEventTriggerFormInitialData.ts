@@ -66,5 +66,6 @@ export default function parseEventTriggerFormInitialData(
       timeoutSec: eventTrigger.retry_conf.timeout_sec ?? 60,
     },
     headers,
+    sampleContext: [],
   };
 }
