@@ -9,13 +9,26 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/v3/accordion';
-import { Button } from '@/components/ui/v3/button';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/v3/dialog';
+import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import type { BaseEventTriggerFormTriggerProps } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm';
 import { CreateEventTriggerForm } from '@/features/orgs/projects/events/event-triggers/components/CreateEventTriggerForm';
+import { useDeleteEventTriggerMutation } from '@/features/orgs/projects/events/event-triggers/hooks/useDeleteEventTriggerMutation';
 import { useGetEventTriggers } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventTriggers';
 import type { EventTriggerViewModel } from '@/features/orgs/projects/events/event-triggers/types';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { isEmptyValue } from '@/lib/utils';
 import { Database, Plus } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
@@ -30,8 +43,6 @@ function EventsBrowserSidebarContent() {
   const router = useRouter();
   const { orgSlug, appSubdomain, eventTriggerSlug } = router.query;
   const { data, isLoading, error } = useGetEventTriggers();
-  const handleDeleteEventTriggerDropdownClick = () => {};
-
   const renderCreateEventTriggerButton = useCallback(
     ({ open }: BaseEventTriggerFormTriggerProps) => (
       <Button
@@ -45,6 +56,56 @@ function EventsBrowserSidebarContent() {
     ),
     [],
   );
+
+  const [showDeleteEventTriggerDialog, setShowDeleteEventTriggerDialog] =
+    useState(false);
+  const [eventTriggerToDelete, setEventTriggerToDelete] = useState<
+    string | null
+  >(null);
+
+  const { mutateAsync: deleteEventTrigger, isLoading: isDeletingEventTrigger } =
+    useDeleteEventTriggerMutation();
+
+  const handleDeleteEventTriggerDropdownClick = (eventTriggerName: string) => {
+    setEventTriggerToDelete(eventTriggerName);
+    setShowDeleteEventTriggerDialog(true);
+  };
+
+  const { data: resourceVersion } = useGetMetadataResourceVersion();
+
+  const handleDeleteDialogClick = async () => {
+    await execPromiseWithErrorToast(
+      async () => {
+        const originalEventTrigger = data?.find(
+          (eventTrigger) => eventTrigger.name === eventTriggerToDelete,
+        );
+
+        if (
+          isEmptyValue(eventTriggerToDelete) ||
+          isEmptyValue(originalEventTrigger)
+        ) {
+          throw new Error(
+            'Error deleting event trigger, no event trigger to delete',
+          );
+        }
+
+        await deleteEventTrigger({
+          originalEventTrigger: originalEventTrigger!,
+          resourceVersion,
+        });
+        if (router.query.eventTriggerSlug === eventTriggerToDelete) {
+          router.push(`/orgs/${orgSlug}/projects/${appSubdomain}/events`);
+        }
+      },
+      {
+        loadingMessage: 'Deleting event trigger...',
+        successMessage: 'Event trigger deleted successfully.',
+        errorMessage: 'An error occurred while deleting the event trigger.',
+      },
+    );
+    setShowDeleteEventTriggerDialog(false);
+    setEventTriggerToDelete(null);
+  };
 
   if (isLoading) {
     return <EventsBrowserSidebarSkeleton />;
@@ -130,7 +191,11 @@ function EventsBrowserSidebarContent() {
                             `/orgs/${orgSlug}/projects/${appSubdomain}/events/event-trigger/${updatedEventTrigger.triggerName}`,
                           );
                         }}
-                        onDelete={() => handleDeleteEventTriggerDropdownClick()}
+                        onDelete={() =>
+                          handleDeleteEventTriggerDropdownClick(
+                            eventTrigger.name,
+                          )
+                        }
                       />
                     );
                   })}
@@ -140,6 +205,44 @@ function EventsBrowserSidebarContent() {
           )}
         </Accordion>
       </div>
+      <Dialog
+        open={showDeleteEventTriggerDialog}
+        onOpenChange={setShowDeleteEventTriggerDialog}
+      >
+        <DialogContent
+          className="sm:max-w-[425px]"
+          hideCloseButton
+          disableOutsideClick={isDeletingEventTrigger}
+        >
+          <DialogHeader>
+            <DialogTitle className="text-foreground">
+              Delete Event Trigger
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete the{' '}
+              <span className="rounded-md bg-muted px-1 py-0.5 font-mono">
+                {eventTriggerToDelete}
+              </span>{' '}
+              event trigger?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:flex sm:flex-col sm:space-x-0">
+            <ButtonWithLoading
+              variant="destructive"
+              className="!text-sm+ text-white"
+              onClick={handleDeleteDialogClick}
+              loading={isDeletingEventTrigger}
+            >
+              Delete
+            </ButtonWithLoading>
+            <DialogClose asChild>
+              <Button variant="outline" className="!text-sm+ text-foreground">
+                Cancel
+              </Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
