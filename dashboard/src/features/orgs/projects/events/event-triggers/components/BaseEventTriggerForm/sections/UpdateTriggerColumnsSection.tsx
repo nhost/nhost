@@ -1,3 +1,4 @@
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import {
   Field,
@@ -19,13 +20,15 @@ export default function UpdateTriggerColumnsSection() {
   const selectedTableSchema = watch('tableSchema');
   const selectedTableName = watch('tableName');
 
+  const canFetchColumns = Boolean(selectedTableSchema && selectedTableName);
+
   const { data: selectedTableData, isLoading } = useTableQuery(
     [`default.${selectedTableSchema}.${selectedTableName}`],
     {
       schema: selectedTableSchema,
       table: selectedTableName,
       queryOptions: {
-        enabled: !!selectedTableSchema && !!selectedTableName,
+        enabled: canFetchColumns,
       },
     },
   );
@@ -34,6 +37,17 @@ export default function UpdateTriggerColumnsSection() {
     selectedTableData?.columns
       ?.map((column) => (column.column_name as string) ?? null)
       .filter(Boolean) ?? [];
+
+  if (!canFetchColumns) {
+    return (
+      <Alert variant="destructive" className="max-w-lg">
+        <AlertTitle>Table not selected</AlertTitle>
+        <AlertDescription>
+          Please select a table to list its columns
+        </AlertDescription>
+      </Alert>
+    );
+  }
 
   if (isLoading) {
     return (

@@ -1,5 +1,5 @@
 import { describe, it } from 'vitest';
 
-describe('getSampleInputPayload (temporarily skipped)', () => {
+describe('buildRequestTransformDTO (temporarily skipped)', () => {
   it.skip('placeholder', () => {});
 });

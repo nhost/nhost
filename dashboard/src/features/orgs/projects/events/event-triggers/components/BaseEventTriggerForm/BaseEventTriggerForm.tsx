@@ -145,6 +145,7 @@ export default function BaseEventTriggerForm({
 
   const handleDiscardChanges = () => {
     setShowUnsavedChangesDialog(false);
+    reset(initialData ?? defaultFormValues);
     onOpenChange(false);
   };
 
@@ -230,9 +231,6 @@ export default function BaseEventTriggerForm({
                             >
                               Data Source
                             </FieldLabel>
-                            {fieldState.invalid && (
-                              <FieldError errors={[fieldState.error]} />
-                            )}
                           </FieldContent>
                           <Select
                             name={field.name}
@@ -255,6 +253,9 @@ export default function BaseEventTriggerForm({
                               ))}
                             </SelectContent>
                           </Select>
+                          {fieldState.invalid && (
+                            <FieldError errors={[fieldState.error]} />
+                          )}
                         </Field>
                       )}
                     />
@@ -275,9 +276,6 @@ export default function BaseEventTriggerForm({
                               >
                                 Schema
                               </FieldLabel>
-                              {fieldState.invalid && (
-                                <FieldError errors={[fieldState.error]} />
-                              )}
                             </FieldContent>
                             <Select
                               name={field.name}
@@ -303,6 +301,11 @@ export default function BaseEventTriggerForm({
                                 ))}
                               </SelectContent>
                             </Select>
+                            <div className="min-h-5">
+                              {fieldState.invalid && (
+                                <FieldError errors={[fieldState.error]} />
+                              )}
+                            </div>
                           </Field>
                         )}
                       />
@@ -321,9 +324,6 @@ export default function BaseEventTriggerForm({
                               >
                                 Table
                               </FieldLabel>
-                              {fieldState.invalid && (
-                                <FieldError errors={[fieldState.error]} />
-                              )}
                             </FieldContent>
                             <Select
                               name={field.name}
@@ -346,6 +346,11 @@ export default function BaseEventTriggerForm({
                                 ))}
                               </SelectContent>
                             </Select>
+                            <div className="min-h-5">
+                              {fieldState.invalid && (
+                                <FieldError errors={[fieldState.error]} />
+                              )}
+                            </div>
                           </Field>
                         )}
                       />

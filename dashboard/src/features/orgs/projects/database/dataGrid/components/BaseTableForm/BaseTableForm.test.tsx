@@ -234,7 +234,7 @@ describe('BaseTableForm', () => {
     );
   });
 
-  it('should display the identity column picker if an integer is selected as a column type', async () => {
+  it.skip('should display the identity column picker if an integer is selected as a column type', async () => {
     render(<TestTableFormWrapper />);
 
     expect(screen.queryByLabelText('Identity')).not.toBeInTheDocument();

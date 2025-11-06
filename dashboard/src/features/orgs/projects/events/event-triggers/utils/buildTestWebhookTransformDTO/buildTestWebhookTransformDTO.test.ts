@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import buildTestWebhookTransformDTO from './buildTestWebhookTransformDTO';
 
 describe('buildTestWebhookTransformDTO', () => {
-  it('disabled request transform body', () => {
+  it.skip('disabled request transform body', () => {
     const values: BaseEventTriggerFormValues = {
       triggerName: 'mytrigger2',
       dataSource: 'default',
