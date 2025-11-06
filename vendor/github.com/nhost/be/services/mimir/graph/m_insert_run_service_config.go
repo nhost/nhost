@@ -43,6 +43,24 @@ func nameMustBeUnique(svcs Services, serviceID, name string) error {
 	return nil
 }
 
+func (r *mutationResolver) checkAppLive(ctx context.Context, appID string) error {
+	appIDUUID, err := uuid.Parse(appID)
+	if err != nil {
+		return fmt.Errorf("invalid app ID: %w", err)
+	}
+
+	desiredState, err := r.nhost.GetAppDesiredState(ctx, appIDUUID)
+	if err != nil {
+		return fmt.Errorf("failed to get app desired state: %w", err)
+	}
+
+	if desiredState != appLive {
+		return ErrAppMustBeLive
+	}
+
+	return nil
+}
+
 func (r *mutationResolver) insertRunServiceConfig(
 	ctx context.Context,
 	appID string,
@@ -57,6 +75,10 @@ func (r *mutationResolver) insertRunServiceConfig(
 	}
 
 	app := r.data[i]
+
+	if err := r.checkAppLive(ctx, appID); err != nil {
+		return nil, err
+	}
 
 	serviceID := uuid.NewString()
 
