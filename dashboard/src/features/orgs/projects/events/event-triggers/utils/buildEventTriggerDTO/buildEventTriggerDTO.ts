@@ -56,7 +56,11 @@ export default function buildEventTriggerDTO({
 
   const enable_manual = formValues.triggerOperations.includes('manual');
 
-  const request_transform = buildRequestTransformDTO(formValues);
+  const shouldIncludeRequestTransform =
+    !!formValues.requestOptionsTransform || !!formValues.payloadTransform;
+  const request_transform = shouldIncludeRequestTransform
+    ? buildRequestTransformDTO(formValues)
+    : undefined;
 
   return {
     name: formValues.triggerName,
@@ -74,6 +78,6 @@ export default function buildEventTriggerDTO({
     retry_conf,
     enable_manual,
     replace: isEdit,
-    request_transform,
+    ...(shouldIncludeRequestTransform ? { request_transform } : {}),
   };
 }
