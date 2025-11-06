@@ -1,3 +1,9 @@
+## [storage@0.9.1] - 2025-11-06
+
+### 🐛 Bug Fixes
+
+- *(storage)* Format date-time headers with RFC2822 (#3672)
+
 ## [storage@0.9.0] - 2025-11-04
 
 ### 🚀 Features
