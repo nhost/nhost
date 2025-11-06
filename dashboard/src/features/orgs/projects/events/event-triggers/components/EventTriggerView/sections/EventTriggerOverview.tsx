@@ -17,6 +17,19 @@ export default function EventTriggerOverview({
 }) {
   const [isTransformOpen, setIsTransformOpen] = useState(false);
   const [isHeadersOpen, setIsHeadersOpen] = useState(false);
+
+  const queryParams = eventTrigger.request_transform?.query_params;
+  let queryParamsDisplay = '';
+  if (typeof queryParams === 'string') {
+    queryParamsDisplay = queryParams;
+  } else if (queryParams) {
+    queryParamsDisplay = Object.entries(queryParams)
+      .map(
+        ([key, value]) =>
+          `${encodeURIComponent(key)}=${encodeURIComponent(value)}`,
+      )
+      .join('&');
+  }
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -181,7 +194,7 @@ export default function EventTriggerOverview({
                     Query Parameters:
                   </div>
                   <div className="rounded p-2 font-mono text-xs text-gray-900 dark:text-gray-100">
-                    {eventTrigger.request_transform?.query_params?.toString()}
+                    {queryParamsDisplay}
                   </div>
                 </div>
 

@@ -19,9 +19,9 @@ export default function TriggerOperationsSection({
     operations.push('Manual (Dashboard)');
   }
 
-  const insertColumns = Array.isArray(eventTrigger.definition.insert?.columns)
-    ? eventTrigger.definition.insert.columns.join(', ')
-    : eventTrigger.definition.insert?.columns;
+  const updateColumns = Array.isArray(eventTrigger.definition.update?.columns)
+    ? eventTrigger.definition.update.columns.join(', ')
+    : eventTrigger.definition.update?.columns;
 
   return (
     <div className="rounded border border-gray-200 p-4 dark:border-gray-700">
@@ -41,13 +41,13 @@ export default function TriggerOperationsSection({
           </span>
         ))}
       </div>
-      {insertColumns && (
+      {updateColumns && (
         <div className="text-sm">
           <span className="text-gray-600 dark:text-gray-400">
-            On Insert Columns:{' '}
+            On Update Columns:{' '}
           </span>
           <span className="font-mono text-gray-900 dark:text-gray-100">
-            {insertColumns}
+            {updateColumns}
           </span>
         </div>
       )}
