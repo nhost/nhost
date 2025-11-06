@@ -143,7 +143,7 @@ export default function parseEventTriggerFormInitialData(
     },
     headers,
     sampleContext: [],
-    requestTransform: {
+    requestOptionsTransform: {
       urlTemplate,
       method: requestTransform?.method ?? 'POST',
       queryParams,

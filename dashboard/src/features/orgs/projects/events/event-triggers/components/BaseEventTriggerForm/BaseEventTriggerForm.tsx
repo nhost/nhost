@@ -55,6 +55,8 @@ import { Controller, FormProvider, useForm } from 'react-hook-form';
 import {
   ALL_TRIGGER_OPERATIONS,
   defaultFormValues,
+  defaultPayloadTransformValues,
+  defaultRequestTransformValues,
   updateTriggerOnOptions,
   validationSchema,
   type BaseEventTriggerFormInitialData,
@@ -98,7 +100,7 @@ export default function BaseEventTriggerForm({
     defaultValues: initialData ?? defaultFormValues,
   });
 
-  const { watch, reset } = form;
+  const { watch, reset, setValue } = form;
 
   useEffect(() => {
     if (initialData) {
@@ -116,6 +118,9 @@ export default function BaseEventTriggerForm({
   const hasUpdateTrigger = selectedTriggerOperations.includes('update');
 
   const hasToChooseUpdateTriggerColumns = selectedUpdateTriggerOn === 'choose';
+
+  const isRequestOptionsTransformEnabled = !!watch('requestOptionsTransform');
+  const isPayloadTransformEnabled = !!watch('payloadTransform');
 
   const schemas = useMemo(() => {
     const databaseSchemas =
@@ -142,6 +147,8 @@ export default function BaseEventTriggerForm({
       onOpenChange(newOpen);
     }
   };
+
+  console.log(watch());
 
   const handleDiscardChanges = () => {
     setShowUnsavedChangesDialog(false);
@@ -542,9 +549,66 @@ export default function BaseEventTriggerForm({
                     </AccordionTrigger>
                     <AccordionContent>
                       <div className="flex flex-col gap-8 border-l">
-                        <RequestOptionsSection className="pl-4" />
+                        <FieldSet className="pl-4">
+                          <FieldLegend className="text-foreground">
+                            Enable Transformations
+                          </FieldLegend>
+                          <FieldGroup className="flex flex-row items-center gap-8">
+                            <Field orientation="horizontal" className="w-auto">
+                              <Checkbox
+                                id="enable-request-transform"
+                                checked={isRequestOptionsTransformEnabled}
+                                onCheckedChange={(checked) => {
+                                  const enabled = !!checked;
+                                  setValue(
+                                    'requestOptionsTransform',
+                                    enabled
+                                      ? defaultRequestTransformValues
+                                      : undefined,
+                                    { shouldDirty: true },
+                                  );
+                                }}
+                              />
+                              <FieldLabel
+                                htmlFor="enable-request-transform"
+                                className="font-normal text-foreground"
+                              >
+                                Request Options Transform
+                              </FieldLabel>
+                            </Field>
+                            <Field orientation="horizontal" className="w-auto">
+                              <Checkbox
+                                id="enable-payload-transform"
+                                checked={isPayloadTransformEnabled}
+                                onCheckedChange={(checked) => {
+                                  const enabled = !!checked;
+                                  setValue(
+                                    'payloadTransform',
+                                    enabled
+                                      ? defaultPayloadTransformValues
+                                      : undefined,
+                                    { shouldDirty: true },
+                                  );
+                                }}
+                              />
+                              <FieldLabel
+                                htmlFor="enable-payload-transform"
+                                className="font-normal text-foreground"
+                              >
+                                Payload Transform
+                              </FieldLabel>
+                            </Field>
+                          </FieldGroup>
+                        </FieldSet>
                         <FieldSeparator />
-                        <PayloadTransformSection className="pl-4" />
+                        {isRequestOptionsTransformEnabled && (
+                          <RequestOptionsSection className="pl-4" />
+                        )}
+                        {isRequestOptionsTransformEnabled &&
+                          isPayloadTransformEnabled && <FieldSeparator />}
+                        {isPayloadTransformEnabled && (
+                          <PayloadTransformSection className="pl-4" />
+                        )}
                       </div>
                     </AccordionContent>
                   </AccordionItem>

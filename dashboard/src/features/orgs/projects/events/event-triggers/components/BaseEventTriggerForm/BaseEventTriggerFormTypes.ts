@@ -85,7 +85,7 @@ export const validationSchema = z
         value: z.string().min(1),
       }),
     ),
-    requestTransform: z
+    requestOptionsTransform: z
       .object({
         method: z.enum(requestTransformMethods),
         urlTemplate: z.string().optional(),
@@ -149,6 +149,36 @@ export const validationSchema = z
     },
   );
 
+export const defaultRequestTransformValues: NonNullable<
+  BaseEventTriggerFormValues['requestOptionsTransform']
+> = {
+  method: 'POST',
+  urlTemplate: '',
+  queryParams: {
+    queryParamsType: 'Key Value',
+    queryParams: [],
+  },
+};
+
+export const defaultPayloadTransformValues: NonNullable<
+  BaseEventTriggerFormValues['payloadTransform']
+> = {
+  sampleInput: getSampleInputPayload({}),
+  requestBodyTransform: {
+    requestBodyTransformType: 'application/json',
+    template: JSON.stringify(
+      {
+        table: {
+          name: `{{$body.table.name}}`,
+          schema: `{{$body.table.schema}}`,
+        },
+      },
+      null,
+      2,
+    ),
+  },
+};
+
 export const defaultFormValues: BaseEventTriggerFormValues = {
   triggerName: '',
   dataSource: '',
@@ -165,30 +195,8 @@ export const defaultFormValues: BaseEventTriggerFormValues = {
   },
   headers: [],
   sampleContext: [],
-  requestTransform: {
-    method: 'POST',
-    urlTemplate: '',
-    queryParams: {
-      queryParamsType: 'Key Value',
-      queryParams: [],
-    },
-  },
-  payloadTransform: {
-    sampleInput: getSampleInputPayload({}),
-    requestBodyTransform: {
-      requestBodyTransformType: 'application/json',
-      template: JSON.stringify(
-        {
-          table: {
-            name: `{{$body.table.name}}`,
-            schema: `{{$body.table.schema}}`,
-          },
-        },
-        null,
-        2,
-      ),
-    },
-  },
+  requestOptionsTransform: undefined,
+  payloadTransform: undefined,
 };
 
 export type BaseEventTriggerFormValues = z.infer<typeof validationSchema>;

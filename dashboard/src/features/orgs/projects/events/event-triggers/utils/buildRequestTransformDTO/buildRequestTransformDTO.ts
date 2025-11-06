@@ -8,24 +8,25 @@ export default function buildRequestTransformDTO(
   const requestTransform: RequestTransformation = {
     version: 2,
     template_engine: 'Kriti',
-    url: `{{$base_url}}${formValues.requestTransform?.urlTemplate ?? ''}`,
+    url: `{{$base_url}}${formValues.requestOptionsTransform?.urlTemplate ?? ''}`,
   };
 
   let queryParams;
   if (
-    formValues.requestTransform?.queryParams.queryParamsType === 'Key Value'
+    formValues.requestOptionsTransform?.queryParams.queryParamsType ===
+    'Key Value'
   ) {
     const { queryParams: queryParamsList } =
-      formValues.requestTransform.queryParams;
+      formValues.requestOptionsTransform.queryParams;
     queryParams = queryParamsList.reduce((acc, item) => {
       acc[item.key] = item.value;
       return acc;
     }, {});
   } else if (
-    formValues.requestTransform?.queryParams.queryParamsType ===
+    formValues.requestOptionsTransform?.queryParams.queryParamsType ===
     'URL string template'
   ) {
-    queryParams = formValues.requestTransform.queryParams.queryParamsURL;
+    queryParams = formValues.requestOptionsTransform.queryParams.queryParamsURL;
   }
   requestTransform.query_params = queryParams;
 
