@@ -6,7 +6,7 @@ import (
 
 const format = time.RFC1123
 
-type Time time.Time
+type Time time.Time //nolint:recvcheck
 
 func (dt *Time) UnmarshalText(text []byte) error {
 	if len(text) == 0 || string(text) == `""` {
@@ -24,12 +24,12 @@ func (dt *Time) UnmarshalText(text []byte) error {
 	return nil
 }
 
-func (dt *Time) String() string {
-	if time.Time(*dt).IsZero() {
+func (dt Time) String() string {
+	if time.Time(dt).IsZero() {
 		return ""
 	}
 
-	return time.Time(*dt).Format(format)
+	return time.Time(dt).Format(format)
 }
 
 func Date(year int, month time.Month, day, hour, minute, sec, nsec int, loc *time.Location) Time {
