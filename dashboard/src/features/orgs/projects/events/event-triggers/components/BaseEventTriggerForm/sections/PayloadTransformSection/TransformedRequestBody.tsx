@@ -22,7 +22,7 @@ export default function TransformedRequestBody() {
     () =>
       debounce((nextArgs: TestWebhookTransformArgs) => {
         setDebouncedArgs(nextArgs);
-      }, 5000),
+      }, 2000),
     [],
   );
 
