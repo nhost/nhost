@@ -34,6 +34,8 @@ export default function TransformedRequestBody() {
   const { data, isLoading, error } =
     useTestWebhookTransformQuery(debouncedArgs);
 
+  const canRun = Boolean(debouncedArgs.webhook_url);
+
   return (
     <Field>
       <FieldLabel className="text-foreground">
@@ -43,7 +45,17 @@ export default function TransformedRequestBody() {
         Sample request body to be delivered based on your input and
         transformation template.
       </FieldDescription>
-      {isLoading && <Skeleton className="h-[250px] w-full max-w-lg" />}
+      {!canRun && (
+        <Alert variant="destructive" className="max-w-lg">
+          <AlertTitle>Webhook URL not configured</AlertTitle>
+          <AlertDescription>
+            Please configure your webhook URL to generate request body transform
+          </AlertDescription>
+        </Alert>
+      )}
+      {canRun && isLoading && (
+        <Skeleton className="h-[250px] w-full max-w-lg" />
+      )}
       {error && (
         <Alert variant="destructive" className="max-w-lg">
           <AlertTitle>Error with webhook handler</AlertTitle>

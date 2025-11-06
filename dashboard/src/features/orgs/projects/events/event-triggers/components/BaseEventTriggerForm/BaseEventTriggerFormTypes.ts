@@ -46,9 +46,15 @@ export const validationSchema = z
         message:
           'Trigger name can only contain alphanumeric characters, underscores, and hyphens',
       }),
-    dataSource: z.string({ required_error: 'Data source is required' }),
-    tableName: z.string({ required_error: 'Table name is required' }),
-    tableSchema: z.string({ required_error: 'Schema required' }),
+    dataSource: z
+      .string({ required_error: 'Data source is required' })
+      .min(1, { message: 'Data source is required' }),
+    tableName: z
+      .string({ required_error: 'Table name is required' })
+      .min(1, { message: 'Table name is required' }),
+    tableSchema: z
+      .string({ required_error: 'Schema required' })
+      .min(1, { message: 'Schema is required' }),
     webhook: z.string().min(1, { message: 'Webhook is required' }),
     triggerOperations: z
       .array(z.enum(ALL_TRIGGER_OPERATIONS))

@@ -94,7 +94,7 @@ export default function PayloadTransformSection({
                   </IconTooltip>
                 </FieldDescription>
                 <Button
-                  className="flex flex-row items-center gap-2"
+                  className="flex flex-row items-center gap-2 text-foreground"
                   size="sm"
                   variant="outline"
                   type="button"

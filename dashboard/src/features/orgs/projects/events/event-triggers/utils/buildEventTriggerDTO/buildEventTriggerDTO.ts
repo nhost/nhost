@@ -1,4 +1,5 @@
 import type { BaseEventTriggerFormValues } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerFormTypes';
+import { buildRequestTransformDTO } from '@/features/orgs/projects/events/event-triggers/utils/buildRequestTransformDTO';
 import type { CreateEventTriggerArgs } from '@/utils/hasura-api/generated/schemas';
 import type { OperationSpec } from '@/utils/hasura-api/generated/schemas/operationSpec';
 
@@ -55,6 +56,8 @@ export default function buildEventTriggerDTO({
 
   const enable_manual = formValues.triggerOperations.includes('manual');
 
+  const request_transform = buildRequestTransformDTO(formValues);
+
   return {
     name: formValues.triggerName,
     source: formValues.dataSource,
@@ -71,5 +74,6 @@ export default function buildEventTriggerDTO({
     retry_conf,
     enable_manual,
     replace: isEdit,
+    request_transform,
   };
 }
