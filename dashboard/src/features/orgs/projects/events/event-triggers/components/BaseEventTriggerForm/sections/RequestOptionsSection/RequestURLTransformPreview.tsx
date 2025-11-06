@@ -21,7 +21,7 @@ export default function RequestURLTransformPreview() {
     () =>
       debounce((nextArgs: TestWebhookTransformArgs) => {
         setDebouncedArgs(nextArgs);
-      }, 2000),
+      }, 500),
     [],
   );
 

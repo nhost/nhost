@@ -17,7 +17,7 @@ export default function KeyValueQueryParams() {
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
-    name: 'requestTransform.queryParams.queryParams',
+    name: 'requestOptionsTransform.queryParams.queryParams',
   });
 
   return (
@@ -53,13 +53,13 @@ export default function KeyValueQueryParams() {
             className="grid grid-flow-row grid-cols-9 items-center gap-2"
           >
             <Controller
-              name={`requestTransform.queryParams.queryParams.${index}.key`}
+              name={`requestOptionsTransform.queryParams.queryParams.${index}.key`}
               control={form.control}
               render={({ field: controllerField, fieldState }) => (
                 <Field data-invalid={fieldState.invalid} className="col-span-3">
                   <Input
                     {...controllerField}
-                    id={`requestTransform.queryParams.queryParams.${index}.key`}
+                    id={`requestOptionsTransform.queryParams.queryParams.${index}.key`}
                     aria-invalid={fieldState.invalid}
                     placeholder="Key"
                     className="text-foreground"
@@ -74,7 +74,7 @@ export default function KeyValueQueryParams() {
             <span className="col-span-1 text-center text-foreground">:</span>
             <div className="col-span-4 flex items-center">
               <Controller
-                name={`requestTransform.queryParams.queryParams.${index}.value`}
+                name={`requestOptionsTransform.queryParams.queryParams.${index}.value`}
                 control={form.control}
                 render={({ field: controllerField, fieldState }) => (
                   <Field
@@ -83,7 +83,7 @@ export default function KeyValueQueryParams() {
                   >
                     <Input
                       {...controllerField}
-                      id={`requestTransform.queryParams.queryParams.${index}.value`}
+                      id={`requestOptionsTransform.queryParams.queryParams.${index}.value`}
                       aria-invalid={fieldState.invalid}
                       placeholder="Value"
                       className="text-foreground"
