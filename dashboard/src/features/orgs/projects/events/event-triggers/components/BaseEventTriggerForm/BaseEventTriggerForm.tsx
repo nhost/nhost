@@ -56,7 +56,7 @@ import {
   ALL_TRIGGER_OPERATIONS,
   defaultFormValues,
   defaultPayloadTransformValues,
-  defaultRequestTransformValues,
+  defaultRequestOptionsTransformValues,
   updateTriggerOnOptions,
   validationSchema,
   type BaseEventTriggerFormInitialData,
@@ -148,7 +148,7 @@ export default function BaseEventTriggerForm({
     }
   };
 
-  console.log(watch());
+  // console.log(watch());
 
   const handleDiscardChanges = () => {
     setShowUnsavedChangesDialog(false);
@@ -545,7 +545,7 @@ export default function BaseEventTriggerForm({
                     className="px-6"
                   >
                     <AccordionTrigger className="text-base text-foreground">
-                      Configure REST Connectors
+                      Configure Transformation
                     </AccordionTrigger>
                     <AccordionContent>
                       <div className="flex flex-col gap-8 border-l">
@@ -563,7 +563,7 @@ export default function BaseEventTriggerForm({
                                   setValue(
                                     'requestOptionsTransform',
                                     enabled
-                                      ? defaultRequestTransformValues
+                                      ? defaultRequestOptionsTransformValues
                                       : undefined,
                                     { shouldDirty: true },
                                   );
@@ -600,7 +600,8 @@ export default function BaseEventTriggerForm({
                             </Field>
                           </FieldGroup>
                         </FieldSet>
-                        <FieldSeparator />
+                        {(isRequestOptionsTransformEnabled ||
+                          isPayloadTransformEnabled) && <FieldSeparator />}
                         {isRequestOptionsTransformEnabled && (
                           <RequestOptionsSection className="pl-4" />
                         )}

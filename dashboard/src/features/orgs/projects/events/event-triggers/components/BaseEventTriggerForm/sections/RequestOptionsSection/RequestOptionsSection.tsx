@@ -34,7 +34,9 @@ export default function RequestOptionsSection({
   const form = useFormContext<BaseEventTriggerFormValues>();
   const { watch } = form;
 
-  const queryParamsType = watch('requestTransform.queryParams.queryParamsType');
+  const queryParamsType = watch(
+    'requestOptionsTransform.queryParams.queryParamsType',
+  );
 
   return (
     <FieldSet className={className}>
@@ -44,7 +46,7 @@ export default function RequestOptionsSection({
       </FieldDescription>
       <FieldGroup className="flex flex-col gap-8">
         <Controller
-          name="requestTransform.method"
+          name="requestOptionsTransform.method"
           control={form.control}
           render={({ field, fieldState }) => (
             <FieldSet
@@ -70,11 +72,11 @@ export default function RequestOptionsSection({
                   >
                     <RadioGroupItem
                       value={requestTransformMethod}
-                      id={`request-transform-method-${requestTransformMethod}`}
+                      id={`request-options-transform-method-${requestTransformMethod}`}
                       aria-invalid={fieldState.invalid}
                     />
                     <FieldLabel
-                      htmlFor={`request-transform-method-${requestTransformMethod}`}
+                      htmlFor={`request-options-transform-method-${requestTransformMethod}`}
                       className="font-normal text-foreground"
                     >
                       {requestTransformMethod}
@@ -87,12 +89,12 @@ export default function RequestOptionsSection({
           )}
         />
         <Controller
-          name="requestTransform.urlTemplate"
+          name="requestOptionsTransform.urlTemplate"
           control={form.control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid} className="max-w-lg">
               <FieldLabel
-                htmlFor="requestTransform.urlTemplate"
+                htmlFor="requestOptionsTransform.urlTemplate"
                 className="text-foreground"
               >
                 Request URL Template
@@ -103,7 +105,7 @@ export default function RequestOptionsSection({
                 </InputGroupAddon>
                 <InputGroupInput
                   {...field}
-                  id="requestTransform.urlTemplate"
+                  id="requestOptionsTransform.urlTemplate"
                   aria-invalid={fieldState.invalid}
                   placeholder="URL Template (Optional)..."
                   className="w-full pl-2 text-foreground"
@@ -117,7 +119,7 @@ export default function RequestOptionsSection({
           )}
         />
         <Controller
-          name="requestTransform.queryParams.queryParamsType"
+          name="requestOptionsTransform.queryParams.queryParamsType"
           control={form.control}
           render={({ field, fieldState }) => (
             <FieldSet
@@ -145,11 +147,11 @@ export default function RequestOptionsSection({
                     >
                       <RadioGroupItem
                         value={requestTransformQueryParamsType}
-                        id={`request-transform-query-params-type-${requestTransformQueryParamsType}`}
+                        id={`request-options-transform-query-params-type-${requestTransformQueryParamsType}`}
                         aria-invalid={fieldState.invalid}
                       />
                       <FieldLabel
-                        htmlFor={`request-transform-query-params-type-${requestTransformQueryParamsType}`}
+                        htmlFor={`request-options-transform-query-params-type-${requestTransformQueryParamsType}`}
                         className="font-normal text-foreground"
                       >
                         {requestTransformQueryParamsType}

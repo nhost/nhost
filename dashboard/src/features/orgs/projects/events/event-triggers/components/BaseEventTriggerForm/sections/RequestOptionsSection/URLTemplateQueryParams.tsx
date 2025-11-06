@@ -8,13 +8,13 @@ export default function URLTemplateQueryParams() {
 
   return (
     <Controller
-      name="requestTransform.queryParams.queryParamsURL"
+      name="requestOptionsTransform.queryParams.queryParamsURL"
       control={form.control}
       render={({ field, fieldState }) => (
         <Field data-invalid={fieldState.invalid}>
           <Textarea
             {...field}
-            id="requestTransform.queryParams.queryParamsURL"
+            id="requestOptionsTransform.queryParams.queryParamsURL"
             aria-invalid={fieldState.invalid}
             placeholder={`You can also use Kriti Template here to customise the query parameter string.
 

@@ -149,7 +149,7 @@ export const validationSchema = z
     },
   );
 
-export const defaultRequestTransformValues: NonNullable<
+export const defaultRequestOptionsTransformValues: NonNullable<
   BaseEventTriggerFormValues['requestOptionsTransform']
 > = {
   method: 'POST',

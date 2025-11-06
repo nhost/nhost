@@ -142,7 +142,11 @@ export default function HeadersSection({ className }: HeadersSectionProps) {
                       {...controllerField}
                       id={`headers.${index}.value`}
                       aria-invalid={fieldState.invalid}
-                      placeholder="Header value"
+                      placeholder={
+                        field.type === 'fromValue'
+                          ? 'Header value'
+                          : 'Env variable'
+                      }
                       className="relative rounded-l-none text-foreground focus:z-10"
                       autoComplete="off"
                     />
