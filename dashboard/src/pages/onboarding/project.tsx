@@ -140,6 +140,7 @@ export default function OnboardingProjectPage() {
 
           // clear onboarding flow and redirect to project dashboard
           sessionStorage.removeItem('onboarding');
+          sessionStorage.setItem('newProject', JSON.stringify({ subdomain }));
           router.push(`/orgs/${selectedOrg?.slug}/projects/${subdomain}`);
         }
       },
