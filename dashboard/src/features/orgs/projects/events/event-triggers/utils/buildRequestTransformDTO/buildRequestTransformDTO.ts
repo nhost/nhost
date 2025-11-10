@@ -4,12 +4,23 @@ import type { RequestTransformation } from '@/utils/hasura-api/generated/schemas
 
 export default function buildRequestTransformDTO(
   formValues: BaseEventTriggerFormValues,
-): RequestTransformation {
+): RequestTransformation | undefined {
+  if (!formValues.requestOptionsTransform && !formValues.payloadTransform) {
+    return undefined;
+  }
+
   const requestTransform: RequestTransformation = {
     version: 2,
     template_engine: 'Kriti',
-    url: `{{$base_url}}${formValues.requestOptionsTransform?.urlTemplate ?? ''}`,
+    ...(formValues.requestOptionsTransform && {
+      method: formValues.requestOptionsTransform.method,
+    }),
   };
+  const urlTemplate = formValues.requestOptionsTransform?.urlTemplate;
+
+  if (isNotEmptyValue(urlTemplate)) {
+    requestTransform.url = `{{$base_url}}${urlTemplate}`;
+  }
 
   let queryParams;
   if (
@@ -28,7 +39,9 @@ export default function buildRequestTransformDTO(
   ) {
     queryParams = formValues.requestOptionsTransform.queryParams.queryParamsURL;
   }
-  requestTransform.query_params = queryParams;
+  if (isNotEmptyValue(queryParams)) {
+    requestTransform.query_params = queryParams;
+  }
 
   const requestBodyTransform =
     formValues.payloadTransform?.requestBodyTransform;
@@ -57,6 +70,12 @@ export default function buildRequestTransformDTO(
             },
             {},
           ),
+        };
+        requestTransform.request_headers = {
+          add_headers: {
+            'content-type': 'application/x-www-form-urlencoded',
+          },
+          remove_headers: ['content-type'],
         };
         break;
       default: {

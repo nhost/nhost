@@ -3,6 +3,11 @@ import {
   type BaseEventTriggerFormInitialData,
   type BaseEventTriggerFormValues,
 } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerFormTypes';
+import {
+  DEFAULT_NUM_RETRIES,
+  DEFAULT_RETRY_INTERVAL_SECONDS,
+  DEFAULT_RETRY_TIMEOUT_SECONDS,
+} from '@/features/orgs/projects/events/event-triggers/constants';
 import type { EventTriggerViewModel } from '@/features/orgs/projects/events/event-triggers/types';
 import { getSampleInputPayload } from '@/features/orgs/projects/events/event-triggers/utils/getSampleInputPayload';
 import type { RequestTransformation } from '@/utils/hasura-api/generated/schemas';
@@ -10,6 +15,41 @@ import {
   isBodyTransform,
   isHeaderWithEnvValue,
 } from '@/utils/hasura-api/guards';
+
+const getRequestOptionsTransform = (
+  requestTransform?: RequestTransformation,
+): BaseEventTriggerFormValues['requestOptionsTransform'] => {
+  if (!requestTransform) {
+    return undefined;
+  }
+
+  let queryParams;
+  if (typeof requestTransform?.query_params === 'string') {
+    queryParams = {
+      queryParamsType: 'URL string template',
+      queryParamsURL: requestTransform.query_params,
+    };
+  } else if (typeof requestTransform?.query_params === 'object') {
+    queryParams = {
+      queryParamsType: 'Key Value',
+      queryParams: Object.entries(requestTransform.query_params).map(
+        ([key, value]) => ({
+          key,
+          value,
+        }),
+      ),
+    };
+  }
+  const urlTemplate = requestTransform?.url
+    ? requestTransform.url.replace(/^\{\{\$base_url\}\}/, '')
+    : '';
+
+  return {
+    urlTemplate,
+    method: requestTransform?.method ?? 'POST',
+    queryParams,
+  };
+};
 
 const getFormPayloadTransform = (
   requestTransform?: RequestTransformation,
@@ -104,26 +144,7 @@ export default function parseEventTriggerFormInitialData(
 
   const requestTransform = eventTrigger.request_transform;
 
-  let queryParams;
-  if (typeof requestTransform?.query_params === 'string') {
-    queryParams = {
-      queryParamsType: 'URL string template',
-      queryParamsURL: requestTransform.query_params,
-    };
-  } else if (typeof requestTransform?.query_params === 'object') {
-    queryParams = {
-      queryParamsType: 'Key Value',
-      queryParams: Object.entries(requestTransform.query_params).map(
-        ([key, value]) => ({
-          key,
-          value,
-        }),
-      ),
-    };
-  }
-  const urlTemplate = requestTransform?.url
-    ? requestTransform.url.replace(/^\{\{\$base_url\}\}/, '')
-    : '';
+  const requestOptionsTransform = getRequestOptionsTransform(requestTransform);
 
   const payloadTransform = getFormPayloadTransform(requestTransform);
 
@@ -137,17 +158,15 @@ export default function parseEventTriggerFormInitialData(
     updateTriggerOn,
     updateTriggerColumns,
     retryConf: {
-      numRetries: eventTrigger.retry_conf.num_retries ?? 0,
-      intervalSec: eventTrigger.retry_conf.interval_sec ?? 10,
-      timeoutSec: eventTrigger.retry_conf.timeout_sec ?? 60,
+      numRetries: eventTrigger.retry_conf.num_retries ?? DEFAULT_NUM_RETRIES,
+      intervalSec:
+        eventTrigger.retry_conf.interval_sec ?? DEFAULT_RETRY_INTERVAL_SECONDS,
+      timeoutSec:
+        eventTrigger.retry_conf.timeout_sec ?? DEFAULT_RETRY_TIMEOUT_SECONDS,
     },
     headers,
     sampleContext: [],
-    requestOptionsTransform: {
-      urlTemplate,
-      method: requestTransform?.method ?? 'POST',
-      queryParams,
-    },
-    payloadTransform,
+    ...(requestOptionsTransform ? { requestOptionsTransform } : {}),
+    ...(payloadTransform ? { payloadTransform } : {}),
   };
 }

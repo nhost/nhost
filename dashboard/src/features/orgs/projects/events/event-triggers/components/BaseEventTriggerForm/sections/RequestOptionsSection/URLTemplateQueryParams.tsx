@@ -21,13 +21,6 @@ export default function URLTemplateQueryParams() {
 e.g. {{concat(["userId=", $session_variables["x-hasura-user-id"]])}}`}
             className="min-h-[120px] max-w-lg text-foreground"
           />
-          {/* <FieldDescription>
-            You can also use Kriti Template here to customise the query
-            parameter string.
-            <br />
-            e.g.{' '}
-            {`{{concat(["userId=", $session_variables["x-hasura-user-id"]])}}`}
-          </FieldDescription> */}
           {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
         </Field>
       )}
