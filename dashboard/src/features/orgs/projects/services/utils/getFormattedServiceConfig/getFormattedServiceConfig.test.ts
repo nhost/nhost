@@ -3,7 +3,7 @@ import getFormattedServiceConfig from './getFormattedServiceConfig';
 
 describe('getFormattedServiceConfig', () => {
   it('pghero config should be formatted correctly', () => {
-    const pgheroConfig = {
+    const pgheroFormValues = {
       name: 'pghero',
       image: 'docker.io/ankane/pghero:latest',
       command: [],
@@ -46,7 +46,9 @@ describe('getFormattedServiceConfig', () => {
       storage: [],
     } as unknown as ServiceFormValues;
 
-    const formattedConfig = getFormattedServiceConfig({ values: pgheroConfig });
+    const formattedConfig = getFormattedServiceConfig({
+      values: pgheroFormValues,
+    });
 
     const expected = {
       name: 'pghero',
