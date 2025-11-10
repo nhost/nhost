@@ -20,7 +20,6 @@ export default function CreateEventTriggerForm({
   const { data: resourceVersion } = useGetMetadataResourceVersion();
 
   const handleSubmit = async (data: BaseEventTriggerFormValues) => {
-    // console.log('submitData', data);
     const eventTriggerDTO = buildEventTriggerDTO({ formValues: data });
     await execPromiseWithErrorToast(
       async () => {

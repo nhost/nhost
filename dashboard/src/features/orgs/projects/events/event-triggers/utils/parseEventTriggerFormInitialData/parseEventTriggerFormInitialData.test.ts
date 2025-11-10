@@ -3,40 +3,54 @@ import { describe, expect, it } from 'vitest';
 import parseEventTriggerFormInitialData from './parseEventTriggerFormInitialData';
 
 describe('parseEventTriggerFormInitialData', () => {
-  it.skip('should return empty array when tables have no event triggers', () => {
+  it('should return minimal form without request options/payload transform', () => {
     const eventTrigger: EventTriggerViewModel = {
-      name: 'user_created',
-      dataSource: 'default',
-      table: { name: 'users', schema: 'public' },
-      webhook_from_env: 'SERVICE_URL',
-      retry_conf: {
-        num_retries: 0,
-        interval_sec: 10,
-        timeout_sec: 60,
-      },
+      name: 'triggerName',
       definition: {
+        delete: {
+          columns: '*',
+        },
         enable_manual: false,
         insert: {
           columns: '*',
         },
+        update: {
+          columns: '*',
+        },
+      },
+      retry_conf: {
+        interval_sec: 10,
+        num_retries: 0,
+        timeout_sec: 60,
+      },
+      webhook: 'https://httpbin.org/post',
+      dataSource: 'default',
+      table: {
+        name: 'triggertable',
+        schema: 'public',
       },
     };
+
     const result = parseEventTriggerFormInitialData(eventTrigger);
+
     expect(result).toEqual({
-      triggerName: 'user_created',
+      triggerName: 'triggerName',
       dataSource: 'default',
-      tableName: 'users',
+      tableName: 'triggertable',
       tableSchema: 'public',
-      webhook: '{{SERVICE_URL}}',
-      triggerOperations: ['insert'],
+      webhook: 'https://httpbin.org/post',
+      triggerOperations: ['insert', 'update', 'delete'],
+      updateTriggerOn: 'all',
+      updateTriggerColumns: [],
       retryConf: {
         numRetries: 0,
         intervalSec: 10,
         timeoutSec: 60,
       },
-      updateTriggerOn: 'all',
-      updateTriggerColumns: [],
       headers: [],
+      sampleContext: [],
     });
   });
+
+  it('should return minimal form without env variables in webhook');
 });

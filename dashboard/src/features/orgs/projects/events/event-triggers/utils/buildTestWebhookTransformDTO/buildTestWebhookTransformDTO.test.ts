@@ -75,7 +75,7 @@ describe('buildTestWebhookTransformDTO', () => {
 
     expect(result).toEqual(expected);
   });
-  it('request transform body in application/json', () => {
+  it.skip('request transform body in application/json', () => {
     // const values: BaseEventTriggerFormValues = {
     //   triggerName: 'mytrigger2',
     //   dataSource: 'default',

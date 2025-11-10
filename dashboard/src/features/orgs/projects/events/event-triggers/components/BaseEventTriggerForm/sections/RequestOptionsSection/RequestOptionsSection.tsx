@@ -15,8 +15,8 @@ import {
 } from '@/components/ui/v3/input-group';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
 import {
+  requestOptionsTransformQueryParamsTypeOptions,
   requestTransformMethods,
-  requestTransformQueryParamsTypeOptions,
   type BaseEventTriggerFormValues,
 } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerFormTypes';
 import { Controller, useFormContext } from 'react-hook-form';
@@ -132,29 +132,29 @@ export default function RequestOptionsSection({
               <RadioGroup
                 name={field.name}
                 value={field.value}
-                defaultValue={requestTransformQueryParamsTypeOptions[0]}
+                defaultValue={requestOptionsTransformQueryParamsTypeOptions[0]}
                 onValueChange={field.onChange}
                 aria-invalid={fieldState.invalid}
                 className="flex flex-row items-center gap-12"
               >
-                {requestTransformQueryParamsTypeOptions.map(
-                  (requestTransformQueryParamsType) => (
+                {requestOptionsTransformQueryParamsTypeOptions.map(
+                  (requestOptionsTransformQueryParamsType) => (
                     <Field
-                      key={requestTransformQueryParamsType}
+                      key={requestOptionsTransformQueryParamsType}
                       orientation="horizontal"
                       data-invalid={fieldState.invalid}
                       className="w-auto"
                     >
                       <RadioGroupItem
-                        value={requestTransformQueryParamsType}
-                        id={`request-options-transform-query-params-type-${requestTransformQueryParamsType}`}
+                        value={requestOptionsTransformQueryParamsType}
+                        id={`request-options-transform-query-params-type-${requestOptionsTransformQueryParamsType}`}
                         aria-invalid={fieldState.invalid}
                       />
                       <FieldLabel
-                        htmlFor={`request-options-transform-query-params-type-${requestTransformQueryParamsType}`}
+                        htmlFor={`request-options-transform-query-params-type-${requestOptionsTransformQueryParamsType}`}
                         className="font-normal text-foreground"
                       >
-                        {requestTransformQueryParamsType}
+                        {requestOptionsTransformQueryParamsType}
                       </FieldLabel>
                     </Field>
                   ),

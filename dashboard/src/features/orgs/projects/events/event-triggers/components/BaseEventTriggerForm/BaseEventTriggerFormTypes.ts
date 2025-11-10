@@ -1,3 +1,8 @@
+import {
+  DEFAULT_NUM_RETRIES,
+  DEFAULT_RETRY_INTERVAL_SECONDS,
+  DEFAULT_RETRY_TIMEOUT_SECONDS,
+} from '@/features/orgs/projects/events/event-triggers/constants';
 import { getSampleInputPayload } from '@/features/orgs/projects/events/event-triggers/utils/getSampleInputPayload';
 import { z } from 'zod';
 
@@ -31,7 +36,7 @@ export const requestTransformMethods = [
   'DELETE',
 ] as const;
 
-export const requestTransformQueryParamsTypeOptions = [
+export const requestOptionsTransformQueryParamsTypeOptions = [
   'Key Value',
   'URL string template',
 ] as const;
@@ -64,9 +69,15 @@ export const validationSchema = z
     updateTriggerOn: z.enum(updateTriggerOnOptions).optional(),
     updateTriggerColumns: z.array(z.string()).optional(),
     retryConf: z.object({
-      numRetries: z.coerce.number().min(0).default(0),
-      intervalSec: z.coerce.number().min(0).default(10),
-      timeoutSec: z.coerce.number().min(0).default(60),
+      numRetries: z.coerce.number().min(0).default(DEFAULT_NUM_RETRIES),
+      intervalSec: z.coerce
+        .number()
+        .min(0)
+        .default(DEFAULT_RETRY_INTERVAL_SECONDS),
+      timeoutSec: z.coerce
+        .number()
+        .min(0)
+        .default(DEFAULT_RETRY_TIMEOUT_SECONDS),
     }),
     headers: z.array(
       z.object({
@@ -92,7 +103,7 @@ export const validationSchema = z
         queryParams: z.discriminatedUnion('queryParamsType', [
           z.object({
             queryParamsType: z.literal(
-              requestTransformQueryParamsTypeOptions[0],
+              requestOptionsTransformQueryParamsTypeOptions[0],
             ),
             queryParams: z.array(
               z.object({
@@ -103,7 +114,7 @@ export const validationSchema = z
           }),
           z.object({
             queryParamsType: z.literal(
-              requestTransformQueryParamsTypeOptions[1],
+              requestOptionsTransformQueryParamsTypeOptions[1],
             ),
             queryParamsURL: z.string(),
           }),
@@ -166,16 +177,12 @@ export const defaultPayloadTransformValues: NonNullable<
   sampleInput: getSampleInputPayload({}),
   requestBodyTransform: {
     requestBodyTransformType: 'application/json',
-    template: JSON.stringify(
-      {
-        table: {
-          name: `{{$body.table.name}}`,
-          schema: `{{$body.table.schema}}`,
-        },
-      },
-      null,
-      2,
-    ),
+    template: `{
+  "table": {
+    "name": {{$body.table.name}},
+    "schema": {{$body.table.schema}}
+  }
+}`,
   },
 };
 
@@ -189,9 +196,9 @@ export const defaultFormValues: BaseEventTriggerFormValues = {
   updateTriggerOn: 'all',
   updateTriggerColumns: [],
   retryConf: {
-    numRetries: 0,
-    intervalSec: 10,
-    timeoutSec: 60,
+    numRetries: DEFAULT_NUM_RETRIES,
+    intervalSec: DEFAULT_RETRY_INTERVAL_SECONDS,
+    timeoutSec: DEFAULT_RETRY_TIMEOUT_SECONDS,
   },
   headers: [],
   sampleContext: [],

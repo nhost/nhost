@@ -100,7 +100,7 @@ export default function BaseEventTriggerForm({
     defaultValues: initialData ?? defaultFormValues,
   });
 
-  const { watch, reset, setValue } = form;
+  const { watch, reset, setValue, formState } = form;
 
   useEffect(() => {
     if (initialData) {
@@ -147,8 +147,6 @@ export default function BaseEventTriggerForm({
       onOpenChange(newOpen);
     }
   };
-
-  // console.log(watch());
 
   const handleDiscardChanges = () => {
     setShowUnsavedChangesDialog(false);

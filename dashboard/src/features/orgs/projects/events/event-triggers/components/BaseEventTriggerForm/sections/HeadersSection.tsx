@@ -32,10 +32,13 @@ interface HeadersSectionProps {
 
 export default function HeadersSection({ className }: HeadersSectionProps) {
   const form = useFormContext<BaseEventTriggerFormValues>();
+  const { watch } = form;
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: 'headers',
   });
+
+  const types = watch('headers').map((header) => header.type);
 
   return (
     <FieldSet className={className}>
@@ -143,7 +146,7 @@ export default function HeadersSection({ className }: HeadersSectionProps) {
                       id={`headers.${index}.value`}
                       aria-invalid={fieldState.invalid}
                       placeholder={
-                        field.type === 'fromValue'
+                        types[index] === 'fromValue'
                           ? 'Header value'
                           : 'Env variable'
                       }
