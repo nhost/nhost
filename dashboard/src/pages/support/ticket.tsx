@@ -87,7 +87,7 @@ function TicketPage() {
     : null;
 
   const slaLevel = selectedOrg?.plan?.slaLevel;
-  const canSetPriority = slaLevel && slaLevel !== 'none';
+  const canSetPriority = slaLevel != null && slaLevel > 0;
 
   useEffect(() => {
     if (!!selectedOrganization && !canSetPriority && priority !== 'low') {

@@ -9,7 +9,7 @@ export type CreateTicketRequest = {
   description: string;
   userName: string;
   userEmail: string;
-  slaLevel: string | null;
+  slaLevel: number | null;
 };
 
 export type CreateTicketResponse = {
