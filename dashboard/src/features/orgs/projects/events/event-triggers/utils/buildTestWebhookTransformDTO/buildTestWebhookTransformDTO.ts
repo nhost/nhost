@@ -32,6 +32,6 @@ export default function buildTestWebhookTransformDTO({
     session_variables: {
       'x-hasura-admin-secret': 'xxx',
     },
-    request_transform: requestTransform,
+    request_transform: requestTransform ?? {},
   };
 }
