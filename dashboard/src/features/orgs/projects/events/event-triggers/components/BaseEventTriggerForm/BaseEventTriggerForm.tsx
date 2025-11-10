@@ -100,7 +100,7 @@ export default function BaseEventTriggerForm({
     defaultValues: initialData ?? defaultFormValues,
   });
 
-  const { watch, reset, setValue, formState } = form;
+  const { watch, reset, setValue } = form;
 
   useEffect(() => {
     if (initialData) {
