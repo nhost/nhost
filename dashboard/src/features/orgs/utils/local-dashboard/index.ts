@@ -54,6 +54,7 @@ export const localOrganization: Org = {
     isFree: false,
     price: 25,
     featureMaxDbSize: 1,
+    slaLevel: 0,
   },
   apps: [localApplication],
   members: [],
