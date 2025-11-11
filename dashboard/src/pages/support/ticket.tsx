@@ -106,7 +106,7 @@ function TicketPage() {
   };
 
   const handleSubmit = async (formValues: CreateTicketFormValues) => {
-    const { project, services, priority, subject, description } = formValues;
+    const { project, services, priority: priorityValue, subject, description } = formValues;
 
     const currentSlaLevel = selectedOrg?.plan?.slaLevel ?? null;
     await execPromiseWithErrorToast(
@@ -120,7 +120,7 @@ function TicketPage() {
           body: JSON.stringify({
             project,
             services,
-            priority,
+            priority: priorityValue,
             subject,
             description,
             userName: user?.displayName,
@@ -284,16 +284,16 @@ function TicketPage() {
                         title: 'Urgent',
                         description: 'Production system offline',
                       },
-                    ].map((priority) => (
+                    ].map((p) => (
                       <Option
-                        key={priority.title}
-                        label={priority.title}
-                        value={priority.title.toLowerCase()}
+                        key={p.title}
+                        label={p.title}
+                        value={p.title.toLowerCase()}
                       >
                         <div className="flex flex-col">
-                          <span>{priority.title}</span>
+                          <span>{p.title}</span>
                           <span className="font-mono text-xs opacity-50">
-                            {priority.description}
+                            {p.description}
                           </span>
                         </div>
                       </Option>
