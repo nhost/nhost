@@ -84,13 +84,13 @@ const (
 	OauthTokenEchangeFailed         ErrorResponseError = "oauth-token-echange-failed"
 	PasswordInHibpDatabase          ErrorResponseError = "password-in-hibp-database"
 	PasswordTooShort                ErrorResponseError = "password-too-short"
+	ProviderAccountAlreadyLinked    ErrorResponseError = "provider-account-already-linked"
 	RedirectToNotAllowed            ErrorResponseError = "redirectTo-not-allowed"
 	RoleNotAllowed                  ErrorResponseError = "role-not-allowed"
 	SignupDisabled                  ErrorResponseError = "signup-disabled"
 	TotpAlreadyActive               ErrorResponseError = "totp-already-active"
 	UnverifiedUser                  ErrorResponseError = "unverified-user"
 	UserNotAnonymous                ErrorResponseError = "user-not-anonymous"
-	UserProviderAlreadyLinked       ErrorResponseError = "user-provider-already-linked"
 )
 
 // Defines values for IdTokenProvider.

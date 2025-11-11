@@ -30,7 +30,7 @@ var (
 	ErrInvalidOTP                      = &APIError{api.InvalidRequest}
 	ErrUserProviderNotFound            = &APIError{api.InvalidRequest}
 	ErrSecurityKeyNotFound             = &APIError{api.InvalidRequest}
-	ErrUserProviderAlreadyLinked       = &APIError{api.UserProviderAlreadyLinked}
+	ErrProviderAccountAlreadyLinked    = &APIError{api.ProviderAccountAlreadyLinked}
 	ErrEmailAlreadyInUse               = &APIError{api.EmailAlreadyInUse}
 	ErrForbiddenAnonymous              = &APIError{api.ForbiddenAnonymous}
 	ErrInternalServerError             = &APIError{api.InternalServerError}
@@ -272,7 +272,7 @@ func isSensitive(err api.ErrorResponseError) bool {
 		api.OauthProfileFetchFailed,
 		api.CannotSendSms,
 		api.OauthProviderError,
-		api.UserProviderAlreadyLinked:
+		api.ProviderAccountAlreadyLinked:
 		return false
 	}
 
@@ -472,11 +472,11 @@ func (ctrl *Controller) getError(err *APIError) ErrorResponse { //nolint:gocyclo
 			Error:   err.t,
 			Message: "Invalid or expired OTP",
 		}
-	case api.UserProviderAlreadyLinked:
+	case api.ProviderAccountAlreadyLinked:
 		return ErrorResponse{
 			Status:  http.StatusBadRequest,
 			Error:   err.t,
-			Message: "User provider is already linked",
+			Message: "This provider account is already linked to a user",
 		}
 	}
 
