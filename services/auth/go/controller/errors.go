@@ -279,7 +279,9 @@ func isSensitive(err api.ErrorResponseError) bool {
 	return false
 }
 
-func (ctrl *Controller) getError(err *APIError) ErrorResponse { //nolint:gocyclo,cyclop,funlen
+func (ctrl *Controller) getError( //nolint:gocyclo,cyclop,funlen,maintidx
+	err *APIError,
+) ErrorResponse {
 	invalidRequest := ErrorResponse{
 		Status:  http.StatusBadRequest,
 		Error:   api.InvalidRequest,
