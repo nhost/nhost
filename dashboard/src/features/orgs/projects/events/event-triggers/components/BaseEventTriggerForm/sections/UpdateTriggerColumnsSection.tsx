@@ -1,24 +1,23 @@
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-  FieldLegend,
-  FieldSet,
-} from '@/components/ui/v3/field';
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/v3/form';
 import { Skeleton } from '@/components/ui/v3/skeleton';
 import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
 import type { BaseEventTriggerFormValues } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerFormTypes';
 import { isEmptyValue } from '@/lib/utils';
-import { Controller, useFormContext } from 'react-hook-form';
+import { useFormContext } from 'react-hook-form';
 
 export default function UpdateTriggerColumnsSection() {
-  const { watch, control } = useFormContext<BaseEventTriggerFormValues>();
+  const form = useFormContext<BaseEventTriggerFormValues>();
 
-  const selectedTableSchema = watch('tableSchema');
-  const selectedTableName = watch('tableName');
+  const selectedTableSchema = form.watch('tableSchema');
+  const selectedTableName = form.watch('tableName');
 
   const canFetchColumns = Boolean(selectedTableSchema && selectedTableName);
 
@@ -64,56 +63,53 @@ export default function UpdateTriggerColumnsSection() {
   }
 
   return (
-    <Controller
+    <FormField
+      control={form.control}
       name="updateTriggerColumns"
-      control={control}
-      render={({ field, fieldState }) => (
-        <FieldSet data-invalid={fieldState.invalid}>
-          <FieldLegend variant="label" className="text-foreground">
-            List of columns to trigger
-          </FieldLegend>
-          <FieldGroup
-            data-slot="checkbox-group"
-            className="flex flex-row items-center justify-start !gap-8"
-          >
+      render={({ field }) => (
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium text-foreground">
+              List of columns to trigger
+            </h3>
+          </div>
+          <div className="flex flex-row items-center justify-start gap-8">
             {isEmptyValue(columns) ? (
               <p className="text-muted-foreground">
                 Select a table first to see the columns
               </p>
             ) : (
               columns.map((column) => (
-                <Field
+                <FormItem
                   key={column}
-                  orientation="horizontal"
-                  data-invalid={fieldState.invalid}
-                  className="w-auto"
+                  className="flex w-auto flex-row items-center space-x-2 space-y-0"
                 >
-                  <Checkbox
-                    id={`column-on-update-${column}`}
-                    name={field.name}
-                    aria-invalid={fieldState.invalid}
-                    checked={field.value?.includes(column)}
-                    onCheckedChange={(checked) => {
-                      const newValue = checked
-                        ? [...(field.value ?? []), column]
-                        : (field.value ?? []).filter(
-                            (value) => value !== column,
-                          );
-                      field.onChange(newValue);
-                    }}
-                  />
-                  <FieldLabel
+                  <FormControl>
+                    <Checkbox
+                      id={`column-on-update-${column}`}
+                      checked={field.value?.includes(column)}
+                      onCheckedChange={(checked) => {
+                        const newValue = checked
+                          ? [...(field.value ?? []), column]
+                          : (field.value ?? []).filter(
+                              (value) => value !== column,
+                            );
+                        field.onChange(newValue);
+                      }}
+                    />
+                  </FormControl>
+                  <FormLabel
                     htmlFor={`column-on-update-${column}`}
-                    className="font-normal text-foreground"
+                    className="cursor-pointer font-normal text-foreground"
                   >
                     {column}
-                  </FieldLabel>
-                </Field>
+                  </FormLabel>
+                </FormItem>
               ))
             )}
-          </FieldGroup>
-          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-        </FieldSet>
+          </div>
+          <FormMessage />
+        </div>
       )}
     />
   );

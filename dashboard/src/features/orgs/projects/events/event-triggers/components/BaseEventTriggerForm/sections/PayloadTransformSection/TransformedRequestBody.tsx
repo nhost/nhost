@@ -1,5 +1,5 @@
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
-import { Field, FieldDescription, FieldLabel } from '@/components/ui/v3/field';
+import { FormDescription, FormItem, FormLabel } from '@/components/ui/v3/form';
 import { Skeleton } from '@/components/ui/v3/skeleton';
 import { Textarea } from '@/components/ui/v3/textarea';
 import type { BaseEventTriggerFormValues } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerFormTypes';
@@ -37,14 +37,14 @@ export default function TransformedRequestBody() {
   const canRun = Boolean(debouncedArgs.webhook_url);
 
   return (
-    <Field>
-      <FieldLabel className="text-foreground">
+    <FormItem>
+      <FormLabel className="text-foreground">
         Transformed Request Body
-      </FieldLabel>
-      <FieldDescription>
+      </FormLabel>
+      <FormDescription>
         Sample request body to be delivered based on your input and
         transformation template.
-      </FieldDescription>
+      </FormDescription>
       {!canRun && (
         <Alert variant="destructive" className="max-w-lg">
           <AlertTitle>Webhook URL not configured</AlertTitle>
@@ -69,6 +69,6 @@ export default function TransformedRequestBody() {
           disabled
         />
       )}
-    </Field>
+    </FormItem>
   );
 }

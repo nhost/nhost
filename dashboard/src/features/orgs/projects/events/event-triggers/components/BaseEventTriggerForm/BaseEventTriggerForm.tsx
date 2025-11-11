@@ -1,3 +1,5 @@
+import { FormInput } from '@/components/form/FormInput';
+import { FormSelect } from '@/components/form/FormSelect';
 import {
   Accordion,
   AccordionContent,
@@ -17,25 +19,16 @@ import {
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import {
-  Field,
-  FieldContent,
-  FieldDescription,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-  FieldLegend,
-  FieldSeparator,
-  FieldSet,
-} from '@/components/ui/v3/field';
-import { Input } from '@/components/ui/v3/input';
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/v3/form';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/v3/select';
+import { SelectItem } from '@/components/ui/v3/select';
 import { Separator } from '@/components/ui/v3/separator';
 import {
   Sheet,
@@ -46,12 +39,12 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/v3/sheet-drawer';
-import { IconTooltip } from '@/features/orgs/projects/common/components/IconTooltip';
+import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import { useGetMetadata } from '@/features/orgs/projects/common/hooks/useGetMetadata';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useMemo, useState } from 'react';
-import { Controller, FormProvider, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import {
   ALL_TRIGGER_OPERATIONS,
   defaultFormValues,
@@ -185,355 +178,218 @@ export default function BaseEventTriggerForm({
             <SheetDescription>{descriptionText}</SheetDescription>
           </SheetHeader>
           <Separator />
-          <FormProvider key={open ? 'open' : 'closed'} {...form}>
+          <Form key={open ? 'open' : 'closed'} {...form}>
             <form
-              id="create-event-trigger-form"
+              id="event-trigger-form"
               onSubmit={form.handleSubmit(onSubmit)}
-              className="flex flex-auto flex-col gap-4 overflow-y-auto pt-7"
+              className="flex flex-auto flex-col gap-4 overflow-y-auto pb-4"
             >
-              <FieldGroup className="flex flex-auto">
-                <FieldSet className="px-6">
-                  <Controller
-                    name="triggerName"
+              <div className="flex flex-auto flex-col">
+                <div className="flex flex-col gap-6 p-6 text-foreground">
+                  <FormInput
                     control={form.control}
-                    render={({ field, fieldState }) => (
-                      <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel
-                          className="text-foreground"
-                          htmlFor="triggerName"
+                    name="triggerName"
+                    label="Trigger Name"
+                    placeholder="trigger_name"
+                    disabled={isEditing}
+                    className="max-w-lg"
+                    autoComplete="off"
+                  />
+                  <div className="flex max-w-lg flex-row justify-between gap-6 lg:gap-20">
+                    <FormSelect
+                      control={form.control}
+                      name="dataSource"
+                      label="Data Source"
+                      placeholder="Select"
+                      disabled={isEditing}
+                      className="min-w-[120px] max-w-60 text-foreground"
+                    >
+                      {dataSources?.map((dataSource) => (
+                        <SelectItem key={dataSource} value={dataSource}>
+                          {dataSource}
+                        </SelectItem>
+                      ))}
+                    </FormSelect>
+                    <div className="flex w-full flex-row items-center justify-start">
+                      <div className="w-auto">
+                        <FormSelect
+                          control={form.control}
+                          name="tableSchema"
+                          label="Schema"
+                          placeholder="Select"
+                          disabled={!selectedDataSource || isEditing}
+                          className="relative w-full min-w-[120px] max-w-32 rounded-r-none border-r-0 text-foreground focus:z-10"
                         >
-                          Trigger Name
-                        </FieldLabel>
-                        <Input
-                          {...field}
-                          disabled={isEditing}
-                          id="triggerName"
-                          aria-invalid={fieldState.invalid}
-                          placeholder="trigger_name"
-                          className="max-w-lg text-foreground"
-                          autoComplete="off"
-                        />
-                        {fieldState.invalid && (
-                          <FieldError errors={[fieldState.error]} />
-                        )}
-                      </Field>
+                          {schemas?.map((tableSchema) => (
+                            <SelectItem key={tableSchema} value={tableSchema}>
+                              {tableSchema}
+                            </SelectItem>
+                          ))}
+                        </FormSelect>
+                      </div>
+                      <FormSelect
+                        control={form.control}
+                        name="tableName"
+                        label="Table"
+                        placeholder="Select"
+                        disabled={!selectedTableSchema || isEditing}
+                        className="relative w-full min-w-[120px] max-w-72 rounded-l-none text-foreground focus:z-10"
+                      >
+                        {tables?.map((tableName) => (
+                          <SelectItem key={tableName} value={tableName}>
+                            {tableName}
+                          </SelectItem>
+                        ))}
+                      </FormSelect>
+                    </div>
+                  </div>
+                </div>
+                <Separator />
+                <div className="flex flex-col gap-6 p-6">
+                  <FormField
+                    control={form.control}
+                    name="triggerOperations"
+                    render={({ field }) => (
+                      <div className="flex flex-col gap-6">
+                        <div className="space-y-2">
+                          <h3 className="text-sm font-medium text-foreground">
+                            Trigger Operations
+                          </h3>
+                          <FormDescription>
+                            Trigger event on these table operations
+                          </FormDescription>
+                        </div>
+                        <div className="flex flex-row items-center justify-start gap-8">
+                          <FormDescription className="flex flex-row items-center gap-1">
+                            On{' '}
+                            <TextWithTooltip
+                              text={selectedTableName}
+                              containerClassName="max-w-40"
+                              className="font-mono"
+                            />{' '}
+                            table:
+                          </FormDescription>
+                          {ALL_TRIGGER_OPERATIONS.map((operation) => (
+                            <FormItem
+                              key={operation}
+                              className="flex w-auto flex-row items-center space-x-2 space-y-0"
+                            >
+                              <FormControl>
+                                <Checkbox
+                                  id={`trigger-operation-${operation}`}
+                                  checked={field.value.includes(operation)}
+                                  onCheckedChange={(checked) => {
+                                    const newValue = checked
+                                      ? [...field.value, operation]
+                                      : field.value.filter(
+                                          (value) => value !== operation,
+                                        );
+                                    field.onChange(newValue);
+                                  }}
+                                />
+                              </FormControl>
+                              <FormLabel
+                                htmlFor={`trigger-operation-${operation}`}
+                                className="cursor-pointer font-normal text-foreground"
+                              >
+                                {operation}
+                              </FormLabel>
+                            </FormItem>
+                          ))}
+                        </div>
+                        <FormMessage />
+                      </div>
                     )}
                   />
-                  <FieldGroup className="flex max-w-lg flex-row justify-between gap-6 lg:gap-20">
-                    <Controller
-                      name="dataSource"
-                      control={form.control}
-                      render={({ field, fieldState }) => (
-                        <Field
-                          orientation="responsive"
-                          data-invalid={fieldState.invalid}
-                          className="flex w-auto"
-                        >
-                          <FieldContent className="flex flex-initial">
-                            <FieldLabel
-                              htmlFor="dataSource"
-                              className="text-foreground"
-                            >
-                              Data Source
-                            </FieldLabel>
-                          </FieldContent>
-                          <Select
-                            name={field.name}
-                            value={field.value}
-                            disabled={isEditing}
-                            onValueChange={field.onChange}
-                          >
-                            <SelectTrigger
-                              id="dataSource"
-                              aria-invalid={fieldState.invalid}
-                              className="min-w-[120px] max-w-60 text-foreground"
-                            >
-                              <SelectValue placeholder="Select" />
-                            </SelectTrigger>
-                            <SelectContent position="item-aligned">
-                              {dataSources?.map((dataSource) => (
-                                <SelectItem key={dataSource} value={dataSource}>
-                                  {dataSource}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          {fieldState.invalid && (
-                            <FieldError errors={[fieldState.error]} />
-                          )}
-                        </Field>
-                      )}
-                    />
-                    <div className="flex w-full flex-row items-center justify-start">
-                      <Controller
-                        name="tableSchema"
-                        control={form.control}
-                        render={({ field, fieldState }) => (
-                          <Field
-                            orientation="responsive"
-                            data-invalid={fieldState.invalid}
-                            className="w-auto"
-                          >
-                            <FieldContent>
-                              <FieldLabel
-                                htmlFor="tableSchema"
-                                className="text-foreground"
-                              >
-                                Schema
-                              </FieldLabel>
-                            </FieldContent>
-                            <Select
-                              name={field.name}
-                              value={field.value}
-                              disabled={!selectedDataSource || isEditing}
-                              onValueChange={field.onChange}
-                            >
-                              <SelectTrigger
-                                id="tableSchema"
-                                aria-invalid={fieldState.invalid}
-                                className="relative w-full min-w-[120px] max-w-32 rounded-r-none border-r-0 text-foreground focus:z-10"
-                              >
-                                <SelectValue placeholder="Select" />
-                              </SelectTrigger>
-                              <SelectContent position="item-aligned">
-                                {schemas?.map((tableSchema) => (
-                                  <SelectItem
-                                    key={tableSchema}
-                                    value={tableSchema}
-                                  >
-                                    {tableSchema}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <div className="min-h-5">
-                              {fieldState.invalid && (
-                                <FieldError errors={[fieldState.error]} />
-                              )}
-                            </div>
-                          </Field>
-                        )}
-                      />
-                      <Controller
-                        name="tableName"
-                        control={form.control}
-                        render={({ field, fieldState }) => (
-                          <Field
-                            orientation="responsive"
-                            data-invalid={fieldState.invalid}
-                          >
-                            <FieldContent>
-                              <FieldLabel
-                                htmlFor="tableName"
-                                className="text-foreground"
-                              >
-                                Table
-                              </FieldLabel>
-                            </FieldContent>
-                            <Select
-                              name={field.name}
-                              value={field.value}
-                              onValueChange={field.onChange}
-                              disabled={!selectedTableSchema || isEditing}
-                            >
-                              <SelectTrigger
-                                id="tableName"
-                                aria-invalid={fieldState.invalid}
-                                className="relative w-full min-w-[120px] max-w-72 rounded-l-none text-foreground focus:z-10"
-                              >
-                                <SelectValue placeholder="Select" />
-                              </SelectTrigger>
-                              <SelectContent position="item-aligned">
-                                {tables?.map((tableName) => (
-                                  <SelectItem key={tableName} value={tableName}>
-                                    {tableName}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <div className="min-h-5">
-                              {fieldState.invalid && (
-                                <FieldError errors={[fieldState.error]} />
-                              )}
-                            </div>
-                          </Field>
-                        )}
-                      />
-                    </div>
-                  </FieldGroup>
-                </FieldSet>
-                <FieldSeparator />
-                <Controller
-                  name="triggerOperations"
-                  control={form.control}
-                  render={({ field, fieldState }) => (
-                    <FieldSet
-                      data-invalid={fieldState.invalid}
-                      className="px-6"
-                    >
-                      <FieldLegend className="text-foreground">
-                        Trigger Operations
-                      </FieldLegend>
-                      <FieldDescription>
-                        Trigger event on these table operations
-                      </FieldDescription>
-                      <FieldGroup
-                        data-slot="checkbox-group"
-                        className="flex flex-row items-center justify-start !gap-8"
-                      >
-                        <FieldDescription className="flex flex-row items-center gap-1">
-                          On{' '}
-                          <TextWithTooltip
-                            text={selectedTableName}
-                            containerClassName="max-w-40"
-                            className="font-mono"
-                          />{' '}
-                          table:
-                        </FieldDescription>
-                        {ALL_TRIGGER_OPERATIONS.map((operation) => (
-                          <Field
-                            key={operation}
-                            orientation="horizontal"
-                            data-invalid={fieldState.invalid}
-                            className="w-auto"
-                          >
-                            <Checkbox
-                              id={`trigger-operation-${operation}`}
-                              name={field.name}
-                              aria-invalid={fieldState.invalid}
-                              checked={field.value.includes(operation)}
-                              onCheckedChange={(checked) => {
-                                const newValue = checked
-                                  ? [...field.value, operation]
-                                  : field.value.filter(
-                                      (value) => value !== operation,
-                                    );
-                                field.onChange(newValue);
-                              }}
-                            />
-                            <FieldLabel
-                              htmlFor={`trigger-operation-${operation}`}
-                              className="font-normal text-foreground"
-                            >
-                              {operation}
-                            </FieldLabel>
-                          </Field>
-                        ))}
-                      </FieldGroup>
-                      {fieldState.invalid && (
-                        <FieldError errors={[fieldState.error]} />
-                      )}
-                    </FieldSet>
-                  )}
-                />
-                {hasUpdateTrigger && (
-                  <FieldGroup className="flex flex-col gap-2 px-6">
-                    <Controller
-                      name="updateTriggerOn"
-                      control={form.control}
-                      render={({ field, fieldState }) => (
-                        <FieldSet data-invalid={fieldState.invalid}>
-                          <FieldLegend
-                            variant="label"
-                            className="text-foreground"
-                          >
-                            Trigger columns for update operation
-                          </FieldLegend>
-                          <FieldDescription>
-                            For update triggers, webhook will be triggered only
-                            when selected columns are modified
-                          </FieldDescription>
-                          <RadioGroup
-                            name={field.name}
-                            value={field.value}
-                            onValueChange={field.onChange}
-                            aria-invalid={fieldState.invalid}
-                            className="flex flex-row items-center gap-12"
-                          >
-                            {updateTriggerOnOptions.map(
-                              (updateTriggerOnValue) => (
-                                <Field
-                                  key={updateTriggerOnValue}
-                                  orientation="horizontal"
-                                  data-invalid={fieldState.invalid}
-                                  className="w-auto"
+                  {hasUpdateTrigger && (
+                    <>
+                      <div className="flex flex-col gap-6">
+                        <FormField
+                          control={form.control}
+                          name="updateTriggerOn"
+                          render={({ field }) => (
+                            <div className="space-y-4">
+                              <div className="space-y-2">
+                                <h3 className="text-sm font-medium text-foreground">
+                                  Trigger columns for update operation
+                                </h3>
+                                <FormDescription>
+                                  For update triggers, webhook will be triggered
+                                  only when selected columns are modified
+                                </FormDescription>
+                              </div>
+                              <FormControl>
+                                <RadioGroup
+                                  name={field.name}
+                                  value={field.value}
+                                  onValueChange={field.onChange}
+                                  className="flex flex-row items-center gap-12"
                                 >
-                                  <RadioGroupItem
-                                    value={updateTriggerOnValue}
-                                    id={`update-trigger-on-${updateTriggerOnValue}`}
-                                    aria-invalid={fieldState.invalid}
-                                  />
-                                  <FieldLabel
-                                    htmlFor={`update-trigger-on-${updateTriggerOnValue}`}
-                                    className="font-normal text-foreground"
-                                  >
-                                    {updateTriggerOnValue}
-                                  </FieldLabel>
-                                </Field>
-                              ),
-                            )}
-                          </RadioGroup>
-                          {fieldState.invalid && (
-                            <FieldError errors={[fieldState.error]} />
+                                  {updateTriggerOnOptions.map(
+                                    (updateTriggerOnValue) => (
+                                      <FormItem
+                                        key={updateTriggerOnValue}
+                                        className="flex w-auto flex-row items-center space-x-2 space-y-0"
+                                      >
+                                        <FormControl>
+                                          <RadioGroupItem
+                                            value={updateTriggerOnValue}
+                                            id={`update-trigger-on-${updateTriggerOnValue}`}
+                                          />
+                                        </FormControl>
+                                        <FormLabel
+                                          htmlFor={`update-trigger-on-${updateTriggerOnValue}`}
+                                          className="cursor-pointer font-normal text-foreground"
+                                        >
+                                          {updateTriggerOnValue}
+                                        </FormLabel>
+                                      </FormItem>
+                                    ),
+                                  )}
+                                </RadioGroup>
+                              </FormControl>
+                              <FormMessage />
+                            </div>
                           )}
-                        </FieldSet>
-                      )}
-                    />
-
-                    {hasToChooseUpdateTriggerColumns && (
-                      <UpdateTriggerColumnsSection />
-                    )}
-                  </FieldGroup>
-                )}
-                <FieldSeparator />
-                <Controller
-                  name="webhook"
-                  control={form.control}
-                  render={({ field, fieldState }) => (
-                    <FieldSet
-                      data-invalid={fieldState.invalid}
-                      className="px-6"
-                    >
-                      <FieldLegend className="flex flex-row items-center gap-2 text-foreground">
-                        Webhook (HTTP/S) Handler{' '}
-                        <FieldDescription>
-                          <IconTooltip>
-                            Environment variables and secrets are available
-                            using the {'{{VARIABLE}}'} tag.
-                          </IconTooltip>
-                        </FieldDescription>
-                      </FieldLegend>
-                      <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel
-                          htmlFor="webhook"
-                          className="text-foreground"
-                        >
-                          Webhook URL or template
-                        </FieldLabel>
-                        <Input
-                          {...field}
-                          id="webhook"
-                          aria-invalid={fieldState.invalid}
-                          placeholder="https://httpbin.org/post or {{MY_WEBHOOK_URL}}/handler"
-                          className="max-w-lg text-foreground"
                         />
-                        {fieldState.invalid && (
-                          <FieldError errors={[fieldState.error]} />
-                        )}
-                      </Field>
-                    </FieldSet>
+                      </div>
+                      {hasToChooseUpdateTriggerColumns && (
+                        <UpdateTriggerColumnsSection />
+                      )}
+                    </>
                   )}
-                />
-                <FieldSeparator />
+                </div>
+                <Separator />
+                <div className="flex flex-col gap-6 px-6 py-6 text-foreground">
+                  <div className="flex flex-row items-center gap-2">
+                    <h3 className="text-sm font-medium">
+                      Webhook (HTTP/S) Handler{' '}
+                    </h3>
+                    <FormDescription>
+                      <InfoTooltip>
+                        Environment variables and secrets are available using
+                        the {'{{VARIABLE}}'} tag.
+                      </InfoTooltip>
+                    </FormDescription>
+                  </div>
+                  <FormInput
+                    control={form.control}
+                    name="webhook"
+                    label="Webhook URL or template"
+                    placeholder="https://httpbin.org/post or {{MY_WEBHOOK_URL}}/handler"
+                    className="max-w-lg text-foreground"
+                  />
+                </div>
+                <Separator />
                 <Accordion type="multiple" className="">
                   <AccordionItem value="retry-configuration" className="px-6">
-                    <AccordionTrigger className="pt-0 text-base text-foreground">
+                    <AccordionTrigger className="text-base text-foreground">
                       Retry and Headers Settings
                     </AccordionTrigger>
                     <AccordionContent>
                       <div className="flex flex-col gap-8 border-l">
                         <RetryConfigurationSection className="pl-4" />
-                        <FieldSeparator />
+                        <Separator />
                         <HeadersSection className="pl-4" />
                       </div>
                     </AccordionContent>
@@ -547,64 +403,70 @@ export default function BaseEventTriggerForm({
                     </AccordionTrigger>
                     <AccordionContent>
                       <div className="flex flex-col gap-8 border-l">
-                        <FieldSet className="pl-4">
-                          <FieldLegend className="text-foreground">
-                            Enable Transformations
-                          </FieldLegend>
-                          <FieldGroup className="flex flex-row items-center gap-8">
-                            <Field orientation="horizontal" className="w-auto">
-                              <Checkbox
-                                id="enable-request-transform"
-                                checked={isRequestOptionsTransformEnabled}
-                                onCheckedChange={(checked) => {
-                                  const enabled = !!checked;
-                                  setValue(
-                                    'requestOptionsTransform',
-                                    enabled
-                                      ? defaultRequestOptionsTransformValues
-                                      : undefined,
-                                    { shouldDirty: true },
-                                  );
-                                }}
-                              />
-                              <FieldLabel
+                        <div className="space-y-4 pl-4">
+                          <div className="space-y-2">
+                            <h3 className="text-sm font-medium text-foreground">
+                              Enable Transformations
+                            </h3>
+                          </div>
+                          <div className="flex flex-row items-center gap-8">
+                            <FormItem className="flex w-auto flex-row items-center space-x-2 space-y-0">
+                              <FormControl>
+                                <Checkbox
+                                  id="enable-request-transform"
+                                  checked={isRequestOptionsTransformEnabled}
+                                  onCheckedChange={(checked) => {
+                                    const enabled = !!checked;
+                                    setValue(
+                                      'requestOptionsTransform',
+                                      enabled
+                                        ? defaultRequestOptionsTransformValues
+                                        : undefined,
+                                      { shouldDirty: true },
+                                    );
+                                  }}
+                                />
+                              </FormControl>
+                              <FormLabel
                                 htmlFor="enable-request-transform"
-                                className="font-normal text-foreground"
+                                className="cursor-pointer font-normal text-foreground"
                               >
                                 Request Options Transform
-                              </FieldLabel>
-                            </Field>
-                            <Field orientation="horizontal" className="w-auto">
-                              <Checkbox
-                                id="enable-payload-transform"
-                                checked={isPayloadTransformEnabled}
-                                onCheckedChange={(checked) => {
-                                  const enabled = !!checked;
-                                  setValue(
-                                    'payloadTransform',
-                                    enabled
-                                      ? defaultPayloadTransformValues
-                                      : undefined,
-                                    { shouldDirty: true },
-                                  );
-                                }}
-                              />
-                              <FieldLabel
+                              </FormLabel>
+                            </FormItem>
+                            <FormItem className="flex w-auto flex-row items-center space-x-2 space-y-0">
+                              <FormControl>
+                                <Checkbox
+                                  id="enable-payload-transform"
+                                  checked={isPayloadTransformEnabled}
+                                  onCheckedChange={(checked) => {
+                                    const enabled = !!checked;
+                                    setValue(
+                                      'payloadTransform',
+                                      enabled
+                                        ? defaultPayloadTransformValues
+                                        : undefined,
+                                      { shouldDirty: true },
+                                    );
+                                  }}
+                                />
+                              </FormControl>
+                              <FormLabel
                                 htmlFor="enable-payload-transform"
-                                className="font-normal text-foreground"
+                                className="cursor-pointer font-normal text-foreground"
                               >
                                 Payload Transform
-                              </FieldLabel>
-                            </Field>
-                          </FieldGroup>
-                        </FieldSet>
+                              </FormLabel>
+                            </FormItem>
+                          </div>
+                        </div>
                         {(isRequestOptionsTransformEnabled ||
-                          isPayloadTransformEnabled) && <FieldSeparator />}
+                          isPayloadTransformEnabled) && <Separator />}
                         {isRequestOptionsTransformEnabled && (
                           <RequestOptionsSection className="pl-4" />
                         )}
                         {isRequestOptionsTransformEnabled &&
-                          isPayloadTransformEnabled && <FieldSeparator />}
+                          isPayloadTransformEnabled && <Separator />}
                         {isPayloadTransformEnabled && (
                           <PayloadTransformSection className="pl-4" />
                         )}
@@ -612,9 +474,9 @@ export default function BaseEventTriggerForm({
                     </AccordionContent>
                   </AccordionItem>
                 </Accordion>
-              </FieldGroup>
+              </div>
             </form>
-          </FormProvider>
+          </Form>
           <SheetFooter className="flex-shrink-0 border-t p-2">
             <div className="flex flex-1 flex-row items-start justify-between gap-2">
               <SheetClose asChild>
@@ -628,7 +490,7 @@ export default function BaseEventTriggerForm({
               </SheetClose>
               <ButtonWithLoading
                 type="submit"
-                form="create-event-trigger-form"
+                form="event-trigger-form"
                 loading={form.formState.isSubmitting}
                 disabled={
                   form.formState.isSubmitting || !form.formState.isDirty

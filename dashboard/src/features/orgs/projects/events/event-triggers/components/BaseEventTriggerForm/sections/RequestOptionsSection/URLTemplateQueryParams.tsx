@@ -1,28 +1,34 @@
-import { Field, FieldError } from '@/components/ui/v3/field';
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from '@/components/ui/v3/form';
 import { Textarea } from '@/components/ui/v3/textarea';
 import { type BaseEventTriggerFormValues } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerFormTypes';
-import { Controller, useFormContext } from 'react-hook-form';
+import { useFormContext } from 'react-hook-form';
 
 export default function URLTemplateQueryParams() {
   const form = useFormContext<BaseEventTriggerFormValues>();
 
   return (
-    <Controller
+    <FormField
       name="requestOptionsTransform.queryParams.queryParamsURL"
       control={form.control}
-      render={({ field, fieldState }) => (
-        <Field data-invalid={fieldState.invalid}>
-          <Textarea
-            {...field}
-            id="requestOptionsTransform.queryParams.queryParamsURL"
-            aria-invalid={fieldState.invalid}
-            placeholder={`You can also use Kriti Template here to customise the query parameter string.
+      render={({ field }) => (
+        <FormItem>
+          <FormControl>
+            <Textarea
+              {...field}
+              id="requestOptionsTransform.queryParams.queryParamsURL"
+              placeholder={`You can also use Kriti Template here to customise the query parameter string.
 
 e.g. {{concat(["userId=", $session_variables["x-hasura-user-id"]])}}`}
-            className="min-h-[120px] max-w-lg text-foreground"
-          />
-          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-        </Field>
+              className="min-h-[120px] max-w-lg text-foreground aria-[invalid=true]:border-destructive aria-[invalid=true]:focus:border-destructive aria-[invalid=true]:focus:ring-destructive/20"
+            />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
       )}
     />
   );

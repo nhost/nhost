@@ -1,16 +1,7 @@
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-  FieldLegend,
-  FieldSet,
-} from '@/components/ui/v3/field';
-import { Input } from '@/components/ui/v3/input';
-import { IconTooltip } from '@/features/orgs/projects/common/components/IconTooltip';
+import { FormInput } from '@/components/form/FormInput';
+import { FormDescription } from '@/components/ui/v3/form';
 import type { BaseEventTriggerFormValues } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerFormTypes';
-import { Controller, useFormContext } from 'react-hook-form';
+import { useFormContext } from 'react-hook-form';
 
 interface RetryConfigurationSectionProps {
   className?: string;
@@ -22,101 +13,55 @@ export default function RetryConfigurationSection({
   const form = useFormContext<BaseEventTriggerFormValues>();
 
   return (
-    <FieldSet className={className}>
-      <FieldLegend className="text-foreground">Retry Configuration</FieldLegend>
-      <FieldDescription>
-        Configuration to retry the webhook in case of failure
-      </FieldDescription>
-      <FieldGroup className="flex flex-col gap-8 lg:flex-row">
-        <Controller
-          name="retryConf.numRetries"
-          control={form.control}
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <div className="flex flex-row items-center gap-2">
-                <FieldLabel htmlFor="numRetries" className="text-foreground">
-                  Number of Retries
-                </FieldLabel>
-                <FieldDescription>
-                  <IconTooltip>
-                    Number of retries that Hasura makes to the webhook in case
-                    of failure
-                  </IconTooltip>
-                </FieldDescription>
-              </div>
-              <Input
-                {...field}
-                id="numRetries"
-                aria-invalid={fieldState.invalid}
-                placeholder="number of retries (default: 0)"
-                type="number"
-                min="0"
-                className="text-foreground"
-                autoComplete="off"
-              />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </Field>
-          )}
-        />
-        <Controller
-          name="retryConf.intervalSec"
-          control={form.control}
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <div className="flex flex-row items-center gap-2">
-                <FieldLabel htmlFor="intervalSec" className="text-foreground">
-                  Retry interval (in seconds)
-                </FieldLabel>
-                <FieldDescription>
-                  <IconTooltip>
-                    Interval in seconds between each retry of the webhook
-                  </IconTooltip>
-                </FieldDescription>
-              </div>
-              <Input
-                {...field}
-                id="intervalSec"
-                aria-invalid={fieldState.invalid}
-                placeholder="retry interval (default: 10)"
-                type="number"
-                min="0"
-                className="text-foreground"
-                autoComplete="off"
-              />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </Field>
-          )}
-        />
-        <Controller
-          name="retryConf.timeoutSec"
-          control={form.control}
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <div className="flex flex-row items-center gap-2">
-                <FieldLabel htmlFor="timeoutSec" className="text-foreground">
-                  Timeout (in seconds)
-                </FieldLabel>
-                <FieldDescription>
-                  <IconTooltip>
-                    Request timeout (in seconds) for the webhook
-                  </IconTooltip>
-                </FieldDescription>
-              </div>
-              <Input
-                {...field}
-                id="timeoutSec"
-                aria-invalid={fieldState.invalid}
-                placeholder="timeout (default: 60)"
-                type="number"
-                min="0"
-                className="text-foreground"
-                autoComplete="off"
-              />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </Field>
-          )}
-        />
-      </FieldGroup>
-    </FieldSet>
+    <div className={`flex flex-col gap-6 ${className}`}>
+      <div className="space-y-2">
+        <h3 className="text-base font-medium text-foreground">
+          Retry Configuration
+        </h3>
+        <FormDescription>
+          Configuration to retry the webhook in case of failure
+        </FormDescription>
+      </div>
+      <div className="flex flex-col gap-8 text-foreground lg:flex-row">
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-row items-center gap-2">
+            <FormInput
+              control={form.control}
+              name="retryConf.numRetries"
+              label="Number of Retries"
+              placeholder="number of retries (default: 0)"
+              type="number"
+              className="text-foreground"
+              autoComplete="off"
+              infoTooltip="Number of retries that Hasura makes to the webhook in case of failure"
+            />
+          </div>
+        </div>
+        <div className="flex flex-col gap-2">
+          <FormInput
+            control={form.control}
+            name="retryConf.intervalSec"
+            label="Retry interval (in seconds)"
+            placeholder="retry interval (default: 10)"
+            type="number"
+            className="text-foreground"
+            autoComplete="off"
+            infoTooltip="Interval in seconds between each retry of the webhook"
+          />
+        </div>
+        <div className="flex flex-col gap-2">
+          <FormInput
+            control={form.control}
+            name="retryConf.timeoutSec"
+            label="Timeout (in seconds)"
+            placeholder="timeout (default: 60)"
+            type="number"
+            className="text-foreground"
+            autoComplete="off"
+            infoTooltip="Request timeout (in seconds) for the webhook"
+          />
+        </div>
+      </div>
+    </div>
   );
 }

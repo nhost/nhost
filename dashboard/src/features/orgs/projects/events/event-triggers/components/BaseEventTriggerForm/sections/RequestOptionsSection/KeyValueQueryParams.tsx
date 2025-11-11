@@ -1,16 +1,9 @@
+import { FormInput } from '@/components/form/FormInput';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { Button } from '@/components/ui/v3/button';
-import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLegend,
-  FieldSet,
-} from '@/components/ui/v3/field';
-import { Input } from '@/components/ui/v3/input';
 import { type BaseEventTriggerFormValues } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerFormTypes';
-import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
+import { useFieldArray, useFormContext } from 'react-hook-form';
 
 export default function KeyValueQueryParams() {
   const form = useFormContext<BaseEventTriggerFormValues>();
@@ -21,14 +14,11 @@ export default function KeyValueQueryParams() {
   });
 
   return (
-    <FieldSet>
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <FieldLegend
-          variant="label"
-          className="flex flex-row items-center gap-2 text-foreground"
-        >
+        <h4 className="text-sm font-medium text-foreground">
           Key Value Query Params{' '}
-        </FieldLegend>
+        </h4>
         <Button
           type="button"
           variant="ghost"
@@ -39,7 +29,7 @@ export default function KeyValueQueryParams() {
           <PlusIcon className="size-5" />
         </Button>
       </div>
-      <FieldGroup className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4">
         {fields.length > 0 && (
           <div className="grid grid-flow-row grid-cols-9 text-sm+ text-foreground">
             <span className="col-span-3">Key</span>
@@ -47,53 +37,30 @@ export default function KeyValueQueryParams() {
             <span className="col-span-4">Value</span>
           </div>
         )}
-        {fields.map((field, index) => (
+        {fields.map((fieldItem, index) => (
           <div
-            key={field.id}
+            key={fieldItem.id}
             className="grid grid-flow-row grid-cols-9 items-center gap-2"
           >
-            <Controller
-              name={`requestOptionsTransform.queryParams.queryParams.${index}.key`}
-              control={form.control}
-              render={({ field: controllerField, fieldState }) => (
-                <Field data-invalid={fieldState.invalid} className="col-span-3">
-                  <Input
-                    {...controllerField}
-                    id={`requestOptionsTransform.queryParams.queryParams.${index}.key`}
-                    aria-invalid={fieldState.invalid}
-                    placeholder="Key"
-                    className="text-foreground"
-                    autoComplete="off"
-                  />
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
-            />
-            <span className="col-span-1 text-center text-foreground">:</span>
-            <div className="col-span-4 flex items-center">
-              <Controller
-                name={`requestOptionsTransform.queryParams.queryParams.${index}.value`}
+            <div className="col-span-3">
+              <FormInput
                 control={form.control}
-                render={({ field: controllerField, fieldState }) => (
-                  <Field
-                    data-invalid={fieldState.invalid}
-                    className="col-span-4"
-                  >
-                    <Input
-                      {...controllerField}
-                      id={`requestOptionsTransform.queryParams.queryParams.${index}.value`}
-                      aria-invalid={fieldState.invalid}
-                      placeholder="Value"
-                      className="text-foreground"
-                      autoComplete="off"
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
+                name={`requestOptionsTransform.queryParams.queryParams.${index}.key`}
+                label=""
+                placeholder="Key"
+                className="text-foreground"
+                autoComplete="off"
+              />
+            </div>
+            <span className="col-span-1 text-center text-foreground">:</span>
+            <div className="col-span-4">
+              <FormInput
+                control={form.control}
+                name={`requestOptionsTransform.queryParams.queryParams.${index}.value`}
+                label=""
+                placeholder="Value"
+                className="text-foreground"
+                autoComplete="off"
               />
             </div>
 
@@ -108,7 +75,7 @@ export default function KeyValueQueryParams() {
             </Button>
           </div>
         ))}
-      </FieldGroup>
-    </FieldSet>
+      </div>
+    </div>
   );
 }

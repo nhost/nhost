@@ -1,32 +1,25 @@
+import { FormInput } from '@/components/form/FormInput';
+import { FormSelect } from '@/components/form/FormSelect';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { Button } from '@/components/ui/v3/button';
 import {
-  Field,
-  FieldContent,
-  FieldDescription,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-  FieldLegend,
-  FieldSet,
-} from '@/components/ui/v3/field';
-import { Input } from '@/components/ui/v3/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/v3/select';
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/v3/form';
+import { SelectItem } from '@/components/ui/v3/select';
 import { Textarea } from '@/components/ui/v3/textarea';
-import { IconTooltip } from '@/features/orgs/projects/common/components/IconTooltip';
+import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
 import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
 import type { BaseEventTriggerFormValues } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerFormTypes';
 import { getSampleInputPayload } from '@/features/orgs/projects/events/event-triggers/utils/getSampleInputPayload';
 import { RefreshCw } from 'lucide-react';
-import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
+import { useFieldArray, useFormContext } from 'react-hook-form';
 import TransformedRequestBody from './TransformedRequestBody';
 
 interface PayloadTransformSectionProps {
@@ -70,29 +63,28 @@ export default function PayloadTransformSection({
   };
 
   return (
-    <FieldSet className={className}>
-      <FieldLegend className="text-foreground">Payload Transform</FieldLegend>
-      <FieldDescription>
-        Change the payload to adapt to your API&apos;s expected format.
-      </FieldDescription>
-      <FieldGroup className="flex flex-col gap-12">
-        <Controller
+    <div className={`flex flex-col gap-6 ${className}`}>
+      <div className="space-y-2">
+        <h3 className="text-base font-medium text-foreground">
+          Payload Transform
+        </h3>
+        <FormDescription>
+          Change the payload to adapt to your API&apos;s expected format.
+        </FormDescription>
+      </div>
+      <div className="flex flex-col gap-12">
+        <FormField
           name="payloadTransform.sampleInput"
           control={form.control}
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
+          render={({ field }) => (
+            <FormItem>
               <div className="flex flex-row items-center gap-2">
-                <FieldLabel
-                  htmlFor="payloadTransform.sampleInput"
-                  className="text-foreground"
-                >
-                  Sample Input
-                </FieldLabel>
-                <FieldDescription>
-                  <IconTooltip>
+                <FormLabel className="text-foreground">Sample Input</FormLabel>
+                <FormDescription>
+                  <InfoTooltip>
                     <p>Sample input defined by your definition.</p>
-                  </IconTooltip>
-                </FieldDescription>
+                  </InfoTooltip>
+                </FormDescription>
                 <Button
                   className="flex flex-row items-center gap-2 text-foreground"
                   size="sm"
@@ -104,115 +96,87 @@ export default function PayloadTransformSection({
                   Refresh
                 </Button>
               </div>
-              <Textarea
-                {...field}
-                id="payloadTransform.sampleInput"
-                aria-invalid={fieldState.invalid}
-                className="min-h-[250px] max-w-lg font-mono text-foreground"
-              />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </Field>
+              <FormControl>
+                <Textarea
+                  {...field}
+                  id="payloadTransform.sampleInput"
+                  className="min-h-[250px] max-w-lg font-mono text-foreground aria-[invalid=true]:border-destructive aria-[invalid=true]:focus:border-destructive aria-[invalid=true]:focus:ring-destructive/20"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
           )}
         />
-        <FieldSet>
-          <FieldLegend variant="label" className="text-foreground">
-            Request Body Transform
-          </FieldLegend>
-          <div className="flex flex-row items-center justify-between gap-8">
-            <FieldDescription className="flex max-w-xs flex-row items-center gap-2">
-              The template which will transform your request body into the
-              required specification.{' '}
-              <div className="flex-1">
-                <IconTooltip>
+        <div className="space-y-4">
+          <div className="flex max-w-lg flex-row justify-between gap-4 text-foreground">
+            <div className="flex flex-row items-center gap-2">
+              <h4 className="text-sm font-medium text-foreground">
+                Request Body Transform
+              </h4>
+              <FormDescription className="flex flex-row items-center gap-2">
+                <InfoTooltip>
+                  <p>
+                    The template which will transform your request body into the
+                    required specification.
+                  </p>
                   <p>
                     You can use {'{{$body}}'} to access the original request
                     body
                   </p>
-                </IconTooltip>
-              </div>
-            </FieldDescription>
-            <Controller
-              name="payloadTransform.requestBodyTransform.requestBodyTransformType"
+                </InfoTooltip>
+              </FormDescription>
+            </div>
+            <FormSelect
               control={form.control}
-              render={({ field, fieldState }) => (
-                <Field
-                  orientation="responsive"
-                  data-invalid={fieldState.invalid}
-                  className="mr-1 flex w-auto"
+              name="payloadTransform.requestBodyTransform.requestBodyTransformType"
+              label="Transform Type"
+              placeholder="Select"
+              className="min-w-[120px] text-left text-foreground"
+            >
+              {[
+                'disabled',
+                'application/json',
+                'application/x-www-form-urlencoded',
+              ].map((requestBodyTransformType) => (
+                <SelectItem
+                  key={requestBodyTransformType}
+                  value={requestBodyTransformType}
                 >
-                  <FieldContent className="flex flex-initial">
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </FieldContent>
-                  <Select
-                    name={field.name}
-                    value={field.value}
-                    onValueChange={field.onChange}
-                  >
-                    <SelectTrigger
-                      id="payloadTransform.requestBodyTransform.requestBodyTransformType"
-                      aria-invalid={fieldState.invalid}
-                      className="min-w-[120px] text-left text-foreground"
-                    >
-                      <SelectValue placeholder="Select" />
-                    </SelectTrigger>
-                    <SelectContent position="item-aligned">
-                      {[
-                        'disabled',
-                        'application/json',
-                        'application/x-www-form-urlencoded',
-                      ].map((requestBodyTransformType) => (
-                        <SelectItem
-                          key={requestBodyTransformType}
-                          value={requestBodyTransformType}
-                        >
-                          {requestBodyTransformType}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </Field>
-              )}
-            />
+                  {requestBodyTransformType}
+                </SelectItem>
+              ))}
+            </FormSelect>
           </div>
           {values?.payloadTransform?.requestBodyTransform
             ?.requestBodyTransformType === 'application/json' && (
-            <Controller
+            <FormField
               name="payloadTransform.requestBodyTransform.template"
               control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel
-                    htmlFor="payloadTransform.requestBodyTransform.template"
-                    className="text-foreground"
-                  >
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-foreground">
                     Request Body Transform JSON Template
-                  </FieldLabel>
-                  <Textarea
-                    {...field}
-                    id="payloadTransform.requestBodyTransform.template"
-                    aria-invalid={fieldState.invalid}
-                    className="min-h-[250px] max-w-lg font-mono text-foreground"
-                  />
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
+                  </FormLabel>
+                  <FormControl>
+                    <Textarea
+                      {...field}
+                      id="payloadTransform.requestBodyTransform.template"
+                      className="min-h-[250px] max-w-lg font-mono text-foreground aria-[invalid=true]:border-destructive aria-[invalid=true]:focus:border-destructive aria-[invalid=true]:focus:ring-destructive/20"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
             />
           )}
           {values?.payloadTransform?.requestBodyTransform
             ?.requestBodyTransformType ===
             'application/x-www-form-urlencoded' && (
-            <FieldSet className="max-w-lg">
+            <div className="max-w-lg space-y-4">
               <div className="flex items-center justify-between">
-                <FieldLegend
-                  variant="label"
-                  className="flex flex-row items-center gap-2 text-foreground"
-                >
+                <h4 className="text-sm font-medium text-foreground">
                   Form Template
-                </FieldLegend>
+                </h4>
                 <Button
                   type="button"
                   variant="ghost"
@@ -223,7 +187,7 @@ export default function PayloadTransformSection({
                   <PlusIcon className="size-5" />
                 </Button>
               </div>
-              <FieldGroup className="flex flex-col gap-4">
+              <div className="flex flex-col gap-4">
                 {fields.length > 0 && (
                   <div className="grid grid-flow-row grid-cols-9 text-sm+ text-foreground">
                     <span className="col-span-3">Key</span>
@@ -231,58 +195,32 @@ export default function PayloadTransformSection({
                     <span className="col-span-4">Value</span>
                   </div>
                 )}
-                {fields.map((field, index) => (
+                {fields.map((fieldItem, index) => (
                   <div
-                    key={field.id}
+                    key={fieldItem.id}
                     className="grid grid-flow-row grid-cols-9 items-center gap-2"
                   >
-                    <Controller
-                      name={`payloadTransform.requestBodyTransform.formTemplate.${index}.key`}
-                      control={form.control}
-                      render={({ field: controllerField, fieldState }) => (
-                        <Field
-                          data-invalid={fieldState.invalid}
-                          className="col-span-3"
-                        >
-                          <Input
-                            {...controllerField}
-                            id={`payloadTransform.requestBodyTransform.formTemplate.${index}.key`}
-                            aria-invalid={fieldState.invalid}
-                            placeholder="Key"
-                            className="text-foreground"
-                            autoComplete="off"
-                          />
-                          {fieldState.invalid && (
-                            <FieldError errors={[fieldState.error]} />
-                          )}
-                        </Field>
-                      )}
-                    />
+                    <div className="col-span-3">
+                      <FormInput
+                        control={form.control}
+                        name={`payloadTransform.requestBodyTransform.formTemplate.${index}.key`}
+                        label=""
+                        placeholder="Key"
+                        className="text-foreground"
+                        autoComplete="off"
+                      />
+                    </div>
                     <span className="col-span-1 text-center text-foreground">
                       :
                     </span>
-                    <div className="col-span-4 flex items-center">
-                      <Controller
-                        name={`payloadTransform.requestBodyTransform.formTemplate.${index}.value`}
+                    <div className="col-span-4">
+                      <FormInput
                         control={form.control}
-                        render={({ field: controllerField, fieldState }) => (
-                          <Field
-                            data-invalid={fieldState.invalid}
-                            className="col-span-4"
-                          >
-                            <Input
-                              {...controllerField}
-                              id={`payloadTransform.requestBodyTransform.formTemplate.${index}.value`}
-                              aria-invalid={fieldState.invalid}
-                              placeholder="Value"
-                              className="text-foreground"
-                              autoComplete="off"
-                            />
-                            {fieldState.invalid && (
-                              <FieldError errors={[fieldState.error]} />
-                            )}
-                          </Field>
-                        )}
+                        name={`payloadTransform.requestBodyTransform.formTemplate.${index}.value`}
+                        label=""
+                        placeholder="Value"
+                        className="text-foreground"
+                        autoComplete="off"
                       />
                     </div>
 
@@ -297,8 +235,8 @@ export default function PayloadTransformSection({
                     </Button>
                   </div>
                 ))}
-              </FieldGroup>
-            </FieldSet>
+              </div>
+            </div>
           )}
           {values?.payloadTransform?.requestBodyTransform
             ?.requestBodyTransformType === 'disabled' && (
@@ -311,9 +249,9 @@ export default function PayloadTransformSection({
               </AlertDescription>
             </Alert>
           )}
-        </FieldSet>
+        </div>
         <TransformedRequestBody />
-      </FieldGroup>
-    </FieldSet>
+      </div>
+    </div>
   );
 }
