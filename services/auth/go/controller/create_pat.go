@@ -4,15 +4,15 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
-	"github.com/nhost/nhost/services/auth/go/middleware"
 	"github.com/nhost/nhost/services/auth/go/sql"
 )
 
 func (ctrl *Controller) CreatePAT( //nolint:ireturn
 	ctx context.Context, request api.CreatePATRequestObject,
 ) (api.CreatePATResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
 
 	user, apiErr := ctrl.wf.GetUserFromJWTInContext(ctx, logger)
 	if apiErr != nil {

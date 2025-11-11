@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"time"
 
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/storage/api"
 	"github.com/nhost/nhost/services/storage/middleware"
 )
@@ -98,7 +99,7 @@ func (ctrl *Controller) getFileWithPresignedURLResponseObject( //nolint: ireturn
 				),
 				ContentType:      file.mimeType,
 				Etag:             file.fileMetadata.Etag,
-				LastModified:     file.fileMetadata.UpdatedAt,
+				LastModified:     api.RFC2822Date(file.fileMetadata.UpdatedAt),
 				SurrogateControl: file.cacheControl,
 				SurrogateKey:     file.fileMetadata.Id,
 			},
@@ -116,7 +117,7 @@ func (ctrl *Controller) getFileWithPresignedURLResponseObject( //nolint: ireturn
 				ContentRange:     file.extraHeaders.Get("Content-Range"),
 				ContentType:      file.mimeType,
 				Etag:             file.fileMetadata.Etag,
-				LastModified:     file.fileMetadata.UpdatedAt,
+				LastModified:     api.RFC2822Date(file.fileMetadata.UpdatedAt),
 				SurrogateControl: file.cacheControl,
 				SurrogateKey:     file.fileMetadata.Id,
 			},
@@ -151,7 +152,7 @@ func (ctrl *Controller) GetFileWithPresignedURL( //nolint: ireturn
 	ctx context.Context,
 	request api.GetFileWithPresignedURLRequestObject,
 ) (api.GetFileWithPresignedURLResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
 	acceptHeader := middleware.AcceptHeaderFromContext(ctx)
 
 	fileMetadata, _, apiErr := ctrl.getFileMetadata(

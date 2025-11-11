@@ -21,8 +21,6 @@ func (e *APIError) Error() string {
 	return fmt.Sprintf("API error: %s", e.t)
 }
 
-var ErrElevatedClaimRequired = errors.New("elevated-claim-required")
-
 var (
 	ErrJWTConfiguration = errors.New("jwt-configuration")
 
@@ -32,7 +30,7 @@ var (
 	ErrInvalidOTP                      = &APIError{api.InvalidRequest}
 	ErrUserProviderNotFound            = &APIError{api.InvalidRequest}
 	ErrSecurityKeyNotFound             = &APIError{api.InvalidRequest}
-	ErrUserProviderAlreadyLinked       = &APIError{api.InvalidRequest}
+	ErrProviderAccountAlreadyLinked    = &APIError{api.ProviderAccountAlreadyLinked}
 	ErrEmailAlreadyInUse               = &APIError{api.EmailAlreadyInUse}
 	ErrForbiddenAnonymous              = &APIError{api.ForbiddenAnonymous}
 	ErrInternalServerError             = &APIError{api.InternalServerError}
@@ -273,14 +271,17 @@ func isSensitive(err api.ErrorResponseError) bool {
 		api.OauthTokenEchangeFailed,
 		api.OauthProfileFetchFailed,
 		api.CannotSendSms,
-		api.OauthProviderError:
+		api.OauthProviderError,
+		api.ProviderAccountAlreadyLinked:
 		return false
 	}
 
 	return false
 }
 
-func (ctrl *Controller) getError(err *APIError) ErrorResponse { //nolint:gocyclo,cyclop,funlen
+func (ctrl *Controller) getError( //nolint:gocyclo,cyclop,funlen,maintidx
+	err *APIError,
+) ErrorResponse {
 	invalidRequest := ErrorResponse{
 		Status:  http.StatusBadRequest,
 		Error:   api.InvalidRequest,
@@ -473,6 +474,12 @@ func (ctrl *Controller) getError(err *APIError) ErrorResponse { //nolint:gocyclo
 			Error:   err.t,
 			Message: "Invalid or expired OTP",
 		}
+	case api.ProviderAccountAlreadyLinked:
+		return ErrorResponse{
+			Status:  http.StatusBadRequest,
+			Error:   err.t,
+			Message: "This provider account is already linked to a user",
+		}
 	}
 
 	return invalidRequest
@@ -525,7 +532,7 @@ func (ctrl *Controller) sendRedirectError(
 ) ErrorRedirectResponse {
 	errResponse := ctrl.getError(err)
 
-	redirectURL = generateRedirectURL(redirectURL, map[string]string{
+	redirectURL = appendURLValues(redirectURL, map[string]string{
 		"error":            string(errResponse.Error),
 		"errorDescription": errResponse.Message,
 	})
@@ -566,18 +573,4 @@ func sqlIsDuplcateError(err error, fkey string) bool {
 
 	return strings.Contains(err.Error(), "SQLSTATE 23505") &&
 		strings.Contains(err.Error(), fkey)
-}
-
-func generateRedirectURL(
-	redirectTo *url.URL,
-	opts map[string]string,
-) *url.URL {
-	q := redirectTo.Query()
-	for k, v := range opts {
-		q.Set(k, v)
-	}
-
-	redirectTo.RawQuery = q.Encode()
-
-	return redirectTo
 }

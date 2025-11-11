@@ -3,14 +3,14 @@ package controller
 import (
 	"context"
 
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
-	"github.com/nhost/nhost/services/auth/go/middleware"
 )
 
 func (ctrl *Controller) VerifySignInMfaTotp( //nolint:ireturn
 	ctx context.Context, req api.VerifySignInMfaTotpRequestObject,
 ) (api.VerifySignInMfaTotpResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
 
 	if !ctrl.config.MfaEnabled {
 		logger.WarnContext(ctx, "mfa disabled")

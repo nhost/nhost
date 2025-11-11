@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
-	"github.com/nhost/nhost/services/auth/go/middleware"
 )
 
 func (ctrl *Controller) postSigninEmailPasswordWithTOTP( //nolint:ireturn
@@ -33,7 +33,7 @@ func (ctrl *Controller) postSigninEmailPasswordWithTOTP( //nolint:ireturn
 func (ctrl *Controller) SignInEmailPassword( //nolint:ireturn
 	ctx context.Context, request api.SignInEmailPasswordRequestObject,
 ) (api.SignInEmailPasswordResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx).
+	logger := oapimw.LoggerFromContext(ctx).
 		With(slog.String("email", string(request.Body.Email)))
 
 	user, apiErr := ctrl.wf.GetUserByEmail(ctx, string(request.Body.Email), logger)

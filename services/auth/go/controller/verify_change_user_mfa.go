@@ -5,8 +5,8 @@ import (
 	"log/slog"
 
 	"github.com/jackc/pgx/v5/pgtype"
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
-	"github.com/nhost/nhost/services/auth/go/middleware"
 	"github.com/nhost/nhost/services/auth/go/sql"
 )
 
@@ -99,7 +99,7 @@ func (ctrl *Controller) postUserMfaActivate( //nolint:ireturn
 func (ctrl *Controller) VerifyChangeUserMfa( //nolint:ireturn
 	ctx context.Context, req api.VerifyChangeUserMfaRequestObject,
 ) (api.VerifyChangeUserMfaResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
 
 	if !ctrl.config.MfaEnabled {
 		logger.WarnContext(ctx, "mfa disabled")

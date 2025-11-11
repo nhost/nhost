@@ -1,3 +1,15 @@
+## [@nhost/dashboard@2.41.0] - 2025-11-04
+
+### 🚀 Features
+
+- *(auth)* Added endpoints to retrieve and refresh oauth2 providers' tokens (#3614)
+- *(dashboard)* Get github repositories from github itself (#3640)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Update SQL editor to use correct hasura migrations API URL (#3645)
+
 # Changelog
 
 All notable changes to this project will be documented in this file.

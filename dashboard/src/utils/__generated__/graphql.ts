@@ -27897,6 +27897,16 @@ export type ResetDatabasePasswordMutationVariables = Exact<{
 
 export type ResetDatabasePasswordMutation = { __typename?: 'mutation_root', resetPostgresPassword: boolean };
 
+export type ConnectGithubRepoMutationVariables = Exact<{
+  appID: Scalars['uuid'];
+  githubNodeID: Scalars['String'];
+  productionBranch: Scalars['String'];
+  baseFolder: Scalars['String'];
+}>;
+
+
+export type ConnectGithubRepoMutation = { __typename?: 'mutation_root', connectGithubRepo: boolean };
+
 export type GetHasuraSettingsQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
@@ -29826,6 +29836,45 @@ export function useResetDatabasePasswordMutation(baseOptions?: Apollo.MutationHo
 export type ResetDatabasePasswordMutationHookResult = ReturnType<typeof useResetDatabasePasswordMutation>;
 export type ResetDatabasePasswordMutationResult = Apollo.MutationResult<ResetDatabasePasswordMutation>;
 export type ResetDatabasePasswordMutationOptions = Apollo.BaseMutationOptions<ResetDatabasePasswordMutation, ResetDatabasePasswordMutationVariables>;
+export const ConnectGithubRepoDocument = gql`
+    mutation ConnectGithubRepo($appID: uuid!, $githubNodeID: String!, $productionBranch: String!, $baseFolder: String!) {
+  connectGithubRepo(
+    appID: $appID
+    githubNodeID: $githubNodeID
+    productionBranch: $productionBranch
+    baseFolder: $baseFolder
+  )
+}
+    `;
+export type ConnectGithubRepoMutationFn = Apollo.MutationFunction<ConnectGithubRepoMutation, ConnectGithubRepoMutationVariables>;
+
+/**
+ * __useConnectGithubRepoMutation__
+ *
+ * To run a mutation, you first call `useConnectGithubRepoMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useConnectGithubRepoMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [connectGithubRepoMutation, { data, loading, error }] = useConnectGithubRepoMutation({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *      githubNodeID: // value for 'githubNodeID'
+ *      productionBranch: // value for 'productionBranch'
+ *      baseFolder: // value for 'baseFolder'
+ *   },
+ * });
+ */
+export function useConnectGithubRepoMutation(baseOptions?: Apollo.MutationHookOptions<ConnectGithubRepoMutation, ConnectGithubRepoMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ConnectGithubRepoMutation, ConnectGithubRepoMutationVariables>(ConnectGithubRepoDocument, options);
+      }
+export type ConnectGithubRepoMutationHookResult = ReturnType<typeof useConnectGithubRepoMutation>;
+export type ConnectGithubRepoMutationResult = Apollo.MutationResult<ConnectGithubRepoMutation>;
+export type ConnectGithubRepoMutationOptions = Apollo.BaseMutationOptions<ConnectGithubRepoMutation, ConnectGithubRepoMutationVariables>;
 export const GetHasuraSettingsDocument = gql`
     query GetHasuraSettings($appId: uuid!) {
   config(appID: $appId, resolve: false) {

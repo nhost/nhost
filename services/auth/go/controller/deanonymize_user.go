@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
-	"github.com/nhost/nhost/services/auth/go/middleware"
 	"github.com/nhost/nhost/services/auth/go/notifications"
 )
 
@@ -77,7 +77,7 @@ func (ctrl *Controller) postUserDeanonymizeValidateRequest( //nolint:cyclop
 func (ctrl *Controller) DeanonymizeUser( //nolint:funlen
 	ctx context.Context, request api.DeanonymizeUserRequestObject,
 ) (api.DeanonymizeUserResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx).
+	logger := oapimw.LoggerFromContext(ctx).
 		With(slog.String("email", string(request.Body.Email)))
 
 	userID, password, options, apiError := ctrl.postUserDeanonymizeValidateRequest(

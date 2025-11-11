@@ -8,8 +8,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
-	"github.com/nhost/nhost/services/auth/go/middleware"
 	"github.com/nhost/nhost/services/auth/go/sql"
 )
 
@@ -45,7 +45,7 @@ func (ctrl *Controller) SignUpEmailPassword( //nolint:ireturn
 	ctx context.Context,
 	req api.SignUpEmailPasswordRequestObject,
 ) (api.SignUpEmailPasswordResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx).With(slog.String("email", string(req.Body.Email)))
+	logger := oapimw.LoggerFromContext(ctx).With(slog.String("email", string(req.Body.Email)))
 
 	req, apiError := ctrl.postSignupEmailPasswordValidateRequest(ctx, req, logger)
 	if apiError != nil {

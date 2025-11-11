@@ -1,3 +1,11 @@
+## [cli@1.34.5] - 2025-11-06
+
+### ⚙️ Miscellaneous Tasks
+
+- *(nixops)* Bump go to 1.25.3 and nixpkgs due to CVEs (#3652)
+- *(cli)* Udpate certs and schema (#3675)
+- *(cli)* Bump nhost/dashboard to 2.41.0 (#3669)
+
 # Changelog
 
 All notable changes to this project will be documented in this file.

@@ -114,13 +114,13 @@ in
         echo "➜ Running golangci-lint"
         golangci-lint run \
           --timeout 600s \
-          ./${submodule}/...
+          ./...
 
         echo "➜ Running tests"
         richgo test \
           -tags="${pkgs.lib.strings.concatStringsSep " " tags}" \
           -ldflags="${pkgs.lib.strings.concatStringsSep " " ldflags}" \
-          -v ${goTestFlags} ./${submodule}/...
+          -v ${goTestFlags} ./...
 
         ${extraCheck}
 

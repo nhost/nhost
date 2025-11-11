@@ -11,8 +11,8 @@ import (
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
-	"github.com/nhost/nhost/services/auth/go/middleware"
 	"github.com/nhost/nhost/services/auth/go/sql"
 )
 
@@ -85,7 +85,7 @@ func (ctrl *Controller) VerifySignUpWebauthn( //nolint:ireturn
 	ctx context.Context,
 	request api.VerifySignUpWebauthnRequestObject,
 ) (api.VerifySignUpWebauthnResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
 
 	credData, options, nickname, apiErr := ctrl.postSignupWebauthnVerifyValidateRequest(
 		ctx,

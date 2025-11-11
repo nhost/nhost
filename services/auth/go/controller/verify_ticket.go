@@ -7,8 +7,8 @@ import (
 	"net/url"
 	"strings"
 
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
-	"github.com/nhost/nhost/services/auth/go/middleware"
 	"github.com/nhost/nhost/services/auth/go/sql"
 )
 
@@ -59,7 +59,7 @@ func (ctrl *Controller) getVerifyHandleTicketType(
 func (ctrl *Controller) VerifyTicket( //nolint:ireturn
 	ctx context.Context, req api.VerifyTicketRequestObject,
 ) (api.VerifyTicketResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
 
 	user, ticketType, redirectTo, apiErr := ctrl.getVerifyValidateRequest(ctx, req, logger)
 	switch {
@@ -80,7 +80,7 @@ func (ctrl *Controller) VerifyTicket( //nolint:ireturn
 		return ctrl.sendError(ErrInternalServerError), nil
 	}
 
-	redirectTo = generateRedirectURL(redirectTo, map[string]string{
+	redirectTo = appendURLValues(redirectTo, map[string]string{
 		"refreshToken": session.RefreshToken,
 		"type":         string(ticketType),
 	})

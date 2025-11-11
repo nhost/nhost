@@ -332,8 +332,8 @@ func TestLinkIdToken(t *testing.T) { //nolint:maintidx
 				},
 			},
 			expectedResponse: controller.ErrorResponse{
-				Error:   "invalid-request",
-				Message: "The request payload is incorrect",
+				Error:   "provider-account-already-linked",
+				Message: "This provider account is already linked to a user",
 				Status:  400,
 			},
 
