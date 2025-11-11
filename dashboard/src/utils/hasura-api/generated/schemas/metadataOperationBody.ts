@@ -14,6 +14,7 @@ import type { GetEventAndInvocationLogsByIdOperation } from './getEventAndInvoca
 import type { GetEventInvocationLogsOperation } from './getEventInvocationLogsOperation';
 import type { GetEventLogsOperation } from './getEventLogsOperation';
 import type { IntrospectRemoteSchemaOperation } from './introspectRemoteSchemaOperation';
+import type { InvokeEventTriggerOperation } from './invokeEventTriggerOperation';
 import type { RedeliverEventOperation } from './redeliverEventOperation';
 import type { ReloadRemoteSchemaOperation } from './reloadRemoteSchemaOperation';
 import type { RemoteSchemaPermissionsBulkOperation } from './remoteSchemaPermissionsBulkOperation';
@@ -38,4 +39,5 @@ export type MetadataOperationBody =
   | RedeliverEventOperation
   | CreateEventTriggerBulkOperation
   | DeleteEventTriggerBulkOperation
-  | TestWebhookTransformOperation;
+  | TestWebhookTransformOperation
+  | InvokeEventTriggerOperation;
