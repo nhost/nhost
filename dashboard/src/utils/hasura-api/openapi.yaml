@@ -35,6 +35,7 @@ paths:
                 - $ref: '#/components/schemas/CreateEventTriggerBulkOperation'
                 - $ref: '#/components/schemas/DeleteEventTriggerBulkOperation'
                 - $ref: '#/components/schemas/TestWebhookTransformOperation'
+                - $ref: '#/components/schemas/InvokeEventTriggerOperation'
       responses:
         '200':
           description: Operation executed successfully
@@ -53,6 +54,7 @@ paths:
                   - $ref: '#/components/schemas/GetEventLogsResponse'
                   - $ref: '#/components/schemas/GetEventAndInvocationLogsByIdResponse'
                   - $ref: '#/components/schemas/TestWebhookTransformResponse'
+                  - $ref: '#/components/schemas/InvokeEventTriggerResponse'
                   - type: array
                     description: List of success messages for bulk operations
                     items:
@@ -1846,3 +1848,42 @@ components:
         webhook_url:
           type: string
           description: Webhook URL for transform preview
+
+    InvokeEventTriggerOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_invoke_event_trigger]
+        args:
+          $ref: '#/components/schemas/InvokeEventTriggerArgs'
+
+    InvokeEventTriggerArgs:
+      type: object
+      required:
+        - name
+        - payload
+      properties:
+        name:
+          type: string
+          description: Name of the Event Trigger
+        payload:
+          type: object
+          additionalProperties: true
+          description: Some JSON payload to send to trigger
+        source:
+          type: string
+          description: Name of the source database of the trigger
+          default: default
+
+    InvokeEventTriggerResponse:
+      type: object
+      required:
+        - event_id
+      properties:
+        event_id:
+          type: string
+          example: 19cc95ae-1101-4de7-908b-46dc5e9e3bef
