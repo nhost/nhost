@@ -90,6 +90,7 @@ const (
 	TotpAlreadyActive               ErrorResponseError = "totp-already-active"
 	UnverifiedUser                  ErrorResponseError = "unverified-user"
 	UserNotAnonymous                ErrorResponseError = "user-not-anonymous"
+	UserProviderAlreadyLinked       ErrorResponseError = "user-provider-already-linked"
 )
 
 // Defines values for IdTokenProvider.
