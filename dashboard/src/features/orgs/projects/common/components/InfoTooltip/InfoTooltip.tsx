@@ -6,11 +6,11 @@ import {
 import { Info } from 'lucide-react';
 import type { ReactNode } from 'react';
 
-interface IconTooltipProps {
+interface InfoTooltipProps {
   children: ReactNode;
 }
 
-export default function IconTooltip({ children }: IconTooltipProps) {
+export default function InfoTooltip({ children }: InfoTooltipProps) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>

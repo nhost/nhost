@@ -1,11 +1,13 @@
 import {
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from '@/components/ui/v3/form';
-import { Input } from '@/components/ui/v3/input';
+import { Input, type InputProps } from '@/components/ui/v3/input';
+import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
 import type { Control, FieldPath, FieldValues } from 'react-hook-form';
 
 const inputClasses =
@@ -21,6 +23,9 @@ interface FormInputProps<
   placeholder?: string;
   className?: string;
   type?: string;
+  disabled?: boolean;
+  autoComplete?: InputProps['autoComplete'];
+  infoTooltip?: string;
 }
 
 function FormInput<
@@ -33,6 +38,9 @@ function FormInput<
   placeholder,
   className = '',
   type = 'text',
+  disabled,
+  autoComplete,
+  infoTooltip,
 }: FormInputProps<TFieldValues, TName>) {
   return (
     <FormField
@@ -40,12 +48,23 @@ function FormInput<
       name={name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel>{label}</FormLabel>
+          {infoTooltip ? (
+            <div className="flex flex-row items-center gap-2">
+              <FormLabel>{label}</FormLabel>
+              <FormDescription>
+                <InfoTooltip>{infoTooltip}</InfoTooltip>
+              </FormDescription>
+            </div>
+          ) : (
+            <FormLabel>{label}</FormLabel>
+          )}
           <FormControl>
             <Input
               type={type}
               placeholder={placeholder || label}
               {...field}
+              disabled={disabled}
+              autoComplete={autoComplete}
               className={`${inputClasses} ${className}`}
             />
           </FormControl>

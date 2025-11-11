@@ -81,19 +81,19 @@ export const validationSchema = z
     }),
     headers: z.array(
       z.object({
-        name: z.string().min(1),
+        name: z.string().min(1, 'Name is required'),
         type: z.enum(
           headerTypes.map((header) => header.value) as [
             (typeof headerTypes)[number]['value'],
           ],
         ),
-        value: z.string().min(1),
+        value: z.string().min(1, 'Value is required'),
       }),
     ),
     sampleContext: z.array(
       z.object({
-        key: z.string().min(1),
-        value: z.string().min(1),
+        key: z.string().min(1, 'Key is required'),
+        value: z.string().min(1, 'Value is required'),
       }),
     ),
     requestOptionsTransform: z

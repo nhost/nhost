@@ -1,12 +1,11 @@
 import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-  FieldLegend,
-  FieldSet,
-} from '@/components/ui/v3/field';
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/v3/form';
 import {
   InputGroup,
   InputGroupAddon,
@@ -19,7 +18,7 @@ import {
   requestTransformMethods,
   type BaseEventTriggerFormValues,
 } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerFormTypes';
-import { Controller, useFormContext } from 'react-hook-form';
+import { useFormContext } from 'react-hook-form';
 import KeyValueQueryParams from './KeyValueQueryParams';
 import RequestURLTransformPreview from './RequestURLTransformPreview';
 import URLTemplateQueryParams from './URLTemplateQueryParams';
@@ -39,129 +38,130 @@ export default function RequestOptionsSection({
   );
 
   return (
-    <FieldSet className={className}>
-      <FieldLegend className="text-foreground">Request Options</FieldLegend>
-      <FieldDescription>
-        Configuration to transform the request before sending it to the webhook
-      </FieldDescription>
-      <FieldGroup className="flex flex-col gap-8">
-        <Controller
+    <div className={`flex flex-col gap-6 ${className}`}>
+      <div className="space-y-2">
+        <h3 className="text-base font-medium text-foreground">
+          Request Options
+        </h3>
+        <FormDescription>
+          Configuration to transform the request before sending it to the
+          webhook
+        </FormDescription>
+      </div>
+      <div className="flex flex-col gap-8">
+        <FormField
           name="requestOptionsTransform.method"
           control={form.control}
-          render={({ field, fieldState }) => (
-            <FieldSet
-              data-invalid={fieldState.invalid}
-              className="flex lg:flex-row"
-            >
-              <FieldLegend variant="label" className="text-foreground">
-                Request Method
-              </FieldLegend>
-              <RadioGroup
-                name={field.name}
-                value={field.value}
-                onValueChange={field.onChange}
-                aria-invalid={fieldState.invalid}
-                className="flex flex-row items-center gap-12"
-              >
-                {requestTransformMethods.map((requestTransformMethod) => (
-                  <Field
-                    key={requestTransformMethod}
-                    orientation="horizontal"
-                    data-invalid={fieldState.invalid}
-                    className="w-auto"
-                  >
-                    <RadioGroupItem
-                      value={requestTransformMethod}
-                      id={`request-options-transform-method-${requestTransformMethod}`}
-                      aria-invalid={fieldState.invalid}
-                    />
-                    <FieldLabel
-                      htmlFor={`request-options-transform-method-${requestTransformMethod}`}
-                      className="font-normal text-foreground"
+          render={({ field }) => (
+            <div className="flex flex-col gap-4 lg:flex-row">
+              <div className="space-y-2">
+                <h4 className="text-sm font-medium text-foreground">
+                  Request Method
+                </h4>
+              </div>
+              <FormControl>
+                <RadioGroup
+                  name={field.name}
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  className="flex flex-row items-center gap-12"
+                >
+                  {requestTransformMethods.map((requestTransformMethod) => (
+                    <FormItem
+                      key={requestTransformMethod}
+                      className="flex w-auto flex-row items-center space-x-2 space-y-0"
                     >
-                      {requestTransformMethod}
-                    </FieldLabel>
-                  </Field>
-                ))}
-              </RadioGroup>
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </FieldSet>
+                      <FormControl>
+                        <RadioGroupItem
+                          value={requestTransformMethod}
+                          id={`request-options-transform-method-${requestTransformMethod}`}
+                        />
+                      </FormControl>
+                      <FormLabel
+                        htmlFor={`request-options-transform-method-${requestTransformMethod}`}
+                        className="cursor-pointer font-normal text-foreground"
+                      >
+                        {requestTransformMethod}
+                      </FormLabel>
+                    </FormItem>
+                  ))}
+                </RadioGroup>
+              </FormControl>
+              <FormMessage />
+            </div>
           )}
         />
-        <Controller
+        <FormField
           name="requestOptionsTransform.urlTemplate"
           control={form.control}
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid} className="max-w-lg">
-              <FieldLabel
-                htmlFor="requestOptionsTransform.urlTemplate"
-                className="text-foreground"
-              >
+          render={({ field }) => (
+            <FormItem className="max-w-lg">
+              <FormLabel className="text-foreground">
                 Request URL Template
-              </FieldLabel>
-              <InputGroup>
-                <InputGroupAddon className="border-r pr-2">
-                  <InputGroupText>{'{{$base_url}}'}</InputGroupText>
-                </InputGroupAddon>
-                <InputGroupInput
-                  {...field}
-                  id="requestOptionsTransform.urlTemplate"
-                  aria-invalid={fieldState.invalid}
-                  placeholder="URL Template (Optional)..."
-                  className="w-full pl-2 text-foreground"
-                  wrapperClassName="w-full"
-                />
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </InputGroup>
-            </Field>
+              </FormLabel>
+              <FormControl>
+                <InputGroup>
+                  <InputGroupAddon className="border-r pr-2">
+                    <InputGroupText>{'{{$base_url}}'}</InputGroupText>
+                  </InputGroupAddon>
+                  <InputGroupInput
+                    {...field}
+                    id="requestOptionsTransform.urlTemplate"
+                    placeholder="URL Template (Optional)..."
+                    className="w-full pl-2 text-foreground aria-[invalid=true]:border-destructive aria-[invalid=true]:focus:border-destructive aria-[invalid=true]:focus:ring-destructive/20"
+                    wrapperClassName="w-full"
+                  />
+                </InputGroup>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
           )}
         />
-        <Controller
+        <FormField
           name="requestOptionsTransform.queryParams.queryParamsType"
           control={form.control}
-          render={({ field, fieldState }) => (
-            <FieldSet
-              data-invalid={fieldState.invalid}
-              className="flex lg:flex-row"
-            >
-              <FieldLegend variant="label" className="text-foreground">
-                Query params type
-              </FieldLegend>
-              <RadioGroup
-                name={field.name}
-                value={field.value}
-                defaultValue={requestOptionsTransformQueryParamsTypeOptions[0]}
-                onValueChange={field.onChange}
-                aria-invalid={fieldState.invalid}
-                className="flex flex-row items-center gap-12"
-              >
-                {requestOptionsTransformQueryParamsTypeOptions.map(
-                  (requestOptionsTransformQueryParamsType) => (
-                    <Field
-                      key={requestOptionsTransformQueryParamsType}
-                      orientation="horizontal"
-                      data-invalid={fieldState.invalid}
-                      className="w-auto"
-                    >
-                      <RadioGroupItem
-                        value={requestOptionsTransformQueryParamsType}
-                        id={`request-options-transform-query-params-type-${requestOptionsTransformQueryParamsType}`}
-                        aria-invalid={fieldState.invalid}
-                      />
-                      <FieldLabel
-                        htmlFor={`request-options-transform-query-params-type-${requestOptionsTransformQueryParamsType}`}
-                        className="font-normal text-foreground"
+          render={({ field }) => (
+            <div className="flex flex-col gap-4 lg:flex-row">
+              <div className="space-y-2">
+                <h4 className="text-sm font-medium text-foreground">
+                  Query params type
+                </h4>
+              </div>
+              <FormControl>
+                <RadioGroup
+                  name={field.name}
+                  value={field.value}
+                  defaultValue={
+                    requestOptionsTransformQueryParamsTypeOptions[0]
+                  }
+                  onValueChange={field.onChange}
+                  className="flex flex-row items-center gap-12"
+                >
+                  {requestOptionsTransformQueryParamsTypeOptions.map(
+                    (requestOptionsTransformQueryParamsType) => (
+                      <FormItem
+                        key={requestOptionsTransformQueryParamsType}
+                        className="flex w-auto flex-row items-center space-x-2 space-y-0"
                       >
-                        {requestOptionsTransformQueryParamsType}
-                      </FieldLabel>
-                    </Field>
-                  ),
-                )}
-              </RadioGroup>
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </FieldSet>
+                        <FormControl>
+                          <RadioGroupItem
+                            value={requestOptionsTransformQueryParamsType}
+                            id={`request-options-transform-query-params-type-${requestOptionsTransformQueryParamsType}`}
+                          />
+                        </FormControl>
+                        <FormLabel
+                          htmlFor={`request-options-transform-query-params-type-${requestOptionsTransformQueryParamsType}`}
+                          className="cursor-pointer font-normal text-foreground"
+                        >
+                          {requestOptionsTransformQueryParamsType}
+                        </FormLabel>
+                      </FormItem>
+                    ),
+                  )}
+                </RadioGroup>
+              </FormControl>
+              <FormMessage />
+            </div>
           )}
         />
         {queryParamsType === 'Key Value' ? (
@@ -170,7 +170,7 @@ export default function RequestOptionsSection({
           <URLTemplateQueryParams />
         )}
         <RequestURLTransformPreview />
-      </FieldGroup>
-    </FieldSet>
+      </div>
+    </div>
   );
 }
