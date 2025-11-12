@@ -32,6 +32,24 @@ export interface DatabaseRecordInputGroupProps {
   className?: string;
 }
 
+function getBooleanValueTransformer(isNullable: boolean) {
+  return function transformBooleanValue(value: string | null) {
+    let convertedValue = value;
+
+    if (convertedValue === null) {
+      convertedValue = isNullable ? 'null' : '';
+    } else if (convertedValue === 'null' || convertedValue === '') {
+      convertedValue = null;
+    }
+
+    return convertedValue;
+  };
+}
+
+function convertNullToEmptyString(value: string | null) {
+  return value === null ? '' : value;
+}
+
 function getPlaceholder(
   defaultValue?: string,
   isIdentity?: boolean,
@@ -154,6 +172,7 @@ export default function DatabaseRecordInputGroup({
                   label={inputLabel}
                   placeholder="Select an option"
                   helperText={comment}
+                  transformValue={getBooleanValueTransformer(!!isNullable)}
                 >
                   <SelectItem value="true">
                     <ReadOnlyToggle checked />
@@ -183,6 +202,7 @@ export default function DatabaseRecordInputGroup({
                 label={inputLabel}
                 placeholder={placeholder}
                 helperText={comment}
+                transformValue={convertNullToEmptyString}
                 className={cn(
                   { 'resize-none': isMultiline },
                   'focus-visible:ring-0',

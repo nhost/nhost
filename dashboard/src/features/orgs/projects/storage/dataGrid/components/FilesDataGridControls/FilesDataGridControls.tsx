@@ -2,6 +2,7 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { Badge } from '@/components/ui/v3/badge';
 import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
 import { Input, type InputProps } from '@/components/ui/v3/input';
+import { DataGridCustomizerControls } from '@/features/orgs/projects/common/components/DataGridCustomizerControls';
 import { useAppClient } from '@/features/orgs/projects/hooks/useAppClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
@@ -156,7 +157,7 @@ export default function FilesDataGridControls({
               className={twMerge('col-span-6', paginationClassName)}
               {...restPaginationProps}
             />
-
+            <DataGridCustomizerControls />
             <FileUploadButton
               className={twMerge(
                 'col-span-6 self-stretch font-medium',

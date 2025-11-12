@@ -244,7 +244,10 @@ function DataBrowserSidebarContent({
         <span className="inline-grid grid-flow-col items-center gap-2">
           Permissions
           <InlineCode className="!text-sm+ font-normal">{table}</InlineCode>
-          <Badge variant="secondary" className="text-primary">
+          <Badge
+            variant="secondary"
+            className="bg-[#ebf3ff] text-primary dark:bg-[#1b2534]"
+          >
             Preview
           </Badge>
         </span>

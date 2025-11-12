@@ -7,9 +7,10 @@ export default function triggerToast(text: ReactNode) {
     (t) => (
       <div
         className={cn(
-          'rounded-sm+ bg-gray-700 px-2 py-1.5 text-center font-normal text-white shadow-md',
+          'rounded-sm+ px-2 py-1.5 text-center font-normal text-white shadow-md',
           t.visible ? 'animate-enter' : 'animate-leave',
         )}
+        style={{ backgroundColor: 'rgb(55 65 81)' }}
       >
         {text}
       </div>

@@ -1,6 +1,7 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import { Badge } from '@/components/ui/v3/badge';
 import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
+import { DataGridCustomizerControls } from '@/features/orgs/projects/common/components/DataGridCustomizerControls';
 import { useDeleteRecordMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteRecordMutation';
 import type { DataBrowserGridColumn } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
@@ -98,7 +99,7 @@ export default function DataBrowserGridControls({
     <div className="box sticky top-0 z-20 border-b-1 p-2">
       <div
         className={cn(
-          'mx-auto grid min-h-[38px] grid-flow-col items-center gap-3',
+          'mx-auto grid min-h-10 grid-flow-col items-center gap-3',
           numberOfSelectedRows > 0 ? 'justify-between' : 'justify-end',
         )}
       >
@@ -155,7 +156,7 @@ export default function DataBrowserGridControls({
                 {...restPaginationProps}
               />
             )}
-
+            <DataGridCustomizerControls />
             <Button onClick={onInsertRowClick} size="sm">
               <Plus className="h-4 w-4" /> Insert row
             </Button>

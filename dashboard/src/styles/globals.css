@@ -259,7 +259,10 @@ body {
     --disabled: 215.56 15.79% 66.47%;
     --background-default: 0, 0%, 98%;
     --primary-text: 215.71 38.89% 21.18%;
-    --data-cell-bg: 204 29.41% 96.67%;
+    --data-cell-bg: 216, 12.2%, 92%;
+    --data-cell-bg-odd: 220, 13%, 95.5%;
+    --data-cell-bg-hover: 213.3, 14.8%, 88%;
+    --data-table-border-color: 210, 16.7%, 92.9%;
     --primary-main: 216 100% 40.2%;
     --table-selected: 216 100% 96.08%;
     --default: 0 0% 98.04%;
@@ -297,7 +300,10 @@ body {
     --disabled: 211.58 8.92% 58.24%;
     --primary-text: 204.55 52.38% 91.76%;
     --background-default: 210, 23%, 11%;
-    --data-cell-bg: 215 15.38% 15.29%;
+    --data-cell-bg: 214.7, 24.1%, 15.5%;
+    --data-cell-bg-odd: 216, 21.7%, 18%;
+    --data-cell-bg-hover: 215 20% 22%;
+    --data-table-border-color: 210, 13%, 21.2%;
     --primary-main: 215.88 100% 60.98%;
     --table-selected: 216 31.65% 15.49%;
     --default: 216.92 23.64% 10.78%;
@@ -324,4 +330,10 @@ body {
 
 .box {
   @apply border-divider bg-paper text-primary-text;
+}
+
+[data-vaul-drawer][data-vaul-drawer-direction='right'] {
+  transition: transform !important;
+  animation-duration: 0.3s !important;
+  animation-timing-function: linear !important;
 }

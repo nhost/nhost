@@ -53,8 +53,7 @@ function InnerFormTextarea<
         >
           <FormLabel
             className={cn({
-              'w-52 max-w-52 flex-shrink-0': inline,
-              'mt-2 self-start': inline && !!helperText,
+              'mt-2 w-52 max-w-52 flex-shrink-0 self-start': inline,
             })}
           >
             {label}

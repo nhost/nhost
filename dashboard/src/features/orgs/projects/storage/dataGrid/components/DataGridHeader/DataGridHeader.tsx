@@ -20,6 +20,7 @@ export default function DataGridHeader({
   ...props
 }: DataGridHeaderProps) {
   const { flatHeaders } = useDataGridConfig();
+
   return (
     <div
       className={cn(
@@ -28,43 +29,45 @@ export default function DataGridHeader({
       )}
       {...props}
     >
-      {flatHeaders.map((column: DataBrowserGridColumn) => {
-        const sortByProps = column.getSortByToggleProps();
-        const headerProps = column.getHeaderProps({
-          style: { display: 'inline-flex' },
-          ...sortByProps,
-        });
+      {flatHeaders
+        .filter(({ isVisible }) => isVisible)
+        .map((column: DataBrowserGridColumn) => {
+          const sortByProps = column.getSortByToggleProps();
+          const headerProps = column.getHeaderProps({
+            style: { display: 'inline-flex' },
+            ...sortByProps,
+          });
 
-        return (
-          <div
-            className={cn(
-              'group relative inline-flex self-stretch overflow-hidden font-display text-xs font-bold focus:outline-none focus-visible:outline-none',
-              'border-b-1 border-r-1',
-              'bg-paper',
-              { 'sticky left-0 max-w-2': column.id === 'selection-column' },
-            )}
-            style={{
-              ...headerProps.style,
-              maxWidth:
-                column.id === 'selection-column'
-                  ? 32
-                  : headerProps.style?.maxWidth,
-              width:
-                column.id === 'selection-column'
-                  ? '100%'
-                  : headerProps.style?.width,
-              zIndex:
-                column.id === 'selection-column'
-                  ? 10
-                  : headerProps.style?.zIndex,
-              position: undefined,
-            }}
-            key={column.id}
-          >
-            <DataGridHeaderButton column={column} headerProps={headerProps} />
-          </div>
-        );
-      })}
+          return (
+            <div
+              className={cn(
+                'group relative inline-flex self-stretch overflow-hidden font-display text-xs font-bold focus:outline-none focus-visible:outline-none',
+                'border-b-1 border-r-1',
+                'bg-paper',
+                { 'sticky left-0 max-w-2': column.id === 'selection-column' },
+              )}
+              style={{
+                ...headerProps.style,
+                maxWidth:
+                  column.id === 'selection-column'
+                    ? 32
+                    : headerProps.style?.maxWidth,
+                width:
+                  column.id === 'selection-column'
+                    ? '100%'
+                    : headerProps.style?.width,
+                zIndex:
+                  column.id === 'selection-column'
+                    ? 10
+                    : headerProps.style?.zIndex,
+                position: undefined,
+              }}
+              key={column.id}
+            >
+              <DataGridHeaderButton column={column} headerProps={headerProps} />
+            </div>
+          );
+        })}
     </div>
   );
 }

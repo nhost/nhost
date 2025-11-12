@@ -1,9 +1,12 @@
 import { Checkbox } from '@/components/ui/v3/checkbox';
+import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
+import PersistenColumnConfigurationStorage from '@/features/orgs/projects/storage/dataGrid/utils/PersistenDataTableConfigurationStorage';
 import type { MutableRefObject } from 'react';
 import { useMemo } from 'react';
 import type { PluginHook, TableInstance, TableOptions } from 'react-table';
 import {
   useBlockLayout,
+  useColumnOrder,
   useResizeColumns,
   useRowSelect,
   useSortBy,
@@ -57,17 +60,26 @@ export default function useDataGrid<T extends object>(
     [],
   );
 
+  const tablePath = useTablePath();
+
   const pluginHooks = [
     useBlockLayout,
     useResizeColumns,
     useSortBy,
     useRowSelect,
+    useColumnOrder,
   ];
 
   const tableData = useTable<T>(
     {
       defaultColumn,
       ...options,
+      initialState: {
+        hiddenColumns:
+          PersistenColumnConfigurationStorage.getHiddenColumns(tablePath),
+        columnOrder:
+          PersistenColumnConfigurationStorage.getColumnOrder(tablePath),
+      },
     },
     ...pluginHooks,
     ...plugins,
@@ -85,6 +97,7 @@ export default function useDataGrid<T extends object>(
                 }
                 return (
                   <Checkbox
+                    className="border-[#21324b] data-[state=checked]:!border-transparent dark:border-[#dfecf5]"
                     disabled={rows.length === 0}
                     {...props}
                     style={{
@@ -106,6 +119,7 @@ export default function useDataGrid<T extends object>(
                 }
                 return (
                   <Checkbox
+                    className="border-[#21324b] data-[state=checked]:!border-transparent dark:border-[#dfecf5]"
                     {...props}
                     // disable selection if row is just a upload preview
                     checked={originalValue.uploading ? false : row.isSelected}

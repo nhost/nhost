@@ -343,6 +343,7 @@ export default function FilesDataGrid(props: FilesDataGridProps) {
           refetchData={refetchFilesAndAggregate}
         />
       }
+      isFileDataGrid
       {...props}
     />
   );
