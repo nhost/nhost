@@ -1,11 +1,11 @@
 import type { DataGridProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import { DataGrid } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
-import { DataGridBooleanCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridBooleanCell';
 import { DataGridDateCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridDateCell';
 import type { PreviewProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPreviewCell';
 import { DataGridPreviewCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPreviewCell';
 import { DataGridTextCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridTextCell';
 
+import { ReadOnlyToggle } from '@/components/presentational/ReadOnlyToggle';
 import { FilePreviewIcon } from '@/components/ui/v2/icons/FilePreviewIcon';
 import { useAppClient } from '@/features/orgs/projects/hooks/useAppClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -93,7 +93,8 @@ const columns: (Column<StoredFile> & {
     Header: 'isUploaded',
     accessor: 'isUploaded',
     width: 100,
-    Cell: DataGridBooleanCell,
+    // eslint-disable-next-line react/prop-types
+    Cell: ({ value }) => <ReadOnlyToggle checked={value} />,
     sortType: 'basic',
   },
   {
@@ -342,6 +343,7 @@ export default function FilesDataGrid(props: FilesDataGridProps) {
           refetchData={refetchFilesAndAggregate}
         />
       }
+      isFileDataGrid
       {...props}
     />
   );

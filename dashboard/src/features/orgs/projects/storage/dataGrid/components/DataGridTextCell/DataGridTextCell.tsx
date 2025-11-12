@@ -1,12 +1,10 @@
-import { Button } from '@/components/ui/v2/Button';
-import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
-import { Input, inputClasses } from '@/components/ui/v2/Input';
-import { Text } from '@/components/ui/v2/Text';
+import { Input } from '@/components/ui/v3/input';
+import { Textarea } from '@/components/ui/v3/textarea';
 import {
   useDataGridCell,
   type CommonDataGridCellProps,
 } from '@/features/orgs/projects/storage/dataGrid/components/DataGridCell';
-import { copy } from '@/utils/copy';
+
 import type { ChangeEvent, KeyboardEvent, Ref } from 'react';
 import { useEffect } from 'react';
 
@@ -19,7 +17,7 @@ export default function DataGridTextCell<TData extends object>({
   temporaryValue,
   onTemporaryValueChange,
   cell: {
-    column: { isCopiable, specificType },
+    column: { specificType },
   },
 }: DataGridTextCellProps<TData>) {
   const isMultiline =
@@ -74,8 +72,6 @@ export default function DataGridTextCell<TData extends object>({
 
     if (event.key === 'Enter') {
       await handleSave();
-      await focusCell();
-      cancelEditCell();
     }
   }
 
@@ -122,35 +118,12 @@ export default function DataGridTextCell<TData extends object>({
 
   if (isEditing && isMultiline) {
     return (
-      <Input
-        multiline
-        ref={inputRef as Ref<HTMLInputElement>}
+      <Textarea
+        ref={inputRef as Ref<HTMLTextAreaElement>}
         value={(normalizedTemporaryValue || '').replace(/\\n/gi, `\n`)}
         onChange={handleChange}
         onKeyDown={handleTextAreaKeyDown}
-        fullWidth
-        className="absolute top-0 z-10 -mx-0.5 h-full min-h-38"
-        rows={5}
-        sx={{
-          [`&.${inputClasses.focused}`]: {
-            boxShadow: `inset 0 0 0 1.5px rgba(0, 82, 205, 1)`,
-            borderColor: 'transparent !important',
-            borderRadius: 0,
-            backgroundColor: (theme) =>
-              theme.palette.mode === 'dark'
-                ? `${theme.palette.secondary[100]} !important`
-                : `${theme.palette.common.white} !important`,
-          },
-          [`& .${inputClasses.input}`]: {
-            backgroundColor: 'transparent',
-          },
-        }}
-        slotProps={{
-          inputRoot: {
-            className:
-              'resize-none outline-none focus:outline-none !text-xs focus:ring-0',
-          },
-        }}
+        className="absolute left-0 top-0 z-10 h-25 min-h-25 w-full resize-none rounded-none !text-xs outline-none focus-within:rounded-none focus-within:border-transparent focus-within:bg-white focus-within:shadow-[inset_0_0_0_1.5px_rgba(0,82,205,1)] focus:outline-none focus:ring-0 dark:focus-within:bg-theme-grey-200"
       />
     );
   }
@@ -162,84 +135,25 @@ export default function DataGridTextCell<TData extends object>({
         value={(normalizedTemporaryValue || '').replace(/\\n/gi, `\n`)}
         onChange={handleChange}
         onKeyDown={handleInputKeyDown}
-        fullWidth
-        className="absolute top-0 z-10 -mx-0.5 h-full place-content-stretch"
-        sx={{
-          [`&.${inputClasses.focused}`]: {
-            boxShadow: `inset 0 0 0 1.5px rgba(0, 82, 205, 1)`,
-            borderColor: 'transparent !important',
-            borderRadius: 0,
-            backgroundColor: (theme) =>
-              theme.palette.mode === 'dark'
-                ? `${theme.palette.secondary[100]} !important`
-                : `${theme.palette.common.white} !important`,
-          },
-          [`& .${inputClasses.input}`]: {
-            backgroundColor: 'transparent',
-          },
-        }}
-        slotProps={{
-          inputWrapper: { className: 'h-full' },
-          input: { className: 'h-full' },
-          inputRoot: {
-            className:
-              'resize-none outline-none focus:outline-none !text-xs focus:ring-0',
-          },
-        }}
+        wrapperClassName="absolute top-0 z-10 w-full top-0 left-0 h-full"
+        className="h-full w-full resize-none rounded-none border-none px-2 py-1.5 !text-xs outline-none focus-within:rounded-none focus-within:border-transparent focus-within:bg-white focus-within:shadow-[inset_0_0_0_1.5px_rgba(0,82,205,1)] focus:outline-none focus:ring-0 dark:focus-within:bg-theme-grey-200"
       />
     );
   }
 
   if (!optimisticValue) {
     return (
-      <Text className="truncate !text-xs" color="secondary">
+      <p className="truncate !text-xs text-[#7d8ca3]">
         {optimisticValue === '' ? 'empty' : 'null'}
-      </Text>
-    );
-  }
-
-  if (isCopiable) {
-    return (
-      <div className="grid grid-flow-col items-center justify-start gap-1">
-        <Button
-          variant="borderless"
-          color="secondary"
-          onClick={(event) => {
-            event.stopPropagation();
-
-            const copiableValue =
-              typeof optimisticValue === 'object'
-                ? JSON.stringify(optimisticValue)
-                : String(optimisticValue).replace(/\\n/gi, '\n');
-
-            copy(copiableValue, 'Value');
-          }}
-          className="-ml-px min-w-0 p-0"
-          aria-label="Copy value"
-          sx={{
-            color: (theme) =>
-              theme.palette.mode === 'dark'
-                ? 'text.secondary'
-                : 'text.disabled',
-          }}
-        >
-          <CopyIcon className="h-4 w-4" />
-        </Button>
-
-        <Text className="truncate text-xs">
-          {typeof normalizedOptimisticValue === 'object'
-            ? JSON.stringify(normalizedOptimisticValue)
-            : normalizedOptimisticValue}
-        </Text>
-      </div>
+      </p>
     );
   }
 
   return (
-    <Text className="truncate text-xs">
+    <p className="truncate text-xs">
       {typeof normalizedOptimisticValue === 'object'
         ? JSON.stringify(normalizedOptimisticValue)
         : normalizedOptimisticValue}
-    </Text>
+    </p>
   );
 }

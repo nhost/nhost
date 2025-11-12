@@ -1,10 +1,8 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import type { BoxProps } from '@/components/ui/v2/Box';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { Chip } from '@/components/ui/v2/Chip';
-import type { InputProps } from '@/components/ui/v2/Input';
-import { Input } from '@/components/ui/v2/Input';
+import { Badge } from '@/components/ui/v3/badge';
+import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
+import { Input, type InputProps } from '@/components/ui/v3/input';
+import { DataGridCustomizerControls } from '@/features/orgs/projects/common/components/DataGridCustomizerControls';
 import { useAppClient } from '@/features/orgs/projects/hooks/useAppClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
@@ -12,6 +10,7 @@ import type { DataGridPaginationProps } from '@/features/orgs/projects/storage/d
 import { DataGridPagination } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPagination';
 import type { FileUploadButtonProps } from '@/features/orgs/projects/storage/dataGrid/components/FileUploadButton';
 import { FileUploadButton } from '@/features/orgs/projects/storage/dataGrid/components/FileUploadButton';
+import { cn } from '@/lib/utils';
 import type { Files } from '@/utils/__generated__/graphql';
 import { getHasuraAdminSecret } from '@/utils/env';
 import { triggerToast } from '@/utils/toast';
@@ -22,11 +21,12 @@ import { twMerge } from 'tailwind-merge';
 
 export type FilterProps = PropsWithoutRef<InputProps>;
 
-export interface FilesDataGridControlsProps extends BoxProps {
+export interface FilesDataGridControlsProps {
   paginationProps?: DataGridPaginationProps;
   fileUploadProps?: FileUploadButtonProps;
   filterProps?: FilterProps;
   refetchData?: () => Promise<any>;
+  className?: string;
 }
 
 export default function FilesDataGridControls({
@@ -101,22 +101,23 @@ export default function FilesDataGridControls({
   }
 
   return (
-    <Box
-      className={twMerge('sticky top-0 z-20 border-b-1 p-2', className)}
+    <div
+      className={cn('box sticky top-0 z-20 border-b-1 p-2', className)}
       {...props}
     >
       {numberOfSelectedFiles > 0 ? (
-        <div className="mx-auto grid h-[40px] grid-flow-col items-center justify-start gap-2">
-          <Chip
-            color="info"
-            size="small"
-            label={`${numberOfSelectedFiles} selected`}
-          />
+        <div className="flex h-[40px] items-center justify-start gap-2">
+          <Badge
+            variant="secondary"
+            className="!bg-[#ebf3ff] text-primary dark:!bg-[#1b2534]"
+          >
+            {`${numberOfSelectedFiles} selected`}
+          </Badge>
 
           <Button
-            variant="borderless"
-            color="error"
-            size="small"
+            variant="outline"
+            size="sm"
+            className="border-none text-destructive hover:bg-[#f131541a] hover:text-destructive"
             loading={deleteLoading}
             onClick={() =>
               openAlertDialog({
@@ -145,22 +146,18 @@ export default function FilesDataGridControls({
           </Button>
         </div>
       ) : (
-        <div className="mx-auto grid w-full grid-cols-12 gap-2">
+        <div className="flex w-full flex-grow gap-3">
           <Input
-            className={twMerge(
-              'col-span-12 xs+:col-span-12 md:col-span-9 xl:col-span-10',
-              filterClassName,
-            )}
-            fullWidth
+            wrapperClassName={cn('w-full', filterClassName)}
             {...restFilterProps}
           />
 
-          <div className="col-span-12 grid grid-flow-col gap-2 md:col-span-3 xl:col-span-2">
+          <div className="flex flex-shrink-0 gap-3">
             <DataGridPagination
               className={twMerge('col-span-6', paginationClassName)}
               {...restPaginationProps}
             />
-
+            <DataGridCustomizerControls />
             <FileUploadButton
               className={twMerge(
                 'col-span-6 self-stretch font-medium',
@@ -173,6 +170,6 @@ export default function FilesDataGridControls({
           </div>
         </div>
       )}
-    </Box>
+    </div>
   );
 }
