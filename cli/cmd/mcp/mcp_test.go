@@ -196,10 +196,12 @@ config validate after making changes to your nhost.toml file to ensure it is val
 							"mutations": map[string]any{
 								"description": string("list of mutations to fetch"),
 								"type":        string("array"),
+								"items":       map[string]any{"type": string("string")},
 							},
 							"queries": map[string]any{
 								"description": string("list of queries to fetch"),
 								"type":        string("array"),
+								"items":       map[string]any{"type": string("string")},
 							},
 							"summary": map[string]any{
 								"default":     bool(true),
