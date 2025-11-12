@@ -138,6 +138,8 @@ export default function BaseEventTriggerForm({
     onOpenChange(false);
   };
 
+  console.log('watch', form.watch());
+
   return (
     <>
       <Sheet open={open} onOpenChange={handleOpenChange}>

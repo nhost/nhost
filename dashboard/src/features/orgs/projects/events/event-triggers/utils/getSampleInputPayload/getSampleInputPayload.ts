@@ -2,23 +2,35 @@ import type { NormalizedQueryDataRow } from '@/features/orgs/projects/database/d
 import type { BaseEventTriggerFormValues } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerFormTypes';
 import { isEmptyValue } from '@/lib/utils';
 import type { ColumnValue } from '@/utils/hasura-api/types';
+import { v4 as uuidv4 } from 'uuid';
 
-const getValueFromDataType = (type: string, name: string): ColumnValue => {
-  const maxNum = 20;
-  const typeStr = type.toLowerCase();
-  if (typeStr === 'integer' || typeStr === 'numeric' || typeStr === 'int') {
-    return Math.floor(Math.random() * maxNum);
+const sampleIntegerMax = 20;
+const numericColumnTypes = new Set(['integer', 'numeric', 'int']);
+
+const generateTraceContextId = () => uuidv4().replace(/-/g, '').slice(0, 16);
+
+const generateSampleValueForColumn = (
+  type: string,
+  name: string,
+): ColumnValue => {
+  const normalizedType = type.toLowerCase();
+
+  if (numericColumnTypes.has(normalizedType)) {
+    return Math.floor(Math.random() * sampleIntegerMax);
   }
-  if (typeStr === 'boolean') {
+
+  if (normalizedType === 'boolean') {
     return true;
   }
-  if (typeStr.includes('date') || typeStr.includes('timestamp')) {
+
+  if (normalizedType.includes('date') || normalizedType.includes('timestamp')) {
     return new Date().toISOString();
   }
+
   return name;
 };
 
-const getSampleEventData = ({
+const buildSampleEventData = ({
   formValues,
   columns,
   op,
@@ -27,61 +39,62 @@ const getSampleEventData = ({
   columns?: NormalizedQueryDataRow[];
   op: string;
 }) => {
-  const eventData: {
+  const initialEventData: {
     old: Record<string, ColumnValue> | null;
     new: Record<string, ColumnValue> | null;
   } = { old: null, new: null };
 
   if (isEmptyValue(columns)) {
-    return eventData;
+    return initialEventData;
   }
 
+  const availableColumns = columns!;
+
+  const buildColumnSample = (rows: NormalizedQueryDataRow[]) =>
+    rows.reduce<Record<string, ColumnValue>>((acc, column) => {
+      acc[column.column_name] = generateSampleValueForColumn(
+        column.data_type,
+        column.column_name,
+      );
+      return acc;
+    }, {});
+
   if (op === 'UPDATE') {
-    let selectedColumns = columns;
-    if (formValues.updateTriggerOn === 'choose') {
-      selectedColumns = selectedColumns?.filter((column) =>
-        formValues.updateTriggerColumns?.includes(column.column_name),
-      );
-    }
-    const oldData: Record<string, ColumnValue> = {};
-    selectedColumns?.forEach((column) => {
-      oldData[column.column_name] = getValueFromDataType(
-        column.data_type,
-        column.column_name,
-      );
-    });
-    const newData: Record<string, ColumnValue> = {};
-    selectedColumns?.forEach((column) => {
-      newData[column.column_name] = getValueFromDataType(
-        column.data_type,
-        column.column_name,
-      );
-    });
-    eventData.old = oldData;
-    eventData.new = newData;
+    const columnsForUpdate =
+      formValues.updateTriggerOn === 'choose'
+        ? availableColumns.filter((column) =>
+            formValues.updateTriggerColumns?.includes(column.column_name),
+          )
+        : availableColumns;
+
+    const oldRow = buildColumnSample(columnsForUpdate);
+    const newRow = buildColumnSample(columnsForUpdate);
+
+    return {
+      old: oldRow,
+      new: newRow,
+    };
   }
 
   if (op === 'DELETE') {
-    const oldData: Record<string, ColumnValue> = {};
-    columns?.forEach((column) => {
-      oldData[column.column_name] = getValueFromDataType(
-        column.data_type,
-        column.column_name,
-      );
-    });
-    eventData.old = oldData;
+    const deletedRow = buildColumnSample(availableColumns);
+
+    return {
+      old: deletedRow,
+      new: null,
+    };
   }
+
   if (op === 'INSERT' || op === 'MANUAL') {
-    const newData: Record<string, ColumnValue> = {};
-    columns?.forEach((column) => {
-      newData[column.column_name] = getValueFromDataType(
-        column.data_type,
-        column.column_name,
-      );
-    });
-    eventData.new = newData;
+    const insertedRow = buildColumnSample(availableColumns);
+
+    return {
+      old: null,
+      new: insertedRow,
+    };
   }
-  return eventData;
+
+  return initialEventData;
 };
 
 export interface GetSampleInputPayloadParams {
@@ -102,12 +115,12 @@ export default function getSampleInputPayload({
           new: null,
         },
         trace_context: {
-          trace_id: '7a2f9e8b4c1d6e3a',
-          span_id: '5b8c2f7e9a4d1c6b',
+          trace_id: generateTraceContextId(),
+          span_id: generateTraceContextId(),
         },
       },
       created_at: new Date().toISOString(),
-      id: '7f8e9d2a-b3c4-4e5f-9a1b-8c7d6e5f4a3b',
+      id: uuidv4(),
       delivery_info: {
         max_retries: 0,
         current_retry: 0,
@@ -131,19 +144,19 @@ export default function getSampleInputPayload({
     op = 'DELETE';
   }
 
-  const data = getSampleEventData({ formValues, columns, op });
+  const data = buildSampleEventData({ formValues, columns, op });
 
   const obj = {
     event: {
       op,
       data,
       trace_context: {
-        trace_id: '7a2f9e8b4c1d6e3a',
-        span_id: '5b8c2f7e9a4d1c6b',
+        trace_id: generateTraceContextId(),
+        span_id: generateTraceContextId(),
       },
     },
     created_at: new Date().toISOString(),
-    id: '7f8e9d2a-b3c4-4e5f-9a1b-8c7d6e5f4a3b',
+    id: uuidv4(),
     delivery_info: {
       max_retries: formValues.retryConf.numRetries ?? 0,
       current_retry: 0,
