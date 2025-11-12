@@ -1,13 +1,17 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import { useTooltip } from '@/components/ui/v2/Tooltip';
+import { Button } from '@/components/ui/v3/button';
 import type {
   ColumnType,
   DataBrowserGridCell,
   DataBrowserGridCellProps,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { cn } from '@/lib/utils';
+import { cn, isNotEmptyValue } from '@/lib/utils';
+import { copy } from '@/utils/copy';
 import { triggerToast } from '@/utils/toast';
+import { Copy } from 'lucide-react';
 import type {
+  CSSProperties,
   FocusEvent,
   JSXElementConstructor,
   KeyboardEvent,
@@ -74,6 +78,7 @@ export interface DataGridCellProps<TData extends object> {
   columnType?: ColumnType;
   className?: string;
   id?: string;
+  style?: CSSProperties;
 }
 
 function DataGridCellContent<TData extends object = {}>({
@@ -333,7 +338,7 @@ function DataGridCellContent<TData extends object = {}>({
     <div
       ref={cellRef}
       className={cn(
-        'box relative grid h-full w-full cursor-default grid-flow-col items-center gap-1 bg-gray-200 px-2 py-1.5',
+        'relative grid w-full cursor-default grid-flow-col items-center gap-1 border-divider px-2 py-1.5 text-primary-text',
         isEditable &&
           'focus-within:outline-none focus-within:ring-0 focus:ring-0',
         isSelected && 'shadow-outline',
@@ -360,7 +365,7 @@ function DataGridCellContent<TData extends object = {}>({
             return null;
           }
           const { id: rowId } = row.original as { id: string };
-          return cloneElement(child, {
+          const clonedChild = cloneElement(child, {
             ...child.props,
             onSave: handleSave,
             optimisticValue,
@@ -369,11 +374,39 @@ function DataGridCellContent<TData extends object = {}>({
             onTemporaryValueChange: setTemporaryValue,
             rowId,
           });
+
+          return (
+            <>
+              {clonedChild}
+              {id !== 'preview-column' &&
+                type !== 'boolean' &&
+                isNotEmptyValue(optimisticValue) && (
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={(event) => {
+                      event.stopPropagation();
+
+                      const copiableValue =
+                        typeof optimisticValue === 'object'
+                          ? JSON.stringify(optimisticValue)
+                          : String(optimisticValue).replace(/\\n/gi, '\n');
+
+                      copy(copiableValue, 'Value');
+                    }}
+                    className="-ml-px h-6 w-6 border-transparent bg-transparent p-1 text-disabled opacity-0 hover:bg-transparent group-hover:opacity-100"
+                    aria-label="Copy value"
+                  >
+                    <Copy width={16} height={16} />
+                  </Button>
+                )}
+            </>
+          );
         },
       )}
     </div>
   );
-
+  // TODO: https://github.com/nhost/nhost/issues/3677
   if (isEditable) {
     return (
       <Tooltip

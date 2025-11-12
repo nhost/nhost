@@ -1,5 +1,6 @@
 import { Alert } from '@/components/ui/v3/alert';
 import { Button } from '@/components/ui/v3/button';
+import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
 import type { BaseRecordFormProps } from '@/features/orgs/projects/database/dataGrid/components/BaseRecordForm';
 import { BaseRecordForm } from '@/features/orgs/projects/database/dataGrid/components/BaseRecordForm';
 import { useCreateRecordMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateRecordMutation';
@@ -7,6 +8,7 @@ import type { ColumnInsertOptions } from '@/features/orgs/projects/database/data
 import { createDynamicValidationSchema } from '@/features/orgs/projects/database/dataGrid/utils/validationSchemaHelpers';
 import { triggerToast } from '@/utils/toast';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { useQueryClient } from '@tanstack/react-query';
 import { FormProvider, useForm } from 'react-hook-form';
 
 export interface CreateRecordFormProps
@@ -15,14 +17,20 @@ export interface CreateRecordFormProps
    * Function to be called when the form is submitted.
    */
   onSubmit?: (args?: any) => Promise<any>;
+  currentOffset: number;
+  sortByString: string;
 }
 
 export default function CreateRecordForm({
   onSubmit,
+  currentOffset,
+  sortByString,
   ...props
 }: CreateRecordFormProps) {
   const { mutateAsync: insertRow, error, reset } = useCreateRecordMutation();
   const validationSchema = createDynamicValidationSchema(props.columns);
+  const currentTablePath = useTablePath();
+  const queryClient = useQueryClient();
 
   const form = useForm({
     defaultValues: props.columns.reduce((defaultValues, column) => {
@@ -30,7 +38,7 @@ export default function CreateRecordForm({
         return { ...defaultValues, [column.id]: column.defaultValue };
       }
 
-      return { ...defaultValues, [column.id]: '' };
+      return { ...defaultValues, [column.id]: null };
     }, {}),
     reValidateMode: 'onSubmit',
     resolver: yupResolver(validationSchema),
@@ -42,6 +50,12 @@ export default function CreateRecordForm({
 
       if (onSubmit) {
         await onSubmit();
+        await queryClient.invalidateQueries({
+          queryKey: [currentTablePath, currentOffset],
+        });
+        await queryClient.refetchQueries({
+          queryKey: [currentTablePath, currentOffset],
+        });
       }
 
       triggerToast('The row has been inserted successfully.');

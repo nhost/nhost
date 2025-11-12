@@ -24,6 +24,8 @@ import { DataGridBooleanCell } from '@/features/orgs/projects/storage/dataGrid/c
 import { DataGridDateCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridDateCell';
 import { DataGridNumericCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridNumericCell';
 import { DataGridTextCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridTextCell';
+import { isNotEmptyValue } from '@/lib/utils';
+
 import { useQueryClient } from '@tanstack/react-query';
 import { KeyRound } from 'lucide-react';
 import dynamic from 'next/dynamic';
@@ -85,6 +87,7 @@ export function createDataGridColumn(
     return {
       ...defaultColumnConfiguration,
       type: 'number',
+      isCopiable: true,
       width: 250,
       Cell: DataGridNumericCell,
     };
@@ -127,6 +130,7 @@ export function createDataGridColumn(
       ...defaultColumnConfiguration,
       type: 'date',
       width: 200,
+      isCopiable: true,
       Cell: DataGridDateCell,
     };
   }
@@ -156,8 +160,12 @@ export default function DataBrowserGrid({
 
   const { mutateAsync: updateRow } = useUpdateRecordWithToastMutation();
 
+  const sortByString = isNotEmptyValue(sortBy?.[0])
+    ? `${sortBy[0].id}.${sortBy[0].desc}`
+    : 'default-order';
+
   const { data, status, error, refetch } = useTableQuery(
-    [currentTablePath, limit, currentOffset, sortBy],
+    [currentTablePath, currentOffset, sortByString],
     {
       limit,
       offset: currentOffset * limit,
@@ -264,6 +272,8 @@ export default function DataBrowserGrid({
           // TODO: Create proper typings for data browser columns
           columns={memoizedColumns as unknown as DataBrowserGridColumn[]}
           onSubmit={refetch}
+          currentOffset={currentOffset}
+          sortByString={sortByString}
         />
       ),
     });

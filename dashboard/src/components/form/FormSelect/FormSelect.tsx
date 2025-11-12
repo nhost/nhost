@@ -12,9 +12,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
-import { cn } from '@/lib/utils';
+import { cn, isNotEmptyValue } from '@/lib/utils';
 import type { PropsWithChildren, ReactNode } from 'react';
-import type { Control, FieldPath, FieldValues } from 'react-hook-form';
+import type {
+  Control,
+  ControllerRenderProps,
+  FieldPath,
+  FieldValues,
+  PathValue,
+} from 'react-hook-form';
 
 interface FormSelectProps<
   TFieldValues extends FieldValues = FieldValues,
@@ -27,6 +33,9 @@ interface FormSelectProps<
   className?: string;
   inline?: boolean;
   helperText?: string | null;
+  transformValue?: (
+    value: PathValue<TFieldValues, TName>,
+  ) => PathValue<TFieldValues, TName>;
 }
 
 function FormSelect<
@@ -41,13 +50,34 @@ function FormSelect<
   inline,
   helperText,
   children,
+  transformValue,
 }: PropsWithChildren<FormSelectProps<TFieldValues, TName>>) {
+  function getOnChangeHandlerAndValue(
+    field: ControllerRenderProps<TFieldValues, TName>,
+  ): [string, (v: string) => void] {
+    const { onChange, value } = field;
+
+    function handleOnChange(newValue: string) {
+      const transformedNewValue = isNotEmptyValue(transformValue)
+        ? transformValue(newValue as PathValue<TFieldValues, TName>)
+        : newValue;
+
+      onChange(transformedNewValue);
+    }
+
+    const transformedValue: string = isNotEmptyValue(transformValue)
+      ? transformValue(value as PathValue<TFieldValues, TName>)
+      : value;
+
+    return [transformedValue, handleOnChange];
+  }
   return (
     <FormField
       control={control}
       name={name}
       render={({ field }) => {
-        const { onChange, ...selectProps } = field;
+        const { onChange, value, ...selectProps } = field;
+        const [tValue, handleOnChange] = getOnChangeHandlerAndValue(field);
         return (
           <FormItem
             className={cn({ 'flex w-full items-center gap-4 py-3': inline })}
@@ -66,7 +96,11 @@ function FormSelect<
                   inline,
               })}
             >
-              <Select onValueChange={onChange} {...selectProps}>
+              <Select
+                onValueChange={handleOnChange}
+                value={tValue}
+                {...selectProps}
+              >
                 <FormControl>
                   <SelectTrigger className={className}>
                     <SelectValue placeholder={placeholder} />

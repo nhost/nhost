@@ -1,12 +1,10 @@
-import { Button } from '@/components/ui/v3/button';
 import { Input } from '@/components/ui/v3/input';
 import { Textarea } from '@/components/ui/v3/textarea';
 import {
   useDataGridCell,
   type CommonDataGridCellProps,
 } from '@/features/orgs/projects/storage/dataGrid/components/DataGridCell';
-import { copy } from '@/utils/copy';
-import { Copy } from 'lucide-react';
+
 import type { ChangeEvent, KeyboardEvent, Ref } from 'react';
 import { useEffect } from 'react';
 
@@ -19,7 +17,7 @@ export default function DataGridTextCell<TData extends object>({
   temporaryValue,
   onTemporaryValueChange,
   cell: {
-    column: { isCopiable, specificType },
+    column: { specificType },
   },
 }: DataGridTextCellProps<TData>) {
   const isMultiline =
@@ -145,40 +143,9 @@ export default function DataGridTextCell<TData extends object>({
 
   if (!optimisticValue) {
     return (
-      <p className="truncate !text-xs text-secondary">
+      <p className="truncate !text-xs text-[#7d8ca3]">
         {optimisticValue === '' ? 'empty' : 'null'}
       </p>
-    );
-  }
-
-  if (isCopiable) {
-    return (
-      <div className="grid grid-flow-col items-center justify-start gap-1">
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={(event) => {
-            event.stopPropagation();
-
-            const copiableValue =
-              typeof optimisticValue === 'object'
-                ? JSON.stringify(optimisticValue)
-                : String(optimisticValue).replace(/\\n/gi, '\n');
-
-            copy(copiableValue, 'Value');
-          }}
-          className="-ml-px h-max w-max min-w-0 border-transparent bg-transparent p-[1px] text-disabled hover:bg-divider"
-          aria-label="Copy value"
-        >
-          <Copy className="h-4 w-4" />
-        </Button>
-
-        <p className="truncate text-xs">
-          {typeof normalizedOptimisticValue === 'object'
-            ? JSON.stringify(normalizedOptimisticValue)
-            : normalizedOptimisticValue}
-        </p>
-      </div>
     );
   }
 

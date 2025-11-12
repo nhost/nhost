@@ -65,7 +65,7 @@ export default function DataGridHeaderButton<T extends object>({
           {...column.getResizerProps({
             onClick: (event: Event) => event.stopPropagation(),
           })}
-          className="absolute -right-0.5 bottom-0 top-0 z-10 h-full w-1.5 group-hover:bg-slate-900 group-hover:bg-opacity-20 group-active:bg-slate-900 group-active:bg-opacity-20 motion-safe:transition-colors"
+          className="absolute -right-0.5 bottom-0 top-0 z-10 h-full w-2 group-hover:bg-slate-900 group-hover:bg-opacity-20 group-active:bg-slate-900 group-active:bg-opacity-20 motion-safe:transition-colors"
         />
       )}
     </Button>

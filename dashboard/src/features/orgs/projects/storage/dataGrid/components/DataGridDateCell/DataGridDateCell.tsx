@@ -3,19 +3,10 @@ import type { CommonDataGridCellProps } from '@/features/orgs/projects/storage/d
 import { useDataGridCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridCell';
 import { cn } from '@/lib/utils';
 import { getDateComponents } from '@/utils/getDateComponents';
-import type { ChangeEvent, HTMLAttributes, KeyboardEvent, Ref } from 'react';
+import type { ChangeEvent, KeyboardEvent, Ref } from 'react';
 
 export interface DataGridDateCellProps<TData extends object>
-  extends CommonDataGridCellProps<TData, string> {
-  /**
-   * Props to be passed to date display.
-   */
-  dateProps?: HTMLAttributes<HTMLParagraphElement>;
-  /**
-   * Props to be passed to time display.
-   */
-  timeProps?: HTMLAttributes<HTMLParagraphElement>;
-}
+  extends CommonDataGridCellProps<TData, string> {}
 
 export default function DataGridDateCell<TData extends object>({
   onSave,
@@ -25,13 +16,8 @@ export default function DataGridDateCell<TData extends object>({
   cell: {
     column: { specificType },
   },
-  dateProps,
-  timeProps,
   className,
 }: DataGridDateCellProps<TData>) {
-  const { className: dateClassName, ...restDateProps } = dateProps || {};
-  const { className: timeClassName, ...restTimeProps } = timeProps || {};
-
   // Note: No date (year-month-day) is saved for time / timetz columns, so we
   // need to add it manually.
   const date =
@@ -110,26 +96,14 @@ export default function DataGridDateCell<TData extends object>({
 
   return (
     <div className={cn('grid grid-flow-row', className)}>
-      {specificType !== 'time' && specificType !== 'timetz' && (
-        <p className={cn('truncate text-xs', dateClassName)} {...restDateProps}>
-          {[year, month, day].filter(Boolean).join('-')}
-        </p>
-      )}
-
-      {specificType !== 'date' && (
-        <p
-          className={cn(
-            'truncate text-xs',
-            timeClassName,
-            specificType === 'time' || specificType === 'timetz'
-              ? 'primary'
-              : 'secondary',
-          )}
-          {...restTimeProps}
-        >
-          {[hour, minute, second].filter(Boolean).join(':')}
-        </p>
-      )}
+      <p className="truncate text-xs">
+        {specificType !== 'time' && specificType !== 'timetz' && (
+          <span>{[year, month, day].filter(Boolean).join('-')}</span>
+        )}{' '}
+        {specificType !== 'date' && (
+          <span>{[hour, minute, second].filter(Boolean).join(':')}</span>
+        )}
+      </p>
     </div>
   );
 }
