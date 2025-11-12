@@ -44,22 +44,22 @@ export const requestOptionsTransformQueryParamsTypeOptions = [
 export const validationSchema = z
   .object({
     triggerName: z
-      .string({ required_error: 'Trigger name is required' })
-      .min(1, { message: 'Trigger name is required' })
+      .string({ required_error: 'Trigger name required' })
+      .min(1, { message: 'Trigger name required' })
       .max(42, { message: 'Trigger name must be at most 42 characters' })
       .regex(/^[a-zA-Z0-9_-]+$/, {
         message:
           'Trigger name can only contain alphanumeric characters, underscores, and hyphens',
       }),
     dataSource: z
-      .string({ required_error: 'Data source is required' })
-      .min(1, { message: 'Data source is required' }),
+      .string({ required_error: 'Data source required' })
+      .min(1, { message: 'Data source required' }),
     tableName: z
-      .string({ required_error: 'Table name is required' })
-      .min(1, { message: 'Table name is required' }),
+      .string({ required_error: 'Table name required' })
+      .min(1, { message: 'Table name required' }),
     tableSchema: z
       .string({ required_error: 'Schema required' })
-      .min(1, { message: 'Schema is required' }),
+      .min(1, { message: 'Schema required' }),
     webhook: z.string().min(1, { message: 'Webhook is required' }),
     triggerOperations: z
       .array(z.enum(ALL_TRIGGER_OPERATIONS))
@@ -107,8 +107,8 @@ export const validationSchema = z
             ),
             queryParams: z.array(
               z.object({
-                key: z.string(),
-                value: z.string(),
+                key: z.string().min(1, 'Key is required'),
+                value: z.string().min(1, 'Value is required'),
               }),
             ),
           }),
@@ -138,8 +138,8 @@ export const validationSchema = z
             ),
             formTemplate: z.array(
               z.object({
-                key: z.string(),
-                value: z.string(),
+                key: z.string().min(1, 'Key is required'),
+                value: z.string().min(1, 'Value is required'),
               }),
             ),
           }),
