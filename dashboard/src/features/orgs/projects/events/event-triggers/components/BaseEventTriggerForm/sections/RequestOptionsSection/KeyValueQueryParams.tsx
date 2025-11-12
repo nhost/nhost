@@ -42,7 +42,7 @@ export default function KeyValueQueryParams() {
             key={fieldItem.id}
             className="grid grid-flow-row grid-cols-9 items-center gap-2"
           >
-            <div className="col-span-3">
+            <div className="col-span-3 self-start">
               <FormInput
                 control={form.control}
                 name={`requestOptionsTransform.queryParams.queryParams.${index}.key`}
@@ -52,8 +52,10 @@ export default function KeyValueQueryParams() {
                 autoComplete="off"
               />
             </div>
-            <span className="col-span-1 text-center text-foreground">:</span>
-            <div className="col-span-4">
+            <div className="col-span-1 flex h-10 items-center justify-center self-start pt-2">
+              <span className="text-center text-foreground">:</span>
+            </div>
+            <div className="col-span-4 self-start">
               <FormInput
                 control={form.control}
                 name={`requestOptionsTransform.queryParams.queryParams.${index}.value`}
@@ -64,15 +66,17 @@ export default function KeyValueQueryParams() {
               />
             </div>
 
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="col-span-1 px-4 text-destructive hover:bg-destructive/10 hover:text-destructive"
-              onClick={() => remove(index)}
-            >
-              <TrashIcon className="size-4" />
-            </Button>
+            <div className="col-span-1 self-start pt-3">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="px-4 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                onClick={() => remove(index)}
+              >
+                <TrashIcon className="size-4" />
+              </Button>
+            </div>
           </div>
         ))}
       </div>

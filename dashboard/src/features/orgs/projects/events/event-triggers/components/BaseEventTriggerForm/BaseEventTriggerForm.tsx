@@ -1,3 +1,4 @@
+import { DiscardChangesDialog } from '@/components/common/DiscardChangesDialog';
 import { FormInput } from '@/components/form/FormInput';
 import { FormSelect } from '@/components/form/FormSelect';
 import {
@@ -6,16 +7,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/v3/accordion';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/v3/alert-dialog';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import {
@@ -67,9 +58,9 @@ export interface BaseEventTriggerFormProps {
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: BaseEventTriggerFormValues) => void;
   isEditing?: boolean;
-  submitButtonText?: string;
-  titleText?: string;
-  descriptionText?: string;
+  submitButtonText: string;
+  titleText: string;
+  descriptionText: string;
 }
 
 export default function BaseEventTriggerForm({
@@ -78,9 +69,9 @@ export default function BaseEventTriggerForm({
   isEditing,
   onOpenChange,
   onSubmit,
-  titleText = 'Create a New Event Trigger',
-  descriptionText = "Enter the details to create your event trigger. Click Create when you're done.",
-  submitButtonText = 'Save',
+  titleText,
+  descriptionText,
+  submitButtonText,
 }: BaseEventTriggerFormProps) {
   const { data: metadata } = useGetMetadata();
   const [showUnsavedChangesDialog, setShowUnsavedChangesDialog] =
@@ -178,7 +169,7 @@ export default function BaseEventTriggerForm({
             <SheetDescription>{descriptionText}</SheetDescription>
           </SheetHeader>
           <Separator />
-          <Form key={open ? 'open' : 'closed'} {...form}>
+          <Form {...form}>
             <form
               id="event-trigger-form"
               onSubmit={form.handleSubmit(onSubmit)}
@@ -210,8 +201,8 @@ export default function BaseEventTriggerForm({
                         </SelectItem>
                       ))}
                     </FormSelect>
-                    <div className="flex w-full flex-row items-center justify-start">
-                      <div className="w-auto">
+                    <div className="flex w-full flex-row items-center justify-start self-start">
+                      <div className="w-auto self-start">
                         <FormSelect
                           control={form.control}
                           name="tableSchema"
@@ -227,20 +218,22 @@ export default function BaseEventTriggerForm({
                           ))}
                         </FormSelect>
                       </div>
-                      <FormSelect
-                        control={form.control}
-                        name="tableName"
-                        label="Table"
-                        placeholder="Select"
-                        disabled={!selectedTableSchema || isEditing}
-                        className="relative w-full min-w-[120px] max-w-72 rounded-l-none text-foreground focus:z-10"
-                      >
-                        {tables?.map((tableName) => (
-                          <SelectItem key={tableName} value={tableName}>
-                            {tableName}
-                          </SelectItem>
-                        ))}
-                      </FormSelect>
+                      <div className="w-full self-start">
+                        <FormSelect
+                          control={form.control}
+                          name="tableName"
+                          label="Table"
+                          placeholder="Select"
+                          disabled={!selectedTableSchema || isEditing}
+                          className="relative w-full min-w-[120px] max-w-72 rounded-l-none text-foreground focus:z-10"
+                        >
+                          {tables?.map((tableName) => (
+                            <SelectItem key={tableName} value={tableName}>
+                              {tableName}
+                            </SelectItem>
+                          ))}
+                        </FormSelect>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -502,29 +495,11 @@ export default function BaseEventTriggerForm({
           </SheetFooter>
         </SheetContent>
       </Sheet>
-      <AlertDialog
+      <DiscardChangesDialog
         open={showUnsavedChangesDialog}
         onOpenChange={setShowUnsavedChangesDialog}
-      >
-        <AlertDialogContent className="text-foreground">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Unsaved changes</AlertDialogTitle>
-            <AlertDialogDescription>
-              You have unsaved local changes. Are you sure you want to discard
-              them?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDiscardChanges}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Discard
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        onDiscardChanges={handleDiscardChanges}
+      />
     </>
   );
 }

@@ -62,7 +62,7 @@ export default function HeadersSection({ className }: HeadersSectionProps) {
             key={fieldItem.id}
             className="grid grid-flow-row grid-cols-9 items-center gap-2"
           >
-            <div className="col-span-3">
+            <div className="col-span-3 self-start">
               <FormInput
                 control={form.control}
                 name={`headers.${index}.name`}
@@ -72,21 +72,25 @@ export default function HeadersSection({ className }: HeadersSectionProps) {
                 autoComplete="off"
               />
             </div>
-            <span className="col-span-1 text-center text-foreground">:</span>
-            <div className="col-span-4 flex items-center">
-              <FormSelect
-                control={form.control}
-                name={`headers.${index}.type`}
-                label=""
-                placeholder="Select type"
-                className="relative min-w-[120px] max-w-60 rounded-r-none border-r-0 text-foreground focus:z-10"
-              >
-                {headerTypes.map((type) => (
-                  <SelectItem key={type.value} value={type.value}>
-                    {type.label}
-                  </SelectItem>
-                ))}
-              </FormSelect>
+            <div className="col-span-1 flex h-10 items-center justify-center self-start pt-2">
+              <span className="text-center text-foreground">:</span>
+            </div>
+            <div className="col-span-4 flex items-center self-start">
+              <div className="self-start">
+                <FormSelect
+                  control={form.control}
+                  name={`headers.${index}.type`}
+                  label=""
+                  placeholder="Select type"
+                  className="relative min-w-[120px] max-w-60 rounded-r-none border-r-0 text-foreground focus:z-10"
+                >
+                  {headerTypes.map((type) => (
+                    <SelectItem key={type.value} value={type.value}>
+                      {type.label}
+                    </SelectItem>
+                  ))}
+                </FormSelect>
+              </div>
               <div className="flex-1">
                 <FormInput
                   control={form.control}
@@ -102,15 +106,17 @@ export default function HeadersSection({ className }: HeadersSectionProps) {
                 />
               </div>
             </div>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="col-span-1 px-4 text-destructive hover:bg-destructive/10 hover:text-destructive"
-              onClick={() => remove(index)}
-            >
-              <TrashIcon className="size-4" />
-            </Button>
+            <div className="col-span-1 self-start pt-3">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="px-4 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                onClick={() => remove(index)}
+              >
+                <TrashIcon className="size-4" />
+              </Button>
+            </div>
           </div>
         ))}
       </div>
