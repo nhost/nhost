@@ -13,7 +13,30 @@ import { useFormContext } from 'react-hook-form';
 export default function TransformedRequestBody() {
   const form = useFormContext<BaseEventTriggerFormValues>();
   const values = form.watch();
-  const args = buildTestWebhookTransformDTO({ formValues: values });
+
+  let args: TestWebhookTransformArgs;
+  let buildArgsError: string | null = null;
+
+  try {
+    args = buildTestWebhookTransformDTO({ formValues: values });
+  } catch (error) {
+    buildArgsError =
+      error instanceof Error
+        ? error.message
+        : 'Invalid sample input. Please enter a valid JSON string.';
+
+    const sanitizedValues = {
+      ...values,
+      payloadTransform: {
+        ...(values.payloadTransform ?? {}),
+        sampleInput: '{}',
+      },
+    } as BaseEventTriggerFormValues;
+
+    args = buildTestWebhookTransformDTO({
+      formValues: sanitizedValues,
+    });
+  }
 
   const [debouncedArgs, setDebouncedArgs] =
     useState<TestWebhookTransformArgs>(args);
@@ -31,10 +54,16 @@ export default function TransformedRequestBody() {
     return () => debouncedSetArgs.cancel();
   }, [args, debouncedSetArgs]);
 
-  const { data, isLoading, error } =
-    useTestWebhookTransformQuery(debouncedArgs);
+  const { data, isLoading, error } = useTestWebhookTransformQuery(
+    debouncedArgs,
+    {
+      queryOptions: {
+        enabled: !buildArgsError,
+      },
+    },
+  );
 
-  const canRun = Boolean(debouncedArgs.webhook_url);
+  const canRun = Boolean(debouncedArgs.webhook_url) && !buildArgsError;
 
   return (
     <FormItem>
@@ -45,6 +74,12 @@ export default function TransformedRequestBody() {
         Sample request body to be delivered based on your input and
         transformation template.
       </FormDescription>
+      {buildArgsError && (
+        <Alert variant="destructive" className="max-w-lg">
+          <AlertTitle>Invalid sample input</AlertTitle>
+          <AlertDescription>{buildArgsError}</AlertDescription>
+        </Alert>
+      )}
       {!canRun && (
         <Alert variant="destructive" className="max-w-lg">
           <AlertTitle>Webhook URL not configured</AlertTitle>
@@ -56,13 +91,13 @@ export default function TransformedRequestBody() {
       {canRun && isLoading && (
         <Skeleton className="h-[250px] w-full max-w-lg" />
       )}
-      {error && (
+      {!buildArgsError && error && (
         <Alert variant="destructive" className="max-w-lg">
           <AlertTitle>Error with webhook handler</AlertTitle>
           <AlertDescription>{error.error}</AlertDescription>
         </Alert>
       )}
-      {!isLoading && !error && (
+      {!isLoading && !error && canRun && (
         <Textarea
           className="min-h-[250px] max-w-lg font-mono text-foreground"
           value={JSON.stringify(data?.body, null, 2)}
