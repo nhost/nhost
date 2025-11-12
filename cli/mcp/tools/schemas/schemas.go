@@ -68,10 +68,12 @@ func (t *Tool) Register(mcpServer *server.MCPServer) {
 		),
 		mcp.WithArray(
 			"queries",
+			mcp.WithStringItems(),
 			mcp.Description("list of queries to fetch"),
 		),
 		mcp.WithArray(
 			"mutations",
+			mcp.WithStringItems(),
 			mcp.Description("list of mutations to fetch"),
 		),
 	)
