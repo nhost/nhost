@@ -62,7 +62,7 @@ export default function ProjectsGrid({ projects }: ProjectGridProps) {
   );
 
   return (
-    <div className="mx-auto h-full overflow-auto bg-accent">
+    <div className="mx-auto h-full overflow-auto bg-accent-background">
       <div className="flex w-full flex-shrink-0 flex-row items-center justify-between gap-2 border-b bg-background p-2">
         <Input
           placeholder="Find Project"
@@ -85,7 +85,6 @@ export default function ProjectsGrid({ projects }: ProjectGridProps) {
           </Link>
         </Button>
       </div>
-
       <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
         {filteredProjects.map((project) => (
           <ProjectCard key={project.id} project={project} />

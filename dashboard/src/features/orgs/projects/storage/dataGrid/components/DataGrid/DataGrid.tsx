@@ -1,5 +1,4 @@
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Box } from '@/components/ui/v2/Box';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
 import type { UseDataGridOptions } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid/useDataGrid';
 import { DataGridBody } from '@/features/orgs/projects/storage/dataGrid/components/DataGridBody';
@@ -7,11 +6,11 @@ import { DataGridConfigProvider } from '@/features/orgs/projects/storage/dataGri
 import { DataGridFrame } from '@/features/orgs/projects/storage/dataGrid/components/DataGridFrame';
 import type { DataGridHeaderProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGridHeader';
 import { DataGridHeader } from '@/features/orgs/projects/storage/dataGrid/components/DataGridHeader';
+import { cn } from '@/lib/utils';
 import type { ForwardedRef } from 'react';
 import { forwardRef, useEffect, useRef } from 'react';
 import { mergeRefs } from 'react-merge-refs';
 import type { Column, Row, SortingRule, TableOptions } from 'react-table';
-import { twMerge } from 'tailwind-merge';
 import useDataGrid from './useDataGrid';
 
 export interface DataGridProps<TColumnData extends object>
@@ -129,12 +128,11 @@ function DataGrid<TColumnData extends object>(
         )}
 
         {columns.length > 0 && (
-          <Box
+          <div
             ref={mergeRefs([ref, tableRef])}
-            sx={{ backgroundColor: 'background.default' }}
-            className={twMerge(
-              'overflow-x-auto',
-              !loading && 'h-full',
+            className={cn(
+              'box overflow-x-auto bg-background',
+              { 'h-full': !loading },
               className,
             )}
           >
@@ -146,10 +144,10 @@ function DataGrid<TColumnData extends object>(
                 loading={loading}
               />
             </DataGridFrame>
-          </Box>
+          </div>
         )}
 
-        {loading && <ActivityIndicator delay={1000} className="my-4" />}
+        {loading && <Spinner className="my-4" />}
       </>
     </DataGridConfigProvider>
   );

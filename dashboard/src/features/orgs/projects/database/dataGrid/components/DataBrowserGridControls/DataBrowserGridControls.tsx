@@ -1,21 +1,20 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import type { BoxProps } from '@/components/ui/v2/Box';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { Chip } from '@/components/ui/v2/Chip';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
+import { Badge } from '@/components/ui/v3/badge';
+import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
 import { useDeleteRecordMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteRecordMutation';
 import type { DataBrowserGridColumn } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
 import type { DataGridPaginationProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPagination';
 import { DataGridPagination } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPagination';
+import { cn } from '@/lib/utils';
 import { triggerToast } from '@/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
+import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import type { Row } from 'react-table';
 import { twMerge } from 'tailwind-merge';
 
-export interface DataBrowserGridControlsProps extends BoxProps {
+export interface DataBrowserGridControlsProps {
   /**
    * Props passed to the pagination component.
    */
@@ -33,11 +32,9 @@ export interface DataBrowserGridControlsProps extends BoxProps {
 // TODO: Get rid of Data Browser related code from here. This component should
 // be generic and not depend on Data Browser related data types and logic.
 export default function DataBrowserGridControls({
-  className,
   paginationProps,
   refetchData,
   onInsertRowClick,
-  ...props
 }: DataBrowserGridControlsProps) {
   const queryClient = useQueryClient();
   const { openAlertDialog } = useDialog();
@@ -98,28 +95,26 @@ export default function DataBrowserGridControls({
   }
 
   return (
-    <Box
-      className={twMerge('sticky top-0 z-20 border-b-1 p-2', className)}
-      {...props}
-    >
+    <div className="box sticky top-0 z-20 border-b-1 p-2">
       <div
-        className={twMerge(
+        className={cn(
           'mx-auto grid min-h-[38px] grid-flow-col items-center gap-3',
           numberOfSelectedRows > 0 ? 'justify-between' : 'justify-end',
         )}
       >
         {numberOfSelectedRows > 0 && (
           <div className="grid grid-flow-col place-content-start items-center gap-2">
-            <Chip
-              size="small"
-              color="info"
-              label={`${numberOfSelectedRows} selected`}
-            />
+            <Badge
+              variant="secondary"
+              className="!bg-[#ebf3ff] text-primary dark:!bg-[#1b2534]"
+            >
+              {`${numberOfSelectedRows} selected`}
+            </Badge>
 
             <Button
-              variant="borderless"
-              color="error"
-              size="small"
+              variant="outline"
+              size="sm"
+              className="border-none text-destructive hover:bg-[#f131541a] hover:text-destructive"
               loading={status === 'loading'}
               onClick={() =>
                 openAlertDialog({
@@ -161,16 +156,12 @@ export default function DataBrowserGridControls({
               />
             )}
 
-            <Button
-              startIcon={<PlusIcon className="h-4 w-4" />}
-              size="small"
-              onClick={onInsertRowClick}
-            >
-              Insert row
+            <Button onClick={onInsertRowClick} size="sm">
+              <Plus className="h-4 w-4" /> Insert row
             </Button>
           </div>
         )}
       </div>
-    </Box>
+    </div>
   );
 }

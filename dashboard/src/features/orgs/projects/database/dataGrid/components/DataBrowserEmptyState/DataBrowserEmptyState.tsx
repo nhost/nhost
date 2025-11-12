@@ -1,7 +1,6 @@
-import { Text } from '@/components/ui/v2/Text';
+import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import type { DetailedHTMLProps, HTMLProps, ReactNode } from 'react';
-import { twMerge } from 'tailwind-merge';
 
 export interface DataBrowserEmptyStateProps
   extends Omit<
@@ -26,7 +25,7 @@ export default function DataBrowserEmptyState({
 }: DataBrowserEmptyStateProps) {
   return (
     <div
-      className={twMerge(
+      className={cn(
         'grid w-full place-content-center gap-2 px-4 py-16 text-center',
         className,
       )}
@@ -41,12 +40,10 @@ export default function DataBrowserEmptyState({
           priority
         />
       </div>
-
-      <Text variant="h3" component="h1">
+      <h1 className="font-inter-var text-[1.125rem] font-medium !leading-6">
         {title}
-      </Text>
-
-      <Text>{description}</Text>
+      </h1>
+      <p>{description}</p>
     </div>
   );
 }

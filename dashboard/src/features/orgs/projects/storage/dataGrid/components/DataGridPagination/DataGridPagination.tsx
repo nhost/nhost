@@ -1,13 +1,8 @@
-import type { BoxProps } from '@/components/ui/v2/Box';
-import { Box } from '@/components/ui/v2/Box';
-import type { IconButtonProps } from '@/components/ui/v2/IconButton';
-import { IconButton } from '@/components/ui/v2/IconButton';
-import { ChevronLeftIcon } from '@/components/ui/v2/icons/ChevronLeftIcon';
-import { ChevronRightIcon } from '@/components/ui/v2/icons/ChevronRightIcon';
-import { Text } from '@/components/ui/v2/Text';
-import clsx from 'clsx';
+import { Button, type ButtonProps } from '@/components/ui/v3/button';
+import { cn } from '@/lib/utils';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-export interface DataGridPaginationProps extends BoxProps {
+export interface DataGridPaginationProps {
   /**
    * Number of pages.
    */
@@ -27,11 +22,12 @@ export interface DataGridPaginationProps extends BoxProps {
   /**
    * Props to be passed to the next button component.
    */
-  nextButtonProps?: IconButtonProps;
+  nextButtonProps?: ButtonProps;
   /**
    * Props to be passed to the previous button component.
    */
-  prevButtonProps?: IconButtonProps;
+  prevButtonProps?: ButtonProps;
+  className?: string;
 }
 
 export default function DataGridPagination({
@@ -42,50 +38,48 @@ export default function DataGridPagination({
   onOpenNextPage,
   nextButtonProps,
   prevButtonProps,
-  ...props
 }: DataGridPaginationProps) {
   return (
-    <Box
-      className={clsx(
-        'grid grid-flow-col items-center justify-around rounded-md border-1',
+    <div
+      className={cn(
+        'grid grid-flow-col items-center justify-around rounded-md border-1 px-1',
         className,
       )}
-      {...props}
     >
-      <IconButton
-        variant="borderless"
-        color="secondary"
+      <Button
+        variant="outline"
+        size="icon"
         disabled={currentPage === 1}
         onClick={onOpenPrevPage}
         aria-label="Previous page"
+        className="h-max w-max border-none bg-transparent dark:hover:bg-[#2f363d]"
         {...prevButtonProps}
       >
-        <ChevronLeftIcon className="h-4 w-4" />
-      </IconButton>
+        <ChevronLeft className="h-4 w-4" />
+      </Button>
 
       <span
-        className={clsx(
+        className={cn(
           'mx-1 inline-block font-display font-medium',
           currentPage > 99 ? 'text-xs' : 'text-sm+',
         )}
       >
         {currentPage}
-        <Text component="span" className="mx-1 inline-block" color="disabled">
-          /
-        </Text>
+        <span className="mx-1 inline-block text-disabled">/</span>
         {totalPages}
       </span>
 
-      <IconButton
-        variant="borderless"
-        color="secondary"
+      <Button
+        variant="outline"
+        size="icon"
         disabled={currentPage === totalPages}
         onClick={onOpenNextPage}
         aria-label="Next page"
+        className="h-max w-max border-none bg-transparent dark:hover:bg-[#2f363d]"
         {...nextButtonProps}
       >
-        <ChevronRightIcon className="h-4 w-4" />
-      </IconButton>
-    </Box>
+        <ChevronRight className="h-4 w-4" />
+      </Button>
+    </div>
   );
 }

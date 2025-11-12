@@ -1,33 +1,38 @@
 import { ReadOnlyToggle } from '@/components/presentational/ReadOnlyToggle';
-import { Dropdown } from '@/components/ui/v2/Dropdown';
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui/v3/dropdown-menu';
 import type { CommonDataGridCellProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGridCell';
 import { useDataGridCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridCell';
-import type { MouseEvent, KeyboardEvent as ReactKeyboardEvent } from 'react';
-import { twMerge } from 'tailwind-merge';
+import {
+  useState,
+  type MouseEvent,
+  type KeyboardEvent as ReactKeyboardEvent,
+} from 'react';
 
-export type DataGridBooleanCellProps<TData extends object> =
-  CommonDataGridCellProps<TData, boolean | null | undefined>;
+export interface DataGridBooleanCellProps<TData extends object>
+  extends CommonDataGridCellProps<TData, boolean | null | undefined> {
+  rowId?: string;
+}
 
 export default function DataGridBooleanCell<TData extends object>({
   onSave,
   optimisticValue,
-  temporaryValue,
   onTemporaryValueChange,
+  rowId,
   cell: {
-    column: { isNullable },
+    column: { isNullable, getHeaderProps },
   },
 }: DataGridBooleanCellProps<TData>) {
-  const {
-    inputRef,
-    isEditing,
-    focusCell,
-    editCell,
-    cancelEditCell,
-    isSelected,
-  } = useDataGridCell<HTMLButtonElement>();
+  const { inputRef, focusCell, cancelEditCell, focusNextCell, editCell } =
+    useDataGridCell<HTMLButtonElement>();
+  const [open, setOpen] = useState(false);
 
   async function handleMenuClick(
-    event: MouseEvent<HTMLLIElement> | ReactKeyboardEvent<HTMLLIElement>,
+    event: MouseEvent<HTMLDivElement> | ReactKeyboardEvent<HTMLDivElement>,
     value: boolean | null,
   ) {
     event.stopPropagation();
@@ -48,74 +53,80 @@ export default function DataGridBooleanCell<TData extends object>({
     // We need to restore the temporary value, because editing was cancelled
     if (event.key === 'Escape' && onTemporaryValueChange) {
       event.stopPropagation();
-
       onTemporaryValueChange(optimisticValue);
       cancelEditCell();
+      focusCell();
     }
 
     if (event.key === 'Tab' && onSave) {
-      await onSave(temporaryValue);
-      cancelEditCell();
+      setOpen(false);
+      focusNextCell();
     }
   }
 
-  function handleTemporaryValueChange(value: boolean | null) {
-    if (onTemporaryValueChange) {
+  function handleTemporaryValueChange(
+    event: ReactKeyboardEvent<HTMLDivElement>,
+    value: boolean | null,
+  ) {
+    if (onTemporaryValueChange && event.key === 'Enter') {
       onTemporaryValueChange(value);
     }
   }
+  // needed to open with enter
+  function handleTriggerClick(event: MouseEvent) {
+    if (!open && !event.nativeEvent.isTrusted) {
+      setOpen(true);
+    }
+  }
 
-  return isSelected ? (
-    <Dropdown.Root id="boolean-data-editor" className="h-full w-full">
-      <Dropdown.Trigger
-        id="boolean-trigger"
-        className={twMerge(
-          'h-full w-full border-none p-0 outline-none',
-          isEditing && 'p-1.5',
-        )}
+  function handleOpenChange(newOpenState: boolean) {
+    if (newOpenState) {
+      editCell();
+    } else {
+      cancelEditCell();
+    }
+    setOpen(newOpenState);
+  }
+
+  return (
+    <DropdownMenu open={open} onOpenChange={handleOpenChange} modal={false}>
+      <DropdownMenuTrigger
         ref={inputRef}
-        onClick={editCell}
-        autoFocus={false}
-        sx={{ '&:hover': { backgroundColor: 'transparent !important' } }}
+        className="h-full w-full focus-visible:border-transparent focus-visible:outline-none"
+        onClick={handleTriggerClick}
       >
         <ReadOnlyToggle checked={optimisticValue} />
-      </Dropdown.Trigger>
-
-      <Dropdown.Content
-        menu
-        disablePortal
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        id={rowId}
+        style={{ width: getHeaderProps().style?.width }}
         onKeyDown={handleMenuKeyDown}
-        PaperProps={{ className: 'w-[200px]' }}
-        TransitionProps={{ onExited: focusCell }}
+        className="rounded-t-none"
       >
-        <Dropdown.Item
-          selected={optimisticValue === true}
-          onKeyUp={() => handleTemporaryValueChange(true)}
+        <DropdownMenuCheckboxItem
+          checked={optimisticValue === true}
+          onKeyUp={(event) => handleTemporaryValueChange(event, true)}
           onClick={(event) => handleMenuClick(event, true)}
         >
           <ReadOnlyToggle checked />
-        </Dropdown.Item>
-
-        <Dropdown.Item
-          selected={optimisticValue === false}
-          onKeyUp={() => handleTemporaryValueChange(false)}
+        </DropdownMenuCheckboxItem>
+        <DropdownMenuCheckboxItem
+          checked={optimisticValue === false}
+          onKeyUp={(event) => handleTemporaryValueChange(event, false)}
           onClick={(event) => handleMenuClick(event, false)}
         >
           <ReadOnlyToggle checked={false} />
-        </Dropdown.Item>
-
+        </DropdownMenuCheckboxItem>
         {isNullable && (
-          <Dropdown.Item
-            selected={optimisticValue === null}
-            onKeyUp={() => handleTemporaryValueChange(null)}
+          <DropdownMenuCheckboxItem
+            checked={optimisticValue === null}
+            onKeyUp={(event) => handleTemporaryValueChange(event, null)}
             onClick={(event) => handleMenuClick(event, null)}
           >
             <ReadOnlyToggle checked={null} />
-          </Dropdown.Item>
+          </DropdownMenuCheckboxItem>
         )}
-      </Dropdown.Content>
-    </Dropdown.Root>
-  ) : (
-    <ReadOnlyToggle checked={optimisticValue} />
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
