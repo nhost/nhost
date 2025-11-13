@@ -1,26 +1,39 @@
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
-import { BaseEventTriggerForm } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm';
+import {
+  BaseEventTriggerForm,
+  type BaseEventTriggerFormTriggerProps,
+} from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm';
 import type {
   BaseEventTriggerFormInitialData,
   BaseEventTriggerFormValues,
 } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerFormTypes';
 import { useCreateEventTriggerMutation } from '@/features/orgs/projects/events/event-triggers/hooks/useCreateEventTriggerMutation';
+import type { EventTriggerViewModel } from '@/features/orgs/projects/events/event-triggers/types';
 import { buildEventTriggerDTO } from '@/features/orgs/projects/events/event-triggers/utils/buildEventTriggerDTO';
+import parseEventTriggerFormInitialData from '@/features/orgs/projects/events/event-triggers/utils/parseEventTriggerFormInitialData/parseEventTriggerFormInitialData';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { useEffect, useState, type ReactNode } from 'react';
 
 export interface EditEventTriggerFormProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  eventTrigger: EventTriggerViewModel;
+  trigger: (props: BaseEventTriggerFormTriggerProps) => ReactNode;
   onSubmit: (data: BaseEventTriggerFormValues) => void;
-  initialData?: BaseEventTriggerFormInitialData;
 }
 
 export default function EditEventTriggerForm({
-  open,
-  onOpenChange,
+  eventTrigger,
+  trigger,
   onSubmit,
-  initialData,
 }: EditEventTriggerFormProps) {
+  const [initialData, setInitialData] =
+    useState<BaseEventTriggerFormInitialData>(() =>
+      parseEventTriggerFormInitialData(eventTrigger),
+    );
+
+  useEffect(() => {
+    setInitialData(parseEventTriggerFormInitialData(eventTrigger));
+  }, [eventTrigger]);
+
   const { mutateAsync: createEventTrigger } = useCreateEventTriggerMutation();
   const { data: resourceVersion } = useGetMetadataResourceVersion();
 
@@ -35,6 +48,7 @@ export default function EditEventTriggerForm({
           args: eventTriggerDTO,
           resourceVersion: resourceVersion ?? undefined,
         });
+        setInitialData(data);
         onSubmit?.(data);
       },
       {
@@ -48,8 +62,7 @@ export default function EditEventTriggerForm({
 
   return (
     <BaseEventTriggerForm
-      open={open}
-      onOpenChange={onOpenChange}
+      trigger={trigger}
       onSubmit={handleSubmit}
       isEditing
       initialData={initialData}
