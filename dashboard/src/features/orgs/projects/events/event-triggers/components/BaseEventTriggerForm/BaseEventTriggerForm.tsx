@@ -34,7 +34,7 @@ import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTool
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import { useGetMetadata } from '@/features/orgs/projects/common/hooks/useGetMetadata';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import { useForm } from 'react-hook-form';
 import {
   ALL_TRIGGER_OPERATIONS,
@@ -52,11 +52,15 @@ import { RequestOptionsSection } from './sections/RequestOptionsSection';
 import RetryConfigurationSection from './sections/RetryConfigurationSection';
 import UpdateTriggerColumnsSection from './sections/UpdateTriggerColumnsSection';
 
+export interface BaseEventTriggerFormTriggerProps {
+  open: () => void;
+  close: () => void;
+}
+
 export interface BaseEventTriggerFormProps {
   initialData?: BaseEventTriggerFormInitialData;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSubmit: (data: BaseEventTriggerFormValues) => void;
+  trigger: (props: BaseEventTriggerFormTriggerProps) => ReactNode;
+  onSubmit: (data: BaseEventTriggerFormValues) => void | Promise<void>;
   isEditing?: boolean;
   submitButtonText: string;
   titleText: string;
@@ -65,9 +69,8 @@ export interface BaseEventTriggerFormProps {
 
 export default function BaseEventTriggerForm({
   initialData,
-  open,
+  trigger,
   isEditing,
-  onOpenChange,
   onSubmit,
   titleText,
   descriptionText,
@@ -76,6 +79,7 @@ export default function BaseEventTriggerForm({
   const { data: metadata } = useGetMetadata();
   const [showUnsavedChangesDialog, setShowUnsavedChangesDialog] =
     useState(false);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   const dataSources = metadata?.sources?.map((source) => source.name!) ?? [];
 
@@ -85,13 +89,49 @@ export default function BaseEventTriggerForm({
   });
 
   const { watch, reset, setValue } = form;
+  const { isDirty } = form.formState;
 
-  useEffect(() => {
-    if (initialData) {
-      reset(initialData);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialData]);
+  const resetFormValues = useCallback(() => {
+    reset(initialData ?? defaultFormValues);
+  }, [initialData, reset]);
+
+  const openForm = useCallback(() => {
+    resetFormValues();
+    setShowUnsavedChangesDialog(false);
+    setIsSheetOpen(true);
+  }, [resetFormValues]);
+
+  const closeForm = useCallback(
+    (options?: { reset?: boolean }) => {
+      if (options?.reset !== false) {
+        resetFormValues();
+      }
+      setIsSheetOpen(false);
+      setShowUnsavedChangesDialog(false);
+    },
+    [resetFormValues],
+  );
+
+  const handleSheetOpenChange = useCallback(
+    (nextOpen: boolean) => {
+      if (nextOpen) {
+        return;
+      }
+
+      if (isDirty) {
+        setShowUnsavedChangesDialog(true);
+        return;
+      }
+
+      closeForm();
+    },
+    [closeForm, isDirty],
+  );
+
+  const handleFormSubmit = form.handleSubmit(async (values) => {
+    await onSubmit(values);
+    closeForm();
+  });
 
   const selectedDataSource = watch('dataSource');
   const selectedTableSchema = watch('tableSchema');
@@ -124,25 +164,16 @@ export default function BaseEventTriggerForm({
     [selectedDataSource, selectedTableSchema, metadata],
   );
 
-  const handleOpenChange = (newOpen: boolean) => {
-    if (!newOpen && form.formState.isDirty) {
-      setShowUnsavedChangesDialog(true);
-    } else {
-      onOpenChange(newOpen);
-    }
-  };
-
   const handleDiscardChanges = () => {
-    setShowUnsavedChangesDialog(false);
-    reset(initialData ?? defaultFormValues);
-    onOpenChange(false);
+    closeForm();
   };
 
-  console.log('watch', form.watch());
+  const triggerNode = trigger({ open: openForm, close: closeForm });
 
   return (
     <>
-      <Sheet open={open} onOpenChange={handleOpenChange}>
+      {triggerNode}
+      <Sheet open={isSheetOpen} onOpenChange={handleSheetOpenChange}>
         <SheetContent
           className="w-xl md:w-4xl flex flex-auto flex-col gap-0 sm:max-w-4xl"
           onPointerDownOutside={(e) => {
@@ -174,7 +205,7 @@ export default function BaseEventTriggerForm({
           <Form {...form}>
             <form
               id="event-trigger-form"
-              onSubmit={form.handleSubmit(onSubmit)}
+              onSubmit={handleFormSubmit}
               className="flex flex-auto flex-col gap-4 overflow-y-auto pb-4"
             >
               <div className="flex flex-auto flex-col">
