@@ -1,3 +1,14 @@
+## [@nhost/dashboard@2.42.0] - 2025-11-12
+
+### 🚀 Features
+
+- *(dashboard)* Datatable design improvements (#3657)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(dashboard)* Remove v2 ui components from datatable (#3568)
+
 ## [@nhost/dashboard@2.41.0] - 2025-11-04
 
 ### 🚀 Features
