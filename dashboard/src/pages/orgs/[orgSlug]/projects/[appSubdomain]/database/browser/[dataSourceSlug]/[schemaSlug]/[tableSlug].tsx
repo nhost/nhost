@@ -4,6 +4,7 @@ import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
 import { DataBrowserGrid } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid';
+import { DataGridFilterProvider } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridFilterProvider';
 import { DataBrowserSidebar } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserSidebar';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { ReactElement } from 'react';
@@ -31,7 +32,9 @@ export default function DataBrowserTableDetailsPage() {
 
   return (
     <RetryableErrorBoundary>
-      <DataBrowserGrid sortBy={sortBy} onSort={handleSortByChange} />
+      <DataGridFilterProvider>
+        <DataBrowserGrid sortBy={sortBy} onSort={handleSortByChange} />
+      </DataGridFilterProvider>
     </RetryableErrorBoundary>
   );
 }

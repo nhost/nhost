@@ -9,7 +9,6 @@ export default function useTablePath() {
   const {
     query: { dataSourceSlug, schemaSlug, tableSlug },
   } = useRouter();
-
   if (!dataSourceSlug || !schemaSlug || !tableSlug) {
     return '';
   }
