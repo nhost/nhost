@@ -83,14 +83,14 @@ func chooseImageFormat( //nolint: cyclop
 			switch {
 			case slices.Contains(acceptedTypes, "image/avif"):
 				return originalFormat, image.ImageTypeAVIF, nil
-			case slices.Contains(acceptedTypes, "image/heic"):
-				return originalFormat, image.ImageTypeHEIC, nil
 			case slices.Contains(acceptedTypes, "image/webp"):
 				return originalFormat, image.ImageTypeWEBP, nil
 			case slices.Contains(acceptedTypes, "image/jpeg"):
 				return originalFormat, image.ImageTypeJPEG, nil
 			case slices.Contains(acceptedTypes, "image/png"):
 				return originalFormat, image.ImageTypePNG, nil
+			case slices.Contains(acceptedTypes, "image/heic"):
+				return originalFormat, image.ImageTypeHEIC, nil
 			}
 		}
 
@@ -98,7 +98,10 @@ func chooseImageFormat( //nolint: cyclop
 	default:
 		return 0, 0, BadDataError(
 			//nolint: err113
-			fmt.Errorf("format must be one of: same, webp, png, jpeg, avif, heic, auto. Got: %s", format),
+			fmt.Errorf(
+				"format must be one of: same, webp, png, jpeg, avif, heic, auto. Got: %s",
+				format,
+			),
 			"format must be one of: same, webp, png, jpeg, avif, heic, auto. Got: "+string(format),
 		)
 	}
