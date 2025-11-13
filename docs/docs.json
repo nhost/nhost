@@ -219,7 +219,8 @@
                 "pages": [
                   "/products/graphql/guides/react-apollo",
                   "/products/graphql/guides/react-query",
-                  "/products/graphql/guides/react-urql"
+                  "/products/graphql/guides/react-urql",
+                  "/products/graphql/guides/codegen-nhost"
                 ]
               }
             ]
