@@ -108,7 +108,6 @@ export function createDynamicValidationSchema(
         [column.id]: createUUIDValidationSchema(details),
       };
     }
-
     if (
       column.type === 'date' &&
       ['time', 'timetz', 'interval'].includes(column.specificType as string)

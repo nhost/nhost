@@ -8,7 +8,21 @@ import {
 } from '@/components/ui/v3/form';
 import { Input, type InputProps } from '@/components/ui/v3/input';
 import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
-import type { Control, FieldPath, FieldValues } from 'react-hook-form';
+import { cn, isNotEmptyValue } from '@/lib/utils';
+import {
+  type ChangeEvent,
+  type ForwardedRef,
+  forwardRef,
+  type ReactNode,
+} from 'react';
+import type {
+  Control,
+  ControllerRenderProps,
+  FieldPath,
+  FieldValues,
+  PathValue,
+} from 'react-hook-form';
+import { mergeRefs } from 'react-merge-refs';
 
 const inputClasses =
   '!bg-transparent aria-[invalid=true]:border-red-500 aria-[invalid=true]:focus:border-red-500 aria-[invalid=true]:focus:ring-red-500';
@@ -19,60 +33,137 @@ interface FormInputProps<
 > {
   control: Control<TFieldValues>;
   name: TName;
-  label: string;
+  label: ReactNode;
   placeholder?: string;
   className?: string;
   type?: string;
+  inline?: boolean;
+  helperText?: string | null;
+  transformValue?: (
+    value: PathValue<TFieldValues, TName>,
+  ) => PathValue<TFieldValues, TName>;
   disabled?: boolean;
   autoComplete?: InputProps['autoComplete'];
   infoTooltip?: string;
 }
 
-function FormInput<
+function InnerFormInput<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
->({
-  control,
-  name,
-  label,
-  placeholder,
-  className = '',
-  type = 'text',
-  disabled,
-  autoComplete,
-  infoTooltip,
-}: FormInputProps<TFieldValues, TName>) {
+>(
+  {
+    control,
+    name,
+    label,
+    placeholder,
+    className = '',
+    type = 'text',
+    inline,
+    helperText,
+    transformValue,
+    disabled,
+    autoComplete,
+    infoTooltip,
+  }: FormInputProps<TFieldValues, TName>,
+  ref: ForwardedRef<HTMLInputElement>,
+) {
+  function getOnChangeHandlerAndValue(
+    field: ControllerRenderProps<TFieldValues, TName>,
+  ): [
+    PathValue<TFieldValues, TName>,
+    (e: ChangeEvent<HTMLInputElement>) => void,
+  ] {
+    const { onChange, value } = field;
+
+    function handleOnChange(event: ChangeEvent<HTMLInputElement>) {
+      let transformedValue = event.target.value;
+      if (isNotEmptyValue(transformValue)) {
+        transformedValue = transformValue(
+          event.target.value as PathValue<TFieldValues, TName>,
+        );
+      }
+      onChange(transformedValue);
+    }
+
+    const transformedValue = isNotEmptyValue(transformValue)
+      ? transformValue(value)
+      : value;
+
+    return [transformedValue, handleOnChange];
+  }
   return (
     <FormField
       control={control}
       name={name}
-      render={({ field }) => (
-        <FormItem>
-          {infoTooltip ? (
-            <div className="flex flex-row items-center gap-2">
-              <FormLabel>{label}</FormLabel>
-              <FormDescription>
+      render={({ field }) => {
+        const { onChange, value, ...fieldProps } = field;
+
+        const [tValue, handleOnChange] = getOnChangeHandlerAndValue(field);
+        return (
+          <FormItem
+            className={cn({ 'flex w-full items-center gap-4 py-3': inline })}
+          >
+            {infoTooltip ? (
+              <div className="flex flex-row items-center gap-2">
+                <FormLabel
+                  className={cn({
+                    'mt-2 w-52 max-w-52 flex-shrink-0 self-start': inline,
+                  })}
+                >
+                  {label}
+                </FormLabel>
                 <InfoTooltip>{infoTooltip}</InfoTooltip>
-              </FormDescription>
+              </div>
+            ) : (
+              <FormLabel
+                className={cn({
+                  'mt-2 w-52 max-w-52 flex-shrink-0 self-start': inline,
+                })}
+              >
+                {label}
+              </FormLabel>
+            )}
+            <div
+              className={cn({
+                'flex w-[calc(100%-13.5rem)] max-w-[calc(100%-13.5rem)] flex-col gap-2':
+                  inline,
+              })}
+            >
+              <FormControl>
+                <Input
+                  type={type}
+                  placeholder={placeholder}
+                  onChange={handleOnChange}
+                  value={tValue}
+                  disabled={disabled}
+                  autoComplete={autoComplete}
+                  {...fieldProps}
+                  ref={mergeRefs([field.ref, ref])}
+                  className={cn(inputClasses, className)}
+                  wrapperClassName={cn({ 'w-full': !inline })}
+                />
+              </FormControl>
+              {!!helperText && (
+                <FormDescription className="break-all px-[1px]">
+                  {helperText}
+                </FormDescription>
+              )}
+              <FormMessage />
             </div>
-          ) : (
-            <FormLabel>{label}</FormLabel>
-          )}
-          <FormControl>
-            <Input
-              type={type}
-              placeholder={placeholder || label}
-              {...field}
-              disabled={disabled}
-              autoComplete={autoComplete}
-              className={`${inputClasses} ${className}`}
-            />
-          </FormControl>
-          <FormMessage />
-        </FormItem>
-      )}
+          </FormItem>
+        );
+      }}
     />
   );
 }
+
+const FormInput = forwardRef(InnerFormInput) as <
+  TFieldValues extends FieldValues = FieldValues,
+  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
+>(
+  props: FormInputProps<TFieldValues, TName> & {
+    ref?: ForwardedRef<HTMLInputElement>;
+  },
+) => ReturnType<typeof InnerFormInput>;
 
 export default FormInput;

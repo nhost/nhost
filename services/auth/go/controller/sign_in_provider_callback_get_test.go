@@ -1006,7 +1006,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			expectedResponse: controller.ErrorRedirectResponse{
 				Headers: struct{ Location string }{
-					Location: `^http://localhost:3000/connect-success\?error=invalid-request&errorDescription=The\+request\+payload\+is\+incorrect&state=some-random-state$`, //nolint:lll
+					Location: `^http://localhost:3000/connect-success\?error=provider-account-already-linked&errorDescription=This\+provider\+account\+is\+already\+linked\+to\+a\+user&state=some-random-state$`, //nolint:lll
 				},
 			},
 			expectedJWT:       nil,

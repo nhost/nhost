@@ -1,23 +1,12 @@
-import { Input, inputClasses } from '@/components/ui/v2/Input';
-import type { TextProps } from '@/components/ui/v2/Text';
-import { Text } from '@/components/ui/v2/Text';
+import { Input } from '@/components/ui/v3/input';
 import type { CommonDataGridCellProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGridCell';
 import { useDataGridCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridCell';
+import { cn } from '@/lib/utils';
 import { getDateComponents } from '@/utils/getDateComponents';
-import type { ChangeEvent, KeyboardEvent } from 'react';
-import { twMerge } from 'tailwind-merge';
+import type { ChangeEvent, KeyboardEvent, Ref } from 'react';
 
 export interface DataGridDateCellProps<TData extends object>
-  extends CommonDataGridCellProps<TData, string> {
-  /**
-   * Props to be passed to date display.
-   */
-  dateProps?: TextProps;
-  /**
-   * Props to be passed to time display.
-   */
-  timeProps?: TextProps;
-}
+  extends CommonDataGridCellProps<TData, string> {}
 
 export default function DataGridDateCell<TData extends object>({
   onSave,
@@ -27,13 +16,8 @@ export default function DataGridDateCell<TData extends object>({
   cell: {
     column: { specificType },
   },
-  dateProps,
-  timeProps,
   className,
 }: DataGridDateCellProps<TData>) {
-  const { className: dateClassName, ...restDateProps } = dateProps || {};
-  const { className: timeClassName, ...restTimeProps } = timeProps || {};
-
   // Note: No date (year-month-day) is saved for time / timetz columns, so we
   // need to add it manually.
   const date =
@@ -51,8 +35,7 @@ export default function DataGridDateCell<TData extends object>({
     ),
   });
 
-  const { inputRef, focusCell, isEditing, cancelEditCell } =
-    useDataGridCell<HTMLInputElement>();
+  const { inputRef, isEditing } = useDataGridCell<HTMLInputElement>();
 
   async function handleSave() {
     if (onSave) {
@@ -77,8 +60,6 @@ export default function DataGridDateCell<TData extends object>({
 
     if (event.key === 'Enter') {
       await handleSave();
-      await focusCell();
-      cancelEditCell();
     }
   }
 
@@ -91,78 +72,38 @@ export default function DataGridDateCell<TData extends object>({
   if (isEditing) {
     return (
       <Input
-        ref={inputRef}
+        ref={inputRef as Ref<HTMLInputElement>}
         value={
           temporaryValue !== null && typeof temporaryValue !== 'undefined'
             ? temporaryValue
             : ''
         }
-        onKeyDown={handleKeyDown}
         onChange={handleChange}
-        fullWidth
-        className="absolute top-0 z-10 -mx-0.5 h-full place-content-stretch"
-        sx={{
-          [`&.${inputClasses.focused}`]: {
-            boxShadow: `inset 0 0 0 1.5px rgba(0, 82, 205, 1)`,
-            borderColor: 'transparent !important',
-            borderRadius: 0,
-            backgroundColor: (theme) =>
-              theme.palette.mode === 'dark'
-                ? `${theme.palette.secondary[100]} !important`
-                : `${theme.palette.common.white} !important`,
-          },
-          [`& .${inputClasses.input}`]: {
-            backgroundColor: 'transparent',
-          },
-        }}
-        slotProps={{
-          inputWrapper: { className: 'h-full' },
-          input: { className: 'h-full' },
-          inputRoot: {
-            className:
-              'resize-none outline-none focus:outline-none !text-xs focus:ring-0',
-          },
-        }}
+        onKeyDown={handleKeyDown}
+        wrapperClassName="absolute top-0 z-10 w-full top-0 left-0 h-full"
+        className="h-full w-full resize-none rounded-none border-none px-2 py-1.5 !text-xs outline-none focus-within:rounded-none focus-within:border-transparent focus-within:bg-white focus-within:shadow-[inset_0_0_0_1.5px_rgba(0,82,205,1)] focus:outline-none focus:ring-0 dark:focus-within:bg-theme-grey-200"
       />
     );
   }
 
   if (!optimisticValue) {
-    return (
-      <Text className="truncate text-xs" color="secondary">
-        null
-      </Text>
-    );
+    return <p className="truncate text-xs text-secondary">null</p>;
   }
 
   if (specificType === 'interval') {
-    return <Text className="truncate text-xs">{optimisticValue}</Text>;
+    return <p className="truncate text-xs">{optimisticValue}</p>;
   }
 
   return (
-    <div className={twMerge('grid grid-flow-row', className)}>
-      {specificType !== 'time' && specificType !== 'timetz' && (
-        <Text
-          className={twMerge('truncate text-xs', dateClassName)}
-          {...restDateProps}
-        >
-          {[year, month, day].filter(Boolean).join('-')}
-        </Text>
-      )}
-
-      {specificType !== 'date' && (
-        <Text
-          className={twMerge('truncate text-xs', timeClassName)}
-          color={
-            specificType === 'time' || specificType === 'timetz'
-              ? 'primary'
-              : 'secondary'
-          }
-          {...restTimeProps}
-        >
-          {[hour, minute, second].filter(Boolean).join(':')}
-        </Text>
-      )}
+    <div className={cn('grid grid-flow-row', className)}>
+      <p className="truncate text-xs">
+        {specificType !== 'time' && specificType !== 'timetz' && (
+          <span>{[year, month, day].filter(Boolean).join('-')}</span>
+        )}{' '}
+        {specificType !== 'date' && (
+          <span>{[hour, minute, second].filter(Boolean).join(':')}</span>
+        )}
+      </p>
     </div>
   );
 }

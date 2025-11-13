@@ -1,3 +1,9 @@
+## [auth@0.43.1] - 2025-11-11
+
+### 🐛 Bug Fixes
+
+- *(auth)* Return meaningful error if the provider's account is already linked (#3680)
+
 ## [auth@0.43.0] - 2025-11-04
 
 ### 🚀 Features

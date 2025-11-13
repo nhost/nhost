@@ -337,7 +337,8 @@ export type ErrorResponseError =
   | "oauth-profile-fetch-failed"
   | "oauth-provider-error"
   | "invalid-otp"
-  | "cannot-send-sms";
+  | "cannot-send-sms"
+  | "provider-account-already-linked";
 
 /**
  * Standardized error response

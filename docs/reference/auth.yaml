@@ -1665,6 +1665,7 @@ components:
             - oauth-provider-error
             - invalid-otp
             - cannot-send-sms
+            - provider-account-already-linked
       required:
         - status
         - message

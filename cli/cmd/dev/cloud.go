@@ -56,7 +56,7 @@ func CommandCloud() *cli.Command {
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagDashboardVersion,
 				Usage:   "Dashboard version to use",
-				Value:   "nhost/dashboard:2.41.0",
+				Value:   "nhost/dashboard:2.42.0",
 				Sources: cli.EnvVars("NHOST_DASHBOARD_VERSION"),
 			},
 			&cli.StringFlag{ //nolint:exhaustruct

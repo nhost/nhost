@@ -2247,6 +2247,14 @@ type AuthUserProvidersMinOrderBy struct {
 	ProviderID *OrderBy `json:"providerId,omitempty"`
 }
 
+// response of any mutation on the table "auth.user_providers"
+type AuthUserProvidersMutationResponse struct {
+	// number of rows affected by the mutation
+	AffectedRows int64 `json:"affected_rows"`
+	// data from the rows affected by the mutation
+	Returning []*AuthUserProviders `json:"returning"`
+}
+
 // Ordering options when selecting data from "auth.user_providers".
 type AuthUserProvidersOrderBy struct {
 	ID         *OrderBy      `json:"id,omitempty"`
