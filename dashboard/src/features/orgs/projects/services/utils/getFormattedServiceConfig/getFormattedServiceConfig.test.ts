@@ -1,4 +1,4 @@
-import type { ServiceFormValues } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
+import type { PortTypes } from '@/features/orgs/projects/services/components/ServiceForm/components/PortsFormSection/PortsFormSectionTypes';
 import getFormattedServiceConfig from './getFormattedServiceConfig';
 
 describe('getFormattedServiceConfig', () => {
@@ -33,7 +33,7 @@ describe('getFormattedServiceConfig', () => {
       ports: [
         {
           port: 8080,
-          type: 'http',
+          type: 'http' as PortTypes.HTTP,
           publish: true,
         },
       ],
@@ -44,7 +44,7 @@ describe('getFormattedServiceConfig', () => {
       },
       replicas: 1,
       storage: [],
-    } as unknown as ServiceFormValues;
+    };
 
     const formattedConfig = getFormattedServiceConfig({
       values: pgheroFormValues,
