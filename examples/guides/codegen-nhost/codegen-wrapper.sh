@@ -4,11 +4,10 @@ set -e
 echo "Running GraphQL code generator..."
 pnpm graphql-codegen --config codegen.ts
 
-GENERATED_TS_FILE="src/lib/graphql/__generated__/graphql.ts"
+GENERATED_TS_FILE="src/lib/graphql/__generated__/"
 GENERATED_SCHEMA_FILE="schema.graphql"
 
-if [ -f "$GENERATED_TS_FILE" ]; then
-  echo "Successfully removed \"type\" from useAuthenticatedFetcher import."
+if [ -d "$GENERATED_TS_FILE" ]; then
   echo "Formatting $GENERATED_TS_FILE..."
   biome check --write "$GENERATED_TS_FILE"
 else
