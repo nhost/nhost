@@ -76,6 +76,27 @@ func TestManipulate(t *testing.T) {
 			size:     17784,
 			options:  image.Options{Format: image.ImageTypeAVIF},
 		},
+		{
+			name:     "heic",
+			filename: "testdata/nhost.heic",
+			sum:      "1a2ab1930eef77710d35254a6fbd3e59f60b929070c44e47d0c6043e05b5ab99",
+			size:     12968,
+			options:  image.Options{Width: 300, Height: 100, Blur: 2, Format: image.ImageTypeHEIC, Quality: 50},
+		},
+		{
+			name:     "jpeg to heic",
+			filename: "testdata/nhost.jpg",
+			sum:      "870fcccf978667bafdab18ebd5ff2816c2947563cf2718e0b944aed2b3379b0d",
+			size:     33399,
+			options:  image.Options{Width: 300, Height: 100, Blur: 2, Format: image.ImageTypeHEIC, Quality: 50},
+		},
+		{
+			name:     "webp to heic",
+			filename: "testdata/nhost.webp",
+			sum:      "34f36705183310f9a88f147aca2905a872981920e93e9ab9714413185b395aa1",
+			size:     17784,
+			options:  image.Options{Width: 300, Height: 100, Blur: 2, Format: image.ImageTypeHEIC},
+		},
 	}
 
 	transformer := image.NewTransformer()

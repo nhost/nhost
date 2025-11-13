@@ -24,6 +24,7 @@ const (
 	ImageTypePNG
 	ImageTypeWEBP
 	ImageTypeAVIF
+	ImageTypeHEIC
 )
 
 type Options struct {
@@ -54,6 +55,8 @@ func (o Options) FormatMimeType() string {
 		return "image/webp"
 	case ImageTypeAVIF:
 		return "image/avif"
+	case ImageTypeHEIC:
+		return "image/heic"
 	}
 
 	return ""
@@ -69,6 +72,8 @@ func (o Options) FileExtension() string {
 		return "webp"
 	case ImageTypeAVIF:
 		return "avif"
+	case ImageTypeHEIC:
+		return "heic"
 	}
 
 	return ""
@@ -127,6 +132,10 @@ func export(image *vips.ImageRef, opts Options) ([]byte, error) {
 		ep.Quality = opts.Quality
 		ep.Effort = 0
 		b, _, err = image.ExportAvif(ep)
+	case ImageTypeHEIC:
+		ep := vips.NewHeifExportParams()
+		ep.Quality = opts.Quality
+		b, _, err = image.ExportHeif(ep)
 	}
 
 	return b, err //nolint: wrapcheck
