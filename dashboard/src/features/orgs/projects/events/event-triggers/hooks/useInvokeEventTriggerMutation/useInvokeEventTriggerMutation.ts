@@ -3,34 +3,36 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation } from '@tanstack/react-query';
-import redeliverEvent, { type RedeliverEventVariables } from './redeliverEvent';
+import invokeEventTrigger, {
+  type InvokeEventTriggerVariables,
+} from './invokeEventTrigger';
 
-export interface UseRedeliverEventMutationOptions {
+export interface UseInvokeEventTriggerMutationOptions {
   /**
    * Props passed to the underlying mutation hook.
    */
   mutationOptions?: MutationOptions<
     MetadataOperation200,
     unknown,
-    RedeliverEventVariables
+    InvokeEventTriggerVariables
   >;
 }
 
 /**
- * This hook is a wrapper around a fetch call that redelivers an event.
+ * This hook is a wrapper around a fetch call that invokes an event trigger.
  *
  * @param mutationOptions - Options to use for the mutation.
  * @returns The result of the mutation.
  */
-export default function useRedeliverEventMutation({
+export default function useInvokeEventTriggerMutation({
   mutationOptions,
-}: UseRedeliverEventMutationOptions = {}) {
+}: UseInvokeEventTriggerMutationOptions = {}) {
   const { project } = useProject();
 
   const mutation = useMutation<
     MetadataOperation200,
     unknown,
-    RedeliverEventVariables
+    InvokeEventTriggerVariables
   >((variables) => {
     const appUrl = generateAppServiceUrl(
       project!.subdomain,
@@ -40,7 +42,7 @@ export default function useRedeliverEventMutation({
 
     const adminSecret = project?.config?.hasura.adminSecret!;
 
-    return redeliverEvent({
+    return invokeEventTrigger({
       args: variables.args,
       appUrl,
       adminSecret,
