@@ -1,3 +1,14 @@
+## [cli@1.34.6] - 2025-11-13
+
+### 🐛 Bug Fixes
+
+- *(cli)* Mcp: specify items type for arrays in tools (#3687)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Update bindings (#3689)
+
 ## [cli@1.34.5] - 2025-11-06
 
 ### ⚙️ Miscellaneous Tasks
