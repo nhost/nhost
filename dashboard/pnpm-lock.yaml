@@ -6,7 +6,6 @@ settings:
 
 overrides:
   esbuild@<=0.24.2: '>=0.25.0'
-  js-yaml@<=4.1.0: '>=4.1.1'
 
 packageExtensionsChecksum: sha256-gRFeykwiwMfEE6etcYx6N48XwVeKzxbqNveL7KTQgSQ=
 
@@ -8613,7 +8612,7 @@ packages:
   vite-tsconfig-paths@4.3.2:
     resolution: {integrity: sha512-0Vd/a6po6Q+86rPlntHye7F31zA2URZMbH8M3saAZ/xR9QoGN/L21bxEGfXdWmFdNkqPpRdxFT7nmNe12e9/uA==}
     peerDependencies:
-      vite: '*'
+      vite: '>=4.5.14'
     peerDependenciesMeta:
       vite:
         optional: true
