@@ -87,7 +87,7 @@ function TicketPage() {
     : null;
 
   const slaLevel = selectedOrg?.plan?.slaLevel;
-  const canSetPriority = slaLevel != null && slaLevel > 0;
+  const canSetPriority = typeof slaLevel === 'string' && slaLevel !== 'none';
 
   useEffect(() => {
     if (!!selectedOrganization && !canSetPriority && priority !== 'low') {
@@ -108,7 +108,6 @@ function TicketPage() {
   const handleSubmit = async (formValues: CreateTicketFormValues) => {
     const { project, services, priority: priorityValue, subject, description } = formValues;
 
-    const currentSlaLevel = selectedOrg?.plan?.slaLevel ?? null;
     await execPromiseWithErrorToast(
       async () => {
         const response = await fetch('/api/support/create-ticket', {
@@ -125,7 +124,6 @@ function TicketPage() {
             description,
             userName: user?.displayName,
             userEmail: user?.email,
-            slaLevel: currentSlaLevel,
           }),
         });
 
@@ -258,7 +256,7 @@ function TicketPage() {
                     error={!!errors.priority}
                     helperText={
                       !!selectedOrganization && !canSetPriority
-                        ? 'Priority is locked to "Low" for your current plan'
+                        ? 'Priority is locked to "Low" for your current plan. To set a higher priority, please upgrade to Team.'
                         : errors.priority?.message
                     }
                     renderValue={(option) => (

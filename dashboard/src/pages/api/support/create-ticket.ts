@@ -9,7 +9,6 @@ export type CreateTicketRequest = {
   description: string;
   userName: string;
   userEmail: string;
-  slaLevel: number | null;
 };
 
 export type CreateTicketResponse = {
@@ -20,6 +19,11 @@ export type CreateTicketResponse = {
 type GetProjectResponse = {
   apps: Array<{
     id: string;
+    organization: {
+      plan: {
+        slaLevel: string | null;
+      } | null;
+    } | null;
   }>;
 };
 
@@ -42,7 +46,6 @@ export default async function handler(
       description,
       userName,
       userEmail,
-      slaLevel,
     } = req.body as CreateTicketRequest;
 
     // Validate required environment variables
@@ -75,13 +78,21 @@ export default async function handler(
 
     const token = req.headers.authorization?.split(' ')[1];
 
+    let slaLevel: string | null = null;
+
     try {
       // we use this to verify the owner of the JWT token has access to the project
+      // and fetch the organization's plan slaLevel
       const resp = await nhostRoutesClient.graphql.request<GetProjectResponse>(
         {
           query: `query GetProject($subdomain: String!){
             apps(where: {subdomain: {_eq: $subdomain}}) {
               id
+              organization {
+                plan {
+                  slaLevel
+                }
+              }
             }
           }`,
           variables: {
@@ -101,6 +112,9 @@ export default async function handler(
           error: 'Invalid project subdomain',
         });
       }
+
+      // Get slaLevel from the organization's plan
+      slaLevel = resp.body.data.apps[0]?.organization?.plan?.slaLevel ?? null;
     } catch (error) {
       return res.status(400).json({
         success: false,
