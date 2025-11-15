@@ -172,7 +172,35 @@ func processImage(image *vips.Image, opts Options) error {
 		}
 	}
 
-	// Note: resize is handled during load with NewThumbnailSource for better efficiency
+	// Resize if dimensions are specified
+	if opts.Width > 0 || opts.Height > 0 {
+		targetWidth := opts.Width
+		targetHeight := opts.Height
+
+		currentWidth := image.Width()
+		currentHeight := image.Height()
+
+		// Calculate missing dimension to maintain aspect ratio (original behavior)
+		if targetWidth == 0 {
+			targetWidth = int((float64(targetHeight) / float64(currentHeight)) * float64(currentWidth))
+		}
+
+		if targetHeight == 0 {
+			targetHeight = int((float64(targetWidth) / float64(currentWidth)) * float64(currentHeight))
+		}
+
+		// Calculate scale factors for both dimensions
+		hscale := float64(targetWidth) / float64(currentWidth)
+		vscale := float64(targetHeight) / float64(currentHeight)
+
+		// Use Resize with both horizontal and vertical scale
+		// This allows both shrinking and enlarging, and deformation when both dimensions specified
+		resizeOpts := vips.DefaultResizeOptions()
+		resizeOpts.Vscale = vscale
+		if err := image.Resize(hscale, resizeOpts); err != nil {
+			return fmt.Errorf("failed to resize: %w", err)
+		}
+	}
 
 	if opts.Blur > 0 {
 		if err := image.Gaussblur(float64(opts.Blur), nil); err != nil {
@@ -198,35 +226,14 @@ func (t *Transformer) Run(
 	source := vips.NewSource(readCloserAdapter{orig})
 	defer source.Close()
 
-	var image *vips.Image
-	var err error
-
 	// Load image from streaming source
-	// If we need to resize, use thumbnail directly which is more memory efficient!
-	if opts.Width > 0 || opts.Height > 0 {
-		width := opts.Width
-		height := opts.Height
-
-		thumbnailOpts := vips.DefaultThumbnailSourceOptions()
-
-		// Set height if specified
-		if height > 0 {
-			thumbnailOpts.Height = height
-		}
-
-		// NewThumbnailSource loads and resizes in one pass - more memory efficient!
-		image, err = vips.NewThumbnailSource(source, width, thumbnailOpts)
-	} else {
-		// Just load the image without resizing
-		image, err = vips.NewImageFromSource(source, nil)
-	}
-
+	image, err := vips.NewImageFromSource(source, nil)
 	if err != nil {
 		return fmt.Errorf("failed to load image from source: %w", err)
 	}
 	defer image.Close()
 
-	// Process image (auto-rotate, blur, etc.)
+	// Process image (auto-rotate, resize, blur, etc.)
 	if err := processImage(image, opts); err != nil {
 		return err
 	}
