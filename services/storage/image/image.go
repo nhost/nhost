@@ -142,6 +142,12 @@ func export(image *vips.ImageRef, opts Options) ([]byte, error) {
 }
 
 func processImage(image *vips.ImageRef, opts Options) error {
+	if opts.FormatChanged() {
+		if err := image.AutoRotate(); err != nil {
+			return fmt.Errorf("failed to auto-rotate: %w", err)
+		}
+	}
+
 	if opts.Width > 0 || opts.Height > 0 {
 		width := opts.Width
 		height := opts.Height
