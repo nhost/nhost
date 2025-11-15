@@ -110,7 +110,7 @@ export default function InvocationLogActionsCell({
         toast.error(error?.message, getToastStyleProps());
         resetState();
       }
-    }, 5000);
+    }, 1000);
   };
 
   return (

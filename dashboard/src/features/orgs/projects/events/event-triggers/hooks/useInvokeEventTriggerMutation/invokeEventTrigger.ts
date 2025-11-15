@@ -2,6 +2,7 @@ import { metadataOperation } from '@/utils/hasura-api/generated/default/default'
 import type {
   InvokeEventTriggerArgs,
   InvokeEventTriggerOperation,
+  InvokeEventTriggerResponse,
 } from '@/utils/hasura-api/generated/schemas';
 import type { MetadataOperationOptions } from '@/utils/hasura-api/types';
 
@@ -48,7 +49,7 @@ export default async function invokeEventTrigger({
     });
 
     if (response.status === 200) {
-      return response.data;
+      return response.data as InvokeEventTriggerResponse;
     }
 
     throw new Error(response.data.error);

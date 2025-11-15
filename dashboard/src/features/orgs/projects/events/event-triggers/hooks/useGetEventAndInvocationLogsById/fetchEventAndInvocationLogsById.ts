@@ -30,7 +30,7 @@ export interface FetchEventAndInvocationLogsByIdVariables {
   args: GetEventAndInvocationLogsByIdArgs;
 }
 
-export default async function fetchEventInvocationLogs({
+export default async function fetchEventAndInvocationLogsById({
   appUrl,
   adminSecret,
   args,

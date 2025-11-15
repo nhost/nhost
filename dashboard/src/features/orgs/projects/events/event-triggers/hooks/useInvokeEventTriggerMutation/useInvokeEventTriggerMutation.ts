@@ -1,6 +1,6 @@
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
+import type { InvokeEventTriggerResponse } from '@/utils/hasura-api/generated/schemas/invokeEventTriggerResponse';
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation } from '@tanstack/react-query';
 import invokeEventTrigger, {
@@ -12,7 +12,7 @@ export interface UseInvokeEventTriggerMutationOptions {
    * Props passed to the underlying mutation hook.
    */
   mutationOptions?: MutationOptions<
-    MetadataOperation200,
+    InvokeEventTriggerResponse,
     unknown,
     InvokeEventTriggerVariables
   >;
@@ -30,7 +30,7 @@ export default function useInvokeEventTriggerMutation({
   const { project } = useProject();
 
   const mutation = useMutation<
-    MetadataOperation200,
+    InvokeEventTriggerResponse,
     unknown,
     InvokeEventTriggerVariables
   >((variables) => {
