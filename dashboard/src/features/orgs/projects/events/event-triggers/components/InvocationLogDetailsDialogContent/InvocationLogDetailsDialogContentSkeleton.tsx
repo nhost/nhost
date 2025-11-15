@@ -1,8 +1,4 @@
-import {
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/v3/dialog';
+import { DialogHeader, DialogTitle } from '@/components/ui/v3/dialog';
 import { Skeleton } from '@/components/ui/v3/skeleton';
 import {
   Table,
@@ -34,7 +30,7 @@ export default function InvocationLogDetailsDialogContentSkeleton() {
     ));
 
   return (
-    <DialogContent className="flex h-[80vh] max-w-4xl flex-col overflow-y-auto text-foreground">
+    <>
       <DialogHeader>
         <DialogTitle className="text-foreground">
           Invocation Log Details
@@ -126,6 +122,6 @@ export default function InvocationLogDetailsDialogContentSkeleton() {
           </div>
         </TabsContent>
       </Tabs>
-    </DialogContent>
+    </>
   );
 }
