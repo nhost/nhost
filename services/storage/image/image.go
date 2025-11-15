@@ -99,7 +99,6 @@ func (t *Transformer) Shutdown() {
 	vips.Shutdown()
 }
 
-// readCloserAdapter wraps io.Reader as io.ReadCloser for vips.NewSource
 type readCloserAdapter struct {
 	io.Reader
 }
@@ -108,10 +107,10 @@ func (r readCloserAdapter) Close() error {
 	if closer, ok := r.Reader.(io.Closer); ok {
 		return closer.Close() //nolint: wrapcheck
 	}
+
 	return nil
 }
 
-// writeCloserAdapter wraps io.Writer as io.WriteCloser for vips.NewTarget
 type writeCloserAdapter struct {
 	io.Writer
 }
@@ -120,6 +119,7 @@ func (w writeCloserAdapter) Close() error {
 	if closer, ok := w.Writer.(io.Closer); ok {
 		return closer.Close() //nolint: wrapcheck
 	}
+
 	return nil
 }
 
@@ -158,7 +158,7 @@ func exportToTarget(image *vips.Image, target *vips.Target, opts Options) error 
 		heifOpts.Keep = vips.KeepAll
 		err = image.HeifsaveTarget(target, heifOpts)
 	default:
-		return fmt.Errorf("unsupported format: %d", opts.Format)
+		return fmt.Errorf("unsupported format: %d", opts.Format) //nolint: err113
 	}
 
 	return err //nolint: wrapcheck
@@ -197,6 +197,7 @@ func processImage(image *vips.Image, opts Options) error {
 		// This allows both shrinking and enlarging, and deformation when both dimensions specified
 		resizeOpts := vips.DefaultResizeOptions()
 		resizeOpts.Vscale = vscale
+
 		if err := image.Resize(hscale, resizeOpts); err != nil {
 			return fmt.Errorf("failed to resize: %w", err)
 		}
