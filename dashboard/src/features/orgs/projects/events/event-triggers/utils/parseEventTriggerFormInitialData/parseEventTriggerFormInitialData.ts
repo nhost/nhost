@@ -39,6 +39,8 @@ const getRequestOptionsTransform = (
         }),
       ),
     };
+  } else {
+    return undefined;
   }
   const urlTemplate = requestTransform?.url
     ? requestTransform.url.replace(/^\{\{\$base_url\}\}/, '')
