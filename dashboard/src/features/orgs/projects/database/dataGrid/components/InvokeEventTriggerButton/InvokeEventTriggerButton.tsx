@@ -8,11 +8,13 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/components/ui/v3/dropdown-menu';
+import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { InvocationLogDetailsDialogContent } from '@/features/orgs/projects/events/event-triggers/components/InvocationLogDetailsDialogContent';
 import { DEFAULT_RETRY_TIMEOUT_SECONDS } from '@/features/orgs/projects/events/event-triggers/constants';
-import { useGetEventAndInvocationLogsById } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventAndInvocationLogsById';
+import fetchEventAndInvocationLogsById from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventAndInvocationLogsById/fetchEventAndInvocationLogsById';
 import { useGetEventTriggersByTable } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventTriggersByTable';
 import { useInvokeEventTriggerMutation } from '@/features/orgs/projects/events/event-triggers/hooks/useInvokeEventTriggerMutation';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { EventInvocationLogEntry } from '@/utils/hasura-api/generated/schemas/eventInvocationLogEntry';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/router';
@@ -27,9 +29,15 @@ export default function InvokeEventTriggerButton({
 }: InvokeEventTriggerButtonProps) {
   const [showDialog, setShowDialog] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const previousInvocationIdRef = useRef<string | null>(null);
   const [newLog, setNewLog] = useState<EventInvocationLogEntry | null>(null);
-  const eventIdRef = useRef<string | null>(null);
+  const { project } = useProject();
+  const appUrl = generateAppServiceUrl(
+    project?.subdomain!,
+    project?.region!,
+    'hasura',
+  );
+
+  const adminSecret = project?.config?.hasura.adminSecret!;
 
   const router = useRouter();
   const { dataSourceSlug, schemaSlug, tableSlug } = router.query;
@@ -48,24 +56,9 @@ export default function InvokeEventTriggerButton({
   const handleDialogOpenChange = (newOpen: boolean) => {
     if (!newOpen) {
       setNewLog(null);
-      eventIdRef.current = null;
-      previousInvocationIdRef.current = null;
     }
     setShowDialog(newOpen);
   };
-
-  const { data: eventAndInvocationLogs, refetch: refetchInvocationLogs } =
-    useGetEventAndInvocationLogsById(
-      {
-        event_id: eventIdRef.current!,
-        source: dataSourceSlug as string,
-      },
-      {
-        queryOptions: {
-          enabled: !!eventIdRef.current,
-        },
-      },
-    );
 
   const { mutateAsync: invokeEventTrigger } = useInvokeEventTriggerMutation();
 
@@ -86,10 +79,16 @@ export default function InvokeEventTriggerButton({
           payload: selectedValues,
         },
       });
-      eventIdRef.current = event_id;
-      const { data } = await refetchInvocationLogs();
+      const data = await fetchEventAndInvocationLogsById({
+        appUrl,
+        adminSecret,
+        args: {
+          event_id,
+          source: dataSourceSlug as string,
+        },
+      });
       const invocation = data?.invocations?.[0];
-      previousInvocationIdRef.current = invocation?.id ?? null;
+      const previousInvocationId = invocation?.id ?? null;
       setShowDialog(true);
 
       const start = Date.now();
@@ -102,20 +101,25 @@ export default function InvokeEventTriggerButton({
           return;
         }
         try {
-          const { data: newData } = await refetchInvocationLogs();
+          const newData = await fetchEventAndInvocationLogsById({
+            appUrl,
+            adminSecret,
+            args: {
+              event_id,
+              source: dataSourceSlug as string,
+            },
+          });
           const firstInvocation = newData?.invocations?.[0];
           if (!firstInvocation) {
             return;
           }
           const { id: firstInvocationId } = firstInvocation;
-          if (firstInvocationId !== previousInvocationIdRef.current) {
+          if (firstInvocationId !== previousInvocationId) {
             setNewLog(firstInvocation);
             if (intervalRef.current) {
               clearInterval(intervalRef.current);
               intervalRef.current = null;
             }
-
-            previousInvocationIdRef.current = null;
           }
         } catch (error) {
           console.error(error);
