@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/v3/tabs';
 import { HttpStatusText } from '@/features/orgs/projects/events/common/components/HttpStatusText';
 import type { EventInvocationLogEntry } from '@/utils/hasura-api/generated/schemas';
-import InvocationLogDetailsDialogContentSkeleton from './InvocationLogDetailsDialogContentSkeleton';
+import InvocationLogDetailsDialogSkeleton from './InvocationLogDetailsDialogSkeleton';
 
 interface InvocationLogDetailsDialogContentProps {
   log: EventInvocationLogEntry | null;
@@ -34,7 +34,7 @@ export default function InvocationLogDetailsDialogContent({
   return (
     <DialogContent className="flex h-[80vh] max-w-4xl flex-col overflow-y-auto text-foreground">
       {isLoading ? (
-        <InvocationLogDetailsDialogContentSkeleton />
+        <InvocationLogDetailsDialogSkeleton />
       ) : (
         <>
           <DialogHeader>

@@ -5,6 +5,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
+import { InvocationLogDetailsDialogContent } from '@/features/orgs/projects/events/event-triggers/components/InvocationLogDetailsDialogContent';
 import { DEFAULT_RETRY_TIMEOUT_SECONDS } from '@/features/orgs/projects/events/event-triggers/constants';
 import useRedeliverEventMutation from '@/features/orgs/projects/events/event-triggers/hooks/useRedeliverEventMutation/useRedeliverEventMutation';
 import { getToastStyleProps } from '@/utils/constants/settings';
@@ -15,7 +16,6 @@ import type { Table as TanStackTable } from '@tanstack/react-table';
 import { CalendarSync, Eye } from 'lucide-react';
 import { useRef, useState } from 'react';
 import toast from 'react-hot-toast';
-import InvocationLogDetailsDialogContent from './InvocationLogDetailsDialogContent';
 import type { EventTriggerInvocationLogsDataTableMeta } from './types';
 
 export default function InvocationLogActionsCell({

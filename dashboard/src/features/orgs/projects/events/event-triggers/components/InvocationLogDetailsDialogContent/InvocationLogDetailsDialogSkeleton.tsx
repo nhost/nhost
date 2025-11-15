@@ -15,7 +15,7 @@ import {
   TabsTrigger,
 } from '@/components/ui/v3/tabs';
 
-export default function InvocationLogDetailsDialogContentSkeleton() {
+export default function InvocationLogDetailsDialogSkeleton() {
   const skeletonRowKeys = ['row-1', 'row-2', 'row-3'];
   const renderSkeletonTableRows = () =>
     skeletonRowKeys.map((key) => (
