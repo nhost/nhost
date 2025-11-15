@@ -2,6 +2,7 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { Badge } from '@/components/ui/v3/badge';
 import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
 import { DataGridCustomizerControls } from '@/features/orgs/projects/common/components/DataGridCustomizerControls';
+import { InvokeEventTriggerButton } from '@/features/orgs/projects/database/dataGrid/components/InvokeEventTriggerButton';
 import { useDeleteRecordMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteRecordMutation';
 import type { DataBrowserGridColumn } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
@@ -48,6 +49,9 @@ export default function DataBrowserGridControls({
     columns,
     toggleAllRowsSelected,
   } = useDataGridConfig();
+
+  console.log('columns', columns);
+  console.log('selectedRows', selectedRows);
 
   const { mutateAsync: removeRows, status } = useDeleteRecordMutation();
 
@@ -142,6 +146,11 @@ export default function DataBrowserGridControls({
             >
               Delete
             </Button>
+            {numberOfSelectedRows === 1 && (
+              <InvokeEventTriggerButton
+                selectedValues={selectedRows[0].values}
+              />
+            )}
           </div>
         )}
 
