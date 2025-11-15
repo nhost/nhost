@@ -150,4 +150,229 @@ describe('parseEventTriggerFormInitialData', () => {
 
     expect(result).toEqual(expected);
   });
+
+  it('should return form with payload transform and no request options transform', () => {
+    const eventTrigger: EventTriggerViewModel = {
+      dataSource: 'default',
+      table: {
+        name: 'triggertable',
+        schema: 'public',
+      },
+      name: 'triggerName',
+      definition: {
+        enable_manual: true,
+      },
+      retry_conf: {
+        interval_sec: 10,
+        num_retries: 0,
+        timeout_sec: 60,
+      },
+      webhook: 'https://httpbin.org/post',
+      request_transform: {
+        body: {
+          action: 'transform',
+          template:
+            '{\n  "table": {\n    "name": {{$body.table.name}},\n    "schema": {{$body.table.schema}}\n  }\n}',
+        },
+        template_engine: 'Kriti',
+        version: 2,
+      },
+    };
+    const result = parseEventTriggerFormInitialData(eventTrigger);
+
+    const {
+      payloadTransform: resultPayloadTransform,
+      ...resultWithoutPayloadTransform
+    } = result;
+
+    const expectedWithoutPayloadTransform: BaseEventTriggerFormInitialData = {
+      triggerName: 'triggerName',
+      dataSource: 'default',
+      tableName: 'triggertable',
+      tableSchema: 'public',
+      webhook: 'https://httpbin.org/post',
+      triggerOperations: ['manual'],
+      updateTriggerOn: 'all',
+      updateTriggerColumns: [],
+      retryConf: {
+        numRetries: 0,
+        intervalSec: 10,
+        timeoutSec: 60,
+      },
+      headers: [],
+      sampleContext: [],
+    };
+
+    expect(resultWithoutPayloadTransform).toEqual(
+      expectedWithoutPayloadTransform,
+    );
+
+    if (!resultPayloadTransform) {
+      throw new Error('Expected resultPayloadTransform to be defined');
+    }
+    const { requestBodyTransform } = resultPayloadTransform;
+
+    const expectedBodyTransform = {
+      requestBodyTransformType: 'application/json',
+      template:
+        '{\n  "table": {\n    "name": {{$body.table.name}},\n    "schema": {{$body.table.schema}}\n  }\n}',
+    };
+
+    expect(requestBodyTransform).toEqual(expectedBodyTransform);
+  });
+
+  it('should return form with request options transform and no payload transform', () => {
+    const eventTrigger: EventTriggerViewModel = {
+      dataSource: 'default',
+      table: {
+        name: 'triggertable',
+        schema: 'public',
+      },
+      name: 'triggerName',
+      definition: {
+        enable_manual: false,
+        insert: {
+          columns: '*',
+        },
+      },
+      retry_conf: {
+        interval_sec: 10,
+        num_retries: 1,
+        timeout_sec: 60,
+      },
+      webhook: 'https://httpbin.org/post',
+      request_transform: {
+        query_params: 'mytemplateurlstring=123',
+        template_engine: 'Kriti',
+        url: '{{$base_url}}/template',
+        version: 2,
+      },
+    };
+    const result = parseEventTriggerFormInitialData(eventTrigger);
+
+    const expected = {
+      triggerName: 'triggerName',
+      dataSource: 'default',
+      tableName: 'triggertable',
+      tableSchema: 'public',
+      webhook: 'https://httpbin.org/post',
+      triggerOperations: ['insert'],
+      updateTriggerOn: 'all',
+      updateTriggerColumns: [],
+      retryConf: {
+        numRetries: 1,
+        intervalSec: 10,
+        timeoutSec: 60,
+      },
+      headers: [],
+      sampleContext: [],
+      requestOptionsTransform: {
+        urlTemplate: '/template',
+        method: 'POST',
+        queryParams: {
+          queryParamsType: 'URL string template',
+          queryParamsURL: 'mytemplateurlstring=123',
+        },
+      },
+    };
+
+    expect(result).toEqual(expected);
+  });
+
+  it('should return form with both request options transform and payload transform', () => {
+    const eventTrigger: EventTriggerViewModel = {
+      dataSource: 'default',
+      table: {
+        name: 'triggertable',
+        schema: 'public',
+      },
+      name: 'triggerName',
+      definition: {
+        enable_manual: false,
+        insert: {
+          columns: '*',
+        },
+      },
+      retry_conf: {
+        interval_sec: 10,
+        num_retries: 1,
+        timeout_sec: 60,
+      },
+      webhook: 'https://httpbin.org/post',
+      request_transform: {
+        body: {
+          action: 'transform',
+          template:
+            '{\n  "table": {\n    "name": {{$body.table.name}},\n    "schema": {{$body.table.schema}}\n  }\n}',
+        },
+        method: 'PATCH',
+        query_params: {
+          key: 'value',
+          key2: 'value2',
+        },
+        template_engine: 'Kriti',
+        url: '{{$base_url}}/template',
+        version: 2,
+      },
+    };
+    const result = parseEventTriggerFormInitialData(eventTrigger);
+
+    const {
+      payloadTransform: resultPayloadTransform,
+      ...resultWithoutPayloadTransform
+    } = result;
+
+    const expectedWithoutPayloadTransform: BaseEventTriggerFormInitialData = {
+      triggerName: 'triggerName',
+      dataSource: 'default',
+      tableName: 'triggertable',
+      tableSchema: 'public',
+      webhook: 'https://httpbin.org/post',
+      triggerOperations: ['insert'],
+      updateTriggerOn: 'all',
+      updateTriggerColumns: [],
+      retryConf: {
+        numRetries: 1,
+        intervalSec: 10,
+        timeoutSec: 60,
+      },
+      headers: [],
+      sampleContext: [],
+      requestOptionsTransform: {
+        method: 'PATCH',
+        urlTemplate: '/template',
+        queryParams: {
+          queryParamsType: 'Key Value',
+          queryParams: [
+            {
+              key: 'key',
+              value: 'value',
+            },
+            {
+              key: 'key2',
+              value: 'value2',
+            },
+          ],
+        },
+      },
+    };
+
+    expect(resultWithoutPayloadTransform).toEqual(
+      expectedWithoutPayloadTransform,
+    );
+
+    if (!resultPayloadTransform) {
+      throw new Error('Expected payloadTransform to be defined');
+    }
+
+    const { requestBodyTransform } = resultPayloadTransform;
+
+    const expectedRequestBodyTransform = {
+      requestBodyTransformType: 'application/json',
+      template:
+        '{\n  "table": {\n    "name": {{$body.table.name}},\n    "schema": {{$body.table.schema}}\n  }\n}',
+    };
+
+    expect(requestBodyTransform).toEqual(expectedRequestBodyTransform);
+  });
 });

@@ -98,7 +98,7 @@ export const validationSchema = z
     ),
     requestOptionsTransform: z
       .object({
-        method: z.enum(requestTransformMethods),
+        method: z.enum(requestTransformMethods).optional(),
         urlTemplate: z.string().optional(),
         queryParams: z.discriminatedUnion('queryParamsType', [
           z.object({
@@ -163,7 +163,7 @@ export const validationSchema = z
 export const defaultRequestOptionsTransformValues: NonNullable<
   BaseEventTriggerFormValues['requestOptionsTransform']
 > = {
-  method: 'POST',
+  method: undefined,
   urlTemplate: '',
   queryParams: {
     queryParamsType: 'Key Value',

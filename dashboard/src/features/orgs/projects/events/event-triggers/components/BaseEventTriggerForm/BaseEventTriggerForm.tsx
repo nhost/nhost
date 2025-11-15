@@ -31,7 +31,6 @@ import {
   SheetTitle,
 } from '@/components/ui/v3/sheet-drawer';
 import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
-import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import { useGetMetadata } from '@/features/orgs/projects/common/hooks/useGetMetadata';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useCallback, useMemo, useState, type ReactNode } from 'react';
@@ -51,6 +50,13 @@ import PayloadTransformSection from './sections/PayloadTransformSection/PayloadT
 import { RequestOptionsSection } from './sections/RequestOptionsSection';
 import RetryConfigurationSection from './sections/RetryConfigurationSection';
 import UpdateTriggerColumnsSection from './sections/UpdateTriggerColumnsSection';
+
+const ACCORDION_SECTION_VALUES = [
+  'retry-configuration',
+  'transformation-configuration',
+] as const;
+
+type AccordionSectionValue = (typeof ACCORDION_SECTION_VALUES)[number];
 
 export interface BaseEventTriggerFormTriggerProps {
   open: () => void;
@@ -80,6 +86,9 @@ export default function BaseEventTriggerForm({
   const [showUnsavedChangesDialog, setShowUnsavedChangesDialog] =
     useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [openAccordionSections, setOpenAccordionSections] = useState<
+    AccordionSectionValue[]
+  >([]);
 
   const dataSources = metadata?.sources?.map((source) => source.name!) ?? [];
 
@@ -99,6 +108,7 @@ export default function BaseEventTriggerForm({
     resetFormValues();
     setShowUnsavedChangesDialog(false);
     setIsSheetOpen(true);
+    setOpenAccordionSections([]);
   }, [resetFormValues]);
 
   const closeForm = useCallback(
@@ -108,6 +118,7 @@ export default function BaseEventTriggerForm({
       }
       setIsSheetOpen(false);
       setShowUnsavedChangesDialog(false);
+      setOpenAccordionSections([]);
     },
     [resetFormValues],
   );
@@ -128,10 +139,15 @@ export default function BaseEventTriggerForm({
     [closeForm, isDirty],
   );
 
-  const handleFormSubmit = form.handleSubmit(async (values) => {
-    await onSubmit(values);
-    closeForm();
-  });
+  const handleFormSubmit = form.handleSubmit(
+    async (values) => {
+      await onSubmit(values);
+      closeForm();
+    },
+    () => {
+      setOpenAccordionSections([...ACCORDION_SECTION_VALUES]);
+    },
+  );
 
   const selectedDataSource = watch('dataSource');
   const selectedTableSchema = watch('tableSchema');
@@ -169,6 +185,10 @@ export default function BaseEventTriggerForm({
   };
 
   const triggerNode = trigger({ open: openForm, close: closeForm });
+
+  const handleAccordionValueChange = useCallback((value: string[]) => {
+    setOpenAccordionSections(value as AccordionSectionValue[]);
+  }, []);
 
   return (
     <>
@@ -288,11 +308,9 @@ export default function BaseEventTriggerForm({
                         <div className="flex flex-row items-center justify-start gap-8">
                           <FormDescription className="flex flex-row items-center gap-1">
                             On{' '}
-                            <TextWithTooltip
-                              text={selectedTableName}
-                              containerClassName="max-w-40"
-                              className="font-mono"
-                            />{' '}
+                            <span className="font-mono">
+                              {selectedTableName}
+                            </span>
                             table:
                           </FormDescription>
                           {ALL_TRIGGER_OPERATIONS.map((operation) => (
@@ -407,7 +425,11 @@ export default function BaseEventTriggerForm({
                   />
                 </div>
                 <Separator />
-                <Accordion type="multiple" className="">
+                <Accordion
+                  type="multiple"
+                  value={openAccordionSections}
+                  onValueChange={handleAccordionValueChange}
+                >
                   <AccordionItem value="retry-configuration" className="px-6">
                     <AccordionTrigger className="text-base text-foreground">
                       Retry and Headers Settings
@@ -421,7 +443,7 @@ export default function BaseEventTriggerForm({
                     </AccordionContent>
                   </AccordionItem>
                   <AccordionItem
-                    value="configure-rest-connectors"
+                    value="transformation-configuration"
                     className="px-6"
                   >
                     <AccordionTrigger className="text-base text-foreground">
