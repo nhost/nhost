@@ -50,9 +50,6 @@ export default function DataBrowserGridControls({
     toggleAllRowsSelected,
   } = useDataGridConfig();
 
-  console.log('columns', columns);
-  console.log('selectedRows', selectedRows);
-
   const { mutateAsync: removeRows, status } = useDeleteRecordMutation();
 
   // note: this array ensures that there won't be a glitch with the submit
