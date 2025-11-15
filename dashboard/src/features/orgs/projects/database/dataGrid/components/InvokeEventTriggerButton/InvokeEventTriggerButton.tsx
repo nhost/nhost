@@ -15,10 +15,12 @@ import fetchEventAndInvocationLogsById from '@/features/orgs/projects/events/eve
 import { useGetEventTriggersByTable } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventTriggersByTable';
 import { useInvokeEventTriggerMutation } from '@/features/orgs/projects/events/event-triggers/hooks/useInvokeEventTriggerMutation';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { getToastStyleProps } from '@/utils/constants/settings';
 import type { EventInvocationLogEntry } from '@/utils/hasura-api/generated/schemas/eventInvocationLogEntry';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useRef, useState } from 'react';
+import toast from 'react-hot-toast';
 
 export interface InvokeEventTriggerButtonProps {
   selectedValues: Record<string, unknown>;
@@ -62,72 +64,68 @@ export default function InvokeEventTriggerButton({
 
   const { mutateAsync: invokeEventTrigger } = useInvokeEventTriggerMutation();
 
-  // const resetState = () => {
-  //   if (intervalRef.current) {
-  //     clearInterval(intervalRef.current);
-  //     intervalRef.current = null;
-  //   }
-  // };
+  const resetState = () => {
+    setNewLog(null);
+    setShowDialog(false);
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  };
 
   const handleInvokeEventTrigger = async (name: string) => {
-    console.log(`Invoking ${name}`);
+    let eventId: string;
     try {
-      const { event_id } = await invokeEventTrigger({
+      const response = await invokeEventTrigger({
         args: {
           name,
           source: dataSourceSlug as string,
           payload: selectedValues,
         },
       });
-      const data = await fetchEventAndInvocationLogsById({
-        appUrl,
-        adminSecret,
-        args: {
-          event_id,
-          source: dataSourceSlug as string,
-        },
-      });
-      const invocation = data?.invocations?.[0];
-      const previousInvocationId = invocation?.id ?? null;
-      setShowDialog(true);
-
-      const start = Date.now();
-      const timeoutMs = DEFAULT_RETRY_TIMEOUT_SECONDS * 1000; // TODO: Get from retry_conf.timeout_sec
-      intervalRef.current = setInterval(async () => {
-        const elapsed = Date.now() - start;
-        if (elapsed >= timeoutMs && intervalRef.current) {
-          clearInterval(intervalRef.current);
-          intervalRef.current = null;
-          return;
-        }
-        try {
-          const newData = await fetchEventAndInvocationLogsById({
-            appUrl,
-            adminSecret,
-            args: {
-              event_id,
-              source: dataSourceSlug as string,
-            },
-          });
-          const firstInvocation = newData?.invocations?.[0];
-          if (!firstInvocation) {
-            return;
-          }
-          const { id: firstInvocationId } = firstInvocation;
-          if (firstInvocationId !== previousInvocationId) {
-            setNewLog(firstInvocation);
-            if (intervalRef.current) {
-              clearInterval(intervalRef.current);
-              intervalRef.current = null;
-            }
-          }
-        } catch (error) {
-          console.error(error);
-        }
-      }, 1000);
+      eventId = response.event_id;
+      toast.success(
+        'Event trigger invoked successfully, fetching invocation logs...',
+        getToastStyleProps(),
+      );
     } catch (error) {
-      console.error(error);
+      toast.error('Failed to invoke event trigger', getToastStyleProps());
+      resetState();
+      return;
     }
+    setShowDialog(true);
+
+    const start = Date.now();
+    const timeoutMs = DEFAULT_RETRY_TIMEOUT_SECONDS * 1000; // TODO: Get from retry_conf.timeout_sec
+    intervalRef.current = setInterval(async () => {
+      const elapsed = Date.now() - start;
+      if (elapsed >= timeoutMs && intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+        return;
+      }
+      try {
+        const newData = await fetchEventAndInvocationLogsById({
+          appUrl,
+          adminSecret,
+          args: {
+            event_id: eventId,
+            source: dataSourceSlug as string,
+          },
+        });
+        const firstInvocation = newData?.invocations?.[0];
+        if (firstInvocation) {
+          setNewLog(firstInvocation);
+          if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+            intervalRef.current = null;
+          }
+        }
+      } catch (error) {
+        toast.error('Failed to fetch invocation logs', getToastStyleProps());
+        resetState();
+      }
+    }, 1000);
   };
 
   return (
@@ -161,33 +159,6 @@ export default function InvokeEventTriggerButton({
       </DropdownMenu>
       <Dialog open={showDialog} onOpenChange={handleDialogOpenChange}>
         <InvocationLogDetailsDialogContent log={newLog} isLoading={!newLog} />
-        {/* <DialogContent className="text-foreground sm:max-w-4xl">
-            <DialogHeader>
-              <DialogTitle>Invoke Event Trigger</DialogTitle>
-              <DialogDescription>
-                <div className="text-sm-">
-                  Invoking{' '}
-                  <span className="font-mono">{invokedEventTriggerName}</span>{' '}
-                  event with ID:
-                  <div className="flex items-center justify-between gap-2 break-all rounded bg-muted p-2 font-mono">
-                    <span>{eventIdRef.current}adiogfjiadogjaofdigjaifog</span>
-                    <CopyToClipboardButton
-                      className="bg-[#e3f4fc]/70 dark:bg-[#1e2942]/70 dark:hover:bg-[#253252]"
-                      textToCopy={eventIdRef.current}
-                      title="Copy event ID"
-                    />
-                  </div>
-                </div>
-                <Loader2 className="mr-2 size-4 animate-spin" />
-                Fetching invocation info...
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button variant="outline">Quit</Button>
-              </DialogClose>
-            </DialogFooter>
-          </DialogContent> */}
       </Dialog>
     </>
   );

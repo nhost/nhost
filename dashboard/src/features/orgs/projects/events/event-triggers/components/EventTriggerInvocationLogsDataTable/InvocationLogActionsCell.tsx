@@ -74,7 +74,12 @@ export default function InvocationLogActionsCell({
         },
       });
     } catch (error) {
-      toast.error('Failed to redeliver event', getToastStyleProps());
+      toast.error(
+        'Failed to redeliver event. Please try again.',
+        getToastStyleProps(),
+      );
+      resetState();
+      return;
     }
 
     loadingToastIdRef.current = toast.loading(
