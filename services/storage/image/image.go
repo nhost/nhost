@@ -172,34 +172,24 @@ func processImage(image *vips.Image, opts Options) error {
 		}
 	}
 
-	// Resize if dimensions are specified
 	if opts.Width > 0 || opts.Height > 0 {
-		targetWidth := opts.Width
-		targetHeight := opts.Height
+		width := opts.Width
+		height := opts.Height
 
-		currentWidth := image.Width()
-		currentHeight := image.Height()
-
-		// Calculate missing dimension to maintain aspect ratio (original behavior)
-		if targetWidth == 0 {
-			targetWidth = int((float64(targetHeight) / float64(currentHeight)) * float64(currentWidth))
+		if width == 0 {
+			width = int((float64(height) / float64(image.Height())) * float64(image.Width()))
 		}
 
-		if targetHeight == 0 {
-			targetHeight = int((float64(targetWidth) / float64(currentWidth)) * float64(currentHeight))
+		if height == 0 {
+			height = int((float64(width) / float64(image.Width())) * float64(image.Height()))
 		}
 
-		// Calculate scale factors for both dimensions
-		hscale := float64(targetWidth) / float64(currentWidth)
-		vscale := float64(targetHeight) / float64(currentHeight)
+		thumbnailOpts := vips.DefaultThumbnailImageOptions()
+		thumbnailOpts.Height = height
+		thumbnailOpts.Crop = vips.InterestingCentre
 
-		// Use Resize with both horizontal and vertical scale
-		// This allows both shrinking and enlarging, and deformation when both dimensions specified
-		resizeOpts := vips.DefaultResizeOptions()
-		resizeOpts.Vscale = vscale
-
-		if err := image.Resize(hscale, resizeOpts); err != nil {
-			return fmt.Errorf("failed to resize: %w", err)
+		if err := image.ThumbnailImage(width, thumbnailOpts); err != nil {
+			return fmt.Errorf("failed to thumbnail: %w", err)
 		}
 	}
 
