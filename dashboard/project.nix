@@ -66,7 +66,6 @@ let
       "${submodule}/tsconfig.test.json"
       "${submodule}/vitest.config.ts"
       "${submodule}/vitest.global-setup.ts"
-      (inDirectory "${submodule}/.storybook")
       (inDirectory "${submodule}/e2e")
       (inDirectory "${submodule}/public")
       (inDirectory "${submodule}/src")
@@ -167,6 +166,12 @@ rec {
     '';
   };
 
+  packageWithDisabledCSP = package.overrideAttrs (oldAttrs: {
+    configurePhase = oldAttrs.configurePhase + ''
+      export CSP_MODE=disabled
+    '';
+  });
+
   dockerImage = pkgs.runCommand "image-as-dir" { } ''
     ${(nix2containerPkgs.nix2container.buildImage {
       inherit name created;
@@ -176,7 +181,7 @@ rec {
       copyToRoot = pkgs.buildEnv {
         name = "image";
         paths = [
-          package
+          packageWithDisabledCSP
           (pkgs.writeTextFile {
             name = "tmp-file";
             text = ''
@@ -213,5 +218,3 @@ rec {
     }).copyTo}/bin/copy-to dir:$out
   '';
 }
-
-

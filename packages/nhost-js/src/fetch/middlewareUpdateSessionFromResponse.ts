@@ -46,7 +46,7 @@ export const updateSessionFromResponseMiddleware = (
       return body.session || null;
     }
 
-    if ("accessToken" in body && "refreshToken" in body) {
+    if ("accessToken" in body && "refreshToken" in body && "user" in body) {
       // Session
       return body;
     }

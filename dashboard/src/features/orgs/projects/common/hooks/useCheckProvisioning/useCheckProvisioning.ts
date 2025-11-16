@@ -74,9 +74,6 @@ export default function useCheckProvisioning() {
         createdAt: data.app.appStates[0].createdAt,
       });
       stopPolling();
-      // Will update the cache and update with the new application state
-      // which will trigger the correct application component
-      // under `src\components\applications\App.tsx`
       memoizedUpdateCache();
       return;
     }

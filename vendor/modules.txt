@@ -88,6 +88,12 @@ github.com/99designs/gqlgen/graphql/handler/lru
 github.com/99designs/gqlgen/graphql/handler/transport
 github.com/99designs/gqlgen/graphql/introspection
 github.com/99designs/gqlgen/graphql/playground
+# github.com/MicahParks/jwkset v0.11.0
+## explicit; go 1.21
+github.com/MicahParks/jwkset
+# github.com/MicahParks/keyfunc/v3 v3.7.0
+## explicit; go 1.21
+github.com/MicahParks/keyfunc/v3
 # github.com/Microsoft/go-winio v0.6.2
 ## explicit; go 1.21
 github.com/Microsoft/go-winio
@@ -267,6 +273,14 @@ github.com/beorn7/perks/quantile
 # github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d
 ## explicit
 github.com/bgentry/go-netrc/netrc
+# github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc
+## explicit
+github.com/boombuler/barcode
+github.com/boombuler/barcode/qr
+github.com/boombuler/barcode/utils
+# github.com/bradfitz/gomemcache v0.0.0-20250403215159-8d39553ac7cf
+## explicit; go 1.18
+github.com/bradfitz/gomemcache/memcache
 # github.com/buger/jsonparser v1.1.1
 ## explicit; go 1.13
 github.com/buger/jsonparser
@@ -378,10 +392,6 @@ github.com/emirpasic/gods/lists/arraylist
 github.com/emirpasic/gods/trees
 github.com/emirpasic/gods/trees/binaryheap
 github.com/emirpasic/gods/utils
-# github.com/fsnotify/fsnotify v1.9.0
-## explicit; go 1.17
-github.com/fsnotify/fsnotify
-github.com/fsnotify/fsnotify/internal
 # github.com/fxamacker/cbor/v2 v2.8.0
 ## explicit; go 1.20
 github.com/fxamacker/cbor/v2
@@ -399,9 +409,6 @@ github.com/getkin/kin-openapi/routers
 github.com/getkin/kin-openapi/routers/gorillamux
 github.com/getkin/kin-openapi/routers/legacy
 github.com/getkin/kin-openapi/routers/legacy/pathpattern
-# github.com/gin-contrib/cors v1.7.3
-## explicit; go 1.21.0
-github.com/gin-contrib/cors
 # github.com/gin-contrib/sse v1.1.0
 ## explicit; go 1.23
 github.com/gin-contrib/sse
@@ -501,9 +508,20 @@ github.com/go-webauthn/webauthn/metadata
 github.com/go-webauthn/webauthn/protocol
 github.com/go-webauthn/webauthn/protocol/webauthncbor
 github.com/go-webauthn/webauthn/protocol/webauthncose
+github.com/go-webauthn/webauthn/webauthn
 # github.com/go-webauthn/x v0.1.19
 ## explicit; go 1.23.0
 github.com/go-webauthn/x/revoke
+# github.com/gobwas/glob v0.2.3
+## explicit
+github.com/gobwas/glob
+github.com/gobwas/glob/compiler
+github.com/gobwas/glob/match
+github.com/gobwas/glob/syntax
+github.com/gobwas/glob/syntax/ast
+github.com/gobwas/glob/syntax/lexer
+github.com/gobwas/glob/util/runes
+github.com/gobwas/glob/util/strings
 # github.com/goccy/go-json v0.10.5
 ## explicit; go 1.19
 github.com/goccy/go-json
@@ -541,6 +559,9 @@ github.com/golang-migrate/migrate/v4/source/iofs
 # github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8
 ## explicit; go 1.20
 github.com/golang/groupcache/lru
+# github.com/golang/mock v1.6.0
+## explicit; go 1.11
+github.com/golang/mock/gomock
 # github.com/google/go-cmp v0.7.0
 ## explicit; go 1.21
 github.com/google/go-cmp/cmp
@@ -587,9 +608,6 @@ github.com/hashicorp/go-version
 github.com/hashicorp/golang-lru/v2
 github.com/hashicorp/golang-lru/v2/internal
 github.com/hashicorp/golang-lru/v2/simplelru
-# github.com/inconshreveable/mousetrap v1.1.0
-## explicit; go 1.18
-github.com/inconshreveable/mousetrap
 # github.com/invopop/jsonschema v0.13.0
 ## explicit; go 1.18
 github.com/invopop/jsonschema
@@ -611,6 +629,11 @@ github.com/jackc/pgx/v5/pgconn/ctxwatch
 github.com/jackc/pgx/v5/pgconn/internal/bgreader
 github.com/jackc/pgx/v5/pgproto3
 github.com/jackc/pgx/v5/pgtype
+github.com/jackc/pgx/v5/pgxpool
+# github.com/jackc/puddle/v2 v2.2.2
+## explicit; go 1.19
+github.com/jackc/puddle/v2
+github.com/jackc/puddle/v2/internal/genstack
 # github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99
 ## explicit
 github.com/jbenet/go-context/io
@@ -645,6 +668,9 @@ github.com/leodido/go-urn/scim/schema
 github.com/lib/pq
 github.com/lib/pq/oid
 github.com/lib/pq/scram
+# github.com/lmittmann/tint v1.0.7
+## explicit; go 1.21
+github.com/lmittmann/tint
 # github.com/lucasb-eyer/go-colorful v1.2.0
 ## explicit; go 1.12
 github.com/lucasb-eyer/go-colorful
@@ -690,8 +716,8 @@ github.com/muesli/termenv
 # github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822
 ## explicit
 github.com/munnerz/goautoneg
-# github.com/nhost/be v0.0.0-20250929153845-6db3e5249d33
-## explicit; go 1.24.2
+# github.com/nhost/be v0.0.0-20251106114258-352de15d30f5
+## explicit; go 1.25.3
 github.com/nhost/be/lib/graphql
 github.com/nhost/be/lib/graphql/context
 github.com/nhost/be/lib/graphql/handler
@@ -704,9 +730,6 @@ github.com/nhost/be/services/mimir/nhost
 github.com/nhost/be/services/mimir/schema
 github.com/nhost/be/services/mimir/schema/appconfig
 github.com/nhost/be/tools/cuegraph/types
-# github.com/oapi-codegen/gin-middleware v1.0.2
-## explicit; go 1.20
-github.com/oapi-codegen/gin-middleware
 # github.com/oapi-codegen/runtime v1.1.1
 ## explicit; go 1.20
 github.com/oapi-codegen/runtime
@@ -752,9 +775,18 @@ github.com/perimeterx/marshmallow
 github.com/pjbgf/sha1cd
 github.com/pjbgf/sha1cd/internal
 github.com/pjbgf/sha1cd/ubc
+# github.com/pkg/errors v0.9.1
+## explicit
+github.com/pkg/errors
 # github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2
 ## explicit
 github.com/pmezard/go-difflib/difflib
+# github.com/pquerna/otp v1.5.0
+## explicit; go 1.12
+github.com/pquerna/otp
+github.com/pquerna/otp/hotp
+github.com/pquerna/otp/internal
+github.com/pquerna/otp/totp
 # github.com/prometheus/client_golang v1.22.0
 ## explicit; go 1.22
 github.com/prometheus/client_golang/internal/github.com/golang/gddo/httputil
@@ -779,7 +811,7 @@ github.com/prometheus/procfs/internal/util
 # github.com/quic-go/qpack v0.5.1
 ## explicit; go 1.22
 github.com/quic-go/qpack
-# github.com/quic-go/quic-go v0.54.0
+# github.com/quic-go/quic-go v0.54.1
 ## explicit; go 1.23
 github.com/quic-go/quic-go
 github.com/quic-go/quic-go/http3
@@ -808,9 +840,6 @@ github.com/rs/cors/wrapper/gin
 # github.com/russross/blackfriday/v2 v2.1.0
 ## explicit
 github.com/russross/blackfriday/v2
-# github.com/sagikazarmark/locafero v0.11.0
-## explicit; go 1.23.0
-github.com/sagikazarmark/locafero
 # github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3
 ## explicit; go 1.13
 github.com/sergi/go-diff/diffmatchpatch
@@ -823,46 +852,19 @@ github.com/skeema/knownhosts
 # github.com/sosodev/duration v1.3.1
 ## explicit; go 1.17
 github.com/sosodev/duration
-# github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8
-## explicit; go 1.20
-github.com/sourcegraph/conc
-github.com/sourcegraph/conc/panics
-github.com/sourcegraph/conc/pool
 # github.com/speakeasy-api/jsonpath v0.6.2
 ## explicit; go 1.22
 github.com/speakeasy-api/jsonpath/pkg/jsonpath
 github.com/speakeasy-api/jsonpath/pkg/jsonpath/config
 github.com/speakeasy-api/jsonpath/pkg/jsonpath/token
-# github.com/spf13/afero v1.15.0
-## explicit; go 1.23.0
-github.com/spf13/afero
-github.com/spf13/afero/internal/common
-github.com/spf13/afero/mem
 # github.com/spf13/cast v1.10.0
 ## explicit; go 1.21.0
 github.com/spf13/cast
 github.com/spf13/cast/internal
-# github.com/spf13/cobra v1.8.1
-## explicit; go 1.15
-github.com/spf13/cobra
-# github.com/spf13/pflag v1.0.10
-## explicit; go 1.12
-github.com/spf13/pflag
-# github.com/spf13/viper v1.21.0
-## explicit; go 1.23.0
-github.com/spf13/viper
-github.com/spf13/viper/internal/encoding/dotenv
-github.com/spf13/viper/internal/encoding/json
-github.com/spf13/viper/internal/encoding/toml
-github.com/spf13/viper/internal/encoding/yaml
-github.com/spf13/viper/internal/features
 # github.com/stretchr/testify v1.11.1
 ## explicit; go 1.17
 github.com/stretchr/testify/assert
 github.com/stretchr/testify/assert/yaml
-# github.com/subosito/gotenv v1.6.0
-## explicit; go 1.18
-github.com/subosito/gotenv
 # github.com/tidwall/gjson v1.18.0
 ## explicit; go 1.12
 github.com/tidwall/gjson
@@ -875,6 +877,63 @@ github.com/tidwall/pretty
 # github.com/tidwall/sjson v1.2.5
 ## explicit; go 1.14
 github.com/tidwall/sjson
+# github.com/twilio/twilio-go v1.28.3
+## explicit; go 1.16
+github.com/twilio/twilio-go
+github.com/twilio/twilio-go/client
+github.com/twilio/twilio-go/client/form
+github.com/twilio/twilio-go/rest/accounts/v1
+github.com/twilio/twilio-go/rest/api/v2010
+github.com/twilio/twilio-go/rest/assistants/v1
+github.com/twilio/twilio-go/rest/bulkexports/v1
+github.com/twilio/twilio-go/rest/chat/v1
+github.com/twilio/twilio-go/rest/chat/v2
+github.com/twilio/twilio-go/rest/chat/v3
+github.com/twilio/twilio-go/rest/content/v1
+github.com/twilio/twilio-go/rest/content/v2
+github.com/twilio/twilio-go/rest/conversations/v1
+github.com/twilio/twilio-go/rest/events/v1
+github.com/twilio/twilio-go/rest/flex/v1
+github.com/twilio/twilio-go/rest/flex/v2
+github.com/twilio/twilio-go/rest/frontline/v1
+github.com/twilio/twilio-go/rest/iam/v1
+github.com/twilio/twilio-go/rest/iam/v2
+github.com/twilio/twilio-go/rest/insights/v1
+github.com/twilio/twilio-go/rest/intelligence/v2
+github.com/twilio/twilio-go/rest/ip_messaging/v1
+github.com/twilio/twilio-go/rest/ip_messaging/v2
+github.com/twilio/twilio-go/rest/knowledge/v1
+github.com/twilio/twilio-go/rest/lookups/v1
+github.com/twilio/twilio-go/rest/lookups/v2
+github.com/twilio/twilio-go/rest/marketplace/v1
+github.com/twilio/twilio-go/rest/messaging/v1
+github.com/twilio/twilio-go/rest/messaging/v2
+github.com/twilio/twilio-go/rest/monitor/v1
+github.com/twilio/twilio-go/rest/notify/v1
+github.com/twilio/twilio-go/rest/numbers/v1
+github.com/twilio/twilio-go/rest/numbers/v2
+github.com/twilio/twilio-go/rest/numbers/v3
+github.com/twilio/twilio-go/rest/oauth/v1
+github.com/twilio/twilio-go/rest/oauth/v2
+github.com/twilio/twilio-go/rest/preview_iam/organization
+github.com/twilio/twilio-go/rest/preview_iam/v1
+github.com/twilio/twilio-go/rest/pricing/v1
+github.com/twilio/twilio-go/rest/pricing/v2
+github.com/twilio/twilio-go/rest/proxy/v1
+github.com/twilio/twilio-go/rest/routes/v2
+github.com/twilio/twilio-go/rest/serverless/v1
+github.com/twilio/twilio-go/rest/studio/v1
+github.com/twilio/twilio-go/rest/studio/v2
+github.com/twilio/twilio-go/rest/supersim/v1
+github.com/twilio/twilio-go/rest/sync/v1
+github.com/twilio/twilio-go/rest/taskrouter/v1
+github.com/twilio/twilio-go/rest/trunking/v1
+github.com/twilio/twilio-go/rest/trusthub/v1
+github.com/twilio/twilio-go/rest/verify/v2
+github.com/twilio/twilio-go/rest/verify/v3
+github.com/twilio/twilio-go/rest/video/v1
+github.com/twilio/twilio-go/rest/voice/v1
+github.com/twilio/twilio-go/rest/wireless/v1
 # github.com/twitchyliquid64/golang-asm v0.15.1
 ## explicit; go 1.13
 github.com/twitchyliquid64/golang-asm/asm/arch
@@ -953,15 +1012,13 @@ github.com/yosida95/uritemplate/v3
 go.uber.org/mock/gomock
 go.uber.org/mock/mockgen
 go.uber.org/mock/mockgen/model
-# go.yaml.in/yaml/v3 v3.0.4
-## explicit; go 1.16
-go.yaml.in/yaml/v3
 # golang.org/x/arch v0.20.0
 ## explicit; go 1.23.0
 golang.org/x/arch/x86/x86asm
 # golang.org/x/crypto v0.42.0
 ## explicit; go 1.24.0
 golang.org/x/crypto/argon2
+golang.org/x/crypto/bcrypt
 golang.org/x/crypto/blake2b
 golang.org/x/crypto/blowfish
 golang.org/x/crypto/cast5
@@ -1010,9 +1067,13 @@ golang.org/x/net/ipv6
 golang.org/x/net/proxy
 # golang.org/x/oauth2 v0.30.0
 ## explicit; go 1.23.0
+golang.org/x/oauth2
+golang.org/x/oauth2/endpoints
+golang.org/x/oauth2/internal
 # golang.org/x/sync v0.17.0
 ## explicit; go 1.24.0
 golang.org/x/sync/errgroup
+golang.org/x/sync/semaphore
 # golang.org/x/sys v0.36.0
 ## explicit; go 1.24.0
 golang.org/x/sys/cpu
@@ -1049,6 +1110,9 @@ golang.org/x/text/transform
 golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
 golang.org/x/text/width
+# golang.org/x/time v0.11.0
+## explicit; go 1.23.0
+golang.org/x/time/rate
 # golang.org/x/tools v0.37.0
 ## explicit; go 1.24.0
 golang.org/x/tools/go/ast/astutil
@@ -1116,3 +1180,7 @@ gopkg.in/yaml.v2
 # gopkg.in/yaml.v3 v3.0.1
 ## explicit
 gopkg.in/yaml.v3
+# k8s.io/client-go v12.0.0+incompatible
+## explicit; go 1.12
+k8s.io/client-go/third_party/forked/golang/template
+k8s.io/client-go/util/jsonpath

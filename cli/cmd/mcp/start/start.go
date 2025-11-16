@@ -5,17 +5,18 @@ import (
 	"fmt"
 
 	"github.com/mark3labs/mcp-go/server"
+	"github.com/nhost/nhost/cli/clienv"
 	"github.com/nhost/nhost/cli/mcp/config"
 	"github.com/nhost/nhost/cli/mcp/nhost/auth"
+	"github.com/nhost/nhost/cli/mcp/resources"
 	"github.com/nhost/nhost/cli/mcp/tools/cloud"
 	"github.com/nhost/nhost/cli/mcp/tools/docs"
-	"github.com/nhost/nhost/cli/mcp/tools/local"
 	"github.com/nhost/nhost/cli/mcp/tools/project"
+	"github.com/nhost/nhost/cli/mcp/tools/schemas"
 	"github.com/urfave/cli/v3"
 )
 
 const (
-	flagConfigFile      = "config-file"
 	flagNhostAuthURL    = "nhost-auth-url"
 	flagNhostGraphqlURL = "nhost-graphql-url"
 	flagBind            = "bind"
@@ -25,22 +26,21 @@ const (
 	// this seems to be largely ignored by clients, or at least by cursor.
 	// we also need to look into roots and resources as those might be helpful.
 	ServerInstructions = `
-		This is an MCP server to interact with Nhost Cloud and with projects running on it and
-		also with Nhost local development projects.
+This is an MCP server to interact with the Nhost Cloud and with Nhost projects.
 
-		Important notes to anyone using this MCP server. Do not use this MCP server without
-		following these instructions:
+Important notes to anyone using this MCP server. Do not use this MCP server without
+following these instructions:
 
-		1. Make sure you are clear on which environment the user wants to operate against.
-		2. Before attempting to call any tool *-graphql-query, always get the schema using the
-		   *-get-graphql-schema tool
-		3. Apps and projects are the same and while users may talk about projects in the GraphQL
-		  api those are referred as apps.
-		4. IDs are always UUIDs so if you have anything else (like an app/project name) you may need
-		   to first get the ID using the *-graphql-query tool.
-		5. If you have an error querying the GraphQL API, please check the schema again. The schema may
-		   have changed and the query you are using may be invalid.
-	`
+1. Make sure you are clear on which environment the user wants to operate against.
+2. Before attempting to call any tool, always make sure you list resources, roots, and
+   resource templates to understand what is available.
+3. Apps and projects are the same and while users may talk about projects in Nhost's GraphQL
+   api those are referred as apps.
+4. If you have an error querying the GraphQL API, please check the schema again. The schema may
+   have changed and the query you are using may be invalid.
+5. Always follow the instructions provided by each tool. If you need to deviate from these
+   instructions, please, confirm with the user before doing so.
+`
 )
 
 func Command() *cli.Command {
@@ -48,12 +48,6 @@ func Command() *cli.Command {
 		Name:  "start",
 		Usage: "Starts the MCP server",
 		Flags: []cli.Flag{
-			&cli.StringFlag{ //nolint:exhaustruct
-				Name:    flagConfigFile,
-				Usage:   "Path to the config file",
-				Value:   config.GetConfigPath(),
-				Sources: cli.EnvVars("CONFIG_FILE"),
-			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:     flagNhostAuthURL,
 				Usage:    "Nhost auth URL",
@@ -88,14 +82,25 @@ func action(ctx context.Context, cmd *cli.Command) error {
 		return err
 	}
 
+	ServerInstructions := ServerInstructions
+	ServerInstructions += "\n\n"
+	ServerInstructions += cfg.Projects.Instructions()
+	ServerInstructions += "\n"
+	ServerInstructions += resources.Instructions()
+
 	mcpServer := server.NewMCPServer(
 		cmd.Root().Name,
 		cmd.Root().Version,
 		server.WithInstructions(ServerInstructions),
 	)
 
+	if err := resources.Register(cfg, mcpServer); err != nil {
+		return cli.Exit(fmt.Sprintf("failed to register resources: %s", err), 1)
+	}
+
 	if cfg.Cloud != nil {
 		if err := registerCloud(
+			cmd,
 			mcpServer,
 			cfg,
 			cmd.String(flagNhostAuthURL),
@@ -105,17 +110,14 @@ func action(ctx context.Context, cmd *cli.Command) error {
 		}
 	}
 
-	if cfg.Local != nil {
-		if err := registerLocal(mcpServer, cfg); err != nil {
-			return cli.Exit(fmt.Sprintf("failed to register local tools: %s", err), 1)
-		}
-	}
-
 	if len(cfg.Projects) > 0 {
 		if err := registerProjectTool(mcpServer, cfg); err != nil {
 			return cli.Exit(fmt.Sprintf("failed to register project tools: %s", err), 1)
 		}
 	}
+
+	resources := schemas.NewTool(cfg)
+	resources.Register(mcpServer)
 
 	d, err := docs.NewTool(ctx)
 	if err != nil {
@@ -128,14 +130,14 @@ func action(ctx context.Context, cmd *cli.Command) error {
 }
 
 func getConfig(cmd *cli.Command) (*config.Config, error) {
-	configPath := cmd.String(flagConfigFile)
+	configPath := config.GetConfigPath(cmd)
 	if configPath == "" {
 		return nil, cli.Exit("config file path is required", 1)
 	}
 
 	cfg, err := config.Load(configPath)
 	if err != nil {
-		fmt.Println("Please, run `mcp-nhost config` to configure the service.") //nolint:forbidigo
+		fmt.Println("Please, run `nhost mcp config` to configure the service.") //nolint:forbidigo
 		return nil, cli.Exit("failed to load config file "+err.Error(), 1)
 	}
 
@@ -143,14 +145,22 @@ func getConfig(cmd *cli.Command) (*config.Config, error) {
 }
 
 func registerCloud(
+	cmd *cli.Command,
 	mcpServer *server.MCPServer,
 	cfg *config.Config,
 	authURL string,
 	graphqlURL string,
 ) error {
+	ce := clienv.FromCLI(cmd)
+
+	creds, err := ce.Credentials()
+	if err != nil {
+		return fmt.Errorf("failed to load credentials: %w", err)
+	}
+
 	interceptor, err := auth.WithPAT(
 		authURL,
-		cfg.Cloud.PAT,
+		creds.PersonalAccessToken,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create PAT interceptor: %w", err)
@@ -167,33 +177,11 @@ func registerCloud(
 	return nil
 }
 
-func registerLocal(
-	mcpServer *server.MCPServer,
-	cfg *config.Config,
-) error {
-	interceptor := auth.WithAdminSecret(cfg.Local.AdminSecret)
-
-	localTool := local.NewTool(
-		*cfg.Local.GraphqlURL,
-		*cfg.Local.ConfigServerURL,
-		interceptor,
-	)
-	if err := localTool.Register(mcpServer); err != nil {
-		return fmt.Errorf("failed to register tools: %w", err)
-	}
-
-	return nil
-}
-
 func registerProjectTool(
 	mcpServer *server.MCPServer,
 	cfg *config.Config,
 ) error {
-	projectTool, err := project.NewTool(cfg.Projects)
-	if err != nil {
-		return fmt.Errorf("failed to initialize tool: %w", err)
-	}
-
+	projectTool := project.NewTool(cfg)
 	if err := projectTool.Register(mcpServer); err != nil {
 		return fmt.Errorf("failed to register tool: %w", err)
 	}

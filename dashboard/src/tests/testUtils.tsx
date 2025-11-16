@@ -35,6 +35,7 @@ import userEvent, {
   type Options,
   type UserEvent,
 } from '@testing-library/user-event';
+import { HttpResponse } from 'msw';
 import { RouterContext } from 'next/dist/shared/lib/router-context.shared-runtime';
 import type { PropsWithChildren, ReactElement } from 'react';
 import { Toaster } from 'react-hot-toast';
@@ -107,16 +108,16 @@ function Providers({ children }: PropsWithChildren<{}>) {
         <QueryClientProvider client={queryClient}>
           <CacheProvider value={emotionCache}>
             <NhostProvider nhost={nhost}>
-              <AuthProvider>
-                <ApolloProvider client={mockClient}>
+              <ApolloProvider client={mockClient}>
+                <AuthProvider>
                   <UIProvider>
                     <Toaster position="bottom-center" />
                     <ThemeProvider theme={theme}>
                       <DialogProvider>{children}</DialogProvider>
                     </ThemeProvider>
                   </UIProvider>
-                </ApolloProvider>
-              </AuthProvider>
+                </AuthProvider>
+              </ApolloProvider>
             </NhostProvider>
           </CacheProvider>
         </QueryClientProvider>
@@ -154,9 +155,9 @@ const graphqlRequestHandlerFactory = (
   type: 'mutation' | 'query',
   responsePromise: any,
 ) =>
-  nhostGraphQLLink[type](operationName, async (_req, res, ctx) => {
+  nhostGraphQLLink[type](operationName, async () => {
     const data = await responsePromise;
-    return res(ctx.data(data));
+    return HttpResponse.json({ data });
   });
 /* Helper function to pause responses to be able to test loading states */
 export const createGraphqlMockResolver = (
@@ -257,6 +258,33 @@ export class TestUserEvent {
       });
     });
   }
+}
+let store: any;
+
+export function setInitialStore(initialState: any) {
+  store = initialState;
+}
+
+export function localStorageMock(initialStore: any = {}) {
+  store = initialStore;
+  return {
+    getItem: vi.fn((key) => store[key] || null),
+    setItem: vi.fn((key, value) => {
+      store[key] = value.toString();
+    }),
+    removeItem: vi.fn((key) => {
+      delete store[key];
+    }),
+    clear: vi.fn(() => {
+      store = {};
+    }),
+    get length() {
+      return Object.keys(store).length;
+    },
+    key(index: number) {
+      return Object.keys(store)[index] ?? null;
+    },
+  };
 }
 
 export * from '@testing-library/react';

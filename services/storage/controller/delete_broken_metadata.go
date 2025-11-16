@@ -2,9 +2,10 @@ package controller
 
 import (
 	"context"
+	"log/slog"
 
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/storage/api"
-	"github.com/nhost/nhost/services/storage/middleware"
 )
 
 func (ctrl *Controller) deleteBrokenMetadata(
@@ -28,11 +29,14 @@ func (ctrl *Controller) DeleteBrokenMetadata( //nolint:ireturn
 	ctx context.Context,
 	_ api.DeleteBrokenMetadataRequestObject,
 ) (api.DeleteBrokenMetadataResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
 
 	files, apiErr := ctrl.deleteBrokenMetadata(ctx)
 	if apiErr != nil {
-		logger.WithError(apiErr).Error("failed to delete broken metadata")
+		logger.ErrorContext(
+			ctx, "failed to delete broken metadata", slog.String("error", apiErr.Error()),
+		)
+
 		return apiErr, nil
 	}
 

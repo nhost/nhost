@@ -7,6 +7,8 @@ linters:
   settings:
     funlen:
       lines: 65
+    wsl_v5:
+      allow-whole-block: true
   disable:
     - canonicalheader
     - depguard
@@ -30,6 +32,7 @@ linters:
       - linters:
           - funlen
           - ireturn
+          - goconst
         path: _test\.go
       - linters:
           - lll

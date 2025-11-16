@@ -12,8 +12,7 @@ import (
 )
 
 const (
-	flagConfigFile = "config-file"
-	flagConfirm    = "confirm"
+	flagConfirm = "confirm"
 )
 
 func Command() *cli.Command {
@@ -21,12 +20,6 @@ func Command() *cli.Command {
 		Name:  "config",
 		Usage: "Generate and save configuration file",
 		Flags: []cli.Flag{
-			&cli.StringFlag{ //nolint:exhaustruct
-				Name:    flagConfigFile,
-				Usage:   "Configuration file path",
-				Value:   config.GetConfigPath(),
-				Sources: cli.EnvVars("CONFIG_FILE"),
-			},
 			&cli.BoolFlag{ //nolint:exhaustruct
 				Name:    flagConfirm,
 				Usage:   "Skip confirmation prompt",
@@ -36,16 +29,9 @@ func Command() *cli.Command {
 		},
 		Commands: []*cli.Command{
 			{
-				Name:  "dump",
-				Usage: "Dump the configuration to stdout for verification",
-				Flags: []cli.Flag{
-					&cli.StringFlag{ //nolint:exhaustruct
-						Name:    flagConfigFile,
-						Usage:   "Path to the config file",
-						Value:   config.GetConfigPath(),
-						Sources: cli.EnvVars("CONFIG_FILE"),
-					},
-				},
+				Name:   "dump",
+				Usage:  "Dump the configuration to stdout for verification",
+				Flags:  []cli.Flag{},
 				Action: actionDump,
 			},
 		},
@@ -70,7 +56,7 @@ func action(_ context.Context, cmd *cli.Command) error {
 	fmt.Println(string(tomlData))
 	fmt.Println()
 
-	filePath := cmd.String(flagConfigFile)
+	filePath := config.GetConfigPath(cmd)
 	fmt.Printf("Save configuration to %s?\n", filePath)
 	fmt.Print("Proceed? (y/N): ")
 

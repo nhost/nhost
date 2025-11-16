@@ -102,11 +102,11 @@ test('should create a table with nullable columns', async ({
     page.getByRole('link', { name: tableName, exact: true }),
   ).toBeVisible();
   await page
-    .locator(`li:has-text("${tableName}") #table-management-menu button`)
+    .locator(`li:has-text("${tableName}") #table-management-menu-${tableName}`)
     .click();
   await page.getByText('Edit Table').click();
-  expect(page.locator('h2:has-text("Edit Table")')).toBeVisible();
-  expect(page.locator('div[data-testid="id"]')).toBeVisible();
+  await expect(page.locator('h2:has-text("Edit Table")')).toBeVisible();
+  await expect(page.locator('div[data-testid="id"]')).toBeVisible();
 });
 
 test('should create a table with an identity column', async ({
@@ -143,16 +143,16 @@ test('should create a table with an identity column', async ({
     page.getByRole('link', { name: tableName, exact: true }),
   ).toBeVisible();
   await page
-    .locator(`li:has-text("${tableName}") #table-management-menu button`)
+    .locator(`li:has-text("${tableName}") #table-management-menu-${tableName}`)
     .click();
   await page.getByText('Edit Table').click();
-  expect(page.locator('h2:has-text("Edit Table")')).toBeVisible();
-  expect(
+  await expect(page.locator('h2:has-text("Edit Table")')).toBeVisible();
+  await expect(
     page.locator('button#identityColumnIndex :has-text("identity_column")'),
   ).toBeVisible();
-  expect(page.locator('[id="columns.3.defaultValue"]')).toBeDisabled();
-  expect(page.locator('[name="columns.3.isNullable"]')).toBeDisabled();
-  expect(page.locator('[name="columns.3.isUnique"]')).toBeDisabled();
+  await expect(page.locator('[id="columns.3.defaultValue"]')).toBeDisabled();
+  await expect(page.locator('[name="columns.3.isNullable"]')).toBeDisabled();
+  await expect(page.locator('[name="columns.3.isUnique"]')).toBeDisabled();
 });
 
 test('should create table with foreign key constraint', async ({
@@ -234,6 +234,46 @@ test('should create table with foreign key constraint', async ({
   ).toBeVisible();
 });
 
+test('should be able to create a table with a composite key', async ({
+  authenticatedNhostPage: page,
+}) => {
+  await page.getByRole('button', { name: /new table/i }).click();
+  await expect(page.getByText(/create a new table/i)).toBeVisible();
+
+  const tableName = snakeCase(faker.lorem.words(3));
+
+  await prepareTable({
+    page,
+    name: tableName,
+    primaryKeys: ['id', 'second_id'],
+    columns: [
+      { name: 'id', type: 'uuid', defaultValue: 'gen_random_uuid()' },
+      { name: 'second_id', type: 'uuid', defaultValue: 'gen_random_uuid()' },
+      { name: 'name', type: 'text' },
+    ],
+  });
+
+  await expect(page.locator('div[data-testid="id"]')).toBeVisible();
+  await expect(page.locator('div[data-testid="second_id"]')).toBeVisible();
+
+  await page.getByRole('button', { name: /create/i }).click();
+
+  await page.waitForURL(
+    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/${tableName}`,
+  );
+
+  await expect(
+    page.getByRole('link', { name: tableName, exact: true }),
+  ).toBeVisible();
+
+  await page
+    .locator(`li:has-text("${tableName}") #table-management-menu-${tableName}`)
+    .click();
+  await page.getByText('Edit Table').click();
+  await expect(page.locator('div[data-testid="id"]')).toBeVisible();
+  await expect(page.locator('div[data-testid="second_id"]')).toBeVisible();
+});
+
 test('should not be able to create a table with a name that already exists', async ({
   authenticatedNhostPage: page,
 }) => {
@@ -279,41 +319,4 @@ test('should not be able to create a table with a name that already exists', asy
   await expect(
     page.getByText(/error: a table with this name already exists/i),
   ).toBeVisible();
-});
-
-test('should be able to create a table with a composite key', async ({
-  authenticatedNhostPage: page,
-}) => {
-  await page.getByRole('button', { name: /new table/i }).click();
-  await expect(page.getByText(/create a new table/i)).toBeVisible();
-
-  const tableName = snakeCase(faker.lorem.words(3));
-
-  await prepareTable({
-    page,
-    name: tableName,
-    primaryKeys: ['id', 'second_id'],
-    columns: [
-      { name: 'id', type: 'uuid', defaultValue: 'gen_random_uuid()' },
-      { name: 'second_id', type: 'uuid', defaultValue: 'gen_random_uuid()' },
-      { name: 'name', type: 'text' },
-    ],
-  });
-
-  await page.getByRole('button', { name: /create/i }).click();
-
-  await page.waitForURL(
-    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/${tableName}`,
-  );
-
-  await expect(
-    page.getByRole('link', { name: tableName, exact: true }),
-  ).toBeVisible();
-
-  await page
-    .locator(`li:has-text("${tableName}") #table-management-menu button`)
-    .click();
-  await page.getByText('Edit Table').click();
-  expect(page.locator('div[data-testid="id"]')).toBeVisible();
-  expect(page.locator('div[data-testid="second_id"]')).toBeVisible();
 });

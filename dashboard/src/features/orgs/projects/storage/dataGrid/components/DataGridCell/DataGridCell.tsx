@@ -1,18 +1,22 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import type { BoxProps } from '@/components/ui/v2/Box';
-import { Box } from '@/components/ui/v2/Box';
-import { Tooltip, useTooltip } from '@/components/ui/v2/Tooltip';
+import { useTooltip } from '@/components/ui/v2/Tooltip';
+import { Button } from '@/components/ui/v3/button';
 import type {
   ColumnType,
   DataBrowserGridCell,
   DataBrowserGridCellProps,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { cn, isNotEmptyValue } from '@/lib/utils';
+import { copy } from '@/utils/copy';
 import { triggerToast } from '@/utils/toast';
+import { Copy } from 'lucide-react';
 import type {
+  CSSProperties,
   FocusEvent,
   JSXElementConstructor,
   KeyboardEvent,
   MouseEvent,
+  PropsWithChildren,
   ReactElement,
   ReactNode,
   ReactPortal,
@@ -24,9 +28,14 @@ import {
   useEffect,
   useState,
 } from 'react';
-import { twMerge } from 'tailwind-merge';
 import DataGridCellProvider from './DataGridCellProvider';
 import useDataGridCell from './useDataGridCell';
+
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 
 export interface CommonDataGridCellProps<TData extends object, TValue = any>
   extends DataBrowserGridCellProps<TData, TValue> {
@@ -54,7 +63,7 @@ export interface CommonDataGridCellProps<TData extends object, TValue = any>
   onTemporaryValueChange?: (value: TValue) => void;
 }
 
-export interface DataGridCellProps<TData extends object> extends BoxProps {
+export interface DataGridCellProps<TData extends object> {
   /**
    * Current cell's props.
    */
@@ -67,6 +76,9 @@ export interface DataGridCellProps<TData extends object> extends BoxProps {
    * Determines the column's type.
    */
   columnType?: ColumnType;
+  className?: string;
+  id?: string;
+  style?: CSSProperties;
 }
 
 function DataGridCellContent<TData extends object = {}>({
@@ -79,7 +91,7 @@ function DataGridCellContent<TData extends object = {}>({
     row,
   },
   ...props
-}: DataGridCellProps<TData>) {
+}: PropsWithChildren<DataGridCellProps<TData>>) {
   const { openAlertDialog } = useDialog();
 
   const {
@@ -194,6 +206,8 @@ function DataGridCellContent<TData extends object = {}>({
         },
       });
 
+      focusCell();
+      cancelEditCell();
       // Syncing optimistic value with server-side value
       setTemporaryValue(data.original[id.toString()]);
       setOptimisticValue(data.original[id.toString()]);
@@ -203,17 +217,31 @@ function DataGridCellContent<TData extends object = {}>({
       // Resetting values
       setTemporaryValue(latestOptimisticValue);
       setOptimisticValue(latestOptimisticValue);
+      activateInput();
     }
   }
 
   async function handleBlur(event: FocusEvent<HTMLDivElement>) {
     // We are deselecting cell only if focus target is not a descendant of it.
-    if (!isEditable || event.currentTarget.contains(event.relatedTarget)) {
+    const { id: currentRowId } = row.original as { id: string };
+    const isTargetDropdownMenu =
+      event.relatedTarget?.id === currentRowId ||
+      event.relatedTarget?.parentElement?.id === currentRowId;
+
+    if (
+      !isEditable ||
+      event.currentTarget.contains(event.relatedTarget) ||
+      (isEditing && type === 'boolean' && isTargetDropdownMenu)
+    ) {
       return;
     }
 
-    await handleSave(temporaryValue);
-    closeTooltip();
+    if (type !== 'boolean') {
+      await handleSave(temporaryValue);
+    }
+    if (tooltipOpen) {
+      closeTooltip();
+    }
     deselectCell();
   }
 
@@ -227,8 +255,7 @@ function DataGridCellContent<TData extends object = {}>({
     if (!isNullable) {
       openTooltip(
         <span>
-          <strong>{id}</strong>
-          is non-nullable.
+          <strong>{id}</strong> is non-nullable.
         </span>,
       );
 
@@ -308,14 +335,14 @@ function DataGridCellContent<TData extends object = {}>({
   }
 
   const content = (
-    <Box
+    <div
       ref={cellRef}
-      className={twMerge(
-        'relative grid h-full w-full cursor-default grid-flow-col items-center gap-1',
+      className={cn(
+        'relative grid w-full cursor-default grid-flow-col items-center gap-1 border-divider px-2 py-1.5 text-primary-text',
         isEditable &&
           'focus-within:outline-none focus-within:ring-0 focus:ring-0',
         isSelected && 'shadow-outline',
-        isEditing ? 'p-0.5 shadow-outline-dark' : 'px-2 py-1.5',
+        isEditing && 'shadow-outline-dark',
         className,
       )}
       onFocus={handleFocus}
@@ -324,7 +351,6 @@ function DataGridCellContent<TData extends object = {}>({
       tabIndex={isEditable ? 0 : undefined}
       onClick={handleClick}
       role="textbox"
-      sx={{ backgroundColor: 'transparent' }}
       {...props}
     >
       {Children.map(
@@ -338,30 +364,62 @@ function DataGridCellContent<TData extends object = {}>({
           if (!isValidElement(child)) {
             return null;
           }
-
-          return cloneElement(child, {
+          const { id: rowId } = row.original as { id: string };
+          const clonedChild = cloneElement(child, {
             ...child.props,
             onSave: handleSave,
             optimisticValue,
             onOptimisticValueChange: setOptimisticValue,
             temporaryValue,
             onTemporaryValueChange: setTemporaryValue,
+            rowId,
           });
+
+          return (
+            <>
+              {clonedChild}
+              {id !== 'preview-column' &&
+                type !== 'boolean' &&
+                isNotEmptyValue(optimisticValue) && (
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={(event) => {
+                      event.stopPropagation();
+
+                      const copiableValue =
+                        typeof optimisticValue === 'object'
+                          ? JSON.stringify(optimisticValue)
+                          : String(optimisticValue).replace(/\\n/gi, '\n');
+
+                      copy(copiableValue, 'Value');
+                    }}
+                    className="-ml-px h-6 w-6 border-transparent bg-transparent p-1 text-disabled opacity-0 hover:bg-transparent group-hover:opacity-100"
+                    aria-label="Copy value"
+                  >
+                    <Copy width={16} height={16} />
+                  </Button>
+                )}
+            </>
+          );
         },
       )}
-    </Box>
+    </div>
   );
-
+  // TODO: https://github.com/nhost/nhost/issues/3677
   if (isEditable) {
     return (
       <Tooltip
-        disableHoverListener
-        disableFocusListener
+        delayDuration={100}
         open={tooltipOpen}
-        title={tooltipTitle || ''}
-        TransitionProps={{ onExited: resetTooltipTitle }}
+        onOpenChange={(newState) => {
+          if (!newState) {
+            resetTooltipTitle();
+          }
+        }}
       >
-        {content}
+        <TooltipTrigger asChild>{content}</TooltipTrigger>
+        <TooltipContent>{tooltipTitle}</TooltipContent>
       </Tooltip>
     );
   }
@@ -370,7 +428,7 @@ function DataGridCellContent<TData extends object = {}>({
 }
 
 export default function DataGridCell<TData extends object>(
-  props: DataGridCellProps<TData>,
+  props: PropsWithChildren<DataGridCellProps<TData>>,
 ) {
   return (
     <DataGridCellProvider>

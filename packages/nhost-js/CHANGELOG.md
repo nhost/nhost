@@ -1,3 +1,24 @@
+## [@nhost/nhost-js@4.1.0] - 2025-11-04
+
+### 🚀 Features
+
+- *(nhost-js)* Added pushChainFunction to functions and graphql clients (#3610)
+- *(nhost-js)* Added various middlewares to work with headers and customizable createNhostClient (#3612)
+- *(auth)* Added endpoints to retrieve and refresh oauth2 providers' tokens (#3614)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Run audit and lint in dashboard (#3578)
+- *(nhost-js)* Improvements to Session guard to avoid conflict with ProviderSession (#3662)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(nhost-js)* Generate code from local API definitions (#3583)
+- *(docs)* Udpated README.md and CONTRIBUTING.md (#3587)
+- *(nhost-js)* Regenerate types (#3648)
+
 # Changelog
 
 All notable changes to this project will be documented in this file.

@@ -2,10 +2,11 @@ package controller
 
 import (
 	"context"
+	"log/slog"
 	"path"
 
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/storage/api"
-	"github.com/nhost/nhost/services/storage/middleware"
 )
 
 type ListBrokenMetadataResponse struct {
@@ -59,11 +60,14 @@ func fileListSummary(files []FileSummary) *[]api.FileSummary {
 func (ctrl *Controller) ListBrokenMetadata( //nolint:ireturn
 	ctx context.Context, _ api.ListBrokenMetadataRequestObject,
 ) (api.ListBrokenMetadataResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
 
 	files, apiErr := ctrl.listBrokenMetadata(ctx)
 	if apiErr != nil {
-		logger.WithError(apiErr).Error("failed to list broken metadata")
+		logger.ErrorContext(
+			ctx, "failed to list broken metadata", slog.String("error", apiErr.Error()),
+		)
+
 		return apiErr, nil
 	}
 

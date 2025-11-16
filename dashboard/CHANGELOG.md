@@ -1,6 +1,72 @@
+## [@nhost/dashboard@2.42.0] - 2025-11-12
+
+### 🚀 Features
+
+- *(dashboard)* Datatable design improvements (#3657)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(dashboard)* Remove v2 ui components from datatable (#3568)
+
+## [@nhost/dashboard@2.41.0] - 2025-11-04
+
+### 🚀 Features
+
+- *(auth)* Added endpoints to retrieve and refresh oauth2 providers' tokens (#3614)
+- *(dashboard)* Get github repositories from github itself (#3640)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Update SQL editor to use correct hasura migrations API URL (#3645)
+
 # Changelog
 
 All notable changes to this project will be documented in this file.
+
+## [@nhost/dashboard@2.40.0] - 2025-10-27
+
+### 🚀 Features
+
+- *(dashboard)* Allow configuring CSP header (#3627)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(dashboard)* Various improvements to support ticket page (#3630)
+
+## [@nhost/dashboard@2.39.0] - 2025-10-22
+
+### 🚀 Features
+
+- *(dashboard)* Move zendesk request to API route (#3628)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Fix flaky e2e tests (#3536)
+- *(dashboard)* Run audit and lint in dashboard (#3578)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(dashboard)* Cleanup e2e remote schemas test before run (#3581)
+
+## [@nhost/dashboard@2.38.4] - 2025-10-09
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Remove NODE_ENV from restricted env vars (#3573)
+
+## [@nhost/dashboard@2.38.3] - 2025-10-07
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Show paused banner in remote schemas/database page if project is paused (#3557)
+- *(dashboard)* Show paused banner in Run page (#3564)
+- *(dashboard)* Remote schema edit graphql customizations, default value for root field namespace is empty (#3565)
+- *(dashboard)* Improve remote schema preview search (#3558)
 
 ## [@nhost/dashboard@2.38.2] - 2025-09-30
 

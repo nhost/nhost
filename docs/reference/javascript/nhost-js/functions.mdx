@@ -207,6 +207,24 @@ For a more generic request, use the `fetch` method instead.
 
 Promise with the function response and metadata
 
+#### pushChainFunction()
+
+```ts
+pushChainFunction(chainFunction: ChainFunction): void;
+```
+
+Add a middleware function to the fetch chain
+
+##### Parameters
+
+| Parameter       | Type                                       | Description                    |
+| --------------- | ------------------------------------------ | ------------------------------ |
+| `chainFunction` | [`ChainFunction`](./fetch#chainfunction) | The middleware function to add |
+
+##### Returns
+
+`void`
+
 # Functions
 
 ## createAPIClient()

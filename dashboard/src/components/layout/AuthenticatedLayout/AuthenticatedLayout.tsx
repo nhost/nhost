@@ -127,14 +127,17 @@ export default function AuthenticatedLayout({
         className="relative flex h-full flex-row overflow-hidden"
         ref={setMainNavContainer}
       >
-        {mainNavPinned && isMdOrLarger && <PinnedMainNav />}
+        {withMainNav && mainNavPinned && isMdOrLarger && <PinnedMainNav />}
 
         <div
-          className={cn('relative flex h-full w-full flex-row bg-accent', {
-            'overflow-x-auto': mainNavPinned && isMdOrLarger && withMainNav,
-          })}
+          className={cn(
+            'bg-accent-background relative flex h-full w-full flex-row',
+            {
+              'overflow-x-auto': mainNavPinned && isMdOrLarger && withMainNav,
+            },
+          )}
         >
-          {(!mainNavPinned || !isMdOrLarger) && (
+          {withMainNav && (!mainNavPinned || !isMdOrLarger) && (
             <div className="flex h-full w-6 justify-center">
               <MainNav container={mainNavContainer} />
             </div>

@@ -20,7 +20,7 @@ type hasuraErrResponse struct {
 	Code  string `json:"code"`
 }
 
-func postMetadata(baseURL, hasuraSecret string, data interface{}) error {
+func postMetadata(ctx context.Context, baseURL, hasuraSecret string, data any) error {
 	client := &http.Client{ //nolint: exhaustruct
 		Timeout: time.Second * timeout,
 	}
@@ -31,7 +31,7 @@ func postMetadata(baseURL, hasuraSecret string, data interface{}) error {
 	}
 
 	req, err := http.NewRequestWithContext(
-		context.Background(),
+		ctx,
 		http.MethodPost,
 		baseURL+"/metadata",
 		bytes.NewBuffer(b),
@@ -154,7 +154,9 @@ type DropRelationshipArgs struct {
 	Relationship string `json:"relationship"`
 }
 
-func ApplyHasuraMetadata(url, hasuraSecret, hasuraDBName string) error { //nolint: funlen
+func ApplyHasuraMetadata( //nolint: funlen
+	ctx context.Context, url, hasuraSecret, hasuraDBName string,
+) error {
 	bucketsTable := TrackTable{
 		Type: "pg_track_table",
 		Args: PgTrackTableArgs{
@@ -190,7 +192,7 @@ func ApplyHasuraMetadata(url, hasuraSecret, hasuraDBName string) error { //nolin
 		},
 	}
 
-	if err := postMetadata(url, hasuraSecret, bucketsTable); err != nil {
+	if err := postMetadata(ctx, url, hasuraSecret, bucketsTable); err != nil {
 		return fmt.Errorf("problem adding metadata for the buckets table: %w", err)
 	}
 
@@ -232,7 +234,7 @@ func ApplyHasuraMetadata(url, hasuraSecret, hasuraDBName string) error { //nolin
 		},
 	}
 
-	if err := postMetadata(url, hasuraSecret, filesTable); err != nil {
+	if err := postMetadata(ctx, url, hasuraSecret, filesTable); err != nil {
 		return fmt.Errorf("problem adding metadata for the files table: %w", err)
 	}
 
@@ -270,7 +272,7 @@ func ApplyHasuraMetadata(url, hasuraSecret, hasuraDBName string) error { //nolin
 		},
 	}
 
-	if err := postMetadata(url, hasuraSecret, virusTable); err != nil {
+	if err := postMetadata(ctx, url, hasuraSecret, virusTable); err != nil {
 		return fmt.Errorf("problem adding metadata for the virus table: %w", err)
 	}
 
@@ -289,7 +291,7 @@ func ApplyHasuraMetadata(url, hasuraSecret, hasuraDBName string) error { //nolin
 		},
 	}
 
-	if err := postMetadata(url, hasuraSecret, objRelationshipBuckets); err != nil {
+	if err := postMetadata(ctx, url, hasuraSecret, objRelationshipBuckets); err != nil {
 		return fmt.Errorf("problem creaiing object relationship for buckets: %w", err)
 	}
 
@@ -314,7 +316,7 @@ func ApplyHasuraMetadata(url, hasuraSecret, hasuraDBName string) error { //nolin
 		},
 	}
 
-	if err := postMetadata(url, hasuraSecret, arrRelationship); err != nil {
+	if err := postMetadata(ctx, url, hasuraSecret, arrRelationship); err != nil {
 		return fmt.Errorf("problem creating array relationships: %w", err)
 	}
 
@@ -333,7 +335,7 @@ func ApplyHasuraMetadata(url, hasuraSecret, hasuraDBName string) error { //nolin
 		},
 	}
 
-	if err := postMetadata(url, hasuraSecret, objRelationshipVirusFile); err != nil {
+	if err := postMetadata(ctx, url, hasuraSecret, objRelationshipVirusFile); err != nil {
 		return fmt.Errorf("problem creaiing object relationship for buckets: %w", err)
 	}
 

@@ -1,13 +1,12 @@
-import { Box } from '@/components/ui/v2/Box';
 import type { DataBrowserGridColumn } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import type { DataGridProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid/DataGrid';
 import { DataGridCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridCell';
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
-import { isNotEmptyValue } from '@/lib/utils';
+import { useDataTableDesignContext } from '@/features/orgs/projects/storage/dataGrid/providers/DataTableDesignProvider';
+import { cn, isNotEmptyValue } from '@/lib/utils';
 import type { DetailedHTMLProps, HTMLProps, KeyboardEvent } from 'react';
 import { useRef } from 'react';
 import type { Row } from 'react-table';
-import { twMerge } from 'tailwind-merge';
 
 export interface DataGridBodyProps<T extends object>
   extends Omit<
@@ -15,10 +14,7 @@ export interface DataGridBodyProps<T extends object>
       'children'
     >,
     Pick<DataGridProps<T>, 'emptyStateMessage' | 'loading'> {
-  /**
-   * Determines whether column insertion is allowed.
-   */
-  allowInsertColumn?: boolean;
+  isFileDataGrid?: boolean;
 }
 
 // TODO: Get rid of Data Browser related code from here. This component should
@@ -26,11 +22,12 @@ export interface DataGridBodyProps<T extends object>
 export default function DataGridBody<T extends object>({
   emptyStateMessage = 'No data is available',
   loading,
-  allowInsertColumn,
+  isFileDataGrid,
   ...props
 }: DataGridBodyProps<T>) {
   const { getTableBodyProps, totalColumnsWidth, rows, prepareRow } =
     useDataGridConfig<T>();
+  const context = useDataTableDesignContext();
 
   const bodyRef = useRef<HTMLDivElement | null>(null);
 
@@ -137,35 +134,18 @@ export default function DataGridBody<T extends object>({
     }
   }
 
-  const getBackgroundCellColor = (
-    row: Row<T>,
-    column: DataBrowserGridColumn<T>,
-  ) => {
-    // Grey out files not uploaded
-    if (!row.values.isUploaded) {
-      return 'grey.200';
-    }
-
-    if (column.isDisabled) {
-      return 'grey.100';
-    }
-
-    return 'background.paper';
-  };
-
   return (
     <div {...getTableBodyProps()} ref={bodyRef} {...props}>
       {rows.length === 0 && !loading && (
         <div className="flex flex-nowrap">
-          <Box
-            className="inline-flex h-12 items-center border-b-1 border-r-1 px-2 py-1.5 text-xs"
-            sx={{ color: 'text.secondary' }}
+          <div
+            className="box inline-flex h-12 items-center border-b-1 border-r-1 px-2 py-1.5 text-xs dark:!text-[#a2b3be]"
             style={{
               width: totalColumnsWidth,
             }}
           >
             {emptyStateMessage}
-          </Box>
+          </div>
         </div>
       )}
 
@@ -174,6 +154,7 @@ export default function DataGridBody<T extends object>({
 
         const rowProps = row.getRowProps({
           style: {
+            height: context.rowDensity === 'comfortable' ? '3rem' : '2rem',
             width: totalColumnsWidth,
           },
         });
@@ -182,7 +163,12 @@ export default function DataGridBody<T extends object>({
           <div
             {...rowProps}
             id={row.id}
-            className="flex scroll-mt-10"
+            className={cn(
+              'flex scroll-mt-10 border-b-1 border-b-transparent last:border-b-data-table-border-color',
+              isFileDataGrid && !row.values.isUploaded
+                ? 'bg-disabled'
+                : 'odd:bg-data-cell-bg-odd even:bg-data-cell-bg hover:bg-data-cell-bg-hover',
+            )}
             role="row"
             onKeyDown={(event) => handleKeyDown(event, row)}
             tabIndex={-1}
@@ -198,23 +184,16 @@ export default function DataGridBody<T extends object>({
 
               return (
                 <DataGridCell
-                  {...cell.getCellProps({
-                    style: {
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                    },
-                  })}
+                  {...cell.getCellProps()}
                   cell={cell}
-                  sx={{
-                    backgroundColor: getBackgroundCellColor(row, column),
-                    color: isCellDisabled ? 'text.secondary' : 'text.primary',
-                  }}
-                  className={twMerge(
-                    'h-12 font-display text-xs motion-safe:transition-colors',
-                    'border-b-1 border-r-1',
+                  className={cn(
+                    'group !inline-flex items-center bg-inherit font-display text-xs',
+                    'border-b-0 border-r-1',
                     'scroll-ml-8 scroll-mt-[57px]',
+                    'border-r-transparent last:border-r-data-table-border-color',
                     column.id === 'selection-column' &&
                       'sticky left-0 z-20 justify-center px-0',
+                    isCellDisabled ? 'text-secondary' : 'text-primary-text',
                   )}
                   isEditable={!column.isDisabled && column.isEditable}
                   id={cellIndex.toString()}

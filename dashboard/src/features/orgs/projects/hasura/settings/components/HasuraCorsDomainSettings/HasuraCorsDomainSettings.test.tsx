@@ -1,15 +1,15 @@
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import { render, screen, waitFor } from '@/tests/testUtils';
-import { graphql } from 'msw';
+import { HttpResponse, graphql } from 'msw';
 import { setupServer } from 'msw/node';
 import { beforeAll, expect, test, vi } from 'vitest';
 import HasuraCorsDomainSettings from './HasuraCorsDomainSettings';
 
 const server = setupServer(
   tokenQuery,
-  graphql.query('GetHasuraSettings', (_req, res, ctx) =>
-    res(
-      ctx.data({
+  graphql.query('GetHasuraSettings', () =>
+    HttpResponse.json({
+      data: {
         config: {
           id: 'HasuraSettings',
           __typename: 'HasuraSettings',
@@ -29,8 +29,8 @@ const server = setupServer(
             resources: [],
           },
         },
-      }),
-    ),
+      },
+    }),
   ),
 );
 
@@ -62,9 +62,9 @@ describe('HasuraCorsDomainSettings', () => {
 
   test('should enable switch by default when CORS domain is set to one or more domains', async () => {
     server.use(
-      graphql.query('GetHasuraSettings', (_req, res, ctx) =>
-        res(
-          ctx.data({
+      graphql.query('GetHasuraSettings', () =>
+        HttpResponse.json({
+          data: {
             config: {
               id: 'HasuraSettings',
               __typename: 'HasuraSettings',
@@ -84,8 +84,8 @@ describe('HasuraCorsDomainSettings', () => {
                 resources: [],
               },
             },
-          }),
-        ),
+          },
+        }),
       ),
     );
 

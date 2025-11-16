@@ -1,8 +1,7 @@
 ---
 name: "examples/tutorials: check and build"
 on:
-  # pull_request_target:
-  pull_request:
+  pull_request_target:
     paths:
       - '.github/workflows/wf_check.yaml'
       - '.github/workflows/examples_tutorials_checks.yaml'
@@ -64,7 +63,7 @@ jobs:
     with:
       NAME: tutorials
       PATH: examples/tutorials
-      GIT_REF: ${{ github.sha }}
+      GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
 
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
@@ -78,7 +77,7 @@ jobs:
     with:
       NAME: tutorials
       PATH: examples/tutorials
-      GIT_REF: ${{ github.sha }}
+      GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
       VERSION: 0.0.0-dev # we use a fixed version here to avoid unnecessary rebuilds
       DOCKER: false
       OS_MATRIX: '["blacksmith-2vcpu-ubuntu-2404"]'

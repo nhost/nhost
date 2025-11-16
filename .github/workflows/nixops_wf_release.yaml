@@ -1,0 +1,35 @@
+---
+name: "nixops: release"
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'flake.lock'
+      - 'nixops/project.nix'
+
+jobs:
+  build_artifacts:
+    uses: ./.github/workflows/wf_build_artifacts.yaml
+    with:
+      NAME: nixops
+      PATH: nixops
+      GIT_REF: ${{ inputs.GIT_REF }}
+      VERSION: latest
+      DOCKER: true
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
+      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+
+  push-docker:
+    uses: ./.github/workflows/wf_docker_push_image.yaml
+    needs:
+      - build_artifacts
+    with:
+      NAME: nixops
+      PATH: nixops
+      VERSION: latest
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}

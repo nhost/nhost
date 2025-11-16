@@ -64,6 +64,10 @@ func FileMetadataMatcher(v api.FileMetadata) gomock.Matcher {
 func assert(t *testing.T, got, wanted interface{}, opts ...cmp.Option) {
 	t.Helper()
 
+	opts = append(opts, cmpopts.IgnoreUnexported(
+		api.Time{},
+	))
+
 	if !cmp.Equal(got, wanted, opts...) {
 		t.Error(cmp.Diff(got, wanted, opts...))
 	}

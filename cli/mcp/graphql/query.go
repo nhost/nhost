@@ -24,6 +24,10 @@ func checkAllowedOperation(
 	selectionSet ast.SelectionSet,
 	allowed []string,
 ) error {
+	if slices.Contains(allowed, "*") {
+		return nil
+	}
+
 	for _, v := range selectionSet {
 		if v, ok := v.(*ast.Field); ok {
 			if len(v.SelectionSet) > 0 && !slices.Contains(allowed, v.Name) {
@@ -45,8 +49,8 @@ func CheckAllowedGraphqlQuery( //nolint:cyclop
 	queryString string,
 ) error {
 	if allowedQueries == nil && allowedMutations == nil {
-		// nil means unrestricted
-		return nil
+		// nil means nothing allowed
+		return fmt.Errorf("%w: %s", ErrQueryNotAllowed, queryString)
 	}
 
 	if len(allowedQueries) == 0 && len(allowedMutations) == 0 {

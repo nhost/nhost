@@ -31,6 +31,7 @@ interface DialogContentProps
   extends React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> {
   disableOutsideClick?: boolean;
   hideCloseButton?: boolean;
+  closeButtonClassName?: string;
 }
 
 const DialogContent = React.forwardRef<
@@ -38,7 +39,14 @@ const DialogContent = React.forwardRef<
   DialogContentProps
 >(
   (
-    { className, children, disableOutsideClick, hideCloseButton, ...props },
+    {
+      className,
+      children,
+      disableOutsideClick,
+      hideCloseButton,
+      closeButtonClassName,
+      ...props
+    },
     ref,
   ) => (
     <DialogPortal>
@@ -58,7 +66,12 @@ const DialogContent = React.forwardRef<
         >
           {children}
           {!hideCloseButton && (
-            <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+            <DialogPrimitive.Close
+              className={cn(
+                'absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent-background data-[state=open]:text-muted-foreground',
+                closeButtonClassName,
+              )}
+            >
               <X className="h-4 w-4" />
               <span className="sr-only">Close</span>
             </DialogPrimitive.Close>

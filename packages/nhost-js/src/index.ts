@@ -17,17 +17,32 @@
  *
  * Create a client instance to interact with Nhost services:
  *
- * {@includeCode ./__tests__/docstrings.test.ts:11-115}
+ * {@includeCode ./__tests__/docstrings.test.ts:15-119}
+ *
+ * ### Creating an admin client
+ *
+ * You can also create an admin client if needed. This client will have admin access to the database
+ * and will bypass permissions. Additionally, it can impersonate users and set any role or session
+ * variable.
+ *
+ * IMPORTANT!!! Keep your admin secret safe and never expose it in client-side code.
+ *
+ * {@includeCode ./__tests__/docstrings.test.ts:142-201}
  *
  * @packageDocumentation
  */
 
 export {
+  type ClientConfigurationFn,
   createClient,
+  createNhostClient,
   createServerClient,
   type NhostClient,
   type NhostClientOptions,
   type NhostServerClientOptions,
+  withAdminSession,
+  withClientSideSessionMiddleware,
+  withServerSideSessionMiddleware,
 } from "./nhost";
 
 /**

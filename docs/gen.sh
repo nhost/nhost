@@ -4,8 +4,9 @@ set -euo pipefail
 
 function build_openapi() {
     echo "⚒️⚒️⚒️ Building OpenAPI reference..."
-    cp ../packages/nhost-js/api/auth.yaml reference/
-    cp ../packages/nhost-js/api/storage.yaml reference/
+    cp ../services/auth/docs/openapi.yaml reference/auth.yaml
+    cp ../services/storage/controller/openapi.yaml reference/storage.yaml
+
 
     echo "⚒️⚒️⚒️ Generating documentation from OpenAPI specs for Auth service..."
     mintlify-openapi openapi \
@@ -61,6 +62,7 @@ function build_typedoc() {
 function build_cli_docs() {
     echo "⚒️⚒️⚒️ Building CLI documentation..."
     cli docs > reference/cli/commands.mdx
+    cat reference/cli/commands.mdx
 }
 
 build_openapi

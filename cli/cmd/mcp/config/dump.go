@@ -10,14 +10,14 @@ import (
 )
 
 func actionDump(_ context.Context, cmd *cli.Command) error {
-	configPath := cmd.String(flagConfigFile)
+	configPath := config.GetConfigPath(cmd)
 	if configPath == "" {
 		return cli.Exit("config file path is required", 1)
 	}
 
 	cfg, err := config.Load(configPath)
 	if err != nil {
-		fmt.Println("Please, run `mcp-nhost config` to configure the service.") //nolint:forbidigo
+		fmt.Println("Please, run `nhost mcp config` to configure the service.") //nolint:forbidigo
 		return cli.Exit("failed to load config file "+err.Error(), 1)
 	}
 

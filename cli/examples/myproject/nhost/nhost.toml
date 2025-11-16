@@ -3,6 +3,10 @@
 name = 'GREET'
 value = 'Sayonara'
 
+[[global.environment]]
+name = 'NODE_ENV'
+value = 'production'
+
 [hasura]
 version = 'v2.46.0-ce'
 adminSecret = '{{ secrets.HASURA_GRAPHQL_ADMIN_SECRET }}'
@@ -63,11 +67,6 @@ default = "00000000-0000-0000-0000-000000000000"
 expiresIn = 2592000
 
 [auth.method]
-[auth.method.anonymous]
-enabled = false
-
-[auth.method.emailPasswordless]
-enabled = false
 
 [auth.method.emailPassword]
 hibpEnabled = false
@@ -139,45 +138,10 @@ version = '14.18-20250728-1'
 [postgres.resources.storage]
 capacity = 1
 
-[postgres.settings]
-maxConnections = 100
-sharedBuffers = '256MB'
-effectiveCacheSize = '768MB'
-maintenanceWorkMem = '64MB'
-checkpointCompletionTarget = 0.9
-walBuffers = '-1'
-defaultStatisticsTarget = 100
-randomPageCost = 1.1
-effectiveIOConcurrency = 200
-workMem = '1310kB'
-hugePages = 'off'
-minWalSize = '80MB'
-maxWalSize = '1GB'
-maxWorkerProcesses = 8
-maxParallelWorkersPerGather = 2
-maxParallelWorkers = 8
-maxParallelMaintenanceWorkers = 2
-
 [provider]
 
 [storage]
 version = '0.7.1'
-
-[ai]
-version = '0.8.0'
-webhookSecret = '{{ secrets.GRAPHITE_WEBHOOK_SECRET }}'
-
-[ai.resources]
-[ai.resources.compute]
-cpu = 125
-memory = 256
-
-[ai.openai]
-organization = ''
-apiKey = '{{ secrets.OPENAI_API_KEY }}'
-
-[ai.autoEmbeddings]
-synchPeriodMinutes = 5
 
 [observability]
 [observability.grafana]

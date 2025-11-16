@@ -1,7 +1,7 @@
 ---
 name: "docs: check and build"
 on:
-  pull_request:
+  pull_request_target:
     paths:
       - '.github/workflows/wf_check.yaml'
       - '.github/workflows/dashboard_checks.yaml'
@@ -27,6 +27,10 @@ on:
 
       # nhost-js
       - packages/nhost-js/**
+
+      # apis
+      - 'services/auth/docs/openapi.yaml'
+      - 'services/storage/controller/openapi.yaml'
 
       # cli
       - cli/**
@@ -58,7 +62,7 @@ jobs:
     with:
       NAME: docs
       PATH: docs
-      GIT_REF: ${{ github.sha }}
+      GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}

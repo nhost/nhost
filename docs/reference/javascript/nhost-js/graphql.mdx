@@ -289,6 +289,24 @@ URL for the GraphQL endpoint.
 
 ### Methods
 
+#### pushChainFunction()
+
+```ts
+pushChainFunction(chainFunction: ChainFunction): void;
+```
+
+Add a middleware function to the fetch chain
+
+##### Parameters
+
+| Parameter       | Type                                       | Description                    |
+| --------------- | ------------------------------------------ | ------------------------------ |
+| `chainFunction` | [`ChainFunction`](./fetch#chainfunction) | The middleware function to add |
+
+##### Returns
+
+`void`
+
 #### request()
 
 ##### Call Signature

@@ -49,9 +49,9 @@ export default function GraphQLCustomizations() {
           size="small"
           startIcon={<PlusIcon />}
           onClick={() => setIsOpen(true)}
-          className="mt-2"
+          className="mt-2 px-2"
         >
-          Add GQL Customization
+          Add GraphQL Customization
         </Button>
       </Box>
     );
@@ -95,7 +95,10 @@ export default function GraphQLCustomizations() {
             </Tooltip>
           </Box>
           <Input
-            {...register('definition.customization.root_fields_namespace')}
+            {...register('definition.customization.root_fields_namespace', {
+              setValueAs: (v) =>
+                typeof v === 'string' && v.trim() === '' ? undefined : v,
+            })}
             id="definition.customization.root_fields_namespace"
             name="definition.customization.root_fields_namespace"
             placeholder="namespace_"

@@ -1,22 +1,22 @@
 package fastly
 
 /*
-To create a key for your service suitable for hasura-storage:
+To create a key for your service suitable for storage:
 
 curl -D - -X POST --location "https://api.fastly.com/tokens" \
   -H "Content-Type: application/json" \
   -H "Accept: application/json" \
-  -d '{"name":"hasura-storage-purge-key","username":"me@example.com",\
+  -d '{"name":"storage-purge-key","username":"me@example.com",\
         "password":"superDuperSecret","scope":"purge_select","services":["SERVICE_ID"]}'
 */
 
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -66,7 +66,7 @@ func (fst *fastly) purge(ctx context.Context, key string) error {
 	return nil
 }
 
-func New(serviceID string, apiKey string, logger *logrus.Logger) gin.HandlerFunc {
+func New(serviceID string, apiKey string, logger *slog.Logger) gin.HandlerFunc {
 	fst := &fastly{serviceID, apiKey}
 
 	return func(ctx *gin.Context) {
@@ -87,10 +87,16 @@ func New(serviceID string, apiKey string, logger *logrus.Logger) gin.HandlerFunc
 		}
 
 		if id := ctx.GetString(fileChangedContextKey); id != "" {
-			logger.WithField("key", id).Debug("purging file from cdn")
+			logger.InfoContext(
+				ctx.Request.Context(), "purging file from cdn", slog.String("key", id),
+			)
 
 			if err := fst.purge(ctx, id); err != nil {
-				logger.WithField("key", id).WithError(err).Error("failed to purge file from cdn")
+				logger.ErrorContext(
+					ctx.Request.Context(),
+					"failed to purge file from cdn",
+					slog.String("key", id), slog.String("error", err.Error()),
+				)
 			}
 		}
 	}

@@ -4,12 +4,12 @@ package controller
 import (
 	"context"
 	"io"
+	"log/slog"
 	"net/http"
 	"time"
 
 	"github.com/nhost/nhost/services/storage/api"
 	"github.com/nhost/nhost/services/storage/image"
-	"github.com/sirupsen/logrus"
 )
 
 type FileSummary struct {
@@ -91,7 +91,7 @@ type Controller struct {
 	contentStorage    ContentStorage
 	imageTransformer  *image.Transformer
 	av                Antivirus
-	logger            *logrus.Logger
+	logger            *slog.Logger
 }
 
 func New(
@@ -102,7 +102,7 @@ func New(
 	contentStorage ContentStorage,
 	imageTransformer *image.Transformer,
 	av Antivirus,
-	logger *logrus.Logger,
+	logger *slog.Logger,
 ) *Controller {
 	return &Controller{
 		publicURL,

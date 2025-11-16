@@ -54,6 +54,11 @@ get-version:  ## Return version
 	@echo $(VERSION)
 
 
+.PHONY: develop
+develop:  ## Start a nix develop shell
+	nix develop .\#$(NAME)
+
+
 .PHONY: _check-pre
 _check-pre:  ## Pre-checks before running nix flake check
 
@@ -103,6 +108,11 @@ build-docker-image:  ## Build docker container for native architecture
 		--print-build-logs
 	nix develop \#skopeo -c \
 		skopeo copy --insecure-policy dir:./result docker-daemon:$(NAME):$(VERSION)
+
+
+.PHONY: build-docker-image-import-bare
+build-docker-image-import-bare:
+	skopeo copy --insecure-policy dir:./result docker-daemon:$(NAME):$(VERSION)
 
 
 .PHONY: dev-env-up

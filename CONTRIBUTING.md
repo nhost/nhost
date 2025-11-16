@@ -16,6 +16,15 @@ Contributions are made to Nhost repos via Issues and Pull Requests (PRs). A few 
 - We work hard to make sure issues are handled on time, but it could take a while to investigate the root cause depending on the impact. A friendly ping in the comment thread to the submitter or a contributor can help draw attention if your issue is blocking.
 - If you've never contributed before, see [the first-timer's guide](https://github.com/firstcontributions/first-contributions) for resources and tips on getting started.
 
+### AI-Assisted Contributions
+
+We have specific policies regarding AI-assisted contributions:
+
+- **Issues**: Bug reports and feature requests that are clearly AI-generated will not be accepted and will be closed immediately. Please write your issues in your own words to ensure they are clear, specific, and contain the necessary context.
+- **Pull Requests**: Contributions with the help of AI are permitted, but you are ultimately responsible for the quality of your submission and for ensuring it follows our contributing guidelines. The PR description must be written in your own words. Additionally, please remove any superfluous code comments introduced by AI tools before submitting. PRs that clearly violate this rule will be closed without further review.
+
+In all cases, contributors must ensure their submissions are thoughtful, well-tested, and meet the project's quality standards.
+
 ### Issues
 
 Issues should be used to report problems with Nhost, request a new feature, or discuss potential changes before a PR is created.
@@ -24,28 +33,20 @@ If you find an Issue that addresses the problem you're having, please add your r
 
 ### Pull Requests
 
-Please have a look at our [developers guide](https://github.com/nhost/nhost/blob/main/DEVELOPERS.md) to start coding!
-
 PRs to our libraries are always welcome and can be a quick way to get your fix or improvement slated for the next release. In general, PRs should:
 
-- Only fix/add the functionality in question **OR** address wide-spread whitespace/style issues, not both.
-- Add unit or integration tests for fixed or changed functionality (if a test suite exists).
-- Address a single concern in the least number of changed lines as possible.
-- Include documentation in the repo or on our [docs site](https://docs.nhost.io).
-- Be accompanied by a complete Pull Request template (loaded automatically when a PR is created).
+## Monorepo Structure
 
-For changes that address core functionality or require breaking changes (e.g., a major release), it's best to open an Issue to discuss your proposal first. This is not required but can save time creating and reviewing changes.
+This repository is a monorepo that contains multiple packages and applications. The structure is as follows:
 
-In general, we follow the ["fork-and-pull" Git workflow](https://github.com/susam/gitpr)
+- `cli` - The Nhost CLI
+- `dashboard` - The Nhost Dashboard
+- `docs` - Documentation
+- `examples` - Various example projects
+- `packages/nhost-js` - The Nhost JavaScript/TypeScript SDK
+- `services/auth` - Nhost Authentication service
+- `services/storage` - Nhost Storage service
+- `tools/codegen` - Internal code generation tool to build the SDK
+- `tools/mintlify-openapi` - Internal tool to generate reference documentation for Mintlify from an OpenAPI spec.
 
-1. Fork the repository to your own Github account
-2. Clone the project to your machine
-3. Create a branch locally with a succinct but descriptive name. All changes should be part of a branch and submitted as a pull request - your branches should be prefixed with one of:
-   - `bug/` for bug fixes
-   - `feat/` for features
-   - `chore/` for configuration changes
-   - `docs/` for documentation changes
-4. Commit changes to the branch
-5. Following any formatting and testing guidelines specific to this repo
-6. Push changes to your fork
-7. Open a PR in our repository and follow the PR template to review the changes efficiently.
+For details about those projects and how to contribure, please refer to their respective `README.md` and `CONTRIBUTING.md` files.

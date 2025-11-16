@@ -1,13 +1,20 @@
 [cloud]
-pat = 'your-personal-access-token'
 enable_mutations = true
 
-[local]
+[[projects]]
+subdomain = 'local'
+region = 'local'
+description = 'Local development project running via the Nhost CLI'
 admin_secret = 'nhost-admin-secret'
+manage_metadata = true
+allow_queries = ['*']
+allow_mutations = ['*']
 
 [[projects]]
 subdomain = 'asdasdasdasdasd'
 region = 'eu-central-1'
+description = 'Staging project for my awesome app'
+manage_metadata = false
 admin_secret = 'your-admin-secret-1'
 allow_queries = ['*']
 allow_mutations = ['*']
@@ -15,6 +22,8 @@ allow_mutations = ['*']
 [[projects]]
 subdomain = 'qweqweqweqweqwe'
 region = 'us-east-1'
+description = 'Production project for my awesome app'
+manage_metadata = false
 pat = 'pat-for-qweqweqweqweqwe'
 allow_queries = ['getComments']
 allow_mutations = ['insertComment', 'updateComment', 'deleteComment']

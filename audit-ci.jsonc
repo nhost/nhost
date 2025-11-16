@@ -2,5 +2,8 @@
   // $schema provides code completion hints to IDEs.
   "$schema": "https://github.com/IBM/audit-ci/raw/main/docs/schema.json",
   "moderate": true,
-  "allowlist": ["vue-template-compiler", { "id": "CVE-2025-48068", "path": "next" }]
+  "allowlist": [
+    "GHSA-9965-vmph-33xx", // https://github.com/advisories/GHSA-9965-vmph-33xx Update package once have a fix
+    "GHSA-7mvr-c777-76hp" // https://github.com/advisories/GHSA-7mvr-c777-76hp Update package once Nix side is also updated
+  ]
 }

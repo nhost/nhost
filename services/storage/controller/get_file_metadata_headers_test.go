@@ -1,6 +1,8 @@
 package controller_test
 
 import (
+	"log/slog"
+	"os"
 	"testing"
 	"time"
 
@@ -8,7 +10,6 @@ import (
 	"github.com/nhost/nhost/services/storage/controller"
 	"github.com/nhost/nhost/services/storage/controller/mock"
 	"github.com/nhost/nhost/services/storage/image"
-	"github.com/sirupsen/logrus"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -34,7 +35,7 @@ func TestGetFileInfo(t *testing.T) {
 					ContentLength:      64,
 					ContentType:        "text/plain; charset=utf-8",
 					Etag:               `"55af1e60-0f28-454e-885e-ea6aab2bb288"`,
-					LastModified:       time.Date(2021, 12, 27, 9, 58, 11, 0, time.UTC),
+					LastModified:       api.Date(2021, 12, 27, 9, 58, 11, 0, time.UTC),
 					SurrogateControl:   "max-age=3600",
 					SurrogateKey:       "55af1e60-0f28-454e-885e-ea6aab2bb288",
 				},
@@ -56,7 +57,7 @@ func TestGetFileInfo(t *testing.T) {
 					ContentLength:      64,
 					ContentType:        "text/plain; charset=utf-8",
 					Etag:               `"55af1e60-0f28-454e-885e-ea6aab2bb288"`,
-					LastModified:       time.Date(2021, 12, 27, 9, 58, 11, 0, time.UTC),
+					LastModified:       api.Date(2021, 12, 27, 9, 58, 11, 0, time.UTC),
 					SurrogateControl:   "max-age=3600",
 					SurrogateKey:       "55af1e60-0f28-454e-885e-ea6aab2bb288",
 				},
@@ -110,7 +111,7 @@ func TestGetFileInfo(t *testing.T) {
 					ContentLength:      64,
 					ContentType:        "text/plain; charset=utf-8",
 					Etag:               `"55af1e60-0f28-454e-885e-ea6aab2bb288"`,
-					LastModified:       time.Date(2021, 12, 27, 9, 58, 11, 0, time.UTC),
+					LastModified:       api.Date(2021, 12, 27, 9, 58, 11, 0, time.UTC),
 					SurrogateControl:   "max-age=3600",
 					SurrogateKey:       "55af1e60-0f28-454e-885e-ea6aab2bb288",
 				},
@@ -132,7 +133,7 @@ func TestGetFileInfo(t *testing.T) {
 					ContentLength:      64,
 					ContentType:        "text/plain; charset=utf-8",
 					Etag:               `"55af1e60-0f28-454e-885e-ea6aab2bb288"`,
-					LastModified:       time.Date(2021, 12, 27, 9, 58, 11, 0, time.UTC),
+					LastModified:       api.Date(2021, 12, 27, 9, 58, 11, 0, time.UTC),
 					SurrogateControl:   "max-age=3600",
 					SurrogateKey:       "55af1e60-0f28-454e-885e-ea6aab2bb288",
 				},
@@ -170,7 +171,7 @@ func TestGetFileInfo(t *testing.T) {
 					ContentLength:      64,
 					ContentType:        "text/plain; charset=utf-8",
 					Etag:               `"55af1e60-0f28-454e-885e-ea6aab2bb288"`,
-					LastModified:       time.Date(2021, 12, 27, 9, 58, 11, 0, time.UTC),
+					LastModified:       api.Date(2021, 12, 27, 9, 58, 11, 0, time.UTC),
 					SurrogateControl:   "max-age=3600",
 					SurrogateKey:       "55af1e60-0f28-454e-885e-ea6aab2bb288",
 				},
@@ -194,8 +195,7 @@ func TestGetFileInfo(t *testing.T) {
 		},
 	}
 
-	logger := logrus.New()
-	logger.SetLevel(logrus.ErrorLevel)
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

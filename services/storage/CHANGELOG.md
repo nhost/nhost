@@ -1,6 +1,31 @@
+## [storage@0.9.1] - 2025-11-06
+
+### 🐛 Bug Fixes
+
+- *(storage)* Format date-time headers with RFC2822 (#3672)
+
+## [storage@0.9.0] - 2025-11-04
+
+### 🚀 Features
+
+- *(internal/lib)* Common oapi middleware for go services (#3663)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(nixops)* Bump go to 1.25.3 and nixpkgs due to CVEs (#3652)
+
 # Changelog
 
 All notable changes to this project will be documented in this file.
+
+## [storage@0.8.2] - 2025-10-14
+
+### ⚙️ Miscellaneous Tasks
+
+- *(auth)* Change some references to deprecated hasura-auth (#3584)
+- *(docs)* Udpated README.md and CONTRIBUTING.md (#3587)
+- *(storage)* Migrate to urfave and slog libraries (#3606)
 
 ## [storage@0.8.1] - 2025-09-30
 

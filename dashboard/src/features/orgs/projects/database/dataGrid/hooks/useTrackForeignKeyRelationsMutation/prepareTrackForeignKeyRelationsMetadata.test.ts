@@ -1,5 +1,5 @@
 import type { HasuraMetadata } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { rest } from 'msw';
+import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 import prepareTrackForeignKeyRelationsMetadata from './prepareTrackForeignKeyRelationsMetadata';
 
@@ -28,11 +28,8 @@ const testMetadataResponse: { metadata: HasuraMetadata } = {
 };
 
 const metadataHandlers = [
-  rest.post(`${APP_URL}/v1/metadata`, (_req, res, ctx) =>
-    res(
-      ctx.status(200),
-      ctx.json<{ metadata: HasuraMetadata }>(testMetadataResponse),
-    ),
+  http.post(`${APP_URL}/v1/metadata`, () =>
+    HttpResponse.json(testMetadataResponse),
   ),
 ];
 
@@ -131,56 +128,53 @@ test('should only prepare a one-to-one relationship if the table does not have a
 
 test('should drop existing relationships and prepare a new one-to-many relationship', async () => {
   server.use(
-    rest.post(`${APP_URL}/v1/metadata`, (_req, res, ctx) =>
-      res(
-        ctx.status(200),
-        ctx.json<{ metadata: HasuraMetadata }>({
-          ...testMetadataResponse,
-          metadata: {
-            ...testMetadataResponse.metadata,
-            sources: [
-              {
-                ...testMetadataResponse.metadata.sources[0],
-                tables: [
-                  {
-                    ...testMetadataResponse.metadata.sources[0].tables[0],
-                    object_relationships: [
-                      {
-                        name: 'author',
-                        using: {
-                          foreign_key_constraint_on: 'author_id',
-                        },
+    http.post(`${APP_URL}/v1/metadata`, () =>
+      HttpResponse.json({
+        ...testMetadataResponse,
+        metadata: {
+          ...testMetadataResponse.metadata,
+          sources: [
+            {
+              ...testMetadataResponse.metadata.sources[0],
+              tables: [
+                {
+                  ...testMetadataResponse.metadata.sources[0].tables[0],
+                  object_relationships: [
+                    {
+                      name: 'author',
+                      using: {
+                        foreign_key_constraint_on: 'author_id',
                       },
-                    ],
-                  },
-                  {
-                    table: {
-                      name: 'authors',
-                      schema: 'public',
                     },
-                    configuration: {},
-                    array_relationships: [
-                      {
-                        name: 'books',
-                        using: {
-                          foreign_key_constraint_on: {
-                            column: 'author_id',
-                            table: {
-                              name: 'books',
-                              schema: 'public',
-                            },
+                  ],
+                },
+                {
+                  table: {
+                    name: 'authors',
+                    schema: 'public',
+                  },
+                  configuration: {},
+                  array_relationships: [
+                    {
+                      name: 'books',
+                      using: {
+                        foreign_key_constraint_on: {
+                          column: 'author_id',
+                          table: {
+                            name: 'books',
+                            schema: 'public',
                           },
                         },
                       },
-                    ],
-                    object_relationships: [],
-                  },
-                ],
-              },
-            ],
-          },
-        }),
-      ),
+                    },
+                  ],
+                  object_relationships: [],
+                },
+              ],
+            },
+          ],
+        },
+      }),
     ),
   );
 

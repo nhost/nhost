@@ -1,8 +1,7 @@
 ---
 name: "storage: check and build"
 on:
-  # pull_request_target:
-  pull_request:
+  pull_request_target:
     paths:
       - '.github/workflows/storage_checks.yaml'
       - '.github/workflows/wf_check.yaml'
@@ -18,6 +17,7 @@ on:
       - '.golangci.yaml'
       - 'go.mod'
       - 'go.sum'
+      - 'internal/lib/**'
       - 'vendor/**'
 
       # storage
@@ -49,7 +49,7 @@ jobs:
     with:
       NAME: storage
       PATH: services/storage
-      GIT_REF: ${{ github.sha }}
+      GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
 
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
@@ -64,7 +64,7 @@ jobs:
     with:
       NAME: storage
       PATH: services/storage
-      GIT_REF: ${{ github.sha }}
+      GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
       VERSION: 0.0.0-dev # we use a fixed version here to avoid unnecessary rebuilds
       DOCKER: true
     secrets:

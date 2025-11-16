@@ -1,5 +1,5 @@
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Box } from '@/components/ui/v2/Box';
+import { Spinner } from '@/components/ui/v3/spinner';
+import DataGridCustomizerOpenStateProvider from '@/features/orgs/projects/common/components/DataGridCustomizerControls/DataGridCustomizerOpenStateProvider';
 import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
 import type { UseDataGridOptions } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid/useDataGrid';
 import { DataGridBody } from '@/features/orgs/projects/storage/dataGrid/components/DataGridBody';
@@ -7,11 +7,13 @@ import { DataGridConfigProvider } from '@/features/orgs/projects/storage/dataGri
 import { DataGridFrame } from '@/features/orgs/projects/storage/dataGrid/components/DataGridFrame';
 import type { DataGridHeaderProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGridHeader';
 import { DataGridHeader } from '@/features/orgs/projects/storage/dataGrid/components/DataGridHeader';
+import { DataTableDesignProvider } from '@/features/orgs/projects/storage/dataGrid/providers/DataTableDesignProvider';
+import { cn } from '@/lib/utils';
 import type { ForwardedRef } from 'react';
 import { forwardRef, useEffect, useRef } from 'react';
 import { mergeRefs } from 'react-merge-refs';
 import type { Column, Row, SortingRule, TableOptions } from 'react-table';
-import { twMerge } from 'tailwind-merge';
+import AllColumnsHiddenMessage from './AllColumnsHiddenMessage';
 import useDataGrid from './useDataGrid';
 
 export interface DataGridProps<TColumnData extends object>
@@ -65,6 +67,10 @@ export interface DataGridProps<TColumnData extends object>
    * Props to be passed to the `DataGridHeader` component.
    */
   headerProps?: DataGridHeaderProps;
+  /**
+   * Determines whether the Grid is used for displaying files.
+   */
+  isFileDataGrid?: boolean;
 }
 
 function DataGrid<TColumnData extends object>(
@@ -82,6 +88,7 @@ function DataGrid<TColumnData extends object>(
     onSort,
     loading,
     className,
+    isFileDataGrid,
   }: DataGridProps<TColumnData>,
   ref: ForwardedRef<HTMLDivElement>,
 ) {
@@ -112,6 +119,8 @@ function DataGrid<TColumnData extends object>(
     }
   }, [allowSort, dataGridProps.state.sortBy, onSort, toggleAllRowsSelected]);
 
+  const allColumnsHidden =
+    dataGridProps.allColumns.filter(({ isVisible }) => isVisible).length === 1;
   return (
     <DataGridConfigProvider
       toggleAllRowsSelected={toggleAllRowsSelected}
@@ -119,38 +128,43 @@ function DataGrid<TColumnData extends object>(
       tableRef={tableRef}
       {...dataGridProps}
     >
-      <>
-        {controls}
-        {columns.length === 0 && !loading && (
-          <DataBrowserEmptyState
-            title="Columns not found"
-            description="Please create a column before adding data to the table."
-          />
-        )}
-
-        {columns.length > 0 && (
-          <Box
-            ref={mergeRefs([ref, tableRef])}
-            sx={{ backgroundColor: 'background.default' }}
-            className={twMerge(
-              'overflow-x-auto',
-              !loading && 'h-full',
-              className,
-            )}
-          >
-            <DataGridFrame>
-              <DataGridHeader {...headerProps} />
-
-              <DataGridBody
-                emptyStateMessage={emptyStateMessage}
-                loading={loading}
+      <DataTableDesignProvider>
+        <DataGridCustomizerOpenStateProvider>
+          <>
+            {controls}
+            {columns.length === 0 && !loading && (
+              <DataBrowserEmptyState
+                title="Columns not found"
+                description="Please create a column before adding data to the table."
               />
-            </DataGridFrame>
-          </Box>
-        )}
+            )}
+            {columns.length > 0 && allColumnsHidden && (
+              <AllColumnsHiddenMessage />
+            )}
+            {columns.length > 0 && !allColumnsHidden && (
+              <div
+                ref={mergeRefs([ref, tableRef])}
+                className={cn(
+                  'box overflow-x-auto bg-background',
+                  { 'h-[calc(100%-1px)]': !loading }, // need to set height like this to remove vertical scrollbar
+                  className,
+                )}
+              >
+                <DataGridFrame>
+                  <DataGridHeader {...headerProps} />
+                  <DataGridBody
+                    isFileDataGrid={isFileDataGrid}
+                    emptyStateMessage={emptyStateMessage}
+                    loading={loading}
+                  />
+                </DataGridFrame>
+              </div>
+            )}
 
-        {loading && <ActivityIndicator delay={1000} className="my-4" />}
-      </>
+            {loading && <Spinner className="my-4" />}
+          </>
+        </DataGridCustomizerOpenStateProvider>
+      </DataTableDesignProvider>
     </DataGridConfigProvider>
   );
 }

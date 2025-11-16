@@ -51,11 +51,18 @@ nhost up
 nhost up --ui nhost
 ```
 
+## MCP Server
+
+The Nhost cli ships with an MCP server that lets you interact with your Nhost projects through AI assistants using the Model Context Protocol. It provides secure, controlled access to your GraphQL data, project configuration, and documentation—with granular permissions that let you specify exactly which queries and mutations an LLM can execute. For development, it streamlines your workflow by enabling AI-assisted schema management, metadata changes, and migrations, while providing direct access to your GraphQL schema for intelligent query building.
+
+You can read more about the MCP server in the [MCP Server documentation](https://docs.nhost.io/platform/cli/mcp/overview).
+
 ## Documentation
 
 - [Get started with Nhost CLI (longer version)](https://docs.nhost.io/platform/overview/get-started-with-nhost-cli)
 - [Nhost CLI](https://docs.nhost.io/platform/cli)
 - [Reference](https://docs.nhost.io/reference/cli)
+- [MCP Server](https://docs.nhost.io/platform/cli/mcp/overview)
 
 ## Build from Source
 

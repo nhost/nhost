@@ -77,12 +77,12 @@ function MyApp({
 
       <CacheProvider value={emotionCache}>
         <NhostProvider nhost={nhost}>
-          <AuthProvider>
-            <NhostApolloProvider
-              fetchPolicy="cache-and-network"
-              nhost={nhost}
-              connectToDevTools={process.env.NEXT_PUBLIC_ENV === 'dev'}
-            >
+          <NhostApolloProvider
+            fetchPolicy="cache-and-network"
+            nhost={nhost}
+            connectToDevTools={process.env.NEXT_PUBLIC_ENV === 'dev'}
+          >
+            <AuthProvider>
               <UIProvider>
                 <Toaster position="bottom-center" />
                 <ThemeProvider
@@ -106,8 +106,8 @@ function MyApp({
                   </RetryableErrorBoundary>
                 </ThemeProvider>
               </UIProvider>
-            </NhostApolloProvider>
-          </AuthProvider>
+            </AuthProvider>
+          </NhostApolloProvider>
         </NhostProvider>
       </CacheProvider>
     </QueryClientProvider>

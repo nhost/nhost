@@ -5,16 +5,17 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"slices"
 	"strings"
 	"time"
 
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/storage/api"
 	"github.com/nhost/nhost/services/storage/image"
 	"github.com/nhost/nhost/services/storage/middleware"
-	"github.com/sirupsen/logrus"
 )
 
 func deptr[T any](v *T) T { //nolint:ireturn
@@ -254,8 +255,9 @@ func (ctrl *Controller) processFileToDownload(
 }
 
 func (ctrl *Controller) getFileResponse( //nolint: ireturn,dupl
+	ctx context.Context,
 	file *processedFile,
-	logger logrus.FieldLogger,
+	logger *slog.Logger,
 ) api.GetFileResponseObject {
 	switch file.statusCode {
 	case http.StatusOK:
@@ -270,7 +272,7 @@ func (ctrl *Controller) getFileResponse( //nolint: ireturn,dupl
 				),
 				ContentType:      file.mimeType,
 				Etag:             file.fileMetadata.Etag,
-				LastModified:     file.fileMetadata.UpdatedAt,
+				LastModified:     api.RFC2822Date(file.fileMetadata.UpdatedAt),
 				SurrogateControl: file.cacheControl,
 				SurrogateKey:     file.fileMetadata.Id,
 			},
@@ -288,7 +290,7 @@ func (ctrl *Controller) getFileResponse( //nolint: ireturn,dupl
 				ContentRange:     file.extraHeaders.Get("Content-Range"),
 				ContentType:      file.mimeType,
 				Etag:             file.fileMetadata.Etag,
-				LastModified:     file.fileMetadata.UpdatedAt,
+				LastModified:     api.RFC2822Date(file.fileMetadata.UpdatedAt),
 				SurrogateControl: file.cacheControl,
 				SurrogateKey:     file.fileMetadata.Id,
 			},
@@ -311,8 +313,9 @@ func (ctrl *Controller) getFileResponse( //nolint: ireturn,dupl
 			},
 		}
 	default:
-		logger.WithField("statusCode", file.statusCode).
-			Error("unexpected status code from download")
+		logger.ErrorContext(
+			ctx, "unexpected status code from download", slog.Int("statusCode", file.statusCode),
+		)
 
 		return ErrUnexpectedStatusCode
 	}
@@ -322,7 +325,7 @@ func (ctrl *Controller) GetFile( //nolint:ireturn
 	ctx context.Context,
 	request api.GetFileRequestObject,
 ) (api.GetFileResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
 	sessionHeaders := middleware.SessionHeadersFromContext(ctx)
 	acceptHeader := middleware.AcceptHeaderFromContext(ctx)
 
@@ -330,7 +333,10 @@ func (ctrl *Controller) GetFile( //nolint:ireturn
 		ctx, request.Id, true, sessionHeaders,
 	)
 	if apiErr != nil {
-		logger.WithError(apiErr).Error("failed to get file metadata")
+		logger.ErrorContext(
+			ctx, "failed to get file metadata", slog.String("error", apiErr.Error()),
+		)
+
 		return apiErr, nil
 	}
 
@@ -350,9 +356,12 @@ func (ctrl *Controller) GetFile( //nolint:ireturn
 		acceptHeader,
 	)
 	if apiErr != nil {
-		logger.WithError(apiErr).Error("failed to process file for download")
+		logger.ErrorContext(
+			ctx, "failed to process file for download", slog.String("error", apiErr.Error()),
+		)
+
 		return apiErr, nil
 	}
 
-	return ctrl.getFileResponse(processedFile, logger), nil
+	return ctrl.getFileResponse(ctx, processedFile, logger), nil
 }

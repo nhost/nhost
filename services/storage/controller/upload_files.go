@@ -4,11 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"mime/multipart"
 	"net/http"
 
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/google/uuid"
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/storage/api"
 	"github.com/nhost/nhost/services/storage/middleware"
 )
@@ -248,24 +250,30 @@ func parseUploadRequest(form *multipart.Form) (uploadFileRequest, *APIError) {
 func (ctrl *Controller) UploadFiles( //nolint:ireturn
 	ctx context.Context, request api.UploadFilesRequestObject,
 ) (api.UploadFilesResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
 	sessionHeaders := middleware.SessionHeadersFromContext(ctx)
 
 	form, err := request.Body.ReadForm(maxFormMemory)
 	if err != nil {
-		logger.WithError(err).Error("problem reading multipart form")
+		logger.ErrorContext(
+			ctx, "problem reading multipart form", slog.String("error", err.Error()),
+		)
+
 		return InternalServerError(err), nil
 	}
 
 	uploadFilesRequest, apiErr := parseUploadRequest(form)
 	if apiErr != nil {
-		logger.WithError(apiErr).Error("problem parsing upload request")
+		logger.ErrorContext(
+			ctx, "problem parsing upload request", slog.String("error", apiErr.Error()),
+		)
+
 		return apiErr, nil
 	}
 
 	fm, apiErr := ctrl.upload(ctx, uploadFilesRequest, sessionHeaders)
 	if apiErr != nil {
-		logger.WithError(apiErr).Error("problem uploading files")
+		logger.ErrorContext(ctx, "problem uploading files", slog.String("error", apiErr.Error()))
 
 		return api.UploadFilesdefaultJSONResponse{
 			Body: api.ErrorResponseWithProcessedFiles{

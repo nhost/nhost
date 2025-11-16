@@ -1,7 +1,7 @@
 import { mockApplication, mockOrganization } from '@/tests/mocks';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import { queryClient, render, screen } from '@/tests/testUtils';
-import { rest } from 'msw';
+import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 import { afterAll, beforeAll, vi } from 'vitest';
 import OverviewDeployments from './OverviewDeployments';
@@ -36,8 +36,9 @@ vi.mock('next/router', () => ({
 
 const server = setupServer(
   tokenQuery,
-  rest.get('https://local.graphql.local.nhost.run/v1', (_req, res, ctx) =>
-    res(ctx.status(200)),
+  http.get(
+    'https://local.graphql.local.nhost.run/v1',
+    () => new HttpResponse(null, { status: 200 }),
   ),
 );
 
@@ -49,8 +50,9 @@ beforeAll(() => {
 
 afterEach(() => {
   server.resetHandlers(
-    rest.get('https://local.graphql.local.nhost.run/v1', (_req, res, ctx) =>
-      res(ctx.status(200)),
+    http.get(
+      'https://local.graphql.local.nhost.run/v1',
+      () => new HttpResponse(null, { status: 200 }),
     ),
   );
   queryClient.clear();
@@ -63,37 +65,31 @@ afterAll(() => {
 
 test('should render an empty state when GitHub is not connected', async () => {
   server.use(
-    rest.post(
+    http.post(
       'https://local.graphql.local.nhost.run/v1',
-      async (req, res, ctx) => {
-        const { operationName } = await req.json();
+      async ({ request }) => {
+        const { operationName } = (await request.json()) as any;
         if (operationName === 'getProject') {
-          return res(
-            ctx.json({
-              data: {
-                apps: [{ ...mockApplication, githubRepository: null }],
-              },
-            }),
-          );
+          return HttpResponse.json({
+            data: {
+              apps: [{ ...mockApplication, githubRepository: null }],
+            },
+          });
         }
 
         if (operationName === 'getOrganization') {
-          return res(
-            ctx.json({
-              data: {
-                organizations: [{ ...mockOrganization }],
-              },
-            }),
-          );
+          return HttpResponse.json({
+            data: {
+              organizations: [{ ...mockOrganization }],
+            },
+          });
         }
 
-        return res(
-          ctx.json({
-            data: {
-              deployments: [],
-            },
-          }),
-        );
+        return HttpResponse.json({
+          data: {
+            deployments: [],
+          },
+        });
       },
     ),
   );
@@ -107,32 +103,28 @@ test('should render an empty state when GitHub is not connected', async () => {
 });
 test('should render an empty state when GitHub is connected, but there are no deployments', async () => {
   server.use(
-    rest.post(
+    http.post(
       'https://local.graphql.local.nhost.run/v1',
-      async (_req, res, ctx) => {
-        const { operationName } = await _req.json();
+      async ({ request }) => {
+        const { operationName } = (await request.json()) as any;
 
         if (operationName === 'getProject') {
-          return res(
-            ctx.json({
-              data: {
-                apps: [{ ...mockApplication }],
-              },
-            }),
-          );
+          return HttpResponse.json({
+            data: {
+              apps: [{ ...mockApplication }],
+            },
+          });
         }
 
         if (operationName === 'getOrganization') {
-          return res(
-            ctx.json({
-              data: {
-                organizations: [{ ...mockOrganization }],
-              },
-            }),
-          );
+          return HttpResponse.json({
+            data: {
+              organizations: [{ ...mockOrganization }],
+            },
+          });
         }
 
-        return res(ctx.json({ data: { deployments: [] } }));
+        return HttpResponse.json({ data: { deployments: [] } });
       },
     ),
   );
@@ -155,52 +147,46 @@ test('should render an empty state when GitHub is connected, but there are no de
 test('should render a list of deployments', async () => {
   server.use(
     tokenQuery,
-    rest.post(
+    http.post(
       'https://local.graphql.local.nhost.run/v1',
-      async (_req, res, ctx) => {
-        const { operationName } = await _req.json();
+      async ({ request }) => {
+        const { operationName } = (await request.json()) as any;
 
         if (operationName === 'ScheduledOrPendingDeploymentsSub') {
-          return res(ctx.json({ data: { deployments: [] } }));
+          return HttpResponse.json({ data: { deployments: [] } });
         }
 
         if (operationName === 'getProject') {
-          return res(
-            ctx.json({
-              data: {
-                apps: [{ ...mockApplication }],
-              },
-            }),
-          );
+          return HttpResponse.json({
+            data: {
+              apps: [{ ...mockApplication }],
+            },
+          });
         }
         if (operationName === 'getOrganization') {
-          return res(
-            ctx.json({
-              data: {
-                organizations: [{ ...mockOrganization }],
-              },
-            }),
-          );
+          return HttpResponse.json({
+            data: {
+              organizations: [{ ...mockOrganization }],
+            },
+          });
         }
 
-        return res(
-          ctx.json({
-            data: {
-              deployments: [
-                {
-                  id: '1',
-                  commitSHA: 'abc123',
-                  deploymentStartedAt: '2021-08-01T00:00:00.000Z',
-                  deploymentEndedAt: '2021-08-01T00:05:00.000Z',
-                  deploymentStatus: 'DEPLOYED',
-                  commitUserName: 'test.user',
-                  commitUserAvatarUrl: 'http://images.example.com/avatar.png',
-                  commitMessage: 'Test commit message',
-                },
-              ],
-            },
-          }),
-        );
+        return HttpResponse.json({
+          data: {
+            deployments: [
+              {
+                id: '1',
+                commitSHA: 'abc123',
+                deploymentStartedAt: '2021-08-01T00:00:00.000Z',
+                deploymentEndedAt: '2021-08-01T00:05:00.000Z',
+                deploymentStatus: 'DEPLOYED',
+                commitUserName: 'test.user',
+                commitUserAvatarUrl: 'http://images.example.com/avatar.png',
+                commitMessage: 'Test commit message',
+              },
+            ],
+          },
+        });
       },
     ),
   );
@@ -227,69 +213,61 @@ test('should render a list of deployments', async () => {
 test('should disable redeployments if a deployment is already in progress', async () => {
   server.use(
     tokenQuery,
-    rest.post(
+    http.post(
       'https://local.graphql.local.nhost.run/v1',
-      async (req, res, ctx) => {
-        const { operationName } = await req.json();
+      async ({ request }) => {
+        const { operationName } = (await request.json()) as any;
 
         if (operationName === 'ScheduledOrPendingDeploymentsSub') {
-          return res(
-            ctx.json({
-              data: {
-                deployments: [
-                  {
-                    id: '2',
-                    commitSHA: 'abc234',
-                    deploymentStartedAt: '2021-08-02T00:00:00.000Z',
-                    deploymentEndedAt: null,
-                    deploymentStatus: 'PENDING',
-                    commitUserName: 'test.user',
-                    commitUserAvatarUrl: 'http://images.example.com/avatar.png',
-                    commitMessage: 'Test commit message',
-                  },
-                ],
-              },
-            }),
-          );
-        }
-
-        if (operationName === 'getProject') {
-          return res(
-            ctx.json({
-              data: {
-                apps: [{ ...mockApplication }],
-              },
-            }),
-          );
-        }
-        if (operationName === 'getOrganization') {
-          return res(
-            ctx.json({
-              data: {
-                organizations: [{ ...mockOrganization }],
-              },
-            }),
-          );
-        }
-
-        return res(
-          ctx.json({
+          return HttpResponse.json({
             data: {
               deployments: [
                 {
-                  id: '1',
-                  commitSHA: 'abc123',
-                  deploymentStartedAt: '2021-08-01T00:00:00.000Z',
-                  deploymentEndedAt: '2021-08-01T00:05:00.000Z',
-                  deploymentStatus: 'DEPLOYED',
+                  id: '2',
+                  commitSHA: 'abc234',
+                  deploymentStartedAt: '2021-08-02T00:00:00.000Z',
+                  deploymentEndedAt: null,
+                  deploymentStatus: 'PENDING',
                   commitUserName: 'test.user',
                   commitUserAvatarUrl: 'http://images.example.com/avatar.png',
                   commitMessage: 'Test commit message',
                 },
               ],
             },
-          }),
-        );
+          });
+        }
+
+        if (operationName === 'getProject') {
+          return HttpResponse.json({
+            data: {
+              apps: [{ ...mockApplication }],
+            },
+          });
+        }
+        if (operationName === 'getOrganization') {
+          return HttpResponse.json({
+            data: {
+              organizations: [{ ...mockOrganization }],
+            },
+          });
+        }
+
+        return HttpResponse.json({
+          data: {
+            deployments: [
+              {
+                id: '1',
+                commitSHA: 'abc123',
+                deploymentStartedAt: '2021-08-01T00:00:00.000Z',
+                deploymentEndedAt: '2021-08-01T00:05:00.000Z',
+                deploymentStatus: 'DEPLOYED',
+                commitUserName: 'test.user',
+                commitUserAvatarUrl: 'http://images.example.com/avatar.png',
+                commitMessage: 'Test commit message',
+              },
+            ],
+          },
+        });
       },
     ),
   );

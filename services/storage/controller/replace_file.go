@@ -4,7 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/storage/api"
 	"github.com/nhost/nhost/services/storage/middleware"
 	"github.com/nhost/nhost/services/storage/middleware/cdn/fastly"
@@ -66,12 +68,12 @@ func (ctrl *Controller) ReplaceFile( //nolint:funlen,ireturn
 	ctx context.Context,
 	request api.ReplaceFileRequestObject,
 ) (api.ReplaceFileResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
 	sessionHeaders := middleware.SessionHeadersFromContext(ctx)
 
 	file, apiErr := replaceFileParseRequest(request)
 	if apiErr != nil {
-		logger.WithError(apiErr).Error("problem parsing request")
+		logger.ErrorContext(ctx, "problem parsing request", slog.String("error", apiErr.Error()))
 		return apiErr, nil
 	}
 
@@ -79,22 +81,34 @@ func (ctrl *Controller) ReplaceFile( //nolint:funlen,ireturn
 		ctx, request.Id, false, sessionHeaders,
 	)
 	if apiErr != nil {
-		logger.WithError(apiErr).Error("problem getting file metadata")
+		logger.ErrorContext(
+			ctx, "problem getting file metadata", slog.String("error", apiErr.Error()),
+		)
+
 		return apiErr, nil
 	}
 
 	if apiErr = checkFileSize(
 		file.header, bucketMetadata.MinUploadFile, bucketMetadata.MaxUploadFile,
 	); apiErr != nil {
-		apiErr := fmt.Errorf("problem checking file size %s: %w", file.Name, apiErr)
-		logger.WithError(apiErr).Errorf("problem checking file size %s", file.Name)
+		wrappedErr := fmt.Errorf("problem checking file size %s: %w", file.Name, apiErr)
+		logger.ErrorContext(
+			ctx, "problem checking file size",
+			slog.String("error", wrappedErr.Error()),
+			slog.String("fileName", file.Name),
+		)
 
-		return InternalServerError(apiErr), nil
+		return InternalServerError(wrappedErr), nil
 	}
 
 	fileContent, contentType, apiErr := ctrl.getMultipartFile(file)
 	if apiErr != nil {
-		logger.WithError(apiErr).Errorf("problem getting multipart file %s", file.Name)
+		logger.ErrorContext(
+			ctx, "problem getting multipart file",
+			slog.String("error", apiErr.Error()),
+			slog.String("fileName", file.Name),
+		)
+
 		return apiErr, nil
 	}
 	defer fileContent.Close()
@@ -102,14 +116,24 @@ func (ctrl *Controller) ReplaceFile( //nolint:funlen,ireturn
 	if apiErr := ctrl.scanAndReportVirus(
 		ctx, fileContent, file.ID, file.Name, sessionHeaders,
 	); apiErr != nil {
-		logger.WithError(apiErr).Errorf("problem scanning file %s for viruses", file.Name)
+		logger.ErrorContext(
+			ctx, "problem scanning file for viruses",
+			slog.String("error", apiErr.Error()),
+			slog.String("fileName", file.Name),
+		)
+
 		return apiErr, nil
 	}
 
 	if apiErr := ctrl.metadataStorage.SetIsUploaded(
 		ctx, file.ID, false, sessionHeaders,
 	); apiErr != nil {
-		logger.WithError(apiErr).Errorf("problem flagging file as pending upload %s", file.Name)
+		logger.ErrorContext(
+			ctx, "problem flagging file as pending upload",
+			slog.String("error", apiErr.Error()),
+			slog.String("fileName", file.Name),
+		)
+
 		return apiErr, nil
 	}
 
@@ -117,7 +141,11 @@ func (ctrl *Controller) ReplaceFile( //nolint:funlen,ireturn
 	if apiErr != nil {
 		// let's revert the change to isUploaded
 		_ = ctrl.metadataStorage.SetIsUploaded(ctx, file.ID, true, sessionHeaders)
-		logger.WithError(apiErr).Errorf("problem uploading file %s to storage", file.Name)
+		logger.ErrorContext(
+			ctx, "problem uploading file to storage",
+			slog.String("error", apiErr.Error()),
+			slog.String("fileName", file.Name),
+		)
 
 		return apiErr, nil
 	}
@@ -129,7 +157,12 @@ func (ctrl *Controller) ReplaceFile( //nolint:funlen,ireturn
 		sessionHeaders,
 	)
 	if apiErr != nil {
-		logger.WithError(apiErr).Errorf("problem populating file metadata for file %s", file.Name)
+		logger.ErrorContext(
+			ctx, "problem populating file metadata for file",
+			slog.String("error", apiErr.Error()),
+			slog.String("fileName", file.Name),
+		)
+
 		return apiErr, nil
 	}
 

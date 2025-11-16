@@ -147,7 +147,7 @@ function RuleValueInput({
   if (operator === '_is_null') {
     const defaultValue = comboboxValue ?? undefined;
     const triggerClasses =
-      'border hover:bg-accent hover:text-accent-foreground focus:ring-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2';
+      'border hover:bg-accent-background hover:text-accent-foreground focus:ring-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2';
     return (
       <Select
         disabled={disabled}

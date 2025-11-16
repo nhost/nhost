@@ -1,5 +1,4 @@
 import { InlineCode } from '@/components/presentational/InlineCode';
-import { Box } from '@/components/ui/v2/Box';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
 import { DataBrowserSidebar } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserSidebar';
@@ -45,12 +44,9 @@ DataBrowserDatabaseDetailsPage.getLayout = function getLayout(
     >
       <DataBrowserSidebar className="w-full max-w-sidebar" />
 
-      <Box
-        className="flex w-full flex-auto flex-col overflow-x-hidden"
-        sx={{ backgroundColor: 'background.default' }}
-      >
+      <div className="box flex w-full flex-auto flex-col overflow-x-hidden bg-default">
         {page}
-      </Box>
+      </div>
     </OrgLayout>
   );
 };

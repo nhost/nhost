@@ -3,7 +3,6 @@ package project
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/mark3labs/mcp-go/mcp"
@@ -13,9 +12,9 @@ import (
 )
 
 const (
-	ToolGraphqlQueryName = "project-graphql-query"
+	ToolGraphqlQueryName = "graphql-query"
 	//nolint:lll
-	ToolGraphqlQueryInstructions = `Execute a GraphQL query against a Nhost project running in the Nhost Cloud. This tool is useful to query and mutate live data running on an online projec. If you run into issues executing queries, retrieve the schema using the project-get-graphql-schema tool in case the schema has changed. If you get an error indicating the query or mutation is not allowed the user may have disabled them in the server, don't retry and tell the user they need to enable them when starting mcp-nhost`
+	ToolGraphqlQueryInstructions = `Execute a GraphQL query against a Nhost project. This tool is useful to query and mutate data. If you run into issues executing queries, retrieve the schema again in case the schema has changed. If you get an error indicating the query or mutation is not allowed the user may have disabled them in the server, don't retry and tell the user they need to enable them when starting nhost's mcp`
 )
 
 func ptr[T any](v T) *T {
@@ -23,18 +22,18 @@ func ptr[T any](v T) *T {
 }
 
 type GraphqlQueryRequest struct {
-	Query            string         `json:"query"`
-	Variables        map[string]any `json:"variables,omitempty"`
-	ProjectSubdomain string         `json:"projectSubdomain"`
-	Role             string         `json:"role"`
-	UserID           string         `json:"userId,omitempty"`
+	Query     string         `json:"query"`
+	Variables map[string]any `json:"variables,omitempty"`
+	Subdomain string         `json:"subdomain"`
+	Role      string         `json:"role"`
+	UserID    string         `json:"userId,omitempty"`
 }
 
-func (t *Tool) registerGraphqlQuery(mcpServer *server.MCPServer, projects string) {
+func (t *Tool) registerGraphqlQuery(mcpServer *server.MCPServer) {
 	allowedMutations := false
 
-	for _, proj := range t.projects {
-		if proj.allowMutations == nil || len(proj.allowMutations) > 0 {
+	for _, proj := range t.cfg.Projects {
+		if proj.AllowMutations == nil || len(proj.AllowMutations) > 0 {
 			allowedMutations = true
 			break
 		}
@@ -62,19 +61,15 @@ func (t *Tool) registerGraphqlQuery(mcpServer *server.MCPServer, projects string
 			mcp.Description("variables to use in the query"),
 		),
 		mcp.WithString(
-			"projectSubdomain",
-			mcp.Description(
-				fmt.Sprintf(
-					"Project to get the GraphQL schema for. Must be one of %s, otherwise you don't have access to it. You can use cloud-* tools to resolve subdomains and map them to names", //nolint:lll
-					projects,
-				),
-			),
+			"subdomain",
+			mcp.Description("Project to perform the GraphQL query against"),
+			mcp.Enum(t.cfg.Projects.Subdomains()...),
 			mcp.Required(),
 		),
 		mcp.WithString(
 			"role",
 			mcp.Description(
-				"role to use when executing queries. Default to user but make sure the user is aware. Keep in mind the schema depends on the role so if you retrieved the schema for a different role previously retrieve it for this role beforehand as it might differ", //nolint:lll
+				"role to use when executing queries. Keep in mind the schema depends on the role so if you retrieved the schema for a different role previously retrieve it for this role beforehand as it might differ", //nolint:lll
 			),
 			mcp.Required(),
 		),
@@ -95,7 +90,7 @@ func (t *Tool) handleGraphqlQuery(
 		return mcp.NewToolResultError("query is required"), nil
 	}
 
-	if args.ProjectSubdomain == "" {
+	if args.Subdomain == "" {
 		return mcp.NewToolResultError("projectSubdomain is required"), nil
 	}
 
@@ -103,15 +98,18 @@ func (t *Tool) handleGraphqlQuery(
 		return mcp.NewToolResultError("role is required"), nil
 	}
 
-	project, ok := t.projects[args.ProjectSubdomain]
-	if !ok {
-		return mcp.NewToolResultError(
-			"this project is not configured to be accessed by an LLM",
-		), nil
+	project, err := t.cfg.Projects.Get(args.Subdomain)
+	if err != nil {
+		return mcp.NewToolResultErrorFromErr("failed to get project configuration", err), nil
+	}
+
+	authInterceptor, err := project.GetAuthInterceptor()
+	if err != nil {
+		return mcp.NewToolResultErrorFromErr("failed to get auth interceptor", err), nil
 	}
 
 	interceptors := []func(ctx context.Context, req *http.Request) error{
-		project.authInterceptor,
+		authInterceptor,
 		auth.WithRole(args.Role),
 	}
 
@@ -122,12 +120,12 @@ func (t *Tool) handleGraphqlQuery(
 	var resp graphql.Response[any]
 	if err := graphql.Query(
 		ctx,
-		project.graphqlURL,
+		project.GetGraphqlURL(),
 		args.Query,
 		args.Variables,
 		&resp,
-		project.allowQueries,
-		project.allowMutations,
+		project.AllowQueries,
+		project.AllowMutations,
 		interceptors...,
 	); err != nil {
 		return mcp.NewToolResultErrorFromErr("failed to query graphql endpoint", err), nil

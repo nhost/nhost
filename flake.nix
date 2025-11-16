@@ -24,6 +24,10 @@
         nix2containerPkgs = nix2container.packages.${system};
         nixops-lib = (import ./nixops/lib/lib.nix) { inherit pkgs nix2containerPkgs; };
 
+        authf = import ./services/auth/project.nix {
+          inherit self pkgs nix-filter nixops-lib;
+        };
+
         clif = import ./cli/project.nix {
           inherit self pkgs nix-filter nixops-lib;
         };
@@ -57,7 +61,7 @@
         };
 
         nixopsf = import ./nixops/project.nix {
-          inherit self pkgs nix-filter nixops-lib;
+          inherit self pkgs nix2containerPkgs nix-filter nixops-lib;
         };
 
         storagef = import ./services/storage/project.nix {
@@ -71,6 +75,7 @@
       in
       {
         checks = {
+          auth = authf.check;
           cli = clif.check;
           codegen = codegenf.check;
           dashboard = dashboardf.check;
@@ -114,6 +119,7 @@
               gofumpt
               golangci-lint
               gqlgenc
+              oapi-codegen
 
               # internal packages
               self.packages.${system}.codegen
@@ -152,6 +158,7 @@
             ];
           };
 
+          auth = authf.devShell;
           cli = clif.devShell;
           codegen = codegenf.devShell;
           dashboard = dashboardf.devShell;
@@ -166,6 +173,8 @@
         };
 
         packages = flake-utils.lib.flattenTree {
+          auth = authf.package;
+          auth-docker-image = authf.dockerImage;
           cli = clif.package;
           cli-multiplatform = clif.cli-multiplatform;
           cli-docker-image = clif.dockerImage;
@@ -177,6 +186,7 @@
           mintlify-openapi = mintlify-openapif.package;
           nhost-js = nhost-jsf.package;
           nixops = nixopsf.package;
+          nixops-docker-image = nixopsf.dockerImage;
           storage = storagef.package;
           storage-docker-image = storagef.dockerImage;
           clamav-docker-image = storagef.clamav-docker-image;

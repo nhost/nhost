@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/storage/api"
 	"github.com/nhost/nhost/services/storage/middleware"
 )
@@ -23,14 +25,19 @@ type GetFilePresignedURLRequest struct {
 func (ctrl *Controller) GetFilePresignedURL( //nolint:ireturn
 	ctx context.Context, request api.GetFilePresignedURLRequestObject,
 ) (api.GetFilePresignedURLResponseObject, error) {
-	logger := middleware.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
+	logger = logger.With("file_id", request.Id)
+
 	sessionHeaders := middleware.SessionHeadersFromContext(ctx)
 
 	fileMetadata, bucketMetadata, apiErr := ctrl.getFileMetadata(
 		ctx, request.Id, true, sessionHeaders,
 	)
 	if apiErr != nil {
-		logger.WithError(apiErr).Error("error getting file metadata")
+		logger.ErrorContext(
+			ctx, "error getting file metadata", slog.String("error", apiErr.Error()),
+		)
+
 		return apiErr, nil
 	}
 
@@ -38,7 +45,8 @@ func (ctrl *Controller) GetFilePresignedURL( //nolint:ireturn
 		err := errors.New( //nolint: err113
 			"presigned URLs are not enabled on the bucket where this file is located in",
 		)
-		logger.WithError(err).Error("presigned URLs not enabled for bucket")
+
+		logger.ErrorContext(ctx, "presigned URLs not enabled for bucket")
 
 		return ForbiddenError(err, err.Error()), nil
 	}
@@ -49,7 +57,9 @@ func (ctrl *Controller) GetFilePresignedURL( //nolint:ireturn
 		time.Duration(bucketMetadata.DownloadExpiration)*time.Second,
 	)
 	if apiErr != nil {
-		logger.WithError(apiErr).Error("error creating presigned URL for file")
+		logger.ErrorContext(
+			ctx, "error creating presigned URL for file", slog.String("error", apiErr.Error()))
+
 		return apiErr, nil
 	}
 

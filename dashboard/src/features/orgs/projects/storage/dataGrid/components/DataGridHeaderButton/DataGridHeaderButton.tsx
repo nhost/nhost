@@ -1,9 +1,9 @@
 import { Button } from '@/components/ui/v3/button';
 import type { DataBrowserGridColumn } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
+import { cn } from '@/lib/utils';
 import { ArrowDown, ArrowUp } from 'lucide-react';
 import type { TableHeaderProps } from 'react-table';
-import { twMerge } from 'tailwind-merge';
 
 interface DataGridHeaderButtonProps<T extends object> {
   column: DataBrowserGridColumn<T>;
@@ -38,7 +38,7 @@ export default function DataGridHeaderButton<T extends object>({
   return (
     <Button
       variant="ghost"
-      className={twMerge(
+      className={cn(
         'h-fit p-0 text-xs focus:outline-none motion-safe:transition-colors dark:hover:bg-[#21262d]',
       )}
       disabled={column.isDisabled || column.disableSortBy}
@@ -65,7 +65,7 @@ export default function DataGridHeaderButton<T extends object>({
           {...column.getResizerProps({
             onClick: (event: Event) => event.stopPropagation(),
           })}
-          className="absolute -right-0.5 bottom-0 top-0 z-10 h-full w-1.5 group-hover:bg-slate-900 group-hover:bg-opacity-20 group-active:bg-slate-900 group-active:bg-opacity-20 motion-safe:transition-colors"
+          className="absolute -right-0.5 bottom-0 top-0 z-10 h-full w-2 group-hover:bg-slate-900 group-hover:bg-opacity-20 group-active:bg-slate-900 group-active:bg-opacity-20 motion-safe:transition-colors"
         />
       )}
     </Button>

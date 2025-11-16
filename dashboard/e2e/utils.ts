@@ -1,9 +1,16 @@
+/* eslint-disable no-await-in-loop */
 import {
-  TEST_FREE_USER_EMAILS,
+  TEST_ONBOARDING_USER,
   TEST_ORGANIZATION_SLUG,
+  TEST_PROJECT_ADMIN_SECRET,
   TEST_PROJECT_SUBDOMAIN,
+  TEST_STAGING_REGION,
+  TEST_STAGING_SUBDOMAIN,
   TEST_USER_PASSWORD,
 } from '@/e2e/env';
+import { expect } from '@/e2e/fixtures/auth-hook';
+import { isEmptyValue } from '@/lib/utils';
+import type { ExportMetadataResponse } from '@/utils/hasura-api/generated/schemas';
 import { faker } from '@faker-js/faker';
 import { type Page } from '@playwright/test';
 import { add, format } from 'date-fns-v4';
@@ -125,12 +132,26 @@ export async function prepareTable({
     ),
   );
   await page.getByLabel('Primary Key').click();
-  await Promise.all(
-    primaryKeys.map(async (primaryKey) => {
-      await page.getByRole('option', { name: primaryKey, exact: true }).click();
-    }),
-  );
+
+  await page
+    .getByRole('option', { name: columns[0].name, exact: true })
+    .waitFor({ timeout: 1000 });
+  await expect(
+    page.getByRole('option', { name: columns[0].name, exact: true }),
+  ).toBeVisible();
+  // eslint-disable-next-line no-restricted-syntax
+  for (const primaryKey of primaryKeys) {
+    await page.waitForTimeout(1000);
+    await page.getByRole('option', { name: primaryKey, exact: true }).click();
+    await page
+      .locator(`div[data-testid="${primaryKey}"]`)
+      .waitFor({ timeout: 1000 });
+  }
   await page.getByText('Create a New Table').click();
+  await page.waitForTimeout(1000);
+  await expect(
+    page.getByRole('option', { name: columns[0].name, exact: true }),
+  ).not.toBeVisible();
 }
 
 /**
@@ -232,42 +253,6 @@ export async function gotoUrl(page: Page, url: string) {
   await page.waitForURL(url, { waitUntil: 'load' });
 }
 
-let newOrgSlug: string;
-
-export function getNewOrgSlug() {
-  return newOrgSlug;
-}
-
-export function setNewOrgSlug(slug: string) {
-  newOrgSlug = slug;
-}
-
-let freeUserStarterOrgSlug: string;
-
-export function getFreeUserStarterOrgSlug() {
-  return freeUserStarterOrgSlug;
-}
-
-export function setFreeUserStarterOrgSlug(slug: string) {
-  freeUserStarterOrgSlug = slug;
-}
-
-let newProjectSlug: string;
-
-export function getNewProjectSlug() {
-  return newProjectSlug;
-}
-
-export function setNewProjectSlug(slug: string) {
-  newProjectSlug = slug;
-}
-
-export function getProjectSlugFromUrl(url: string) {
-  const [, projectSlug] = url.split('/projects/');
-
-  return projectSlug;
-}
-
 export function getOrgSlugFromUrl(url: string) {
   const orgSlug = url.split('/orgs/')[1].split('/projects/')[0];
   return orgSlug;
@@ -278,33 +263,13 @@ export function getCardExpiration() {
   return format(now, 'MMyy');
 }
 
-let newProjectName: string;
-
-export function getNewProjectName() {
-  return newProjectName;
-}
-
-export function setNewProjectName(name: string) {
-  newProjectName = name;
-}
-
-function getRandomUserIndex(): number {
-  return Math.floor(Math.random() * TEST_FREE_USER_EMAILS.length);
-}
-
 export async function loginWithFreeUser(page: Page) {
-  const userIndex = getRandomUserIndex();
-
-  const freeUserEmail = TEST_FREE_USER_EMAILS[userIndex];
-
-  // eslint-disable-next-line no-console
-  console.log(`Selected userIndex: ${userIndex}`);
   await page.goto('/');
   await page.waitForURL('/signin');
   await page.getByRole('link', { name: /continue with email/i }).click();
 
   await page.waitForURL('/signin/email');
-  await page.getByLabel('Email').fill(freeUserEmail);
+  await page.getByLabel('Email').fill(TEST_ONBOARDING_USER);
   await page.getByLabel('Password').fill(TEST_USER_PASSWORD);
   await page.getByRole('button', { name: /sign in/i }).click();
 
@@ -318,4 +283,133 @@ export function toPascalCase(str: string, divider = ' ') {
     .split(divider)
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join('');
+}
+
+export async function cleanupOnboardingTestIfNeeded() {
+  const signinUrl = `https://${TEST_STAGING_SUBDOMAIN}.auth.${TEST_STAGING_REGION}.nhost.run/v1/signin/email-password`;
+  const graphqlUrl = `https://${TEST_STAGING_SUBDOMAIN}.graphql.${TEST_STAGING_REGION}.nhost.run/v1`;
+
+  try {
+    const response = await fetch(signinUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: TEST_ONBOARDING_USER,
+        password: TEST_USER_PASSWORD,
+      }),
+    });
+    const data = await response.json();
+
+    const userId = data.session?.user?.id;
+    const accessToken = data.session?.accessToken;
+    const organizationPayload = {
+      query: `
+      query {
+        organizations(where: { members: {userID: {_eq: "${userId}"}} }) {
+          id
+        }
+      }`,
+    };
+
+    const authHeader = `Bearer ${accessToken}`;
+
+    const orgResponse = await fetch(graphqlUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: authHeader,
+      },
+      body: JSON.stringify(organizationPayload),
+    });
+
+    const orgData = await orgResponse.json();
+
+    const organizations = orgData.data?.organizations;
+
+    if (organizations && organizations.length > 0) {
+      // eslint-disable-next-line no-console
+      console.log('Cleaning up organization');
+      await Promise.all(
+        organizations.map(({ id }) =>
+          fetch(graphqlUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: authHeader,
+            },
+            body: JSON.stringify({
+              query: `
+            mutation {
+              billingDeleteOrganization(organizationID: "${id}")
+            }
+          `,
+            }),
+          }),
+        ),
+      );
+    }
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.log(error);
+    throw error;
+  }
+}
+
+export async function cleanupRemoteSchemaTestIfNeeded() {
+  try {
+    const response = await fetch(
+      `https://${TEST_PROJECT_SUBDOMAIN}.hasura.eu-central-1.staging.nhost.run/v1/metadata`,
+      {
+        method: 'POST',
+        headers: {
+          'x-hasura-admin-secret': TEST_PROJECT_ADMIN_SECRET,
+        },
+        body: JSON.stringify({
+          type: 'export_metadata',
+          version: 2,
+          args: {},
+        }),
+      },
+    );
+    const data = (await response.json()) as ExportMetadataResponse;
+
+    const remoteSchemas = data.metadata?.remote_schemas;
+
+    if (isEmptyValue(remoteSchemas)) {
+      return;
+    }
+
+    const schemasToDelete = remoteSchemas!.filter((remoteSchema) =>
+      /^e2e_\w+_\w+$/.test(remoteSchema.name),
+    );
+
+    await Promise.all(
+      schemasToDelete.map((remoteSchema) =>
+        fetch(
+          `https://${TEST_PROJECT_SUBDOMAIN}.hasura.eu-central-1.staging.nhost.run/v1/metadata`,
+          {
+            method: 'POST',
+            headers: {
+              'x-hasura-admin-secret': TEST_PROJECT_ADMIN_SECRET,
+            },
+            body: JSON.stringify({
+              args: [
+                {
+                  type: 'remove_remote_schema',
+                  args: {
+                    name: remoteSchema.name,
+                  },
+                },
+              ],
+              source: 'default',
+              type: 'bulk',
+            }),
+          },
+        ),
+      ),
+    );
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
 }

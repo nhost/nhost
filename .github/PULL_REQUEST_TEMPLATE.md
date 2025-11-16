@@ -8,6 +8,8 @@
 
 --- Delete everything below this line before submitting your PR ---
 
+> **Note on AI-assisted contributions:** Contributions with the help of AI are permitted, but you are ultimately responsible for the quality of your submission and for ensuring it follows our contributing guidelines. **The PR description must be written in your own words and be clear and concise**. Please ensure you remove any superfluous code comments introduced by AI tools before submitting. PRs that clearly violate this rule will be closed without further review.
+
 ### PR title format
 
 The PR title must follow the following pattern:
@@ -22,6 +24,7 @@ Where `TYPE` is:
 
 Where `PKG` is:
 
+- `auth`: For changes to the Nhost Auth service
 - `ci`: For general changes to the build and/or CI/CD pipeline
 - `cli`: For changes to the Nhost CLI
 - `codegen`: For changes to the code generator
@@ -29,10 +32,11 @@ Where `PKG` is:
 - `deps`: For changes to dependencies
 - `docs`: For changes to the documentation
 - `examples`: For changes to the examples
+- `internal/lib`: For changes to Nhost's common libraries (internal)
 - `mintlify-openapi`: For changes to the Mintlify OpenAPI tool
 - `nhost-js`: For changes to the Nhost JavaScript SDK
 - `nixops`: For changes to the NixOps
-- `storage`: For changes to the Nhost Storage
+- `storage`: For changes to the Nhost Storage service
 
 Where `SUMMARY` is a short description of what the PR does.
 

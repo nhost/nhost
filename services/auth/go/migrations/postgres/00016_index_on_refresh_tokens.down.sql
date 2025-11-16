@@ -1,0 +1,1 @@
+DROP INDEX IF EXISTS auth.refresh_tokens_refresh_token_hash_expires_at_user_id_idx;

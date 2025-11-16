@@ -1,0 +1,98 @@
+---
+title: Overview
+description: A Model Context Protocol (MCP) server implementation for interacting with Nhost projects and services.
+icon: house
+---
+
+The Nhost cli ships with an MCP server that lets you interact with your Nhost projects through AI assistants using the Model Context Protocol. It provides secure, controlled access to your GraphQL data, project configuration, and documentation—with granular permissions that let you specify exactly which queries and mutations an LLM can execute. For development, it streamlines your workflow by enabling AI-assisted schema management, metadata changes, and migrations, while providing direct access to your GraphQL schema for intelligent query building.
+
+## Overview
+
+The MCP server is designed to provide a unified interface for managing Nhost projects through the Model Context Protocol. It enables seamless interaction with Nhost Cloud services, offering a robust set of tools for project management and configuration.
+
+## Available Tools
+
+The following tools are currently exposed through the MCP interface:
+
+1. **cloud-graphql-query**
+   - Executes GraphQL queries and mutations against the Nhost Cloud platform
+   - Allows querying and updating project configurations running on Nhost Cloud
+   - Schema available via `schema://nhost-cloud` resource
+
+2. **graphql-query**
+   - Executes GraphQL queries against Nhost projects
+   - Enables interaction with project data
+   - Supports both queries and mutations (must be allowed in configuration)
+   - Requires specifying subdomain, role, and optionally userId
+   - Role parameter is required and affects the schema
+   - Schema available via `get-schema` tool
+
+3. **manage-graphql**
+   - Interacts with GraphQL's management endpoints for Nhost projects
+   - Manages Hasura metadata, migrations, permissions, and remote schemas
+   - Requires admin secret and `manage_metadata` enabled in configuration
+   - Schema available via `schema://graphql-management` resource
+
+4. **get-schema**
+   - Retrieves the GraphQL schema for Nhost projects
+   - Provides access to project-specific queries and mutations
+
+5. **search**
+   - Searches Nhost's official documentation
+   - Provides information about Nhost features, APIs, and guides
+   - Helps find relevant documentation for implementing features or solving issues
+   - Returns links to detailed documentation pages
+
+## Available Resources
+
+The MCP server exposes the following resources:
+
+1. **schema://nhost-cloud**
+   - GraphQL schema for the Nhost Cloud platform
+   - Schema includes mutations only if `enable_mutations` is enabled (see CONFIG section)
+
+2. **schema://graphql-management**
+   - GraphQL management schema for Nhost projects
+   - Useful for understanding how to manage Hasura metadata, migrations, permissions, and remote schemas
+   - Available only when `manage_metadata` is enabled for at least one project
+
+3. **schema://nhost.toml**
+   - Cuelang schema for the nhost.toml configuration file
+
+## Security and Privacy
+
+### Enhanced Protection Layer
+
+The MCP server is designed with security at its core, providing an additional protection layer beyond your existing GraphQL permissions. Key security features include:
+
+- **Authentication enforcement** for all requests
+- **Permission and role respect** based on your existing authorization system and the credentials provided
+- **Query/mutation filtering** to further restrict allowed operations
+
+### Granular Access Control
+
+One of the MCP server's key security advantages is the ability to specify exactly which operations can pass through, even for authenticated users:
+
+```toml
+[[projects]]
+subdomain = "my-blog"
+region = "eu-central-1"
+pat = "nhp_project_specific_pat"
+allow_queries = ["getBlogs", "getComments"]
+allow_mutations = ["insertBlog", "insertComment"]
+```
+
+With the configuration above, an LLM will be able to only execute the queries and mutations above on behalf of a user even if the user has broader permissions in the Nhost project.
+
+Additionally, for local development projects, you can enable metadata management:
+
+```toml
+[[projects]]
+subdomain = "local"
+admin_secret = "nhost-admin-secret"
+manage_metadata = true
+```
+
+This allows the LLM to create migrations, manage permissions, and handle schema changes through the `manage-graphql` tool.
+
+For more details, see the [configuration](./configuration) page.
