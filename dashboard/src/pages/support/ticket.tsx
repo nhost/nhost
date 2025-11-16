@@ -256,7 +256,19 @@ function TicketPage() {
                     error={!!errors.priority}
                     helperText={
                       !!selectedOrganization && !canSetPriority
-                        ? 'Priority is locked to "Low" for your current plan. To set a higher priority, please upgrade to Team.'
+                        ? (
+                            <>
+                              To set a higher priority, upgrade to a plan with an SLA.{' '}
+                              <a
+                                href="https://nhost.io/pricing"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-primary hover:underline"
+                              >
+                                View pricing
+                              </a>
+                            </>
+                          )
                         : errors.priority?.message
                     }
                     renderValue={(option) => (
