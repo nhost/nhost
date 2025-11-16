@@ -164,7 +164,36 @@ func exportToTarget(image *vips.Image, target *vips.Target, opts Options) error 
 	return err //nolint: wrapcheck
 }
 
-func processImagePostLoad(image *vips.Image, opts Options) error {
+func imageResize(image *vips.Image, opts Options) error {
+	if opts.Width > 0 || opts.Height > 0 {
+		width := opts.Width
+		height := opts.Height
+
+		if width == 0 {
+			width = int((float64(height) / float64(image.Height())) * float64(image.Width()))
+		}
+
+		if height == 0 {
+			height = int((float64(width) / float64(image.Width())) * float64(image.Height()))
+		}
+
+		thumbnailOpts := vips.DefaultThumbnailImageOptions()
+		thumbnailOpts.Crop = vips.InterestingCentre
+		thumbnailOpts.Height = height
+
+		if err := image.ThumbnailImage(width, thumbnailOpts); err != nil {
+			return fmt.Errorf("failed to thumbnail: %w", err)
+		}
+	}
+
+	return nil
+}
+
+func imagePipeline(image *vips.Image, opts Options) error {
+	if err := imageResize(image, opts); err != nil {
+		return err
+	}
+
 	// Auto-rotate when converting formats to ensure correct display
 	if opts.FormatChanged() {
 		if err := image.Autorot(nil); err != nil {
@@ -197,41 +226,15 @@ func (t *Transformer) Run(
 	source := vips.NewSource(readCloserAdapter{orig})
 	defer source.Close()
 
-	var image *vips.Image
-	var err error
-
-	// Use shrink-on-load when resizing to save memory
-	// This shrinks the image during JPEG/PNG decompression
-	if opts.Width > 0 || opts.Height > 0 {
-		// Determine target size - vips will maintain aspect ratio
-		// If only width is specified, height will be calculated automatically
-		// If only height is specified, we pass height in options
-		width := opts.Width
-		if width == 0 {
-			width = opts.Height // use height as width for now, we'll set actual height in options
-		}
-
-		thumbnailOpts := vips.DefaultThumbnailSourceOptions()
-		if opts.Height > 0 {
-			thumbnailOpts.Height = opts.Height
-		}
-		thumbnailOpts.Crop = vips.InterestingCentre
-
-		image, err = vips.NewThumbnailSource(source, width, thumbnailOpts)
-		if err != nil {
-			return fmt.Errorf("failed to create thumbnail from source: %w", err)
-		}
-	} else {
-		// No resizing needed, load normally
-		image, err = vips.NewImageFromSource(source, nil)
-		if err != nil {
-			return fmt.Errorf("failed to load image from source: %w", err)
-		}
+	image, err := vips.NewImageFromSource(source, nil)
+	if err != nil {
+		return fmt.Errorf("failed to load image from source: %w", err)
 	}
+
 	defer image.Close()
 
 	// Apply additional processing (auto-rotate, blur)
-	if err := processImagePostLoad(image, opts); err != nil {
+	if err := imagePipeline(image, opts); err != nil {
 		return err
 	}
 
