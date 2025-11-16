@@ -13306,10 +13306,10 @@ export type Mutation_Root = {
   delete_regions?: Maybe<Regions_Mutation_Response>;
   /** delete single row from the table: "regions" */
   delete_regions_by_pk?: Maybe<Regions>;
-  /** delete data from the table: "sla_levels" */
-  delete_sla_levels?: Maybe<Sla_Levels_Mutation_Response>;
-  /** delete single row from the table: "sla_levels" */
-  delete_sla_levels_by_pk?: Maybe<Sla_Levels>;
+  /** delete data from the table: "sla_level" */
+  delete_sla_level?: Maybe<Sla_Level_Mutation_Response>;
+  /** delete single row from the table: "sla_level" */
+  delete_sla_level_by_pk?: Maybe<Sla_Level>;
   /** insert a single row into the table: "announcements_read" */
   insertAnnouncementRead?: Maybe<Announcements_Read>;
   /** insert data into the table: "announcements_read" */
@@ -13525,10 +13525,10 @@ export type Mutation_Root = {
   insert_regions?: Maybe<Regions_Mutation_Response>;
   /** insert a single row into the table: "regions" */
   insert_regions_one?: Maybe<Regions>;
-  /** insert data into the table: "sla_levels" */
-  insert_sla_levels?: Maybe<Sla_Levels_Mutation_Response>;
-  /** insert a single row into the table: "sla_levels" */
-  insert_sla_levels_one?: Maybe<Sla_Levels>;
+  /** insert data into the table: "sla_level" */
+  insert_sla_level?: Maybe<Sla_Level_Mutation_Response>;
+  /** insert a single row into the table: "sla_level" */
+  insert_sla_level_one?: Maybe<Sla_Level>;
   /** execute VOLATILE function "organization_member_invite_accept" which returns "organization_members" */
   organizationMemberInviteAccept: Array<Organization_Members>;
   pauseInactiveApps: Array<Scalars['String']>;
@@ -13860,12 +13860,12 @@ export type Mutation_Root = {
   update_regions_many?: Maybe<Array<Maybe<Regions_Mutation_Response>>>;
   /** update multiples rows of table: "run_service" */
   update_run_service_many?: Maybe<Array<Maybe<Run_Service_Mutation_Response>>>;
-  /** update data of the table: "sla_levels" */
-  update_sla_levels?: Maybe<Sla_Levels_Mutation_Response>;
-  /** update single row of the table: "sla_levels" */
-  update_sla_levels_by_pk?: Maybe<Sla_Levels>;
-  /** update multiples rows of table: "sla_levels" */
-  update_sla_levels_many?: Maybe<Array<Maybe<Sla_Levels_Mutation_Response>>>;
+  /** update data of the table: "sla_level" */
+  update_sla_level?: Maybe<Sla_Level_Mutation_Response>;
+  /** update single row of the table: "sla_level" */
+  update_sla_level_by_pk?: Maybe<Sla_Level>;
+  /** update multiples rows of table: "sla_level" */
+  update_sla_level_many?: Maybe<Array<Maybe<Sla_Level_Mutation_Response>>>;
   /** update multiples rows of table: "auth.users" */
   update_users_many?: Maybe<Array<Maybe<Users_Mutation_Response>>>;
   /** update multiples rows of table: "storage.virus" */
@@ -14672,14 +14672,14 @@ export type Mutation_RootDelete_Regions_By_PkArgs = {
 
 
 /** mutation root */
-export type Mutation_RootDelete_Sla_LevelsArgs = {
-  where: Sla_Levels_Bool_Exp;
+export type Mutation_RootDelete_Sla_LevelArgs = {
+  where: Sla_Level_Bool_Exp;
 };
 
 
 /** mutation root */
-export type Mutation_RootDelete_Sla_Levels_By_PkArgs = {
-  id: Scalars['Int'];
+export type Mutation_RootDelete_Sla_Level_By_PkArgs = {
+  value: Scalars['String'];
 };
 
 
@@ -15449,16 +15449,16 @@ export type Mutation_RootInsert_Regions_OneArgs = {
 
 
 /** mutation root */
-export type Mutation_RootInsert_Sla_LevelsArgs = {
-  objects: Array<Sla_Levels_Insert_Input>;
-  on_conflict?: InputMaybe<Sla_Levels_On_Conflict>;
+export type Mutation_RootInsert_Sla_LevelArgs = {
+  objects: Array<Sla_Level_Insert_Input>;
+  on_conflict?: InputMaybe<Sla_Level_On_Conflict>;
 };
 
 
 /** mutation root */
-export type Mutation_RootInsert_Sla_Levels_OneArgs = {
-  object: Sla_Levels_Insert_Input;
-  on_conflict?: InputMaybe<Sla_Levels_On_Conflict>;
+export type Mutation_RootInsert_Sla_Level_OneArgs = {
+  object: Sla_Level_Insert_Input;
+  on_conflict?: InputMaybe<Sla_Level_On_Conflict>;
 };
 
 
@@ -16710,24 +16710,22 @@ export type Mutation_RootUpdate_Run_Service_ManyArgs = {
 
 
 /** mutation root */
-export type Mutation_RootUpdate_Sla_LevelsArgs = {
-  _inc?: InputMaybe<Sla_Levels_Inc_Input>;
-  _set?: InputMaybe<Sla_Levels_Set_Input>;
-  where: Sla_Levels_Bool_Exp;
+export type Mutation_RootUpdate_Sla_LevelArgs = {
+  _set?: InputMaybe<Sla_Level_Set_Input>;
+  where: Sla_Level_Bool_Exp;
 };
 
 
 /** mutation root */
-export type Mutation_RootUpdate_Sla_Levels_By_PkArgs = {
-  _inc?: InputMaybe<Sla_Levels_Inc_Input>;
-  _set?: InputMaybe<Sla_Levels_Set_Input>;
-  pk_columns: Sla_Levels_Pk_Columns_Input;
+export type Mutation_RootUpdate_Sla_Level_By_PkArgs = {
+  _set?: InputMaybe<Sla_Level_Set_Input>;
+  pk_columns: Sla_Level_Pk_Columns_Input;
 };
 
 
 /** mutation root */
-export type Mutation_RootUpdate_Sla_Levels_ManyArgs = {
-  updates: Array<Sla_Levels_Updates>;
+export type Mutation_RootUpdate_Sla_Level_ManyArgs = {
+  updates: Array<Sla_Level_Updates>;
 };
 
 
@@ -18942,7 +18940,7 @@ export type Plans = {
   /** An aggregate relationship */
   organizations_aggregate: Organizations_Aggregate;
   price: Scalars['Int'];
-  slaLevel: Scalars['Int'];
+  slaLevel: Sla_Level_Enum;
   sort: Scalars['Int'];
   stripePriceIDCustomDomains: Scalars['String'];
   stripePriceIDDedicatedCompute: Scalars['String'];
@@ -19036,7 +19034,6 @@ export type Plans_Avg_Fields = {
   /** Max number of functions to deploy per git deployment */
   featureMaxNumberOfFunctionsPerDeployment?: Maybe<Scalars['Float']>;
   price?: Maybe<Scalars['Float']>;
-  slaLevel?: Maybe<Scalars['Float']>;
   sort?: Maybe<Scalars['Float']>;
 };
 
@@ -19069,7 +19066,7 @@ export type Plans_Bool_Exp = {
   organizations?: InputMaybe<Organizations_Bool_Exp>;
   organizations_aggregate?: InputMaybe<Organizations_Aggregate_Bool_Exp>;
   price?: InputMaybe<Int_Comparison_Exp>;
-  slaLevel?: InputMaybe<Int_Comparison_Exp>;
+  slaLevel?: InputMaybe<Sla_Level_Enum_Comparison_Exp>;
   sort?: InputMaybe<Int_Comparison_Exp>;
   stripePriceIDCustomDomains?: InputMaybe<String_Comparison_Exp>;
   stripePriceIDDedicatedCompute?: InputMaybe<String_Comparison_Exp>;
@@ -19098,7 +19095,6 @@ export type Plans_Inc_Input = {
   /** Max number of functions to deploy per git deployment */
   featureMaxNumberOfFunctionsPerDeployment?: InputMaybe<Scalars['Int']>;
   price?: InputMaybe<Scalars['Int']>;
-  slaLevel?: InputMaybe<Scalars['Int']>;
   sort?: InputMaybe<Scalars['Int']>;
 };
 
@@ -19129,7 +19125,7 @@ export type Plans_Insert_Input = {
   name?: InputMaybe<Scalars['String']>;
   organizations?: InputMaybe<Organizations_Arr_Rel_Insert_Input>;
   price?: InputMaybe<Scalars['Int']>;
-  slaLevel?: InputMaybe<Scalars['Int']>;
+  slaLevel?: InputMaybe<Sla_Level_Enum>;
   sort?: InputMaybe<Scalars['Int']>;
   stripePriceIDCustomDomains?: InputMaybe<Scalars['String']>;
   stripePriceIDDedicatedCompute?: InputMaybe<Scalars['String']>;
@@ -19156,7 +19152,6 @@ export type Plans_Max_Fields = {
   id?: Maybe<Scalars['uuid']>;
   name?: Maybe<Scalars['String']>;
   price?: Maybe<Scalars['Int']>;
-  slaLevel?: Maybe<Scalars['Int']>;
   sort?: Maybe<Scalars['Int']>;
   stripePriceIDCustomDomains?: Maybe<Scalars['String']>;
   stripePriceIDDedicatedCompute?: Maybe<Scalars['String']>;
@@ -19183,7 +19178,6 @@ export type Plans_Min_Fields = {
   id?: Maybe<Scalars['uuid']>;
   name?: Maybe<Scalars['String']>;
   price?: Maybe<Scalars['Int']>;
-  slaLevel?: Maybe<Scalars['Int']>;
   sort?: Maybe<Scalars['Int']>;
   stripePriceIDCustomDomains?: Maybe<Scalars['String']>;
   stripePriceIDDedicatedCompute?: Maybe<Scalars['String']>;
@@ -19352,7 +19346,7 @@ export type Plans_Set_Input = {
   isPublic?: InputMaybe<Scalars['Boolean']>;
   name?: InputMaybe<Scalars['String']>;
   price?: InputMaybe<Scalars['Int']>;
-  slaLevel?: InputMaybe<Scalars['Int']>;
+  slaLevel?: InputMaybe<Sla_Level_Enum>;
   sort?: InputMaybe<Scalars['Int']>;
   stripePriceIDCustomDomains?: InputMaybe<Scalars['String']>;
   stripePriceIDDedicatedCompute?: InputMaybe<Scalars['String']>;
@@ -19376,7 +19370,6 @@ export type Plans_Stddev_Fields = {
   /** Max number of functions to deploy per git deployment */
   featureMaxNumberOfFunctionsPerDeployment?: Maybe<Scalars['Float']>;
   price?: Maybe<Scalars['Float']>;
-  slaLevel?: Maybe<Scalars['Float']>;
   sort?: Maybe<Scalars['Float']>;
 };
 
@@ -19391,7 +19384,6 @@ export type Plans_Stddev_Pop_Fields = {
   /** Max number of functions to deploy per git deployment */
   featureMaxNumberOfFunctionsPerDeployment?: Maybe<Scalars['Float']>;
   price?: Maybe<Scalars['Float']>;
-  slaLevel?: Maybe<Scalars['Float']>;
   sort?: Maybe<Scalars['Float']>;
 };
 
@@ -19406,7 +19398,6 @@ export type Plans_Stddev_Samp_Fields = {
   /** Max number of functions to deploy per git deployment */
   featureMaxNumberOfFunctionsPerDeployment?: Maybe<Scalars['Float']>;
   price?: Maybe<Scalars['Float']>;
-  slaLevel?: Maybe<Scalars['Float']>;
   sort?: Maybe<Scalars['Float']>;
 };
 
@@ -19443,7 +19434,7 @@ export type Plans_Stream_Cursor_Value_Input = {
   isPublic?: InputMaybe<Scalars['Boolean']>;
   name?: InputMaybe<Scalars['String']>;
   price?: InputMaybe<Scalars['Int']>;
-  slaLevel?: InputMaybe<Scalars['Int']>;
+  slaLevel?: InputMaybe<Sla_Level_Enum>;
   sort?: InputMaybe<Scalars['Int']>;
   stripePriceIDCustomDomains?: InputMaybe<Scalars['String']>;
   stripePriceIDDedicatedCompute?: InputMaybe<Scalars['String']>;
@@ -19467,7 +19458,6 @@ export type Plans_Sum_Fields = {
   /** Max number of functions to deploy per git deployment */
   featureMaxNumberOfFunctionsPerDeployment?: Maybe<Scalars['Int']>;
   price?: Maybe<Scalars['Int']>;
-  slaLevel?: Maybe<Scalars['Int']>;
   sort?: Maybe<Scalars['Int']>;
 };
 
@@ -19557,7 +19547,6 @@ export type Plans_Var_Pop_Fields = {
   /** Max number of functions to deploy per git deployment */
   featureMaxNumberOfFunctionsPerDeployment?: Maybe<Scalars['Float']>;
   price?: Maybe<Scalars['Float']>;
-  slaLevel?: Maybe<Scalars['Float']>;
   sort?: Maybe<Scalars['Float']>;
 };
 
@@ -19572,7 +19561,6 @@ export type Plans_Var_Samp_Fields = {
   /** Max number of functions to deploy per git deployment */
   featureMaxNumberOfFunctionsPerDeployment?: Maybe<Scalars['Float']>;
   price?: Maybe<Scalars['Float']>;
-  slaLevel?: Maybe<Scalars['Float']>;
   sort?: Maybe<Scalars['Float']>;
 };
 
@@ -19587,7 +19575,6 @@ export type Plans_Variance_Fields = {
   /** Max number of functions to deploy per git deployment */
   featureMaxNumberOfFunctionsPerDeployment?: Maybe<Scalars['Float']>;
   price?: Maybe<Scalars['Float']>;
-  slaLevel?: Maybe<Scalars['Float']>;
   sort?: Maybe<Scalars['Float']>;
 };
 
@@ -19910,12 +19897,12 @@ export type Query_Root = {
   selectRegionsAllowedWorkspaces: Array<Regions_Allowed_Workspace>;
   /** fetch aggregated fields from the table: "regions_allowed_workspace" */
   selectRegionsAllowedWorkspacesAggregate: Regions_Allowed_Workspace_Aggregate;
-  /** fetch data from the table: "sla_levels" */
-  sla_levels: Array<Sla_Levels>;
-  /** fetch aggregated fields from the table: "sla_levels" */
-  sla_levels_aggregate: Sla_Levels_Aggregate;
-  /** fetch data from the table: "sla_levels" using primary key columns */
-  sla_levels_by_pk?: Maybe<Sla_Levels>;
+  /** fetch data from the table: "sla_level" */
+  sla_level: Array<Sla_Level>;
+  /** fetch aggregated fields from the table: "sla_level" */
+  sla_level_aggregate: Sla_Level_Aggregate;
+  /** fetch data from the table: "sla_level" using primary key columns */
+  sla_level_by_pk?: Maybe<Sla_Level>;
   /** fetch data from the table: "software_type" using primary key columns */
   softwareType?: Maybe<Software_Type>;
   /** fetch data from the table: "software_type" */
@@ -21194,26 +21181,26 @@ export type Query_RootSelectRegionsAllowedWorkspacesAggregateArgs = {
 };
 
 
-export type Query_RootSla_LevelsArgs = {
-  distinct_on?: InputMaybe<Array<Sla_Levels_Select_Column>>;
+export type Query_RootSla_LevelArgs = {
+  distinct_on?: InputMaybe<Array<Sla_Level_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Sla_Levels_Order_By>>;
-  where?: InputMaybe<Sla_Levels_Bool_Exp>;
+  order_by?: InputMaybe<Array<Sla_Level_Order_By>>;
+  where?: InputMaybe<Sla_Level_Bool_Exp>;
 };
 
 
-export type Query_RootSla_Levels_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<Sla_Levels_Select_Column>>;
+export type Query_RootSla_Level_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Sla_Level_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Sla_Levels_Order_By>>;
-  where?: InputMaybe<Sla_Levels_Bool_Exp>;
+  order_by?: InputMaybe<Array<Sla_Level_Order_By>>;
+  where?: InputMaybe<Sla_Level_Bool_Exp>;
 };
 
 
-export type Query_RootSla_Levels_By_PkArgs = {
-  id: Scalars['Int'];
+export type Query_RootSla_Level_By_PkArgs = {
+  value: Scalars['String'];
 };
 
 
@@ -22749,201 +22736,156 @@ export type Run_Service_Updates = {
   where: Run_Service_Bool_Exp;
 };
 
-/** columns and relationships of "sla_levels" */
-export type Sla_Levels = {
-  __typename?: 'sla_levels';
-  id: Scalars['Int'];
-  name: Scalars['String'];
+/** columns and relationships of "sla_level" */
+export type Sla_Level = {
+  __typename?: 'sla_level';
+  comment?: Maybe<Scalars['String']>;
+  value: Scalars['String'];
 };
 
-/** aggregated selection of "sla_levels" */
-export type Sla_Levels_Aggregate = {
-  __typename?: 'sla_levels_aggregate';
-  aggregate?: Maybe<Sla_Levels_Aggregate_Fields>;
-  nodes: Array<Sla_Levels>;
+/** aggregated selection of "sla_level" */
+export type Sla_Level_Aggregate = {
+  __typename?: 'sla_level_aggregate';
+  aggregate?: Maybe<Sla_Level_Aggregate_Fields>;
+  nodes: Array<Sla_Level>;
 };
 
-/** aggregate fields of "sla_levels" */
-export type Sla_Levels_Aggregate_Fields = {
-  __typename?: 'sla_levels_aggregate_fields';
-  avg?: Maybe<Sla_Levels_Avg_Fields>;
+/** aggregate fields of "sla_level" */
+export type Sla_Level_Aggregate_Fields = {
+  __typename?: 'sla_level_aggregate_fields';
   count: Scalars['Int'];
-  max?: Maybe<Sla_Levels_Max_Fields>;
-  min?: Maybe<Sla_Levels_Min_Fields>;
-  stddev?: Maybe<Sla_Levels_Stddev_Fields>;
-  stddev_pop?: Maybe<Sla_Levels_Stddev_Pop_Fields>;
-  stddev_samp?: Maybe<Sla_Levels_Stddev_Samp_Fields>;
-  sum?: Maybe<Sla_Levels_Sum_Fields>;
-  var_pop?: Maybe<Sla_Levels_Var_Pop_Fields>;
-  var_samp?: Maybe<Sla_Levels_Var_Samp_Fields>;
-  variance?: Maybe<Sla_Levels_Variance_Fields>;
+  max?: Maybe<Sla_Level_Max_Fields>;
+  min?: Maybe<Sla_Level_Min_Fields>;
 };
 
 
-/** aggregate fields of "sla_levels" */
-export type Sla_Levels_Aggregate_FieldsCountArgs = {
-  columns?: InputMaybe<Array<Sla_Levels_Select_Column>>;
+/** aggregate fields of "sla_level" */
+export type Sla_Level_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Sla_Level_Select_Column>>;
   distinct?: InputMaybe<Scalars['Boolean']>;
 };
 
-/** aggregate avg on columns */
-export type Sla_Levels_Avg_Fields = {
-  __typename?: 'sla_levels_avg_fields';
-  id?: Maybe<Scalars['Float']>;
+/** Boolean expression to filter rows from the table "sla_level". All fields are combined with a logical 'AND'. */
+export type Sla_Level_Bool_Exp = {
+  _and?: InputMaybe<Array<Sla_Level_Bool_Exp>>;
+  _not?: InputMaybe<Sla_Level_Bool_Exp>;
+  _or?: InputMaybe<Array<Sla_Level_Bool_Exp>>;
+  comment?: InputMaybe<String_Comparison_Exp>;
+  value?: InputMaybe<String_Comparison_Exp>;
 };
 
-/** Boolean expression to filter rows from the table "sla_levels". All fields are combined with a logical 'AND'. */
-export type Sla_Levels_Bool_Exp = {
-  _and?: InputMaybe<Array<Sla_Levels_Bool_Exp>>;
-  _not?: InputMaybe<Sla_Levels_Bool_Exp>;
-  _or?: InputMaybe<Array<Sla_Levels_Bool_Exp>>;
-  id?: InputMaybe<Int_Comparison_Exp>;
-  name?: InputMaybe<String_Comparison_Exp>;
-};
-
-/** unique or primary key constraints on table "sla_levels" */
-export enum Sla_Levels_Constraint {
-  /** unique or primary key constraint on columns "id" */
-  SlaLevelsPkey = 'sla_levels_pkey'
+/** unique or primary key constraints on table "sla_level" */
+export enum Sla_Level_Constraint {
+  /** unique or primary key constraint on columns "value" */
+  SlaLevelPkey = 'sla_level_pkey'
 }
 
-/** input type for incrementing numeric columns in table "sla_levels" */
-export type Sla_Levels_Inc_Input = {
-  id?: InputMaybe<Scalars['Int']>;
+export enum Sla_Level_Enum {
+  /** No SLA */
+  None = 'none',
+  /** Premium SLA */
+  Premium = 'premium',
+  /** Standard SLA */
+  Standard = 'standard'
+}
+
+/** Boolean expression to compare columns of type "sla_level_enum". All fields are combined with logical 'AND'. */
+export type Sla_Level_Enum_Comparison_Exp = {
+  _eq?: InputMaybe<Sla_Level_Enum>;
+  _in?: InputMaybe<Array<Sla_Level_Enum>>;
+  _is_null?: InputMaybe<Scalars['Boolean']>;
+  _neq?: InputMaybe<Sla_Level_Enum>;
+  _nin?: InputMaybe<Array<Sla_Level_Enum>>;
 };
 
-/** input type for inserting data into table "sla_levels" */
-export type Sla_Levels_Insert_Input = {
-  id?: InputMaybe<Scalars['Int']>;
-  name?: InputMaybe<Scalars['String']>;
+/** input type for inserting data into table "sla_level" */
+export type Sla_Level_Insert_Input = {
+  comment?: InputMaybe<Scalars['String']>;
+  value?: InputMaybe<Scalars['String']>;
 };
 
 /** aggregate max on columns */
-export type Sla_Levels_Max_Fields = {
-  __typename?: 'sla_levels_max_fields';
-  id?: Maybe<Scalars['Int']>;
-  name?: Maybe<Scalars['String']>;
+export type Sla_Level_Max_Fields = {
+  __typename?: 'sla_level_max_fields';
+  comment?: Maybe<Scalars['String']>;
+  value?: Maybe<Scalars['String']>;
 };
 
 /** aggregate min on columns */
-export type Sla_Levels_Min_Fields = {
-  __typename?: 'sla_levels_min_fields';
-  id?: Maybe<Scalars['Int']>;
-  name?: Maybe<Scalars['String']>;
+export type Sla_Level_Min_Fields = {
+  __typename?: 'sla_level_min_fields';
+  comment?: Maybe<Scalars['String']>;
+  value?: Maybe<Scalars['String']>;
 };
 
-/** response of any mutation on the table "sla_levels" */
-export type Sla_Levels_Mutation_Response = {
-  __typename?: 'sla_levels_mutation_response';
+/** response of any mutation on the table "sla_level" */
+export type Sla_Level_Mutation_Response = {
+  __typename?: 'sla_level_mutation_response';
   /** number of rows affected by the mutation */
   affected_rows: Scalars['Int'];
   /** data from the rows affected by the mutation */
-  returning: Array<Sla_Levels>;
+  returning: Array<Sla_Level>;
 };
 
-/** on_conflict condition type for table "sla_levels" */
-export type Sla_Levels_On_Conflict = {
-  constraint: Sla_Levels_Constraint;
-  update_columns?: Array<Sla_Levels_Update_Column>;
-  where?: InputMaybe<Sla_Levels_Bool_Exp>;
+/** on_conflict condition type for table "sla_level" */
+export type Sla_Level_On_Conflict = {
+  constraint: Sla_Level_Constraint;
+  update_columns?: Array<Sla_Level_Update_Column>;
+  where?: InputMaybe<Sla_Level_Bool_Exp>;
 };
 
-/** Ordering options when selecting data from "sla_levels". */
-export type Sla_Levels_Order_By = {
-  id?: InputMaybe<Order_By>;
-  name?: InputMaybe<Order_By>;
+/** Ordering options when selecting data from "sla_level". */
+export type Sla_Level_Order_By = {
+  comment?: InputMaybe<Order_By>;
+  value?: InputMaybe<Order_By>;
 };
 
-/** primary key columns input for table: sla_levels */
-export type Sla_Levels_Pk_Columns_Input = {
-  id: Scalars['Int'];
+/** primary key columns input for table: sla_level */
+export type Sla_Level_Pk_Columns_Input = {
+  value: Scalars['String'];
 };
 
-/** select columns of table "sla_levels" */
-export enum Sla_Levels_Select_Column {
+/** select columns of table "sla_level" */
+export enum Sla_Level_Select_Column {
   /** column name */
-  Id = 'id',
+  Comment = 'comment',
   /** column name */
-  Name = 'name'
+  Value = 'value'
 }
 
-/** input type for updating data in table "sla_levels" */
-export type Sla_Levels_Set_Input = {
-  id?: InputMaybe<Scalars['Int']>;
-  name?: InputMaybe<Scalars['String']>;
+/** input type for updating data in table "sla_level" */
+export type Sla_Level_Set_Input = {
+  comment?: InputMaybe<Scalars['String']>;
+  value?: InputMaybe<Scalars['String']>;
 };
 
-/** aggregate stddev on columns */
-export type Sla_Levels_Stddev_Fields = {
-  __typename?: 'sla_levels_stddev_fields';
-  id?: Maybe<Scalars['Float']>;
-};
-
-/** aggregate stddev_pop on columns */
-export type Sla_Levels_Stddev_Pop_Fields = {
-  __typename?: 'sla_levels_stddev_pop_fields';
-  id?: Maybe<Scalars['Float']>;
-};
-
-/** aggregate stddev_samp on columns */
-export type Sla_Levels_Stddev_Samp_Fields = {
-  __typename?: 'sla_levels_stddev_samp_fields';
-  id?: Maybe<Scalars['Float']>;
-};
-
-/** Streaming cursor of the table "sla_levels" */
-export type Sla_Levels_Stream_Cursor_Input = {
+/** Streaming cursor of the table "sla_level" */
+export type Sla_Level_Stream_Cursor_Input = {
   /** Stream column input with initial value */
-  initial_value: Sla_Levels_Stream_Cursor_Value_Input;
+  initial_value: Sla_Level_Stream_Cursor_Value_Input;
   /** cursor ordering */
   ordering?: InputMaybe<Cursor_Ordering>;
 };
 
 /** Initial value of the column from where the streaming should start */
-export type Sla_Levels_Stream_Cursor_Value_Input = {
-  id?: InputMaybe<Scalars['Int']>;
-  name?: InputMaybe<Scalars['String']>;
+export type Sla_Level_Stream_Cursor_Value_Input = {
+  comment?: InputMaybe<Scalars['String']>;
+  value?: InputMaybe<Scalars['String']>;
 };
 
-/** aggregate sum on columns */
-export type Sla_Levels_Sum_Fields = {
-  __typename?: 'sla_levels_sum_fields';
-  id?: Maybe<Scalars['Int']>;
-};
-
-/** update columns of table "sla_levels" */
-export enum Sla_Levels_Update_Column {
+/** update columns of table "sla_level" */
+export enum Sla_Level_Update_Column {
   /** column name */
-  Id = 'id',
+  Comment = 'comment',
   /** column name */
-  Name = 'name'
+  Value = 'value'
 }
 
-export type Sla_Levels_Updates = {
-  /** increments the numeric columns with given value of the filtered values */
-  _inc?: InputMaybe<Sla_Levels_Inc_Input>;
+export type Sla_Level_Updates = {
   /** sets the columns of the filtered rows to the given values */
-  _set?: InputMaybe<Sla_Levels_Set_Input>;
+  _set?: InputMaybe<Sla_Level_Set_Input>;
   /** filter the rows which have to be updated */
-  where: Sla_Levels_Bool_Exp;
-};
-
-/** aggregate var_pop on columns */
-export type Sla_Levels_Var_Pop_Fields = {
-  __typename?: 'sla_levels_var_pop_fields';
-  id?: Maybe<Scalars['Float']>;
-};
-
-/** aggregate var_samp on columns */
-export type Sla_Levels_Var_Samp_Fields = {
-  __typename?: 'sla_levels_var_samp_fields';
-  id?: Maybe<Scalars['Float']>;
-};
-
-/** aggregate variance on columns */
-export type Sla_Levels_Variance_Fields = {
-  __typename?: 'sla_levels_variance_fields';
-  id?: Maybe<Scalars['Float']>;
+  where: Sla_Level_Bool_Exp;
 };
 
 /** Boolean expression to compare columns of type "smallint". All fields are combined with logical 'AND'. */
@@ -23032,8 +22974,6 @@ export enum Software_Type_Constraint {
 export enum Software_Type_Enum {
   /** Hasura Auth */
   Auth = 'Auth',
-  /** Nhost AI service */
-  Graphite = 'Graphite',
   /** Hasura GraphQL Engine */
   Hasura = 'Hasura',
   /** PostgreSQL Database */
@@ -23711,14 +23651,14 @@ export type Subscription_Root = {
   selectRegionsAllowedWorkspaces: Array<Regions_Allowed_Workspace>;
   /** fetch aggregated fields from the table: "regions_allowed_workspace" */
   selectRegionsAllowedWorkspacesAggregate: Regions_Allowed_Workspace_Aggregate;
-  /** fetch data from the table: "sla_levels" */
-  sla_levels: Array<Sla_Levels>;
-  /** fetch aggregated fields from the table: "sla_levels" */
-  sla_levels_aggregate: Sla_Levels_Aggregate;
-  /** fetch data from the table: "sla_levels" using primary key columns */
-  sla_levels_by_pk?: Maybe<Sla_Levels>;
-  /** fetch data from the table in a streaming manner: "sla_levels" */
-  sla_levels_stream: Array<Sla_Levels>;
+  /** fetch data from the table: "sla_level" */
+  sla_level: Array<Sla_Level>;
+  /** fetch aggregated fields from the table: "sla_level" */
+  sla_level_aggregate: Sla_Level_Aggregate;
+  /** fetch data from the table: "sla_level" using primary key columns */
+  sla_level_by_pk?: Maybe<Sla_Level>;
+  /** fetch data from the table in a streaming manner: "sla_level" */
+  sla_level_stream: Array<Sla_Level>;
   /** fetch data from the table: "software_type" using primary key columns */
   softwareType?: Maybe<Software_Type>;
   /** fetch data from the table: "software_type" */
@@ -25166,33 +25106,33 @@ export type Subscription_RootSelectRegionsAllowedWorkspacesAggregateArgs = {
 };
 
 
-export type Subscription_RootSla_LevelsArgs = {
-  distinct_on?: InputMaybe<Array<Sla_Levels_Select_Column>>;
+export type Subscription_RootSla_LevelArgs = {
+  distinct_on?: InputMaybe<Array<Sla_Level_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Sla_Levels_Order_By>>;
-  where?: InputMaybe<Sla_Levels_Bool_Exp>;
+  order_by?: InputMaybe<Array<Sla_Level_Order_By>>;
+  where?: InputMaybe<Sla_Level_Bool_Exp>;
 };
 
 
-export type Subscription_RootSla_Levels_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<Sla_Levels_Select_Column>>;
+export type Subscription_RootSla_Level_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Sla_Level_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Sla_Levels_Order_By>>;
-  where?: InputMaybe<Sla_Levels_Bool_Exp>;
+  order_by?: InputMaybe<Array<Sla_Level_Order_By>>;
+  where?: InputMaybe<Sla_Level_Bool_Exp>;
 };
 
 
-export type Subscription_RootSla_Levels_By_PkArgs = {
-  id: Scalars['Int'];
+export type Subscription_RootSla_Level_By_PkArgs = {
+  value: Scalars['String'];
 };
 
 
-export type Subscription_RootSla_Levels_StreamArgs = {
+export type Subscription_RootSla_Level_StreamArgs = {
   batch_size: Scalars['Int'];
-  cursor: Array<InputMaybe<Sla_Levels_Stream_Cursor_Input>>;
-  where?: InputMaybe<Sla_Levels_Bool_Exp>;
+  cursor: Array<InputMaybe<Sla_Level_Stream_Cursor_Input>>;
+  where?: InputMaybe<Sla_Level_Bool_Exp>;
 };
 
 
@@ -28417,7 +28357,7 @@ export type GetOrganizationsQueryVariables = Exact<{
 }>;
 
 
-export type GetOrganizationsQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, plan: { __typename?: 'plans', id: any, name: string, price: number, deprecated: boolean, individual: boolean, isFree: boolean, featureMaxDbSize: number, slaLevel: number }, apps: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, legacyPlan?: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number } | null, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }>, members: Array<{ __typename?: 'organization_members', id: any, role: Organization_Members_Role_Enum, user: { __typename?: 'users', id: any, email?: any | null, displayName: string, avatarUrl: string } }> }> };
+export type GetOrganizationsQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, plan: { __typename?: 'plans', id: any, name: string, price: number, deprecated: boolean, individual: boolean, isFree: boolean, featureMaxDbSize: number, slaLevel: Sla_Level_Enum }, apps: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, legacyPlan?: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number } | null, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }>, members: Array<{ __typename?: 'organization_members', id: any, role: Organization_Members_Role_Enum, user: { __typename?: 'users', id: any, email?: any | null, displayName: string, avatarUrl: string } }> }> };
 
 export type GetOrganizationPlansQueryVariables = Exact<{ [key: string]: never; }>;
 
