@@ -36,6 +36,9 @@ paths:
                 - $ref: '#/components/schemas/DeleteEventTriggerBulkOperation'
                 - $ref: '#/components/schemas/TestWebhookTransformOperation'
                 - $ref: '#/components/schemas/InvokeEventTriggerOperation'
+                - $ref: '#/components/schemas/GetCronTriggersOperation'
+                - $ref: '#/components/schemas/CreateCronTriggerBulkOperation'
+                - $ref: '#/components/schemas/DeleteCronTriggerOperation'
       responses:
         '200':
           description: Operation executed successfully
@@ -55,6 +58,7 @@ paths:
                   - $ref: '#/components/schemas/GetEventAndInvocationLogsByIdResponse'
                   - $ref: '#/components/schemas/TestWebhookTransformResponse'
                   - $ref: '#/components/schemas/InvokeEventTriggerResponse'
+                  - $ref: '#/components/schemas/GetCronTriggersResponse'
                   - type: array
                     description: List of success messages for bulk operations
                     items:
@@ -231,6 +235,7 @@ components:
         - $ref: '#/components/schemas/AddRemoteSchemaStep'
         - $ref: '#/components/schemas/CreateEventTriggerStep'
         - $ref: '#/components/schemas/DeleteEventTriggerStep'
+        - $ref: '#/components/schemas/CreateCronTriggerStep'
 
     MigrationRequest:
       type: object
@@ -380,6 +385,11 @@ components:
               description: List of remote GraphQL schemas
               items:
                 $ref: '#/components/schemas/RemoteSchemaInfo'
+            cron_triggers:
+              type: array
+              description: List of cron triggers
+              items:
+                $ref: '#/components/schemas/CronTrigger'
           additionalProperties: true
 
     RemoteSchemaInfo:
@@ -1887,3 +1897,138 @@ components:
         event_id:
           type: string
           example: 19cc95ae-1101-4de7-908b-46dc5e9e3bef
+
+    RetryConfCT:
+      allOf:
+        - $ref: '#/components/schemas/RetryConf'
+        - type: object
+          properties:
+            tolerance_seconds:
+              type: integer
+              description: Number of seconds between scheduled time and actual delivery time that is acceptable. If the time difference is more than this, then the event is dropped.
+              default: 21600
+
+    CronTrigger:
+      type: object
+      required:
+        - name
+        - webhook
+        - schedule
+        - include_in_metadata
+      properties:
+        name:
+          type: string
+          description: Name of the cron trigger
+        webhook:
+          type: string
+          description: URL of the webhook. A String value which supports templating environment variables enclosed in {{ and }}.
+          example: '{{SERVICE_URL}}/hooks'
+        schedule:
+          type: string
+          description: Cron expression at which the trigger should be invoked.
+        payload:
+          type: object
+          description: Any JSON payload which will be sent when the webhook is invoked.
+          additionalProperties: true
+        headers:
+          description: List of headers to be sent with the webhook
+          $ref: '#/components/schemas/Headers'
+        retry_conf:
+          description: Retry configuration if scheduled invocation delivery fails
+          $ref: '#/components/schemas/RetryConfCT'
+        include_in_metadata:
+          type: boolean
+          description: Flag to indicate whether a trigger should be included in the metadata. When a cron trigger is included in the metadata, the user will be able to export it when the Metadata of the graphql-engine is exported.
+          default: false
+        comment:
+          type: string
+          description: Custom comment.
+        request_transform:
+          $ref: '#/components/schemas/RequestTransformation'
+        response_transform:
+          $ref: '#/components/schemas/ResponseTransformation'
+
+    CreateCronTriggerArgs:
+      allOf:
+        - $ref: '#/components/schemas/CronTrigger'
+        - type: object
+          properties:
+            replace:
+              type: boolean
+              description: When replace is set to true, the cron trigger will be updated (if exists) and when it's false or the field is omitted, then a new cron trigger will be created.
+
+    GetCronTriggersOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [get_cron_triggers]
+        args:
+          type: object
+          additionalProperties: false
+          default: {}
+
+    GetCronTriggersResponse:
+      type: object
+      required:
+        - cron_triggers
+      properties:
+        cron_triggers:
+          type: array
+          description: List of cron triggers
+          items:
+            $ref: '#/components/schemas/CronTrigger'
+
+    CreateCronTriggerBulkOperation:
+      type: object
+      description: Create a new Cron Trigger or replace an existing Cron Trigger.
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [bulk]
+          description: Type of operation to create cron triggers
+        args:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreateCronTriggerStep'
+
+    CreateCronTriggerStep:
+      description: Create a new Cron Trigger or replace an existing Cron Trigger.
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          description: Type of operation to create cron triggers
+          enum: [create_cron_trigger]
+        args:
+          $ref: '#/components/schemas/CreateCronTriggerArgs'
+
+    DeleteCronTriggerArgs:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Name of the cron trigger
+
+    DeleteCronTriggerOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [delete_cron_trigger]
+        args:
+          $ref: '#/components/schemas/DeleteCronTriggerArgs'

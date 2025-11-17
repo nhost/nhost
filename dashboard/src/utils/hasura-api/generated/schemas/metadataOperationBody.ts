@@ -6,10 +6,13 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { AddRemoteSchemaOperation } from './addRemoteSchemaOperation';
+import type { CreateCronTriggerBulkOperation } from './createCronTriggerBulkOperation';
 import type { CreateEventTriggerBulkOperation } from './createEventTriggerBulkOperation';
+import type { DeleteCronTriggerOperation } from './deleteCronTriggerOperation';
 import type { DeleteEventTriggerBulkOperation } from './deleteEventTriggerBulkOperation';
 import type { DeleteRemoteSchemaRemoteRelationshipOperation } from './deleteRemoteSchemaRemoteRelationshipOperation';
 import type { ExportMetadata } from './exportMetadata';
+import type { GetCronTriggersOperation } from './getCronTriggersOperation';
 import type { GetEventAndInvocationLogsByIdOperation } from './getEventAndInvocationLogsByIdOperation';
 import type { GetEventInvocationLogsOperation } from './getEventInvocationLogsOperation';
 import type { GetEventLogsOperation } from './getEventLogsOperation';
@@ -40,4 +43,7 @@ export type MetadataOperationBody =
   | CreateEventTriggerBulkOperation
   | DeleteEventTriggerBulkOperation
   | TestWebhookTransformOperation
-  | InvokeEventTriggerOperation;
+  | InvokeEventTriggerOperation
+  | GetCronTriggersOperation
+  | CreateCronTriggerBulkOperation
+  | DeleteCronTriggerOperation;
