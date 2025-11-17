@@ -36,14 +36,4 @@ Find the Redirect URL in your project settings -> Sign In Methods after enabling
 
 ## User Sign-In
 
-Use the [Nhost JavaScript client](/reference/javascript) to sign in users:
-
-```js
-nhost.auth.signIn({
-  provider: 'azuread'
-})
-```
-
-<Note>
-To use your own domain for the callback URL refer to the [custom domains](/platform/cloud/custom-domains) documentation.
-</Note>
+Once you've configured Azure AD as an OAuth provider in Nhost, you can sign in users using the Azure AD provider. See the [OAuth Provider Sign-In Guide](/products/auth/providers/sign-in-provider) for detailed implementation instructions including the complete OAuth flow, error handling, and session management.

@@ -17,9 +17,11 @@
     "expo-crypto": "14",
     "expo-document-picker": "13",
     "expo-file-system": "18",
+    "expo-linking": "^8.0.8",
     "expo-router": "~6",
     "expo-sharing": "13",
     "expo-status-bar": "~3.0.8",
+    "metro-minify-terser": "^0.83.3",
     "react": "19.1.0",
     "react-native": "0.81.4"
   },
@@ -27,5 +29,10 @@
     "@types/react": "~19.1.0",
     "typescript": "~5.9.2"
   },
-  "private": true
+  "private": true,
+  "pnpm": {
+    "overrides": {
+      "js-yaml@<=4.1.0": ">=4.1.1"
+    }
+  }
 }
