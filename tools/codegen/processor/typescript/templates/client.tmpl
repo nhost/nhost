@@ -126,6 +126,9 @@ export const createAPIClient = (
     });
   {{- else if .RequestFormData }}
     const formData = new FormData();
+    const isReactNative =
+      typeof navigator !== "undefined" &&
+      (navigator as { product?: string }).product === "ReactNative";
 
     {{- range .RequestFormData.Properties }}
     {{- if eq .Type.Kind "scalar" }}
@@ -138,11 +141,22 @@ export const createAPIClient = (
         {{- if eq .Type.Item.Kind "scalar" }}
           formData.append("{{ .Name }}", value)
         {{- else if eq .Type.Item.Kind "object" }}
-          formData.append(
+          if (isReactNative) {
+            formData.append(
+              "{{ .Name }}",
+              {
+                string: JSON.stringify(value),
+                type: "application/json",
+                name: "",
+              } as unknown as Blob,
+            );
+          } else {
+            formData.append(
             "{{ .Name }}",
-            new Blob([JSON.stringify(value)], { type: "application/json" }),
-            "",
-          )
+              new Blob([JSON.stringify(value)], { type: "application/json" }),
+              "",
+            );
+          }
         {{- else }}
           TODO {{ .Type.Kind }} {{ .Type.Schema.Schema.Type }}
         {{- end }}
@@ -151,11 +165,22 @@ export const createAPIClient = (
     }
     {{- else if eq .Type.Kind "object" }}
     if (body["{{ .Name }}"] !== undefined) {
-      formData.append(
+      if (isReactNative) {
+        formData.append(
+          "{{ .Name }}",
+          {
+            string: JSON.stringify(body["{{ .Name }}"]),
+            type: "application/json",
+            name: "",
+          } as unknown as Blob,
+        );
+      } else {
+        formData.append(
         "{{ .Name }}",
-        new Blob([JSON.stringify(body["{{ .Name }}"])], { type: "application/json" }),
-        "",
-      );
+          new Blob([JSON.stringify(body["{{ .Name }}"])], { type: "application/json" }),
+          "",
+        );
+      }
     }
     {{- else }}
     TODO {{ .Type.Kind }} {{ .Type.Schema.Schema.Type }}
