@@ -29,5 +29,10 @@
     "@types/react": "~19.1.0",
     "typescript": "~5.9.2"
   },
-  "private": true
+  "private": true,
+  "pnpm": {
+    "overrides": {
+      "js-yaml@<=4.1.0": ">=4.1.1"
+    }
+  }
 }
