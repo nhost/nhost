@@ -9,17 +9,14 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/v3/accordion';
-import { Button } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import type { BaseEventTriggerFormTriggerProps } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm';
 import { CreateEventTriggerForm } from '@/features/orgs/projects/events/event-triggers/components/CreateEventTriggerForm';
 import { useGetEventTriggers } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventTriggers';
 import type { EventTriggerViewModel } from '@/features/orgs/projects/events/event-triggers/types';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { Database, Plus } from 'lucide-react';
+import { Database } from 'lucide-react';
 import Image from 'next/image';
-import { useRouter } from 'next/router';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 import EventsBrowserSidebarSkeleton from './EventsBrowserSidebarSkeleton';
 import EventTriggerListItem from './EventTriggerListItem';
@@ -27,24 +24,8 @@ import EventTriggerListItem from './EventTriggerListItem';
 export interface EventsBrowserSidebarProps extends Omit<BoxProps, 'children'> {}
 
 function EventsBrowserSidebarContent() {
-  const router = useRouter();
-  const { orgSlug, appSubdomain, eventTriggerSlug } = router.query;
   const { data, isLoading, error } = useGetEventTriggers();
   const handleDeleteEventTriggerDropdownClick = () => {};
-
-  const renderCreateEventTriggerButton = useCallback(
-    ({ open }: BaseEventTriggerFormTriggerProps) => (
-      <Button
-        variant="ghost"
-        size="icon"
-        aria-label="Add event trigger"
-        onClick={() => open()}
-      >
-        <Plus className="h-5 w-5 text-primary dark:text-foreground" />
-      </Button>
-    ),
-    [],
-  );
 
   if (isLoading) {
     return <EventsBrowserSidebarSkeleton />;
@@ -88,14 +69,7 @@ function EventsBrowserSidebarContent() {
           Event Triggers ({data?.length ?? 0})
         </p>
 
-        <CreateEventTriggerForm
-          trigger={renderCreateEventTriggerButton}
-          onSubmit={(newEventTrigger) => {
-            router.push(
-              `/orgs/${orgSlug}/projects/${appSubdomain}/events/event-trigger/${newEventTrigger.triggerName}`,
-            );
-          }}
-        />
+        <CreateEventTriggerForm />
       </div>
       <div className="flex flex-row gap-2">
         <Accordion
@@ -116,24 +90,13 @@ function EventsBrowserSidebarContent() {
                   <Database className="h-4 w-4 !rotate-0" />
                 </AccordionTrigger>
                 <AccordionContent className="flex flex-col gap-1 text-balance pl-4">
-                  {eventTriggers.map((eventTrigger) => {
-                    const isSelected = eventTrigger.name === eventTriggerSlug;
-                    const href = `/orgs/${orgSlug}/projects/${appSubdomain}/events/event-trigger/${eventTrigger.name}`;
-                    return (
-                      <EventTriggerListItem
-                        key={eventTrigger.name}
-                        eventTrigger={eventTrigger}
-                        href={href}
-                        isSelected={isSelected}
-                        onEditSubmit={(updatedEventTrigger) => {
-                          router.push(
-                            `/orgs/${orgSlug}/projects/${appSubdomain}/events/event-trigger/${updatedEventTrigger.triggerName}`,
-                          );
-                        }}
-                        onDelete={() => handleDeleteEventTriggerDropdownClick()}
-                      />
-                    );
-                  })}
+                  {eventTriggers.map((eventTrigger) => (
+                    <EventTriggerListItem
+                      key={eventTrigger.name}
+                      eventTrigger={eventTrigger}
+                      onDelete={() => handleDeleteEventTriggerDropdownClick()}
+                    />
+                  ))}
                 </AccordionContent>
               </AccordionItem>
             ),

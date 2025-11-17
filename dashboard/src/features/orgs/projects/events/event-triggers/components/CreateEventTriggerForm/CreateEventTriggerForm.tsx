@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/v3/button';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import {
   BaseEventTriggerForm,
@@ -7,19 +8,29 @@ import type { BaseEventTriggerFormValues } from '@/features/orgs/projects/events
 import { useCreateEventTriggerMutation } from '@/features/orgs/projects/events/event-triggers/hooks/useCreateEventTriggerMutation';
 import { buildEventTriggerDTO } from '@/features/orgs/projects/events/event-triggers/utils/buildEventTriggerDTO';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import type { ReactNode } from 'react';
+import { Plus } from 'lucide-react';
+import { useRouter } from 'next/router';
+import { useCallback } from 'react';
 
-export interface CreateEventTriggerFormProps {
-  trigger: (props: BaseEventTriggerFormTriggerProps) => ReactNode;
-  onSubmit: (data: BaseEventTriggerFormValues) => void;
-}
-
-export default function CreateEventTriggerForm({
-  trigger,
-  onSubmit,
-}: CreateEventTriggerFormProps) {
+export default function CreateEventTriggerForm() {
   const { mutateAsync: createEventTrigger } = useCreateEventTriggerMutation();
   const { data: resourceVersion } = useGetMetadataResourceVersion();
+  const router = useRouter();
+  const { orgSlug, appSubdomain } = router.query;
+
+  const renderCreateEventTriggerButton = useCallback(
+    ({ open }: BaseEventTriggerFormTriggerProps) => (
+      <Button
+        variant="ghost"
+        size="icon"
+        aria-label="Add event trigger"
+        onClick={() => open()}
+      >
+        <Plus className="h-5 w-5 text-primary dark:text-foreground" />
+      </Button>
+    ),
+    [],
+  );
 
   const handleSubmit = async (data: BaseEventTriggerFormValues) => {
     const eventTriggerDTO = buildEventTriggerDTO({ formValues: data });
@@ -29,7 +40,9 @@ export default function CreateEventTriggerForm({
           args: eventTriggerDTO,
           resourceVersion: resourceVersion ?? undefined,
         });
-        onSubmit?.(data);
+        router.push(
+          `/orgs/${orgSlug}/projects/${appSubdomain}/events/event-trigger/${data.triggerName}`,
+        );
       },
       {
         loadingMessage: 'Creating event trigger...',
@@ -42,7 +55,7 @@ export default function CreateEventTriggerForm({
 
   return (
     <BaseEventTriggerForm
-      trigger={trigger}
+      trigger={renderCreateEventTriggerButton}
       onSubmit={handleSubmit}
       titleText="Create a New Event Trigger"
       descriptionText="Enter the details to create your event trigger. Click Create when you're done."

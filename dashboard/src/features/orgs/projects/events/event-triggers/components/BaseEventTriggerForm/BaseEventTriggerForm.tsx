@@ -60,7 +60,6 @@ type AccordionSectionValue = (typeof ACCORDION_SECTION_VALUES)[number];
 
 export interface BaseEventTriggerFormTriggerProps {
   open: () => void;
-  close: () => void;
 }
 
 export interface BaseEventTriggerFormProps {
@@ -184,7 +183,7 @@ export default function BaseEventTriggerForm({
     closeForm();
   };
 
-  const triggerNode = trigger({ open: openForm, close: closeForm });
+  const triggerNode = trigger({ open: openForm });
 
   const handleAccordionValueChange = useCallback((value: string[]) => {
     setOpenAccordionSections(value as AccordionSectionValue[]);
