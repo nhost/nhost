@@ -113,7 +113,6 @@ export default async function handler(
         });
       }
 
-      // Get slaLevel from the organization's plan
       slaLevel = resp.body.data.apps[0]?.organization?.plan?.slaLevel ?? null;
     } catch (error) {
       return res.status(400).json({
