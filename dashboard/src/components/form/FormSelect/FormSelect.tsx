@@ -22,6 +22,9 @@ import type {
   PathValue,
 } from 'react-hook-form';
 
+const selectClasses =
+  'aria-[invalid=true]:border-red-500 aria-[invalid=true]:focus:border-red-500 aria-[invalid=true]:focus:ring-red-500';
+
 interface FormSelectProps<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
@@ -105,7 +108,7 @@ function FormSelect<
                 {...selectProps}
               >
                 <FormControl>
-                  <SelectTrigger className={className}>
+                  <SelectTrigger className={cn(selectClasses, className)}>
                     <SelectValue placeholder={placeholder} />
                   </SelectTrigger>
                 </FormControl>

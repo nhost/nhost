@@ -9,30 +9,14 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/v3/accordion';
-import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/v3/dialog';
-import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import type { BaseEventTriggerFormTriggerProps } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm';
 import { CreateEventTriggerForm } from '@/features/orgs/projects/events/event-triggers/components/CreateEventTriggerForm';
-import { useDeleteEventTriggerMutation } from '@/features/orgs/projects/events/event-triggers/hooks/useDeleteEventTriggerMutation';
 import { useGetEventTriggers } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventTriggers';
 import type { EventTriggerViewModel } from '@/features/orgs/projects/events/event-triggers/types';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { isEmptyValue } from '@/lib/utils';
-import { Database, Plus } from 'lucide-react';
+import { Database } from 'lucide-react';
 import Image from 'next/image';
-import { useRouter } from 'next/router';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 import EventsBrowserSidebarSkeleton from './EventsBrowserSidebarSkeleton';
 import EventTriggerListItem from './EventTriggerListItem';
@@ -40,72 +24,7 @@ import EventTriggerListItem from './EventTriggerListItem';
 export interface EventsBrowserSidebarProps extends Omit<BoxProps, 'children'> {}
 
 function EventsBrowserSidebarContent() {
-  const router = useRouter();
-  const { orgSlug, appSubdomain, eventTriggerSlug } = router.query;
   const { data, isLoading, error } = useGetEventTriggers();
-  const renderCreateEventTriggerButton = useCallback(
-    ({ open }: BaseEventTriggerFormTriggerProps) => (
-      <Button
-        variant="ghost"
-        size="icon"
-        aria-label="Add event trigger"
-        onClick={() => open()}
-      >
-        <Plus className="h-5 w-5 text-primary dark:text-foreground" />
-      </Button>
-    ),
-    [],
-  );
-
-  const [showDeleteEventTriggerDialog, setShowDeleteEventTriggerDialog] =
-    useState(false);
-  const [eventTriggerToDelete, setEventTriggerToDelete] = useState<
-    string | null
-  >(null);
-
-  const { mutateAsync: deleteEventTrigger, isLoading: isDeletingEventTrigger } =
-    useDeleteEventTriggerMutation();
-
-  const handleDeleteEventTriggerDropdownClick = (eventTriggerName: string) => {
-    setEventTriggerToDelete(eventTriggerName);
-    setShowDeleteEventTriggerDialog(true);
-  };
-
-  const { data: resourceVersion } = useGetMetadataResourceVersion();
-
-  const handleDeleteDialogClick = async () => {
-    await execPromiseWithErrorToast(
-      async () => {
-        const originalEventTrigger = data?.find(
-          (eventTrigger) => eventTrigger.name === eventTriggerToDelete,
-        );
-
-        if (
-          isEmptyValue(eventTriggerToDelete) ||
-          isEmptyValue(originalEventTrigger)
-        ) {
-          throw new Error(
-            'Error deleting event trigger, no event trigger to delete',
-          );
-        }
-
-        await deleteEventTrigger({
-          originalEventTrigger: originalEventTrigger!,
-          resourceVersion,
-        });
-        if (router.query.eventTriggerSlug === eventTriggerToDelete) {
-          router.push(`/orgs/${orgSlug}/projects/${appSubdomain}/events`);
-        }
-      },
-      {
-        loadingMessage: 'Deleting event trigger...',
-        successMessage: 'Event trigger deleted successfully.',
-        errorMessage: 'An error occurred while deleting the event trigger.',
-      },
-    );
-    setShowDeleteEventTriggerDialog(false);
-    setEventTriggerToDelete(null);
-  };
 
   if (isLoading) {
     return <EventsBrowserSidebarSkeleton />;
@@ -149,14 +68,7 @@ function EventsBrowserSidebarContent() {
           Event Triggers ({data?.length ?? 0})
         </p>
 
-        <CreateEventTriggerForm
-          trigger={renderCreateEventTriggerButton}
-          onSubmit={(newEventTrigger) => {
-            router.push(
-              `/orgs/${orgSlug}/projects/${appSubdomain}/events/event-trigger/${newEventTrigger.triggerName}`,
-            );
-          }}
-        />
+        <CreateEventTriggerForm />
       </div>
       <div className="flex flex-row gap-2">
         <Accordion
@@ -172,77 +84,25 @@ function EventsBrowserSidebarContent() {
                 value={dataSource}
                 id={dataSource}
               >
-                <AccordionTrigger className="flex-row-reverse justify-end gap-2 [&[data-state=closed]>svg:last-child]:-rotate-90 [&[data-state=open]>svg:last-child]:rotate-0">
-                  {dataSource}
-                  <Database className="h-4 w-4 !rotate-0" />
+                <AccordionTrigger className="flex-row-reverse justify-end gap-2 text-sm+ [&[data-state=closed]>svg:last-child]:-rotate-90 [&[data-state=open]>svg:last-child]:rotate-0">
+                  <div className="flex flex-row-reverse items-center gap-2">
+                    {dataSource}
+                    <Database className="size-4 !rotate-0" />
+                  </div>
                 </AccordionTrigger>
                 <AccordionContent className="flex flex-col gap-1 text-balance pl-4">
-                  {eventTriggers.map((eventTrigger) => {
-                    const isSelected = eventTrigger.name === eventTriggerSlug;
-                    const href = `/orgs/${orgSlug}/projects/${appSubdomain}/events/event-trigger/${eventTrigger.name}`;
-                    return (
-                      <EventTriggerListItem
-                        key={eventTrigger.name}
-                        eventTrigger={eventTrigger}
-                        href={href}
-                        isSelected={isSelected}
-                        onEditSubmit={(updatedEventTrigger) => {
-                          router.push(
-                            `/orgs/${orgSlug}/projects/${appSubdomain}/events/event-trigger/${updatedEventTrigger.triggerName}`,
-                          );
-                        }}
-                        onDelete={() =>
-                          handleDeleteEventTriggerDropdownClick(
-                            eventTrigger.name,
-                          )
-                        }
-                      />
-                    );
-                  })}
+                  {eventTriggers.map((eventTrigger) => (
+                    <EventTriggerListItem
+                      key={eventTrigger.name}
+                      eventTrigger={eventTrigger}
+                    />
+                  ))}
                 </AccordionContent>
               </AccordionItem>
             ),
           )}
         </Accordion>
       </div>
-      <Dialog
-        open={showDeleteEventTriggerDialog}
-        onOpenChange={setShowDeleteEventTriggerDialog}
-      >
-        <DialogContent
-          className="sm:max-w-[425px]"
-          hideCloseButton
-          disableOutsideClick={isDeletingEventTrigger}
-        >
-          <DialogHeader>
-            <DialogTitle className="text-foreground">
-              Delete Event Trigger
-            </DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete the{' '}
-              <span className="rounded-md bg-muted px-1 py-0.5 font-mono">
-                {eventTriggerToDelete}
-              </span>{' '}
-              event trigger?
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-2 sm:flex sm:flex-col sm:space-x-0">
-            <ButtonWithLoading
-              variant="destructive"
-              className="!text-sm+ text-white"
-              onClick={handleDeleteDialogClick}
-              loading={isDeletingEventTrigger}
-            >
-              Delete
-            </ButtonWithLoading>
-            <DialogClose asChild>
-              <Button variant="outline" className="!text-sm+ text-foreground">
-                Cancel
-              </Button>
-            </DialogClose>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

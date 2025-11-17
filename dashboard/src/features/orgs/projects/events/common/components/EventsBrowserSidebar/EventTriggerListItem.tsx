@@ -1,102 +1,129 @@
-import { PencilIcon } from '@/components/ui/v2/icons/PencilIcon';
-import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { Button } from '@/components/ui/v3/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/v3/dropdown-menu';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import type { BaseEventTriggerFormTriggerProps } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm';
-import type { BaseEventTriggerFormValues } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerFormTypes';
+import { DeleteEventTriggerDialog } from '@/features/orgs/projects/events/event-triggers/components/DeleteEventTriggerDialog';
 import { EditEventTriggerForm } from '@/features/orgs/projects/events/event-triggers/components/EditEventTriggerForm';
 import type { EventTriggerViewModel } from '@/features/orgs/projects/events/event-triggers/types';
 import { cn } from '@/lib/utils';
-import { Ellipsis } from 'lucide-react';
+import { Ellipsis, SquarePen, Trash2 } from 'lucide-react';
 import Link from 'next/link';
-import { useRef } from 'react';
+import { useRouter } from 'next/router';
+import { useRef, useState } from 'react';
+
+const menuItemClassName =
+  'flex h-9 cursor-pointer items-center gap-2 rounded-none border border-b-1 !text-sm+ font-medium leading-4';
 
 export interface EventTriggerListItemProps {
   eventTrigger: EventTriggerViewModel;
-  href: string;
-  isSelected: boolean;
-  onEditSubmit: (data: BaseEventTriggerFormValues) => void;
-  onDelete: () => void;
 }
 
 export default function EventTriggerListItem({
   eventTrigger,
-  href,
-  isSelected,
-  onEditSubmit,
-  onDelete,
 }: EventTriggerListItemProps) {
+  const router = useRouter();
+  const { orgSlug, appSubdomain, eventTriggerSlug } = router.query;
   const editTriggerRef = useRef<BaseEventTriggerFormTriggerProps | null>(null);
+  const isSelected = eventTrigger.name === eventTriggerSlug;
+  const href = `/orgs/${orgSlug}/projects/${appSubdomain}/events/event-trigger/${eventTrigger.name}`;
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const [showDeleteEventTriggerDialog, setShowDeleteEventTriggerDialog] =
+    useState(false);
 
   return (
     <>
-      <div className="group relative flex">
+      <div className="group pb-1">
         <Button
+          asChild
+          variant="link"
+          size="sm"
           className={cn(
-            'flex h-9 max-w-52 flex-row justify-between gap-2 bg-background px-2 text-foreground hover:bg-accent dark:hover:bg-theme-grey-200',
+            'flex w-full max-w-full justify-between pl-0 text-sm+ hover:bg-accent hover:no-underline',
             {
-              'bg-[#ebf3ff] hover:bg-[#ebf3ff] dark:bg-muted dark:hover:bg-muted':
-                isSelected,
+              'bg-table-selected': isSelected,
             },
           )}
-          asChild
-          variant="ghost"
         >
-          <Link href={href} className="flex w-full items-center gap-2">
-            <TextWithTooltip
-              containerClassName="max-w-36"
-              className={cn(isSelected && 'text-primary hover:text-primary')}
-              text={eventTrigger.name}
-            />
-          </Link>
+          <div className="flex w-full max-w-full items-center">
+            <Link
+              href={href}
+              className={cn(
+                'flex h-full w-[calc(100%-1.6rem)] items-center p-[0.625rem] pr-0 text-left',
+                {
+                  'text-primary-main': isSelected,
+                },
+              )}
+            >
+              <TextWithTooltip
+                containerClassName="w-full"
+                className={cn('!truncate text-sm+', {
+                  'text-primary-main': isSelected,
+                })}
+                text={eventTrigger.name}
+              />
+            </Link>
+
+            <DropdownMenu
+              modal={false}
+              open={isMenuOpen}
+              onOpenChange={setIsMenuOpen}
+            >
+              <DropdownMenuTrigger
+                asChild
+                className={cn(
+                  'relative z-10 opacity-0 transition-opacity group-hover:opacity-100',
+                  {
+                    'opacity-100': isSelected || isMenuOpen,
+                  },
+                )}
+              >
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-6 w-6 border-none bg-transparent px-0 hover:bg-transparent focus-visible:bg-transparent"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                  }}
+                >
+                  <Ellipsis className="size-6" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="start"
+                side="bottom"
+                className="w-52 p-0"
+                forceMount
+              >
+                <DropdownMenuItem
+                  onSelect={() => {
+                    editTriggerRef.current?.open?.();
+                  }}
+                  className={menuItemClassName}
+                >
+                  <SquarePen className="size-4" />
+                  Edit Event Trigger
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onSelect={() => setShowDeleteEventTriggerDialog(true)}
+                  className={cn(
+                    menuItemClassName,
+                    'text-destructive focus:text-destructive',
+                  )}
+                >
+                  <Trash2 className="size-4" />
+                  Delete Event Trigger
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </Button>
-        <DropdownMenu modal={false}>
-          <Button
-            variant="ghost"
-            size="sm"
-            className={cn(
-              'invisible absolute right-2 top-1 h-7 w-7 px-0.5 hover:bg-[#eaedf0] group-hover:visible dark:hover:bg-[#2f363d]',
-              {
-                'visible bg-[#ebf3ff] text-primary hover:bg-[#ebf3ff] hover:text-primary dark:bg-muted dark:hover:bg-muted':
-                  isSelected,
-              },
-            )}
-            onClick={(e) => {
-              e.preventDefault();
-            }}
-            asChild
-          >
-            <DropdownMenuTrigger>
-              <Ellipsis className="h-6 w-6" />
-            </DropdownMenuTrigger>
-          </Button>
-          <DropdownMenuContent align="start" forceMount>
-            <DropdownMenuItem
-              onSelect={() => {
-                editTriggerRef.current?.open?.();
-              }}
-              className="flex cursor-pointer items-center gap-2 !text-sm+ font-medium"
-            >
-              <PencilIcon className="size-4 text-muted-foreground" />
-              Edit Event Trigger
-            </DropdownMenuItem>
-            <DropdownMenuSeparator className="my-0" />
-            <DropdownMenuItem
-              onSelect={onDelete}
-              className="flex cursor-pointer items-center gap-2 !text-sm+ font-medium text-destructive focus:text-destructive"
-            >
-              <TrashIcon className="size-4" />
-              Delete Event Trigger
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
       </div>
       <EditEventTriggerForm
         eventTrigger={eventTrigger}
@@ -104,7 +131,11 @@ export default function EventTriggerListItem({
           editTriggerRef.current = controls;
           return null;
         }}
-        onSubmit={onEditSubmit}
+      />
+      <DeleteEventTriggerDialog
+        open={showDeleteEventTriggerDialog}
+        setOpen={setShowDeleteEventTriggerDialog}
+        eventTriggerToDelete={eventTrigger.name}
       />
     </>
   );

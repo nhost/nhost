@@ -12,19 +12,20 @@ import type { EventTriggerViewModel } from '@/features/orgs/projects/events/even
 import { buildEventTriggerDTO } from '@/features/orgs/projects/events/event-triggers/utils/buildEventTriggerDTO';
 import parseEventTriggerFormInitialData from '@/features/orgs/projects/events/event-triggers/utils/parseEventTriggerFormInitialData/parseEventTriggerFormInitialData';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { useRouter } from 'next/router';
 import { useEffect, useState, type ReactNode } from 'react';
 
 export interface EditEventTriggerFormProps {
   eventTrigger: EventTriggerViewModel;
   trigger: (props: BaseEventTriggerFormTriggerProps) => ReactNode;
-  onSubmit: (data: BaseEventTriggerFormValues) => void;
 }
 
 export default function EditEventTriggerForm({
   eventTrigger,
   trigger,
-  onSubmit,
 }: EditEventTriggerFormProps) {
+  const router = useRouter();
+  const { orgSlug, appSubdomain } = router.query;
   const [initialData, setInitialData] =
     useState<BaseEventTriggerFormInitialData>(() =>
       parseEventTriggerFormInitialData(eventTrigger),
@@ -49,7 +50,9 @@ export default function EditEventTriggerForm({
           resourceVersion: resourceVersion ?? undefined,
         });
         setInitialData(data);
-        onSubmit?.(data);
+        router.push(
+          `/orgs/${orgSlug}/projects/${appSubdomain}/events/event-trigger/${data.triggerName}`,
+        );
       },
       {
         loadingMessage: 'Editing event trigger...',
