@@ -85,9 +85,11 @@ function EventsBrowserSidebarContent() {
                 value={dataSource}
                 id={dataSource}
               >
-                <AccordionTrigger className="flex-row-reverse justify-end gap-2 [&[data-state=closed]>svg:last-child]:-rotate-90 [&[data-state=open]>svg:last-child]:rotate-0">
-                  {dataSource}
-                  <Database className="h-4 w-4 !rotate-0" />
+                <AccordionTrigger className="flex-row-reverse justify-end gap-2 text-sm+ [&[data-state=closed]>svg:last-child]:-rotate-90 [&[data-state=open]>svg:last-child]:rotate-0">
+                  <div className="flex flex-row-reverse items-center gap-2">
+                    {dataSource}
+                    <Database className="size-4 !rotate-0" />
+                  </div>
                 </AccordionTrigger>
                 <AccordionContent className="flex flex-col gap-1 text-balance pl-4">
                   {eventTriggers.map((eventTrigger) => (
