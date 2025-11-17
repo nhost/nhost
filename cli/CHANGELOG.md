@@ -1,3 +1,9 @@
+## [cli@1.34.7] - 2025-11-13
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump nhost/dashboard to 2.42.0 (#3693)
+
 ## [cli@1.34.6] - 2025-11-13
 
 ### 🐛 Bug Fixes

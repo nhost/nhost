@@ -633,16 +633,27 @@ export const createAPIClient = (
   ): Promise<FetchResponse<UploadFilesResponse201>> => {
     const url = `${baseURL}/files`;
     const formData = new FormData();
+    const isReactNative =
+      typeof navigator !== "undefined" &&
+      (navigator as { product?: string }).product === "ReactNative";
     if (body["bucket-id"] !== undefined) {
       formData.append("bucket-id", body["bucket-id"]);
     }
     if (body["metadata[]"] !== undefined) {
       body["metadata[]"].forEach((value) => {
-        formData.append(
-          "metadata[]",
-          new Blob([JSON.stringify(value)], { type: "application/json" }),
-          "",
-        );
+        if (isReactNative) {
+          formData.append("metadata[]", {
+            string: JSON.stringify(value),
+            type: "application/json",
+            name: "",
+          } as unknown as Blob);
+        } else {
+          formData.append(
+            "metadata[]",
+            new Blob([JSON.stringify(value)], { type: "application/json" }),
+            "",
+          );
+        }
       });
     }
     if (body["file[]"] !== undefined) {
@@ -800,14 +811,25 @@ export const createAPIClient = (
   ): Promise<FetchResponse<FileMetadata>> => {
     const url = `${baseURL}/files/${id}`;
     const formData = new FormData();
+    const isReactNative =
+      typeof navigator !== "undefined" &&
+      (navigator as { product?: string }).product === "ReactNative";
     if (body["metadata"] !== undefined) {
-      formData.append(
-        "metadata",
-        new Blob([JSON.stringify(body["metadata"])], {
+      if (isReactNative) {
+        formData.append("metadata", {
+          string: JSON.stringify(body["metadata"]),
           type: "application/json",
-        }),
-        "",
-      );
+          name: "",
+        } as unknown as Blob);
+      } else {
+        formData.append(
+          "metadata",
+          new Blob([JSON.stringify(body["metadata"])], {
+            type: "application/json",
+          }),
+          "",
+        );
+      }
     }
     if (body["file"] !== undefined) {
       formData.append("file", body["file"]);
