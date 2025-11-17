@@ -10,30 +10,28 @@ import {
 } from '@/components/ui/v3/dropdown-menu';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import type { BaseEventTriggerFormTriggerProps } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm';
-import type { BaseEventTriggerFormValues } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerFormTypes';
 import { EditEventTriggerForm } from '@/features/orgs/projects/events/event-triggers/components/EditEventTriggerForm';
 import type { EventTriggerViewModel } from '@/features/orgs/projects/events/event-triggers/types';
 import { cn } from '@/lib/utils';
 import { Ellipsis } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { useRef } from 'react';
 
 export interface EventTriggerListItemProps {
   eventTrigger: EventTriggerViewModel;
-  href: string;
-  isSelected: boolean;
-  onEditSubmit: (data: BaseEventTriggerFormValues) => void;
   onDelete: () => void;
 }
 
 export default function EventTriggerListItem({
   eventTrigger,
-  href,
-  isSelected,
-  onEditSubmit,
   onDelete,
 }: EventTriggerListItemProps) {
+  const router = useRouter();
+  const { orgSlug, appSubdomain, eventTriggerSlug } = router.query;
   const editTriggerRef = useRef<BaseEventTriggerFormTriggerProps | null>(null);
+  const isSelected = eventTrigger.name === eventTriggerSlug;
+  const href = `/orgs/${orgSlug}/projects/${appSubdomain}/events/event-trigger/${eventTrigger.name}`;
 
   return (
     <>
@@ -104,7 +102,6 @@ export default function EventTriggerListItem({
           editTriggerRef.current = controls;
           return null;
         }}
-        onSubmit={onEditSubmit}
       />
     </>
   );
