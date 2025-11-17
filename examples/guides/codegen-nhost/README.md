@@ -2,6 +2,8 @@
 
 This guide demonstrates how to use GraphQL Code Generator with TypedDocumentNode to get full type safety when working with the Nhost SDK.
 
+Note: While the project uses React to illustrate usage, the generated types and documents can be used in any JavaScript/TypeScript environment.
+
 ## Overview
 
 The Nhost SDK's GraphQL client supports `TypedDocumentNode` from `@graphql-typed-document-node/core`, allowing you to use generated types and documents for type-safe GraphQL operations. This guide shows you how to set up GraphQL Code Generator to work seamlessly with Nhost.
@@ -11,11 +13,11 @@ The Nhost SDK's GraphQL client supports `TypedDocumentNode` from `@graphql-typed
 ### 1. Install Dependencies
 
 ```bash
-npm install @nhost/nhost-js graphql
+npm install @nhost/nhost-js graphql graphql-typed-document-node/core
 # or
-yarn add @nhost/nhost-js graphql
+yarn add @nhost/nhost-js graphql graphql-typed-document-node/core
 # or
-pnpm add @nhost/nhost-js graphql
+pnpm add @nhost/nhost-js graphql graphql-typed-document-node/core
 ```
 
 ### 2. Install GraphQL CodeGen
