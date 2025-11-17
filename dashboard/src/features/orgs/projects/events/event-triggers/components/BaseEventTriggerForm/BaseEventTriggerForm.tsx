@@ -29,7 +29,7 @@ import {
   SheetFooter,
   SheetHeader,
   SheetTitle,
-} from '@/components/ui/v3/sheet-drawer';
+} from '@/components/ui/v3/sheet';
 import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
 import { useGetMetadata } from '@/features/orgs/projects/common/hooks/useGetMetadata';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -195,7 +195,8 @@ export default function BaseEventTriggerForm({
       {triggerNode}
       <Sheet open={isSheetOpen} onOpenChange={handleSheetOpenChange}>
         <SheetContent
-          className="w-xl md:w-4xl flex flex-auto flex-col gap-0 sm:max-w-4xl"
+          showOverlay
+          className="w-xl md:w-4xl box flex flex-auto flex-col gap-0 p-0 sm:max-w-4xl"
           onPointerDownOutside={(e) => {
             let element: Element | null = e.target as Element;
             while (element) {
