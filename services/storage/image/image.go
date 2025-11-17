@@ -134,28 +134,23 @@ func exportToTarget(image *vips.Image, target *vips.Target, opts Options) error 
 	case ImageTypeJPEG:
 		jpegOpts := vips.DefaultJpegsaveTargetOptions()
 		jpegOpts.Q = quality
-		jpegOpts.Keep = vips.KeepAll // preserve all metadata
 		err = image.JpegsaveTarget(target, jpegOpts)
 	case ImageTypePNG:
 		pngOpts := vips.DefaultPngsaveTargetOptions()
-		pngOpts.Keep = vips.KeepAll
 		err = image.PngsaveTarget(target, pngOpts)
 	case ImageTypeWEBP:
 		webpOpts := vips.DefaultWebpsaveTargetOptions()
 		webpOpts.Q = quality
-		webpOpts.Keep = vips.KeepAll
 		err = image.WebpsaveTarget(target, webpOpts)
 	case ImageTypeAVIF:
 		heifOpts := vips.DefaultHeifsaveTargetOptions()
 		heifOpts.Q = quality
 		heifOpts.Compression = vips.HeifCompressionAv1
-		heifOpts.Keep = vips.KeepAll
 		err = image.HeifsaveTarget(target, heifOpts)
 	case ImageTypeHEIC:
 		heifOpts := vips.DefaultHeifsaveTargetOptions()
 		heifOpts.Q = quality
 		heifOpts.Compression = vips.HeifCompressionHevc
-		heifOpts.Keep = vips.KeepAll
 		err = image.HeifsaveTarget(target, heifOpts)
 	default:
 		return fmt.Errorf("unsupported format: %d", opts.Format) //nolint: err113
