@@ -1,4 +1,4 @@
-import type { PortTypes } from '@/features/orgs/projects/services/components/ServiceForm/components/PortsFormSection/PortsFormSectionTypes';
+import { PortTypes } from '@/features/orgs/projects/services/components/ServiceForm/components/PortsFormSection/PortsFormSectionTypes';
 import getFormattedServiceConfig from './getFormattedServiceConfig';
 
 describe('getFormattedServiceConfig', () => {
@@ -33,7 +33,7 @@ describe('getFormattedServiceConfig', () => {
       ports: [
         {
           port: 8080,
-          type: 'http' as PortTypes.HTTP,
+          type: PortTypes.HTTP,
           publish: true,
         },
       ],
