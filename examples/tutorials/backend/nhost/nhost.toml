@@ -31,7 +31,7 @@ httpPoolSize = 100
 version = 22
 
 [auth]
-version = '0.41.1'
+version = '0.43.1'
 
 [auth.elevatedPrivileges]
 mode = 'disabled'
@@ -183,7 +183,7 @@ capacity = 1
 [provider]
 
 [storage]
-version = '0.8.0-beta5'
+version = '0.9.1'
 
 [observability]
 [observability.grafana]
