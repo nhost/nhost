@@ -10,27 +10,25 @@ import { buildEventTriggerDTO } from '@/features/orgs/projects/events/event-trig
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { Plus } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { useCallback } from 'react';
+
+const renderCreateEventTriggerButton = ({
+  open,
+}: BaseEventTriggerFormTriggerProps) => (
+  <Button
+    variant="ghost"
+    size="icon"
+    aria-label="Add event trigger"
+    onClick={() => open()}
+  >
+    <Plus className="h-5 w-5 text-primary dark:text-foreground" />
+  </Button>
+);
 
 export default function CreateEventTriggerForm() {
   const { mutateAsync: createEventTrigger } = useCreateEventTriggerMutation();
   const { data: resourceVersion } = useGetMetadataResourceVersion();
   const router = useRouter();
   const { orgSlug, appSubdomain } = router.query;
-
-  const renderCreateEventTriggerButton = useCallback(
-    ({ open }: BaseEventTriggerFormTriggerProps) => (
-      <Button
-        variant="ghost"
-        size="icon"
-        aria-label="Add event trigger"
-        onClick={() => open()}
-      >
-        <Plus className="h-5 w-5 text-primary dark:text-foreground" />
-      </Button>
-    ),
-    [],
-  );
 
   const handleSubmit = async (data: BaseEventTriggerFormValues) => {
     const eventTriggerDTO = buildEventTriggerDTO({ formValues: data });
