@@ -21,23 +21,22 @@ import { ReplicasFormSection } from '@/features/orgs/projects/services/component
 import { StorageFormSection } from '@/features/orgs/projects/services/components/ServiceForm/components/StorageFormSection';
 
 import {
+  defaultServiceFormValues,
   validationSchema,
-  type Port,
   type ServiceFormProps,
   type ServiceFormValues,
 } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
 
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { getFormattedServiceConfig } from '@/features/orgs/projects/services/utils/getFormattedServiceConfig';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
   useInsertRunServiceConfigMutation,
   useReplaceRunServiceConfigMutation,
-  type ConfigRunServiceConfigInsertInput,
 } from '@/utils/__generated__/graphql';
 import { RESOURCE_VCPU_MULTIPLIER } from '@/utils/constants/common';
 import { copy } from '@/utils/copy';
-import { removeTypename } from '@/utils/helpers';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -69,14 +68,7 @@ export default function ServiceForm({
     useState<Error | null>(null);
 
   const form = useForm<ServiceFormValues>({
-    defaultValues: initialData ?? {
-      compute: {
-        cpu: 62,
-        memory: 128,
-      },
-      replicas: 1,
-      autoscaler: null,
-    },
+    defaultValues: initialData ?? defaultServiceFormValues,
     reValidateMode: 'onSubmit',
     resolver: yupResolver(validationSchema),
   });
@@ -142,66 +134,8 @@ export default function ServiceForm({
     onDirtyStateChange(isDirty, location);
   }, [isDirty, location, onDirtyStateChange]);
 
-  const getFormattedConfig = (values: ServiceFormValues) => {
-    // Remove any __typename property from the values
-    const sanitizedValues = removeTypename(values) as ServiceFormValues;
-    const sanitizedInitialDataPorts: Port[] = initialData?.ports
-      ? removeTypename(initialData.ports)
-      : [];
-
-    const config: ConfigRunServiceConfigInsertInput = {
-      name: sanitizedValues.name,
-      image: {
-        image: sanitizedValues.image,
-        pullCredentials: sanitizedValues.pullCredentials,
-      },
-      command: sanitizedValues.command?.map((arg) => arg.argument),
-      resources: {
-        compute: {
-          cpu: sanitizedValues.compute?.cpu,
-          memory: sanitizedValues.compute?.memory,
-        },
-        storage: sanitizedValues.storage?.map((item) => ({
-          name: item.name,
-          path: item.path,
-          capacity: item.capacity,
-        })),
-        replicas: sanitizedValues.replicas,
-        autoscaler: sanitizedValues.autoscaler
-          ? {
-              maxReplicas: sanitizedValues.autoscaler?.maxReplicas,
-            }
-          : null,
-      },
-      environment: sanitizedValues.environment?.map((item) => ({
-        name: item.name,
-        value: item.value,
-      })),
-      ports: sanitizedValues.ports?.map((item) => ({
-        port: item.port,
-        type: item.type,
-        publish: item.publish,
-        ingresses: item.ingresses as any, // cannot be changed on the UI always null type checking can be skipped.
-        rateLimit:
-          sanitizedInitialDataPorts.find(
-            (port) => port.port === item.port && port.type === item.type,
-          )?.rateLimit ?? (null as any), // cannot be changed on the UI always null type checking can be skipped.
-      })),
-      healthCheck: sanitizedValues.healthCheck
-        ? {
-            port: sanitizedValues.healthCheck?.port,
-            initialDelaySeconds:
-              sanitizedValues.healthCheck?.initialDelaySeconds,
-            probePeriodSeconds: sanitizedValues.healthCheck?.probePeriodSeconds,
-          }
-        : null,
-    };
-
-    return config;
-  };
-
   const createOrUpdateService = async (values: ServiceFormValues) => {
-    const config = getFormattedConfig(values);
+    const config = getFormattedServiceConfig({ values, initialData });
 
     if (serviceID) {
       // Update service config
@@ -292,7 +226,10 @@ export default function ServiceForm({
   };
 
   const copyConfig = () => {
-    const config = getFormattedConfig(formValues);
+    const config = getFormattedServiceConfig({
+      values: formValues,
+      initialData,
+    });
 
     const base64Config = btoa(JSON.stringify(config));
 
