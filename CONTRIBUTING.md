@@ -49,4 +49,4 @@ This repository is a monorepo that contains multiple packages and applications. 
 - `tools/codegen` - Internal code generation tool to build the SDK
 - `tools/mintlify-openapi` - Internal tool to generate reference documentation for Mintlify from an OpenAPI spec.
 
-For details about those projects and how to contribure, please refer to their respective `README.md` and `CONTRIBUTING.md` files.
+For details about those projects and how to contribute, please refer to their respective `README.md` and `CONTRIBUTING.md` files.
