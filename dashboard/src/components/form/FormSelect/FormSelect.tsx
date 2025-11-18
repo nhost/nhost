@@ -36,6 +36,7 @@ interface FormSelectProps<
   className?: string;
   inline?: boolean;
   helperText?: string | null;
+  disabled?: boolean;
   transformValue?: (
     value: PathValue<TFieldValues, TName>,
   ) => PathValue<TFieldValues, TName>;
@@ -52,6 +53,7 @@ function FormSelect<
   className = '',
   inline,
   helperText,
+  disabled,
   children,
   transformValue,
 }: PropsWithChildren<FormSelectProps<TFieldValues, TName>>) {
@@ -102,6 +104,7 @@ function FormSelect<
               <Select
                 onValueChange={handleOnChange}
                 value={tValue}
+                disabled={disabled}
                 {...selectProps}
               >
                 <FormControl>
