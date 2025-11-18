@@ -9,27 +9,23 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/v3/accordion';
-import { Button } from '@/components/ui/v3/button';
-import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { CreateEventTriggerForm } from '@/features/orgs/projects/events/event-triggers/components/CreateEventTriggerForm';
 import { useGetEventTriggers } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventTriggers';
 import type { EventTriggerViewModel } from '@/features/orgs/projects/events/event-triggers/types';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { cn } from '@/lib/utils';
-import { Database, Ellipsis, Plus } from 'lucide-react';
+import { Database } from 'lucide-react';
 import Image from 'next/image';
-import Link from 'next/link';
-import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 import EventsBrowserSidebarSkeleton from './EventsBrowserSidebarSkeleton';
+import EventTriggerListItem from './EventTriggerListItem';
 
 export interface EventsBrowserSidebarProps extends Omit<BoxProps, 'children'> {}
 
 function EventsBrowserSidebarContent() {
-  const router = useRouter();
-  const { orgSlug, appSubdomain, eventTriggerSlug } = router.query;
   const { data, isLoading, error } = useGetEventTriggers();
+  const handleDeleteEventTriggerDropdownClick = () => {};
 
   if (isLoading) {
     return <EventsBrowserSidebarSkeleton />;
@@ -73,14 +69,7 @@ function EventsBrowserSidebarContent() {
           Event Triggers ({data?.length ?? 0})
         </p>
 
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="Add event trigger"
-          disabled
-        >
-          <Plus className="h-5 w-5 text-primary dark:text-foreground" />
-        </Button>
+        <CreateEventTriggerForm />
       </div>
       <div className="flex flex-row gap-2">
         <Accordion
@@ -96,53 +85,20 @@ function EventsBrowserSidebarContent() {
                 value={dataSource}
                 id={dataSource}
               >
-                <AccordionTrigger className="flex-row-reverse justify-end gap-2 [&[data-state=closed]>svg:last-child]:-rotate-90 [&[data-state=open]>svg:last-child]:rotate-0">
-                  {dataSource}
-                  <Database className="h-4 w-4 !rotate-0" />
+                <AccordionTrigger className="flex-row-reverse justify-end gap-2 text-sm+ [&[data-state=closed]>svg:last-child]:-rotate-90 [&[data-state=open]>svg:last-child]:rotate-0">
+                  <div className="flex flex-row-reverse items-center gap-2">
+                    {dataSource}
+                    <Database className="size-4 !rotate-0" />
+                  </div>
                 </AccordionTrigger>
                 <AccordionContent className="flex flex-col gap-1 text-balance pl-4">
-                  {eventTriggers.map((eventTrigger) => {
-                    const isSelected = eventTrigger.name === eventTriggerSlug;
-                    return (
-                      <Button
-                        className={cn(
-                          'flex h-9 max-w-52 flex-row justify-between gap-2 bg-background px-2 text-foreground hover:bg-accent dark:hover:bg-muted',
-                          isSelected &&
-                            'bg-[#ebf3ff] hover:bg-[#ebf3ff] dark:bg-muted',
-                        )}
-                        key={eventTrigger.name}
-                        asChild
-                        variant="ghost"
-                      >
-                        <Link
-                          href={`/orgs/${orgSlug}/projects/${appSubdomain}/events/event-trigger/${eventTrigger.name}`}
-                          className="flex w-full items-center gap-2"
-                        >
-                          <TextWithTooltip
-                            containerClassName="max-w-36"
-                            className={cn(
-                              isSelected && 'text-primary hover:text-primary',
-                            )}
-                            text={eventTrigger.name}
-                          />
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className={cn(
-                              'px-1 hover:bg-accent/90 dark:hover:bg-muted/90',
-                              isSelected && 'text-primary hover:text-primary',
-                            )}
-                            onClick={(e) => {
-                              e.preventDefault();
-                            }}
-                            disabled
-                          >
-                            <Ellipsis className="h-6 w-6" />
-                          </Button>
-                        </Link>
-                      </Button>
-                    );
-                  })}
+                  {eventTriggers.map((eventTrigger) => (
+                    <EventTriggerListItem
+                      key={eventTrigger.name}
+                      eventTrigger={eventTrigger}
+                      onDelete={() => handleDeleteEventTriggerDropdownClick()}
+                    />
+                  ))}
                 </AccordionContent>
               </AccordionItem>
             ),

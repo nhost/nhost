@@ -6,4 +6,7 @@
  * OpenAPI spec version: 1.0.0
  */
 
+/**
+ * A map of Header Key Value pairs to be added to the request.
+ */
 export type TransformHeadersAddHeaders = { [key: string]: string };

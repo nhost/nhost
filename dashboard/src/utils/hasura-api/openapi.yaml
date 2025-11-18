@@ -32,6 +32,9 @@ paths:
                 - $ref: '#/components/schemas/GetEventLogsOperation'
                 - $ref: '#/components/schemas/GetEventAndInvocationLogsByIdOperation'
                 - $ref: '#/components/schemas/RedeliverEventOperation'
+                - $ref: '#/components/schemas/CreateEventTriggerBulkOperation'
+                - $ref: '#/components/schemas/DeleteEventTriggerBulkOperation'
+                - $ref: '#/components/schemas/TestWebhookTransformOperation'
       responses:
         '200':
           description: Operation executed successfully
@@ -49,12 +52,31 @@ paths:
                   - $ref: '#/components/schemas/GetEventInvocationLogsResponse'
                   - $ref: '#/components/schemas/GetEventLogsResponse'
                   - $ref: '#/components/schemas/GetEventAndInvocationLogsByIdResponse'
+                  - $ref: '#/components/schemas/TestWebhookTransformResponse'
+                  - type: array
+                    description: List of success messages for bulk operations
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                          example: success
+
         '400':
           description: Bad request
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
         '500':
           description: Internal server error
           content:
@@ -175,6 +197,29 @@ components:
         args:
           $ref: '#/components/schemas/RemoveRemoteSchemaArgs'
 
+    DeleteEventTriggerStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_delete_event_trigger]
+        args:
+          type: object
+          required:
+            - name
+          properties:
+            name:
+              type: string
+              description: Name of the Event Trigger
+              example: my_event_trigger
+            source:
+              type: string
+              description: Name of the source database of the trigger
+              default: default
+
     MigrationStep:
       oneOf:
         - $ref: '#/components/schemas/AddRemoteSchemaPermissionsStep'
@@ -182,6 +227,8 @@ components:
         - $ref: '#/components/schemas/UpdateRemoteSchemaStep'
         - $ref: '#/components/schemas/RemoveRemoteSchemaStep'
         - $ref: '#/components/schemas/AddRemoteSchemaStep'
+        - $ref: '#/components/schemas/CreateEventTriggerStep'
+        - $ref: '#/components/schemas/DeleteEventTriggerStep'
 
     MigrationRequest:
       type: object
@@ -556,7 +603,7 @@ components:
           example: X-Hasura-User-Id
         value_from_env:
           type: string
-          description: Environment variable name to get the value from
+          description: Name of the environment variable which holds the value of the header
           example: HASURA_USER_ID
 
     AddRemoteSchemaArgs:
@@ -1026,6 +1073,7 @@ components:
       required:
         - name
         - definition
+        - retry_conf
       properties:
         name:
           type: string
@@ -1073,13 +1121,16 @@ components:
 
     OperationSpec:
       type: object
+      nullable: true
       description: Operation specification
       required:
         - columns
       properties:
         columns:
+          description: List of columns or "*" to listen to changes
           $ref: '#/components/schemas/EventTriggerColumns'
         payload:
+          description: List of columns or "*" to send as part of webhook payload
           $ref: '#/components/schemas/EventTriggerColumns'
 
     EventTriggerColumns:
@@ -1126,10 +1177,14 @@ components:
         url:
           description: Change the request URL to this value.
           type: string
+          example: '{{$base_url}}/something'
         content_type:
+          description: Replace the Content-Type with this value.
           type: string
           enum: ['application/json', 'application/x-www-form-urlencoded']
+          default: application/json
         request_headers:
+          description: Request Header Transformation.
           $ref: '#/components/schemas/TransformHeaders'
         query_params:
           description: Replace the query params on the URL with this value. You can specify a dictionary of key/value pairs which is converted into a query string or directly give a query string.
@@ -1138,9 +1193,10 @@ components:
               description: Query params as key-value pairs
               additionalProperties:
                 type: string
-              example: { key: value }
+              example: '{ "search": "value" }'
             - type: string
-              description: URL String with Kriti template
+              description: Query string that comes from Kriti template
+              example: 'urlstringquery=hello&urlstringquery2=hello2 OR myuserid={{concat(["userId=","asd"])}}'
         template_engine:
           description: Template language to be used for this transformation.
           type: string
@@ -1148,19 +1204,44 @@ components:
           default: Kriti
         body:
           description: A template script for transforming the request body.
-          $ref: '#/components/schemas/BodyTransform'
+          oneOf:
+            - type: string
+            - $ref: '#/components/schemas/BodyTransform'
+
+    ResponseTransformation:
+      type: object
+      properties:
+        version:
+          description: Sets the ResponseTransformation schema version. Version 1 uses a String for the body field and Version 2 takes a BodyTransform.
+          type: string
+          enum: ['1', '2']
+          default: '1'
+        body:
+          description: A template script for transforming the response body.
+          oneOf:
+            - type: string
+            - $ref: '#/components/schemas/BodyTransform'
+        template_engine:
+          description: Template language to be used for this transformation.
+          type: string
+          enum: [Kriti]
+          default: Kriti
 
     TransformHeaders:
       type: object
-      description: Request headers transformation
       properties:
         add_headers:
+          description: A map of Header Key Value pairs to be added to the request.
           type: object
           additionalProperties:
             type: string
+          example: '{content-type: "application/x-www-form-urlencoded"}'
         remove_headers:
+          description: Headers to be removed from the request.
           type: array
+          example: ['content-type']
           items:
+            description: Header key
             type: string
 
     BodyTransform:
@@ -1177,7 +1258,7 @@ components:
           type: string
           description: The transformation template to be applied to the body. This is required if the action is transform.
         form_template:
-          description: Key-value template used when action is 'x_www_form_urlencoded'
+          description: The key/value pairs to be used in a x-www-url-formencoded body. The values can be transfomation templates.
           type: object
           additionalProperties:
             type: string
@@ -1575,3 +1656,193 @@ components:
           type: string
           description: UUID of the event
           example: 6301c9e1-b649-4861-9419-68b4cbf9382a
+
+    CreateEventTriggerArgs:
+      type: object
+      required:
+        - name
+        - table
+        - webhook
+        - webhook_from_env
+        - insert
+        - update
+        - delete
+        - retry_conf
+        - enable_manual
+        - headers
+        - replace
+      properties:
+        name:
+          type: string
+          description: Name of the Event Trigger
+        table:
+          description: Object with table name and schema
+          $ref: '#/components/schemas/QualifiedTable'
+        source:
+          type: string
+          description: Name of the source database of the table
+          default: default
+        webhook:
+          type: string
+          nullable: true
+          description: Webhook URL. Supports template variables like {{ENV_VAR}}/some/path
+          example: '{{SERVICE_URL}}/hooks'
+        webhook_from_env:
+          type: string
+          nullable: true
+          description: Environment variable containing the webhook URL
+          example: SERVICE_ENDPOINT
+        insert:
+          description: Specification for the insert operation
+          $ref: '#/components/schemas/OperationSpec'
+        update:
+          description: Specification for the update operation
+          $ref: '#/components/schemas/OperationSpec'
+        delete:
+          description: Specification for the delete operation
+          $ref: '#/components/schemas/OperationSpec'
+        headers:
+          description: List of headers to be sent with the webhook
+          $ref: '#/components/schemas/Headers'
+        retry_conf:
+          description: Retry configuration if event delivery fails
+          $ref: '#/components/schemas/RetryConf'
+        replace:
+          type: boolean
+          description: If set to true, the Event Trigger is replaced with the new definition
+        enable_manual:
+          type: boolean
+          description: If set to true, the Event Trigger can be invoked manually
+        request_transform:
+          description: Attaches a Request Transformation to the Event Trigger.
+          $ref: '#/components/schemas/RequestTransformation'
+        response_transform:
+          description: Attaches a Response Transformation to the Event Trigger.
+          $ref: '#/components/schemas/ResponseTransformation'
+        trigger_on_replication:
+          type: boolean
+          description: Specification for enabling/disabling the Event Trigger during logical replication
+          default: false
+
+    CreateEventTriggerBulkOperation:
+      type: object
+      description: Create a new Event Trigger or replace an existing Event Trigger.
+      required:
+        - type
+        - source
+        - args
+      properties:
+        type:
+          type: string
+          enum: [bulk]
+          description: Type of operation to create event triggers
+        args:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreateEventTriggerStep'
+        source:
+          type: string
+          description: Source of the operation
+          example: default
+        resource_version:
+          type: integer
+          description: Version of the resource that you are targeting for replacement
+          example: 1
+
+    CreateEventTriggerStep:
+      description: Create a new Event Trigger or replace an existing Event Trigger.
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          description: Type of operation to create event triggers
+          enum: [pg_create_event_trigger]
+        args:
+          $ref: '#/components/schemas/CreateEventTriggerArgs'
+
+    DeleteEventTriggerBulkOperation:
+      type: object
+      required:
+        - type
+        - args
+        - source
+      properties:
+        type:
+          type: string
+          enum: [bulk]
+          description: Execute multiple operations in a single query
+        source:
+          type: string
+          description: Source of the operation
+          example: default
+        resource_version:
+          type: integer
+          description: Resource version of the operation
+          example: 1
+        args:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeleteEventTriggerStep'
+
+    TestWebhookTransformOperation:
+      type: object
+      description: Operation used to test out request transformations using mock data.
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [test_webhook_transform]
+        args:
+          $ref: '#/components/schemas/TestWebhookTransformArgs'
+
+    TestWebhookTransformArgs:
+      type: object
+      required:
+        - webhook_url
+        - body
+        - env
+        - request_transform
+        - session_variables
+      properties:
+        webhook_url:
+          description: Webhook URL to be tested
+          type: string
+        body:
+          type: object
+          additionalProperties: true
+        env:
+          type: object
+          description: Sample Context environment variables for testing the connector
+          additionalProperties:
+            type: string
+        request_transform:
+          $ref: '#/components/schemas/RequestTransformation'
+        session_variables:
+          type: object
+          additionalProperties:
+            type: string
+
+    TestWebhookTransformResponse:
+      type: object
+      required:
+        - body
+        - headers
+        - method
+        - webhook_url
+      properties:
+        body:
+          type: object
+          description: Transformed request body for preview
+          additionalProperties: true
+        headers:
+          $ref: '#/components/schemas/Headers'
+        method:
+          type: string
+        webhook_url:
+          type: string
+          description: Webhook URL for transform preview

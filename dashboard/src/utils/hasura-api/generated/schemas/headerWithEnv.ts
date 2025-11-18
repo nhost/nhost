@@ -9,6 +9,6 @@
 export interface HeaderWithEnv {
   /** Name of the header */
   name: string;
-  /** Environment variable name to get the value from */
+  /** Name of the environment variable which holds the value of the header */
   value_from_env: string;
 }
