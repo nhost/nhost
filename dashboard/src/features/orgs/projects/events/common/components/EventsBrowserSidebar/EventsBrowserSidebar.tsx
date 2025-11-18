@@ -25,7 +25,6 @@ export interface EventsBrowserSidebarProps extends Omit<BoxProps, 'children'> {}
 
 function EventsBrowserSidebarContent() {
   const { data, isLoading, error } = useGetEventTriggers();
-  const handleDeleteEventTriggerDropdownClick = () => {};
 
   if (isLoading) {
     return <EventsBrowserSidebarSkeleton />;
@@ -96,7 +95,6 @@ function EventsBrowserSidebarContent() {
                     <EventTriggerListItem
                       key={eventTrigger.name}
                       eventTrigger={eventTrigger}
-                      onDelete={() => handleDeleteEventTriggerDropdownClick()}
                     />
                   ))}
                 </AccordionContent>

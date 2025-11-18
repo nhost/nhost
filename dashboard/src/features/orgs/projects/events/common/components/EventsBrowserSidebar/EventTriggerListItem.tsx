@@ -7,6 +7,7 @@ import {
 } from '@/components/ui/v3/dropdown-menu';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import type { BaseEventTriggerFormTriggerProps } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm';
+import { DeleteEventTriggerDialog } from '@/features/orgs/projects/events/event-triggers/components/DeleteEventTriggerDialog';
 import { EditEventTriggerForm } from '@/features/orgs/projects/events/event-triggers/components/EditEventTriggerForm';
 import type { EventTriggerViewModel } from '@/features/orgs/projects/events/event-triggers/types';
 import { cn } from '@/lib/utils';
@@ -20,12 +21,10 @@ const menuItemClassName =
 
 export interface EventTriggerListItemProps {
   eventTrigger: EventTriggerViewModel;
-  onDelete: () => void;
 }
 
 export default function EventTriggerListItem({
   eventTrigger,
-  onDelete,
 }: EventTriggerListItemProps) {
   const router = useRouter();
   const { orgSlug, appSubdomain, eventTriggerSlug } = router.query;
@@ -33,6 +32,9 @@ export default function EventTriggerListItem({
   const isSelected = eventTrigger.name === eventTriggerSlug;
   const href = `/orgs/${orgSlug}/projects/${appSubdomain}/events/event-trigger/${eventTrigger.name}`;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const [showDeleteEventTriggerDialog, setShowDeleteEventTriggerDialog] =
+    useState(false);
 
   return (
     <>
@@ -109,7 +111,7 @@ export default function EventTriggerListItem({
                   Edit Event Trigger
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  onSelect={onDelete}
+                  onSelect={() => setShowDeleteEventTriggerDialog(true)}
                   className={cn(
                     menuItemClassName,
                     'text-destructive focus:text-destructive',
@@ -129,6 +131,11 @@ export default function EventTriggerListItem({
           editTriggerRef.current = controls;
           return null;
         }}
+      />
+      <DeleteEventTriggerDialog
+        open={showDeleteEventTriggerDialog}
+        setOpen={setShowDeleteEventTriggerDialog}
+        eventTriggerToDelete={eventTrigger.name}
       />
     </>
   );
