@@ -18,7 +18,7 @@ export interface EventTrigger {
   name: string;
   definition: EventTriggerDefinition;
   /** Retry configuration if event delivery fails */
-  retry_conf?: RetryConf;
+  retry_conf: RetryConf;
   /** Event Trigger Webhook URL. A String value which supports templating environment variables enclosed in {{ and }}. */
   webhook?: string;
   /** Environment variable name of webhook (Deprecated in favour of WebhookURL) */

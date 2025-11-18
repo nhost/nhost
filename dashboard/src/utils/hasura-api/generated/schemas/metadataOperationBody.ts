@@ -6,6 +6,8 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { AddRemoteSchemaOperation } from './addRemoteSchemaOperation';
+import type { CreateEventTriggerBulkOperation } from './createEventTriggerBulkOperation';
+import type { DeleteEventTriggerBulkOperation } from './deleteEventTriggerBulkOperation';
 import type { DeleteRemoteSchemaRemoteRelationshipOperation } from './deleteRemoteSchemaRemoteRelationshipOperation';
 import type { ExportMetadata } from './exportMetadata';
 import type { GetEventAndInvocationLogsByIdOperation } from './getEventAndInvocationLogsByIdOperation';
@@ -17,6 +19,7 @@ import type { ReloadRemoteSchemaOperation } from './reloadRemoteSchemaOperation'
 import type { RemoteSchemaPermissionsBulkOperation } from './remoteSchemaPermissionsBulkOperation';
 import type { RemoteSchemaRemoteRelationshipOperation } from './remoteSchemaRemoteRelationshipOperation';
 import type { RemoveRemoteSchemaOperation } from './removeRemoteSchemaOperation';
+import type { TestWebhookTransformOperation } from './testWebhookTransformOperation';
 import type { UpdateRemoteSchemaBulkOperation } from './updateRemoteSchemaBulkOperation';
 
 export type MetadataOperationBody =
@@ -32,4 +35,7 @@ export type MetadataOperationBody =
   | GetEventInvocationLogsOperation
   | GetEventLogsOperation
   | GetEventAndInvocationLogsByIdOperation
-  | RedeliverEventOperation;
+  | RedeliverEventOperation
+  | CreateEventTriggerBulkOperation
+  | DeleteEventTriggerBulkOperation
+  | TestWebhookTransformOperation;

@@ -46,6 +46,11 @@ describe('parseEventTriggersFromMetadata', () => {
                     },
                   },
                   webhook: 'https://httpbin.org/post',
+                  retry_conf: {
+                    interval_sec: 10,
+                    num_retries: 0,
+                    timeout_sec: 60,
+                  },
                 },
               ],
             },
@@ -69,6 +74,11 @@ describe('parseEventTriggersFromMetadata', () => {
         },
       },
       webhook: 'https://httpbin.org/post',
+      retry_conf: {
+        interval_sec: 10,
+        num_retries: 0,
+        timeout_sec: 60,
+      },
     };
 
     expect(result[0]).toEqual(expected);
@@ -94,6 +104,11 @@ describe('parseEventTriggersFromMetadata', () => {
                     },
                   },
                   webhook: 'https://example.com/user-webhook',
+                  retry_conf: {
+                    interval_sec: 10,
+                    num_retries: 0,
+                    timeout_sec: 60,
+                  },
                 },
                 {
                   name: 'user_updated',
@@ -104,6 +119,11 @@ describe('parseEventTriggersFromMetadata', () => {
                     },
                   },
                   webhook: 'https://example.com/user-update-webhook',
+                  retry_conf: {
+                    interval_sec: 10,
+                    num_retries: 0,
+                    timeout_sec: 60,
+                  },
                 },
               ],
             },
@@ -120,6 +140,11 @@ describe('parseEventTriggersFromMetadata', () => {
                     insert: {
                       columns: '*',
                     },
+                  },
+                  retry_conf: {
+                    interval_sec: 10,
+                    num_retries: 0,
+                    timeout_sec: 60,
                   },
                   webhook: 'https://example.com/order-webhook',
                 },
@@ -143,6 +168,11 @@ describe('parseEventTriggersFromMetadata', () => {
                     },
                   },
                   webhook: 'https://example.com/analytics-webhook',
+                  retry_conf: {
+                    interval_sec: 10,
+                    num_retries: 0,
+                    timeout_sec: 60,
+                  },
                 },
               ],
             },
@@ -166,6 +196,11 @@ describe('parseEventTriggersFromMetadata', () => {
         },
       },
       webhook: 'https://example.com/user-webhook',
+      retry_conf: {
+        interval_sec: 10,
+        num_retries: 0,
+        timeout_sec: 60,
+      },
     });
 
     expect(result[1]).toEqual({
@@ -179,6 +214,11 @@ describe('parseEventTriggersFromMetadata', () => {
         },
       },
       webhook: 'https://example.com/user-update-webhook',
+      retry_conf: {
+        interval_sec: 10,
+        num_retries: 0,
+        timeout_sec: 60,
+      },
     });
 
     expect(result[2]).toEqual({
@@ -192,6 +232,11 @@ describe('parseEventTriggersFromMetadata', () => {
         },
       },
       webhook: 'https://example.com/order-webhook',
+      retry_conf: {
+        interval_sec: 10,
+        num_retries: 0,
+        timeout_sec: 60,
+      },
     });
 
     expect(result[3]).toEqual({
@@ -205,6 +250,115 @@ describe('parseEventTriggersFromMetadata', () => {
         },
       },
       webhook: 'https://example.com/analytics-webhook',
+      retry_conf: {
+        interval_sec: 10,
+        num_retries: 0,
+        timeout_sec: 60,
+      },
+    });
+  });
+
+  it('should parse event trigger with additional properties that are not implemented in the dashboard form (e.g. cleanup config)', () => {
+    const metadata: ExportMetadataResponseMetadata = {
+      version: 3,
+      sources: [
+        {
+          name: 'default',
+          kind: 'postgres',
+          tables: [
+            {
+              table: { name: 'table1', schema: 'public' },
+              event_triggers: [
+                {
+                  name: 'trigger-delete-table1',
+                  definition: {
+                    delete: {
+                      columns: '*',
+                    },
+                    enable_manual: false,
+                  },
+                  retry_conf: {
+                    interval_sec: 10,
+                    num_retries: 0,
+                    timeout_sec: 60,
+                  },
+                  webhook_from_env: 'TRIGGER_ENDPOINT',
+                  headers: [
+                    {
+                      name: 'custom-header',
+                      value_from_env: 'CUSTOM_HEADER_VALUE',
+                    },
+                  ],
+                  request_transform: {
+                    body: {
+                      action: 'transform',
+                      template:
+                        '{\n  "table": {\n    "name": {{$body.table.name}},\n    "schema": {{$body.table.schema}}\n  }\n}',
+                    },
+                    query_params: {},
+                    template_engine: 'Kriti',
+                    version: 2,
+                  },
+                  cleanup_config: {
+                    batch_size: 20000,
+                    clean_invocation_logs: false,
+                    clear_older_than: 100,
+                    paused: true,
+                    schedule: '0 * * * 0',
+                    timeout: 60,
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = parseEventTriggersFromMetadata(metadata);
+
+    expect(result).toHaveLength(1);
+
+    expect(result[0]).toEqual({
+      name: 'trigger-delete-table1',
+      dataSource: 'default',
+      table: { name: 'table1', schema: 'public' },
+      definition: {
+        delete: {
+          columns: '*',
+        },
+        enable_manual: false,
+      },
+      retry_conf: {
+        interval_sec: 10,
+        num_retries: 0,
+        timeout_sec: 60,
+      },
+      webhook_from_env: 'TRIGGER_ENDPOINT',
+      headers: [
+        {
+          name: 'custom-header',
+          value_from_env: 'CUSTOM_HEADER_VALUE',
+        },
+      ],
+      cleanup_config: {
+        batch_size: 20000,
+        clean_invocation_logs: false,
+        clear_older_than: 100,
+        paused: true,
+        schedule: '0 * * * 0',
+        timeout: 60,
+      },
+      request_transform: {
+        body: {
+          action: 'transform',
+          template:
+            '{\n  "table": {\n    "name": {{$body.table.name}},\n    "schema": {{$body.table.schema}}\n  }\n}',
+        },
+        query_params: {},
+        template_engine: 'Kriti',
+        version: 2,
+      },
     });
   });
 });

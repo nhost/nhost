@@ -17,6 +17,30 @@ export default function EventTriggerOverview({
 }) {
   const [isTransformOpen, setIsTransformOpen] = useState(false);
   const [isHeadersOpen, setIsHeadersOpen] = useState(false);
+
+  const queryParams = eventTrigger.request_transform?.query_params;
+  let queryParamsDisplay = '';
+  if (typeof queryParams === 'string') {
+    queryParamsDisplay = queryParams;
+  } else if (queryParams) {
+    queryParamsDisplay = Object.entries(queryParams)
+      .map(
+        ([key, value]) =>
+          `${encodeURIComponent(key)}=${encodeURIComponent(value)}`,
+      )
+      .join('&');
+  }
+
+  const bodyTransform = eventTrigger.request_transform?.body;
+  let bodyTransformDisplay = '';
+  if (typeof bodyTransform === 'string') {
+    bodyTransformDisplay = bodyTransform;
+  } else if (bodyTransform) {
+    bodyTransformDisplay = Object.entries(bodyTransform.form_template ?? {})
+      .map(([key, value]) => `${key}: ${value}`)
+      .join('\n');
+  }
+
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -149,14 +173,16 @@ export default function EventTriggerOverview({
             <CollapsibleContent>
               <div className="space-y-4 border-t border-gray-200 p-4 pt-4 dark:border-gray-700">
                 <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-gray-600 dark:text-gray-400">
-                      Method:{' '}
-                    </span>
-                    <span className="font-mono text-gray-900 dark:text-gray-100">
-                      {eventTrigger.request_transform?.method}
-                    </span>
-                  </div>
+                  {eventTrigger.request_transform?.method && (
+                    <div>
+                      <span className="text-gray-600 dark:text-gray-400">
+                        Method:{' '}
+                      </span>
+                      <span className="font-mono text-gray-900 dark:text-gray-100">
+                        {eventTrigger.request_transform.method}
+                      </span>
+                    </div>
+                  )}
                   <div>
                     <span className="text-gray-600 dark:text-gray-400">
                       Template Engine:{' '}
@@ -167,36 +193,45 @@ export default function EventTriggerOverview({
                   </div>
                 </div>
 
-                <div className="text-sm">
-                  <div className="mb-1 font-medium text-gray-900 dark:text-gray-100">
-                    URL Template:
+                {eventTrigger.request_transform?.url && (
+                  <div className="text-sm">
+                    <div className="mb-1 font-medium text-gray-900 dark:text-gray-100">
+                      URL Template:
+                    </div>
+                    <div className="rounded p-2 font-mono text-xs text-gray-900 dark:text-gray-100">
+                      {eventTrigger.request_transform?.url}
+                    </div>
                   </div>
-                  <div className="rounded p-2 font-mono text-xs text-gray-900 dark:text-gray-100">
-                    {eventTrigger.request_transform?.url}
-                  </div>
-                </div>
+                )}
 
-                <div className="text-sm">
-                  <div className="mb-1 font-medium text-gray-900 dark:text-gray-100">
-                    Query Parameters:
+                {queryParamsDisplay && (
+                  <div className="text-sm">
+                    <div className="mb-1 font-medium text-gray-900 dark:text-gray-100">
+                      Query Parameters:
+                    </div>
+                    <div className="rounded p-2 font-mono text-xs text-gray-900 dark:text-gray-100">
+                      {queryParamsDisplay}
+                    </div>
                   </div>
-                  <div className="rounded p-2 font-mono text-xs text-gray-900 dark:text-gray-100">
-                    {eventTrigger.request_transform?.query_params?.toString()}
-                  </div>
-                </div>
+                )}
 
-                <div className="text-sm">
-                  <div className="mb-1 font-medium text-gray-900 dark:text-gray-100">
-                    Body Template:
+                {bodyTransformDisplay && (
+                  <div className="text-sm">
+                    <div className="mb-1 font-medium text-gray-900 dark:text-gray-100">
+                      Body Template:
+                    </div>
+                    <div className="whitespace-pre-wrap rounded bg-gray-100 p-2 font-mono text-xs text-gray-900 dark:bg-gray-700 dark:text-gray-100">
+                      {bodyTransformDisplay}
+                    </div>
                   </div>
-                  <div className="whitespace-pre-wrap rounded bg-gray-100 p-2 font-mono text-xs text-gray-900 dark:bg-gray-700 dark:text-gray-100">
-                    {eventTrigger.request_transform.body?.template}
-                  </div>
-                </div>
+                )}
 
                 <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400">
                   <span>
-                    Action: {eventTrigger.request_transform.body?.action}
+                    Action:{' '}
+                    {typeof eventTrigger.request_transform.body === 'object'
+                      ? eventTrigger.request_transform.body?.action
+                      : 'N/A'}
                   </span>
                   <span>Version: {eventTrigger.request_transform.version}</span>
                 </div>
