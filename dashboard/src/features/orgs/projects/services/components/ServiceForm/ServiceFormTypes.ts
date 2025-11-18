@@ -87,6 +87,15 @@ export type ServiceFormInitialData = Omit<ServiceFormValues, 'ports'> & {
   }[];
 };
 
+export const defaultServiceFormValues = {
+  compute: {
+    cpu: 62,
+    memory: 128,
+  },
+  replicas: 1,
+  autoscaler: null,
+};
+
 export interface ServiceFormProps extends DialogFormProps {
   /**
    * To use in conjunction with initialData to allow for updating the service

@@ -11,16 +11,12 @@ import { ServicesIcon } from '@/components/ui/v2/icons/ServicesIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import {
-  useRunServices,
-  type RunServiceConfig,
-} from '@/features/orgs/projects/common/hooks/useRunServices';
+import { useRunServices } from '@/features/orgs/projects/common/hooks/useRunServices';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { ServiceForm } from '@/features/orgs/projects/services/components/ServiceForm';
-import { type PortTypes } from '@/features/orgs/projects/services/components/ServiceForm/components/PortsFormSection/PortsFormSectionTypes';
-import type { ServiceFormInitialData } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
 import { ServicesList } from '@/features/orgs/projects/services/components/ServicesList';
+import { parseConfigFromInstallLink } from '@/features/orgs/projects/services/utils/parseConfigFromInstallLink';
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, type ReactElement } from 'react';
 
@@ -48,29 +44,7 @@ export default function RunPage() {
     (base64Config: string) => {
       if (router.query?.config) {
         try {
-          const decodedConfig = atob(base64Config);
-          const parsedConfig: RunServiceConfig = JSON.parse(decodedConfig);
-          const initialData = {
-            ...parsedConfig,
-            autoscaler: parsedConfig?.resources?.autoscaler ?? {
-              maxReplicas: 0,
-            },
-            compute: parsedConfig?.resources?.compute ?? {
-              cpu: 62,
-              memory: 128,
-            },
-            image: parsedConfig?.image?.image,
-            command: parsedConfig?.command?.map((arg) => ({
-              argument: arg,
-            })),
-            ports: parsedConfig?.ports?.map((item) => ({
-              port: item.port,
-              type: item.type as PortTypes,
-              publish: item.publish,
-            })),
-            replicas: parsedConfig?.resources?.replicas,
-            storage: parsedConfig?.resources?.storage,
-          } as ServiceFormInitialData;
+          const initialData = parseConfigFromInstallLink(base64Config);
 
           openDrawer({
             title: (
