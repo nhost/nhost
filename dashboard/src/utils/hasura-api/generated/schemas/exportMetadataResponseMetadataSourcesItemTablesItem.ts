@@ -8,5 +8,6 @@
 import type { ExportMetadataResponseMetadataSourcesItemTablesItemTable } from './exportMetadataResponseMetadataSourcesItemTablesItemTable';
 
 export type ExportMetadataResponseMetadataSourcesItemTablesItem = {
+  is_enum?: boolean;
   table: ExportMetadataResponseMetadataSourcesItemTablesItemTable;
 };

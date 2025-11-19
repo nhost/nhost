@@ -13,10 +13,12 @@ import type { ReloadRemoteSchemaOperation } from './reloadRemoteSchemaOperation'
 import type { RemoteSchemaPermissionsBulkOperation } from './remoteSchemaPermissionsBulkOperation';
 import type { RemoteSchemaRemoteRelationshipOperation } from './remoteSchemaRemoteRelationshipOperation';
 import type { RemoveRemoteSchemaOperation } from './removeRemoteSchemaOperation';
+import type { SetTableIsEnumBulkOperation } from './setTableIsEnumBulkOperation';
 import type { UpdateRemoteSchemaBulkOperation } from './updateRemoteSchemaBulkOperation';
 
 export type MetadataOperationBody =
   | ExportMetadata
+  | SetTableIsEnumBulkOperation
   | AddRemoteSchemaOperation
   | UpdateRemoteSchemaBulkOperation
   | RemoveRemoteSchemaOperation

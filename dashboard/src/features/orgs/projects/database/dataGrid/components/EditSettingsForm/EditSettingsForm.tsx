@@ -6,10 +6,7 @@ import type {
   BaseTableFormProps,
   BaseTableFormValues,
 } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm';
-import {
-  BaseTableForm,
-  baseTableValidationSchema,
-} from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm';
+import { BaseTableForm } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm';
 import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
 import { useTrackForeignKeyRelationsMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useTrackForeignKeyRelationsMutation';
 import { useUpdateTableMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useUpdateTableMutation';
@@ -20,13 +17,15 @@ import type {
 import { normalizeDatabaseColumn } from '@/features/orgs/projects/database/dataGrid/utils/normalizeDatabaseColumn';
 import { isNotEmptyValue } from '@/lib/utils';
 import { triggerToast } from '@/utils/toast';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
-import type * as Yup from 'yup';
-import { defaultFormValues, EditSettingsFormInitialValues, EditSettingsFormValues, validationSchema } from './EditSettingsFormTypes';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useRouter } from 'next/router';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import {
+  defaultFormValues,
+  EditSettingsFormValues,
+  validationSchema,
+} from './EditSettingsFormTypes';
 
 export interface EditSettingsFormProps
   extends Pick<BaseTableFormProps, 'onCancel' | 'location'> {
@@ -88,70 +87,15 @@ export default function EditSettingsForm({
     resetUpdateError();
   }
 
-  const form = useForm<
-    EditSettingsFormValues
-  >({
+  const form = useForm<EditSettingsFormValues>({
     defaultValues: defaultFormValues,
     reValidateMode: 'onSubmit',
     resolver: zodResolver(validationSchema),
   });
 
   const handleFormSubmit = form.handleSubmit(async (values) => {
-    await onSubmit?.(values)
+    await onSubmit?.(values);
   });
-
-  // We are initializing the form values lazily, because columns are not
-  // necessarily available immediately when the form is mounted.
-  useEffect(() => {
-    // if (
-    //   columnsStatus === 'success' &&
-    //   dataGridColumns.length > 0 &&
-    //   !formInitialized
-    // ) {
-    //   const primaryKeyIndices = dataGridColumns.reduce<string[]>(
-    //     (result, col, index) => {
-    //       if (col.isPrimary) {
-    //         return [...result, `${index}`];
-    //       }
-
-    //       return result;
-    //     },
-    //     [],
-    //   );
-
-    //   const identityColumnIndex = dataGridColumns.findIndex(
-    //     (column) => column.isIdentity,
-    //   );
-
-    //   form.reset({
-    //     name: originalTable.table_name,
-    //     columns: dataGridColumns.map((column) => ({
-    //       // ID can't be changed through the form, so we can use it to
-    //       // identify the column in the original array.
-    //       id: column.id,
-    //       name: column.id,
-    //       type: column.type,
-    //       defaultValue: column.defaultValue,
-    //       isNullable: column.isNullable,
-    //       isUnique: column.isUnique,
-    //       comment: column.comment || '',
-    //     })),
-    //     primaryKeyIndices,
-    //     identityColumnIndex:
-    //       identityColumnIndex > -1 ? identityColumnIndex : null,
-    //     foreignKeyRelations,
-    //   });
-
-    //   setFormInitialized(true);
-    }
-  }, [
-    form,
-    originalTable,
-    columnsStatus,
-    foreignKeyRelations,
-    dataGridColumns,
-    formInitialized,
-  ]);
 
   async function handleSubmit(values: BaseTableFormValues) {
     const primaryKey = values.primaryKeyIndices.map<string>(
@@ -231,32 +175,28 @@ export default function EditSettingsForm({
   return (
     <Form {...form}>
       <form onSubmit={handleFormSubmit}>
-      {error && error instanceof Error ? (
-        <div className="-mt-3 mb-4 px-6">
-          <Alert
-            severity="error"
-            className="grid grid-flow-col items-center justify-between px-4 py-3"
-          >
-            <span className="text-left">
-              <strong>Error:</strong> {error.message}
-            </span>
-
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={resetError}
+        {error && error instanceof Error ? (
+          <div className="-mt-3 mb-4 px-6">
+            <Alert
+              severity="error"
+              className="grid grid-flow-col items-center justify-between px-4 py-3"
             >
-              Clear
-            </Button>
-          </Alert>
-        </div>
-      ) : null}
+              <span className="text-left">
+                <strong>Error:</strong> {error.message}
+              </span>
 
-      <BaseTableForm
-        submitButtonText="Save"
-        onSubmit={handleSubmit}
-        {...props}
-      />
+              <Button variant="ghost" size="sm" onClick={resetError}>
+                Clear
+              </Button>
+            </Alert>
+          </div>
+        ) : null}
+
+        <BaseTableForm
+          submitButtonText="Save"
+          onSubmit={handleSubmit}
+          {...props}
+        />
       </form>
     </Form>
   );

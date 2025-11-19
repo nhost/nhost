@@ -7,7 +7,7 @@
  */
 
 /**
- * Type of operation to set table is enum
+ * Type of operation to update remote schemas
  */
 export type SetTableIsEnumBulkOperationType =
   (typeof SetTableIsEnumBulkOperationType)[keyof typeof SetTableIsEnumBulkOperationType];

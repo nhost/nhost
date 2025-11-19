@@ -9,11 +9,11 @@ import type { SetTableIsEnumBulkOperationType } from './setTableIsEnumBulkOperat
 import type { SetTableIsEnumStep } from './setTableIsEnumStep';
 
 export interface SetTableIsEnumBulkOperation {
-  /** Type of operation to set table is enum */
+  /** Type of operation to update remote schemas */
   type: SetTableIsEnumBulkOperationType;
   /** Source of the operation */
   source: string;
-  /** Resource version of the metadata */
+  /** Resource version of the operation */
   resource_version: number;
   args: SetTableIsEnumStep[];
 }

@@ -20,6 +20,7 @@ paths:
             schema:
               oneOf:
                 - $ref: '#/components/schemas/ExportMetadata'
+                - $ref: '#/components/schemas/SetTableIsEnumBulkOperation'
                 - $ref: '#/components/schemas/AddRemoteSchemaOperation'
                 - $ref: '#/components/schemas/UpdateRemoteSchemaBulkOperation'
                 - $ref: '#/components/schemas/RemoveRemoteSchemaOperation'
@@ -90,6 +91,73 @@ components:
       name: x-hasura-admin-secret
 
   schemas:
+    SetTableIsEnumBulkOperation:
+      type: object
+      required:
+        - type
+        - source
+        - resource_version
+        - args
+      properties:
+        type:
+          type: string
+          enum: [bulk]
+          description: Type of operation to update remote schemas
+        source:
+          type: string
+          description: Source of the operation
+          example: default
+        resource_version:
+          type: integer
+          description: Resource version of the operation
+          example: 1
+        args:
+          type: array
+          items:
+            $ref: '#/components/schemas/SetTableIsEnumStep'
+
+    SetTableIsEnumStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_set_table_is_enum]
+        args:
+          $ref: '#/components/schemas/SetTableIsEnumArgs'
+
+    SetTableIsEnumArgs:
+      type: object
+      required:
+        - table
+        - is_enum
+      properties:
+        table:
+          $ref: '#/components/schemas/QualifiedTable'
+        is_enum:
+          type: boolean
+          description: Whether or not the table should be used as an enum table <enum table>.
+        source:
+          type: string
+          description: Name of the source database of the table
+          default: default
+
+    QualifiedTable:
+      type: object
+      description: Object with table name and schema
+      required:
+        - name
+        - schema
+      properties:
+        name:
+          type: string
+          description: Name of the table
+        schema:
+          type: string
+          description: Schema of the table
+
     RemoteSchemaPermissionsStepArgs:
       type: object
       required:
@@ -170,6 +238,7 @@ components:
 
     MigrationStep:
       oneOf:
+        - $ref: '#/components/schemas/SetTableIsEnumStep'
         - $ref: '#/components/schemas/AddRemoteSchemaPermissionsStep'
         - $ref: '#/components/schemas/DropRemoteSchemaPermissionsStep'
         - $ref: '#/components/schemas/UpdateRemoteSchemaStep'
@@ -283,6 +352,37 @@ components:
               description: List of data sources
               items:
                 type: object
+                properties:
+                  name:
+                    type: string
+                    description: Name of the data source
+                    example: default
+                  kind:
+                    type: string
+                    description: Kind of the data source
+                    example: postgres
+                  tables:
+                    type: array
+                    description: List of tables in the data source
+                    items:
+                      type: object
+                      required:
+                        - table
+                      properties:
+                        is_enum:
+                          type: boolean
+                        table:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                              description: Name of the table
+                              example: users
+                            schema:
+                              type: string
+                              description: Schema of the table
+                              example: public
+                          additionalProperties: true
                 additionalProperties: true
             remote_schemas:
               type: array
