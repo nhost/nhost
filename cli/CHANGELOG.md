@@ -1,3 +1,9 @@
+## [cli@1.34.8] - 2025-11-19
+
+### 🐛 Bug Fixes
+
+- *(cli)* Update traefik (#3710)
+
 ## [cli@1.34.7] - 2025-11-13
 
 ### ⚙️ Miscellaneous Tasks

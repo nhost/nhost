@@ -250,7 +250,7 @@ func traefik(subdomain, projectName string, port uint, dotnhostfolder string) (*
 	}
 
 	return &Service{
-		Image:      "traefik:v3.1",
+		Image:      "traefik:v3.6",
 		DependsOn:  nil,
 		EntryPoint: nil,
 		Command: []string{
