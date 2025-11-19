@@ -26,6 +26,7 @@ import Image from 'next/image';
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
+import EditSettingsForm from '../EditSettingsForm/EditSettingsForm';
 import TableActions from './TableActions';
 
 const CreateTableForm = dynamic(
@@ -408,6 +409,29 @@ function DataBrowserSidebarContent({
                               table.table_name,
                             )
                           }
+                          onEditRelationships={() => {}}
+                          onEditSettings={() => {
+                            openDrawer({
+                              title: 'Edit Settings',
+                              component: (
+                                <EditSettingsForm
+                                  onSubmit={async (tableName) => {
+                                    // await queryClient.refetchQueries([
+                                    //   `${dataSourceSlug}.${table.table_schema}.${tableName}`,
+                                    // ]);
+                                    // await refetch();
+                                  }}
+                                  schema={table.table_schema}
+                                  table={table}
+                                />
+                              ),
+                              // props: {
+                              //   PaperProps: {
+                              //     className: 'lg:max-w-xl',
+                              //   },
+                              // },
+                            });
+                          }}
                           onDelete={() =>
                             handleDeleteTableClick(
                               table.table_schema,

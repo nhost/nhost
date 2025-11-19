@@ -1,11 +1,11 @@
 import { z } from 'zod';
 
 export const validationSchema = z.object({
-  name: z.string().min(1, { message: 'Name is required' }),
+  isEnum: z.boolean(),
 });
 
 export const defaultFormValues: EditSettingsFormValues = {
-  name: '',
+  isEnum: false,
 };
 
 export type EditSettingsFormValues = z.infer<typeof validationSchema>;

@@ -7,7 +7,14 @@ import {
 } from '@/components/ui/v3/dropdown-menu';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { cn } from '@/lib/utils';
-import { Ellipsis, SquarePen, Trash2, Users } from 'lucide-react';
+import {
+  Anchor,
+  Ellipsis,
+  Settings,
+  SquarePen,
+  Trash2,
+  Users,
+} from 'lucide-react';
 
 const menuItemClassName =
   'flex hover:cursor-pointer hover:bg-data-cell-bg h-9 font-medium items-center justify-start gap-2 rounded-none border border-b-1 text-sm+ leading-4';
@@ -24,6 +31,8 @@ type Props = {
   onEditPermissions: () => void;
   onViewPermissions: () => void;
   onEditTable: () => void;
+  onEditSettings: () => void;
+  onEditRelationships: () => void;
 };
 
 function TableActions({
@@ -38,6 +47,8 @@ function TableActions({
   onEditPermissions,
   onViewPermissions,
   onEditTable,
+  onEditSettings,
+  onEditRelationships,
 }: Props) {
   const { project } = useProject();
   const isGitHubConnected = !!project?.githubRepository;
@@ -88,6 +99,18 @@ function TableActions({
               onClick={onEditPermissions}
             >
               <Users className="h-4 w-4" /> <span>Edit Permissions</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className={menuItemClassName}
+              onClick={onEditRelationships}
+            >
+              <Anchor className="h-4 w-4" /> <span>Edit Relationships</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className={menuItemClassName}
+              onClick={onEditSettings}
+            >
+              <Settings className="h-4 w-4" /> <span>Edit Settings</span>
             </DropdownMenuItem>
             {isSelectedNotSchemaLocked && (
               <DropdownMenuItem

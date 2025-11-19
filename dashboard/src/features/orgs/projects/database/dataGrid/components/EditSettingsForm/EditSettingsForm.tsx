@@ -1,31 +1,24 @@
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
-import { Button } from '@/components/ui/v3/button';
-import { Form } from '@/components/ui/v3/form';
-import type {
-  BaseTableFormProps,
-  BaseTableFormValues,
-} from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm';
-import { BaseTableForm } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
+import type { BaseTableFormProps } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm';
 import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
 import { useTrackForeignKeyRelationsMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useTrackForeignKeyRelationsMutation';
 import { useUpdateTableMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useUpdateTableMutation';
-import type {
-  DatabaseTable,
-  NormalizedQueryDataRow,
-} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import type { NormalizedQueryDataRow } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { normalizeDatabaseColumn } from '@/features/orgs/projects/database/dataGrid/utils/normalizeDatabaseColumn';
-import { isNotEmptyValue } from '@/lib/utils';
-import { triggerToast } from '@/utils/toast';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useTableIsEnumQuery } from '../../hooks/useTableIsEnumQuery';
 import {
   defaultFormValues,
   EditSettingsFormValues,
   validationSchema,
 } from './EditSettingsFormTypes';
+import CustomGraphQLRootFieldsForm from './sections/CustomGraphQLRootFieldsForm';
+import SetIsEnumForm from './sections/SetIsEnumForm';
 
 export interface EditSettingsFormProps
   extends Pick<BaseTableFormProps, 'onCancel' | 'location'> {
@@ -61,6 +54,15 @@ export default function EditSettingsForm({
     table: originalTable.table_name,
   });
 
+  const { data: isEnum } = useTableIsEnumQuery({
+    table: {
+      name: originalTable.table_name,
+      schema,
+    },
+    dataSource: 'default',
+  });
+  console.log('isEnum', isEnum);
+
   const columns = data?.columns;
   const foreignKeyRelations = data?.foreignKeyRelations;
 
@@ -93,55 +95,9 @@ export default function EditSettingsForm({
     resolver: zodResolver(validationSchema),
   });
 
-  const handleFormSubmit = form.handleSubmit(async (values) => {
-    await onSubmit?.(values);
-  });
+  const { isDirty, isSubmitting } = form.formState;
 
-  async function handleSubmit(values: BaseTableFormValues) {
-    const primaryKey = values.primaryKeyIndices.map<string>(
-      (primaryKeys) => values.columns[primaryKeys].name,
-    );
-    try {
-      const updatedTable: DatabaseTable = {
-        ...values,
-        primaryKey,
-        identityColumn:
-          values.identityColumnIndex !== null &&
-          typeof values.identityColumnIndex !== 'undefined'
-            ? values.columns[values.identityColumnIndex]?.name
-            : undefined,
-      };
-
-      await updateTable({
-        originalTable,
-        originalColumns: dataGridColumns,
-        originalForeignKeyRelations: foreignKeyRelations ?? [],
-        updatedTable,
-      });
-
-      if (isNotEmptyValue(updatedTable.foreignKeyRelations)) {
-        await trackForeignKeyRelations({
-          foreignKeyRelations: updatedTable.foreignKeyRelations,
-          schema,
-          table: updatedTable.name,
-        });
-      }
-
-      if (onSubmit) {
-        await onSubmit(updatedTable.name);
-      }
-
-      if (originalTable.table_name !== updatedTable.name) {
-        await router.push(
-          `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/database/browser/${router.query.dataSourceSlug}/${schema}/${updatedTable.name}`,
-        );
-      }
-
-      triggerToast('The table has been updated successfully.');
-    } catch {
-      // Errors are already handled by hooks.
-    }
-  }
+  const handleCancel = () => {};
 
   if (columnsStatus === 'loading') {
     return (
@@ -151,13 +107,13 @@ export default function EditSettingsForm({
     );
   }
 
-  if (!formInitialized) {
-    return (
-      <div className="px-6">
-        <ActivityIndicator label="Loading..." delay={1000} />
-      </div>
-    );
-  }
+  // if (!formInitialized) {
+  //   return (
+  //     <div className="px-6">
+  //       <ActivityIndicator label="Loading..." delay={1000} />
+  //     </div>
+  //   );
+  // }
 
   if (columnsStatus === 'error') {
     return (
@@ -173,31 +129,47 @@ export default function EditSettingsForm({
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={handleFormSubmit}>
-        {error && error instanceof Error ? (
-          <div className="-mt-3 mb-4 px-6">
-            <Alert
-              severity="error"
-              className="grid grid-flow-col items-center justify-between px-4 py-3"
-            >
-              <span className="text-left">
-                <strong>Error:</strong> {error.message}
-              </span>
+    <div className="flex flex-auto flex-col gap-4 overflow-y-auto pb-4">
+      {error && error instanceof Error ? (
+        <div className="-mt-3 mb-4 px-6">
+          <Alert
+            severity="error"
+            className="grid grid-flow-col items-center justify-between px-4 py-3"
+          >
+            <span className="text-left">
+              <strong>Error:</strong> {error.message}
+            </span>
 
-              <Button variant="ghost" size="sm" onClick={resetError}>
-                Clear
-              </Button>
-            </Alert>
-          </div>
-        ) : null}
+            <Button variant="ghost" size="sm" onClick={resetError}>
+              Clear
+            </Button>
+          </Alert>
+        </div>
+      ) : null}
+      <div className="flex flex-auto flex-col">
+        <CustomGraphQLRootFieldsForm />
+        <SetIsEnumForm />
+      </div>
 
-        <BaseTableForm
-          submitButtonText="Save"
-          onSubmit={handleSubmit}
-          {...props}
-        />
-      </form>
-    </Form>
+      <div className="box grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 p-2">
+        <Button
+          variant="outline"
+          color="secondary"
+          onClick={handleCancel}
+          tabIndex={isDirty ? -1 : 0}
+        >
+          Cancel
+        </Button>
+
+        <ButtonWithLoading
+          loading={isSubmitting}
+          disabled={isSubmitting}
+          type="submit"
+          className="justify-self-end"
+        >
+          Save
+        </ButtonWithLoading>
+      </div>
+    </div>
   );
 }
