@@ -1,7 +1,7 @@
 import { Sla_Level_Enum } from '@/utils/__generated__/graphql';
 import { nhostRoutesClient } from '@/utils/nhost';
 import type { NextApiRequest, NextApiResponse } from 'next';
-i
+
 export type CreateTicketRequest = {
   project: string;
   services: Array<{ label: string; value: string }>;
