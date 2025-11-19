@@ -36,6 +36,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
+import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
 
 export interface CommonDataGridCellProps<TData extends object, TValue = any>
   extends DataBrowserGridCellProps<TData, TValue> {
@@ -93,6 +94,8 @@ function DataGridCellContent<TData extends object = {}>({
   ...props
 }: PropsWithChildren<DataGridCellProps<TData>>) {
   const { openAlertDialog } = useDialog();
+  const tablePath = useTablePath();
+  const cellId = `${tablePath}_${id}_${row.id}`;
 
   const {
     title: tooltipTitle,
@@ -223,10 +226,9 @@ function DataGridCellContent<TData extends object = {}>({
 
   async function handleBlur(event: FocusEvent<HTMLDivElement>) {
     // We are deselecting cell only if focus target is not a descendant of it.
-    const { id: currentRowId } = row.original as { id: string };
     const isTargetDropdownMenu =
-      event.relatedTarget?.id === currentRowId ||
-      event.relatedTarget?.parentElement?.id === currentRowId;
+      event.relatedTarget?.id === cellId ||
+      event.relatedTarget?.parentElement?.id === cellId;
 
     if (
       !isEditable ||
@@ -364,7 +366,6 @@ function DataGridCellContent<TData extends object = {}>({
           if (!isValidElement(child)) {
             return null;
           }
-          const { id: rowId } = row.original as { id: string };
           const clonedChild = cloneElement(child, {
             ...child.props,
             onSave: handleSave,
@@ -372,7 +373,7 @@ function DataGridCellContent<TData extends object = {}>({
             onOptimisticValueChange: setOptimisticValue,
             temporaryValue,
             onTemporaryValueChange: setTemporaryValue,
-            rowId,
+            cellId,
           });
 
           return (

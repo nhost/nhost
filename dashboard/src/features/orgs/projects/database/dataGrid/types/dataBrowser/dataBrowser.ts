@@ -220,7 +220,11 @@ export interface ColumnInsertOptions {
 /**
  * User defined column type of a character field in PostgreSQL.
  */
-export type CharacterColumnType = 'varchar' | 'bpchar' | 'text';
+export type CharacterColumnType =
+  | 'bpchar'
+  | 'text'
+  | `character varying(${number})`
+  | 'character varying';
 
 /**
  * User defined column type of a boolean field in PostgreSQL.
@@ -469,13 +473,9 @@ export interface DataBrowserGridColumn<TData extends object = {}>
   /**
    * The actual type alias of the column.
    *
-   * @example 'varchar' | 'char' | 'int8' ...
+   * @example 'character varying' | 'char' | 'int8' ...
    */
   specificType?: ColumnType;
-  /**
-   * The maximum length of the column.
-   */
-  maxLength?: number | null;
   /**
    * Determines whether or not the cell content is copiable.
    */
