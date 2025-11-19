@@ -4191,32 +4191,34 @@ type Plans struct {
 	// An array relationship
 	Organizations []*Organizations `json:"organizations"`
 	Price         int64            `json:"price"`
+	SLALevel      SLALevelEnum     `json:"slaLevel"`
 	Sort          int64            `json:"sort"`
 	UpatedAt      time.Time        `json:"upatedAt"`
 }
 
 // Boolean expression to filter rows from the table "plans". All fields are combined with a logical 'AND'.
 type PlansBoolExp struct {
-	And                                []*PlansBoolExp           `json:"_and,omitempty"`
-	Not                                *PlansBoolExp             `json:"_not,omitempty"`
-	Or                                 []*PlansBoolExp           `json:"_or,omitempty"`
-	Apps                               *AppsBoolExp              `json:"apps,omitempty"`
-	CreatedAt                          *TimestamptzComparisonExp `json:"createdAt,omitempty"`
-	Deprecated                         *BooleanComparisonExp     `json:"deprecated,omitempty"`
-	FeatureBackupEnabled               *BooleanComparisonExp     `json:"featureBackupEnabled,omitempty"`
-	FeatureCustomDomainsEnabled        *BooleanComparisonExp     `json:"featureCustomDomainsEnabled,omitempty"`
-	FeatureCustomEmailTemplatesEnabled *BooleanComparisonExp     `json:"featureCustomEmailTemplatesEnabled,omitempty"`
-	FeatureMaxDbSize                   *IntComparisonExp         `json:"featureMaxDbSize,omitempty"`
-	ID                                 *UUIDComparisonExp        `json:"id,omitempty"`
-	Individual                         *BooleanComparisonExp     `json:"individual,omitempty"`
-	IsDefault                          *BooleanComparisonExp     `json:"isDefault,omitempty"`
-	IsFree                             *BooleanComparisonExp     `json:"isFree,omitempty"`
-	IsPublic                           *BooleanComparisonExp     `json:"isPublic,omitempty"`
-	Name                               *StringComparisonExp      `json:"name,omitempty"`
-	Organizations                      *OrganizationsBoolExp     `json:"organizations,omitempty"`
-	Price                              *IntComparisonExp         `json:"price,omitempty"`
-	Sort                               *IntComparisonExp         `json:"sort,omitempty"`
-	UpatedAt                           *TimestamptzComparisonExp `json:"upatedAt,omitempty"`
+	And                                []*PlansBoolExp            `json:"_and,omitempty"`
+	Not                                *PlansBoolExp              `json:"_not,omitempty"`
+	Or                                 []*PlansBoolExp            `json:"_or,omitempty"`
+	Apps                               *AppsBoolExp               `json:"apps,omitempty"`
+	CreatedAt                          *TimestamptzComparisonExp  `json:"createdAt,omitempty"`
+	Deprecated                         *BooleanComparisonExp      `json:"deprecated,omitempty"`
+	FeatureBackupEnabled               *BooleanComparisonExp      `json:"featureBackupEnabled,omitempty"`
+	FeatureCustomDomainsEnabled        *BooleanComparisonExp      `json:"featureCustomDomainsEnabled,omitempty"`
+	FeatureCustomEmailTemplatesEnabled *BooleanComparisonExp      `json:"featureCustomEmailTemplatesEnabled,omitempty"`
+	FeatureMaxDbSize                   *IntComparisonExp          `json:"featureMaxDbSize,omitempty"`
+	ID                                 *UUIDComparisonExp         `json:"id,omitempty"`
+	Individual                         *BooleanComparisonExp      `json:"individual,omitempty"`
+	IsDefault                          *BooleanComparisonExp      `json:"isDefault,omitempty"`
+	IsFree                             *BooleanComparisonExp      `json:"isFree,omitempty"`
+	IsPublic                           *BooleanComparisonExp      `json:"isPublic,omitempty"`
+	Name                               *StringComparisonExp       `json:"name,omitempty"`
+	Organizations                      *OrganizationsBoolExp      `json:"organizations,omitempty"`
+	Price                              *IntComparisonExp          `json:"price,omitempty"`
+	SLALevel                           *SLALevelEnumComparisonExp `json:"slaLevel,omitempty"`
+	Sort                               *IntComparisonExp          `json:"sort,omitempty"`
+	UpatedAt                           *TimestamptzComparisonExp  `json:"upatedAt,omitempty"`
 }
 
 // Ordering options when selecting data from "plans".
@@ -4236,6 +4238,7 @@ type PlansOrderBy struct {
 	Name                               *OrderBy                       `json:"name,omitempty"`
 	OrganizationsAggregate             *OrganizationsAggregateOrderBy `json:"organizations_aggregate,omitempty"`
 	Price                              *OrderBy                       `json:"price,omitempty"`
+	SLALevel                           *OrderBy                       `json:"slaLevel,omitempty"`
 	Sort                               *OrderBy                       `json:"sort,omitempty"`
 	UpatedAt                           *OrderBy                       `json:"upatedAt,omitempty"`
 }
@@ -4250,21 +4253,22 @@ type PlansStreamCursorInput struct {
 
 // Initial value of the column from where the streaming should start
 type PlansStreamCursorValueInput struct {
-	CreatedAt                          *time.Time `json:"createdAt,omitempty"`
-	Deprecated                         *bool      `json:"deprecated,omitempty"`
-	FeatureBackupEnabled               *bool      `json:"featureBackupEnabled,omitempty"`
-	FeatureCustomDomainsEnabled        *bool      `json:"featureCustomDomainsEnabled,omitempty"`
-	FeatureCustomEmailTemplatesEnabled *bool      `json:"featureCustomEmailTemplatesEnabled,omitempty"`
-	FeatureMaxDbSize                   *int64     `json:"featureMaxDbSize,omitempty"`
-	ID                                 *string    `json:"id,omitempty"`
-	Individual                         *bool      `json:"individual,omitempty"`
-	IsDefault                          *bool      `json:"isDefault,omitempty"`
-	IsFree                             *bool      `json:"isFree,omitempty"`
-	IsPublic                           *bool      `json:"isPublic,omitempty"`
-	Name                               *string    `json:"name,omitempty"`
-	Price                              *int64     `json:"price,omitempty"`
-	Sort                               *int64     `json:"sort,omitempty"`
-	UpatedAt                           *time.Time `json:"upatedAt,omitempty"`
+	CreatedAt                          *time.Time    `json:"createdAt,omitempty"`
+	Deprecated                         *bool         `json:"deprecated,omitempty"`
+	FeatureBackupEnabled               *bool         `json:"featureBackupEnabled,omitempty"`
+	FeatureCustomDomainsEnabled        *bool         `json:"featureCustomDomainsEnabled,omitempty"`
+	FeatureCustomEmailTemplatesEnabled *bool         `json:"featureCustomEmailTemplatesEnabled,omitempty"`
+	FeatureMaxDbSize                   *int64        `json:"featureMaxDbSize,omitempty"`
+	ID                                 *string       `json:"id,omitempty"`
+	Individual                         *bool         `json:"individual,omitempty"`
+	IsDefault                          *bool         `json:"isDefault,omitempty"`
+	IsFree                             *bool         `json:"isFree,omitempty"`
+	IsPublic                           *bool         `json:"isPublic,omitempty"`
+	Name                               *string       `json:"name,omitempty"`
+	Price                              *int64        `json:"price,omitempty"`
+	SLALevel                           *SLALevelEnum `json:"slaLevel,omitempty"`
+	Sort                               *int64        `json:"sort,omitempty"`
+	UpatedAt                           *time.Time    `json:"upatedAt,omitempty"`
 }
 
 type QueryRoot struct {
@@ -4692,6 +4696,15 @@ type RunServiceStreamCursorValueInput struct {
 	ID        *string    `json:"id,omitempty"`
 	Subdomain *string    `json:"subdomain,omitempty"`
 	UpdatedAt *time.Time `json:"updatedAt,omitempty"`
+}
+
+// Boolean expression to compare columns of type "sla_level_enum". All fields are combined with logical 'AND'.
+type SLALevelEnumComparisonExp struct {
+	Eq     *SLALevelEnum  `json:"_eq,omitempty"`
+	In     []SLALevelEnum `json:"_in,omitempty"`
+	IsNull *bool          `json:"_is_null,omitempty"`
+	Neq    *SLALevelEnum  `json:"_neq,omitempty"`
+	Nin    []SLALevelEnum `json:"_nin,omitempty"`
 }
 
 // Boolean expression to compare columns of type "software_type_enum". All fields are combined with logical 'AND'.
@@ -8542,6 +8555,8 @@ const (
 	// column name
 	PlansSelectColumnPrice PlansSelectColumn = "price"
 	// column name
+	PlansSelectColumnSLALevel PlansSelectColumn = "slaLevel"
+	// column name
 	PlansSelectColumnSort PlansSelectColumn = "sort"
 	// column name
 	PlansSelectColumnUpatedAt PlansSelectColumn = "upatedAt"
@@ -8561,13 +8576,14 @@ var AllPlansSelectColumn = []PlansSelectColumn{
 	PlansSelectColumnIsPublic,
 	PlansSelectColumnName,
 	PlansSelectColumnPrice,
+	PlansSelectColumnSLALevel,
 	PlansSelectColumnSort,
 	PlansSelectColumnUpatedAt,
 }
 
 func (e PlansSelectColumn) IsValid() bool {
 	switch e {
-	case PlansSelectColumnCreatedAt, PlansSelectColumnDeprecated, PlansSelectColumnFeatureBackupEnabled, PlansSelectColumnFeatureCustomDomainsEnabled, PlansSelectColumnFeatureCustomEmailTemplatesEnabled, PlansSelectColumnFeatureMaxDbSize, PlansSelectColumnID, PlansSelectColumnIndividual, PlansSelectColumnIsDefault, PlansSelectColumnIsFree, PlansSelectColumnIsPublic, PlansSelectColumnName, PlansSelectColumnPrice, PlansSelectColumnSort, PlansSelectColumnUpatedAt:
+	case PlansSelectColumnCreatedAt, PlansSelectColumnDeprecated, PlansSelectColumnFeatureBackupEnabled, PlansSelectColumnFeatureCustomDomainsEnabled, PlansSelectColumnFeatureCustomEmailTemplatesEnabled, PlansSelectColumnFeatureMaxDbSize, PlansSelectColumnID, PlansSelectColumnIndividual, PlansSelectColumnIsDefault, PlansSelectColumnIsFree, PlansSelectColumnIsPublic, PlansSelectColumnName, PlansSelectColumnPrice, PlansSelectColumnSLALevel, PlansSelectColumnSort, PlansSelectColumnUpatedAt:
 		return true
 	}
 	return false
@@ -8949,6 +8965,66 @@ func (e *RunServiceSelectColumn) UnmarshalJSON(b []byte) error {
 }
 
 func (e RunServiceSelectColumn) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+type SLALevelEnum string
+
+const (
+	// No SLA
+	SLALevelEnumNone SLALevelEnum = "none"
+	// Premium SLA
+	SLALevelEnumPremium SLALevelEnum = "premium"
+	// Standard SLA
+	SLALevelEnumStandard SLALevelEnum = "standard"
+)
+
+var AllSLALevelEnum = []SLALevelEnum{
+	SLALevelEnumNone,
+	SLALevelEnumPremium,
+	SLALevelEnumStandard,
+}
+
+func (e SLALevelEnum) IsValid() bool {
+	switch e {
+	case SLALevelEnumNone, SLALevelEnumPremium, SLALevelEnumStandard:
+		return true
+	}
+	return false
+}
+
+func (e SLALevelEnum) String() string {
+	return string(e)
+}
+
+func (e *SLALevelEnum) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SLALevelEnum(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid sla_level_enum", str)
+	}
+	return nil
+}
+
+func (e SLALevelEnum) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *SLALevelEnum) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e SLALevelEnum) MarshalJSON() ([]byte, error) {
 	var buf bytes.Buffer
 	e.MarshalGQL(&buf)
 	return buf.Bytes(), nil

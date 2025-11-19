@@ -792,7 +792,7 @@ Maximum height to resize image to while maintaining aspect ratio. Only applies t
 optional q: number;
 ```
 
-Image quality (1-100). Only applies to JPEG, WebP and PNG files
+Image quality (1-100). Only applies to JPEG, WebP, PNG and HEIC files
 
 #### w?
 
@@ -842,7 +842,7 @@ Maximum height to resize image to while maintaining aspect ratio. Only applies t
 optional q: number;
 ```
 
-Image quality (1-100). Only applies to JPEG, WebP and PNG files
+Image quality (1-100). Only applies to JPEG, WebP, PNG and HEIC files
 
 #### w?
 
@@ -1068,7 +1068,7 @@ buildVersion: string
 ## OutputImageFormat
 
 ```ts
-type OutputImageFormat = 'auto' | 'same' | 'jpeg' | 'webp' | 'png' | 'avif'
+type OutputImageFormat = 'auto' | 'same' | 'jpeg' | 'webp' | 'png' | 'avif' | 'heic'
 ```
 
 Output format for image files. Use 'auto' for content negotiation based on Accept header

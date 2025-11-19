@@ -18,6 +18,7 @@ const (
 const (
 	Auto OutputImageFormat = "auto"
 	Avif OutputImageFormat = "avif"
+	Heic OutputImageFormat = "heic"
 	Jpeg OutputImageFormat = "jpeg"
 	Png  OutputImageFormat = "png"
 	Same OutputImageFormat = "same"
@@ -158,7 +159,7 @@ type UploadFilesMultipartBody struct {
 
 // GetFileParams defines parameters for GetFile.
 type GetFileParams struct {
-	// Q Image quality (1-100). Only applies to JPEG, WebP and PNG files
+	// Q Image quality (1-100). Only applies to JPEG, WebP, PNG and HEIC files
 	Q *int `form:"q,omitempty" json:"q,omitempty"`
 
 	// H Maximum height to resize image to while maintaining aspect ratio. Only applies to image files
@@ -191,7 +192,7 @@ type GetFileParams struct {
 
 // GetFileMetadataHeadersParams defines parameters for GetFileMetadataHeaders.
 type GetFileMetadataHeadersParams struct {
-	// Q Image quality (1-100). Only applies to JPEG, WebP and PNG files
+	// Q Image quality (1-100). Only applies to JPEG, WebP, PNG and HEIC files
 	Q *int `form:"q,omitempty" json:"q,omitempty"`
 
 	// H Maximum height to resize image to while maintaining aspect ratio. Only applies to image files
@@ -257,7 +258,7 @@ type GetFileWithPresignedURLParams struct {
 	// XId Use presignedurl endpoint to generate this automatically
 	XId string `form:"x-id" json:"x-id"`
 
-	// Q Image quality (1-100). Only applies to JPEG, WebP and PNG files
+	// Q Image quality (1-100). Only applies to JPEG, WebP, PNG and HEIC files
 	Q *int `form:"q,omitempty" json:"q,omitempty"`
 
 	// H Maximum height to resize image to while maintaining aspect ratio. Only applies to image files

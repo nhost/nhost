@@ -15,7 +15,10 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { type RunService } from '@/features/orgs/projects/common/hooks/useRunServices';
 import { ServiceForm } from '@/features/orgs/projects/services/components/ServiceForm';
 import { type PortTypes } from '@/features/orgs/projects/services/components/ServiceForm/components/PortsFormSection/PortsFormSectionTypes';
-import type { ServiceFormInitialData } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
+import {
+  defaultServiceFormValues,
+  type ServiceFormInitialData,
+} from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
 import { copy } from '@/utils/copy';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -74,12 +77,15 @@ export default function ServicesList({
                 ingresses: item.ingresses,
                 rateLimit: item.rateLimit,
               })),
-              compute: service.config?.resources?.compute ?? {
-                cpu: 62,
-                memory: 128,
-              },
-              replicas: service.config?.resources?.replicas,
-              autoscaler: service?.config?.resources?.autoscaler,
+              compute:
+                service.config?.resources?.compute ??
+                defaultServiceFormValues.compute,
+              replicas:
+                service.config?.resources?.replicas ??
+                defaultServiceFormValues.replicas,
+              autoscaler:
+                service?.config?.resources?.autoscaler ??
+                defaultServiceFormValues.autoscaler,
               storage: service.config?.resources?.storage,
             } as ServiceFormInitialData
           }

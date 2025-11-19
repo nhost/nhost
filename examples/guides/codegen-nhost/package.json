@@ -1,0 +1,40 @@
+{
+  "name": "guides/codegen-nhost",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "generate": "bash codegen-wrapper.sh",
+    "test": "pnpm test:typecheck && pnpm test:lint",
+    "test:typecheck": "tsc --noEmit",
+    "test:lint": "biome check",
+    "format": "biome format --write",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@graphql-typed-document-node/core": "^3.2.0",
+    "@nhost/nhost-js": "workspace:*",
+    "graphql": "^16.11.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-router-dom": "^7.6.0"
+  },
+  "devDependencies": {
+    "@graphql-codegen/cli": "^5.0.6",
+    "@graphql-codegen/client-preset": "^5.1.2",
+    "@graphql-codegen/schema-ast": "^4.1.0",
+    "@graphql-codegen/typescript": "^4.1.6",
+    "@graphql-codegen/typescript-operations": "^4.6.1",
+    "@types/node": "^22.15.17",
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
+    "@vitejs/plugin-react": "^4.4.1"
+  },
+  "pnpm": {
+    "overrides": {
+      "js-yaml@<4.1.1": ">=4.1.1"
+    }
+  }
+}
