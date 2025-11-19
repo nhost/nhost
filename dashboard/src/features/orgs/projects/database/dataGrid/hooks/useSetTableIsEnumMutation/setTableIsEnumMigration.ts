@@ -2,7 +2,7 @@ import type { MetadataOperationOptions } from '@/features/orgs/projects/remote-s
 import type { SetTableIsEnumArgs } from '@/utils/hasura-api/generated/schemas';
 
 export interface SetTableIsEnumMigrationVariables {
-  resourceVersion: number;
+  resourceVersion?: number;
   args: SetTableIsEnumArgs;
 }
 

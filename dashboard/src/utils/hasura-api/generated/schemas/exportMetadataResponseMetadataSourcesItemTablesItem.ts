@@ -6,8 +6,10 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { ExportMetadataResponseMetadataSourcesItemTablesItemTable } from './exportMetadataResponseMetadataSourcesItemTablesItemTable';
+import type { TableConfig } from './tableConfig';
 
 export type ExportMetadataResponseMetadataSourcesItemTablesItem = {
   is_enum?: boolean;
   table: ExportMetadataResponseMetadataSourcesItemTablesItemTable;
+  configuration?: TableConfig;
 };

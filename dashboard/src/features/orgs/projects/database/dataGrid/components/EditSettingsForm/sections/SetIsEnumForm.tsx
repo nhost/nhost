@@ -8,25 +8,89 @@ import {
   FormMessage,
 } from '@/components/ui/v3/form';
 import { Switch } from '@/components/ui/v3/switch';
+import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+import useSetTableIsEnumMutation from '../../../hooks/useSetTableIsEnumMutation/useSetTableIsEnumMutation';
+import { useTableIsEnumQuery } from '../../../hooks/useTableIsEnumQuery';
 
 const validationSchema = z.object({
   isEnum: z.boolean(),
 });
 
-export default function SetIsEnumForm() {
+export interface SetIsEnumFormProps {
+  schema: string;
+  tableName: string;
+}
+
+export default function SetIsEnumForm({
+  schema,
+  tableName,
+}: SetIsEnumFormProps) {
+  const { mutateAsync: setTableIsEnum } = useSetTableIsEnumMutation();
+  const {
+    data: isEnum,
+    isLoading: isLoadingIsEnum,
+    refetch: refetchIsEnum,
+  } = useTableIsEnumQuery({
+    table: {
+      name: tableName,
+      schema,
+    },
+    dataSource: 'default',
+  });
+
+  const { data: resourceVersion } = useGetMetadataResourceVersion();
+
   const form = useForm({
     defaultValues: {
-      isEnum: false,
+      isEnum: Boolean(isEnum),
     },
     resolver: zodResolver(validationSchema),
   });
+
   const { formState } = form;
 
-  const handleFormSubmit = form.handleSubmit(async () => {
-    // TODO: Integrate with the data grid settings API.
+  useEffect(() => {
+    if (isLoadingIsEnum) {
+      return;
+    }
+    form.reset({
+      isEnum: Boolean(isEnum),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEnum, isLoadingIsEnum]);
+
+  const handleFormSubmit = form.handleSubmit(async (values) => {
+    const promise = setTableIsEnum({
+      resourceVersion,
+      args: {
+        table: {
+          name: tableName,
+          schema,
+        },
+        is_enum: values.isEnum,
+      },
+    });
+    const loadingMessage = values.isEnum
+      ? 'Setting table as enum...'
+      : 'Setting table as not enum...';
+    const successMessage = values.isEnum
+      ? 'Table set as enum successfully.'
+      : 'Table set as not enum successfully.';
+    const errorMessage = values.isEnum
+      ? 'An error occurred while setting table as enum.'
+      : 'An error occurred while setting table as not enum.';
+
+    await execPromiseWithErrorToast(() => promise, {
+      loadingMessage,
+      successMessage,
+      errorMessage,
+    });
+    await refetchIsEnum();
   });
 
   return (

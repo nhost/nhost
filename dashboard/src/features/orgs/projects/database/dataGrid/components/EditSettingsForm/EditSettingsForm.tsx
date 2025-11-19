@@ -1,6 +1,6 @@
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
-import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
+import { Button } from '@/components/ui/v3/button';
 import type { BaseTableFormProps } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm';
 import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
 import { useTrackForeignKeyRelationsMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useTrackForeignKeyRelationsMutation';
@@ -133,26 +133,13 @@ export default function EditSettingsForm({
 
   return (
     <div className="flex flex-auto flex-col gap-4 overflow-y-auto pb-4">
-      {error && error instanceof Error ? (
-        <div className="-mt-3 mb-4 px-6">
-          <Alert
-            severity="error"
-            className="grid grid-flow-col items-center justify-between px-4 py-3"
-          >
-            <span className="text-left">
-              <strong>Error:</strong> {error.message}
-            </span>
-
-            <Button variant="ghost" size="sm" onClick={resetError}>
-              Clear
-            </Button>
-          </Alert>
-        </div>
-      ) : null}
       <div className="flex flex-auto flex-col">
-        <ColumnsCustomizationForm />
+        <ColumnsCustomizationForm
+          schema={schema}
+          tableName={originalTable.table_name}
+        />
         <CustomGraphQLRootFieldsForm />
-        <SetIsEnumForm />
+        <SetIsEnumForm schema={schema} tableName={originalTable.table_name} />
       </div>
 
       <div className="box grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 p-2">
@@ -162,17 +149,17 @@ export default function EditSettingsForm({
           onClick={handleCancel}
           tabIndex={isDirty ? -1 : 0}
         >
-          Cancel
+          Back
         </Button>
 
-        <ButtonWithLoading
+        {/* <ButtonWithLoading
           loading={isSubmitting}
           disabled={isSubmitting}
           type="submit"
           className="justify-self-end"
         >
           Save
-        </ButtonWithLoading>
+        </ButtonWithLoading> */}
       </div>
     </div>
   );
