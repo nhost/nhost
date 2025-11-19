@@ -1,5 +1,5 @@
 {
-  "name": "guides/react-query",
+  "name": "guides/codegen-nhost",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -16,7 +16,6 @@
   "dependencies": {
     "@graphql-typed-document-node/core": "^3.2.0",
     "@nhost/nhost-js": "workspace:*",
-    "@tanstack/react-query": "^5.79.0",
     "graphql": "^16.11.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
@@ -24,11 +23,10 @@
   },
   "devDependencies": {
     "@graphql-codegen/cli": "^5.0.6",
+    "@graphql-codegen/client-preset": "^5.1.2",
     "@graphql-codegen/schema-ast": "^4.1.0",
     "@graphql-codegen/typescript": "^4.1.6",
     "@graphql-codegen/typescript-operations": "^4.6.1",
-    "@graphql-codegen/typescript-react-query": "^6.1.1",
-    "@tanstack/react-query-devtools": "^5.79.0",
     "@types/node": "^22.15.17",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
@@ -36,7 +34,7 @@
   },
   "pnpm": {
     "overrides": {
-      "js-yaml@<=4.1.0": ">=4.1.1"
+      "js-yaml@<4.1.1": ">=4.1.1"
     }
   }
 }
