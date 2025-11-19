@@ -1,3 +1,4 @@
+import type { DataGridFilter } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridFilterProvider';
 import type {
   ForeignKeyRelation,
   MutationOrQueryBaseOptions,
@@ -9,7 +10,6 @@ import type {
 import { extractForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
 import { getPreparedReadOnlyHasuraQuery } from '@/features/orgs/projects/database/dataGrid/utils/hasuraQueryHelpers';
 import { POSTGRESQL_ERROR_CODES } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
-import { formatWithArray } from 'node-pg-format';
 
 export interface FetchTableOptions extends MutationOrQueryBaseOptions {
   /**
@@ -30,6 +30,12 @@ export interface FetchTableOptions extends MutationOrQueryBaseOptions {
    * Determines whether the query should fetch the rows or not.
    */
   preventRowFetching?: boolean;
+  /**
+   * Filtering configuration.
+   *
+   * @default []
+   */
+  filters?: DataGridFilter[];
 }
 
 export interface FetchTableReturnType {
@@ -38,17 +44,9 @@ export interface FetchTableReturnType {
    */
   columns: NormalizedQueryDataRow[];
   /**
-   * List of rows in the table.
-   */
-  rows: NormalizedQueryDataRow[];
-  /**
    * Foreign key relations in the table.
    */
   foreignKeyRelations: ForeignKeyRelation[];
-  /**
-   * Total number of rows in the table.
-   */
-  numberOfRows: number;
   /**
    * Response metadata that usually contains information about the schema and
    * the table for which the query was run.
@@ -68,43 +66,7 @@ export default async function fetchTable({
   table,
   appUrl,
   adminSecret,
-  limit,
-  offset,
-  orderBy,
-  preventRowFetching,
 }: FetchTableOptions): Promise<FetchTableReturnType> {
-  let limitAndOffsetClause = '';
-
-  if (preventRowFetching) {
-    limitAndOffsetClause = `LIMIT 0`;
-  } else if (limit && offset) {
-    limitAndOffsetClause = `LIMIT ${limit} OFFSET ${offset}`;
-  } else if (limit) {
-    limitAndOffsetClause = `LIMIT ${limit}`;
-  }
-
-  let orderByClause = 'ORDER BY 1';
-
-  if (orderBy && orderBy.length > 0) {
-    // Note: This part will be added to the SQL template
-    const pgFormatTemplate = orderBy.map(() => '%I %s').join(' ');
-
-    // Note: We are flattening object values so that we can pass them to the
-    // formatter function as arguments
-    const flattenedOrderByValues = orderBy.reduce<OrderBy[]>(
-      (values, currentOrderBy) => {
-        const currentValues = Object.values(currentOrderBy) as OrderBy[];
-        return [...values, ...currentValues];
-      },
-      [],
-    );
-
-    orderByClause = formatWithArray(
-      `ORDER BY ${pgFormatTemplate}`,
-      flattenedOrderByValues,
-    );
-  }
-
   const response = await fetch(`${appUrl}/v2/query`, {
     method: 'POST',
     headers: {
@@ -155,14 +117,6 @@ export default async function fetchTable({
         ),
         getPreparedReadOnlyHasuraQuery(
           dataSource,
-          `SELECT ROW_TO_JSON(TABLE_DATA) FROM (SELECT * FROM %I.%I %s %s) TABLE_DATA`,
-          schema,
-          table,
-          orderByClause,
-          limitAndOffsetClause,
-        ),
-        getPreparedReadOnlyHasuraQuery(
-          dataSource,
           `SELECT ROW_TO_JSON(TABLE_DATA) FROM (\
             SELECT CON.CONNAME AS CONSTRAINT_NAME, CON.CONTYPE AS CONSTRAINT_TYPE, PG_GET_CONSTRAINTDEF(CON.OID) AS CONSTRAINT_DEFINITION, ATTR.ATTNAME AS COLUMN_NAME\
             FROM PG_CONSTRAINT CON
@@ -175,12 +129,6 @@ export default async function fetchTable({
             WHERE CON.CONRELID = '%1$I.%2$I'::REGCLASS
             ORDER BY CON.CONTYPE
           ) TABLE_DATA`,
-          schema,
-          table,
-        ),
-        getPreparedReadOnlyHasuraQuery(
-          dataSource,
-          `SELECT COUNT(*) FROM %I.%I`,
           schema,
           table,
         ),
@@ -207,8 +155,6 @@ export default async function fetchTable({
       if (schemaNotFound || tableNotFound) {
         return {
           columns: [],
-          rows: [],
-          numberOfRows: 0,
           foreignKeyRelations: [],
           metadata: { schema, table, schemaNotFound, tableNotFound },
         };
@@ -220,8 +166,6 @@ export default async function fetchTable({
       ) {
         return {
           columns: [],
-          rows: [],
-          numberOfRows: 0,
           foreignKeyRelations: [],
           metadata: { schema, table, columnsNotFound: true },
         };
@@ -237,9 +181,7 @@ export default async function fetchTable({
   }
 
   const [, ...rawColumns] = responseData[0].result;
-  const [, ...rawData] = responseData[1].result;
-  const [, ...rawConstraints] = responseData[2].result;
-  const [, ...[rawAggregate]] = responseData[3].result;
+  const [, ...rawConstraints] = responseData[1].result;
 
   const foreignKeyRelationMap = new Map<string, string>();
   const uniqueKeyConstraintMap = new Map<string, string[]>();
@@ -323,13 +265,8 @@ export default async function fetchTable({
       } as NormalizedQueryDataRow;
     })
     .sort((a, b) => a.ordinal_position - b.ordinal_position);
-
   return {
     columns,
-    rows: rawData.map((rawRow) =>
-      JSON.parse(rawRow),
-    ) as NormalizedQueryDataRow[],
     foreignKeyRelations: flatForeignKeyRelations,
-    numberOfRows: rawAggregate ? parseInt(rawAggregate, 10) : 0,
   };
 }

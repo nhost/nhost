@@ -67,6 +67,8 @@ export function getPreparedReadOnlyHasuraQuery(
     ...args,
   );
 
+  // console.log({ preparedHasuraQuery });
+
   return {
     ...preparedHasuraQuery,
     args: {

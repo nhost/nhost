@@ -3,6 +3,7 @@ import { FormActivityIndicator } from '@/components/form/FormActivityIndicator';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
 import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
+import { useDataGridFilter } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridFilterProvider';
 import { DataBrowserGridControls } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGridControls';
 import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
 import type { UpdateRecordVariables } from '@/features/orgs/projects/database/dataGrid/hooks/useUpdateRecordMutation';
@@ -26,6 +27,7 @@ import { DataGridNumericCell } from '@/features/orgs/projects/storage/dataGrid/c
 import { DataGridTextCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridTextCell';
 import { isNotEmptyValue } from '@/lib/utils';
 
+import { useTableRows } from '@/features/orgs/projects/database/dataGrid/hooks/useTableRows';
 import { useQueryClient } from '@tanstack/react-query';
 import { KeyRound } from 'lucide-react';
 import dynamic from 'next/dynamic';
@@ -157,16 +159,45 @@ export default function DataBrowserGrid({
   const [currentOffset, setCurrentOffset] = useState<number>(
     parseInt(page as string, 10) - 1 || 0,
   );
-
+  const { appliedFilters } = useDataGridFilter();
   const { mutateAsync: updateRow } = useUpdateRecordWithToastMutation();
 
   const sortByString = isNotEmptyValue(sortBy?.[0])
     ? `${sortBy[0].id}.${sortBy[0].desc}`
     : 'default-order';
+  const filterString = isNotEmptyValue(appliedFilters)
+    ? appliedFilters
+        .map((filter) => `${filter.column}-${filter.op}-${filter.value}`)
+        .join('')
+    : 'no-filter';
 
-  const { data, status, error, refetch } = useTableQuery(
-    [currentTablePath, currentOffset, sortByString],
+  const {
+    data,
+    status,
+    error,
+    refetch,
+    isFetching: isTableDataFetching,
+  } = useTableQuery([currentTablePath], {
+    limit,
+    offset: currentOffset * limit,
+    orderBy:
+      sortBy?.map(({ id, desc }) => ({
+        columnName: id,
+        mode: desc ? 'DESC' : 'ASC',
+      })) || [],
+    filters: appliedFilters,
+  });
+
+  const { columns, metadata } = data || {
+    columns: [] as NormalizedQueryDataRow[],
+  };
+
+  const columnNames = columns?.map((column) => column.column_name);
+
+  const { data: tableRowsData, isFetching: isTableRowsFetching } = useTableRows(
+    [currentTablePath, currentOffset, sortByString, filterString],
     {
+      columnNames,
       limit,
       offset: currentOffset * limit,
       orderBy:
@@ -174,15 +205,16 @@ export default function DataBrowserGrid({
           columnName: id,
           mode: desc ? 'DESC' : 'ASC',
         })) || [],
+      filters: appliedFilters,
+      queryOptions: {
+        enabled: !isTableDataFetching,
+      },
     },
   );
 
-  const { columns, rows, numberOfRows, metadata } = data || {
-    columns: [] as NormalizedQueryDataRow[],
-    rows: [] as NormalizedQueryDataRow[],
-    numberOfRows: 0,
-  };
-
+  const rows = tableRowsData?.rows || ([] as NormalizedQueryDataRow[]);
+  const numberOfRows = tableRowsData?.numberOfRows || 0;
+  const tableRowsError = tableRowsData?.error;
   useEffect(() => {
     if (
       currentTablePath &&
@@ -262,8 +294,6 @@ export default function DataBrowserGrid({
     [columns, currentTablePath, queryClient, updateRow],
   );
 
-  const memoizedData = useMemo(() => rows, [rows]);
-
   async function handleInsertRowClick() {
     openDrawer({
       title: 'Insert a New Row',
@@ -324,11 +354,17 @@ export default function DataBrowserGrid({
     <DataGrid
       ref={dataGridRef}
       columns={memoizedColumns}
-      data={memoizedData}
+      data={rows}
       allowSelection
       allowResize
       allowSort
-      emptyStateMessage="No rows found."
+      emptyStateMessage={
+        tableRowsError ? (
+          <span className="text-destructive">Error: {tableRowsError}</span>
+        ) : (
+          'No rows found.'
+        )
+      }
       loading={status === 'loading'}
       sortBy={sortBy}
       className="pb-17 sm:pb-0"
@@ -352,6 +388,7 @@ export default function DataBrowserGrid({
           refetchData={refetch}
         />
       }
+      isFetching={!!isTableRowsFetching}
       {...props}
     />
   );
