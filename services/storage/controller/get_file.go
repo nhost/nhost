@@ -37,6 +37,8 @@ func mimeTypeToImageType(mimeType string) (image.ImageType, *APIError) {
 		return image.ImageTypeJPEG, nil
 	case "image/avif":
 		return image.ImageTypeAVIF, nil
+	case "image/heic", "image/heif":
+		return image.ImageTypeHEIC, nil
 	default:
 		return 0, BadDataError(
 			fmt.Errorf( //nolint: err113
@@ -73,6 +75,8 @@ func chooseImageFormat( //nolint: cyclop
 		return originalFormat, image.ImageTypeJPEG, nil
 	case api.Avif:
 		return originalFormat, image.ImageTypeAVIF, nil
+	case api.Heic:
+		return originalFormat, image.ImageTypeHEIC, nil
 	case api.Auto:
 		for _, acceptHeader := range acceptHeader {
 			acceptedTypes := strings.Split(acceptHeader, ",")
@@ -85,6 +89,8 @@ func chooseImageFormat( //nolint: cyclop
 				return originalFormat, image.ImageTypeJPEG, nil
 			case slices.Contains(acceptedTypes, "image/png"):
 				return originalFormat, image.ImageTypePNG, nil
+			case slices.Contains(acceptedTypes, "image/heic"):
+				return originalFormat, image.ImageTypeHEIC, nil
 			}
 		}
 
@@ -92,8 +98,11 @@ func chooseImageFormat( //nolint: cyclop
 	default:
 		return 0, 0, BadDataError(
 			//nolint: err113
-			fmt.Errorf("format must be one of: same, webp, png, jpeg, avif, auto. Got: %s", format),
-			"format must be one of: same, webp, png, jpeg, avif, auto. Got: "+string(format),
+			fmt.Errorf(
+				"format must be one of: same, webp, png, jpeg, avif, heic, auto. Got: %s",
+				format,
+			),
+			"format must be one of: same, webp, png, jpeg, avif, heic, auto. Got: "+string(format),
 		)
 	}
 }

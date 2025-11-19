@@ -148,7 +148,7 @@ paths:
           schema:
             $ref: '#/components/schemas/RFC2822Date'
         - name: q
-          description: "Image quality (1-100). Only applies to JPEG, WebP and PNG files"
+          description: "Image quality (1-100). Only applies to JPEG, WebP, PNG and HEIC files"
           in: query
           schema:
             type: integer
@@ -332,7 +332,7 @@ paths:
           schema:
             $ref: '#/components/schemas/RFC2822Date'
         - name: q
-          description: "Image quality (1-100). Only applies to JPEG, WebP and PNG files"
+          description: "Image quality (1-100). Only applies to JPEG, WebP, PNG and HEIC files"
           in: query
           schema:
             type: integer
@@ -614,7 +614,7 @@ paths:
           schema:
             $ref: '#/components/schemas/RFC2822Date'
         - name: q
-          description: "Image quality (1-100). Only applies to JPEG, WebP and PNG files"
+          description: "Image quality (1-100). Only applies to JPEG, WebP, PNG and HEIC files"
           in: query
           schema:
             type: integer
@@ -1178,4 +1178,5 @@ components:
         - webp
         - png
         - avif
+        - heic
       example: same
