@@ -1,3 +1,4 @@
+import { getOnChangeHandlerAndValue } from '@/components/form/utils/getOnChangeHandler';
 import {
   FormControl,
   FormDescription,
@@ -7,16 +8,10 @@ import {
   FormMessage,
 } from '@/components/ui/v3/form';
 import { Input } from '@/components/ui/v3/input';
-import { cn, isNotEmptyValue } from '@/lib/utils';
-import {
-  type ChangeEvent,
-  type ForwardedRef,
-  forwardRef,
-  type ReactNode,
-} from 'react';
+import { cn } from '@/lib/utils';
+import { type ForwardedRef, forwardRef, type ReactNode } from 'react';
 import type {
   Control,
-  ControllerRenderProps,
   FieldPath,
   FieldValues,
   PathValue,
@@ -60,30 +55,6 @@ function InnerFormInput<
   }: FormInputProps<TFieldValues, TName>,
   ref: ForwardedRef<HTMLInputElement>,
 ) {
-  function getOnChangeHandlerAndValue(
-    field: ControllerRenderProps<TFieldValues, TName>,
-  ): [
-    PathValue<TFieldValues, TName>,
-    (e: ChangeEvent<HTMLInputElement>) => void,
-  ] {
-    const { onChange, value } = field;
-
-    function handleOnChange(event: ChangeEvent<HTMLInputElement>) {
-      let transformedValue = event.target.value;
-      if (isNotEmptyValue(transformValue)) {
-        transformedValue = transformValue(
-          event.target.value as PathValue<TFieldValues, TName>,
-        );
-      }
-      onChange(transformedValue);
-    }
-
-    const transformedValue = isNotEmptyValue(transformValue)
-      ? transformValue(value)
-      : value;
-
-    return [transformedValue, handleOnChange];
-  }
   return (
     <FormField
       control={control}
@@ -91,7 +62,10 @@ function InnerFormInput<
       render={({ field }) => {
         const { onChange, value, ...fieldProps } = field;
 
-        const [tValue, handleOnChange] = getOnChangeHandlerAndValue(field);
+        const [tValue, handleOnChange] = getOnChangeHandlerAndValue<
+          TFieldValues,
+          TName
+        >(field, transformValue);
         return (
           <FormItem
             className={cn({ 'flex w-full items-center gap-4 py-3': inline })}

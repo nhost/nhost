@@ -120,7 +120,6 @@ export default function DatabaseRecordInputGroup({
               id: columnId,
               type,
               specificType,
-              maxLength,
               defaultValue,
               isPrimary,
               isNullable,
@@ -132,7 +131,7 @@ export default function DatabaseRecordInputGroup({
             const isMultiline =
               specificType === 'text' ||
               specificType === 'bpchar' ||
-              specificType === 'varchar' ||
+              specificType?.includes('character varying') ||
               specificType === 'json' ||
               specificType === 'jsonb';
 
@@ -153,11 +152,9 @@ export default function DatabaseRecordInputGroup({
 
                 <InlineCode
                   className="h-[1.125rem] overflow-hidden whitespace-nowrap leading-[1.125rem]"
-                  style={{ textOverflow: 'clip' }}
                   title={specificType}
                 >
                   {specificType}
-                  {maxLength ? `(${maxLength})` : null}
                 </InlineCode>
               </span>
             );

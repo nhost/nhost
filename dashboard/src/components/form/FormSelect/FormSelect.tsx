@@ -1,3 +1,4 @@
+import { getOnChangeHandlerAndValue } from '@/components/form/utils/getOnChangeHandler';
 import {
   FormControl,
   FormDescription,
@@ -12,11 +13,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
-import { cn, isNotEmptyValue } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import type { PropsWithChildren, ReactNode } from 'react';
 import type {
   Control,
-  ControllerRenderProps,
   FieldPath,
   FieldValues,
   PathValue,
@@ -52,32 +52,16 @@ function FormSelect<
   children,
   transformValue,
 }: PropsWithChildren<FormSelectProps<TFieldValues, TName>>) {
-  function getOnChangeHandlerAndValue(
-    field: ControllerRenderProps<TFieldValues, TName>,
-  ): [string, (v: string) => void] {
-    const { onChange, value } = field;
-
-    function handleOnChange(newValue: string) {
-      const transformedNewValue = isNotEmptyValue(transformValue)
-        ? transformValue(newValue as PathValue<TFieldValues, TName>)
-        : newValue;
-
-      onChange(transformedNewValue);
-    }
-
-    const transformedValue: string = isNotEmptyValue(transformValue)
-      ? transformValue(value as PathValue<TFieldValues, TName>)
-      : value;
-
-    return [transformedValue, handleOnChange];
-  }
   return (
     <FormField
       control={control}
       name={name}
       render={({ field }) => {
         const { onChange, value, ...selectProps } = field;
-        const [tValue, handleOnChange] = getOnChangeHandlerAndValue(field);
+        const [tValue, handleOnChange] = getOnChangeHandlerAndValue<
+          TFieldValues,
+          TName
+        >(field, transformValue);
         return (
           <FormItem
             className={cn({ 'flex w-full items-center gap-4 py-3': inline })}
