@@ -399,7 +399,7 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 				"Accept-Ranges":       []string{"bytes"},
 				"Cache-Control":       []string{"max-age=3600"},
 				"Content-Disposition": []string{`inline; filename="nhost.jpg"`},
-				"Content-Length":      []string{"8709"},
+				"Content-Length":      []string{"8963"},
 				"Content-Type":        []string{"image/jpeg"},
 				"Date":                []string{"Mon, 21 Jul 2025 13:24:53 GMT"},
 				"Etag":                []string{`"78b676e65ebc31f0bb1f2f0d05098572"`},

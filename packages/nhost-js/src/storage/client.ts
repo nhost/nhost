@@ -275,7 +275,8 @@ export type OutputImageFormat =
   | "jpeg"
   | "webp"
   | "png"
-  | "avif";
+  | "avif"
+  | "heic";
 
 /**
  * 
@@ -378,7 +379,7 @@ export interface ListOrphanedFilesResponse200 {
 
 /**
  * Parameters for the getFile method.
-    @property q? (number) - Image quality (1-100). Only applies to JPEG, WebP and PNG files
+    @property q? (number) - Image quality (1-100). Only applies to JPEG, WebP, PNG and HEIC files
   
     @property h? (number) - Maximum height to resize image to while maintaining aspect ratio. Only applies to image files
   
@@ -391,7 +392,7 @@ export interface ListOrphanedFilesResponse200 {
     *    Output format for image files. Use 'auto' for content negotiation based on Accept header*/
 export interface GetFileParams {
   /**
-   * Image quality (1-100). Only applies to JPEG, WebP and PNG files
+   * Image quality (1-100). Only applies to JPEG, WebP, PNG and HEIC files
   
    */
   q?: number;
@@ -419,7 +420,7 @@ export interface GetFileParams {
 }
 /**
  * Parameters for the getFileMetadataHeaders method.
-    @property q? (number) - Image quality (1-100). Only applies to JPEG, WebP and PNG files
+    @property q? (number) - Image quality (1-100). Only applies to JPEG, WebP, PNG and HEIC files
   
     @property h? (number) - Maximum height to resize image to while maintaining aspect ratio. Only applies to image files
   
@@ -432,7 +433,7 @@ export interface GetFileParams {
     *    Output format for image files. Use 'auto' for content negotiation based on Accept header*/
 export interface GetFileMetadataHeadersParams {
   /**
-   * Image quality (1-100). Only applies to JPEG, WebP and PNG files
+   * Image quality (1-100). Only applies to JPEG, WebP, PNG and HEIC files
   
    */
   q?: number;
