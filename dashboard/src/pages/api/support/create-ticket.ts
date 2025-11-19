@@ -1,6 +1,7 @@
+import { Sla_Level_Enum } from '@/utils/__generated__/graphql';
 import { nhostRoutesClient } from '@/utils/nhost';
 import type { NextApiRequest, NextApiResponse } from 'next';
-
+i
 export type CreateTicketRequest = {
   project: string;
   services: Array<{ label: string; value: string }>;
@@ -118,6 +119,14 @@ export default async function handler(
       return res.status(400).json({
         success: false,
         error: 'Invalid project subdomain',
+      });
+    }
+
+    // validate priority based on sla level
+    if ((slaLevel === Sla_Level_Enum.None || slaLevel === null) && priority !== 'low') {
+      return res.status(400).json({
+        success: false,
+        error: 'Priority must be "low" for plans without an SLA',
       });
     }
 
