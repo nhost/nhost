@@ -17,6 +17,7 @@ import {
   EditSettingsFormValues,
   validationSchema,
 } from './EditSettingsFormTypes';
+import ColumnsCustomizationForm from './sections/ColumnsCustomizationForm';
 import CustomGraphQLRootFieldsForm from './sections/CustomGraphQLRootFieldsForm';
 import SetIsEnumForm from './sections/SetIsEnumForm';
 
@@ -53,6 +54,8 @@ export default function EditSettingsForm({
     schema,
     table: originalTable.table_name,
   });
+
+  console.log('data', data);
 
   const { data: isEnum } = useTableIsEnumQuery({
     table: {
@@ -147,6 +150,7 @@ export default function EditSettingsForm({
         </div>
       ) : null}
       <div className="flex flex-auto flex-col">
+        <ColumnsCustomizationForm />
         <CustomGraphQLRootFieldsForm />
         <SetIsEnumForm />
       </div>
