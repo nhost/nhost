@@ -39,9 +39,9 @@ export interface EditSettingsFormProps
 
 export default function EditSettingsForm({
   onSubmit,
+  onCancel,
   schema,
   table: originalTable,
-  ...props
 }: EditSettingsFormProps) {
   const [formInitialized, setFormInitialized] = useState(false);
   const router = useRouter();
@@ -100,7 +100,14 @@ export default function EditSettingsForm({
 
   const { isDirty, isSubmitting } = form.formState;
 
-  const handleCancel = () => {};
+  const handleCancel = () => {
+    if (onCancel) {
+      onCancel();
+      return;
+    }
+
+    router.back();
+  };
 
   if (columnsStatus === 'loading') {
     return (
