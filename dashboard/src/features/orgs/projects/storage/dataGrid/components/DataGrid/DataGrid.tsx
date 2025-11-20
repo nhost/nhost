@@ -9,7 +9,7 @@ import type { DataGridHeaderProps } from '@/features/orgs/projects/storage/dataG
 import { DataGridHeader } from '@/features/orgs/projects/storage/dataGrid/components/DataGridHeader';
 import { DataTableDesignProvider } from '@/features/orgs/projects/storage/dataGrid/providers/DataTableDesignProvider';
 import { cn } from '@/lib/utils';
-import type { ForwardedRef } from 'react';
+import type { ForwardedRef, ReactNode } from 'react';
 import { forwardRef, useEffect, useRef } from 'react';
 import { mergeRefs } from 'react-merge-refs';
 import type { Column, Row, SortingRule, TableOptions } from 'react-table';
@@ -31,7 +31,7 @@ export interface DataGridProps<TColumnData extends object>
    *
    * @default null
    */
-  emptyStateMessage?: string;
+  emptyStateMessage?: ReactNode;
   /**
    * Additional configuration options for the `react-table` hook.
    */
@@ -71,6 +71,10 @@ export interface DataGridProps<TColumnData extends object>
    * Determines whether the Grid is used for displaying files.
    */
   isFileDataGrid?: boolean;
+  /**
+   * Determines whether rows are being fetched or not
+   */
+  isFetching?: boolean;
 }
 
 function DataGrid<TColumnData extends object>(
@@ -89,6 +93,7 @@ function DataGrid<TColumnData extends object>(
     loading,
     className,
     isFileDataGrid,
+    isFetching,
   }: DataGridProps<TColumnData>,
   ref: ForwardedRef<HTMLDivElement>,
 ) {
@@ -151,12 +156,19 @@ function DataGrid<TColumnData extends object>(
                 )}
               >
                 <DataGridFrame>
-                  <DataGridHeader {...headerProps} />
-                  <DataGridBody
-                    isFileDataGrid={isFileDataGrid}
-                    emptyStateMessage={emptyStateMessage}
-                    loading={loading}
-                  />
+                  <div className="relative h-full">
+                    <DataGridHeader {...headerProps} />
+                    {isFetching && (
+                      <div className="absolute top-0 z-50 flex h-full w-full justify-center bg-[rgba(0,0,0,.5)]">
+                        <Spinner />
+                      </div>
+                    )}
+                    <DataGridBody
+                      isFileDataGrid={isFileDataGrid}
+                      emptyStateMessage={emptyStateMessage}
+                      loading={loading}
+                    />
+                  </div>
                 </DataGridFrame>
               </div>
             )}

@@ -15,35 +15,15 @@ import DataGridCustomizerTrigger from './DataGridCustomizerTrigger';
 import RowDensityCustomizer from './RowDensityCustomizer';
 
 function DataGridCustomizerControls() {
-  const { allColumns, setColumnOrder, setHiddenColumns } = useDataGridConfig();
+  const { allColumns, setColumnOrder } = useDataGridConfig();
   const tablePath = useTablePath();
   const { open, setOpen } = useDataGridCustomizerOpenStateContext();
 
   const columns = allColumns.filter(({ id }) => id !== 'selection-column');
 
-  function saveHiddenCols(cols: string[]) {
-    setHiddenColumns(cols);
-    PersistenDataTableConfigurationStorage.saveHiddenColumns(tablePath, cols);
-  }
-
-  function showOriginalOrder() {
-    setColumnOrder([]);
-    PersistenDataTableConfigurationStorage.saveColumnOrder(tablePath, []);
-  }
-
-  function handleReset() {
-    showOriginalOrder();
-    saveHiddenCols([]);
-  }
-
   function handleDragEnd(newOrder: string[]) {
     setColumnOrder(newOrder);
     PersistenDataTableConfigurationStorage.saveColumnOrder(tablePath, newOrder);
-  }
-
-  function hideAllColumns() {
-    const allColumnsId = columns.map(({ id }) => id);
-    saveHiddenCols(allColumnsId);
   }
 
   return (
@@ -65,13 +45,7 @@ function DataGridCustomizerControls() {
         </SheetHeader>
         <div className="flex h-full flex-col gap-8">
           <RowDensityCustomizer />
-          <ColumnCustomizer
-            columns={columns}
-            onDragEnd={handleDragEnd}
-            onReset={handleReset}
-            onShowAllColumns={() => saveHiddenCols([])}
-            onHideAllColumns={hideAllColumns}
-          />
+          <ColumnCustomizer columns={columns} onDragEnd={handleDragEnd} />
         </div>
       </SheetContent>
     </Sheet>
