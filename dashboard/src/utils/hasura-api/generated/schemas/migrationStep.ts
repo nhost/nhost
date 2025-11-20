@@ -9,9 +9,11 @@ import type { AddRemoteSchemaPermissionsStep } from './addRemoteSchemaPermission
 import type { AddRemoteSchemaStep } from './addRemoteSchemaStep';
 import type { DropRemoteSchemaPermissionsStep } from './dropRemoteSchemaPermissionsStep';
 import type { RemoveRemoteSchemaStep } from './removeRemoteSchemaStep';
+import type { SetTableIsEnumStep } from './setTableIsEnumStep';
 import type { UpdateRemoteSchemaStep } from './updateRemoteSchemaStep';
 
 export type MigrationStep =
+  | SetTableIsEnumStep
   | AddRemoteSchemaPermissionsStep
   | DropRemoteSchemaPermissionsStep
   | UpdateRemoteSchemaStep
