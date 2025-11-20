@@ -4,7 +4,7 @@ import type {
   QualifiedTable,
 } from '@/utils/hasura-api/generated/schemas';
 
-interface GetEventTriggersNamesByTableArgs {
+interface GetEventTriggersByTableArgs {
   /**
    * The exported metadata.
    */
@@ -23,7 +23,7 @@ export default function getEventTriggersByTable({
   metadata,
   table,
   dataSource,
-}: GetEventTriggersNamesByTableArgs): EventTrigger[] {
+}: GetEventTriggersByTableArgs): EventTrigger[] {
   if (!metadata?.sources) {
     return [];
   }
