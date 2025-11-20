@@ -8,6 +8,11 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/components/ui/v3/dropdown-menu';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { InvocationLogDetailsDialogContent } from '@/features/orgs/projects/events/event-triggers/components/InvocationLogDetailsDialogContent';
 import { DEFAULT_RETRY_TIMEOUT_SECONDS } from '@/features/orgs/projects/events/event-triggers/constants';
@@ -15,6 +20,7 @@ import fetchEventAndInvocationLogsById from '@/features/orgs/projects/events/eve
 import { useGetEventTriggersByTable } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventTriggersByTable';
 import { useInvokeEventTriggerMutation } from '@/features/orgs/projects/events/event-triggers/hooks/useInvokeEventTriggerMutation';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { cn } from '@/lib/utils';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import type { EventInvocationLogEntry } from '@/utils/hasura-api/generated/schemas/eventInvocationLogEntry';
 import { Loader2, Lock } from 'lucide-react';
@@ -84,7 +90,7 @@ export default function InvokeEventTriggerButton({
         },
       });
       eventId = response.event_id;
-      toast.success(
+      toast(
         'Event trigger invoked successfully, fetching invocation logs...',
         getToastStyleProps(),
       );
@@ -161,13 +167,31 @@ export default function InvokeEventTriggerButton({
                 return (
                   <DropdownMenuItem
                     key={eventTriggerName}
-                    onSelect={() => handleInvokeEventTrigger(eventTriggerName)}
-                    disabled={disabledManualInvocation}
-                    className="flex items-center gap-2"
+                    onSelect={(event) => {
+                      if (disabledManualInvocation) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        return;
+                      }
+                      handleInvokeEventTrigger(eventTriggerName);
+                    }}
+                    aria-disabled={disabledManualInvocation}
+                    className={cn(
+                      'flex items-center gap-2',
+                      disabledManualInvocation &&
+                        'cursor-not-allowed text-muted-foreground opacity-50 hover:!bg-transparent hover:!text-muted-foreground focus:!bg-transparent focus:!text-muted-foreground data-[highlighted]:!bg-transparent data-[highlighted]:!text-muted-foreground',
+                    )}
                   >
                     {eventTriggerName}
                     {disabledManualInvocation ? (
-                      <Lock className="size-4" />
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Lock className="size-4" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          This trigger is not enabled for manual invocation.
+                        </TooltipContent>
+                      </Tooltip>
                     ) : null}
                   </DropdownMenuItem>
                 );
