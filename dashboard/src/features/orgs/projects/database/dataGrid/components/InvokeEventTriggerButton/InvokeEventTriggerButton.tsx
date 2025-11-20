@@ -12,6 +12,7 @@ import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/gen
 import { InvocationLogDetailsDialogContent } from '@/features/orgs/projects/events/event-triggers/components/InvocationLogDetailsDialogContent';
 import { DEFAULT_RETRY_TIMEOUT_SECONDS } from '@/features/orgs/projects/events/event-triggers/constants';
 import fetchEventAndInvocationLogsById from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventAndInvocationLogsById/fetchEventAndInvocationLogsById';
+import { useGetEventTriggers } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventTriggers';
 import { useGetEventTriggersByTable } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventTriggersByTable';
 import { useInvokeEventTriggerMutation } from '@/features/orgs/projects/events/event-triggers/hooks/useInvokeEventTriggerMutation';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -43,6 +44,8 @@ export default function InvokeEventTriggerButton({
 
   const router = useRouter();
   const { dataSourceSlug, schemaSlug, tableSlug } = router.query;
+
+  const { data: eventTriggers } = useGetEventTriggers();
 
   const { data: eventTriggerNames, isLoading } = useGetEventTriggersByTable({
     table: { name: tableSlug as string, schema: schemaSlug as string },
@@ -95,8 +98,12 @@ export default function InvokeEventTriggerButton({
     }
     setShowDialog(true);
 
+    const eventTrigger = eventTriggers?.find((et) => et.name === name);
+    const retryTimeoutSeconds =
+      eventTrigger?.retry_conf?.timeout_sec ?? DEFAULT_RETRY_TIMEOUT_SECONDS;
+
     const start = Date.now();
-    const timeoutMs = DEFAULT_RETRY_TIMEOUT_SECONDS * 1000; // TODO: Get from retry_conf.timeout_sec
+    const timeoutMs = retryTimeoutSeconds * 1000;
     intervalRef.current = setInterval(async () => {
       const elapsed = Date.now() - start;
       if (elapsed >= timeoutMs && intervalRef.current) {
