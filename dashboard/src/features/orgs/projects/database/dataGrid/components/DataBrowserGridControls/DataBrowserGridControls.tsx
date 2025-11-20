@@ -2,8 +2,10 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { Badge } from '@/components/ui/v3/badge';
 import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
 import { DataGridCustomizerControls } from '@/features/orgs/projects/common/components/DataGridCustomizerControls';
+import { InvokeEventTriggerButton } from '@/features/orgs/projects/database/dataGrid/components/InvokeEventTriggerButton';
 import { useDeleteRecordMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteRecordMutation';
 import type { DataBrowserGridColumn } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { useGetEventTriggersByTable } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventTriggersByTable';
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
 import type { DataGridPaginationProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPagination';
 import { DataGridPagination } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPagination';
@@ -11,6 +13,7 @@ import { cn } from '@/lib/utils';
 import { triggerToast } from '@/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { Plus } from 'lucide-react';
+import { useRouter } from 'next/router';
 import { useState } from 'react';
 import type { Row } from 'react-table';
 import { twMerge } from 'tailwind-merge';
@@ -57,8 +60,26 @@ export default function DataBrowserGridControls({
     Row[]
   >([]);
 
+  const router = useRouter();
+  const { dataSourceSlug, schemaSlug, tableSlug } = router.query;
+
+  const { data: eventTriggersByTable } = useGetEventTriggersByTable({
+    table: { name: tableSlug as string, schema: schemaSlug as string },
+    dataSource: dataSourceSlug as string,
+    queryOptions: {
+      enabled:
+        typeof tableSlug === 'string' &&
+        typeof schemaSlug === 'string' &&
+        typeof dataSourceSlug === 'string',
+    },
+  });
+
   const numberOfSelectedRows =
     selectedRowsBeforeDelete.length || selectedRows?.length;
+  const eventTriggersCount = eventTriggersByTable?.length ?? 0;
+
+  const showInvokeEventTriggerButton =
+    numberOfSelectedRows === 1 && eventTriggersCount > 0;
 
   async function handleRowDelete() {
     if (!selectedRows?.length) {
@@ -142,6 +163,11 @@ export default function DataBrowserGridControls({
             >
               Delete
             </Button>
+            {showInvokeEventTriggerButton && (
+              <InvokeEventTriggerButton
+                selectedValues={selectedRows[0].values}
+              />
+            )}
           </div>
         )}
 

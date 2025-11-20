@@ -10,6 +10,7 @@ import type { GetEventAndInvocationLogsByIdResponse } from './getEventAndInvocat
 import type { GetEventInvocationLogsResponse } from './getEventInvocationLogsResponse';
 import type { GetEventLogsResponse } from './getEventLogsResponse';
 import type { IntrospectRemoteSchemaResponse } from './introspectRemoteSchemaResponse';
+import type { InvokeEventTriggerResponse } from './invokeEventTriggerResponse';
 import type { MetadataOperation200OneOf } from './metadataOperation200OneOf';
 import type { MetadataOperation200OneOfTwoItem } from './metadataOperation200OneOfTwoItem';
 import type { TestWebhookTransformResponse } from './testWebhookTransformResponse';
@@ -22,4 +23,5 @@ export type MetadataOperation200 =
   | GetEventLogsResponse
   | GetEventAndInvocationLogsByIdResponse
   | TestWebhookTransformResponse
+  | InvokeEventTriggerResponse
   | MetadataOperation200OneOfTwoItem[];
