@@ -1,9 +1,9 @@
 import type { ExportMetadataResponseMetadata } from '@/utils/hasura-api/generated/schemas';
 import { describe, expect, it } from 'vitest';
 
-import getEventTriggersNamesByTable from './getEventTriggersNamesByTable';
+import getEventTriggersByTable from './getEventTriggersByTable';
 
-describe('getEventTriggersNamesByTable', () => {
+describe('getEventTriggersByTable', () => {
   const defaultTable = { name: 'table1', schema: 'public' };
   const defaultMetadata = {
     version: 3,
@@ -24,7 +24,7 @@ describe('getEventTriggersNamesByTable', () => {
   } satisfies ExportMetadataResponseMetadata;
 
   it('returns empty array when table has no event triggers', () => {
-    const result = getEventTriggersNamesByTable({
+    const result = getEventTriggersByTable({
       metadata: defaultMetadata,
       table: defaultTable,
       dataSource: 'default',
@@ -33,7 +33,7 @@ describe('getEventTriggersNamesByTable', () => {
     expect(result).toEqual([]);
   });
 
-  it('returns event trigger names from a single table', () => {
+  it('returns event trigger for a single table', () => {
     const metadata = {
       version: 3,
       sources: [
@@ -66,16 +66,34 @@ describe('getEventTriggersNamesByTable', () => {
       ],
     } satisfies ExportMetadataResponseMetadata;
 
-    const result = getEventTriggersNamesByTable({
+    const result = getEventTriggersByTable({
       metadata,
       table: { name: 'users', schema: 'public' },
       dataSource: 'default',
     });
 
-    expect(result).toEqual(['user_created']);
+    const expected = [
+      {
+        name: 'user_created',
+        definition: {
+          enable_manual: false,
+          insert: {
+            columns: '*',
+          },
+        },
+        webhook: 'https://httpbin.org/post',
+        retry_conf: {
+          interval_sec: 10,
+          num_retries: 0,
+          timeout_sec: 60,
+        },
+      },
+    ];
+
+    expect(result).toEqual(expected);
   });
 
-  it('returns only event trigger names for the requested table and data source', () => {
+  it('returns only event triggers for the requested table and data source', () => {
     const metadata = {
       version: 3,
       sources: [
@@ -172,16 +190,18 @@ describe('getEventTriggersNamesByTable', () => {
       ],
     } satisfies ExportMetadataResponseMetadata;
 
-    const result = getEventTriggersNamesByTable({
+    const result = getEventTriggersByTable({
       metadata,
       table: { name: 'users', schema: 'public' },
       dataSource: 'default',
     });
 
-    expect(result).toEqual(['user_created', 'user_updated']);
+    const expected = metadata.sources[0]?.tables?.[0]?.event_triggers ?? [];
+
+    expect(result).toEqual(expected);
   });
 
-  it('ignores additional properties and returns trigger names', () => {
+  it('preserves additional properties on returned event triggers', () => {
     const metadata = {
       version: 3,
       sources: [
@@ -238,17 +258,19 @@ describe('getEventTriggersNamesByTable', () => {
       ],
     } satisfies ExportMetadataResponseMetadata;
 
-    const result = getEventTriggersNamesByTable({
+    const result = getEventTriggersByTable({
       metadata,
       table: { name: 'table1', schema: 'public' },
       dataSource: 'default',
     });
 
-    expect(result).toEqual(['trigger-delete-table1']);
+    const expected = metadata.sources[0]?.tables?.[0]?.event_triggers ?? [];
+
+    expect(result).toEqual(expected);
   });
 
   it('returns empty array when table does not exist in the data source', () => {
-    const result = getEventTriggersNamesByTable({
+    const result = getEventTriggersByTable({
       metadata: defaultMetadata,
       table: { name: 'non_existing', schema: 'public' },
       dataSource: 'default',
@@ -258,7 +280,7 @@ describe('getEventTriggersNamesByTable', () => {
   });
 
   it('returns empty array when data source is not found', () => {
-    const result = getEventTriggersNamesByTable({
+    const result = getEventTriggersByTable({
       metadata: defaultMetadata,
       table: defaultTable,
       dataSource: 'missing',

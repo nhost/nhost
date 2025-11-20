@@ -1,4 +1,5 @@
 import type {
+  EventTrigger,
   ExportMetadataResponseMetadata,
   QualifiedTable,
 } from '@/utils/hasura-api/generated/schemas';
@@ -18,11 +19,11 @@ interface GetEventTriggersNamesByTableArgs {
   dataSource: string;
 }
 
-export default function getEventTriggersNamesByTable({
+export default function getEventTriggersByTable({
   metadata,
   table,
   dataSource,
-}: GetEventTriggersNamesByTableArgs): string[] {
+}: GetEventTriggersNamesByTableArgs): EventTrigger[] {
   if (!metadata?.sources) {
     return [];
   }
@@ -38,8 +39,8 @@ export default function getEventTriggersNamesByTable({
     (item) =>
       item.table.name === table.name && item.table.schema === table.schema,
   );
-  const eventTriggersNames =
-    tableMetadataItem?.event_triggers?.map((trigger) => trigger.name) ?? [];
 
-  return eventTriggersNames;
+  const eventTriggers = tableMetadataItem?.event_triggers ?? [];
+
+  return eventTriggers;
 }

@@ -12,13 +12,12 @@ import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/gen
 import { InvocationLogDetailsDialogContent } from '@/features/orgs/projects/events/event-triggers/components/InvocationLogDetailsDialogContent';
 import { DEFAULT_RETRY_TIMEOUT_SECONDS } from '@/features/orgs/projects/events/event-triggers/constants';
 import fetchEventAndInvocationLogsById from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventAndInvocationLogsById/fetchEventAndInvocationLogsById';
-import { useGetEventTriggers } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventTriggers';
 import { useGetEventTriggersByTable } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventTriggersByTable';
 import { useInvokeEventTriggerMutation } from '@/features/orgs/projects/events/event-triggers/hooks/useInvokeEventTriggerMutation';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import type { EventInvocationLogEntry } from '@/utils/hasura-api/generated/schemas/eventInvocationLogEntry';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Lock } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useRef, useState } from 'react';
 import toast from 'react-hot-toast';
@@ -45,9 +44,7 @@ export default function InvokeEventTriggerButton({
   const router = useRouter();
   const { dataSourceSlug, schemaSlug, tableSlug } = router.query;
 
-  const { data: eventTriggers } = useGetEventTriggers();
-
-  const { data: eventTriggerNames, isLoading } = useGetEventTriggersByTable({
+  const { data: eventTriggersByTable, isLoading } = useGetEventTriggersByTable({
     table: { name: tableSlug as string, schema: schemaSlug as string },
     dataSource: dataSourceSlug as string,
     queryOptions: {
@@ -92,13 +89,18 @@ export default function InvokeEventTriggerButton({
         getToastStyleProps(),
       );
     } catch (error) {
-      toast.error('Failed to invoke event trigger', getToastStyleProps());
+      toast.error(
+        error?.message
+          ? `Failed to invoke event trigger: ${error.message}`
+          : 'Failed to invoke event trigger',
+        getToastStyleProps(),
+      );
       resetState();
       return;
     }
     setShowDialog(true);
 
-    const eventTrigger = eventTriggers?.find((et) => et.name === name);
+    const eventTrigger = eventTriggersByTable?.find((et) => et.name === name);
     const retryTimeoutSeconds =
       eventTrigger?.retry_conf?.timeout_sec ?? DEFAULT_RETRY_TIMEOUT_SECONDS;
 
@@ -152,14 +154,24 @@ export default function InvokeEventTriggerButton({
                 Loading...
               </DropdownMenuItem>
             ) : (
-              eventTriggerNames?.map((name) => (
-                <DropdownMenuItem
-                  key={name}
-                  onSelect={() => handleInvokeEventTrigger(name)}
-                >
-                  {name}
-                </DropdownMenuItem>
-              ))
+              eventTriggersByTable?.map((et) => {
+                const eventTriggerName = et.name;
+                const disabledManualInvocation = !et.definition.enable_manual;
+
+                return (
+                  <DropdownMenuItem
+                    key={eventTriggerName}
+                    onSelect={() => handleInvokeEventTrigger(eventTriggerName)}
+                    disabled={disabledManualInvocation}
+                    className="flex items-center gap-2"
+                  >
+                    {eventTriggerName}
+                    {disabledManualInvocation ? (
+                      <Lock className="size-4" />
+                    ) : null}
+                  </DropdownMenuItem>
+                );
+              })
             )}
           </DropdownMenuGroup>
         </DropdownMenuContent>

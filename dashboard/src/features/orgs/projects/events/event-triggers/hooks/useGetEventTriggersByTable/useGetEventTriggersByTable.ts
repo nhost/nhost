@@ -1,8 +1,9 @@
 import { fetchExportMetadata } from '@/features/orgs/projects/common/utils/fetchExportMetadata';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
-import getEventTriggersNamesByTable from '@/features/orgs/projects/events/event-triggers/utils/getEventTriggersNamesByTable/getEventTriggersNamesByTable';
+import { getEventTriggersByTable } from '@/features/orgs/projects/events/event-triggers/utils/getEventTriggersByTable';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type {
+  EventTrigger,
   ExportMetadataResponse,
   QualifiedTable,
 } from '@/utils/hasura-api/generated/schemas';
@@ -13,7 +14,11 @@ export interface UseGetEventTriggersByTableOptions {
   /**
    * Props passed to the underlying query hook.
    */
-  queryOptions?: UseQueryOptions<ExportMetadataResponse, unknown, string[]>;
+  queryOptions?: UseQueryOptions<
+    ExportMetadataResponse,
+    unknown,
+    EventTrigger[]
+  >;
   /**
    * The table to get the event triggers for.
    */
@@ -37,7 +42,7 @@ export default function useGetEventTriggersByTable({
 }: UseGetEventTriggersByTableOptions) {
   const { project, loading } = useProject();
 
-  const query = useQuery<ExportMetadataResponse, unknown, string[]>(
+  const query = useQuery<ExportMetadataResponse, unknown, EventTrigger[]>(
     ['export-metadata', project?.subdomain],
     () => {
       const appUrl = generateAppServiceUrl(
@@ -60,7 +65,7 @@ export default function useGetEventTriggersByTable({
         !loading
       ),
       select: (data) =>
-        getEventTriggersNamesByTable({
+        getEventTriggersByTable({
           metadata: data.metadata,
           table,
           dataSource,
