@@ -108,10 +108,7 @@ export default function ColumnsCustomizationForm({
 
   return (
     <Form {...form}>
-      <form
-        onSubmit={handleSubmit}
-        className="flex flex-auto flex-col gap-4 overflow-y-auto px-6 pb-4"
-      >
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4 px-6 pb-4">
         <SettingsContainer
           title="GraphQL Field Names"
           description="Align each column with the GraphQL field name exposed through your API."

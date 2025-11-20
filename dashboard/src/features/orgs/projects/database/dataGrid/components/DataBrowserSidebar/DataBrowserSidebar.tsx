@@ -425,11 +425,11 @@ function DataBrowserSidebarContent({
                                   table={table}
                                 />
                               ),
-                              // props: {
-                              //   PaperProps: {
-                              //     className: 'lg:max-w-xl',
-                              //   },
-                              // },
+                              props: {
+                                PaperProps: {
+                                  className: 'overflow-hidden ',
+                                },
+                              },
                             });
                           }}
                           onDelete={() =>

@@ -132,17 +132,20 @@ export default function EditSettingsForm({
   }
 
   return (
-    <div className="flex flex-auto flex-col gap-4 overflow-y-auto pb-4">
-      <div className="flex flex-auto flex-col">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden">
+      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pb-4">
         <ColumnsCustomizationForm
           schema={schema}
           tableName={originalTable.table_name}
         />
-        <CustomGraphQLRootFieldsForm />
+        <CustomGraphQLRootFieldsForm
+          schema={schema}
+          tableName={originalTable.table_name}
+        />
         <SetIsEnumForm schema={schema} tableName={originalTable.table_name} />
       </div>
 
-      <div className="box grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 p-2">
+      <div className="grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 px-6 py-3">
         <Button
           variant="outline"
           color="secondary"
