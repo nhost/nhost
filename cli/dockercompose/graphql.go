@@ -38,6 +38,8 @@ func graphql( //nolint:funlen
 		env[v.Name] = v.Value
 	}
 
+	env["HASURA_GRAPHQL_MIGRATIONS_SERVER_TIMEOUT"] = "600"
+
 	return &Service{
 		Image: "nhost/graphql-engine:" + *cfg.GetHasura().GetVersion(),
 		DependsOn: map[string]DependsOn{
@@ -54,7 +56,7 @@ func graphql( //nolint:funlen
 				"CMD-SHELL",
 				"curl http://localhost:8080/healthz > /dev/null 2>&1",
 			},
-			Timeout:     "60s",
+			Timeout:     "600s",
 			Interval:    "5s",
 			StartPeriod: "60s",
 		},
@@ -135,6 +137,8 @@ func console( //nolint:funlen
 		env[v.Name] = v.Value
 	}
 
+	env["HASURA_GRAPHQL_MIGRATIONS_SERVER_TIMEOUT"] = "600"
+
 	return &Service{
 		Image: fmt.Sprintf(
 			"nhost/graphql-engine:%s.cli-migrations-v3",
@@ -165,7 +169,7 @@ func console( //nolint:funlen
 				"CMD-SHELL",
 				"timeout 1s bash -c ':> /dev/tcp/127.0.0.1/9695' || exit 1",
 			},
-			Timeout:     "60s",
+			Timeout:     "600s",
 			Interval:    "5s",
 			StartPeriod: "60s",
 		},
