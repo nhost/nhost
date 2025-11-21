@@ -6,7 +6,8 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/v3/form';
-import { Input } from '@/components/ui/v3/input';
+import { Input, type InputProps } from '@/components/ui/v3/input';
+import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
 import { cn, isNotEmptyValue } from '@/lib/utils';
 import {
   type ChangeEvent,
@@ -41,6 +42,9 @@ interface FormInputProps<
   transformValue?: (
     value: PathValue<TFieldValues, TName>,
   ) => PathValue<TFieldValues, TName>;
+  disabled?: boolean;
+  autoComplete?: InputProps['autoComplete'];
+  infoTooltip?: string;
 }
 
 function InnerFormInput<
@@ -57,6 +61,9 @@ function InnerFormInput<
     inline,
     helperText,
     transformValue,
+    disabled,
+    autoComplete,
+    infoTooltip,
   }: FormInputProps<TFieldValues, TName>,
   ref: ForwardedRef<HTMLInputElement>,
 ) {
@@ -96,13 +103,26 @@ function InnerFormInput<
           <FormItem
             className={cn({ 'flex w-full items-center gap-4 py-3': inline })}
           >
-            <FormLabel
-              className={cn({
-                'mt-2 w-52 max-w-52 flex-shrink-0 self-start': inline,
-              })}
-            >
-              {label}
-            </FormLabel>
+            {infoTooltip ? (
+              <div className="flex flex-row items-center gap-2">
+                <FormLabel
+                  className={cn({
+                    'mt-2 w-52 max-w-52 flex-shrink-0 self-start': inline,
+                  })}
+                >
+                  {label}
+                </FormLabel>
+                <InfoTooltip>{infoTooltip}</InfoTooltip>
+              </div>
+            ) : (
+              <FormLabel
+                className={cn({
+                  'mt-2 w-52 max-w-52 flex-shrink-0 self-start': inline,
+                })}
+              >
+                {label}
+              </FormLabel>
+            )}
             <div
               className={cn({
                 'flex w-[calc(100%-13.5rem)] max-w-[calc(100%-13.5rem)] flex-col gap-2':
@@ -115,6 +135,8 @@ function InnerFormInput<
                   placeholder={placeholder}
                   onChange={handleOnChange}
                   value={tValue}
+                  disabled={disabled}
+                  autoComplete={autoComplete}
                   {...fieldProps}
                   ref={mergeRefs([field.ref, ref])}
                   className={cn(inputClasses, className)}

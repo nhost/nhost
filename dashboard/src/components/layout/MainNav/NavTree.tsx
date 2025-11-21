@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/v3/button';
 import { useOrgs, type Org } from '@/features/orgs/projects/hooks/useOrgs';
 import { cn, isNotEmptyValue } from '@/lib/utils';
 import { getConfigServerUrl, isPlatform as getIsPlatform } from '@/utils/env';
-import { Box, ChevronDown, ChevronRight, Plus } from 'lucide-react';
+import { Box, ChevronDown, ChevronRight, Plus, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { type ReactElement } from 'react';
 
@@ -45,6 +45,12 @@ const projectPages = [
     icon: <GraphQLIcon className="h-4 w-4" />,
     route: 'graphql',
     slug: 'graphql',
+  },
+  {
+    name: 'Events',
+    icon: <Zap className="h-4 w-4" />,
+    route: 'events',
+    slug: 'events',
   },
   {
     name: 'Hasura',
