@@ -1,3 +1,4 @@
+import { Sla_Level_Enum } from '@/utils/__generated__/graphql';
 import { nhostRoutesClient } from '@/utils/nhost';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
@@ -19,6 +20,11 @@ export type CreateTicketResponse = {
 type GetProjectResponse = {
   apps: Array<{
     id: string;
+    organization: {
+      plan: {
+        slaLevel: string | null;
+      } | null;
+    } | null;
   }>;
 };
 
@@ -73,13 +79,21 @@ export default async function handler(
 
     const token = req.headers.authorization?.split(' ')[1];
 
+    let slaLevel: string | null = null;
+
     try {
       // we use this to verify the owner of the JWT token has access to the project
+      // and fetch the organization's plan slaLevel
       const resp = await nhostRoutesClient.graphql.request<GetProjectResponse>(
         {
           query: `query GetProject($subdomain: String!){
             apps(where: {subdomain: {_eq: $subdomain}}) {
               id
+              organization {
+                plan {
+                  slaLevel
+                }
+              }
             }
           }`,
           variables: {
@@ -99,10 +113,20 @@ export default async function handler(
           error: 'Invalid project subdomain',
         });
       }
+
+      slaLevel = resp.body.data.apps[0]?.organization?.plan?.slaLevel ?? null;
     } catch (error) {
       return res.status(400).json({
         success: false,
         error: 'Invalid project subdomain',
+      });
+    }
+
+    // validate priority based on sla level
+    if ((slaLevel === Sla_Level_Enum.None || slaLevel === null) && priority !== 'low') {
+      return res.status(400).json({
+        success: false,
+        error: 'Priority must be "low" for plans without an SLA',
       });
     }
 
@@ -132,12 +156,16 @@ export default async function handler(
             custom_fields: [
               // these custom field IDs come from zendesk
               {
-                id: 19502784542098,
+                id: 19502784542098, // field Project Subdomain
                 value: project,
               },
               {
-                id: 19922709880978,
+                id: 19922709880978, // field Affected Services
                 value: services.map((service) => service.value?.toLowerCase()),
+              },
+              {
+                id: 30691138027538,  // field SLA 
+                value: slaLevel,
               },
             ],
           },

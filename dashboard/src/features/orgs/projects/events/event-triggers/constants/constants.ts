@@ -1,0 +1,5 @@
+export const DEFAULT_NUM_RETRIES = 0;
+
+export const DEFAULT_RETRY_INTERVAL_SECONDS = 10;
+
+export const DEFAULT_RETRY_TIMEOUT_SECONDS = 60;

@@ -1,6 +1,6 @@
-import type { MetadataOperationOptions } from '@/features/orgs/projects/remote-schemas/types';
 import { executeMigration } from '@/utils/hasura-api/generated/default/default';
 import type { RemoteSchemaInfo } from '@/utils/hasura-api/generated/schemas';
+import type { MetadataOperationOptions } from '@/utils/hasura-api/types';
 
 export interface RemoveRemoteSchemaMigrationVariables {
   remoteSchema: RemoteSchemaInfo;

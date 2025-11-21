@@ -1,6 +1,6 @@
 import { type Org } from '@/features/orgs/projects/hooks/useOrgs';
 import { ApplicationStatus } from '@/types/application';
-import { type GetProjectQuery } from '@/utils/__generated__/graphql';
+import { Sla_Level_Enum, type GetProjectQuery } from '@/utils/__generated__/graphql';
 import { getHasuraAdminSecret } from '@/utils/env';
 
 export const localApplication: GetProjectQuery['apps'][0] = {
@@ -54,6 +54,7 @@ export const localOrganization: Org = {
     isFree: false,
     price: 25,
     featureMaxDbSize: 1,
+    slaLevel: Sla_Level_Enum.None,
   },
   apps: [localApplication],
   members: [],
