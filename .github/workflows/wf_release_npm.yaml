@@ -39,7 +39,7 @@ jobs:
 
     steps:
     - name: "Check out repository"
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
 
     - name: Configure aws
       uses: aws-actions/configure-aws-credentials@v5

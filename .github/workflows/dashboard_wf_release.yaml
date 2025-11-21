@@ -81,7 +81,7 @@ jobs:
       - push-docker
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           token: ${{ secrets.GH_PAT }}
 
