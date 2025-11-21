@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
-  title: Hasura Remote Schema API
-  description: API for managing remote schemas in Hasura
+  title: Hasura API
+  description: API for managing remote schemas and events in Hasura
   version: 1.0.0
 
 security:
@@ -28,6 +28,14 @@ paths:
                 - $ref: '#/components/schemas/RemoteSchemaRemoteRelationshipOperation'
                 - $ref: '#/components/schemas/DeleteRemoteSchemaRemoteRelationshipOperation'
                 - $ref: '#/components/schemas/RemoteSchemaPermissionsBulkOperation'
+                - $ref: '#/components/schemas/GetEventInvocationLogsOperation'
+                - $ref: '#/components/schemas/GetEventLogsOperation'
+                - $ref: '#/components/schemas/GetEventAndInvocationLogsByIdOperation'
+                - $ref: '#/components/schemas/RedeliverEventOperation'
+                - $ref: '#/components/schemas/CreateEventTriggerBulkOperation'
+                - $ref: '#/components/schemas/DeleteEventTriggerBulkOperation'
+                - $ref: '#/components/schemas/TestWebhookTransformOperation'
+                - $ref: '#/components/schemas/InvokeEventTriggerOperation'
       responses:
         '200':
           description: Operation executed successfully
@@ -42,12 +50,35 @@ paths:
                         example: success
                   - $ref: '#/components/schemas/ExportMetadataResponse'
                   - $ref: '#/components/schemas/IntrospectRemoteSchemaResponse'
+                  - $ref: '#/components/schemas/GetEventInvocationLogsResponse'
+                  - $ref: '#/components/schemas/GetEventLogsResponse'
+                  - $ref: '#/components/schemas/GetEventAndInvocationLogsByIdResponse'
+                  - $ref: '#/components/schemas/TestWebhookTransformResponse'
+                  - $ref: '#/components/schemas/InvokeEventTriggerResponse'
+                  - type: array
+                    description: List of success messages for bulk operations
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                          example: success
+
         '400':
           description: Bad request
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
         '500':
           description: Internal server error
           content:
@@ -168,6 +199,29 @@ components:
         args:
           $ref: '#/components/schemas/RemoveRemoteSchemaArgs'
 
+    DeleteEventTriggerStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_delete_event_trigger]
+        args:
+          type: object
+          required:
+            - name
+          properties:
+            name:
+              type: string
+              description: Name of the Event Trigger
+              example: my_event_trigger
+            source:
+              type: string
+              description: Name of the source database of the trigger
+              default: default
+
     MigrationStep:
       oneOf:
         - $ref: '#/components/schemas/AddRemoteSchemaPermissionsStep'
@@ -175,6 +229,8 @@ components:
         - $ref: '#/components/schemas/UpdateRemoteSchemaStep'
         - $ref: '#/components/schemas/RemoveRemoteSchemaStep'
         - $ref: '#/components/schemas/AddRemoteSchemaStep'
+        - $ref: '#/components/schemas/CreateEventTriggerStep'
+        - $ref: '#/components/schemas/DeleteEventTriggerStep'
 
     MigrationRequest:
       type: object
@@ -283,6 +339,41 @@ components:
               description: List of data sources
               items:
                 type: object
+                properties:
+                  name:
+                    type: string
+                    description: Name of the data source
+                    example: default
+                  kind:
+                    type: string
+                    description: Kind of the data source
+                    example: postgres
+                  tables:
+                    type: array
+                    description: List of tables in the data source
+                    items:
+                      type: object
+                      required:
+                        - table
+                      properties:
+                        table:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                              description: Name of the table
+                              example: users
+                            schema:
+                              type: string
+                              description: Schema of the table
+                              example: public
+                          additionalProperties: true
+                        event_triggers:
+                          type: array
+                          description: List of event triggers for the table
+                          items:
+                            type: object
+                            $ref: '#/components/schemas/EventTrigger'
                 additionalProperties: true
             remote_schemas:
               type: array
@@ -514,7 +605,7 @@ components:
           example: X-Hasura-User-Id
         value_from_env:
           type: string
-          description: Environment variable name to get the value from
+          description: Name of the environment variable which holds the value of the header
           example: HASURA_USER_ID
 
     AddRemoteSchemaArgs:
@@ -859,64 +950,36 @@ components:
               description: GraphQL schema introspection data
               required:
                 - types
-                - queryType
-                - mutationType
-                - subscriptionType
-                - directives
               properties:
                 queryType:
                   type: object
-                  required:
-                    - name
-                    - kind
+                  nullable: true
                   properties:
                     name:
                       type: string
                       example: Query
-                    kind:
-                      type: string
-                      enum: [OBJECT]
                   additionalProperties: true
                 mutationType:
                   type: object
-                  required:
-                    - name
-                    - kind
                   nullable: true
                   properties:
                     name:
                       type: string
                       example: Mutation
-                    kind:
-                      type: string
-                      enum: [OBJECT]
                   additionalProperties: true
                 subscriptionType:
                   type: object
-                  required:
-                    - name
-                    - kind
                   nullable: true
                   properties:
                     name:
                       type: string
                       example: Subscription
-                    kind:
-                      type: string
-                      enum: [OBJECT]
                   additionalProperties: true
                 types:
                   type: array
                   description: All types in the GraphQL schema
                   items:
                     $ref: '#/components/schemas/GraphQLTypeForVisualization'
-                directives:
-                  type: array
-                  description: All directives in the GraphQL schema
-                  items:
-                    type: object
-                    description: Directive definition
-                    additionalProperties: true
               additionalProperties: true
           additionalProperties: true
       additionalProperties: true
@@ -1005,3 +1068,822 @@ components:
           nullable: true
           description: Wrapped type for LIST and NON_NULL types
       additionalProperties: true
+
+    EventTrigger:
+      type: object
+      description: Event trigger configuration for a table
+      required:
+        - name
+        - definition
+        - retry_conf
+      properties:
+        name:
+          type: string
+          description: Name of the event trigger
+        definition:
+          $ref: '#/components/schemas/EventTriggerDefinition'
+        retry_conf:
+          description: Retry configuration if event delivery fails
+          $ref: '#/components/schemas/RetryConf'
+        webhook:
+          type: string
+          description: Event Trigger Webhook URL. A String value which supports templating environment variables enclosed in {{ and }}.
+          example: '{{SERVICE_URL}}/hooks'
+        webhook_from_env:
+          type: string
+          description: Environment variable name of webhook (Deprecated in favour of WebhookURL)
+          example: SERVICE_ENDPOINT
+        headers:
+          description: List of headers to be sent with the webhook
+          $ref: '#/components/schemas/Headers'
+        request_transform:
+          description: Attaches a Request Transformation to the Event Trigger.
+          $ref: '#/components/schemas/RequestTransformation'
+        trigger_on_replication:
+          type: boolean
+          description: Specification for enabling/disabling the Event Trigger during logical replication
+      additionalProperties: true
+
+    EventTriggerDefinition:
+      type: object
+      description: Definition of database operations that trigger the webhook
+      required:
+        - enable_manual
+      properties:
+        enable_manual:
+          type: boolean
+          description: Allow manual invocation of the trigger from console/API
+          default: false
+        insert:
+          $ref: '#/components/schemas/OperationSpec'
+        delete:
+          $ref: '#/components/schemas/OperationSpec'
+        update:
+          $ref: '#/components/schemas/OperationSpec'
+
+    OperationSpec:
+      type: object
+      nullable: true
+      description: Operation specification
+      required:
+        - columns
+      properties:
+        columns:
+          description: List of columns or "*" to listen to changes
+          $ref: '#/components/schemas/EventTriggerColumns'
+        payload:
+          description: List of columns or "*" to send as part of webhook payload
+          $ref: '#/components/schemas/EventTriggerColumns'
+
+    EventTriggerColumns:
+      oneOf:
+        - type: string
+          enum: ['*']
+          description: All columns
+        - type: array
+          description: List of column names
+          items:
+            type: string
+            description: Column name
+
+    RetryConf:
+      type: object
+      description: Retry configuration when delivery to the webhook fails
+      properties:
+        num_retries:
+          type: integer
+          description: Number of times to retry delivery
+          default: 0
+        interval_sec:
+          type: integer
+          description: Number of seconds to wait between retries
+          default: 10
+        timeout_sec:
+          type: integer
+          description: Number of seconds to wait for the webhook response before timing out
+          default: 60
+
+    RequestTransformation:
+      type: object
+      description: Request transformation
+      properties:
+        version:
+          description: Sets the RequestTransformation schema version. Version 1 uses a String for the body field and Version 2 takes a BodyTransform.
+          type: integer
+          enum: [1, 2]
+          default: 1
+        method:
+          description: Change the request method to this value.
+          type: string
+          enum: [POST, GET, PUT, DELETE, PATCH]
+        url:
+          description: Change the request URL to this value.
+          type: string
+          example: '{{$base_url}}/something'
+        content_type:
+          description: Replace the Content-Type with this value.
+          type: string
+          enum: ['application/json', 'application/x-www-form-urlencoded']
+          default: application/json
+        request_headers:
+          description: Request Header Transformation.
+          $ref: '#/components/schemas/TransformHeaders'
+        query_params:
+          description: Replace the query params on the URL with this value. You can specify a dictionary of key/value pairs which is converted into a query string or directly give a query string.
+          oneOf:
+            - type: object
+              description: Query params as key-value pairs
+              additionalProperties:
+                type: string
+              example: '{ "search": "value" }'
+            - type: string
+              description: Query string that comes from Kriti template
+              example: 'urlstringquery=hello&urlstringquery2=hello2 OR myuserid={{concat(["userId=","asd"])}}'
+        template_engine:
+          description: Template language to be used for this transformation.
+          type: string
+          enum: [Kriti]
+          default: Kriti
+        body:
+          description: A template script for transforming the request body.
+          oneOf:
+            - type: string
+            - $ref: '#/components/schemas/BodyTransform'
+
+    ResponseTransformation:
+      type: object
+      properties:
+        version:
+          description: Sets the ResponseTransformation schema version. Version 1 uses a String for the body field and Version 2 takes a BodyTransform.
+          type: string
+          enum: ['1', '2']
+          default: '1'
+        body:
+          description: A template script for transforming the response body.
+          oneOf:
+            - type: string
+            - $ref: '#/components/schemas/BodyTransform'
+        template_engine:
+          description: Template language to be used for this transformation.
+          type: string
+          enum: [Kriti]
+          default: Kriti
+
+    TransformHeaders:
+      type: object
+      properties:
+        add_headers:
+          description: A map of Header Key Value pairs to be added to the request.
+          type: object
+          additionalProperties:
+            type: string
+          example: '{content-type: "application/x-www-form-urlencoded"}'
+        remove_headers:
+          description: Headers to be removed from the request.
+          type: array
+          example: ['content-type']
+          items:
+            description: Header key
+            type: string
+
+    BodyTransform:
+      type: object
+      description: Body transformation for version 2 transforms
+      required:
+        - action
+      properties:
+        action:
+          description: The action to perform on the request body.
+          type: string
+          enum: [remove, transform, x_www_form_urlencoded]
+        template:
+          type: string
+          description: The transformation template to be applied to the body. This is required if the action is transform.
+        form_template:
+          description: The key/value pairs to be used in a x-www-url-formencoded body. The values can be transfomation templates.
+          type: object
+          additionalProperties:
+            type: string
+
+    QualifiedTable:
+      type: object
+      description: Object with table name and schema
+      required:
+        - name
+        - schema
+      properties:
+        name:
+          type: string
+          description: Name of the table
+        schema:
+          type: string
+          description: Schema of the table
+
+    GetEventInvocationLogsOperation:
+      description: Operation used to fetch the invocation logs for a given event trigger.
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_get_event_invocation_logs]
+        args:
+          $ref: '#/components/schemas/GetEventInvocationLogsArgs'
+
+    GetEventInvocationLogsArgs:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Name of the event trigger
+        source:
+          type: string
+          description: Name of the source database of the trigger
+          default: default
+        limit:
+          type: integer
+          description: Maximum number of invocation logs to be returned in one API call
+          default: 100
+        offset:
+          type: integer
+          default: 0
+
+    GetEventInvocationLogsResponse:
+      type: array
+      description: List of invocation logs for the given event trigger
+      items:
+        $ref: '#/components/schemas/EventInvocationLogEntry'
+
+    EventInvocationLogEntry:
+      type: object
+      description: Event invocation log entry containing request and response details
+      required:
+        - id
+        - trigger_name
+        - event_id
+        - http_status
+        - request
+        - created_at
+      properties:
+        id:
+          type: string
+          description: Represents a UUID for invocation.
+          example: d1de2b04-dbb9-4d21-bdaf-25c3dfef3d7b
+        trigger_name:
+          type: string
+          description: Name of the event trigger
+          example: mytrigger
+        event_id:
+          type: string
+          description: Unique identifier for the event
+          example: a7b67072-980d-4cfd-bbfa-a8ee749f453e
+        http_status:
+          type: integer
+          description: HTTP status code of the webhook response
+          example: 200
+        request:
+          type: object
+          description: Details of the HTTP request sent to the webhook
+          required:
+            - headers
+            - payload
+            - version
+          properties:
+            headers:
+              $ref: '#/components/schemas/EventInvocationLogEntryHeaders'
+            payload:
+              type: object
+              description: The event payload sent to the webhook
+              properties:
+                created_at:
+                  type: string
+                  format: date-time
+                  description: When the event was created
+                delivery_info:
+                  type: object
+                  description: Contains information about message delivery retries.
+                  properties:
+                    current_retry:
+                      type: integer
+                      description: Represents the current retry number.
+                    max_retries:
+                      type: integer
+                      description: Represents the maximum number of retries.
+                event:
+                  type: object
+                  description: Represents an event and related data.
+                  properties:
+                    data:
+                      type: object
+                      description: Contains data related to the event.
+                      properties:
+                        new:
+                          type: object
+                          description: Object representing the new data associated with the event, with each key-value pair representing a column name and its value.
+                        old:
+                          type: object
+                          nullable: true
+                          description: Represents old data associated with the event or `null` if not applicable.
+                    op:
+                      type: string
+                      enum: [INSERT, UPDATE, DELETE, MANUAL]
+                      description: Represents the name of the operation.
+                    session_variables:
+                      type: object
+                      description: Key-value pairs of session variables (i.e. "x-hasura-*" variables) and their values (NULL if no session variables found) (**Only available for Postgres**)
+                      nullable: true
+                      additionalProperties:
+                        type: string
+                    trace_context:
+                      type: object
+                      description: Contains trace context information.
+                      properties:
+                        sampling_state:
+                          type: string
+                        span_id:
+                          type: string
+                          description: Represents the span ID for tracing.
+                        trace_id:
+                          type: string
+                          description: Represents the trace ID for tracing.
+                id:
+                  type: string
+                  description: Event ID
+                table:
+                  $ref: '#/components/schemas/QualifiedTable'
+                trigger:
+                  type: object
+                  description: Represents information about the trigger.
+                  properties:
+                    name:
+                      type: string
+                      description: Represents the name of the trigger.
+              additionalProperties: true
+            version:
+              type: string
+              description: Version of the event payload format
+              example: '2'
+        response:
+          type: object
+          description: Details of the HTTP response from the webhook
+          properties:
+            data:
+              type: object
+              description: Response data from the webhook
+              properties:
+                body:
+                  type: string
+                  description: Response body as string
+                headers:
+                  $ref: '#/components/schemas/EventInvocationLogEntryHeaders'
+                status:
+                  type: integer
+                  description: HTTP status code
+                message:
+                  type: string
+                  description: Error message
+                  example: '{"message":"Connection failure: ...}'
+
+            type:
+              type: string
+              description: Type of response
+              example: webhook_response
+            version:
+              type: string
+              description: Version of the response format
+              example: '2'
+        created_at:
+          type: string
+          format: date-time
+          description: Represents a timestamp value for the invocation of the trigger.
+          example: 2025-09-19T16:01:31.086239Z
+
+    EventInvocationLogEntryHeaders:
+      type: array
+      description: HTTP headers sent with the webhook request
+      items:
+        type: object
+        required:
+          - name
+          - value
+        properties:
+          name:
+            type: string
+            description: Header name
+            example: Date
+          value:
+            type: string
+            description: Header value
+            example: 'Sun, 21 Sep 2025 16:13:25 GMT'
+
+    GetEventLogsOperation:
+      description: Operation used to fetch the event logs for a given event trigger. (Both pending and delivered)
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_get_event_logs]
+        args:
+          $ref: '#/components/schemas/GetEventLogsArgs'
+
+    GetEventLogsArgs:
+      allOf:
+        - $ref: '#/components/schemas/GetEventInvocationLogsArgs'
+        - type: object
+          properties:
+            status:
+              description: Type of event logs to be fetched. If `status` is not provided then all types of status are included
+              type: string
+              enum: [pending, delivered]
+
+    GetEventLogsResponse:
+      type: array
+      description: List of event logs for the given event trigger
+      items:
+        $ref: '#/components/schemas/EventLogEntry'
+
+    EventLogEntry:
+      type: object
+      description: Event log entry containing payload and delivery details
+      required:
+        - id
+        - schema_name
+        - table_name
+        - trigger_name
+        - payload
+        - delivered
+        - error
+        - tries
+        - created_at
+        - locked
+        - next_retry_at
+        - archived
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the log entry
+          example: 6301c9e1-b649-4861-9419-68b4cbf9382a
+        schema_name:
+          type: string
+          description: Represents the schema name of the table.
+          example: public
+        table_name:
+          type: string
+          description: Represents the name of the table.
+          example: mytable
+        trigger_name:
+          type: string
+          description: Represents the name of the trigger.
+          example: mytrigger
+        payload:
+          type: object
+          properties:
+            data:
+              type: object
+              properties:
+                new:
+                  type: object
+                  description: Object representing the new data associated with the event, with each key-value pair representing a column name and its value.
+                  additionalProperties: true
+                old:
+                  type: object
+                  description: Represents old data associated with the event or null if not applicable.
+                  additionalProperties: true
+                  nullable: true
+            op:
+              description: Represents the name of the operation.
+              type: string
+              enum: [INSERT, UPDATE, DELETE, MANUAL]
+            session_variables:
+              type: object
+              description: Key-value pairs of session variables (i.e. "x-hasura-*" variables) and their values (NULL if no session variables found)
+              nullable: true
+              additionalProperties:
+                type: string
+            trace_context:
+              type: object
+              description: Contains trace context information.
+              additionalProperties:
+                type: string
+
+        delivered:
+          type: boolean
+        error:
+          type: boolean
+        tries:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+          description: Represents a timestamp value for the creation of the log entry.
+          example: 2025-09-19T16:01:31.086239Z
+        next_retry_at:
+          type: string
+          format: date-time
+          nullable: true
+
+      additionalProperties: true
+
+    GetEventAndInvocationLogsByIdOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_get_event_by_id]
+        args:
+          $ref: '#/components/schemas/GetEventAndInvocationLogsByIdArgs'
+
+    GetEventAndInvocationLogsByIdArgs:
+      type: object
+      required:
+        - event_id
+      properties:
+        event_id:
+          type: string
+          description: ID of the event
+          example: 6301c9e1-b649-4861-9419-68b4cbf9382a
+        source:
+          type: string
+          description: Name of the source database of the trigger
+          default: default
+        invocation_log_limit:
+          type: integer
+          description: Maximum number of invocation logs to be returned in one API call
+          default: 100
+        invocation_log_offset:
+          type: integer
+          description: Starting point from where the invocation logs need to be returned
+          default: 0
+
+    GetEventAndInvocationLogsByIdResponse:
+      type: object
+      properties:
+        event:
+          $ref: '#/components/schemas/EventLogEntry'
+        invocations:
+          type: array
+          description: List of invocation logs for the given event id
+          items:
+            $ref: '#/components/schemas/EventInvocationLogEntry'
+
+    RedeliverEventOperation:
+      description: is used to redeliver an existing event. For example, if an event is marked as error ( say it did not succeed after retries), you can redeliver it using this API. Note that this will reset the count of retries so far. If the event fails to deliver, it will be retried automatically according to its `retry_conf`.
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_redeliver_event]
+        args:
+          $ref: '#/components/schemas/RedeliverEventArgs'
+
+    RedeliverEventArgs:
+      type: object
+      required:
+        - event_id
+      properties:
+        event_id:
+          type: string
+          description: UUID of the event
+          example: 6301c9e1-b649-4861-9419-68b4cbf9382a
+
+    CreateEventTriggerArgs:
+      type: object
+      required:
+        - name
+        - table
+        - webhook
+        - webhook_from_env
+        - insert
+        - update
+        - delete
+        - retry_conf
+        - enable_manual
+        - headers
+        - replace
+      properties:
+        name:
+          type: string
+          description: Name of the Event Trigger
+        table:
+          description: Object with table name and schema
+          $ref: '#/components/schemas/QualifiedTable'
+        source:
+          type: string
+          description: Name of the source database of the table
+          default: default
+        webhook:
+          type: string
+          nullable: true
+          description: Webhook URL. Supports template variables like {{ENV_VAR}}/some/path
+          example: '{{SERVICE_URL}}/hooks'
+        webhook_from_env:
+          type: string
+          nullable: true
+          description: Environment variable containing the webhook URL
+          example: SERVICE_ENDPOINT
+        insert:
+          description: Specification for the insert operation
+          $ref: '#/components/schemas/OperationSpec'
+        update:
+          description: Specification for the update operation
+          $ref: '#/components/schemas/OperationSpec'
+        delete:
+          description: Specification for the delete operation
+          $ref: '#/components/schemas/OperationSpec'
+        headers:
+          description: List of headers to be sent with the webhook
+          $ref: '#/components/schemas/Headers'
+        retry_conf:
+          description: Retry configuration if event delivery fails
+          $ref: '#/components/schemas/RetryConf'
+        replace:
+          type: boolean
+          description: If set to true, the Event Trigger is replaced with the new definition
+        enable_manual:
+          type: boolean
+          description: If set to true, the Event Trigger can be invoked manually
+        request_transform:
+          description: Attaches a Request Transformation to the Event Trigger.
+          $ref: '#/components/schemas/RequestTransformation'
+        response_transform:
+          description: Attaches a Response Transformation to the Event Trigger.
+          $ref: '#/components/schemas/ResponseTransformation'
+        trigger_on_replication:
+          type: boolean
+          description: Specification for enabling/disabling the Event Trigger during logical replication
+          default: false
+
+    CreateEventTriggerBulkOperation:
+      type: object
+      description: Create a new Event Trigger or replace an existing Event Trigger.
+      required:
+        - type
+        - source
+        - args
+      properties:
+        type:
+          type: string
+          enum: [bulk]
+          description: Type of operation to create event triggers
+        args:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreateEventTriggerStep'
+        source:
+          type: string
+          description: Source of the operation
+          example: default
+        resource_version:
+          type: integer
+          description: Version of the resource that you are targeting for replacement
+          example: 1
+
+    CreateEventTriggerStep:
+      description: Create a new Event Trigger or replace an existing Event Trigger.
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          description: Type of operation to create event triggers
+          enum: [pg_create_event_trigger]
+        args:
+          $ref: '#/components/schemas/CreateEventTriggerArgs'
+
+    DeleteEventTriggerBulkOperation:
+      type: object
+      required:
+        - type
+        - args
+        - source
+      properties:
+        type:
+          type: string
+          enum: [bulk]
+          description: Execute multiple operations in a single query
+        source:
+          type: string
+          description: Source of the operation
+          example: default
+        resource_version:
+          type: integer
+          description: Resource version of the operation
+          example: 1
+        args:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeleteEventTriggerStep'
+
+    TestWebhookTransformOperation:
+      type: object
+      description: Operation used to test out request transformations using mock data.
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [test_webhook_transform]
+        args:
+          $ref: '#/components/schemas/TestWebhookTransformArgs'
+
+    TestWebhookTransformArgs:
+      type: object
+      required:
+        - webhook_url
+        - body
+        - env
+        - request_transform
+        - session_variables
+      properties:
+        webhook_url:
+          description: Webhook URL to be tested
+          type: string
+        body:
+          type: object
+          additionalProperties: true
+        env:
+          type: object
+          description: Sample Context environment variables for testing the connector
+          additionalProperties:
+            type: string
+        request_transform:
+          $ref: '#/components/schemas/RequestTransformation'
+        session_variables:
+          type: object
+          additionalProperties:
+            type: string
+
+    TestWebhookTransformResponse:
+      type: object
+      required:
+        - body
+        - headers
+        - method
+        - webhook_url
+      properties:
+        body:
+          type: object
+          description: Transformed request body for preview
+          additionalProperties: true
+        headers:
+          $ref: '#/components/schemas/Headers'
+        method:
+          type: string
+        webhook_url:
+          type: string
+          description: Webhook URL for transform preview
+
+    InvokeEventTriggerOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_invoke_event_trigger]
+        args:
+          $ref: '#/components/schemas/InvokeEventTriggerArgs'
+
+    InvokeEventTriggerArgs:
+      type: object
+      required:
+        - name
+        - payload
+      properties:
+        name:
+          type: string
+          description: Name of the Event Trigger
+        payload:
+          type: object
+          additionalProperties: true
+          description: Some JSON payload to send to trigger
+        source:
+          type: string
+          description: Name of the source database of the trigger
+          default: default
+
+    InvokeEventTriggerResponse:
+      type: object
+      required:
+        - event_id
+      properties:
+        event_id:
+          type: string
+          example: 19cc95ae-1101-4de7-908b-46dc5e9e3bef

@@ -19,6 +19,7 @@ import {
   HomeIcon,
   RocketIcon,
   UserIcon,
+  Zap,
 } from 'lucide-react';
 
 import { AIIcon } from '@/components/ui/v2/icons/AIIcon';
@@ -79,6 +80,13 @@ export default function ProjectPagesComboBox() {
         value: 'graphql',
         icon: <GraphQLIcon className="h-4 w-4" />,
         slug: 'graphql',
+        disabled: false,
+      },
+      {
+        label: 'Events',
+        value: 'events',
+        icon: <Zap className="h-4 w-4" />,
+        slug: 'events',
         disabled: false,
       },
       {
