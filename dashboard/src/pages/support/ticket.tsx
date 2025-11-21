@@ -18,7 +18,7 @@ import {
 import { yupResolver } from '@hookform/resolvers/yup';
 import { styled } from '@mui/material';
 import { Mail } from 'lucide-react';
-import { type ReactElement } from 'react';
+import { useEffect, type ReactElement } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
@@ -65,10 +65,12 @@ function TicketPage() {
   const {
     register,
     watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = form;
 
   const selectedOrganization = watch('organization');
+  const priority = watch('priority');
   const user = useUserData();
   const token = useAccessToken();
 
@@ -79,6 +81,19 @@ function TicketPage() {
   });
 
   const organizations: Organization[] = organizationsData?.organizations || [];
+
+  const selectedOrg = selectedOrganization
+    ? organizations.find((org) => org.id === selectedOrganization)
+    : null;
+
+  const slaLevel = selectedOrg?.plan?.slaLevel;
+  const canSetPriority = typeof slaLevel === 'string' && slaLevel !== 'none';
+
+  useEffect(() => {
+    if (!!selectedOrganization && !canSetPriority && priority !== 'low') {
+      setValue('priority', 'low', { shouldValidate: true });
+    }
+  }, [selectedOrganization, canSetPriority, priority, setValue]);
 
   const getAvailableProjects = () => {
     if (selectedOrganization) {
@@ -91,7 +106,7 @@ function TicketPage() {
   };
 
   const handleSubmit = async (formValues: CreateTicketFormValues) => {
-    const { project, services, priority, subject, description } = formValues;
+    const { project, services, priority: priorityValue, subject, description } = formValues;
 
     await execPromiseWithErrorToast(
       async () => {
@@ -104,7 +119,7 @@ function TicketPage() {
           body: JSON.stringify({
             project,
             services,
-            priority,
+            priority: priorityValue,
             subject,
             description,
             userName: user?.displayName,
@@ -234,11 +249,28 @@ function TicketPage() {
                     name="priority"
                     label="Priority"
                     placeholder="Priority"
+                    disabled={!!selectedOrganization && !canSetPriority}
                     slotProps={{
                       root: { className: 'grid grid-flow-col gap-1 mb-4' },
                     }}
                     error={!!errors.priority}
-                    helperText={errors.priority?.message}
+                    helperText={
+                      !!selectedOrganization && !canSetPriority
+                        ? (
+                            <>
+                              To set a higher priority, upgrade to a plan with an SLA.{' '}
+                              <a
+                                href="https://nhost.io/pricing"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-primary hover:underline"
+                              >
+                                View pricing
+                              </a>
+                            </>
+                          )
+                        : errors.priority?.message
+                    }
                     renderValue={(option) => (
                       <span className="inline-grid grid-flow-col items-center gap-2">
                         {option?.label}
@@ -262,16 +294,16 @@ function TicketPage() {
                         title: 'Urgent',
                         description: 'Production system offline',
                       },
-                    ].map((priority) => (
+                    ].map((p) => (
                       <Option
-                        key={priority.title}
-                        label={priority.title}
-                        value={priority.title.toLowerCase()}
+                        key={p.title}
+                        label={p.title}
+                        value={p.title.toLowerCase()}
                       >
                         <div className="flex flex-col">
-                          <span>{priority.title}</span>
+                          <span>{p.title}</span>
                           <span className="font-mono text-xs opacity-50">
-                            {priority.description}
+                            {p.description}
                           </span>
                         </div>
                       </Option>
