@@ -440,6 +440,7 @@
           {
             "group": "Client Libraries",
             "pages": [
+                  "reference/migration-guide",
               {
                 "group": "Javascript",
                 "icon": "js",
