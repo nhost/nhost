@@ -8,6 +8,7 @@ import { ApplicationStatus } from '@/types/application';
 import { useRouter } from 'next/router';
 import { type PropsWithChildren, useMemo } from 'react';
 
+import { isNotEmptyValue } from '@/lib/utils';
 import PausedProjectContent from './PausedProjectContent';
 
 function ProjectViewWithState({ children }: PropsWithChildren) {
@@ -26,10 +27,23 @@ function ProjectViewWithState({ children }: PropsWithChildren) {
     }
 
     switch (state) {
-      case ApplicationStatus.Empty:
+      case ApplicationStatus.Empty: {
+        const newProjectData = sessionStorage.getItem('newProject');
+        // eslint-disable-next-line no-console
+        console.log('new project request sent state is empty');
+        if (
+          isNotEmptyValue(newProjectData) &&
+          JSON.parse(newProjectData).subdomain === appSubdomain
+        ) {
+          return <ApplicationProvisioning />;
+        }
+
         return null;
-      case ApplicationStatus.Provisioning:
+      }
+      case ApplicationStatus.Provisioning: {
+        sessionStorage.removeItem('newProject');
         return <ApplicationProvisioning />;
+      }
       case ApplicationStatus.Errored:
         if (isOnOverviewPage) {
           return (
