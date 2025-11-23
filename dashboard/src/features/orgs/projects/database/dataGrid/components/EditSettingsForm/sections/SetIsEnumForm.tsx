@@ -9,13 +9,13 @@ import {
 } from '@/components/ui/v3/form';
 import { Switch } from '@/components/ui/v3/switch';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
+import useSetTableIsEnumMutation from '@/features/orgs/projects/database/dataGrid/hooks/useSetTableIsEnumMutation/useSetTableIsEnumMutation';
+import { useTableIsEnumQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableIsEnumQuery';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import useSetTableIsEnumMutation from '../../../hooks/useSetTableIsEnumMutation/useSetTableIsEnumMutation';
-import { useTableIsEnumQuery } from '../../../hooks/useTableIsEnumQuery';
 
 const validationSchema = z.object({
   isEnum: z.boolean(),
@@ -96,7 +96,10 @@ export default function SetIsEnumForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={handleFormSubmit} className="flex flex-col gap-4 px-6 pb-4">
+      <form
+        onSubmit={handleFormSubmit}
+        className="flex flex-col gap-4 px-6 pb-4"
+      >
         <SettingsContainer
           title="Set Table as Enum"
           description="Expose the table values as GraphQL enums in the GraphQL API"

@@ -45,7 +45,7 @@ function buildRootField(
   return rootField;
 }
 
-export default function buildCustomGraphQLRootFieldsDTO(
+export default function prepareCustomGraphQLRootFieldsDTO(
   values: CustomGraphQLRootFieldsFormValues,
 ): CustomRootFieldsDTO {
   const dto: CustomRootFieldsDTO = {};

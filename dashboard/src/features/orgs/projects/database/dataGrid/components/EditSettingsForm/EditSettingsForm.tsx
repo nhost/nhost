@@ -3,22 +3,17 @@ import { Alert } from '@/components/ui/v2/Alert';
 import { Button } from '@/components/ui/v3/button';
 import type { BaseTableFormProps } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm';
 import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
-import { useTrackForeignKeyRelationsMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useTrackForeignKeyRelationsMutation';
-import { useUpdateTableMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useUpdateTableMutation';
 import type { NormalizedQueryDataRow } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { normalizeDatabaseColumn } from '@/features/orgs/projects/database/dataGrid/utils/normalizeDatabaseColumn';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useTableIsEnumQuery } from '../../hooks/useTableIsEnumQuery';
 import {
   defaultFormValues,
-  EditSettingsFormValues,
+  type EditSettingsFormValues,
   validationSchema,
 } from './EditSettingsFormTypes';
-import ColumnsCustomizationForm from './sections/ColumnsCustomizationForm';
-import CustomGraphQLRootFieldsForm from './sections/CustomGraphQLRootFieldsForm';
+import { ColumnsCustomizationSection } from './sections/ColumnsCustomizationSection';
+import { CustomGraphQLRootFieldsSection } from './sections/CustomGraphQLRootFieldsSection';
 import SetIsEnumForm from './sections/SetIsEnumForm';
 
 export interface EditSettingsFormProps
@@ -43,54 +38,15 @@ export default function EditSettingsForm({
   schema,
   table: originalTable,
 }: EditSettingsFormProps) {
-  const [formInitialized, setFormInitialized] = useState(false);
   const router = useRouter();
 
-  const {
-    data,
-    status: columnsStatus,
-    error: columnsError,
-  } = useTableQuery([`default.${schema}.${originalTable.table_name}`], {
-    schema,
-    table: originalTable.table_name,
-  });
-
-  console.log('data', data);
-
-  const { data: isEnum } = useTableIsEnumQuery({
-    table: {
-      name: originalTable.table_name,
+  const { status: columnsStatus, error: columnsError } = useTableQuery(
+    [`default.${schema}.${originalTable.table_name}`],
+    {
       schema,
+      table: originalTable.table_name,
     },
-    dataSource: 'default',
-  });
-  console.log('isEnum', isEnum);
-
-  const columns = data?.columns;
-  const foreignKeyRelations = data?.foreignKeyRelations;
-
-  const dataGridColumns = (columns || []).map((column) =>
-    normalizeDatabaseColumn(column),
   );
-
-  const {
-    mutateAsync: trackForeignKeyRelations,
-    error: foreignKeyError,
-    reset: resetForeignKeyError,
-  } = useTrackForeignKeyRelationsMutation();
-
-  const {
-    mutateAsync: updateTable,
-    error: updateError,
-    reset: resetUpdateError,
-  } = useUpdateTableMutation({ schema });
-
-  const error = columnsError || updateError || foreignKeyError;
-
-  function resetError() {
-    resetForeignKeyError();
-    resetUpdateError();
-  }
 
   const form = useForm<EditSettingsFormValues>({
     defaultValues: defaultFormValues,
@@ -98,7 +54,7 @@ export default function EditSettingsForm({
     resolver: zodResolver(validationSchema),
   });
 
-  const { isDirty, isSubmitting } = form.formState;
+  const { isDirty } = form.formState;
 
   const handleCancel = () => {
     if (onCancel) {
@@ -117,14 +73,6 @@ export default function EditSettingsForm({
     );
   }
 
-  // if (!formInitialized) {
-  //   return (
-  //     <div className="px-6">
-  //       <ActivityIndicator label="Loading..." delay={1000} />
-  //     </div>
-  //   );
-  // }
-
   if (columnsStatus === 'error') {
     return (
       <div className="-mt-3 px-6">
@@ -141,11 +89,11 @@ export default function EditSettingsForm({
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden">
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pb-4">
-        <ColumnsCustomizationForm
+        <ColumnsCustomizationSection
           schema={schema}
           tableName={originalTable.table_name}
         />
-        <CustomGraphQLRootFieldsForm
+        <CustomGraphQLRootFieldsSection
           schema={schema}
           tableName={originalTable.table_name}
         />
@@ -161,15 +109,6 @@ export default function EditSettingsForm({
         >
           Back
         </Button>
-
-        {/* <ButtonWithLoading
-          loading={isSubmitting}
-          disabled={isSubmitting}
-          type="submit"
-          className="justify-self-end"
-        >
-          Save
-        </ButtonWithLoading> */}
       </div>
     </div>
   );
