@@ -102,6 +102,8 @@ export * from './exportMetadataResponse';
 export * from './exportMetadataResponseMetadata';
 export * from './exportMetadataResponseMetadataSourcesItem';
 export * from './exportMetadataResponseMetadataSourcesItemTablesItem';
+export * from './exportMetadataResponseMetadataSourcesItemTablesItemArrayRelationshipsItem';
+export * from './exportMetadataResponseMetadataSourcesItemTablesItemObjectRelationshipsItem';
 export * from './exportMetadataResponseMetadataSourcesItemTablesItemTable';
 export * from './exportMetadataType';
 export * from './getEventAndInvocationLogsByIdArgs';

@@ -24,6 +24,8 @@ paths:
                 - $ref: '#/components/schemas/SetTableIsEnumBulkOperation'
                 - $ref: '#/components/schemas/SuggestRelationshipsOperation'
                 - $ref: '#/components/schemas/DropRelationshipBulkOperation'
+                - $ref: '#/components/schemas/CreateObjectRelationshipBulkOperation'
+                - $ref: '#/components/schemas/CreateArrayRelationshipBulkOperation'
                 - $ref: '#/components/schemas/AddRemoteSchemaOperation'
                 - $ref: '#/components/schemas/UpdateRemoteSchemaBulkOperation'
                 - $ref: '#/components/schemas/RemoveRemoteSchemaOperation'
@@ -897,6 +899,28 @@ components:
                           items:
                             type: object
                             $ref: '#/components/schemas/EventTrigger'
+                        array_relationships:
+                          type: array
+                          description: List of array relationships for the table
+                          items:
+                            type: object
+                            properties:
+                              name:
+                                type: string
+                                description: Name of the relationship
+                              using:
+                                $ref: '#/components/schemas/RelationshipUsing'
+                        object_relationships:
+                          type: array
+                          description: List of object relationships for the table
+                          items:
+                            type: object
+                            properties:
+                              name:
+                                type: string
+                                description: Name of the relationship
+                              using:
+                                $ref: '#/components/schemas/RelationshipUsing'
                 additionalProperties: true
             remote_schemas:
               type: array

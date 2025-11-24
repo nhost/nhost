@@ -14,6 +14,8 @@ import {
 } from '@/components/ui/v3/select';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { EditRelationshipsForm } from '@/features/orgs/projects/database/dataGrid/EditRelationshipsForm';
+import EditSettingsForm from '@/features/orgs/projects/database/dataGrid/components/EditSettingsForm/EditSettingsForm';
 import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
 import { useDeleteTableWithToastMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteTableMutation';
 import { isSchemaLocked } from '@/features/orgs/projects/database/dataGrid/utils/schemaHelpers';
@@ -26,7 +28,6 @@ import Image from 'next/image';
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import EditSettingsForm from '../EditSettingsForm/EditSettingsForm';
 import TableActions from './TableActions';
 
 const CreateTableForm = dynamic(
@@ -409,13 +410,28 @@ function DataBrowserSidebarContent({
                               table.table_name,
                             )
                           }
-                          onEditRelationships={() => {}}
+                          onEditRelationships={() => {
+                            openDrawer({
+                              title: 'Edit Relationships',
+                              component: (
+                                <EditRelationshipsForm
+                                  schema={table.table_schema}
+                                  table={table}
+                                />
+                              ),
+                              props: {
+                                PaperProps: {
+                                  className: 'overflow-hidden ',
+                                },
+                              },
+                            });
+                          }}
                           onEditSettings={() => {
                             openDrawer({
                               title: 'Edit Settings',
                               component: (
                                 <EditSettingsForm
-                                  onSubmit={async (tableName) => {
+                                  onSubmit={async () => {
                                     // await queryClient.refetchQueries([
                                     //   `${dataSourceSlug}.${table.table_schema}.${tableName}`,
                                     // ]);

@@ -6,7 +6,9 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { AddRemoteSchemaOperation } from './addRemoteSchemaOperation';
+import type { CreateArrayRelationshipBulkOperation } from './createArrayRelationshipBulkOperation';
 import type { CreateEventTriggerBulkOperation } from './createEventTriggerBulkOperation';
+import type { CreateObjectRelationshipBulkOperation } from './createObjectRelationshipBulkOperation';
 import type { DeleteEventTriggerBulkOperation } from './deleteEventTriggerBulkOperation';
 import type { DeleteRemoteSchemaRemoteRelationshipOperation } from './deleteRemoteSchemaRemoteRelationshipOperation';
 import type { DropRelationshipBulkOperation } from './dropRelationshipBulkOperation';
@@ -33,6 +35,8 @@ export type MetadataOperationBody =
   | SetTableIsEnumBulkOperation
   | SuggestRelationshipsOperation
   | DropRelationshipBulkOperation
+  | CreateObjectRelationshipBulkOperation
+  | CreateArrayRelationshipBulkOperation
   | AddRemoteSchemaOperation
   | UpdateRemoteSchemaBulkOperation
   | RemoveRemoteSchemaOperation
