@@ -9,6 +9,7 @@ import type { AddRemoteSchemaOperation } from './addRemoteSchemaOperation';
 import type { CreateEventTriggerBulkOperation } from './createEventTriggerBulkOperation';
 import type { DeleteEventTriggerBulkOperation } from './deleteEventTriggerBulkOperation';
 import type { DeleteRemoteSchemaRemoteRelationshipOperation } from './deleteRemoteSchemaRemoteRelationshipOperation';
+import type { DropRelationshipBulkOperation } from './dropRelationshipBulkOperation';
 import type { ExportMetadata } from './exportMetadata';
 import type { GetEventAndInvocationLogsByIdOperation } from './getEventAndInvocationLogsByIdOperation';
 import type { GetEventInvocationLogsOperation } from './getEventInvocationLogsOperation';
@@ -22,6 +23,7 @@ import type { RemoteSchemaRemoteRelationshipOperation } from './remoteSchemaRemo
 import type { RemoveRemoteSchemaOperation } from './removeRemoteSchemaOperation';
 import type { SetTableCustomizationBulkOperation } from './setTableCustomizationBulkOperation';
 import type { SetTableIsEnumBulkOperation } from './setTableIsEnumBulkOperation';
+import type { SuggestRelationshipsOperation } from './suggestRelationshipsOperation';
 import type { TestWebhookTransformOperation } from './testWebhookTransformOperation';
 import type { UpdateRemoteSchemaBulkOperation } from './updateRemoteSchemaBulkOperation';
 
@@ -29,6 +31,8 @@ export type MetadataOperationBody =
   | ExportMetadata
   | SetTableCustomizationBulkOperation
   | SetTableIsEnumBulkOperation
+  | SuggestRelationshipsOperation
+  | DropRelationshipBulkOperation
   | AddRemoteSchemaOperation
   | UpdateRemoteSchemaBulkOperation
   | RemoveRemoteSchemaOperation

@@ -13,11 +13,13 @@ import type { IntrospectRemoteSchemaResponse } from './introspectRemoteSchemaRes
 import type { InvokeEventTriggerResponse } from './invokeEventTriggerResponse';
 import type { MetadataOperation200OneOf } from './metadataOperation200OneOf';
 import type { MetadataOperation200OneOfTwoItem } from './metadataOperation200OneOfTwoItem';
+import type { SuggestRelationshipsResponse } from './suggestRelationshipsResponse';
 import type { TestWebhookTransformResponse } from './testWebhookTransformResponse';
 
 export type MetadataOperation200 =
   | MetadataOperation200OneOf
   | ExportMetadataResponse
+  | SuggestRelationshipsResponse
   | IntrospectRemoteSchemaResponse
   | GetEventInvocationLogsResponse
   | GetEventLogsResponse

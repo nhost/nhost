@@ -22,6 +22,8 @@ paths:
                 - $ref: '#/components/schemas/ExportMetadata'
                 - $ref: '#/components/schemas/SetTableCustomizationBulkOperation'
                 - $ref: '#/components/schemas/SetTableIsEnumBulkOperation'
+                - $ref: '#/components/schemas/SuggestRelationshipsOperation'
+                - $ref: '#/components/schemas/DropRelationshipBulkOperation'
                 - $ref: '#/components/schemas/AddRemoteSchemaOperation'
                 - $ref: '#/components/schemas/UpdateRemoteSchemaBulkOperation'
                 - $ref: '#/components/schemas/RemoveRemoteSchemaOperation'
@@ -51,6 +53,7 @@ paths:
                         type: string
                         example: success
                   - $ref: '#/components/schemas/ExportMetadataResponse'
+                  - $ref: '#/components/schemas/SuggestRelationshipsResponse'
                   - $ref: '#/components/schemas/IntrospectRemoteSchemaResponse'
                   - $ref: '#/components/schemas/GetEventInvocationLogsResponse'
                   - $ref: '#/components/schemas/GetEventLogsResponse'
@@ -318,6 +321,303 @@ components:
         is_enum:
           type: boolean
           description: Whether or not the table should be used as an enum table <enum table>.
+        source:
+          type: string
+          description: Name of the source database of the table
+          default: default
+
+    SuggestRelationshipsOperation:
+      type: object
+      description: Use to suggest relationships that can be tracked by the pg_create_*_relationship API.
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_suggest_relationships]
+        args:
+          $ref: '#/components/schemas/SuggestRelationshipsArgs'
+
+    SuggestRelationshipsArgs:
+      type: object
+      properties:
+        source:
+          type: string
+          description: The source to suggest relationships for
+          default: default
+        tables:
+          type: array
+          description: List of tables to consider for suggestions
+          items:
+            oneOf:
+              - type: string
+              - $ref: '#/components/schemas/QualifiedTable'
+            default: All Tables
+        omit_tracked:
+          type: boolean
+          description: Don't re-suggest tracked relationships
+          default: false
+
+    SuggestRelationshipsResponse:
+      type: object
+      properties:
+        relationships:
+          type: array
+          items:
+            oneOf:
+              - $ref: '#/components/schemas/SuggestedObjectRelationship'
+              - $ref: '#/components/schemas/SuggestedArrayRelationship'
+
+    SuggestedRelationshipElement:
+      type: object
+      properties:
+        table:
+          $ref: '#/components/schemas/QualifiedTable'
+        columns:
+          type: array
+          items:
+            type: string
+        constraint_name:
+          type: string
+
+    SuggestedObjectRelationship:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [object]
+        from:
+          allOf:
+            - $ref: '#/components/schemas/SuggestedRelationshipElement'
+            - type: object
+              properties:
+                constraint_name:
+                  type: string
+        to:
+          $ref: '#/components/schemas/SuggestedRelationshipElement'
+
+    SuggestedArrayRelationship:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [array]
+        from:
+          $ref: '#/components/schemas/SuggestedRelationshipElement'
+        to:
+          allOf:
+            - $ref: '#/components/schemas/SuggestedRelationshipElement'
+            - type: object
+              properties:
+                constraint_name:
+                  type: string
+
+    DropRelationshipBulkOperation:
+      type: object
+      required:
+        - type
+        - resource_version
+        - args
+      properties:
+        type:
+          type: string
+          enum: [bulk_atomic]
+          description: Type of operation to drop relationship
+        resource_version:
+          type: integer
+          description: Resource version of the operation
+          example: 1
+        args:
+          type: array
+          items:
+            $ref: '#/components/schemas/DropRelationshipStep'
+
+    DropRelationshipStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_drop_relationship]
+        args:
+          type: object
+          required:
+            - table
+            - relationship
+          properties:
+            table:
+              $ref: '#/components/schemas/QualifiedTable'
+            relationship:
+              type: string
+              description: Name of the relationship that needs to be dropped
+            cascade:
+              type: boolean
+              description: When set to true, all the dependent items on this relationship are also dropped
+            source:
+              type: string
+              description: Name of the source database of the table
+              default: default
+
+    CreateObjectRelationshipBulkOperation:
+      type: object
+      required:
+        - type
+        - args
+        - resource_version
+      properties:
+        type:
+          type: string
+          enum: [bulk_atomic]
+          description: Type of operation to create object relationship
+        resource_version:
+          type: integer
+          description: Resource version of the operation
+          example: 1
+        args:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreateObjectRelationshipStep'
+
+    CreateObjectRelationshipStep:
+      type: object
+      description: Define a new object relationship between Postgres tables/views
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_create_object_relationship]
+        args:
+          $ref: '#/components/schemas/CreateObjectRelationshipArgs'
+
+    CreateObjectRelationshipArgs:
+      type: object
+      required:
+        - table
+        - name
+        - using
+      properties:
+        table:
+          description: Name of the table
+          $ref: '#/components/schemas/QualifiedTable'
+        name:
+          type: string
+          description: Name of the new relationship
+        using:
+          description: Use one of the available ways to define an object relationship. There has to be at least one and only one of foreign_key_constraint_on and manual_configuration.
+          $ref: '#/components/schemas/RelationshipUsing'
+        comment:
+          type: string
+        source:
+          type: string
+          description: Name of the source database of the table
+          default: default
+
+    RelationshipUsing:
+      type: object
+      oneOf:
+        - $ref: '#/components/schemas/RelationshipUsingForeignKeyConstraintOn'
+        - $ref: '#/components/schemas/RelationshipUsingManualConfiguration'
+
+    RelationshipUsingForeignKeyConstraintOn:
+      type: object
+      description: The column with foreign key constraint or the remote table and column
+      required:
+        - foreign_key_constraint_on
+      properties:
+        foreign_key_constraint_on:
+          oneOf:
+            - type: string
+              description: Column from same table
+            - type: object
+              description: Column from remote table
+              properties:
+                table:
+                  $ref: '#/components/schemas/QualifiedTable'
+                columns:
+                  type: string
+
+    RelationshipUsingManualConfiguration:
+      type: object
+      description: Manual mapping of table and columns
+      required:
+        - manual_configuration
+      properties:
+        manual_configuration:
+          type: object
+          required:
+            - remote_table
+            - column_mapping
+          properties:
+            remote_table:
+              $ref: '#/components/schemas/QualifiedTable'
+              description: The table to which the relationship has to be established
+            column_mapping:
+              type: object
+              description: Mapping of columns from current table to remote table
+              additionalProperties:
+                type: string
+            insertion_order:
+              type: string
+              description: Insertion order before or after parent. Describes when should the referenced table row be inserted in relation to the current table row in case of a nested insert.
+              enum: [before_parent, after_parent]
+              default: before_parent
+
+    CreateArrayRelationshipBulkOperation:
+      type: object
+      required:
+        - type
+        - args
+        - resource_version
+      properties:
+        type:
+          type: string
+          enum: [bulk_atomic]
+          description: Type of operation to create array relationship
+        resource_version:
+          type: integer
+          description: Resource version of the operation
+          example: 1
+        args:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreateArrayRelationshipStep'
+
+    CreateArrayRelationshipStep:
+      type: object
+      description: Define a new array relationship between Postgres tables/views
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_create_array_relationship]
+        args:
+          $ref: '#/components/schemas/CreateArrayRelationshipArgs'
+
+    CreateArrayRelationshipArgs:
+      type: object
+      required:
+        - table
+        - name
+        - using
+      properties:
+        table:
+          description: Name of the table
+          $ref: '#/components/schemas/QualifiedTable'
+        name:
+          type: string
+          description: Name of the new relationship
+        using:
+          description: Use one of the available ways to define an array relationship
+          $ref: '#/components/schemas/RelationshipUsing'
+        comment:
+          type: string
         source:
           type: string
           description: Name of the source database of the table
