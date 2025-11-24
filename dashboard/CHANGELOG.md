@@ -1,3 +1,19 @@
+## [@nhost/dashboard@2.43.0] - 2025-11-21
+
+### 🚀 Features
+
+- *(dashboard)* Event triggers (#3417)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Parse and create one-click installs for run services correctly (#3679)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(dashboard)* Add SLA level to support tickets (#3658)
+
 ## [@nhost/dashboard@2.42.0] - 2025-11-12
 
 ### 🚀 Features
