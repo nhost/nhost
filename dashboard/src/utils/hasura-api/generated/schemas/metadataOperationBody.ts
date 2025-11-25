@@ -23,6 +23,7 @@ import type { ReloadRemoteSchemaOperation } from './reloadRemoteSchemaOperation'
 import type { RemoteSchemaPermissionsBulkOperation } from './remoteSchemaPermissionsBulkOperation';
 import type { RemoteSchemaRemoteRelationshipOperation } from './remoteSchemaRemoteRelationshipOperation';
 import type { RemoveRemoteSchemaOperation } from './removeRemoteSchemaOperation';
+import type { RenameRelationshipBulkOperation } from './renameRelationshipBulkOperation';
 import type { SetTableCustomizationBulkOperation } from './setTableCustomizationBulkOperation';
 import type { SetTableIsEnumBulkOperation } from './setTableIsEnumBulkOperation';
 import type { SuggestRelationshipsOperation } from './suggestRelationshipsOperation';
@@ -37,6 +38,7 @@ export type MetadataOperationBody =
   | DropRelationshipBulkOperation
   | CreateObjectRelationshipBulkOperation
   | CreateArrayRelationshipBulkOperation
+  | RenameRelationshipBulkOperation
   | AddRemoteSchemaOperation
   | UpdateRemoteSchemaBulkOperation
   | RemoveRemoteSchemaOperation

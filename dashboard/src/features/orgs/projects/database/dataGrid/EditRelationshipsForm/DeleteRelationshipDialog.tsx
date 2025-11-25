@@ -10,7 +10,6 @@ import {
 } from '@/components/ui/v3/dialog';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { useDropRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDropRelationshipMutation';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -26,6 +25,12 @@ interface DeleteRelationshipDialogProps {
    */
   tableName: string;
   relationshipToDelete: string;
+  /**
+   * Source where the relationship lives.
+   *
+   * @default 'default'
+   */
+  source?: string;
 }
 
 export default function DeleteRelationshipDialog({
@@ -34,11 +39,10 @@ export default function DeleteRelationshipDialog({
   schema,
   tableName,
   relationshipToDelete,
+  source = 'default',
 }: DeleteRelationshipDialogProps) {
   const { mutateAsync: deleteRelationship, isLoading: isDeletingRelationship } =
     useDropRelationshipMutation();
-
-  const { project } = useProject();
 
   const queryClient = useQueryClient();
 
@@ -53,7 +57,7 @@ export default function DeleteRelationshipDialog({
           schema,
           name: tableName,
         },
-        source: 'default',
+        source,
       },
     });
     await execPromiseWithErrorToast(
@@ -67,12 +71,15 @@ export default function DeleteRelationshipDialog({
       },
     );
     setOpen(false);
-    await queryClient.invalidateQueries({
-      queryKey: ['suggest-relationships', 'default'],
-    });
-    await queryClient.invalidateQueries({
-      queryKey: ['export-metadata', project?.subdomain],
-    });
+    await Promise.all([
+      queryClient.invalidateQueries({
+        queryKey: ['export-metadata'],
+        exact: false,
+      }),
+      queryClient.invalidateQueries({
+        queryKey: ['suggest-relationships', source],
+      }),
+    ]);
   };
 
   return (

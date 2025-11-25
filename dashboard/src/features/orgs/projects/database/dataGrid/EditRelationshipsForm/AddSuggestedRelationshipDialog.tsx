@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 
-import { Input } from '@/components/ui/v2/Input';
+import { FormInput } from '@/components/form/FormInput';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   Dialog,
@@ -11,14 +11,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/v3/dialog';
+import { Form } from '@/components/ui/v3/form';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { useCreateArrayRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateArrayRelationshipMutation';
 import { useCreateObjectRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateObjectRelationshipMutation';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { useQueryClient } from '@tanstack/react-query';
 import type {
   RelationshipUsingForeignKeyConstraintOnForeignKeyConstraintOnOneOf,
   SuggestRelationshipsResponseRelationshipsItem,
 } from '@/utils/hasura-api/generated/schemas';
+import { useForm } from 'react-hook-form';
 
 interface AddSuggestedRelationshipDialogProps {
   open: boolean;
@@ -67,11 +70,7 @@ function getDefaultRelationshipName(
 }
 
 function sanitizeRelationshipName(value?: string | null) {
-  if (!value) {
-    return '';
-  }
-
-  return value.replace(/\s+/g, '_').replace(/[^A-Za-z0-9_]/g, '_');
+  return value ?? '';
 }
 
 function normalizeColumns(columns?: string[] | null) {
@@ -81,6 +80,13 @@ function normalizeColumns(columns?: string[] | null) {
 
   return columns.filter(Boolean);
 }
+
+const RELATIONSHIP_NAME_VALIDATION_MESSAGE =
+  'Relationship name is required. GraphQL fields are limited to letters, numbers, and underscores.';
+
+type AddSuggestedRelationshipFormValues = {
+  relationshipName: string;
+};
 
 export default function AddSuggestedRelationshipDialog({
   open,
@@ -103,13 +109,28 @@ export default function AddSuggestedRelationshipDialog({
     isLoading: isCreatingArrayRelationship,
   } = useCreateArrayRelationshipMutation();
 
-  const [relationshipName, setRelationshipName] = useState(
-    sanitizeRelationshipName(getDefaultRelationshipName(suggestion)),
+  const defaultRelationshipName = useMemo(
+    () => sanitizeRelationshipName(getDefaultRelationshipName(suggestion)),
+    [suggestion],
   );
-  const [errorMessage, setErrorMessage] = useState<string>();
+
+  const relationshipNameInputRef = useRef<HTMLInputElement | null>(null);
+
+  const relationshipForm = useForm<AddSuggestedRelationshipFormValues>({
+    defaultValues: {
+      relationshipName: defaultRelationshipName,
+    },
+  });
+
+  const { control, handleSubmit, reset, setError, clearErrors, formState } =
+    relationshipForm;
+
+  const queryClient = useQueryClient();
 
   const isSubmitting =
-    isCreatingObjectRelationship || isCreatingArrayRelationship;
+    isCreatingObjectRelationship ||
+    isCreatingArrayRelationship ||
+    formState.isSubmitting;
 
   const suggestionType = suggestion?.type?.toLowerCase();
 
@@ -130,40 +151,58 @@ export default function AddSuggestedRelationshipDialog({
 
   useEffect(() => {
     if (!open) {
-      return;
+      return undefined;
     }
 
-    setRelationshipName(
-      sanitizeRelationshipName(getDefaultRelationshipName(suggestion)),
-    );
-    setErrorMessage(undefined);
-  }, [open, suggestion]);
+    reset({ relationshipName: defaultRelationshipName });
+    clearErrors('relationshipName');
+
+    const timer = setTimeout(() => {
+      relationshipNameInputRef.current?.focus();
+      relationshipNameInputRef.current?.select();
+    }, 0);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [open, defaultRelationshipName, reset, clearErrors]);
+
+  const showRelationshipNameError = (message: string) => {
+    setError('relationshipName', {
+      type: 'manual',
+      message,
+    });
+  };
 
   const handleClose = (nextOpen: boolean) => {
     if (!nextOpen) {
-      setErrorMessage(undefined);
+      clearErrors('relationshipName');
     }
 
     setOpen(nextOpen);
   };
 
-  const handleCreateRelationship = async () => {
+  const handleCreateRelationship = async ({
+    relationshipName,
+  }: AddSuggestedRelationshipFormValues) => {
+    clearErrors('relationshipName');
+
     if (!suggestion) {
-      setErrorMessage('No suggestion selected.');
+      showRelationshipNameError('No suggestion selected.');
       return;
     }
 
     if (!resourceVersion) {
-      setErrorMessage(
+      showRelationshipNameError(
         'Metadata is not ready yet. Please try again in a moment.',
       );
       return;
     }
 
-    const trimmedName = sanitizeRelationshipName(relationshipName).trim();
+    const trimmedName = relationshipName.trim();
 
     if (!trimmedName) {
-      setErrorMessage('Relationship name is required.');
+      showRelationshipNameError(RELATIONSHIP_NAME_VALIDATION_MESSAGE);
       return;
     }
 
@@ -173,7 +212,9 @@ export default function AddSuggestedRelationshipDialog({
     };
 
     if (!baseTable.schema || !baseTable.name) {
-      setErrorMessage('Missing table information for the relationship.');
+      showRelationshipNameError(
+        'Missing table information for the relationship.',
+      );
       return;
     }
 
@@ -198,7 +239,7 @@ export default function AddSuggestedRelationshipDialog({
           : suggestion.to?.constraint_name;
 
       if (!arrayForeignKey) {
-        setErrorMessage(
+        showRelationshipNameError(
           'Unable to derive the foreign key information from this suggestion.',
         );
         return;
@@ -208,7 +249,7 @@ export default function AddSuggestedRelationshipDialog({
         resourceVersion,
         args: {
           table: baseTable,
-          name: trimmedName,
+          name: relationshipName,
           source,
           using: {
             foreign_key_constraint_on: arrayForeignKey,
@@ -229,7 +270,7 @@ export default function AddSuggestedRelationshipDialog({
         suggestion.to?.constraint_name;
 
       if (!objectForeignKey) {
-        setErrorMessage(
+        showRelationshipNameError(
           'Unable to derive the foreign key information from this suggestion.',
         );
         return;
@@ -239,7 +280,7 @@ export default function AddSuggestedRelationshipDialog({
         resourceVersion,
         args: {
           table: baseTable,
-          name: trimmedName,
+          name: relationshipName,
           source,
           using: {
             foreign_key_constraint_on: objectForeignKey,
@@ -247,12 +288,12 @@ export default function AddSuggestedRelationshipDialog({
         },
       });
     } else {
-      setErrorMessage('Unsupported relationship type.');
+      showRelationshipNameError('Unsupported relationship type.');
       return;
     }
 
     if (!promise) {
-      setErrorMessage('Failed to create the relationship.');
+      showRelationshipNameError('Failed to create the relationship.');
       return;
     }
 
@@ -266,6 +307,16 @@ export default function AddSuggestedRelationshipDialog({
         errorMessage: 'An error occurred while creating the relationship.',
       },
     );
+
+    await Promise.all([
+      queryClient.invalidateQueries({
+        queryKey: ['export-metadata'],
+        exact: false,
+      }),
+      queryClient.invalidateQueries({
+        queryKey: ['suggest-relationships', source],
+      }),
+    ]);
 
     handleClose(false);
     await onSuccess?.();
@@ -294,44 +345,41 @@ export default function AddSuggestedRelationshipDialog({
           </p>
         )}
 
-        <Input
-          id="relationshipName"
-          label="Relationship Name"
-          value={relationshipName}
-          onChange={(event) =>
-            setRelationshipName(sanitizeRelationshipName(event.target.value))
-          }
-          helperText={
-            errorMessage ?? (
-              <>
-                GraphQL fields are limited to letters, numbers, and underscores.
-                <br />
-                Any spaces are converted to underscores.
-              </>
-            )
-          }
-          error={Boolean(errorMessage)}
-          autoFocus
-          fullWidth
-          className="mt-4"
-        />
-
-        <DialogFooter className="gap-2 sm:flex sm:flex-col sm:space-x-0">
-          <ButtonWithLoading
-            onClick={handleCreateRelationship}
-            loading={isSubmitting}
-            disabled={isSubmitting}
-            className="!text-sm+"
+        <Form {...relationshipForm}>
+          <form
+            onSubmit={handleSubmit(handleCreateRelationship)}
+            className="mt-4 flex flex-col gap-4 text-foreground"
           >
-            Create Relationship
-          </ButtonWithLoading>
+            <FormInput
+              ref={relationshipNameInputRef}
+              control={control}
+              name="relationshipName"
+              label="Relationship Name"
+              containerClassName="mt-0"
+            />
 
-          <DialogClose asChild>
-            <Button variant="outline" className="!text-sm+ text-foreground">
-              Cancel
-            </Button>
-          </DialogClose>
-        </DialogFooter>
+            <DialogFooter className="gap-2 sm:flex sm:flex-col sm:space-x-0">
+              <ButtonWithLoading
+                type="submit"
+                loading={isSubmitting}
+                disabled={isSubmitting}
+                className="!text-sm+"
+              >
+                Create Relationship
+              </ButtonWithLoading>
+
+              <DialogClose asChild>
+                <Button
+                  variant="outline"
+                  className="!text-sm+ text-foreground"
+                  type="button"
+                >
+                  Cancel
+                </Button>
+              </DialogClose>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

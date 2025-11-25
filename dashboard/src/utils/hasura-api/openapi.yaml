@@ -26,6 +26,7 @@ paths:
                 - $ref: '#/components/schemas/DropRelationshipBulkOperation'
                 - $ref: '#/components/schemas/CreateObjectRelationshipBulkOperation'
                 - $ref: '#/components/schemas/CreateArrayRelationshipBulkOperation'
+                - $ref: '#/components/schemas/RenameRelationshipBulkOperation'
                 - $ref: '#/components/schemas/AddRemoteSchemaOperation'
                 - $ref: '#/components/schemas/UpdateRemoteSchemaBulkOperation'
                 - $ref: '#/components/schemas/RemoveRemoteSchemaOperation'
@@ -620,6 +621,59 @@ components:
           $ref: '#/components/schemas/RelationshipUsing'
         comment:
           type: string
+        source:
+          type: string
+          description: Name of the source database of the table
+          default: default
+
+    RenameRelationshipBulkOperation:
+      type: object
+      required:
+        - type
+        - args
+        - resource_version
+      properties:
+        type:
+          type: string
+          enum: [bulk, bulk_keep_going]
+          description: Type of operation to rename relationship
+        resource_version:
+          type: integer
+          description: Resource version of the operation
+          example: 1
+        args:
+          type: array
+          items:
+            $ref: '#/components/schemas/RenameRelationshipStep'
+
+    RenameRelationshipStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_rename_relationship]
+        args:
+          $ref: '#/components/schemas/RenameRelationshipArgs'
+
+    RenameRelationshipArgs:
+      type: object
+      required:
+        - table
+        - name
+        - new_name
+      properties:
+        table:
+          description: Name of the table
+          $ref: '#/components/schemas/QualifiedTable'
+        name:
+          type: string
+          description: Name of the relationship
+        new_name:
+          type: string
+          description: New relationship name
         source:
           type: string
           description: Name of the source database of the table

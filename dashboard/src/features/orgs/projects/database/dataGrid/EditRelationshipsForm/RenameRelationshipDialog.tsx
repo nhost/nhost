@@ -1,4 +1,6 @@
-// TODO: Implement this dialog
+import { useEffect, useMemo, useRef } from 'react';
+
+import { FormInput } from '@/components/form/FormInput';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   Dialog,
@@ -9,9 +11,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/v3/dialog';
+import { Form } from '@/components/ui/v3/form';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
-import { useDropRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDropRelationshipMutation';
+import { useRenameRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useRenameRelationshipMutation';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { useQueryClient } from '@tanstack/react-query';
+import { useForm } from 'react-hook-form';
 
 interface RenameRelationshipDialogProps {
   open: boolean;
@@ -21,10 +26,34 @@ interface RenameRelationshipDialogProps {
    */
   schema: string;
   /**
-   * Table to delete the relationship from.
+   * Table that owns the relationship.
    */
   tableName: string;
+  /**
+   * Existing relationship name to rename.
+   */
   relationshipToRename: string;
+  /**
+   * Source where the relationship lives.
+   *
+   * @default 'default'
+   */
+  source?: string;
+  /**
+   * Optional callback triggered after a successful rename.
+   */
+  onSuccess?: () => Promise<void> | void;
+}
+
+const RELATIONSHIP_NAME_HELPER_TEXT =
+  'GraphQL fields are limited to letters, numbers, and underscores.';
+
+type RenameRelationshipFormValues = {
+  newRelationshipName: string;
+};
+
+function sanitizeRelationshipName(value?: string | null) {
+  return value ?? '';
 }
 
 export default function RenameRelationshipDialog({
@@ -33,71 +62,197 @@ export default function RenameRelationshipDialog({
   schema,
   tableName,
   relationshipToRename,
+  source = 'default',
+  onSuccess,
 }: RenameRelationshipDialogProps) {
-  const { mutateAsync: deleteRelationship, isLoading: isDeletingRelationship } =
-    useDropRelationshipMutation();
+  const { mutateAsync: renameRelationship, isLoading: isRenamingRelationship } =
+    useRenameRelationshipMutation();
 
   const { data: resourceVersion } = useGetMetadataResourceVersion();
+  const queryClient = useQueryClient();
 
-  const handleDeleteDialogClick = async () => {
-    const promise = deleteRelationship({
-      resourceVersion: resourceVersion!,
+  const defaultRelationshipName = useMemo(
+    () => sanitizeRelationshipName(relationshipToRename),
+    [relationshipToRename],
+  );
+
+  const relationshipNameInputRef = useRef<HTMLInputElement | null>(null);
+
+  const renameForm = useForm<RenameRelationshipFormValues>({
+    defaultValues: {
+      newRelationshipName: defaultRelationshipName,
+    },
+  });
+
+  const { control, handleSubmit, reset, setError, clearErrors, formState } =
+    renameForm;
+
+  const isSubmitting = isRenamingRelationship || formState.isSubmitting;
+
+  useEffect(() => {
+    if (!open) {
+      return undefined;
+    }
+
+    reset({ newRelationshipName: defaultRelationshipName });
+    clearErrors('newRelationshipName');
+
+    const timer = setTimeout(() => {
+      relationshipNameInputRef.current?.focus();
+      relationshipNameInputRef.current?.select();
+    }, 0);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [open, defaultRelationshipName, reset, clearErrors]);
+
+  const showRelationshipNameError = (message: string) => {
+    setError('newRelationshipName', {
+      type: 'manual',
+      message,
+    });
+  };
+
+  const handleClose = (nextOpen: boolean) => {
+    if (!nextOpen) {
+      clearErrors('newRelationshipName');
+    }
+
+    setOpen(nextOpen);
+  };
+
+  const handleDialogOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen && isSubmitting) {
+      return;
+    }
+
+    handleClose(nextOpen);
+  };
+
+  const handleRenameRelationship = async ({
+    newRelationshipName,
+  }: RenameRelationshipFormValues) => {
+    clearErrors('newRelationshipName');
+
+    if (!resourceVersion) {
+      showRelationshipNameError(
+        'Metadata is not ready yet. Please try again in a moment.',
+      );
+      return;
+    }
+
+    const trimmedName = newRelationshipName.trim();
+
+    if (!trimmedName) {
+      showRelationshipNameError('New relationship name is required.');
+      return;
+    }
+
+    if (trimmedName === relationshipToRename.trim()) {
+      showRelationshipNameError(
+        'New relationship name must be different from the current name.',
+      );
+      return;
+    }
+
+    const promise = renameRelationship({
+      resourceVersion,
       args: {
-        relationship: relationshipToRename,
         table: {
           schema,
           name: tableName,
         },
-        source: 'default',
+        name: relationshipToRename,
+        new_name: newRelationshipName,
+        source,
       },
     });
+
     await execPromiseWithErrorToast(
       async () => {
         await promise;
       },
       {
-        loadingMessage: 'Deleting relationship...',
-        successMessage: 'Relationship deleted successfully.',
-        errorMessage: 'An error occurred while deleting the relationship.',
+        loadingMessage: 'Renaming relationship...',
+        successMessage: 'Relationship renamed successfully.',
+        errorMessage: 'An error occurred while renaming the relationship.',
       },
     );
-    setOpen(false);
+
+    await Promise.all([
+      queryClient.invalidateQueries({
+        queryKey: ['export-metadata'],
+        exact: false,
+      }),
+      queryClient.invalidateQueries({
+        queryKey: ['suggest-relationships', source],
+      }),
+    ]);
+
+    handleClose(false);
+    await onSuccess?.();
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogContent
         className="sm:max-w-[425px]"
         hideCloseButton
-        disableOutsideClick={isDeletingRelationship}
+        disableOutsideClick={isSubmitting}
       >
         <DialogHeader>
           <DialogTitle className="text-foreground">
             Rename Relationship
           </DialogTitle>
           <DialogDescription>
-            Are you sure you want to rename the{' '}
+            Provide a new name for the{' '}
             <span className="rounded-md bg-muted px-1 py-0.5 font-mono">
               {relationshipToRename}
             </span>{' '}
-            relationship?
+            relationship.
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter className="gap-2 sm:flex sm:flex-col sm:space-x-0">
-          <ButtonWithLoading
-            variant="destructive"
-            className="!text-sm+ text-white"
-            onClick={handleDeleteDialogClick}
-            loading={isDeletingRelationship}
+
+        <Form {...renameForm}>
+          <form
+            onSubmit={handleSubmit(handleRenameRelationship)}
+            className="flex flex-col gap-4 pt-4 text-foreground"
           >
-            Rename
-          </ButtonWithLoading>
-          <DialogClose asChild>
-            <Button variant="outline" className="!text-sm+ text-foreground">
-              Cancel
-            </Button>
-          </DialogClose>
-        </DialogFooter>
+            <FormInput<RenameRelationshipFormValues>
+              ref={relationshipNameInputRef}
+              control={control}
+              name="newRelationshipName"
+              label="New Relationship Name"
+              helperText={
+                formState.errors.newRelationshipName
+                  ? null
+                  : RELATIONSHIP_NAME_HELPER_TEXT
+              }
+            />
+
+            <DialogFooter className="gap-2 pt-4 sm:flex sm:flex-col sm:space-x-0">
+              <ButtonWithLoading
+                type="submit"
+                loading={isSubmitting}
+                disabled={isSubmitting}
+                className="!text-sm+"
+              >
+                Rename
+              </ButtonWithLoading>
+              <DialogClose asChild>
+                <Button
+                  variant="outline"
+                  className="!text-sm+ text-foreground"
+                  type="button"
+                  disabled={isSubmitting}
+                >
+                  Cancel
+                </Button>
+              </DialogClose>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

@@ -80,6 +80,12 @@ export default function EditRelationshipsForm(
   const [showRenameRelationshipDialog, setShowRenameRelationshipDialog] =
     useState(false);
 
+  const [selectedRelationshipForDelete, setSelectedRelationshipForDelete] =
+    useState<{ name: string; source: string } | null>(null);
+
+  const [selectedRelationshipForRename, setSelectedRelationshipForRename] =
+    useState<{ name: string; source: string } | null>(null);
+
   const [showCreateRelationshipDialog, setShowCreateRelationshipDialog] =
     useState(false);
 
@@ -98,8 +104,6 @@ export default function EditRelationshipsForm(
       suggestion.from?.table?.name === originalTable.table_name &&
       suggestion.from?.table?.schema === schema,
   );
-
-  // TODO: Only show the suggestions that are not already in the relationships
 
   const {
     data: metadata,
@@ -443,13 +447,25 @@ export default function EditRelationshipsForm(
     <div className="flex h-full min-h-0 flex-col overflow-hidden">
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pb-4">
         <section className="px-6">
-          <h2 className="text-sm+ font-semibold text-foreground">
-            Relationships
-          </h2>
-
-          <p className="mt-1 text-sm text-muted-foreground">
-            Manage foreign key relationships for {tableSchema}.{tableName}.
-          </p>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-sm+ font-semibold text-foreground">
+                Relationships
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Manage foreign key relationships for {tableSchema}.{tableName}.
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="default"
+              className="mt-2 flex w-fit items-center gap-2 sm:mt-0"
+              onClick={() => setShowCreateRelationshipDialog(true)}
+            >
+              Relationship
+              <PlusIcon className="h-4 w-4" />
+            </Button>
+          </div>
 
           <div className="mt-4">
             <Table>
@@ -503,7 +519,13 @@ export default function EditRelationshipsForm(
                           variant="ghost"
                           size="icon"
                           className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                          onClick={() => setShowDeleteRelationshipDialog(true)}
+                          onClick={() => {
+                            setSelectedRelationshipForDelete({
+                              name: relationship.name,
+                              source: relationship.source,
+                            });
+                            setShowDeleteRelationshipDialog(true);
+                          }}
                         >
                           <Trash2Icon className="size-4" />
                         </Button>
@@ -511,24 +533,16 @@ export default function EditRelationshipsForm(
                           variant="ghost"
                           size="icon"
                           className=""
-                          onClick={() => setShowRenameRelationshipDialog(true)}
+                          onClick={() => {
+                            setSelectedRelationshipForRename({
+                              name: relationship.name,
+                              source: relationship.source,
+                            });
+                            setShowRenameRelationshipDialog(true);
+                          }}
                         >
                           <PencilIcon className="size-4" />
                         </Button>
-                        <DeleteRelationshipDialog
-                          open={showDeleteRelationshipDialog}
-                          setOpen={setShowDeleteRelationshipDialog}
-                          schema={schema}
-                          tableName={tableName}
-                          relationshipToDelete={relationship.name}
-                        />
-                        <RenameRelationshipDialog
-                          open={showRenameRelationshipDialog}
-                          setOpen={setShowRenameRelationshipDialog}
-                          schema={schema}
-                          tableName={tableName}
-                          relationshipToRename={relationship.name}
-                        />
                       </TableCell>
                     </TableRow>
                   ))
@@ -536,15 +550,49 @@ export default function EditRelationshipsForm(
               </TableBody>
             </Table>
           </div>
-          <Button
-            type="button"
-            variant="default"
-            className="mt-2 flex w-fit items-center gap-2"
-            onClick={() => setShowCreateRelationshipDialog(true)}
-          >
-            Custom Relationship
-            <PlusIcon className="h-4 w-4" />
-          </Button>
+          <DeleteRelationshipDialog
+            open={showDeleteRelationshipDialog}
+            setOpen={(nextOpen) => {
+              if (!nextOpen) {
+                setSelectedRelationshipForDelete(null);
+              }
+              setShowDeleteRelationshipDialog(nextOpen);
+            }}
+            schema={schema}
+            tableName={tableName}
+            relationshipToDelete={
+              selectedRelationshipForDelete?.name ??
+              relationships[0]?.name ??
+              ''
+            }
+            source={
+              selectedRelationshipForDelete?.source ??
+              relationships[0]?.source ??
+              dataSource
+            }
+          />
+          <RenameRelationshipDialog
+            open={showRenameRelationshipDialog}
+            setOpen={(nextOpen) => {
+              if (!nextOpen) {
+                setSelectedRelationshipForRename(null);
+              }
+              setShowRenameRelationshipDialog(nextOpen);
+            }}
+            schema={schema}
+            tableName={tableName}
+            relationshipToRename={
+              selectedRelationshipForRename?.name ??
+              relationships[0]?.name ??
+              ''
+            }
+            source={
+              selectedRelationshipForRename?.source ??
+              relationships[0]?.source ??
+              dataSource
+            }
+            onSuccess={handleRelationshipCreated}
+          />
           <CreateRelationshipDialog
             open={showCreateRelationshipDialog}
             setOpen={setShowCreateRelationshipDialog}

@@ -30,8 +30,6 @@ export default async function dropRelationship({
       },
     );
 
-    console.log('Suggest Relationships Response:', response.data);
-
     if (response.status === 200) {
       return response.data as SuggestRelationshipsResponse;
     }

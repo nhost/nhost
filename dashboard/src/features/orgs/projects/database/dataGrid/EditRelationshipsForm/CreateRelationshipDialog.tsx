@@ -1,3 +1,5 @@
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useQueryClient } from '@tanstack/react-query';
 import { ArrowRight, PlusIcon, Trash2Icon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { useFieldArray, useForm, useWatch } from 'react-hook-form';
@@ -49,29 +51,29 @@ interface CreateRelationshipDialogProps {
   onSuccess?: () => Promise<void> | void;
 }
 
-const createRelationshipFormSchema = z.object({
-  name: z.string().min(1, { message: 'Name is required' }),
-  fromSource: z.object(
-    {
-      schema: z.string().min(1),
-      table: z.string().min(1),
-      source: z.string().min(1),
-    },
-    { required_error: 'From source is required' },
-  ),
-  toReference: z.object(
-    {
-      schema: z.string().min(1),
-      table: z.string().min(1),
-      source: z.string().min(1),
-    },
-    { required_error: 'To reference is required' },
-  ),
-  relationshipType: z.enum(['array', 'object'], {
-    required_error: 'Relationship type is required',
-  }),
-  fieldMapping: z
-    .array(
+const createRelationshipFormSchema = z
+  .object({
+    name: z.string().min(1, { message: 'Name is required' }),
+    fromSource: z.object(
+      {
+        schema: z.string().min(1),
+        table: z.string().min(1),
+        source: z.string().min(1),
+      },
+      { required_error: 'From source is required' },
+    ),
+    toReference: z.object(
+      {
+        schema: z.string().min(1),
+        table: z.string().min(1),
+        source: z.string().min(1),
+      },
+      { required_error: 'To reference is required' },
+    ),
+    relationshipType: z.enum(['array', 'object'], {
+      required_error: 'Relationship type is required',
+    }),
+    fieldMapping: z.array(
       z.object({
         sourceColumn: z
           .string()
@@ -80,9 +82,18 @@ const createRelationshipFormSchema = z.object({
           .string()
           .min(1, { message: 'Reference column is required' }),
       }),
-    )
-    .min(1, { message: 'At least one column mapping is required.' }),
-});
+    ),
+  })
+  .superRefine((data, ctx) => {
+    if (data.relationshipType === 'array' && data.fieldMapping.length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'At least one column mapping is required for array relationships.',
+        path: ['fieldMapping'],
+      });
+    }
+  });
 
 export type CreateRelationshipFormValues = z.infer<
   typeof createRelationshipFormSchema
@@ -106,6 +117,7 @@ export default function CreateRelationshipDialog({
   tableName,
   onSuccess,
 }: CreateRelationshipDialogProps) {
+  const queryClient = useQueryClient();
   const { data: resourceVersion } = useGetMetadataResourceVersion();
   const {
     mutateAsync: createArrayRelationship,
@@ -143,6 +155,7 @@ export default function CreateRelationshipDialog({
   );
 
   const form = useForm<CreateRelationshipFormValues>({
+    resolver: zodResolver(createRelationshipFormSchema),
     defaultValues: {
       name: '',
       fromSource: {
@@ -156,12 +169,7 @@ export default function CreateRelationshipDialog({
         source,
       },
       relationshipType: 'object',
-      fieldMapping: [
-        {
-          sourceColumn: '',
-          referenceColumn: '',
-        },
-      ],
+      fieldMapping: [],
     },
   });
 
@@ -187,12 +195,7 @@ export default function CreateRelationshipDialog({
       fromSource: defaultTable,
       toReference: defaultTable,
       relationshipType: 'object',
-      fieldMapping: [
-        {
-          sourceColumn: '',
-          referenceColumn: '',
-        },
-      ],
+      fieldMapping: [],
     });
   }, [open, allTables, form, schema, source, tableName]);
 
@@ -271,25 +274,6 @@ export default function CreateRelationshipDialog({
     name: 'fieldMapping',
   });
 
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-
-    fieldMappingFields.forEach((field, index) => {
-      if (!field.sourceColumn && fromColumns[0]) {
-        form.setValue(`fieldMapping.${index}.sourceColumn`, fromColumns[0], {
-          shouldDirty: true,
-        });
-      }
-      if (!field.referenceColumn && toColumns[0]) {
-        form.setValue(`fieldMapping.${index}.referenceColumn`, toColumns[0], {
-          shouldDirty: true,
-        });
-      }
-    });
-  }, [open, form, fieldMappingFields, fromColumns, toColumns]);
-
   const handleOpenChange = (nextOpen: boolean) => {
     if (!nextOpen) {
       form.reset();
@@ -324,6 +308,8 @@ export default function CreateRelationshipDialog({
                 schema: values.fromSource.schema,
                 name: values.fromSource.table,
               };
+
+              const relationshipSource = values.fromSource.source;
 
               const remoteTable = {
                 schema: values.toReference.schema,
@@ -405,6 +391,16 @@ export default function CreateRelationshipDialog({
                 },
               );
 
+              await Promise.all([
+                queryClient.invalidateQueries({
+                  queryKey: ['export-metadata'],
+                  exact: false,
+                }),
+                queryClient.invalidateQueries({
+                  queryKey: ['suggest-relationships', relationshipSource],
+                }),
+              ]);
+
               setOpen(false);
               await onSuccess?.();
             })}
@@ -434,6 +430,7 @@ export default function CreateRelationshipDialog({
                       CreateRelationshipFormValues['fromSource']
                     >(value)
                   }
+                  disabled
                 >
                   {tableOptions.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
@@ -519,7 +516,7 @@ export default function CreateRelationshipDialog({
                           </SelectItem>
                         ))}
                         {fromColumns.length === 0 && (
-                          <SelectItem disabled value="">
+                          <SelectItem disabled value="__no-source-columns">
                             No columns available
                           </SelectItem>
                         )}
@@ -542,7 +539,7 @@ export default function CreateRelationshipDialog({
                           </SelectItem>
                         ))}
                         {toColumns.length === 0 && (
-                          <SelectItem disabled value="">
+                          <SelectItem disabled value="__no-reference-columns">
                             No columns available
                           </SelectItem>
                         )}
@@ -554,7 +551,7 @@ export default function CreateRelationshipDialog({
                         size="icon"
                         className="col-span-1 text-destructive hover:bg-destructive/10 hover:text-destructive"
                         onClick={() => removeFieldMapping(index)}
-                        disabled={fieldMappingFields.length === 1}
+                        disabled={fieldMappingFields.length === 0}
                       >
                         <Trash2Icon className="h-4 w-4" />
                       </Button>
