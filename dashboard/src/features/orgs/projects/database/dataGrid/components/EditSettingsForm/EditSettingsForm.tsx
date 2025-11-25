@@ -26,14 +26,9 @@ export interface EditSettingsFormProps
    * Table to be edited.
    */
   table: NormalizedQueryDataRow;
-  /**
-   * Function to be called when the form is submitted.
-   */
-  onSubmit?: (tableName: string) => Promise<void>;
 }
 
 export default function EditSettingsForm({
-  onSubmit,
   onCancel,
   schema,
   table: originalTable,

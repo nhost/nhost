@@ -367,7 +367,7 @@ export default function CustomGraphQLRootFieldsSection({
             placeholder={`${tableNameAlias} (default)`}
             className=""
           />
-          <Accordion type="multiple" defaultValue={['mutation']}>
+          <Accordion type="multiple" defaultValue={['query-and-subscription']}>
             <AccordionItem value="query-and-subscription">
               <AccordionTrigger className="text-sm font-semibold">
                 Query and Subscription
@@ -411,7 +411,7 @@ export default function CustomGraphQLRootFieldsSection({
             </AccordionItem>
 
             <AccordionItem value="mutation" className="overflow-hidden">
-              <AccordionTrigger className="px-4 text-sm font-semibold">
+              <AccordionTrigger className="text-sm font-semibold">
                 Mutation
               </AccordionTrigger>
               <AccordionContent className="px-4 pb-4">

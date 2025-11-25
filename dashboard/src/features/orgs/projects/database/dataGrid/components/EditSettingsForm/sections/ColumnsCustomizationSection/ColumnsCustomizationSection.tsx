@@ -2,7 +2,6 @@ import { FormInput } from '@/components/form/FormInput';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { Form } from '@/components/ui/v3/form';
-import { Skeleton } from '@/components/ui/v3/skeleton';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { useSetTableCustomizationMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useSetTableCustomizationMutation';
 import { useTableCustomizationQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableCustomizationQuery';
@@ -21,8 +20,6 @@ export interface ColumnsCustomizationSectionProps {
 }
 
 type GraphQLFieldNamePath = `columns.${string}.graphqlFieldName`;
-
-const COLUMN_SKELETON_KEYS = ['first', 'second', 'third', 'fourth'];
 
 const validationSchema = z.object({
   columns: z.record(
@@ -134,6 +131,7 @@ export default function ColumnsCustomizationSection({
       errorMessage: 'An error occurred while setting GraphQL column names.',
     });
     await refetchTableCustomization();
+    form.reset(values, { keepValues: true, keepDirty: false });
   });
 
   const isError = columnsStatus === 'error';
@@ -143,6 +141,10 @@ export default function ColumnsCustomizationSection({
     columnsError instanceof Error
       ? columnsError.message
       : 'Something went wrong while loading the columns for this table.';
+
+  if (isLoading || isLoadingTableCustomization) {
+    return <ColumnsCustomizationSectionSkeleton />;
+  }
 
   return (
     <Form {...form}>
@@ -157,7 +159,6 @@ export default function ColumnsCustomizationSection({
             },
           }}
         >
-          {isLoading && <ColumnsCustomizationSectionSkeleton />}
           {isError ? (
             <Alert variant="destructive">
               <AlertTitle>Unable to load columns</AlertTitle>
@@ -173,65 +174,52 @@ export default function ColumnsCustomizationSection({
                 </div>
 
                 <div className="space-y-2 py-3">
-                  {!isLoading &&
-                    COLUMN_SKELETON_KEYS.map((placeholderKey) => (
-                      <div
-                        key={`column-skeleton-${placeholderKey}`}
-                        className="grid h-14 grid-cols-[minmax(0,1fr),minmax(0,1fr),minmax(0,1.5fr)] items-center gap-3 rounded-md bg-background px-4 py-3"
-                      >
-                        <Skeleton className="h-full" />
-                        <Skeleton className="h-full" />
-                        <Skeleton className="h-full" />
-                      </div>
-                    ))}
-
-                  {!isLoading && displayColumns.length === 0 && (
+                  {displayColumns.length === 0 && (
                     <div className="rounded-md px-4 py-8 text-center text-sm text-muted-foreground">
                       No columns were found for this table.
                     </div>
                   )}
 
-                  {!isLoading &&
-                    displayColumns.map((column) => {
-                      const columnName = column.column_name as string;
+                  {displayColumns.map((column) => {
+                    const columnName = column.column_name as string;
 
-                      if (!columnName) {
-                        return null;
-                      }
+                    if (!columnName) {
+                      return null;
+                    }
 
-                      const dataType =
-                        (column.full_data_type as string) ||
-                        (column.data_type as string) ||
-                        'unknown';
-                      const fieldPath =
-                        `columns.${columnName}.graphqlFieldName` as GraphQLFieldNamePath;
+                    const dataType =
+                      (column.full_data_type as string) ||
+                      (column.data_type as string) ||
+                      'unknown';
+                    const fieldPath =
+                      `columns.${columnName}.graphqlFieldName` as GraphQLFieldNamePath;
 
-                      return (
-                        <div
-                          key={columnName}
-                          className="grid grid-cols-[minmax(0,1fr),minmax(0,1fr),minmax(0,1.5fr)] items-center gap-3 rounded-md bg-background px-4 py-3"
-                        >
-                          <div className="space-y-1">
-                            <span className="text-sm font-medium text-foreground">
-                              {columnName}
-                            </span>
-                          </div>
-
-                          <span className="font-mono text-sm text-foreground">
-                            {dataType}
+                    return (
+                      <div
+                        key={columnName}
+                        className="grid grid-cols-[minmax(0,1fr),minmax(0,1fr),minmax(0,1.5fr)] items-center gap-3 rounded-md bg-background px-4 py-3"
+                      >
+                        <div className="space-y-1">
+                          <span className="text-sm font-medium text-foreground">
+                            {columnName}
                           </span>
-
-                          <FormInput
-                            control={form.control}
-                            name={fieldPath}
-                            label=""
-                            placeholder={`${columnName} (default)`}
-                            className="font-mono"
-                            containerClassName="space-y-0"
-                          />
                         </div>
-                      );
-                    })}
+
+                        <span className="font-mono text-sm text-foreground">
+                          {dataType}
+                        </span>
+
+                        <FormInput
+                          control={form.control}
+                          name={fieldPath}
+                          label=""
+                          placeholder={`${columnName} (default)`}
+                          className="font-mono"
+                          containerClassName="space-y-0"
+                        />
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>

@@ -1,5 +1,6 @@
-import type { MetadataOperationOptions } from '@/features/orgs/projects/remote-schemas/types';
 import type { SetTableIsEnumArgs } from '@/utils/hasura-api/generated/schemas';
+import type { MigrationOperationOptions } from '@/utils/hasura-api/types';
+import setTableIsEnum from './setTableIsEnum';
 
 export interface SetTableIsEnumMigrationVariables {
   resourceVersion?: number;
@@ -11,6 +12,20 @@ export default async function setTableIsEnumMigration({
   adminSecret,
   resourceVersion,
   args,
-}: MetadataOperationOptions & SetTableIsEnumMigrationVariables) {
-  // TODO: Implement set table is enum migration
+}: MigrationOperationOptions & SetTableIsEnumMigrationVariables) {
+  /**
+   * TODO: Build the executeMigration flow once the up/down steps are known.
+   */
+  if (resourceVersion == null) {
+    throw new Error(
+      'resourceVersion is required while the metadata fallback is in place.',
+    );
+  }
+
+  return setTableIsEnum({
+    appUrl,
+    adminSecret,
+    resourceVersion,
+    args,
+  });
 }

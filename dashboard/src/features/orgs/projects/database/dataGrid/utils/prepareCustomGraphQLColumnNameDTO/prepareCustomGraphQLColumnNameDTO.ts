@@ -1,4 +1,4 @@
-import type { ColumnsCustomizationFormValues } from '@/features/orgs/projects/database/dataGrid/components/EditSettingsForm/sections/ColumnsCustomizationForm';
+import type { ColumnsCustomizationFormValues } from '@/features/orgs/projects/database/dataGrid/components/EditSettingsForm/sections/ColumnsCustomizationSection/ColumnsCustomizationSection';
 import type { TableConfigColumnConfig } from '@/utils/hasura-api/generated/schemas';
 
 export default function prepareCustomGraphQLColumnNameDTO(
