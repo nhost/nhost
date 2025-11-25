@@ -16,11 +16,11 @@ import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/h
 import { useCreateArrayRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateArrayRelationshipMutation';
 import { useCreateObjectRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateObjectRelationshipMutation';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useQueryClient } from '@tanstack/react-query';
 import type {
   RelationshipUsingForeignKeyConstraintOnForeignKeyConstraintOnOneOf,
   SuggestRelationshipsResponseRelationshipsItem,
 } from '@/utils/hasura-api/generated/schemas';
+import { useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 
 interface AddSuggestedRelationshipDialogProps {
