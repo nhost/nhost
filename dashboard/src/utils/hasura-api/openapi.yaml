@@ -975,6 +975,11 @@ components:
                                 description: Name of the relationship
                               using:
                                 $ref: '#/components/schemas/RelationshipUsing'
+                        remote_relationships:
+                          type: array
+                          description: List of remote relationships for the table
+                          items:
+                            type: object
                 additionalProperties: true
             remote_schemas:
               type: array
