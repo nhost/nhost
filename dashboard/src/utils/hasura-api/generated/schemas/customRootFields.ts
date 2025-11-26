@@ -15,6 +15,7 @@ import type { CustomRootFieldsSelectByPk } from './customRootFieldsSelectByPk';
 import type { CustomRootFieldsSelectStream } from './customRootFieldsSelectStream';
 import type { CustomRootFieldsUpdate } from './customRootFieldsUpdate';
 import type { CustomRootFieldsUpdateByPk } from './customRootFieldsUpdateByPk';
+import type { CustomRootFieldsUpdateMany } from './customRootFieldsUpdateMany';
 
 export interface CustomRootFields {
   /** Customize the <table-name> root field. Using a String customizes the field name. */
@@ -31,6 +32,8 @@ export interface CustomRootFields {
   insert_one?: CustomRootFieldsInsertOne;
   /** Customize the update_<table-name> root field. Using a String customizes the field name. */
   update?: CustomRootFieldsUpdate;
+  /** Customize the update_many_<table-name> root field. Using a String customizes the field name. */
+  update_many?: CustomRootFieldsUpdateMany;
   /** Customize the update_<table-name>_by_pk root field. Using a String customizes the field name. */
   update_by_pk?: CustomRootFieldsUpdateByPk;
   /** Customize the delete_<table-name> root field. Using a String customizes the field name. */

@@ -1,4 +1,4 @@
-import type { CustomGraphQLRootFieldsFormValues } from '@/features/orgs/projects/database/dataGrid/components/EditSettingsForm/sections/CustomGraphQLRootFieldsSection/CustomGraphQLRootFieldsSection';
+import type { CustomGraphQLRootFieldsFormValues } from '@/features/orgs/projects/database/dataGrid/components/EditSettingsForm/sections/CustomGraphQLRootFieldsSection/CustomGraphQLRootFieldsFormTypes';
 import type {
   CustomRootField,
   CustomRootFields,
@@ -7,35 +7,19 @@ import type {
 type RootFieldFormValue =
   CustomGraphQLRootFieldsFormValues['queryAndSubscription'][keyof CustomGraphQLRootFieldsFormValues['queryAndSubscription']];
 
-type CustomRootFieldsDTO = CustomRootFields & {
-  update_many?: string | CustomRootField;
-};
-
-function isCommentEnabled(
-  value: RootFieldFormValue['commentEnabled'],
-): boolean {
-  if (typeof value === 'boolean') {
-    return value;
-  }
-
-  return value === 'value';
-}
-
 function buildRootField(
   field: RootFieldFormValue,
 ): string | CustomRootField | undefined {
   const trimmedFieldName = field.fieldName?.trim() ?? '';
   const hasFieldName = trimmedFieldName.length > 0;
 
-  const commentEnabled = isCommentEnabled(field.commentEnabled);
-
-  if (!hasFieldName && !commentEnabled) {
+  if (!hasFieldName) {
     return undefined;
   }
 
-  if (!commentEnabled) {
-    return trimmedFieldName;
-  }
+  // if (!commentEnabled) {
+  //   return trimmedFieldName;
+  // }
 
   const rootField: CustomRootField = {
     comment: field.comment ?? '',
@@ -47,8 +31,8 @@ function buildRootField(
 
 export default function prepareCustomGraphQLRootFieldsDTO(
   values: CustomGraphQLRootFieldsFormValues,
-): CustomRootFieldsDTO {
-  const dto: CustomRootFieldsDTO = {};
+): CustomRootFields {
+  const dto: CustomRootFields = {};
 
   const { queryAndSubscription, mutation } = values;
 

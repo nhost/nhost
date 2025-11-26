@@ -1,28 +1,22 @@
 import { FormInput } from '@/components/form/FormInput';
-import { FormSelect } from '@/components/form/FormSelect';
-import { SelectItem } from '@/components/ui/v3/select';
 import { useFormContext } from 'react-hook-form';
 
 export interface CustomGraphQLRootFieldsAccordionContentProps {
   fieldLabel: string;
   key: string;
-  commentEnabledPath: string;
   commentPath: string;
   fieldNamePath: string;
   fieldPlaceholder: string;
   commentPlaceholder: string;
-  isCommentDisabled: boolean;
 }
 
 export default function CustomGraphQLRootFieldsAccordionContent({
   fieldLabel,
   key,
-  commentEnabledPath,
   commentPath,
   fieldNamePath,
   fieldPlaceholder,
   commentPlaceholder,
-  isCommentDisabled,
 }: CustomGraphQLRootFieldsAccordionContentProps) {
   const form = useFormContext();
 
@@ -42,24 +36,12 @@ export default function CustomGraphQLRootFieldsAccordionContent({
         autoComplete="off"
       />
       <div className="flex gap-0">
-        <FormSelect
-          control={form.control}
-          name={commentEnabledPath}
-          label=""
-          placeholder="Value"
-          className="relative min-w-[90px] max-w-sm rounded-r-none border-r-0 text-foreground focus:z-10"
-          containerClassName="space-y-0"
-        >
-          <SelectItem value="value">Value</SelectItem>
-          <SelectItem value="none">None</SelectItem>
-        </FormSelect>
         <FormInput
           control={form.control}
           name={commentPath}
           label=""
           placeholder={commentPlaceholder}
-          disabled={isCommentDisabled}
-          className="relative rounded-l-none text-foreground focus:z-10"
+          className="text-foreground"
           containerClassName="w-full space-y-0"
           autoComplete="off"
         />
