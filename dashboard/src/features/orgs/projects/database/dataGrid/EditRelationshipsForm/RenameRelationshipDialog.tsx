@@ -217,7 +217,7 @@ export default function RenameRelationshipDialog({
         <Form {...renameForm}>
           <form
             onSubmit={handleSubmit(handleRenameRelationship)}
-            className="flex flex-col gap-4 pt-4 text-foreground"
+            className="flex flex-col gap-2 pt-2 text-foreground"
           >
             <FormInput<RenameRelationshipFormValues>
               ref={relationshipNameInputRef}

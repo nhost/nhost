@@ -1,13 +1,28 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
-import { ArrowRight, PlusIcon, Trash2Icon } from 'lucide-react';
-import { useEffect, useMemo } from 'react';
+import {
+  ArrowRight,
+  Check,
+  ChevronsUpDown,
+  PlusIcon,
+  Trash2Icon,
+} from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import type { Control } from 'react-hook-form';
 import { useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
 
 import { FormInput } from '@/components/form/FormInput';
 import { FormSelect } from '@/components/form/FormSelect';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/v3/command';
 import {
   Dialog,
   DialogClose,
@@ -19,11 +34,18 @@ import {
 } from '@/components/ui/v3/dialog';
 import {
   Form,
+  FormControl,
   FormDescription,
   FormField,
   FormItem,
+  FormLabel,
   FormMessage,
 } from '@/components/ui/v3/form';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/v3/popover';
 import { SelectItem, SelectSeparator } from '@/components/ui/v3/select';
 import { useGetMetadata } from '@/features/orgs/projects/common/hooks/useGetMetadata';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
@@ -31,6 +53,7 @@ import { useCreateArrayRelationshipMutation } from '@/features/orgs/projects/dat
 import { useCreateObjectRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateObjectRelationshipMutation';
 import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { cn } from '@/lib/utils';
 import type {
   CreateArrayRelationshipArgs,
   CreateObjectRelationshipArgs,
@@ -99,14 +122,104 @@ export type CreateRelationshipFormValues = z.infer<
   typeof createRelationshipFormSchema
 >;
 
-function transformTableSelectValue<
-  T extends { source: string; schema: string; table: string },
->(value: unknown): T {
-  if (typeof value === 'string') {
-    return JSON.parse(value) as T;
-  }
+type TableComboboxOption = {
+  label: string;
+  value: string;
+};
 
-  return JSON.stringify(value) as unknown as T;
+interface TableComboboxFieldProps {
+  control: Control<CreateRelationshipFormValues>;
+  name: 'fromSource.table' | 'toReference.table';
+  label: string;
+  placeholder: string;
+  options: TableComboboxOption[];
+  disabled?: boolean;
+  searchPlaceholder?: string;
+  emptyText?: string;
+}
+
+function TableComboboxField({
+  control,
+  name,
+  label,
+  placeholder,
+  options,
+  disabled,
+  searchPlaceholder = 'Search table...',
+  emptyText = 'No tables found.',
+}: TableComboboxFieldProps) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <FormField
+      control={control}
+      name={name}
+      render={({ field }) => {
+        const selectedOption = options.find(
+          (option) => option.value === field.value,
+        );
+
+        return (
+          <FormItem className="flex flex-col gap-1">
+            <FormLabel>{label}</FormLabel>
+            <Popover open={open} onOpenChange={setOpen}>
+              <PopoverTrigger asChild>
+                <FormControl>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    role="combobox"
+                    className={cn(
+                      'w-full justify-between',
+                      !selectedOption && 'text-muted-foreground',
+                    )}
+                    disabled={disabled}
+                  >
+                    {selectedOption?.label ?? field.value ?? placeholder}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </FormControl>
+              </PopoverTrigger>
+              <PopoverContent className="max-h-[var(--radix-popover-content-available-height)] w-[var(--radix-popover-trigger-width)] p-0">
+                <Command>
+                  <CommandInput
+                    placeholder={searchPlaceholder}
+                    className="h-9"
+                  />
+                  <CommandList>
+                    <CommandEmpty>{emptyText}</CommandEmpty>
+                    <CommandGroup>
+                      {options.map((option) => (
+                        <CommandItem
+                          key={option.value}
+                          value={option.value}
+                          onSelect={(currentValue) => {
+                            field.onChange(currentValue);
+                            setOpen(false);
+                          }}
+                        >
+                          {option.label}
+                          <Check
+                            className={cn(
+                              'ml-auto h-4 w-4',
+                              field.value === option.value
+                                ? 'opacity-100'
+                                : 'opacity-0',
+                            )}
+                          />
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+            <FormMessage />
+          </FormItem>
+        );
+      }}
+    />
+  );
 }
 
 export default function CreateRelationshipDialog({
@@ -145,14 +258,52 @@ export default function CreateRelationshipDialog({
     [metadata],
   );
 
-  const tableOptions = useMemo(
+  const sourceOptions = useMemo(
     () =>
-      allTables.map((table) => ({
-        label: `${table.source}/${table.schema}/${table.table}`,
-        value: JSON.stringify(table),
-      })),
+      Array.from(new Set(allTables.map((table) => table.source)))
+        .sort((a, b) => a.localeCompare(b))
+        .filter(Boolean),
     [allTables],
   );
+
+  const schemaOptionsBySource = useMemo(() => {
+    const map: Record<string, string[]> = {};
+
+    allTables.forEach((table) => {
+      if (!map[table.source]) {
+        map[table.source] = [];
+      }
+
+      if (!map[table.source].includes(table.schema)) {
+        map[table.source].push(table.schema);
+        map[table.source].sort((a, b) => a.localeCompare(b));
+      }
+    });
+
+    return map;
+  }, [allTables]);
+
+  const tablesBySourceSchema = useMemo(() => {
+    const map: Record<string, string[]> = {};
+
+    allTables.forEach((table) => {
+      const key = `${table.source}.${table.schema}`;
+
+      if (!map[key]) {
+        map[key] = [];
+      }
+
+      if (!map[key].includes(table.table)) {
+        map[key].push(table.table);
+        map[key].sort((a, b) => a.localeCompare(b));
+      }
+    });
+
+    return map;
+  }, [allTables]);
+
+  const getTableKey = (tableSource?: string, tableSchema?: string) =>
+    tableSource && tableSchema ? `${tableSource}.${tableSchema}` : null;
 
   const form = useForm<CreateRelationshipFormValues>({
     resolver: zodResolver(createRelationshipFormSchema),
@@ -208,6 +359,130 @@ export default function CreateRelationshipDialog({
     control: form.control,
     name: 'toReference',
   });
+
+  const fromSchemaOptions = useMemo(
+    () =>
+      selectedFromSource?.source
+        ? (schemaOptionsBySource[selectedFromSource.source] ?? [])
+        : [],
+    [schemaOptionsBySource, selectedFromSource?.source],
+  );
+
+  const toSchemaOptions = useMemo(
+    () =>
+      selectedToReference?.source
+        ? (schemaOptionsBySource[selectedToReference.source] ?? [])
+        : [],
+    [schemaOptionsBySource, selectedToReference?.source],
+  );
+
+  const fromTableOptions = useMemo(() => {
+    const key = getTableKey(
+      selectedFromSource?.source,
+      selectedFromSource?.schema,
+    );
+    const tableNames = key ? (tablesBySourceSchema[key] ?? []) : [];
+
+    return tableNames.map((name) => ({
+      label: name,
+      value: name,
+    }));
+  }, [
+    selectedFromSource?.schema,
+    selectedFromSource?.source,
+    tablesBySourceSchema,
+  ]);
+
+  const toTableNames = useMemo(() => {
+    const key = getTableKey(
+      selectedToReference?.source,
+      selectedToReference?.schema,
+    );
+
+    return key ? (tablesBySourceSchema[key] ?? []) : [];
+  }, [
+    selectedToReference?.schema,
+    selectedToReference?.source,
+    tablesBySourceSchema,
+  ]);
+
+  const filteredToTableNames = useMemo(() => {
+    if (
+      selectedFromSource?.source &&
+      selectedFromSource?.schema &&
+      selectedFromSource?.table &&
+      selectedFromSource.source === selectedToReference?.source &&
+      selectedFromSource.schema === selectedToReference?.schema
+    ) {
+      return toTableNames.filter((name) => name !== selectedFromSource.table);
+    }
+
+    return toTableNames;
+  }, [
+    selectedFromSource?.schema,
+    selectedFromSource?.source,
+    selectedFromSource?.table,
+    selectedToReference?.schema,
+    selectedToReference?.source,
+    toTableNames,
+  ]);
+
+  const toTableOptions = useMemo(
+    () =>
+      filteredToTableNames.map((name) => ({
+        label: name,
+        value: name,
+      })),
+    [filteredToTableNames],
+  );
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    const toSource = selectedToReference?.source;
+
+    if (!toSource) {
+      return;
+    }
+
+    const availableSchemas = schemaOptionsBySource[toSource] ?? [];
+
+    if (
+      availableSchemas.length > 0 &&
+      (!selectedToReference?.schema ||
+        !availableSchemas.includes(selectedToReference.schema))
+    ) {
+      form.setValue('toReference.schema', availableSchemas[0], {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+    }
+  }, [
+    form,
+    open,
+    schemaOptionsBySource,
+    selectedToReference?.schema,
+    selectedToReference?.source,
+  ]);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    if (
+      filteredToTableNames.length > 0 &&
+      (!selectedToReference?.table ||
+        !filteredToTableNames.includes(selectedToReference.table))
+    ) {
+      form.setValue('toReference.table', filteredToTableNames[0], {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+    }
+  }, [filteredToTableNames, form, open, selectedToReference?.table]);
 
   const { data: fromTableData } = useTableQuery(
     [
@@ -415,53 +690,127 @@ export default function CreateRelationshipDialog({
             />
 
             <div className="flex flex-row gap-4">
-              <div className="flex flex-1 flex-col gap-2 rounded-md border p-4">
+              <div className="flex flex-1 flex-col gap-4 rounded-md border p-4">
                 <h3 className="text-sm font-semibold text-foreground">
                   From Source
                 </h3>
 
-                <FormSelect
-                  control={form.control}
-                  name="fromSource"
-                  label="Table"
-                  placeholder="Select source table"
-                  transformValue={(value) =>
-                    transformTableSelectValue<
-                      CreateRelationshipFormValues['fromSource']
-                    >(value)
-                  }
-                  disabled
-                >
-                  {tableOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </FormSelect>
+                <div className="space-y-4">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <FormSelect
+                      control={form.control}
+                      name="fromSource.source"
+                      label="Source"
+                      placeholder="Select source"
+                      containerClassName="w-full"
+                      disabled
+                    >
+                      {sourceOptions.map((option) => (
+                        <SelectItem
+                          key={`from-source-${option}`}
+                          value={option}
+                        >
+                          {option}
+                        </SelectItem>
+                      ))}
+                      {sourceOptions.length === 0 && (
+                        <SelectItem disabled value="__no-from-sources">
+                          No sources available
+                        </SelectItem>
+                      )}
+                    </FormSelect>
+
+                    <FormSelect
+                      control={form.control}
+                      name="fromSource.schema"
+                      label="Schema"
+                      placeholder="Select schema"
+                      containerClassName="w-full"
+                      disabled
+                    >
+                      {fromSchemaOptions.map((option) => (
+                        <SelectItem
+                          key={`from-schema-${option}`}
+                          value={option}
+                        >
+                          {option}
+                        </SelectItem>
+                      ))}
+                      {fromSchemaOptions.length === 0 && (
+                        <SelectItem disabled value="__no-from-schemas">
+                          No schemas available
+                        </SelectItem>
+                      )}
+                    </FormSelect>
+                  </div>
+
+                  <TableComboboxField
+                    control={form.control}
+                    name="fromSource.table"
+                    label="Table"
+                    placeholder="Select table"
+                    options={fromTableOptions}
+                    disabled
+                  />
+                </div>
               </div>
 
-              <div className="flex flex-1 flex-col gap-2 rounded-md border p-4">
+              <div className="flex flex-1 flex-col gap-4 rounded-md border p-4">
                 <h3 className="text-sm font-semibold text-foreground">
                   To Reference
                 </h3>
 
-                <FormSelect
-                  control={form.control}
-                  name="toReference"
-                  label="Table"
-                  placeholder="Select reference table"
-                  transformValue={(value) =>
-                    transformTableSelectValue<
-                      CreateRelationshipFormValues['toReference']
-                    >(value)
-                  }
-                >
-                  {tableOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </FormSelect>
+                <div className="space-y-4">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <FormSelect
+                      control={form.control}
+                      name="toReference.source"
+                      label="Source"
+                      placeholder="Select source"
+                      containerClassName="w-full"
+                    >
+                      {sourceOptions.map((option) => (
+                        <SelectItem key={`to-source-${option}`} value={option}>
+                          {option}
+                        </SelectItem>
+                      ))}
+                      {sourceOptions.length === 0 && (
+                        <SelectItem disabled value="__no-to-sources">
+                          No sources available
+                        </SelectItem>
+                      )}
+                    </FormSelect>
+
+                    <FormSelect
+                      control={form.control}
+                      name="toReference.schema"
+                      label="Schema"
+                      placeholder="Select schema"
+                      containerClassName="w-full"
+                      disabled={!selectedToReference?.source}
+                    >
+                      {toSchemaOptions.map((option) => (
+                        <SelectItem key={`to-schema-${option}`} value={option}>
+                          {option}
+                        </SelectItem>
+                      ))}
+                      {toSchemaOptions.length === 0 && (
+                        <SelectItem disabled value="__no-to-schemas">
+                          No schemas available
+                        </SelectItem>
+                      )}
+                    </FormSelect>
+                  </div>
+
+                  <TableComboboxField
+                    control={form.control}
+                    name="toReference.table"
+                    label="Table"
+                    placeholder="Select table"
+                    options={toTableOptions}
+                    disabled={!selectedToReference?.schema}
+                  />
+                </div>
               </div>
             </div>
 
