@@ -409,7 +409,6 @@ function DataBrowserSidebarContent({
                               table.table_name,
                             )
                           }
-                          onEditRelationships={() => {}}
                           onEditSettings={() => {
                             openDrawer({
                               title: 'Edit Settings',
