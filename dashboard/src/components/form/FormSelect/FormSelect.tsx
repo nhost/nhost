@@ -34,6 +34,7 @@ interface FormSelectProps<
   label: ReactNode;
   placeholder?: string;
   className?: string;
+  containerClassName?: string;
   inline?: boolean;
   helperText?: string | null;
   disabled?: boolean;
@@ -51,6 +52,7 @@ function FormSelect<
   label,
   placeholder,
   className = '',
+  containerClassName = '',
   inline,
   helperText,
   disabled,
@@ -85,7 +87,10 @@ function FormSelect<
         const [tValue, handleOnChange] = getOnChangeHandlerAndValue(field);
         return (
           <FormItem
-            className={cn({ 'flex w-full items-center gap-4 py-3': inline })}
+            className={cn(
+              { 'flex w-full items-center gap-4 py-3': inline },
+              containerClassName,
+            )}
           >
             <FormLabel
               className={cn({

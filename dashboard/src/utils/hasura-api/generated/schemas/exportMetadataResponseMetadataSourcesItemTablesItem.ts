@@ -7,9 +7,12 @@
  */
 import type { EventTrigger } from './eventTrigger';
 import type { ExportMetadataResponseMetadataSourcesItemTablesItemTable } from './exportMetadataResponseMetadataSourcesItemTablesItemTable';
+import type { TableConfig } from './tableConfig';
 
 export type ExportMetadataResponseMetadataSourcesItemTablesItem = {
+  is_enum?: boolean;
   table: ExportMetadataResponseMetadataSourcesItemTablesItemTable;
+  configuration?: TableConfig;
   /** List of event triggers for the table */
   event_triggers?: EventTrigger[];
 };
