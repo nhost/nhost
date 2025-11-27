@@ -1,3 +1,15 @@
+## [@nhost/nhost-js@4.2.0] - 2025-11-27
+
+### 🚀 Features
+
+- *(storage)* Added support for images/heic (#3694)
+
+
+### 🐛 Bug Fixes
+
+- *(auth)* Return meaningful error if the provider's account is already linked (#3680)
+- *(packages/nhost-js)* React native needs special treatment when using FormData (#3697)
+
 ## [@nhost/nhost-js@4.1.0] - 2025-11-04
 
 ### 🚀 Features
