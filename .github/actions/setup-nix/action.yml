@@ -20,6 +20,7 @@ runs:
         install_url: "https://releases.nixos.org/nix/nix-2.28.4/install"
         install_options: "--no-daemon"
         extra_nix_config: |
+          download-buffer-size = 500000000
           experimental-features = nix-command flakes
           sandbox = false
           access-tokens = github.com=${{ inputs.GITHUB_TOKEN }}

@@ -20,5 +20,10 @@
     "@types/cookie-parser": "^1.4.8",
     "@types/express": "^5.0.2",
     "ts-node": "^10.9.2"
+  },
+  "pnpm": {
+    "overrides": {
+      "body-parser@>=2.2.0 <2.2.1": ">=2.2.1"
+    }
   }
 }
