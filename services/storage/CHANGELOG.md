@@ -1,3 +1,9 @@
+## [storage@0.10.0] - 2025-11-27
+
+### 🚀 Features
+
+- *(storage)* Added support for images/heic (#3694)
+
 ## [storage@0.9.1] - 2025-11-06
 
 ### 🐛 Bug Fixes
