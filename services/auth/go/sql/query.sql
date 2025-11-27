@@ -370,6 +370,10 @@ WHERE refresh_token_hash = $1;
 DELETE FROM auth.user_roles
 WHERE user_id = $1;
 
+-- name: DeleteExpiredRefreshTokens :exec
+DELETE FROM auth.refresh_tokens
+WHERE expires_at < now();
+
 -- name: FindUserProviderByProviderId :one
 SELECT * FROM auth.user_providers
 WHERE provider_user_id = $1 AND provider_id = $2;
