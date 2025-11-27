@@ -18,13 +18,11 @@ export interface CreateRecordFormProps
    */
   onSubmit?: (args?: any) => Promise<any>;
   currentOffset: number;
-  sortByString: string;
 }
 
 export default function CreateRecordForm({
   onSubmit,
   currentOffset,
-  sortByString,
   ...props
 }: CreateRecordFormProps) {
   const { mutateAsync: insertRow, error, reset } = useCreateRecordMutation();

@@ -1,7 +1,7 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import { Badge } from '@/components/ui/v3/badge';
 import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
-import { DataGridCustomizerControls } from '@/features/orgs/projects/common/components/DataGridCustomizerControls';
+import DataGridConfigDrawer from '@/features/orgs/projects/common/components/DataGridConfigDrawer/DataGridConfigDrawer';
 import { InvokeEventTriggerButton } from '@/features/orgs/projects/database/dataGrid/components/InvokeEventTriggerButton';
 import { useDeleteRecordMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteRecordMutation';
 import type { DataBrowserGridColumn } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
@@ -182,7 +182,9 @@ export default function DataBrowserGridControls({
                 {...restPaginationProps}
               />
             )}
-            <DataGridCustomizerControls />
+            {/* <DataGridFilters /> */}
+            {/* <DataGridCustomizerControls /> */}
+            <DataGridConfigDrawer />
             <Button onClick={onInsertRowClick} size="sm">
               <Plus className="h-4 w-4" /> Insert row
             </Button>

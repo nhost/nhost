@@ -1,4 +1,5 @@
 import { renderHook, waitFor } from '@/tests/testUtils';
+import { vi } from 'vitest';
 import useEventTriggerPagination from './useEventTriggerPagination';
 
 describe('useEventTriggerPagination', () => {
@@ -9,6 +10,8 @@ describe('useEventTriggerPagination', () => {
         useQueryHook: () => ({
           data: Array.from({ length: 10 }),
           isLoading: false,
+          isInitialLoading: false,
+          refetch: vi.fn(),
         }),
         getQueryArgs: () => ({}),
       }),
@@ -30,7 +33,12 @@ describe('useEventTriggerPagination', () => {
     const { result } = renderHook(() =>
       useEventTriggerPagination({
         initialLimit: 10,
-        useQueryHook: () => ({ data: [], isLoading: false }),
+        useQueryHook: () => ({
+          data: [],
+          isLoading: false,
+          isInitialLoading: false,
+          refetch: vi.fn(),
+        }),
         getQueryArgs: () => ({}),
       }),
     );
@@ -46,6 +54,8 @@ describe('useEventTriggerPagination', () => {
         useQueryHook: () => ({
           data: Array.from({ length: 3 }),
           isLoading: false,
+          isInitialLoading: false,
+          refetch: vi.fn(),
         }),
         getQueryArgs: () => ({}),
       }),
@@ -63,6 +73,8 @@ describe('useEventTriggerPagination', () => {
         useQueryHook: () => ({
           data: { items: ['a', 'b', 'c'] },
           isLoading: false,
+          isInitialLoading: false,
+          refetch: vi.fn(),
         }),
         getQueryArgs: () => ({}),
         getPageLength: (resp) => resp?.items.length,
@@ -82,6 +94,8 @@ describe('useEventTriggerPagination', () => {
         useQueryHook: () => ({
           data: Array.from({ length: 10 }),
           isLoading: false,
+          isInitialLoading: false,
+          refetch: vi.fn(),
         }),
         getQueryArgs: (limit, offset) => {
           lastArgs = { limit, offset };

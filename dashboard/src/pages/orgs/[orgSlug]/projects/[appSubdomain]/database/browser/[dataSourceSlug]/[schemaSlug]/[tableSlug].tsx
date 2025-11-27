@@ -2,28 +2,15 @@ import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
 import { DataBrowserGrid } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid';
+import { DataGridQueryParamsProvider } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
 import { DataBrowserSidebar } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserSidebar';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { ReactElement } from 'react';
-import { useCallback, useEffect, useState } from 'react';
-import type { SortingRule } from 'react-table';
 
 export default function DataBrowserTableDetailsPage() {
   const { project } = useProject();
   const isPlatform = useIsPlatform();
-
-  const tablePath = useTablePath();
-  const [sortBy, setSortBy] = useState<SortingRule<any>[]>();
-
-  const handleSortByChange = useCallback((args: SortingRule<any>[]) => {
-    setSortBy(args);
-  }, []);
-
-  useEffect(() => {
-    setSortBy(undefined);
-  }, [tablePath]);
 
   if (isPlatform && !project?.config?.hasura.adminSecret) {
     return <LoadingScreen />;
@@ -31,7 +18,9 @@ export default function DataBrowserTableDetailsPage() {
 
   return (
     <RetryableErrorBoundary>
-      <DataBrowserGrid sortBy={sortBy} onSort={handleSortByChange} />
+      <DataGridQueryParamsProvider>
+        <DataBrowserGrid />
+      </DataGridQueryParamsProvider>
     </RetryableErrorBoundary>
   );
 }
