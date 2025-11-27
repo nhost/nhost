@@ -1,3 +1,9 @@
+## [auth@0.43.2] - 2025-11-27
+
+### 🐛 Bug Fixes
+
+- *(auth)* Automatic probabilistic cleanup of expired refresh tokens (#3722)
+
 ## [auth@0.43.1] - 2025-11-11
 
 ### 🐛 Bug Fixes
