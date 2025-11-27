@@ -42,7 +42,7 @@ func (ctrl *Controller) RefreshToken( //nolint:ireturn
 	}
 
 	// no need to be cryptographically secure, performance of pseudo-random number is preferred
-	if rand.IntN(100) < 1 { //nolint:gosec,mnd
+	if rand.IntN(1000) < 1 { //nolint:gosec,mnd
 		if err := ctrl.wf.db.DeleteExpiredRefreshTokens(ctx); err != nil {
 			logger.ErrorContext(ctx, "error deleting expired refresh tokens", logError(err))
 		}
