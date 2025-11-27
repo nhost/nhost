@@ -31,13 +31,6 @@ func (ctrl *Controller) RefreshToken( //nolint:ireturn
 		}
 	}
 
-	// no need to be cryptographically secure, performance of pseudo-random number is preferred
-	if rand.IntN(100) < 1 { //nolint:gosec,mnd
-		if err := ctrl.wf.db.DeleteExpiredRefreshTokens(ctx); err != nil {
-			logger.ErrorContext(ctx, "error deleting expired refresh tokens", logError(err))
-		}
-	}
-
 	session, err := ctrl.wf.UpdateSession(ctx, user, request.Body.RefreshToken, logger)
 	switch {
 	case errors.Is(err, ErrInvalidRefreshToken):
@@ -46,6 +39,13 @@ func (ctrl *Controller) RefreshToken( //nolint:ireturn
 	case err != nil:
 		logger.ErrorContext(ctx, "error updating session", logError(err))
 		return ctrl.sendError(ErrInternalServerError), nil
+	}
+
+	// no need to be cryptographically secure, performance of pseudo-random number is preferred
+	if rand.IntN(100) < 1 { //nolint:gosec,mnd
+		if err := ctrl.wf.db.DeleteExpiredRefreshTokens(ctx); err != nil {
+			logger.ErrorContext(ctx, "error deleting expired refresh tokens", logError(err))
+		}
 	}
 
 	return api.RefreshToken200JSONResponse(*session), nil
