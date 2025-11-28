@@ -1,0 +1,204 @@
+[global]
+[[global.environment]]
+name = 'AUTH_API_PREFIX'
+value = '/v1'
+
+[hasura]
+version = 'v2.46.0-ce'
+adminSecret = '{{ secrets.HASURA_GRAPHQL_ADMIN_SECRET }}'
+webhookSecret = '{{ secrets.NHOST_WEBHOOK_SECRET }}'
+
+[[hasura.jwtSecrets]]
+type = 'HS256'
+key = '{{ secrets.HASURA_GRAPHQL_JWT_SECRET }}'
+
+[hasura.settings]
+corsDomain = ['*']
+devMode = true
+enableAllowList = false
+enableConsole = true
+enableRemoteSchemaPermissions = false
+enabledAPIs = ['metadata', 'graphql', 'pgdump', 'config']
+liveQueriesMultiplexedRefetchInterval = 1000
+
+[hasura.logs]
+level = 'warn'
+
+[hasura.events]
+httpPoolSize = 100
+
+[functions]
+[functions.node]
+version = 22
+
+[auth]
+version = '0.41.2-beta'
+
+[auth.elevatedPrivileges]
+mode = 'required'
+
+[auth.redirections]
+clientUrl = 'https://react-apollo.example.nhost.io/'
+allowedUrls = ['https://react-apollo.example.nhost.io', 'https://react-apollo.example.nhost.io/profile', 'https://vue-apollo.example.nhost.io', 'https://vue-apollo.example.nhost.io/profile', 'https://*.vercel.app', 'http://localhost:5174', 'http://localhost:5174/profile', 'http://localhost:5174/', 'http://localhost:5174/profile', 'http://localhost:3000/', 'http://localhost:3000/profile']
+
+[auth.signUp]
+enabled = true
+disableNewUsers = false
+
+[auth.user]
+[auth.user.roles]
+default = 'user'
+allowed = ['user', 'me']
+
+[auth.user.locale]
+default = 'en'
+allowed = ['en']
+
+[auth.user.gravatar]
+enabled = true
+default = 'blank'
+rating = 'g'
+
+[auth.user.email]
+
+[auth.user.emailDomains]
+
+[auth.session]
+[auth.session.accessToken]
+expiresIn = 900
+
+[auth.session.refreshToken]
+expiresIn = 43200
+
+[auth.method]
+[auth.method.anonymous]
+enabled = true
+
+[auth.method.emailPasswordless]
+enabled = true
+
+[auth.method.emailPassword]
+hibpEnabled = false
+emailVerificationRequired = true
+passwordMinLength = 8
+
+[auth.method.smsPasswordless]
+enabled = false
+
+[auth.method.oauth]
+[auth.method.oauth.apple]
+enabled = true
+clientId = '{{ secrets.APPLE_SERVICE_IDENTIFIER }}'
+keyId = '{{ secrets.APPLE_KEY_ID }}'
+teamId = '{{ secrets.APPLE_TEAM_ID }}'
+privateKey = '{{ secrets.APPLE_PRIVATE_KEY }}'
+
+[auth.method.oauth.azuread]
+tenant = 'common'
+enabled = true
+clientId = '{{ secrets.AZUREAD_CLIENT_ID }}'
+clientSecret = '{{ secrets.AZUREAD_CLIENT_SECRET }}'
+
+[auth.method.oauth.bitbucket]
+enabled = true
+clientId = '{{ secrets.BITBUCKET_CLIENT_ID }}'
+clientSecret = '{{ secrets.BITBUCKET_CLIENT_SECRET }}'
+
+[auth.method.oauth.discord]
+enabled = true
+clientId = '{{ secrets.DISCORD_CLIENT_ID }}'
+clientSecret = '{{ secrets.DISCORD_CLIENT_SECRET }}'
+
+[auth.method.oauth.entraid]
+tenant = 'common'
+enabled = true
+clientId = '{{ secrets.AZUREAD_CLIENT_ID }}'
+clientSecret = '{{ secrets.AZUREAD_CLIENT_SECRET }}'
+
+[auth.method.oauth.facebook]
+enabled = true
+clientId = '{{ secrets.FACEBOOK_CLIENT_ID }}'
+clientSecret = '{{ secrets.FACEBOOK_CLIENT_SECRET }}'
+
+[auth.method.oauth.github]
+enabled = true
+clientId = '{{ secrets.GITHUB_CLIENT_ID }}'
+clientSecret = '{{ secrets.GITHUB_CLIENT_SECRET }}'
+
+[auth.method.oauth.gitlab]
+enabled = true
+clientId = '{{ secrets.GITLAB_CLIENT_ID }}'
+clientSecret = '{{ secrets.GITLAB_CLIENT_SECRET }}'
+
+[auth.method.oauth.google]
+enabled = true
+clientId = '{{ secrets.GOOGLE_CLIENT_ID }}'
+clientSecret = '{{ secrets.GOOGLE_CLIENT_SECRET }}'
+
+[auth.method.oauth.linkedin]
+enabled = true
+clientId = '{{ secrets.LINKEDIN_CLIENT_ID }}'
+clientSecret = '{{ secrets.LINKEDIN_CLIENT_SECRET }}'
+
+[auth.method.oauth.spotify]
+enabled = true
+clientId = '{{ secrets.SPOTIFY_CLIENT_ID }}'
+clientSecret = '{{ secrets.SPOTIFY_CLIENT_SECRET }}'
+
+[auth.method.oauth.strava]
+enabled = true
+clientId = '{{ secrets.STRAVA_CLIENT_ID }}'
+clientSecret = '{{ secrets.STRAVA_CLIENT_SECRET }}'
+
+[auth.method.oauth.twitch]
+enabled = true
+clientId = '{{ secrets.TWITCH_CLIENT_ID }}'
+clientSecret = '{{ secrets.TWITCH_CLIENT_SECRET }}'
+
+[auth.method.oauth.twitter]
+enabled = true
+consumerKey = '{{ secrets.TWITTER_CONSUMER_KEY }}'
+consumerSecret = '{{ secrets.TWITTER_CONSUMER_SECRET }}'
+
+[auth.method.oauth.windowslive]
+enabled = true
+clientId = '{{ secrets.WINDOWSLIVE_CLIENT_ID }}'
+clientSecret = '{{ secrets.WINDOWSLIVE_CLIENT_SECRET }}'
+
+[auth.method.oauth.workos]
+connection = '{{ secrets.WORKOS_DEFAULT_CONNECTION }}'
+enabled = true
+clientId = '{{ secrets.WORKOS_CLIENT_ID }}'
+organization = '{{ secrets.WORKOS_DEFAULT_ORGANIZATION }}'
+clientSecret = '{{ secrets.WORKOS_CLIENT_SECRET }}'
+
+[auth.method.webauthn]
+enabled = true
+
+[auth.method.webauthn.relyingParty]
+id = 'nhost.io'
+name = 'apollo-example'
+origins = ['https://react-apollo.example.nhost.io']
+
+[auth.method.webauthn.attestation]
+timeout = 60000
+
+[auth.totp]
+enabled = true
+issuer = 'nhost'
+
+[postgres]
+version = '16.6-20250311-1'
+
+[postgres.resources]
+[postgres.resources.storage]
+capacity = 1
+
+[provider]
+
+[storage]
+version = '0.7.1'
+
+[observability]
+[observability.grafana]
+adminPassword = '{{ secrets.GRAFANA_ADMIN_PASSWORD }}'
