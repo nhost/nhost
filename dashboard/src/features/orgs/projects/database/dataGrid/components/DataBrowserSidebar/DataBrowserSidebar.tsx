@@ -411,7 +411,15 @@ function DataBrowserSidebarContent({
                           }
                           onEditSettings={() => {
                             openDrawer({
-                              title: 'Edit Settings',
+                              title: (
+                                <span className="inline-grid grid-flow-col items-center gap-2">
+                                  Edit settings for
+                                  <InlineCode className="!text-sm+ font-normal">
+                                    {table.table_name}
+                                  </InlineCode>
+                                  table
+                                </span>
+                              ),
                               component: (
                                 <EditSettingsForm
                                   schema={table.table_schema}

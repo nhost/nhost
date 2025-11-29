@@ -5,169 +5,165 @@ const fieldSchema = z.object({
   comment: z.string().optional(),
 });
 
+export const QUERY_AND_SUBSCRIPTION_ROOT_FIELDS = [
+  'select',
+  'selectByPk',
+  'selectAggregate',
+  'selectStream',
+] as const;
+
+export const MUTATION_ROOT_FIELDS = [
+  'insert',
+  'insertOne',
+  'update',
+  'updateByPk',
+  'updateMany',
+  'delete',
+  'deleteByPk',
+] as const;
+
 export const validationSchema = z.object({
   customTableName: z.string().optional(),
   queryAndSubscription: z.object({
-    select: fieldSchema,
-    selectByPk: fieldSchema,
-    selectAggregate: fieldSchema,
-    selectStream: fieldSchema,
+    ...Object.fromEntries(
+      QUERY_AND_SUBSCRIPTION_ROOT_FIELDS.map((field) => [field, fieldSchema]),
+    ),
   }),
   mutation: z.object({
-    insert: fieldSchema,
-    insertOne: fieldSchema,
-    update: fieldSchema,
-    updateByPk: fieldSchema,
-    updateMany: fieldSchema,
-    delete: fieldSchema,
-    deleteByPk: fieldSchema,
+    ...Object.fromEntries(
+      MUTATION_ROOT_FIELDS.map((field) => [field, fieldSchema]),
+    ),
   }),
 });
 
 export const defaultValues: CustomGraphQLRootFieldsFormValues = {
   customTableName: '',
-  queryAndSubscription: {
-    select: {
-      fieldName: '',
-      comment: '',
-    },
-    selectByPk: {
-      fieldName: '',
-      comment: '',
-    },
-    selectAggregate: {
-      fieldName: '',
-      comment: '',
-    },
-    selectStream: {
-      fieldName: '',
-      comment: '',
-    },
-  },
-  mutation: {
-    insert: {
-      fieldName: '',
-      comment: '',
-    },
-    insertOne: {
-      fieldName: '',
-      comment: '',
-    },
-    update: {
-      fieldName: '',
-      comment: '',
-    },
-    updateByPk: {
-      fieldName: '',
-      comment: '',
-    },
-    updateMany: {
-      fieldName: '',
-      comment: '',
-    },
-    delete: {
-      fieldName: '',
-      comment: '',
-    },
-    deleteByPk: {
-      fieldName: '',
-      comment: '',
-    },
-  },
+  queryAndSubscription: Object.fromEntries(
+    QUERY_AND_SUBSCRIPTION_ROOT_FIELDS.map((field) => [
+      field,
+      { fieldName: '', comment: '' },
+    ]),
+  ) as CustomGraphQLRootFieldsFormValues['queryAndSubscription'],
+  mutation: Object.fromEntries(
+    MUTATION_ROOT_FIELDS.map((field) => [
+      field,
+      { fieldName: '', comment: '' },
+    ]),
+  ) as CustomGraphQLRootFieldsFormValues['mutation'],
 };
 
 export type CustomGraphQLRootFieldsFormValues = z.infer<
   typeof validationSchema
 >;
+
 export type QueryFieldName =
-  keyof CustomGraphQLRootFieldsFormValues['queryAndSubscription'];
-export type MutationFieldName =
-  keyof CustomGraphQLRootFieldsFormValues['mutation'];
+  (typeof QUERY_AND_SUBSCRIPTION_ROOT_FIELDS)[number];
+
+export type MutationFieldName = (typeof MUTATION_ROOT_FIELDS)[number];
+
+export type QueryFieldNamePath =
+  `queryAndSubscription.${QueryFieldName}.fieldName`;
+export type MutationFieldNamePath = `mutation.${MutationFieldName}.fieldName`;
 
 type SectionConfig<TSection extends 'queryAndSubscription' | 'mutation'> = {
-  key: keyof CustomGraphQLRootFieldsFormValues[TSection];
+  key: TSection extends 'queryAndSubscription'
+    ? QueryFieldName
+    : MutationFieldName;
   label: string;
-  buildFieldPlaceholder: (tableName: string) => string;
-  buildCommentPlaceholder: (tableName: string) => string;
+  getDefaultFieldValue: (tableName: string) => string;
+  getCommentPlaceholder: (tableName: string) => string;
 };
 
-export const queryFields: SectionConfig<'queryAndSubscription'>[] = [
-  {
+export const getFieldPlaceholder = (
+  fieldConfig: SectionConfig<'queryAndSubscription' | 'mutation'>,
+  tableName: string,
+) => `${fieldConfig.getDefaultFieldValue(tableName)} (default)`;
+
+const queryAndSubscriptionFieldConfig = {
+  select: {
     key: 'select',
     label: 'Select',
-    buildFieldPlaceholder: (table) => `${table} (default)`,
-    buildCommentPlaceholder: (table) => `fetch data from the table: "${table}"`,
+    getDefaultFieldValue: (tableName) => tableName,
+    getCommentPlaceholder: (tableName) =>
+      `fetch data from the table: "${tableName}"`,
   },
-  {
+  selectByPk: {
     key: 'selectByPk',
     label: 'Select by PK',
-    buildFieldPlaceholder: (table) => `${table}_by_pk (default)`,
-    buildCommentPlaceholder: (table) =>
-      `fetch a single row from the table: "${table}"`,
+    getDefaultFieldValue: (tableName) => `${tableName}_by_pk`,
+    getCommentPlaceholder: (tableName) =>
+      `fetch a single row from the table: "${tableName}"`,
   },
-  {
+  selectAggregate: {
     key: 'selectAggregate',
     label: 'Select aggregate',
-    buildFieldPlaceholder: (table) => `${table}_aggregate (default)`,
-    buildCommentPlaceholder: (table) =>
-      `fetch aggregate fields from the table: "${table}"`,
+    getDefaultFieldValue: (tableName) => `${tableName}_aggregate`,
+    getCommentPlaceholder: (tableName) =>
+      `fetch aggregate fields from the table: "${tableName}"`,
   },
-  {
+  selectStream: {
     key: 'selectStream',
     label: 'Select stream',
-    buildFieldPlaceholder: (table) => `${table}_stream (default)`,
-    buildCommentPlaceholder: (table) =>
-      `stream rows from the table: "${table}"`,
+    getDefaultFieldValue: (tableName) => `${tableName}_stream`,
+    getCommentPlaceholder: (tableName) =>
+      `stream rows from the table: "${tableName}"`,
   },
-] as const;
+} satisfies Record<QueryFieldName, SectionConfig<'queryAndSubscription'>>;
 
-export const mutationFields: SectionConfig<'mutation'>[] = [
-  {
+export const QUERY_FIELDS_CONFIG = Object.values(
+  queryAndSubscriptionFieldConfig,
+);
+
+const mutationFieldConfig = {
+  insert: {
     key: 'insert',
     label: 'Insert',
-    buildFieldPlaceholder: (table) => `insert_${table} (default)`,
-    buildCommentPlaceholder: (table) =>
-      `insert data into the table: "${table}"`,
+    getDefaultFieldValue: (tableName) => `insert_${tableName}`,
+    getCommentPlaceholder: (tableName) =>
+      `insert data into the table: "${tableName}"`,
   },
-  {
+  insertOne: {
     key: 'insertOne',
     label: 'Insert one',
-    buildFieldPlaceholder: (table) => `insert_${table}_one (default)`,
-    buildCommentPlaceholder: (table) =>
-      `insert a single row into the table: "${table}"`,
+    getDefaultFieldValue: (tableName) => `insert_${tableName}_one`,
+    getCommentPlaceholder: (tableName) =>
+      `insert a single row into the table: "${tableName}"`,
   },
-  {
+  update: {
     key: 'update',
     label: 'Update',
-    buildFieldPlaceholder: (table) => `update_${table} (default)`,
-    buildCommentPlaceholder: (table) => `update data of the table: "${table}"`,
+    getDefaultFieldValue: (tableName) => `update_${tableName}`,
+    getCommentPlaceholder: (tableName) =>
+      `update data of the table: "${tableName}"`,
   },
-  {
+  updateByPk: {
     key: 'updateByPk',
     label: 'Update by PK',
-    buildFieldPlaceholder: (table) => `update_${table}_by_pk (default)`,
-    buildCommentPlaceholder: (table) =>
-      `update a single row of the table: "${table}"`,
+    getDefaultFieldValue: (tableName) => `update_${tableName}_by_pk`,
+    getCommentPlaceholder: (tableName) =>
+      `update a single row of the table: "${tableName}"`,
   },
-  {
+  updateMany: {
     key: 'updateMany',
     label: 'Update many',
-    buildFieldPlaceholder: (table) => `update_many_${table} (default)`,
-    buildCommentPlaceholder: (table) =>
-      `update data for "many" operations of the table: "${table}"`,
+    getDefaultFieldValue: (tableName) => `update_many_${tableName}`,
+    getCommentPlaceholder: (tableName) =>
+      `update data for "many" operations of the table: "${tableName}"`,
   },
-  {
+  delete: {
     key: 'delete',
     label: 'Delete',
-    buildFieldPlaceholder: (table) => `delete_${table} (default)`,
-    buildCommentPlaceholder: (table) =>
-      `delete data from the table: "${table}"`,
+    getDefaultFieldValue: (tableName) => `delete_${tableName}`,
+    getCommentPlaceholder: (tableName) =>
+      `delete data from the table: "${tableName}"`,
   },
-  {
+  deleteByPk: {
     key: 'deleteByPk',
     label: 'Delete by PK',
-    buildFieldPlaceholder: (table) => `delete_${table}_by_pk (default)`,
-    buildCommentPlaceholder: (table) =>
-      `delete a single row from the table: "${table}"`,
+    getDefaultFieldValue: (tableName) => `delete_${tableName}_by_pk`,
+    getCommentPlaceholder: (tableName) =>
+      `delete a single row from the table: "${tableName}"`,
   },
-] as const;
+} satisfies Record<MutationFieldName, SectionConfig<'mutation'>>;
+
+export const MUTATION_FIELDS_CONFIG = Object.values(mutationFieldConfig);

@@ -1,7 +1,9 @@
 import type { CustomGraphQLRootFieldsFormValues } from '@/features/orgs/projects/database/dataGrid/components/EditSettingsForm/sections/CustomGraphQLRootFieldsSection/CustomGraphQLRootFieldsFormTypes';
+import { isNotEmptyValue } from '@/lib/utils';
 import type {
   CustomRootField,
   CustomRootFields,
+  TableConfig,
 } from '@/utils/hasura-api/generated/schemas';
 
 type RootFieldFormValue =
@@ -11,18 +13,21 @@ function buildRootField(
   field: RootFieldFormValue,
 ): string | CustomRootField | undefined {
   const trimmedFieldName = field.fieldName?.trim() ?? '';
-  const hasFieldName = trimmedFieldName.length > 0;
+  const trimmedComment = field.comment?.trim() ?? '';
 
-  if (!hasFieldName) {
+  const hasFieldName = trimmedFieldName.length > 0;
+  const hasComment = trimmedComment.length > 0;
+
+  if (!hasFieldName && !hasComment) {
     return undefined;
   }
 
-  // if (!commentEnabled) {
-  //   return trimmedFieldName;
-  // }
+  if (!hasComment) {
+    return trimmedFieldName;
+  }
 
   const rootField: CustomRootField = {
-    comment: field.comment ?? '',
+    comment: trimmedComment,
     name: hasFieldName ? trimmedFieldName : null,
   };
 
@@ -30,66 +35,88 @@ function buildRootField(
 }
 
 export default function prepareCustomGraphQLRootFieldsDTO(
-  values: CustomGraphQLRootFieldsFormValues,
-): CustomRootFields {
-  const dto: CustomRootFields = {};
+  formValues: CustomGraphQLRootFieldsFormValues,
+  prevConfig?: TableConfig,
+): TableConfig {
+  const customRootFields: CustomRootFields = {};
 
-  const { queryAndSubscription, mutation } = values;
+  const { customTableName, queryAndSubscription, mutation } = formValues;
 
   const select = buildRootField(queryAndSubscription.select);
   if (select !== undefined) {
-    dto.select = select;
+    customRootFields.select = select;
   }
 
   const selectByPk = buildRootField(queryAndSubscription.selectByPk);
   if (selectByPk !== undefined) {
-    dto.select_by_pk = selectByPk;
+    customRootFields.select_by_pk = selectByPk;
   }
 
   const selectAggregate = buildRootField(queryAndSubscription.selectAggregate);
   if (selectAggregate !== undefined) {
-    dto.select_aggregate = selectAggregate;
+    customRootFields.select_aggregate = selectAggregate;
   }
 
   const selectStream = buildRootField(queryAndSubscription.selectStream);
   if (selectStream !== undefined) {
-    dto.select_stream = selectStream;
+    customRootFields.select_stream = selectStream;
   }
 
   const insert = buildRootField(mutation.insert);
   if (insert !== undefined) {
-    dto.insert = insert;
+    customRootFields.insert = insert;
   }
 
   const insertOne = buildRootField(mutation.insertOne);
   if (insertOne !== undefined) {
-    dto.insert_one = insertOne;
+    customRootFields.insert_one = insertOne;
   }
 
   const update = buildRootField(mutation.update);
   if (update !== undefined) {
-    dto.update = update;
+    customRootFields.update = update;
   }
 
   const updateByPk = buildRootField(mutation.updateByPk);
   if (updateByPk !== undefined) {
-    dto.update_by_pk = updateByPk;
+    customRootFields.update_by_pk = updateByPk;
   }
 
   const updateMany = buildRootField(mutation.updateMany);
   if (updateMany !== undefined) {
-    dto.update_many = updateMany;
+    customRootFields.update_many = updateMany;
   }
 
   const deleteField = buildRootField(mutation.delete);
   if (deleteField !== undefined) {
-    dto.delete = deleteField;
+    customRootFields.delete = deleteField;
   }
 
   const deleteByPk = buildRootField(mutation.deleteByPk);
   if (deleteByPk !== undefined) {
-    dto.delete_by_pk = deleteByPk;
+    customRootFields.delete_by_pk = deleteByPk;
   }
 
-  return dto;
+  const customName = isNotEmptyValue(customTableName)
+    ? customTableName.trim()
+    : null;
+
+  const newConfig: TableConfig = {
+    column_config: {},
+    custom_root_fields: customRootFields,
+    custom_name: customName,
+  };
+  if (isNotEmptyValue(prevConfig?.custom_column_names)) {
+    Object.entries(prevConfig.custom_column_names).forEach(
+      ([columnName, customColumnName]) => {
+        newConfig.column_config![columnName] = prevConfig.column_config?.[
+          columnName
+        ] ?? { custom_name: customColumnName };
+      },
+    );
+  } else {
+    newConfig.column_config = prevConfig?.column_config ?? {};
+  }
+
+  return newConfig;
 }

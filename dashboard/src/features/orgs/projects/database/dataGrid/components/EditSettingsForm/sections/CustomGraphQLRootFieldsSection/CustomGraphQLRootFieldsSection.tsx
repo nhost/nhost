@@ -11,60 +11,24 @@ import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/h
 import { useSetTableCustomizationMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useSetTableCustomizationMutation';
 import { useTableCustomizationQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableCustomizationQuery';
 import { parseCustomGQLRootFieldsFormDefaultValues } from '@/features/orgs/projects/database/dataGrid/parseCustomGQLRootFieldsFormDefaultValues';
+import { convertToCamelCase } from '@/features/orgs/projects/database/dataGrid/utils/convertToCamelCase';
 import prepareCustomGraphQLRootFieldsDTO from '@/features/orgs/projects/database/dataGrid/utils/prepareCustomGraphQLRootFieldsDTO/prepareCustomGraphQLRootFieldsDTO';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { isEmptyValue } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect } from 'react';
-import type { FieldPath, FieldPathValue } from 'react-hook-form';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import CustomGraphQLRootFieldsAccordionContent from './CustomGraphQLRootFieldsAccordionContent';
 import {
   type CustomGraphQLRootFieldsFormValues,
+  type MutationFieldNamePath,
+  type QueryFieldNamePath,
   defaultValues,
-  type MutationFieldName,
-  mutationFields,
-  type QueryFieldName,
-  queryFields,
+  getFieldPlaceholder,
+  MUTATION_FIELDS_CONFIG,
+  QUERY_FIELDS_CONFIG,
   validationSchema,
 } from './CustomGraphQLRootFieldsFormTypes';
-
-function convertToCamelCase(value?: string | null): string {
-  const normalizedValue = value ?? '';
-
-  if (!normalizedValue) {
-    return '';
-  }
-
-  if (!normalizedValue.includes('_')) {
-    return normalizedValue;
-  }
-
-  const parts = normalizedValue.split('_').filter(Boolean);
-
-  if (!parts.length) {
-    return '';
-  }
-
-  return parts
-    .map((segment, index) => {
-      const lowerCased = segment.toLowerCase();
-
-      if (index === 0) {
-        return lowerCased;
-      }
-
-      return `${lowerCased.charAt(0).toUpperCase()}${lowerCased.slice(1)}`;
-    })
-    .join('');
-}
-
-function convertPlaceholderToCamelCase(placeholder: string): string {
-  const trimmedPlaceholder = placeholder
-    .replace(/\s*\(default\)\s*$/i, '')
-    .trim();
-
-  return convertToCamelCase(trimmedPlaceholder);
-}
 
 interface CustomGraphQLRootFieldsFormProps {
   schema: string;
@@ -77,8 +41,9 @@ export default function CustomGraphQLRootFieldsSection({
 }: CustomGraphQLRootFieldsFormProps) {
   const { mutateAsync: setTableCustomization } =
     useSetTableCustomizationMutation();
+
   const {
-    data: columnConfig,
+    data: tableConfig,
     isLoading: isLoadingTableCustomization,
     refetch: refetchTableCustomization,
   } = useTableCustomizationQuery({
@@ -94,25 +59,29 @@ export default function CustomGraphQLRootFieldsSection({
     resolver: zodResolver(validationSchema),
   });
 
-  const { formState } = form;
+  const [expandedAccordionItems, setExpandedAccordionItems] = useState<
+    ('query-and-subscription' | 'mutation')[]
+  >([]);
+
+  const { formState, reset, setValue } = form;
 
   const customTableName = form.watch('customTableName');
 
-  const tableNameAlias = customTableName || tableName;
+  const tableNameAlias = isEmptyValue(customTableName)
+    ? tableName
+    : customTableName!;
 
   useEffect(() => {
     if (isLoadingTableCustomization) {
       return;
     }
-    form.reset(parseCustomGQLRootFieldsFormDefaultValues(columnConfig));
-  }, [columnConfig, form, isLoadingTableCustomization]);
+    reset(parseCustomGQLRootFieldsFormDefaultValues(tableConfig));
+  }, [tableConfig, reset, isLoadingTableCustomization]);
 
   const { data: resourceVersion } = useGetMetadataResourceVersion();
 
   const handleSubmit = form.handleSubmit(async (values) => {
-    console.log('values', values);
-    const customName = values.customTableName?.trim() ?? null;
-    const dto = prepareCustomGraphQLRootFieldsDTO(values);
+    const dto = prepareCustomGraphQLRootFieldsDTO(values, tableConfig);
     const promise = setTableCustomization({
       resourceVersion,
       args: {
@@ -121,11 +90,7 @@ export default function CustomGraphQLRootFieldsSection({
           schema,
         },
         source: 'default',
-        configuration: {
-          ...columnConfig,
-          custom_name: customName,
-          custom_root_fields: dto,
-        },
+        configuration: dto,
       },
     });
     await execPromiseWithErrorToast(() => promise, {
@@ -136,94 +101,69 @@ export default function CustomGraphQLRootFieldsSection({
     await refetchTableCustomization();
   });
 
-  type QueryFieldNamePath = `queryAndSubscription.${QueryFieldName}.fieldName`;
-  type QueryCommentPath = `queryAndSubscription.${QueryFieldName}.comment`;
-
-  type MutationFieldNamePath = `mutation.${MutationFieldName}.fieldName`;
-  type MutationCommentPath = `mutation.${MutationFieldName}.comment`;
-
-  const setFieldValue = <
-    TFieldPath extends FieldPath<CustomGraphQLRootFieldsFormValues>,
-  >(
-    path: TFieldPath,
-    nextValue: FieldPathValue<CustomGraphQLRootFieldsFormValues, TFieldPath>,
+  const handleAccordionValueChange = (
+    nextValues: ('query-and-subscription' | 'mutation')[],
   ) => {
-    const currentValue = form.getValues(path);
-
-    if (currentValue === nextValue) {
-      return;
-    }
-
-    form.setValue(path, nextValue, {
-      shouldDirty: true,
-      shouldTouch: true,
-    });
+    setExpandedAccordionItems(nextValues);
   };
 
   const handleMakeCamelCaseClick = () => {
-    const customTableNameValue = form.getValues('customTableName');
-    const nextCustomTableNameValue = customTableNameValue?.trim()
-      ? convertToCamelCase(customTableNameValue)
-      : convertPlaceholderToCamelCase(`${tableName} (default)`);
+    const nextCustomTableNameValue = convertToCamelCase(tableNameAlias);
 
-    setFieldValue('customTableName', nextCustomTableNameValue);
-
-    queryFields.forEach((fieldConfig) => {
-      const fieldNamePath =
-        `queryAndSubscription.${fieldConfig.key}.fieldName` as QueryFieldNamePath;
-      const currentValue = form.getValues(fieldNamePath);
-      const placeholderValue = convertPlaceholderToCamelCase(
-        fieldConfig.buildFieldPlaceholder(tableNameAlias),
-      );
-      const nextValue = currentValue?.trim()
-        ? convertToCamelCase(currentValue)
-        : placeholderValue;
-
-      setFieldValue(fieldNamePath, nextValue);
+    setValue('customTableName', nextCustomTableNameValue, {
+      shouldDirty: true,
     });
 
-    mutationFields.forEach((fieldConfig) => {
+    QUERY_FIELDS_CONFIG.forEach((fieldConfig) => {
       const fieldNamePath =
-        `mutation.${fieldConfig.key}.fieldName` as MutationFieldNamePath;
+        `queryAndSubscription.${fieldConfig.key}.fieldName` satisfies QueryFieldNamePath;
       const currentValue = form.getValues(fieldNamePath);
-      const placeholderValue = convertPlaceholderToCamelCase(
-        fieldConfig.buildFieldPlaceholder(tableNameAlias),
-      );
-      const nextValue = currentValue?.trim()
-        ? convertToCamelCase(currentValue)
-        : placeholderValue;
+      const defaultFieldValue =
+        fieldConfig.getDefaultFieldValue(tableNameAlias);
+      const camelCaseDefaultFieldValue = convertToCamelCase(defaultFieldValue);
 
-      setFieldValue(fieldNamePath, nextValue);
+      const nextValue = isEmptyValue(currentValue?.trim())
+        ? camelCaseDefaultFieldValue
+        : convertToCamelCase(currentValue);
+
+      setValue(fieldNamePath, nextValue, {
+        shouldDirty: true,
+      });
     });
+
+    MUTATION_FIELDS_CONFIG.forEach((fieldConfig) => {
+      const fieldNamePath =
+        `mutation.${fieldConfig.key}.fieldName` satisfies MutationFieldNamePath;
+      const currentValue = form.getValues(fieldNamePath);
+      const defaultFieldValue =
+        fieldConfig.getDefaultFieldValue(tableNameAlias);
+      const camelCaseDefaultFieldValue = convertToCamelCase(defaultFieldValue);
+      const nextValue = isEmptyValue(currentValue?.trim())
+        ? camelCaseDefaultFieldValue
+        : convertToCamelCase(currentValue);
+
+      setValue(fieldNamePath, nextValue, {
+        shouldDirty: true,
+      });
+    });
+
+    setExpandedAccordionItems(['query-and-subscription', 'mutation']);
   };
 
-  const handleResetToDefault = () => {
-    setFieldValue('customTableName', defaultValues.customTableName ?? '');
-
-    queryFields.forEach((fieldConfig) => {
-      const defaults = defaultValues.queryAndSubscription[fieldConfig.key];
-
-      setFieldValue(
-        `queryAndSubscription.${fieldConfig.key}.fieldName` as QueryFieldNamePath,
-        defaults.fieldName,
-      );
-      setFieldValue(
-        `queryAndSubscription.${fieldConfig.key}.comment` as QueryCommentPath,
-        defaults.comment ?? '',
-      );
+  const handleResetToDefaultClick = () => {
+    setValue('customTableName', '', {
+      shouldDirty: true,
     });
 
-    mutationFields.forEach((fieldConfig) => {
-      const defaults = defaultValues.mutation[fieldConfig.key];
-
-      setFieldValue(
-        `mutation.${fieldConfig.key}.fieldName` as MutationFieldNamePath,
-        defaults.fieldName,
-      );
-      setFieldValue(
-        `mutation.${fieldConfig.key}.comment` as MutationCommentPath,
-        defaults.comment ?? '',
-      );
+    QUERY_FIELDS_CONFIG.forEach((fieldConfig) => {
+      setValue(`queryAndSubscription.${fieldConfig.key}.fieldName`, '', {
+        shouldDirty: true,
+      });
+    });
+    MUTATION_FIELDS_CONFIG.forEach((fieldConfig) => {
+      setValue(`mutation.${fieldConfig.key}.fieldName`, '', {
+        shouldDirty: true,
+      });
     });
   };
 
@@ -238,7 +178,7 @@ export default function CustomGraphQLRootFieldsSection({
                   Custom GraphQL Root Fields
                 </h2>
 
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm+ text-muted-foreground">
                   Configure the root field names and optional comments exposed
                   in your GraphQL API.
                 </p>
@@ -254,7 +194,11 @@ export default function CustomGraphQLRootFieldsSection({
               placeholder={`${tableNameAlias} (default)`}
               className=""
             />
-            <Accordion type="multiple">
+            <Accordion
+              type="multiple"
+              value={expandedAccordionItems}
+              onValueChange={handleAccordionValueChange}
+            >
               <AccordionItem value="query-and-subscription">
                 <AccordionTrigger className="text-sm font-semibold">
                   Query and Subscription
@@ -266,20 +210,20 @@ export default function CustomGraphQLRootFieldsSection({
                       <span>Field Name</span>
                       <span>Comment</span>
                     </div>
-                    {queryFields.map((fieldConfig) => {
-                      const fieldNamePath =
-                        `queryAndSubscription.${fieldConfig.key}.fieldName` as QueryFieldNamePath;
-                      const commentPath =
-                        `queryAndSubscription.${fieldConfig.key}.comment` as QueryCommentPath;
-                      const fieldPlaceholder =
-                        fieldConfig.buildFieldPlaceholder(tableNameAlias);
+                    {QUERY_FIELDS_CONFIG.map((fieldConfig) => {
+                      const fieldNamePath = `queryAndSubscription.${fieldConfig.key}.fieldName`;
+                      const commentPath = `queryAndSubscription.${fieldConfig.key}.comment`;
+                      const fieldPlaceholder = getFieldPlaceholder(
+                        fieldConfig,
+                        tableNameAlias,
+                      );
                       const commentPlaceholder =
-                        fieldConfig.buildCommentPlaceholder(tableNameAlias);
+                        fieldConfig.getCommentPlaceholder(tableNameAlias);
 
                       return (
                         <CustomGraphQLRootFieldsAccordionContent
                           fieldLabel={fieldConfig.label}
-                          key={`query-${String(fieldConfig.key)}`}
+                          key={`query-${fieldConfig.key}`}
                           commentPath={commentPath}
                           fieldNamePath={fieldNamePath}
                           fieldPlaceholder={fieldPlaceholder}
@@ -302,20 +246,20 @@ export default function CustomGraphQLRootFieldsSection({
                       <span>Field Name</span>
                       <span>Comment</span>
                     </div>
-                    {mutationFields.map((fieldConfig) => {
-                      const fieldNamePath =
-                        `mutation.${fieldConfig.key}.fieldName` as MutationFieldNamePath;
-                      const commentPath =
-                        `mutation.${fieldConfig.key}.comment` as MutationCommentPath;
-                      const fieldPlaceholder =
-                        fieldConfig.buildFieldPlaceholder(tableNameAlias);
+                    {MUTATION_FIELDS_CONFIG.map((fieldConfig) => {
+                      const fieldNamePath = `mutation.${fieldConfig.key}.fieldName`;
+                      const commentPath = `mutation.${fieldConfig.key}.comment`;
+                      const fieldPlaceholder = getFieldPlaceholder(
+                        fieldConfig,
+                        tableNameAlias,
+                      );
                       const commentPlaceholder =
-                        fieldConfig.buildCommentPlaceholder(tableNameAlias);
+                        fieldConfig.getCommentPlaceholder(tableNameAlias);
 
                       return (
                         <CustomGraphQLRootFieldsAccordionContent
                           fieldLabel={fieldConfig.label}
-                          key={`mutation-${String(fieldConfig.key)}`}
+                          key={`mutation-${fieldConfig.key}`}
                           commentPath={commentPath}
                           fieldNamePath={fieldNamePath}
                           fieldPlaceholder={fieldPlaceholder}
@@ -335,7 +279,7 @@ export default function CustomGraphQLRootFieldsSection({
                 variant="outline"
                 color="secondary"
                 type="button"
-                onClick={handleResetToDefault}
+                onClick={handleResetToDefaultClick}
               >
                 Reset to default
               </Button>
@@ -349,12 +293,10 @@ export default function CustomGraphQLRootFieldsSection({
             </div>
             <ButtonWithLoading
               variant={formState.isDirty ? 'default' : 'outline'}
-              // variant={submitButton?.disabled ? 'outlined' : 'contained'}
-
-              // color={submitButton?.disabled ? 'secondary' : 'primary'}
               type="submit"
               disabled={!formState.isDirty}
               loading={formState.isSubmitting}
+              className="text-sm+"
             >
               Save
             </ButtonWithLoading>

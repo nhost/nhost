@@ -9,7 +9,7 @@ import CustomGraphQLRootFieldsSection from './CustomGraphQLRootFieldsSection';
 
 mockPointerEvent();
 
-const hooks = vi.hoisted(() => ({
+const mocks = vi.hoisted(() => ({
   useTableCustomizationQuery: vi.fn(),
   useSetTableCustomizationMutation: vi.fn(),
   useGetMetadataResourceVersion: vi.fn(),
@@ -18,21 +18,21 @@ const hooks = vi.hoisted(() => ({
 vi.mock(
   '@/features/orgs/projects/database/dataGrid/hooks/useTableCustomizationQuery',
   () => ({
-    useTableCustomizationQuery: hooks.useTableCustomizationQuery,
+    useTableCustomizationQuery: mocks.useTableCustomizationQuery,
   }),
 );
 
 vi.mock(
   '@/features/orgs/projects/database/dataGrid/hooks/useSetTableCustomizationMutation',
   () => ({
-    useSetTableCustomizationMutation: hooks.useSetTableCustomizationMutation,
+    useSetTableCustomizationMutation: mocks.useSetTableCustomizationMutation,
   }),
 );
 
 vi.mock(
   '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion',
   () => ({
-    useGetMetadataResourceVersion: hooks.useGetMetadataResourceVersion,
+    useGetMetadataResourceVersion: mocks.useGetMetadataResourceVersion,
   }),
 );
 
@@ -59,15 +59,15 @@ async function openAllSections(user: TestUserEvent) {
 
 describe('CustomGraphQLRootFieldsSection', () => {
   beforeEach(() => {
-    hooks.useTableCustomizationQuery.mockReturnValue({
+    mocks.useTableCustomizationQuery.mockReturnValue({
       data: undefined,
       isLoading: false,
       refetch: vi.fn(),
     });
-    hooks.useSetTableCustomizationMutation.mockReturnValue({
+    mocks.useSetTableCustomizationMutation.mockReturnValue({
       mutateAsync: vi.fn(),
     });
-    hooks.useGetMetadataResourceVersion.mockReturnValue({
+    mocks.useGetMetadataResourceVersion.mockReturnValue({
       data: 1,
     });
   });
@@ -99,7 +99,7 @@ describe('CustomGraphQLRootFieldsSection', () => {
     expect(insertField).toHaveDisplayValue('insertUserProfile');
   });
 
-  it('camel-cases existing values without overriding non-empty fields', async () => {
+  it('camel-cases existing values without overwriting non-empty fields', async () => {
     const user = new TestUserEvent();
     renderSection();
     await openAllSections(user);
@@ -143,18 +143,15 @@ describe('CustomGraphQLRootFieldsSection', () => {
     await user.click(screen.getByRole('button', { name: 'Make camelCase' }));
     await user.type(commentInput, 'My comment');
 
-    const commentToggle = screen.getAllByRole('combobox')[0];
-    await user.click(commentToggle);
-    await user.click(screen.getByRole('option', { name: 'None' }));
-    expect(commentToggle).toHaveTextContent('None');
-
     await user.click(screen.getByRole('button', { name: 'Reset to default' }));
 
     expect(customTableInput).toHaveDisplayValue('');
     expect(selectField).toHaveDisplayValue('');
     expect(insertField).toHaveDisplayValue('');
     expect(commentInput).toHaveDisplayValue('');
-    expect(commentInput).not.toBeDisabled();
-    expect(commentToggle).toHaveTextContent('Value');
+    expect(commentInput).toHaveAttribute(
+      'placeholder',
+      'fetch data from the table: "user_profile"',
+    );
   });
 });

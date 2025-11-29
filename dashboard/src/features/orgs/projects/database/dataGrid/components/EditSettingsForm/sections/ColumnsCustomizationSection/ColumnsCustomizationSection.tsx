@@ -44,7 +44,7 @@ export default function ColumnsCustomizationSection({
   });
 
   const {
-    data: columnConfig,
+    data: tableConfig,
     isLoading: isLoadingTableCustomization,
     refetch: refetchTableCustomization,
   } = useTableCustomizationQuery({
@@ -84,7 +84,7 @@ export default function ColumnsCustomizationSection({
       }
 
       const graphqlFieldName =
-        columnConfig?.column_config?.[columnName]?.custom_name || '';
+        tableConfig?.column_config?.[columnName]?.custom_name || '';
 
       acc[columnName] = {
         graphqlFieldName,
@@ -95,7 +95,7 @@ export default function ColumnsCustomizationSection({
 
     form.reset({ columns: defaultColumnValues });
   }, [
-    columnConfig,
+    tableConfig,
     form,
     isLoading,
     isLoadingTableCustomization,
@@ -120,7 +120,7 @@ export default function ColumnsCustomizationSection({
         },
         source: 'default',
         configuration: {
-          ...columnConfig,
+          ...tableConfig,
           column_config: dto,
         },
       },
@@ -151,7 +151,7 @@ export default function ColumnsCustomizationSection({
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 px-6 pb-4">
         <SettingsContainer
           title="GraphQL Field Names"
-          description="Align each column with the GraphQL field name exposed through your API."
+          description="Expose each column with a different name in your GraphQL API."
           slotProps={{
             submitButton: {
               disabled: !isDirty,

@@ -191,7 +191,7 @@ components:
             $ref: '#/components/schemas/ColumnConfigValue'
         custom_column_names:
           type: object
-          description: Customize the column fields (deprecated in favour of custom_name on ColumnConfig)
+          description: Customize the column fields (deprecated in favour of custom_name on column_config)
           additionalProperties:
             type: string
           deprecated: true

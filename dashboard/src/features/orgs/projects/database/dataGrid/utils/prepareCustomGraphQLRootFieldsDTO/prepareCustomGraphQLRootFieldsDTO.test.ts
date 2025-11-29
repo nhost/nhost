@@ -1,8 +1,12 @@
 import { type CustomGraphQLRootFieldsFormValues } from '@/features/orgs/projects/database/dataGrid/components/EditSettingsForm/sections/CustomGraphQLRootFieldsSection/CustomGraphQLRootFieldsFormTypes';
+import type {
+  CustomRootFields,
+  TableConfig,
+} from '@/utils/hasura-api/generated/schemas';
 import { test } from 'vitest';
 import prepareCustomGraphQLRootFieldsDTO from './prepareCustomGraphQLRootFieldsDTO';
 
-const defaultValues: CustomGraphQLRootFieldsFormValues = {
+const defaultFormValues: CustomGraphQLRootFieldsFormValues = {
   customTableName: '',
   queryAndSubscription: {
     select: {
@@ -55,11 +59,11 @@ const defaultValues: CustomGraphQLRootFieldsFormValues = {
 };
 
 describe('prepareCustomGraphQLRootFieldsDTO', () => {
-  test('should prepare a DTO', () => {
+  test('should prepare a new config with valid custom root fields', () => {
     const formValues: CustomGraphQLRootFieldsFormValues = {
-      ...defaultValues,
+      ...defaultFormValues,
       queryAndSubscription: {
-        ...defaultValues.queryAndSubscription,
+        ...defaultFormValues.queryAndSubscription,
         select: {
           fieldName: '',
           comment: 'example comment',
@@ -70,7 +74,7 @@ describe('prepareCustomGraphQLRootFieldsDTO', () => {
         },
       },
       mutation: {
-        ...defaultValues.mutation,
+        ...defaultFormValues.mutation,
         insert: {
           fieldName: 'insertUser',
           comment: 'insert a user',
@@ -79,16 +83,83 @@ describe('prepareCustomGraphQLRootFieldsDTO', () => {
     };
 
     const dto = prepareCustomGraphQLRootFieldsDTO(formValues);
-
-    const expected = {
+    const expectedRootFields: CustomRootFields = {
+      insert: {
+        comment: 'insert a user',
+        name: 'insertUser',
+      },
       select: {
-        name: null,
         comment: 'example comment',
+        name: null,
       },
       select_by_pk: 'something',
-      insert: {
-        name: 'insertUser',
-        comment: 'insert a user',
+    };
+
+    expect(dto.custom_root_fields).toEqual(expectedRootFields);
+  });
+
+  test('should prepare a new config from a previous config', () => {
+    const formValues: CustomGraphQLRootFieldsFormValues = {
+      ...defaultFormValues,
+      queryAndSubscription: {
+        ...defaultFormValues.queryAndSubscription,
+        select: {
+          fieldName: '',
+          comment: 'example comment',
+        },
+        selectByPk: {
+          fieldName: 'something',
+          comment: '',
+        },
+      },
+      mutation: {
+        ...defaultFormValues.mutation,
+        insert: {
+          fieldName: 'insertUser',
+          comment: 'insert a user',
+        },
+      },
+    };
+
+    const prevConfig: TableConfig = {
+      comment: 'example comment',
+      column_config: {
+        age: {
+          custom_name: 'age',
+        },
+        name: {
+          custom_name: 'namecustomname',
+        },
+      },
+      custom_column_names: {
+        age: 'age',
+        name: 'namecustomname',
+      },
+      custom_root_fields: {},
+    };
+
+    const dto = prepareCustomGraphQLRootFieldsDTO(formValues, prevConfig);
+
+    const expected: TableConfig = {
+      custom_name: null,
+      column_config: {
+        age: {
+          custom_name: 'age',
+        },
+        name: {
+          custom_name: 'namecustomname',
+        },
+      },
+      custom_root_fields: {
+        select: {
+          name: null,
+          comment: 'example comment',
+        },
+        select_by_pk: 'something',
+        insert: {
+          name: 'insertUser',
+          comment: 'insert a user',
+        },
       },
     };
     expect(dto).toEqual(expected);
