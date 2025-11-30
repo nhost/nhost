@@ -1,4 +1,4 @@
-export default function convertToCamelCase(value?: string | null): string {
+export default function convertSnakeToCamelCase(value?: string | null): string {
   const normalizedValue = value ?? '';
 
   if (!normalizedValue) {

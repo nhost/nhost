@@ -12,7 +12,7 @@ import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/h
 import { useSetTableCustomizationMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useSetTableCustomizationMutation';
 import { useTableCustomizationQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableCustomizationQuery';
 import { parseCustomGQLRootFieldsFormDefaultValues } from '@/features/orgs/projects/database/dataGrid/parseCustomGQLRootFieldsFormDefaultValues';
-import { convertToCamelCase } from '@/features/orgs/projects/database/dataGrid/utils/convertToCamelCase';
+import { convertSnakeToCamelCase } from '@/features/orgs/projects/database/dataGrid/utils/convertSnakeToCamelCase';
 import prepareCustomGraphQLRootFieldsDTO from '@/features/orgs/projects/database/dataGrid/utils/prepareCustomGraphQLRootFieldsDTO/prepareCustomGraphQLRootFieldsDTO';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { isEmptyValue } from '@/lib/utils';
@@ -121,7 +121,7 @@ export default function CustomGraphQLRootFieldsSection({
   };
 
   const handleMakeCamelCaseClick = () => {
-    const nextCustomTableNameValue = convertToCamelCase(tableNameAlias);
+    const nextCustomTableNameValue = convertSnakeToCamelCase(tableNameAlias);
 
     setValue('customTableName', nextCustomTableNameValue, {
       shouldDirty: true,
@@ -133,11 +133,12 @@ export default function CustomGraphQLRootFieldsSection({
       const currentValue = form.getValues(fieldNamePath);
       const defaultFieldValue =
         fieldConfig.getDefaultFieldValue(tableNameAlias);
-      const camelCaseDefaultFieldValue = convertToCamelCase(defaultFieldValue);
+      const camelCaseDefaultFieldValue =
+        convertSnakeToCamelCase(defaultFieldValue);
 
       const nextValue = isEmptyValue(currentValue?.trim())
         ? camelCaseDefaultFieldValue
-        : convertToCamelCase(currentValue);
+        : convertSnakeToCamelCase(currentValue);
 
       setValue(fieldNamePath, nextValue, {
         shouldDirty: true,
@@ -150,10 +151,11 @@ export default function CustomGraphQLRootFieldsSection({
       const currentValue = form.getValues(fieldNamePath);
       const defaultFieldValue =
         fieldConfig.getDefaultFieldValue(tableNameAlias);
-      const camelCaseDefaultFieldValue = convertToCamelCase(defaultFieldValue);
+      const camelCaseDefaultFieldValue =
+        convertSnakeToCamelCase(defaultFieldValue);
       const nextValue = isEmptyValue(currentValue?.trim())
         ? camelCaseDefaultFieldValue
-        : convertToCamelCase(currentValue);
+        : convertSnakeToCamelCase(currentValue);
 
       setValue(fieldNamePath, nextValue, {
         shouldDirty: true,

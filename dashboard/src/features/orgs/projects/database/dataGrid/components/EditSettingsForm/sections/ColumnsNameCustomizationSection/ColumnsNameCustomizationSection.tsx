@@ -6,6 +6,7 @@ import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/h
 import { useSetTableCustomizationMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useSetTableCustomizationMutation';
 import { useTableCustomizationQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableCustomizationQuery';
 import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
+import { convertSnakeToCamelCase } from '@/features/orgs/projects/database/dataGrid/utils/convertSnakeToCamelCase';
 import { prepareCustomGraphQLColumnNameDTO } from '@/features/orgs/projects/database/dataGrid/utils/prepareCustomGraphQLColumnNameDTO';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { isEmptyValue } from '@/lib/utils';
@@ -13,7 +14,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { convertToCamelCase } from '../../../../utils/convertToCamelCase';
 import ColumnsNameCustomizationSectionSkeleton from './ColumnsNameCustomizationSectionSkeleton';
 
 export interface ColumnsNameCustomizationSectionProps {
@@ -159,7 +159,9 @@ export default function ColumnsNameCustomizationSection({
     const columns = getValues('columns');
     Object.entries(columns).forEach(([defaultFieldValue, value]) => {
       const currentValue = value.graphqlFieldName;
-      const newValue = convertToCamelCase(currentValue || defaultFieldValue);
+      const newValue = convertSnakeToCamelCase(
+        currentValue || defaultFieldValue,
+      );
       setValue(`columns.${defaultFieldValue}.graphqlFieldName`, newValue, {
         shouldDirty: true,
       });
