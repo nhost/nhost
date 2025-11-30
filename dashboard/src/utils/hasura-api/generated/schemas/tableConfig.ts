@@ -19,7 +19,7 @@ export interface TableConfig {
   /** A { [column_name]: ColumnConfigValue } object. */
   column_config?: TableConfigColumnConfig;
   /**
-   * Customize the column fields (deprecated in favour of custom_name on ColumnConfig)
+   * Customize the column fields (deprecated in favour of custom_name on column_config)
    * @deprecated
    */
   custom_column_names?: TableConfigCustomColumnNames;
