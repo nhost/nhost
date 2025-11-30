@@ -1,5 +1,5 @@
 import type { CustomGraphQLRootFieldsFormValues } from '@/features/orgs/projects/database/dataGrid/components/EditSettingsForm/sections/CustomGraphQLRootFieldsSection/CustomGraphQLRootFieldsFormTypes';
-import { isNotEmptyValue } from '@/lib/utils';
+import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import type {
   CustomRootField,
   CustomRootFields,
@@ -36,7 +36,7 @@ function buildRootField(
 
 export default function prepareCustomGraphQLRootFieldsDTO(
   formValues: CustomGraphQLRootFieldsFormValues,
-  prevConfig?: TableConfig,
+  prevConfig: TableConfig,
 ): TableConfig {
   const customRootFields: CustomRootFields = {};
 
@@ -97,16 +97,16 @@ export default function prepareCustomGraphQLRootFieldsDTO(
     customRootFields.delete_by_pk = deleteByPk;
   }
 
-  const customName = isNotEmptyValue(customTableName)
-    ? customTableName.trim()
-    : null;
+  const customName = isEmptyValue(customTableName)
+    ? null
+    : customTableName!.trim();
 
   const newConfig: TableConfig = {
     column_config: {},
     custom_root_fields: customRootFields,
     custom_name: customName,
   };
-  if (isNotEmptyValue(prevConfig?.custom_column_names)) {
+  if (isNotEmptyValue(prevConfig.custom_column_names)) {
     Object.entries(prevConfig.custom_column_names).forEach(
       ([columnName, customColumnName]) => {
         newConfig.column_config![columnName] = prevConfig.column_config?.[
@@ -115,7 +115,7 @@ export default function prepareCustomGraphQLRootFieldsDTO(
       },
     );
   } else {
-    newConfig.column_config = prevConfig?.column_config ?? {};
+    newConfig.column_config = prevConfig.column_config ?? {};
   }
 
   return newConfig;

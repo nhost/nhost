@@ -1,4 +1,5 @@
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import {
   Form,
   FormControl,
@@ -35,6 +36,8 @@ export default function SetIsEnumForm({
     data: isEnum,
     isLoading: isLoadingIsEnum,
     refetch: refetchIsEnum,
+    error: tableIsEnumError,
+    isError: isTableIsEnumError,
   } = useTableIsEnumQuery({
     table: {
       name: tableName,
@@ -42,6 +45,11 @@ export default function SetIsEnumForm({
     },
     dataSource: 'default',
   });
+
+  const tableIsEnumErrorMessage =
+    tableIsEnumError instanceof Error
+      ? tableIsEnumError.message
+      : 'An error occurred while loading the table as enum status.';
 
   const { data: resourceVersion } = useGetMetadataResourceVersion();
 
@@ -105,48 +113,57 @@ export default function SetIsEnumForm({
           description="Expose the table values as GraphQL enums in the GraphQL API"
           slotProps={{
             submitButton: {
-              disabled: !formState.isDirty,
+              disabled: !formState.isDirty || isTableIsEnumError,
               loading: formState.isSubmitting,
             },
           }}
         >
-          <div className="grid gap-2 rounded-md border border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
-            <p className="font-medium text-foreground">Requirements</p>
-            <ul className="grid list-disc gap-1 pl-5">
-              <li>
-                Use a single-column primary key of type <code>text</code> whose
-                values are valid GraphQL enum names.
-              </li>
-              <li>
-                Optionally add a second <code>text</code> column to describe
-                each enum value in the GraphQL schema.
-              </li>
-              <li>Do not add any additional columns to the table.</li>
-              <li>Ensure the table contains at least one row.</li>
-            </ul>
-          </div>
-          <FormField
-            control={form.control}
-            name="isEnum"
-            render={({ field }) => (
-              <FormItem className="space-y-4">
-                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                  <div className="grid gap-1">
-                    <FormLabel className="text-base font-medium">
-                      Is Enum
-                    </FormLabel>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </div>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {isTableIsEnumError ? (
+            <Alert variant="destructive">
+              <AlertTitle>Unable to load table is enum</AlertTitle>
+              <AlertDescription>{tableIsEnumErrorMessage}</AlertDescription>
+            </Alert>
+          ) : (
+            <>
+              <div className="grid gap-2 rounded-md border border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+                <p className="font-medium text-foreground">Requirements</p>
+                <ul className="grid list-disc gap-1 pl-5">
+                  <li>
+                    Use a single-column primary key of type <code>text</code>{' '}
+                    whose values are valid GraphQL enum names.
+                  </li>
+                  <li>
+                    Optionally add a second <code>text</code> column to describe
+                    each enum value in the GraphQL schema.
+                  </li>
+                  <li>Do not add any additional columns to the table.</li>
+                  <li>Ensure the table contains at least one row.</li>
+                </ul>
+              </div>
+              <FormField
+                control={form.control}
+                name="isEnum"
+                render={({ field }) => (
+                  <FormItem className="space-y-4">
+                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                      <div className="grid gap-1">
+                        <FormLabel className="text-base font-medium">
+                          Is Enum
+                        </FormLabel>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </>
+          )}
         </SettingsContainer>
       </form>
     </Form>

@@ -12,7 +12,7 @@ import {
   type EditSettingsFormValues,
   validationSchema,
 } from './EditSettingsFormTypes';
-import { ColumnsCustomizationSection } from './sections/ColumnsCustomizationSection';
+import { ColumnsNameCustomizationSection } from './sections/ColumnsNameCustomizationSection';
 import { CustomGraphQLRootFieldsSection } from './sections/CustomGraphQLRootFieldsSection';
 import SetIsEnumForm from './sections/SetIsEnumForm';
 
@@ -84,7 +84,7 @@ export default function EditSettingsForm({
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden">
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pb-4">
-        <ColumnsCustomizationSection
+        <ColumnsNameCustomizationSection
           schema={schema}
           tableName={originalTable.table_name}
         />

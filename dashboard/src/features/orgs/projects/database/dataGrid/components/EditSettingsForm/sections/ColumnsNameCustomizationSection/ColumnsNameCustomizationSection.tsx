@@ -8,13 +8,14 @@ import { useTableCustomizationQuery } from '@/features/orgs/projects/database/da
 import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
 import { prepareCustomGraphQLColumnNameDTO } from '@/features/orgs/projects/database/dataGrid/utils/prepareCustomGraphQLColumnNameDTO';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { isEmptyValue } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import ColumnsCustomizationSectionSkeleton from './ColumnsCustomizationSectionSkeleton';
+import ColumnsNameCustomizationSectionSkeleton from './ColumnsNameCustomizationSectionSkeleton';
 
-export interface ColumnsCustomizationSectionProps {
+export interface ColumnsNameCustomizationSectionProps {
   schema: string;
   tableName: string;
 }
@@ -30,13 +31,15 @@ const validationSchema = z.object({
   ),
 });
 
-export type ColumnsCustomizationFormValues = z.infer<typeof validationSchema>;
+export type ColumnsNameCustomizationFormValues = z.infer<
+  typeof validationSchema
+>;
 
-export default function ColumnsCustomizationSection({
+export default function ColumnsNameCustomizationSection({
   schema,
   tableName,
-}: ColumnsCustomizationSectionProps) {
-  const form = useForm<ColumnsCustomizationFormValues>({
+}: ColumnsNameCustomizationSectionProps) {
+  const form = useForm<ColumnsNameCustomizationFormValues>({
     defaultValues: {
       columns: {},
     },
@@ -44,9 +47,11 @@ export default function ColumnsCustomizationSection({
   });
 
   const {
-    data: tableConfig,
+    data: tableCustomization,
     isLoading: isLoadingTableCustomization,
     refetch: refetchTableCustomization,
+    error: tableCustomizationError,
+    isError: isTableCustomizationError,
   } = useTableCustomizationQuery({
     table: {
       name: tableName,
@@ -55,27 +60,35 @@ export default function ColumnsCustomizationSection({
     dataSource: 'default',
   });
 
+  const columnConfig = tableCustomization?.column_config;
+
   const {
-    data,
-    status: columnsStatus,
-    error: columnsError,
-    isLoading,
+    data: tableData,
+    error: tableDataError,
+    isError: isTableDataError,
+    isLoading: isLoadingTableQuery,
   } = useTableQuery([`default.${schema}.${tableName}`], {
     schema,
     table: tableName,
   });
 
-  const { formState } = form;
+  const tableColumns = tableData?.columns;
+
+  const { formState, reset } = form;
   const { isDirty, isSubmitting } = formState;
-  const tableColumns = data?.columns;
 
   useEffect(() => {
-    if (isLoadingTableCustomization || isLoading) {
+    if (
+      isLoadingTableCustomization ||
+      isLoadingTableQuery ||
+      isEmptyValue(tableColumns) ||
+      isEmptyValue(columnConfig)
+    ) {
       return;
     }
 
     const defaultColumnValues = tableColumns?.reduce<
-      ColumnsCustomizationFormValues['columns']
+      ColumnsNameCustomizationFormValues['columns']
     >((acc, column) => {
       const columnName = column?.column_name;
 
@@ -83,8 +96,7 @@ export default function ColumnsCustomizationSection({
         return acc;
       }
 
-      const graphqlFieldName =
-        tableConfig?.column_config?.[columnName]?.custom_name || '';
+      const graphqlFieldName = columnConfig?.[columnName]?.custom_name || '';
 
       acc[columnName] = {
         graphqlFieldName,
@@ -93,15 +105,13 @@ export default function ColumnsCustomizationSection({
       return acc;
     }, {});
 
-    form.reset({ columns: defaultColumnValues });
+    reset({ columns: defaultColumnValues });
   }, [
-    tableConfig,
-    form,
-    isLoading,
+    isLoadingTableQuery,
     isLoadingTableCustomization,
-    schema,
     tableColumns,
-    tableName,
+    columnConfig,
+    reset,
   ]);
 
   const { data: resourceVersion } = useGetMetadataResourceVersion();
@@ -110,7 +120,7 @@ export default function ColumnsCustomizationSection({
     useSetTableCustomizationMutation();
 
   const handleSubmit = form.handleSubmit(async (values) => {
-    const dto = prepareCustomGraphQLColumnNameDTO(values);
+    const dto = prepareCustomGraphQLColumnNameDTO(values, tableCustomization!);
     const promise = setTableCustomization({
       resourceVersion,
       args: {
@@ -119,10 +129,7 @@ export default function ColumnsCustomizationSection({
           schema,
         },
         source: 'default',
-        configuration: {
-          ...tableConfig,
-          column_config: dto,
-        },
+        configuration: dto,
       },
     });
     await execPromiseWithErrorToast(() => promise, {
@@ -134,16 +141,21 @@ export default function ColumnsCustomizationSection({
     form.reset(values, { keepValues: true, keepDirty: false });
   });
 
-  const isError = columnsStatus === 'error';
+  const isError = Boolean(isTableDataError || isTableCustomizationError);
+
+  const tableDataErrorMessage =
+    tableDataError instanceof Error
+      ? tableDataError.message
+      : 'An error occurred while loading the columns for this table.';
+  const tableCustomizationErrorMessage =
+    tableCustomizationError instanceof Error
+      ? tableCustomizationError.message
+      : 'An error occurred while loading the columns for this table.';
+
   const displayColumns = tableColumns ?? [];
 
-  const errorMessage =
-    columnsError instanceof Error
-      ? columnsError.message
-      : 'Something went wrong while loading the columns for this table.';
-
-  if (isLoading || isLoadingTableCustomization) {
-    return <ColumnsCustomizationSectionSkeleton />;
+  if (isLoadingTableQuery || isLoadingTableCustomization) {
+    return <ColumnsNameCustomizationSectionSkeleton />;
   }
 
   return (
@@ -154,7 +166,7 @@ export default function ColumnsCustomizationSection({
           description="Expose each column with a different name in your GraphQL API."
           slotProps={{
             submitButton: {
-              disabled: !isDirty,
+              disabled: !isDirty || isError,
               loading: isSubmitting,
             },
           }}
@@ -162,7 +174,12 @@ export default function ColumnsCustomizationSection({
           {isError ? (
             <Alert variant="destructive">
               <AlertTitle>Unable to load columns</AlertTitle>
-              <AlertDescription>{errorMessage}</AlertDescription>
+              <AlertDescription>
+                {tableDataErrorMessage && <span>{tableDataErrorMessage}</span>}
+                {tableCustomizationErrorMessage && (
+                  <span>{tableCustomizationErrorMessage}</span>
+                )}
+              </AlertDescription>
             </Alert>
           ) : (
             <div className="space-y-3">
@@ -181,18 +198,16 @@ export default function ColumnsCustomizationSection({
                   )}
 
                   {displayColumns.map((column) => {
-                    const columnName = column.column_name as string;
+                    const columnName: string = column.column_name;
 
-                    if (!columnName) {
+                    if (isEmptyValue(columnName)) {
                       return null;
                     }
 
-                    const dataType =
-                      (column.full_data_type as string) ||
-                      (column.data_type as string) ||
-                      'unknown';
+                    const dataType: string =
+                      column.full_data_type || column.data_type || 'unknown';
                     const fieldPath =
-                      `columns.${columnName}.graphqlFieldName` as GraphQLFieldNamePath;
+                      `columns.${columnName}.graphqlFieldName` satisfies GraphQLFieldNamePath;
 
                     return (
                       <div

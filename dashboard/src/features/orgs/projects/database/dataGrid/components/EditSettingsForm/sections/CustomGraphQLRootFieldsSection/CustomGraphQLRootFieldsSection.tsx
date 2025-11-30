@@ -5,6 +5,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/v3/accordion';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Form } from '@/components/ui/v3/form';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
@@ -18,7 +19,7 @@ import { isEmptyValue } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import CustomGraphQLRootFieldsAccordionContent from './CustomGraphQLRootFieldsAccordionContent';
+import CustomGraphQLRootFieldsFieldGroup from './CustomGraphQLRootFieldsFieldGroup';
 import {
   type CustomGraphQLRootFieldsFormValues,
   type MutationFieldNamePath,
@@ -29,6 +30,7 @@ import {
   QUERY_FIELDS_CONFIG,
   validationSchema,
 } from './CustomGraphQLRootFieldsFormTypes';
+import CustomGraphQLRootFieldsSectionSkeleton from './CustomGraphQLRootFieldsSectionSkeleton';
 
 interface CustomGraphQLRootFieldsFormProps {
   schema: string;
@@ -46,6 +48,8 @@ export default function CustomGraphQLRootFieldsSection({
     data: tableConfig,
     isLoading: isLoadingTableCustomization,
     refetch: refetchTableCustomization,
+    error: tableCustomizationError,
+    isError: isTableCustomizationError,
   } = useTableCustomizationQuery({
     table: {
       name: tableName,
@@ -80,8 +84,17 @@ export default function CustomGraphQLRootFieldsSection({
 
   const { data: resourceVersion } = useGetMetadataResourceVersion();
 
+  const tableCustomizationErrorMessage =
+    tableCustomizationError instanceof Error
+      ? tableCustomizationError.message
+      : 'An error occurred while loading the table customization.';
+
+  if (isLoadingTableCustomization) {
+    return <CustomGraphQLRootFieldsSectionSkeleton />;
+  }
+
   const handleSubmit = form.handleSubmit(async (values) => {
-    const dto = prepareCustomGraphQLRootFieldsDTO(values, tableConfig);
+    const dto = prepareCustomGraphQLRootFieldsDTO(values, tableConfig!);
     const promise = setTableCustomization({
       resourceVersion,
       args: {
@@ -159,9 +172,15 @@ export default function CustomGraphQLRootFieldsSection({
       setValue(`queryAndSubscription.${fieldConfig.key}.fieldName`, '', {
         shouldDirty: true,
       });
+      setValue(`queryAndSubscription.${fieldConfig.key}.comment`, '', {
+        shouldDirty: true,
+      });
     });
     MUTATION_FIELDS_CONFIG.forEach((fieldConfig) => {
       setValue(`mutation.${fieldConfig.key}.fieldName`, '', {
+        shouldDirty: true,
+      });
+      setValue(`mutation.${fieldConfig.key}.comment`, '', {
         shouldDirty: true,
       });
     });
@@ -185,93 +204,103 @@ export default function CustomGraphQLRootFieldsSection({
               </div>
             </div>
           </div>
+          {isTableCustomizationError ? (
+            <Alert variant="destructive">
+              <AlertTitle>Unable to load table customization</AlertTitle>
+              <AlertDescription>
+                {tableCustomizationErrorMessage && (
+                  <span>{tableCustomizationErrorMessage}</span>
+                )}
+              </AlertDescription>
+            </Alert>
+          ) : (
+            <div className="grid grid-flow-row gap-4 px-4">
+              <FormInput
+                control={form.control}
+                name="customTableName"
+                label="Custom Table Name"
+                placeholder={`${tableNameAlias} (default)`}
+                className="max-w-sm"
+              />
+              <Accordion
+                type="multiple"
+                value={expandedAccordionItems}
+                onValueChange={handleAccordionValueChange}
+              >
+                <AccordionItem value="query-and-subscription">
+                  <AccordionTrigger className="text-sm font-semibold">
+                    Query and Subscription
+                  </AccordionTrigger>
+                  <AccordionContent className="px-0 py-4">
+                    <div className="grid gap-3">
+                      <div className="grid grid-cols-[120px,minmax(0,0.8fr),minmax(0,1fr)] items-center gap-3 rounded-md bg-muted px-4 py-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                        <span>Operation</span>
+                        <span>Field Name</span>
+                        <span>Comment</span>
+                      </div>
+                      {QUERY_FIELDS_CONFIG.map((fieldConfig) => {
+                        const fieldNamePath = `queryAndSubscription.${fieldConfig.key}.fieldName`;
+                        const commentPath = `queryAndSubscription.${fieldConfig.key}.comment`;
+                        const fieldPlaceholder = getFieldPlaceholder(
+                          fieldConfig,
+                          tableNameAlias,
+                        );
+                        const commentPlaceholder =
+                          fieldConfig.getCommentPlaceholder(tableNameAlias);
 
-          <div className="grid grid-flow-row gap-4 px-4">
-            <FormInput
-              control={form.control}
-              name="customTableName"
-              label="Custom Table Name"
-              placeholder={`${tableNameAlias} (default)`}
-              className=""
-            />
-            <Accordion
-              type="multiple"
-              value={expandedAccordionItems}
-              onValueChange={handleAccordionValueChange}
-            >
-              <AccordionItem value="query-and-subscription">
-                <AccordionTrigger className="text-sm font-semibold">
-                  Query and Subscription
-                </AccordionTrigger>
-                <AccordionContent className="px-0 py-4">
-                  <div className="grid gap-3">
-                    <div className="grid grid-cols-[120px,minmax(0,0.8fr),minmax(0,1fr)] items-center gap-3 rounded-md bg-muted px-4 py-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                      <span>Operation</span>
-                      <span>Field Name</span>
-                      <span>Comment</span>
+                        return (
+                          <CustomGraphQLRootFieldsFieldGroup
+                            fieldLabel={fieldConfig.label}
+                            key={`query-${fieldConfig.key}`}
+                            commentPath={commentPath}
+                            fieldNamePath={fieldNamePath}
+                            fieldPlaceholder={fieldPlaceholder}
+                            commentPlaceholder={commentPlaceholder}
+                          />
+                        );
+                      })}
                     </div>
-                    {QUERY_FIELDS_CONFIG.map((fieldConfig) => {
-                      const fieldNamePath = `queryAndSubscription.${fieldConfig.key}.fieldName`;
-                      const commentPath = `queryAndSubscription.${fieldConfig.key}.comment`;
-                      const fieldPlaceholder = getFieldPlaceholder(
-                        fieldConfig,
-                        tableNameAlias,
-                      );
-                      const commentPlaceholder =
-                        fieldConfig.getCommentPlaceholder(tableNameAlias);
+                  </AccordionContent>
+                </AccordionItem>
 
-                      return (
-                        <CustomGraphQLRootFieldsAccordionContent
-                          fieldLabel={fieldConfig.label}
-                          key={`query-${fieldConfig.key}`}
-                          commentPath={commentPath}
-                          fieldNamePath={fieldNamePath}
-                          fieldPlaceholder={fieldPlaceholder}
-                          commentPlaceholder={commentPlaceholder}
-                        />
-                      );
-                    })}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
+                <AccordionItem value="mutation" className="overflow-hidden">
+                  <AccordionTrigger className="text-sm font-semibold">
+                    Mutation
+                  </AccordionTrigger>
+                  <AccordionContent className="px-0 py-4">
+                    <div className="grid gap-3">
+                      <div className="grid grid-cols-[120px,minmax(0,0.8fr),minmax(0,1fr)] items-center gap-3 rounded-md bg-muted px-4 py-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                        <span>Operation</span>
+                        <span>Field Name</span>
+                        <span>Comment</span>
+                      </div>
+                      {MUTATION_FIELDS_CONFIG.map((fieldConfig) => {
+                        const fieldNamePath = `mutation.${fieldConfig.key}.fieldName`;
+                        const commentPath = `mutation.${fieldConfig.key}.comment`;
+                        const fieldPlaceholder = getFieldPlaceholder(
+                          fieldConfig,
+                          tableNameAlias,
+                        );
+                        const commentPlaceholder =
+                          fieldConfig.getCommentPlaceholder(tableNameAlias);
 
-              <AccordionItem value="mutation" className="overflow-hidden">
-                <AccordionTrigger className="text-sm font-semibold">
-                  Mutation
-                </AccordionTrigger>
-                <AccordionContent className="px-0 py-4">
-                  <div className="grid gap-3">
-                    <div className="grid grid-cols-[120px,minmax(0,0.8fr),minmax(0,1fr)] items-center gap-3 rounded-md bg-muted px-4 py-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                      <span>Operation</span>
-                      <span>Field Name</span>
-                      <span>Comment</span>
+                        return (
+                          <CustomGraphQLRootFieldsFieldGroup
+                            fieldLabel={fieldConfig.label}
+                            key={`mutation-${fieldConfig.key}`}
+                            commentPath={commentPath}
+                            fieldNamePath={fieldNamePath}
+                            fieldPlaceholder={fieldPlaceholder}
+                            commentPlaceholder={commentPlaceholder}
+                          />
+                        );
+                      })}
                     </div>
-                    {MUTATION_FIELDS_CONFIG.map((fieldConfig) => {
-                      const fieldNamePath = `mutation.${fieldConfig.key}.fieldName`;
-                      const commentPath = `mutation.${fieldConfig.key}.comment`;
-                      const fieldPlaceholder = getFieldPlaceholder(
-                        fieldConfig,
-                        tableNameAlias,
-                      );
-                      const commentPlaceholder =
-                        fieldConfig.getCommentPlaceholder(tableNameAlias);
-
-                      return (
-                        <CustomGraphQLRootFieldsAccordionContent
-                          fieldLabel={fieldConfig.label}
-                          key={`mutation-${fieldConfig.key}`}
-                          commentPath={commentPath}
-                          fieldNamePath={fieldNamePath}
-                          fieldPlaceholder={fieldPlaceholder}
-                          commentPlaceholder={commentPlaceholder}
-                        />
-                      );
-                    })}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </div>
+          )}
 
           <div className="grid grid-flow-col items-center justify-between gap-x-2 border-t px-4 pt-3.5">
             <div className="flex items-center gap-2">
@@ -280,6 +309,7 @@ export default function CustomGraphQLRootFieldsSection({
                 color="secondary"
                 type="button"
                 onClick={handleResetToDefaultClick}
+                disabled={isTableCustomizationError}
               >
                 Reset to default
               </Button>
@@ -287,6 +317,7 @@ export default function CustomGraphQLRootFieldsSection({
                 variant="secondary"
                 type="button"
                 onClick={handleMakeCamelCaseClick}
+                disabled={isTableCustomizationError}
               >
                 Make camelCase
               </Button>
@@ -294,7 +325,7 @@ export default function CustomGraphQLRootFieldsSection({
             <ButtonWithLoading
               variant={formState.isDirty ? 'default' : 'outline'}
               type="submit"
-              disabled={!formState.isDirty}
+              disabled={!formState.isDirty || isTableCustomizationError}
               loading={formState.isSubmitting}
               className="text-sm+"
             >

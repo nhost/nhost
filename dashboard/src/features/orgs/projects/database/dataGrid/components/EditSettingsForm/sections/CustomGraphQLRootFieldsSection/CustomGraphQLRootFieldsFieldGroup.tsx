@@ -1,7 +1,7 @@
 import { FormInput } from '@/components/form/FormInput';
 import { useFormContext } from 'react-hook-form';
 
-export interface CustomGraphQLRootFieldsAccordionContentProps {
+export interface CustomGraphQLRootFieldsFieldGroupProps {
   fieldLabel: string;
   key: string;
   commentPath: string;
@@ -10,14 +10,14 @@ export interface CustomGraphQLRootFieldsAccordionContentProps {
   commentPlaceholder: string;
 }
 
-export default function CustomGraphQLRootFieldsAccordionContent({
+export default function CustomGraphQLRootFieldsFieldGroup({
   fieldLabel,
   key,
   commentPath,
   fieldNamePath,
   fieldPlaceholder,
   commentPlaceholder,
-}: CustomGraphQLRootFieldsAccordionContentProps) {
+}: CustomGraphQLRootFieldsFieldGroupProps) {
   const form = useFormContext();
 
   return (

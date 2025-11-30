@@ -82,7 +82,7 @@ describe('prepareCustomGraphQLRootFieldsDTO', () => {
       },
     };
 
-    const dto = prepareCustomGraphQLRootFieldsDTO(formValues);
+    const dto = prepareCustomGraphQLRootFieldsDTO(formValues, {});
     const expectedRootFields: CustomRootFields = {
       insert: {
         comment: 'insert a user',
