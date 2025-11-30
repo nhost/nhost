@@ -1,6 +1,6 @@
 import { FormInput } from '@/components/form/FormInput';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Form } from '@/components/ui/v3/form';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { useSetTableCustomizationMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useSetTableCustomizationMutation';
@@ -13,6 +13,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+import { convertToCamelCase } from '../../../../utils/convertToCamelCase';
 import ColumnsNameCustomizationSectionSkeleton from './ColumnsNameCustomizationSectionSkeleton';
 
 export interface ColumnsNameCustomizationSectionProps {
@@ -74,7 +75,7 @@ export default function ColumnsNameCustomizationSection({
 
   const tableColumns = tableData?.columns;
 
-  const { formState, reset } = form;
+  const { formState, reset, getValues, setValue } = form;
   const { isDirty, isSubmitting } = formState;
 
   useEffect(() => {
@@ -141,6 +142,30 @@ export default function ColumnsNameCustomizationSection({
     form.reset(values, { keepValues: true, keepDirty: false });
   });
 
+  const handleResetToDefaultClick = () => {
+    const columns = getValues('columns');
+    const newColumns = Object.fromEntries(
+      Object.keys(columns).map((columnName) => [
+        columnName,
+        { graphqlFieldName: '' },
+      ]),
+    );
+    setValue('columns', newColumns, {
+      shouldDirty: true,
+    });
+  };
+
+  const handleMakeCamelCaseClick = () => {
+    const columns = getValues('columns');
+    Object.entries(columns).forEach(([defaultFieldValue, value]) => {
+      const currentValue = value.graphqlFieldName;
+      const newValue = convertToCamelCase(currentValue || defaultFieldValue);
+      setValue(`columns.${defaultFieldValue}.graphqlFieldName`, newValue, {
+        shouldDirty: true,
+      });
+    });
+  };
+
   const isError = Boolean(isTableDataError || isTableCustomizationError);
 
   const tableDataErrorMessage =
@@ -154,23 +179,25 @@ export default function ColumnsNameCustomizationSection({
 
   const displayColumns = tableColumns ?? [];
 
-  if (isLoadingTableQuery || isLoadingTableCustomization) {
+  if (!isLoadingTableQuery || isLoadingTableCustomization) {
     return <ColumnsNameCustomizationSectionSkeleton />;
   }
 
   return (
     <Form {...form}>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 px-6 pb-4">
-        <SettingsContainer
-          title="GraphQL Field Names"
-          description="Expose each column with a different name in your GraphQL API."
-          slotProps={{
-            submitButton: {
-              disabled: !isDirty || isError,
-              loading: isSubmitting,
-            },
-          }}
-        >
+        <div className="box grid grid-flow-row gap-4 overflow-hidden rounded-lg border-1 py-4">
+          <div className="grid grid-flow-col place-content-between gap-3 px-4">
+            <div className="grid grid-flow-col gap-4">
+              <div className="grid grid-flow-row gap-1">
+                <h2 className="text-lg font-semibold">GraphQL Field Names</h2>
+
+                <p className="text-sm+ text-muted-foreground">
+                  Expose each column with a different name in your GraphQL API.
+                </p>
+              </div>
+            </div>
+          </div>
           {isError ? (
             <Alert variant="destructive">
               <AlertTitle>Unable to load columns</AlertTitle>
@@ -239,7 +266,37 @@ export default function ColumnsNameCustomizationSection({
               </div>
             </div>
           )}
-        </SettingsContainer>
+          <div className="grid grid-flow-col items-center justify-between gap-x-2 border-t px-4 pt-3.5">
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                color="secondary"
+                type="button"
+                onClick={handleResetToDefaultClick}
+                disabled={isError}
+              >
+                Reset to default
+              </Button>
+              <Button
+                variant="secondary"
+                type="button"
+                onClick={handleMakeCamelCaseClick}
+                disabled={isError}
+              >
+                Make camelCase
+              </Button>
+            </div>
+            <ButtonWithLoading
+              variant={isDirty ? 'default' : 'outline'}
+              type="submit"
+              disabled={!isDirty || isError}
+              loading={isSubmitting}
+              className="text-sm+"
+            >
+              Save
+            </ButtonWithLoading>
+          </div>
+        </div>
       </form>
     </Form>
   );

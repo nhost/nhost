@@ -14,7 +14,7 @@ import {
 } from './EditSettingsFormTypes';
 import { ColumnsNameCustomizationSection } from './sections/ColumnsNameCustomizationSection';
 import { CustomGraphQLRootFieldsSection } from './sections/CustomGraphQLRootFieldsSection';
-import SetIsEnumForm from './sections/SetIsEnumForm';
+import { SetIsEnumSection } from './sections/SetIsEnumSection';
 
 export interface EditSettingsFormProps
   extends Pick<BaseTableFormProps, 'onCancel' | 'location'> {
@@ -92,7 +92,10 @@ export default function EditSettingsForm({
           schema={schema}
           tableName={originalTable.table_name}
         />
-        <SetIsEnumForm schema={schema} tableName={originalTable.table_name} />
+        <SetIsEnumSection
+          schema={schema}
+          tableName={originalTable.table_name}
+        />
       </div>
 
       <div className="grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 px-6 py-3">

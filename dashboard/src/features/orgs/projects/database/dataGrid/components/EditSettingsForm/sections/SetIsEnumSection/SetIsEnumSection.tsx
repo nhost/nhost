@@ -1,5 +1,5 @@
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   Form,
   FormControl,
@@ -17,20 +17,21 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+import SetIsEnumSectionSkeleton from './SetIsEnumSectionSkeleton';
 
 const validationSchema = z.object({
   isEnum: z.boolean(),
 });
 
-export interface SetIsEnumFormProps {
+export interface SetIsEnumSectionProps {
   schema: string;
   tableName: string;
 }
 
-export default function SetIsEnumForm({
+export default function SetIsEnumSection({
   schema,
   tableName,
-}: SetIsEnumFormProps) {
+}: SetIsEnumSectionProps) {
   const { mutateAsync: setTableIsEnum } = useSetTableIsEnumMutation();
   const {
     data: isEnum,
@@ -60,17 +61,20 @@ export default function SetIsEnumForm({
     resolver: zodResolver(validationSchema),
   });
 
-  const { formState } = form;
+  const { reset, formState } = form;
 
   useEffect(() => {
     if (isLoadingIsEnum) {
       return;
     }
-    form.reset({
+    reset({
       isEnum: Boolean(isEnum),
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isEnum, isLoadingIsEnum]);
+  }, [isEnum, reset, isLoadingIsEnum]);
+
+  if (isLoadingIsEnum) {
+    return <SetIsEnumSectionSkeleton />;
+  }
 
   const handleFormSubmit = form.handleSubmit(async (values) => {
     const promise = setTableIsEnum({
@@ -108,23 +112,25 @@ export default function SetIsEnumForm({
         onSubmit={handleFormSubmit}
         className="flex flex-col gap-4 px-6 pb-4"
       >
-        <SettingsContainer
-          title="Set Table as Enum"
-          description="Expose the table values as GraphQL enums in the GraphQL API"
-          slotProps={{
-            submitButton: {
-              disabled: !formState.isDirty || isTableIsEnumError,
-              loading: formState.isSubmitting,
-            },
-          }}
-        >
+        <div className="box grid grid-flow-row gap-4 overflow-hidden rounded-lg border-1 py-4">
+          <div className="grid grid-flow-col place-content-between gap-3 px-4">
+            <div className="grid grid-flow-col gap-4">
+              <div className="grid grid-flow-row gap-1">
+                <h2 className="text-lg font-semibold">Set Table as Enum</h2>
+
+                <p className="text-sm+ text-muted-foreground">
+                  Expose the table values as GraphQL enums in the GraphQL API
+                </p>
+              </div>
+            </div>
+          </div>
           {isTableIsEnumError ? (
             <Alert variant="destructive">
               <AlertTitle>Unable to load table is enum</AlertTitle>
               <AlertDescription>{tableIsEnumErrorMessage}</AlertDescription>
             </Alert>
           ) : (
-            <>
+            <div className="px-4">
               <div className="grid gap-2 rounded-md border border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
                 <p className="font-medium text-foreground">Requirements</p>
                 <ul className="grid list-disc gap-1 pl-5">
@@ -144,7 +150,7 @@ export default function SetIsEnumForm({
                 control={form.control}
                 name="isEnum"
                 render={({ field }) => (
-                  <FormItem className="space-y-4">
+                  <FormItem className="space-y-4 pt-4">
                     <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                       <div className="grid gap-1">
                         <FormLabel className="text-base font-medium">
@@ -162,9 +168,20 @@ export default function SetIsEnumForm({
                   </FormItem>
                 )}
               />
-            </>
+            </div>
           )}
-        </SettingsContainer>
+          <div className="grid grid-flow-col items-center justify-end gap-x-2 border-t px-4 pt-3.5">
+            <ButtonWithLoading
+              variant={formState.isDirty ? 'default' : 'outline'}
+              type="submit"
+              disabled={!formState.isDirty || isTableIsEnumError}
+              loading={formState.isSubmitting}
+              className="text-sm+"
+            >
+              Save
+            </ButtonWithLoading>
+          </div>
+        </div>
       </form>
     </Form>
   );
