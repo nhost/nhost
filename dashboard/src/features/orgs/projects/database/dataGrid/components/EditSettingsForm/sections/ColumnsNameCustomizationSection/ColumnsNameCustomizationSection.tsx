@@ -181,7 +181,7 @@ export default function ColumnsNameCustomizationSection({
 
   const displayColumns = tableColumns ?? [];
 
-  if (!isLoadingTableQuery || isLoadingTableCustomization) {
+  if (isLoadingTableQuery || isLoadingTableCustomization) {
     return <ColumnsNameCustomizationSectionSkeleton />;
   }
 

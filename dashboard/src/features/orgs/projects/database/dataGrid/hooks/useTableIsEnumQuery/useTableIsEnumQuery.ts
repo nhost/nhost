@@ -71,7 +71,9 @@ export default function useGetEventTriggersByTable({
         }
 
         const tableMetadata = sourceMetadata.tables.find(
-          (item) => item.table.name === table.name,
+          (item) =>
+            item.table.name === table.name &&
+            item.table.schema === table.schema,
         );
         return Boolean(tableMetadata?.is_enum);
       },
