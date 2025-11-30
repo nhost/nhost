@@ -34,9 +34,6 @@ module.exports = withBundleAnalyzer({
   reactStrictMode: false,
   swcMinify: false,
   output: 'standalone',
-  devtools: {
-    enabled: process.env.NODE_ENV === 'development',
-  },
   experimental: {
     outputFileTracingRoot: path.join(__dirname, '../'),
   },
