@@ -94,7 +94,7 @@ export default function CustomGraphQLRootFieldsSection({
   }
 
   const handleSubmit = form.handleSubmit(async (values) => {
-    const dto = prepareCustomGraphQLRootFieldsDTO(values, tableConfig!);
+    const dto = prepareCustomGraphQLRootFieldsDTO(values, tableConfig);
     const promise = setTableCustomization({
       resourceVersion,
       args: {
@@ -105,6 +105,8 @@ export default function CustomGraphQLRootFieldsSection({
         source: 'default',
         configuration: dto,
       },
+      prevConfig: tableConfig,
+      customizationType: 'CUSTOM_ROOT_FIELDS',
     });
     await execPromiseWithErrorToast(() => promise, {
       loadingMessage: 'Setting GraphQL root fields...',

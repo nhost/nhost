@@ -452,6 +452,7 @@ components:
     MigrationStep:
       oneOf:
         - $ref: '#/components/schemas/SetTableIsEnumStep'
+        - $ref: '#/components/schemas/SetTableCustomizationStep'
         - $ref: '#/components/schemas/AddRemoteSchemaPermissionsStep'
         - $ref: '#/components/schemas/DropRemoteSchemaPermissionsStep'
         - $ref: '#/components/schemas/UpdateRemoteSchemaStep'

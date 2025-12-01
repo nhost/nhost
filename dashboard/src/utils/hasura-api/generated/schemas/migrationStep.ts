@@ -11,11 +11,13 @@ import type { CreateEventTriggerStep } from './createEventTriggerStep';
 import type { DeleteEventTriggerStep } from './deleteEventTriggerStep';
 import type { DropRemoteSchemaPermissionsStep } from './dropRemoteSchemaPermissionsStep';
 import type { RemoveRemoteSchemaStep } from './removeRemoteSchemaStep';
+import type { SetTableCustomizationStep } from './setTableCustomizationStep';
 import type { SetTableIsEnumStep } from './setTableIsEnumStep';
 import type { UpdateRemoteSchemaStep } from './updateRemoteSchemaStep';
 
 export type MigrationStep =
   | SetTableIsEnumStep
+  | SetTableCustomizationStep
   | AddRemoteSchemaPermissionsStep
   | DropRemoteSchemaPermissionsStep
   | UpdateRemoteSchemaStep

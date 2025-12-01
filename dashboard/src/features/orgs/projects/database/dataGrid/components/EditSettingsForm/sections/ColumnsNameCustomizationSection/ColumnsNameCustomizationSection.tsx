@@ -121,7 +121,7 @@ export default function ColumnsNameCustomizationSection({
     useSetTableCustomizationMutation();
 
   const handleSubmit = form.handleSubmit(async (values) => {
-    const dto = prepareCustomGraphQLColumnNameDTO(values, tableCustomization!);
+    const dto = prepareCustomGraphQLColumnNameDTO(values, tableCustomization);
     const promise = setTableCustomization({
       resourceVersion,
       args: {
@@ -132,6 +132,8 @@ export default function ColumnsNameCustomizationSection({
         source: 'default',
         configuration: dto,
       },
+      prevConfig: tableCustomization,
+      customizationType: 'CUSTOM_COLUMN_NAMES',
     });
     await execPromiseWithErrorToast(() => promise, {
       loadingMessage: 'Setting GraphQL column names...',

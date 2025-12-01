@@ -7,13 +7,27 @@ import type {
 
 export default function prepareCustomGraphQLColumnNameDTO(
   formValues: ColumnsNameCustomizationFormValues,
-  prevConfig: TableConfig,
+  prevConfig?: TableConfig,
 ): TableConfig {
-  const { custom_root_fields, comment } = prevConfig;
+  let newConfig: TableConfig;
 
-  const customName = isEmptyValue(prevConfig.custom_name)
-    ? null
-    : prevConfig.custom_name!;
+  if (isEmptyValue(prevConfig)) {
+    newConfig = {
+      custom_name: null,
+      custom_root_fields: {},
+    };
+  } else {
+    const { custom_root_fields } = prevConfig!;
+
+    const customName = isEmptyValue(prevConfig!.custom_name)
+      ? null
+      : prevConfig!.custom_name;
+
+    newConfig = {
+      custom_root_fields,
+      custom_name: customName,
+    };
+  }
 
   const columnConfig = Object.entries(
     formValues.columns,
@@ -25,12 +39,9 @@ export default function prepareCustomGraphQLColumnNameDTO(
     }
     return acc;
   }, {});
-
-  const newConfig: TableConfig = {
+  newConfig = {
+    ...newConfig,
     column_config: columnConfig,
-    custom_root_fields,
-    custom_name: customName,
-    comment,
   };
 
   return newConfig;

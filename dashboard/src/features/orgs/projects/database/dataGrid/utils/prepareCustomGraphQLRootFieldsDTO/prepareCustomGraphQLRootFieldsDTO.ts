@@ -36,7 +36,7 @@ function buildRootField(
 
 export default function prepareCustomGraphQLRootFieldsDTO(
   formValues: CustomGraphQLRootFieldsFormValues,
-  prevConfig: TableConfig,
+  prevConfig?: TableConfig,
 ): TableConfig {
   const customRootFields: CustomRootFields = {};
 
@@ -106,7 +106,7 @@ export default function prepareCustomGraphQLRootFieldsDTO(
     custom_root_fields: customRootFields,
     custom_name: customName,
   };
-  if (isNotEmptyValue(prevConfig.custom_column_names)) {
+  if (isNotEmptyValue(prevConfig?.custom_column_names)) {
     Object.entries(prevConfig.custom_column_names).forEach(
       ([columnName, customColumnName]) => {
         newConfig.column_config![columnName] = prevConfig.column_config?.[
@@ -115,7 +115,7 @@ export default function prepareCustomGraphQLRootFieldsDTO(
       },
     );
   } else {
-    newConfig.column_config = prevConfig.column_config ?? {};
+    newConfig.column_config = prevConfig?.column_config ?? {};
   }
 
   return newConfig;
