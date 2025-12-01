@@ -4,14 +4,7 @@ import { Button } from '@/components/ui/v3/button';
 import type { BaseTableFormProps } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm';
 import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
 import type { NormalizedQueryDataRow } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/router';
-import { useForm } from 'react-hook-form';
-import {
-  defaultFormValues,
-  type EditSettingsFormValues,
-  validationSchema,
-} from './EditSettingsFormTypes';
 import { ColumnsNameCustomizationSection } from './sections/ColumnsNameCustomizationSection';
 import { CustomGraphQLRootFieldsSection } from './sections/CustomGraphQLRootFieldsSection';
 import { SetIsEnumSection } from './sections/SetIsEnumSection';
@@ -42,14 +35,6 @@ export default function EditSettingsForm({
       table: originalTable.table_name,
     },
   );
-
-  const form = useForm<EditSettingsFormValues>({
-    defaultValues: defaultFormValues,
-    reValidateMode: 'onSubmit',
-    resolver: zodResolver(validationSchema),
-  });
-
-  const { isDirty } = form.formState;
 
   const handleCancel = () => {
     if (onCancel) {
@@ -99,12 +84,7 @@ export default function EditSettingsForm({
       </div>
 
       <div className="grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 px-6 py-3">
-        <Button
-          variant="outline"
-          color="secondary"
-          onClick={handleCancel}
-          tabIndex={isDirty ? -1 : 0}
-        >
+        <Button variant="outline" color="secondary" onClick={handleCancel}>
           Back
         </Button>
       </div>
