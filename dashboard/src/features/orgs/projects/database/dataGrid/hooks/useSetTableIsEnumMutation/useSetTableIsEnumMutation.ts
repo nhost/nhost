@@ -22,7 +22,7 @@ export interface UseSetTableIsEnumMutationOptions {
 }
 
 /**
- * This hook is a wrapper around a fetch call that adds a remote schema permission.
+ * This hook is a wrapper around a fetch call that sets a table as enum.
  *
  * @param mutationOptions - Options to use for the mutation.
  * @returns The result of the mutation.
