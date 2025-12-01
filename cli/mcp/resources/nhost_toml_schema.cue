@@ -223,7 +223,7 @@ import (
 	// Releases:
 	//
 	// https://github.com/nhost/hasura-storage/releases
-	version: string | *"0.9.1"
+	version: string | *"0.10.0"
 
 	// Networking (custom domains at the moment) are not allowed as we need to do further
 	// configurations in the CDN. We will enable it again in the future.
@@ -311,7 +311,7 @@ import (
 	// Releases:
 	//
 	// https://github.com/nhost/hasura-auth/releases
-	version: string | *"0.43.0"
+	version: string | *"0.43.2"
 
 	// Resources for the service
 	resources?: #Resources
@@ -660,7 +660,7 @@ import (
 }
 
 #AI: {
-	version: string | *"0.8.0"
+	version: string | *"0.8.1"
 	resources: {
 		compute: #ComputeResources
 	}
