@@ -36,9 +36,9 @@ vi.mock(
   }),
 );
 
-function renderSection() {
+function renderSection(tableName = 'user_profile') {
   return render(
-    <CustomGraphQLRootFieldsSection schema="public" tableName="user_profile" />,
+    <CustomGraphQLRootFieldsSection schema="public" tableName={tableName} />,
   );
 }
 
@@ -123,6 +123,31 @@ describe('CustomGraphQLRootFieldsSection', () => {
     expect(customTableInput).toHaveDisplayValue('customTable');
     expect(selectAggregateField).toHaveDisplayValue('customSelectField');
     expect(insertOneField).toHaveDisplayValue('insertCustomField');
+  });
+
+  it('camel-cases existing values with a custom table name that is already camel-cased', async () => {
+    const user = new TestUserEvent();
+    renderSection('userProfile');
+    await openAllSections(user);
+
+    const [customTableInput] = screen.getAllByPlaceholderText(
+      'userProfile (default)',
+    );
+    const selectAggregateField = screen.getByPlaceholderText(
+      'userProfile_aggregate (default)',
+    );
+    const insertOneField = screen.getByPlaceholderText(
+      'insert_userProfile_one (default)',
+    );
+
+    await user.type(customTableInput, 'userProfileCustom');
+    await user.type(selectAggregateField, 'custom_select_field');
+
+    await user.click(screen.getByRole('button', { name: 'Make camelCase' }));
+
+    expect(customTableInput).toHaveDisplayValue('userProfileCustom');
+    expect(selectAggregateField).toHaveDisplayValue('customSelectField');
+    expect(insertOneField).toHaveDisplayValue('insertUserProfileCustomOne');
   });
 
   it('resets every field back to defaults when Reset to default is clicked', async () => {

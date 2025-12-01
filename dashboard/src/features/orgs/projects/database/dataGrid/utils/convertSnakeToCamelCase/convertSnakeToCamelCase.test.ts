@@ -27,4 +27,16 @@ describe('convertSnakeToCamelCase', () => {
       'customFieldName',
     );
   });
+
+  it('preserves mixed-case segments when camel-casing snake strings', () => {
+    expect(convertSnakeToCamelCase('insert_userProfile_custom_one')).toBe(
+      'insertUserProfileCustomOne',
+    );
+    expect(convertSnakeToCamelCase('INSERT_userProfile_CUSTOM_ONE')).toBe(
+      'insertUserProfileCustomOne',
+    );
+    expect(convertSnakeToCamelCase('insert_UserProfile_CustomOne')).toBe(
+      'insertUserProfileCustomOne',
+    );
+  });
 });
