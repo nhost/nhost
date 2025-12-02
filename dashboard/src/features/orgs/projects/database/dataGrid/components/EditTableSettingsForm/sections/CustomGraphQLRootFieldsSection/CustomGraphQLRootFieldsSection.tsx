@@ -331,7 +331,7 @@ export default function CustomGraphQLRootFieldsSection({
               type="submit"
               disabled={!formState.isDirty || isTableCustomizationError}
               loading={formState.isSubmitting}
-              className="text-sm+"
+              className="text-sm+ text-white"
             >
               Save
             </ButtonWithLoading>

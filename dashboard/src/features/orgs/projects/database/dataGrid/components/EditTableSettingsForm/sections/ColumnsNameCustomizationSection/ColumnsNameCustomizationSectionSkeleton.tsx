@@ -53,7 +53,7 @@ export default function ColumnsNameCustomizationSectionSkeleton() {
             variant="outline"
             type="submit"
             disabled
-            className="text-sm+"
+            className="text-sm+ text-white"
           >
             Save
           </ButtonWithLoading>

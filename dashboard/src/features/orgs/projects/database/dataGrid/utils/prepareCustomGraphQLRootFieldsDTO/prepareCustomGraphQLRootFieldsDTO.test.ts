@@ -1,4 +1,4 @@
-import { type CustomGraphQLRootFieldsFormValues } from '@/features/orgs/projects/database/dataGrid/components/EditSettingsForm/sections/CustomGraphQLRootFieldsSection/CustomGraphQLRootFieldsFormTypes';
+import { type CustomGraphQLRootFieldsFormValues } from '@/features/orgs/projects/database/dataGrid/components/EditTableSettingsForm/sections/CustomGraphQLRootFieldsSection/CustomGraphQLRootFieldsFormTypes';
 import type {
   CustomRootFields,
   TableConfig,

@@ -35,7 +35,7 @@ export default function SetIsEnumSectionSkeleton() {
             variant="outline"
             type="submit"
             disabled
-            className="text-sm+"
+            className="text-sm+ text-white"
           >
             Save
           </ButtonWithLoading>

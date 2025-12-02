@@ -1,4 +1,4 @@
-import type { ColumnsNameCustomizationFormValues } from '@/features/orgs/projects/database/dataGrid/components/EditSettingsForm/sections/ColumnsNameCustomizationSection/ColumnsNameCustomizationSection';
+import type { ColumnsNameCustomizationFormValues } from '@/features/orgs/projects/database/dataGrid/components/EditTableSettingsForm/sections/ColumnsNameCustomizationSection/ColumnsNameCustomizationSection';
 import { isEmptyValue } from '@/lib/utils';
 import type {
   TableConfig,

@@ -176,7 +176,7 @@ export default function SetIsEnumSection({
               type="submit"
               disabled={!formState.isDirty || isTableIsEnumError}
               loading={formState.isSubmitting}
-              className="text-sm+"
+              className="text-sm+ text-white"
             >
               Save
             </ButtonWithLoading>

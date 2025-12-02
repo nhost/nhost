@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/v3/select';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { EditSettingsForm } from '@/features/orgs/projects/database/dataGrid/components/EditSettingsForm';
+import { EditTableSettingsForm } from '@/features/orgs/projects/database/dataGrid/components/EditTableSettingsForm';
 import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
 import { useDeleteTableWithToastMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteTableMutation';
 import { isSchemaLocked } from '@/features/orgs/projects/database/dataGrid/utils/schemaHelpers';
@@ -421,7 +421,7 @@ function DataBrowserSidebarContent({
                                 </span>
                               ),
                               component: (
-                                <EditSettingsForm
+                                <EditTableSettingsForm
                                   schema={table.table_schema}
                                   table={table}
                                 />

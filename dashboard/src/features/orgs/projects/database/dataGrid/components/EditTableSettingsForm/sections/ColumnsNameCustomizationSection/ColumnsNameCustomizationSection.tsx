@@ -295,7 +295,7 @@ export default function ColumnsNameCustomizationSection({
               type="submit"
               disabled={!isDirty || isError}
               loading={isSubmitting}
-              className="text-sm+"
+              className="text-sm+ text-white"
             >
               Save
             </ButtonWithLoading>

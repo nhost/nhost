@@ -47,7 +47,11 @@ export default function CustomGraphQLRootFieldsSectionSkeleton() {
               Make camelCase
             </Button>
           </div>
-          <ButtonWithLoading variant="outline" disabled className="text-sm+">
+          <ButtonWithLoading
+            variant="outline"
+            disabled
+            className="text-sm+ text-white"
+          >
             Save
           </ButtonWithLoading>
         </div>

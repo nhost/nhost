@@ -9,7 +9,7 @@ import { ColumnsNameCustomizationSection } from './sections/ColumnsNameCustomiza
 import { CustomGraphQLRootFieldsSection } from './sections/CustomGraphQLRootFieldsSection';
 import { SetIsEnumSection } from './sections/SetIsEnumSection';
 
-export interface EditSettingsFormProps
+export interface EditTableSettingsFormProps
   extends Pick<BaseTableFormProps, 'onCancel' | 'location'> {
   /**
    * Schema where the table is located.
@@ -21,11 +21,11 @@ export interface EditSettingsFormProps
   table: NormalizedQueryDataRow;
 }
 
-export default function EditSettingsForm({
+export default function EditTableSettingsForm({
   onCancel,
   schema,
   table: originalTable,
-}: EditSettingsFormProps) {
+}: EditTableSettingsFormProps) {
   const router = useRouter();
 
   const { status: columnsStatus, error: columnsError } = useTableQuery(
