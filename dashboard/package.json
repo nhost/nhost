@@ -10,7 +10,7 @@
     "start": "next start",
     "lint": "next lint --max-warnings 0",
     "test": "pnpm lint && pnpm test:vitest",
-    "test:vitest": "vitest --run",
+    "test:vitest": "vitest run --exclude '**/BaseTableForm.test.tsx' && vitest run src/features/orgs/projects/database/dataGrid/components/BaseTableForm/BaseTableForm.test.tsx",
     "test:watch": "vitest",
     "generate": "echo 'This needs to be fixed.'",
     "codegen": "DOTENV_CONFIG_PATH=./.env.local graphql-codegen -r dotenv/config --config graphql.config.yaml --errors-only",
@@ -235,7 +235,8 @@
     "overrides": {
       "esbuild@<=0.24.2": ">=0.25.0",
       "js-yaml@<=4.1.0": ">=4.1.1",
-      "glob@>=10.3.7 <=11.0.3": ">=11.1.0"
+      "glob@>=10.3.7 <=11.0.3": ">=11.1.0",
+      "mdast-util-to-hast@>=13.0.0 <13.2.1": ">=13.2.1"
     }
   }
 }

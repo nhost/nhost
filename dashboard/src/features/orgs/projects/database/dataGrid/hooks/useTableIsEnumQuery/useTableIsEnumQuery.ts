@@ -8,32 +8,32 @@ import type {
 import type { UseQueryOptions } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 
-export interface UseGetEventTriggersByTableOptions {
+export interface UseTableIsEnumQueryOptions {
   /**
    * Props passed to the underlying query hook.
    */
   queryOptions?: UseQueryOptions<ExportMetadataResponse, unknown, boolean>;
   /**
-   * The table to get the event triggers for.
+   * The table to get the enum status for.
    */
   table: QualifiedTable;
   /**
-   * The data source to get the event triggers for.
+   * The data source to get the enum status for.
    */
   dataSource: string;
 }
 
 /**
- * This hook is a wrapper around a fetch call that gets the event triggers by table from the metadata.
+ * This hook gets the enum status of a table from the metadata.
  *
  * @param options - Options to use for the query.
- * @returns The result of the query.
+ * @returns True if the table is an enum, false otherwise.
  */
-export default function useGetEventTriggersByTable({
+export default function useTableIsEnumQuery({
   table,
   dataSource,
   queryOptions,
-}: UseGetEventTriggersByTableOptions) {
+}: UseTableIsEnumQueryOptions) {
   const { project, loading } = useProject();
 
   const query = useQuery<ExportMetadataResponse, unknown, boolean>(
@@ -71,7 +71,9 @@ export default function useGetEventTriggersByTable({
         }
 
         const tableMetadata = sourceMetadata.tables.find(
-          (item) => item.table.name === table.name,
+          (item) =>
+            item.table.name === table.name &&
+            item.table.schema === table.schema,
         );
         return Boolean(tableMetadata?.is_enum);
       },

@@ -29,12 +29,12 @@ export interface UseTableCustomizationQueryOptions {
 }
 
 /**
- * This hook is a wrapper around a fetch call that gets the event triggers by table from the metadata.
+ * This hook gets the table customization from the metadata.
  *
  * @param options - Options to use for the query.
  * @returns The result of the query.
  */
-export default function useGetEventTriggersByTable({
+export default function useTableCustomizationQuery({
   table,
   dataSource,
   queryOptions,
@@ -80,7 +80,9 @@ export default function useGetEventTriggersByTable({
         }
 
         const tableMetadata = sourceMetadata.tables.find(
-          (item) => item.table.name === table.name,
+          (item) =>
+            item.table.name === table.name &&
+            item.table.schema === table.schema,
         );
         return tableMetadata?.configuration;
       },

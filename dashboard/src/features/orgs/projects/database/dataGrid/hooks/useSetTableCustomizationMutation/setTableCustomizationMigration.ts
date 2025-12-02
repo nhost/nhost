@@ -1,31 +1,62 @@
-import type { SetTableCustomizationArgs } from '@/utils/hasura-api/generated/schemas';
+import { executeMigration } from '@/utils/hasura-api/generated/default/default';
+import type {
+  SetTableCustomizationArgs,
+  TableConfig,
+} from '@/utils/hasura-api/generated/schemas';
 import type { MigrationOperationOptions } from '@/utils/hasura-api/types';
-import setTableCustomization from './setTableCustomization';
 
 export interface SetTableCustomizationMigrationVariables {
-  resourceVersion?: number;
   args: SetTableCustomizationArgs;
+  prevConfig?: TableConfig;
+  customizationType: 'CUSTOM_ROOT_FIELDS' | 'CUSTOM_COLUMN_NAMES';
 }
 
 export default async function setTableCustomizationMigration({
   appUrl,
   adminSecret,
-  resourceVersion,
+  prevConfig,
+  customizationType,
   args,
 }: MigrationOperationOptions & SetTableCustomizationMigrationVariables) {
-  /**
-   * TODO: Build a proper executeMigration flow once the expected up/down steps are defined.
-   */
-  if (resourceVersion == null) {
-    throw new Error(
-      'resourceVersion is required while the metadata fallback is in place.',
+  const migrationName =
+    customizationType === 'CUSTOM_ROOT_FIELDS'
+      ? `set_custom_root_fields_${args.table.schema}_${args.table.name}`
+      : `alter_table_${args.table.schema}_${args.table.name}_alter_column_name_custom_fields`;
+  try {
+    const response = await executeMigration(
+      {
+        name: migrationName,
+        down: [
+          {
+            type: 'pg_set_table_customization',
+            args: {
+              ...args,
+              configuration: prevConfig,
+            },
+          },
+        ],
+        up: [
+          {
+            type: 'pg_set_table_customization',
+            args,
+          },
+        ],
+        datasource: args.source ?? 'default',
+        skip_execution: false,
+      },
+      {
+        baseUrl: appUrl,
+        adminSecret,
+      },
     );
-  }
 
-  return setTableCustomization({
-    appUrl,
-    adminSecret,
-    resourceVersion,
-    args,
-  });
+    if (response.status === 200) {
+      return response.data;
+    }
+
+    throw new Error(response.data.error);
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
 }

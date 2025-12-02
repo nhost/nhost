@@ -574,6 +574,7 @@ type Plan struct {
 	FeatureAdvancedGraphql             bool
 	FeatureBackupRetentionDays         int32
 	StripePriceIDPitr                  string
+	SlaLevel                           string
 }
 
 type Region struct {
@@ -621,6 +622,11 @@ type RunService struct {
 	AppID          uuid.UUID
 	MimirConfigEnc pgtype.Text
 	Subdomain      string
+}
+
+type SlaLevel struct {
+	Value   string
+	Comment pgtype.Text
 }
 
 // Software type: hasura, postgres, hasura-auth ...
