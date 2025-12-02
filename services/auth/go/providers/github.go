@@ -94,13 +94,8 @@ func (g *Github) GetProfile(
 
 func (g *Github) AuthCodeURL(
 	state string,
-	p *api.ProviderSpecificParams,
+	_ *api.ProviderSpecificParams,
 	opts ...oauth2.AuthCodeOption,
 ) string {
-	fmt.Println("Provider specific params:", p)
-	if p != nil {
-		fmt.Println("GitHub provider specific params:", *p.Connection, *p.Organization)
-	}
-
 	return g.Config.AuthCodeURL(state, opts...)
 }

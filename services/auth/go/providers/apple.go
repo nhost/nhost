@@ -161,7 +161,9 @@ func (a *Apple) GetProfile(
 }
 
 func (a *Apple) AuthCodeURL(
-	state string, _ *api.ProviderSpecificParams, opts ...oauth2.AuthCodeOption,
+	state string,
+	_ *api.ProviderSpecificParams,
+	opts ...oauth2.AuthCodeOption,
 ) string {
 	opts = append(
 		opts,
