@@ -276,7 +276,7 @@ function DataBrowserSidebarContent({
     openDrawer({
       title: (
         <span className="inline-grid grid-flow-col items-center gap-2">
-          Edit settings for
+          {disabled ? 'View settings for' : 'Edit settings for'}
           <InlineCode className="!text-sm+ font-normal">{table}</InlineCode>
           table
         </span>
