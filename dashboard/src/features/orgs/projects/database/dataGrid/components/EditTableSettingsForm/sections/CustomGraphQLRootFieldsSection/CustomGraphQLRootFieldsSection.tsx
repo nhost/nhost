@@ -15,7 +15,7 @@ import { parseCustomGQLRootFieldsFormDefaultValues } from '@/features/orgs/proje
 import { convertSnakeToCamelCase } from '@/features/orgs/projects/database/dataGrid/utils/convertSnakeToCamelCase';
 import prepareCustomGraphQLRootFieldsDTO from '@/features/orgs/projects/database/dataGrid/utils/prepareCustomGraphQLRootFieldsDTO/prepareCustomGraphQLRootFieldsDTO';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { isEmptyValue } from '@/lib/utils';
+import { cn, isEmptyValue } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -33,11 +33,13 @@ import {
 import CustomGraphQLRootFieldsSectionSkeleton from './CustomGraphQLRootFieldsSectionSkeleton';
 
 interface CustomGraphQLRootFieldsFormProps {
+  disabled?: boolean;
   schema: string;
   tableName: string;
 }
 
 export default function CustomGraphQLRootFieldsSection({
+  disabled,
   schema,
   tableName,
 }: CustomGraphQLRootFieldsFormProps) {
@@ -68,6 +70,8 @@ export default function CustomGraphQLRootFieldsSection({
   >([]);
 
   const { formState, reset, setValue } = form;
+
+  const { isSubmitting, isDirty } = formState;
 
   const customTableName = form.watch('customTableName');
 
@@ -222,6 +226,7 @@ export default function CustomGraphQLRootFieldsSection({
           ) : (
             <div className="grid grid-flow-row gap-4 px-4">
               <FormInput
+                disabled={disabled}
                 control={form.control}
                 name="customTableName"
                 label="Custom Table Name"
@@ -256,6 +261,7 @@ export default function CustomGraphQLRootFieldsSection({
 
                         return (
                           <CustomGraphQLRootFieldsFieldGroup
+                            disabled={disabled}
                             fieldLabel={fieldConfig.label}
                             key={`query-${fieldConfig.key}`}
                             commentPath={commentPath}
@@ -292,6 +298,7 @@ export default function CustomGraphQLRootFieldsSection({
 
                         return (
                           <CustomGraphQLRootFieldsFieldGroup
+                            disabled={disabled}
                             fieldLabel={fieldConfig.label}
                             key={`mutation-${fieldConfig.key}`}
                             commentPath={commentPath}
@@ -308,36 +315,38 @@ export default function CustomGraphQLRootFieldsSection({
             </div>
           )}
 
-          <div className="grid grid-flow-col items-center justify-between gap-x-2 border-t px-4 pt-3.5">
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                color="secondary"
-                type="button"
-                onClick={handleResetToDefaultClick}
-                disabled={isTableCustomizationError}
+          {!disabled && (
+            <div className="grid grid-flow-col items-center justify-between gap-x-2 border-t px-4 pt-3.5">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  color="secondary"
+                  type="button"
+                  onClick={handleResetToDefaultClick}
+                  disabled={isTableCustomizationError || isSubmitting}
+                >
+                  Reset to default
+                </Button>
+                <Button
+                  variant="secondary"
+                  type="button"
+                  onClick={handleMakeCamelCaseClick}
+                  disabled={isTableCustomizationError || isSubmitting}
+                >
+                  Make camelCase
+                </Button>
+              </div>
+              <ButtonWithLoading
+                variant={isDirty ? 'default' : 'outline'}
+                type="submit"
+                disabled={!isDirty || isTableCustomizationError}
+                loading={isSubmitting}
+                className={cn('text-sm+', { 'text-white': isDirty })}
               >
-                Reset to default
-              </Button>
-              <Button
-                variant="secondary"
-                type="button"
-                onClick={handleMakeCamelCaseClick}
-                disabled={isTableCustomizationError}
-              >
-                Make camelCase
-              </Button>
+                Save
+              </ButtonWithLoading>
             </div>
-            <ButtonWithLoading
-              variant={formState.isDirty ? 'default' : 'outline'}
-              type="submit"
-              disabled={!formState.isDirty || isTableCustomizationError}
-              loading={formState.isSubmitting}
-              className="text-sm+ text-white"
-            >
-              Save
-            </ButtonWithLoading>
-          </div>
+          )}
         </div>
       </form>
     </Form>

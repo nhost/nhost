@@ -9,7 +9,7 @@ import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/
 import { convertSnakeToCamelCase } from '@/features/orgs/projects/database/dataGrid/utils/convertSnakeToCamelCase';
 import { prepareCustomGraphQLColumnNameDTO } from '@/features/orgs/projects/database/dataGrid/utils/prepareCustomGraphQLColumnNameDTO';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { isEmptyValue } from '@/lib/utils';
+import { cn, isEmptyValue } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
@@ -17,6 +17,7 @@ import { z } from 'zod';
 import ColumnsNameCustomizationSectionSkeleton from './ColumnsNameCustomizationSectionSkeleton';
 
 export interface ColumnsNameCustomizationSectionProps {
+  disabled?: boolean;
   schema: string;
   tableName: string;
 }
@@ -37,6 +38,7 @@ export type ColumnsNameCustomizationFormValues = z.infer<
 >;
 
 export default function ColumnsNameCustomizationSection({
+  disabled,
   schema,
   tableName,
 }: ColumnsNameCustomizationSectionProps) {
@@ -216,7 +218,7 @@ export default function ColumnsNameCustomizationSection({
             </div>
           ) : (
             <div className="space-y-3">
-              <div className="rounded-lg">
+              <div className="px-4">
                 <div className="grid grid-cols-[minmax(0,1fr),minmax(0,1fr),minmax(0,1.5fr)] items-center gap-3 rounded-md bg-muted px-4 py-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
                   <span>Column</span>
                   <span>Data Type</span>
@@ -245,7 +247,7 @@ export default function ColumnsNameCustomizationSection({
                     return (
                       <div
                         key={columnName}
-                        className="grid grid-cols-[minmax(0,1fr),minmax(0,1fr),minmax(0,1.5fr)] items-center gap-3 rounded-md bg-background px-4 py-3"
+                        className="grid grid-cols-[minmax(0,1fr),minmax(0,1fr),minmax(0,1.5fr)] items-center gap-3 rounded-md bg-background py-3 pl-4 pr-0"
                       >
                         <div className="space-y-1">
                           <span className="text-sm font-medium text-foreground">
@@ -258,11 +260,12 @@ export default function ColumnsNameCustomizationSection({
                         </span>
 
                         <FormInput
+                          disabled={disabled}
                           control={form.control}
                           name={fieldPath}
                           label=""
                           placeholder={`${columnName} (default)`}
-                          className="font-mono"
+                          className="pr-4 font-mono"
                           containerClassName="space-y-0"
                         />
                       </div>
@@ -272,36 +275,38 @@ export default function ColumnsNameCustomizationSection({
               </div>
             </div>
           )}
-          <div className="grid grid-flow-col items-center justify-between gap-x-2 border-t px-4 pt-3.5">
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                color="secondary"
-                type="button"
-                onClick={handleResetToDefaultClick}
-                disabled={isError}
+          {!disabled && (
+            <div className="grid grid-flow-col items-center justify-between gap-x-2 border-t px-4 pt-3.5">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  color="secondary"
+                  type="button"
+                  onClick={handleResetToDefaultClick}
+                  disabled={isError || isSubmitting}
+                >
+                  Reset to default
+                </Button>
+                <Button
+                  variant="secondary"
+                  type="button"
+                  onClick={handleMakeCamelCaseClick}
+                  disabled={isError || isSubmitting}
+                >
+                  Make camelCase
+                </Button>
+              </div>
+              <ButtonWithLoading
+                variant={isDirty ? 'default' : 'outline'}
+                type="submit"
+                disabled={!isDirty || isError}
+                loading={isSubmitting}
+                className={cn('text-sm+', { 'text-white': isDirty })}
               >
-                Reset to default
-              </Button>
-              <Button
-                variant="secondary"
-                type="button"
-                onClick={handleMakeCamelCaseClick}
-                disabled={isError}
-              >
-                Make camelCase
-              </Button>
+                Save
+              </ButtonWithLoading>
             </div>
-            <ButtonWithLoading
-              variant={isDirty ? 'default' : 'outline'}
-              type="submit"
-              disabled={!isDirty || isError}
-              loading={isSubmitting}
-              className="text-sm+ text-white"
-            >
-              Save
-            </ButtonWithLoading>
-          </div>
+          )}
         </div>
       </form>
     </Form>

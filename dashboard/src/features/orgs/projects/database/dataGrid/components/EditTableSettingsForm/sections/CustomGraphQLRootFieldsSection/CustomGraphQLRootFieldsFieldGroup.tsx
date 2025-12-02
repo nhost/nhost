@@ -2,6 +2,7 @@ import { FormInput } from '@/components/form/FormInput';
 import { useFormContext } from 'react-hook-form';
 
 export interface CustomGraphQLRootFieldsFieldGroupProps {
+  disabled?: boolean;
   fieldLabel: string;
   key: string;
   commentPath: string;
@@ -11,6 +12,7 @@ export interface CustomGraphQLRootFieldsFieldGroupProps {
 }
 
 export default function CustomGraphQLRootFieldsFieldGroup({
+  disabled,
   fieldLabel,
   key,
   commentPath,
@@ -27,6 +29,7 @@ export default function CustomGraphQLRootFieldsFieldGroup({
     >
       <span className="text-sm font-medium text-foreground">{fieldLabel}</span>
       <FormInput
+        disabled={disabled}
         control={form.control}
         name={fieldNamePath}
         label=""
@@ -37,6 +40,7 @@ export default function CustomGraphQLRootFieldsFieldGroup({
       />
       <div className="flex gap-0">
         <FormInput
+          disabled={disabled}
           control={form.control}
           name={commentPath}
           label=""
