@@ -121,7 +121,7 @@ export function NewProjectPageContent({
             regionId: selectedRegion.id,
             regionName: selectedRegion.name,
           });
-
+          sessionStorage.setItem('newProject', JSON.stringify({ subdomain }));
           await router.push(`/orgs/${selectedOrg.slug}/projects/${subdomain}`);
         }
       },
