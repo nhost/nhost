@@ -32,6 +32,7 @@ type Props = {
   onViewPermissions: () => void;
   onEditTable: () => void;
   onEditSettings: () => void;
+  onViewSettings: () => void;
   onEditRelationships: () => void;
 };
 
@@ -48,6 +49,7 @@ function TableActions({
   onViewPermissions,
   onEditTable,
   onEditSettings,
+  onViewSettings,
   onEditRelationships,
 }: Props) {
   const { project } = useProject();
@@ -78,12 +80,20 @@ function TableActions({
       </DropdownMenuTrigger>
       <DropdownMenuContent side="bottom" align="start" className="w-52 p-0">
         {isGitHubConnected ? (
-          <DropdownMenuItem
-            className={menuItemClassName}
-            onClick={onViewPermissions}
-          >
-            <Users className="h-4 w-4" /> <span>View Permissions</span>
-          </DropdownMenuItem>
+          <>
+            <DropdownMenuItem
+              className={menuItemClassName}
+              onClick={onViewPermissions}
+            >
+              <Users className="h-4 w-4" /> <span>View Permissions</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className={menuItemClassName}
+              onClick={onViewSettings}
+            >
+              <Settings className="h-4 w-4" /> <span>View Settings</span>
+            </DropdownMenuItem>
+          </>
         ) : (
           <>
             {isSelectedNotSchemaLocked && (

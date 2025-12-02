@@ -269,6 +269,34 @@ function DataBrowserSidebarContent({
     });
   }
 
+  function handleEditSettingsClick(
+    schema: string,
+    table: string,
+    disabled?: boolean,
+  ) {
+    openDrawer({
+      title: (
+        <span className="inline-grid grid-flow-col items-center gap-2">
+          {disabled ? 'View settings for' : 'Edit settings for'}
+          <InlineCode className="!text-sm+ font-normal">{table}</InlineCode>
+          table
+        </span>
+      ),
+      component: (
+        <EditTableSettingsForm
+          disabled={disabled}
+          schema={schema}
+          tableName={table}
+        />
+      ),
+      props: {
+        PaperProps: {
+          className: 'overflow-hidden ',
+        },
+      },
+    });
+  }
+
   return (
     <div className="flex h-full flex-col justify-between">
       <div className="box flex flex-col px-2">
@@ -387,6 +415,13 @@ function DataBrowserSidebarContent({
                               true,
                             )
                           }
+                          onViewSettings={() =>
+                            handleEditSettingsClick(
+                              table.table_schema,
+                              table.table_name,
+                              true,
+                            )
+                          }
                           onEditTable={() =>
                             openDrawer({
                               title: 'Edit Table',
@@ -427,28 +462,11 @@ function DataBrowserSidebarContent({
                             });
                           }}
                           onEditSettings={() => {
-                            openDrawer({
-                              title: (
-                                <span className="inline-grid grid-flow-col items-center gap-2">
-                                  Edit settings for
-                                  <InlineCode className="!text-sm+ font-normal">
-                                    {table.table_name}
-                                  </InlineCode>
-                                  table
-                                </span>
-                              ),
-                              component: (
-                                <EditTableSettingsForm
-                                  schema={table.table_schema}
-                                  table={table}
-                                />
-                              ),
-                              props: {
-                                PaperProps: {
-                                  className: 'overflow-hidden',
-                                },
-                              },
-                            });
+                            handleEditSettingsClick(
+                              table.table_schema,
+                              table.table_name,
+                              false,
+                            );
                           }}
                           onDelete={() =>
                             handleDeleteTableClick(

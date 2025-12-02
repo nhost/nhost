@@ -13,6 +13,7 @@ import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/h
 import useSetTableIsEnumMutation from '@/features/orgs/projects/database/dataGrid/hooks/useSetTableIsEnumMutation/useSetTableIsEnumMutation';
 import { useTableIsEnumQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableIsEnumQuery';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
@@ -24,11 +25,13 @@ const validationSchema = z.object({
 });
 
 export interface SetIsEnumSectionProps {
+  disabled?: boolean;
   schema: string;
   tableName: string;
 }
 
 export default function SetIsEnumSection({
+  disabled,
   schema,
   tableName,
 }: SetIsEnumSectionProps) {
@@ -62,6 +65,8 @@ export default function SetIsEnumSection({
   });
 
   const { reset, formState } = form;
+
+  const { isDirty, isSubmitting } = formState;
 
   useEffect(() => {
     if (isLoadingIsEnum) {
@@ -165,6 +170,7 @@ export default function SetIsEnumSection({
                         <Switch
                           checked={field.value}
                           onCheckedChange={field.onChange}
+                          disabled={disabled}
                         />
                       </FormControl>
                     </div>
@@ -174,17 +180,19 @@ export default function SetIsEnumSection({
               />
             </div>
           )}
-          <div className="grid grid-flow-col items-center justify-end gap-x-2 border-t px-4 pt-3.5">
-            <ButtonWithLoading
-              variant={formState.isDirty ? 'default' : 'outline'}
-              type="submit"
-              disabled={!formState.isDirty || isTableIsEnumError}
-              loading={formState.isSubmitting}
-              className="text-sm+ text-white"
-            >
-              Save
-            </ButtonWithLoading>
-          </div>
+          {!disabled && (
+            <div className="grid grid-flow-col items-center justify-end gap-x-2 border-t px-4 pt-3.5">
+              <ButtonWithLoading
+                variant={isDirty ? 'default' : 'outline'}
+                type="submit"
+                disabled={!isDirty || isTableIsEnumError}
+                loading={isSubmitting}
+                className={cn('text-sm+', { 'text-white': isDirty })}
+              >
+                Save
+              </ButtonWithLoading>
+            </div>
+          )}
         </div>
       </form>
     </Form>
