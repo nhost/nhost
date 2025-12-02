@@ -209,14 +209,16 @@ export default function CustomGraphQLRootFieldsSection({
             </div>
           </div>
           {isTableCustomizationError ? (
-            <Alert variant="destructive">
-              <AlertTitle>Unable to load table customization</AlertTitle>
-              <AlertDescription>
-                {tableCustomizationErrorMessage && (
-                  <span>{tableCustomizationErrorMessage}</span>
-                )}
-              </AlertDescription>
-            </Alert>
+            <div className="px-4">
+              <Alert variant="destructive">
+                <AlertTitle>Unable to load table customization</AlertTitle>
+                <AlertDescription>
+                  {tableCustomizationErrorMessage && (
+                    <p>{tableCustomizationErrorMessage}</p>
+                  )}
+                </AlertDescription>
+              </Alert>
+            </div>
           ) : (
             <div className="grid grid-flow-row gap-4 px-4">
               <FormInput

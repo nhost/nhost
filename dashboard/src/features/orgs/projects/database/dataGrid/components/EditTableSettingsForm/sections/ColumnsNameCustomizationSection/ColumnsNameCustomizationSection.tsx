@@ -203,15 +203,17 @@ export default function ColumnsNameCustomizationSection({
             </div>
           </div>
           {isError ? (
-            <Alert variant="destructive">
-              <AlertTitle>Unable to load columns</AlertTitle>
-              <AlertDescription>
-                {tableDataErrorMessage && <span>{tableDataErrorMessage}</span>}
-                {tableCustomizationErrorMessage && (
-                  <span>{tableCustomizationErrorMessage}</span>
-                )}
-              </AlertDescription>
-            </Alert>
+            <div className="px-4">
+              <Alert variant="destructive">
+                <AlertTitle>Unable to load column field names</AlertTitle>
+                <AlertDescription>
+                  {tableDataErrorMessage && <p>{tableDataErrorMessage}</p>}
+                  {tableCustomizationErrorMessage && (
+                    <p>{tableCustomizationErrorMessage}</p>
+                  )}
+                </AlertDescription>
+              </Alert>
+            </div>
           ) : (
             <div className="space-y-3">
               <div className="rounded-lg">

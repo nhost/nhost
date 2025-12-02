@@ -125,10 +125,14 @@ export default function SetIsEnumSection({
             </div>
           </div>
           {isTableIsEnumError ? (
-            <Alert variant="destructive">
-              <AlertTitle>Unable to load table is enum</AlertTitle>
-              <AlertDescription>{tableIsEnumErrorMessage}</AlertDescription>
-            </Alert>
+            <div className="px-4">
+              <Alert variant="destructive">
+                <AlertTitle>Unable to load table is enum</AlertTitle>
+                <AlertDescription>
+                  {tableIsEnumErrorMessage && <p>{tableIsEnumErrorMessage}</p>}
+                </AlertDescription>
+              </Alert>
+            </div>
           ) : (
             <div className="px-4">
               <div className="grid gap-2 rounded-md border border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
