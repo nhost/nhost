@@ -64,11 +64,10 @@ function TestTableFormWrapper({ defaultValues = defaultFormValues }: any) {
   );
 }
 
-const user = new TestUserEvent();
-
 async function fillColumnForm(
   { columnName, optionName, typeValue, defaultValue }: any,
   index: number,
+  user: TestUserEvent,
 ) {
   const columnNameInput = screen.getByTestId(`columns.${index}.name`);
   expect(columnNameInput).toBeInTheDocument();
@@ -110,6 +109,8 @@ describe('BaseTableForm', () => {
   it('should not disable the nullable and unique checkboxes after setting the column name', async () => {
     render(<TestTableFormWrapper />);
 
+    const user = new TestUserEvent();
+
     let firstColumnIsNullableCheckbox = screen.getByRole('checkbox', {
       name: (accessibleName, element) =>
         element.getAttribute('name') === 'columns.0.isNullable',
@@ -141,6 +142,9 @@ describe('BaseTableForm', () => {
 
   it('should disable the nullable and unique checkboxes if the column is the primary key', async () => {
     render(<TestTableFormWrapper />);
+
+    const user = new TestUserEvent();
+
     await fillColumnForm(
       {
         columnName: 'id',
@@ -149,6 +153,7 @@ describe('BaseTableForm', () => {
         defaultValue: 'gen_random_uuid()',
       },
       0,
+      user,
     );
     TestUserEvent.fireClickEvent(
       screen.getByRole('button', { name: /Add Column/ }),
@@ -161,6 +166,7 @@ describe('BaseTableForm', () => {
         typeValue: 'text',
       },
       1,
+      user,
     );
 
     await TestUserEvent.fireClickEvent(
@@ -175,6 +181,7 @@ describe('BaseTableForm', () => {
         defaultValue: 'false',
       },
       2,
+      user,
     );
 
     await TestUserEvent.fireClickEvent(screen.getByText('Add Primary Key'));
@@ -199,6 +206,9 @@ describe('BaseTableForm', () => {
 
   it('should disable the nullable and unique checkboxes and default value if the column is an identity column', async () => {
     render(<TestTableFormWrapper />);
+
+    const user = new TestUserEvent();
+
     await fillColumnForm(
       {
         columnName: 'id',
@@ -207,6 +217,7 @@ describe('BaseTableForm', () => {
         defaultValue: 'gen_random_uuid()',
       },
       0,
+      user,
     );
     TestUserEvent.fireClickEvent(
       screen.getByRole('button', { name: /Add Column/ }),
@@ -219,6 +230,7 @@ describe('BaseTableForm', () => {
         typeValue: 'smallint',
       },
       1,
+      user,
     );
 
     TestUserEvent.fireClickEvent(screen.getByLabelText('Identity'));
@@ -234,64 +246,120 @@ describe('BaseTableForm', () => {
     );
   });
 
-  it('should display the identity column picker if an integer is selected as a column type', async () => {
+  it('should display identity column picker when smallint is selected', async () => {
     render(<TestTableFormWrapper />);
+    const user = new TestUserEvent();
 
     expect(screen.queryByLabelText('Identity')).not.toBeInTheDocument();
 
     await TestUserEvent.fireClickEvent(
       screen.getByPlaceholderText('Select type'),
     );
-
     await user.type(screen.getByPlaceholderText('Select type'), 'int');
-
     await TestUserEvent.fireClickEvent(
       screen.getByRole('option', { name: 'smallint int2' }),
     );
 
     expect(screen.getByDisplayValue('smallint')).toBeInTheDocument();
     expect(screen.getByLabelText('Identity')).toBeInTheDocument();
+  });
 
-    await TestUserEvent.fireClickEvent(screen.getByDisplayValue('smallint'));
+  it('should display identity column picker when integer is selected', async () => {
+    render(<TestTableFormWrapper />);
+    const user = new TestUserEvent();
 
-    await user.type(screen.getByDisplayValue('smallint'), 'text');
-
-    await TestUserEvent.fireClickEvent(
-      screen.getByRole('option', { name: 'text text' }),
-    );
-    expect(screen.getByDisplayValue('text')).toBeInTheDocument();
     expect(screen.queryByLabelText('Identity')).not.toBeInTheDocument();
 
-    await TestUserEvent.fireClickEvent(screen.getByDisplayValue('text'));
-
-    await user.type(screen.getByDisplayValue('text'), 'int');
-
+    await TestUserEvent.fireClickEvent(
+      screen.getByPlaceholderText('Select type'),
+    );
+    await user.type(screen.getByPlaceholderText('Select type'), 'int');
     await TestUserEvent.fireClickEvent(
       screen.getByRole('option', { name: 'integer int4' }),
     );
 
     expect(screen.getByDisplayValue('integer')).toBeInTheDocument();
     expect(screen.getByLabelText('Identity')).toBeInTheDocument();
+  });
 
-    await TestUserEvent.fireClickEvent(screen.getByDisplayValue('integer'));
+  it('should display identity column picker when bigint is selected', async () => {
+    render(<TestTableFormWrapper />);
+    const user = new TestUserEvent();
 
-    await user.type(screen.getByDisplayValue('integer'), 'numeric');
+    expect(screen.queryByLabelText('Identity')).not.toBeInTheDocument();
 
+    await TestUserEvent.fireClickEvent(
+      screen.getByPlaceholderText('Select type'),
+    );
+    await user.type(screen.getByPlaceholderText('Select type'), 'int');
+    await TestUserEvent.fireClickEvent(
+      screen.getByRole('option', { name: 'bigint int8' }),
+    );
+
+    expect(screen.getByDisplayValue('bigint')).toBeInTheDocument();
+    expect(screen.getByLabelText('Identity')).toBeInTheDocument();
+  });
+
+  it('should not display identity column picker when text type is selected', async () => {
+    render(<TestTableFormWrapper />);
+    const user = new TestUserEvent();
+
+    expect(screen.queryByLabelText('Identity')).not.toBeInTheDocument();
+
+    await TestUserEvent.fireClickEvent(
+      screen.getByPlaceholderText('Select type'),
+    );
+    await user.type(screen.getByPlaceholderText('Select type'), 'text');
+    await TestUserEvent.fireClickEvent(
+      screen.getByRole('option', { name: 'text text' }),
+    );
+
+    expect(screen.getByDisplayValue('text')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Identity')).not.toBeInTheDocument();
+  });
+
+  it('should not display identity column picker when numeric type is selected', async () => {
+    render(<TestTableFormWrapper />);
+    const user = new TestUserEvent();
+
+    expect(screen.queryByLabelText('Identity')).not.toBeInTheDocument();
+
+    await TestUserEvent.fireClickEvent(
+      screen.getByPlaceholderText('Select type'),
+    );
+    await user.type(screen.getByPlaceholderText('Select type'), 'numeric');
     await TestUserEvent.fireClickEvent(
       screen.getByRole('option', { name: 'numeric numeric' }),
     );
 
     expect(screen.getByDisplayValue('numeric')).toBeInTheDocument();
     expect(screen.queryByLabelText('Identity')).not.toBeInTheDocument();
+  });
 
-    await TestUserEvent.fireClickEvent(screen.getByDisplayValue('numeric'));
-    await user.type(screen.getByDisplayValue('numeric'), 'int');
+  it('should show identity picker when changing from text to integer type', async () => {
+    render(<TestTableFormWrapper />);
+    const user = new TestUserEvent();
+
+    expect(screen.queryByLabelText('Identity')).not.toBeInTheDocument();
 
     await TestUserEvent.fireClickEvent(
-      screen.getByRole('option', { name: 'bigint int8' }),
+      screen.getByPlaceholderText('Select type'),
+    );
+    await user.type(screen.getByPlaceholderText('Select type'), 'text');
+    await TestUserEvent.fireClickEvent(
+      screen.getByRole('option', { name: 'text text' }),
     );
 
-    expect(screen.getByDisplayValue('bigint')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Identity')).not.toBeInTheDocument();
+
+    await TestUserEvent.fireClickEvent(screen.getByDisplayValue('text'));
+    await user.clear(screen.getByTestId('columns.0.type'));
+    await user.type(screen.getByTestId('columns.0.type'), 'int');
+    await TestUserEvent.fireClickEvent(
+      screen.getByRole('option', { name: 'integer int4' }),
+    );
+
+    expect(screen.getByDisplayValue('integer')).toBeInTheDocument();
     expect(screen.getByLabelText('Identity')).toBeInTheDocument();
   });
 
@@ -339,6 +407,9 @@ describe('BaseTableForm', () => {
 
   it('should add a comment to the column', async () => {
     render(<TestTableFormWrapper />);
+
+    const user = new TestUserEvent();
+
     expect(screen.getByText('Save')).toBeInTheDocument();
 
     await user.type(screen.getByTestId('tableNameInput'), 'test_table');
@@ -355,6 +426,7 @@ describe('BaseTableForm', () => {
         defaultValue: 'gen_random_uuid()',
       },
       0,
+      user,
     );
 
     await TestUserEvent.fireClickEvent(screen.getByTestId('columns.0.comment'));
@@ -382,6 +454,7 @@ describe('BaseTableForm', () => {
         typeValue: 'text',
       },
       1,
+      user,
     );
 
     TestUserEvent.fireClickEvent(
@@ -394,6 +467,7 @@ describe('BaseTableForm', () => {
         typeValue: 'smallint',
       },
       2,
+      user,
     );
 
     await TestUserEvent.fireClickEvent(screen.getByText('Add Primary Key'));

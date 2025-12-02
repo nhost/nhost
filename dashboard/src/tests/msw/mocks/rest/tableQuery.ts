@@ -21,7 +21,6 @@ const tableQuery = http.post(
             ],
           ],
         },
-        { result_type: 'TuplesOk', result: [['row_to_json']] },
         {
           result_type: 'TuplesOk',
           result: [
@@ -31,6 +30,12 @@ const tableQuery = http.post(
             ],
           ],
         },
+      ]);
+    }
+
+    if (/public.authors/gim.exec(body.args[0].sql) !== null) {
+      return HttpResponse.json([
+        { result_type: 'TuplesOk', result: [['row_to_json']] },
         { result_type: 'TuplesOk', result: [['count'], ['0']] },
       ]);
     }
@@ -54,10 +59,6 @@ const tableQuery = http.post(
         },
         {
           result_type: 'TuplesOk',
-          result: [['row_to_json']],
-        },
-        {
-          result_type: 'TuplesOk',
           result: [
             ['row_to_json'],
             [
@@ -68,10 +69,13 @@ const tableQuery = http.post(
             ],
           ],
         },
-        {
-          result_type: 'TuplesOk',
-          result: [['count'], ['0']],
-        },
+      ]);
+    }
+
+    if (/public.town/gim.exec(body.args[0].sql) !== null) {
+      return HttpResponse.json([
+        { result_type: 'TuplesOk', result: [['row_to_json']] },
+        { result_type: 'TuplesOk', result: [['count'], ['0']] },
       ]);
     }
 
@@ -93,22 +97,37 @@ const tableQuery = http.post(
           result_type: 'TuplesOk',
           result: [
             ['row_to_json'],
-            ['{"id":"1902e481-b080-4340-abe3-27b0a60973c6","name":"There"}'],
-            ['{"id":"a486b088-50e8-41d0-88b0-5bf9a3e7b5e7","name":"hello"}'],
-          ],
-        },
-        {
-          result_type: 'TuplesOk',
-          result: [
-            ['row_to_json'],
             [
               '{"constraint_name":"actor_pkey","constraint_type":"p","constraint_definition":"PRIMARY KEY (id)","column_name":"id"}',
             ],
           ],
         },
+      ]);
+    }
+
+    if (/public.actor/gim.exec(body.args[0].sql) !== null) {
+      return HttpResponse.json([
         {
           result_type: 'TuplesOk',
-          result: [['count'], ['2']],
+          result: [
+            ['row_to_json'],
+            ['{"id":"1902e481-b080-4340-abe3-27b0a60973c6","name":"There"}'],
+            ['{"id":"a486b088-50e8-41d0-88b0-5bf9a3e7b5e7","name":"hello"}'],
+          ],
+        },
+        { result_type: 'TuplesOk', result: [['count'], ['2']] },
+      ]);
+    }
+
+    if (body?.args?.[1].args.sql.includes('SELECT COUNT(*)')) {
+      return HttpResponse.json([
+        {
+          result_type: 'TuplesOk',
+          result: [['row_to_json']],
+        },
+        {
+          result_type: 'TuplesOk',
+          result: [['count'], ['0']],
         },
       ]);
     }

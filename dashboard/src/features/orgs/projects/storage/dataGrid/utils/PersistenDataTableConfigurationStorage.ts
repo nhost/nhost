@@ -22,9 +22,9 @@ class PersistenDataTableConfigurationStorage {
     if (isEmptyValue(storedData)) {
       return {};
     }
-    const allHiddenColumns = JSON.parse(storedData as string);
+    const allStoredData = JSON.parse(storedData as string);
 
-    return allHiddenColumns;
+    return allStoredData;
   }
 
   static getHiddenColumns(tablePath: string): string[] {

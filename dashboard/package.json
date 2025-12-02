@@ -33,6 +33,7 @@
     "@emotion/react": "^11.11.4",
     "@emotion/server": "^11.11.0",
     "@emotion/styled": "^11.11.5",
+    "@floating-ui/react": "^0.27.16",
     "@fontsource/inter": "^5.0.21",
     "@fontsource/roboto-mono": "^5.0.20",
     "@graphiql/react": "^0.22.3",
