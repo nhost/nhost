@@ -23,13 +23,19 @@ func (w *oauth2ConfigWrapper) AuthCodeURL(
 	opts ...oauth2.AuthCodeOption,
 ) string {
 	if providerSpecificParams != nil && providerSpecificParams.Organization != nil {
-		opts = append(opts, oauth2.SetAuthURLParam("organization", *providerSpecificParams.Organization))
+		opts = append(
+			opts,
+			oauth2.SetAuthURLParam("organization", *providerSpecificParams.Organization),
+		)
 	} else if w.parent.DefaultOrganization != "" {
 		opts = append(opts, oauth2.SetAuthURLParam("organization", w.parent.DefaultOrganization))
 	}
 
 	if providerSpecificParams != nil && providerSpecificParams.Connection != nil {
-		opts = append(opts, oauth2.SetAuthURLParam("connection", *providerSpecificParams.Connection))
+		opts = append(
+			opts,
+			oauth2.SetAuthURLParam("connection", *providerSpecificParams.Connection),
+		)
 	} else if w.parent.DefaultConnection != "" {
 		opts = append(opts, oauth2.SetAuthURLParam("connection", w.parent.DefaultConnection))
 	}

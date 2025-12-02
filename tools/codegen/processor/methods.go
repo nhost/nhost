@@ -57,7 +57,7 @@ func (m *Method) PathParameters() []*Parameter {
 
 func (m *Method) HasQueryParameters() bool {
 	for _, param := range m.Parameters {
-		if param.Parameter.In == "query" {
+		if param.Parameter.In == "query" { //nolint:goconst
 			return true
 		}
 	}
