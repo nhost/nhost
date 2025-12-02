@@ -8,7 +8,6 @@ overrides:
   esbuild@<=0.24.2: '>=0.25.0'
   js-yaml@<=4.1.0: '>=4.1.1'
   glob@>=10.3.7 <=11.0.3: '>=11.1.0'
-  playwright@<1.55.1: '>=1.55.1'
   mdast-util-to-hast@>=13.0.0 <13.2.1: '>=13.2.1'
 
 packageExtensionsChecksum: sha256-gRFeykwiwMfEE6etcYx6N48XwVeKzxbqNveL7KTQgSQ=
@@ -7359,13 +7358,13 @@ packages:
     resolution: {integrity: sha512-HRDzbaKjC+AOWVXxAU/x54COGeIv9eb+6CkDSQoNTt4XyWoIJvuPsXizxu/Fr23EiekbtZwmh1IcIG/l/a10GQ==}
     engines: {node: '>=8'}
 
-  playwright-core@1.57.0:
-    resolution: {integrity: sha512-agTcKlMw/mjBWOnD6kFZttAAGHgi/Nw0CZ2o6JqWSbMlI219lAFLZZCyqByTsvVAJq5XA5H8cA6PrvBRpBWEuQ==}
+  playwright-core@1.54.1:
+    resolution: {integrity: sha512-Nbjs2zjj0htNhzgiy5wu+3w09YetDx5pkrpI/kZotDlDUaYk0HVA5xrBVPdow4SAUIlhgKcJeJg4GRKW6xHusA==}
     engines: {node: '>=18'}
     hasBin: true
 
-  playwright@1.57.0:
-    resolution: {integrity: sha512-ilYQj1s8sr2ppEJ2YVadYBN0Mb3mdo9J0wQ+UuDhzYqURwSoW4n1Xs5vs7ORwgDGmyEh33tRMeS8KhdkMoLXQw==}
+  playwright@1.54.1:
+    resolution: {integrity: sha512-peWpSwIBmSLi6aW2auvrUtf2DqY16YYcCMO8rTVx486jKmDTJg7UAhyrraP98GB8BoPURZP8+nxO7TSd4cPr5g==}
     engines: {node: '>=18'}
     hasBin: true
 
@@ -11741,7 +11740,7 @@ snapshots:
 
   '@playwright/test@1.54.1':
     dependencies:
-      playwright: 1.57.0
+      playwright: 1.54.1
 
   '@polka/url@1.0.0-next.25': {}
 
@@ -17362,11 +17361,11 @@ snapshots:
     dependencies:
       find-up: 4.1.0
 
-  playwright-core@1.57.0: {}
+  playwright-core@1.54.1: {}
 
-  playwright@1.57.0:
+  playwright@1.54.1:
     dependencies:
-      playwright-core: 1.57.0
+      playwright-core: 1.54.1
     optionalDependencies:
       fsevents: 2.3.2
 
