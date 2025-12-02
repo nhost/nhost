@@ -228,6 +228,29 @@ func (p *Parameter) Required() bool {
 	return false
 }
 
+func (p *Parameter) Style() string {
+	if p.Parameter.Style != "" {
+		return p.Parameter.Style
+	}
+
+	// Default based on location per OpenAPI 3.0 spec
+	if p.Parameter.In == "query" || p.Parameter.In == "cookie" {
+		return "form"
+	}
+
+	return "simple"
+}
+
+func (p *Parameter) Explode() bool {
+	if p.Parameter.Explode != nil {
+		return *p.Parameter.Explode
+	}
+
+	// Default based on style per OpenAPI 3.0 spec
+	// form style defaults to true, others default to false
+	return p.Style() == "form"
+}
+
 func GetMethod(
 	path string,
 	method string,

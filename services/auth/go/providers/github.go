@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/oidc"
 	"golang.org/x/oauth2"
 )
@@ -89,4 +90,17 @@ func (g *Github) GetProfile(
 		Name:           user.Name,
 		Picture:        user.AvatarURL,
 	}, nil
+}
+
+func (g *Github) AuthCodeURL(
+	state string,
+	p *api.ProviderSpecificParams,
+	opts ...oauth2.AuthCodeOption,
+) string {
+	fmt.Println("Provider specific params:", p)
+	if p != nil {
+		fmt.Println("GitHub provider specific params:", *p.Connection, *p.Organization)
+	}
+
+	return g.Config.AuthCodeURL(state, opts...)
 }

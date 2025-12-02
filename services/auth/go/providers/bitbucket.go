@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/oidc"
 	"golang.org/x/oauth2"
 )
@@ -127,4 +128,12 @@ func (b *Bitbucket) GetProfile(
 		Name:           user.DisplayName,
 		Picture:        user.Links.Avatar.Href,
 	}, nil
+}
+
+func (b *Bitbucket) AuthCodeURL(
+	state string,
+	_ *api.ProviderSpecificParams,
+	opts ...oauth2.AuthCodeOption,
+) string {
+	return b.Config.AuthCodeURL(state, opts...)
 }
