@@ -73,7 +73,6 @@ export function createDataGridColumn(
     type: 'text',
     specificType: column.full_data_type,
     dataType: column.data_type,
-    maxLength: column.character_maximum_length,
     Cell: DataGridTextCell,
     isPrimary: column.is_primary,
     isNullable: column.is_nullable !== 'NO',

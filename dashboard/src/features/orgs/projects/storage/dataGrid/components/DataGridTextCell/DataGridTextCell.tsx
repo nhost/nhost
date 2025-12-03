@@ -23,7 +23,7 @@ export default function DataGridTextCell<TData extends object>({
   const isMultiline =
     specificType === 'text' ||
     specificType === 'bpchar' ||
-    specificType === 'varchar' ||
+    specificType?.includes('character varying') ||
     specificType === 'json' ||
     specificType === 'jsonb';
 
