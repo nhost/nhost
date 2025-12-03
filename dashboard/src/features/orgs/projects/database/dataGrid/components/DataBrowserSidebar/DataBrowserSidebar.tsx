@@ -445,6 +445,13 @@ function DataBrowserSidebarContent({
                               table.table_name,
                             )
                           }
+                          onEditSettings={() => {
+                            handleEditSettingsClick(
+                              table.table_schema,
+                              table.table_name,
+                              false,
+                            );
+                          }}
                           onEditRelationships={() => {
                             openDrawer({
                               title: 'Edit Relationships',
@@ -460,13 +467,6 @@ function DataBrowserSidebarContent({
                                 },
                               },
                             });
-                          }}
-                          onEditSettings={() => {
-                            handleEditSettingsClick(
-                              table.table_schema,
-                              table.table_name,
-                              false,
-                            );
                           }}
                           onDelete={() =>
                             handleDeleteTableClick(

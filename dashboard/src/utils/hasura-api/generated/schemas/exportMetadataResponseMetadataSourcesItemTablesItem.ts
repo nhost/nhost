@@ -8,6 +8,7 @@
 import type { EventTrigger } from './eventTrigger';
 import type { ExportMetadataResponseMetadataSourcesItemTablesItemArrayRelationshipsItem } from './exportMetadataResponseMetadataSourcesItemTablesItemArrayRelationshipsItem';
 import type { ExportMetadataResponseMetadataSourcesItemTablesItemObjectRelationshipsItem } from './exportMetadataResponseMetadataSourcesItemTablesItemObjectRelationshipsItem';
+import type { ExportMetadataResponseMetadataSourcesItemTablesItemRemoteRelationshipsItem } from './exportMetadataResponseMetadataSourcesItemTablesItemRemoteRelationshipsItem';
 import type { ExportMetadataResponseMetadataSourcesItemTablesItemTable } from './exportMetadataResponseMetadataSourcesItemTablesItemTable';
 import type { TableConfig } from './tableConfig';
 
@@ -21,4 +22,6 @@ export type ExportMetadataResponseMetadataSourcesItemTablesItem = {
   array_relationships?: ExportMetadataResponseMetadataSourcesItemTablesItemArrayRelationshipsItem[];
   /** List of object relationships for the table */
   object_relationships?: ExportMetadataResponseMetadataSourcesItemTablesItemObjectRelationshipsItem[];
+  /** List of remote relationships for the table */
+  remote_relationships?: ExportMetadataResponseMetadataSourcesItemTablesItemRemoteRelationshipsItem[];
 };

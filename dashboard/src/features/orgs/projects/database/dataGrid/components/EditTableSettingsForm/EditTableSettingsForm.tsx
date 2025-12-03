@@ -28,6 +28,10 @@ export default function EditTableSettingsForm({
   tableName,
   disabled,
 }: EditTableSettingsFormProps) {
+  const handleCancel = () => {
+    onCancel?.();
+  };
+
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden">
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pb-4">
@@ -49,11 +53,7 @@ export default function EditTableSettingsForm({
       </div>
 
       <div className="grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 px-6 py-3">
-        <Button
-          variant="outline"
-          color="secondary"
-          onClick={() => onCancel?.()}
-        >
+        <Button variant="outline" color="secondary" onClick={handleCancel}>
           Back
         </Button>
       </div>
