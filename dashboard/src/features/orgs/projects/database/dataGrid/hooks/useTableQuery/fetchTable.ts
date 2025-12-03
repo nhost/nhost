@@ -1,3 +1,4 @@
+import type { DataGridFilter } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
 import type {
   ForeignKeyRelation,
   MutationOrQueryBaseOptions,
@@ -10,6 +11,11 @@ import { extractForeignKeyRelation } from '@/features/orgs/projects/database/dat
 import { getPreparedReadOnlyHasuraQuery } from '@/features/orgs/projects/database/dataGrid/utils/hasuraQueryHelpers';
 import { POSTGRESQL_ERROR_CODES } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
 import { formatWithArray } from 'node-pg-format';
+import { filtersToWhere } from './filtersToWhere';
+
+function isQueryError(payload: unknown): payload is QueryError {
+  return 'error' in (payload as QueryError);
+}
 
 export interface FetchTableOptions extends MutationOrQueryBaseOptions {
   /**
@@ -30,6 +36,12 @@ export interface FetchTableOptions extends MutationOrQueryBaseOptions {
    * Determines whether the query should fetch the rows or not.
    */
   preventRowFetching?: boolean;
+  /**
+   * Filtering configuration.
+   *
+   * @default []
+   */
+  filters?: DataGridFilter[];
 }
 
 export interface FetchTableReturnType {
@@ -41,6 +53,10 @@ export interface FetchTableReturnType {
    * List of rows in the table.
    */
   rows: NormalizedQueryDataRow[];
+  /**
+   * Error for querying the rows
+   */
+  error: string | null;
   /**
    * Foreign key relations in the table.
    */
@@ -72,6 +88,7 @@ export default async function fetchTable({
   offset,
   orderBy,
   preventRowFetching,
+  filters,
 }: FetchTableOptions): Promise<FetchTableReturnType> {
   let limitAndOffsetClause = '';
 
@@ -84,7 +101,6 @@ export default async function fetchTable({
   }
 
   let orderByClause = 'ORDER BY 1';
-
   if (orderBy && orderBy.length > 0) {
     // Note: This part will be added to the SQL template
     const pgFormatTemplate = orderBy.map(() => '%I %s').join(' ');
@@ -105,7 +121,9 @@ export default async function fetchTable({
     );
   }
 
-  const response = await fetch(`${appUrl}/v2/query`, {
+  const whereClause = filtersToWhere(filters);
+
+  const tableDataResponse = await fetch(`${appUrl}/v2/query`, {
     method: 'POST',
     headers: {
       'x-hasura-admin-secret': adminSecret,
@@ -155,14 +173,6 @@ export default async function fetchTable({
         ),
         getPreparedReadOnlyHasuraQuery(
           dataSource,
-          `SELECT ROW_TO_JSON(TABLE_DATA) FROM (SELECT * FROM %I.%I %s %s) TABLE_DATA`,
-          schema,
-          table,
-          orderByClause,
-          limitAndOffsetClause,
-        ),
-        getPreparedReadOnlyHasuraQuery(
-          dataSource,
           `SELECT ROW_TO_JSON(TABLE_DATA) FROM (\
             SELECT CON.CONNAME AS CONSTRAINT_NAME, CON.CONTYPE AS CONSTRAINT_TYPE, PG_GET_CONSTRAINTDEF(CON.OID) AS CONSTRAINT_DEFINITION, ATTR.ATTNAME AS COLUMN_NAME\
             FROM PG_CONSTRAINT CON
@@ -178,11 +188,33 @@ export default async function fetchTable({
           schema,
           table,
         ),
+      ],
+      type: 'bulk',
+      version: 1,
+    }),
+  });
+  const rowDataResponse = await fetch(`${appUrl}/v2/query`, {
+    method: 'POST',
+    headers: {
+      'x-hasura-admin-secret': adminSecret,
+    },
+    body: JSON.stringify({
+      args: [
         getPreparedReadOnlyHasuraQuery(
           dataSource,
-          `SELECT COUNT(*) FROM %I.%I`,
+          `SELECT ROW_TO_JSON(TABLE_DATA) FROM (SELECT * FROM %I.%I %s %s %s) TABLE_DATA`,
           schema,
           table,
+          whereClause,
+          orderByClause,
+          limitAndOffsetClause,
+        ),
+        getPreparedReadOnlyHasuraQuery(
+          dataSource,
+          `SELECT COUNT(*) FROM %I.%I %s`,
+          schema,
+          table,
+          whereClause,
         ),
       ],
       type: 'bulk',
@@ -191,9 +223,9 @@ export default async function fetchTable({
   });
 
   const responseData: QueryResult<string[]>[] | QueryError =
-    await response.json();
+    await tableDataResponse.json();
 
-  if (!response.ok || 'error' in responseData) {
+  if (!tableDataResponse.ok || 'error' in responseData) {
     if ('internal' in responseData) {
       const queryError = responseData as QueryError;
       const schemaNotFound =
@@ -208,6 +240,7 @@ export default async function fetchTable({
         return {
           columns: [],
           rows: [],
+          error: null,
           numberOfRows: 0,
           foreignKeyRelations: [],
           metadata: { schema, table, schemaNotFound, tableNotFound },
@@ -221,6 +254,7 @@ export default async function fetchTable({
         return {
           columns: [],
           rows: [],
+          error: null,
           numberOfRows: 0,
           foreignKeyRelations: [],
           metadata: { schema, table, columnsNotFound: true },
@@ -237,9 +271,7 @@ export default async function fetchTable({
   }
 
   const [, ...rawColumns] = responseData[0].result;
-  const [, ...rawData] = responseData[1].result;
-  const [, ...rawConstraints] = responseData[2].result;
-  const [, ...[rawAggregate]] = responseData[3].result;
+  const [, ...rawConstraints] = responseData[1].result;
 
   const foreignKeyRelationMap = new Map<string, string>();
   const uniqueKeyConstraintMap = new Map<string, string[]>();
@@ -324,12 +356,29 @@ export default async function fetchTable({
     })
     .sort((a, b) => a.ordinal_position - b.ordinal_position);
 
+  const rawData: QueryResult<string[]> | QueryError =
+    await rowDataResponse.json();
+
+  if (!rowDataResponse.ok && isQueryError(rawData)) {
+    return {
+      columns,
+      rows: [],
+      error:
+        rawData.internal?.error.message ||
+        'Something went wrong while fetching the table rows.',
+      foreignKeyRelations: flatForeignKeyRelations,
+      numberOfRows: 0,
+    };
+  }
+
+  const [, ...rowData] = rawData[0].result as string[];
+  const [, [rowAggregate]] = rawData[1].result as string[];
+
   return {
     columns,
-    rows: rawData.map((rawRow) =>
-      JSON.parse(rawRow),
-    ) as NormalizedQueryDataRow[],
+    rows: rowData.map((row) => JSON.parse(row)) as NormalizedQueryDataRow[],
+    error: null,
     foreignKeyRelations: flatForeignKeyRelations,
-    numberOfRows: rawAggregate ? parseInt(rawAggregate, 10) : 0,
+    numberOfRows: parseInt(rowAggregate, 10) || 0,
   };
 }
