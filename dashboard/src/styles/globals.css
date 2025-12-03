@@ -332,8 +332,8 @@ body {
   @apply border-divider bg-paper text-primary-text;
 }
 
-[data-vaul-drawer][data-vaul-drawer-direction='right'] {
-  transition: transform !important;
-  animation-duration: 0.3s !important;
-  animation-timing-function: linear !important;
+#reset-popper-content-wrapper-styles [data-radix-popper-content-wrapper] {
+  transform: none !important;
+  position: relative !important;
+  will-change: auto !important;
 }

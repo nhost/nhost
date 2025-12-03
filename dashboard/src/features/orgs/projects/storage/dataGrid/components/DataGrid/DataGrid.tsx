@@ -1,5 +1,4 @@
 import { Spinner } from '@/components/ui/v3/spinner';
-import DataGridCustomizerOpenStateProvider from '@/features/orgs/projects/common/components/DataGridCustomizerControls/DataGridCustomizerOpenStateProvider';
 import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
 import type { UseDataGridOptions } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid/useDataGrid';
 import { DataGridBody } from '@/features/orgs/projects/storage/dataGrid/components/DataGridBody';
@@ -9,7 +8,7 @@ import type { DataGridHeaderProps } from '@/features/orgs/projects/storage/dataG
 import { DataGridHeader } from '@/features/orgs/projects/storage/dataGrid/components/DataGridHeader';
 import { DataTableDesignProvider } from '@/features/orgs/projects/storage/dataGrid/providers/DataTableDesignProvider';
 import { cn } from '@/lib/utils';
-import type { ForwardedRef } from 'react';
+import type { ForwardedRef, ReactNode } from 'react';
 import { forwardRef, useEffect, useRef } from 'react';
 import { mergeRefs } from 'react-merge-refs';
 import type { Column, Row, SortingRule, TableOptions } from 'react-table';
@@ -31,7 +30,7 @@ export interface DataGridProps<TColumnData extends object>
    *
    * @default null
    */
-  emptyStateMessage?: string;
+  emptyStateMessage?: ReactNode;
   /**
    * Additional configuration options for the `react-table` hook.
    */
@@ -121,6 +120,7 @@ function DataGrid<TColumnData extends object>(
 
   const allColumnsHidden =
     dataGridProps.allColumns.filter(({ isVisible }) => isVisible).length === 1;
+
   return (
     <DataGridConfigProvider
       toggleAllRowsSelected={toggleAllRowsSelected}
@@ -129,41 +129,41 @@ function DataGrid<TColumnData extends object>(
       {...dataGridProps}
     >
       <DataTableDesignProvider>
-        <DataGridCustomizerOpenStateProvider>
-          <>
-            {controls}
-            {columns.length === 0 && !loading && (
-              <DataBrowserEmptyState
-                title="Columns not found"
-                description="Please create a column before adding data to the table."
-              />
-            )}
-            {columns.length > 0 && allColumnsHidden && (
-              <AllColumnsHiddenMessage />
-            )}
-            {columns.length > 0 && !allColumnsHidden && (
-              <div
-                ref={mergeRefs([ref, tableRef])}
-                className={cn(
-                  'box overflow-x-auto bg-background',
-                  { 'h-[calc(100%-1px)]': !loading }, // need to set height like this to remove vertical scrollbar
-                  className,
-                )}
-              >
-                <DataGridFrame>
+        <>
+          {controls}
+          {columns.length === 0 && !loading && (
+            <DataBrowserEmptyState
+              title="Columns not found"
+              description="Please create a column before adding data to the table."
+            />
+          )}
+          {columns.length > 0 && allColumnsHidden && (
+            <AllColumnsHiddenMessage />
+          )}
+          {columns.length > 0 && !allColumnsHidden && (
+            <div
+              ref={mergeRefs([ref, tableRef])}
+              className={cn(
+                'box overflow-x-auto bg-background',
+                { 'h-[calc(100%-1px)]': !loading }, // need to set height like this to remove vertical scrollbar
+                className,
+              )}
+            >
+              <DataGridFrame>
+                <div className="relative h-full">
                   <DataGridHeader {...headerProps} />
                   <DataGridBody
                     isFileDataGrid={isFileDataGrid}
                     emptyStateMessage={emptyStateMessage}
                     loading={loading}
                   />
-                </DataGridFrame>
-              </div>
-            )}
+                </div>
+              </DataGridFrame>
+            </div>
+          )}
 
-            {loading && <Spinner className="my-4" />}
-          </>
-        </DataGridCustomizerOpenStateProvider>
+          {loading && <Spinner className="my-4" />}
+        </>
       </DataTableDesignProvider>
     </DataGridConfigProvider>
   );
