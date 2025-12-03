@@ -26,6 +26,7 @@ paths:
                 - $ref: '#/components/schemas/DropRelationshipBulkOperation'
                 - $ref: '#/components/schemas/CreateObjectRelationshipBulkOperation'
                 - $ref: '#/components/schemas/CreateArrayRelationshipBulkOperation'
+                - $ref: '#/components/schemas/CreateRemoteRelationshipBulkOperation'
                 - $ref: '#/components/schemas/RenameRelationshipBulkOperation'
                 - $ref: '#/components/schemas/AddRemoteSchemaOperation'
                 - $ref: '#/components/schemas/UpdateRemoteSchemaBulkOperation'
@@ -637,6 +638,61 @@ components:
           description: Name of the source database of the table
           default: default
 
+    CreateRemoteRelationshipBulkOperation:
+      type: object
+      required:
+        - type
+        - args
+        - resource_version
+      properties:
+        type:
+          type: string
+          enum: [bulk, bulk_keep_going]
+          description: Type of operation to create remote relationship
+        resource_version:
+          type: integer
+          description: Resource version of the operation
+          example: 1
+        args:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreateRemoteRelationshipStep'
+
+    CreateRemoteRelationshipStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_create_remote_relationship]
+        args:
+          $ref: '#/components/schemas/CreateRemoteRelationshipArgs'
+
+    CreateRemoteRelationshipArgs:
+      type: object
+      required:
+        - name
+        - table
+        - definition
+      properties:
+        name:
+          type: string
+          description: User defined name of the new remote relationship
+        source:
+          type: string
+          description: Name of the source database of the table
+          default: default
+        table:
+          description: Name of the table on which the relationship is being defined
+          oneOf:
+            - type: string
+            - $ref: '#/components/schemas/QualifiedTable'
+        definition:
+          description: Definition of the remote relationship
+          $ref: '#/components/schemas/RemoteRelationshipDefinition'
+
     RenameRelationshipBulkOperation:
       type: object
       required:
@@ -1000,6 +1056,25 @@ components:
                 $ref: '#/components/schemas/RemoteSchemaInfo'
           additionalProperties: true
 
+    RemoteRelationshipDefinition:
+      type: object
+      description: Relationship definition
+      oneOf:
+        - type: object
+          required:
+            - to_remote_schema
+          properties:
+            to_remote_schema:
+              description: Remote Relationship definition to a Remote Schema
+              $ref: '#/components/schemas/ToRemoteSchemaRelationshipDefinition'
+        - type: object
+          required:
+            - to_source
+          properties:
+            to_source:
+              description: Remote Relationship definition to a table on a different database
+              $ref: '#/components/schemas/ToSourceRelationshipDefinition'
+
     RemoteSchemaInfo:
       type: object
       description: Information about a remote schema
@@ -1044,21 +1119,7 @@ components:
                       description: Name of the relationship
                       example: user
                     definition:
-                      type: object
-                      description: Relationship definition
-                      oneOf:
-                        - type: object
-                          required:
-                            - to_remote_schema
-                          properties:
-                            to_remote_schema:
-                              $ref: '#/components/schemas/ToRemoteSchemaRelationshipDefinition'
-                        - type: object
-                          required:
-                            - to_source
-                          properties:
-                            to_source:
-                              $ref: '#/components/schemas/ToSourceRelationshipDefinition'
+                      $ref: '#/components/schemas/RemoteRelationshipDefinition'
         permissions:
           type: array
           description: Permissions for the remote schema
@@ -1405,7 +1466,7 @@ components:
 
     ToRemoteSchemaRelationshipDefinition:
       type: object
-      description: Definition for relationship to another remote schema
+      description: Definition for relationship to other remote schema
       required:
         - remote_schema
         - lhs_fields
@@ -1417,27 +1478,49 @@ components:
           example: user-remote-schema
         lhs_fields:
           type: array
-          description: Fields from the source type to use in the relationship
+          description: Column/Computed field(s) in the table that is used for joining with Remote Schema field. All join keys in remote_field must appear here.
           items:
             type: string
           example: ['user_id']
         remote_field:
-          type: object
-          description: Remote field configuration
-          additionalProperties:
+          $ref: '#/components/schemas/RemoteField'
+
+    RemoteField:
+      type: object
+      description: >
+        The schema tree ending at the field in the remote schema which needs
+        to be joined with. Each key represents a field name in the remote
+        schema and maps to the configuration for that node in the tree.
+      additionalProperties:
+        type: object
+        description: Configuration for a specific remote field node
+        properties:
+          arguments:
             type: object
-            properties:
+            description: >
+              GraphQL arguments to pass to this remote field. Argument values
+              can be literals or references to table columns by prefixing the
+              column name with `$`, for example `$id`.
+            additionalProperties:
+              oneOf:
+                - type: string
+                - type: integer
+                - type: number
+                - type: boolean
+                - type: object
+                  additionalProperties: {}
+                - type: array
+                  items: {}
+          field:
+            $ref: '#/components/schemas/RemoteField'
+      example:
+        messages:
+          arguments:
+            limit: 100
+          field:
+            private:
               arguments:
-                type: object
-                description: Arguments to pass to the remote field
-                additionalProperties:
-                  type: string
-                example:
-                  id: '$user_id'
-          example:
-            user:
-              arguments:
-                id: '$user_id'
+                id: '$id'
 
     ToSourceRelationshipDefinition:
       type: object
@@ -1450,28 +1533,15 @@ components:
       properties:
         source:
           type: string
-          description: Name of the database source
+          description: Name of the source of the target table
           example: default
         table:
-          type: object
           description: Target table information
-          required:
-            - name
-            - schema
-          properties:
-            name:
-              type: string
-              description: Name of the table
-              example: plans
-            schema:
-              type: string
-              description: Schema name of the table
-              example: public
+          $ref: '#/components/schemas/QualifiedTable'
         relationship_type:
           type: string
           enum: [object, array]
           description: Type of relationship - object for one-to-one, array for one-to-many
-          example: array
         field_mapping:
           type: object
           description: Mapping from remote schema fields to database table columns

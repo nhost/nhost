@@ -5,16 +5,15 @@
  * API for managing remote schemas and events in Hasura
  * OpenAPI spec version: 1.0.0
  */
-import type { ToRemoteSchemaRelationshipDefinitionRemoteField } from './toRemoteSchemaRelationshipDefinitionRemoteField';
+import type { RemoteField } from './remoteField';
 
 /**
- * Definition for relationship to another remote schema
+ * Definition for relationship to other remote schema
  */
 export interface ToRemoteSchemaRelationshipDefinition {
   /** Name of the target remote schema */
   remote_schema: string;
-  /** Fields from the source type to use in the relationship */
+  /** Column/Computed field(s) in the table that is used for joining with Remote Schema field. All join keys in remote_field must appear here. */
   lhs_fields: string[];
-  /** Remote field configuration */
-  remote_field: ToRemoteSchemaRelationshipDefinitionRemoteField;
+  remote_field: RemoteField;
 }

@@ -9,6 +9,7 @@ import type { AddRemoteSchemaOperation } from './addRemoteSchemaOperation';
 import type { CreateArrayRelationshipBulkOperation } from './createArrayRelationshipBulkOperation';
 import type { CreateEventTriggerBulkOperation } from './createEventTriggerBulkOperation';
 import type { CreateObjectRelationshipBulkOperation } from './createObjectRelationshipBulkOperation';
+import type { CreateRemoteRelationshipBulkOperation } from './createRemoteRelationshipBulkOperation';
 import type { DeleteEventTriggerBulkOperation } from './deleteEventTriggerBulkOperation';
 import type { DeleteRemoteSchemaRemoteRelationshipOperation } from './deleteRemoteSchemaRemoteRelationshipOperation';
 import type { DropRelationshipBulkOperation } from './dropRelationshipBulkOperation';
@@ -38,6 +39,7 @@ export type MetadataOperationBody =
   | DropRelationshipBulkOperation
   | CreateObjectRelationshipBulkOperation
   | CreateArrayRelationshipBulkOperation
+  | CreateRemoteRelationshipBulkOperation
   | RenameRelationshipBulkOperation
   | AddRemoteSchemaOperation
   | UpdateRemoteSchemaBulkOperation

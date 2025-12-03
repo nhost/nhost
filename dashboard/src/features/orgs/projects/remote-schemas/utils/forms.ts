@@ -6,6 +6,26 @@ import type { RemoteSchemaRelationshipType } from '@/features/orgs/projects/remo
 import type { RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItem } from '@/utils/hasura-api/generated/schemas/remoteSchemaInfoRemoteRelationshipsItemRelationshipsItem';
 import { isToRemoteSchemaRelationshipDefinition } from './guards';
 
+const serializeRemoteFieldArgumentValue = (value: unknown): string => {
+  if (typeof value === 'string') {
+    return value;
+  }
+
+  if (typeof value === 'number' || typeof value === 'boolean') {
+    return String(value);
+  }
+
+  if (value === null) {
+    return 'null';
+  }
+
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return '';
+  }
+};
+
 export const getDatabaseRelationshipPayload = (
   values: DatabaseRelationshipFormValues,
 ) => {
@@ -98,17 +118,18 @@ export const getRelationshipFormDefaultValues = (
         relationship.definition.to_remote_schema.remote_field[
           Object.keys(relationship.definition.to_remote_schema.remote_field)[0]
         ].arguments || {},
-      ).map(([argument, value]) => ({
-        argument,
-        value:
-          typeof value === 'string' && value.startsWith('$')
+      ).map(([argument, value]) => {
+        const isSourceTypeField =
+          typeof value === 'string' && value.startsWith('$');
+
+        return {
+          argument,
+          value: isSourceTypeField
             ? value.slice(1)
-            : value,
-        type:
-          typeof value === 'string' && value.startsWith('$')
-            ? 'sourceTypeField'
-            : 'staticValue',
-      })),
+            : serializeRemoteFieldArgumentValue(value),
+          type: isSourceTypeField ? 'sourceTypeField' : 'staticValue',
+        };
+      }),
     } satisfies RemoteSchemaRelationshipFormValues;
   }
 
