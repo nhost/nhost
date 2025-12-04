@@ -21,7 +21,8 @@
     "e2e:tests": "pnpm playwright test --config=playwright.config.ts -x",
     "e2e": "pnpm e2e:tests --project=main",
     "e2e:local": "pnpm e2e:tests --project=local",
-    "e2e:onboarding": "pnpm e2e:tests --project=onboarding"
+    "e2e:onboarding": "pnpm e2e:tests --project=onboarding",
+    "type-check": "tsc --noEmit --pretty -p tsconfig.json"
   },
   "dependencies": {
     "@apollo/client": "^3.9.9",

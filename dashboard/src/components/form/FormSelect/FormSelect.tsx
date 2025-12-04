@@ -1,3 +1,6 @@
+import getTransformedFieldProps, {
+  type Transformer,
+} from '@/components/form/utils/getTransformedFieldProps';
 import {
   FormControl,
   FormDescription,
@@ -13,14 +16,14 @@ import {
   SelectValue,
 } from '@/components/ui/v3/select';
 import { cn, isNotEmptyValue } from '@/lib/utils';
-import type { PropsWithChildren, ReactNode } from 'react';
-import type {
-  Control,
-  ControllerRenderProps,
-  FieldPath,
-  FieldValues,
-  PathValue,
-} from 'react-hook-form';
+import {
+  type ForwardedRef,
+  type PropsWithChildren,
+  type ReactNode,
+  forwardRef,
+} from 'react';
+import type { Control, FieldPath, FieldValues } from 'react-hook-form';
+import { mergeRefs } from 'react-merge-refs';
 
 const selectClasses =
   'aria-[invalid=true]:border-red-500 aria-[invalid=true]:focus:border-red-500 aria-[invalid=true]:focus:ring-red-500';
@@ -38,53 +41,40 @@ interface FormSelectProps<
   inline?: boolean;
   helperText?: string | null;
   disabled?: boolean;
-  transformValue?: (
-    value: PathValue<TFieldValues, TName>,
-  ) => PathValue<TFieldValues, TName>;
+  transform?: Transformer;
 }
 
-function FormSelect<
+function FormSelectImpl<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
->({
-  control,
-  name,
-  label,
-  placeholder,
-  className = '',
-  containerClassName = '',
-  inline,
-  helperText,
-  disabled,
-  children,
-  transformValue,
-}: PropsWithChildren<FormSelectProps<TFieldValues, TName>>) {
-  function getOnChangeHandlerAndValue(
-    field: ControllerRenderProps<TFieldValues, TName>,
-  ): [string, (v: string) => void] {
-    const { onChange, value } = field;
-
-    function handleOnChange(newValue: string) {
-      const transformedNewValue = isNotEmptyValue(transformValue)
-        ? transformValue(newValue as PathValue<TFieldValues, TName>)
-        : newValue;
-
-      onChange(transformedNewValue);
-    }
-
-    const transformedValue: string = isNotEmptyValue(transformValue)
-      ? transformValue(value as PathValue<TFieldValues, TName>)
-      : value;
-
-    return [transformedValue, handleOnChange];
-  }
+>(
+  {
+    control,
+    name,
+    label,
+    placeholder,
+    className,
+    containerClassName,
+    inline,
+    helperText,
+    disabled,
+    children,
+    transform,
+  }: PropsWithChildren<FormSelectProps<TFieldValues, TName>>,
+  ref?: ForwardedRef<HTMLButtonElement>,
+) {
   return (
     <FormField
       control={control}
       name={name}
       render={({ field }) => {
-        const { onChange, value, ...selectProps } = field;
-        const [tValue, handleOnChange] = getOnChangeHandlerAndValue(field);
+        const {
+          ref: fieldRef,
+          onChange,
+          ...fieldProps
+        } = isNotEmptyValue(transform)
+          ? getTransformedFieldProps(field, transform)
+          : field;
         return (
           <FormItem
             className={cn(
@@ -107,13 +97,15 @@ function FormSelect<
               })}
             >
               <Select
-                onValueChange={handleOnChange}
-                value={tValue}
                 disabled={disabled}
-                {...selectProps}
+                onValueChange={onChange}
+                {...fieldProps}
               >
                 <FormControl>
-                  <SelectTrigger className={cn(selectClasses, className)}>
+                  <SelectTrigger
+                    className={cn(selectClasses, className)}
+                    ref={mergeRefs([fieldRef, ref])}
+                  >
                     <SelectValue placeholder={placeholder} />
                   </SelectTrigger>
                 </FormControl>
@@ -132,5 +124,12 @@ function FormSelect<
     />
   );
 }
-
+const FormSelect = forwardRef(FormSelectImpl) as <
+  TFieldValues extends FieldValues = FieldValues,
+  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
+>(
+  props: PropsWithChildren<FormSelectProps<TFieldValues, TName>> & {
+    ref?: ForwardedRef<HTMLButtonElement>;
+  },
+) => ReturnType<typeof FormSelectImpl>;
 export default FormSelect;
