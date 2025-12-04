@@ -19,7 +19,7 @@ const validationSchema = Yup.object({
   email: Yup.string().label('Email').email().required(),
   turnstileToken: Yup.string()
     .label('Verification')
-    .required('Please complete the challenge'),
+    .required('Please complete the CAPTCHA'),
 });
 
 export type NewPasswordFormValues = Yup.InferType<typeof validationSchema>;
