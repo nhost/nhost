@@ -12,7 +12,10 @@ To safeguard your Auth API against automated attacks from scripts and bots, you 
 
 ## Integration Benefits
 
-1. **Selective Protection**: Auth integrates Turnstile specifically for all signup methods.
+1. **Selective Protection**: Auth integrates Turnstile specifically for:
+  a. Signup requests
+  b. Password reset requests
+  c. Passwordless signin requests (OTP, SMS and magic links)
 2. **API Accessibility**: Other API endpoints remain accessible for legitimate programmatic use.
 3. **Bot Deterrence**: Manual verification during signup discourages unwanted bot activity.
 
@@ -71,6 +74,5 @@ This approach balances security with usability, ensuring robust protection where
    );
   ```
 
-  In the following [PR](https://github.com/nhost/nhost/pull/2897/files) you can see the changes that were needed in our very own dashboard to integrate turnstile.
   </Step>
 </Steps>
