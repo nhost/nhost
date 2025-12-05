@@ -476,6 +476,15 @@ type ProviderSession struct {
 	RefreshToken *string `json:"refreshToken"`
 }
 
+// ProviderSpecificParams defines model for ProviderSpecificParams.
+type ProviderSpecificParams struct {
+	// Connection (workos) Specifies the connection to use for authentication
+	Connection *string `json:"connection,omitempty"`
+
+	// Organization (workos) Specifies the organization to use for authentication
+	Organization *string `json:"organization,omitempty"`
+}
+
 // PublicKeyCredentialCreationOptions defines model for PublicKeyCredentialCreationOptions.
 type PublicKeyCredentialCreationOptions = protocol.PublicKeyCredentialCreationOptions
 
@@ -909,6 +918,9 @@ type SignInProviderParams struct {
 
 	// State Opaque state value to be returned by the provider
 	State *string `form:"state,omitempty" json:"state,omitempty"`
+
+	// ProviderSpecificParams Additional provider-specific parameters
+	ProviderSpecificParams *ProviderSpecificParams `form:"providerSpecificParams,omitempty" json:"providerSpecificParams,omitempty"`
 }
 
 // SignInProviderParamsProvider defines parameters for SignInProvider.

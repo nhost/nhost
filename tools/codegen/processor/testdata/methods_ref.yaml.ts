@@ -833,13 +833,14 @@ export const createAPIClient = (
   const encodedParameters =
     params &&
     Object.entries(params)
-      .map(([key, value]) => {
+      .flatMap(([key, value]) => {
+        // Default handling (scalars or explode: false)
         const stringValue = Array.isArray(value)
           ? value.join(',')
-          : typeof value === 'object'
+          : typeof value === 'object' && value !== null
           ? JSON.stringify(value)
-          : (value as string)
-        return `${key}=${encodeURIComponent(stringValue)}`
+          : String(value)
+        return [`${key}=${encodeURIComponent(stringValue)}`]
       })
       .join('&')
 
@@ -880,13 +881,14 @@ export const createAPIClient = (
   const encodedParameters =
     params &&
     Object.entries(params)
-      .map(([key, value]) => {
+      .flatMap(([key, value]) => {
+        // Default handling (scalars or explode: false)
         const stringValue = Array.isArray(value)
           ? value.join(',')
-          : typeof value === 'object'
+          : typeof value === 'object' && value !== null
           ? JSON.stringify(value)
-          : (value as string)
-        return `${key}=${encodeURIComponent(stringValue)}`
+          : String(value)
+        return [`${key}=${encodeURIComponent(stringValue)}`]
       })
       .join('&')
 
@@ -1011,13 +1013,14 @@ export const createAPIClient = (
   const encodedParameters =
     params &&
     Object.entries(params)
-      .map(([key, value]) => {
+      .flatMap(([key, value]) => {
+        // Default handling (scalars or explode: false)
         const stringValue = Array.isArray(value)
           ? value.join(',')
-          : typeof value === 'object'
+          : typeof value === 'object' && value !== null
           ? JSON.stringify(value)
-          : (value as string)
-        return `${key}=${encodeURIComponent(stringValue)}`
+          : String(value)
+        return [`${key}=${encodeURIComponent(stringValue)}`]
       })
       .join('&')
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/oidc"
 	"golang.org/x/oauth2"
 )
@@ -41,7 +42,7 @@ type discordUserProfile struct {
 	Avatar        string `json:"avatar"`
 }
 
-func (l *Discord) GetProfile(
+func (d *Discord) GetProfile(
 	ctx context.Context,
 	accessToken string,
 	_ *string,
@@ -68,4 +69,12 @@ func (l *Discord) GetProfile(
 			userProfile.Avatar,
 		),
 	}, nil
+}
+
+func (d *Discord) AuthCodeURL(
+	state string,
+	_ *api.ProviderSpecificParams,
+	opts ...oauth2.AuthCodeOption,
+) string {
+	return d.Config.AuthCodeURL(state, opts...)
 }
