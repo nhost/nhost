@@ -1332,7 +1332,7 @@ func getGoServer(
 	}
 
 	if cmd.String(flagTurnstileSecret) != "" {
-		router.Use(middleware.Tunrstile( //nolint:contextcheck
+		router.Use(middleware.Turnstile( //nolint:contextcheck
 			cmd.String(flagTurnstileSecret), cmd.String(flagAPIPrefix),
 		))
 	}
