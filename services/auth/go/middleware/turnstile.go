@@ -65,7 +65,7 @@ func makeTurnstileRequest(
 	return &turnstileResponse, nil
 }
 
-func Tunrstile(secret string, prefix string) gin.HandlerFunc {
+func Turnstile(secret string, prefix string) gin.HandlerFunc {
 	cl := http.Client{} //nolint:exhaustruct
 
 	return func(ctx *gin.Context) {
