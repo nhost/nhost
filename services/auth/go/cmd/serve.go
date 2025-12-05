@@ -1331,6 +1331,16 @@ func getGoServer(
 		return nil, fmt.Errorf("failed to create router: %w", err)
 	}
 
+	if cmd.String(flagTurnstileSecret) != "" {
+		router.Use(middleware.Tunrstile( //nolint:contextcheck
+			cmd.String(flagTurnstileSecret), cmd.String(flagAPIPrefix),
+		))
+	}
+
+	if cmd.Bool(flagRateLimitEnable) {
+		router.Use(getRateLimiter(cmd, logger)) //nolint:contextcheck
+	}
+
 	api.RegisterHandlersWithOptions(
 		router,
 		handler,
@@ -1340,16 +1350,6 @@ func getGoServer(
 			ErrorHandler: nil,
 		},
 	)
-
-	if cmd.Bool(flagRateLimitEnable) {
-		router.Use(getRateLimiter(cmd, logger)) //nolint:contextcheck
-	}
-
-	if cmd.String(flagTurnstileSecret) != "" {
-		router.Use(middleware.Tunrstile( //nolint:contextcheck
-			cmd.String(flagTurnstileSecret), cmd.String(flagAPIPrefix),
-		))
-	}
 
 	if cmd.Bool(flagEnableChangeEnv) {
 		router.POST(cmd.String(flagAPIPrefix)+"/change-env", ctrl.PostChangeEnv)
