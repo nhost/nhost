@@ -6,9 +6,6 @@
  * OpenAPI spec version: 1.0.0
  */
 
-/**
- * Arguments to pass to the remote field
- */
-export type ToRemoteSchemaRelationshipDefinitionRemoteFieldArguments = {
-  [key: string]: string;
+export type SuggestedArrayRelationshipToAllOf = {
+  constraint_name?: string;
 };

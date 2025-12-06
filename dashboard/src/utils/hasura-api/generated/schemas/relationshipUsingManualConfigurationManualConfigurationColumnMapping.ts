@@ -7,11 +7,7 @@
  */
 
 /**
- * Target table information
+ * Mapping of columns from current table to remote table
  */
-export type ToSourceRelationshipDefinitionTable = {
-  /** Name of the table */
-  name: string;
-  /** Schema name of the table */
-  schema: string;
-};
+export type RelationshipUsingManualConfigurationManualConfigurationColumnMapping =
+  { [key: string]: string };
