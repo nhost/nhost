@@ -6,5 +6,7 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type ExportMetadataResponseMetadataSourcesItemTablesItemRemoteRelationshipsItem =
-  { [key: string]: unknown };
+/**
+ * Column(s) from same table. Used for object relationships.
+ */
+export type ForeignKeyConstraintObjectRelationship = string | string[];

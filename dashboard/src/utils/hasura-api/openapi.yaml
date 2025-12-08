@@ -546,15 +546,34 @@ components:
       properties:
         foreign_key_constraint_on:
           oneOf:
-            - type: string
-              description: Column from same table
-            - type: object
-              description: Column from remote table
-              properties:
-                table:
-                  $ref: '#/components/schemas/QualifiedTable'
-                columns:
-                  type: string
+            - $ref: '#/components/schemas/ForeignKeyConstraintObjectRelationship'
+            - $ref: '#/components/schemas/ForeignKeyConstraintArrayRelationship'
+
+    ForeignKeyConstraintObjectRelationship:
+      description: Column(s) from same table. Used for object relationships.
+      oneOf:
+        - type: string
+        - type: array
+          items:
+            type: string
+
+    ForeignKeyConstraintArrayRelationship:
+      description: Column(s) from remote table. Used for array relationships.
+      oneOf:
+        - type: object
+          properties:
+            table:
+              $ref: '#/components/schemas/QualifiedTable'
+            column:
+              type: string
+        - type: object
+          properties:
+            table:
+              $ref: '#/components/schemas/QualifiedTable'
+            columns:
+              type: array
+              items:
+                type: string
 
     RelationshipUsingManualConfiguration:
       type: object
@@ -1025,29 +1044,17 @@ components:
                           type: array
                           description: List of array relationships for the table
                           items:
-                            type: object
-                            properties:
-                              name:
-                                type: string
-                                description: Name of the relationship
-                              using:
-                                $ref: '#/components/schemas/RelationshipUsing'
+                            $ref: '#/components/schemas/ArrayRelationshipItem'
                         object_relationships:
                           type: array
                           description: List of object relationships for the table
                           items:
-                            type: object
-                            properties:
-                              name:
-                                type: string
-                                description: Name of the relationship
-                              using:
-                                $ref: '#/components/schemas/RelationshipUsing'
+                            $ref: '#/components/schemas/ObjectRelationshipItem'
                         remote_relationships:
                           type: array
                           description: List of remote relationships for the table
                           items:
-                            type: object
+                            $ref: '#/components/schemas/RemoteRelationshipItem'
                 additionalProperties: true
             remote_schemas:
               type: array
@@ -1055,6 +1062,35 @@ components:
               items:
                 $ref: '#/components/schemas/RemoteSchemaInfo'
           additionalProperties: true
+
+    ArrayRelationshipItem:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the relationship
+        using:
+          $ref: '#/components/schemas/RelationshipUsing'
+
+    ObjectRelationshipItem:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the relationship
+        using:
+          $ref: '#/components/schemas/RelationshipUsing'
+
+    RemoteRelationshipItem:
+      required:
+        - name
+        - definition
+      properties:
+        name:
+          type: string
+          description: Name of the remote relationship
+        definition:
+          $ref: '#/components/schemas/RemoteRelationshipDefinition'
 
     RemoteRelationshipDefinition:
       type: object

@@ -5,11 +5,11 @@
  * API for managing remote schemas and events in Hasura
  * OpenAPI spec version: 1.0.0
  */
+import type { ArrayRelationshipItem } from './arrayRelationshipItem';
 import type { EventTrigger } from './eventTrigger';
-import type { ExportMetadataResponseMetadataSourcesItemTablesItemArrayRelationshipsItem } from './exportMetadataResponseMetadataSourcesItemTablesItemArrayRelationshipsItem';
-import type { ExportMetadataResponseMetadataSourcesItemTablesItemObjectRelationshipsItem } from './exportMetadataResponseMetadataSourcesItemTablesItemObjectRelationshipsItem';
-import type { ExportMetadataResponseMetadataSourcesItemTablesItemRemoteRelationshipsItem } from './exportMetadataResponseMetadataSourcesItemTablesItemRemoteRelationshipsItem';
 import type { ExportMetadataResponseMetadataSourcesItemTablesItemTable } from './exportMetadataResponseMetadataSourcesItemTablesItemTable';
+import type { ObjectRelationshipItem } from './objectRelationshipItem';
+import type { RemoteRelationshipItem } from './remoteRelationshipItem';
 import type { TableConfig } from './tableConfig';
 
 export type ExportMetadataResponseMetadataSourcesItemTablesItem = {
@@ -19,9 +19,9 @@ export type ExportMetadataResponseMetadataSourcesItemTablesItem = {
   /** List of event triggers for the table */
   event_triggers?: EventTrigger[];
   /** List of array relationships for the table */
-  array_relationships?: ExportMetadataResponseMetadataSourcesItemTablesItemArrayRelationshipsItem[];
+  array_relationships?: ArrayRelationshipItem[];
   /** List of object relationships for the table */
-  object_relationships?: ExportMetadataResponseMetadataSourcesItemTablesItemObjectRelationshipsItem[];
+  object_relationships?: ObjectRelationshipItem[];
   /** List of remote relationships for the table */
-  remote_relationships?: ExportMetadataResponseMetadataSourcesItemTablesItemRemoteRelationshipsItem[];
+  remote_relationships?: RemoteRelationshipItem[];
 };

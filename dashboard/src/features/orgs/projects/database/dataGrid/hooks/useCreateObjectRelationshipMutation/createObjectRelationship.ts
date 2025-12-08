@@ -1,10 +1,6 @@
 import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
 import type { CreateObjectRelationshipArgs } from '@/utils/hasura-api/generated/schemas';
-
-export interface CreateObjectRelationshipOptions {
-  appUrl: string;
-  adminSecret: string;
-}
+import type { MetadataOperationOptions } from '@/utils/hasura-api/types';
 
 export interface CreateObjectRelationshipVariables {
   resourceVersion: number;
@@ -16,7 +12,7 @@ export default async function createObjectRelationship({
   adminSecret,
   resourceVersion,
   args,
-}: CreateObjectRelationshipOptions & CreateObjectRelationshipVariables) {
+}: MetadataOperationOptions & CreateObjectRelationshipVariables) {
   try {
     const response = await metadataOperation(
       {

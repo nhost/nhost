@@ -14,9 +14,16 @@ import type { BaseTableFormProps } from '@/features/orgs/projects/database/dataG
 import { useSuggestRelationshipsQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useSuggestRelationshipsQuery';
 import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
 import type { NormalizedQueryDataRow } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import {
+  isToRemoteSchemaRelationshipDefinition,
+  isToSourceRelationshipDefinition,
+} from '@/features/orgs/projects/remote-schemas/utils/guards';
 import type {
   ExportMetadataResponseMetadataSourcesItemTablesItemArrayRelationshipsItem,
   ExportMetadataResponseMetadataSourcesItemTablesItemObjectRelationshipsItem,
+  ExportMetadataResponseMetadataSourcesItemTablesItemRemoteRelationshipsItem,
+  RemoteField,
+  RemoteRelationshipDefinition,
   SuggestRelationshipsResponseRelationshipsItem,
 } from '@/utils/hasura-api/generated/schemas';
 import { useQueryClient } from '@tanstack/react-query';
@@ -24,15 +31,20 @@ import {
   ArrowRight,
   Link2,
   PencilIcon,
+  Plug as PlugIcon,
   PlusIcon,
   Split,
+  SquarePen,
   Trash2Icon,
 } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
+import { useGetRelationships } from '../hooks/useGetRelationships';
 import AddSuggestedRelationshipDialog from './AddSuggestedRelationshipDialog';
 import CreateRelationshipDialog from './CreateRelationshipDialog';
 import DeleteRelationshipDialog from './DeleteRelationshipDialog';
+import EditRemoteRelationshipDialog from './EditRemoteRelationshipDialog';
+import EditRemoteSchemaRelationshipDialog from './EditRemoteSchemaRelationshipDialog';
 import RenameRelationshipDialog from './RenameRelationshipDialog';
 
 type MetadataArrayRelationship =
@@ -42,6 +54,27 @@ type MetadataObjectRelationship =
 type MetadataRelationship =
   | MetadataArrayRelationship
   | MetadataObjectRelationship;
+
+type MetadataRemoteRelationship =
+  ExportMetadataResponseMetadataSourcesItemTablesItemRemoteRelationshipsItem & {
+    name?: string;
+    definition?: RemoteRelationshipDefinition;
+  };
+
+type RelationshipRow = {
+  key: string;
+  structuralKey: string;
+  name: string;
+  source: string;
+  originSource: string;
+  sourceIcon?: 'plug';
+  type: string;
+  from: string;
+  to: string;
+  isRemote?: boolean;
+  remoteDefinitionType?: 'schema' | 'source';
+  rawRemoteRelationship?: MetadataRemoteRelationship;
+};
 
 export interface EditRelationshipsFormProps
   extends Pick<BaseTableFormProps, 'onCancel' | 'location'> {
@@ -63,6 +96,12 @@ export default function EditRelationshipsForm(
   const dataSource =
     (router.query.dataSourceSlug as string | undefined) || 'default';
   const queryClient = useQueryClient();
+
+  const { relationships: existingRelationships } = useGetRelationships({
+    dataSource,
+    schema,
+    tableName: originalTable.table_name,
+  });
 
   const {
     status: tableStatus,
@@ -97,6 +136,26 @@ export default function EditRelationshipsForm(
   const [selectedSuggestedRelationship, setSelectedSuggestedRelationship] =
     useState<SuggestRelationshipsResponseRelationshipsItem | null>(null);
 
+  const [
+    showEditRemoteRelationshipDialog,
+    setShowEditRemoteRelationshipDialog,
+  ] = useState(false);
+
+  const [
+    selectedRemoteRelationshipForEdit,
+    setSelectedRemoteRelationshipForEdit,
+  ] = useState<MetadataRemoteRelationship | null>(null);
+
+  const [
+    showEditRemoteSchemaRelationshipDialog,
+    setShowEditRemoteSchemaRelationshipDialog,
+  ] = useState(false);
+
+  const [
+    selectedRemoteSchemaRelationshipForEdit,
+    setSelectedRemoteSchemaRelationshipForEdit,
+  ] = useState<MetadataRemoteRelationship | null>(null);
+
   const { data: suggestions } = useSuggestRelationshipsQuery(dataSource);
 
   const tableSuggestions = suggestions?.relationships?.filter(
@@ -130,6 +189,11 @@ export default function EditRelationshipsForm(
       | MetadataObjectRelationship[]
       | undefined) ?? [];
 
+  const remoteRelationships =
+    (tableMetadataItem?.remote_relationships as
+      | MetadataRemoteRelationship[]
+      | undefined) ?? [];
+
   const isDirty = false;
   const tableName = originalTable.table_name as string;
   const tableSchema = (originalTable.table_schema as string) || schema;
@@ -138,6 +202,8 @@ export default function EditRelationshipsForm(
     (tableData?.foreignKeyRelations as NormalizedQueryDataRow[]) ?? [];
   const tableColumns =
     (tableData?.columns as NormalizedQueryDataRow[] | undefined) ?? [];
+
+  console.log(foreignKeyRelations);
 
   const primaryKeyColumns = tableColumns
     .filter(
@@ -190,11 +256,181 @@ export default function EditRelationshipsForm(
     return [];
   };
 
-  const buildRelationshipRow = (
-    relationship: MetadataRelationship,
-    type: 'Array' | 'Object',
+  const getRemoteFieldPath = (remoteField?: RemoteField): string[] => {
+    if (!remoteField) {
+      return [];
+    }
+
+    const keys = Object.keys(remoteField);
+
+    if (keys.length === 0) {
+      return [];
+    }
+
+    const head = keys[0];
+    const nestedField = remoteField[head]?.field as RemoteField | undefined;
+
+    return [head, ...getRemoteFieldPath(nestedField)];
+  };
+
+  const formatRemoteSchemaEndpoint = (
+    remoteSchema?: string,
+    remoteFieldPath: string[] = [],
   ) => {
-    const { name, using } = relationship;
+    const schemaLabel = remoteSchema ?? 'Remote schema';
+
+    if (remoteFieldPath.length === 0) {
+      return `${schemaLabel} / Not specified`;
+    }
+
+    return `${schemaLabel} / ${remoteFieldPath.join('/')}`;
+  };
+
+  const formatRemoteSourceEndpoint = (
+    sourceName: string | undefined,
+    schemaName: string | undefined,
+    name: string | undefined,
+    columns: string[],
+  ) => {
+    const endpoint = formatEndpoint(schemaName, name, columns);
+
+    return sourceName ? `${sourceName} :: ${endpoint}` : endpoint;
+  };
+
+  const buildRemoteRelationshipRow = (
+    relationship: MetadataRemoteRelationship,
+  ): RelationshipRow | null => {
+    const { name, definition } = relationship;
+
+    if (!name || !definition) {
+      return null;
+    }
+
+    if (isToRemoteSchemaRelationshipDefinition(definition)) {
+      const localColumns =
+        definition.to_remote_schema.lhs_fields?.map((field) =>
+          field.toString(),
+        ) ?? [];
+      const remoteFieldPath = getRemoteFieldPath(
+        definition.to_remote_schema.remote_field,
+      );
+      const remoteSchemaName =
+        definition.to_remote_schema.remote_schema ?? 'Remote schema';
+
+      const structuralKey = JSON.stringify({
+        type: 'RemoteSchema',
+        from: {
+          schema: tableSchema,
+          table: tableName,
+          columns: localColumns,
+        },
+        to: {
+          remoteSchema: remoteSchemaName,
+          path: remoteFieldPath,
+        },
+      });
+
+      const keyParts = [
+        'Remote',
+        name,
+        remoteSchemaName,
+        ...localColumns,
+        ...remoteFieldPath,
+      ].filter(Boolean);
+
+      return {
+        key: keyParts.join('-'),
+        structuralKey,
+        name,
+        source: remoteSchemaName,
+        originSource: dataSource,
+        sourceIcon: 'plug',
+        type: 'Remote',
+        from: formatEndpoint(tableSchema, tableName, localColumns),
+        to: formatRemoteSchemaEndpoint(remoteSchemaName, remoteFieldPath),
+        isRemote: true,
+        remoteDefinitionType: 'schema',
+        rawRemoteRelationship: relationship,
+      };
+    }
+
+    if (isToSourceRelationshipDefinition(definition)) {
+      const fieldMappingEntries = Object.entries(
+        definition.to_source.field_mapping ?? {},
+      );
+      const localColumns = fieldMappingEntries.map(([sourceColumn]) =>
+        sourceColumn.toString(),
+      );
+      const remoteColumns = fieldMappingEntries.map(([, targetColumn]) =>
+        targetColumn.toString(),
+      );
+      const targetSource = definition.to_source.source;
+      const targetSchema = definition.to_source.table?.schema;
+      const targetTable = definition.to_source.table?.name;
+      const relationshipType =
+        definition.to_source.relationship_type?.toLowerCase() === 'array'
+          ? 'Array'
+          : 'Object';
+
+      const structuralKey = JSON.stringify({
+        type: `RemoteSource:${relationshipType}`,
+        from: {
+          schema: tableSchema,
+          table: tableName,
+          columns: localColumns,
+        },
+        to: {
+          source: targetSource,
+          schema: targetSchema,
+          table: targetTable,
+          columns: remoteColumns,
+        },
+      });
+
+      const keyParts = [
+        relationshipType,
+        name,
+        targetSource,
+        targetSchema,
+        targetTable,
+        ...localColumns,
+        ...remoteColumns,
+      ].filter(Boolean);
+
+      return {
+        key: keyParts.join('-'),
+        structuralKey,
+        name,
+        source: targetSource ?? dataSource,
+        originSource: dataSource,
+        type: relationshipType,
+        from: formatEndpoint(tableSchema, tableName, localColumns),
+        to: formatRemoteSourceEndpoint(
+          targetSource,
+          targetSchema,
+          targetTable,
+          remoteColumns,
+        ),
+        isRemote: true,
+        remoteDefinitionType: 'source',
+        rawRemoteRelationship: relationship,
+      };
+    }
+
+    return null;
+  };
+
+  const buildRelationshipRow = (
+    relationship: MetadataRelationship | MetadataRemoteRelationship,
+    type: 'Array' | 'Object' | 'Remote',
+  ): RelationshipRow | null => {
+    if (type === 'Remote') {
+      return buildRemoteRelationshipRow(
+        relationship as MetadataRemoteRelationship,
+      );
+    }
+
+    const { name, using } = relationship as MetadataRelationship;
 
     if (!name || !using) {
       return null;
@@ -290,6 +526,7 @@ export default function EditRelationshipsForm(
       structuralKey,
       name,
       source: dataSource,
+      originSource: dataSource,
       type,
       from: formatEndpoint(tableSchema, tableName, localColumns),
       to: formatEndpoint(remoteSchema, remoteTable, remoteColumns),
@@ -303,15 +540,10 @@ export default function EditRelationshipsForm(
     ...objectRelationships.map((relationship) =>
       buildRelationshipRow(relationship, 'Object'),
     ),
-  ].filter(Boolean) as Array<{
-    key: string;
-    structuralKey: string;
-    name: string;
-    source: string;
-    type: string;
-    from: string;
-    to: string;
-  }>;
+    ...remoteRelationships.map((relationship) =>
+      buildRelationshipRow(relationship, 'Remote'),
+    ),
+  ].filter(Boolean) as RelationshipRow[];
 
   const existingRelationshipKeys = new Set(
     relationships.map((relationship) => relationship.structuralKey),
@@ -496,7 +728,14 @@ export default function EditRelationshipsForm(
                       <TableCell className="font-medium">
                         {relationship.name}
                       </TableCell>
-                      <TableCell>{relationship.source}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          {relationship.sourceIcon === 'plug' ? (
+                            <PlugIcon className="h-4 w-4 text-muted-foreground" />
+                          ) : null}
+                          <span>{relationship.source}</span>
+                        </div>
+                      </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           {relationship.type === 'Array' ? (
@@ -522,27 +761,64 @@ export default function EditRelationshipsForm(
                           onClick={() => {
                             setSelectedRelationshipForDelete({
                               name: relationship.name,
-                              source: relationship.source,
+                              source: relationship.originSource,
                             });
                             setShowDeleteRelationshipDialog(true);
                           }}
                         >
                           <Trash2Icon className="size-4" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className=""
-                          onClick={() => {
-                            setSelectedRelationshipForRename({
-                              name: relationship.name,
-                              source: relationship.source,
-                            });
-                            setShowRenameRelationshipDialog(true);
-                          }}
-                        >
-                          <PencilIcon className="size-4" />
-                        </Button>
+                        {relationship.isRemote ? (
+                          <>
+                            {relationship.remoteDefinitionType === 'source' &&
+                              relationship.rawRemoteRelationship && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => {
+                                    setSelectedRemoteRelationshipForEdit(
+                                      relationship.rawRemoteRelationship!,
+                                    );
+                                    setShowEditRemoteRelationshipDialog(true);
+                                  }}
+                                >
+                                  <SquarePen className="size-4" />
+                                </Button>
+                              )}
+                            {relationship.remoteDefinitionType === 'schema' &&
+                              relationship.rawRemoteRelationship && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => {
+                                    setSelectedRemoteSchemaRelationshipForEdit(
+                                      relationship.rawRemoteRelationship!,
+                                    );
+                                    setShowEditRemoteSchemaRelationshipDialog(
+                                      true,
+                                    );
+                                  }}
+                                >
+                                  <SquarePen className="size-4" />
+                                </Button>
+                              )}
+                          </>
+                        ) : (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className=""
+                            onClick={() => {
+                              setSelectedRelationshipForRename({
+                                name: relationship.name,
+                                source: relationship.originSource,
+                              });
+                              setShowRenameRelationshipDialog(true);
+                            }}
+                          >
+                            <PencilIcon className="size-4" />
+                          </Button>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))
@@ -567,7 +843,7 @@ export default function EditRelationshipsForm(
             }
             source={
               selectedRelationshipForDelete?.source ??
-              relationships[0]?.source ??
+              relationships[0]?.originSource ??
               dataSource
             }
           />
@@ -588,7 +864,7 @@ export default function EditRelationshipsForm(
             }
             source={
               selectedRelationshipForRename?.source ??
-              relationships[0]?.source ??
+              relationships[0]?.originSource ??
               dataSource
             }
             onSuccess={handleRelationshipCreated}
@@ -599,6 +875,35 @@ export default function EditRelationshipsForm(
             source={dataSource}
             schema={tableSchema}
             tableName={tableName}
+            onSuccess={handleRelationshipCreated}
+          />
+          <EditRemoteRelationshipDialog
+            open={showEditRemoteRelationshipDialog}
+            setOpen={(nextOpen) => {
+              if (!nextOpen) {
+                setSelectedRemoteRelationshipForEdit(null);
+              }
+              setShowEditRemoteRelationshipDialog(nextOpen);
+            }}
+            schema={tableSchema}
+            tableName={tableName}
+            source={dataSource}
+            relationship={selectedRemoteRelationshipForEdit}
+            onSuccess={handleRelationshipCreated}
+          />
+          <EditRemoteSchemaRelationshipDialog
+            open={showEditRemoteSchemaRelationshipDialog}
+            setOpen={(nextOpen) => {
+              if (!nextOpen) {
+                setSelectedRemoteSchemaRelationshipForEdit(null);
+              }
+              setShowEditRemoteSchemaRelationshipDialog(nextOpen);
+            }}
+            schema={tableSchema}
+            tableName={tableName}
+            source={dataSource}
+            relationship={selectedRemoteSchemaRelationshipForEdit}
+            tableColumns={tableColumns}
             onSuccess={handleRelationshipCreated}
           />
         </section>

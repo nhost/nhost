@@ -72,6 +72,13 @@ interface CreateRelationshipDialogProps {
    */
   tableName: string;
   onSuccess?: () => Promise<void> | void;
+  dialogTitle?: string;
+  dialogDescription?: string;
+  submitButtonText?: string;
+  initialValues?: CreateRelationshipFormValues;
+  onSubmitRelationship?: (
+    values: CreateRelationshipFormValues,
+  ) => Promise<void>;
 }
 
 const createRelationshipFormSchema = z
@@ -229,6 +236,11 @@ export default function CreateRelationshipDialog({
   schema,
   tableName,
   onSuccess,
+  dialogTitle = 'Create Relationship',
+  dialogDescription = 'Create and track a new relationship in your GraphQL schema.',
+  submitButtonText = 'Create Relationship',
+  initialValues,
+  onSubmitRelationship,
 }: CreateRelationshipDialogProps) {
   const queryClient = useQueryClient();
   const { data: resourceVersion } = useGetMetadataResourceVersion();
@@ -324,8 +336,32 @@ export default function CreateRelationshipDialog({
     },
   });
 
+  const { formState } = form;
+  const isFormSubmitting = formState.isSubmitting;
+  const shouldSkipAutoSelection = Boolean(initialValues) && !formState.isDirty;
+
+  const isSubmittingRelationship = onSubmitRelationship
+    ? isFormSubmitting
+    : isCreatingRelationship;
+
+  const {
+    fields: fieldMappingFields,
+    append: appendFieldMapping,
+    remove: removeFieldMapping,
+    replace: replaceFieldMapping,
+  } = useFieldArray({
+    control: form.control,
+    name: 'fieldMapping',
+  });
+
   useEffect(() => {
     if (!open) {
+      return;
+    }
+
+    if (initialValues) {
+      form.reset(initialValues);
+      replaceFieldMapping(initialValues.fieldMapping ?? []);
       return;
     }
 
@@ -341,14 +377,26 @@ export default function CreateRelationshipDialog({
         table: tableName,
       };
 
-    form.reset({
+    const defaultValues: CreateRelationshipFormValues = {
       name: '',
       fromSource: defaultTable,
       toReference: defaultTable,
       relationshipType: 'object',
       fieldMapping: [],
-    });
-  }, [open, allTables, form, schema, source, tableName]);
+    };
+
+    form.reset(defaultValues);
+    replaceFieldMapping(defaultValues.fieldMapping);
+  }, [
+    open,
+    allTables,
+    form,
+    schema,
+    source,
+    tableName,
+    initialValues,
+    replaceFieldMapping,
+  ]);
 
   const selectedFromSource = useWatch({
     control: form.control,
@@ -393,51 +441,43 @@ export default function CreateRelationshipDialog({
     tablesBySourceSchema,
   ]);
 
-  const toTableNames = useMemo(() => {
+  const toSourceTableNames = useMemo(() => {
     const key = getTableKey(
       selectedToReference?.source,
       selectedToReference?.schema,
     );
 
-    return key ? (tablesBySourceSchema[key] ?? []) : [];
+    return key ? [...(tablesBySourceSchema[key] ?? [])] : [];
   }, [
     selectedToReference?.schema,
     selectedToReference?.source,
     tablesBySourceSchema,
   ]);
 
-  const filteredToTableNames = useMemo(() => {
+  const toTableOptions = useMemo(() => {
+    const tableNames = [...toSourceTableNames];
+    const currentSelection = selectedToReference?.table;
+
     if (
-      selectedFromSource?.source &&
-      selectedFromSource?.schema &&
-      selectedFromSource?.table &&
-      selectedFromSource.source === selectedToReference?.source &&
-      selectedFromSource.schema === selectedToReference?.schema
+      currentSelection &&
+      !tableNames.includes(currentSelection) &&
+      currentSelection.length > 0
     ) {
-      return toTableNames.filter((name) => name !== selectedFromSource.table);
+      tableNames.unshift(currentSelection);
     }
 
-    return toTableNames;
-  }, [
-    selectedFromSource?.schema,
-    selectedFromSource?.source,
-    selectedFromSource?.table,
-    selectedToReference?.schema,
-    selectedToReference?.source,
-    toTableNames,
-  ]);
-
-  const toTableOptions = useMemo(
-    () =>
-      filteredToTableNames.map((name) => ({
-        label: name,
-        value: name,
-      })),
-    [filteredToTableNames],
-  );
+    return tableNames.map((name) => ({
+      label: name,
+      value: name,
+    }));
+  }, [toSourceTableNames, selectedToReference?.table]);
 
   useEffect(() => {
     if (!open) {
+      return;
+    }
+
+    if (shouldSkipAutoSelection) {
       return;
     }
 
@@ -465,6 +505,7 @@ export default function CreateRelationshipDialog({
     schemaOptionsBySource,
     selectedToReference?.schema,
     selectedToReference?.source,
+    shouldSkipAutoSelection,
   ]);
 
   useEffect(() => {
@@ -472,17 +513,29 @@ export default function CreateRelationshipDialog({
       return;
     }
 
+    if (shouldSkipAutoSelection) {
+      return;
+    }
+
+    const availableTables = toSourceTableNames;
+
     if (
-      filteredToTableNames.length > 0 &&
+      availableTables.length > 0 &&
       (!selectedToReference?.table ||
-        !filteredToTableNames.includes(selectedToReference.table))
+        !availableTables.includes(selectedToReference.table))
     ) {
-      form.setValue('toReference.table', filteredToTableNames[0], {
+      form.setValue('toReference.table', availableTables[0], {
         shouldValidate: true,
         shouldDirty: true,
       });
     }
-  }, [filteredToTableNames, form, open, selectedToReference?.table]);
+  }, [
+    form,
+    open,
+    selectedToReference?.table,
+    shouldSkipAutoSelection,
+    toSourceTableNames,
+  ]);
 
   const { data: fromTableData } = useTableQuery(
     [
@@ -540,19 +593,11 @@ export default function CreateRelationshipDialog({
     [toTableData],
   );
 
-  const {
-    fields: fieldMappingFields,
-    append: appendFieldMapping,
-    remove: removeFieldMapping,
-  } = useFieldArray({
-    control: form.control,
-    name: 'fieldMapping',
-  });
-
   const handleOpenChange = (nextOpen: boolean) => {
-    if (!nextOpen) {
+    if (!nextOpen && !initialValues) {
       form.reset();
     }
+
     setOpen(nextOpen);
   };
 
@@ -561,20 +606,23 @@ export default function CreateRelationshipDialog({
       <DialogContent
         className="sm:max-w-[720px]"
         hideCloseButton
-        disableOutsideClick={isCreatingRelationship}
+        disableOutsideClick={isSubmittingRelationship}
       >
         <DialogHeader>
-          <DialogTitle className="text-foreground">
-            Create Relationship
-          </DialogTitle>
-          <DialogDescription>
-            Create and track a new relationship in your GraphQL schema.
-          </DialogDescription>
+          <DialogTitle className="text-foreground">{dialogTitle}</DialogTitle>
+          <DialogDescription>{dialogDescription}</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(async (values) => {
+              if (onSubmitRelationship) {
+                await onSubmitRelationship(values);
+                setOpen(false);
+                await onSuccess?.();
+                return;
+              }
+
               if (!resourceVersion) {
                 return;
               }
@@ -943,11 +991,11 @@ export default function CreateRelationshipDialog({
             <DialogFooter className="gap-2 sm:flex sm:flex-col sm:space-x-0">
               <ButtonWithLoading
                 type="submit"
-                loading={isCreatingRelationship}
-                disabled={isCreatingRelationship}
+                loading={isSubmittingRelationship}
+                disabled={isSubmittingRelationship}
                 className="!text-sm+"
               >
-                Create Relationship
+                {submitButtonText}
               </ButtonWithLoading>
               <DialogClose asChild>
                 <Button variant="outline" className="!text-sm+ text-foreground">

@@ -7,11 +7,7 @@
  */
 import type { QualifiedTable } from './qualifiedTable';
 
-/**
- * Column from remote table
- */
-export type RelationshipUsingForeignKeyConstraintOnForeignKeyConstraintOnOneOf =
-  {
-    table?: QualifiedTable;
-    columns?: string;
-  };
+export type ForeignKeyConstraintArrayRelationshipOneOf = {
+  table?: QualifiedTable;
+  column?: string;
+};

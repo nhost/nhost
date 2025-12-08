@@ -1,10 +1,6 @@
 import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
 import type { CreateArrayRelationshipArgs } from '@/utils/hasura-api/generated/schemas';
-
-export interface CreateArrayRelationshipOptions {
-  appUrl: string;
-  adminSecret: string;
-}
+import type { MetadataOperationOptions } from '@/utils/hasura-api/types';
 
 export interface CreateArrayRelationshipVariables {
   resourceVersion: number;
@@ -16,7 +12,7 @@ export default async function createArrayRelationship({
   adminSecret,
   resourceVersion,
   args,
-}: CreateArrayRelationshipOptions & CreateArrayRelationshipVariables) {
+}: MetadataOperationOptions & CreateArrayRelationshipVariables) {
   try {
     const response = await metadataOperation(
       {

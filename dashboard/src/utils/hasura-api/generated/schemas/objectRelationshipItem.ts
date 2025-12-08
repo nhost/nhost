@@ -7,9 +7,8 @@
  */
 import type { RelationshipUsing } from './relationshipUsing';
 
-export type ExportMetadataResponseMetadataSourcesItemTablesItemObjectRelationshipsItem =
-  {
-    /** Name of the relationship */
-    name?: string;
-    using?: RelationshipUsing;
-  };
+export interface ObjectRelationshipItem {
+  /** Name of the relationship */
+  name?: string;
+  using?: RelationshipUsing;
+}
