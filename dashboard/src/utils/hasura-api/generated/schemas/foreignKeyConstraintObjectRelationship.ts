@@ -7,8 +7,6 @@
  */
 
 /**
- * Arguments to pass to the remote field
+ * Column(s) from same table. Used for object relationships.
  */
-export type ToRemoteSchemaRelationshipDefinitionRemoteFieldArguments = {
-  [key: string]: string;
-};
+export type ForeignKeyConstraintObjectRelationship = string | string[];

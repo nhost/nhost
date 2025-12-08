@@ -1,8 +1,8 @@
 import type {
+  RemoteRelationshipDefinition,
   RemoteSchemaDefinition,
   RemoteSchemaDefinitionFromEnv,
   RemoteSchemaDefinitionFromUrl,
-  RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItemDefinition,
   ToRemoteSchemaRelationshipDefinition,
   ToSourceRelationshipDefinition,
 } from '@/utils/hasura-api/generated/schemas';
@@ -20,13 +20,13 @@ export function isRemoteSchemaFromUrlDefinition(
 }
 
 export function isToRemoteSchemaRelationshipDefinition(
-  definition: RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItemDefinition,
+  definition: RemoteRelationshipDefinition,
 ): definition is { to_remote_schema: ToRemoteSchemaRelationshipDefinition } {
   return 'to_remote_schema' in definition && !('to_source' in definition);
 }
 
 export function isToSourceRelationshipDefinition(
-  definition: RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItemDefinition,
+  definition: RemoteRelationshipDefinition,
 ): definition is { to_source: ToSourceRelationshipDefinition } {
   return 'to_source' in definition && !('to_remote_schema' in definition);
 }

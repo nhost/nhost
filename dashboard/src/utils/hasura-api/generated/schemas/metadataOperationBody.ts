@@ -6,9 +6,13 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { AddRemoteSchemaOperation } from './addRemoteSchemaOperation';
+import type { CreateArrayRelationshipBulkOperation } from './createArrayRelationshipBulkOperation';
 import type { CreateEventTriggerBulkOperation } from './createEventTriggerBulkOperation';
+import type { CreateObjectRelationshipBulkOperation } from './createObjectRelationshipBulkOperation';
+import type { CreateRemoteRelationshipBulkOperation } from './createRemoteRelationshipBulkOperation';
 import type { DeleteEventTriggerBulkOperation } from './deleteEventTriggerBulkOperation';
 import type { DeleteRemoteSchemaRemoteRelationshipOperation } from './deleteRemoteSchemaRemoteRelationshipOperation';
+import type { DropRelationshipBulkOperation } from './dropRelationshipBulkOperation';
 import type { ExportMetadata } from './exportMetadata';
 import type { GetEventAndInvocationLogsByIdOperation } from './getEventAndInvocationLogsByIdOperation';
 import type { GetEventInvocationLogsOperation } from './getEventInvocationLogsOperation';
@@ -20,8 +24,10 @@ import type { ReloadRemoteSchemaOperation } from './reloadRemoteSchemaOperation'
 import type { RemoteSchemaPermissionsBulkOperation } from './remoteSchemaPermissionsBulkOperation';
 import type { RemoteSchemaRemoteRelationshipOperation } from './remoteSchemaRemoteRelationshipOperation';
 import type { RemoveRemoteSchemaOperation } from './removeRemoteSchemaOperation';
+import type { RenameRelationshipBulkOperation } from './renameRelationshipBulkOperation';
 import type { SetTableCustomizationBulkOperation } from './setTableCustomizationBulkOperation';
 import type { SetTableIsEnumBulkOperation } from './setTableIsEnumBulkOperation';
+import type { SuggestRelationshipsOperation } from './suggestRelationshipsOperation';
 import type { TestWebhookTransformOperation } from './testWebhookTransformOperation';
 import type { UpdateRemoteSchemaBulkOperation } from './updateRemoteSchemaBulkOperation';
 
@@ -29,6 +35,12 @@ export type MetadataOperationBody =
   | ExportMetadata
   | SetTableCustomizationBulkOperation
   | SetTableIsEnumBulkOperation
+  | SuggestRelationshipsOperation
+  | DropRelationshipBulkOperation
+  | CreateObjectRelationshipBulkOperation
+  | CreateArrayRelationshipBulkOperation
+  | CreateRemoteRelationshipBulkOperation
+  | RenameRelationshipBulkOperation
   | AddRemoteSchemaOperation
   | UpdateRemoteSchemaBulkOperation
   | RemoveRemoteSchemaOperation

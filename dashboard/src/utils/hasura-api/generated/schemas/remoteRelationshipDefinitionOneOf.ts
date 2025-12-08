@@ -7,7 +7,7 @@
  */
 import type { ToRemoteSchemaRelationshipDefinition } from './toRemoteSchemaRelationshipDefinition';
 
-export type RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItemDefinitionOneOf =
-  {
-    to_remote_schema: ToRemoteSchemaRelationshipDefinition;
-  };
+export type RemoteRelationshipDefinitionOneOf = {
+  /** Remote Relationship definition to a Remote Schema */
+  to_remote_schema: ToRemoteSchemaRelationshipDefinition;
+};
