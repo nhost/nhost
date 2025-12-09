@@ -44,8 +44,10 @@ export default function extractForeignKeyRelation(
     name,
     columnName: columnName.replace(/(^\(|\)$)/gi, '').replaceAll('"', ''),
     referencedSchema,
-    referencedTable,
-    referencedColumn: referencedColumn.replace(/(^\(|\)$)/gi, ''),
+    referencedTable: referencedTable.replaceAll('"', ''),
+    referencedColumn: referencedColumn
+      .replace(/(^\(|\)$)/gi, '')
+      .replaceAll('"', ''),
     updateAction:
       (updateAction?.replace('ON UPDATE ', '') as PostgresReferentialAction) ||
       'NO ACTION',
