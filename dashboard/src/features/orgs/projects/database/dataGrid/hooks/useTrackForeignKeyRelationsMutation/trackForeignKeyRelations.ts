@@ -10,9 +10,13 @@ import prepareTrackForeignKeyRelationsMetadata from './prepareTrackForeignKeyRel
 
 export interface TrackForeignKeyRelationsVariables {
   /**
+   * Tracked Foreign key relations.
+   */
+  trackedForeignKeyRelations?: ForeignKeyRelation[];
+  /**
    * Foreign key relation to track.
    */
-  foreignKeyRelations: ForeignKeyRelation[];
+  unTrackedForeignKeyRelations: ForeignKeyRelation[];
   /**
    * Schema where the table is located for which the foreign key relation is
    * being tracked.
@@ -33,7 +37,8 @@ export default async function trackForeignKeyRelations({
   table,
   appUrl,
   adminSecret,
-  foreignKeyRelations,
+  unTrackedForeignKeyRelations,
+  trackedForeignKeyRelations,
 }: TrackForeignKeyRelationsOptions & TrackForeignKeyRelationsVariables) {
   const creatableRelationships = await prepareTrackForeignKeyRelationsMetadata({
     dataSource,
@@ -41,7 +46,8 @@ export default async function trackForeignKeyRelations({
     table,
     appUrl,
     adminSecret,
-    foreignKeyRelations,
+    unTrackedForeignKeyRelations,
+    trackedForeignKeyRelations,
   });
 
   const response = await fetch(`${appUrl}/v1/metadata`, {
