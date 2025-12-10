@@ -163,6 +163,7 @@ const projectSettingsPages = [
   },
   { name: 'AI', slug: 'ai', route: 'ai' },
   { name: 'Observability', slug: 'metrics', route: 'metrics' },
+  { name: 'Events', slug: 'events', route: 'events' },
   { name: 'Configuration Editor', slug: 'editor', route: 'editor' },
 ];
 
