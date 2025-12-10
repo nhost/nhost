@@ -15,14 +15,14 @@ import {
 
 export interface DataGridBooleanCellProps<TData extends object>
   extends CommonDataGridCellProps<TData, boolean | null | undefined> {
-  rowId?: string;
+  cellId?: string;
 }
 
 export default function DataGridBooleanCell<TData extends object>({
   onSave,
   optimisticValue,
   onTemporaryValueChange,
-  rowId,
+  cellId,
   cell: {
     column: { isNullable, getHeaderProps },
   },
@@ -98,7 +98,7 @@ export default function DataGridBooleanCell<TData extends object>({
         <ReadOnlyToggle checked={optimisticValue} />
       </DropdownMenuTrigger>
       <DropdownMenuContent
-        id={rowId}
+        id={cellId}
         style={{ width: getHeaderProps().style?.width }}
         onKeyDown={handleMenuKeyDown}
         className="rounded-none border-2 !border-t-0 border-[#0052cd] bg-data-cell-bg"
