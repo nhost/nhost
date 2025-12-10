@@ -9,11 +9,11 @@
 /**
  * Type of event logs to be fetched. If `status` is not provided then all types of status are included
  */
-export type GetEventLogsArgsAllOfStatus =
-  (typeof GetEventLogsArgsAllOfStatus)[keyof typeof GetEventLogsArgsAllOfStatus];
+export type GetEventLogsArgsStatus =
+  (typeof GetEventLogsArgsStatus)[keyof typeof GetEventLogsArgsStatus];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
-export const GetEventLogsArgsAllOfStatus = {
+export const GetEventLogsArgsStatus = {
   pending: 'pending',
   delivered: 'delivered',
 } as const;

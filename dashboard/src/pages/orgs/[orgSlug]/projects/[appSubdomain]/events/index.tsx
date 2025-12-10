@@ -3,14 +3,24 @@ import { Spinner } from '@/components/ui/v3/spinner';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { EventsBrowserSidebar } from '@/features/orgs/projects/events/common/components/EventsBrowserSidebar';
 import { EventsEmptyState } from '@/features/orgs/projects/events/common/components/EventsEmptyState';
+import { useGetCronTriggers } from '@/features/orgs/projects/events/cron-triggers/hooks/useGetCronTriggers';
 import { useGetEventTriggers } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventTriggers';
 
 import type { ReactElement } from 'react';
 
 export default function EventsPage() {
-  const { data: eventTriggers, isLoading, error } = useGetEventTriggers();
+  const {
+    data: eventTriggers,
+    isLoading: isLoadingEventTriggers,
+    error: errorEventTriggers,
+  } = useGetEventTriggers();
+  const {
+    data: cronTriggers,
+    isLoading: isLoadingCronTriggers,
+    error: errorCronTriggers,
+  } = useGetCronTriggers();
 
-  if (isLoading) {
+  if (isLoadingEventTriggers || isLoadingCronTriggers) {
     return (
       <div className="flex h-full justify-center">
         <Spinner />
@@ -18,7 +28,10 @@ export default function EventsPage() {
     );
   }
 
-  if (error instanceof Error) {
+  if (
+    errorEventTriggers instanceof Error ||
+    errorCronTriggers instanceof Error
+  ) {
     return (
       <EventsEmptyState
         title="Events"
@@ -27,7 +40,13 @@ export default function EventsPage() {
     );
   }
 
-  if (Array.isArray(eventTriggers) && eventTriggers.length === 0) {
+  const showNoEventsMessage =
+    Array.isArray(eventTriggers) &&
+    eventTriggers.length === 0 &&
+    Array.isArray(cronTriggers) &&
+    cronTriggers.length === 0;
+
+  if (showNoEventsMessage) {
     return (
       <EventsEmptyState
         title="Events"
