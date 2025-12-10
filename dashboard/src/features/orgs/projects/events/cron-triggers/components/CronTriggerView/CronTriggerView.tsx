@@ -5,10 +5,12 @@ import {
   TabsTrigger,
 } from '@/components/ui/v3/tabs';
 import { EventsEmptyState } from '@/features/orgs/projects/events/common/components/EventsEmptyState';
+import { CronTriggerEventsDataTable } from '@/features/orgs/projects/events/cron-triggers/components/CronTriggerEventsDataTable';
 import { useGetCronTriggers } from '@/features/orgs/projects/events/cron-triggers/hooks/useGetCronTriggers';
 import EventTriggerViewSkeleton from '@/features/orgs/projects/events/event-triggers/components/EventTriggerView/EventTriggerViewSkeleton';
 import { isEmptyValue } from '@/lib/utils';
 import { useRouter } from 'next/router';
+import CronTriggerOverview from './sections/CronTriggerOverview';
 
 export default function CronTriggerView() {
   const router = useRouter();
@@ -28,10 +30,10 @@ export default function CronTriggerView() {
   if (error instanceof Error) {
     return (
       <EventsEmptyState
-        title="Event trigger not found"
+        title="Cron trigger not found"
         description={
           <span>
-            Event trigger{' '}
+            Cron trigger{' '}
             <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-medium">
               {cronTriggerSlug}
             </code>{' '}
@@ -77,12 +79,10 @@ export default function CronTriggerView() {
             <TabsTrigger value="pending-processed-events">Events</TabsTrigger>
           </TabsList>
           <TabsContent value="overview">
-            {/* <EventTriggerOverview eventTrigger={eventTrigger!} /> */}
-            <div>Overview</div>
+            <CronTriggerOverview cronTrigger={cronTrigger!} />
           </TabsContent>
           <TabsContent value="pending-processed-events">
-            {/* <EventTriggerEventsDataTable eventTrigger={eventTrigger!} /> */}
-            <div>Events</div>
+            <CronTriggerEventsDataTable cronTrigger={cronTrigger!} />
           </TabsContent>
         </Tabs>
       </div>

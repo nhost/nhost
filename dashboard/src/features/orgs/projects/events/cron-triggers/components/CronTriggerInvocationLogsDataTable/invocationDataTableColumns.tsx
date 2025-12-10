@@ -1,26 +1,12 @@
 import { HoverCardTimestamp } from '@/components/presentational/HoverCardTimestamp';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
+import { HttpStatusText } from '@/features/orgs/projects/events/common/components/HttpStatusText';
 import { TimestampColumnHeader } from '@/features/orgs/projects/events/common/components/TimestampColumnHeader';
-import type { EventLogEntry } from '@/utils/hasura-api/generated/schemas';
+import type { CronTriggerInvocationLogEntry } from '@/utils/hasura-api/generated/schemas/cronTriggerInvocationLogEntry';
 import { type ColumnDef } from '@tanstack/react-table';
-import { Check, X } from 'lucide-react';
+import InvocationLogActionsCell from './InvocationLogActionsCell';
 
-function DeliveredCell({ delivered }: { delivered: boolean }) {
-  if (delivered) {
-    return (
-      <div className="flex items-center justify-center">
-        <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
-      </div>
-    );
-  }
-  return (
-    <div className="flex items-center justify-center">
-      <X className="h-4 w-4 text-red-600 dark:text-red-400" />
-    </div>
-  );
-}
-
-const columns: ColumnDef<EventLogEntry>[] = [
+const columns: ColumnDef<CronTriggerInvocationLogEntry>[] = [
   {
     id: 'created_at',
     accessorKey: 'created_at',
@@ -38,14 +24,14 @@ const columns: ColumnDef<EventLogEntry>[] = [
     ),
   },
   {
-    id: 'delivered',
-    accessorKey: 'delivered',
+    id: 'http_status',
+    accessorKey: 'http_status',
     minSize: 70,
     size: 70,
     maxSize: 70,
-    header: () => <div className="text-center">Delivered</div>,
+    header: 'Status',
     enableSorting: false,
-    cell: ({ row }) => <DeliveredCell delivered={row.original.delivered} />,
+    cell: ({ row }) => <HttpStatusText status={row.original.status} />,
   },
   {
     id: 'id',
@@ -59,25 +45,18 @@ const columns: ColumnDef<EventLogEntry>[] = [
         className="font-mono text-xs"
         containerClassName="cursor-text"
         text={row.original.id}
-        slotProps={{
-          container: {
-            // Prevent row expansion when clicking to select and copy the ID text
-            onClick: (event) => event.stopPropagation(),
-          },
-        }}
       />
     ),
   },
   {
-    id: 'tries',
-    accessorKey: 'tries',
+    id: 'actions',
     minSize: 80,
     size: 80,
     maxSize: 80,
-    header: 'Tries',
+    header: 'Actions',
     enableSorting: false,
-    cell: ({ row }) => (
-      <span className="font-mono text-xs">{row.original.tries}</span>
+    cell: ({ row, table }) => (
+      <InvocationLogActionsCell row={row.original} table={table} />
     ),
   },
 ];

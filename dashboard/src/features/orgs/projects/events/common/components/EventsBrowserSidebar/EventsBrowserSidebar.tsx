@@ -78,69 +78,80 @@ function EventsBrowserSidebarContent() {
 
   return (
     <div className="flex h-full flex-col px-2">
-      <div className="flex flex-row items-center justify-between">
-        <p className="font-semibold leading-7 [&:not(:first-child)]:mt-6">
-          Event Triggers ({eventTriggersData?.length ?? 0})
-        </p>
-
-        <CreateEventTriggerForm />
-      </div>
-      <div className="flex flex-row gap-2">
-        <Accordion
-          type="single"
-          collapsible
-          className="w-full"
-          defaultValue="default"
-        >
-          {Object.entries(eventTriggersByDataSource ?? {}).map(
-            ([dataSource, eventTriggers]) => (
-              <AccordionItem
-                key={dataSource}
-                value={dataSource}
-                id={dataSource}
-              >
-                <AccordionTrigger className="flex-row-reverse justify-end gap-2 text-sm+ [&[data-state=closed]>svg:last-child]:-rotate-90 [&[data-state=open]>svg:last-child]:rotate-0">
-                  <div className="flex flex-row-reverse items-center gap-2">
-                    {dataSource}
-                    <Database className="size-4 !rotate-0" />
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="flex flex-col gap-1 text-balance pl-4">
-                  {eventTriggers.map((eventTrigger) => (
-                    <EventTriggerListItem
-                      key={eventTrigger.name}
-                      eventTrigger={eventTrigger}
-                    />
-                  ))}
-                </AccordionContent>
-              </AccordionItem>
-            ),
-          )}
-        </Accordion>
-      </div>
-      <div className="flex flex-row gap-2">
-        <Accordion
-          type="single"
-          collapsible
-          className="w-full"
-          defaultValue="default"
-        >
-          <AccordionItem value="default" id="default">
+      <Accordion
+        type="multiple"
+        defaultValue={['event-triggers']}
+        className="w-full"
+      >
+        <AccordionItem value="event-triggers" id="event-triggers">
+          <div className="flex flex-row items-center justify-between">
             <AccordionTrigger className="flex-row-reverse justify-end gap-2 text-sm+ font-semibold [&[data-state=closed]>svg:last-child]:-rotate-90 [&[data-state=open]>svg:last-child]:rotate-0">
-              Cron Triggers ({cronTriggersData?.length ?? 0})
-              <CreateCronTriggerForm />
+              Event Triggers ({eventTriggersData?.length ?? 0})
             </AccordionTrigger>
-            <AccordionContent className="flex flex-col gap-1 text-balance pl-4">
-              {(cronTriggersData ?? []).map((cronTrigger) => (
-                <CronTriggerListItem
-                  key={cronTrigger.name}
-                  cronTrigger={cronTrigger}
-                />
-              ))}
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
-      </div>
+            <CreateEventTriggerForm />
+          </div>
+          <AccordionContent className="pb-0">
+            <div className="flex flex-row gap-2">
+              <Accordion
+                type="single"
+                collapsible
+                className="w-full"
+                defaultValue="default"
+              >
+                {Object.entries(eventTriggersByDataSource ?? {}).map(
+                  ([dataSource, eventTriggers]) => (
+                    <AccordionItem
+                      key={dataSource}
+                      value={dataSource}
+                      id={dataSource}
+                    >
+                      <AccordionTrigger className="flex-row-reverse justify-end gap-2 text-sm+ [&[data-state=closed]>svg:last-child]:-rotate-90 [&[data-state=open]>svg:last-child]:rotate-0">
+                        <div className="flex flex-row-reverse items-center gap-2">
+                          {dataSource}
+                          <Database className="size-4 !rotate-0" />
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="flex flex-col gap-1 text-balance pl-4">
+                        {eventTriggers.map((eventTrigger) => (
+                          <EventTriggerListItem
+                            key={eventTrigger.name}
+                            eventTrigger={eventTrigger}
+                          />
+                        ))}
+                      </AccordionContent>
+                    </AccordionItem>
+                  ),
+                )}
+              </Accordion>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+        <div className="flex flex-row gap-2">
+          <Accordion
+            type="single"
+            collapsible
+            className="w-full"
+            defaultValue="default"
+          >
+            <AccordionItem value="default" id="default">
+              <div className="flex flex-row items-center justify-between">
+                <AccordionTrigger className="flex-row-reverse justify-end gap-2 text-sm+ font-semibold [&[data-state=closed]>svg:last-child]:-rotate-90 [&[data-state=open]>svg:last-child]:rotate-0">
+                  Cron Triggers ({cronTriggersData?.length ?? 0})
+                </AccordionTrigger>
+                <CreateCronTriggerForm />
+              </div>
+              <AccordionContent className="flex flex-col gap-1 text-balance pl-4">
+                {(cronTriggersData ?? []).map((cronTrigger) => (
+                  <CronTriggerListItem
+                    key={cronTrigger.name}
+                    cronTrigger={cronTrigger}
+                  />
+                ))}
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </div>
+      </Accordion>
     </div>
   );
 }
