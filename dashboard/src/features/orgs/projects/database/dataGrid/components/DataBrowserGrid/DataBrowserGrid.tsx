@@ -4,7 +4,10 @@ import { InlineCode } from '@/components/ui/v3/inline-code';
 import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
 import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
 import { DataBrowserGridControls } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGridControls';
-import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
+import {
+  createTableQueryKey,
+  useTableQuery,
+} from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
 import type { UpdateRecordVariables } from '@/features/orgs/projects/database/dataGrid/hooks/useUpdateRecordMutation';
 import { useUpdateRecordWithToastMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useUpdateRecordMutation';
 import type {
@@ -24,13 +27,14 @@ import { DataGridBooleanCell } from '@/features/orgs/projects/storage/dataGrid/c
 import { DataGridDateCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridDateCell';
 import { DataGridNumericCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridNumericCell';
 import { DataGridTextCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridTextCell';
-import { isNotEmptyValue } from '@/lib/utils';
-
+import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import { useQueryClient } from '@tanstack/react-query';
 import { KeyRound } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
+import { useDataGridQueryParams } from './DataGridQueryParamsProvider';
+import NoMatchesFound from './NoMatchesFound';
 
 const CreateRecordForm = dynamic(
   () =>
@@ -69,7 +73,6 @@ export function createDataGridColumn(
     type: 'text',
     specificType: column.full_data_type,
     dataType: column.data_type,
-    maxLength: column.character_maximum_length,
     Cell: DataGridTextCell,
     isPrimary: column.is_primary,
     isNullable: column.is_nullable !== 'NO',
@@ -137,11 +140,9 @@ export function createDataGridColumn(
 
   return defaultColumnConfiguration;
 }
+const LIMIT = 25;
 
-export default function DataBrowserGrid({
-  sortBy,
-  ...props
-}: DataBrowserGridProps) {
+export default function DataBrowserGrid(props: DataBrowserGridProps) {
   const dataGridRef = useRef<HTMLDivElement | null>(null);
 
   const queryClient = useQueryClient();
@@ -153,34 +154,50 @@ export default function DataBrowserGrid({
 
   const { openDrawer } = useDialog();
 
-  const limit = 25;
-  const [currentOffset, setCurrentOffset] = useState<number>(
-    parseInt(page as string, 10) - 1 || 0,
-  );
+  const {
+    isFiltersLoadedFromStorage,
+    appliedFilters,
+    sortBy,
+    setSortBy,
+    currentOffset,
+    setCurrentOffset,
+  } = useDataGridQueryParams();
 
   const { mutateAsync: updateRow } = useUpdateRecordWithToastMutation();
 
-  const sortByString = isNotEmptyValue(sortBy?.[0])
-    ? `${sortBy[0].id}.${sortBy[0].desc}`
-    : 'default-order';
-
   const { data, status, error, refetch } = useTableQuery(
-    [currentTablePath, currentOffset, sortByString],
+    createTableQueryKey(
+      currentTablePath,
+      currentOffset,
+      sortBy,
+      appliedFilters,
+    ),
     {
-      limit,
-      offset: currentOffset * limit,
+      limit: LIMIT,
+      offset: currentOffset * LIMIT,
       orderBy:
         sortBy?.map(({ id, desc }) => ({
           columnName: id,
           mode: desc ? 'DESC' : 'ASC',
         })) || [],
+      filters: appliedFilters,
+      queryOptions: {
+        enabled: isFiltersLoadedFromStorage.current,
+      },
     },
   );
 
-  const { columns, rows, numberOfRows, metadata } = data || {
+  const {
+    columns,
+    rows,
+    numberOfRows,
+    metadata,
+    error: rowQueryError,
+  } = data || {
     columns: [] as NormalizedQueryDataRow[],
     rows: [] as NormalizedQueryDataRow[],
     numberOfRows: 0,
+    error: null,
   };
 
   useEffect(() => {
@@ -193,7 +210,7 @@ export default function DataBrowserGrid({
     }
   }, [currentTablePath]);
 
-  const numberOfPages = numberOfRows ? Math.ceil(numberOfRows / limit) : 0;
+  const numberOfPages = numberOfRows ? Math.ceil(numberOfRows / LIMIT) : 0;
   const currentPage = Math.min(currentOffset + 1, numberOfPages);
 
   async function handleOpenPrevPage() {
@@ -246,7 +263,7 @@ export default function DataBrowserGrid({
     if (status === 'success' && !page && currentOffset !== 0) {
       setCurrentOffset(0);
     }
-  }, [page, status, numberOfPages, currentOffset]);
+  }, [page, status, numberOfPages, currentOffset, setCurrentOffset]);
 
   const memoizedColumns = useMemo(
     () =>
@@ -273,7 +290,6 @@ export default function DataBrowserGrid({
           columns={memoizedColumns as unknown as DataBrowserGridColumn[]}
           onSubmit={refetch}
           currentOffset={currentOffset}
-          sortByString={sortByString}
         />
       ),
     });
@@ -320,6 +336,15 @@ export default function DataBrowserGrid({
     throw error || new Error('Unknown error occurred. Please try again later.');
   }
 
+  const noMatchesFound =
+    isEmptyValue(memoizedData) && isNotEmptyValue(appliedFilters);
+
+  const emptyStateMessage = noMatchesFound ? (
+    <NoMatchesFound />
+  ) : (
+    'No rows found'
+  );
+
   return (
     <DataGrid
       ref={dataGridRef}
@@ -328,9 +353,14 @@ export default function DataBrowserGrid({
       allowSelection
       allowResize
       allowSort
-      emptyStateMessage="No rows found."
+      emptyStateMessage={
+        rowQueryError ? (
+          <span className="text-destructive">Error: {rowQueryError}</span>
+        ) : (
+          emptyStateMessage
+        )
+      }
       loading={status === 'loading'}
-      sortBy={sortBy}
       className="pb-17 sm:pb-0"
       onInsertRow={handleInsertRowClick}
       options={{
@@ -353,6 +383,8 @@ export default function DataBrowserGrid({
         />
       }
       {...props}
+      sortBy={sortBy}
+      onSort={setSortBy}
     />
   );
 }

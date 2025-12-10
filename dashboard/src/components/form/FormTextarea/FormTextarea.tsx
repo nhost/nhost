@@ -1,3 +1,6 @@
+import getTransformedFieldProps, {
+  type Transformer,
+} from '@/components/form/utils/getTransformedFieldProps';
 import {
   FormControl,
   FormDescription,
@@ -7,7 +10,7 @@ import {
   FormMessage,
 } from '@/components/ui/v3/form';
 import { Textarea } from '@/components/ui/v3/textarea';
-import { cn } from '@/lib/utils';
+import { cn, isNotEmptyValue } from '@/lib/utils';
 import { forwardRef, type ForwardedRef, type ReactNode } from 'react';
 import type { Control, FieldPath, FieldValues } from 'react-hook-form';
 import { mergeRefs } from 'react-merge-refs';
@@ -23,12 +26,13 @@ interface FormTextareaProps<
   name: TName;
   label: ReactNode;
   placeholder?: string;
+  transform?: Transformer;
   className?: string;
   inline?: boolean;
   helperText?: string | null;
 }
 
-function InnerFormTextarea<
+function FormTextareaImpl<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 >(
@@ -40,58 +44,64 @@ function InnerFormTextarea<
     className = '',
     inline,
     helperText,
+    transform,
   }: FormTextareaProps<TFieldValues, TName>,
-  ref: ForwardedRef<HTMLTextAreaElement>,
+  ref?: ForwardedRef<HTMLTextAreaElement>,
 ) {
   return (
     <FormField
       control={control}
       name={name}
-      render={({ field }) => (
-        <FormItem
-          className={cn({ 'flex w-full items-center gap-4 py-3': inline })}
-        >
-          <FormLabel
-            className={cn({
-              'mt-2 w-52 max-w-52 flex-shrink-0 self-start': inline,
-            })}
+      render={({ field }) => {
+        const fieldProps = isNotEmptyValue(transform)
+          ? getTransformedFieldProps(field, transform)
+          : field;
+        return (
+          <FormItem
+            className={cn({ 'flex w-full items-center gap-4 py-3': inline })}
           >
-            {label}
-          </FormLabel>
-          <div
-            className={cn({
-              'flex w-[calc(100%-13.5rem)] max-w-[calc(100%-13.5rem)] flex-col gap-2':
-                inline,
-            })}
-          >
-            <FormControl>
-              <Textarea
-                placeholder={placeholder}
-                {...field}
-                ref={mergeRefs([field.ref, ref])}
-                className={cn(inputClasses, className)}
-              />
-            </FormControl>
-            {!!helperText && (
-              <FormDescription className="break-all px-[1px]">
-                {helperText}
-              </FormDescription>
-            )}
-            <FormMessage />
-          </div>
-        </FormItem>
-      )}
+            <FormLabel
+              className={cn({
+                'mt-2 w-52 max-w-52 flex-shrink-0 self-start': inline,
+              })}
+            >
+              {label}
+            </FormLabel>
+            <div
+              className={cn({
+                'flex w-[calc(100%-13.5rem)] max-w-[calc(100%-13.5rem)] flex-col gap-2':
+                  inline,
+              })}
+            >
+              <FormControl>
+                <Textarea
+                  placeholder={placeholder}
+                  {...fieldProps}
+                  ref={mergeRefs([field.ref, ref])}
+                  className={cn(inputClasses, className)}
+                />
+              </FormControl>
+              {!!helperText && (
+                <FormDescription className="break-all px-[1px]">
+                  {helperText}
+                </FormDescription>
+              )}
+              <FormMessage />
+            </div>
+          </FormItem>
+        );
+      }}
     />
   );
 }
 
-const FormTextarea = forwardRef(InnerFormTextarea) as <
+const FormTextarea = forwardRef(FormTextareaImpl) as <
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 >(
   props: FormTextareaProps<TFieldValues, TName> & {
     ref: ForwardedRef<HTMLTextAreaElement>;
   },
-) => ReturnType<typeof InnerFormTextarea>;
+) => ReturnType<typeof FormTextareaImpl>;
 
 export default FormTextarea;

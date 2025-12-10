@@ -1,7 +1,8 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import { Badge } from '@/components/ui/v3/badge';
 import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
-import { DataGridCustomizerControls } from '@/features/orgs/projects/common/components/DataGridCustomizerControls';
+import { DataGridFiltersPopover } from '@/features/orgs/projects/common/components/DataGridFiltersPopover';
+import { DataGridTableViewConfigurationPopover } from '@/features/orgs/projects/common/components/DataGridTableViewConfigurationPopover';
 import { InvokeEventTriggerButton } from '@/features/orgs/projects/database/dataGrid/components/InvokeEventTriggerButton';
 import { useDeleteRecordMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteRecordMutation';
 import type { DataBrowserGridColumn } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
@@ -117,7 +118,7 @@ export default function DataBrowserGridControls({
   }
 
   return (
-    <div className="box sticky top-0 z-20 border-b-1 p-2">
+    <div className="box sticky top-0 z-40 border-b-1 p-2">
       <div
         className={cn(
           'mx-auto grid min-h-10 grid-flow-col items-center gap-3',
@@ -182,7 +183,8 @@ export default function DataBrowserGridControls({
                 {...restPaginationProps}
               />
             )}
-            <DataGridCustomizerControls />
+            <DataGridFiltersPopover />
+            <DataGridTableViewConfigurationPopover />
             <Button onClick={onInsertRowClick} size="sm">
               <Plus className="h-4 w-4" /> Insert row
             </Button>

@@ -1,21 +1,22 @@
 import { Button } from '@/components/ui/v3/button';
-import { useDataGridCustomizerOpenStateContext } from '@/features/orgs/projects/common/components/DataGridCustomizerControls/DataGridCustomizerOpenStateProvider';
+import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
 import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
+import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
+import PersistenDataTableConfigurationStorage from '@/features/orgs/projects/storage/dataGrid/utils/PersistenDataTableConfigurationStorage';
 
 function Description() {
-  const { setOpen } = useDataGridCustomizerOpenStateContext();
+  const { setHiddenColumns } = useDataGridConfig();
+  const tablePath = useTablePath();
 
-  function handleOnClick() {
-    setOpen(true);
+  function saveHiddenCols() {
+    setHiddenColumns([]);
+    PersistenDataTableConfigurationStorage.saveHiddenColumns(tablePath, []);
   }
 
   return (
-    <>
-      <Button variant="link" onClick={handleOnClick} className="pr-2">
-        Open Customize Table View
-      </Button>
-      to choose which columns to display.
-    </>
+    <Button variant="outline" onClick={saveHiddenCols}>
+      Reset column settings
+    </Button>
   );
 }
 

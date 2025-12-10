@@ -1,3 +1,15 @@
+## [auth@0.44.1] - 2025-12-05
+
+### 🐛 Bug Fixes
+
+- *(auth)* Apply middleware in the correct order (#3741)
+
+## [auth@0.44.0] - 2025-12-04
+
+### 🚀 Features
+
+- *(auth)* Expand turnstile to passwordess and email reset (#3736)
+
 ## [auth@0.43.2] - 2025-11-27
 
 ### 🐛 Bug Fixes

@@ -55,7 +55,7 @@ jobs:
 
     - name: "Create Pull Request"
       if: steps.version.outputs.version != ''
-      uses: peter-evans/create-pull-request@v7
+      uses: peter-evans/create-pull-request@v8
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         commit-message: "release(${{ matrix.project }}): ${{ steps.version.outputs.version }}"

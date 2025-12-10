@@ -10,7 +10,7 @@
     "start": "next start",
     "lint": "next lint --max-warnings 0",
     "test": "pnpm lint && pnpm test:vitest",
-    "test:vitest": "vitest --run",
+    "test:vitest": "vitest run --exclude '**/BaseTableForm.test.tsx' && vitest run src/features/orgs/projects/database/dataGrid/components/BaseTableForm/BaseTableForm.test.tsx",
     "test:watch": "vitest",
     "generate": "echo 'This needs to be fixed.'",
     "codegen": "DOTENV_CONFIG_PATH=./.env.local graphql-codegen -r dotenv/config --config graphql.config.yaml --errors-only",
@@ -21,7 +21,8 @@
     "e2e:tests": "pnpm playwright test --config=playwright.config.ts -x",
     "e2e": "pnpm e2e:tests --project=main",
     "e2e:local": "pnpm e2e:tests --project=local",
-    "e2e:onboarding": "pnpm e2e:tests --project=onboarding"
+    "e2e:onboarding": "pnpm e2e:tests --project=onboarding",
+    "type-check": "tsc --noEmit --pretty -p tsconfig.json"
   },
   "dependencies": {
     "@apollo/client": "^3.9.9",
@@ -33,6 +34,7 @@
     "@emotion/react": "^11.11.4",
     "@emotion/server": "^11.11.0",
     "@emotion/styled": "^11.11.5",
+    "@floating-ui/react": "^0.27.16",
     "@fontsource/inter": "^5.0.21",
     "@fontsource/roboto-mono": "^5.0.20",
     "@graphiql/react": "^0.22.3",

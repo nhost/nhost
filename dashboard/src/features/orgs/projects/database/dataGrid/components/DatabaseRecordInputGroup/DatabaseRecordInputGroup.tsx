@@ -9,7 +9,7 @@ import { getInputType } from '@/features/orgs/projects/database/dataGrid/utils/i
 import { normalizeDefaultValue } from '@/features/orgs/projects/database/dataGrid/utils/normalizeDefaultValue';
 import { cn } from '@/lib/utils';
 import { KeyRound } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { type ChangeEvent, useEffect, useRef } from 'react';
 import { useFormContext } from 'react-hook-form';
 
 export interface DatabaseRecordInputGroupProps {
@@ -48,6 +48,12 @@ function getBooleanValueTransformer(isNullable: boolean) {
 
 function convertNullToEmptyString(value: string | null) {
   return value === null ? '' : value;
+}
+
+function convertEmptyStringToNull(
+  event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+) {
+  return event.target.value === '' ? null : event.target.value;
 }
 
 function getPlaceholder(
@@ -120,7 +126,6 @@ export default function DatabaseRecordInputGroup({
               id: columnId,
               type,
               specificType,
-              maxLength,
               defaultValue,
               isPrimary,
               isNullable,
@@ -132,7 +137,7 @@ export default function DatabaseRecordInputGroup({
             const isMultiline =
               specificType === 'text' ||
               specificType === 'bpchar' ||
-              specificType === 'varchar' ||
+              specificType?.includes('character varying') ||
               specificType === 'json' ||
               specificType === 'jsonb';
 
@@ -153,11 +158,9 @@ export default function DatabaseRecordInputGroup({
 
                 <InlineCode
                   className="h-[1.125rem] overflow-hidden whitespace-nowrap leading-[1.125rem]"
-                  style={{ textOverflow: 'clip' }}
                   title={specificType}
                 >
                   {specificType}
-                  {maxLength ? `(${maxLength})` : null}
                 </InlineCode>
               </span>
             );
@@ -172,7 +175,10 @@ export default function DatabaseRecordInputGroup({
                   label={inputLabel}
                   placeholder="Select an option"
                   helperText={comment}
-                  transformValue={getBooleanValueTransformer(!!isNullable)}
+                  transform={{
+                    in: getBooleanValueTransformer(!!isNullable),
+                    out: getBooleanValueTransformer(!!isNullable),
+                  }}
                 >
                   <SelectItem value="true">
                     <ReadOnlyToggle checked />
@@ -202,7 +208,10 @@ export default function DatabaseRecordInputGroup({
                 label={inputLabel}
                 placeholder={placeholder}
                 helperText={comment}
-                transformValue={convertNullToEmptyString}
+                transform={{
+                  in: convertNullToEmptyString,
+                  out: convertEmptyStringToNull,
+                }}
                 className={cn(
                   { 'resize-none': isMultiline },
                   'focus-visible:ring-0',
