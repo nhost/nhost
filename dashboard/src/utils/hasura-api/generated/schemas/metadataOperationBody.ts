@@ -6,13 +6,18 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { AddRemoteSchemaOperation } from './addRemoteSchemaOperation';
+import type { CreateCronTriggerBulkOperation } from './createCronTriggerBulkOperation';
 import type { CreateEventTriggerBulkOperation } from './createEventTriggerBulkOperation';
+import type { DeleteCronTriggerOperation } from './deleteCronTriggerOperation';
 import type { DeleteEventTriggerBulkOperation } from './deleteEventTriggerBulkOperation';
 import type { DeleteRemoteSchemaRemoteRelationshipOperation } from './deleteRemoteSchemaRemoteRelationshipOperation';
+import type { DeleteScheduledEventOperation } from './deleteScheduledEventOperation';
 import type { ExportMetadata } from './exportMetadata';
+import type { GetCronTriggersOperation } from './getCronTriggersOperation';
 import type { GetEventAndInvocationLogsByIdOperation } from './getEventAndInvocationLogsByIdOperation';
-import type { GetEventInvocationLogsOperation } from './getEventInvocationLogsOperation';
 import type { GetEventLogsOperation } from './getEventLogsOperation';
+import type { GetScheduledEventInvocationsOperation } from './getScheduledEventInvocationsOperation';
+import type { GetScheduledEventsOperation } from './getScheduledEventsOperation';
 import type { IntrospectRemoteSchemaOperation } from './introspectRemoteSchemaOperation';
 import type { InvokeEventTriggerOperation } from './invokeEventTriggerOperation';
 import type { RedeliverEventOperation } from './redeliverEventOperation';
@@ -37,11 +42,16 @@ export type MetadataOperationBody =
   | RemoteSchemaRemoteRelationshipOperation
   | DeleteRemoteSchemaRemoteRelationshipOperation
   | RemoteSchemaPermissionsBulkOperation
-  | GetEventInvocationLogsOperation
   | GetEventLogsOperation
   | GetEventAndInvocationLogsByIdOperation
   | RedeliverEventOperation
   | CreateEventTriggerBulkOperation
   | DeleteEventTriggerBulkOperation
   | TestWebhookTransformOperation
-  | InvokeEventTriggerOperation;
+  | InvokeEventTriggerOperation
+  | GetCronTriggersOperation
+  | CreateCronTriggerBulkOperation
+  | DeleteCronTriggerOperation
+  | GetScheduledEventsOperation
+  | GetScheduledEventInvocationsOperation
+  | DeleteScheduledEventOperation;

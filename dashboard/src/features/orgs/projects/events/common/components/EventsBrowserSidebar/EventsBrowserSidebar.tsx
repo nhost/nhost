@@ -10,6 +10,8 @@ import {
   AccordionTrigger,
 } from '@/components/ui/v3/accordion';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { CreateCronTriggerForm } from '@/features/orgs/projects/events/cron-triggers/components/CreateCronTriggerForm';
+import { useGetCronTriggers } from '@/features/orgs/projects/events/cron-triggers/hooks/useGetCronTriggers';
 import { CreateEventTriggerForm } from '@/features/orgs/projects/events/event-triggers/components/CreateEventTriggerForm';
 import { useGetEventTriggers } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventTriggers';
 import type { EventTriggerViewModel } from '@/features/orgs/projects/events/event-triggers/types';
@@ -18,19 +20,32 @@ import { Database } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
+import CronTriggerListItem from './CronTriggerListItem';
 import EventsBrowserSidebarSkeleton from './EventsBrowserSidebarSkeleton';
 import EventTriggerListItem from './EventTriggerListItem';
 
 export interface EventsBrowserSidebarProps extends Omit<BoxProps, 'children'> {}
 
 function EventsBrowserSidebarContent() {
-  const { data, isLoading, error } = useGetEventTriggers();
+  const {
+    data: eventTriggersData,
+    isLoading: isLoadingEventTriggers,
+    error: errorEventTriggers,
+  } = useGetEventTriggers();
+  const {
+    data: cronTriggersData,
+    isLoading: isLoadingCronTriggers,
+    error: errorCronTriggers,
+  } = useGetCronTriggers();
 
-  if (isLoading) {
+  if (isLoadingEventTriggers || isLoadingCronTriggers) {
     return <EventsBrowserSidebarSkeleton />;
   }
 
-  if (error instanceof Error) {
+  if (
+    errorEventTriggers instanceof Error ||
+    errorCronTriggers instanceof Error
+  ) {
     return (
       <div className="flex h-full flex-col px-2">
         <div className="flex flex-row items-center justify-between">
@@ -42,7 +57,7 @@ function EventsBrowserSidebarContent() {
     );
   }
 
-  const eventTriggersByDataSource = data?.reduce<
+  const eventTriggersByDataSource = eventTriggersData?.reduce<
     Record<string, EventTriggerViewModel[]>
   >((acc, eventTrigger) => {
     const key = eventTrigger.dataSource;
@@ -65,7 +80,7 @@ function EventsBrowserSidebarContent() {
     <div className="flex h-full flex-col px-2">
       <div className="flex flex-row items-center justify-between">
         <p className="font-semibold leading-7 [&:not(:first-child)]:mt-6">
-          Event Triggers ({data?.length ?? 0})
+          Event Triggers ({eventTriggersData?.length ?? 0})
         </p>
 
         <CreateEventTriggerForm />
@@ -101,6 +116,29 @@ function EventsBrowserSidebarContent() {
               </AccordionItem>
             ),
           )}
+        </Accordion>
+      </div>
+      <div className="flex flex-row gap-2">
+        <Accordion
+          type="single"
+          collapsible
+          className="w-full"
+          defaultValue="default"
+        >
+          <AccordionItem value="default" id="default">
+            <AccordionTrigger className="flex-row-reverse justify-end gap-2 text-sm+ font-semibold [&[data-state=closed]>svg:last-child]:-rotate-90 [&[data-state=open]>svg:last-child]:rotate-0">
+              Cron Triggers ({cronTriggersData?.length ?? 0})
+              <CreateCronTriggerForm />
+            </AccordionTrigger>
+            <AccordionContent className="flex flex-col gap-1 text-balance pl-4">
+              {(cronTriggersData ?? []).map((cronTrigger) => (
+                <CronTriggerListItem
+                  key={cronTrigger.name}
+                  cronTrigger={cronTrigger}
+                />
+              ))}
+            </AccordionContent>
+          </AccordionItem>
         </Accordion>
       </div>
     </div>
