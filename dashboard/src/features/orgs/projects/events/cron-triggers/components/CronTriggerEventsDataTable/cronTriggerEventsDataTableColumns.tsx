@@ -110,7 +110,10 @@ export function createCronTriggerEventsDataTableColumns({
       header: 'Actions',
       enableSorting: false,
       cell: ({ row }) => (
-        <CronTriggerEventsLogActionsCell status={row.original.status} />
+        <CronTriggerEventsLogActionsCell
+          scheduledEventId={row.original.id}
+          status={row.original.status}
+        />
       ),
     });
   }

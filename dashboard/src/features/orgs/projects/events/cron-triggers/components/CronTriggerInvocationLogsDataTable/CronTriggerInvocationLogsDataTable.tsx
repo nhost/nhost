@@ -19,23 +19,20 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { useState } from 'react';
-import columns from './invocationDataTableColumns';
+import columns from './cronTriggerInvocationDataTableColumns';
 import type { CronTriggerInvocationLogsDataTableMeta } from './types';
 
 interface CronTriggerInvocationLogsDataTableProps {
   eventId: string;
-  retryTimeoutSeconds: number;
 }
 
 const skeletonRowKeys = ['s1', 's2', 's3'];
 
 export default function CronTriggerInvocationLogsDataTable({
   eventId,
-  retryTimeoutSeconds,
 }: CronTriggerInvocationLogsDataTableProps) {
   const [selectedLog, setSelectedLog] =
     useState<CronTriggerInvocationLogEntry | null>(null);
-  const [isRedeliverPending, setIsRedeliverPending] = useState(false);
 
   const {
     offset,
@@ -48,7 +45,6 @@ export default function CronTriggerInvocationLogsDataTable({
     data,
     isLoading,
     isInitialLoading,
-    refetch: refetchInvocations,
   } = useEventPagination({
     useQueryHook: useGetCronInvocationLogsById,
     getQueryArgs: (limitArg, offsetArg) => ({
@@ -74,10 +70,6 @@ export default function CronTriggerInvocationLogsDataTable({
     meta: {
       selectedLog,
       setSelectedLog,
-      isRedeliverPending,
-      setIsRedeliverPending,
-      refetchInvocations,
-      retryTimeoutSeconds,
     } satisfies CronTriggerInvocationLogsDataTableMeta,
   });
 
@@ -125,23 +117,6 @@ export default function CronTriggerInvocationLogsDataTable({
                 ))}
               </TableRow>
             ))}
-
-          {isRedeliverPending && (
-            <TableRow data-state="skeleton">
-              <TableCell>
-                <Skeleton className="h-4 w-24" />
-              </TableCell>
-              <TableCell>
-                <Skeleton className="h-4 w-10" />
-              </TableCell>
-              <TableCell>
-                <Skeleton className="h-4 w-40" />
-              </TableCell>
-              <TableCell>
-                <Skeleton className="h-8 w-16" />
-              </TableCell>
-            </TableRow>
-          )}
 
           {!isLoading &&
             table.getRowModel().rows?.length > 0 &&

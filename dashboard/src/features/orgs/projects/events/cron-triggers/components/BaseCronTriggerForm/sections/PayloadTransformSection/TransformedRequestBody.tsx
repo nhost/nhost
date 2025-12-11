@@ -3,15 +3,15 @@ import { FormDescription, FormItem, FormLabel } from '@/components/ui/v3/form';
 import { Skeleton } from '@/components/ui/v3/skeleton';
 import { Textarea } from '@/components/ui/v3/textarea';
 import { useTestWebhookTransformQuery } from '@/features/orgs/projects/events/common/hooks/useTestWebhookTransformQuery';
-import type { BaseEventTriggerFormValues } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerFormTypes';
-import buildTestWebhookTransformDTO from '@/features/orgs/projects/events/event-triggers/utils/buildTestWebhookTransformDTO/buildTestWebhookTransformDTO';
+import type { BaseCronTriggerFormValues } from '@/features/orgs/projects/events/cron-triggers/components/BaseCronTriggerForm/BaseCronTriggerFormTypes';
+import { buildTestWebhookTransformDTO } from '@/features/orgs/projects/events/cron-triggers/utils/buildTestWebhookTransformDTO';
 import type { TestWebhookTransformArgs } from '@/utils/hasura-api/generated/schemas';
 import debounce from 'lodash.debounce';
 import { useEffect, useMemo, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 
 export default function TransformedRequestBody() {
-  const form = useFormContext<BaseEventTriggerFormValues>();
+  const form = useFormContext<BaseCronTriggerFormValues>();
   const values = form.watch();
 
   let args: TestWebhookTransformArgs;
@@ -31,7 +31,7 @@ export default function TransformedRequestBody() {
         ...(values.payloadTransform ?? {}),
         sampleInput: '{}',
       },
-    } as BaseEventTriggerFormValues;
+    } as BaseCronTriggerFormValues;
 
     args = buildTestWebhookTransformDTO({
       formValues: sanitizedValues,

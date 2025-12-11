@@ -6,8 +6,4 @@ export interface CronTriggerInvocationLogsDataTableMeta {
   setSelectedLog: Dispatch<
     SetStateAction<CronTriggerInvocationLogEntry | null>
   >;
-  isRedeliverPending: boolean;
-  setIsRedeliverPending: Dispatch<SetStateAction<boolean>>;
-  refetchInvocations: () => Promise<unknown> | void;
-  retryTimeoutSeconds: number;
 }

@@ -10,7 +10,6 @@ import {
 import PaginationControls from '@/features/orgs/projects/events/common/components/PaginationControls/PaginationControls';
 import { useEventPagination } from '@/features/orgs/projects/events/common/hooks/useEventPagination';
 import { CronTriggerInvocationLogsDataTable } from '@/features/orgs/projects/events/cron-triggers/components/CronTriggerInvocationLogsDataTable';
-import { DEFAULT_RETRY_TIMEOUT_SECONDS } from '@/features/orgs/projects/events/cron-triggers/constants';
 import { useGetCronEventLogsQuery } from '@/features/orgs/projects/events/cron-triggers/hooks/useGetCronEventLogsQuery';
 import { cn, isNotEmptyValue } from '@/lib/utils';
 import type { CronTrigger } from '@/utils/hasura-api/generated/schemas';
@@ -25,7 +24,7 @@ import {
 import { Fragment, useMemo, useState } from 'react';
 import {
   createCronTriggerEventsDataTableColumns,
-  type CronTriggerEventsSection,
+  type EventLogsSection,
 } from './cronTriggerEventsDataTableColumns';
 
 interface CronTriggerEventsDataTableProps {
@@ -36,7 +35,7 @@ export default function CronTriggerEventsDataTable({
   cronTrigger,
 }: CronTriggerEventsDataTableProps) {
   const [eventLogsSection, setEventLogsSection] =
-    useState<CronTriggerEventsSection>('pending');
+    useState<EventLogsSection>('pending');
   const {
     offset,
     limit,
@@ -167,13 +166,7 @@ export default function CronTriggerEventsDataTable({
                 {row.getIsExpanded() && (
                   <TableRow key={`${row.id}-expanded`}>
                     <TableCell colSpan={columns.length} className="p-0">
-                      <CronTriggerInvocationLogsDataTable
-                        eventId={row.id}
-                        retryTimeoutSeconds={
-                          cronTrigger.retry_conf?.timeout_seconds ??
-                          DEFAULT_RETRY_TIMEOUT_SECONDS
-                        }
-                      />
+                      <CronTriggerInvocationLogsDataTable eventId={row.id} />
                     </TableCell>
                   </TableRow>
                 )}
