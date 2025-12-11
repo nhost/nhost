@@ -222,7 +222,6 @@ export default function BaseCronTriggerForm({
                     name="comment"
                     label="Comment"
                     placeholder="A statement to help describe the cron trigger in brief"
-                    disabled={isEditing}
                     className="max-w-lg"
                     autoComplete="off"
                   />
