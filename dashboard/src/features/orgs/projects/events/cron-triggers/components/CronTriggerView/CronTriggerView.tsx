@@ -82,7 +82,7 @@ export default function CronTriggerView() {
             <CronTriggerOverview cronTrigger={cronTrigger!} />
           </TabsContent>
           <TabsContent value="pending-processed-events">
-            <CronTriggerEventsDataTable cronTrigger={cronTrigger!} />
+            <CronTriggerEventsDataTable cronTriggerName={cronTrigger!.name} />
           </TabsContent>
         </Tabs>
       </div>

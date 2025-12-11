@@ -12,7 +12,6 @@ import { useEventPagination } from '@/features/orgs/projects/events/common/hooks
 import { CronTriggerInvocationLogsDataTable } from '@/features/orgs/projects/events/cron-triggers/components/CronTriggerInvocationLogsDataTable';
 import { useGetCronEventLogsQuery } from '@/features/orgs/projects/events/cron-triggers/hooks/useGetCronEventLogsQuery';
 import { cn, isNotEmptyValue } from '@/lib/utils';
-import type { CronTrigger } from '@/utils/hasura-api/generated/schemas';
 import {
   flexRender,
   getCoreRowModel,
@@ -28,11 +27,11 @@ import {
 } from './cronTriggerEventsDataTableColumns';
 
 interface CronTriggerEventsDataTableProps {
-  cronTrigger: CronTrigger;
+  cronTriggerName: string;
 }
 
 export default function CronTriggerEventsDataTable({
-  cronTrigger,
+  cronTriggerName,
 }: CronTriggerEventsDataTableProps) {
   const [eventLogsSection, setEventLogsSection] =
     useState<CronTriggerEventsSection>('pending');
@@ -49,12 +48,12 @@ export default function CronTriggerEventsDataTable({
   } = useEventPagination({
     useQueryHook: useGetCronEventLogsQuery,
     getQueryArgs: (limitArg, offsetArg) => ({
-      trigger_name: cronTrigger.name,
+      trigger_name: cronTriggerName,
       eventLogsSection,
       limit: limitArg,
       offset: offsetArg,
     }),
-    resetKey: `${cronTrigger.name}-${eventLogsSection}`,
+    resetKey: `${cronTriggerName}-${eventLogsSection}`,
   });
 
   const [sorting, setSorting] = useState<SortingState>([]);
