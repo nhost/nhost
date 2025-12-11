@@ -24,7 +24,7 @@ import {
 import { Fragment, useMemo, useState } from 'react';
 import {
   createCronTriggerEventsDataTableColumns,
-  type EventLogsSection,
+  type CronTriggerEventsSection,
 } from './cronTriggerEventsDataTableColumns';
 
 interface CronTriggerEventsDataTableProps {
@@ -35,7 +35,7 @@ export default function CronTriggerEventsDataTable({
   cronTrigger,
 }: CronTriggerEventsDataTableProps) {
   const [eventLogsSection, setEventLogsSection] =
-    useState<EventLogsSection>('pending');
+    useState<CronTriggerEventsSection>('pending');
   const {
     offset,
     limit,
