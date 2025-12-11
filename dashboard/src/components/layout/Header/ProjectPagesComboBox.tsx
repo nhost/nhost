@@ -9,7 +9,6 @@ import {
 } from '@/components/ui/v3/command';
 
 import {
-  CalendarDays,
   Check,
   ChevronsUpDown,
   CloudIcon,
@@ -152,13 +151,6 @@ export default function ProjectPagesComboBox() {
         icon: <GaugeIcon className="h-4 w-4" />,
         slug: 'metrics',
         disabled: !isPlatform,
-      },
-      {
-        label: 'Events',
-        value: 'events',
-        icon: <CalendarDays className="h-4 w-4" />,
-        slug: 'events',
-        disabled: false,
       },
       {
         label: 'Settings',
