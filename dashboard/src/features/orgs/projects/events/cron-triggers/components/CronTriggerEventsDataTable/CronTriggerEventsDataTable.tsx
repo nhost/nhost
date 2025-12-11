@@ -34,7 +34,7 @@ export default function CronTriggerEventsDataTable({
   cronTriggerName,
 }: CronTriggerEventsDataTableProps) {
   const [eventLogsSection, setEventLogsSection] =
-    useState<CronTriggerEventsSection>('pending');
+    useState<CronTriggerEventsSection>('processed');
   const {
     offset,
     limit,

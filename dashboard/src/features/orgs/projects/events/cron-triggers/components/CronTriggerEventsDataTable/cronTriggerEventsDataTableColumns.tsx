@@ -7,7 +7,7 @@ import type { ColumnDef } from '@tanstack/react-table';
 import CronTriggerEventsLogActionsCell from './CronTriggerEventsLogActionsCell';
 import StatusColumnHeader from './StatusColumnHeader';
 
-export type CronTriggerEventsSection = 'pending' | 'delivered';
+export type CronTriggerEventsSection = 'pending' | 'processed' | 'failed';
 
 interface CreateCronTriggerEventsDataTableColumnsOptions {
   eventLogsSection: CronTriggerEventsSection;

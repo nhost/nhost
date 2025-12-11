@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/v3/dropdown-menu';
 import { ChevronDown } from 'lucide-react';
-import type { CronTriggerEventsSection } from './cronTriggerEventsDataTableColumns';
+import { type CronTriggerEventsSection } from './cronTriggerEventsDataTableColumns';
 
 interface StatusColumnHeaderProps {
   value: CronTriggerEventsSection;
@@ -23,16 +23,15 @@ const STATUS_FILTER_OPTIONS: Record<
     label: 'Pending',
     description: 'Scheduled events waiting to run',
   },
-  delivered: {
+  processed: {
     label: 'Processed',
     description: 'Delivered, Error, or Dead events',
   },
+  failed: {
+    label: 'Failed',
+    description: 'Error or Dead events',
+  },
 };
-
-const STATUS_FILTER_SEQUENCE: CronTriggerEventsSection[] = [
-  'pending',
-  'delivered',
-];
 
 export default function StatusColumnHeader({
   value,
@@ -64,25 +63,20 @@ export default function StatusColumnHeader({
             onChange(selectedValue as CronTriggerEventsSection)
           }
         >
-          {STATUS_FILTER_SEQUENCE.map((option) => {
-            const optionMeta = STATUS_FILTER_OPTIONS[option];
-            return (
-              <DropdownMenuRadioItem
-                key={option}
-                value={option}
-                className="items-start gap-2 py-2"
-              >
-                <div className="flex flex-col text-left leading-tight">
-                  <span className="text-sm font-medium">
-                    {optionMeta.label}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {optionMeta.description}
-                  </span>
-                </div>
-              </DropdownMenuRadioItem>
-            );
-          })}
+          {Object.entries(STATUS_FILTER_OPTIONS).map(([option, optionMeta]) => (
+            <DropdownMenuRadioItem
+              key={option}
+              value={option}
+              className="items-start gap-2 py-2"
+            >
+              <div className="flex flex-col text-left leading-tight">
+                <span className="text-sm font-medium">{optionMeta.label}</span>
+                <span className="text-xs text-muted-foreground">
+                  {optionMeta.description}
+                </span>
+              </div>
+            </DropdownMenuRadioItem>
+          ))}
         </DropdownMenuRadioGroup>
       </DropdownMenuContent>
     </DropdownMenu>
