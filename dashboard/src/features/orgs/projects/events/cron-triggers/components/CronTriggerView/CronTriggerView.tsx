@@ -7,9 +7,9 @@ import {
 import { EventsEmptyState } from '@/features/orgs/projects/events/common/components/EventsEmptyState';
 import { CronTriggerEventsDataTable } from '@/features/orgs/projects/events/cron-triggers/components/CronTriggerEventsDataTable';
 import { useGetCronTriggers } from '@/features/orgs/projects/events/cron-triggers/hooks/useGetCronTriggers';
-import EventTriggerViewSkeleton from '@/features/orgs/projects/events/event-triggers/components/EventTriggerView/EventTriggerViewSkeleton';
 import { isEmptyValue } from '@/lib/utils';
 import { useRouter } from 'next/router';
+import CronTriggerViewSkeleton from './CronTriggerViewSkeleton';
 import CronTriggerOverview from './sections/CronTriggerOverview';
 
 export default function CronTriggerView() {
@@ -24,7 +24,7 @@ export default function CronTriggerView() {
   );
 
   if (isLoading && cronTriggerSlug) {
-    return <EventTriggerViewSkeleton />;
+    return <CronTriggerViewSkeleton />;
   }
 
   if (error instanceof Error) {
@@ -62,30 +62,28 @@ export default function CronTriggerView() {
   }
 
   return (
-    <div className="w-full px-10 py-8">
-      <div className="mx-auto w-full max-w-5xl rounded-lg bg-background p-4">
-        <div className="mb-6">
-          <h1 className="mb-1 text-xl font-semibold text-gray-900 dark:text-gray-100">
-            {cronTrigger!.name}
-          </h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Cron Trigger Configuration
-          </p>
-        </div>
-
-        <Tabs defaultValue="overview">
-          <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="pending-processed-events">Events</TabsTrigger>
-          </TabsList>
-          <TabsContent value="overview">
-            <CronTriggerOverview cronTrigger={cronTrigger!} />
-          </TabsContent>
-          <TabsContent value="pending-processed-events">
-            <CronTriggerEventsDataTable cronTriggerName={cronTrigger!.name} />
-          </TabsContent>
-        </Tabs>
+    <div className="w-full rounded-lg bg-background p-6">
+      <div className="mb-6">
+        <h1 className="mb-1 text-xl font-semibold text-gray-900 dark:text-gray-100">
+          {cronTrigger!.name}
+        </h1>
+        <p className="text-sm text-gray-600 dark:text-gray-400">
+          Cron Trigger Configuration
+        </p>
       </div>
+
+      <Tabs defaultValue="overview">
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="pending-processed-events">Events</TabsTrigger>
+        </TabsList>
+        <TabsContent value="overview">
+          <CronTriggerOverview cronTrigger={cronTrigger!} />
+        </TabsContent>
+        <TabsContent value="pending-processed-events">
+          <CronTriggerEventsDataTable cronTriggerName={cronTrigger!.name} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
