@@ -13,7 +13,7 @@ export interface UseGetCronTriggersOptions {
       CronTrigger[],
       unknown,
       CronTrigger[],
-      readonly ['get-cron-triggers']
+      readonly ['get-cron-triggers', string | undefined]
     >,
     'queryKey' | 'queryFn'
   >;
@@ -30,7 +30,7 @@ export default function useGetCronTriggers({
   const { project, loading } = useProject();
 
   const query = useQuery(
-    ['get-cron-triggers'],
+    ['get-cron-triggers', project?.subdomain],
     () => {
       const appUrl = generateAppServiceUrl(
         project!.subdomain,

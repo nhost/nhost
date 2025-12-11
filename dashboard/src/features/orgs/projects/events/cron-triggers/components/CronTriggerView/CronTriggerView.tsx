@@ -6,8 +6,8 @@ import {
 } from '@/components/ui/v3/tabs';
 import { EventsEmptyState } from '@/features/orgs/projects/events/common/components/EventsEmptyState';
 import { CronTriggerEventsDataTable } from '@/features/orgs/projects/events/cron-triggers/components/CronTriggerEventsDataTable';
+import CronTriggerViewSkeleton from '@/features/orgs/projects/events/cron-triggers/components/CronTriggerView/CronTriggerViewSkeleton';
 import { useGetCronTriggers } from '@/features/orgs/projects/events/cron-triggers/hooks/useGetCronTriggers';
-import EventTriggerViewSkeleton from '@/features/orgs/projects/events/event-triggers/components/EventTriggerView/EventTriggerViewSkeleton';
 import { isEmptyValue } from '@/lib/utils';
 import { useRouter } from 'next/router';
 import CronTriggerOverview from './sections/CronTriggerOverview';
@@ -24,7 +24,7 @@ export default function CronTriggerView() {
   );
 
   if (isLoading && cronTriggerSlug) {
-    return <EventTriggerViewSkeleton />;
+    return <CronTriggerViewSkeleton />;
   }
 
   if (error instanceof Error) {
