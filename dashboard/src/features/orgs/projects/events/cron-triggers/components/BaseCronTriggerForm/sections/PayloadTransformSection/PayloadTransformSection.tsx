@@ -46,14 +46,6 @@ export default function PayloadTransformSection({
 
   return (
     <div className={`flex flex-col gap-6 ${className}`}>
-      <div className="space-y-2">
-        <h3 className="text-base font-medium text-foreground">
-          Payload Transform
-        </h3>
-        <FormDescription>
-          Change the payload to adapt to your API&apos;s expected format.
-        </FormDescription>
-      </div>
       <div className="flex flex-col gap-12">
         <FormField
           name="payloadTransform.sampleInput"

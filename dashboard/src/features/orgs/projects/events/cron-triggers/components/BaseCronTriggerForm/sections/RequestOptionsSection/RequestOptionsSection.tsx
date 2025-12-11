@@ -1,6 +1,5 @@
 import {
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -39,15 +38,6 @@ export default function RequestOptionsSection({
 
   return (
     <div className={`flex flex-col gap-6 ${className}`}>
-      <div className="space-y-2">
-        <h3 className="text-base font-medium text-foreground">
-          Request Options
-        </h3>
-        <FormDescription>
-          Configuration to transform the request before sending it to the
-          webhook
-        </FormDescription>
-      </div>
       <div className="flex flex-col gap-8">
         <FormField
           name="requestOptionsTransform.method"

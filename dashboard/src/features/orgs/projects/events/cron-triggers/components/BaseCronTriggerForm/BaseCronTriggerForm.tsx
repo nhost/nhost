@@ -7,14 +7,6 @@ import {
   AccordionTrigger,
 } from '@/components/ui/v3/accordion';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
-import { Checkbox } from '@/components/ui/v3/checkbox';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuPortal,
-  DropdownMenuTrigger,
-} from '@/components/ui/v3/dropdown-menu';
 import {
   Form,
   FormControl,
@@ -34,11 +26,11 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/v3/sheet';
-import { Switch } from '@/components/ui/v3/switch';
 import { Textarea } from '@/components/ui/v3/textarea';
 import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
+import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ChevronDown } from 'lucide-react';
+import { PlusIcon, TrashIcon } from 'lucide-react';
 import { useCallback, useRef, useState, type ReactNode } from 'react';
 import { useForm } from 'react-hook-form';
 import {
@@ -91,8 +83,11 @@ export default function BaseCronTriggerForm({
   const [openAccordionSections, setOpenAccordionSections] = useState<
     AccordionSectionValue[]
   >([]);
-  const [isFrequentCronDropdownOpen, setIsFrequentCronDropdownOpen] =
-    useState(false);
+  const [isRequestOptionsSectionOpen, setIsRequestOptionsSectionOpen] =
+    useState(Boolean(initialData?.requestOptionsTransform));
+  const [isPayloadSectionOpen, setIsPayloadSectionOpen] = useState(
+    Boolean(initialData?.payloadTransform),
+  );
 
   const form = useForm<BaseCronTriggerFormValues>({
     resolver: zodResolver(validationSchema),
@@ -106,6 +101,10 @@ export default function BaseCronTriggerForm({
 
   const resetFormValues = useCallback(() => {
     reset(initialData ?? defaultFormValues);
+    setIsRequestOptionsSectionOpen(
+      Boolean(initialData?.requestOptionsTransform),
+    );
+    setIsPayloadSectionOpen(Boolean(initialData?.payloadTransform));
   }, [initialData, reset]);
 
   const openForm = useCallback(() => {
@@ -153,8 +152,44 @@ export default function BaseCronTriggerForm({
     },
   );
 
-  const isRequestOptionsTransformEnabled = !!watch('requestOptionsTransform');
-  const isPayloadTransformEnabled = !!watch('payloadTransform');
+  const isRequestOptionsTransformEnabled = Boolean(
+    watch('requestOptionsTransform'),
+  );
+  const isPayloadTransformEnabled = Boolean(watch('payloadTransform'));
+
+  const toggleRequestOptionsSectionOpen = useCallback(() => {
+    setIsRequestOptionsSectionOpen((prev) => {
+      const next = !prev;
+
+      if (next && !isRequestOptionsTransformEnabled) {
+        setValue(
+          'requestOptionsTransform',
+          defaultRequestOptionsTransformValues,
+          { shouldDirty: true },
+        );
+      } else {
+        setValue('requestOptionsTransform', undefined, { shouldDirty: true });
+      }
+
+      return next;
+    });
+  }, [isRequestOptionsTransformEnabled, setValue]);
+
+  const togglePayloadSectionOpen = useCallback(() => {
+    setIsPayloadSectionOpen((prev) => {
+      const next = !prev;
+
+      if (next && !isPayloadTransformEnabled) {
+        setValue('payloadTransform', defaultPayloadTransformValues, {
+          shouldDirty: true,
+        });
+      } else {
+        setValue('payloadTransform', undefined, { shouldDirty: true });
+      }
+
+      return next;
+    });
+  }, [isPayloadTransformEnabled, setValue]);
 
   const handleDiscardChanges = () => {
     closeForm();
@@ -244,6 +279,17 @@ export default function BaseCronTriggerForm({
                     placeholder="https://httpbin.org/post or {{MY_WEBHOOK_URL}}/handler"
                     className="max-w-lg text-foreground"
                   />
+                  <FormInput
+                    control={form.control}
+                    name="schedule"
+                    label="Schedule (Cron Expression)"
+                    placeholder="* * * * *"
+                    containerClassName="w-60"
+                    autoComplete="off"
+                    infoTooltip="Schedule for your cron (events are created based on the UTC timezone)"
+                    className="w-full text-foreground aria-[invalid=true]:border-destructive aria-[invalid=true]:focus:border-destructive aria-[invalid=true]:focus:ring-destructive/20"
+                    suggestions={frequentlyUsedCrons}
+                  />
                   <FormField
                     name="payload"
                     control={form.control}
@@ -273,56 +319,6 @@ export default function BaseCronTriggerForm({
                       </FormItem>
                     )}
                   />
-                  <div className="flex max-w-lg flex-row gap-2">
-                    <FormInput
-                      control={form.control}
-                      name="schedule"
-                      label="Schedule (Cron Expression)"
-                      placeholder="0 0 * * *"
-                      className="text-foreground"
-                      infoTooltip="Schedule for your cron (events are created based on the UTC timezone)"
-                    />
-                    <DropdownMenu
-                      open={isFrequentCronDropdownOpen}
-                      onOpenChange={setIsFrequentCronDropdownOpen}
-                    >
-                      <DropdownMenuTrigger className="self-end" asChild>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="h-10 whitespace-nowrap"
-                        >
-                          Freq. used crons
-                          <ChevronDown className="ml-1.5 h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuPortal container={sheetContentRef.current}>
-                        <DropdownMenuContent align="end" className="w-64">
-                          {frequentlyUsedCrons.map((cron) => (
-                            <DropdownMenuItem
-                              key={cron.value}
-                              className="flex flex-col items-start gap-1 py-2 hover:bg-accent hover:text-accent-foreground"
-                              onSelect={(event) => {
-                                event.preventDefault();
-                                setValue('schedule', cron.value, {
-                                  shouldDirty: true,
-                                });
-                                setIsFrequentCronDropdownOpen(false);
-                              }}
-                            >
-                              <span className="text-sm font-medium">
-                                {cron.label}
-                              </span>
-                              <span className="font-mono text-xs text-muted-foreground">
-                                {cron.value}
-                              </span>
-                            </DropdownMenuItem>
-                          ))}
-                        </DropdownMenuContent>
-                      </DropdownMenuPortal>
-                    </DropdownMenu>
-                  </div>
                 </div>
                 <Separator />
                 <Accordion
@@ -332,41 +328,11 @@ export default function BaseCronTriggerForm({
                 >
                   <AccordionItem value="retry-configuration" className="px-6">
                     <AccordionTrigger className="text-base text-foreground">
-                      Advanced settings
+                      Retry and Headers Settings
                     </AccordionTrigger>
                     <AccordionContent>
                       <div className="flex flex-col gap-8 border-l">
                         <RetryConfigurationSection className="pl-4" />
-
-                        <Separator />
-                        <div className="flex max-w-lg flex-col gap-6 pl-4 lg:flex-row lg:items-center">
-                          <div className="space-y-2">
-                            <h3 className="text-base font-medium text-foreground">
-                              Include in Metadata
-                            </h3>
-                            <FormDescription>
-                              If enabled, this cron trigger will be included in
-                              the metadata of GraphQL
-                            </FormDescription>
-                          </div>
-                          <FormField
-                            control={form.control}
-                            name="includeInMetadata"
-                            render={({ field }) => (
-                              <FormItem className="space-y-4">
-                                <div className="flex flex-col gap-3">
-                                  <FormControl>
-                                    <Switch
-                                      checked={field.value}
-                                      onCheckedChange={field.onChange}
-                                    />
-                                  </FormControl>
-                                </div>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
                         <Separator />
                         <HeadersSection className="pl-4" />
                       </div>
@@ -377,77 +343,93 @@ export default function BaseCronTriggerForm({
                     className="px-6"
                   >
                     <AccordionTrigger className="text-base text-foreground">
-                      Configure Transformation
+                      Request Options
                     </AccordionTrigger>
                     <AccordionContent>
                       <div className="flex flex-col gap-8 border-l">
-                        <div className="space-y-4 pl-4">
-                          <div className="space-y-2">
-                            <h3 className="text-sm font-medium text-foreground">
-                              Enable Transformations
-                            </h3>
-                          </div>
-                          <div className="flex flex-row items-center gap-8">
-                            <FormItem className="flex w-auto flex-row items-center space-x-2 space-y-0">
-                              <FormControl>
-                                <Checkbox
-                                  id="enable-request-transform"
-                                  checked={isRequestOptionsTransformEnabled}
-                                  onCheckedChange={(checked) => {
-                                    const enabled = !!checked;
-                                    setValue(
-                                      'requestOptionsTransform',
-                                      enabled
-                                        ? defaultRequestOptionsTransformValues
-                                        : undefined,
-                                      { shouldDirty: true },
-                                    );
-                                  }}
-                                />
-                              </FormControl>
-                              <FormLabel
-                                htmlFor="enable-request-transform"
-                                className="cursor-pointer font-normal text-foreground"
-                              >
+                        <div className="flex flex-col gap-6 pl-4">
+                          <div className="flex items-end justify-between gap-2">
+                            <div className="space-y-1">
+                              <h3 className="text-sm font-medium text-foreground">
                                 Request Options Transform
-                              </FormLabel>
-                            </FormItem>
-                            <FormItem className="flex w-auto flex-row items-center space-x-2 space-y-0">
-                              <FormControl>
-                                <Checkbox
-                                  id="enable-payload-transform"
-                                  checked={isPayloadTransformEnabled}
-                                  onCheckedChange={(checked) => {
-                                    const enabled = !!checked;
-                                    setValue(
-                                      'payloadTransform',
-                                      enabled
-                                        ? defaultPayloadTransformValues
-                                        : undefined,
-                                      { shouldDirty: true },
-                                    );
-                                  }}
-                                />
-                              </FormControl>
-                              <FormLabel
-                                htmlFor="enable-payload-transform"
-                                className="cursor-pointer font-normal text-foreground"
-                              >
-                                Payload Transform
-                              </FormLabel>
-                            </FormItem>
+                              </h3>
+                              <p className="text-xs text-muted-foreground">
+                                Configuration to transform the request before
+                                sending it to the webhook
+                              </p>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className={cn(
+                                'flex flex-row items-center gap-2 text-foreground',
+                                {
+                                  'border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive':
+                                    isRequestOptionsSectionOpen,
+                                },
+                              )}
+                              onClick={toggleRequestOptionsSectionOpen}
+                            >
+                              {isRequestOptionsSectionOpen ? (
+                                <>
+                                  <TrashIcon className="size-4" />
+                                  <span>Remove Options Transform</span>
+                                </>
+                              ) : (
+                                <>
+                                  <PlusIcon className="size-4" />
+                                  <span>Add Options Transform</span>
+                                </>
+                              )}
+                            </Button>
                           </div>
+                          {isRequestOptionsSectionOpen &&
+                            isRequestOptionsTransformEnabled && (
+                              <RequestOptionsSection className="pl-4" />
+                            )}
+                          {isRequestOptionsSectionOpen &&
+                            isPayloadSectionOpen && <Separator />}
+                          <div className="flex items-end justify-between gap-2">
+                            <div className="space-y-1">
+                              <h3 className="font-medium text-foreground">
+                                Payload Transform
+                              </h3>
+                              <p className="text-sm text-muted-foreground">
+                                Adjust the request body.
+                              </p>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className={cn(
+                                'flex flex-row items-center gap-2 text-foreground',
+                                {
+                                  'border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive':
+                                    isPayloadSectionOpen,
+                                },
+                              )}
+                              onClick={togglePayloadSectionOpen}
+                            >
+                              {isPayloadSectionOpen ? (
+                                <>
+                                  <TrashIcon className="size-4" />
+                                  <span>Remove Payload Transform</span>
+                                </>
+                              ) : (
+                                <>
+                                  <PlusIcon className="size-4" />
+                                  <span>Add Payload Transform</span>
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                          {isPayloadSectionOpen &&
+                            isPayloadTransformEnabled && (
+                              <PayloadTransformSection className="pl-4" />
+                            )}
                         </div>
-                        {(isRequestOptionsTransformEnabled ||
-                          isPayloadTransformEnabled) && <Separator />}
-                        {isRequestOptionsTransformEnabled && (
-                          <RequestOptionsSection className="pl-4" />
-                        )}
-                        {isRequestOptionsTransformEnabled &&
-                          isPayloadTransformEnabled && <Separator />}
-                        {isPayloadTransformEnabled && (
-                          <PayloadTransformSection className="pl-4" />
-                        )}
                       </div>
                     </AccordionContent>
                   </AccordionItem>

@@ -140,7 +140,6 @@ export default function parseCronTriggerFormInitialData(
     webhook: cronTrigger.webhook,
     schedule: cronTrigger.schedule,
     payload: parsedPayload,
-    includeInMetadata: cronTrigger.include_in_metadata,
     comment: cronTrigger.comment ?? '',
     retryConf: {
       numRetries: cronTrigger.retry_conf?.num_retries ?? DEFAULT_NUM_RETRIES,

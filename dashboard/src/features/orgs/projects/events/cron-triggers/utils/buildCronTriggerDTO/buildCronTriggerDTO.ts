@@ -60,7 +60,7 @@ export default function buildCronTriggerDTO({
     payload,
     headers,
     retry_conf,
-    include_in_metadata: formValues.includeInMetadata,
+    include_in_metadata: true,
     replace: isEdit,
     ...(shouldIncludeRequestTransform ? { request_transform } : {}),
   };

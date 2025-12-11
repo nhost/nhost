@@ -39,8 +39,7 @@ export const frequentlyUsedCrons = [
   { label: 'Hourly', value: '0 * * * *' },
   { label: 'Daily at midnight (UTC)', value: '0 0 * * *' },
   { label: 'Weekdays at 9am (UTC)', value: '0 9 * * 1-5' },
-  { label: 'First of month at midnight (UTC)', value: '0 0 1 * *' },
-] as const;
+];
 
 export const validationSchema = z.object({
   triggerName: z
@@ -74,7 +73,6 @@ export const validationSchema = z.object({
       value: z.string().min(1, 'Value is required'),
     }),
   ),
-  includeInMetadata: z.boolean().default(true),
   sampleContext: z.array(
     z.object({
       key: z.string().min(1, 'Key is required'),
@@ -171,7 +169,6 @@ export const defaultFormValues: BaseCronTriggerFormValues = {
     toleranceSec: DEFAULT_TOLERANCE_SECONDS,
   },
   payload: '',
-  includeInMetadata: true,
   headers: [],
   sampleContext: [],
   requestOptionsTransform: undefined,
