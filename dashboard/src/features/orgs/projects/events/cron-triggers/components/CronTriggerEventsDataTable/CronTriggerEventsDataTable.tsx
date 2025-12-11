@@ -10,10 +10,8 @@ import {
 import PaginationControls from '@/features/orgs/projects/events/common/components/PaginationControls/PaginationControls';
 import { useEventPagination } from '@/features/orgs/projects/events/common/hooks/useEventPagination';
 import { CronTriggerInvocationLogsDataTable } from '@/features/orgs/projects/events/cron-triggers/components/CronTriggerInvocationLogsDataTable';
-import { DEFAULT_RETRY_TIMEOUT_SECONDS } from '@/features/orgs/projects/events/cron-triggers/constants';
 import { useGetCronEventLogsQuery } from '@/features/orgs/projects/events/cron-triggers/hooks/useGetCronEventLogsQuery';
 import { cn, isNotEmptyValue } from '@/lib/utils';
-import type { CronTrigger } from '@/utils/hasura-api/generated/schemas';
 import {
   flexRender,
   getCoreRowModel,
@@ -29,11 +27,11 @@ import {
 } from './cronTriggerEventsDataTableColumns';
 
 interface CronTriggerEventsDataTableProps {
-  cronTrigger: CronTrigger;
+  cronTriggerName: string;
 }
 
 export default function CronTriggerEventsDataTable({
-  cronTrigger,
+  cronTriggerName,
 }: CronTriggerEventsDataTableProps) {
   const [eventLogsSection, setEventLogsSection] =
     useState<CronTriggerEventsSection>('pending');
@@ -50,12 +48,12 @@ export default function CronTriggerEventsDataTable({
   } = useEventPagination({
     useQueryHook: useGetCronEventLogsQuery,
     getQueryArgs: (limitArg, offsetArg) => ({
-      trigger_name: cronTrigger.name,
+      trigger_name: cronTriggerName,
       eventLogsSection,
       limit: limitArg,
       offset: offsetArg,
     }),
-    resetKey: `${cronTrigger.name}-${eventLogsSection}`,
+    resetKey: `${cronTriggerName}-${eventLogsSection}`,
   });
 
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -167,13 +165,7 @@ export default function CronTriggerEventsDataTable({
                 {row.getIsExpanded() && (
                   <TableRow key={`${row.id}-expanded`}>
                     <TableCell colSpan={columns.length} className="p-0">
-                      <CronTriggerInvocationLogsDataTable
-                        eventId={row.id}
-                        retryTimeoutSeconds={
-                          cronTrigger.retry_conf?.timeout_seconds ??
-                          DEFAULT_RETRY_TIMEOUT_SECONDS
-                        }
-                      />
+                      <CronTriggerInvocationLogsDataTable eventId={row.id} />
                     </TableCell>
                   </TableRow>
                 )}

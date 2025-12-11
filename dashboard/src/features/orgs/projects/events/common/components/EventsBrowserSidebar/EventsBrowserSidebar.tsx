@@ -12,8 +12,6 @@ import {
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { CreateCronTriggerForm } from '@/features/orgs/projects/events/cron-triggers/components/CreateCronTriggerForm';
 import { useGetCronTriggers } from '@/features/orgs/projects/events/cron-triggers/hooks/useGetCronTriggers';
-import { CreateCronTriggerForm } from '@/features/orgs/projects/events/cron-triggers/components/CreateCronTriggerForm';
-import { useGetCronTriggers } from '@/features/orgs/projects/events/cron-triggers/hooks/useGetCronTriggers';
 import { CreateEventTriggerForm } from '@/features/orgs/projects/events/event-triggers/components/CreateEventTriggerForm';
 import { useGetEventTriggers } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventTriggers';
 import type { EventTriggerViewModel } from '@/features/orgs/projects/events/event-triggers/types';
@@ -22,7 +20,6 @@ import { Database } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
-import CronTriggerListItem from './CronTriggerListItem';
 import CronTriggerListItem from './CronTriggerListItem';
 import EventsBrowserSidebarSkeleton from './EventsBrowserSidebarSkeleton';
 import EventTriggerListItem from './EventTriggerListItem';
@@ -40,26 +37,11 @@ function EventsBrowserSidebarContent() {
     isLoading: isLoadingCronTriggers,
     error: errorCronTriggers,
   } = useGetCronTriggers();
-  const {
-    data: eventTriggersData,
-    isLoading: isLoadingEventTriggers,
-    error: errorEventTriggers,
-  } = useGetEventTriggers();
-  const {
-    data: cronTriggersData,
-    isLoading: isLoadingCronTriggers,
-    error: errorCronTriggers,
-  } = useGetCronTriggers();
 
-  if (isLoadingEventTriggers || isLoadingCronTriggers) {
   if (isLoadingEventTriggers || isLoadingCronTriggers) {
     return <EventsBrowserSidebarSkeleton />;
   }
 
-  if (
-    errorEventTriggers instanceof Error ||
-    errorCronTriggers instanceof Error
-  ) {
   if (
     errorEventTriggers instanceof Error ||
     errorCronTriggers instanceof Error
@@ -75,7 +57,6 @@ function EventsBrowserSidebarContent() {
     );
   }
 
-  const eventTriggersByDataSource = eventTriggersData?.reduce<
   const eventTriggersByDataSource = eventTriggersData?.reduce<
     Record<string, EventTriggerViewModel[]>
   >((acc, eventTrigger) => {
