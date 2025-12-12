@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	timeout                 = 10
+	timeout                 = 180
 	hasuraDBName            = "default"
 	errorCodeAlreadyTracked = "already-tracked"
 	errorCodeAlreadyExists  = "already-exists"

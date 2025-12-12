@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/oidc"
 	"golang.org/x/oauth2"
 )
@@ -67,4 +68,12 @@ func (a *EntraID) GetProfile(
 		Name:           userProfile.GivenName + " " + userProfile.FamilyName,
 		Picture:        "",
 	}, nil
+}
+
+func (a *EntraID) AuthCodeURL(
+	state string,
+	_ *api.ProviderSpecificParams,
+	opts ...oauth2.AuthCodeOption,
+) string {
+	return a.Config.AuthCodeURL(state, opts...)
 }

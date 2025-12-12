@@ -647,6 +647,21 @@ export interface ProviderSession {
 }
 
 /**
+ * 
+ @property connection? (`string`) - (workos) Specifies the connection to use for authentication
+ @property organization? (`string`) - (workos) Specifies the organization to use for authentication*/
+export interface ProviderSpecificParams {
+  /**
+   * (workos) Specifies the connection to use for authentication
+   */
+  connection?: string;
+  /**
+   * (workos) Specifies the organization to use for authentication
+   */
+  organization?: string;
+}
+
+/**
  * Request to refresh OAuth2 provider tokens
  @property refreshToken (`string`) - OAuth2 provider refresh token obtained from previous authentication
     *    Example - `"1//0gK8..."`*/
@@ -1587,6 +1602,8 @@ export interface GetVersionResponse200 {
     @property connect? (string) - If set, this means that the user is already authenticated and wants to link their account. This needs to be a valid JWT access token.
   
     @property state? (string) - Opaque state value to be returned by the provider
+  
+    @property providerSpecificParams? (ProviderSpecificParams) - Additional provider-specific parameters
   */
 export interface SignInProviderParams {
   /**
@@ -1629,6 +1646,11 @@ export interface SignInProviderParams {
   
    */
   state?: string;
+  /**
+   * Additional provider-specific parameters
+  
+   */
+  providerSpecificParams?: ProviderSpecificParams;
 }
 /**
  * Parameters for the verifyTicket method.
@@ -2746,13 +2768,27 @@ export const createAPIClient = (
     const encodedParameters =
       params &&
       Object.entries(params)
-        .map(([key, value]) => {
+        .flatMap(([key, value]) => {
+          if (key === "providerSpecificParams") {
+            // Object with explode: true - each property as separate parameter
+            if (
+              typeof value === "object" &&
+              value !== null &&
+              !Array.isArray(value)
+            ) {
+              return Object.entries(value).map(
+                ([k, v]) => `${k}=${encodeURIComponent(String(v))}`,
+              );
+            }
+            return [`${key}=${encodeURIComponent(String(value))}`];
+          }
+          // Default handling (scalars or explode: false)
           const stringValue = Array.isArray(value)
             ? value.join(",")
-            : typeof value === "object"
+            : typeof value === "object" && value !== null
               ? JSON.stringify(value)
-              : (value as string);
-          return `${key}=${encodeURIComponent(stringValue)}`;
+              : String(value);
+          return [`${key}=${encodeURIComponent(stringValue)}`];
         })
         .join("&");
 
@@ -3404,13 +3440,14 @@ export const createAPIClient = (
     const encodedParameters =
       params &&
       Object.entries(params)
-        .map(([key, value]) => {
+        .flatMap(([key, value]) => {
+          // Default handling (scalars or explode: false)
           const stringValue = Array.isArray(value)
             ? value.join(",")
-            : typeof value === "object"
+            : typeof value === "object" && value !== null
               ? JSON.stringify(value)
-              : (value as string);
-          return `${key}=${encodeURIComponent(stringValue)}`;
+              : String(value);
+          return [`${key}=${encodeURIComponent(stringValue)}`];
         })
         .join("&");
 
