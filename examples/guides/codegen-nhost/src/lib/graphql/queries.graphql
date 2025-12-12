@@ -6,14 +6,7 @@ query GetNinjaTurtlesWithComments {
     createdAt
     updatedAt
     comments {
-      id
-      comment
-      createdAt
-      user {
-        id
-        displayName
-        email
-      }
+      ...CommentDetails
     }
   }
 }
@@ -24,5 +17,16 @@ mutation AddComment($ninjaTurtleId: uuid!, $comment: String!) {
     comment
     createdAt
     ninjaTurtleId
+  }
+}
+
+fragment CommentDetails on comments {
+  id
+  comment
+  createdAt
+  user {
+    id
+    displayName
+    email
   }
 }

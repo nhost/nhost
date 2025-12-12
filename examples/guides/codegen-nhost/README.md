@@ -35,54 +35,54 @@ pnpm add -D @graphql-codegen/cli @graphql-codegen/client-preset @graphql-codegen
 Create a `codegen.ts` file with the client preset configuration:
 
 ```typescript
-import type { CodegenConfig } from "@graphql-codegen/cli";
+import type { CodegenConfig } from '@graphql-codegen/cli'
 
 const config: CodegenConfig = {
   schema: [
     {
-      "https://local.graphql.local.nhost.run/v1": {
+      'https://local.graphql.local.nhost.run/v1': {
         headers: {
-          "x-hasura-admin-secret": "nhost-admin-secret",
-        },
-      },
-    },
+          'x-hasura-admin-secret': 'nhost-admin-secret'
+        }
+      }
+    }
   ],
-  documents: ["src/lib/graphql/**/*.graphql"],
+  documents: ['src/lib/graphql/**/*.graphql'],
   ignoreNoDocuments: true,
   generates: {
-    "./src/lib/graphql/__generated__/": {
-      preset: "client",
+    './src/lib/graphql/__generated__/': {
+      preset: 'client',
       presetConfig: {
-        persistedDocuments: false,
+        persistedDocuments: false
       },
       plugins: [
         {
-          "./add-query-source-plugin.cjs": {},
-        },
+          './add-query-source-plugin.cjs': {}
+        }
       ],
       config: {
         scalars: {
-          UUID: "string",
-          uuid: "string",
-          timestamptz: "string",
-          jsonb: "Record<string, any>",
-          bigint: "number",
-          bytea: "Buffer",
-          citext: "string",
+          UUID: 'string',
+          uuid: 'string',
+          timestamptz: 'string',
+          jsonb: 'Record<string, any>',
+          bigint: 'number',
+          bytea: 'Buffer',
+          citext: 'string'
         },
-        useTypeImports: true,
-      },
+        useTypeImports: true
+      }
     },
-    "./schema.graphql": {
-      plugins: ["schema-ast"],
+    './schema.graphql': {
+      plugins: ['schema-ast'],
       config: {
-        includeDirectives: true,
-      },
-    },
-  },
-};
+        includeDirectives: true
+      }
+    }
+  }
+}
 
-export default config;
+export default config
 ```
 
 ### 4. Create the Custom Plugin
@@ -95,30 +95,30 @@ The Nhost SDK expects documents to have a `loc.source.body` property containing 
 // Custom GraphQL Codegen plugin to add loc.source.body to generated documents
 // This allows the Nhost SDK to extract the query string without needing the graphql package
 
-const { print } = require("graphql");
+const { print } = require('graphql')
 
 /**
  * @type {import('@graphql-codegen/plugin-helpers').PluginFunction}
  */
 const plugin = (_schema, documents, _config) => {
-  let output = "";
+  let output = ''
 
   for (const doc of documents) {
-    if (!doc.document) continue;
+    if (!doc.document) continue
 
     for (const definition of doc.document.definitions) {
-      if (definition.kind === "OperationDefinition" && definition.name) {
-        const operationName = definition.name.value;
-        const documentName = `${operationName}Document`;
+      if (definition.kind === 'OperationDefinition' && definition.name) {
+        const operationName = definition.name.value
+        const documentName = `${operationName}Document`
 
         // Create a document with just this operation
         const singleOpDocument = {
-          kind: "Document",
-          definitions: [definition],
-        };
+          kind: 'Document',
+          definitions: [definition]
+        }
 
         // Use graphql print to convert AST to string
-        const source = print(singleOpDocument);
+        const source = print(singleOpDocument)
 
         output += `
 // Add query source to ${documentName}
@@ -127,15 +127,15 @@ if (${documentName}) {
     loc: { source: { body: ${JSON.stringify(source)} } }
   });
 }
-`;
+`
       }
     }
   }
 
-  return output;
-};
+  return output
+}
 
-module.exports = { plugin };
+module.exports = { plugin }
 ```
 
 ## Integration Guide
@@ -228,11 +228,11 @@ Wrap your application with the Auth provider:
 
 ```tsx
 // src/main.tsx
-import React from "react";
-import { createRoot } from "react-dom/client";
-import "./index.css";
-import App from "./App";
-import { AuthProvider } from "./lib/nhost/AuthProvider";
+import React from 'react'
+import { createRoot } from 'react-dom/client'
+import './index.css'
+import App from './App'
+import { AuthProvider } from './lib/nhost/AuthProvider'
 
 const Root = () => (
   <React.StrictMode>
@@ -240,12 +240,12 @@ const Root = () => (
       <App />
     </AuthProvider>
   </React.StrictMode>
-);
+)
 
-const rootElement = document.getElementById("root");
-if (!rootElement) throw new Error("Root element not found");
+const rootElement = document.getElementById('root')
+if (!rootElement) throw new Error('Root element not found')
 
-createRoot(rootElement).render(<Root />);
+createRoot(rootElement).render(<Root />)
 ```
 
 ### 3. Define GraphQL Operations
@@ -262,14 +262,7 @@ query GetNinjaTurtlesWithComments {
     createdAt
     updatedAt
     comments {
-      id
-      comment
-      createdAt
-      user {
-        id
-        displayName
-        email
-      }
+      ...CommentDetails
     }
   }
 }
@@ -280,6 +273,17 @@ mutation AddComment($ninjaTurtleId: uuid!, $comment: String!) {
     comment
     createdAt
     ninjaTurtleId
+  }
+}
+
+fragment CommentDetails on comments {
+  id
+  comment
+  createdAt
+  user {
+    id
+    displayName
+    email
   }
 }
 ```
@@ -316,74 +320,69 @@ Use the generated types and documents with the Nhost SDK:
 
 ```tsx
 // src/pages/Home.tsx
-import { type JSX, useCallback, useEffect, useState } from "react";
+import { type JSX, useCallback, useEffect, useState } from 'react'
 import {
   AddCommentDocument,
   GetNinjaTurtlesWithCommentsDocument,
-  type GetNinjaTurtlesWithCommentsQuery,
-} from "../lib/graphql/__generated__/graphql";
-import { useAuth } from "../lib/nhost/AuthProvider";
+  type GetNinjaTurtlesWithCommentsQuery
+} from '../lib/graphql/__generated__/graphql'
+import { useAuth } from '../lib/nhost/AuthProvider'
 
 export default function Home(): JSX.Element {
-  const { isLoading, nhost } = useAuth();
-  const [activeCommentId, setActiveCommentId] = useState<string | null>(null);
-  const [commentText, setCommentText] = useState("");
-  const [activeTabId, setActiveTabId] = useState<string | null>(null);
+  const { isLoading, nhost } = useAuth()
+  const [activeCommentId, setActiveCommentId] = useState<string | null>(null)
+  const [commentText, setCommentText] = useState('')
+  const [activeTabId, setActiveTabId] = useState<string | null>(null)
 
-  const [data, setData] = useState<GetNinjaTurtlesWithCommentsQuery | null>(
-    null,
-  );
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const [data, setData] = useState<GetNinjaTurtlesWithCommentsQuery | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<Error | null>(null)
 
   // Fetch ninja turtles data
   const fetchNinjaTurtles = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+    setLoading(true)
+    setError(null)
     try {
-      const result = await nhost.graphql.request(
-        GetNinjaTurtlesWithCommentsDocument,
-        {},
-      );
+      const result = await nhost.graphql.request(GetNinjaTurtlesWithCommentsDocument, {})
 
       if (result.body.errors) {
-        throw new Error(result.body.errors[0]?.message);
+        throw new Error(result.body.errors[0]?.message)
       }
 
-      setData(result.body.data ?? null);
+      setData(result.body.data ?? null)
     } catch (err) {
-      setError(err as Error);
+      setError(err as Error)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  }, [nhost.graphql]);
+  }, [nhost.graphql])
 
   // Load data on mount
   useEffect(() => {
     if (!isLoading) {
-      fetchNinjaTurtles();
+      fetchNinjaTurtles()
     }
-  }, [isLoading, fetchNinjaTurtles]);
+  }, [isLoading, fetchNinjaTurtles])
 
   const addComment = async (ninjaTurtleId: string, comment: string) => {
     try {
       const result = await nhost.graphql.request(AddCommentDocument, {
         ninjaTurtleId,
-        comment,
-      });
+        comment
+      })
 
       if (result.body.errors) {
-        throw new Error(result.body.errors[0]?.message);
+        throw new Error(result.body.errors[0]?.message)
       }
 
       // Clear form and refetch data
-      setCommentText("");
-      setActiveCommentId(null);
-      await fetchNinjaTurtles();
+      setCommentText('')
+      setActiveCommentId(null)
+      await fetchNinjaTurtles()
     } catch (err) {
-      console.error("Error adding comment:", err);
+      console.error('Error adding comment:', err)
     }
-  };
+  }
 
   // ... rest of component
 }
@@ -399,8 +398,8 @@ The Nhost SDK's `graphql.request()` method has overloads that support `TypedDocu
 // Type inference works automatically
 const result = await nhost.graphql.request(
   GetNinjaTurtlesWithCommentsDocument,
-  {}, // Variables are type-checked
-);
+  {} // Variables are type-checked
+)
 
 // result.body.data is typed as GetNinjaTurtlesWithCommentsQuery | undefined
 ```
@@ -425,6 +424,7 @@ const result = await nhost.graphql.request(
 ### "not a valid graphql query" Error
 
 If you see this error, make sure:
+
 1. The custom plugin (`add-query-source-plugin.cjs`) is in place
 2. The plugin is configured in your `codegen.ts`
 3. You've run `pnpm generate` after adding the plugin
@@ -432,6 +432,7 @@ If you see this error, make sure:
 ### TypeScript Errors
 
 If you get type errors:
+
 1. Make sure you're not passing explicit generic type parameters to `nhost.graphql.request()`
 2. Let TypeScript infer types from the document
 3. Pass an empty object `{}` for queries without variables

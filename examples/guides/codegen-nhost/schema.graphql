@@ -826,10 +826,7 @@ type authRefreshTokenTypes_aggregate {
 aggregate fields of "auth.refresh_token_types"
 """
 type authRefreshTokenTypes_aggregate_fields {
-  count(
-    columns: [authRefreshTokenTypes_select_column!]
-    distinct: Boolean
-  ): Int!
+  count(columns: [authRefreshTokenTypes_select_column!], distinct: Boolean): Int!
   max: authRefreshTokenTypes_max_fields
   min: authRefreshTokenTypes_min_fields
 }
