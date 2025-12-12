@@ -9,13 +9,11 @@ import {
 import type { Headers } from '@/utils/hasura-api/generated/schemas';
 import { isHeaderWithEnvValue } from '@/utils/hasura-api/guards';
 
-export interface EventTriggerHeadersTableProps {
+export interface HeadersTableProps {
   headers: Headers;
 }
 
-export default function EventTriggerHeadersTable({
-  headers,
-}: EventTriggerHeadersTableProps) {
+export default function HeadersTable({ headers }: HeadersTableProps) {
   return (
     <Table>
       <TableHeader>

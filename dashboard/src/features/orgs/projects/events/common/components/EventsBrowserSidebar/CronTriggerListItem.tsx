@@ -6,9 +6,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/v3/dropdown-menu';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
+import type { BaseCronTriggerFormTriggerProps } from '@/features/orgs/projects/events/cron-triggers/components/BaseCronTriggerForm/BaseCronTriggerFormTypes';
 import { DeleteCronTriggerDialog } from '@/features/orgs/projects/events/cron-triggers/components/DeleteCronTriggerDialog';
 import { EditCronTriggerForm } from '@/features/orgs/projects/events/cron-triggers/components/EditCronTriggerForm';
-import type { BaseEventTriggerFormTriggerProps } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm';
 import { cn } from '@/lib/utils';
 import type { CronTrigger } from '@/utils/hasura-api/generated/schemas';
 import { Ellipsis, SquarePen, Trash2 } from 'lucide-react';
@@ -28,7 +28,7 @@ export default function CronTriggerListItem({
 }: CronTriggerListItemProps) {
   const router = useRouter();
   const { orgSlug, appSubdomain, cronTriggerSlug } = router.query;
-  const editTriggerRef = useRef<BaseEventTriggerFormTriggerProps | null>(null);
+  const editTriggerRef = useRef<BaseCronTriggerFormTriggerProps | null>(null);
   const isSelected = cronTrigger.name === cronTriggerSlug;
   const href = `/orgs/${orgSlug}/projects/${appSubdomain}/events/cron-trigger/${cronTrigger.name}`;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -108,6 +108,9 @@ export default function CronTriggerListItem({
                   Edit Cron Trigger
                 </DropdownMenuItem>
                 <DropdownMenuItem
+                  onSelect={() => {
+                    // TODO: Implement delete cron trigger
+                  }}
                   className={cn(
                     menuItemClassName,
                     'text-destructive focus:text-destructive',

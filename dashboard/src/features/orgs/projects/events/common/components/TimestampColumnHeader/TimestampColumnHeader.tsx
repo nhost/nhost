@@ -3,11 +3,14 @@ import { cn } from '@/lib/utils';
 import { type Column } from '@tanstack/react-table';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 
-export default function CreatedAtHeader<TData, TValue>({
-  column,
-}: {
+interface TimestampColumnHeaderProps<TData, TValue> {
   column: Column<TData, TValue>;
-}) {
+  label: string;
+}
+export default function TimestampColumnHeader<TData, TValue>({
+  column,
+  label,
+}: TimestampColumnHeaderProps<TData, TValue>) {
   return (
     <Button
       variant="ghost"
@@ -15,7 +18,7 @@ export default function CreatedAtHeader<TData, TValue>({
       onClick={() => column.toggleSorting()}
       className="flex items-center justify-between gap-2"
     >
-      <span>Created At</span>
+      <span>{label}</span>
       <span className="flex flex-col">
         <ChevronUp
           className={cn(
