@@ -32,17 +32,14 @@ export default async function trackForeignKeyRelationsMigration({
   dataSource,
   schema,
   table,
-  appUrl,
   adminSecret,
   foreignKeyRelations,
 }: TrackForeignKeyRelationsMigrationOptions &
   TrackForeignKeyRelationsMigrationVariables) {
-  const creatableRelationships = await prepareTrackForeignKeyRelationsMetadata({
+  const creatableRelationships = prepareTrackForeignKeyRelationsMetadata({
     dataSource,
     schema,
     table,
-    appUrl,
-    adminSecret,
     foreignKeyRelations,
   });
 

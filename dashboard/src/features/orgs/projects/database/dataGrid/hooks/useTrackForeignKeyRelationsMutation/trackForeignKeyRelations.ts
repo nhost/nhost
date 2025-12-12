@@ -35,12 +35,10 @@ export default async function trackForeignKeyRelations({
   adminSecret,
   foreignKeyRelations,
 }: TrackForeignKeyRelationsOptions & TrackForeignKeyRelationsVariables) {
-  const creatableRelationships = await prepareTrackForeignKeyRelationsMetadata({
+  const creatableRelationships = prepareTrackForeignKeyRelationsMetadata({
     dataSource,
     schema,
     table,
-    appUrl,
-    adminSecret,
     foreignKeyRelations,
   });
 
