@@ -1,3 +1,28 @@
+## [@nhost/dashboard@2.44.1] - 2025-12-12
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Small database bug fixes (#3715)
+
+
+### Chore
+
+- *(deps)* Update next to address security audit (#3754)
+
+## [@nhost/dashboard@2.44.0] - 2025-12-04
+
+### 🚀 Features
+
+- *(dashboard)* Modify field settings for GraphQL metadata (#3714)
+- *(dashboard)* Add data table filters (#3707)
+- *(auth)* Expand turnstile to passwordess and email reset (#3736)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Run pnpm audit --fix (#3732)
+- Fix(dashboard) remove playwright override (#3734)
+
 ## [@nhost/dashboard@2.43.0] - 2025-11-21
 
 ### 🚀 Features

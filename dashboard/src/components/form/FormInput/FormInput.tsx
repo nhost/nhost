@@ -1,3 +1,6 @@
+import getTransformedFieldProps, {
+  type Transformer,
+} from '@/components/form/utils/getTransformedFieldProps';
 import {
   FormControl,
   FormDescription,
@@ -9,15 +12,9 @@ import {
 import { Input, type InputProps } from '@/components/ui/v3/input';
 import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
 import { cn, isNotEmptyValue } from '@/lib/utils';
-import {
-  type ChangeEvent,
-  type ForwardedRef,
-  forwardRef,
-  type ReactNode,
-} from 'react';
+import { type ForwardedRef, forwardRef, type ReactNode } from 'react';
 import type {
   Control,
-  ControllerRenderProps,
   FieldPath,
   FieldValues,
   PathValue,
@@ -40,6 +37,7 @@ interface FormInputProps<
   type?: string;
   inline?: boolean;
   helperText?: string | null;
+  transform?: Transformer;
   transformValue?: (
     value: PathValue<TFieldValues, TName>,
   ) => PathValue<TFieldValues, TName>;
@@ -62,45 +60,21 @@ function InnerFormInput<
     type = 'text',
     inline,
     helperText,
-    transformValue,
     disabled,
     autoComplete,
     infoTooltip,
+    transform,
   }: FormInputProps<TFieldValues, TName>,
-  ref: ForwardedRef<HTMLInputElement>,
+  ref?: ForwardedRef<HTMLInputElement>,
 ) {
-  function getOnChangeHandlerAndValue(
-    field: ControllerRenderProps<TFieldValues, TName>,
-  ): [
-    PathValue<TFieldValues, TName>,
-    (e: ChangeEvent<HTMLInputElement>) => void,
-  ] {
-    const { onChange, value } = field;
-
-    function handleOnChange(event: ChangeEvent<HTMLInputElement>) {
-      let transformedValue = event.target.value;
-      if (isNotEmptyValue(transformValue)) {
-        transformedValue = transformValue(
-          event.target.value as PathValue<TFieldValues, TName>,
-        );
-      }
-      onChange(transformedValue);
-    }
-
-    const transformedValue = isNotEmptyValue(transformValue)
-      ? transformValue(value)
-      : value;
-
-    return [transformedValue, handleOnChange];
-  }
   return (
     <FormField
       control={control}
       name={name}
       render={({ field }) => {
-        const { onChange, value, ...fieldProps } = field;
-
-        const [tValue, handleOnChange] = getOnChangeHandlerAndValue(field);
+        const fieldProps = isNotEmptyValue(transform)
+          ? getTransformedFieldProps(field, transform)
+          : field;
         return (
           <FormItem
             className={cn(
@@ -138,8 +112,6 @@ function InnerFormInput<
                 <Input
                   type={type}
                   placeholder={placeholder}
-                  onChange={handleOnChange}
-                  value={tValue}
                   disabled={disabled}
                   autoComplete={autoComplete}
                   {...fieldProps}

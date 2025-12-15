@@ -106,21 +106,22 @@ in
         sha1sum -c $TMPDIR/sum || (echo "❌ ERROR: go generate changed files" && exit 1)
 
         echo "➜ Running code formatters, if there are changes, fail"
-        golines -l --base-formatter=gofumpt . | diff - /dev/null
+        golines -l --base-formatter=gofumpt ${submodule} | diff - /dev/null
 
         echo "➜ Checking for vulnerabilities"
-        govulncheck -scan=package ./...
+        govulncheck -scan=package ./${submodule}/...
 
         echo "➜ Running golangci-lint"
         golangci-lint run \
           --timeout 600s \
-          ./...
+          ./${submodule}/...
 
         echo "➜ Running tests"
         richgo test \
           -tags="${pkgs.lib.strings.concatStringsSep " " tags}" \
           -ldflags="${pkgs.lib.strings.concatStringsSep " " ldflags}" \
-          -v ${goTestFlags} ./...
+          -v ${goTestFlags} \
+          ./${submodule}/...
 
         ${extraCheck}
 
