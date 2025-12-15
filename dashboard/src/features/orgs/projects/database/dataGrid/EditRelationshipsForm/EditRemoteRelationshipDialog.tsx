@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from 'react';
 
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
-import { useUpdateRemoteRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useUpdateRemoteRelationshipMutation';
+import { useCreateRemoteRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateRemoteRelationshipMutation';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type {
   CreateRemoteRelationshipArgs,
@@ -41,8 +41,8 @@ export default function EditRemoteRelationshipDialog({
     definition && 'to_source' in definition ? definition.to_source : null;
 
   const { data: resourceVersion } = useGetMetadataResourceVersion();
-  const { mutateAsync: updateRemoteRelationship } =
-    useUpdateRemoteRelationshipMutation();
+  const { mutateAsync: createRemoteRelationship } =
+    useCreateRemoteRelationshipMutation();
 
   const initialValues = useMemo<CreateRelationshipFormValues | null>(() => {
     if (!relationship || !toSourceDefinition) {
@@ -116,7 +116,7 @@ export default function EditRemoteRelationshipDialog({
 
       await execPromiseWithErrorToast(
         async () => {
-          await updateRemoteRelationship({
+          await createRemoteRelationship({
             resourceVersion,
             args,
           });
@@ -128,7 +128,7 @@ export default function EditRemoteRelationshipDialog({
         },
       );
     },
-    [resourceVersion, updateRemoteRelationship],
+    [resourceVersion, createRemoteRelationship],
   );
 
   if (!relationship || !toSourceDefinition || !initialValues) {

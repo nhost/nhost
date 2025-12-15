@@ -1,6 +1,10 @@
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import type { SuggestRelationshipsResponse } from '@/utils/hasura-api/generated/schemas';
+import { isNotEmptyValue } from '@/lib/utils';
+import type {
+  QualifiedTable,
+  SuggestRelationshipsResponse,
+} from '@/utils/hasura-api/generated/schemas';
 import { useQuery, type UseQueryOptions } from '@tanstack/react-query';
 import suggestRelationships from './suggestRelationships';
 
@@ -23,10 +27,12 @@ export interface UseSuggestRelationshipsQueryOptions {
  * This hook is a wrapper around a fetch call that gets all the relationships that can be tracked by the pg_create_*_relationship API.
  *
  * @param source - Name of the source database to suggest relationships for
+ * @param table - Table to suggest relationships for
  * @returns The result of the query.
  */
 export default function useSuggestRelationshipsQuery(
   source?: string,
+  table?: QualifiedTable,
   { queryOptions }: UseSuggestRelationshipsQueryOptions = {},
 ) {
   const { project, loading } = useProject();
@@ -47,6 +53,7 @@ export default function useSuggestRelationshipsQuery(
         adminSecret,
         args: {
           source: source ?? 'default',
+          ...(isNotEmptyValue(table) ? { tables: [table] } : {}),
           omit_tracked: false,
         },
       });

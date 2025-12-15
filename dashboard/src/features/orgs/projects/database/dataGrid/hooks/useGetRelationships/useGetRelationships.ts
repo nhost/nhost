@@ -10,13 +10,8 @@ import type {
   MetadataRemoteRelationship,
   RelationshipViewModel,
 } from '@/features/orgs/projects/database/dataGrid/types/relationships';
-import buildLocalRelationshipViewModel from '@/features/orgs/projects/database/dataGrid/utils/buildLocalRelationshipViewModel';
+import { buildLocalRelationshipViewModel } from '@/features/orgs/projects/database/dataGrid/utils/buildLocalRelationshipViewModel';
 import buildRemoteRelationshipViewModel from '@/features/orgs/projects/database/dataGrid/utils/buildRemoteRelationshipViewModel';
-import type {
-  ArrayRelationshipItem,
-  ObjectRelationshipItem,
-  RemoteRelationshipItem,
-} from '@/utils/hasura-api/generated/schemas';
 
 export interface UseGetRelationshipsProps {
   dataSource: string;
@@ -24,7 +19,7 @@ export interface UseGetRelationshipsProps {
   tableName: string;
 }
 
-const filterNullRelationshipViewModel = (
+const filterNotNullRelationshipViewModel = (
   item: RelationshipViewModel | null,
 ): item is RelationshipViewModel => item !== null;
 
@@ -103,20 +98,11 @@ export default function useGetRelationships({
       return [];
     }
 
-    const arrayRelationships =
-      (tableMetadataItem.array_relationships as
-        | ArrayRelationshipItem[]
-        | undefined) ?? [];
+    const arrayRelationships = tableMetadataItem.array_relationships ?? [];
 
-    const objectRelationships =
-      (tableMetadataItem.object_relationships as
-        | ObjectRelationshipItem[]
-        | undefined) ?? [];
+    const objectRelationships = tableMetadataItem.object_relationships ?? [];
 
-    const remoteRelationships =
-      (tableMetadataItem.remote_relationships as
-        | RemoteRelationshipItem[]
-        | undefined) ?? [];
+    const remoteRelationships = tableMetadataItem.remote_relationships ?? [];
 
     console.table([
       arrayRelationships,
@@ -132,11 +118,10 @@ export default function useGetRelationships({
           tableSchema: schema,
           tableName,
           dataSource,
-          primaryKeyColumns,
           foreignKeyRelations,
         }),
       )
-      .filter(filterNullRelationshipViewModel);
+      .filter(filterNotNullRelationshipViewModel);
 
     const objectViewModels = objectRelationships
       .map((relationship) =>
@@ -146,11 +131,10 @@ export default function useGetRelationships({
           tableSchema: schema,
           tableName,
           dataSource,
-          primaryKeyColumns: [],
           foreignKeyRelations,
         }),
       )
-      .filter(Boolean) as RelationshipViewModel[];
+      .filter(filterNotNullRelationshipViewModel);
 
     const remoteViewModels = remoteRelationships
       .map((relationship) =>
@@ -161,7 +145,7 @@ export default function useGetRelationships({
           dataSource,
         }),
       )
-      .filter(Boolean) as RelationshipViewModel[];
+      .filter(filterNotNullRelationshipViewModel);
 
     return [...arrayViewModels, ...objectViewModels, ...remoteViewModels];
   }, [

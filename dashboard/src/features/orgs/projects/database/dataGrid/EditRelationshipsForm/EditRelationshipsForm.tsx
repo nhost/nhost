@@ -97,11 +97,13 @@ export default function EditRelationshipsForm(
     (router.query.dataSourceSlug as string | undefined) || 'default';
   const queryClient = useQueryClient();
 
-  const { relationships: existingRelationships } = useGetRelationships({
-    dataSource,
-    schema,
-    tableName: originalTable.table_name,
-  });
+  const { relationships: existingRelationshipsViewModel } = useGetRelationships(
+    {
+      dataSource,
+      schema,
+      tableName: originalTable.table_name,
+    },
+  );
 
   const {
     status: tableStatus,
@@ -156,7 +158,10 @@ export default function EditRelationshipsForm(
     setSelectedRemoteSchemaRelationshipForEdit,
   ] = useState<MetadataRemoteRelationship | null>(null);
 
-  const { data: suggestions } = useSuggestRelationshipsQuery(dataSource);
+  const { data: suggestions } = useSuggestRelationshipsQuery(dataSource, {
+    schema,
+    name: originalTable.table_name,
+  });
 
   const tableSuggestions = suggestions?.relationships?.filter(
     (suggestion) =>
@@ -685,7 +690,10 @@ export default function EditRelationshipsForm(
                 Relationships
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Manage foreign key relationships for {tableSchema}.{tableName}.
+                Manage foreign key relationships for{' '}
+                <span className="font-mono">
+                  {tableSchema}.{tableName}
+                </span>
               </p>
             </div>
             <Button
@@ -723,14 +731,14 @@ export default function EditRelationshipsForm(
                     </TableCell>
                   </TableRow>
                 ) : (
-                  relationships.map((relationship) => (
+                  existingRelationshipsViewModel.map((relationship) => (
                     <TableRow key={relationship.key}>
                       <TableCell className="font-medium">
                         {relationship.name}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          {relationship.sourceIcon === 'plug' ? (
+                          {relationship.isRemote ? (
                             <PlugIcon className="h-4 w-4 text-muted-foreground" />
                           ) : null}
                           <span>{relationship.source}</span>
@@ -770,7 +778,7 @@ export default function EditRelationshipsForm(
                         </Button>
                         {relationship.isRemote ? (
                           <>
-                            {relationship.remoteDefinitionType === 'source' &&
+                            {relationship.type !== 'RemoteSchema' &&
                               relationship.rawRemoteRelationship && (
                                 <Button
                                   variant="ghost"
@@ -785,7 +793,7 @@ export default function EditRelationshipsForm(
                                   <SquarePen className="size-4" />
                                 </Button>
                               )}
-                            {relationship.remoteDefinitionType === 'schema' &&
+                            {relationship.type === 'RemoteSchema' &&
                               relationship.rawRemoteRelationship && (
                                 <Button
                                   variant="ghost"
@@ -913,15 +921,8 @@ export default function EditRelationshipsForm(
             Suggested Relationships
           </h2>
 
-          <p className="mt-1 text-sm text-muted-foreground">
-            Review suggested relationships for {tableSchema}.{tableName}.
-          </p>
-
           <div className="mt-4">
             <Table>
-              {/* <TableCaption>
-                Suggested relationships for {tableSchema}.{tableName}
-              </TableCaption> */}
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[200px]">Name</TableHead>

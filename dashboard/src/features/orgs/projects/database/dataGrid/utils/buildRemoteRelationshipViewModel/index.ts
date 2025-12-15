@@ -2,7 +2,7 @@ import type {
   MetadataRemoteRelationship,
   RelationshipViewModel,
 } from '@/features/orgs/projects/database/dataGrid/types/relationships/relationships';
-import formatEndpoint from '@/features/orgs/projects/database/dataGrid/utils/formatEndpoint';
+import { formatEndpoint } from '@/features/orgs/projects/database/dataGrid/utils/formatEndpoint';
 import formatRemoteSchemaEndpoint from '@/features/orgs/projects/database/dataGrid/utils/formatRemoteSchemaEndpoint';
 import formatRemoteSourceEndpoint from '@/features/orgs/projects/database/dataGrid/utils/formatRemoteSourceEndpoint';
 import getRemoteFieldPath from '@/features/orgs/projects/database/dataGrid/utils/getRemoteFieldPath';

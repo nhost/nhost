@@ -1,14 +1,16 @@
+import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import {
+  isUsingForeignKeyConstraint,
+  isUsingManualConfiguration,
+} from '@/features/orgs/projects/database/dataGrid/types/relationships/guards';
 import type { RelationshipViewModel } from '@/features/orgs/projects/database/dataGrid/types/relationships/relationships';
-import { areStrArraysEqual, isEmptyValue } from '@/lib/utils';
+import { formatEndpoint } from '@/features/orgs/projects/database/dataGrid/utils/formatEndpoint';
+import { formatForeignKeyColumns } from '@/features/orgs/projects/database/dataGrid/utils/formatForeignKeyColumns';
+import { areStrArraysEqual, isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import type {
   ArrayRelationshipItem,
   ObjectRelationshipItem,
 } from '@/utils/hasura-api/generated/schemas';
-import { ForeignKeyRelation } from '../../types/dataBrowser';
-import {
-  isUsingForeignKeyConstraint,
-  isUsingManualConfiguration,
-} from '../../types/relationships/guards';
 
 interface BuildLocalRelationshipViewModelProps {
   relationship: ArrayRelationshipItem | ObjectRelationshipItem;
@@ -16,23 +18,8 @@ interface BuildLocalRelationshipViewModelProps {
   tableName: string;
   foreignKeyRelations: ForeignKeyRelation[];
   type: 'Array' | 'Object';
+  dataSource: string;
 }
-
-const formatEndpoint = (
-  schema: string,
-  table: string,
-  columnsNames: string[],
-) => {
-  const tableName = `${schema}.${table}`;
-  const formattedColumns =
-    columnsNames.length > 0 ? columnsNames.join(', ') : 'Not specified';
-  return `${tableName} / ${formattedColumns}`;
-};
-
-const formatForeignKeyColumns = (referencedColumn: string) => {
-  const columns = referencedColumn.split(',');
-  return columns.map((column) => column.trim());
-};
 
 export default function buildLocalRelationshipViewModel({
   relationship,
@@ -40,6 +27,7 @@ export default function buildLocalRelationshipViewModel({
   tableName,
   foreignKeyRelations,
   type,
+  dataSource,
 }: BuildLocalRelationshipViewModelProps): RelationshipViewModel {
   const { name, using } = relationship;
 
@@ -103,7 +91,9 @@ export default function buildLocalRelationshipViewModel({
       }
 
       if ('column' in foreignKeyConstraintOn) {
-        remoteColumns = [foreignKeyConstraintOn.column ?? ''];
+        remoteColumns = isNotEmptyValue(foreignKeyConstraintOn.column)
+          ? [foreignKeyConstraintOn.column]
+          : [];
       } else if ('columns' in foreignKeyConstraintOn) {
         remoteColumns = foreignKeyConstraintOn.columns ?? [];
         remoteTableSchema = foreignKeyConstraintOn.table?.schema ?? tableSchema;
@@ -121,17 +111,29 @@ export default function buildLocalRelationshipViewModel({
         );
       }
     }
-    console.log(using);
   }
+  const structuralKey = JSON.stringify({
+    type,
+    from: {
+      schema: tableSchema,
+      table: tableName,
+      columns: localColumns,
+    },
+    to: {
+      schema: remoteTableSchema ?? tableSchema,
+      table: remoteTableName ?? tableName,
+      columns: remoteColumns,
+    },
+  });
 
   return {
-    key: Math.random().toString(),
-    structuralKey: Math.random().toString(),
+    key: relationship.name ?? '',
+    structuralKey,
     name: relationship.name ?? '',
     from: formatEndpoint(tableSchema, tableName, localColumns),
     to: formatEndpoint(remoteTableSchema, remoteTableName, remoteColumns),
-    type: 'Array',
-    source: '',
-    originSource: '',
+    type,
+    source: dataSource,
+    originSource: dataSource,
   };
 }

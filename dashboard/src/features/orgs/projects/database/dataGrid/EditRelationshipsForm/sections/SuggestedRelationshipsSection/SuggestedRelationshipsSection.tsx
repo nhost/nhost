@@ -1,4 +1,3 @@
-// TODO: Implement
 import { Button } from '@/components/ui/v3/button';
 import {
   Table,
@@ -8,6 +7,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/v3/table';
+import { useGetRelationships } from '@/features/orgs/projects/database/dataGrid/hooks/useGetRelationships';
+import { useSuggestRelationshipsQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useSuggestRelationshipsQuery';
+import {
+  buildRelationshipSuggestionViewModel,
+  type RelationshipSuggestionViewModel,
+} from '@/features/orgs/projects/database/dataGrid/utils/buildRelationshipSuggestionViewModel';
 import type { SuggestRelationshipsResponseRelationshipsItem } from '@/utils/hasura-api/generated/schemas';
 import { ArrowRight, Link2, Split } from 'lucide-react';
 import { useState } from 'react';
@@ -23,144 +28,48 @@ export default function SuggestedRelationshipsSection({
   tableName,
   dataSource,
 }: SuggestedRelationshipsSectionProps) {
-  const [selectedSuggestedRelationship, setSelectedSuggestedRelationship] =
+  const { data: suggestions } = useSuggestRelationshipsQuery(dataSource, {
+    schema: tableSchema,
+    name: tableName,
+  });
+
+  const { relationships } = useGetRelationships({
+    dataSource,
+    schema: tableSchema,
+    tableName,
+  });
+
+  const tableSuggestions = suggestions?.relationships?.filter(
+    (suggestion) =>
+      suggestion.from?.table?.name === tableName &&
+      suggestion.from?.table?.schema === tableSchema,
+  );
+
+  const [, setSelectedSuggestedRelationship] =
     useState<SuggestRelationshipsResponseRelationshipsItem | null>(null);
-  const [
-    showAddSuggestedRelationshipDialog,
-    setShowAddSuggestedRelationshipDialog,
-  ] = useState(false);
+  const [, setShowAddSuggestedRelationshipDialog] = useState(false);
 
-  const normalizeColumns = (value: unknown): string[] => {
-    if (!value) {
-      return [];
-    }
-
-    if (Array.isArray(value)) {
-      return value.map((column) => column.toString());
-    }
-
-    if (typeof value === 'object') {
-      const foreignKeyObject = value as Record<string, unknown>;
-
-      if ('columns' in foreignKeyObject && foreignKeyObject.columns) {
-        return normalizeColumns(foreignKeyObject.columns);
-      }
-
-      if ('column' in foreignKeyObject && foreignKeyObject.column) {
-        return [String(foreignKeyObject.column)];
-      }
-    }
-
-    if (typeof value === 'string') {
-      return [value];
-    }
-
-    return [];
-  };
-
-  const formatEndpoint = (
-    schemaName: string | undefined,
-    name: string | undefined,
-    columns: string[],
-  ) => {
-    const qualifiedTable = `${schemaName ?? 'public'}.${
-      name ?? 'unknown_table'
-    }`;
-    const formattedColumns =
-      columns.length > 0 ? columns.join(', ') : 'Not specified';
-
-    return `${qualifiedTable} / ${formattedColumns}`;
-  };
+  const existingRelationshipKeys = new Set(
+    relationships.map((relationship) => relationship.structuralKey),
+  );
 
   const suggestedRelationships = (tableSuggestions ?? [])
-    .map((suggestion) => {
-      const typeLabel =
-        suggestion.type && suggestion.type.toLowerCase() === 'array'
-          ? 'Array'
-          : 'Object';
-
-      const fromElement = suggestion.from;
-      const toElement = suggestion.to;
-
-      const localColumns = normalizeColumns(fromElement?.columns);
-      const remoteColumns = normalizeColumns(toElement?.columns);
-
-      const name =
-        toElement?.constraint_name ??
-        fromElement?.constraint_name ??
-        toElement?.table?.name ??
-        `${typeLabel.toLowerCase()}_relationship`;
-
-      const key = [
-        'suggested',
-        typeLabel,
-        fromElement?.table?.schema,
-        fromElement?.table?.name,
-        ...localColumns,
-        toElement?.table?.schema,
-        toElement?.table?.name,
-        ...remoteColumns,
-      ]
-        .filter(Boolean)
-        .join('-');
-
-      const structuralKey = JSON.stringify({
-        type: typeLabel,
-        from: {
-          schema: fromElement?.table?.schema ?? tableSchema,
-          table: fromElement?.table?.name ?? tableName,
-          columns: localColumns,
-        },
-        to: {
-          schema: toElement?.table?.schema ?? tableSchema,
-          table: toElement?.table?.name ?? tableName,
-          columns: remoteColumns,
-        },
-      });
-
-      if (existingRelationshipKeys.has(structuralKey)) {
-        return null;
-      }
-
-      return {
-        key: key || name,
-        structuralKey,
-        name,
-        source: dataSource,
-        type: typeLabel,
-        from: formatEndpoint(
-          fromElement?.table?.schema,
-          fromElement?.table?.name,
-          localColumns,
-        ),
-        to: formatEndpoint(
-          toElement?.table?.schema,
-          toElement?.table?.name,
-          remoteColumns,
-        ),
-        rawSuggestion: suggestion,
-      };
-    })
-    .filter(Boolean) as Array<{
-    key: string;
-    structuralKey: string;
-    name: string;
-    source: string;
-    type: string;
-    from: string;
-    to: string;
-    rawSuggestion: SuggestRelationshipsResponseRelationshipsItem;
-  }>;
+    .map((suggestion) =>
+      buildRelationshipSuggestionViewModel({
+        suggestion,
+        tableSchema,
+        tableName,
+        dataSource,
+        existingRelationshipKeys,
+      }),
+    )
+    .filter(Boolean) as RelationshipSuggestionViewModel[];
 
   return (
     <section className="px-6">
       <h2 className="text-sm+ font-semibold text-foreground">
         Suggested Relationships
       </h2>
-
-      <p className="mt-1 text-sm text-muted-foreground">
-        Review suggested relationships for {tableSchema}.{tableName}.
-      </p>
 
       <div className="mt-4">
         <Table>

@@ -1,4 +1,4 @@
-import formatEndpoint from '@/features/orgs/projects/database/dataGrid/utils/formatEndpoint';
+import { formatEndpoint } from '@/features/orgs/projects/database/dataGrid/utils/formatEndpoint';
 
 export default function formatRemoteSourceEndpoint(
   sourceName: string | undefined,
@@ -6,7 +6,11 @@ export default function formatRemoteSourceEndpoint(
   name: string | undefined,
   columns: string[],
 ) {
-  const endpoint = formatEndpoint(schemaName, name, columns);
+  const endpoint = formatEndpoint(
+    schemaName ?? 'public',
+    name ?? 'unknown_table',
+    columns,
+  );
 
   return sourceName ? `${sourceName} :: ${endpoint}` : endpoint;
 }
