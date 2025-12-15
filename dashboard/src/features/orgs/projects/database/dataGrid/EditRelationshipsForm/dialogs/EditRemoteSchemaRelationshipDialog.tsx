@@ -47,6 +47,7 @@ import {
   type GraphQLObjectType,
   type GraphQLSchema,
 } from 'graphql';
+import { SquarePen } from 'lucide-react';
 
 type MetadataRemoteRelationship = RemoteRelationshipItem & {
   name?: string;
@@ -663,7 +664,7 @@ function RemoteSchemaFieldNode({
   );
 }
 
-export interface EditRemoteSchemaRelationshipDialogProps {
+export interface EditRemoteSchemaRelationshipDialogControlledProps {
   open: boolean;
   setOpen: (open: boolean) => void;
   schema: string;
@@ -671,10 +672,16 @@ export interface EditRemoteSchemaRelationshipDialogProps {
   source: string;
   relationship: MetadataRemoteRelationship | null;
   tableColumns: NormalizedQueryDataRow[];
+  defaultRemoteSchema?: string;
   onSuccess?: () => Promise<void> | void;
 }
 
-export default function EditRemoteSchemaRelationshipDialog({
+export type EditRemoteSchemaRelationshipDialogProps = Omit<
+  EditRemoteSchemaRelationshipDialogControlledProps,
+  'open' | 'setOpen'
+>;
+
+export function EditRemoteSchemaRelationshipDialogControlled({
   open,
   setOpen,
   schema,
@@ -682,9 +689,12 @@ export default function EditRemoteSchemaRelationshipDialog({
   source,
   relationship,
   tableColumns,
+  defaultRemoteSchema,
   onSuccess,
-}: EditRemoteSchemaRelationshipDialogProps) {
+}: EditRemoteSchemaRelationshipDialogControlledProps) {
+  const isEditing = Boolean(relationship);
   const [selectedRemoteSchema, setSelectedRemoteSchema] = useState('');
+  const [relationshipName, setRelationshipName] = useState('');
   const [selectedRootFieldPath, setSelectedRootFieldPath] = useState('');
   const [selectedFieldPaths, setSelectedFieldPaths] = useState<Set<string>>(
     new Set(),
@@ -746,6 +756,17 @@ export default function EditRemoteSchemaRelationshipDialog({
     useCreateRemoteRelationshipMutation();
 
   useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    // Create mode: preselect the remote schema if provided.
+    if (!relationship && defaultRemoteSchema && !selectedRemoteSchema) {
+      setSelectedRemoteSchema(defaultRemoteSchema);
+    }
+  }, [defaultRemoteSchema, open, relationship, selectedRemoteSchema]);
+
+  useEffect(() => {
     const relationshipDefinition = relationship?.definition;
     if (
       !open ||
@@ -755,9 +776,10 @@ export default function EditRemoteSchemaRelationshipDialog({
       return;
     }
 
-    const defaultRemoteSchema =
+    const remoteSchemaFromRelationship =
       relationshipDefinition.to_remote_schema.remote_schema ?? '';
-    setSelectedRemoteSchema(defaultRemoteSchema);
+    setSelectedRemoteSchema(remoteSchemaFromRelationship);
+    setRelationshipName(relationship.name ?? '');
 
     const parsed = parseRemoteFieldToSelection(
       relationshipDefinition.to_remote_schema.remote_field,
@@ -771,25 +793,33 @@ export default function EditRemoteSchemaRelationshipDialog({
   const handleDialogChange = (nextOpen: boolean) => {
     if (!nextOpen) {
       setFormError(null);
+      // Reset the create flow when closing.
+      if (!relationship) {
+        setSelectedRemoteSchema(defaultRemoteSchema ?? '');
+        setRelationshipName('');
+        setSelectedRootFieldPath('');
+        setSelectedFieldPaths(new Set());
+        setArgumentMappingsByPath({});
+      }
     }
 
     setOpen(nextOpen);
   };
 
   const handleSave = async () => {
-    const relationshipDefinition = relationship?.definition;
-    if (
-      !relationship ||
-      !relationshipDefinition ||
-      !isToRemoteSchemaRelationshipDefinition(relationshipDefinition)
-    ) {
-      return;
-    }
-
     if (!resourceVersion) {
       setFormError(
         'Metadata is not ready yet. Please wait a moment and try again.',
       );
+      return;
+    }
+
+    const name = isEditing
+      ? (relationship?.name ?? '').trim()
+      : relationshipName.trim();
+
+    if (!name) {
+      setFormError('Please provide a relationship name.');
       return;
     }
 
@@ -804,7 +834,7 @@ export default function EditRemoteSchemaRelationshipDialog({
     }
 
     const args = {
-      name: relationship.name ?? '',
+      name,
       source,
       table: {
         schema,
@@ -829,9 +859,15 @@ export default function EditRemoteSchemaRelationshipDialog({
         await onSuccess?.();
       },
       {
-        loadingMessage: 'Saving relationship...',
-        successMessage: 'Relationship updated successfully.',
-        errorMessage: 'Failed to update remote relationship.',
+        loadingMessage: isEditing
+          ? 'Saving relationship...'
+          : 'Creating relationship...',
+        successMessage: isEditing
+          ? 'Relationship updated successfully.'
+          : 'Relationship created successfully.',
+        errorMessage: isEditing
+          ? 'Failed to update remote relationship.'
+          : 'Failed to create remote relationship.',
       },
     );
   };
@@ -971,15 +1007,31 @@ export default function EditRemoteSchemaRelationshipDialog({
     <Dialog open={open} onOpenChange={handleDialogChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto text-foreground sm:max-w-3xl">
         <DialogHeader>
-          <DialogTitle>Edit Remote Schema Relationship</DialogTitle>
+          <DialogTitle>
+            {isEditing
+              ? 'Edit Remote Schema Relationship'
+              : 'Create Remote Schema Relationship'}
+          </DialogTitle>
         </DialogHeader>
 
-        {!isRemoteSchemaDefinition ? (
+        {relationship && !isRemoteSchemaDefinition ? (
           <Alert severity="error">
             Unable to load this relationship. Please try again later.
           </Alert>
         ) : (
           <div className="flex flex-col gap-6">
+            <div className="space-y-2">
+              <Label>Relationship name</Label>
+              <Input
+                value={
+                  isEditing ? (relationship?.name ?? '') : relationshipName
+                }
+                onChange={(event) => setRelationshipName(event.target.value)}
+                disabled={isSaving || isEditing}
+                placeholder="e.g. remote_schema_relationship"
+              />
+            </div>
+
             <div className="space-y-2">
               <Label>Remote schema</Label>
               <Select
@@ -1073,12 +1125,37 @@ export default function EditRemoteSchemaRelationshipDialog({
                 Cancel
               </Button>
               <Button type="button" onClick={handleSave} disabled={isSaving}>
-                Save Changes
+                {isEditing ? 'Save Changes' : 'Create Relationship'}
               </Button>
             </DialogFooter>
           </div>
         )}
       </DialogContent>
     </Dialog>
+  );
+}
+
+export default function EditRemoteSchemaRelationshipDialog(
+  props: EditRemoteSchemaRelationshipDialogProps,
+) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        onClick={() => setOpen(true)}
+      >
+        <SquarePen className="size-4" />
+      </Button>
+
+      <EditRemoteSchemaRelationshipDialogControlled
+        {...props}
+        open={open}
+        setOpen={setOpen}
+      />
+    </>
   );
 }

@@ -13,7 +13,7 @@ export interface SuggestRelationshipsVariables {
   args: SuggestRelationshipsArgs;
 }
 
-export default async function dropRelationship({
+export default async function suggestRelationships({
   appUrl,
   adminSecret,
   args,

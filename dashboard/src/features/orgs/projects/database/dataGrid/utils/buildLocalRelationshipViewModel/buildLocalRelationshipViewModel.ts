@@ -3,7 +3,7 @@ import {
   isUsingForeignKeyConstraint,
   isUsingManualConfiguration,
 } from '@/features/orgs/projects/database/dataGrid/types/relationships/guards';
-import type { RelationshipViewModel } from '@/features/orgs/projects/database/dataGrid/types/relationships/relationships';
+import type { LocalRelationshipViewModel } from '@/features/orgs/projects/database/dataGrid/types/relationships/relationships';
 import { formatEndpoint } from '@/features/orgs/projects/database/dataGrid/utils/formatEndpoint';
 import { formatForeignKeyColumns } from '@/features/orgs/projects/database/dataGrid/utils/formatForeignKeyColumns';
 import { areStrArraysEqual, isEmptyValue, isNotEmptyValue } from '@/lib/utils';
@@ -28,7 +28,7 @@ export default function buildLocalRelationshipViewModel({
   foreignKeyRelations,
   type,
   dataSource,
-}: BuildLocalRelationshipViewModelProps): RelationshipViewModel {
+}: BuildLocalRelationshipViewModelProps): LocalRelationshipViewModel {
   const { name, using } = relationship;
 
   if (isEmptyValue(name)) {
@@ -127,13 +127,13 @@ export default function buildLocalRelationshipViewModel({
   });
 
   return {
+    kind: 'local',
     key: relationship.name ?? '',
     structuralKey,
     name: relationship.name ?? '',
-    from: formatEndpoint(tableSchema, tableName, localColumns),
-    to: formatEndpoint(remoteTableSchema, remoteTableName, remoteColumns),
+    fromLabel: formatEndpoint(tableSchema, tableName, localColumns),
+    toLabel: formatEndpoint(remoteTableSchema, remoteTableName, remoteColumns),
     type,
-    source: dataSource,
-    originSource: dataSource,
+    fromSource: dataSource,
   };
 }

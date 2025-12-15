@@ -1,44 +1,7 @@
+import type { RelationshipSuggestionViewModel } from '@/features/orgs/projects/database/dataGrid/types/relationships/relationships';
 import { formatEndpoint } from '@/features/orgs/projects/database/dataGrid/utils/formatEndpoint';
 import type { SuggestRelationshipsResponseRelationshipsItem } from '@/utils/hasura-api/generated/schemas';
-
-export interface RelationshipSuggestionViewModel {
-  key: string;
-  structuralKey: string;
-  name: string;
-  source: string;
-  type: 'Array' | 'Object';
-  from: string;
-  to: string;
-  rawSuggestion: SuggestRelationshipsResponseRelationshipsItem;
-}
-
-export const normalizeColumns = (value: unknown): string[] => {
-  if (!value) {
-    return [];
-  }
-
-  if (Array.isArray(value)) {
-    return value.map((column) => column.toString());
-  }
-
-  if (typeof value === 'object') {
-    const foreignKeyObject = value as Record<string, unknown>;
-
-    if ('columns' in foreignKeyObject && foreignKeyObject.columns) {
-      return normalizeColumns(foreignKeyObject.columns);
-    }
-
-    if ('column' in foreignKeyObject && foreignKeyObject.column) {
-      return [String(foreignKeyObject.column)];
-    }
-  }
-
-  if (typeof value === 'string') {
-    return [value];
-  }
-
-  return [];
-};
+import { plural, singular } from 'pluralize';
 
 interface BuildRelationshipSuggestionViewModelProps {
   suggestion: SuggestRelationshipsResponseRelationshipsItem;
@@ -63,27 +26,13 @@ export default function buildRelationshipSuggestionViewModel({
   const fromElement = suggestion.from;
   const toElement = suggestion.to;
 
-  const localColumns = normalizeColumns(fromElement?.columns);
-  const remoteColumns = normalizeColumns(toElement?.columns);
+  const localColumns = fromElement?.columns ?? [];
+  const remoteColumns = toElement?.columns ?? [];
+
+  const toTableName = toElement?.table?.name ?? tableName;
 
   const name =
-    toElement?.constraint_name ??
-    fromElement?.constraint_name ??
-    toElement?.table?.name ??
-    `${typeLabel.toLowerCase()}_relationship`;
-
-  const key = [
-    'suggested',
-    typeLabel,
-    fromElement?.table?.schema,
-    fromElement?.table?.name,
-    ...localColumns,
-    toElement?.table?.schema,
-    toElement?.table?.name,
-    ...remoteColumns,
-  ]
-    .filter(Boolean)
-    .join('-');
+    typeLabel === 'Array' ? plural(toTableName) : singular(toTableName);
 
   const structuralKey = JSON.stringify({
     type: typeLabel,
@@ -94,7 +43,7 @@ export default function buildRelationshipSuggestionViewModel({
     },
     to: {
       schema: toElement?.table?.schema ?? tableSchema,
-      table: toElement?.table?.name ?? tableName,
+      table: toTableName,
       columns: remoteColumns,
     },
   });
@@ -104,7 +53,7 @@ export default function buildRelationshipSuggestionViewModel({
   }
 
   return {
-    key: key || name,
+    key: name,
     structuralKey,
     name,
     source: dataSource,
@@ -116,7 +65,7 @@ export default function buildRelationshipSuggestionViewModel({
     ),
     to: formatEndpoint(
       toElement?.table?.schema ?? tableSchema,
-      toElement?.table?.name ?? tableName,
+      toTableName,
       remoteColumns,
     ),
     rawSuggestion: suggestion,

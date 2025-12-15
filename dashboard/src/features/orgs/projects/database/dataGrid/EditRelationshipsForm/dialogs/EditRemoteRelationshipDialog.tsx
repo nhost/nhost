@@ -1,51 +1,51 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
+import { Button } from '@/components/ui/v3/button';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
+import {
+  BaseRelationshipDialog,
+  type CreateRelationshipFormValues,
+} from '@/features/orgs/projects/database/dataGrid/EditRelationshipsForm/dialogs/BaseRelationshipDialog';
 import { useCreateRemoteRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateRemoteRelationshipMutation';
+import { isToSourceRelationshipDefinition } from '@/features/orgs/projects/remote-schemas/utils/guards';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type {
   CreateRemoteRelationshipArgs,
   RemoteRelationshipDefinition,
-  RemoteRelationshipItem,
 } from '@/utils/hasura-api/generated/schemas';
-import CreateRelationshipDialog, {
-  type CreateRelationshipFormValues,
-} from './CreateRelationshipDialog';
-
-type MetadataRemoteRelationship = RemoteRelationshipItem & {
-  name?: string;
-  definition?: RemoteRelationshipDefinition;
-};
+import { SquarePen } from 'lucide-react';
 
 export interface EditRemoteRelationshipDialogProps {
-  open: boolean;
-  setOpen: (open: boolean) => void;
   schema: string;
   tableName: string;
   source: string;
-  relationship: MetadataRemoteRelationship | null;
+  relationshipName: string;
+  definition: RemoteRelationshipDefinition;
   onSuccess?: () => Promise<void> | void;
 }
 
 export default function EditRemoteRelationshipDialog({
-  open,
-  setOpen,
   schema,
   tableName,
   source,
-  relationship,
   onSuccess,
+  definition,
+  relationshipName,
 }: EditRemoteRelationshipDialogProps) {
-  const definition = relationship?.definition;
-  const toSourceDefinition =
-    definition && 'to_source' in definition ? definition.to_source : null;
+  const [open, setOpen] = useState(false);
+
+  // const toSourceDefinition =
+  //   definition && 'to_source' in definition ? definition.to_source : null;
+  const toSourceDefinition = isToSourceRelationshipDefinition(definition)
+    ? definition.to_source
+    : null;
 
   const { data: resourceVersion } = useGetMetadataResourceVersion();
   const { mutateAsync: createRemoteRelationship } =
     useCreateRemoteRelationshipMutation();
 
   const initialValues = useMemo<CreateRelationshipFormValues | null>(() => {
-    if (!relationship || !toSourceDefinition) {
+    if (!definition || !toSourceDefinition) {
       return null;
     }
 
@@ -54,7 +54,7 @@ export default function EditRemoteRelationshipDialog({
     );
 
     return {
-      name: relationship.name ?? '',
+      name: relationshipName ?? '',
       fromSource: {
         schema,
         table: tableName,
@@ -76,7 +76,14 @@ export default function EditRemoteRelationshipDialog({
         }),
       ),
     };
-  }, [relationship, toSourceDefinition, schema, source, tableName]);
+  }, [
+    definition,
+    toSourceDefinition,
+    schema,
+    source,
+    tableName,
+    relationshipName,
+  ]);
 
   const handleUpdateRemoteRelationship = useCallback(
     async (values: CreateRelationshipFormValues) => {
@@ -131,23 +138,34 @@ export default function EditRemoteRelationshipDialog({
     [resourceVersion, createRemoteRelationship],
   );
 
-  if (!relationship || !toSourceDefinition || !initialValues) {
+  if (!definition || !toSourceDefinition || !initialValues) {
     return null;
   }
 
   return (
-    <CreateRelationshipDialog
-      open={open}
-      setOpen={setOpen}
-      source={source}
-      schema={schema}
-      tableName={tableName}
-      onSuccess={onSuccess}
-      dialogTitle="Edit Relationship"
-      dialogDescription="Update the selected remote relationship."
-      submitButtonText="Save Changes"
-      initialValues={initialValues}
-      onSubmitRelationship={handleUpdateRemoteRelationship}
-    />
+    <>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        onClick={() => setOpen(true)}
+      >
+        <SquarePen className="size-4" />
+      </Button>
+
+      <BaseRelationshipDialog
+        open={open}
+        setOpen={setOpen}
+        source={source}
+        schema={schema}
+        tableName={tableName}
+        onSuccess={onSuccess}
+        dialogTitle="Edit Relationship"
+        dialogDescription="Update the selected remote relationship."
+        submitButtonText="Save Changes"
+        initialValues={initialValues}
+        onSubmitRelationship={handleUpdateRemoteRelationship}
+      />
+    </>
   );
 }

@@ -1,110 +1,72 @@
-import { useGetRelationships } from '../useGetRelationships';
-import { useSuggestRelationshipsQuery } from '../useSuggestRelationshipsQuery';
+import useGetRelationships from '@/features/orgs/projects/database/dataGrid/hooks/useGetRelationships/useGetRelationships';
+import { useSuggestRelationshipsQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useSuggestRelationshipsQuery';
+import { isLocalRelationshipViewModel } from '@/features/orgs/projects/database/dataGrid/types/relationships/guards';
+import {
+  buildRelationshipSuggestionViewModel,
+  type RelationshipSuggestionViewModel,
+} from '@/features/orgs/projects/database/dataGrid/utils/buildRelationshipSuggestionViewModel';
 
 interface UseGetSuggestedRelationshipsOptions {
   dataSource: string;
+  schema: string;
+  tableName: string;
 }
+
+const filterNotNullRelationshipSuggestionViewModel = (
+  item: RelationshipSuggestionViewModel | null,
+): item is RelationshipSuggestionViewModel => item !== null;
 
 export default function useGetSuggestedRelationships({
   dataSource,
   schema,
   tableName,
 }: UseGetSuggestedRelationshipsOptions) {
-  const { relationships } = useGetRelationships({
+  const {
+    data: suggestions,
+    isLoading: isSuggestionsLoading,
+    error: suggestionsError,
+  } = useSuggestRelationshipsQuery(dataSource, {
+    schema,
+    name: tableName,
+  });
+
+  const {
+    relationships,
+    isLoading: isRelationshipsLoading,
+    error: relationshipsError,
+  } = useGetRelationships({
     dataSource,
     schema,
     tableName,
   });
 
-  const { data: suggestions } = useSuggestRelationshipsQuery(dataSource);
-
   const tableSuggestions = suggestions?.relationships?.filter(
     (suggestion) =>
-      suggestion.from?.table?.name === originalTable.table_name &&
+      suggestion.from?.table?.name === tableName &&
       suggestion.from?.table?.schema === schema,
   );
 
   const existingRelationshipKeys = new Set(
-    relationships.map((relationship) => relationship.structuralKey),
+    relationships
+      .filter(isLocalRelationshipViewModel)
+      .map((relationship) => relationship.structuralKey),
   );
 
-  const suggestedRelationships = (tableSuggestions ?? [])
-    .map((suggestion) => {
-      const typeLabel =
-        suggestion.type && suggestion.type.toLowerCase() === 'array'
-          ? 'Array'
-          : 'Object';
+  const suggestedRelationships = tableSuggestions
+    ?.map((suggestion) =>
+      buildRelationshipSuggestionViewModel({
+        suggestion,
+        tableSchema: schema,
+        tableName,
+        dataSource,
+        existingRelationshipKeys,
+      }),
+    )
+    .filter(filterNotNullRelationshipSuggestionViewModel);
 
-      const fromElement = suggestion.from;
-      const toElement = suggestion.to;
-
-      const localColumns = normalizeColumns(fromElement?.columns);
-      const remoteColumns = normalizeColumns(toElement?.columns);
-
-      const name =
-        toElement?.constraint_name ??
-        fromElement?.constraint_name ??
-        toElement?.table?.name ??
-        `${typeLabel.toLowerCase()}_relationship`;
-
-      const key = [
-        'suggested',
-        typeLabel,
-        fromElement?.table?.schema,
-        fromElement?.table?.name,
-        ...localColumns,
-        toElement?.table?.schema,
-        toElement?.table?.name,
-        ...remoteColumns,
-      ]
-        .filter(Boolean)
-        .join('-');
-
-      const structuralKey = JSON.stringify({
-        type: typeLabel,
-        from: {
-          schema: fromElement?.table?.schema ?? tableSchema,
-          table: fromElement?.table?.name ?? tableName,
-          columns: localColumns,
-        },
-        to: {
-          schema: toElement?.table?.schema ?? tableSchema,
-          table: toElement?.table?.name ?? tableName,
-          columns: remoteColumns,
-        },
-      });
-
-      if (existingRelationshipKeys.has(structuralKey)) {
-        return null;
-      }
-
-      return {
-        key: key || name,
-        structuralKey,
-        name,
-        source: dataSource,
-        type: typeLabel,
-        from: formatEndpoint(
-          fromElement?.table?.schema,
-          fromElement?.table?.name,
-          localColumns,
-        ),
-        to: formatEndpoint(
-          toElement?.table?.schema,
-          toElement?.table?.name,
-          remoteColumns,
-        ),
-        rawSuggestion: suggestion,
-      };
-    })
-    .filter(Boolean) as Array<{
-    key: string;
-    structuralKey: string;
-    name: string;
-    source: string;
-    type: string;
-    from: string;
-    to: string;
-    rawSuggestion: SuggestRelationshipsResponseRelationshipsItem;
-  }>;
+  return {
+    suggestedRelationships,
+    isLoading: isSuggestionsLoading || isRelationshipsLoading,
+    error: suggestionsError ?? relationshipsError ?? null,
+  };
 }

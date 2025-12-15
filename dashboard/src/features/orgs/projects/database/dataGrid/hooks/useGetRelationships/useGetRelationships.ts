@@ -2,16 +2,9 @@ import { useMemo } from 'react';
 
 import { useGetMetadata } from '@/features/orgs/projects/common/hooks/useGetMetadata';
 import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
-import type {
-  ForeignKeyRelation,
-  NormalizedQueryDataRow,
-} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import type {
-  MetadataRemoteRelationship,
-  RelationshipViewModel,
-} from '@/features/orgs/projects/database/dataGrid/types/relationships';
+import type { RelationshipViewModel } from '@/features/orgs/projects/database/dataGrid/types/relationships';
 import { buildLocalRelationshipViewModel } from '@/features/orgs/projects/database/dataGrid/utils/buildLocalRelationshipViewModel';
-import buildRemoteRelationshipViewModel from '@/features/orgs/projects/database/dataGrid/utils/buildRemoteRelationshipViewModel';
+import { buildRemoteRelationshipViewModel } from '@/features/orgs/projects/database/dataGrid/utils/buildRemoteRelationshipViewModel';
 
 export interface UseGetRelationshipsProps {
   dataSource: string;
@@ -19,32 +12,17 @@ export interface UseGetRelationshipsProps {
   tableName: string;
 }
 
-const filterNotNullRelationshipViewModel = (
-  item: RelationshipViewModel | null,
-): item is RelationshipViewModel => item !== null;
-
-const extractPrimaryKeyColumns = (
-  tableColumns: NormalizedQueryDataRow[],
-): string[] =>
-  tableColumns
-    .filter((column) => {
-      if ('is_primary' in column && column.is_primary) {
-        return true;
-      }
-
-      return (
-        Array.isArray(column?.primary_constraints) &&
-        column.primary_constraints.length > 0
-      );
-    })
-    .map((column) => column.column_name as string)
-    .filter(Boolean);
+interface UseGetRelationshipsResult {
+  relationships: RelationshipViewModel[];
+  isLoading: boolean;
+  error: Error | unknown;
+}
 
 export default function useGetRelationships({
   dataSource,
   schema,
   tableName,
-}: UseGetRelationshipsProps) {
+}: UseGetRelationshipsProps): UseGetRelationshipsResult {
   const {
     data: metadata,
     isLoading: isMetadataLoading,
@@ -55,29 +33,15 @@ export default function useGetRelationships({
     data: tableData,
     status: tableStatus,
     error: tableError,
-  } = useTableQuery([`relationships.${dataSource}.${schema}.${tableName}`], {
+  } = useTableQuery([`${dataSource}.${schema}.${tableName}`], {
     dataSource,
     schema,
     table: tableName,
     preventRowFetching: true,
   });
 
-  const tableColumns = useMemo(
-    () =>
-      ((tableData?.columns as NormalizedQueryDataRow[] | undefined) ??
-        []) as NormalizedQueryDataRow[],
-    [tableData?.columns],
-  );
-
-  const primaryKeyColumns = useMemo(
-    () => extractPrimaryKeyColumns(tableColumns),
-    [tableColumns],
-  );
-
   const foreignKeyRelations = useMemo(
-    () =>
-      (tableData?.foreignKeyRelations as ForeignKeyRelation[] | undefined) ??
-      [],
+    () => tableData?.foreignKeyRelations ?? [],
     [tableData?.foreignKeyRelations],
   );
 
@@ -104,58 +68,45 @@ export default function useGetRelationships({
 
     const remoteRelationships = tableMetadataItem.remote_relationships ?? [];
 
-    console.table([
-      arrayRelationships,
-      objectRelationships,
-      remoteRelationships,
-    ]);
+    // console.table([
+    //   arrayRelationships,
+    //   objectRelationships,
+    //   remoteRelationships,
+    // ]);
 
-    const arrayViewModels = arrayRelationships
-      .map((relationship) =>
-        buildLocalRelationshipViewModel({
-          relationship,
-          type: 'Array',
-          tableSchema: schema,
-          tableName,
-          dataSource,
-          foreignKeyRelations,
-        }),
-      )
-      .filter(filterNotNullRelationshipViewModel);
+    const arrayViewModels = arrayRelationships.map((relationship) =>
+      buildLocalRelationshipViewModel({
+        relationship,
+        type: 'Array',
+        tableSchema: schema,
+        tableName,
+        dataSource,
+        foreignKeyRelations,
+      }),
+    );
 
-    const objectViewModels = objectRelationships
-      .map((relationship) =>
-        buildLocalRelationshipViewModel({
-          relationship,
-          type: 'Object',
-          tableSchema: schema,
-          tableName,
-          dataSource,
-          foreignKeyRelations,
-        }),
-      )
-      .filter(filterNotNullRelationshipViewModel);
+    const objectViewModels = objectRelationships.map((relationship) =>
+      buildLocalRelationshipViewModel({
+        relationship,
+        type: 'Object',
+        tableSchema: schema,
+        tableName,
+        dataSource,
+        foreignKeyRelations,
+      }),
+    );
 
-    const remoteViewModels = remoteRelationships
-      .map((relationship) =>
-        buildRemoteRelationshipViewModel({
-          relationship: relationship as MetadataRemoteRelationship,
-          tableSchema: schema,
-          tableName,
-          dataSource,
-        }),
-      )
-      .filter(filterNotNullRelationshipViewModel);
+    const remoteViewModels = remoteRelationships.map((relationship) =>
+      buildRemoteRelationshipViewModel({
+        relationship,
+        tableSchema: schema,
+        tableName,
+        dataSource,
+      }),
+    );
 
     return [...arrayViewModels, ...objectViewModels, ...remoteViewModels];
-  }, [
-    dataSource,
-    foreignKeyRelations,
-    metadata,
-    primaryKeyColumns,
-    schema,
-    tableName,
-  ]);
+  }, [dataSource, foreignKeyRelations, metadata, schema, tableName]);
 
   return {
     relationships,

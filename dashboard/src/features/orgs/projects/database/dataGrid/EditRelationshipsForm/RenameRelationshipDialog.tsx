@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { PencilIcon } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { FormInput } from '@/components/form/FormInput';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
@@ -19,8 +20,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 
 interface RenameRelationshipDialogProps {
-  open: boolean;
-  setOpen: (open: boolean) => void;
   /**
    * Schema where the relationship is located.
    */
@@ -57,14 +56,13 @@ function sanitizeRelationshipName(value?: string | null) {
 }
 
 export default function RenameRelationshipDialog({
-  open,
-  setOpen,
   schema,
   tableName,
   relationshipToRename,
   source = 'default',
   onSuccess,
 }: RenameRelationshipDialogProps) {
+  const [open, setOpen] = useState(false);
   const { mutateAsync: renameRelationship, isLoading: isRenamingRelationship } =
     useRenameRelationshipMutation();
 
@@ -180,7 +178,7 @@ export default function RenameRelationshipDialog({
       },
     );
 
-    await Promise.all([
+    await Promise.allSettled([
       queryClient.invalidateQueries({
         queryKey: ['export-metadata'],
         exact: false,
@@ -195,65 +193,76 @@ export default function RenameRelationshipDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleDialogOpenChange}>
-      <DialogContent
-        className="sm:max-w-[425px]"
-        hideCloseButton
-        disableOutsideClick={isSubmitting}
+    <>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        onClick={() => setOpen(true)}
       >
-        <DialogHeader>
-          <DialogTitle className="text-foreground">
-            Rename Relationship
-          </DialogTitle>
-          <DialogDescription>
-            Provide a new name for the{' '}
-            <span className="rounded-md bg-muted px-1 py-0.5 font-mono">
-              {relationshipToRename}
-            </span>{' '}
-            relationship.
-          </DialogDescription>
-        </DialogHeader>
+        <PencilIcon className="size-4" />
+      </Button>
 
-        <Form {...renameForm}>
-          <form
-            onSubmit={handleSubmit(handleRenameRelationship)}
-            className="flex flex-col gap-2 pt-2 text-foreground"
-          >
-            <FormInput<RenameRelationshipFormValues>
-              ref={relationshipNameInputRef}
-              control={control}
-              name="newRelationshipName"
-              label="New Relationship Name"
-              helperText={
-                formState.errors.newRelationshipName
-                  ? null
-                  : RELATIONSHIP_NAME_HELPER_TEXT
-              }
-            />
+      <Dialog open={open} onOpenChange={handleDialogOpenChange}>
+        <DialogContent
+          className="sm:max-w-[425px]"
+          hideCloseButton
+          disableOutsideClick={isSubmitting}
+        >
+          <DialogHeader>
+            <DialogTitle className="text-foreground">
+              Rename Relationship
+            </DialogTitle>
+            <DialogDescription>
+              Provide a new name for the{' '}
+              <span className="rounded-md bg-muted px-1 py-0.5 font-mono">
+                {relationshipToRename}
+              </span>{' '}
+              relationship.
+            </DialogDescription>
+          </DialogHeader>
 
-            <DialogFooter className="gap-2 pt-4 sm:flex sm:flex-col sm:space-x-0">
-              <ButtonWithLoading
-                type="submit"
-                loading={isSubmitting}
-                disabled={isSubmitting}
-                className="!text-sm+"
-              >
-                Rename
-              </ButtonWithLoading>
-              <DialogClose asChild>
-                <Button
-                  variant="outline"
-                  className="!text-sm+ text-foreground"
-                  type="button"
+          <Form {...renameForm}>
+            <form
+              onSubmit={handleSubmit(handleRenameRelationship)}
+              className="flex flex-col gap-2 pt-2 text-foreground"
+            >
+              <FormInput<RenameRelationshipFormValues>
+                ref={relationshipNameInputRef}
+                control={control}
+                name="newRelationshipName"
+                label="New Relationship Name"
+                helperText={
+                  formState.errors.newRelationshipName
+                    ? null
+                    : RELATIONSHIP_NAME_HELPER_TEXT
+                }
+              />
+
+              <DialogFooter className="gap-2 pt-4 sm:flex sm:flex-col sm:space-x-0">
+                <ButtonWithLoading
+                  type="submit"
+                  loading={isSubmitting}
                   disabled={isSubmitting}
+                  className="!text-sm+"
                 >
-                  Cancel
-                </Button>
-              </DialogClose>
-            </DialogFooter>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
+                  Rename
+                </ButtonWithLoading>
+                <DialogClose asChild>
+                  <Button
+                    variant="outline"
+                    className="!text-sm+ text-foreground"
+                    type="button"
+                    disabled={isSubmitting}
+                  >
+                    Cancel
+                  </Button>
+                </DialogClose>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

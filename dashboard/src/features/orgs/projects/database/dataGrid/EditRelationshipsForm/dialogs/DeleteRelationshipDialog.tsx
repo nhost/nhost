@@ -12,10 +12,10 @@ import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/h
 import { useDropRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDropRelationshipMutation';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useQueryClient } from '@tanstack/react-query';
+import { Trash2Icon } from 'lucide-react';
+import { useState } from 'react';
 
 interface DeleteRelationshipDialogProps {
-  open: boolean;
-  setOpen: (open: boolean) => void;
   /**
    * Schema where the relationship is located.
    */
@@ -34,13 +34,12 @@ interface DeleteRelationshipDialogProps {
 }
 
 export default function DeleteRelationshipDialog({
-  open,
-  setOpen,
   schema,
   tableName,
   relationshipToDelete,
   source = 'default',
 }: DeleteRelationshipDialogProps) {
+  const [open, setOpen] = useState(false);
   const { mutateAsync: deleteRelationship, isLoading: isDeletingRelationship } =
     useDropRelationshipMutation();
 
@@ -71,7 +70,7 @@ export default function DeleteRelationshipDialog({
       },
     );
     setOpen(false);
-    await Promise.all([
+    await Promise.allSettled([
       queryClient.invalidateQueries({
         queryKey: ['export-metadata'],
         exact: false,
@@ -83,40 +82,52 @@ export default function DeleteRelationshipDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent
-        className="sm:max-w-[425px]"
-        hideCloseButton
-        disableOutsideClick={isDeletingRelationship}
+    <>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+        onClick={() => setOpen(true)}
       >
-        <DialogHeader>
-          <DialogTitle className="text-foreground">
-            Delete Relationship
-          </DialogTitle>
-          <DialogDescription>
-            Are you sure you want to delete the{' '}
-            <span className="rounded-md bg-muted px-1 py-0.5 font-mono">
-              {relationshipToDelete}
-            </span>{' '}
-            relationship?
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter className="gap-2 sm:flex sm:flex-col sm:space-x-0">
-          <ButtonWithLoading
-            variant="destructive"
-            className="!text-sm+ text-white"
-            onClick={handleDeleteDialogClick}
-            loading={isDeletingRelationship}
-          >
-            Delete
-          </ButtonWithLoading>
-          <DialogClose asChild>
-            <Button variant="outline" className="!text-sm+ text-foreground">
-              Cancel
-            </Button>
-          </DialogClose>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        <Trash2Icon className="size-4" />
+      </Button>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent
+          className="sm:max-w-[425px]"
+          hideCloseButton
+          disableOutsideClick={isDeletingRelationship}
+        >
+          <DialogHeader>
+            <DialogTitle className="text-foreground">
+              Delete Relationship
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete the{' '}
+              <span className="rounded-md bg-muted px-1 py-0.5 font-mono">
+                {relationshipToDelete}
+              </span>{' '}
+              relationship?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:flex sm:flex-col sm:space-x-0">
+            <ButtonWithLoading
+              variant="destructive"
+              className="!text-sm+ text-white"
+              onClick={handleDeleteDialogClick}
+              loading={isDeletingRelationship}
+            >
+              Delete
+            </ButtonWithLoading>
+            <DialogClose asChild>
+              <Button variant="outline" className="!text-sm+ text-foreground">
+                Cancel
+              </Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
