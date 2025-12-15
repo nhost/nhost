@@ -37,6 +37,7 @@ jobs:
     with:
       NAME: dashboard
       GIT_REF: ${{ github.sha }}
+      VERSION: ${{ github.sha }}
       ENVIRONMENT: production
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}

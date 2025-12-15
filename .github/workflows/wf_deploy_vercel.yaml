@@ -12,6 +12,9 @@ on:
       ENVIRONMENT:
         required: true
         type: string
+      VERSION:
+        required: true
+        type: string
     secrets:
       AWS_ACCOUNT_ID:
         required: true
@@ -65,6 +68,10 @@ jobs:
         NAME: ${{ inputs.NAME }}
         NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: "Set package version"
+      run: |
+        nix develop .#pnpm -c pnpm version ${{ inputs.VERSION }} --no-git-tag-version
 
     - name: Trigger Vercel deployment
       id: deploy
