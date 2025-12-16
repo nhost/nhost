@@ -1,3 +1,9 @@
+## [cli@1.34.10] - 2025-12-16
+
+### 🐛 Bug Fixes
+
+- *(cli)* Cmd-shell in a single parameter (#3760)
+
 ## [cli@1.34.9] - 2025-12-01
 
 ### ⚙️ Miscellaneous Tasks
