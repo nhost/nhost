@@ -116,7 +116,7 @@ export default function CreateTableForm({
 
       if (isNotEmptyValue(table.foreignKeyRelations)) {
         await trackForeignKeyRelation({
-          foreignKeyRelations: table.foreignKeyRelations,
+          unTrackedForeignKeyRelations: table.foreignKeyRelations,
           schema,
           table: table.name,
         });

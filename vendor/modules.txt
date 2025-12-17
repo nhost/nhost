@@ -717,7 +717,7 @@ github.com/muesli/termenv
 # github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822
 ## explicit
 github.com/munnerz/goautoneg
-# github.com/nhost/be v0.0.0-20251201121735-dcbcd96765d1
+# github.com/nhost/be v0.0.0-20251217152413-76cb1f82ebfd
 ## explicit; go 1.25.3
 github.com/nhost/be/lib/graphql
 github.com/nhost/be/lib/graphql/context
@@ -809,24 +809,28 @@ github.com/prometheus/common/model
 github.com/prometheus/procfs
 github.com/prometheus/procfs/internal/fs
 github.com/prometheus/procfs/internal/util
-# github.com/quic-go/qpack v0.5.1
-## explicit; go 1.22
+# github.com/quic-go/qpack v0.6.0
+## explicit; go 1.24
 github.com/quic-go/qpack
-# github.com/quic-go/quic-go v0.54.1
-## explicit; go 1.23
+# github.com/quic-go/quic-go v0.57.0
+## explicit; go 1.24
 github.com/quic-go/quic-go
 github.com/quic-go/quic-go/http3
+github.com/quic-go/quic-go/http3/qlog
 github.com/quic-go/quic-go/internal/ackhandler
 github.com/quic-go/quic-go/internal/congestion
 github.com/quic-go/quic-go/internal/flowcontrol
 github.com/quic-go/quic-go/internal/handshake
+github.com/quic-go/quic-go/internal/monotime
 github.com/quic-go/quic-go/internal/protocol
 github.com/quic-go/quic-go/internal/qerr
 github.com/quic-go/quic-go/internal/utils
 github.com/quic-go/quic-go/internal/utils/linkedlist
 github.com/quic-go/quic-go/internal/utils/ringbuffer
 github.com/quic-go/quic-go/internal/wire
-github.com/quic-go/quic-go/logging
+github.com/quic-go/quic-go/qlog
+github.com/quic-go/quic-go/qlogwriter
+github.com/quic-go/quic-go/qlogwriter/jsontext
 github.com/quic-go/quic-go/quicvarint
 # github.com/rivo/uniseg v0.4.7
 ## explicit; go 1.18
@@ -1008,11 +1012,9 @@ github.com/xo/terminfo
 github.com/yosida95/uritemplate/v3
 # go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.61.0
 ## explicit; go 1.23.0
-# go.uber.org/mock v0.5.0
-## explicit; go 1.22
+# go.uber.org/mock v0.5.2
+## explicit; go 1.23
 go.uber.org/mock/gomock
-go.uber.org/mock/mockgen
-go.uber.org/mock/mockgen/model
 # golang.org/x/arch v0.20.0
 ## explicit; go 1.23.0
 golang.org/x/arch/x86/x86asm
@@ -1041,7 +1043,6 @@ golang.org/x/crypto/ssh/knownhosts
 # golang.org/x/mod v0.29.0
 ## explicit; go 1.24.0
 golang.org/x/mod/internal/lazyregexp
-golang.org/x/mod/modfile
 golang.org/x/mod/module
 golang.org/x/mod/semver
 # golang.org/x/net v0.47.0
@@ -1069,7 +1070,6 @@ golang.org/x/oauth2/endpoints
 golang.org/x/oauth2/internal
 # golang.org/x/sync v0.18.0
 ## explicit; go 1.24.0
-golang.org/x/sync/errgroup
 golang.org/x/sync/semaphore
 # golang.org/x/sys v0.38.0
 ## explicit; go 1.24.0
@@ -1101,35 +1101,9 @@ golang.org/x/text/transform
 golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
 golang.org/x/text/width
-# golang.org/x/time v0.11.0
+# golang.org/x/time v0.12.0
 ## explicit; go 1.23.0
 golang.org/x/time/rate
-# golang.org/x/tools v0.38.0
-## explicit; go 1.24.0
-golang.org/x/tools/go/ast/astutil
-golang.org/x/tools/go/ast/edge
-golang.org/x/tools/go/ast/inspector
-golang.org/x/tools/go/gcexportdata
-golang.org/x/tools/go/packages
-golang.org/x/tools/go/types/objectpath
-golang.org/x/tools/go/types/typeutil
-golang.org/x/tools/imports
-golang.org/x/tools/internal/aliases
-golang.org/x/tools/internal/event
-golang.org/x/tools/internal/event/core
-golang.org/x/tools/internal/event/keys
-golang.org/x/tools/internal/event/label
-golang.org/x/tools/internal/gcimporter
-golang.org/x/tools/internal/gocommand
-golang.org/x/tools/internal/gopathwalk
-golang.org/x/tools/internal/imports
-golang.org/x/tools/internal/modindex
-golang.org/x/tools/internal/packagesinternal
-golang.org/x/tools/internal/pkgbits
-golang.org/x/tools/internal/stdlib
-golang.org/x/tools/internal/typeparams
-golang.org/x/tools/internal/typesinternal
-golang.org/x/tools/internal/versions
 # google.golang.org/protobuf v1.36.9
 ## explicit; go 1.23
 google.golang.org/protobuf/encoding/protodelim
