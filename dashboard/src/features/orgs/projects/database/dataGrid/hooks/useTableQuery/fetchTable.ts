@@ -326,18 +326,6 @@ export default async function fetchTable({
     }
   });
 
-  const flatForeignKeyRelations = Array.from(
-    foreignKeyRelationMap.keys(),
-  ).reduce((accumulator, key) => {
-    const value = foreignKeyRelationMap.get(key);
-
-    if (!value) {
-      return accumulator;
-    }
-
-    return [...accumulator, JSON.parse(value) as ForeignKeyRelation];
-  }, [] as ForeignKeyRelation[]);
-
   const columns = rawColumns
     .map((rawColumn) => {
       const column = JSON.parse(rawColumn);
@@ -355,6 +343,26 @@ export default async function fetchTable({
       } as NormalizedQueryDataRow;
     })
     .sort((a, b) => a.ordinal_position - b.ordinal_position);
+
+  const flatForeignKeyRelations = Array.from(
+    foreignKeyRelationMap.keys(),
+  ).reduce((accumulator, key) => {
+    const value = foreignKeyRelationMap.get(key);
+
+    if (!value) {
+      return accumulator;
+    }
+
+    const parsedValue = JSON.parse(value) as ForeignKeyRelation;
+    const column = columns.find(
+      ({ column_name }) => column_name === parsedValue.columnName,
+    )!;
+    const foreignKeyWithOneToOne: ForeignKeyRelation = {
+      ...parsedValue,
+      oneToOne: column.is_unique || column.is_primary,
+    };
+    return [...accumulator, foreignKeyWithOneToOne];
+  }, [] as ForeignKeyRelation[]);
 
   const rawData: QueryResult<string[]> | QueryError =
     await rowDataResponse.json();
