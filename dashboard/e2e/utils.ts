@@ -67,10 +67,6 @@ export async function prepareTable({
     defaultValue?: string;
   }>;
 }) {
-  if (!columns.some(({ name }) => primaryKeys.includes(name))) {
-    throw new Error('Primary key must be one of the columns.');
-  }
-
   await page.getByRole('textbox', { name: /name/i }).first().fill(tableName);
 
   await Promise.all(
@@ -79,14 +75,18 @@ export async function prepareTable({
         { name: columnName, type, nullable, unique, defaultValue },
         index,
       ) => {
+        const calculatedIndex = index + 1;
         // set name
-        await page.getByPlaceholder(/name/i).nth(index).fill(columnName);
+        await page
+          .getByPlaceholder(/name/i)
+          .nth(calculatedIndex)
+          .fill(columnName);
 
         // set type
         await page
           .getByRole('table')
           .getByRole('combobox', { name: /type/i })
-          .nth(index)
+          .nth(calculatedIndex)
           .type(type);
         await page
           .getByRole('table')
@@ -99,7 +99,7 @@ export async function prepareTable({
           await page
             .getByRole('table')
             .getByRole('combobox', { name: /default value/i })
-            .nth(index)
+            .nth(calculatedIndex)
             .type(defaultValue);
           await page
             .getByRole('table')
@@ -112,7 +112,7 @@ export async function prepareTable({
         if (unique) {
           await page
             .getByRole('checkbox', { name: /unique/i })
-            .nth(index)
+            .nth(calculatedIndex)
             .check();
         }
 
@@ -120,7 +120,7 @@ export async function prepareTable({
         if (nullable) {
           await page
             .getByRole('checkbox', { name: /nullable/i })
-            .nth(index)
+            .nth(calculatedIndex)
             .check();
         }
 

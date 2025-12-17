@@ -13,7 +13,11 @@ export interface TrackForeignKeyRelationsMigrationVariables {
   /**
    * Foreign key relation to track.
    */
-  foreignKeyRelations: ForeignKeyRelation[];
+  trackedForeignKeyRelations?: ForeignKeyRelation[];
+  /**
+   * Foreign key relation to track.
+   */
+  unTrackedForeignKeyRelations: ForeignKeyRelation[];
   /**
    * Schema where the table is located for which the foreign key relation is
    * being tracked.
@@ -34,16 +38,18 @@ export default async function trackForeignKeyRelationsMigration({
   table,
   appUrl,
   adminSecret,
-  foreignKeyRelations,
+  unTrackedForeignKeyRelations,
+  trackedForeignKeyRelations,
 }: TrackForeignKeyRelationsMigrationOptions &
   TrackForeignKeyRelationsMigrationVariables) {
-  const creatableRelationships = await prepareTrackForeignKeyRelationsMetadata({
+  const creatableRelationships = prepareTrackForeignKeyRelationsMetadata({
     dataSource,
     schema,
     table,
-    appUrl,
     adminSecret,
-    foreignKeyRelations,
+    appUrl,
+    unTrackedForeignKeyRelations,
+    trackedForeignKeyRelations,
   });
 
   const response = await fetch(`${getHasuraMigrationsApiUrl()}`, {

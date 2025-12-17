@@ -21,11 +21,8 @@ test('should create a simple table', async ({
   await prepareTable({
     page,
     name: tableName,
-    primaryKeys: ['id'],
-    columns: [
-      { name: 'id', type: 'uuid', defaultValue: 'gen_random_uuid()' },
-      { name: 'title', type: 'text' },
-    ],
+    primaryKeys: [],
+    columns: [{ name: 'title', type: 'text' }],
   });
 
   // create table
@@ -52,9 +49,8 @@ test('should create a table with unique constraints', async ({
   await prepareTable({
     page,
     name: tableName,
-    primaryKeys: ['id'],
+    primaryKeys: [],
     columns: [
-      { name: 'id', type: 'uuid', defaultValue: 'gen_random_uuid()' },
       { name: 'title', type: 'text', unique: true },
       { name: 'isbn', type: 'text', unique: true },
     ],
@@ -83,9 +79,8 @@ test('should create a table with nullable columns', async ({
   await prepareTable({
     page,
     name: tableName,
-    primaryKeys: ['id'],
+    primaryKeys: [],
     columns: [
-      { name: 'id', type: 'uuid', defaultValue: 'gen_random_uuid()' },
       { name: 'title', type: 'text', nullable: true },
       { name: 'description', type: 'text', nullable: true },
     ],
@@ -120,9 +115,8 @@ test('should create a table with an identity column', async ({
   await prepareTable({
     page,
     name: tableName,
-    primaryKeys: ['id'],
+    primaryKeys: [],
     columns: [
-      { name: 'id', type: 'uuid', defaultValue: 'gen_random_uuid()' },
       { name: 'title', type: 'text', nullable: true },
       { name: 'description', type: 'text', nullable: true },
       { name: 'identity_column', type: 'int4' },
@@ -166,11 +160,8 @@ test('should create table with foreign key constraint', async ({
   await prepareTable({
     page,
     name: firstTableName,
-    primaryKeys: ['id'],
-    columns: [
-      { name: 'id', type: 'uuid', defaultValue: 'gen_random_uuid()' },
-      { name: 'name', type: 'text' },
-    ],
+    primaryKeys: [],
+    columns: [{ name: 'name', type: 'text' }],
   });
 
   // create table
@@ -188,9 +179,8 @@ test('should create table with foreign key constraint', async ({
   await prepareTable({
     page,
     name: secondTableName,
-    primaryKeys: ['id'],
+    primaryKeys: [],
     columns: [
-      { name: 'id', type: 'uuid', defaultValue: 'gen_random_uuid()' },
       { name: 'title', type: 'text' },
       { name: 'author_id', type: 'uuid' },
     ],
@@ -245,9 +235,8 @@ test('should be able to create a table with a composite key', async ({
   await prepareTable({
     page,
     name: tableName,
-    primaryKeys: ['id', 'second_id'],
+    primaryKeys: ['second_id'],
     columns: [
-      { name: 'id', type: 'uuid', defaultValue: 'gen_random_uuid()' },
       { name: 'second_id', type: 'uuid', defaultValue: 'gen_random_uuid()' },
       { name: 'name', type: 'text' },
     ],
@@ -285,11 +274,8 @@ test('should not be able to create a table with a name that already exists', asy
   await prepareTable({
     page,
     name: tableName,
-    primaryKeys: ['id'],
-    columns: [
-      { name: 'id', type: 'uuid', defaultValue: 'gen_random_uuid()' },
-      { name: 'name', type: 'text' },
-    ],
+    primaryKeys: [],
+    columns: [{ name: 'name', type: 'text' }],
   });
 
   // create table
@@ -305,9 +291,8 @@ test('should not be able to create a table with a name that already exists', asy
   await prepareTable({
     page,
     name: tableName,
-    primaryKeys: ['id'],
+    primaryKeys: [],
     columns: [
-      { name: 'id', type: 'uuid', defaultValue: 'gen_random_uuid()' },
       { name: 'title', type: 'text' },
       { name: 'author_id', type: 'uuid' },
     ],

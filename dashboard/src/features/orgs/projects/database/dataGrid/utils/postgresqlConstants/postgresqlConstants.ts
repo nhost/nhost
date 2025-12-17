@@ -76,7 +76,7 @@ export const postgresTypeGroups: {
   {
     group: 'String types',
     label: 'character varying',
-    value: 'varchar',
+    value: 'character varying',
   },
   { group: 'String types', label: 'character', value: 'bpchar' },
 

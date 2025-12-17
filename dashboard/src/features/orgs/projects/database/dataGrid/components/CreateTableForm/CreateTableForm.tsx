@@ -61,6 +61,18 @@ export default function CreateTableForm({
     defaultValues: {
       columns: [
         {
+          type: { label: 'uuid', value: 'uuid' },
+          name: 'id',
+          defaultValue: {
+            label: 'gen_random_uuid()',
+            value: 'gen_random_uuid()',
+          },
+          isNullable: false,
+          isUnique: false,
+          isIdentity: false,
+          comment: '',
+        },
+        {
           name: '',
           type: null as any,
           defaultValue: null as any,
@@ -71,7 +83,7 @@ export default function CreateTableForm({
         },
       ],
       foreignKeyRelations: [],
-      primaryKeyIndices: [],
+      primaryKeyIndices: ['0'],
       identityColumnIndex: null,
     },
     shouldUnregister: false,
@@ -104,7 +116,7 @@ export default function CreateTableForm({
 
       if (isNotEmptyValue(table.foreignKeyRelations)) {
         await trackForeignKeyRelation({
-          foreignKeyRelations: table.foreignKeyRelations,
+          unTrackedForeignKeyRelations: table.foreignKeyRelations,
           schema,
           table: table.name,
         });

@@ -1,3 +1,14 @@
+## [@nhost/dashboard@2.44.1] - 2025-12-12
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Small database bug fixes (#3715)
+
+
+### Chore
+
+- *(deps)* Update next to address security audit (#3754)
+
 ## [@nhost/dashboard@2.44.0] - 2025-12-04
 
 ### 🚀 Features
