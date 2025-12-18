@@ -38,7 +38,7 @@
   "eslintConfig": {
     "extends": "./config/.eslintrc.js"
   },
-  "packageManager": "pnpm@10.24.0",
+  "packageManager": "pnpm@10.26.0",
   "pnpm": {
     "packageExtensions": {
       "@uiw/codemirror-theme-bbedit": {
