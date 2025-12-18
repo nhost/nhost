@@ -1,7 +1,7 @@
 { pkgs, nix2containerPkgs }:
 let
   jsCheckDeps = with pkgs; [
-    pnpm_10
+    pnpm
     cacert
     nodejs
     biome
@@ -21,7 +21,7 @@ let
       dontFixup = true;
 
       nativeBuildInputs = with pkgs; [
-        pnpm_10
+        pnpm
         cacert
         nodejs
       ];

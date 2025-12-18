@@ -2,7 +2,6 @@
   "name": "@nhost/dashboard",
   "version": "0.0.0-dev",
   "private": true,
-  "packageManager": "pnpm@10.24.0",
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "dev": "RECOIL_DUPLICATE_ATOM_KEY_CHECKING_ENABLED=false next dev",
@@ -219,21 +218,5 @@
   },
   "msw": {
     "workerDirectory": "public"
-  },
-  "pnpm": {
-    "packageExtensions": {
-      "@uiw/codemirror-theme-bbedit": {
-        "dependencies": {
-          "@babel/runtime": "^7.0.0",
-          "@lezer/highlight": "^1.0.0"
-        }
-      },
-      "@uiw/codemirror-theme-github": {
-        "dependencies": {
-          "@babel/runtime": "^7.0.0",
-          "@lezer/highlight": "^1.0.0"
-        }
-      }
-    }
   }
 }

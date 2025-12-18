@@ -38,7 +38,22 @@
   "eslintConfig": {
     "extends": "./config/.eslintrc.js"
   },
+  "packageManager": "pnpm@10.24.0",
   "pnpm": {
+    "packageExtensions": {
+      "@uiw/codemirror-theme-bbedit": {
+        "dependencies": {
+          "@babel/runtime": "^7.0.0",
+          "@lezer/highlight": "^1.0.0"
+        }
+      },
+      "@uiw/codemirror-theme-github": {
+        "dependencies": {
+          "@babel/runtime": "^7.0.0",
+          "@lezer/highlight": "^1.0.0"
+        }
+      }
+    },
     "overrides": {
       "jsonwebtoken@<=8.5.1": ">=9.0.0",
       "@octokit/request@>=1.0.0 <9.2.1": ">=9.2.1",

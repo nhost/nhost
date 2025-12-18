@@ -92,6 +92,8 @@ overrides:
   axios@<1.12.0: '>=1.12.0'
   js-yaml@<=4.1.0: '>=4.1.1'
 
+packageExtensionsChecksum: sha256-gRFeykwiwMfEE6etcYx6N48XwVeKzxbqNveL7KTQgSQ=
+
 importers:
 
   .:

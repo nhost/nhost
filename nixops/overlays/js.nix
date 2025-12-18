@@ -54,7 +54,7 @@ rec{
     '';
   };
 
-  pnpm_10 = (final.callPackage "${final.path}/pkgs/development/tools/pnpm/generic.nix" {
+  pnpm = (final.callPackage "${final.path}/pkgs/development/tools/pnpm/generic.nix" {
     version = "10.26.0";
     hash = "sha256-9gl0xoz+ChP5UfugGZZpWIV38OPwybfRp8pHYzv3I4Y=";
   });
