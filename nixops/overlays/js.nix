@@ -37,6 +37,10 @@ rec{
 
   nodePackages = nodejs.pkgs;
 
+  buildNpmPackage = prev.buildNpmPackage.override {
+    nodejs = prev.nodejs;
+  };
+
   npm_11 = final.stdenv.mkDerivation rec {
     pname = "npm";
     version = "11.7.0";
