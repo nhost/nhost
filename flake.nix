@@ -110,7 +110,7 @@
 
               # javascript
               nodejs
-              pnpm_10
+              pnpm
               biome
 
               # go
@@ -140,7 +140,7 @@
 
           pnpm = pkgs.mkShell {
             buildInputs = with pkgs; [
-              pnpm_10
+              pnpm
             ];
           };
 

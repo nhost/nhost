@@ -12,8 +12,6 @@ on:
         type: string
         required: true
     secrets:
-      NPM_TOKEN:
-        required: true
       AWS_ACCOUNT_ID:
         required: true
       NIX_CACHE_PUB_KEY:
@@ -34,8 +32,7 @@ jobs:
 
     permissions:
       id-token: write
-      contents: write
-      actions: read
+      contents: read
 
     steps:
     - name: "Check out repository"
@@ -75,7 +72,6 @@ jobs:
 
     - name: "Publish to npm"
       run: |
-        echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
         nix develop .#pnpm -c pnpm publish --tag ${{ steps.npm-tag.outputs.tag }} --no-git-checks
 
     - name: Send Discord notification
