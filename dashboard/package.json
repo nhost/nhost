@@ -2,6 +2,7 @@
   "name": "@nhost/dashboard",
   "version": "0.0.0-dev",
   "private": true,
+  "packageManager": "pnpm@10.24.0",
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "dev": "RECOIL_DUPLICATE_ATOM_KEY_CHECKING_ENABLED=false next dev",
