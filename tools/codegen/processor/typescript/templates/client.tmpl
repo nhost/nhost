@@ -94,13 +94,35 @@ export const createAPIClient = (
   const encodedParameters =
     params &&
     Object.entries(params)
-      .map(([key, value]) => {
+      .flatMap(([key, value]) => {
+        {{- range .QueryParameters }}
+        {{- if .Explode }}
+        {{- if eq .Type.Kind "array" }}
+        if (key === "{{ .Name }}") {
+          // Array with explode: true - repeat key for each value
+          return Array.isArray(value)
+            ? value.map(v => `${key}=${encodeURIComponent(String(v))}`)
+            : [`${key}=${encodeURIComponent(String(value))}`]
+        }
+        {{- else if eq .Type.Kind "object" }}
+        if (key === "{{ .Name }}") {
+          // Object with explode: true - each property as separate parameter
+          if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+            return Object.entries(value)
+              .map(([k, v]) => `${k}=${encodeURIComponent(String(v))}`)
+          }
+          return [`${key}=${encodeURIComponent(String(value))}`]
+        }
+        {{- end }}
+        {{- end }}
+        {{- end }}
+        // Default handling (scalars or explode: false)
         const stringValue = Array.isArray(value)
           ? value.join(',')
-          : typeof value === 'object'
+          : typeof value === 'object' && value !== null
           ? JSON.stringify(value)
-          : (value as string)
-        return `${key}=${encodeURIComponent(stringValue)}`
+          : String(value)
+        return [`${key}=${encodeURIComponent(stringValue)}`]
       })
       .join('&')
 

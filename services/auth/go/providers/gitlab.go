@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/oidc"
 	"golang.org/x/oauth2"
 )
@@ -41,7 +42,7 @@ type gitlabUserProfile struct {
 	AvatarURL string `json:"avatar_url"`
 }
 
-func (l *Gitlab) GetProfile(
+func (g *Gitlab) GetProfile(
 	ctx context.Context,
 	accessToken string,
 	_ *string,
@@ -64,4 +65,12 @@ func (l *Gitlab) GetProfile(
 		EmailVerified:  userProfile.Email != "",
 		Picture:        userProfile.AvatarURL,
 	}, nil
+}
+
+func (g *Gitlab) AuthCodeURL(
+	state string,
+	_ *api.ProviderSpecificParams,
+	opts ...oauth2.AuthCodeOption,
+) string {
+	return g.Config.AuthCodeURL(state, opts...)
 }

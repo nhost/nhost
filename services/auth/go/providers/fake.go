@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/oidc"
 	"golang.org/x/oauth2"
 )
@@ -86,4 +87,12 @@ func (f *FakeProvider) GetProfile(
 	default:
 		return oidc.Profile{}, errors.New("invalid access token") //nolint:err113
 	}
+}
+
+func (f *FakeProvider) AuthCodeURL(
+	state string,
+	_ *api.ProviderSpecificParams,
+	opts ...oauth2.AuthCodeOption,
+) string {
+	return f.Config.AuthCodeURL(state, opts...)
 }
