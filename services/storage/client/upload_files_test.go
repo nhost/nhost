@@ -302,8 +302,8 @@ func TestUploadFiles(t *testing.T) { //nolint:cyclop,maintidx,gocognit
 					Data    *map[string]any `json:"data,omitempty"`
 					Message string          `json:"message"`
 				}{
-					Data:    &map[string]any{"file": "blah.txt", "virus": "Win.Test.EICAR_HDB-1"},
-					Message: "virus found: Win.Test.EICAR_HDB-1",
+					Data:    &map[string]any{"file": "blah.txt", "virus": "Eicar-Test-Signature"},
+					Message: "virus found: Eicar-Test-Signature",
 				},
 				ProcessedFiles: &[]client.FileMetadata{
 					{
