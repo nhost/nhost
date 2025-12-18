@@ -5,7 +5,6 @@ let
     cacert
     nodejs
     biome
-    playwright-driver
   ];
 
   mkNodeModules =
@@ -70,9 +69,6 @@ let
         done
 
         cd "$CUR_DIR"
-
-        export PLAYWRIGHT_BROWSERS_PATH=${pkgs.playwright-driver.browsers}
-        export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
 
         ${shellHook}
       '';
