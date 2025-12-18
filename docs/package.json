@@ -9,30 +9,9 @@
     "test:broken-links": "pnpm exec mintlify broken-links"
   },
   "devDependencies": {
-    "mintlify": "^4.2.158",
+    "mintlify": "^4.2.246",
     "prettier": "^3.5.3",
     "typedoc": "^0.28.4",
     "typedoc-plugin-markdown": "^4.6.3"
-  },
-  "pnpm": {
-    "packageExtensions": {
-      "@mintlify/link-rot@*": {
-        "dependencies": {
-          "react": "*",
-          "react-dom": "*"
-        }
-      },
-      "@mintlify/scraping@*": {
-        "dependencies": {
-          "openapi-types": "*"
-        }
-      }
-    },
-    "overrides": {
-      "js-yaml@<=4.1.0": ">=4.1.1",
-      "glob@>=10.3.7 <=11.0.3": ">=11.1.0",
-      "express@<4.22.0": ">=4.22.0",
-      "mdast-util-to-hast@>=13.0.0 <13.2.1": ">=13.2.1"
-    }
   }
 }
