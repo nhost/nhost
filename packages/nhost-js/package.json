@@ -117,11 +117,5 @@
   "sideEffects": false,
   "dependencies": {
     "tslib": "^2.8.1"
-  },
-  "pnpm": {
-    "overrides": {
-      "rollup@<2.79.2": ">=2.79.2",
-      "js-yaml@<=4.1.0": ">=4.1.1"
-    }
   }
 }
