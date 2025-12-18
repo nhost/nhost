@@ -9,7 +9,6 @@ overrides:
   vite@<=5.4.19: '>=5.4.20'
   vite@>=4.5.3 <5.0.0: '>=5.4.21'
   express@<4.19.2: '>=4.19.2'
-  tar@<6.2.1: '>=6.2.1'
   zod@<=3.22.2: '>=3.22.3'
   body-parser@<1.20.3: '>=1.20.3'
   serve-static@<1.16.0: '>=1.16.0'
@@ -47,8 +46,8 @@ importers:
         specifier: ^22.15.17
         version: 22.15.17
       '@types/rollup-plugin-peer-deps-external':
-        specifier: ^2.2.5
-        version: 2.2.5
+        specifier: ^2.2.6
+        version: 2.2.6(rollup@4.52.4)
       graphql-tag:
         specifier: ^2.12.6
         version: 2.12.6(graphql@16.11.0)
@@ -486,9 +485,6 @@ packages:
   '@types/babel__traverse@7.28.0':
     resolution: {integrity: sha512-8PvcXf70gTDZBgt9ptxJ8elBeBjcLOAcOtoO/mPJjtji1+CdGbHgm77om1GrsPxsiE+uXIpNSK64UYaIwQXd4Q==}
 
-  '@types/estree@0.0.39':
-    resolution: {integrity: sha512-EYNwp3bU+98cpU4lAWYYL7Zz+2gryWH1qbdDTidVd6hkiR6weksdbMadyXKXNPEkQFhXM+hVO9ZygomHXp+AIw==}
-
   '@types/estree@1.0.8':
     resolution: {integrity: sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w==}
 
@@ -513,8 +509,10 @@ packages:
   '@types/resolve@1.20.2':
     resolution: {integrity: sha512-60BCwRFOZCQhDncwQdxxeOEEkbc5dIMccYLwbxsS4TUNeVECQ/pBJ0j09mrHOl/JJvpRPGwO9SvE4nR2Nb/a4Q==}
 
-  '@types/rollup-plugin-peer-deps-external@2.2.5':
-    resolution: {integrity: sha512-BvxHEsbzspw1BDyktFdjx5AQ5OHZGFJuDUAj+dDzDT0pfnz9/vr8sxxQwGINsptaltxbTVBTAxlZujM62F79XA==}
+  '@types/rollup-plugin-peer-deps-external@2.2.6':
+    resolution: {integrity: sha512-rR0p2+VZ5+RTyTA+MemzE7RQs3vkGNsYsEZIl+RahwrJOtEDEg+a5RCnigSwPkBtu4H7dyVHXyUZfiZU2dwjdw==}
+    peerDependencies:
+      rollup: '*'
 
   '@types/stack-utils@2.0.3':
     resolution: {integrity: sha512-9aEbYZ3TbYMznPdcdr3SmIrLXwC/AKZXQeCf9Pgao5CKb8CyHuEX5jzWPTkvregvhRJHcpRO6BFoGW9ycaOkYw==}
@@ -1227,10 +1225,6 @@ packages:
     peerDependencies:
       rollup: '*'
 
-  rollup@0.63.5:
-    resolution: {integrity: sha512-dFf8LpUNzIj3oE0vCvobX6rqOzHzLBoblyFp+3znPbjiSmSvOoK2kMKx+Fv9jYduG1rvcCfCveSgEaQHjWRF6g==}
-    hasBin: true
-
   rollup@4.52.4:
     resolution: {integrity: sha512-CLEVl+MnPAiKh5pl4dEWSyMTpuflgNQiLGhMv8ezD5W/qP8AKvmYpCOKRRNOh7oRKnauBZ4SyeYkMS+1VSyKwQ==}
     engines: {node: '>=18.0.0', npm: '>=8.0.0'}
@@ -1938,8 +1932,6 @@ snapshots:
     dependencies:
       '@babel/types': 7.28.2
 
-  '@types/estree@0.0.39': {}
-
   '@types/estree@1.0.8': {}
 
   '@types/graceful-fs@4.1.9':
@@ -1967,9 +1959,9 @@ snapshots:
 
   '@types/resolve@1.20.2': {}
 
-  '@types/rollup-plugin-peer-deps-external@2.2.5':
+  '@types/rollup-plugin-peer-deps-external@2.2.6(rollup@4.52.4)':
     dependencies:
-      rollup: 0.63.5
+      rollup: 4.52.4
 
   '@types/stack-utils@2.0.3': {}
 
@@ -2817,11 +2809,6 @@ snapshots:
   rollup-plugin-peer-deps-external@2.2.4(rollup@4.52.4):
     dependencies:
       rollup: 4.52.4
-
-  rollup@0.63.5:
-    dependencies:
-      '@types/estree': 0.0.39
-      '@types/node': 22.15.17
 
   rollup@4.52.4:
     dependencies:
