@@ -562,7 +562,7 @@ paths:
           description: A two-characters locale
           schema:
             type: string
-            maxLength: 2
+            maxLength: 3
             minLength: 2
             example: en
         - name: metadata
@@ -2022,7 +2022,7 @@ components:
         locale:
           description: A two-characters locale
           example: en
-          maxLength: 2
+          maxLength: 3
           minLength: 2
           type: string
         metadata:
@@ -2278,7 +2278,7 @@ components:
         locale:
           description: A two-characters locale
           example: en
-          maxLength: 2
+          maxLength: 3
           minLength: 2
           type: string
         metadata:
@@ -2386,7 +2386,7 @@ components:
         locale:
           description: "User's preferred locale (language code)"
           example: "en"
-          maxLength: 2
+          maxLength: 3
           minLength: 2
           type: string
         metadata:

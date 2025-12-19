@@ -251,7 +251,7 @@ CREATE TABLE auth.users (
     disabled boolean DEFAULT false NOT NULL,
     display_name text DEFAULT ''::text NOT NULL,
     avatar_url text DEFAULT ''::text NOT NULL,
-    locale character varying(2) NOT NULL,
+    locale character varying(3) NOT NULL,
     email auth.email,
     phone_number text,
     password_hash text,

@@ -768,7 +768,7 @@ export interface SessionPayload {
  @property locale? (`string`) - A two-characters locale
     *    Example - `"en"`
     *    MinLength - 2
-    *    MaxLength - 2
+    *    MaxLength - 3
  @property metadata? (`Record<string, unknown>`) - 
     *    Example - `{"firstName":"John","lastName":"Smith"}`*/
 export interface SignInAnonymousRequest {
@@ -781,7 +781,7 @@ export interface SignInAnonymousRequest {
    * A two-characters locale
    *    Example - `"en"`
    *    MinLength - 2
-   *    MaxLength - 2
+   *    MaxLength - 3
    */
   locale?: string;
   /**
@@ -1094,7 +1094,7 @@ export interface SignUpEmailPasswordRequest {
  @property locale? (`string`) - A two-characters locale
     *    Example - `"en"`
     *    MinLength - 2
-    *    MaxLength - 2
+    *    MaxLength - 3
  @property metadata? (`Record<string, unknown>`) - 
     *    Example - `{"firstName":"John","lastName":"Smith"}`
  @property redirectTo? (`string`) - 
@@ -1122,7 +1122,7 @@ export interface SignUpOptions {
    * A two-characters locale
    *    Example - `"en"`
    *    MinLength - 2
-   *    MaxLength - 2
+   *    MaxLength - 3
    */
   locale?: string;
   /**
@@ -1225,7 +1225,7 @@ export type URLEncodedBase64 = string;
  @property locale (`string`) - User's preferred locale (language code)
     *    Example - `"en"`
     *    MinLength - 2
-    *    MaxLength - 2
+    *    MaxLength - 3
  @property metadata (`Record<string, unknown>`) - Custom metadata associated with the user
     *    Example - `{"firstName":"John","lastName":"Smith"}`
  @property phoneNumber? (`string`) - User's phone number
@@ -1283,7 +1283,7 @@ export interface User {
    * User's preferred locale (language code)
    *    Example - `"en"`
    *    MinLength - 2
-   *    MaxLength - 2
+   *    MaxLength - 3
    */
   locale: string;
   /**
