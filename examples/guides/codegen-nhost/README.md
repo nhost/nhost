@@ -53,7 +53,8 @@ const config: CodegenConfig = {
     './src/lib/graphql/__generated__/': {
       preset: 'client',
       presetConfig: {
-        persistedDocuments: false
+        persistedDocuments: false,
+        fragmentMasking: false
       },
       plugins: [
         {
