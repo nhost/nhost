@@ -40,7 +40,7 @@ function capitalizeFirstLetter(str) {
 function fixCaps(str) {
   return capitalizeFirstLetter(str).replace(
     /(?<=[A-Z])([A-Z]+)(?=[A-Z])/g,
-    (match, p1) => p1.toLowerCase(),
+    (_match, p1) => p1.toLowerCase(),
   );
 }
 

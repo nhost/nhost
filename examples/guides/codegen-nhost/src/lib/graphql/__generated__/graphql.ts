@@ -6815,11 +6815,18 @@ export type GetNinjaTurtlesWithCommentsQuery = {
     description?: string | null;
     createdAt: string;
     updatedAt: string;
-    comments: Array<
-      { __typename?: "comments" } & {
-        " $fragmentRefs"?: { CommentDetailsFragment: CommentDetailsFragment };
-      }
-    >;
+    comments: Array<{
+      __typename?: "comments";
+      id: string;
+      comment: string;
+      createdAt: string;
+      user: {
+        __typename?: "users";
+        id: string;
+        displayName: string;
+        email?: string | null;
+      };
+    }>;
   }>;
 };
 
@@ -6850,7 +6857,7 @@ export type CommentDetailsFragment = {
     displayName: string;
     email?: string | null;
   };
-} & { " $fragmentName"?: "CommentDetailsFragment" };
+};
 
 export const CommentDetailsFragmentDoc = {
   kind: "Document",
