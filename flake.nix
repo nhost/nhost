@@ -140,6 +140,7 @@
 
           pnpm = pkgs.mkShell {
             buildInputs = with pkgs; [
+              nodejs
               pnpm
             ];
           };
