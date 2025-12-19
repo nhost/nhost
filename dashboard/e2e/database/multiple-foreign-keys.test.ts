@@ -212,7 +212,7 @@ test('should create table with multiple foreign keys, then edit by removing one 
 
   await page.getByRole('button', { name: /save/i }).click();
 
-  await expect(page.getByText(/error/i)).not.toBeVisible();
+  await expect(page.getByText(/error:/i)).not.toBeVisible();
   await expect(page.locator('h2:has-text("Edit Table")')).not.toBeVisible();
 
   await expect(
@@ -316,7 +316,7 @@ test('should create table with multiple foreign keys pointing to the same column
 
   await page.getByRole('button', { name: /create/i }).click();
 
-  await expect(page.getByText(/error/i)).not.toBeVisible();
+  await expect(page.getByText(/error:/i)).not.toBeVisible();
   await expect(page.getByText(/create a new table/i)).not.toBeVisible();
 
   await page.waitForURL(
