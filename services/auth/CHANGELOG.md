@@ -1,3 +1,9 @@
+## [auth@0.44.2] - 2025-12-18
+
+### 🐛 Bug Fixes
+
+- *(auth)* Add back support for workos connection/organization on signin (#3731)
+
 ## [auth@0.44.1] - 2025-12-05
 
 ### 🐛 Bug Fixes

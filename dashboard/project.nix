@@ -72,7 +72,10 @@ let
     ];
   };
 
-  checkDeps = with pkgs; [ nhost-cli ];
+  checkDeps = with pkgs; [
+    nhost-cli
+    playwright-driver
+  ];
 
   buildInputs = with pkgs; [ nodejs ];
 
@@ -85,6 +88,12 @@ rec {
     buildInputs = with pkgs;[
       nodePackages.vercel
     ] ++ checkDeps ++ buildInputs ++ nativeBuildInputs;
+
+    shellHook = ''
+      export PLAYWRIGHT_BROWSERS_PATH=${pkgs.playwright-driver.browsers}
+      export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
+    '';
+
   };
 
   entrypoint = pkgs.writeScriptBin "docker-entrypoint.sh" (builtins.readFile ./docker-entrypoint.sh);

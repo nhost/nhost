@@ -75,6 +75,14 @@ paths:
             If set, this means that the user is already authenticated and wants to link their account. This needs to be a valid JWT access token.
           schema:
             type: string
+        - name: providerSpecificParams
+          in: query
+          required: false
+          description: Additional provider-specific parameters
+          style: form
+          explode: true
+          schema:
+            $ref: "#/components/schemas/ProviderSpecificParams"
 
       responses:
         "302":
@@ -142,3 +150,14 @@ components:
           required:
             - message
       additionalProperties: false
+
+    ProviderSpecificParams:
+      type: object
+      properties:
+        connection:
+          type: string
+          description: (workos) Specifies the connection to use for authentication
+        organization:
+          type: string
+          description: (workos) Specifies the organization to use for authentication
+

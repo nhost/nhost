@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/oidc"
 	"golang.org/x/oauth2"
 )
@@ -79,4 +80,12 @@ func (w *WindowsLive) GetProfile(
 		EmailVerified:  email != "",
 		Picture:        profile.ProfileImageURL,
 	}, nil
+}
+
+func (w *WindowsLive) AuthCodeURL(
+	state string,
+	_ *api.ProviderSpecificParams,
+	opts ...oauth2.AuthCodeOption,
+) string {
+	return w.Config.AuthCodeURL(state, opts...)
 }

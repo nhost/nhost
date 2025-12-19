@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/oidc"
 	"golang.org/x/oauth2"
 )
@@ -33,7 +34,11 @@ func NewStravaProvider(
 	return NewOauth2Provider(strava)
 }
 
-func (s *Strava) AuthCodeURL(state string, opts ...oauth2.AuthCodeOption) string {
+func (s *Strava) AuthCodeURL(
+	state string,
+	_ *api.ProviderSpecificParams,
+	opts ...oauth2.AuthCodeOption,
+) string {
 	opts = append(opts, oauth2.SetAuthURLParam("approval_prompt", "force"))
 	return s.Config.AuthCodeURL(state, opts...)
 }

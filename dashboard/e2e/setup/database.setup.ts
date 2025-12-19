@@ -1,13 +1,13 @@
 import { TEST_ORGANIZATION_SLUG, TEST_PROJECT_SUBDOMAIN } from '@/e2e/env';
-import { expect, test as teardown } from '@/e2e/fixtures/auth-hook';
+import { expect, test as setup } from '@/e2e/fixtures/auth-hook';
 
-teardown.beforeEach(async ({ authenticatedNhostPage: page }) => {
+setup.beforeEach(async ({ authenticatedNhostPage: page }) => {
   const databaseRoute = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default`;
   await page.goto(databaseRoute);
   await page.waitForURL(databaseRoute);
 });
 
-teardown(
+setup(
   'clean up database tables',
   async ({ authenticatedNhostPage: page }) => {
     await page.getByRole('link', { name: /sql editor/i }).click();

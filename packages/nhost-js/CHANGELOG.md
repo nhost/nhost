@@ -1,3 +1,14 @@
+## [@nhost/nhost-js@4.2.1] - 2025-12-18
+
+### 🐛 Bug Fixes
+
+- *(auth)* Add back support for workos connection/organization on signin (#3731)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(ci)* Update npm/pnpm and remove deployment token (#3767)
+
 ## [@nhost/nhost-js@4.2.0] - 2025-11-27
 
 ### 🚀 Features

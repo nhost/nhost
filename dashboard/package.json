@@ -218,27 +218,5 @@
   },
   "msw": {
     "workerDirectory": "public"
-  },
-  "pnpm": {
-    "packageExtensions": {
-      "@uiw/codemirror-theme-bbedit": {
-        "dependencies": {
-          "@babel/runtime": "^7.0.0",
-          "@lezer/highlight": "^1.0.0"
-        }
-      },
-      "@uiw/codemirror-theme-github": {
-        "dependencies": {
-          "@babel/runtime": "^7.0.0",
-          "@lezer/highlight": "^1.0.0"
-        }
-      }
-    },
-    "overrides": {
-      "esbuild@<=0.24.2": ">=0.25.0",
-      "js-yaml@<=4.1.0": ">=4.1.1",
-      "glob@>=10.3.7 <=11.0.3": ">=11.1.0",
-      "mdast-util-to-hast@>=13.0.0 <13.2.1": ">=13.2.1"
-    }
   }
 }
