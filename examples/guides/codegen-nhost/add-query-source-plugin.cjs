@@ -7,15 +7,15 @@
 const plugin = (_schema, documents, _config) => {
   let output = `
 import { print } from 'graphql'
-`
+`;
 
   for (const doc of documents) {
-    if (!doc.document) continue
+    if (!doc.document) continue;
 
     for (const definition of doc.document.definitions) {
-      if (definition.kind === 'OperationDefinition' && definition.name) {
-        const operationName = definition.name.value
-        const documentName = fixCaps(`${operationName}Document`)
+      if (definition.kind === "OperationDefinition" && definition.name) {
+        const operationName = definition.name.value;
+        const documentName = fixCaps(`${operationName}Document`);
 
         output += `
 // Add query source to ${documentName}
@@ -24,23 +24,24 @@ if (${documentName}) {
     loc: { source: { body: print(${documentName}) } }
   });
 }
-`
+`;
       }
     }
   }
 
-  return output
-}
+  return output;
+};
 
 function capitalizeFirstLetter(str) {
-  return str.charAt(0).toUpperCase() + str.slice(1)
+  return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
 // ex: getRoleAIDocument => GetRoleAiDocument
 function fixCaps(str) {
-  return capitalizeFirstLetter(str).replace(/(?<=[A-Z])([A-Z]+)(?=[A-Z])/g, (match, p1) =>
-    p1.toLowerCase()
-  )
+  return capitalizeFirstLetter(str).replace(
+    /(?<=[A-Z])([A-Z]+)(?=[A-Z])/g,
+    (match, p1) => p1.toLowerCase(),
+  );
 }
 
-module.exports = { plugin }
+module.exports = { plugin };
