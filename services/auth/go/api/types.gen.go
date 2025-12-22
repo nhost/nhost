@@ -558,7 +558,7 @@ type SessionPayload struct {
 type SignInAnonymousRequest struct {
 	DisplayName *string `json:"displayName,omitempty"`
 
-	// Locale A two-characters locale
+	// Locale A two or three characters locale
 	Locale   *string                 `json:"locale,omitempty"`
 	Metadata *map[string]interface{} `json:"metadata,omitempty"`
 }
@@ -702,7 +702,7 @@ type SignUpOptions struct {
 	DefaultRole  *string   `json:"defaultRole,omitempty"`
 	DisplayName  *string   `json:"displayName,omitempty"`
 
-	// Locale A two-characters locale
+	// Locale A two or three characters locale
 	Locale     *string                 `json:"locale,omitempty"`
 	Metadata   *map[string]interface{} `json:"metadata,omitempty"`
 	RedirectTo *string                 `json:"redirectTo,omitempty"`
@@ -904,7 +904,7 @@ type SignInProviderParams struct {
 	// DisplayName Display name for the user
 	DisplayName *string `form:"displayName,omitempty" json:"displayName,omitempty"`
 
-	// Locale A two-characters locale
+	// Locale A two or three characters locale
 	Locale *string `form:"locale,omitempty" json:"locale,omitempty"`
 
 	// Metadata Additional metadata for the user (JSON encoded string)

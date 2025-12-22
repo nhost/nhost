@@ -765,7 +765,7 @@ export interface SessionPayload {
  * 
  @property displayName? (`string`) - 
     *    Example - `"John Smith"`
- @property locale? (`string`) - A two-characters locale
+ @property locale? (`string`) - A two or three characters locale
     *    Example - `"en"`
     *    MinLength - 2
     *    MaxLength - 3
@@ -778,7 +778,7 @@ export interface SignInAnonymousRequest {
    */
   displayName?: string;
   /**
-   * A two-characters locale
+   * A two or three characters locale
    *    Example - `"en"`
    *    MinLength - 2
    *    MaxLength - 3
@@ -1091,7 +1091,7 @@ export interface SignUpEmailPasswordRequest {
     *    Example - `"John Smith"`
     *    Pattern - ^[\p{L}\p{N}\p{S} ,.'-]+$
     *    MaxLength - 32
- @property locale? (`string`) - A two-characters locale
+ @property locale? (`string`) - A two or three characters locale
     *    Example - `"en"`
     *    MinLength - 2
     *    MaxLength - 3
@@ -1119,7 +1119,7 @@ export interface SignUpOptions {
    */
   displayName?: string;
   /**
-   * A two-characters locale
+   * A two or three characters locale
    *    Example - `"en"`
    *    MinLength - 2
    *    MaxLength - 3
@@ -1593,7 +1593,7 @@ export interface GetVersionResponse200 {
   
     @property displayName? (string) - Display name for the user
   
-    @property locale? (string) - A two-characters locale
+    @property locale? (string) - A two or three characters locale
   
     @property metadata? (Record<string, unknown>) - Additional metadata for the user (JSON encoded string)
   
@@ -1622,7 +1622,7 @@ export interface SignInProviderParams {
    */
   displayName?: string;
   /**
-   * A two-characters locale
+   * A two or three characters locale
   
    */
   locale?: string;
