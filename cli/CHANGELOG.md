@@ -1,3 +1,9 @@
+## [cli@1.34.12] - 2025-12-23
+
+### Chore
+
+- *(deps)* Udpate nhost schema (#3779)
+
 ## [cli@1.34.11] - 2025-12-18
 
 ### 🐛 Bug Fixes
