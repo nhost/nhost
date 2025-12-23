@@ -572,7 +572,7 @@ import (
 #Url:      string
 #Port:     uint16
 #Email:    =~"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
-#Locale:   string & strings.MinRunes(2) & strings.MaxRunes(2)
+#Locale:   string & strings.MinRunes(2) & strings.MaxRunes(3)
 
 // See https://hasura.io/docs/latest/auth/authentication/jwt/
 #JWTSecret:
