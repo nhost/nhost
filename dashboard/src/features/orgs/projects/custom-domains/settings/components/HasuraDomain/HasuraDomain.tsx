@@ -1,6 +1,5 @@
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { useUI } from '@/components/common/UIProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
@@ -10,14 +9,14 @@ import { VerifyDomain } from '@/features/orgs/projects/custom-domains/settings/c
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import type { ConfigIngressUpdateInput } from '@/generated/graphql';
 import {
   useGetHasuraSettingsQuery,
   useUpdateConfigMutation,
-  type ConfigIngressUpdateInput,
 } from '@/generated/graphql';
-import { isNotEmptyValue } from '@/lib/utils';
+import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
@@ -30,7 +29,6 @@ export type HasuraDomainFormValues = Yup.InferType<typeof validationSchema>;
 export default function HasuraDomain() {
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
-  const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
   const [isVerified, setIsVerified] = useState(false);
 
@@ -66,6 +64,23 @@ export default function HasuraDomain() {
     }
   }, [data, loading, form, initialValue]);
 
+  const { formState, watch, setValue } = form;
+  const isDirty = Object.keys(formState.dirtyFields).length > 0;
+
+  const hasura_fqdn = watch('hasura_fqdn');
+
+  const submitButtonDisabled = useMemo(() => {
+    if (!isPlatform) {
+      return !isDirty;
+    }
+
+    if (isEmptyValue(hasura_fqdn) && isDirty) {
+      return false;
+    }
+
+    return !isDirty || !isVerified;
+  }, [isPlatform, isDirty, hasura_fqdn, isVerified]);
+
   if (loadingProject || loading) {
     return (
       <ActivityIndicator
@@ -80,17 +95,17 @@ export default function HasuraDomain() {
     throw error;
   }
 
-  const { formState, register, watch } = form;
-  const isDirty = Object.keys(formState.dirtyFields).length > 0;
-
-  const hasura_fqdn = watch('hasura_fqdn');
-
   async function handleSubmit(formValues: HasuraDomainFormValues) {
-    const ingresses: ConfigIngressUpdateInput[] = isNotEmptyValue(
-      formValues.hasura_fqdn,
-    )
-      ? [{ fqdn: [formValues.hasura_fqdn] }]
-      : [];
+    let ingresses: ConfigIngressUpdateInput[] | null;
+    let successMessage = '';
+
+    if (isNotEmptyValue(formValues.hasura_fqdn)) {
+      ingresses = [{ fqdn: [formValues.hasura_fqdn] }];
+      successMessage = 'Hasura domain has been updated successfully.';
+    } else {
+      ingresses = null;
+      successMessage = 'Custom Hasura domain has been removed successfully.';
+    }
 
     const updateConfigPromise = updateConfig({
       variables: {
@@ -127,20 +142,12 @@ export default function HasuraDomain() {
       },
       {
         loadingMessage: 'Hasura domain is being updated...',
-        successMessage: 'Hasura domain has been updated successfully.',
+        successMessage,
         errorMessage:
           'An error occurred while trying to update the Hasura domain.',
       },
     );
   }
-
-  const isDisabled = () => {
-    if (!isPlatform) {
-      return !isDirty || maintenanceActive;
-    }
-
-    return !isDirty || maintenanceActive || (!isVerified && !initialValue);
-  };
 
   return (
     <FormProvider {...form}>
@@ -150,14 +157,22 @@ export default function HasuraDomain() {
           description="Enter below your custom domain for the Hasura/GraphQL service."
           slotProps={{
             submitButton: {
-              disabled: isDisabled(),
+              disabled: submitButtonDisabled,
               loading: formState.isSubmitting,
             },
           }}
           className="grid grid-flow-row gap-x-4 gap-y-4 px-4 lg:grid-cols-5"
         >
           <Input
-            {...register('hasura_fqdn')}
+            value={hasura_fqdn}
+            onChange={(e) => {
+              setValue('hasura_fqdn', e.target.value, {
+                shouldDirty: true,
+              });
+              if (isVerified) {
+                setIsVerified(false);
+              }
+            }}
             id="hasura_fqdn"
             name="hasura_fqdn"
             type="string"
@@ -174,6 +189,7 @@ export default function HasuraDomain() {
               hostname={hasura_fqdn}
               value={`lb.${project?.region.name}.${project?.region.domain}.`}
               onHostNameVerified={() => setIsVerified(true)}
+              saveEnabled={!submitButtonDisabled}
             />
           </div>
         </SettingsContainer>
