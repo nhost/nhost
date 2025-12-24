@@ -1,5 +1,4 @@
 import { FormInput } from '@/components/form/FormInput';
-import { FormDescription } from '@/components/ui/v3/form';
 import type { BaseCronTriggerFormValues } from '@/features/orgs/projects/events/cron-triggers/components/BaseCronTriggerForm/BaseCronTriggerFormTypes';
 import { useFormContext } from 'react-hook-form';
 
@@ -18,9 +17,9 @@ export default function RetryConfigurationSection({
         <h3 className="text-base font-medium text-foreground">
           Retry Configuration
         </h3>
-        <FormDescription>
+        <p className="text-sm text-muted-foreground">
           Configuration to retry the webhook in case of failure
-        </FormDescription>
+        </p>
       </div>
       <div className="flex max-w-lg flex-col gap-8 text-foreground">
         <div className="flex flex-1 flex-row gap-6">

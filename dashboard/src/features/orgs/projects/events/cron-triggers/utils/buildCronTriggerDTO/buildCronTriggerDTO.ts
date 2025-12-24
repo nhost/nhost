@@ -61,7 +61,7 @@ export default function buildCronTriggerDTO({
     headers,
     retry_conf,
     include_in_metadata: true,
-    replace: isEdit,
+    ...(isEdit ? { replace: true } : {}),
     ...(shouldIncludeRequestTransform ? { request_transform } : {}),
   };
 }

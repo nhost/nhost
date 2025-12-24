@@ -34,6 +34,7 @@ export default function EditCronTriggerForm({
     setInitialData(parseCronTriggerFormInitialData(cronTrigger));
   }, [cronTrigger]);
 
+  // We use the same mutation for create and edit, with a `replace` flag
   const { mutateAsync: createCronTrigger } = useCreateCronTriggerMutation();
 
   const handleSubmit = async (data: BaseCronTriggerFormValues) => {

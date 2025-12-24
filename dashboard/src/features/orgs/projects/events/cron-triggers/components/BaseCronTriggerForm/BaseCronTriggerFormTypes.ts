@@ -149,10 +149,7 @@ export const defaultPayloadTransformValues: NonNullable<
   requestBodyTransform: {
     requestBodyTransformType: 'application/json',
     template: `{
-  "table": {
-    "name": {{$body.table.name}},
-    "schema": {{$body.table.schema}}
-  }
+  "payload": {{$body.payload}}
 }`,
   },
 };

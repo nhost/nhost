@@ -1,5 +1,6 @@
 import { DiscardChangesDialog } from '@/components/common/DiscardChangesDialog';
 import { FormInput } from '@/components/form/FormInput';
+import { FormTextarea } from '@/components/form/FormTextarea';
 import {
   Accordion,
   AccordionContent,
@@ -7,15 +8,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/v3/accordion';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/v3/form';
+import { Form, FormDescription } from '@/components/ui/v3/form';
 import { Separator } from '@/components/ui/v3/separator';
 import {
   Sheet,
@@ -26,7 +19,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/v3/sheet';
-import { Textarea } from '@/components/ui/v3/textarea';
 import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
 import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -144,6 +136,7 @@ export default function BaseCronTriggerForm({
 
   const handleFormSubmit = form.handleSubmit(
     async (values) => {
+      console.log('values', values);
       await onSubmit(values);
       closeForm();
     },
@@ -209,26 +202,6 @@ export default function BaseCronTriggerForm({
           ref={sheetContentRef}
           showOverlay
           className="w-xl md:w-4xl box flex flex-auto flex-col gap-0 p-0 sm:max-w-4xl"
-          onPointerDownOutside={(e) => {
-            let element: Element | null = e.target as Element;
-            while (element) {
-              const className =
-                typeof element.className === 'string' ? element.className : '';
-              const ariaLive = element.getAttribute('aria-live');
-
-              if (
-                ariaLive === 'polite' ||
-                ariaLive === 'assertive' ||
-                (className.includes('rounded-lg') &&
-                  className.includes('text-white') &&
-                  className.includes('max-w-xl'))
-              ) {
-                e.preventDefault();
-                return;
-              }
-              element = element.parentElement;
-            }
-          }}
         >
           <SheetHeader className="p-6">
             <SheetTitle className="text-lg">{titleText}</SheetTitle>
@@ -290,34 +263,12 @@ export default function BaseCronTriggerForm({
                     className="w-full text-foreground aria-[invalid=true]:border-destructive aria-[invalid=true]:focus:border-destructive aria-[invalid=true]:focus:ring-destructive/20"
                     suggestions={frequentlyUsedCrons}
                   />
-                  <FormField
-                    name="payload"
+                  <FormTextarea
                     control={form.control}
-                    render={({ field }) => (
-                      <FormItem>
-                        <div className="flex flex-row items-center gap-2">
-                          <FormLabel className="text-foreground">
-                            Payload
-                          </FormLabel>
-                          <FormDescription>
-                            <InfoTooltip>
-                              <p>
-                                The request payload for the cron trigger, should
-                                be a valid JSON
-                              </p>
-                            </InfoTooltip>
-                          </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Textarea
-                            {...field}
-                            id="payload"
-                            className="min-h-[250px] max-w-lg font-mono text-foreground aria-[invalid=true]:border-destructive aria-[invalid=true]:focus:border-destructive aria-[invalid=true]:focus:ring-destructive/20"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    name="payload"
+                    label="Payload"
+                    infoTooltip="The request payload for the cron trigger, should be a valid JSON"
+                    className="min-h-[250px] max-w-lg font-mono text-foreground aria-[invalid=true]:border-destructive aria-[invalid=true]:focus:border-destructive aria-[invalid=true]:focus:ring-destructive/20"
                   />
                 </div>
                 <Separator />

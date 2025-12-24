@@ -1,5 +1,6 @@
 import { FormInput } from '@/components/form/FormInput';
 import { FormSelect } from '@/components/form/FormSelect';
+import { FormTextarea } from '@/components/form/FormTextarea';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
@@ -37,7 +38,7 @@ export default function PayloadTransformSection({
 
   const values = watch();
 
-  const handleRefreshPayload = () => {
+  const handleResetPayload = () => {
     setValue(
       'payloadTransform.sampleInput',
       getCronTriggerSampleInputPayload(values.payload),
@@ -64,10 +65,10 @@ export default function PayloadTransformSection({
                   size="sm"
                   variant="outline"
                   type="button"
-                  onClick={handleRefreshPayload}
+                  onClick={handleResetPayload}
                 >
                   <RefreshCw className="size-4" />
-                  Refresh
+                  Reset
                 </Button>
               </div>
               <FormControl>
@@ -87,7 +88,7 @@ export default function PayloadTransformSection({
               <h4 className="text-sm font-medium text-foreground">
                 Request Body Transform
               </h4>
-              <FormDescription className="flex flex-row items-center gap-2">
+              <p className="flex flex-row items-center gap-2 text-sm text-muted-foreground">
                 <InfoTooltip>
                   <p>
                     The template which will transform your request body into the
@@ -98,7 +99,7 @@ export default function PayloadTransformSection({
                     body
                   </p>
                 </InfoTooltip>
-              </FormDescription>
+              </p>
             </div>
             <FormSelect
               control={form.control}
@@ -123,24 +124,12 @@ export default function PayloadTransformSection({
           </div>
           {values?.payloadTransform?.requestBodyTransform
             ?.requestBodyTransformType === 'application/json' && (
-            <FormField
-              name="payloadTransform.requestBodyTransform.template"
+            <FormTextarea
               control={form.control}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-foreground">
-                    Request Body Transform JSON Template
-                  </FormLabel>
-                  <FormControl>
-                    <Textarea
-                      {...field}
-                      id="payloadTransform.requestBodyTransform.template"
-                      className="min-h-[250px] max-w-lg font-mono text-foreground aria-[invalid=true]:border-destructive aria-[invalid=true]:focus:border-destructive aria-[invalid=true]:focus:ring-destructive/20"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              name="payloadTransform.requestBodyTransform.template"
+              label="Request Body Transform JSON Template"
+              placeholder="Request Body Transform JSON Template"
+              className="min-h-[250px] max-w-lg font-mono text-foreground aria-[invalid=true]:border-destructive aria-[invalid=true]:focus:border-destructive aria-[invalid=true]:focus:ring-destructive/20"
             />
           )}
           {values?.payloadTransform?.requestBodyTransform

@@ -1,5 +1,5 @@
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
-import { getScheduledEventInvocations } from '@/features/orgs/projects/events/common/utils/getScheduledEventInvocations';
+import { getScheduledEventInvocations } from '@/features/orgs/projects/events/common/api/getScheduledEventInvocations';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { MakeRequired } from '@/types/common';
 import type {

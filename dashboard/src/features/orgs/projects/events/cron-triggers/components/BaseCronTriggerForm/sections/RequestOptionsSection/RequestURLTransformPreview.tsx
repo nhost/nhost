@@ -12,7 +12,28 @@ import { useFormContext } from 'react-hook-form';
 export default function RequestURLTransformPreview() {
   const form = useFormContext<BaseCronTriggerFormValues>();
   const values = form.watch();
-  const args = buildTestWebhookTransformDTO({ formValues: values });
+  const { args, argsError } = useMemo(() => {
+    try {
+      return {
+        args: buildTestWebhookTransformDTO({ formValues: values }),
+        argsError: null,
+      };
+    } catch (error) {
+      return {
+        args: {
+          webhook_url: '',
+          body: {},
+          env: {},
+          request_transform: {},
+          session_variables: {},
+        } satisfies TestWebhookTransformArgs,
+        argsError:
+          error instanceof Error
+            ? error
+            : new Error('Failed to build test webhook transform arguments.'),
+      };
+    }
+  }, [values]);
 
   const [debouncedArgs, setDebouncedArgs] =
     useState<TestWebhookTransformArgs>(args);
@@ -30,10 +51,30 @@ export default function RequestURLTransformPreview() {
     return () => debouncedSetArgs.cancel();
   }, [args, debouncedSetArgs]);
 
-  const { data, isLoading, error } =
-    useTestWebhookTransformQuery(debouncedArgs);
+  const { data, isLoading, error } = useTestWebhookTransformQuery(
+    debouncedArgs,
+    {
+      queryOptions: {
+        enabled: !argsError,
+      },
+    },
+  );
 
   const url = data?.webhook_url;
+
+  if (argsError) {
+    return (
+      <div className="flex flex-col gap-2">
+        <h3 className="text-sm font-medium text-foreground">
+          URL transform preview
+        </h3>
+        <Alert variant="destructive" className="max-w-lg">
+          <AlertTitle>Invalid configuration</AlertTitle>
+          <AlertDescription>{argsError.message}</AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
   if (error) {
     return (

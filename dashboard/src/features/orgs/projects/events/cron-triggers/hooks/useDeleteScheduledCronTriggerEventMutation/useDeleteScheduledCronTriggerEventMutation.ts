@@ -1,5 +1,5 @@
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
-import { deleteScheduledEvent } from '@/features/orgs/projects/events/common/utils/deleteScheduledEvent';
+import { deleteScheduledEvent } from '@/features/orgs/projects/events/common/api/deleteScheduledEvent';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
 import type { MutationOptions } from '@tanstack/react-query';

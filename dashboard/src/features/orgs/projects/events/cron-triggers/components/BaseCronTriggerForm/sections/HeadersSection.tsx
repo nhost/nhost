@@ -3,7 +3,6 @@ import { FormSelect } from '@/components/form/FormSelect';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { Button } from '@/components/ui/v3/button';
-import { FormDescription } from '@/components/ui/v3/form';
 import { SelectItem } from '@/components/ui/v3/select';
 import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
 import {
@@ -33,11 +32,11 @@ export default function HeadersSection({ className }: HeadersSectionProps) {
           <h3 className="text-base font-medium text-foreground">
             Additional Headers{' '}
           </h3>
-          <FormDescription>
+          <p className="text-sm text-muted-foreground">
             <InfoTooltip>
               Custom headers to be sent with the webhook request.
             </InfoTooltip>
-          </FormDescription>
+          </p>
         </div>
         <Button
           type="button"
