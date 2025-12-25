@@ -2,44 +2,45 @@
   "name": "@nhost/nhost-js",
   "version": "0.0.0-dev",
   "description": "Nhost JavaScript SDK",
-  "main": "./dist/nhost-js.cjs.js",
-  "module": "./dist/nhost-js.es.js",
+  "type": "module",
+  "main": "./dist/nhost-js.cjs",
+  "module": "./dist/nhost-js.js",
   "types": "./dist/src/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/src/index.d.ts",
-      "import": "./dist/nhost-js.es.js",
-      "require": "./dist/nhost-js.cjs.js"
+      "import": "./dist/nhost-js.js",
+      "require": "./dist/nhost-js.cjs"
     },
     "./auth": {
       "types": "./dist/src/auth/index.d.ts",
-      "import": "./dist/nhost-js/auth.es.js",
-      "require": "./dist/nhost-js/auth.cjs.js"
+      "import": "./dist/nhost-js/auth.js",
+      "require": "./dist/nhost-js/auth.cjs"
     },
     "./fetch": {
       "types": "./dist/src/fetch/index.d.ts",
-      "import": "./dist/nhost-js/fetch.es.js",
-      "require": "./dist/nhost-js/fetch.cjs.js"
+      "import": "./dist/nhost-js/fetch.js",
+      "require": "./dist/nhost-js/fetch.cjs"
     },
     "./functions": {
       "types": "./dist/src/functions/index.d.ts",
-      "import": "./dist/nhost-js/functions.es.js",
-      "require": "./dist/nhost-js/functions.cjs.js"
+      "import": "./dist/nhost-js/functions.js",
+      "require": "./dist/nhost-js/functions.cjs"
     },
     "./graphql": {
       "types": "./dist/src/graphql/index.d.ts",
-      "import": "./dist/nhost-js/graphql.es.js",
-      "require": "./dist/nhost-js/graphql.cjs.js"
+      "import": "./dist/nhost-js/graphql.js",
+      "require": "./dist/nhost-js/graphql.cjs"
     },
     "./session": {
       "types": "./dist/src/session/index.d.ts",
-      "import": "./dist/nhost-js/session.es.js",
-      "require": "./dist/nhost-js/session.cjs.js"
+      "import": "./dist/nhost-js/session.js",
+      "require": "./dist/nhost-js/session.cjs"
     },
     "./storage": {
       "types": "./dist/src/storage/index.d.ts",
-      "import": "./dist/nhost-js/storage.es.js",
-      "require": "./dist/nhost-js/storage.cjs.js"
+      "import": "./dist/nhost-js/storage.js",
+      "require": "./dist/nhost-js/storage.cjs"
     }
   },
   "typesVersions": {
