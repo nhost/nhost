@@ -67,8 +67,8 @@ export default function useGetCronInvocationLogsById(
           type: 'cron',
           event_id: args.event_id,
           get_rows_count: false,
-          limit: args.limit ?? 100,
-          offset: args.offset ?? 0,
+          ...(args.limit && { limit: args.limit }),
+          ...(args.offset && { offset: args.offset }),
         },
       });
     },

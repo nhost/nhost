@@ -1,9 +1,9 @@
 import { HoverCardTimestamp } from '@/components/presentational/HoverCardTimestamp';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import { HttpStatusText } from '@/features/orgs/projects/events/common/components/HttpStatusText';
-import { TimestampColumnHeader } from '@/features/orgs/projects/events/common/components/TimestampColumnHeader';
+import { SortableHeader } from '@/features/orgs/projects/events/common/components/SortableHeader';
 import type { CronTriggerInvocationLogEntry } from '@/utils/hasura-api/generated/schemas/cronTriggerInvocationLogEntry';
-import { type ColumnDef } from '@tanstack/react-table';
+import type { ColumnDef } from '@tanstack/react-table';
 import InvocationLogActionsCell from './InvocationLogActionsCell';
 
 const columns: ColumnDef<CronTriggerInvocationLogEntry>[] = [
@@ -14,7 +14,7 @@ const columns: ColumnDef<CronTriggerInvocationLogEntry>[] = [
     size: 68,
     maxSize: 68,
     header: ({ column }) => (
-      <TimestampColumnHeader column={column} label="Created At" />
+      <SortableHeader column={column} label="Created At" />
     ),
     cell: ({ row }) => (
       <HoverCardTimestamp
@@ -29,14 +29,14 @@ const columns: ColumnDef<CronTriggerInvocationLogEntry>[] = [
     minSize: 70,
     size: 70,
     maxSize: 70,
-    header: 'Status',
+    header: () => <div className="p-2">Status</div>,
     enableSorting: false,
     cell: ({ row }) => <HttpStatusText status={row.original.status} />,
   },
   {
     id: 'id',
     accessorKey: 'id',
-    header: 'ID',
+    header: () => <div className="p-2">ID</div>,
     minSize: 40,
     size: 280,
     maxSize: 600,
@@ -53,7 +53,7 @@ const columns: ColumnDef<CronTriggerInvocationLogEntry>[] = [
     minSize: 80,
     size: 80,
     maxSize: 80,
-    header: 'Actions',
+    header: () => <div className="p-2">Actions</div>,
     enableSorting: false,
     cell: ({ row, table }) => (
       <InvocationLogActionsCell row={row.original} table={table} />

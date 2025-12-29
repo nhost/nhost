@@ -5,10 +5,14 @@ import {
   TabsTrigger,
 } from '@/components/ui/v3/tabs';
 import { EventsEmptyState } from '@/features/orgs/projects/events/common/components/EventsEmptyState';
+import { SmallPaginationControls } from '@/features/orgs/projects/events/common/components/SmallPaginationControls';
 import { CronTriggerEventsDataTable } from '@/features/orgs/projects/events/cron-triggers/components/CronTriggerEventsDataTable';
+import type { CronTriggerEventsSection } from '@/features/orgs/projects/events/cron-triggers/components/CronTriggerEventsDataTable/cronTriggerEventsDataTableColumns';
+import { useGetCronEventLogsQuery } from '@/features/orgs/projects/events/cron-triggers/hooks/useGetCronEventLogsQuery';
 import { useGetCronTriggers } from '@/features/orgs/projects/events/cron-triggers/hooks/useGetCronTriggers';
 import { isEmptyValue } from '@/lib/utils';
 import { useRouter } from 'next/router';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import CronTriggerViewSkeleton from './CronTriggerViewSkeleton';
 import CronTriggerOverview from './sections/CronTriggerOverview';
 
@@ -22,6 +26,53 @@ export default function CronTriggerView() {
   const cronTrigger = cronTriggers?.find(
     (trigger) => trigger.name === cronTriggerSlug,
   );
+
+  const [tab, setTab] = useState('overview');
+  const [eventLogsSection, setEventLogsSection] =
+    useState<CronTriggerEventsSection>('processed');
+  const [offset, setOffset] = useState(0);
+  const [limit, setLimit] = useState(10);
+
+  const triggerName = cronTrigger?.name ?? '';
+
+  useEffect(() => {
+    setOffset(0);
+  }, [triggerName, eventLogsSection]);
+
+  const goPrev = useCallback(() => {
+    setOffset((prev) => Math.max(0, prev - limit));
+  }, [limit]);
+
+  const goNext = useCallback(() => {
+    setOffset((prev) => prev + limit);
+  }, [limit]);
+
+  const setLimitAndReset = useCallback((newLimit: number) => {
+    setLimit(newLimit);
+    setOffset(0);
+  }, []);
+
+  const { data: eventsData, isLoading: isEventsLoading } =
+    useGetCronEventLogsQuery(
+      {
+        trigger_name: triggerName,
+        eventLogsSection,
+        limit,
+        offset,
+      },
+      {
+        queryOptions: {
+          enabled: tab === 'pending-processed-events' && !!triggerName,
+        },
+      },
+    );
+
+  const isLastPage = useMemo(
+    () => (Array.isArray(eventsData) ? eventsData.length < limit : false),
+    [eventsData, limit],
+  );
+  const hasNoPreviousPage = !isEventsLoading && offset <= 0;
+  const hasNoNextPage = !isEventsLoading && isLastPage;
 
   if (isLoading && cronTriggerSlug) {
     return <CronTriggerViewSkeleton />;
@@ -62,8 +113,8 @@ export default function CronTriggerView() {
   }
 
   return (
-    <div className="w-full rounded-lg bg-background p-6">
-      <div className="mb-6">
+    <div className="w-full bg-background">
+      <div className="p-6">
         <h1 className="mb-1 text-xl font-semibold text-gray-900 dark:text-gray-100">
           {cronTrigger!.name}
         </h1>
@@ -72,16 +123,37 @@ export default function CronTriggerView() {
         </p>
       </div>
 
-      <Tabs defaultValue="overview">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="pending-processed-events">Events</TabsTrigger>
-        </TabsList>
-        <TabsContent value="overview">
+      <Tabs value={tab} onValueChange={setTab}>
+        <div className="flex flex-col items-start justify-between gap-4 px-6 lg:flex-row lg:items-center">
+          <TabsList>
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="pending-processed-events">Events</TabsTrigger>
+          </TabsList>
+
+          {tab === 'pending-processed-events' && (
+            <SmallPaginationControls
+              className="px-0 py-0"
+              offset={offset}
+              limit={limit}
+              hasNoPreviousPage={hasNoPreviousPage}
+              hasNoNextPage={hasNoNextPage}
+              onPrev={goPrev}
+              onNext={() => !hasNoNextPage && goNext()}
+              onChangeLimit={setLimitAndReset}
+            />
+          )}
+        </div>
+        <TabsContent value="overview" className="p-6">
           <CronTriggerOverview cronTrigger={cronTrigger!} />
         </TabsContent>
         <TabsContent value="pending-processed-events">
-          <CronTriggerEventsDataTable cronTriggerName={cronTrigger!.name} />
+          <CronTriggerEventsDataTable
+            eventLogsSection={eventLogsSection}
+            onEventLogsSectionChange={setEventLogsSection}
+            data={eventsData}
+            isLoading={isEventsLoading}
+            limit={limit}
+          />
         </TabsContent>
       </Tabs>
     </div>

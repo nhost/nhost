@@ -7,9 +7,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/v3/table';
-import PaginationControls from '@/features/orgs/projects/events/common/components/PaginationControls/PaginationControls';
-import { useEventPagination } from '@/features/orgs/projects/events/common/hooks/useEventPagination';
 import { useGetCronInvocationLogsById } from '@/features/orgs/projects/events/cron-triggers/hooks/useGetCronInvocationLogsById';
+import { cn } from '@/lib/utils';
 import type { CronTriggerInvocationLogEntry } from '@/utils/hasura-api/generated/schemas/cronTriggerInvocationLogEntry';
 import {
   flexRender,
@@ -34,25 +33,8 @@ export default function CronTriggerInvocationLogsDataTable({
   const [selectedLog, setSelectedLog] =
     useState<CronTriggerInvocationLogEntry | null>(null);
 
-  const {
-    offset,
-    limit,
-    setLimitAndReset,
-    goPrev,
-    goNext,
-    hasNoPreviousPage,
-    hasNoNextPage,
-    data,
-    isLoading,
-    isInitialLoading,
-  } = useEventPagination({
-    useQueryHook: useGetCronInvocationLogsById,
-    getQueryArgs: (limitArg, offsetArg) => ({
-      event_id: eventId,
-      limit: limitArg,
-      offset: offsetArg,
-    }),
-    getPageLength: (resp) => resp?.length,
+  const { data, isInitialLoading, isLoading } = useGetCronInvocationLogsById({
+    event_id: eventId,
   });
 
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -85,10 +67,16 @@ export default function CronTriggerInvocationLogsDataTable({
         </colgroup>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
+            <TableRow key={headerGroup.id} className="hover:bg-transparent">
               {headerGroup.headers.map((header, index) => (
                 <TableHead
-                  className={index === 0 ? 'pl-1' : ''}
+                  className={cn(
+                    'group relative overflow-hidden bg-paper font-display text-xs font-bold text-primary-text',
+                    'border-b-1 border-r-1 border-t-1 border-divider',
+                    '!h-8 p-0',
+                    'last:border-r-0',
+                    index === 0 ? 'pl-2' : '',
+                  )}
                   key={header.id}
                   style={{ width: header.getSize() }}
                 >
@@ -143,16 +131,6 @@ export default function CronTriggerInvocationLogsDataTable({
           )}
         </TableBody>
       </Table>
-
-      <PaginationControls
-        offset={offset}
-        limit={limit}
-        hasNoPreviousPage={hasNoPreviousPage}
-        hasNoNextPage={hasNoNextPage}
-        onPrev={goPrev}
-        onNext={() => !hasNoNextPage && goNext()}
-        onChangeLimit={setLimitAndReset}
-      />
     </div>
   );
 }

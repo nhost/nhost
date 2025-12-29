@@ -65,6 +65,9 @@ export default function useGetCronEventLogsQuery(
     case 'processed':
       status = ['delivered', 'error', 'dead'];
       break;
+    case 'all':
+      status = ['scheduled', 'delivered', 'error', 'dead', 'locked'];
+      break;
     default: {
       const exhaustive: never = args.eventLogsSection;
       throw new Error(`Unexpected cron trigger events section: ${exhaustive}`);

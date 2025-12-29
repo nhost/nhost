@@ -1,13 +1,17 @@
 import { HoverCardTimestamp } from '@/components/presentational/HoverCardTimestamp';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
-import { TimestampColumnHeader } from '@/features/orgs/projects/events/common/components/TimestampColumnHeader';
+import { SortableHeader } from '@/features/orgs/projects/events/common/components/SortableHeader';
 import { StatusCell } from '@/features/orgs/projects/events/cron-triggers/components/StatusCell';
 import type { ScheduledEventLogEntry } from '@/utils/hasura-api/generated/schemas';
 import type { ColumnDef } from '@tanstack/react-table';
 import CronTriggerEventsLogActionsCell from './CronTriggerEventsLogActionsCell';
 import StatusColumnHeader from './StatusColumnHeader';
 
-export type CronTriggerEventsSection = 'pending' | 'processed' | 'failed';
+export type CronTriggerEventsSection =
+  | 'pending'
+  | 'processed'
+  | 'failed'
+  | 'all';
 
 interface CreateCronTriggerEventsDataTableColumnsOptions {
   eventLogsSection: CronTriggerEventsSection;
@@ -20,27 +24,36 @@ export function createCronTriggerEventsDataTableColumns({
 }: CreateCronTriggerEventsDataTableColumnsOptions) {
   const columns: ColumnDef<ScheduledEventLogEntry>[] = [
     {
-      id: 'created_at',
-      accessorKey: 'created_at',
+      id: 'actions',
+      // minSize: 64,
+      // size: 64,
+      // maxSize: 64,
+      size: 0,
+      enableResizing: false,
+      enableSorting: false,
+      cell: ({ row }) => <CronTriggerEventsLogActionsCell row={row} />,
+    },
+    {
+      id: 'scheduled_time',
+      accessorKey: 'scheduled_time',
       minSize: 50,
-      size: 68,
-      maxSize: 68,
+      size: 190,
+      enableResizing: true,
       header: ({ column }) => (
-        <TimestampColumnHeader column={column} label="Created At" />
+        <SortableHeader column={column} label="Scheduled Time" />
       ),
       cell: ({ row }) => (
         <HoverCardTimestamp
-          date={new Date(row.original.created_at)}
-          className="-m-4 block w-full truncate py-4 pl-4 font-mono text-xs"
+          date={new Date(row.original.scheduled_time)}
+          className="block w-full truncate font-mono text-xs"
         />
       ),
     },
     {
       id: 'status',
       accessorKey: 'status',
-      minSize: 70,
-      size: 70,
-      maxSize: 70,
+      size: 40,
+      enableResizing: true,
       header: () => (
         <StatusColumnHeader
           value={eventLogsSection}
@@ -51,28 +64,13 @@ export function createCronTriggerEventsDataTableColumns({
       cell: ({ row }) => <StatusCell status={row.original.status} />,
     },
     {
-      id: 'scheduled_time',
-      accessorKey: 'scheduled_time',
-      minSize: 50,
-      size: 68,
-      maxSize: 68,
-      header: ({ column }) => (
-        <TimestampColumnHeader column={column} label="Scheduled Time" />
-      ),
-      cell: ({ row }) => (
-        <HoverCardTimestamp
-          date={new Date(row.original.scheduled_time)}
-          className="-m-4 block w-full truncate py-4 pl-4 font-mono text-xs"
-        />
-      ),
-    },
-    {
       id: 'id',
       accessorKey: 'id',
-      header: 'ID',
+      header: () => <div className="p-2">ID</div>,
       minSize: 40,
       size: 280,
       maxSize: 600,
+      enableResizing: true,
       cell: ({ row }) => (
         <TextWithTooltip
           className="font-mono text-xs"
@@ -87,33 +85,30 @@ export function createCronTriggerEventsDataTableColumns({
         />
       ),
     },
-    {
+  ];
+  if (eventLogsSection !== 'pending') {
+    columns.push({
       id: 'tries',
       accessorKey: 'tries',
-      minSize: 80,
       size: 80,
-      maxSize: 80,
-      header: 'Tries',
+      enableResizing: true,
+      header: () => <div className="p-2">Tries</div>,
       enableSorting: false,
       cell: ({ row }) => (
         <span className="font-mono text-xs">{row.original.tries}</span>
       ),
-    },
-  ];
-
-  if (eventLogsSection === 'pending') {
-    columns.push({
-      id: 'actions',
-      minSize: 80,
-      size: 80,
-      maxSize: 80,
-      header: 'Actions',
-      enableSorting: false,
-      cell: ({ row }) => (
-        <CronTriggerEventsLogActionsCell status={row.original.status} />
-      ),
     });
   }
+
+  // columns.push({
+  //   id: 'actions',
+  //   minSize: 80,
+  //   size: 80,
+  //   maxSize: 80,
+  //   header: 'Actions',
+  //   enableSorting: false,
+  //   cell: ({ row }) => <CronTriggerEventsLogActionsCell row={row} />,
+  // });
 
   return columns;
 }

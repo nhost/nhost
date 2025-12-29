@@ -2,7 +2,7 @@ import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { EventsBrowserSidebar } from '@/features/orgs/projects/events/common/components/EventsBrowserSidebar';
+import { CronTriggersBrowserSidebar } from '@/features/orgs/projects/events/cron-triggers/components/CronTriggersBrowserSidebar';
 import { CronTriggerView } from '@/features/orgs/projects/events/cron-triggers/components/CronTriggerView';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { ReactElement } from 'react';
@@ -29,7 +29,7 @@ CronTriggerDetailsPage.getLayout = function getLayout(page: ReactElement) {
         className: 'flex h-full',
       }}
     >
-      <EventsBrowserSidebar className="w-full max-w-sidebar" />
+      <CronTriggersBrowserSidebar className="w-full max-w-sidebar" />
 
       <div className="box flex w-full flex-auto flex-col overflow-x-hidden">
         {page}
