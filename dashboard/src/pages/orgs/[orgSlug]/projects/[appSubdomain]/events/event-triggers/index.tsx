@@ -1,8 +1,8 @@
 import { Box } from '@/components/ui/v2/Box';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
-import { EventsBrowserSidebar } from '@/features/orgs/projects/events/common/components/EventsBrowserSidebar';
 import { EventsEmptyState } from '@/features/orgs/projects/events/common/components/EventsEmptyState';
+import { EventTriggersBrowserSidebar } from '@/features/orgs/projects/events/event-triggers/components/EventTriggersBrowserSidebar';
 import { useGetEventTriggers } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventTriggers';
 
 import type { ReactElement } from 'react';
@@ -26,7 +26,7 @@ export default function EventTriggersPage() {
     return (
       <EventsEmptyState
         title="Event triggers"
-        description="An error occurred while fetching events."
+        description="An error occurred while fetching event triggers."
       />
     );
   }
@@ -58,7 +58,7 @@ EventTriggersPage.getLayout = function getLayout(page: ReactElement) {
         className: 'flex h-full',
       }}
     >
-      <EventsBrowserSidebar className="w-full max-w-sidebar" />
+      <EventTriggersBrowserSidebar className="w-full max-w-sidebar" />
       <Box
         className="flex w-full flex-auto flex-col overflow-x-hidden"
         sx={{ backgroundColor: 'background.default' }}

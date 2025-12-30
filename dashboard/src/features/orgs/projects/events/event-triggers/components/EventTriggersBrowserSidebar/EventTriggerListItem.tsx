@@ -30,7 +30,7 @@ export default function EventTriggerListItem({
   const { orgSlug, appSubdomain, eventTriggerSlug } = router.query;
   const editTriggerRef = useRef<BaseEventTriggerFormTriggerProps | null>(null);
   const isSelected = eventTrigger.name === eventTriggerSlug;
-  const href = `/orgs/${orgSlug}/projects/${appSubdomain}/events/event-trigger/${eventTrigger.name}`;
+  const href = `/orgs/${orgSlug}/projects/${appSubdomain}/events/event-triggers/${eventTrigger.name}`;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const [showDeleteEventTriggerDialog, setShowDeleteEventTriggerDialog] =

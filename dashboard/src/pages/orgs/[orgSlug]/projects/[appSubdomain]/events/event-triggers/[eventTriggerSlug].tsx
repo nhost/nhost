@@ -3,8 +3,8 @@ import { RetryableErrorBoundary } from '@/components/presentational/RetryableErr
 import { Box } from '@/components/ui/v2/Box';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { EventsBrowserSidebar } from '@/features/orgs/projects/events/common/components/EventsBrowserSidebar';
 import { EventTriggerView } from '@/features/orgs/projects/events/event-triggers/components/EventTriggerView';
+import { EventTriggersBrowserSidebar } from '@/features/orgs/projects/events/event-triggers/components/EventTriggersBrowserSidebar';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { ReactElement } from 'react';
 
@@ -30,7 +30,7 @@ EventTriggerDetailsPage.getLayout = function getLayout(page: ReactElement) {
         className: 'flex h-full',
       }}
     >
-      <EventsBrowserSidebar className="w-full max-w-sidebar" />
+      <EventTriggersBrowserSidebar className="w-full max-w-sidebar" />
 
       <Box
         className="flex w-full flex-auto flex-col overflow-x-hidden"

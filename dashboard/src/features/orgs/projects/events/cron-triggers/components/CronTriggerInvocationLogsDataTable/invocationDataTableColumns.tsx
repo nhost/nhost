@@ -8,11 +8,8 @@ import InvocationLogActionsCell from './InvocationLogActionsCell';
 
 const columns: ColumnDef<CronTriggerInvocationLogEntry>[] = [
   {
-    id: 'created_at',
+    id: 'scheduled_at',
     accessorKey: 'created_at',
-    minSize: 50,
-    size: 68,
-    maxSize: 68,
     header: ({ column }) => (
       <SortableHeader column={column} label="Created At" />
     ),
@@ -26,9 +23,7 @@ const columns: ColumnDef<CronTriggerInvocationLogEntry>[] = [
   {
     id: 'http_status',
     accessorKey: 'http_status',
-    minSize: 70,
-    size: 70,
-    maxSize: 70,
+    size: 40,
     header: () => <div className="p-2">Status</div>,
     enableSorting: false,
     cell: ({ row }) => <HttpStatusText status={row.original.status} />,
@@ -37,9 +32,7 @@ const columns: ColumnDef<CronTriggerInvocationLogEntry>[] = [
     id: 'id',
     accessorKey: 'id',
     header: () => <div className="p-2">ID</div>,
-    minSize: 40,
-    size: 280,
-    maxSize: 600,
+    size: 170,
     cell: ({ row }) => (
       <TextWithTooltip
         className="font-mono text-xs"
