@@ -1,20 +1,17 @@
 import { HoverCardTimestamp } from '@/components/presentational/HoverCardTimestamp';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import { HttpStatusText } from '@/features/orgs/projects/events/common/components/HttpStatusText';
-import { TimestampColumnHeader } from '@/features/orgs/projects/events/common/components/TimestampColumnHeader';
+import { SortableHeader } from '@/features/orgs/projects/events/common/components/SortableHeader';
 import type { CronTriggerInvocationLogEntry } from '@/utils/hasura-api/generated/schemas/cronTriggerInvocationLogEntry';
-import { type ColumnDef } from '@tanstack/react-table';
+import type { ColumnDef } from '@tanstack/react-table';
 import InvocationLogActionsCell from './InvocationLogActionsCell';
 
 const columns: ColumnDef<CronTriggerInvocationLogEntry>[] = [
   {
-    id: 'created_at',
+    id: 'scheduled_at',
     accessorKey: 'created_at',
-    minSize: 50,
-    size: 68,
-    maxSize: 68,
     header: ({ column }) => (
-      <TimestampColumnHeader column={column} label="Created At" />
+      <SortableHeader column={column} label="Created At" />
     ),
     cell: ({ row }) => (
       <HoverCardTimestamp
@@ -26,20 +23,16 @@ const columns: ColumnDef<CronTriggerInvocationLogEntry>[] = [
   {
     id: 'http_status',
     accessorKey: 'http_status',
-    minSize: 70,
-    size: 70,
-    maxSize: 70,
-    header: 'Status',
+    size: 40,
+    header: () => <div className="p-2">Status</div>,
     enableSorting: false,
     cell: ({ row }) => <HttpStatusText status={row.original.status} />,
   },
   {
     id: 'id',
     accessorKey: 'id',
-    header: 'ID',
-    minSize: 40,
-    size: 280,
-    maxSize: 600,
+    header: () => <div className="p-2">ID</div>,
+    size: 170,
     cell: ({ row }) => (
       <TextWithTooltip
         className="font-mono text-xs"
@@ -53,7 +46,7 @@ const columns: ColumnDef<CronTriggerInvocationLogEntry>[] = [
     minSize: 80,
     size: 80,
     maxSize: 80,
-    header: 'Actions',
+    header: () => <div className="p-2">Actions</div>,
     enableSorting: false,
     cell: ({ row, table }) => (
       <InvocationLogActionsCell row={row.original} table={table} />

@@ -8,7 +8,7 @@ import {
   TableRow,
 } from '@/components/ui/v3/table';
 import PaginationControls from '@/features/orgs/projects/events/common/components/PaginationControls/PaginationControls';
-import useEventTriggerPagination from '@/features/orgs/projects/events/event-triggers/hooks/useEventTriggerPagination/useEventTriggerPagination';
+import { useEventPagination } from '@/features/orgs/projects/events/common/hooks/useEventPagination';
 import { useGetEventAndInvocationLogsById } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventAndInvocationLogsById';
 import type { EventInvocationLogEntry } from '@/utils/hasura-api/generated/schemas/eventInvocationLogEntry';
 import {
@@ -51,7 +51,7 @@ export default function EventTriggerInvocationLogsDataTable({
     isLoading,
     isInitialLoading,
     refetch: refetchInvocations,
-  } = useEventTriggerPagination({
+  } = useEventPagination({
     useQueryHook: useGetEventAndInvocationLogsById,
     getQueryArgs: (limitArg, offsetArg) => ({
       event_id: eventId,

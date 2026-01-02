@@ -3,12 +3,17 @@ package providers
 import (
 	"context"
 
+	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/oidc"
 	"golang.org/x/oauth2"
 )
 
 type Oauth2Provider interface {
-	AuthCodeURL(state string, opts ...oauth2.AuthCodeOption) string
+	AuthCodeURL(
+		state string,
+		providerSpecificParams *api.ProviderSpecificParams,
+		opts ...oauth2.AuthCodeOption,
+	) string
 	Exchange(ctx context.Context, code string, opts ...oauth2.AuthCodeOption) (*oauth2.Token, error)
 	GetProfile(
 		ctx context.Context,

@@ -58,7 +58,7 @@ export default function HoverCardTimestamp({
     <HoverCard openDelay={0} closeDelay={150}>
       <HoverCardTrigger asChild>
         <div className={cn('whitespace-nowrap font-mono', className)}>
-          {format(date, 'LLL dd, y HH:mm:ss')}
+          {date.toISOString()}
         </div>
       </HoverCardTrigger>
       <HoverCardPortal>

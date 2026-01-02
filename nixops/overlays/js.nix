@@ -21,14 +21,47 @@ let
   };
 in
 rec{
+  nodejs = final.symlinkJoin {
+    name = "nodejs";
+    version = final.nodejs-slim_20.version;
+    paths = [ final.nodejs-slim_20 npm_11 ];
 
-  nodejs = final.nodejs_20;
-  nodePackages = nodejs.pkgs;
+    passthru = {
+      inherit (final.nodejs-slim_20) version python meta src;
 
-  pnpm_10 = final.callPackage "${final.path}/pkgs/development/tools/pnpm/generic.nix" {
-    version = "10.1.0";
-    hash = "sha256-PuU+kUAR7H8abjqwxYuaAkoFK/4YKVsjtoVn1qal680=";
+      pkgs = final.callPackage "${final.path}/pkgs/development/node-packages/default.nix" {
+        nodejs = final.nodejs;
+      };
+    };
   };
+
+  nodePackages = prev.nodejs.pkgs;
+
+  buildNpmPackage = prev.buildNpmPackage.override {
+    nodejs = prev.nodejs;
+  };
+
+  npm_11 = final.stdenv.mkDerivation rec {
+    pname = "npm";
+    version = "11.7.0";
+    src = final.fetchurl {
+      url = "https://registry.npmjs.org/npm/-/npm-${version}.tgz";
+      sha256 = "sha256-KS8ULcGowBGZujSgflfPAWwmDqLFm2Tz7uiqrnoudQQ=";
+    };
+    dontBuild = true;
+    installPhase = ''
+      mkdir -p $out/lib/node_modules/npm
+      cp -r . $out/lib/node_modules/npm
+      mkdir -p $out/bin
+      ln -s $out/lib/node_modules/npm/bin/npm-cli.js $out/bin/npm
+      ln -s $out/lib/node_modules/npm/bin/npx-cli.js $out/bin/npx
+    '';
+  };
+
+  pnpm = (final.callPackage "${final.path}/pkgs/development/tools/pnpm/generic.nix" {
+    version = "10.26.0";
+    hash = "sha256-9gl0xoz+ChP5UfugGZZpWIV38OPwybfRp8pHYzv3I4Y=";
+  });
 
   ell = prev.ell.overrideAttrs (oldAttrs: {
     doCheck = false;

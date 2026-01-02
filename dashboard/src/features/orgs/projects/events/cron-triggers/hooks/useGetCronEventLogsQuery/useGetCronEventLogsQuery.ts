@@ -1,5 +1,6 @@
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { getScheduledEvents } from '@/features/orgs/projects/events/common/api/getScheduledEvents';
+import type { CronTriggerEventsSection } from '@/features/orgs/projects/events/cron-triggers/components/CronTriggerEventsDataTable/cronTriggerEventsDataTableColumns';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { MakeRequired } from '@/types/common';
 import type {
@@ -22,7 +23,7 @@ export interface UseGetCronEventLogsQueryOptions {
       readonly [
         'get-cron-event-logs',
         string,
-        'pending' | 'delivered',
+        CronTriggerEventsSection,
         number,
         number,
       ]
@@ -35,7 +36,7 @@ type UseGetCronEventLogsQueryArgs = MakeRequired<
   Omit<GetScheduledEventsArgs, 'type'>,
   'trigger_name'
 > & {
-  eventLogsSection: 'pending' | 'delivered';
+  eventLogsSection: CronTriggerEventsSection;
 };
 
 /**
@@ -53,10 +54,25 @@ export default function useGetCronEventLogsQuery(
 ) {
   const { project, loading } = useProject();
 
-  const status: ScheduledEventStatus[] =
-    args.eventLogsSection === 'pending'
-      ? ['scheduled']
-      : ['delivered', 'dead', 'error'];
+  let status: ScheduledEventStatus[];
+  switch (args.eventLogsSection) {
+    case 'pending':
+      status = ['scheduled'];
+      break;
+    case 'failed':
+      status = ['error', 'dead'];
+      break;
+    case 'processed':
+      status = ['delivered', 'error', 'dead'];
+      break;
+    case 'all':
+      status = ['scheduled', 'delivered', 'error', 'dead', 'locked'];
+      break;
+    default: {
+      const exhaustive: never = args.eventLogsSection;
+      throw new Error(`Unexpected cron trigger events section: ${exhaustive}`);
+    }
+  }
 
   const query = useQuery(
     [

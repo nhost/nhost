@@ -8,9 +8,9 @@ import {
   TableRow,
 } from '@/components/ui/v3/table';
 import PaginationControls from '@/features/orgs/projects/events/common/components/PaginationControls/PaginationControls';
+import { useEventPagination } from '@/features/orgs/projects/events/common/hooks/useEventPagination';
 import { EventTriggerInvocationLogsDataTable } from '@/features/orgs/projects/events/event-triggers/components/EventTriggerInvocationLogsDataTable';
 import { DEFAULT_RETRY_TIMEOUT_SECONDS } from '@/features/orgs/projects/events/event-triggers/constants';
-import useEventTriggerPagination from '@/features/orgs/projects/events/event-triggers/hooks/useEventTriggerPagination/useEventTriggerPagination';
 import useGetEventLogsQuery from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventLogsQuery/useGetEventLogsQuery';
 import type { EventTriggerViewModel } from '@/features/orgs/projects/events/event-triggers/types';
 import { cn, isNotEmptyValue } from '@/lib/utils';
@@ -42,7 +42,7 @@ export default function EventTriggerEventsDataTable({
     hasNoNextPage,
     data,
     isLoading,
-  } = useEventTriggerPagination({
+  } = useEventPagination({
     useQueryHook: useGetEventLogsQuery,
     getQueryArgs: (limitArg, offsetArg) => ({
       name: eventTrigger.name,

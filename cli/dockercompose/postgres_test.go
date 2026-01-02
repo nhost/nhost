@@ -41,7 +41,10 @@ func expectedPostgres(tmpdir string) *Service {
 			"local.storage.nhost.run:host-gateway",
 		},
 		HealthCheck: &HealthCheck{
-			Test:        []string{"CMD-SHELL", "pg_isready -U postgres", "-d", "postgres", "-q"},
+			Test: []string{
+				"CMD-SHELL",
+				"pg_isready -U postgres -d postgres -q",
+			},
 			Timeout:     "60s",
 			Interval:    "5s",
 			StartPeriod: "60s",

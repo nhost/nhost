@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/v3/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/v3/dropdown-menu';
 import { ChevronDown } from 'lucide-react';
-import type { CronTriggerEventsSection } from './cronTriggerEventsDataTableColumns';
+import { type CronTriggerEventsSection } from './cronTriggerEventsDataTableColumns';
 
 interface StatusColumnHeaderProps {
   value: CronTriggerEventsSection;
@@ -23,16 +24,19 @@ const STATUS_FILTER_OPTIONS: Record<
     label: 'Pending',
     description: 'Scheduled events waiting to run',
   },
-  delivered: {
+  processed: {
     label: 'Processed',
     description: 'Delivered, Error, or Dead events',
   },
+  failed: {
+    label: 'Failed',
+    description: 'Error or Dead events',
+  },
+  all: {
+    label: 'All',
+    description: 'All events',
+  },
 };
-
-const STATUS_FILTER_SEQUENCE: CronTriggerEventsSection[] = [
-  'pending',
-  'delivered',
-];
 
 export default function StatusColumnHeader({
   value,
@@ -43,17 +47,17 @@ export default function StatusColumnHeader({
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
-        <button
+        <Button
+          variant="ghost"
           type="button"
-          className="flex w-full flex-col items-center gap-0.5 rounded px-1.5 py-1 text-[11px] font-medium uppercase tracking-wide text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="relative flex h-fit items-center justify-between p-2 text-xs font-bold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring motion-safe:transition-colors dark:hover:bg-[#21262d]"
           aria-label={`Filter events by ${label.toLowerCase()} status`}
         >
-          <span>Status</span>
-          <span className="flex items-center gap-1 text-[10px] font-normal capitalize text-muted-foreground">
-            {label}
+          <span className="truncate">Status</span>
+          <span className="flex items-center pl-1 font-normal text-muted-foreground">
             <ChevronDown className="h-3 w-3" aria-hidden="true" />
           </span>
-        </button>
+        </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="center" className="w-56">
         <DropdownMenuLabel>Show events</DropdownMenuLabel>
@@ -64,25 +68,20 @@ export default function StatusColumnHeader({
             onChange(selectedValue as CronTriggerEventsSection)
           }
         >
-          {STATUS_FILTER_SEQUENCE.map((option) => {
-            const optionMeta = STATUS_FILTER_OPTIONS[option];
-            return (
-              <DropdownMenuRadioItem
-                key={option}
-                value={option}
-                className="items-start gap-2 py-2"
-              >
-                <div className="flex flex-col text-left leading-tight">
-                  <span className="text-sm font-medium">
-                    {optionMeta.label}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {optionMeta.description}
-                  </span>
-                </div>
-              </DropdownMenuRadioItem>
-            );
-          })}
+          {Object.entries(STATUS_FILTER_OPTIONS).map(([option, optionMeta]) => (
+            <DropdownMenuRadioItem
+              key={option}
+              value={option}
+              className="items-start gap-2 py-2"
+            >
+              <div className="flex flex-col text-left leading-tight">
+                <span className="text-sm font-medium">{optionMeta.label}</span>
+                <span className="text-xs text-muted-foreground">
+                  {optionMeta.description}
+                </span>
+              </div>
+            </DropdownMenuRadioItem>
+          ))}
         </DropdownMenuRadioGroup>
       </DropdownMenuContent>
     </DropdownMenu>

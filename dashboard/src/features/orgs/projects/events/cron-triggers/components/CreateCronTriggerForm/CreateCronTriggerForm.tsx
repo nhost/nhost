@@ -14,12 +14,12 @@ const renderCreateCronTriggerButton = ({
   open,
 }: BaseCronTriggerFormTriggerProps) => (
   <Button
-    variant="ghost"
-    size="icon"
+    variant="link"
+    className="mt-1 flex w-full justify-between px-[0.625rem] !text-sm+ text-primary hover:bg-accent hover:no-underline disabled:text-disabled"
     aria-label="Add cron trigger"
     onClick={() => open()}
   >
-    <Plus className="h-5 w-5 text-primary dark:text-foreground" />
+    New Cron Trigger <Plus className="h-4 w-4" />
   </Button>
 );
 
@@ -36,7 +36,7 @@ export default function CreateCronTriggerForm() {
           args: cronTriggerDTO,
         });
         router.push(
-          `/orgs/${orgSlug}/projects/${appSubdomain}/events/cron-trigger/${data.triggerName}`,
+          `/orgs/${orgSlug}/projects/${appSubdomain}/events/cron-triggers/${data.triggerName}`,
         );
       },
       {

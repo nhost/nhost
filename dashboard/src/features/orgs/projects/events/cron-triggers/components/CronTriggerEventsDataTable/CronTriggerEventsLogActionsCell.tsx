@@ -1,4 +1,4 @@
-import { ButtonWithLoading } from '@/components/ui/v3/button';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   Tooltip,
   TooltipContent,
@@ -6,19 +6,19 @@ import {
 } from '@/components/ui/v3/tooltip';
 import { useDeleteScheduledCronTriggerEventMutation } from '@/features/orgs/projects/events/cron-triggers/hooks/useDeleteScheduledCronTriggerEventMutation';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import type { ScheduledEventStatus } from '@/utils/hasura-api/generated/schemas';
-import { X } from 'lucide-react';
+import type { ScheduledEventLogEntry } from '@/utils/hasura-api/generated/schemas';
+import type { Row } from '@tanstack/react-table';
+import { Maximize, Minimize, X } from 'lucide-react';
 import { useState } from 'react';
 
 interface CronTriggerEventsLogActionsCellProps {
-  scheduledEventId: string;
-  status: ScheduledEventStatus;
+  row: Row<ScheduledEventLogEntry>;
 }
 
 export default function CronTriggerEventsLogActionsCell({
-  scheduledEventId,
-  status,
+  row,
 }: CronTriggerEventsLogActionsCellProps) {
+  const { status, id: scheduledEventId } = row.original;
   const [
     isThisDeleteScheduledEventActionLoading,
     setIsThisDeleteScheduledEventActionLoading,
@@ -45,16 +45,28 @@ export default function CronTriggerEventsLogActionsCell({
     setIsThisDeleteScheduledEventActionLoading(false);
   };
 
-  if (status === 'scheduled') {
-    return (
-      <div className="flex items-center justify-center">
+  return (
+    <div className="inline-flex w-fit items-center gap-0.5">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={row.getToggleExpandedHandler()}
+        className="h-7 w-7 p-0"
+      >
+        {row.getIsExpanded() ? (
+          <Minimize className="size-4" />
+        ) : (
+          <Maximize className="size-4" />
+        )}
+      </Button>
+      {status === 'scheduled' && (
         <Tooltip>
           <TooltipTrigger asChild>
             <ButtonWithLoading
               variant="ghost"
               size="sm"
               onClick={handleDeleteScheduledEvent}
-              className="h-8 w-8 p-0"
+              className="h-7 w-7 p-0"
               disabled={isDeleteScheduledEventLoading}
               loading={isThisDeleteScheduledEventActionLoading}
               loaderClassName="mr-0 size-5"
@@ -68,9 +80,7 @@ export default function CronTriggerEventsLogActionsCell({
             <p>Delete Scheduled Event</p>
           </TooltipContent>
         </Tooltip>
-      </div>
-    );
-  }
-
-  return null;
+      )}
+    </div>
+  );
 }
