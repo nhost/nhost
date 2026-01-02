@@ -25,9 +25,6 @@ export function createCronTriggerEventsDataTableColumns({
   const columns: ColumnDef<ScheduledEventLogEntry>[] = [
     {
       id: 'actions',
-      // minSize: 64,
-      // size: 64,
-      // maxSize: 64,
       size: 0,
       enableResizing: false,
       enableSorting: false,
@@ -99,16 +96,6 @@ export function createCronTriggerEventsDataTableColumns({
       ),
     });
   }
-
-  // columns.push({
-  //   id: 'actions',
-  //   minSize: 80,
-  //   size: 80,
-  //   maxSize: 80,
-  //   header: 'Actions',
-  //   enableSorting: false,
-  //   cell: ({ row }) => <CronTriggerEventsLogActionsCell row={row} />,
-  // });
 
   return columns;
 }

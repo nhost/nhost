@@ -49,7 +49,7 @@ const projectPages = [
   {
     name: 'Events',
     icon: <Zap className="h-4 w-4" />,
-    route: 'events',
+    route: 'events/event-triggers',
     slug: 'events',
   },
   {
