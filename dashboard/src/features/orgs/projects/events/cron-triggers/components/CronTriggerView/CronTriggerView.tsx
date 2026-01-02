@@ -6,13 +6,14 @@ import {
 } from '@/components/ui/v3/tabs';
 import { EventsEmptyState } from '@/features/orgs/projects/events/common/components/EventsEmptyState';
 import { SmallPaginationControls } from '@/features/orgs/projects/events/common/components/SmallPaginationControls';
+import { useEventPagination } from '@/features/orgs/projects/events/common/hooks/useEventPagination';
 import { CronTriggerEventsDataTable } from '@/features/orgs/projects/events/cron-triggers/components/CronTriggerEventsDataTable';
 import type { CronTriggerEventsSection } from '@/features/orgs/projects/events/cron-triggers/components/CronTriggerEventsDataTable/cronTriggerEventsDataTableColumns';
 import { useGetCronEventLogsQuery } from '@/features/orgs/projects/events/cron-triggers/hooks/useGetCronEventLogsQuery';
 import { useGetCronTriggers } from '@/features/orgs/projects/events/cron-triggers/hooks/useGetCronTriggers';
 import { isEmptyValue } from '@/lib/utils';
 import { useRouter } from 'next/router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useState } from 'react';
 import CronTriggerViewSkeleton from './CronTriggerViewSkeleton';
 import CronTriggerOverview from './sections/CronTriggerOverview';
 
@@ -30,49 +31,37 @@ export default function CronTriggerView() {
   const [tab, setTab] = useState('overview');
   const [eventLogsSection, setEventLogsSection] =
     useState<CronTriggerEventsSection>('processed');
-  const [offset, setOffset] = useState(0);
-  const [limit, setLimit] = useState(10);
 
   const triggerName = cronTrigger?.name ?? '';
 
-  useEffect(() => {
-    setOffset(0);
-  }, [triggerName, eventLogsSection]);
+  const isEventsTab = tab === 'pending-processed-events';
 
-  const goPrev = useCallback(() => {
-    setOffset((prev) => Math.max(0, prev - limit));
-  }, [limit]);
-
-  const goNext = useCallback(() => {
-    setOffset((prev) => prev + limit);
-  }, [limit]);
-
-  const setLimitAndReset = useCallback((newLimit: number) => {
-    setLimit(newLimit);
-    setOffset(0);
-  }, []);
-
-  const { data: eventsData, isLoading: isEventsLoading } =
-    useGetCronEventLogsQuery(
-      {
-        trigger_name: triggerName,
-        eventLogsSection,
-        limit,
-        offset,
+  const {
+    offset,
+    limit,
+    setLimitAndReset,
+    goPrev,
+    goNext,
+    hasNoPreviousPage,
+    hasNoNextPage,
+    data: eventsData,
+    isLoading: isEventsLoading,
+  } = useEventPagination({
+    initialLimit: 10,
+    useQueryHook: useGetCronEventLogsQuery,
+    getQueryArgs: (limitArg, offsetArg) => ({
+      trigger_name: triggerName,
+      eventLogsSection,
+      limit: limitArg,
+      offset: offsetArg,
+    }),
+    queryOptions: {
+      queryOptions: {
+        enabled: isEventsTab && !!triggerName,
       },
-      {
-        queryOptions: {
-          enabled: tab === 'pending-processed-events' && !!triggerName,
-        },
-      },
-    );
-
-  const isLastPage = useMemo(
-    () => (Array.isArray(eventsData) ? eventsData.length < limit : false),
-    [eventsData, limit],
-  );
-  const hasNoPreviousPage = !isEventsLoading && offset <= 0;
-  const hasNoNextPage = !isEventsLoading && isLastPage;
+    },
+    resetKey: `${triggerName}:${eventLogsSection}`,
+  });
 
   if (isLoading && cronTriggerSlug) {
     return <CronTriggerViewSkeleton />;

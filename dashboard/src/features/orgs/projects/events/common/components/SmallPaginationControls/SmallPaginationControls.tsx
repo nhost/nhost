@@ -68,7 +68,7 @@ export default function SmallPaginationControls({
           <ChevronLeft className="h-4 w-4" />
         </Button>
         <span className="mx-1 inline-block font-display text-sm+ font-medium text-muted-foreground">
-          {offset} / {offset + limit}
+          {offset} - {offset + limit}
         </span>
         <Button
           variant="outline"
