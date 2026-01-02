@@ -8,8 +8,7 @@ coverage:
     - internal/mocks/
     - internal/utils/linkedlist/linkedlist.go
     - internal/testdata
-    - logging/connection_tracer_multiplexer.go
-    - logging/tracer_multiplexer.go
+    - internal/synctest
     - testutils/
     - fuzzing/
     - metrics/

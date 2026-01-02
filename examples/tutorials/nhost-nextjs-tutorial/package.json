@@ -16,7 +16,7 @@
     "@nhost/nhost-js": "workspace:^",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "next": "15.5.7"
+    "next": "15.5.9"
   },
   "devDependencies": {
     "typescript": "^5",

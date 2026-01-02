@@ -1705,6 +1705,28 @@ Example - `"1//0gK8..."`
 
 ---
 
+## ProviderSpecificParams
+
+### Properties
+
+#### connection?
+
+```ts
+optional connection: string;
+```
+
+(workos) Specifies the connection to use for authentication
+
+#### organization?
+
+```ts
+optional organization: string;
+```
+
+(workos) Specifies the organization to use for authentication
+
+---
+
 ## PublicKeyCredentialCreationOptions
 
 ### Properties
@@ -2404,6 +2426,14 @@ optional metadata: Record<string, unknown>;
 ```
 
 Additional metadata for the user (JSON encoded string)
+
+#### providerSpecificParams?
+
+```ts
+optional providerSpecificParams: ProviderSpecificParams;
+```
+
+Additional provider-specific parameters
 
 #### redirectTo?
 

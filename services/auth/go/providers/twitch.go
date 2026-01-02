@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/oidc"
 	"golang.org/x/oauth2"
 )
@@ -80,4 +81,12 @@ func (t *Twitch) GetProfile(
 		EmailVerified:  userProfile.Email != "",
 		Picture:        userProfile.ProfileImageURL,
 	}, nil
+}
+
+func (t *Twitch) AuthCodeURL(
+	state string,
+	_ *api.ProviderSpecificParams,
+	opts ...oauth2.AuthCodeOption,
+) string {
+	return t.Config.AuthCodeURL(state, opts...)
 }

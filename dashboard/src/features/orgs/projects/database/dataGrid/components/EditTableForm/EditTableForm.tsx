@@ -16,6 +16,7 @@ import type {
   DatabaseTable,
   NormalizedQueryDataRow,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { getUntrackedForeignKeyRelations } from '@/features/orgs/projects/database/dataGrid/utils/getUntrackedForeignKeyRelations';
 import { normalizeDatabaseColumn } from '@/features/orgs/projects/database/dataGrid/utils/normalizeDatabaseColumn';
 import { isNotEmptyValue } from '@/lib/utils';
 import { triggerToast } from '@/utils/toast';
@@ -174,11 +175,17 @@ export default function EditTableForm({
         updatedTable,
       });
 
-      if (isNotEmptyValue(updatedTable.foreignKeyRelations)) {
+      const unTrackedForeignKeyRelations = getUntrackedForeignKeyRelations(
+        foreignKeyRelations,
+        updatedTable.foreignKeyRelations,
+      );
+
+      if (isNotEmptyValue(unTrackedForeignKeyRelations)) {
         await trackForeignKeyRelations({
-          foreignKeyRelations: updatedTable.foreignKeyRelations,
+          unTrackedForeignKeyRelations,
           schema,
           table: updatedTable.name,
+          trackedForeignKeyRelations: foreignKeyRelations,
         });
       }
 

@@ -29,12 +29,5 @@
     "@types/react": "~19.1.0",
     "typescript": "~5.9.2"
   },
-  "private": true,
-  "pnpm": {
-    "overrides": {
-      "js-yaml@<=4.1.0": ">=4.1.1",
-      "glob@>=10.3.7 <=11.0.3": ">=11.1.0",
-      "node-forge@<1.3.2": ">=1.3.2"
-    }
-  }
+  "private": true
 }

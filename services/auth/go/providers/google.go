@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/oidc"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/endpoints"
@@ -61,4 +62,12 @@ func (g *Google) GetProfile(
 		Name:           user.Name,
 		Picture:        user.Picture,
 	}, nil
+}
+
+func (g *Google) AuthCodeURL(
+	state string,
+	_ *api.ProviderSpecificParams,
+	opts ...oauth2.AuthCodeOption,
+) string {
+	return g.Config.AuthCodeURL(state, opts...)
 }

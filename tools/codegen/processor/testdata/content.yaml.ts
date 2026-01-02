@@ -31,6 +31,22 @@ export interface ErrorResponse {
 
 /**
  * 
+ @property connection? (`string`) - (workos) Specifies the connection to use for authentication
+ @property organization? (`string`) - (workos) Specifies the organization to use for authentication*/
+export interface ProviderSpecificParams {
+  /**
+   * (workos) Specifies the connection to use for authentication
+   */
+  connection?: string,
+  /**
+   * (workos) Specifies the organization to use for authentication
+   */
+  organization?: string,
+};
+
+
+/**
+ * 
  */
 export type SignInProvider = "apple" | "github" | "google" | "linkedin" | "discord" | "spotify" | "twitch" | "gitlab" | "bitbucket" | "workos" | "azuread" | "strava" | "facebook" | "windowslive" | "twitter";
 
@@ -49,6 +65,8 @@ export type SignInProvider = "apple" | "github" | "google" | "linkedin" | "disco
     @property redirectTo? (string) - URI to redirect to
   
     @property connect? (string) - If set, this means that the user is already authenticated and wants to link their account. This needs to be a valid JWT access token.
+  
+    @property providerSpecificParams? (ProviderSpecificParams) - Additional provider-specific parameters
   */
 export interface SignInProviderParams {
   /**
@@ -86,6 +104,11 @@ export interface SignInProviderParams {
   
    */
   connect?: string;
+  /**
+   * Additional provider-specific parameters
+  
+   */
+  providerSpecificParams?: ProviderSpecificParams;
 }
 
 
@@ -127,13 +150,22 @@ export const createAPIClient = (
   const encodedParameters =
     params &&
     Object.entries(params)
-      .map(([key, value]) => {
+      .flatMap(([key, value]) => {
+        if (key === "providerSpecificParams") {
+          // Object with explode: true - each property as separate parameter
+          if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+            return Object.entries(value)
+              .map(([k, v]) => `${k}=${encodeURIComponent(String(v))}`)
+          }
+          return [`${key}=${encodeURIComponent(String(value))}`]
+        }
+        // Default handling (scalars or explode: false)
         const stringValue = Array.isArray(value)
           ? value.join(',')
-          : typeof value === 'object'
+          : typeof value === 'object' && value !== null
           ? JSON.stringify(value)
-          : (value as string)
-        return `${key}=${encodeURIComponent(stringValue)}`
+          : String(value)
+        return [`${key}=${encodeURIComponent(stringValue)}`]
       })
       .join('&')
 

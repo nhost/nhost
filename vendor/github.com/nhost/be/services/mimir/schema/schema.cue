@@ -253,7 +253,7 @@ import (
 #Postgres: {
 	// Version of postgres, you can see available versions in the URL below:
 	// https://hub.docker.com/r/nhost/postgres/tags
-	version: string | *"14.18-20250728-1"
+	version: string | *"14.20-20251217-1"
 
 	// Resources for the service
 	resources: {
@@ -572,7 +572,7 @@ import (
 #Url:      string
 #Port:     uint16
 #Email:    =~"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
-#Locale:   string & strings.MinRunes(2) & strings.MaxRunes(2)
+#Locale:   string & strings.MinRunes(2) & strings.MaxRunes(3)
 
 // See https://hasura.io/docs/latest/auth/authentication/jwt/
 #JWTSecret:
