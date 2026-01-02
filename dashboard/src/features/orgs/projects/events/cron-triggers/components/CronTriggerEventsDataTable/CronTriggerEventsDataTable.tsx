@@ -122,7 +122,6 @@ export default function CronTriggerEventsDataTable({
                           header.column.resetSize();
                         }}
                         className={cn(
-                          // mimic the Storage DataGrid handle (right-edge grab strip with hover bg)
                           'absolute right-0 top-0 z-20 h-full w-2',
                           'cursor-col-resize touch-none select-none',
                           'border-0 bg-transparent p-0',

@@ -1,7 +1,7 @@
 import { HoverCardTimestamp } from '@/components/presentational/HoverCardTimestamp';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import { HttpStatusText } from '@/features/orgs/projects/events/common/components/HttpStatusText';
-import { TimestampColumnHeader } from '@/features/orgs/projects/events/common/components/TimestampColumnHeader';
+import { SortableHeader } from '@/features/orgs/projects/events/common/components/SortableHeader';
 import type { EventInvocationLogEntry } from '@/utils/hasura-api/generated/schemas/eventInvocationLogEntry';
 import { type ColumnDef } from '@tanstack/react-table';
 import InvocationLogActionsCell from './InvocationLogActionsCell';
@@ -14,7 +14,7 @@ const columns: ColumnDef<EventInvocationLogEntry>[] = [
     size: 68,
     maxSize: 68,
     header: ({ column }) => (
-      <TimestampColumnHeader column={column} label="Created At" />
+      <SortableHeader column={column} label="Created At" />
     ),
     cell: ({ row }) => (
       <HoverCardTimestamp
