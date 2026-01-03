@@ -11,6 +11,7 @@ import { EventTriggerInvocationLogsDataTable } from '@/features/orgs/projects/ev
 import { DEFAULT_RETRY_TIMEOUT_SECONDS } from '@/features/orgs/projects/events/event-triggers/constants';
 import type { EventTriggerViewModel } from '@/features/orgs/projects/events/event-triggers/types';
 import { cn, isNotEmptyValue } from '@/lib/utils';
+import type { EventLogEntry } from '@/utils/hasura-api/generated/schemas';
 import {
   type ColumnSizingState,
   flexRender,
@@ -25,7 +26,7 @@ import columns from './eventsDataTableColumns';
 
 interface EventTriggerEventsDataTableProps {
   eventTrigger: EventTriggerViewModel;
-  data: any[] | undefined;
+  data: EventLogEntry[] | undefined;
   isLoading: boolean;
   limit: number;
 }

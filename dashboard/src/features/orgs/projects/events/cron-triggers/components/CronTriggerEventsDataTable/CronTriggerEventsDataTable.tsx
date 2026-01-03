@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/v3/table';
 import { CronTriggerInvocationLogsDataTable } from '@/features/orgs/projects/events/cron-triggers/components/CronTriggerInvocationLogsDataTable';
 import { cn, isNotEmptyValue } from '@/lib/utils';
+import type { ScheduledEventLogEntry } from '@/utils/hasura-api/generated/schemas';
 import {
   type ColumnSizingState,
   flexRender,
@@ -27,7 +28,7 @@ import {
 interface CronTriggerEventsDataTableProps {
   eventLogsSection: CronTriggerEventsSection;
   onEventLogsSectionChange: (value: CronTriggerEventsSection) => void;
-  data: any[] | undefined;
+  data: ScheduledEventLogEntry[] | undefined;
   isLoading: boolean;
   limit: number;
 }
