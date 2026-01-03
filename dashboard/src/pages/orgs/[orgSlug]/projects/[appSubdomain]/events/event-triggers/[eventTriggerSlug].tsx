@@ -1,6 +1,5 @@
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { Box } from '@/components/ui/v2/Box';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { EventTriggerView } from '@/features/orgs/projects/events/event-triggers/components/EventTriggerView';
@@ -32,12 +31,9 @@ EventTriggerDetailsPage.getLayout = function getLayout(page: ReactElement) {
     >
       <EventTriggersBrowserSidebar className="w-full max-w-sidebar" />
 
-      <Box
-        className="flex w-full flex-auto flex-col overflow-x-hidden"
-        sx={{ backgroundColor: 'background.default' }}
-      >
+      <div className="box flex w-full flex-auto flex-col overflow-x-hidden">
         {page}
-      </Box>
+      </div>
     </OrgLayout>
   );
 };

@@ -5,7 +5,7 @@ import {
   TabsTrigger,
 } from '@/components/ui/v3/tabs';
 import { EventsEmptyState } from '@/features/orgs/projects/events/common/components/EventsEmptyState';
-import { SmallPaginationControls } from '@/features/orgs/projects/events/common/components/SmallPaginationControls';
+import { PaginationControls } from '@/features/orgs/projects/events/common/components/PaginationControls';
 import { useEventPagination } from '@/features/orgs/projects/events/common/hooks/useEventPagination';
 import { EventTriggerEventsDataTable } from '@/features/orgs/projects/events/event-triggers/components/EventTriggerEventsDataTable';
 import EventTriggerViewSkeleton from '@/features/orgs/projects/events/event-triggers/components/EventTriggerView/EventTriggerViewSkeleton';
@@ -116,7 +116,7 @@ export default function EventTriggerView() {
           </TabsList>
 
           {tab === 'pending-processed-events' && (
-            <SmallPaginationControls
+            <PaginationControls
               className="px-0 py-0"
               offset={offset}
               limit={limit}

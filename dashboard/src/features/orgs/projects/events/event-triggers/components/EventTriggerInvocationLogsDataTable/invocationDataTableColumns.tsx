@@ -29,14 +29,14 @@ const columns: ColumnDef<EventInvocationLogEntry>[] = [
     minSize: 70,
     size: 70,
     maxSize: 70,
-    header: 'Status',
+    header: () => <div className="p-2">Status</div>,
     enableSorting: false,
     cell: ({ row }) => <HttpStatusText status={row.original.http_status} />,
   },
   {
     id: 'id',
     accessorKey: 'id',
-    header: 'ID',
+    header: () => <div className="p-2">ID</div>,
     minSize: 40,
     size: 280,
     maxSize: 600,
@@ -53,7 +53,7 @@ const columns: ColumnDef<EventInvocationLogEntry>[] = [
     minSize: 80,
     size: 80,
     maxSize: 80,
-    header: 'Actions',
+    header: () => <div className="p-2">Actions</div>,
     enableSorting: false,
     cell: ({ row, table }) => (
       <InvocationLogActionsCell row={row.original} table={table} />
