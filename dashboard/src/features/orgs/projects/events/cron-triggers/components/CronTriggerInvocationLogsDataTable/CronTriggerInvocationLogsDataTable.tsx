@@ -18,7 +18,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { useState } from 'react';
-import columns from './cronTriggerInvocationDataTableColumns';
+import columns from './invocationDataTableColumns';
 import type { CronTriggerInvocationLogsDataTableMeta } from './types';
 
 interface CronTriggerInvocationLogsDataTableProps {

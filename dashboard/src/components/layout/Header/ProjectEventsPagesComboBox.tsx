@@ -27,13 +27,13 @@ type Option = {
 const projectEventsPages = [
   {
     name: 'Event Triggers',
-    slug: 'event-trigger',
-    route: 'event-trigger',
+    slug: 'event-triggers',
+    route: 'event-triggers',
   },
   {
     name: 'Cron Triggers',
-    slug: 'cron-trigger',
-    route: 'cron-trigger',
+    slug: 'cron-triggers',
+    route: 'cron-triggers',
   },
 ].map((item) => ({
   label: item.name,
@@ -51,7 +51,7 @@ export default function ProjectEventsPagesComboBox() {
   const pathSegments = useMemo(() => asPath.split('/'), [asPath]);
   const isEventsPage = pathSegments.includes('events');
   const eventsPageFromUrl = isEventsPage
-    ? pathSegments[6] || 'event-trigger'
+    ? pathSegments[6] || 'event-triggers'
     : null;
 
   const selectedEventsPageFromUrl = projectEventsPages.find(

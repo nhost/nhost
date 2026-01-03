@@ -82,7 +82,7 @@ export default function CronTriggerOverview({
             <div className="flex items-center justify-between gap-2 break-all rounded bg-muted p-2 font-mono">
               <span>{cronTrigger.webhook}</span>
               <CopyToClipboardButton
-                className="bg-[#e3f4fc]/70 dark:bg-[#1e2942]/70 dark:hover:bg-[#253252]"
+                className="dark:bg-[#1e2942]/70 dark:hover:bg-[#253252]"
                 textToCopy={cronTrigger.webhook}
                 title="Copy webhook URL"
               />

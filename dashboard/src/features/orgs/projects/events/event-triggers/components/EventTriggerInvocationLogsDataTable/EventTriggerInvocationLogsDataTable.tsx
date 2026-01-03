@@ -7,9 +7,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/v3/table';
-import PaginationControls from '@/features/orgs/projects/events/common/components/PaginationControls/PaginationControls';
+import { PaginationControls } from '@/features/orgs/projects/events/common/components/PaginationControls';
 import { useEventPagination } from '@/features/orgs/projects/events/common/hooks/useEventPagination';
 import { useGetEventAndInvocationLogsById } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventAndInvocationLogsById';
+import { cn } from '@/lib/utils';
 import type { EventInvocationLogEntry } from '@/utils/hasura-api/generated/schemas/eventInvocationLogEntry';
 import {
   flexRender,
@@ -98,10 +99,16 @@ export default function EventTriggerInvocationLogsDataTable({
         </colgroup>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
+            <TableRow key={headerGroup.id} className="hover:bg-transparent">
               {headerGroup.headers.map((header, index) => (
                 <TableHead
-                  className={index === 0 ? 'pl-1' : ''}
+                  className={cn(
+                    'group relative overflow-hidden bg-paper font-display text-xs font-bold text-primary-text',
+                    'border-b-1 border-r-1 border-t-1 border-divider',
+                    '!h-8 p-0',
+                    'last:border-r-0',
+                    index === 0 ? 'pl-2' : '',
+                  )}
                   key={header.id}
                   style={{ width: header.getSize() }}
                 >
@@ -175,6 +182,7 @@ export default function EventTriggerInvocationLogsDataTable({
       </Table>
 
       <PaginationControls
+        className="px-0 py-0"
         offset={offset}
         limit={limit}
         hasNoPreviousPage={hasNoPreviousPage}

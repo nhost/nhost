@@ -1,9 +1,10 @@
 import { HoverCardTimestamp } from '@/components/presentational/HoverCardTimestamp';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
-import { TimestampColumnHeader } from '@/features/orgs/projects/events/common/components/TimestampColumnHeader';
+import { SortableHeader } from '@/features/orgs/projects/events/common/components/SortableHeader';
 import type { EventLogEntry } from '@/utils/hasura-api/generated/schemas';
 import { type ColumnDef } from '@tanstack/react-table';
 import { Check, X } from 'lucide-react';
+import EventTriggerEventsLogActionsCell from './EventTriggerEventsLogActionsCell';
 
 function DeliveredCell({ delivered }: { delivered: boolean }) {
   if (delivered) {
@@ -22,18 +23,25 @@ function DeliveredCell({ delivered }: { delivered: boolean }) {
 
 const columns: ColumnDef<EventLogEntry>[] = [
   {
+    id: 'actions',
+    size: 0,
+    enableResizing: false,
+    enableSorting: false,
+    cell: ({ row }) => <EventTriggerEventsLogActionsCell row={row} />,
+  },
+  {
     id: 'created_at',
     accessorKey: 'created_at',
     minSize: 50,
     size: 68,
-    maxSize: 68,
+    enableResizing: true,
     header: ({ column }) => (
-      <TimestampColumnHeader column={column} label="Created At" />
+      <SortableHeader column={column} label="Created At" />
     ),
     cell: ({ row }) => (
       <HoverCardTimestamp
         date={new Date(row.original.created_at)}
-        className="-m-4 block w-full truncate py-4 pl-4 font-mono text-xs"
+        className="block w-full truncate font-mono text-xs"
       />
     ),
   },
@@ -43,28 +51,24 @@ const columns: ColumnDef<EventLogEntry>[] = [
     minSize: 70,
     size: 70,
     maxSize: 70,
-    header: () => <div className="text-center">Delivered</div>,
+    enableResizing: true,
+    header: () => <div className="p-2 text-center">Delivered</div>,
     enableSorting: false,
     cell: ({ row }) => <DeliveredCell delivered={row.original.delivered} />,
   },
   {
     id: 'id',
     accessorKey: 'id',
-    header: 'ID',
+    header: () => <div className="p-2">ID</div>,
     minSize: 40,
     size: 280,
     maxSize: 600,
+    enableResizing: true,
     cell: ({ row }) => (
       <TextWithTooltip
         className="font-mono text-xs"
         containerClassName="cursor-text"
         text={row.original.id}
-        slotProps={{
-          container: {
-            // Prevent row expansion when clicking to select and copy the ID text
-            onClick: (event) => event.stopPropagation(),
-          },
-        }}
       />
     ),
   },
@@ -74,7 +78,8 @@ const columns: ColumnDef<EventLogEntry>[] = [
     minSize: 80,
     size: 80,
     maxSize: 80,
-    header: 'Tries',
+    enableResizing: true,
+    header: () => <div className="p-2">Tries</div>,
     enableSorting: false,
     cell: ({ row }) => (
       <span className="font-mono text-xs">{row.original.tries}</span>

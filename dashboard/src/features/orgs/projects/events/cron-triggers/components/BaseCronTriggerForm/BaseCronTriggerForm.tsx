@@ -136,7 +136,6 @@ export default function BaseCronTriggerForm({
 
   const handleFormSubmit = form.handleSubmit(
     async (values) => {
-      console.log('values', values);
       await onSubmit(values);
       closeForm();
     },

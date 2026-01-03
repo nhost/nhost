@@ -73,12 +73,6 @@ export function createCronTriggerEventsDataTableColumns({
           className="font-mono text-xs"
           containerClassName="cursor-text"
           text={row.original.id}
-          slotProps={{
-            container: {
-              // Prevent row expansion when clicking to select and copy the ID text
-              onClick: (event) => event.stopPropagation(),
-            },
-          }}
         />
       ),
     },
