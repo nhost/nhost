@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/oidc"
 	"golang.org/x/oauth2"
 )
@@ -79,4 +80,12 @@ func (a *AzureAD) GetProfile(
 		Name:           userProfile.Name,
 		Picture:        "",
 	}, nil
+}
+
+func (a *AzureAD) AuthCodeURL(
+	state string,
+	_ *api.ProviderSpecificParams,
+	opts ...oauth2.AuthCodeOption,
+) string {
+	return a.Config.AuthCodeURL(state, opts...)
 }

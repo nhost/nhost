@@ -46,12 +46,5 @@
     "eslint-config-expo": "~9.2.0",
     "typescript": "~5.8.3"
   },
-  "private": true,
-  "pnpm": {
-    "overrides": {
-      "js-yaml@>=4.0.0 <4.1.1": ">=4.1.1",
-      "glob@>=10.2.0 <10.5.0": ">=10.5.0",
-      "node-forge@<1.3.2": ">=1.3.2"
-    }
-  }
+  "private": true
 }

@@ -62,7 +62,7 @@ func postgres( //nolint:funlen
 		ExtraHosts:  extraHosts(subdomain),
 		HealthCheck: &HealthCheck{
 			Test: []string{
-				"CMD-SHELL", "pg_isready -U postgres", "-d", "postgres", "-q",
+				"CMD-SHELL", "pg_isready -U postgres -d postgres -q",
 			},
 			Timeout:     "60s",
 			Interval:    "5s",

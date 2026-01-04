@@ -1,3 +1,26 @@
+## [cli@1.34.12] - 2025-12-23
+
+### Chore
+
+- *(deps)* Udpate nhost schema (#3779)
+
+## [cli@1.34.11] - 2025-12-18
+
+### 🐛 Bug Fixes
+
+- *(cli)* Bump schema (#3763)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump nhost/dashboard to 2.44.1 (#3739)
+
+## [cli@1.34.10] - 2025-12-16
+
+### 🐛 Bug Fixes
+
+- *(cli)* Cmd-shell in a single parameter (#3760)
+
 ## [cli@1.34.9] - 2025-12-01
 
 ### ⚙️ Miscellaneous Tasks

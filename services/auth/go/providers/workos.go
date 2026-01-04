@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/oidc"
 	"golang.org/x/oauth2"
 )
@@ -16,12 +17,26 @@ type oauth2ConfigWrapper struct {
 	parent *WorkOS
 }
 
-func (w *oauth2ConfigWrapper) AuthCodeURL(state string, opts ...oauth2.AuthCodeOption) string {
-	if w.parent.DefaultOrganization != "" {
+func (w *oauth2ConfigWrapper) AuthCodeURL(
+	state string,
+	providerSpecificParams *api.ProviderSpecificParams,
+	opts ...oauth2.AuthCodeOption,
+) string {
+	if providerSpecificParams != nil && providerSpecificParams.Organization != nil {
+		opts = append(
+			opts,
+			oauth2.SetAuthURLParam("organization", *providerSpecificParams.Organization),
+		)
+	} else if w.parent.DefaultOrganization != "" {
 		opts = append(opts, oauth2.SetAuthURLParam("organization", w.parent.DefaultOrganization))
 	}
 
-	if w.parent.DefaultConnection != "" {
+	if providerSpecificParams != nil && providerSpecificParams.Connection != nil {
+		opts = append(
+			opts,
+			oauth2.SetAuthURLParam("connection", *providerSpecificParams.Connection),
+		)
+	} else if w.parent.DefaultConnection != "" {
 		opts = append(opts, oauth2.SetAuthURLParam("connection", w.parent.DefaultConnection))
 	}
 

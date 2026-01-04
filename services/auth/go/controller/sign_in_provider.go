@@ -93,6 +93,7 @@ func (ctrl *Controller) SignInProvider( //nolint:ireturn
 	default:
 		url = provider.Oauth2().AuthCodeURL(
 			state,
+			req.Params.ProviderSpecificParams,
 		)
 	}
 

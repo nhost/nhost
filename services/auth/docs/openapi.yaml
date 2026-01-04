@@ -598,6 +598,14 @@ paths:
           description: Opaque state value to be returned by the provider
           schema:
             type: string
+        - name: providerSpecificParams
+          in: query
+          required: false
+          description: Additional provider-specific parameters
+          style: form
+          explode: true
+          schema:
+            $ref: "#/components/schemas/ProviderSpecificParams"
 
       responses:
         "302":
@@ -1905,6 +1913,16 @@ components:
         - accessToken
         - expiresIn
         - expiresAt
+
+    ProviderSpecificParams:
+      type: object
+      properties:
+        connection:
+          type: string
+          description: (workos) Specifies the connection to use for authentication
+        organization:
+          type: string
+          description: (workos) Specifies the organization to use for authentication
 
     RefreshProviderTokenRequest:
       type: object

@@ -29,7 +29,7 @@ export default function ColumnEditorTable() {
         role="table"
         className="col-span-8 overflow-x-auto min-[900px]:overflow-x-visible"
       >
-        <div className="sticky top-0 z-10 flex w-full gap-2 pb-2 pt-1">
+        <div className="sticky top-0 z-10 flex w-full gap-2 bg-paper pb-2 pt-1">
           <div role="columnheader" className="w-52 flex-none">
             <InputLabel as="span">
               Name
