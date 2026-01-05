@@ -1,5 +1,7 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.2.2/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.3.11/schema.json",
+  "root": true,
+  "javascript": { "formatter": { "quoteStyle": "double" }, "globals": [] },
   "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
   "files": { "ignoreUnknown": false },
   "formatter": {
@@ -18,7 +20,6 @@
     },
     "includes": ["**", "!.next", "!node_modules"]
   },
-  "javascript": { "formatter": { "quoteStyle": "double" }, "globals": [] },
   "assist": {
     "enabled": true,
     "actions": { "source": { "organizeImports": "on" } }

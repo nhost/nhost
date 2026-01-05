@@ -1,0 +1,79 @@
+{
+  "root": false,
+  "extends": "//",
+  "formatter": {
+    "enabled": false
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "complexity": {
+        "useLiteralKeys": "off",
+        "noBannedTypes": "off",
+        "useOptionalChain": "error"
+      },
+      "style": {
+        "noNonNullAssertion": "off",
+        "useThrowOnlyError": "error",
+        "noUselessElse": "error",
+        "noParameterAssign": {
+          "level": "error",
+          "options": {
+            "propertyAssignment": "deny"
+          }
+        },
+        "useBlockStatements": "error"
+      },
+      "suspicious": {
+        "noDoubleEquals": "off",
+        "noExtraNonNullAssertion": "off",
+        "noConsole": {
+          "level": "error",
+          "options": {
+            "allow": ["error", "warn", "info"]
+          }
+        },
+        "noExplicitAny": "error"
+      },
+      "correctness": {
+        "noInnerDeclarations": "error",
+        "noUnusedImports": {
+          "level": "error",
+          "fix": "safe"
+        },
+        "noUnusedVariables": "off",
+        "noUnusedFunctionParameters": "off"
+      },
+      "nursery": {
+        "noImportCycles": "error",
+        "noShadow": "error"
+      },
+      "performance": {
+        "noAccumulatingSpread": "off"
+      }
+    },
+    "includes": [
+      "!src/styles/graphiql.min.css",
+      "!src/utils/hasura-api/generated/**",
+      "!src/utils/__generated__/**",
+      "!public/**"
+    ]
+  },
+  "javascript": { "formatter": { "quoteStyle": "single" } },
+  "css": { "parser": { "tailwindDirectives": true } },
+  "assist": {
+    "enabled": false
+  },
+  "overrides": [
+    {
+      "includes": ["**/*.css"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noUnknownAtRules": "off"
+          }
+        }
+      }
+    }
+  ]
+}
