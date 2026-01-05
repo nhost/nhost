@@ -41,12 +41,12 @@ export default function DataGridBody<T extends object>({
       if (event.key === 'ArrowUp') {
         event.preventDefault();
 
-        if (!currentRow!.previousElementSibling) {
+        if (!currentRow.previousElementSibling) {
           return;
         }
 
         const cellInPreviousRow =
-          currentRow!.previousElementSibling.children.namedItem(cellId);
+          currentRow.previousElementSibling.children.namedItem(cellId);
 
         if (cellInPreviousRow instanceof HTMLElement) {
           cellInPreviousRow.scrollIntoView({
@@ -152,7 +152,7 @@ export default function DataGridBody<T extends object>({
       {rows.map((row) => {
         prepareRow(row);
 
-        const rowProps = row.getRowProps({
+        const { key, ...rowProps } = row.getRowProps({
           style: {
             height: context.rowDensity === 'comfortable' ? '3rem' : '2rem',
             width: totalColumnsWidth,
@@ -160,8 +160,10 @@ export default function DataGridBody<T extends object>({
         });
 
         return (
+          // biome-ignore lint/a11y/useSemanticElements: A table layout using div
           <div
             {...rowProps}
+            key={key}
             id={row.id}
             className={cn(
               'flex scroll-mt-10 border-b-1 border-b-transparent last:border-b-data-table-border-color',

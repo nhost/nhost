@@ -39,7 +39,9 @@ type DataGridQueryParamsContextProps = {
   isFiltersLoadedFromStorage: MutableRefObject<boolean>;
   appliedFilters: DataGridFilter[];
   setAppliedFilters: (filters: DataGridFilter[]) => void;
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   sortBy: SortingRule<any>[];
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   setSortBy: Dispatch<SetStateAction<SortingRule<any>[]>>;
   currentOffset: number;
   setCurrentOffset: Dispatch<SetStateAction<number>>;
@@ -62,6 +64,7 @@ function DataGridQueryParamsProvider({ children }: PropsWithChildren) {
     query: { page },
   } = useRouter();
 
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   const [sortBy, setSortBy] = useState<SortingRule<any>[]>([]);
   const [currentOffset, setCurrentOffset] = useState<number>(
     parseInt(page as string, 10) - 1 || 0,

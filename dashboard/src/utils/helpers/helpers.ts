@@ -32,7 +32,7 @@ export const checkHasuraConsoleStatus = async (subdomain: string) => {
   try {
     const res = await fetch(subdomain);
     return res.status === 200;
-  } catch (e) {
+  } catch {
     return false;
   }
 };
@@ -69,7 +69,7 @@ export function getApplicationStatusString(appStatus: ApplicationStatus) {
  * @param date The creation of the application, or when it was paused.
  */
 export function getRelativeDateByApplicationState(date: string) {
-  const renderedCurrentDate = new Date().getTime();
+  const renderedCurrentDate = Date.now();
   const eventCreatedAt = new Date(date).getTime();
   const difference = renderedCurrentDate - eventCreatedAt;
 
@@ -91,6 +91,7 @@ export type DeepRequired<T> = {
 /**
  * Recursively removes the property '__typename' from a JavaScript object and its nested objects and arrays.
  */
+// biome-ignore lint/suspicious/noExplicitAny: TODO
 export const removeTypename = (obj: any) => {
   if (!obj || typeof obj !== 'object') {
     return obj;

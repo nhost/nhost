@@ -53,11 +53,13 @@ export default function getFormattedServiceConfig({
       port: item.port,
       type: item.type,
       publish: item.publish,
-      ingresses: item.ingresses as any, // cannot be changed on the UI always null type checking can be skipped.
+      // biome-ignore lint/suspicious/noExplicitAny: cannot be changed on the UI always null type checking can be skipped.
+      ingresses: item.ingresses as any,
       rateLimit:
         sanitizedInitialDataPorts.find(
           (port) => port.port === item.port && port.type === item.type,
-        )?.rateLimit ?? (null as any), // cannot be changed on the UI always null type checking can be skipped.
+          // biome-ignore lint/suspicious/noExplicitAny: cannot be changed on the UI always null type checking can be skipped.
+        )?.rateLimit ?? (null as any),
     })),
     healthCheck: sanitizedValues.healthCheck
       ? {

@@ -18,19 +18,16 @@ export default function SocialProvidersSettings() {
     (item) => item.providerId === 'github',
   );
 
-  const github = useMemo(
-    () => {
-      if (typeof window !== 'undefined') {
-        return nhost.auth.signInProviderURL('github', {
-          connect: token,
-          redirectTo: `${window.location.origin}/account?signinProvider=github`,
-        });
-      }
-      return '';
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [token],
-  );
+  // biome-ignore lint/correctness/useExhaustiveDependencies: singInProviderURL does not change
+  const github = useMemo(() => {
+    if (typeof window !== 'undefined') {
+      return nhost.auth.signInProviderURL('github', {
+        connect: token,
+        redirectTo: `${window.location.origin}/account?signinProvider=github`,
+      });
+    }
+    return '';
+  }, [token]);
 
   if (!data && loading) {
     return (

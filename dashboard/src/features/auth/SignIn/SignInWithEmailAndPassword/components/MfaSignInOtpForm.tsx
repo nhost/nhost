@@ -2,7 +2,7 @@ import { MfaOtpForm } from '@/components/common/MfaOtpForm';
 import { Smartphone } from 'lucide-react';
 
 interface Props {
-  sendMfaOtp: (code: string) => Promise<any>;
+  sendMfaOtp: (code: string) => Promise<void>;
   loading: boolean;
   requestNewMfaTicket: () => Promise<void>;
 }

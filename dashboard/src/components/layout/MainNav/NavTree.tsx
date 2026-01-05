@@ -17,7 +17,7 @@ import { cn, isNotEmptyValue } from '@/lib/utils';
 import { getConfigServerUrl, isPlatform as getIsPlatform } from '@/utils/env';
 import { Box, ChevronDown, ChevronRight, Plus, Zap } from 'lucide-react';
 import Link from 'next/link';
-import { type ReactElement } from 'react';
+import type { ReactElement } from 'react';
 
 import {
   ControlledTreeEnvironment,

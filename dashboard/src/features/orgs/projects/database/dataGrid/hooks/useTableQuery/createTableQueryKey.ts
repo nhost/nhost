@@ -5,6 +5,7 @@ import type { SortingRule } from 'react-table';
 export function createTableQueryKey(
   tablePath: string,
   offset: number,
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   sortBy: SortingRule<any>[],
   filters: DataGridFilter[],
 ) {

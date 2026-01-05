@@ -28,6 +28,7 @@ const validationSchema = Yup.object({
     .label('Allowed CORS domains')
     .when('enabled', {
       is: true,
+      // biome-ignore lint/suspicious/noThenProperty: yup
       then: (schema) => schema.required(),
     }),
 });

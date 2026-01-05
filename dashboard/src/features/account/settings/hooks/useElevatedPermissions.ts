@@ -23,11 +23,10 @@ function useElevatedPermissions() {
     } catch (e) {
       if (shouldThrowError) {
         throw e;
-      } else {
-        const message = e?.message || 'Could not elevate permissions';
-        toast.error(message, getToastStyleProps());
-        return false;
       }
+      const message = e?.message || 'Could not elevate permissions';
+      toast.error(message, getToastStyleProps());
+      return false;
     }
   }
 

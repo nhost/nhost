@@ -23,7 +23,8 @@ interface HoverCardTimestampProps {
 
 function Row({ value, label }: { value: string; label: string }) {
   return (
-    // eslint-disable-next-line jsx-a11y/click-events-have-key-events
+    // biome-ignore lint/a11y/useKeyWithClickEvents: TODO
+    // biome-ignore lint/a11y/useSemanticElements: TODO
     <div
       className="group flex items-center justify-between gap-4 text-sm"
       role="button"

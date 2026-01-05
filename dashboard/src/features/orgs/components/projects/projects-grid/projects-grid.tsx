@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/v3/button';
 import { ProjectStatusIndicator } from '@/features/orgs/components/common/ProjectStatusIndicator';
 import { DeploymentStatusMessage } from '@/features/orgs/projects/deployments/components/DeploymentStatusMessage';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
-import { type GetProjectsQuery } from '@/utils/__generated__/graphql';
+import type { GetProjectsQuery } from '@/utils/__generated__/graphql';
 import debounce from 'lodash.debounce';
 import { ArrowRight, Box, Plus, SearchIcon } from 'lucide-react';
 import Link from 'next/link';

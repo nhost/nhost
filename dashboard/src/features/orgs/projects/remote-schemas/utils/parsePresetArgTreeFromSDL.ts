@@ -67,7 +67,6 @@ export default function parsePresetArgTreeFromSDL(
 
     return argTree;
   } catch (e) {
-    // eslint-disable-next-line no-console
     console.error(e);
     return {} as ArgTreeType;
   }

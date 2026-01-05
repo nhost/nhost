@@ -1,5 +1,5 @@
-import { type RunServiceConfig } from '@/features/orgs/projects/common/hooks/useRunServices';
-import { type PortTypes } from '@/features/orgs/projects/services/components/ServiceForm/components/PortsFormSection/PortsFormSectionTypes';
+import type { RunServiceConfig } from '@/features/orgs/projects/common/hooks/useRunServices';
+import type { PortTypes } from '@/features/orgs/projects/services/components/ServiceForm/components/PortsFormSection/PortsFormSectionTypes';
 import {
   defaultServiceFormValues,
   type ServiceFormInitialData,

@@ -1,3 +1,5 @@
+/** biome-ignore-all lint/a11y/useFocusableInteractive: shadcn component */
+/** biome-ignore-all lint/a11y/useSemanticElements: shadcn component */
 import { Slot } from '@radix-ui/react-slot';
 import { ChevronRight, MoreHorizontal } from 'lucide-react';
 import * as React from 'react';

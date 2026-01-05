@@ -34,7 +34,9 @@ const defaultFormValues = {
   columns: [
     {
       name: '',
+      // biome-ignore lint/suspicious/noExplicitAny: test file
       type: null as any,
+      // biome-ignore lint/suspicious/noExplicitAny: test file
       defaultValue: null as any,
       isNullable: false,
       isUnique: false,
@@ -47,6 +49,7 @@ const defaultFormValues = {
   identityColumnIndex: null,
 };
 
+// biome-ignore lint/suspicious/noExplicitAny: test file
 function TestTableFormWrapper({ defaultValues = defaultFormValues }: any) {
   const form = useForm<
     BaseTableFormValues | Yup.InferType<typeof baseTableValidationSchema>
@@ -65,6 +68,7 @@ function TestTableFormWrapper({ defaultValues = defaultFormValues }: any) {
 }
 
 async function fillColumnForm(
+  // biome-ignore lint/suspicious/noExplicitAny: test file
   { columnName, optionName, typeValue, defaultValue }: any,
   index: number,
   user: TestUserEvent,
@@ -112,12 +116,12 @@ describe('BaseTableForm', () => {
     const user = new TestUserEvent();
 
     let firstColumnIsNullableCheckbox = screen.getByRole('checkbox', {
-      name: (accessibleName, element) =>
+      name: (_accessibleName, element) =>
         element.getAttribute('name') === 'columns.0.isNullable',
     });
 
     let firstColumnIsUniqueCheckbox = screen.getByRole('checkbox', {
-      name: (accessibleName, element) =>
+      name: (_accessibleName, element) =>
         element.getAttribute('name') === 'columns.0.isUnique',
     });
 
@@ -128,11 +132,11 @@ describe('BaseTableForm', () => {
     expect(screen.getByDisplayValue('column1')).toBeInTheDocument();
 
     firstColumnIsNullableCheckbox = screen.getByRole('checkbox', {
-      name: (accessibleName, element) =>
+      name: (_accessibleName, element) =>
         element.getAttribute('name') === 'columns.0.isNullable',
     });
     firstColumnIsUniqueCheckbox = screen.getByRole('checkbox', {
-      name: (accessibleName, element) =>
+      name: (_accessibleName, element) =>
         element.getAttribute('name') === 'columns.0.isUnique',
     });
 
@@ -192,13 +196,13 @@ describe('BaseTableForm', () => {
     expect(screen.getByTestId('id')).toBeInTheDocument();
     expect(
       screen.getByRole('checkbox', {
-        name: (accessibleName, element) =>
+        name: (_accessibleName, element) =>
           element.getAttribute('name') === 'columns.0.isNullable',
       }),
     ).toBeDisabled();
     expect(
       screen.getByRole('checkbox', {
-        name: (accessibleName, element) =>
+        name: (_accessibleName, element) =>
           element.getAttribute('name') === 'columns.0.isUnique',
       }),
     ).toBeDisabled();

@@ -20,7 +20,7 @@ function NhostApolloProvider({
   fetchPolicy,
   connectToDevTools,
 }: PropsWithChildren<NhostApolloClientOptions>) {
-  const authUnSubscribeRef = useRef<() => void>();
+  const authUnSubscribeRef = useRef<(() => void) | null>(null);
   const [client] = useState<ReturnType<typeof createApolloClient>['client']>(
     () => {
       const { client: apolloClient, authUnSubscribe } = createApolloClient({

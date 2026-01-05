@@ -82,6 +82,7 @@ export default function RuleGroupEditor({
     name: `${name}.rules`,
   });
 
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   const unsupportedValues: Record<string, any>[] =
     getValues(`${name}.unsupported`) || [];
 

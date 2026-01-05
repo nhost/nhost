@@ -44,6 +44,7 @@ export interface AutocompleteOption<TValue = string> {
   /**
    * Any additional data to be passed to the option.
    */
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   metadata?: any;
 }
 
@@ -76,6 +77,7 @@ export interface AutocompleteProps<
     /**
      * Props passed to the root element.
      */
+    // biome-ignore lint/suspicious/noExplicitAny: TODO
     root?: Partial<UseAutocompleteProps<any, boolean, boolean, boolean>>;
     /**
      * Props passed to the input component.
@@ -143,6 +145,7 @@ const StyledAutocomplete = styled(MaterialAutocomplete)(({ theme }) => ({
     {
       color: theme.palette.text.secondary,
     },
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
 })) as any as StyledComponent<
   MaterialAutocompleteProps<AutocompleteOption, boolean, boolean, boolean>
 >;
@@ -344,6 +347,7 @@ function Autocomplete(
       renderTags={(value, getTagProps) =>
         value.map(
           (option: string | number | AutocompleteOption<string>, index) => (
+            // biome-ignore lint/correctness/useJsxKeyInIterable: key is added with getTagProps
             <StyledTag
               deleteIcon={<XIcon />}
               size="small"
@@ -389,13 +393,11 @@ function Autocomplete(
             {...optionProps}
             key={option.dropdownLabel || option.label}
           >
-            <>
-              <span>{option.dropdownLabel || option.label}</span>
+            <span>{option.dropdownLabel || option.label}</span>
 
-              {selected && props.multiple && (
-                <CheckIcon key="asd" sx={{ width: 16, height: 16 }} />
-              )}
-            </>
+            {selected && props.multiple && (
+              <CheckIcon key="asd" sx={{ width: 16, height: 16 }} />
+            )}
           </StyledOptionBase>
         );
       }}

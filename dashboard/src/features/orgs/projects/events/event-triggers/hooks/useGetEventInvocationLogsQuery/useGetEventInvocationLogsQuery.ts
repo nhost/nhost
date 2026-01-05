@@ -53,7 +53,7 @@ export default function useGetEventInvocationLogsQuery(
         'hasura',
       );
 
-      const adminSecret = project?.config?.hasura.adminSecret!;
+      const adminSecret = project!.config!.hasura.adminSecret;
 
       return fetchEventInvocationLogs({
         appUrl,

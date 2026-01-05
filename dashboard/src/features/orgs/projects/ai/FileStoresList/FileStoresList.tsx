@@ -11,7 +11,7 @@ import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { DeleteFileStoreModal } from '@/features/orgs/projects/ai/DeleteFileStoreModal';
 import { FileStoreForm } from '@/features/orgs/projects/ai/FileStoreForm';
-import { type GraphiteFileStore } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/file-stores';
+import type { GraphiteFileStore } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/file-stores';
 import { copy } from '@/utils/copy';
 
 interface FileStoresListProps {
@@ -25,13 +25,13 @@ interface FileStoresListProps {
    *
    * @example onDelete={() => refetch()}
    */
-  onCreateOrUpdate: () => Promise<any>;
+  onCreateOrUpdate: () => Promise<unknown>;
 
   /**
    * Function to be called after a successful delete action.
    *
    */
-  onDelete?: () => Promise<any>;
+  onDelete?: () => Promise<unknown>;
 }
 
 export default function FileStoresList({

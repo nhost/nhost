@@ -40,12 +40,12 @@ export default function InvokeEventTriggerButton({
   const [newLog, setNewLog] = useState<EventInvocationLogEntry | null>(null);
   const { project } = useProject();
   const appUrl = generateAppServiceUrl(
-    project?.subdomain!,
-    project?.region!,
+    project!.subdomain!,
+    project!.region!,
     'hasura',
   );
 
-  const adminSecret = project?.config?.hasura.adminSecret!;
+  const adminSecret = project!.config!.hasura.adminSecret;
 
   const router = useRouter();
   const { dataSourceSlug, schemaSlug, tableSlug } = router.query;
@@ -136,7 +136,7 @@ export default function InvokeEventTriggerButton({
             intervalRef.current = null;
           }
         }
-      } catch (error) {
+      } catch {
         toast.error('Failed to fetch invocation logs', getToastStyleProps());
         resetState();
       }

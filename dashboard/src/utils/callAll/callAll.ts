@@ -6,6 +6,8 @@ const callAll =
     ...fns: readonly (((...args: Args) => void) | undefined)[]
   ) =>
   (...args: Args): void =>
-    fns.forEach((fn) => fn?.(...args));
+    fns.forEach((fn) => {
+      fn?.(...args);
+    });
 
 export default callAll;

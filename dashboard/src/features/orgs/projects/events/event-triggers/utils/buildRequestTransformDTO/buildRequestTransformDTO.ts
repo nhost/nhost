@@ -22,17 +22,21 @@ export default function buildRequestTransformDTO(
     requestTransform.url = `{{$base_url}}${urlTemplate}`;
   }
 
-  let queryParams;
+  let queryParams: string | Record<string, string> | null = null;
   if (
     formValues.requestOptionsTransform?.queryParams.queryParamsType ===
     'Key Value'
   ) {
     const { queryParams: queryParamsList } =
       formValues.requestOptionsTransform.queryParams;
-    queryParams = queryParamsList.reduce((acc, item) => {
-      acc[item.key] = item.value;
-      return acc;
-    }, {});
+    queryParams = queryParamsList.reduce<Record<string, string>>(
+      (acc, item) => {
+        // biome-ignore lint/style/noParameterAssign: Disabled to avoid spread operator performance overhead in reduce.
+        acc[item.key] = item.value;
+        return acc;
+      },
+      {},
+    );
   } else if (
     formValues.requestOptionsTransform?.queryParams.queryParamsType ===
     'URL string template'
@@ -65,6 +69,7 @@ export default function buildRequestTransformDTO(
           action: 'x_www_form_urlencoded',
           form_template: requestBodyTransform.formTemplate.reduce(
             (acc, item) => {
+              // biome-ignore lint/style/noParameterAssign: Disabled to avoid spread operator performance overhead in reduce.
               acc[item.key] = item.value;
               return acc;
             },

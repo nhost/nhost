@@ -5,7 +5,7 @@ import { HttpStatusText } from '@/features/orgs/projects/events/common/component
 import { highlightMatch } from '@/features/orgs/utils/highlightMatch';
 import { cn } from '@/lib/utils';
 import type { EventInvocationLogEntry } from '@/utils/hasura-api/generated/schemas/eventInvocationLogEntry';
-import { type Column, type ColumnDef } from '@tanstack/react-table';
+import type { Column, ColumnDef } from '@tanstack/react-table';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import InvocationLogActionsCell from './InvocationLogActionsCell';
 

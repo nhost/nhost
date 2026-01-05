@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/v3/button';
 import { cn } from '@/lib/utils';
-import { type Column } from '@tanstack/react-table';
+import type { Column } from '@tanstack/react-table';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 
 export default function CreatedAtHeader<TData, TValue>({

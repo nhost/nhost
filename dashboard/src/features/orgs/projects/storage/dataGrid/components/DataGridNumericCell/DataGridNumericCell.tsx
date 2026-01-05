@@ -35,7 +35,6 @@ export default function DataGridNumericCell<TData extends object>({
       });
     }
     return () => controller.abort();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inputRef.current]);
 
   async function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {

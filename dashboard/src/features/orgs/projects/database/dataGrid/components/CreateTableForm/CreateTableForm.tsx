@@ -28,6 +28,7 @@ export interface CreateTableFormProps
   /**
    * Function to be called when the form is submitted.
    */
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   onSubmit?: (args?: any) => Promise<any>;
 }
 
@@ -74,7 +75,9 @@ export default function CreateTableForm({
         },
         {
           name: '',
+          // biome-ignore lint/suspicious/noExplicitAny: TODO
           type: null as any,
+          // biome-ignore lint/suspicious/noExplicitAny: TODO
           defaultValue: null as any,
           isNullable: false,
           isUnique: false,

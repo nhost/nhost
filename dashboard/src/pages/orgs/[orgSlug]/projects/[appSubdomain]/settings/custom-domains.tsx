@@ -13,7 +13,7 @@ import { HasuraDomain } from '@/features/orgs/projects/custom-domains/settings/c
 import { RunServiceDomains } from '@/features/orgs/projects/custom-domains/settings/components/RunServiceDomains';
 import { ServerlessFunctionsDomain } from '@/features/orgs/projects/custom-domains/settings/components/ServerlessFunctionsDomain';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
-import { type ReactElement } from 'react';
+import type { ReactElement } from 'react';
 
 export default function CustomDomains() {
   const { org, loading: loadingOrg } = useCurrentOrg();

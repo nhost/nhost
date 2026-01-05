@@ -26,6 +26,7 @@ import TextLink from '@/features/orgs/projects/common/components/TextLink/TextLi
 import { planDescriptions } from '@/features/orgs/projects/common/utils/planDescriptions';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { useRemoveQueryParamsFromUrl } from '@/hooks/useRemoveQueryParamsFromUrl';
 import { cn } from '@/lib/utils';
 import {
   useBillingChangeOrganizationPlanMutation,
@@ -36,7 +37,7 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Slash } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -54,16 +55,11 @@ export default function SubscriptionPlan() {
   const { data: { plans = [] } = {} } = useGetOrganizationPlansQuery();
   const [fetchOrganizationCustomePortalLink, { loading }] =
     useBillingOrganizationCustomePortalLazyQuery();
-  const { asPath, query, isReady, pathname, replace } = useRouter();
-  const { openUpgradeModal, ...remainingQuery } = query;
+  const { asPath, query, isReady } = useRouter();
+  const { openUpgradeModal } = query;
 
   const isFreeOrg = org?.plan.isFree;
-
-  const removeOpenUpgradeModalFromQuery = useCallback(() => {
-    replace({ pathname, query: remainingQuery }, undefined, {
-      shallow: true,
-    });
-  }, [replace, remainingQuery, pathname]);
+  const removeQueryParamsFromUrl = useRemoveQueryParamsFromUrl();
 
   const form = useForm<z.infer<typeof changeOrgPlanForm>>({
     resolver: zodResolver(changeOrgPlanForm),
@@ -81,9 +77,9 @@ export default function SubscriptionPlan() {
   useEffect(() => {
     if (isReady && openUpgradeModal) {
       setOpen(true);
-      removeOpenUpgradeModalFromQuery();
+      removeQueryParamsFromUrl('openUpgradeModal');
     }
-  }, [openUpgradeModal, isReady, removeOpenUpgradeModalFromQuery]);
+  }, [openUpgradeModal, isReady, removeQueryParamsFromUrl]);
 
   const selectedPlan = form.watch('plan');
 
@@ -103,7 +99,7 @@ export default function SubscriptionPlan() {
           redirectURL,
         },
       });
-      const clientSecret = result?.data?.billingUpgradeFreeOrganization!;
+      const clientSecret = result!.data!.billingUpgradeFreeOrganization!;
       setStripeClientSecret(clientSecret);
     } else {
       await execPromiseWithErrorToast(

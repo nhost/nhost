@@ -6,6 +6,6 @@ export interface EventTriggerInvocationLogsDataTableMeta {
   setSelectedLog: Dispatch<SetStateAction<EventInvocationLogEntry | null>>;
   isRedeliverPending: boolean;
   setIsRedeliverPending: Dispatch<SetStateAction<boolean>>;
-  refetchInvocations: () => Promise<unknown> | void;
+  refetchInvocations: () => Promise<unknown> | undefined;
   retryTimeoutSeconds: number;
 }

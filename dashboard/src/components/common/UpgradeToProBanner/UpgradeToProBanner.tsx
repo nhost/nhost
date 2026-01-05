@@ -9,7 +9,7 @@ import { useState } from 'react';
 import { OpenTransferDialogButton } from '@/components/common/OpenTransferDialogButton';
 
 import Image from 'next/image';
-import { type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 interface UpgradeToProBannerProps {
   title: string;

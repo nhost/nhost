@@ -17,7 +17,7 @@ interface ErrorDetails {
     userId: string;
     url?: string;
   };
-  error: any;
+  error: ApolloError | Error | object;
 }
 
 const getInternalErrorMessage = (
@@ -28,7 +28,7 @@ const getInternalErrorMessage = (
   }
 
   if (error.name === 'ApolloError') {
-    // @ts-ignore
+    // @ts-expect-error
     const graphqlError = error.graphQLErrors?.[0];
     const graphqlExtensionsError = graphqlError?.extensions?.internal
       ?.error as { message: string };

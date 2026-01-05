@@ -20,7 +20,6 @@ import { useEffect, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 import EventsBrowserSidebarSkeleton from './EventsBrowserSidebarSkeleton';
 import EventTriggerListItem from './EventTriggerListItem';
-
 export interface EventsBrowserSidebarProps extends Omit<BoxProps, 'children'> {}
 
 function EventsBrowserSidebarContent() {
@@ -47,8 +46,10 @@ function EventsBrowserSidebarContent() {
   >((acc, eventTrigger) => {
     const key = eventTrigger.dataSource;
     if (!acc[key]) {
+      // biome-ignore lint/style/noParameterAssign: Disabled to avoid spread operator performance overhead in reduce.
       acc[key] = [];
     }
+    // biome-ignore lint/style/noParameterAssign: Disabled to avoid spread operator performance overhead in reduce.
     acc[key] = [...acc[key], eventTrigger];
     return acc;
   }, {});
@@ -120,13 +121,13 @@ export default function EventsBrowserSidebar({
     setExpanded(!expanded);
   }
 
-  function closeSidebarWhenEscapeIsPressed(event: KeyboardEvent) {
-    if (event.key === 'Escape') {
-      setExpanded(false);
-    }
-  }
-
   useEffect(() => {
+    function closeSidebarWhenEscapeIsPressed(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setExpanded(false);
+      }
+    }
+
     if (typeof document !== 'undefined') {
       document.addEventListener('keydown', closeSidebarWhenEscapeIsPressed);
     }

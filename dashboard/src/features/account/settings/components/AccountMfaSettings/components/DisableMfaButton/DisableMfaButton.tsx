@@ -34,8 +34,6 @@ function DisableMfaButton() {
       );
       await refetch();
       setOpen(false);
-
-      return true;
     } finally {
       setIsDisabling(false);
     }

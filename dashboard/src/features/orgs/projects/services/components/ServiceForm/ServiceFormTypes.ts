@@ -110,7 +110,7 @@ export interface ServiceFormProps extends DialogFormProps {
   /**
    * Function to be called when the submit is successful.
    */
-  onSubmit?: VoidFunction | ((args?: any) => Promise<any>);
+  onSubmit?: () => Promise<unknown>;
 }
 
 export type Port = {

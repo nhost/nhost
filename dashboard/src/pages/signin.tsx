@@ -11,11 +11,11 @@ import { useEffect, type ReactElement } from 'react';
 export default function SigninPage() {
   const { isSigningOut, clearIsSigningOut } = useAuth();
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: onmounted
   useEffect(() => {
     if (isSigningOut) {
       clearIsSigningOut();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

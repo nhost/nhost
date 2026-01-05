@@ -13,8 +13,8 @@ import {
   type AssistantFormInitialData,
 } from '@/features/orgs/projects/ai/AssistantForm';
 import { DeleteAssistantModal } from '@/features/orgs/projects/ai/DeleteAssistantModal';
-import { type Assistant } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/assistants';
-import { type GraphiteFileStore } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/file-stores';
+import type { Assistant } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/assistants';
+import type { GraphiteFileStore } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/file-stores';
 import { copy } from '@/utils/copy';
 
 interface AssistantsListProps {
@@ -33,13 +33,13 @@ interface AssistantsListProps {
    *
    * @example onDelete={() => refetch()}
    */
-  onCreateOrUpdate: () => Promise<any>;
+  onCreateOrUpdate: () => Promise<unknown>;
 
   /**
    * Function to be called after a successful delete action.
    *
    */
-  onDelete?: () => Promise<any>;
+  onDelete?: () => Promise<unknown>;
 }
 
 export default function AssistantsList({

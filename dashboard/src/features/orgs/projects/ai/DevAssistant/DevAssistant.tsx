@@ -68,14 +68,14 @@ export default function DevAssistant() {
       let hasBeenAnHourSinceLastMessage = false;
       if (lastMessage) {
         hasBeenAnHourSinceLastMessage =
-          new Date().getTime() - new Date(lastMessage.createdAt).getTime() >
+          Date.now() - new Date(lastMessage.createdAt).getTime() >
           60 * 60 * 1000;
       }
 
       const $messages = [
         ...messages,
         {
-          id: String(new Date().getTime()),
+          id: String(Date.now()),
           message: userInput,
           createdAt: null,
           role: 'user',

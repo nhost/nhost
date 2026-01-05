@@ -27,6 +27,7 @@ function RuleRemoveButton({
 }: RuleRemoveButtonProps) {
   const rules: Rule[] = useWatch({ name: `${name}.rules` });
   const groups: RuleGroup[] = useWatch({ name: `${name}.groups` });
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   const unsupported: Record<string, any>[] = useWatch({
     name: `${name}.unsupported`,
   });

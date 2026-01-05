@@ -60,7 +60,7 @@ export default function SelectOrganizationAndProject() {
     (base64Config: string) => {
       try {
         JSON.parse(atob(base64Config));
-      } catch (error) {
+      } catch {
         openAlertDialog({
           title: 'Configuration not set properly',
           payload:

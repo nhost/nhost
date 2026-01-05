@@ -49,6 +49,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('@/utils/__generated__/graphql', async () => {
+  // biome-ignore lint/suspicious/noExplicitAny: test file
   const actual = await vi.importActual<any>('@/utils/__generated__/graphql');
   return {
     ...actual,
@@ -57,6 +58,7 @@ vi.mock('@/utils/__generated__/graphql', async () => {
 });
 
 vi.mock('@/utils/timezoneUtils', async () => {
+  // biome-ignore lint/suspicious/noExplicitAny: test file
   const actualTimezoneUtils = await vi.importActual<any>(
     '@/utils/timezoneUtils',
   );

@@ -12,7 +12,7 @@ import { RunServiceLimitingForm } from '@/features/orgs/projects/rate-limiting/s
 import { useGetRateLimits } from '@/features/orgs/projects/rate-limiting/settings/hooks/useGetRateLimits';
 import { useGetRunServiceRateLimits } from '@/features/orgs/projects/rate-limiting/settings/hooks/useGetRunServiceRateLimits';
 
-import { type ReactElement } from 'react';
+import type { ReactElement } from 'react';
 
 export default function RateLimiting() {
   const { services, loading } = useGetRunServiceRateLimits();

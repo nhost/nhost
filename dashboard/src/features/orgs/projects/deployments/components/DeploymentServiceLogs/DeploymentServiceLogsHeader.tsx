@@ -40,6 +40,7 @@ function DeploymentLogsHeader({ onSubmit, loading, from, to }: Props) {
 
   const service = watch('service');
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: need to call onSubmit when service changes
   useEffect(() => {
     onSubmit(getValues());
   }, [service, getValues, onSubmit]);

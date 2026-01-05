@@ -2,11 +2,11 @@ import { Logo } from '@/components/presentational/Logo';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { ArrowRightIcon } from '@/components/ui/v2/icons/ArrowRightIcon';
-import { CommunityIcon } from '@/components/ui/v2/icons/CommunityIcon';
 import { FileTextIcon } from '@/components/ui/v2/icons/FileTextIcon';
 import { GitHubIcon } from '@/components/ui/v2/icons/GitHubIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
+import { UsersRoundIcon } from 'lucide-react';
 
 function SupportPage() {
   return (
@@ -71,7 +71,7 @@ function SupportPage() {
                 sx={{ backgroundColor: 'grey.200' }}
               >
                 <div className="flex flex-col gap-4">
-                  <CommunityIcon className="h-8 w-8" />
+                  <UsersRoundIcon className="h-8 w-8" />
                   <div className="grid grid-flow-row gap-1">
                     <Text variant="h3" className="!font-bold">
                       Ask the Community

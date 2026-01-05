@@ -65,8 +65,6 @@ export default function RowPermissionsSection({
     setRowCheckType(value);
 
     if (value === 'none') {
-      // Note: https://github.com/react-hook-form/react-hook-form/issues/4055#issuecomment-950145092
-      // @ts-ignore
       setValue('filter', {});
     } else {
       setValue('filter', {

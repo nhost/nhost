@@ -100,7 +100,7 @@ export default function ColumnsNameCustomizationSection({
       }
 
       const graphqlFieldName = columnConfig?.[columnName]?.custom_name || '';
-
+      // biome-ignore lint/style/noParameterAssign: Disabled to avoid spread operator performance overhead in reduce.
       acc[columnName] = {
         graphqlFieldName,
       };

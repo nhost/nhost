@@ -10,7 +10,9 @@ import { useCallback } from 'react';
 
 declare global {
   interface Window {
+    // biome-ignore lint/suspicious/noExplicitAny: gtag
     gtag?: (command: string, ...args: any[]) => void;
+    // biome-ignore lint/suspicious/noExplicitAny: gtag
     dataLayer: any[];
   }
 }
@@ -95,6 +97,7 @@ export default function SignUpPage() {
       return;
     }
     window.dataLayer = window.dataLayer || [];
+    // biome-ignore lint/suspicious/noExplicitAny: gtag
     function gtag(...args: any[]) {
       window.dataLayer.push(args);
     }

@@ -51,6 +51,7 @@ export default function useDataGrid<T extends object>(
     () => ({
       width: 32,
       minWidth: 32,
+      // biome-ignore lint/suspicious/noExplicitAny: TODO
       Cell: ({ value }: { value: any }) => (
         <span className="truncate">
           {typeof value === 'object' ? JSON.stringify(value) : value}
@@ -88,6 +89,7 @@ export default function useDataGrid<T extends object>(
         ? hooks.visibleColumns.push((columns) => [
             {
               id: 'selection-column',
+              // biome-ignore lint/suspicious/noExplicitAny: TODO
               Header: ({ rows, getToggleAllRowsSelectedProps }: any) => {
                 const { indeterminate, style, onChange, ...props } =
                   getToggleAllRowsSelectedProps();
@@ -108,7 +110,9 @@ export default function useDataGrid<T extends object>(
                   />
                 );
               },
+              // biome-ignore lint/suspicious/noExplicitAny: TODO
               Cell: ({ row }: any) => {
+                // biome-ignore lint/suspicious/noExplicitAny: TODO
                 const originalValue = row.original as any;
 
                 const { indeterminate, onChange, ...props } =

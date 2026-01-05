@@ -68,7 +68,7 @@ interface GitHubData {
 
 export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
   const [filter, setFilter] = useState('');
-  const [ConnectGitHubModalState, setConnectGitHubModalState] =
+  const [connectGitHubModalState, setConnectGitHubModalState] =
     useState<ConnectGitHubModalState>('CONNECTING');
   const [selectedRepoId, setSelectedRepoId] = useState<string | null>(null);
   const [githubData, setGithubData] = useState<GitHubData | null>(null);
@@ -97,6 +97,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
     return '';
   };
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: close does the same thing every render
   useEffect(() => {
     if (loadingGithubConnected) {
       return;
@@ -193,7 +194,6 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
     };
 
     fetchGitHubData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [githubProvider, loadingGithubConnected]);
 
   const handleSelectAnotherRepository = () => {
@@ -259,7 +259,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
     );
   }
 
-  if (ConnectGitHubModalState === 'GITHUB_CONNECTION_REQUIRED') {
+  if (connectGitHubModalState === 'GITHUB_CONNECTION_REQUIRED') {
     return (
       <div className="flex flex-col items-center justify-center gap-5 px-1 py-1 md:w-[653px]">
         <p className="text-center text-foreground">
@@ -284,7 +284,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
     );
   }
 
-  if (ConnectGitHubModalState === 'EXPIRED_GITHUB_SESSION') {
+  if (connectGitHubModalState === 'EXPIRED_GITHUB_SESSION') {
     return (
       <div className="flex w-full flex-col items-center justify-center gap-5 px-1 py-1 md:w-[653px]">
         <p className="text-center text-foreground">
@@ -305,7 +305,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
         close={close}
         selectedRepoId={selectedRepoId}
         openConnectGithubModal={() => setConnectGitHubModalState('CONNECTING')}
-        connectGithubModalState={ConnectGitHubModalState}
+        connectGithubModalState={connectGitHubModalState}
         handleSelectAnotherRepository={handleSelectAnotherRepository}
       />
     );

@@ -25,7 +25,7 @@ export interface FilesDataGridControlsProps {
   paginationProps?: DataGridPaginationProps;
   fileUploadProps?: FileUploadButtonProps;
   filterProps?: FilterProps;
-  refetchData?: () => Promise<any>;
+  refetchData?: () => Promise<unknown>;
   className?: string;
 }
 

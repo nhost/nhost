@@ -39,7 +39,7 @@ export default function useCreateRemoteSchemaMutation({
     return createRemoteSchema({
       ...variables,
       appUrl,
-      adminSecret: project?.config?.hasura.adminSecret!,
+      adminSecret: project!.config!.hasura.adminSecret,
     });
   }, mutationOptions);
 

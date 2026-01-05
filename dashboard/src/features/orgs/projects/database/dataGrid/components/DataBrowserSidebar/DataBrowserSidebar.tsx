@@ -138,7 +138,6 @@ function DataBrowserSidebarContent({
   }
 
   if (status === 'error') {
-    // eslint-disable-next-line @typescript-eslint/no-throw-literal
     throw error || new Error('Unknown error occurred. Please try again later.');
   }
 
@@ -506,13 +505,12 @@ export default function DataBrowserSidebar({
     setExpanded(false);
   }
 
-  function closeSidebarWhenEscapeIsPressed(event: KeyboardEvent) {
-    if (event.key === 'Escape') {
-      setExpanded(false);
-    }
-  }
-
   useEffect(() => {
+    function closeSidebarWhenEscapeIsPressed(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setExpanded(false);
+      }
+    }
     if (typeof document !== 'undefined') {
       document.addEventListener('keydown', closeSidebarWhenEscapeIsPressed);
     }

@@ -1,5 +1,3 @@
-/* eslint-disable react/no-unstable-nested-components */
-
 'use client';
 
 import { buttonVariants } from '@/components/ui/v3/button';

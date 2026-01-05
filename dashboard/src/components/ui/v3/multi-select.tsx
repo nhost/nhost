@@ -67,13 +67,13 @@ export function MultiSelect({
   const [items, setItems] = useState<Map<string, ReactNode>>(new Map());
 
   const toggleValue = useCallback(
-    (value: string) => {
+    (toggledValue: string) => {
       const getNewSet = (prev: Set<string>) => {
         const newSet = new Set(prev);
-        if (newSet.has(value)) {
-          newSet.delete(value);
+        if (newSet.has(toggledValue)) {
+          newSet.delete(toggledValue);
         } else {
-          newSet.add(value);
+          newSet.add(toggledValue);
         }
         return newSet;
       };
@@ -83,12 +83,12 @@ export function MultiSelect({
     [onValuesChange, selectedValues],
   );
 
-  const onItemAdded = useCallback((value: string, label: ReactNode) => {
+  const onItemAdded = useCallback((newValue: string, label: ReactNode) => {
     setItems((prev) => {
-      if (prev.get(value) === label) {
+      if (prev.get(newValue) === label) {
         return prev;
       }
-      return new Map(prev).set(value, label);
+      return new Map(prev).set(newValue, label);
     });
   }, []);
 
@@ -179,9 +179,10 @@ export function MultiSelectValue({
     if (overflowElement != null) {
       overflowElement.style.display = 'none';
     }
-    selectedItems.forEach((child) => child.style.removeProperty('display'));
+    selectedItems.forEach((child) => {
+      child.style.removeProperty('display');
+    });
     let amount = 0;
-    // eslint-disable-next-line no-plusplus
     for (let i = selectedItems.length - 1; i >= 0; i--) {
       const child = selectedItems[i];
       if (containerElement.scrollWidth <= containerElement.clientWidth) {
@@ -194,6 +195,7 @@ export function MultiSelectValue({
     setOverflowAmount(amount);
   }, []);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Shadcn component
   useLayoutEffect(() => {
     checkOverflow();
   }, [selectedValues, checkOverflow, shouldWrap]);
@@ -303,7 +305,7 @@ export function MultiSelectContent({
               }
             />
           ) : (
-            // eslint-disable-next-line jsx-a11y/control-has-associated-label, jsx-a11y/no-autofocus
+            // biome-ignore lint/a11y/noAutofocus: shadcn component
             <button type="button" autoFocus className="sr-only" />
           )}
           <CommandList>

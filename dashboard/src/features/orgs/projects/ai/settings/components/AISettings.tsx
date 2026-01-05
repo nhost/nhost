@@ -137,13 +137,13 @@ export default function AISettings() {
     if (ai) {
       reset({
         version: {
-          label: ai?.version!,
-          value: ai?.version!,
+          label: ai!.version!,
+          value: ai!.version!,
         },
         webhookSecret: ai?.webhookSecret,
         synchPeriodMinutes: ai?.autoEmbeddings?.synchPeriodMinutes,
         apiKey: ai?.openai?.apiKey,
-        organization: ai?.openai?.organization!,
+        organization: ai!.openai!.organization!,
         compute: {
           cpu: ai?.resources?.compute?.cpu ?? 62,
           memory: ai?.resources?.compute?.memory ?? 128,

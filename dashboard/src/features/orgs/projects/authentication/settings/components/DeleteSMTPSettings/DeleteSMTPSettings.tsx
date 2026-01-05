@@ -20,7 +20,7 @@ function ConfirmDeleteSMTPSettingsModal({
   close,
   onDelete,
 }: {
-  onDelete: () => Promise<any>;
+  onDelete: () => Promise<unknown>;
   close: () => void;
 }) {
   const onClickDelete = async () => {

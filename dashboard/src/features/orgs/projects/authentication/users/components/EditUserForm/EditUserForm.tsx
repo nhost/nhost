@@ -20,7 +20,7 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { type RemoteAppUser } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/users';
+import type { RemoteAppUser } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/users';
 import type { DialogFormProps } from '@/types/common';
 import {
   RemoteAppGetUsersAndAuthRolesDocument,
@@ -85,9 +85,12 @@ export const EditUserFormValidationSchema = Yup.object({
         return true;
       } // Allow empty string as valid input
       try {
-        JSON.parse(value as any);
-        return true;
-      } catch (error) {
+        if (value !== undefined) {
+          JSON.parse(value);
+          return true;
+        }
+        return false;
+      } catch {
         return false;
       }
     },
@@ -149,7 +152,7 @@ export default function EditUserForm({
       try {
         JSON.parse(value);
         // Only set an error if JSON parsing fails
-      } catch (error) {
+      } catch {
         setError('metadata', {
           type: 'manual',
           message: 'Invalid JSON format',
@@ -174,7 +177,7 @@ export default function EditUserForm({
           JSON.parse(value);
           clearErrors('metadata'); // Clear errors when valid JSON is entered
           handleMetadataError.cancel(); // Cancel pending debounced error checks
-        } catch (error) {
+        } catch {
           handleMetadataError.call(value); // Call the debounced error setter
         }
       }
@@ -493,12 +496,8 @@ export default function EditUserForm({
               error={!!errors.defaultRole}
               helperText={errors?.defaultRole?.message}
             >
-              {roles.map((role, i) => (
-                <Option
-                  // eslint-disable-next-line react/no-array-index-key
-                  key={`defaultRoles.${i}`}
-                  value={Object.keys(role)[0]}
-                >
+              {roles.map((role) => (
+                <Option key={Object.keys(role)[0]} value={Object.keys(role)[0]}>
                   {Object.keys(role)[0]}
                 </Option>
               ))}
@@ -513,8 +512,7 @@ export default function EditUserForm({
                     id={`roles.${i}`}
                     label={Object.keys(role)[0]}
                     name={`roles.${i}`}
-                    // eslint-disable-next-line react/no-array-index-key
-                    key={`roles.${i}`}
+                    key={Object.keys(role)[0]}
                   />
                 ))}
               </div>

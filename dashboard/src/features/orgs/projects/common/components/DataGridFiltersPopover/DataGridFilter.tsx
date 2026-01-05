@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/v3/button';
-import { type DataGridFilterOperator } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
+import type { DataGridFilterOperator } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
 import { X } from 'lucide-react';
 import DataGridFilterColumn from './DataGridFilterColumn';
 import DataGridFilterOperators from './DataGridFilterOperators';

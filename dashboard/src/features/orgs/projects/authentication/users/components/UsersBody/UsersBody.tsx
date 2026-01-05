@@ -50,11 +50,8 @@ export interface UsersBodyProps {
   users?: RemoteAppUser[];
   /**
    * Function to be called after a successful action.
-   *
-   * @example onSuccessfulAction={() => refetch()}
-   * @example onSuccessfulAction={() => router.reload()}
    */
-  onSubmit: () => Promise<any>;
+  onSubmit: () => Promise<unknown>;
   allAvailableProjectRoles: Role[];
 }
 
@@ -107,7 +104,7 @@ export default function UsersBody({
     });
 
     const newRoles = allAvailableProjectRoles
-      .filter((role, i) => values.roles?.[i] === true)
+      .filter((_role, i) => values.roles?.[i] === true)
       .map((role) => role.name);
 
     const userHasRoles = user.roles.map((role) => role.role);

@@ -1,7 +1,13 @@
 import highlightMatch from '@/features/orgs/utils/highlightMatch/highlightMatch';
-import type { GraphQLSchema } from 'graphql';
+import type { GraphQLObjectType, GraphQLSchema } from 'graphql';
 import { HelpCircle } from 'lucide-react';
-import React from 'react';
+import {
+  Children,
+  cloneElement,
+  createElement,
+  isValidElement,
+  type ReactNode,
+} from 'react';
 import type { ComplexTreeData, RelationshipFields } from './types';
 
 export const ROOT_FIELDS = ['query', 'mutation', 'subscription'];
@@ -22,30 +28,31 @@ const createTreeItemData = (
   name: string,
   type: string,
   itemType: 'argument' | 'field' | 'root',
-): React.ReactNode => {
+): ReactNode => {
   if (itemType === 'argument') {
     return `${name}: ${type}`;
   }
   if (itemType === 'field') {
-    return React.createElement(
+    return createElement(
       'div',
       {
         className: 'flex items-center gap-1',
         style: { color: '#6b7280' }, // Gray-500 color
       },
       [
-        React.createElement(HelpCircle, {
+        createElement(HelpCircle, {
           key: 'icon',
           size: 12,
           className: 'text-gray-400',
         }),
-        React.createElement('span', { key: 'text' }, `${name}: ${type}`),
+        createElement('span', { key: 'text' }, `${name}: ${type}`),
       ],
     );
   }
   return `${name}`;
 };
 
+// biome-ignore lint/suspicious/noExplicitAny: TODO
 const getUnderlyingGraphQLType = (type: any): any => {
   let currentType = type;
   while (currentType.ofType) {
@@ -54,7 +61,7 @@ const getUnderlyingGraphQLType = (type: any): any => {
   return currentType;
 };
 
-const getFieldTypeString = (type: any): string => {
+const getFieldTypeString = (type: unknown): string => {
   if (!type) {
     return 'Unknown';
   }
@@ -63,19 +70,21 @@ const getFieldTypeString = (type: any): string => {
     return type.toString();
   }
 
-  if (type.name) {
-    return type.name;
+  if ((type as { name: string }).name) {
+    return (type as { name: string }).name;
   }
 
   return 'Unknown';
 };
 
+// biome-ignore lint/suspicious/noExplicitAny: TODO
 const isObjectTypeWithFields = (type: any): boolean => {
   const underlyingType = getUnderlyingGraphQLType(type);
   return underlyingType && typeof underlyingType.getFields === 'function';
 };
 
 const buildNestedFields = (
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   type: any,
   parentKey: string,
   treeData: ComplexTreeData,
@@ -86,6 +95,7 @@ const buildNestedFields = (
 
   if (underlyingType && typeof underlyingType.getFields === 'function') {
     const fields = underlyingType.getFields();
+    // biome-ignore lint/suspicious/noExplicitAny: TODO
     Object.values(fields).forEach((field: any) => {
       const fieldKey = `${parentKey}.field.${field.name}`;
       const hasArgs = field.args && field.args.length > 0;
@@ -109,6 +119,7 @@ const buildNestedFields = (
       tree[parentKey].children!.push(fieldKey);
 
       if (hasArgs) {
+        // biome-ignore lint/suspicious/noExplicitAny: TODO
         field.args.forEach((arg: any) => {
           const argKey = `${fieldKey}.arg.${arg.name}`;
           const argType = getFieldTypeString(arg.type);
@@ -153,13 +164,14 @@ export const buildComplexTreeData = ({
   };
 
   rootFields.forEach((rootField) => {
-    let rootType;
+    // biome-ignore lint/suspicious/noExplicitAny: TODO
+    let rootType: GraphQLObjectType<any, any>;
     if (rootField === 'query') {
-      rootType = schema.getQueryType();
+      rootType = schema.getQueryType()!;
     } else if (rootField === 'mutation') {
-      rootType = schema.getMutationType();
+      rootType = schema.getMutationType()!;
     } else {
-      rootType = schema.getSubscriptionType();
+      rootType = schema.getSubscriptionType()!;
     }
 
     if (rootType) {
@@ -177,6 +189,7 @@ export const buildComplexTreeData = ({
       treeData.root.children!.push(rootFieldKey);
 
       const typeFields = rootType.getFields();
+      // biome-ignore lint/suspicious/noExplicitAny: TODO
       Object.values(typeFields).forEach((field: any) => {
         const fieldKey = `${rootFieldKey}.field.${field.name}`;
         const hasArgs = field.args && field.args.length > 0;
@@ -196,6 +209,7 @@ export const buildComplexTreeData = ({
         treeData[rootFieldKey].children!.push(fieldKey);
 
         if (hasArgs) {
+          // biome-ignore lint/suspicious/noExplicitAny: TODO
           field.args.forEach((arg: any) => {
             const argKey = `${fieldKey}.arg.${arg.name}`;
             const argType = getFieldTypeString(arg.type);
@@ -223,10 +237,7 @@ export const buildComplexTreeData = ({
   return treeData;
 };
 
-export const highlightNode = (
-  node: React.ReactNode,
-  term?: string,
-): React.ReactNode => {
+export const highlightNode = (node: ReactNode, term?: string): ReactNode => {
   const search = term?.trim();
   if (!search) {
     return node;
@@ -238,17 +249,18 @@ export const highlightNode = (
   }
 
   if (Array.isArray(node)) {
-    return React.Children.map(node as React.ReactNode[], (child) =>
+    return Children.map(node as ReactNode[], (child) =>
       highlightNode(child, search),
     );
   }
 
-  if (React.isValidElement(node)) {
+  if (isValidElement(node)) {
+    // biome-ignore lint/suspicious/noExplicitAny: TODO
     const childProps: any = {};
     if (node.props && 'children' in node.props) {
       childProps.children = highlightNode(node.props.children, search);
     }
-    return React.cloneElement(node, childProps);
+    return cloneElement(node, childProps);
   }
 
   return node;

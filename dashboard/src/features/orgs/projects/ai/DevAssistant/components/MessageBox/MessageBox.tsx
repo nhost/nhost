@@ -4,7 +4,7 @@ import { IconButton } from '@/components/ui/v2/IconButton';
 import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { GraphiteIcon } from '@/components/ui/v2/icons/GraphiteIcon';
 import { Text } from '@/components/ui/v2/Text';
-import { type Message } from '@/features/orgs/projects/ai/DevAssistant';
+import type { Message } from '@/features/orgs/projects/ai/DevAssistant';
 import { useUserData } from '@/hooks/useUserData';
 import { copy } from '@/utils/copy';
 import { useTheme } from '@mui/material';
@@ -14,7 +14,7 @@ import rehypeHighlight from 'rehype-highlight';
 import remarkGFM from 'remark-gfm';
 import { twMerge } from 'tailwind-merge';
 
-import { type ClassAttributes, type HTMLAttributes } from 'react';
+import type { ClassAttributes, HTMLAttributes } from 'react';
 
 function PreComponent(
   props: ClassAttributes<HTMLElement> &

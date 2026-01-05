@@ -3,8 +3,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/v3/dialog';
-import { type FinishOrgCreationOnCompletedCb } from '@/features/orgs/hooks/useFinishOrganizationProcess/useFinishOrganizationProcess';
+import type { FinishOrgCreationOnCompletedCb } from '@/features/orgs/hooks/useFinishOrganizationProcess/useFinishOrganizationProcess';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
+import { useRemoveQueryParamsFromUrl } from '@/hooks/useRemoveQueryParamsFromUrl';
 import { isNotEmptyValue } from '@/lib/utils';
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useState } from 'react';
@@ -26,16 +27,12 @@ function TransferProjectDialogContent({
   selectedOrganizationId,
   onOrganizationChange,
 }: Props) {
-  const { query, replace, pathname } = useRouter();
-  const { session_id, ...remainingQuery } = query;
+  const { query } = useRouter();
+  const { session_id } = query;
   const { refetch: refetchOrgs } = useOrgs();
   const [showContent, setShowContent] = useState(true);
 
-  const removeSessionIdFromQuery = useCallback(() => {
-    replace({ pathname, query: remainingQuery }, undefined, {
-      shallow: true,
-    });
-  }, [replace, remainingQuery, pathname]);
+  const removeQueryParamsFromUrl = useRemoveQueryParamsFromUrl();
 
   useEffect(() => {
     if (isNotEmptyValue(session_id)) {
@@ -45,7 +42,7 @@ function TransferProjectDialogContent({
 
   const handleOnCompleted: FinishOrgCreationOnCompletedCb = useCallback(
     async ({ Slug }) => {
-      removeSessionIdFromQuery();
+      removeQueryParamsFromUrl('session_id');
       const {
         data: { organizations },
       } = await refetchOrgs();
@@ -57,9 +54,9 @@ function TransferProjectDialogContent({
       onFinishOrgCreationCompleted();
     },
     [
+      removeQueryParamsFromUrl,
       onFinishOrgCreationCompleted,
       refetchOrgs,
-      removeSessionIdFromQuery,
       onOrganizationChange,
     ],
   );

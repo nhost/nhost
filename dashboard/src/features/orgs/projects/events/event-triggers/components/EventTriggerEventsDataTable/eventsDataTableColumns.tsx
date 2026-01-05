@@ -3,7 +3,7 @@ import { TextWithTooltip } from '@/features/orgs/projects/common/components/Text
 import { CreatedAtHeader } from '@/features/orgs/projects/events/event-triggers/components/CreatedAtHeader';
 import { highlightMatch } from '@/features/orgs/utils/highlightMatch';
 import type { EventLogEntry } from '@/utils/hasura-api/generated/schemas';
-import { type ColumnDef } from '@tanstack/react-table';
+import type { ColumnDef } from '@tanstack/react-table';
 import { Check, X } from 'lucide-react';
 
 function DeliveredCell({ delivered }: { delivered: boolean }) {

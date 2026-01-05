@@ -46,7 +46,7 @@ export default function useSetTableIsEnumMutation({
 
     const base = {
       appUrl,
-      adminSecret: project?.config?.hasura.adminSecret!,
+      adminSecret: project!.config!.hasura.adminSecret,
     } as const;
 
     if (isPlatform) {

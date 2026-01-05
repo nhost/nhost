@@ -96,7 +96,6 @@ export default function DeleteOrg() {
                     setDeleteCheck1(Boolean(checked))
                   }
                 />
-                {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
                 <label
                   htmlFor="delete-check1"
                   className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
@@ -113,7 +112,6 @@ export default function DeleteOrg() {
                     setDeleteCheck2(Boolean(checked))
                   }
                 />
-                {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
                 <label
                   htmlFor="delete-check2"
                   className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"

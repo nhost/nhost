@@ -3,7 +3,6 @@ import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete
 import { Form } from '@/components/form/Form';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { ArrowsClockwise } from '@/components/ui/v2/icons/ArrowsClockwise';
 import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { Input } from '@/components/ui/v2/Input';
@@ -20,6 +19,7 @@ import {
 import { useGetBucketsQuery } from '@/utils/__generated__/graphql';
 import { removeTypename, type DeepRequired } from '@/utils/helpers';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { RefreshCwIcon } from 'lucide-react';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
@@ -42,7 +42,7 @@ export type FileStoreFormValues = Yup.InferType<typeof validationSchema>;
 export interface FileStoreFormProps extends DialogFormProps {
   id?: string;
   initialData?: Omit<FileStoreFormValues, 'buckets'> & { buckets: string[] };
-  onSubmit?: VoidFunction | ((args?: any) => Promise<any>);
+  onSubmit?: () => Promise<unknown>;
   onCancel?: VoidFunction;
 }
 
@@ -209,7 +209,7 @@ export default function FileStoreForm({
           <Button
             type="submit"
             disabled={isSubmitting}
-            startIcon={id ? <ArrowsClockwise /> : <PlusIcon />}
+            startIcon={id ? <RefreshCwIcon /> : <PlusIcon />}
           >
             {id ? 'Update' : 'Create'}
           </Button>

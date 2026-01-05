@@ -34,6 +34,7 @@ export interface RolePermissionEditorFormValues {
   /**
    * The permission filter to be applied for the role.
    */
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   filter: Record<string, any> | null;
   /**
    * The allowed columns to CRUD for the role.
@@ -129,6 +130,7 @@ function getDefaultRuleGroup(
     : null;
 }
 
+// biome-ignore lint/suspicious/noExplicitAny: TODO
 function getColumnPresets(data: Record<string, any>): ColumnPreset[] {
   if (!data || Object.keys(data).length === 0) {
     return [{ column: '', value: '' }];
@@ -142,6 +144,7 @@ function getColumnPresets(data: Record<string, any>): ColumnPreset[] {
 
 function convertToColumnPresetObject(
   columnPresets?: ColumnPreset[],
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
 ): Record<string, any> | null {
   if (isEmptyValue(columnPresets)) {
     return null;

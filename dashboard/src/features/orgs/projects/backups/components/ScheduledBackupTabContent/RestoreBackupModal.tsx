@@ -42,7 +42,7 @@ export default function RestoreBackupModal({
           appId: project?.id,
         },
       });
-    } catch (error) {
+    } catch {
       setRestoreCompleted(false);
       triggerToast('Database backup restoration failed');
       return;

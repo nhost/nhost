@@ -70,11 +70,11 @@ export default function SchemaToArgumentMapSelector({
           const type = graphqlSchema.getType(selectedSourceType);
 
           if (isObjectType(type)) {
-            const fields = type.getFields();
-            return Object.keys(fields).map((fieldName) => ({
+            const typeFields = type.getFields();
+            return Object.keys(typeFields).map((fieldName) => ({
               label: fieldName,
               value: fieldName,
-              type: fields[fieldName].type.toString(),
+              type: typeFields[fieldName].type.toString(),
             }));
           }
 
@@ -99,8 +99,8 @@ export default function SchemaToArgumentMapSelector({
             return [];
           }
 
-          const fields = queryType.getFields();
-          const targetFieldObject = fields[selectedTargetField];
+          const queryFields = queryType.getFields();
+          const targetFieldObject = queryFields[selectedTargetField];
 
           if (!targetFieldObject?.args) {
             return [];

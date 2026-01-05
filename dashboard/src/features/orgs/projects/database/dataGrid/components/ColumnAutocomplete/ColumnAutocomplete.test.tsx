@@ -49,6 +49,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('@/lib/utils', async () => {
+  // biome-ignore lint/suspicious/noExplicitAny: test file
   const actual = await vi.importActual<any>('@/lib/utils');
   return {
     ...actual,

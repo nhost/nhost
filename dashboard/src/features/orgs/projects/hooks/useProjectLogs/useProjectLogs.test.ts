@@ -42,12 +42,14 @@ vi.mock('@/utils/splitGraphqlClient', () => ({
     stop: vi.fn(),
     getStats: vi.fn(),
     localState: {},
+    // biome-ignore lint/suspicious/noExplicitAny: test file
     queryManager: {} as any,
     typeDefs: undefined,
   },
 }));
 
 vi.mock('@/utils/__generated__/graphql', async () => {
+  // biome-ignore lint/suspicious/noExplicitAny: test file
   const actual = await vi.importActual<any>('@/utils/__generated__/graphql');
   return {
     ...actual,
@@ -162,6 +164,7 @@ describe('useProjectLogs - Subscription Creation & Cleanup', () => {
       const { rerender } = renderHook(({ props }) => useProjectLogs(props), {
         initialProps: {
           props: { ...defaultProps, to: null },
+          // biome-ignore lint/suspicious/noExplicitAny: test file
         } as any,
       });
 
@@ -253,6 +256,7 @@ describe('useProjectLogs - Subscription Creation & Cleanup', () => {
       const { rerender } = renderHook(({ props }) => useProjectLogs(props), {
         initialProps: {
           props: { ...defaultProps, to: null },
+          // biome-ignore lint/suspicious/noExplicitAny: test file
         } as any,
       });
 

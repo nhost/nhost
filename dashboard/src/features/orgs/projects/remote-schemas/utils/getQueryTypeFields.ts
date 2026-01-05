@@ -1,4 +1,4 @@
-import { type IntrospectionQuery } from 'graphql';
+import type { IntrospectionQuery } from 'graphql';
 import convertIntrospectionToSchema from './convertIntrospectionToSchema';
 
 /**

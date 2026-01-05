@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/suspicious/noThenProperty: yup thing */
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';

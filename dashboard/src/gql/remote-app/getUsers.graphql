@@ -20,7 +20,6 @@ fragment RemoteAppGetUsers on users {
     id
     providerId
   }
-  disabled
 }
 
 query remoteAppGetUsersAndAuthRoles(

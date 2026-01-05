@@ -51,7 +51,6 @@ export default function EditGraphQLCustomizations({
     useIntrospectRemoteSchemaQuery(remoteSchemaName);
 
   const schemaTypes = useMemo(() => {
-    // eslint-disable-next-line no-underscore-dangle
     const types = (data?.__schema?.types ??
       []) as GraphQLTypeForVisualization[];
     return types.filter(
@@ -386,6 +385,7 @@ export default function EditGraphQLCustomizations({
                 (rawFieldNames as RemoteSchemaCustomizationFieldNamesItem[])?.[
                   index
                 ]?.parent_type) ||
+              // biome-ignore lint/suspicious/noExplicitAny: TODO
               (row as any)?.parent_type;
             const fields = getParentTypeFields(parentTypeValue);
             return (
@@ -396,6 +396,7 @@ export default function EditGraphQLCustomizations({
                     <Controller
                       name={`definition.customization.field_names.${index}.parent_type`}
                       control={control}
+                      // biome-ignore lint/suspicious/noExplicitAny: TODO
                       defaultValue={(row as any)?.parent_type}
                       render={({ field }) => (
                         <Popover>
@@ -485,6 +486,7 @@ export default function EditGraphQLCustomizations({
                               : v,
                         },
                       )}
+                      // biome-ignore lint/suspicious/noExplicitAny: TODO
                       defaultValue={(row as any)?.prefix ?? ''}
                       placeholder="prefix_"
                       hideEmptyHelperText
@@ -504,6 +506,7 @@ export default function EditGraphQLCustomizations({
                               : v,
                         },
                       )}
+                      // biome-ignore lint/suspicious/noExplicitAny: TODO
                       defaultValue={(row as any)?.suffix ?? ''}
                       placeholder="_suffix"
                       hideEmptyHelperText

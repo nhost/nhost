@@ -4,7 +4,15 @@ import useIntrospectRemoteSchemaQuery from '@/features/orgs/projects/remote-sche
 import convertIntrospectionToSchema from '@/features/orgs/projects/remote-schemas/utils/convertIntrospectionToSchema';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { SearchIcon, XIcon } from 'lucide-react';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  type FormEvent,
+  type KeyboardEvent as ReactKeyboardEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { toast } from 'react-hot-toast';
 import type { RemoteSchemaTreeRef } from './RemoteSchemaTree';
 import { RemoteSchemaTree } from './RemoteSchemaTree';
@@ -38,19 +46,22 @@ export default function RemoteSchemaPreview({
     return null;
   }, [introspectionData]);
 
-  const navigateToMatch = async (paths: string[][], index: number) => {
-    if (!treeRef.current || paths.length === 0) {
-      return;
-    }
+  const navigateToMatch = useCallback(
+    async (paths: string[][], index: number) => {
+      if (!treeRef.current || paths.length === 0) {
+        return;
+      }
 
-    const path = paths[index];
-    await treeRef.current.expandToItem(path);
-    const foundItemId = path[path.length - 1];
-    treeRef.current.selectItems([foundItemId]);
-    treeRef.current.focusItem(foundItemId);
-  };
+      const path = paths[index];
+      await treeRef.current.expandToItem(path);
+      const foundItemId = path[path.length - 1];
+      treeRef.current.selectItems([foundItemId]);
+      treeRef.current.focusItem(foundItemId);
+    },
+    [],
+  );
 
-  const handleSearch = async (e?: React.FormEvent) => {
+  const handleSearch = async (e?: FormEvent) => {
     e?.preventDefault();
 
     if (!searchTerm.trim() || !treeRef.current) {
@@ -77,7 +88,7 @@ export default function RemoteSchemaPreview({
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: ReactKeyboardEvent) => {
     if (e.key === 'Enter' && matches.length > 0) {
       e.preventDefault();
       const step = e.shiftKey ? -1 : 1;
@@ -112,7 +123,7 @@ export default function RemoteSchemaPreview({
     };
     window.addEventListener('keydown', onKeyDown, { capture: true });
     return () => window.removeEventListener('keydown', onKeyDown, true);
-  }, [matches, matchIndex]);
+  }, [matches, matchIndex, navigateToMatch]);
 
   if (isLoading) {
     return (

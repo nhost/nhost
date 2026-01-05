@@ -14,11 +14,12 @@ export default function buildTestWebhookTransformDTO({
     body = formValues.payloadTransform?.sampleInput
       ? JSON.parse(formValues.payloadTransform.sampleInput)
       : null;
-  } catch (error) {
+  } catch {
     throw new Error('Invalid sample input. Please enter a valid JSON string.');
   }
 
   const env = formValues.sampleContext.reduce((acc, item) => {
+    // biome-ignore lint/style/noParameterAssign: Disabled to avoid spread operator performance overhead in reduce.
     acc[item.key] = item.value;
     return acc;
   }, {});

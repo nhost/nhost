@@ -52,7 +52,7 @@ function printTypeSDL(
   if (type.children) {
     type.children.forEach((f) => {
       if (!f.checked) {
-        return null;
+        return;
       }
 
       let fieldStr = f.name;
@@ -97,7 +97,6 @@ function printTypeSDL(
       } else {
         result = `${result}\n      ${fieldStr}`;
       }
-      return true;
     });
   }
 

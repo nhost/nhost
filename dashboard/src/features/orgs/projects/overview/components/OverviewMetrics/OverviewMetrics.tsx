@@ -60,7 +60,7 @@ export default function OverviewMetrics() {
   } = useGetProjectMetricsQuery({
     variables: {
       appId: project?.id,
-      subdomain: project?.subdomain!,
+      subdomain: project!.subdomain!,
       from: new Date(now.getFullYear(), now.getMonth(), 1),
     },
     skip: !project,

@@ -22,24 +22,23 @@ export default function MainNav({ container }: MainNavProps) {
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const { open, setOpen, mainNavPinned, setMainNavPinned } = useTreeNavState();
 
-  const scrollToCurrentPath = () => {
-    requestAnimationFrame(() => {
-      const element = document.querySelector(`a[href="${asPath}"]`);
-      if (element && scrollContainerRef.current) {
-        element.scrollIntoView({ block: 'center' });
-      }
-    });
-  };
-
   useEffect(() => {
     if (open) {
+      const scrollToCurrentPath = () => {
+        requestAnimationFrame(() => {
+          const element = document.querySelector(`a[href="${asPath}"]`);
+          if (element && scrollContainerRef.current) {
+            element.scrollIntoView({ block: 'center' });
+          }
+        });
+      };
       scrollToCurrentPath();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  }, [open, asPath]);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
+      {/** biome-ignore lint/a11y/noStaticElementInteractions: hover opens the sheet */}
       <div
         className="min- absolute left-0 z-[39] flex h-full w-6 justify-center border-r-[1px] bg-background pt-1 hover:bg-accent"
         onMouseEnter={() => setOpen(true)}

@@ -111,6 +111,7 @@ export default function JWTSettings() {
     },
   });
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: need to reset the form when jwtSecrets changes
   useEffect(() => {
     if (!jwtSecretsLoading && !jwtSecretsError) {
       form.reset({

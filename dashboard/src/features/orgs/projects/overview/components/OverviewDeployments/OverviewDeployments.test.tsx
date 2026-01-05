@@ -68,6 +68,7 @@ test('should render an empty state when GitHub is not connected', async () => {
     http.post(
       'https://local.graphql.local.nhost.run/v1',
       async ({ request }) => {
+        // biome-ignore lint/suspicious/noExplicitAny: test file
         const { operationName } = (await request.json()) as any;
         if (operationName === 'getProject') {
           return HttpResponse.json({
@@ -106,6 +107,7 @@ test('should render an empty state when GitHub is connected, but there are no de
     http.post(
       'https://local.graphql.local.nhost.run/v1',
       async ({ request }) => {
+        // biome-ignore lint/suspicious/noExplicitAny: test file
         const { operationName } = (await request.json()) as any;
 
         if (operationName === 'getProject') {
@@ -150,6 +152,7 @@ test('should render a list of deployments', async () => {
     http.post(
       'https://local.graphql.local.nhost.run/v1',
       async ({ request }) => {
+        // biome-ignore lint/suspicious/noExplicitAny: test file
         const { operationName } = (await request.json()) as any;
 
         if (operationName === 'ScheduledOrPendingDeploymentsSub') {
@@ -216,6 +219,7 @@ test('should disable redeployments if a deployment is already in progress', asyn
     http.post(
       'https://local.graphql.local.nhost.run/v1',
       async ({ request }) => {
+        // biome-ignore lint/suspicious/noExplicitAny: test file
         const { operationName } = (await request.json()) as any;
 
         if (operationName === 'ScheduledOrPendingDeploymentsSub') {

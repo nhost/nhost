@@ -1,4 +1,3 @@
-/* eslint-disable no-await-in-loop */
 import {
   TEST_ONBOARDING_USER,
   TEST_ORGANIZATION_SLUG,
@@ -12,7 +11,7 @@ import { expect } from '@/e2e/fixtures/auth-hook';
 import { isEmptyValue } from '@/lib/utils';
 import type { ExportMetadataResponse } from '@/utils/hasura-api/generated/schemas';
 import { faker } from '@faker-js/faker';
-import { type Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
 import { add, format } from 'date-fns-v4';
 
 /**
@@ -84,12 +83,10 @@ export async function prepareTable({
 
         // set type
         await page
-          .getByRole('table')
           .getByRole('combobox', { name: /type/i })
           .nth(calculatedIndex)
           .type(type);
         await page
-          .getByRole('table')
           .getByRole('option', { name: type })
           .first()
           .click();
@@ -97,12 +94,10 @@ export async function prepareTable({
         // optionally set default value
         if (defaultValue) {
           await page
-            .getByRole('table')
             .getByRole('combobox', { name: /default value/i })
             .nth(calculatedIndex)
             .type(defaultValue);
           await page
-            .getByRole('table')
             .getByRole('option', { name: defaultValue })
             .first()
             .click();
@@ -139,7 +134,6 @@ export async function prepareTable({
   await expect(
     page.getByRole('option', { name: columns[0].name, exact: true }),
   ).toBeVisible();
-  // eslint-disable-next-line no-restricted-syntax
   for (const primaryKey of primaryKeys) {
     await page.waitForTimeout(1000);
     await page.getByRole('option', { name: primaryKey, exact: true }).click();
@@ -289,69 +283,61 @@ export async function cleanupOnboardingTestIfNeeded() {
   const signinUrl = `https://${TEST_STAGING_SUBDOMAIN}.auth.${TEST_STAGING_REGION}.nhost.run/v1/signin/email-password`;
   const graphqlUrl = `https://${TEST_STAGING_SUBDOMAIN}.graphql.${TEST_STAGING_REGION}.nhost.run/v1`;
 
-  try {
-    const response = await fetch(signinUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: TEST_ONBOARDING_USER,
-        password: TEST_USER_PASSWORD,
-      }),
-    });
-    const data = await response.json();
+  const response = await fetch(signinUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      email: TEST_ONBOARDING_USER,
+      password: TEST_USER_PASSWORD,
+    }),
+  });
+  const data = await response.json();
 
-    const userId = data.session?.user?.id;
-    const accessToken = data.session?.accessToken;
-    const organizationPayload = {
-      query: `
+  const userId = data.session?.user?.id;
+  const accessToken = data.session?.accessToken;
+  const organizationPayload = {
+    query: `
       query {
         organizations(where: { members: {userID: {_eq: "${userId}"}} }) {
           id
         }
       }`,
-    };
+  };
 
-    const authHeader = `Bearer ${accessToken}`;
+  const authHeader = `Bearer ${accessToken}`;
 
-    const orgResponse = await fetch(graphqlUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: authHeader,
-      },
-      body: JSON.stringify(organizationPayload),
-    });
+  const orgResponse = await fetch(graphqlUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: authHeader,
+    },
+    body: JSON.stringify(organizationPayload),
+  });
 
-    const orgData = await orgResponse.json();
+  const orgData = await orgResponse.json();
 
-    const organizations = orgData.data?.organizations;
+  const organizations = orgData.data?.organizations;
 
-    if (organizations && organizations.length > 0) {
-      // eslint-disable-next-line no-console
-      console.log('Cleaning up organization');
-      await Promise.all(
-        organizations.map(({ id }) =>
-          fetch(graphqlUrl, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: authHeader,
-            },
-            body: JSON.stringify({
-              query: `
+  if (organizations && organizations.length > 0) {
+    await Promise.all(
+      organizations.map(({ id }) =>
+        fetch(graphqlUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: authHeader,
+          },
+          body: JSON.stringify({
+            query: `
             mutation {
               billingDeleteOrganization(organizationID: "${id}")
             }
           `,
-            }),
           }),
-        ),
-      );
-    }
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.log(error);
-    throw error;
+        }),
+      ),
+    );
   }
 }
 

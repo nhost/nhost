@@ -318,69 +318,67 @@ export default function DataGridPreviewCell<TData extends object>({
           'flex items-center justify-center overflow-hidden rounded-md',
         )}
       >
-        <>
-          <DialogTitle className="hidden">{alt}</DialogTitle>
-          <DialogDescription className="hidden">{alt}</DialogDescription>
-          {previewLoading && !previewUrl && (
-            <Spinner
-              className={cn('h-5 w-5', {
-                '!stroke-[#1e324b]': !isJson,
-              })}
-              wrapperClassName={cn('flex-row gap-1 text-xs', {
-                'text-disabled': isJson,
-                'text-gray-600': !isJson,
-              })}
-            >
-              Loading preview...
-            </Spinner>
-          )}
-          {previewError && (
-            <div className="px-6 py-3.5 pr-12 text-start font-medium !text-error-main">
-              <p>Error: Preview can&apos;t be loaded.</p>
+        <DialogTitle className="hidden">{alt}</DialogTitle>
+        <DialogDescription className="hidden">{alt}</DialogDescription>
+        {previewLoading && !previewUrl && (
+          <Spinner
+            className={cn('h-5 w-5', {
+              '!stroke-[#1e324b]': !isJson,
+            })}
+            wrapperClassName={cn('flex-row gap-1 text-xs', {
+              'text-disabled': isJson,
+              'text-gray-600': !isJson,
+            })}
+          >
+            Loading preview...
+          </Spinner>
+        )}
+        {previewError && (
+          <div className="px-6 py-3.5 pr-12 text-start font-medium !text-error-main">
+            <p>Error: Preview can&apos;t be loaded.</p>
 
-              <p>{previewError?.message}</p>
-            </div>
+            <p>{previewError?.message}</p>
+          </div>
+        )}
+        {previewUrl && isImage && (
+          <picture className="flex h-full max-h-full items-center justify-center">
+            <source srcSet={previewUrl} type={mimeType} />
+            <img
+              src={previewUrl}
+              alt={alt}
+              className="h-full max-w-full object-contain"
+            />
+          </picture>
+        )}
+        {previewUrl && isVideo && (
+          <video
+            autoPlay
+            controls
+            className="h-full w-full rounded-sm bg-black"
+          >
+            <track kind="captions" />
+            <source src={previewUrl} type={mimeType} />
+            Your browser does not support the video tag.
+          </video>
+        )}
+        {previewUrl && isAudio && (
+          <audio autoPlay controls className="h-28 bg-black">
+            <track kind="captions" />
+            <source src={previewUrl} type={mimeType} />
+            Your browser does not support the audio tag.
+          </audio>
+        )}
+        {!previewLoading &&
+          previewUrl &&
+          !previewableImages.includes(mimeType) &&
+          !isVideo &&
+          !isAudio && (
+            <iframe
+              src={previewUrl}
+              className="h-near-screen w-full"
+              title="File preview"
+            />
           )}
-          {previewUrl && isImage && (
-            <picture className="flex h-full max-h-full items-center justify-center">
-              <source srcSet={previewUrl} type={mimeType} />
-              <img
-                src={previewUrl}
-                alt={alt}
-                className="h-full max-w-full object-contain"
-              />
-            </picture>
-          )}
-          {previewUrl && isVideo && (
-            <video
-              autoPlay
-              controls
-              className="h-full w-full rounded-sm bg-black"
-            >
-              <track kind="captions" />
-              <source src={previewUrl} type={mimeType} />
-              Your browser does not support the video tag.
-            </video>
-          )}
-          {previewUrl && isAudio && (
-            <audio autoPlay controls className="h-28 bg-black">
-              <track kind="captions" />
-              <source src={previewUrl} type={mimeType} />
-              Your browser does not support the audio tag.
-            </audio>
-          )}
-          {!previewLoading &&
-            previewUrl &&
-            !previewableImages.includes(mimeType) &&
-            !isVideo &&
-            !isAudio && (
-              <iframe
-                src={previewUrl}
-                className="h-near-screen w-full"
-                title="File preview"
-              />
-            )}
-        </>
       </DialogContent>
     </Dialog>
   );

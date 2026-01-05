@@ -39,6 +39,7 @@ import getBaseTypeName from '@/features/orgs/projects/remote-schemas/utils/getBa
 import parsePresetArgTreeFromSDL from '@/features/orgs/projects/remote-schemas/utils/parsePresetArgTreeFromSDL';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { DialogFormProps } from '@/types/common';
+import type { RemoteSchemaInfoPermissionsItem } from '@/utils/hasura-api/generated/schemas';
 import * as CheckboxPrimitive from '@radix-ui/react-checkbox';
 import { Check } from 'lucide-react';
 
@@ -62,7 +63,7 @@ export interface RemoteSchemaRolePermissionsEditorFormProps
   /**
    * Existing permission for this role (if any).
    */
-  permission?: any;
+  permission: RemoteSchemaInfoPermissionsItem;
   /**
    * Function to be called when the operation is completed.
    */

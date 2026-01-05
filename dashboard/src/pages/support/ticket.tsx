@@ -106,7 +106,13 @@ function TicketPage() {
   };
 
   const handleSubmit = async (formValues: CreateTicketFormValues) => {
-    const { project, services, priority: priorityValue, subject, description } = formValues;
+    const {
+      project,
+      services,
+      priority: priorityValue,
+      subject,
+      description,
+    } = formValues;
 
     await execPromiseWithErrorToast(
       async () => {
@@ -255,21 +261,22 @@ function TicketPage() {
                     }}
                     error={!!errors.priority}
                     helperText={
-                      !!selectedOrganization && !canSetPriority
-                        ? (
-                            <>
-                              To set a higher priority, upgrade to a plan with an SLA.{' '}
-                              <a
-                                href="https://nhost.io/pricing"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-primary hover:underline"
-                              >
-                                View pricing
-                              </a>
-                            </>
-                          )
-                        : errors.priority?.message
+                      !!selectedOrganization && !canSetPriority ? (
+                        <>
+                          To set a higher priority, upgrade to a plan with an
+                          SLA.{' '}
+                          <a
+                            href="https://nhost.io/pricing"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline"
+                          >
+                            View pricing
+                          </a>
+                        </>
+                      ) : (
+                        errors.priority?.message
+                      )
                     }
                     renderValue={(option) => (
                       <span className="inline-grid grid-flow-col items-center gap-2">

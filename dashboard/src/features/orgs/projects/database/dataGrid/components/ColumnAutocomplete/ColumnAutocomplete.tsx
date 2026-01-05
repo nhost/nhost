@@ -42,6 +42,7 @@ export interface ColumnAutocompleteProps
    */
   onChange?: (value: {
     value: string;
+    // biome-ignore lint/suspicious/noExplicitAny: TODO
     columnMetadata?: Record<string, any>;
     disableReset?: boolean;
   }) => void;

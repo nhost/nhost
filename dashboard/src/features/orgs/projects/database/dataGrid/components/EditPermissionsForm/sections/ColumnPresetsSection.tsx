@@ -73,7 +73,6 @@ export default function ColumnPresetsSection({
   );
 
   if (tableError) {
-    // eslint-disable-next-line @typescript-eslint/no-throw-literal
     throw tableError;
   }
 

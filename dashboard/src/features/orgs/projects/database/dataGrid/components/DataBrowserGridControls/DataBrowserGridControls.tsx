@@ -27,7 +27,7 @@ export interface DataBrowserGridControlsProps {
   /**
    * Function to be called to refetch data.
    */
-  refetchData?: () => Promise<any>;
+  refetchData?: () => Promise<unknown>;
   /**
    * Function to be called when the button to add a new row is clicked.
    */

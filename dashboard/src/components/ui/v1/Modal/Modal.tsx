@@ -1,3 +1,4 @@
+//TODO: https://github.com/nhost/nhost/issues/3785
 import { ClientOnlyPortal } from '@/components/ui/v1/ClientOnlyPortal';
 import { Box } from '@/components/ui/v2/Box';
 import { Dialog, Transition } from '@headlessui/react';
@@ -8,12 +9,17 @@ import { Fragment } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 export interface ModalProps {
+  // biome-ignore lint/suspicious/noExplicitAny: Component is deprecated
   showModal: any;
+  // biome-ignore lint/suspicious/noExplicitAny: Component is deprecated
   close: any;
   afterLeave?: VoidFunction;
   children?: ReactNode;
+  // biome-ignore lint/suspicious/noExplicitAny: Component is deprecated
   Component?: any;
+  // biome-ignore lint/suspicious/noExplicitAny: Component is deprecated
   handler?: any;
+  // biome-ignore lint/suspicious/noExplicitAny: Component is deprecated
   data?: any;
   className?: string;
   wrapperClassName?: string;

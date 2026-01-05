@@ -12,7 +12,7 @@ import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { InfoCard } from '@/features/orgs/projects/overview/components/InfoCard';
 import { PortTypes } from '@/features/orgs/projects/services/components/ServiceForm/components/PortsFormSection/PortsFormSectionTypes';
-import { type ServiceFormValues } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
+import type { ServiceFormValues } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
 import { isNotEmptyValue } from '@/lib/utils';
 import type { ConfigRunServicePort } from '@/utils/__generated__/graphql';
 import { getRunServicePortURL } from '@/utils/helpers';
@@ -136,13 +136,14 @@ export default function PortsFormSection() {
               </Button>
             </Box>
 
+            {/* project and formValues are present */}
             {showURL(index) && (
               <InfoCard
                 title="URL"
                 value={getRunServicePortURL(
                   formValues.subdomain!,
-                  project?.region.name!,
-                  project?.region.domain!,
+                  project!.region.name!,
+                  project!.region.domain!,
                   formValues.ports![index] as ConfigRunServicePort,
                 )}
               />
