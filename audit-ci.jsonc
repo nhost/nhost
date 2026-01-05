@@ -3,7 +3,6 @@
   "$schema": "https://github.com/IBM/audit-ci/raw/main/docs/schema.json",
   "moderate": true,
   "allowlist": [
-    "GHSA-7mvr-c777-76hp", // https://github.com/advisories/GHSA-7mvr-c777-76hp Update package once Nix side is also updated
-    "GHSA-f5x3-32g6-xq36", // used by mintlify, remove when mintlify updates
+    "GHSA-7mvr-c777-76hp" // https://github.com/advisories/GHSA-7mvr-c777-76hp Update package once Nix side is also updated
   ]
 }

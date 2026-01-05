@@ -1,6 +1,5 @@
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { useUI } from '@/components/common/UIProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
@@ -20,7 +19,7 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { isNotEmptyValue } from '@/lib/utils';
+import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 
 const validationSchema = Yup.object({
   auth_fqdn: Yup.string(),
@@ -31,7 +30,6 @@ export type AuthDomainFormValues = Yup.InferType<typeof validationSchema>;
 export default function AuthDomain() {
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
-  const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
   const [isVerified, setIsVerified] = useState(false);
 
@@ -61,6 +59,23 @@ export default function AuthDomain() {
   const { networking } = data?.config?.auth?.resources || {};
   const initialValue = networking?.ingresses?.[0]?.fqdn?.[0];
 
+  const { formState, watch, setValue } = form;
+  const isDirty = Object.keys(formState.dirtyFields).length > 0;
+
+  const auth_fqdn = watch('auth_fqdn');
+
+  const submitButtonDisabled = (() => {
+    if (!isPlatform) {
+      return !isDirty;
+    }
+
+    if (isEmptyValue(auth_fqdn) && isDirty) {
+      return false;
+    }
+
+    return !isDirty || !isVerified;
+  })();
+
   useEffect(() => {
     if (!loading && data) {
       form.reset({ auth_fqdn: initialValue });
@@ -81,17 +96,17 @@ export default function AuthDomain() {
     throw error;
   }
 
-  const { formState, register, watch } = form;
-  const isDirty = Object.keys(formState.dirtyFields).length > 0;
-
-  const auth_fqdn = watch('auth_fqdn');
-
   async function handleSubmit(formValues: AuthDomainFormValues) {
-    const ingresses: ConfigIngressUpdateInput[] = isNotEmptyValue(
-      formValues.auth_fqdn?.length,
-    )
-      ? [{ fqdn: [formValues.auth_fqdn] }]
-      : [];
+    let ingresses: ConfigIngressUpdateInput[] | null;
+    let successMessage = '';
+
+    if (isNotEmptyValue(formValues.auth_fqdn)) {
+      ingresses = [{ fqdn: [formValues.auth_fqdn] }];
+      successMessage = 'Auth domain has been updated successfully.';
+    } else {
+      ingresses = null;
+      successMessage = 'Custom Auth domain has been removed successfully.';
+    }
 
     const updateConfigPromise = updateConfig({
       variables: {
@@ -128,20 +143,12 @@ export default function AuthDomain() {
       },
       {
         loadingMessage: 'Auth domain is being updated...',
-        successMessage: 'Auth domain has been updated successfully.',
+        successMessage,
         errorMessage:
           'An error occurred while trying to update the auth domain.',
       },
     );
   }
-
-  const isDisabled = () => {
-    if (!isPlatform) {
-      return !isDirty || maintenanceActive;
-    }
-
-    return !isDirty || maintenanceActive || (!isVerified && !initialValue);
-  };
 
   return (
     <FormProvider {...form}>
@@ -151,14 +158,20 @@ export default function AuthDomain() {
           description="Enter below your custom domain for the authentication service."
           slotProps={{
             submitButton: {
-              disabled: isDisabled(),
+              disabled: submitButtonDisabled,
               loading: formState.isSubmitting,
             },
           }}
           className="grid grid-flow-row gap-x-4 gap-y-4 px-4 lg:grid-cols-5"
         >
           <Input
-            {...register('auth_fqdn')}
+            value={auth_fqdn}
+            onChange={(e) => {
+              setValue('auth_fqdn', e.target.value, { shouldDirty: true });
+              if (isVerified) {
+                setIsVerified(false);
+              }
+            }}
             id="auth_fqdn"
             name="auth_fqdn"
             type="string"
@@ -175,6 +188,7 @@ export default function AuthDomain() {
               hostname={auth_fqdn}
               value={`lb.${project?.region.name}.${project?.region.domain}.`}
               onHostNameVerified={() => setIsVerified(true)}
+              saveEnabled={!submitButtonDisabled}
             />
           </div>
         </SettingsContainer>
