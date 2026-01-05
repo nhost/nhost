@@ -16,7 +16,7 @@ import {
 } from '@/generated/graphql';
 import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
@@ -69,7 +69,7 @@ export default function HasuraDomain() {
 
   const hasura_fqdn = watch('hasura_fqdn');
 
-  const submitButtonDisabled = useMemo(() => {
+  const submitButtonDisabled = (() => {
     if (!isPlatform) {
       return !isDirty;
     }
@@ -79,7 +79,7 @@ export default function HasuraDomain() {
     }
 
     return !isDirty || !isVerified;
-  }, [isPlatform, isDirty, hasura_fqdn, isVerified]);
+  })();
 
   if (loadingProject || loading) {
     return (

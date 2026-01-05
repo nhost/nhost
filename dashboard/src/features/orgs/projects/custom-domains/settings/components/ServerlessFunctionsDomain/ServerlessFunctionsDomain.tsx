@@ -11,7 +11,7 @@ import {
   type ConfigIngressUpdateInput,
 } from '@/generated/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
@@ -71,7 +71,7 @@ export default function ServerlessFunctionsDomain() {
 
   const functions_fqdn = watch('functions_fqdn');
 
-  const submitButtonDisabled = useMemo(() => {
+  const submitButtonDisabled = (() => {
     if (!isPlatform) {
       return !isDirty;
     }
@@ -81,7 +81,7 @@ export default function ServerlessFunctionsDomain() {
     }
 
     return !isDirty || !isVerified;
-  }, [isPlatform, isDirty, functions_fqdn, isVerified]);
+  })();
 
   if (loadingProject || loading) {
     return (
