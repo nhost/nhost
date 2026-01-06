@@ -17,6 +17,7 @@ const config: CodegenConfig = {
       preset: "client",
       presetConfig: {
         persistedDocuments: false,
+        fragmentMasking: false,
       },
       plugins: [
         {
