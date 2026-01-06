@@ -32,6 +32,7 @@ export default function VerifyDomain({
   const [loading, setLoading] = useState(false);
   const [fireLookupCNAME] = useDnsLookupCnameLazyQuery();
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: state needs to be reset when hostname or value changes
   useEffect(() => {
     setVerificationFailed(false);
     setVerificationSucceeded(false);
