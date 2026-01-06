@@ -1,12 +1,5 @@
 import { useEffect, useState } from 'react';
-import resolveConfig from 'tailwindcss/resolveConfig';
-import tailwindConfig from '../../../../tailwind.config';
-
-const fullConfig = resolveConfig(tailwindConfig);
-
-const {
-  theme: { screens },
-} = fullConfig;
+import screens from '@/constants/screens';
 
 const useMediaQuery = (query: keyof typeof screens): boolean => {
   const [isMatch, setMatch] = useState<boolean>(false);
