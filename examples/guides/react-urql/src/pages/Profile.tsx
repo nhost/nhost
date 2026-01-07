@@ -1,5 +1,5 @@
-import type { JSX } from "react";
-import { useAuth } from "../lib/nhost/AuthProvider";
+import type { JSX } from 'react';
+import { useAuth } from '../lib/nhost/AuthProvider';
 
 export default function Profile(): JSX.Element {
   const { user, session } = useAuth();
@@ -15,12 +15,12 @@ export default function Profile(): JSX.Element {
         <div className="space-y-5">
           <div className="profile-item">
             <strong>Display Name:</strong>
-            <span className="ml-2">{user?.displayName || "Not set"}</span>
+            <span className="ml-2">{user?.displayName || 'Not set'}</span>
           </div>
 
           <div className="profile-item">
             <strong>Email:</strong>
-            <span className="ml-2">{user?.email || "Not available"}</span>
+            <span className="ml-2">{user?.email || 'Not available'}</span>
           </div>
 
           <div className="profile-item">
@@ -28,22 +28,22 @@ export default function Profile(): JSX.Element {
             <span
               className="ml-2"
               style={{
-                fontFamily: "var(--font-geist-mono)",
-                fontSize: "0.875rem",
+                fontFamily: 'var(--font-geist-mono)',
+                fontSize: '0.875rem',
               }}
             >
-              {user?.id || "Not available"}
+              {user?.id || 'Not available'}
             </span>
           </div>
 
           <div className="profile-item">
             <strong>Roles:</strong>
-            <span className="ml-2">{user?.roles?.join(", ") || "None"}</span>
+            <span className="ml-2">{user?.roles?.join(', ') || 'None'}</span>
           </div>
 
           <div className="profile-item">
             <strong>Email Verified:</strong>
-            <span className="ml-2">{user?.emailVerified ? "Yes" : "No"}</span>
+            <span className="ml-2">{user?.emailVerified ? 'Yes' : 'No'}</span>
           </div>
         </div>
       </div>

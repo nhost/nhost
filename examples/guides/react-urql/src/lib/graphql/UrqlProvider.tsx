@@ -1,13 +1,13 @@
-import { authExchange } from "@urql/exchange-auth";
-import type { ReactNode } from "react";
+import { authExchange } from '@urql/exchange-auth';
+import type { ReactNode } from 'react';
 import {
   type Client,
   cacheExchange,
   createClient,
   fetchExchange,
   Provider,
-} from "urql";
-import { useAuth } from "../nhost/AuthProvider";
+} from 'urql';
+import { useAuth } from '../nhost/AuthProvider';
 
 interface UrqlProviderProps {
   children: ReactNode;
@@ -26,8 +26,8 @@ export const UrqlProvider = ({ children }: UrqlProviderProps) => {
 
   const client: Client = createClient({
     url:
-      import.meta.env["VITE_NHOST_GRAPHQL_URL"] ||
-      "https://local.graphql.local.nhost.run/v1",
+      import.meta.env['VITE_NHOST_GRAPHQL_URL'] ||
+      'https://local.graphql.local.nhost.run/v1',
     // Force POST requests (Hasura interprets GET requests as persisted queries)
     preferGetMethod: false,
     exchanges: [
@@ -46,7 +46,7 @@ export const UrqlProvider = ({ children }: UrqlProviderProps) => {
           },
           didAuthError(error) {
             return error.graphQLErrors.some((e) =>
-              e.message.includes("JWTExpired"),
+              e.message.includes('JWTExpired'),
             );
           },
           async refreshAuth() {
@@ -59,8 +59,8 @@ export const UrqlProvider = ({ children }: UrqlProviderProps) => {
               await nhost.refreshSession(60);
             } catch (e: unknown) {
               console.error(
-                "Error refreshing session:",
-                e instanceof Error ? e : "Unknown error",
+                'Error refreshing session:',
+                e instanceof Error ? e : 'Unknown error',
               );
               await nhost.auth.signOut({
                 refreshToken: currentSession.refreshToken,
