@@ -5,17 +5,17 @@ import {
   Outlet,
   Route,
   RouterProvider,
-} from "react-router-dom";
-import Navigation from "./components/Navigation";
-import ProtectedRoute from "./components/ProtectedRoute";
-import { AuthProvider } from "./lib/nhost/AuthProvider";
-import Files from "./pages/Files";
-import Home from "./pages/Home";
-import Profile from "./pages/Profile";
-import SignIn from "./pages/SignIn";
-import SignUp from "./pages/SignUp";
-import Todos from "./pages/Todos";
-import Verify from "./pages/Verify";
+} from 'react-router-dom';
+import Navigation from './components/Navigation';
+import ProtectedRoute from './components/ProtectedRoute';
+import { AuthProvider } from './lib/nhost/AuthProvider';
+import Files from './pages/Files';
+import Home from './pages/Home';
+import Profile from './pages/Profile';
+import SignIn from './pages/SignIn';
+import SignUp from './pages/SignUp';
+import Todos from './pages/Todos';
+import Verify from './pages/Verify';
 
 // Root layout component to wrap all routes
 const RootLayout = () => {
