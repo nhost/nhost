@@ -1,6 +1,6 @@
-import type { JSX } from "react";
-import { Navigate } from "react-router-dom";
-import { useAuth } from "../lib/nhost/AuthProvider";
+import type { JSX } from 'react';
+import { Navigate } from 'react-router-dom';
+import { useAuth } from '../lib/nhost/AuthProvider';
 
 export default function Home(): JSX.Element {
   const { isAuthenticated, isLoading } = useAuth();

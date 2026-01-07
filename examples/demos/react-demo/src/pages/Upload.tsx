@@ -1,8 +1,8 @@
-import type { FetchError } from "@nhost/nhost-js/fetch";
-import type { ErrorResponse, FileMetadata } from "@nhost/nhost-js/storage";
-import { type JSX, useCallback, useEffect, useRef, useState } from "react";
-import { useAuth } from "../lib/nhost/AuthProvider";
-import { formatFileSize } from "../lib/utils";
+import type { FetchError } from '@nhost/nhost-js/fetch';
+import type { ErrorResponse, FileMetadata } from '@nhost/nhost-js/storage';
+import { type JSX, useCallback, useEffect, useRef, useState } from 'react';
+import { useAuth } from '../lib/nhost/AuthProvider';
+import { formatFileSize } from '../lib/utils';
 
 interface DeleteStatus {
   message: string;
@@ -47,14 +47,14 @@ export default function Upload(): JSX.Element {
 
       if (response.body.errors) {
         throw new Error(
-          response.body.errors[0]?.message || "Failed to fetch files",
+          response.body.errors[0]?.message || 'Failed to fetch files',
         );
       }
 
       setFiles(response.body.data?.files || []);
     } catch (err) {
-      console.error("Error fetching files:", err);
-      setError("Failed to load files. Please try refreshing the page.");
+      console.error('Error fetching files:', err);
+      setError('Failed to load files. Please try refreshing the page.');
     } finally {
       setIsFetching(false);
     }
@@ -83,7 +83,7 @@ export default function Upload(): JSX.Element {
 
   const handleUpload = async (): Promise<void> => {
     if (!selectedFile) {
-      setError("Please select a file to upload");
+      setError('Please select a file to upload');
       return;
     }
 
@@ -93,21 +93,21 @@ export default function Upload(): JSX.Element {
     try {
       // Upload file using Nhost storage
       const response = await nhost.storage.uploadFiles({
-        "bucket-id": "default",
-        "file[]": [selectedFile],
+        'bucket-id': 'default',
+        'file[]': [selectedFile],
       });
 
       // Get the processed file data
       const uploadedFile = response.body.processedFiles?.[0];
       if (uploadedFile === undefined) {
-        throw new Error("Failed to upload file");
+        throw new Error('Failed to upload file');
       }
       setUploadResult(uploadedFile);
 
       // Reset form
       setSelectedFile(null);
       if (fileInputRef.current) {
-        fileInputRef.current.value = "";
+        fileInputRef.current.value = '';
       }
 
       setFiles((prevFiles) => [uploadedFile, ...prevFiles]);
@@ -144,17 +144,17 @@ export default function Upload(): JSX.Element {
 
       // Handle different file types appropriately
       if (
-        mimeType.startsWith("image/") ||
-        mimeType === "application/pdf" ||
-        mimeType.startsWith("text/") ||
-        mimeType.startsWith("video/") ||
-        mimeType.startsWith("audio/")
+        mimeType.startsWith('image/') ||
+        mimeType === 'application/pdf' ||
+        mimeType.startsWith('text/') ||
+        mimeType.startsWith('video/') ||
+        mimeType.startsWith('audio/')
       ) {
         // For media types that browsers can display natively, just open in a new tab
-        window.open(url, "_blank");
+        window.open(url, '_blank');
       } else {
         // For other file types, trigger download
-        const link = document.createElement("a");
+        const link = document.createElement('a');
         link.href = url;
         link.download = fileName;
         document.body.appendChild(link);
@@ -162,7 +162,7 @@ export default function Upload(): JSX.Element {
         document.body.removeChild(link);
 
         // Optional: Open a small window to inform the user about the download
-        const newWindow = window.open("", "_blank", "width=400,height=200");
+        const newWindow = window.open('', '_blank', 'width=400,height=200');
         if (newWindow) {
           newWindow.document.write(`
             <html>
@@ -184,7 +184,7 @@ export default function Upload(): JSX.Element {
     } catch (err) {
       const error = err as FetchError<ErrorResponse>;
       setError(`Failed to view file: ${error.message}`);
-      console.error("Error viewing file:", err);
+      console.error('Error viewing file:', err);
     } finally {
       setViewingFile(null);
     }
@@ -200,7 +200,7 @@ export default function Upload(): JSX.Element {
 
     // Get the file name for the status message
     const fileToDelete = files.find((file) => file.id === fileId);
-    const fileName = fileToDelete?.name || "File";
+    const fileName = fileToDelete?.name || 'File';
 
     try {
       // Delete the file using the Nhost storage SDK
@@ -229,7 +229,7 @@ export default function Upload(): JSX.Element {
         message: `Failed to delete ${fileName}: ${error.message}`,
         isError: true,
       });
-      console.error("Error deleting file:", err);
+      console.error('Error deleting file:', err);
     } finally {
       setDeleting(null);
     }
@@ -249,13 +249,13 @@ export default function Upload(): JSX.Element {
             ref={fileInputRef}
             onChange={handleFileChange}
             style={{
-              position: "absolute",
-              width: "1px",
-              height: "1px",
+              position: 'absolute',
+              width: '1px',
+              height: '1px',
               padding: 0,
-              margin: "-1px",
-              overflow: "hidden",
-              clip: "rect(0,0,0,0)",
+              margin: '-1px',
+              overflow: 'hidden',
+              clip: 'rect(0,0,0,0)',
               border: 0,
             }}
             aria-hidden="true"
@@ -287,9 +287,9 @@ export default function Upload(): JSX.Element {
             {selectedFile && (
               <p
                 style={{
-                  color: "var(--primary)",
-                  marginTop: "0.5rem",
-                  fontSize: "0.875rem",
+                  color: 'var(--primary)',
+                  marginTop: '0.5rem',
+                  fontSize: '0.875rem',
                 }}
               >
                 {selectedFile.name} ({formatFileSize(selectedFile.size)})
@@ -310,7 +310,7 @@ export default function Upload(): JSX.Element {
           disabled={!selectedFile || uploading}
           className="btn btn-primary w-full"
         >
-          {uploading ? "Uploading..." : "Upload File"}
+          {uploading ? 'Uploading...' : 'Upload File'}
         </button>
       </div>
 
@@ -320,7 +320,7 @@ export default function Upload(): JSX.Element {
 
         {deleteStatus && (
           <div
-            className={`alert ${deleteStatus.isError ? "alert-error" : "alert-success"} mb-4`}
+            className={`alert ${deleteStatus.isError ? 'alert-error' : 'alert-success'} mb-4`}
           >
             {deleteStatus.message}
           </div>
@@ -331,7 +331,7 @@ export default function Upload(): JSX.Element {
         ) : files.length === 0 ? (
           <p className="text-center">No files uploaded yet.</p>
         ) : (
-          <div style={{ overflowX: "auto" }}>
+          <div style={{ overflowX: 'auto' }}>
             <table>
               <thead>
                 <tr>
@@ -353,9 +353,9 @@ export default function Upload(): JSX.Element {
                           type="button"
                           onClick={() =>
                             handleViewFile(
-                              file.id || "unknown",
-                              file.name || "unknown",
-                              file.mimeType || "unknown",
+                              file.id || 'unknown',
+                              file.name || 'unknown',
+                              file.mimeType || 'unknown',
                             )
                           }
                           disabled={viewingFile === file.id}
@@ -394,7 +394,7 @@ export default function Upload(): JSX.Element {
                         </button>
                         <button
                           type="button"
-                          onClick={() => handleDeleteFile(file.id || "unknown")}
+                          onClick={() => handleDeleteFile(file.id || 'unknown')}
                           disabled={deleting === file.id}
                           className="action-icon action-icon-delete"
                           title="Delete File"
