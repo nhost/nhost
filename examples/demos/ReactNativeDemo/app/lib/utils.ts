@@ -5,11 +5,11 @@
  * @returns Formatted file size string (e.g., "1.23 MB")
  */
 export function formatFileSize(bytes: number, decimals = 2): string {
-  if (bytes === 0) return "0 Bytes";
+  if (bytes === 0) return '0 Bytes';
 
   const k = 1024;
   const dm = decimals < 0 ? 0 : decimals;
-  const sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
 
   const i = Math.floor(Math.log(bytes) / Math.log(k));
 
@@ -35,7 +35,7 @@ export function blobToBase64(blob: Blob): Promise<string> {
     reader.onloadend = () => {
       const base64data = reader.result as string;
       // Remove the data URL prefix (e.g., "data:application/octet-stream;base64,")
-      const base64Content = base64data.split(",")[1] || "";
+      const base64Content = base64data.split(',')[1] || '';
       resolve(base64Content);
     };
     reader.onerror = reject;

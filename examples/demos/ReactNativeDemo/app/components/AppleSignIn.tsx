@@ -1,12 +1,12 @@
-import * as AppleAuthentication from "expo-apple-authentication";
-import * as Crypto from "expo-crypto";
-import { router } from "expo-router";
-import React from "react";
-import { Alert, Platform, StyleSheet } from "react-native";
-import { useAuth } from "../lib/nhost/AuthProvider";
+import * as AppleAuthentication from 'expo-apple-authentication';
+import * as Crypto from 'expo-crypto';
+import { router } from 'expo-router';
+import React from 'react';
+import { Alert, Platform, StyleSheet } from 'react-native';
+import { useAuth } from '../lib/nhost/AuthProvider';
 
 interface AppleSignInProps {
-  action: "Sign In" | "Sign Up";
+  action: 'Sign In' | 'Sign Up';
   isLoading: boolean;
   setIsLoading: (isLoading: boolean) => void;
 }
@@ -19,7 +19,7 @@ const AppleSignIn: React.FC<AppleSignInProps> = ({ setIsLoading }) => {
 
   React.useEffect(() => {
     const checkAvailability = async () => {
-      if (Platform.OS === "ios") {
+      if (Platform.OS === 'ios') {
         const isAvailable = await AppleAuthentication.isAvailableAsync();
         setAppleAuthAvailable(isAvailable);
       }
@@ -54,23 +54,23 @@ const AppleSignIn: React.FC<AppleSignInProps> = ({ setIsLoading }) => {
         // Pass the original unhashed nonce to the SDK
         // so the server can verify it
         const response = await nhost.auth.signInIdToken({
-          provider: "apple",
+          provider: 'apple',
           idToken: credential.identityToken,
           nonce,
         });
 
         if (response.body?.session) {
-          router.replace("/profile");
+          router.replace('/profile');
         } else {
           Alert.alert(
-            "Authentication Error",
-            "Failed to authenticate with Nhost",
+            'Authentication Error',
+            'Failed to authenticate with Nhost',
           );
         }
       } else {
         Alert.alert(
-          "Authentication Error",
-          "No identity token received from Apple",
+          'Authentication Error',
+          'No identity token received from Apple',
         );
       }
     } catch (error: unknown) {
@@ -78,15 +78,15 @@ const AppleSignIn: React.FC<AppleSignInProps> = ({ setIsLoading }) => {
       const message =
         error instanceof Error
           ? error.message
-          : "Failed to authentica with Apple";
-      Alert.alert("Authentication Error", message);
+          : 'Failed to authentica with Apple';
+      Alert.alert('Authentication Error', message);
     } finally {
       setIsLoading(false);
     }
   };
 
   // Only show the button on iOS devices where Apple authentication is available
-  if (Platform.OS !== "ios" || !appleAuthAvailable) {
+  if (Platform.OS !== 'ios' || !appleAuthAvailable) {
     return null;
   }
 
@@ -103,7 +103,7 @@ const AppleSignIn: React.FC<AppleSignInProps> = ({ setIsLoading }) => {
 
 const styles = StyleSheet.create({
   appleButton: {
-    width: "100%",
+    width: '100%',
     height: 45,
     marginBottom: 10,
   },

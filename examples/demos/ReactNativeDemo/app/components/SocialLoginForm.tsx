@@ -1,17 +1,17 @@
-import { Ionicons } from "@expo/vector-icons";
-import * as Linking from "expo-linking";
-import { useState } from "react";
+import { Ionicons } from '@expo/vector-icons';
+import * as Linking from 'expo-linking';
+import { useState } from 'react';
 import {
   ActivityIndicator,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-} from "react-native";
-import { useAuth } from "../lib/nhost/AuthProvider";
+} from 'react-native';
+import { useAuth } from '../lib/nhost/AuthProvider';
 
 interface SocialLoginFormProps {
-  action: "Sign In" | "Sign Up";
+  action: 'Sign In' | 'Sign Up';
   isLoading?: boolean;
 }
 
@@ -22,9 +22,9 @@ export default function SocialLoginForm({
   const { nhost } = useAuth();
   const [isLoading] = useState(initialLoading);
 
-  const handleSocialLogin = (provider: "github") => {
+  const handleSocialLogin = (provider: 'github') => {
     // Use the same redirect URL approach as the magic link
-    const redirectUrl = Linking.createURL("verify");
+    const redirectUrl = Linking.createURL('verify');
 
     // Sign in with the specified provider
     const url = nhost.auth.signInProviderURL(provider, {
@@ -43,7 +43,7 @@ export default function SocialLoginForm({
       ) : (
         <TouchableOpacity
           style={styles.socialButton}
-          onPress={() => handleSocialLogin("github")}
+          onPress={() => handleSocialLogin('github')}
           disabled={isLoading}
         >
           <View style={styles.buttonContent}>
@@ -58,34 +58,34 @@ export default function SocialLoginForm({
 
 const styles = StyleSheet.create({
   socialContainer: {
-    alignItems: "center",
+    alignItems: 'center',
     paddingVertical: 10,
   },
   socialText: {
     fontSize: 16,
     marginBottom: 20,
-    textAlign: "center",
-    color: "#4a5568",
+    textAlign: 'center',
+    color: '#4a5568',
   },
   socialButton: {
-    backgroundColor: "#24292e",
+    backgroundColor: '#24292e',
     paddingVertical: 12,
     paddingHorizontal: 15,
     borderRadius: 5,
-    width: "100%",
+    width: '100%',
   },
   buttonContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   githubIcon: {
     marginRight: 10,
-    color: "#ffffff",
+    color: '#ffffff',
   },
   socialButtonText: {
-    color: "#ffffff",
+    color: '#ffffff',
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: '600',
   },
 });
