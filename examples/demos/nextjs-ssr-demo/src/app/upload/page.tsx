@@ -1,6 +1,6 @@
-import type { FileMetadata } from "@nhost/nhost-js/storage";
-import { createNhostClient } from "../lib/nhost/server";
-import UploadClient from "./client";
+import type { FileMetadata } from '@nhost/nhost-js/storage';
+import { createNhostClient } from '../lib/nhost/server';
+import UploadClient from './client';
 
 interface GetFilesResponse {
   files: FileMetadata[];
@@ -36,8 +36,8 @@ export default async function UploadPage() {
 
     files = response.body.data?.files || [];
   } catch (err) {
-    error = `Failed to load files: ${err instanceof Error ? err.message : "Unknown error"}`;
-    console.error("Error fetching files:", err);
+    error = `Failed to load files: ${err instanceof Error ? err.message : 'Unknown error'}`;
+    console.error('Error fetching files:', err);
   }
 
   return (

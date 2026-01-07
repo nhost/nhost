@@ -1,18 +1,18 @@
-"use client";
+'use client';
 
-import type { PublicKeyCredentialRequestOptions } from "@nhost/nhost-js/auth";
-import { startAuthentication } from "@simplewebauthn/browser";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { isWebAuthnSupported } from "../lib/utils";
-import { signInWebauthn, verifySignInWebauthn } from "../signin/actions";
+import type { PublicKeyCredentialRequestOptions } from '@nhost/nhost-js/auth';
+import { startAuthentication } from '@simplewebauthn/browser';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { isWebAuthnSupported } from '../lib/utils';
+import { signInWebauthn, verifySignInWebauthn } from '../signin/actions';
 
 interface WebAuthnSignInFormProps {
   buttonLabel?: string;
 }
 
 export default function WebAuthnSignInForm({
-  buttonLabel = "Sign In with Security Key",
+  buttonLabel = 'Sign In with Security Key',
 }: WebAuthnSignInFormProps) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,7 +34,7 @@ export default function WebAuthnSignInForm({
     try {
       // Check if WebAuthn is supported on this browser
       if (!isWebAuthnSupported()) {
-        setError("WebAuthn is not supported by your browser.");
+        setError('WebAuthn is not supported by your browser.');
         setIsLoading(false);
         return;
       }
@@ -49,7 +49,7 @@ export default function WebAuthnSignInForm({
       }
 
       if (!result.publicKeyCredentialRequestOptions) {
-        setError("Failed to get authentication challenge from server");
+        setError('Failed to get authentication challenge from server');
         setIsLoading(false);
         return;
       }
@@ -63,7 +63,7 @@ export default function WebAuthnSignInForm({
         });
 
         if (!credential) {
-          setError("No credential was selected.");
+          setError('No credential was selected.');
           setIsLoading(false);
           return;
         }
@@ -80,16 +80,16 @@ export default function WebAuthnSignInForm({
         if (verifyResult.redirect) {
           router.push(verifyResult.redirect);
         } else {
-          setError("Authentication failed: No redirect URL returned");
+          setError('Authentication failed: No redirect URL returned');
         }
       } catch (credError) {
         setError(
-          `WebAuthn authentication failed: ${(credError as Error).message || "Unknown error"}`,
+          `WebAuthn authentication failed: ${(credError as Error).message || 'Unknown error'}`,
         );
       }
     } catch (err) {
       setError(
-        `An error occurred during WebAuthn sign in: ${(err as Error).message || "Unknown error"}`,
+        `An error occurred during WebAuthn sign in: ${(err as Error).message || 'Unknown error'}`,
       );
     } finally {
       setIsLoading(false);
@@ -107,8 +107,8 @@ export default function WebAuthnSignInForm({
       >
         {isLoading
           ? challengeData
-            ? "Authenticating with your device..."
-            : "Initializing..."
+            ? 'Authenticating with your device...'
+            : 'Initializing...'
           : buttonLabel}
       </button>
 

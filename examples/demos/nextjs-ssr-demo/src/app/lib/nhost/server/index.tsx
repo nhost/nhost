@@ -1,7 +1,7 @@
-import { createServerClient, type NhostClient } from "@nhost/nhost-js";
-import { DEFAULT_SESSION_KEY, type Session } from "@nhost/nhost-js/session";
-import { cookies } from "next/headers";
-import type { NextRequest, NextResponse } from "next/server";
+import { createServerClient, type NhostClient } from '@nhost/nhost-js';
+import { DEFAULT_SESSION_KEY, type Session } from '@nhost/nhost-js/session';
+import { cookies } from 'next/headers';
+import type { NextRequest, NextResponse } from 'next/server';
 
 const key = DEFAULT_SESSION_KEY;
 
@@ -20,8 +20,8 @@ export async function createNhostClient(): Promise<NhostClient> {
   const cookieStore = await cookies();
 
   const nhost = createServerClient({
-    region: process.env["NHOST_REGION"] || "local",
-    subdomain: process.env["NHOST_SUBDOMAIN"] || "local",
+    region: process.env['NHOST_REGION'] || 'local',
+    subdomain: process.env['NHOST_SUBDOMAIN'] || 'local',
     storage: {
       // storage compatible with Next.js server components
       get: (): Session | null => {
@@ -59,8 +59,8 @@ export async function handleNhostMiddleware(
   response: NextResponse<unknown>,
 ): Promise<Session | null> {
   const nhost = createServerClient({
-    region: process.env["NHOST_REGION"] || "local",
-    subdomain: process.env["NHOST_SUBDOMAIN"] || "local",
+    region: process.env['NHOST_REGION'] || 'local',
+    subdomain: process.env['NHOST_SUBDOMAIN'] || 'local',
     storage: {
       // storage compatible with Next.js middleware
       get: (): Session | null => {
@@ -75,10 +75,10 @@ export async function handleNhostMiddleware(
         response.cookies.set({
           name: key,
           value: JSON.stringify(value),
-          path: "/",
+          path: '/',
           httpOnly: false, //if set to true we can't access it in the client
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "lax",
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
           maxAge: 60 * 60 * 24 * 30, // 30 days in seconds
         });
       },

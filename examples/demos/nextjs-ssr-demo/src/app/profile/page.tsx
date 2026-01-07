@@ -1,7 +1,7 @@
-import { createNhostClient } from "../lib/nhost/server";
-import ChangePassword from "./change-password";
-import MFASettings from "./mfa-settings";
-import SecurityKeys from "./security-keys";
+import { createNhostClient } from '../lib/nhost/server';
+import ChangePassword from './change-password';
+import MFASettings from './mfa-settings';
+import SecurityKeys from './security-keys';
 
 interface GetUserMfaStatusResponse {
   user: {
@@ -33,13 +33,13 @@ export default async function Profile() {
       });
 
       // MFA is enabled if activeMfaType is "totp"
-      isMfaEnabled = response.body.data?.user?.activeMfaType === "totp";
+      isMfaEnabled = response.body.data?.user?.activeMfaType === 'totp';
 
       if (response.body.errors && response.body.errors.length > 0) {
-        console.error("Error fetching MFA status:", response.body.errors);
+        console.error('Error fetching MFA status:', response.body.errors);
       }
     } catch (err) {
-      console.error("Failed to query MFA status:", err);
+      console.error('Failed to query MFA status:', err);
     }
   }
 
@@ -52,14 +52,14 @@ export default async function Profile() {
           <div className="profile-item">
             <strong>Display Name:</strong>
             <span className="ml-2">
-              {session?.user?.displayName || "Not set"}
+              {session?.user?.displayName || 'Not set'}
             </span>
           </div>
 
           <div className="profile-item">
             <strong>Email:</strong>
             <span className="ml-2">
-              {session?.user?.email || "Not available"}
+              {session?.user?.email || 'Not available'}
             </span>
           </div>
 
@@ -68,25 +68,25 @@ export default async function Profile() {
             <span
               className="ml-2"
               style={{
-                fontFamily: "var(--font-geist-mono)",
-                fontSize: "0.875rem",
+                fontFamily: 'var(--font-geist-mono)',
+                fontSize: '0.875rem',
               }}
             >
-              {session?.user?.id || "Not available"}
+              {session?.user?.id || 'Not available'}
             </span>
           </div>
 
           <div className="profile-item">
             <strong>Roles:</strong>
             <span className="ml-2">
-              {session?.user?.roles?.join(", ") || "None"}
+              {session?.user?.roles?.join(', ') || 'None'}
             </span>
           </div>
 
           <div className="profile-item">
             <strong>Email Verified:</strong>
             <span className="ml-2">
-              {session?.user?.emailVerified ? "Yes" : "No"}
+              {session?.user?.emailVerified ? 'Yes' : 'No'}
             </span>
           </div>
         </div>
