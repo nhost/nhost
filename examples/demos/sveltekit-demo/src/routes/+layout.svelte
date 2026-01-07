@@ -1,11 +1,11 @@
 <script lang="ts">
-import { onMount } from "svelte";
-import { goto } from "$app/navigation";
-import { page } from "$app/stores";
-import { auth, initializeAuth, nhost } from "$lib/nhost/auth";
-import "../app.css";
+import { onMount } from 'svelte';
+import { goto } from '$app/navigation';
+import { page } from '$app/stores';
+import { auth, initializeAuth, nhost } from '$lib/nhost/auth';
+import '../app.css';
 
-let { children }: { children?: import("svelte").Snippet } = $props();
+let { children }: { children?: import('svelte').Snippet } = $props();
 
 // Initialize auth when component mounts
 onMount(() => {
@@ -14,7 +14,7 @@ onMount(() => {
 
 // Helper function to determine if a link is active
 function isActive(path: string): string {
-  return $page.url.pathname === path ? "active" : "";
+  return $page.url.pathname === path ? 'active' : '';
 }
 
 async function handleSignOut() {
@@ -22,7 +22,7 @@ async function handleSignOut() {
     await nhost.auth.signOut({
       refreshToken: $auth.session.refreshToken,
     });
-    void goto("/");
+    void goto('/');
   }
 }
 </script>

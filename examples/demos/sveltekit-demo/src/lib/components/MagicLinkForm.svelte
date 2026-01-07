@@ -1,17 +1,17 @@
 <script lang="ts">
-import type { ErrorResponse } from "@nhost/nhost-js/auth";
-import type { FetchError } from "@nhost/nhost-js/fetch";
-import { goto } from "$app/navigation";
-import { page } from "$app/stores";
-import { nhost } from "$lib/nhost/auth";
+import type { ErrorResponse } from '@nhost/nhost-js/auth';
+import type { FetchError } from '@nhost/nhost-js/fetch';
+import { goto } from '$app/navigation';
+import { page } from '$app/stores';
+import { nhost } from '$lib/nhost/auth';
 
 interface Props {
   buttonLabel?: string;
 }
 
-let { buttonLabel = "Send Magic Link" }: Props = $props();
+let { buttonLabel = 'Send Magic Link' }: Props = $props();
 
-let email = $state("");
+let email = $state('');
 let isLoading = $state(false);
 let success = $state(false);
 let error = $state<string | null>(null);
@@ -42,7 +42,7 @@ async function handleSubmit(e: Event) {
 
 function tryAgain() {
   success = false;
-  email = "";
+  email = '';
   error = null;
 }
 </script>

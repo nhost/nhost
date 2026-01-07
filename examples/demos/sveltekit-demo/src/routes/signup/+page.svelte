@@ -1,27 +1,27 @@
 <script lang="ts">
-import type { ErrorResponse } from "@nhost/nhost-js/auth";
-import type { FetchError } from "@nhost/nhost-js/fetch";
-import { goto } from "$app/navigation";
-import { page } from "$app/stores";
-import MagicLinkForm from "$lib/components/MagicLinkForm.svelte";
-import TabForm from "$lib/components/TabForm.svelte";
-import WebAuthnSignUpForm from "$lib/components/WebAuthnSignUpForm.svelte";
-import { auth, nhost } from "$lib/nhost/auth";
+import type { ErrorResponse } from '@nhost/nhost-js/auth';
+import type { FetchError } from '@nhost/nhost-js/fetch';
+import { goto } from '$app/navigation';
+import { page } from '$app/stores';
+import MagicLinkForm from '$lib/components/MagicLinkForm.svelte';
+import TabForm from '$lib/components/TabForm.svelte';
+import WebAuthnSignUpForm from '$lib/components/WebAuthnSignUpForm.svelte';
+import { auth, nhost } from '$lib/nhost/auth';
 
-let email = $state("");
-let password = $state("");
-let displayName = $state("");
+let email = $state('');
+let password = $state('');
+let displayName = $state('');
 let isLoading = $state(false);
 let error = $state<string | null>(null);
 let success = $state(false);
 
 let params = $derived(new URLSearchParams($page.url.search));
-let magicLinkSent = $derived(params.get("magic") === "success");
+let magicLinkSent = $derived(params.get('magic') === 'success');
 
 // If already authenticated, redirect to profile
 $effect(() => {
   if ($auth.isAuthenticated) {
-    void goto("/profile");
+    void goto('/profile');
   }
 });
 
@@ -42,7 +42,7 @@ async function handleSubmit(e: Event) {
 
     if (response.body?.session) {
       // Successfully signed up and automatically signed in
-      void goto("/profile");
+      void goto('/profile');
     } else {
       // Verification email sent
       success = true;
@@ -55,7 +55,7 @@ async function handleSubmit(e: Event) {
   }
 }
 
-function handleSocialSignIn(provider: "github") {
+function handleSocialSignIn(provider: 'github') {
   // Get the current origin (to build the redirect URL)
   const origin = window.location.origin;
   const redirectUrl = `${origin}/verify`;

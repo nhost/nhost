@@ -1,5 +1,5 @@
 <script lang="ts">
-import type { Snippet } from "svelte";
+import type { Snippet } from 'svelte';
 
 interface Props {
   passwordTabContent: Snippet;
@@ -15,8 +15,8 @@ let {
   webauthnTabContent,
 }: Props = $props();
 
-let activeTab: "password" | "magic" | "social" | "webauthn" =
-  $state("password");
+let activeTab: 'password' | 'magic' | 'social' | 'webauthn' =
+  $state('password');
 </script>
 
 <div>

@@ -1,12 +1,12 @@
 <script lang="ts">
-import type { ErrorResponse } from "@nhost/nhost-js/auth";
-import type { FetchError, FetchResponse } from "@nhost/nhost-js/fetch";
-import { onMount } from "svelte";
-import { goto } from "$app/navigation";
-import ChangePassword from "$lib/components/ChangePassword.svelte";
-import MFASettings from "$lib/components/MFASettings.svelte";
-import SecurityKeys from "$lib/components/SecurityKeys.svelte";
-import { auth, nhost } from "$lib/nhost/auth";
+import type { ErrorResponse } from '@nhost/nhost-js/auth';
+import type { FetchError, FetchResponse } from '@nhost/nhost-js/fetch';
+import { onMount } from 'svelte';
+import { goto } from '$app/navigation';
+import ChangePassword from '$lib/components/ChangePassword.svelte';
+import MFASettings from '$lib/components/MFASettings.svelte';
+import SecurityKeys from '$lib/components/SecurityKeys.svelte';
+import { auth, nhost } from '$lib/nhost/auth';
 
 interface MfaStatusResponse {
   data?: {
@@ -21,7 +21,7 @@ let isMfaEnabled = $state(false);
 // Redirect if not authenticated
 $effect(() => {
   if (!$auth.isLoading && !$auth.isAuthenticated) {
-    void goto("/signin");
+    void goto('/signin');
   }
 });
 
@@ -47,7 +47,7 @@ onMount(async () => {
 
     const userData = response.body?.data;
     const activeMfaType = userData?.user?.activeMfaType;
-    isMfaEnabled = activeMfaType === "totp";
+    isMfaEnabled = activeMfaType === 'totp';
   } catch (err) {
     const error = err as FetchError<ErrorResponse>;
     console.error(`Failed to query MFA status: ${error.message}`);
