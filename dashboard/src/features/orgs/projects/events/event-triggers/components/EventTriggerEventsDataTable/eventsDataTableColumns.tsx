@@ -24,7 +24,7 @@ function DeliveredCell({ delivered }: { delivered: boolean }) {
 const columns: ColumnDef<EventLogEntry>[] = [
   {
     id: 'actions',
-    size: 0,
+    size: 20,
     enableResizing: false,
     enableSorting: false,
     cell: ({ row }) => <EventTriggerEventsLogActionsCell row={row} />,
@@ -32,8 +32,7 @@ const columns: ColumnDef<EventLogEntry>[] = [
   {
     id: 'created_at',
     accessorKey: 'created_at',
-    minSize: 50,
-    size: 68,
+    size: 190,
     enableResizing: true,
     header: ({ column }) => (
       <SortableHeader column={column} label="Created At" />
@@ -50,7 +49,7 @@ const columns: ColumnDef<EventLogEntry>[] = [
     accessorKey: 'delivered',
     minSize: 70,
     size: 70,
-    maxSize: 70,
+    maxSize: 140,
     enableResizing: true,
     header: () => <div className="p-2 text-center">Delivered</div>,
     enableSorting: false,
@@ -62,7 +61,7 @@ const columns: ColumnDef<EventLogEntry>[] = [
     header: () => <div className="p-2">ID</div>,
     minSize: 40,
     size: 280,
-    maxSize: 600,
+    maxSize: 560,
     enableResizing: true,
     cell: ({ row }) => (
       <TextWithTooltip
@@ -75,8 +74,7 @@ const columns: ColumnDef<EventLogEntry>[] = [
   {
     id: 'tries',
     accessorKey: 'tries',
-    minSize: 80,
-    size: 80,
+    size: 40,
     maxSize: 80,
     enableResizing: true,
     header: () => <div className="p-2">Tries</div>,

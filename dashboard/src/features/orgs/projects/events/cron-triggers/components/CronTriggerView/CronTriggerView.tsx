@@ -102,40 +102,46 @@ export default function CronTriggerView() {
   }
 
   return (
-    <div className="w-full bg-background">
-      <div className="p-6">
-        <h1 className="mb-1 text-xl font-semibold text-gray-900 dark:text-gray-100">
-          {cronTrigger!.name}
-        </h1>
-        <p className="text-sm text-gray-600 dark:text-gray-400">
-          Cron Trigger Configuration
-        </p>
-      </div>
+    <div className="flex h-full w-full flex-col overflow-hidden bg-background">
+      <Tabs value={tab} onValueChange={setTab} className="flex h-full flex-col">
+        <div className="sticky top-0 z-10 border-b-1 bg-background">
+          <div className="p-6">
+            <h1 className="mb-1 text-xl font-semibold text-gray-900 dark:text-gray-100">
+              {cronTrigger!.name}
+            </h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Cron Trigger Configuration
+            </p>
+          </div>
 
-      <Tabs value={tab} onValueChange={setTab}>
-        <div className="flex flex-col items-start justify-between gap-4 px-6 lg:flex-row lg:items-center">
-          <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="pending-processed-events">Events</TabsTrigger>
-          </TabsList>
+          <div className="flex flex-col items-start justify-between gap-4 px-6 py-4 lg:flex-row lg:items-center">
+            <TabsList>
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="pending-processed-events">Events</TabsTrigger>
+            </TabsList>
 
-          {tab === 'pending-processed-events' && (
-            <PaginationControls
-              className="px-0 py-0"
-              offset={offset}
-              limit={limit}
-              hasNoPreviousPage={hasNoPreviousPage}
-              hasNoNextPage={hasNoNextPage}
-              onPrev={goPrev}
-              onNext={() => !hasNoNextPage && goNext()}
-              onChangeLimit={setLimitAndReset}
-            />
-          )}
+            {tab === 'pending-processed-events' && (
+              <PaginationControls
+                className="px-0 py-0"
+                offset={offset}
+                limit={limit}
+                hasNoPreviousPage={hasNoPreviousPage}
+                hasNoNextPage={hasNoNextPage}
+                onPrev={goPrev}
+                onNext={() => !hasNoNextPage && goNext()}
+                onChangeLimit={setLimitAndReset}
+              />
+            )}
+          </div>
         </div>
-        <TabsContent value="overview" className="p-6">
+
+        <TabsContent value="overview" className="overflow-auto p-6">
           <CronTriggerOverview cronTrigger={cronTrigger!} />
         </TabsContent>
-        <TabsContent value="pending-processed-events">
+        <TabsContent
+          className="mt-0 flex-1 overflow-auto"
+          value="pending-processed-events"
+        >
           <CronTriggerEventsDataTable
             eventLogsSection={eventLogsSection}
             onEventLogsSectionChange={setEventLogsSection}

@@ -64,143 +64,131 @@ export default function EventTriggerEventsDataTable({
   );
 
   return (
-    <div>
-      <div className="relative w-full overflow-x-auto">
-        <Table className="w-auto table-fixed border-b-1 border-r-1">
-          <colgroup>
-            {table.getAllLeafColumns().map((col) => (
-              <col key={col.id} style={{ width: col.getSize() }} />
-            ))}
-          </colgroup>
+    <Table
+      containerClassName="overflow-visible"
+      className="w-auto caption-bottom border-separate border-spacing-0 border-b-1 border-r-1 text-sm"
+    >
+      <TableHeader className="sticky top-0 z-30">
+        {table.getHeaderGroups().map((headerGroup) => (
+          <TableRow
+            key={headerGroup.id}
+            className="!border-0 hover:bg-transparent"
+          >
+            {headerGroup.headers.map((header, index) => {
+              const isLast = index === headerGroup.headers.length - 1;
+              return (
+                <TableHead
+                  key={header.id}
+                  className={cn(
+                    'group relative bg-paper font-display text-xs font-bold text-primary-text',
+                    '!h-8 p-0',
+                    index === 0 ? 'pl-2' : '',
+                    'border-b-1',
+                    !isLast && 'border-r-1',
+                  )}
+                  style={{
+                    width: header.getSize(),
+                  }}
+                >
+                  {header.isPlaceholder
+                    ? null
+                    : flexRender(
+                        header.column.columnDef.header,
+                        header.getContext(),
+                      )}
 
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="hover:bg-transparent">
-                {headerGroup.headers.map((header, index) => (
-                  <TableHead
-                    key={header.id}
-                    className={cn(
-                      'group relative overflow-hidden bg-paper font-display text-xs font-bold text-primary-text',
-                      'border-b-1 border-r-1 border-t-1 border-divider',
-                      '!h-8 p-0',
-                      'last:border-r-0',
-                      index === 0 ? 'pl-2' : '',
-                    )}
-                    style={{ width: header.getSize() }}
+                  {header.column.getCanResize() && (
+                    <button
+                      type="button"
+                      aria-label={`Resize column ${header.column.id}`}
+                      onMouseDown={header.getResizeHandler()}
+                      onTouchStart={header.getResizeHandler()}
+                      onDoubleClick={() => header.column.resetSize()}
+                      className={cn(
+                        'absolute right-0 top-0 z-20 h-full w-2',
+                        'cursor-col-resize touch-none select-none',
+                        'border-0 bg-transparent p-0',
+                        'group-hover:bg-slate-900 group-hover:bg-opacity-20 group-active:bg-slate-900 group-active:bg-opacity-20 motion-safe:transition-colors',
+                        header.column.getIsResizing() &&
+                          'bg-slate-900 bg-opacity-20',
+                      )}
+                    />
+                  )}
+                </TableHead>
+              );
+            })}
+          </TableRow>
+        ))}
+      </TableHeader>
+      <TableBody>
+        {isLoading &&
+          skeletonRowKeys.map((key) => (
+            <TableRow
+              key={`skeleton-${key}`}
+              className="border-0 odd:bg-data-cell-bg-odd even:bg-data-cell-bg hover:!bg-data-cell-bg-hover"
+            >
+              {table.getAllLeafColumns().map((col) => (
+                <TableCell
+                  key={`skeleton-cell-${col.id}`}
+                  style={{ width: col.getSize() }}
+                  className="bg-inherit p-2 px-2"
+                >
+                  <Skeleton className="h-4 w-full" />
+                </TableCell>
+              ))}
+            </TableRow>
+          ))}
+
+        {!isLoading &&
+          isNotEmptyValue(table.getRowModel().rows) &&
+          table.getRowModel().rows.map((row) => (
+            <Fragment key={row.id}>
+              <TableRow
+                aria-expanded={row.getIsExpanded()}
+                className={cn(
+                  'border-0',
+                  'odd:bg-data-cell-bg-odd even:bg-data-cell-bg hover:!bg-data-cell-bg-hover',
+                )}
+              >
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell
+                    key={cell.id}
+                    className={cn('bg-inherit px-2', {
+                      'max-w-0 truncate':
+                        cell.column.id === 'id' ||
+                        cell.column.id === 'created_at',
+                      'p-1': cell.column.id === 'actions',
+                    })}
                   >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
-
-                    {header.column.getCanResize() && (
-                      <button
-                        type="button"
-                        aria-label={`Resize column ${header.column.id}`}
-                        onMouseDown={(event) => {
-                          event.stopPropagation();
-                          header.getResizeHandler()(event);
-                        }}
-                        onTouchStart={(event) => {
-                          event.stopPropagation();
-                          header.getResizeHandler()(event);
-                        }}
-                        onDoubleClick={(event) => {
-                          event.stopPropagation();
-                          header.column.resetSize();
-                        }}
-                        className={cn(
-                          'absolute right-0 top-0 z-20 h-full w-2',
-                          'cursor-col-resize touch-none select-none',
-                          'border-0 bg-transparent p-0',
-                          'group-hover:bg-slate-900 group-hover:bg-opacity-20 group-active:bg-slate-900 group-active:bg-opacity-20 motion-safe:transition-colors',
-                          header.column.getIsResizing() &&
-                            'bg-slate-900 bg-opacity-20',
-                        )}
-                      />
-                    )}
-                  </TableHead>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </TableCell>
                 ))}
               </TableRow>
-            ))}
-          </TableHeader>
-
-          <TableBody>
-            {isLoading &&
-              skeletonRowKeys.map((key) => (
-                <TableRow
-                  key={`skeleton-${key}`}
-                  className="odd:bg-data-cell-bg-odd even:bg-data-cell-bg hover:!bg-data-cell-bg-hover"
-                >
-                  {table.getAllLeafColumns().map((col) => (
-                    <TableCell
-                      key={`skeleton-cell-${col.id}`}
-                      style={{ width: col.getSize() }}
-                      className="bg-inherit p-2 px-2"
-                    >
-                      <Skeleton className="h-4 w-full" />
-                    </TableCell>
-                  ))}
+              {row.getIsExpanded() && (
+                <TableRow key={`${row.id}-expanded`} className="border-0">
+                  <TableCell colSpan={columns.length} className="p-0">
+                    <EventTriggerInvocationLogsDataTable
+                      eventId={row.id}
+                      retryTimeoutSeconds={
+                        eventTrigger.retry_conf?.timeout_sec ??
+                        DEFAULT_RETRY_TIMEOUT_SECONDS
+                      }
+                      source={eventTrigger.dataSource}
+                    />
+                  </TableCell>
                 </TableRow>
-              ))}
+              )}
+            </Fragment>
+          ))}
 
-            {!isLoading &&
-              isNotEmptyValue(table.getRowModel().rows) &&
-              table.getRowModel().rows.map((row) => (
-                <Fragment key={row.id}>
-                  <TableRow
-                    aria-expanded={row.getIsExpanded()}
-                    className={cn(
-                      'odd:bg-data-cell-bg-odd even:bg-data-cell-bg hover:!bg-data-cell-bg-hover',
-                    )}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell
-                        key={cell.id}
-                        className={cn('bg-inherit px-2', {
-                          'max-w-0 truncate': cell.column.id === 'id',
-                          'p-1': cell.column.id === 'actions',
-                        })}
-                      >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext(),
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                  {row.getIsExpanded() && (
-                    <TableRow key={`${row.id}-expanded`}>
-                      <TableCell colSpan={columns.length} className="p-0">
-                        <EventTriggerInvocationLogsDataTable
-                          eventId={row.id}
-                          retryTimeoutSeconds={
-                            eventTrigger.retry_conf?.timeout_sec ??
-                            DEFAULT_RETRY_TIMEOUT_SECONDS
-                          }
-                          source={eventTrigger.dataSource}
-                        />
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </Fragment>
-              ))}
-
-            {!isLoading && table.getRowModel().rows?.length === 0 && (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  No results.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
-    </div>
+        {!isLoading && table.getRowModel().rows?.length === 0 && (
+          <TableRow className="border-0">
+            <TableCell colSpan={columns.length} className="h-24 text-center">
+              No results.
+            </TableCell>
+          </TableRow>
+        )}
+      </TableBody>
+    </Table>
   );
 }
