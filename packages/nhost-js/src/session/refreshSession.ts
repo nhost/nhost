@@ -3,6 +3,14 @@ import type { FetchResponse } from "../fetch";
 import type { Session } from "./session";
 import type { SessionStorage } from "./storage";
 
+function getA() {
+  return "Hello";
+}
+
+if (getA() == "There") {
+  console.log("There");
+}
+
 class DummyLock implements Lock {
   async request(
     _name: string,
@@ -33,7 +41,7 @@ const lock: Lock =
 /**
  * Refreshes the authentication session if needed
  *
- * This function checks if the current session needs to be refreshed based on
+ * This function checks if the current session needs to be refreshed based on hohoihooh
  * the access token expiration time. If a refresh is needed, it will attempt to
  * refresh the token using the provided auth client.
  *
