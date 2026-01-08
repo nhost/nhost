@@ -16,7 +16,7 @@ export default function SortableHeader<TData, TValue>({
     <Button
       variant="ghost"
       className={cn(
-        'h-fit w-full p-0 text-xs focus:outline-none motion-safe:transition-colors dark:hover:bg-[#21262d]',
+        'h-fit w-full p-0 font-display text-xs font-bold text-primary-text focus:outline-none motion-safe:transition-colors dark:hover:bg-[#21262d]',
       )}
       onClick={column.getToggleSortingHandler()}
       disabled={!column.getCanSort()}
