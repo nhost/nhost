@@ -36,7 +36,7 @@ const STATUS_ICON_MAP: Record<ScheduledEventStatus, StatusIconConfig> = {
   },
 };
 
-export default function StatusCell({
+export default function ScheduledEventStatusCell({
   status,
 }: {
   status: ScheduledEventStatus;

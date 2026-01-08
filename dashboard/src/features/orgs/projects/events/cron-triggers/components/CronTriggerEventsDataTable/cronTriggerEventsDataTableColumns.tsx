@@ -1,7 +1,7 @@
 import { HoverCardTimestamp } from '@/components/presentational/HoverCardTimestamp';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
+import { ScheduledEventStatusCell } from '@/features/orgs/projects/events/common/components/ScheduledEventStatusCell';
 import { SortableHeader } from '@/features/orgs/projects/events/common/components/SortableHeader';
-import { StatusCell } from '@/features/orgs/projects/events/cron-triggers/components/StatusCell';
 import type { ScheduledEventLogEntry } from '@/utils/hasura-api/generated/schemas';
 import type { ColumnDef } from '@tanstack/react-table';
 import CronTriggerEventsLogActionsCell from './CronTriggerEventsLogActionsCell';
@@ -25,7 +25,7 @@ export function createCronTriggerEventsDataTableColumns({
   const columns: ColumnDef<ScheduledEventLogEntry>[] = [
     {
       id: 'actions',
-      size: 0,
+      size: 20,
       enableResizing: false,
       enableSorting: false,
       cell: ({ row }) => <CronTriggerEventsLogActionsCell row={row} />,
@@ -33,7 +33,6 @@ export function createCronTriggerEventsDataTableColumns({
     {
       id: 'scheduled_time',
       accessorKey: 'scheduled_time',
-      minSize: 50,
       size: 190,
       enableResizing: true,
       header: ({ column }) => (
@@ -49,7 +48,9 @@ export function createCronTriggerEventsDataTableColumns({
     {
       id: 'status',
       accessorKey: 'status',
-      size: 40,
+      minSize: 70,
+      size: 70,
+      maxSize: 140,
       enableResizing: true,
       header: () => (
         <StatusColumnHeader
@@ -58,7 +59,9 @@ export function createCronTriggerEventsDataTableColumns({
         />
       ),
       enableSorting: false,
-      cell: ({ row }) => <StatusCell status={row.original.status} />,
+      cell: ({ row }) => (
+        <ScheduledEventStatusCell status={row.original.status} />
+      ),
     },
     {
       id: 'id',
@@ -66,7 +69,7 @@ export function createCronTriggerEventsDataTableColumns({
       header: () => <div className="p-2">ID</div>,
       minSize: 40,
       size: 280,
-      maxSize: 600,
+      maxSize: 560,
       enableResizing: true,
       cell: ({ row }) => (
         <TextWithTooltip
@@ -81,7 +84,8 @@ export function createCronTriggerEventsDataTableColumns({
     columns.push({
       id: 'tries',
       accessorKey: 'tries',
-      size: 80,
+      size: 40,
+      maxSize: 80,
       enableResizing: true,
       header: () => <div className="p-2">Tries</div>,
       enableSorting: false,

@@ -55,7 +55,9 @@ export default function DeleteEventTriggerDialog({
           resourceVersion,
         });
         if (eventTriggerSlug === eventTriggerToDelete) {
-          router.push(`/orgs/${orgSlug}/projects/${appSubdomain}/events`);
+          router.push(
+            `/orgs/${orgSlug}/projects/${appSubdomain}/events/event-triggers`,
+          );
         }
       },
       {

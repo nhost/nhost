@@ -86,7 +86,7 @@ export default function ProjectPagesComboBox() {
         label: 'Events',
         value: 'events',
         icon: <Zap className="h-4 w-4" />,
-        slug: 'events',
+        slug: 'events/event-triggers',
         disabled: false,
       },
       {

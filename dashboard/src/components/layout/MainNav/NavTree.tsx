@@ -510,13 +510,10 @@ export default function NavTree() {
                   return;
                 }
 
-                if (item.data.name === 'GraphQL' && item.isFolder) {
-                  if (!context.isExpanded) {
-                    context.toggleExpandedState();
-                  }
-                }
-
-                if (item.data.name === 'Events' && item.isFolder) {
+                if (
+                  ['GraphQL', 'Events'].includes(item.data.name) &&
+                  item.isFolder
+                ) {
                   if (!context.isExpanded) {
                     context.toggleExpandedState();
                   }

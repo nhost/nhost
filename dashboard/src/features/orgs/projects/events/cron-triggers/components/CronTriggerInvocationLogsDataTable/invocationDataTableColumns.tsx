@@ -8,7 +8,7 @@ import InvocationLogActionsCell from './InvocationLogActionsCell';
 
 const columns: ColumnDef<CronTriggerInvocationLogEntry>[] = [
   {
-    id: 'scheduled_at',
+    id: 'created_at',
     accessorKey: 'created_at',
     header: ({ column }) => (
       <SortableHeader column={column} label="Created At" />
