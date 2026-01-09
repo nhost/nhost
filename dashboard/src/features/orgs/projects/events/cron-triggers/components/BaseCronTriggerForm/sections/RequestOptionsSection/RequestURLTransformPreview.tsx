@@ -1,4 +1,3 @@
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { Skeleton } from '@/components/ui/v3/skeleton';
 import { useTestWebhookTransformQuery } from '@/features/orgs/projects/events/common/hooks/useTestWebhookTransformQuery';
 import type { BaseCronTriggerFormValues } from '@/features/orgs/projects/events/cron-triggers/components/BaseCronTriggerForm/BaseCronTriggerFormTypes';
@@ -61,71 +60,38 @@ export default function RequestURLTransformPreview() {
   );
 
   const url = data?.webhook_url;
+  const canRun = !argsError && !isEmptyValue(formValues.webhook);
+  const showLoading = canRun && isLoading && !error;
 
+  let errorMessage: string | null = null;
   if (argsError) {
-    return (
-      <div className="flex flex-col gap-2">
-        <h3 className="text-sm font-medium text-foreground">
-          URL transform preview
-        </h3>
-        <Alert variant="destructive" className="max-w-lg">
-          <AlertTitle>Invalid configuration</AlertTitle>
-          <AlertDescription>{argsError.message}</AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex flex-col gap-2">
-        <h3 className="text-sm font-medium text-foreground">
-          URL transform preview
-        </h3>
-        <Alert variant="destructive" className="max-w-lg">
-          <AlertTitle>Validation failed</AlertTitle>
-          <AlertDescription>{error.message}</AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
-
-  if (isEmptyValue(formValues.webhook) || error) {
-    return (
-      <div className="flex flex-col gap-2">
-        <h3 className="text-sm font-medium text-foreground">
-          URL transform preview
-        </h3>
-        <Alert variant="destructive" className="max-w-lg">
-          <AlertTitle>Error with webhook handler</AlertTitle>
-          <AlertDescription>
-            Please configure your webhook handler to generate request url
-            transform
-          </AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
-
-  if (isLoading || isEmptyValue(url)) {
-    return (
-      <div className="flex flex-col gap-2">
-        <h3 className="text-sm font-medium text-foreground">
-          URL transform preview (loading...)
-        </h3>
-        <Skeleton className="h-4 w-full max-w-lg" />
-      </div>
-    );
+    errorMessage = argsError.message;
+  } else if (error) {
+    errorMessage = error.message || 'Validation failed';
+  } else if (isEmptyValue(formValues.webhook)) {
+    errorMessage =
+      'Please configure your webhook handler to generate request URL transform';
   }
 
   return (
     <div className="flex flex-col gap-2">
       <h3 className="text-sm font-medium text-foreground">
         URL transform preview
+        {showLoading ? ' (loading...)' : ''}
       </h3>
-      <p className="max-w-lg rounded-md bg-muted-foreground/10 p-2 font-mono text-sm text-muted-foreground dark:bg-muted">
-        {url}
-      </p>
+      <div className="relative max-w-lg">
+        <p className="rounded-md bg-muted-foreground/10 p-2 font-mono text-sm text-muted-foreground dark:bg-muted">
+          {url || '\u00A0'}
+        </p>
+        {showLoading && (
+          <Skeleton className="pointer-events-none absolute inset-px h-full w-full rounded-[5px] opacity-50" />
+        )}
+        {errorMessage && (
+          <div className="absolute inset-px flex items-center rounded-[5px] bg-background/90 px-2 backdrop-blur-sm">
+            <p className="text-sm text-destructive">{errorMessage}</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
