@@ -10,7 +10,6 @@ import {
   FormMessage,
 } from '@/components/ui/v3/form';
 import { Input, type InputProps } from '@/components/ui/v3/input';
-import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
 import { cn, isNotEmptyValue } from '@/lib/utils';
 import {
   type ForwardedRef,
@@ -49,7 +48,6 @@ interface FormInputProps<
   ) => PathValue<TFieldValues, TName>;
   disabled?: boolean;
   autoComplete?: InputProps['autoComplete'];
-  infoTooltip?: string;
   suggestions?: Array<{ label: string; value: string }>;
 }
 
@@ -69,7 +67,6 @@ function InnerFormInput<
     helperText,
     disabled,
     autoComplete,
-    infoTooltip,
     transform,
     suggestions,
   }: FormInputProps<TFieldValues, TName>,
@@ -116,26 +113,13 @@ function InnerFormInput<
               containerClassName,
             )}
           >
-            {infoTooltip ? (
-              <div className="flex flex-row items-center gap-2">
-                <FormLabel
-                  className={cn({
-                    'mt-2 w-52 max-w-52 flex-shrink-0 self-start': inline,
-                  })}
-                >
-                  {label}
-                </FormLabel>
-                <InfoTooltip>{infoTooltip}</InfoTooltip>
-              </div>
-            ) : (
-              <FormLabel
-                className={cn({
-                  'mt-2 w-52 max-w-52 flex-shrink-0 self-start': inline,
-                })}
-              >
-                {label}
-              </FormLabel>
-            )}
+            <FormLabel
+              className={cn({
+                'mt-2 w-52 max-w-52 flex-shrink-0 self-start': inline,
+              })}
+            >
+              {label}
+            </FormLabel>
             <div
               className={cn({
                 'flex w-[calc(100%-13.5rem)] max-w-[calc(100%-13.5rem)] flex-col gap-2':

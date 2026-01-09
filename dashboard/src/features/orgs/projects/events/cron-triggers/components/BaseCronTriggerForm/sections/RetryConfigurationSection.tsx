@@ -1,4 +1,5 @@
 import { FormInput } from '@/components/form/FormInput';
+import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
 import type { BaseCronTriggerFormValues } from '@/features/orgs/projects/events/cron-triggers/components/BaseCronTriggerForm/BaseCronTriggerFormTypes';
 import { useFormContext } from 'react-hook-form';
 
@@ -27,24 +28,37 @@ export default function RetryConfigurationSection({
             <FormInput
               control={form.control}
               name="retryConf.numRetries"
-              label="Number of Retries"
               placeholder="number of retries (default: 0)"
               type="number"
               className="text-foreground"
               autoComplete="off"
-              infoTooltip="Number of retries that Hasura makes to the webhook in case of failure"
+              label={
+                <div className="flex flex-row items-center gap-2">
+                  Number of Retries{' '}
+                  <InfoTooltip>
+                    Number of retries that Hasura makes to the webhook in case
+                    of failure
+                  </InfoTooltip>
+                </div>
+              }
             />
           </div>
           <div className="flex flex-1 flex-col gap-2">
             <FormInput
               control={form.control}
               name="retryConf.intervalSec"
-              label="Retry interval (in seconds)"
               placeholder="retry interval (default: 10)"
               type="number"
               className="text-foreground"
               autoComplete="off"
-              infoTooltip="Interval in seconds between each retry of the webhook"
+              label={
+                <div className="flex flex-row items-center gap-2">
+                  Retry interval (in seconds){' '}
+                  <InfoTooltip>
+                    Interval in seconds between each retry of the webhook
+                  </InfoTooltip>
+                </div>
+              }
             />
           </div>
         </div>
@@ -53,24 +67,37 @@ export default function RetryConfigurationSection({
             <FormInput
               control={form.control}
               name="retryConf.timeoutSec"
-              label="Timeout (in seconds)"
               placeholder="timeout (default: 60)"
               type="number"
               className="text-foreground"
               autoComplete="off"
-              infoTooltip="Request timeout (in seconds) for the webhook"
+              label={
+                <div className="flex flex-row items-center gap-2">
+                  Timeout (in seconds){' '}
+                  <InfoTooltip>
+                    Request timeout (in seconds) for the webhook
+                  </InfoTooltip>
+                </div>
+              }
             />
           </div>
           <div className="flex flex-1 flex-col gap-2">
             <FormInput
               control={form.control}
               name="retryConf.toleranceSec"
-              label="Tolerance (in seconds)"
               placeholder="tolerance (default: 21600)"
               type="number"
               className="text-foreground"
               autoComplete="off"
-              infoTooltip="Number of seconds between scheduled time and actual delivery time that is acceptable"
+              label={
+                <div className="flex flex-row items-center gap-2">
+                  Tolerance (in seconds){' '}
+                  <InfoTooltip>
+                    Number of seconds between scheduled time and actual delivery
+                    time that is acceptable
+                  </InfoTooltip>
+                </div>
+              }
             />
           </div>
         </div>

@@ -236,19 +236,33 @@ export default function BaseCronTriggerForm({
                   <FormInput
                     control={form.control}
                     name="webhook"
-                    label="Webhook URL or template"
                     placeholder="https://httpbin.org/post or {{MY_WEBHOOK_URL}}/handler"
-                    infoTooltip="Environment variables and secrets are available using the {{VARIABLE}} tag."
+                    label={
+                      <div className="flex flex-row items-center gap-2">
+                        Webhook URL or template{' '}
+                        <InfoTooltip>
+                          Environment variables and secrets are available using
+                          the {'{{VARIABLE}}'} tag.
+                        </InfoTooltip>
+                      </div>
+                    }
                     className="max-w-lg text-foreground"
                   />
                   <FormInput
                     control={form.control}
                     name="schedule"
-                    label="Schedule (Cron Expression)"
+                    label={
+                      <div className="flex flex-row items-center gap-2">
+                        Schedule (Cron Expression){' '}
+                        <InfoTooltip>
+                          Schedule for your cron (events are created based on
+                          the UTC timezone)
+                        </InfoTooltip>
+                      </div>
+                    }
                     placeholder="* * * * *"
                     containerClassName="w-60"
                     autoComplete="off"
-                    infoTooltip="Schedule for your cron (events are created based on the UTC timezone)"
                     className="w-full text-foreground aria-[invalid=true]:border-destructive aria-[invalid=true]:focus:border-destructive aria-[invalid=true]:focus:ring-destructive/20"
                     suggestions={frequentlyUsedCrons}
                   />
