@@ -11,11 +11,11 @@ import { useFormContext } from 'react-hook-form';
 
 export default function RequestURLTransformPreview() {
   const form = useFormContext<BaseCronTriggerFormValues>();
-  const values = form.watch();
+  const formValues = form.watch();
   const { args, argsError } = useMemo(() => {
     try {
       return {
-        args: buildTestWebhookTransformDTO({ formValues: values }),
+        args: buildTestWebhookTransformDTO({ formValues }),
         argsError: null,
       };
     } catch (error) {
@@ -33,7 +33,7 @@ export default function RequestURLTransformPreview() {
             : new Error('Failed to build test webhook transform arguments.'),
       };
     }
-  }, [values]);
+  }, [formValues]);
 
   const [debouncedArgs, setDebouncedArgs] =
     useState<TestWebhookTransformArgs>(args);
@@ -90,7 +90,7 @@ export default function RequestURLTransformPreview() {
     );
   }
 
-  if (isEmptyValue(values.webhook) || error) {
+  if (isEmptyValue(formValues.webhook) || error) {
     return (
       <div className="flex flex-col gap-2">
         <h3 className="text-sm font-medium text-foreground">

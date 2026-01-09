@@ -8,7 +8,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/v3/accordion';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
-import { Form, FormDescription } from '@/components/ui/v3/form';
+import { Form } from '@/components/ui/v3/form';
 import { Separator } from '@/components/ui/v3/separator';
 import {
   Sheet,
@@ -19,7 +19,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/v3/sheet';
-import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
 import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PlusIcon, TrashIcon } from 'lucide-react';
@@ -233,22 +232,12 @@ export default function BaseCronTriggerForm({
                     autoComplete="off"
                   />
                   <Separator />
-                  <div className="flex flex-row items-center gap-2">
-                    <h3 className="text-sm font-medium">
-                      Webhook (HTTP/S) Handler{' '}
-                    </h3>
-                    <FormDescription>
-                      <InfoTooltip>
-                        Environment variables and secrets are available using
-                        the {'{{VARIABLE}}'} tag.
-                      </InfoTooltip>
-                    </FormDescription>
-                  </div>
                   <FormInput
                     control={form.control}
                     name="webhook"
                     label="Webhook URL or template"
                     placeholder="https://httpbin.org/post or {{MY_WEBHOOK_URL}}/handler"
+                    infoTooltip="Environment variables and secrets are available using the {{VARIABLE}} tag."
                     className="max-w-lg text-foreground"
                   />
                   <FormInput
