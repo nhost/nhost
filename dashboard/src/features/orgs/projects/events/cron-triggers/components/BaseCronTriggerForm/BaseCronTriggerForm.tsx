@@ -19,6 +19,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/v3/sheet';
+import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
 import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PlusIcon, TrashIcon } from 'lucide-react';
@@ -254,8 +255,15 @@ export default function BaseCronTriggerForm({
                   <FormTextarea
                     control={form.control}
                     name="payload"
-                    label="Payload"
-                    infoTooltip="The request payload for the cron trigger, should be a valid JSON"
+                    label={
+                      <div className="flex flex-row items-center gap-2">
+                        Payload{' '}
+                        <InfoTooltip>
+                          The request payload for the cron trigger, should be a
+                          valid JSON
+                        </InfoTooltip>
+                      </div>
+                    }
                     className="min-h-[250px] max-w-lg font-mono text-foreground aria-[invalid=true]:border-destructive aria-[invalid=true]:focus:border-destructive aria-[invalid=true]:focus:ring-destructive/20"
                   />
                 </div>

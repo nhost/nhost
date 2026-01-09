@@ -10,7 +10,6 @@ import {
   FormMessage,
 } from '@/components/ui/v3/form';
 import { Textarea } from '@/components/ui/v3/textarea';
-import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
 import { cn, isNotEmptyValue } from '@/lib/utils';
 import { forwardRef, type ForwardedRef, type ReactNode } from 'react';
 import type { Control, FieldPath, FieldValues } from 'react-hook-form';
@@ -31,7 +30,6 @@ interface FormTextareaProps<
   className?: string;
   inline?: boolean;
   helperText?: string | null;
-  infoTooltip?: string | null;
 }
 
 function FormTextareaImpl<
@@ -47,7 +45,6 @@ function FormTextareaImpl<
     inline,
     helperText,
     transform,
-    infoTooltip,
   }: FormTextareaProps<TFieldValues, TName>,
   ref?: ForwardedRef<HTMLTextAreaElement>,
 ) {
@@ -63,26 +60,13 @@ function FormTextareaImpl<
           <FormItem
             className={cn({ 'flex w-full items-center gap-4 py-3': inline })}
           >
-            {infoTooltip ? (
-              <div className="flex flex-row items-center gap-2">
-                <FormLabel
-                  className={cn({
-                    'mt-2 w-52 max-w-52 flex-shrink-0 self-start': inline,
-                  })}
-                >
-                  {label}
-                </FormLabel>
-                <InfoTooltip>{infoTooltip}</InfoTooltip>
-              </div>
-            ) : (
-              <FormLabel
-                className={cn({
-                  'mt-2 w-52 max-w-52 flex-shrink-0 self-start': inline,
-                })}
-              >
-                {label}
-              </FormLabel>
-            )}
+            <FormLabel
+              className={cn({
+                'mt-2 w-52 max-w-52 flex-shrink-0 self-start': inline,
+              })}
+            >
+              {label}
+            </FormLabel>
             <div
               className={cn({
                 'flex w-[calc(100%-13.5rem)] max-w-[calc(100%-13.5rem)] flex-col gap-2':
