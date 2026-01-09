@@ -5,16 +5,7 @@ import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { Button } from '@/components/ui/v3/button';
-import {
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/v3/form';
 import { SelectItem } from '@/components/ui/v3/select';
-import { Textarea } from '@/components/ui/v3/textarea';
 import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
 import type { BaseCronTriggerFormValues } from '@/features/orgs/projects/events/cron-triggers/components/BaseCronTriggerForm/BaseCronTriggerFormTypes';
 import { getCronTriggerSampleInputPayload } from '@/features/orgs/projects/events/cron-triggers/utils/getCronTriggerSampleInputPayload';
@@ -48,39 +39,28 @@ export default function PayloadTransformSection({
   return (
     <div className={`flex flex-col gap-6 ${className}`}>
       <div className="flex flex-col gap-12">
-        <FormField
-          name="payloadTransform.sampleInput"
+        <FormTextarea
           control={form.control}
-          render={({ field }) => (
-            <FormItem>
-              <div className="flex flex-row items-center gap-2">
-                <FormLabel className="text-foreground">Sample Input</FormLabel>
-                <FormDescription>
-                  <InfoTooltip>
-                    <p>Sample input defined by your definition.</p>
-                  </InfoTooltip>
-                </FormDescription>
-                <Button
-                  className="flex flex-row items-center gap-2 text-foreground"
-                  size="sm"
-                  variant="outline"
-                  type="button"
-                  onClick={handleResetPayload}
-                >
-                  <RefreshCw className="size-4" />
-                  Reset
-                </Button>
-              </div>
-              <FormControl>
-                <Textarea
-                  {...field}
-                  id="payloadTransform.sampleInput"
-                  className="min-h-[250px] max-w-lg font-mono text-foreground aria-[invalid=true]:border-destructive aria-[invalid=true]:focus:border-destructive aria-[invalid=true]:focus:ring-destructive/20"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          name="payloadTransform.sampleInput"
+          label={
+            <div className="flex flex-row items-center gap-2">
+              <span className="text-foreground">Sample Input</span>
+              <InfoTooltip>
+                <p>Sample input defined by your definition.</p>
+              </InfoTooltip>
+              <Button
+                className="flex flex-row items-center gap-2 text-foreground"
+                size="sm"
+                variant="outline"
+                type="button"
+                onClick={handleResetPayload}
+              >
+                <RefreshCw className="size-4" />
+                Reset
+              </Button>
+            </div>
+          }
+          className="min-h-[250px] max-w-lg font-mono text-foreground"
         />
         <div className="space-y-4">
           <div className="flex max-w-lg flex-row justify-between gap-4 text-foreground">
@@ -129,7 +109,7 @@ export default function PayloadTransformSection({
               name="payloadTransform.requestBodyTransform.template"
               label="Request Body Transform JSON Template"
               placeholder="Request Body Transform JSON Template"
-              className="min-h-[250px] max-w-lg font-mono text-foreground aria-[invalid=true]:border-destructive aria-[invalid=true]:focus:border-destructive aria-[invalid=true]:focus:ring-destructive/20"
+              className="min-h-[250px] max-w-lg font-mono text-foreground"
             />
           )}
           {values?.payloadTransform?.requestBodyTransform

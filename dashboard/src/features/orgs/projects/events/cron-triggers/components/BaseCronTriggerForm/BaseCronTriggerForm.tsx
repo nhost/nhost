@@ -278,7 +278,7 @@ export default function BaseCronTriggerForm({
                         </InfoTooltip>
                       </div>
                     }
-                    className="min-h-[250px] max-w-lg font-mono text-foreground aria-[invalid=true]:border-destructive aria-[invalid=true]:focus:border-destructive aria-[invalid=true]:focus:ring-destructive/20"
+                    className="min-h-[250px] max-w-lg font-mono text-foreground"
                   />
                 </div>
                 <Separator />
