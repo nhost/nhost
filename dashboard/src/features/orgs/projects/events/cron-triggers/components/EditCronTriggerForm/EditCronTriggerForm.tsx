@@ -49,7 +49,7 @@ export default function EditCronTriggerForm({
         });
         setInitialData(data);
         router.push(
-          `/orgs/${orgSlug}/projects/${appSubdomain}/events/cron-trigger/${data.triggerName}`,
+          `/orgs/${orgSlug}/projects/${appSubdomain}/events/cron-triggers/${data.triggerName}`,
         );
       },
       {
