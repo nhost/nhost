@@ -1,7 +1,5 @@
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Backdrop } from '@/components/ui/v2/Backdrop';
-import type { BoxProps } from '@/components/ui/v2/Box';
-import { Box } from '@/components/ui/v2/Box';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import {
   Accordion,
@@ -21,8 +19,9 @@ import { twMerge } from 'tailwind-merge';
 import EventTriggerListItem from './EventTriggerListItem';
 import EventTriggersBrowserSidebarSkeleton from './EventTriggersBrowserSidebarSkeleton';
 
-export interface EventTriggersBrowserSidebarProps
-  extends Omit<BoxProps, 'children'> {}
+export interface EventTriggersBrowserSidebarProps {
+  className?: string;
+}
 
 function EventTriggersBrowserSidebarContent() {
   const {
@@ -123,7 +122,6 @@ function EventTriggersBrowserSidebarContent() {
 
 export default function EventTriggersBrowserSidebar({
   className,
-  ...props
 }: EventTriggersBrowserSidebarProps) {
   const isPlatform = useIsPlatform();
   const { project } = useProject();
@@ -171,19 +169,17 @@ export default function EventTriggersBrowserSidebar({
         }}
       />
 
-      <Box
-        component="aside"
+      <aside
         className={twMerge(
           'absolute top-0 z-[35] h-full w-full overflow-auto border-r-1 pb-17 pt-2 motion-safe:transition-transform sm:relative sm:z-0 sm:h-full sm:pb-0 sm:pt-2.5 sm:transition-none',
           expanded ? 'translate-x-0' : '-translate-x-full sm:translate-x-0',
           className,
         )}
-        {...props}
       >
         <RetryableErrorBoundary>
           <EventTriggersBrowserSidebarContent />
         </RetryableErrorBoundary>
-      </Box>
+      </aside>
 
       <IconButton
         className="absolute bottom-4 left-4 z-[38] h-11 w-11 rounded-full md:hidden"
