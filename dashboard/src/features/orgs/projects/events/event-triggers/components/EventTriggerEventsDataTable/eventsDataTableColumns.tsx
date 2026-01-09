@@ -32,7 +32,7 @@ const columns: ColumnDef<EventLogEntry>[] = [
   {
     id: 'created_at',
     accessorKey: 'created_at',
-    size: 190,
+    size: 230,
     enableResizing: true,
     header: ({ column }) => (
       <SortableHeader column={column} label="Created At" />
@@ -47,7 +47,6 @@ const columns: ColumnDef<EventLogEntry>[] = [
   {
     id: 'delivered',
     accessorKey: 'delivered',
-    minSize: 70,
     size: 70,
     maxSize: 140,
     enableResizing: true,
@@ -60,7 +59,7 @@ const columns: ColumnDef<EventLogEntry>[] = [
     accessorKey: 'id',
     header: () => <div className="p-2">ID</div>,
     minSize: 40,
-    size: 280,
+    size: 320,
     maxSize: 560,
     enableResizing: true,
     cell: ({ row }) => (
@@ -74,8 +73,8 @@ const columns: ColumnDef<EventLogEntry>[] = [
   {
     id: 'tries',
     accessorKey: 'tries',
-    size: 40,
-    maxSize: 80,
+    size: 70,
+    maxSize: 140,
     enableResizing: true,
     header: () => <div className="p-2">Tries</div>,
     enableSorting: false,

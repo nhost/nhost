@@ -29,7 +29,7 @@ interface EventTriggerInvocationLogsDataTableProps {
   retryTimeoutSeconds: number;
 }
 
-const skeletonRowKeys = ['s1', 's2', 's3'];
+const skeletonRowKeys = ['skeleton-s1', 'skeleton-s2', 'skeleton-s3'];
 
 export default function EventTriggerInvocationLogsDataTable({
   eventId,
@@ -126,7 +126,7 @@ export default function EventTriggerInvocationLogsDataTable({
         <TableBody>
           {isInitialLoading &&
             skeletonRowKeys.map((key) => (
-              <TableRow key={`skeleton-${key}`}>
+              <TableRow key={key}>
                 {table.getAllLeafColumns().map((col) => (
                   <TableCell
                     key={`skeleton-cell-${col.id}`}

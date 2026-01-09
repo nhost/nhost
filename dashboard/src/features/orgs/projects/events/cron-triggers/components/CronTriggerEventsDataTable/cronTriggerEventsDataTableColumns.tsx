@@ -8,7 +8,7 @@ import CronTriggerEventsLogActionsCell from './CronTriggerEventsLogActionsCell';
 import StatusColumnHeader from './StatusColumnHeader';
 
 export type CronTriggerEventsSection =
-  | 'pending'
+  | 'scheduled'
   | 'processed'
   | 'failed'
   | 'all';
@@ -33,7 +33,7 @@ export function createCronTriggerEventsDataTableColumns({
     {
       id: 'scheduled_time',
       accessorKey: 'scheduled_time',
-      size: 190,
+      size: 230,
       enableResizing: true,
       header: ({ column }) => (
         <SortableHeader column={column} label="Scheduled Time" />
@@ -48,7 +48,6 @@ export function createCronTriggerEventsDataTableColumns({
     {
       id: 'status',
       accessorKey: 'status',
-      minSize: 70,
       size: 70,
       maxSize: 140,
       enableResizing: true,
@@ -68,7 +67,7 @@ export function createCronTriggerEventsDataTableColumns({
       accessorKey: 'id',
       header: () => <div className="p-2">ID</div>,
       minSize: 40,
-      size: 280,
+      size: 320,
       maxSize: 560,
       enableResizing: true,
       cell: ({ row }) => (
@@ -80,12 +79,12 @@ export function createCronTriggerEventsDataTableColumns({
       ),
     },
   ];
-  if (eventLogsSection !== 'pending') {
+  if (eventLogsSection !== 'scheduled') {
     columns.push({
       id: 'tries',
       accessorKey: 'tries',
-      size: 40,
-      maxSize: 80,
+      size: 70,
+      maxSize: 140,
       enableResizing: true,
       header: () => <div className="p-2">Tries</div>,
       enableSorting: false,

@@ -1,4 +1,3 @@
-import { Box } from '@/components/ui/v2/Box';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { EventsEmptyState } from '@/features/orgs/projects/events/common/components/EventsEmptyState';
@@ -59,12 +58,10 @@ EventTriggersPage.getLayout = function getLayout(page: ReactElement) {
       }}
     >
       <EventTriggersBrowserSidebar className="w-full max-w-sidebar" />
-      <Box
-        className="flex w-full flex-auto flex-col overflow-x-hidden"
-        sx={{ backgroundColor: 'background.default' }}
-      >
+
+      <div className="box flex w-full flex-auto flex-col overflow-x-hidden bg-default">
         {page}
-      </Box>
+      </div>
     </OrgLayout>
   );
 };

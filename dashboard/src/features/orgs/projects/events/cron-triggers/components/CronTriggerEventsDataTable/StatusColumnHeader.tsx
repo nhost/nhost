@@ -20,8 +20,8 @@ const STATUS_FILTER_OPTIONS: Record<
   CronTriggerEventsSection,
   { label: string; description: string }
 > = {
-  pending: {
-    label: 'Pending',
+  scheduled: {
+    label: 'Scheduled',
     description: 'Scheduled events waiting to run',
   },
   processed: {
