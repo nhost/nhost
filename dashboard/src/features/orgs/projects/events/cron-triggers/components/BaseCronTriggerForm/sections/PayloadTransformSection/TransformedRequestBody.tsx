@@ -54,7 +54,7 @@ export default function TransformedRequestBody() {
     return () => debouncedSetArgs.cancel();
   }, [args, debouncedSetArgs]);
 
-  const { data, isLoading, error } = useTestWebhookTransformQuery(
+  const { data, isFetching, error } = useTestWebhookTransformQuery(
     debouncedArgs,
     {
       queryOptions: {
@@ -64,6 +64,8 @@ export default function TransformedRequestBody() {
   );
 
   const canRun = Boolean(debouncedArgs.webhook_url) && !buildArgsError;
+  const requestBody = data?.body ? JSON.stringify(data.body, null, 2) : '';
+  const showLoadingOverlay = canRun && isFetching && !error;
 
   return (
     <FormItem>
@@ -88,21 +90,27 @@ export default function TransformedRequestBody() {
           </AlertDescription>
         </Alert>
       )}
-      {canRun && isLoading && (
-        <Skeleton className="h-[250px] w-full max-w-lg" />
-      )}
-      {!buildArgsError && error && (
-        <Alert variant="destructive" className="max-w-lg">
-          <AlertTitle>Error with webhook handler</AlertTitle>
-          <AlertDescription>{error.error}</AlertDescription>
-        </Alert>
-      )}
-      {!isLoading && !error && canRun && (
-        <Textarea
-          className="min-h-[250px] max-w-lg font-mono text-foreground"
-          value={JSON.stringify(data?.body, null, 2)}
-          disabled
-        />
+      {canRun && (
+        <div className="relative w-full max-w-lg">
+          <Textarea
+            className="min-h-[250px] w-full font-mono text-foreground"
+            value={requestBody}
+            disabled
+          />
+          {showLoadingOverlay && (
+            <Skeleton className="pointer-events-none absolute inset-px h-full w-full rounded-[5px] opacity-50" />
+          )}
+          {!buildArgsError && error && (
+            <div className="absolute inset-px space-y-1 rounded-[5px] bg-background/80 p-2 backdrop-blur-sm">
+              <p className="text-sm font-medium text-destructive">
+                {error.error || 'Error with webhook handler'}
+              </p>
+              <p className="text-sm text-destructive/90">
+                Failed to transform webhook request body.
+              </p>
+            </div>
+          )}
+        </div>
       )}
     </FormItem>
   );
