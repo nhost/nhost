@@ -8,7 +8,7 @@ import CronTriggerEventsLogActionsCell from './CronTriggerEventsLogActionsCell';
 import StatusColumnHeader from './StatusColumnHeader';
 
 export type CronTriggerEventsSection =
-  | 'pending'
+  | 'scheduled'
   | 'processed'
   | 'failed'
   | 'all';
@@ -80,7 +80,7 @@ export function createCronTriggerEventsDataTableColumns({
       ),
     },
   ];
-  if (eventLogsSection !== 'pending') {
+  if (eventLogsSection !== 'scheduled') {
     columns.push({
       id: 'tries',
       accessorKey: 'tries',

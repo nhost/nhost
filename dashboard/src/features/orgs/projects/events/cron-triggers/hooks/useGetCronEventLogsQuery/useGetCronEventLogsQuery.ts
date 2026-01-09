@@ -56,7 +56,7 @@ export default function useGetCronEventLogsQuery(
 
   let status: ScheduledEventStatus[];
   switch (args.eventLogsSection) {
-    case 'pending':
+    case 'scheduled':
       status = ['scheduled'];
       break;
     case 'failed':
