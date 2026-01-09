@@ -20,6 +20,7 @@ import {
   SheetTitle,
 } from '@/components/ui/v3/sheet';
 import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
+import { CronScheduleInput } from '@/features/orgs/projects/events/cron-triggers/components/CronScheduleInput';
 import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PlusIcon, TrashIcon } from 'lucide-react';
@@ -29,7 +30,6 @@ import {
   defaultFormValues,
   defaultPayloadTransformValues,
   defaultRequestOptionsTransformValues,
-  frequentlyUsedCrons,
   validationSchema,
   type BaseCronTriggerFormInitialData,
   type BaseCronTriggerFormValues,
@@ -248,7 +248,7 @@ export default function BaseCronTriggerForm({
                     }
                     className="max-w-lg text-foreground"
                   />
-                  <FormInput
+                  <CronScheduleInput
                     control={form.control}
                     name="schedule"
                     label={
@@ -262,9 +262,7 @@ export default function BaseCronTriggerForm({
                     }
                     placeholder="* * * * *"
                     containerClassName="w-60"
-                    autoComplete="off"
                     className="w-full text-foreground aria-[invalid=true]:border-destructive aria-[invalid=true]:focus:border-destructive aria-[invalid=true]:focus:ring-destructive/20"
-                    suggestions={frequentlyUsedCrons}
                   />
                   <FormTextarea
                     control={form.control}

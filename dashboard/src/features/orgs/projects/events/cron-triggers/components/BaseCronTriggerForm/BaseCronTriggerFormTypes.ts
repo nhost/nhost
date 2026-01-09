@@ -32,15 +32,6 @@ export const cronRequestOptionsTransformQueryParamsTypeOptions = [
   'URL string template',
 ] as const;
 
-export const frequentlyUsedCrons = [
-  { label: 'Every minute', value: '* * * * *' },
-  { label: 'Every 5 minutes', value: '*/5 * * * *' },
-  { label: 'Every 30 minutes', value: '*/30 * * * *' },
-  { label: 'Hourly', value: '0 * * * *' },
-  { label: 'Daily at midnight (UTC)', value: '0 0 * * *' },
-  { label: 'Weekdays at 9am (UTC)', value: '0 9 * * 1-5' },
-];
-
 export const validationSchema = z.object({
   triggerName: z
     .string({ required_error: 'Cron trigger name required' })

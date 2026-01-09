@@ -11,13 +11,7 @@ import {
 } from '@/components/ui/v3/form';
 import { Input, type InputProps } from '@/components/ui/v3/input';
 import { cn, isNotEmptyValue } from '@/lib/utils';
-import {
-  type ForwardedRef,
-  forwardRef,
-  type ReactNode,
-  useRef,
-  useState,
-} from 'react';
+import { type ForwardedRef, forwardRef, type ReactNode } from 'react';
 import type {
   Control,
   FieldPath,
@@ -48,7 +42,6 @@ interface FormInputProps<
   ) => PathValue<TFieldValues, TName>;
   disabled?: boolean;
   autoComplete?: InputProps['autoComplete'];
-  suggestions?: Array<{ label: string; value: string }>;
 }
 
 function InnerFormInput<
@@ -68,13 +61,9 @@ function InnerFormInput<
     disabled,
     autoComplete,
     transform,
-    suggestions,
   }: FormInputProps<TFieldValues, TName>,
   ref?: ForwardedRef<HTMLInputElement>,
 ) {
-  const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
-  const inputRef = useRef<HTMLInputElement | null>(null);
-
   return (
     <FormField
       control={control}
@@ -83,29 +72,6 @@ function InnerFormInput<
         const fieldProps = isNotEmptyValue(transform)
           ? getTransformedFieldProps(field, transform)
           : field;
-        const suggestionsEnabled =
-          isNotEmptyValue(suggestions) && suggestions.length > 0;
-        const inputValue =
-          typeof fieldProps.value === 'string'
-            ? fieldProps.value
-            : (fieldProps.value ?? '');
-
-        let filteredSuggestions: Array<{ label: string; value: string }> = [];
-        if (suggestionsEnabled) {
-          const normalizedSearch = String(inputValue).toLowerCase();
-          filteredSuggestions =
-            normalizedSearch === ''
-              ? suggestions
-              : suggestions.filter(
-                  ({ label: suggestionLabel, value: suggestionValue }) =>
-                    suggestionLabel.toLowerCase().includes(normalizedSearch) ||
-                    suggestionValue.toLowerCase().includes(normalizedSearch),
-                );
-        }
-        const shouldShowSuggestions =
-          suggestionsEnabled &&
-          isSuggestionsOpen &&
-          filteredSuggestions.length > 0;
         return (
           <FormItem
             className={cn(
@@ -126,84 +92,18 @@ function InnerFormInput<
                   inline,
               })}
             >
-              {suggestionsEnabled ? (
-                <div className="relative">
-                  <FormControl>
-                    <Input
-                      type={type}
-                      placeholder={placeholder}
-                      disabled={disabled}
-                      autoComplete={autoComplete}
-                      {...fieldProps}
-                      onChange={(event) => {
-                        setIsSuggestionsOpen(true);
-                        fieldProps.onChange(event);
-                      }}
-                      onFocus={() => setIsSuggestionsOpen(true)}
-                      onBlur={() => {
-                        fieldProps.onBlur();
-                        setTimeout(() => setIsSuggestionsOpen(false), 100);
-                      }}
-                      ref={mergeRefs([field.ref, ref, inputRef])}
-                      className={cn(inputClasses, className)}
-                      wrapperClassName={cn({ 'w-full': !inline })}
-                    />
-                  </FormControl>
-
-                  {shouldShowSuggestions ? (
-                    <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-60 overflow-auto rounded-md border bg-popover text-popover-foreground shadow-md">
-                      <ul
-                        role="listbox"
-                        className="divide-y divide-border text-sm"
-                        onMouseDown={(event) => event.preventDefault()}
-                      >
-                        {filteredSuggestions.map((option) => (
-                          <li
-                            key={option.value}
-                            role="option"
-                            tabIndex={-1}
-                            aria-selected={option.value === String(inputValue)}
-                            className="cursor-pointer px-3 py-2 hover:bg-accent"
-                            onClick={() => {
-                              fieldProps.onChange(option.value);
-                              setIsSuggestionsOpen(false);
-                              inputRef.current?.focus();
-                            }}
-                            onKeyDown={(event) => {
-                              if (event.key === 'Enter' || event.key === ' ') {
-                                event.preventDefault();
-                                fieldProps.onChange(option.value);
-                                setIsSuggestionsOpen(false);
-                                inputRef.current?.focus();
-                              }
-                            }}
-                          >
-                            <div className="font-medium">{option.label}</div>
-                            {option.value !== option.label ? (
-                              <div className="text-xs text-muted-foreground">
-                                {option.value}
-                              </div>
-                            ) : null}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ) : null}
-                </div>
-              ) : (
-                <FormControl>
-                  <Input
-                    type={type}
-                    placeholder={placeholder}
-                    disabled={disabled}
-                    autoComplete={autoComplete}
-                    {...fieldProps}
-                    ref={mergeRefs([field.ref, ref])}
-                    className={cn(inputClasses, className)}
-                    wrapperClassName={cn({ 'w-full': !inline })}
-                  />
-                </FormControl>
-              )}
+              <FormControl>
+                <Input
+                  type={type}
+                  placeholder={placeholder}
+                  disabled={disabled}
+                  autoComplete={autoComplete}
+                  {...fieldProps}
+                  ref={mergeRefs([field.ref, ref])}
+                  className={cn(inputClasses, className)}
+                  wrapperClassName={cn({ 'w-full': !inline })}
+                />
+              </FormControl>
               {!!helperText && (
                 <FormDescription className="break-all px-[1px]">
                   {helperText}
