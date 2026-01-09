@@ -25,7 +25,7 @@ interface CronTriggerInvocationLogsDataTableProps {
   eventId: string;
 }
 
-const skeletonRowKeys = ['s1', 's2', 's3'];
+const skeletonRowKeys = ['skeleton-s1', 'skeleton-s2', 'skeleton-s3'];
 
 export default function CronTriggerInvocationLogsDataTable({
   eventId,
@@ -94,7 +94,7 @@ export default function CronTriggerInvocationLogsDataTable({
         <TableBody>
           {isInitialLoading &&
             skeletonRowKeys.map((key) => (
-              <TableRow key={`skeleton-${key}`}>
+              <TableRow key={key}>
                 {table.getAllLeafColumns().map((col) => (
                   <TableCell
                     key={`skeleton-cell-${col.id}`}
