@@ -4,6 +4,7 @@ import process from 'process'
 export default (req: Request, res: Response) => {
     console.log(`Request context: ${JSON.stringify(req.context)}`)
     console.log(`Request context2: ${JSON.stringify(req.requestContext)}`)
+    console.log(`request-id: ${req.headers['x-request-id']}`)
     res.status(200).json(
         {
             headers: req.headers,
