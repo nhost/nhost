@@ -66,6 +66,11 @@ rec {
     buildInputs = with pkgs; [
       certbot-full
       python312Packages.certbot-dns-route53
+
+      # javascript
+      nodejs
+      pnpm
+      biome
     ] ++ checkDeps ++ buildInputs ++ nativeBuildInputs;
   };
 
