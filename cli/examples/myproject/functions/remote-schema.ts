@@ -1,5 +1,4 @@
-import { createSchema, createYoga } from 'graphql-yoga';
-import type { Request, Response } from 'express';
+import { createSchema, createYoga, type Plugin } from 'graphql-yoga';
 
 const typeDefs = `
   type Query {
@@ -15,31 +14,25 @@ const resolvers = {
 
 const schema = createSchema({ typeDefs, resolvers });
 
-const yoga = createYoga({ schema });
-
-export default async function handler(req: Request, res: Response) {
-  const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
-
-  const headers = new Headers();
-  for (const [key, value] of Object.entries(req.headers)) {
-    if (value) {
-      headers.set(key, Array.isArray(value) ? value.join(', ') : value);
+// Plugin to handle pre-parsed body from Express middleware
+const useExpressParsedBody: Plugin = {
+  onRequestParse({ serverContext, setRequestParser }) {
+    const expressReq = (serverContext as any)?.req;
+    if (expressReq?.body) {
+      setRequestParser(async () => ({
+        query: expressReq.body.query,
+        variables: expressReq.body.variables,
+        operationName: expressReq.body.operationName,
+        extensions: expressReq.body.extensions,
+      }));
     }
-  }
+  },
+};
 
-  const request = new Request(url, {
-    method: req.method,
-    headers,
-    body: ['GET', 'HEAD'].includes(req.method) ? undefined : JSON.stringify(req.body),
-  });
+const yoga = createYoga({
+  schema,
+  graphqlEndpoint: '*',
+  plugins: [useExpressParsedBody],
+});
 
-  const response = await yoga.fetch(request);
-
-  res.status(response.status);
-  response.headers.forEach((value, key) => {
-    res.setHeader(key, value);
-  });
-
-  const text = await response.text();
-  res.send(text);
-}
+export default yoga;
