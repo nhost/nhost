@@ -15,7 +15,10 @@ const resolvers = {
 
 const schema = createSchema({ typeDefs, resolvers });
 
-const yoga = createYoga({ schema, graphqlEndpoint: "*" });
+const yoga = createYoga({
+  schema,
+  graphqlEndpoint: "*",
+});
 
 export default async function handler(req: Request, res: Response) {
   const url = `${req.protocol}://${req.get("host")}${req.originalUrl}`;
