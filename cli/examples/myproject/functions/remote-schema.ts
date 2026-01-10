@@ -1,6 +1,5 @@
 import { createSchema, createYoga } from 'graphql-yoga';
 
-
 const typeDefs = `
   type Query {
     hello: String!
@@ -15,9 +14,9 @@ const resolvers = {
 
 const schema = createSchema({ typeDefs, resolvers });
 
-const yoga = createYoga<{ req: Request; env: unknown; context: unknown }>({
+const yoga = createYoga({
   schema,
-  graphqlEndpoint: '/remote-schema',
+  graphqlEndpoint: '*',
 });
 
-export default yoga
+export default yoga;
