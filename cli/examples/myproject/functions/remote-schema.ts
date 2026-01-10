@@ -36,23 +36,25 @@ const yoga = createYoga({
   plugins: [useExpressParsedBody],
 });
 
-export default async function handler(req: Request, res: Response) {
-  const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+export default yoga;
 
-  const response = await yoga.fetch(
-    url,
-    {
-      method: req.method,
-      headers: req.headers as HeadersInit,
-    },
-    { req } // serverContext - makes req.body available to the plugin
-  );
+// export default async function handler(req: Request, res: Response) {
+//   const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
 
-  res.status(response.status);
-  response.headers.forEach((value, key) => {
-    res.setHeader(key, value);
-  });
+//   const response = await yoga.fetch(
+//     url,
+//     {
+//       method: req.method,
+//       headers: req.headers as HeadersInit,
+//     },
+//     { req } // serverContext - makes req.body available to the plugin
+//   );
 
-  const body = await response.text();
-  res.send(body);
-}
+//   res.status(response.status);
+//   response.headers.forEach((value, key) => {
+//     res.setHeader(key, value);
+//   });
+
+//   const body = await response.text();
+//   res.send(body);
+// }
