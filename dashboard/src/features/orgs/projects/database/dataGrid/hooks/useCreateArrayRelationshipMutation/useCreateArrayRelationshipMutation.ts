@@ -53,11 +53,6 @@ export default function useCreateArrayRelationshipMutation({
         queryClient.invalidateQueries({
           queryKey: ['suggest-relationships', variables.args.source],
         });
-        queryClient.invalidateQueries({
-          queryKey: [
-            `${variables.args.source}.${variables.args.table.schema}.${variables.args.table.name}`,
-          ],
-        });
       },
     },
   );

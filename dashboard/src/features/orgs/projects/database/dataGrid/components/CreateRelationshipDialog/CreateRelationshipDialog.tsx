@@ -18,12 +18,14 @@ interface CreateRelationshipDialogProps {
   source: string;
   schema: string;
   tableName: string;
+  onRelationshipCreated?: () => Promise<void> | void;
 }
 
 export default function CreateRelationshipDialog({
   source,
   schema,
   tableName,
+  onRelationshipCreated,
 }: CreateRelationshipDialogProps) {
   const [open, setOpen] = useState(false);
   const { data: resourceVersion } = useGetMetadataResourceVersion();
@@ -62,6 +64,7 @@ export default function CreateRelationshipDialog({
         });
       }
       triggerToast('Relationship created successfully.');
+      onRelationshipCreated?.();
     } catch (error) {
       const message =
         error instanceof Error

@@ -704,10 +704,8 @@ components:
           description: Name of the source database of the table
           default: default
         table:
-          description: Name of the table on which the relationship is being defined
-          oneOf:
-            - type: string
-            - $ref: '#/components/schemas/QualifiedTable'
+          description: Table on which the relationship is being defined
+          $ref: '#/components/schemas/QualifiedTable'
         definition:
           description: Definition of the remote relationship
           $ref: '#/components/schemas/RemoteRelationshipDefinition'

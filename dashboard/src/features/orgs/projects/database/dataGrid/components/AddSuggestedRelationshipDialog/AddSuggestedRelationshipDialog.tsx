@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { FormInput } from '@/components/form/FormInput';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
@@ -16,13 +16,13 @@ import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/h
 import { useCreateArrayRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateArrayRelationshipMutation';
 import { useCreateObjectRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateObjectRelationshipMutation';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import type { SuggestRelationshipsResponseRelationshipsItem } from '@/utils/hasura-api/generated/schemas';
-import { useQueryClient } from '@tanstack/react-query';
+import type {
+  RelationshipUsingForeignKeyConstraintOnForeignKeyConstraintOn,
+  SuggestRelationshipsResponseRelationshipsItem,
+} from '@/utils/hasura-api/generated/schemas';
 import { useForm } from 'react-hook-form';
 
 interface AddSuggestedRelationshipDialogProps {
-  open: boolean;
-  setOpen: (open: boolean) => void;
   /**
    * Source where the relationship will be created.
    *
@@ -40,7 +40,7 @@ interface AddSuggestedRelationshipDialogProps {
   /**
    * Suggested relationship to be transformed into a tracked relationship.
    */
-  suggestion?: SuggestRelationshipsResponseRelationshipsItem | null;
+  suggestion: SuggestRelationshipsResponseRelationshipsItem;
   /**
    * Optional callback triggered after successfully creating the relationship.
    */
@@ -86,14 +86,13 @@ type AddSuggestedRelationshipFormValues = {
 };
 
 export default function AddSuggestedRelationshipDialog({
-  open,
-  setOpen,
   source = 'default',
   schema,
   tableName,
   suggestion,
   onSuccess,
 }: AddSuggestedRelationshipDialogProps) {
+  const [open, setOpen] = useState(false);
   const { data: resourceVersion } = useGetMetadataResourceVersion();
 
   const {
@@ -121,8 +120,6 @@ export default function AddSuggestedRelationshipDialog({
 
   const { control, handleSubmit, reset, setError, clearErrors, formState } =
     relationshipForm;
-
-  const queryClient = useQueryClient();
 
   const isSubmitting =
     isCreatingObjectRelationship ||
@@ -223,16 +220,10 @@ export default function AddSuggestedRelationshipDialog({
 
       const arrayForeignKey:
         | string
-        | RelationshipUsingForeignKeyConstraintOnForeignKeyConstraintOnOneOf
+        | RelationshipUsingForeignKeyConstraintOnForeignKeyConstraintOn
         | undefined =
         remoteTable && remoteColumns.length > 0
-          ? {
-              table: remoteTable,
-              columns:
-                remoteColumns.length === 1
-                  ? (remoteColumns[0] as unknown as string)
-                  : (remoteColumns as unknown as string),
-            }
+          ? { table: remoteTable, columns: remoteColumns }
           : suggestion.to?.constraint_name;
 
       if (!arrayForeignKey) {
@@ -258,7 +249,7 @@ export default function AddSuggestedRelationshipDialog({
 
       const objectForeignKey:
         | string
-        | RelationshipUsingForeignKeyConstraintOnForeignKeyConstraintOnOneOf
+        | RelationshipUsingForeignKeyConstraintOnForeignKeyConstraintOn
         | undefined =
         suggestion.from?.constraint_name ??
         (localColumns.length === 1
@@ -305,79 +296,74 @@ export default function AddSuggestedRelationshipDialog({
       },
     );
 
-    await Promise.allSettled([
-      queryClient.invalidateQueries({
-        queryKey: ['export-metadata'],
-        exact: false,
-      }),
-      queryClient.invalidateQueries({
-        queryKey: ['suggest-relationships', source],
-      }),
-    ]);
-
     handleClose(false);
     await onSuccess?.();
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent
-        className="sm:max-w-[480px]"
-        hideCloseButton
-        disableOutsideClick={isSubmitting}
-      >
-        <DialogHeader>
-          <DialogTitle className="text-foreground">
-            Add Suggested Relationship
-          </DialogTitle>
-          <DialogDescription>
-            Review the relationship details and confirm to add it to your
-            metadata.
-          </DialogDescription>
-        </DialogHeader>
+    <>
+      <Button size="sm" onClick={() => setOpen(true)}>
+        Add
+      </Button>
+      <Dialog open={open} onOpenChange={handleClose}>
+        <DialogContent
+          className="sm:max-w-[480px]"
+          hideCloseButton
+          disableOutsideClick={isSubmitting}
+        >
+          <DialogHeader>
+            <DialogTitle className="text-foreground">
+              Add Suggested Relationship
+            </DialogTitle>
+            <DialogDescription>
+              Review the relationship details and confirm to add it to your
+              metadata.
+            </DialogDescription>
+          </DialogHeader>
 
-        {relationshipSummary && (
-          <p className="rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground">
-            {relationshipSummary}
-          </p>
-        )}
+          {relationshipSummary && (
+            <p className="rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground">
+              {relationshipSummary}
+            </p>
+          )}
 
-        <Form {...relationshipForm}>
-          <form
-            onSubmit={handleSubmit(handleCreateRelationship)}
-            className="mt-4 flex flex-col gap-4 text-foreground"
-          >
-            <FormInput
-              ref={relationshipNameInputRef}
-              control={control}
-              name="relationshipName"
-              label="Relationship Name"
-              containerClassName="mt-0"
-            />
+          <Form {...relationshipForm}>
+            <form
+              onSubmit={handleSubmit(handleCreateRelationship)}
+              className="mt-4 flex flex-col gap-4 text-foreground"
+            >
+              <FormInput
+                ref={relationshipNameInputRef}
+                control={control}
+                name="relationshipName"
+                label="Relationship Name"
+                containerClassName="mt-0"
+              />
 
-            <DialogFooter className="gap-2 sm:flex sm:flex-col sm:space-x-0">
-              <ButtonWithLoading
-                type="submit"
-                loading={isSubmitting}
-                disabled={isSubmitting}
-                className="!text-sm+"
-              >
-                Create Relationship
-              </ButtonWithLoading>
-
-              <DialogClose asChild>
-                <Button
-                  variant="outline"
-                  className="!text-sm+ text-foreground"
-                  type="button"
+              <DialogFooter className="gap-2 sm:flex sm:flex-col sm:space-x-0">
+                <ButtonWithLoading
+                  type="submit"
+                  loading={isSubmitting}
+                  disabled={isSubmitting}
+                  className="!text-sm+"
                 >
-                  Cancel
-                </Button>
-              </DialogClose>
-            </DialogFooter>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
+                  Create Relationship
+                </ButtonWithLoading>
+
+                <DialogClose asChild>
+                  <Button
+                    variant="outline"
+                    className="!text-sm+ text-foreground"
+                    type="button"
+                  >
+                    Cancel
+                  </Button>
+                </DialogClose>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

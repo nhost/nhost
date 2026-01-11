@@ -11,7 +11,6 @@ import {
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { useDropRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDropRelationshipMutation';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useQueryClient } from '@tanstack/react-query';
 import { Trash2Icon } from 'lucide-react';
 import { useState } from 'react';
 
@@ -43,8 +42,6 @@ export default function DeleteRelationshipDialog({
   const { mutateAsync: deleteRelationship, isLoading: isDeletingRelationship } =
     useDropRelationshipMutation();
 
-  const queryClient = useQueryClient();
-
   const { data: resourceVersion } = useGetMetadataResourceVersion();
 
   const handleDeleteDialogClick = async () => {
@@ -70,15 +67,6 @@ export default function DeleteRelationshipDialog({
       },
     );
     setOpen(false);
-    await Promise.allSettled([
-      queryClient.invalidateQueries({
-        queryKey: ['export-metadata'],
-        exact: false,
-      }),
-      queryClient.invalidateQueries({
-        queryKey: ['suggest-relationships', source],
-      }),
-    ]);
   };
 
   return (

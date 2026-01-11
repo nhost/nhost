@@ -5,7 +5,7 @@
  * API for managing remote schemas and events in Hasura
  * OpenAPI spec version: 1.0.0
  */
-import type { CreateRemoteRelationshipArgsTable } from './createRemoteRelationshipArgsTable';
+import type { QualifiedTable } from './qualifiedTable';
 import type { RemoteRelationshipDefinition } from './remoteRelationshipDefinition';
 
 export interface CreateRemoteRelationshipArgs {
@@ -13,8 +13,8 @@ export interface CreateRemoteRelationshipArgs {
   name: string;
   /** Name of the source database of the table */
   source?: string;
-  /** Name of the table on which the relationship is being defined */
-  table: CreateRemoteRelationshipArgsTable;
+  /** Table on which the relationship is being defined */
+  table: QualifiedTable;
   /** Definition of the remote relationship */
   definition: RemoteRelationshipDefinition;
 }

@@ -104,8 +104,6 @@ export default function SourceAndReferenceSelector() {
     ],
   );
 
-  console.log('toSchemaOptions', toSchemaOptions);
-
   const toSourceTableNames = useMemo(() => {
     const key = getTableKey(
       selectedToReference?.source,
@@ -264,8 +262,6 @@ export default function SourceAndReferenceSelector() {
                         shouldValidate: true,
                       });
                     }
-
-                    // TODO: Set the table to the first table in the source.
                   }
 
                   if (referencedSourceValue.type === 'remoteSchema') {

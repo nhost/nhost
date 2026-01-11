@@ -89,7 +89,6 @@ export default function BaseRelationshipDialog({
     }
 
     const defaultValues = buildDefaultFormValues(source, schema, tableName);
-    console.log('defaultValues', defaultValues);
 
     reset(defaultValues);
   }, [open, reset, initialValues, source, schema, tableName]);

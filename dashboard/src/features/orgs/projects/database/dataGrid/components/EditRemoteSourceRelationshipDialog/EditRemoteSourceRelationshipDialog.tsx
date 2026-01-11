@@ -2,11 +2,11 @@ import { useCallback, useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/v3/button';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
+import { BaseRelationshipDialog } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog';
 import {
-  BaseRelationshipDialog,
-  type CreateRelationshipFormValues,
-  type RelationshipFormValues,
-} from '@/features/orgs/projects/database/dataGrid/EditRelationshipsForm/dialogs/BaseRelationshipDialog';
+  ToReferenceSourceTypePrefix,
+  type BaseRelationshipFormValues,
+} from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/BaseRelationshipFormTypes';
 import { useCreateRemoteRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateRemoteRelationshipMutation';
 import { isToSourceRelationshipDefinition } from '@/features/orgs/projects/database/dataGrid/types/relationships/guards';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
@@ -35,8 +35,6 @@ export default function EditRemoteSourceRelationshipDialog({
 }: EditRemoteSourceRelationshipDialogProps) {
   const [open, setOpen] = useState(false);
 
-  // const toSourceDefinition =
-  //   definition && 'to_source' in definition ? definition.to_source : null;
   const toSourceDefinition = isToSourceRelationshipDefinition(definition)
     ? definition.to_source
     : null;
@@ -45,7 +43,7 @@ export default function EditRemoteSourceRelationshipDialog({
   const { mutateAsync: createRemoteRelationship } =
     useCreateRemoteRelationshipMutation();
 
-  const initialValues = useMemo<CreateRelationshipFormValues | null>(() => {
+  const initialValues = useMemo<BaseRelationshipFormValues | null>(() => {
     if (!definition || !toSourceDefinition) {
       return null;
     }
@@ -65,7 +63,7 @@ export default function EditRemoteSourceRelationshipDialog({
       toReference: {
         schema: toSourceDefinition.table?.schema ?? '',
         table: toSourceDefinition.table?.name ?? '',
-        source: toSourceDefinition.source ?? '',
+        source: `${ToReferenceSourceTypePrefix.SOURCE}${toSourceDefinition.source ?? ''}`,
       },
       relationshipType:
         toSourceDefinition.relationship_type?.toLowerCase() === 'array'
@@ -88,7 +86,7 @@ export default function EditRemoteSourceRelationshipDialog({
   ]);
 
   const handleUpdateRemoteRelationship = useCallback(
-    async (values: RelationshipFormValues) => {
+    async (values: BaseRelationshipFormValues) => {
       if (!resourceVersion) {
         throw new Error(
           'Metadata is not ready yet. Please try again in a moment.',
@@ -170,7 +168,7 @@ export default function EditRemoteSourceRelationshipDialog({
         dialogDescription="Update the selected remote relationship."
         submitButtonText="Save Changes"
         initialValues={initialValues}
-        onSubmitRelationship={handleUpdateRemoteRelationship}
+        onSubmit={handleUpdateRemoteRelationship}
       />
     </>
   );

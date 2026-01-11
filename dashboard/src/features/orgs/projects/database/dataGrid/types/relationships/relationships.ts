@@ -6,7 +6,6 @@ import type {
 
 export interface RelationshipSuggestionViewModel {
   key: string;
-  structuralKey: string;
   name: string;
   source: string;
   type: 'Array' | 'Object';

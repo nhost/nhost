@@ -1,10 +1,8 @@
 import useGetRelationships from '@/features/orgs/projects/database/dataGrid/hooks/useGetRelationships/useGetRelationships';
 import { useSuggestRelationshipsQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useSuggestRelationshipsQuery';
 import { isLocalRelationshipViewModel } from '@/features/orgs/projects/database/dataGrid/types/relationships/guards';
-import {
-  buildRelationshipSuggestionViewModel,
-  type RelationshipSuggestionViewModel,
-} from '@/features/orgs/projects/database/dataGrid/utils/buildRelationshipSuggestionViewModel';
+import type { RelationshipSuggestionViewModel } from '@/features/orgs/projects/database/dataGrid/types/relationships/relationships';
+import buildRelationshipSuggestionViewModel from '@/features/orgs/projects/database/dataGrid/utils/buildRelationshipSuggestionViewModel/buildRelationshipSuggestionViewModel';
 
 interface UseGetSuggestedRelationshipsOptions {
   dataSource: string;

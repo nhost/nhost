@@ -54,7 +54,6 @@ export default function buildRelationshipSuggestionViewModel({
 
   return {
     key: name,
-    structuralKey,
     name,
     source: dataSource,
     type: typeLabel,

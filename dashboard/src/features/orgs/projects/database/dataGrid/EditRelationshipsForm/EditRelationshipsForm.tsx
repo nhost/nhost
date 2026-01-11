@@ -11,18 +11,17 @@ import {
 } from '@/components/ui/v3/table';
 import type { BaseTableFormProps } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm';
 import { CreateRelationshipDialog } from '@/features/orgs/projects/database/dataGrid/components/CreateRelationshipDialog';
+import { DeleteRelationshipDialog } from '@/features/orgs/projects/database/dataGrid/components/DeleteRelationshipDialog';
+import { EditRemoteSchemaRelationshipDialog } from '@/features/orgs/projects/database/dataGrid/components/EditRemoteSchemaRelationshipDialog';
 import { EditRemoteSourceRelationshipDialog } from '@/features/orgs/projects/database/dataGrid/components/EditRemoteSourceRelationshipDialog';
 import { RenameRelationshipDialog } from '@/features/orgs/projects/database/dataGrid/components/RenameRelationshipDialog';
 import useGetRelationships from '@/features/orgs/projects/database/dataGrid/hooks/useGetRelationships/useGetRelationships';
 import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
 import type { NormalizedQueryDataRow } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { isRemoteRelationshipViewModel } from '@/features/orgs/projects/database/dataGrid/types/relationships/guards';
-import { useQueryClient } from '@tanstack/react-query';
 import { ArrowRight, Link2, Plug as PlugIcon, Split } from 'lucide-react';
 import { useRouter } from 'next/router';
-import DeleteRelationshipDialog from './dialogs/DeleteRelationshipDialog';
-import { EditRemoteSchemaRelationshipDialog } from './dialogs/EditRemoteSchemaRelationshipDialog';
-import { SuggestedRelationshipsSection } from './sections/SuggestedRelationshipsSection';
+import SuggestedRelationshipsSection from './sections/SuggestedRelationshipsSection';
 
 export interface EditRelationshipsFormProps
   extends Pick<BaseTableFormProps, 'onCancel' | 'location'> {
@@ -43,7 +42,6 @@ export default function EditRelationshipsForm(
   const router = useRouter();
   const dataSource =
     (router.query.dataSourceSlug as string | undefined) || 'default';
-  const queryClient = useQueryClient();
 
   const {
     relationships: existingRelationshipsViewModel,
@@ -64,18 +62,10 @@ export default function EditRelationshipsForm(
     table: originalTable.table_name,
   });
 
-  const isDirty = false;
   const tableName = originalTable.table_name as string;
   const tableSchema = (originalTable.table_schema as string) || schema;
 
   const tableColumns = tableData?.columns ?? [];
-
-  const handleRelationshipCreated = async () => {
-    await Promise.allSettled([
-      queryClient.invalidateQueries(tableQueryKey),
-      queryClient.invalidateQueries(['suggest-relationships', dataSource]),
-    ]);
-  };
 
   const handleCancel = () => {
     if (onCancel) {
@@ -206,7 +196,6 @@ export default function EditRelationshipsForm(
                                   source={dataSource}
                                   relationshipName={relationship.name}
                                   definition={relationship.definition}
-                                  onSuccess={handleRelationshipCreated}
                                 />
                               )}
                             {relationship.type === 'RemoteSchema' &&
@@ -220,7 +209,6 @@ export default function EditRelationshipsForm(
                                     definition: relationship.definition,
                                   }}
                                   tableColumns={tableColumns}
-                                  onSuccess={handleRelationshipCreated}
                                 />
                               )}
                           </>
@@ -230,7 +218,6 @@ export default function EditRelationshipsForm(
                             tableName={tableName}
                             relationshipToRename={relationship.name}
                             source={relationship.fromSource}
-                            onSuccess={handleRelationshipCreated}
                           />
                         )}
                       </TableCell>
@@ -245,17 +232,11 @@ export default function EditRelationshipsForm(
           tableSchema={tableSchema}
           tableName={tableName}
           dataSource={dataSource}
-          onRelationshipCreated={handleRelationshipCreated}
         />
       </div>
 
       <div className="grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 px-6 py-3">
-        <Button
-          variant="outline"
-          color="secondary"
-          onClick={handleCancel}
-          tabIndex={isDirty ? -1 : 0}
-        >
+        <Button variant="outline" color="secondary" onClick={handleCancel}>
           Back
         </Button>
       </div>

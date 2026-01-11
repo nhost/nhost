@@ -16,11 +16,18 @@ export interface RemoteSchemaRelationshipDetailsValue {
   remoteField?: unknown;
 }
 
+export interface RemoteSchemaRelationshipDetailsInitialValue {
+  rootFieldPath: string;
+  selectedFieldPaths: Set<string>;
+  argumentMappingsByPath: RemoteFieldArgumentMappingsByPath;
+}
+
 export interface RemoteSchemaRelationshipDetailsProps {
   remoteSchema: string;
   tableColumns: NormalizedQueryDataRow[];
   disabled?: boolean;
   onChange: (value: RemoteSchemaRelationshipDetailsValue) => void;
+  initialValue?: RemoteSchemaRelationshipDetailsInitialValue;
 }
 
 export default function RemoteSchemaRelationshipDetails({
@@ -28,18 +35,26 @@ export default function RemoteSchemaRelationshipDetails({
   tableColumns,
   disabled,
   onChange,
+  initialValue,
 }: RemoteSchemaRelationshipDetailsProps) {
   const onChangeRef = useRef(onChange);
   useEffect(() => {
     onChangeRef.current = onChange;
   }, [onChange]);
 
-  const [selectedRootFieldPath, setSelectedRootFieldPath] = useState('');
+  const [selectedRootFieldPath, setSelectedRootFieldPath] = useState(
+    initialValue?.rootFieldPath ?? '',
+  );
   const [selectedFieldPaths, setSelectedFieldPaths] = useState<Set<string>>(
-    new Set(),
+    initialValue?.selectedFieldPaths ?? new Set(),
   );
   const [argumentMappingsByPath, setArgumentMappingsByPath] =
-    useState<RemoteFieldArgumentMappingsByPath>({});
+    useState<RemoteFieldArgumentMappingsByPath>(
+      initialValue?.argumentMappingsByPath ?? {},
+    );
+
+  // Track the previous remoteSchema to detect changes
+  const previousRemoteSchemaRef = useRef(remoteSchema);
 
   const tableColumnOptions = useMemo(
     () =>
@@ -66,11 +81,14 @@ export default function RemoteSchemaRelationshipDetails({
   }, [targetIntrospectionData]);
 
   useEffect(() => {
-    setSelectedRootFieldPath('');
-    setSelectedFieldPaths(new Set());
-    setArgumentMappingsByPath({});
-    onChangeRef.current({ lhsFields: [], remoteField: undefined });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Only reset if remoteSchema actually changed (not on initial mount)
+    if (previousRemoteSchemaRef.current !== remoteSchema) {
+      setSelectedRootFieldPath('');
+      setSelectedFieldPaths(new Set());
+      setArgumentMappingsByPath({});
+      onChangeRef.current({ lhsFields: [], remoteField: undefined });
+      previousRemoteSchemaRef.current = remoteSchema;
+    }
   }, [remoteSchema]);
 
   const remoteFieldObject = useMemo(() => {
