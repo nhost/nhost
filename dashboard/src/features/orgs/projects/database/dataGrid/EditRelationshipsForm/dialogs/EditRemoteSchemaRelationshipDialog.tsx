@@ -1,6 +1,7 @@
 import {
   useEffect,
   useMemo,
+  useRef,
   useState,
   type Dispatch,
   type SetStateAction,
@@ -29,10 +30,10 @@ import { Textarea } from '@/components/ui/v3/textarea';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { useCreateRemoteRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateRemoteRelationshipMutation';
 import type { NormalizedQueryDataRow } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { isToRemoteSchemaRelationshipDefinition } from '@/features/orgs/projects/database/dataGrid/types/relationships/guards';
 import useGetRemoteSchemas from '@/features/orgs/projects/remote-schemas/hooks/useGetRemoteSchemas/useGetRemoteSchemas';
 import { useIntrospectRemoteSchemaQuery } from '@/features/orgs/projects/remote-schemas/hooks/useIntrospectRemoteSchemaQuery';
 import convertIntrospectionToSchema from '@/features/orgs/projects/remote-schemas/utils/convertIntrospectionToSchema';
-import { isToRemoteSchemaRelationshipDefinition } from '@/features/orgs/projects/remote-schemas/utils/guards';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { cn } from '@/lib/utils';
 import type {
@@ -309,9 +310,7 @@ const buildRemoteFieldFromSelection = (
     );
 
     return {
-      ...(Object.keys(argumentEntries).length > 0
-        ? { arguments: argumentEntries }
-        : {}),
+      arguments: argumentEntries,
       ...(Object.keys(fieldEntries).length > 0 ? { field: fieldEntries } : {}),
     };
   };
@@ -664,9 +663,244 @@ function RemoteSchemaFieldNode({
   );
 }
 
+export interface RemoteSchemaRelationshipDetailsValue {
+  lhsFields: string[];
+  remoteField?: unknown;
+}
+
+export interface RemoteSchemaRelationshipDetailsProps {
+  remoteSchema: string;
+  tableColumns: NormalizedQueryDataRow[];
+  disabled?: boolean;
+  onChange: (value: RemoteSchemaRelationshipDetailsValue) => void;
+}
+
+/**
+ * Inline remote schema relationship field selector (no Dialog wrapper).
+ * Intended to be embedded in other forms (e.g. inside `BaseRelationshipDialog`).
+ */
+export function RemoteSchemaRelationshipDetails({
+  remoteSchema,
+  tableColumns,
+  disabled,
+  onChange,
+}: RemoteSchemaRelationshipDetailsProps) {
+  const onChangeRef = useRef(onChange);
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
+
+  const [selectedRootFieldPath, setSelectedRootFieldPath] = useState('');
+  const [selectedFieldPaths, setSelectedFieldPaths] = useState<Set<string>>(
+    new Set(),
+  );
+  const [argumentMappingsByPath, setArgumentMappingsByPath] =
+    useState<RemoteFieldArgumentMappingsByPath>({});
+
+  const tableColumnOptions = useMemo(
+    () =>
+      tableColumns
+        .map((column) => column?.column_name)
+        .filter((columnName): columnName is string => Boolean(columnName)),
+    [tableColumns],
+  );
+
+  const { data: targetIntrospectionData } = useIntrospectRemoteSchemaQuery(
+    remoteSchema,
+    {
+      queryOptions: {
+        enabled: !!remoteSchema,
+      },
+    },
+  );
+
+  const targetGraphqlSchema = useMemo(() => {
+    if (!targetIntrospectionData) {
+      return null;
+    }
+    return convertIntrospectionToSchema(targetIntrospectionData);
+  }, [targetIntrospectionData]);
+
+  useEffect(() => {
+    // Reset selection when switching remote schemas.
+    setSelectedRootFieldPath('');
+    setSelectedFieldPaths(new Set());
+    setArgumentMappingsByPath({});
+    onChangeRef.current({ lhsFields: [], remoteField: undefined });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [remoteSchema]);
+
+  const remoteFieldObject = useMemo(() => {
+    if (selectedFieldPaths.size === 0) {
+      return null;
+    }
+
+    return buildRemoteFieldFromSelection(
+      selectedFieldPaths,
+      argumentMappingsByPath,
+    );
+  }, [argumentMappingsByPath, selectedFieldPaths]);
+
+  const lhsFields = useMemo(
+    () => extractLhsFieldsFromMappings(argumentMappingsByPath),
+    [argumentMappingsByPath],
+  );
+
+  useEffect(() => {
+    if (!remoteFieldObject) {
+      onChangeRef.current({ lhsFields, remoteField: undefined });
+      return;
+    }
+
+    onChangeRef.current({ lhsFields, remoteField: remoteFieldObject });
+  }, [lhsFields, remoteFieldObject]);
+
+  const remoteFieldsContent = useMemo(() => {
+    if (!remoteSchema) {
+      return (
+        <p className="text-sm text-muted-foreground">
+          Select a remote schema to browse available fields.
+        </p>
+      );
+    }
+
+    if (!targetGraphqlSchema) {
+      return (
+        <p className="text-sm text-muted-foreground">
+          Loading remote schema types…
+        </p>
+      );
+    }
+
+    return (
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <div className="text-sm font-medium">Root operation fields</div>
+          {getOperationRoots(targetGraphqlSchema).map((root) => {
+            const rootFields = Object.values(root.type.getFields());
+            return (
+              <div
+                key={root.value}
+                className="space-y-2 rounded-md border border-border p-3"
+              >
+                <div className="text-sm font-semibold">{root.label}</div>
+                <div className="space-y-2">
+                  {rootFields.map((rootField) => {
+                    const rootFieldPath = rootField.name;
+                    const checked = selectedRootFieldPath === rootFieldPath;
+                    return (
+                      <div
+                        key={`${root.value}.${rootField.name}`}
+                        className="flex items-center gap-3"
+                      >
+                        <Checkbox
+                          id={`root-${root.value}-${rootField.name}`}
+                          checked={checked}
+                          onCheckedChange={(nextChecked) => {
+                            const shouldSelect = Boolean(nextChecked);
+                            if (!shouldSelect) {
+                              setSelectedRootFieldPath('');
+                              setSelectedFieldPaths(new Set());
+                              setArgumentMappingsByPath({});
+                              return;
+                            }
+
+                            setSelectedRootFieldPath(rootFieldPath);
+                            setSelectedFieldPaths(new Set([rootFieldPath]));
+                            setArgumentMappingsByPath({});
+                          }}
+                          disabled={disabled}
+                        />
+                        <label
+                          htmlFor={`root-${root.value}-${rootField.name}`}
+                          className="cursor-pointer text-sm"
+                        >
+                          <span className="font-medium">{rootField.name}</span>{' '}
+                          <span className="text-xs text-muted-foreground">
+                            ({getTypeString(rootField.type)})
+                          </span>
+                        </label>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {selectedRootFieldPath ? (
+          <div className="space-y-2 rounded-md border border-border p-3">
+            <div className="text-sm font-medium">Selected field tree</div>
+            {(() => {
+              const graphqlSchema = targetGraphqlSchema;
+              const queryType = graphqlSchema.getQueryType();
+              const mutationType = graphqlSchema.getMutationType();
+              const subscriptionType = graphqlSchema.getSubscriptionType();
+              const rootField =
+                queryType?.getFields()[selectedRootFieldPath] ??
+                mutationType?.getFields()[selectedRootFieldPath] ??
+                subscriptionType?.getFields()[selectedRootFieldPath];
+
+              if (!rootField) {
+                return (
+                  <p className="text-sm text-muted-foreground">
+                    Unable to resolve the selected root field.
+                  </p>
+                );
+              }
+
+              return (
+                <RemoteSchemaFieldNode
+                  schema={graphqlSchema}
+                  field={rootField}
+                  fieldPath={selectedRootFieldPath}
+                  selectedFieldPaths={selectedFieldPaths}
+                  setSelectedFieldPaths={setSelectedFieldPaths}
+                  argumentMappingsByPath={argumentMappingsByPath}
+                  setArgumentMappingsByPath={setArgumentMappingsByPath}
+                  tableColumnOptions={tableColumnOptions}
+                  disabled={disabled}
+                  depth={0}
+                />
+              );
+            })()}
+          </div>
+        ) : null}
+      </div>
+    );
+  }, [
+    argumentMappingsByPath,
+    disabled,
+    remoteSchema,
+    selectedRootFieldPath,
+    selectedFieldPaths,
+    tableColumnOptions,
+    targetGraphqlSchema,
+  ]);
+
+  const remoteFieldPreview = remoteFieldObject
+    ? JSON.stringify(remoteFieldObject, null, 2)
+    : '{}';
+
+  return (
+    <div className="space-y-4">
+      {remoteFieldsContent}
+
+      <div className="space-y-2">
+        <div className="text-sm font-medium">Remote field preview</div>
+        <Textarea
+          value={remoteFieldPreview}
+          readOnly
+          className="font-mono text-xs"
+          rows={8}
+        />
+      </div>
+    </div>
+  );
+}
+
 export interface EditRemoteSchemaRelationshipDialogControlledProps {
-  open: boolean;
-  setOpen: (open: boolean) => void;
   schema: string;
   tableName: string;
   source: string;
@@ -681,9 +915,7 @@ export type EditRemoteSchemaRelationshipDialogProps = Omit<
   'open' | 'setOpen'
 >;
 
-export function EditRemoteSchemaRelationshipDialogControlled({
-  open,
-  setOpen,
+export function EditRemoteSchemaRelationshipDialog({
   schema,
   tableName,
   source,
@@ -692,6 +924,7 @@ export function EditRemoteSchemaRelationshipDialogControlled({
   defaultRemoteSchema,
   onSuccess,
 }: EditRemoteSchemaRelationshipDialogControlledProps) {
+  const [open, setOpen] = useState(false);
   const isEditing = Boolean(relationship);
   const [selectedRemoteSchema, setSelectedRemoteSchema] = useState('');
   const [relationshipName, setRelationshipName] = useState('');
@@ -1004,143 +1237,6 @@ export function EditRemoteSchemaRelationshipDialogControlled({
   ]);
 
   return (
-    <Dialog open={open} onOpenChange={handleDialogChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto text-foreground sm:max-w-3xl">
-        <DialogHeader>
-          <DialogTitle>
-            {isEditing
-              ? 'Edit Remote Schema Relationship'
-              : 'Create Remote Schema Relationship'}
-          </DialogTitle>
-        </DialogHeader>
-
-        {relationship && !isRemoteSchemaDefinition ? (
-          <Alert severity="error">
-            Unable to load this relationship. Please try again later.
-          </Alert>
-        ) : (
-          <div className="flex flex-col gap-6">
-            <div className="space-y-2">
-              <Label>Relationship name</Label>
-              <Input
-                value={
-                  isEditing ? (relationship?.name ?? '') : relationshipName
-                }
-                onChange={(event) => setRelationshipName(event.target.value)}
-                disabled={isSaving || isEditing}
-                placeholder="e.g. remote_schema_relationship"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Remote schema</Label>
-              <Select
-                value={selectedRemoteSchema}
-                onValueChange={(value) => {
-                  setSelectedRemoteSchema(value);
-                  // Reset selection state when switching remote schema.
-                  setSelectedRootFieldPath('');
-                  setSelectedFieldPaths(new Set());
-                  setArgumentMappingsByPath({});
-                }}
-                disabled={remoteSchemasStatus === 'loading' || isSaving}
-              >
-                <SelectTrigger
-                  className={cn({
-                    'border-destructive': formError && !selectedRemoteSchema,
-                  })}
-                >
-                  <SelectValue placeholder="Select remote schema" />
-                </SelectTrigger>
-                <SelectContent>
-                  {remoteSchemas?.map((remoteSchema) => (
-                    <SelectItem
-                      key={remoteSchema.name}
-                      value={remoteSchema.name}
-                    >
-                      {remoteSchema.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-4 rounded-lg border border-border p-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-base font-medium">Remote fields</h3>
-              </div>
-
-              {remoteFieldsContent}
-            </div>
-
-            <div className="space-y-2">
-              <Label>Remote field JSON</Label>
-              <Textarea
-                value={remoteFieldPreview}
-                readOnly
-                className="font-mono text-xs"
-                rows={8}
-              />
-              <p className="text-sm text-muted-foreground">
-                This is the value that will be sent as{' '}
-                <code className="rounded bg-muted px-1 py-0.5">
-                  remote_field
-                </code>
-                .
-              </p>
-            </div>
-
-            <div>
-              <Label>Referenced columns</Label>
-              {lhsFields.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  Columns will be added automatically as you map arguments to
-                  table columns.
-                </p>
-              ) : (
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {lhsFields.map((column) => (
-                    <span
-                      key={column}
-                      className="rounded-full bg-muted px-3 py-1 text-sm"
-                    >
-                      {column}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {formError ? (
-              <p className="text-sm text-destructive">{formError}</p>
-            ) : null}
-
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setOpen(false)}
-                disabled={isSaving}
-              >
-                Cancel
-              </Button>
-              <Button type="button" onClick={handleSave} disabled={isSaving}>
-                {isEditing ? 'Save Changes' : 'Create Relationship'}
-              </Button>
-            </DialogFooter>
-          </div>
-        )}
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-export default function EditRemoteSchemaRelationshipDialog(
-  props: EditRemoteSchemaRelationshipDialogProps,
-) {
-  const [open, setOpen] = useState(false);
-
-  return (
     <>
       <Button
         type="button"
@@ -1150,12 +1246,134 @@ export default function EditRemoteSchemaRelationshipDialog(
       >
         <SquarePen className="size-4" />
       </Button>
+      <Dialog open={open} onOpenChange={handleDialogChange}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto text-foreground sm:max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>
+              {isEditing
+                ? 'Edit Remote Schema Relationship'
+                : 'Create Remote Schema Relationship'}
+            </DialogTitle>
+          </DialogHeader>
 
-      <EditRemoteSchemaRelationshipDialogControlled
-        {...props}
-        open={open}
-        setOpen={setOpen}
-      />
+          {relationship && !isRemoteSchemaDefinition ? (
+            <Alert severity="error">
+              Unable to load this relationship. Please try again later.
+            </Alert>
+          ) : (
+            <div className="flex flex-col gap-6">
+              <div className="space-y-2">
+                <Label>Relationship name</Label>
+                <Input
+                  value={
+                    isEditing ? (relationship?.name ?? '') : relationshipName
+                  }
+                  onChange={(event) => setRelationshipName(event.target.value)}
+                  disabled={isSaving || isEditing}
+                  placeholder="e.g. remote_schema_relationship"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Remote schema</Label>
+                <Select
+                  value={selectedRemoteSchema}
+                  onValueChange={(value) => {
+                    setSelectedRemoteSchema(value);
+                    // Reset selection state when switching remote schema.
+                    setSelectedRootFieldPath('');
+                    setSelectedFieldPaths(new Set());
+                    setArgumentMappingsByPath({});
+                  }}
+                  disabled={remoteSchemasStatus === 'loading' || isSaving}
+                >
+                  <SelectTrigger
+                    className={cn({
+                      'border-destructive': formError && !selectedRemoteSchema,
+                    })}
+                  >
+                    <SelectValue placeholder="Select remote schema" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {remoteSchemas?.map((remoteSchema) => (
+                      <SelectItem
+                        key={remoteSchema.name}
+                        value={remoteSchema.name}
+                      >
+                        {remoteSchema.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-4 rounded-lg border border-border p-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-base font-medium">Remote fields</h3>
+                </div>
+
+                {remoteFieldsContent}
+              </div>
+
+              <div className="space-y-2">
+                <Label>Remote field JSON</Label>
+                <Textarea
+                  value={remoteFieldPreview}
+                  readOnly
+                  className="font-mono text-xs"
+                  rows={8}
+                />
+                <p className="text-sm text-muted-foreground">
+                  This is the value that will be sent as{' '}
+                  <code className="rounded bg-muted px-1 py-0.5">
+                    remote_field
+                  </code>
+                  .
+                </p>
+              </div>
+
+              <div>
+                <Label>Referenced columns</Label>
+                {lhsFields.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    Columns will be added automatically as you map arguments to
+                    table columns.
+                  </p>
+                ) : (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {lhsFields.map((column) => (
+                      <span
+                        key={column}
+                        className="rounded-full bg-muted px-3 py-1 text-sm"
+                      >
+                        {column}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {formError ? (
+                <p className="text-sm text-destructive">{formError}</p>
+              ) : null}
+
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setOpen(false)}
+                  disabled={isSaving}
+                >
+                  Cancel
+                </Button>
+                <Button type="button" onClick={handleSave} disabled={isSaving}>
+                  {isEditing ? 'Save Changes' : 'Create Relationship'}
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

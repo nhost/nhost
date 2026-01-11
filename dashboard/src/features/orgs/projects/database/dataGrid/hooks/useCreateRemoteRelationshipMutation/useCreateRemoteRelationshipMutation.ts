@@ -37,7 +37,7 @@ export default function useCreateRemoteRelationshipMutation({
     );
 
     return createRemoteRelationship({
-      ...(variables as CreateRemoteRelationshipVariables),
+      ...variables,
       appUrl,
       adminSecret: project?.config?.hasura.adminSecret!,
     });

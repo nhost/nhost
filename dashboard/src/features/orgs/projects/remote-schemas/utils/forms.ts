@@ -1,12 +1,12 @@
+import { isToRemoteSchemaRelationshipDefinition } from '@/features/orgs/projects/database/dataGrid/types/relationships/guards';
 import type {
   DatabaseRelationshipFormValues,
   RemoteSchemaRelationshipFormValues,
 } from '@/features/orgs/projects/remote-schemas/components/BaseRemoteSchemaRelationshipForm/';
 import type { RemoteSchemaRelationshipType } from '@/features/orgs/projects/remote-schemas/types';
 import type { RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItem } from '@/utils/hasura-api/generated/schemas/remoteSchemaInfoRemoteRelationshipsItemRelationshipsItem';
-import { isToRemoteSchemaRelationshipDefinition } from './guards';
 
-const serializeRemoteFieldArgumentValue = (value: unknown): string => {
+export const serializeRemoteFieldArgumentValue = (value: unknown): string => {
   if (typeof value === 'string') {
     return value;
   }

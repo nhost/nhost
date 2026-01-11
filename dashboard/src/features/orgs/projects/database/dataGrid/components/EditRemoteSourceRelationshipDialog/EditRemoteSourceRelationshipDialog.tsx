@@ -5,9 +5,10 @@ import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/h
 import {
   BaseRelationshipDialog,
   type CreateRelationshipFormValues,
+  type RelationshipFormValues,
 } from '@/features/orgs/projects/database/dataGrid/EditRelationshipsForm/dialogs/BaseRelationshipDialog';
 import { useCreateRemoteRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateRemoteRelationshipMutation';
-import { isToSourceRelationshipDefinition } from '@/features/orgs/projects/remote-schemas/utils/guards';
+import { isToSourceRelationshipDefinition } from '@/features/orgs/projects/database/dataGrid/types/relationships/guards';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type {
   CreateRemoteRelationshipArgs,
@@ -15,7 +16,7 @@ import type {
 } from '@/utils/hasura-api/generated/schemas';
 import { SquarePen } from 'lucide-react';
 
-export interface EditRemoteRelationshipDialogProps {
+export interface EditRemoteSourceRelationshipDialogProps {
   schema: string;
   tableName: string;
   source: string;
@@ -24,14 +25,14 @@ export interface EditRemoteRelationshipDialogProps {
   onSuccess?: () => Promise<void> | void;
 }
 
-export default function EditRemoteRelationshipDialog({
+export default function EditRemoteSourceRelationshipDialog({
   schema,
   tableName,
   source,
   onSuccess,
   definition,
   relationshipName,
-}: EditRemoteRelationshipDialogProps) {
+}: EditRemoteSourceRelationshipDialogProps) {
   const [open, setOpen] = useState(false);
 
   // const toSourceDefinition =
@@ -55,6 +56,7 @@ export default function EditRemoteRelationshipDialog({
 
     return {
       name: relationshipName ?? '',
+      referenceKind: 'table',
       fromSource: {
         schema,
         table: tableName,
@@ -86,11 +88,15 @@ export default function EditRemoteRelationshipDialog({
   ]);
 
   const handleUpdateRemoteRelationship = useCallback(
-    async (values: CreateRelationshipFormValues) => {
+    async (values: RelationshipFormValues) => {
       if (!resourceVersion) {
         throw new Error(
           'Metadata is not ready yet. Please try again in a moment.',
         );
+      }
+
+      if (values.referenceKind !== 'table') {
+        throw new Error('This dialog only supports table relationships.');
       }
 
       const columnMappingEntries = values.fieldMapping

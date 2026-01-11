@@ -10,6 +10,7 @@ import { areStrArraysEqual, isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import type {
   ArrayRelationshipItem,
   ObjectRelationshipItem,
+  SuggestRelationshipsResponseRelationshipsItem,
 } from '@/utils/hasura-api/generated/schemas';
 
 interface BuildLocalRelationshipViewModelProps {
@@ -17,6 +18,7 @@ interface BuildLocalRelationshipViewModelProps {
   tableSchema: string;
   tableName: string;
   foreignKeyRelations: ForeignKeyRelation[];
+  suggestedRelationships?: SuggestRelationshipsResponseRelationshipsItem[];
   type: 'Array' | 'Object';
   dataSource: string;
 }
@@ -26,6 +28,7 @@ export default function buildLocalRelationshipViewModel({
   tableSchema,
   tableName,
   foreignKeyRelations,
+  suggestedRelationships,
   type,
   dataSource,
 }: BuildLocalRelationshipViewModelProps): LocalRelationshipViewModel {
@@ -94,21 +97,40 @@ export default function buildLocalRelationshipViewModel({
         remoteColumns = isNotEmptyValue(foreignKeyConstraintOn.column)
           ? [foreignKeyConstraintOn.column]
           : [];
+        remoteTableSchema = foreignKeyConstraintOn.table?.schema ?? tableSchema;
+        remoteTableName = foreignKeyConstraintOn.table?.name ?? '';
       } else if ('columns' in foreignKeyConstraintOn) {
         remoteColumns = foreignKeyConstraintOn.columns ?? [];
         remoteTableSchema = foreignKeyConstraintOn.table?.schema ?? tableSchema;
         remoteTableName = foreignKeyConstraintOn.table?.name ?? '';
       }
 
-      const matchingRelation = foreignKeyRelations.find(
-        (relation) =>
-          relation.referencedSchema === remoteTableSchema &&
-          relation.referencedTable === remoteTableName,
-      );
-      if (matchingRelation) {
-        remoteColumns = formatForeignKeyColumns(
-          matchingRelation.referencedColumn,
+      const matchingSuggestion = suggestedRelationships?.find((suggestion) => {
+        const suggestionFrom = suggestion.from;
+        const suggestionTo = suggestion.to;
+
+        if (suggestion.type !== 'array') {
+          return false;
+        }
+
+        const isSameFromTable =
+          suggestionFrom?.table?.schema === tableSchema &&
+          suggestionFrom?.table?.name === tableName;
+
+        const isSameToTable =
+          suggestionTo?.table?.schema === remoteTableSchema &&
+          suggestionTo?.table?.name === remoteTableName;
+
+        const isSameToColumns = areStrArraysEqual(
+          suggestionTo?.columns ?? [],
+          remoteColumns,
         );
+
+        return isSameFromTable && isSameToTable && isSameToColumns;
+      });
+
+      if (isNotEmptyValue(matchingSuggestion)) {
+        localColumns = matchingSuggestion.from?.columns ?? [];
       }
     }
   }
@@ -128,7 +150,6 @@ export default function buildLocalRelationshipViewModel({
 
   return {
     kind: 'local',
-    key: relationship.name ?? '',
     structuralKey,
     name: relationship.name ?? '',
     fromLabel: formatEndpoint(tableSchema, tableName, localColumns),

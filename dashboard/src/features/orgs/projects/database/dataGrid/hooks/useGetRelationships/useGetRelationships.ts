@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 
 import { useGetMetadata } from '@/features/orgs/projects/common/hooks/useGetMetadata';
+import { useSuggestRelationshipsQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useSuggestRelationshipsQuery';
 import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
 import type { RelationshipViewModel } from '@/features/orgs/projects/database/dataGrid/types/relationships';
 import { buildLocalRelationshipViewModel } from '@/features/orgs/projects/database/dataGrid/utils/buildLocalRelationshipViewModel';
@@ -30,6 +31,12 @@ export default function useGetRelationships({
   } = useGetMetadata();
 
   const {
+    data: suggestions,
+    isLoading: isSuggestionsLoading,
+    error: suggestionsError,
+  } = useSuggestRelationshipsQuery(dataSource, { schema, name: tableName });
+
+  const {
     data: tableData,
     status: tableStatus,
     error: tableError,
@@ -40,14 +47,26 @@ export default function useGetRelationships({
     preventRowFetching: true,
   });
 
+  console.log('tableData', tableData);
+
   const foreignKeyRelations = useMemo(
     () => tableData?.foreignKeyRelations ?? [],
     [tableData?.foreignKeyRelations],
   );
 
+  const tableSuggestions = useMemo(
+    () =>
+      suggestions?.relationships?.filter(
+        (suggestion) =>
+          suggestion.from?.table?.name === tableName &&
+          suggestion.from?.table?.schema === schema,
+      ) ?? [],
+    [schema, suggestions?.relationships, tableName],
+  );
+
   const relationships = useMemo(() => {
     if (!metadata) {
-      return [] as RelationshipViewModel[];
+      return [] satisfies RelationshipViewModel[];
     }
 
     const sourceMetadata = metadata.sources?.find(
@@ -82,6 +101,7 @@ export default function useGetRelationships({
         tableName,
         dataSource,
         foreignKeyRelations,
+        suggestedRelationships: tableSuggestions,
       }),
     );
 
@@ -93,6 +113,7 @@ export default function useGetRelationships({
         tableName,
         dataSource,
         foreignKeyRelations,
+        suggestedRelationships: tableSuggestions,
       }),
     );
 
@@ -106,11 +127,19 @@ export default function useGetRelationships({
     );
 
     return [...arrayViewModels, ...objectViewModels, ...remoteViewModels];
-  }, [dataSource, foreignKeyRelations, metadata, schema, tableName]);
+  }, [
+    dataSource,
+    foreignKeyRelations,
+    metadata,
+    schema,
+    tableSuggestions,
+    tableName,
+  ]);
 
   return {
     relationships,
-    isLoading: isMetadataLoading || tableStatus === 'loading',
-    error: metadataError ?? tableError,
+    isLoading:
+      isMetadataLoading || tableStatus === 'loading' || isSuggestionsLoading,
+    error: metadataError ?? tableError ?? suggestionsError,
   };
 }

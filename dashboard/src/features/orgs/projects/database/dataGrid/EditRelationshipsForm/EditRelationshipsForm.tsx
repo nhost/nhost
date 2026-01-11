@@ -10,6 +10,9 @@ import {
   TableRow,
 } from '@/components/ui/v3/table';
 import type { BaseTableFormProps } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm';
+import { CreateRelationshipDialog } from '@/features/orgs/projects/database/dataGrid/components/CreateRelationshipDialog';
+import { EditRemoteSourceRelationshipDialog } from '@/features/orgs/projects/database/dataGrid/components/EditRemoteSourceRelationshipDialog';
+import { RenameRelationshipDialog } from '@/features/orgs/projects/database/dataGrid/components/RenameRelationshipDialog';
 import useGetRelationships from '@/features/orgs/projects/database/dataGrid/hooks/useGetRelationships/useGetRelationships';
 import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
 import type { NormalizedQueryDataRow } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
@@ -17,11 +20,8 @@ import { isRemoteRelationshipViewModel } from '@/features/orgs/projects/database
 import { useQueryClient } from '@tanstack/react-query';
 import { ArrowRight, Link2, Plug as PlugIcon, Split } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { CreateRelationshipDialogWithTrigger } from './dialogs/CreateRelationshipDialog';
 import DeleteRelationshipDialog from './dialogs/DeleteRelationshipDialog';
-import EditRemoteRelationshipDialog from './dialogs/EditRemoteRelationshipDialog';
-import EditRemoteSchemaRelationshipDialog from './dialogs/EditRemoteSchemaRelationshipDialog';
-import RenameRelationshipDialog from './RenameRelationshipDialog';
+import { EditRemoteSchemaRelationshipDialog } from './dialogs/EditRemoteSchemaRelationshipDialog';
 import { SuggestedRelationshipsSection } from './sections/SuggestedRelationshipsSection';
 
 export interface EditRelationshipsFormProps
@@ -31,7 +31,7 @@ export interface EditRelationshipsFormProps
    */
   schema: string;
   /**
-   * Table to be edited.
+   * Table data.
    */
   table: NormalizedQueryDataRow;
 }
@@ -53,13 +53,13 @@ export default function EditRelationshipsForm(
     schema,
     tableName: originalTable.table_name,
   });
+  const tableQueryKey = [`${dataSource}.${schema}.${originalTable.table_name}`];
 
   const {
     status: tableStatus,
     error: tableError,
     data: tableData,
-    refetch: refetchTableData,
-  } = useTableQuery([`${dataSource}.${schema}.${originalTable.table_name}`], {
+  } = useTableQuery(tableQueryKey, {
     schema,
     table: originalTable.table_name,
   });
@@ -68,20 +68,11 @@ export default function EditRelationshipsForm(
   const tableName = originalTable.table_name as string;
   const tableSchema = (originalTable.table_schema as string) || schema;
 
-  const foreignKeyRelations =
-    (tableData?.foreignKeyRelations as NormalizedQueryDataRow[]) ?? [];
-  const tableColumns =
-    (tableData?.columns as NormalizedQueryDataRow[] | undefined) ?? [];
-
-  // eslint-disable-next-line no-console
-  console.log(foreignKeyRelations);
+  const tableColumns = tableData?.columns ?? [];
 
   const handleRelationshipCreated = async () => {
-    const tableQueryKey = [`default.${schema}.${originalTable.table_name}`];
-
     await Promise.allSettled([
       queryClient.invalidateQueries(tableQueryKey),
-      refetchTableData(),
       queryClient.invalidateQueries(['suggest-relationships', dataSource]),
     ]);
   };
@@ -136,11 +127,10 @@ export default function EditRelationshipsForm(
                 </span>
               </p>
             </div>
-            <CreateRelationshipDialogWithTrigger
+            <CreateRelationshipDialog
               source={dataSource}
               schema={tableSchema}
               tableName={tableName}
-              onSuccess={handleRelationshipCreated}
             />
           </div>
 
@@ -166,16 +156,20 @@ export default function EditRelationshipsForm(
                   </TableRow>
                 ) : (
                   existingRelationshipsViewModel.map((relationship) => (
-                    <TableRow key={relationship.key}>
+                    <TableRow key={relationship.name}>
                       <TableCell className="font-medium">
                         {relationship.name}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           {isRemoteRelationshipViewModel(relationship) ? (
-                            <PlugIcon className="h-4 w-4 text-muted-foreground" />
-                          ) : null}
-                          <span>{relationship.fromSource}</span>
+                            <span>
+                              <PlugIcon className="h-4 w-4 text-muted-foreground" />{' '}
+                              {relationship.toSource}
+                            </span>
+                          ) : (
+                            <span>{relationship.fromSource}</span>
+                          )}
                         </div>
                       </TableCell>
                       <TableCell>
@@ -206,7 +200,7 @@ export default function EditRelationshipsForm(
                           <>
                             {relationship.type !== 'RemoteSchema' &&
                               relationship.definition && (
-                                <EditRemoteRelationshipDialog
+                                <EditRemoteSourceRelationshipDialog
                                   schema={tableSchema}
                                   tableName={tableName}
                                   source={dataSource}

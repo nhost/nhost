@@ -16,7 +16,6 @@ export interface RelationshipSuggestionViewModel {
 }
 
 export interface RelationshipViewModel {
-  key: string;
   /**
    * Type of the relationship.
    */
@@ -61,3 +60,25 @@ export type MetadataRemoteRelationship = RemoteRelationshipItem & {
   name?: string;
   definition?: RemoteRelationshipDefinition;
 };
+
+/**
+ * Represents how a single argument is mapped in a remote field.
+ */
+export type RemoteFieldArgumentMapping = {
+  /** Whether this argument mapping is enabled. */
+  enabled: boolean;
+  /** The type of mapping: 'column' maps to a source table column, 'static' uses a literal value. */
+  type: 'column' | 'static';
+  /** The value: either a column name (for 'column') or the static value (for 'static'). */
+  value: string;
+};
+
+/**
+ * Maps field paths to their argument mappings.
+ * The outer key is a dot-separated field path (e.g., "users.posts").
+ * The inner key is the argument name.
+ */
+export type RemoteFieldArgumentMappingsByPath = Record<
+  string,
+  Record<string, RemoteFieldArgumentMapping>
+>;

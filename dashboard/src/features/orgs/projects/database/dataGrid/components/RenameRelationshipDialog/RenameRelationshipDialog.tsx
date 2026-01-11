@@ -16,7 +16,6 @@ import { Form } from '@/components/ui/v3/form';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { useRenameRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useRenameRelationshipMutation';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 
 interface RenameRelationshipDialogProps {
@@ -67,7 +66,6 @@ export default function RenameRelationshipDialog({
     useRenameRelationshipMutation();
 
   const { data: resourceVersion } = useGetMetadataResourceVersion();
-  const queryClient = useQueryClient();
 
   const defaultRelationshipName = useMemo(
     () => sanitizeRelationshipName(relationshipToRename),
@@ -177,16 +175,6 @@ export default function RenameRelationshipDialog({
         errorMessage: 'An error occurred while renaming the relationship.',
       },
     );
-
-    await Promise.allSettled([
-      queryClient.invalidateQueries({
-        queryKey: ['export-metadata'],
-        exact: false,
-      }),
-      queryClient.invalidateQueries({
-        queryKey: ['suggest-relationships', source],
-      }),
-    ]);
 
     handleClose(false);
     await onSuccess?.();

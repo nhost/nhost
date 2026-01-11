@@ -2,7 +2,7 @@ import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/gen
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
 import type { MutationOptions } from '@tanstack/react-query';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import renameRelationship, {
   type RenameRelationshipVariables,
 } from './renameRelationship';
@@ -28,20 +28,31 @@ export default function useRenameRelationshipMutation({
   mutationOptions,
 }: UseRenameRelationshipMutationOptions = {}) {
   const { project } = useProject();
+  const queryClient = useQueryClient();
 
-  const mutation = useMutation((variables) => {
-    const appUrl = generateAppServiceUrl(
-      project!.subdomain,
-      project!.region,
-      'hasura',
-    );
+  const mutation = useMutation(
+    (variables) => {
+      const appUrl = generateAppServiceUrl(
+        project!.subdomain,
+        project!.region,
+        'hasura',
+      );
 
-    return renameRelationship({
-      ...(variables as RenameRelationshipVariables),
-      appUrl,
-      adminSecret: project?.config?.hasura.adminSecret!,
-    });
-  }, mutationOptions);
+      return renameRelationship({
+        ...variables,
+        appUrl,
+        adminSecret: project?.config?.hasura.adminSecret!,
+      });
+    },
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: ['export-metadata', project?.subdomain],
+        });
+      },
+      ...mutationOptions,
+    },
+  );
 
   return mutation;
 }

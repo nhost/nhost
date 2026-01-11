@@ -2,7 +2,7 @@ import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/gen
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
 import type { MutationOptions } from '@tanstack/react-query';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import createArrayRelationship, {
   type CreateArrayRelationshipVariables,
 } from './createArrayRelationship';
@@ -28,20 +28,39 @@ export default function useCreateArrayRelationshipMutation({
   mutationOptions,
 }: UseCreateArrayRelationshipMutationOptions = {}) {
   const { project } = useProject();
+  const queryClient = useQueryClient();
 
-  const mutation = useMutation((variables) => {
-    const appUrl = generateAppServiceUrl(
-      project!.subdomain,
-      project!.region,
-      'hasura',
-    );
+  const mutation = useMutation(
+    (variables) => {
+      const appUrl = generateAppServiceUrl(
+        project!.subdomain,
+        project!.region,
+        'hasura',
+      );
 
-    return createArrayRelationship({
-      ...(variables as CreateArrayRelationshipVariables),
-      appUrl,
-      adminSecret: project?.config?.hasura.adminSecret!,
-    });
-  }, mutationOptions);
+      return createArrayRelationship({
+        ...variables,
+        appUrl,
+        adminSecret: project?.config?.hasura.adminSecret!,
+      });
+    },
+    {
+      ...mutationOptions,
+      onSuccess: (_, variables) => {
+        queryClient.invalidateQueries({
+          queryKey: ['export-metadata', project?.subdomain],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ['suggest-relationships', variables.args.source],
+        });
+        queryClient.invalidateQueries({
+          queryKey: [
+            `${variables.args.source}.${variables.args.table.schema}.${variables.args.table.name}`,
+          ],
+        });
+      },
+    },
+  );
 
   return mutation;
 }

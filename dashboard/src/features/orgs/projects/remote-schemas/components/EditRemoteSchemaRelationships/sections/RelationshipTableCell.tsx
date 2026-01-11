@@ -2,7 +2,7 @@ import { ArrowRightIcon } from '@/components/ui/v2/icons/ArrowRightIcon';
 import {
   isToRemoteSchemaRelationshipDefinition,
   isToSourceRelationshipDefinition,
-} from '@/features/orgs/projects/remote-schemas/utils/guards';
+} from '@/features/orgs/projects/database/dataGrid/types/relationships/guards';
 import type { RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItem } from '@/utils/hasura-api/generated/schemas';
 
 interface RelationshipTableCellProps {
