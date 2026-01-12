@@ -7,6 +7,6 @@ export default (req: Request, res: Response) => {
     query: req.query,
     node: process.version,
     arch: process.arch,
-    invocationId: req.invocationId,
+    invocationId: req.invocationId, // internal to cloud infrastructure
   });
 };

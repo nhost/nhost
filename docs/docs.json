@@ -203,7 +203,8 @@
             "pages":[
               "/products/functions/overview",
               "/products/functions/getting-started",
-              "/products/functions/runtimes"
+              "/products/functions/runtimes",
+              "/products/functions/logging"
             ]
           },
           {
