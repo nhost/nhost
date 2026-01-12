@@ -6,7 +6,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/v3/dropdown-menu';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
-import type { BaseCronTriggerFormTriggerProps } from '@/features/orgs/projects/events/cron-triggers/components/BaseCronTriggerForm/BaseCronTriggerFormTypes';
+import type { BaseCronTriggerFormTriggerProps } from '@/features/orgs/projects/events/cron-triggers/components/BaseCronTriggerForm';
 import { DeleteCronTriggerDialog } from '@/features/orgs/projects/events/cron-triggers/components/DeleteCronTriggerDialog';
 import { EditCronTriggerForm } from '@/features/orgs/projects/events/cron-triggers/components/EditCronTriggerForm';
 import { cn } from '@/lib/utils';
@@ -32,6 +32,9 @@ export default function CronTriggerListItem({
   const isSelected = cronTrigger.name === cronTriggerSlug;
   const href = `/orgs/${orgSlug}/projects/${appSubdomain}/events/cron-triggers/${cronTrigger.name}`;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const [showDeleteCronTriggerDialog, setShowDeleteCronTriggerDialog] =
+    useState(false);
 
   return (
     <>
@@ -108,9 +111,7 @@ export default function CronTriggerListItem({
                   Edit Cron Trigger
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  onSelect={() => {
-                    // TODO: Implement delete cron trigger
-                  }}
+                  onSelect={() => setShowDeleteCronTriggerDialog(true)}
                   className={cn(
                     menuItemClassName,
                     'text-destructive focus:text-destructive',
@@ -124,8 +125,18 @@ export default function CronTriggerListItem({
           </div>
         </Button>
       </div>
-      <EditCronTriggerForm />
-      <DeleteCronTriggerDialog />
+      <EditCronTriggerForm
+        cronTrigger={cronTrigger}
+        trigger={(controls) => {
+          editTriggerRef.current = controls;
+          return null;
+        }}
+      />
+      <DeleteCronTriggerDialog
+        open={showDeleteCronTriggerDialog}
+        setOpen={setShowDeleteCronTriggerDialog}
+        cronTriggerToDelete={cronTrigger.name}
+      />
     </>
   );
 }

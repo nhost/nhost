@@ -53,6 +53,7 @@ export default function useTestWebhookTransformQuery(
       });
     },
     {
+      keepPreviousData: true,
       ...queryOptions,
       retry: false,
       enabled: !!(
