@@ -68,8 +68,6 @@ type Config struct {
 	SMSTwilioAccountSid         string        `json:"AUTH_SMS_TWILIO_ACCOUNT_SID"`
 	SMSTwilioAuthToken          string        `json:"AUTH_SMS_TWILIO_AUTH_TOKEN"`
 	SMSTwilioMessagingServiceID string        `json:"AUTH_SMS_TWILIO_MESSAGING_SERVICE_ID"`
-	SMSModicaUsername           string        `json:"AUTH_SMS_MODICA_USERNAME"`
-	SMSModicaPassword           string        `json:"AUTH_SMS_MODICA_PASSWORD"`
 	ServerPrefix                string        `json:"AUTH_SERVER_PREFIX"`
 }
 

@@ -116,8 +116,6 @@ func getConfig(cmd *cli.Command) (controller.Config, error) { //nolint:funlen
 		SMSTwilioAccountSid:         cmd.String(flagSMSTwilioAccountSid),
 		SMSTwilioAuthToken:          cmd.String(flagSMSTwilioAuthToken),
 		SMSTwilioMessagingServiceID: cmd.String(flagSMSTwilioMessagingServiceID),
-		SMSModicaUsername:           cmd.String(flagSMSModicaUsername),
-		SMSModicaPassword:           cmd.String(flagSMSModicaPassword),
 		MfaEnabled:                  cmd.Bool(flagMfaEnabled),
 		ServerPrefix:                cmd.String(flagAPIPrefix),
 	}, nil

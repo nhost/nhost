@@ -117,8 +117,6 @@ func getSMS( //nolint:ireturn
 	}
 
 	switch provider {
-	case "modica":
-		return getModicaSMS(cmd, templates, db, logger)
 	case "twilio":
 		return getTwilioSMS(cmd, templates, db)
 	case "dev":
@@ -153,36 +151,6 @@ func getTwilioSMS( //nolint:ireturn
 		accountSid,
 		authToken,
 		messagingServiceID,
-		db,
-	), nil
-}
-
-func getModicaSMS( //nolint:ireturn
-	cmd *cli.Command,
-	templates *notifications.Templates,
-	db *sql.Queries,
-	logger *slog.Logger,
-) (controller.SMSer, error) {
-	username := cmd.String(flagSMSModicaUsername)
-	password := cmd.String(flagSMSModicaPassword)
-
-	if username == "" || password == "" {
-		return nil, errors.New("SMS is enabled but Modica credentials are missing") //nolint:err113
-	}
-
-	if templates == nil {
-		var err error
-
-		templates, err = getTemplates(cmd, logger)
-		if err != nil {
-			return nil, fmt.Errorf("problem creating templates: %w", err)
-		}
-	}
-
-	return sms.NewModicaSMS(
-		templates,
-		username,
-		password,
 		db,
 	), nil
 }
