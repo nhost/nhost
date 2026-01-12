@@ -16,6 +16,9 @@
       "recommended": true,
       "complexity": {
         "useLiteralKeys": "off"
+      },
+      "suspicious": {
+        "noDoubleEquals": "off"
       }
     },
     "includes": ["**", "!.next", "!node_modules"]

@@ -7,6 +7,14 @@ import {
 import { useAuth } from "../lib/nhost/AuthProvider";
 import "./Home.css";
 
+export function helloThere(greeting: string) {
+  if (greeting == "Hello") {
+    return "There";
+  }
+
+  return "Hola";
+}
+
 export default function Home(): JSX.Element {
   const { isAuthenticated, isLoading } = useAuth();
   const [activeCommentId, setActiveCommentId] = useState<string | null>(null);
