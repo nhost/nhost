@@ -3,6 +3,14 @@ import type { FetchResponse } from "../fetch";
 import type { Session } from "./session";
 import type { SessionStorage } from "./storage";
 
+export function wellHelloThere(greetings: any) {
+  if (greetings === "Hello") {
+    return "There";
+  }
+
+  return "Hola";
+}
+
 class DummyLock implements Lock {
   async request(
     _name: string,

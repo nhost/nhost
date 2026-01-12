@@ -2,6 +2,11 @@
   "root": false,
   "extends": "//",
   "linter": {
-    "includes": ["**", "!src/lib/graphql/__generated__/graphql.ts"]
+    "includes": ["**", "!src/lib/graphql/__generated__/graphql.ts"],
+    "rules": {
+      "suspicious": {
+        "noDoubleEquals": "off"
+      }
+    }
   }
 }
