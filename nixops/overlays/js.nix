@@ -35,7 +35,7 @@ rec{
     };
   };
 
-  nodePackages = nodejs.pkgs;
+  nodePackages = prev.nodejs.pkgs;
 
   buildNpmPackage = prev.buildNpmPackage.override {
     nodejs = prev.nodejs;
