@@ -39,7 +39,7 @@ export default function CreateEventTriggerForm() {
           resourceVersion: resourceVersion ?? undefined,
         });
         router.push(
-          `/orgs/${orgSlug}/projects/${appSubdomain}/events/event-trigger/${data.triggerName}`,
+          `/orgs/${orgSlug}/projects/${appSubdomain}/events/event-triggers/${data.triggerName}`,
         );
       },
       {

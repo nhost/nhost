@@ -24,22 +24,24 @@ export default function EventsEmptyState({
   ...props
 }: EventsEmptyStateProps) {
   return (
-    <div
-      className={twMerge(
-        'grid w-full place-content-center gap-2 px-4 py-16 text-center',
-        className,
-      )}
-      {...props}
-    >
-      <div className="mx-auto">
-        <CalendarDays className="h-12 w-12" />
+    <div className="h-full w-full bg-background">
+      <div
+        className={twMerge(
+          'grid w-full place-content-center gap-2 px-4 py-16 text-center',
+          className,
+        )}
+        {...props}
+      >
+        <div className="mx-auto">
+          <CalendarDays className="h-12 w-12" />
+        </div>
+
+        <h3 className="scroll-m-20 text-2xl font-medium tracking-tight">
+          {title}
+        </h3>
+
+        <p className="leading-7 [&:not(:first-child)]:mt-6">{description}</p>
       </div>
-
-      <h3 className="scroll-m-20 text-2xl font-medium tracking-tight">
-        {title}
-      </h3>
-
-      <p className="leading-7 [&:not(:first-child)]:mt-6">{description}</p>
     </div>
   );
 }

@@ -7,14 +7,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/v3/table';
-import PaginationControls from '@/features/orgs/projects/events/common/components/PaginationControls/PaginationControls';
 import { EventTriggerInvocationLogsDataTable } from '@/features/orgs/projects/events/event-triggers/components/EventTriggerInvocationLogsDataTable';
 import { DEFAULT_RETRY_TIMEOUT_SECONDS } from '@/features/orgs/projects/events/event-triggers/constants';
-import useEventTriggerPagination from '@/features/orgs/projects/events/event-triggers/hooks/useEventTriggerPagination/useEventTriggerPagination';
-import useGetEventLogsQuery from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventLogsQuery/useGetEventLogsQuery';
 import type { EventTriggerViewModel } from '@/features/orgs/projects/events/event-triggers/types';
 import { cn, isNotEmptyValue } from '@/lib/utils';
+import type { EventLogEntry } from '@/utils/hasura-api/generated/schemas';
 import {
+  type ColumnSizingState,
   flexRender,
   getCoreRowModel,
   getExpandedRowModel,
@@ -27,42 +26,32 @@ import columns from './eventsDataTableColumns';
 
 interface EventTriggerEventsDataTableProps {
   eventTrigger: EventTriggerViewModel;
+  data: EventLogEntry[] | undefined;
+  isLoading: boolean;
+  limit: number;
 }
 
 export default function EventTriggerEventsDataTable({
   eventTrigger,
+  data,
+  isLoading,
+  limit,
 }: EventTriggerEventsDataTableProps) {
-  const {
-    offset,
-    limit,
-    setLimitAndReset,
-    goPrev,
-    goNext,
-    hasNoPreviousPage,
-    hasNoNextPage,
-    data,
-    isLoading,
-  } = useEventTriggerPagination({
-    useQueryHook: useGetEventLogsQuery,
-    getQueryArgs: (limitArg, offsetArg) => ({
-      name: eventTrigger.name,
-      limit: limitArg,
-      offset: offsetArg,
-      source: eventTrigger.dataSource,
-    }),
-    resetKey: `${eventTrigger.dataSource}:${eventTrigger.name}`,
-  });
-
   const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
 
   const table = useReactTable({
     data: data ?? [],
     columns,
     state: {
       sorting,
+      columnSizing,
     },
     getRowId: (row) => row.id,
     onSortingChange: setSorting,
+    enableColumnResizing: true,
+    columnResizeMode: 'onChange',
+    onColumnSizingChange: setColumnSizing,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
@@ -75,23 +64,31 @@ export default function EventTriggerEventsDataTable({
   );
 
   return (
-    <div className="rounded border p-4">
-      <h3 className="mb-3 font-medium">Events</h3>
-
-      <Table>
-        <colgroup>
-          {table.getAllLeafColumns().map((col) => (
-            <col key={col.id} style={{ width: col.getSize() }} />
-          ))}
-        </colgroup>
-        <TableHeader>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header, index) => (
+    <Table
+      containerClassName="overflow-visible"
+      className="w-auto caption-bottom border-separate border-spacing-0 border-b-1 border-r-1 text-sm"
+    >
+      <TableHeader className="sticky top-0 z-30">
+        {table.getHeaderGroups().map((headerGroup) => (
+          <TableRow
+            key={headerGroup.id}
+            className="!border-0 hover:bg-transparent"
+          >
+            {headerGroup.headers.map((header, index) => {
+              const isLast = index === headerGroup.headers.length - 1;
+              return (
                 <TableHead
                   key={header.id}
-                  className={index === 0 ? 'pl-1' : ''}
-                  style={{ width: header.getSize() }}
+                  className={cn(
+                    'group relative bg-paper font-display text-xs font-bold text-primary-text',
+                    '!h-8 p-0',
+                    index === 0 ? 'pl-2' : '',
+                    'border-b-1',
+                    !isLast && 'border-r-1',
+                  )}
+                  style={{
+                    width: header.getSize(),
+                  }}
                 >
                   {header.isPlaceholder
                     ? null
@@ -99,93 +96,99 @@ export default function EventTriggerEventsDataTable({
                         header.column.columnDef.header,
                         header.getContext(),
                       )}
+
+                  {header.column.getCanResize() && (
+                    <button
+                      type="button"
+                      aria-label={`Resize column ${header.column.id}`}
+                      onMouseDown={header.getResizeHandler()}
+                      onTouchStart={header.getResizeHandler()}
+                      onDoubleClick={() => header.column.resetSize()}
+                      className={cn(
+                        'absolute right-0 top-0 z-20 h-full w-2',
+                        'cursor-col-resize touch-none select-none',
+                        'border-0 bg-transparent p-0',
+                        'group-hover:bg-slate-900 group-hover:bg-opacity-20 group-active:bg-slate-900 group-active:bg-opacity-20 motion-safe:transition-colors',
+                        header.column.getIsResizing() &&
+                          'bg-slate-900 bg-opacity-20',
+                      )}
+                    />
+                  )}
                 </TableHead>
+              );
+            })}
+          </TableRow>
+        ))}
+      </TableHeader>
+      <TableBody>
+        {isLoading &&
+          skeletonRowKeys.map((key) => (
+            <TableRow
+              key={`skeleton-${key}`}
+              className="border-0 odd:bg-data-cell-bg-odd even:bg-data-cell-bg hover:!bg-data-cell-bg-hover"
+            >
+              {table.getAllLeafColumns().map((col) => (
+                <TableCell
+                  key={`skeleton-cell-${col.id}`}
+                  style={{ width: col.getSize() }}
+                  className="bg-inherit p-2 px-2"
+                >
+                  <Skeleton className="h-4 w-full" />
+                </TableCell>
               ))}
             </TableRow>
           ))}
-        </TableHeader>
-        <TableBody>
-          {isLoading &&
-            skeletonRowKeys.map((key) => (
-              <TableRow key={`skeleton-${key}`}>
-                {table.getAllLeafColumns().map((col) => (
+
+        {!isLoading &&
+          isNotEmptyValue(table.getRowModel().rows) &&
+          table.getRowModel().rows.map((row) => (
+            <Fragment key={row.id}>
+              <TableRow
+                aria-expanded={row.getIsExpanded()}
+                className={cn(
+                  'border-0',
+                  'odd:bg-data-cell-bg-odd even:bg-data-cell-bg hover:!bg-data-cell-bg-hover',
+                )}
+              >
+                {row.getVisibleCells().map((cell) => (
                   <TableCell
-                    key={`skeleton-cell-${col.id}`}
-                    style={{ width: col.getSize() }}
+                    key={cell.id}
+                    className={cn('bg-inherit px-2', {
+                      'max-w-0 truncate':
+                        cell.column.id === 'id' ||
+                        cell.column.id === 'created_at',
+                      'p-1': cell.column.id === 'actions',
+                    })}
                   >
-                    <Skeleton className="h-4 w-full" />
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}
               </TableRow>
-            ))}
-
-          {!isLoading &&
-            isNotEmptyValue(table.getRowModel().rows) &&
-            table.getRowModel().rows.map((row) => (
-              <Fragment key={row.id}>
-                <TableRow
-                  onClick={row.getToggleExpandedHandler()}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      row.getToggleExpandedHandler()();
-                    }
-                  }}
-                  tabIndex={0}
-                  role="button"
-                  aria-expanded={row.getIsExpanded()}
-                  className={cn('cursor-pointer')}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell
-                      key={cell.id}
-                      className={cn({
-                        'max-w-0 truncate': cell.column.id === 'id',
-                      })}
-                    >
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
-                    </TableCell>
-                  ))}
+              {row.getIsExpanded() && (
+                <TableRow key={`${row.id}-expanded`} className="border-0">
+                  <TableCell colSpan={columns.length} className="p-0">
+                    <EventTriggerInvocationLogsDataTable
+                      eventId={row.id}
+                      retryTimeoutSeconds={
+                        eventTrigger.retry_conf?.timeout_sec ??
+                        DEFAULT_RETRY_TIMEOUT_SECONDS
+                      }
+                      source={eventTrigger.dataSource}
+                    />
+                  </TableCell>
                 </TableRow>
-                {row.getIsExpanded() && (
-                  <TableRow key={`${row.id}-expanded`}>
-                    <TableCell colSpan={columns.length} className="p-0">
-                      <EventTriggerInvocationLogsDataTable
-                        eventId={row.id}
-                        retryTimeoutSeconds={
-                          eventTrigger.retry_conf?.timeout_sec ??
-                          DEFAULT_RETRY_TIMEOUT_SECONDS
-                        }
-                        source={eventTrigger.dataSource}
-                      />
-                    </TableCell>
-                  </TableRow>
-                )}
-              </Fragment>
-            ))}
+              )}
+            </Fragment>
+          ))}
 
-          {!isLoading && table.getRowModel().rows?.length === 0 && (
-            <TableRow>
-              <TableCell colSpan={columns.length} className="h-24 text-center">
-                No results.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-
-      <PaginationControls
-        offset={offset}
-        limit={limit}
-        hasNoPreviousPage={hasNoPreviousPage}
-        hasNoNextPage={hasNoNextPage}
-        onPrev={goPrev}
-        onNext={() => !hasNoNextPage && goNext()}
-        onChangeLimit={setLimitAndReset}
-      />
-    </div>
+        {!isLoading && table.getRowModel().rows?.length === 0 && (
+          <TableRow className="border-0">
+            <TableCell colSpan={columns.length} className="h-24 text-center">
+              No results.
+            </TableCell>
+          </TableRow>
+        )}
+      </TableBody>
+    </Table>
   );
 }

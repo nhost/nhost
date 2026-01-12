@@ -40,7 +40,7 @@ function CopyToClipboardButton({
       size="icon"
       variant="outline"
       className={clsx(
-        'group h-fit w-fit border-0 bg-transparent p-[2px] hover:bg-[#d6eefb] dark:hover:bg-[#1e2942]',
+        'group h-fit w-fit border-0 bg-transparent p-[2px] hover:brightness-75 dark:hover:bg-[#1e2942] dark:hover:brightness-100',
         className,
         { 'gap-3': hasChildren },
       )}
