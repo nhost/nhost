@@ -9,8 +9,10 @@ import {
   DialogTitle,
 } from '@/components/ui/v3/dialog';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
+import { useDeleteRemoteRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteRemoteRelationshipMutation';
 import { useDropRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDropRelationshipMutation';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas';
 import { Trash2Icon } from 'lucide-react';
 import { useState } from 'react';
 
@@ -30,6 +32,10 @@ interface DeleteRelationshipDialogProps {
    * @default 'default'
    */
   source?: string;
+  /**
+   * Whether the relationship is a remote relationship.
+   */
+  isRemoteRelationship?: boolean;
 }
 
 export default function DeleteRelationshipDialog({
@@ -37,28 +43,55 @@ export default function DeleteRelationshipDialog({
   tableName,
   relationshipToDelete,
   source = 'default',
+  isRemoteRelationship,
 }: DeleteRelationshipDialogProps) {
   const [open, setOpen] = useState(false);
-  const { mutateAsync: deleteRelationship, isLoading: isDeletingRelationship } =
-    useDropRelationshipMutation();
+  const {
+    mutateAsync: deleteLocalRelationship,
+    isLoading: isDeletingLocalRelationship,
+  } = useDropRelationshipMutation();
+
+  const {
+    mutateAsync: deleteRemoteRelationship,
+    isLoading: isDeletingRemoteRelationship,
+  } = useDeleteRemoteRelationshipMutation();
+
+  const isDeletingRelationship = isRemoteRelationship
+    ? isDeletingRemoteRelationship
+    : isDeletingLocalRelationship;
 
   const { data: resourceVersion } = useGetMetadataResourceVersion();
 
   const handleDeleteDialogClick = async () => {
-    const promise = deleteRelationship({
-      resourceVersion: resourceVersion!,
-      args: {
-        relationship: relationshipToDelete,
-        table: {
-          schema,
-          name: tableName,
+    let deleteRelationshipPromise: Promise<MetadataOperation200>;
+    if (isRemoteRelationship) {
+      deleteRelationshipPromise = deleteRemoteRelationship({
+        resourceVersion: resourceVersion!,
+        args: {
+          name: relationshipToDelete,
+          table: {
+            schema,
+            name: tableName,
+          },
+          source,
         },
-        source,
-      },
-    });
+      });
+    } else {
+      deleteRelationshipPromise = deleteLocalRelationship({
+        resourceVersion: resourceVersion!,
+        args: {
+          relationship: relationshipToDelete,
+          table: {
+            schema,
+            name: tableName,
+          },
+          source,
+        },
+      });
+    }
     await execPromiseWithErrorToast(
       async () => {
-        await promise;
+        await deleteRelationshipPromise;
       },
       {
         loadingMessage: 'Deleting relationship...',

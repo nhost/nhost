@@ -24,6 +24,7 @@ paths:
                 - $ref: '#/components/schemas/SetTableIsEnumBulkOperation'
                 - $ref: '#/components/schemas/SuggestRelationshipsOperation'
                 - $ref: '#/components/schemas/DropRelationshipBulkOperation'
+                - $ref: '#/components/schemas/DeleteRemoteRelationshipBulkOperation'
                 - $ref: '#/components/schemas/CreateObjectRelationshipBulkOperation'
                 - $ref: '#/components/schemas/CreateArrayRelationshipBulkOperation'
                 - $ref: '#/components/schemas/CreateRemoteRelationshipBulkOperation'
@@ -475,6 +476,52 @@ components:
               type: string
               description: Name of the source database of the table
               default: default
+
+    DeleteRemoteRelationshipBulkOperation:
+      type: object
+      required:
+        - type
+        - resource_version
+        - args
+      properties:
+        type:
+          type: string
+          enum: [bulk_atomic]
+          description: Type of operation to delete remote relationship
+        resource_version:
+          type: integer
+          description: Resource version of the operation
+          example: 1
+        args:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeleteRemoteRelationshipStep'
+
+    DeleteRemoteRelationshipStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_delete_remote_relationship]
+        args:
+          type: object
+          required:
+            - table
+            - name
+          properties:
+            source:
+              type: string
+              description: Name of the source database of the table
+              default: default
+            table:
+              $ref: '#/components/schemas/QualifiedTable'
+              description: Object with table name and schema
+            name:
+              type: string
+              description: Name of the remote relationship
 
     CreateObjectRelationshipBulkOperation:
       type: object

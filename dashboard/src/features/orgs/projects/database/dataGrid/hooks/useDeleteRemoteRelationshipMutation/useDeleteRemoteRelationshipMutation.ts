@@ -3,18 +3,18 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import dropRelationship, {
-  type DropRelationshipVariables,
-} from './dropRelationship';
+import deleteRemoteRelationship, {
+  type DeleteRemoteRelationshipVariables,
+} from './deleteRemoteRelationship';
 
-export interface UseDropRelationshipMutationOptions {
+export interface UseDeleteRemoteRelationshipMutationOptions {
   /**
    * Props passed to the underlying mutation hook.
    */
   mutationOptions?: MutationOptions<
     MetadataOperation200,
     unknown,
-    DropRelationshipVariables
+    DeleteRemoteRelationshipVariables
   >;
 }
 
@@ -24,9 +24,9 @@ export interface UseDropRelationshipMutationOptions {
  * @param options - Options to use for the mutation.
  * @returns The result of the mutation.
  */
-export default function useDropRelationshipMutation({
+export default function useDeleteRemoteRelationshipMutation({
   mutationOptions,
-}: UseDropRelationshipMutationOptions = {}) {
+}: UseDeleteRemoteRelationshipMutationOptions = {}) {
   const { project } = useProject();
   const queryClient = useQueryClient();
 
@@ -38,7 +38,7 @@ export default function useDropRelationshipMutation({
         'hasura',
       );
 
-      return dropRelationship({
+      return deleteRemoteRelationship({
         ...variables,
         appUrl,
         adminSecret: project?.config?.hasura.adminSecret!,
@@ -46,12 +46,9 @@ export default function useDropRelationshipMutation({
     },
     {
       ...mutationOptions,
-      onSuccess: (_, variables) => {
+      onSuccess: () => {
         queryClient.invalidateQueries({
           queryKey: ['export-metadata', project?.subdomain],
-        });
-        queryClient.invalidateQueries({
-          queryKey: ['suggest-relationships', variables.args.source],
         });
       },
     },

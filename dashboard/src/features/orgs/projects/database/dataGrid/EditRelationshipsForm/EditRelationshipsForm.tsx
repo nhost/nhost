@@ -185,6 +185,7 @@ export default function EditRelationshipsForm(
                           tableName={tableName}
                           relationshipToDelete={relationship.name}
                           source={relationship.fromSource}
+                          isRemoteRelationship={relationship.kind === 'remote'}
                         />
                         {isRemoteRelationshipViewModel(relationship) ? (
                           <>

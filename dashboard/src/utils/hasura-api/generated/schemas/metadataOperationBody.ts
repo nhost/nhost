@@ -11,6 +11,7 @@ import type { CreateEventTriggerBulkOperation } from './createEventTriggerBulkOp
 import type { CreateObjectRelationshipBulkOperation } from './createObjectRelationshipBulkOperation';
 import type { CreateRemoteRelationshipBulkOperation } from './createRemoteRelationshipBulkOperation';
 import type { DeleteEventTriggerBulkOperation } from './deleteEventTriggerBulkOperation';
+import type { DeleteRemoteRelationshipBulkOperation } from './deleteRemoteRelationshipBulkOperation';
 import type { DeleteRemoteSchemaRemoteRelationshipOperation } from './deleteRemoteSchemaRemoteRelationshipOperation';
 import type { DropRelationshipBulkOperation } from './dropRelationshipBulkOperation';
 import type { ExportMetadata } from './exportMetadata';
@@ -37,6 +38,7 @@ export type MetadataOperationBody =
   | SetTableIsEnumBulkOperation
   | SuggestRelationshipsOperation
   | DropRelationshipBulkOperation
+  | DeleteRemoteRelationshipBulkOperation
   | CreateObjectRelationshipBulkOperation
   | CreateArrayRelationshipBulkOperation
   | CreateRemoteRelationshipBulkOperation

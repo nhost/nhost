@@ -33,7 +33,6 @@ export default function buildRemoteRelationshipViewModel({
 
     return {
       kind: 'remote',
-      key: relationship.name ?? '',
       name,
       fromLabel: formatEndpoint(tableSchema, tableName, localColumns),
       toLabel: formatRemoteSchemaEndpoint(remoteSchemaName, remoteFieldPath),
@@ -51,11 +50,11 @@ export default function buildRemoteRelationshipViewModel({
     field_mapping,
   } = definition.to_source;
 
-  const [localColumns, remoteColumns] = Object.entries(field_mapping);
+  const localColumns = Object.keys(field_mapping);
+  const remoteColumns = Object.values(field_mapping);
 
   return {
     kind: 'remote',
-    key: relationship.name ?? '',
     name: relationship.name ?? '',
     fromLabel: formatEndpoint(tableSchema, tableName, localColumns),
     toLabel: formatEndpoint(
