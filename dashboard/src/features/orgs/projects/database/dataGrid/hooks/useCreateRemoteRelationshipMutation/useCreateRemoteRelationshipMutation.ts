@@ -56,11 +56,6 @@ export default function useCreateRemoteRelationshipMutation({
             variables.args.source ?? 'default',
           ],
         });
-        queryClient.invalidateQueries({
-          queryKey: [
-            `${variables.args.source ?? 'default'}.${variables.args.table.schema}.${variables.args.table.name}`,
-          ],
-        });
       },
     },
   );
