@@ -4,7 +4,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/v3/collapsible';
-import EventTriggerHeadersTable from '@/features/orgs/projects/events/event-triggers/components/EventTriggerView/sections/EventTriggerHeadersTable';
+import { HeadersTable } from '@/features/orgs/projects/events/common/components/HeadersTable';
 import type { EventTriggerViewModel } from '@/features/orgs/projects/events/event-triggers/types';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
@@ -86,7 +86,7 @@ export default function EventTriggerOverview({
                   : eventTrigger.webhook_from_env}
               </span>
               <CopyToClipboardButton
-                className="bg-[#e3f4fc]/70 dark:bg-[#1e2942]/70 dark:hover:bg-[#253252]"
+                className="dark:bg-[#1e2942]/70 dark:hover:bg-[#253252]"
                 textToCopy={
                   'webhook' in eventTrigger
                     ? eventTrigger.webhook
@@ -149,7 +149,7 @@ export default function EventTriggerOverview({
             <CollapsibleContent>
               <div className="border-t border-gray-200 p-4 dark:border-gray-700">
                 <div className="overflow-x-auto">
-                  <EventTriggerHeadersTable headers={eventTrigger.headers} />
+                  <HeadersTable headers={eventTrigger.headers} />
                 </div>
               </div>
             </CollapsibleContent>
