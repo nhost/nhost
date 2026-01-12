@@ -267,6 +267,10 @@ export default function BaseCronTriggerForm({
                   <FormTextarea
                     control={form.control}
                     name="payload"
+                    placeholder={`{
+  "name": "John Doe",
+  "company": "Acme"
+}`}
                     label={
                       <div className="flex flex-row items-center gap-2">
                         Payload{' '}
