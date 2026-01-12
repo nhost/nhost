@@ -166,7 +166,3 @@ export const defaultFormValues: BaseCronTriggerFormValues = {
 export type BaseCronTriggerFormValues = z.infer<typeof validationSchema>;
 
 export type BaseCronTriggerFormInitialData = BaseCronTriggerFormValues;
-
-export interface BaseCronTriggerFormTriggerProps {
-  open: () => void;
-}
