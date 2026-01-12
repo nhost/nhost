@@ -4,7 +4,10 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { BaseRelationshipDialog } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog';
-import type { BaseRelationshipFormValues } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/BaseRelationshipFormTypes';
+import {
+  ReferenceSource,
+  type BaseRelationshipFormValues,
+} from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/BaseRelationshipFormTypes';
 import { useCreateArrayRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateArrayRelationshipMutation';
 import { useCreateObjectRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateObjectRelationshipMutation';
 import { useCreateRemoteRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateRemoteRelationshipMutation';
@@ -12,6 +15,7 @@ import { isRemoteSchemaRelationshipFormValues } from '@/features/orgs/projects/d
 import { prepareArrayRelationshipDTO } from '@/features/orgs/projects/database/dataGrid/utils/prepareArrayRelationshipDTO';
 import { prepareObjectRelationshipDTO } from '@/features/orgs/projects/database/dataGrid/utils/prepareObjectRelationshipDTO';
 import { prepareRemoteSchemaRelationshipDTO } from '@/features/orgs/projects/database/dataGrid/utils/prepareRemoteSchemaRelationshipDTO';
+import { prepareRemoteSourceRelationshipDTO } from '@/features/orgs/projects/database/dataGrid/utils/prepareRemoteSourceRelationshipDTO';
 import { triggerToast } from '@/utils/toast';
 
 interface CreateRelationshipDialogProps {
@@ -44,8 +48,16 @@ export default function CreateRelationshipDialog({
     }
 
     try {
+      const toReferenceSource = new ReferenceSource(values.toReference.source);
+
       if (isRemoteSchemaRelationshipFormValues(values)) {
         const args = prepareRemoteSchemaRelationshipDTO(values);
+        await createRemoteRelationship({
+          resourceVersion,
+          args,
+        });
+      } else if (toReferenceSource.name !== source) {
+        const args = prepareRemoteSourceRelationshipDTO(values);
         await createRemoteRelationship({
           resourceVersion,
           args,

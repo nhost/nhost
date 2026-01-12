@@ -38,7 +38,6 @@ export * from './createObjectRelationshipBulkOperationType';
 export * from './createObjectRelationshipStep';
 export * from './createObjectRelationshipStepType';
 export * from './createRemoteRelationshipArgs';
-export * from './createRemoteRelationshipArgsTable';
 export * from './createRemoteRelationshipBulkOperation';
 export * from './createRemoteRelationshipBulkOperationType';
 export * from './createRemoteRelationshipStep';
