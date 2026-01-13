@@ -1,3 +1,27 @@
+## [@nhost/dashboard@2.45.0] - 2026-01-13
+
+### 🚀 Features
+
+- Cron triggers (#3705)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Fix tracking multiple foreign keys (#3748)
+- *(dashboard)* Make e2e tests more robust (#3768)
+- *(dashboard)* Remove custom domains from settings (#3782)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(ci)* Update npm/pnpm and remove deployment token (#3767)
+
+
+### Chore
+
+- *(deps)* Update tar and qs packages (#3786)
+- *(deps)* Update react-router (#3790)
+
 ## [@nhost/dashboard@2.44.1] - 2025-12-12
 
 ### 🐛 Bug Fixes
