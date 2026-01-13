@@ -8,13 +8,14 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import { isNotEmptyValue } from '@/lib/utils';
 import { useDnsLookupCnameLazyQuery } from '@/utils/__generated__/graphql';
 import { copy } from '@/utils/copy';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface VerifyDomainProps {
   recordType: string;
   hostname?: string;
   value: string;
   onHostNameVerified?: () => void;
+  saveEnabled?: boolean;
 }
 
 export default function VerifyDomain({
@@ -22,6 +23,7 @@ export default function VerifyDomain({
   hostname,
   value,
   onHostNameVerified,
+  saveEnabled = true,
 }: VerifyDomainProps) {
   const isPlatform = useIsPlatform();
   const [verificationFailed, setVerificationFailed] = useState(false);
@@ -29,6 +31,12 @@ export default function VerifyDomain({
 
   const [loading, setLoading] = useState(false);
   const [fireLookupCNAME] = useDnsLookupCnameLazyQuery();
+
+  useEffect(() => {
+    setVerificationFailed(false);
+    setVerificationSucceeded(false);
+    setLoading(false);
+  }, [hostname, value]);
 
   const handleVerifyDomain = async () => {
     setLoading(true);
@@ -93,7 +101,7 @@ export default function VerifyDomain({
         {verificationSucceeded && (
           <Text>
             <span className="font-semibold">{hostname}</span> was verified
-            successfully. Hit save to apply.
+            successfully. {saveEnabled ? 'Hit save to apply.' : ''}
           </Text>
         )}
 

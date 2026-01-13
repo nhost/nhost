@@ -28,7 +28,7 @@ liveQueriesMultiplexedRefetchInterval = 3000
 version = 22
 
 [auth]
-version = '0.41.0'
+version = '0.44.2'
 
 [auth.redirections]
 clientUrl = 'http://localhost:3000'
@@ -133,7 +133,7 @@ timeout = 60000
 enabled = false
 
 [postgres]
-version = '14.18-20250728-1'
+version = '14.20-20251217-1'
 
 [postgres.resources.storage]
 capacity = 1
@@ -141,7 +141,7 @@ capacity = 1
 [provider]
 
 [storage]
-version = '0.7.1'
+version = '0.9.1'
 
 [observability]
 [observability.grafana]
