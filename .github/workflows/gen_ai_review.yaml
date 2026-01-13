@@ -11,9 +11,6 @@ jobs:
     runs-on: blacksmith-2vcpu-ubuntu-2404
     permissions:
       id-token: write
-      contents: write
-      pull-requests: write
-      issues: write
     timeout-minutes: 10
     steps:
       - name: Checkout repository
