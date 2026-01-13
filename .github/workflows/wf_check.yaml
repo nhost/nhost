@@ -48,7 +48,7 @@ jobs:
       uses: ./.github/actions/validate-pr-title
       with:
         pr_title: ${{ github.event.pull_request.title }}
-      if: ${{ github.event_name == 'pull_request' }}
+      if: ${{ github.event_name == 'pull_request' || github.event_name == 'pull_request_target' }}
 
     - name: Collect Workflow Telemetry
       uses: catchpoint/workflow-telemetry-action@v2

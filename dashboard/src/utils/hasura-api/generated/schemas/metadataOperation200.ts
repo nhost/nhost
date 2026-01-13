@@ -6,9 +6,11 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { ExportMetadataResponse } from './exportMetadataResponse';
+import type { GetCronTriggersResponse } from './getCronTriggersResponse';
 import type { GetEventAndInvocationLogsByIdResponse } from './getEventAndInvocationLogsByIdResponse';
-import type { GetEventInvocationLogsResponse } from './getEventInvocationLogsResponse';
 import type { GetEventLogsResponse } from './getEventLogsResponse';
+import type { GetScheduledEventInvocationsResponse } from './getScheduledEventInvocationsResponse';
+import type { GetScheduledEventsResponse } from './getScheduledEventsResponse';
 import type { IntrospectRemoteSchemaResponse } from './introspectRemoteSchemaResponse';
 import type { InvokeEventTriggerResponse } from './invokeEventTriggerResponse';
 import type { MetadataOperation200OneOf } from './metadataOperation200OneOf';
@@ -21,9 +23,11 @@ export type MetadataOperation200 =
   | ExportMetadataResponse
   | SuggestRelationshipsResponse
   | IntrospectRemoteSchemaResponse
-  | GetEventInvocationLogsResponse
   | GetEventLogsResponse
   | GetEventAndInvocationLogsByIdResponse
   | TestWebhookTransformResponse
   | InvokeEventTriggerResponse
+  | GetCronTriggersResponse
+  | GetScheduledEventsResponse
+  | GetScheduledEventInvocationsResponse
   | MetadataOperation200OneOfTwoItem[];

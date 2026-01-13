@@ -37,7 +37,6 @@ paths:
                 - $ref: '#/components/schemas/RemoteSchemaRemoteRelationshipOperation'
                 - $ref: '#/components/schemas/DeleteRemoteSchemaRemoteRelationshipOperation'
                 - $ref: '#/components/schemas/RemoteSchemaPermissionsBulkOperation'
-                - $ref: '#/components/schemas/GetEventInvocationLogsOperation'
                 - $ref: '#/components/schemas/GetEventLogsOperation'
                 - $ref: '#/components/schemas/GetEventAndInvocationLogsByIdOperation'
                 - $ref: '#/components/schemas/RedeliverEventOperation'
@@ -45,6 +44,12 @@ paths:
                 - $ref: '#/components/schemas/DeleteEventTriggerBulkOperation'
                 - $ref: '#/components/schemas/TestWebhookTransformOperation'
                 - $ref: '#/components/schemas/InvokeEventTriggerOperation'
+                - $ref: '#/components/schemas/GetCronTriggersOperation'
+                - $ref: '#/components/schemas/CreateCronTriggerBulkOperation'
+                - $ref: '#/components/schemas/DeleteCronTriggerOperation'
+                - $ref: '#/components/schemas/GetScheduledEventsOperation'
+                - $ref: '#/components/schemas/GetScheduledEventInvocationsOperation'
+                - $ref: '#/components/schemas/DeleteScheduledEventOperation'
       responses:
         '200':
           description: Operation executed successfully
@@ -60,11 +65,13 @@ paths:
                   - $ref: '#/components/schemas/ExportMetadataResponse'
                   - $ref: '#/components/schemas/SuggestRelationshipsResponse'
                   - $ref: '#/components/schemas/IntrospectRemoteSchemaResponse'
-                  - $ref: '#/components/schemas/GetEventInvocationLogsResponse'
                   - $ref: '#/components/schemas/GetEventLogsResponse'
                   - $ref: '#/components/schemas/GetEventAndInvocationLogsByIdResponse'
                   - $ref: '#/components/schemas/TestWebhookTransformResponse'
                   - $ref: '#/components/schemas/InvokeEventTriggerResponse'
+                  - $ref: '#/components/schemas/GetCronTriggersResponse'
+                  - $ref: '#/components/schemas/GetScheduledEventsResponse'
+                  - $ref: '#/components/schemas/GetScheduledEventInvocationsResponse'
                   - type: array
                     description: List of success messages for bulk operations
                     items:
@@ -1106,6 +1113,11 @@ components:
               description: List of remote GraphQL schemas
               items:
                 $ref: '#/components/schemas/RemoteSchemaInfo'
+            cron_triggers:
+              type: array
+              description: List of cron triggers
+              items:
+                $ref: '#/components/schemas/CronTrigger'
           additionalProperties: true
 
     ArrayRelationshipItem:
@@ -2034,45 +2046,6 @@ components:
           additionalProperties:
             type: string
 
-    GetEventInvocationLogsOperation:
-      description: Operation used to fetch the invocation logs for a given event trigger.
-      type: object
-      required:
-        - type
-        - args
-      properties:
-        type:
-          type: string
-          enum: [pg_get_event_invocation_logs]
-        args:
-          $ref: '#/components/schemas/GetEventInvocationLogsArgs'
-
-    GetEventInvocationLogsArgs:
-      type: object
-      required:
-        - name
-      properties:
-        name:
-          type: string
-          description: Name of the event trigger
-        source:
-          type: string
-          description: Name of the source database of the trigger
-          default: default
-        limit:
-          type: integer
-          description: Maximum number of invocation logs to be returned in one API call
-          default: 100
-        offset:
-          type: integer
-          default: 0
-
-    GetEventInvocationLogsResponse:
-      type: array
-      description: List of invocation logs for the given event trigger
-      items:
-        $ref: '#/components/schemas/EventInvocationLogEntry'
-
     EventInvocationLogEntry:
       type: object
       description: Event invocation log entry containing request and response details
@@ -2249,14 +2222,28 @@ components:
           $ref: '#/components/schemas/GetEventLogsArgs'
 
     GetEventLogsArgs:
-      allOf:
-        - $ref: '#/components/schemas/GetEventInvocationLogsArgs'
-        - type: object
-          properties:
-            status:
-              description: Type of event logs to be fetched. If `status` is not provided then all types of status are included
-              type: string
-              enum: [pending, delivered]
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Name of the event trigger
+        source:
+          type: string
+          description: Name of the source database of the trigger
+          default: default
+        limit:
+          type: integer
+          description: Maximum number of invocation logs to be returned in one API call
+          default: 100
+        offset:
+          type: integer
+          default: 0
+        status:
+          description: Type of event logs to be fetched. If `status` is not provided then all types of status are included
+          type: string
+          enum: [pending, delivered]
 
     GetEventLogsResponse:
       type: array
@@ -2642,3 +2629,385 @@ components:
         event_id:
           type: string
           example: 19cc95ae-1101-4de7-908b-46dc5e9e3bef
+
+    RetryConfCT:
+      type: object
+      description: Retry configuration when delivery to the webhook of a cron trigger fails
+      properties:
+        num_retries:
+          type: integer
+          description: Number of times to retry delivery.
+          default: 0
+        retry_interval_seconds:
+          type: integer
+          description: Number of seconds to wait between each retry.
+          default: 10
+        timeout_seconds:
+          type: integer
+          description: Number of seconds to wait for the webhook response before timing out.
+          default: 60
+        tolerance_seconds:
+          type: integer
+          description: Number of seconds between scheduled time and actual delivery time that is acceptable. If the time difference is more than this, then the event is dropped.
+          default: 21600
+
+    CronTrigger:
+      type: object
+      required:
+        - name
+        - webhook
+        - schedule
+        - include_in_metadata
+      properties:
+        name:
+          type: string
+          description: Name of the cron trigger
+        webhook:
+          type: string
+          description: URL of the webhook. A String value which supports templating environment variables enclosed in {{ and }}.
+          example: '{{SERVICE_URL}}/hooks'
+        schedule:
+          type: string
+          description: Cron expression at which the trigger should be invoked.
+        payload:
+          type: object
+          description: Any JSON payload which will be sent when the webhook is invoked.
+          additionalProperties: true
+        headers:
+          description: List of headers to be sent with the webhook
+          $ref: '#/components/schemas/Headers'
+        retry_conf:
+          description: Retry configuration if scheduled invocation delivery fails
+          $ref: '#/components/schemas/RetryConfCT'
+        include_in_metadata:
+          type: boolean
+          description: Flag to indicate whether a trigger should be included in the metadata. When a cron trigger is included in the metadata, the user will be able to export it when the Metadata of the graphql-engine is exported.
+          default: false
+        comment:
+          type: string
+          description: Custom comment.
+        request_transform:
+          $ref: '#/components/schemas/RequestTransformation'
+        response_transform:
+          $ref: '#/components/schemas/ResponseTransformation'
+
+    CreateCronTriggerArgs:
+      allOf:
+        - $ref: '#/components/schemas/CronTrigger'
+        - type: object
+          properties:
+            replace:
+              type: boolean
+              description: When replace is set to true, the cron trigger will be updated (if exists) and when it's false or the field is omitted, then a new cron trigger will be created.
+
+    GetCronTriggersOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [get_cron_triggers]
+        args:
+          type: object
+          additionalProperties: false
+          default: {}
+
+    GetCronTriggersResponse:
+      type: object
+      required:
+        - cron_triggers
+      properties:
+        cron_triggers:
+          type: array
+          description: List of cron triggers
+          items:
+            $ref: '#/components/schemas/CronTrigger'
+
+    CreateCronTriggerBulkOperation:
+      type: object
+      description: Create a new Cron Trigger or replace an existing Cron Trigger.
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [bulk]
+          description: Type of operation to create cron triggers
+        args:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreateCronTriggerStep'
+
+    CreateCronTriggerStep:
+      description: Create a new Cron Trigger or replace an existing Cron Trigger.
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          description: Type of operation to create cron triggers
+          enum: [create_cron_trigger]
+        args:
+          $ref: '#/components/schemas/CreateCronTriggerArgs'
+
+    DeleteCronTriggerArgs:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Name of the cron trigger
+
+    DeleteCronTriggerOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [delete_cron_trigger]
+        args:
+          $ref: '#/components/schemas/DeleteCronTriggerArgs'
+
+    ScheduledEventStatus:
+      type: string
+      enum: [scheduled, locked, delivered, error, dead]
+
+    GetScheduledEventsOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [get_scheduled_events]
+        args:
+          $ref: '#/components/schemas/GetScheduledEventsArgs'
+
+    GetScheduledEventsArgs:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          description: Type of the Scheduled Trigger.
+          enum: [one_off, cron]
+        trigger_name:
+          type: string
+          description: Name of the cron trigger. Required only when type is cron.
+        limit:
+          type: integer
+          description: Maximum number of events to be returned in one API call.
+        offset:
+          type: integer
+          description: Starting point from where the rows need to be returned.
+        get_rows_count:
+          type: boolean
+          description: Flag to indicate whether number of rows returned should be included in the response.
+        status:
+          type: array
+          description: Filter scheduled events by the status
+          items:
+            $ref: '#/components/schemas/ScheduledEventStatus'
+
+    GetScheduledEventsResponse:
+      type: object
+      required:
+        - events
+      properties:
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScheduledEventLogEntry'
+
+    ScheduledEventLogEntry:
+      type: object
+      required:
+        - created_at
+        - id
+        - next_retry_at
+        - scheduled_time
+        - status
+        - tries
+        - trigger_name
+      properties:
+        created_at:
+          type: string
+          format: date-time
+        id:
+          type: string
+          format: uuid
+        next_retry_at:
+          type: string
+          format: date-time
+          nullable: true
+        scheduled_time:
+          type: string
+          format: date-time
+        status:
+          $ref: '#/components/schemas/ScheduledEventStatus'
+        tries:
+          type: integer
+        trigger_name:
+          type: string
+
+    GetScheduledEventInvocationsOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [get_scheduled_event_invocations]
+        args:
+          $ref: '#/components/schemas/GetScheduledEventInvocationsArgs'
+
+    GetScheduledEventInvocationsArgs:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          description: Type of the Scheduled Trigger.
+          enum: [one_off, cron]
+        trigger_name:
+          type: string
+          description: Name of the cron trigger. Required only when type is cron.
+        event_id:
+          type: string
+          description: Getting invocations of the specified event.
+        limit:
+          type: integer
+          description: Maximum number of events to be returned in one API call.
+        offset:
+          type: integer
+          description: Starting point from where the rows need to be returned.
+        get_rows_count:
+          type: boolean
+          description: Flag to indicate whether number of rows returned should be included in the response.
+
+    GetScheduledEventInvocationsResponse:
+      type: object
+      required:
+        - invocations
+      properties:
+        invocations:
+          type: array
+          items:
+            $ref: '#/components/schemas/CronTriggerInvocationLogEntry'
+
+    CronTriggerInvocationLogEntry:
+      type: object
+      required:
+        - id
+        - event_id
+        - status
+        - request
+        - created_at
+      properties:
+        id:
+          type: string
+          description: Represents a UUID for invocation.
+          example: d1de2b04-dbb9-4d21-bdaf-25c3dfef3d7b
+        event_id:
+          type: string
+          description: Unique identifier for the event
+          example: a7b67072-980d-4cfd-bbfa-a8ee749f453e
+        created_at:
+          type: string
+          format: date-time
+          description: Represents a timestamp value for the invocation of the trigger.
+          example: 2025-09-19T16:01:31.086239Z
+        status:
+          type: integer
+          description: HTTP status code of the webhook response
+          nullable: true
+          example: 200
+        request:
+          type: object
+          description: Details of the HTTP request sent to the webhook
+          required:
+            - headers
+            - payload
+            - version
+          properties:
+            headers:
+              $ref: '#/components/schemas/EventInvocationLogEntryHeaders'
+            payload:
+              type: object
+              description: The event payload sent to the webhook
+              additionalProperties: true
+            version:
+              type: string
+              description: Version of the event payload format
+              example: '1'
+        response:
+          type: object
+          description: Details of the HTTP response from the webhook
+          required:
+            - data
+            - type
+            - version
+          properties:
+            data:
+              type: object
+              description: Response data from the webhook
+              properties:
+                body:
+                  type: string
+                  description: Response body as string
+                headers:
+                  $ref: '#/components/schemas/EventInvocationLogEntryHeaders'
+                status:
+                  type: integer
+                  description: HTTP status code
+                message:
+                  type: string
+                  description: Error message
+                  example: '{"message":"Connection failure: ...}'
+
+            type:
+              type: string
+              description: Type of response
+              example: webhook_response, client_error
+            version:
+              type: string
+              description: Version of the response format
+              example: '1'
+
+    DeleteScheduledEventOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [delete_scheduled_event]
+        args:
+          $ref: '#/components/schemas/DeleteScheduledEventArgs'
+
+    DeleteScheduledEventArgs:
+      type: object
+      required:
+        - type
+        - event_id
+      properties:
+        type:
+          type: string
+          description: Type of the scheduled event.
+          enum: [one_off, cron]
+        event_id:
+          type: string
+          description: The ID of the scheduled event.

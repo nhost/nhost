@@ -17,13 +17,15 @@ export default defineConfig({
       },
       name: "NhostJs",
       formats: ["es", "cjs"],
-      fileName: (format, entryName) =>
-        entryName === "nhost-js"
-          ? `nhost-js.${format}.js`
-          : `${entryName}.${format}.js`,
+      fileName: (format, entryName) => {
+        const ext = format === "cjs" ? "cjs" : "js";
+        return entryName === "nhost-js"
+          ? `nhost-js.${ext}`
+          : `${entryName}.${ext}`;
+      },
     },
     rollupOptions: {
-      external: [],
+      external: ["tslib"],
       output: {
         globals: {},
       },

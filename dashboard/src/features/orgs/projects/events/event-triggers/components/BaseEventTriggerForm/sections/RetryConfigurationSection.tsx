@@ -1,5 +1,6 @@
 import { FormInput } from '@/components/form/FormInput';
 import { FormDescription } from '@/components/ui/v3/form';
+import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
 import type { BaseEventTriggerFormValues } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerFormTypes';
 import { useFormContext } from 'react-hook-form';
 
@@ -28,12 +29,19 @@ export default function RetryConfigurationSection({
             <FormInput
               control={form.control}
               name="retryConf.numRetries"
-              label="Number of Retries"
               placeholder="number of retries (default: 0)"
               type="number"
               className="text-foreground"
               autoComplete="off"
-              infoTooltip="Number of retries that Hasura makes to the webhook in case of failure"
+              label={
+                <div className="flex flex-row items-center gap-2">
+                  Number of Retries{' '}
+                  <InfoTooltip>
+                    Number of retries that Hasura makes to the webhook in case
+                    of failure
+                  </InfoTooltip>
+                </div>
+              }
             />
           </div>
         </div>
@@ -41,24 +49,36 @@ export default function RetryConfigurationSection({
           <FormInput
             control={form.control}
             name="retryConf.intervalSec"
-            label="Retry interval (in seconds)"
+            label={
+              <div className="flex flex-row items-center gap-2">
+                Retry interval (in seconds){' '}
+                <InfoTooltip>
+                  Interval in seconds between each retry of the webhook
+                </InfoTooltip>
+              </div>
+            }
             placeholder="retry interval (default: 10)"
             type="number"
             className="text-foreground"
             autoComplete="off"
-            infoTooltip="Interval in seconds between each retry of the webhook"
           />
         </div>
         <div className="flex flex-col gap-2">
           <FormInput
             control={form.control}
             name="retryConf.timeoutSec"
-            label="Timeout (in seconds)"
+            label={
+              <div className="flex flex-row items-center gap-2">
+                Timeout (in seconds){' '}
+                <InfoTooltip>
+                  Request timeout (in seconds) for the webhook
+                </InfoTooltip>
+              </div>
+            }
             placeholder="timeout (default: 60)"
             type="number"
             className="text-foreground"
             autoComplete="off"
-            infoTooltip="Request timeout (in seconds) for the webhook"
           />
         </div>
       </div>

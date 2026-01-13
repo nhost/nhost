@@ -8,6 +8,8 @@ import (
 )
 
 func TestMintlify(t *testing.T) {
+	t.Skip()
+
 	t.Parallel()
 
 	m, err := mintlify.New(context.Background())

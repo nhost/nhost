@@ -49,7 +49,7 @@ const projectPages = [
   {
     name: 'Events',
     icon: <Zap className="h-4 w-4" />,
-    route: 'events',
+    route: 'events/event-triggers',
     slug: 'events',
   },
   {
@@ -179,6 +179,19 @@ const projectGraphQLPages = [
   },
 ];
 
+const projectEventsPages = [
+  {
+    name: 'Event Triggers',
+    slug: 'event-triggers',
+    route: 'events/event-triggers',
+  },
+  {
+    name: 'Cron Triggers',
+    slug: 'cron-triggers',
+    route: 'events/cron-triggers',
+  },
+];
+
 const createOrganization = (org: Org) => {
   const isNotPlatform = !getIsPlatform();
   const configServerVariableNotSet = getConfigServerUrl() === '';
@@ -263,7 +276,8 @@ const createOrganization = (org: Org) => {
         canMove: false,
         isFolder:
           (_page.name === 'Settings' && !shouldDisableSettings) ||
-          _page.name === 'GraphQL',
+          _page.name === 'GraphQL' ||
+          _page.name === 'Events',
         children: (() => {
           if (_page.name === 'Settings' && !shouldDisableSettings) {
             return projectSettingsPages.map(
@@ -273,6 +287,11 @@ const createOrganization = (org: Org) => {
           if (_page.name === 'GraphQL') {
             return projectGraphQLPages.map(
               (p) => `${org.slug}-${_app.subdomain}-graphql-${p.slug}`,
+            );
+          }
+          if (_page.name === 'Events') {
+            return projectEventsPages.map(
+              (p) => `${org.slug}-${_app.subdomain}-events-${p.slug}`,
             );
           }
           return undefined;
@@ -316,6 +335,20 @@ const createOrganization = (org: Org) => {
     projectGraphQLPages.forEach((p) => {
       result[`${org.slug}-${_app.subdomain}-graphql-${p.slug}`] = {
         index: `${org.slug}-${_app.subdomain}-graphql-${p.slug}`,
+        canMove: false,
+        isFolder: false,
+        children: undefined,
+        data: {
+          name: p.name,
+          targetUrl: `/orgs/${org.slug}/projects/${_app.subdomain}/${p.route}`,
+        },
+        canRename: false,
+      };
+    });
+
+    projectEventsPages.forEach((p) => {
+      result[`${org.slug}-${_app.subdomain}-events-${p.slug}`] = {
+        index: `${org.slug}-${_app.subdomain}-events-${p.slug}`,
         canMove: false,
         isFolder: false,
         children: undefined,
@@ -477,7 +510,10 @@ export default function NavTree() {
                   return;
                 }
 
-                if (item.data.name === 'GraphQL' && item.isFolder) {
+                if (
+                  ['GraphQL', 'Events'].includes(item.data.name) &&
+                  item.isFolder
+                ) {
                   if (!context.isExpanded) {
                     context.toggleExpandedState();
                   }
