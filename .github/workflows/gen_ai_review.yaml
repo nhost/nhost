@@ -1,7 +1,7 @@
 ---
 name: "gen: AI review"
 on:
-  pull_request_target:
+  pull_request:
     types: [opened, reopened, ready_for_review]
   issue_comment:
     types: [created]
