@@ -37,7 +37,7 @@ let
       (inDirectory "./build")
       "${submodule}/.prettierignore"
       "${submodule}/gen.sh"
-      "${submodule}/jest.config.js"
+      "${submodule}/jest.config.cjs"
       "${submodule}/package.json"
       "${submodule}/pnpm-lock.yaml"
       "${submodule}/tsconfig.json"
