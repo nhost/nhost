@@ -13,20 +13,12 @@ jobs:
     if: |
       (
         github.event_name == 'pull_request_target' &&
-        (
-          github.event.pull_request.author_association == 'OWNER' ||
-          github.event.pull_request.author_association == 'MEMBER' ||
-          github.event.pull_request.author_association == 'COLLABORATOR'
-        )
+        contains(fromJson('["OWNER","MEMBER"]'), github.event.pull_request.author_association)
       ) ||
       (
         (startsWith(github.event.comment.body, '/opencode') || startsWith(github.event.comment.body, '/oc')) &&
         (github.event.issue.pull_request || github.event.pull_request) &&
-        (
-          github.event.comment.author_association == 'OWNER' ||
-          github.event.comment.author_association == 'MEMBER' ||
-          github.event.comment.author_association == 'COLLABORATOR'
-        )
+        contains(fromJson('["OWNER","MEMBER"]'), github.event.comment.author_association)
       )
     runs-on: blacksmith-2vcpu-ubuntu-2404
     timeout-minutes: 15
