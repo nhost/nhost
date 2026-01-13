@@ -2,20 +2,20 @@
 name: "gen: AI review"
 on:
   pull_request:
-  # pull_request_target:
-  #   types: [opened, reopened, ready_for_review]
+    types: [opened, reopened, ready_for_review]
   issue_comment:
     types: [created]
-
   pull_request_review_comment:
     types: [created]
 
 jobs:
   opencode:
     if: |
-      github.event.issue.pull_request || github.event.issue.pull_request_target ||
-      ( github.event.issue.pull_request || github.event.issue.pull_request_target ) &&
-      startsWith(github.event.comment.body, '/opencode')
+      github.event_name == 'pull_request' ||
+      (
+        (contains(github.event.comment.body, '/opencode') || contains(github.event.comment.body, '/oc')) &&
+        (github.event.issue.pull_request || github.event.pull_request)
+      )
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
