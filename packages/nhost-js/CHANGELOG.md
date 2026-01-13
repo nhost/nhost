@@ -1,3 +1,15 @@
+## [@nhost/nhost-js@4.2.2] - 2026-01-13
+
+### 🐛 Bug Fixes
+
+- *(nhost-js)* Resolve CJS/ESM interop issues for Vite projects (#3784)
+
+
+### Chore
+
+- *(deps)* Update tar and qs packages (#3786)
+- *(deps)* Update react-router (#3790)
+
 ## [@nhost/nhost-js@4.2.1] - 2025-12-18
 
 ### 🐛 Bug Fixes
