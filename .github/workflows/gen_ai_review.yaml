@@ -34,3 +34,9 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         with:
           model: ${{ vars.OPENCODE_PR_REVIEW_MODEL }}
+          prompt: |
+            Review this pull request:
+            - Update the PR description if needed
+            - Check for code quality issues
+            - Look for potential bugs
+            - Suggest improvements
