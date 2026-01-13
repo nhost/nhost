@@ -1,28 +1,32 @@
 ---
 name: "gen: AI review"
 on:
-  pull_request_target:
-    types: [opened, reopened, ready_for_review]
+  pull_request:
+  # pull_request_target:
+  #   types: [opened, reopened, ready_for_review]
   issue_comment:
+    types: [created]
 jobs:
-  pr_agent_job:
-    if: ${{ github.event.sender.type != 'Bot' }}
+  opencode:
+    if: |
+      contains(github.event.comment.body, '/oc') ||
+      contains(github.event.comment.body, '/opencode')
     runs-on: blacksmith-2vcpu-ubuntu-2404
-    timeout-minutes: 10
     permissions:
-      issues: write
+      id-token: write
+      contents: write
       pull-requests: write
-    name: Run pr agent on every pull request, respond to user comments
+      issues: write
+    timeout-minutes: 10
     steps:
-      - name: PR Agent action step
-        id: pragent
-        uses: Codium-ai/pr-agent@v0.31
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Run OpenCode
+        uses: anomalyco/opencode/github@latest
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          OPENAI_KEY: ${{ secrets.OPENAI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          config.model: ${{ vars.GEN_AI_MODEL }}
-          config.model_turbo: $${{ vars.GEN_AI_MODEL_TURBO }}
-          config.max_model_tokens: 200000
-          config.custom_model_max_tokens: 200000
-          ignore.glob: "['pnpm-lock.yaml','**/pnpm-lock.yaml', 'vendor/**','**/client_gen.go','**/models_gen.go','**/generated.go','**/*.gen.go']"
+        with:
+          model: ${{ vars.OPENCODE_PR_REVIEW_MODEL }}
