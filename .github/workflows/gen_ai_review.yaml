@@ -46,7 +46,7 @@ jobs:
             - Breaking changes
             - Test coverage
             - Documentation updates needed
-            - If there is an existing comment from opencode-agent, update it instead of creating a new one.
+
             Please provide specific, actionable feedback.
             Do not attempt to push changes, only suggest them in the review.
 
