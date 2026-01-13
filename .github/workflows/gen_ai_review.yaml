@@ -40,3 +40,4 @@ jobs:
             - Check for code quality issues
             - Look for potential bugs
             - Suggest improvements
+            - Do not attempt to push changes, just suggest them in the review
