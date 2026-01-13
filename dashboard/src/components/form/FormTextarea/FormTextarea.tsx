@@ -100,7 +100,7 @@ const FormTextarea = forwardRef(FormTextareaImpl) as <
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 >(
   props: FormTextareaProps<TFieldValues, TName> & {
-    ref: ForwardedRef<HTMLTextAreaElement>;
+    ref?: ForwardedRef<HTMLTextAreaElement>;
   },
 ) => ReturnType<typeof FormTextareaImpl>;
 

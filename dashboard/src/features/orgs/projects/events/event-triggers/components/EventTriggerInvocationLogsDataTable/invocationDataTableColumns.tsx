@@ -1,48 +1,10 @@
 import { HoverCardTimestamp } from '@/components/presentational/HoverCardTimestamp';
-import { Button } from '@/components/ui/v3/button';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import { HttpStatusText } from '@/features/orgs/projects/events/common/components/HttpStatusText';
-import { highlightMatch } from '@/features/orgs/utils/highlightMatch';
-import { cn } from '@/lib/utils';
+import { SortableHeader } from '@/features/orgs/projects/events/common/components/SortableHeader';
 import type { EventInvocationLogEntry } from '@/utils/hasura-api/generated/schemas/eventInvocationLogEntry';
-import { type Column, type ColumnDef } from '@tanstack/react-table';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { type ColumnDef } from '@tanstack/react-table';
 import InvocationLogActionsCell from './InvocationLogActionsCell';
-
-function CreatedAtHeader({
-  column,
-}: {
-  column: Column<EventInvocationLogEntry, unknown>;
-}) {
-  return (
-    <Button
-      variant="ghost"
-      size="sm"
-      onClick={() => column.toggleSorting(undefined)}
-      className="flex items-center justify-between gap-2"
-    >
-      <span>Created At</span>
-      <span className="flex flex-col">
-        <ChevronUp
-          className={cn(
-            '-mb-0.5 h-4 w-4',
-            column.getIsSorted() === 'asc'
-              ? 'text-accent-foreground'
-              : 'text-muted-foreground',
-          )}
-        />
-        <ChevronDown
-          className={cn(
-            '-mt-0.5 h-4 w-4',
-            column.getIsSorted() === 'desc'
-              ? 'text-accent-foreground'
-              : 'text-muted-foreground',
-          )}
-        />
-      </span>
-    </Button>
-  );
-}
 
 const columns: ColumnDef<EventInvocationLogEntry>[] = [
   {
@@ -51,7 +13,9 @@ const columns: ColumnDef<EventInvocationLogEntry>[] = [
     minSize: 50,
     size: 68,
     maxSize: 68,
-    header: ({ column }) => <CreatedAtHeader column={column} />,
+    header: ({ column }) => (
+      <SortableHeader column={column} label="Created At" />
+    ),
     cell: ({ row }) => (
       <HoverCardTimestamp
         date={new Date(row.original.created_at)}
@@ -65,25 +29,22 @@ const columns: ColumnDef<EventInvocationLogEntry>[] = [
     minSize: 70,
     size: 70,
     maxSize: 70,
-    header: 'Status',
+    header: () => <div className="p-2">Status</div>,
     enableSorting: false,
     cell: ({ row }) => <HttpStatusText status={row.original.http_status} />,
   },
   {
     id: 'id',
     accessorKey: 'id',
-    header: 'ID',
+    header: () => <div className="p-2">ID</div>,
     minSize: 40,
     size: 280,
     maxSize: 600,
-    cell: ({ row, table }) => (
+    cell: ({ row }) => (
       <TextWithTooltip
         className="font-mono text-xs"
         containerClassName="cursor-text"
-        text={highlightMatch(
-          row.original.id,
-          String(table.getColumn('id')?.getFilterValue() ?? ''),
-        )}
+        text={row.original.id}
       />
     ),
   },
@@ -92,7 +53,7 @@ const columns: ColumnDef<EventInvocationLogEntry>[] = [
     minSize: 80,
     size: 80,
     maxSize: 80,
-    header: 'Actions',
+    header: () => <div className="p-2">Actions</div>,
     enableSorting: false,
     cell: ({ row, table }) => (
       <InvocationLogActionsCell row={row.original} table={table} />

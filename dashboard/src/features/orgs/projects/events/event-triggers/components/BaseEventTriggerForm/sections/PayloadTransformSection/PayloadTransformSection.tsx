@@ -52,7 +52,7 @@ export default function PayloadTransformSection({
     },
   );
 
-  const handleRefreshPayload = () => {
+  const handleResetPayload = () => {
     setValue(
       'payloadTransform.sampleInput',
       getSampleInputPayload({
@@ -90,10 +90,10 @@ export default function PayloadTransformSection({
                   size="sm"
                   variant="outline"
                   type="button"
-                  onClick={handleRefreshPayload}
+                  onClick={handleResetPayload}
                 >
                   <RefreshCw className="size-4" />
-                  Refresh
+                  Reset
                 </Button>
               </div>
               <FormControl>

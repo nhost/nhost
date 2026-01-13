@@ -51,7 +51,7 @@ export default function EditEventTriggerForm({
         });
         setInitialData(data);
         router.push(
-          `/orgs/${orgSlug}/projects/${appSubdomain}/events/event-trigger/${data.triggerName}`,
+          `/orgs/${orgSlug}/projects/${appSubdomain}/events/event-triggers/${data.triggerName}`,
         );
       },
       {

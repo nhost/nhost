@@ -5,8 +5,16 @@
  * API for managing remote schemas and events in Hasura
  * OpenAPI spec version: 1.0.0
  */
-import type { GetEventInvocationLogsArgs } from './getEventInvocationLogsArgs';
-import type { GetEventLogsArgsAllOf } from './getEventLogsArgsAllOf';
+import type { GetEventLogsArgsStatus } from './getEventLogsArgsStatus';
 
-export type GetEventLogsArgs = GetEventInvocationLogsArgs &
-  GetEventLogsArgsAllOf;
+export interface GetEventLogsArgs {
+  /** Name of the event trigger */
+  name: string;
+  /** Name of the source database of the trigger */
+  source?: string;
+  /** Maximum number of invocation logs to be returned in one API call */
+  limit?: number;
+  offset?: number;
+  /** Type of event logs to be fetched. If `status` is not provided then all types of status are included */
+  status?: GetEventLogsArgsStatus;
+}
