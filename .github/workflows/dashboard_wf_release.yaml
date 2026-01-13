@@ -38,6 +38,7 @@ jobs:
     with:
       NAME: dashboard
       GIT_REF: ${{ inputs.GIT_REF }}
+      VERSION: ${{ inputs.VERSION }}
       ENVIRONMENT: production
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
