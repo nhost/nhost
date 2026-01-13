@@ -13,11 +13,11 @@ on:
 jobs:
   opencode:
     if: |
-      github.event_name == 'pull_request_target' ||
-      github.event_name == 'pull_request' ||
-      contains(github.event.comment.body, '/oc') ||
-      contains(github.event.comment.body, '/opencode')
+      github.event.issue.pull_request || github.event.issue.pull_request_target ||
+      ( github.event.issue.pull_request || github.event.issue.pull_request_target ) &&
+      startsWith(github.event.comment.body, '/opencode')
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       id-token: write
       contents: read
@@ -35,9 +35,18 @@ jobs:
         with:
           model: ${{ vars.OPENCODE_PR_REVIEW_MODEL }}
           prompt: |
-            Review this pull request:
-            - Update the PR description if needed
-            - Check for code quality issues
-            - Look for potential bugs
-            - Suggest improvements
-            - Do not attempt to push changes, just suggest them in the review
+            Review this pull request with focus on:
+            - Code quality and best practices
+            - Security vulnerabilities
+            - Performance implications
+            - Breaking changes
+            - Test coverage
+            - Documentation updates needed
+
+            Please provide specific, actionable feedback.
+            Do not attempt to push changes, only suggest them in the review.
+
+            Additionally, update the PR description if needed:
+            - Summarize key changes
+            - Do not suggest description changes in a comment, update the description directly.
+            - If there is a description already, improve it rather than replacing it entirely.
