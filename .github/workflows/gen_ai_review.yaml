@@ -46,7 +46,6 @@ jobs:
             - Test coverage
             - Documentation updates needed
             - If there is an existing comment from opencode-agent, update it instead of creating a new one.
-
             Please provide specific, actionable feedback.
             Do not attempt to push changes, only suggest them in the review.
 
@@ -54,3 +53,8 @@ jobs:
             - Summarize key changes
             - Do not suggest description changes in a comment, update the description directly.
             - If there is a description already, improve it rather than replacing it entirely.
+
+            Do not:
+            - Duplicate information in the PR description and comments.
+            - Make assumptions about the code outside of the diff.
+            - Add multiple comments on the same PR
