@@ -1,3 +1,9 @@
+## [auth@0.45.0] - 2026-01-13
+
+### 🚀 Features
+
+- *(auth)* Change locale so it allows for 3 characters (#3776)
+
 ## [auth@0.44.2] - 2025-12-18
 
 ### 🐛 Bug Fixes
