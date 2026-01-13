@@ -67,14 +67,18 @@ nhost
 As you can see templates can be defined for various languages and, with the exception of `signin-passwordless-sms`, they require 2 files for the subject and body.
 
 ```
-/{two-letter-language-code}/{email-template}/[subject.txt, body.html]
+/{language-code}/{email-template}/[subject.txt, body.html]
 ```
 
 ### Languages
 
-A user's language is stored in the `auth.users` table in the `locale` column. This `locale` column contains a two-letter language code ([ISO 639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes)) which is used to infer what language and template to use in the email.
+A user's language is stored in the `auth.users` table in the `locale` column. This `locale` column contains a two or three letter language code ([ISO 639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) or [ISO 639-2](https://en.wikipedia.org/wiki/List_of_ISO_639-2_codes)) which is used to infer what language and template to use in the email.
 
 <Info>The default value of the `locale` column is `en`</Info>
+
+<Warning>
+You can use two or three character locales, or even mix them across users, but the service will not attempt to map between formats. For example, if a user has `locale` set to `eng`, the service will look for templates in the `eng` folder and will not fall back to `en`. Ensure that a template folder exists for each locale format you use.
+</Warning>
 
 ### Template Variables
 
@@ -89,7 +93,7 @@ The following variables are available to all email templates:
 | `ticket`      | Ticket or OTP that is used to authorize the request.                                                                                  |
 | `displayName` | The display name of the user                                                                                                      |
 | `email`       | The email of the user                                                                                                             |
-| `locale`      | Locale of the user as a two-letter language code (e.g. "en")                                                                       |
+| `locale`      | Locale of the user as a two or three letter language code (e.g. "en")                                                                       |
 
 Variables can be referenced by enclosing them with `${}` as in the following example:
 

@@ -559,10 +559,10 @@ paths:
         - name: locale
           in: query
           required: false
-          description: A two-characters locale
+          description: A two or three characters locale
           schema:
             type: string
-            maxLength: 2
+            maxLength: 3
             minLength: 2
             example: en
         - name: metadata
@@ -2020,9 +2020,9 @@ components:
           example: John Smith
           type: string
         locale:
-          description: A two-characters locale
+          description: A two or three characters locale
           example: en
-          maxLength: 2
+          maxLength: 3
           minLength: 2
           type: string
         metadata:
@@ -2276,9 +2276,9 @@ components:
           pattern: ^[\p{L}\p{N}\p{S} ,.'-]+$
           maxLength: 32
         locale:
-          description: A two-characters locale
+          description: A two or three characters locale
           example: en
-          maxLength: 2
+          maxLength: 3
           minLength: 2
           type: string
         metadata:
@@ -2386,7 +2386,7 @@ components:
         locale:
           description: "User's preferred locale (language code)"
           example: "en"
-          maxLength: 2
+          maxLength: 3
           minLength: 2
           type: string
         metadata:
