@@ -64,7 +64,7 @@ export interface BaseEventTriggerFormTriggerProps {
 
 export interface BaseEventTriggerFormProps {
   initialData?: BaseEventTriggerFormInitialData;
-  trigger: (props: BaseEventTriggerFormTriggerProps) => ReactNode;
+  trigger?: (props: BaseEventTriggerFormTriggerProps) => ReactNode;
   onSubmit: (data: BaseEventTriggerFormValues) => void | Promise<void>;
   isEditing?: boolean;
   submitButtonText: string;
@@ -183,7 +183,7 @@ export default function BaseEventTriggerForm({
     closeForm();
   };
 
-  const triggerNode = trigger({ open: openForm });
+  const triggerNode = trigger?.({ open: openForm }) ?? null;
 
   const handleAccordionValueChange = useCallback((value: string[]) => {
     setOpenAccordionSections(value as AccordionSectionValue[]);

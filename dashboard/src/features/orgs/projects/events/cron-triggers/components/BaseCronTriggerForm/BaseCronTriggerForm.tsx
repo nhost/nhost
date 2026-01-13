@@ -52,7 +52,7 @@ export interface BaseCronTriggerFormTriggerProps {
 
 export interface BaseCronTriggerFormProps {
   initialData?: BaseCronTriggerFormInitialData;
-  trigger: (props: BaseCronTriggerFormTriggerProps) => ReactNode;
+  trigger?: (props: BaseCronTriggerFormTriggerProps) => ReactNode;
   onSubmit: (data: BaseCronTriggerFormValues) => void | Promise<void>;
   isEditing?: boolean;
   submitButtonText: string;
@@ -187,7 +187,7 @@ export default function BaseCronTriggerForm({
     closeForm();
   };
 
-  const triggerNode = trigger({ open: openForm });
+  const triggerNode = trigger?.({ open: openForm }) ?? null;
 
   const handleAccordionValueChange = useCallback((value: string[]) => {
     setOpenAccordionSections(value as AccordionSectionValue[]);
