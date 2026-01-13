@@ -16,7 +16,7 @@ jobs:
         (contains(github.event.comment.body, '/opencode') || contains(github.event.comment.body, '/oc')) &&
         (github.event.issue.pull_request || github.event.pull_request)
       )
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     timeout-minutes: 15
     permissions:
       id-token: write
