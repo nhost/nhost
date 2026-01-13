@@ -11,6 +11,9 @@ jobs:
     runs-on: blacksmith-2vcpu-ubuntu-2404
     permissions:
       id-token: write
+      contents: write
+      pull-requests: write
+      issues: write
     timeout-minutes: 10
     steps:
       - name: Checkout repository
@@ -24,3 +27,4 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         with:
           model: ${{ vars.OPENCODE_PR_REVIEW_MODEL }}
+          token: ${{ secrets.GITHUB_TOKEN }}
