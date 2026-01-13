@@ -11,20 +11,26 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import { Plus } from 'lucide-react';
 import { useRouter } from 'next/router';
 
+interface CreateEventTriggerFormProps {
+  disabled: boolean;
+}
+
 const renderCreateEventTriggerButton = ({
   open,
 }: BaseEventTriggerFormTriggerProps) => (
   <Button
-    variant="ghost"
-    size="icon"
+    variant="link"
+    className="mt-1 flex w-full justify-between px-[0.625rem] !text-sm+ text-primary hover:bg-accent hover:no-underline disabled:text-disabled"
     aria-label="Add event trigger"
     onClick={() => open()}
   >
-    <Plus className="h-5 w-5 text-primary dark:text-foreground" />
+    New Event Trigger <Plus className="h-4 w-4" />
   </Button>
 );
 
-export default function CreateEventTriggerForm() {
+export default function CreateEventTriggerForm({
+  disabled,
+}: CreateEventTriggerFormProps) {
   const { mutateAsync: createEventTrigger } = useCreateEventTriggerMutation();
   const { data: resourceVersion } = useGetMetadataResourceVersion();
   const router = useRouter();
@@ -53,7 +59,7 @@ export default function CreateEventTriggerForm() {
 
   return (
     <BaseEventTriggerForm
-      trigger={renderCreateEventTriggerButton}
+      trigger={disabled ? undefined : renderCreateEventTriggerButton}
       onSubmit={handleSubmit}
       titleText="Create a New Event Trigger"
       descriptionText="Enter the details to create your event trigger. Click Create when you're done."

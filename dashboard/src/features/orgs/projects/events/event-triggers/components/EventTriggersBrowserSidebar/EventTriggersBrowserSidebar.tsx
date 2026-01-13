@@ -12,7 +12,7 @@ import { CreateEventTriggerForm } from '@/features/orgs/projects/events/event-tr
 import { useGetEventTriggers } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventTriggers';
 import type { EventTriggerViewModel } from '@/features/orgs/projects/events/event-triggers/types';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { Database } from 'lucide-react';
+import { Database, InfoIcon } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
@@ -29,6 +29,8 @@ function EventTriggersBrowserSidebarContent() {
     isLoading: isLoadingEventTriggers,
     error: errorEventTriggers,
   } = useGetEventTriggers();
+  const { project } = useProject();
+  const isGitHubConnected = !!project?.githubRepository;
 
   if (isLoadingEventTriggers) {
     return <EventTriggersBrowserSidebarSkeleton />;
@@ -66,56 +68,53 @@ function EventTriggersBrowserSidebarContent() {
   }
 
   return (
-    <div className="flex h-full flex-col px-2">
-      <Accordion
-        type="multiple"
-        defaultValue={['event-triggers']}
-        className="w-full"
-      >
-        <AccordionItem value="event-triggers" id="event-triggers">
-          <div className="flex flex-row items-center justify-between">
-            <div className="flex-row justify-end gap-2 text-sm+ font-semibold">
-              Event Triggers ({eventTriggersData?.length ?? 0})
-            </div>
-            <CreateEventTriggerForm />
-          </div>
-          <div className="pb-0">
-            <div className="flex flex-row gap-2">
-              <Accordion
-                type="single"
-                collapsible
-                className="w-full"
-                defaultValue="default"
-              >
-                {Object.entries(eventTriggersByDataSource ?? {}).map(
-                  ([dataSource, eventTriggers]) => (
-                    <AccordionItem
-                      key={dataSource}
-                      value={dataSource}
-                      id={dataSource}
-                    >
-                      <AccordionTrigger className="flex-row-reverse justify-end gap-2 text-sm+ [&[data-state=closed]>svg:last-child]:-rotate-90 [&[data-state=open]>svg:last-child]:rotate-0">
-                        <div className="flex flex-row-reverse items-center gap-2">
-                          {dataSource}
-                          <Database className="size-4 !rotate-0" />
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent className="flex flex-col gap-1 text-balance pl-4">
-                        {eventTriggers.map((eventTrigger) => (
-                          <EventTriggerListItem
-                            key={eventTrigger.name}
-                            eventTrigger={eventTrigger}
-                          />
-                        ))}
-                      </AccordionContent>
-                    </AccordionItem>
-                  ),
-                )}
-              </Accordion>
-            </div>
-          </div>
-        </AccordionItem>
-      </Accordion>
+    <div className="flex h-full w-full flex-col px-2">
+      {isGitHubConnected && (
+        <div className="box mt-1.5 flex items-center gap-2 px-2">
+          <InfoIcon className="size-6" />
+          <p className="text-xs text-disabled">
+            GitHub connected - use the CLI for event trigger changes
+          </p>
+        </div>
+      )}
+      <div className="flex flex-row items-center justify-between">
+        <CreateEventTriggerForm disabled={isGitHubConnected} />
+      </div>
+      <div className="pb-0">
+        <div className="flex flex-row gap-2">
+          <Accordion
+            type="multiple"
+            className="w-full px-1"
+            defaultValue={['default']}
+          >
+            {Object.entries(eventTriggersByDataSource ?? {}).map(
+              ([dataSource, eventTriggers]) => (
+                <AccordionItem
+                  key={dataSource}
+                  value={dataSource}
+                  id={dataSource}
+                >
+                  <AccordionTrigger className="flex-row-reverse justify-end gap-2 text-sm+ [&[data-state=closed]>svg:last-child]:-rotate-90 [&[data-state=open]>svg:last-child]:rotate-0">
+                    <div className="flex flex-row-reverse items-center gap-2">
+                      {dataSource}
+                      <Database className="size-4 !rotate-0" />
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="flex flex-col gap-1 text-balance pl-4">
+                    {eventTriggers.map((eventTrigger) => (
+                      <EventTriggerListItem
+                        key={eventTrigger.name}
+                        eventTrigger={eventTrigger}
+                        isViewOnly={isGitHubConnected}
+                      />
+                    ))}
+                  </AccordionContent>
+                </AccordionItem>
+              ),
+            )}
+          </Accordion>
+        </div>
+      </div>
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { CreateCronTriggerForm } from '@/features/orgs/projects/events/cron-triggers/components/CreateCronTriggerForm';
 import { useGetCronTriggers } from '@/features/orgs/projects/events/cron-triggers/hooks/useGetCronTriggers';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { InfoIcon } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
@@ -21,6 +22,9 @@ function CronTriggersBrowserSidebarContent() {
     isLoading: isLoadingCronTriggers,
     error: errorCronTriggers,
   } = useGetCronTriggers();
+  const { project } = useProject();
+
+  const isGitHubConnected = !!project?.githubRepository;
 
   if (isLoadingCronTriggers) {
     return <CronTriggersBrowserSidebarSkeleton />;
@@ -41,14 +45,23 @@ function CronTriggersBrowserSidebarContent() {
   return (
     <div className="flex h-full flex-col px-2">
       <div className="flex flex-col gap-0">
+        {isGitHubConnected && (
+          <div className="box mt-1.5 flex items-center gap-2 px-2">
+            <InfoIcon className="size-6" />
+            <p className="text-xs text-disabled">
+              GitHub connected - use the CLI for cron trigger changes
+            </p>
+          </div>
+        )}
         <div className="flex flex-row items-center justify-between">
-          <CreateCronTriggerForm />
+          <CreateCronTriggerForm disabled={isGitHubConnected} />
         </div>
         <div className="flex flex-col text-balance">
           {(cronTriggersData ?? []).map((cronTrigger) => (
             <CronTriggerListItem
               key={cronTrigger.name}
               cronTrigger={cronTrigger}
+              isViewOnly={isGitHubConnected}
             />
           ))}
         </div>

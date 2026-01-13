@@ -21,10 +21,12 @@ const menuItemClassName =
 
 export interface CronTriggerListItemProps {
   cronTrigger: CronTrigger;
+  isViewOnly: boolean;
 }
 
 export default function CronTriggerListItem({
   cronTrigger,
+  isViewOnly,
 }: CronTriggerListItemProps) {
   const router = useRouter();
   const { orgSlug, appSubdomain, cronTriggerSlug } = router.query;
@@ -76,17 +78,21 @@ export default function CronTriggerListItem({
             >
               <DropdownMenuTrigger
                 asChild
-                className={cn(
-                  'relative z-10 opacity-0 transition-opacity group-hover:opacity-100',
-                  {
-                    'opacity-100': isSelected || isMenuOpen,
-                  },
-                )}
+                disabled={isViewOnly}
+                className={cn('relative z-10 opacity-0 transition-opacity', {
+                  'group-hover:opacity-100': !isViewOnly,
+                  'opacity-100': isSelected || isMenuOpen,
+                })}
               >
                 <Button
                   variant="outline"
                   size="icon"
-                  className="h-6 w-6 border-none bg-transparent px-0 hover:bg-transparent focus-visible:bg-transparent"
+                  className={cn(
+                    'h-6 w-6 border-none bg-transparent px-0 hover:bg-transparent focus-visible:bg-transparent',
+                    {
+                      '!pointer-events-auto !cursor-not-allowed': isViewOnly,
+                    },
+                  )}
                   onClick={(event) => {
                     event.preventDefault();
                     event.stopPropagation();
