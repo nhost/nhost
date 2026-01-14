@@ -85,10 +85,7 @@ in
         nativeBuildInputs = goCheckDeps ++ checkDeps ++ buildInputs ++ nativeBuildInputs;
       }
       ''
-        export GOLANGCI_LINT_CACHE=$TMPDIR/.cache/golangci-lint
-        export GOCACHE=$TMPDIR/.cache/go-build
-        export GOMODCACHE="$TMPDIR/.cache/mod"
-        export GOPATH="$TMPDIR/.cache/gopath"
+        export HOME=$(mktemp -d)
 
         ${preCheck}
 
