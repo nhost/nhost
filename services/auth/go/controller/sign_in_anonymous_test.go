@@ -31,6 +31,7 @@ func TestSignInAnonymous(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				cfg := getConfig()
 				cfg.AnonymousUsersEnabled = true
+
 				return cfg
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -120,6 +121,7 @@ func TestSignInAnonymous(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				cfg := getConfig()
 				cfg.AnonymousUsersEnabled = true
+
 				return cfg
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -209,6 +211,7 @@ func TestSignInAnonymous(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				cfg := getConfig()
 				cfg.AnonymousUsersEnabled = true
+
 				return cfg
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -309,6 +312,7 @@ func TestSignInAnonymous(t *testing.T) { //nolint:maintidx
 				cfg := getConfig()
 				cfg.DisableSignup = true
 				cfg.AnonymousUsersEnabled = true
+
 				return cfg
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -359,6 +363,7 @@ func TestSignInAnonymous(t *testing.T) { //nolint:maintidx
 				cfg := getConfig()
 				cfg.DisableSignup = false
 				cfg.AnonymousUsersEnabled = false
+
 				return cfg
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {

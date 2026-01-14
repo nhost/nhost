@@ -138,6 +138,7 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				config := getConfig()
 				config.SMSPasswordlessEnabled = false
+
 				return config
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -240,6 +241,7 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				config := getConfig()
 				config.RequireEmailVerification = true
+
 				return config
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {

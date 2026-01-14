@@ -2,8 +2,9 @@
 -- PostgreSQL database dump
 --
 
+
 -- Dumped from database version 14.6 (Debian 14.6-1.pgdg110+1)
--- Dumped by pg_dump version 17.5
+-- Dumped by pg_dump version 18.1
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -448,6 +449,14 @@ ALTER TABLE ONLY auth.user_roles
 
 
 --
+-- Name: refresh_tokens fk_user; Type: FK CONSTRAINT; Schema: auth; Owner: postgres
+--
+
+ALTER TABLE ONLY auth.refresh_tokens
+    ADD CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES auth.users(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
 -- Name: user_providers fk_user; Type: FK CONSTRAINT; Schema: auth; Owner: postgres
 --
 
@@ -460,14 +469,6 @@ ALTER TABLE ONLY auth.user_providers
 --
 
 ALTER TABLE ONLY auth.user_roles
-    ADD CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES auth.users(id) ON UPDATE CASCADE ON DELETE CASCADE;
-
-
---
--- Name: refresh_tokens fk_user; Type: FK CONSTRAINT; Schema: auth; Owner: postgres
---
-
-ALTER TABLE ONLY auth.refresh_tokens
     ADD CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES auth.users(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
@@ -505,4 +506,5 @@ ALTER DEFAULT PRIVILEGES FOR ROLE nhost_auth_admin IN SCHEMA auth GRANT SELECT,I
 --
 -- PostgreSQL database dump complete
 --
+
 

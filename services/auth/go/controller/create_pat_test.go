@@ -169,6 +169,7 @@ func TestCreatePAT(t *testing.T) {
 			config: func() *controller.Config {
 				c := getConfig()
 				c.RequireEmailVerification = true
+
 				return c
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {

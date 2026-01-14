@@ -195,6 +195,7 @@ func TestVerifySignInMfaTotp(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				c := getConfig()
 				c.MfaEnabled = false
+
 				return c
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {

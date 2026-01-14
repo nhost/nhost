@@ -133,7 +133,7 @@ func TestSignUpWebauthn(t *testing.T) { //nolint:maintidx
 							DefaultRole:  ptr("user"),
 							DisplayName:  ptr("Jane Doe"),
 							Locale:       ptr("en"),
-							Metadata: &map[string]interface{}{
+							Metadata: &map[string]any{
 								"key": "value",
 							},
 							RedirectTo: ptr("http://localhost:3000/redirect"),
@@ -207,7 +207,7 @@ func TestSignUpWebauthn(t *testing.T) { //nolint:maintidx
 					DefaultRole:  ptr("user"),
 					DisplayName:  ptr("Jane Doe"),
 					Locale:       ptr("en"),
-					Metadata:     &map[string]interface{}{"key": "value"},
+					Metadata:     &map[string]any{"key": "value"},
 					RedirectTo:   ptr("http://localhost:3000/redirect"),
 				},
 			},
@@ -219,6 +219,7 @@ func TestSignUpWebauthn(t *testing.T) { //nolint:maintidx
 				config: func() *controller.Config {
 					c := getConfig()
 					c.WebauthnEnabled = false
+
 					return c
 				},
 				db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -249,6 +250,7 @@ func TestSignUpWebauthn(t *testing.T) { //nolint:maintidx
 				config: func() *controller.Config {
 					c := getConfig()
 					c.DisableSignup = true
+
 					return c
 				},
 				db: func(ctrl *gomock.Controller) controller.DBClient {

@@ -150,7 +150,7 @@ func TestDeanonymizeUser(t *testing.T) { //nolint:maintidx
 						DefaultRole:  ptr("user"),
 						DisplayName:  ptr("Jane"),
 						Locale:       ptr("fr"),
-						Metadata: &map[string]interface{}{
+						Metadata: &map[string]any{
 							"key": "value",
 						},
 						RedirectTo: ptr("http://localhost:3000/redirect"),
@@ -169,6 +169,7 @@ func TestDeanonymizeUser(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				config := getConfig()
 				config.RequireEmailVerification = true
+
 				return config
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -435,6 +436,7 @@ func TestDeanonymizeUser(t *testing.T) { //nolint:maintidx
 					gomock.Any(),
 					sql.Text("jane@acme.com"),
 				).Return(sql.AuthUser{}, nil) //nolint:exhaustruct
+
 				return mock
 			},
 			jwtTokenFn: jwtTokenFn,
@@ -461,6 +463,7 @@ func TestDeanonymizeUser(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				config := getConfig()
 				config.AllowedEmails = []string{"jane@acme.corp"}
+
 				return config
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {

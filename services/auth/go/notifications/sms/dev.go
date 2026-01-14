@@ -15,7 +15,7 @@ func NewDev(
 	db DB,
 	logger *slog.Logger,
 ) *SMS {
-	logger.Info("Using dev SMS provider. All SMS will be logged to the console.") //nolint:noctx
+	logger.Info("Using dev SMS provider. All SMS will be logged to the console.")
 
 	return NewSMS(
 		&Dev{
@@ -27,6 +27,6 @@ func NewDev(
 }
 
 func (s *Dev) SendSMS(to string, body string) error {
-	s.logger.Info("Dev SMS sent", slog.String("to", to), slog.String("body", body)) //nolint:noctx
+	s.logger.Info("Dev SMS sent", slog.String("to", to), slog.String("body", body))
 	return nil
 }

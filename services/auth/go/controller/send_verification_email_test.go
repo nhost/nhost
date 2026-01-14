@@ -29,6 +29,7 @@ func TestSendVerificationEmail(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				cfg := getConfig()
 				cfg.RequireEmailVerification = true
+
 				return cfg
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -103,6 +104,7 @@ func TestSendVerificationEmail(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				cfg := getConfig()
 				cfg.RequireEmailVerification = false
+
 				return cfg
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -177,6 +179,7 @@ func TestSendVerificationEmail(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				cfg := getConfig()
 				cfg.AllowedRedirectURLs = []string{"https://myapp.com"}
+
 				return cfg
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -253,6 +256,7 @@ func TestSendVerificationEmail(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				cfg := getConfig()
 				cfg.AllowedRedirectURLs = []string{"http://myapp"}
+
 				return cfg
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {

@@ -59,11 +59,11 @@ func TestGetJWTFunc(t *testing.T) {
 			expectedToken: &jwt.Token{
 				Raw:    "ignored",
 				Method: &jwt.SigningMethodHMAC{Name: "HS256", Hash: crypto.SHA256},
-				Header: map[string]interface{}{"alg": string("HS256"), "typ": string("JWT")},
+				Header: map[string]any{"alg": string("HS256"), "typ": string("JWT")},
 				Claims: jwt.MapClaims{
 					"exp": float64(1.708103735e+09),
-					"https://hasura.io/jwt/claims": map[string]interface{}{
-						"x-hasura-allowed-roles": []interface{}{
+					"https://hasura.io/jwt/claims": map[string]any{
+						"x-hasura-allowed-roles": []any{
 							string("admin"),
 							string("user"),
 							string("project_manager"),
@@ -95,11 +95,11 @@ func TestGetJWTFunc(t *testing.T) {
 			expectedToken: &jwt.Token{
 				Raw:    "ignored",
 				Method: &jwt.SigningMethodHMAC{Name: "HS256", Hash: crypto.SHA256},
-				Header: map[string]interface{}{"alg": string("HS256"), "typ": string("JWT")},
+				Header: map[string]any{"alg": string("HS256"), "typ": string("JWT")},
 				Claims: jwt.MapClaims{
 					"exp": float64(1.708103735e+09),
-					"https://hasura.io/jwt/claims": map[string]interface{}{
-						"x-hasura-allowed-roles": []interface{}{
+					"https://hasura.io/jwt/claims": map[string]any{
+						"x-hasura-allowed-roles": []any{
 							string("admin"),
 							string("user"),
 							string("project_manager"),
@@ -131,11 +131,11 @@ func TestGetJWTFunc(t *testing.T) {
 			expectedToken: &jwt.Token{
 				Raw:    "ignored",
 				Method: &jwt.SigningMethodHMAC{Name: "HS256", Hash: crypto.SHA256},
-				Header: map[string]interface{}{"alg": string("HS256"), "typ": string("JWT")},
+				Header: map[string]any{"alg": string("HS256"), "typ": string("JWT")},
 				Claims: jwt.MapClaims{
 					"exp": float64(1.708103735e+09),
-					"some/namespace": map[string]interface{}{
-						"x-hasura-allowed-roles": []interface{}{
+					"some/namespace": map[string]any{
+						"x-hasura-allowed-roles": []any{
 							string("admin"),
 							string("user"),
 							string("project_manager"),
@@ -167,11 +167,11 @@ func TestGetJWTFunc(t *testing.T) {
 			expectedToken: &jwt.Token{
 				Raw:    "ignored",
 				Method: &jwt.SigningMethodHMAC{Name: "HS256", Hash: crypto.SHA256},
-				Header: map[string]interface{}{"alg": string("HS256"), "typ": string("JWT")},
+				Header: map[string]any{"alg": string("HS256"), "typ": string("JWT")},
 				Claims: jwt.MapClaims{
 					"exp": 1.708103735e+09,
-					"https://hasura.io/jwt/claims": map[string]interface{}{
-						"x-hasura-allowed-roles": []interface{}{
+					"https://hasura.io/jwt/claims": map[string]any{
+						"x-hasura-allowed-roles": []any{
 							"admin",
 							"user",
 							"project_manager",
@@ -219,6 +219,7 @@ func TestGetJWTFunc(t *testing.T) {
 						"sliceOfOne": []any{"a"},
 					}, nil,
 				)
+
 				return mockCustomClaimer
 			},
 		},
@@ -262,7 +263,7 @@ func TestGetJWTFunc(t *testing.T) {
 
 			cmpopts := []cmp.Option{
 				cmpopts.IgnoreFields(jwt.Token{}, "Raw", "Signature"), //nolint:exhaustruct
-				cmpopts.IgnoreMapEntries(func(key string, _ interface{}) bool {
+				cmpopts.IgnoreMapEntries(func(key string, _ any) bool {
 					return key == "iat" || key == "exp"
 				}),
 			}
@@ -474,6 +475,7 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				mock := mock.NewMockDBClient(ctrl)
 				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
+
 				return mock
 			},
 			//nolint:exhaustruct
@@ -519,6 +521,7 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				mock := mock.NewMockDBClient(ctrl)
 				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(1), nil)
+
 				return mock
 			},
 			//nolint:exhaustruct
@@ -576,6 +579,7 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				mock := mock.NewMockDBClient(ctrl)
 				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(1), nil)
+
 				return mock
 			},
 			//nolint:exhaustruct
@@ -671,6 +675,7 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				mock := mock.NewMockDBClient(ctrl)
 				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
+
 				return mock
 			},
 			//nolint:exhaustruct
@@ -715,6 +720,7 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				mock := mock.NewMockDBClient(ctrl)
 				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
+
 				return mock
 			},
 			//nolint:exhaustruct

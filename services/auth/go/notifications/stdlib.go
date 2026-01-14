@@ -42,7 +42,7 @@ func sendMail( //nolint:funlen,cyclop
 		}
 	}
 
-	addr := fmt.Sprintf("%s:%d", host, port)
+	addr := net.JoinHostPort(host, fmt.Sprintf("%d", port))
 
 	var (
 		conn net.Conn
