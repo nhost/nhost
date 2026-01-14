@@ -17,7 +17,7 @@ import (
 
 const maxFormMemory = 1 << 20 // 1 MB
 
-// this type is used to ensure we respond consistently no matter the case.
+// UploadFileResponse is used to ensure we respond consistently no matter the case.
 type UploadFileResponse struct {
 	ProcessedFiles []api.FileMetadata `json:"processedFiles,omitempty"`
 	Error          *ErrorResponse     `json:"error,omitempty"`

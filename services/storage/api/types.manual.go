@@ -1,4 +1,4 @@
-package api
+package api //nolint:revive
 
 // GetQ returns the Q field value.
 func (g GetFileParams) GetQ() *int {
