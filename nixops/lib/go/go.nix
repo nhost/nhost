@@ -91,6 +91,9 @@ in
 
         echo "➜ Source: ${src}"
 
+        echo "➜ Running code formatters, if there are changes, fail"
+        golines -l --base-formatter=gofumpt ${submodule} | diff - /dev/null
+
         echo "➜ Running go generate ./${submodule}/... and checking sha1sum of all files"
         mkdir -p $TMPDIR/generate
         cd $TMPDIR/generate
@@ -98,12 +101,11 @@ in
         chmod +w -R .
 
         go generate ./${submodule}/...
+        golines -l --base-formatter=gofumpt ${submodule} | diff - /dev/null
+
         find . -type f ! -path "./vendor/*" -print0 | xargs -0 sha1sum > $TMPDIR/sum
         cd ${src}
         sha1sum -c $TMPDIR/sum || (echo "❌ ERROR: go generate changed files" && exit 1)
-
-        echo "➜ Running code formatters, if there are changes, fail"
-        golines -l --base-formatter=gofumpt ${submodule} | diff - /dev/null
 
         echo "➜ Checking for vulnerabilities"
         govulncheck -scan=package ./${submodule}/...
