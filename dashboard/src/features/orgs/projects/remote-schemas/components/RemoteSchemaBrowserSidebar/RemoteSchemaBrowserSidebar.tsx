@@ -259,7 +259,7 @@ function RemoteSchemaBrowserSidebarContent({
                           ? [
                               <Dropdown.Item
                                 key="view-permissions"
-                                className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+                                className="grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
                                 onClick={() =>
                                   handleEditPermissionClick(
                                     remoteSchema.name,
@@ -279,7 +279,7 @@ function RemoteSchemaBrowserSidebarContent({
                               />,
                               <Dropdown.Item
                                 key="view-relationships"
-                                className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+                                className="grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
                                 onClick={() =>
                                   handleEditRelationshipsClick(
                                     remoteSchema.name,
@@ -297,7 +297,7 @@ function RemoteSchemaBrowserSidebarContent({
                           : [
                               <Dropdown.Item
                                 key="edit-table"
-                                className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+                                className="grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
                                 onClick={() =>
                                   openDrawer({
                                     title: 'Edit Remote Schema',
@@ -328,7 +328,7 @@ function RemoteSchemaBrowserSidebarContent({
                               />,
                               <Dropdown.Item
                                 key="edit-permissions"
-                                className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+                                className="grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
                                 onClick={() =>
                                   handleEditPermissionClick(remoteSchema.name)
                                 }
@@ -345,7 +345,7 @@ function RemoteSchemaBrowserSidebarContent({
                               />,
                               <Dropdown.Item
                                 key="edit-relationships"
-                                className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+                                className="grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
                                 onClick={() =>
                                   handleEditRelationshipsClick(
                                     remoteSchema.name,
@@ -364,7 +364,7 @@ function RemoteSchemaBrowserSidebarContent({
                               />,
                               <Dropdown.Item
                                 key="delete-remote-schema"
-                                className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+                                className="grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
                                 sx={{ color: 'error.main' }}
                                 onClick={() =>
                                   handleDeleteRemoteSchemaClick(remoteSchema)
@@ -432,13 +432,12 @@ export default function RemoteSchemaBrowserSidebar({
     setExpanded(false);
   }
 
-  function closeSidebarWhenEscapeIsPressed(event: KeyboardEvent) {
-    if (event.key === 'Escape') {
-      setExpanded(false);
-    }
-  }
-
   useEffect(() => {
+    function closeSidebarWhenEscapeIsPressed(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setExpanded(false);
+      }
+    }
     if (typeof document !== 'undefined') {
       document.addEventListener('keydown', closeSidebarWhenEscapeIsPressed);
     }
@@ -455,7 +454,7 @@ export default function RemoteSchemaBrowserSidebar({
     <>
       <Backdrop
         open={expanded}
-        className="absolute bottom-0 left-0 right-0 top-0 z-[34] sm:hidden"
+        className="absolute top-0 right-0 bottom-0 left-0 z-[34] sm:hidden"
         role="button"
         tabIndex={-1}
         onClick={() => setExpanded(false)}
@@ -472,7 +471,7 @@ export default function RemoteSchemaBrowserSidebar({
       <Box
         component="aside"
         className={twMerge(
-          'absolute top-0 z-[35] h-full w-full overflow-auto border-r-1 pb-17 pt-2 motion-safe:transition-transform sm:relative sm:z-0 sm:h-full sm:pb-0 sm:pt-2.5 sm:transition-none',
+          'absolute top-0 z-[35] h-full w-full overflow-auto border-r-1 pt-2 pb-17 motion-safe:transition-transform sm:relative sm:z-0 sm:h-full sm:pt-2.5 sm:pb-0 sm:transition-none',
           expanded ? 'translate-x-0' : '-translate-x-full sm:translate-x-0',
           className,
         )}

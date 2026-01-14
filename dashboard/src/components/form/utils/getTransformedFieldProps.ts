@@ -10,6 +10,7 @@ type InTransformerFn<
   N extends FieldPath<T> = FieldPath<T>,
 > = (value: PathValue<T, N>) => PathValue<T, N>;
 
+// biome-ignore lint/suspicious/noExplicitAny: TODO
 export type OutTransformerFn = (...args: any[]) => any;
 
 export type Transformer = {
@@ -36,6 +37,7 @@ function getTransformedFieldProps<
   return {
     ...fieldProps,
     value: tf.in(value),
+    // biome-ignore lint/suspicious/noExplicitAny: TODO
     onChange(...args: any[]) {
       const transformedEvent = tf.out(...args);
       onChange(transformedEvent);

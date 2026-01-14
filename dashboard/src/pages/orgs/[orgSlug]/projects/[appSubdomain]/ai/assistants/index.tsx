@@ -1,4 +1,3 @@
-/* eslint-disable import/extensions */
 import { useDialog } from '@/components/common/DialogProvider';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Container } from '@/components/layout/Container';

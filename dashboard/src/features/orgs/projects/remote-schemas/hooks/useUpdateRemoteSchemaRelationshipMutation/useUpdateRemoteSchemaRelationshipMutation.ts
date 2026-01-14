@@ -39,7 +39,7 @@ export default function useUpdateRemoteSchemaRelationshipMutation({
     return updateRemoteSchemaRelationship({
       ...variables,
       appUrl,
-      adminSecret: project?.config?.hasura.adminSecret!,
+      adminSecret: project!.config!.hasura.adminSecret,
     });
   }, mutationOptions);
 

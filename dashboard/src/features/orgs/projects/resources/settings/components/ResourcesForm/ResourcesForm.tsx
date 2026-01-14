@@ -46,11 +46,12 @@ function getInitialServiceResources(
   data?: GetResourcesQuery,
 ) {
   if (service === 'postgres') {
-    const { compute, ...rest } = data?.config?.[service]?.resources || {};
+    const { compute: computeConfig, ...restConfig } =
+      data?.config?.[service]?.resources || {};
     return {
-      vcpu: compute?.cpu || 0,
-      memory: compute?.memory || 0,
-      rest,
+      vcpu: computeConfig?.cpu || 0,
+      memory: computeConfig?.memory || 0,
+      rest: restConfig,
     };
   }
   const { compute, autoscaler, replicas, ...rest } =
@@ -97,7 +98,7 @@ export default function ResourcesForm() {
   const initialAuthResources = getInitialServiceResources('auth', data);
   const initialStorageResources = getInitialServiceResources('storage', data);
 
-  const totalInitialVCPU =
+  const totalInitialVcpu =
     initialDatabaseResources.vcpu +
     initialHasuraResources.vcpu +
     initialAuthResources.vcpu +
@@ -111,8 +112,8 @@ export default function ResourcesForm() {
 
   const form = useForm<ResourceSettingsFormValues>({
     values: {
-      enabled: totalInitialVCPU > 0 && totalInitialMemory > 0,
-      totalAvailableVCPU: totalInitialVCPU || 2000,
+      enabled: totalInitialVcpu > 0 && totalInitialMemory > 0,
+      totalAvailableVCPU: totalInitialVcpu || 2000,
       totalAvailableMemory: totalInitialMemory || 4096,
       database: {
         vcpu: initialDatabaseResources.vcpu || 1000,
@@ -401,7 +402,6 @@ export default function ResourcesForm() {
   }
 
   if (resourcesError || proPlanError) {
-    // eslint-disable-next-line @typescript-eslint/no-throw-literal
     throw resourcesError || proPlanError;
   }
 

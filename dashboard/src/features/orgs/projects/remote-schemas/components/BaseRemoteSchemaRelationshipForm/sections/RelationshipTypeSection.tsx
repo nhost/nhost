@@ -16,8 +16,8 @@ export default function RelationshipTypeSection({
   return (
     <div className="space-y-4 px-6">
       <div>
-        <h4 className="text-lg font-medium">Relationship Type</h4>
-        <p className="text-sm text-muted-foreground">
+        <h4 className="font-medium text-lg">Relationship Type</h4>
+        <p className="text-muted-foreground text-sm">
           {disabled
             ? 'Type of the relationship you want to edit.'
             : 'Choose the type of relationship you want to create.'}
@@ -38,8 +38,8 @@ export default function RelationshipTypeSection({
             <div className="flex flex-row items-center space-x-3">
               <RadioGroupItem value="remote-schema" id="remote-schema" />
               <div className="flex flex-col space-y-1">
-                <div className="text-md font-semibold">Remote Schema</div>
-                <p className="text-xs text-muted-foreground">
+                <div className="font-semibold text-md">Remote Schema</div>
+                <p className="text-muted-foreground text-xs">
                   Relationship from this remote schema to another remote schema.
                 </p>
               </div>
@@ -55,8 +55,8 @@ export default function RelationshipTypeSection({
             <div className="flex flex-row items-center space-x-3">
               <RadioGroupItem value="database" id="database" />
               <div className="flex flex-col space-y-1">
-                <div className="text-md font-semibold">Database</div>
-                <p className="text-xs text-muted-foreground">
+                <div className="font-semibold text-md">Database</div>
+                <p className="text-muted-foreground text-xs">
                   Relationship from this remote schema to a database table.
                 </p>
               </div>

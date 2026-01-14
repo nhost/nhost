@@ -44,7 +44,7 @@ function NewSecurityKeyForm({ onSuccess }: Props) {
         <Button
           type="submit"
           variant="outline"
-          className="w-full !bg-transparent"
+          className="!bg-transparent w-full"
         >
           Add new security key
         </Button>

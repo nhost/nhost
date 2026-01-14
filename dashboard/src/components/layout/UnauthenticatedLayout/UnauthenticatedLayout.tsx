@@ -66,7 +66,7 @@ export default function UnauthenticatedLayout({
           >
             <Container
               rootClassName="bg-transparent h-full"
-              className="grid h-full w-full items-center justify-items-center gap-12 bg-transparent pb-12 pt-8 lg:grid-cols-2 lg:gap-4 lg:pb-0 lg:pt-8"
+              className="grid h-full w-full items-center justify-items-center gap-12 bg-transparent pt-8 pb-12 lg:grid-cols-2 lg:gap-4 lg:pt-8 lg:pb-0"
             >
               <div className="relative z-10 order-2 grid w-full max-w-[544px] grid-flow-row gap-12 lg:order-1">
                 {children}
@@ -74,7 +74,7 @@ export default function UnauthenticatedLayout({
 
               <div className="relative z-0 order-1 flex h-full w-full flex-col items-center justify-center md:min-h-[150px] lg:order-2 lg:min-h-[none] lg:gap-8">
                 <div className="relative flex items-center justify-center">
-                  <div className="absolute bottom-0 left-0 right-0 top-0 mx-auto flex h-full w-full max-w-xl items-center justify-center overflow-hidden opacity-70">
+                  <div className="absolute top-0 right-0 bottom-0 left-0 mx-auto flex h-full w-full max-w-xl items-center justify-center overflow-hidden opacity-70">
                     <Image
                       priority
                       src="/assets/line-grid.svg"
@@ -87,7 +87,7 @@ export default function UnauthenticatedLayout({
                   </div>
 
                   <Box
-                    className="backface-hidden absolute left-0 right-0 z-0 mx-auto h-20 w-20 transform-gpu rounded-full opacity-80 blur-[56px]"
+                    className="backface-hidden absolute right-0 left-0 z-0 mx-auto h-20 w-20 transform-gpu rounded-full opacity-80 blur-[56px]"
                     sx={{
                       backgroundColor: (theme) => theme.palette.primary.main,
                     }}

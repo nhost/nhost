@@ -43,9 +43,9 @@ export default function DeploymentStatusMessage({
         <Avatar
           alt={`Avatar of ${deployment.commitUserName}`}
           src={ifNullconvertToUndefined(deployment.commitUserAvatarUrl)}
-          className="mr-2 mt-1 h-4 w-4"
+          className="mt-1 mr-2 h-4 w-4"
         />
-        <div className="flex flex-col text-sm text-muted-foreground">
+        <div className="flex flex-col text-muted-foreground text-sm">
           <p className="line-clamp-1 break-all">{deployment.commitUserName}</p>
           <p>{statusMessage}</p>
         </div>
@@ -54,7 +54,7 @@ export default function DeploymentStatusMessage({
   }
 
   return (
-    <Text component="span" className="text-sm text-muted-foreground">
+    <Text component="span" className="text-muted-foreground text-sm">
       No deployments
     </Text>
   );

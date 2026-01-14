@@ -131,7 +131,7 @@ export default function AuthenticatedLayout({
 
         <div
           className={cn(
-            'bg-accent-background relative flex h-full w-full flex-row',
+            'relative flex h-full w-full flex-row bg-accent-background',
             {
               'overflow-x-auto': mainNavPinned && isMdOrLarger && withMainNav,
             },

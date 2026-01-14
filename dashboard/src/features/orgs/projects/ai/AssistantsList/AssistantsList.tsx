@@ -13,8 +13,8 @@ import {
   type AssistantFormInitialData,
 } from '@/features/orgs/projects/ai/AssistantForm';
 import { DeleteAssistantModal } from '@/features/orgs/projects/ai/DeleteAssistantModal';
-import { type Assistant } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/assistants';
-import { type GraphiteFileStore } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/file-stores';
+import type { Assistant } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/assistants';
+import type { GraphiteFileStore } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/file-stores';
 import { copy } from '@/utils/copy';
 
 interface AssistantsListProps {
@@ -33,13 +33,13 @@ interface AssistantsListProps {
    *
    * @example onDelete={() => refetch()}
    */
-  onCreateOrUpdate: () => Promise<any>;
+  onCreateOrUpdate: () => Promise<unknown>;
 
   /**
    * Function to be called after a successful delete action.
    *
    */
-  onDelete?: () => Promise<any>;
+  onDelete?: () => Promise<unknown>;
 }
 
 export default function AssistantsList({
@@ -142,14 +142,14 @@ export default function AssistantsList({
             >
               <Dropdown.Item
                 onClick={() => viewAssistant(assistant)}
-                className="z-50 grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+                className="z-50 grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
               >
                 <UserIcon className="h-4 w-4" />
                 <Text className="font-medium">View {assistant?.name}</Text>
               </Dropdown.Item>
               <Divider component="li" />
               <Dropdown.Item
-                className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+                className="grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
                 sx={{ color: 'error.main' }}
                 onClick={() => deleteAssistant(assistant)}
               >

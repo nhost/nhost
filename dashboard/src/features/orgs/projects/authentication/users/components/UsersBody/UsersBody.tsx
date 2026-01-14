@@ -50,11 +50,8 @@ export interface UsersBodyProps {
   users?: RemoteAppUser[];
   /**
    * Function to be called after a successful action.
-   *
-   * @example onSuccessfulAction={() => refetch()}
-   * @example onSuccessfulAction={() => router.reload()}
    */
-  onSubmit: () => Promise<any>;
+  onSubmit: () => Promise<unknown>;
   allAvailableProjectRoles: Role[];
 }
 
@@ -107,7 +104,7 @@ export default function UsersBody({
     });
 
     const newRoles = allAvailableProjectRoles
-      .filter((role, i) => values.roles?.[i] === true)
+      .filter((_role, i) => values.roles?.[i] === true)
       .map((role) => role.name);
 
     const userHasRoles = user.roles.map((role) => role.role);
@@ -212,7 +209,7 @@ export default function UsersBody({
   if (!users) {
     return (
       <div className="h-screen w-screen overflow-hidden">
-        <div className="absolute left-0 top-0 z-50 block h-full w-full">
+        <div className="absolute top-0 left-0 z-50 block h-full w-full">
           <span className="top50percent relative top-1/2 mx-auto my-0 block">
             <ActivityIndicator
               label="Loading users..."
@@ -252,7 +249,7 @@ export default function UsersBody({
                     onClick={() => {
                       handleViewUser(user);
                     }}
-                    className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+                    className="grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
                   >
                     <UserIcon className="h-4 w-4" />
                     <Text className="font-medium">View User</Text>
@@ -261,7 +258,7 @@ export default function UsersBody({
                   <Divider component="li" />
 
                   <Dropdown.Item
-                    className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+                    className="grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
                     sx={{ color: 'error.main' }}
                     onClick={() => handleDeleteUser(user)}
                   >

@@ -5,7 +5,6 @@ import { Container } from '@/components/layout/Container';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { CubeIcon } from '@/components/ui/v2/icons/CubeIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { ServicesIcon } from '@/components/ui/v2/icons/ServicesIcon';
 import { Text } from '@/components/ui/v2/Text';
@@ -17,6 +16,7 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { ServiceForm } from '@/features/orgs/projects/services/components/ServiceForm';
 import { ServicesList } from '@/features/orgs/projects/services/components/ServicesList';
 import { parseConfigFromInstallLink } from '@/features/orgs/projects/services/utils/parseConfigFromInstallLink';
+import { BoxIcon } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, type ReactElement } from 'react';
 
@@ -49,7 +49,7 @@ export default function RunPage() {
           openDrawer({
             title: (
               <Box className="flex flex-row items-center space-x-2">
-                <CubeIcon className="h-5 w-5" />
+                <BoxIcon className="h-5 w-5" />
                 <Text>Create a new run service</Text>
               </Box>
             ),
@@ -57,7 +57,7 @@ export default function RunPage() {
               <ServiceForm initialData={initialData} onSubmit={refetch} />
             ),
           });
-        } catch (error) {
+        } catch {
           openAlertDialog({
             title: 'Configuration not set properly',
             payload: 'The service configuration was not properly encoded',
@@ -87,7 +87,7 @@ export default function RunPage() {
     openDrawer({
       title: (
         <Box className="flex flex-row items-center space-x-2">
-          <CubeIcon className="h-5 w-5" />
+          <BoxIcon className="h-5 w-5" />
           <Text>Create a new service</Text>
         </Box>
       ),

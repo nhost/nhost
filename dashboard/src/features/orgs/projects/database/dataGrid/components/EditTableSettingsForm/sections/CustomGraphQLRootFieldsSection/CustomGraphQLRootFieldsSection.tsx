@@ -201,11 +201,11 @@ export default function CustomGraphQLRootFieldsSection({
           <div className="grid grid-flow-col place-content-between gap-3 px-4">
             <div className="grid grid-flow-col gap-4">
               <div className="grid grid-flow-row gap-1">
-                <h2 className="text-lg font-semibold">
+                <h2 className="font-semibold text-lg">
                   Custom GraphQL Root Fields
                 </h2>
 
-                <p className="text-sm+ text-muted-foreground">
+                <p className="text-muted-foreground text-sm+">
                   Configure the root field names and optional comments exposed
                   in your GraphQL API.
                 </p>
@@ -239,12 +239,12 @@ export default function CustomGraphQLRootFieldsSection({
                 onValueChange={handleAccordionValueChange}
               >
                 <AccordionItem value="query-and-subscription">
-                  <AccordionTrigger className="text-sm font-semibold">
+                  <AccordionTrigger className="font-semibold text-sm">
                     Query and Subscription
                   </AccordionTrigger>
                   <AccordionContent className="px-0 py-4">
                     <div className="grid gap-3">
-                      <div className="grid grid-cols-[120px,minmax(0,0.8fr),minmax(0,1fr)] items-center gap-3 rounded-md bg-muted px-4 py-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      <div className="grid grid-cols-[120px,minmax(0,0.8fr),minmax(0,1fr)] items-center gap-3 rounded-md bg-muted px-4 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wide">
                         <span>Operation</span>
                         <span>Field Name</span>
                         <span>Comment</span>
@@ -276,12 +276,12 @@ export default function CustomGraphQLRootFieldsSection({
                 </AccordionItem>
 
                 <AccordionItem value="mutation" className="overflow-hidden">
-                  <AccordionTrigger className="text-sm font-semibold">
+                  <AccordionTrigger className="font-semibold text-sm">
                     Mutation
                   </AccordionTrigger>
                   <AccordionContent className="px-0 py-4">
                     <div className="grid gap-3">
-                      <div className="grid grid-cols-[120px,minmax(0,0.8fr),minmax(0,1fr)] items-center gap-3 rounded-md bg-muted px-4 py-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      <div className="grid grid-cols-[120px,minmax(0,0.8fr),minmax(0,1fr)] items-center gap-3 rounded-md bg-muted px-4 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wide">
                         <span>Operation</span>
                         <span>Field Name</span>
                         <span>Comment</span>

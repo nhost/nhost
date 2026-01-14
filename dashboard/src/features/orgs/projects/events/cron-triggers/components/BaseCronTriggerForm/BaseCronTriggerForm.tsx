@@ -200,7 +200,7 @@ export default function BaseCronTriggerForm({
         <SheetContent
           ref={sheetContentRef}
           showOverlay
-          className="w-xl md:w-4xl box flex flex-auto flex-col gap-0 p-0 sm:max-w-4xl"
+          className="box flex w-xl flex-auto flex-col gap-0 p-0 sm:max-w-4xl md:w-4xl"
         >
           <SheetHeader className="p-6">
             <SheetTitle className="text-lg">{titleText}</SheetTitle>
@@ -313,10 +313,10 @@ export default function BaseCronTriggerForm({
                         <div className="flex flex-col gap-6 pl-4">
                           <div className="flex items-end justify-between gap-2">
                             <div className="space-y-1">
-                              <h3 className="text-sm font-medium text-foreground">
+                              <h3 className="font-medium text-foreground text-sm">
                                 Request Options Transform
                               </h3>
-                              <p className="text-xs text-muted-foreground">
+                              <p className="text-muted-foreground text-xs">
                                 Configuration to transform the request before
                                 sending it to the webhook
                               </p>
@@ -358,7 +358,7 @@ export default function BaseCronTriggerForm({
                               <h3 className="font-medium text-foreground">
                                 Payload Transform
                               </h3>
-                              <p className="text-sm text-muted-foreground">
+                              <p className="text-muted-foreground text-sm">
                                 Adjust the request body.
                               </p>
                             </div>

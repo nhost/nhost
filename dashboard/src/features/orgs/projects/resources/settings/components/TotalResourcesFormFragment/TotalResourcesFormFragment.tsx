@@ -160,7 +160,7 @@ export default function TotalResourcesFormFragment({
           severity={
             hasUnusedResources || hasOverallocatedResources ? 'warning' : 'info'
           }
-          className="grid grid-flow-row gap-2 rounded-b-[5px] rounded-t-none text-left"
+          className="grid grid-flow-row gap-2 rounded-t-none rounded-b-[5px] text-left"
         >
           {hasUnusedResources && !hasOverallocatedResources && (
             <>

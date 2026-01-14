@@ -65,7 +65,7 @@ export default function ResetPasswordPage() {
       <Text
         variant="h2"
         component="h1"
-        className="text-center text-3.5xl font-semibold lg:text-4.5xl"
+        className="text-center font-semibold text-3.5xl lg:text-4.5xl"
       >
         Change password
       </Text>

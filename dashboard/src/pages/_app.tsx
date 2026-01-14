@@ -7,15 +7,10 @@ import { TooltipProvider } from '@/components/ui/v3/tooltip';
 import { NhostApolloProvider } from '@/providers/Apollo';
 import AuthProvider from '@/providers/Auth/AuthProvider';
 import { NhostProvider } from '@/providers/nhost';
-// eslint-disable-next-line import/extensions
 import '@/styles/fonts.css';
-// eslint-disable-next-line import/extensions
 import '@/styles/github-dark.css';
-// eslint-disable-next-line import/extensions
 import '@/styles/globals.css';
-// eslint-disable-next-line import/extensions
 import '@/styles/graphiql.min.css';
-// eslint-disable-next-line import/extensions
 import '@/styles/style.css';
 import { COLOR_PREFERENCE_STORAGE_KEY } from '@/utils/constants/common';
 import { createEmotionCache } from '@/utils/createEmotionCache';

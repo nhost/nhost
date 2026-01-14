@@ -100,7 +100,7 @@ export default function ColumnsNameCustomizationSection({
       }
 
       const graphqlFieldName = columnConfig?.[columnName]?.custom_name || '';
-
+      // biome-ignore lint/style/noParameterAssign: Disabled to avoid spread operator performance overhead in reduce.
       acc[columnName] = {
         graphqlFieldName,
       };
@@ -196,9 +196,9 @@ export default function ColumnsNameCustomizationSection({
           <div className="grid grid-flow-col place-content-between gap-3 px-4">
             <div className="grid grid-flow-col gap-4">
               <div className="grid grid-flow-row gap-1">
-                <h2 className="text-lg font-semibold">GraphQL Field Names</h2>
+                <h2 className="font-semibold text-lg">GraphQL Field Names</h2>
 
-                <p className="text-sm+ text-muted-foreground">
+                <p className="text-muted-foreground text-sm+">
                   Expose each column with a different name in your GraphQL API.
                 </p>
               </div>
@@ -219,7 +219,7 @@ export default function ColumnsNameCustomizationSection({
           ) : (
             <div className="space-y-3">
               <div className="px-4">
-                <div className="grid grid-cols-[minmax(0,1fr),minmax(0,1fr),minmax(0,1.5fr)] items-center gap-3 rounded-md bg-muted px-4 py-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                <div className="grid grid-cols-[minmax(0,1fr),minmax(0,1fr),minmax(0,1.5fr)] items-center gap-3 rounded-md bg-muted px-4 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wide">
                   <span>Column</span>
                   <span>Data Type</span>
                   <span>GraphQL Field Name</span>
@@ -227,7 +227,7 @@ export default function ColumnsNameCustomizationSection({
 
                 <div className="space-y-2 py-3">
                   {displayColumns.length === 0 && (
-                    <div className="rounded-md px-4 py-8 text-center text-sm text-muted-foreground">
+                    <div className="rounded-md px-4 py-8 text-center text-muted-foreground text-sm">
                       No columns were found for this table.
                     </div>
                   )}
@@ -247,15 +247,15 @@ export default function ColumnsNameCustomizationSection({
                     return (
                       <div
                         key={columnName}
-                        className="grid grid-cols-[minmax(0,1fr),minmax(0,1fr),minmax(0,1.5fr)] items-center gap-3 rounded-md bg-background py-3 pl-4 pr-0"
+                        className="grid grid-cols-[minmax(0,1fr),minmax(0,1fr),minmax(0,1.5fr)] items-center gap-3 rounded-md bg-background py-3 pr-0 pl-4"
                       >
                         <div className="space-y-1">
-                          <span className="text-sm font-medium text-foreground">
+                          <span className="font-medium text-foreground text-sm">
                             {columnName}
                           </span>
                         </div>
 
-                        <span className="font-mono text-sm text-foreground">
+                        <span className="font-mono text-foreground text-sm">
                           {dataType}
                         </span>
 

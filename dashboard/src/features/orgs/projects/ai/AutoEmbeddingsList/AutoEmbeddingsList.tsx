@@ -3,7 +3,6 @@ import { Box } from '@/components/ui/v2/Box';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
-import { CubeIcon } from '@/components/ui/v2/icons/CubeIcon';
 import { DotsHorizontalIcon } from '@/components/ui/v2/icons/DotsHorizontalIcon';
 import { EmbeddingsIcon } from '@/components/ui/v2/icons/EmbeddingsIcon';
 import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
@@ -17,6 +16,7 @@ import {
 import { DeleteAutoEmbeddingsModal } from '@/features/orgs/projects/ai/DeleteAutoEmbeddingsModal';
 import type { AutoEmbeddingsConfiguration } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/auto-embeddings';
 import { formatDistanceToNow } from 'date-fns';
+import { BoxIcon } from 'lucide-react';
 
 interface AutoEmbeddingsConfigurationsListProps {
   /**
@@ -26,16 +26,14 @@ interface AutoEmbeddingsConfigurationsListProps {
 
   /**
    * Function to be called after a submitting the form for either creating or updating a service.
-   *
-   * @example onDelete={() => refetch()}
    */
-  onCreateOrUpdate: () => Promise<any>;
+  onCreateOrUpdate: () => Promise<unknown>;
 
   /**
    * Function to be called after a successful delete action.
    *
    */
-  onDelete?: () => Promise<any>;
+  onDelete?: () => Promise<unknown>;
 }
 
 export default function AutoEmbeddingsList({
@@ -51,7 +49,7 @@ export default function AutoEmbeddingsList({
     openDrawer({
       title: (
         <Box className="flex flex-row items-center space-x-2">
-          <CubeIcon className="h-5 w-5" />
+          <BoxIcon className="h-5 w-5" />
           <Text>Edit {autoEmbeddingsConfiguration?.name ?? 'unset'}</Text>
         </Box>
       ),
@@ -107,7 +105,7 @@ export default function AutoEmbeddingsList({
                   {autoEmbeddingsConfiguration?.name ?? 'unset'}
                 </Text>
                 <Tooltip title={autoEmbeddingsConfiguration.updatedAt}>
-                  <span className="hidden cursor-pointer text-sm text-slate-500 xs+:flex">
+                  <span className="xs+:flex hidden cursor-pointer text-slate-500 text-sm">
                     Updated{' '}
                     {formatDistanceToNow(
                       new Date(autoEmbeddingsConfiguration.updatedAt),
@@ -144,7 +142,7 @@ export default function AutoEmbeddingsList({
                 onClick={() =>
                   viewAutoEmbeddingsConfiguration(autoEmbeddingsConfiguration)
                 }
-                className="z-50 grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+                className="z-50 grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
               >
                 <UserIcon className="h-4 w-4" />
                 <Text className="font-medium">
@@ -153,7 +151,7 @@ export default function AutoEmbeddingsList({
               </Dropdown.Item>
               <Divider component="li" />
               <Dropdown.Item
-                className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+                className="grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
                 sx={{ color: 'error.main' }}
                 onClick={() =>
                   deleteAutoEmbeddingsConfiguration(autoEmbeddingsConfiguration)

@@ -11,20 +11,20 @@ import { useEffect, type ReactElement } from 'react';
 export default function SigninPage() {
   const { isSigningOut, clearIsSigningOut } = useAuth();
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: onmounted
   useEffect(() => {
     if (isSigningOut) {
       clearIsSigningOut();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <div className="grid gap-12 font-[Inter]">
       <div className="text-center">
-        <h2 className="mb-3 text-3.5xl font-semibold lg:text-4.5xl">
+        <h2 className="mb-3 font-semibold text-3.5xl lg:text-4.5xl">
           Welcome back
         </h2>
-        <p className="mx-auto max-w-md text-lg text-[#A2B3BE]">
+        <p className="mx-auto max-w-md text-[#A2B3BE] text-lg">
           Continue building amazing things with Nhost
         </p>
       </div>
@@ -33,7 +33,7 @@ export default function SigninPage() {
         <SignInWithGithub />
         <SignInWithSecurityKey />
         <div className="relative py-2">
-          <p className="absolute left-0 right-0 top-1/2 mx-auto w-12 -translate-y-1/2 bg-black px-2 text-center text-sm text-[#68717A]">
+          <p className="absolute top-1/2 right-0 left-0 mx-auto w-12 -translate-y-1/2 bg-black px-2 text-center text-[#68717A] text-sm">
             OR
           </p>
 

@@ -41,7 +41,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
             {hasGitRepo && (
               <Alert
                 severity="info"
-                className="bg-primary/8 mb-4 rounded-lg border border-primary/20"
+                className="mb-4 rounded-lg border border-primary/20 bg-primary/8"
               >
                 <div className="flex flex-col gap-2">
                   <div>
@@ -50,7 +50,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                         GitHub Repository Connected
                       </span>
                       <br />
-                      <span className="mt-1.5 block text-xs text-gray-600 dark:text-gray-400">
+                      <span className="mt-1.5 block text-gray-600 text-xs dark:text-gray-400">
                         Make sure to run{' '}
                         <code
                           className={twMerge(
@@ -71,7 +71,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                           href="https://docs.nhost.io/platform/cli/configuration-overlays"
                           target="_blank"
                           rel="noreferrer"
-                          className="text-xs text-primary hover:text-primary-dark"
+                          className="text-primary text-xs hover:text-primary-dark"
                         >
                           configuration overlays
                         </a>

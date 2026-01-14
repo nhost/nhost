@@ -125,8 +125,8 @@ export default function DatabaseServiceVersionSettings() {
     availableMajorVersions: DatabaseServiceField[];
     majorToMinorVersions: Record<string, DatabaseServiceField[]>;
   } => {
-    const majorToMinorVersions = {};
-    const availableMajorVersions: { label: string; value: string }[] = [];
+    const minorVersionByMajor = {};
+    const majorVersions: { label: string; value: string }[] = [];
     availableVersions.forEach((availableVersion) => {
       if (!availableVersion.value) {
         return;
@@ -140,30 +140,31 @@ export default function DatabaseServiceVersionSettings() {
         return;
       }
 
-      if (availableMajorVersions.every((item) => item.value !== major)) {
-        availableMajorVersions.push({
+      if (majorVersions.every((item) => item.value !== major)) {
+        majorVersions.push({
           label: major,
           value: major,
         });
       }
 
-      if (!majorToMinorVersions[major]) {
-        majorToMinorVersions[major] = [];
+      if (!minorVersionByMajor[major]) {
+        minorVersionByMajor[major] = [];
       }
 
       if (isNotEmptyValue(minor)) {
-        majorToMinorVersions[major].push({
+        minorVersionByMajor[major].push({
           label: minor,
           value: minor,
         });
       }
     });
     return {
-      availableMajorVersions,
-      majorToMinorVersions,
+      availableMajorVersions: majorVersions,
+      majorToMinorVersions: minorVersionByMajor,
     };
   };
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: need to run when currentPostgresMajor changes
   const { availableMajorVersions, majorToMinorVersions } = useMemo(
     getMajorAndMinorVersions,
     [availableVersions, currentPostgresMajor],
@@ -236,8 +237,6 @@ export default function DatabaseServiceVersionSettings() {
         component: (
           <DatabaseMigrateVersionConfirmationDialog
             postgresVersion={newVersion}
-            onCancel={() => {}}
-            onProceed={() => {}}
           />
         ),
         props: {

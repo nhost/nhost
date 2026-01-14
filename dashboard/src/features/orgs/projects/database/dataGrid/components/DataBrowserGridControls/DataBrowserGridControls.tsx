@@ -27,7 +27,7 @@ export interface DataBrowserGridControlsProps {
   /**
    * Function to be called to refetch data.
    */
-  refetchData?: () => Promise<any>;
+  refetchData?: () => Promise<unknown>;
   /**
    * Function to be called when the button to add a new row is clicked.
    */
@@ -129,7 +129,7 @@ export default function DataBrowserGridControls({
           <div className="grid grid-flow-col place-content-start items-center gap-2">
             <Badge
               variant="secondary"
-              className="!bg-[#ebf3ff] text-primary dark:!bg-[#1b2534]"
+              className="!bg-[#ebf3ff] dark:!bg-[#1b2534] text-primary"
             >
               {`${numberOfSelectedRows} selected`}
             </Badge>
@@ -177,7 +177,7 @@ export default function DataBrowserGridControls({
             {columns.length > 0 && (
               <DataGridPagination
                 className={twMerge(
-                  'col-span-6 h-9 xs+:col-span-2 lg:col-span-2',
+                  'col-span-6 xs+:col-span-2 h-9 lg:col-span-2',
                   paginationClassName,
                 )}
                 {...restPaginationProps}

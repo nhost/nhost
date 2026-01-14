@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 import { MfaOtpForm } from '@/components/common/MfaOtpForm';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useNhostClient } from '@/providers/nhost';
@@ -30,12 +29,11 @@ function MfaQRCodeAndTOTPSecret({ onSuccess }: Props) {
         getToastStyleProps(),
       );
       onSuccess();
-      return true;
     } finally {
       setIsActivating(false);
     }
   }
-
+  // biome-ignore lint/correctness/useExhaustiveDependencies: singInProviderURL does not change
   useEffect(() => {
     async function generate() {
       try {
@@ -50,7 +48,6 @@ function MfaQRCodeAndTOTPSecret({ onSuccess }: Props) {
       }
     }
     generate();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -62,6 +59,7 @@ function MfaQRCodeAndTOTPSecret({ onSuccess }: Props) {
             <p className="text-base">
               Scan the QR Code with your authenticator app
             </p>
+            {/** biome-ignore lint/performance/noImgElement: used for qrcode */}
             <img alt="qrcode" src={qrCodeDataUrl} className="mx-auto w-64" />
           </div>
           {totpSecret && <CopyMfaTOTPSecret totpSecret={totpSecret} />}

@@ -182,7 +182,7 @@ function CreateOrgForm({
                             />
                           </FormControl>
                           <div className="flex flex-col space-y-2">
-                            <div className="text-md font-semibold">
+                            <div className="font-semibold text-md">
                               {plan.name}
                             </div>
                             <FormDescription className="w-2/3 text-xs">
@@ -191,7 +191,7 @@ function CreateOrgForm({
                           </div>
                         </div>
 
-                        <div className="mt-0 flex h-full items-center text-xl font-semibold">
+                        <div className="mt-0 flex h-full items-center font-semibold text-xl">
                           {plan.isFree ? 'Free' : `$${plan.price}/mo`}
                         </div>
                       </FormLabel>
@@ -218,7 +218,7 @@ function CreateOrgForm({
                     <div className="flex w-full cursor-pointer flex-row items-center justify-between space-y-0 rounded-md border p-3">
                       <div className="flex flex-row items-center space-x-3">
                         <div className="flex flex-col space-y-2">
-                          <div className="text-md font-semibold">
+                          <div className="font-semibold text-md">
                             Enterprise
                           </div>
                           <div className="w-2/3 text-xs">

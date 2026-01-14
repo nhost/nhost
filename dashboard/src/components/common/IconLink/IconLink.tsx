@@ -24,7 +24,7 @@ function IconLink(
     return (
       <span
         className={twMerge(
-          'grid cursor-default grid-flow-row justify-items-center gap-1 rounded-md px-0.5 py-2.5 text-center text-[10px] font-medium opacity-40',
+          'grid cursor-default grid-flow-row justify-items-center gap-1 rounded-md px-0.5 py-2.5 text-center font-medium text-[10px] opacity-40',
           className,
         )}
       >

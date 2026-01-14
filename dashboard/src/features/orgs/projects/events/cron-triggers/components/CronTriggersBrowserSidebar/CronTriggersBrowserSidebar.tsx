@@ -48,7 +48,7 @@ function CronTriggersBrowserSidebarContent() {
         {isGitHubConnected && (
           <div className="box mt-1.5 flex items-center gap-2 px-2">
             <InfoIcon className="size-6" />
-            <p className="text-xs text-disabled">
+            <p className="text-disabled text-xs">
               GitHub connected - use the CLI for cron trigger changes
             </p>
           </div>
@@ -105,7 +105,7 @@ export default function CronTriggersBrowserSidebar({
     <>
       <Backdrop
         open={expanded}
-        className="absolute bottom-0 left-0 right-0 top-0 z-[34] sm:hidden"
+        className="absolute top-0 right-0 bottom-0 left-0 z-[34] sm:hidden"
         role="button"
         tabIndex={-1}
         onClick={() => setExpanded(false)}
@@ -121,7 +121,7 @@ export default function CronTriggersBrowserSidebar({
 
       <aside
         className={twMerge(
-          'absolute top-0 z-[35] h-full w-full overflow-auto border-r-1 pb-17 pt-2 motion-safe:transition-transform sm:relative sm:z-0 sm:h-full sm:pb-0 sm:pt-2.5 sm:transition-none',
+          'absolute top-0 z-[35] h-full w-full overflow-auto border-r-1 pt-2 pb-17 motion-safe:transition-transform sm:relative sm:z-0 sm:h-full sm:pt-2.5 sm:pb-0 sm:transition-none',
           expanded ? 'translate-x-0' : '-translate-x-full sm:translate-x-0',
           className,
         )}

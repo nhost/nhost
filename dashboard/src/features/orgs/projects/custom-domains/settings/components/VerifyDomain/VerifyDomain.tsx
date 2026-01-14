@@ -32,6 +32,7 @@ export default function VerifyDomain({
   const [loading, setLoading] = useState(false);
   const [fireLookupCNAME] = useDnsLookupCnameLazyQuery();
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: state needs to be reset when hostname or value changes
   useEffect(() => {
     setVerificationFailed(false);
     setVerificationSucceeded(false);
@@ -144,7 +145,7 @@ export default function VerifyDomain({
           <Button
             disabled={loading || !hostname}
             onClick={handleVerifyDomain}
-            className="mt-4 sm:absolute sm:bottom-0 sm:right-0 sm:mt-0"
+            className="mt-4 sm:absolute sm:right-0 sm:bottom-0 sm:mt-0"
           >
             Verify
           </Button>

@@ -44,6 +44,7 @@ const CreateRecordForm = dynamic(
   { ssr: false, loading: () => <FormActivityIndicator /> },
 );
 
+// biome-ignore lint/suspicious/noExplicitAny: TODO
 export interface DataBrowserGridProps extends Partial<DataGridProps<any>> {}
 
 export function createDataGridColumn(
@@ -332,7 +333,6 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
   // We need to display the header when columns are not available in the table,
   // so we are not throwing an error in this case
   if (error && !metadata?.columnsNotFound) {
-    // eslint-disable-next-line @typescript-eslint/no-throw-literal
     throw error || new Error('Unknown error occurred. Please try again later.');
   }
 

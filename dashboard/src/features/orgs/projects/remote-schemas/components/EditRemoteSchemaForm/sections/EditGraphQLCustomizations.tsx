@@ -51,7 +51,6 @@ export default function EditGraphQLCustomizations({
     useIntrospectRemoteSchemaQuery(remoteSchemaName);
 
   const schemaTypes = useMemo(() => {
-    // eslint-disable-next-line no-underscore-dangle
     const types = (data?.__schema?.types ??
       []) as GraphQLTypeForVisualization[];
     return types.filter(
@@ -168,7 +167,7 @@ export default function EditGraphQLCustomizations({
   if (isLoading) {
     return (
       <Box className="space-y-2">
-        <Text variant="h4" className="text-lg font-semibold">
+        <Text variant="h4" className="font-semibold text-lg">
           GraphQL Customizations
         </Text>
         <Text variant="body2" color="secondary" className="text-sm">
@@ -181,7 +180,7 @@ export default function EditGraphQLCustomizations({
   if (error) {
     return (
       <Box className="space-y-2">
-        <Text variant="h4" className="text-lg font-semibold">
+        <Text variant="h4" className="font-semibold text-lg">
           GraphQL Customizations
         </Text>
         <Text variant="body2" color="error" className="text-sm">
@@ -194,7 +193,7 @@ export default function EditGraphQLCustomizations({
   if (!isOpen) {
     return (
       <Box className="space-y-4">
-        <Text variant="h4" className="text-lg font-semibold">
+        <Text variant="h4" className="font-semibold text-lg">
           GraphQL Customizations
         </Text>
         <Button
@@ -214,7 +213,7 @@ export default function EditGraphQLCustomizations({
   return (
     <Box className="space-y-4">
       <Box className="flex flex-row items-center justify-between">
-        <Text variant="h4" className="text-lg font-semibold">
+        <Text variant="h4" className="font-semibold text-lg">
           GraphQL Customizations
         </Text>
         <Button
@@ -252,7 +251,7 @@ export default function EditGraphQLCustomizations({
 
         <Box className="space-y-3">
           <Box className="flex flex-row items-center space-x-2">
-            <Text variant="h4" className="text-lg font-semibold">
+            <Text variant="h4" className="font-semibold text-lg">
               Types
             </Text>
             <Tooltip title="Add a prefix / suffix to all types of the remote schema">
@@ -299,7 +298,7 @@ export default function EditGraphQLCustomizations({
       <Box className="space-y-4 rounded border-1 p-4">
         <Box className="flex flex-row items-center justify-between">
           <Box className="flex flex-row items-center space-x-2">
-            <Text variant="h4" className="text-lg font-semibold">
+            <Text variant="h4" className="font-semibold text-lg">
               Rename Type Names
             </Text>
             <Tooltip title="Type remapping takes precedence to prefixes and suffixes.">
@@ -362,7 +361,7 @@ export default function EditGraphQLCustomizations({
       <Box className="space-y-4 rounded border-1 p-4">
         <Box className="flex flex-row items-center justify-between">
           <Box className="flex flex-row items-center space-x-2">
-            <Text variant="h4" className="text-lg font-semibold">
+            <Text variant="h4" className="font-semibold text-lg">
               Field Names
             </Text>
             <Tooltip title="Add mappings for fields of a selected parent type. You can also set a prefix/suffix for those fields.">
@@ -386,6 +385,7 @@ export default function EditGraphQLCustomizations({
                 (rawFieldNames as RemoteSchemaCustomizationFieldNamesItem[])?.[
                   index
                 ]?.parent_type) ||
+              // biome-ignore lint/suspicious/noExplicitAny: TODO
               (row as any)?.parent_type;
             const fields = getParentTypeFields(parentTypeValue);
             return (
@@ -396,6 +396,7 @@ export default function EditGraphQLCustomizations({
                     <Controller
                       name={`definition.customization.field_names.${index}.parent_type`}
                       control={control}
+                      // biome-ignore lint/suspicious/noExplicitAny: TODO
                       defaultValue={(row as any)?.parent_type}
                       render={({ field }) => (
                         <Popover>
@@ -485,6 +486,7 @@ export default function EditGraphQLCustomizations({
                               : v,
                         },
                       )}
+                      // biome-ignore lint/suspicious/noExplicitAny: TODO
                       defaultValue={(row as any)?.prefix ?? ''}
                       placeholder="prefix_"
                       hideEmptyHelperText
@@ -504,6 +506,7 @@ export default function EditGraphQLCustomizations({
                               : v,
                         },
                       )}
+                      // biome-ignore lint/suspicious/noExplicitAny: TODO
                       defaultValue={(row as any)?.suffix ?? ''}
                       placeholder="_suffix"
                       hideEmptyHelperText

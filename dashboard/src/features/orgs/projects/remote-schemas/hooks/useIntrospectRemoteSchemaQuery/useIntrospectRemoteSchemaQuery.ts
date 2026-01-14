@@ -47,7 +47,7 @@ export default function useIntrospectRemoteSchemaQuery(
         'hasura',
       );
 
-      const adminSecret = project?.config?.hasura.adminSecret!;
+      const adminSecret = project!.config!.hasura.adminSecret;
 
       return introspectRemoteSchema({
         appUrl,

@@ -42,6 +42,7 @@ export default function OverviewProjectHealthModal({
   const isAIExpandedByDefault = defaultExpanded === 'ai';
   const isRunExpandedByDefault = defaultExpanded === 'run';
 
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   const convertServiceIntoJSON = (service: any) => {
     const info = removeTypename(service);
     return JSON.stringify(info, null, 2);

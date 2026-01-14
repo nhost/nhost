@@ -71,8 +71,8 @@ export default function CronTriggerInvocationLogsDataTable({
               {headerGroup.headers.map((header, index) => (
                 <TableHead
                   className={cn(
-                    'group relative overflow-hidden bg-paper font-display text-xs font-bold text-primary-text',
-                    'border-b-1 border-r-1 border-t-1 border-divider',
+                    'group relative overflow-hidden bg-paper font-bold font-display text-primary-text text-xs',
+                    'border-divider border-t-1 border-r-1 border-b-1',
                     '!h-8 p-0',
                     'last:border-r-0',
                     index === 0 ? 'pl-2' : '',

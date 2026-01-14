@@ -1,4 +1,4 @@
-import { type ErrorResponse } from './generated/schemas';
+import type { ErrorResponse } from './generated/schemas';
 
 export type HasuraError = Error & ErrorResponse;
 

@@ -176,7 +176,7 @@ export default function OnboardingPage() {
       <Container rootClassName="h-full">
         <div className="mx-auto max-w-2xl py-12">
           <div className="mb-8 text-center">
-            <Text variant="h2" className="mb-4 text-3xl font-bold">
+            <Text variant="h2" className="mb-4 font-bold text-3xl">
               You&apos;ve been invited!
             </Text>
             <Text className="text-lg text-muted-foreground">
@@ -197,13 +197,13 @@ export default function OnboardingPage() {
               >
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
-                    <Text variant="h3" className="mb-2 text-xl font-semibold">
+                    <Text variant="h3" className="mb-2 font-semibold text-xl">
                       {invite.organization.name}
                     </Text>
                     <Text className="text-muted-foreground">
                       Join as {invite.role.toLowerCase()}
                     </Text>
-                    <Text className="mt-1 text-sm text-muted-foreground">
+                    <Text className="mt-1 text-muted-foreground text-sm">
                       Invited{' '}
                       {formatDistance(new Date(invite.createdAt), new Date(), {
                         addSuffix: true,
@@ -224,7 +224,7 @@ export default function OnboardingPage() {
           </div>
 
           <div className="mt-8 text-center">
-            <Text className="mb-4 text-sm text-muted-foreground">
+            <Text className="mb-4 text-muted-foreground text-sm">
               Don&apos;t want to join? You can create your own organization
               instead.
             </Text>
@@ -245,15 +245,15 @@ export default function OnboardingPage() {
       <Container className="mx-auto max-w-2xl py-12">
         <div className="mb-8 flex items-center justify-center">
           <div className="flex items-center space-x-4">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500 text-sm font-medium text-white">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500 font-medium text-sm text-white">
               ✓
             </div>
             <div className="h-1 w-16 bg-green-500" />
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary font-medium text-primary-foreground text-sm">
               2
             </div>
             <div className="h-1 w-16 bg-muted" />
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-sm font-medium text-muted-foreground">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted font-medium text-muted-foreground text-sm">
               3
             </div>
           </div>
@@ -261,7 +261,7 @@ export default function OnboardingPage() {
 
         <Box className="rounded-lg border border-border bg-white p-6 shadow-sm">
           <div className="mb-6 text-center">
-            <Text variant="h2" className="mb-2 text-2xl font-bold text-black">
+            <Text variant="h2" className="mb-2 font-bold text-2xl text-black">
               Complete Payment
             </Text>
             <Text className="text-gray-600">
@@ -279,17 +279,17 @@ export default function OnboardingPage() {
     <Container className="mx-auto max-w-2xl py-12">
       <div className="mb-8 flex items-center justify-center">
         <div className="flex items-center space-x-4">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary font-medium text-primary-foreground text-sm">
             1
           </div>
           <div className="h-1 w-16 bg-muted" />
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-sm font-medium text-muted-foreground">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted font-medium text-muted-foreground text-sm">
             2
           </div>
           {isSelectedPlanPaid && (
             <>
               <div className="h-1 w-16 bg-muted" />
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-sm font-medium text-muted-foreground">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted font-medium text-muted-foreground text-sm">
                 3
               </div>
             </>
@@ -299,7 +299,7 @@ export default function OnboardingPage() {
 
       <Box className="rounded-lg border border-border bg-card p-6 shadow-sm">
         <div className="mb-6 text-center">
-          <Text variant="h2" className="mb-2 text-2xl font-bold">
+          <Text variant="h2" className="mb-2 font-bold text-2xl">
             Welcome to Nhost!
           </Text>
           <Text className="text-muted-foreground">
@@ -381,12 +381,12 @@ export default function OnboardingPage() {
                                 </FormControl>
                                 <div>
                                   <div className="font-medium">{plan.name}</div>
-                                  <div className="text-sm text-muted-foreground">
+                                  <div className="text-muted-foreground text-sm">
                                     {planDescriptions[plan.name]}
                                   </div>
                                 </div>
                               </div>
-                              <div className="text-lg font-semibold">
+                              <div className="font-semibold text-lg">
                                 {plan.isFree ? 'Free' : `$${plan.price}/mo`}
                               </div>
                             </FormLabel>
@@ -430,14 +430,14 @@ export default function OnboardingPage() {
               {invites && invites.length > 0 && (
                 <Alert
                   severity="info"
-                  className="bg-primary/8 mt-4 rounded-lg border border-primary/20"
+                  className="mt-4 rounded-lg border border-primary/20 bg-primary/8"
                 >
                   <Text className="text-sm">
                     <span className="font-medium text-primary">
                       💡 Pending Invitation{invites.length > 1 ? 's' : ''}
                     </span>
                     <br />
-                    <span className="mt-1.5 block text-sm text-gray-600 dark:text-gray-400">
+                    <span className="mt-1.5 block text-gray-600 text-sm dark:text-gray-400">
                       You have {invites.length} pending invitation
                       {invites.length > 1 ? 's' : ''} to join existing
                       organization{invites.length > 1 ? 's' : ''}. You can

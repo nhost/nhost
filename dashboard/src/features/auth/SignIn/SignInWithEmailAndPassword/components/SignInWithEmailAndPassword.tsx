@@ -29,7 +29,9 @@ function SignInWithEmailAndPassword() {
           email,
           password,
         });
-        mfaTicket.current = response.body?.mfa!.ticket;
+        if (isNotEmptyValue(response.body?.mfa?.ticket)) {
+          mfaTicket.current = response.body.mfa.ticket;
+        }
       } catch (error) {
         toast.error(
           error?.message ||

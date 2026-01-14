@@ -42,7 +42,7 @@ function SignInWithEmailAndPassword({ onSubmit, isLoading }: Props) {
         <Button
           type="submit"
           variant="outline"
-          className="w-full !bg-white !text-black disabled:!text-black disabled:!text-opacity-60"
+          className="!bg-white !text-black disabled:!text-black disabled:!text-opacity-60 w-full"
           disabled={isLoading}
           loading={isLoading}
         >

@@ -15,7 +15,7 @@ export default function OverviewRepository() {
   return (
     <div>
       <Text variant="h3">Repository</Text>
-      <Text variant="subtitle1" className="mt-2 !font-medium">
+      <Text variant="subtitle1" className="!font-medium mt-2">
         {!project?.githubRepository
           ? 'Connect your project with a GitHub repository to create your first deployment.'
           : 'GitHub is connected.'}

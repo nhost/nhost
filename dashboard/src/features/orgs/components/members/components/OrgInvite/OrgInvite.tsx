@@ -150,7 +150,7 @@ export default function OrgInvite({ invite, isAdmin }: InviteProps) {
   return (
     <>
       <div className="flex w-full flex-row items-center justify-between">
-        <span className="text-sm text-foreground">{invite.email}</span>
+        <span className="text-foreground text-sm">{invite.email}</span>
 
         <div className="flex flex-row items-center gap-4 text-foreground">
           <span className="font-medium">{invite.role}</span>

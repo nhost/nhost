@@ -93,7 +93,6 @@ export default function EditPermissionsForm({
   }
 
   if (tableError) {
-    // eslint-disable-next-line @typescript-eslint/no-throw-literal
     throw tableError;
   }
 
@@ -106,7 +105,6 @@ export default function EditPermissionsForm({
   }
 
   if (metadataError) {
-    // eslint-disable-next-line @typescript-eslint/no-throw-literal
     throw metadataError;
   }
 

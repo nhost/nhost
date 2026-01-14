@@ -58,7 +58,7 @@ export default function useGetCronInvocationLogsById(
         'hasura',
       );
 
-      const adminSecret = project?.config?.hasura.adminSecret!;
+      const adminSecret = project!.config!.hasura.adminSecret;
 
       return getScheduledEventInvocations({
         appUrl,

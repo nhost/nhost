@@ -1,6 +1,7 @@
 import { isEmptyValue } from '@/lib/utils';
 import React from 'react';
 
+// biome-ignore lint/suspicious/noExplicitAny: TODO
 export default function getText(data: any): string {
   if (React.isValidElement<{ children?: React.ReactNode }>(data)) {
     const { children } = data.props;

@@ -121,9 +121,9 @@ export default function SetIsEnumSection({
           <div className="grid grid-flow-col place-content-between gap-3 px-4">
             <div className="grid grid-flow-col gap-4">
               <div className="grid grid-flow-row gap-1">
-                <h2 className="text-lg font-semibold">Set Table as Enum</h2>
+                <h2 className="font-semibold text-lg">Set Table as Enum</h2>
 
-                <p className="text-sm+ text-muted-foreground">
+                <p className="text-muted-foreground text-sm+">
                   Expose the table values as GraphQL enums in the GraphQL API
                 </p>
               </div>
@@ -140,7 +140,7 @@ export default function SetIsEnumSection({
             </div>
           ) : (
             <div className="px-4">
-              <div className="grid gap-2 rounded-md border border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+              <div className="grid gap-2 rounded-md border border-border bg-muted/30 px-4 py-3 text-muted-foreground text-sm">
                 <p className="font-medium text-foreground">Requirements</p>
                 <ul className="grid list-disc gap-1 pl-5">
                   <li>
@@ -162,7 +162,7 @@ export default function SetIsEnumSection({
                   <FormItem className="space-y-4 pt-4">
                     <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                       <div className="grid gap-1">
-                        <FormLabel className="text-base font-medium">
+                        <FormLabel className="font-medium text-base">
                           Is Enum
                         </FormLabel>
                       </div>

@@ -27,7 +27,7 @@ export default function GraphQLCustomizations() {
     return (
       <Box className="space-y-4">
         <Box className="flex h-8 flex-row items-center justify-between">
-          <Text variant="h4" className="text-lg font-semibold">
+          <Text variant="h4" className="font-semibold text-lg">
             GraphQL Customizations
           </Text>
         </Box>
@@ -60,7 +60,7 @@ export default function GraphQLCustomizations() {
   return (
     <Box className="space-y-4">
       <Box className="flex flex-row items-center justify-between">
-        <Text variant="h4" className="text-lg font-semibold">
+        <Text variant="h4" className="font-semibold text-lg">
           GraphQL Customizations
         </Text>
         <Button
@@ -111,7 +111,7 @@ export default function GraphQLCustomizations() {
 
         <Box className="space-y-3">
           <Box className="flex flex-row items-center space-x-2">
-            <Text variant="h4" className="text-lg font-semibold">
+            <Text variant="h4" className="font-semibold text-lg">
               Types
             </Text>
             <Tooltip title="Add a prefix / suffix to all types of the remote schema">
@@ -150,7 +150,7 @@ export default function GraphQLCustomizations() {
 
         <Box className="space-y-3">
           <Box className="flex flex-row items-center space-x-2">
-            <Text variant="h4" className="text-lg font-semibold">
+            <Text variant="h4" className="font-semibold text-lg">
               Fields
             </Text>
             <Tooltip title="Add a prefix / suffix to the fields of the query / mutation root fields">

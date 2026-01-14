@@ -47,7 +47,7 @@ export default function useDeleteScheduledCronTriggerEventMutation({
         'hasura',
       );
 
-      const adminSecret = project?.config?.hasura.adminSecret!;
+      const adminSecret = project!.config!.hasura.adminSecret;
 
       return deleteScheduledEvent({
         args: {

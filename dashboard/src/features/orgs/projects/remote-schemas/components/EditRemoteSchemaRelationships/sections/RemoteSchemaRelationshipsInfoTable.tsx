@@ -163,7 +163,7 @@ export default function RemoteSchemaRelationshipsInfoTable({
                     </Dropdown.Trigger>
                     <Dropdown.Content menu PaperProps={{ className: 'w-52' }}>
                       <Dropdown.Item
-                        className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+                        className="grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
                         onClick={() =>
                           handleEditRelationshipClick(relationship)
                         }
@@ -176,7 +176,7 @@ export default function RemoteSchemaRelationshipsInfoTable({
                       </Dropdown.Item>
                       <Divider component="li" />
                       <Dropdown.Item
-                        className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+                        className="grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
                         sx={{ color: 'error.main' }}
                         onClick={() =>
                           handleDeleteRelationshipClick(

@@ -5,7 +5,7 @@ import { Form } from '@/components/form/Form';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
-import { type RunService } from '@/features/orgs/projects/common/hooks/useRunServices';
+import type { RunService } from '@/features/orgs/projects/common/hooks/useRunServices';
 import { VerifyDomain } from '@/features/orgs/projects/custom-domains/settings/components/VerifyDomain';
 import { useUpdateRunServiceConfigMutation } from '@/generated/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -135,7 +135,7 @@ export default function RunServicePortDomain({
     <FormProvider {...form}>
       <Form onSubmit={handleSubmit}>
         <div className="space-y-2">
-          <Text className="text-sm font-semibold">{`${runServicePort?.type} <--> ${runServicePort?.port}`}</Text>
+          <Text className="font-semibold text-sm">{`${runServicePort?.type} <--> ${runServicePort?.port}`}</Text>
           <div className="flex flex-row space-x-4">
             <Input
               {...register('runServicePortFQDN')}

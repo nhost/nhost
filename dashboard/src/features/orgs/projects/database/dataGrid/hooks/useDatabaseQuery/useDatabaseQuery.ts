@@ -54,7 +54,7 @@ export default function useDatabaseQuery(
         adminSecret:
           process.env.NEXT_PUBLIC_ENV === 'dev'
             ? getHasuraAdminSecret()
-            : customAdminSecret || project?.config?.hasura.adminSecret!,
+            : customAdminSecret || project!.config!.hasura.adminSecret,
         dataSource: customDataSource || (dataSourceSlug as string),
       });
     },

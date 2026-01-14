@@ -52,6 +52,7 @@ const buildSampleEventData = ({
 
   const buildColumnSample = (rows: NormalizedQueryDataRow[]) =>
     rows.reduce<Record<string, ColumnValue>>((acc, column) => {
+      // biome-ignore lint/style/noParameterAssign: Disabled to avoid spread operator performance overhead in reduce.
       acc[column.column_name] = generateSampleValueForColumn(
         column.data_type,
         column.column_name,

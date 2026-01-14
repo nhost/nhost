@@ -16,7 +16,7 @@ export interface CreateRecordFormProps
   /**
    * Function to be called when the form is submitted.
    */
-  onSubmit?: (args?: any) => Promise<any>;
+  onSubmit?: () => Promise<unknown>;
   currentOffset: number;
 }
 

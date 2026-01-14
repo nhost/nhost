@@ -16,6 +16,7 @@ type DataTableViewConfiguration = {
   rowDensity: RowDensity;
 };
 
+// biome-ignore lint/complexity/noStaticOnlyClass: TODO: use functions instead
 class PersistenDataTableConfigurationStorage {
   private static getAllStoredData(): Record<string, ColumnConfiguration> {
     const storedData = localStorage.getItem(COLUMN_CONFIGURATION_STORAGE_KEY);

@@ -16,12 +16,12 @@ export default function SortableHeader<TData, TValue>({
     <Button
       variant="ghost"
       className={cn(
-        'h-fit w-full p-0 font-display text-xs font-bold text-primary-text focus:outline-none motion-safe:transition-colors dark:hover:bg-[#21262d]',
+        'h-fit w-full p-0 font-bold font-display text-primary-text text-xs focus:outline-none motion-safe:transition-colors dark:hover:bg-[#21262d]',
       )}
       onClick={column.getToggleSortingHandler()}
       disabled={!column.getCanSort()}
     >
-      <div className="relative !flex h-full w-full grid-flow-col items-center justify-between p-2">
+      <div className="!flex relative h-full w-full grid-flow-col items-center justify-between p-2">
         <span className="truncate">{label}</span>
         <span>
           {sortedState === 'asc' && <ArrowUp className="h-3 w-3" />}

@@ -181,7 +181,7 @@ export default function BaseRemoteSchemaForm({
           component="section"
           className="flex flex-col gap-3 border-t-1 px-6 py-6"
         >
-          <Text variant="h4" className="text-lg font-semibold">
+          <Text variant="h4" className="font-semibold text-lg">
             Headers for remote GraphQL server
           </Text>
           <ForwardClientHeadersToggle />

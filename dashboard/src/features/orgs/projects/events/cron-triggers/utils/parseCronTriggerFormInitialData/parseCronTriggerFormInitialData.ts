@@ -19,6 +19,13 @@ import {
   isHeaderWithEnvValue,
 } from '@/utils/hasura-api/guards';
 
+type QueryParams =
+  | {
+    queryParams: { value: string; key: string }[];
+    queryParamsType: 'Key Value';
+  }
+  | { queryParamsType: 'URL string template'; queryParamsURL: string };
+
 const getRequestOptionsTransform = (
   requestTransform?: RequestTransformation,
 ): BaseCronTriggerFormValues['requestOptionsTransform'] => {
@@ -26,7 +33,7 @@ const getRequestOptionsTransform = (
     return undefined;
   }
 
-  let queryParams;
+  let queryParams: QueryParams;
   if (typeof requestTransform?.query_params === 'string') {
     queryParams = {
       queryParamsType: 'URL string template',

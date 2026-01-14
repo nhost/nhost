@@ -91,6 +91,7 @@ export default function BaseRecordForm({
     );
   }
 
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   async function handleSubmit(columnValues: Record<string, any>) {
     const columnIds = Object.keys(columnValues);
 

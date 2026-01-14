@@ -16,7 +16,7 @@ import { SelectItem } from '@/components/ui/v3/select';
 import { Textarea } from '@/components/ui/v3/textarea';
 import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
 import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
-import { type BaseEventTriggerFormValues } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerFormTypes';
+import type { BaseEventTriggerFormValues } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerFormTypes';
 import { getSampleInputPayload } from '@/features/orgs/projects/events/event-triggers/utils/getSampleInputPayload';
 import { RefreshCw } from 'lucide-react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
@@ -65,7 +65,7 @@ export default function PayloadTransformSection({
   return (
     <div className={`flex flex-col gap-6 ${className}`}>
       <div className="space-y-2">
-        <h3 className="text-base font-medium text-foreground">
+        <h3 className="font-medium text-base text-foreground">
           Payload Transform
         </h3>
         <FormDescription>
@@ -110,7 +110,7 @@ export default function PayloadTransformSection({
         <div className="space-y-4">
           <div className="flex max-w-lg flex-row justify-between gap-4 text-foreground">
             <div className="flex flex-row items-center gap-2">
-              <h4 className="text-sm font-medium text-foreground">
+              <h4 className="font-medium text-foreground text-sm">
                 Request Body Transform
               </h4>
               <FormDescription className="flex flex-row items-center gap-2">
@@ -174,7 +174,7 @@ export default function PayloadTransformSection({
             'application/x-www-form-urlencoded' && (
             <div className="max-w-lg space-y-4">
               <div className="flex items-center justify-between">
-                <h4 className="text-sm font-medium text-foreground">
+                <h4 className="font-medium text-foreground text-sm">
                   Form Template
                 </h4>
                 <Button
@@ -189,7 +189,7 @@ export default function PayloadTransformSection({
               </div>
               <div className="flex flex-col gap-4">
                 {fields.length > 0 && (
-                  <div className="grid grid-flow-row grid-cols-9 text-sm+ text-foreground">
+                  <div className="grid grid-flow-row grid-cols-9 text-foreground text-sm+">
                     <span className="col-span-3">Key</span>
                     <div className="col-span-1" />
                     <span className="col-span-4">Value</span>

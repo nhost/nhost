@@ -135,7 +135,7 @@ function OverviewDeploymentList() {
 
   return (
     <List
-      className="rounded-x-lg flex flex-col overflow-hidden rounded-lg"
+      className="flex flex-col overflow-hidden rounded-lg rounded-x-lg"
       sx={{ borderColor: 'grey.300', borderWidth: 1 }}
     >
       {deployments?.map((deployment, index) => (

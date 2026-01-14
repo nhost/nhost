@@ -42,7 +42,7 @@ function DeploymentDetails() {
   if (!deployment) {
     return (
       <Container>
-        <Text variant="h1" className="text text-4xl font-semibold">
+        <Text variant="h1" className="text font-semibold text-4xl">
           Not found
         </Text>
         <Text className="text-sm" color="disabled">
@@ -110,7 +110,7 @@ function DeploymentDetails() {
         </div>
         <div className="flex items-center">
           <Link
-            className="self-center font-mono font-medium"
+            className="self-center font-medium font-mono"
             target="_blank"
             rel="noreferrer"
             href={`https://github.com/${project?.githubRepository?.fullName}/commit/${deployment?.commitSHA}`}

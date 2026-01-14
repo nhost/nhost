@@ -21,7 +21,7 @@ interface UseFinishOrgCreationProps {
   onError?: () => void;
 }
 
-function useFinishOrgCreation({
+function useFinishOrganizationProcess({
   successMessage,
   loadingMessage,
   errorMessage,
@@ -38,8 +38,9 @@ function useFinishOrgCreation({
   const [status, setPostOrganizationRequestStatus] =
     useState<CheckoutStatus | null>(null);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: messages and onError does not change between renders
   useEffect(() => {
-    async function finishOrgCreation() {
+    async function finishOrganizationProcess() {
       if (router.isReady && session_id && isAuthenticated) {
         setLoading(true);
         execPromiseWithErrorToast(
@@ -91,12 +92,10 @@ function useFinishOrgCreation({
         );
       }
     }
-    finishOrgCreation();
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    finishOrganizationProcess();
   }, [session_id, isAuthenticated]);
 
   return [loading, status];
 }
 
-export default useFinishOrgCreation;
+export default useFinishOrganizationProcess;

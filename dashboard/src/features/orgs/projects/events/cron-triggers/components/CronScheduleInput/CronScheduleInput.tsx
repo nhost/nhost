@@ -95,39 +95,40 @@ export default function CronScheduleInput<
               </FormControl>
 
               {shouldShowSuggestions ? (
-                <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-60 overflow-auto rounded-md border bg-popover text-popover-foreground shadow-md">
+                <div className="absolute top-full right-0 left-0 z-20 mt-1 max-h-60 overflow-auto rounded-md border bg-popover text-popover-foreground shadow-md">
                   <ul
-                    role="listbox"
                     className="divide-y divide-border text-sm"
                     onMouseDown={(event) => event.preventDefault()}
                   >
                     {filteredSuggestions.map((option) => (
-                      <li
-                        key={option.value}
-                        role="option"
-                        tabIndex={-1}
-                        aria-selected={option.value === String(inputValue)}
-                        className="cursor-pointer px-3 py-2 hover:bg-accent"
-                        onClick={() => {
-                          field.onChange(option.value);
-                          setIsSuggestionsOpen(false);
-                          inputRef.current?.focus();
-                        }}
-                        onKeyDown={(event) => {
-                          if (event.key === 'Enter' || event.key === ' ') {
-                            event.preventDefault();
+                      <li key={option.value}>
+                        <button
+                          type="button"
+                          role="option"
+                          tabIndex={-1}
+                          aria-selected={option.value === String(inputValue)}
+                          className="w-full cursor-pointer border-none bg-transparent px-3 py-2 text-left hover:bg-accent"
+                          onClick={() => {
                             field.onChange(option.value);
                             setIsSuggestionsOpen(false);
                             inputRef.current?.focus();
-                          }
-                        }}
-                      >
-                        <div className="font-medium">{option.label}</div>
-                        {option.value !== option.label ? (
-                          <div className="text-xs text-muted-foreground">
-                            {option.value}
-                          </div>
-                        ) : null}
+                          }}
+                          onKeyDown={(event) => {
+                            if (event.key === 'Enter' || event.key === ' ') {
+                              event.preventDefault();
+                              field.onChange(option.value);
+                              setIsSuggestionsOpen(false);
+                              inputRef.current?.focus();
+                            }
+                          }}
+                        >
+                          <div className="font-medium">{option.label}</div>
+                          {option.value !== option.label ? (
+                            <div className="text-muted-foreground text-xs">
+                              {option.value}
+                            </div>
+                          ) : null}
+                        </button>
                       </li>
                     ))}
                   </ul>

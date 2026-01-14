@@ -49,7 +49,7 @@ export default function useUpdateRemoteSchemaPermissionsMutation({
 
     const base = {
       appUrl,
-      adminSecret: project?.config?.hasura.adminSecret!,
+      adminSecret: project!.config!.hasura.adminSecret,
     } as const;
 
     if (isPlatform) {

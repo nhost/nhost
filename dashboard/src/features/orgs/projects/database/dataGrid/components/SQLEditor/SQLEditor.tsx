@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/suspicious/noArrayIndexKey: used with value*/
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
@@ -238,14 +239,9 @@ export default function SQLEditor() {
 
             <TableBody>
               {rows.map((row, rowIndex) => (
-                <TableRow
-                  // eslint-disable-next-line react/no-array-index-key
-                  key={String(rowIndex)}
-                  // className="px-6 py-4 border whitespace-nowrap"
-                >
+                <TableRow key={String(rowIndex)}>
                   {row.map((value, valueIndex) => (
                     <TableCell
-                      // eslint-disable-next-line react/no-array-index-key
                       key={`${value}-${valueIndex}`}
                       className="whitespace-nowrap border px-6 py-4"
                     >

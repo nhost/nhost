@@ -23,12 +23,14 @@ export type CustomFieldType = {
   return?: string;
   typeName?: string;
   children?: FieldType[];
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   defaultValue?: any;
   isInputObjectType?: boolean;
   parentName?: string;
   expanded?: boolean;
 };
 
+// biome-ignore lint/suspicious/noExplicitAny: TODO
 export type FieldType = CustomFieldType & GraphQLField<any, any>;
 
 export type RemoteSchemaFields =

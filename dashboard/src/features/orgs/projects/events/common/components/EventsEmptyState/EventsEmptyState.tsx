@@ -36,7 +36,7 @@ export default function EventsEmptyState({
           <CalendarDays className="h-12 w-12" />
         </div>
 
-        <h3 className="scroll-m-20 text-2xl font-medium tracking-tight">
+        <h3 className="scroll-m-20 font-medium text-2xl tracking-tight">
           {title}
         </h3>
 

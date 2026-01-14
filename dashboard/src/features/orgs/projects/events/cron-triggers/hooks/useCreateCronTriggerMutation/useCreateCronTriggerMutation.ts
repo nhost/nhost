@@ -48,7 +48,7 @@ export default function useCreateCronTriggerMutation({
         'hasura',
       );
 
-      const adminSecret = project?.config?.hasura.adminSecret!;
+      const adminSecret = project!.config!.hasura.adminSecret;
 
       return createCronTrigger({
         args: variables.args,

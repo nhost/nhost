@@ -44,12 +44,8 @@ export default function ScheduledEventStatusCell({
   const { Icon, colorClassName, label } = STATUS_ICON_MAP[status];
 
   return (
-    <div
-      className="flex items-center justify-center"
-      aria-label={label}
-      title={label}
-    >
-      <Icon className={`h-4 w-4 ${colorClassName}`} />
+    <div className="flex items-center justify-center" title={label}>
+      <Icon className={`h-4 w-4 ${colorClassName}`} aria-label={label} />
     </div>
   );
 }

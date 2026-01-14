@@ -34,14 +34,9 @@ export default function useCheckProvisioning() {
     skip: !isPlatform || !project?.id,
   });
 
-  async function updateOwnCache() {
+  const memoizedUpdateCache = useCallback(async () => {
     await getOrgs({ variables: { userId: userData?.id } });
-  }
-
-  const memoizedUpdateCache = useCallback(updateOwnCache, [
-    userData?.id,
-    getOrgs,
-  ]);
+  }, [userData?.id, getOrgs]);
 
   const currentApplicationId = project?.id;
 

@@ -137,13 +137,13 @@ export default function AISettings() {
     if (ai) {
       reset({
         version: {
-          label: ai?.version!,
-          value: ai?.version!,
+          label: ai!.version!,
+          value: ai!.version!,
         },
         webhookSecret: ai?.webhookSecret,
         synchPeriodMinutes: ai?.autoEmbeddings?.synchPeriodMinutes,
         apiKey: ai?.openai?.apiKey,
-        organization: ai?.openai?.organization!,
+        organization: ai!.openai!.organization!,
         compute: {
           cpu: ai?.resources?.compute?.cpu ?? 62,
           memory: ai?.resources?.compute?.memory ?? 128,
@@ -279,7 +279,7 @@ export default function AISettings() {
   return (
     <Box className="space-y-4" sx={{ backgroundColor: 'background.default' }}>
       <Box className="flex flex-row items-center justify-between rounded-lg border-1 p-4">
-        <Text className="text-lg font-semibold">Enable AI service</Text>
+        <Text className="font-semibold text-lg">Enable AI service</Text>
         <Switch
           checked={aiServiceEnabled}
           onChange={(e) => toggleAIService(e.target.checked)}
@@ -303,7 +303,7 @@ export default function AISettings() {
               <Box className="space-y-4">
                 <Box className="space-y-2">
                   <Box className="flex flex-row items-center space-x-2">
-                    <Text className="text-lg font-semibold">Version</Text>
+                    <Text className="font-semibold text-lg">Version</Text>
                     <Tooltip title="Version of the service to use.">
                       <InfoIcon
                         aria-label="Info"
@@ -338,7 +338,7 @@ export default function AISettings() {
 
                 <Box className="space-y-2">
                   <Box className="flex flex-row items-center space-x-2">
-                    <Text className="text-lg font-semibold">
+                    <Text className="font-semibold text-lg">
                       Webhook Secret
                     </Text>
                     <Tooltip title="Used to validate requests between postgres and the AI service. The AI service will also include the header X-Graphite-Webhook-Secret with this value set when calling external webhooks so the source of the request can be validated.">
@@ -364,7 +364,7 @@ export default function AISettings() {
 
                 <Box className="space-y-2">
                   <Box className="flex flex-row items-center space-x-2">
-                    <Text className="text-lg font-semibold">Resources</Text>
+                    <Text className="font-semibold text-lg">Resources</Text>
                     <Tooltip title="Dedicated resources allocated for the service.">
                       <InfoIcon
                         aria-label="Info"
@@ -395,7 +395,7 @@ export default function AISettings() {
                 </Box>
 
                 <Box className="space-y-2">
-                  <Text className="text-lg font-semibold">OpenAI</Text>
+                  <Text className="font-semibold text-lg">OpenAI</Text>
 
                   <Input
                     {...register('apiKey')}
@@ -447,7 +447,7 @@ export default function AISettings() {
                 </Box>
 
                 <Box className="space-y-2">
-                  <Text className="text-lg font-semibold">Auto-Embeddings</Text>
+                  <Text className="font-semibold text-lg">Auto-Embeddings</Text>
                   <Input
                     {...register('synchPeriodMinutes')}
                     id="synchPeriodMinutes"

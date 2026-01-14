@@ -1,6 +1,9 @@
-import { type Org } from '@/features/orgs/projects/hooks/useOrgs';
+import type { Org } from '@/features/orgs/projects/hooks/useOrgs';
 import { ApplicationStatus } from '@/types/application';
-import { Sla_Level_Enum, type GetProjectQuery } from '@/utils/__generated__/graphql';
+import {
+  Sla_Level_Enum,
+  type GetProjectQuery,
+} from '@/utils/__generated__/graphql';
 import { getHasuraAdminSecret } from '@/utils/env';
 
 export const localApplication: GetProjectQuery['apps'][0] = {
