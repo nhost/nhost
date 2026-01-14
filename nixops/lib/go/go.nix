@@ -102,7 +102,7 @@ in
         chmod +w -R .
 
         go generate ./${submodule}/...
-        golines -l --base-formatter=gofumpt ${submodule} | diff - /dev/null
+        golines -w --base-formatter=gofumpt ${submodule}
 
         find . -type f ! -path "./vendor/*" -print0 | xargs -0 sha1sum > $TMPDIR/sum
         cd ${src}
