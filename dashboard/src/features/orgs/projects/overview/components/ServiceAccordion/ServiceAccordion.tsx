@@ -5,7 +5,7 @@ import { Text } from '@/components/ui/v2/Text';
 import { AccordionHealthBadge } from '@/features/orgs/projects/overview/components/AccordionHealthBadge';
 import { ServiceState } from '@/utils/__generated__/graphql';
 import Image from 'next/image';
-import { type ReactElement } from 'react';
+import type { ReactElement } from 'react';
 
 export interface ServiceAccordionProps {
   serviceName: string;

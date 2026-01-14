@@ -16,7 +16,7 @@ export default function RetryConfigurationSection({
   return (
     <div className={`flex flex-col gap-6 ${className}`}>
       <div className="space-y-2">
-        <h3 className="text-base font-medium text-foreground">
+        <h3 className="font-medium text-base text-foreground">
           Retry Configuration
         </h3>
         <FormDescription>

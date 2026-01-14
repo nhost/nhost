@@ -38,32 +38,32 @@ export default function InvocationLogDetailsDialogContent({
       <div className="grid grid-cols-2 gap-4 rounded border p-4">
         <div className="space-y-2">
           <div className="flex justify-between gap-1">
-            <span className="text-sm font-medium text-muted-foreground">
+            <span className="font-medium text-muted-foreground text-sm">
               ID:
             </span>
-            <span className="font-mono text-sm text-foreground">{log?.id}</span>
+            <span className="font-mono text-foreground text-sm">{log?.id}</span>
           </div>
           <div className="flex justify-between gap-1">
-            <span className="text-sm font-medium text-muted-foreground">
+            <span className="font-medium text-muted-foreground text-sm">
               Event ID:
             </span>
-            <span className="font-mono text-sm text-foreground">
+            <span className="font-mono text-foreground text-sm">
               {log?.event_id}
             </span>
           </div>
         </div>
         <div className="space-y-2">
           <div className="flex justify-between gap-1">
-            <span className="text-sm font-medium text-muted-foreground">
+            <span className="font-medium text-muted-foreground text-sm">
               HTTP Status:
             </span>
             <HttpStatusText className="text-sm" status={log?.status} />
           </div>
           <div className="flex justify-between gap-1">
-            <span className="text-sm font-medium text-muted-foreground">
+            <span className="font-medium text-muted-foreground text-sm">
               Created:
             </span>
-            <span className="font-mono text-sm text-foreground">
+            <span className="font-mono text-foreground text-sm">
               {log?.created_at}
             </span>
           </div>

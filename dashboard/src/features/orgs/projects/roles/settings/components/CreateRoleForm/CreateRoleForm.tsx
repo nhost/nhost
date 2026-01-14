@@ -27,7 +27,7 @@ export interface CreateRoleFormProps
   /**
    * Function to be called when the form is submitted.
    */
-  onSubmit?: () => Promise<any>;
+  onSubmit?: () => Promise<unknown>;
 }
 
 export default function CreateRoleForm({

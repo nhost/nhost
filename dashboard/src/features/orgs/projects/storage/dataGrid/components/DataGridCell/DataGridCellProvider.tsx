@@ -1,5 +1,5 @@
 import type { MutableRefObject, PropsWithChildren } from 'react';
-import { createContext, useCallback, useMemo, useReducer, useRef } from 'react';
+import { createContext, useMemo, useReducer, useRef } from 'react';
 
 export interface DataGridCellContextProps<T = HTMLElement> {
   /**
@@ -113,121 +113,99 @@ export default function DataGridCellProvider<TInput extends HTMLElement>({
     },
   );
 
-  function focusCell() {
-    return new Promise<void>((resolve) => {
-      requestAnimationFrame(() => {
-        cellRef.current?.focus();
-
-        resolve();
-      });
-    });
-  }
-
-  function deselectCell() {
-    dispatch({ type: 'DESELECT' });
-  }
-
-  const focusPrevCell = useCallback(() => {
-    const prevCellAvailable =
-      cellRef.current?.previousElementSibling instanceof HTMLElement &&
-      cellRef.current?.previousElementSibling.tabIndex > -1;
-
-    requestAnimationFrame(() => {
-      if (prevCellAvailable) {
-        (cellRef.current?.previousElementSibling as HTMLElement).focus();
-        deselectCell();
-      }
-    });
-
-    return prevCellAvailable;
-  }, []);
-
-  const focusNextCell = useCallback(() => {
-    const nextCellAvailable =
-      cellRef.current?.nextElementSibling instanceof HTMLElement &&
-      cellRef.current?.nextElementSibling.tabIndex > -1;
-
-    requestAnimationFrame(() => {
-      if (nextCellAvailable) {
-        (cellRef.current?.nextElementSibling as HTMLElement).focus();
-        deselectCell();
-      }
-    });
-
-    return nextCellAvailable;
-  }, []);
-
-  function blurCell() {
-    return new Promise<void>((resolve) => {
-      requestAnimationFrame(() => {
-        cellRef.current?.blur();
-
-        resolve();
-      });
-    });
-  }
-
-  function focusInput() {
-    return new Promise<void>((resolve) => {
-      requestAnimationFrame(() => {
-        inputRef.current?.focus();
-
-        resolve();
-      });
-    });
-  }
-
-  function blurInput() {
-    return new Promise<void>((resolve) => {
-      requestAnimationFrame(() => {
-        inputRef.current?.blur();
-
-        resolve();
-      });
-    });
-  }
-
-  function clickInput() {
-    return new Promise<void>((resolve) => {
-      requestAnimationFrame(() => {
-        inputRef.current?.click();
-
-        resolve();
-      });
-    });
-  }
-
-  function editCell() {
-    dispatch({ type: 'EDIT' });
-  }
-
-  function cancelEditCell() {
-    dispatch({ type: 'CANCEL_EDIT' });
-  }
-
-  function selectCell() {
-    dispatch({ type: 'SELECT' });
-  }
-
   const value: DataGridCellContextProps<HTMLElement> = useMemo(
     () => ({
-      focusCell,
-      blurCell,
-      focusInput,
-      blurInput,
-      clickInput,
+      focusCell() {
+        return new Promise<void>((resolve) => {
+          requestAnimationFrame(() => {
+            cellRef.current?.focus();
+
+            resolve();
+          });
+        });
+      },
+      blurCell() {
+        return new Promise<void>((resolve) => {
+          requestAnimationFrame(() => {
+            cellRef.current?.blur();
+
+            resolve();
+          });
+        });
+      },
+      focusInput() {
+        return new Promise<void>((resolve) => {
+          requestAnimationFrame(() => {
+            inputRef.current?.focus();
+
+            resolve();
+          });
+        });
+      },
+      blurInput() {
+        return new Promise<void>((resolve) => {
+          requestAnimationFrame(() => {
+            inputRef.current?.blur();
+
+            resolve();
+          });
+        });
+      },
+      clickInput() {
+        return new Promise<void>((resolve) => {
+          requestAnimationFrame(() => {
+            inputRef.current?.click();
+
+            resolve();
+          });
+        });
+      },
       isEditing,
       isSelected,
-      editCell,
-      cancelEditCell,
-      selectCell,
-      deselectCell,
+      editCell() {
+        dispatch({ type: 'EDIT' });
+      },
+      cancelEditCell() {
+        dispatch({ type: 'CANCEL_EDIT' });
+      },
+      selectCell() {
+        dispatch({ type: 'SELECT' });
+      },
+      deselectCell() {
+        dispatch({ type: 'DESELECT' });
+      },
       cellRef,
       inputRef,
-      focusPrevCell,
-      focusNextCell,
+      focusPrevCell() {
+        const prevCellAvailable =
+          cellRef.current?.previousElementSibling instanceof HTMLElement &&
+          cellRef.current?.previousElementSibling.tabIndex > -1;
+
+        requestAnimationFrame(() => {
+          if (prevCellAvailable) {
+            (cellRef.current?.previousElementSibling as HTMLElement).focus();
+            dispatch({ type: 'DESELECT' });
+          }
+        });
+
+        return prevCellAvailable;
+      },
+      focusNextCell() {
+        const nextCellAvailable =
+          cellRef.current?.nextElementSibling instanceof HTMLElement &&
+          cellRef.current?.nextElementSibling.tabIndex > -1;
+
+        requestAnimationFrame(() => {
+          if (nextCellAvailable) {
+            (cellRef.current?.nextElementSibling as HTMLElement).focus();
+            dispatch({ type: 'DESELECT' });
+          }
+        });
+
+        return nextCellAvailable;
+      },
     }),
-    [focusNextCell, focusPrevCell, isEditing, isSelected],
+    [isEditing, isSelected],
   );
 
   return (

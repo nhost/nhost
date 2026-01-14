@@ -151,7 +151,7 @@ export function NewProjectPageContent({
         <Box className="mx-auto my-64 max-w-full subpixel-antialiased">
           <div className="relative transform">
             <div className="mx-auto max-w-3xl text-center">
-              <Text variant="h1" className="text-center text-6xl font-semibold">
+              <Text variant="h1" className="text-center font-semibold text-6xl">
                 Organization Error
               </Text>
               <Text className="mt-2">
@@ -303,7 +303,7 @@ export function NewProjectPageContent({
                   {option.disabled && (
                     <Text
                       variant="subtitle2"
-                      className="absolute right-4 top-1/2 -translate-y-1/2"
+                      className="absolute top-1/2 right-4 -translate-y-1/2"
                     >
                       Disabled
                     </Text>

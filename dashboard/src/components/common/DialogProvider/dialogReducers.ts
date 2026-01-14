@@ -17,7 +17,8 @@ export interface DialogState {
   activeDialog?: ReactElement<{
     location?: 'drawer' | 'dialog';
     onCancel?: () => void;
-    onSubmit?: (args?: any) => Promise<any> | void;
+    // biome-ignore lint/suspicious/noExplicitAny: TODO
+    onSubmit?: (args?: any) => Promise<any> | undefined;
   }>;
   /**
    * Props passed to the currently active dialog.
@@ -27,6 +28,7 @@ export interface DialogState {
    * Custom payload to be passed to the currently active dialog. This is the
    * data needed by the active dialog.
    */
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   payload?: any;
 }
 

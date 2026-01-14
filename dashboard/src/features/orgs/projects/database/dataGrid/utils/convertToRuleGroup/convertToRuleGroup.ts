@@ -3,6 +3,7 @@ import type {
   RuleGroup,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 
+// biome-ignore lint/suspicious/noExplicitAny: TODO
 function createNestedObject(pathParts: string[], value: any) {
   const [currentPath, ...restPath] = pathParts;
 
@@ -55,6 +56,7 @@ const negatedValueOperatorPairs: Record<HasuraOperator, HasuraOperator> = {
 };
 
 export default function convertToRuleGroup(
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   hasuraPermissions: Record<string, any>,
   options?: {
     previousKey?: string;
@@ -208,46 +210,49 @@ export default function convertToRuleGroup(
   }
 
   if (currentKey === '_or' || currentKey === '_and') {
-    return value
-      .map((permissionObject: ArrayLike<string> | Record<string, any>) =>
-        convertToRuleGroup(permissionObject, {
-          ...options,
-          isNested: true,
-        }),
-      )
-      .reduce(
-        (accumulator: RuleGroup, rule: RuleGroup) => {
-          if (!('rules' in rule) && !('groups' in rule)) {
+    return (
+      value
+        // biome-ignore lint/suspicious/noExplicitAny: TODO
+        .map((permissionObject: ArrayLike<string> | Record<string, any>) =>
+          convertToRuleGroup(permissionObject, {
+            ...options,
+            isNested: true,
+          }),
+        )
+        .reduce(
+          (accumulator: RuleGroup, rule: RuleGroup) => {
+            if (!('rules' in rule) && !('groups' in rule)) {
+              return {
+                ...accumulator,
+                unsupported: [...(accumulator.unsupported || []), rule],
+              };
+            }
+
+            if (rule.rules.length > 1) {
+              return {
+                ...accumulator,
+                groups: [...(accumulator.groups || []), rule],
+              };
+            }
+
             return {
               ...accumulator,
-              unsupported: [...(accumulator.unsupported || []), rule],
+              rules: [...(accumulator.rules || []), ...rule.rules],
+              unsupported: [
+                ...(accumulator.unsupported || []),
+                ...(rule.unsupported || []),
+              ],
             };
-          }
-
-          if (rule.rules.length > 1) {
-            return {
-              ...accumulator,
-              groups: [...(accumulator.groups || []), rule],
-            };
-          }
-
-          return {
-            ...accumulator,
-            rules: [...(accumulator.rules || []), ...rule.rules],
-            unsupported: [
-              ...(accumulator.unsupported || []),
-              ...(rule.unsupported || []),
-            ],
-          };
-        },
-        {
-          operator: shouldNegate
-            ? negatedArrayOperatorPairs[currentKey]
-            : currentKey,
-          rules: [...(value?.rules || [])],
-          groups: [...(value?.groups || [])],
-        },
-      );
+          },
+          {
+            operator: shouldNegate
+              ? negatedArrayOperatorPairs[currentKey]
+              : currentKey,
+            rules: [...(value?.rules || [])],
+            groups: [...(value?.groups || [])],
+          },
+        )
+    );
   }
 
   if (typeof value !== 'object') {

@@ -69,8 +69,7 @@ export default function BasePermissionVariableForm({
                 event.target.value &&
                 !/^[a-zA-Z-]+$/gi.test(event.target.value)
               ) {
-                // we need to prevent invalid characters from being entered
-                // eslint-disable-next-line no-param-reassign
+                // biome-ignore lint/style/noParameterAssign: we need to prevent invalid characters from being entered
                 event.target.value = event.target.value.replace(
                   /[^a-zA-Z-]/gi,
                   '',
@@ -101,8 +100,7 @@ export default function BasePermissionVariableForm({
                 event.target.value &&
                 !/^[a-zA-Z-_.[\]]+$/gi.test(event.target.value)
               ) {
-                // we need to prevent invalid characters from being entered
-                // eslint-disable-next-line no-param-reassign
+                // biome-ignore lint/style/noParameterAssign: we need to prevent invalid characters from being entered
                 event.target.value = event.target.value.replace(
                   /[^a-zA-Z-.[\]]/gi,
                   '',

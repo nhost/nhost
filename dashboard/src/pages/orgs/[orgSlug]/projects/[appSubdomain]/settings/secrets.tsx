@@ -175,7 +175,7 @@ export default function SecretsPage() {
                         <Dropdown.Trigger
                           asChild
                           hideChevron
-                          className="absolute right-4 top-1/2 -translate-y-1/2"
+                          className="absolute top-1/2 right-4 -translate-y-1/2"
                         >
                           <IconButton
                             variant="borderless"

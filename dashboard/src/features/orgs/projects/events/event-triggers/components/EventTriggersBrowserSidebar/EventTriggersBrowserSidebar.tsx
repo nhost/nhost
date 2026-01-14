@@ -7,17 +7,17 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/v3/accordion';
-import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { CreateEventTriggerForm } from '@/features/orgs/projects/events/event-triggers/components/CreateEventTriggerForm';
 import { useGetEventTriggers } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventTriggers';
 import type { EventTriggerViewModel } from '@/features/orgs/projects/events/event-triggers/types';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { Database, InfoIcon } from 'lucide-react';
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 import EventTriggerListItem from './EventTriggerListItem';
 import EventTriggersBrowserSidebarSkeleton from './EventTriggersBrowserSidebarSkeleton';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { useEffect, useState } from 'react';
 
 export interface EventTriggersBrowserSidebarProps {
   className?: string;
@@ -53,8 +53,10 @@ function EventTriggersBrowserSidebarContent() {
   >((acc, eventTrigger) => {
     const key = eventTrigger.dataSource;
     if (!acc[key]) {
+      // biome-ignore lint/style/noParameterAssign: Disabled to avoid spread operator performance overhead in reduce.
       acc[key] = [];
     }
+    // biome-ignore lint/style/noParameterAssign: Disabled to avoid spread operator performance overhead in reduce.
     acc[key] = [...acc[key], eventTrigger];
     return acc;
   }, {});
@@ -68,53 +70,65 @@ function EventTriggersBrowserSidebarContent() {
   }
 
   return (
-    <div className="flex h-full w-full flex-col px-2">
+    <div className="flex h-full flex-col px-2">
       {isGitHubConnected && (
         <div className="box mt-1.5 flex items-center gap-2 px-2">
           <InfoIcon className="size-6" />
-          <p className="text-xs text-disabled">
+          <p className="text-disabled text-xs">
             GitHub connected - use the CLI for event trigger changes
           </p>
         </div>
       )}
-      <div className="flex flex-row items-center justify-between">
-        <CreateEventTriggerForm disabled={isGitHubConnected} />
-      </div>
-      <div className="pb-0">
-        <div className="flex flex-row gap-2">
-          <Accordion
-            type="multiple"
-            className="w-full px-1"
-            defaultValue={['default']}
-          >
-            {Object.entries(eventTriggersByDataSource ?? {}).map(
-              ([dataSource, eventTriggers]) => (
-                <AccordionItem
-                  key={dataSource}
-                  value={dataSource}
-                  id={dataSource}
-                >
-                  <AccordionTrigger className="flex-row-reverse justify-end gap-2 text-sm+ [&[data-state=closed]>svg:last-child]:-rotate-90 [&[data-state=open]>svg:last-child]:rotate-0">
-                    <div className="flex flex-row-reverse items-center gap-2">
-                      {dataSource}
-                      <Database className="size-4 !rotate-0" />
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent className="flex flex-col gap-1 text-balance pl-4">
-                    {eventTriggers.map((eventTrigger) => (
-                      <EventTriggerListItem
-                        key={eventTrigger.name}
-                        eventTrigger={eventTrigger}
-                        isViewOnly={isGitHubConnected}
-                      />
-                    ))}
-                  </AccordionContent>
-                </AccordionItem>
-              ),
-            )}
-          </Accordion>
-        </div>
-      </div>
+      <Accordion
+        type="multiple"
+        defaultValue={['event-triggers']}
+        className="w-full"
+      >
+        <AccordionItem value="event-triggers" id="event-triggers">
+          <div className="flex flex-row items-center justify-between">
+            <div className="flex-row justify-end gap-2 font-semibold text-sm+">
+              Event Triggers ({eventTriggersData?.length ?? 0})
+            </div>
+            <CreateEventTriggerForm disabled={isGitHubConnected} />
+          </div>
+          <div className="pb-0">
+            <div className="flex flex-row gap-2">
+              <Accordion
+                type="single"
+                collapsible
+                className="w-full"
+                defaultValue="default"
+              >
+                {Object.entries(eventTriggersByDataSource ?? {}).map(
+                  ([dataSource, eventTriggers]) => (
+                    <AccordionItem
+                      key={dataSource}
+                      value={dataSource}
+                      id={dataSource}
+                    >
+                      <AccordionTrigger className="flex-row-reverse justify-end gap-2 text-sm+ [&[data-state=closed]>svg:last-child]:-rotate-90 [&[data-state=open]>svg:last-child]:rotate-0">
+                        <div className="flex flex-row-reverse items-center gap-2">
+                          {dataSource}
+                          <Database className="!rotate-0 size-4" />
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="flex flex-col gap-1 text-balance pl-4">
+                        {eventTriggers.map((eventTrigger) => (
+                          <EventTriggerListItem
+                            key={eventTrigger.name}
+                            eventTrigger={eventTrigger}
+                            isViewOnly={isGitHubConnected}
+                          />
+                        ))}
+                      </AccordionContent>
+                    </AccordionItem>
+                  ),
+                )}
+              </Accordion>
+            </div>
+          </div>
+        </AccordionItem>
+      </Accordion>
     </div>
   );
 }
@@ -154,7 +168,7 @@ export default function EventTriggersBrowserSidebar({
     <>
       <Backdrop
         open={expanded}
-        className="absolute bottom-0 left-0 right-0 top-0 z-[34] sm:hidden"
+        className="absolute top-0 right-0 bottom-0 left-0 z-[34] sm:hidden"
         role="button"
         tabIndex={-1}
         onClick={() => setExpanded(false)}
@@ -170,7 +184,7 @@ export default function EventTriggersBrowserSidebar({
 
       <aside
         className={twMerge(
-          'absolute top-0 z-[35] h-full w-full overflow-auto border-r-1 pb-17 pt-2 motion-safe:transition-transform sm:relative sm:z-0 sm:h-full sm:pb-0 sm:pt-2.5 sm:transition-none',
+          'absolute top-0 z-[35] h-full w-full overflow-auto border-r-1 pt-2 pb-17 motion-safe:transition-transform sm:relative sm:z-0 sm:h-full sm:pt-2.5 sm:pb-0 sm:transition-none',
           expanded ? 'translate-x-0' : '-translate-x-full sm:translate-x-0',
           className,
         )}

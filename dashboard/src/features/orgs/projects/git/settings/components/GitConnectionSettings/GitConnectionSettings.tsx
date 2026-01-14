@@ -58,7 +58,7 @@ export default function GitConnectionSettings() {
       {!project?.githubRepository ? (
         <Button
           onClick={openGitHubModal}
-          className="col-span-5 grid grid-flow-col gap-1.5 xs:col-span-3 lg:col-span-2"
+          className="col-span-5 xs:col-span-3 grid grid-flow-col gap-1.5 lg:col-span-2"
           startIcon={<GitHubIcon className="h-4 w-4 self-center" />}
           disabled={maintenanceActive}
         >

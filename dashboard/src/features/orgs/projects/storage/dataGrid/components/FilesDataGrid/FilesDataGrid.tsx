@@ -93,7 +93,6 @@ const columns: (Column<StoredFile> & {
     Header: 'isUploaded',
     accessor: 'isUploaded',
     width: 100,
-    // eslint-disable-next-line react/prop-types
     Cell: ({ value }) => <ReadOnlyToggle checked={value} />,
     sortType: 'basic',
   },
@@ -213,20 +212,18 @@ export default function FilesDataGrid(props: FilesDataGridProps) {
     setCurrentOffset(nextOffset);
   }
 
-  // no-param-reassign is disabled in this function, because this is the only
-  // way to reset the file input's value after the file has been uploaded.
   async function handleFileUpload(event: ChangeEvent<HTMLInputElement>) {
     const [file] = event.target.files!;
 
     if (!file) {
-      // eslint-disable-next-line no-param-reassign
+      // biome-ignore lint/style/noParameterAssign: reset file input's value
       event.target.value = '';
 
       return;
     }
 
     if (!defaultBucket?.id) {
-      // eslint-disable-next-line no-param-reassign
+      // biome-ignore lint/style/noParameterAssign: reset file input's value
       event.target.value = '';
 
       triggerToast(
@@ -237,7 +234,7 @@ export default function FilesDataGrid(props: FilesDataGridProps) {
     }
 
     if (file.size > defaultBucket.maxUploadFileSize) {
-      // eslint-disable-next-line no-param-reassign
+      // biome-ignore lint/style/noParameterAssign: reset file input's value
       event.target.value = '';
 
       triggerToast(
@@ -295,7 +292,7 @@ export default function FilesDataGrid(props: FilesDataGridProps) {
       triggerToast(uploadError.message);
     }
 
-    // eslint-disable-next-line no-param-reassign
+    // biome-ignore lint/style/noParameterAssign: reset file input's value
     event.target.value = '';
   }
 

@@ -7,7 +7,7 @@ import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
-import { type AssistantFormValues } from '@/features/orgs/projects/ai/AssistantForm/AssistantForm';
+import type { AssistantFormValues } from '@/features/orgs/projects/ai/AssistantForm/AssistantForm';
 import { ArgumentsFormSection } from '@/features/orgs/projects/ai/AssistantForm/components/ArgumentsFormSection';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 

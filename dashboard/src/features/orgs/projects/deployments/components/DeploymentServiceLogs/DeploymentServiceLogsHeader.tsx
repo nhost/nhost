@@ -40,12 +40,13 @@ function DeploymentLogsHeader({ onSubmit, loading, from, to }: Props) {
 
   const service = watch('service');
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: need to call onSubmit when service changes
   useEffect(() => {
     onSubmit(getValues());
   }, [service, getValues, onSubmit]);
 
   return (
-    <Box className="h-[180px] w-full pb-5 pt-8">
+    <Box className="h-[180px] w-full pt-8 pb-5">
       <FormProvider {...form}>
         <div className="pb-4">
           <h3 className="text-2xl">Service Logs</h3>

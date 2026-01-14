@@ -19,10 +19,10 @@ export default function TransformedRequestBody() {
 
   try {
     args = buildTestWebhookTransformDTO({ formValues: values });
-  } catch (error) {
+  } catch (err) {
     buildArgsError =
-      error instanceof Error
-        ? error.message
+      err instanceof Error
+        ? err.message
         : 'Invalid sample input. Please enter a valid JSON string.';
 
     const sanitizedValues = {

@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/v2/Input';
 import { Option } from '@/components/ui/v2/Option';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
-import { type AssistantFormValues } from '@/features/orgs/projects/ai/AssistantForm/AssistantForm';
+import type { AssistantFormValues } from '@/features/orgs/projects/ai/AssistantForm/AssistantForm';
 import { useFieldArray, useFormContext, type Path } from 'react-hook-form';
 
 type AssistantFormPath = Path<AssistantFormValues>;
@@ -141,7 +141,6 @@ export default function ArgumentsFormSection({
                 </Box>
                 <ControlledSwitch
                   {...register(
-                    // @ts-ignore
                     `${nestedField}.${nestIndex}.arguments.${index}.required`,
                   )}
                   disabled={false}

@@ -134,11 +134,11 @@ function DateTimePicker({
             />
             <div className="flex flex-col justify-between">
               <div>
-                <div className="border-t border-border p-3">
+                <div className="border-border border-t p-3">
                   <TimePicker setDate={setDate} date={date} />
                 </div>
                 {withTimezone && (
-                  <div className="border-t border-border p-3">
+                  <div className="border-border border-t p-3">
                     <TimezoneSettings
                       dateTime={selectedDateInUTC}
                       onTimezoneChange={handleTimezoneChange}

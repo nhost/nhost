@@ -59,7 +59,7 @@ export default function DeleteOrg() {
     <div className="flex w-full flex-col rounded-md border border-destructive bg-background">
       <div className="flex w-full flex-col gap-2 border-b p-4 font-medium">
         <h3>Delete Organization</h3>
-        <p className="text-sm font-normal text-muted-foreground">
+        <p className="font-normal text-muted-foreground text-sm">
           Proceed with caution, as this action is irreversible and will
           permanently remove the organization.
         </p>
@@ -96,10 +96,9 @@ export default function DeleteOrg() {
                     setDeleteCheck1(Boolean(checked))
                   }
                 />
-                {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
                 <label
                   htmlFor="delete-check1"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  className="font-medium text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                 >
                   I&apos;m sure I want to delete this Organization
                 </label>
@@ -113,10 +112,9 @@ export default function DeleteOrg() {
                     setDeleteCheck2(Boolean(checked))
                   }
                 />
-                {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
                 <label
                   htmlFor="delete-check2"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  className="font-medium text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                 >
                   I understand this action cannot be undone
                 </label>

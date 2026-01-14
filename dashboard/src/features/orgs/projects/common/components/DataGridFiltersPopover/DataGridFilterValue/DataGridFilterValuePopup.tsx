@@ -24,7 +24,7 @@ function DataGridFilterValuePopup({
   }
 
   return (
-    <div className="absolute right-1 top-1">
+    <div className="absolute top-1 right-1">
       <Popover>
         <PopoverTrigger asChild>
           <Button

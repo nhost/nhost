@@ -1,6 +1,6 @@
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { cn } from '@/lib/utils';
-import { type PropsWithChildren, type ReactNode } from 'react';
+import type { PropsWithChildren, ReactNode } from 'react';
 
 interface Props {
   title?: string;
@@ -15,7 +15,7 @@ function InfoAlert({
   borderLess = false,
 }: PropsWithChildren<Props>) {
   const alertClassNames = cn('bg-[#ebf3ff] dark:bg-muted', {
-    'flex gap-2 items-center': !!icon,
+    'flex items-center gap-2': !!icon,
     'border-none': borderLess,
   });
 

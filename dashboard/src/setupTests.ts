@@ -13,7 +13,7 @@ const ResizeObserverMock = vi.fn(() => ({
 // Stub the global ResizeObserver
 vi.stubGlobal('ResizeObserver', ResizeObserverMock);
 
-// @ts-ignore
+// @ts-expect-error
 global.fetch = fetch;
 
 expect.extend(matchers);

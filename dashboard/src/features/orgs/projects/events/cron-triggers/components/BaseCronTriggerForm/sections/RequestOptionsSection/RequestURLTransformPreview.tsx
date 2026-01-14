@@ -17,7 +17,7 @@ export default function RequestURLTransformPreview() {
         args: buildTestWebhookTransformDTO({ formValues }),
         argsError: null,
       };
-    } catch (error) {
+    } catch (err) {
       return {
         args: {
           webhook_url: '',
@@ -27,8 +27,8 @@ export default function RequestURLTransformPreview() {
           session_variables: {},
         } satisfies TestWebhookTransformArgs,
         argsError:
-          error instanceof Error
-            ? error
+          err instanceof Error
+            ? err
             : new Error('Failed to build test webhook transform arguments.'),
       };
     }
@@ -75,12 +75,12 @@ export default function RequestURLTransformPreview() {
 
   return (
     <div className="flex flex-col gap-2">
-      <h3 className="text-sm font-medium text-foreground">
+      <h3 className="font-medium text-foreground text-sm">
         URL transform preview
         {showLoading ? ' (loading...)' : ''}
       </h3>
       <div className="relative max-w-lg">
-        <p className="rounded-md bg-muted-foreground/10 p-2 font-mono text-sm text-muted-foreground dark:bg-muted">
+        <p className="rounded-md bg-muted-foreground/10 p-2 font-mono text-muted-foreground text-sm dark:bg-muted">
           {url || '\u00A0'}
         </p>
         {showLoading && (
@@ -88,7 +88,7 @@ export default function RequestURLTransformPreview() {
         )}
         {errorMessage && (
           <div className="absolute inset-px flex items-center rounded-[5px] bg-background/90 px-2 backdrop-blur-sm">
-            <p className="text-sm text-destructive">{errorMessage}</p>
+            <p className="text-destructive text-sm">{errorMessage}</p>
           </div>
         )}
       </div>

@@ -21,11 +21,11 @@ export interface RemoveApplicationModalProps {
   /**
    * Call this function to imperatively close the modal.
    */
-  close: any;
+  close: () => unknown;
   /**
    * A custom function to be run instead of the own handle function defined by the component.
    */
-  handler?: any;
+  handler?: () => unknown;
   /**
    * The title of the modal.
    */
@@ -84,7 +84,7 @@ export default function RemoveApplicationModal({
           appID: project?.id,
         },
       });
-    } catch (error) {
+    } catch {
       await discordAnnounce(`Error trying to delete project: ${appName}`);
     }
     close();

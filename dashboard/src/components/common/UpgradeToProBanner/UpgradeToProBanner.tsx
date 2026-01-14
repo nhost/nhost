@@ -9,7 +9,7 @@ import { useState } from 'react';
 import { OpenTransferDialogButton } from '@/components/common/OpenTransferDialogButton';
 
 import Image from 'next/image';
-import { type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 interface UpgradeToProBannerProps {
   title: string;
@@ -32,7 +32,7 @@ export default function UpgradeToProBanner({
     >
       <div className="flex flex-col justify-between space-y-4">
         <div className="space-y-2">
-          <div className="flex flex-col space-y-2 xs:flex-row xs:space-x-2 xs:space-y-0">
+          <div className="flex xs:flex-row flex-col xs:space-x-2 space-y-2 xs:space-y-0">
             <Text>Available with</Text>
             <div className="flex flex-row space-x-2">
               <NhostIcon />

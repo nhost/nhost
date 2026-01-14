@@ -40,7 +40,7 @@ const LogsServiceFilter = forwardRef<HTMLButtonElement, LogsServiceFilterProps>(
       ];
 
       return options.map(({ value, label }) => (
-        <Option key={value} value={value} className="text-sm+ font-medium">
+        <Option key={value} value={value} className="font-medium text-sm+">
           {label}
         </Option>
       ));
@@ -50,7 +50,7 @@ const LogsServiceFilter = forwardRef<HTMLButtonElement, LogsServiceFilterProps>(
       <ControlledSelect
         {...selectProps}
         ref={ref}
-        className="w-full min-w-fit text-sm font-normal"
+        className="w-full min-w-fit font-normal text-sm"
         placeholder="All Services"
         aria-label="Select service"
         hideEmptyHelperText

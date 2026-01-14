@@ -19,10 +19,9 @@ function StartRestoreConfirmationCheck({
     <div>
       <div className="flex items-center space-x-2 pb-3">
         <Checkbox id={id} checked={checked} onCheckedChange={onCheckedChange} />
-        {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
         <label
           htmlFor={id}
-          className="text-sm font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          className="font-medium text-sm peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
         >
           {label}
         </label>

@@ -8,11 +8,11 @@ import type { ReactElement } from 'react';
 export default function NotFoundPage() {
   return (
     <Container className="grid h-screen max-w-2xl grid-flow-row place-content-center place-items-center gap-2 text-center">
-      <Text variant="h1" className="text-6xl font-semibold">
+      <Text variant="h1" className="font-semibold text-6xl">
         404
       </Text>
 
-      <Text className="font-display text-lg font-normal leading-6">
+      <Text className="font-display font-normal text-lg leading-6">
         Page Not Found
       </Text>
 

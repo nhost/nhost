@@ -73,7 +73,7 @@ export default function InvocationLogActionsCell({
           event_id: row.event_id,
         },
       });
-    } catch (error) {
+    } catch {
       toast.error(
         'Failed to redeliver event. Please try again.',
         getToastStyleProps(),

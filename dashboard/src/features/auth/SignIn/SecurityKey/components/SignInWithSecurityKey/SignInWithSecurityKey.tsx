@@ -17,7 +17,7 @@ function SignInWithSecurityKey() {
       <VerifyEmailDialog open={open} setOpen={setOpen} />
       <Button
         variant="ghost"
-        className="gap-2 !bg-white text-sm+ !text-black hover:ring-2 hover:ring-white hover:ring-opacity-50 disabled:!text-black disabled:!text-opacity-60"
+        className="!bg-white !text-black disabled:!text-black disabled:!text-opacity-60 gap-2 text-sm+ hover:ring-2 hover:ring-white hover:ring-opacity-50"
         disabled={disabled}
         onClick={signInWithSecurityKey}
       >

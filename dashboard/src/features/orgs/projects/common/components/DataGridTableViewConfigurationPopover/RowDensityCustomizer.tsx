@@ -9,7 +9,7 @@ function RowDensityCustomizer() {
     <div className="flex flex-col gap-4 pt-2">
       <div className="flex flex-col gap-4">
         <h4 className="font-medium leading-none">Density</h4>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-muted-foreground text-sm">
           Set row height across all tables
         </p>
       </div>

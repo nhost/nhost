@@ -21,8 +21,7 @@ export default function buildCronTriggerRequestTransformDTO(
   if (isNotEmptyValue(urlTemplate)) {
     requestTransform.url = `{{$base_url}}${urlTemplate}`;
   }
-
-  let queryParams;
+  let queryParams: Record<string, string> | null | string = null;
   if (
     formValues.requestOptionsTransform?.queryParams.queryParamsType ===
     'Key Value'
@@ -30,6 +29,7 @@ export default function buildCronTriggerRequestTransformDTO(
     const { queryParams: queryParamsList } =
       formValues.requestOptionsTransform.queryParams;
     queryParams = queryParamsList.reduce((acc, item) => {
+      // biome-ignore lint/style/noParameterAssign: Disabled to avoid spread operator performance overhead in reduce.
       acc[item.key] = item.value;
       return acc;
     }, {});
@@ -65,6 +65,7 @@ export default function buildCronTriggerRequestTransformDTO(
           action: 'x_www_form_urlencoded',
           form_template: requestBodyTransform.formTemplate.reduce(
             (acc, item) => {
+              // biome-ignore lint/style/noParameterAssign: Disabled to avoid spread operator performance overhead in reduce.
               acc[item.key] = item.value;
               return acc;
             },

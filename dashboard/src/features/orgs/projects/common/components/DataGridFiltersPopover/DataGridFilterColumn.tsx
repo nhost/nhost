@@ -42,8 +42,8 @@ function DataGrdiFitlerColumn({ value, index }: DataFilterColumnProps) {
         {columns.map((column) => (
           <SelectItem key={column.id} value={column.id}>
             {column.id}{' '}
-            <Badge className="rounded-sm+ bg-secondary p-1 text-[0.75rem] font-normal leading-[0.75]">
-              {/* TODO: https://github.com/nhost/nhost/issues/3728 */}
+            <Badge className="rounded-sm+ bg-secondary p-1 font-normal text-[0.75rem] leading-[0.75]">
+              {/* biome-ignore lint/suspicious/noExplicitAny: TODO: https://github.com/nhost/nhost/issues/3728  */}
               {(column as any).dataType}
             </Badge>
           </SelectItem>

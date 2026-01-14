@@ -35,7 +35,7 @@ export default function TriggerOperationsSection({
         {operations.map((operation) => (
           <span
             key={operation}
-            className="rounded bg-gray-200 px-2 py-1 text-xs text-gray-800 dark:bg-gray-600 dark:text-gray-200"
+            className="rounded bg-gray-200 px-2 py-1 text-gray-800 text-xs dark:bg-gray-600 dark:text-gray-200"
           >
             {operation}
           </span>

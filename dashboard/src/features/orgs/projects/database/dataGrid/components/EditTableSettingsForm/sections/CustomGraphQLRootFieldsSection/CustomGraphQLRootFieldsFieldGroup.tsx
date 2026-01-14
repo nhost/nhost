@@ -27,7 +27,7 @@ export default function CustomGraphQLRootFieldsFieldGroup({
       key={key}
       className="grid grid-cols-[120px,minmax(0,0.8fr),minmax(0,1fr)] items-center gap-3 bg-background px-4 py-3"
     >
-      <span className="text-sm font-medium text-foreground">{fieldLabel}</span>
+      <span className="font-medium text-foreground text-sm">{fieldLabel}</span>
       <FormInput
         disabled={disabled}
         control={form.control}

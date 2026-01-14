@@ -1,31 +1,28 @@
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/v3/dialog';
 import { FinishOrganizationProcess } from '@/features/orgs/components/common/FinishOrganizationProcess';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
+import { useRemoveQueryParamsFromUrl } from '@/hooks/useRemoveQueryParamsFromUrl';
 import { analytics } from '@/lib/segment';
 import { useRouter } from 'next/router';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 function FinishUpgradeOrganizationProcess() {
   const { refetch: refetchOrg, org } = useCurrentOrg();
   const [open, setOpen] = useState(false);
   const [hideCloseButton, setHideCloseButton] = useState(true);
-  const { query, isReady: isRouterReady, replace, pathname } = useRouter();
-  const { session_id, ...remainingQuery } = query;
+  const { query, isReady: isRouterReady } = useRouter();
+  const { session_id } = query;
 
-  const removeSessionIdFromQuery = useCallback(() => {
-    replace({ pathname, query: remainingQuery }, undefined, {
-      shallow: true,
-    });
-  }, [replace, remainingQuery, pathname]);
+  const removeQueryParamsFromUrl = useRemoveQueryParamsFromUrl();
 
   useEffect(() => {
     if (session_id && isRouterReady) {
       setOpen(true);
     }
-  }, [session_id, setOpen, isRouterReady]);
+  }, [session_id, isRouterReady]);
 
   async function handleOnCompleted() {
-    removeSessionIdFromQuery();
+    removeQueryParamsFromUrl('session_id');
     const result = await refetchOrg();
     const updatedOrg = result?.data?.organizations?.[0];
     setOpen(false);

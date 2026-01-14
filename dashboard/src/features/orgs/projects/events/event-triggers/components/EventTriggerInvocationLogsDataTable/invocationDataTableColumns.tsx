@@ -3,7 +3,7 @@ import { TextWithTooltip } from '@/features/orgs/projects/common/components/Text
 import { HttpStatusText } from '@/features/orgs/projects/events/common/components/HttpStatusText';
 import { SortableHeader } from '@/features/orgs/projects/events/common/components/SortableHeader';
 import type { EventInvocationLogEntry } from '@/utils/hasura-api/generated/schemas/eventInvocationLogEntry';
-import { type ColumnDef } from '@tanstack/react-table';
+import type { ColumnDef } from '@tanstack/react-table';
 import InvocationLogActionsCell from './InvocationLogActionsCell';
 
 const columns: ColumnDef<EventInvocationLogEntry>[] = [

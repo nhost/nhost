@@ -83,6 +83,7 @@ export default async function managePermissionMigration({
     },
   };
 
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   let args: { up: any[]; down: any[] } = {
     up: [],
     down: [],

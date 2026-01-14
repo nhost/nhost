@@ -52,7 +52,7 @@ export default function ImageField({
           <Box className="flex flex-col gap-1 md:flex-row md:gap-0">
             <Text
               as="span"
-              className="mt-0 py-2 pl-[10px] pr-1 md:whitespace-nowrap"
+              className="mt-0 py-2 pr-1 pl-[10px] md:whitespace-nowrap"
               sx={{
                 color: theme.palette.grey[600],
                 borderColor: theme.palette.grey[400],

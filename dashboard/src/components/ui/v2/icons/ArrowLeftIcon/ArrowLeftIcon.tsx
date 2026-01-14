@@ -11,6 +11,7 @@ function ArrowLeftIcon(props: IconProps) {
       aria-label="An arrow pointing to the left"
       {...props}
     >
+      <title>Arrow Left Icon</title>
       <path
         d="M13.5 8h-11M7 3.5 2.5 8 7 12.5"
         stroke="currentColor"

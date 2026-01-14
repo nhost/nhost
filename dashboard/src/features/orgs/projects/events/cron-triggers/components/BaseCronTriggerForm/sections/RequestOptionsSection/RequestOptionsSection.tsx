@@ -45,7 +45,7 @@ export default function RequestOptionsSection({
           render={({ field }) => (
             <div className="flex flex-col gap-4 lg:flex-row">
               <div className="space-y-2">
-                <h4 className="text-sm font-medium text-foreground">
+                <h4 className="font-medium text-foreground text-sm">
                   Request Method
                 </h4>
               </div>
@@ -113,7 +113,7 @@ export default function RequestOptionsSection({
           render={({ field }) => (
             <div className="flex flex-col gap-4 lg:flex-row">
               <div className="space-y-2">
-                <h4 className="text-sm font-medium text-foreground">
+                <h4 className="font-medium text-foreground text-sm">
                   Query params type
                 </h4>
               </div>

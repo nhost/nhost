@@ -33,13 +33,11 @@ test('should show the navtree with all links visible', async ({
     'Settings',
   ];
 
-  // eslint-disable-next-line no-restricted-syntax
   for (const linkName of links) {
     const link =
       linkName === 'Settings'
         ? page.getByRole('link', { name: linkName }).first()
         : page.getByRole('link', { name: linkName });
-    // eslint-disable-next-line no-await-in-loop
     await expect(link).toBeVisible();
   }
 });

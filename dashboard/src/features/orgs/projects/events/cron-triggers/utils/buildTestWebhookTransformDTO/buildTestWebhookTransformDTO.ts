@@ -19,6 +19,7 @@ export default function buildTestWebhookTransformDTO({
   }
 
   const env = formValues.sampleContext.reduce((acc, item) => {
+    // biome-ignore lint/style/noParameterAssign: Disabled to avoid spread operator performance overhead in reduce.
     acc[item.key] = item.value;
     return acc;
   }, {});

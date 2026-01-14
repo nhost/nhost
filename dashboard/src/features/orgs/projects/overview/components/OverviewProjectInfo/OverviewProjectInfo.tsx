@@ -32,7 +32,7 @@ export default function OverviewProjectInfo() {
                     height={12}
                   />
 
-                  <Text className="truncate text-sm font-medium">
+                  <Text className="truncate font-medium text-sm">
                     {project.region.city} ({project.region.name})
                   </Text>
                 </div>

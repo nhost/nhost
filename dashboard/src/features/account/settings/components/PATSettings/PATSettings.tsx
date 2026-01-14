@@ -116,7 +116,7 @@ export default function PATSettings() {
         footer: { className: 'hidden' },
       }}
     >
-      <Box className="grid grid-cols-3 gap-2 border-b-1 py-3 pl-4 pr-12">
+      <Box className="grid grid-cols-3 gap-2 border-b-1 py-3 pr-12 pl-4">
         <Text className="font-medium">Name</Text>
         <Text className="font-medium">Expires at</Text>
         <Text className="font-medium">Created at</Text>
@@ -137,7 +137,7 @@ export default function PATSettings() {
                         <Dropdown.Trigger
                           asChild
                           hideChevron
-                          className="absolute right-4 top-1/2 -translate-y-1/2"
+                          className="absolute top-1/2 right-4 -translate-y-1/2"
                         >
                           <IconButton
                             variant="borderless"

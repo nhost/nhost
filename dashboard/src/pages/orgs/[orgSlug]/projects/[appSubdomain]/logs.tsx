@@ -32,7 +32,7 @@ export default function LogsPage() {
     async (values: LogsFilterFormValues) => {
       setFilters({ ...(values as LogsFilters) });
     },
-    [setFilters],
+    [],
   );
 
   return (

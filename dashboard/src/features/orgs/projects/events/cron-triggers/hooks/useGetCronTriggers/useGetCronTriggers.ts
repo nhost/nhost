@@ -38,7 +38,7 @@ export default function useGetCronTriggers({
         'hasura',
       );
 
-      const adminSecret = project?.config?.hasura.adminSecret!;
+      const adminSecret = project!.config!.hasura.adminSecret;
 
       return getCronTriggers({
         appUrl,

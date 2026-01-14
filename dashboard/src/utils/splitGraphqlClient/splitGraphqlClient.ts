@@ -14,7 +14,7 @@ const getAuthHeaders = async () => {
   // add headers
   const session = await nhost.refreshSession(60);
   const token = session?.accessToken;
-  const resHeaders: any = {
+  const resHeaders: Record<string, string> = {
     'Sec-WebSocket-Protocol': 'graphql-ws',
   };
 

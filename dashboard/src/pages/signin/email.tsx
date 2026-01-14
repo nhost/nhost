@@ -8,10 +8,10 @@ function SigninPage() {
   return (
     <div className="grid gap-12 font-[Inter]">
       <div className="text-center">
-        <h1 className="mb-3 text-3.5xl font-semibold lg:text-4.5xl">
+        <h1 className="mb-3 font-semibold text-3.5xl lg:text-4.5xl">
           Welcome back
         </h1>
-        <p className="mx-auto max-w-md text-lg text-[#A2B3BE]">
+        <p className="mx-auto max-w-md text-[#A2B3BE] text-lg">
           Continue building amazing things with Nhost
         </p>
       </div>

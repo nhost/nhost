@@ -115,9 +115,9 @@ export default function DatabaseRecordInputGroup({
 
   return (
     <section className={cn('box py-3 font-display', className)}>
-      {title && <h2 className="mb-1.5 mt-3 text-sm+ font-bold">{title}</h2>}
+      {title && <h2 className="mt-3 mb-1.5 font-bold text-sm+">{title}</h2>}
       {description && (
-        <p className="mb-3 text-xs text-secondary">{description}</p>
+        <p className="mb-3 text-secondary text-xs">{description}</p>
       )}
       <div>
         {columns.map(

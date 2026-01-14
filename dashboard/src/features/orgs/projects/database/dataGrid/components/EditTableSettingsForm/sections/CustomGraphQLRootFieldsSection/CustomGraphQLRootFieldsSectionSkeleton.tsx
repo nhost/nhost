@@ -9,10 +9,10 @@ export default function CustomGraphQLRootFieldsSectionSkeleton() {
       <div className="box grid grid-flow-row gap-4 overflow-hidden rounded-lg border-1 py-4">
         <div className="grid grid-flow-col place-content-between gap-3 px-4">
           <div className="grid grid-flow-row gap-1">
-            <h2 className="text-lg font-semibold">
+            <h2 className="font-semibold text-lg">
               Custom GraphQL Root Fields
             </h2>
-            <p className="text-sm+ text-muted-foreground">
+            <p className="text-muted-foreground text-sm+">
               Configure the root field names and optional comments exposed in
               your GraphQL API.
             </p>

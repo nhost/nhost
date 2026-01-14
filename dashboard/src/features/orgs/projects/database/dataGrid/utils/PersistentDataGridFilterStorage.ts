@@ -3,6 +3,7 @@ import { isEmptyValue } from '@/lib/utils';
 
 export const DATA_GRID_FILTER_STORAGE_KEY = 'nhost_data_grid_filter_storage';
 
+// biome-ignore lint/complexity/noStaticOnlyClass: TODO: use functions instead
 class PersistenDataGrdiFilterStorage {
   private static getAllStoredData(): Record<string, DataGridFilter[]> {
     const storedData = localStorage.getItem(DATA_GRID_FILTER_STORAGE_KEY);

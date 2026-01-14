@@ -19,6 +19,7 @@ describe('updateQuery', () => {
       };
 
       const result = updateQuery(prev, {
+        // biome-ignore lint/suspicious/noExplicitAny: test file
         subscriptionData: { data: null as any },
       });
 
@@ -31,6 +32,7 @@ describe('updateQuery', () => {
       };
 
       const result = updateQuery(prev, {
+        // biome-ignore lint/suspicious/noExplicitAny: test file
         subscriptionData: { data: undefined as any },
       });
 
@@ -41,6 +43,7 @@ describe('updateQuery', () => {
   describe('when previous logs are empty', () => {
     it('should return subscription data when prev.logs is null', () => {
       const prev: GetProjectLogsQuery = {
+        // biome-ignore lint/suspicious/noExplicitAny: test file
         logs: null as any,
       };
 
@@ -57,6 +60,7 @@ describe('updateQuery', () => {
 
     it('should return subscription data when prev.logs is undefined', () => {
       const prev: GetProjectLogsQuery = {
+        // biome-ignore lint/suspicious/noExplicitAny: test file
         logs: undefined as any,
       };
 

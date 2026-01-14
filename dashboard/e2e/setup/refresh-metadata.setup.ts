@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { TEST_PROJECT_ADMIN_SECRET, TEST_PROJECT_SUBDOMAIN } from '@/e2e/env';
 import { test as setup } from '@playwright/test';
 
@@ -34,18 +33,17 @@ setup('refresh metadata', async () => {
     if (!response.ok) {
       const message = `[${body.code}]:${body.error}`;
       throw new Error(message);
-    } else {
-      const isConsistent = body[0].is_consistent;
-      if (isConsistent) {
-        console.log('Metadata is consistent.');
-      } else {
-        console.error('Metadata is not consistent.');
-        console.error(body[0].inconsistent_objects);
-        throw new Error('Metadata is not consistent');
-      }
     }
+    const isConsistent = body[0].is_consistent;
+    if (isConsistent) {
+      console.info('Metadata is consistent.');
+    } else {
+      console.error('Metadata is not consistent.');
+      console.error(body[0].inconsistent_objects);
+      throw new Error('Metadata is not consistent');
+    }
+
   } catch (error) {
-    // Log safe error information
     console.error(
       'Failed to refresh metadata:',
       error instanceof Error ? error.message : 'Unknown error',

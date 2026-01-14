@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/suspicious/noExplicitAny: mock file */
 import { mockApplication } from '@/tests/mocks';
 import { HttpResponse } from 'msw';
 import nhostGraphQLLink from './nhostGraphQLLink';

@@ -15,7 +15,7 @@ function ConfirmDeleteAccountModal({
   close,
   onDelete,
 }: {
-  onDelete?: () => Promise<any>;
+  onDelete: () => Promise<unknown>;
   close: () => void;
 }) {
   const [remove, setRemove] = useState(false);

@@ -34,8 +34,6 @@ function DisableMfaButton() {
       );
       await refetch();
       setOpen(false);
-
-      return true;
     } finally {
       setIsDisabling(false);
     }
@@ -47,7 +45,7 @@ function DisableMfaButton() {
         <Button
           variant="outline"
           disabled={buttonDisabled}
-          className="p-y[0.375rem] h-9 gap-2 border-destructive px-2 text-destructive hover:bg-destructive"
+          className="h-9 gap-2 border-destructive p-y[0.375rem] px-2 text-destructive hover:bg-destructive"
         >
           Disable multi-factor authentication
         </Button>

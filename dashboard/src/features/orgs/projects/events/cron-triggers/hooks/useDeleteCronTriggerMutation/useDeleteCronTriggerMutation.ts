@@ -47,7 +47,7 @@ export default function useDeleteCronTriggerMutation({
         'hasura',
       );
 
-      const adminSecret = project?.config?.hasura.adminSecret!;
+      const adminSecret = project!.config!.hasura.adminSecret;
 
       return deleteCronTrigger({
         args: {

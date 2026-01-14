@@ -133,7 +133,7 @@ export default function RemoteSchemaRelationshipForm({
         className="flex flex-1 flex-col gap-4"
       >
         <div className="flex flex-col gap-4 px-6">
-          <h4 className="text-xl font-medium tracking-tight">Source</h4>
+          <h4 className="font-medium text-xl tracking-tight">Source</h4>
           <FormField
             control={form.control}
             name="name"
@@ -195,9 +195,9 @@ export default function RemoteSchemaRelationshipForm({
             <SourceTypeCombobox sourceTypes={sourceTypes} disabled={disabled} />
           </div>
         </div>
-        <div className="flex flex-row items-center justify-center gap-2 border-b-1 border-t-1 border-muted-foreground/20 py-4">
+        <div className="flex flex-row items-center justify-center gap-2 border-muted-foreground/20 border-t-1 border-b-1 py-4">
           <Anchor className="h-4 w-4" />
-          <h4 className="text-xl font-medium tracking-tight">Type Mapped To</h4>
+          <h4 className="font-medium text-xl tracking-tight">Type Mapped To</h4>
         </div>
         <div className="flex flex-col gap-4 px-6">
           <div className="flex flex-row gap-4">
@@ -215,7 +215,7 @@ export default function RemoteSchemaRelationshipForm({
             disabled={disabled}
           />
         </div>
-        <div className="mt-auto flex justify-between gap-2 border-t-1 border-foreground/20 px-6 pt-4">
+        <div className="mt-auto flex justify-between gap-2 border-foreground/20 border-t-1 px-6 pt-4">
           <Button
             type="button"
             variant="outline"

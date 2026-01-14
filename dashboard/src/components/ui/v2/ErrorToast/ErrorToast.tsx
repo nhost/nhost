@@ -17,7 +17,7 @@ interface ErrorDetails {
     userId: string;
     url?: string;
   };
-  error: any;
+  error: ApolloError | Error | object;
 }
 
 const getInternalErrorMessage = (
@@ -28,7 +28,7 @@ const getInternalErrorMessage = (
   }
 
   if (error.name === 'ApolloError') {
-    // @ts-ignore
+    // @ts-expect-error
     const graphqlError = error.graphQLErrors?.[0];
     const graphqlExtensionsError = graphqlError?.extensions?.internal
       ?.error as { message: string };
@@ -149,7 +149,7 @@ export default function ErrorToast({
                 <button
                   type="button"
                   aria-label="Copy error details"
-                  className="absolute right-2 top-2"
+                  className="absolute top-2 right-2"
                   onClick={(event) => {
                     event.stopPropagation();
                     copy(

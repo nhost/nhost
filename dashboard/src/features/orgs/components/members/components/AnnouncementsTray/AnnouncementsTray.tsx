@@ -120,7 +120,7 @@ export default function AnnouncementsTray() {
                   )}
                   <div className="flex w-full flex-row justify-between">
                     <div className="flex flex-col gap-1">
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-muted-foreground text-xs">
                         {formatDistance(
                           new Date(announcement.createdAt),
                           new Date(),

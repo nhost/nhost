@@ -12,6 +12,7 @@ import type {
 } from 'react-hook-form';
 
 interface RateLimitFieldProps {
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   register: UseFormRegister<any>;
   errors?: Merge<
     FieldError,

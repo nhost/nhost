@@ -189,6 +189,7 @@ interface GraphiQLEditorProps {
   /**
    * Function to be called when the user changes the headers.
    */
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   onHeaderChange: (headers: Record<string, any>) => void;
 }
 
@@ -203,6 +204,7 @@ function GraphiQLEditor({ onHeaderChange }: GraphiQLEditorProps) {
         }
 
         try {
+          // biome-ignore lint/suspicious/noExplicitAny: TODO
           const parsedHeaders: Record<string, any> = JSON.parse(headers);
 
           onHeaderChange(parsedHeaders);
@@ -229,6 +231,7 @@ const GraphQLPageContent = dynamic(
   () =>
     Promise.resolve(() => {
       const { project } = useProject();
+      // biome-ignore lint/suspicious/noExplicitAny: TODO
       const [userHeaders, setUserHeaders] = useState<Record<string, any>>({});
 
       if (!project?.subdomain || !project?.config?.hasura.adminSecret) {

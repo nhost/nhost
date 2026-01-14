@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/complexity/noImportantStyles: we need to override some third party CSS */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -129,7 +130,7 @@ body {
 
   /* Display/H2 */
 
-  font-family: Work Sans;
+  font-family: Work Sans sans-serif;
   font-style: normal;
   font-weight: bold;
   font-size: 56px;
@@ -161,12 +162,12 @@ body {
 }
 
 .noapps {
-  background: radial-gradient(
+  background:
+    radial-gradient(
       100% 100% at 100% 100%,
       #063799 0%,
       rgba(6, 55, 153, 0) 100%
-    ),
-    #0052cd;
+    ), #0052cd;
   /* Raised/Raised 2 */
 
   box-shadow:
@@ -191,7 +192,8 @@ body {
 
 .bg-checker-pattern {
   background-color: #feffff;
-  background-image: repeating-linear-gradient(
+  background-image:
+    repeating-linear-gradient(
       45deg,
       #f4f7f9 25%,
       transparent 25%,

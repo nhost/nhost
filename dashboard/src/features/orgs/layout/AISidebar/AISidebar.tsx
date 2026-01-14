@@ -70,13 +70,13 @@ export default function AISidebar({ className, ...props }: AISidebarProps) {
     setExpanded(false);
   }
 
-  function closeSidebarWhenEscapeIsPressed(event: KeyboardEvent) {
-    if (event.key === 'Escape') {
-      setExpanded(false);
-    }
-  }
-
   useEffect(() => {
+    function closeSidebarWhenEscapeIsPressed(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setExpanded(false);
+      }
+    }
+
     if (typeof document !== 'undefined') {
       document.addEventListener('keydown', closeSidebarWhenEscapeIsPressed);
     }
@@ -93,7 +93,7 @@ export default function AISidebar({ className, ...props }: AISidebarProps) {
     <>
       <Backdrop
         open={expanded}
-        className="absolute bottom-0 left-0 right-0 top-0 z-[34] md:hidden"
+        className="absolute top-0 right-0 bottom-0 left-0 z-[34] md:hidden"
         role="button"
         tabIndex={-1}
         onClick={() => setExpanded(false)}
@@ -110,7 +110,7 @@ export default function AISidebar({ className, ...props }: AISidebarProps) {
       <Box
         component="aside"
         className={twMerge(
-          'absolute top-0 z-[35] h-full w-full overflow-auto border-r-1 px-2 pb-17 pt-2 motion-safe:transition-transform md:relative md:z-0 md:h-full md:py-2.5 md:transition-none',
+          'absolute top-0 z-[35] h-full w-full overflow-auto border-r-1 px-2 pt-2 pb-17 motion-safe:transition-transform md:relative md:z-0 md:h-full md:py-2.5 md:transition-none',
           expanded ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
           className,
         )}

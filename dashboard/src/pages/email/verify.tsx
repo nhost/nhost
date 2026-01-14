@@ -6,7 +6,7 @@ import { Text } from '@/components/ui/v2/Text';
 import SendVerificationEmailForm from '@/features/auth/SignIn/SignInWithEmailAndPassword/components/SendVerificationEmailForm';
 import useResendVerificationEmail from '@/features/auth/SignIn/SignInWithEmailAndPassword/hooks/useResendVerificationEmail';
 import { useRouter } from 'next/router';
-import { type ReactElement } from 'react';
+import type { ReactElement } from 'react';
 
 export default function VerifyEmailPage() {
   const router = useRouter();
@@ -27,7 +27,7 @@ export default function VerifyEmailPage() {
       <Text
         variant="h2"
         component="h1"
-        className="text-center text-3.5xl font-semibold lg:text-4.5xl"
+        className="text-center font-semibold text-3.5xl lg:text-4.5xl"
       >
         Verify your email
       </Text>

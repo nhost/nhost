@@ -81,13 +81,13 @@ export default function DataGridDateCell<TData extends object>({
         onChange={handleChange}
         onKeyDown={handleKeyDown}
         wrapperClassName="absolute top-0 z-10 w-full top-0 left-0 h-full"
-        className="h-full w-full resize-none rounded-none border-none px-2 py-1.5 !text-xs outline-none focus-within:rounded-none focus-within:border-transparent focus-within:bg-white focus-within:shadow-[inset_0_0_0_1.5px_rgba(0,82,205,1)] focus:outline-none focus:ring-0 dark:focus-within:bg-theme-grey-200"
+        className="!text-xs h-full w-full resize-none rounded-none border-none px-2 py-1.5 outline-none focus-within:rounded-none focus-within:border-transparent focus-within:bg-white focus-within:shadow-[inset_0_0_0_1.5px_rgba(0,82,205,1)] focus:outline-none focus:ring-0 dark:focus-within:bg-theme-grey-200"
       />
     );
   }
 
   if (!optimisticValue) {
-    return <p className="truncate text-xs text-secondary">null</p>;
+    return <p className="truncate text-secondary text-xs">null</p>;
   }
 
   if (specificType === 'interval') {

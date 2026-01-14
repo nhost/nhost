@@ -42,7 +42,7 @@ export default function useGetEventTriggers({
         'hasura',
       );
 
-      const adminSecret = project?.config?.hasura.adminSecret!;
+      const adminSecret = project!.config!.hasura.adminSecret;
 
       return fetchExportMetadata({ appUrl, adminSecret });
     },

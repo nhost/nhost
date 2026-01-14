@@ -47,7 +47,7 @@ export default function RelationshipTableCell({
       const path = getRemoteFieldPath(definition.to_remote_schema.remote_field);
 
       return (
-        <span className="flex items-center gap-1 text-sm text-foreground">
+        <span className="flex items-center gap-1 text-foreground text-sm">
           <span className="truncate">{rsName}</span>
           <span className="px-1">/</span>
           {path.map((segment, index) => {
@@ -73,7 +73,7 @@ export default function RelationshipTableCell({
       ) as [string, string][];
 
       return (
-        <span className="flex items-center gap-1 text-sm text-foreground">
+        <span className="flex items-center gap-1 text-foreground text-sm">
           <span className="truncate">{tableName}</span>
           {fieldMappings.length > 0 ? <span className="px-1">/</span> : null}
           {fieldMappings.map(([sourceField, col], index) => (
@@ -98,7 +98,7 @@ export default function RelationshipTableCell({
 
   return (
     <div className="flex items-center gap-2">
-      <span className="flex items-center gap-1 text-sm text-muted-foreground">
+      <span className="flex items-center gap-1 text-muted-foreground text-sm">
         {lhsLeafs.map((leaf, index) => (
           <span key={`lhs-${relationship.name}-${leaf}`} className="truncate">
             {leaf}

@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/suspicious/noThenProperty: yup thing */
 import { Input } from '@/components/ui/v2/Input';
 import { useFormContext } from 'react-hook-form';
 import * as Yup from 'yup';

@@ -1,5 +1,5 @@
 import { FinishOrganizationProcess } from '@/features/orgs/components/common/FinishOrganizationProcess';
-import { type FinishOrgCreationOnCompletedCb } from '@/features/orgs/hooks/useFinishOrganizationProcess/useFinishOrganizationProcess';
+import type { FinishOrgCreationOnCompletedCb } from '@/features/orgs/hooks/useFinishOrganizationProcess/useFinishOrganizationProcess';
 
 interface Props {
   onCompleted: FinishOrgCreationOnCompletedCb;

@@ -60,7 +60,7 @@ export default function SelectOrganizationAndProject() {
     (base64Config: string) => {
       try {
         JSON.parse(atob(base64Config));
-      } catch (error) {
+      } catch {
         openAlertDialog({
           title: 'Configuration not set properly',
           payload:
@@ -134,7 +134,7 @@ export default function SelectOrganizationAndProject() {
   return (
     <div className="mx-auto flex h-full w-full flex-col items-start bg-background px-5 py-4">
       <div className="mx-auto flex h-full w-full max-w-[760px] flex-col gap-4 py-6 sm:py-14">
-        <h1 className="text-2xl font-medium">New Run Service</h1>
+        <h1 className="font-medium text-2xl">New Run Service</h1>
 
         <InfoCard
           title="Please select the project where you want to create the service"

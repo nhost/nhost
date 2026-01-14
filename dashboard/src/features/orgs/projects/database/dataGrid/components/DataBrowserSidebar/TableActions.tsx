@@ -111,7 +111,7 @@ function TableActions({
               <DropdownMenuItem
                 className={cn(
                   menuItemClassName,
-                  '!text-sm+ font-medium !text-destructive',
+                  '!text-sm+ !text-destructive font-medium',
                 )}
                 onClick={onDelete}
               >

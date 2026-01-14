@@ -14,13 +14,14 @@ import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { CreateUserForm } from '@/features/orgs/projects/authentication/users/components/CreateUserForm';
 import { UsersBody } from '@/features/orgs/projects/authentication/users/components/UsersBody';
 import { getUserRoles } from '@/features/orgs/projects/roles/settings/utils/getUserRoles';
+import { useRemoveQueryParamsFromUrl } from '@/hooks/useRemoveQueryParamsFromUrl';
 import { isNotEmptyValue } from '@/lib/utils';
 import type { RemoteAppGetUsersAndAuthRolesQuery } from '@/utils/__generated__/graphql';
 import { useRemoteAppGetUsersAndAuthRolesQuery } from '@/utils/__generated__/graphql';
 import debounce from 'lodash.debounce';
-import Router, { useRouter } from 'next/router';
+import { useRouter } from 'next/router';
 import type { ChangeEvent, ReactElement } from 'react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 export type RemoteAppUser = Exclude<
   RemoteAppGetUsersAndAuthRolesQuery['users'][0],
@@ -41,6 +42,8 @@ export default function UsersPage() {
   const [currentPage, setCurrentPage] = useState(
     parseInt(router.query.page as string, 10) || 1,
   );
+
+  const removeQueryParamsFromUrl = useRemoveQueryParamsFromUrl();
 
   const offset = useMemo(() => currentPage - 1, [currentPage]);
 
@@ -81,41 +84,6 @@ export default function UsersPage() {
     variables: remoteAppGetUserVariables,
     client: remoteProjectGQLClient,
   });
-  /**
-   * This function will remove query params from the URL.
-   *
-   * @remarks This function is used when we want to update the URL query
-   * params without refreshing the page. For example if we want to remove
-   * the page query param from the URL when we are on the first page.
-   *
-   * @param removeList - List of query params we want to remove from the URL
-   */
-  const removeQueryParamsFromRouter = useCallback(
-    (removeList: string[] = []) => {
-      if (removeList.length > 0) {
-        removeList.forEach(
-          (param: string | number) => delete Router.query[param],
-        );
-      } else {
-        // Remove all
-        Object.keys(Router.query).forEach(
-          (param) => delete Router.query[param],
-        );
-      }
-      Router.replace(
-        {
-          pathname: Router.pathname,
-          query: Router.query,
-        },
-        undefined,
-        /**
-         * Do not refresh the page
-         */
-        { shallow: true },
-      );
-    },
-    [],
-  );
 
   /**
    * If a user of the app enters the users tab with a page query param of the following structure:
@@ -149,10 +117,10 @@ export default function UsersPage() {
    * e.g. `users?page=1` -> `users`
    */
   useEffect(() => {
-    if (currentPage === 1) {
-      removeQueryParamsFromRouter(['page']);
+    if (currentPage === 1 && isNotEmptyValue(router.query.page)) {
+      removeQueryParamsFromUrl('page');
     }
-  }, [currentPage, removeQueryParamsFromRouter]);
+  }, [currentPage, removeQueryParamsFromUrl, router.query.page]);
 
   /**
    * If the users enters the page with a page query param with the following structure:
@@ -276,9 +244,15 @@ export default function UsersPage() {
     isNotEmptyValue(
       dataRemoteAppUsersAndAuthRoles?.filteredUsersAggreggate.aggregate?.count,
     )
-      ? dataRemoteAppUsersAndAuthRoles?.filteredUsersAggreggate.aggregate?.count
+      ? dataRemoteAppUsersAndAuthRoles.filteredUsersAggreggate.aggregate.count
       : limit.current;
-
+  const totalNrOfElements =
+    searchString &&
+    isNotEmptyValue(
+      dataRemoteAppUsersAndAuthRoles?.filteredUsersAggreggate.aggregate?.count,
+    )
+      ? dataRemoteAppUsersAndAuthRoles.filteredUsersAggreggate.aggregate.count
+      : (dataRemoteAppUsersAndAuthRoles?.usersAggregate?.aggregate?.count ?? 0);
   return (
     <Container className="mx-auto max-w-9xl space-y-5 overflow-x-hidden">
       <div className="flex flex-row place-content-between">
@@ -329,7 +303,7 @@ export default function UsersPage() {
           </div>
         </Box>
       ) : (
-        <div className="lg:w-9xl grid grid-flow-row gap-2">
+        <div className="grid grid-flow-row gap-2 lg:w-9xl">
           <div className="grid h-full w-full grid-flow-row overflow-hidden pb-4">
             <Box className="grid w-full border-b p-2 md:grid-cols-6">
               <Text className="font-medium md:col-span-2">Name</Text>
@@ -369,13 +343,7 @@ export default function UsersPage() {
                   className="px-2"
                   totalNrOfPages={nrOfPages}
                   currentPageNumber={currentPage}
-                  totalNrOfElements={
-                    searchString
-                      ? dataRemoteAppUsersAndAuthRoles?.filteredUsersAggreggate
-                          .aggregate?.count!
-                      : dataRemoteAppUsersAndAuthRoles?.usersAggregate
-                          ?.aggregate?.count!
-                  }
+                  totalNrOfElements={totalNrOfElements}
                   itemsLabel="users"
                   elementsPerPage={elementsPerPage}
                   onPrevPageClick={async () => {

@@ -38,7 +38,7 @@ export default function useRedeliverEventMutation({
       'hasura',
     );
 
-    const adminSecret = project?.config?.hasura.adminSecret!;
+    const adminSecret = project!.config!.hasura.adminSecret;
 
     return redeliverEvent({
       args: variables.args,

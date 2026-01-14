@@ -20,7 +20,7 @@ const renderCreateEventTriggerButton = ({
 }: BaseEventTriggerFormTriggerProps) => (
   <Button
     variant="link"
-    className="mt-1 flex w-full justify-between px-[0.625rem] !text-sm+ text-primary hover:bg-accent hover:no-underline disabled:text-disabled"
+    className="!text-sm+ mt-1 flex w-full justify-between px-[0.625rem] text-primary hover:bg-accent hover:no-underline disabled:text-disabled"
     aria-label="Add event trigger"
     onClick={() => open()}
   >

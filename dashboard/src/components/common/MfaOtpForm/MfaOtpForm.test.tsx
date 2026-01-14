@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
 }));
 // Mock react-hot-toast
 vi.mock('react-hot-toast', async () => {
+  // biome-ignore lint/suspicious/noExplicitAny: Test file
   const actualToast = await vi.importActual<any>('react-hot-toast');
   return {
     ...actualToast,
@@ -39,6 +40,7 @@ describe('MfaOtpForm', () => {
     sendMfaOtp: mockSendMfaOtp,
     loading: false,
     requestNewMfaTicket: mockRequestNewMfaTicket,
+    // biome-ignore lint/suspicious/noExplicitAny: Test file
   } as any;
 
   describe('Rendering and Initial State', () => {
@@ -172,6 +174,7 @@ describe('MfaOtpForm', () => {
     });
 
     it('does not submit multiple times when already submitting', async () => {
+      // biome-ignore lint/suspicious/noExplicitAny: Test file
       let resolvePromise: (value: any) => void;
       const promise = new Promise((resolve) => {
         resolvePromise = resolve;
@@ -197,6 +200,7 @@ describe('MfaOtpForm', () => {
     });
 
     it('manages submission state properly', async () => {
+      // biome-ignore lint/suspicious/noExplicitAny: Test file
       let resolvePromise: (value: any) => void;
       const promise = new Promise((resolve) => {
         resolvePromise = resolve;
@@ -335,6 +339,7 @@ describe('MfaOtpForm', () => {
       const propsWithoutTicketRenewal = {
         sendMfaOtp: mockSendMfaOtp,
         loading: false,
+        // biome-ignore lint/suspicious/noExplicitAny: Test file
       } as any;
 
       mockSendMfaOtp.mockRejectedValueOnce({ message: 'Some error' });
@@ -432,6 +437,7 @@ describe('MfaOtpForm', () => {
     });
 
     it('does not submit multiple times when pressing Enter while submitting', async () => {
+      // biome-ignore lint/suspicious/noExplicitAny: Test file
       let resolvePromise: (value: any) => void;
       const promise = new Promise((resolve) => {
         resolvePromise = resolve;
@@ -477,6 +483,7 @@ describe('MfaOtpForm', () => {
     });
 
     it('prevents multiple rapid submissions', async () => {
+      // biome-ignore lint/suspicious/noExplicitAny: Test file
       let resolvePromise: (value: any) => void;
       const promise = new Promise((resolve) => {
         resolvePromise = resolve;

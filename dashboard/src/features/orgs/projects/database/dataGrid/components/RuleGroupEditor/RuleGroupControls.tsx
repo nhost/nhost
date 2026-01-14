@@ -69,7 +69,7 @@ export default function RuleGroupControls({
           </SelectContent>
         </Select>
       ) : (
-        <p className="p-2 !font-medium">
+        <p className="!font-medium p-2">
           {operatorDictionary[currentOperator]}
         </p>
       )}
