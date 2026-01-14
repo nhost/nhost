@@ -45,10 +45,11 @@ export default function useDatabaseQuery(
   const defaultDataSource = metadata?.sources?.find(
     (source) => source.name === 'default',
   );
-  const defaultDataSourceTables = defaultDataSource?.tables?.map((table) => ({
-    name: table.table.name,
-    schema: table.table.schema,
-  }));
+  const defaultDataSourceTables = new Set(
+    defaultDataSource?.tables?.map(
+      (table) => `${table.table.schema}.${table.table.name}`,
+    ) ?? [],
+  );
 
   const query = useQuery<FetchDatabaseReturnType>(
     queryKey,
@@ -76,10 +77,8 @@ export default function useDatabaseQuery(
       select: (data) => ({
         ...data,
         tables: data.tables?.filter((table) =>
-          defaultDataSourceTables?.some(
-            (defaultTable) =>
-              defaultTable.name === table.table_name &&
-              defaultTable.schema === table.table_schema,
+          defaultDataSourceTables.has(
+            `${table.table_schema}.${table.table_name}`,
           ),
         ),
       }),
