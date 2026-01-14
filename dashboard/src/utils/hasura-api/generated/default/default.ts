@@ -6,7 +6,6 @@
  * OpenAPI spec version: 1.0.0
  */
 
-
 import type { CustomFetchOptions } from '../../customFetch';
 import { customFetch } from '../../customFetch';
 import type {
