@@ -334,7 +334,13 @@ export default function ServiceForm({
             <Button
               type="submit"
               disabled={isSubmitting}
-              startIcon={serviceID ? <RefreshCwIcon /> : <PlusIcon />}
+              startIcon={
+                serviceID ? (
+                  <RefreshCwIcon width={16} height={16} />
+                ) : (
+                  <PlusIcon />
+                )
+              }
             >
               {serviceID ? 'Update' : 'Create'}
             </Button>

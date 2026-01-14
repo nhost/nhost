@@ -326,7 +326,13 @@ export default function AutoEmbeddingsForm({
           <Button
             type="submit"
             disabled={isSubmitting}
-            startIcon={autoEmbeddingsId ? <RefreshCwIcon /> : <PlusIcon />}
+            startIcon={
+              autoEmbeddingsId ? (
+                <RefreshCwIcon width={16} height={16} />
+              ) : (
+                <PlusIcon />
+              )
+            }
           >
             {autoEmbeddingsId ? 'Update' : 'Create'}
           </Button>

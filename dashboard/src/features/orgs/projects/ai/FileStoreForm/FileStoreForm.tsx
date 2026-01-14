@@ -72,9 +72,9 @@ export default function FileStoreForm({
 
   const bucketOptions = buckets
     ? buckets.buckets.map((bucket) => ({
-        label: bucket.id,
-        value: bucket.id,
-      }))
+      label: bucket.id,
+      value: bucket.id,
+    }))
     : [];
 
   const formDefaultValues = {
@@ -83,9 +83,9 @@ export default function FileStoreForm({
   };
   formDefaultValues.buckets = initialData?.buckets
     ? initialData.buckets.map((bucket) => ({
-        label: bucket,
-        value: bucket,
-      }))
+      label: bucket,
+      value: bucket,
+    }))
     : [];
 
   const form = useForm<FileStoreFormValues>({
@@ -209,7 +209,9 @@ export default function FileStoreForm({
           <Button
             type="submit"
             disabled={isSubmitting}
-            startIcon={id ? <RefreshCwIcon /> : <PlusIcon />}
+            startIcon={
+              id ? <RefreshCwIcon width={16} height={16} /> : <PlusIcon />
+            }
           >
             {id ? 'Update' : 'Create'}
           </Button>

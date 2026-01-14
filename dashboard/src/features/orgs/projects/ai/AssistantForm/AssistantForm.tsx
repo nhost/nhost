@@ -368,7 +368,13 @@ export default function AssistantForm({
           <Button
             type="submit"
             disabled={isSubmitting}
-            startIcon={assistantId ? <RefreshCwIcon /> : <PlusIcon />}
+            startIcon={
+              assistantId ? (
+                <RefreshCwIcon width={16} height={16} />
+              ) : (
+                <PlusIcon />
+              )
+            }
           >
             {assistantId ? 'Update' : 'Create'}
           </Button>

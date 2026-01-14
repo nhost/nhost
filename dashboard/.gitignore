@@ -57,3 +57,7 @@ storageState.json
 e2e/.auth/*
 
 .vitest
+
+
+# Opencode
+AGENTS.md
