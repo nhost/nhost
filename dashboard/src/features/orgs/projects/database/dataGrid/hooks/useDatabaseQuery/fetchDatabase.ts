@@ -19,6 +19,14 @@ export interface FetchDatabaseReturnType {
    */
   tables?: NormalizedQueryDataRow[];
   /**
+   * List of available materialized views in the database.
+   */
+  materializedViews?: NormalizedQueryDataRow[];
+  /**
+   * List of available table-returning functions in the database.
+   */
+  functions?: NormalizedQueryDataRow[];
+  /**
    * Response metadata.
    */
   // biome-ignore lint/suspicious/noExplicitAny: TODO
@@ -59,6 +67,30 @@ export default async function fetchDatabase({
             ' AND ',
           ),
         ),
+        getPreparedReadOnlyHasuraQuery(
+          dataSource,
+          `SELECT row_to_json(mv_data) as data FROM (SELECT schemaname as table_schema, matviewname as table_name, 'MATERIALIZED VIEW' as table_type FROM pg_matviews WHERE %s) mv_data ORDER BY table_name ASC`,
+          SYSTEM_TABLES.map(
+            (value) => `schemaname NOT LIKE '${value}'`,
+          ).join(' AND '),
+        ),
+        getPreparedReadOnlyHasuraQuery(
+          dataSource,
+          `SELECT row_to_json(func_data) as data FROM (
+            SELECT 
+              n.nspname as table_schema,
+              p.proname as table_name,
+              'FUNCTION' as table_type
+            FROM pg_proc p
+            JOIN pg_namespace n ON p.pronamespace = n.oid
+            WHERE n.nspname NOT LIKE 'pg_%'
+              AND n.nspname != 'information_schema'
+              AND p.prokind = 'f'
+              AND p.proretset = true
+            ORDER BY p.proname ASC
+          ) func_data`,
+          '',
+        ),
       ],
       type: 'bulk',
       version: 1,
@@ -83,6 +115,8 @@ export default async function fetchDatabase({
         return {
           schemas: [],
           tables: [],
+          materializedViews: [],
+          functions: [],
           metadata: { dataSource, databaseNotFound: true },
         };
       }
@@ -93,12 +127,20 @@ export default async function fetchDatabase({
 
   const [, ...rawSchemas] = responseData[0].result;
   const [, ...rawTables] = responseData[1].result;
+  const [, ...rawMaterializedViews] = responseData[2].result;
+  const [, ...rawFunctions] = responseData[3].result;
 
   return {
     schemas: rawSchemas.map((rawData) =>
       JSON.parse(rawData),
     ) as NormalizedQueryDataRow[],
     tables: rawTables.map((rawData) =>
+      JSON.parse(rawData),
+    ) as NormalizedQueryDataRow[],
+    materializedViews: rawMaterializedViews.map((rawData) =>
+      JSON.parse(rawData),
+    ) as NormalizedQueryDataRow[],
+    functions: rawFunctions.map((rawData) =>
       JSON.parse(rawData),
     ) as NormalizedQueryDataRow[],
   };
