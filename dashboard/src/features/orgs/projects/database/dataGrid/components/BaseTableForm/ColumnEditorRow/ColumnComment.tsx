@@ -1,3 +1,6 @@
+import { MessageSquare, MessageSquareText } from 'lucide-react';
+import type { KeyboardEvent } from 'react';
+import { useFormContext, useWatch } from 'react-hook-form';
 import { Button } from '@/components/ui/v3/button';
 import {
   Popover,
@@ -6,9 +9,6 @@ import {
 } from '@/components/ui/v3/popover';
 import { Textarea } from '@/components/ui/v3/textarea';
 import { isEmptyValue } from '@/lib/utils';
-import { MessageSquare, MessageSquareText } from 'lucide-react';
-import type { KeyboardEvent } from 'react';
-import { useFormContext, useWatch } from 'react-hook-form';
 
 interface ColumnCommentProps {
   index: number;

@@ -1,3 +1,7 @@
+import { yupResolver } from '@hookform/resolvers/yup';
+import { useEffect } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
@@ -12,10 +16,6 @@ import {
   useGetSignInMethodsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { useEffect } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
-import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
   enabled: Yup.boolean(),

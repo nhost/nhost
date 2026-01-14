@@ -1,10 +1,10 @@
+import type { ReactElement } from 'react';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { RemoteSchemaBrowserSidebar } from '@/features/orgs/projects/remote-schemas/components/RemoteSchemaBrowserSidebar';
 import { RemoteSchemaEmptyState } from '@/features/orgs/projects/remote-schemas/components/RemoteSchemaEmptyState';
 import { useGetRemoteSchemas } from '@/features/orgs/projects/remote-schemas/hooks/useGetRemoteSchemas';
-import type { ReactElement } from 'react';
 
 export default function RemoteSchemasPage() {
   const { data: remoteSchemas, isLoading } = useGetRemoteSchemas();

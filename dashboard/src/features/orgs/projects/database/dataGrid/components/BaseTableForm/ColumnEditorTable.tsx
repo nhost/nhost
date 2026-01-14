@@ -1,9 +1,9 @@
+import { useFieldArray, useFormState } from 'react-hook-form';
 import { Button } from '@/components/ui/v2/Button';
 import { HelperText } from '@/components/ui/v2/HelperText';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { InputLabel } from '@/components/ui/v2/InputLabel';
+import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { Text } from '@/components/ui/v2/Text';
-import { useFieldArray, useFormState } from 'react-hook-form';
 import { ColumnEditorRow } from './ColumnEditorRow';
 
 function ColumnErrorMessage() {

@@ -1,3 +1,4 @@
+import { useFormContext, useWatch } from 'react-hook-form';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { ArrowLeftIcon } from '@/components/ui/v2/icons/ArrowLeftIcon';
@@ -13,7 +14,6 @@ import {
 } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import type { ServiceFormValues } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
 import { isNotEmptyValue } from '@/lib/utils';
-import { useFormContext, useWatch } from 'react-hook-form';
 
 interface ComputeFormSectionProps {
   showTooltip?: boolean;

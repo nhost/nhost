@@ -1,3 +1,6 @@
+import type { DetailedHTMLProps, HTMLProps, PropsWithoutRef } from 'react';
+import { toast } from 'react-hot-toast';
+import { twMerge } from 'tailwind-merge';
 import { useDialog } from '@/components/common/DialogProvider';
 import { NavLink } from '@/components/common/NavLink';
 import { AccountMenu } from '@/components/layout/AccountMenu';
@@ -13,9 +16,6 @@ import { DevAssistant } from '@/features/orgs/projects/ai/DevAssistant';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { getToastStyleProps } from '@/utils/constants/settings';
-import type { DetailedHTMLProps, HTMLProps, PropsWithoutRef } from 'react';
-import { toast } from 'react-hot-toast';
-import { twMerge } from 'tailwind-merge';
 import BreadcrumbNav from './BreadcrumbNav';
 
 export interface HeaderProps

@@ -1,6 +1,6 @@
+import { describe, expect, it } from 'vitest';
 import type { EventTriggerViewModel } from '@/features/orgs/projects/events/event-triggers/types';
 import type { ExportMetadataResponseMetadata } from '@/utils/hasura-api/generated/schemas';
-import { describe, expect, it } from 'vitest';
 import parseEventTriggersFromMetadata from './parseEventTriggersFromMetadata';
 
 describe('parseEventTriggersFromMetadata', () => {

@@ -1,7 +1,7 @@
-import { render, screen, TestUserEvent } from '@/tests/testUtils';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { buildSchema } from 'graphql';
 import React from 'react';
+import { render, screen, TestUserEvent } from '@/tests/testUtils';
 import { RemoteSchemaTree, type RemoteSchemaTreeRef } from './RemoteSchemaTree';
 import { buildComplexTreeData } from './utils';
 

@@ -1,5 +1,6 @@
 import { Check, ChevronsUpDown } from 'lucide-react';
-
+import { useState } from 'react';
+import { useFormContext } from 'react-hook-form';
 import { Button } from '@/components/ui/v3/button';
 import {
   Command,
@@ -16,8 +17,6 @@ import {
 } from '@/components/ui/v3/popover';
 import type { HasuraOperator } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { cn } from '@/lib/utils';
-import { useState } from 'react';
-import { useFormContext } from 'react-hook-form';
 
 const commonOperators: {
   value: HasuraOperator;

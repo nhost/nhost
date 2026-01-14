@@ -1,3 +1,5 @@
+import Image from 'next/image';
+import type { ReactElement } from 'react';
 import { Container } from '@/components/layout/Container';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { Box } from '@/components/ui/v2/Box';
@@ -15,8 +17,6 @@ import {
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { copy } from '@/utils/copy';
 import { getHasuraConsoleServiceUrl } from '@/utils/env';
-import Image from 'next/image';
-import type { ReactElement } from 'react';
 
 export default function HasuraPage() {
   const { project, loading } = useProject();

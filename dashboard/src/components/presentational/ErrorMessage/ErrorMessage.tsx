@@ -1,9 +1,9 @@
+import type { DetailedHTMLProps, HTMLProps } from 'react';
+import { twMerge } from 'tailwind-merge';
 import type { AlertProps } from '@/components/ui/v2/Alert';
 import { Alert } from '@/components/ui/v2/Alert';
 import type { ButtonProps } from '@/components/ui/v2/Button';
 import { Button } from '@/components/ui/v2/Button';
-import type { DetailedHTMLProps, HTMLProps } from 'react';
-import { twMerge } from 'tailwind-merge';
 
 export type ErrorMessageProps = DetailedHTMLProps<
   HTMLProps<HTMLDivElement>,

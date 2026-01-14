@@ -1,6 +1,6 @@
-import { getDesignTokens } from '@/components/ui/v2/theme/getDesignTokens';
 import type { PaletteMode } from '@mui/material';
 import { createTheme as createMuiTheme } from '@mui/material/styles';
+import { getDesignTokens } from '@/components/ui/v2/theme/getDesignTokens';
 
 /**
  * Creates a Material UI theme for the specified color mode.

@@ -1,8 +1,8 @@
-import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
-import { render, screen, waitFor } from '@/tests/testUtils';
-import { HttpResponse, graphql } from 'msw';
+import { graphql, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 import { beforeAll, expect, test, vi } from 'vitest';
+import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
+import { render, screen, waitFor } from '@/tests/testUtils';
 import HasuraCorsDomainSettings from './HasuraCorsDomainSettings';
 
 const server = setupServer(

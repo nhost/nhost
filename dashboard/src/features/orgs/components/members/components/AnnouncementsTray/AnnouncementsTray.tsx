@@ -1,3 +1,6 @@
+import { formatDistance } from 'date-fns';
+import { EllipsisVertical, Megaphone } from 'lucide-react';
+import Link from 'next/link';
 import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
 import {
@@ -20,9 +23,6 @@ import {
   useGetAnnouncementsQuery,
   useInsertAnnouncementReadMutation,
 } from '@/utils/__generated__/graphql';
-import { formatDistance } from 'date-fns';
-import { EllipsisVertical, Megaphone } from 'lucide-react';
-import Link from 'next/link';
 
 export default function AnnouncementsTray() {
   const { isAuthenticated } = useAuth();

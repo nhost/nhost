@@ -1,10 +1,10 @@
-import type { LinkProps } from '@/components/ui/v2/Link';
-import { Link } from '@/components/ui/v2/Link';
-import type { MakeRequired } from '@/types/common';
 import NextLink from 'next/link';
 import type { ForwardedRef, PropsWithoutRef } from 'react';
 import { forwardRef } from 'react';
 import { twMerge } from 'tailwind-merge';
+import type { LinkProps } from '@/components/ui/v2/Link';
+import { Link } from '@/components/ui/v2/Link';
+import type { MakeRequired } from '@/types/common';
 
 export interface NavLinkProps
   extends MakeRequired<PropsWithoutRef<LinkProps>, 'href'> {

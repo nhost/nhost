@@ -1,3 +1,6 @@
+import { useMemo } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
 import * as useProject from '@/features/orgs/projects/hooks/useProject';
 import {
   mockPointerEvent,
@@ -6,9 +9,6 @@ import {
   TestUserEvent,
   waitFor,
 } from '@/tests/testUtils';
-import { useMemo } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
-import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import RuleValueInput from './RuleValueInput';
 import * as useRuleGroupEditor from './useRuleGroupEditor';
 

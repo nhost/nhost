@@ -1,7 +1,7 @@
+import { startAuthentication } from '@simplewebauthn/browser';
 import { useUserData } from '@/hooks/useUserData';
 import { isNotEmptyValue } from '@/lib/utils';
 import { useNhostClient } from '@/providers/nhost';
-import { startAuthentication } from '@simplewebauthn/browser';
 
 function useElevateEmail() {
   const nhost = useNhostClient();

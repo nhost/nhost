@@ -1,3 +1,5 @@
+import { Plus } from 'lucide-react';
+import { useRouter } from 'next/router';
 import { Button } from '@/components/ui/v3/button';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import {
@@ -8,8 +10,6 @@ import type { BaseEventTriggerFormValues } from '@/features/orgs/projects/events
 import { useCreateEventTriggerMutation } from '@/features/orgs/projects/events/event-triggers/hooks/useCreateEventTriggerMutation';
 import { buildEventTriggerDTO } from '@/features/orgs/projects/events/event-triggers/utils/buildEventTriggerDTO';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { Plus } from 'lucide-react';
-import { useRouter } from 'next/router';
 
 interface CreateEventTriggerFormProps {
   disabled: boolean;

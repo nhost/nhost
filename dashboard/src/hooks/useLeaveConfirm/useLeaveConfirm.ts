@@ -1,6 +1,6 @@
-import { useDialog } from '@/components/common/DialogProvider';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
+import { useDialog } from '@/components/common/DialogProvider';
 
 export interface UseLeaveConfirmProps {
   /**

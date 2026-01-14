@@ -1,3 +1,4 @@
+import { type UseQueryOptions, useQuery } from '@tanstack/react-query';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { getScheduledEventInvocations } from '@/features/orgs/projects/events/common/api/getScheduledEventInvocations';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -7,7 +8,6 @@ import type {
   GetScheduledEventInvocationsArgs,
   GetScheduledEventInvocationsResponse,
 } from '@/utils/hasura-api/generated/schemas';
-import { useQuery, type UseQueryOptions } from '@tanstack/react-query';
 
 export interface UseGetCronInvocationLogsByIdQueryOptions {
   /**

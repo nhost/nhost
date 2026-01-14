@@ -1,5 +1,3 @@
-import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
-import PersistenDataGrdiFilterStorage from '@/features/orgs/projects/database/dataGrid/utils/PersistentDataGridFilterStorage';
 import { useRouter } from 'next/router';
 import {
   createContext,
@@ -14,6 +12,8 @@ import {
   useState,
 } from 'react';
 import type { SortingRule } from 'react-table';
+import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
+import PersistenDataGrdiFilterStorage from '@/features/orgs/projects/database/dataGrid/utils/PersistentDataGridFilterStorage';
 import type { DataGridFilterOperator } from './operators';
 
 function compareLoadedFiltersToStorage(

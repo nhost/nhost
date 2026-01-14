@@ -1,7 +1,9 @@
+import { RefreshCw } from 'lucide-react';
+import { useRouter } from 'next/router';
 import { InlineCode } from '@/components/presentational/InlineCode';
 import { Box } from '@/components/ui/v2/Box';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { Input } from '@/components/ui/v2/Input';
+import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
@@ -12,8 +14,6 @@ import useGetRemoteSchemas from '@/features/orgs/projects/remote-schemas/hooks/u
 import { useReloadRemoteSchemaMutation } from '@/features/orgs/projects/remote-schemas/hooks/useReloadRemoteSchemaMutation';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { isNotEmptyValue } from '@/lib/utils';
-import { RefreshCw } from 'lucide-react';
-import { useRouter } from 'next/router';
 
 export default function RemoteSchemaDetails() {
   const { mutateAsync: reloadRemoteSchema, isLoading: isReloading } =

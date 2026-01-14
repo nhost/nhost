@@ -1,11 +1,11 @@
+import { createClient, createNhostClient } from '@nhost/nhost-js';
+import type { Session, SessionStorageBackend } from '@nhost/nhost-js/session';
 import {
   getAuthServiceUrl,
   getFunctionsServiceUrl,
   getGraphqlServiceUrl,
   getStorageServiceUrl,
 } from '@/utils/env';
-import { createClient, createNhostClient } from '@nhost/nhost-js';
-import type { Session, SessionStorageBackend } from '@nhost/nhost-js/session';
 
 const nhost = createClient({
   authUrl: getAuthServiceUrl(),

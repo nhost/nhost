@@ -1,12 +1,12 @@
+import type { DetailedHTMLProps, HTMLProps, KeyboardEvent } from 'react';
+import { useRef } from 'react';
+import type { Row } from 'react-table';
 import type { DataBrowserGridColumn } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import type { DataGridProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid/DataGrid';
 import { DataGridCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridCell';
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
 import { useDataTableDesignContext } from '@/features/orgs/projects/storage/dataGrid/providers/DataTableDesignProvider';
 import { cn, isNotEmptyValue } from '@/lib/utils';
-import type { DetailedHTMLProps, HTMLProps, KeyboardEvent } from 'react';
-import { useRef } from 'react';
-import type { Row } from 'react-table';
 
 export interface DataGridBodyProps<T extends object>
   extends Omit<

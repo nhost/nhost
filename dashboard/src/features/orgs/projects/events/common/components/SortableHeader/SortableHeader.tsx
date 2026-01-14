@@ -1,7 +1,7 @@
-import { Button } from '@/components/ui/v3/button';
-import { cn } from '@/lib/utils';
 import type { Column } from '@tanstack/react-table';
 import { ArrowDown, ArrowUp } from 'lucide-react';
+import { Button } from '@/components/ui/v3/button';
+import { cn } from '@/lib/utils';
 
 export default function SortableHeader<TData, TValue>({
   column,

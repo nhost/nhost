@@ -1,6 +1,6 @@
+import type { ReactNode } from 'react';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import { Separator } from '@/components/ui/v3/separator';
-import type { ReactNode } from 'react';
 
 interface Props {
   label: ReactNode;

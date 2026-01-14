@@ -1,10 +1,10 @@
+import { type ReactNode, useEffect, useRef, useState } from 'react';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
 import { cn } from '@/lib/utils';
-import { type ReactNode, useEffect, useRef, useState } from 'react';
 
 interface TextWithTooltipProps {
   text: string | number | ReactNode;

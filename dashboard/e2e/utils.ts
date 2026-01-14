@@ -1,3 +1,6 @@
+import { faker } from '@faker-js/faker';
+import type { Page } from '@playwright/test';
+import { add, format } from 'date-fns-v4';
 import {
   TEST_ONBOARDING_USER,
   TEST_ORGANIZATION_SLUG,
@@ -10,9 +13,6 @@ import {
 import { expect } from '@/e2e/fixtures/auth-hook';
 import { isEmptyValue } from '@/lib/utils';
 import type { ExportMetadataResponse } from '@/utils/hasura-api/generated/schemas';
-import { faker } from '@faker-js/faker';
-import type { Page } from '@playwright/test';
-import { add, format } from 'date-fns-v4';
 
 /**
  * Open a project by navigating to the project's overview page.

@@ -1,11 +1,11 @@
+import { X } from 'lucide-react';
+import { useWatch } from 'react-hook-form';
+import { twMerge } from 'tailwind-merge';
 import { Button, type ButtonProps } from '@/components/ui/v3/button';
 import type {
   Rule,
   RuleGroup,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { X } from 'lucide-react';
-import { useWatch } from 'react-hook-form';
-import { twMerge } from 'tailwind-merge';
 
 export interface RuleRemoveButtonProps extends ButtonProps {
   /**

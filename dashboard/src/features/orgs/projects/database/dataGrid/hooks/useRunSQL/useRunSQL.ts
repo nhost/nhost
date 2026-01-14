@@ -1,3 +1,6 @@
+import { useRouter } from 'next/router';
+import { useState } from 'react';
+import toast from 'react-hot-toast';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
@@ -5,9 +8,6 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { getHasuraAdminSecret, getHasuraMigrationsApiUrl } from '@/utils/env';
 import { parseIdentifiersFromSQL } from '@/utils/sql';
-import { useRouter } from 'next/router';
-import { useState } from 'react';
-import toast from 'react-hot-toast';
 
 export default function useRunSQL(
   sqlCode: string,

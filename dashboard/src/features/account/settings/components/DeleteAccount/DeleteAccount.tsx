@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { twMerge } from 'tailwind-merge';
 import { useDialog } from '@/components/common/DialogProvider';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { Box } from '@/components/ui/v2/Box';
@@ -8,8 +10,6 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import { useUserData } from '@/hooks/useUserData';
 import { useAuth } from '@/providers/Auth';
 import { useDeleteUserAccountMutation } from '@/utils/__generated__/graphql';
-import { useState } from 'react';
-import { twMerge } from 'tailwind-merge';
 
 function ConfirmDeleteAccountModal({
   close,

@@ -1,6 +1,6 @@
 import {
-  useDecodedAccessToken,
   type JWTHasuraClaims,
+  useDecodedAccessToken,
 } from '@/hooks/useDecodedAccessToken';
 
 function useHasuraClaims(): JWTHasuraClaims | null {

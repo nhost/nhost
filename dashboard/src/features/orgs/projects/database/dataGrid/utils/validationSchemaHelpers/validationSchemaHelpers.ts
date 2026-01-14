@@ -1,5 +1,5 @@
-import type { DataBrowserGridColumn } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import * as yup from 'yup';
+import type { DataBrowserGridColumn } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 
 export interface ColumnDetails {
   isNullable: boolean;

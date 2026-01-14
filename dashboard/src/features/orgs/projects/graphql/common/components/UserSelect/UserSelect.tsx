@@ -1,13 +1,13 @@
+import { debounce } from '@mui/material/utils';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Autocomplete } from '@/components/ui/v2/Autocomplete';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { getAdminRoles } from '@/features/orgs/projects/roles/settings/utils/getAdminRoles';
 import { isNotEmptyValue } from '@/lib/utils';
 import {
-  useRemoteAppGetUsersAndAuthRolesLazyQuery,
   type RemoteAppGetUsersAndAuthRolesQuery,
+  useRemoteAppGetUsersAndAuthRolesLazyQuery,
 } from '@/utils/__generated__/graphql';
-import { debounce } from '@mui/material/utils';
-import { useCallback, useEffect, useMemo, useState } from 'react';
 
 export interface UserSelectProps {
   /**

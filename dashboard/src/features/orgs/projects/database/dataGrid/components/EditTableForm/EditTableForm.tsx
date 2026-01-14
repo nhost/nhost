@@ -1,3 +1,8 @@
+import { yupResolver } from '@hookform/resolvers/yup';
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+import type * as Yup from 'yup';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Button } from '@/components/ui/v2/Button';
@@ -20,11 +25,6 @@ import { getUntrackedForeignKeyRelations } from '@/features/orgs/projects/databa
 import { normalizeDatabaseColumn } from '@/features/orgs/projects/database/dataGrid/utils/normalizeDatabaseColumn';
 import { isNotEmptyValue } from '@/lib/utils';
 import { triggerToast } from '@/utils/toast';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
-import type * as Yup from 'yup';
 
 export interface EditTableFormProps
   extends Pick<BaseTableFormProps, 'onCancel' | 'location'> {

@@ -1,11 +1,11 @@
-import { cn } from '@/lib/utils';
 import {
   DragDropContext,
-  Droppable,
   type DragDropContextProps,
+  Droppable,
   type DroppableProps,
 } from '@hello-pangea/dnd';
 import type { PropsWithChildren } from 'react';
+import { cn } from '@/lib/utils';
 
 type DragAndDropListProps = Omit<
   DroppableProps & DragDropContextProps,

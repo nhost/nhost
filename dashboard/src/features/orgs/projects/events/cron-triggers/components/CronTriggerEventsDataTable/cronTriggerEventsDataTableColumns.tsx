@@ -1,9 +1,9 @@
+import type { ColumnDef } from '@tanstack/react-table';
 import { HoverCardTimestamp } from '@/components/presentational/HoverCardTimestamp';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import { ScheduledEventStatusCell } from '@/features/orgs/projects/events/common/components/ScheduledEventStatusCell';
 import { SortableHeader } from '@/features/orgs/projects/events/common/components/SortableHeader';
 import type { ScheduledEventLogEntry } from '@/utils/hasura-api/generated/schemas';
-import type { ColumnDef } from '@tanstack/react-table';
 import CronTriggerEventsLogActionsCell from './CronTriggerEventsLogActionsCell';
 import StatusColumnHeader from './StatusColumnHeader';
 

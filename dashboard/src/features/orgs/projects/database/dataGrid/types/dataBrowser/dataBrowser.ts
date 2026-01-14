@@ -1,5 +1,5 @@
-import type { AutocompleteOption } from '@/components/ui/v2/Autocomplete';
 import type { Cell, CellProps, ColumnInstance, Row } from 'react-table';
+import type { AutocompleteOption } from '@/components/ui/v2/Autocomplete';
 
 /**
  * Base options for functions that is used by data browser mutations or queries.

@@ -1,3 +1,12 @@
+import { StreamLanguage } from '@codemirror/language';
+import { toml } from '@codemirror/legacy-modes/mode/toml';
+import * as TOML from '@iarna/toml';
+import { useTheme } from '@mui/material';
+import { bbedit } from '@uiw/codemirror-theme-bbedit';
+import { githubDark } from '@uiw/codemirror-theme-github';
+import CodeMirror from '@uiw/react-codemirror';
+import { useCallback, useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Box } from '@/components/ui/v2/Box';
@@ -12,15 +21,6 @@ import {
   useReplaceConfigRawJsonMutation,
 } from '@/utils/__generated__/graphql';
 import { getToastStyleProps } from '@/utils/constants/settings';
-import { StreamLanguage } from '@codemirror/language';
-import { toml } from '@codemirror/legacy-modes/mode/toml';
-import * as TOML from '@iarna/toml';
-import { useTheme } from '@mui/material';
-import { bbedit } from '@uiw/codemirror-theme-bbedit';
-import { githubDark } from '@uiw/codemirror-theme-github';
-import CodeMirror from '@uiw/react-codemirror';
-import { useCallback, useEffect, useState } from 'react';
-import toast from 'react-hot-toast';
 
 const removeTOMLIndentation = (tomlStr: string) => {
   const trimmedLines = tomlStr.split('\n').map((line) => line.trimStart());

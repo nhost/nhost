@@ -1,6 +1,6 @@
+import type { ReactElement } from 'react';
 import { SelectOrgAndProject } from '@/components/common/SelectOrgAndProject';
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
-import type { ReactElement } from 'react';
 
 export default function SelectOrganizationAndProject() {
   return <SelectOrgAndProject />;

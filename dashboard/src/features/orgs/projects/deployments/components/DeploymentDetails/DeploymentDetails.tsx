@@ -1,3 +1,4 @@
+import { format, formatDistanceToNowStrict, parseISO } from 'date-fns';
 import { Container } from '@/components/layout/Container';
 import type { DeploymentStatus } from '@/components/presentational/StatusCircle';
 import { StatusCircle } from '@/components/presentational/StatusCircle';
@@ -11,7 +12,6 @@ import { DeploymentServiceLogs } from '@/features/orgs/projects/deployments/comp
 import { useDeployment } from '@/features/orgs/projects/deployments/hooks/useDeployment';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { ifNullconvertToUndefined, isNotEmptyValue } from '@/lib/utils';
-import { format, formatDistanceToNowStrict, parseISO } from 'date-fns';
 
 function DeploymentDetails() {
   const { project } = useProject();

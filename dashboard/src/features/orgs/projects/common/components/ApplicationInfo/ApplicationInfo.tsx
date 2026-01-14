@@ -1,3 +1,5 @@
+import { formatDistance } from 'date-fns';
+import { useRouter } from 'next/router';
 import { Button } from '@/components/ui/v2/Button';
 import { ArrowRightIcon } from '@/components/ui/v2/icons/ArrowRightIcon';
 import { Link } from '@/components/ui/v2/Link';
@@ -12,8 +14,6 @@ import {
 import { useUserData } from '@/hooks/useUserData';
 import { copy } from '@/utils/copy';
 import { getApplicationStatusString } from '@/utils/helpers';
-import { formatDistance } from 'date-fns';
-import { useRouter } from 'next/router';
 
 export default function ApplicationInfo() {
   const router = useRouter();

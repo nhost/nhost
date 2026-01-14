@@ -1,10 +1,10 @@
+import { vi } from 'vitest';
 import {
   mockPointerEvent,
   render,
   screen,
   TestUserEvent,
 } from '@/tests/testUtils';
-import { vi } from 'vitest';
 import CustomGraphQLRootFieldsSection from './CustomGraphQLRootFieldsSection';
 
 mockPointerEvent();

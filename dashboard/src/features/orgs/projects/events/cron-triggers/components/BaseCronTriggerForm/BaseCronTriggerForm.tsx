@@ -1,3 +1,7 @@
+import { zodResolver } from '@hookform/resolvers/zod';
+import { PlusIcon, TrashIcon } from 'lucide-react';
+import { type ReactNode, useCallback, useRef, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { DiscardChangesDialog } from '@/components/common/DiscardChangesDialog';
 import { FormInput } from '@/components/form/FormInput';
 import { FormTextarea } from '@/components/form/FormTextarea';
@@ -22,17 +26,13 @@ import {
 import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
 import { CronScheduleInput } from '@/features/orgs/projects/events/cron-triggers/components/CronScheduleInput';
 import { cn } from '@/lib/utils';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { PlusIcon, TrashIcon } from 'lucide-react';
-import { useCallback, useRef, useState, type ReactNode } from 'react';
-import { useForm } from 'react-hook-form';
 import {
+  type BaseCronTriggerFormInitialData,
+  type BaseCronTriggerFormValues,
   defaultFormValues,
   defaultPayloadTransformValues,
   defaultRequestOptionsTransformValues,
   validationSchema,
-  type BaseCronTriggerFormInitialData,
-  type BaseCronTriggerFormValues,
 } from './BaseCronTriggerFormTypes';
 import HeadersSection from './sections/HeadersSection';
 import PayloadTransformSection from './sections/PayloadTransformSection/PayloadTransformSection';

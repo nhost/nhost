@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react';
 import { Container } from '@/components/layout/Container';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
@@ -11,7 +12,6 @@ import { ResetDatabasePasswordSettings } from '@/features/orgs/projects/database
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useGetPostgresSettingsQuery } from '@/generated/graphql';
-import type { ReactElement } from 'react';
 
 export default function DatabaseSettingsPage() {
   const isPlatform = useIsPlatform();

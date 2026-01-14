@@ -1,7 +1,7 @@
-import { ApplicationPaused } from '@/features/orgs/projects/common/components/ApplicationPaused';
-import { ApplicationPausedBanner } from '@/features/orgs/projects/common/components/ApplicationPausedBanner';
 import { useRouter } from 'next/router';
 import type { PropsWithChildren } from 'react';
+import { ApplicationPaused } from '@/features/orgs/projects/common/components/ApplicationPaused';
+import { ApplicationPausedBanner } from '@/features/orgs/projects/common/components/ApplicationPausedBanner';
 
 const baseProjectPageRoute = '/orgs/[orgSlug]/projects/[appSubdomain]/';
 const blockedPausedProjectPages = [

@@ -1,3 +1,7 @@
+import { Ellipsis, SquarePen, Trash2 } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
+import { useRef, useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import {
   DropdownMenu,
@@ -11,10 +15,6 @@ import { DeleteEventTriggerDialog } from '@/features/orgs/projects/events/event-
 import { EditEventTriggerForm } from '@/features/orgs/projects/events/event-triggers/components/EditEventTriggerForm';
 import type { EventTriggerViewModel } from '@/features/orgs/projects/events/event-triggers/types';
 import { cn } from '@/lib/utils';
-import { Ellipsis, SquarePen, Trash2 } from 'lucide-react';
-import Link from 'next/link';
-import { useRouter } from 'next/router';
-import { useRef, useState } from 'react';
 
 const menuItemClassName =
   'flex h-9 cursor-pointer items-center gap-2 rounded-none border border-b-1 !text-sm+ font-medium leading-4';

@@ -1,3 +1,7 @@
+import { yupResolver } from '@hookform/resolvers/yup';
+import { useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { HighlightedText } from '@/components/presentational/HighlightedText';
@@ -16,10 +20,6 @@ import { convertToRuleGroup } from '@/features/orgs/projects/database/dataGrid/u
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import type { DialogFormProps } from '@/types/common';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { useQueryClient } from '@tanstack/react-query';
-import { useEffect } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
 import AggregationQuerySection from './sections/AggregationQuerySection';
 import BackendOnlySection from './sections/BackendOnlySection';
 import ColumnPermissionsSection from './sections/ColumnPermissionsSection';

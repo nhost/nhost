@@ -1,3 +1,6 @@
+import { KeyRound } from 'lucide-react';
+import { type ChangeEvent, useEffect, useRef } from 'react';
+import { useFormContext } from 'react-hook-form';
 import { FormInput } from '@/components/form/FormInput';
 import { FormSelect } from '@/components/form/FormSelect';
 import { FormTextarea } from '@/components/form/FormTextarea';
@@ -8,9 +11,6 @@ import type { DataBrowserGridColumn } from '@/features/orgs/projects/database/da
 import { getInputType } from '@/features/orgs/projects/database/dataGrid/utils/inputHelpers';
 import { normalizeDefaultValue } from '@/features/orgs/projects/database/dataGrid/utils/normalizeDefaultValue';
 import { cn } from '@/lib/utils';
-import { KeyRound } from 'lucide-react';
-import { type ChangeEvent, useEffect, useRef } from 'react';
-import { useFormContext } from 'react-hook-form';
 
 export interface DatabaseRecordInputGroupProps {
   /**

@@ -1,3 +1,6 @@
+import debounce from 'lodash.debounce';
+import { useEffect, useMemo, useState } from 'react';
+import { useFormContext } from 'react-hook-form';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { Skeleton } from '@/components/ui/v3/skeleton';
 import { useTestWebhookTransformQuery } from '@/features/orgs/projects/events/common/hooks/useTestWebhookTransformQuery';
@@ -5,9 +8,6 @@ import type { BaseEventTriggerFormValues } from '@/features/orgs/projects/events
 import buildTestWebhookTransformDTO from '@/features/orgs/projects/events/event-triggers/utils/buildTestWebhookTransformDTO/buildTestWebhookTransformDTO';
 import { isEmptyValue } from '@/lib/utils';
 import type { TestWebhookTransformArgs } from '@/utils/hasura-api/generated/schemas';
-import debounce from 'lodash.debounce';
-import { useEffect, useMemo, useState } from 'react';
-import { useFormContext } from 'react-hook-form';
 
 export default function RequestURLTransformPreview() {
   const form = useFormContext<BaseEventTriggerFormValues>();

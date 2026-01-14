@@ -1,5 +1,5 @@
-import { TEST_PROJECT_ADMIN_SECRET, TEST_PROJECT_SUBDOMAIN } from '@/e2e/env';
 import { test as setup } from '@playwright/test';
+import { TEST_PROJECT_ADMIN_SECRET, TEST_PROJECT_SUBDOMAIN } from '@/e2e/env';
 
 setup('refresh metadata', async () => {
   try {

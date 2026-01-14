@@ -1,3 +1,4 @@
+import getConfig from 'next/config';
 import { ThemeSwitcher } from '@/components/common/ThemeSwitcher';
 import { Avatar } from '@/components/ui/v2/Avatar';
 import { Box } from '@/components/ui/v2/Box';
@@ -6,7 +7,6 @@ import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { Text } from '@/components/ui/v2/Text';
-import getConfig from 'next/config';
 
 export default function LocalAccountMenu() {
   const { publicRuntimeConfig } = getConfig();

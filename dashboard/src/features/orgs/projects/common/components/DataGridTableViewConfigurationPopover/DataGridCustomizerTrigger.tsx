@@ -1,8 +1,8 @@
+import { Columns3 } from 'lucide-react';
+import { type ForwardedRef, forwardRef } from 'react';
 import { Button, type ButtonProps } from '@/components/ui/v3/button';
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
 import { cn } from '@/lib/utils';
-import { Columns3 } from 'lucide-react';
-import { type ForwardedRef, forwardRef } from 'react';
 
 function DataBrowserCustomizerTrigger(
   props: ButtonProps,

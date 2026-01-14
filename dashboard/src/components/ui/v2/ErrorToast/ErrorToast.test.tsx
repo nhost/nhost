@@ -1,5 +1,5 @@
-import { render, screen } from '@/tests/testUtils';
 import { test } from 'vitest';
+import { render, screen } from '@/tests/testUtils';
 import ErrorToast from './ErrorToast';
 
 const runUpdateError = {

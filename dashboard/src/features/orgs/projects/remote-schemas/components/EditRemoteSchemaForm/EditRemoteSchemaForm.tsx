@@ -1,3 +1,7 @@
+import { yupResolver } from '@hookform/resolvers/yup';
+import { useRouter } from 'next/router';
+import { FormProvider, useForm } from 'react-hook-form';
+import type * as Yup from 'yup';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import BaseRemoteSchemaForm, {
   type BaseRemoteSchemaFormProps,
@@ -12,10 +16,6 @@ import type {
   Headers,
   RemoteSchemaInfo,
 } from '@/utils/hasura-api/generated/schemas';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { useRouter } from 'next/router';
-import { FormProvider, useForm } from 'react-hook-form';
-import type * as Yup from 'yup';
 import EditGraphQLCustomizations from './sections/EditGraphQLCustomizations';
 
 export interface EditRemoteSchemaFormProps

@@ -1,8 +1,8 @@
+import type { ReactElement } from 'react';
 import { SignInRightColumn } from '@/components/auth/SignInRightColumn';
 import { NavLink } from '@/components/common/NavLink';
 import { UnauthenticatedLayout } from '@/components/layout/UnauthenticatedLayout';
 import { SignInWithEmailAndPassword } from '@/features/auth/SignIn/SignInWithEmailAndPassword';
-import type { ReactElement } from 'react';
 
 function SigninPage() {
   return (

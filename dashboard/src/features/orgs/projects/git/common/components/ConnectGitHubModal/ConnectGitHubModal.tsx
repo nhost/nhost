@@ -1,13 +1,19 @@
+import { Divider } from '@mui/material';
+import debounce from 'lodash.debounce';
+import NavLink from 'next/link';
+import type { ChangeEvent } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
+import toast from 'react-hot-toast';
 import { ErrorMessage } from '@/components/presentational/ErrorMessage';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Avatar } from '@/components/ui/v2/Avatar';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
+import { Input } from '@/components/ui/v2/Input';
 import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
 import { GitHubIcon } from '@/components/ui/v2/icons/GitHubIcon';
 import { PlusCircleIcon } from '@/components/ui/v2/icons/PlusCircleIcon';
-import { Input } from '@/components/ui/v2/Input';
 import { Link } from '@/components/ui/v2/Link';
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
@@ -27,12 +33,6 @@ import { GitHubAPIError, listGitHubInstallationRepos } from '@/lib/github';
 import { isEmptyValue } from '@/lib/utils';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { nhost } from '@/utils/nhost';
-import { Divider } from '@mui/material';
-import debounce from 'lodash.debounce';
-import NavLink from 'next/link';
-import type { ChangeEvent } from 'react';
-import { Fragment, useEffect, useMemo, useState } from 'react';
-import toast from 'react-hot-toast';
 
 export type ConnectGitHubModalState =
   | 'CONNECTING'

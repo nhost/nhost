@@ -1,3 +1,5 @@
+import { Fragment } from 'react';
+import { twMerge } from 'tailwind-merge';
 import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
@@ -21,8 +23,6 @@ import {
   useDeletePersonalAccessTokenMutation,
   useGetPersonalAccessTokensQuery,
 } from '@/utils/__generated__/graphql';
-import { Fragment } from 'react';
-import { twMerge } from 'tailwind-merge';
 
 export default function PATSettings() {
   const { maintenanceActive } = useUI();

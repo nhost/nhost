@@ -1,3 +1,8 @@
+import { yupResolver } from '@hookform/resolvers/yup';
+import { useEffect, useState } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+import { toast } from 'react-hot-toast';
+import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
@@ -10,35 +15,28 @@ import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { Input } from '@/components/ui/v2/Input';
+import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { Switch } from '@/components/ui/v2/Switch';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { DisableAIServiceConfirmationDialog } from '@/features/orgs/projects/ai/settings/components/DisableAIServiceConfirmationDialog';
+import { isPostgresVersionValidForAI } from '@/features/orgs/projects/ai/settings/utils/isPostgresVersionValidForAI';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { COST_PER_VCPU } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
+import { ComputeFormSection } from '@/features/orgs/projects/services/components/ServiceForm/components/ComputeFormSection';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
   Software_Type_Enum,
   useGetAiSettingsQuery,
   useGetSoftwareVersionsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
+import { isNotEmptyValue } from '@/lib/utils';
 import { RESOURCE_VCPU_MULTIPLIER } from '@/utils/constants/common';
 import { getToastStyleProps } from '@/utils/constants/settings';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { useEffect, useState } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
-import * as Yup from 'yup';
-
-import { DisableAIServiceConfirmationDialog } from '@/features/orgs/projects/ai/settings/components/DisableAIServiceConfirmationDialog';
-import { isPostgresVersionValidForAI } from '@/features/orgs/projects/ai/settings/utils/isPostgresVersionValidForAI';
-import { COST_PER_VCPU } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
-import { ComputeFormSection } from '@/features/orgs/projects/services/components/ServiceForm/components/ComputeFormSection';
-
-import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { isNotEmptyValue } from '@/lib/utils';
 
 const validationSchema = Yup.object({
   version: Yup.object({

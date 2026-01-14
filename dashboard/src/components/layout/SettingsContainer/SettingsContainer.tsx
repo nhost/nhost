@@ -1,3 +1,6 @@
+import Image from 'next/image';
+import type { DetailedHTMLProps, HTMLProps, ReactNode } from 'react';
+import { twMerge } from 'tailwind-merge';
 import { ControlledSwitch } from '@/components/form/ControlledSwitch';
 import type { BoxProps } from '@/components/ui/v2/Box';
 import { Box } from '@/components/ui/v2/Box';
@@ -8,9 +11,6 @@ import { Link } from '@/components/ui/v2/Link';
 import type { SwitchProps } from '@/components/ui/v2/Switch';
 import { Switch } from '@/components/ui/v2/Switch';
 import { Text } from '@/components/ui/v2/Text';
-import Image from 'next/image';
-import type { DetailedHTMLProps, HTMLProps, ReactNode } from 'react';
-import { twMerge } from 'tailwind-merge';
 
 export interface SettingsContainerProps
   extends Omit<

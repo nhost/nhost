@@ -1,3 +1,11 @@
+import {
+  type ForwardedRef,
+  forwardRef,
+  type PropsWithChildren,
+  type ReactNode,
+} from 'react';
+import type { Control, FieldPath, FieldValues } from 'react-hook-form';
+import { mergeRefs } from 'react-merge-refs';
 import getTransformedFieldProps, {
   type Transformer,
 } from '@/components/form/utils/getTransformedFieldProps';
@@ -16,14 +24,6 @@ import {
   SelectValue,
 } from '@/components/ui/v3/select';
 import { cn, isNotEmptyValue } from '@/lib/utils';
-import {
-  type ForwardedRef,
-  type PropsWithChildren,
-  type ReactNode,
-  forwardRef,
-} from 'react';
-import type { Control, FieldPath, FieldValues } from 'react-hook-form';
-import { mergeRefs } from 'react-merge-refs';
 
 const selectClasses =
   'aria-[invalid=true]:border-red-500 aria-[invalid=true]:focus:border-red-500 aria-[invalid=true]:focus:ring-red-500';

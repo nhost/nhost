@@ -1,8 +1,8 @@
+import { v4 as uuidv4 } from 'uuid';
 import type { NormalizedQueryDataRow } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import type { BaseEventTriggerFormValues } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerFormTypes';
 import { isEmptyValue } from '@/lib/utils';
 import type { ColumnValue } from '@/utils/hasura-api/types';
-import { v4 as uuidv4 } from 'uuid';
 
 const sampleIntegerMax = 20;
 const numericColumnTypes = new Set(['integer', 'numeric', 'int']);

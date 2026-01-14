@@ -1,6 +1,6 @@
+import { memo, useMemo } from 'react';
 import { VirtualizedCombobox } from '@/components/common/VirtualizedCombobox';
 import { createTimezoneOptions } from '@/utils/timezoneUtils';
-import { memo, useMemo } from 'react';
 
 interface Props {
   selectedTimezone: string;

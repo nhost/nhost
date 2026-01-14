@@ -1,3 +1,6 @@
+import type { Row } from '@tanstack/react-table';
+import { Maximize, Minimize, X } from 'lucide-react';
+import { useState } from 'react';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   Tooltip,
@@ -7,9 +10,6 @@ import {
 import { useDeleteScheduledCronTriggerEventMutation } from '@/features/orgs/projects/events/cron-triggers/hooks/useDeleteScheduledCronTriggerEventMutation';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { ScheduledEventLogEntry } from '@/utils/hasura-api/generated/schemas';
-import type { Row } from '@tanstack/react-table';
-import { Maximize, Minimize, X } from 'lucide-react';
-import { useState } from 'react';
 
 interface CronTriggerEventsLogActionsCellProps {
   row: Row<ScheduledEventLogEntry>;

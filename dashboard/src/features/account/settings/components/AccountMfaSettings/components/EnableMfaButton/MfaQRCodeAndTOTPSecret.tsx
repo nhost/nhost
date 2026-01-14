@@ -1,9 +1,9 @@
+import { useEffect, useState } from 'react';
+import { toast } from 'react-hot-toast';
 import { MfaOtpForm } from '@/components/common/MfaOtpForm';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useNhostClient } from '@/providers/nhost';
 import { getToastStyleProps } from '@/utils/constants/settings';
-import { useEffect, useState } from 'react';
-import { toast } from 'react-hot-toast';
 import CopyMfaTOTPSecret from './CopyMfaTOTPSecret';
 
 interface Props {

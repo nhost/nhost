@@ -1,7 +1,7 @@
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { showLoadingToast } from '@/utils/toast';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
+import { getToastStyleProps } from '@/utils/constants/settings';
+import { showLoadingToast } from '@/utils/toast';
 import type { UseUpdateRecordMutationOptions } from './useUpdateRecordMutation';
 import useUpdateRecordMutation from './useUpdateRecordMutation';
 

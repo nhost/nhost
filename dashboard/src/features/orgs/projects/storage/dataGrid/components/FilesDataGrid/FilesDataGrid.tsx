@@ -1,14 +1,20 @@
+import debounce from 'lodash.debounce';
+import { useRouter } from 'next/router';
+import type { ChangeEvent } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import toast from 'react-hot-toast';
+import type { Column, SortingRule } from 'react-table';
+
+import { ReadOnlyToggle } from '@/components/presentational/ReadOnlyToggle';
+import { FilePreviewIcon } from '@/components/ui/v2/icons/FilePreviewIcon';
+import { useAppClient } from '@/features/orgs/projects/hooks/useAppClient';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { DataGridProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import { DataGrid } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import { DataGridDateCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridDateCell';
 import type { PreviewProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPreviewCell';
 import { DataGridPreviewCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPreviewCell';
 import { DataGridTextCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridTextCell';
-
-import { ReadOnlyToggle } from '@/components/presentational/ReadOnlyToggle';
-import { FilePreviewIcon } from '@/components/ui/v2/icons/FilePreviewIcon';
-import { useAppClient } from '@/features/orgs/projects/hooks/useAppClient';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { FilesDataGridControls } from '@/features/orgs/projects/storage/dataGrid/components/FilesDataGridControls';
 import { PreviewHeader } from '@/features/orgs/projects/storage/dataGrid/components/PreviewHeader';
 import { useBuckets } from '@/features/orgs/projects/storage/dataGrid/hooks/useBuckets';
@@ -19,12 +25,6 @@ import type { Files } from '@/utils/__generated__/graphql';
 import { Order_By as OrderBy } from '@/utils/__generated__/graphql';
 import { getHasuraAdminSecret } from '@/utils/env';
 import { showLoadingToast, triggerToast } from '@/utils/toast';
-import debounce from 'lodash.debounce';
-import { useRouter } from 'next/router';
-import type { ChangeEvent } from 'react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import toast from 'react-hot-toast';
-import type { Column, SortingRule } from 'react-table';
 
 export type StoredFile = Files & {
   preview: PreviewProps;

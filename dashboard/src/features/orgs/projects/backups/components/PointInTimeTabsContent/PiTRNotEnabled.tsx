@@ -1,7 +1,7 @@
+import Link from 'next/link';
 import { InfoAlert } from '@/features/orgs/components/InfoAlert';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import Link from 'next/link';
 
 function PiTRNotEnabled() {
   const { org } = useCurrentOrg();

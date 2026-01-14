@@ -1,3 +1,4 @@
+import { format } from 'node-pg-format';
 import type {
   DatabaseColumn,
   MutationOrQueryBaseOptions,
@@ -6,7 +7,6 @@ import { getPreparedHasuraQuery } from '@/features/orgs/projects/database/dataGr
 import { normalizeDefaultValue } from '@/features/orgs/projects/database/dataGrid/utils/normalizeDefaultValue';
 import { prepareCreateForeignKeyRelationQuery } from '@/features/orgs/projects/database/dataGrid/utils/prepareCreateForeignKeyRelationQuery';
 import { prepareUpdateForeignKeyRelationQuery } from '@/features/orgs/projects/database/dataGrid/utils/prepareUpdateForeignKeyRelationQuery';
-import { format } from 'node-pg-format';
 
 export interface PrepareUpdateColumnQueryVariables
   extends Omit<MutationOrQueryBaseOptions, 'appUrl' | 'adminSecret'> {

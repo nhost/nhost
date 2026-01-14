@@ -1,3 +1,7 @@
+import { Database, InfoIcon } from 'lucide-react';
+import Image from 'next/image';
+import { useEffect, useState } from 'react';
+import { twMerge } from 'tailwind-merge';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Backdrop } from '@/components/ui/v2/Backdrop';
 import { IconButton } from '@/components/ui/v2/IconButton';
@@ -7,17 +11,13 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/v3/accordion';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { CreateEventTriggerForm } from '@/features/orgs/projects/events/event-triggers/components/CreateEventTriggerForm';
 import { useGetEventTriggers } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventTriggers';
 import type { EventTriggerViewModel } from '@/features/orgs/projects/events/event-triggers/types';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { Database, InfoIcon } from 'lucide-react';
-import Image from 'next/image';
-import { twMerge } from 'tailwind-merge';
 import EventTriggerListItem from './EventTriggerListItem';
 import EventTriggersBrowserSidebarSkeleton from './EventTriggersBrowserSidebarSkeleton';
-import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { useEffect, useState } from 'react';
 
 export interface EventTriggersBrowserSidebarProps {
   className?: string;

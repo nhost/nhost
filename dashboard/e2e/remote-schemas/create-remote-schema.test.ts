@@ -1,3 +1,5 @@
+import { faker } from '@faker-js/faker';
+import { snakeCase } from 'snake-case';
 import {
   TEST_ORGANIZATION_SLUG,
   TEST_PROJECT_REMOTE_SCHEMA_NAME,
@@ -5,8 +7,6 @@ import {
 } from '@/e2e/env';
 import { expect, test } from '@/e2e/fixtures/auth-hook';
 import { cleanupRemoteSchemaTestIfNeeded } from '@/e2e/utils';
-import { faker } from '@faker-js/faker';
-import { snakeCase } from 'snake-case';
 
 const REMOTE_SCHEMA_TEST_URL = `https://${TEST_PROJECT_SUBDOMAIN}.functions.eu-central-1.staging.nhost.run/v1/${TEST_PROJECT_REMOTE_SCHEMA_NAME}`;
 

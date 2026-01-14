@@ -1,3 +1,6 @@
+import Image from 'next/image';
+import NavLink from 'next/link';
+import type { ReactElement } from 'react';
 import { useUI } from '@/components/common/UIProvider';
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
@@ -7,9 +10,6 @@ import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { AppDeployments } from '@/features/orgs/projects/deployments/components/AppDeployments';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import Image from 'next/image';
-import NavLink from 'next/link';
-import type { ReactElement } from 'react';
 
 export default function DeploymentsPage() {
   const { org } = useCurrentOrg();

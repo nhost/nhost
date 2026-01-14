@@ -1,13 +1,13 @@
+import Image from 'next/image';
 import { Container } from '@/components/layout/Container';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Text } from '@/components/ui/v2/Text';
-import { ApplicationInfo } from '@/features/orgs/projects/common/components/ApplicationInfo';
 import { AppLoader } from '@/features/orgs/projects/common/components/AppLoader';
+import { ApplicationInfo } from '@/features/orgs/projects/common/components/ApplicationInfo';
 import { StagingMetadata } from '@/features/orgs/projects/common/components/StagingMetadata';
 import { useCheckProvisioning } from '@/features/orgs/projects/common/hooks/useCheckProvisioning';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { ApplicationStatus } from '@/types/application';
-import Image from 'next/image';
 
 export default function ApplicationProvisioning() {
   const { project } = useProject();

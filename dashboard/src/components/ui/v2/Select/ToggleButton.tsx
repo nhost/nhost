@@ -1,5 +1,3 @@
-import { ChevronDownIcon } from '@/components/ui/v2/icons/ChevronDownIcon';
-import { ChevronUpIcon } from '@/components/ui/v2/icons/ChevronUpIcon';
 import {
   Button as ButtonUnstyled,
   type ButtonProps as ButtonUnstyledProps,
@@ -10,6 +8,8 @@ import { styled } from '@mui/material';
 import type { Theme } from '@mui/system';
 import type { DetailedHTMLProps, ForwardedRef, HTMLProps } from 'react';
 import { forwardRef } from 'react';
+import { ChevronDownIcon } from '@/components/ui/v2/icons/ChevronDownIcon';
+import { ChevronUpIcon } from '@/components/ui/v2/icons/ChevronUpIcon';
 
 export interface ToggleButtonProps
   extends Omit<ButtonUnstyledProps, 'slotProps'> {

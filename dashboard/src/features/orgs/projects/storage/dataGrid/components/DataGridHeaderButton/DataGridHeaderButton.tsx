@@ -1,9 +1,9 @@
+import { ArrowDown, ArrowUp } from 'lucide-react';
+import type { TableHeaderProps } from 'react-table';
 import { Button } from '@/components/ui/v3/button';
 import type { DataBrowserGridColumn } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
 import { cn } from '@/lib/utils';
-import { ArrowDown, ArrowUp } from 'lucide-react';
-import type { TableHeaderProps } from 'react-table';
 
 interface DataGridHeaderButtonProps<T extends object> {
   column: DataBrowserGridColumn<T>;

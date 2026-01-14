@@ -1,3 +1,4 @@
+import { format } from 'node-pg-format';
 import { prepareCreateColumnQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateColumnMutation';
 import { prepareUpdateColumnQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useUpdateColumnMutation';
 import type {
@@ -14,7 +15,6 @@ import {
 import { prepareCreateForeignKeyRelationQuery } from '@/features/orgs/projects/database/dataGrid/utils/prepareCreateForeignKeyRelationQuery';
 import { prepareUpdateForeignKeyRelationQuery } from '@/features/orgs/projects/database/dataGrid/utils/prepareUpdateForeignKeyRelationQuery';
 import { areStrArraysEqual, isNotEmptyValue } from '@/lib/utils';
-import { format } from 'node-pg-format';
 
 export interface PrepareUpdateTableQueryVariables
   extends Omit<MutationOrQueryBaseOptions, 'appUrl' | 'table' | 'adminSecret'> {

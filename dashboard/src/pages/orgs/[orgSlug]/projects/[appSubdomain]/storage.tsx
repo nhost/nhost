@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
@@ -6,7 +7,6 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { FilesDataGrid } from '@/features/orgs/projects/storage/dataGrid/components/FilesDataGrid';
 import { NhostApolloProvider } from '@/providers/Apollo';
 import { getHasuraAdminSecret } from '@/utils/env';
-import type { ReactElement } from 'react';
 
 export default function StoragePage() {
   const { project, loading } = useProject();

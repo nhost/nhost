@@ -1,3 +1,5 @@
+import { setupServer } from 'msw/node';
+import { vi } from 'vitest';
 import {
   getProjectQuery,
   getProjectStateQuery,
@@ -5,8 +7,6 @@ import {
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import { queryClient, render, screen } from '@/tests/testUtils';
 import { ApplicationStatus } from '@/types/application';
-import { setupServer } from 'msw/node';
-import { vi } from 'vitest';
 import ProjectViewWithState from './ProjectViewWithState';
 
 const mocks = vi.hoisted(() => ({

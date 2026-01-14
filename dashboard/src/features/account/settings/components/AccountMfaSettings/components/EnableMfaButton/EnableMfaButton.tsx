@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import {
   Dialog,
@@ -8,7 +9,6 @@ import {
   DialogTrigger,
 } from '@/components/ui/v3/dialog';
 import useMfaEnabled from '@/features/account/settings/components/AccountMfaSettings/hooks/useMfaEnabled';
-import { useState } from 'react';
 import MfaQRCodeAndTOTPSecret from './MfaQRCodeAndTOTPSecret';
 
 function EnableMfaButton() {

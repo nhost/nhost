@@ -1,3 +1,7 @@
+import { useRouter } from 'next/router';
+import { NextSeo } from 'next-seo';
+import { useEffect } from 'react';
+import { twMerge } from 'tailwind-merge';
 import type { AuthenticatedLayoutProps } from '@/components/layout/AuthenticatedLayout';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import type { BoxProps } from '@/components/ui/v2/Box';
@@ -7,10 +11,6 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import { useAuth } from '@/providers/Auth';
 import { getConfigServerUrl, isPlatform as isPlatformFn } from '@/utils/env';
-import { NextSeo } from 'next-seo';
-import { useRouter } from 'next/router';
-import { useEffect } from 'react';
-import { twMerge } from 'tailwind-merge';
 import ProjectViewWithState from './ProjectViewWithState';
 
 const platFormOnlyPages = [

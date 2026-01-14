@@ -1,3 +1,5 @@
+import NavLink from 'next/link';
+import { Fragment } from 'react';
 import { useUI } from '@/components/common/UIProvider';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
@@ -8,20 +10,15 @@ import { GitHubIcon } from '@/components/ui/v2/icons/GitHubIcon';
 import { RocketIcon } from '@/components/ui/v2/icons/RocketIcon';
 import { List } from '@/components/ui/v2/List';
 import { Text } from '@/components/ui/v2/Text';
-
 import { DeploymentListItem } from '@/features/orgs/projects/deployments/components/DeploymentListItem';
 import { useGitHubModal } from '@/features/orgs/projects/git/common/hooks/useGitHubModal';
-
+import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import {
   useGetDeploymentsSubSubscription,
   useScheduledOrPendingDeploymentsSubSubscription,
 } from '@/utils/__generated__/graphql';
 import { getLastLiveDeployment } from '@/utils/helpers';
-import NavLink from 'next/link';
-import { Fragment } from 'react';
-
-import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
 function OverviewDeploymentsTopBar() {
   const { org } = useCurrentOrg();

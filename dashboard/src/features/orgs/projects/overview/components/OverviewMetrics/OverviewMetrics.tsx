@@ -1,3 +1,5 @@
+import { formatISO, startOfDay, startOfMonth, subMinutes } from 'date-fns';
+import { twMerge } from 'tailwind-merge';
 import { Text } from '@/components/ui/v2/Text';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -9,10 +11,7 @@ import {
   useGetUserProjectMetricsQuery,
 } from '@/utils/__generated__/graphql';
 import { prettifyNumber } from '@/utils/prettifyNumber';
-import { twMerge } from 'tailwind-merge';
-
 import { prettifySize } from '@/utils/prettifySize';
-import { formatISO, startOfDay, startOfMonth, subMinutes } from 'date-fns';
 
 const now = new Date();
 

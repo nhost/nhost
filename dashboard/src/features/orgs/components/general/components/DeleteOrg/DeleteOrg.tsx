@@ -1,3 +1,5 @@
+import { useRouter } from 'next/router';
+import { useState } from 'react';
 import { useUI } from '@/components/common/UIProvider';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import {
@@ -18,8 +20,6 @@ import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useDeleteOrganizationMutation } from '@/utils/__generated__/graphql';
-import { useRouter } from 'next/router';
-import { useState } from 'react';
 
 export default function DeleteOrg() {
   const { maintenanceActive } = useUI();

@@ -1,8 +1,8 @@
+import { faker } from '@faker-js/faker';
+import { snakeCase } from 'snake-case';
 import { TEST_ORGANIZATION_SLUG, TEST_PROJECT_SUBDOMAIN } from '@/e2e/env';
 import { expect, test } from '@/e2e/fixtures/auth-hook';
 import { prepareTable } from '@/e2e/utils';
-import { faker } from '@faker-js/faker';
-import { snakeCase } from 'snake-case';
 
 test.beforeEach(async ({ authenticatedNhostPage: page }) => {
   const databaseRoute = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default`;

@@ -1,3 +1,7 @@
+import { yupResolver } from '@hookform/resolvers/yup';
+import { useEffect, useMemo } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+import * as Yup from 'yup';
 import { useUI } from '@/components/common/UIProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
@@ -23,10 +27,6 @@ import {
 } from '@/generated/graphql';
 import { isEmptyValue } from '@/lib/utils';
 import { ApplicationStatus } from '@/types/application';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { useEffect, useMemo } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
-import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
   capacity: Yup.number()

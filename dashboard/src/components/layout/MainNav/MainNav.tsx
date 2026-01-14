@@ -1,3 +1,6 @@
+import { Menu, Pin, PinOff, X } from 'lucide-react';
+import { useRouter } from 'next/router';
+import { useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import {
   Sheet,
@@ -7,9 +10,6 @@ import {
   SheetTitle,
 } from '@/components/ui/v3/sheet';
 import CreateOrgDialog from '@/features/orgs/components/CreateOrgFormDialog/CreateOrgFormDialog';
-import { Menu, Pin, PinOff, X } from 'lucide-react';
-import { useRouter } from 'next/router';
-import { useEffect, useRef } from 'react';
 import NavTree from './NavTree';
 import { useTreeNavState } from './TreeNavStateContext';
 

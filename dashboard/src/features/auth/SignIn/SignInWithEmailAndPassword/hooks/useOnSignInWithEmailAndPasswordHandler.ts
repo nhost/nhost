@@ -1,9 +1,9 @@
-import { isNotEmptyValue } from '@/lib/utils';
-import { useNhostClient } from '@/providers/nhost';
-import { getToastStyleProps } from '@/utils/constants/settings';
 import { useRouter } from 'next/router';
 import { useRef, useState } from 'react';
 import toast from 'react-hot-toast';
+import { isNotEmptyValue } from '@/lib/utils';
+import { useNhostClient } from '@/providers/nhost';
+import { getToastStyleProps } from '@/utils/constants/settings';
 import type { SignInWithEmailAndPasswordFormValues } from './useSignInWithEmailAndPasswordForm';
 
 interface Props {

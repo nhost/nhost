@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Container } from '@/components/layout/Container';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
@@ -5,7 +6,6 @@ import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { AISettings } from '@/features/orgs/projects/ai/settings/components';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
-import type { ReactElement } from 'react';
 
 export default function AISettingsPage() {
   const { org, loading, error } = useCurrentOrg();

@@ -1,10 +1,10 @@
-import type { BoxProps } from '@/components/ui/v2/Box';
-import { Box } from '@/components/ui/v2/Box';
 import { useTheme } from '@mui/material';
 import type { NextSeoProps } from 'next-seo';
 import { NextSeo } from 'next-seo';
 import type { PropsWithoutRef } from 'react';
 import { twMerge } from 'tailwind-merge';
+import type { BoxProps } from '@/components/ui/v2/Box';
+import { Box } from '@/components/ui/v2/Box';
 
 export interface BaseLayoutProps extends PropsWithoutRef<BoxProps> {
   /**

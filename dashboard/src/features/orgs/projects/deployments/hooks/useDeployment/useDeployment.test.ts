@@ -1,6 +1,6 @@
+import { vi } from 'vitest';
 import { renderHook } from '@/tests/testUtils';
 import { useGetDeploymentQuery } from '@/utils/__generated__/graphql';
-import { vi } from 'vitest';
 
 import useDeployment from './useDeployment';
 

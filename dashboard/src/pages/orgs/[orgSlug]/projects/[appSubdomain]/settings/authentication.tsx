@@ -1,6 +1,8 @@
+import type { ReactElement } from 'react';
 import { Container } from '@/components/layout/Container';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-
+import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
+import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { AllowedEmailSettings } from '@/features/orgs/projects/authentication/settings/components/AllowedEmailSettings';
 import { AllowedRedirectURLsSettings } from '@/features/orgs/projects/authentication/settings/components/AllowedRedirectURLsSettings';
 import { AuthServiceVersionSettings } from '@/features/orgs/projects/authentication/settings/components/AuthServiceVersionSettings';
@@ -8,18 +10,14 @@ import { BlockedEmailSettings } from '@/features/orgs/projects/authentication/se
 import { ClientURLSettings } from '@/features/orgs/projects/authentication/settings/components/ClientURLSettings';
 import { ConcealErrorsSettings } from '@/features/orgs/projects/authentication/settings/components/ConcealErrorsSettings';
 import { DisableNewUsersSettings } from '@/features/orgs/projects/authentication/settings/components/DisableNewUsersSettings';
+import { DisableSignUpsSettings } from '@/features/orgs/projects/authentication/settings/components/DisableSignUpsSettings';
 import { GravatarSettings } from '@/features/orgs/projects/authentication/settings/components/GravatarSettings';
 import { MFASettings } from '@/features/orgs/projects/authentication/settings/components/MFASettings';
 import { SessionSettings } from '@/features/orgs/projects/authentication/settings/components/SessionSettings';
-import { useGetAuthenticationSettingsQuery } from '@/utils/__generated__/graphql';
-import type { ReactElement } from 'react';
-
-import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
-import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
-import { DisableSignUpsSettings } from '@/features/orgs/projects/authentication/settings/components/DisableSignUpsSettings';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { useGetAuthenticationSettingsQuery } from '@/utils/__generated__/graphql';
 
 export default function SettingsAuthenticationPage() {
   const { project, loading: loadingProject } = useProject();

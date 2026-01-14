@@ -1,12 +1,13 @@
 //TODO: https://github.com/nhost/nhost/issues/3785
-import { ClientOnlyPortal } from '@/components/ui/v1/ClientOnlyPortal';
-import { Box } from '@/components/ui/v2/Box';
+
 import { Dialog, Transition } from '@headlessui/react';
 import { alpha, useTheme } from '@mui/material';
 import clsx from 'clsx';
 import type { CSSProperties, ReactNode } from 'react';
 import { Fragment } from 'react';
 import { twMerge } from 'tailwind-merge';
+import { ClientOnlyPortal } from '@/components/ui/v1/ClientOnlyPortal';
+import { Box } from '@/components/ui/v2/Box';
 
 export interface ModalProps {
   // biome-ignore lint/suspicious/noExplicitAny: Component is deprecated

@@ -1,3 +1,8 @@
+import {
+  type MouseEvent,
+  type KeyboardEvent as ReactKeyboardEvent,
+  useState,
+} from 'react';
 import { ReadOnlyToggle } from '@/components/presentational/ReadOnlyToggle';
 import {
   DropdownMenu,
@@ -7,11 +12,6 @@ import {
 } from '@/components/ui/v3/dropdown-menu';
 import type { CommonDataGridCellProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGridCell';
 import { useDataGridCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridCell';
-import {
-  useState,
-  type MouseEvent,
-  type KeyboardEvent as ReactKeyboardEvent,
-} from 'react';
 
 export interface DataGridBooleanCellProps<TData extends object>
   extends CommonDataGridCellProps<TData, boolean | null | undefined> {

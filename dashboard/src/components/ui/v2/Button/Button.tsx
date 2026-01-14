@@ -1,4 +1,3 @@
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import type { SxProps, Theme } from '@mui/material';
 import { alpha, styled } from '@mui/material';
 import type {
@@ -8,6 +7,7 @@ import type {
 import MaterialButton, { buttonClasses } from '@mui/material/Button';
 import type { ForwardedRef } from 'react';
 import { forwardRef } from 'react';
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 
 export type ButtonProps<
   D extends React.ElementType = ButtonTypeMap['defaultComponent'],

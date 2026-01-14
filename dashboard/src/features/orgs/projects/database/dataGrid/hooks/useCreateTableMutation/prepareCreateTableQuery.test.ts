@@ -1,5 +1,5 @@
-import type { DatabaseTable } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { expect, test } from 'vitest';
+import type { DatabaseTable } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import prepareCreateTableQuery from './prepareCreateTableQuery';
 
 describe('prepareCreateTableQuery', () => {

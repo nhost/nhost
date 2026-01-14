@@ -1,6 +1,6 @@
+import { describe, it } from 'vitest';
 import type { BaseEventTriggerFormValues } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerFormTypes';
 import type { RequestTransformation } from '@/utils/hasura-api/generated/schemas';
-import { describe, it } from 'vitest';
 import buildRequestTransformDTO from './buildRequestTransformDTO';
 
 describe('buildRequestTransformDTO', () => {

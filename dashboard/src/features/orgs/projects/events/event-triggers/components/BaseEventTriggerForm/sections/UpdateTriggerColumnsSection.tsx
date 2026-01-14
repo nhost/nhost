@@ -1,3 +1,4 @@
+import { useFormContext } from 'react-hook-form';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import {
@@ -11,7 +12,6 @@ import { Skeleton } from '@/components/ui/v3/skeleton';
 import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
 import type { BaseEventTriggerFormValues } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerFormTypes';
 import { isEmptyValue } from '@/lib/utils';
-import { useFormContext } from 'react-hook-form';
 
 export default function UpdateTriggerColumnsSection() {
   const form = useFormContext<BaseEventTriggerFormValues>();

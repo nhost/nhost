@@ -1,11 +1,11 @@
-import type { ButtonProps } from '@/components/ui/v2/Button';
-import { Button } from '@/components/ui/v2/Button';
-import { ChevronLeftIcon } from '@/components/ui/v2/icons/ChevronLeftIcon';
-import { ChevronRightIcon } from '@/components/ui/v2/icons/ChevronRightIcon';
-import { Input } from '@/components/ui/v2/Input';
-import { Text } from '@/components/ui/v2/Text';
 import type { DetailedHTMLProps, HTMLProps } from 'react';
 import { twMerge } from 'tailwind-merge';
+import type { ButtonProps } from '@/components/ui/v2/Button';
+import { Button } from '@/components/ui/v2/Button';
+import { Input } from '@/components/ui/v2/Input';
+import { ChevronLeftIcon } from '@/components/ui/v2/icons/ChevronLeftIcon';
+import { ChevronRightIcon } from '@/components/ui/v2/icons/ChevronRightIcon';
+import { Text } from '@/components/ui/v2/Text';
 
 export type PaginationProps = DetailedHTMLProps<
   HTMLProps<HTMLDivElement>,

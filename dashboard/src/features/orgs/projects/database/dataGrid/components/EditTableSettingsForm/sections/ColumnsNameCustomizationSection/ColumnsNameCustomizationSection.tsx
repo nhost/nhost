@@ -1,3 +1,7 @@
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 import { FormInput } from '@/components/form/FormInput';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
@@ -10,10 +14,6 @@ import { convertSnakeToCamelCase } from '@/features/orgs/projects/database/dataG
 import { prepareCustomGraphQLColumnNameDTO } from '@/features/orgs/projects/database/dataGrid/utils/prepareCustomGraphQLColumnNameDTO';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { cn, isEmptyValue } from '@/lib/utils';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 import ColumnsNameCustomizationSectionSkeleton from './ColumnsNameCustomizationSectionSkeleton';
 
 export interface ColumnsNameCustomizationSectionProps {
