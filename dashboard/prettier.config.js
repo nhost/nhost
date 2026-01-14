@@ -8,8 +8,5 @@ module.exports = {
   bracketSameLine: false,
   endOfLine: 'auto',
   semi: true,
-  plugins: [
-    'prettier-plugin-organize-imports',
-    'prettier-plugin-tailwindcss'
-  ],
+  plugins: ['prettier-plugin-organize-imports'],
 };

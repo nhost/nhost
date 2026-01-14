@@ -1,4 +1,4 @@
-const path = require('path');
+const path = require('node:path');
 const withBundleAnalyzer = require('@next/bundle-analyzer')({
   enabled: process.env.ANALYZE === 'true',
 });
@@ -10,9 +10,8 @@ function getCspHeader() {
       return null;
     case 'custom':
       return process.env.CSP_HEADER || null;
-    case 'nhost':
     default:
-      return [
+      return `${[
         "default-src 'self' *.nhost.run wss://*.nhost.run nhost.run wss://nhost.run",
         "script-src 'self' 'unsafe-eval' cdn.segment.com js.stripe.com challenges.cloudflare.com googletagmanager.com",
         "connect-src 'self' *.nhost.run wss://*.nhost.run nhost.run wss://nhost.run discord.com api.segment.io api.segment.com cdn.segment.com nhost.zendesk.com api.github.com",
@@ -26,7 +25,7 @@ function getCspHeader() {
         "frame-src 'self' js.stripe.com challenges.cloudflare.com",
         "block-all-mixed-content",
         "upgrade-insecure-requests",
-      ].join('; ') + ';';
+      ].join('; ')};`;
   }
 }
 
@@ -39,9 +38,6 @@ module.exports = withBundleAnalyzer({
   },
   publicRuntimeConfig: {
     version,
-  },
-  eslint: {
-    dirs: ['src'],
   },
   async headers() {
     const cspHeader = getCspHeader();
