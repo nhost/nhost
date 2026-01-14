@@ -133,12 +133,14 @@ in
               name = "root";
               paths = with pkgs; [
                 coreutils
-                nixVersions.nix_2_28
+                nixVersions.nix_2_33
                 bash
                 gnugrep
                 gnumake
               ];
-              pathsToLink = "/bin";
+              pathsToLink = [
+                "/bin"
+              ];
             })
           ];
         })
