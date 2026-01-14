@@ -20,6 +20,8 @@ type Props = {
   onClose: () => void;
   disabled: boolean;
   isSelectedNotSchemaLocked: boolean;
+  isMaterializedView?: boolean;
+  isFunction?: boolean;
   onDelete: () => void;
   onEditPermissions: () => void;
   onViewPermissions: () => void;
@@ -36,6 +38,8 @@ function TableActions({
   onOpen,
   disabled,
   isSelectedNotSchemaLocked,
+  isMaterializedView = false,
+  isFunction = false,
   onDelete,
   onEditPermissions,
   onViewPermissions,
@@ -87,14 +91,16 @@ function TableActions({
           </>
         ) : (
           <>
-            {isSelectedNotSchemaLocked && (
-              <DropdownMenuItem
-                className={menuItemClassName}
-                onClick={onEditTable}
-              >
-                <SquarePen className="h-4 w-4" /> <span>Edit Table</span>
-              </DropdownMenuItem>
-            )}
+            {isSelectedNotSchemaLocked &&
+              !isMaterializedView &&
+              !isFunction && (
+                <DropdownMenuItem
+                  className={menuItemClassName}
+                  onClick={onEditTable}
+                >
+                  <SquarePen className="h-4 w-4" /> <span>Edit Table</span>
+                </DropdownMenuItem>
+              )}
             <DropdownMenuItem
               className={menuItemClassName}
               onClick={onEditPermissions}
@@ -107,18 +113,20 @@ function TableActions({
             >
               <Settings className="h-4 w-4" /> <span>Edit Settings</span>
             </DropdownMenuItem>
-            {isSelectedNotSchemaLocked && (
-              <DropdownMenuItem
-                className={cn(
-                  menuItemClassName,
-                  '!text-sm+ !text-destructive font-medium',
-                )}
-                onClick={onDelete}
-              >
-                <Trash2 className="h-4 w-4" />
-                <span>Delete Table</span>
-              </DropdownMenuItem>
-            )}
+            {isSelectedNotSchemaLocked &&
+              !isMaterializedView &&
+              !isFunction && (
+                <DropdownMenuItem
+                  className={cn(
+                    menuItemClassName,
+                    '!text-sm+ !text-destructive font-medium',
+                  )}
+                  onClick={onDelete}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  <span>Delete Table</span>
+                </DropdownMenuItem>
+              )}
           </>
         )}
       </DropdownMenuContent>
