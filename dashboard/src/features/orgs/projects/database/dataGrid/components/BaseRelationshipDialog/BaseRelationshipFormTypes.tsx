@@ -93,9 +93,9 @@ const remoteSchemaRelationshipFormSchema = baseRelationshipFormSchema.extend({
     table: z.string().optional(),
   }),
   remoteSchema: z.object({
-    remoteSchema: z.string().min(1, { message: 'Remote schema is required' }),
+    name: z.string().min(1, { message: 'Remote schema is required' }),
     lhsFields: z.array(z.string()),
-    remoteField: z.custom<RemoteField>(),
+    remoteField: z.custom<RemoteField>().optional(),
   }),
 });
 

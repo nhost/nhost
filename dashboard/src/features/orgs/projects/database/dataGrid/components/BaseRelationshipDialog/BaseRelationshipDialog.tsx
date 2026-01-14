@@ -17,7 +17,7 @@ import { Form, FormDescription } from '@/components/ui/v3/form';
 import { useGetMetadata } from '@/features/orgs/projects/common/hooks/useGetMetadata';
 import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
 import type { NormalizedQueryDataRow } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { RemoteField } from '@/utils/hasura-api/generated/schemas';
+import type { RemoteField } from '@/utils/hasura-api/generated/schemas';
 import {
   type BaseRelationshipFormValues,
   buildDefaultFormValues,
@@ -40,7 +40,7 @@ export interface BaseRelationshipDialogProps {
    */
   schema: string;
   /**
-   * Table to delete the relationship from.
+   * Table where the relationship is located.
    */
   tableName: string;
   dialogTitle?: string;
@@ -247,7 +247,7 @@ export default function BaseRelationshipDialog({
       form.setValue(
         'remoteSchema',
         {
-          remoteSchema: selectedRemoteSchemaFromToSource,
+          name: selectedRemoteSchemaFromToSource,
           lhsFields,
           remoteField,
         },

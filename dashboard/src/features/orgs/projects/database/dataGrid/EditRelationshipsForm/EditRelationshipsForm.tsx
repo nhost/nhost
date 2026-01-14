@@ -12,8 +12,6 @@ import {
 import type { BaseTableFormProps } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm';
 import { CreateRelationshipDialog } from '@/features/orgs/projects/database/dataGrid/components/CreateRelationshipDialog';
 import { DeleteRelationshipDialog } from '@/features/orgs/projects/database/dataGrid/components/DeleteRelationshipDialog';
-import { EditRemoteSchemaRelationshipDialog } from '@/features/orgs/projects/database/dataGrid/components/EditRemoteSchemaRelationshipDialog';
-import { EditRemoteSourceRelationshipDialog } from '@/features/orgs/projects/database/dataGrid/components/EditRemoteSourceRelationshipDialog';
 import { RenameRelationshipDialog } from '@/features/orgs/projects/database/dataGrid/components/RenameRelationshipDialog';
 import useGetRelationships from '@/features/orgs/projects/database/dataGrid/hooks/useGetRelationships/useGetRelationships';
 import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
@@ -21,6 +19,7 @@ import type { NormalizedQueryDataRow } from '@/features/orgs/projects/database/d
 import { isRemoteRelationshipViewModel } from '@/features/orgs/projects/database/dataGrid/types/relationships/guards';
 import { ArrowRight, Link2, Plug as PlugIcon, Split } from 'lucide-react';
 import { useRouter } from 'next/router';
+import { EditRemoteRelationshipButton } from '../components/EditRemoteRelationshipButton';
 import SuggestedRelationshipsSection from './sections/SuggestedRelationshipsSection';
 
 export interface EditRelationshipsFormProps
@@ -173,7 +172,7 @@ export default function EditRelationshipsForm(
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                        <div className="flex flex-wrap items-center gap-2 text-muted-foreground text-sm">
                           <span>{relationship.fromLabel}</span>
                           <ArrowRight className="h-4 w-4" />
                           <span>{relationship.toLabel}</span>
@@ -188,32 +187,37 @@ export default function EditRelationshipsForm(
                           isRemoteRelationship={relationship.kind === 'remote'}
                         />
                         {isRemoteRelationshipViewModel(relationship) ? (
-                          <>
-                            {relationship.type !== 'RemoteSchema' &&
-                              relationship.definition && (
-                                <EditRemoteSourceRelationshipDialog
-                                  schema={tableSchema}
-                                  tableName={tableName}
-                                  source={dataSource}
-                                  relationshipName={relationship.name}
-                                  definition={relationship.definition}
-                                />
-                              )}
-                            {relationship.type === 'RemoteSchema' &&
-                              relationship.definition && (
-                                <EditRemoteSchemaRelationshipDialog
-                                  schema={tableSchema}
-                                  tableName={tableName}
-                                  source={dataSource}
-                                  relationship={{
-                                    name: relationship.name,
-                                    definition: relationship.definition,
-                                  }}
-                                  tableColumns={tableColumns}
-                                />
-                              )}
-                          </>
+                          <EditRemoteRelationshipButton
+                            schema={tableSchema}
+                            tableName={tableName}
+                            source={dataSource}
+                            relationshipName={relationship.name}
+                            relationshipDefinition={relationship.definition}
+                          />
                         ) : (
+                          // <>
+                          //   {relationship.type !== 'RemoteSchema' &&
+                          //     relationship.definition && (
+                          //       <EditRemoteSourceRelationshipDialog
+                          //         schema={tableSchema}
+                          //         tableName={tableName}
+                          //         source={dataSource}
+                          //         relationshipName={relationship.name}
+                          //         definition={relationship.definition}
+                          //       />
+                          //     )}
+                          //   {relationship.type === 'RemoteSchema' &&
+                          //     relationship.definition && (
+                          //       <EditRemoteSchemaRelationshipButton
+                          //         schema={tableSchema}
+                          //         tableName={tableName}
+                          //         source={dataSource}
+                          //         relationshipName={relationship.name}
+                          //         relationshipDefinition={relationship.definition}
+                          //         tableColumns={tableColumns}
+                          //       />
+                          //     )}
+                          // </>
                           <RenameRelationshipDialog
                             schema={schema}
                             tableName={tableName}

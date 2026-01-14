@@ -9,11 +9,12 @@ import buildRemoteFieldFromSelection from '@/features/orgs/projects/remote-schem
 import convertIntrospectionToSchema from '@/features/orgs/projects/remote-schemas/utils/convertIntrospectionToSchema';
 import getOperationRoots from '@/features/orgs/projects/remote-schemas/utils/getOperationRoots';
 import getTypeString from '@/features/orgs/projects/remote-schemas/utils/getTypeString';
+import type { RemoteField } from '@/utils/hasura-api/generated/schemas';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 export interface RemoteSchemaRelationshipDetailsValue {
   lhsFields: string[];
-  remoteField?: unknown;
+  remoteField?: RemoteField;
 }
 
 export interface RemoteSchemaRelationshipDetailsInitialValue {
@@ -119,7 +120,7 @@ export default function RemoteSchemaRelationshipDetails({
   const remoteFieldsContent = useMemo(() => {
     if (!remoteSchema) {
       return (
-        <p className="text-sm text-muted-foreground">
+        <p className="text-muted-foreground text-sm">
           Select a remote schema to browse available fields.
         </p>
       );
@@ -127,7 +128,7 @@ export default function RemoteSchemaRelationshipDetails({
 
     if (!targetGraphqlSchema) {
       return (
-        <p className="text-sm text-muted-foreground">
+        <p className="text-muted-foreground text-sm">
           Loading remote schema types...
         </p>
       );
@@ -136,7 +137,7 @@ export default function RemoteSchemaRelationshipDetails({
     return (
       <div className="space-y-4">
         <div className="space-y-2">
-          <div className="text-sm font-medium">Root operation fields</div>
+          <div className="font-medium text-sm">Root operation fields</div>
           {getOperationRoots(targetGraphqlSchema).map((root) => {
             const rootFields = Object.values(root.type.getFields());
             return (
@@ -144,7 +145,7 @@ export default function RemoteSchemaRelationshipDetails({
                 key={root.value}
                 className="space-y-2 rounded-md border border-border p-3"
               >
-                <div className="text-sm font-semibold">{root.label}</div>
+                <div className="font-semibold text-sm">{root.label}</div>
                 <div className="space-y-2">
                   {rootFields.map((rootField) => {
                     const rootFieldPath = rootField.name;

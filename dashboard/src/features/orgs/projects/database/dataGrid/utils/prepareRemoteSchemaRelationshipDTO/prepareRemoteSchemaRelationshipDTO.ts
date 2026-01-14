@@ -4,7 +4,7 @@ import type { CreateRemoteRelationshipArgs } from '@/utils/hasura-api/generated/
 export default function prepareRemoteSchemaRelationshipDTO(
   values: RemoteSchemaRelationshipFormValues,
 ): CreateRemoteRelationshipArgs {
-  const selectedRemoteSchema = values.remoteSchema?.remoteSchema ?? '';
+  const selectedRemoteSchema = values.remoteSchema?.name ?? '';
 
   if (!selectedRemoteSchema || !values.remoteSchema?.remoteField) {
     throw new Error('Invalid remote schema relationship values');

@@ -173,7 +173,7 @@ export default function SourceAndReferenceSelector() {
   return (
     <div className="flex flex-row gap-4">
       <div className="flex flex-1 flex-col gap-4 rounded-md border p-4">
-        <h3 className="text-sm font-semibold text-foreground">From Source</h3>
+        <h3 className="font-semibold text-foreground text-sm">From Source</h3>
 
         <div className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
@@ -220,7 +220,7 @@ export default function SourceAndReferenceSelector() {
       </div>
 
       <div className="flex flex-1 flex-col gap-4 rounded-md border p-4">
-        <h3 className="text-sm font-semibold text-foreground">To Reference</h3>
+        <h3 className="font-semibold text-foreground text-sm">To Reference</h3>
 
         <div className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
@@ -274,7 +274,7 @@ export default function SourceAndReferenceSelector() {
                       shouldValidate: true,
                     });
 
-                    setValue('remoteSchema.remoteSchema', remoteSchemaName, {
+                    setValue('remoteSchema.name', remoteSchemaName, {
                       shouldDirty: true,
                     });
 
