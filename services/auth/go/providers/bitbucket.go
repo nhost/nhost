@@ -65,7 +65,9 @@ func (b *Bitbucket) GetProfile(
 ) (oidc.Profile, error) {
 	// Step 1: Get user profile from Bitbucket
 	var user bitbucketAPIUser
-	if err := fetchOAuthProfile(ctx, "https://api.bitbucket.org/2.0/user", accessToken, &user); err != nil {
+	if err := fetchOAuthProfile(
+		ctx, "https://api.bitbucket.org/2.0/user", accessToken, &user,
+	); err != nil {
 		return oidc.Profile{}, fmt.Errorf("Bitbucket user profile error: %w", err)
 	}
 
