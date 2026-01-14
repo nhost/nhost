@@ -12,8 +12,8 @@ import useGetRemoteSchemas from '@/features/orgs/projects/remote-schemas/hooks/u
 import parseRemoteFieldToSelection from '@/features/orgs/projects/remote-schemas/utils/parseRemoteFieldToSelection';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type {
-  RemoteField,
   RemoteRelationshipDefinition,
+  ToRemoteSchemaRelationshipDefinition,
 } from '@/utils/hasura-api/generated/schemas';
 import { SquarePen } from 'lucide-react';
 import { BaseRelationshipDialog } from '../BaseRelationshipDialog';
@@ -23,7 +23,10 @@ export interface EditRemoteSchemaRelationshipDialogControlledProps {
   tableName: string;
   source: string;
   relationshipName: string;
-  relationshipDefinition: RemoteRelationshipDefinition;
+  relationshipDefinition: Extract<
+    RemoteRelationshipDefinition,
+    { to_remote_schema: ToRemoteSchemaRelationshipDefinition }
+  >;
   defaultRemoteSchema?: string;
   onSuccess?: () => Promise<void> | void;
 }
@@ -136,15 +139,6 @@ export default function EditRemoteSchemaRelationshipButton({
       return;
     }
 
-    const name = isEditing
-      ? (relationship?.name ?? '').trim()
-      : relationshipName.trim();
-
-    if (!name) {
-      setFormError('Please provide a relationship name.');
-      return;
-    }
-
     if (!selectedRemoteSchema) {
       setFormError('Please select a remote schema.');
       return;
@@ -166,7 +160,7 @@ export default function EditRemoteSchemaRelationshipButton({
         to_remote_schema: {
           remote_schema: selectedRemoteSchema,
           lhs_fields: remoteFieldDetails.lhsFields,
-          remote_field: remoteFieldDetails.remoteField as RemoteField,
+          remote_field: remoteFieldDetails.remoteField,
         },
       },
     };
