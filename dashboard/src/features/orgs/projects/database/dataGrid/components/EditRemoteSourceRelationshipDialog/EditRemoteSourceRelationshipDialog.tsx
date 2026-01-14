@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/v3/button';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { BaseRelationshipDialog } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog';
 import {
-  ToReferenceSourceTypePrefix,
+  ReferenceSource,
   type BaseRelationshipFormValues,
 } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/BaseRelationshipFormTypes';
 import { useCreateRemoteRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateRemoteRelationshipMutation';
@@ -63,7 +63,7 @@ export default function EditRemoteSourceRelationshipDialog({
       toReference: {
         schema: toSourceDefinition.table?.schema ?? '',
         table: toSourceDefinition.table?.name ?? '',
-        source: `${ToReferenceSourceTypePrefix.SOURCE}${toSourceDefinition.source ?? ''}`,
+        source: ReferenceSource.createTypeSourceFromName(toSourceDefinition.source ?? '').fullValue,
       },
       relationshipType:
         toSourceDefinition.relationship_type?.toLowerCase() === 'array'

@@ -17,6 +17,7 @@ import { Form, FormDescription } from '@/components/ui/v3/form';
 import { useGetMetadata } from '@/features/orgs/projects/common/hooks/useGetMetadata';
 import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
 import type { NormalizedQueryDataRow } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { RemoteField } from '@/utils/hasura-api/generated/schemas';
 import {
   type BaseRelationshipFormValues,
   buildDefaultFormValues,
@@ -237,7 +238,7 @@ export default function BaseRelationshipDialog({
       remoteField,
     }: {
       lhsFields: string[];
-      remoteField?: unknown;
+      remoteField?: RemoteField;
     }) => {
       if (!selectedRemoteSchemaFromToSource) {
         return;
@@ -255,6 +256,9 @@ export default function BaseRelationshipDialog({
     },
     [form, selectedRemoteSchemaFromToSource],
   );
+
+  const formValuesWatch = watch();
+  console.log('formValuesWatch', formValuesWatch);
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>

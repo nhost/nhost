@@ -14,7 +14,7 @@ export default function getRemoteFieldPath(
   }
 
   const head = keys[0];
-  const nestedField = remoteField[head]?.field as RemoteField | undefined;
+  const nestedField = remoteField[head]?.field;
 
   return [head, ...getRemoteFieldPath(nestedField)];
 }

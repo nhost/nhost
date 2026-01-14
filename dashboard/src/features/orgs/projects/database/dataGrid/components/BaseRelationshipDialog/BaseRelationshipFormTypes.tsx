@@ -1,6 +1,7 @@
+import type { RemoteField } from '@/utils/hasura-api/generated/schemas';
 import { z } from 'zod';
 
-export enum ToReferenceSourceTypePrefix {
+enum ToReferenceSourceTypePrefix {
   REMOTE_SCHEMA = 'remote-schema-',
   SOURCE = 'source-',
 }
@@ -94,7 +95,7 @@ const remoteSchemaRelationshipFormSchema = baseRelationshipFormSchema.extend({
   remoteSchema: z.object({
     remoteSchema: z.string().min(1, { message: 'Remote schema is required' }),
     lhsFields: z.array(z.string()),
-    remoteField: z.unknown(),
+    remoteField: z.custom<RemoteField>(),
   }),
 });
 

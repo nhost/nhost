@@ -10,7 +10,6 @@ import { useGetMetadata } from '@/features/orgs/projects/common/hooks/useGetMeta
 import { useGetRemoteSchemas } from '@/features/orgs/projects/remote-schemas/hooks/useGetRemoteSchemas';
 import {
   ReferenceSource,
-  ToReferenceSourceTypePrefix,
   type BaseRelationshipFormValues,
   type ToReferenceSourceValue,
 } from './BaseRelationshipFormTypes';
@@ -47,7 +46,7 @@ export default function SourceAndReferenceSelector() {
       ?.sort((a, b) => a.localeCompare(b))
       .map((source) => ({
         label: source,
-        value: `${ToReferenceSourceTypePrefix.SOURCE}${source}`,
+        value: ReferenceSource.createTypeSourceFromName(source).fullValue,
       })) ?? [];
 
   const schemaOptionsBySource = useMemo(() => {
@@ -159,7 +158,10 @@ export default function SourceAndReferenceSelector() {
         {remoteSchemas.map((remoteSchema) => (
           <SelectItem
             key={`to-remote-schema-${remoteSchema.name}`}
-            value={`${ToReferenceSourceTypePrefix.REMOTE_SCHEMA}${remoteSchema.name}`}
+            value={
+              ReferenceSource.createTypeRemoteSchemaFromName(remoteSchema.name)
+                .fullValue
+            }
           >
             {remoteSchema.name}
           </SelectItem>

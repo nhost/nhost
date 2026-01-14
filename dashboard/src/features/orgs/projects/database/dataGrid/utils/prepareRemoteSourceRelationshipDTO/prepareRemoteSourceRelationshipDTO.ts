@@ -2,6 +2,7 @@ import {
   ReferenceSource,
   type TableRelationshipFormValues,
 } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/BaseRelationshipFormTypes';
+import { isNotEmptyValue } from '@/lib/utils';
 import type { CreateRemoteRelationshipArgs } from '@/utils/hasura-api/generated/schemas';
 
 export default function prepareRemoteSourceRelationshipDTO(
@@ -22,7 +23,11 @@ export default function prepareRemoteSourceRelationshipDTO(
   };
 
   const fieldMappingEntries = values.fieldMapping
-    .filter((mapping) => mapping.sourceColumn && mapping.referenceColumn)
+    .filter(
+      (mapping) =>
+        isNotEmptyValue(mapping.sourceColumn) &&
+        isNotEmptyValue(mapping.referenceColumn),
+    )
     .map((mapping) => [mapping.sourceColumn, mapping.referenceColumn]);
 
   const fieldMapping = Object.fromEntries(fieldMappingEntries);
