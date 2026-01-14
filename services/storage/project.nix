@@ -91,6 +91,8 @@ let
       "-Drsvg=disabled"
       "-Dpangocairo=disabled"
       "-Dheif=enabled"
+      "-Duhdr=disabled"
+      "-Draw=disabled"
     ];
   });
 

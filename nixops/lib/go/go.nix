@@ -62,10 +62,10 @@ in
       ] ++ goCheckDeps ++ buildInputs;
 
       shellHook = shellHook + pkgs.lib.optionalString pkgs.stdenv.isDarwin ''
-        export SDKROOT=${pkgs.apple-sdk_12}
-        export SDKROOT_FOR_TARGET=${pkgs.apple-sdk_12}
-        export DEVELOPER_DIR=${pkgs.apple-sdk_12}
-        export DEVELOPER_DIR_FOR_TARGET=${pkgs.apple-sdk_12}
+        export SDKROOT=${pkgs.apple-sdk_14}
+        export SDKROOT_FOR_TARGET=${pkgs.apple-sdk_14}
+        export DEVELOPER_DIR=${pkgs.apple-sdk_14}
+        export DEVELOPER_DIR_FOR_TARGET=${pkgs.apple-sdk_14}
       '';
     };
 
