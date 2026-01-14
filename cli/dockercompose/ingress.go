@@ -2,6 +2,7 @@ package dockercompose
 
 import (
 	"fmt"
+	"maps"
 	"strconv"
 )
 
@@ -12,9 +13,7 @@ func (i Ingresses) Labels() map[string]string {
 	labels["traefik.enable"] = "true"
 
 	for _, ingress := range i {
-		for k, v := range ingress.Labels() {
-			labels[k] = v
-		}
+		maps.Copy(labels, ingress.Labels())
 	}
 
 	return labels

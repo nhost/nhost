@@ -1,5 +1,5 @@
 /*
-This package provides functionality to interact with the Nhost API.
+Package nhostclient provides functionality to interact with the Nhost API.
 */
 package nhostclient
 

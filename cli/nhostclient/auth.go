@@ -105,7 +105,11 @@ func (n *Client) LoginPAT(ctx context.Context, pat string) (credentials.Session,
 		func(resp *http.Response) error {
 			if resp.StatusCode != http.StatusOK {
 				b, _ := io.ReadAll(resp.Body)
-				return fmt.Errorf("unexpected status code: %d, message: %s", resp.StatusCode, string(b)) //nolint:err113
+				return fmt.Errorf( //nolint:err113
+					"unexpected status code: %d, message: %s",
+					resp.StatusCode,
+					string(b),
+				)
 			}
 			return nil
 		},
@@ -145,7 +149,11 @@ func (n *Client) CreatePAT(
 		func(resp *http.Response) error {
 			if resp.StatusCode != http.StatusOK {
 				b, _ := io.ReadAll(resp.Body)
-				return fmt.Errorf("unexpected status code: %d, message: %s", resp.StatusCode, string(b)) //nolint:err113
+				return fmt.Errorf( //nolint:err113
+					"unexpected status code: %d, message: %s",
+					resp.StatusCode,
+					string(b),
+				)
 			}
 			return nil
 		},
@@ -200,7 +208,11 @@ func (n *Client) RefreshToken(
 		func(resp *http.Response) error {
 			if resp.StatusCode != http.StatusOK {
 				b, _ := io.ReadAll(resp.Body)
-				return fmt.Errorf("unexpected status code: %d, message: %s", resp.StatusCode, string(b)) //nolint:err113
+				return fmt.Errorf( //nolint:err113
+					"unexpected status code: %d, message: %s",
+					resp.StatusCode,
+					string(b),
+				)
 			}
 			return nil
 		},

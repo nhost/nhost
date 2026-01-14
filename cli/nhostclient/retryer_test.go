@@ -28,11 +28,13 @@ func TestStandardRetry(t *testing.T) {
 			multiplier:  1,
 			funcType: func(t *testing.T, calls *int) nhostclient.Func {
 				t.Helper()
+
 				return func(attempt int) error {
 					*calls++
 					if attempt != *calls {
 						t.Errorf("expected attempt %d, got %d", *calls, attempt)
 					}
+
 					return nil
 				}
 			},
@@ -46,14 +48,17 @@ func TestStandardRetry(t *testing.T) {
 			multiplier:  1,
 			funcType: func(t *testing.T, calls *int) nhostclient.Func {
 				t.Helper()
+
 				return func(attempt int) error {
 					*calls++
 					if attempt != *calls {
 						t.Errorf("expected attempt %d, got %d", *calls, attempt)
 					}
+
 					if *calls < 3 {
 						return errTest
 					}
+
 					return nil
 				}
 			},
@@ -67,11 +72,13 @@ func TestStandardRetry(t *testing.T) {
 			multiplier:  1,
 			funcType: func(t *testing.T, calls *int) nhostclient.Func {
 				t.Helper()
+
 				return func(attempt int) error {
 					*calls++
 					if attempt != *calls {
 						t.Errorf("expected attempt %d, got %d", *calls, attempt)
 					}
+
 					return errTest
 				}
 			},
