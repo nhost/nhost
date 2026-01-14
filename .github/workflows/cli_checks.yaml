@@ -1,7 +1,7 @@
 ---
 name: "cli: check and build"
 on:
-  pull_request_target:
+  pull_request:
     paths:
       - '.github/workflows/cli_checks.yaml'
       - '.github/workflows/wf_check.yaml'
@@ -22,35 +22,35 @@ on:
 
       # cli
       - 'cli/**'
+  issue_comment:
+    types: [created]
   push:
     branches:
       - main
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || format('push-{0}', github.sha) }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.event_name == 'issue_comment' && format('pr-{0}', github.event.issue.number) || format('push-{0}', github.sha) }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' || github.event_name == 'issue_comment' }}
 
 jobs:
-  check-permissions:
+  check-pr-authorization:
     runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.auth.outputs.should_run }}
+      sha: ${{ steps.auth.outputs.sha }}
     steps:
-      - run: |
-          echo "github.event_name: ${{ github.event_name }}"
-          echo "github.event.pull_request.author_association: ${{ github.event.pull_request.author_association }}"
-      - name: "This task will run and fail if user has no permissions and label safe_to_test isn't present"
-        if: "github.event_name == 'pull_request_target' && ! ( contains(github.event.pull_request.labels.*.name, 'safe_to_test') || contains(fromJson('[\"OWNER\", \"MEMBER\", \"COLLABORATOR\"]'), github.event.pull_request.author_association) )"
-        run: |
-          exit 1
+      - uses: actions/checkout@v6
+      - id: auth
+        uses: ./.github/actions/check-pr-authorization
 
   tests:
+    needs: check-pr-authorization
+    if: needs.check-pr-authorization.outputs.should_run == 'true'
     uses: ./.github/workflows/wf_check.yaml
-    needs:
-      - check-permissions
     with:
       NAME: cli
       PATH: cli
-      GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
-
+      GIT_REF: ${{ needs.check-pr-authorization.outputs.sha }}
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
@@ -58,13 +58,13 @@ jobs:
       NHOST_PAT: ${{ secrets.NHOST_PAT }}
 
   build_artifacts:
+    needs: check-pr-authorization
+    if: needs.check-pr-authorization.outputs.should_run == 'true'
     uses: ./.github/workflows/wf_build_artifacts.yaml
-    needs:
-      - check-permissions
     with:
       NAME: cli
       PATH: cli
-      GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
+      GIT_REF: ${{ needs.check-pr-authorization.outputs.sha }}
       VERSION: 0.0.0-dev # we use a fixed version here to avoid unnecessary rebuilds
       DOCKER: true
     secrets:
@@ -73,28 +73,17 @@ jobs:
       NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
 
   test_cli_build:
-    uses: ./.github/workflows/cli_wf_test_new_project.yaml
     needs:
-      - check-permissions
+      - check-pr-authorization
       - build_artifacts
+    if: needs.check-pr-authorization.outputs.should_run == 'true'
+    uses: ./.github/workflows/cli_wf_test_new_project.yaml
     with:
       NAME: cli
       PATH: cli
-      GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
-
+      GIT_REF: ${{ needs.check-pr-authorization.outputs.sha }}
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
       NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
       NHOST_PAT: ${{ secrets.NHOST_PAT }}
-
-  remove_label:
-    runs-on: ubuntu-latest
-    needs:
-      - check-permissions
-    steps:
-      - uses: actions-ecosystem/action-remove-labels@v1
-        with:
-          labels: |
-            safe_to_test
-    if: contains(github.event.pull_request.labels.*.name, 'safe_to_test')
