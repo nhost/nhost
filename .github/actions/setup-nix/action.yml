@@ -17,7 +17,7 @@ runs:
     - name: Install Nix
       uses: cachix/install-nix-action@v31
       with:
-        install_url: "https://releases.nixos.org/nix/nix-2.33.0/install"
+        install_url: "https://releases.nixos.org/nix/nix-2.28.5/install"
         install_options: "--no-daemon"
         extra_nix_config: |
           download-buffer-size = 500000000
