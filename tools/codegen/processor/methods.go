@@ -328,7 +328,9 @@ func getMethodParameters(
 			case param.Schema != nil:
 				t2, tt, err := GetType(param.Schema, method+format.Title(param.Name), p, false)
 				if err != nil {
-					return nil, nil, fmt.Errorf("failed to get type for parameter %s: %w", param.Name, err)
+					return nil, nil, fmt.Errorf(
+						"failed to get type for parameter %s: %w", param.Name, err,
+					)
 				}
 
 				types = append(types, tt...)
@@ -343,15 +345,23 @@ func getMethodParameters(
 					)
 				}
 
-				t2, tt, err := GetType(jsonMediaType.Schema, method+format.Title(param.Name), p, false)
+				t2, tt, err := GetType(
+					jsonMediaType.Schema, method+format.Title(param.Name), p, false,
+				)
 				if err != nil {
-					return nil, nil, fmt.Errorf("failed to get type for parameter %s: %w", param.Name, err)
+					return nil, nil, fmt.Errorf(
+						"failed to get type for parameter %s: %w", param.Name, err,
+					)
 				}
 
 				types = append(types, tt...)
 				t = t2
 			default:
-				return nil, nil, fmt.Errorf("parameter %s in operation %s has no schema or content defined", param.Name, operation.OperationId) //nolint:err113,lll
+				return nil, nil, fmt.Errorf( //nolint:err113
+					"parameter %s in operation %s has no schema or content defined",
+					param.Name,
+					operation.OperationId,
+				)
 			}
 		}
 
