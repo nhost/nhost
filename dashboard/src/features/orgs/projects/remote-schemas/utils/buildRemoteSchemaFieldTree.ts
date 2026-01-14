@@ -35,6 +35,7 @@ function getTree(
     (typeS === 'QUERY'
       ? permissionsSchema.getQueryType()
       : permissionsSchema.getMutationType());
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   const permFields: GraphQLFieldMap<any, any> | null = permType
     ? (permType.getFields?.() ?? null)
     : null;
@@ -45,6 +46,7 @@ function getTree(
     const { name, args: argArray, type, ...rest } = field;
     const args = (argArray ?? []).reduce<Record<string, GraphQLArgument>>(
       (acc, arg) => {
+        // biome-ignore lint/style/noParameterAssign: Disabled to avoid spread operator performance overhead in reduce.
         acc[arg.name] = arg;
         return acc;
       },
@@ -189,6 +191,7 @@ function getType(
         } else if (v.args?.length) {
           const argsMap = (v.args as ReadonlyArray<GraphQLArgument>).reduce(
             (acc, arg) => {
+              // biome-ignore lint/style/noParameterAssign: Disabled to avoid spread operator performance overhead in reduce.
               acc[arg.name] = arg;
               return acc;
             },
@@ -210,6 +213,7 @@ function getType(
 
     if (value instanceof GraphQLUnionType) {
       let isFieldPresent = true;
+      // biome-ignore lint/suspicious/noExplicitAny: TODO
       let permissionsTypesVal: ReadonlyArray<GraphQLObjectType<any, any>> = [];
       if (permissionsSchema && permissionsSchemaFields) {
         if (key in permissionsSchemaFields) {

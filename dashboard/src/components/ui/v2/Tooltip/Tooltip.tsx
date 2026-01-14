@@ -70,7 +70,6 @@ function Tooltip(
   if (!visible) {
     // We need a fragment here because if we return `tooltipChildren` directly,
     // without any wrapper, it might not be rendered.
-    // eslint-disable-next-line react/jsx-no-useless-fragment
     return <>{tooltipChildren}</>;
   }
 

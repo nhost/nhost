@@ -27,7 +27,7 @@ export default function StoragePage() {
         'x-hasura-admin-secret':
           process.env.NEXT_PUBLIC_ENV === 'dev'
             ? getHasuraAdminSecret()
-            : project.config?.hasura.adminSecret,
+            : project.config!.hasura.adminSecret,
       }}
     >
       <div className="h-full max-w-full pb-25 xs+:pb-[56.5px]">

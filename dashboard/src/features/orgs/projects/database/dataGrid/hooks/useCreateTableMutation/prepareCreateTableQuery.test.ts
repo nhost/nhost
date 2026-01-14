@@ -224,6 +224,7 @@ describe('prepareCreateTableQuery', () => {
         {
           name: 'name',
           type: {
+            // biome-ignore lint/suspicious/noExplicitAny: test file
             value: 'character varying(10)' as any,
             label: 'character varying(10)',
           },

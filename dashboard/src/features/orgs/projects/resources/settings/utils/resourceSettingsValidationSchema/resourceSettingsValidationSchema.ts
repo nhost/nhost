@@ -124,7 +124,7 @@ const postgresServiceValidationSchema = Yup.object({
   memory: Yup.number()
     .required()
     .min(MIN_SERVICE_MEMORY)
-    .max(MAX_SERVICE_MEMORY)
+    .max(MAX_SERVICE_MEMORY),
 });
 
 export const resourceSettingsValidationSchema = Yup.object({

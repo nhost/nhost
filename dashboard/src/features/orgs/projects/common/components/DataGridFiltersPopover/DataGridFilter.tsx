@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/v3/button';
-import { type DataGridFilterOperator } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
+import type { DataGridFilterOperator } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
 import { X } from 'lucide-react';
 import DataGridFilterColumn from './DataGridFilterColumn';
 import DataGridFilterOperators from './DataGridFilterOperators';
@@ -28,7 +28,7 @@ function DataGridFilter({ column, op, value, index }: FilterProps) {
       <Button
         variant="outline"
         size="icon"
-        className="flex-i h-8 w-8"
+        className="h-8 w-8 flex-i"
         onClick={() => removeFilter(index)}
       >
         <X width={12} height={12} />

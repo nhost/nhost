@@ -69,6 +69,7 @@ export interface FetchTableReturnType {
    * Response metadata that usually contains information about the schema and
    * the table for which the query was run.
    */
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   metadata?: Record<string, any>;
 }
 

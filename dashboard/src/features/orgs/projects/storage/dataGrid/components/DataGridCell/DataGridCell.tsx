@@ -38,6 +38,7 @@ import {
 } from '@/components/ui/v3/tooltip';
 import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
 
+// biome-ignore lint/suspicious/noExplicitAny: TODO
 export interface CommonDataGridCellProps<TData extends object, TValue = any>
   extends DataBrowserGridCellProps<TData, TValue> {
   /**
@@ -68,6 +69,7 @@ export interface DataGridCellProps<TData extends object> {
   /**
    * Current cell's props.
    */
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   cell: DataBrowserGridCell<TData, any>;
   /**
    * Determines whether the cell is editable.
@@ -166,6 +168,7 @@ function DataGridCellContent<TData extends object = {}>({
   }
 
   async function handleSave(
+    // biome-ignore lint/suspicious/noExplicitAny: TODO
     value: any,
     options: { reset: boolean } = { reset: false },
   ) {
@@ -337,6 +340,7 @@ function DataGridCellContent<TData extends object = {}>({
   }
 
   const content = (
+    // biome-ignore lint/a11y/useSemanticElements: need to add event handler to static element
     <div
       ref={cellRef}
       className={cn(
@@ -361,6 +365,7 @@ function DataGridCellContent<TData extends object = {}>({
           child:
             | ReactNode
             | ReactPortal
+            // biome-ignore lint/suspicious/noExplicitAny: TODO
             | ReactElement<unknown, string | JSXElementConstructor<any>>,
         ) => {
           if (!isValidElement(child)) {

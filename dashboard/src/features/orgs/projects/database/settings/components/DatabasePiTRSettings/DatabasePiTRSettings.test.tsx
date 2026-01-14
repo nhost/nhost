@@ -48,6 +48,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('@/features/orgs/projects/hooks/useCurrentOrg', async () => {
+  // biome-ignore lint/suspicious/noExplicitAny: test file
   const actualCurrentOrg = await vi.importActual<any>(
     '@/features/orgs/projects/hooks/useCurrentOrg',
   );
@@ -58,6 +59,7 @@ vi.mock('@/features/orgs/projects/hooks/useCurrentOrg', async () => {
 });
 
 vi.mock('@/utils/__generated__/graphql', async () => {
+  // biome-ignore lint/suspicious/noExplicitAny: test file
   const actual = await vi.importActual<any>('@/utils/__generated__/graphql');
   return {
     ...actual,
@@ -67,6 +69,7 @@ vi.mock('@/utils/__generated__/graphql', async () => {
 });
 
 vi.mock('@/features/orgs/components/common/TransferProjectDialog', async () => {
+  // biome-ignore lint/suspicious/noExplicitAny: test file
   const actual = await vi.importActual<any>(
     '@/features/orgs/components/common/TransferProjectDialog',
   );

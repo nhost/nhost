@@ -35,7 +35,6 @@ export default function DataGridNumericCell<TData extends object>({
       });
     }
     return () => controller.abort();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inputRef.current]);
 
   async function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
@@ -83,15 +82,15 @@ export default function DataGridNumericCell<TData extends object>({
         onChange={handleChange}
         onKeyDown={handleKeyDown}
         wrapperClassName="absolute top-0 z-10 w-full top-0 left-0 h-full"
-        className="h-full w-full resize-none rounded-none border-none px-2 py-1.5 !text-xs outline-none [appearance:textfield] focus-within:rounded-none focus-within:border-transparent focus-within:bg-white focus-within:shadow-[inset_0_0_0_1.5px_rgba(0,82,205,1)] focus:outline-none focus:ring-0 dark:focus-within:bg-theme-grey-200 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+        className="!text-xs h-full w-full resize-none rounded-none border-none px-2 py-1.5 outline-none [appearance:textfield] focus-within:rounded-none focus-within:border-transparent focus-within:bg-white focus-within:shadow-[inset_0_0_0_1.5px_rgba(0,82,205,1)] focus:outline-none focus:ring-0 dark:focus-within:bg-theme-grey-200 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
         step={step}
       />
     );
   }
 
   if (optimisticValue === null || typeof optimisticValue === 'undefined') {
-    return <p className="truncate !text-xs text-disabled">null</p>;
+    return <p className="!text-xs truncate text-disabled">null</p>;
   }
 
-  return <p className="truncate !text-xs">{optimisticValue}</p>;
+  return <p className="!text-xs truncate">{optimisticValue}</p>;
 }

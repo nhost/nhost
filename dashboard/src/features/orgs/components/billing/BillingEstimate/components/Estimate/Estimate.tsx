@@ -31,7 +31,7 @@ export default function Estimate() {
     <div className="flex w-full flex-col justify-between gap-2 p-4 md:flex-row md:gap-8">
       <div className="flex basis-1/2 flex-col">
         <span className="font-medium">Estimate</span>
-        <span className="text-xl font-semibold">${amountDue}</span>
+        <span className="font-semibold text-xl">${amountDue}</span>
       </div>
       <div className="flex flex-1 flex-col gap-2">
         <p className="max-w-prose">

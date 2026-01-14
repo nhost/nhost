@@ -123,7 +123,7 @@ export default function DataGridTextCell<TData extends object>({
         value={(normalizedTemporaryValue || '').replace(/\\n/gi, `\n`)}
         onChange={handleChange}
         onKeyDown={handleTextAreaKeyDown}
-        className="absolute left-0 top-0 z-10 h-25 min-h-25 w-full resize-none rounded-none !text-xs outline-none focus-within:rounded-none focus-within:border-transparent focus-within:bg-white focus-within:shadow-[inset_0_0_0_1.5px_rgba(0,82,205,1)] focus:outline-none focus:ring-0 dark:focus-within:bg-theme-grey-200"
+        className="!text-xs absolute top-0 left-0 z-10 h-25 min-h-25 w-full resize-none rounded-none outline-none focus-within:rounded-none focus-within:border-transparent focus-within:bg-white focus-within:shadow-[inset_0_0_0_1.5px_rgba(0,82,205,1)] focus:outline-none focus:ring-0 dark:focus-within:bg-theme-grey-200"
       />
     );
   }
@@ -136,14 +136,14 @@ export default function DataGridTextCell<TData extends object>({
         onChange={handleChange}
         onKeyDown={handleInputKeyDown}
         wrapperClassName="absolute top-0 z-10 w-full top-0 left-0 h-full"
-        className="h-full w-full resize-none rounded-none border-none px-2 py-1.5 !text-xs outline-none focus-within:rounded-none focus-within:border-transparent focus-within:bg-white focus-within:shadow-[inset_0_0_0_1.5px_rgba(0,82,205,1)] focus:outline-none focus:ring-0 dark:focus-within:bg-theme-grey-200"
+        className="!text-xs h-full w-full resize-none rounded-none border-none px-2 py-1.5 outline-none focus-within:rounded-none focus-within:border-transparent focus-within:bg-white focus-within:shadow-[inset_0_0_0_1.5px_rgba(0,82,205,1)] focus:outline-none focus:ring-0 dark:focus-within:bg-theme-grey-200"
       />
     );
   }
 
   if (!optimisticValue) {
     return (
-      <p className="truncate !text-xs text-[#7d8ca3]">
+      <p className="!text-xs truncate text-[#7d8ca3]">
         {optimisticValue === '' ? 'empty' : 'null'}
       </p>
     );

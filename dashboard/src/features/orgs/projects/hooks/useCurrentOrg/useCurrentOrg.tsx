@@ -19,6 +19,7 @@ export interface UseCurrenOrgReturnType {
         orgSlug: string;
       }>
     >,
+    // biome-ignore lint/suspicious/noExplicitAny: TODO
   ) => Promise<any>;
 }
 

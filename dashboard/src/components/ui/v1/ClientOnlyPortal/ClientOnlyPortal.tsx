@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 
 export interface ClientOnlyPortalProps {
   children?: ReactNode;
+  // biome-ignore lint/suspicious/noExplicitAny: Component is deprecated
   selector: any;
 }
 

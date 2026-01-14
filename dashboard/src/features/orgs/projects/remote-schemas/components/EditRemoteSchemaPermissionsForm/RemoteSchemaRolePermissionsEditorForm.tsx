@@ -39,6 +39,7 @@ import getBaseTypeName from '@/features/orgs/projects/remote-schemas/utils/getBa
 import parsePresetArgTreeFromSDL from '@/features/orgs/projects/remote-schemas/utils/parsePresetArgTreeFromSDL';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { DialogFormProps } from '@/types/common';
+import type { RemoteSchemaInfoPermissionsItem } from '@/utils/hasura-api/generated/schemas';
 import * as CheckboxPrimitive from '@radix-ui/react-checkbox';
 import { Check } from 'lucide-react';
 
@@ -62,7 +63,7 @@ export interface RemoteSchemaRolePermissionsEditorFormProps
   /**
    * Existing permission for this role (if any).
    */
-  permission?: any;
+  permission: RemoteSchemaInfoPermissionsItem;
   /**
    * Function to be called when the operation is completed.
    */
@@ -558,7 +559,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                   className="w-full pr-10"
                 />
                 {searchTerm && (
-                  <div className="text-sm text-gray-500">
+                  <div className="text-gray-500 text-sm">
                     {filteredTypesSet.size} out of{' '}
                     {countVisible(remoteSchemaFields)} types found
                   </div>
@@ -568,7 +569,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
               <Box className="space-y-6">
                 {rootTypes.length > 0 && (
                   <div className="space-y-4">
-                    <Text className="text-lg font-semibold">
+                    <Text className="font-semibold text-lg">
                       Root Operations
                     </Text>
                     <div className="space-y-4 rounded border p-4">
@@ -629,10 +630,10 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                                           <span className="font-medium">
                                             {field.name}
                                           </span>
-                                          <span className="text-sm text-gray-500">
+                                          <span className="text-gray-500 text-sm">
                                             : {field.return}
                                           </span>
-                                          <span className="text-xs text-gray-400">
+                                          <span className="text-gray-400 text-xs">
                                             ({Object.values(field.args).length}{' '}
                                             arg
                                             {Object.values(field.args).length >
@@ -644,8 +645,8 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                                         </div>
                                       </AccordionTrigger>
                                       <AccordionContent>
-                                        <div className="ml-6 space-y-2 border-l-2 border-gray-200 pl-4">
-                                          <Text className="text-sm font-medium text-gray-700">
+                                        <div className="ml-6 space-y-2 border-gray-200 border-l-2 pl-4">
+                                          <Text className="font-medium text-gray-700 text-sm">
                                             Arguments:
                                           </Text>
                                           {Object.values(field.args).map(
@@ -660,7 +661,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                                                   key={arg.name}
                                                   className="flex items-center space-x-2"
                                                 >
-                                                  <span className="min-w-0 flex-shrink-0 text-sm text-gray-600">
+                                                  <span className="min-w-0 flex-shrink-0 text-gray-600 text-sm">
                                                     {arg.name}:{' '}
                                                     {getArgTypeString(arg)}
                                                   </span>
@@ -711,7 +712,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                                       <span className="font-medium">
                                         {field.name}
                                       </span>
-                                      <span className="ml-2 text-sm text-gray-500">
+                                      <span className="ml-2 text-gray-500 text-sm">
                                         : {field.return}
                                       </span>
                                     </label>
@@ -736,7 +737,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
 
                 {customTypes.length > 0 && (
                   <div className="space-y-4">
-                    <Text className="text-lg font-semibold">Custom Types</Text>
+                    <Text className="font-semibold text-lg">Custom Types</Text>
                     <div className="space-y-4 rounded border p-4">
                       {customTypes.map((schemaType) => (
                         <div key={schemaType.name} className="space-y-2">
@@ -783,14 +784,14 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                                         {field.name}
                                       </span>
                                       {field.return && (
-                                        <span className="ml-2 text-sm text-gray-500">
+                                        <span className="ml-2 text-gray-500 text-sm">
                                           : {field.return}
                                         </span>
                                       )}
                                       {field.args &&
                                         Object.values(field.args).length >
                                           0 && (
-                                          <span className="ml-2 text-xs text-gray-400">
+                                          <span className="ml-2 text-gray-400 text-xs">
                                             ({Object.values(field.args).length}{' '}
                                             arg
                                             {Object.values(field.args).length >
@@ -806,8 +807,8 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                                   {field.expanded &&
                                     field.args &&
                                     Object.values(field.args).length > 0 && (
-                                      <div className="ml-6 space-y-2 border-l-2 border-gray-200 pl-4">
-                                        <Text className="text-sm font-medium text-gray-700">
+                                      <div className="ml-6 space-y-2 border-gray-200 border-l-2 pl-4">
+                                        <Text className="font-medium text-gray-700 text-sm">
                                           Arguments:
                                         </Text>
                                         {Object.values(field.args).map(
@@ -822,7 +823,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                                                 key={arg.name}
                                                 className="flex items-center space-x-2"
                                               >
-                                                <span className="min-w-0 flex-shrink-0 text-sm text-gray-600">
+                                                <span className="min-w-0 flex-shrink-0 text-gray-600 text-sm">
                                                   {arg.name}:{' '}
                                                   {getArgTypeString(arg)}
                                                 </span>
@@ -864,7 +865,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
 
                 {filteredFields.length === 0 && (
                   <div className="space-y-4">
-                    <Text className="text-lg font-semibold">
+                    <Text className="font-semibold text-lg">
                       Available Fields
                     </Text>
                     <div className="rounded border p-8 text-center text-gray-500">

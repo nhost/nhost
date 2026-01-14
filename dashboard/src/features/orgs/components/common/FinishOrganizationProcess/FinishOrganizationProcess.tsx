@@ -1,7 +1,7 @@
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { DialogDescription } from '@/components/ui/v3/dialog';
 import { useFinishOrganizationProcess } from '@/features/orgs/hooks/useFinishOrganizationProcess';
-import { type FinishOrgCreationOnCompletedCb } from '@/features/orgs/hooks/useFinishOrganizationProcess/useFinishOrganizationProcess';
+import type { FinishOrgCreationOnCompletedCb } from '@/features/orgs/hooks/useFinishOrganizationProcess/useFinishOrganizationProcess';
 import { CheckoutStatus } from '@/utils/__generated__/graphql';
 import { memo } from 'react';
 

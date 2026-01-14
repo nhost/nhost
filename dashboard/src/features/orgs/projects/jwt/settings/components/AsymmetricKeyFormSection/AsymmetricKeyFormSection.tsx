@@ -3,7 +3,7 @@ import { useFormContext } from 'react-hook-form';
 
 import { Box } from '@/components/ui/v2/Box';
 import { Option } from '@/components/ui/v2/Option';
-import { type JWTSettingsFormValues } from '@/features/orgs/projects/jwt/settings/types';
+import type { JWTSettingsFormValues } from '@/features/orgs/projects/jwt/settings/types';
 
 import { Select } from '@/components/ui/v2/Select';
 import { ASYMMETRIC_ALGORITHMS } from '@/features/orgs/projects/jwt/settings/utils/constants';

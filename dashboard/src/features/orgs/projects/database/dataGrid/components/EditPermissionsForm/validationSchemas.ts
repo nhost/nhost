@@ -23,7 +23,7 @@ const ruleGroupSchema = Yup.object().shape({
     'Please select an operator.',
     (selectedOperator, ctx) => {
       // `from` is part of the Yup API, but it's not typed.
-      // @ts-ignore
+      // @ts-expect-error
       const [, { value }] = ctx.from;
       if (
         value.filter &&
@@ -37,6 +37,7 @@ const ruleGroupSchema = Yup.object().shape({
     },
   ),
   rules: Yup.array().of(ruleSchema),
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   groups: Yup.array().of(Yup.lazy(() => ruleGroupSchema) as any),
 });
 
@@ -59,8 +60,6 @@ const columnPresetSchema = Yup.object().shape({
   column: Yup.string()
     .nullable()
     .test('column', 'Please select a column.', (selectedColumn, ctx) => {
-      // `from` is part of the Yup API, but it's not typed.
-      // @ts-ignore
       const [, { value }] = ctx.from;
 
       if (
@@ -75,8 +74,6 @@ const columnPresetSchema = Yup.object().shape({
   value: Yup.string()
     .nullable()
     .test('value', 'Please enter a value.', (selectedValue, ctx) => {
-      // `from` is part of the Yup API, but it's not typed.
-      // @ts-ignore
       const [, { value }] = ctx.from;
 
       if (
@@ -104,6 +101,7 @@ const deleteValidationSchema = baseValidationSchema.shape({
   columnPresets: Yup.array().of(columnPresetSchema).nullable(),
 });
 
+// biome-ignore lint/suspicious/noExplicitAny: TODO
 const validationSchemas: Record<DatabaseAction, Yup.ObjectSchema<any>> = {
   select: selectValidationSchema,
   insert: insertValidationSchema,

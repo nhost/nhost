@@ -195,7 +195,7 @@ export default function BaseEventTriggerForm({
       <Sheet open={isSheetOpen} onOpenChange={handleSheetOpenChange}>
         <SheetContent
           showOverlay
-          className="w-xl md:w-4xl box flex flex-auto flex-col gap-0 p-0 sm:max-w-4xl"
+          className="box flex w-xl flex-auto flex-col gap-0 p-0 sm:max-w-4xl md:w-4xl"
           onPointerDownOutside={(e) => {
             let element: Element | null = e.target as Element;
             while (element) {
@@ -298,7 +298,7 @@ export default function BaseEventTriggerForm({
                     render={({ field }) => (
                       <div className="flex flex-col gap-6">
                         <div className="space-y-2">
-                          <h3 className="text-sm font-medium text-foreground">
+                          <h3 className="font-medium text-foreground text-sm">
                             Trigger Operations
                           </h3>
                           <FormDescription>
@@ -354,7 +354,7 @@ export default function BaseEventTriggerForm({
                           render={({ field }) => (
                             <div className="space-y-4">
                               <div className="space-y-2">
-                                <h3 className="text-sm font-medium text-foreground">
+                                <h3 className="font-medium text-foreground text-sm">
                                   Trigger columns for update operation
                                 </h3>
                                 <FormDescription>
@@ -406,7 +406,7 @@ export default function BaseEventTriggerForm({
                 <Separator />
                 <div className="flex flex-col gap-6 px-6 py-6 text-foreground">
                   <div className="flex flex-row items-center gap-2">
-                    <h3 className="text-sm font-medium">
+                    <h3 className="font-medium text-sm">
                       Webhook (HTTP/S) Handler{' '}
                     </h3>
                     <FormDescription>
@@ -453,7 +453,7 @@ export default function BaseEventTriggerForm({
                       <div className="flex flex-col gap-8 border-l">
                         <div className="space-y-4 pl-4">
                           <div className="space-y-2">
-                            <h3 className="text-sm font-medium text-foreground">
+                            <h3 className="font-medium text-foreground text-sm">
                               Enable Transformations
                             </h3>
                           </div>

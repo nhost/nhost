@@ -10,6 +10,7 @@ import type { StaticDatePickerProps } from '@mui/x-date-pickers/StaticDatePicker
 import { StaticDatePicker } from '@mui/x-date-pickers/StaticDatePicker';
 
 export type DatePickerProps = Omit<
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   StaticDatePickerProps<any, Date>,
   'renderInput' | 'componentsProps' | 'renderDay' | 'onChange' | 'value'
 > & {
@@ -178,6 +179,7 @@ function DatePicker({
         onChange={(newValue) => onChange(newValue as Date)}
         renderInput={
           (() => null) as unknown as StaticDatePickerProps<
+            // biome-ignore lint/suspicious/noExplicitAny: TODO
             any,
             Date
           >['renderInput']

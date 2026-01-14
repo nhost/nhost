@@ -32,6 +32,7 @@ export default class MyDocument extends Document {
           <meta name="twitter:image" content={meta.image} />
           <link rel="shortcut icon" href="/assets/favicon.png" />
           {/* Inject MUI styles first to match with the prepend: true configuration. */}
+          {/* biome-ignore lint/suspicious/noExplicitAny: TODO */}
           {(this.props as any).emotionStyleTags}
         </Head>
         <body>
@@ -52,8 +53,10 @@ MyDocument.getInitialProps = async (ctx) => {
   const cache = createEmotionCache();
   const { extractCriticalToChunks } = createEmotionServer(cache);
 
+  // biome-ignore lint/style/noParameterAssign: need to override the original renderPage to add the cache
   ctx.renderPage = () =>
     originalRenderPage({
+      // biome-ignore lint/suspicious/noExplicitAny: TODO
       enhanceApp: (App: any) =>
         function EnhanceApp(props) {
           return <App emotionCache={cache} {...props} />;
@@ -68,8 +71,7 @@ MyDocument.getInitialProps = async (ctx) => {
     <style
       data-emotion={`${style.key} ${style.ids.join(' ')}`}
       key={style.key}
-      // This is the way Emotion injects CSS into the page.
-      // eslint-disable-next-line react/no-danger
+      // biome-ignore lint/security/noDangerouslySetInnerHtml: This is the way Emotion injects CSS into the page.
       dangerouslySetInnerHTML={{ __html: style.css }}
     />
   ));

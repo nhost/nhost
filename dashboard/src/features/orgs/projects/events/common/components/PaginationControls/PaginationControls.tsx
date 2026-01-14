@@ -33,12 +33,12 @@ export default function PaginationControls({
   return (
     <div
       className={cn(
-        'flex w-full items-center justify-end gap-4 py-4 pl-6 pr-6',
+        'flex w-full items-center justify-end gap-4 py-4 pr-6 pl-6',
         className,
       )}
     >
       <div className="flex items-center gap-2">
-        <span className="text-sm text-muted-foreground">Rows per page:</span>
+        <span className="text-muted-foreground text-sm">Rows per page:</span>
         <Select
           defaultValue={String(limit)}
           onValueChange={(value) => onChangeLimit(parseInt(value, 10))}
@@ -67,7 +67,7 @@ export default function PaginationControls({
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
-        <span className="mx-1 inline-block font-display text-sm+ font-medium text-muted-foreground">
+        <span className="mx-1 inline-block font-display font-medium text-muted-foreground text-sm+">
           {offset} - {offset + limit}
         </span>
         <Button

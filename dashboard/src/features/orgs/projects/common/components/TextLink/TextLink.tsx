@@ -11,7 +11,7 @@ function TextLink({
   return (
     <Link
       href={href}
-      className="text-[0.9375rem] leading-[1.375rem] text-[#0052cd] hover:underline dark:text-[#3888ff]"
+      className="text-[#0052cd] text-[0.9375rem] leading-[1.375rem] hover:underline dark:text-[#3888ff]"
       target={target}
       rel="noopener noreferrer"
     >

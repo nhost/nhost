@@ -25,7 +25,7 @@ export interface FilesDataGridControlsProps {
   paginationProps?: DataGridPaginationProps;
   fileUploadProps?: FileUploadButtonProps;
   filterProps?: FilterProps;
-  refetchData?: () => Promise<any>;
+  refetchData?: () => Promise<unknown>;
   className?: string;
 }
 
@@ -109,7 +109,7 @@ export default function FilesDataGridControls({
         <div className="flex h-[40px] items-center justify-start gap-2">
           <Badge
             variant="secondary"
-            className="!bg-[#ebf3ff] text-primary dark:!bg-[#1b2534]"
+            className="!bg-[#ebf3ff] dark:!bg-[#1b2534] text-primary"
           >
             {`${numberOfSelectedFiles} selected`}
           </Badge>

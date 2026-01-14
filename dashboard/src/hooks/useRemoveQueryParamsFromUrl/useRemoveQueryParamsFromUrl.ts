@@ -1,25 +1,23 @@
-import { useRouter } from 'next/router';
+import Router from 'next/router';
 import { useCallback } from 'react';
 
 function useRemoveQueryParamsFromUrl() {
-  const router = useRouter();
+  const removeQueryParam = useCallback((...paramsToRemove: string[]) => {
+    const newQuery = { ...Router.query };
 
-  const removeQueryParam = useCallback(
-    (...paramsToRemove) => {
-      const newQuery = { ...router.query };
+    paramsToRemove.forEach((param) => {
+      delete newQuery[param];
+    });
+    Router.push(
+      {
+        pathname: Router.pathname,
+        query: newQuery,
+      },
+      undefined,
+      { shallow: true },
+    );
+  }, []);
 
-      paramsToRemove.forEach((param) => delete newQuery[param]);
-      router.push(
-        {
-          pathname: router.pathname,
-          query: newQuery,
-        },
-        undefined,
-        { shallow: true },
-      );
-    },
-    [router],
-  );
   return removeQueryParam;
 }
 

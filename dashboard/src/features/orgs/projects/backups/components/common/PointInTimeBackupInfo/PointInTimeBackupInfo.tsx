@@ -9,7 +9,7 @@ function LearnMoreAboutPiTRLink() {
   return (
     <Link
       href="https://docs.nhost.io/products/database/backups#point-in-time-recovery"
-      className="flex items-center gap-1 text-[0.9375rem] leading-[1.375rem] text-[#0052cd] hover:underline dark:text-[#3888ff]"
+      className="flex items-center gap-1 text-[#0052cd] text-[0.9375rem] leading-[1.375rem] hover:underline dark:text-[#3888ff]"
       target="_blank"
       rel="noopener noreferrer"
     >
@@ -43,7 +43,7 @@ function PointInTimeBackupInfo({
   return (
     <div className="rounded-lg border border-[#EAEDF0] dark:border-[#2F363D]">
       <div className="flex w-full flex-col items-start gap-6 p-4">
-        <h3 className="leading-[1.375] text-[0.9375]">
+        <h3 className="text-[0.9375] leading-[1.375]">
           {title || 'Restore your database from a backup'}
         </h3>
         <div className="flex w-full flex-col gap-4">
@@ -65,7 +65,7 @@ function PointInTimeBackupInfo({
       </div>
       <div
         className={cn(
-          'flex w-full items-center border-t border-[#EAEDF0] p-4 dark:border-[#2F363D]',
+          'flex w-full items-center border-[#EAEDF0] border-t p-4 dark:border-[#2F363D]',
           { 'justify-between': showLink, 'justify-end': !showLink },
         )}
       >

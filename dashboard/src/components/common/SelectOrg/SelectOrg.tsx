@@ -7,7 +7,6 @@ import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
-import {} from '@/utils/__generated__/graphql';
 import { Divider } from '@mui/material';
 import debounce from 'lodash.debounce';
 import Image from 'next/image';

@@ -187,10 +187,10 @@ export default function ResourcesConfirmationDialog({
             </Box>
 
             <Box className="grid grid-flow-col justify-between gap-2">
-              <Text className="text-xs font-medium" color="secondary">
+              <Text className="font-medium text-xs" color="secondary">
                 Total
               </Text>
-              <Text className="text-xs font-medium" color="secondary">
+              <Text className="font-medium text-xs" color="secondary">
                 {prettifyVCPU(totalBillableVCPU)} vCPU +{' '}
                 {prettifyMemory(totalBillableMemory)}
               </Text>
@@ -212,7 +212,7 @@ export default function ResourcesConfirmationDialog({
           <Text>{enabled ? `$${updatedPrice?.toFixed(2)}/mo` : `$0/mo`}</Text>
         </Box>
         {enabled && (
-          <Text className="text-xs text-gray-400">
+          <Text className="text-gray-400 text-xs">
             Note: Your organization&apos;s $15 worth of credits cover for both
             shared and dedicated compute.
           </Text>

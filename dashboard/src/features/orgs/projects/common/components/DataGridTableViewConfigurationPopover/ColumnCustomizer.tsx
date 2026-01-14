@@ -42,7 +42,7 @@ function ColumnCustomizer() {
     <div className="flex max-h-[calc(var(--radix-popover-content-available-height)-16rem)] flex-col gap-8">
       <div className="flex flex-col gap-4">
         <h4 className="font-medium leading-none">Column Settings</h4>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-muted-foreground text-sm">
           Reorder columns by dragging or show/hide them with checkboxes.
         </p>
       </div>

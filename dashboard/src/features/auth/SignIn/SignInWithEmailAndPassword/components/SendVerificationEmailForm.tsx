@@ -51,7 +51,7 @@ function SendVerificationEmailForm() {
           )}
         />
         <Button
-          className="w-full !bg-white !text-black disabled:!text-black disabled:!text-opacity-60"
+          className="!bg-white !text-black disabled:!text-black disabled:!text-opacity-60 w-full"
           size="large"
           loading={form.formState.isSubmitting}
           disabled={form.formState.isSubmitting}

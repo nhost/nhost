@@ -7,6 +7,7 @@ import type { FieldValues, UseControllerProps } from 'react-hook-form';
 import { useController, useFormContext } from 'react-hook-form';
 import { mergeRefs } from 'react-merge-refs';
 
+// biome-ignore lint/suspicious/noExplicitAny: TODO
 export interface ControlledCheckboxProps<TFieldValues extends FieldValues = any>
   extends CheckboxProps {
   /**

@@ -91,7 +91,7 @@ export default function HasuraPage() {
               href={hasuraUrl}
               // Both `target` and `rel` are available when `href` is set. This is
               // a limitation of MUI.
-              // @ts-ignore
+              // @ts-expect-error
               target="_blank"
               rel="noreferrer noopener"
               endIcon={<ArrowSquareOutIcon className="h-4 w-4" />}

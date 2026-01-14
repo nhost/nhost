@@ -21,7 +21,7 @@ export interface CreateUserFormProps extends DialogFormProps {
   /**
    * Function to be called when the submit is successful.
    */
-  onSubmit?: VoidFunction | ((args?: any) => Promise<any>);
+  onSubmit?: () => Promise<unknown>;
 }
 
 export const validationSchema = Yup.object({

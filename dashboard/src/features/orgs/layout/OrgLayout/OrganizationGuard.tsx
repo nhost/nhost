@@ -15,11 +15,11 @@ function OrganizationGuard({ children }: PropsWithChildren) {
 
   const orgNotFound = isPlatform && isEmptyValue(org) && !loading;
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: push does not change
   useEffect(() => {
     if (isUserLoggedIn && orgNotFound) {
       router.push('/404');
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orgNotFound, isUserLoggedIn]);
 
   return (isUserLoggedIn && orgNotFound) || loading ? null : children;

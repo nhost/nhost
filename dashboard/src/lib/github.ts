@@ -18,7 +18,7 @@ interface GitHubAppInstallation {
     login: string;
     avatar_url: string;
     [key: string]: unknown;
-  }
+  };
   [key: string]: unknown;
 }
 
@@ -27,7 +27,9 @@ interface GitHubAppInstallation {
  * @param accessToken - The GitHub OAuth access token
  * @returns Array of app installations
  */
-export async function listGitHubAppInstallations(accessToken: string): Promise<GitHubAppInstallation[]> {
+export async function listGitHubAppInstallations(
+  accessToken: string,
+): Promise<GitHubAppInstallation[]> {
   const response = await fetch('https://api.github.com/user/installations', {
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -41,7 +43,7 @@ export async function listGitHubAppInstallations(accessToken: string): Promise<G
     throw new GitHubAPIError(
       `Failed to list installations: ${response.statusText}`,
       response.status,
-      response.statusText
+      response.statusText,
     );
   }
 
@@ -49,7 +51,7 @@ export async function listGitHubAppInstallations(accessToken: string): Promise<G
   return data.installations;
 }
 
-interface  GitHubRepo {
+interface GitHubRepo {
   id: number;
   node_id: string;
   name: string;
@@ -76,14 +78,14 @@ export async function listGitHubInstallationRepos(accessToken: string) {
             'X-GitHub-Api-Version': '2022-11-28',
           },
           cache: 'no-cache',
-        }
+        },
       );
 
       if (!response.ok) {
         throw new GitHubAPIError(
           `Failed to list repos for installation ${installation.id}: ${response.statusText}`,
           response.status,
-          response.statusText
+          response.statusText,
         );
       }
 
@@ -92,7 +94,7 @@ export async function listGitHubInstallationRepos(accessToken: string) {
         installation,
         repositories: data.repositories as GitHubRepo[],
       };
-    })
+    }),
   );
 
   return reposByInstallation;

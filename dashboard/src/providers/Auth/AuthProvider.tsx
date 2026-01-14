@@ -3,32 +3,29 @@ import {
   saveGitHubToken,
   type GitHubProviderToken,
 } from '@/features/orgs/projects/git/common/utils';
+import { useRemoveQueryParamsFromUrl } from '@/hooks/useRemoveQueryParamsFromUrl';
 import { isNotEmptyValue } from '@/lib/utils';
 import { useNhostClient } from '@/providers/nhost/';
 import { useGetAuthUserProvidersLazyQuery } from '@/utils/__generated__/graphql';
 import { getToastStyleProps } from '@/utils/constants/settings';
-import { type Session } from '@nhost/nhost-js/auth';
+import type { Session } from '@nhost/nhost-js/auth';
 import { useRouter } from 'next/router';
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-  type PropsWithChildren,
-} from 'react';
+import { useEffect, useMemo, useState, type PropsWithChildren } from 'react';
 import { toast } from 'react-hot-toast';
 import { AuthContext, type AuthContextType } from './AuthContext';
+
+const removableParams = [
+  'refreshToken',
+  'error',
+  'errorDescription',
+  'state',
+  'provider_state',
+];
 
 function AuthProvider({ children }: PropsWithChildren) {
   const nhost = useNhostClient();
   const [getAuthUserProviders] = useGetAuthUserProvidersLazyQuery();
-  const {
-    query,
-    isReady: isRouterReady,
-    replace,
-    pathname,
-    push,
-  } = useRouter();
+  const { query, isReady: isRouterReady, push } = useRouter();
   const {
     refreshToken,
     error,
@@ -36,18 +33,13 @@ function AuthProvider({ children }: PropsWithChildren) {
     signinProvider,
     state,
     provider_state: providerState,
-    ...remainingQuery
   } = query;
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const removeQueryParamsFromUrl = useRemoveQueryParamsFromUrl();
 
-  const removeQueryParamsFromURL = useCallback(() => {
-    replace({ pathname, query: remainingQuery }, undefined, {
-      shallow: true,
-    });
-  }, [replace, remainingQuery, pathname]);
-
+  // biome-ignore lint/correctness/useExhaustiveDependencies: The onChange method does not change
   useEffect(() => {
     const unsubscribe = nhost.sessionStorage.onChange(setSession);
     function storageEventListener(event: StorageEvent) {
@@ -63,8 +55,9 @@ function AuthProvider({ children }: PropsWithChildren) {
       unsubscribe();
       window.removeEventListener('storage', storageEventListener);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Only need to run on mount
   useEffect(() => {
     async function initializeSession() {
       if (!isRouterReady) {
@@ -77,7 +70,7 @@ function AuthProvider({ children }: PropsWithChildren) {
           refreshToken,
         });
         setSession(sessionResponse.body);
-        removeQueryParamsFromURL();
+        removeQueryParamsFromUrl(...removableParams);
 
         if (sessionResponse.body && signinProvider === 'github') {
           try {
@@ -90,8 +83,11 @@ function AuthProvider({ children }: PropsWithChildren) {
               );
               const newGitHubToken: GitHubProviderToken =
                 providerTokensResponse.body;
-              if (isNotEmptyValue(githubProvider?.id)) {
-                newGitHubToken.authUserProviderId = githubProvider!.id;
+              if (
+                isNotEmptyValue(githubProvider) &&
+                isNotEmptyValue(githubProvider?.id)
+              ) {
+                newGitHubToken.authUserProviderId = githubProvider.id;
               }
               saveGitHubToken(newGitHubToken);
             }
@@ -110,7 +106,8 @@ function AuthProvider({ children }: PropsWithChildren) {
         state.startsWith('signin-refresh:')
       ) {
         const [, orgSlug, projectSubdomain] = state.split(':');
-        removeQueryParamsFromURL();
+        removeQueryParamsFromUrl(...removableParams);
+
         await push(
           `/orgs/${orgSlug}/projects/${projectSubdomain}/settings/git?github-modal`,
         );
@@ -119,7 +116,7 @@ function AuthProvider({ children }: PropsWithChildren) {
       if (typeof error === 'string') {
         switch (error) {
           case 'unverified-user': {
-            removeQueryParamsFromURL();
+            removeQueryParamsFromUrl(...removableParams);
             await push('/email/verify');
             break;
           }
@@ -132,6 +129,8 @@ function AuthProvider({ children }: PropsWithChildren) {
            * thus we need to show the connect GitHub modal again.
            * Otherwise, we fall through to default error handling.
            */
+
+          // biome-ignore lint/suspicious/noFallthroughSwitchClause: intentional
           case 'invalid-state': {
             if (
               isNotEmptyValue(providerState) &&
@@ -139,7 +138,7 @@ function AuthProvider({ children }: PropsWithChildren) {
               providerState.startsWith('install-github-app:')
             ) {
               const [, orgSlug, projectSubdomain] = providerState.split(':');
-              removeQueryParamsFromURL();
+              removeQueryParamsFromUrl(...removableParams);
               await push(
                 `/orgs/${orgSlug}/projects/${projectSubdomain}/settings/git?github-modal`,
               );
@@ -153,7 +152,7 @@ function AuthProvider({ children }: PropsWithChildren) {
                 ? errorDescription
                 : 'An error occurred during the sign-in process. Please try again.';
             toast.error(description, getToastStyleProps());
-            removeQueryParamsFromURL();
+            removeQueryParamsFromUrl(...removableParams);
             await push('/signin');
           }
         }
@@ -162,7 +161,6 @@ function AuthProvider({ children }: PropsWithChildren) {
       setIsLoading(false);
     }
     initializeSession();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isRouterReady]);
 
   const value: AuthContextType = useMemo(
@@ -189,8 +187,7 @@ function AuthProvider({ children }: PropsWithChildren) {
         setIsSigningOut(false);
       },
     }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [session, isLoading],
+    [session, isLoading, isSigningOut, nhost.auth.signOut, push],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

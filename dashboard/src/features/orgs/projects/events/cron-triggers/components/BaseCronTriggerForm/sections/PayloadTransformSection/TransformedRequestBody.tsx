@@ -19,10 +19,10 @@ export default function TransformedRequestBody() {
 
   try {
     args = buildTestWebhookTransformDTO({ formValues: values });
-  } catch (error) {
+  } catch (err) {
     buildArgsError =
-      error instanceof Error
-        ? error.message
+      err instanceof Error
+        ? err.message
         : 'Invalid sample input. Please enter a valid JSON string.';
 
     const sanitizedValues = {
@@ -102,10 +102,10 @@ export default function TransformedRequestBody() {
           )}
           {!buildArgsError && error && (
             <div className="absolute inset-px space-y-1 rounded-[5px] bg-background/80 p-2 backdrop-blur-sm">
-              <p className="text-sm font-medium text-destructive">
+              <p className="font-medium text-destructive text-sm">
                 {error.error || 'Error with webhook handler'}
               </p>
-              <p className="text-sm text-destructive/90">
+              <p className="text-destructive/90 text-sm">
                 Failed to transform webhook request body.
               </p>
             </div>

@@ -74,7 +74,7 @@ export default function CronTriggerView() {
         description={
           <span>
             Cron trigger{' '}
-            <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-medium">
+            <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-medium font-mono text-sm">
               {cronTriggerSlug}
             </code>{' '}
             could not be loaded.
@@ -91,7 +91,7 @@ export default function CronTriggerView() {
         description={
           <span>
             Cron trigger{' '}
-            <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-medium">
+            <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-medium font-mono text-sm">
               {cronTriggerSlug}
             </code>{' '}
             does not exist.
@@ -106,10 +106,10 @@ export default function CronTriggerView() {
       <Tabs value={tab} onValueChange={setTab} className="flex h-full flex-col">
         <div className="sticky top-0 z-10 border-b-1 bg-background">
           <div className="p-6">
-            <h1 className="mb-1 text-xl font-semibold text-gray-900 dark:text-gray-100">
+            <h1 className="mb-1 font-semibold text-gray-900 text-xl dark:text-gray-100">
               {cronTrigger!.name}
             </h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-gray-600 text-sm dark:text-gray-400">
               Cron Trigger Configuration
             </p>
           </div>

@@ -13,7 +13,7 @@ import { HasuraDomain } from '@/features/orgs/projects/custom-domains/settings/c
 import { RunServiceDomains } from '@/features/orgs/projects/custom-domains/settings/components/RunServiceDomains';
 import { ServerlessFunctionsDomain } from '@/features/orgs/projects/custom-domains/settings/components/ServerlessFunctionsDomain';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
-import { type ReactElement } from 'react';
+import type { ReactElement } from 'react';
 
 export default function CustomDomains() {
   const { org, loading: loadingOrg } = useCurrentOrg();
@@ -43,7 +43,7 @@ export default function CustomDomains() {
     >
       <Box className="flex flex-row items-center gap-4 overflow-hidden rounded-lg border-1 p-4">
         <div className="flex flex-col space-y-2">
-          <Text className="text-lg font-semibold">Custom Domains</Text>
+          <Text className="font-semibold text-lg">Custom Domains</Text>
 
           <Text color="secondary">
             Add a custom domain to Auth, Hasura, PostgreSQL, and your Run

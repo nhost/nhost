@@ -21,6 +21,7 @@ export interface FetchDatabaseReturnType {
   /**
    * Response metadata.
    */
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   metadata?: Record<string, any>;
 }
 

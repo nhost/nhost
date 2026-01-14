@@ -7,7 +7,7 @@ import {
 import { Textarea } from '@/components/ui/v3/textarea';
 import { isEmptyValue } from '@/lib/utils';
 import { MessageSquare, MessageSquareText } from 'lucide-react';
-import { type KeyboardEvent } from 'react';
+import type { KeyboardEvent } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 
 interface ColumnCommentProps {

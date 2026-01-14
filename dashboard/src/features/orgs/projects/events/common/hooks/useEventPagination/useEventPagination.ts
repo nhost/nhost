@@ -4,7 +4,7 @@ type QueryResult<TData> = {
   data: TData | undefined;
   isLoading: boolean;
   isInitialLoading: boolean;
-  refetch: () => Promise<unknown> | void;
+  refetch: () => Promise<unknown> | undefined;
 };
 
 export interface UseEventPaginationOptions<
@@ -55,7 +55,7 @@ export interface UseEventPaginationResult<TData = unknown[]> {
   data: TData | undefined;
   isLoading: boolean;
   isInitialLoading: boolean;
-  refetch: () => Promise<unknown> | void;
+  refetch: () => Promise<unknown> | undefined;
 }
 
 export default function useEventPagination<
@@ -112,6 +112,7 @@ export default function useEventPagination<
     setOffset(0);
   }, []);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: reset of set when key changes
   useEffect(() => {
     setOffset(0);
   }, [resetKey]);

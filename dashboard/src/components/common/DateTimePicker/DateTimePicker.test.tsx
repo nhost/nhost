@@ -7,6 +7,7 @@ import { vi } from 'vitest';
 import DateTimePicker, { type DateTimePickerProps } from './DateTimePicker';
 
 vi.mock('@/utils/timezoneUtils', async () => {
+  // biome-ignore lint/suspicious/noExplicitAny: test file
   const actualTimezoneUtils = await vi.importActual<any>(
     '@/utils/timezoneUtils',
   );

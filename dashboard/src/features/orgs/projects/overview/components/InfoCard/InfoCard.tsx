@@ -39,11 +39,11 @@ export default function InfoCard({
       sx={{ backgroundColor: 'grey.200' }}
       {...props}
     >
-      <Text className="text-sm+ font-medium">{title}</Text>
+      <Text className="font-medium text-sm+">{title}</Text>
 
       <div className="grid grid-flow-col items-center gap-1 self-center">
         {customValue || (
-          <Text className="truncate text-sm font-medium">{value}</Text>
+          <Text className="truncate font-medium text-sm">{value}</Text>
         )}
 
         {!disableCopy && (

@@ -196,7 +196,7 @@ export default function EditRemoteSchemaPermissionsForm({
   if (isEditing && selectedRole) {
     const existingPermission = remoteSchemaPermissions.find(
       (p) => p.role === selectedRole,
-    );
+    )!;
 
     return (
       <RemoteSchemaRolePermissionsEditorForm

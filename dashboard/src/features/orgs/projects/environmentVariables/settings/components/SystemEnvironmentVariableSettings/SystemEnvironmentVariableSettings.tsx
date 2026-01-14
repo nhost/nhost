@@ -113,7 +113,7 @@ export default function SystemEnvironmentVariableSettings() {
       description="System environment variables are automatically generated from the configuration file and your project's subdomain and region."
       docsLink="https://docs.nhost.io/platform/cloud/environment-variables#system-environment-variables"
       rootClassName="gap-0"
-      className="mb-2.5 mt-2 px-0"
+      className="mt-2 mb-2.5 px-0"
       slotProps={{ submitButton: { className: 'hidden' } }}
     >
       <Box className="grid grid-cols-3 gap-2 border-b-1 px-4 py-3">

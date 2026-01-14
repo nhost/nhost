@@ -10,6 +10,7 @@ import type {
 import { useController, useFormContext } from 'react-hook-form';
 import { mergeRefs } from 'react-merge-refs';
 
+// biome-ignore lint/suspicious/noExplicitAny: TODO
 export interface ControlledSwitchProps<TFieldValues extends FieldValues = any>
   extends SwitchProps {
   /**

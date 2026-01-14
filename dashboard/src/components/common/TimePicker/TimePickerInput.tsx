@@ -51,7 +51,6 @@ const TimePickerInput = React.forwardRef<
      * allow the user to enter the second digit within 2 seconds
      * otherwise start again with entering first digit
      */
-    // eslint-disable-next-line consistent-return
     React.useEffect(() => {
       if (flag) {
         const timer = setTimeout(() => {

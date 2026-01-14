@@ -18,6 +18,7 @@ function MessagesList({ loading }: MessagesListProps) {
   const scrollToBottom = () =>
     bottomElement?.current?.scrollIntoView({ behavior: 'instant' });
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: need to run the hook when dep changes
   useEffect(() => {
     scrollToBottom();
   }, [messages, loading]);

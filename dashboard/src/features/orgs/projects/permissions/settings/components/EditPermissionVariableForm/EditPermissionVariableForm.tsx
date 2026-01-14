@@ -33,7 +33,7 @@ export interface EditPermissionVariableFormProps
   /**
    * Function to be called when the form is submitted.
    */
-  onSubmit?: () => any;
+  onSubmit?: () => unknown;
 }
 
 export default function EditPermissionVariableForm({

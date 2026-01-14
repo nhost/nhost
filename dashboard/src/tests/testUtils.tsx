@@ -1,5 +1,4 @@
-/* eslint-disable no-restricted-imports */
-/* eslint-disable max-classes-per-file */
+/** biome-ignore-all lint/suspicious/noExplicitAny: test utils */
 import { DialogProvider } from '@/components/common/DialogProvider';
 import { UIProvider } from '@/components/common/UIProvider';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
@@ -99,7 +98,7 @@ const nhost = createServerClient({
 });
 nhost.sessionStorage.set(mockSession);
 
-function Providers({ children }: PropsWithChildren<{}>) {
+function Providers({ children }: PropsWithChildren) {
   const theme = createTheme('light');
 
   return (

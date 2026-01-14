@@ -130,7 +130,7 @@ function RestoreBackupDialogButton({
       }
       setOpen(newState);
     },
-    [setOpen, resetState],
+    [resetState],
   );
 
   const validateFn = useCallback(

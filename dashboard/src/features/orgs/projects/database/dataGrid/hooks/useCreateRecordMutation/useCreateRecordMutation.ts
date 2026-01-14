@@ -54,7 +54,7 @@ export default function useCreateRecordMutation<TData extends object = {}>({
       adminSecret:
         process.env.NEXT_PUBLIC_ENV === 'dev'
           ? getHasuraAdminSecret()
-          : customAdminSecret || project?.config?.hasura.adminSecret!,
+          : customAdminSecret || project!.config!.hasura.adminSecret,
       dataSource: customDataSource || (dataSourceSlug as string),
       schema: customSchema || (schemaSlug as string),
       table: customTable || (tableSlug as string),

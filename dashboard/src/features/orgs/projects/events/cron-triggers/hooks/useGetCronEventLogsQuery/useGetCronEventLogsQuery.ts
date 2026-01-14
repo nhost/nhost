@@ -89,7 +89,7 @@ export default function useGetCronEventLogsQuery(
         'hasura',
       );
 
-      const adminSecret = project?.config?.hasura.adminSecret!;
+      const adminSecret = project!.config!.hasura.adminSecret;
 
       return getScheduledEvents({
         appUrl,

@@ -32,6 +32,7 @@ export function getEmptyDownMigrationMessage(upMigrations: HasuraOperation[]) {
 export function getPreparedHasuraQuery(
   dataSource: string,
   sqlTemplate: string,
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   ...args: any[]
 ): HasuraOperation {
   return {
@@ -59,6 +60,7 @@ export function getPreparedHasuraQuery(
 export function getPreparedReadOnlyHasuraQuery(
   dataSource: string,
   sqlTemplate: string,
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   ...args: any[]
 ): HasuraOperation {
   const preparedHasuraQuery = getPreparedHasuraQuery(

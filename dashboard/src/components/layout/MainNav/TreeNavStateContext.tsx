@@ -71,7 +71,6 @@ function TreeNavStateProvider({ children }: TreeNavProviderProps) {
     }),
     [
       open,
-      setOpen,
       mainNavPinned,
       setMainNavPinned,
       orgsTreeViewState.state,

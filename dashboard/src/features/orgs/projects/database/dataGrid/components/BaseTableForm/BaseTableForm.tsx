@@ -181,7 +181,7 @@ export default function BaseTableForm({
         >
           <Text
             variant="h2"
-            className="col-span-8 mb-1.5 mt-3 text-sm+ font-bold"
+            className="col-span-8 mt-3 mb-1.5 font-bold text-sm+"
           >
             Columns
           </Text>

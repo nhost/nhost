@@ -15,11 +15,11 @@ export default function LoadingAssistantMessage() {
           sx={{ backgroundColor: 'grey.600' }}
         />
         <Box
-          className="h-1.5 w-1.5 animate-blinking rounded-full animate-delay-150"
+          className="h-1.5 w-1.5 animate-blinking animate-delay-150 rounded-full"
           sx={{ backgroundColor: 'grey.600' }}
         />
         <Box
-          className="h-1.5 w-1.5 animate-blinking rounded-full animate-delay-300"
+          className="h-1.5 w-1.5 animate-blinking animate-delay-300 rounded-full"
           sx={{ backgroundColor: 'grey.600' }}
         />
       </div>

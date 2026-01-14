@@ -26,6 +26,7 @@ import TextLink from '@/features/orgs/projects/common/components/TextLink/TextLi
 import { planDescriptions } from '@/features/orgs/projects/common/utils/planDescriptions';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { useRemoveQueryParamsFromUrl } from '@/hooks/useRemoveQueryParamsFromUrl';
 import { cn } from '@/lib/utils';
 import {
   useBillingChangeOrganizationPlanMutation,
@@ -36,7 +37,7 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Slash } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -54,16 +55,11 @@ export default function SubscriptionPlan() {
   const { data: { plans = [] } = {} } = useGetOrganizationPlansQuery();
   const [fetchOrganizationCustomePortalLink, { loading }] =
     useBillingOrganizationCustomePortalLazyQuery();
-  const { asPath, query, isReady, pathname, replace } = useRouter();
-  const { openUpgradeModal, ...remainingQuery } = query;
+  const { asPath, query, isReady } = useRouter();
+  const { openUpgradeModal } = query;
 
   const isFreeOrg = org?.plan.isFree;
-
-  const removeOpenUpgradeModalFromQuery = useCallback(() => {
-    replace({ pathname, query: remainingQuery }, undefined, {
-      shallow: true,
-    });
-  }, [replace, remainingQuery, pathname]);
+  const removeQueryParamsFromUrl = useRemoveQueryParamsFromUrl();
 
   const form = useForm<z.infer<typeof changeOrgPlanForm>>({
     resolver: zodResolver(changeOrgPlanForm),
@@ -81,9 +77,9 @@ export default function SubscriptionPlan() {
   useEffect(() => {
     if (isReady && openUpgradeModal) {
       setOpen(true);
-      removeOpenUpgradeModalFromQuery();
+      removeQueryParamsFromUrl('openUpgradeModal');
     }
-  }, [openUpgradeModal, isReady, removeOpenUpgradeModalFromQuery]);
+  }, [openUpgradeModal, isReady, removeQueryParamsFromUrl]);
 
   const selectedPlan = form.watch('plan');
 
@@ -103,7 +99,7 @@ export default function SubscriptionPlan() {
           redirectURL,
         },
       });
-      const clientSecret = result?.data?.billingUpgradeFreeOrganization!;
+      const clientSecret = result!.data!.billingUpgradeFreeOrganization!;
       setStripeClientSecret(clientSecret);
     } else {
       await execPromiseWithErrorToast(
@@ -170,14 +166,14 @@ export default function SubscriptionPlan() {
                   <RadioGroupItem value={plan.id} disabled={disableOption} />
                 </FormControl>
                 <div className="flex flex-col space-y-2">
-                  <div className="text-md font-semibold">{plan.name}</div>
+                  <div className="font-semibold text-md">{plan.name}</div>
                   <FormDescription className="w-2/3 text-xs">
                     {planDescriptions[plan.name]}
                   </FormDescription>
                 </div>
               </div>
 
-              <div className="mt-0 flex h-full items-center text-xl font-semibold">
+              <div className="mt-0 flex h-full items-center font-semibold text-xl">
                 {plan.isFree ? 'Free' : `${plan.price}/mo`}
               </div>
             </FormLabel>
@@ -202,21 +198,21 @@ export default function SubscriptionPlan() {
             <div className="flex flex-1 flex-col gap-8 md:flex-row">
               <div className="flex flex-1 flex-col gap-2">
                 <span className="font-medium">Current plan</span>
-                <span className="text-xl font-bold text-primary">
+                <span className="font-bold text-primary text-xl">
                   {org?.plan?.name}
                 </span>
               </div>
 
               <div className="flex flex-1 items-start justify-start md:items-end md:justify-end">
                 <div className="flex items-center gap-2">
-                  <span className="text-xl font-semibold">
+                  <span className="font-semibold text-xl">
                     ${org?.plan?.price}
                   </span>
                   <Slash
                     className="h-5 w-5 text-muted-foreground/40"
                     strokeWidth={2.5}
                   />
-                  <span className="text-xl font-semibold">month</span>
+                  <span className="font-semibold text-xl">month</span>
                 </div>
               </div>
             </div>
@@ -299,7 +295,7 @@ export default function SubscriptionPlan() {
                             <div className="flex w-full cursor-pointer flex-row items-center justify-between space-y-0 rounded-md border p-3">
                               <div className="flex flex-row items-center space-x-3">
                                 <div className="flex flex-col space-y-2">
-                                  <div className="text-md font-semibold">
+                                  <div className="font-semibold text-md">
                                     Enterprise
                                   </div>
                                   <div className="w-2/3 text-xs">

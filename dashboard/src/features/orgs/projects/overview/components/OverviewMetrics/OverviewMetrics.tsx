@@ -60,7 +60,7 @@ export default function OverviewMetrics() {
   } = useGetProjectMetricsQuery({
     variables: {
       appId: project?.id,
-      subdomain: project?.subdomain!,
+      subdomain: project!.subdomain!,
       from: new Date(now.getFullYear(), now.getMonth(), 1),
     },
     skip: !project,
@@ -124,7 +124,7 @@ export default function OverviewMetrics() {
 
   return (
     <div className="grid grid-flow-row gap-4">
-      <div className="grid grid-cols-1 justify-start gap-4 xs:grid-cols-2 md:grid-cols-3">
+      <div className="grid grid-cols-1 xs:grid-cols-2 justify-start gap-4 md:grid-cols-3">
         {cardElements.map(({ label, value, tooltip, className, ...props }) => (
           <MetricsCard
             {...props}

@@ -138,7 +138,6 @@ function DataBrowserSidebarContent({
   }
 
   if (status === 'error') {
-    // eslint-disable-next-line @typescript-eslint/no-throw-literal
     throw error || new Error('Unknown error occurred. Please try again later.');
   }
 
@@ -328,7 +327,7 @@ function DataBrowserSidebarContent({
         {isGitHubConnected && (
           <div className="box mt-1.5 flex items-center gap-1 px-2">
             <Info className="h-4 w-4 text-disabled" />
-            <p className="text-xs text-disabled">
+            <p className="text-disabled text-xs">
               GitHub connected - use the CLI for schema changes
             </p>
           </div>
@@ -336,7 +335,7 @@ function DataBrowserSidebarContent({
         {!isSelectedSchemaLocked && (
           <Button
             variant="link"
-            className="mt-1 flex w-full justify-between px-[0.625rem] !text-sm+ text-primary hover:bg-accent hover:no-underline disabled:text-disabled"
+            className="!text-sm+ mt-1 flex w-full justify-between px-[0.625rem] text-primary hover:bg-accent hover:no-underline disabled:text-disabled"
             onClick={() => {
               openDrawer({
                 title: 'Create a New Table',
@@ -352,7 +351,7 @@ function DataBrowserSidebarContent({
           </Button>
         )}
         {isNotEmptyValue(schemas) && isEmptyValue(tablesInSelectedSchema) && (
-          <p className="px-2 py-1.5 text-xs text-disabled">No tables found.</p>
+          <p className="px-2 py-1.5 text-disabled text-xs">No tables found.</p>
         )}
         <nav aria-label="Database navigation">
           {isNotEmptyValue(tablesInSelectedSchema) && (
@@ -506,13 +505,12 @@ export default function DataBrowserSidebar({
     setExpanded(false);
   }
 
-  function closeSidebarWhenEscapeIsPressed(event: KeyboardEvent) {
-    if (event.key === 'Escape') {
-      setExpanded(false);
-    }
-  }
-
   useEffect(() => {
+    function closeSidebarWhenEscapeIsPressed(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setExpanded(false);
+      }
+    }
     if (typeof document !== 'undefined') {
       document.addEventListener('keydown', closeSidebarWhenEscapeIsPressed);
     }
@@ -529,7 +527,7 @@ export default function DataBrowserSidebar({
     <>
       <Backdrop
         open={expanded}
-        className="absolute bottom-0 left-0 right-0 top-0 z-[34] sm:hidden"
+        className="absolute top-0 right-0 bottom-0 left-0 z-[34] sm:hidden"
         role="button"
         tabIndex={-1}
         onClick={() => setExpanded(false)}
@@ -545,7 +543,7 @@ export default function DataBrowserSidebar({
 
       <aside
         className={cn(
-          'box absolute top-0 z-[35] h-full w-full overflow-auto border-r-1 pb-17 pt-2 motion-safe:transition-transform sm:relative sm:z-0 sm:h-full sm:pb-0 sm:pt-2.5 sm:transition-none',
+          'box absolute top-0 z-[35] h-full w-full overflow-auto border-r-1 pt-2 pb-17 motion-safe:transition-transform sm:relative sm:z-0 sm:h-full sm:pt-2.5 sm:pb-0 sm:transition-none',
           expanded ? 'translate-x-0' : '-translate-x-full sm:translate-x-0',
           className,
         )}

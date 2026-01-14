@@ -29,7 +29,7 @@ function DataBrowserCustomizerTrigger(
     >
       <Columns3 />
       {hasHiddenColumns && (
-        <span className="absolute bottom-[8px] right-[6px] w-[0.625rem] rounded-full bg-primary-text p-0 text-[0.625rem] leading-none text-paper">
+        <span className="absolute right-[6px] bottom-[8px] w-[0.625rem] rounded-full bg-primary-text p-0 text-[0.625rem] text-paper leading-none">
           !
         </span>
       )}
