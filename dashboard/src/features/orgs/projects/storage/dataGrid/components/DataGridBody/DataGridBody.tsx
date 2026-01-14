@@ -41,12 +41,12 @@ export default function DataGridBody<T extends object>({
       if (event.key === 'ArrowUp') {
         event.preventDefault();
 
-        if (!currentRow!.previousElementSibling) {
+        if (!currentRow.previousElementSibling) {
           return;
         }
 
         const cellInPreviousRow =
-          currentRow!.previousElementSibling.children.namedItem(cellId);
+          currentRow.previousElementSibling.children.namedItem(cellId);
 
         if (cellInPreviousRow instanceof HTMLElement) {
           cellInPreviousRow.scrollIntoView({
@@ -139,7 +139,7 @@ export default function DataGridBody<T extends object>({
       {rows.length === 0 && !loading && (
         <div className="flex flex-nowrap">
           <div
-            className="box inline-flex h-12 items-center border-b-1 border-r-1 px-2 py-1.5 text-xs dark:!text-[#a2b3be]"
+            className="box dark:!text-[#a2b3be] inline-flex h-12 items-center border-r-1 border-b-1 px-2 py-1.5 text-xs"
             style={{
               width: totalColumnsWidth,
             }}
@@ -152,7 +152,7 @@ export default function DataGridBody<T extends object>({
       {rows.map((row) => {
         prepareRow(row);
 
-        const rowProps = row.getRowProps({
+        const { key, ...rowProps } = row.getRowProps({
           style: {
             height: context.rowDensity === 'comfortable' ? '3rem' : '2rem',
             width: totalColumnsWidth,
@@ -160,8 +160,10 @@ export default function DataGridBody<T extends object>({
         });
 
         return (
+          // biome-ignore lint/a11y/useSemanticElements: A table layout using div
           <div
             {...rowProps}
+            key={key}
             id={row.id}
             className={cn(
               'flex scroll-mt-10 border-b-1 border-b-transparent last:border-b-data-table-border-color',
@@ -188,8 +190,8 @@ export default function DataGridBody<T extends object>({
                   cell={cell}
                   className={cn(
                     'group !inline-flex items-center bg-inherit font-display text-xs',
-                    'border-b-0 border-r-1',
-                    'scroll-ml-8 scroll-mt-[57px]',
+                    'border-r-1 border-b-0',
+                    'scroll-mt-[57px] scroll-ml-8',
                     'border-r-transparent last:border-r-data-table-border-color',
                     column.id === 'selection-column' &&
                       'sticky left-0 z-20 justify-center px-0',

@@ -22,6 +22,11 @@ import CodeMirror from '@uiw/react-codemirror';
 import { useCallback, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 
+const removeTOMLIndentation = (tomlStr: string) => {
+  const trimmedLines = tomlStr.split('\n').map((line) => line.trimStart());
+  return trimmedLines.join('\n');
+};
+
 export default function TOMLEditor() {
   const theme = useTheme();
   const isPlatform = useIsPlatform();
@@ -49,11 +54,6 @@ export default function TOMLEditor() {
   const [saveConfigMutation] = useReplaceConfigRawJsonMutation({
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
-
-  const removeTOMLIndentation = (tomlStr: string) => {
-    const trimmedLines = tomlStr.split('\n').map((line) => line.trimStart());
-    return trimmedLines.join('\n');
-  };
 
   useEffect(() => {
     // Load TOML code from the server on initial load

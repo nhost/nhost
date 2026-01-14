@@ -27,7 +27,7 @@ export interface EditRemoteSchemaFormProps
   /**
    * Function to be called when the form is submitted.
    */
-  onSubmit?: (args?: any) => Promise<any>;
+  onSubmit?: () => Promise<unknown>;
 }
 
 export default function EditRemoteSchemaForm({

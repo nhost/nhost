@@ -41,8 +41,8 @@ export default function DataGridHeader({
           return (
             <div
               className={cn(
-                'group relative inline-flex self-stretch overflow-hidden font-display text-xs font-bold focus:outline-none focus-visible:outline-none',
-                'border-b-1 border-r-1',
+                'group relative inline-flex self-stretch overflow-hidden font-bold font-display text-xs focus:outline-none focus-visible:outline-none',
+                'border-r-1 border-b-1',
                 'bg-paper',
                 { 'sticky left-0 max-w-2': column.id === 'selection-column' },
               )}

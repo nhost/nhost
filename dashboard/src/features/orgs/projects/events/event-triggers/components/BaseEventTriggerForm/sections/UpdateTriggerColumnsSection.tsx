@@ -69,7 +69,7 @@ export default function UpdateTriggerColumnsSection() {
       render={({ field }) => (
         <div className="space-y-4">
           <div className="space-y-2">
-            <h3 className="text-sm font-medium text-foreground">
+            <h3 className="font-medium text-foreground text-sm">
               List of columns to trigger
             </h3>
           </div>

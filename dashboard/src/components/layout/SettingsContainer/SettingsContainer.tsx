@@ -134,7 +134,7 @@ export default function SettingsContainer({
 
           <div className="grid grid-flow-row gap-1">
             {typeof title === 'string' ? (
-              <Text className="text-lg font-semibold">{title}</Text>
+              <Text className="font-semibold text-lg">{title}</Text>
             ) : (
               title
             )}

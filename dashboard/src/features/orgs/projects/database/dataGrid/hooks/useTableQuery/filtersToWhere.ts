@@ -1,4 +1,4 @@
-import { type DataGridFilter } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
+import type { DataGridFilter } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
 import { isEmptyValue } from '@/lib/utils';
 import { format } from 'node-pg-format';
 

@@ -70,11 +70,11 @@ export default function SchemaToArgumentMapSelector({
           const type = graphqlSchema.getType(selectedSourceType);
 
           if (isObjectType(type)) {
-            const fields = type.getFields();
-            return Object.keys(fields).map((fieldName) => ({
+            const typeFields = type.getFields();
+            return Object.keys(typeFields).map((fieldName) => ({
               label: fieldName,
               value: fieldName,
-              type: fields[fieldName].type.toString(),
+              type: typeFields[fieldName].type.toString(),
             }));
           }
 
@@ -99,8 +99,8 @@ export default function SchemaToArgumentMapSelector({
             return [];
           }
 
-          const fields = queryType.getFields();
-          const targetFieldObject = fields[selectedTargetField];
+          const queryFields = queryType.getFields();
+          const targetFieldObject = queryFields[selectedTargetField];
 
           if (!targetFieldObject?.args) {
             return [];
@@ -144,7 +144,7 @@ export default function SchemaToArgumentMapSelector({
   if (!selectedTargetField) {
     return (
       <Box className="space-y-4 rounded border-1 p-4">
-        <Text className="text-sm text-muted-foreground">
+        <Text className="text-muted-foreground text-sm">
           Select a target field to configure argument mappings.
         </Text>
       </Box>
@@ -154,12 +154,12 @@ export default function SchemaToArgumentMapSelector({
   return (
     <Box className="space-y-4 rounded border-1 p-4">
       <Box className="flex flex-col space-y-4">
-        <Text className="text-lg font-semibold">
+        <Text className="font-semibold text-lg">
           Configure arguments for {selectedTargetField}
         </Text>
 
         {targetArguments.length === 0 ? (
-          <Text className="text-sm text-muted-foreground">
+          <Text className="text-muted-foreground text-sm">
             No selectable items available for this type
           </Text>
         ) : (
@@ -186,14 +186,14 @@ export default function SchemaToArgumentMapSelector({
                     />
                     <label
                       htmlFor={`arg-${argument.value}`}
-                      className="cursor-pointer text-sm font-medium"
+                      className="cursor-pointer font-medium text-sm"
                     >
                       {argument.label}
-                      <span className="ml-2 text-xs text-muted-foreground">
+                      <span className="ml-2 text-muted-foreground text-xs">
                         ({argument.type})
                       </span>
                       {argument.required && (
-                        <span className="ml-1 text-xs text-red-500">*</span>
+                        <span className="ml-1 text-red-500 text-xs">*</span>
                       )}
                     </label>
                   </div>

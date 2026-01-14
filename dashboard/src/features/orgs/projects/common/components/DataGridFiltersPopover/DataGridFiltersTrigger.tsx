@@ -23,7 +23,7 @@ function DataGridFiltersTrigger(
     >
       <Funnel />
       {numberOfAppliedFilters > 0 && (
-        <span className="absolute bottom-[6px] right-[6px] w-[0.725rem] rounded-full bg-primary-text p-0 text-[0.725rem] leading-none text-paper">
+        <span className="absolute right-[6px] bottom-[6px] w-[0.725rem] rounded-full bg-primary-text p-0 text-[0.725rem] text-paper leading-none">
           {numberOfAppliedFilters}
         </span>
       )}

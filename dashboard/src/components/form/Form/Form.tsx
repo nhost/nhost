@@ -8,6 +8,7 @@ export interface FormProps extends BoxProps {
   /**
    * Function to be called when the form is submitted.
    */
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   onSubmit: (...args: any[]) => any;
 }
 
@@ -44,7 +45,6 @@ export default function Form({ onSubmit, onKeyDown, ...props }: FormProps) {
   return (
     // We want to support form submission using `Ctrl + Enter` and `Cmd + Enter`
     // so keyboard events must be handled on the form element itself.
-    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
     <Box
       ref={formRef}
       component="form"

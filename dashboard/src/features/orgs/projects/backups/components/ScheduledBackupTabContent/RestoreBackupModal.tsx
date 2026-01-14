@@ -42,7 +42,7 @@ export default function RestoreBackupModal({
           appId: project?.id,
         },
       });
-    } catch (error) {
+    } catch {
       setRestoreCompleted(false);
       triggerToast('Database backup restoration failed');
       return;
@@ -71,7 +71,7 @@ export default function RestoreBackupModal({
         will be restored.
       </Text>
 
-      <Box className="pb-2.5 pt-1">
+      <Box className="pt-1 pb-2.5">
         <Checkbox
           checked={isSure}
           onChange={(_event, checked) => setIsSure(checked)}

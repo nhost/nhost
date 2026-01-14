@@ -6,7 +6,7 @@ import type { ReactElement } from 'react';
 
 export default function OrgSettings() {
   return (
-    <div className="bg-accent-background flex h-full flex-col gap-4 overflow-auto p-4">
+    <div className="flex h-full flex-col gap-4 overflow-auto bg-accent-background p-4">
       <GeneralSettings />
       <Soc2Download />
       <DeleteOrg />

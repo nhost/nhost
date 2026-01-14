@@ -38,7 +38,7 @@ export default function useReloadRemoteSchemaMutation({
     return reloadRemoteSchema({
       ...variables,
       appUrl,
-      adminSecret: project?.config?.hasura.adminSecret!,
+      adminSecret: project!.config!.hasura.adminSecret,
     });
   }, mutationOptions);
 

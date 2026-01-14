@@ -166,23 +166,23 @@ export default function OnboardingProjectPage() {
       <div className="mx-auto max-w-2xl py-12">
         <div className="mb-8 flex items-center justify-center">
           <div className="flex items-center space-x-4">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-600 text-sm font-medium text-white">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-600 font-medium text-sm text-white">
               ✓
             </div>
             <div className="h-1 w-16 bg-green-600" />
 
             {selectedOrg?.plan?.name !== 'Starter' ? (
               <>
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-600 text-sm font-medium text-white">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-600 font-medium text-sm text-white">
                   ✓
                 </div>
                 <div className="h-1 w-16 bg-green-600" />
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary font-medium text-primary-foreground text-sm">
                   3
                 </div>
               </>
             ) : (
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary font-medium text-primary-foreground text-sm">
                 2
               </div>
             )}
@@ -191,7 +191,7 @@ export default function OnboardingProjectPage() {
 
         <Box className="rounded-lg border border-border bg-card p-6 shadow-sm">
           <div className="mb-6 text-center">
-            <Text variant="h2" className="mb-2 text-2xl font-bold">
+            <Text variant="h2" className="mb-2 font-bold text-2xl">
               Create Your First Project
             </Text>
             <Text className="text-muted-foreground">
@@ -230,7 +230,7 @@ export default function OnboardingProjectPage() {
                                   height={16}
                                 />
                                 <span className="font-medium">{org.name}</span>
-                                <span className="text-xs text-muted-foreground">
+                                <span className="text-muted-foreground text-xs">
                                   ({org.plan?.name} plan)
                                 </span>
                               </div>

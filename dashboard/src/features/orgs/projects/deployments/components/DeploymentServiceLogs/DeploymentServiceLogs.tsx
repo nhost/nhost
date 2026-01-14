@@ -29,7 +29,7 @@ function DeploymentServiceLogs({ from, to }: Props) {
     (values: DeploymentLogsFormValues) => {
       setFilters({ ...values });
     },
-    [setFilters],
+    [],
   );
 
   const hasLogs = isNotEmptyValue(data?.logs);

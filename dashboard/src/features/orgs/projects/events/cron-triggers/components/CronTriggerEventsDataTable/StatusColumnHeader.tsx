@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/v3/dropdown-menu';
 import { ChevronDown } from 'lucide-react';
-import { type CronTriggerEventsSection } from './cronTriggerEventsDataTableColumns';
+import type { CronTriggerEventsSection } from './cronTriggerEventsDataTableColumns';
 
 interface StatusColumnHeaderProps {
   value: CronTriggerEventsSection;
@@ -50,7 +50,7 @@ export default function StatusColumnHeader({
         <Button
           variant="ghost"
           type="button"
-          className="relative flex h-fit items-center justify-between p-2 text-xs font-bold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring motion-safe:transition-colors dark:hover:bg-[#21262d]"
+          className="relative flex h-fit items-center justify-between p-2 font-bold text-foreground text-xs transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring motion-safe:transition-colors dark:hover:bg-[#21262d]"
           aria-label={`Filter events by ${label.toLowerCase()} status`}
         >
           <span className="truncate">Status</span>
@@ -75,8 +75,8 @@ export default function StatusColumnHeader({
               className="items-start gap-2 py-2"
             >
               <div className="flex flex-col text-left leading-tight">
-                <span className="text-sm font-medium">{optionMeta.label}</span>
-                <span className="text-xs text-muted-foreground">
+                <span className="font-medium text-sm">{optionMeta.label}</span>
+                <span className="text-muted-foreground text-xs">
                   {optionMeta.description}
                 </span>
               </div>

@@ -13,6 +13,7 @@ declare module 'react-table' {
       UseRowSelectOptions<D>,
       UseRowStateOptions<D>,
       UseSortByOptions<D>,
+      // biome-ignore lint/suspicious/noExplicitAny: TODO
       Record<string, any> {}
 
   export interface Hooks<

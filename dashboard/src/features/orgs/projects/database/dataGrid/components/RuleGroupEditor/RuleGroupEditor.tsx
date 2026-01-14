@@ -82,6 +82,7 @@ export default function RuleGroupEditor({
     name: `${name}.rules`,
   });
 
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   const unsupportedValues: Record<string, any>[] =
     getValues(`${name}.unsupported`) || [];
 
@@ -112,7 +113,7 @@ export default function RuleGroupEditor({
       <Box
         {...props}
         className={twMerge(
-          'flex min-h-44 flex-col justify-between rounded-lg border border-r-8 border-transparent pl-2',
+          'flex min-h-44 flex-col justify-between rounded-lg border border-transparent border-r-8 pl-2',
           className,
         )}
         sx={[
@@ -132,7 +133,7 @@ export default function RuleGroupEditor({
             <div className="grid grid-cols-[70px_1fr] gap-2" key={rule.id}>
               <div>
                 {ruleIndex === 0 && (
-                  <Text className="p-2 !font-medium">Where</Text>
+                  <Text className="!font-medium p-2">Where</Text>
                 )}
 
                 {ruleIndex > 0 && (
@@ -156,7 +157,7 @@ export default function RuleGroupEditor({
               >
                 <div>
                   {rules.length === 0 && ruleGroupIndex === 0 && (
-                    <Text className="p-2 !font-medium">Where</Text>
+                    <Text className="!font-medium p-2">Where</Text>
                   )}
 
                   <RuleGroupControls

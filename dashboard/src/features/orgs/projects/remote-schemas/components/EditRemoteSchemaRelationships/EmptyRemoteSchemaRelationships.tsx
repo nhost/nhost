@@ -14,7 +14,7 @@ export default function EmptyRemoteSchemaRelationships({
     <div className="mt-8 flex flex-1 flex-col items-center gap-6">
       <Anchor className="h-12 w-12" />
       <div className="flex flex-col gap-2">
-        <h4 className="text-center text-xl font-medium tracking-tight">
+        <h4 className="text-center font-medium text-xl tracking-tight">
           No remote schema relationships found
         </h4>
         <p className="text-center leading-7">

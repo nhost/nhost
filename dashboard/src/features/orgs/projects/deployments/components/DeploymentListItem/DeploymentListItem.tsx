@@ -160,11 +160,11 @@ export default function DeploymentListItem({
             </div>
           )}
 
-          <div className="hidden w-16 text-right font-mono text-sm- font-medium sm:block">
+          <div className="hidden w-16 text-right font-medium font-mono text-sm- sm:block">
             {deployment.commitSHA.substring(0, 7)}
           </div>
 
-          <div className="text-right font-mono text-sm- font-medium sm:w-20">
+          <div className="text-right font-medium font-mono text-sm- sm:w-20">
             <DeploymentDurationLabel
               startedAt={deployment.deploymentStartedAt}
               endedAt={deployment.deploymentEndedAt}

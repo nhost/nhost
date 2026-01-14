@@ -63,7 +63,7 @@ function ServiceVersionTooltip({
           }}
           variant="h4"
           component="p"
-          className="text-sm+ font-semibold"
+          className="font-semibold text-sm+"
         >
           {serviceName}
         </Text>
@@ -89,7 +89,7 @@ function ServiceVersionTooltip({
           }}
           variant="h4"
           component="p"
-          className="text-sm+ font-bold"
+          className="font-bold text-sm+"
         >
           {usedVersion}
         </Text>
@@ -147,7 +147,7 @@ function ServiceVersionTooltip({
           <Text
             variant="body1"
             component="p"
-            className="text-sm+ font-semibold text-white"
+            className="font-semibold text-sm+ text-white"
           >
             {serviceName} {errorMessage}
           </Text>

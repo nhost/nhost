@@ -15,6 +15,7 @@ import { mergeRefs } from 'react-merge-refs';
 
 export interface ControlledAutocompleteProps<
   TOption extends AutocompleteOption = AutocompleteOption,
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   TFieldValues extends FieldValues = any,
 > extends AutocompleteProps<TOption> {
   /**

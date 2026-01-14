@@ -23,8 +23,8 @@ import {
   drawerReducer,
 } from './dialogReducers';
 
-function isBaseSyntheticEvent(event: any): event is BaseSyntheticEvent {
-  return event?.type !== undefined;
+function isBaseSyntheticEvent(event: unknown): event is BaseSyntheticEvent {
+  return (event as BaseSyntheticEvent)?.type !== undefined;
 }
 
 function DialogProvider({ children }: PropsWithChildren<unknown>) {
@@ -104,6 +104,7 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
     alertDialogDispatch({ type: 'CLEAR_ALERT_CONTENT' });
   }
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: openAlertDialog does the same every render
   const openDirtyConfirmation = useCallback(
     (config?: Partial<DialogConfig<string>>) => {
       const { props, ...restConfig } = config || {};
@@ -126,7 +127,7 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
   );
 
   const closeDrawerWithDirtyGuard = useCallback(
-    (event?: any) => {
+    (event?: unknown) => {
       if (
         isDrawerDirty.current &&
         isBaseSyntheticEvent(event) &&
@@ -143,7 +144,7 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
   );
 
   const closeDialogWithDirtyGuard = useCallback(
-    (event?: any) => {
+    (event?: unknown) => {
       if (
         isDialogDirty.current &&
         isBaseSyntheticEvent(event) &&
@@ -174,6 +175,7 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
     [],
   );
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: openAlertDialog and closeAlertDialog does the same thing every render
   const contextValue = useMemo(
     () => ({
       openDialog,
@@ -281,6 +283,7 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
             ? cloneElement(activeDialog, {
                 ...activeDialog.props,
                 location: 'dialog',
+                // biome-ignore lint/suspicious/noExplicitAny: TODO
                 onSubmit: async (values?: any) => {
                   await activeDialog?.props?.onSubmit?.(values);
                   closeDialog();
@@ -315,6 +318,7 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
             ? cloneElement(activeDrawer, {
                 ...activeDrawer.props,
                 location: 'drawer',
+                // biome-ignore lint/suspicious/noExplicitAny: TODO
                 onSubmit: async (values?: any) => {
                   await activeDrawer?.props?.onSubmit?.(values);
                   closeDrawer();

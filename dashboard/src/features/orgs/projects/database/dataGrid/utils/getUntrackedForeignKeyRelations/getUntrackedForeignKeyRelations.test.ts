@@ -10,7 +10,9 @@ describe('getUntrackedForeignKeyRelations', () => {
     referencedSchema: 'public',
     referencedTable: 'users',
     referencedColumn: 'id',
+    // biome-ignore lint/suspicious/noExplicitAny: test file
     updateAction: 'CASCADE' as any,
+    // biome-ignore lint/suspicious/noExplicitAny: test file
     deleteAction: 'CASCADE' as any,
     oneToOne: false,
     ...overrides,
@@ -114,12 +116,14 @@ describe('getUntrackedForeignKeyRelations', () => {
     const original: ForeignKeyRelation[] = [
       createForeignKey({
         columnName: 'user_id',
+        // biome-ignore lint/suspicious/noExplicitAny: test file
         updateAction: 'CASCADE' as any,
       }),
     ];
     const updated: ForeignKeyRelation[] = [
       createForeignKey({
         columnName: 'user_id',
+        // biome-ignore lint/suspicious/noExplicitAny: test file
         updateAction: 'RESTRICT' as any,
       }),
     ];
@@ -134,12 +138,14 @@ describe('getUntrackedForeignKeyRelations', () => {
     const original: ForeignKeyRelation[] = [
       createForeignKey({
         columnName: 'user_id',
+        // biome-ignore lint/suspicious/noExplicitAny: test file
         deleteAction: 'CASCADE' as any,
       }),
     ];
     const updated: ForeignKeyRelation[] = [
       createForeignKey({
         columnName: 'user_id',
+        // biome-ignore lint/suspicious/noExplicitAny: test file
         deleteAction: 'SET NULL' as any,
       }),
     ];
@@ -226,7 +232,9 @@ describe('getUntrackedForeignKeyRelations', () => {
       createForeignKey({
         columnName: 'user_id',
         referencedTable: 'users',
+        // biome-ignore lint/suspicious/noExplicitAny: test file
         updateAction: 'CASCADE' as any,
+        // biome-ignore lint/suspicious/noExplicitAny: test file
         deleteAction: 'CASCADE' as any,
       }),
     ];
@@ -234,7 +242,9 @@ describe('getUntrackedForeignKeyRelations', () => {
       createForeignKey({
         columnName: 'user_id',
         referencedTable: 'accounts',
+        // biome-ignore lint/suspicious/noExplicitAny: test file
         updateAction: 'RESTRICT' as any,
+        // biome-ignore lint/suspicious/noExplicitAny: test file
         deleteAction: 'SET NULL' as any,
       }),
     ];

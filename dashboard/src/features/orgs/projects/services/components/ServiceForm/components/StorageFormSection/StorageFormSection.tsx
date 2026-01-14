@@ -83,7 +83,7 @@ export default function StorageFormSection() {
         {fields.map((field, index) => (
           <Box
             key={field.id}
-            className="flex w-full flex-col space-y-2 xs+:flex-row xs+:space-x-2 xs+:space-y-0"
+            className="flex w-full xs+:flex-row flex-col xs+:space-x-2 space-y-2 xs+:space-y-0"
           >
             <Input
               {...register(`storage.${index}.name`)}

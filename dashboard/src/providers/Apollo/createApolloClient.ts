@@ -12,6 +12,7 @@ import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { getMainDefinition } from '@apollo/client/utilities';
 import type { NhostClient } from '@nhost/nhost-js';
 
+import { isNotEmptyValue } from '@/lib/utils';
 import { createRestartableClient } from './ws';
 
 const isBrowser = typeof window !== 'undefined';
@@ -19,7 +20,7 @@ const isBrowser = typeof window !== 'undefined';
 export type NhostApolloClientOptions = {
   nhost?: NhostClient;
   graphqlUrl?: string;
-  globalHeaders?: any;
+  globalHeaders?: Record<string, string>;
   fetchPolicy?: WatchQueryFetchPolicy;
   connectToDevTools?: boolean;
 };
@@ -43,7 +44,7 @@ export const createApolloClient = ({
 
   const getAuthHeaders = async () => {
     // add headers
-    const resHeaders = {
+    const resHeaders: Record<string, string> = {
       ...globalHeaders,
       'Sec-WebSocket-Protocol': 'graphql-ws',
     };
@@ -133,24 +134,27 @@ export const createApolloClient = ({
     link,
   });
 
-  const authUnSubscribe = nhost?.sessionStorage.onChange(async (newSession) => {
-    if (!newSession) {
-      try {
-        await client.resetStore();
-      } catch (error) {
-        console.error('Error resetting Apollo client cache');
-        console.error(error);
+  let authUnSubscribe: (() => void) | null = null;
+  if (isNotEmptyValue(nhost)) {
+    authUnSubscribe = nhost.sessionStorage.onChange(async (newSession) => {
+      if (!newSession) {
+        try {
+          await client.resetStore();
+        } catch (error) {
+          console.error('Error resetting Apollo client cache');
+          console.error(error);
+        }
+
+        return;
       }
 
-      return;
-    }
+      if (!isBrowser || !wsClient?.isOpen()) {
+        return;
+      }
 
-    if (!isBrowser || !wsClient?.isOpen()) {
-      return;
-    }
-
-    wsClient?.restart();
-  })!;
+      wsClient?.restart();
+    });
+  }
 
   return { client, authUnSubscribe };
 };

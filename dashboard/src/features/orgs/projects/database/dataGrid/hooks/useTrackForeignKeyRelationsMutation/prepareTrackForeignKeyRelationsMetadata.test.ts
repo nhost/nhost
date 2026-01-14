@@ -213,7 +213,9 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
     });
 
     expect(response).toHaveLength(2);
+    // biome-ignore lint/suspicious/noExplicitAny: test file
     expect((response[0].args.table as any).schema).toBe('public');
+    // biome-ignore lint/suspicious/noExplicitAny: test file
     expect((response[1].args.table as any).schema).toBe('catalog');
   });
 
@@ -965,7 +967,9 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
     expect(response).toHaveLength(2);
     expect(response[0].args.name).toBe('category');
     expect(response[1].args.name).toBe('books_category_id');
+    // biome-ignore lint/suspicious/noExplicitAny: test file
     expect((response[0].args.table as any).schema).toBe('public');
+    // biome-ignore lint/suspicious/noExplicitAny: test file
     expect((response[1].args.table as any).schema).toBe('catalog');
   });
 });

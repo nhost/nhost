@@ -11,9 +11,9 @@ import {
 import toast from 'react-hot-toast';
 
 interface Props {
-  sendMfaOtp: (code: string) => Promise<any>;
+  sendMfaOtp: (code: string) => Promise<unknown>;
   loading: boolean;
-  requestNewMfaTicket?: () => Promise<void>;
+  requestNewMfaTicket?: () => Promise<unknown>;
 }
 
 function MfaOtpForm({ sendMfaOtp, loading, requestNewMfaTicket }: Props) {

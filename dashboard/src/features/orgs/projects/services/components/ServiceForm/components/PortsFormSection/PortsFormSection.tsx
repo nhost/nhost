@@ -12,7 +12,7 @@ import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { InfoCard } from '@/features/orgs/projects/overview/components/InfoCard';
 import { PortTypes } from '@/features/orgs/projects/services/components/ServiceForm/components/PortsFormSection/PortsFormSectionTypes';
-import { type ServiceFormValues } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
+import type { ServiceFormValues } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
 import { isNotEmptyValue } from '@/lib/utils';
 import type { ConfigRunServicePort } from '@/utils/__generated__/graphql';
 import { getRunServicePortURL } from '@/utils/helpers';
@@ -82,7 +82,7 @@ export default function PortsFormSection() {
       <Box className="flex flex-col space-y-4">
         {fields.map((field, index) => (
           <Box key={field.id} className="flex flex-col space-y-2">
-            <Box className="flex w-full flex-col space-y-2 xs+:flex-row xs+:space-x-2 xs+:space-y-0">
+            <Box className="flex w-full xs+:flex-row flex-col xs+:space-x-2 space-y-2 xs+:space-y-0">
               <Input
                 {...register(`ports.${index}.port`)}
                 id={`${field.id}-port`}
@@ -136,13 +136,14 @@ export default function PortsFormSection() {
               </Button>
             </Box>
 
+            {/* project and formValues are present */}
             {showURL(index) && (
               <InfoCard
                 title="URL"
                 value={getRunServicePortURL(
                   formValues.subdomain!,
-                  project?.region.name!,
-                  project?.region.domain!,
+                  project!.region.name!,
+                  project!.region.domain!,
                   formValues.ports![index] as ConfigRunServicePort,
                 )}
               />

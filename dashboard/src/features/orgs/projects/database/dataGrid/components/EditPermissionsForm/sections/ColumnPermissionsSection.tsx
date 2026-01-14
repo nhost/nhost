@@ -50,7 +50,6 @@ export default function ColumnPermissionsSection({
   } = useTableQuery([`default.${schema}.${table}`], { schema, table });
 
   if (tableError) {
-    // eslint-disable-next-line @typescript-eslint/no-throw-literal
     throw tableError;
   }
 

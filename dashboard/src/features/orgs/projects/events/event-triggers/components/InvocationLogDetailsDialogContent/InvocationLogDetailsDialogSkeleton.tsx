@@ -39,13 +39,13 @@ export default function InvocationLogDetailsDialogSkeleton() {
       <div className="grid grid-cols-2 gap-4 rounded border p-4">
         <div className="space-y-2">
           <div className="flex justify-between gap-1">
-            <span className="text-sm font-medium text-muted-foreground">
+            <span className="font-medium text-muted-foreground text-sm">
               ID:
             </span>
             <Skeleton className="h-4 w-48" />
           </div>
           <div className="flex justify-between gap-1">
-            <span className="text-sm font-medium text-muted-foreground">
+            <span className="font-medium text-muted-foreground text-sm">
               Event ID:
             </span>
             <Skeleton className="h-4 w-48" />
@@ -53,13 +53,13 @@ export default function InvocationLogDetailsDialogSkeleton() {
         </div>
         <div className="space-y-2">
           <div className="flex justify-between gap-1">
-            <span className="text-sm font-medium text-muted-foreground">
+            <span className="font-medium text-muted-foreground text-sm">
               HTTP Status:
             </span>
             <Skeleton className="h-4 w-16" />
           </div>
           <div className="flex justify-between gap-1">
-            <span className="text-sm font-medium text-muted-foreground">
+            <span className="font-medium text-muted-foreground text-sm">
               Created:
             </span>
             <Skeleton className="h-4 w-40" />

@@ -79,7 +79,7 @@ export default function EditRepositorySettingsModal({
         <div className="mx-auto h-8 w-8">
           <GitHubIcon className="h-8 w-8" />
         </div>
-        <Text className="mt-1.5 text-center text-lg font-medium">
+        <Text className="mt-1.5 text-center font-medium text-lg">
           {selectedRepoId
             ? 'Configure your GitHub integration'
             : 'Edit your GitHub integration'}

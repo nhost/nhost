@@ -42,6 +42,7 @@ export interface ColumnAutocompleteProps
    */
   onChange?: (value: {
     value: string;
+    // biome-ignore lint/suspicious/noExplicitAny: TODO
     columnMetadata?: Record<string, any>;
     disableReset?: boolean;
   }) => void;
@@ -220,7 +221,7 @@ function ColumnAutocomplete(
         >
           {buttonPrefix ? (
             <div className="flex min-w-0 flex-shrink items-center gap-0">
-              <span className="flex-shrink truncate text-sm text-muted-foreground lg:max-w-[200px]">
+              <span className="flex-shrink truncate text-muted-foreground text-sm lg:max-w-[200px]">
                 {buttonPrefix}.
               </span>
               <span className="truncate">{selectedColumn?.label}</span>
@@ -273,7 +274,7 @@ function ColumnAutocomplete(
               >
                 <ChevronLeft className="h-5 w-5" />
               </Button>
-              <span className="py-1.5 text-sm text-muted-foreground">
+              <span className="py-1.5 text-muted-foreground text-sm">
                 {defaultTable}.{pages.join('.')}
               </span>
             </div>

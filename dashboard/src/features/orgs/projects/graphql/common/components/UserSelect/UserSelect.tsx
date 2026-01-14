@@ -89,9 +89,9 @@ export default function UserSelect({
     });
   }, [inputValue, fetchOptions, active]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: only want to run the effect when adminAuthRoles changes
   useEffect(() => {
     onUserChange('admin', getAdminRoles(adminAuthRoles));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [adminAuthRoles]);
 
   const autocompleteOptions = [
@@ -125,7 +125,7 @@ export default function UserSelect({
       autoHighlight
       includeInputInList
       loading={loading}
-      onChange={(_event, _value, reason, details) => {
+      onChange={(_event, _value, _reason, details) => {
         setActive(false);
         const userId = details?.option.value;
         if (typeof userId !== 'string') {
@@ -146,7 +146,7 @@ export default function UserSelect({
           onUserChange(userId, roles);
         }
       }}
-      onInputChange={(event, newInputValue) => {
+      onInputChange={(_event, newInputValue) => {
         setInputValue(newInputValue);
       }}
     />

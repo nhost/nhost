@@ -101,7 +101,7 @@ export default function DataGridBooleanCell<TData extends object>({
         id={cellId}
         style={{ width: getHeaderProps().style?.width }}
         onKeyDown={handleMenuKeyDown}
-        className="rounded-none border-2 !border-t-0 border-[#0052cd] bg-data-cell-bg"
+        className="!border-t-0 rounded-none border-2 border-[#0052cd] bg-data-cell-bg"
       >
         <DropdownMenuCheckboxItem
           className="hover:!bg-data-cell-bg-hover"

@@ -4,7 +4,6 @@ import { Form } from '@/components/form/Form';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { ArrowsClockwise } from '@/components/ui/v2/icons/ArrowsClockwise';
 import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
@@ -19,6 +18,7 @@ import { EnvironmentFormSection } from '@/features/orgs/projects/services/compon
 import { PortsFormSection } from '@/features/orgs/projects/services/components/ServiceForm/components/PortsFormSection';
 import { ReplicasFormSection } from '@/features/orgs/projects/services/components/ServiceForm/components/ReplicasFormSection';
 import { StorageFormSection } from '@/features/orgs/projects/services/components/ServiceForm/components/StorageFormSection';
+import { RefreshCwIcon } from 'lucide-react';
 
 import {
   defaultServiceFormValues,
@@ -334,7 +334,7 @@ export default function ServiceForm({
             <Button
               type="submit"
               disabled={isSubmitting}
-              startIcon={serviceID ? <ArrowsClockwise /> : <PlusIcon />}
+              startIcon={serviceID ? <RefreshCwIcon /> : <PlusIcon />}
             >
               {serviceID ? 'Update' : 'Create'}
             </Button>

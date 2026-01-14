@@ -2,7 +2,7 @@ import { FormInput } from '@/components/form/FormInput';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { Button } from '@/components/ui/v3/button';
-import { type BaseEventTriggerFormValues } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerFormTypes';
+import type { BaseEventTriggerFormValues } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerFormTypes';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 
 export default function KeyValueQueryParams() {
@@ -16,7 +16,7 @@ export default function KeyValueQueryParams() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h4 className="text-sm font-medium text-foreground">
+        <h4 className="font-medium text-foreground text-sm">
           Key Value Query Params{' '}
         </h4>
         <Button
@@ -31,7 +31,7 @@ export default function KeyValueQueryParams() {
       </div>
       <div className="flex flex-col gap-4">
         {fields.length > 0 && (
-          <div className="grid grid-flow-row grid-cols-9 text-sm+ text-foreground">
+          <div className="grid grid-flow-row grid-cols-9 text-foreground text-sm+">
             <span className="col-span-3">Key</span>
             <div className="col-span-1" />
             <span className="col-span-4">Value</span>

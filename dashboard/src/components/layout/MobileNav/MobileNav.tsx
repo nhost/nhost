@@ -59,7 +59,7 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
         }}
       >
         <section className="mt-2 grid grid-flow-row gap-3">
-          <Text variant="h2" className="text-xl font-semibold">
+          <Text variant="h2" className="font-semibold text-xl">
             Resources
           </Text>
 
@@ -93,7 +93,7 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
         </section>
 
         <section className={twMerge('grid grid-flow-row gap-3')}>
-          <Text variant="h2" className="text-xl font-semibold">
+          <Text variant="h2" className="font-semibold text-xl">
             Theme
           </Text>
 
@@ -102,7 +102,7 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
 
         {isPlatform && (
           <section className={twMerge('grid grid-flow-row gap-3')}>
-            <Text variant="h2" className="text-xl font-semibold">
+            <Text variant="h2" className="font-semibold text-xl">
               Account
             </Text>
 

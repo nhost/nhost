@@ -115,7 +115,7 @@ export default async function handler(
       }
 
       slaLevel = resp.body.data.apps[0]?.organization?.plan?.slaLevel ?? null;
-    } catch (error) {
+    } catch {
       return res.status(400).json({
         success: false,
         error: 'Invalid project subdomain',
@@ -123,7 +123,10 @@ export default async function handler(
     }
 
     // validate priority based on sla level
-    if ((slaLevel === Sla_Level_Enum.None || slaLevel === null) && priority !== 'low') {
+    if (
+      (slaLevel === Sla_Level_Enum.None || slaLevel === null) &&
+      priority !== 'low'
+    ) {
       return res.status(400).json({
         success: false,
         error: 'Priority must be "low" for plans without an SLA',
@@ -164,7 +167,7 @@ export default async function handler(
                 value: services.map((service) => service.value?.toLowerCase()),
               },
               {
-                id: 30691138027538,  // field SLA 
+                id: 30691138027538, // field SLA
                 value: slaLevel,
               },
             ],

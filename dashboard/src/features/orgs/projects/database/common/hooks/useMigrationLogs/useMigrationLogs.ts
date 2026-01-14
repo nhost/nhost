@@ -95,7 +95,7 @@ export default function useMigrationLogs(
       try {
         logObj = JSON.parse(log);
         return logObj;
-      } catch (e) {
+      } catch {
         console.error('Failed to parse log', log);
         return undefined;
       }

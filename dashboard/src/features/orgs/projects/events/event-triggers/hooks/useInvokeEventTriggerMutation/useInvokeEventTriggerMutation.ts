@@ -40,7 +40,7 @@ export default function useInvokeEventTriggerMutation({
       'hasura',
     );
 
-    const adminSecret = project?.config?.hasura.adminSecret!;
+    const adminSecret = project!.config!.hasura.adminSecret;
 
     return invokeEventTrigger({
       args: variables.args,

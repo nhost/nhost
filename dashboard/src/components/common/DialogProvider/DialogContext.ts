@@ -29,7 +29,8 @@ export interface OpenDialogOptions {
   component: ReactElement<{
     location?: 'drawer' | 'dialog';
     onCancel?: () => void;
-    onSubmit?: (args?: any) => Promise<any> | void;
+    // biome-ignore lint/suspicious/noExplicitAny: TODO
+    onSubmit?: (args?: any) => Promise<any>;
   }>;
   /**
    * Props to pass to the root dialog component.

@@ -18,6 +18,7 @@ export interface UseProjectReturnType {
   project: Project | null;
   loading?: boolean;
   error?: Error | null;
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   refetch: (variables?: any) => Promise<any>;
   projectNotFound: boolean;
 }

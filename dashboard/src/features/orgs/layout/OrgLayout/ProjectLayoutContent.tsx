@@ -1,4 +1,4 @@
-import { type AuthenticatedLayoutProps } from '@/components/layout/AuthenticatedLayout';
+import type { AuthenticatedLayoutProps } from '@/components/layout/AuthenticatedLayout';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import type { BoxProps } from '@/components/ui/v2/Box';
 import { Box } from '@/components/ui/v2/Box';

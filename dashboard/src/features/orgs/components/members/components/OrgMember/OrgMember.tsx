@@ -174,12 +174,12 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
             <div className="flex flex-row items-center gap-2">
               <span className="font-medium">{member.user.displayName}</span>
               {isSelf && (
-                <Badge className="pointer-events-none h-5 bg-blue-100 px-[6px] text-[10px] font-bold text-primary-main dark:bg-primary">
+                <Badge className="pointer-events-none h-5 bg-blue-100 px-[6px] font-bold text-[10px] text-primary-main dark:bg-primary">
                   Me
                 </Badge>
               )}
             </div>
-            <span className="text-sm text-muted-foreground">
+            <span className="text-muted-foreground text-sm">
               {member.user.email}
             </span>
           </div>

@@ -16,7 +16,7 @@ export default function PasswordSettings() {
         <div className="rounded-lg border border-[#EAEDF0] bg-white font-['Inter_var'] dark:border-[#2F363D] dark:bg-paper">
           <div className="flex w-full flex-col items-start gap-4 p-4">
             <div className="flex w-full flex-col items-start">
-              <h3 className="text-[1.125rem] font-semibold leading-[1.75]">
+              <h3 className="font-semibold text-[1.125rem] leading-[1.75]">
                 Change Password
               </h3>
               <p className="text-[#556378] dark:text-[#A2B3BE]">
@@ -38,7 +38,7 @@ export default function PasswordSettings() {
               />
             </div>
           </div>
-          <div className="flex w-full items-center justify-end border-t border-[#EAEDF0] px-4 py-2 dark:border-[#2F363D]">
+          <div className="flex w-full items-center justify-end border-[#EAEDF0] border-t px-4 py-2 dark:border-[#2F363D]">
             <Button type="submit" variant="outline">
               Save
             </Button>

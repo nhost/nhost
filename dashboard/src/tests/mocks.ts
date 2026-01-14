@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/suspicious/noExplicitAny: mock file */
 import type { Organization, Project } from '@/types/application';
 import { ApplicationStatus } from '@/types/application';
 import { Organization_Status_Enum } from '@/utils/__generated__/graphql';
@@ -84,7 +85,8 @@ export const mockApplication: Project = {
 };
 
 export const mockSession: Session = {
-  accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
+  accessToken:
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
   accessTokenExpiresIn: 86400,
   refreshToken: faker.datatype.uuid(),
   refreshTokenId: faker.datatype.uuid(),

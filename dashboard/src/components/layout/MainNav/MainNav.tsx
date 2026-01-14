@@ -22,24 +22,23 @@ export default function MainNav({ container }: MainNavProps) {
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const { open, setOpen, mainNavPinned, setMainNavPinned } = useTreeNavState();
 
-  const scrollToCurrentPath = () => {
-    requestAnimationFrame(() => {
-      const element = document.querySelector(`a[href="${asPath}"]`);
-      if (element && scrollContainerRef.current) {
-        element.scrollIntoView({ block: 'center' });
-      }
-    });
-  };
-
   useEffect(() => {
     if (open) {
+      const scrollToCurrentPath = () => {
+        requestAnimationFrame(() => {
+          const element = document.querySelector(`a[href="${asPath}"]`);
+          if (element && scrollContainerRef.current) {
+            element.scrollIntoView({ block: 'center' });
+          }
+        });
+      };
       scrollToCurrentPath();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  }, [open, asPath]);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
+      {/** biome-ignore lint/a11y/noStaticElementInteractions: hover opens the sheet */}
       <div
         className="min- absolute left-0 z-[39] flex h-full w-6 justify-center border-r-[1px] bg-background pt-1 hover:bg-accent"
         onMouseEnter={() => setOpen(true)}
@@ -85,7 +84,7 @@ export default function MainNav({ container }: MainNavProps) {
 
         <div
           ref={scrollContainerRef}
-          className="h-[calc(100vh-7rem)] space-y-4 overflow-auto pb-12 pt-2 lg:h-[calc(100vh-6rem)]"
+          className="h-[calc(100vh-7rem)] space-y-4 overflow-auto pt-2 pb-12 lg:h-[calc(100vh-6rem)]"
         >
           <div className="flex flex-col gap-1 px-2">
             <NavTree />

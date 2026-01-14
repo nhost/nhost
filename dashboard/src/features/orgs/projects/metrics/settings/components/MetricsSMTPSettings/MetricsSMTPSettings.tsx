@@ -11,7 +11,7 @@ import {
 } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
-import { type Optional } from 'utility-types';
+import type { Optional } from 'utility-types';
 import * as yup from 'yup';
 
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';

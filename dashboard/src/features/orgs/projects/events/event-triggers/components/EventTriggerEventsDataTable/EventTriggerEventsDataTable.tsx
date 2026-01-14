@@ -66,7 +66,7 @@ export default function EventTriggerEventsDataTable({
   return (
     <Table
       containerClassName="overflow-visible"
-      className="w-auto caption-bottom border-separate border-spacing-0 border-b-1 border-r-1 text-sm"
+      className="w-auto caption-bottom border-separate border-spacing-0 border-r-1 border-b-1 text-sm"
     >
       <TableHeader className="sticky top-0 z-30">
         {table.getHeaderGroups().map((headerGroup) => (
@@ -80,7 +80,7 @@ export default function EventTriggerEventsDataTable({
                 <TableHead
                   key={header.id}
                   className={cn(
-                    'group relative bg-paper font-display text-xs font-bold text-primary-text',
+                    'group relative bg-paper font-bold font-display text-primary-text text-xs',
                     '!h-8 p-0',
                     index === 0 ? 'pl-2' : '',
                     'border-b-1',
@@ -105,7 +105,7 @@ export default function EventTriggerEventsDataTable({
                       onTouchStart={header.getResizeHandler()}
                       onDoubleClick={() => header.column.resetSize()}
                       className={cn(
-                        'absolute right-0 top-0 z-20 h-full w-2',
+                        'absolute top-0 right-0 z-20 h-full w-2',
                         'cursor-col-resize touch-none select-none',
                         'border-0 bg-transparent p-0',
                         'group-hover:bg-slate-900 group-hover:bg-opacity-20 group-active:bg-slate-900 group-active:bg-opacity-20 motion-safe:transition-colors',
@@ -125,7 +125,7 @@ export default function EventTriggerEventsDataTable({
           skeletonRowKeys.map((key) => (
             <TableRow
               key={`skeleton-${key}`}
-              className="border-0 odd:bg-data-cell-bg-odd even:bg-data-cell-bg hover:!bg-data-cell-bg-hover"
+              className="hover:!bg-data-cell-bg-hover border-0 odd:bg-data-cell-bg-odd even:bg-data-cell-bg"
             >
               {table.getAllLeafColumns().map((col) => (
                 <TableCell
@@ -147,7 +147,7 @@ export default function EventTriggerEventsDataTable({
                 aria-expanded={row.getIsExpanded()}
                 className={cn(
                   'border-0',
-                  'odd:bg-data-cell-bg-odd even:bg-data-cell-bg hover:!bg-data-cell-bg-hover',
+                  'hover:!bg-data-cell-bg-hover odd:bg-data-cell-bg-odd even:bg-data-cell-bg',
                 )}
               >
                 {row.getVisibleCells().map((cell) => (

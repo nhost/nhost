@@ -112,7 +112,7 @@ export default function GeneralSettings() {
                 />
                 <Button
                   onClick={copySlugToClipboard}
-                  className="absolute right-0 top-0"
+                  className="absolute top-0 right-0"
                   type="button"
                   variant="ghost"
                 >

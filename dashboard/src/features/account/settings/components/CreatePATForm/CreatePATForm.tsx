@@ -132,7 +132,7 @@ export default function CreatePATForm({
           </Box>
 
           <Box className="grid grid-flow-col items-center justify-center gap-2 bg-transparent">
-            <HighlightedText className="text-xs font-semibold">
+            <HighlightedText className="font-semibold text-xs">
               {personalAccessToken}
             </HighlightedText>
 

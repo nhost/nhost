@@ -1,1 +1,1 @@
-export { default as useNavTreeStateFromURL } from './useNavTreeStateFromURL'
+export { default as useNavTreeStateFromURL } from './useNavTreeStateFromURL';

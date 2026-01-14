@@ -14,7 +14,7 @@ export default function OrgBilling() {
   }
 
   return (
-    <div className="bg-accent-background flex h-full flex-col gap-4 overflow-auto p-4">
+    <div className="flex h-full flex-col gap-4 overflow-auto bg-accent-background p-4">
       <SubscriptionPlan />
       {showBillingEstimate && <BillingEstimate />}
     </div>

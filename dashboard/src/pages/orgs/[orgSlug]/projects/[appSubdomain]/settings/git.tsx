@@ -5,20 +5,17 @@ import { useGitHubModal } from '@/features/orgs/projects/git/common/hooks/useGit
 import { BaseDirectorySettings } from '@/features/orgs/projects/git/settings/components/BaseDirectorySettings';
 import { DeploymentBranchSettings } from '@/features/orgs/projects/git/settings/components/DeploymentBranchSettings';
 import { GitConnectionSettings } from '@/features/orgs/projects/git/settings/components/GitConnectionSettings';
+import { useRemoveQueryParamsFromUrl } from '@/hooks/useRemoveQueryParamsFromUrl';
 import { useRouter } from 'next/router';
-import { useCallback, useEffect, type ReactElement } from 'react';
+import { useEffect, type ReactElement } from 'react';
 
 export default function GitSettingsPage() {
   const router = useRouter();
-  const { pathname, replace, isReady: isRouterReady } = router;
-  const { 'github-modal': githubModal, ...remainingQuery } = router.query;
+  const { isReady: isRouterReady } = router;
+  const { 'github-modal': githubModal } = router.query;
   const { openGitHubModal } = useGitHubModal();
 
-  const removeQueryParamsFromURL = useCallback(() => {
-    replace({ pathname, query: remainingQuery }, undefined, {
-      shallow: true,
-    });
-  }, [replace, remainingQuery, pathname]);
+  const removeQueryParamsFromUrl = useRemoveQueryParamsFromUrl();
 
   useEffect(() => {
     if (!isRouterReady) {
@@ -26,12 +23,11 @@ export default function GitSettingsPage() {
     }
 
     if (typeof githubModal === 'string') {
-      removeQueryParamsFromURL();
+      removeQueryParamsFromUrl('github-modal');
 
       openGitHubModal();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [githubModal, isRouterReady]);
+  }, [githubModal, isRouterReady, openGitHubModal, removeQueryParamsFromUrl]);
 
   return (
     <Container

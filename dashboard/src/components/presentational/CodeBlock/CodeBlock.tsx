@@ -39,14 +39,14 @@ function CodeTabBar({
   children?: ReactElement;
 }) {
   return (
-    <div className="flex text-xs leading-6 text-slate-400">
+    <div className="flex text-slate-400 text-xs leading-6">
       <div
-        className="flex flex-none items-center border-b border-t border-t-transparent px-4 py-1"
+        className="flex flex-none items-center border-t border-t-transparent border-b px-4 py-1"
         style={{ color: filenameColor, borderBottomColor: filenameColor }}
       >
         {filename}
       </div>
-      <div className="bg-codeblock-tabs flex flex-auto items-center rounded-t border border-slate-500/30">
+      <div className="flex flex-auto items-center rounded-t border border-slate-500/30 bg-codeblock-tabs">
         {children && (
           <div className="flex flex-auto items-center justify-end space-x-4 px-4">
             {children}
@@ -121,7 +121,7 @@ export const CodeBlock = forwardRef(
           filenameColor={filenameColor}
           textToCopy={getNodeText(children)}
           toastTitle={copyToClipboardToastTitle}
-          className="absolute right-3 top-0"
+          className="absolute top-0 right-3"
         />
       )}
       <pre className="w-full max-w-full whitespace-pre-wrap break-words">

@@ -65,7 +65,7 @@ export default function Soc2Download() {
 
       <div className="flex w-full flex-col gap-4 p-4">
         <div className="flex flex-col gap-2">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             Download Nhost&apos;s SOC2 Type II compliance report. This report
             demonstrates our commitment to security controls.
           </p>

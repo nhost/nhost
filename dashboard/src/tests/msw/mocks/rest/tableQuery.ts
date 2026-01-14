@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/suspicious/noExplicitAny: mock file */
 import { http, HttpResponse } from 'msw';
 
 const tableQuery = http.post(

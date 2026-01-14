@@ -70,7 +70,7 @@ function ReadOnlyToggle(
       <span
         {...(slotProps?.label || {})}
         className={cn(
-          'truncate !text-xs font-normal',
+          '!text-xs truncate font-normal',
           slotProps?.label?.className,
         )}
       >

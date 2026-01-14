@@ -1,10 +1,8 @@
-/* eslint-disable import/extensions */
 import { useDialog } from '@/components/common/DialogProvider';
 import { ControlledSelect } from '@/components/form/ControlledSelect';
 import { Form } from '@/components/form/Form';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { ArrowsClockwise } from '@/components/ui/v2/icons/ArrowsClockwise';
 import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { Input } from '@/components/ui/v2/Input';
@@ -19,6 +17,7 @@ import {
   useUpdateGraphiteAutoEmbeddingsConfigurationMutation,
 } from '@/utils/__generated__/graphite.graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { RefreshCwIcon } from 'lucide-react';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
@@ -59,11 +58,11 @@ export interface AutoEmbeddingsFormProps extends DialogFormProps {
   /**
    * Function to be called when the operation is cancelled.
    */
-  onCancel?: VoidFunction;
+  onCancel?: () => Promise<unknown>;
   /**
    * Function to be called when the submit is successful.
    */
-  onSubmit?: VoidFunction | ((args?: any) => Promise<any>);
+  onSubmit?: () => Promise<unknown>;
 }
 
 export default function AutoEmbeddingsForm({
@@ -327,7 +326,7 @@ export default function AutoEmbeddingsForm({
           <Button
             type="submit"
             disabled={isSubmitting}
-            startIcon={autoEmbeddingsId ? <ArrowsClockwise /> : <PlusIcon />}
+            startIcon={autoEmbeddingsId ? <RefreshCwIcon /> : <PlusIcon />}
           >
             {autoEmbeddingsId ? 'Update' : 'Create'}
           </Button>

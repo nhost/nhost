@@ -35,7 +35,7 @@ function ColumnCustomizerRow({ column, index }: ColumnCustomizerProps) {
         <div className="flex items-center gap-5">
           <Checkbox
             checked={column.isVisible}
-            className="h-[1.125rem] w-[1.125rem] border-[#21324b] data-[state=checked]:!border-transparent dark:border-[#dfecf5]"
+            className="data-[state=checked]:!border-transparent h-[1.125rem] w-[1.125rem] border-[#21324b] dark:border-[#dfecf5]"
             onCheckedChange={handleVisibilityChange}
           />
           <span>{column.id}</span>

@@ -76,7 +76,7 @@ function SignUpWithEmailAndPasswordForm() {
         <Button
           type="submit"
           variant="outline"
-          className="w-full !bg-transparent"
+          className="!bg-transparent w-full"
         >
           Sign Up
         </Button>

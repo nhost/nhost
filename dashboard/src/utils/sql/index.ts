@@ -17,7 +17,7 @@ const sanitizeValue = (value: string) => {
 };
 
 const stripComments = (sql: string) => {
-  const regExp = /(--[^\r\n]*)|(\/\*[\w\W]*?(?=\*\/)\*\/)/; // eslint-disable-line
+  const regExp = /(--[^\r\n]*)|(\/\*[\w\W]*?(?=\*\/)\*\/)/;
   const comments = sql.match(new RegExp(regExp, 'gmi'));
 
   if (!comments?.length) {
@@ -35,7 +35,7 @@ export const parseIdentifiersFromSQL = (sql: string): ParsedSQLEntity[] => {
   const sanitizedSql = stripComments(sql);
 
   const regExp =
-    /create\s*(?:|or\s*replace)\s*(?<type>view|table|function)\s*(?:\s*if*\s*not\s*exists\s*)?((?<schema>\"?\w+\"?)\.(?<nameWithSchema>\"?\w+\"?)|(?<name>\"?\w+\"?))\s*(?<partition>partition\s*of)?/gim; // eslint-disable-line
+    /create\s*(?:|or\s*replace)\s*(?<type>view|table|function)\s*(?:\s*if*\s*not\s*exists\s*)?((?<schema>"?\w+"?)\.(?<nameWithSchema>"?\w+"?)|(?<name>"?\w+"?))\s*(?<partition>partition\s*of)?/gim;
 
   Array.from(sanitizedSql.matchAll(regExp)).forEach((result) => {
     const { type, schema, name, nameWithSchema } = result.groups ?? {};

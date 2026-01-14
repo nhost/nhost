@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
 import screens from '@/constants/screens';
+import { useEffect, useState } from 'react';
 
 const useMediaQuery = (query: keyof typeof screens): boolean => {
   const [isMatch, setMatch] = useState<boolean>(false);

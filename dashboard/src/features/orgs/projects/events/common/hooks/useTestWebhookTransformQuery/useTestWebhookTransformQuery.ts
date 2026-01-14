@@ -44,7 +44,7 @@ export default function useTestWebhookTransformQuery(
         'hasura',
       );
 
-      const adminSecret = project?.config?.hasura.adminSecret!;
+      const adminSecret = project!.config!.hasura.adminSecret;
 
       return testWebhookTransform({
         appUrl,

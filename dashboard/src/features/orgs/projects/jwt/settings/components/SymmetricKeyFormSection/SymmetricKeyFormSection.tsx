@@ -4,7 +4,7 @@ import { useFormContext } from 'react-hook-form';
 import { Box } from '@/components/ui/v2/Box';
 import { Option } from '@/components/ui/v2/Option';
 import { Select } from '@/components/ui/v2/Select';
-import { type JWTSettingsFormValues } from '@/features/orgs/projects/jwt/settings/types';
+import type { JWTSettingsFormValues } from '@/features/orgs/projects/jwt/settings/types';
 import { SYMMETRIC_ALGORITHMS } from '@/features/orgs/projects/jwt/settings/utils/constants';
 
 export default function SymmetricKeyFormSection() {

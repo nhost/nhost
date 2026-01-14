@@ -56,13 +56,16 @@ export interface HasuraMetadataPermission {
   role: string;
   permission: Partial<{
     columns: string[];
+    // biome-ignore lint/suspicious/noExplicitAny: TODO
     filter: Record<string, any>;
+    // biome-ignore lint/suspicious/noExplicitAny: TODO
     check: Record<string, any>;
     limit: number | null;
     allow_aggregations: boolean;
     query_root_fields: string[] | null;
     subscription_root_fields: string[] | null;
     computed_fields: string[] | null;
+    // biome-ignore lint/suspicious/noExplicitAny: TODO
     set: Record<string, any> | null;
     backend_only: boolean;
   }>;
@@ -76,6 +79,7 @@ export interface HasuraMetadataTable {
     name: string;
     schema: string;
   };
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   configuration: Record<string, Record<string, any>>;
   array_relationships?: HasuraMetadataRelationship[];
   object_relationships?: HasuraMetadataRelationship[];
@@ -126,6 +130,7 @@ export interface QueryError {
   path: string;
   message?: string;
   internal?: {
+    // biome-ignore lint/suspicious/noExplicitAny: TODO
     arguments: any[];
     prepared: boolean;
     statement: string;
@@ -173,6 +178,7 @@ export type RawQueryDataRow = string[];
 /**
  * Represents a normalized data row returned by the SQL query.
  */
+// biome-ignore lint/suspicious/noExplicitAny: TODO
 export type NormalizedQueryDataRow = Record<string, any>;
 
 /**
@@ -196,6 +202,7 @@ export interface ColumnUpdateOptions {
   /**
    * New value for the column.
    */
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   value?: any;
   /**
    * Whether to set the column to NULL.
@@ -210,6 +217,7 @@ export interface ColumnInsertOptions {
   /**
    * Value for the column.
    */
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   value?: any;
   /**
    * Fallback value if the column value is `undefined`.
@@ -460,6 +468,7 @@ export interface DataBrowserGridColumn<TData extends object = {}>
   /**
    * Default value of the column.
    */
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   defaultValue?: any;
   /**
    * Determines whether or not the default value is custom.
@@ -486,6 +495,7 @@ export interface DataBrowserGridColumn<TData extends object = {}>
 /**
  * Represents a cell in the data browser.
  */
+// biome-ignore lint/suspicious/noExplicitAny: TODO
 export interface DataBrowserGridCell<TData extends object = {}, TValue = any>
   extends Omit<Cell<TData, TValue>, 'column'> {
   /**
@@ -510,6 +520,7 @@ export interface DataBrowserGridRow<TData extends object = {}>
  */
 export interface DataBrowserGridCellProps<
   TData extends object = {},
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   TValue = any,
 > extends CellProps<TData, TValue> {
   /**
@@ -572,6 +583,7 @@ export type HasuraOperator =
 export interface Rule {
   column: string;
   operator: HasuraOperator;
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   value: any;
 }
 
@@ -583,5 +595,6 @@ export interface RuleGroup {
   operator: '_and' | '_or';
   rules: Rule[];
   groups: RuleGroup[];
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   unsupported?: Record<string, any>[];
 }

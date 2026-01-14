@@ -4,7 +4,15 @@ import useIntrospectRemoteSchemaQuery from '@/features/orgs/projects/remote-sche
 import convertIntrospectionToSchema from '@/features/orgs/projects/remote-schemas/utils/convertIntrospectionToSchema';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { SearchIcon, XIcon } from 'lucide-react';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  type FormEvent,
+  type KeyboardEvent as ReactKeyboardEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { toast } from 'react-hot-toast';
 import type { RemoteSchemaTreeRef } from './RemoteSchemaTree';
 import { RemoteSchemaTree } from './RemoteSchemaTree';
@@ -38,19 +46,22 @@ export default function RemoteSchemaPreview({
     return null;
   }, [introspectionData]);
 
-  const navigateToMatch = async (paths: string[][], index: number) => {
-    if (!treeRef.current || paths.length === 0) {
-      return;
-    }
+  const navigateToMatch = useCallback(
+    async (paths: string[][], index: number) => {
+      if (!treeRef.current || paths.length === 0) {
+        return;
+      }
 
-    const path = paths[index];
-    await treeRef.current.expandToItem(path);
-    const foundItemId = path[path.length - 1];
-    treeRef.current.selectItems([foundItemId]);
-    treeRef.current.focusItem(foundItemId);
-  };
+      const path = paths[index];
+      await treeRef.current.expandToItem(path);
+      const foundItemId = path[path.length - 1];
+      treeRef.current.selectItems([foundItemId]);
+      treeRef.current.focusItem(foundItemId);
+    },
+    [],
+  );
 
-  const handleSearch = async (e?: React.FormEvent) => {
+  const handleSearch = async (e?: FormEvent) => {
     e?.preventDefault();
 
     if (!searchTerm.trim() || !treeRef.current) {
@@ -77,7 +88,7 @@ export default function RemoteSchemaPreview({
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: ReactKeyboardEvent) => {
     if (e.key === 'Enter' && matches.length > 0) {
       e.preventDefault();
       const step = e.shiftKey ? -1 : 1;
@@ -112,12 +123,12 @@ export default function RemoteSchemaPreview({
     };
     window.addEventListener('keydown', onKeyDown, { capture: true });
     return () => window.removeEventListener('keydown', onKeyDown, true);
-  }, [matches, matchIndex]);
+  }, [matches, matchIndex, navigateToMatch]);
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-4">
-        <div className="text-sm text-muted-foreground">Loading schema...</div>
+        <div className="text-muted-foreground text-sm">Loading schema...</div>
       </div>
     );
   }
@@ -125,7 +136,7 @@ export default function RemoteSchemaPreview({
   if (error) {
     return (
       <div className="flex items-center justify-center p-4">
-        <div className="text-sm text-red-600">
+        <div className="text-red-600 text-sm">
           Error introspecting:{' '}
           {error instanceof Error ? error.message : 'Unknown error'}
         </div>
@@ -136,7 +147,7 @@ export default function RemoteSchemaPreview({
   if (!schema) {
     return (
       <div className="flex items-center justify-center p-4">
-        <div className="text-sm text-muted-foreground">
+        <div className="text-muted-foreground text-sm">
           No schema data available
         </div>
       </div>
@@ -148,8 +159,8 @@ export default function RemoteSchemaPreview({
       <div className="border-b p-4">
         <div className="mb-3 flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-medium">Schema Preview</h3>
-            <p className="mt-1 text-xs text-muted-foreground">
+            <h3 className="font-medium text-sm">Schema Preview</h3>
+            <p className="mt-1 text-muted-foreground text-xs">
               Browse the GraphQL schema structure
             </p>
           </div>
@@ -202,7 +213,7 @@ export default function RemoteSchemaPreview({
             {isSearching ? 'Searching...' : 'Find'}
           </Button>
           {hasSearched && (
-            <span className="flex items-center text-xs text-muted-foreground">
+            <span className="flex items-center text-muted-foreground text-xs">
               {matches.length}{' '}
               {matches.length === 1 ? 'occurrence' : 'occurrences'} found
             </span>

@@ -33,6 +33,7 @@ export default function prepareCustomGraphQLColumnNameDTO(
     formValues.columns,
   ).reduce<TableConfigColumnConfig>((acc, [columnName, columnValue]) => {
     if (columnValue.graphqlFieldName) {
+      // biome-ignore lint/style/noParameterAssign: Disabled to avoid spread operator performance overhead in reduce.
       acc[columnName] = {
         custom_name: columnValue.graphqlFieldName,
       };

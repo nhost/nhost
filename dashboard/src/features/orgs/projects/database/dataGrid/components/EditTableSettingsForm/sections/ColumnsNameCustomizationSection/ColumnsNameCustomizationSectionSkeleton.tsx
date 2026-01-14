@@ -10,9 +10,9 @@ export default function ColumnsNameCustomizationSectionSkeleton() {
         <div className="grid grid-flow-col place-content-between gap-3 px-4">
           <div className="grid grid-flow-col gap-4">
             <div className="grid grid-flow-row gap-1">
-              <h2 className="text-lg font-semibold">GraphQL Field Names</h2>
+              <h2 className="font-semibold text-lg">GraphQL Field Names</h2>
 
-              <p className="text-sm+ text-muted-foreground">
+              <p className="text-muted-foreground text-sm+">
                 Expose each column with a different name in your GraphQL API.
               </p>
             </div>
@@ -20,7 +20,7 @@ export default function ColumnsNameCustomizationSectionSkeleton() {
         </div>
         <div className="space-y-3">
           <div className="rounded-lg">
-            <div className="mx-4 grid grid-cols-[minmax(0,1fr),minmax(0,1fr),minmax(0,1.5fr)] items-center gap-3 rounded-md bg-muted px-4 py-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            <div className="mx-4 grid grid-cols-[minmax(0,1fr),minmax(0,1fr),minmax(0,1.5fr)] items-center gap-3 rounded-md bg-muted px-4 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wide">
               <span>Column</span>
               <span>Data Type</span>
               <span>GraphQL Field Name</span>

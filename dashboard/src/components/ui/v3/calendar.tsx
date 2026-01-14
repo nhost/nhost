@@ -1,5 +1,3 @@
-/* eslint-disable react/no-unstable-nested-components */
-
 'use client';
 
 import { buttonVariants } from '@/components/ui/v3/button';
@@ -65,7 +63,7 @@ function Calendar({
   );
   const weekdaysClassName = cn('flex flex-row', props.weekdaysClassName);
   const weekdayClassName = cn(
-    'w-8 text-sm font-normal text-muted-foreground',
+    'w-8 font-normal text-muted-foreground text-sm',
     props.weekdayClassName,
   );
   const monthClassName = cn('w-full', props.monthClassName);
@@ -74,7 +72,7 @@ function Calendar({
     props.captionClassName,
   );
   const captionLabelClassName = cn(
-    'truncate text-sm font-medium',
+    'truncate font-medium text-sm',
     props.captionLabelClassName,
   );
   const buttonNavClassName = buttonVariants({
@@ -117,7 +115,7 @@ function Calendar({
     props.rangeEndClassName,
   );
   const rangeMiddleClassName = cn(
-    'bg-accent !text-foreground [&>button]:bg-transparent [&>button]:!text-foreground [&>button]:hover:bg-transparent [&>button]:hover:!text-foreground',
+    '!text-foreground [&>button]:!text-foreground [&>button]:hover:!text-foreground bg-accent [&>button]:bg-transparent [&>button]:hover:bg-transparent',
     props.rangeMiddleClassName,
   );
   const selectedClassName = cn(

@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 import type { ForwardedRef, ReactNode } from 'react';
 import { forwardRef, useEffect, useRef } from 'react';
 import { mergeRefs } from 'react-merge-refs';
-import type { Column, Row, SortingRule, TableOptions } from 'react-table';
+import type { Column, SortingRule, TableOptions } from 'react-table';
 import AllColumnsHiddenMessage from './AllColumnsHiddenMessage';
 import useDataGrid from './useDataGrid';
 
@@ -24,6 +24,7 @@ export interface DataGridProps<TColumnData extends object>
   /**
    * Data to be displayed in the table.
    */
+  // biome-ignore lint/suspicious/noExplicitAny: TODO
   data: any[];
   /**
    * Text to be displayed when no data is available in the data grid.
@@ -39,9 +40,7 @@ export interface DataGridProps<TColumnData extends object>
    * Additional data grid controls. This component will be part of the Data Grid
    * context, so it can use Data Grid configuration.
    */
-  controls?:
-    | React.ReactNode
-    | ((selectedFlatRows: Row<TColumnData>[]) => React.ReactNode);
+  controls?: ReactNode;
   /**
    * Function to be called when columns are sorted in the table.
    */
@@ -129,41 +128,37 @@ function DataGrid<TColumnData extends object>(
       {...dataGridProps}
     >
       <DataTableDesignProvider>
-        <>
-          {controls}
-          {columns.length === 0 && !loading && (
-            <DataBrowserEmptyState
-              title="Columns not found"
-              description="Please create a column before adding data to the table."
-            />
-          )}
-          {columns.length > 0 && allColumnsHidden && (
-            <AllColumnsHiddenMessage />
-          )}
-          {columns.length > 0 && !allColumnsHidden && (
-            <div
-              ref={mergeRefs([ref, tableRef])}
-              className={cn(
-                'box overflow-x-auto bg-background',
-                { 'h-[calc(100%-1px)]': !loading }, // need to set height like this to remove vertical scrollbar
-                className,
-              )}
-            >
-              <DataGridFrame>
-                <div className="relative h-full">
-                  <DataGridHeader {...headerProps} />
-                  <DataGridBody
-                    isFileDataGrid={isFileDataGrid}
-                    emptyStateMessage={emptyStateMessage}
-                    loading={loading}
-                  />
-                </div>
-              </DataGridFrame>
-            </div>
-          )}
+        {controls}
+        {columns.length === 0 && !loading && (
+          <DataBrowserEmptyState
+            title="Columns not found"
+            description="Please create a column before adding data to the table."
+          />
+        )}
+        {columns.length > 0 && allColumnsHidden && <AllColumnsHiddenMessage />}
+        {columns.length > 0 && !allColumnsHidden && (
+          <div
+            ref={mergeRefs([ref, tableRef])}
+            className={cn(
+              'box overflow-x-auto bg-background',
+              { 'h-[calc(100%-1px)]': !loading }, // need to set height like this to remove vertical scrollbar
+              className,
+            )}
+          >
+            <DataGridFrame>
+              <div className="relative h-full">
+                <DataGridHeader {...headerProps} />
+                <DataGridBody
+                  isFileDataGrid={isFileDataGrid}
+                  emptyStateMessage={emptyStateMessage}
+                  loading={loading}
+                />
+              </div>
+            </DataGridFrame>
+          </div>
+        )}
 
-          {loading && <Spinner className="my-4" />}
-        </>
+        {loading && <Spinner className="my-4" />}
       </DataTableDesignProvider>
     </DataGridConfigProvider>
   );

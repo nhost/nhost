@@ -147,7 +147,7 @@ export default function EventTriggerOverview({
               )}
             </CollapsibleTrigger>
             <CollapsibleContent>
-              <div className="border-t border-gray-200 p-4 dark:border-gray-700">
+              <div className="border-gray-200 border-t p-4 dark:border-gray-700">
                 <div className="overflow-x-auto">
                   <HeadersTable headers={eventTrigger.headers} />
                 </div>
@@ -171,7 +171,7 @@ export default function EventTriggerOverview({
               )}
             </CollapsibleTrigger>
             <CollapsibleContent>
-              <div className="space-y-4 border-t border-gray-200 p-4 pt-4 dark:border-gray-700">
+              <div className="space-y-4 border-gray-200 border-t p-4 pt-4 dark:border-gray-700">
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   {eventTrigger.request_transform?.method && (
                     <div>
@@ -198,7 +198,7 @@ export default function EventTriggerOverview({
                     <div className="mb-1 font-medium text-gray-900 dark:text-gray-100">
                       URL Template:
                     </div>
-                    <div className="rounded p-2 font-mono text-xs text-gray-900 dark:text-gray-100">
+                    <div className="rounded p-2 font-mono text-gray-900 text-xs dark:text-gray-100">
                       {eventTrigger.request_transform?.url}
                     </div>
                   </div>
@@ -209,7 +209,7 @@ export default function EventTriggerOverview({
                     <div className="mb-1 font-medium text-gray-900 dark:text-gray-100">
                       Query Parameters:
                     </div>
-                    <div className="rounded p-2 font-mono text-xs text-gray-900 dark:text-gray-100">
+                    <div className="rounded p-2 font-mono text-gray-900 text-xs dark:text-gray-100">
                       {queryParamsDisplay}
                     </div>
                   </div>
@@ -220,13 +220,13 @@ export default function EventTriggerOverview({
                     <div className="mb-1 font-medium text-gray-900 dark:text-gray-100">
                       Body Template:
                     </div>
-                    <div className="whitespace-pre-wrap rounded bg-gray-100 p-2 font-mono text-xs text-gray-900 dark:bg-gray-700 dark:text-gray-100">
+                    <div className="whitespace-pre-wrap rounded bg-gray-100 p-2 font-mono text-gray-900 text-xs dark:bg-gray-700 dark:text-gray-100">
                       {bodyTransformDisplay}
                     </div>
                   </div>
                 )}
 
-                <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400">
+                <div className="flex justify-between text-gray-600 text-xs dark:text-gray-400">
                   <span>
                     Action:{' '}
                     {typeof eventTrigger.request_transform.body === 'object'

@@ -30,7 +30,7 @@ export default function HeadersSection({ className }: HeadersSectionProps) {
     <div className={`flex flex-col gap-6 ${className}`}>
       <div className="flex items-center justify-between">
         <div className="flex flex-row items-center gap-2">
-          <h3 className="text-base font-medium text-foreground">
+          <h3 className="font-medium text-base text-foreground">
             Additional Headers{' '}
           </h3>
           <FormDescription>
@@ -51,7 +51,7 @@ export default function HeadersSection({ className }: HeadersSectionProps) {
       </div>
       <div className="flex flex-col gap-4">
         {fields.length > 0 && (
-          <div className="grid grid-flow-row grid-cols-9 text-sm+ text-foreground">
+          <div className="grid grid-flow-row grid-cols-9 text-foreground text-sm+">
             <span className="col-span-3">Key</span>
             <div className="col-span-1" />
             <span className="col-span-4">Value</span>

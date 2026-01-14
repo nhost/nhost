@@ -87,7 +87,7 @@ export default function NewPasswordPage() {
       <Text
         variant="h2"
         component="h1"
-        className="text-center text-3.5xl font-semibold lg:text-4.5xl"
+        className="text-center font-semibold text-3.5xl lg:text-4.5xl"
       >
         Reset Password
       </Text>
@@ -135,7 +135,7 @@ export default function NewPasswordPage() {
                 }}
               />
               {formState.errors.turnstileToken && (
-                <Text variant="body2" className="text-sm text-red-500">
+                <Text variant="body2" className="text-red-500 text-sm">
                   {formState.errors.turnstileToken.message}
                 </Text>
               )}

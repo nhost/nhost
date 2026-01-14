@@ -45,11 +45,11 @@ import useRuleGroupEditor from './useRuleGroupEditor';
 
 const xHasuraString = 'x-hasura-';
 
-function getValueForMultiSelect(value: any) {
+function getValueForMultiSelect(value: string | string[]) {
   if (Array.isArray(value)) {
     return value.map((v) => ({ value: v, label: v }));
-    // eslint-disable-next-line no-else-return
-  } else if (
+  }
+  if (
     typeof value === 'string' &&
     value.toLocaleLowerCase().includes(xHasuraString)
   ) {
@@ -183,7 +183,6 @@ function RuleValueInput({
   if (operator === '_in' || operator === '_nin') {
     const defaultValue = getValueForMultiSelect(field.value);
 
-    // eslint-disable-next-line no-inner-declarations
     function handleOnChange(value: Option[]) {
       const typedValue = value as Array<Option & { isSystemVariable: boolean }>;
       const [firstValue] = typedValue;

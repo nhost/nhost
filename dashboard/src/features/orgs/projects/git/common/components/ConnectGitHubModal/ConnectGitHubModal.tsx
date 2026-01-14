@@ -68,7 +68,7 @@ interface GitHubData {
 
 export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
   const [filter, setFilter] = useState('');
-  const [ConnectGitHubModalState, setConnectGitHubModalState] =
+  const [connectGitHubModalState, setConnectGitHubModalState] =
     useState<ConnectGitHubModalState>('CONNECTING');
   const [selectedRepoId, setSelectedRepoId] = useState<string | null>(null);
   const [githubData, setGithubData] = useState<GitHubData | null>(null);
@@ -97,6 +97,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
     return '';
   };
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: close does the same thing every render
   useEffect(() => {
     if (loadingGithubConnected) {
       return;
@@ -193,7 +194,6 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
     };
 
     fetchGitHubData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [githubProvider, loadingGithubConnected]);
 
   const handleSelectAnotherRepository = () => {
@@ -221,7 +221,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
             </div>
           </div>
           <div className="flex flex-col gap-2">
-            <Text className="mt-2.5 text-center text-lg font-medium">
+            <Text className="mt-2.5 text-center font-medium text-lg">
               Error fetching GitHub data
             </Text>
             <ErrorMessage>{errorGithubConnected.message}</ErrorMessage>
@@ -241,13 +241,13 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
             </div>
           </div>
           <div>
-            <Text className="mt-2.5 text-center text-lg font-medium">
+            <Text className="mt-2.5 text-center font-medium text-lg">
               Loading repositories...
             </Text>
-            <Text className="text-center text-xs font-normal" color="secondary">
+            <Text className="text-center font-normal text-xs" color="secondary">
               Fetching your GitHub repositories
             </Text>
-            <div className="mb-2 mt-6 flex w-full">
+            <div className="mt-6 mb-2 flex w-full">
               <Input placeholder="Search..." fullWidth disabled value="" />
             </div>
           </div>
@@ -259,7 +259,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
     );
   }
 
-  if (ConnectGitHubModalState === 'GITHUB_CONNECTION_REQUIRED') {
+  if (connectGitHubModalState === 'GITHUB_CONNECTION_REQUIRED') {
     return (
       <div className="flex flex-col items-center justify-center gap-5 px-1 py-1 md:w-[653px]">
         <p className="text-center text-foreground">
@@ -284,7 +284,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
     );
   }
 
-  if (ConnectGitHubModalState === 'EXPIRED_GITHUB_SESSION') {
+  if (connectGitHubModalState === 'EXPIRED_GITHUB_SESSION') {
     return (
       <div className="flex w-full flex-col items-center justify-center gap-5 px-1 py-1 md:w-[653px]">
         <p className="text-center text-foreground">
@@ -293,7 +293,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
         <GithubAuthButton
           redirectTo={`${hostname}?signinProvider=github&state=signin-refresh:${org.slug}:${project!.subdomain}`}
           buttonText="Sign in with GitHub"
-          className="w-full max-w-72 gap-2 !bg-primary !text-white disabled:!text-white disabled:!text-opacity-60 dark:!bg-white dark:!text-black dark:disabled:!text-black"
+          className="!bg-primary !text-white disabled:!text-white disabled:!text-opacity-60 dark:!bg-white dark:!text-black dark:disabled:!text-black w-full max-w-72 gap-2"
         />
       </div>
     );
@@ -305,7 +305,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
         close={close}
         selectedRepoId={selectedRepoId}
         openConnectGithubModal={() => setConnectGitHubModalState('CONNECTING')}
-        connectGithubModalState={ConnectGitHubModalState}
+        connectGithubModalState={connectGitHubModalState}
         handleSelectAnotherRepository={handleSelectAnotherRepository}
       />
     );
@@ -376,7 +376,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
         </div>
         {noRepositoriesAdded ? (
           <div>
-            <Text className="mt-1 text-center text-lg font-medium">
+            <Text className="mt-1 text-center font-medium text-lg">
               No repositories found
             </Text>
 
@@ -422,17 +422,17 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
         ) : (
           <div>
             <div>
-              <Text className="mt-2.5 text-center text-lg font-medium">
+              <Text className="mt-2.5 text-center font-medium text-lg">
                 Connect repository
               </Text>
               <Text
-                className="text-center text-xs font-normal"
+                className="text-center font-normal text-xs"
                 color="secondary"
               >
                 Showing repositories from{' '}
                 {githubData?.githubAppInstallations.length} GitHub account(s)
               </Text>
-              <div className="mb-2 mt-6 flex w-full">
+              <div className="mt-6 mb-2 flex w-full">
                 <Input
                   placeholder="Search..."
                   onChange={handleFilterChange}
@@ -500,7 +500,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
             <Link
               href={`${process.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL}?state=install-github-app:${org.slug}:${project!.subdomain}`}
               rel="noreferrer noopener"
-              className="text-xs font-medium"
+              className="font-medium text-xs"
               underline="hover"
             >
               Manage your GitHub configuration

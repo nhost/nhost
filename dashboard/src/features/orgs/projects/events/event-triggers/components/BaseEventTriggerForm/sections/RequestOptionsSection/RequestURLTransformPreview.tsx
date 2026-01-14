@@ -38,7 +38,7 @@ export default function RequestURLTransformPreview() {
   if (error) {
     return (
       <div className="flex flex-col gap-2">
-        <h3 className="text-sm font-medium text-foreground">
+        <h3 className="font-medium text-foreground text-sm">
           URL transform preview
         </h3>
         <Alert variant="destructive" className="max-w-lg">
@@ -52,7 +52,7 @@ export default function RequestURLTransformPreview() {
   if (isEmptyValue(values.webhook) || error) {
     return (
       <div className="flex flex-col gap-2">
-        <h3 className="text-sm font-medium text-foreground">
+        <h3 className="font-medium text-foreground text-sm">
           URL transform preview
         </h3>
         <Alert variant="destructive" className="max-w-lg">
@@ -69,7 +69,7 @@ export default function RequestURLTransformPreview() {
   if (isLoading || isEmptyValue(url)) {
     return (
       <div className="flex flex-col gap-2">
-        <h3 className="text-sm font-medium text-foreground">
+        <h3 className="font-medium text-foreground text-sm">
           URL transform preview (loading...)
         </h3>
         <Skeleton className="h-4 w-full max-w-lg" />
@@ -79,10 +79,10 @@ export default function RequestURLTransformPreview() {
 
   return (
     <div className="flex flex-col gap-2">
-      <h3 className="text-sm font-medium text-foreground">
+      <h3 className="font-medium text-foreground text-sm">
         URL transform preview
       </h3>
-      <p className="max-w-lg rounded-md bg-muted-foreground/10 p-2 font-mono text-sm text-muted-foreground dark:bg-muted">
+      <p className="max-w-lg rounded-md bg-muted-foreground/10 p-2 font-mono text-muted-foreground text-sm dark:bg-muted">
         {url}
       </p>
     </div>

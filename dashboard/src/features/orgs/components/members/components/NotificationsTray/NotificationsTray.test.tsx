@@ -13,7 +13,7 @@ Object.defineProperty(window, 'matchMedia', {
   value: vi.fn().mockImplementation(mockMatchMediaValue),
 });
 
-export const getUseRouterObject = (session_id?: string, isReady = true) => ({
+const getUseRouterObject = (session_id?: string, isReady = true) => ({
   basePath: '',
   pathname: '/orgs/xyz/projects/test-project',
   route: '/orgs/[orgSlug]/projects/[appSubdomain]',
@@ -54,6 +54,7 @@ vi.mock('next/router', () => ({
 }));
 
 vi.mock('@nhost/nextjs', async () => {
+  // biome-ignore lint/suspicious/noExplicitAny: test file
   const actualNhostNextjs = await vi.importActual<any>('@nhost/nextjs');
   return {
     ...actualNhostNextjs,
@@ -62,6 +63,7 @@ vi.mock('@nhost/nextjs', async () => {
 });
 
 vi.mock('@/utils/__generated__/graphql', async () => {
+  // biome-ignore lint/suspicious/noExplicitAny: test file
   const actual = await vi.importActual<any>('@/utils/__generated__/graphql');
   return {
     ...actual,
