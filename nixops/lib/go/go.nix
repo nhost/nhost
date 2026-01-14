@@ -92,6 +92,7 @@ in
         echo "➜ Source: ${src}"
 
         echo "➜ Running code formatters, if there are changes, fail"
+        cd ${src}
         golines -l --base-formatter=gofumpt ${submodule} | diff - /dev/null
 
         echo "➜ Running go generate ./${submodule}/... and checking sha1sum of all files"
