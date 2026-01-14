@@ -133,7 +133,7 @@ in
               name = "root";
               paths = with pkgs; [
                 coreutils
-                nixVersions.nix_2_33
+                nixVersions.nix_2_32
                 bash
                 gnugrep
                 gnumake
