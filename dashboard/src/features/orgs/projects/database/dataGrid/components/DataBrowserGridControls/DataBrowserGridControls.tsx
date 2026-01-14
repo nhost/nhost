@@ -80,7 +80,7 @@ export default function DataBrowserGridControls({
   const eventTriggersCount = eventTriggersByTable?.length ?? 0;
 
   const showInvokeEventTriggerButton =
-    numberOfSelectedRows === 1 && eventTriggersCount > 0;
+    selectedRows?.length === 1 && eventTriggersCount > 0;
 
   async function handleRowDelete() {
     if (!selectedRows?.length) {
