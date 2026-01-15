@@ -38,7 +38,7 @@ let
     gofumpt
     golines
     skopeo
-    postgresql_17_5-client
+    postgresql_18_1-client
     sqlc
     vacuum-go
     bun
@@ -138,7 +138,9 @@ in
                 gnugrep
                 gnumake
               ];
-              pathsToLink = "/bin";
+              pathsToLink = [
+                "/bin"
+              ];
             })
           ];
         })

@@ -125,7 +125,12 @@ func (wf *Workflows) ValidateSignUpOptions( //nolint:cyclop
 	if options.RedirectTo == nil {
 		options.RedirectTo = ptr(wf.config.ClientURL.String())
 	} else if !wf.redirectURLValidator(deptr(options.RedirectTo)) {
-		logger.WarnContext(ctx, "redirect URL not allowed", slog.String("redirectTo", deptr(options.RedirectTo)))
+		logger.WarnContext(
+			ctx,
+			"redirect URL not allowed",
+			slog.String("redirectTo", deptr(options.RedirectTo)),
+		)
+
 		return nil, ErrRedirecToNotAllowed
 	}
 
@@ -237,7 +242,12 @@ func (wf *Workflows) ValidateOptionsRedirectTo(
 	if options.RedirectTo == nil {
 		options.RedirectTo = ptr(wf.config.ClientURL.String())
 	} else if !wf.redirectURLValidator(deptr(options.RedirectTo)) {
-		logger.WarnContext(ctx, "redirect URL not allowed", slog.String("redirectTo", deptr(options.RedirectTo)))
+		logger.WarnContext(
+			ctx,
+			"redirect URL not allowed",
+			slog.String("redirectTo", deptr(options.RedirectTo)),
+		)
+
 		return nil, ErrRedirecToNotAllowed
 	}
 

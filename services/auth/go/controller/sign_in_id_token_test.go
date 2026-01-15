@@ -223,7 +223,7 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 						DefaultRole:  ptr("me"),
 						DisplayName:  ptr("Some other name"),
 						Locale:       ptr("se"),
-						Metadata: &map[string]interface{}{
+						Metadata: &map[string]any{
 							"key": "value",
 						},
 						RedirectTo: nil,
@@ -247,7 +247,7 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 						Id:                  "db477732-48fa-4289-b694-2886a646b6eb",
 						IsAnonymous:         false,
 						Locale:              "se",
-						Metadata:            map[string]interface{}{"key": "value"},
+						Metadata:            map[string]any{"key": "value"},
 						PhoneNumber:         nil,
 						PhoneNumberVerified: false,
 						Roles:               []string{"me"},
@@ -288,6 +288,7 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				c := getConfig()
 				c.DisableSignup = true
+
 				return c
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -333,6 +334,7 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				c := getConfig()
 				c.DisableNewUsers = true
+
 				return c
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
@@ -403,6 +405,7 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				c := getConfig()
 				c.AllowedEmails = []string{"not@anemail.blah"}
+
 				return c
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {

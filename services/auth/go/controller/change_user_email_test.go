@@ -202,6 +202,7 @@ func TestChangeUserEmail(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				cfg := getConfig()
 				cfg.AllowedRedirectURLs = []string{"https://myapp/redirect"}
+
 				return cfg
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {

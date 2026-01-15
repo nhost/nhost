@@ -60,7 +60,7 @@ var (
 	}
 )
 
-// Used to standardized the output of the handers' response.
+// ErrorResponse is used to standardized the output of the handers' response.
 type ErrorResponse struct {
 	Message string         `json:"message"`
 	Data    map[string]any `json:"data,omitempty"`

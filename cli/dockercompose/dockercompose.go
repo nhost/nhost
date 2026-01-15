@@ -93,7 +93,7 @@ func (dc *DockerCompose) Stop(ctx context.Context, volumes bool) error {
 }
 
 func (dc *DockerCompose) Logs(ctx context.Context, extraArgs ...string) error {
-	args := []string{
+	args := []string{ //nolint:prealloc
 		"compose",
 		"--project-directory", dc.workingDir,
 		"-f", dc.filepath,
@@ -118,7 +118,7 @@ func (dc *DockerCompose) Logs(ctx context.Context, extraArgs ...string) error {
 }
 
 func (dc *DockerCompose) Wrapper(ctx context.Context, extraArgs ...string) error {
-	args := []string{
+	args := []string{ //nolint:prealloc
 		"compose",
 		"--project-directory", dc.workingDir,
 		"-f", dc.filepath,

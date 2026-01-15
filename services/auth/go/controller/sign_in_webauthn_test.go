@@ -200,6 +200,7 @@ func TestSignInWebauthn(t *testing.T) {
 			config: func() *controller.Config {
 				config := getConfig()
 				config.WebauthnEnabled = false
+
 				return config
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {

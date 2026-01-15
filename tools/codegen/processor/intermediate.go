@@ -24,6 +24,8 @@ type InterMediateRepresentation struct {
 }
 
 /*
+NewInterMediateRepresentation
+
 When processing the OpenAPI document, we need to create an intermediate representation.
 
 In this represntation, we create:

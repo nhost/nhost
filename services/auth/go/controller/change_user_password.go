@@ -27,7 +27,12 @@ func (ctrl *Controller) postUserPasswordAuthenticated( //nolint:ireturn
 		return ctrl.sendError(apiErr), nil
 	}
 
-	if apiErr := ctrl.wf.ChangePassword(ctx, userID, request.Body.NewPassword, logger); apiErr != nil {
+	if apiErr := ctrl.wf.ChangePassword(
+		ctx,
+		userID,
+		request.Body.NewPassword,
+		logger,
+	); apiErr != nil {
 		return ctrl.sendError(apiErr), nil
 	}
 
@@ -50,7 +55,12 @@ func (ctrl *Controller) postUserPasswordUnauthenticated( //nolint:ireturn
 		return ctrl.sendError(apiErr), nil
 	}
 
-	if apiErr := ctrl.wf.ChangePassword(ctx, user.ID, request.Body.NewPassword, logger); apiErr != nil {
+	if apiErr := ctrl.wf.ChangePassword(
+		ctx,
+		user.ID,
+		request.Body.NewPassword,
+		logger,
+	); apiErr != nil {
 		return ctrl.sendError(apiErr), nil
 	}
 

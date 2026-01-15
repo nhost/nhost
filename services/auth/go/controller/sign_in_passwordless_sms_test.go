@@ -112,6 +112,7 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				config := getConfig()
 				config.SMSPasswordlessEnabled = false
+
 				return config
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -283,6 +284,7 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 				config := getConfig()
 				config.AllowedLocales = []string{"en", "fr"}
 				config.AllowedRedirectURLs = []string{"http://myapp"}
+
 				return config
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -370,6 +372,7 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				config := getConfig()
 				config.DisableSignup = true
+
 				return config
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {

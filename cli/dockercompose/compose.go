@@ -177,7 +177,10 @@ func dumpCert(
 }
 
 func trafikFiles(dotnhostfolder string) error {
-	if err := os.MkdirAll(filepath.Join(dotnhostfolder, "traefik", "certs"), 0o755); err != nil { //nolint:mnd
+	if err := os.MkdirAll(
+		filepath.Join(dotnhostfolder, "traefik", "certs"),
+		0o755, //nolint:mnd
+	); err != nil {
 		return fmt.Errorf("failed to create traefik folder: %w", err)
 	}
 

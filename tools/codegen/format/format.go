@@ -9,7 +9,7 @@ func GetNameFromComponentRef(ref string) string {
 	return strings.Split(ref, "/")[3]
 }
 
-// Capitalize the first letter of a string.
+// Title capitalizes the first letter of a string.
 func Title(s string) string {
 	if len(s) == 0 {
 		return s // return empty string if input is empty

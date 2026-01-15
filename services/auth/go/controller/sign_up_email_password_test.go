@@ -219,6 +219,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				c := getConfig()
 				c.DisableSignup = true
+
 				return c
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -248,6 +249,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				c := getConfig()
 				c.DisableNewUsers = true
+
 				return c
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
@@ -305,6 +307,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 				c := getConfig()
 				c.DisableNewUsers = true
 				c.RequireEmailVerification = true
+
 				return c
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
@@ -409,6 +412,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				cfg := getConfig()
 				cfg.ConcealErrors = true
+
 				return cfg
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -462,6 +466,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				cfg := getConfig()
 				cfg.ConcealErrors = true
+
 				return cfg
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -491,6 +496,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				cfg := getConfig()
 				cfg.PasswordHIBPEnabled = true
+
 				return cfg
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -531,6 +537,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				cfg := getConfig()
 				cfg.PasswordHIBPEnabled = true
+
 				return cfg
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -664,6 +671,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				c := getConfig()
 				c.GravatarEnabled = true
+
 				return c
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -754,6 +762,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				c := getConfig()
 				c.CustomClaims = ``
+
 				return c
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -854,6 +863,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 						"claimObject": map[string]any{"key1": "value1", "key2": "value2"},
 						"claimNil":    nil,
 					}, nil)
+
 					return mock
 				}),
 			},
@@ -864,6 +874,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				c := getConfig()
 				c.RequireEmailVerification = true
+
 				return c
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
@@ -948,6 +959,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				cfg := getConfig()
 				cfg.AllowedEmails = []string{"not@anemail.blah"}
+
 				return cfg
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {

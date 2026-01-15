@@ -112,6 +112,7 @@ func TestSignInOTPEmail(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				config := getConfig()
 				config.OTPEmailEnabled = false
+
 				return config
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -139,6 +140,7 @@ func TestSignInOTPEmail(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				config := getConfig()
 				config.AllowedEmails = []string{"sad@acme.com"}
+
 				return config
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -166,6 +168,7 @@ func TestSignInOTPEmail(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				config := getConfig()
 				config.DisableSignup = true
+
 				return config
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -321,6 +324,7 @@ func TestSignInOTPEmail(t *testing.T) { //nolint:maintidx
 				config := getConfig()
 				config.AllowedLocales = []string{"en", "fr"}
 				config.AllowedRedirectURLs = []string{"http://myapp"}
+
 				return config
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -415,6 +419,7 @@ func TestSignInOTPEmail(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				config := getConfig()
 				config.DisableSignup = true
+
 				return config
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
