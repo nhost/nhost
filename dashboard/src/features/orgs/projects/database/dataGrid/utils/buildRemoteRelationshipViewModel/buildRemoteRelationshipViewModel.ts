@@ -38,7 +38,7 @@ export default function buildRemoteRelationshipViewModel({
       toLabel: formatRemoteSchemaEndpoint(remoteSchemaName, remoteFieldPath),
       fromSource: dataSource,
       toSource: remoteSchemaName,
-      type: 'RemoteSchema',
+      type: 'Remote Schema',
       definition,
     };
   }

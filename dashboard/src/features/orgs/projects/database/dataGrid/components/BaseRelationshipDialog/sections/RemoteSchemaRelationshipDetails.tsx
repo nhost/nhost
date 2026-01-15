@@ -2,18 +2,18 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import { Textarea } from '@/components/ui/v3/textarea';
+import type { RemoteSchemaRelationshipFormValues } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/BaseRelationshipFormTypes';
 import RemoteSchemaFieldNode from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/RemoteSchemaFieldNode';
+import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
 import type { RemoteFieldArgumentMappingsByPath } from '@/features/orgs/projects/database/dataGrid/types/relationships/relationships';
 import extractLhsFieldsFromMappings from '@/features/orgs/projects/database/dataGrid/utils/extractLhsFieldsFromMappings/extractLhsFieldsFromMappings';
 import { useIntrospectRemoteSchemaQuery } from '@/features/orgs/projects/remote-schemas/hooks/useIntrospectRemoteSchemaQuery';
 import buildRemoteFieldFromSelection from '@/features/orgs/projects/remote-schemas/utils/buildRemoteFieldFromSelection';
 import convertIntrospectionToSchema from '@/features/orgs/projects/remote-schemas/utils/convertIntrospectionToSchema';
-import getOperationRoots from '@/features/orgs/projects/remote-schemas/utils/getOperationRoots';
+import getQueryRoot from '@/features/orgs/projects/remote-schemas/utils/getQueryRoot';
 import getTypeString from '@/features/orgs/projects/remote-schemas/utils/getTypeString';
 import parseRemoteFieldToSelection from '@/features/orgs/projects/remote-schemas/utils/parseRemoteFieldToSelection';
 import type { RemoteField } from '@/utils/hasura-api/generated/schemas';
-import { useTableQuery } from '../../../hooks/useTableQuery';
-import type { RemoteSchemaRelationshipFormValues } from '../BaseRelationshipFormTypes';
 
 export interface RemoteSchemaRelationshipDetailsValue {
   lhsFields: string[];
@@ -21,15 +21,11 @@ export interface RemoteSchemaRelationshipDetailsValue {
 }
 
 export interface RemoteSchemaRelationshipDetailsProps {
-  disabled?: boolean;
   onChange: (value: RemoteSchemaRelationshipDetailsValue) => void;
-  initialRemoteField?: RemoteField;
 }
 
 export default function RemoteSchemaRelationshipDetails({
-  disabled,
   onChange,
-  initialRemoteField,
 }: RemoteSchemaRelationshipDetailsProps) {
   const onChangeRef = useRef(onChange);
   useEffect(() => {
@@ -43,9 +39,12 @@ export default function RemoteSchemaRelationshipDetails({
 
   const form = useFormContext<RemoteSchemaRelationshipFormValues>();
 
-  const { watch } = form;
+  const { watch, formState } = form;
+  const { isSubmitting: disabled } = formState;
 
-  const remoteSchema = watch('remoteSchema.name');
+  const remoteSchemaFormValue = watch('remoteSchema');
+  const remoteSchema = remoteSchemaFormValue.name
+  const initialRemoteField = remoteSchemaFormValue?.remoteField;
   const selectedFromSource = watch('fromSource');
   
   const { data: fromTableData } = useTableQuery(
@@ -74,14 +73,8 @@ export default function RemoteSchemaRelationshipDetails({
   const [argumentMappingsByPath, setArgumentMappingsByPath] =
     useState<RemoteFieldArgumentMappingsByPath>({});
 
-  // Track the previous remoteSchema to detect changes
-  const previousRemoteSchemaRef = useRef(remoteSchema);
-  
-  // Track the previous initialRemoteField to detect changes
-  const previousInitialRemoteFieldRef = useRef(initialRemoteField);
-  
-  // Track if we've initialized from initialRemoteField
-  const hasInitializedRef = useRef(false);
+  // Track the last remoteSchema we initialized for to prevent re-initialization loops
+  const lastInitializedSchemaRef = useRef<string | undefined>(undefined);
 
   const { data: targetIntrospectionData } = useIntrospectRemoteSchemaQuery(
     remoteSchema,
@@ -99,39 +92,33 @@ export default function RemoteSchemaRelationshipDetails({
     return convertIntrospectionToSchema(targetIntrospectionData);
   }, [targetIntrospectionData]);
 
-  // Initialize from initialRemoteField on mount or when it becomes available
+  // Reset when remoteSchema changes, then initialize from initialRemoteField if available
   useEffect(() => {
-    if (initialRemoteField && previousInitialRemoteFieldRef.current !== initialRemoteField) {
-      const parsed = parseRemoteFieldToSelection(initialRemoteField);
-      setSelectedRootFieldPath(parsed.rootFieldPath);
-      setSelectedFieldPaths(parsed.selectedFieldPaths);
-      setArgumentMappingsByPath(parsed.argumentMappingsByPath);
-      hasInitializedRef.current = true;
-      previousInitialRemoteFieldRef.current = initialRemoteField;
-    }
-  }, [initialRemoteField]);
+    const hasSchemaChanged = lastInitializedSchemaRef.current !== remoteSchema;
+    const isInitialMount = lastInitializedSchemaRef.current === undefined;
 
-  useEffect(() => {
-    // Reset if remoteSchema changed (not on initial mount)
-    if (previousRemoteSchemaRef.current !== remoteSchema) {
+    // Only reset and initialize when remoteSchema actually changes or on initial mount
+    if (!hasSchemaChanged && !isInitialMount) {
+      return;
+    }
+
+    // Reset state when schema changes (but not on initial mount if we have initial values)
+    if (hasSchemaChanged) {
       setSelectedRootFieldPath('');
       setSelectedFieldPaths(new Set());
       setArgumentMappingsByPath({});
       onChangeRef.current({ lhsFields: [], remoteField: undefined });
-      previousRemoteSchemaRef.current = remoteSchema;
-      previousInitialRemoteFieldRef.current = undefined;
-      hasInitializedRef.current = false;
-      
-      // If we have an initialRemoteField for the new schema, initialize from it
-      if (initialRemoteField) {
-        const parsed = parseRemoteFieldToSelection(initialRemoteField);
-        setSelectedRootFieldPath(parsed.rootFieldPath);
-        setSelectedFieldPaths(parsed.selectedFieldPaths);
-        setArgumentMappingsByPath(parsed.argumentMappingsByPath);
-        hasInitializedRef.current = true;
-        previousInitialRemoteFieldRef.current = initialRemoteField;
-      }
     }
+
+    // Initialize from initialRemoteField if available
+    if (initialRemoteField && remoteSchema) {
+      const parsed = parseRemoteFieldToSelection(initialRemoteField);
+      setSelectedRootFieldPath(parsed.rootFieldPath);
+      setSelectedFieldPaths(parsed.selectedFieldPaths);
+      setArgumentMappingsByPath(parsed.argumentMappingsByPath);
+    }
+
+    lastInitializedSchemaRef.current = remoteSchema;
   }, [remoteSchema, initialRemoteField]);
 
   const remoteFieldObject = useMemo(() => {
@@ -180,25 +167,39 @@ export default function RemoteSchemaRelationshipDetails({
       <div className="space-y-4">
         <div className="space-y-2">
           <div className="font-medium text-sm">Root operation fields</div>
-          {getOperationRoots(targetGraphqlSchema).map((root) => {
-            const rootFields = Object.values(root.type.getFields());
+          {(() => {
+            const queryRoot = getQueryRoot(targetGraphqlSchema);
+            if (!queryRoot) {
+              return (
+                <p className="text-muted-foreground text-sm">
+                  No Query type found in the remote schema.
+                </p>
+              );
+            }
+
+            const rootFields = Object.values(queryRoot.type.getFields());
+            if (rootFields.length === 0) {
+              return (
+                <p className="text-muted-foreground text-sm">
+                  No fields found in the Query type.
+                </p>
+              );
+            }
+
             return (
-              <div
-                key={root.value}
-                className="space-y-2 rounded-md border border-border p-3"
-              >
-                <div className="font-semibold text-sm">{root.label}</div>
+              <div className="space-y-2 rounded-md border border-border p-3">
+                <div className="font-semibold text-sm">Query</div>
                 <div className="space-y-2">
                   {rootFields.map((rootField) => {
                     const rootFieldPath = rootField.name;
                     const checked = selectedRootFieldPath === rootFieldPath;
                     return (
                       <div
-                        key={`${root.value}.${rootField.name}`}
+                        key={rootField.name}
                         className="flex items-center gap-3"
                       >
                         <Checkbox
-                          id={`root-${root.value}-${rootField.name}`}
+                          id={`root-query-${rootField.name}`}
                           checked={checked}
                           onCheckedChange={(nextChecked) => {
                             const shouldSelect = Boolean(nextChecked);
@@ -216,7 +217,7 @@ export default function RemoteSchemaRelationshipDetails({
                           disabled={disabled}
                         />
                         <label
-                          htmlFor={`root-${root.value}-${rootField.name}`}
+                          htmlFor={`root-query-${rootField.name}`}
                           className="cursor-pointer text-sm"
                         >
                           <span className="font-medium">{rootField.name}</span>{' '}
@@ -230,7 +231,7 @@ export default function RemoteSchemaRelationshipDetails({
                 </div>
               </div>
             );
-          })}
+          })()}
         </div>
 
         {selectedRootFieldPath ? (
@@ -289,8 +290,6 @@ export default function RemoteSchemaRelationshipDetails({
 
   return (
     <div className="space-y-4">
-      {remoteFieldsContent}
-
       <div className="space-y-2">
         <div className="font-medium text-sm">Remote field preview</div>
         <Textarea
@@ -300,6 +299,8 @@ export default function RemoteSchemaRelationshipDetails({
           rows={8}
         />
       </div>
+
+      {remoteFieldsContent}
     </div>
   );
 }

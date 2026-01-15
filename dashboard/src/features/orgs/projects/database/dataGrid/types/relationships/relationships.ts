@@ -18,7 +18,7 @@ export interface RelationshipViewModel {
   /**
    * Type of the relationship.
    */
-  type: 'Array' | 'Object' | 'RemoteSchema';
+  type: 'Array' | 'Object' | 'Remote Schema';
   /**
    * Name of the relationship.
    */

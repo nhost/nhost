@@ -96,7 +96,6 @@ export default function BaseRelationshipDialog({
   const isRemoteSchemaRelationship = referenceKind === 'remoteSchema';
 
   const remoteSchemaName = watch('remoteSchema.name');
-  const remoteSchemaFormValue = watch('remoteSchema');
 
   const handleOpenChange = (nextOpen: boolean) => {
     if (!nextOpen && !initialValues) {
@@ -131,11 +130,6 @@ export default function BaseRelationshipDialog({
     [form, remoteSchemaName],
   );
 
-  console.log('form.formState.errors', form.formState.errors);
-
-  const formValuesWatch = watch();
-  console.log('formValuesWatch', formValuesWatch);
-
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
@@ -151,7 +145,6 @@ export default function BaseRelationshipDialog({
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(async (values) => {
-              console.log('form.formState.errors', form.formState.errors);
               await onSubmit(values);
               setOpen(false);
             })}
@@ -182,13 +175,7 @@ export default function BaseRelationshipDialog({
 
               {isRemoteSchemaRelationship ? (
                 <RemoteSchemaRelationshipDetails
-                  disabled={isSubmitting}
                   onChange={handleRemoteSchemaRelationshipDetailsChange}
-                  initialRemoteField={
-                    initialValues?.referenceKind === 'remoteSchema'
-                      ? remoteSchemaFormValue?.remoteField
-                      : undefined
-                  }
                 />
               ) : (
                 <TableRelationshipDetails />

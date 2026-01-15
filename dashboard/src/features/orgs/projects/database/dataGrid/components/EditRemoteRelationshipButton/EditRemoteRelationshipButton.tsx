@@ -3,19 +3,14 @@ import { useCallback, useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { BaseRelationshipDialog } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog';
-import type {
-  BaseRelationshipFormValues,
-} from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/BaseRelationshipFormTypes';
+import type { BaseRelationshipFormValues } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/BaseRelationshipFormTypes';
 import { useCreateRemoteRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateRemoteRelationshipMutation';
 import { isTableRelationshipFormValues } from '@/features/orgs/projects/database/dataGrid/types/relationships/guards';
 import parseRemoteRelationshipFormDefaultValues from '@/features/orgs/projects/database/dataGrid/utils/parseRemoteRelationshipFormDefaultValues/parseRemoteRelationshipFormDefaultValues';
-import { prepareRemoteSchemaRelationshipDTO} from '@/features/orgs/projects/database/dataGrid/utils/prepareRemoteSchemaRelationshipDTO';
+import { prepareRemoteSchemaRelationshipDTO } from '@/features/orgs/projects/database/dataGrid/utils/prepareRemoteSchemaRelationshipDTO';
 import { prepareRemoteSourceRelationshipDTO } from '@/features/orgs/projects/database/dataGrid/utils/prepareRemoteSourceRelationshipDTO';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import type {
-  CreateRemoteRelationshipArgs,
-  RemoteRelationshipDefinition,
-} from '@/utils/hasura-api/generated/schemas';
+import type { RemoteRelationshipDefinition } from '@/utils/hasura-api/generated/schemas';
 
 export interface EditRemoteRelationshipButtonProps {
   source: string;
@@ -23,14 +18,12 @@ export interface EditRemoteRelationshipButtonProps {
   tableName: string;
   relationshipName: string;
   relationshipDefinition: RemoteRelationshipDefinition;
-  onSuccess?: () => Promise<void> | void;
 }
 
 export default function EditRemoteRelationshipButton({
   source,
   schema,
   tableName,
-  onSuccess,
   relationshipDefinition,
   relationshipName,
 }: EditRemoteRelationshipButtonProps) {
@@ -46,7 +39,7 @@ export default function EditRemoteRelationshipButton({
     schema,
     tableName,
     source,
-  })
+  });
 
   const handleUpdateRemoteRelationship = useCallback(
     async (values: BaseRelationshipFormValues) => {
@@ -56,16 +49,9 @@ export default function EditRemoteRelationshipButton({
         );
       }
 
-      if (values.referenceKind !== 'table') {
-        throw new Error('This dialog only supports table relationships.');
-      }
-
-      let args: CreateRemoteRelationshipArgs;
-      if (isTableRelationshipFormValues(values)) { 
-      args = prepareRemoteSourceRelationshipDTO(values);
-      } else { 
-        args = prepareRemoteSchemaRelationshipDTO(values);
-      }
+      const args = isTableRelationshipFormValues(values)
+        ? prepareRemoteSourceRelationshipDTO(values)
+        : prepareRemoteSchemaRelationshipDTO(values);
 
       await execPromiseWithErrorToast(
         async () => {
