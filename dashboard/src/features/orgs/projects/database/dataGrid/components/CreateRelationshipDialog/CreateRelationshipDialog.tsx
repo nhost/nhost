@@ -4,9 +4,8 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { BaseRelationshipDialog } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog';
-import {
-  ReferenceSource,
-  type BaseRelationshipFormValues,
+import type {
+  BaseRelationshipFormValues,
 } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/BaseRelationshipFormTypes';
 import { useCreateArrayRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateArrayRelationshipMutation';
 import { useCreateObjectRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateObjectRelationshipMutation';
@@ -22,14 +21,12 @@ interface CreateRelationshipDialogProps {
   source: string;
   schema: string;
   tableName: string;
-  onRelationshipCreated?: () => Promise<void> | void;
 }
 
 export default function CreateRelationshipDialog({
   source,
   schema,
   tableName,
-  onRelationshipCreated,
 }: CreateRelationshipDialogProps) {
   const [open, setOpen] = useState(false);
   const { data: resourceVersion } = useGetMetadataResourceVersion();
@@ -48,7 +45,7 @@ export default function CreateRelationshipDialog({
     }
 
     try {
-      const toReferenceSource = new ReferenceSource(values.toReference.source);
+      const toReferenceSource = values.toReference.source;
 
       if (isRemoteSchemaRelationshipFormValues(values)) {
         const args = prepareRemoteSchemaRelationshipDTO(values);
@@ -56,7 +53,7 @@ export default function CreateRelationshipDialog({
           resourceVersion,
           args,
         });
-      } else if (toReferenceSource.name !== source) {
+      } else if (toReferenceSource !== source) {
         const args = prepareRemoteSourceRelationshipDTO(values);
         await createRemoteRelationship({
           resourceVersion,
@@ -76,7 +73,6 @@ export default function CreateRelationshipDialog({
         });
       }
       triggerToast('Relationship created successfully.');
-      onRelationshipCreated?.();
     } catch (error) {
       const message =
         error instanceof Error

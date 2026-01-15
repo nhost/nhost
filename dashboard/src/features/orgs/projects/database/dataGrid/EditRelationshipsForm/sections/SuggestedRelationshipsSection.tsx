@@ -1,3 +1,4 @@
+import { ArrowRight, Link2, Split } from 'lucide-react';
 import { Alert } from '@/components/ui/v3/alert';
 import { Skeleton } from '@/components/ui/v3/skeleton';
 import {
@@ -10,20 +11,17 @@ import {
 } from '@/components/ui/v3/table';
 import { AddSuggestedRelationshipDialog } from '@/features/orgs/projects/database/dataGrid/components/AddSuggestedRelationshipDialog';
 import { useGetSuggestedRelationships } from '@/features/orgs/projects/database/dataGrid/hooks/useGetSuggestedRelationships';
-import { ArrowRight, Link2, Split } from 'lucide-react';
 
 interface SuggestedRelationshipsSectionProps {
   tableSchema: string;
   tableName: string;
   dataSource: string;
-  onRelationshipCreated?: () => Promise<void> | void;
 }
 
 export default function SuggestedRelationshipsSection({
   tableSchema,
   tableName,
   dataSource,
-  onRelationshipCreated,
 }: SuggestedRelationshipsSectionProps) {
   const { suggestedRelationships, isLoading, error } =
     useGetSuggestedRelationships({
@@ -52,7 +50,7 @@ export default function SuggestedRelationshipsSection({
 
   return (
     <section className="px-6">
-      <h2 className="text-sm+ font-semibold text-foreground">
+      <h2 className="font-semibold text-foreground text-sm+">
         Suggested Relationships
       </h2>
 
@@ -71,7 +69,7 @@ export default function SuggestedRelationshipsSection({
             {suggestedRelationships.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5}>
-                  <p className="py-6 text-center text-sm text-muted-foreground">
+                  <p className="py-6 text-center text-muted-foreground text-sm">
                     No suggested relationships available.
                   </p>
                 </TableCell>
@@ -94,7 +92,7 @@ export default function SuggestedRelationshipsSection({
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                    <div className="flex flex-wrap items-center gap-2 text-muted-foreground text-sm">
                       <span>{suggestion.from}</span>
                       <ArrowRight className="h-4 w-4" />
                       <span>{suggestion.to}</span>
@@ -106,7 +104,6 @@ export default function SuggestedRelationshipsSection({
                       tableName={tableName}
                       source={dataSource}
                       suggestion={suggestion.rawSuggestion}
-                      onSuccess={onRelationshipCreated}
                     />
                   </TableCell>
                 </TableRow>

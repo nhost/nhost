@@ -1,6 +1,5 @@
-import {
-  ReferenceSource,
-  type TableRelationshipFormValues,
+import type {
+  TableRelationshipFormValues,
 } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/BaseRelationshipFormTypes';
 import { isNotEmptyValue } from '@/lib/utils';
 import type { CreateRemoteRelationshipArgs } from '@/utils/hasura-api/generated/schemas';
@@ -32,7 +31,7 @@ export default function prepareRemoteSourceRelationshipDTO(
 
   const fieldMapping = Object.fromEntries(fieldMappingEntries);
 
-  const toSourceName = new ReferenceSource(values.toReference.source).name;
+  const toSourceName = values.toReference.source;
 
   const args: CreateRemoteRelationshipArgs = {
     name: values.name,

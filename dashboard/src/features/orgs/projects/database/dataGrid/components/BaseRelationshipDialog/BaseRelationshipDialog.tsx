@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useCallback, useEffect, useMemo } from 'react';
-import { useForm, useWatch } from 'react-hook-form';
+import { useCallback, useEffect, } from 'react';
+import { useForm, } from 'react-hook-form';
 
 import { FormInput } from '@/components/form/FormInput';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
@@ -14,9 +14,6 @@ import {
   DialogTitle,
 } from '@/components/ui/v3/dialog';
 import { Form, FormDescription } from '@/components/ui/v3/form';
-import { useGetMetadata } from '@/features/orgs/projects/common/hooks/useGetMetadata';
-import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
-import type { NormalizedQueryDataRow } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import type { RemoteField } from '@/utils/hasura-api/generated/schemas';
 import {
   type BaseRelationshipFormValues,
@@ -30,7 +27,6 @@ import TableRelationshipDetails from './sections/TableRelationshipDetails';
 export interface BaseRelationshipDialogProps {
   open: boolean;
   setOpen: (open: boolean) => void;
-  onSuccess?: () => Promise<void> | void;
   /**
    * Source where the relationship is located.
    */
@@ -48,6 +44,7 @@ export interface BaseRelationshipDialogProps {
   submitButtonText?: string;
   initialValues?: BaseRelationshipFormValues;
   onSubmit: (values: BaseRelationshipFormValues) => Promise<void>;
+  isEditing?: boolean;
 }
 
 export type CreateRelationshipFormValues = Extract<
@@ -58,7 +55,6 @@ export type CreateRelationshipFormValues = Extract<
 export default function BaseRelationshipDialog({
   open,
   setOpen,
-  onSuccess,
   dialogTitle = 'Create Relationship',
   dialogDescription = 'Create and track a new relationship in your GraphQL schema.',
   submitButtonText = 'Create Relationship',
@@ -67,17 +63,18 @@ export default function BaseRelationshipDialog({
   source,
   initialValues,
   onSubmit,
+  isEditing,
 }: BaseRelationshipDialogProps) {
-  const { data: metadata } = useGetMetadata();
+  console.info('initialValues I got:', initialValues);
 
   const form = useForm<BaseRelationshipFormValues>({
     resolver: zodResolver(relationshipFormSchema),
-    defaultValues: buildDefaultFormValues(schema, tableName, source),
+    defaultValues:
+      initialValues ?? buildDefaultFormValues(source, schema, tableName),
   });
 
   const { formState, reset, watch } = form;
   const { isSubmitting } = formState;
-  const shouldSkipAutoSelection = Boolean(initialValues) && !formState.isDirty;
 
   useEffect(() => {
     if (!open) {
@@ -94,135 +91,12 @@ export default function BaseRelationshipDialog({
     reset(defaultValues);
   }, [open, reset, initialValues, source, schema, tableName]);
 
-  const allTables = useMemo(
-    () =>
-      metadata?.sources?.flatMap((metadataSource) =>
-        (metadataSource.tables ?? []).map((table) => ({
-          source: metadataSource.name!,
-          schema: table.table.schema!,
-          table: table.table.name!,
-        })),
-      ) ?? [],
-    [metadata],
-  );
-
-  const tablesBySourceSchema = useMemo(() => {
-    const map: Record<string, string[]> = {};
-
-    allTables.forEach((table) => {
-      const key = `${table.source}.${table.schema}`;
-
-      if (!map[key]) {
-        map[key] = [];
-      }
-
-      if (!map[key].includes(table.table)) {
-        map[key].push(table.table);
-        map[key].sort((a, b) => a.localeCompare(b));
-      }
-    });
-
-    return map;
-  }, [allTables]);
-
-  const getTableKey = (tableSource?: string, tableSchema?: string) =>
-    tableSource && tableSchema ? `${tableSource}.${tableSchema}` : null;
-
-  const selectedFromSource = useWatch({
-    control: form.control,
-    name: 'fromSource',
-  });
-
-  const selectedToReference = useWatch({
-    control: form.control,
-    name: 'toReference',
-  });
-
   const referenceKind = watch('referenceKind');
 
   const isRemoteSchemaRelationship = referenceKind === 'remoteSchema';
 
-  const selectedRemoteSchemaFromToSource = isRemoteSchemaRelationship
-    ? selectedToReference.source
-    : null;
-
-  console.log(
-    'selectedRemoteSchemaFromToSource',
-    selectedRemoteSchemaFromToSource,
-  );
-
-  const toSourceTableNames = useMemo(() => {
-    const key = getTableKey(
-      selectedToReference?.source,
-      selectedToReference?.schema,
-    );
-
-    return key ? [...(tablesBySourceSchema[key] ?? [])] : [];
-  }, [
-    selectedToReference?.schema,
-    selectedToReference?.source,
-    tablesBySourceSchema,
-  ]);
-
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-
-    if (shouldSkipAutoSelection) {
-      return;
-    }
-
-    if (isRemoteSchemaRelationship) {
-      return;
-    }
-
-    const availableTables = toSourceTableNames;
-
-    if (
-      availableTables.length > 0 &&
-      (!selectedToReference?.table ||
-        !availableTables.includes(selectedToReference.table))
-    ) {
-      form.setValue('toReference.table', availableTables[0], {
-        shouldValidate: true,
-        shouldDirty: true,
-      });
-    }
-  }, [
-    form,
-    isRemoteSchemaRelationship,
-    open,
-    selectedToReference?.table,
-    shouldSkipAutoSelection,
-    toSourceTableNames,
-  ]);
-
-  const { data: fromTableData } = useTableQuery(
-    [
-      `${selectedFromSource?.source}.${selectedFromSource?.schema}.${selectedFromSource?.table}`,
-    ],
-    {
-      dataSource: selectedFromSource?.source,
-      schema: selectedFromSource?.schema,
-      table: selectedFromSource?.table,
-      queryOptions: {
-        enabled:
-          open &&
-          Boolean(
-            selectedFromSource?.source &&
-              selectedFromSource?.schema &&
-              selectedFromSource?.table,
-          ),
-      },
-    },
-  );
-
-  const tableColumnsForRemoteSchemaDialog = useMemo(
-    () =>
-      (fromTableData?.columns as NormalizedQueryDataRow[] | undefined) ?? [],
-    [fromTableData?.columns],
-  );
+  const remoteSchemaName = watch('remoteSchema.name');
+  const remoteSchemaFormValue = watch('remoteSchema');
 
   const handleOpenChange = (nextOpen: boolean) => {
     if (!nextOpen && !initialValues) {
@@ -240,22 +114,24 @@ export default function BaseRelationshipDialog({
       lhsFields: string[];
       remoteField?: RemoteField;
     }) => {
-      if (!selectedRemoteSchemaFromToSource) {
+      if (!remoteSchemaName) {
         return;
       }
 
       form.setValue(
         'remoteSchema',
         {
-          name: selectedRemoteSchemaFromToSource,
+          name: remoteSchemaName,
           lhsFields,
           remoteField,
         },
         { shouldDirty: true, shouldValidate: true },
       );
     },
-    [form, selectedRemoteSchemaFromToSource],
+    [form, remoteSchemaName],
   );
+
+  console.log('form.formState.errors', form.formState.errors);
 
   const formValuesWatch = watch();
   console.log('formValuesWatch', formValuesWatch);
@@ -275,8 +151,8 @@ export default function BaseRelationshipDialog({
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(async (values) => {
+              console.log('form.formState.errors', form.formState.errors);
               await onSubmit(values);
-              await onSuccess?.();
               setOpen(false);
             })}
             className="flex flex-col gap-6 text-foreground"
@@ -287,13 +163,14 @@ export default function BaseRelationshipDialog({
               label="Relationship Name"
               placeholder="Name..."
               autoComplete="off"
+              disabled={isEditing}
             />
 
             <SourceAndReferenceSelector />
 
             <div className="flex flex-col gap-4 rounded-md border p-4">
               <div className="flex flex-col gap-1">
-                <h3 className="text-sm font-semibold text-foreground">
+                <h3 className="font-semibold text-foreground text-sm">
                   Relationship Details
                 </h3>
                 <FormDescription>
@@ -303,13 +180,15 @@ export default function BaseRelationshipDialog({
                 </FormDescription>
               </div>
 
-              {isRemoteSchemaRelationship &&
-              selectedRemoteSchemaFromToSource ? (
+              {isRemoteSchemaRelationship ? (
                 <RemoteSchemaRelationshipDetails
-                  remoteSchema={selectedRemoteSchemaFromToSource}
-                  tableColumns={tableColumnsForRemoteSchemaDialog}
                   disabled={isSubmitting}
                   onChange={handleRemoteSchemaRelationshipDetailsChange}
+                  initialRemoteField={
+                    initialValues?.referenceKind === 'remoteSchema'
+                      ? remoteSchemaFormValue?.remoteField
+                      : undefined
+                  }
                 />
               ) : (
                 <TableRelationshipDetails />

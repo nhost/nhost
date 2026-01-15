@@ -1,7 +1,6 @@
-import type { TableRelationshipFormValues } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/BaseRelationshipFormTypes';
-import { ReferenceSource } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/BaseRelationshipFormTypes';
-import type { CreateRemoteRelationshipArgs } from '@/utils/hasura-api/generated/schemas';
 import { describe, it } from 'vitest';
+import type { TableRelationshipFormValues } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/BaseRelationshipFormTypes';
+import type { CreateRemoteRelationshipArgs } from '@/utils/hasura-api/generated/schemas';
 import prepareRemoteSourceRelationshipDTO from './prepareRemoteSourceRelationshipDTO';
 
 describe('prepareRemoteSourceRelationshipDTO', () => {
@@ -18,7 +17,7 @@ describe('prepareRemoteSourceRelationshipDTO', () => {
         schema: 'public',
         table: 'externaltable',
         source:
-          ReferenceSource.createTypeSourceFromName('externaldb').fullValue,
+          'externaldb',
       },
       relationshipType: 'object',
       fieldMapping: [

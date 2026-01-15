@@ -1,6 +1,6 @@
-import type { BaseRelationshipFormValues } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/BaseRelationshipFormTypes';
-import { defaultFormValues } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/BaseRelationshipFormTypes';
-import { isToSourceRelationshipDefinition } from '@/features/orgs/projects/database/dataGrid/types/relationships/guards';
+import type { BaseRelationshipFormInitialValues, } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/BaseRelationshipFormTypes';
+import { defaultFormValues, } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/BaseRelationshipFormTypes';
+import { isToRemoteSchemaRelationshipDefinition, isToSourceRelationshipDefinition } from '@/features/orgs/projects/database/dataGrid/types/relationships/guards';
 import type { RemoteRelationshipDefinition } from '@/utils/hasura-api/generated/schemas';
 
 interface ParseRemoteRelationshipFormDefaultValuesProps {
@@ -17,7 +17,7 @@ export default function parseRemoteRelationshipFormDefaultValues({
   tableName,
   source,
   relationshipName,
-}: ParseRemoteRelationshipFormDefaultValuesProps): BaseRelationshipFormValues {
+}: ParseRemoteRelationshipFormDefaultValuesProps): BaseRelationshipFormInitialValues {
   if (isToSourceRelationshipDefinition(definition)) {
     const toSourceDefinition = definition.to_source;
     const fieldMappingEntries = Object.entries(
@@ -25,7 +25,7 @@ export default function parseRemoteRelationshipFormDefaultValues({
     );
 
     return {
-      name: relationshipName ?? '',
+      name: relationshipName,
       referenceKind: 'table',
       fromSource: {
         schema,
@@ -35,7 +35,7 @@ export default function parseRemoteRelationshipFormDefaultValues({
       toReference: {
         schema: toSourceDefinition.table?.schema ?? '',
         table: toSourceDefinition.table?.name ?? '',
-        source: toSourceDefinition.source ?? '',
+        source: toSourceDefinition.source,
       },
       relationshipType:
         toSourceDefinition.relationship_type?.toLowerCase() === 'array'
@@ -49,15 +49,27 @@ export default function parseRemoteRelationshipFormDefaultValues({
       ),
     };
   }
+
+  if (isToRemoteSchemaRelationshipDefinition(definition)) {
+    const { remote_schema, lhs_fields, remote_field } = definition.to_remote_schema;
+
+    return {
+      name: relationshipName,
+      referenceKind: 'remoteSchema',
+      fromSource: {
+        schema,
+        table: tableName,
+        source,
+      },
+      toReference: {
+        source: remote_schema,
+      },
+      remoteSchema: {
+        name: remote_schema,
+        lhsFields: lhs_fields,
+        remoteField: remote_field,
+      }
+    }
+  }
   return defaultFormValues;
-  //  if (isToRemoteSchemaRelationshipDefinition(definition)) {
-  //   return {
-  //     name: relationshipName ?? '',
-  //     referenceKind: 'remoteSchema',
-  //     fromSource: {
-  //       schema,
-  //       table: tableName,
-  //       source,
-  //     },
-  //   };
 }

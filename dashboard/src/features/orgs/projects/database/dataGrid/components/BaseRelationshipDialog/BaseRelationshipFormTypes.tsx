@@ -1,5 +1,5 @@
-import type { RemoteField } from '@/utils/hasura-api/generated/schemas';
 import { z } from 'zod';
+import type { RemoteField } from '@/utils/hasura-api/generated/schemas';
 
 enum ToReferenceSourceTypePrefix {
   REMOTE_SCHEMA = 'remote-schema-',
@@ -71,8 +71,7 @@ const tableRelationshipFormSchema = baseRelationshipFormSchema.extend({
   toReference: z.object({
     source: z
       .string()
-      .min(1, { message: 'Source is required' })
-      .transform((v) => v as ToReferenceSourceValue),
+      .min(1, { message: 'Source is required' }),
     schema: z.string().min(1, { message: 'Schema is required' }),
     table: z.string().min(1, { message: 'Table is required' }),
   }),
@@ -87,8 +86,7 @@ const remoteSchemaRelationshipFormSchema = baseRelationshipFormSchema.extend({
   toReference: z.object({
     source: z
       .string()
-      .min(1, { message: 'Source is required' })
-      .transform((v) => v as ToReferenceSourceValue),
+      .min(1, { message: 'Source is required' }),
     schema: z.string().optional(),
     table: z.string().optional(),
   }),
@@ -165,4 +163,4 @@ export type TableRelationshipFormValues = Extract<
   { referenceKind: 'table' }
 >;
 
-export type BaseRelationshipFormInitialValues = TableRelationshipFormValues;
+export type BaseRelationshipFormInitialValues = BaseRelationshipFormValues;

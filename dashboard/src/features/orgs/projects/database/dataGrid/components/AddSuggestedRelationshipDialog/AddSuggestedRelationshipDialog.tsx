@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-
+import { useForm } from 'react-hook-form';
 import { FormInput } from '@/components/form/FormInput';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import {
@@ -20,7 +20,6 @@ import type {
   RelationshipUsingForeignKeyConstraintOnForeignKeyConstraintOn,
   SuggestRelationshipsResponseRelationshipsItem,
 } from '@/utils/hasura-api/generated/schemas';
-import { useForm } from 'react-hook-form';
 
 interface AddSuggestedRelationshipDialogProps {
   /**
@@ -41,10 +40,6 @@ interface AddSuggestedRelationshipDialogProps {
    * Suggested relationship to be transformed into a tracked relationship.
    */
   suggestion: SuggestRelationshipsResponseRelationshipsItem;
-  /**
-   * Optional callback triggered after successfully creating the relationship.
-   */
-  onSuccess?: () => Promise<void> | void;
 }
 
 function getDefaultRelationshipName(
@@ -90,7 +85,6 @@ export default function AddSuggestedRelationshipDialog({
   schema,
   tableName,
   suggestion,
-  onSuccess,
 }: AddSuggestedRelationshipDialogProps) {
   const [open, setOpen] = useState(false);
   const { data: resourceVersion } = useGetMetadataResourceVersion();
@@ -297,7 +291,6 @@ export default function AddSuggestedRelationshipDialog({
     );
 
     handleClose(false);
-    await onSuccess?.();
   };
 
   return (
@@ -322,7 +315,7 @@ export default function AddSuggestedRelationshipDialog({
           </DialogHeader>
 
           {relationshipSummary && (
-            <p className="rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground">
+            <p className="rounded-md bg-muted px-3 py-2 text-muted-foreground text-sm">
               {relationshipSummary}
             </p>
           )}

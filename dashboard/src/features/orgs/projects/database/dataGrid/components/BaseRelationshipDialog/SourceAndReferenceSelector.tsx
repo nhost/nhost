@@ -9,10 +9,13 @@ import { useGetDataSources } from '@/features/orgs/projects/common/hooks/useGetD
 import { useGetMetadata } from '@/features/orgs/projects/common/hooks/useGetMetadata';
 import { useGetRemoteSchemas } from '@/features/orgs/projects/remote-schemas/hooks/useGetRemoteSchemas';
 import {
-  ReferenceSource,
   type BaseRelationshipFormValues,
+  ReferenceSource,
   type ToReferenceSourceValue,
 } from './BaseRelationshipFormTypes';
+
+const getTableKey = (tableSource?: string, tableSchema?: string) =>
+  tableSource && tableSchema ? `${tableSource}.${tableSchema}` : null;
 
 export default function SourceAndReferenceSelector() {
   const form = useFormContext<BaseRelationshipFormValues>();
@@ -85,11 +88,10 @@ export default function SourceAndReferenceSelector() {
     return map;
   }, [allTables]);
 
-  const getTableKey = (tableSource?: string, tableSchema?: string) =>
-    tableSource && tableSchema ? `${tableSource}.${tableSchema}` : null;
-
   const selectedFromSource = watch('fromSource');
   const selectedToReference = watch('toReference');
+
+  console.log('schemaOptionsBySource', schemaOptionsBySource);
 
   const toSchemaOptions = useMemo(
     () =>
@@ -102,6 +104,8 @@ export default function SourceAndReferenceSelector() {
       selectedToReference?.source,
     ],
   );
+
+  console.log('toSchemaOptions', toSchemaOptions);
 
   const toSourceTableNames = useMemo(() => {
     const key = getTableKey(
@@ -264,6 +268,8 @@ export default function SourceAndReferenceSelector() {
                         shouldValidate: true,
                       });
                     }
+
+                    return sourceName;
                   }
 
                   if (referencedSourceValue.type === 'remoteSchema') {
@@ -285,6 +291,8 @@ export default function SourceAndReferenceSelector() {
                     setValue('toReference.source', '', {
                       shouldDirty: true,
                     });
+
+                    // TODO: Set the lhsFields and remoteField
                   }
 
                   return referencedSourceValue.name;
@@ -311,11 +319,41 @@ export default function SourceAndReferenceSelector() {
               control={control}
               name="toReference.schema"
               label="Schema"
-              placeholder="Select schema"
+              placeholder={isRemoteSchemaRelationship ? "" : "Select schema"}
               containerClassName="w-full"
               disabled={
                 !selectedToReference?.source || isRemoteSchemaRelationship
               }
+              transform={{
+                in: (storedValue: string) => storedValue,
+                out: (selectedSchema: string) => {
+                  if (!selectedSchema || isRemoteSchemaRelationship) {
+                    return selectedSchema;
+                  }
+
+                  const key = getTableKey(
+                    selectedToReference?.source,
+                    selectedSchema,
+                  );
+
+                  const availableTables = key
+                    ? [...(tablesBySourceSchema[key] ?? [])]
+                    : [];
+
+                  if (
+                    availableTables.length > 0 &&
+                    (!selectedToReference?.table ||
+                      !availableTables.includes(selectedToReference.table))
+                  ) {
+                    setValue('toReference.table', availableTables[0], {
+                      shouldValidate: true,
+                      shouldDirty: true,
+                    });
+                  }
+
+                  return selectedSchema;
+                },
+              }}
             >
               {toSchemaOptions.map((option) => (
                 <SelectItem key={`to-schema-${option}`} value={option}>
@@ -334,7 +372,7 @@ export default function SourceAndReferenceSelector() {
             control={control}
             name="toReference.table"
             label="Table"
-            placeholder="Select table"
+            placeholder={isRemoteSchemaRelationship ? "" : "Select table"}
             disabled={
               !selectedToReference?.schema || isRemoteSchemaRelationship
             }
