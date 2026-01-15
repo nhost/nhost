@@ -1,13 +1,12 @@
 import { ArrowRight, PlusIcon, Trash2Icon } from 'lucide-react';
-
+import { useMemo } from 'react';
+import { useFieldArray, useFormContext } from 'react-hook-form';
 import { FormSelect } from '@/components/form/FormSelect';
 import { Button } from '@/components/ui/v3/button';
 import { FormField, FormItem, FormMessage } from '@/components/ui/v3/form';
 import { SelectItem, SelectSeparator } from '@/components/ui/v3/select';
 import type { BaseRelationshipFormValues } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/BaseRelationshipFormTypes';
 import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
-import { useMemo } from 'react';
-import { useFieldArray, useFormContext } from 'react-hook-form';
 
 export default function TableRelationshipDetails() {
   const form = useFormContext<BaseRelationshipFormValues>();
@@ -91,7 +90,7 @@ export default function TableRelationshipDetails() {
       </FormSelect>
 
       <div className="space-y-2 rounded-md border p-4">
-        <div className="grid grid-cols-12 items-center gap-2 text-sm font-semibold text-muted-foreground">
+        <div className="grid grid-cols-12 items-center gap-2 font-semibold text-muted-foreground text-sm">
           <span className="col-span-5">Source Column</span>
           <div className="col-span-2 flex justify-center">
             <ArrowRight className="h-4 w-4" />

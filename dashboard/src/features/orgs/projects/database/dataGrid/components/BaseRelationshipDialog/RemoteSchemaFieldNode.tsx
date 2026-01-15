@@ -1,3 +1,5 @@
+import { type GraphQLField, type GraphQLSchema, isObjectType } from 'graphql';
+import { type Dispatch, type SetStateAction, useMemo } from 'react';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import { Input } from '@/components/ui/v3/input';
 import { Label } from '@/components/ui/v3/label';
@@ -15,12 +17,10 @@ import type {
 import getTypeString from '@/features/orgs/projects/remote-schemas/utils/getTypeString';
 import unwrapNamedType from '@/features/orgs/projects/remote-schemas/utils/unwrapNamedType';
 import { cn } from '@/lib/utils';
-import { isObjectType, type GraphQLField, type GraphQLSchema } from 'graphql';
-import { useMemo, type Dispatch, type SetStateAction } from 'react';
 
 interface RemoteSchemaFieldNodeProps {
   schema: GraphQLSchema;
-  field: GraphQLField<any, any>;
+  field: GraphQLField<unknown, unknown>;
   fieldPath: string;
   selectedFieldPaths: Set<string>;
   setSelectedFieldPaths: Dispatch<SetStateAction<Set<string>>>;
@@ -130,7 +130,7 @@ export default function RemoteSchemaFieldNode({
               className="cursor-pointer text-sm"
             >
               <span className="font-medium">{field.name}</span>{' '}
-              <span className="text-xs text-muted-foreground">
+              <span className="text-muted-foreground text-xs">
                 ({fieldTypeString})
               </span>
             </label>
@@ -138,7 +138,7 @@ export default function RemoteSchemaFieldNode({
         ) : (
           <span className="text-sm">
             <span className="font-medium">{field.name}</span>{' '}
-            <span className="text-xs text-muted-foreground">
+            <span className="text-muted-foreground text-xs">
               ({fieldTypeString})
             </span>
           </span>
@@ -150,7 +150,7 @@ export default function RemoteSchemaFieldNode({
           className="space-y-3 rounded-md border border-border p-3"
           style={{ marginLeft: depth * 12 + 12 }}
         >
-          <div className="text-sm font-medium">Arguments</div>
+          <div className="font-medium text-sm">Arguments</div>
           <div className="space-y-3">
             {field.args.map((arg) => {
               const mapping = mappingsByArgument[arg.name] ?? defaultMapping;
@@ -182,15 +182,15 @@ export default function RemoteSchemaFieldNode({
                       }
                       disabled={disabled}
                     />
-                    <label
+                    <Label
                       htmlFor={`arg-${fieldPath}-${arg.name}`}
-                      className="cursor-pointer text-sm font-medium"
+                      className="cursor-pointer"
                     >
                       {arg.name}{' '}
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-muted-foreground text-xs">
                         ({getTypeString(arg.type)})
                       </span>
-                    </label>
+                    </Label>
                   </div>
 
                   {isArgEnabled ? (

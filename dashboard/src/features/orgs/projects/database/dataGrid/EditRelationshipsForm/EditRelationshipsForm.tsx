@@ -1,4 +1,4 @@
-import { ArrowRight, Link2, Plug as PlugIcon, Split } from 'lucide-react';
+import { ArrowDown, Link2, Plug as PlugIcon, Split } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
@@ -11,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/v3/table';
+import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import type { BaseTableFormProps } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm';
 import { CreateRelationshipDialog } from '@/features/orgs/projects/database/dataGrid/components/CreateRelationshipDialog';
 import { DeleteRelationshipDialog } from '@/features/orgs/projects/database/dataGrid/components/DeleteRelationshipDialog';
@@ -143,16 +144,16 @@ export default function EditRelationshipsForm(
                 ) : (
                   existingRelationshipsViewModel.map((relationship) => (
                     <TableRow key={relationship.name}>
-                      <TableCell className="font-medium">
-                        {relationship.name}
+                      <TableCell className="max-w-52 font-medium">
+                        <TextWithTooltip text={relationship.name} />
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           {isRemoteRelationshipViewModel(relationship) ? (
-                            <span>
+                            <div className="flex items-center gap-0.5">
                               <PlugIcon className="h-4 w-4 text-muted-foreground" />{' '}
                               {relationship.toSource}
-                            </span>
+                            </div>
                           ) : (
                             <span>{relationship.fromSource}</span>
                           )}
@@ -165,40 +166,42 @@ export default function EditRelationshipsForm(
                           ) : (
                             <Link2 className="h-4 w-4 text-muted-foreground" />
                           )}
-                          <span>{relationship.type}</span>
+                          <span className="whitespace-nowrap">{relationship.type}</span>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="flex flex-wrap items-center gap-2 text-muted-foreground text-sm">
+                        <div className="flex flex-col flex-wrap gap-0.5 text-muted-foreground text-sm">
                           <span>{relationship.fromLabel}</span>
-                          <ArrowRight className="h-4 w-4" />
+                          <ArrowDown className="h-4 w-4" />
                           <span>{relationship.toLabel}</span>
                         </div>
                       </TableCell>
-                      <TableCell className="flex flex-row items-center gap-2">
-                        <DeleteRelationshipDialog
-                          schema={schema}
-                          tableName={tableName}
-                          relationshipToDelete={relationship.name}
-                          source={relationship.fromSource}
-                          isRemoteRelationship={relationship.kind === 'remote'}
-                        />
-                        {isRemoteRelationshipViewModel(relationship) ? (
-                          <EditRemoteRelationshipButton
-                            schema={tableSchema}
-                            tableName={tableName}
-                            source={dataSource}
-                            relationshipName={relationship.name}
-                            relationshipDefinition={relationship.definition}
-                          />
-                        ) : (
-                          <RenameRelationshipDialog
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <DeleteRelationshipDialog
                             schema={schema}
                             tableName={tableName}
-                            relationshipToRename={relationship.name}
+                            relationshipToDelete={relationship.name}
                             source={relationship.fromSource}
+                            isRemoteRelationship={relationship.kind === 'remote'}
                           />
-                        )}
+                          {isRemoteRelationshipViewModel(relationship) ? (
+                            <EditRemoteRelationshipButton
+                              schema={tableSchema}
+                              tableName={tableName}
+                              source={dataSource}
+                              relationshipName={relationship.name}
+                              relationshipDefinition={relationship.definition}
+                            />
+                          ) : (
+                            <RenameRelationshipDialog
+                              schema={schema}
+                              tableName={tableName}
+                              relationshipToRename={relationship.name}
+                              source={relationship.fromSource}
+                            />
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))

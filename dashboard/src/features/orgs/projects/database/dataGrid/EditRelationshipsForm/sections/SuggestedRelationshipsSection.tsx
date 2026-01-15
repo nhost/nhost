@@ -1,4 +1,4 @@
-import { ArrowRight, Link2, Split } from 'lucide-react';
+import { ArrowDown, Link2, Split } from 'lucide-react';
 import { Alert } from '@/components/ui/v3/alert';
 import { Skeleton } from '@/components/ui/v3/skeleton';
 import {
@@ -92,9 +92,9 @@ export default function SuggestedRelationshipsSection({
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="flex flex-wrap items-center gap-2 text-muted-foreground text-sm">
+                    <div className="flex flex-col flex-wrap gap-0.5 text-muted-foreground text-sm">
                       <span>{suggestion.from}</span>
-                      <ArrowRight className="h-4 w-4" />
+                      <ArrowDown className="h-4 w-4" />
                       <span>{suggestion.to}</span>
                     </div>
                   </TableCell>

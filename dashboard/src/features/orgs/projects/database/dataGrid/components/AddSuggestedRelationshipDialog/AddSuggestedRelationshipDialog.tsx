@@ -15,9 +15,11 @@ import { Form } from '@/components/ui/v3/form';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { useCreateArrayRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateArrayRelationshipMutation';
 import { useCreateObjectRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateObjectRelationshipMutation';
+import { normalizeColumns } from '@/features/orgs/projects/database/dataGrid/utils/normalizeColumns';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { isEmptyValue } from '@/lib/utils';
 import type {
-  RelationshipUsingForeignKeyConstraintOnForeignKeyConstraintOn,
+  MetadataOperation200,
   SuggestRelationshipsResponseRelationshipsItem,
 } from '@/utils/hasura-api/generated/schemas';
 
@@ -63,14 +65,6 @@ function getDefaultRelationshipName(
 
 function sanitizeRelationshipName(value?: string | null) {
   return value ?? '';
-}
-
-function normalizeColumns(columns?: string[] | null) {
-  if (!columns || columns.length === 0) {
-    return [];
-  }
-
-  return columns.filter(Boolean);
 }
 
 const RELATIONSHIP_NAME_VALIDATION_MESSAGE =
@@ -120,7 +114,7 @@ export default function AddSuggestedRelationshipDialog({
     isCreatingArrayRelationship ||
     formState.isSubmitting;
 
-  const suggestionType = suggestion?.type?.toLowerCase();
+  const suggestionType = suggestion?.type;
 
   const relationshipSummary = useMemo(() => {
     if (!suggestion) {
@@ -134,7 +128,15 @@ export default function AddSuggestedRelationshipDialog({
       return '';
     }
 
-    return `${fromTable.schema}.${fromTable.name} → ${toTable.schema}.${toTable.name}`;
+    const fromColumns = normalizeColumns(suggestion.from?.columns);
+    const toColumns = normalizeColumns(suggestion.to?.columns);
+
+    const fromColumnsStr =
+      fromColumns.length > 0 ? ` / ${fromColumns.join(', ')}` : '';
+    const toColumnsStr =
+      toColumns.length > 0 ? ` / ${toColumns.join(', ')}` : '';
+
+    return `${fromTable.schema}.${fromTable.name}${fromColumnsStr} → ${toTable.schema}.${toTable.name}${toColumnsStr}`;
   }, [suggestion]);
 
   useEffect(() => {
@@ -206,16 +208,13 @@ export default function AddSuggestedRelationshipDialog({
       return;
     }
 
-    let promise: Promise<unknown> | undefined;
+    let promise: Promise<MetadataOperation200>;
 
     if (suggestionType === 'array') {
       const remoteTable = suggestion.to?.table;
       const remoteColumns = normalizeColumns(suggestion.to?.columns);
 
-      const arrayForeignKey:
-        | string
-        | RelationshipUsingForeignKeyConstraintOnForeignKeyConstraintOn
-        | undefined =
+      const arrayForeignKey =
         remoteTable && remoteColumns.length > 0
           ? { table: remoteTable, columns: remoteColumns }
           : suggestion.to?.constraint_name;
@@ -239,19 +238,9 @@ export default function AddSuggestedRelationshipDialog({
         },
       });
     } else if (suggestionType === 'object') {
-      const localColumns = normalizeColumns(suggestion.from?.columns);
+      const foreignKeyConstraintOn = suggestion.from?.columns;
 
-      const objectForeignKey:
-        | string
-        | RelationshipUsingForeignKeyConstraintOnForeignKeyConstraintOn
-        | undefined =
-        suggestion.from?.constraint_name ??
-        (localColumns.length === 1
-          ? localColumns[0]
-          : (localColumns as unknown as string)) ??
-        suggestion.to?.constraint_name;
-
-      if (!objectForeignKey) {
+      if (isEmptyValue(foreignKeyConstraintOn)) {
         showRelationshipNameError(
           'Unable to derive the foreign key information from this suggestion.',
         );
@@ -265,7 +254,7 @@ export default function AddSuggestedRelationshipDialog({
           name: relationshipName,
           source,
           using: {
-            foreign_key_constraint_on: objectForeignKey,
+            foreign_key_constraint_on: foreignKeyConstraintOn!,
           },
         },
       });
@@ -300,7 +289,7 @@ export default function AddSuggestedRelationshipDialog({
       </Button>
       <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent
-          className="sm:max-w-[480px]"
+          className="sm:max-w-[425px]"
           hideCloseButton
           disableOutsideClick={isSubmitting}
         >

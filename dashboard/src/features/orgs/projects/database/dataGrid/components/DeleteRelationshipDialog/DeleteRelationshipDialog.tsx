@@ -1,3 +1,5 @@
+import { Trash2Icon } from 'lucide-react';
+import { useState } from 'react';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   Dialog,
@@ -8,13 +10,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/v3/dialog';
+import TextWithTooltip from '@/features/orgs/projects/common/components/TextWithTooltip/TextWithTooltip';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { useDeleteRemoteRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteRemoteRelationshipMutation';
 import { useDropRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDropRelationshipMutation';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas';
-import { Trash2Icon } from 'lucide-react';
-import { useState } from 'react';
 
 interface DeleteRelationshipDialogProps {
   /**
@@ -126,9 +127,11 @@ export default function DeleteRelationshipDialog({
             </DialogTitle>
             <DialogDescription>
               Are you sure you want to delete the{' '}
-              <span className="rounded-md bg-muted px-1 py-0.5 font-mono">
-                {relationshipToDelete}
-              </span>{' '}
+              <TextWithTooltip
+                text={relationshipToDelete}
+                className="rounded-md bg-muted px-1 py-0.5 font-mono"
+                containerClassName="inline-block max-w-sm"
+              />{' '}
               relationship?
             </DialogDescription>
           </DialogHeader>

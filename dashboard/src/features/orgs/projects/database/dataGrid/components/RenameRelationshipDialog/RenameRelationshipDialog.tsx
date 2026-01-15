@@ -1,6 +1,6 @@
 import { PencilIcon } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-
+import { useForm } from 'react-hook-form';
 import { FormInput } from '@/components/form/FormInput';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import {
@@ -13,10 +13,10 @@ import {
   DialogTitle,
 } from '@/components/ui/v3/dialog';
 import { Form } from '@/components/ui/v3/form';
+import TextWithTooltip from '@/features/orgs/projects/common/components/TextWithTooltip/TextWithTooltip';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { useRenameRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useRenameRelationshipMutation';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useForm } from 'react-hook-form';
 
 interface RenameRelationshipDialogProps {
   /**
@@ -203,9 +203,11 @@ export default function RenameRelationshipDialog({
             </DialogTitle>
             <DialogDescription>
               Provide a new name for the{' '}
-              <span className="rounded-md bg-muted px-1 py-0.5 font-mono">
-                {relationshipToRename}
-              </span>{' '}
+              <TextWithTooltip
+                text={relationshipToRename}
+                className="rounded-md bg-muted px-1 py-0.5 font-mono"
+                containerClassName="inline-block max-w-sm"
+              />{' '}
               relationship.
             </DialogDescription>
           </DialogHeader>
