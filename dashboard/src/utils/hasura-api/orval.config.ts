@@ -12,7 +12,7 @@ export default defineConfig({
       target: 'generated',
       schemas: 'generated/schemas',
       client: 'fetch',
-      prettier: true,
+      biome: true,
       override: {
         mutator: {
           path: './customFetch.ts',
