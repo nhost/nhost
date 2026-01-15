@@ -9,8 +9,8 @@
 /**
  * Type of operation to export the current metadata from the server
  */
-export type ExportMetadataType =
-  (typeof ExportMetadataType)[keyof typeof ExportMetadataType];
+export type ExportMetadataType = typeof ExportMetadataType[keyof typeof ExportMetadataType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ExportMetadataType = {

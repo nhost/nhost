@@ -5,6 +5,7 @@
  * API for managing remote schemas and events in Hasura
  * OpenAPI spec version: 1.0.0
  */
+
 import type { AddRemoteSchemaPermissionsStep } from './addRemoteSchemaPermissionsStep';
 import type { AddRemoteSchemaStep } from './addRemoteSchemaStep';
 import type { CreateEventTriggerStep } from './createEventTriggerStep';
@@ -15,13 +16,4 @@ import type { SetTableCustomizationStep } from './setTableCustomizationStep';
 import type { SetTableIsEnumStep } from './setTableIsEnumStep';
 import type { UpdateRemoteSchemaStep } from './updateRemoteSchemaStep';
 
-export type MigrationStep =
-  | SetTableIsEnumStep
-  | SetTableCustomizationStep
-  | AddRemoteSchemaPermissionsStep
-  | DropRemoteSchemaPermissionsStep
-  | UpdateRemoteSchemaStep
-  | RemoveRemoteSchemaStep
-  | AddRemoteSchemaStep
-  | CreateEventTriggerStep
-  | DeleteEventTriggerStep;
+export type MigrationStep = SetTableIsEnumStep | SetTableCustomizationStep | AddRemoteSchemaPermissionsStep | DropRemoteSchemaPermissionsStep | UpdateRemoteSchemaStep | RemoveRemoteSchemaStep | AddRemoteSchemaStep | CreateEventTriggerStep | DeleteEventTriggerStep;

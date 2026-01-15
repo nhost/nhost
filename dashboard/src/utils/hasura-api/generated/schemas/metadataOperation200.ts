@@ -5,6 +5,7 @@
  * API for managing remote schemas and events in Hasura
  * OpenAPI spec version: 1.0.0
  */
+
 import type { ExportMetadataResponse } from './exportMetadataResponse';
 import type { GetCronTriggersResponse } from './getCronTriggersResponse';
 import type { GetEventAndInvocationLogsByIdResponse } from './getEventAndInvocationLogsByIdResponse';
@@ -18,16 +19,4 @@ import type { MetadataOperation200OneOfTwoItem } from './metadataOperation200One
 import type { SuggestRelationshipsResponse } from './suggestRelationshipsResponse';
 import type { TestWebhookTransformResponse } from './testWebhookTransformResponse';
 
-export type MetadataOperation200 =
-  | MetadataOperation200OneOf
-  | ExportMetadataResponse
-  | SuggestRelationshipsResponse
-  | IntrospectRemoteSchemaResponse
-  | GetEventLogsResponse
-  | GetEventAndInvocationLogsByIdResponse
-  | TestWebhookTransformResponse
-  | InvokeEventTriggerResponse
-  | GetCronTriggersResponse
-  | GetScheduledEventsResponse
-  | GetScheduledEventInvocationsResponse
-  | MetadataOperation200OneOfTwoItem[];
+export type MetadataOperation200 = MetadataOperation200OneOf | ExportMetadataResponse | SuggestRelationshipsResponse | IntrospectRemoteSchemaResponse | GetEventLogsResponse | GetEventAndInvocationLogsByIdResponse | TestWebhookTransformResponse | InvokeEventTriggerResponse | GetCronTriggersResponse | GetScheduledEventsResponse | GetScheduledEventInvocationsResponse | MetadataOperation200OneOfTwoItem[];

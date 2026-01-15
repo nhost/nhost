@@ -1,3 +1,16 @@
+import { Check, ChevronsUpDown } from 'lucide-react';
+import {
+  Children,
+  cloneElement,
+  type ForwardedRef,
+  forwardRef,
+  isValidElement,
+  type PropsWithChildren,
+  type ReactNode,
+  useState,
+} from 'react';
+import type { Control, FieldPath, FieldValues } from 'react-hook-form';
+import { mergeRefs } from 'react-merge-refs';
 import getTransformedFieldProps, {
   type Transformer,
 } from '@/components/form/utils/getTransformedFieldProps';
@@ -24,19 +37,6 @@ import {
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
 import { cn, isNotEmptyValue } from '@/lib/utils';
-import { Check, ChevronsUpDown } from 'lucide-react';
-import {
-  Children,
-  type ForwardedRef,
-  type PropsWithChildren,
-  type ReactNode,
-  cloneElement,
-  forwardRef,
-  isValidElement,
-  useState,
-} from 'react';
-import type { Control, FieldPath, FieldValues } from 'react-hook-form';
-import { mergeRefs } from 'react-merge-refs';
 
 const comboboxTriggerClasses =
   'aria-[invalid=true]:border-red-500 aria-[invalid=true]:focus:border-red-500 aria-[invalid=true]:focus:ring-red-500';
@@ -152,22 +152,20 @@ function enhanceCommandItems({
             originalOnSelect?.(value);
           }}
         >
-          <>
-            {enhanceCommandItems({
-              children: originalChildren,
-              selectedValue,
-              onSelect,
-              showSelectedIcon: false,
-            })}
-            {showSelectedIcon && (
-              <Check
-                className={cn(
-                  'ml-auto h-4 w-4',
-                  isSelected ? 'opacity-100' : 'opacity-0',
-                )}
-              />
-            )}
-          </>
+          {enhanceCommandItems({
+            children: originalChildren,
+            selectedValue,
+            onSelect,
+            showSelectedIcon: false,
+          })}
+          {showSelectedIcon && (
+            <Check
+              className={cn(
+                'ml-auto h-4 w-4',
+                isSelected ? 'opacity-100' : 'opacity-0',
+              )}
+            />
+          )}
         </CommandItem>
       );
     }

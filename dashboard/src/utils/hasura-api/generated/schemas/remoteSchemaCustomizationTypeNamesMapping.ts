@@ -9,6 +9,4 @@
 /**
  * Mapping of original type names to new type names
  */
-export type RemoteSchemaCustomizationTypeNamesMapping = {
-  [key: string]: string;
-};
+export type RemoteSchemaCustomizationTypeNamesMapping = {[key: string]: string};

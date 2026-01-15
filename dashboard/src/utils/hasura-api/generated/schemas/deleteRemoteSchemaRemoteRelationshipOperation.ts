@@ -5,6 +5,7 @@
  * API for managing remote schemas and events in Hasura
  * OpenAPI spec version: 1.0.0
  */
+
 import type { DeleteRemoteSchemaRemoteRelationshipArgs } from './deleteRemoteSchemaRemoteRelationshipArgs';
 import type { DeleteRemoteSchemaRemoteRelationshipOperationType } from './deleteRemoteSchemaRemoteRelationshipOperationType';
 

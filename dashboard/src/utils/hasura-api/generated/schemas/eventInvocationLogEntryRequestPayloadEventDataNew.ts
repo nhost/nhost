@@ -9,6 +9,4 @@
 /**
  * Object representing the new data associated with the event, with each key-value pair representing a column name and its value.
  */
-export type EventInvocationLogEntryRequestPayloadEventDataNew = {
-  [key: string]: unknown;
-};
+export type EventInvocationLogEntryRequestPayloadEventDataNew = { [key: string]: unknown };

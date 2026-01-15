@@ -9,8 +9,8 @@
 /**
  * Type of operation to create object relationship
  */
-export type CreateObjectRelationshipBulkOperationType =
-  (typeof CreateObjectRelationshipBulkOperationType)[keyof typeof CreateObjectRelationshipBulkOperationType];
+export type CreateObjectRelationshipBulkOperationType = typeof CreateObjectRelationshipBulkOperationType[keyof typeof CreateObjectRelationshipBulkOperationType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const CreateObjectRelationshipBulkOperationType = {

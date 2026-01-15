@@ -5,6 +5,7 @@
  * API for managing remote schemas and events in Hasura
  * OpenAPI spec version: 1.0.0
  */
+
 import type { RequestTransformationBody } from './requestTransformationBody';
 import type { RequestTransformationContentType } from './requestTransformationContentType';
 import type { RequestTransformationMethod } from './requestTransformationMethod';

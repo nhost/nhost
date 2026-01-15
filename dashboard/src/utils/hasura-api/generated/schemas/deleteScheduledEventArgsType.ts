@@ -9,8 +9,8 @@
 /**
  * Type of the scheduled event.
  */
-export type DeleteScheduledEventArgsType =
-  (typeof DeleteScheduledEventArgsType)[keyof typeof DeleteScheduledEventArgsType];
+export type DeleteScheduledEventArgsType = typeof DeleteScheduledEventArgsType[keyof typeof DeleteScheduledEventArgsType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const DeleteScheduledEventArgsType = {

@@ -6,8 +6,8 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type RedeliverEventOperationType =
-  (typeof RedeliverEventOperationType)[keyof typeof RedeliverEventOperationType];
+export type RedeliverEventOperationType = typeof RedeliverEventOperationType[keyof typeof RedeliverEventOperationType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const RedeliverEventOperationType = {

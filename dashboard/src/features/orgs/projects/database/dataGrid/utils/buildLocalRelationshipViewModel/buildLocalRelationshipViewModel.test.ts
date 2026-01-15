@@ -1,5 +1,5 @@
-import type { ArrayRelationshipItem } from '@/utils/hasura-api/generated/schemas';
 import { describe, expect, it } from 'vitest';
+import type { ArrayRelationshipItem } from '@/utils/hasura-api/generated/schemas';
 import buildLocalRelationshipViewModel from './buildLocalRelationshipViewModel';
 
 describe('buildLocalRelationshipViewModel (pg_suggest_relationships)', () => {
@@ -15,7 +15,7 @@ describe('buildLocalRelationshipViewModel (pg_suggest_relationships)', () => {
     };
 
     const result = buildLocalRelationshipViewModel({
-      relationship: relationship as any,
+      relationship: relationship,
       type: 'Array',
       tableSchema: 'public',
       tableName: 'users',
@@ -53,7 +53,7 @@ describe('buildLocalRelationshipViewModel (pg_suggest_relationships)', () => {
     };
 
     const result = buildLocalRelationshipViewModel({
-      relationship: relationship as any,
+      relationship: relationship,
       type: 'Array',
       tableSchema: 'public',
       tableName: 'users',

@@ -9,6 +9,4 @@
 /**
  * Mapping of original field names to new field names
  */
-export type RemoteSchemaCustomizationFieldNamesItemMapping = {
-  [key: string]: string;
-};
+export type RemoteSchemaCustomizationFieldNamesItemMapping = {[key: string]: string};

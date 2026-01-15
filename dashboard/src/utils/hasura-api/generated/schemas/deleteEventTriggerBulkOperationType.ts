@@ -9,8 +9,8 @@
 /**
  * Execute multiple operations in a single query
  */
-export type DeleteEventTriggerBulkOperationType =
-  (typeof DeleteEventTriggerBulkOperationType)[keyof typeof DeleteEventTriggerBulkOperationType];
+export type DeleteEventTriggerBulkOperationType = typeof DeleteEventTriggerBulkOperationType[keyof typeof DeleteEventTriggerBulkOperationType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const DeleteEventTriggerBulkOperationType = {

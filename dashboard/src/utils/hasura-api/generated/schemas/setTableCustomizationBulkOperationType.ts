@@ -9,8 +9,8 @@
 /**
  * Type of operation to update remote schemas
  */
-export type SetTableCustomizationBulkOperationType =
-  (typeof SetTableCustomizationBulkOperationType)[keyof typeof SetTableCustomizationBulkOperationType];
+export type SetTableCustomizationBulkOperationType = typeof SetTableCustomizationBulkOperationType[keyof typeof SetTableCustomizationBulkOperationType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const SetTableCustomizationBulkOperationType = {

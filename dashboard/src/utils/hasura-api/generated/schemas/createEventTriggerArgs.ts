@@ -5,6 +5,7 @@
  * API for managing remote schemas and events in Hasura
  * OpenAPI spec version: 1.0.0
  */
+
 import type { Headers } from './headers';
 import type { OperationSpec } from './operationSpec';
 import type { QualifiedTable } from './qualifiedTable';

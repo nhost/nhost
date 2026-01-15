@@ -6,8 +6,8 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type RemoveRemoteSchemaStepType =
-  (typeof RemoveRemoteSchemaStepType)[keyof typeof RemoveRemoteSchemaStepType];
+export type RemoveRemoteSchemaStepType = typeof RemoveRemoteSchemaStepType[keyof typeof RemoveRemoteSchemaStepType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const RemoveRemoteSchemaStepType = {

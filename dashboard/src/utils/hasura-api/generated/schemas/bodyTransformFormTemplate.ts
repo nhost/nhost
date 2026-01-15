@@ -9,4 +9,4 @@
 /**
  * The key/value pairs to be used in a x-www-url-formencoded body. The values can be transfomation templates.
  */
-export type BodyTransformFormTemplate = { [key: string]: string };
+export type BodyTransformFormTemplate = {[key: string]: string};

@@ -10,6 +10,4 @@
  * Represents old data associated with the event or `null` if not applicable.
  * @nullable
  */
-export type EventInvocationLogEntryRequestPayloadEventDataOld = {
-  [key: string]: unknown;
-} | null;
+export type EventInvocationLogEntryRequestPayloadEventDataOld = { [key: string]: unknown } | null;

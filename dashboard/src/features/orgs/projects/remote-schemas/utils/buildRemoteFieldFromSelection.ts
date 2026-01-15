@@ -54,9 +54,16 @@ export default function buildRemoteFieldFromSelection(
       }
 
       if (mapping.type === 'column' && mapping.value.trim().length > 0) {
-        accumulator[argumentName] = `$${mapping.value.trim()}`;
-      } else if (mapping.type === 'static' && mapping.value.trim().length > 0) {
-        accumulator[argumentName] = inferStaticValue(mapping.value.trim());
+        return {
+          ...accumulator,
+          [argumentName]: `$${mapping.value.trim()}`,
+        };
+      }
+      if (mapping.type === 'static' && mapping.value.trim().length > 0) {
+        return {
+          ...accumulator,
+          [argumentName]: inferStaticValue(mapping.value.trim()),
+        };
       }
 
       return accumulator;
@@ -66,8 +73,10 @@ export default function buildRemoteFieldFromSelection(
     const fieldEntries = children.reduce<RemoteField>(
       (accumulator, childName) => {
         const childPath = `${fieldPath}.${childName}`;
-        accumulator[childName] = buildNode(childPath);
-        return accumulator;
+        return {
+          ...accumulator,
+          [childName]: buildNode(childPath),
+        };
       },
       {},
     );

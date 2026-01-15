@@ -9,8 +9,8 @@
 /**
  * Type of operation to create remote relationship
  */
-export type CreateRemoteRelationshipBulkOperationType =
-  (typeof CreateRemoteRelationshipBulkOperationType)[keyof typeof CreateRemoteRelationshipBulkOperationType];
+export type CreateRemoteRelationshipBulkOperationType = typeof CreateRemoteRelationshipBulkOperationType[keyof typeof CreateRemoteRelationshipBulkOperationType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const CreateRemoteRelationshipBulkOperationType = {

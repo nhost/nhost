@@ -9,8 +9,8 @@
 /**
  * Type of event logs to be fetched. If `status` is not provided then all types of status are included
  */
-export type GetEventLogsArgsStatus =
-  (typeof GetEventLogsArgsStatus)[keyof typeof GetEventLogsArgsStatus];
+export type GetEventLogsArgsStatus = typeof GetEventLogsArgsStatus[keyof typeof GetEventLogsArgsStatus];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const GetEventLogsArgsStatus = {

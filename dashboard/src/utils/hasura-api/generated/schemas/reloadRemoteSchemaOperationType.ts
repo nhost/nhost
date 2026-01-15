@@ -9,8 +9,8 @@
 /**
  * Type of operation to reload a remote schema
  */
-export type ReloadRemoteSchemaOperationType =
-  (typeof ReloadRemoteSchemaOperationType)[keyof typeof ReloadRemoteSchemaOperationType];
+export type ReloadRemoteSchemaOperationType = typeof ReloadRemoteSchemaOperationType[keyof typeof ReloadRemoteSchemaOperationType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ReloadRemoteSchemaOperationType = {

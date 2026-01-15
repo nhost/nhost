@@ -9,8 +9,8 @@
 /**
  * Type of relationship - object for one-to-one, array for one-to-many
  */
-export type ToSourceRelationshipDefinitionRelationshipType =
-  (typeof ToSourceRelationshipDefinitionRelationshipType)[keyof typeof ToSourceRelationshipDefinitionRelationshipType];
+export type ToSourceRelationshipDefinitionRelationshipType = typeof ToSourceRelationshipDefinitionRelationshipType[keyof typeof ToSourceRelationshipDefinitionRelationshipType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ToSourceRelationshipDefinitionRelationshipType = {

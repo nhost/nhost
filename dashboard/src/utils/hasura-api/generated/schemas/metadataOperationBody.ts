@@ -5,6 +5,7 @@
  * API for managing remote schemas and events in Hasura
  * OpenAPI spec version: 1.0.0
  */
+
 import type { AddRemoteSchemaOperation } from './addRemoteSchemaOperation';
 import type { CreateArrayRelationshipBulkOperation } from './createArrayRelationshipBulkOperation';
 import type { CreateCronTriggerBulkOperation } from './createCronTriggerBulkOperation';
@@ -37,35 +38,4 @@ import type { SuggestRelationshipsOperation } from './suggestRelationshipsOperat
 import type { TestWebhookTransformOperation } from './testWebhookTransformOperation';
 import type { UpdateRemoteSchemaBulkOperation } from './updateRemoteSchemaBulkOperation';
 
-export type MetadataOperationBody =
-  | ExportMetadata
-  | SetTableCustomizationBulkOperation
-  | SetTableIsEnumBulkOperation
-  | SuggestRelationshipsOperation
-  | DropRelationshipBulkOperation
-  | DeleteRemoteRelationshipBulkOperation
-  | CreateObjectRelationshipBulkOperation
-  | CreateArrayRelationshipBulkOperation
-  | CreateRemoteRelationshipBulkOperation
-  | RenameRelationshipBulkOperation
-  | AddRemoteSchemaOperation
-  | UpdateRemoteSchemaBulkOperation
-  | RemoveRemoteSchemaOperation
-  | ReloadRemoteSchemaOperation
-  | IntrospectRemoteSchemaOperation
-  | RemoteSchemaRemoteRelationshipOperation
-  | DeleteRemoteSchemaRemoteRelationshipOperation
-  | RemoteSchemaPermissionsBulkOperation
-  | GetEventLogsOperation
-  | GetEventAndInvocationLogsByIdOperation
-  | RedeliverEventOperation
-  | CreateEventTriggerBulkOperation
-  | DeleteEventTriggerBulkOperation
-  | TestWebhookTransformOperation
-  | InvokeEventTriggerOperation
-  | GetCronTriggersOperation
-  | CreateCronTriggerBulkOperation
-  | DeleteCronTriggerOperation
-  | GetScheduledEventsOperation
-  | GetScheduledEventInvocationsOperation
-  | DeleteScheduledEventOperation;
+export type MetadataOperationBody = ExportMetadata | SetTableCustomizationBulkOperation | SetTableIsEnumBulkOperation | SuggestRelationshipsOperation | DropRelationshipBulkOperation | DeleteRemoteRelationshipBulkOperation | CreateObjectRelationshipBulkOperation | CreateArrayRelationshipBulkOperation | CreateRemoteRelationshipBulkOperation | RenameRelationshipBulkOperation | AddRemoteSchemaOperation | UpdateRemoteSchemaBulkOperation | RemoveRemoteSchemaOperation | ReloadRemoteSchemaOperation | IntrospectRemoteSchemaOperation | RemoteSchemaRemoteRelationshipOperation | DeleteRemoteSchemaRemoteRelationshipOperation | RemoteSchemaPermissionsBulkOperation | GetEventLogsOperation | GetEventAndInvocationLogsByIdOperation | RedeliverEventOperation | CreateEventTriggerBulkOperation | DeleteEventTriggerBulkOperation | TestWebhookTransformOperation | InvokeEventTriggerOperation | GetCronTriggersOperation | CreateCronTriggerBulkOperation | DeleteCronTriggerOperation | GetScheduledEventsOperation | GetScheduledEventInvocationsOperation | DeleteScheduledEventOperation;

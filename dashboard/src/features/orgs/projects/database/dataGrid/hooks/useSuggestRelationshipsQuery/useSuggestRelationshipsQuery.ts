@@ -1,3 +1,4 @@
+import { type UseQueryOptions, useQuery } from '@tanstack/react-query';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { isNotEmptyValue } from '@/lib/utils';
@@ -5,7 +6,6 @@ import type {
   QualifiedTable,
   SuggestRelationshipsResponse,
 } from '@/utils/hasura-api/generated/schemas';
-import { useQuery, type UseQueryOptions } from '@tanstack/react-query';
 import suggestRelationships from './suggestRelationships';
 
 export interface UseSuggestRelationshipsQueryOptions {
@@ -46,7 +46,7 @@ export default function useSuggestRelationshipsQuery(
         'hasura',
       );
 
-      const adminSecret = project?.config?.hasura.adminSecret!;
+      const adminSecret = project!.config!.hasura.adminSecret;
 
       return suggestRelationships({
         appUrl,

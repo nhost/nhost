@@ -9,8 +9,8 @@
 /**
  * Type of operation to rename relationship
  */
-export type RenameRelationshipBulkOperationType =
-  (typeof RenameRelationshipBulkOperationType)[keyof typeof RenameRelationshipBulkOperationType];
+export type RenameRelationshipBulkOperationType = typeof RenameRelationshipBulkOperationType[keyof typeof RenameRelationshipBulkOperationType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const RenameRelationshipBulkOperationType = {

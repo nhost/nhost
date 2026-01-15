@@ -11,6 +11,4 @@ import type { CreateRemoteSchemaRemoteRelationshipArgsDefinitionOneOfTwo } from 
 /**
  * Relationship definition
  */
-export type CreateRemoteSchemaRemoteRelationshipArgsDefinition =
-  | CreateRemoteSchemaRemoteRelationshipArgsDefinitionOneOf
-  | CreateRemoteSchemaRemoteRelationshipArgsDefinitionOneOfTwo;
+export type CreateRemoteSchemaRemoteRelationshipArgsDefinition = CreateRemoteSchemaRemoteRelationshipArgsDefinitionOneOf | CreateRemoteSchemaRemoteRelationshipArgsDefinitionOneOfTwo;

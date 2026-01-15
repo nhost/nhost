@@ -5,9 +5,8 @@
  * API for managing remote schemas and events in Hasura
  * OpenAPI spec version: 1.0.0
  */
+
 import type { ForeignKeyConstraintArrayRelationship } from './foreignKeyConstraintArrayRelationship';
 import type { ForeignKeyConstraintObjectRelationship } from './foreignKeyConstraintObjectRelationship';
 
-export type RelationshipUsingForeignKeyConstraintOnForeignKeyConstraintOn =
-  | ForeignKeyConstraintObjectRelationship
-  | ForeignKeyConstraintArrayRelationship;
+export type RelationshipUsingForeignKeyConstraintOnForeignKeyConstraintOn = ForeignKeyConstraintObjectRelationship | ForeignKeyConstraintArrayRelationship;

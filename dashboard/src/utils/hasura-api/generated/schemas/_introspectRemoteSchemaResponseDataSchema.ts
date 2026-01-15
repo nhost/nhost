@@ -5,6 +5,7 @@
  * API for managing remote schemas and events in Hasura
  * OpenAPI spec version: 1.0.0
  */
+
 import type { _IntrospectRemoteSchemaResponseDataSchemaMutationType } from './_introspectRemoteSchemaResponseDataSchemaMutationType';
 import type { _IntrospectRemoteSchemaResponseDataSchemaQueryType } from './_introspectRemoteSchemaResponseDataSchemaQueryType';
 import type { _IntrospectRemoteSchemaResponseDataSchemaSubscriptionType } from './_introspectRemoteSchemaResponseDataSchemaSubscriptionType';
@@ -23,4 +24,4 @@ export type _IntrospectRemoteSchemaResponseDataSchema = {
   /** All types in the GraphQL schema */
   types: GraphQLTypeForVisualization[];
   [key: string]: unknown;
-};
+ };

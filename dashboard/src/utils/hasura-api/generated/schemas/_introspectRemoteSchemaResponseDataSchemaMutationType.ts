@@ -12,4 +12,4 @@
 export type _IntrospectRemoteSchemaResponseDataSchemaMutationType = {
   name?: string;
   [key: string]: unknown;
-} | null;
+ } | null;

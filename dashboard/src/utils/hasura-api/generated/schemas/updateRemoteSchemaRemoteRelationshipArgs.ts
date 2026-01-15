@@ -7,5 +7,4 @@
  */
 import type { CreateRemoteSchemaRemoteRelationshipArgs } from './createRemoteSchemaRemoteRelationshipArgs';
 
-export type UpdateRemoteSchemaRemoteRelationshipArgs =
-  CreateRemoteSchemaRemoteRelationshipArgs;
+export type UpdateRemoteSchemaRemoteRelationshipArgs = CreateRemoteSchemaRemoteRelationshipArgs;

@@ -1,8 +1,8 @@
+import type { MutationOptions } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
-import type { MutationOptions } from '@tanstack/react-query';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import renameRelationship, {
   type RenameRelationshipVariables,
 } from './renameRelationship';
@@ -41,7 +41,7 @@ export default function useRenameRelationshipMutation({
       return renameRelationship({
         ...variables,
         appUrl,
-        adminSecret: project?.config?.hasura.adminSecret!,
+        adminSecret: project!.config!.hasura.adminSecret,
       });
     },
     {

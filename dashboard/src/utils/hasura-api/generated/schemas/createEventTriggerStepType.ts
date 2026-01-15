@@ -9,8 +9,8 @@
 /**
  * Type of operation to create event triggers
  */
-export type CreateEventTriggerStepType =
-  (typeof CreateEventTriggerStepType)[keyof typeof CreateEventTriggerStepType];
+export type CreateEventTriggerStepType = typeof CreateEventTriggerStepType[keyof typeof CreateEventTriggerStepType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const CreateEventTriggerStepType = {

@@ -6,8 +6,8 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type SetTableIsEnumStepType =
-  (typeof SetTableIsEnumStepType)[keyof typeof SetTableIsEnumStepType];
+export type SetTableIsEnumStepType = typeof SetTableIsEnumStepType[keyof typeof SetTableIsEnumStepType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const SetTableIsEnumStepType = {

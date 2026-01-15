@@ -1,4 +1,4 @@
-import { isListType, isNonNullType, type GraphQLType } from 'graphql';
+import { type GraphQLType, isListType, isNonNullType } from 'graphql';
 
 /**
  * Get the string representation of a GraphQL type, including modifiers.

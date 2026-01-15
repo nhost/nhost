@@ -5,6 +5,7 @@
  * API for managing remote schemas and events in Hasura
  * OpenAPI spec version: 1.0.0
  */
+
 import type { GraphQLTypeForVisualization as __GraphQLTypeForVisualization } from './graphQLTypeForVisualization';
 import type { GraphQLTypeForVisualizationEnumValuesItem } from './graphQLTypeForVisualizationEnumValuesItem';
 import type { GraphQLTypeForVisualizationFieldsItem } from './graphQLTypeForVisualizationFieldsItem';
@@ -52,4 +53,4 @@ export interface GraphQLTypeForVisualization {
    */
   ofType?: __GraphQLTypeForVisualization;
   [key: string]: unknown;
-}
+ }

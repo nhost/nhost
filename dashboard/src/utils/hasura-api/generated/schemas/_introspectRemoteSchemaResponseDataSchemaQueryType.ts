@@ -12,4 +12,4 @@
 export type _IntrospectRemoteSchemaResponseDataSchemaQueryType = {
   name?: string;
   [key: string]: unknown;
-} | null;
+ } | null;

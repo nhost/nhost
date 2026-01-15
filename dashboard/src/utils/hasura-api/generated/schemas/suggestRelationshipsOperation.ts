@@ -5,6 +5,7 @@
  * API for managing remote schemas and events in Hasura
  * OpenAPI spec version: 1.0.0
  */
+
 import type { SuggestRelationshipsArgs } from './suggestRelationshipsArgs';
 import type { SuggestRelationshipsOperationType } from './suggestRelationshipsOperationType';
 

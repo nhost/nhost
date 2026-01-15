@@ -26,4 +26,4 @@ export type EventInvocationLogEntryRequestPayload = {
   /** Represents information about the trigger. */
   trigger?: EventInvocationLogEntryRequestPayloadTrigger;
   [key: string]: unknown;
-};
+ };

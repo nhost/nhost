@@ -5,6 +5,7 @@
  * API for managing remote schemas and events in Hasura
  * OpenAPI spec version: 1.0.0
  */
+
 import type { ArrayRelationshipItem } from './arrayRelationshipItem';
 import type { EventTrigger } from './eventTrigger';
 import type { ExportMetadataResponseMetadataSourcesItemTablesItemTable } from './exportMetadataResponseMetadataSourcesItemTablesItemTable';

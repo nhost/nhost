@@ -9,8 +9,8 @@
 /**
  * Type of the Scheduled Trigger.
  */
-export type GetScheduledEventsArgsType =
-  (typeof GetScheduledEventsArgsType)[keyof typeof GetScheduledEventsArgsType];
+export type GetScheduledEventsArgsType = typeof GetScheduledEventsArgsType[keyof typeof GetScheduledEventsArgsType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const GetScheduledEventsArgsType = {

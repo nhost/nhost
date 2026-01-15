@@ -10,4 +10,4 @@
  * Customize the column fields (deprecated in favour of custom_name on column_config)
  * @deprecated
  */
-export type TableConfigCustomColumnNames = { [key: string]: string };
+export type TableConfigCustomColumnNames = {[key: string]: string};

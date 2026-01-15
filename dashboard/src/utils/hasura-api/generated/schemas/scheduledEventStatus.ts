@@ -6,8 +6,8 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type ScheduledEventStatus =
-  (typeof ScheduledEventStatus)[keyof typeof ScheduledEventStatus];
+export type ScheduledEventStatus = typeof ScheduledEventStatus[keyof typeof ScheduledEventStatus];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ScheduledEventStatus = {

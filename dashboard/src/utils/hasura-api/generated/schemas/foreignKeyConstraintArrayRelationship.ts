@@ -11,6 +11,4 @@ import type { ForeignKeyConstraintArrayRelationshipOneOfTwo } from './foreignKey
 /**
  * Column(s) from remote table. Used for array relationships.
  */
-export type ForeignKeyConstraintArrayRelationship =
-  | ForeignKeyConstraintArrayRelationshipOneOf
-  | ForeignKeyConstraintArrayRelationshipOneOfTwo;
+export type ForeignKeyConstraintArrayRelationship = ForeignKeyConstraintArrayRelationshipOneOf | ForeignKeyConstraintArrayRelationshipOneOfTwo;

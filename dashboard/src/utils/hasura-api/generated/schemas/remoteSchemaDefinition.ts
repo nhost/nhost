@@ -5,12 +5,11 @@
  * API for managing remote schemas and events in Hasura
  * OpenAPI spec version: 1.0.0
  */
+
 import type { RemoteSchemaDefinitionFromEnv } from './remoteSchemaDefinitionFromEnv';
 import type { RemoteSchemaDefinitionFromUrl } from './remoteSchemaDefinitionFromUrl';
 
 /**
  * Remote schema definition - can use direct URL or environment variable
  */
-export type RemoteSchemaDefinition =
-  | RemoteSchemaDefinitionFromUrl
-  | RemoteSchemaDefinitionFromEnv;
+export type RemoteSchemaDefinition = RemoteSchemaDefinitionFromUrl | RemoteSchemaDefinitionFromEnv;

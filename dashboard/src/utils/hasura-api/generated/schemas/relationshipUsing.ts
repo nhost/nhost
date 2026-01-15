@@ -8,6 +8,4 @@
 import type { RelationshipUsingForeignKeyConstraintOn } from './relationshipUsingForeignKeyConstraintOn';
 import type { RelationshipUsingManualConfiguration } from './relationshipUsingManualConfiguration';
 
-export type RelationshipUsing =
-  | RelationshipUsingForeignKeyConstraintOn
-  | RelationshipUsingManualConfiguration;
+export type RelationshipUsing = RelationshipUsingForeignKeyConstraintOn | RelationshipUsingManualConfiguration;

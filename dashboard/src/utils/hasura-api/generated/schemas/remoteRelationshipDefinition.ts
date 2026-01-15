@@ -11,6 +11,4 @@ import type { RemoteRelationshipDefinitionOneOfTwo } from './remoteRelationshipD
 /**
  * Relationship definition
  */
-export type RemoteRelationshipDefinition =
-  | RemoteRelationshipDefinitionOneOf
-  | RemoteRelationshipDefinitionOneOfTwo;
+export type RemoteRelationshipDefinition = RemoteRelationshipDefinitionOneOf | RemoteRelationshipDefinitionOneOfTwo;

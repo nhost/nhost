@@ -10,6 +10,4 @@
  * Key-value pairs of session variables (i.e. "x-hasura-*" variables) and their values (NULL if no session variables found)
  * @nullable
  */
-export type EventLogEntryPayloadSessionVariables = {
-  [key: string]: string;
-} | null;
+export type EventLogEntryPayloadSessionVariables = {[key: string]: string} | null;

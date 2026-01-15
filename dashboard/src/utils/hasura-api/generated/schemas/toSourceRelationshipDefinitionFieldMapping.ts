@@ -9,6 +9,4 @@
 /**
  * Mapping from remote schema fields to database table columns
  */
-export type ToSourceRelationshipDefinitionFieldMapping = {
-  [key: string]: string;
-};
+export type ToSourceRelationshipDefinitionFieldMapping = {[key: string]: string};

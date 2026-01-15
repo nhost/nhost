@@ -9,8 +9,8 @@
 /**
  * Change the request method to this value.
  */
-export type RequestTransformationMethod =
-  (typeof RequestTransformationMethod)[keyof typeof RequestTransformationMethod];
+export type RequestTransformationMethod = typeof RequestTransformationMethod[keyof typeof RequestTransformationMethod];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const RequestTransformationMethod = {

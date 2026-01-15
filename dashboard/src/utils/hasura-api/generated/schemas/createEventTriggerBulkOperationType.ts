@@ -9,8 +9,8 @@
 /**
  * Type of operation to create event triggers
  */
-export type CreateEventTriggerBulkOperationType =
-  (typeof CreateEventTriggerBulkOperationType)[keyof typeof CreateEventTriggerBulkOperationType];
+export type CreateEventTriggerBulkOperationType = typeof CreateEventTriggerBulkOperationType[keyof typeof CreateEventTriggerBulkOperationType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const CreateEventTriggerBulkOperationType = {

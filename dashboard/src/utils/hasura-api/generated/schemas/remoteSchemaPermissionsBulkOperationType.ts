@@ -9,8 +9,8 @@
 /**
  * Type of operation to add or drop remote schema permissions
  */
-export type RemoteSchemaPermissionsBulkOperationType =
-  (typeof RemoteSchemaPermissionsBulkOperationType)[keyof typeof RemoteSchemaPermissionsBulkOperationType];
+export type RemoteSchemaPermissionsBulkOperationType = typeof RemoteSchemaPermissionsBulkOperationType[keyof typeof RemoteSchemaPermissionsBulkOperationType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const RemoteSchemaPermissionsBulkOperationType = {

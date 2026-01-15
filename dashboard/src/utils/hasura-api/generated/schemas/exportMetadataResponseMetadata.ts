@@ -5,6 +5,7 @@
  * API for managing remote schemas and events in Hasura
  * OpenAPI spec version: 1.0.0
  */
+
 import type { CronTrigger } from './cronTrigger';
 import type { ExportMetadataResponseMetadataSourcesItem } from './exportMetadataResponseMetadataSourcesItem';
 import type { RemoteSchemaInfo } from './remoteSchemaInfo';
@@ -22,4 +23,4 @@ export type ExportMetadataResponseMetadata = {
   /** List of cron triggers */
   cron_triggers?: CronTrigger[];
   [key: string]: unknown;
-};
+ };

@@ -6,8 +6,8 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type DeleteScheduledEventOperationType =
-  (typeof DeleteScheduledEventOperationType)[keyof typeof DeleteScheduledEventOperationType];
+export type DeleteScheduledEventOperationType = typeof DeleteScheduledEventOperationType[keyof typeof DeleteScheduledEventOperationType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const DeleteScheduledEventOperationType = {

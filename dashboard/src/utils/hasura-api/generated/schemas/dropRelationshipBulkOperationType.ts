@@ -9,8 +9,8 @@
 /**
  * Type of operation to drop relationship
  */
-export type DropRelationshipBulkOperationType =
-  (typeof DropRelationshipBulkOperationType)[keyof typeof DropRelationshipBulkOperationType];
+export type DropRelationshipBulkOperationType = typeof DropRelationshipBulkOperationType[keyof typeof DropRelationshipBulkOperationType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const DropRelationshipBulkOperationType = {

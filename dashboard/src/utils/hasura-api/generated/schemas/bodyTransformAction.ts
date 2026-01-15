@@ -9,8 +9,8 @@
 /**
  * The action to perform on the request body.
  */
-export type BodyTransformAction =
-  (typeof BodyTransformAction)[keyof typeof BodyTransformAction];
+export type BodyTransformAction = typeof BodyTransformAction[keyof typeof BodyTransformAction];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const BodyTransformAction = {
