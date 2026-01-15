@@ -24,16 +24,6 @@ export default function prepareObjectRelationshipDTO(
 
   const columnMapping = Object.fromEntries(columnMappingEntries);
 
-  const remoteColumns = values.fieldMapping
-    .map((mapping) => mapping.referenceColumn)
-    .filter(Boolean);
-
-  const foreignKeyColumn = remoteColumns[0];
-
-  if (!foreignKeyColumn) {
-    throw new Error('Invalid array relationship values');
-  }
-
   const args: CreateObjectRelationshipArgs = {
     table: baseTable,
     name: values.name,

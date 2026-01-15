@@ -1,7 +1,7 @@
 import { isToRemoteSchemaRelationshipDefinition } from '@/features/orgs/projects/database/dataGrid/types/relationships/guards';
 import type { RemoteRelationshipViewModel } from '@/features/orgs/projects/database/dataGrid/types/relationships/relationships';
 import { formatEndpoint } from '@/features/orgs/projects/database/dataGrid/utils/formatEndpoint';
-import formatRemoteSchemaEndpoint from '@/features/orgs/projects/database/dataGrid/utils/formatRemoteSchemaEndpoint';
+import { formatRemoteSchemaEndpoint } from '@/features/orgs/projects/database/dataGrid/utils/formatRemoteSchemaEndpoint';
 import getRemoteFieldPath from '@/features/orgs/projects/remote-schemas/utils/getRemoteFieldPath';
 import type { RemoteRelationshipItem } from '@/utils/hasura-api/generated/schemas';
 

@@ -73,7 +73,6 @@ export default function RemoteSchemaRelationshipDetails({
   const [argumentMappingsByPath, setArgumentMappingsByPath] =
     useState<RemoteFieldArgumentMappingsByPath>({});
 
-  // Track the last remoteSchema we initialized for to prevent re-initialization loops
   const lastInitializedSchemaRef = useRef<string | undefined>(undefined);
 
   const { data: targetIntrospectionData } = useIntrospectRemoteSchemaQuery(
@@ -92,17 +91,14 @@ export default function RemoteSchemaRelationshipDetails({
     return convertIntrospectionToSchema(targetIntrospectionData);
   }, [targetIntrospectionData]);
 
-  // Reset when remoteSchema changes, then initialize from initialRemoteField if available
   useEffect(() => {
     const hasSchemaChanged = lastInitializedSchemaRef.current !== remoteSchema;
     const isInitialMount = lastInitializedSchemaRef.current === undefined;
 
-    // Only reset and initialize when remoteSchema actually changes or on initial mount
     if (!hasSchemaChanged && !isInitialMount) {
       return;
     }
 
-    // Reset state when schema changes (but not on initial mount if we have initial values)
     if (hasSchemaChanged) {
       setSelectedRootFieldPath('');
       setSelectedFieldPaths(new Set());
@@ -110,7 +106,6 @@ export default function RemoteSchemaRelationshipDetails({
       onChangeRef.current({ lhsFields: [], remoteField: undefined });
     }
 
-    // Initialize from initialRemoteField if available
     if (initialRemoteField && remoteSchema) {
       const parsed = parseRemoteFieldToSelection(initialRemoteField);
       setSelectedRootFieldPath(parsed.rootFieldPath);

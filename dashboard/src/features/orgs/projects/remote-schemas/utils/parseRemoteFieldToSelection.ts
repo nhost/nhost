@@ -60,15 +60,16 @@ export default function parseRemoteFieldToSelection(
           const isColumnReference =
             typeof argumentValue === 'string' && argumentValue.startsWith('$');
 
-          accumulator[argumentName] = {
-            enabled: true,
-            type: isColumnReference ? 'column' : 'static',
-            value: isColumnReference
-              ? argumentValue.slice(1)
-              : serializeRemoteFieldArgumentValue(argumentValue),
+          return {
+            ...accumulator,
+            [argumentName]: {
+              enabled: true,
+              type: isColumnReference ? 'column' : 'static',
+              value: isColumnReference
+                ? argumentValue.slice(1)
+                : serializeRemoteFieldArgumentValue(argumentValue),
+            },
           };
-
-          return accumulator;
         }, {});
       }
 
