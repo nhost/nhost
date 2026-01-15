@@ -1,5 +1,5 @@
 import { PencilIcon } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { FormInput } from '@/components/form/FormInput';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
@@ -50,10 +50,6 @@ type RenameRelationshipFormValues = {
   newRelationshipName: string;
 };
 
-function sanitizeRelationshipName(value?: string | null) {
-  return value ?? '';
-}
-
 export default function RenameRelationshipDialog({
   schema,
   tableName,
@@ -67,16 +63,11 @@ export default function RenameRelationshipDialog({
 
   const { data: resourceVersion } = useGetMetadataResourceVersion();
 
-  const defaultRelationshipName = useMemo(
-    () => sanitizeRelationshipName(relationshipToRename),
-    [relationshipToRename],
-  );
-
   const relationshipNameInputRef = useRef<HTMLInputElement | null>(null);
 
   const renameForm = useForm<RenameRelationshipFormValues>({
     defaultValues: {
-      newRelationshipName: defaultRelationshipName,
+      newRelationshipName: relationshipToRename,
     },
   });
 
@@ -90,7 +81,7 @@ export default function RenameRelationshipDialog({
       return undefined;
     }
 
-    reset({ newRelationshipName: defaultRelationshipName });
+    reset({ newRelationshipName: relationshipToRename });
     clearErrors('newRelationshipName');
 
     const timer = setTimeout(() => {
@@ -101,7 +92,7 @@ export default function RenameRelationshipDialog({
     return () => {
       clearTimeout(timer);
     };
-  }, [open, defaultRelationshipName, reset, clearErrors]);
+  }, [open, relationshipToRename, reset, clearErrors]);
 
   const showRelationshipNameError = (message: string) => {
     setError('newRelationshipName', {

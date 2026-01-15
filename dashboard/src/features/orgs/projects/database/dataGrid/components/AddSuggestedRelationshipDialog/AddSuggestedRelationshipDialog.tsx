@@ -63,10 +63,6 @@ function getDefaultRelationshipName(
   return `${targetTable}_${suggestion.type ?? 'relationship'}`;
 }
 
-function sanitizeRelationshipName(value?: string | null) {
-  return value ?? '';
-}
-
 const RELATIONSHIP_NAME_VALIDATION_MESSAGE =
   'Relationship name is required. GraphQL fields are limited to letters, numbers, and underscores.';
 
@@ -93,10 +89,7 @@ export default function AddSuggestedRelationshipDialog({
     isLoading: isCreatingArrayRelationship,
   } = useCreateArrayRelationshipMutation();
 
-  const defaultRelationshipName = useMemo(
-    () => sanitizeRelationshipName(getDefaultRelationshipName(suggestion)),
-    [suggestion],
-  );
+  const defaultRelationshipName = getDefaultRelationshipName(suggestion);
 
   const relationshipNameInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -113,8 +106,6 @@ export default function AddSuggestedRelationshipDialog({
     isCreatingObjectRelationship ||
     isCreatingArrayRelationship ||
     formState.isSubmitting;
-
-  const suggestionType = suggestion?.type;
 
   const relationshipSummary = useMemo(() => {
     if (!suggestion) {
@@ -210,7 +201,7 @@ export default function AddSuggestedRelationshipDialog({
 
     let promise: Promise<MetadataOperation200>;
 
-    if (suggestionType === 'array') {
+    if (suggestion.type === 'array') {
       const remoteTable = suggestion.to?.table;
       const remoteColumns = normalizeColumns(suggestion.to?.columns);
 
@@ -237,7 +228,7 @@ export default function AddSuggestedRelationshipDialog({
           },
         },
       });
-    } else if (suggestionType === 'object') {
+    } else if (suggestion.type === 'object') {
       const foreignKeyConstraintOn = suggestion.from?.columns;
 
       if (isEmptyValue(foreignKeyConstraintOn)) {
@@ -263,21 +254,11 @@ export default function AddSuggestedRelationshipDialog({
       return;
     }
 
-    if (!promise) {
-      showRelationshipNameError('Failed to create the relationship.');
-      return;
-    }
-
-    await execPromiseWithErrorToast(
-      async () => {
-        await promise;
-      },
-      {
-        loadingMessage: 'Creating relationship...',
-        successMessage: 'Relationship created successfully.',
-        errorMessage: 'An error occurred while creating the relationship.',
-      },
-    );
+    await execPromiseWithErrorToast(() => promise, {
+      loadingMessage: 'Creating relationship...',
+      successMessage: 'Relationship created successfully.',
+      errorMessage: 'An error occurred while creating the relationship.',
+    });
 
     handleClose(false);
   };

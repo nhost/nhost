@@ -16,6 +16,7 @@ import { useDeleteRemoteRelationshipMutation } from '@/features/orgs/projects/da
 import { useDropRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDropRelationshipMutation';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas';
+import { triggerToast } from '@/utils/toast';
 
 interface DeleteRelationshipDialogProps {
   /**
@@ -64,6 +65,11 @@ export default function DeleteRelationshipDialog({
   const { data: resourceVersion } = useGetMetadataResourceVersion();
 
   const handleDeleteDialogClick = async () => {
+    if (!resourceVersion) {
+      triggerToast('Metadata is not ready yet. Please try again in a moment.');
+      return;
+    }
+
     let deleteRelationshipPromise: Promise<MetadataOperation200>;
     if (isRemoteRelationship) {
       deleteRelationshipPromise = deleteRemoteRelationship({
@@ -90,16 +96,11 @@ export default function DeleteRelationshipDialog({
         },
       });
     }
-    await execPromiseWithErrorToast(
-      async () => {
-        await deleteRelationshipPromise;
-      },
-      {
-        loadingMessage: 'Deleting relationship...',
-        successMessage: 'Relationship deleted successfully.',
-        errorMessage: 'An error occurred while deleting the relationship.',
-      },
-    );
+    await execPromiseWithErrorToast(() => deleteRelationshipPromise, {
+      loadingMessage: 'Deleting relationship...',
+      successMessage: 'Relationship deleted successfully.',
+      errorMessage: 'An error occurred while deleting the relationship.',
+    });
     setOpen(false);
   };
 

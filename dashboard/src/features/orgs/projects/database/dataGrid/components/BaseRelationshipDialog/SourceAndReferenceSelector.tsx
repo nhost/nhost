@@ -91,8 +91,6 @@ export default function SourceAndReferenceSelector() {
   const selectedFromSource = watch('fromSource');
   const selectedToReference = watch('toReference');
 
-  console.log('schemaOptionsBySource', schemaOptionsBySource);
-
   const toSchemaOptions = useMemo(
     () =>
       !isRemoteSchemaRelationship && selectedToReference?.source
@@ -104,8 +102,6 @@ export default function SourceAndReferenceSelector() {
       selectedToReference?.source,
     ],
   );
-
-  console.log('toSchemaOptions', toSchemaOptions);
 
   const toSourceTableNames = useMemo(() => {
     const key = getTableKey(

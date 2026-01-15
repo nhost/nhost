@@ -105,7 +105,7 @@ function InnerFormInput<
                 />
               </FormControl>
               {!!helperText && (
-                <FormDescription className="break-all px-[1px] pt-2">
+                <FormDescription className="break-all px-[1px]">
                   {helperText}
                 </FormDescription>
               )}

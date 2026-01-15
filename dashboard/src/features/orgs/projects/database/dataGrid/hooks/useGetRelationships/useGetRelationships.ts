@@ -47,8 +47,6 @@ export default function useGetRelationships({
     preventRowFetching: true,
   });
 
-  console.log('tableData', tableData);
-
   const foreignKeyRelations = useMemo(
     () => tableData?.foreignKeyRelations ?? [],
     [tableData?.foreignKeyRelations],
@@ -86,12 +84,6 @@ export default function useGetRelationships({
     const objectRelationships = tableMetadataItem.object_relationships ?? [];
 
     const remoteRelationships = tableMetadataItem.remote_relationships ?? [];
-
-    // console.table([
-    //   arrayRelationships,
-    //   objectRelationships,
-    //   remoteRelationships,
-    // ]);
 
     const arrayViewModels = arrayRelationships.map((relationship) =>
       buildLocalRelationshipViewModel({

@@ -41,6 +41,7 @@ export default function CreateRelationshipDialog({
     values: BaseRelationshipFormValues,
   ) => {
     if (!resourceVersion) {
+      triggerToast('Metadata is not ready yet. Please try again in a moment.');
       return;
     }
 

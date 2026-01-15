@@ -1,5 +1,5 @@
 import { SquarePen } from 'lucide-react';
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { BaseRelationshipDialog } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog';
@@ -41,34 +41,33 @@ export default function EditRemoteRelationshipButton({
     source,
   });
 
-  const handleUpdateRemoteRelationship = useCallback(
-    async (values: BaseRelationshipFormValues) => {
-      if (!resourceVersion) {
-        throw new Error(
-          'Metadata is not ready yet. Please try again in a moment.',
-        );
-      }
-
-      const args = isTableRelationshipFormValues(values)
-        ? prepareRemoteSourceRelationshipDTO(values)
-        : prepareRemoteSchemaRelationshipDTO(values);
-
-      await execPromiseWithErrorToast(
-        async () => {
-          await createRemoteRelationship({
-            resourceVersion,
-            args,
-          });
-        },
-        {
-          loadingMessage: 'Saving relationship...',
-          successMessage: 'Relationship updated successfully.',
-          errorMessage: 'Failed to update relationship.',
-        },
+  const handleUpdateRemoteRelationship = async (
+    values: BaseRelationshipFormValues,
+  ) => {
+    if (!resourceVersion) {
+      throw new Error(
+        'Metadata is not ready yet. Please try again in a moment.',
       );
-    },
-    [resourceVersion, createRemoteRelationship],
-  );
+    }
+
+    const args = isTableRelationshipFormValues(values)
+      ? prepareRemoteSourceRelationshipDTO(values)
+      : prepareRemoteSchemaRelationshipDTO(values);
+
+    await execPromiseWithErrorToast(
+      async () => {
+        await createRemoteRelationship({
+          resourceVersion,
+          args,
+        });
+      },
+      {
+        loadingMessage: 'Saving relationship...',
+        successMessage: 'Relationship updated successfully.',
+        errorMessage: 'Failed to update relationship.',
+      },
+    );
+  };
 
   return (
     <>

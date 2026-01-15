@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useCallback, useEffect, } from 'react';
-import { useForm, } from 'react-hook-form';
+import { useCallback, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 
 import { FormInput } from '@/components/form/FormInput';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
@@ -47,11 +47,6 @@ export interface BaseRelationshipDialogProps {
   isEditing?: boolean;
 }
 
-export type CreateRelationshipFormValues = Extract<
-  BaseRelationshipFormValues,
-  { referenceKind: 'table' }
->;
-
 export default function BaseRelationshipDialog({
   open,
   setOpen,
@@ -65,12 +60,10 @@ export default function BaseRelationshipDialog({
   onSubmit,
   isEditing,
 }: BaseRelationshipDialogProps) {
-  console.info('initialValues I got:', initialValues);
-
+  const defaultValues = buildDefaultFormValues(source, schema, tableName);
   const form = useForm<BaseRelationshipFormValues>({
     resolver: zodResolver(relationshipFormSchema),
-    defaultValues:
-      initialValues ?? buildDefaultFormValues(source, schema, tableName),
+    defaultValues: initialValues ?? defaultValues,
   });
 
   const { formState, reset, watch } = form;
@@ -86,10 +79,8 @@ export default function BaseRelationshipDialog({
       return;
     }
 
-    const defaultValues = buildDefaultFormValues(source, schema, tableName);
-
     reset(defaultValues);
-  }, [open, reset, initialValues, source, schema, tableName]);
+  }, [open, reset, initialValues, defaultValues]);
 
   const referenceKind = watch('referenceKind');
 
