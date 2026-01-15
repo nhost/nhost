@@ -1,3 +1,4 @@
+import { useRouter } from 'next/router';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   Dialog,
@@ -13,7 +14,6 @@ import { useDeleteEventTriggerMutation } from '@/features/orgs/projects/events/e
 import { useGetEventTriggers } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventTriggers';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { isEmptyValue } from '@/lib/utils';
-import { useRouter } from 'next/router';
 
 interface DeleteEventTriggerDialogProps {
   open: boolean;

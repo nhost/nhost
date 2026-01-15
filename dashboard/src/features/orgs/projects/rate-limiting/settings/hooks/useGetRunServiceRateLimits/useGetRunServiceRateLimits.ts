@@ -1,15 +1,14 @@
-import { DEFAULT_RATE_LIMITS } from '@/features/orgs/projects/rate-limiting/settings/utils/constants';
-import { parseIntervalNameUnit } from '@/features/orgs/projects/rate-limiting/settings/utils/parseIntervalNameUnit';
-import {
-  useGetLocalRunServiceRateLimitQuery,
-  useGetRunServicesRateLimitQuery,
-  type GetRunServicesRateLimitQuery,
-} from '@/utils/__generated__/graphql';
 import { useMemo } from 'react';
-
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { DEFAULT_RATE_LIMITS } from '@/features/orgs/projects/rate-limiting/settings/utils/constants';
+import { parseIntervalNameUnit } from '@/features/orgs/projects/rate-limiting/settings/utils/parseIntervalNameUnit';
+import {
+  type GetRunServicesRateLimitQuery,
+  useGetLocalRunServiceRateLimitQuery,
+  useGetRunServicesRateLimitQuery,
+} from '@/utils/__generated__/graphql';
 
 type RunService = Pick<
   NonNullable<GetRunServicesRateLimitQuery['app']>['runServices'][number],

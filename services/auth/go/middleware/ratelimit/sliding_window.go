@@ -19,6 +19,7 @@ type SlidingWindow struct {
 	store  Store
 }
 
+// NewSlidingWindow creates a new sliding window based on
 // https://github.com/ElvinEfendi/lua-resty-global-throttle/blob/main/lib/resty/global_throttle/sliding_window.lua
 func NewSlidingWindow(
 	prefix string,

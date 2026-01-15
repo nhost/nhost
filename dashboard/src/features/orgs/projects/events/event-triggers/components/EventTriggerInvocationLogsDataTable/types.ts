@@ -1,5 +1,5 @@
-import type { EventInvocationLogEntry } from '@/utils/hasura-api/generated/schemas/eventInvocationLogEntry';
 import type { Dispatch, SetStateAction } from 'react';
+import type { EventInvocationLogEntry } from '@/utils/hasura-api/generated/schemas/eventInvocationLogEntry';
 
 export interface EventTriggerInvocationLogsDataTableMeta {
   selectedLog: EventInvocationLogEntry | null;

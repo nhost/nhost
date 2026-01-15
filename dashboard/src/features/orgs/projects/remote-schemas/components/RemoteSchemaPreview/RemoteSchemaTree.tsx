@@ -1,4 +1,3 @@
-import { cn } from '@/lib/utils';
 import { useTheme } from '@mui/material';
 import type { GraphQLSchema } from 'graphql';
 import React, {
@@ -14,6 +13,7 @@ import {
   Tree,
   type TreeRef,
 } from 'react-complex-tree';
+import { cn } from '@/lib/utils';
 import 'react-complex-tree/lib/style-modern.css';
 import getText from './getText';
 import type { ComplexTreeData } from './types';

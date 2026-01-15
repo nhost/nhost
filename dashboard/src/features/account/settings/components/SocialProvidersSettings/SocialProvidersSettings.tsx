@@ -1,3 +1,5 @@
+import NavLink from 'next/link';
+import { useMemo } from 'react';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
@@ -7,8 +9,6 @@ import { Text } from '@/components/ui/v2/Text';
 import { useAccessToken } from '@/hooks/useAccessToken';
 import { useNhostClient } from '@/providers/nhost';
 import { useGetAuthUserProvidersQuery } from '@/utils/__generated__/graphql';
-import NavLink from 'next/link';
-import { useMemo } from 'react';
 
 export default function SocialProvidersSettings() {
   const nhost = useNhostClient();

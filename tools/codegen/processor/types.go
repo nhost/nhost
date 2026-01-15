@@ -275,7 +275,7 @@ func getTypeEnum( //nolint:ireturn
 	return t, []Type{t}, nil
 }
 
-// getType determines the type of the schema and returns the corresponding Type.
+// GetType determines the type of the schema and returns the corresponding Type.
 // It also returns a slice of types that may include the main type and any additional types
 // if those may need to be defined globally (e.g., nested objects or enums).
 func GetType( //nolint:ireturn

@@ -1,3 +1,9 @@
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Slash } from 'lucide-react';
+import { useRouter } from 'next/router';
+import { useEffect, useMemo, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 import { useUI } from '@/components/common/UIProvider';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
@@ -34,12 +40,6 @@ import {
   useBillingUpgradeFreeOrganizationMutation,
   useGetOrganizationPlansQuery,
 } from '@/utils/__generated__/graphql';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Slash } from 'lucide-react';
-import { useRouter } from 'next/router';
-import { useEffect, useMemo, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 
 const changeOrgPlanForm = z.object({
   plan: z.string(),

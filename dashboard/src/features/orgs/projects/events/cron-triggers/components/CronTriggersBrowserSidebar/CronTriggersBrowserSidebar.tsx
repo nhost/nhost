@@ -1,3 +1,7 @@
+import { InfoIcon } from 'lucide-react';
+import Image from 'next/image';
+import { useEffect, useState } from 'react';
+import { twMerge } from 'tailwind-merge';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Backdrop } from '@/components/ui/v2/Backdrop';
 import { IconButton } from '@/components/ui/v2/IconButton';
@@ -5,10 +9,6 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { CreateCronTriggerForm } from '@/features/orgs/projects/events/cron-triggers/components/CreateCronTriggerForm';
 import { useGetCronTriggers } from '@/features/orgs/projects/events/cron-triggers/hooks/useGetCronTriggers';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { InfoIcon } from 'lucide-react';
-import Image from 'next/image';
-import { useEffect, useState } from 'react';
-import { twMerge } from 'tailwind-merge';
 import CronTriggerListItem from './CronTriggerListItem';
 import CronTriggersBrowserSidebarSkeleton from './CronTriggersBrowserSidebarSkeleton';
 

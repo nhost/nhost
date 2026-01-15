@@ -16,7 +16,7 @@ const (
 type FakeProvider struct{}
 
 func (f *FakeProvider) GetJWTKeyFunc(_ context.Context) (jwt.Keyfunc, error) {
-	return func(_ *jwt.Token) (interface{}, error) {
+	return func(_ *jwt.Token) (any, error) {
 		return []byte(fakeProviderKey), nil
 	}, nil
 }

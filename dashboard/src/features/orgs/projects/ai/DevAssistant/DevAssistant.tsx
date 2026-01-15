@@ -1,11 +1,14 @@
+import { useState } from 'react';
+import { toast } from 'react-hot-toast';
+import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { ErrorToast } from '@/components/ui/v2/ErrorToast';
 import { IconButton } from '@/components/ui/v2/IconButton';
-import { ArrowUpIcon } from '@/components/ui/v2/icons/ArrowUpIcon';
 import { Input } from '@/components/ui/v2/Input';
+import { ArrowUpIcon } from '@/components/ui/v2/icons/ArrowUpIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { MessagesList } from '@/features/orgs/projects/ai/DevAssistant/components/MessagesList';
@@ -21,13 +24,10 @@ import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { isNotEmptyValue } from '@/lib/utils';
 import {
+  type SendDevMessageMutation,
   useSendDevMessageMutation,
   useStartDevSessionMutation,
-  type SendDevMessageMutation,
 } from '@/utils/__generated__/graphite.graphql';
-import { useState } from 'react';
-import { toast } from 'react-hot-toast';
-import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 
 const MAX_THREAD_LENGTH = 50;
 

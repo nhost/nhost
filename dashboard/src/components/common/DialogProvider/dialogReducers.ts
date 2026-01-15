@@ -1,5 +1,5 @@
-import type { CommonDialogProps } from '@/components/ui/v2/Dialog';
 import type { ReactElement, ReactNode } from 'react';
+import type { CommonDialogProps } from '@/components/ui/v2/Dialog';
 import type { DialogConfig, OpenDialogOptions } from './DialogContext';
 
 export interface DialogState {

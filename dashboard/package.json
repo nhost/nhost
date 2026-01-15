@@ -142,7 +142,7 @@
     "@graphql-codegen/typescript-operations": "^3.0.4",
     "@graphql-codegen/typescript-react-apollo": "^3.3.7",
     "@next/bundle-analyzer": "^12.3.4",
-    "@playwright/test": "1.54.1",
+    "@playwright/test": "1.57.0",
     "@tailwindcss/typography": "^0.5.12",
     "@testing-library/dom": "^9.3.4",
     "@testing-library/jest-dom": "^5.17.0",

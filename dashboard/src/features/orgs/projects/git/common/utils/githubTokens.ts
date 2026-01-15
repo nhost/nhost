@@ -1,5 +1,5 @@
-import { isNotEmptyValue } from '@/lib/utils';
 import type { ProviderSession } from '@nhost/nhost-js/auth';
+import { isNotEmptyValue } from '@/lib/utils';
 
 const githubProviderTokenKey = 'nhost_provider_tokens_github';
 

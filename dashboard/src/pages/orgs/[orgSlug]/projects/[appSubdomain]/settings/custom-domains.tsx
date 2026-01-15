@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Container } from '@/components/layout/Container';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
@@ -13,7 +14,6 @@ import { HasuraDomain } from '@/features/orgs/projects/custom-domains/settings/c
 import { RunServiceDomains } from '@/features/orgs/projects/custom-domains/settings/components/RunServiceDomains';
 import { ServerlessFunctionsDomain } from '@/features/orgs/projects/custom-domains/settings/components/ServerlessFunctionsDomain';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
-import type { ReactElement } from 'react';
 
 export default function CustomDomains() {
   const { org, loading: loadingOrg } = useCurrentOrg();

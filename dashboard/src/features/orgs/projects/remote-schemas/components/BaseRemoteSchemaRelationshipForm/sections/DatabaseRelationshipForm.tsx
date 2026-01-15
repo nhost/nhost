@@ -1,3 +1,7 @@
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Anchor, ChevronsUpDown } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { Button } from '@/components/ui/v3/button';
@@ -22,10 +26,6 @@ import { Spinner } from '@/components/ui/v3/spinner';
 import { useIntrospectRemoteSchemaQuery } from '@/features/orgs/projects/remote-schemas/hooks/useIntrospectRemoteSchemaQuery';
 import getSourceTypes from '@/features/orgs/projects/remote-schemas/utils/getSourceTypes';
 import { cn } from '@/lib/utils';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Anchor, ChevronsUpDown } from 'lucide-react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 import FieldToColumnMapSelector from './FieldToColumnMapSelector';
 import SourceTypeCombobox from './SourceTypeCombobox';
 import TargetTableCombobox from './TargetTableCombobox';

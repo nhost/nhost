@@ -185,13 +185,21 @@ config validate after making changes to your nhost.toml file to ensure it is val
 						Type: "object",
 						Properties: map[string]any{
 							"role": map[string]any{
-								"description": string("role to use when executing queries. Keep in mind the schema depends on the role so if you retrieved the schema for a different role previously retrieve it for this role beforehand as it might differ"),
-								"type":        string("string"),
+								"description": string(
+									"role to use when executing queries. Keep in mind the schema depends on the role so if you retrieved the schema for a different role previously retrieve it for this role beforehand as it might differ",
+								),
+								"type": string("string"),
 							},
 							"subdomain": map[string]any{
-								"description": string("Project to get the GraphQL schema for. Required when service is `project`"),
-								"enum":        []any{string("local"), string("asdasdasdasdasd"), string("qweqweqweqweqwe")},
-								"type":        string("string"),
+								"description": string(
+									"Project to get the GraphQL schema for. Required when service is `project`",
+								),
+								"enum": []any{
+									string("local"),
+									string("asdasdasdasdasd"),
+									string("qweqweqweqweqwe"),
+								},
+								"type": string("string"),
 							},
 							"mutations": map[string]any{
 								"description": string("list of mutations to fetch"),
@@ -243,8 +251,10 @@ config validate after making changes to your nhost.toml file to ensure it is val
 								"type":        "string",
 							},
 							"userId": map[string]any{
-								"description": string("Overrides X-Hasura-User-Id in the GraphQL query/mutation. Credentials must allow it (i.e. admin secret must be in use)"),
-								"type":        string("string"),
+								"description": string(
+									"Overrides X-Hasura-User-Id in the GraphQL query/mutation. Credentials must allow it (i.e. admin secret must be in use)",
+								),
+								"type": string("string"),
 							},
 							"variables": map[string]any{
 								"description": "variables to use in the query",

@@ -1,17 +1,17 @@
+import {
+  createContext,
+  type PropsWithChildren,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
 import type {
   DataGridFilter,
   DataGridFilterOperator,
 } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
 import PersistenDataGrdiFilterStorage from '@/features/orgs/projects/database/dataGrid/utils/PersistentDataGridFilterStorage';
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-  type PropsWithChildren,
-} from 'react';
 
 function updateFilterInArray(
   filters: DataGridFilter[],

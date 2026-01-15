@@ -53,6 +53,7 @@ func (ctrl *Controller) GetUser( //nolint:ireturn
 				e := types.Email(user.Email.String)
 				return &e
 			}
+
 			return nil
 		}(),
 		IsAnonymous:   user.IsAnonymous,
@@ -63,6 +64,7 @@ func (ctrl *Controller) GetUser( //nolint:ireturn
 			if user.PhoneNumber.Valid {
 				return &user.PhoneNumber.String
 			}
+
 			return nil
 		}(),
 		PhoneNumberVerified: user.PhoneNumberVerified,
@@ -70,6 +72,7 @@ func (ctrl *Controller) GetUser( //nolint:ireturn
 			if user.ActiveMfaType.Valid {
 				return &user.ActiveMfaType.String
 			}
+
 			return nil
 		}(),
 		Roles: roles,

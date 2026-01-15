@@ -23,6 +23,7 @@ const (
 )
 
 const (
+	// ServerInstructions
 	// this seems to be largely ignored by clients, or at least by cursor.
 	// we also need to look into roots and resources as those might be helpful.
 	ServerInstructions = `

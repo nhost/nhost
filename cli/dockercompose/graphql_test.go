@@ -256,6 +256,7 @@ func TestConsole(t *testing.T) {
 			cfg: func() *model.ConfigConfig {
 				cfg := getConfig()
 				cfg.Hasura.Version = ptr("v2.25.0")
+
 				return cfg
 			},
 			useTlS:   false,

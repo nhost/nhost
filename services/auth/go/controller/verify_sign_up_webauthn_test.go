@@ -347,6 +347,7 @@ func TestVerifySignUpWebauthn(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				c := getConfig()
 				c.RequireEmailVerification = true
+
 				return c
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -427,6 +428,7 @@ func TestVerifySignUpWebauthn(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				c := getConfig()
 				c.WebauthnEnabled = false
+
 				return c
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -456,6 +458,7 @@ func TestVerifySignUpWebauthn(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				c := getConfig()
 				c.DisableNewUsers = true
+
 				return c
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -508,6 +511,7 @@ func TestVerifySignUpWebauthn(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				c := getConfig()
 				c.DisableSignup = true
+
 				return c
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {

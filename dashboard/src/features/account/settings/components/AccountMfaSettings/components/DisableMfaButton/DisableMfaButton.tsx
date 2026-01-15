@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { toast } from 'react-hot-toast';
 import { MfaOtpForm } from '@/components/common/MfaOtpForm';
 import { Button } from '@/components/ui/v3/button';
 import {
@@ -11,8 +13,6 @@ import {
 import useMfaEnabled from '@/features/account/settings/components/AccountMfaSettings/hooks/useMfaEnabled';
 import { useNhostClient } from '@/providers/nhost';
 import { getToastStyleProps } from '@/utils/constants/settings';
-import { useState } from 'react';
-import { toast } from 'react-hot-toast';
 
 function DisableMfaButton() {
   const nhost = useNhostClient();

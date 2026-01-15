@@ -1,3 +1,5 @@
+import { useRouter } from 'next/router';
+import { type PropsWithChildren, useMemo } from 'react';
 import { Alert } from '@/components/ui/v2/Alert';
 import { ApplicationProvisioning } from '@/features/orgs/projects/common/components/ApplicationProvisioning';
 import { ApplicationRestoring } from '@/features/orgs/projects/common/components/ApplicationRestoring';
@@ -5,8 +7,6 @@ import { ApplicationUnknown } from '@/features/orgs/projects/common/components/A
 import { ApplicationUnpausing } from '@/features/orgs/projects/common/components/ApplicationUnpausing';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { ApplicationStatus } from '@/types/application';
-import { useRouter } from 'next/router';
-import { type PropsWithChildren, useMemo } from 'react';
 
 import PausedProjectContent from './PausedProjectContent';
 

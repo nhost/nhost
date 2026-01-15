@@ -1,11 +1,10 @@
+import { setupServer } from 'msw/node';
+import { afterAll, beforeAll, vi } from 'vitest';
 import { mockMatchMediaValue, mockSession } from '@/tests/mocks';
 import { getOrganizations } from '@/tests/msw/mocks/graphql/getOrganizationQuery';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import { queryClient, render, waitFor } from '@/tests/testUtils';
 import { CheckoutStatus } from '@/utils/__generated__/graphql';
-
-import { setupServer } from 'msw/node';
-import { afterAll, beforeAll, vi } from 'vitest';
 import NotificationsTray from './NotificationsTray';
 
 Object.defineProperty(window, 'matchMedia', {

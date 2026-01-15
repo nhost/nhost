@@ -1,3 +1,6 @@
+import { ApolloClient, HttpLink, InMemoryCache } from '@apollo/client';
+import { useMemo, useState } from 'react';
+import { twMerge } from 'tailwind-merge';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Checkbox } from '@/components/ui/v2/Checkbox';
@@ -9,9 +12,6 @@ import { isNotEmptyValue } from '@/lib/utils';
 import type { AutoEmbeddingsConfiguration } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/auto-embeddings';
 import { useDeleteGraphiteAutoEmbeddingsConfigurationMutation } from '@/utils/__generated__/graphite.graphql';
 import { getHasuraAdminSecret } from '@/utils/env';
-import { ApolloClient, HttpLink, InMemoryCache } from '@apollo/client';
-import { useMemo, useState } from 'react';
-import { twMerge } from 'tailwind-merge';
 
 export interface DeleteAutoEmbeddingsModalProps {
   autoEmbeddingsConfiguration: AutoEmbeddingsConfiguration;

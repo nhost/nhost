@@ -1,3 +1,7 @@
+import Image from 'next/image';
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
+import { twMerge } from 'tailwind-merge';
 import { NavLink } from '@/components/common/NavLink';
 import { Backdrop } from '@/components/ui/v2/Backdrop';
 import type { BoxProps } from '@/components/ui/v2/Box';
@@ -7,10 +11,6 @@ import { List } from '@/components/ui/v2/List';
 import type { ListItemButtonProps } from '@/components/ui/v2/ListItem';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import Image from 'next/image';
-import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
-import { twMerge } from 'tailwind-merge';
 
 export interface AISidebarProps extends Omit<BoxProps, 'children'> {}
 

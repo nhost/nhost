@@ -1,5 +1,5 @@
-import type { PermissionVariable } from '@/types/application';
 import { expect, test } from 'vitest';
+import type { PermissionVariable } from '@/types/application';
 import getAllPermissionVariables from './getAllPermissionVariables';
 
 test('should convert permission variable object to array', () => {

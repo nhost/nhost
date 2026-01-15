@@ -1,5 +1,5 @@
-import type { ArgTreeType } from '@/features/orgs/projects/remote-schemas/types';
 import type { FieldDefinitionNode } from 'graphql';
+import type { ArgTreeType } from '@/features/orgs/projects/remote-schemas/types';
 import getPresetDirective from './getPresetDirective';
 
 function getPresets(field: FieldDefinitionNode) {

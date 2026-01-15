@@ -1,11 +1,16 @@
+import { yupResolver } from '@hookform/resolvers/yup';
+import { RefreshCwIcon } from 'lucide-react';
+import { useEffect } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
 import { ControlledSelect } from '@/components/form/ControlledSelect';
 import { Form } from '@/components/form/Form';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
+import { Input } from '@/components/ui/v2/Input';
 import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
-import { Input } from '@/components/ui/v2/Input';
 import { Option } from '@/components/ui/v2/Option';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
@@ -16,11 +21,6 @@ import {
   useInsertGraphiteAutoEmbeddingsConfigurationMutation,
   useUpdateGraphiteAutoEmbeddingsConfigurationMutation,
 } from '@/utils/__generated__/graphite.graphql';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { RefreshCwIcon } from 'lucide-react';
-import { useEffect } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
-import * as Yup from 'yup';
 
 const AUTO_EMBEDDINGS_MODELS = [
   'text-embedding-ada-002',

@@ -1,10 +1,10 @@
+import type { MutationOptions } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
+import { useRouter } from 'next/router';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { getHasuraAdminSecret } from '@/utils/env';
-import type { MutationOptions } from '@tanstack/react-query';
-import { useMutation } from '@tanstack/react-query';
-import { useRouter } from 'next/router';
 import type { UpdateTableOptions, UpdateTableVariables } from './updateTable';
 import updateTable from './updateTable';
 import updateTableMigration from './updateTableMigration';

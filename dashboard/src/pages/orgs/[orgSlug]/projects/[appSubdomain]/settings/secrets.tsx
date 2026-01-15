@@ -1,3 +1,7 @@
+import { NetworkStatus } from '@apollo/client';
+import type { ReactElement } from 'react';
+import { Fragment } from 'react';
+import { twMerge } from 'tailwind-merge';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
@@ -15,24 +19,19 @@ import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
-import { CreateSecretForm } from '@/features/orgs/projects/secrets/settings/components/CreateSecretForm';
-import { EditSecretForm } from '@/features/orgs/projects/secrets/settings/components/EditSecretForm';
-import type { Secret } from '@/types/application';
-import {
-  useDeleteSecretMutation,
-  useGetSecretsQuery,
-} from '@/utils/__generated__/graphql';
-import { NetworkStatus } from '@apollo/client';
-import type { ReactElement } from 'react';
-import { Fragment } from 'react';
-import { twMerge } from 'tailwind-merge';
-
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { CreateSecretForm } from '@/features/orgs/projects/secrets/settings/components/CreateSecretForm';
+import { EditSecretForm } from '@/features/orgs/projects/secrets/settings/components/EditSecretForm';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import type { Secret } from '@/types/application';
+import {
+  useDeleteSecretMutation,
+  useGetSecretsQuery,
+} from '@/utils/__generated__/graphql';
 
 export default function SecretsPage() {
   const { project } = useProject();

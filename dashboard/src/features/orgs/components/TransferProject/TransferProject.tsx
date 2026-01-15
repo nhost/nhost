@@ -1,8 +1,8 @@
+import { useState } from 'react';
 import { useUI } from '@/components/common/UIProvider';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { TransferProjectDialog } from '@/features/orgs/components/common/TransferProjectDialog';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { useState } from 'react';
 
 export default function TransferProject() {
   const isPlatform = useIsPlatform();

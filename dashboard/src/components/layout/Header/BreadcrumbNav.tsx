@@ -1,20 +1,19 @@
 import { Slash } from 'lucide-react';
+import { useRouter } from 'next/router';
 import { useMemo } from 'react';
-
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbList,
   BreadcrumbSeparator,
 } from '@/components/ui/v3/breadcrumb';
-import { useRouter } from 'next/router';
 import OrgPagesComboBox from './OrgPagesComboBox';
 import OrgsComboBox from './OrgsComboBox';
 import ProjectEventsPagesComboBox from './ProjectEventsPagesComboBox';
 import ProjectGraphQLPagesComboBox from './ProjectGraphQLPagesComboBox';
 import ProjectPagesComboBox from './ProjectPagesComboBox';
-import ProjectsComboBox from './ProjectsComboBox';
 import ProjectSettingsPagesComboBox from './ProjectSettingsPagesComboBox';
+import ProjectsComboBox from './ProjectsComboBox';
 
 export default function BreadcrumbNav() {
   const { query, asPath, route } = useRouter();

@@ -1,15 +1,15 @@
+import { subMinutes } from 'date-fns';
+import { type ReactElement, useCallback, useState } from 'react';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { useProjectLogs } from '@/features/orgs/projects/hooks/useProjectLogs';
 import { LogsBody } from '@/features/orgs/projects/logs/components/LogsBody';
 import {
-  LogsHeader,
   type LogsFilterFormValues,
+  LogsHeader,
 } from '@/features/orgs/projects/logs/components/LogsHeader';
 import { CoreLogService } from '@/features/orgs/projects/logs/utils/constants/services';
 import { DEFAULT_LOG_INTERVAL } from '@/utils/constants/common';
-import { subMinutes } from 'date-fns';
-import { useCallback, useState, type ReactElement } from 'react';
 
 interface LogsFilters {
   from: string;

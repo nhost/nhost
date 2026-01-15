@@ -37,7 +37,7 @@ type PostFormOptions struct {
 	Timeout     time.Duration
 }
 
-// Get performs an OAuth 1.0a signed GET request and decodes the JSON response.
+// GetJSON performs an OAuth 1.0a signed GET request and decodes the JSON response.
 func (c *Config) GetJSON(ctx context.Context, opts GetOptions, result any) error {
 	if opts.Timeout == 0 {
 		opts.Timeout = defaultTimeout

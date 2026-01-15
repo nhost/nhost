@@ -1,3 +1,7 @@
+import { CommandLoading } from 'cmdk';
+import { Check, ChevronLeft, ChevronsUpDown } from 'lucide-react';
+import type { ForwardedRef } from 'react';
+import { forwardRef, useEffect, useState } from 'react';
 import { Button, type ButtonProps } from '@/components/ui/v3/button';
 import {
   Command,
@@ -12,15 +16,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
+
+import useRuleGroupEditor from '@/features/orgs/projects/database/dataGrid/components/RuleGroupEditor/useRuleGroupEditor';
 import { useMetadataQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useMetadataQuery';
 import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
 import { cn } from '@/lib/utils';
-import { Check, ChevronLeft, ChevronsUpDown } from 'lucide-react';
-
-import useRuleGroupEditor from '@/features/orgs/projects/database/dataGrid/components/RuleGroupEditor/useRuleGroupEditor';
-import { CommandLoading } from 'cmdk';
-import type { ForwardedRef } from 'react';
-import { forwardRef, useEffect, useState } from 'react';
 import type { UseAsyncValueOptions } from './useAsyncValue';
 import useAsyncValue from './useAsyncValue';
 import type { UseColumnGroupsOptions } from './useColumnGroups';

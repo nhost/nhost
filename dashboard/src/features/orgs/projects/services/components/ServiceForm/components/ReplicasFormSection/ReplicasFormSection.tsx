@@ -1,13 +1,13 @@
+import { useState } from 'react';
+import { useFormContext, useWatch } from 'react-hook-form';
 import { Box } from '@/components/ui/v2/Box';
+import { Input } from '@/components/ui/v2/Input';
 import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { InfoOutlinedIcon } from '@/components/ui/v2/icons/InfoOutlinedIcon';
-import { Input } from '@/components/ui/v2/Input';
 import { Switch } from '@/components/ui/v2/Switch';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import type { ServiceFormValues } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
-import { useState } from 'react';
-import { useFormContext, useWatch } from 'react-hook-form';
 
 export default function ReplicasFormSection() {
   const {

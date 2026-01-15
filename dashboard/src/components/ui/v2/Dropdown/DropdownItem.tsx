@@ -1,4 +1,3 @@
-import useDropdown from '@/components/ui/v2/Dropdown/useDropdown';
 import { styled } from '@mui/material';
 import { buttonBaseClasses } from '@mui/material/ButtonBase';
 import { dividerClasses } from '@mui/material/Divider';
@@ -6,6 +5,7 @@ import type { MenuItemProps as MaterialMenuItemProps } from '@mui/material/MenuI
 import MaterialMenuItem from '@mui/material/MenuItem';
 import type { ForwardedRef, MouseEvent } from 'react';
 import { forwardRef } from 'react';
+import useDropdown from '@/components/ui/v2/Dropdown/useDropdown';
 
 export interface DropdownItemProps extends MaterialMenuItemProps {
   /**

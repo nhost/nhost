@@ -26,8 +26,7 @@ let
       ];
 
       buildPhase = ''
-        export HOME=$TMPDIR/home
-        mkdir -p $HOME
+        export HOME=$(mktemp -d)
 
         ${preBuild}
 

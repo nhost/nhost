@@ -1,10 +1,11 @@
+import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 import { ControlledSwitch } from '@/components/form/ControlledSwitch';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
+import { Input } from '@/components/ui/v2/Input';
 import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
-import { Input } from '@/components/ui/v2/Input';
 import { Option } from '@/components/ui/v2/Option';
 import { Select } from '@/components/ui/v2/Select';
 import { Text } from '@/components/ui/v2/Text';
@@ -16,7 +17,6 @@ import type { ServiceFormValues } from '@/features/orgs/projects/services/compon
 import { isNotEmptyValue } from '@/lib/utils';
 import type { ConfigRunServicePort } from '@/utils/__generated__/graphql';
 import { getRunServicePortURL } from '@/utils/helpers';
-import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 
 export default function PortsFormSection() {
   const form = useFormContext<ServiceFormValues>();

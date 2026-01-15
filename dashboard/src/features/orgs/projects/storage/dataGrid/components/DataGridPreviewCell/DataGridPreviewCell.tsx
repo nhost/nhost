@@ -1,3 +1,7 @@
+import { FileText } from 'lucide-react';
+import type { ReactNode } from 'react';
+import { useEffect, useReducer, useState } from 'react';
+import type { CellProps } from 'react-table';
 import { AudioPreviewIcon } from '@/components/ui/v2/icons/AudioPreviewIcon';
 import { PDFPreviewIcon } from '@/components/ui/v2/icons/PDFPreviewIcon';
 import { VideoPreviewIcon } from '@/components/ui/v2/icons/VideoPreviewIcon';
@@ -14,10 +18,6 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { usePreviewToggle } from '@/features/orgs/projects/storage/dataGrid/hooks/usePreviewToggle';
 import { cn } from '@/lib/utils';
 import { getHasuraAdminSecret } from '@/utils/env';
-import { FileText } from 'lucide-react';
-import type { ReactNode } from 'react';
-import { useEffect, useReducer, useState } from 'react';
-import type { CellProps } from 'react-table';
 
 export type PreviewProps = {
   fetchBlob: (

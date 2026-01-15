@@ -15,7 +15,7 @@ type readerMatcher struct {
 	v string
 }
 
-func (m readerMatcher) Matches(x interface{}) bool {
+func (m readerMatcher) Matches(x any) bool {
 	reader, ok := x.(io.ReadSeeker)
 	if !ok {
 		return false
@@ -45,7 +45,7 @@ type fileMetadataMatcher struct {
 	v api.FileMetadata
 }
 
-func (m fileMetadataMatcher) Matches(x interface{}) bool {
+func (m fileMetadataMatcher) Matches(x any) bool {
 	return cmp.Equal(
 		m.v,
 		x,
@@ -61,7 +61,7 @@ func FileMetadataMatcher(v api.FileMetadata) gomock.Matcher {
 	return fileMetadataMatcher{v}
 }
 
-func assert(t *testing.T, got, wanted interface{}, opts ...cmp.Option) {
+func assert(t *testing.T, got, wanted any, opts ...cmp.Option) {
 	t.Helper()
 
 	opts = append(opts, cmpopts.IgnoreUnexported(

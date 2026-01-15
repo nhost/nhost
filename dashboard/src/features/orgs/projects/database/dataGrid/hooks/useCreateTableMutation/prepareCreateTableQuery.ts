@@ -1,3 +1,4 @@
+import { format } from 'node-pg-format';
 import type {
   DatabaseTable,
   MutationOrQueryBaseOptions,
@@ -7,7 +8,6 @@ import {
   type HasuraOperation,
 } from '@/features/orgs/projects/database/dataGrid/utils/hasuraQueryHelpers';
 import { isNotEmptyValue } from '@/lib/utils';
-import { format } from 'node-pg-format';
 
 export interface PrepareCreateTableQueryVariables
   extends Omit<MutationOrQueryBaseOptions, 'appUrl' | 'adminSecret' | 'table'> {

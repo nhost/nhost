@@ -1,3 +1,10 @@
+import { yupResolver } from '@hookform/resolvers/yup';
+import { Turnstile } from '@marsidev/react-turnstile';
+import { styled } from '@mui/material';
+import { type ReactElement, useState } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+import { toast } from 'react-hot-toast';
+import * as Yup from 'yup';
 import { NavLink } from '@/components/common/NavLink';
 import { Form } from '@/components/form/Form';
 import { UnauthenticatedLayout } from '@/components/layout/UnauthenticatedLayout';
@@ -7,13 +14,6 @@ import { Input, inputClasses } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import { useNhostClient } from '@/providers/nhost';
 import { getToastStyleProps } from '@/utils/constants/settings';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { Turnstile } from '@marsidev/react-turnstile';
-import { styled } from '@mui/material';
-import { type ReactElement, useState } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
-import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
   email: Yup.string().label('Email').email().required(),

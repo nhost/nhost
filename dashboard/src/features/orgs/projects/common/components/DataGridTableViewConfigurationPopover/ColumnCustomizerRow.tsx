@@ -1,3 +1,5 @@
+import { GripVertical } from 'lucide-react';
+import type { ColumnInstance } from 'react-table';
 import {
   DraggableItem,
   type DraggableItemProps,
@@ -6,8 +8,6 @@ import { Checkbox } from '@/components/ui/v3/checkbox';
 import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
 import PersistenDataTableConfigurationStorage from '@/features/orgs/projects/storage/dataGrid/utils/PersistenDataTableConfigurationStorage';
 import { cn } from '@/lib/utils';
-import { GripVertical } from 'lucide-react';
-import type { ColumnInstance } from 'react-table';
 
 type ColumnCustomizerProps = {
   column: ColumnInstance;

@@ -1,8 +1,8 @@
+import type { ChangeEvent, KeyboardEvent } from 'react';
 import { Input } from '@/components/ui/v3/input';
 import { useDataGridFilters } from '@/features/orgs/projects/common/components/DataGridFiltersPopover/DataGridFiltersProvider';
 import { useDataGridQueryParams } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
 import { useRemoveQueryParamsFromUrl } from '@/hooks/useRemoveQueryParamsFromUrl';
-import type { ChangeEvent, KeyboardEvent } from 'react';
 import DataGridFilterValuePopup from './DataGridFilterValuePopup';
 
 type FilterValueProps = {

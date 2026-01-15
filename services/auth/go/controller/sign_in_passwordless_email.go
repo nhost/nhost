@@ -94,14 +94,26 @@ func (ctrl *Controller) signinWithTicket(
 			return apiErr
 		}
 	case errors.Is(apiErr, ErrUnverifiedUser):
-		if apiErr = ctrl.wf.SetTicket(ctx, user.ID, ticket, ticketExpiresAt, logger); apiErr != nil {
+		if apiErr = ctrl.wf.SetTicket(
+			ctx,
+			user.ID,
+			ticket,
+			ticketExpiresAt,
+			logger,
+		); apiErr != nil {
 			return apiErr
 		}
 	case apiErr != nil:
 		logger.ErrorContext(ctx, "error getting user by email", logError(apiErr))
 		return apiErr
 	default:
-		if apiErr = ctrl.wf.SetTicket(ctx, user.ID, ticket, ticketExpiresAt, logger); apiErr != nil {
+		if apiErr = ctrl.wf.SetTicket(
+			ctx,
+			user.ID,
+			ticket,
+			ticketExpiresAt,
+			logger,
+		); apiErr != nil {
 			return apiErr
 		}
 	}

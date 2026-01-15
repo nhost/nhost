@@ -1,5 +1,5 @@
-import { FormInput } from '@/components/form/FormInput';
 import { useFormContext } from 'react-hook-form';
+import { FormInput } from '@/components/form/FormInput';
 
 export interface CustomGraphQLRootFieldsFieldGroupProps {
   disabled?: boolean;

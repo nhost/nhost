@@ -1,6 +1,6 @@
+import { useEffect, useMemo, useRef } from 'react';
 import { isNotEmptyValue } from '@/lib/utils';
 import { useGetPostgresSettingsLazyQuery } from '@/utils/__generated__/graphql';
-import { useEffect, useMemo, useRef } from 'react';
 
 function useIsPiTREnabledLazy(appId?: string) {
   const [getPostgresSettings, { data, loading }] =

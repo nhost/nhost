@@ -1,13 +1,12 @@
-import { Input } from '@/components/ui/v3/input';
-
-import { cn } from '@/lib/utils';
 import React from 'react';
+import { Input } from '@/components/ui/v3/input';
+import { cn } from '@/lib/utils';
 import {
   copyDate,
   getArrowByType,
   getDateByType,
-  setDateByType,
   type Period,
+  setDateByType,
   type TimePickerType,
 } from './time-picker-utils';
 

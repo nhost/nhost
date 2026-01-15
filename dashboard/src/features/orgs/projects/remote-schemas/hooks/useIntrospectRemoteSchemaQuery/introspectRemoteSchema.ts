@@ -1,10 +1,10 @@
+import type { IntrospectionQuery } from 'graphql';
 import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
 import type {
   IntrospectRemoteSchemaArgs,
   IntrospectRemoteSchemaOperation,
 } from '@/utils/hasura-api/generated/schemas';
 import type { MetadataOperationOptions } from '@/utils/hasura-api/types';
-import type { IntrospectionQuery } from 'graphql';
 
 export interface IntrospectRemoteSchemaVariables {
   args: IntrospectRemoteSchemaArgs;

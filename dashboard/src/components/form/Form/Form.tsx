@@ -1,8 +1,8 @@
-import type { BoxProps } from '@/components/ui/v2/Box';
-import { Box } from '@/components/ui/v2/Box';
 import type { KeyboardEvent } from 'react';
 import { useRef } from 'react';
 import { useFormContext } from 'react-hook-form';
+import type { BoxProps } from '@/components/ui/v2/Box';
+import { Box } from '@/components/ui/v2/Box';
 
 export interface FormProps extends BoxProps {
   /**

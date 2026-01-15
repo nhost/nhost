@@ -102,7 +102,7 @@ describe("Nhost - Sign Up with Email and Password and upload file", () => {
       expect(resp.body.errors).toBeDefined();
       expect(resp.body.errors).toHaveLength(1);
       // biome-ignore lint/style/noNonNullAssertion: blah
-      const errors = resp.body?.errors!;
+      const errors = resp.body.errors!;
       expect(errors[0].message).toBe("not a valid graphql query");
       expect(error.message).toBe("not a valid graphql query");
       expect(errors[0].extensions?.path).toBe("$.query");

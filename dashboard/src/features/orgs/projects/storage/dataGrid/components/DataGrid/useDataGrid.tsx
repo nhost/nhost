@@ -1,6 +1,3 @@
-import { Checkbox } from '@/components/ui/v3/checkbox';
-import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
-import PersistenColumnConfigurationStorage from '@/features/orgs/projects/storage/dataGrid/utils/PersistenDataTableConfigurationStorage';
 import type { MutableRefObject } from 'react';
 import { useMemo } from 'react';
 import type { PluginHook, TableInstance, TableOptions } from 'react-table';
@@ -12,6 +9,9 @@ import {
   useSortBy,
   useTable,
 } from 'react-table';
+import { Checkbox } from '@/components/ui/v3/checkbox';
+import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
+import PersistenColumnConfigurationStorage from '@/features/orgs/projects/storage/dataGrid/utils/PersistenDataTableConfigurationStorage';
 
 export interface UseDataGridBaseOptions {
   /**

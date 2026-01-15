@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import {
   DEFAULT_NUM_RETRIES,
   DEFAULT_RETRY_INTERVAL_SECONDS,
@@ -6,7 +7,6 @@ import {
 } from '@/features/orgs/projects/events/cron-triggers/constants';
 import { getCronTriggerSampleInputPayload } from '@/features/orgs/projects/events/cron-triggers/utils/getCronTriggerSampleInputPayload';
 import { isJSONString } from '@/lib/utils';
-import { z } from 'zod';
 
 export const cronHeaderTypes = [
   {

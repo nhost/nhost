@@ -1,9 +1,9 @@
+import type { ColumnDef } from '@tanstack/react-table';
+import { Check, X } from 'lucide-react';
 import { HoverCardTimestamp } from '@/components/presentational/HoverCardTimestamp';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import { SortableHeader } from '@/features/orgs/projects/events/common/components/SortableHeader';
 import type { EventLogEntry } from '@/utils/hasura-api/generated/schemas';
-import type { ColumnDef } from '@tanstack/react-table';
-import { Check, X } from 'lucide-react';
 import EventTriggerEventsLogActionsCell from './EventTriggerEventsLogActionsCell';
 
 function DeliveredCell({ delivered }: { delivered: boolean }) {

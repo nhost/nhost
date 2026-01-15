@@ -1,3 +1,12 @@
+import { Box, ChevronDown, ChevronRight, Plus, Zap } from 'lucide-react';
+import Link from 'next/link';
+import type { ReactElement } from 'react';
+import {
+  ControlledTreeEnvironment,
+  Tree,
+  type TreeItem,
+  type TreeItemIndex,
+} from 'react-complex-tree';
 import { AIIcon } from '@/components/ui/v2/icons/AIIcon';
 import { CloudIcon } from '@/components/ui/v2/icons/CloudIcon';
 import { DatabaseIcon } from '@/components/ui/v2/icons/DatabaseIcon';
@@ -12,19 +21,9 @@ import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
 import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
-import { useOrgs, type Org } from '@/features/orgs/projects/hooks/useOrgs';
+import { type Org, useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { cn, isNotEmptyValue } from '@/lib/utils';
 import { getConfigServerUrl, isPlatform as getIsPlatform } from '@/utils/env';
-import { Box, ChevronDown, ChevronRight, Plus, Zap } from 'lucide-react';
-import Link from 'next/link';
-import type { ReactElement } from 'react';
-
-import {
-  ControlledTreeEnvironment,
-  Tree,
-  type TreeItem,
-  type TreeItemIndex,
-} from 'react-complex-tree';
 import { useTreeNavState } from './TreeNavStateContext';
 
 const projectPages = [

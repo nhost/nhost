@@ -1,3 +1,8 @@
+import { useApolloClient } from '@apollo/client';
+import getConfig from 'next/config';
+import { useRouter } from 'next/router';
+import { useState } from 'react';
+import { twMerge } from 'tailwind-merge';
 import { NavLink } from '@/components/common/NavLink';
 import { ThemeSwitcher } from '@/components/common/ThemeSwitcher';
 import type { ButtonProps } from '@/components/ui/v2/Button';
@@ -11,11 +16,6 @@ import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useAuth } from '@/providers/Auth';
-import { useApolloClient } from '@apollo/client';
-import getConfig from 'next/config';
-import { useRouter } from 'next/router';
-import { useState } from 'react';
-import { twMerge } from 'tailwind-merge';
 
 export interface MobileNavProps extends ButtonProps {}
 

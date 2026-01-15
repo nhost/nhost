@@ -1,3 +1,11 @@
+import {
+  flexRender,
+  getCoreRowModel,
+  getSortedRowModel,
+  type SortingState,
+  useReactTable,
+} from '@tanstack/react-table';
+import { useState } from 'react';
 import { Skeleton } from '@/components/ui/v3/skeleton';
 import {
   Table,
@@ -12,14 +20,6 @@ import { useEventPagination } from '@/features/orgs/projects/events/common/hooks
 import { useGetEventAndInvocationLogsById } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventAndInvocationLogsById';
 import { cn } from '@/lib/utils';
 import type { EventInvocationLogEntry } from '@/utils/hasura-api/generated/schemas/eventInvocationLogEntry';
-import {
-  flexRender,
-  getCoreRowModel,
-  getSortedRowModel,
-  type SortingState,
-  useReactTable,
-} from '@tanstack/react-table';
-import { useState } from 'react';
 import columns from './invocationDataTableColumns';
 import type { EventTriggerInvocationLogsDataTableMeta } from './types';
 

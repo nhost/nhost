@@ -1,9 +1,9 @@
+import * as Yup from 'yup';
 import {
   RESOURCE_MEMORY_MULTIPLIER,
   RESOURCE_VCPU_MEMORY_RATIO,
   RESOURCE_VCPU_MULTIPLIER,
 } from '@/utils/constants/common';
-import * as Yup from 'yup';
 
 /**
  * The minimum total CPU that has to be allocated.

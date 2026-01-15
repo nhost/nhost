@@ -1,3 +1,5 @@
+import { alpha, styled } from '@mui/material';
+import { useFormContext, useWatch } from 'react-hook-form';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Slider, sliderClasses } from '@/components/ui/v2/Slider';
@@ -20,8 +22,6 @@ import {
   RESOURCE_VCPU_PRICE,
   RESOURCE_VCPU_STEP,
 } from '@/utils/constants/common';
-import { alpha, styled } from '@mui/material';
-import { useFormContext, useWatch } from 'react-hook-form';
 
 export interface TotalResourcesFormFragmentProps {
   /**

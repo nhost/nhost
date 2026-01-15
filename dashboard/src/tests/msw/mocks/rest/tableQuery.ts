@@ -1,5 +1,5 @@
 /** biome-ignore-all lint/suspicious/noExplicitAny: mock file */
-import { http, HttpResponse } from 'msw';
+import { HttpResponse, http } from 'msw';
 
 const tableQuery = http.post(
   'https://local.hasura.local.nhost.run/v2/query',

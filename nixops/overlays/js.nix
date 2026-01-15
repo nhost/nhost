@@ -21,6 +21,14 @@ let
   };
 in
 rec{
+  nodejs-slim_20 = prev.nodejs-slim_20.overrideAttrs (oldAttrs: rec {
+    version = "20.20.0";
+    src = prev.fetchurl {
+      url = "https://nodejs.org/dist/v${version}/node-v${version}.tar.xz";
+      sha256 = "sha256-UpTZ0pFWIOgZ5okv1+VFuY1lC6022uVOZSfqrEgq3Zg=";
+    };
+  });
+
   nodejs = final.symlinkJoin {
     name = "nodejs";
     version = final.nodejs-slim_20.version;

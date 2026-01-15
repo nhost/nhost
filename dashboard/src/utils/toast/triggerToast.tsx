@@ -1,6 +1,6 @@
-import { cn } from '@/lib/utils';
 import type { ReactNode } from 'react';
 import { toast } from 'react-hot-toast';
+import { cn } from '@/lib/utils';
 
 export default function triggerToast(text: ReactNode) {
   toast.custom(

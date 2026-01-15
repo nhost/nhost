@@ -1,3 +1,4 @@
+import { twMerge } from 'tailwind-merge';
 import { Box } from '@/components/ui/v2/Box';
 import { Divider } from '@/components/ui/v2/Divider';
 import { AIIcon } from '@/components/ui/v2/icons/AIIcon';
@@ -6,17 +7,15 @@ import { HasuraIcon } from '@/components/ui/v2/icons/HasuraIcon';
 import { ServicesOutlinedIcon } from '@/components/ui/v2/icons/ServicesOutlinedIcon';
 import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
 import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
-
 import { useServiceStatus } from '@/features/orgs/projects/common/hooks/useServiceStatus';
 import { ServiceAccordion } from '@/features/orgs/projects/overview/components/ServiceAccordion';
 import {
+  type baseServices,
   findHighestImportanceState,
   type ServiceHealthInfo,
-  type baseServices,
 } from '@/features/orgs/projects/overview/health';
 import { isNotEmptyValue } from '@/lib/utils';
 import { removeTypename } from '@/utils/helpers';
-import { twMerge } from 'tailwind-merge';
 
 export interface OverviewProjectHealthModalProps {
   defaultExpanded?: keyof typeof baseServices | 'run';

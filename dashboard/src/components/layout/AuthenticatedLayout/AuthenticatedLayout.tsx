@@ -1,26 +1,25 @@
+import Image from 'next/image';
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
+import Analytics from '@/components/analytics/analytics';
+import { useMediaQuery } from '@/components/common/useMediaQuery';
 import type { BaseLayoutProps } from '@/components/layout/BaseLayout';
 import { BaseLayout } from '@/components/layout/BaseLayout';
 import { Container } from '@/components/layout/Container';
 import { Header } from '@/components/layout/Header';
-import { HighlightedText } from '@/components/presentational/HighlightedText';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Link } from '@/components/ui/v2/Link';
-import { Text } from '@/components/ui/v2/Text';
-import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-
-import Analytics from '@/components/analytics/analytics';
-import { useMediaQuery } from '@/components/common/useMediaQuery';
 import { MainNav } from '@/components/layout/MainNav';
 import PinnedMainNav from '@/components/layout/MainNav/PinnedMainNav';
 import { useTreeNavState } from '@/components/layout/MainNav/TreeNavStateContext';
+import { HighlightedText } from '@/components/presentational/HighlightedText';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Link } from '@/components/ui/v2/Link';
+import { Text } from '@/components/ui/v2/Text';
 import { OrgStatus } from '@/features/orgs/components/OrgStatus';
 import { useIsHealthy } from '@/features/orgs/projects/common/hooks/useIsHealthy';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/providers/Auth';
-import Image from 'next/image';
-import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
 
 export interface AuthenticatedLayoutProps extends BaseLayoutProps {
   withMainNav?: boolean;

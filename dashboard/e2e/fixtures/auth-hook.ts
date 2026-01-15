@@ -1,5 +1,5 @@
+import { test as base, type Page } from '@playwright/test';
 import { TEST_DASHBOARD_URL, TEST_PERSONAL_ORG_SLUG } from '@/e2e/env';
-import { type Page, test as base } from '@playwright/test';
 
 export const AUTH_CONTEXT = 'e2e/.auth/user.json';
 

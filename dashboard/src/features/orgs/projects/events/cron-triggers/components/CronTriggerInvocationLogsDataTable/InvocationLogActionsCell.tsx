@@ -1,9 +1,9 @@
-import { Button } from '@/components/ui/v3/button';
-import { Dialog, DialogTrigger } from '@/components/ui/v3/dialog';
-import type { CronTriggerInvocationLogEntry } from '@/utils/hasura-api/generated/schemas';
 import type { Table as TanStackTable } from '@tanstack/react-table';
 import { Eye } from 'lucide-react';
 import { useState } from 'react';
+import { Button } from '@/components/ui/v3/button';
+import { Dialog, DialogTrigger } from '@/components/ui/v3/dialog';
+import type { CronTriggerInvocationLogEntry } from '@/utils/hasura-api/generated/schemas';
 import InvocationLogDetailsDialogContent from './InvocationLogDetailsDialogContent';
 import type { CronTriggerInvocationLogsDataTableMeta } from './types';
 

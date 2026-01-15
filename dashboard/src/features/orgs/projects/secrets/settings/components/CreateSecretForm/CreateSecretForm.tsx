@@ -1,5 +1,10 @@
+import { yupResolver } from '@hookform/resolvers/yup';
+import { FormProvider, useForm } from 'react-hook-form';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type {
   BaseSecretFormProps,
   BaseSecretFormValues,
@@ -8,15 +13,9 @@ import {
   BaseSecretForm,
   baseSecretFormValidationSchema,
 } from '@/features/orgs/projects/secrets/settings/components/BaseSecretForm';
-import { useInsertSecretMutation } from '@/utils/__generated__/graphql';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { FormProvider, useForm } from 'react-hook-form';
-
-import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { MakeRequired } from '@/types/common';
+import { useInsertSecretMutation } from '@/utils/__generated__/graphql';
 
 export interface CreateSecretFormProps
   extends Pick<BaseSecretFormProps, 'onCancel'> {

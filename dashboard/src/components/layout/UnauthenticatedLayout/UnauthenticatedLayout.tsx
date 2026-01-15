@@ -1,3 +1,7 @@
+import GlobalStyles from '@mui/material/GlobalStyles';
+import Image from 'next/image';
+import { useRouter } from 'next/router';
+import { useEffect } from 'react';
 import type { BaseLayoutProps } from '@/components/layout/BaseLayout';
 import { BaseLayout } from '@/components/layout/BaseLayout';
 import { Container } from '@/components/layout/Container';
@@ -7,10 +11,6 @@ import { Box } from '@/components/ui/v2/Box';
 import { ThemeProvider } from '@/components/ui/v2/ThemeProvider';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useAuth } from '@/providers/Auth';
-import GlobalStyles from '@mui/material/GlobalStyles';
-import Image from 'next/image';
-import { useRouter } from 'next/router';
-import { useEffect } from 'react';
 
 export interface UnauthenticatedLayoutProps extends BaseLayoutProps {
   rightColumnContent?: React.ReactNode;

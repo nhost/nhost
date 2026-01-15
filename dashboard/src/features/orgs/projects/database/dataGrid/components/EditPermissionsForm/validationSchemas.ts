@@ -1,5 +1,5 @@
-import type { DatabaseAction } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import * as Yup from 'yup';
+import type { DatabaseAction } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 
 const ruleSchema = Yup.object().shape({
   column: Yup.string().nullable().required('Please select a column.'),

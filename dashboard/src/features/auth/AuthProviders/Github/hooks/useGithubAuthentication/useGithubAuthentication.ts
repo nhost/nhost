@@ -1,9 +1,9 @@
-import { isNotEmptyValue } from '@/lib/utils';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { nhost } from '@/utils/nhost';
 import type { SignInProviderParams } from '@nhost/nhost-js/auth';
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
+import { isNotEmptyValue } from '@/lib/utils';
+import { getToastStyleProps } from '@/utils/constants/settings';
+import { nhost } from '@/utils/nhost';
 
 export interface UseGithubAuthenticationHookProps {
   withAnonId?: boolean;

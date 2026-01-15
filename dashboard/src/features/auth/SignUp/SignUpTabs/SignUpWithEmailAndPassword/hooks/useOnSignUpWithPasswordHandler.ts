@@ -1,8 +1,8 @@
+import { useRouter } from 'next/router';
+import toast from 'react-hot-toast';
 import { isEmptyValue } from '@/lib/utils';
 import { useNhostClient } from '@/providers/nhost';
 import { getToastStyleProps } from '@/utils/constants/settings';
-import { useRouter } from 'next/router';
-import toast from 'react-hot-toast';
 import type { SignUpWithEmailAndPasswordFormValues } from './useSignUpWithEmailAndPasswordForm';
 
 function useOnSignUpWithPasswordHandler() {

@@ -1,8 +1,8 @@
 import { clsx } from 'clsx';
 import {
-  forwardRef,
   type ComponentPropsWithoutRef,
   type ForwardedRef,
+  forwardRef,
   type ReactElement,
 } from 'react';
 

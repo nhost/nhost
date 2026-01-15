@@ -1,3 +1,9 @@
+import { yupResolver } from '@hookform/resolvers/yup';
+import { styled } from '@mui/material';
+import { Mail } from 'lucide-react';
+import { type ReactElement, useEffect } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+import * as Yup from 'yup';
 import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete';
 import { ControlledSelect } from '@/components/form/ControlledSelect';
 import { Form } from '@/components/form/Form';
@@ -12,15 +18,9 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import { useAccessToken } from '@/hooks/useAccessToken';
 import { useUserData } from '@/hooks/useUserData';
 import {
-  useGetOrganizationsQuery,
   type GetOrganizationsQuery,
+  useGetOrganizationsQuery,
 } from '@/utils/__generated__/graphql';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { styled } from '@mui/material';
-import { Mail } from 'lucide-react';
-import { useEffect, type ReactElement } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
-import * as Yup from 'yup';
 
 type Organization = Omit<
   GetOrganizationsQuery['organizations'][0],

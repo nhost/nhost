@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useState } from 'react';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import {
@@ -7,7 +8,6 @@ import {
 import { useUserData } from '@/hooks/useUserData';
 import { ApplicationStatus } from '@/types/application';
 import { discordAnnounce } from '@/utils/discordAnnounce';
-import { useCallback, useEffect, useState } from 'react';
 
 type ApplicationStateMetadata = {
   state: ApplicationStatus;

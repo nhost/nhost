@@ -287,7 +287,9 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 					assert(t, actualResp.Headers, expectedResp.Headers)
 					assert(t, actualResp.ContentLength, expectedResp.ContentLength)
 				} else {
-					t.Errorf("expected GetFile200ApplicationoctetStreamResponse, got %T", tc.expected)
+					t.Errorf(
+						"expected GetFile200ApplicationoctetStreamResponse, got %T", tc.expected,
+					)
 				}
 			case api.GetFile304Response:
 				assert(t, resp, tc.expected)

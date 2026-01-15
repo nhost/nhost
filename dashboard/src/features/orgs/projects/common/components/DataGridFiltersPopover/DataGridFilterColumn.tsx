@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { Badge } from '@/components/ui/v3/badge';
 import {
   Select,
@@ -7,7 +8,6 @@ import {
 } from '@/components/ui/v3/select';
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
 import { isNotEmptyValue } from '@/lib/utils';
-import { useEffect, useRef } from 'react';
 import { useDataGridFilters } from './DataGridFiltersProvider';
 
 type DataFilterColumnProps = {

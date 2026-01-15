@@ -1,12 +1,12 @@
+import { useState } from 'react';
+import { useFormContext } from 'react-hook-form';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
-import { Text } from '@/components/ui/v2/Text';
-import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
-import { useState } from 'react';
-import { useFormContext } from 'react-hook-form';
+import { Text } from '@/components/ui/v2/Text';
+import { Tooltip } from '@/components/ui/v2/Tooltip';
 import type { BaseRemoteSchemaFormValues } from './BaseRemoteSchemaForm';
 
 export default function GraphQLCustomizations() {

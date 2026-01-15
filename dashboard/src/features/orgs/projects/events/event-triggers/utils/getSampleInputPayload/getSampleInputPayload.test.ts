@@ -1,6 +1,6 @@
+import { describe, it } from 'vitest';
 import type { NormalizedQueryDataRow } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import type { BaseEventTriggerFormValues } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerFormTypes';
-import { describe, it } from 'vitest';
 import getSampleInputPayload from './getSampleInputPayload';
 
 describe('getSampleInputPayload', () => {

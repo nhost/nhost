@@ -1,3 +1,11 @@
+import {
+  flexRender,
+  getCoreRowModel,
+  getSortedRowModel,
+  type SortingState,
+  useReactTable,
+} from '@tanstack/react-table';
+import { useState } from 'react';
 import { Skeleton } from '@/components/ui/v3/skeleton';
 import {
   Table,
@@ -10,14 +18,6 @@ import {
 import { useGetCronInvocationLogsById } from '@/features/orgs/projects/events/cron-triggers/hooks/useGetCronInvocationLogsById';
 import { cn } from '@/lib/utils';
 import type { CronTriggerInvocationLogEntry } from '@/utils/hasura-api/generated/schemas/cronTriggerInvocationLogEntry';
-import {
-  flexRender,
-  getCoreRowModel,
-  getSortedRowModel,
-  type SortingState,
-  useReactTable,
-} from '@tanstack/react-table';
-import { useState } from 'react';
 import columns from './invocationDataTableColumns';
 import type { CronTriggerInvocationLogsDataTableMeta } from './types';
 

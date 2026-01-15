@@ -1,3 +1,9 @@
+import Image from 'next/image';
+import { useRouter } from 'next/router';
+import type { FormEvent, ReactElement } from 'react';
+import { useState } from 'react';
+import slugify from 'slugify';
+import { twMerge } from 'tailwind-merge';
 import { useUI } from '@/components/common/UIProvider';
 import { Container } from '@/components/layout/Container';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
@@ -14,18 +20,12 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import { useSubmitState } from '@/hooks/useSubmitState';
 import { analytics } from '@/lib/segment';
 import {
-  useInsertOrgApplicationMutation,
-  usePrefetchNewAppQuery,
   type GetOrganizationsQuery,
   type PrefetchNewAppRegionsFragment,
+  useInsertOrgApplicationMutation,
+  usePrefetchNewAppQuery,
 } from '@/utils/__generated__/graphql';
 import { getErrorMessage } from '@/utils/getErrorMessage';
-import Image from 'next/image';
-import { useRouter } from 'next/router';
-import type { FormEvent, ReactElement } from 'react';
-import { useState } from 'react';
-import slugify from 'slugify';
-import { twMerge } from 'tailwind-merge';
 
 type NewAppPageProps = {
   regions: PrefetchNewAppRegionsFragment[];

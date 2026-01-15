@@ -1,3 +1,5 @@
+import { ChevronDown, ChevronRight } from 'lucide-react';
+import { useState } from 'react';
 import CopyToClipboardButton from '@/components/presentational/CopyToClipboardButton/CopyToClipboardButton';
 import {
   Collapsible,
@@ -7,8 +9,6 @@ import {
 import { HeadersTable } from '@/features/orgs/projects/events/common/components/HeadersTable';
 import { isNotEmptyValue } from '@/lib/utils';
 import type { CronTrigger } from '@/utils/hasura-api/generated/schemas';
-import { ChevronDown, ChevronRight } from 'lucide-react';
-import { useState } from 'react';
 
 export default function CronTriggerOverview({
   cronTrigger,

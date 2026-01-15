@@ -231,6 +231,7 @@ func TestAuth(t *testing.T) {
 			cfg: func() *model.ConfigConfig {
 				cfg := getConfig()
 				cfg.Auth.Version = ptr("0.21.3")
+
 				return cfg
 			},
 			useTlS:     true,
@@ -243,6 +244,7 @@ func TestAuth(t *testing.T) {
 				svc.Labels["traefik.http.routers.auth.middlewares"] = "replace-auth"
 				svc.Labels["traefik.http.routers.auth.rule"] = "(HostRegexp(`^.+\\.auth\\.local\\.nhost\\.run$`) || Host(`local.auth.nhost.run`)) && PathPrefix(`/v1`)" //nolint:lll
 				svc.Environment["HASURA_GRAPHQL_DATABASE_URL"] = "postgres://nhost_auth_admin@postgres:5432/local"
+
 				return svc
 			},
 		},

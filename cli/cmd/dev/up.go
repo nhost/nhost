@@ -203,7 +203,9 @@ func migrations(
 			return fmt.Errorf("failed to apply migrations: %w", err)
 		}
 	} else {
-		ce.Warnln("No migrations found, make sure this is intentional or it could lead to unexpected behavior")
+		ce.Warnln(
+			"No migrations found, make sure this is intentional or it could lead to unexpected behavior",
+		)
 	}
 
 	if clienv.PathExists(filepath.Join(ce.Path.NhostFolder(), "metadata", "version.yaml")) {
@@ -213,7 +215,9 @@ func migrations(
 			return fmt.Errorf("failed to apply metadata: %w", err)
 		}
 	} else {
-		ce.Warnln("No metadata found, make sure this is intentional or it could lead to unexpected behavior")
+		ce.Warnln(
+			"No metadata found, make sure this is intentional or it could lead to unexpected behavior",
+		)
 	}
 
 	if applySeeds {

@@ -1,12 +1,12 @@
-import type { RowDensity } from '@/features/orgs/projects/common/types/dataTableConfigurationTypes';
-import PersistenDataTableConfigurationStorage from '@/features/orgs/projects/storage/dataGrid/utils/PersistenDataTableConfigurationStorage';
 import {
   createContext,
+  type PropsWithChildren,
   useContext,
   useMemo,
   useState,
-  type PropsWithChildren,
 } from 'react';
+import type { RowDensity } from '@/features/orgs/projects/common/types/dataTableConfigurationTypes';
+import PersistenDataTableConfigurationStorage from '@/features/orgs/projects/storage/dataGrid/utils/PersistenDataTableConfigurationStorage';
 
 type DataTableDesign = {
   setRowDensity: (newDensity: RowDensity) => void;

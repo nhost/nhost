@@ -35,7 +35,6 @@ let
       "pnpm-lock.yaml"
       "turbo.json"
       (inDirectory "./build")
-      "${submodule}/.prettierignore"
       "${submodule}/gen.sh"
       "${submodule}/jest.config.cjs"
       "${submodule}/package.json"

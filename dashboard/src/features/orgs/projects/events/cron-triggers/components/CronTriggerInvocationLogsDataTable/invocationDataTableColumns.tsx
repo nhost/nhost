@@ -1,9 +1,9 @@
+import type { ColumnDef } from '@tanstack/react-table';
 import { HoverCardTimestamp } from '@/components/presentational/HoverCardTimestamp';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import { HttpStatusText } from '@/features/orgs/projects/events/common/components/HttpStatusText';
 import { SortableHeader } from '@/features/orgs/projects/events/common/components/SortableHeader';
 import type { CronTriggerInvocationLogEntry } from '@/utils/hasura-api/generated/schemas/cronTriggerInvocationLogEntry';
-import type { ColumnDef } from '@tanstack/react-table';
 import InvocationLogActionsCell from './InvocationLogActionsCell';
 
 const columns: ColumnDef<CronTriggerInvocationLogEntry>[] = [

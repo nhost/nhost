@@ -1,3 +1,5 @@
+import { formatDistanceToNow } from 'date-fns';
+import { BoxIcon } from 'lucide-react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Box } from '@/components/ui/v2/Box';
 import { Divider } from '@/components/ui/v2/Divider';
@@ -19,8 +21,6 @@ import {
   type ServiceFormInitialData,
 } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
 import { copy } from '@/utils/copy';
-import { formatDistanceToNow } from 'date-fns';
-import { BoxIcon } from 'lucide-react';
 
 interface ServicesListProps {
   /**

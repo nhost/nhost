@@ -1,13 +1,13 @@
+import { useCallback, useEffect, useRef } from 'react';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { CoreLogService } from '@/features/orgs/projects/logs/utils/constants/services';
 import { isNotEmptyValue } from '@/lib/utils';
 import {
-  type GetProjectLogsQuery,
   GetLogsSubscriptionDocument,
+  type GetProjectLogsQuery,
   useGetProjectLogsQuery,
 } from '@/utils/__generated__/graphql';
 import { splitGraphqlClient } from '@/utils/splitGraphqlClient';
-import { useCallback, useEffect, useRef } from 'react';
 
 export interface UseProjectLogsProps {
   from: string;

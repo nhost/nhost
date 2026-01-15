@@ -72,13 +72,21 @@ func processOAMFiles(oam *OpenAPIMinimal, outDir string) (Endpoints, error) {
 		for method, data := range methods {
 			operationID, ok := data["operationId"].(string)
 			if !ok {
-				return nil, fmt.Errorf("operationId not found for %s %s", method, path) //nolint:err113
+				return nil, fmt.Errorf( //nolint:err113
+					"operationId not found for %s %s",
+					method,
+					path,
+				)
 			}
 
 			e := Endpoint{Method: method, Path: path, OperationID: operationID}
 			endpoints = append(endpoints, e)
 
-			if err := os.WriteFile(e.Filepath(outDir), []byte(e.Content()), 0o644); err != nil { //nolint:gosec,mnd
+			if err := os.WriteFile( //nolint:gosec
+				e.Filepath(outDir),
+				[]byte(e.Content()),
+				0o644, //nolint:mnd
+			); err != nil {
 				return nil, fmt.Errorf("failed to write file: %w", err)
 			}
 		}

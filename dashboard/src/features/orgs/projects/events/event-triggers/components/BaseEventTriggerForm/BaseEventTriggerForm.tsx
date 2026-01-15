@@ -1,3 +1,6 @@
+import { zodResolver } from '@hookform/resolvers/zod';
+import { type ReactNode, useCallback, useMemo, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { DiscardChangesDialog } from '@/components/common/DiscardChangesDialog';
 import { FormInput } from '@/components/form/FormInput';
 import { FormSelect } from '@/components/form/FormSelect';
@@ -32,18 +35,15 @@ import {
 } from '@/components/ui/v3/sheet';
 import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
 import { useGetMetadata } from '@/features/orgs/projects/common/hooks/useGetMetadata';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useCallback, useMemo, useState, type ReactNode } from 'react';
-import { useForm } from 'react-hook-form';
 import {
   ALL_TRIGGER_OPERATIONS,
+  type BaseEventTriggerFormInitialData,
+  type BaseEventTriggerFormValues,
   defaultFormValues,
   defaultPayloadTransformValues,
   defaultRequestOptionsTransformValues,
   updateTriggerOnOptions,
   validationSchema,
-  type BaseEventTriggerFormInitialData,
-  type BaseEventTriggerFormValues,
 } from './BaseEventTriggerFormTypes';
 import HeadersSection from './sections/HeadersSection';
 import PayloadTransformSection from './sections/PayloadTransformSection/PayloadTransformSection';

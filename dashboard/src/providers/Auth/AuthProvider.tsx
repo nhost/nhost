@@ -1,17 +1,17 @@
+import type { Session } from '@nhost/nhost-js/auth';
+import { useRouter } from 'next/router';
+import { type PropsWithChildren, useEffect, useMemo, useState } from 'react';
+import { toast } from 'react-hot-toast';
 import {
   clearGitHubToken,
-  saveGitHubToken,
   type GitHubProviderToken,
+  saveGitHubToken,
 } from '@/features/orgs/projects/git/common/utils';
 import { useRemoveQueryParamsFromUrl } from '@/hooks/useRemoveQueryParamsFromUrl';
 import { isNotEmptyValue } from '@/lib/utils';
 import { useNhostClient } from '@/providers/nhost/';
 import { useGetAuthUserProvidersLazyQuery } from '@/utils/__generated__/graphql';
 import { getToastStyleProps } from '@/utils/constants/settings';
-import type { Session } from '@nhost/nhost-js/auth';
-import { useRouter } from 'next/router';
-import { useEffect, useMemo, useState, type PropsWithChildren } from 'react';
-import { toast } from 'react-hot-toast';
 import { AuthContext, type AuthContextType } from './AuthContext';
 
 const removableParams = [

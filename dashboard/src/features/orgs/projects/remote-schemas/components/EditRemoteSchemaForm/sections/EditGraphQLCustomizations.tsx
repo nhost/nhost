@@ -1,12 +1,20 @@
+import { Check, ChevronsUpDown } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import {
+  Controller,
+  useFieldArray,
+  useFormContext,
+  useWatch,
+} from 'react-hook-form';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
-import { Text } from '@/components/ui/v2/Text';
-import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { PencilIcon } from '@/components/ui/v2/icons/PencilIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
+import { Text } from '@/components/ui/v2/Text';
+import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { Button as ButtonV3 } from '@/components/ui/v3/button';
 import {
   Command,
@@ -29,14 +37,6 @@ import type {
   GraphQLTypeForVisualizationFieldsItem,
   RemoteSchemaCustomizationFieldNamesItem,
 } from '@/utils/hasura-api/generated/schemas';
-import { Check, ChevronsUpDown } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
-import {
-  Controller,
-  useFieldArray,
-  useFormContext,
-  useWatch,
-} from 'react-hook-form';
 import TypeNameCustomizationCombobox from './TypeNameCustomizationCombobox';
 
 export interface EditGraphQLCustomizationsProps {
