@@ -5,22 +5,46 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { DataBrowserGrid } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid';
 import { DataGridQueryParamsProvider } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
 import { DataBrowserSidebar } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserSidebar';
+import FunctionDefinitionView from '@/features/orgs/projects/database/dataGrid/components/FunctionDefinitionView';
+import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
 
 export default function DataBrowserTableDetailsPage() {
   const { project } = useProject();
   const isPlatform = useIsPlatform();
+  const router = useRouter();
+  const {
+    query: { dataSourceSlug, schemaSlug, tableSlug },
+  } = router;
+
+  const { data: databaseData } = useDatabaseQuery([dataSourceSlug as string], {
+    queryOptions: {
+      enabled: !!dataSourceSlug && !!schemaSlug && !!tableSlug,
+    },
+  });
 
   if (isPlatform && !project?.config?.hasura.adminSecret) {
     return <LoadingScreen />;
   }
 
+  // Check if the current object is a function
+  const isFunction =
+    databaseData?.functions?.some(
+      (func) =>
+        func.table_schema === schemaSlug && func.table_name === tableSlug,
+    ) || false;
+
   return (
     <RetryableErrorBoundary>
-      <DataGridQueryParamsProvider>
-        <DataBrowserGrid />
-      </DataGridQueryParamsProvider>
+      {isFunction ? (
+        <FunctionDefinitionView />
+      ) : (
+        <DataGridQueryParamsProvider>
+          <DataBrowserGrid />
+        </DataGridQueryParamsProvider>
+      )}
     </RetryableErrorBoundary>
   );
 }
