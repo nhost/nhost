@@ -1,6 +1,7 @@
 import type { QueryKey, UseQueryOptions } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
+import { useGetMetadata } from '@/features/orgs/projects/common/hooks/useGetMetadata';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { getHasuraAdminSecret } from '@/utils/env';
@@ -40,6 +41,15 @@ export default function useDatabaseQuery(
   } = useRouter();
 
   const { project } = useProject();
+  const { data: metadata } = useGetMetadata();
+  const defaultDataSource = metadata?.sources?.find(
+    (source) => source.name === 'default',
+  );
+  const defaultDataSourceTables = new Set(
+    defaultDataSource?.tables?.map(
+      (table) => `${table.table.schema}.${table.table.name}`,
+    ) ?? [],
+  );
 
   const query = useQuery<FetchDatabaseReturnType>(
     queryKey,
@@ -64,6 +74,14 @@ export default function useDatabaseQuery(
         project?.config?.hasura.adminSecret && isReady
           ? queryOptions?.enabled
           : false,
+      select: (data) => ({
+        ...data,
+        tables: data.tables?.filter((table) =>
+          defaultDataSourceTables.has(
+            `${table.table_schema}.${table.table_name}`,
+          ),
+        ),
+      }),
     },
   );
 
