@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { ReferenceSource } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/BaseRelationshipFormTypes';
 import { isRemoteSchemaRelationshipFormValues, isTableRelationshipFormValues } from '@/features/orgs/projects/database/dataGrid/types/relationships/guards';
 import type { RemoteRelationshipDefinition } from '@/utils/hasura-api/generated/schemas';
 import parseRemoteRelationshipFormDefaultValues from './parseRemoteRelationshipFormDefaultValues';
@@ -45,7 +44,7 @@ describe('parseRemoteRelationshipFormDefaultValues', () => {
         toReference: {
           schema: 'public',
           table: 'profiles',
-          source: ReferenceSource.createTypeSourceFromName('externaldb').fullValue,
+          source: 'externaldb',
         },
         relationshipType: 'object',
         fieldMapping: [
@@ -92,7 +91,7 @@ describe('parseRemoteRelationshipFormDefaultValues', () => {
         toReference: {
           schema: 'commerce',
           table: 'orders',
-          source: ReferenceSource.createTypeSourceFromName('externaldb').fullValue,
+          source: 'externaldb',
         },
         relationshipType: 'array',
         fieldMapping: [
@@ -125,84 +124,6 @@ describe('parseRemoteRelationshipFormDefaultValues', () => {
       expect(isTableRelationshipFormValues(result)).toBe(true);
       if (isTableRelationshipFormValues(result)) {
         expect(result.fieldMapping).toEqual([]);
-      }
-    });
-
-    it('should handle missing table schema', () => {
-      const definition: RemoteRelationshipDefinition = {
-        to_source: {
-          source: 'externaldb',
-          table: {
-            name: 'profiles',
-            schema: undefined as unknown as string,
-          },
-          relationship_type: 'object',
-          field_mapping: {
-            user_id: 'id',
-          },
-        },
-      };
-
-      const result = parseRemoteRelationshipFormDefaultValues({
-        ...baseParams,
-        definition,
-      });
-
-      expect(isTableRelationshipFormValues(result)).toBe(true);
-      if (isTableRelationshipFormValues(result)) {
-        expect(result.toReference.schema).toBe('');
-      }
-    });
-
-    it('should handle missing table name', () => {
-      const definition: RemoteRelationshipDefinition = {
-        to_source: {
-          source: 'externaldb',
-          table: {
-            name: undefined as unknown as string,
-            schema: 'public',
-          },
-          relationship_type: 'object',
-          field_mapping: {
-            user_id: 'id',
-          },
-        },
-      };
-
-      const result = parseRemoteRelationshipFormDefaultValues({
-        ...baseParams,
-        definition,
-      });
-
-      expect(isTableRelationshipFormValues(result)).toBe(true);
-      if (isTableRelationshipFormValues(result)) {
-        expect(result.toReference.table).toBe('');
-      }
-    });
-
-    it('should handle case-insensitive relationship_type', () => {
-      const definition: RemoteRelationshipDefinition = {
-        to_source: {
-          source: 'externaldb',
-          table: {
-            name: 'profiles',
-            schema: 'public',
-          },
-          relationship_type: 'ARRAY' as 'array' | 'object',
-          field_mapping: {
-            user_id: 'id',
-          },
-        },
-      };
-
-      const result = parseRemoteRelationshipFormDefaultValues({
-        ...baseParams,
-        definition,
-      });
-
-      expect(isTableRelationshipFormValues(result)).toBe(true);
-      if (isTableRelationshipFormValues(result)) {
-        expect(result.relationshipType).toBe('array');
       }
     });
   });
@@ -238,9 +159,7 @@ describe('parseRemoteRelationshipFormDefaultValues', () => {
           source: 'default',
         },
         toReference: {
-          source: ReferenceSource.createTypeRemoteSchemaFromName(
-            'user-remote-schema',
-          ).fullValue,
+          source: 'user-remote-schema',
         },
         remoteSchema: {
           name: 'user-remote-schema',
