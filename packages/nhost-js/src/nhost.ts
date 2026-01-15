@@ -1,8 +1,8 @@
-import { generateServiceUrl } from "./";
+import { generateServiceUrl } from './';
 import {
   type Client as AuthClient,
   createAPIClient as createAuthClient,
-} from "./auth";
+} from './auth';
 import {
   type AdminSessionOptions,
   attachAccessTokenMiddleware,
@@ -10,26 +10,26 @@ import {
   sessionRefreshMiddleware,
   updateSessionFromResponseMiddleware,
   withAdminSessionMiddleware,
-} from "./fetch";
+} from './fetch';
 import {
   createAPIClient as createFunctionsClient,
   type Client as FunctionsClient,
-} from "./functions";
+} from './functions';
 import {
   createAPIClient as createGraphQLClient,
   type Client as GraphQLClient,
-} from "./graphql";
+} from './graphql';
 import {
   detectStorage,
   refreshSession,
   type Session,
   SessionStorage,
   type SessionStorageBackend,
-} from "./session/";
+} from './session/';
 import {
   createAPIClient as createStorageClient,
   type Client as StorageClient,
-} from "./storage";
+} from './storage';
 
 /**
  * Configuration function that receives all clients and can configure them
@@ -369,21 +369,21 @@ export function createNhostClient(
   const sessionStorage = new SessionStorage(storage);
 
   // Determine base URLs for each service
-  const authBaseUrl = generateServiceUrl("auth", subdomain, region, authUrl);
+  const authBaseUrl = generateServiceUrl('auth', subdomain, region, authUrl);
   const storageBaseUrl = generateServiceUrl(
-    "storage",
+    'storage',
     subdomain,
     region,
     storageUrl,
   );
   const graphqlBaseUrl = generateServiceUrl(
-    "graphql",
+    'graphql',
     subdomain,
     region,
     graphqlUrl,
   );
   const functionsBaseUrl = generateServiceUrl(
-    "functions",
+    'functions',
     subdomain,
     region,
     functionsUrl,

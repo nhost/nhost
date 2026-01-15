@@ -18,7 +18,7 @@ export {
   FetchError,
   type FetchFunction,
   type FetchResponse,
-} from "./fetch";
+} from './fetch';
 
 /**
  * Middleware for attaching authorization tokens to outgoing requests.
@@ -26,7 +26,7 @@ export {
  * @param storage - Storage implementation for retrieving session data
  * @returns A middleware function that adds Authorization headers
  */
-export { attachAccessTokenMiddleware } from "./middlewareAttachAccessToken";
+export { attachAccessTokenMiddleware } from './middlewareAttachAccessToken';
 
 /**
  * Middleware for automatically refreshing authentication tokens when they're about to expire.
@@ -36,7 +36,7 @@ export { attachAccessTokenMiddleware } from "./middlewareAttachAccessToken";
  * @param options - Configuration options for token refresh behavior
  * @returns A middleware function that refreshes tokens as needed
  */
-export { sessionRefreshMiddleware } from "./middlewareSessionRefresh";
+export { sessionRefreshMiddleware } from './middlewareSessionRefresh';
 
 /**
  * Middleware for extracting and storing session data from authentication responses.
@@ -44,7 +44,7 @@ export { sessionRefreshMiddleware } from "./middlewareSessionRefresh";
  * @param storage - Storage implementation for persisting session data
  * @returns A middleware function that updates session storage
  */
-export { updateSessionFromResponseMiddleware } from "./middlewareUpdateSessionFromResponse";
+export { updateSessionFromResponseMiddleware } from './middlewareUpdateSessionFromResponse';
 /**
  * Middleware for attaching Hasura admin secret for elevated permissions.
  *
@@ -54,8 +54,8 @@ export { updateSessionFromResponseMiddleware } from "./middlewareUpdateSessionFr
 export {
   type AdminSessionOptions,
   withAdminSessionMiddleware,
-} from "./middlewareWithAdminSession";
-export { withHeadersMiddleware } from "./middlewareWithHeaders";
+} from './middlewareWithAdminSession';
+export { withHeadersMiddleware } from './middlewareWithHeaders';
 
 /**
  * Middleware for setting the Hasura role header for requests.
@@ -63,4 +63,4 @@ export { withHeadersMiddleware } from "./middlewareWithHeaders";
  * @param role - The Hasura role to use for requests
  * @returns A middleware function that adds x-hasura-role header
  */
-export { withRoleMiddleware } from "./middlewareWithRole";
+export { withRoleMiddleware } from './middlewareWithRole';
