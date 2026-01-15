@@ -1,3 +1,9 @@
+import { useQueryClient } from '@tanstack/react-query';
+import dynamic from 'next/dynamic';
+import Image from 'next/image';
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
+import { twMerge } from 'tailwind-merge';
 import { useDialog } from '@/components/common/DialogProvider';
 import { NavLink } from '@/components/common/NavLink';
 import { FormActivityIndicator } from '@/components/form/FormActivityIndicator';
@@ -27,12 +33,6 @@ import useGetRemoteSchemas from '@/features/orgs/projects/remote-schemas/hooks/u
 import { useRemoveRemoteSchemaMutation } from '@/features/orgs/projects/remote-schemas/hooks/useRemoveRemoteSchemaMutation';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { RemoteSchemaInfo } from '@/utils/hasura-api/generated/schemas';
-import { useQueryClient } from '@tanstack/react-query';
-import dynamic from 'next/dynamic';
-import Image from 'next/image';
-import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
-import { twMerge } from 'tailwind-merge';
 
 const CreateRemoteSchemaForm = dynamic(
   () =>

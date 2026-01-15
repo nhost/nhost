@@ -1,5 +1,5 @@
-import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { describe, expect, it } from 'vitest';
+import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import getUntrackedForeignKeyRelations from './getUntrackedForeignKeyRelations';
 
 describe('getUntrackedForeignKeyRelations', () => {

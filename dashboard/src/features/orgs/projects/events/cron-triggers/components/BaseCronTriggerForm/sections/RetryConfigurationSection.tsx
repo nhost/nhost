@@ -1,7 +1,7 @@
+import { useFormContext } from 'react-hook-form';
 import { FormInput } from '@/components/form/FormInput';
 import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
 import type { BaseCronTriggerFormValues } from '@/features/orgs/projects/events/cron-triggers/components/BaseCronTriggerForm/BaseCronTriggerFormTypes';
-import { useFormContext } from 'react-hook-form';
 
 interface RetryConfigurationSectionProps {
   className?: string;

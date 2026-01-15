@@ -1,3 +1,6 @@
+import { BoxIcon } from 'lucide-react';
+import { useRouter } from 'next/router';
+import { type ReactElement, useCallback, useEffect } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Pagination } from '@/components/common/Pagination';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
@@ -16,9 +19,6 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { ServiceForm } from '@/features/orgs/projects/services/components/ServiceForm';
 import { ServicesList } from '@/features/orgs/projects/services/components/ServicesList';
 import { parseConfigFromInstallLink } from '@/features/orgs/projects/services/utils/parseConfigFromInstallLink';
-import { BoxIcon } from 'lucide-react';
-import { useRouter } from 'next/router';
-import { useCallback, useEffect, type ReactElement } from 'react';
 
 export default function RunPage() {
   const router = useRouter();

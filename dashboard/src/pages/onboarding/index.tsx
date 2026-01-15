@@ -1,3 +1,10 @@
+import { zodResolver } from '@hookform/resolvers/zod';
+import { formatDistance } from 'date-fns';
+import { useRouter } from 'next/router';
+import type { ReactElement } from 'react';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { Container } from '@/components/layout/Container';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
@@ -36,13 +43,6 @@ import {
   usePrefetchNewAppQuery,
 } from '@/utils/__generated__/graphql';
 import { ORGANIZATION_TYPES } from '@/utils/constants/organizationTypes';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { formatDistance } from 'date-fns';
-import { useRouter } from 'next/router';
-import type { ReactElement } from 'react';
-import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 
 const onboardingSchema = z.object({
   organizationName: z

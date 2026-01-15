@@ -1,5 +1,5 @@
-import { renderHook, waitFor } from '@/tests/testUtils';
 import { vi } from 'vitest';
+import { renderHook, waitFor } from '@/tests/testUtils';
 import useEventPagination from './useEventPagination';
 
 describe('useEventPagination', () => {

@@ -1,3 +1,10 @@
+import { useQueryClient } from '@tanstack/react-query';
+import { Info, Lock, Plus, Terminal } from 'lucide-react';
+import dynamic from 'next/dynamic';
+import Image from 'next/image';
+import NextLink from 'next/link';
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { FormActivityIndicator } from '@/components/form/FormActivityIndicator';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
@@ -20,13 +27,6 @@ import { useDeleteTableWithToastMutation } from '@/features/orgs/projects/databa
 import { isSchemaLocked } from '@/features/orgs/projects/database/dataGrid/utils/schemaHelpers';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { cn, isEmptyValue, isNotEmptyValue } from '@/lib/utils';
-import { useQueryClient } from '@tanstack/react-query';
-import { Info, Lock, Plus, Terminal } from 'lucide-react';
-import dynamic from 'next/dynamic';
-import Image from 'next/image';
-import NextLink from 'next/link';
-import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
 import TableActions from './TableActions';
 
 const CreateTableForm = dynamic(

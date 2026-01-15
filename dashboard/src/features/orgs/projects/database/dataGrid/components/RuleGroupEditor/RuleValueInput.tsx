@@ -1,5 +1,7 @@
+import { CommandLoading } from 'cmdk';
 import { Check, ChevronsUpDown } from 'lucide-react';
-
+import { useState } from 'react';
+import { useController, useFormContext, useWatch } from 'react-hook-form';
 import { Button } from '@/components/ui/v3/button';
 import {
   Command,
@@ -38,9 +40,6 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { getAllPermissionVariables } from '@/features/orgs/projects/permissions/settings/utils/getAllPermissionVariables';
 import { cn, isNotEmptyValue } from '@/lib/utils';
 import { useGetRolesPermissionsQuery } from '@/utils/__generated__/graphql';
-import { CommandLoading } from 'cmdk';
-import { useState } from 'react';
-import { useController, useFormContext, useWatch } from 'react-hook-form';
 import useRuleGroupEditor from './useRuleGroupEditor';
 
 const xHasuraString = 'x-hasura-';

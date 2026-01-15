@@ -1,13 +1,14 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import * as CheckboxPrimitive from '@radix-ui/react-checkbox';
 import {
   buildClientSchema,
   type GraphQLArgument,
   type GraphQLSchema,
 } from 'graphql';
+import { Check } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-
 import { useDialog } from '@/components/common/DialogProvider';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
@@ -40,8 +41,6 @@ import parsePresetArgTreeFromSDL from '@/features/orgs/projects/remote-schemas/u
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { DialogFormProps } from '@/types/common';
 import type { RemoteSchemaInfoPermissionsItem } from '@/utils/hasura-api/generated/schemas';
-import * as CheckboxPrimitive from '@radix-ui/react-checkbox';
-import { Check } from 'lucide-react';
 
 const rolePermissionsSchema = z.object({
   selectedFields: z.array(z.string()).optional().default([]),

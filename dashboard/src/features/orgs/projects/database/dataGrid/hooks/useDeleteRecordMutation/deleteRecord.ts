@@ -1,3 +1,5 @@
+import { format } from 'node-pg-format';
+import type { Row } from 'react-table';
 import type {
   AffectedRowsResult,
   MutationOrQueryBaseOptions,
@@ -5,8 +7,6 @@ import type {
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { getPreparedHasuraQuery } from '@/features/orgs/projects/database/dataGrid/utils/hasuraQueryHelpers';
 import { normalizeQueryError } from '@/features/orgs/projects/database/dataGrid/utils/normalizeQueryError';
-import { format } from 'node-pg-format';
-import type { Row } from 'react-table';
 
 export interface DeleteRecordVariables {
   /**

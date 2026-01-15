@@ -1,10 +1,10 @@
-import type { SelectProps } from '@/components/ui/v2/Select';
-import { Select } from '@/components/ui/v2/Select';
 import type { ForwardedRef } from 'react';
 import { forwardRef } from 'react';
 import type { FieldValues, UseControllerProps } from 'react-hook-form';
 import { useController, useFormContext } from 'react-hook-form';
 import { mergeRefs } from 'react-merge-refs';
+import type { SelectProps } from '@/components/ui/v2/Select';
+import { Select } from '@/components/ui/v2/Select';
 
 // biome-ignore lint/suspicious/noExplicitAny: TODO
 export interface ControlledSelectProps<TFieldValues extends FieldValues = any>

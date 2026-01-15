@@ -1,4 +1,3 @@
-import type { ArgTreeType } from '@/features/orgs/projects/remote-schemas/types';
 import {
   GraphQLEnumType,
   type GraphQLInputField,
@@ -6,6 +5,7 @@ import {
   GraphQLList,
   GraphQLNonNull,
 } from 'graphql';
+import type { ArgTreeType } from '@/features/orgs/projects/remote-schemas/types';
 import stringifyGraphQLInputObject from './stringifyGraphQLInputObject';
 
 function unwrapToBaseInputType(type: GraphQLInputType): GraphQLInputType {

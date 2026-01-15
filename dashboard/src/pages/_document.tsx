@@ -1,7 +1,7 @@
-import { createEmotionCache } from '@/utils/createEmotionCache';
 import createEmotionServer from '@emotion/server/create-instance';
 import type { DocumentContext } from 'next/document';
 import Document, { Head, Html, Main, NextScript } from 'next/document';
+import { createEmotionCache } from '@/utils/createEmotionCache';
 
 export default class MyDocument extends Document {
   static async getInitialProps(ctx: DocumentContext) {

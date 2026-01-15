@@ -1,5 +1,5 @@
-import * as metadataQuery from '@/features/orgs/projects/database/dataGrid/hooks/useMetadataQuery';
 import { vi } from 'vitest';
+import * as metadataQuery from '@/features/orgs/projects/database/dataGrid/hooks/useMetadataQuery';
 import prepareTrackForeignKeyRelationsMetadata from './prepareTrackForeignKeyRelationsMetadata';
 
 // Mock the fetchMetadata module

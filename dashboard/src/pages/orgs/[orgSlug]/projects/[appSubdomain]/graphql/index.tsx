@@ -1,3 +1,12 @@
+import {
+  DOC_EXPLORER_PLUGIN,
+  GraphiQLProvider,
+  useCopyQuery,
+  useExecutionContext,
+  usePluginContext,
+  usePrettifyEditors,
+  useTheme,
+} from '@graphiql/react';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Button } from '@/components/ui/v2/Button';
@@ -9,15 +18,6 @@ import { UserAndRoleSelect } from '@/features/orgs/projects/graphql/common/compo
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { isNotEmptyValue } from '@/lib/utils';
 import { triggerToast } from '@/utils/toast';
-import {
-  DOC_EXPLORER_PLUGIN,
-  GraphiQLProvider,
-  useCopyQuery,
-  useExecutionContext,
-  usePluginContext,
-  usePrettifyEditors,
-  useTheme,
-} from '@graphiql/react';
 import '@graphiql/react/dist/style.css';
 import { createGraphiQLFetcher } from '@graphiql/toolkit';
 import { GraphiQLInterface } from 'graphiql';

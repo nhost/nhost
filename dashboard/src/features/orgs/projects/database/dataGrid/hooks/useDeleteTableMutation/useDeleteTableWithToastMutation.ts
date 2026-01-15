@@ -1,7 +1,7 @@
-import type { UseDeleteTableMutationOptions } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteTableMutation';
-import { showLoadingToast, triggerToast } from '@/utils/toast';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
+import type { UseDeleteTableMutationOptions } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteTableMutation';
+import { showLoadingToast, triggerToast } from '@/utils/toast';
 import useDeleteTableMutation from './useDeleteTableMutation';
 
 export interface UseDeleteTableWithToastMutationOptions

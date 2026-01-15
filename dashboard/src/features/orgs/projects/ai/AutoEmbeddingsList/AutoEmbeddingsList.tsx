@@ -1,3 +1,5 @@
+import { formatDistanceToNow } from 'date-fns';
+import { BoxIcon } from 'lucide-react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Box } from '@/components/ui/v2/Box';
 import { Divider } from '@/components/ui/v2/Divider';
@@ -15,8 +17,6 @@ import {
 } from '@/features/orgs/projects/ai/AutoEmbeddingsForm';
 import { DeleteAutoEmbeddingsModal } from '@/features/orgs/projects/ai/DeleteAutoEmbeddingsModal';
 import type { AutoEmbeddingsConfiguration } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/auto-embeddings';
-import { formatDistanceToNow } from 'date-fns';
-import { BoxIcon } from 'lucide-react';
 
 interface AutoEmbeddingsConfigurationsListProps {
   /**

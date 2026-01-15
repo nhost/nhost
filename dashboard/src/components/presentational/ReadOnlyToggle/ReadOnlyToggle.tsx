@@ -1,4 +1,3 @@
-import { cn } from '@/lib/utils';
 import type {
   DetailedHTMLProps,
   ForwardedRef,
@@ -6,6 +5,7 @@ import type {
   HTMLProps,
 } from 'react';
 import { forwardRef } from 'react';
+import { cn } from '@/lib/utils';
 
 export type ReadOnlyToggleProps = Omit<
   DetailedHTMLProps<HTMLProps<HTMLSpanElement>, HTMLSpanElement>,

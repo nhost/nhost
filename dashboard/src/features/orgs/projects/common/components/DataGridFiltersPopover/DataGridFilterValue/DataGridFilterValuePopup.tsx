@@ -1,3 +1,5 @@
+import { ExpandIcon } from 'lucide-react';
+import type { ChangeEventHandler, KeyboardEvent } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import {
   Popover,
@@ -5,8 +7,6 @@ import {
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
 import { Textarea } from '@/components/ui/v3/textarea';
-import { ExpandIcon } from 'lucide-react';
-import type { ChangeEventHandler, KeyboardEvent } from 'react';
 
 type DataGridFilterValuePopupProps = {
   value: string;

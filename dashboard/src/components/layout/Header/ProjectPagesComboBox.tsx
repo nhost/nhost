@@ -1,13 +1,3 @@
-import { Button } from '@/components/ui/v3/button';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/v3/command';
-
 import {
   Check,
   ChevronsUpDown,
@@ -21,13 +11,23 @@ import {
   UserIcon,
   Zap,
 } from 'lucide-react';
+import { useRouter } from 'next/router';
+import { type ReactElement, useEffect, useMemo, useState } from 'react';
 
 import { AIIcon } from '@/components/ui/v2/icons/AIIcon';
 import { GraphQLIcon } from '@/components/ui/v2/icons/GraphQLIcon';
 import { HasuraIcon } from '@/components/ui/v2/icons/HasuraIcon';
 import { ServicesIcon } from '@/components/ui/v2/icons/ServicesIcon';
 import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
-
+import { Button } from '@/components/ui/v3/button';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/v3/command';
 import {
   Popover,
   PopoverContent,
@@ -36,8 +36,6 @@ import {
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useSettingsDisabled } from '@/hooks/useSettingsDisabled';
 import { cn } from '@/lib/utils';
-import { useRouter } from 'next/router';
-import { useEffect, useMemo, useState, type ReactElement } from 'react';
 
 type Option = {
   value: string;

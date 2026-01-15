@@ -1,3 +1,4 @@
+import { Turnstile } from '@marsidev/react-turnstile';
 import { FormInput } from '@/components/form/FormInput';
 import { Button } from '@/components/ui/v3/button';
 import {
@@ -10,7 +11,6 @@ import {
 } from '@/components/ui/v3/form';
 import useOnSignUpWithPasswordHandler from '@/features/auth/SignUp/SignUpTabs/SignUpWithEmailAndPassword/hooks/useOnSignUpWithPasswordHandler';
 import useSignUpWithEmailAndPasswordForm from '@/features/auth/SignUp/SignUpTabs/SignUpWithEmailAndPassword/hooks/useSignUpWithEmailAndPasswordForm';
-import { Turnstile } from '@marsidev/react-turnstile';
 
 function SignUpWithEmailAndPasswordForm() {
   const form = useSignUpWithEmailAndPasswordForm();

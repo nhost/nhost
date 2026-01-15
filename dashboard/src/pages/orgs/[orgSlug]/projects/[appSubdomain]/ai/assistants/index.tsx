@@ -1,6 +1,8 @@
+import { type ReactElement, useMemo } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Container } from '@/components/layout/Container';
+import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
@@ -8,15 +10,6 @@ import { Button } from '@/components/ui/v2/Button';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
-
-import {
-  useGetAssistantsQuery,
-  useGetGraphiteFileStoresQuery,
-  type GetAssistantsQuery,
-} from '@/utils/__generated__/graphite.graphql';
-import { useMemo, type ReactElement } from 'react';
-
-import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { AISidebar } from '@/features/orgs/layout/AISidebar';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { AssistantForm } from '@/features/orgs/projects/ai/AssistantForm';
@@ -27,6 +20,11 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useAdminApolloClient } from '@/features/orgs/projects/hooks/useAdminApolloClient';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import {
+  type GetAssistantsQuery,
+  useGetAssistantsQuery,
+  useGetGraphiteFileStoresQuery,
+} from '@/utils/__generated__/graphite.graphql';
 
 export type Assistant = Omit<
   NonNullable<GetAssistantsQuery['graphite']>['assistants'][number],

@@ -1,5 +1,5 @@
-import { isJSONString } from '@/lib/utils';
 import { type GraphQLInputField, GraphQLList } from 'graphql';
+import { isJSONString } from '@/lib/utils';
 
 function isJSONArrayLiteral(str: string) {
   if (!isJSONString(str)) {

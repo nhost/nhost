@@ -1,3 +1,5 @@
+import { useRouter } from 'next/router';
+import { type ReactElement, useEffect, useMemo, useRef, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Pagination } from '@/components/common/Pagination';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
@@ -20,11 +22,9 @@ import { useAdminApolloClient } from '@/features/orgs/projects/hooks/useAdminApo
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import {
-  useGetGraphiteAutoEmbeddingsConfigurationsQuery,
   type GetGraphiteAutoEmbeddingsConfigurationsQuery,
+  useGetGraphiteAutoEmbeddingsConfigurationsQuery,
 } from '@/utils/__generated__/graphite.graphql';
-import { useRouter } from 'next/router';
-import { useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
 
 export type AutoEmbeddingsConfiguration = Omit<
   GetGraphiteAutoEmbeddingsConfigurationsQuery['graphiteAutoEmbeddingsConfigurations'][0],

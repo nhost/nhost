@@ -1,11 +1,11 @@
+import { offset, useFloating } from '@floating-ui/react';
+import { useRef } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
-import { offset, useFloating } from '@floating-ui/react';
-import { useRef } from 'react';
-import { createPortal } from 'react-dom';
 import ColumnCustomizer from './ColumnCustomizer';
 import DataGridCustomizerTrigger from './DataGridCustomizerTrigger';
 import RowDensityCustomizer from './RowDensityCustomizer';

@@ -1,3 +1,16 @@
+import { CheckIcon, ChevronsUpDownIcon, XIcon } from 'lucide-react';
+import {
+  type ComponentPropsWithoutRef,
+  createContext,
+  type ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
 import {
@@ -15,19 +28,6 @@ import {
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
 import { cn, isNotEmptyValue } from '@/lib/utils';
-import { CheckIcon, ChevronsUpDownIcon, XIcon } from 'lucide-react';
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-  type ComponentPropsWithoutRef,
-  type ReactNode,
-} from 'react';
 
 type MultiSelectContextType = {
   open: boolean;

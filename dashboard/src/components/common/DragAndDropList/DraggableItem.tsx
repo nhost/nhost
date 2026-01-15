@@ -1,6 +1,6 @@
-import { cn } from '@/lib/utils';
 import { Draggable, type DraggableProps } from '@hello-pangea/dnd';
 import type { PropsWithChildren } from 'react';
+import { cn } from '@/lib/utils';
 
 export type DraggableItemProps = PropsWithChildren<
   Omit<DraggableProps, 'children'> & { className?: string }

@@ -1,7 +1,7 @@
+import { useEffect } from 'react';
 import { Chip } from '@/components/ui/v2/Chip';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { ApplicationStatus } from '@/types/application';
-import { useEffect } from 'react';
 
 export default function ProjectStatus() {
   const { project, refetch: refetchProject } = useProject();

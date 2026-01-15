@@ -1,3 +1,5 @@
+import { useApolloClient } from '@apollo/client';
+import getConfig from 'next/config';
 import { NavLink } from '@/components/common/NavLink';
 import { ThemeSwitcher } from '@/components/common/ThemeSwitcher';
 import { Avatar } from '@/components/ui/v2/Avatar';
@@ -8,8 +10,6 @@ import { Dropdown, useDropdown } from '@/components/ui/v2/Dropdown';
 import { Text } from '@/components/ui/v2/Text';
 import { useUserData } from '@/hooks/useUserData';
 import { useAuth } from '@/providers/Auth';
-import { useApolloClient } from '@apollo/client';
-import getConfig from 'next/config';
 
 function AccountMenuContent() {
   const user = useUserData();

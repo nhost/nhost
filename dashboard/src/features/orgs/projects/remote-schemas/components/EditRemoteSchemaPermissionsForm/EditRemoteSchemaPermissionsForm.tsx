@@ -1,5 +1,6 @@
+import NavLink from 'next/link';
 import { useState } from 'react';
-
+import { twMerge } from 'tailwind-merge';
 import { useDialog } from '@/components/common/DialogProvider';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
@@ -33,8 +34,6 @@ import {
   useGetHasuraRemoteSchemaPermissionsEnabledQuery,
   useGetRemoteAppRolesQuery,
 } from '@/utils/__generated__/graphql';
-import NavLink from 'next/link';
-import { twMerge } from 'tailwind-merge';
 import RemoteSchemaRolePermissionsEditorForm from './RemoteSchemaRolePermissionsEditorForm';
 import RolePermissionsRow from './RolePermissionsRow';
 

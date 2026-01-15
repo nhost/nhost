@@ -1,3 +1,7 @@
+import { yupResolver } from '@hookform/resolvers/yup';
+import { useRouter } from 'next/router';
+import { FormProvider, useForm } from 'react-hook-form';
+import type * as Yup from 'yup';
 import BaseRemoteSchemaForm, {
   type BaseRemoteSchemaFormProps,
   type BaseRemoteSchemaFormValues,
@@ -10,10 +14,6 @@ import type {
   AddRemoteSchemaArgs,
   Headers,
 } from '@/utils/hasura-api/generated/schemas';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { useRouter } from 'next/router';
-import { FormProvider, useForm } from 'react-hook-form';
-import type * as Yup from 'yup';
 
 export interface CreateRemoteSchemaFormProps
   extends Pick<BaseRemoteSchemaFormProps, 'onCancel' | 'location'> {

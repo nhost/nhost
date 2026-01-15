@@ -1,6 +1,6 @@
-import { render, screen } from '@/tests/testUtils';
 import type { Column } from 'react-table';
 import { expect, it } from 'vitest';
+import { render, screen } from '@/tests/testUtils';
 import DataGrid from './DataGrid';
 
 interface MockDataDetails {

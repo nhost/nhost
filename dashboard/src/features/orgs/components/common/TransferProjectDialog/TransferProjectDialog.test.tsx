@@ -1,3 +1,6 @@
+import { setupServer } from 'msw/node';
+import { useState } from 'react';
+import { afterAll, beforeAll, vi } from 'vitest';
 import {
   mockMatchMediaValue,
   mockOrganization,
@@ -18,9 +21,6 @@ import {
   TestUserEvent,
   waitFor,
 } from '@/tests/testUtils';
-import { setupServer } from 'msw/node';
-import { useState } from 'react';
-import { afterAll, beforeAll, vi } from 'vitest';
 import TransferProjectDialog from './TransferProjectDialog';
 
 Object.defineProperty(window, 'matchMedia', {

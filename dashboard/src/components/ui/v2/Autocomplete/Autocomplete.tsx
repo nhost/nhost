@@ -1,12 +1,3 @@
-import { Chip } from '@/components/ui/v2/Chip';
-import type { FormControlProps } from '@/components/ui/v2/FormControl';
-import { CheckIcon } from '@/components/ui/v2/icons/CheckIcon';
-import { ChevronDownIcon } from '@/components/ui/v2/icons/ChevronDownIcon';
-import { XIcon } from '@/components/ui/v2/icons/XIcon';
-import type { InputProps } from '@/components/ui/v2/Input';
-import { Input, inputClasses } from '@/components/ui/v2/Input';
-import { OptionBase } from '@/components/ui/v2/Option';
-import { OptionGroupBase } from '@/components/ui/v2/OptionGroup';
 import type { StyledComponent } from '@emotion/styled';
 import { Popper } from '@mui/base';
 import type { UseAutocompleteProps } from '@mui/base/useAutocomplete';
@@ -19,6 +10,15 @@ import MaterialAutocomplete, {
 import clsx from 'clsx';
 import type { DetailedHTMLProps, ForwardedRef, HTMLProps } from 'react';
 import { forwardRef, useEffect, useState } from 'react';
+import { Chip } from '@/components/ui/v2/Chip';
+import type { FormControlProps } from '@/components/ui/v2/FormControl';
+import type { InputProps } from '@/components/ui/v2/Input';
+import { Input, inputClasses } from '@/components/ui/v2/Input';
+import { CheckIcon } from '@/components/ui/v2/icons/CheckIcon';
+import { ChevronDownIcon } from '@/components/ui/v2/icons/ChevronDownIcon';
+import { XIcon } from '@/components/ui/v2/icons/XIcon';
+import { OptionBase } from '@/components/ui/v2/Option';
+import { OptionGroupBase } from '@/components/ui/v2/OptionGroup';
 
 export interface AutocompleteOption<TValue = string> {
   /**

@@ -1,13 +1,13 @@
+import {
+  type ChangeEvent,
+  type KeyboardEvent,
+  type Ref,
+  useEffect,
+} from 'react';
 import { Input } from '@/components/ui/v3/input';
 import type { CommonDataGridCellProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGridCell';
 import { useDataGridCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridCell';
 import { isNotEmptyValue } from '@/lib/utils';
-import {
-  useEffect,
-  type ChangeEvent,
-  type KeyboardEvent,
-  type Ref,
-} from 'react';
 
 export type DataGridNumericCellProps<TData extends object> =
   CommonDataGridCellProps<TData, number | null>;

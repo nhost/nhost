@@ -1,8 +1,8 @@
+import type { QueryHookOptions } from '@apollo/client';
+import { validate as uuidValidate } from 'uuid';
 import { isNotEmptyValue } from '@/lib/utils';
 import type { GetFilesAggregateQuery } from '@/utils/__generated__/graphql';
 import { useGetFilesAggregateQuery } from '@/utils/__generated__/graphql';
-import type { QueryHookOptions } from '@apollo/client';
-import { validate as uuidValidate } from 'uuid';
 
 export type UseFilesAggregateOptions = {
   /**

@@ -1,9 +1,9 @@
+import { ApolloClient, HttpLink, InMemoryCache } from '@apollo/client';
+import { useMemo } from 'react';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { isNotEmptyValue } from '@/lib/utils';
 import { getHasuraAdminSecret } from '@/utils/env';
-import { ApolloClient, HttpLink, InMemoryCache } from '@apollo/client';
-import { useMemo } from 'react';
 
 export default function useAdminApolloClient() {
   const { project } = useProject();

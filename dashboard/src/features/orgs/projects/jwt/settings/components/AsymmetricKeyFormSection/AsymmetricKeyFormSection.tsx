@@ -1,11 +1,9 @@
-import { Input } from '@/components/ui/v2/Input';
 import { useFormContext } from 'react-hook-form';
-
 import { Box } from '@/components/ui/v2/Box';
+import { Input } from '@/components/ui/v2/Input';
 import { Option } from '@/components/ui/v2/Option';
-import type { JWTSettingsFormValues } from '@/features/orgs/projects/jwt/settings/types';
-
 import { Select } from '@/components/ui/v2/Select';
+import type { JWTSettingsFormValues } from '@/features/orgs/projects/jwt/settings/types';
 import { ASYMMETRIC_ALGORITHMS } from '@/features/orgs/projects/jwt/settings/utils/constants';
 
 export default function AsymmetricKeyFormSection() {

@@ -1,3 +1,4 @@
+import { twMerge } from 'tailwind-merge';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { FullPermissionIcon } from '@/components/ui/v2/icons/FullPermissionIcon';
 import { NoPermissionIcon } from '@/components/ui/v2/icons/NoPermissionIcon';
@@ -7,7 +8,6 @@ import { TableCell } from '@/components/ui/v2/TableCell';
 import type { TableRowProps } from '@/components/ui/v2/TableRow';
 import { TableRow } from '@/components/ui/v2/TableRow';
 import type { RemoteSchemaAccessLevel } from '@/features/orgs/projects/remote-schemas/types';
-import { twMerge } from 'tailwind-merge';
 
 export interface RolePermissionsProps extends TableRowProps {
   /**

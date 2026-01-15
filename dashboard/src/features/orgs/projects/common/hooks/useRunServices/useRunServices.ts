@@ -1,13 +1,13 @@
+import { useRouter } from 'next/router';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import {
+  type GetRunServicesQuery,
   useGetLocalRunServiceConfigsQuery,
   useGetRunServicesQuery,
-  type GetRunServicesQuery,
 } from '@/utils/__generated__/graphql';
-import { useRouter } from 'next/router';
-import { useEffect, useMemo, useRef, useState } from 'react';
 
 export type RunService = Pick<
   NonNullable<GetRunServicesQuery['app']>['runServices'][number],

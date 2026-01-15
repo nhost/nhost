@@ -1,7 +1,7 @@
-import { useNhostClient } from '@/providers/nhost';
-import { getToastStyleProps } from '@/utils/constants/settings';
 import { useState } from 'react';
 import { toast } from 'react-hot-toast';
+import { useNhostClient } from '@/providers/nhost';
+import { getToastStyleProps } from '@/utils/constants/settings';
 
 export default function useResendVerificationEmail() {
   const nhost = useNhostClient();

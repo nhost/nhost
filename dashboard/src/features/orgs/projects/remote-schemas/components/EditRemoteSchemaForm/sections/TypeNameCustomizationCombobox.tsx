@@ -1,3 +1,4 @@
+import { Check, ChevronsUpDown } from 'lucide-react';
 import { Box } from '@/components/ui/v2/Box';
 import { Text } from '@/components/ui/v2/Text';
 import { Button } from '@/components/ui/v3/button';
@@ -16,7 +17,6 @@ import {
 } from '@/components/ui/v3/popover';
 import { cn } from '@/lib/utils';
 import type { GraphQLTypeForVisualization } from '@/utils/hasura-api/generated/schemas';
-import { Check, ChevronsUpDown } from 'lucide-react';
 
 interface TypeNameCustomizationComboboxProps {
   fromType: string;

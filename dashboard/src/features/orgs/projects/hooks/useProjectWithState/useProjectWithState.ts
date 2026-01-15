@@ -1,16 +1,16 @@
+import { useQuery } from '@tanstack/react-query';
+import { useRouter } from 'next/router';
+import { useMemo } from 'react';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { localApplication } from '@/features/orgs/utils/local-dashboard';
 import { isEmptyValue } from '@/lib/utils';
 import { useAuth } from '@/providers/Auth';
 import { useNhostClient } from '@/providers/nhost';
 import {
-  GetProjectStateDocument,
   type GetProjectQuery,
+  GetProjectStateDocument,
   type ProjectFragment,
 } from '@/utils/__generated__/graphql';
-import { useQuery } from '@tanstack/react-query';
-import { useRouter } from 'next/router';
-import { useMemo } from 'react';
 
 type Project = GetProjectQuery['apps'][0];
 

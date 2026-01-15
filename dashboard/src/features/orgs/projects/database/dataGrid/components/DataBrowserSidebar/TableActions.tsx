@@ -1,3 +1,4 @@
+import { Ellipsis, Settings, SquarePen, Trash2, Users } from 'lucide-react';
 import { Button } from '@/components/ui/v3/button';
 import {
   DropdownMenu,
@@ -7,7 +8,6 @@ import {
 } from '@/components/ui/v3/dropdown-menu';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { cn } from '@/lib/utils';
-import { Ellipsis, Settings, SquarePen, Trash2, Users } from 'lucide-react';
 
 const menuItemClassName =
   'flex hover:cursor-pointer hover:bg-data-cell-bg h-9 font-medium items-center justify-start gap-2 rounded-none border border-b-1 text-sm+ leading-4';

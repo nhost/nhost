@@ -1,6 +1,6 @@
+import { twMerge } from 'tailwind-merge';
 import type { InlineCodeProps } from '@/components/presentational/InlineCode';
 import { InlineCode } from '@/components/presentational/InlineCode';
-import { twMerge } from 'tailwind-merge';
 
 export default function HighlightedText({
   children,

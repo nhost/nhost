@@ -1,3 +1,4 @@
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/v3/button';
 import {
   Select,
@@ -7,7 +8,6 @@ import {
   SelectValue,
 } from '@/components/ui/v3/select';
 import { cn } from '@/lib/utils';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export interface PaginationControlsProps {
   offset: number;

@@ -1,3 +1,8 @@
+import { useApolloClient } from '@apollo/client';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { useEffect, useState } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
 import { ControlledSelect } from '@/components/form/ControlledSelect';
 import { Form } from '@/components/form/Form';
@@ -6,8 +11,8 @@ import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { IconButton } from '@/components/ui/v2/IconButton';
-import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { Input } from '@/components/ui/v2/Input';
+import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { Option } from '@/components/ui/v2/Option';
 import { Text } from '@/components/ui/v2/Text';
 import useActionWithElevatedPermissions from '@/features/account/settings/hooks/useActionWithElevatedPermissions';
@@ -16,11 +21,6 @@ import type { DialogFormProps } from '@/types/common';
 import { GetPersonalAccessTokensDocument } from '@/utils/__generated__/graphql';
 import { copy } from '@/utils/copy';
 import { getDateComponents } from '@/utils/getDateComponents';
-import { useApolloClient } from '@apollo/client';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { useEffect, useState } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
-import * as Yup from 'yup';
 
 export const createPATFormValidationSchema = Yup.object({
   name: Yup.string().label('Name').required(),

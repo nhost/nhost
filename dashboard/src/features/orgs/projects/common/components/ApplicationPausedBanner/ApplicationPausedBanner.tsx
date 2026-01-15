@@ -1,3 +1,5 @@
+import Image from 'next/image';
+import { useCallback } from 'react';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Button } from '@/components/ui/v3/button';
@@ -13,8 +15,6 @@ import {
   GetOrganizationsDocument,
   useUnpauseApplicationMutation,
 } from '@/utils/__generated__/graphql';
-import Image from 'next/image';
-import { useCallback } from 'react';
 
 export default function ApplicationPausedBanner({
   alertClassName,

@@ -1,8 +1,8 @@
+import { useFormContext } from 'react-hook-form';
 import { FormInput } from '@/components/form/FormInput';
 import { FormDescription } from '@/components/ui/v3/form';
 import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
 import type { BaseEventTriggerFormValues } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerFormTypes';
-import { useFormContext } from 'react-hook-form';
 
 interface RetryConfigurationSectionProps {
   className?: string;

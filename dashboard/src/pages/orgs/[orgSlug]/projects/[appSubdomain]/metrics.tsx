@@ -1,3 +1,5 @@
+import Image from 'next/image';
+import type { ReactElement } from 'react';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Container } from '@/components/layout/Container';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
@@ -13,8 +15,6 @@ import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/gen
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { copy } from '@/utils/copy';
-import Image from 'next/image';
-import type { ReactElement } from 'react';
 
 export default function MetricsPage() {
   const { org, loading: loadingOrg } = useCurrentOrg();

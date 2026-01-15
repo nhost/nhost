@@ -1,3 +1,5 @@
+import { useRouter } from 'next/router';
+import { useState } from 'react';
 import {
   Tabs,
   TabsContent,
@@ -13,8 +15,6 @@ import EventTriggerOverview from '@/features/orgs/projects/events/event-triggers
 import useGetEventLogsQuery from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventLogsQuery/useGetEventLogsQuery';
 import { useGetEventTriggers } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventTriggers';
 import { isEmptyValue } from '@/lib/utils';
-import { useRouter } from 'next/router';
-import { useState } from 'react';
 
 export default function EventTriggerView() {
   const router = useRouter();

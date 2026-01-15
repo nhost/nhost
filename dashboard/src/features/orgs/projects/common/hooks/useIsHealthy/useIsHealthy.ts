@@ -1,7 +1,7 @@
+import { useQuery } from '@tanstack/react-query';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { useQuery } from '@tanstack/react-query';
 
 /**
  * Returns whether or not the app is healthy.

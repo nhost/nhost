@@ -1,3 +1,7 @@
+import { Loader2, Lock } from 'lucide-react';
+import { useRouter } from 'next/router';
+import { useRef, useState } from 'react';
+import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/v3/button';
 import { Dialog } from '@/components/ui/v3/dialog';
 import {
@@ -23,10 +27,6 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { cn } from '@/lib/utils';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import type { EventInvocationLogEntry } from '@/utils/hasura-api/generated/schemas/eventInvocationLogEntry';
-import { Loader2, Lock } from 'lucide-react';
-import { useRouter } from 'next/router';
-import { useRef, useState } from 'react';
-import toast from 'react-hot-toast';
 
 export interface InvokeEventTriggerButtonProps {
   selectedValues: Record<string, unknown>;

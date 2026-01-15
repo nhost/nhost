@@ -1,10 +1,10 @@
+import { type UseQueryOptions, useQuery } from '@tanstack/react-query';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type {
   GetEventAndInvocationLogsByIdArgs,
   GetEventAndInvocationLogsByIdResponse,
 } from '@/utils/hasura-api/generated/schemas';
-import { useQuery, type UseQueryOptions } from '@tanstack/react-query';
 import fetchEventAndInvocationLogsById from './fetchEventAndInvocationLogsById';
 
 export interface UseGetEventAndInvocationLogsByIdQueryOptions {

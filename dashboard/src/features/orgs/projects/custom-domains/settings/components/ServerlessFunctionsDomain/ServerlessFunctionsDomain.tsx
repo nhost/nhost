@@ -1,24 +1,23 @@
+import { yupResolver } from '@hookform/resolvers/yup';
+import { useEffect, useState } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Input } from '@/components/ui/v2/Input';
-import { VerifyDomain } from '@/features/orgs/projects/custom-domains/settings/components/VerifyDomain';
-import {
-  useGetServerlessFunctionsSettingsQuery,
-  useUpdateConfigMutation,
-  type ConfigIngressUpdateInput,
-} from '@/generated/graphql';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { useEffect, useState } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
-import * as Yup from 'yup';
-
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { VerifyDomain } from '@/features/orgs/projects/custom-domains/settings/components/VerifyDomain';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import {
+  type ConfigIngressUpdateInput,
+  useGetServerlessFunctionsSettingsQuery,
+  useUpdateConfigMutation,
+} from '@/generated/graphql';
 import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 
 const validationSchema = Yup.object({

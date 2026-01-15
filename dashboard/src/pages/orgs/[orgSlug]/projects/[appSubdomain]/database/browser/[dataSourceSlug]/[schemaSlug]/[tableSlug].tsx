@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
@@ -6,7 +7,6 @@ import { DataBrowserGrid } from '@/features/orgs/projects/database/dataGrid/comp
 import { DataGridQueryParamsProvider } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
 import { DataBrowserSidebar } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserSidebar';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import type { ReactElement } from 'react';
 
 export default function DataBrowserTableDetailsPage() {
   const { project } = useProject();

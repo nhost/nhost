@@ -1,3 +1,4 @@
+import { format } from 'node-pg-format';
 import type {
   AffectedRowsResult,
   ColumnUpdateOptions,
@@ -11,7 +12,6 @@ import {
   getPreparedReadOnlyHasuraQuery,
 } from '@/features/orgs/projects/database/dataGrid/utils/hasuraQueryHelpers';
 import { normalizeQueryError } from '@/features/orgs/projects/database/dataGrid/utils/normalizeQueryError';
-import { format } from 'node-pg-format';
 
 export interface UpdateRecordVariables<TData extends object = {}> {
   /**

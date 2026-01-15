@@ -1,14 +1,3 @@
-import { useDialog } from '@/components/common/DialogProvider';
-import { useTooltip } from '@/components/ui/v2/Tooltip';
-import { Button } from '@/components/ui/v3/button';
-import type {
-  ColumnType,
-  DataBrowserGridCell,
-  DataBrowserGridCellProps,
-} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { cn, isNotEmptyValue } from '@/lib/utils';
-import { copy } from '@/utils/copy';
-import { triggerToast } from '@/utils/toast';
 import { Copy } from 'lucide-react';
 import type {
   CSSProperties,
@@ -28,15 +17,25 @@ import {
   useEffect,
   useState,
 } from 'react';
-import DataGridCellProvider from './DataGridCellProvider';
-import useDataGridCell from './useDataGridCell';
-
+import { useDialog } from '@/components/common/DialogProvider';
+import { useTooltip } from '@/components/ui/v2/Tooltip';
+import { Button } from '@/components/ui/v3/button';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
 import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
+import type {
+  ColumnType,
+  DataBrowserGridCell,
+  DataBrowserGridCellProps,
+} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { cn, isNotEmptyValue } from '@/lib/utils';
+import { copy } from '@/utils/copy';
+import { triggerToast } from '@/utils/toast';
+import DataGridCellProvider from './DataGridCellProvider';
+import useDataGridCell from './useDataGridCell';
 
 // biome-ignore lint/suspicious/noExplicitAny: TODO
 export interface CommonDataGridCellProps<TData extends object, TValue = any>

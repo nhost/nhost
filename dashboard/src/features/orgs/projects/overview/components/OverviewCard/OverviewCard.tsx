@@ -1,12 +1,12 @@
+import type { ImageProps } from 'next/image';
+import Image from 'next/image';
+import { twMerge } from 'tailwind-merge';
 import type { BoxProps } from '@/components/ui/v2/Box';
 import { Box } from '@/components/ui/v2/Box';
 import { ArrowRightIcon } from '@/components/ui/v2/icons/ArrowRightIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import type { CardProps } from '@/features/orgs/projects/overview/types/cards';
-import type { ImageProps } from 'next/image';
-import Image from 'next/image';
-import { twMerge } from 'tailwind-merge';
 
 export interface OverviewCardProps extends CardProps {
   /**

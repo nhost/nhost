@@ -1,3 +1,6 @@
+import Link from 'next/link';
+import { useRouter } from 'next/router';
+import { Fragment } from 'react';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Divider } from '@/components/ui/v2/Divider';
 import { IconButton } from '@/components/ui/v2/IconButton';
@@ -11,9 +14,6 @@ import {
   useLatestLiveDeploymentSubSubscription,
   useScheduledOrPendingDeploymentsSubSubscription,
 } from '@/generated/graphql';
-import Link from 'next/link';
-import { useRouter } from 'next/router';
-import { Fragment } from 'react';
 
 export type AppDeploymentsProps = {
   appId: string;

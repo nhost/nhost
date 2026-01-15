@@ -1,3 +1,13 @@
+import {
+  type ColumnSizingState,
+  flexRender,
+  getCoreRowModel,
+  getExpandedRowModel,
+  getSortedRowModel,
+  type SortingState,
+  useReactTable,
+} from '@tanstack/react-table';
+import { Fragment, useMemo, useState } from 'react';
 import { Skeleton } from '@/components/ui/v3/skeleton';
 import {
   Table,
@@ -11,18 +21,8 @@ import { CronTriggerInvocationLogsDataTable } from '@/features/orgs/projects/eve
 import { cn, isNotEmptyValue } from '@/lib/utils';
 import type { ScheduledEventLogEntry } from '@/utils/hasura-api/generated/schemas';
 import {
-  type ColumnSizingState,
-  flexRender,
-  getCoreRowModel,
-  getExpandedRowModel,
-  getSortedRowModel,
-  type SortingState,
-  useReactTable,
-} from '@tanstack/react-table';
-import { Fragment, useMemo, useState } from 'react';
-import {
-  createCronTriggerEventsDataTableColumns,
   type CronTriggerEventsSection,
+  createCronTriggerEventsDataTableColumns,
 } from './cronTriggerEventsDataTableColumns';
 
 interface CronTriggerEventsDataTableProps {

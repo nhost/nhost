@@ -1,6 +1,6 @@
+import { toast } from 'react-hot-toast';
 import useElevatedPermissions from '@/features/account/settings/hooks/useElevatedPermissions';
 import useGetSecurityKeys from '@/features/account/settings/hooks/useGetSecurityKeys';
-import { toast } from 'react-hot-toast';
 
 // biome-ignore lint/suspicious/noExplicitAny: TODO
 type Action = (...args: any[]) => Promise<any>;

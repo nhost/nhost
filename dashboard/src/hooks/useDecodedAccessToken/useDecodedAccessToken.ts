@@ -1,5 +1,5 @@
-import { useAccessToken } from '@/hooks/useAccessToken';
 import { jwtDecode } from 'jwt-decode';
+import { useAccessToken } from '@/hooks/useAccessToken';
 
 export interface JWTClaims {
   sub?: string;

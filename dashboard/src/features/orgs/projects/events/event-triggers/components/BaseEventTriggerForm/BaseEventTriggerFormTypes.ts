@@ -1,10 +1,10 @@
+import { z } from 'zod';
 import {
   DEFAULT_NUM_RETRIES,
   DEFAULT_RETRY_INTERVAL_SECONDS,
   DEFAULT_RETRY_TIMEOUT_SECONDS,
 } from '@/features/orgs/projects/events/event-triggers/constants';
 import { getSampleInputPayload } from '@/features/orgs/projects/events/event-triggers/utils/getSampleInputPayload';
-import { z } from 'zod';
 
 export const headerTypes = [
   {

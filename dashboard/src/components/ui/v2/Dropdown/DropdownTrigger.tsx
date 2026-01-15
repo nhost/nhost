@@ -1,10 +1,10 @@
+import { styled } from '@mui/material';
+import type { ForwardedRef, MouseEvent } from 'react';
+import { Children, cloneElement, forwardRef, isValidElement } from 'react';
 import type { BoxProps } from '@/components/ui/v2/Box';
 import { ChevronDownIcon } from '@/components/ui/v2/icons/ChevronDownIcon';
 import { ChevronUpIcon } from '@/components/ui/v2/icons/ChevronUpIcon';
 import { callAll } from '@/utils/callAll';
-import { styled } from '@mui/material';
-import type { ForwardedRef, MouseEvent } from 'react';
-import { Children, cloneElement, forwardRef, isValidElement } from 'react';
 import useDropdown from './useDropdown';
 
 export interface DropdownTriggerProps

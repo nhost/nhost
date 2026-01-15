@@ -1,5 +1,5 @@
-import type { JwtSecretFragment } from '@/utils/__generated__/graphql';
 import { test } from 'vitest';
+import type { JwtSecretFragment } from '@/utils/__generated__/graphql';
 import getJwtSecretsWithoutFalsyValues from './getJwtSecretsWithoutFalsyValues';
 
 test('returns array of objects without falsy values and __typename property', () => {

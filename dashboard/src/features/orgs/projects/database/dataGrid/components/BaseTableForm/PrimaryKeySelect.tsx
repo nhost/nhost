@@ -1,3 +1,12 @@
+import { useMemo } from 'react';
+import { useFormContext, useWatch } from 'react-hook-form';
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/v3/form';
 import {
   MultiSelect,
   MultiSelectContent,
@@ -7,16 +16,6 @@ import {
   MultiSelectValue,
 } from '@/components/ui/v3/multi-select';
 import type { DatabaseColumn } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { useMemo } from 'react';
-import { useFormContext, useWatch } from 'react-hook-form';
-
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/v3/form';
 
 export default function PrimaryKeySelect() {
   const columns: DatabaseColumn[] = useWatch({ name: 'columns' });

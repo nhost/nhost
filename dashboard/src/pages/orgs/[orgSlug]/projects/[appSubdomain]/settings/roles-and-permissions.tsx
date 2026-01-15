@@ -1,15 +1,14 @@
+import type { ReactElement } from 'react';
 import { Container } from '@/components/layout/Container';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { PermissionVariableSettings } from '@/features/orgs/projects/permissions/settings/components/PermissionVariableSettings';
-import { RoleSettings } from '@/features/orgs/projects/roles/settings/components/RoleSettings';
-import { useGetRolesPermissionsQuery } from '@/utils/__generated__/graphql';
-import type { ReactElement } from 'react';
-
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { PermissionVariableSettings } from '@/features/orgs/projects/permissions/settings/components/PermissionVariableSettings';
+import { RoleSettings } from '@/features/orgs/projects/roles/settings/components/RoleSettings';
+import { useGetRolesPermissionsQuery } from '@/utils/__generated__/graphql';
 
 export default function RolesAndPermissionsPage() {
   const { project } = useProject();

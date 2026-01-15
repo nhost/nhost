@@ -1,4 +1,11 @@
 /** biome-ignore-all lint/suspicious/noThenProperty: yup thing */
+
+import { yupResolver } from '@hookform/resolvers/yup';
+import Image from 'next/image';
+import { useEffect } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+import { twMerge } from 'tailwind-merge';
+import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
@@ -9,21 +16,14 @@ import { Input } from '@/components/ui/v2/Input';
 import { Option } from '@/components/ui/v2/Option';
 import { Select } from '@/components/ui/v2/Select';
 import { Text } from '@/components/ui/v2/Text';
-import {
-  useGetSignInMethodsQuery,
-  useUpdateConfigMutation,
-} from '@/generated/graphql';
-import { yupResolver } from '@hookform/resolvers/yup';
-import Image from 'next/image';
-import { useEffect } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
-import { twMerge } from 'tailwind-merge';
-import * as Yup from 'yup';
-
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import {
+  useGetSignInMethodsQuery,
+  useUpdateConfigMutation,
+} from '@/generated/graphql';
 
 const validationSchema = Yup.object({
   accountSid: Yup.string()

@@ -1,11 +1,11 @@
-import type { CheckboxProps } from '@/components/ui/v2/Checkbox';
-import { Checkbox } from '@/components/ui/v2/Checkbox';
-import { callAll } from '@/utils/callAll';
 import type { ForwardedRef } from 'react';
 import { forwardRef } from 'react';
 import type { FieldValues, UseControllerProps } from 'react-hook-form';
 import { useController, useFormContext } from 'react-hook-form';
 import { mergeRefs } from 'react-merge-refs';
+import type { CheckboxProps } from '@/components/ui/v2/Checkbox';
+import { Checkbox } from '@/components/ui/v2/Checkbox';
+import { callAll } from '@/utils/callAll';
 
 // biome-ignore lint/suspicious/noExplicitAny: TODO
 export interface ControlledCheckboxProps<TFieldValues extends FieldValues = any>

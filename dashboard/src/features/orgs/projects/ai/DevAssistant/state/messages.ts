@@ -1,6 +1,6 @@
+import { atom } from 'recoil';
 import type { Message } from '@/features/orgs/projects/ai/DevAssistant';
 import { persistAtom } from '@/utils/recoil';
-import { atom } from 'recoil';
 
 export interface ProjectMessage extends Message {
   projectId?: string;

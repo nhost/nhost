@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { IconButton } from '@/components/ui/v2/IconButton';
@@ -8,7 +9,6 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import { isNotEmptyValue } from '@/lib/utils';
 import { useDnsLookupCnameLazyQuery } from '@/utils/__generated__/graphql';
 import { copy } from '@/utils/copy';
-import { useEffect, useState } from 'react';
 
 interface VerifyDomainProps {
   recordType: string;

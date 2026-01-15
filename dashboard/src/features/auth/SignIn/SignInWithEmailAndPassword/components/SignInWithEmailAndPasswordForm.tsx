@@ -1,10 +1,10 @@
+import NextLink from 'next/link';
 import { FormInput } from '@/components/form/FormInput';
 import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
 import { Form } from '@/components/ui/v3/form';
 import useSignInWithEmailAndPasswordForm, {
   type SignInWithEmailAndPasswordFormValues,
 } from '@/features/auth/SignIn/SignInWithEmailAndPassword/hooks/useSignInWithEmailAndPasswordForm';
-import NextLink from 'next/link';
 
 interface Props {
   onSubmit: (values: SignInWithEmailAndPasswordFormValues) => void;

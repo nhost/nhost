@@ -1,3 +1,9 @@
+import type { FilterOptionsState } from '@mui/material';
+import type { ForwardedRef } from 'react';
+import { forwardRef } from 'react';
+import type { FieldValues, UseControllerProps } from 'react-hook-form';
+import { useController, useFormContext } from 'react-hook-form';
+import { mergeRefs } from 'react-merge-refs';
 import type {
   AutocompleteOption,
   AutocompleteProps,
@@ -6,12 +12,6 @@ import { Autocomplete } from '@/components/ui/v2/Autocomplete';
 import { isNotEmptyValue } from '@/lib/utils';
 import type { MakeRequired } from '@/types/common';
 import { callAll } from '@/utils/callAll';
-import type { FilterOptionsState } from '@mui/material';
-import type { ForwardedRef } from 'react';
-import { forwardRef } from 'react';
-import type { FieldValues, UseControllerProps } from 'react-hook-form';
-import { useController, useFormContext } from 'react-hook-form';
-import { mergeRefs } from 'react-merge-refs';
 
 export interface ControlledAutocompleteProps<
   TOption extends AutocompleteOption = AutocompleteOption,

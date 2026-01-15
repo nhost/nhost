@@ -1,3 +1,5 @@
+import { RefreshCw } from 'lucide-react';
+import { useFieldArray, useFormContext } from 'react-hook-form';
 import { FormInput } from '@/components/form/FormInput';
 import { FormSelect } from '@/components/form/FormSelect';
 import { FormTextarea } from '@/components/form/FormTextarea';
@@ -9,8 +11,6 @@ import { SelectItem } from '@/components/ui/v3/select';
 import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
 import type { BaseCronTriggerFormValues } from '@/features/orgs/projects/events/cron-triggers/components/BaseCronTriggerForm/BaseCronTriggerFormTypes';
 import { getCronTriggerSampleInputPayload } from '@/features/orgs/projects/events/cron-triggers/utils/getCronTriggerSampleInputPayload';
-import { RefreshCw } from 'lucide-react';
-import { useFieldArray, useFormContext } from 'react-hook-form';
 import TransformedRequestBody from './TransformedRequestBody';
 
 interface PayloadTransformSectionProps {

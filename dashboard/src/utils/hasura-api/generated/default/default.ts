@@ -5,6 +5,10 @@
  * API for managing remote schemas and events in Hasura
  * OpenAPI spec version: 1.0.0
  */
+
+
+import type { CustomFetchOptions } from '../../customFetch';
+import { customFetch } from '../../customFetch';
 import type {
   ErrorResponse,
   MetadataOperation200,
@@ -13,9 +17,6 @@ import type {
   MigrationRequest,
   SuccessResponse,
 } from '.././schemas';
-
-import type { CustomFetchOptions } from '../../customFetch';
-import { customFetch } from '../../customFetch';
 
 /**
  * Endpoint for all metadata operations

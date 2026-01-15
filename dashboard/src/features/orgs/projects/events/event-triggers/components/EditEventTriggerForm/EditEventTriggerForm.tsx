@@ -1,3 +1,5 @@
+import { useRouter } from 'next/router';
+import { type ReactNode, useEffect, useState } from 'react';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import {
   BaseEventTriggerForm,
@@ -12,8 +14,6 @@ import type { EventTriggerViewModel } from '@/features/orgs/projects/events/even
 import { buildEventTriggerDTO } from '@/features/orgs/projects/events/event-triggers/utils/buildEventTriggerDTO';
 import parseEventTriggerFormInitialData from '@/features/orgs/projects/events/event-triggers/utils/parseEventTriggerFormInitialData/parseEventTriggerFormInitialData';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useRouter } from 'next/router';
-import { useEffect, useState, type ReactNode } from 'react';
 
 export interface EditEventTriggerFormProps {
   eventTrigger: EventTriggerViewModel;

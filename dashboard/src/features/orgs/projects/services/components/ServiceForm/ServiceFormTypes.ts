@@ -1,14 +1,13 @@
-import { PortTypes } from '@/features/orgs/projects/services/components/ServiceForm/components/PortsFormSection/PortsFormSectionTypes';
-import type { DialogFormProps } from '@/types/common';
 import * as Yup from 'yup';
-
 import {
+  MAX_SERVICE_REPLICAS,
   MAX_SERVICES_CPU,
   MAX_SERVICES_MEM,
-  MAX_SERVICE_REPLICAS,
   MIN_SERVICES_CPU,
   MIN_SERVICES_MEM,
 } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
+import { PortTypes } from '@/features/orgs/projects/services/components/ServiceForm/components/PortsFormSection/PortsFormSectionTypes';
+import type { DialogFormProps } from '@/types/common';
 
 export const validationSchema = Yup.object({
   name: Yup.string().required('The name is required.'),

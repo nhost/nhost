@@ -1,6 +1,6 @@
-import { getConfigServerUrl } from '@/utils/env';
 import { ApolloClient, HttpLink, InMemoryCache } from '@apollo/client';
 import { useMemo } from 'react';
+import { getConfigServerUrl } from '@/utils/env';
 
 /**
  * It creates a new Apollo Client instance that connects to the local mimir when running the a local nhost project

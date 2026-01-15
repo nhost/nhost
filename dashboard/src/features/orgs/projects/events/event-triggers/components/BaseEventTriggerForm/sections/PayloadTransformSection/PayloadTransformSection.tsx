@@ -1,3 +1,5 @@
+import { RefreshCw } from 'lucide-react';
+import { useFieldArray, useFormContext } from 'react-hook-form';
 import { FormInput } from '@/components/form/FormInput';
 import { FormSelect } from '@/components/form/FormSelect';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
@@ -18,8 +20,6 @@ import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTool
 import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
 import type { BaseEventTriggerFormValues } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerFormTypes';
 import { getSampleInputPayload } from '@/features/orgs/projects/events/event-triggers/utils/getSampleInputPayload';
-import { RefreshCw } from 'lucide-react';
-import { useFieldArray, useFormContext } from 'react-hook-form';
 import TransformedRequestBody from './TransformedRequestBody';
 
 interface PayloadTransformSectionProps {

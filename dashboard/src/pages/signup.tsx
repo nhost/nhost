@@ -1,12 +1,12 @@
+import Image from 'next/image';
+import NextLink from 'next/link';
+import type { ReactElement } from 'react';
+import { useCallback } from 'react';
 import { CookieConsent } from '@/components/common/CookieConsent';
 import { UnauthenticatedLayout } from '@/components/layout/UnauthenticatedLayout';
 import { Divider } from '@/components/ui/v2/Divider';
 import { SignUpTabs } from '@/features/auth/SignUp/SignUpTabs';
 import { SignUpWithGithub } from '@/features/auth/SignUp/SignUpWithGithub';
-import Image from 'next/image';
-import NextLink from 'next/link';
-import type { ReactElement } from 'react';
-import { useCallback } from 'react';
 
 declare global {
   interface Window {

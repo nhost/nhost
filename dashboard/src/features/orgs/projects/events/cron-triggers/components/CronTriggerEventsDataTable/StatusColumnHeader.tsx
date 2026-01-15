@@ -1,3 +1,4 @@
+import { ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/v3/button';
 import {
   DropdownMenu,
@@ -8,7 +9,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/v3/dropdown-menu';
-import { ChevronDown } from 'lucide-react';
 import type { CronTriggerEventsSection } from './cronTriggerEventsDataTableColumns';
 
 interface StatusColumnHeaderProps {

@@ -1,3 +1,6 @@
+import { Box, Check, ChevronsUpDown } from 'lucide-react';
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
 import ProjectStatus from '@/components/layout/Header/ProjectStatus';
 import { Button } from '@/components/ui/v3/button';
 import {
@@ -17,9 +20,6 @@ import { ProjectStatusIndicator } from '@/features/orgs/components/common/Projec
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { cn } from '@/lib/utils';
-import { Box, Check, ChevronsUpDown } from 'lucide-react';
-import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
 
 type Option = {
   value: string;

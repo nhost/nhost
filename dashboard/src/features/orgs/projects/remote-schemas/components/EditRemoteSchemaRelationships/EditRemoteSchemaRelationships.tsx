@@ -1,10 +1,10 @@
+import { useState } from 'react';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { CreateRemoteSchemaRelationshipForm } from '@/features/orgs/projects/remote-schemas/components/CreateRemoteSchemaRelationshipForm';
 import { EditRemoteSchemaRelationshipForm } from '@/features/orgs/projects/remote-schemas/components/EditRemoteSchemaRelationshipForm';
 import { useGetRemoteSchemas } from '@/features/orgs/projects/remote-schemas/hooks/useGetRemoteSchemas';
 import type { DialogFormProps } from '@/types/common';
 import type { RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItem } from '@/utils/hasura-api/generated/schemas/remoteSchemaInfoRemoteRelationshipsItemRelationshipsItem';
-import { useState } from 'react';
 import EmptyRemoteSchemaRelationships from './EmptyRemoteSchemaRelationships';
 import RemoteSchemaRelationshipsInfoTable from './sections/RemoteSchemaRelationshipsInfoTable';
 

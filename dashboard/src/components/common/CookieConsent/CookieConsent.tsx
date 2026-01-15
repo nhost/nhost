@@ -1,8 +1,8 @@
-import { Button } from '@/components/ui/v3/button';
-import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
 import { X } from 'lucide-react';
 import NextLink from 'next/link';
 import { useEffect, useState } from 'react';
+import { Button } from '@/components/ui/v3/button';
+import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
 
 interface CookieConsentProps {
   onAccept: () => void;

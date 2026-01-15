@@ -1,15 +1,15 @@
-import { ControlledSelect } from '@/components/form/ControlledSelect';
-import { Box } from '@/components/ui/v2/Box';
-import { Input } from '@/components/ui/v2/Input';
-import { Option } from '@/components/ui/v2/Option';
-import { Text } from '@/components/ui/v2/Text';
-import { intervalUnitOptions } from '@/features/orgs/projects/rate-limiting/settings/components/validationSchemas';
 import type {
   FieldError,
   FieldErrorsImpl,
   Merge,
   UseFormRegister,
 } from 'react-hook-form';
+import { ControlledSelect } from '@/components/form/ControlledSelect';
+import { Box } from '@/components/ui/v2/Box';
+import { Input } from '@/components/ui/v2/Input';
+import { Option } from '@/components/ui/v2/Option';
+import { Text } from '@/components/ui/v2/Text';
+import { intervalUnitOptions } from '@/features/orgs/projects/rate-limiting/settings/components/validationSchemas';
 
 interface RateLimitFieldProps {
   // biome-ignore lint/suspicious/noExplicitAny: TODO

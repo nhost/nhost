@@ -1,18 +1,12 @@
+import { yupResolver } from '@hookform/resolvers/yup';
+import { useEffect, useState } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import {
-  useGetJwtSecretsQuery,
-  useUpdateConfigMutation,
-  type ConfigConfigUpdateInput,
-} from '@/generated/graphql';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { useEffect, useState } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
-
 import { Box } from '@/components/ui/v2/Box';
 import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
@@ -33,6 +27,11 @@ import {
   SYMMETRIC_ALGORITHMS,
 } from '@/features/orgs/projects/jwt/settings/utils/constants';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import {
+  type ConfigConfigUpdateInput,
+  useGetJwtSecretsQuery,
+  useUpdateConfigMutation,
+} from '@/generated/graphql';
 import { removeTypename } from '@/utils/helpers';
 
 export default function JWTSettings() {
