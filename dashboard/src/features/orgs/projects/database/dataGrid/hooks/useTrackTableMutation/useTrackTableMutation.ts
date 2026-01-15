@@ -1,5 +1,5 @@
 import type { MutationOptions } from '@tanstack/react-query';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
@@ -35,27 +35,37 @@ export default function useTrackTableMutation({
     query: { dataSourceSlug, schemaSlug },
   } = useRouter();
   const { project } = useProject();
+  const queryClient = useQueryClient();
 
   const mutationFn = isPlatform ? trackTable : trackTableMigration;
 
-  const mutation = useMutation((variables) => {
-    const appUrl = generateAppServiceUrl(
-      project!.subdomain,
-      project!.region,
-      'hasura',
-    );
+  const mutation = useMutation(
+    (variables) => {
+      const appUrl = generateAppServiceUrl(
+        project!.subdomain,
+        project!.region,
+        'hasura',
+      );
 
-    return mutationFn({
-      ...variables,
-      appUrl: customAppUrl || appUrl,
-      adminSecret:
-        process.env.NEXT_PUBLIC_ENV === 'dev'
-          ? getHasuraAdminSecret()
-          : customAdminSecret || project!.config!.hasura.adminSecret,
-      dataSource: customDataSource || (dataSourceSlug as string),
-      schema: customSchema || (schemaSlug as string),
-    });
-  }, mutationOptions);
+      return mutationFn({
+        ...variables,
+        appUrl: customAppUrl || appUrl,
+        adminSecret:
+          process.env.NEXT_PUBLIC_ENV === 'dev'
+            ? getHasuraAdminSecret()
+            : customAdminSecret || project!.config!.hasura.adminSecret,
+        dataSource: customDataSource || (dataSourceSlug as string),
+        schema: customSchema || (schemaSlug as string),
+      });
+    },
+    {
+      ...mutationOptions,
+      onSuccess: (...args) => {
+        queryClient.invalidateQueries(['export-metadata', project?.subdomain]);
+        mutationOptions?.onSuccess?.(...args);
+      },
+    },
+  );
 
   return mutation;
 }
