@@ -1,7 +1,7 @@
-import { createClient, type NhostClient } from "@nhost/nhost-js";
-import type { Session } from "@nhost/nhost-js/auth";
-import { derived, type Readable, writable } from "svelte/store";
-import { browser } from "$app/environment";
+import { createClient, type NhostClient } from '@nhost/nhost-js';
+import type { Session } from '@nhost/nhost-js/auth';
+import { derived, type Readable, writable } from 'svelte/store';
+import { browser } from '$app/environment';
 
 /**
  * Authentication store interface providing access to user session state and Nhost client.
@@ -9,7 +9,7 @@ import { browser } from "$app/environment";
  */
 interface AuthStore {
   /** Current authenticated user object, null if not authenticated */
-  user: Session["user"] | null;
+  user: Session['user'] | null;
   /** Current session object containing tokens and user data, null if no active session */
   session: Session | null;
   /** Boolean indicating if user is currently authenticated */
@@ -22,12 +22,12 @@ interface AuthStore {
 
 // Initialize Nhost client with default SessionStorage (local storage)
 export const nhost = createClient({
-  region: import.meta.env.VITE_NHOST_REGION || "local",
-  subdomain: import.meta.env.VITE_NHOST_SUBDOMAIN || "local",
+  region: import.meta.env.VITE_NHOST_REGION || 'local',
+  subdomain: import.meta.env.VITE_NHOST_SUBDOMAIN || 'local',
 });
 
 // Create writable stores for authentication state
-const userStore = writable<Session["user"] | null>(null);
+const userStore = writable<Session['user'] | null>(null);
 const sessionStore = writable<Session | null>(null);
 const isLoadingStore = writable<boolean>(true);
 
@@ -101,19 +101,19 @@ export function initializeAuth() {
   };
 
   // Monitor page visibility changes (tab switching, window minimizing)
-  document.addEventListener("visibilitychange", () => {
+  document.addEventListener('visibilitychange', () => {
     if (!document.hidden) {
       checkSessionOnFocus();
     }
   });
 
   // Monitor window focus events (clicking back into the browser window)
-  window.addEventListener("focus", checkSessionOnFocus);
+  window.addEventListener('focus', checkSessionOnFocus);
 
   // Return cleanup function
   return () => {
     unsubscribe();
-    document.removeEventListener("visibilitychange", checkSessionOnFocus);
-    window.removeEventListener("focus", checkSessionOnFocus);
+    document.removeEventListener('visibilitychange', checkSessionOnFocus);
+    window.removeEventListener('focus', checkSessionOnFocus);
   };
 }

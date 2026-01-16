@@ -5,7 +5,7 @@
  * Hasura admin secret for admin permissions in requests.
  */
 
-import type { ChainFunction, FetchFunction } from "./fetch";
+import type { ChainFunction, FetchFunction } from './fetch';
 
 /**
  * Configuration options for admin session middleware
@@ -95,20 +95,20 @@ export const withAdminSessionMiddleware =
     const headers = new Headers(requestOptions.headers || {});
 
     // Set x-hasura-admin-secret if not already present
-    if (!headers.has("x-hasura-admin-secret")) {
-      headers.set("x-hasura-admin-secret", options.adminSecret);
+    if (!headers.has('x-hasura-admin-secret')) {
+      headers.set('x-hasura-admin-secret', options.adminSecret);
     }
 
     // Set x-hasura-role if provided and not already present
-    if (options.role && !headers.has("x-hasura-role")) {
-      headers.set("x-hasura-role", options.role);
+    if (options.role && !headers.has('x-hasura-role')) {
+      headers.set('x-hasura-role', options.role);
     }
 
     // Set custom session variables
     if (options.sessionVariables) {
       for (const [key, value] of Object.entries(options.sessionVariables)) {
         // Ensure the key has the x-hasura- prefix
-        const headerKey = key.startsWith("x-hasura-") ? key : `x-hasura-${key}`;
+        const headerKey = key.startsWith('x-hasura-') ? key : `x-hasura-${key}`;
 
         // Only set if not already present in the request
         if (!headers.has(headerKey)) {

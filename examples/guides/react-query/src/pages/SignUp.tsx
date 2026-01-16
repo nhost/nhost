@@ -1,8 +1,8 @@
-import type { ErrorResponse } from "@nhost/nhost-js/auth";
-import type { FetchError } from "@nhost/nhost-js/fetch";
-import { type JSX, useId, useState } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
-import { useAuth } from "../lib/nhost/AuthProvider";
+import type { ErrorResponse } from '@nhost/nhost-js/auth';
+import type { FetchError } from '@nhost/nhost-js/fetch';
+import { type JSX, useId, useState } from 'react';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { useAuth } from '../lib/nhost/AuthProvider';
 
 export default function SignUp(): JSX.Element {
   const { nhost, isAuthenticated } = useAuth();
@@ -11,9 +11,9 @@ export default function SignUp(): JSX.Element {
   const emailId = useId();
   const passwordId = useId();
 
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-  const [displayName, setDisplayName] = useState<string>("");
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [displayName, setDisplayName] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -40,10 +40,10 @@ export default function SignUp(): JSX.Element {
 
       if (response.body) {
         // Successfully signed up and automatically signed in
-        navigate("/home");
+        navigate('/home');
       } else {
         // Verification email sent
-        navigate("/verify");
+        navigate('/verify');
       }
     } catch (err) {
       const error = err as FetchError<ErrorResponse>;
@@ -110,7 +110,7 @@ export default function SignUp(): JSX.Element {
                 className="btn btn-primary w-full"
                 disabled={isLoading}
               >
-                {isLoading ? "Signing Up..." : "Sign Up"}
+                {isLoading ? 'Signing Up...' : 'Sign Up'}
               </button>
             </form>
           </div>

@@ -1,6 +1,6 @@
 <script lang="ts">
-import { goto } from "$app/navigation";
-import { auth } from "$lib/nhost/auth";
+import { goto } from '$app/navigation';
+import { auth } from '$lib/nhost/auth';
 
 // The interfaces below define the structure of our data
 // They are not strictly necessary but help with type safety
@@ -37,8 +37,8 @@ interface UpdateTodo {
 let todos = $state<Todo[]>([]);
 let loading = $state(true);
 let error = $state<string | null>(null);
-let newTodoTitle = $state("");
-let newTodoDetails = $state("");
+let newTodoTitle = $state('');
+let newTodoDetails = $state('');
 let editingTodo = $state<Todo | null>(null);
 let showAddForm = $state(false);
 let expandedTodos = $state<Set<string>>(new Set());
@@ -46,7 +46,7 @@ let expandedTodos = $state<Set<string>>(new Set());
 // Redirect if not authenticated
 $effect(() => {
   if (!$auth.isLoading && !$auth.isAuthenticated) {
-    void goto("/signin");
+    void goto('/signin');
   }
 });
 
@@ -74,7 +74,7 @@ async function fetchTodos() {
     // Check for GraphQL errors in the response body
     if (response.body.errors) {
       throw new Error(
-        response.body.errors[0]?.message || "Failed to fetch todos",
+        response.body.errors[0]?.message || 'Failed to fetch todos',
       );
     }
 
@@ -82,7 +82,7 @@ async function fetchTodos() {
     todos = response.body?.data?.todos || [];
     error = null;
   } catch (err) {
-    error = err instanceof Error ? err.message : "Failed to fetch todos";
+    error = err instanceof Error ? err.message : 'Failed to fetch todos';
   } finally {
     loading = false;
   }
@@ -116,25 +116,25 @@ async function addTodo(e: SubmitEvent) {
     });
 
     if (response.body.errors) {
-      throw new Error(response.body.errors[0]?.message || "Failed to add todo");
+      throw new Error(response.body.errors[0]?.message || 'Failed to add todo');
     }
 
     if (!response.body?.data?.insert_todos_one) {
-      throw new Error("Failed to add todo");
+      throw new Error('Failed to add todo');
     }
     todos = [response.body?.data?.insert_todos_one, ...todos];
-    newTodoTitle = "";
-    newTodoDetails = "";
+    newTodoTitle = '';
+    newTodoDetails = '';
     showAddForm = false;
     error = null;
   } catch (err) {
-    error = err instanceof Error ? err.message : "Failed to add todo";
+    error = err instanceof Error ? err.message : 'Failed to add todo';
   }
 }
 
 async function updateTodo(
   id: string,
-  updates: Partial<Pick<Todo, "title" | "details" | "completed">>,
+  updates: Partial<Pick<Todo, 'title' | 'details' | 'completed'>>,
 ) {
   try {
     // Execute GraphQL mutation to update an existing todo by primary key
@@ -161,12 +161,12 @@ async function updateTodo(
 
     if (response.body.errors) {
       throw new Error(
-        response.body.errors[0]?.message || "Failed to update todo",
+        response.body.errors[0]?.message || 'Failed to update todo',
       );
     }
 
     if (!response.body?.data?.update_todos_by_pk) {
-      throw new Error("Failed to update todo");
+      throw new Error('Failed to update todo');
     }
 
     const updatedTodo = response.body?.data?.update_todos_by_pk;
@@ -176,12 +176,12 @@ async function updateTodo(
     editingTodo = null;
     error = null;
   } catch (err) {
-    error = err instanceof Error ? err.message : "Failed to update todo";
+    error = err instanceof Error ? err.message : 'Failed to update todo';
   }
 }
 
 async function deleteTodo(id: string) {
-  if (!confirm("Are you sure you want to delete this todo?")) return;
+  if (!confirm('Are you sure you want to delete this todo?')) return;
 
   try {
     // Execute GraphQL mutation to delete a todo by primary key
@@ -201,14 +201,14 @@ async function deleteTodo(id: string) {
 
     if (response.body.errors) {
       throw new Error(
-        response.body.errors[0]?.message || "Failed to delete todo",
+        response.body.errors[0]?.message || 'Failed to delete todo',
       );
     }
 
     todos = todos.filter((todo) => todo.id !== id);
     error = null;
   } catch (err) {
-    error = err instanceof Error ? err.message : "Failed to delete todo";
+    error = err instanceof Error ? err.message : 'Failed to delete todo';
   }
 }
 

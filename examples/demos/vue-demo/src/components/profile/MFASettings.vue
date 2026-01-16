@@ -131,10 +131,10 @@
 </template>
 
 <script setup lang="ts">
-import { type ErrorResponse } from "@nhost/nhost-js/auth";
-import { type FetchError } from "@nhost/nhost-js/fetch";
-import { ref, watch } from "vue";
-import { useAuth } from "../../lib/nhost/auth";
+import { type ErrorResponse } from '@nhost/nhost-js/auth';
+import { type FetchError } from '@nhost/nhost-js/fetch';
+import { ref, watch } from 'vue';
+import { useAuth } from '../../lib/nhost/auth';
 
 interface Props {
   initialMfaEnabled: boolean;
@@ -151,13 +151,13 @@ const success = ref<string | null>(null);
 
 // MFA setup states
 const isSettingUpMfa = ref<boolean>(false);
-const totpSecret = ref<string>("");
-const qrCodeUrl = ref<string>("");
-const verificationCode = ref<string>("");
+const totpSecret = ref<string>('');
+const qrCodeUrl = ref<string>('');
+const verificationCode = ref<string>('');
 
 // Disabling MFA states
 const isDisablingMfa = ref<boolean>(false);
-const disableVerificationCode = ref<string>("");
+const disableVerificationCode = ref<string>('');
 
 // Update internal state when prop changes
 watch(
@@ -192,7 +192,7 @@ const handleEnableMfa = async (): Promise<void> => {
 // Verify TOTP and enable MFA
 const handleVerifyTotp = async (): Promise<void> => {
   if (!verificationCode.value) {
-    error.value = "Please enter the verification code";
+    error.value = 'Please enter the verification code';
     return;
   }
 
@@ -203,13 +203,13 @@ const handleVerifyTotp = async (): Promise<void> => {
   try {
     // Verify and activate MFA
     await nhost.auth.verifyChangeUserMfa({
-      activeMfaType: "totp",
+      activeMfaType: 'totp',
       code: verificationCode.value,
     });
 
     isMfaEnabled.value = true;
     isSettingUpMfa.value = false;
-    success.value = "MFA has been successfully enabled.";
+    success.value = 'MFA has been successfully enabled.';
   } catch (err) {
     const errorObj = err as FetchError<ErrorResponse>;
     error.value = `An error occurred while verifying the code: ${errorObj.message}`;
@@ -228,7 +228,7 @@ const handleShowDisableMfa = (): void => {
 // Disable MFA
 const handleDisableMfa = async (): Promise<void> => {
   if (!disableVerificationCode.value) {
-    error.value = "Please enter your verification code to confirm";
+    error.value = 'Please enter your verification code to confirm';
     return;
   }
 
@@ -239,14 +239,14 @@ const handleDisableMfa = async (): Promise<void> => {
   try {
     // Disable MFA by setting activeMfaType to empty string
     await nhost.auth.verifyChangeUserMfa({
-      activeMfaType: "",
+      activeMfaType: '',
       code: disableVerificationCode.value,
     });
 
     isMfaEnabled.value = false;
     isDisablingMfa.value = false;
-    disableVerificationCode.value = "";
-    success.value = "MFA has been successfully disabled.";
+    disableVerificationCode.value = '';
+    success.value = 'MFA has been successfully disabled.';
   } catch (err) {
     const errorObj = err as FetchError<ErrorResponse>;
     error.value = `An error occurred while disabling MFA: ${errorObj.message}`;
@@ -258,15 +258,15 @@ const handleDisableMfa = async (): Promise<void> => {
 // Cancel MFA setup
 const handleCancelMfaSetup = (): void => {
   isSettingUpMfa.value = false;
-  totpSecret.value = "";
-  qrCodeUrl.value = "";
-  verificationCode.value = "";
+  totpSecret.value = '';
+  qrCodeUrl.value = '';
+  verificationCode.value = '';
 };
 
 // Cancel MFA disable
 const handleCancelMfaDisable = (): void => {
   isDisablingMfa.value = false;
-  disableVerificationCode.value = "";
+  disableVerificationCode.value = '';
   error.value = null;
 };
 </script>

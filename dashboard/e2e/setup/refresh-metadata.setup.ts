@@ -42,7 +42,6 @@ setup('refresh metadata', async () => {
       console.error(body[0].inconsistent_objects);
       throw new Error('Metadata is not consistent');
     }
-
   } catch (error) {
     console.error(
       'Failed to refresh metadata:',

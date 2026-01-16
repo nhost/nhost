@@ -1,18 +1,18 @@
-import { createClient } from "@nhost/nhost-js";
-import type { Session } from "@nhost/nhost-js/auth";
-import { computed, reactive } from "vue";
+import { createClient } from '@nhost/nhost-js';
+import type { Session } from '@nhost/nhost-js/auth';
+import { computed, reactive } from 'vue';
 
 // Global reactive state
 const authState = reactive({
-  user: null as Session["user"] | null,
+  user: null as Session['user'] | null,
   session: null as Session | null,
   isLoading: true,
 });
 
 // Create the nhost client
 const nhost = createClient({
-  region: (import.meta.env["VITE_NHOST_REGION"] as string) || "local",
-  subdomain: (import.meta.env["VITE_NHOST_SUBDOMAIN"] as string) || "local",
+  region: (import.meta.env['VITE_NHOST_REGION'] as string) || 'local',
+  subdomain: (import.meta.env['VITE_NHOST_SUBDOMAIN'] as string) || 'local',
 });
 
 // Subscription cleanup function
@@ -62,14 +62,14 @@ const initializeAuth = () => {
   };
 
   // Monitor page visibility changes (tab switching, window minimizing)
-  document.addEventListener("visibilitychange", () => {
+  document.addEventListener('visibilitychange', () => {
     if (!document.hidden) {
       checkSessionOnFocus();
     }
   });
 
   // Monitor window focus events (clicking back into the browser window)
-  window.addEventListener("focus", checkSessionOnFocus);
+  window.addEventListener('focus', checkSessionOnFocus);
 
   isInitialized = true;
 };
@@ -107,7 +107,7 @@ const cleanup = () => {
  */
 export function useAuth() {
   // Initialize auth if not already done
-  if (!isInitialized && typeof window !== "undefined") {
+  if (!isInitialized && typeof window !== 'undefined') {
     initializeAuth();
   }
 
@@ -121,11 +121,11 @@ export function useAuth() {
 }
 
 // Initialize auth immediately (for SSR compatibility)
-if (typeof window !== "undefined") {
+if (typeof window !== 'undefined') {
   initializeAuth();
 }
 
 // Cleanup on window unload
-if (typeof window !== "undefined") {
-  window.addEventListener("beforeunload", cleanup);
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeunload', cleanup);
 }

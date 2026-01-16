@@ -1,4 +1,4 @@
-import { useAuth } from "../lib/nhost/AuthProvider";
+import { useAuth } from '../lib/nhost/AuthProvider';
 
 export default function Home() {
   const { isAuthenticated, user } = useAuth();

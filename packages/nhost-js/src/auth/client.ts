@@ -2,20 +2,20 @@
  * This file is auto-generated. Do not edit manually.
  */
 
-import type { ChainFunction, FetchResponse } from "../fetch";
-import { createEnhancedFetch, FetchError } from "../fetch";
+import type { ChainFunction, FetchResponse } from '../fetch';
+import { createEnhancedFetch, FetchError } from '../fetch';
 
 /**
  * The attestation statement format
  */
 export type AttestationFormat =
-  | "packed"
-  | "tpm"
-  | "android-key"
-  | "android-safetynet"
-  | "fido-u2f"
-  | "apple"
-  | "none";
+  | 'packed'
+  | 'tpm'
+  | 'android-key'
+  | 'android-safetynet'
+  | 'fido-u2f'
+  | 'apple'
+  | 'none';
 
 /**
  * Map of extension outputs from the client
@@ -65,7 +65,7 @@ export interface AuthenticatorAssertionResponse {
 /**
  * The authenticator attachment modality
  */
-export type AuthenticatorAttachment = "platform" | "cross-platform";
+export type AuthenticatorAttachment = 'platform' | 'cross-platform';
 
 /**
  * 
@@ -141,21 +141,21 @@ export interface AuthenticatorSelection {
  * The authenticator transports that can be used
  */
 export type AuthenticatorTransport =
-  | "usb"
-  | "nfc"
-  | "ble"
-  | "smart-card"
-  | "hybrid"
-  | "internal";
+  | 'usb'
+  | 'nfc'
+  | 'ble'
+  | 'smart-card'
+  | 'hybrid'
+  | 'internal';
 
 /**
  * The attestation conveyance preference
  */
 export type ConveyancePreference =
-  | "none"
-  | "indirect"
-  | "direct"
-  | "enterprise";
+  | 'none'
+  | 'indirect'
+  | 'direct'
+  | 'enterprise';
 
 /**
  * 
@@ -301,44 +301,44 @@ export interface CredentialPropertiesOutput {
 /**
  * The valid credential types
  */
-export type CredentialType = "public-key";
+export type CredentialType = 'public-key';
 
 /**
  * Error code identifying the specific application error
  */
 export type ErrorResponseError =
-  | "default-role-must-be-in-allowed-roles"
-  | "disabled-endpoint"
-  | "disabled-user"
-  | "email-already-in-use"
-  | "email-already-verified"
-  | "forbidden-anonymous"
-  | "internal-server-error"
-  | "invalid-email-password"
-  | "invalid-request"
-  | "locale-not-allowed"
-  | "password-too-short"
-  | "password-in-hibp-database"
-  | "redirectTo-not-allowed"
-  | "role-not-allowed"
-  | "signup-disabled"
-  | "unverified-user"
-  | "user-not-anonymous"
-  | "invalid-pat"
-  | "invalid-refresh-token"
-  | "invalid-ticket"
-  | "disabled-mfa-totp"
-  | "no-totp-secret"
-  | "invalid-totp"
-  | "mfa-type-not-found"
-  | "totp-already-active"
-  | "invalid-state"
-  | "oauth-token-echange-failed"
-  | "oauth-profile-fetch-failed"
-  | "oauth-provider-error"
-  | "invalid-otp"
-  | "cannot-send-sms"
-  | "provider-account-already-linked";
+  | 'default-role-must-be-in-allowed-roles'
+  | 'disabled-endpoint'
+  | 'disabled-user'
+  | 'email-already-in-use'
+  | 'email-already-verified'
+  | 'forbidden-anonymous'
+  | 'internal-server-error'
+  | 'invalid-email-password'
+  | 'invalid-request'
+  | 'locale-not-allowed'
+  | 'password-too-short'
+  | 'password-in-hibp-database'
+  | 'redirectTo-not-allowed'
+  | 'role-not-allowed'
+  | 'signup-disabled'
+  | 'unverified-user'
+  | 'user-not-anonymous'
+  | 'invalid-pat'
+  | 'invalid-refresh-token'
+  | 'invalid-ticket'
+  | 'disabled-mfa-totp'
+  | 'no-totp-secret'
+  | 'invalid-totp'
+  | 'mfa-type-not-found'
+  | 'totp-already-active'
+  | 'invalid-state'
+  | 'oauth-token-echange-failed'
+  | 'oauth-profile-fetch-failed'
+  | 'oauth-provider-error'
+  | 'invalid-otp'
+  | 'cannot-send-sms'
+  | 'provider-account-already-linked';
 
 /**
  * Standardized error response
@@ -367,7 +367,7 @@ export interface ErrorResponse {
 /**
  *
  */
-export type IdTokenProvider = "apple" | "google";
+export type IdTokenProvider = 'apple' | 'google';
 
 /**
  * JSON Web Key for JWT verification
@@ -461,7 +461,7 @@ export interface MFAChallengePayload {
 /**
  *
  */
-export type OKResponse = "OK";
+export type OKResponse = 'OK';
 
 /**
  * 
@@ -565,9 +565,9 @@ export interface PublicKeyCredentialDescriptor {
  * Hints to help guide the user through the experience
  */
 export type PublicKeyCredentialHints =
-  | "security-key"
-  | "client-device"
-  | "hybrid";
+  | 'security-key'
+  | 'client-device'
+  | 'hybrid';
 
 /**
  * 
@@ -705,7 +705,7 @@ export interface RelyingPartyEntity {
 /**
  * The resident key requirement
  */
-export type ResidentKeyRequirement = "discouraged" | "preferred" | "required";
+export type ResidentKeyRequirement = 'discouraged' | 'preferred' | 'required';
 
 /**
  * User authentication session containing tokens and user information
@@ -1316,8 +1316,8 @@ export interface User {
  * Which sign-in method to use
  */
 export type UserDeanonymizeRequestSignInMethod =
-  | "email-password"
-  | "passwordless";
+  | 'email-password'
+  | 'passwordless';
 
 /**
  * 
@@ -1420,7 +1420,7 @@ export interface UserEntity {
 /**
  * Type of MFA to activate. Use empty string to disable MFA.
  */
-export type UserMfaRequestActiveMfaType = "totp" | "";
+export type UserMfaRequestActiveMfaType = 'totp' | '';
 
 /**
  * Request to activate or deactivate multi-factor authentication
@@ -1487,9 +1487,9 @@ export interface UserPasswordResetRequest {
  * A requirement for user verification for the operation
  */
 export type UserVerificationRequirement =
-  | "required"
-  | "preferred"
-  | "discouraged";
+  | 'required'
+  | 'preferred'
+  | 'discouraged';
 
 /**
  * 
@@ -1542,22 +1542,22 @@ export type RedirectToQuery = string;
  *
  */
 export type SignInProvider =
-  | "apple"
-  | "github"
-  | "google"
-  | "linkedin"
-  | "discord"
-  | "spotify"
-  | "twitch"
-  | "gitlab"
-  | "bitbucket"
-  | "workos"
-  | "azuread"
-  | "entraid"
-  | "strava"
-  | "facebook"
-  | "windowslive"
-  | "twitter";
+  | 'apple'
+  | 'github'
+  | 'google'
+  | 'linkedin'
+  | 'discord'
+  | 'spotify'
+  | 'twitch'
+  | 'gitlab'
+  | 'bitbucket'
+  | 'workos'
+  | 'azuread'
+  | 'entraid'
+  | 'strava'
+  | 'facebook'
+  | 'windowslive'
+  | 'twitter';
 
 /**
  * Ticket
@@ -1568,10 +1568,10 @@ export type TicketQuery = string;
  * Type of the ticket
  */
 export type TicketTypeQuery =
-  | "emailVerify"
-  | "emailConfirmChange"
-  | "signinPasswordless"
-  | "passwordReset";
+  | 'emailVerify'
+  | 'emailConfirmChange'
+  | 'signinPasswordless'
+  | 'passwordReset';
 
 /**
  * 
@@ -2169,7 +2169,7 @@ export const createAPIClient = (
     const url = `${baseURL}/.well-known/jwks.json`;
     const res = await fetch(url, {
       ...options,
-      method: "GET",
+      method: 'GET',
       headers: {
         ...options?.headers,
       },
@@ -2199,7 +2199,7 @@ export const createAPIClient = (
     const url = `${baseURL}/elevate/webauthn`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
         ...options?.headers,
       },
@@ -2232,9 +2232,9 @@ export const createAPIClient = (
     const url = `${baseURL}/elevate/webauthn/verify`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -2266,7 +2266,7 @@ export const createAPIClient = (
     const url = `${baseURL}/healthz`;
     const res = await fetch(url, {
       ...options,
-      method: "GET",
+      method: 'GET',
       headers: {
         ...options?.headers,
       },
@@ -2296,7 +2296,7 @@ export const createAPIClient = (
     const url = `${baseURL}/healthz`;
     const res = await fetch(url, {
       ...options,
-      method: "HEAD",
+      method: 'HEAD',
       headers: {
         ...options?.headers,
       },
@@ -2324,9 +2324,9 @@ export const createAPIClient = (
     const url = `${baseURL}/link/idtoken`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -2356,7 +2356,7 @@ export const createAPIClient = (
     const url = `${baseURL}/mfa/totp/generate`;
     const res = await fetch(url, {
       ...options,
-      method: "GET",
+      method: 'GET',
       headers: {
         ...options?.headers,
       },
@@ -2389,9 +2389,9 @@ export const createAPIClient = (
     const url = `${baseURL}/pat`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -2424,9 +2424,9 @@ export const createAPIClient = (
     const url = `${baseURL}/signin/anonymous`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -2459,9 +2459,9 @@ export const createAPIClient = (
     const url = `${baseURL}/signin/email-password`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -2494,9 +2494,9 @@ export const createAPIClient = (
     const url = `${baseURL}/signin/idtoken`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -2529,9 +2529,9 @@ export const createAPIClient = (
     const url = `${baseURL}/signin/mfa/totp`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -2564,9 +2564,9 @@ export const createAPIClient = (
     const url = `${baseURL}/signin/otp/email`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -2597,9 +2597,9 @@ export const createAPIClient = (
     const url = `${baseURL}/signin/otp/email/verify`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -2632,9 +2632,9 @@ export const createAPIClient = (
     const url = `${baseURL}/signin/passwordless/email`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -2665,9 +2665,9 @@ export const createAPIClient = (
     const url = `${baseURL}/signin/passwordless/sms`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -2698,9 +2698,9 @@ export const createAPIClient = (
     const url = `${baseURL}/signin/passwordless/sms/otp`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -2733,9 +2733,9 @@ export const createAPIClient = (
     const url = `${baseURL}/signin/pat`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -2769,10 +2769,10 @@ export const createAPIClient = (
       params &&
       Object.entries(params)
         .flatMap(([key, value]) => {
-          if (key === "providerSpecificParams") {
+          if (key === 'providerSpecificParams') {
             // Object with explode: true - each property as separate parameter
             if (
-              typeof value === "object" &&
+              typeof value === 'object' &&
               value !== null &&
               !Array.isArray(value)
             ) {
@@ -2784,13 +2784,13 @@ export const createAPIClient = (
           }
           // Default handling (scalars or explode: false)
           const stringValue = Array.isArray(value)
-            ? value.join(",")
-            : typeof value === "object" && value !== null
+            ? value.join(',')
+            : typeof value === 'object' && value !== null
               ? JSON.stringify(value)
               : String(value);
           return [`${key}=${encodeURIComponent(stringValue)}`];
         })
-        .join("&");
+        .join('&');
 
     const url = encodedParameters
       ? `${baseURL}/signin/provider/${provider}?${encodedParameters}`
@@ -2805,7 +2805,7 @@ export const createAPIClient = (
     const url = `${baseURL}/signin/provider/${provider}/callback/tokens`;
     const res = await fetch(url, {
       ...options,
-      method: "GET",
+      method: 'GET',
       headers: {
         ...options?.headers,
       },
@@ -2838,9 +2838,9 @@ export const createAPIClient = (
     const url = `${baseURL}/signin/webauthn`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -2873,9 +2873,9 @@ export const createAPIClient = (
     const url = `${baseURL}/signin/webauthn/verify`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -2908,9 +2908,9 @@ export const createAPIClient = (
     const url = `${baseURL}/signout`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -2941,9 +2941,9 @@ export const createAPIClient = (
     const url = `${baseURL}/signup/email-password`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -2976,9 +2976,9 @@ export const createAPIClient = (
     const url = `${baseURL}/signup/webauthn`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -3011,9 +3011,9 @@ export const createAPIClient = (
     const url = `${baseURL}/signup/webauthn/verify`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -3046,9 +3046,9 @@ export const createAPIClient = (
     const url = `${baseURL}/token`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -3080,9 +3080,9 @@ export const createAPIClient = (
     const url = `${baseURL}/token/provider/${provider}`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -3115,9 +3115,9 @@ export const createAPIClient = (
     const url = `${baseURL}/token/verify`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -3147,7 +3147,7 @@ export const createAPIClient = (
     const url = `${baseURL}/user`;
     const res = await fetch(url, {
       ...options,
-      method: "GET",
+      method: 'GET',
       headers: {
         ...options?.headers,
       },
@@ -3178,9 +3178,9 @@ export const createAPIClient = (
     const url = `${baseURL}/user/deanonymize`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -3211,9 +3211,9 @@ export const createAPIClient = (
     const url = `${baseURL}/user/email/change`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -3244,9 +3244,9 @@ export const createAPIClient = (
     const url = `${baseURL}/user/email/send-verification-email`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -3277,9 +3277,9 @@ export const createAPIClient = (
     const url = `${baseURL}/user/mfa`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -3310,9 +3310,9 @@ export const createAPIClient = (
     const url = `${baseURL}/user/password`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -3343,9 +3343,9 @@ export const createAPIClient = (
     const url = `${baseURL}/user/password/reset`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -3375,7 +3375,7 @@ export const createAPIClient = (
     const url = `${baseURL}/user/webauthn/add`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
         ...options?.headers,
       },
@@ -3408,9 +3408,9 @@ export const createAPIClient = (
     const url = `${baseURL}/user/webauthn/verify`;
     const res = await fetch(url, {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -3443,13 +3443,13 @@ export const createAPIClient = (
         .flatMap(([key, value]) => {
           // Default handling (scalars or explode: false)
           const stringValue = Array.isArray(value)
-            ? value.join(",")
-            : typeof value === "object" && value !== null
+            ? value.join(',')
+            : typeof value === 'object' && value !== null
               ? JSON.stringify(value)
               : String(value);
           return [`${key}=${encodeURIComponent(stringValue)}`];
         })
-        .join("&");
+        .join('&');
 
     const url = encodedParameters
       ? `${baseURL}/verify?${encodedParameters}`
@@ -3463,7 +3463,7 @@ export const createAPIClient = (
     const url = `${baseURL}/version`;
     const res = await fetch(url, {
       ...options,
-      method: "GET",
+      method: 'GET',
       headers: {
         ...options?.headers,
       },

@@ -5,13 +5,13 @@
  * a Hasura GraphQL API.
  */
 
-import type { TypedDocumentNode } from "@graphql-typed-document-node/core";
+import type { TypedDocumentNode } from '@graphql-typed-document-node/core';
 import {
   type ChainFunction,
   createEnhancedFetch,
   FetchError,
   type FetchResponse,
-} from "../fetch";
+} from '../fetch';
 
 /**
  * Variables object for GraphQL operations.
@@ -128,9 +128,9 @@ export const createAPIClient = (
     options?: RequestInit,
   ): Promise<FetchResponse<GraphQLResponse<TResponseData>>> => {
     const response = await enhancedFetch(`${url}`, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify(request),
       ...options,
@@ -170,14 +170,14 @@ export const createAPIClient = (
     variablesOrOptions?: TVariables | RequestInit,
     options?: RequestInit,
   ): Promise<FetchResponse<GraphQLResponse<TResponseData>>> {
-    if (typeof requestOrDocument === "object" && "kind" in requestOrDocument) {
+    if (typeof requestOrDocument === 'object' && 'kind' in requestOrDocument) {
       const definition = requestOrDocument.definitions[0];
 
       const request: GraphQLRequest<TVariables> = {
-        query: requestOrDocument.loc?.source.body || "",
+        query: requestOrDocument.loc?.source.body || '',
         variables: variablesOrOptions as TVariables,
         operationName:
-          definition && "name" in definition
+          definition && 'name' in definition
             ? definition.name?.value
             : undefined,
       };

@@ -1,6 +1,6 @@
-import { redirect } from "next/navigation";
-import { createNhostClient } from "../../lib/nhost/server";
-import MfaVerificationForm from "./MfaVerificationForm";
+import { redirect } from 'next/navigation';
+import { createNhostClient } from '../../lib/nhost/server';
+import MfaVerificationForm from './MfaVerificationForm';
 
 export default async function MfaVerification({
   searchParams,
@@ -18,12 +18,12 @@ export default async function MfaVerification({
 
   // If user is already authenticated, redirect to profile
   if (session) {
-    redirect("/profile");
+    redirect('/profile');
   }
 
   // If no ticket is provided, redirect to sign in
   if (!ticket) {
-    redirect("/signin");
+    redirect('/signin');
   }
 
   return (

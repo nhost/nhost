@@ -10,7 +10,7 @@ import {
   createEnhancedFetch,
   FetchError,
   type FetchResponse,
-} from "../fetch";
+} from '../fetch';
 
 /**
  * Functions client interface providing methods for executing serverless function calls
@@ -100,9 +100,9 @@ export const createAPIClient = (
 
     let body: T | string | Blob;
     // Process response based on content type
-    if (resp.headers.get("content-type")?.includes("application/json")) {
+    if (resp.headers.get('content-type')?.includes('application/json')) {
       body = (await resp.json()) as T;
-    } else if (resp.headers.get("content-type")?.startsWith("text/")) {
+    } else if (resp.headers.get('content-type')?.startsWith('text/')) {
       body = await resp.text();
     } else {
       body = await resp.blob();
@@ -142,10 +142,10 @@ export const createAPIClient = (
     // Ensure the method is POST and set the body
     const requestOptions: RequestInit = {
       ...options,
-      method: "POST",
+      method: 'POST',
       headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
         ...options.headers,
       },
       body: body ? JSON.stringify(body) : undefined,

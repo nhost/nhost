@@ -1,16 +1,16 @@
-import { useQueryClient } from "@tanstack/react-query";
-import { type JSX, useState } from "react";
+import { useQueryClient } from '@tanstack/react-query';
+import { type JSX, useState } from 'react';
 import {
   useAddCommentMutation,
   useGetNinjaTurtlesWithCommentsQuery,
-} from "../lib/graphql/__generated__/graphql";
-import { useAuth } from "../lib/nhost/AuthProvider";
-import "./Home.css";
+} from '../lib/graphql/__generated__/graphql';
+import { useAuth } from '../lib/nhost/AuthProvider';
+import './Home.css';
 
 export default function Home(): JSX.Element {
   const { isLoading } = useAuth();
   const [activeCommentId, setActiveCommentId] = useState<string | null>(null);
-  const [commentText, setCommentText] = useState("");
+  const [commentText, setCommentText] = useState('');
   const [activeTabId, setActiveTabId] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
@@ -23,11 +23,11 @@ export default function Home(): JSX.Element {
 
   const { mutate: addComment } = useAddCommentMutation({
     onSuccess: () => {
-      setCommentText("");
+      setCommentText('');
       setActiveCommentId(null);
       // Invalidate and refetch the ninja turtles query to get updated data
       queryClient.invalidateQueries({
-        queryKey: ["GetNinjaTurtlesWithComments"],
+        queryKey: ['GetNinjaTurtlesWithComments'],
       });
     },
   });
@@ -95,7 +95,7 @@ export default function Home(): JSX.Element {
           <button
             key={turtle.id}
             type="button"
-            className={`turtle-tab ${activeTabId === turtle.id ? "active" : ""}`}
+            className={`turtle-tab ${activeTabId === turtle.id ? 'active' : ''}`}
             onClick={() => setActiveTabId(turtle.id)}
           >
             {turtle.name}
@@ -130,14 +130,14 @@ export default function Home(): JSX.Element {
                   <p className="comment-text">{comment.comment}</p>
                   <div className="comment-meta">
                     <div className="comment-avatar">
-                      {(comment.user?.displayName || comment.user?.email || "?")
+                      {(comment.user?.displayName || comment.user?.email || '?')
                         .charAt(0)
                         .toUpperCase()}
                     </div>
                     <p>
                       {comment.user?.displayName ||
                         comment.user?.email ||
-                        "Anonymous"}{" "}
+                        'Anonymous'}{' '}
                       - {formatDate(comment.createdAt || comment.createdAt)}
                     </p>
                   </div>
@@ -158,7 +158,7 @@ export default function Home(): JSX.Element {
                       type="button"
                       onClick={() => {
                         setActiveCommentId(null);
-                        setCommentText("");
+                        setCommentText('');
                       }}
                       className="btn cancel-button"
                     >

@@ -1,16 +1,16 @@
 <script lang="ts">
-import type { ErrorResponse } from "@nhost/nhost-js/auth";
-import type { FetchError } from "@nhost/nhost-js/fetch";
-import { goto } from "$app/navigation";
-import { page } from "$app/stores";
-import { auth, nhost } from "$lib/nhost/auth";
+import type { ErrorResponse } from '@nhost/nhost-js/auth';
+import type { FetchError } from '@nhost/nhost-js/fetch';
+import { goto } from '$app/navigation';
+import { page } from '$app/stores';
+import { auth, nhost } from '$lib/nhost/auth';
 
 interface VerificationResponse {
   success?: boolean;
   error?: string;
 }
 
-let otp = $state("");
+let otp = $state('');
 let isLoading = $state(false);
 let error = $state<string | null>(null);
 let ticket = $state<string | null>(null);
@@ -18,8 +18,8 @@ let ticket = $state<string | null>(null);
 // Extract ticket and initial error from URL search params
 $effect(() => {
   const urlParams = new URLSearchParams($page.url.search);
-  ticket = urlParams.get("ticket");
-  const initialError = urlParams.get("error");
+  ticket = urlParams.get('ticket');
+  const initialError = urlParams.get('error');
   if (initialError) {
     error = initialError;
   }
@@ -29,13 +29,13 @@ $effect(() => {
 $effect(() => {
   // If user is already authenticated, redirect to profile
   if ($auth.isAuthenticated) {
-    void goto("/profile", { replaceState: true });
+    void goto('/profile', { replaceState: true });
     return;
   }
 
   // If no ticket is provided, redirect to sign in
   if (!ticket && !isLoading) {
-    void goto("/signin", { replaceState: true });
+    void goto('/signin', { replaceState: true });
     return;
   }
 });
@@ -51,7 +51,7 @@ async function handleSubmit(e: SubmitEvent) {
     if (result.error) {
       error = result.error;
     } else if (result.success) {
-      void goto("/profile", { replaceState: true });
+      void goto('/profile', { replaceState: true });
     }
   } catch (err) {
     const fetchError = err as FetchError<ErrorResponse>;
@@ -78,7 +78,7 @@ async function verifyMfa(
       return { success: true };
     }
 
-    return { error: "Failed to verify MFA code. Please try again." };
+    return { error: 'Failed to verify MFA code. Please try again.' };
   } catch (err) {
     const fetchError = err as FetchError<ErrorResponse>;
     return { error: `Failed to verify code: ${fetchError.message}` };

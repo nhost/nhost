@@ -47,18 +47,18 @@
 </template>
 
 <script setup lang="ts">
-import type { ErrorResponse } from "@nhost/nhost-js/auth";
-import { type FetchError } from "@nhost/nhost-js/fetch";
-import { onMounted, onUnmounted, ref } from "vue";
-import { useRoute, useRouter } from "vue-router";
-import { useAuth } from "../lib/nhost/auth";
+import type { ErrorResponse } from '@nhost/nhost-js/auth';
+import { type FetchError } from '@nhost/nhost-js/fetch';
+import { onMounted, onUnmounted, ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { useAuth } from '../lib/nhost/auth';
 
 const route = useRoute();
 const router = useRouter();
 const { nhost } = useAuth();
 
-const status = ref<"verifying" | "success" | "error">("verifying");
-const error = ref<string>("");
+const status = ref<'verifying' | 'success' | 'error'>('verifying');
+const error = ref<string>('');
 const urlParams = ref<Record<string, string>>({});
 
 // Flag to handle component unmounting during async operations
@@ -66,8 +66,8 @@ let isMounted = true;
 
 onMounted(async () => {
   // Extract the refresh token from the URL
-  const params = new URLSearchParams(route.fullPath.split("?")[1] || "");
-  const refreshToken = params.get("refreshToken");
+  const params = new URLSearchParams(route.fullPath.split('?')[1] || '');
+  const refreshToken = params.get('refreshToken');
 
   if (!refreshToken) {
     // Collect all URL parameters to display
@@ -77,8 +77,8 @@ onMounted(async () => {
     });
     urlParams.value = allParams;
 
-    status.value = "error";
-    error.value = "No refresh token found in URL";
+    status.value = 'error';
+    error.value = 'No refresh token found in URL';
     return;
   }
 
@@ -107,8 +107,8 @@ async function processToken(
       });
       urlParams.value = allParams;
 
-      status.value = "error";
-      error.value = "No refresh token found in URL";
+      status.value = 'error';
+      error.value = 'No refresh token found in URL';
       return;
     }
 
@@ -117,17 +117,17 @@ async function processToken(
 
     if (!isMounted) return;
 
-    status.value = "success";
+    status.value = 'success';
 
     // Wait to show success message briefly, then redirect
     setTimeout(() => {
-      if (isMounted) router.push("/profile");
+      if (isMounted) router.push('/profile');
     }, 1500);
   } catch (err) {
     const errorObj = err as FetchError<ErrorResponse>;
     if (!isMounted) return;
 
-    status.value = "error";
+    status.value = 'error';
     error.value = `An error occurred during verification: ${errorObj.message}`;
   }
 }

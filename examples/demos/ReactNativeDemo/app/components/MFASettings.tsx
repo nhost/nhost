@@ -1,7 +1,7 @@
-import type { ErrorResponse } from "@nhost/nhost-js/auth";
-import type { FetchError } from "@nhost/nhost-js/fetch";
-import * as Clipboard from "expo-clipboard";
-import { useEffect, useState } from "react";
+import type { ErrorResponse } from '@nhost/nhost-js/auth';
+import type { FetchError } from '@nhost/nhost-js/fetch';
+import * as Clipboard from 'expo-clipboard';
+import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -17,8 +17,8 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
-} from "react-native";
-import { useAuth } from "../lib/nhost/AuthProvider";
+} from 'react-native';
+import { useAuth } from '../lib/nhost/AuthProvider';
 
 interface MFASettingsProps {
   initialMfaEnabled: boolean;
@@ -40,15 +40,15 @@ export default function MFASettings({ initialMfaEnabled }: MFASettingsProps) {
 
   // MFA setup states
   const [isSettingUpMfa, setIsSettingUpMfa] = useState<boolean>(false);
-  const [totpSecret, setTotpSecret] = useState<string>("");
-  const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
-  const [verificationCode, setVerificationCode] = useState<string>("");
+  const [totpSecret, setTotpSecret] = useState<string>('');
+  const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
+  const [verificationCode, setVerificationCode] = useState<string>('');
   const [qrCodeModalVisible, setQrCodeModalVisible] = useState<boolean>(false);
 
   // Disabling MFA states
   const [isDisablingMfa, setIsDisablingMfa] = useState<boolean>(false);
   const [disableVerificationCode, setDisableVerificationCode] =
-    useState<string>("");
+    useState<string>('');
 
   // Begin MFA setup process
   const handleEnableMfa = async () => {
@@ -63,9 +63,9 @@ export default function MFASettings({ initialMfaEnabled }: MFASettingsProps) {
       setQrCodeUrl(response.body.imageUrl);
       setIsSettingUpMfa(true);
     } catch (err) {
-      const errMessage = err instanceof Error ? err.message : "Unknown error";
+      const errMessage = err instanceof Error ? err.message : 'Unknown error';
       setError(`An error occurred while enabling MFA: ${errMessage}`);
-      Alert.alert("Error", `Failed to enable MFA: ${errMessage}`);
+      Alert.alert('Error', `Failed to enable MFA: ${errMessage}`);
     } finally {
       setIsLoading(false);
     }
@@ -74,8 +74,8 @@ export default function MFASettings({ initialMfaEnabled }: MFASettingsProps) {
   // Verify TOTP and enable MFA
   const handleVerifyTotp = async () => {
     if (!verificationCode) {
-      setError("Please enter the verification code");
-      Alert.alert("Error", "Please enter the verification code");
+      setError('Please enter the verification code');
+      Alert.alert('Error', 'Please enter the verification code');
       return;
     }
 
@@ -86,18 +86,18 @@ export default function MFASettings({ initialMfaEnabled }: MFASettingsProps) {
     try {
       // Verify and activate MFA
       await nhost.auth.verifyChangeUserMfa({
-        activeMfaType: "totp",
+        activeMfaType: 'totp',
         code: verificationCode,
       });
 
       setIsMfaEnabled(true);
       setIsSettingUpMfa(false);
-      setSuccess("MFA has been successfully enabled.");
-      Alert.alert("Success", "MFA has been successfully enabled.");
+      setSuccess('MFA has been successfully enabled.');
+      Alert.alert('Success', 'MFA has been successfully enabled.');
     } catch (err) {
-      const errMessage = err instanceof Error ? err.message : "Unknown error";
+      const errMessage = err instanceof Error ? err.message : 'Unknown error';
       setError(`An error occurred while verifying the code: ${errMessage}`);
-      Alert.alert("Error", `Failed to verify code: ${errMessage}`);
+      Alert.alert('Error', `Failed to verify code: ${errMessage}`);
     } finally {
       setIsLoading(false);
     }
@@ -113,8 +113,8 @@ export default function MFASettings({ initialMfaEnabled }: MFASettingsProps) {
   // Disable MFA
   const handleDisableMfa = async () => {
     if (!disableVerificationCode) {
-      setError("Please enter your verification code to confirm");
-      Alert.alert("Error", "Please enter your verification code to confirm");
+      setError('Please enter your verification code to confirm');
+      Alert.alert('Error', 'Please enter your verification code to confirm');
       return;
     }
 
@@ -125,19 +125,19 @@ export default function MFASettings({ initialMfaEnabled }: MFASettingsProps) {
     try {
       // Disable MFA by setting activeMfaType to empty string
       await nhost.auth.verifyChangeUserMfa({
-        activeMfaType: "",
+        activeMfaType: '',
         code: disableVerificationCode,
       });
 
       setIsMfaEnabled(false);
       setIsDisablingMfa(false);
-      setDisableVerificationCode("");
-      setSuccess("MFA has been successfully disabled.");
-      Alert.alert("Success", "MFA has been successfully disabled.");
+      setDisableVerificationCode('');
+      setSuccess('MFA has been successfully disabled.');
+      Alert.alert('Success', 'MFA has been successfully disabled.');
     } catch (err) {
       const error = err as FetchError<ErrorResponse>;
       setError(`An error occurred while disabling MFA: ${error.message}`);
-      Alert.alert("Error", `Failed to disable MFA: ${error.message}`);
+      Alert.alert('Error', `Failed to disable MFA: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
@@ -146,15 +146,15 @@ export default function MFASettings({ initialMfaEnabled }: MFASettingsProps) {
   // Cancel MFA setup
   const handleCancelMfaSetup = () => {
     setIsSettingUpMfa(false);
-    setTotpSecret("");
-    setQrCodeUrl("");
-    setVerificationCode("");
+    setTotpSecret('');
+    setQrCodeUrl('');
+    setVerificationCode('');
   };
 
   // Cancel MFA disable
   const handleCancelMfaDisable = () => {
     setIsDisablingMfa(false);
-    setDisableVerificationCode("");
+    setDisableVerificationCode('');
     setError(null);
   };
 
@@ -231,7 +231,7 @@ export default function MFASettings({ initialMfaEnabled }: MFASettingsProps) {
                 style={styles.secretContainer}
                 onPress={async () => {
                   await Clipboard.setStringAsync(totpSecret);
-                  Alert.alert("Copied", "Secret key copied to clipboard");
+                  Alert.alert('Copied', 'Secret key copied to clipboard');
                 }}
               >
                 <Text style={styles.secretText}>{totpSecret}</Text>
@@ -349,7 +349,7 @@ export default function MFASettings({ initialMfaEnabled }: MFASettingsProps) {
                 isMfaEnabled ? styles.enabledText : styles.disabledText,
               ]}
             >
-              {isMfaEnabled ? "Enabled" : "Disabled"}
+              {isMfaEnabled ? 'Enabled' : 'Disabled'}
             </Text>
           </View>
 
@@ -394,11 +394,11 @@ export default function MFASettings({ initialMfaEnabled }: MFASettingsProps) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
     borderRadius: 10,
     padding: 16,
     marginBottom: 20,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2,
@@ -410,51 +410,51 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginBottom: 16,
-    color: "#333",
+    color: '#333',
   },
   contentContainer: {
     marginTop: 10,
   },
   errorContainer: {
-    backgroundColor: "#fee2e2",
+    backgroundColor: '#fee2e2',
     padding: 12,
     borderRadius: 6,
     marginBottom: 16,
     borderLeftWidth: 4,
-    borderLeftColor: "#ef4444",
+    borderLeftColor: '#ef4444',
   },
   errorText: {
-    color: "#b91c1c",
+    color: '#b91c1c',
     fontSize: 14,
   },
   successContainer: {
-    backgroundColor: "#dcfce7",
+    backgroundColor: '#dcfce7',
     padding: 12,
     borderRadius: 6,
     marginBottom: 16,
     borderLeftWidth: 4,
-    borderLeftColor: "#10b981",
+    borderLeftColor: '#10b981',
   },
   successText: {
-    color: "#047857",
+    color: '#047857',
     fontSize: 14,
   },
   instructionText: {
     fontSize: 14,
-    color: "#4b5563",
+    color: '#4b5563',
     marginBottom: 16,
   },
   qrCodeContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#fff",
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
     padding: 10,
     marginVertical: 16,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#e5e7eb",
+    borderColor: '#e5e7eb',
   },
   qrCode: {
     width: 200,
@@ -462,133 +462,133 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: "white",
+    backgroundColor: 'white',
     borderRadius: 12,
     padding: 20,
-    alignItems: "center",
+    alignItems: 'center',
     elevation: 5,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
-    width: Dimensions.get("window").width * 0.9,
+    width: Dimensions.get('window').width * 0.9,
   },
   largeQrCode: {
-    width: Dimensions.get("window").width * 0.7,
-    height: Dimensions.get("window").width * 0.7,
+    width: Dimensions.get('window').width * 0.7,
+    height: Dimensions.get('window').width * 0.7,
     marginVertical: 20,
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginBottom: 15,
   },
   closeButton: {
-    backgroundColor: "#6366f1",
+    backgroundColor: '#6366f1',
     paddingVertical: 12,
     paddingHorizontal: 30,
     borderRadius: 6,
   },
   closeButtonText: {
-    color: "white",
-    fontWeight: "600",
+    color: 'white',
+    fontWeight: '600',
   },
   secretContainer: {
-    backgroundColor: "#f3f4f6",
+    backgroundColor: '#f3f4f6',
     padding: 12,
     borderRadius: 6,
     marginBottom: 16,
-    alignItems: "center",
+    alignItems: 'center',
     borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderStyle: "dashed",
+    borderColor: '#d1d5db',
+    borderStyle: 'dashed',
   },
   secretText: {
-    fontFamily: "monospace",
+    fontFamily: 'monospace',
     fontSize: 14,
-    color: "#111827",
+    color: '#111827',
     marginBottom: 4,
   },
   copyHint: {
     fontSize: 12,
-    color: "#6366f1",
-    fontStyle: "italic",
+    color: '#6366f1',
+    fontStyle: 'italic',
   },
   inputContainer: {
     marginBottom: 16,
   },
   label: {
     fontSize: 14,
-    fontWeight: "500",
+    fontWeight: '500',
     marginBottom: 8,
-    color: "#374151",
+    color: '#374151',
   },
   input: {
     borderWidth: 1,
-    borderColor: "#d1d5db",
+    borderColor: '#d1d5db',
     borderRadius: 6,
     padding: 10,
     fontSize: 16,
-    backgroundColor: "#f9fafb",
+    backgroundColor: '#f9fafb',
   },
   buttonRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginTop: 8,
   },
   button: {
     flex: 1,
     padding: 12,
     borderRadius: 6,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   primaryButton: {
-    backgroundColor: "#6366f1",
+    backgroundColor: '#6366f1',
     marginRight: 8,
   },
   secondaryButton: {
-    backgroundColor: "#f3f4f6",
+    backgroundColor: '#f3f4f6',
     marginLeft: 8,
     borderWidth: 1,
-    borderColor: "#d1d5db",
+    borderColor: '#d1d5db',
   },
   disabledButton: {
     opacity: 0.5,
   },
   buttonText: {
-    color: "#fff",
-    fontWeight: "600",
+    color: '#fff',
+    fontWeight: '600',
     fontSize: 14,
   },
   secondaryButtonText: {
-    color: "#4b5563",
-    fontWeight: "600",
+    color: '#4b5563',
+    fontWeight: '600',
     fontSize: 14,
   },
   statusContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 20,
   },
   statusLabel: {
     fontSize: 14,
-    color: "#4b5563",
+    color: '#4b5563',
     marginRight: 8,
   },
   statusValue: {
     fontSize: 14,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   enabledText: {
-    color: "#10b981",
+    color: '#10b981',
   },
   disabledText: {
-    color: "#f59e0b",
+    color: '#f59e0b',
   },
 });

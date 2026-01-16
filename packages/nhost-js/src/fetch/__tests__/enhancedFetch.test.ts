@@ -1,29 +1,29 @@
-import { beforeEach, describe, expect, jest, test } from "@jest/globals";
-import { type ChainFunction, createEnhancedFetch } from "../index";
+import { beforeEach, describe, expect, jest, test } from '@jest/globals';
+import { type ChainFunction, createEnhancedFetch } from '../index';
 
 const mockFetch = jest.fn();
 
 global.fetch = mockFetch as unknown as typeof global.fetch;
 
-describe("Enhanced Fetch", () => {
+describe('Enhanced Fetch', () => {
   beforeEach(() => {
     // Reset mocks before each test
     mockFetch.mockReset();
     // Default mock implementation returns a successful response
     mockFetch.mockImplementation(() =>
       Promise.resolve(
-        new Response(JSON.stringify({ data: "test" }), {
+        new Response(JSON.stringify({ data: 'test' }), {
           status: 200,
-          headers: { "Content-Type": "application/json" },
+          headers: { 'Content-Type': 'application/json' },
         }),
       ),
     );
   });
 
-  test("should call fetch with original parameters when no chain functions are provided", async () => {
+  test('should call fetch with original parameters when no chain functions are provided', async () => {
     const enhancedFetch = createEnhancedFetch();
-    const url = "https://api.example.com";
-    const options = { method: "GET" };
+    const url = 'https://api.example.com';
+    const options = { method: 'GET' };
 
     await enhancedFetch(url, options);
 
@@ -31,7 +31,7 @@ describe("Enhanced Fetch", () => {
     expect(mockFetch).toHaveBeenCalledTimes(1);
   });
 
-  test("should apply a single chain function correctly", async () => {
+  test('should apply a single chain function correctly', async () => {
     const addHeader: ChainFunction =
       (next) =>
       async (url, options = {}) => {
@@ -39,40 +39,40 @@ describe("Enhanced Fetch", () => {
           ...options,
           headers: {
             ...options.headers,
-            "X-Test-Header": "test-value",
+            'X-Test-Header': 'test-value',
           },
         };
         return next(url, newOptions);
       };
 
     const enhancedFetch = createEnhancedFetch([addHeader]);
-    const url = "https://api.example.com";
+    const url = 'https://api.example.com';
 
     await enhancedFetch(url);
 
     expect(mockFetch).toHaveBeenCalledWith(url, {
-      headers: { "X-Test-Header": "test-value" },
+      headers: { 'X-Test-Header': 'test-value' },
     });
   });
 
-  test("should apply multiple chain functions in the correct order", async () => {
+  test('should apply multiple chain functions in the correct order', async () => {
     const executionOrder: string[] = [];
 
     const firstMiddleware: ChainFunction =
       (next) =>
       async (url, options = {}) => {
-        executionOrder.push("first-before");
+        executionOrder.push('first-before');
         const response = await next(url, options);
-        executionOrder.push("first-after");
+        executionOrder.push('first-after');
         return response;
       };
 
     const secondMiddleware: ChainFunction =
       (next) =>
       async (url, options = {}) => {
-        executionOrder.push("second-before");
+        executionOrder.push('second-before');
         const response = await next(url, options);
-        executionOrder.push("second-after");
+        executionOrder.push('second-after');
         return response;
       };
 
@@ -80,20 +80,20 @@ describe("Enhanced Fetch", () => {
       firstMiddleware,
       secondMiddleware,
     ]);
-    const url = "https://api.example.com";
+    const url = 'https://api.example.com';
 
     await enhancedFetch(url);
 
     expect(executionOrder).toEqual([
-      "first-before",
-      "second-before",
-      "second-after",
-      "first-after",
+      'first-before',
+      'second-before',
+      'second-after',
+      'first-after',
     ]);
     expect(mockFetch).toHaveBeenCalledTimes(1);
   });
 
-  test("should allow chain functions to modify request parameters", async () => {
+  test('should allow chain functions to modify request parameters', async () => {
     const addHeader: ChainFunction =
       (next) =>
       async (url, options = {}) => {
@@ -101,7 +101,7 @@ describe("Enhanced Fetch", () => {
           ...options,
           headers: {
             ...options.headers,
-            "X-Test-Header": "test-value",
+            'X-Test-Header': 'test-value',
           },
         };
         return next(url, newOptions);
@@ -112,34 +112,34 @@ describe("Enhanced Fetch", () => {
       async (url, options = {}) => {
         const newOptions = {
           ...options,
-          method: "POST",
+          method: 'POST',
         };
         return next(url, newOptions);
       };
 
     const enhancedFetch = createEnhancedFetch([addHeader, changeMethod]);
-    const url = "https://api.example.com";
+    const url = 'https://api.example.com';
 
     await enhancedFetch(url, {
       headers: {
-        Authorization: "Bearer token123",
+        Authorization: 'Bearer token123',
       },
     });
 
     expect(mockFetch).toHaveBeenCalledWith(url, {
       headers: {
-        "X-Test-Header": "test-value",
-        Authorization: "Bearer token123",
+        'X-Test-Header': 'test-value',
+        Authorization: 'Bearer token123',
       },
-      method: "POST",
+      method: 'POST',
     });
   });
 
-  test("should allow chain functions to modify the response", async () => {
+  test('should allow chain functions to modify the response', async () => {
     // Mock a specific response
     mockFetch.mockImplementation(() =>
       Promise.resolve(
-        new Response(JSON.stringify({ original: "data" }), {
+        new Response(JSON.stringify({ original: 'data' }), {
           status: 200,
         }),
       ),
@@ -161,29 +161,29 @@ describe("Enhanced Fetch", () => {
       };
 
     const enhancedFetch = createEnhancedFetch([modifyResponse]);
-    const response = await enhancedFetch("https://api.example.com");
+    const response = await enhancedFetch('https://api.example.com');
     const data = (await response.json()) as object;
 
-    expect(data).toEqual({ original: "data", modified: true });
+    expect(data).toEqual({ original: 'data', modified: true });
   });
 
-  test("errors in middleware should propagate", async () => {
+  test('errors in middleware should propagate', async () => {
     const errorMiddleware: ChainFunction = () => async () => {
-      throw new Error("Middleware error");
+      throw new Error('Middleware error');
     };
 
     const enhancedFetch = createEnhancedFetch([errorMiddleware]);
 
-    await expect(enhancedFetch("https://api.example.com")).rejects.toThrow(
-      "Middleware error",
+    await expect(enhancedFetch('https://api.example.com')).rejects.toThrow(
+      'Middleware error',
     );
     expect(mockFetch).not.toHaveBeenCalled();
   });
 
-  test("should allow chain functions to handle fetch errors", async () => {
+  test('should allow chain functions to handle fetch errors', async () => {
     // Mock fetch to throw an error
     mockFetch.mockImplementation(() =>
-      Promise.reject(new Error("Network error")),
+      Promise.reject(new Error('Network error')),
     );
 
     const errorHandler: ChainFunction =
@@ -194,7 +194,7 @@ describe("Enhanced Fetch", () => {
         } catch {
           // Return a fallback response
           return new Response(
-            JSON.stringify({ error: "Handled error", fallback: true }),
+            JSON.stringify({ error: 'Handled error', fallback: true }),
             {
               status: 503,
             },
@@ -203,14 +203,14 @@ describe("Enhanced Fetch", () => {
       };
 
     const enhancedFetch = createEnhancedFetch([errorHandler]);
-    const response = await enhancedFetch("https://api.example.com");
+    const response = await enhancedFetch('https://api.example.com');
     const data = (await response.json()) as object;
 
     expect(response.status).toBe(503);
-    expect(data).toEqual({ error: "Handled error", fallback: true });
+    expect(data).toEqual({ error: 'Handled error', fallback: true });
   });
 
-  test("should allow chain functions to modify the URL", async () => {
+  test('should allow chain functions to modify the URL', async () => {
     const urlModifier: ChainFunction =
       (next) =>
       async (url, options = {}) => {
@@ -219,7 +219,7 @@ describe("Enhanced Fetch", () => {
       };
 
     const enhancedFetch = createEnhancedFetch([urlModifier]);
-    const baseUrl = "https://api.example.com";
+    const baseUrl = 'https://api.example.com';
 
     await enhancedFetch(baseUrl);
 

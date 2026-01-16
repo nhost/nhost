@@ -115,21 +115,21 @@
 </template>
 
 <script setup lang="ts">
-import { type ErrorResponse } from "@nhost/nhost-js/auth";
-import { type FetchError } from "@nhost/nhost-js/fetch";
-import { onMounted, ref } from "vue";
-import { useRouter } from "vue-router";
-import MagicLinkForm from "../components/forms/MagicLinkForm.vue";
-import TabForm from "../components/forms/TabForm.vue";
-import WebAuthnSignUpForm from "../components/forms/WebAuthnSignUpForm.vue";
-import { useAuth } from "../lib/nhost/auth";
+import { type ErrorResponse } from '@nhost/nhost-js/auth';
+import { type FetchError } from '@nhost/nhost-js/fetch';
+import { onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
+import MagicLinkForm from '../components/forms/MagicLinkForm.vue';
+import TabForm from '../components/forms/TabForm.vue';
+import WebAuthnSignUpForm from '../components/forms/WebAuthnSignUpForm.vue';
+import { useAuth } from '../lib/nhost/auth';
 
 const { nhost, isAuthenticated } = useAuth();
 const router = useRouter();
 
-const email = ref<string>("");
-const password = ref<string>("");
-const displayName = ref<string>("");
+const email = ref<string>('');
+const password = ref<string>('');
+const displayName = ref<string>('');
 const isLoading = ref<boolean>(false);
 const error = ref<string | null>(null);
 const success = ref<boolean>(false);
@@ -137,7 +137,7 @@ const success = ref<boolean>(false);
 // If already authenticated, redirect to profile
 onMounted(() => {
   if (isAuthenticated.value) {
-    router.push("/profile");
+    router.push('/profile');
   }
 });
 
@@ -157,7 +157,7 @@ const handleSubmit = async (): Promise<void> => {
 
     if (response.body?.session) {
       // Successfully signed up and automatically signed in
-      router.push("/profile");
+      router.push('/profile');
     } else {
       // Verification email sent
       success.value = true;
@@ -170,7 +170,7 @@ const handleSubmit = async (): Promise<void> => {
   }
 };
 
-const handleSocialSignIn = (provider: "github") => {
+const handleSocialSignIn = (provider: 'github') => {
   // Get the current origin (to build the redirect URL)
   const origin = window.location.origin;
   const redirectUrl = `${origin}/verify`;
