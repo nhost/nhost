@@ -1,4 +1,11 @@
-import { Ellipsis, Settings, SquarePen, Trash2, Users } from 'lucide-react';
+import {
+  Anchor,
+  Ellipsis,
+  Settings,
+  SquarePen,
+  Trash2,
+  Users,
+} from 'lucide-react';
 import { Button } from '@/components/ui/v3/button';
 import {
   DropdownMenu,
@@ -26,6 +33,7 @@ type Props = {
   onEditTable: () => void;
   onEditSettings: () => void;
   onViewSettings: () => void;
+  onEditRelationships: () => void;
 };
 
 function TableActions({
@@ -42,6 +50,7 @@ function TableActions({
   onEditTable,
   onEditSettings,
   onViewSettings,
+  onEditRelationships,
 }: Props) {
   const { project } = useProject();
   const isGitHubConnected = !!project?.githubRepository;
@@ -100,6 +109,12 @@ function TableActions({
               onClick={onEditPermissions}
             >
               <Users className="h-4 w-4" /> <span>Edit Permissions</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className={menuItemClassName}
+              onClick={onEditRelationships}
+            >
+              <Anchor className="h-4 w-4" /> <span>Edit Relationships</span>
             </DropdownMenuItem>
             <DropdownMenuItem
               className={menuItemClassName}
