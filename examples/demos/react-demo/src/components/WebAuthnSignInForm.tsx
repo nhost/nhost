@@ -1,10 +1,10 @@
-import type { ErrorResponse } from "@nhost/nhost-js/auth";
-import type { FetchError } from "@nhost/nhost-js/fetch";
-import { startAuthentication } from "@simplewebauthn/browser";
-import { type JSX, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../lib/nhost/AuthProvider";
-import { isWebAuthnSupported } from "../lib/utils";
+import type { ErrorResponse } from '@nhost/nhost-js/auth';
+import type { FetchError } from '@nhost/nhost-js/fetch';
+import { startAuthentication } from '@simplewebauthn/browser';
+import { type JSX, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../lib/nhost/AuthProvider';
+import { isWebAuthnSupported } from '../lib/utils';
 
 /**
  * WebAuthnSignInForm provides a passwordless authentication flow using WebAuthn (FIDO2) protocol.
@@ -33,7 +33,7 @@ export default function WebAuthnSignInForm(): JSX.Element {
     try {
       // First check if WebAuthn is supported by this browser
       if (!isWebAuthnSupported()) {
-        setError("WebAuthn is not supported by your browser.");
+        setError('WebAuthn is not supported by your browser.');
         setIsLoading(false);
         return;
       }
@@ -53,7 +53,7 @@ export default function WebAuthnSignInForm(): JSX.Element {
         });
 
         if (!credential) {
-          setError("No credential was selected.");
+          setError('No credential was selected.');
           setIsLoading(false);
           return;
         }
@@ -68,13 +68,13 @@ export default function WebAuthnSignInForm(): JSX.Element {
         // Step 4: Handle authentication result
         if (verifyResponse.body?.session) {
           // Authentication successful, redirect to profile page
-          navigate("/profile");
+          navigate('/profile');
         } else {
-          setError("Authentication failed");
+          setError('Authentication failed');
         }
       } catch (credError) {
         setError(
-          `WebAuthn authentication failed: ${(credError as Error).message || "Unknown error"}`,
+          `WebAuthn authentication failed: ${(credError as Error).message || 'Unknown error'}`,
         );
       }
     } catch (err) {
@@ -94,7 +94,7 @@ export default function WebAuthnSignInForm(): JSX.Element {
         className="btn btn-primary w-full"
         disabled={isLoading}
       >
-        {isLoading ? "Authenticating..." : "Sign In with Security Key"}
+        {isLoading ? 'Authenticating...' : 'Sign In with Security Key'}
       </button>
 
       <div className="text-xs mt-2 text-gray-400">

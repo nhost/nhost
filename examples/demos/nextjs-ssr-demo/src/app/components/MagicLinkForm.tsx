@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useRouter } from "next/navigation";
-import { useId, useState } from "react";
+import { useRouter } from 'next/navigation';
+import { useId, useState } from 'react';
 
 interface MagicLinkFormProps {
   sendMagicLinkAction: (formData: FormData) => Promise<{
@@ -15,7 +15,7 @@ interface MagicLinkFormProps {
 export default function MagicLinkForm({
   sendMagicLinkAction,
   showDisplayName = false,
-  buttonLabel = "Sign in with Magic Link",
+  buttonLabel = 'Sign in with Magic Link',
 }: MagicLinkFormProps) {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -33,7 +33,7 @@ export default function MagicLinkForm({
       }
     } catch (err: unknown) {
       setError(
-        err instanceof Error ? err.message : "Failed to send magic link",
+        err instanceof Error ? err.message : 'Failed to send magic link',
       );
     }
   };

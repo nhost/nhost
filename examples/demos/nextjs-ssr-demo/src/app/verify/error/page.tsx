@@ -9,7 +9,7 @@ export default async function VerificationError({
   searchParams,
 }: ErrorPageProps) {
   const params = await searchParams;
-  const errorMessage = params?.message || "Verification failed";
+  const errorMessage = params?.message || 'Verification failed';
 
   // Extract all URL parameters to display
   const urlParams = { ...params };
@@ -28,7 +28,7 @@ export default async function VerificationError({
             <p className="font-semibold mb-2">URL Parameters:</p>
             {Object.entries(urlParams).map(([key, value]) => (
               <div key={key} className="mb-1">
-                <span className="font-mono text-blue-600">{key}:</span>{" "}
+                <span className="font-mono text-blue-600">{key}:</span>{' '}
                 <span className="font-mono">{value}</span>
               </div>
             ))}

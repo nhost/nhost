@@ -1,4 +1,4 @@
-import { type JSX, type ReactNode, useState } from "react";
+import { type JSX, type ReactNode, useState } from 'react';
 
 interface TabFormProps {
   passwordTabContent: ReactNode;
@@ -14,31 +14,31 @@ export default function TabForm({
   webauthnTabContent,
 }: TabFormProps): JSX.Element {
   const [activeTab, setActiveTab] = useState<
-    "password" | "magic" | "social" | "webauthn"
-  >("password");
+    'password' | 'magic' | 'social' | 'webauthn'
+  >('password');
 
   return (
     <div>
       <div className="tabs-container">
         <button
           type="button"
-          className={`tab-button ${activeTab === "password" ? "tab-active" : ""}`}
-          onClick={() => setActiveTab("password")}
+          className={`tab-button ${activeTab === 'password' ? 'tab-active' : ''}`}
+          onClick={() => setActiveTab('password')}
         >
           Email + Password
         </button>
         <button
           type="button"
-          className={`tab-button ${activeTab === "magic" ? "tab-active" : ""}`}
-          onClick={() => setActiveTab("magic")}
+          className={`tab-button ${activeTab === 'magic' ? 'tab-active' : ''}`}
+          onClick={() => setActiveTab('magic')}
         >
           Magic Link
         </button>
         {socialTabContent && (
           <button
             type="button"
-            className={`tab-button ${activeTab === "social" ? "tab-active" : ""}`}
-            onClick={() => setActiveTab("social")}
+            className={`tab-button ${activeTab === 'social' ? 'tab-active' : ''}`}
+            onClick={() => setActiveTab('social')}
           >
             Social
           </button>
@@ -46,8 +46,8 @@ export default function TabForm({
         {webauthnTabContent && (
           <button
             type="button"
-            className={`tab-button ${activeTab === "webauthn" ? "tab-active" : ""}`}
-            onClick={() => setActiveTab("webauthn")}
+            className={`tab-button ${activeTab === 'webauthn' ? 'tab-active' : ''}`}
+            onClick={() => setActiveTab('webauthn')}
           >
             Security Key
           </button>
@@ -55,11 +55,11 @@ export default function TabForm({
       </div>
 
       <div className="tab-content">
-        {activeTab === "password"
+        {activeTab === 'password'
           ? passwordTabContent
-          : activeTab === "magic"
+          : activeTab === 'magic'
             ? magicTabContent
-            : activeTab === "social"
+            : activeTab === 'social'
               ? socialTabContent
               : webauthnTabContent}
       </div>

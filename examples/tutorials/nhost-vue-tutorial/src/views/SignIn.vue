@@ -47,15 +47,15 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, useId } from "vue";
-import { useRouter } from "vue-router";
-import { useAuth } from "../lib/nhost/auth";
+import { onMounted, ref, useId } from 'vue';
+import { useRouter } from 'vue-router';
+import { useAuth } from '../lib/nhost/auth';
 
 const { nhost, isAuthenticated } = useAuth();
 const router = useRouter();
 
-const email = ref("");
-const password = ref("");
+const email = ref('');
+const password = ref('');
 const isLoading = ref(false);
 const error = ref<string | null>(null);
 
@@ -65,7 +65,7 @@ const passwordId = useId();
 // Use onMounted for navigation after authentication is confirmed
 onMounted(() => {
   if (isAuthenticated.value) {
-    router.push("/profile");
+    router.push('/profile');
   }
 });
 
@@ -82,12 +82,12 @@ const handleSubmit = async () => {
 
     // If we have a session, sign in was successful
     if (response.body?.session) {
-      router.push("/profile");
+      router.push('/profile');
     } else {
-      error.value = "Failed to sign in. Please check your credentials.";
+      error.value = 'Failed to sign in. Please check your credentials.';
     }
   } catch (err) {
-    const message = (err as Error).message || "Unknown error";
+    const message = (err as Error).message || 'Unknown error';
     error.value = `An error occurred during sign in: ${message}`;
   } finally {
     isLoading.value = false;

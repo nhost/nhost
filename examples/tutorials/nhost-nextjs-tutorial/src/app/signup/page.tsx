@@ -1,5 +1,5 @@
-import Link from "next/link";
-import SignUpForm from "./SignUpForm";
+import Link from 'next/link';
+import SignUpForm from './SignUpForm';
 
 export default async function SignUp({
   searchParams,
@@ -13,7 +13,7 @@ export default async function SignUp({
   // Extract parameters from URL
   const params = await searchParams;
   const error = params?.error;
-  const verificationSent = params?.verify === "success";
+  const verificationSent = params?.verify === 'success';
   const email = params?.email;
 
   if (verificationSent) {

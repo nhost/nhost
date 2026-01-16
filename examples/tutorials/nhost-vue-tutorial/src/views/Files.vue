@@ -160,9 +160,9 @@
 </template>
 
 <script setup lang="ts">
-import type { FileMetadata } from "@nhost/nhost-js/storage";
-import { onMounted, ref } from "vue";
-import { useAuth } from "../lib/nhost/auth";
+import type { FileMetadata } from '@nhost/nhost-js/storage';
+import { onMounted, ref } from 'vue';
+import { useAuth } from '../lib/nhost/auth';
 
 interface DeleteStatus {
   message: string;
@@ -174,9 +174,9 @@ interface GraphqlGetFilesResponse {
 }
 
 function formatFileSize(bytes: number): string {
-  if (bytes === 0) return "0 Bytes";
+  if (bytes === 0) return '0 Bytes';
 
-  const sizes: string[] = ["Bytes", "KB", "MB", "GB", "TB"];
+  const sizes: string[] = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
   const i: number = Math.floor(Math.log(bytes) / Math.log(1024));
 
   return `${parseFloat((bytes / 1024 ** i).toFixed(2))} ${sizes[i]}`;
@@ -216,14 +216,14 @@ const fetchFiles = async (): Promise<void> => {
 
     if (response.body.errors) {
       throw new Error(
-        response.body.errors[0]?.message || "Failed to fetch files",
+        response.body.errors[0]?.message || 'Failed to fetch files',
       );
     }
 
     files.value = response.body.data?.files || [];
   } catch (err) {
-    console.error("Error fetching files:", err);
-    error.value = "Failed to load files. Please try refreshing the page.";
+    console.error('Error fetching files:', err);
+    error.value = 'Failed to load files. Please try refreshing the page.';
   } finally {
     isFetching.value = false;
   }
@@ -249,7 +249,7 @@ const handleFileChange = (e: Event): void => {
 
 const handleUpload = async (): Promise<void> => {
   if (!selectedFile.value) {
-    error.value = "Please select a file to upload";
+    error.value = 'Please select a file to upload';
     return;
   }
 
@@ -260,20 +260,20 @@ const handleUpload = async (): Promise<void> => {
     // Upload file to the personal bucket
     // The uploadedByUserId is automatically set by the storage permissions
     const response = await nhost.storage.uploadFiles({
-      "bucket-id": "personal",
-      "file[]": [selectedFile.value],
+      'bucket-id': 'personal',
+      'file[]': [selectedFile.value],
     });
 
     const uploadedFile = response.body.processedFiles?.[0];
     if (uploadedFile === undefined) {
-      throw new Error("Failed to upload file");
+      throw new Error('Failed to upload file');
     }
     uploadResult.value = uploadedFile;
 
     // Clear the form
     selectedFile.value = null;
     if (fileInputRef.value) {
-      fileInputRef.value.value = "";
+      fileInputRef.value.value = '';
     }
 
     // Update the files list
@@ -286,7 +286,7 @@ const handleUpload = async (): Promise<void> => {
       uploadResult.value = null;
     }, 3000);
   } catch (err: unknown) {
-    const message = (err as Error).message || "An unknown error occurred";
+    const message = (err as Error).message || 'An unknown error occurred';
     error.value = `Failed to upload file: ${message}`;
   } finally {
     uploading.value = false;
@@ -308,17 +308,17 @@ const handleViewFile = async (
 
     // Handle different file types appropriately
     if (
-      mimeType.startsWith("image/") ||
-      mimeType === "application/pdf" ||
-      mimeType.startsWith("text/") ||
-      mimeType.startsWith("video/") ||
-      mimeType.startsWith("audio/")
+      mimeType.startsWith('image/') ||
+      mimeType === 'application/pdf' ||
+      mimeType.startsWith('text/') ||
+      mimeType.startsWith('video/') ||
+      mimeType.startsWith('audio/')
     ) {
       // Open viewable files in new tab
-      window.open(url, "_blank");
+      window.open(url, '_blank');
     } else {
       // Download other file types
-      const link = document.createElement("a");
+      const link = document.createElement('a');
       link.href = url;
       link.download = fileName;
       document.body.appendChild(link);
@@ -326,7 +326,7 @@ const handleViewFile = async (
       document.body.removeChild(link);
 
       // Show download confirmation
-      const newWindow = window.open("", "_blank", "width=400,height=200");
+      const newWindow = window.open('', '_blank', 'width=400,height=200');
       if (newWindow) {
         newWindow.document.documentElement.innerHTML = `
           <head>
@@ -343,9 +343,9 @@ const handleViewFile = async (
       }
     }
   } catch (err) {
-    const message = (err as Error).message || "An unknown error occurred";
+    const message = (err as Error).message || 'An unknown error occurred';
     error.value = `Failed to view file: ${message}`;
-    console.error("Error viewing file:", err);
+    console.error('Error viewing file:', err);
   } finally {
     viewingFile.value = null;
   }
@@ -359,7 +359,7 @@ const handleDeleteFile = async (fileId: string): Promise<void> => {
   deleteStatus.value = null;
 
   const fileToDelete = files.value.find((file) => file.id === fileId);
-  const fileName = fileToDelete?.name || "File";
+  const fileName = fileToDelete?.name || 'File';
 
   try {
     // Delete file from storage
@@ -381,12 +381,12 @@ const handleDeleteFile = async (fileId: string): Promise<void> => {
       deleteStatus.value = null;
     }, 3000);
   } catch (err) {
-    const message = (err as Error).message || "An unknown error occurred";
+    const message = (err as Error).message || 'An unknown error occurred';
     deleteStatus.value = {
       message: `Failed to delete ${fileName}: ${message}`,
       isError: true,
     };
-    console.error("Error deleting file:", err);
+    console.error('Error deleting file:', err);
   } finally {
     deleting.value = null;
   }

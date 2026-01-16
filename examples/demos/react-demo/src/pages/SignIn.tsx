@@ -1,11 +1,11 @@
-import type { ErrorResponse } from "@nhost/nhost-js/auth";
-import type { FetchError } from "@nhost/nhost-js/fetch";
-import { type JSX, useEffect, useId, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import MagicLinkForm from "../components/MagicLinkForm";
-import TabForm from "../components/TabForm";
-import WebAuthnSignInForm from "../components/WebAuthnSignInForm";
-import { useAuth } from "../lib/nhost/AuthProvider";
+import type { ErrorResponse } from '@nhost/nhost-js/auth';
+import type { FetchError } from '@nhost/nhost-js/fetch';
+import { type JSX, useEffect, useId, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import MagicLinkForm from '../components/MagicLinkForm';
+import TabForm from '../components/TabForm';
+import WebAuthnSignInForm from '../components/WebAuthnSignInForm';
+import { useAuth } from '../lib/nhost/AuthProvider';
 
 export default function SignIn(): JSX.Element {
   const { nhost, isAuthenticated } = useAuth();
@@ -13,22 +13,22 @@ export default function SignIn(): JSX.Element {
   const location = useLocation();
   const params = new URLSearchParams(location.search);
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(
-    params.get("error") || null,
+    params.get('error') || null,
   );
   const emailId = useId();
   const passwordId = useId();
 
-  const magicLinkSent = params.get("magic") === "success";
-  const isVerifying = params.has("fromVerify");
+  const magicLinkSent = params.get('magic') === 'success';
+  const isVerifying = params.has('fromVerify');
 
   // Use useEffect for navigation after authentication is confirmed
   useEffect(() => {
     if (isAuthenticated && !isVerifying) {
-      navigate("/profile");
+      navigate('/profile');
     }
   }, [isAuthenticated, isVerifying, navigate]);
 
@@ -52,9 +52,9 @@ export default function SignIn(): JSX.Element {
 
       // If we have a session, sign in was successful
       if (response.body?.session) {
-        navigate("/profile");
+        navigate('/profile');
       } else {
-        setError("Failed to sign in");
+        setError('Failed to sign in');
       }
     } catch (err) {
       const error = err as FetchError<ErrorResponse>;
@@ -64,7 +64,7 @@ export default function SignIn(): JSX.Element {
     }
   };
 
-  const handleSocialSignIn = (provider: "github") => {
+  const handleSocialSignIn = (provider: 'github') => {
     // Get the current origin (to build the redirect URL)
     const origin = window.location.origin;
     const redirectUrl = `${origin}/verify`;
@@ -126,7 +126,7 @@ export default function SignIn(): JSX.Element {
                   className="btn btn-primary w-full"
                   disabled={isLoading}
                 >
-                  {isLoading ? "Signing In..." : "Sign In"}
+                  {isLoading ? 'Signing In...' : 'Sign In'}
                 </button>
               </form>
             }
@@ -140,7 +140,7 @@ export default function SignIn(): JSX.Element {
                 <p className="mb-6">Sign in using your Social account</p>
                 <button
                   type="button"
-                  onClick={() => handleSocialSignIn("github")}
+                  onClick={() => handleSocialSignIn('github')}
                   className="btn btn-secondary w-full flex items-center justify-center gap-2"
                   disabled={isLoading}
                 >

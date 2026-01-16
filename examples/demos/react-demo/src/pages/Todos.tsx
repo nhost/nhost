@@ -1,6 +1,6 @@
-import type { JSX } from "react";
-import { useCallback, useEffect, useId, useState } from "react";
-import { useAuth } from "../lib/nhost/AuthProvider";
+import type { JSX } from 'react';
+import { useCallback, useEffect, useId, useState } from 'react';
+import { useAuth } from '../lib/nhost/AuthProvider';
 
 interface Todo {
   id: string;
@@ -29,8 +29,8 @@ export default function Todos(): JSX.Element {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [newTodoTitle, setNewTodoTitle] = useState("");
-  const [newTodoDetails, setNewTodoDetails] = useState("");
+  const [newTodoTitle, setNewTodoTitle] = useState('');
+  const [newTodoDetails, setNewTodoDetails] = useState('');
   const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [expandedTodos, setExpandedTodos] = useState<Set<string>>(new Set());
@@ -59,14 +59,14 @@ export default function Todos(): JSX.Element {
 
       if (response.body.errors) {
         throw new Error(
-          response.body.errors[0]?.message || "Failed to fetch todos",
+          response.body.errors[0]?.message || 'Failed to fetch todos',
         );
       }
 
       setTodos(response.body?.data?.todos || []);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch todos");
+      setError(err instanceof Error ? err.message : 'Failed to fetch todos');
     } finally {
       setLoading(false);
     }
@@ -99,26 +99,26 @@ export default function Todos(): JSX.Element {
 
       if (response.body.errors) {
         throw new Error(
-          response.body.errors[0]?.message || "Failed to add todo",
+          response.body.errors[0]?.message || 'Failed to add todo',
         );
       }
 
       if (!response.body?.data?.insert_todos_one) {
-        throw new Error("Failed to add todo");
+        throw new Error('Failed to add todo');
       }
       setTodos([response.body?.data?.insert_todos_one, ...todos]);
-      setNewTodoTitle("");
-      setNewTodoDetails("");
+      setNewTodoTitle('');
+      setNewTodoDetails('');
       setShowAddForm(false);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to add todo");
+      setError(err instanceof Error ? err.message : 'Failed to add todo');
     }
   };
 
   const updateTodo = async (
     id: string,
-    updates: Partial<Pick<Todo, "title" | "details" | "completed">>,
+    updates: Partial<Pick<Todo, 'title' | 'details' | 'completed'>>,
   ) => {
     try {
       const response = await nhost.graphql.request<UpdateTodo>({
@@ -143,12 +143,12 @@ export default function Todos(): JSX.Element {
 
       if (response.body.errors) {
         throw new Error(
-          response.body.errors[0]?.message || "Failed to update todo",
+          response.body.errors[0]?.message || 'Failed to update todo',
         );
       }
 
       if (!response.body?.data?.update_todos_by_pk) {
-        throw new Error("Failed to update todo");
+        throw new Error('Failed to update todo');
       }
 
       const updatedTodo = response.body?.data?.update_todos_by_pk;
@@ -158,12 +158,12 @@ export default function Todos(): JSX.Element {
       setEditingTodo(null);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update todo");
+      setError(err instanceof Error ? err.message : 'Failed to update todo');
     }
   };
 
   const deleteTodo = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this todo?")) return;
+    if (!confirm('Are you sure you want to delete this todo?')) return;
 
     try {
       const response = await nhost.graphql.request({
@@ -181,14 +181,14 @@ export default function Todos(): JSX.Element {
 
       if (response.body.errors) {
         throw new Error(
-          response.body.errors[0]?.message || "Failed to delete todo",
+          response.body.errors[0]?.message || 'Failed to delete todo',
         );
       }
 
       setTodos(todos.filter((todo) => todo.id !== id));
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete todo");
+      setError(err instanceof Error ? err.message : 'Failed to delete todo');
     }
   };
 
@@ -273,8 +273,8 @@ export default function Todos(): JSX.Element {
                 type="button"
                 onClick={() => {
                   setShowAddForm(false);
-                  setNewTodoTitle("");
-                  setNewTodoDetails("");
+                  setNewTodoTitle('');
+                  setNewTodoDetails('');
                 }}
                 className="action-icon action-icon-delete"
                 title="Cancel"
@@ -338,13 +338,13 @@ export default function Todos(): JSX.Element {
                   type="button"
                   onClick={() => {
                     setShowAddForm(false);
-                    setNewTodoTitle("");
-                    setNewTodoDetails("");
+                    setNewTodoTitle('');
+                    setNewTodoDetails('');
                   }}
                   className="btn btn-secondary"
                   style={{
-                    backgroundColor: "var(--text-muted)",
-                    color: "white",
+                    backgroundColor: 'var(--text-muted)',
+                    color: 'white',
                   }}
                 >
                   Cancel
@@ -392,7 +392,7 @@ export default function Todos(): JSX.Element {
                 <div
                   key={todo.id}
                   className={`glass-card transition-all duration-200 ${
-                    todo.completed ? "opacity-75" : "hover:shadow-lg"
+                    todo.completed ? 'opacity-75' : 'hover:shadow-lg'
                   }`}
                 >
                   {editingTodo?.id === todo.id ? (
@@ -417,7 +417,7 @@ export default function Todos(): JSX.Element {
                           <label htmlFor={`${detailsId}-edit`}>Details</label>
                           <textarea
                             id={`${detailsId}-edit`}
-                            value={editingTodo.details || ""}
+                            value={editingTodo.details || ''}
                             onChange={(e) =>
                               setEditingTodo({
                                 ...editingTodo,
@@ -454,8 +454,8 @@ export default function Todos(): JSX.Element {
                             onClick={() => setEditingTodo(null)}
                             className="btn btn-secondary flex-1"
                             style={{
-                              backgroundColor: "var(--text-muted)",
-                              color: "white",
+                              backgroundColor: 'var(--text-muted)',
+                              color: 'white',
                             }}
                           >
                             <svg
@@ -485,13 +485,13 @@ export default function Todos(): JSX.Element {
                           type="button"
                           className={`text-xl font-medium transition-all cursor-pointer hover:text-primary-hover text-left ${
                             todo.completed
-                              ? "line-through text-muted"
-                              : "text-primary"
+                              ? 'line-through text-muted'
+                              : 'text-primary'
                           }`}
                           onClick={() => toggleTodoExpansion(todo.id)}
                           style={{
-                            background: "none",
-                            border: "none",
+                            background: 'none',
+                            border: 'none',
                             padding: 0,
                           }}
                         >
@@ -504,8 +504,8 @@ export default function Todos(): JSX.Element {
                             className="action-icon action-icon-view"
                             title={
                               todo.completed
-                                ? "Mark as incomplete"
-                                : "Mark as complete"
+                                ? 'Mark as incomplete'
+                                : 'Mark as complete'
                             }
                           >
                             {todo.completed ? (
@@ -586,11 +586,11 @@ export default function Todos(): JSX.Element {
                           {todo.details && (
                             <div
                               className={`p-3 rounded bg-card-bg border border-border-color ${
-                                todo.completed ? "opacity-75" : ""
+                                todo.completed ? 'opacity-75' : ''
                               }`}
                             >
                               <p
-                                className={`text-secondary leading-relaxed ${todo.completed ? "line-through" : ""}`}
+                                className={`text-secondary leading-relaxed ${todo.completed ? 'line-through' : ''}`}
                               >
                                 {todo.details}
                               </p>
@@ -601,12 +601,12 @@ export default function Todos(): JSX.Element {
                             <div className="flex items-center space-x-3">
                               <span className="flex items-center space-x-1 text-muted">
                                 <span>
-                                  Created:{" "}
+                                  Created:{' '}
                                   {new Date(todo.created_at).toLocaleString()}
                                 </span>
                               </span>
                               <span className="flex items-center space-x-1 text-muted">
-                                Updated:{" "}
+                                Updated:{' '}
                                 <span>
                                   {new Date(todo.updated_at).toLocaleString()}
                                 </span>

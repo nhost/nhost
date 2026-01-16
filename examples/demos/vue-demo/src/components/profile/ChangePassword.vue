@@ -50,32 +50,32 @@
 </template>
 
 <script setup lang="ts">
-import { type ErrorResponse } from "@nhost/nhost-js/auth";
-import { type FetchError } from "@nhost/nhost-js/fetch";
-import { ref } from "vue";
-import { useAuth } from "../../lib/nhost/auth";
+import { type ErrorResponse } from '@nhost/nhost-js/auth';
+import { type FetchError } from '@nhost/nhost-js/fetch';
+import { ref } from 'vue';
+import { useAuth } from '../../lib/nhost/auth';
 
 const { nhost } = useAuth();
 
-const newPassword = ref<string>("");
-const confirmPassword = ref<string>("");
+const newPassword = ref<string>('');
+const confirmPassword = ref<string>('');
 const isLoading = ref<boolean>(false);
-const error = ref<string>("");
+const error = ref<string>('');
 const success = ref<boolean>(false);
 
 const handleSubmit = async (): Promise<void> => {
   // Reset states
-  error.value = "";
+  error.value = '';
   success.value = false;
 
   // Validate passwords
   if (newPassword.value.length < 3) {
-    error.value = "Password must be at least 3 characters long";
+    error.value = 'Password must be at least 3 characters long';
     return;
   }
 
   if (newPassword.value !== confirmPassword.value) {
-    error.value = "Passwords do not match";
+    error.value = 'Passwords do not match';
     return;
   }
 
@@ -87,8 +87,8 @@ const handleSubmit = async (): Promise<void> => {
       newPassword: newPassword.value,
     });
     success.value = true;
-    newPassword.value = "";
-    confirmPassword.value = "";
+    newPassword.value = '';
+    confirmPassword.value = '';
   } catch (err) {
     const errorObj = err as FetchError<ErrorResponse>;
     error.value = `An error occurred while changing the password: ${errorObj.message}`;

@@ -1,14 +1,14 @@
-"use server";
+'use server';
 
-import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
-import { createNhostClient } from "../nhost/server";
+import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
+import { createNhostClient } from '../nhost/server';
 
 /**
  * Revalidates the specified path after authentication state changes
  * This ensures that server components re-render with the new auth state
  */
-export async function revalidateAfterAuthChange(path = "/") {
+export async function revalidateAfterAuthChange(path = '/') {
   // Revalidate the specified path to refresh server components
   revalidatePath(path);
   return { success: true };
@@ -31,8 +31,8 @@ export async function signOut() {
   }
 
   // Revalidate all paths to ensure server components re-render
-  revalidatePath("/");
+  revalidatePath('/');
 
   // Redirect to the homepage
-  redirect("/");
+  redirect('/');
 }

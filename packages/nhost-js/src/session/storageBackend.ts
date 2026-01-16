@@ -5,7 +5,7 @@
  * across page reloads and browser sessions.
  */
 
-import type { Session } from "./session";
+import type { Session } from './session';
 
 /**
  * Session storage interface for session persistence.
@@ -33,7 +33,7 @@ export interface SessionStorageBackend {
 /**
  * Default storage key used for storing the Nhost session
  */
-export const DEFAULT_SESSION_KEY = "nhostSession";
+export const DEFAULT_SESSION_KEY = 'nhostSession';
 
 /**
  * Browser localStorage implementation of StorageInterface.
@@ -122,7 +122,7 @@ export class CookieStorage implements SessionStorageBackend {
   private readonly cookieName: string;
   private readonly expirationDays: number;
   private readonly secure: boolean;
-  private readonly sameSite: "strict" | "lax" | "none";
+  private readonly sameSite: 'strict' | 'lax' | 'none';
 
   /**
    * Creates a new CookieStorage instance
@@ -136,12 +136,12 @@ export class CookieStorage implements SessionStorageBackend {
     cookieName?: string;
     expirationDays?: number;
     secure?: boolean;
-    sameSite?: "strict" | "lax" | "none";
+    sameSite?: 'strict' | 'lax' | 'none';
   }) {
     this.cookieName = options?.cookieName || DEFAULT_SESSION_KEY;
     this.expirationDays = options?.expirationDays ?? 30;
     this.secure = options?.secure ?? true;
-    this.sameSite = options?.sameSite || "lax";
+    this.sameSite = options?.sameSite || 'lax';
   }
 
   /**
@@ -149,12 +149,12 @@ export class CookieStorage implements SessionStorageBackend {
    * @returns The stored session or null if not found
    */
   get(): Session | null {
-    const cookies = document.cookie.split(";");
+    const cookies = document.cookie.split(';');
     for (const cookie of cookies) {
-      const [name, value] = cookie.trim().split("=");
+      const [name, value] = cookie.trim().split('=');
       if (name === this.cookieName) {
         try {
-          return JSON.parse(decodeURIComponent(value || "")) as Session;
+          return JSON.parse(decodeURIComponent(value || '')) as Session;
         } catch {
           this.remove();
           return null;
@@ -175,7 +175,7 @@ export class CookieStorage implements SessionStorageBackend {
     );
 
     const cookieValue = encodeURIComponent(JSON.stringify(value));
-    const cookieString = `${this.cookieName}=${cookieValue}; expires=${expires.toUTCString()}; path=/; ${this.secure ? "secure; " : ""}SameSite=${this.sameSite}`;
+    const cookieString = `${this.cookieName}=${cookieValue}; expires=${expires.toUTCString()}; path=/; ${this.secure ? 'secure; ' : ''}SameSite=${this.sameSite}`;
 
     // biome-ignore lint/suspicious/noDocumentCookie: this is unnecessary
     document.cookie = cookieString;
@@ -186,6 +186,6 @@ export class CookieStorage implements SessionStorageBackend {
    */
   remove(): void {
     // biome-ignore lint/suspicious/noDocumentCookie: this is unnecessary
-    document.cookie = `${this.cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; ${this.secure ? "secure; " : ""}SameSite=${this.sameSite}`;
+    document.cookie = `${this.cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; ${this.secure ? 'secure; ' : ''}SameSite=${this.sameSite}`;
   }
 }

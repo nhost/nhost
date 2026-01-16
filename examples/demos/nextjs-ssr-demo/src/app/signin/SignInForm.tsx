@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useRouter } from "next/navigation";
-import { useId, useState } from "react";
-import { signIn } from "./actions";
+import { useRouter } from 'next/navigation';
+import { useId, useState } from 'react';
+import { signIn } from './actions';
 
 interface SignInFormProps {
   initialError?: string;
@@ -23,7 +23,7 @@ export default function SignInForm({ initialError }: SignInFormProps) {
       }
     } catch (err: unknown) {
       setError(
-        err instanceof Error ? err.message : "An error occurred during sign in",
+        err instanceof Error ? err.message : 'An error occurred during sign in',
       );
     }
   };
@@ -42,7 +42,7 @@ export default function SignInForm({ initialError }: SignInFormProps) {
 
       {error && (
         <div className="alert alert-error">
-          {typeof error === "string" ? error : "Sign in failed"}
+          {typeof error === 'string' ? error : 'Sign in failed'}
         </div>
       )}
 

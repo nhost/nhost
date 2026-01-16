@@ -51,9 +51,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref } from 'vue';
 
-type TabType = "password" | "magic" | "social" | "webauthn";
+type TabType = 'password' | 'magic' | 'social' | 'webauthn';
 
-const activeTab = ref<TabType>("password");
+const activeTab = ref<TabType>('password');
 </script>

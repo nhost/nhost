@@ -23,8 +23,8 @@ function getCspHeader() {
         "form-action 'self'",
         "frame-ancestors 'none'",
         "frame-src 'self' js.stripe.com challenges.cloudflare.com",
-        "block-all-mixed-content",
-        "upgrade-insecure-requests",
+        'block-all-mixed-content',
+        'upgrade-insecure-requests',
       ].join('; ')};`;
   }
 }

@@ -10,7 +10,7 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     cache: {
-      dir: '.vitest'
+      dir: '.vitest',
     },
     setupFiles: 'src/setupTests.ts',
     include: ['src/**/*.(spec|test).{js,jsx,ts,tsx}'],

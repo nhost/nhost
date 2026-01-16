@@ -6,10 +6,10 @@
  * without requiring manual token refresh by the application.
  */
 
-import type { Client } from "../auth";
-import { refreshSession } from "../session/refreshSession";
-import type { SessionStorage } from "../session/storage";
-import type { ChainFunction, FetchFunction } from "./fetch";
+import type { Client } from '../auth';
+import { refreshSession } from '../session/refreshSession';
+import type { SessionStorage } from '../session/storage';
+import type { ChainFunction, FetchFunction } from './fetch';
 
 /**
  * Creates a fetch middleware that automatically refreshes authentication tokens.
@@ -64,12 +64,12 @@ function shouldSkipTokenHandling(url: string, options: RequestInit): boolean {
   const headers = new Headers(options.headers || {});
 
   // If Authorization header is explicitly set, skip token handling
-  if (headers.has("Authorization")) {
+  if (headers.has('Authorization')) {
     return true;
   }
 
   // If calling the token endpoint, skip to avoid infinite loops
-  if (url.endsWith("/v1/token")) {
+  if (url.endsWith('/v1/token')) {
     return true;
   }
 

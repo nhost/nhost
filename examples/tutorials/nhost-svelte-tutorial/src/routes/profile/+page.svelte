@@ -1,11 +1,11 @@
 <script lang="ts">
-import { goto } from "$app/navigation";
-import { auth } from "$lib/nhost/auth";
+import { goto } from '$app/navigation';
+import { auth } from '$lib/nhost/auth';
 
 // Redirect if not authenticated
 $effect(() => {
   if (!$auth.isLoading && !$auth.isAuthenticated) {
-    void goto("/");
+    void goto('/');
   }
 });
 </script>

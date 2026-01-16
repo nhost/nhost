@@ -1,5 +1,5 @@
-import { router, useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
+import { router, useLocalSearchParams } from 'expo-router';
+import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -12,34 +12,34 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
-} from "react-native";
-import { useAuth } from "../lib/nhost/AuthProvider";
+} from 'react-native';
+import { useAuth } from '../lib/nhost/AuthProvider';
 
 export default function MFAVerification() {
   const { nhost } = useAuth();
   const params = useLocalSearchParams();
-  const ticket = params["ticket"] as string;
+  const ticket = params['ticket'] as string;
 
-  const [verificationCode, setVerificationCode] = useState<string>("");
+  const [verificationCode, setVerificationCode] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   // Redirect if no ticket is provided
   useEffect(() => {
     if (!ticket) {
-      Alert.alert("Error", "Invalid authentication request");
-      router.replace("/signin");
+      Alert.alert('Error', 'Invalid authentication request');
+      router.replace('/signin');
     }
   }, [ticket]);
 
   const handleSubmit = async () => {
     if (!verificationCode || verificationCode.length !== 6) {
-      setError("Please enter a valid 6-digit code");
+      setError('Please enter a valid 6-digit code');
       return;
     }
 
     if (!ticket) {
-      setError("Missing authentication ticket");
+      setError('Missing authentication ticket');
       return;
     }
 
@@ -54,7 +54,7 @@ export default function MFAVerification() {
       });
     } catch (err) {
       const errMessage =
-        err instanceof Error ? err.message : "An unexpected error occurred";
+        err instanceof Error ? err.message : 'An unexpected error occurred';
       setError(`Verification failed: ${errMessage}`);
     } finally {
       setIsLoading(false);
@@ -141,7 +141,7 @@ export default function MFAVerification() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: '#f5f5f5',
   },
   scrollViewContent: {
     flexGrow: 1,
@@ -149,21 +149,21 @@ const styles = StyleSheet.create({
   contentContainer: {
     flex: 1,
     padding: 20,
-    justifyContent: "center",
+    justifyContent: 'center',
     paddingBottom: 40,
   },
   title: {
     fontSize: 24,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginBottom: 20,
-    textAlign: "center",
-    color: "#333",
+    textAlign: 'center',
+    color: '#333',
   },
   card: {
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
     borderRadius: 10,
     padding: 20,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2,
@@ -174,20 +174,20 @@ const styles = StyleSheet.create({
   },
   instructions: {
     fontSize: 16,
-    color: "#4b5563",
+    color: '#4b5563',
     marginBottom: 20,
-    textAlign: "center",
+    textAlign: 'center',
   },
   errorContainer: {
-    backgroundColor: "#fee2e2",
+    backgroundColor: '#fee2e2',
     padding: 12,
     borderRadius: 6,
     marginBottom: 16,
     borderLeftWidth: 4,
-    borderLeftColor: "#ef4444",
+    borderLeftColor: '#ef4444',
   },
   errorText: {
-    color: "#b91c1c",
+    color: '#b91c1c',
   },
   inputContainer: {
     marginBottom: 20,
@@ -195,39 +195,39 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     marginBottom: 8,
-    color: "#374151",
+    color: '#374151',
   },
   input: {
     borderWidth: 1,
-    borderColor: "#d1d5db",
+    borderColor: '#d1d5db',
     borderRadius: 6,
     padding: 12,
     fontSize: 18,
-    backgroundColor: "#f9fafb",
-    textAlign: "center",
+    backgroundColor: '#f9fafb',
+    textAlign: 'center',
     letterSpacing: 8,
   },
   button: {
-    backgroundColor: "#6366f1",
+    backgroundColor: '#6366f1',
     padding: 15,
     borderRadius: 6,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   buttonDisabled: {
     opacity: 0.5,
   },
   buttonText: {
-    color: "#fff",
-    fontWeight: "bold",
+    color: '#fff',
+    fontWeight: 'bold',
     fontSize: 16,
   },
   backLink: {
     marginTop: 20,
-    alignItems: "center",
+    alignItems: 'center',
   },
   backLinkText: {
-    color: "#6366f1",
+    color: '#6366f1',
     fontSize: 16,
   },
 });

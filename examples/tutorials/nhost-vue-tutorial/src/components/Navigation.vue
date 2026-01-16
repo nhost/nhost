@@ -41,8 +41,8 @@
 </template>
 
 <script setup lang="ts">
-import { RouterLink, useRouter } from "vue-router";
-import { useAuth } from "../lib/nhost/auth";
+import { RouterLink, useRouter } from 'vue-router';
+import { useAuth } from '../lib/nhost/auth';
 
 const { isAuthenticated, session, nhost } = useAuth();
 const router = useRouter();
@@ -54,10 +54,10 @@ const handleSignOut = async () => {
         refreshToken: session.value.refreshToken,
       });
     }
-    router.push("/");
+    router.push('/');
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
-    console.error("Error signing out:", message);
+    console.error('Error signing out:', message);
   }
 };
 </script>

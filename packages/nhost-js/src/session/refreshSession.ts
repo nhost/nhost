@@ -1,12 +1,12 @@
-import type { Client as AuthClient, ErrorResponse } from "../auth";
-import type { FetchResponse } from "../fetch";
-import type { Session } from "./session";
-import type { SessionStorage } from "./storage";
+import type { Client as AuthClient, ErrorResponse } from '../auth';
+import type { FetchResponse } from '../fetch';
+import type { Session } from './session';
+import type { SessionStorage } from './storage';
 
 class DummyLock implements Lock {
   async request(
     _name: string,
-    _options: { mode: "exclusive" | "shared" },
+    _options: { mode: 'exclusive' | 'shared' },
     // biome-ignore lint/suspicious/noExplicitAny: any
     callback: () => Promise<any>,
   ) {
@@ -17,7 +17,7 @@ class DummyLock implements Lock {
 interface Lock {
   request: (
     name: string,
-    options: { mode: "exclusive" | "shared" },
+    options: { mode: 'exclusive' | 'shared' },
     // biome-ignore lint/suspicious/noExplicitAny: blah
     callback: () => Promise<any>,
     // biome-ignore lint/suspicious/noExplicitAny: blah
@@ -25,7 +25,7 @@ interface Lock {
 }
 
 const lock: Lock =
-  typeof navigator !== "undefined" && navigator.locks
+  typeof navigator !== 'undefined' && navigator.locks
     ? navigator.locks
     : new DummyLock();
 
@@ -52,13 +52,13 @@ export const refreshSession = async (
     try {
       // we retry the refresh token in case of transient error
       // or race conditions
-      console.warn("error refreshing session, retrying:", error);
+      console.warn('error refreshing session, retrying:', error);
       return await _refreshSession(auth, storage, marginSeconds);
     } catch (error) {
       const errResponse = error as FetchResponse<ErrorResponse>;
       if (errResponse?.status === 401) {
         // this probably means the refresh token is invalid
-        console.error("session probably expired");
+        console.error('session probably expired');
         storage.remove();
       }
       return null;
@@ -84,8 +84,8 @@ const _refreshSession = async (
     session,
     needsRefresh,
   }: { session: Session | null; needsRefresh: boolean } = await lock.request(
-    "nhostSessionLock",
-    { mode: "shared" },
+    'nhostSessionLock',
+    { mode: 'shared' },
     async () => {
       return _needsRefresh(storage, marginSeconds);
     },
@@ -100,8 +100,8 @@ const _refreshSession = async (
   }
 
   const refreshedSession: Session | null = await lock.request(
-    "nhostSessionLock",
-    { mode: "exclusive" },
+    'nhostSessionLock',
+    { mode: 'exclusive' },
     async () => {
       const { session, needsRefresh, sessionExpired } = _needsRefresh(
         storage,

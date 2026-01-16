@@ -1,21 +1,21 @@
-"use server";
+'use server';
 
-import type { ErrorResponse } from "@nhost/nhost-js/auth";
-import type { FetchError } from "@nhost/nhost-js/fetch";
-import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
-import { createNhostClient } from "../../lib/nhost/server";
+import type { ErrorResponse } from '@nhost/nhost-js/auth';
+import type { FetchError } from '@nhost/nhost-js/fetch';
+import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
+import { createNhostClient } from '../../lib/nhost/server';
 
 /**
  * Verifies MFA code for sign in
  */
 export async function verifyMfa(formData: FormData): Promise<void> {
-  const otp = formData.get("otp") as string;
-  const ticket = formData.get("ticket") as string;
+  const otp = formData.get('otp') as string;
+  const ticket = formData.get('ticket') as string;
 
   // Validate inputs
   if (!otp || !ticket) {
-    redirect("/signin/mfa?error=Verification+code+and+ticket+are+required");
+    redirect('/signin/mfa?error=Verification+code+and+ticket+are+required');
   }
 
   try {
@@ -31,10 +31,10 @@ export async function verifyMfa(formData: FormData): Promise<void> {
     // If we have a session, verification was successful
     if (response.body.session) {
       // Revalidate all paths to ensure server components re-render
-      revalidatePath("/");
+      revalidatePath('/');
 
       // Redirect to profile page
-      redirect("/profile");
+      redirect('/profile');
     }
 
     // If we got here, something went wrong

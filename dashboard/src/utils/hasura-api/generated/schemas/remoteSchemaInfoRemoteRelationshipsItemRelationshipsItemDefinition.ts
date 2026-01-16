@@ -12,6 +12,5 @@ import type { RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItemDefinition
  * Relationship definition
  */
 export type RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItemDefinition =
-
-    | RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItemDefinitionOneOf
-    | RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItemDefinitionOneOfTwo;
+  | RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItemDefinitionOneOf
+  | RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItemDefinitionOneOfTwo;

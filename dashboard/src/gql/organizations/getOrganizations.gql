@@ -14,7 +14,7 @@ query getOrganizations($userId: uuid!) {
       individual
       isFree
       featureMaxDbSize
-      slaLevel 
+      slaLevel
     }
     apps(order_by: { name: asc }) {
       ...Project

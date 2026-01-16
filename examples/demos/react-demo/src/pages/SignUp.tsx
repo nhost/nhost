@@ -1,19 +1,19 @@
-import type { ErrorResponse } from "@nhost/nhost-js/auth";
-import type { FetchError } from "@nhost/nhost-js/fetch";
-import { type JSX, useId, useState } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
-import MagicLinkForm from "../components/MagicLinkForm";
-import TabForm from "../components/TabForm";
-import WebAuthnSignUpForm from "../components/WebAuthnSignUpForm";
-import { useAuth } from "../lib/nhost/AuthProvider";
+import type { ErrorResponse } from '@nhost/nhost-js/auth';
+import type { FetchError } from '@nhost/nhost-js/fetch';
+import { type JSX, useId, useState } from 'react';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
+import MagicLinkForm from '../components/MagicLinkForm';
+import TabForm from '../components/TabForm';
+import WebAuthnSignUpForm from '../components/WebAuthnSignUpForm';
+import { useAuth } from '../lib/nhost/AuthProvider';
 
 export default function SignUp(): JSX.Element {
   const { nhost, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-  const [displayName, setDisplayName] = useState<string>("");
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [displayName, setDisplayName] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -46,7 +46,7 @@ export default function SignUp(): JSX.Element {
 
       if (response.body?.session) {
         // Successfully signed up and automatically signed in
-        navigate("/profile");
+        navigate('/profile');
       } else {
         // Verification email sent or user created but needs verification
         setSuccess(true);
@@ -59,7 +59,7 @@ export default function SignUp(): JSX.Element {
     }
   };
 
-  const handleSocialSignIn = (provider: "github") => {
+  const handleSocialSignIn = (provider: 'github') => {
     // Get the current origin (to build the redirect URL)
     const origin = window.location.origin;
     const redirectUrl = `${origin}/verify`;
@@ -93,7 +93,7 @@ export default function SignUp(): JSX.Element {
 
             <button
               type="button"
-              onClick={() => navigate("/signin")}
+              onClick={() => navigate('/signin')}
               className="btn btn-primary"
             >
               Back to Sign In
@@ -156,7 +156,7 @@ export default function SignUp(): JSX.Element {
                 className="btn btn-primary w-full"
                 disabled={isLoading}
               >
-                {isLoading ? "Signing Up..." : "Sign Up"}
+                {isLoading ? 'Signing Up...' : 'Sign Up'}
               </button>
             </form>
           }
@@ -170,7 +170,7 @@ export default function SignUp(): JSX.Element {
               <p className="mb-6">Sign up using your Social account</p>
               <button
                 type="button"
-                onClick={() => handleSocialSignIn("github")}
+                onClick={() => handleSocialSignIn('github')}
                 className="btn btn-secondary w-full flex items-center justify-center gap-2"
                 disabled={isLoading}
               >

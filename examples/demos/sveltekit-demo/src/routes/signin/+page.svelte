@@ -1,26 +1,26 @@
 <script lang="ts">
-import type { ErrorResponse } from "@nhost/nhost-js/auth";
-import type { FetchError } from "@nhost/nhost-js/fetch";
-import { onMount } from "svelte";
-import { goto } from "$app/navigation";
-import { page } from "$app/stores";
-import MagicLinkForm from "$lib/components/MagicLinkForm.svelte";
-import TabForm from "$lib/components/TabForm.svelte";
-import WebAuthnSignInForm from "$lib/components/WebAuthnSignInForm.svelte";
-import { auth, nhost } from "$lib/nhost/auth";
+import type { ErrorResponse } from '@nhost/nhost-js/auth';
+import type { FetchError } from '@nhost/nhost-js/fetch';
+import { onMount } from 'svelte';
+import { goto } from '$app/navigation';
+import { page } from '$app/stores';
+import MagicLinkForm from '$lib/components/MagicLinkForm.svelte';
+import TabForm from '$lib/components/TabForm.svelte';
+import WebAuthnSignInForm from '$lib/components/WebAuthnSignInForm.svelte';
+import { auth, nhost } from '$lib/nhost/auth';
 
-let email = $state("");
-let password = $state("");
+let email = $state('');
+let password = $state('');
 let isLoading = $state(false);
 let error = $state<string | null>(null);
 
 let params = $derived(new URLSearchParams($page.url.search));
-let magicLinkSent = $derived(params.get("magic") === "success");
-let isVerifying = $derived(params.has("fromVerify"));
+let magicLinkSent = $derived(params.get('magic') === 'success');
+let isVerifying = $derived(params.has('fromVerify'));
 
 // Check for URL error parameter
 onMount(() => {
-  const urlError = params.get("error");
+  const urlError = params.get('error');
   if (urlError) {
     error = urlError;
   }
@@ -29,7 +29,7 @@ onMount(() => {
 // Navigate to profile when authenticated
 $effect(() => {
   if ($auth.isAuthenticated && !isVerifying) {
-    void goto("/profile");
+    void goto('/profile');
   }
 });
 
@@ -52,9 +52,9 @@ async function handleSubmit(e: Event) {
 
     // If we have a session, sign in was successful
     if (response.body?.session) {
-      void goto("/profile");
+      void goto('/profile');
     } else {
-      error = "Failed to sign in";
+      error = 'Failed to sign in';
     }
   } catch (err) {
     const fetchError = err as FetchError<ErrorResponse>;
@@ -64,7 +64,7 @@ async function handleSubmit(e: Event) {
   }
 }
 
-function handleSocialSignIn(provider: "github") {
+function handleSocialSignIn(provider: 'github') {
   // Get the current origin (to build the redirect URL)
   const origin = window.location.origin;
   const redirectUrl = `${origin}/verify`;

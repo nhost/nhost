@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import type { FileMetadata } from "@nhost/nhost-js/storage";
-import { useRef, useState, useTransition } from "react";
-import { deleteFileAction, uploadFileAction } from "./actions";
+import type { FileMetadata } from '@nhost/nhost-js/storage';
+import { useRef, useState, useTransition } from 'react';
+import { deleteFileAction, uploadFileAction } from './actions';
 
 interface FilesClientProps {
   initialFiles: FileMetadata[];
@@ -15,9 +15,9 @@ interface DeleteStatus {
 }
 
 function formatFileSize(bytes: number): string {
-  if (bytes === 0) return "0 Bytes";
+  if (bytes === 0) return '0 Bytes';
 
-  const sizes: string[] = ["Bytes", "KB", "MB", "GB", "TB"];
+  const sizes: string[] = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
   const i: number = Math.floor(Math.log(bytes) / Math.log(1024));
 
   return `${parseFloat((bytes / 1024 ** i).toFixed(2))} ${sizes[i]}`;
@@ -52,7 +52,7 @@ export default function FilesClient({
 
   const handleUpload = async (): Promise<void> => {
     if (!selectedFile) {
-      setError("Please select a file to upload");
+      setError('Please select a file to upload');
       return;
     }
 
@@ -62,7 +62,7 @@ export default function FilesClient({
     startTransition(async () => {
       try {
         const formData = new FormData();
-        formData.append("file", selectedFile);
+        formData.append('file', selectedFile);
 
         const result = await uploadFileAction(formData);
 
@@ -73,7 +73,7 @@ export default function FilesClient({
           // Clear the form
           setSelectedFile(null);
           if (fileInputRef.current) {
-            fileInputRef.current.value = "";
+            fileInputRef.current.value = '';
           }
 
           // Update the files list
@@ -84,10 +84,10 @@ export default function FilesClient({
             setUploadResult(null);
           }, 3000);
         } else {
-          setError(result.error || "Failed to upload file");
+          setError(result.error || 'Failed to upload file');
         }
       } catch (err: unknown) {
-        const message = (err as Error).message || "An unknown error occurred";
+        const message = (err as Error).message || 'An unknown error occurred';
         setError(`Failed to upload file: ${message}`);
       } finally {
         setUploading(false);
@@ -105,19 +105,19 @@ export default function FilesClient({
     try {
       // Handle different file types appropriately
       if (
-        mimeType.startsWith("image/") ||
-        mimeType === "application/pdf" ||
-        mimeType.startsWith("text/") ||
-        mimeType.startsWith("video/") ||
-        mimeType.startsWith("audio/")
+        mimeType.startsWith('image/') ||
+        mimeType === 'application/pdf' ||
+        mimeType.startsWith('text/') ||
+        mimeType.startsWith('video/') ||
+        mimeType.startsWith('audio/')
       ) {
         // Use download route for viewable files (inline viewing)
         const viewUrl = `/files/download/${fileId}?fileName=${encodeURIComponent(fileName)}`;
-        window.open(viewUrl, "_blank");
+        window.open(viewUrl, '_blank');
       } else {
         // Use download route for downloads (force download)
         const downloadUrl = `/files/download/${fileId}?fileName=${encodeURIComponent(fileName)}&download=true`;
-        const link = document.createElement("a");
+        const link = document.createElement('a');
         link.href = downloadUrl;
         link.download = fileName;
         document.body.appendChild(link);
@@ -125,7 +125,7 @@ export default function FilesClient({
         document.body.removeChild(link);
 
         // Show download confirmation
-        const newWindow = window.open("", "_blank", "width=400,height=200");
+        const newWindow = window.open('', '_blank', 'width=400,height=200');
         if (newWindow) {
           newWindow.document.documentElement.innerHTML = `
             <head>
@@ -142,9 +142,9 @@ export default function FilesClient({
         }
       }
     } catch (err) {
-      const message = (err as Error).message || "An unknown error occurred";
+      const message = (err as Error).message || 'An unknown error occurred';
       setError(`Failed to view file: ${message}`);
-      console.error("Error viewing file:", err);
+      console.error('Error viewing file:', err);
     } finally {
       setViewingFile(null);
     }
@@ -158,7 +158,7 @@ export default function FilesClient({
     setDeleteStatus(null);
 
     const fileToDelete = files.find((file) => file.id === fileId);
-    const fileName = fileToDelete?.name || "File";
+    const fileName = fileToDelete?.name || 'File';
 
     startTransition(async () => {
       try {
@@ -184,12 +184,12 @@ export default function FilesClient({
           });
         }
       } catch (err) {
-        const message = (err as Error).message || "An unknown error occurred";
+        const message = (err as Error).message || 'An unknown error occurred';
         setDeleteStatus({
           message: `Failed to delete ${fileName}: ${message}`,
           isError: true,
         });
-        console.error("Error deleting file:", err);
+        console.error('Error deleting file:', err);
       } finally {
         setDeleting(null);
       }
@@ -207,13 +207,13 @@ export default function FilesClient({
             ref={fileInputRef}
             onChange={handleFileChange}
             style={{
-              position: "absolute",
-              width: "1px",
-              height: "1px",
+              position: 'absolute',
+              width: '1px',
+              height: '1px',
               padding: 0,
-              margin: "-1px",
-              overflow: "hidden",
-              clip: "rect(0,0,0,0)",
+              margin: '-1px',
+              overflow: 'hidden',
+              clip: 'rect(0,0,0,0)',
               border: 0,
             }}
             aria-hidden="true"
@@ -260,9 +260,9 @@ export default function FilesClient({
           onClick={handleUpload}
           disabled={!selectedFile || uploading}
           className="btn btn-primary"
-          style={{ width: "100%" }}
+          style={{ width: '100%' }}
         >
-          {uploading ? "Uploading..." : "Upload File"}
+          {uploading ? 'Uploading...' : 'Upload File'}
         </button>
       </div>
 
@@ -272,7 +272,7 @@ export default function FilesClient({
         {deleteStatus && (
           <div
             className={
-              deleteStatus.isError ? "error-message" : "success-message"
+              deleteStatus.isError ? 'error-message' : 'success-message'
             }
           >
             {deleteStatus.message}
@@ -301,7 +301,7 @@ export default function FilesClient({
             </p>
           </div>
         ) : (
-          <div style={{ overflowX: "auto" }}>
+          <div style={{ overflowX: 'auto' }}>
             <table className="file-table">
               <thead>
                 <tr>
@@ -325,25 +325,25 @@ export default function FilesClient({
                           type="button"
                           onClick={() =>
                             handleViewFile(
-                              file.id || "unknown",
-                              file.name || "unknown",
-                              file.mimeType || "unknown",
+                              file.id || 'unknown',
+                              file.name || 'unknown',
+                              file.mimeType || 'unknown',
                             )
                           }
                           disabled={viewingFile === file.id}
                           className="action-btn action-btn-edit"
                           title="View File"
                         >
-                          {viewingFile === file.id ? "⏳" : "👁️"}
+                          {viewingFile === file.id ? '⏳' : '👁️'}
                         </button>
                         <button
                           type="button"
-                          onClick={() => handleDeleteFile(file.id || "unknown")}
+                          onClick={() => handleDeleteFile(file.id || 'unknown')}
                           disabled={deleting === file.id}
                           className="action-btn action-btn-delete"
                           title="Delete File"
                         >
-                          {deleting === file.id ? "⏳" : "🗑️"}
+                          {deleting === file.id ? '⏳' : '🗑️'}
                         </button>
                       </div>
                     </td>

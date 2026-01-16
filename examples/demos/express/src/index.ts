@@ -1,8 +1,8 @@
-import { createServerClient } from "@nhost/nhost-js";
-import type { Session } from "@nhost/nhost-js/session";
-import type { FileMetadata } from "@nhost/nhost-js/storage";
-import cookieParser from "cookie-parser";
-import express, { type Request, type Response } from "express";
+import { createServerClient } from '@nhost/nhost-js';
+import type { Session } from '@nhost/nhost-js/session';
+import type { FileMetadata } from '@nhost/nhost-js/storage';
+import cookieParser from 'cookie-parser';
+import express, { type Request, type Response } from 'express';
 
 const app = express();
 const port = 4000;
@@ -14,17 +14,17 @@ app.use(express.json());
 // reading the session from cookies passed in the request
 const nhostClientFromCookies = (req: Request) => {
   return createServerClient({
-    subdomain: "local",
-    region: "local",
+    subdomain: 'local',
+    region: 'local',
     storage: {
       get: (): Session | null => {
         return (JSON.parse(req.cookies.nhostSession) || null) as Session | null;
       },
       set: () => {
-        throw new Error("It is easier to handle the session in the client");
+        throw new Error('It is easier to handle the session in the client');
       },
       remove: () => {
-        throw new Error("It is easier to handle the session in the client");
+        throw new Error('It is easier to handle the session in the client');
       },
     },
   });
@@ -35,8 +35,8 @@ const nhostClientFromCookies = (req: Request) => {
 // the session only has partial information.
 const nhostClientFromAuthHeader = (req: Request) => {
   return createServerClient({
-    subdomain: "local",
-    region: "local",
+    subdomain: 'local',
+    region: 'local',
     storage: {
       get: (): Session | null => {
         const s = req.headers.authorization || null;
@@ -44,11 +44,11 @@ const nhostClientFromAuthHeader = (req: Request) => {
           return null;
         }
 
-        if (typeof s !== "string") {
+        if (typeof s !== 'string') {
           return null;
         }
 
-        const token = s.split(" ")[1];
+        const token = s.split(' ')[1];
         if (!token) {
           return null;
         }
@@ -56,10 +56,10 @@ const nhostClientFromAuthHeader = (req: Request) => {
         return session;
       },
       set: () => {
-        throw new Error("It is easier to handle the session in the client");
+        throw new Error('It is easier to handle the session in the client');
       },
       remove: () => {
-        throw new Error("It is easier to handle the session in the client");
+        throw new Error('It is easier to handle the session in the client');
       },
     },
   });
@@ -69,7 +69,7 @@ interface GraphqlGetFilesResponse {
   files: FileMetadata[];
 }
 
-app.post("/cookies", async (req: Request, res: Response) => {
+app.post('/cookies', async (req: Request, res: Response) => {
   const nhost = nhostClientFromCookies(req);
 
   try {
@@ -96,7 +96,7 @@ app.post("/cookies", async (req: Request, res: Response) => {
   }
 });
 
-app.post("/auth-header", async (req: Request, res: Response) => {
+app.post('/auth-header', async (req: Request, res: Response) => {
   const nhost = nhostClientFromAuthHeader(req);
   try {
     const response = await nhost.graphql.request<GraphqlGetFilesResponse>({

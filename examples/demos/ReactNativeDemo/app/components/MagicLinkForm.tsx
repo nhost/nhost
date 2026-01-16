@@ -1,7 +1,7 @@
-import type { ErrorResponse } from "@nhost/nhost-js/auth";
-import type { FetchError } from "@nhost/nhost-js/fetch";
-import * as Linking from "expo-linking";
-import { useState } from "react";
+import type { ErrorResponse } from '@nhost/nhost-js/auth';
+import type { FetchError } from '@nhost/nhost-js/fetch';
+import * as Linking from 'expo-linking';
+import { useState } from 'react';
 import {
   ActivityIndicator,
   StyleSheet,
@@ -9,17 +9,17 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-} from "react-native";
-import { useAuth } from "../lib/nhost/AuthProvider";
+} from 'react-native';
+import { useAuth } from '../lib/nhost/AuthProvider';
 
 interface MagicLinkFormProps {
   buttonLabel?: string;
 }
 
 export default function MagicLinkForm({
-  buttonLabel = "Send Magic Link",
+  buttonLabel = 'Send Magic Link',
 }: MagicLinkFormProps) {
-  const [email, setEmail] = useState<string>("");
+  const [email, setEmail] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [success, setSuccess] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -32,7 +32,7 @@ export default function MagicLinkForm({
     try {
       // For Expo Go, we need to create the correct URL format
       // This will work both in Expo Go and standalone app
-      const redirectUrl = Linking.createURL("verify");
+      const redirectUrl = Linking.createURL('verify');
 
       await nhost.auth.signInPasswordlessEmail({
         email,
@@ -102,7 +102,7 @@ export default function MagicLinkForm({
 
 const styles = StyleSheet.create({
   container: {
-    width: "100%",
+    width: '100%',
   },
   inputGroup: {
     marginBottom: 15,
@@ -110,49 +110,49 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     marginBottom: 5,
-    color: "#333",
+    color: '#333',
   },
   input: {
     height: 45,
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: '#ddd',
     borderRadius: 5,
     paddingHorizontal: 10,
     fontSize: 16,
-    backgroundColor: "#fafafa",
+    backgroundColor: '#fafafa',
   },
   errorText: {
-    color: "#e53e3e",
+    color: '#e53e3e',
     marginBottom: 10,
   },
   successText: {
     fontSize: 16,
-    color: "#38a169",
-    textAlign: "center",
+    color: '#38a169',
+    textAlign: 'center',
     marginBottom: 15,
   },
   button: {
-    backgroundColor: "#6366f1",
+    backgroundColor: '#6366f1',
     paddingVertical: 12,
     borderRadius: 5,
-    alignItems: "center",
+    alignItems: 'center',
     marginTop: 10,
   },
   buttonText: {
-    color: "#fff",
+    color: '#fff',
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   secondaryButton: {
-    backgroundColor: "#e2e8f0",
+    backgroundColor: '#e2e8f0',
     paddingVertical: 12,
     borderRadius: 5,
-    alignItems: "center",
+    alignItems: 'center',
     marginTop: 10,
   },
   secondaryButtonText: {
-    color: "#4a5568",
+    color: '#4a5568',
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: '600',
   },
 });

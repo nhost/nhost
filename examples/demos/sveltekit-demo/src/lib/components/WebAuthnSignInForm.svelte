@@ -1,10 +1,10 @@
 <script lang="ts">
-import type { ErrorResponse } from "@nhost/nhost-js/auth";
-import type { FetchError } from "@nhost/nhost-js/fetch";
-import { startAuthentication } from "@simplewebauthn/browser";
-import { goto } from "$app/navigation";
-import { nhost } from "$lib/nhost/auth";
-import { isWebAuthnSupported } from "$lib/utils";
+import type { ErrorResponse } from '@nhost/nhost-js/auth';
+import type { FetchError } from '@nhost/nhost-js/fetch';
+import { startAuthentication } from '@simplewebauthn/browser';
+import { goto } from '$app/navigation';
+import { nhost } from '$lib/nhost/auth';
+import { isWebAuthnSupported } from '$lib/utils';
 
 let isLoading = false;
 let error: string | null = null;
@@ -23,7 +23,7 @@ async function startWebAuthnSignIn(e: Event) {
   try {
     // First check if WebAuthn is supported by this browser
     if (!isWebAuthnSupported()) {
-      error = "WebAuthn is not supported by your browser.";
+      error = 'WebAuthn is not supported by your browser.';
       isLoading = false;
       return;
     }
@@ -43,7 +43,7 @@ async function startWebAuthnSignIn(e: Event) {
       });
 
       if (!credential) {
-        error = "No credential was selected.";
+        error = 'No credential was selected.';
         isLoading = false;
         return;
       }
@@ -58,12 +58,12 @@ async function startWebAuthnSignIn(e: Event) {
       // Step 4: Handle authentication result
       if (verifyResponse.body?.session) {
         // Authentication successful, redirect to profile page
-        void goto("/profile");
+        void goto('/profile');
       } else {
-        error = "Authentication failed";
+        error = 'Authentication failed';
       }
     } catch (credError) {
-      error = `WebAuthn authentication failed: ${(credError as Error).message || "Unknown error"}`;
+      error = `WebAuthn authentication failed: ${(credError as Error).message || 'Unknown error'}`;
     }
   } catch (err) {
     const fetchError = err as FetchError<ErrorResponse>;

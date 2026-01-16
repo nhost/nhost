@@ -184,11 +184,11 @@
 </template>
 
 <script setup lang="ts">
-import { type FetchError } from "@nhost/nhost-js/fetch";
-import type { ErrorResponse, FileMetadata } from "@nhost/nhost-js/storage";
-import { onMounted, ref } from "vue";
-import { useAuth } from "../lib/nhost/auth";
-import { formatFileSize } from "../lib/utils";
+import { type FetchError } from '@nhost/nhost-js/fetch';
+import type { ErrorResponse, FileMetadata } from '@nhost/nhost-js/storage';
+import { onMounted, ref } from 'vue';
+import { useAuth } from '../lib/nhost/auth';
+import { formatFileSize } from '../lib/utils';
 
 interface DeleteStatus {
   message: string;
@@ -232,14 +232,14 @@ const fetchFiles = async (): Promise<void> => {
 
     if (response.body.errors) {
       throw new Error(
-        response.body.errors[0]?.message || "Failed to fetch files",
+        response.body.errors[0]?.message || 'Failed to fetch files',
       );
     }
 
     files.value = response.body.data?.files || [];
   } catch (err) {
-    console.error("Error fetching files:", err);
-    error.value = "Failed to load files. Please try refreshing the page.";
+    console.error('Error fetching files:', err);
+    error.value = 'Failed to load files. Please try refreshing the page.';
   } finally {
     isFetching.value = false;
   }
@@ -266,7 +266,7 @@ const handleFileChange = (e: Event): void => {
 
 const handleUpload = async (): Promise<void> => {
   if (!selectedFile.value) {
-    error.value = "Please select a file to upload";
+    error.value = 'Please select a file to upload';
     return;
   }
 
@@ -276,21 +276,21 @@ const handleUpload = async (): Promise<void> => {
   try {
     // Upload file using Nhost storage
     const response = await nhost.storage.uploadFiles({
-      "bucket-id": "default",
-      "file[]": [selectedFile.value],
+      'bucket-id': 'default',
+      'file[]': [selectedFile.value],
     });
 
     // Get the processed file data
     const uploadedFile = response.body.processedFiles?.[0];
     if (uploadedFile === undefined) {
-      throw new Error("Failed to upload file");
+      throw new Error('Failed to upload file');
     }
     uploadResult.value = uploadedFile;
 
     // Reset form
     selectedFile.value = null;
     if (fileInputRef.value) {
-      fileInputRef.value.value = "";
+      fileInputRef.value.value = '';
     }
 
     files.value = [uploadedFile, ...files.value];
@@ -327,17 +327,17 @@ const handleViewFile = async (
 
     // Handle different file types appropriately
     if (
-      mimeType.startsWith("image/") ||
-      mimeType === "application/pdf" ||
-      mimeType.startsWith("text/") ||
-      mimeType.startsWith("video/") ||
-      mimeType.startsWith("audio/")
+      mimeType.startsWith('image/') ||
+      mimeType === 'application/pdf' ||
+      mimeType.startsWith('text/') ||
+      mimeType.startsWith('video/') ||
+      mimeType.startsWith('audio/')
     ) {
       // For media types that browsers can display natively, just open in a new tab
-      window.open(url, "_blank");
+      window.open(url, '_blank');
     } else {
       // For other file types, trigger download
-      const link = document.createElement("a");
+      const link = document.createElement('a');
       link.href = url;
       link.download = fileName;
       document.body.appendChild(link);
@@ -345,7 +345,7 @@ const handleViewFile = async (
       document.body.removeChild(link);
 
       // Optional: Open a small window to inform the user about the download
-      const newWindow = window.open("", "_blank", "width=400,height=200");
+      const newWindow = window.open('', '_blank', 'width=400,height=200');
       if (newWindow) {
         newWindow.document.write(`
           <html>
@@ -367,7 +367,7 @@ const handleViewFile = async (
   } catch (err) {
     const errorObj = err as FetchError<ErrorResponse>;
     error.value = `Failed to view file: ${errorObj.message}`;
-    console.error("Error viewing file:", err);
+    console.error('Error viewing file:', err);
   } finally {
     viewingFile.value = null;
   }
@@ -383,7 +383,7 @@ const handleDeleteFile = async (fileId: string): Promise<void> => {
 
   // Get the file name for the status message
   const fileToDelete = files.value.find((file) => file.id === fileId);
-  const fileName = fileToDelete?.name || "File";
+  const fileName = fileToDelete?.name || 'File';
 
   try {
     // Delete the file using the Nhost storage SDK
@@ -412,7 +412,7 @@ const handleDeleteFile = async (fileId: string): Promise<void> => {
       message: `Failed to delete ${fileName}: ${errorObj.message}`,
       isError: true,
     };
-    console.error("Error deleting file:", err);
+    console.error('Error deleting file:', err);
   } finally {
     deleting.value = null;
   }

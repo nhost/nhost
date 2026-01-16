@@ -1,23 +1,23 @@
-"use server";
+'use server';
 
 import type {
   CredentialAssertionResponse,
   ErrorResponse,
-} from "@nhost/nhost-js/auth";
-import type { FetchError } from "@nhost/nhost-js/fetch";
-import { revalidatePath } from "next/cache";
-import { createNhostClient } from "../lib/nhost/server";
+} from '@nhost/nhost-js/auth';
+import type { FetchError } from '@nhost/nhost-js/fetch';
+import { revalidatePath } from 'next/cache';
+import { createNhostClient } from '../lib/nhost/server';
 
 /**
  * Signs in a user with email and password
  */
 export async function signIn(formData: FormData) {
-  const email = formData.get("email") as string;
-  const password = formData.get("password") as string;
+  const email = formData.get('email') as string;
+  const password = formData.get('password') as string;
 
   // Validate inputs
   if (!email || !password) {
-    return { error: "Email and password are required" };
+    return { error: 'Email and password are required' };
   }
 
   try {
@@ -39,14 +39,14 @@ export async function signIn(formData: FormData) {
     // If we have a session, sign in was successful
     if (response.body.session) {
       // Revalidate all paths to ensure server components re-render
-      revalidatePath("/");
+      revalidatePath('/');
 
       // Return redirect to profile page
-      return { redirect: "/profile" };
+      return { redirect: '/profile' };
     }
 
     // If we got here, something went wrong
-    return { error: "Failed to sign in: unexpected error" };
+    return { error: 'Failed to sign in: unexpected error' };
   } catch (err) {
     const error = err as FetchError<ErrorResponse>;
     return {
@@ -59,12 +59,12 @@ export async function signIn(formData: FormData) {
  * Verifies MFA code for sign in
  */
 export async function verifyMfa(formData: FormData) {
-  const otp = formData.get("otp") as string;
-  const ticket = formData.get("ticket") as string;
+  const otp = formData.get('otp') as string;
+  const ticket = formData.get('ticket') as string;
 
   // Validate inputs
   if (!otp || !ticket) {
-    return { error: "Verification code and ticket are required" };
+    return { error: 'Verification code and ticket are required' };
   }
 
   try {
@@ -80,14 +80,14 @@ export async function verifyMfa(formData: FormData) {
     // If we have a session, verification was successful
     if (response.body.session) {
       // Revalidate all paths to ensure server components re-render
-      revalidatePath("/");
+      revalidatePath('/');
 
       // Return redirect to profile page
-      return { redirect: "/profile" };
+      return { redirect: '/profile' };
     }
 
     // If we got here, something went wrong
-    return { error: "Failed to verify MFA code", ticket };
+    return { error: 'Failed to verify MFA code', ticket };
   } catch (err) {
     const error = err as FetchError<ErrorResponse>;
     return {
@@ -101,18 +101,18 @@ export async function verifyMfa(formData: FormData) {
  * Sends a magic link to the provided email
  */
 export async function sendMagicLink(formData: FormData) {
-  const email = formData.get("email") as string;
-  const displayName = (formData.get("displayName") as string) || undefined;
+  const email = formData.get('email') as string;
+  const displayName = (formData.get('displayName') as string) || undefined;
 
   // Validate inputs
   if (!email) {
-    return { error: "Email is required" };
+    return { error: 'Email is required' };
   }
 
   try {
     // Get origin for redirect URL
     const origin =
-      process.env["NEXT_PUBLIC_APP_URL"] || "http://localhost:3000";
+      process.env['NEXT_PUBLIC_APP_URL'] || 'http://localhost:3000';
 
     // Get the server Nhost client
     const nhost = await createNhostClient();
@@ -127,11 +127,11 @@ export async function sendMagicLink(formData: FormData) {
     });
 
     if (response.body) {
-      return { redirect: "/signin?magic=success" };
+      return { redirect: '/signin?magic=success' };
     }
 
     // If we got here, something went wrong
-    return { error: "Failed to send magic link" };
+    return { error: 'Failed to send magic link' };
   } catch (err) {
     const error = err as FetchError<ErrorResponse>;
     return {
@@ -143,11 +143,11 @@ export async function sendMagicLink(formData: FormData) {
 /**
  * Gets the URL for social provider sign in
  */
-export async function getProviderSignInUrl(provider: "github") {
+export async function getProviderSignInUrl(provider: 'github') {
   try {
     // Get origin for redirect URL
     const origin =
-      process.env["NEXT_PUBLIC_APP_URL"] || "http://localhost:3000";
+      process.env['NEXT_PUBLIC_APP_URL'] || 'http://localhost:3000';
     const redirectTo = `${origin}/verify`;
 
     // Get the server Nhost client
@@ -209,14 +209,14 @@ export async function verifySignInWebauthn(
     // If we have a session, verification was successful
     if (response.body?.session) {
       // Revalidate all paths to ensure server components re-render
-      revalidatePath("/");
+      revalidatePath('/');
 
       // Return redirect to profile page
-      return { redirect: "/profile" };
+      return { redirect: '/profile' };
     }
 
     // If we got here, something went wrong
-    return { error: "Failed to verify WebAuthn authentication" };
+    return { error: 'Failed to verify WebAuthn authentication' };
   } catch (err) {
     const error = err as FetchError<ErrorResponse>;
     return {

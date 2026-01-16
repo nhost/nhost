@@ -1,18 +1,18 @@
 <script lang="ts">
-import type { ErrorResponse } from "@nhost/nhost-js/auth";
-import type { FetchError } from "@nhost/nhost-js/fetch";
-import { goto } from "$app/navigation";
-import { auth, nhost } from "$lib/nhost/auth";
+import type { ErrorResponse } from '@nhost/nhost-js/auth';
+import type { FetchError } from '@nhost/nhost-js/fetch';
+import { goto } from '$app/navigation';
+import { auth, nhost } from '$lib/nhost/auth';
 
-let email = $state("");
-let password = $state("");
+let email = $state('');
+let password = $state('');
 let isLoading = $state(false);
 let error = $state<string | null>(null);
 
 // Navigate to profile when authenticated
 $effect(() => {
   if ($auth.isAuthenticated) {
-    void goto("/profile");
+    void goto('/profile');
   }
 });
 
@@ -30,9 +30,9 @@ async function handleSubmit(e: Event) {
 
     // If we have a session, sign in was successful
     if (response.body?.session) {
-      void goto("/profile");
+      void goto('/profile');
     } else {
-      error = "Failed to sign in. Please check your credentials.";
+      error = 'Failed to sign in. Please check your credentials.';
     }
   } catch (err) {
     const fetchError = err as FetchError<ErrorResponse>;

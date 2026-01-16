@@ -1,22 +1,22 @@
-"use client";
+'use client';
 
-import type { PublicKeyCredentialCreationOptions } from "@nhost/nhost-js/auth";
-import { startRegistration } from "@simplewebauthn/browser";
-import { useRouter } from "next/navigation";
-import { useId, useState } from "react";
-import { isWebAuthnSupported } from "../lib/utils";
-import { signUpWebauthn, verifySignUpWebauthn } from "../signup/actions";
+import type { PublicKeyCredentialCreationOptions } from '@nhost/nhost-js/auth';
+import { startRegistration } from '@simplewebauthn/browser';
+import { useRouter } from 'next/navigation';
+import { useId, useState } from 'react';
+import { isWebAuthnSupported } from '../lib/utils';
+import { signUpWebauthn, verifySignUpWebauthn } from '../signup/actions';
 
 interface WebAuthnSignUpFormProps {
   buttonLabel?: string;
 }
 
 export default function WebAuthnSignUpForm({
-  buttonLabel = "Register with Security Key",
+  buttonLabel = 'Register with Security Key',
 }: WebAuthnSignUpFormProps) {
-  const [email, setEmail] = useState<string>("");
-  const [displayName, setDisplayName] = useState<string>("");
-  const [keyNickname, setKeyNickname] = useState<string>("");
+  const [email, setEmail] = useState<string>('');
+  const [displayName, setDisplayName] = useState<string>('');
+  const [keyNickname, setKeyNickname] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [challengeData, setChallengeData] =
@@ -42,14 +42,14 @@ export default function WebAuthnSignUpForm({
 
     // Validate required fields
     if (!email) {
-      setError("Email is required");
+      setError('Email is required');
       setIsLoading(false);
       return;
     }
 
     // Check browser compatibility before proceeding
     if (!isWebAuthnSupported()) {
-      setError("WebAuthn is not supported by your browser.");
+      setError('WebAuthn is not supported by your browser.');
       setIsLoading(false);
       return;
     }
@@ -68,7 +68,7 @@ export default function WebAuthnSignUpForm({
       }
 
       if (!result.publicKeyCredentialCreationOptions) {
-        setError("Failed to get registration challenge from server");
+        setError('Failed to get registration challenge from server');
         setIsLoading(false);
         return;
       }
@@ -83,7 +83,7 @@ export default function WebAuthnSignUpForm({
         });
 
         if (!credential) {
-          setError("No credential was created.");
+          setError('No credential was created.');
           setIsLoading(false);
           return;
         }
@@ -103,16 +103,16 @@ export default function WebAuthnSignUpForm({
         if (verifyResult.redirect) {
           router.push(verifyResult.redirect);
         } else {
-          setError("Registration failed: No redirect URL returned");
+          setError('Registration failed: No redirect URL returned');
         }
       } catch (credError) {
         setError(
-          `WebAuthn registration failed: ${(credError as Error).message || "Unknown error"}`,
+          `WebAuthn registration failed: ${(credError as Error).message || 'Unknown error'}`,
         );
       }
     } catch (err) {
       setError(
-        `An error occurred during WebAuthn sign up: ${(err as Error).message || "Unknown error"}`,
+        `An error occurred during WebAuthn sign up: ${(err as Error).message || 'Unknown error'}`,
       );
     } finally {
       setIsLoading(false);
@@ -165,8 +165,8 @@ export default function WebAuthnSignUpForm({
       >
         {isLoading
           ? challengeData
-            ? "Complete Registration on Your Device..."
-            : "Initializing..."
+            ? 'Complete Registration on Your Device...'
+            : 'Initializing...'
           : buttonLabel}
       </button>
 

@@ -2,11 +2,11 @@
 import type {
   ErrorResponse,
   PublicKeyCredentialCreationOptions,
-} from "@nhost/nhost-js/auth";
-import type { FetchError } from "@nhost/nhost-js/fetch";
-import { startRegistration } from "@simplewebauthn/browser";
-import { nhost } from "$lib/nhost/auth";
-import { isWebAuthnSupported } from "$lib/utils";
+} from '@nhost/nhost-js/auth';
+import type { FetchError } from '@nhost/nhost-js/fetch';
+import { startRegistration } from '@simplewebauthn/browser';
+import { nhost } from '$lib/nhost/auth';
+import { isWebAuthnSupported } from '$lib/utils';
 
 interface Props {
   email: string;
@@ -21,7 +21,7 @@ let { email, setEmail, displayName, setDisplayName, redirectTo }: Props =
 
 let isLoading = $state(false);
 let error = $state<string | null>(null);
-let keyNickname = $state("");
+let keyNickname = $state('');
 let challengeData = $state<PublicKeyCredentialCreationOptions | null>(null);
 
 /**
@@ -41,14 +41,14 @@ async function startWebAuthnRegistration(e: Event) {
 
   // Validate required fields
   if (!email) {
-    error = "Email is required";
+    error = 'Email is required';
     isLoading = false;
     return;
   }
 
   // Check browser compatibility before proceeding
   if (!isWebAuthnSupported()) {
-    error = "WebAuthn is not supported by your browser.";
+    error = 'WebAuthn is not supported by your browser.';
     isLoading = false;
     return;
   }
@@ -82,7 +82,7 @@ async function startWebAuthnRegistration(e: Event) {
       });
 
       if (!credential) {
-        error = "No credential was created.";
+        error = 'No credential was created.';
         isLoading = false;
         return;
       }
@@ -110,7 +110,7 @@ async function startWebAuthnRegistration(e: Event) {
           redirectTo || `${window.location.origin}/profile`;
       }
     } catch (credError) {
-      error = `WebAuthn registration failed: ${(credError as Error).message || "Unknown error"}`;
+      error = `WebAuthn registration failed: ${(credError as Error).message || 'Unknown error'}`;
     }
   } catch (err) {
     const fetchError = err as FetchError<ErrorResponse>;

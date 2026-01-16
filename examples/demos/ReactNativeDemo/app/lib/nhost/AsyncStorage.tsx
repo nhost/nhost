@@ -2,8 +2,8 @@ import {
   DEFAULT_SESSION_KEY,
   type Session,
   type SessionStorageBackend,
-} from "@nhost/nhost-js/session";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+} from '@nhost/nhost-js/session';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 /**
  * Custom storage implementation for React Native using AsyncStorage
@@ -35,16 +35,16 @@ export default class NhostAsyncStorage implements SessionStorageBackend {
             try {
               this.cache = JSON.parse(value) as Session;
             } catch (error) {
-              console.warn("Error parsing session from AsyncStorage:", error);
+              console.warn('Error parsing session from AsyncStorage:', error);
               this.cache = null;
             }
           }
         })
         .catch((error) => {
-          console.warn("Error loading from AsyncStorage:", error);
+          console.warn('Error loading from AsyncStorage:', error);
         });
     } catch (error) {
-      console.warn("AsyncStorage access error:", error);
+      console.warn('AsyncStorage access error:', error);
     }
   }
 
@@ -68,7 +68,7 @@ export default class NhostAsyncStorage implements SessionStorageBackend {
       try {
         await AsyncStorage.setItem(this.key, JSON.stringify(value));
       } catch (error) {
-        console.warn("Error saving session to AsyncStorage:", error);
+        console.warn('Error saving session to AsyncStorage:', error);
       }
     })();
   }
@@ -86,7 +86,7 @@ export default class NhostAsyncStorage implements SessionStorageBackend {
       try {
         await AsyncStorage.removeItem(this.key);
       } catch (error) {
-        console.warn("Error removing session from AsyncStorage:", error);
+        console.warn('Error removing session from AsyncStorage:', error);
       }
     })();
   }

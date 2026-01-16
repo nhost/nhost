@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useRouter } from "next/navigation";
-import { useId, useState } from "react";
-import { signIn } from "./actions";
+import { useRouter } from 'next/navigation';
+import { useId, useState } from 'react';
+import { signIn } from './actions';
 
 interface SignInFormProps {
   initialError?: string;
@@ -30,7 +30,7 @@ export default function SignInForm({ initialError }: SignInFormProps) {
       }
     } catch (err: unknown) {
       setError(
-        err instanceof Error ? err.message : "An error occurred during sign in",
+        err instanceof Error ? err.message : 'An error occurred during sign in',
       );
     } finally {
       setIsLoading(false);
@@ -68,7 +68,7 @@ export default function SignInForm({ initialError }: SignInFormProps) {
         disabled={isLoading}
         className="auth-button secondary"
       >
-        {isLoading ? "Signing In..." : "Sign In"}
+        {isLoading ? 'Signing In...' : 'Sign In'}
       </button>
     </form>
   );

@@ -1,10 +1,10 @@
-import type { FetchError } from "@nhost/nhost-js/fetch";
-import type { ErrorResponse, FileMetadata } from "@nhost/nhost-js/storage";
-import * as DocumentPicker from "expo-document-picker";
-import * as FileSystem from "expo-file-system";
-import { Stack } from "expo-router";
-import * as Sharing from "expo-sharing";
-import { useCallback, useEffect, useState } from "react";
+import type { FetchError } from '@nhost/nhost-js/fetch';
+import type { ErrorResponse, FileMetadata } from '@nhost/nhost-js/storage';
+import * as DocumentPicker from 'expo-document-picker';
+import * as FileSystem from 'expo-file-system';
+import { Stack } from 'expo-router';
+import * as Sharing from 'expo-sharing';
+import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -13,10 +13,10 @@ import {
   Text,
   TouchableOpacity,
   View,
-} from "react-native";
-import ProtectedScreen from "./components/ProtectedScreen";
-import { useAuth } from "./lib/nhost/AuthProvider";
-import { blobToBase64, formatFileSize } from "./lib/utils";
+} from 'react-native';
+import ProtectedScreen from './components/ProtectedScreen';
+import { useAuth } from './lib/nhost/AuthProvider';
+import { blobToBase64, formatFileSize } from './lib/utils';
 
 interface DeleteStatus {
   message: string;
@@ -62,7 +62,7 @@ export default function Upload() {
       setFiles(response.body.data?.files || []);
     } catch (err) {
       const errMessage =
-        err instanceof Error ? err.message : "An unexpected error occurred";
+        err instanceof Error ? err.message : 'An unexpected error occurred';
       setError(`Failed to fetch files: ${errMessage}`);
     } finally {
       setIsFetching(false);
@@ -77,7 +77,7 @@ export default function Upload() {
   const pickDocument = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: "*/*", // All file types
+        type: '*/*', // All file types
         copyToCacheDirectory: true,
       });
 
@@ -87,14 +87,14 @@ export default function Upload() {
         setUploadResult(null);
       }
     } catch (err) {
-      setError("Failed to pick document");
-      console.error("DocumentPicker Error:", err);
+      setError('Failed to pick document');
+      console.error('DocumentPicker Error:', err);
     }
   };
 
   const handleUpload = async () => {
     if (!selectedFile || selectedFile.canceled) {
-      setError("Please select a file to upload");
+      setError('Please select a file to upload');
       return;
     }
 
@@ -105,24 +105,24 @@ export default function Upload() {
       // For React Native, we need to read the file first
       const fileToUpload = selectedFile.assets?.[0];
       if (!fileToUpload) {
-        throw new Error("No file selected");
+        throw new Error('No file selected');
       }
 
       const file: unknown = {
         uri: fileToUpload.uri,
-        name: fileToUpload.name || "file",
-        type: fileToUpload.mimeType || "application/octet-stream",
+        name: fileToUpload.name || 'file',
+        type: fileToUpload.mimeType || 'application/octet-stream',
       };
       // Upload file using Nhost storage
       const response = await nhost.storage.uploadFiles({
-        "bucket-id": "default",
-        "file[]": [file as File],
+        'bucket-id': 'default',
+        'file[]': [file as File],
       });
 
       // Get the processed file data
       const uploadedFile = response.body.processedFiles?.[0];
       if (uploadedFile === undefined) {
-        throw new Error("Failed to upload file");
+        throw new Error('Failed to upload file');
       }
 
       setUploadResult(uploadedFile);
@@ -143,7 +143,7 @@ export default function Upload() {
     } catch (err: unknown) {
       const error = err as FetchError<ErrorResponse>;
       setError(`Failed to upload file: ${error.message}`);
-      console.error("Upload error:", err);
+      console.error('Upload error:', err);
     } finally {
       setUploading(false);
     }
@@ -162,13 +162,13 @@ export default function Upload() {
       const response = await nhost.storage.getFile(fileId);
 
       if (!response.body) {
-        throw new Error("Failed to retrieve file contents");
+        throw new Error('Failed to retrieve file contents');
       }
 
       // For iOS/Android, we need to save the file to the device first
       // Create a unique temp file path with a timestamp to prevent collisions
-      const fileExtension = fileName.includes(".") ? "" : ".file";
-      const tempFileName = fileName.includes(".")
+      const fileExtension = fileName.includes('.') ? '' : '.file';
+      const tempFileName = fileName.includes('.')
         ? fileName
         : `${fileName}${fileExtension}`;
       const tempFilePath = `${FileSystem.cacheDirectory}${Date.now()}_${tempFileName}`;
@@ -190,18 +190,18 @@ export default function Upload() {
       if (isSharingAvailable) {
         // Open the file with the default app
         await Sharing.shareAsync(tempFilePath, {
-          mimeType: mimeType || "application/octet-stream",
+          mimeType: mimeType || 'application/octet-stream',
           dialogTitle: `View ${fileName}`,
           UTI: mimeType, // for iOS
         });
       } else {
-        throw new Error("Sharing is not available on this device");
+        throw new Error('Sharing is not available on this device');
       }
     } catch (err) {
       const error = err as FetchError<ErrorResponse>;
       setError(`Failed to view file: ${error.message}`);
-      console.error("Error viewing file:", err);
-      Alert.alert("Error", `Failed to view file: ${error.message}`);
+      console.error('Error viewing file:', err);
+      Alert.alert('Error', `Failed to view file: ${error.message}`);
     } finally {
       setViewingFile(null);
     }
@@ -212,14 +212,14 @@ export default function Upload() {
     if (!fileId || deleting) return;
 
     // Confirm deletion
-    Alert.alert("Delete File", "Are you sure you want to delete this file?", [
+    Alert.alert('Delete File', 'Are you sure you want to delete this file?', [
       {
-        text: "Cancel",
-        style: "cancel",
+        text: 'Cancel',
+        style: 'cancel',
       },
       {
-        text: "Delete",
-        style: "destructive",
+        text: 'Delete',
+        style: 'destructive',
         onPress: () => {
           void (async () => {
             setDeleting(fileId);
@@ -228,7 +228,7 @@ export default function Upload() {
 
             // Get the file name for the status message
             const fileToDelete = files.find((file) => file.id === fileId);
-            const fileName = fileToDelete?.name || "File";
+            const fileName = fileToDelete?.name || 'File';
 
             try {
               // Delete the file using the Nhost storage SDK
@@ -257,7 +257,7 @@ export default function Upload() {
                 message: `Failed to delete ${fileName}: ${error.message}`,
                 isError: true,
               });
-              console.error("Error deleting file:", err);
+              console.error('Error deleting file:', err);
             } finally {
               setDeleting(null);
             }
@@ -269,7 +269,7 @@ export default function Upload() {
 
   return (
     <ProtectedScreen>
-      <Stack.Screen options={{ title: "File Upload" }} />
+      <Stack.Screen options={{ title: 'File Upload' }} />
       <View style={styles.container}>
         {/* Upload Form */}
         <View style={styles.card}>
@@ -314,7 +314,7 @@ export default function Upload() {
             disabled={!selectedFile || selectedFile.canceled || uploading}
           >
             <Text style={styles.buttonText}>
-              {uploading ? "Uploading..." : "Upload File"}
+              {uploading ? 'Uploading...' : 'Upload File'}
             </Text>
           </TouchableOpacity>
         </View>
@@ -368,9 +368,9 @@ export default function Upload() {
                       style={styles.actionButton}
                       onPress={() =>
                         handleViewFile(
-                          item.id || "unknown",
-                          item.name || "unknown",
-                          item.mimeType || "unknown",
+                          item.id || 'unknown',
+                          item.name || 'unknown',
+                          item.mimeType || 'unknown',
                         )
                       }
                       disabled={viewingFile === item.id}
@@ -383,7 +383,7 @@ export default function Upload() {
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={[styles.actionButton, styles.deleteButton]}
-                      onPress={() => handleDeleteFile(item.id || "unknown")}
+                      onPress={() => handleDeleteFile(item.id || 'unknown')}
                       disabled={deleting === item.id}
                     >
                       {deleting === item.id ? (
@@ -408,14 +408,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: '#f5f5f5',
   },
   card: {
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
     borderRadius: 10,
     padding: 20,
     marginBottom: 20,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -423,19 +423,19 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginBottom: 16,
-    color: "#333",
+    color: '#333',
   },
   fileUpload: {
     borderWidth: 2,
-    borderColor: "#ddd",
-    borderStyle: "dashed",
+    borderColor: '#ddd',
+    borderStyle: 'dashed',
     borderRadius: 10,
     padding: 20,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#f9f9f9",
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f9f9f9',
     marginBottom: 16,
   },
   uploadIcon: {
@@ -446,48 +446,48 @@ const styles = StyleSheet.create({
   },
   uploadText: {
     fontSize: 16,
-    color: "#666",
+    color: '#666',
   },
   fileName: {
     marginTop: 8,
-    color: "#0066cc",
+    color: '#0066cc',
     fontSize: 14,
   },
   button: {
-    backgroundColor: "#0066cc",
+    backgroundColor: '#0066cc',
     padding: 15,
     borderRadius: 8,
-    alignItems: "center",
+    alignItems: 'center',
   },
   buttonDisabled: {
-    backgroundColor: "#ccc",
+    backgroundColor: '#ccc',
   },
   buttonText: {
-    color: "white",
-    fontWeight: "bold",
+    color: 'white',
+    fontWeight: 'bold',
     fontSize: 16,
   },
   errorContainer: {
-    backgroundColor: "#ffebee",
+    backgroundColor: '#ffebee',
     padding: 10,
     borderRadius: 8,
     marginBottom: 16,
     borderLeftWidth: 4,
-    borderLeftColor: "#f44336",
+    borderLeftColor: '#f44336',
   },
   errorText: {
-    color: "#d32f2f",
+    color: '#d32f2f',
   },
   successContainer: {
-    backgroundColor: "#e8f5e9",
+    backgroundColor: '#e8f5e9',
     padding: 10,
     borderRadius: 8,
     marginBottom: 16,
     borderLeftWidth: 4,
-    borderLeftColor: "#4caf50",
+    borderLeftColor: '#4caf50',
   },
   successText: {
-    color: "#2e7d32",
+    color: '#2e7d32',
   },
   statusContainer: {
     padding: 10,
@@ -496,29 +496,29 @@ const styles = StyleSheet.create({
     borderLeftWidth: 4,
   },
   loadingContainer: {
-    alignItems: "center",
+    alignItems: 'center',
     padding: 20,
   },
   loadingText: {
     marginTop: 10,
-    color: "#666",
+    color: '#666',
   },
   emptyText: {
-    textAlign: "center",
-    color: "#666",
+    textAlign: 'center',
+    color: '#666',
     padding: 20,
   },
   fileList: {
     maxHeight: 300,
   },
   fileItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingVertical: 12,
     paddingHorizontal: 8,
     borderBottomWidth: 1,
-    borderBottomColor: "#eee",
+    borderBottomColor: '#eee',
   },
   fileInfo: {
     flex: 1,
@@ -526,25 +526,25 @@ const styles = StyleSheet.create({
   },
   fileNameText: {
     fontSize: 16,
-    fontWeight: "500",
-    color: "#333",
+    fontWeight: '500',
+    color: '#333',
     marginBottom: 4,
   },
   fileDetails: {
     fontSize: 12,
-    color: "#777",
+    color: '#777',
   },
   fileActions: {
-    flexDirection: "row",
+    flexDirection: 'row',
   },
   actionButton: {
     padding: 8,
     marginHorizontal: 4,
     borderRadius: 20,
-    backgroundColor: "#f0f0f0",
+    backgroundColor: '#f0f0f0',
   },
   deleteButton: {
-    backgroundColor: "#fff0f0",
+    backgroundColor: '#fff0f0',
   },
   actionText: {
     fontSize: 16,

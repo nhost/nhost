@@ -86,10 +86,7 @@ export async function prepareTable({
           .getByRole('combobox', { name: /type/i })
           .nth(calculatedIndex)
           .type(type);
-        await page
-          .getByRole('option', { name: type })
-          .first()
-          .click();
+        await page.getByRole('option', { name: type }).first().click();
 
         // optionally set default value
         if (defaultValue) {
