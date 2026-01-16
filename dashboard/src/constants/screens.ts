@@ -1,9 +1,11 @@
-import defaultTheme from 'tailwindcss/defaultTheme';
+import screens from './screens.cjs';
 
-const screens = {
-  xs: '415px',
-  'xs+': '515px',
-  ...defaultTheme.screens,
-} as const;
-
-export default screens;
+export default screens as {
+  xs: string;
+  'xs+': string;
+  sm: string;
+  md: string;
+  lg: string;
+  xl: string;
+  '2xl': string;
+};

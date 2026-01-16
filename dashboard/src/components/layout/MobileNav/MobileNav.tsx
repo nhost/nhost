@@ -1,5 +1,4 @@
 import { useApolloClient } from '@apollo/client';
-import getConfig from 'next/config';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
@@ -16,6 +15,7 @@ import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useAuth } from '@/providers/Auth';
+import { getDashboardVersion } from '@/utils/env';
 
 export interface MobileNavProps extends ButtonProps {}
 
@@ -25,7 +25,6 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
   const { signout } = useAuth();
   const apolloClient = useApolloClient();
   const router = useRouter();
-  const { publicRuntimeConfig } = getConfig();
 
   async function handleSignOut() {
     setMenuOpen(false);
@@ -135,7 +134,7 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
             </List>
 
             <Text className="text-center text-xs" color="secondary">
-              Dashboard Version: {publicRuntimeConfig?.version || 'n/a'}
+              Dashboard Version: {getDashboardVersion()}
             </Text>
           </section>
         )}

@@ -254,14 +254,16 @@ export const highlightNode = (node: ReactNode, term?: string): ReactNode => {
     );
   }
 
-  if (isValidElement(node)) {
+  if (isValidElement<Record<string, unknown>>(node)) {
     // biome-ignore lint/suspicious/noExplicitAny: TODO
     const childProps: any = {};
-    if (node.props && 'children' in node.props) {
-      childProps.children = highlightNode(node.props.children, search);
+    if ('children' in node.props) {
+      childProps.children = highlightNode(
+        node.props.children as ReactNode,
+        search,
+      );
     }
     return cloneElement(node, childProps);
   }
-
   return node;
 };

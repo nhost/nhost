@@ -1,6 +1,6 @@
 const defaultTheme = require('tailwindcss/defaultTheme');
 const plugin = require('tailwindcss/plugin');
-const screens = require('./src/constants/screens').default;
+const screens = require('./src/constants/screens.cjs');
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
