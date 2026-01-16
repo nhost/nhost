@@ -1,3 +1,26 @@
+## [@nhost/dashboard@2.46.0] - 2026-01-16
+
+### 🚀 Features
+
+- *(nixops)* Update nixpkgs (#3808)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Disable event/cron triggers edit when project is connected to a GitHub repository (#3804)
+- *(dashboard)* Prevent undefined property access when deleting row with event trigger (#3807)
+- *(deps)* Update orval to address security audit (#3810)
+- *(dashboard)* Filter out tables from remote data sources (#3798)
+- *(dashboard)* Migrate to biome from prettier in the dashboard (#3788)
+- *(dashboard)* Event triggers sidebar layout, move create button position (#3815)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(dashboard)* Setup biome and eslint for linting (#3781)
+- *(nhost-js)* Biome migration follow up (#3812)
+- *(dashboard)* Turn on import sorting in biome (#3787)
+
 ## [@nhost/dashboard@2.45.0] - 2026-01-13
 
 ### 🚀 Features
