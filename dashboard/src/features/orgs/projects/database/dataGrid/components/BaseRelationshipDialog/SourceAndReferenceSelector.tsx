@@ -230,6 +230,7 @@ export default function SourceAndReferenceSelector() {
               label="Source"
               placeholder="Select source"
               containerClassName="w-full"
+              data-testid="toReferenceSourceSelect"
               transform={{
                 in: (storedValue: string) => {
                   if (!storedValue) {
@@ -287,8 +288,6 @@ export default function SourceAndReferenceSelector() {
                     setValue('toReference.source', '', {
                       shouldDirty: true,
                     });
-
-                    // TODO: Set the lhsFields and remoteField
                   }
 
                   return referencedSourceValue.name;
@@ -317,6 +316,7 @@ export default function SourceAndReferenceSelector() {
               label="Schema"
               placeholder={isRemoteSchemaRelationship ? '' : 'Select schema'}
               containerClassName="w-full"
+              data-testid="toReferenceSchemaSelect"
               disabled={
                 !selectedToReference?.source || isRemoteSchemaRelationship
               }
@@ -374,6 +374,7 @@ export default function SourceAndReferenceSelector() {
             }
             searchPlaceholder="Search table..."
             emptyText="No tables found."
+            data-testid="toReferenceTableCombobox"
           >
             {toTableOptions.map((option) => (
               <CommandItem key={option.value} value={option.value}>

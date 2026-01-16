@@ -58,6 +58,7 @@ interface FormComboboxProps<
   emptyText?: string;
   showSelectedIcon?: boolean;
   transform?: Transformer;
+  'data-testid'?: string;
 }
 
 function isComponentType(element: ReactNode, component: unknown) {
@@ -205,6 +206,7 @@ function FormComboboxImpl<
     emptyText = 'No results found.',
     showSelectedIcon = true,
     transform,
+    'data-testid': dataTestId,
   }: PropsWithChildren<FormComboboxProps<TFieldValues, TName>>,
   ref?: ForwardedRef<HTMLButtonElement>,
 ) {
@@ -282,6 +284,7 @@ function FormComboboxImpl<
                       )}
                       disabled={disabled}
                       ref={mergeRefs([fieldRef, ref])}
+                      data-testid={dataTestId}
                     >
                       {selectedLabel ||
                         (isNotEmptyValue(fieldValue)

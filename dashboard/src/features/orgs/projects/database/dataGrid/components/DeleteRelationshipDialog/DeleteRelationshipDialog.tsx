@@ -112,6 +112,7 @@ export default function DeleteRelationshipDialog({
         size="icon"
         className="text-destructive hover:bg-destructive/10 hover:text-destructive"
         onClick={() => setOpen(true)}
+        data-testid={`delete-rel-${relationshipToDelete}`}
       >
         <Trash2Icon className="size-4" />
       </Button>

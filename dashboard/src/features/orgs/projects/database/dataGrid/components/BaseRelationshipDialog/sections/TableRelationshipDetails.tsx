@@ -110,6 +110,7 @@ export default function TableRelationshipDetails() {
                 label=""
                 placeholder="Select source column"
                 containerClassName="col-span-5"
+                data-testid={`fieldMapping.${index}.sourceColumn`}
               >
                 {fromColumns.map((column) => (
                   <SelectItem key={column} value={column}>
@@ -133,6 +134,7 @@ export default function TableRelationshipDetails() {
                 label=""
                 placeholder="Select reference column"
                 containerClassName="col-span-4 col-start-8"
+                data-testid={`fieldMapping.${index}.referenceColumn`}
               >
                 {toColumns.map((column) => (
                   <SelectItem key={column} value={column}>
