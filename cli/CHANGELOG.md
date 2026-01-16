@@ -1,3 +1,15 @@
+## [cli@1.35.0] - 2026-01-16
+
+### 🚀 Features
+
+- *(docs)* Document functions logging (#3793)
+- *(nixops)* Update nixpkgs (#3808)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Update certs (#3791)
+
 ## [cli@1.34.12] - 2025-12-23
 
 ### Chore
