@@ -6,8 +6,8 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type GetEventLogsOperationType = typeof GetEventLogsOperationType[keyof typeof GetEventLogsOperationType];
-
+export type GetEventLogsOperationType =
+  (typeof GetEventLogsOperationType)[keyof typeof GetEventLogsOperationType];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const GetEventLogsOperationType = {

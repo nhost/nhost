@@ -9,11 +9,12 @@
 /**
  * Insertion order before or after parent. Describes when should the referenced table row be inserted in relation to the current table row in case of a nested insert.
  */
-export type RelationshipUsingManualConfigurationManualConfigurationInsertionOrder = typeof RelationshipUsingManualConfigurationManualConfigurationInsertionOrder[keyof typeof RelationshipUsingManualConfigurationManualConfigurationInsertionOrder];
-
+export type RelationshipUsingManualConfigurationManualConfigurationInsertionOrder =
+  (typeof RelationshipUsingManualConfigurationManualConfigurationInsertionOrder)[keyof typeof RelationshipUsingManualConfigurationManualConfigurationInsertionOrder];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
-export const RelationshipUsingManualConfigurationManualConfigurationInsertionOrder = {
-  before_parent: 'before_parent',
-  after_parent: 'after_parent',
-} as const;
+export const RelationshipUsingManualConfigurationManualConfigurationInsertionOrder =
+  {
+    before_parent: 'before_parent',
+    after_parent: 'after_parent',
+  } as const;

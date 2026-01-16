@@ -6,8 +6,8 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type AddRemoteSchemaStepType = typeof AddRemoteSchemaStepType[keyof typeof AddRemoteSchemaStepType];
-
+export type AddRemoteSchemaStepType =
+  (typeof AddRemoteSchemaStepType)[keyof typeof AddRemoteSchemaStepType];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const AddRemoteSchemaStepType = {

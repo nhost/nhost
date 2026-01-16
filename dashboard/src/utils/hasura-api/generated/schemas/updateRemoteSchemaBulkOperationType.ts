@@ -9,8 +9,8 @@
 /**
  * Type of operation to update remote schemas
  */
-export type UpdateRemoteSchemaBulkOperationType = typeof UpdateRemoteSchemaBulkOperationType[keyof typeof UpdateRemoteSchemaBulkOperationType];
-
+export type UpdateRemoteSchemaBulkOperationType =
+  (typeof UpdateRemoteSchemaBulkOperationType)[keyof typeof UpdateRemoteSchemaBulkOperationType];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const UpdateRemoteSchemaBulkOperationType = {

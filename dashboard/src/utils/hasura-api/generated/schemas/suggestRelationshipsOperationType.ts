@@ -6,8 +6,8 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type SuggestRelationshipsOperationType = typeof SuggestRelationshipsOperationType[keyof typeof SuggestRelationshipsOperationType];
-
+export type SuggestRelationshipsOperationType =
+  (typeof SuggestRelationshipsOperationType)[keyof typeof SuggestRelationshipsOperationType];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const SuggestRelationshipsOperationType = {

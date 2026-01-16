@@ -11,4 +11,4 @@ export type IntrospectRemoteSchemaResponseData = {
   /** GraphQL schema introspection data */
   __schema: _IntrospectRemoteSchemaResponseDataSchema;
   [key: string]: unknown;
- };
+};

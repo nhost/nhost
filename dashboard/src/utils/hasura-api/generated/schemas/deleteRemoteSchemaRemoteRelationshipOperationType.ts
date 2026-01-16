@@ -9,10 +9,11 @@
 /**
  * Type of operation to delete a remote schema relationship
  */
-export type DeleteRemoteSchemaRemoteRelationshipOperationType = typeof DeleteRemoteSchemaRemoteRelationshipOperationType[keyof typeof DeleteRemoteSchemaRemoteRelationshipOperationType];
-
+export type DeleteRemoteSchemaRemoteRelationshipOperationType =
+  (typeof DeleteRemoteSchemaRemoteRelationshipOperationType)[keyof typeof DeleteRemoteSchemaRemoteRelationshipOperationType];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const DeleteRemoteSchemaRemoteRelationshipOperationType = {
-  delete_remote_schema_remote_relationship: 'delete_remote_schema_remote_relationship',
+  delete_remote_schema_remote_relationship:
+    'delete_remote_schema_remote_relationship',
 } as const;

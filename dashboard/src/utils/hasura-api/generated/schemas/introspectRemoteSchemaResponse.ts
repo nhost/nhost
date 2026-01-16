@@ -13,4 +13,4 @@ import type { IntrospectRemoteSchemaResponseData } from './introspectRemoteSchem
 export interface IntrospectRemoteSchemaResponse {
   data: IntrospectRemoteSchemaResponseData;
   [key: string]: unknown;
- }
+}

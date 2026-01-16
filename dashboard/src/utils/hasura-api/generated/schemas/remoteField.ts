@@ -13,9 +13,11 @@ import type { RemoteFieldArguments } from './remoteFieldArguments';
  * The schema tree ending at the field in the remote schema which needs to be joined with. Each key represents a field name in the remote schema and maps to the configuration for that node in the tree.
 
  */
-export interface RemoteField {[key: string]: {
-  /** GraphQL arguments to pass to this remote field. Argument values can be literals or references to table columns by prefixing the column name with `$`, for example `$id`.
- */
-  arguments?: RemoteFieldArguments;
-  field?: __RemoteField;
-}}
+export interface RemoteField {
+  [key: string]: {
+    /** GraphQL arguments to pass to this remote field. Argument values can be literals or references to table columns by prefixing the column name with `$`, for example `$id`.
+     */
+    arguments?: RemoteFieldArguments;
+    field?: __RemoteField;
+  };
+}

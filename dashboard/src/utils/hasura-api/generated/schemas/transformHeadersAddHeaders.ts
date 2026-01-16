@@ -9,4 +9,4 @@
 /**
  * A map of Header Key Value pairs to be added to the request.
  */
-export type TransformHeadersAddHeaders = {[key: string]: string};
+export type TransformHeadersAddHeaders = { [key: string]: string };

@@ -10,4 +10,4 @@ import type { ColumnConfigValue } from './columnConfigValue';
 /**
  * A { [column_name]: ColumnConfigValue } object.
  */
-export type TableConfigColumnConfig = {[key: string]: ColumnConfigValue};
+export type TableConfigColumnConfig = { [key: string]: ColumnConfigValue };

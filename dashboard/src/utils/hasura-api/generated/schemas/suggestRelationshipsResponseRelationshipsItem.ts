@@ -9,4 +9,6 @@
 import type { SuggestedArrayRelationship } from './suggestedArrayRelationship';
 import type { SuggestedObjectRelationship } from './suggestedObjectRelationship';
 
-export type SuggestRelationshipsResponseRelationshipsItem = SuggestedObjectRelationship | SuggestedArrayRelationship;
+export type SuggestRelationshipsResponseRelationshipsItem =
+  | SuggestedObjectRelationship
+  | SuggestedArrayRelationship;

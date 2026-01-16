@@ -15,4 +15,4 @@ export type ExportMetadataResponseMetadataSourcesItem = {
   /** List of tables in the data source */
   tables?: ExportMetadataResponseMetadataSourcesItemTablesItem[];
   [key: string]: unknown;
- };
+};

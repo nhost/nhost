@@ -12,4 +12,4 @@ export type ExportMetadataResponseMetadataSourcesItemTablesItemTable = {
   /** Schema of the table */
   schema?: string;
   [key: string]: unknown;
- };
+};

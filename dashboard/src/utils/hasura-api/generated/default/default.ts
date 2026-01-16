@@ -15,7 +15,7 @@ import type {
   MetadataOperation401,
   MetadataOperationBody,
   MigrationRequest,
-  SuccessResponse
+  SuccessResponse,
 } from '.././schemas';
 
 /**
@@ -23,96 +23,93 @@ import type {
  * @summary Metadata API endpoint
  */
 export type metadataOperationResponse200 = {
-  data: MetadataOperation200
-  status: 200
-}
+  data: MetadataOperation200;
+  status: 200;
+};
 
 export type metadataOperationResponse400 = {
-  data: ErrorResponse
-  status: 400
-}
+  data: ErrorResponse;
+  status: 400;
+};
 
 export type metadataOperationResponse401 = {
-  data: MetadataOperation401
-  status: 401
-}
+  data: MetadataOperation401;
+  status: 401;
+};
 
 export type metadataOperationResponse500 = {
-  data: ErrorResponse
-  status: 500
-}
-    
-export type metadataOperationResponseSuccess = (metadataOperationResponse200) & {
+  data: ErrorResponse;
+  status: 500;
+};
+
+export type metadataOperationResponseSuccess = metadataOperationResponse200 & {
   headers: Headers;
 };
-export type metadataOperationResponseError = (metadataOperationResponse400 | metadataOperationResponse401 | metadataOperationResponse500) & {
+export type metadataOperationResponseError = (
+  | metadataOperationResponse400
+  | metadataOperationResponse401
+  | metadataOperationResponse500
+) & {
   headers: Headers;
 };
 
-export type metadataOperationResponse = (metadataOperationResponseSuccess | metadataOperationResponseError)
+export type metadataOperationResponse =
+  | metadataOperationResponseSuccess
+  | metadataOperationResponseError;
 
 export const getMetadataOperationUrl = () => {
+  return `/v1/metadata`;
+};
 
-
-  
-
-  return `/v1/metadata`
-}
-
-export const metadataOperation = async (metadataOperationBody: MetadataOperationBody, options?: CustomFetchOptions): Promise<metadataOperationResponse> => {
-  
-  return customFetch<metadataOperationResponse>(getMetadataOperationUrl(),
-  {      
+export const metadataOperation = async (
+  metadataOperationBody: MetadataOperationBody,
+  options?: CustomFetchOptions,
+): Promise<metadataOperationResponse> => {
+  return customFetch<metadataOperationResponse>(getMetadataOperationUrl(), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      metadataOperationBody,)
-  }
-);}
-
+    body: JSON.stringify(metadataOperationBody),
+  });
+};
 
 /**
  * Executes a migration with the provided up and down steps
  * @summary Execute a migration
  */
 export type executeMigrationResponse200 = {
-  data: SuccessResponse
-  status: 200
-}
+  data: SuccessResponse;
+  status: 200;
+};
 
 export type executeMigrationResponse500 = {
-  data: ErrorResponse
-  status: 500
-}
-    
-export type executeMigrationResponseSuccess = (executeMigrationResponse200) & {
+  data: ErrorResponse;
+  status: 500;
+};
+
+export type executeMigrationResponseSuccess = executeMigrationResponse200 & {
   headers: Headers;
 };
-export type executeMigrationResponseError = (executeMigrationResponse500) & {
+export type executeMigrationResponseError = executeMigrationResponse500 & {
   headers: Headers;
 };
 
-export type executeMigrationResponse = (executeMigrationResponseSuccess | executeMigrationResponseError)
+export type executeMigrationResponse =
+  | executeMigrationResponseSuccess
+  | executeMigrationResponseError;
 
 export const getExecuteMigrationUrl = () => {
+  return `/apis/migrate`;
+};
 
-
-  
-
-  return `/apis/migrate`
-}
-
-export const executeMigration = async (migrationRequest: MigrationRequest, options?: CustomFetchOptions): Promise<executeMigrationResponse> => {
-  
-  return customFetch<executeMigrationResponse>(getExecuteMigrationUrl(),
-  {      
+export const executeMigration = async (
+  migrationRequest: MigrationRequest,
+  options?: CustomFetchOptions,
+): Promise<executeMigrationResponse> => {
+  return customFetch<executeMigrationResponse>(getExecuteMigrationUrl(), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      migrationRequest,)
-  }
-);}
-
-
+    body: JSON.stringify(migrationRequest),
+  });
+};

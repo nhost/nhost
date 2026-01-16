@@ -9,8 +9,8 @@
 /**
  * The kind of GraphQL type
  */
-export type GraphQLTypeForVisualizationKind = typeof GraphQLTypeForVisualizationKind[keyof typeof GraphQLTypeForVisualizationKind];
-
+export type GraphQLTypeForVisualizationKind =
+  (typeof GraphQLTypeForVisualizationKind)[keyof typeof GraphQLTypeForVisualizationKind];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const GraphQLTypeForVisualizationKind = {

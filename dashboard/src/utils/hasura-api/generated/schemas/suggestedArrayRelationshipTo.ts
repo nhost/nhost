@@ -9,4 +9,5 @@
 import type { SuggestedArrayRelationshipToAllOf } from './suggestedArrayRelationshipToAllOf';
 import type { SuggestedRelationshipElement } from './suggestedRelationshipElement';
 
-export type SuggestedArrayRelationshipTo = SuggestedRelationshipElement & SuggestedArrayRelationshipToAllOf;
+export type SuggestedArrayRelationshipTo = SuggestedRelationshipElement &
+  SuggestedArrayRelationshipToAllOf;

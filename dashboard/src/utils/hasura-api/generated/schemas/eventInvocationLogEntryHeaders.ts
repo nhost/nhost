@@ -10,4 +10,5 @@ import type { EventInvocationLogEntryHeadersItem } from './eventInvocationLogEnt
 /**
  * HTTP headers sent with the webhook request
  */
-export type EventInvocationLogEntryHeaders = EventInvocationLogEntryHeadersItem[];
+export type EventInvocationLogEntryHeaders =
+  EventInvocationLogEntryHeadersItem[];

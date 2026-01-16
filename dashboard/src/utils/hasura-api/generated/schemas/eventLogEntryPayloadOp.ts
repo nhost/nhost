@@ -9,8 +9,8 @@
 /**
  * Represents the name of the operation.
  */
-export type EventLogEntryPayloadOp = typeof EventLogEntryPayloadOp[keyof typeof EventLogEntryPayloadOp];
-
+export type EventLogEntryPayloadOp =
+  (typeof EventLogEntryPayloadOp)[keyof typeof EventLogEntryPayloadOp];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const EventLogEntryPayloadOp = {

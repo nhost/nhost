@@ -6,8 +6,8 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type CreateArrayRelationshipStepType = typeof CreateArrayRelationshipStepType[keyof typeof CreateArrayRelationshipStepType];
-
+export type CreateArrayRelationshipStepType =
+  (typeof CreateArrayRelationshipStepType)[keyof typeof CreateArrayRelationshipStepType];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const CreateArrayRelationshipStepType = {

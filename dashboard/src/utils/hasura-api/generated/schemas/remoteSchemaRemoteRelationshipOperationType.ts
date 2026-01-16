@@ -9,11 +9,13 @@
 /**
  * Type of operation to create a remote schema relationship
  */
-export type RemoteSchemaRemoteRelationshipOperationType = typeof RemoteSchemaRemoteRelationshipOperationType[keyof typeof RemoteSchemaRemoteRelationshipOperationType];
-
+export type RemoteSchemaRemoteRelationshipOperationType =
+  (typeof RemoteSchemaRemoteRelationshipOperationType)[keyof typeof RemoteSchemaRemoteRelationshipOperationType];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const RemoteSchemaRemoteRelationshipOperationType = {
-  create_remote_schema_remote_relationship: 'create_remote_schema_remote_relationship',
-  update_remote_schema_remote_relationship: 'update_remote_schema_remote_relationship',
+  create_remote_schema_remote_relationship:
+    'create_remote_schema_remote_relationship',
+  update_remote_schema_remote_relationship:
+    'update_remote_schema_remote_relationship',
 } as const;

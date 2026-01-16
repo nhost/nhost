@@ -9,4 +9,4 @@
 /**
  * Contains trace context information.
  */
-export type EventLogEntryPayloadTraceContext = {[key: string]: string};
+export type EventLogEntryPayloadTraceContext = { [key: string]: string };

@@ -9,4 +9,4 @@
 /**
  * Sample Context environment variables for testing the connector
  */
-export type TestWebhookTransformArgsEnv = {[key: string]: string};
+export type TestWebhookTransformArgsEnv = { [key: string]: string };

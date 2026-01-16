@@ -6,8 +6,8 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type DeleteRemoteRelationshipStepType = typeof DeleteRemoteRelationshipStepType[keyof typeof DeleteRemoteRelationshipStepType];
-
+export type DeleteRemoteRelationshipStepType =
+  (typeof DeleteRemoteRelationshipStepType)[keyof typeof DeleteRemoteRelationshipStepType];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const DeleteRemoteRelationshipStepType = {

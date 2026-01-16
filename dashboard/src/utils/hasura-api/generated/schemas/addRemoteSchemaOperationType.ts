@@ -9,8 +9,8 @@
 /**
  * Type of operation to add a remote schema
  */
-export type AddRemoteSchemaOperationType = typeof AddRemoteSchemaOperationType[keyof typeof AddRemoteSchemaOperationType];
-
+export type AddRemoteSchemaOperationType =
+  (typeof AddRemoteSchemaOperationType)[keyof typeof AddRemoteSchemaOperationType];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const AddRemoteSchemaOperationType = {

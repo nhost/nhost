@@ -11,4 +11,12 @@ import type { RemoteFieldArgumentsOneOf } from './remoteFieldArgumentsOneOf';
  * GraphQL arguments to pass to this remote field. Argument values can be literals or references to table columns by prefixing the column name with `$`, for example `$id`.
 
  */
-export type RemoteFieldArguments = {[key: string]: string | number | number | boolean | RemoteFieldArgumentsOneOf | unknown[]};
+export type RemoteFieldArguments = {
+  [key: string]:
+    | string
+    | number
+    | number
+    | boolean
+    | RemoteFieldArgumentsOneOf
+    | unknown[];
+};

@@ -9,8 +9,8 @@
 /**
  * Replace the Content-Type with this value.
  */
-export type RequestTransformationContentType = typeof RequestTransformationContentType[keyof typeof RequestTransformationContentType];
-
+export type RequestTransformationContentType =
+  (typeof RequestTransformationContentType)[keyof typeof RequestTransformationContentType];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const RequestTransformationContentType = {

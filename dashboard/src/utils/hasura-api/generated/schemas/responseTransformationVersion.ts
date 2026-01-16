@@ -9,8 +9,8 @@
 /**
  * Sets the ResponseTransformation schema version. Version 1 uses a String for the body field and Version 2 takes a BodyTransform.
  */
-export type ResponseTransformationVersion = typeof ResponseTransformationVersion[keyof typeof ResponseTransformationVersion];
-
+export type ResponseTransformationVersion =
+  (typeof ResponseTransformationVersion)[keyof typeof ResponseTransformationVersion];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ResponseTransformationVersion = {

@@ -18,4 +18,4 @@ export type GraphQLTypeForVisualizationFieldsItem = {
   /** Return type of the field */
   type: GraphQLTypeForVisualization;
   [key: string]: unknown;
- };
+};

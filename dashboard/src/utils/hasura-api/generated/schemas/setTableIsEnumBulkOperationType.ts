@@ -9,8 +9,8 @@
 /**
  * Type of operation to update remote schemas
  */
-export type SetTableIsEnumBulkOperationType = typeof SetTableIsEnumBulkOperationType[keyof typeof SetTableIsEnumBulkOperationType];
-
+export type SetTableIsEnumBulkOperationType =
+  (typeof SetTableIsEnumBulkOperationType)[keyof typeof SetTableIsEnumBulkOperationType];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const SetTableIsEnumBulkOperationType = {

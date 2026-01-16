@@ -28,4 +28,4 @@ export interface EventLogEntry {
   /** @nullable */
   next_retry_at: string | null;
   [key: string]: unknown;
- }
+}

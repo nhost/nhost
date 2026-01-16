@@ -6,8 +6,8 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type TestWebhookTransformOperationType = typeof TestWebhookTransformOperationType[keyof typeof TestWebhookTransformOperationType];
-
+export type TestWebhookTransformOperationType =
+  (typeof TestWebhookTransformOperationType)[keyof typeof TestWebhookTransformOperationType];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const TestWebhookTransformOperationType = {

@@ -9,8 +9,8 @@
 /**
  * Type of operation to delete remote relationship
  */
-export type DeleteRemoteRelationshipBulkOperationType = typeof DeleteRemoteRelationshipBulkOperationType[keyof typeof DeleteRemoteRelationshipBulkOperationType];
-
+export type DeleteRemoteRelationshipBulkOperationType =
+  (typeof DeleteRemoteRelationshipBulkOperationType)[keyof typeof DeleteRemoteRelationshipBulkOperationType];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const DeleteRemoteRelationshipBulkOperationType = {

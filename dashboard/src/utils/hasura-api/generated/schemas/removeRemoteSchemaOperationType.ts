@@ -9,8 +9,8 @@
 /**
  * Type of operation to remove a remote schema
  */
-export type RemoveRemoteSchemaOperationType = typeof RemoveRemoteSchemaOperationType[keyof typeof RemoveRemoteSchemaOperationType];
-
+export type RemoveRemoteSchemaOperationType =
+  (typeof RemoveRemoteSchemaOperationType)[keyof typeof RemoveRemoteSchemaOperationType];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const RemoveRemoteSchemaOperationType = {

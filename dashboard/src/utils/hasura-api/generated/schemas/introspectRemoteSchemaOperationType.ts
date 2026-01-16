@@ -9,8 +9,8 @@
 /**
  * Type of operation to introspect a remote schema
  */
-export type IntrospectRemoteSchemaOperationType = typeof IntrospectRemoteSchemaOperationType[keyof typeof IntrospectRemoteSchemaOperationType];
-
+export type IntrospectRemoteSchemaOperationType =
+  (typeof IntrospectRemoteSchemaOperationType)[keyof typeof IntrospectRemoteSchemaOperationType];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const IntrospectRemoteSchemaOperationType = {

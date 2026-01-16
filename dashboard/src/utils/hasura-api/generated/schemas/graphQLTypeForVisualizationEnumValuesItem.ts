@@ -15,4 +15,4 @@ export type GraphQLTypeForVisualizationEnumValuesItem = {
    */
   description?: string | null;
   [key: string]: unknown;
- };
+};

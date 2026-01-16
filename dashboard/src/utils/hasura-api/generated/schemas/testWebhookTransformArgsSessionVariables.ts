@@ -6,4 +6,6 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type TestWebhookTransformArgsSessionVariables = {[key: string]: string};
+export type TestWebhookTransformArgsSessionVariables = {
+  [key: string]: string;
+};

@@ -6,8 +6,8 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type SuggestedObjectRelationshipType = typeof SuggestedObjectRelationshipType[keyof typeof SuggestedObjectRelationshipType];
-
+export type SuggestedObjectRelationshipType =
+  (typeof SuggestedObjectRelationshipType)[keyof typeof SuggestedObjectRelationshipType];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const SuggestedObjectRelationshipType = {

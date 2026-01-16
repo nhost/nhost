@@ -9,8 +9,8 @@
 /**
  * Template language to be used for this transformation.
  */
-export type ResponseTransformationTemplateEngine = typeof ResponseTransformationTemplateEngine[keyof typeof ResponseTransformationTemplateEngine];
-
+export type ResponseTransformationTemplateEngine =
+  (typeof ResponseTransformationTemplateEngine)[keyof typeof ResponseTransformationTemplateEngine];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ResponseTransformationTemplateEngine = {

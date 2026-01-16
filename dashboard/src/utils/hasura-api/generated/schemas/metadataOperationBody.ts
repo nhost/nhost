@@ -38,4 +38,35 @@ import type { SuggestRelationshipsOperation } from './suggestRelationshipsOperat
 import type { TestWebhookTransformOperation } from './testWebhookTransformOperation';
 import type { UpdateRemoteSchemaBulkOperation } from './updateRemoteSchemaBulkOperation';
 
-export type MetadataOperationBody = ExportMetadata | SetTableCustomizationBulkOperation | SetTableIsEnumBulkOperation | SuggestRelationshipsOperation | DropRelationshipBulkOperation | DeleteRemoteRelationshipBulkOperation | CreateObjectRelationshipBulkOperation | CreateArrayRelationshipBulkOperation | CreateRemoteRelationshipBulkOperation | RenameRelationshipBulkOperation | AddRemoteSchemaOperation | UpdateRemoteSchemaBulkOperation | RemoveRemoteSchemaOperation | ReloadRemoteSchemaOperation | IntrospectRemoteSchemaOperation | RemoteSchemaRemoteRelationshipOperation | DeleteRemoteSchemaRemoteRelationshipOperation | RemoteSchemaPermissionsBulkOperation | GetEventLogsOperation | GetEventAndInvocationLogsByIdOperation | RedeliverEventOperation | CreateEventTriggerBulkOperation | DeleteEventTriggerBulkOperation | TestWebhookTransformOperation | InvokeEventTriggerOperation | GetCronTriggersOperation | CreateCronTriggerBulkOperation | DeleteCronTriggerOperation | GetScheduledEventsOperation | GetScheduledEventInvocationsOperation | DeleteScheduledEventOperation;
+export type MetadataOperationBody =
+  | ExportMetadata
+  | SetTableCustomizationBulkOperation
+  | SetTableIsEnumBulkOperation
+  | SuggestRelationshipsOperation
+  | DropRelationshipBulkOperation
+  | DeleteRemoteRelationshipBulkOperation
+  | CreateObjectRelationshipBulkOperation
+  | CreateArrayRelationshipBulkOperation
+  | CreateRemoteRelationshipBulkOperation
+  | RenameRelationshipBulkOperation
+  | AddRemoteSchemaOperation
+  | UpdateRemoteSchemaBulkOperation
+  | RemoveRemoteSchemaOperation
+  | ReloadRemoteSchemaOperation
+  | IntrospectRemoteSchemaOperation
+  | RemoteSchemaRemoteRelationshipOperation
+  | DeleteRemoteSchemaRemoteRelationshipOperation
+  | RemoteSchemaPermissionsBulkOperation
+  | GetEventLogsOperation
+  | GetEventAndInvocationLogsByIdOperation
+  | RedeliverEventOperation
+  | CreateEventTriggerBulkOperation
+  | DeleteEventTriggerBulkOperation
+  | TestWebhookTransformOperation
+  | InvokeEventTriggerOperation
+  | GetCronTriggersOperation
+  | CreateCronTriggerBulkOperation
+  | DeleteCronTriggerOperation
+  | GetScheduledEventsOperation
+  | GetScheduledEventInvocationsOperation
+  | DeleteScheduledEventOperation;

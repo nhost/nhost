@@ -6,8 +6,8 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type RenameRelationshipStepType = typeof RenameRelationshipStepType[keyof typeof RenameRelationshipStepType];
-
+export type RenameRelationshipStepType =
+  (typeof RenameRelationshipStepType)[keyof typeof RenameRelationshipStepType];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const RenameRelationshipStepType = {

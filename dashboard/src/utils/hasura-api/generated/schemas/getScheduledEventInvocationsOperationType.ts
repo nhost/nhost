@@ -6,8 +6,8 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type GetScheduledEventInvocationsOperationType = typeof GetScheduledEventInvocationsOperationType[keyof typeof GetScheduledEventInvocationsOperationType];
-
+export type GetScheduledEventInvocationsOperationType =
+  (typeof GetScheduledEventInvocationsOperationType)[keyof typeof GetScheduledEventInvocationsOperationType];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const GetScheduledEventInvocationsOperationType = {

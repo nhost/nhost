@@ -9,8 +9,8 @@
 /**
  * Type of operation to create array relationship
  */
-export type CreateArrayRelationshipBulkOperationType = typeof CreateArrayRelationshipBulkOperationType[keyof typeof CreateArrayRelationshipBulkOperationType];
-
+export type CreateArrayRelationshipBulkOperationType =
+  (typeof CreateArrayRelationshipBulkOperationType)[keyof typeof CreateArrayRelationshipBulkOperationType];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const CreateArrayRelationshipBulkOperationType = {

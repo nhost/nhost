@@ -9,8 +9,8 @@
 /**
  * Sets the RequestTransformation schema version. Version 1 uses a String for the body field and Version 2 takes a BodyTransform.
  */
-export type RequestTransformationVersion = typeof RequestTransformationVersion[keyof typeof RequestTransformationVersion];
-
+export type RequestTransformationVersion =
+  (typeof RequestTransformationVersion)[keyof typeof RequestTransformationVersion];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const RequestTransformationVersion = {

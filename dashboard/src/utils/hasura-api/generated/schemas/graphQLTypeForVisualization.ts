@@ -53,4 +53,4 @@ export interface GraphQLTypeForVisualization {
    */
   ofType?: __GraphQLTypeForVisualization;
   [key: string]: unknown;
- }
+}

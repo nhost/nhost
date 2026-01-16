@@ -12,4 +12,6 @@ import type { RemoteSchemaDefinitionFromUrl } from './remoteSchemaDefinitionFrom
 /**
  * Remote schema definition - can use direct URL or environment variable
  */
-export type RemoteSchemaDefinition = RemoteSchemaDefinitionFromUrl | RemoteSchemaDefinitionFromEnv;
+export type RemoteSchemaDefinition =
+  | RemoteSchemaDefinitionFromUrl
+  | RemoteSchemaDefinitionFromEnv;

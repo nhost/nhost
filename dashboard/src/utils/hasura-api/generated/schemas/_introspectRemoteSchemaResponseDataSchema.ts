@@ -24,4 +24,4 @@ export type _IntrospectRemoteSchemaResponseDataSchema = {
   /** All types in the GraphQL schema */
   types: GraphQLTypeForVisualization[];
   [key: string]: unknown;
- };
+};

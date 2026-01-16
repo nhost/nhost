@@ -23,4 +23,4 @@ export type ExportMetadataResponseMetadata = {
   /** List of cron triggers */
   cron_triggers?: CronTrigger[];
   [key: string]: unknown;
- };
+};

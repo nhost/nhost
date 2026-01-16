@@ -9,4 +9,4 @@
 /**
  * Query params as key-value pairs
  */
-export type RequestTransformationQueryParamsOneOf = {[key: string]: string};
+export type RequestTransformationQueryParamsOneOf = { [key: string]: string };

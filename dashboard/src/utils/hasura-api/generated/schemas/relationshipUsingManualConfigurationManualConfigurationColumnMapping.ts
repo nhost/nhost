@@ -9,4 +9,5 @@
 /**
  * Mapping of columns from current table to remote table
  */
-export type RelationshipUsingManualConfigurationManualConfigurationColumnMapping = {[key: string]: string};
+export type RelationshipUsingManualConfigurationManualConfigurationColumnMapping =
+  { [key: string]: string };

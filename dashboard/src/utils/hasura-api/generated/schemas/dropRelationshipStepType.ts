@@ -6,8 +6,8 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type DropRelationshipStepType = typeof DropRelationshipStepType[keyof typeof DropRelationshipStepType];
-
+export type DropRelationshipStepType =
+  (typeof DropRelationshipStepType)[keyof typeof DropRelationshipStepType];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const DropRelationshipStepType = {

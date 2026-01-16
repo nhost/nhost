@@ -10,4 +10,6 @@ import type { RequestTransformationQueryParamsOneOf } from './requestTransformat
 /**
  * Replace the query params on the URL with this value. You can specify a dictionary of key/value pairs which is converted into a query string or directly give a query string.
  */
-export type RequestTransformationQueryParams = RequestTransformationQueryParamsOneOf | string;
+export type RequestTransformationQueryParams =
+  | RequestTransformationQueryParamsOneOf
+  | string;

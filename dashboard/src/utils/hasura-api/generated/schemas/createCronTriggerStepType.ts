@@ -9,8 +9,8 @@
 /**
  * Type of operation to create cron triggers
  */
-export type CreateCronTriggerStepType = typeof CreateCronTriggerStepType[keyof typeof CreateCronTriggerStepType];
-
+export type CreateCronTriggerStepType =
+  (typeof CreateCronTriggerStepType)[keyof typeof CreateCronTriggerStepType];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const CreateCronTriggerStepType = {

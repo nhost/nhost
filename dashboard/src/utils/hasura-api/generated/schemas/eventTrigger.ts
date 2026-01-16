@@ -30,4 +30,4 @@ export interface EventTrigger {
   /** Specification for enabling/disabling the Event Trigger during logical replication */
   trigger_on_replication?: boolean;
   [key: string]: unknown;
- }
+}
