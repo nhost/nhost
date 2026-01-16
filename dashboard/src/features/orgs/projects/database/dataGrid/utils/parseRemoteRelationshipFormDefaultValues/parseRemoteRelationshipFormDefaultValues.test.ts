@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { isRemoteSchemaRelationshipFormValues, isTableRelationshipFormValues } from '@/features/orgs/projects/database/dataGrid/types/relationships/guards';
+import {
+  isRemoteSchemaRelationshipFormValues,
+  isTableRelationshipFormValues,
+} from '@/features/orgs/projects/database/dataGrid/types/relationships/guards';
 import type { RemoteRelationshipDefinition } from '@/utils/hasura-api/generated/schemas';
 import parseRemoteRelationshipFormDefaultValues from './parseRemoteRelationshipFormDefaultValues';
 

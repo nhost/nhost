@@ -16,8 +16,7 @@ describe('prepareRemoteSourceRelationshipDTO', () => {
       toReference: {
         schema: 'public',
         table: 'externaltable',
-        source:
-          'externaldb',
+        source: 'externaldb',
       },
       relationshipType: 'object',
       fieldMapping: [

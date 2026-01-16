@@ -1,6 +1,9 @@
-import type { BaseRelationshipFormInitialValues, } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/BaseRelationshipFormTypes';
-import { defaultFormValues, } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/BaseRelationshipFormTypes';
-import { isToRemoteSchemaRelationshipDefinition, isToSourceRelationshipDefinition } from '@/features/orgs/projects/database/dataGrid/types/relationships/guards';
+import type { BaseRelationshipFormInitialValues } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/BaseRelationshipFormTypes';
+import { defaultFormValues } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/BaseRelationshipFormTypes';
+import {
+  isToRemoteSchemaRelationshipDefinition,
+  isToSourceRelationshipDefinition,
+} from '@/features/orgs/projects/database/dataGrid/types/relationships/guards';
 import type { RemoteRelationshipDefinition } from '@/utils/hasura-api/generated/schemas';
 
 interface ParseRemoteRelationshipFormDefaultValuesProps {
@@ -51,7 +54,8 @@ export default function parseRemoteRelationshipFormDefaultValues({
   }
 
   if (isToRemoteSchemaRelationshipDefinition(definition)) {
-    const { remote_schema, lhs_fields, remote_field } = definition.to_remote_schema;
+    const { remote_schema, lhs_fields, remote_field } =
+      definition.to_remote_schema;
 
     return {
       name: relationshipName,
@@ -68,8 +72,8 @@ export default function parseRemoteRelationshipFormDefaultValues({
         name: remote_schema,
         lhsFields: lhs_fields,
         remoteField: remote_field,
-      }
-    }
+      },
+    };
   }
   return defaultFormValues;
 }

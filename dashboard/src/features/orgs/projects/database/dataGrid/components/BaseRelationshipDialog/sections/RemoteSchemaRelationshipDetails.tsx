@@ -43,10 +43,10 @@ export default function RemoteSchemaRelationshipDetails({
   const { isSubmitting: disabled } = formState;
 
   const remoteSchemaFormValue = watch('remoteSchema');
-  const remoteSchema = remoteSchemaFormValue.name
+  const remoteSchema = remoteSchemaFormValue.name;
   const initialRemoteField = remoteSchemaFormValue?.remoteField;
   const selectedFromSource = watch('fromSource');
-  
+
   const { data: fromTableData } = useTableQuery(
     [
       `${selectedFromSource?.source}.${selectedFromSource?.schema}.${selectedFromSource?.table}`,
@@ -56,19 +56,19 @@ export default function RemoteSchemaRelationshipDetails({
       schema: selectedFromSource?.schema,
       table: selectedFromSource?.table,
       queryOptions: {
-        enabled:
-          Boolean(
-            selectedFromSource?.source &&
-              selectedFromSource?.schema &&
-              selectedFromSource?.table,
-          ),
+        enabled: Boolean(
+          selectedFromSource?.source &&
+            selectedFromSource?.schema &&
+            selectedFromSource?.table,
+        ),
       },
     },
   );
 
-  const tableColumnOptions = fromTableData?.columns
-    ?.map((column) => column?.column_name)
-    .filter((columnName): columnName is string => Boolean(columnName)) ?? []
+  const tableColumnOptions =
+    fromTableData?.columns
+      ?.map((column) => column?.column_name)
+      .filter((columnName): columnName is string => Boolean(columnName)) ?? [];
 
   const [argumentMappingsByPath, setArgumentMappingsByPath] =
     useState<RemoteFieldArgumentMappingsByPath>({});

@@ -1,6 +1,4 @@
-import type {
-  TableRelationshipFormValues,
-} from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/BaseRelationshipFormTypes';
+import type { TableRelationshipFormValues } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/BaseRelationshipFormTypes';
 import { isNotEmptyValue } from '@/lib/utils';
 import type { CreateRemoteRelationshipArgs } from '@/utils/hasura-api/generated/schemas';
 

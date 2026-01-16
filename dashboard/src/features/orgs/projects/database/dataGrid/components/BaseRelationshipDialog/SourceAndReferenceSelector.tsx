@@ -315,7 +315,7 @@ export default function SourceAndReferenceSelector() {
               control={control}
               name="toReference.schema"
               label="Schema"
-              placeholder={isRemoteSchemaRelationship ? "" : "Select schema"}
+              placeholder={isRemoteSchemaRelationship ? '' : 'Select schema'}
               containerClassName="w-full"
               disabled={
                 !selectedToReference?.source || isRemoteSchemaRelationship
@@ -368,7 +368,7 @@ export default function SourceAndReferenceSelector() {
             control={control}
             name="toReference.table"
             label="Table"
-            placeholder={isRemoteSchemaRelationship ? "" : "Select table"}
+            placeholder={isRemoteSchemaRelationship ? '' : 'Select table'}
             disabled={
               !selectedToReference?.schema || isRemoteSchemaRelationship
             }

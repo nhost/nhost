@@ -53,13 +53,13 @@ export default function EditRelationshipsForm(
   });
   const tableQueryKey = [`${dataSource}.${schema}.${originalTable.table_name}`];
 
-  const {
-    status: tableStatus,
-    error: tableError,
-  } = useTableQuery(tableQueryKey, {
-    schema,
-    table: originalTable.table_name,
-  });
+  const { status: tableStatus, error: tableError } = useTableQuery(
+    tableQueryKey,
+    {
+      schema,
+      table: originalTable.table_name,
+    },
+  );
 
   const tableName = originalTable.table_name as string;
   const tableSchema = (originalTable.table_schema as string) || schema;
@@ -166,7 +166,9 @@ export default function EditRelationshipsForm(
                           ) : (
                             <Link2 className="h-4 w-4 text-muted-foreground" />
                           )}
-                          <span className="whitespace-nowrap">{relationship.type}</span>
+                          <span className="whitespace-nowrap">
+                            {relationship.type}
+                          </span>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -183,7 +185,9 @@ export default function EditRelationshipsForm(
                             tableName={tableName}
                             relationshipToDelete={relationship.name}
                             source={relationship.fromSource}
-                            isRemoteRelationship={relationship.kind === 'remote'}
+                            isRemoteRelationship={
+                              relationship.kind === 'remote'
+                            }
                           />
                           {isRemoteRelationshipViewModel(relationship) ? (
                             <EditRemoteRelationshipButton

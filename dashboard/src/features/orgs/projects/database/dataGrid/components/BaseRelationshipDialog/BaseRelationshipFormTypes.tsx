@@ -69,9 +69,7 @@ const fieldMappingSchema = z.object({
 const tableRelationshipFormSchema = baseRelationshipFormSchema.extend({
   referenceKind: z.literal('table'),
   toReference: z.object({
-    source: z
-      .string()
-      .min(1, { message: 'Source is required' }),
+    source: z.string().min(1, { message: 'Source is required' }),
     schema: z.string().min(1, { message: 'Schema is required' }),
     table: z.string().min(1, { message: 'Table is required' }),
   }),
@@ -84,9 +82,7 @@ const tableRelationshipFormSchema = baseRelationshipFormSchema.extend({
 const remoteSchemaRelationshipFormSchema = baseRelationshipFormSchema.extend({
   referenceKind: z.literal('remoteSchema'),
   toReference: z.object({
-    source: z
-      .string()
-      .min(1, { message: 'Source is required' }),
+    source: z.string().min(1, { message: 'Source is required' }),
     schema: z.string().optional(),
     table: z.string().optional(),
   }),
