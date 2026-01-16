@@ -85,12 +85,7 @@ function EventTriggersBrowserSidebarContent() {
         className="w-full"
       >
         <AccordionItem value="event-triggers" id="event-triggers">
-          <div className="flex flex-row items-center justify-between">
-            <div className="flex-row justify-end gap-2 font-semibold text-sm+">
-              Event Triggers ({eventTriggersData?.length ?? 0})
-            </div>
-            <CreateEventTriggerForm disabled={isGitHubConnected} />
-          </div>
+          <CreateEventTriggerForm disabled={isGitHubConnected} />
           <div className="pb-0">
             <div className="flex flex-row gap-2">
               <Accordion
@@ -108,7 +103,7 @@ function EventTriggersBrowserSidebarContent() {
                     >
                       <AccordionTrigger className="flex-row-reverse justify-end gap-2 text-sm+ [&[data-state=closed]>svg:last-child]:-rotate-90 [&[data-state=open]>svg:last-child]:rotate-0">
                         <div className="flex flex-row-reverse items-center gap-2">
-                          {dataSource}
+                          {`${dataSource} (${eventTriggers.length})`}
                           <Database className="!rotate-0 size-4" />
                         </div>
                       </AccordionTrigger>
