@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { FormInput } from '@/components/form/FormInput';
@@ -60,7 +60,10 @@ export default function BaseRelationshipDialog({
   onSubmit,
   isEditing,
 }: BaseRelationshipDialogProps) {
-  const defaultValues = buildDefaultFormValues(source, schema, tableName);
+  const defaultValues = useMemo(
+    () => buildDefaultFormValues(source, schema, tableName),
+    [source, schema, tableName],
+  );
   const form = useForm<BaseRelationshipFormValues>({
     resolver: zodResolver(relationshipFormSchema),
     defaultValues: initialValues ?? defaultValues,
