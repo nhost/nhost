@@ -2,13 +2,9 @@ import { Copy } from 'lucide-react';
 import type {
   CSSProperties,
   FocusEvent,
-  JSXElementConstructor,
   KeyboardEvent,
   MouseEvent,
   PropsWithChildren,
-  ReactElement,
-  ReactNode,
-  ReactPortal,
 } from 'react';
 import {
   Children,
@@ -358,57 +354,48 @@ function DataGridCellContent<TData extends object = {}>({
       role="textbox"
       {...props}
     >
-      {Children.map(
-        children,
-        (
-          child:
-            | ReactNode
-            | ReactPortal
-            // biome-ignore lint/suspicious/noExplicitAny: TODO
-            | ReactElement<unknown, string | JSXElementConstructor<any>>,
-        ) => {
-          if (!isValidElement(child)) {
-            return null;
-          }
-          const clonedChild = cloneElement(child, {
-            ...child.props,
-            onSave: handleSave,
-            optimisticValue,
-            onOptimisticValueChange: setOptimisticValue,
-            temporaryValue,
-            onTemporaryValueChange: setTemporaryValue,
-            cellId,
-          });
+      {Children.map(children, (child) => {
+        if (!isValidElement<Record<string, unknown>>(child)) {
+          return null;
+        }
+        const clonedChild = cloneElement(child, {
+          ...child.props,
+          onSave: handleSave,
+          optimisticValue,
+          onOptimisticValueChange: setOptimisticValue,
+          temporaryValue,
+          onTemporaryValueChange: setTemporaryValue,
+          cellId,
+        });
 
-          return (
-            <>
-              {clonedChild}
-              {id !== 'preview-column' &&
-                type !== 'boolean' &&
-                isNotEmptyValue(optimisticValue) && (
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={(event) => {
-                      event.stopPropagation();
+        return (
+          <>
+            {clonedChild}
+            {id !== 'preview-column' &&
+              type !== 'boolean' &&
+              isNotEmptyValue(optimisticValue) && (
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={(event) => {
+                    event.stopPropagation();
 
-                      const copiableValue =
-                        typeof optimisticValue === 'object'
-                          ? JSON.stringify(optimisticValue)
-                          : String(optimisticValue).replace(/\\n/gi, '\n');
+                    const copiableValue =
+                      typeof optimisticValue === 'object'
+                        ? JSON.stringify(optimisticValue)
+                        : String(optimisticValue).replace(/\\n/gi, '\n');
 
-                      copy(copiableValue, 'Value');
-                    }}
-                    className="-ml-px h-6 w-6 border-transparent bg-transparent p-1 text-disabled opacity-0 hover:bg-transparent group-hover:opacity-100"
-                    aria-label="Copy value"
-                  >
-                    <Copy width={16} height={16} />
-                  </Button>
-                )}
-            </>
-          );
-        },
-      )}
+                    copy(copiableValue, 'Value');
+                  }}
+                  className="-ml-px h-6 w-6 border-transparent bg-transparent p-1 text-disabled opacity-0 hover:bg-transparent group-hover:opacity-100"
+                  aria-label="Copy value"
+                >
+                  <Copy width={16} height={16} />
+                </Button>
+              )}
+          </>
+        );
+      })}
     </div>
   );
   // TODO: https://github.com/nhost/nhost/issues/3677

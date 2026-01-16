@@ -19,7 +19,7 @@ function useOnSignInWithEmailAndPasswordHandler({ onNeedsMfa }: Props) {
   const [isLoading, setIsloading] = useState(false);
   const nhost = useNhostClient();
   const router = useRouter();
-  const emailAndPasswordRef = useRef<EmailAndPasswordRef>();
+  const emailAndPasswordRef = useRef<EmailAndPasswordRef>(null);
 
   async function onSignInWithEmailAndPassword({
     email,

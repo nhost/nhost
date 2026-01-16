@@ -11,6 +11,10 @@ import { useUserData } from '@/hooks/useUserData';
 import { getToastBackgroundColor } from '@/utils/constants/settings';
 import { copy } from '@/utils/copy';
 
+const MotionDiv = motion.div as React.FC<
+  React.ComponentProps<typeof motion.div> & { className?: string }
+>;
+
 interface ErrorDetails {
   info: {
     projectId: string;
@@ -89,7 +93,7 @@ export default function ErrorToast({
   return (
     <AnimatePresence>
       {isVisible && (
-        <motion.div
+        <MotionDiv
           style={{
             backgroundColor: getToastBackgroundColor(),
           }}
@@ -163,7 +167,7 @@ export default function ErrorToast({
               </div>
             </div>
           )}
-        </motion.div>
+        </MotionDiv>
       )}
     </AnimatePresence>
   );

@@ -1,5 +1,4 @@
 import { useApolloClient } from '@apollo/client';
-import getConfig from 'next/config';
 import { NavLink } from '@/components/common/NavLink';
 import { ThemeSwitcher } from '@/components/common/ThemeSwitcher';
 import { Avatar } from '@/components/ui/v2/Avatar';
@@ -10,13 +9,13 @@ import { Dropdown, useDropdown } from '@/components/ui/v2/Dropdown';
 import { Text } from '@/components/ui/v2/Text';
 import { useUserData } from '@/hooks/useUserData';
 import { useAuth } from '@/providers/Auth';
+import { getDashboardVersion } from '@/utils/env';
 
 function AccountMenuContent() {
   const user = useUserData();
   const { signout } = useAuth();
   const apolloClient = useApolloClient();
   const { handleClose } = useDropdown();
-  const { publicRuntimeConfig } = getConfig();
 
   async function handleSignOut() {
     handleClose();
@@ -85,7 +84,7 @@ function AccountMenuContent() {
 
       <Box className="py-4">
         <Text className="text-center text-xs" color="disabled">
-          Dashboard Version: {publicRuntimeConfig?.version || 'n/a'}
+          Dashboard Version: {getDashboardVersion()}
         </Text>
       </Box>
     </Box>

@@ -9,7 +9,7 @@ import SignInWithEmailAndPasswordForm from './SignInWithEmailAndPasswordForm';
 
 function SignInWithEmailAndPassword() {
   const [needsMfaOtp, setNeedsMfaOtp] = useState(false);
-  const mfaTicket = useRef<string | undefined>();
+  const mfaTicket = useRef<string | undefined>(undefined);
   const [isMfaLoading, setIsMfaLoading] = useState(false);
   const nhost = useNhostClient();
 
