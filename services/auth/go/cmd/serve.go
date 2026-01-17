@@ -652,15 +652,15 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 				Category: "turnstile",
 				Sources:  cli.EnvVars("AUTH_TURNSTILE_SECRET"),
 			},
-			&cli.StringFlag{ //nolint: exhaustruct
+			&cli.StringSliceFlag{ //nolint: exhaustruct
 				Name:     flagAppleAudience,
-				Usage:    "Apple Audience. Used to verify the audience on JWT tokens provided by Apple. Needed for idtoken validation",
+				Usage:    "Apple Audiences. Used to verify the audience on JWT tokens provided by Apple. Needed for idtoken validation. Supports multiple audiences.",
 				Category: "apple",
 				Sources:  cli.EnvVars("AUTH_PROVIDER_APPLE_AUDIENCE"),
 			},
-			&cli.StringFlag{ //nolint: exhaustruct
+			&cli.StringSliceFlag{ //nolint: exhaustruct
 				Name:     flagGoogleAudience,
-				Usage:    "Google Audience. Used to verify the audience on JWT tokens provided by Google. Needed for idtoken validation",
+				Usage:    "Google Audiences. Used to verify the audience on JWT tokens provided by Google. Needed for idtoken validation. Supports multiple audiences.",
 				Category: "google",
 				Sources:  cli.EnvVars("AUTH_PROVIDER_GOOGLE_AUDIENCE"),
 			},
@@ -1284,9 +1284,9 @@ func getDependencies( //nolint:ireturn
 
 	idTokenValidator, err := oidc.NewIDTokenValidatorProviders(
 		ctx,
-		cmd.String(flagAppleAudience),
-		cmd.String(flagGoogleAudience),
-		"",
+		cmd.StringSlice(flagAppleAudience),
+		cmd.StringSlice(flagGoogleAudience),
+		nil,
 	)
 	if err != nil {
 		return nil, nil, nil, nil, fmt.Errorf("error creating id token validator: %w", err)

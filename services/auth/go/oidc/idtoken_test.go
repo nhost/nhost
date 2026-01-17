@@ -14,7 +14,7 @@ import (
 
 func testProviderValidator(
 	t *testing.T,
-	audience string,
+	audiences []string,
 	datetime time.Time,
 ) *oidc.IDTokenValidator {
 	t.Helper()
@@ -22,7 +22,7 @@ func testProviderValidator(
 	v, err := oidc.NewIDTokenValidator(
 		t.Context(),
 		api.IdTokenProviderFake,
-		audience,
+		audiences,
 		jwt.WithTimeFunc(func() time.Time {
 			return datetime
 		}),
@@ -75,7 +75,7 @@ func TestIDTokenValidate(t *testing.T) {
 
 	tokenWithoutNonce := testToken(t, "")
 
-	provider := testProviderValidator(t, "myapp.local", time.Now())
+	provider := testProviderValidator(t, []string{"myapp.local"}, time.Now())
 
 	cases := []struct {
 		name             string
@@ -114,15 +114,51 @@ func TestIDTokenValidate(t *testing.T) {
 		},
 		{
 			name:             "wrong audience",
-			idTokenValidator: testProviderValidator(t, "wrong-auddience", time.Now()),
+			idTokenValidator: testProviderValidator(t, []string{"wrong-auddience"}, time.Now()),
 			token:            tokenWithNonce,
 			nonce:            nonce,
 			expecedErr:       jwt.ErrTokenInvalidAudience,
 		},
 		{
+			name: "multiple audiences - correct one first",
+			idTokenValidator: testProviderValidator(
+				t, []string{"myapp.local", "other-app", "another-app"}, time.Now(),
+			),
+			token:      tokenWithNonce,
+			nonce:      nonce,
+			expecedErr: nil,
+		},
+		{
+			name: "multiple audiences - correct one in middle",
+			idTokenValidator: testProviderValidator(
+				t, []string{"other-app", "myapp.local", "another-app"}, time.Now(),
+			),
+			token:      tokenWithNonce,
+			nonce:      nonce,
+			expecedErr: nil,
+		},
+		{
+			name: "multiple audiences - correct one last",
+			idTokenValidator: testProviderValidator(
+				t, []string{"other-app", "another-app", "myapp.local"}, time.Now(),
+			),
+			token:      tokenWithNonce,
+			nonce:      nonce,
+			expecedErr: nil,
+		},
+		{
+			name: "multiple audiences - none match",
+			idTokenValidator: testProviderValidator(
+				t, []string{"wrong-app", "other-app", "another-app"}, time.Now(),
+			),
+			token:      tokenWithNonce,
+			nonce:      nonce,
+			expecedErr: jwt.ErrTokenInvalidAudience,
+		},
+		{
 			name: "too early in the past",
 			idTokenValidator: testProviderValidator(
-				t, "myapp.local", time.Date(2024, 10, 6, 15, 30, 0, 0, time.UTC),
+				t, []string{"myapp.local"}, time.Date(2024, 10, 6, 15, 30, 0, 0, time.UTC),
 			),
 			token:      tokenWithNonce,
 			nonce:      nonce,
@@ -131,7 +167,7 @@ func TestIDTokenValidate(t *testing.T) {
 		{
 			name: "too late, expired",
 			idTokenValidator: testProviderValidator(
-				t, "myapp.local", time.Date(2124, 12, 6, 15, 30, 0, 0, time.UTC),
+				t, []string{"myapp.local"}, time.Date(2124, 12, 6, 15, 30, 0, 0, time.UTC),
 			),
 			token:      tokenWithNonce,
 			nonce:      nonce,
