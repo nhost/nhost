@@ -211,8 +211,9 @@ github.com/goccy/go-yaml v1.18.0/go.mod h1:XBurs7gK8ATbW4ZPGKgcbrY1Br56PdM69F7Lk
 github.com/gogo/protobuf v0.0.0-20171007142547-342cbe0a0415/go.mod h1:r8qH/GZQm5c6nD/R0oafs1akxWv10x8SbQlK7atdtwQ=
 github.com/gogo/protobuf v1.3.2 h1:Ov1cvc58UF3b5XjBnZv7+opcTcQFZebYjWzi34vdm4Q=
 github.com/gogo/protobuf v1.3.2/go.mod h1:P1XiOD3dCwIKUDQYPy72D8LYyHL2YPYrpS2s69NZV8Q=
-github.com/golang-jwt/jwt/v5 v5.2.2 h1:Rl4B7itRWVtYIHFrSNd7vhTiz9UpLdi6gZhZ3wEeDy8=
 github.com/golang-jwt/jwt/v5 v5.2.2/go.mod h1:pqrtFR0X4osieyHYxtmOUWsAWrfe1Q5UVIyoH402zdk=
+github.com/golang-jwt/jwt/v5 v5.3.0 h1:pv4AsKCKKZuqlgs5sUmn4x8UlGa0kEVt/puTpKx9vvo=
+github.com/golang-jwt/jwt/v5 v5.3.0/go.mod h1:fxCRLWMO43lRc8nhHWY6LGqRcf+1gQWArsqaEUEa5bE=
 github.com/golang-migrate/migrate/v4 v4.19.0 h1:RcjOnCGz3Or6HQYEJ/EEVLfWnmw9KnoigPSjzhCuaSE=
 github.com/golang-migrate/migrate/v4 v4.19.0/go.mod h1:9dyEcu+hO+G9hPSw8AIg50yg622pXJsoHItQnDGZkI0=
 github.com/golang/groupcache v0.0.0-20160516000752-02826c3e7903/go.mod h1:cIg4eruTrX1D+g88fzRXU5OdNfaM+9IcxsU14FzY7Hc=
@@ -335,12 +336,6 @@ github.com/muesli/termenv v0.16.0/go.mod h1:ZRfOIKPFDYQoDFF4Olj7/QJbW60Ol/kL1pU3
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 h1:C3w9PqII01/Oq1c1nUAm88MOHcQC9l5mIlSMApZMrHA=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822/go.mod h1:+n7T8mK8HuQTcFwEeznm/DIxMOiR9yIdICNftLE1DvQ=
 github.com/mxk/go-flowrate v0.0.0-20140419014527-cca7078d478f/go.mod h1:ZdcZmHo+o7JKHSa8/e818NopupXU1YMK5fe1lsApnBw=
-github.com/nhost/be v0.0.0-20251201121735-dcbcd96765d1 h1:aLMqhbJ4QAh2IFeGurANTBvJgKe/k81R28ZGN4RSquc=
-github.com/nhost/be v0.0.0-20251201121735-dcbcd96765d1/go.mod h1:5aMnG2R3UQWFLlb3BcA0btBleWIn1ez3pSwg37YthuA=
-github.com/nhost/be v0.0.0-20251217132546-b3197a0800df h1:9j5fbV8d4MK624BCnchMCV/T9XEkEwN74RpjQRKcmIM=
-github.com/nhost/be v0.0.0-20251217132546-b3197a0800df/go.mod h1:5aMnG2R3UQWFLlb3BcA0btBleWIn1ez3pSwg37YthuA=
-github.com/nhost/be v0.0.0-20251217152413-76cb1f82ebfd h1:m1dIR0YWM0HZ/I0zYBpsJlsDskPNF25OzRtKsIcgDu0=
-github.com/nhost/be v0.0.0-20251217152413-76cb1f82ebfd/go.mod h1:5aMnG2R3UQWFLlb3BcA0btBleWIn1ez3pSwg37YthuA=
 github.com/nhost/be v0.0.0-20251223080938-6028b840d9cf h1:13Lhx53GMIYUuvF+d8uEeDfE5jqsNOb24XVcZ3TbCNo=
 github.com/nhost/be v0.0.0-20251223080938-6028b840d9cf/go.mod h1:5aMnG2R3UQWFLlb3BcA0btBleWIn1ez3pSwg37YthuA=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
