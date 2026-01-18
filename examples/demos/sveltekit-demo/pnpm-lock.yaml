@@ -25,6 +25,9 @@ overrides:
   react-router@>=7.0.0 <7.12.0: '>=7.12.0'
   react-router@>=7.0.0 <7.9.6: '>=7.9.6'
   react-router@>=7.0.0 <=7.8.2: '>=7.9.0'
+  devalue@>=5.1.0 <5.6.2: '>=5.6.2'
+  devalue@>=5.3.0 <=5.6.1: '>=5.6.2'
+  '@sveltejs/kit@>=2.19.0 <=2.49.4': '>=2.49.5'
 
 packageExtensionsChecksum: sha256-4W2ZoS34f/mESDz44tHgi/lHRwttYSe+a+CMb+QBm1Y=
 
@@ -41,10 +44,10 @@ importers:
     devDependencies:
       '@sveltejs/adapter-auto':
         specifier: ^6.0.0
-        version: 6.1.0(@sveltejs/kit@2.37.0(@sveltejs/vite-plugin-svelte@6.1.4(svelte@5.38.6)(vite@7.1.11))(svelte@5.38.6)(vite@7.1.11))
+        version: 6.1.0(@sveltejs/kit@2.49.5(@sveltejs/vite-plugin-svelte@6.1.4(svelte@5.38.6)(vite@7.1.11))(svelte@5.38.6)(typescript@5.9.2)(vite@7.1.11))
       '@sveltejs/kit':
-        specifier: ^2.22.0
-        version: 2.37.0(@sveltejs/vite-plugin-svelte@6.1.4(svelte@5.38.6)(vite@7.1.11))(svelte@5.38.6)(vite@7.1.11)
+        specifier: '>=2.49.5'
+        version: 2.49.5(@sveltejs/vite-plugin-svelte@6.1.4(svelte@5.38.6)(vite@7.1.11))(svelte@5.38.6)(typescript@5.9.2)(vite@7.1.11)
       '@sveltejs/vite-plugin-svelte':
         specifier: ^6.0.0
         version: 6.1.4(svelte@5.38.6)(vite@7.1.11)
@@ -366,19 +369,22 @@ packages:
   '@sveltejs/adapter-auto@6.1.0':
     resolution: {integrity: sha512-shOuLI5D2s+0zTv2ab5M5PqfknXqWbKi+0UwB9yLTRIdzsK1R93JOO8jNhIYSHdW+IYXIYnLniu+JZqXs7h9Wg==}
     peerDependencies:
-      '@sveltejs/kit': ^2.0.0
+      '@sveltejs/kit': '>=2.49.5'
 
-  '@sveltejs/kit@2.37.0':
-    resolution: {integrity: sha512-xgKtpjQ6Ry4mdShd01ht5AODUsW7+K1iValPDq7QX8zI1hWOKREH9GjG8SRCN5tC4K7UXmMhuQam7gbLByVcnw==}
+  '@sveltejs/kit@2.49.5':
+    resolution: {integrity: sha512-dCYqelr2RVnWUuxc+Dk/dB/SjV/8JBndp1UovCyCZdIQezd8TRwFLNZctYkzgHxRJtaNvseCSRsuuHPeUgIN/A==}
     engines: {node: '>=18.13'}
     hasBin: true
     peerDependencies:
       '@opentelemetry/api': ^1.0.0
       '@sveltejs/vite-plugin-svelte': ^3.0.0 || ^4.0.0-next.1 || ^5.0.0 || ^6.0.0-next.0
       svelte: ^4.0.0 || ^5.0.0-next.0
+      typescript: ^5.3.3
       vite: '>=5.4.20'
     peerDependenciesMeta:
       '@opentelemetry/api':
+        optional: true
+      typescript:
         optional: true
 
   '@sveltejs/vite-plugin-svelte-inspector@5.0.1':
@@ -440,8 +446,8 @@ packages:
     resolution: {integrity: sha512-3sUqbMEc77XqpdNO7FRyRog+eW3ph+GYCbj+rK+uYyRMuwsVy0rMiVtPn+QJlKFvWP/1PYpapqYn0Me2knFn+A==}
     engines: {node: '>=0.10.0'}
 
-  devalue@5.3.2:
-    resolution: {integrity: sha512-UDsjUbpQn9kvm68slnrs+mfxwFkIflOhkanmyabZ8zOYk8SMEIbJ3TK+88g70hSIeytu4y18f0z/hYHMTrXIWw==}
+  devalue@5.6.2:
+    resolution: {integrity: sha512-nPRkjWzzDQlsejL1WVifk5rvcFi/y1onBRxjaFMjZeR9mFpqu2gmAZ9xUB9/IEanEP/vBtGeGganC/GO1fmufg==}
 
   esbuild@0.25.9:
     resolution: {integrity: sha512-CRbODhYyQx3qp7ZEwzxOk4JBqmD/seJrzPa/cGjY1VtIn5E09Oi9/dB4JwctnfZ8Q8iT7rioVv5k/FNT/uf54g==}
@@ -795,11 +801,11 @@ snapshots:
     dependencies:
       acorn: 8.15.0
 
-  '@sveltejs/adapter-auto@6.1.0(@sveltejs/kit@2.37.0(@sveltejs/vite-plugin-svelte@6.1.4(svelte@5.38.6)(vite@7.1.11))(svelte@5.38.6)(vite@7.1.11))':
+  '@sveltejs/adapter-auto@6.1.0(@sveltejs/kit@2.49.5(@sveltejs/vite-plugin-svelte@6.1.4(svelte@5.38.6)(vite@7.1.11))(svelte@5.38.6)(typescript@5.9.2)(vite@7.1.11))':
     dependencies:
-      '@sveltejs/kit': 2.37.0(@sveltejs/vite-plugin-svelte@6.1.4(svelte@5.38.6)(vite@7.1.11))(svelte@5.38.6)(vite@7.1.11)
+      '@sveltejs/kit': 2.49.5(@sveltejs/vite-plugin-svelte@6.1.4(svelte@5.38.6)(vite@7.1.11))(svelte@5.38.6)(typescript@5.9.2)(vite@7.1.11)
 
-  '@sveltejs/kit@2.37.0(@sveltejs/vite-plugin-svelte@6.1.4(svelte@5.38.6)(vite@7.1.11))(svelte@5.38.6)(vite@7.1.11)':
+  '@sveltejs/kit@2.49.5(@sveltejs/vite-plugin-svelte@6.1.4(svelte@5.38.6)(vite@7.1.11))(svelte@5.38.6)(typescript@5.9.2)(vite@7.1.11)':
     dependencies:
       '@standard-schema/spec': 1.0.0
       '@sveltejs/acorn-typescript': 1.0.5(acorn@8.15.0)
@@ -807,7 +813,7 @@ snapshots:
       '@types/cookie': 0.6.0
       acorn: 8.15.0
       cookie: 1.1.1
-      devalue: 5.3.2
+      devalue: 5.6.2
       esm-env: 1.2.2
       kleur: 4.1.5
       magic-string: 0.30.18
@@ -817,6 +823,8 @@ snapshots:
       sirv: 3.0.2
       svelte: 5.38.6
       vite: 7.1.11
+    optionalDependencies:
+      typescript: 5.9.2
 
   '@sveltejs/vite-plugin-svelte-inspector@5.0.1(@sveltejs/vite-plugin-svelte@6.1.4(svelte@5.38.6)(vite@7.1.11))(svelte@5.38.6)(vite@7.1.11)':
     dependencies:
@@ -863,7 +871,7 @@ snapshots:
 
   deepmerge@4.3.1: {}
 
-  devalue@5.3.2: {}
+  devalue@5.6.2: {}
 
   esbuild@0.25.9:
     optionalDependencies:
