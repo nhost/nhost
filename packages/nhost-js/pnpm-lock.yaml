@@ -28,6 +28,7 @@ overrides:
   devalue@>=5.1.0 <5.6.2: '>=5.6.2'
   devalue@>=5.3.0 <=5.6.1: '>=5.6.2'
   '@sveltejs/kit@>=2.19.0 <=2.49.4': '>=2.49.5'
+  tar@<=7.5.2: '>=7.5.3'
 
 packageExtensionsChecksum: sha256-4W2ZoS34f/mESDz44tHgi/lHRwttYSe+a+CMb+QBm1Y=
 
