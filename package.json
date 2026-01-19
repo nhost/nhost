@@ -35,9 +35,6 @@
   "engines": {
     "node": ">=20"
   },
-  "eslintConfig": {
-    "extends": "./config/.eslintrc.js"
-  },
   "packageManager": "pnpm@10.26.0",
   "pnpm": {
     "packageExtensions": {
