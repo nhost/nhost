@@ -121,6 +121,9 @@
               gqlgenc
               oapi-codegen
 
+              # docs
+              mintlify
+
               # internal packages
               self.packages.${system}.codegen
               self.packages.${system}.mintlify-openapi

@@ -53,7 +53,7 @@ let
     self.packages.${pkgs.system}.mintlify-openapi
   ];
 
-  buildInputs = with pkgs; [ nodejs ];
+  buildInputs = with pkgs; [ nodejs mintlify ];
 
   nativeBuildInputs = with pkgs; [ pnpm cacert ];
 in
