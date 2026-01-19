@@ -1,8 +1,8 @@
+import type { DetailedHTMLProps, HTMLProps } from 'react';
 import type { DataBrowserGridColumn } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
 import { DataGridHeaderButton } from '@/features/orgs/projects/storage/dataGrid/components/DataGridHeaderButton';
 import { cn } from '@/lib/utils';
-import type { DetailedHTMLProps, HTMLProps } from 'react';
 
 export interface HeaderActionProps
   extends DetailedHTMLProps<HTMLProps<HTMLElement>, HTMLElement> {}

@@ -1,3 +1,9 @@
+import { Divider } from '@mui/material';
+import debounce from 'lodash.debounce';
+import Image from 'next/image';
+import { useRouter } from 'next/router';
+import type { ChangeEvent, ReactElement } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
@@ -12,12 +18,6 @@ import { Badge } from '@/components/ui/v3/badge';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { InfoCard } from '@/features/orgs/projects/overview/components/InfoCard';
 import { cn } from '@/lib/utils';
-import { Divider } from '@mui/material';
-import debounce from 'lodash.debounce';
-import Image from 'next/image';
-import { useRouter } from 'next/router';
-import type { ChangeEvent, ReactElement } from 'react';
-import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 
 interface ProjectSelectorOption {
   projectName: string;

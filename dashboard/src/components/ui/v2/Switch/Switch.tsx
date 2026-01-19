@@ -1,5 +1,3 @@
-import type { FormControlLabelProps } from '@/components/ui/v2/FormControlLabel';
-import { FormControlLabel } from '@/components/ui/v2/FormControlLabel';
 import {
   Switch as BaseSwitch,
   switchClasses as baseSwitchClasses,
@@ -8,6 +6,8 @@ import type { SwitchProps as BaseSwitchProps } from '@mui/base/Switch';
 import { styled } from '@mui/material';
 import type { ForwardedRef, PropsWithoutRef } from 'react';
 import { forwardRef } from 'react';
+import type { FormControlLabelProps } from '@/components/ui/v2/FormControlLabel';
+import { FormControlLabel } from '@/components/ui/v2/FormControlLabel';
 
 export interface SwitchProps extends BaseSwitchProps {
   /**

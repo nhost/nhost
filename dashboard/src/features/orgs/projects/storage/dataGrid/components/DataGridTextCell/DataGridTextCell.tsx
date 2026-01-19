@@ -1,12 +1,11 @@
+import type { ChangeEvent, KeyboardEvent, Ref } from 'react';
+import { useEffect } from 'react';
 import { Input } from '@/components/ui/v3/input';
 import { Textarea } from '@/components/ui/v3/textarea';
 import {
-  useDataGridCell,
   type CommonDataGridCellProps,
+  useDataGridCell,
 } from '@/features/orgs/projects/storage/dataGrid/components/DataGridCell';
-
-import type { ChangeEvent, KeyboardEvent, Ref } from 'react';
-import { useEffect } from 'react';
 
 export type DataGridTextCellProps<TData extends object> =
   CommonDataGridCellProps<TData, string>;

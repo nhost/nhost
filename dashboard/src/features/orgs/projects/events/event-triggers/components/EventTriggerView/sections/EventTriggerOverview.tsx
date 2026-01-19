@@ -1,3 +1,5 @@
+import { ChevronDown, ChevronRight } from 'lucide-react';
+import { useState } from 'react';
 import CopyToClipboardButton from '@/components/presentational/CopyToClipboardButton/CopyToClipboardButton';
 import {
   Collapsible,
@@ -6,8 +8,6 @@ import {
 } from '@/components/ui/v3/collapsible';
 import { HeadersTable } from '@/features/orgs/projects/events/common/components/HeadersTable';
 import type { EventTriggerViewModel } from '@/features/orgs/projects/events/event-triggers/types';
-import { ChevronDown, ChevronRight } from 'lucide-react';
-import { useState } from 'react';
 import TriggerOperationsSection from './TriggerOperationsSection';
 
 export default function EventTriggerOverview({

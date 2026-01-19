@@ -1,11 +1,11 @@
-import type { ChildArgumentType } from '@/features/orgs/projects/remote-schemas/types';
-import { isEmptyValue } from '@/lib/utils';
 import {
   type GraphQLInputField,
   GraphQLInputObjectType,
   GraphQLList,
   GraphQLNonNull,
 } from 'graphql';
+import type { ChildArgumentType } from '@/features/orgs/projects/remote-schemas/types';
+import { isEmptyValue } from '@/lib/utils';
 
 export default function getInputFieldChildren(
   field: GraphQLInputField,

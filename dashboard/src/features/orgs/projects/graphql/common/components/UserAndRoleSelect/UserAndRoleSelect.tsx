@@ -1,7 +1,7 @@
+import { useState } from 'react';
 import { Option } from '@/components/ui/v2/Option';
 import { Select } from '@/components/ui/v2/Select';
 import { UserSelect } from '@/features/orgs/projects/graphql/common/components/UserSelect';
-import { useState } from 'react';
 
 /**
  * Component that combines user selection and role selection functionality

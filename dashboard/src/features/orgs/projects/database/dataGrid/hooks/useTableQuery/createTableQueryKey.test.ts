@@ -1,5 +1,5 @@
-import type { DataGridFilter } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
 import type { SortingRule } from 'react-table';
+import type { DataGridFilter } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
 import { createTableQueryKey } from './createTableQueryKey';
 
 describe('createTableQueryKey', () => {

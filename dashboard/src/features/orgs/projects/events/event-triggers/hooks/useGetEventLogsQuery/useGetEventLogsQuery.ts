@@ -1,10 +1,10 @@
+import { type UseQueryOptions, useQuery } from '@tanstack/react-query';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type {
   GetEventLogsArgs,
   GetEventLogsResponse,
 } from '@/utils/hasura-api/generated/schemas';
-import { useQuery, type UseQueryOptions } from '@tanstack/react-query';
 import fetchEventLogs from './fetchEventLogs';
 
 export interface UseGetEventLogsQueryOptions {

@@ -1,3 +1,11 @@
+import { zodResolver } from '@hookform/resolvers/zod';
+import Image from 'next/image';
+import { useRouter } from 'next/router';
+import type { ReactElement } from 'react';
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import slugify from 'slugify';
+import { z } from 'zod';
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { Container } from '@/components/layout/Container';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
@@ -29,14 +37,6 @@ import {
   useInsertOrgApplicationMutation,
   usePrefetchNewAppQuery,
 } from '@/utils/__generated__/graphql';
-import { zodResolver } from '@hookform/resolvers/zod';
-import Image from 'next/image';
-import { useRouter } from 'next/router';
-import type { ReactElement } from 'react';
-import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import slugify from 'slugify';
-import { z } from 'zod';
 
 const projectSchema = z.object({
   organizationId: z.string().min(1, 'Please select an organization'),

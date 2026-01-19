@@ -1,9 +1,9 @@
-import NavTree from '@/components/layout/MainNav/NavTree';
-import { Button } from '@/components/ui/v3/button';
-import CreateOrgDialog from '@/features/orgs/components/CreateOrgFormDialog/CreateOrgFormDialog';
 import { Pin, PinOff } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useEffect, useRef } from 'react';
+import NavTree from '@/components/layout/MainNav/NavTree';
+import { Button } from '@/components/ui/v3/button';
+import CreateOrgDialog from '@/features/orgs/components/CreateOrgFormDialog/CreateOrgFormDialog';
 import { useTreeNavState } from './TreeNavStateContext';
 
 export default function PinnedMainNav() {

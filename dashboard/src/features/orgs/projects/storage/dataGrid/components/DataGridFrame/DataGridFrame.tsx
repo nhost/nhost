@@ -1,6 +1,6 @@
-import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
 import clsx from 'clsx';
 import type { DetailedHTMLProps, HTMLProps } from 'react';
+import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
 
 export type DataGridFrameProps = DetailedHTMLProps<
   HTMLProps<HTMLDivElement>,

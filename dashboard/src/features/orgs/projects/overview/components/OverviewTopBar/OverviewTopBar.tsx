@@ -1,3 +1,6 @@
+import { formatDistanceToNowStrict, parseISO } from 'date-fns';
+import Image from 'next/image';
+import Link from 'next/link';
 import { useUI } from '@/components/common/UIProvider';
 import { CogIcon } from '@/components/ui/v2/icons/CogIcon';
 import { Text } from '@/components/ui/v2/Text';
@@ -6,9 +9,6 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { isNotEmptyValue } from '@/lib/utils';
-import { formatDistanceToNowStrict, parseISO } from 'date-fns';
-import Image from 'next/image';
-import Link from 'next/link';
 import UpgradeToProButton from './UpgradeToProButton';
 
 export default function OverviewTopBar() {

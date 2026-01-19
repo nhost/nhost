@@ -1,9 +1,9 @@
+import { test } from 'vitest';
 import type { CustomGraphQLRootFieldsFormValues } from '@/features/orgs/projects/database/dataGrid/components/EditTableSettingsForm/sections/CustomGraphQLRootFieldsSection/CustomGraphQLRootFieldsFormTypes';
 import type {
   CustomRootFields,
   TableConfig,
 } from '@/utils/hasura-api/generated/schemas';
-import { test } from 'vitest';
 import prepareCustomGraphQLRootFieldsDTO from './prepareCustomGraphQLRootFieldsDTO';
 
 const defaultFormValues: CustomGraphQLRootFieldsFormValues = {

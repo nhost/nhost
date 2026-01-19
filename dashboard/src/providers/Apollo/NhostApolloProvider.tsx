@@ -1,3 +1,4 @@
+import { ApolloProvider } from '@apollo/client';
 import {
   memo,
   type PropsWithChildren,
@@ -5,8 +6,6 @@ import {
   useRef,
   useState,
 } from 'react';
-
-import { ApolloProvider } from '@apollo/client';
 import {
   createApolloClient,
   type NhostApolloClientOptions,

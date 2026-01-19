@@ -1,6 +1,6 @@
+import { vi } from 'vitest';
 import * as metadataQuery from '@/features/orgs/projects/database/dataGrid/hooks/useMetadataQuery';
 import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { vi } from 'vitest';
 import fetchExistingRelationships from './fetchExistingRelationships';
 
 vi.mock(

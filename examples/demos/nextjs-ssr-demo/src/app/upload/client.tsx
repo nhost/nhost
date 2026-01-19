@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import type { FileMetadata } from "@nhost/nhost-js/storage";
-import { useRouter } from "next/navigation";
-import { type ChangeEvent, useRef, useState } from "react";
-import { useAuth } from "../lib/nhost/AuthProvider";
-import { formatFileSize } from "../lib/utils";
+import type { FileMetadata } from '@nhost/nhost-js/storage';
+import { useRouter } from 'next/navigation';
+import { type ChangeEvent, useRef, useState } from 'react';
+import { useAuth } from '../lib/nhost/AuthProvider';
+import { formatFileSize } from '../lib/utils';
 
 interface UploadClientProps {
   initialFiles: FileMetadata[];
@@ -48,17 +48,17 @@ export default function UploadClient({
 
       // Handle different file types appropriately
       if (
-        mimeType.startsWith("image/") ||
-        mimeType === "application/pdf" ||
-        mimeType.startsWith("text/") ||
-        mimeType.startsWith("video/") ||
-        mimeType.startsWith("audio/")
+        mimeType.startsWith('image/') ||
+        mimeType === 'application/pdf' ||
+        mimeType.startsWith('text/') ||
+        mimeType.startsWith('video/') ||
+        mimeType.startsWith('audio/')
       ) {
         // For media types that browsers can display natively, just open in a new tab
-        window.open(url, "_blank");
+        window.open(url, '_blank');
       } else {
         // For other file types, trigger download
-        const link = document.createElement("a");
+        const link = document.createElement('a');
         link.href = url;
         link.download = fileName;
         document.body.appendChild(link);
@@ -66,7 +66,7 @@ export default function UploadClient({
         document.body.removeChild(link);
 
         // Optional: Open a small window to inform the user about the download
-        const newWindow = window.open("", "_blank", "width=400,height=200");
+        const newWindow = window.open('', '_blank', 'width=400,height=200');
         if (newWindow) {
           newWindow.document.write(`
             <html>
@@ -87,9 +87,9 @@ export default function UploadClient({
       }
     } catch (err) {
       setError(
-        `Failed to view file: ${err instanceof Error ? err.message : "Unknown error"}`,
+        `Failed to view file: ${err instanceof Error ? err.message : 'Unknown error'}`,
       );
-      console.error("Error viewing file:", err);
+      console.error('Error viewing file:', err);
     } finally {
       setViewingFile(null);
     }
@@ -108,7 +108,7 @@ export default function UploadClient({
 
   const handleUpload = async () => {
     if (!selectedFile) {
-      setError("Please select a file to upload");
+      setError('Please select a file to upload');
       return;
     }
 
@@ -118,8 +118,8 @@ export default function UploadClient({
     try {
       // Upload file using Nhost storage
       const response = await nhost.storage.uploadFiles({
-        "bucket-id": "default",
-        "file[]": [selectedFile],
+        'bucket-id': 'default',
+        'file[]': [selectedFile],
       });
 
       // Get the processed file data
@@ -129,11 +129,11 @@ export default function UploadClient({
       // Reset form
       setSelectedFile(null);
       if (fileInputRef.current) {
-        fileInputRef.current.value = "";
+        fileInputRef.current.value = '';
       }
 
       if (!uploadedFile) {
-        setError("Failed to upload file");
+        setError('Failed to upload file');
         return;
       }
       setFiles((prevFiles) => [uploadedFile, ...prevFiles]);
@@ -146,7 +146,7 @@ export default function UploadClient({
         setUploadResult(null);
       }, 3000);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to upload file");
+      setError(err instanceof Error ? err.message : 'Failed to upload file');
     } finally {
       setUploading(false);
     }
@@ -162,7 +162,7 @@ export default function UploadClient({
 
     // Get the file name for the status message
     const fileToDelete = files.find((file) => file.id === fileId);
-    const fileName = fileToDelete?.name || "File";
+    const fileName = fileToDelete?.name || 'File';
 
     try {
       // Delete the file using the Nhost storage SDK with the correct method name
@@ -187,10 +187,10 @@ export default function UploadClient({
     } catch (err: unknown) {
       // Show error message
       setDeleteStatus({
-        message: `Failed to delete ${fileName}: ${err instanceof Error ? err.message : "Unknown error"}`,
+        message: `Failed to delete ${fileName}: ${err instanceof Error ? err.message : 'Unknown error'}`,
         isError: true,
       });
-      console.error("Error deleting file:", err);
+      console.error('Error deleting file:', err);
     } finally {
       setDeleting(null);
     }
@@ -207,13 +207,13 @@ export default function UploadClient({
             ref={fileInputRef}
             onChange={handleFileChange}
             style={{
-              position: "absolute",
-              width: "1px",
-              height: "1px",
+              position: 'absolute',
+              width: '1px',
+              height: '1px',
               padding: 0,
-              margin: "-1px",
-              overflow: "hidden",
-              clip: "rect(0,0,0,0)",
+              margin: '-1px',
+              overflow: 'hidden',
+              clip: 'rect(0,0,0,0)',
               border: 0,
             }}
             aria-hidden="true"
@@ -245,9 +245,9 @@ export default function UploadClient({
             {selectedFile && (
               <p
                 style={{
-                  color: "var(--primary)",
-                  marginTop: "0.5rem",
-                  fontSize: "0.875rem",
+                  color: 'var(--primary)',
+                  marginTop: '0.5rem',
+                  fontSize: '0.875rem',
                 }}
               >
                 {selectedFile.name} ({formatFileSize(selectedFile.size)})
@@ -268,7 +268,7 @@ export default function UploadClient({
           disabled={!selectedFile || uploading}
           className="btn btn-primary w-full"
         >
-          {uploading ? "Uploading..." : "Upload File"}
+          {uploading ? 'Uploading...' : 'Upload File'}
         </button>
       </div>
 
@@ -277,7 +277,7 @@ export default function UploadClient({
 
         {deleteStatus && (
           <div
-            className={`alert ${deleteStatus.isError ? "alert-error" : "alert-success"} mb-4`}
+            className={`alert ${deleteStatus.isError ? 'alert-error' : 'alert-success'} mb-4`}
           >
             {deleteStatus.message}
           </div>
@@ -286,7 +286,7 @@ export default function UploadClient({
         {files.length === 0 ? (
           <p className="text-center">No files uploaded yet.</p>
         ) : (
-          <div style={{ overflowX: "auto" }}>
+          <div style={{ overflowX: 'auto' }}>
             <table>
               <thead>
                 <tr>
@@ -308,9 +308,9 @@ export default function UploadClient({
                           type="button"
                           onClick={() =>
                             handleViewFile(
-                              file.id || "unknown",
-                              file.name || "unknown",
-                              file.mimeType || "unknown",
+                              file.id || 'unknown',
+                              file.name || 'unknown',
+                              file.mimeType || 'unknown',
                             )
                           }
                           disabled={viewingFile === file.id}
@@ -349,7 +349,7 @@ export default function UploadClient({
                         </button>
                         <button
                           type="button"
-                          onClick={() => handleDeleteFile(file.id || "unknown")}
+                          onClick={() => handleDeleteFile(file.id || 'unknown')}
                           disabled={deleting === file.id}
                           className="action-icon action-icon-delete"
                           title="Delete File"

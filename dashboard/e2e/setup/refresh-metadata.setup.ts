@@ -1,5 +1,5 @@
-import { TEST_PROJECT_ADMIN_SECRET, TEST_PROJECT_SUBDOMAIN } from '@/e2e/env';
 import { test as setup } from '@playwright/test';
+import { TEST_PROJECT_ADMIN_SECRET, TEST_PROJECT_SUBDOMAIN } from '@/e2e/env';
 
 setup('refresh metadata', async () => {
   try {
@@ -42,7 +42,6 @@ setup('refresh metadata', async () => {
       console.error(body[0].inconsistent_objects);
       throw new Error('Metadata is not consistent');
     }
-
   } catch (error) {
     console.error(
       'Failed to refresh metadata:',

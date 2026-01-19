@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { twMerge } from 'tailwind-merge';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
@@ -13,8 +15,6 @@ import {
   useGetSmtpSettingsQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
-import { useState } from 'react';
-import { twMerge } from 'tailwind-merge';
 
 function ConfirmDeleteSMTPSettingsModal({
   close,

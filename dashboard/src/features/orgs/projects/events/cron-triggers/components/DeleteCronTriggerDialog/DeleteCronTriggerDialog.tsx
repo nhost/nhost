@@ -1,3 +1,4 @@
+import { useRouter } from 'next/router';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   Dialog,
@@ -10,7 +11,6 @@ import {
 } from '@/components/ui/v3/dialog';
 import { useDeleteCronTriggerMutation } from '@/features/orgs/projects/events/cron-triggers/hooks/useDeleteCronTriggerMutation';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useRouter } from 'next/router';
 
 interface DeleteCronTriggerDialogProps {
   open: boolean;

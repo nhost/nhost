@@ -1,3 +1,4 @@
+import { formatWithArray } from 'node-pg-format';
 import type { DataGridFilter } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
 import type {
   ForeignKeyRelation,
@@ -10,7 +11,6 @@ import type {
 import { extractForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
 import { getPreparedReadOnlyHasuraQuery } from '@/features/orgs/projects/database/dataGrid/utils/hasuraQueryHelpers';
 import { POSTGRESQL_ERROR_CODES } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
-import { formatWithArray } from 'node-pg-format';
 import { filtersToWhere } from './filtersToWhere';
 
 function isQueryError(payload: unknown): payload is QueryError {

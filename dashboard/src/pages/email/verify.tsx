@@ -1,3 +1,5 @@
+import { useRouter } from 'next/router';
+import type { ReactElement } from 'react';
 import { NavLink } from '@/components/common/NavLink';
 import { UnauthenticatedLayout } from '@/components/layout/UnauthenticatedLayout';
 import { Box } from '@/components/ui/v2/Box';
@@ -5,8 +7,6 @@ import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
 import SendVerificationEmailForm from '@/features/auth/SignIn/SignInWithEmailAndPassword/components/SendVerificationEmailForm';
 import useResendVerificationEmail from '@/features/auth/SignIn/SignInWithEmailAndPassword/hooks/useResendVerificationEmail';
-import { useRouter } from 'next/router';
-import type { ReactElement } from 'react';
 
 export default function VerifyEmailPage() {
   const router = useRouter();

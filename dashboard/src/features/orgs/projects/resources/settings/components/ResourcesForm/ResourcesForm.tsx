@@ -1,3 +1,6 @@
+import { yupResolver } from '@hookform/resolvers/yup';
+import { FormProvider, useForm } from 'react-hook-form';
+import { twMerge } from 'tailwind-merge';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
@@ -31,9 +34,6 @@ import {
   RESOURCE_VCPU_PRICE,
 } from '@/utils/constants/common';
 import { removeTypename } from '@/utils/helpers';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { FormProvider, useForm } from 'react-hook-form';
-import { twMerge } from 'tailwind-merge';
 import ResourcesFormFooter from './ResourcesFormFooter';
 
 type ConfigKeys = Exclude<

@@ -1,10 +1,10 @@
-import { router } from "expo-router";
-import type React from "react";
-import { useEffect } from "react";
-import { ActivityIndicator, Text, View } from "react-native";
-import { useAuth } from "../lib/nhost/AuthProvider";
+import { router } from 'expo-router';
+import type React from 'react';
+import { useEffect } from 'react';
+import { ActivityIndicator, Text, View } from 'react-native';
+import { useAuth } from '../lib/nhost/AuthProvider';
 
-type AppRoutes = "/" | "/signin" | "/signup" | "/profile";
+type AppRoutes = '/' | '/signin' | '/signup' | '/profile';
 
 interface ProtectedScreenProps {
   children: React.ReactNode;
@@ -13,7 +13,7 @@ interface ProtectedScreenProps {
 
 export default function ProtectedScreen({
   children,
-  redirectTo = "/signin",
+  redirectTo = '/signin',
 }: ProtectedScreenProps) {
   const { isAuthenticated, isLoading } = useAuth();
 
@@ -25,7 +25,7 @@ export default function ProtectedScreen({
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" color="#0000ff" />
         <Text style={{ marginTop: 10 }}>Loading...</Text>
       </View>

@@ -1,16 +1,11 @@
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Ellipsis } from 'lucide-react';
+import { useRouter } from 'next/router';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { useUI } from '@/components/common/UIProvider';
 import { Avatar } from '@/components/ui/v2/Avatar';
-import { Badge } from '@/components/ui/v3/badge';
-import { Button, buttonVariants } from '@/components/ui/v3/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/v3/dropdown-menu';
-import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
-import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
-import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,6 +16,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/v3/alert-dialog';
+import { Badge } from '@/components/ui/v3/badge';
+import { Button, buttonVariants } from '@/components/ui/v3/button';
 import {
   Dialog,
   DialogContent,
@@ -29,7 +26,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/v3/dialog';
-
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/v3/dropdown-menu';
 import {
   Form,
   FormControl,
@@ -38,8 +40,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/v3/form';
-
-import { useUI } from '@/components/common/UIProvider';
 import { Input } from '@/components/ui/v3/input';
 import {
   Select,
@@ -48,19 +48,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
+import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
+import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useUserData } from '@/hooks/useUserData';
 import {
+  type GetOrganizationQuery,
   Organization_Members_Role_Enum,
   useDeleteOrganizationMemberMutation,
   useUpdateOrganizationMemberMutation,
-  type GetOrganizationQuery,
 } from '@/utils/__generated__/graphql';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Ellipsis } from 'lucide-react';
-import { useRouter } from 'next/router';
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 
 type Member = GetOrganizationQuery['organizations']['0']['members'][0];
 

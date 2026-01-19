@@ -1,3 +1,5 @@
+import { useRouter } from 'next/router';
+import { useState } from 'react';
 import {
   Tabs,
   TabsContent,
@@ -12,8 +14,6 @@ import type { CronTriggerEventsSection } from '@/features/orgs/projects/events/c
 import { useGetCronEventLogsQuery } from '@/features/orgs/projects/events/cron-triggers/hooks/useGetCronEventLogsQuery';
 import { useGetCronTriggers } from '@/features/orgs/projects/events/cron-triggers/hooks/useGetCronTriggers';
 import { isEmptyValue } from '@/lib/utils';
-import { useRouter } from 'next/router';
-import { useState } from 'react';
 import CronTriggerViewSkeleton from './CronTriggerViewSkeleton';
 import CronTriggerOverview from './sections/CronTriggerOverview';
 

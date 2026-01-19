@@ -1,5 +1,3 @@
-import type { SwitchProps } from '@/components/ui/v2/Switch';
-import { Switch } from '@/components/ui/v2/Switch';
 import type { ForwardedRef } from 'react';
 import { forwardRef } from 'react';
 import type {
@@ -9,6 +7,8 @@ import type {
 } from 'react-hook-form';
 import { useController, useFormContext } from 'react-hook-form';
 import { mergeRefs } from 'react-merge-refs';
+import type { SwitchProps } from '@/components/ui/v2/Switch';
+import { Switch } from '@/components/ui/v2/Switch';
 
 // biome-ignore lint/suspicious/noExplicitAny: TODO
 export interface ControlledSwitchProps<TFieldValues extends FieldValues = any>

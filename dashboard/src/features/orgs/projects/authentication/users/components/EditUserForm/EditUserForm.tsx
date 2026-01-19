@@ -1,3 +1,12 @@
+import { yupResolver } from '@hookform/resolvers/yup';
+import { useTheme } from '@mui/material';
+import { format } from 'date-fns';
+import kebabCase from 'just-kebab-case';
+import debounce from 'lodash.debounce';
+import Image from 'next/image';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
 import { ControlledCheckbox } from '@/components/form/ControlledCheckbox';
 import { ControlledSelect } from '@/components/form/ControlledSelect';
@@ -8,9 +17,9 @@ import { Button } from '@/components/ui/v2/Button';
 import { Chip } from '@/components/ui/v2/Chip';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
-import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { Input } from '@/components/ui/v2/Input';
 import { InputLabel } from '@/components/ui/v2/InputLabel';
+import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { Option } from '@/components/ui/v2/Option';
 import { Text } from '@/components/ui/v2/Text';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
@@ -28,15 +37,6 @@ import {
   useUpdateRemoteAppUserMutation,
 } from '@/utils/__generated__/graphql';
 import { copy } from '@/utils/copy';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { useTheme } from '@mui/material';
-import { format } from 'date-fns';
-import kebabCase from 'just-kebab-case';
-import debounce from 'lodash.debounce';
-import Image from 'next/image';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
-import * as Yup from 'yup';
 
 export interface EditUserFormProps extends DialogFormProps {
   /**

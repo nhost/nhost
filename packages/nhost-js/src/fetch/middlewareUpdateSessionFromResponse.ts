@@ -6,9 +6,9 @@
  * that new sessions are properly stored after sign-in operations.
  */
 
-import type { Session, SessionPayload } from "../auth";
-import type { SessionStorage } from "../session/storage";
-import type { ChainFunction } from "./fetch";
+import type { Session, SessionPayload } from '../auth';
+import type { SessionStorage } from '../session/storage';
+import type { ChainFunction } from './fetch';
 
 /**
  * Creates a fetch middleware that automatically extracts and stores session data from API responses.
@@ -37,16 +37,16 @@ export const updateSessionFromResponseMiddleware = (
   const sessionExtractor = (
     body: Session | SessionPayload | string,
   ): Session | null => {
-    if (typeof body === "string") {
+    if (typeof body === 'string') {
       return null;
     }
 
-    if ("session" in body) {
+    if ('session' in body) {
       // SessionPayload
       return body.session || null;
     }
 
-    if ("accessToken" in body && "refreshToken" in body && "user" in body) {
+    if ('accessToken' in body && 'refreshToken' in body && 'user' in body) {
       // Session
       return body;
     }
@@ -61,7 +61,7 @@ export const updateSessionFromResponseMiddleware = (
 
       try {
         // Check if this is a logout request
-        if (url.endsWith("/signout")) {
+        if (url.endsWith('/signout')) {
           // Remove session on sign-out
           storage.remove();
           return response;
@@ -69,9 +69,9 @@ export const updateSessionFromResponseMiddleware = (
 
         // Check if this is an auth-related endpoint that might return session data
         if (
-          url.endsWith("/token") ||
-          url.includes("/signin/") ||
-          url.includes("/signup/")
+          url.endsWith('/token') ||
+          url.includes('/signin/') ||
+          url.includes('/signup/')
         ) {
           // Clone the response to avoid consuming it
           const clonedResponse = response.clone();
@@ -92,7 +92,7 @@ export const updateSessionFromResponseMiddleware = (
           }
         }
       } catch (error) {
-        console.warn("Error in session response middleware:", error);
+        console.warn('Error in session response middleware:', error);
       }
 
       // Return the original response

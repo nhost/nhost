@@ -18,9 +18,9 @@ import {
 
 type QueryParams =
   | {
-    queryParams: { value: string; key: string }[];
-    queryParamsType: 'Key Value';
-  }
+      queryParams: { value: string; key: string }[];
+      queryParamsType: 'Key Value';
+    }
   | { queryParamsType: 'URL string template'; queryParamsURL: string };
 const getRequestOptionsTransform = (
   requestTransform?: RequestTransformation,

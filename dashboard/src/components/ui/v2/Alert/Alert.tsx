@@ -1,6 +1,6 @@
+import { styled } from '@mui/material';
 import type { BoxProps } from '@/components/ui/v2/Box';
 import { Box } from '@/components/ui/v2/Box';
-import { styled } from '@mui/material';
 
 export interface AlertProps extends BoxProps {
   /**

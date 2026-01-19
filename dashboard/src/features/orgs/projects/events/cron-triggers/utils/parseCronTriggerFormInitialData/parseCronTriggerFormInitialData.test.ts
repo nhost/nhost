@@ -1,6 +1,6 @@
+import { describe, expect, it } from 'vitest';
 import type { BaseCronTriggerFormInitialData } from '@/features/orgs/projects/events/cron-triggers/components/BaseCronTriggerForm/BaseCronTriggerFormTypes';
 import type { CronTrigger } from '@/utils/hasura-api/generated/schemas';
-import { describe, expect, it } from 'vitest';
 import parseCronTriggerFormInitialData from './parseCronTriggerFormInitialData';
 
 describe('parseCronTriggerFormInitialData', () => {

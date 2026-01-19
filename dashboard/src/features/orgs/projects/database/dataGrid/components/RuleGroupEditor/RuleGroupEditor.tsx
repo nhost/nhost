@@ -1,3 +1,6 @@
+import { useMemo } from 'react';
+import { useFieldArray, useFormContext } from 'react-hook-form';
+import { twMerge } from 'tailwind-merge';
 import { Alert } from '@/components/ui/v2/Alert';
 import type { BoxProps } from '@/components/ui/v2/Box';
 import { Box } from '@/components/ui/v2/Box';
@@ -12,9 +15,6 @@ import type {
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { isNotEmptyValue } from '@/lib/utils';
-import { useMemo } from 'react';
-import { useFieldArray, useFormContext } from 'react-hook-form';
-import { twMerge } from 'tailwind-merge';
 import RuleEditorRow from './RuleEditorRow';
 import RuleGroupControls from './RuleGroupControls';
 import { RuleGroupEditorContext } from './useRuleGroupEditor';

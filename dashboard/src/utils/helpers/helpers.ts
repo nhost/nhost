@@ -1,9 +1,9 @@
+import slugify from 'slugify';
 import { ApplicationStatus } from '@/types/application';
 import type {
   ConfigRunServicePort,
   DeploymentRowFragment,
 } from '@/utils/__generated__/graphql';
-import slugify from 'slugify';
 
 export function getLastLiveDeployment(deployments?: DeploymentRowFragment[]) {
   if (!deployments) {

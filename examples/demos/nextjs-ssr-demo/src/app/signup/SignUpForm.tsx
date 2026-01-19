@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useRouter } from "next/navigation";
-import { useId, useState } from "react";
-import { signUp } from "./actions";
+import { useRouter } from 'next/navigation';
+import { useId, useState } from 'react';
+import { signUp } from './actions';
 
 interface SignUpFormProps {
   initialError?: string;
@@ -23,7 +23,7 @@ export default function SignUpForm({ initialError }: SignUpFormProps) {
       }
     } catch (err: unknown) {
       setError(
-        err instanceof Error ? err.message : "An error occurred during sign up",
+        err instanceof Error ? err.message : 'An error occurred during sign up',
       );
     }
   };
@@ -47,7 +47,7 @@ export default function SignUpForm({ initialError }: SignUpFormProps) {
 
       {error && (
         <div className="alert alert-error">
-          {typeof error === "string" ? error : "Sign up failed"}
+          {typeof error === 'string' ? error : 'Sign up failed'}
         </div>
       )}
 

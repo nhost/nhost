@@ -1,3 +1,5 @@
+import { useRouter } from 'next/router';
+import { type ReactElement, useEffect } from 'react';
 import { Container } from '@/components/layout/Container';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
@@ -6,8 +8,6 @@ import { BaseDirectorySettings } from '@/features/orgs/projects/git/settings/com
 import { DeploymentBranchSettings } from '@/features/orgs/projects/git/settings/components/DeploymentBranchSettings';
 import { GitConnectionSettings } from '@/features/orgs/projects/git/settings/components/GitConnectionSettings';
 import { useRemoveQueryParamsFromUrl } from '@/hooks/useRemoveQueryParamsFromUrl';
-import { useRouter } from 'next/router';
-import { useEffect, type ReactElement } from 'react';
 
 export default function GitSettingsPage() {
   const router = useRouter();

@@ -1,29 +1,29 @@
 <script lang="ts">
-import type { ErrorResponse } from "@nhost/nhost-js/auth";
-import type { FetchError } from "@nhost/nhost-js/fetch";
-import { nhost } from "$lib/nhost/auth";
+import type { ErrorResponse } from '@nhost/nhost-js/auth';
+import type { FetchError } from '@nhost/nhost-js/fetch';
+import { nhost } from '$lib/nhost/auth';
 
-let newPassword = $state("");
-let confirmPassword = $state("");
+let newPassword = $state('');
+let confirmPassword = $state('');
 let isLoading = $state(false);
-let error = $state("");
+let error = $state('');
 let success = $state(false);
 
 async function handleSubmit(e: Event) {
   e.preventDefault();
 
   // Reset states
-  error = "";
+  error = '';
   success = false;
 
   // Validate passwords
   if (newPassword.length < 3) {
-    error = "Password must be at least 3 characters long";
+    error = 'Password must be at least 3 characters long';
     return;
   }
 
   if (newPassword !== confirmPassword) {
-    error = "Passwords do not match";
+    error = 'Passwords do not match';
     return;
   }
 
@@ -35,8 +35,8 @@ async function handleSubmit(e: Event) {
       newPassword,
     });
     success = true;
-    newPassword = "";
-    confirmPassword = "";
+    newPassword = '';
+    confirmPassword = '';
   } catch (err) {
     const fetchError = err as FetchError<ErrorResponse>;
     error = `An error occurred while changing the password: ${fetchError.message}`;

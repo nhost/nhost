@@ -1,10 +1,10 @@
-import { textClasses } from '@/components/ui/v2/Text';
 import { getTypographyUtilityClass, styled } from '@mui/material';
 import type { ListItemTextProps as MaterialListItemTextProps } from '@mui/material/ListItemText';
 import MaterialListItemText, {
   listItemTextClasses as materialListItemTextClasses,
 } from '@mui/material/ListItemText';
 import clsx from 'clsx';
+import { textClasses } from '@/components/ui/v2/Text';
 
 export interface ListItemTextProps extends MaterialListItemTextProps {}
 

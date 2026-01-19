@@ -1,3 +1,4 @@
+import { useFieldArray, useFormContext } from 'react-hook-form';
 import { FormInput } from '@/components/form/FormInput';
 import { FormSelect } from '@/components/form/FormSelect';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
@@ -7,10 +8,9 @@ import { FormDescription } from '@/components/ui/v3/form';
 import { SelectItem } from '@/components/ui/v3/select';
 import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
 import {
-  headerTypes,
   type BaseEventTriggerFormValues,
+  headerTypes,
 } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerFormTypes';
-import { useFieldArray, useFormContext } from 'react-hook-form';
 
 interface HeadersSectionProps {
   className?: string;

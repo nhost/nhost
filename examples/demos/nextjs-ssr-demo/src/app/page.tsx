@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
-import { createNhostClient } from "./lib/nhost/server";
+import { redirect } from 'next/navigation';
+import { createNhostClient } from './lib/nhost/server';
 
 export default async function Home() {
   // Check if user is already authenticated
@@ -8,8 +8,8 @@ export default async function Home() {
 
   // Redirect based on authentication status
   if (session) {
-    redirect("/profile");
+    redirect('/profile');
   }
 
-  redirect("/signin");
+  redirect('/signin');
 }

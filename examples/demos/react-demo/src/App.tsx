@@ -1,4 +1,4 @@
-import { type JSX, lazy, Suspense } from "react";
+import { type JSX, lazy, Suspense } from 'react';
 import {
   createBrowserRouter,
   createRoutesFromElements,
@@ -6,19 +6,19 @@ import {
   Outlet,
   Route,
   RouterProvider,
-} from "react-router-dom";
-import Navigation from "./components/Navigation";
-import ProtectedRoute from "./components/ProtectedRoute";
-import { AuthProvider } from "./lib/nhost/AuthProvider";
-import Home from "./pages/Home";
-import Profile from "./pages/Profile";
-import SignIn from "./pages/SignIn";
-import SignUp from "./pages/SignUp";
-import Todos from "./pages/Todos";
-import Upload from "./pages/Upload";
-import Verify from "./pages/Verify";
+} from 'react-router-dom';
+import Navigation from './components/Navigation';
+import ProtectedRoute from './components/ProtectedRoute';
+import { AuthProvider } from './lib/nhost/AuthProvider';
+import Home from './pages/Home';
+import Profile from './pages/Profile';
+import SignIn from './pages/SignIn';
+import SignUp from './pages/SignUp';
+import Todos from './pages/Todos';
+import Upload from './pages/Upload';
+import Verify from './pages/Verify';
 
-const MfaVerification = lazy(() => import("./pages/signin/mfa"));
+const MfaVerification = lazy(() => import('./pages/signin/mfa'));
 
 // Root layout component to wrap all routes
 const RootLayout = (): JSX.Element => {
@@ -31,7 +31,7 @@ const RootLayout = (): JSX.Element => {
       <footer>
         <p
           className="text-sm text-center"
-          style={{ color: "var(--text-muted)" }}
+          style={{ color: 'var(--text-muted)' }}
         >
           © {new Date().getFullYear()} Nhost Demo
         </p>

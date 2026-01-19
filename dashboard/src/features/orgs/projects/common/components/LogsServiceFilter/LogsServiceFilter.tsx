@@ -1,3 +1,5 @@
+import { forwardRef, memo, useMemo } from 'react';
+import type { UseFormRegisterReturn } from 'react-hook-form';
 import { ControlledSelect } from '@/components/form/ControlledSelect';
 import { Option } from '@/components/ui/v2/Option';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -7,8 +9,6 @@ import {
 } from '@/features/orgs/projects/logs/utils/constants/services';
 import { isEmptyValue } from '@/lib/utils';
 import { useGetServiceLabelValuesQuery } from '@/utils/__generated__/graphql';
-import { forwardRef, memo, useMemo } from 'react';
-import type { UseFormRegisterReturn } from 'react-hook-form';
 
 type LogsServiceFilterProps = UseFormRegisterReturn<
   keyof {

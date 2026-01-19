@@ -1,15 +1,13 @@
+import Image from 'next/image';
+import type { ReactNode } from 'react';
+import { useState } from 'react';
+import { OpenTransferDialogButton } from '@/components/common/OpenTransferDialogButton';
 import { NhostIcon } from '@/components/presentational/NhostIcon';
 import { Box } from '@/components/ui/v2/Box';
 import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { TransferProjectDialog } from '@/features/orgs/components/common/TransferProjectDialog';
-import { useState } from 'react';
-
-import { OpenTransferDialogButton } from '@/components/common/OpenTransferDialogButton';
-
-import Image from 'next/image';
-import type { ReactNode } from 'react';
 
 interface UpgradeToProBannerProps {
   title: string;

@@ -1,3 +1,4 @@
+import { useFormContext } from 'react-hook-form';
 import { useDialog } from '@/components/common/DialogProvider';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Button } from '@/components/ui/v2/Button';
@@ -10,7 +11,6 @@ import { useConnectGithubRepoMutation } from '@/generated/graphql';
 import { analytics } from '@/lib/segment';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { triggerToast } from '@/utils/toast';
-import { useFormContext } from 'react-hook-form';
 
 export interface EditRepositorySettingsModalProps {
   selectedRepoId: string;

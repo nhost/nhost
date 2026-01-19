@@ -1,3 +1,4 @@
+import type { AnimationEvent } from 'react';
 import {
   Popover,
   PopoverContent,
@@ -5,7 +6,6 @@ import {
 } from '@/components/ui/v3/popover';
 import { useDataGridQueryParams } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
 import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
-import type { AnimationEvent } from 'react';
 import DataGridFilterActions from './DataGridFilterActions';
 import DataGridFilters from './DataGridFilters';
 import DataGridFiltersProvider, {

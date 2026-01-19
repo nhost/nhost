@@ -1,4 +1,3 @@
-import highlightMatch from '@/features/orgs/utils/highlightMatch/highlightMatch';
 import type { GraphQLObjectType, GraphQLSchema } from 'graphql';
 import { HelpCircle } from 'lucide-react';
 import {
@@ -8,6 +7,7 @@ import {
   isValidElement,
   type ReactNode,
 } from 'react';
+import highlightMatch from '@/features/orgs/utils/highlightMatch/highlightMatch';
 import type { ComplexTreeData, RelationshipFields } from './types';
 
 export const ROOT_FIELDS = ['query', 'mutation', 'subscription'];

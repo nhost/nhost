@@ -1,9 +1,9 @@
-import { isNotEmptyValue } from '@/lib/utils';
-import { useNhostClient } from '@/providers/nhost';
-import { getToastStyleProps } from '@/utils/constants/settings';
 import { startAuthentication } from '@simplewebauthn/browser';
 import { useState } from 'react';
 import { toast } from 'react-hot-toast';
+import { isNotEmptyValue } from '@/lib/utils';
+import { useNhostClient } from '@/providers/nhost';
+import { getToastStyleProps } from '@/utils/constants/settings';
 
 interface Props {
   onNeedsEmailVerification: () => void;

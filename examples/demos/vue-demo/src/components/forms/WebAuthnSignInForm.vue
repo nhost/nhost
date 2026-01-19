@@ -20,13 +20,13 @@
 </template>
 
 <script setup lang="ts">
-import { type ErrorResponse } from "@nhost/nhost-js/auth";
-import { type FetchError } from "@nhost/nhost-js/fetch";
-import { startAuthentication } from "@simplewebauthn/browser";
-import { ref } from "vue";
-import { useRouter } from "vue-router";
-import { useAuth } from "../../lib/nhost/auth";
-import { isWebAuthnSupported } from "../../lib/utils";
+import { type ErrorResponse } from '@nhost/nhost-js/auth';
+import { type FetchError } from '@nhost/nhost-js/fetch';
+import { startAuthentication } from '@simplewebauthn/browser';
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { useAuth } from '../../lib/nhost/auth';
+import { isWebAuthnSupported } from '../../lib/utils';
 
 /**
  * WebAuthnSignInForm provides a passwordless authentication flow using WebAuthn (FIDO2) protocol.
@@ -52,7 +52,7 @@ const startWebAuthnSignIn = async (): Promise<void> => {
   try {
     // First check if WebAuthn is supported by this browser
     if (!isWebAuthnSupported()) {
-      error.value = "WebAuthn is not supported by your browser.";
+      error.value = 'WebAuthn is not supported by your browser.';
       isLoading.value = false;
       return;
     }
@@ -72,7 +72,7 @@ const startWebAuthnSignIn = async (): Promise<void> => {
       });
 
       if (!credential) {
-        error.value = "No credential was selected.";
+        error.value = 'No credential was selected.';
         isLoading.value = false;
         return;
       }
@@ -87,12 +87,12 @@ const startWebAuthnSignIn = async (): Promise<void> => {
       // Step 4: Handle authentication result
       if (verifyResponse.body?.session) {
         // Authentication successful, redirect to profile page
-        router.push("/profile");
+        router.push('/profile');
       } else {
-        error.value = "Authentication failed";
+        error.value = 'Authentication failed';
       }
     } catch (credError) {
-      error.value = `WebAuthn authentication failed: ${(credError as Error).message || "Unknown error"}`;
+      error.value = `WebAuthn authentication failed: ${(credError as Error).message || 'Unknown error'}`;
     }
   } catch (err) {
     const errorObj = err as FetchError<ErrorResponse>;

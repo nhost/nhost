@@ -1,3 +1,5 @@
+import type { UseQueryOptions } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { fetchExportMetadata } from '@/features/orgs/projects/common/utils/fetchExportMetadata';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -5,8 +7,6 @@ import type {
   ExportMetadataResponse,
   RemoteSchemaInfo,
 } from '@/utils/hasura-api/generated/schemas';
-import type { UseQueryOptions } from '@tanstack/react-query';
-import { useQuery } from '@tanstack/react-query';
 
 export interface UseGetRemoteSchemasOptions {
   /**

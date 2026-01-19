@@ -1,8 +1,3 @@
-import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
-import { Input } from '@/components/ui/v3/input';
-import useIntrospectRemoteSchemaQuery from '@/features/orgs/projects/remote-schemas/hooks/useIntrospectRemoteSchemaQuery/useIntrospectRemoteSchemaQuery';
-import convertIntrospectionToSchema from '@/features/orgs/projects/remote-schemas/utils/convertIntrospectionToSchema';
-import { getToastStyleProps } from '@/utils/constants/settings';
 import { SearchIcon, XIcon } from 'lucide-react';
 import {
   type FormEvent,
@@ -14,6 +9,11 @@ import {
   useState,
 } from 'react';
 import { toast } from 'react-hot-toast';
+import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
+import { Input } from '@/components/ui/v3/input';
+import useIntrospectRemoteSchemaQuery from '@/features/orgs/projects/remote-schemas/hooks/useIntrospectRemoteSchemaQuery/useIntrospectRemoteSchemaQuery';
+import convertIntrospectionToSchema from '@/features/orgs/projects/remote-schemas/utils/convertIntrospectionToSchema';
+import { getToastStyleProps } from '@/utils/constants/settings';
 import type { RemoteSchemaTreeRef } from './RemoteSchemaTree';
 import { RemoteSchemaTree } from './RemoteSchemaTree';
 

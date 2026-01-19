@@ -1,10 +1,10 @@
-import { FormField, FormMessage } from '@/components/ui/v3/form';
-import { ColumnAutocomplete } from '@/features/orgs/projects/database/dataGrid/components/ColumnAutocomplete';
-import { cn, isNotEmptyValue } from '@/lib/utils';
 import type { DetailedHTMLProps, HTMLProps } from 'react';
 import { useState } from 'react';
 import { useController, useFormContext } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
+import { FormField, FormMessage } from '@/components/ui/v3/form';
+import { ColumnAutocomplete } from '@/features/orgs/projects/database/dataGrid/components/ColumnAutocomplete';
+import { cn, isNotEmptyValue } from '@/lib/utils';
 import OperatorComboBox from './OperatorComboBox';
 import RuleRemoveButton from './RuleRemoveButton';
 import RuleValueInput from './RuleValueInput';

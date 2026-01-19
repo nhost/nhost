@@ -1,5 +1,5 @@
-import { render, screen, TestUserEvent, waitFor } from '@/tests/testUtils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { render, screen, TestUserEvent, waitFor } from '@/tests/testUtils';
 import MfaOtpForm from './MfaOtpForm';
 
 const mocks = vi.hoisted(() => ({

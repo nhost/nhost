@@ -1,6 +1,6 @@
-import { Stack } from "expo-router";
-import { Text, View } from "react-native";
-import { AuthProvider } from "./lib/nhost/AuthProvider";
+import { Stack } from 'expo-router';
+import { Text, View } from 'react-native';
+import { AuthProvider } from './lib/nhost/AuthProvider';
 
 export default function RootLayout() {
   return (
@@ -8,24 +8,24 @@ export default function RootLayout() {
       <Stack
         screenOptions={{
           headerStyle: {
-            backgroundColor: "#f5f5f5",
+            backgroundColor: '#f5f5f5',
           },
-          headerTintColor: "#333",
+          headerTintColor: '#333',
           headerTitleStyle: {
-            fontWeight: "bold",
+            fontWeight: 'bold',
           },
         }}
       >
-        <Stack.Screen name="index" options={{ title: "Home" }} />
-        <Stack.Screen name="signin" options={{ title: "Sign In" }} />
+        <Stack.Screen name="index" options={{ title: 'Home' }} />
+        <Stack.Screen name="signin" options={{ title: 'Sign In' }} />
         <Stack.Screen
           name="signin/mfa"
-          options={{ title: "MFA Verification" }}
+          options={{ title: 'MFA Verification' }}
         />
-        <Stack.Screen name="signup" options={{ title: "Sign Up" }} />
-        <Stack.Screen name="profile" options={{ title: "Profile" }} />
-        <Stack.Screen name="upload" options={{ title: "File Upload" }} />
-        <Stack.Screen name="verify" options={{ title: "Verify Email" }} />
+        <Stack.Screen name="signup" options={{ title: 'Sign Up' }} />
+        <Stack.Screen name="profile" options={{ title: 'Profile' }} />
+        <Stack.Screen name="upload" options={{ title: 'File Upload' }} />
+        <Stack.Screen name="verify" options={{ title: 'Verify Email' }} />
       </Stack>
     </AuthProvider>
   );
@@ -37,15 +37,15 @@ export function ErrorBoundary(props: { error: Error }) {
     <View
       style={{
         flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
+        justifyContent: 'center',
+        alignItems: 'center',
         padding: 20,
       }}
     >
-      <Text style={{ fontSize: 18, fontWeight: "bold", marginBottom: 10 }}>
+      <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 10 }}>
         An error occurred
       </Text>
-      <Text style={{ color: "red", marginBottom: 10 }}>
+      <Text style={{ color: 'red', marginBottom: 10 }}>
         {props.error.message}
       </Text>
       <Text>{props.error.stack}</Text>

@@ -1,11 +1,11 @@
-import type { FormControlProps } from '@/components/ui/v2/FormControl';
-import { FormControl } from '@/components/ui/v2/FormControl';
 import { styled } from '@mui/material';
 import type { InputBaseProps as MaterialInputBaseProps } from '@mui/material/InputBase';
 import MaterialInputBase, { inputBaseClasses } from '@mui/material/InputBase';
 import type { DetailedHTMLProps, ForwardedRef, HTMLProps } from 'react';
 import { forwardRef } from 'react';
 import { mergeRefs } from 'react-merge-refs';
+import type { FormControlProps } from '@/components/ui/v2/FormControl';
+import { FormControl } from '@/components/ui/v2/FormControl';
 
 export interface InputProps
   extends Omit<MaterialInputBaseProps, 'componentsProps' | 'slotProps'>,

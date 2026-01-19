@@ -56,12 +56,12 @@
 import {
   type ErrorResponse,
   type PublicKeyCredentialCreationOptions,
-} from "@nhost/nhost-js/auth";
-import { type FetchError } from "@nhost/nhost-js/fetch";
-import { startRegistration } from "@simplewebauthn/browser";
-import { ref } from "vue";
-import { useAuth } from "../../lib/nhost/auth";
-import { isWebAuthnSupported } from "../../lib/utils";
+} from '@nhost/nhost-js/auth';
+import { type FetchError } from '@nhost/nhost-js/fetch';
+import { startRegistration } from '@simplewebauthn/browser';
+import { ref } from 'vue';
+import { useAuth } from '../../lib/nhost/auth';
+import { isWebAuthnSupported } from '../../lib/utils';
 
 /**
  * WebAuthn Registration (Sign Up) Flow
@@ -85,14 +85,14 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const emit = defineEmits<{
-  "update:email": [value: string];
-  "update:displayName": [value: string];
+  'update:email': [value: string];
+  'update:displayName': [value: string];
 }>();
 
 const { nhost } = useAuth();
 const isLoading = ref<boolean>(false);
 const error = ref<string | null>(null);
-const keyNickname = ref<string>("");
+const keyNickname = ref<string>('');
 const challengeData = ref<PublicKeyCredentialCreationOptions | null>(null);
 
 // Local reactive refs for v-model
@@ -100,14 +100,14 @@ const email = ref(props.email);
 const displayName = ref(props.displayName);
 
 // Watch for changes and emit updates
-import { watch } from "vue";
+import { watch } from 'vue';
 
 watch(email, (newValue) => {
-  emit("update:email", newValue);
+  emit('update:email', newValue);
 });
 
 watch(displayName, (newValue) => {
-  emit("update:displayName", newValue);
+  emit('update:displayName', newValue);
 });
 
 // Watch for prop changes
@@ -141,14 +141,14 @@ const startWebAuthnRegistration = async (): Promise<void> => {
 
   // Validate required fields
   if (!email.value) {
-    error.value = "Email is required";
+    error.value = 'Email is required';
     isLoading.value = false;
     return;
   }
 
   // Check browser compatibility before proceeding
   if (!isWebAuthnSupported()) {
-    error.value = "WebAuthn is not supported by your browser.";
+    error.value = 'WebAuthn is not supported by your browser.';
     isLoading.value = false;
     return;
   }
@@ -182,7 +182,7 @@ const startWebAuthnRegistration = async (): Promise<void> => {
       });
 
       if (!credential) {
-        error.value = "No credential was created.";
+        error.value = 'No credential was created.';
         isLoading.value = false;
         return;
       }
@@ -212,7 +212,7 @@ const startWebAuthnRegistration = async (): Promise<void> => {
           props.redirectTo || `${window.location.origin}/profile`;
       }
     } catch (credError) {
-      error.value = `WebAuthn registration failed: ${(credError as Error).message || "Unknown error"}`;
+      error.value = `WebAuthn registration failed: ${(credError as Error).message || 'Unknown error'}`;
     }
   } catch (err) {
     const errorObj = err as FetchError<ErrorResponse>;

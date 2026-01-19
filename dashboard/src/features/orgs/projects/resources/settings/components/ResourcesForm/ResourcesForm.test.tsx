@@ -1,3 +1,5 @@
+import { setupServer } from 'msw/node';
+import { expect, test, vi } from 'vitest';
 import { mockMatchMediaValue, mockRouter } from '@/tests/mocks';
 import { getProjectQuery } from '@/tests/msw/mocks/graphql/getProjectQuery';
 import { getProPlanOnlyQuery } from '@/tests/msw/mocks/graphql/plansQuery';
@@ -21,8 +23,6 @@ import {
   RESOURCE_MEMORY_MULTIPLIER,
   RESOURCE_VCPU_MULTIPLIER,
 } from '@/utils/constants/common';
-import { setupServer } from 'msw/node';
-import { expect, test, vi } from 'vitest';
 import ResourcesForm from './ResourcesForm';
 
 Object.defineProperty(window, 'matchMedia', {

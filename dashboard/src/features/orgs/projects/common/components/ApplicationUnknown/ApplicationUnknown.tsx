@@ -1,3 +1,5 @@
+import Image from 'next/image';
+import { useState } from 'react';
 import { Container } from '@/components/layout/Container';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { Modal } from '@/components/ui/v1/Modal';
@@ -9,8 +11,6 @@ import { RemoveApplicationModal } from '@/features/orgs/projects/common/componen
 import { StagingMetadata } from '@/features/orgs/projects/common/components/StagingMetadata';
 import { useIsCurrentUserOwner } from '@/features/orgs/projects/common/hooks/useIsCurrentUserOwner';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import Image from 'next/image';
-import { useState } from 'react';
 
 export default function ApplicationUnknown() {
   const { project, loading } = useProject();

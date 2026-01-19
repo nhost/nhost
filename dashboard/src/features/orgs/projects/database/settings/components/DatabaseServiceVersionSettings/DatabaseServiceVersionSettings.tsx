@@ -1,3 +1,7 @@
+import { yupResolver } from '@hookform/resolvers/yup';
+import { useEffect, useMemo } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import {
@@ -10,34 +14,26 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { RepeatIcon } from '@/components/ui/v2/icons/RepeatIcon';
-
+import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useGetPostgresVersion } from '@/features/orgs/projects/database/common/hooks/useGetPostgresVersion';
 import { useIsDatabaseMigrating } from '@/features/orgs/projects/database/common/hooks/useIsDatabaseMigrating';
 import { DatabaseMigrateDisabledError } from '@/features/orgs/projects/database/settings/components/DatabaseMigrateDisabledError';
 import { DatabaseMigrateDowntimeWarning } from '@/features/orgs/projects/database/settings/components/DatabaseMigrateDowntimeWarning';
 import { DatabaseMigrateLogsModal } from '@/features/orgs/projects/database/settings/components/DatabaseMigrateLogsModal';
 import { DatabaseMigrateVersionConfirmationDialog } from '@/features/orgs/projects/database/settings/components/DatabaseMigrateVersionConfirmationDialog';
-
-import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
-import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-
+import { splitPostgresMajorMinorVersions } from '@/features/orgs/projects/database/settings/utils/splitPostgresMajorMinorVersions';
+import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
   GetPostgresSettingsDocument,
   Software_Type_Enum,
   useGetSoftwareVersionsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
-
-import { splitPostgresMajorMinorVersions } from '@/features/orgs/projects/database/settings/utils/splitPostgresMajorMinorVersions';
-import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { isNotEmptyValue } from '@/lib/utils';
 import { ApplicationStatus } from '@/types/application';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { useEffect, useMemo } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
-import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
   majorVersion: Yup.object({

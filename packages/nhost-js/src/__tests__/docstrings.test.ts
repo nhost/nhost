@@ -1,16 +1,16 @@
-import { expect, test } from "@jest/globals";
+import { expect, test } from '@jest/globals';
 import {
   createClient,
   createNhostClient,
   withAdminSession,
-} from "@nhost/nhost-js";
+} from '@nhost/nhost-js';
 
-const subdomain = "local";
-const region = "local";
+const subdomain = 'local';
+const region = 'local';
 
-test("mainExample", async () => {
+test('mainExample', async () => {
   const email = `test-${Date.now()}@example.com`;
-  const password = "password123";
+  const password = 'password123';
 
   const nhost = createClient({
     subdomain,
@@ -29,9 +29,9 @@ test("mainExample", async () => {
 
   // upload a couple of files
   const uplFilesResp = await nhost.storage.uploadFiles({
-    "file[]": [
-      new File(["test1"], "file-1", { type: "text/plain" }),
-      new File(["test2 is larger"], "file-2", { type: "text/plain" }),
+    'file[]': [
+      new File(['test1'], 'file-1', { type: 'text/plain' }),
+      new File(['test2 is larger'], 'file-2', { type: 'text/plain' }),
     ],
   });
   console.log(JSON.stringify(uplFilesResp, null, 2));
@@ -110,8 +110,8 @@ test("mainExample", async () => {
   // }
 
   // make a request to a serverless function
-  const funcResp = await nhost.functions.post("/helloworld", {
-    message: "Hello, World!",
+  const funcResp = await nhost.functions.post('/helloworld', {
+    message: 'Hello, World!',
   });
   console.log(JSON.stringify(funcResp.body, null, 2));
   // {
@@ -125,29 +125,29 @@ test("mainExample", async () => {
   expect(graphResp.body.data).toStrictEqual({
     files: [
       {
-        name: "file-1",
+        name: 'file-1',
         size: 5,
-        mimeType: "text/plain",
+        mimeType: 'text/plain',
       },
       {
-        name: "file-2",
+        name: 'file-2',
         size: 15,
-        mimeType: "text/plain",
+        mimeType: 'text/plain',
       },
     ],
   });
 });
 
-test("adminClient", async () => {
+test('adminClient', async () => {
   const nhost = createNhostClient({
     subdomain,
     region,
     configure: [
       withAdminSession({
-        adminSecret: "nhost-admin-secret",
-        role: "user",
+        adminSecret: 'nhost-admin-secret',
+        role: 'user',
         sessionVariables: {
-          "user-id": "54058C42-51F7-4B37-8B69-C89A841D2221",
+          'user-id': '54058C42-51F7-4B37-8B69-C89A841D2221',
         },
       }),
     ],
@@ -155,9 +155,9 @@ test("adminClient", async () => {
 
   // upload a couple of files
   const uplFilesResp = await nhost.storage.uploadFiles({
-    "file[]": [
-      new File(["test1"], "file-1", { type: "text/plain" }),
-      new File(["test2 is larger"], "file-2", { type: "text/plain" }),
+    'file[]': [
+      new File(['test1'], 'file-1', { type: 'text/plain' }),
+      new File(['test2 is larger'], 'file-2', { type: 'text/plain' }),
     ],
   });
   console.log(JSON.stringify(uplFilesResp, null, 2));
@@ -236,8 +236,8 @@ test("adminClient", async () => {
   // }
 
   // make a request to a serverless function
-  const funcResp = await nhost.functions.post("/helloworld", {
-    message: "Hello, World!",
+  const funcResp = await nhost.functions.post('/helloworld', {
+    message: 'Hello, World!',
   });
   console.log(JSON.stringify(funcResp.body, null, 2));
   // {
@@ -251,14 +251,14 @@ test("adminClient", async () => {
   expect(graphResp.body.data).toStrictEqual({
     files: [
       {
-        name: "file-1",
+        name: 'file-1',
         size: 5,
-        mimeType: "text/plain",
+        mimeType: 'text/plain',
       },
       {
-        name: "file-2",
+        name: 'file-2',
         size: 15,
-        mimeType: "text/plain",
+        mimeType: 'text/plain',
       },
     ],
   });

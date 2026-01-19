@@ -1,3 +1,7 @@
+import type { ForwardedRef, ReactNode } from 'react';
+import { forwardRef, useEffect, useRef } from 'react';
+import { mergeRefs } from 'react-merge-refs';
+import type { Column, SortingRule, TableOptions } from 'react-table';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
 import type { UseDataGridOptions } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid/useDataGrid';
@@ -8,10 +12,6 @@ import type { DataGridHeaderProps } from '@/features/orgs/projects/storage/dataG
 import { DataGridHeader } from '@/features/orgs/projects/storage/dataGrid/components/DataGridHeader';
 import { DataTableDesignProvider } from '@/features/orgs/projects/storage/dataGrid/providers/DataTableDesignProvider';
 import { cn } from '@/lib/utils';
-import type { ForwardedRef, ReactNode } from 'react';
-import { forwardRef, useEffect, useRef } from 'react';
-import { mergeRefs } from 'react-merge-refs';
-import type { Column, SortingRule, TableOptions } from 'react-table';
 import AllColumnsHiddenMessage from './AllColumnsHiddenMessage';
 import useDataGrid from './useDataGrid';
 

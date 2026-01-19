@@ -1,3 +1,7 @@
+import { Ellipsis, SquarePen, Trash2 } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
+import { useRef, useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import {
   DropdownMenu,
@@ -11,10 +15,6 @@ import { DeleteCronTriggerDialog } from '@/features/orgs/projects/events/cron-tr
 import { EditCronTriggerForm } from '@/features/orgs/projects/events/cron-triggers/components/EditCronTriggerForm';
 import { cn } from '@/lib/utils';
 import type { CronTrigger } from '@/utils/hasura-api/generated/schemas';
-import { Ellipsis, SquarePen, Trash2 } from 'lucide-react';
-import Link from 'next/link';
-import { useRouter } from 'next/router';
-import { useRef, useState } from 'react';
 
 const menuItemClassName =
   'flex h-9 cursor-pointer items-center gap-2 rounded-none border border-b-1 !text-sm+ font-medium leading-4';

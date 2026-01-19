@@ -1,3 +1,6 @@
+import { formatDistanceToNowStrict, parseISO } from 'date-fns';
+import type { MouseEvent } from 'react';
+import { twMerge } from 'tailwind-merge';
 import { NavLink } from '@/components/common/NavLink';
 import type { DeploymentStatus } from '@/components/presentational/StatusCircle';
 import { StatusCircle } from '@/components/presentational/StatusCircle';
@@ -19,9 +22,6 @@ import {
   GetOrganizationsDocument,
   useInsertDeploymentMutation,
 } from '@/utils/__generated__/graphql';
-import { formatDistanceToNowStrict, parseISO } from 'date-fns';
-import type { MouseEvent } from 'react';
-import { twMerge } from 'tailwind-merge';
 
 export interface DeploymentListItemProps {
   /**

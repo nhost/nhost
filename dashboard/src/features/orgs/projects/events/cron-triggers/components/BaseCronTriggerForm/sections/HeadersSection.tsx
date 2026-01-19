@@ -1,3 +1,4 @@
+import { useFieldArray, useFormContext } from 'react-hook-form';
 import { FormInput } from '@/components/form/FormInput';
 import { FormSelect } from '@/components/form/FormSelect';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
@@ -6,10 +7,9 @@ import { Button } from '@/components/ui/v3/button';
 import { SelectItem } from '@/components/ui/v3/select';
 import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
 import {
-  cronHeaderTypes,
   type BaseCronTriggerFormValues,
+  cronHeaderTypes,
 } from '@/features/orgs/projects/events/cron-triggers/components/BaseCronTriggerForm/BaseCronTriggerFormTypes';
-import { useFieldArray, useFormContext } from 'react-hook-form';
 
 interface HeadersSectionProps {
   className?: string;

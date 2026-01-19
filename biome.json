@@ -1,14 +1,12 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.3.11/schema.json",
   "root": true,
-  "javascript": { "formatter": { "quoteStyle": "double" }, "globals": [] },
+  "javascript": { "formatter": { "quoteStyle": "single" }, "globals": [] },
   "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
   "files": { "ignoreUnknown": false },
   "formatter": {
     "enabled": true,
-    "indentStyle": "space",
-    "indentWidth": 2,
-    "lineWidth": 80
+    "indentStyle": "space"
   },
   "linter": {
     "enabled": true,

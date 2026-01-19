@@ -1,8 +1,8 @@
+import Image from 'next/image';
 import { Text } from '@/components/ui/v2/Text';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { InfoCard } from '@/features/orgs/projects/overview/components/InfoCard';
 import { isNotEmptyValue } from '@/lib/utils';
-import Image from 'next/image';
 
 export default function OverviewProjectInfo() {
   const { project } = useProject();

@@ -1,5 +1,5 @@
-import { persistAtom } from '@/utils/recoil';
 import { atom } from 'recoil';
+import { persistAtom } from '@/utils/recoil';
 
 const sessionIDState = atom<string>({
   key: 'sessionID',

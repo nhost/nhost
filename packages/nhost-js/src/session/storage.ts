@@ -5,13 +5,13 @@
  * across page reloads and browser sessions.
  */
 
-import type { Session as AuthSession } from "../auth";
-import { decodeUserSession, type Session } from "./session";
+import type { Session as AuthSession } from '../auth';
+import { decodeUserSession, type Session } from './session';
 import {
   LocalStorage,
   MemoryStorage,
   type SessionStorageBackend,
-} from "./storageBackend";
+} from './storageBackend';
 
 /**
  * Callback function type for session change subscriptions
@@ -87,7 +87,7 @@ export class SessionStorage {
       try {
         subscriber(session);
       } catch (error) {
-        console.error("Error notifying subscriber:", error);
+        console.error('Error notifying subscriber:', error);
       }
     }
   }
@@ -103,7 +103,7 @@ export class SessionStorage {
  * @returns The best available storage implementation as a SessionStorageBackend
  */
 export const detectStorage = (): SessionStorageBackend => {
-  if (typeof window !== "undefined") {
+  if (typeof window !== 'undefined') {
     return new LocalStorage();
   }
   return new MemoryStorage();

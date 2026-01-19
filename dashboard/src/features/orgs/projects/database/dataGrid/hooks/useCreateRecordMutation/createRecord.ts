@@ -1,3 +1,4 @@
+import { format } from 'node-pg-format';
 import type {
   AffectedRowsResult,
   ColumnInsertOptions,
@@ -7,7 +8,6 @@ import type {
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { getPreparedHasuraQuery } from '@/features/orgs/projects/database/dataGrid/utils/hasuraQueryHelpers';
 import { normalizeQueryError } from '@/features/orgs/projects/database/dataGrid/utils/normalizeQueryError';
-import { format } from 'node-pg-format';
 
 export interface CreateRecordVariables<TData extends object = {}> {
   /**

@@ -1,16 +1,15 @@
+import { setupServer } from 'msw/node';
+import { test, vi } from 'vitest';
 import {
   fetchEmptyPiTRBaseBackups,
   fetchPiTRBaseBackups,
   mockApplication,
   mockMatchMediaValue,
 } from '@/tests/mocks';
-import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
-import { render, screen, TestUserEvent, waitFor } from '@/tests/testUtils';
-import { setupServer } from 'msw/node';
-import { test, vi } from 'vitest';
-
 import { getOrganization } from '@/tests/msw/mocks/graphql/getOrganizationQuery';
 import { getProjectQuery } from '@/tests/msw/mocks/graphql/getProjectQuery';
+import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
+import { render, screen, TestUserEvent, waitFor } from '@/tests/testUtils';
 
 import PointInTimeBackupInfo from './PointInTimeBackupInfo';
 

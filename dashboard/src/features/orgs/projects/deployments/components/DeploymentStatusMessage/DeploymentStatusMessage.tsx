@@ -1,8 +1,8 @@
+import { formatDistance } from 'date-fns';
 import { Avatar } from '@/components/ui/v2/Avatar';
 import { Text } from '@/components/ui/v2/Text';
 import { ifNullconvertToUndefined } from '@/lib/utils';
 import type { Deployment } from '@/types/application';
-import { formatDistance } from 'date-fns';
 
 export interface DeploymentStatusMessageProps {
   deployment: Partial<Deployment>;

@@ -1,19 +1,19 @@
 <script lang="ts">
-import type { ErrorResponse } from "@nhost/nhost-js/auth";
-import type { FetchError } from "@nhost/nhost-js/fetch";
-import { onMount } from "svelte";
-import { goto } from "$app/navigation";
-import { page } from "$app/stores";
-import { nhost } from "$lib/nhost/auth";
+import type { ErrorResponse } from '@nhost/nhost-js/auth';
+import type { FetchError } from '@nhost/nhost-js/fetch';
+import { onMount } from 'svelte';
+import { goto } from '$app/navigation';
+import { page } from '$app/stores';
+import { nhost } from '$lib/nhost/auth';
 
-let status: "verifying" | "success" | "error" = "verifying";
-let error = "";
+let status: 'verifying' | 'success' | 'error' = 'verifying';
+let error = '';
 let urlParams: Record<string, string> = {};
 
 onMount(() => {
   // Extract the refresh token from the URL
   const params = new URLSearchParams($page.url.search);
-  const refreshToken = params.get("refreshToken");
+  const refreshToken = params.get('refreshToken');
 
   if (!refreshToken) {
     // Collect all URL parameters to display
@@ -23,8 +23,8 @@ onMount(() => {
     });
     urlParams = allParams;
 
-    status = "error";
-    error = "No refresh token found in URL";
+    status = 'error';
+    error = 'No refresh token found in URL';
     return;
   }
 
@@ -46,8 +46,8 @@ onMount(() => {
         });
         urlParams = allParams;
 
-        status = "error";
-        error = "No refresh token found in URL";
+        status = 'error';
+        error = 'No refresh token found in URL';
         return;
       }
 
@@ -56,17 +56,17 @@ onMount(() => {
 
       if (!isMounted) return;
 
-      status = "success";
+      status = 'success';
 
       // Wait to show success message briefly, then redirect
       setTimeout(() => {
-        if (isMounted) void goto("/profile");
+        if (isMounted) void goto('/profile');
       }, 1500);
     } catch (err) {
       const fetchError = err as FetchError<ErrorResponse>;
       if (!isMounted) return;
 
-      status = "error";
+      status = 'error';
       error = `An error occurred during verification: ${fetchError.message}`;
     }
   }

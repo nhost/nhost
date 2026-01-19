@@ -1,11 +1,11 @@
+import type { ReactElement } from 'react';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { EventTriggerView } from '@/features/orgs/projects/events/event-triggers/components/EventTriggerView';
 import { EventTriggersBrowserSidebar } from '@/features/orgs/projects/events/event-triggers/components/EventTriggersBrowserSidebar';
+import { EventTriggerView } from '@/features/orgs/projects/events/event-triggers/components/EventTriggerView';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import type { ReactElement } from 'react';
 
 export default function EventTriggerDetailsPage() {
   const { project } = useProject();

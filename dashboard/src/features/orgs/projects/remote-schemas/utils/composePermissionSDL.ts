@@ -1,3 +1,4 @@
+import type { GraphQLInputField } from 'graphql';
 import type {
   ArgTreeType,
   CustomFieldType,
@@ -5,7 +6,6 @@ import type {
   RemoteSchemaFields,
 } from '@/features/orgs/projects/remote-schemas/types';
 import { isEmptyValue } from '@/lib/utils';
-import type { GraphQLInputField } from 'graphql';
 import isStandardGraphQLScalar from './isStandardGraphQLScalar';
 import stringifyGraphQLValue from './stringifyGraphQLValue';
 

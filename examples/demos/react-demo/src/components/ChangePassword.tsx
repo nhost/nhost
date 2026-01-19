@@ -1,13 +1,13 @@
-import type { ErrorResponse } from "@nhost/nhost-js/auth";
-import type { FetchError } from "@nhost/nhost-js/fetch";
-import { type JSX, useId, useState } from "react";
-import { useAuth } from "../lib/nhost/AuthProvider";
+import type { ErrorResponse } from '@nhost/nhost-js/auth';
+import type { FetchError } from '@nhost/nhost-js/fetch';
+import { type JSX, useId, useState } from 'react';
+import { useAuth } from '../lib/nhost/AuthProvider';
 
 export default function ChangePassword(): JSX.Element {
-  const [newPassword, setNewPassword] = useState<string>("");
-  const [confirmPassword, setConfirmPassword] = useState<string>("");
+  const [newPassword, setNewPassword] = useState<string>('');
+  const [confirmPassword, setConfirmPassword] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string>("");
+  const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<boolean>(false);
   const { nhost } = useAuth();
   const newPasswordId = useId();
@@ -19,17 +19,17 @@ export default function ChangePassword(): JSX.Element {
     e.preventDefault();
 
     // Reset states
-    setError("");
+    setError('');
     setSuccess(false);
 
     // Validate passwords
     if (newPassword.length < 3) {
-      setError("Password must be at least 3 characters long");
+      setError('Password must be at least 3 characters long');
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setError("Passwords do not match");
+      setError('Passwords do not match');
       return;
     }
 
@@ -41,8 +41,8 @@ export default function ChangePassword(): JSX.Element {
         newPassword,
       });
       setSuccess(true);
-      setNewPassword("");
-      setConfirmPassword("");
+      setNewPassword('');
+      setConfirmPassword('');
     } catch (err) {
       const error = err as FetchError<ErrorResponse>;
       setError(
@@ -108,7 +108,7 @@ export default function ChangePassword(): JSX.Element {
           disabled={isLoading}
           className="btn btn-primary w-full"
         >
-          {isLoading ? "Updating..." : "Change Password"}
+          {isLoading ? 'Updating...' : 'Change Password'}
         </button>
       </form>
     </div>

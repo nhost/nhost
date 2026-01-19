@@ -1,3 +1,4 @@
+import { Turnstile } from '@marsidev/react-turnstile';
 import { FormInput } from '@/components/form/FormInput';
 import { Button } from '@/components/ui/v3/button';
 import {
@@ -10,7 +11,6 @@ import {
 } from '@/components/ui/v3/form';
 import useSignupWithSecurityKeyForm from '@/features/auth/SignUp/SignUpTabs/SignUpWithSecurityKey/hooks/useSignupWithSecurityKeyForm';
 import useSignupWithSecurityKeyHandler from '@/features/auth/SignUp/SignUpTabs/SignUpWithSecurityKey/hooks/useSignupWithSecurityKeyHandler';
-import { Turnstile } from '@marsidev/react-turnstile';
 
 function SignUpWithSecurityKeyForm() {
   const form = useSignupWithSecurityKeyForm();

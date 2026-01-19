@@ -1,7 +1,7 @@
-"use server";
+'use server';
 
-import { redirect } from "next/navigation";
-import { createNhostClient } from "./server";
+import { redirect } from 'next/navigation';
+import { createNhostClient } from './server';
 
 export async function signOut() {
   try {
@@ -14,9 +14,9 @@ export async function signOut() {
       });
     }
   } catch (err) {
-    console.error("Error signing out:", err);
+    console.error('Error signing out:', err);
     throw err;
   }
 
-  redirect("/");
+  redirect('/');
 }

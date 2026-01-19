@@ -1,3 +1,4 @@
+import { useFormContext } from 'react-hook-form';
 import {
   FormControl,
   FormDescription,
@@ -14,11 +15,10 @@ import {
 } from '@/components/ui/v3/input-group';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
 import {
+  type BaseEventTriggerFormValues,
   requestOptionsTransformQueryParamsTypeOptions,
   requestTransformMethods,
-  type BaseEventTriggerFormValues,
 } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerFormTypes';
-import { useFormContext } from 'react-hook-form';
 import KeyValueQueryParams from './KeyValueQueryParams';
 import RequestURLTransformPreview from './RequestURLTransformPreview';
 import URLTemplateQueryParams from './URLTemplateQueryParams';

@@ -1,19 +1,11 @@
+import { setupServer } from 'msw/node';
+import { vi } from 'vitest';
+import { Tabs } from '@/components/ui/v3/tabs';
 import {
   fetchPiTRBaseBackups,
   mockApplication,
   mockMatchMediaValue,
 } from '@/tests/mocks';
-import {
-  mockPointerEvent,
-  render,
-  screen,
-  TestUserEvent,
-  waitFor,
-} from '@/tests/testUtils';
-import { setupServer } from 'msw/node';
-import { vi } from 'vitest';
-
-import { Tabs } from '@/components/ui/v3/tabs';
 import { getOrganization } from '@/tests/msw/mocks/graphql/getOrganizationQuery';
 import {
   getPiTRNotEnabledPostgresSettings,
@@ -23,6 +15,13 @@ import {
   getEmptyProjectsQuery,
   getProjectsQuery,
 } from '@/tests/msw/mocks/graphql/getProjectsQuery';
+import {
+  mockPointerEvent,
+  render,
+  screen,
+  TestUserEvent,
+  waitFor,
+} from '@/tests/testUtils';
 import ImportBackupContent from './ImportBackupTabContent';
 
 function TestComponent() {

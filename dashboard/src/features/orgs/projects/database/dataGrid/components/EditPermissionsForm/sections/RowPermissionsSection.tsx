@@ -1,3 +1,6 @@
+import type { FocusEvent, ReactNode } from 'react';
+import { useState } from 'react';
+import { useFormContext } from 'react-hook-form';
 import { HighlightedText } from '@/components/presentational/HighlightedText';
 import { Input } from '@/components/ui/v2/Input';
 import { Radio } from '@/components/ui/v2/Radio';
@@ -7,9 +10,6 @@ import type { RolePermissionEditorFormValues } from '@/features/orgs/projects/da
 import { RuleGroupEditor } from '@/features/orgs/projects/database/dataGrid/components/RuleGroupEditor';
 import type { DatabaseAction } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { isNotEmptyValue } from '@/lib/utils';
-import type { FocusEvent, ReactNode } from 'react';
-import { useState } from 'react';
-import { useFormContext } from 'react-hook-form';
 import PermissionSettingsSection from './PermissionSettingsSection';
 
 export interface RowPermissionsSectionProps {

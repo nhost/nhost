@@ -1,10 +1,10 @@
+import { plural, singular } from 'pluralize';
 import type {
   ForeignKeyRelation,
   HasuraMetadataRelationship,
   MutationOrQueryBaseOptions,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { isNotEmptyValue } from '@/lib/utils';
-import { plural, singular } from 'pluralize';
 import fetchExistingRelationships from './fetchExistingRelationships';
 
 type CreateRelationshipOperation = {

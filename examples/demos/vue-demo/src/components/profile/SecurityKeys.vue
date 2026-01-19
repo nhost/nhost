@@ -172,12 +172,12 @@
 </template>
 
 <script setup lang="ts">
-import type { ErrorResponse } from "@nhost/nhost-js/auth";
-import type { FetchError, FetchResponse } from "@nhost/nhost-js/fetch";
-import { startRegistration } from "@simplewebauthn/browser";
-import { onMounted, ref } from "vue";
-import { useAuth } from "../../lib/nhost/auth";
-import { isWebAuthnSupported } from "../../lib/utils";
+import type { ErrorResponse } from '@nhost/nhost-js/auth';
+import type { FetchError, FetchResponse } from '@nhost/nhost-js/fetch';
+import { startRegistration } from '@simplewebauthn/browser';
+import { onMounted, ref } from 'vue';
+import { useAuth } from '../../lib/nhost/auth';
+import { isWebAuthnSupported } from '../../lib/utils';
 
 /**
  * Represents a WebAuthn security key stored for a user
@@ -207,7 +207,7 @@ const isLoading = ref(true);
 const isRegistering = ref(false);
 const isDeleting = ref(false);
 const deletingKeyId = ref<string | null>(null);
-const keyName = ref("");
+const keyName = ref('');
 const success = ref<string | null>(null);
 const errorMessage = ref<string | null>(null);
 const showAddForm = ref(false);
@@ -276,13 +276,13 @@ const deleteSecurityKey = async (keyId: string): Promise<void> => {
     });
 
     if (response.body?.errors) {
-      throw new Error(response.body.errors[0]?.message || "Unknown error");
+      throw new Error(response.body.errors[0]?.message || 'Unknown error');
     }
 
     // Update the UI by removing the key from local state
     securityKeys.value = securityKeys.value.filter((key) => key.id !== keyId);
     success.value =
-      "Security key deleted successfully! Remember to also remove it from your authenticator app, password manager, or device credential manager to avoid future authentication issues.";
+      'Security key deleted successfully! Remember to also remove it from your authenticator app, password manager, or device credential manager to avoid future authentication issues.';
 
     // Hide success message after 5 seconds (increased to give users time to read the reminder)
     setTimeout(() => {
@@ -303,13 +303,13 @@ const registerNewSecurityKey = async (e: Event) => {
   // Check if browser supports WebAuthn
   if (!isWebAuthnAvailable.value) {
     errorMessage.value =
-      "WebAuthn is not supported by your browser. Please use a modern browser that supports WebAuthn.";
+      'WebAuthn is not supported by your browser. Please use a modern browser that supports WebAuthn.';
     return;
   }
 
   // Validate key name exists
   if (!keyName.value.trim()) {
-    errorMessage.value = "Please provide a name for your security key";
+    errorMessage.value = 'Please provide a name for your security key';
     return;
   }
 
@@ -331,7 +331,7 @@ const registerNewSecurityKey = async (e: Event) => {
     });
 
     if (!credential) {
-      errorMessage.value = "No credential was selected. Please try again.";
+      errorMessage.value = 'No credential was selected. Please try again.';
       return;
     }
 
@@ -344,8 +344,8 @@ const registerNewSecurityKey = async (e: Event) => {
     });
 
     // Step 4: Registration successful - update UI
-    success.value = "Security key registered successfully!";
-    keyName.value = "";
+    success.value = 'Security key registered successfully!';
+    keyName.value = '';
     showAddForm.value = false;
 
     // Refresh the security keys list
@@ -362,7 +362,7 @@ const toggleAddForm = () => {
   showAddForm.value = !showAddForm.value;
   errorMessage.value = null;
   success.value = null;
-  keyName.value = "";
+  keyName.value = '';
 };
 
 onMounted(() => {

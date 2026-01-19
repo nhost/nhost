@@ -1,7 +1,7 @@
+import { useEffect, useState } from 'react';
 import { isNotEmptyValue } from '@/lib/utils';
 import { useGetPiTrBaseBackupsLazyQuery } from '@/utils/__generated__/graphql';
 import { triggerToast } from '@/utils/toast';
-import { useEffect, useState } from 'react';
 
 function usePiTRBaseBackups(appId: string) {
   const [earliestBackupDate, setEarliestBackup] = useState<string>();

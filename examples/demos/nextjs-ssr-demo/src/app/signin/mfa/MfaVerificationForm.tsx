@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useId, useState } from "react";
-import { verifyMfa } from "../actions";
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useId, useState } from 'react';
+import { verifyMfa } from '../actions';
 
 interface MfaVerificationFormProps {
   ticket: string;
@@ -30,7 +30,7 @@ export default function MfaVerificationForm({
       setError(
         err instanceof Error
           ? err.message
-          : "An error occurred during verification",
+          : 'An error occurred during verification',
       );
     }
   };
@@ -53,7 +53,7 @@ export default function MfaVerificationForm({
 
       {error && (
         <div className="alert alert-error">
-          {typeof error === "string" ? error : "Verification failed"}
+          {typeof error === 'string' ? error : 'Verification failed'}
         </div>
       )}
 

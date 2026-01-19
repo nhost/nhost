@@ -1,3 +1,7 @@
+import type { ApolloError } from '@apollo/client';
+import { AnimatePresence, motion } from 'framer-motion';
+import { useRouter } from 'next/router';
+import { useState } from 'react';
 import { ChevronDownIcon } from '@/components/ui/v2/icons/ChevronDownIcon';
 import { ChevronUpIcon } from '@/components/ui/v2/icons/ChevronUpIcon';
 import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
@@ -6,10 +10,6 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useUserData } from '@/hooks/useUserData';
 import { getToastBackgroundColor } from '@/utils/constants/settings';
 import { copy } from '@/utils/copy';
-import type { ApolloError } from '@apollo/client';
-import { AnimatePresence, motion } from 'framer-motion';
-import { useRouter } from 'next/router';
-import { useState } from 'react';
 
 interface ErrorDetails {
   info: {

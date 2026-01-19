@@ -1,3 +1,5 @@
+import { faker } from '@faker-js/faker';
+import type { Page } from '@playwright/test';
 import { expect, test } from '@/e2e/fixtures/auth-hook';
 import {
   cleanupOnboardingTestIfNeeded,
@@ -6,8 +8,6 @@ import {
   gotoUrl,
   loginWithFreeUser,
 } from '@/e2e/utils';
-import { faker } from '@faker-js/faker';
-import type { Page } from '@playwright/test';
 
 let page: Page;
 

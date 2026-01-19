@@ -1,9 +1,9 @@
+import { useRef, useState } from 'react';
+import toast from 'react-hot-toast';
 import useOnSignInWithEmailAndPasswordHandler from '@/features/auth/SignIn/SignInWithEmailAndPassword/hooks/useOnSignInWithEmailAndPasswordHandler';
 import { isNotEmptyValue } from '@/lib/utils';
 import { useNhostClient } from '@/providers/nhost';
 import { getToastStyleProps } from '@/utils/constants/settings';
-import { useRef, useState } from 'react';
-import toast from 'react-hot-toast';
 import MfaSignInOtpForm from './MfaSignInOtpForm';
 import SignInWithEmailAndPasswordForm from './SignInWithEmailAndPasswordForm';
 

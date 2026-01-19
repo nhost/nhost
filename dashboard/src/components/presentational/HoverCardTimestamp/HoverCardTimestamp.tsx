@@ -1,3 +1,7 @@
+import { HoverCardPortal } from '@radix-ui/react-hover-card';
+import { format } from 'date-fns';
+import { Copy } from 'lucide-react';
+import type { ComponentPropsWithoutRef } from 'react';
 import {
   HoverCard,
   HoverCardContent,
@@ -5,10 +9,6 @@ import {
 } from '@/components/ui/v3/hover-card';
 import { cn } from '@/lib/utils';
 import { copy } from '@/utils/copy';
-import { HoverCardPortal } from '@radix-ui/react-hover-card';
-import { format } from 'date-fns';
-import { Copy } from 'lucide-react';
-import type { ComponentPropsWithoutRef } from 'react';
 
 type HoverCardContentProps = ComponentPropsWithoutRef<typeof HoverCardContent>;
 

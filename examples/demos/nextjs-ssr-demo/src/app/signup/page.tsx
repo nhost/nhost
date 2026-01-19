@@ -1,10 +1,10 @@
-import Link from "next/link";
-import MagicLinkForm from "../components/MagicLinkForm";
-import SocialSignIn from "../components/SocialSignIn";
-import TabForm from "../components/TabForm";
-import WebAuthnSignUpForm from "../components/WebAuthnSignUpForm";
-import { sendMagicLink } from "./actions";
-import SignUpForm from "./SignUpForm";
+import Link from 'next/link';
+import MagicLinkForm from '../components/MagicLinkForm';
+import SocialSignIn from '../components/SocialSignIn';
+import TabForm from '../components/TabForm';
+import WebAuthnSignUpForm from '../components/WebAuthnSignUpForm';
+import { sendMagicLink } from './actions';
+import SignUpForm from './SignUpForm';
 
 export default async function SignUp({
   searchParams,
@@ -19,8 +19,8 @@ export default async function SignUp({
   // Extract error and magic link status from URL
   const params = await searchParams;
   const error = params?.error;
-  const magicLinkSent = params?.magic === "success";
-  const verificationSent = params?.verify === "success";
+  const magicLinkSent = params?.magic === 'success';
+  const verificationSent = params?.verify === 'success';
   const email = params?.email;
 
   return (

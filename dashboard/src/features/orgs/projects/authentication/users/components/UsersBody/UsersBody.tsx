@@ -1,3 +1,9 @@
+import { useTheme } from '@mui/material';
+import { formatDistance } from 'date-fns';
+import kebabCase from 'just-kebab-case';
+import dynamic from 'next/dynamic';
+import Image from 'next/image';
+import { Fragment } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { FormActivityIndicator } from '@/components/form/FormActivityIndicator';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
@@ -24,12 +30,6 @@ import {
   useRemoteAppDeleteUserMutation,
   useUpdateRemoteAppUserMutation,
 } from '@/utils/__generated__/graphql';
-import { useTheme } from '@mui/material';
-import { formatDistance } from 'date-fns';
-import kebabCase from 'just-kebab-case';
-import dynamic from 'next/dynamic';
-import Image from 'next/image';
-import { Fragment } from 'react';
 
 const EditUserForm = dynamic(
   () =>

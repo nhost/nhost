@@ -1,3 +1,4 @@
+import NavLink from 'next/link';
 import { useUI } from '@/components/common/UIProvider';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
@@ -5,7 +6,6 @@ import { GitHubIcon } from '@/components/ui/v2/icons/GitHubIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import NavLink from 'next/link';
 
 export default function OverviewRepository() {
   const { project } = useProject();

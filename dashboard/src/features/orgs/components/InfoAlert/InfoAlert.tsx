@@ -1,6 +1,6 @@
+import type { PropsWithChildren, ReactNode } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { cn } from '@/lib/utils';
-import type { PropsWithChildren, ReactNode } from 'react';
 
 interface Props {
   title?: string;

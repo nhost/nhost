@@ -1,7 +1,7 @@
-import { Button } from '@/components/ui/v3/button';
-import { useSignInWithSecurityKey } from '@/features/auth/SignIn/SecurityKey/hooks/useSignInWithSecurityKey';
 import { Fingerprint } from 'lucide-react';
 import { useState } from 'react';
+import { Button } from '@/components/ui/v3/button';
+import { useSignInWithSecurityKey } from '@/features/auth/SignIn/SecurityKey/hooks/useSignInWithSecurityKey';
 import { VerifyEmailDialog } from './VerifyEmailDialog';
 
 function SignInWithSecurityKey() {

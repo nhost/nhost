@@ -1,3 +1,5 @@
+import { useRouter } from 'next/router';
+import type { ReactElement } from 'react';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
@@ -8,8 +10,6 @@ import { DataBrowserSidebar } from '@/features/orgs/projects/database/dataGrid/c
 import FunctionDefinitionView from '@/features/orgs/projects/database/dataGrid/components/FunctionDefinitionView';
 import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { useRouter } from 'next/router';
-import type { ReactElement } from 'react';
 
 export default function DataBrowserTableDetailsPage() {
   const { project } = useProject();

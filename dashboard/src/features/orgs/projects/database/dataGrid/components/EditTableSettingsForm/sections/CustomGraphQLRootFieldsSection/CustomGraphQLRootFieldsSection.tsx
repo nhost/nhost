@@ -1,3 +1,6 @@
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { FormInput } from '@/components/form/FormInput';
 import {
   Accordion,
@@ -16,18 +19,15 @@ import { convertSnakeToCamelCase } from '@/features/orgs/projects/database/dataG
 import prepareCustomGraphQLRootFieldsDTO from '@/features/orgs/projects/database/dataGrid/utils/prepareCustomGraphQLRootFieldsDTO/prepareCustomGraphQLRootFieldsDTO';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { cn, isEmptyValue } from '@/lib/utils';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
 import CustomGraphQLRootFieldsFieldGroup from './CustomGraphQLRootFieldsFieldGroup';
 import {
   type CustomGraphQLRootFieldsFormValues,
-  type MutationFieldNamePath,
-  type QueryFieldNamePath,
   defaultValues,
   getFieldPlaceholder,
   MUTATION_FIELDS_CONFIG,
+  type MutationFieldNamePath,
   QUERY_FIELDS_CONFIG,
+  type QueryFieldNamePath,
   validationSchema,
 } from './CustomGraphQLRootFieldsFormTypes';
 import CustomGraphQLRootFieldsSectionSkeleton from './CustomGraphQLRootFieldsSectionSkeleton';

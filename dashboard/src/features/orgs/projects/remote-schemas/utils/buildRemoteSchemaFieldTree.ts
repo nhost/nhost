@@ -1,7 +1,3 @@
-import type {
-  CustomFieldType,
-  RemoteSchemaFields,
-} from '@/features/orgs/projects/remote-schemas/types';
 import {
   type GraphQLArgument,
   GraphQLEnumType,
@@ -14,6 +10,10 @@ import {
   type GraphQLSchema,
   GraphQLUnionType,
 } from 'graphql';
+import type {
+  CustomFieldType,
+  RemoteSchemaFields,
+} from '@/features/orgs/projects/remote-schemas/types';
 import getSchemaRoots from './getSchemaRoots';
 
 function getTree(

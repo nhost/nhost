@@ -1,6 +1,5 @@
-import { expect, test } from '@/e2e/fixtures/auth-hook';
-
 import { faker } from '@faker-js/faker';
+import { expect, test } from '@/e2e/fixtures/auth-hook';
 
 test('should be able to create then delete a personal access token', async ({
   authenticatedNhostPage: page,

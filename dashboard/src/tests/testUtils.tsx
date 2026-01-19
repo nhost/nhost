@@ -1,13 +1,5 @@
 /** biome-ignore-all lint/suspicious/noExplicitAny: test utils */
-import { DialogProvider } from '@/components/common/DialogProvider';
-import { UIProvider } from '@/components/common/UIProvider';
-import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { createTheme } from '@/components/ui/v2/createTheme';
-import { AuthProvider } from '@/providers/Auth';
-import { NhostProvider } from '@/providers/nhost';
-import { mockRouter, mockSession } from '@/tests/mocks';
-import { createEmotionCache } from '@/utils/createEmotionCache';
-import { DummySessionStorage } from '@/utils/nhost';
+
 import {
   ApolloClient,
   ApolloProvider,
@@ -39,6 +31,15 @@ import { RouterContext } from 'next/dist/shared/lib/router-context.shared-runtim
 import type { PropsWithChildren, ReactElement } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { vi } from 'vitest';
+import { DialogProvider } from '@/components/common/DialogProvider';
+import { UIProvider } from '@/components/common/UIProvider';
+import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
+import { createTheme } from '@/components/ui/v2/createTheme';
+import { AuthProvider } from '@/providers/Auth';
+import { NhostProvider } from '@/providers/nhost';
+import { mockRouter, mockSession } from '@/tests/mocks';
+import { createEmotionCache } from '@/utils/createEmotionCache';
+import { DummySessionStorage } from '@/utils/nhost';
 import nhostGraphQLLink from './msw/mocks/graphql/nhostGraphQLLink';
 
 // Client-side cache, shared for the whole session of the user in the browser.

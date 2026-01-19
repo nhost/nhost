@@ -1,7 +1,7 @@
-import type { ErrorResponse } from "@nhost/nhost-js/auth";
-import type { FetchError } from "@nhost/nhost-js/fetch";
-import { type JSX, useEffect, useId, useState } from "react";
-import { useAuth } from "../lib/nhost/AuthProvider";
+import type { ErrorResponse } from '@nhost/nhost-js/auth';
+import type { FetchError } from '@nhost/nhost-js/fetch';
+import { type JSX, useEffect, useId, useState } from 'react';
+import { useAuth } from '../lib/nhost/AuthProvider';
 
 interface MFASettingsProps {
   initialMfaEnabled: boolean;
@@ -27,14 +27,14 @@ export default function MFASettings({
 
   // MFA setup states
   const [isSettingUpMfa, setIsSettingUpMfa] = useState<boolean>(false);
-  const [totpSecret, setTotpSecret] = useState<string>("");
-  const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
-  const [verificationCode, setVerificationCode] = useState<string>("");
+  const [totpSecret, setTotpSecret] = useState<string>('');
+  const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
+  const [verificationCode, setVerificationCode] = useState<string>('');
 
   // Disabling MFA states
   const [isDisablingMfa, setIsDisablingMfa] = useState<boolean>(false);
   const [disableVerificationCode, setDisableVerificationCode] =
-    useState<string>("");
+    useState<string>('');
 
   // Begin MFA setup process
   const handleEnableMfa = async (): Promise<void> => {
@@ -59,7 +59,7 @@ export default function MFASettings({
   // Verify TOTP and enable MFA
   const handleVerifyTotp = async (): Promise<void> => {
     if (!verificationCode) {
-      setError("Please enter the verification code");
+      setError('Please enter the verification code');
       return;
     }
 
@@ -70,13 +70,13 @@ export default function MFASettings({
     try {
       // Verify and activate MFA
       await nhost.auth.verifyChangeUserMfa({
-        activeMfaType: "totp",
+        activeMfaType: 'totp',
         code: verificationCode,
       });
 
       setIsMfaEnabled(true);
       setIsSettingUpMfa(false);
-      setSuccess("MFA has been successfully enabled.");
+      setSuccess('MFA has been successfully enabled.');
     } catch (err) {
       const error = err as FetchError<ErrorResponse>;
       setError(`An error occurred while verifying the code: ${error.message}`);
@@ -95,7 +95,7 @@ export default function MFASettings({
   // Disable MFA
   const handleDisableMfa = async (): Promise<void> => {
     if (!disableVerificationCode) {
-      setError("Please enter your verification code to confirm");
+      setError('Please enter your verification code to confirm');
       return;
     }
 
@@ -106,14 +106,14 @@ export default function MFASettings({
     try {
       // Disable MFA by setting activeMfaType to empty string
       await nhost.auth.verifyChangeUserMfa({
-        activeMfaType: "",
+        activeMfaType: '',
         code: disableVerificationCode,
       });
 
       setIsMfaEnabled(false);
       setIsDisablingMfa(false);
-      setDisableVerificationCode("");
-      setSuccess("MFA has been successfully disabled.");
+      setDisableVerificationCode('');
+      setSuccess('MFA has been successfully disabled.');
     } catch (err) {
       const error = err as FetchError<ErrorResponse>;
       setError(`An error occurred while disabling MFA: ${error.message}`);
@@ -125,15 +125,15 @@ export default function MFASettings({
   // Cancel MFA setup
   const handleCancelMfaSetup = (): void => {
     setIsSettingUpMfa(false);
-    setTotpSecret("");
-    setQrCodeUrl("");
-    setVerificationCode("");
+    setTotpSecret('');
+    setQrCodeUrl('');
+    setVerificationCode('');
   };
 
   // Cancel MFA disable
   const handleCancelMfaDisable = (): void => {
     setIsDisablingMfa(false);
-    setDisableVerificationCode("");
+    setDisableVerificationCode('');
     setError(null);
   };
 
@@ -190,7 +190,7 @@ export default function MFASettings({
               disabled={isLoading || !verificationCode}
               className="btn btn-primary"
             >
-              {isLoading ? "Verifying..." : "Verify and Enable"}
+              {isLoading ? 'Verifying...' : 'Verify and Enable'}
             </button>
 
             <button
@@ -232,7 +232,7 @@ export default function MFASettings({
               disabled={isLoading || !disableVerificationCode}
               className="btn btn-primary"
             >
-              {isLoading ? "Disabling..." : "Confirm Disable"}
+              {isLoading ? 'Disabling...' : 'Confirm Disable'}
             </button>
 
             <button
@@ -256,9 +256,9 @@ export default function MFASettings({
           <div className="flex items-center">
             <span className="mr-3">Status:</span>
             <span
-              className={`font-semibold ${isMfaEnabled ? "text-green-500" : "text-yellow-500"}`}
+              className={`font-semibold ${isMfaEnabled ? 'text-green-500' : 'text-yellow-500'}`}
             >
-              {isMfaEnabled ? "Enabled" : "Disabled"}
+              {isMfaEnabled ? 'Enabled' : 'Disabled'}
             </span>
           </div>
 
@@ -269,7 +269,7 @@ export default function MFASettings({
               disabled={isLoading}
               className="btn btn-secondary"
             >
-              {isLoading ? "Processing..." : "Disable MFA"}
+              {isLoading ? 'Processing...' : 'Disable MFA'}
             </button>
           ) : (
             <button
@@ -278,7 +278,7 @@ export default function MFASettings({
               disabled={isLoading}
               className="btn btn-primary"
             >
-              {isLoading ? "Loading..." : "Enable MFA"}
+              {isLoading ? 'Loading...' : 'Enable MFA'}
             </button>
           )}
         </div>

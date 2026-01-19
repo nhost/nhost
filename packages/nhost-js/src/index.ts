@@ -43,7 +43,7 @@ export {
   withAdminSession,
   withClientSideSessionMiddleware,
   withServerSideSessionMiddleware,
-} from "./nhost";
+} from './nhost';
 
 /**
  * Generates a base URL for a Nhost service based on configuration
@@ -55,7 +55,7 @@ export {
  * @returns The base URL for the service
  */
 export const generateServiceUrl = (
-  serviceType: "auth" | "storage" | "graphql" | "functions",
+  serviceType: 'auth' | 'storage' | 'graphql' | 'functions',
   subdomain?: string,
   region?: string,
   customUrl?: string,

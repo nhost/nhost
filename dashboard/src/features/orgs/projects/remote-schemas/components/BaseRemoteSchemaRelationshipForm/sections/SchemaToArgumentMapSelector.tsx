@@ -1,3 +1,5 @@
+import { isObjectType } from 'graphql';
+import { useFieldArray, useFormContext } from 'react-hook-form';
 import { Box } from '@/components/ui/v2/Box';
 import { Text } from '@/components/ui/v2/Text';
 import { Checkbox } from '@/components/ui/v3/checkbox';
@@ -18,8 +20,6 @@ import {
 import { useIntrospectRemoteSchemaQuery } from '@/features/orgs/projects/remote-schemas/hooks/useIntrospectRemoteSchemaQuery';
 import convertIntrospectionToSchema from '@/features/orgs/projects/remote-schemas/utils/convertIntrospectionToSchema';
 import { cn } from '@/lib/utils';
-import { isObjectType } from 'graphql';
-import { useFieldArray, useFormContext } from 'react-hook-form';
 import type { RemoteSchemaRelationshipFormValues } from './RemoteSchemaRelationshipForm';
 import SchemaToArgumentMapSelectorValue from './SchemaToArgumentMapSelectorValue';
 

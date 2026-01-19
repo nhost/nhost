@@ -1,10 +1,10 @@
-import Link from "next/link";
-import MagicLinkForm from "../components/MagicLinkForm";
-import SocialSignIn from "../components/SocialSignIn";
-import TabForm from "../components/TabForm";
-import WebAuthnSignInForm from "../components/WebAuthnSignInForm";
-import { sendMagicLink } from "./actions";
-import SignInForm from "./SignInForm";
+import Link from 'next/link';
+import MagicLinkForm from '../components/MagicLinkForm';
+import SocialSignIn from '../components/SocialSignIn';
+import TabForm from '../components/TabForm';
+import WebAuthnSignInForm from '../components/WebAuthnSignInForm';
+import { sendMagicLink } from './actions';
+import SignInForm from './SignInForm';
 
 export default async function SignIn({
   searchParams,
@@ -14,7 +14,7 @@ export default async function SignIn({
   // Extract error and magic link status from URL
   const params = await searchParams;
   const error = params?.error;
-  const magicLinkSent = params?.magic === "success";
+  const magicLinkSent = params?.magic === 'success';
 
   return (
     <div className="flex flex-col items-center justify-center">

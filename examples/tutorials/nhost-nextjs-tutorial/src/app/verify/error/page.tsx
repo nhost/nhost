@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from 'next/link';
 
 export default async function VerifyError({
   searchParams,
@@ -6,10 +6,10 @@ export default async function VerifyError({
   searchParams: Promise<Record<string, string>>;
 }) {
   const params = await searchParams;
-  const message = params?.message || "Unknown verification error";
+  const message = params?.message || 'Unknown verification error';
 
   // Filter out the message to show other URL parameters
-  const urlParams = Object.entries(params).filter(([key]) => key !== "message");
+  const urlParams = Object.entries(params).filter(([key]) => key !== 'message');
 
   return (
     <div>
@@ -24,7 +24,7 @@ export default async function VerifyError({
             <p className="debug-title">URL Parameters:</p>
             {urlParams.map(([key, value]) => (
               <div key={key} className="debug-item">
-                <span className="debug-key">{key}:</span>{" "}
+                <span className="debug-key">{key}:</span>{' '}
                 <span className="debug-value">{value}</span>
               </div>
             ))}

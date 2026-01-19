@@ -1,7 +1,7 @@
 <script lang="ts">
-import type { ErrorResponse } from "@nhost/nhost-js/auth";
-import type { FetchError } from "@nhost/nhost-js/fetch";
-import { nhost } from "$lib/nhost/auth";
+import type { ErrorResponse } from '@nhost/nhost-js/auth';
+import type { FetchError } from '@nhost/nhost-js/fetch';
+import { nhost } from '$lib/nhost/auth';
 
 interface Props {
   initialMfaEnabled: boolean;
@@ -16,13 +16,13 @@ let success: string | null = $state(null);
 
 // MFA setup states
 let isSettingUpMfa = $state(false);
-let totpSecret = $state("");
-let qrCodeUrl = $state("");
-let verificationCode = $state("");
+let totpSecret = $state('');
+let qrCodeUrl = $state('');
+let verificationCode = $state('');
 
 // Disabling MFA states
 let isDisablingMfa = $state(false);
-let disableVerificationCode = $state("");
+let disableVerificationCode = $state('');
 
 // Update internal state when prop changes
 $effect(() => {
@@ -54,7 +54,7 @@ async function handleEnableMfa() {
 // Verify TOTP and enable MFA
 async function handleVerifyTotp() {
   if (!verificationCode) {
-    error = "Please enter the verification code";
+    error = 'Please enter the verification code';
     return;
   }
 
@@ -65,13 +65,13 @@ async function handleVerifyTotp() {
   try {
     // Verify and activate MFA
     await nhost.auth.verifyChangeUserMfa({
-      activeMfaType: "totp",
+      activeMfaType: 'totp',
       code: verificationCode,
     });
 
     isMfaEnabled = true;
     isSettingUpMfa = false;
-    success = "MFA has been successfully enabled.";
+    success = 'MFA has been successfully enabled.';
   } catch (err) {
     const fetchError = err as FetchError<ErrorResponse>;
     error = `An error occurred while verifying the code: ${fetchError.message}`;
@@ -90,7 +90,7 @@ function handleShowDisableMfa() {
 // Disable MFA
 async function handleDisableMfa() {
   if (!disableVerificationCode) {
-    error = "Please enter your verification code to confirm";
+    error = 'Please enter your verification code to confirm';
     return;
   }
 
@@ -101,14 +101,14 @@ async function handleDisableMfa() {
   try {
     // Disable MFA by setting activeMfaType to empty string
     await nhost.auth.verifyChangeUserMfa({
-      activeMfaType: "",
+      activeMfaType: '',
       code: disableVerificationCode,
     });
 
     isMfaEnabled = false;
     isDisablingMfa = false;
-    disableVerificationCode = "";
-    success = "MFA has been successfully disabled.";
+    disableVerificationCode = '';
+    success = 'MFA has been successfully disabled.';
   } catch (err) {
     const fetchError = err as FetchError<ErrorResponse>;
     error = `An error occurred while disabling MFA: ${fetchError.message}`;
@@ -120,15 +120,15 @@ async function handleDisableMfa() {
 // Cancel MFA setup
 function handleCancelMfaSetup() {
   isSettingUpMfa = false;
-  totpSecret = "";
-  qrCodeUrl = "";
-  verificationCode = "";
+  totpSecret = '';
+  qrCodeUrl = '';
+  verificationCode = '';
 }
 
 // Cancel MFA disable
 function handleCancelMfaDisable() {
   isDisablingMfa = false;
-  disableVerificationCode = "";
+  disableVerificationCode = '';
   error = null;
 }
 </script>

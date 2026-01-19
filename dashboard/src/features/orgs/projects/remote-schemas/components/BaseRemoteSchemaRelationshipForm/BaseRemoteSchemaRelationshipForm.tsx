@@ -1,5 +1,5 @@
-import type { RemoteSchemaRelationshipType } from '@/features/orgs/projects/remote-schemas/types/remoteSchemas';
 import { useState } from 'react';
+import type { RemoteSchemaRelationshipType } from '@/features/orgs/projects/remote-schemas/types/remoteSchemas';
 import type { DatabaseRelationshipFormValues } from './sections/DatabaseRelationshipForm';
 import DatabaseRelationshipForm from './sections/DatabaseRelationshipForm';
 import RelationshipTypeSection from './sections/RelationshipTypeSection';

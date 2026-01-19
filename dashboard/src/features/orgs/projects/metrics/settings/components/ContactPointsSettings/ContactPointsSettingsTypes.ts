@@ -1,6 +1,6 @@
+import * as Yup from 'yup';
 import { EventSeverity } from '@/features/orgs/projects/metrics/settings/components/PagerdutyFormSection/PagerdutyFormSectionTypes';
 import { HttpMethod } from '@/features/orgs/projects/metrics/settings/components/WebhookFormSection/WebhookFormSectionTypes';
-import * as Yup from 'yup';
 
 export const validationSchema = Yup.object({
   emails: Yup.array()

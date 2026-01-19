@@ -1,10 +1,10 @@
+import { SiGithub } from '@icons-pack/react-simple-icons';
 import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
 import {
-  useGithubAuthentication,
   type UseGithubAuthenticationHookProps,
+  useGithubAuthentication,
 } from '@/features/auth/AuthProviders/Github/hooks/useGithubAuthentication';
 import { cn } from '@/lib/utils';
-import { SiGithub } from '@icons-pack/react-simple-icons';
 
 interface Props extends UseGithubAuthenticationHookProps {
   buttonText?: string;

@@ -53,13 +53,13 @@
 </template>
 
 <script setup lang="ts">
-import type { ErrorResponse } from "@nhost/nhost-js/auth";
-import type { FetchError, FetchResponse } from "@nhost/nhost-js/fetch";
-import { onMounted, ref } from "vue";
-import ChangePassword from "../components/profile/ChangePassword.vue";
-import MFASettings from "../components/profile/MFASettings.vue";
-import SecurityKeys from "../components/profile/SecurityKeys.vue";
-import { useAuth } from "../lib/nhost/auth";
+import type { ErrorResponse } from '@nhost/nhost-js/auth';
+import type { FetchError, FetchResponse } from '@nhost/nhost-js/fetch';
+import { onMounted, ref } from 'vue';
+import ChangePassword from '../components/profile/ChangePassword.vue';
+import MFASettings from '../components/profile/MFASettings.vue';
+import SecurityKeys from '../components/profile/SecurityKeys.vue';
+import { useAuth } from '../lib/nhost/auth';
 
 interface MfaStatusResponse {
   data?: {
@@ -95,7 +95,7 @@ onMounted(async () => {
 
       const userData = response.body?.data;
       const activeMfaType = userData?.user?.activeMfaType;
-      const newMfaEnabled = activeMfaType === "totp";
+      const newMfaEnabled = activeMfaType === 'totp';
 
       // Update the state
       isMfaEnabled.value = newMfaEnabled;

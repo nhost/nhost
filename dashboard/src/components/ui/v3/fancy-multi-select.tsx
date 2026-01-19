@@ -1,7 +1,15 @@
 'use client';
 
+import { Command as CommandPrimitive } from 'cmdk';
 import { X } from 'lucide-react';
-
+import {
+  type KeyboardEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Badge } from '@/components/ui/v3/badge';
 import {
   Command,
@@ -10,15 +18,6 @@ import {
   CommandList,
 } from '@/components/ui/v3/command';
 import { cn } from '@/lib/utils';
-import { Command as CommandPrimitive } from 'cmdk';
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type KeyboardEvent,
-} from 'react';
 
 export type Option = Record<'value' | 'label', string>;
 

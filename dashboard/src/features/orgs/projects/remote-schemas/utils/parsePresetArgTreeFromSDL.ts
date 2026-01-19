@@ -1,4 +1,3 @@
-import type { ArgTreeType } from '@/features/orgs/projects/remote-schemas/types';
 import type {
   DocumentNode,
   FieldDefinitionNode,
@@ -7,6 +6,7 @@ import type {
   ObjectTypeDefinitionNode,
 } from 'graphql';
 import { parse } from 'graphql';
+import type { ArgTreeType } from '@/features/orgs/projects/remote-schemas/types';
 import getFieldsMap from './getFieldsMap';
 import getPresetDirective from './getPresetDirective';
 import getSchemaRoots from './getSchemaRoots';

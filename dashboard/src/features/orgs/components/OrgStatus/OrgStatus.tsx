@@ -1,9 +1,9 @@
-import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
-import { Organization_Status_Enum } from '@/utils/__generated__/graphql';
 import { TriangleAlert } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
+import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
+import { Organization_Status_Enum } from '@/utils/__generated__/graphql';
 
 function StatusBanner({
   title,

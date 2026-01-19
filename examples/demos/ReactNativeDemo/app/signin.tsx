@@ -1,5 +1,5 @@
-import { Link, router, useLocalSearchParams } from "expo-router";
-import React, { useState } from "react";
+import { Link, router, useLocalSearchParams } from 'expo-router';
+import React, { useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -9,30 +9,30 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-} from "react-native";
-import MagicLinkForm from "./components/MagicLinkForm";
-import NativeLoginForm from "./components/NativeLoginForm";
-import SocialLoginForm from "./components/SocialLoginForm";
-import { useAuth } from "./lib/nhost/AuthProvider";
+} from 'react-native';
+import MagicLinkForm from './components/MagicLinkForm';
+import NativeLoginForm from './components/NativeLoginForm';
+import SocialLoginForm from './components/SocialLoginForm';
+import { useAuth } from './lib/nhost/AuthProvider';
 
 export default function SignIn() {
   const { nhost, isAuthenticated } = useAuth();
   const params = useLocalSearchParams();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [appleAuthInProgress, setAppleAuthInProgress] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<
-    "password" | "magic" | "social" | "native"
-  >("password");
+    'password' | 'magic' | 'social' | 'native'
+  >('password');
 
-  const magicLinkSent = params["magic"] === "success";
+  const magicLinkSent = params['magic'] === 'success';
 
   // If already authenticated, redirect to profile
   React.useEffect(() => {
     if (isAuthenticated) {
-      router.replace("/profile");
+      router.replace('/profile');
     }
   }, [isAuthenticated]);
 
@@ -55,13 +55,13 @@ export default function SignIn() {
 
       // If we have a session, sign in was successful
       if (response.body?.session) {
-        router.replace("/profile");
+        router.replace('/profile');
       } else {
-        setError("Failed to sign in");
+        setError('Failed to sign in');
       }
     } catch (err) {
       const errMessage =
-        err instanceof Error ? err.message : "An unexpected error occurred";
+        err instanceof Error ? err.message : 'An unexpected error occurred';
       setError(`An error occurred during sign in: ${errMessage}`);
     } finally {
       setIsLoading(false);
@@ -86,7 +86,7 @@ export default function SignIn() {
               </Text>
               <TouchableOpacity
                 style={styles.secondaryButton}
-                onPress={() => router.setParams({ magic: "" })}
+                onPress={() => router.setParams({ magic: '' })}
               >
                 <Text style={styles.secondaryButtonText}>Back to sign in</Text>
               </TouchableOpacity>
@@ -97,14 +97,14 @@ export default function SignIn() {
                 <TouchableOpacity
                   style={[
                     styles.tabButton,
-                    activeTab === "password" && styles.activeTab,
+                    activeTab === 'password' && styles.activeTab,
                   ]}
-                  onPress={() => setActiveTab("password")}
+                  onPress={() => setActiveTab('password')}
                 >
                   <Text
                     style={[
                       styles.tabText,
-                      activeTab === "password" && styles.activeTabText,
+                      activeTab === 'password' && styles.activeTabText,
                     ]}
                   >
                     Password
@@ -113,14 +113,14 @@ export default function SignIn() {
                 <TouchableOpacity
                   style={[
                     styles.tabButton,
-                    activeTab === "magic" && styles.activeTab,
+                    activeTab === 'magic' && styles.activeTab,
                   ]}
-                  onPress={() => setActiveTab("magic")}
+                  onPress={() => setActiveTab('magic')}
                 >
                   <Text
                     style={[
                       styles.tabText,
-                      activeTab === "magic" && styles.activeTabText,
+                      activeTab === 'magic' && styles.activeTabText,
                     ]}
                   >
                     Magic Link
@@ -129,14 +129,14 @@ export default function SignIn() {
                 <TouchableOpacity
                   style={[
                     styles.tabButton,
-                    activeTab === "social" && styles.activeTab,
+                    activeTab === 'social' && styles.activeTab,
                   ]}
-                  onPress={() => setActiveTab("social")}
+                  onPress={() => setActiveTab('social')}
                 >
                   <Text
                     style={[
                       styles.tabText,
-                      activeTab === "social" && styles.activeTabText,
+                      activeTab === 'social' && styles.activeTabText,
                     ]}
                   >
                     Social
@@ -145,14 +145,14 @@ export default function SignIn() {
                 <TouchableOpacity
                   style={[
                     styles.tabButton,
-                    activeTab === "native" && styles.activeTab,
+                    activeTab === 'native' && styles.activeTab,
                   ]}
-                  onPress={() => setActiveTab("native")}
+                  onPress={() => setActiveTab('native')}
                 >
                   <Text
                     style={[
                       styles.tabText,
-                      activeTab === "native" && styles.activeTabText,
+                      activeTab === 'native' && styles.activeTabText,
                     ]}
                   >
                     Native
@@ -161,7 +161,7 @@ export default function SignIn() {
               </View>
 
               <View style={styles.form}>
-                {activeTab === "password" ? (
+                {activeTab === 'password' ? (
                   <>
                     <View style={styles.inputGroup}>
                       <Text style={styles.label}>Email</Text>
@@ -202,9 +202,9 @@ export default function SignIn() {
                       )}
                     </TouchableOpacity>
                   </>
-                ) : activeTab === "magic" ? (
+                ) : activeTab === 'magic' ? (
                   <MagicLinkForm buttonLabel="Sign In with Magic Link" />
-                ) : activeTab === "social" ? (
+                ) : activeTab === 'social' ? (
                   <SocialLoginForm action="Sign In" isLoading={isLoading} />
                 ) : (
                   <NativeLoginForm
@@ -220,7 +220,7 @@ export default function SignIn() {
 
         <View style={styles.footer}>
           <Text style={styles.footerText}>
-            Don&apos;t have an account?{" "}
+            Don&apos;t have an account?{' '}
             <Link href="/signup" style={styles.link}>
               Sign Up
             </Link>
@@ -234,28 +234,28 @@ export default function SignIn() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: '#f5f5f5',
   },
   scrollContainer: {
     flexGrow: 1,
-    justifyContent: "center",
+    justifyContent: 'center',
     padding: 20,
   },
   title: {
     fontSize: 24,
-    fontWeight: "bold",
-    textAlign: "center",
+    fontWeight: 'bold',
+    textAlign: 'center',
     marginBottom: 20,
-    color: "#333",
+    color: '#333',
   },
   card: {
-    width: "100%",
+    width: '100%',
     maxWidth: 400,
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
     borderRadius: 10,
     padding: 20,
-    alignSelf: "center",
-    shadowColor: "#000",
+    alignSelf: 'center',
+    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2,
@@ -266,35 +266,35 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 20,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginBottom: 20,
-    textAlign: "center",
+    textAlign: 'center',
   },
   tabContainer: {
-    flexDirection: "row",
+    flexDirection: 'row',
     marginBottom: 20,
     borderBottomWidth: 1,
-    borderBottomColor: "#e2e8f0",
+    borderBottomColor: '#e2e8f0',
   },
   tabButton: {
     flex: 1,
     paddingVertical: 10,
-    alignItems: "center",
+    alignItems: 'center',
   },
   tabText: {
     fontSize: 16,
-    color: "#718096",
+    color: '#718096',
   },
   activeTab: {
     borderBottomWidth: 2,
-    borderBottomColor: "#6366f1",
+    borderBottomColor: '#6366f1',
   },
   activeTabText: {
-    color: "#6366f1",
-    fontWeight: "600",
+    color: '#6366f1',
+    fontWeight: '600',
   },
   form: {
-    width: "100%",
+    width: '100%',
   },
   inputGroup: {
     marginBottom: 15,
@@ -302,66 +302,66 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     marginBottom: 5,
-    color: "#333",
+    color: '#333',
   },
   input: {
     height: 45,
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: '#ddd',
     borderRadius: 5,
     paddingHorizontal: 10,
     fontSize: 16,
-    backgroundColor: "#fafafa",
+    backgroundColor: '#fafafa',
   },
   errorText: {
-    color: "#e53e3e",
+    color: '#e53e3e',
     marginBottom: 10,
   },
   successText: {
-    color: "#38a169",
+    color: '#38a169',
     fontSize: 16,
-    textAlign: "center",
+    textAlign: 'center',
     marginBottom: 15,
   },
   messageContainer: {
-    alignItems: "center",
+    alignItems: 'center',
     paddingVertical: 10,
   },
   button: {
-    backgroundColor: "#6366f1",
+    backgroundColor: '#6366f1',
     paddingVertical: 12,
     borderRadius: 5,
-    alignItems: "center",
+    alignItems: 'center',
     marginTop: 10,
   },
   buttonText: {
-    color: "#fff",
+    color: '#fff',
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   secondaryButton: {
-    backgroundColor: "#e2e8f0",
+    backgroundColor: '#e2e8f0',
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 5,
-    alignItems: "center",
+    alignItems: 'center',
     marginTop: 10,
   },
   secondaryButtonText: {
-    color: "#4a5568",
+    color: '#4a5568',
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   footer: {
     marginTop: 20,
-    alignItems: "center",
+    alignItems: 'center',
   },
   footerText: {
-    color: "#666",
+    color: '#666',
     fontSize: 14,
   },
   link: {
-    color: "#6366f1",
-    fontWeight: "bold",
+    color: '#6366f1',
+    fontWeight: 'bold',
   },
 });

@@ -7,17 +7,15 @@ setup.beforeEach(async ({ authenticatedNhostPage: page }) => {
   await page.waitForURL(databaseRoute);
 });
 
-setup(
-  'clean up database tables',
-  async ({ authenticatedNhostPage: page }) => {
-    await page.getByRole('link', { name: /sql editor/i }).click();
+setup('clean up database tables', async ({ authenticatedNhostPage: page }) => {
+  await page.getByRole('link', { name: /sql editor/i }).click();
 
-    await page.waitForURL(
-      `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/editor`,
-    );
+  await page.waitForURL(
+    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/editor`,
+  );
 
-    const inputField = page.locator('[contenteditable]');
-    await inputField.fill(`
+  const inputField = page.locator('[contenteditable]');
+  await inputField.fill(`
       DO $$ DECLARE
         tablename text;
       BEGIN
@@ -30,7 +28,6 @@ setup(
       END $$;
     `);
 
-    await page.locator('button[type="button"]', { hasText: /run/i }).click();
-    await expect(page.getByText(/success/i)).toBeVisible();
-  },
-);
+  await page.locator('button[type="button"]', { hasText: /run/i }).click();
+  await expect(page.getByText(/success/i)).toBeVisible();
+});

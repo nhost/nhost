@@ -1,3 +1,4 @@
+import { type UseQueryOptions, useQuery } from '@tanstack/react-query';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { getScheduledEvents } from '@/features/orgs/projects/events/common/api/getScheduledEvents';
 import type { CronTriggerEventsSection } from '@/features/orgs/projects/events/cron-triggers/components/CronTriggerEventsDataTable/cronTriggerEventsDataTableColumns';
@@ -9,7 +10,6 @@ import type {
   ScheduledEventLogEntry,
   ScheduledEventStatus,
 } from '@/utils/hasura-api/generated/schemas';
-import { useQuery, type UseQueryOptions } from '@tanstack/react-query';
 
 export interface UseGetCronEventLogsQueryOptions {
   /**
