@@ -6,10 +6,9 @@
     "dev": "mintlify dev",
     "generate": "./gen.sh",
     "test": "./check_broken_links.sh",
-    "test:broken-links": "pnpm exec mintlify broken-links"
+    "test:broken-links": "mintlify broken-links"
   },
   "devDependencies": {
-    "mintlify": "^4.2.246",
     "prettier": "^3.5.3",
     "typedoc": "^0.28.4",
     "typedoc-plugin-markdown": "^4.6.3"
