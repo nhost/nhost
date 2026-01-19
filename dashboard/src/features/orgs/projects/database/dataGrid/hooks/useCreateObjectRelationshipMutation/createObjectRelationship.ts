@@ -1,10 +1,10 @@
 import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
-import type { CreateObjectRelationshipArgs } from '@/utils/hasura-api/generated/schemas';
+import type { CreateLocalRelationshipArgs } from '@/utils/hasura-api/generated/schemas';
 import type { MetadataOperationOptions } from '@/utils/hasura-api/types';
 
 export interface CreateObjectRelationshipVariables {
   resourceVersion: number;
-  args: CreateObjectRelationshipArgs;
+  args: CreateLocalRelationshipArgs;
 }
 
 export default async function createObjectRelationship({

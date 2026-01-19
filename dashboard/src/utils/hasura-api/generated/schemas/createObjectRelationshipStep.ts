@@ -6,7 +6,7 @@
  * OpenAPI spec version: 1.0.0
  */
 
-import type { CreateObjectRelationshipArgs } from './createObjectRelationshipArgs';
+import type { CreateLocalRelationshipArgs } from './createLocalRelationshipArgs';
 import type { CreateObjectRelationshipStepType } from './createObjectRelationshipStepType';
 
 /**
@@ -14,5 +14,5 @@ import type { CreateObjectRelationshipStepType } from './createObjectRelationshi
  */
 export interface CreateObjectRelationshipStep {
   type: CreateObjectRelationshipStepType;
-  args: CreateObjectRelationshipArgs;
+  args: CreateLocalRelationshipArgs;
 }

@@ -8,12 +8,12 @@
 import type { QualifiedTable } from './qualifiedTable';
 import type { RelationshipUsing } from './relationshipUsing';
 
-export interface CreateArrayRelationshipArgs {
+export interface CreateLocalRelationshipArgs {
   /** Name of the table */
   table: QualifiedTable;
   /** Name of the new relationship */
   name: string;
-  /** Use one of the available ways to define an array relationship */
+  /** Use one of the available ways to define a relationship. There has to be at least one and only one of foreign_key_constraint_on and manual_configuration. */
   using: RelationshipUsing;
   comment?: string;
   /** Name of the source database of the table */

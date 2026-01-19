@@ -5,14 +5,13 @@
  * API for managing remote schemas and events in Hasura
  * OpenAPI spec version: 1.0.0
  */
-
-import type { CreateArrayRelationshipArgs } from './createArrayRelationshipArgs';
 import type { CreateArrayRelationshipStepType } from './createArrayRelationshipStepType';
+import type { CreateLocalRelationshipArgs } from './createLocalRelationshipArgs';
 
 /**
  * Define a new array relationship between Postgres tables/views
  */
 export interface CreateArrayRelationshipStep {
   type: CreateArrayRelationshipStepType;
-  args: CreateArrayRelationshipArgs;
+  args: CreateLocalRelationshipArgs;
 }

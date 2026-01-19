@@ -9,8 +9,7 @@ import { useCreateArrayRelationshipMutation } from '@/features/orgs/projects/dat
 import { useCreateObjectRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateObjectRelationshipMutation';
 import { useCreateRemoteRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateRemoteRelationshipMutation';
 import { isRemoteSchemaRelationshipFormValues } from '@/features/orgs/projects/database/dataGrid/types/relationships/guards';
-import { prepareArrayRelationshipDTO } from '@/features/orgs/projects/database/dataGrid/utils/prepareArrayRelationshipDTO';
-import { prepareObjectRelationshipDTO } from '@/features/orgs/projects/database/dataGrid/utils/prepareObjectRelationshipDTO';
+import { prepareLocalRelationshipDTO } from '@/features/orgs/projects/database/dataGrid/utils/prepareLocalRelationshipDTO';
 import { prepareRemoteSchemaRelationshipDTO } from '@/features/orgs/projects/database/dataGrid/utils/prepareRemoteSchemaRelationshipDTO';
 import { prepareRemoteSourceRelationshipDTO } from '@/features/orgs/projects/database/dataGrid/utils/prepareRemoteSourceRelationshipDTO';
 import { triggerToast } from '@/utils/toast';
@@ -58,15 +57,14 @@ export default function CreateRelationshipDialog({
           resourceVersion,
           args,
         });
-      } else if (values.relationshipType === 'array') {
-        const args = prepareArrayRelationshipDTO(values);
-        await createArrayRelationship({
-          resourceVersion,
-          args,
-        });
       } else {
-        const args = prepareObjectRelationshipDTO(values);
-        await createObjectRelationship({
+        const args = prepareLocalRelationshipDTO(values);
+        const createLocalRelationship =
+          values.relationshipType === 'array'
+            ? createArrayRelationship
+            : createObjectRelationship;
+
+        await createLocalRelationship({
           resourceVersion,
           args,
         });

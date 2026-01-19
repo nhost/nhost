@@ -530,6 +530,29 @@ components:
               type: string
               description: Name of the remote relationship
 
+    CreateLocalRelationshipArgs:
+      type: object
+      required:
+        - table
+        - name
+        - using
+      properties:
+        table:
+          description: Name of the table
+          $ref: '#/components/schemas/QualifiedTable'
+        name:
+          type: string
+          description: Name of the new relationship
+        using:
+          description: Use one of the available ways to define a relationship. There has to be at least one and only one of foreign_key_constraint_on and manual_configuration.
+          $ref: '#/components/schemas/RelationshipUsing'
+        comment:
+          type: string
+        source:
+          type: string
+          description: Name of the source database of the table
+          default: default
+
     CreateObjectRelationshipBulkOperation:
       type: object
       required:
@@ -561,30 +584,7 @@ components:
           type: string
           enum: [pg_create_object_relationship]
         args:
-          $ref: '#/components/schemas/CreateObjectRelationshipArgs'
-
-    CreateObjectRelationshipArgs:
-      type: object
-      required:
-        - table
-        - name
-        - using
-      properties:
-        table:
-          description: Name of the table
-          $ref: '#/components/schemas/QualifiedTable'
-        name:
-          type: string
-          description: Name of the new relationship
-        using:
-          description: Use one of the available ways to define an object relationship. There has to be at least one and only one of foreign_key_constraint_on and manual_configuration.
-          $ref: '#/components/schemas/RelationshipUsing'
-        comment:
-          type: string
-        source:
-          type: string
-          description: Name of the source database of the table
-          default: default
+          $ref: '#/components/schemas/CreateLocalRelationshipArgs'
 
     RelationshipUsing:
       type: object
@@ -686,30 +686,7 @@ components:
           type: string
           enum: [pg_create_array_relationship]
         args:
-          $ref: '#/components/schemas/CreateArrayRelationshipArgs'
-
-    CreateArrayRelationshipArgs:
-      type: object
-      required:
-        - table
-        - name
-        - using
-      properties:
-        table:
-          description: Name of the table
-          $ref: '#/components/schemas/QualifiedTable'
-        name:
-          type: string
-          description: Name of the new relationship
-        using:
-          description: Use one of the available ways to define an array relationship
-          $ref: '#/components/schemas/RelationshipUsing'
-        comment:
-          type: string
-        source:
-          type: string
-          description: Name of the source database of the table
-          default: default
+          $ref: '#/components/schemas/CreateLocalRelationshipArgs'
 
     CreateRemoteRelationshipBulkOperation:
       type: object

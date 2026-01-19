@@ -1,10 +1,10 @@
 import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
-import type { CreateArrayRelationshipArgs } from '@/utils/hasura-api/generated/schemas';
+import type { CreateLocalRelationshipArgs } from '@/utils/hasura-api/generated/schemas';
 import type { MetadataOperationOptions } from '@/utils/hasura-api/types';
 
 export interface CreateArrayRelationshipVariables {
   resourceVersion: number;
-  args: CreateArrayRelationshipArgs;
+  args: CreateLocalRelationshipArgs;
 }
 
 export default async function createArrayRelationship({

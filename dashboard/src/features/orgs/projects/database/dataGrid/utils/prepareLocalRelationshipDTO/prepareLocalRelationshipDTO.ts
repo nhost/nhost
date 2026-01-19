@@ -1,13 +1,9 @@
 import type { TableRelationshipFormValues } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/BaseRelationshipFormTypes';
-import type { CreateObjectRelationshipArgs } from '@/utils/hasura-api/generated/schemas';
+import type { CreateLocalRelationshipArgs } from '@/utils/hasura-api/generated/schemas';
 
-export default function prepareObjectRelationshipDTO(
+export default function prepareLocalRelationshipDTO(
   values: TableRelationshipFormValues,
-): CreateObjectRelationshipArgs {
-  if (values.relationshipType !== 'object') {
-    throw new Error('Invalid object relationship values');
-  }
-
+): CreateLocalRelationshipArgs {
   const baseTable = {
     schema: values.fromSource.schema,
     name: values.fromSource.table,
@@ -24,7 +20,7 @@ export default function prepareObjectRelationshipDTO(
 
   const columnMapping = Object.fromEntries(columnMappingEntries);
 
-  const args: CreateObjectRelationshipArgs = {
+  const args: CreateLocalRelationshipArgs = {
     table: baseTable,
     name: values.name,
     source: values.fromSource.source,

@@ -133,6 +133,149 @@ test('should create and delete an object relationship from scratch', async ({
     'div:has-text("Relationship deleted successfully.")',
   );
 
+  await page.waitForTimeout(1000);
+
+  // Verify relationship is removed from the relationships list
+  await expect(
+    page.getByText(relationshipName, { exact: true }),
+  ).not.toBeVisible();
+});
+
+test('should create and delete an array relationship from scratch', async ({
+  authenticatedNhostPage: page,
+}) => {
+  // Create main table (authors)
+  const authorTableName = snakeCase(`e2e ${faker.lorem.words(2)}`);
+  await page.getByRole('button', { name: /new table/i }).click();
+  await expect(page.getByText(/create a new table/i)).toBeVisible();
+
+  await prepareTable({
+    page,
+    name: authorTableName,
+    primaryKeys: [],
+    columns: [{ name: 'name', type: 'text' }],
+  });
+
+  await page.getByRole('button', { name: /create/i }).click();
+
+  await page.waitForURL(
+    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/${authorTableName}`,
+  );
+
+  // Create related table (books) with foreign key
+  await page.getByRole('button', { name: /new table/i }).click();
+  await expect(page.getByText(/create a new table/i)).toBeVisible();
+
+  const bookTableName = snakeCase(`e2e ${faker.lorem.words(2)}`);
+
+  await prepareTable({
+    page,
+    name: bookTableName,
+    primaryKeys: [],
+    columns: [
+      { name: 'title', type: 'text' },
+      { name: 'author_id', type: 'uuid' },
+    ],
+  });
+
+  await page.getByRole('button', { name: /create/i }).click();
+
+  await page.waitForURL(
+    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/${bookTableName}`,
+  );
+
+  // Navigate back to author table to create array relationship
+  await page.goto(
+    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/${authorTableName}`,
+  );
+  await page.waitForURL(
+    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/${authorTableName}`,
+  );
+
+  // Create array relationship
+  const relationshipName = `array_rel_${faker.lorem.word()}`;
+
+  // Press three horizontal dots more options button next to the table name
+  await page
+    .locator(
+      `li:has-text("${authorTableName}") #table-management-menu-${authorTableName}`,
+    )
+    .click();
+
+  await page.getByRole('menuitem', { name: /edit relationships/i }).click();
+
+  await page.getByRole('button', { name: /relationship/i }).click();
+
+  await expect(
+    page.getByRole('heading', { name: /create relationship/i }),
+  ).toBeVisible();
+
+  // Fill relationship name
+  await page.getByLabel(/relationship name/i).fill(relationshipName);
+
+  // Select relationship type: Array
+  await page.getByLabel(/relationship type/i).click();
+  await page.getByRole('option', { name: /array relationship/i }).click();
+
+  // Configure source/reference - select target table (books) using data-testid
+  await page.getByTestId('toReferenceSourceSelect').click();
+  await page
+    .getByRole('option', { name: /default/i })
+    .first()
+    .click();
+
+  await page.getByTestId('toReferenceSchemaSelect').click();
+  await page.getByRole('option', { name: /public/i }).click();
+
+  await page.getByTestId('toReferenceTableCombobox').click();
+  await page.getByRole('option', { name: bookTableName, exact: true }).click();
+
+  // Wait for field mapping to be available
+  await page.waitForTimeout(1000);
+
+  // Map columns: books.author_id -> authors.id
+  // For array relationships, we map from the related table's foreign key to the main table's primary key
+  await page.getByRole('button', { name: /add new mapping/i }).click();
+
+  // Use data-testid to find the field mapping selects (index 0 for first mapping)
+  await page.getByTestId('fieldMapping.0.sourceColumn').click();
+  await page.getByRole('option', { name: /id/i }).click();
+
+  await page.getByTestId('fieldMapping.0.referenceColumn').click();
+  await page.getByRole('option', { name: /author_id/i }).click();
+
+  // Submit
+  await page.getByRole('button', { name: /create relationship/i }).click();
+
+  // Verify success toast appears
+  await page.waitForSelector(
+    'div:has-text("Relationship created successfully.")',
+  );
+
+  // Wait for the dialog to close
+  await expect(
+    page.getByRole('heading', { name: /create relationship/i }),
+  ).not.toBeVisible();
+
+  // Verify relationship appears in the relationships list
+  await expect(page.getByText(relationshipName, { exact: true })).toBeVisible();
+
+  // Delete the relationship
+  await page.getByTestId(`delete-rel-${relationshipName}`).click();
+
+  await expect(
+    page.getByRole('heading', { name: /delete relationship/i }),
+  ).toBeVisible();
+
+  await page.getByRole('button', { name: /^delete$/i }).click();
+
+  // Verify deletion success
+  await page.waitForSelector(
+    'div:has-text("Relationship deleted successfully.")',
+  );
+
+  await page.waitForTimeout(1000);
+
   // Verify relationship is removed from the relationships list
   await expect(
     page.getByText(relationshipName, { exact: true }),
