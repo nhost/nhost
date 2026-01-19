@@ -6847,12 +6847,12 @@ export type AddCommentMutation = {
 };
 
 export type CommentDetailsFragment = {
-  __typename?: "comments";
+  __typename?: 'comments';
   id: string;
   comment: string;
   createdAt: string;
   user: {
-    __typename?: "users";
+    __typename?: 'users';
     id: string;
     displayName: string;
     email?: string | null;
@@ -6860,30 +6860,30 @@ export type CommentDetailsFragment = {
 };
 
 export const CommentDetailsFragmentDoc = {
-  kind: "Document",
+  kind: 'Document',
   definitions: [
     {
-      kind: "FragmentDefinition",
-      name: { kind: "Name", value: "CommentDetails" },
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'CommentDetails' },
       typeCondition: {
-        kind: "NamedType",
-        name: { kind: "Name", value: "comments" },
+        kind: 'NamedType',
+        name: { kind: 'Name', value: 'comments' },
       },
       selectionSet: {
-        kind: "SelectionSet",
+        kind: 'SelectionSet',
         selections: [
-          { kind: "Field", name: { kind: "Name", value: "id" } },
-          { kind: "Field", name: { kind: "Name", value: "comment" } },
-          { kind: "Field", name: { kind: "Name", value: "createdAt" } },
+          { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'comment' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'createdAt' } },
           {
-            kind: "Field",
-            name: { kind: "Name", value: "user" },
+            kind: 'Field',
+            name: { kind: 'Name', value: 'user' },
             selectionSet: {
-              kind: "SelectionSet",
+              kind: 'SelectionSet',
               selections: [
-                { kind: "Field", name: { kind: "Name", value: "id" } },
-                { kind: "Field", name: { kind: "Name", value: "displayName" } },
-                { kind: "Field", name: { kind: "Name", value: "email" } },
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'displayName' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'email' } },
               ],
             },
           },
@@ -6919,35 +6919,9 @@ export const GetNinjaTurtlesWithCommentsDocument = {
                   selectionSet: {
                     kind: 'SelectionSet',
                     selections: [
-                      { kind: 'Field', name: { kind: 'Name', value: 'id' } },
                       {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'comment' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'createdAt' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'user' },
-                        selectionSet: {
-                          kind: 'SelectionSet',
-                          selections: [
-                            {
-                              kind: 'Field',
-                              name: { kind: 'Name', value: 'id' },
-                            },
-                            {
-                              kind: 'Field',
-                              name: { kind: 'Name', value: 'displayName' },
-                            },
-                            {
-                              kind: 'Field',
-                              name: { kind: 'Name', value: 'email' },
-                            },
-                          ],
-                        },
+                        kind: 'FragmentSpread',
+                        name: { kind: 'Name', value: 'CommentDetails' },
                       },
                     ],
                   },
@@ -6959,27 +6933,27 @@ export const GetNinjaTurtlesWithCommentsDocument = {
       },
     },
     {
-      kind: "FragmentDefinition",
-      name: { kind: "Name", value: "CommentDetails" },
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'CommentDetails' },
       typeCondition: {
-        kind: "NamedType",
-        name: { kind: "Name", value: "comments" },
+        kind: 'NamedType',
+        name: { kind: 'Name', value: 'comments' },
       },
       selectionSet: {
-        kind: "SelectionSet",
+        kind: 'SelectionSet',
         selections: [
-          { kind: "Field", name: { kind: "Name", value: "id" } },
-          { kind: "Field", name: { kind: "Name", value: "comment" } },
-          { kind: "Field", name: { kind: "Name", value: "createdAt" } },
+          { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'comment' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'createdAt' } },
           {
-            kind: "Field",
-            name: { kind: "Name", value: "user" },
+            kind: 'Field',
+            name: { kind: 'Name', value: 'user' },
             selectionSet: {
-              kind: "SelectionSet",
+              kind: 'SelectionSet',
               selections: [
-                { kind: "Field", name: { kind: "Name", value: "id" } },
-                { kind: "Field", name: { kind: "Name", value: "displayName" } },
-                { kind: "Field", name: { kind: "Name", value: "email" } },
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'displayName' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'email' } },
               ],
             },
           },
@@ -7077,26 +7051,18 @@ export const AddCommentDocument = {
   ],
 } as unknown as DocumentNode<AddCommentMutation, AddCommentMutationVariables>;
 
-import { print } from "graphql";
+import { print } from 'graphql';
 
 // Add query source to GetNinjaTurtlesWithCommentsDocument
 if (GetNinjaTurtlesWithCommentsDocument) {
   Object.assign(GetNinjaTurtlesWithCommentsDocument, {
-    loc: {
-      source: {
-        body: 'query GetNinjaTurtlesWithComments {\n  ninjaTurtles {\n    id\n    name\n    description\n    createdAt\n    updatedAt\n    comments {\n      id\n      comment\n      createdAt\n      user {\n        id\n        displayName\n        email\n      }\n    }\n  }\n}',
-      },
-    },
+    loc: { source: { body: print(GetNinjaTurtlesWithCommentsDocument) } },
   });
 }
 
 // Add query source to AddCommentDocument
 if (AddCommentDocument) {
   Object.assign(AddCommentDocument, {
-    loc: {
-      source: {
-        body: 'mutation AddComment($ninjaTurtleId: uuid!, $comment: String!) {\n  insertComment(object: {ninjaTurtleId: $ninjaTurtleId, comment: $comment}) {\n    id\n    comment\n    createdAt\n    ninjaTurtleId\n  }\n}',
-      },
-    },
+    loc: { source: { body: print(AddCommentDocument) } },
   });
 }
