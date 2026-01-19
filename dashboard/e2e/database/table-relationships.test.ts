@@ -6,7 +6,12 @@ import {
   TEST_PROJECT_SUBDOMAIN,
 } from '@/e2e/env';
 import { expect, test } from '@/e2e/fixtures/auth-hook';
-import { prepareTable } from '@/e2e/utils';
+import {
+  createRelationship,
+  deleteRelationship,
+  openRelationshipDialog,
+  prepareTable,
+} from '@/e2e/utils';
 
 test.beforeEach(async ({ authenticatedNhostPage: page }) => {
   const databaseRoute = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default`;
@@ -36,10 +41,9 @@ test('should create and delete an object relationship from scratch', async ({
   );
 
   // Create main table (books) with foreign key column
+  const bookTableName = snakeCase(`e2e ${faker.lorem.words(2)}`);
   await page.getByRole('button', { name: /new table/i }).click();
   await expect(page.getByText(/create a new table/i)).toBeVisible();
-
-  const bookTableName = snakeCase(`e2e ${faker.lorem.words(2)}`);
 
   await prepareTable({
     page,
@@ -60,89 +64,19 @@ test('should create and delete an object relationship from scratch', async ({
   // Create object relationship
   const relationshipName = `object_rel_${faker.lorem.word()}`;
 
-  // Press three horizontal dots more options button next to the table name
-  await page
-    .locator(
-      `li:has-text("${bookTableName}") #table-management-menu-${bookTableName}`,
-    )
-    .click();
+  await openRelationshipDialog({ page, tableName: bookTableName });
 
-  await page.getByRole('menuitem', { name: /edit relationships/i }).click();
-
-  await page.getByRole('button', { name: /relationship/i }).click();
-
-  await expect(
-    page.getByRole('heading', { name: /create relationship/i }),
-  ).toBeVisible();
-
-  // Fill relationship name
-  await page.getByLabel(/relationship name/i).fill(relationshipName);
-
-  // Select relationship type: Object
-  await page.getByLabel(/relationship type/i).click();
-  await page.getByRole('option', { name: /object relationship/i }).click();
-
-  // Configure source/reference - select target table using data-testid
-  await page.getByTestId('toReferenceSourceSelect').click();
-  await page.getByRole('option', { name: /default/i }).click();
-
-  await page.getByTestId('toReferenceSchemaSelect').click();
-  await page.getByRole('option', { name: /public/i }).click();
-
-  await page.getByTestId('toReferenceTableCombobox').click();
-  await page
-    .getByRole('option', { name: authorTableName, exact: true })
-    .click();
-
-  // Wait for field mapping to be available
-  await page.waitForTimeout(1000);
-
-  // Map columns: author_id -> id
-  await page.getByRole('button', { name: /add new mapping/i }).click();
-
-  // Use data-testid to find the field mapping selects (index 0 for first mapping)
-  await page.getByTestId('fieldMapping.0.sourceColumn').click();
-  await page.getByRole('option', { name: /author_id/i }).click();
-
-  await page.getByTestId('fieldMapping.0.referenceColumn').click();
-  await page.getByRole('option', { name: /id/i }).click();
-
-  // Submit
-  await page.getByRole('button', { name: /create relationship/i }).click();
-
-  // Verify success toast appears
-  await page.waitForSelector(
-    'div:has-text("Relationship created successfully.")',
-  );
-
-  // Wait for the dialog to close
-  await expect(
-    page.getByRole('heading', { name: /create relationship/i }),
-  ).not.toBeVisible();
-
-  // Verify relationship appears in the relationships list
-  await expect(page.getByText(relationshipName, { exact: true })).toBeVisible();
+  await createRelationship({
+    page,
+    relationshipName,
+    type: 'object',
+    referenceTable: authorTableName,
+    sourceColumn: 'author_id',
+    referenceColumn: 'id',
+  });
 
   // Delete the relationship
-  await page.getByTestId(`delete-rel-${relationshipName}`).click();
-
-  await expect(
-    page.getByRole('heading', { name: /delete relationship/i }),
-  ).toBeVisible();
-
-  await page.getByRole('button', { name: /^delete$/i }).click();
-
-  // Verify deletion success
-  await page.waitForSelector(
-    'div:has-text("Relationship deleted successfully.")',
-  );
-
-  await page.waitForTimeout(1000);
-
-  // Verify relationship is removed from the relationships list
-  await expect(
-    page.getByText(relationshipName, { exact: true }),
-  ).not.toBeVisible();
+  await deleteRelationship({ page, relationshipName });
 });
 
 test('should create and delete an array relationship from scratch', async ({
@@ -167,10 +101,9 @@ test('should create and delete an array relationship from scratch', async ({
   );
 
   // Create related table (books) with foreign key
+  const bookTableName = snakeCase(`e2e ${faker.lorem.words(2)}`);
   await page.getByRole('button', { name: /new table/i }).click();
   await expect(page.getByText(/create a new table/i)).toBeVisible();
-
-  const bookTableName = snakeCase(`e2e ${faker.lorem.words(2)}`);
 
   await prepareTable({
     page,
@@ -199,91 +132,19 @@ test('should create and delete an array relationship from scratch', async ({
   // Create array relationship
   const relationshipName = `array_rel_${faker.lorem.word()}`;
 
-  // Press three horizontal dots more options button next to the table name
-  await page
-    .locator(
-      `li:has-text("${authorTableName}") #table-management-menu-${authorTableName}`,
-    )
-    .click();
+  await openRelationshipDialog({ page, tableName: authorTableName });
 
-  await page.getByRole('menuitem', { name: /edit relationships/i }).click();
-
-  await page.getByRole('button', { name: /relationship/i }).click();
-
-  await expect(
-    page.getByRole('heading', { name: /create relationship/i }),
-  ).toBeVisible();
-
-  // Fill relationship name
-  await page.getByLabel(/relationship name/i).fill(relationshipName);
-
-  // Select relationship type: Array
-  await page.getByLabel(/relationship type/i).click();
-  await page.getByRole('option', { name: /array relationship/i }).click();
-
-  // Configure source/reference - select target table (books) using data-testid
-  await page.getByTestId('toReferenceSourceSelect').click();
-  await page
-    .getByRole('option', { name: /default/i })
-    .first()
-    .click();
-
-  await page.getByTestId('toReferenceSchemaSelect').click();
-  await page.getByRole('option', { name: /public/i }).click();
-
-  await page.getByTestId('toReferenceTableCombobox').click();
-  await page.getByRole('option', { name: bookTableName, exact: true }).click();
-
-  // Wait for field mapping to be available
-  await page.waitForTimeout(1000);
-
-  // Map columns: books.author_id -> authors.id
-  // For array relationships, we map from the related table's foreign key to the main table's primary key
-  await page.getByRole('button', { name: /add new mapping/i }).click();
-
-  // Use data-testid to find the field mapping selects (index 0 for first mapping)
-  await page.getByTestId('fieldMapping.0.sourceColumn').click();
-  await page.getByRole('option', { name: /id/i }).click();
-
-  await page.getByTestId('fieldMapping.0.referenceColumn').click();
-  await page.getByRole('option', { name: /author_id/i }).click();
-
-  // Submit
-  await page.getByRole('button', { name: /create relationship/i }).click();
-
-  // Verify success toast appears
-  await page.waitForSelector(
-    'div:has-text("Relationship created successfully.")',
-  );
-
-  // Wait for the dialog to close
-  await expect(
-    page.getByRole('heading', { name: /create relationship/i }),
-  ).not.toBeVisible();
-
-  // Verify relationship appears in the relationships list
-  await expect(page.getByText(relationshipName, { exact: true })).toBeVisible();
+  await createRelationship({
+    page,
+    relationshipName,
+    type: 'array',
+    referenceTable: bookTableName,
+    sourceColumn: 'id',
+    referenceColumn: 'author_id',
+  });
 
   // Delete the relationship
-  await page.getByTestId(`delete-rel-${relationshipName}`).click();
-
-  await expect(
-    page.getByRole('heading', { name: /delete relationship/i }),
-  ).toBeVisible();
-
-  await page.getByRole('button', { name: /^delete$/i }).click();
-
-  // Verify deletion success
-  await page.waitForSelector(
-    'div:has-text("Relationship deleted successfully.")',
-  );
-
-  await page.waitForTimeout(1000);
-
-  // Verify relationship is removed from the relationships list
-  await expect(
-    page.getByText(relationshipName, { exact: true }),
-  ).not.toBeVisible();
+  await deleteRelationship({ page, relationshipName });
 });
 
 test('should create and delete a remote schema relationship', async ({
@@ -342,41 +203,17 @@ test('should create and delete a remote schema relationship', async ({
   // Create remote schema relationship
   const relationshipName = `remote_rel_${faker.lorem.word()}`;
 
-  // Press three horizontal dots more options button next to the table name
-  await page
-    .locator(
-      `li:has-text("${userTableName}") #table-management-menu-${userTableName}`,
-    )
-    .click();
-
-  await page.getByRole('menuitem', { name: /edit relationships/i }).click();
-
-  await page.getByRole('button', { name: /relationship/i }).click();
-
-  await expect(
-    page.getByRole('heading', { name: /create relationship/i }),
-  ).toBeVisible();
+  await openRelationshipDialog({ page, tableName: userTableName });
 
   // Fill relationship name
   await page.getByLabel(/relationship name/i).fill(relationshipName);
 
-  // Select "Remote Schema" as reference kind
-  // In the "To Reference" section, select the source dropdown using data-testid
   await page.getByTestId('toReferenceSourceSelect').click();
-  // Remote schemas appear after a separator, look for the schema name
   await page.waitForTimeout(500);
   await page.getByRole('option', { name: schemaName, exact: true }).click();
 
-  // Wait for remote schema relationship details to load
   await page.waitForTimeout(2000);
 
-  // The RemoteSchemaRelationshipDetails component should now be visible
-  // It has a complex tree structure for selecting remote fields
-  // For this test, we'll try to select the simplest path available
-
-  // The "Root operation fields" section contains Query checkboxes with IDs like "root-query-{fieldName}"
-  // These are unique to the Root operation fields section, so we can target them directly
-  // to avoid matching the "Remote field preview" section above it
   const firstQueryCheckbox = page
     .locator('button[role="checkbox"][id^="root-query-"]')
     .first();
@@ -387,7 +224,7 @@ test('should create and delete a remote schema relationship', async ({
   await page.waitForTimeout(500);
 
   // Map LHS fields - these map table columns to remote schema arguments
-  // Look for LHS field selectors (these are typically comboboxes)
+  // Look for LHS field selectors
   const lhsFieldLabels = page
     .locator('label')
     .filter({ hasText: /lhs field/i });
@@ -425,25 +262,7 @@ test('should create and delete a remote schema relationship', async ({
   await expect(page.getByText(relationshipName, { exact: true })).toBeVisible();
 
   // Delete the relationship (remote relationship)
-  await page.getByTestId(`delete-rel-${relationshipName}`).click();
-
-  await expect(
-    page.getByRole('heading', { name: /delete relationship/i }),
-  ).toBeVisible();
-
-  await page.getByRole('button', { name: /^delete$/i }).click();
-
-  // Verify deletion success
-  await page.waitForSelector(
-    'div:has-text("Relationship deleted successfully.")',
-  );
-
-  await page.waitForTimeout(1000);
-
-  // Verify relationship is removed from the relationships list
-  await expect(
-    page.getByText(relationshipName, { exact: true }),
-  ).not.toBeVisible();
+  await deleteRelationship({ page, relationshipName });
 
   // Cleanup: Delete the remote schema
   await page.goto(remoteSchemasRoute);

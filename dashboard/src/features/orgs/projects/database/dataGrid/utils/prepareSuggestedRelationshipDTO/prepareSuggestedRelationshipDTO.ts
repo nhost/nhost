@@ -7,7 +7,7 @@ import type {
   SuggestRelationshipsResponseRelationshipsItem,
 } from '@/utils/hasura-api/generated/schemas';
 
-interface PrepareSuggestedRelationshipDTOProps {
+interface PrepareSuggestedRelationshipDTOParams {
   baseTable: QualifiedTable;
   relationshipName: string;
   source: string;
@@ -19,7 +19,7 @@ export default function prepareSuggestedRelationshipDTO({
   relationshipName,
   source,
   suggestion,
-}: PrepareSuggestedRelationshipDTOProps): CreateLocalRelationshipArgs {
+}: PrepareSuggestedRelationshipDTOParams): CreateLocalRelationshipArgs {
   let foreignKeyConstraintOn: ForeignKeyConstraintOn | undefined;
   if (suggestion.type === 'array') {
     const remoteTable = suggestion.to?.table;

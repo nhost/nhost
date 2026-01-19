@@ -396,3 +396,150 @@ export async function cleanupRemoteSchemaTestIfNeeded() {
     throw error;
   }
 }
+
+/**
+ * Opens the relationship dialog for a table.
+ *
+ * @param page - The Playwright page object.
+ * @param tableName - The name of the table to open relationships for.
+ * @returns A promise that resolves when the relationship dialog is open.
+ */
+export async function openRelationshipDialog({
+  page,
+  tableName,
+}: {
+  page: Page;
+  tableName: string;
+}) {
+  // Press three horizontal dots more options button next to the table name
+  await page
+    .locator(`li:has-text("${tableName}") #table-management-menu-${tableName}`)
+    .click();
+
+  await page.getByRole('menuitem', { name: /edit relationships/i }).click();
+
+  await page.getByRole('button', { name: /relationship/i }).click();
+
+  await expect(
+    page.getByRole('heading', { name: /create relationship/i }),
+  ).toBeVisible();
+}
+
+/**
+ * Creates a relationship between two tables.
+ *
+ * @param page - The Playwright page object.
+ * @param relationshipName - The name of the relationship to create.
+ * @param type - The type of relationship ('object' or 'array').
+ * @param referenceTable - The reference table name.
+ * @param sourceColumn - The source column name.
+ * @param referenceColumn - The reference column name.
+ * @param referenceSource - The reference source (defaults to 'default').
+ * @param referenceSchema - The reference schema (defaults to 'public').
+ * @returns A promise that resolves when the relationship is created.
+ */
+export async function createRelationship({
+  page,
+  relationshipName,
+  type,
+  referenceTable,
+  sourceColumn,
+  referenceColumn,
+  referenceSource = 'default',
+  referenceSchema = 'public',
+}: {
+  page: Page;
+  relationshipName: string;
+  type: 'object' | 'array';
+  referenceTable: string;
+  sourceColumn: string;
+  referenceColumn: string;
+  referenceSource?: string;
+  referenceSchema?: string;
+}) {
+  // Fill relationship name
+  await page.getByLabel(/relationship name/i).fill(relationshipName);
+
+  // Select relationship type
+  await page.getByLabel(/relationship type/i).click();
+  const relationshipTypeOption =
+    type === 'object' ? /object relationship/i : /array relationship/i;
+  await page.getByRole('option', { name: relationshipTypeOption }).click();
+
+  // Configure source/reference - select target table using data-testid
+  await page.getByTestId('toReferenceSourceSelect').click();
+  const sourceOption = page.getByRole('option', {
+    name: referenceSource,
+  });
+  await sourceOption.first().click();
+
+  await page.getByTestId('toReferenceSchemaSelect').click();
+  await page.getByRole('option', { name: referenceSchema }).click();
+
+  await page.getByTestId('toReferenceTableCombobox').click();
+  await page.getByRole('option', { name: referenceTable, exact: true }).click();
+
+  // Wait for field mapping to be available
+  await page.waitForTimeout(1000);
+
+  // Add new mapping
+  await page.getByRole('button', { name: /add new mapping/i }).click();
+
+  // Map columns
+  await page.getByTestId('fieldMapping.0.sourceColumn').click();
+  await page.getByRole('option', { name: sourceColumn }).click();
+
+  await page.getByTestId('fieldMapping.0.referenceColumn').click();
+  await page.getByRole('option', { name: referenceColumn }).click();
+
+  // Submit
+  await page.getByRole('button', { name: /create relationship/i }).click();
+
+  // Verify success toast appears
+  await page.waitForSelector(
+    'div:has-text("Relationship created successfully.")',
+  );
+
+  // Wait for the dialog to close
+  await expect(
+    page.getByRole('heading', { name: /create relationship/i }),
+  ).not.toBeVisible();
+
+  // Verify relationship appears in the relationships list
+  await expect(page.getByText(relationshipName, { exact: true })).toBeVisible();
+}
+
+/**
+ * Deletes a relationship by name.
+ *
+ * @param page - The Playwright page object.
+ * @param relationshipName - The name of the relationship to delete.
+ * @returns A promise that resolves when the relationship is deleted.
+ */
+export async function deleteRelationship({
+  page,
+  relationshipName,
+}: {
+  page: Page;
+  relationshipName: string;
+}) {
+  await page.getByTestId(`delete-rel-${relationshipName}`).click();
+
+  await expect(
+    page.getByRole('heading', { name: /delete relationship/i }),
+  ).toBeVisible();
+
+  await page.getByRole('button', { name: /^delete$/i }).click();
+
+  // Verify deletion success
+  await page.waitForSelector(
+    'div:has-text("Relationship deleted successfully.")',
+  );
+
+  await page.waitForTimeout(1000);
+
+  // Verify relationship is removed from the relationships list
+  await expect(
+    page.getByText(relationshipName, { exact: true }),
+  ).not.toBeVisible();
+}
