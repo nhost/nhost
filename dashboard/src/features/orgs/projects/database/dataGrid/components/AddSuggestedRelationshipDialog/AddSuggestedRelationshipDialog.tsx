@@ -16,8 +16,8 @@ import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/h
 import { useCreateArrayRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateArrayRelationshipMutation';
 import { useCreateObjectRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateObjectRelationshipMutation';
 import { normalizeColumns } from '@/features/orgs/projects/database/dataGrid/utils/normalizeColumns';
+import { prepareSuggestedRelationshipDTO } from '@/features/orgs/projects/database/dataGrid/utils/prepareSuggestedRelationshipDTO';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { isEmptyValue } from '@/lib/utils';
 import type {
   MetadataOperation200,
   SuggestRelationshipsResponseRelationshipsItem,
@@ -201,56 +201,28 @@ export default function AddSuggestedRelationshipDialog({
 
     let promise: Promise<MetadataOperation200>;
 
-    if (suggestion.type === 'array') {
-      const remoteTable = suggestion.to?.table;
-      const remoteColumns = normalizeColumns(suggestion.to?.columns);
-
-      const arrayForeignKey =
-        remoteTable && remoteColumns.length > 0
-          ? { table: remoteTable, columns: remoteColumns }
-          : suggestion.to?.constraint_name;
-
-      if (!arrayForeignKey) {
-        showRelationshipNameError(
-          'Unable to derive the foreign key information from this suggestion.',
-        );
-        return;
-      }
-
-      promise = createArrayRelationship({
-        resourceVersion,
-        args: {
-          table: baseTable,
-          name: relationshipName,
-          source,
-          using: {
-            foreign_key_constraint_on: arrayForeignKey,
-          },
-        },
+    try {
+      const args = prepareSuggestedRelationshipDTO({
+        baseTable,
+        relationshipName,
+        source,
+        suggestion,
       });
-    } else if (suggestion.type === 'object') {
-      const foreignKeyConstraintOn = suggestion.from?.columns;
+      const createRelationship =
+        suggestion.type === 'array'
+          ? createArrayRelationship
+          : createObjectRelationship;
 
-      if (isEmptyValue(foreignKeyConstraintOn)) {
-        showRelationshipNameError(
-          'Unable to derive the foreign key information from this suggestion.',
-        );
-        return;
-      }
-
-      promise = createObjectRelationship({
+      promise = createRelationship({
         resourceVersion,
-        args: {
-          table: baseTable,
-          name: relationshipName,
-          source,
-          using: {
-            foreign_key_constraint_on: foreignKeyConstraintOn!,
-          },
-        },
+        args,
       });
-    } else {
-      showRelationshipNameError('Unsupported relationship type.');
+    } catch (error) {
+      showRelationshipNameError(
+        error instanceof Error
+          ? error.message
+          : 'An error occurred while preparing the relationship.',
+      );
       return;
     }
 

@@ -5,11 +5,11 @@
  * API for managing remote schemas and events in Hasura
  * OpenAPI spec version: 1.0.0
  */
-import type { RelationshipUsingForeignKeyConstraintOnForeignKeyConstraintOn } from './relationshipUsingForeignKeyConstraintOnForeignKeyConstraintOn';
+import type { ForeignKeyConstraintOn } from './foreignKeyConstraintOn';
 
 /**
  * The column with foreign key constraint or the remote table and column
  */
 export interface RelationshipUsingForeignKeyConstraintOn {
-  foreign_key_constraint_on: RelationshipUsingForeignKeyConstraintOnForeignKeyConstraintOn;
+  foreign_key_constraint_on: ForeignKeyConstraintOn;
 }

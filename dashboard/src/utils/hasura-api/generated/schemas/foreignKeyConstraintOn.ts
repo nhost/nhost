@@ -9,6 +9,6 @@
 import type { ForeignKeyConstraintArrayRelationship } from './foreignKeyConstraintArrayRelationship';
 import type { ForeignKeyConstraintObjectRelationship } from './foreignKeyConstraintObjectRelationship';
 
-export type RelationshipUsingForeignKeyConstraintOnForeignKeyConstraintOn =
+export type ForeignKeyConstraintOn =
   | ForeignKeyConstraintObjectRelationship
   | ForeignKeyConstraintArrayRelationship;

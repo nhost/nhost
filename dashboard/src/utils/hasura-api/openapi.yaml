@@ -599,9 +599,13 @@ components:
         - foreign_key_constraint_on
       properties:
         foreign_key_constraint_on:
-          oneOf:
-            - $ref: '#/components/schemas/ForeignKeyConstraintObjectRelationship'
-            - $ref: '#/components/schemas/ForeignKeyConstraintArrayRelationship'
+          $ref: '#/components/schemas/ForeignKeyConstraintOn'
+    
+    ForeignKeyConstraintOn:
+      type: object
+      oneOf:
+        - $ref: '#/components/schemas/ForeignKeyConstraintObjectRelationship'
+        - $ref: '#/components/schemas/ForeignKeyConstraintArrayRelationship'
 
     ForeignKeyConstraintObjectRelationship:
       description: Column(s) from same table. Used for object relationships.
