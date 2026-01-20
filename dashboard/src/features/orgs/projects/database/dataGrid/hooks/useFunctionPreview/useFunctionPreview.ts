@@ -38,9 +38,7 @@ export async function fetchFunctionPreview({
     // Order: %1$I (schema), %2$I (functionName), %3$L-%N$L (parameters), %N+1$s (limit)
     const paramPlaceholders =
       parameters.length > 0
-        ? parameters
-            .map((_, index) => `%${index + 3}$L`)
-            .join(', ')
+        ? parameters.map((_, index) => `%${index + 3}$L`).join(', ')
         : '';
 
     // Build the query with parameters
@@ -48,7 +46,9 @@ export async function fetchFunctionPreview({
     const queryArgs = [
       schema,
       functionName,
-      ...parameters.map((p) => (p === null || p === undefined ? null : String(p))),
+      ...parameters.map((p) =>
+        p === null || p === undefined ? null : String(p),
+      ),
       limit.toString(),
     ];
 
@@ -69,11 +69,7 @@ export async function fetchFunctionPreview({
       },
       body: JSON.stringify({
         args: [
-          getPreparedReadOnlyHasuraQuery(
-            dataSource,
-            sqlQuery,
-            ...queryArgs,
-          ),
+          getPreparedReadOnlyHasuraQuery(dataSource, sqlQuery, ...queryArgs),
         ],
         type: 'bulk',
         version: 1,
@@ -122,16 +118,13 @@ export async function fetchFunctionPreview({
     });
 
     // Extract columns from first row
-    const columns =
-      parsedRows.length > 0 ? Object.keys(parsedRows[0]) : [];
+    const columns = parsedRows.length > 0 ? Object.keys(parsedRows[0]) : [];
 
     // Convert rows to string arrays
     const rows = parsedRows.map((row) =>
       columns.map((col) => {
         const value = row[col];
-        return value === null || value === undefined
-          ? ''
-          : String(value);
+        return value === null || value === undefined ? '' : String(value);
       }),
     );
 

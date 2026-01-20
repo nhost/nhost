@@ -141,11 +141,13 @@ export default async function fetchFunctionDefinition({
   const inputArgNames: string[] = result.input_arg_names || [];
   const defaultArgsCount: number = result.default_args_count || 0;
 
-  const parameters: FunctionParameter[] = inputArgTypes.map((argType, index) => ({
-    name: inputArgNames[index] || null,
-    type: argType.name,
-    schema: argType.schema,
-  }));
+  const parameters: FunctionParameter[] = inputArgTypes.map(
+    (argType, index) => ({
+      name: inputArgNames[index] || null,
+      type: argType.name,
+      schema: argType.schema,
+    }),
+  );
 
   // Parameters with defaults are at the end, so required params are those before defaultArgsCount
 

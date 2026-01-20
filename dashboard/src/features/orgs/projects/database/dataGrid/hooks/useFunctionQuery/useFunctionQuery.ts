@@ -1,10 +1,10 @@
+import type { QueryKey, UseQueryOptions } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
+import { useRouter } from 'next/router';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { isNotEmptyValue } from '@/lib/utils';
 import { getHasuraAdminSecret } from '@/utils/env';
-import type { QueryKey, UseQueryOptions } from '@tanstack/react-query';
-import { useQuery } from '@tanstack/react-query';
-import { useRouter } from 'next/router';
 import type {
   FetchFunctionDefinitionOptions,
   FetchFunctionDefinitionReturnType,

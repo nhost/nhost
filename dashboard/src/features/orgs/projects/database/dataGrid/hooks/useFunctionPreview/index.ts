@@ -1,6 +1,6 @@
-export { useFunctionPreviewHook } from './useFunctionPreviewHook';
-export { fetchFunctionPreview } from './useFunctionPreview';
 export type {
   FetchFunctionPreviewOptions,
   FunctionPreviewResult,
 } from './useFunctionPreview';
+export { fetchFunctionPreview } from './useFunctionPreview';
+export { useFunctionPreviewHook } from './useFunctionPreviewHook';
