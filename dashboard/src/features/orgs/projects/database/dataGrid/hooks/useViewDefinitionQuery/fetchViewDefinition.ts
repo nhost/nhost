@@ -61,7 +61,9 @@ export default async function fetchViewDefinition({
       return {
         viewDefinition: '',
         viewType: 'VIEW',
-        error: queryError.internal?.error.message || 'Failed to fetch view definition.',
+        error:
+          queryError.internal?.error.message ||
+          'Failed to fetch view definition.',
       };
     }
 
