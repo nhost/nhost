@@ -1,12 +1,9 @@
-import { useState } from 'react';
 import { useRouter } from 'next/router';
+import { useState } from 'react';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { getHasuraAdminSecret } from '@/utils/env';
-import type {
-  FetchFunctionPreviewOptions,
-  FunctionPreviewResult,
-} from './useFunctionPreview';
+import type { FunctionPreviewResult } from './useFunctionPreview';
 import { fetchFunctionPreview } from './useFunctionPreview';
 
 export interface UseFunctionPreviewHookOptions {

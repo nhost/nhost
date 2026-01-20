@@ -4,7 +4,6 @@ import { PostgreSQL, sql } from '@codemirror/lang-sql';
 import { useTheme } from '@mui/material';
 import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
 import CodeMirror from '@uiw/react-codemirror';
-import { useRouter } from 'next/router';
 import { useCallback, useEffect, useState } from 'react';
 import { useResizable } from 'react-resizable-layout';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
@@ -28,7 +27,6 @@ import { useRunSQL } from '@/features/orgs/projects/database/dataGrid/hooks/useR
 export default function SQLEditor() {
   const theme = useTheme();
   const isPlatform = useIsPlatform();
-  const router = useRouter();
 
   const [sqlCode, setSQLCode] = useState('');
   const [track, setTrack] = useState(false);
