@@ -1,10 +1,12 @@
 import { useQueryClient } from '@tanstack/react-query';
 import {
   Info,
+  List,
   Lock,
   Plus,
   SquareFunction,
   Table2,
+  TableProperties,
   Terminal,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
@@ -30,6 +32,7 @@ import { Spinner } from '@/components/ui/v3/spinner';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { EditTableSettingsForm } from '@/features/orgs/projects/database/dataGrid/components/EditTableSettingsForm';
 import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
+import { useMetadataQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useMetadataQuery';
 import { useDeleteTableWithToastMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteTableMutation';
 import { isSchemaLocked } from '@/features/orgs/projects/database/dataGrid/utils/schemaHelpers';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -103,6 +106,27 @@ function DataBrowserSidebarContent({
     functions: [],
   };
 
+  // Get metadata to detect enum tables
+  const { data: metadataData } = useMetadataQuery(
+    ['export-metadata', dataSourceSlug as string],
+    {
+      queryOptions: {
+        enabled: !!dataSourceSlug && !!project?.config?.hasura.adminSecret,
+      },
+    },
+  );
+
+  // Create a Set of enum table paths for quick lookup
+  const enumTablePaths = new Set<string>();
+  if (metadataData?.tables) {
+    metadataData.tables.forEach((table) => {
+      // biome-ignore lint/suspicious/noExplicitAny: Metadata table may have is_enum property
+      if ((table as any).is_enum) {
+        enumTablePaths.add(`${table.table.schema}.${table.table.name}`);
+      }
+    });
+  }
+
   const { mutateAsync: deleteTable } = useDeleteTableWithToastMutation();
 
   const [removableTable, setRemovableTable] = useState<string>();
@@ -170,8 +194,8 @@ function DataBrowserSidebarContent({
       object_type: 'MATERIALIZED VIEW',
     })),
     ...(functions || []).map((func) => ({
-      table_schema: func.table_schema as string,
-      table_name: func.table_name as string,
+      table_schema: func.table_schema,
+      table_name: func.table_name,
       object_type: 'FUNCTION',
     })),
   ]
@@ -306,6 +330,7 @@ function DataBrowserSidebarContent({
     schema: string,
     table: string,
     disabled?: boolean,
+    objectType?: string,
   ) {
     openDrawer({
       title: (
@@ -320,6 +345,7 @@ function DataBrowserSidebarContent({
           disabled={disabled}
           schema={schema}
           tableName={table}
+          objectType={objectType}
         />
       ),
       props: {
@@ -401,6 +427,8 @@ function DataBrowserSidebarContent({
                 const isMaterializedView =
                   dbObject.object_type === 'MATERIALIZED VIEW';
                 const isFunction = dbObject.object_type === 'FUNCTION';
+                const isView = dbObject.object_type === 'VIEW';
+                const isEnum = enumTablePaths.has(objectPath);
                 return (
                   <li className="group pb-1" key={objectPath}>
                     <Button
@@ -432,6 +460,10 @@ function DataBrowserSidebarContent({
                         >
                           {isFunction ? (
                             <SquareFunction className="h-4 w-4 shrink-0" />
+                          ) : isMaterializedView || isView ? (
+                            <TableProperties className="h-4 w-4 shrink-0" />
+                          ) : isEnum ? (
+                            <List className="h-4 w-4 shrink-0" />
                           ) : (
                             <Table2 className="h-4 w-4 shrink-0" />
                           )}
@@ -466,6 +498,7 @@ function DataBrowserSidebarContent({
                               dbObject.table_schema,
                               dbObject.table_name,
                               true,
+                              dbObject.object_type,
                             )
                           }
                           onEditTable={() =>
@@ -496,6 +529,7 @@ function DataBrowserSidebarContent({
                               dbObject.table_schema,
                               dbObject.table_name,
                               false,
+                              dbObject.object_type,
                             );
                           }}
                           onDelete={() =>

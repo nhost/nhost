@@ -91,16 +91,14 @@ function TableActions({
           </>
         ) : (
           <>
-            {isSelectedNotSchemaLocked &&
-              !isMaterializedView &&
-              !isFunction && (
-                <DropdownMenuItem
-                  className={menuItemClassName}
-                  onClick={onEditTable}
-                >
-                  <SquarePen className="h-4 w-4" /> <span>Edit Table</span>
-                </DropdownMenuItem>
-              )}
+            {isSelectedNotSchemaLocked && !isFunction && (
+              <DropdownMenuItem
+                className={menuItemClassName}
+                onClick={onEditTable}
+              >
+                <SquarePen className="h-4 w-4" /> <span>Edit Table</span>
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem
               className={menuItemClassName}
               onClick={onEditPermissions}

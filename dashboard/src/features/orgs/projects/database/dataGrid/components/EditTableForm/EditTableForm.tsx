@@ -14,6 +14,7 @@ import {
   BaseTableForm,
   baseTableValidationSchema,
 } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm';
+import ViewDefinitionView from '@/features/orgs/projects/database/dataGrid/components/ViewDefinitionView';
 import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
 import { useTrackForeignKeyRelationsMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useTrackForeignKeyRelationsMutation';
 import { useUpdateTableMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useUpdateTableMutation';
@@ -50,6 +51,14 @@ export default function EditTableForm({
 }: EditTableFormProps) {
   const [formInitialized, setFormInitialized] = useState(false);
   const router = useRouter();
+  const {
+    query: { dataSourceSlug },
+  } = router;
+
+  // Check if this is a view or materialized view
+  const isView =
+    originalTable.object_type === 'VIEW' ||
+    originalTable.object_type === 'MATERIALIZED VIEW';
 
   const {
     data,
@@ -58,6 +67,9 @@ export default function EditTableForm({
   } = useTableQuery([`default.${schema}.${originalTable.table_name}`], {
     schema,
     table: originalTable.table_name,
+    queryOptions: {
+      enabled: !isView, // Only fetch columns if it's not a view
+    },
   });
 
   const columns = data?.columns;
@@ -103,6 +115,9 @@ export default function EditTableForm({
   // We are initializing the form values lazily, because columns are not
   // necessarily available immediately when the form is mounted.
   useEffect(() => {
+    if (isView) {
+      return; // Skip form initialization for views
+    }
     if (
       columnsStatus === 'success' &&
       dataGridColumns.length > 0 &&
@@ -151,7 +166,19 @@ export default function EditTableForm({
     foreignKeyRelations,
     dataGridColumns,
     formInitialized,
+    isView,
   ]);
+
+  // For views and materialized views, show the view definition instead of the table editor
+  if (isView) {
+    return (
+      <ViewDefinitionView
+        schema={schema}
+        table={originalTable.table_name}
+        dataSource={(dataSourceSlug as string) || 'default'}
+      />
+    );
+  }
 
   async function handleSubmit(values: BaseTableFormValues) {
     const primaryKey = values.primaryKeyIndices.map<string>(

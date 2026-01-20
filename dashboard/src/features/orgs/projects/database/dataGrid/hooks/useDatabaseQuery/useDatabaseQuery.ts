@@ -51,6 +51,12 @@ export default function useDatabaseQuery(
     ) ?? [],
   );
 
+  const defaultDataSourceFunctions = new Set(
+    defaultDataSource?.functions?.map(
+      (func) => `${func.function.schema}.${func.function.name}`,
+    ) ?? [],
+  );
+
   const query = useQuery<FetchDatabaseReturnType>(
     queryKey,
     () => {
@@ -80,6 +86,13 @@ export default function useDatabaseQuery(
           defaultDataSourceTables.has(
             `${table.table_schema}.${table.table_name}`,
           ),
+        ),
+        functions: data.functions?.filter(
+          (func) =>
+            func.table_type === 'FUNCTION' &&
+            defaultDataSourceFunctions.has(
+              `${func.table_schema}.${func.table_name}`,
+            ),
         ),
       }),
     },

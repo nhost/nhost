@@ -4,7 +4,8 @@ import { PostgreSQL, sql } from '@codemirror/lang-sql';
 import { useTheme } from '@mui/material';
 import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
 import CodeMirror from '@uiw/react-codemirror';
-import { useCallback, useState } from 'react';
+import { useRouter } from 'next/router';
+import { useCallback, useEffect, useState } from 'react';
 import { useResizable } from 'react-resizable-layout';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
@@ -27,6 +28,7 @@ import { useRunSQL } from '@/features/orgs/projects/database/dataGrid/hooks/useR
 export default function SQLEditor() {
   const theme = useTheme();
   const isPlatform = useIsPlatform();
+  const router = useRouter();
 
   const [sqlCode, setSQLCode] = useState('');
   const [track, setTrack] = useState(false);
@@ -34,6 +36,18 @@ export default function SQLEditor() {
   const [readOnly, setReadOnly] = useState(false);
   const [isMigration, setIsMigration] = useState(false);
   const [migrationName, setMigrationName] = useState('');
+
+  // Load SQL from sessionStorage on mount (if available)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const storedSQL = sessionStorage.getItem('pending-sql');
+      if (storedSQL) {
+        setSQLCode(storedSQL);
+        // Clean up sessionStorage after reading
+        sessionStorage.removeItem('pending-sql');
+      }
+    }
+  }, []);
 
   const onChange = useCallback((value: string) => setSQLCode(value), []);
 

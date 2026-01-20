@@ -1,6 +1,7 @@
 import type {
   MutationOrQueryBaseOptions,
   NormalizedQueryDataRow,
+  NormalizedQueryFunctionRow,
   QueryError,
   QueryResult,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
@@ -25,7 +26,7 @@ export interface FetchDatabaseReturnType {
   /**
    * List of available table-returning functions in the database.
    */
-  functions?: NormalizedQueryDataRow[];
+  functions?: NormalizedQueryFunctionRow[];
   /**
    * Response metadata.
    */
@@ -70,9 +71,9 @@ export default async function fetchDatabase({
         getPreparedReadOnlyHasuraQuery(
           dataSource,
           `SELECT row_to_json(mv_data) as data FROM (SELECT schemaname as table_schema, matviewname as table_name, 'MATERIALIZED VIEW' as table_type FROM pg_matviews WHERE %s) mv_data ORDER BY table_name ASC`,
-          SYSTEM_TABLES.map(
-            (value) => `schemaname NOT LIKE '${value}'`,
-          ).join(' AND '),
+          SYSTEM_TABLES.map((value) => `schemaname NOT LIKE '${value}'`).join(
+            ' AND ',
+          ),
         ),
         getPreparedReadOnlyHasuraQuery(
           dataSource,
@@ -142,6 +143,6 @@ export default async function fetchDatabase({
     ) as NormalizedQueryDataRow[],
     functions: rawFunctions.map((rawData) =>
       JSON.parse(rawData),
-    ) as NormalizedQueryDataRow[],
+    ) satisfies NormalizedQueryFunctionRow[],
   };
 }
