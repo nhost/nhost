@@ -1,0 +1,37 @@
+{
+  "name": "mintlify",
+  "version": "4.2.284",
+  "description": "The Mintlify CLI",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "author": "Mintlify, Inc.",
+  "bugs": {
+    "url": "https://github.com/mintlify/docs/issues"
+  },
+  "license": "Elastic-2.0",
+  "keywords": [
+    "mintlify",
+    "mint",
+    "cli"
+  ],
+  "type": "module",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "bin": {
+    "mint": "index.js",
+    "mintlify": "index.js"
+  },
+  "scripts": {
+    "clean:all": "rimraf node_modules"
+  },
+  "dependencies": {
+    "@mintlify/cli": "4.0.888"
+  },
+  "devDependencies": {
+    "rimraf": "5.0.1"
+  },
+  "gitHead": "698d916cc7b20448857e7fe3107d522f4befbf2b"
+}
