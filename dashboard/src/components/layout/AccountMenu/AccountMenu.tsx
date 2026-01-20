@@ -1,22 +1,21 @@
 import { useApolloClient } from '@apollo/client';
-import getConfig from 'next/config';
 import { NavLink } from '@/components/common/NavLink';
 import { ThemeSwitcher } from '@/components/common/ThemeSwitcher';
 import { Avatar } from '@/components/ui/v2/Avatar';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Dropdown, useDropdown } from '@/components/ui/v2/Dropdown';
 import { Text } from '@/components/ui/v2/Text';
+import { Button } from '@/components/ui/v3/button';
 import { useUserData } from '@/hooks/useUserData';
 import { useAuth } from '@/providers/Auth';
+import { getDashboardVersion } from '@/utils/env';
 
 function AccountMenuContent() {
   const user = useUserData();
   const { signout } = useAuth();
   const apolloClient = useApolloClient();
   const { handleClose } = useDropdown();
-  const { publicRuntimeConfig } = getConfig();
 
   async function handleSignOut() {
     handleClose();
@@ -60,21 +59,19 @@ function AccountMenuContent() {
       <Divider />
 
       <Box className="grid grid-flow-row gap-1 p-2">
-        <Button
-          variant="borderless"
-          color="secondary"
-          className="w-full justify-start"
-          LinkComponent={NavLink}
+        <NavLink
+          variant="ghost"
+          className="h-9 w-full justify-start px-2"
           href="/account"
           onClick={handleClose}
         >
           Account Settings
-        </Button>
+        </NavLink>
 
         <Button
           color="error"
-          variant="borderless"
-          className="w-full justify-start"
+          variant="ghost"
+          className="h-9 w-full justify-start px-2 text-error-main hover:bg-error-bg"
           onClick={handleSignOut}
         >
           Sign out
@@ -85,7 +82,7 @@ function AccountMenuContent() {
 
       <Box className="py-4">
         <Text className="text-center text-xs" color="disabled">
-          Dashboard Version: {publicRuntimeConfig?.version || 'n/a'}
+          Dashboard Version: {getDashboardVersion()}
         </Text>
       </Box>
     </Box>

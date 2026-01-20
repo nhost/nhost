@@ -62,7 +62,6 @@ const splitQraphqlClient = new ApolloClient({
       },
     },
   }),
-  connectToDevTools: true,
   link: split(
     ({ query }) => {
       const definition = getMainDefinition(query);

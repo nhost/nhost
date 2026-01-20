@@ -1,9 +1,8 @@
-import defaultTheme from 'tailwindcss/defaultTheme';
+import type defaultTheme from 'tailwindcss/defaultTheme';
+import screens from './screens.cjs';
 
-const screens = {
-  xs: '415px',
-  'xs+': '515px',
-  ...defaultTheme.screens,
-} as const;
+type Screens = typeof defaultTheme.screens & {
+  'xs+': string;
+};
 
-export default screens;
+export default screens as Screens;

@@ -21,10 +21,10 @@ import { getHasuraAdminSecret } from '@/utils/env';
 
 export type PreviewProps = {
   fetchBlob: (
-    init?: RequestInit,
+    init: RequestInit,
     size?: { width?: number; height?: number },
   ) => Promise<Blob | null>;
-  mimeType: string;
+  mimeType?: string;
   alt?: string;
   blob?: Blob;
   id: string;
@@ -281,6 +281,7 @@ export default function DataGridPreviewCell<TData extends object>({
           className={cn('flex h-full w-full items-center justify-center')}
         >
           {previewEnabled &&
+          mimeType &&
           previewableImages.includes(mimeType) &&
           objectUrl ? (
             <picture className="h-full w-20">
@@ -370,6 +371,7 @@ export default function DataGridPreviewCell<TData extends object>({
         )}
         {!previewLoading &&
           previewUrl &&
+          mimeType &&
           !previewableImages.includes(mimeType) &&
           !isVideo &&
           !isAudio && (
