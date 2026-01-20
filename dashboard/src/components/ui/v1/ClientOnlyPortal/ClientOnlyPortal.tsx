@@ -12,7 +12,7 @@ export default function ClientOnlyPortal({
   children,
   selector,
 }: ClientOnlyPortalProps) {
-  const ref = useRef<Element | DocumentFragment>();
+  const ref = useRef<Element | DocumentFragment>(null);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {

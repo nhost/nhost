@@ -1,9 +1,8 @@
-import NavLink from 'next/link';
 import { useMemo } from 'react';
+import { NavLink } from '@/components/common/NavLink';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { GitHubIcon } from '@/components/ui/v2/icons/GitHubIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { useAccessToken } from '@/hooks/useAccessToken';
@@ -64,20 +63,13 @@ export default function SocialProvidersSettings() {
       ) : (
         <Box>
           <NavLink
+            variant="ghost"
             href={github}
-            passHref
             target="_blank"
             rel="noreferrer noopener"
-            legacyBehavior
           >
-            <Button
-              className=""
-              variant="outlined"
-              color="secondary"
-              startIcon={<GitHubIcon />}
-            >
-              Connect with GitHub
-            </Button>
+            <GitHubIcon />
+            Connect with GitHub
           </NavLink>
         </Box>
       )}

@@ -1,4 +1,4 @@
-import { GithubAuthButton } from '@/features/auth/AuthProviders/Github/components/GithubAuthButton';
+import { GithubAuthButton } from '@/features/auth/AuthProviders/Github/GithubAuthButton';
 import { useHostName } from '@/features/orgs/projects/common/hooks/useHostName';
 
 function SignInWithGithub() {

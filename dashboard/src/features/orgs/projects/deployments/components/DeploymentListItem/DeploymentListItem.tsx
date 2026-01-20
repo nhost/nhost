@@ -98,7 +98,7 @@ export default function DeploymentListItem({
   return (
     <ListItem.Root>
       <ListItem.Button
-        className="grid grid-flow-col items-center justify-between gap-2 rounded-none p-2"
+        className="grid h-fit grid-flow-col items-center justify-between gap-2 rounded-none p-2 hover:no-underline"
         component={NavLink}
         href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments/${deployment.id}`}
         aria-label={commitMessage || 'No commit message'}
@@ -160,7 +160,7 @@ export default function DeploymentListItem({
             </div>
           )}
 
-          <div className="hidden w-16 text-right font-medium font-mono text-sm- sm:block">
+          <div className="hidden w-16 text-right font-medium font-mono text-sm- text-white sm:block">
             {deployment.commitSHA.substring(0, 7)}
           </div>
 
@@ -175,7 +175,7 @@ export default function DeploymentListItem({
             status={deployment.deploymentStatus as DeploymentStatus}
           />
 
-          <ChevronRightIcon className="h-4 w-4" />
+          <ChevronRightIcon className="h-4 w-4 text-white" />
         </div>
       </ListItem.Button>
     </ListItem.Root>

@@ -1,4 +1,4 @@
-import { toast } from 'react-hot-toast';
+import { type Toast, toast } from 'react-hot-toast';
 import { ErrorToast } from '@/components/ui/v2/ErrorToast';
 import { getToastStyleProps } from '@/utils/constants/settings';
 
@@ -43,16 +43,17 @@ export default async function execPromiseWithErrorToast(
 
     onError?.(error);
 
-    const errorToastId = toast.custom(
-      (t) => (
-        <ErrorToast
-          isVisible={t.visible}
-          errorMessage={errorMessage}
-          error={error}
-          close={() => toast.dismiss(errorToastId)}
-        />
+    toast(
+      (t: Toast) => (
+        <ErrorToast toastId={t.id} errorMessage={errorMessage} error={error} />
       ),
       {
+        style: {
+          maxWidth: '36rem',
+          width: '36rem',
+          padding: '12px 2px',
+          backgroundColor: toastStyle.style!.backgroundColor,
+        },
         duration: Number.POSITIVE_INFINITY,
       },
     );

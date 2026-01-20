@@ -7,6 +7,11 @@ import { ChevronUpIcon } from '@/components/ui/v2/icons/ChevronUpIcon';
 import { callAll } from '@/utils/callAll';
 import useDropdown from './useDropdown';
 
+type AsChildElement = Record<string, unknown> & {
+  onClick: (
+    event: MouseEvent<HTMLButtonElement, globalThis.MouseEvent>,
+  ) => void;
+};
 export interface DropdownTriggerProps
   extends Omit<BoxProps<'button'>, 'color'> {
   /**
@@ -82,7 +87,11 @@ function DropdownTrigger(
     style: open ? { ...props.style, opacity: 1 } : props.style,
   };
 
-  if (asChild && Children.count(children) === 1 && isValidElement(children)) {
+  if (
+    asChild &&
+    Children.count(children) === 1 &&
+    isValidElement<AsChildElement>(children)
+  ) {
     return cloneElement(
       children,
       {

@@ -1,6 +1,6 @@
 const defaultTheme = require('tailwindcss/defaultTheme');
 const plugin = require('tailwindcss/plugin');
-const screens = require('./src/constants/screens').default;
+const screens = require('./src/constants/screens.cjs');
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
@@ -34,6 +34,7 @@ module.exports = {
         'background-default': 'hsl(var(--background-default))',
         'table-selected': 'hsl(var(--table-selected))',
         'error-main': '#f13154',
+        'error-bg': '#f131541a',
         'secondary-hover': '#475569',
         default: 'hsl(var(--default))',
         background: 'hsl(var(--background))',

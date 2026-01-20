@@ -5,7 +5,7 @@ export default function usePreviousData<T>(value: T): T {
   // The ref object is a generic container whose current property is mutable ...
   // ... and can hold any value, similar to an instance property on a class
   // biome-ignore lint/suspicious/noExplicitAny: TODO
-  const ref: any = useRef<T>();
+  const ref: any = useRef<T>(undefined);
   // Store current value in ref
   useEffect(() => {
     ref.current = value;

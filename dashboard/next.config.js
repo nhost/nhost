@@ -2,7 +2,6 @@ const path = require('node:path');
 const withBundleAnalyzer = require('@next/bundle-analyzer')({
   enabled: process.env.ANALYZE === 'true',
 });
-const { version } = require('./package.json');
 
 function getCspHeader() {
   switch (process.env.CSP_MODE) {
@@ -30,15 +29,10 @@ function getCspHeader() {
 }
 
 module.exports = withBundleAnalyzer({
+  turbopack: {},
   reactStrictMode: false,
-  swcMinify: false,
   output: 'standalone',
-  experimental: {
-    outputFileTracingRoot: path.join(__dirname, '../'),
-  },
-  publicRuntimeConfig: {
-    version,
-  },
+  outputFileTracingRoot: path.join(__dirname, '../'),
   async headers() {
     const cspHeader = getCspHeader();
 

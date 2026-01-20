@@ -127,10 +127,9 @@ export default function DevAssistant() {
       toast.custom(
         (t) => (
           <ErrorToast
-            isVisible={t.visible}
+            toastId={t.id}
             errorMessage="Failed to send the message. Please try again later."
             error={error}
-            close={() => toast.dismiss()}
           />
         ),
         {

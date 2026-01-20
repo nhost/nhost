@@ -1,7 +1,6 @@
-import NavLink from 'next/link';
+import { NavLink } from '@/components/common/NavLink';
 import { useUI } from '@/components/common/UIProvider';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { GitHubIcon } from '@/components/ui/v2/icons/GitHubIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
@@ -24,18 +23,11 @@ export default function OverviewRepository() {
         <div className="mt-6 flex flex-row place-content-between rounded-lg">
           <NavLink
             href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/git`}
-            passHref
-            legacyBehavior
+            variant="outline"
+            className="h-9 w-full gap-2"
           >
-            <Button
-              variant="outlined"
-              color="secondary"
-              className="w-full border-1 hover:border-1"
-              startIcon={<GitHubIcon />}
-              disabled={maintenanceActive}
-            >
-              Connect to GitHub
-            </Button>
+            <GitHubIcon />
+            Connect to GitHub
           </NavLink>
         </div>
       ) : (
@@ -55,16 +47,13 @@ export default function OverviewRepository() {
 
           <NavLink
             href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/git`}
-            passHref
-            legacyBehavior
+            className="text-primary"
+            variant="ghost"
+            underline="none"
+            size="sm"
+            disabled={maintenanceActive}
           >
-            <Button
-              variant="borderless"
-              size="small"
-              disabled={maintenanceActive}
-            >
-              Edit
-            </Button>
+            Edit
           </NavLink>
         </Box>
       )}

@@ -55,7 +55,10 @@ export default function VerifyEmailPage() {
         )}
 
         <div className="flex justify-center">
-          <NavLink href="/signin" color="white" className="font-medium">
+          <NavLink
+            href="/signin"
+            className="px-0 font-medium text-[1.125rem] text-white"
+          >
             Sign In
           </NavLink>
         </div>
