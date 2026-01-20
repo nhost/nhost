@@ -246,8 +246,8 @@ export default function AppleProviderSettings() {
             {...register('audience')}
             name="audience"
             id="audience"
-            label="Audience (optional)"
-            placeholder="Apple Audience"
+            label="Audience, set it to enable idtokens (optional)"
+            placeholder="AppleAudience1,AppleAudience2"
             className="col-span-2"
             fullWidth
             hideEmptyHelperText
