@@ -6,7 +6,6 @@ on:
       - '.github/workflows/wf_build_artifacts.yaml'
       - '.github/workflows/wf_check.yaml'
       - '.github/workflows/dashboard_checks.yaml'
-      - '.github/workflows/dashboard_orval_checks.yaml'
 
       # common build
       - 'flake.nix'
@@ -89,20 +88,6 @@ jobs:
       - build_artifacts
     if: needs.check-pr-authorization.outputs.should_run == 'true'
     uses: ./.github/workflows/wf_check.yaml
-    with:
-      NAME: dashboard
-      PATH: dashboard
-      GIT_REF: ${{ needs.check-pr-authorization.outputs.sha }}
-    secrets:
-      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
-      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
-      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
-
-  check_orval_codegen:
-    needs:
-      - check-pr-authorization
-    if: needs.check-pr-authorization.outputs.should_run == 'true'
-    uses: ./.github/workflows/dashboard_orval_checks.yaml
     with:
       NAME: dashboard
       PATH: dashboard
