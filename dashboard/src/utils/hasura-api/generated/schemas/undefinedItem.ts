@@ -6,10 +6,6 @@
  * OpenAPI spec version: 1.0.0
  */
 
-/**
- * Permission definition
- */
-export interface RemoteSchemaPermissionsDefinition {
-  /** GraphQL schema definition for this role */
-  schema: string;
-}
+export type undefinedItem = {
+  message?: string;
+};
