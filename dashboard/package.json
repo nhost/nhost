@@ -12,7 +12,7 @@
     "test": "pnpm lint && pnpm test:vitest",
     "test:vitest": "vitest run --exclude '**/BaseTableForm.test.tsx' && vitest run src/features/orgs/projects/database/dataGrid/components/BaseTableForm/BaseTableForm.test.tsx",
     "test:watch": "vitest",
-    "generate": "echo 'This needs to be fixed.'",
+    "generate": "pnpm codegen-hasura-api",
     "codegen": "DOTENV_CONFIG_PATH=./.env.local graphql-codegen -r dotenv/config --config graphql.config.yaml --errors-only",
     "codegen-graphite": "graphql-codegen --config graphite.graphql.config.yaml --errors-only",
     "codegen-hasura-api": "orval --config src/utils/hasura-api/orval.config.ts",
