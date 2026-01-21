@@ -1,7 +1,7 @@
-import { PostgreSQL, sql } from '@codemirror/lang-sql';
 import { useTheme } from '@mui/material';
 import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
 import CodeMirror from '@uiw/react-codemirror';
+import { SquarePen } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { Badge } from '@/components/ui/v3/badge';
@@ -160,29 +160,13 @@ export default function FunctionDefinitionView() {
   return (
     <div className="flex h-full flex-col overflow-hidden">
       <div className="border-b p-4">
-        <div className="mb-4 flex items-center justify-between">
-          <div>
-            <h2 className="font-semibold text-lg">Function Definition</h2>
-            <p className="text-muted-foreground text-sm">
-              <InlineCode className="bg-opacity-80 px-1.5 text-sm">
-                {schemaSlug}.{tableSlug}
-              </InlineCode>
-            </p>
-          </div>
-          <Button
-            variant="outline"
-            onClick={handlePreview}
-            disabled={previewLoading}
-          >
-            {previewLoading ? (
-              <>
-                <Spinner className="mr-2 h-4 w-4" />
-                Running...
-              </>
-            ) : (
-              'Preview'
-            )}
-          </Button>
+        <div className="mb-4">
+          <h2 className="font-semibold text-lg">Function Definition</h2>
+          <p className="text-muted-foreground text-sm">
+            <InlineCode className="bg-opacity-80 px-1.5 text-sm">
+              {schemaSlug}.{tableSlug}
+            </InlineCode>
+          </p>
         </div>
         {functionMetadata && (
           <div className="rounded-md border bg-muted/30 p-4">
@@ -273,11 +257,32 @@ export default function FunctionDefinitionView() {
                               [index]: e.target.value,
                             })
                           }
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              handlePreview();
+                            }
+                          }}
                           className="w-full"
                         />
                       </div>
                     </div>
                   ))}
+              </div>
+              <div className="mt-4 flex justify-end">
+                <Button
+                  variant="secondary"
+                  onClick={handlePreview}
+                  disabled={previewLoading}
+                >
+                  {previewLoading ? (
+                    <>
+                      <Spinner className="mr-2 h-4 w-4" />
+                      Running...
+                    </>
+                  ) : (
+                    'Preview'
+                  )}
+                </Button>
               </div>
             </div>
           )}
@@ -359,8 +364,14 @@ export default function FunctionDefinitionView() {
         </div>
       )}
       <div className="flex flex-1 flex-col overflow-hidden">
-        <div className="flex items-center justify-end border-b p-2">
-          <Button variant="default" onClick={handleModify}>
+        <div className="flex items-center justify-between border-b bg-muted/30 px-3 py-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleModify}
+            className="gap-2"
+          >
+            <SquarePen className="h-4 w-4" />
             Modify
           </Button>
         </div>
@@ -370,7 +381,7 @@ export default function FunctionDefinitionView() {
             height="100%"
             className="h-full max-h-120 w-full"
             theme={theme.palette.mode === 'light' ? githubLight : githubDark}
-            extensions={[sql({ dialect: PostgreSQL })]}
+            // extensions={[sql({ dialect: PostgreSQL })]}
             editable={false}
             readOnly={true}
           />
