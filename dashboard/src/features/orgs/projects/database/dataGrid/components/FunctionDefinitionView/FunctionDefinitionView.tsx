@@ -169,25 +169,20 @@ export default function FunctionDefinitionView() {
               </InlineCode>
             </p>
           </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={handlePreview}
-              disabled={previewLoading}
-            >
-              {previewLoading ? (
-                <>
-                  <Spinner className="mr-2 h-4 w-4" />
-                  Running...
-                </>
-              ) : (
-                'Preview'
-              )}
-            </Button>
-            <Button variant="default" onClick={handleModify}>
-              Modify
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            onClick={handlePreview}
+            disabled={previewLoading}
+          >
+            {previewLoading ? (
+              <>
+                <Spinner className="mr-2 h-4 w-4" />
+                Running...
+              </>
+            ) : (
+              'Preview'
+            )}
+          </Button>
         </div>
         {functionMetadata && (
           <div className="rounded-md border bg-muted/30 p-4">
@@ -363,16 +358,23 @@ export default function FunctionDefinitionView() {
           )}
         </div>
       )}
-      <div className="flex-1 overflow-hidden p-4">
-        <CodeMirror
-          value={functionDefinition}
-          height="100%"
-          className="h-full max-h-120 w-full"
-          theme={theme.palette.mode === 'light' ? githubLight : githubDark}
-          extensions={[sql({ dialect: PostgreSQL })]}
-          editable={false}
-          readOnly={true}
-        />
+      <div className="flex flex-1 flex-col overflow-hidden">
+        <div className="flex items-center justify-end border-b p-2">
+          <Button variant="default" onClick={handleModify}>
+            Modify
+          </Button>
+        </div>
+        <div className="flex-1 overflow-hidden p-4">
+          <CodeMirror
+            value={functionDefinition}
+            height="100%"
+            className="h-full max-h-120 w-full"
+            theme={theme.palette.mode === 'light' ? githubLight : githubDark}
+            extensions={[sql({ dialect: PostgreSQL })]}
+            editable={false}
+            readOnly={true}
+          />
+        </div>
       </div>
     </div>
   );
