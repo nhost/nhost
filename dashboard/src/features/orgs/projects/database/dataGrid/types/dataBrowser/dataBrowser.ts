@@ -575,7 +575,12 @@ export type HasuraOperator =
   | '_clt'
   | '_cgte'
   | '_clte'
-  | '_is_null';
+  | '_is_null'
+  | '_contains'
+  | '_contained_in'
+  | '_has_key'
+  | '_has_keys_any'
+  | '_has_keys_all';
 
 /**
  * Represents a rule. A rule is a single condition in a rule group.

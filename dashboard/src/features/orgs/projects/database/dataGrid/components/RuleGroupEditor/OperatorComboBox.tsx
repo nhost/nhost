@@ -53,6 +53,14 @@ const textSpecificOperators: typeof commonOperators = [
   { value: '_niregex', helperText: `doesn't match case-insensitive regex` },
 ];
 
+const jsonbSpecificOperators: typeof commonOperators = [
+  { value: '_contains', helperText: 'contains the specified value' },
+  { value: '_contained_in', helperText: 'is contained in the specified value' },
+  { value: '_has_key', helperText: 'has the specified key' },
+  { value: '_has_keys_any', helperText: 'has any of the specified keys' },
+  { value: '_has_keys_all', helperText: 'has all of the specified keys' },
+]
+
 interface OperatorComboBoxProps {
   name: string;
   disabled?: boolean;
@@ -72,6 +80,7 @@ export default function OperatorComboBox({
   const availableOperators = [
     ...commonOperators,
     ...(selectedColumnType === 'text' ? textSpecificOperators : []),
+    ...(selectedColumnType === 'jsonb' ? jsonbSpecificOperators : []),
   ];
 
   const handleSelect = (value: string) => {
