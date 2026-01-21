@@ -28982,7 +28982,6 @@ export const RemoteAppGetUsersFragmentDoc = gql`
     id
     providerId
   }
-  disabled
 }
     `;
 export const RunServiceConfigFragmentDoc = gql`
