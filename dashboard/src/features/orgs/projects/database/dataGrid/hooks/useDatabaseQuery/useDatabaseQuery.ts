@@ -1,7 +1,6 @@
 import type { QueryKey, UseQueryOptions } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
-import { useGetMetadata } from '@/features/orgs/projects/common/hooks/useGetMetadata';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { getHasuraAdminSecret } from '@/utils/env';
@@ -10,6 +9,7 @@ import type {
   FetchDatabaseReturnType,
 } from './fetchDatabase';
 import fetchDatabase from './fetchDatabase';
+import { useGetMetadata } from '@/features/orgs/projects/common/hooks/useGetMetadata';
 
 export interface UseDatabaseQueryOptions extends Partial<FetchDatabaseOptions> {
   /**
@@ -45,11 +45,6 @@ export default function useDatabaseQuery(
   const defaultDataSource = metadata?.sources?.find(
     (source) => source.name === 'default',
   );
-  const defaultDataSourceTables = new Set(
-    defaultDataSource?.tables?.map(
-      (table) => `${table.table.schema}.${table.table.name}`,
-    ) ?? [],
-  );
 
   const defaultDataSourceFunctions = new Set(
     defaultDataSource?.functions?.map(
@@ -82,11 +77,7 @@ export default function useDatabaseQuery(
           : false,
       select: (data) => ({
         ...data,
-        tables: data.tables?.filter((table) =>
-          defaultDataSourceTables.has(
-            `${table.table_schema}.${table.table_name}`,
-          ),
-        ),
+        // TODO: Check if this is necessary
         functions: data.functions?.filter(
           (func) =>
             func.table_type === 'FUNCTION' &&
