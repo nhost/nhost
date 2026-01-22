@@ -20,7 +20,8 @@ import { prepareSuggestedRelationshipDTO } from '@/features/orgs/projects/databa
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type {
   MetadataOperation200,
-  SuggestRelationshipsResponseRelationshipsItem,
+  SuggestedArrayRelationship,
+  SuggestedObjectRelationship,
 } from '@/utils/hasura-api/generated/schemas';
 
 interface AddSuggestedRelationshipDialogProps {
@@ -41,11 +42,11 @@ interface AddSuggestedRelationshipDialogProps {
   /**
    * Suggested relationship to be transformed into a tracked relationship.
    */
-  suggestion: SuggestRelationshipsResponseRelationshipsItem;
+  suggestion: SuggestedObjectRelationship | SuggestedArrayRelationship;
 }
 
 function getDefaultRelationshipName(
-  suggestion?: SuggestRelationshipsResponseRelationshipsItem | null,
+  suggestion?: SuggestedObjectRelationship | SuggestedArrayRelationship | null,
 ) {
   if (!suggestion) {
     return '';
