@@ -50,7 +50,7 @@ export default function ConcealErrorsSettings() {
   useEffect(() => {
     if (!loading) {
       form.reset({
-        enabled: data!.config!.auth!.misc!.concealErrors!,
+        enabled: !!data?.config?.auth?.misc?.concealErrors,
       });
     }
   }, [loading, data, form]);
