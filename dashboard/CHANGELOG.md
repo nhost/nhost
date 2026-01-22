@@ -1,3 +1,9 @@
+## [@nhost/dashboard@2.46.2] - 2026-01-22
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Show untracked tables in database view (#3833)
+
 ## [@nhost/dashboard@2.46.1] - 2026-01-22
 
 ### 🐛 Bug Fixes
