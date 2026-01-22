@@ -4,14 +4,15 @@ import type {
   CreateLocalRelationshipArgs,
   ForeignKeyConstraintOn,
   QualifiedTable,
-  SuggestRelationshipsResponseRelationshipsItem,
+  SuggestedArrayRelationship,
+  SuggestedObjectRelationship,
 } from '@/utils/hasura-api/generated/schemas';
 
 interface PrepareSuggestedRelationshipDTOParams {
   baseTable: QualifiedTable;
   relationshipName: string;
   source: string;
-  suggestion: SuggestRelationshipsResponseRelationshipsItem;
+  suggestion: SuggestedArrayRelationship | SuggestedObjectRelationship;
 }
 
 export default function prepareSuggestedRelationshipDTO({

@@ -1,10 +1,13 @@
 import { plural, singular } from 'pluralize';
 import type { RelationshipSuggestionViewModel } from '@/features/orgs/projects/database/dataGrid/types/relationships/relationships';
 import { formatEndpoint } from '@/features/orgs/projects/database/dataGrid/utils/formatEndpoint';
-import type { SuggestRelationshipsResponseRelationshipsItem } from '@/utils/hasura-api/generated/schemas';
+import type {
+  SuggestedArrayRelationship,
+  SuggestedObjectRelationship,
+} from '@/utils/hasura-api/generated/schemas';
 
 interface BuildRelationshipSuggestionViewModelProps {
-  suggestion: SuggestRelationshipsResponseRelationshipsItem;
+  suggestion: SuggestedObjectRelationship | SuggestedArrayRelationship;
   tableSchema: string;
   tableName: string;
   dataSource: string;

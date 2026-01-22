@@ -1,7 +1,8 @@
 import type {
   RemoteRelationshipDefinition,
   RemoteRelationshipItem,
-  SuggestRelationshipsResponseRelationshipsItem,
+  SuggestedArrayRelationship,
+  SuggestedObjectRelationship,
 } from '@/utils/hasura-api/generated/schemas';
 
 export interface RelationshipSuggestionViewModel {
@@ -11,7 +12,7 @@ export interface RelationshipSuggestionViewModel {
   type: 'Array' | 'Object';
   from: string;
   to: string;
-  rawSuggestion: SuggestRelationshipsResponseRelationshipsItem;
+  rawSuggestion: SuggestedObjectRelationship | SuggestedArrayRelationship;
 }
 
 export interface RelationshipViewModel {

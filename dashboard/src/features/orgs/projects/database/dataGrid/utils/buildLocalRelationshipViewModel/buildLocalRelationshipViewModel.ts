@@ -10,7 +10,8 @@ import { areStrArraysEqual, isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import type {
   ArrayRelationshipItem,
   ObjectRelationshipItem,
-  SuggestRelationshipsResponseRelationshipsItem,
+  SuggestedArrayRelationship,
+  SuggestedObjectRelationship,
 } from '@/utils/hasura-api/generated/schemas';
 
 interface BuildLocalRelationshipViewModelProps {
@@ -18,7 +19,10 @@ interface BuildLocalRelationshipViewModelProps {
   tableSchema: string;
   tableName: string;
   foreignKeyRelations: ForeignKeyRelation[];
-  suggestedRelationships?: SuggestRelationshipsResponseRelationshipsItem[];
+  suggestedRelationships?: (
+    | SuggestedArrayRelationship
+    | SuggestedObjectRelationship
+  )[];
   type: 'Array' | 'Object';
   dataSource: string;
 }
