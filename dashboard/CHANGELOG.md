@@ -1,3 +1,12 @@
+## [@nhost/dashboard@2.46.1] - 2026-01-22
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Update orval to version 8 (#3827)
+- *(ci)* Check that orval codegen files are up to date (#3829)
+- *(deps)* Added pnpm overrides due to cves (#3831)
+- *(dashboard)* Use optional chaining for concealErrors setting (#3830)
+
 ## [@nhost/dashboard@2.46.0] - 2026-01-19
 
 ### 🚀 Features
