@@ -20,15 +20,15 @@ type Props = {
   onClose: () => void;
   disabled: boolean;
   isSelectedNotSchemaLocked: boolean;
-  onDelete: () => void;
   onEditPermissions: () => void;
   onViewPermissions: () => void;
-  onEditTable: () => void;
+  onEditView: () => void;
   onEditSettings: () => void;
   onViewSettings: () => void;
+  onDelete: () => void;
 };
 
-function TableActions({
+function ViewActions({
   tableName,
   open,
   className,
@@ -36,12 +36,12 @@ function TableActions({
   onOpen,
   disabled,
   isSelectedNotSchemaLocked,
-  onDelete,
   onEditPermissions,
   onViewPermissions,
-  onEditTable,
+  onEditView,
   onEditSettings,
   onViewSettings,
+  onDelete,
 }: Props) {
   const { project } = useProject();
   const isGitHubConnected = !!project?.githubRepository;
@@ -61,7 +61,7 @@ function TableActions({
         asChild
       >
         <Button
-          id={`table-management-menu-${tableName}`}
+          id={`view-management-menu-${tableName}`}
           variant="outline"
           size="icon"
           className="h-6 w-6 border-none bg-transparent px-0 hover:bg-transparent"
@@ -90,9 +90,9 @@ function TableActions({
             {isSelectedNotSchemaLocked && (
               <DropdownMenuItem
                 className={menuItemClassName}
-                onClick={onEditTable}
+                onClick={onEditView}
               >
-                <SquarePen className="h-4 w-4" /> <span>Edit Table</span>
+                <SquarePen className="h-4 w-4" /> <span>Edit View</span>
               </DropdownMenuItem>
             )}
             <DropdownMenuItem
@@ -116,7 +116,7 @@ function TableActions({
                 onClick={onDelete}
               >
                 <Trash2 className="h-4 w-4" />
-                <span>Delete Table</span>
+                <span>Delete View</span>
               </DropdownMenuItem>
             )}
           </>
@@ -126,4 +126,4 @@ function TableActions({
   );
 }
 
-export default TableActions;
+export default ViewActions;

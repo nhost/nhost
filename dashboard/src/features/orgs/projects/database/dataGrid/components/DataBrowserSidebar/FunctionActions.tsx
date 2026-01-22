@@ -20,15 +20,15 @@ type Props = {
   onClose: () => void;
   disabled: boolean;
   isSelectedNotSchemaLocked: boolean;
-  onDelete: () => void;
+  onEditFunction: () => void;
   onEditPermissions: () => void;
   onViewPermissions: () => void;
-  onEditTable: () => void;
   onEditSettings: () => void;
   onViewSettings: () => void;
+  onDelete: () => void;
 };
 
-function TableActions({
+function FunctionActions({
   tableName,
   open,
   className,
@@ -36,12 +36,12 @@ function TableActions({
   onOpen,
   disabled,
   isSelectedNotSchemaLocked,
-  onDelete,
+  onEditFunction,
   onEditPermissions,
   onViewPermissions,
-  onEditTable,
   onEditSettings,
   onViewSettings,
+  onDelete,
 }: Props) {
   const { project } = useProject();
   const isGitHubConnected = !!project?.githubRepository;
@@ -61,7 +61,7 @@ function TableActions({
         asChild
       >
         <Button
-          id={`table-management-menu-${tableName}`}
+          id={`function-management-menu-${tableName}`}
           variant="outline"
           size="icon"
           className="h-6 w-6 border-none bg-transparent px-0 hover:bg-transparent"
@@ -90,9 +90,9 @@ function TableActions({
             {isSelectedNotSchemaLocked && (
               <DropdownMenuItem
                 className={menuItemClassName}
-                onClick={onEditTable}
+                onClick={onEditFunction}
               >
-                <SquarePen className="h-4 w-4" /> <span>Edit Table</span>
+                <SquarePen className="h-4 w-4" /> <span>Edit Function</span>
               </DropdownMenuItem>
             )}
             <DropdownMenuItem
@@ -116,7 +116,7 @@ function TableActions({
                 onClick={onDelete}
               >
                 <Trash2 className="h-4 w-4" />
-                <span>Delete Table</span>
+                <span>Delete Function</span>
               </DropdownMenuItem>
             )}
           </>
@@ -126,4 +126,4 @@ function TableActions({
   );
 }
 
-export default TableActions;
+export default FunctionActions;

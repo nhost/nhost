@@ -280,7 +280,7 @@ export default function FunctionDefinitionView() {
                       Running...
                     </>
                   ) : (
-                    'Preview'
+                    'Execute'
                   )}
                 </Button>
               </div>
@@ -292,7 +292,7 @@ export default function FunctionDefinitionView() {
           <div className="mb-2 flex items-center justify-between">
             <div>
               <h3 className="font-semibold text-sm">
-                Preview results (not persisted)
+                Execution results (not persisted)
               </h3>
               <p className="text-muted-foreground text-xs">
                 Results depend on input parameters and current database state
