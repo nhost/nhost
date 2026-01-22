@@ -6,8 +6,8 @@ import {
   Plus,
   SquareFunction,
   Table2,
-  TableProperties,
   Terminal,
+  View,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
@@ -204,7 +204,26 @@ function DataBrowserSidebarContent({
       ({ table_schema: tableSchema, table_name: tableName }) =>
         `${tableSchema}.${tableName}` !== optimisticlyRemovedTable,
     )
-    .sort((a, b) => a.table_name.localeCompare(b.table_name));
+    .sort((a, b) => {
+      // Define type order: MATERIALIZED VIEW, VIEW, BASE TABLE (and other tables), FUNCTION
+      const typeOrder: Record<string, number> = {
+        'MATERIALIZED VIEW': 0,
+        VIEW: 1,
+        'BASE TABLE': 2,
+        FUNCTION: 3,
+      };
+
+      const orderA = typeOrder[a.object_type] ?? 99;
+      const orderB = typeOrder[b.object_type] ?? 99;
+
+      // First sort by type
+      if (orderA !== orderB) {
+        return orderA - orderB;
+      }
+
+      // Then sort alphabetically by name
+      return a.table_name.localeCompare(b.table_name);
+    });
 
   // Keep tablesInSelectedSchema for backward compatibility with delete logic
   const tablesInSelectedSchema = allObjectsInSelectedSchema.filter(
@@ -461,7 +480,7 @@ function DataBrowserSidebarContent({
                           {isFunction ? (
                             <SquareFunction className="h-4 w-4 shrink-0" />
                           ) : isMaterializedView || isView ? (
-                            <TableProperties className="h-4 w-4 shrink-0" />
+                            <View className="h-4 w-4 shrink-0" />
                           ) : isEnum ? (
                             <List className="h-4 w-4 shrink-0" />
                           ) : (
