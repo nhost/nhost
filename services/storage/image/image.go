@@ -9,7 +9,10 @@ import (
 )
 
 const (
-	maxWorkers = 3
+	maxWorkers    = 3
+	maxMemory     = 50 * 1024 * 1024 // 50MB
+	maxCache      = 100              // max 100 cached operations
+	maxCacheFiles = 0                // unlimited cached files
 )
 
 type ImageType int //nolint: revive
@@ -82,11 +85,11 @@ type Transformer struct {
 
 func NewTransformer() *Transformer {
 	if atomic.CompareAndSwapInt32(&initialized, 0, 1) {
-		vips.Startup(&vips.Config{
+		vips.Startup(&vips.Config{ //nolint:exhaustruct
 			ConcurrencyLevel: maxWorkers,
-			MaxCacheFiles:    0,
-			MaxCacheMem:      50 * 1024 * 1024, // 50MB cache memory limit
-			MaxCacheSize:     100,               // max 100 cached operations
+			MaxCacheFiles:    maxCacheFiles,
+			MaxCacheMem:      maxMemory,
+			MaxCacheSize:     maxCache,
 		})
 	}
 
