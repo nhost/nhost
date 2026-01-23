@@ -82,7 +82,12 @@ type Transformer struct {
 
 func NewTransformer() *Transformer {
 	if atomic.CompareAndSwapInt32(&initialized, 0, 1) {
-		vips.Startup(nil)
+		vips.Startup(&vips.Config{
+			ConcurrencyLevel: maxWorkers,
+			MaxCacheFiles:    0,
+			MaxCacheMem:      50 * 1024 * 1024, // 50MB cache memory limit
+			MaxCacheSize:     100,               // max 100 cached operations
+		})
 	}
 
 	workers := make(chan struct{}, maxWorkers)
