@@ -4,12 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"regexp"
-	"strings"
-
-	docsembed "github.com/nhost/nhost/docs"
 
 	"github.com/nhost/nhost/cli/clienv"
+	"github.com/nhost/nhost/cli/pkg/docssearch"
 	"github.com/urfave/cli/v3"
 )
 
@@ -35,55 +32,22 @@ func commandShow(_ context.Context, cmd *cli.Command) error {
 	ce := clienv.FromCLI(cmd)
 
 	if cmd.NArg() < 1 {
-		return errors.New("missing page argument. Usage: nhost docs show <page>") //nolint:goerr113
+		return errors.New("missing page argument. Usage: nhost docs show <page>")
 	}
 
 	pagePath := cmd.Args().First()
 	showRaw := cmd.Bool(flagRaw)
 
-	content, err := readPage(pagePath)
+	content, err := docssearch.ReadPage(pagePath)
 	if err != nil {
-		return err
+		return fmt.Errorf("%w\nTry running 'nhost docs list' to see available pages", err)
 	}
 
 	if showRaw {
 		ce.Println("%s", content)
 	} else {
-		ce.Println("%s", stripFrontmatter(content))
+		ce.Println("%s", docssearch.StripFrontmatter(content))
 	}
 
 	return nil
-}
-
-func readPage(pagePath string) (string, error) {
-	normalizedPath := normalizePath(pagePath)
-
-	extensions := []string{".mdx", ".md"}
-	for _, ext := range extensions {
-		filePath := normalizedPath + ext
-
-		data, err := docsembed.DocsFS.ReadFile(filePath)
-		if err == nil {
-			return string(data), nil
-		}
-	}
-
-	return "", fmt.Errorf( //nolint:goerr113
-		"page not found: %s\nTry running 'nhost docs list' to see available pages",
-		pagePath,
-	)
-}
-
-func normalizePath(path string) string {
-	path = strings.TrimPrefix(path, "/")
-
-	path = strings.TrimSuffix(path, ".mdx")
-	path = strings.TrimSuffix(path, ".md")
-
-	return path
-}
-
-func stripFrontmatter(content string) string {
-	frontmatterRegex := regexp.MustCompile(`(?s)^---\n.*?\n---\n*`)
-	return frontmatterRegex.ReplaceAllString(content, "")
 }

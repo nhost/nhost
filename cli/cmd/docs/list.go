@@ -41,7 +41,7 @@ func commandList(_ context.Context, cmd *cli.Command) error {
 	return listFlat(ce, config)
 }
 
-func listFlat(ce *clienv.CliEnv, config *DocsConfig) error {
+func listFlat(ce *clienv.CliEnv, config *Config) error {
 	paths := GetAllPagePaths(config)
 	for _, path := range paths {
 		ce.Println("%s", path)
@@ -50,7 +50,7 @@ func listFlat(ce *clienv.CliEnv, config *DocsConfig) error {
 	return nil
 }
 
-func listGrouped(ce *clienv.CliEnv, config *DocsConfig) error {
+func listGrouped(ce *clienv.CliEnv, config *Config) error {
 	for _, tab := range config.Navigation.Tabs {
 		if tab.Href != "" {
 			continue
@@ -65,7 +65,7 @@ func listGrouped(ce *clienv.CliEnv, config *DocsConfig) error {
 
 		for _, dropdown := range tab.Dropdowns {
 			ce.Println("  ### %s", dropdown.Dropdown)
-			printPagesGrouped(ce, dropdown.Pages, 2)
+			printPagesGrouped(ce, dropdown.Pages, 2) //nolint:mnd
 		}
 
 		ce.Println("")
@@ -76,22 +76,34 @@ func listGrouped(ce *clienv.CliEnv, config *DocsConfig) error {
 
 func printPagesGrouped(ce *clienv.CliEnv, pages []any, indent int) {
 	indentStr := ""
+
 	var indentStrSb76 strings.Builder
 	for range indent {
 		indentStrSb76.WriteString(" ")
 	}
+
 	indentStr += indentStrSb76.String()
 
 	for _, page := range pages {
 		switch v := page.(type) {
 		case string:
+			// Skip deprecated pages
+			if isDeprecatedPath(v) {
+				continue
+			}
+
 			ce.Println("%s  %s", indentStr, v)
 		case map[string]any:
 			if groupName, ok := v["group"].(string); ok {
+				// Skip deprecated groups
+				if strings.Contains(strings.ToLower(groupName), "deprecated") {
+					continue
+				}
+
 				ce.Println("%s  [%s]", indentStr, groupName)
 
 				if groupPages, ok := v["pages"].([]any); ok {
-					printPagesGrouped(ce, groupPages, indent+2)
+					printPagesGrouped(ce, groupPages, indent+2) //nolint:mnd
 				}
 			}
 		}

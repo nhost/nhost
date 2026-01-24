@@ -9,6 +9,7 @@ func Command() *cli.Command {
 		Usage:   "Access embedded documentation",
 		Commands: []*cli.Command{
 			CommandList(),
+			CommandSearch(),
 			CommandShow(),
 		},
 	}

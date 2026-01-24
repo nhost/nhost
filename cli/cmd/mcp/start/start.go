@@ -120,12 +120,7 @@ func action(ctx context.Context, cmd *cli.Command) error {
 	resources := schemas.NewTool(cfg)
 	resources.Register(mcpServer)
 
-	d, err := docs.NewTool(ctx)
-	if err != nil {
-		return cli.Exit(fmt.Sprintf("failed to initialize docs tools: %s", err), 1)
-	}
-
-	d.Register(mcpServer)
+	docs.NewTool().Register(mcpServer)
 
 	return start(mcpServer, cmd.String(flagBind))
 }

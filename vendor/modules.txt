@@ -125,6 +125,11 @@ github.com/ProtonMail/go-crypto/openpgp/packet
 github.com/ProtonMail/go-crypto/openpgp/s2k
 github.com/ProtonMail/go-crypto/openpgp/x25519
 github.com/ProtonMail/go-crypto/openpgp/x448
+# github.com/RoaringBitmap/roaring/v2 v2.4.5
+## explicit; go 1.15
+github.com/RoaringBitmap/roaring/v2
+github.com/RoaringBitmap/roaring/v2/internal
+github.com/RoaringBitmap/roaring/v2/roaring64
 # github.com/Yamashou/gqlgenc v0.33.0
 ## explicit; go 1.23.0
 github.com/Yamashou/gqlgenc/clientv2
@@ -273,6 +278,111 @@ github.com/beorn7/perks/quantile
 # github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d
 ## explicit
 github.com/bgentry/go-netrc/netrc
+# github.com/bits-and-blooms/bitset v1.22.0
+## explicit; go 1.16
+github.com/bits-and-blooms/bitset
+# github.com/blevesearch/bleve/v2 v2.5.7
+## explicit; go 1.23
+github.com/blevesearch/bleve/v2
+github.com/blevesearch/bleve/v2/analysis
+github.com/blevesearch/bleve/v2/analysis/analyzer/keyword
+github.com/blevesearch/bleve/v2/analysis/analyzer/standard
+github.com/blevesearch/bleve/v2/analysis/datetime/flexible
+github.com/blevesearch/bleve/v2/analysis/datetime/optional
+github.com/blevesearch/bleve/v2/analysis/datetime/timestamp/microseconds
+github.com/blevesearch/bleve/v2/analysis/datetime/timestamp/milliseconds
+github.com/blevesearch/bleve/v2/analysis/datetime/timestamp/nanoseconds
+github.com/blevesearch/bleve/v2/analysis/datetime/timestamp/seconds
+github.com/blevesearch/bleve/v2/analysis/lang/en
+github.com/blevesearch/bleve/v2/analysis/token/lowercase
+github.com/blevesearch/bleve/v2/analysis/token/porter
+github.com/blevesearch/bleve/v2/analysis/token/stop
+github.com/blevesearch/bleve/v2/analysis/tokenizer/single
+github.com/blevesearch/bleve/v2/analysis/tokenizer/unicode
+github.com/blevesearch/bleve/v2/document
+github.com/blevesearch/bleve/v2/fusion
+github.com/blevesearch/bleve/v2/geo
+github.com/blevesearch/bleve/v2/index/scorch
+github.com/blevesearch/bleve/v2/index/scorch/mergeplan
+github.com/blevesearch/bleve/v2/index/upsidedown
+github.com/blevesearch/bleve/v2/index/upsidedown/store/boltdb
+github.com/blevesearch/bleve/v2/index/upsidedown/store/gtreap
+github.com/blevesearch/bleve/v2/mapping
+github.com/blevesearch/bleve/v2/numeric
+github.com/blevesearch/bleve/v2/registry
+github.com/blevesearch/bleve/v2/search
+github.com/blevesearch/bleve/v2/search/collector
+github.com/blevesearch/bleve/v2/search/facet
+github.com/blevesearch/bleve/v2/search/highlight
+github.com/blevesearch/bleve/v2/search/highlight/format/html
+github.com/blevesearch/bleve/v2/search/highlight/fragmenter/simple
+github.com/blevesearch/bleve/v2/search/highlight/highlighter/html
+github.com/blevesearch/bleve/v2/search/highlight/highlighter/simple
+github.com/blevesearch/bleve/v2/search/query
+github.com/blevesearch/bleve/v2/search/scorer
+github.com/blevesearch/bleve/v2/search/searcher
+github.com/blevesearch/bleve/v2/size
+github.com/blevesearch/bleve/v2/util
+# github.com/blevesearch/bleve_index_api v1.2.11
+## explicit; go 1.21
+github.com/blevesearch/bleve_index_api
+# github.com/blevesearch/geo v0.2.4
+## explicit; go 1.21.0
+github.com/blevesearch/geo/geojson
+github.com/blevesearch/geo/r1
+github.com/blevesearch/geo/r2
+github.com/blevesearch/geo/r3
+github.com/blevesearch/geo/s1
+github.com/blevesearch/geo/s2
+# github.com/blevesearch/go-faiss v1.0.26
+## explicit; go 1.21
+github.com/blevesearch/go-faiss
+# github.com/blevesearch/go-porterstemmer v1.0.3
+## explicit; go 1.13
+github.com/blevesearch/go-porterstemmer
+# github.com/blevesearch/gtreap v0.1.1
+## explicit; go 1.13
+github.com/blevesearch/gtreap
+# github.com/blevesearch/mmap-go v1.0.4
+## explicit; go 1.13
+github.com/blevesearch/mmap-go
+# github.com/blevesearch/scorch_segment_api/v2 v2.3.13
+## explicit; go 1.21
+github.com/blevesearch/scorch_segment_api/v2
+# github.com/blevesearch/segment v0.9.1
+## explicit; go 1.18
+github.com/blevesearch/segment
+# github.com/blevesearch/snowballstem v0.9.0
+## explicit; go 1.13
+github.com/blevesearch/snowballstem
+github.com/blevesearch/snowballstem/english
+# github.com/blevesearch/upsidedown_store_api v1.0.2
+## explicit; go 1.18
+github.com/blevesearch/upsidedown_store_api
+# github.com/blevesearch/vellum v1.1.0
+## explicit; go 1.21
+github.com/blevesearch/vellum
+github.com/blevesearch/vellum/levenshtein
+github.com/blevesearch/vellum/regexp
+github.com/blevesearch/vellum/utf8
+# github.com/blevesearch/zapx/v11 v11.4.2
+## explicit; go 1.21
+github.com/blevesearch/zapx/v11
+# github.com/blevesearch/zapx/v12 v12.4.2
+## explicit; go 1.21
+github.com/blevesearch/zapx/v12
+# github.com/blevesearch/zapx/v13 v13.4.2
+## explicit; go 1.21
+github.com/blevesearch/zapx/v13
+# github.com/blevesearch/zapx/v14 v14.4.2
+## explicit; go 1.21
+github.com/blevesearch/zapx/v14
+# github.com/blevesearch/zapx/v15 v15.4.2
+## explicit; go 1.21
+github.com/blevesearch/zapx/v15
+# github.com/blevesearch/zapx/v16 v16.2.8
+## explicit; go 1.23
+github.com/blevesearch/zapx/v16
 # github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc
 ## explicit
 github.com/boombuler/barcode
@@ -563,6 +673,9 @@ github.com/golang/groupcache/lru
 # github.com/golang/mock v1.6.0
 ## explicit; go 1.11
 github.com/golang/mock/gomock
+# github.com/golang/snappy v0.0.4
+## explicit
+github.com/golang/snappy
 # github.com/google/go-cmp v0.7.0
 ## explicit; go 1.21
 github.com/google/go-cmp/cmp
@@ -711,6 +824,9 @@ github.com/modern-go/reflect2
 # github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 ## explicit
 github.com/mohae/deepcopy
+# github.com/mschoch/smat v0.2.0
+## explicit; go 1.13
+github.com/mschoch/smat
 # github.com/muesli/termenv v0.16.0
 ## explicit; go 1.17
 github.com/muesli/termenv
@@ -1010,6 +1126,12 @@ github.com/xo/terminfo
 # github.com/yosida95/uritemplate/v3 v3.0.2
 ## explicit; go 1.14
 github.com/yosida95/uritemplate/v3
+# go.etcd.io/bbolt v1.4.0
+## explicit; go 1.23
+go.etcd.io/bbolt
+go.etcd.io/bbolt/errors
+go.etcd.io/bbolt/internal/common
+go.etcd.io/bbolt/internal/freelist
 # go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.61.0
 ## explicit; go 1.23.0
 # go.uber.org/mock v0.5.2
