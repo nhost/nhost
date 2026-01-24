@@ -12,6 +12,7 @@ import (
 	"github.com/nhost/nhost/cli/cmd/deployments"
 	"github.com/nhost/nhost/cli/cmd/dev"
 	"github.com/nhost/nhost/cli/cmd/dockercredentials"
+	nhostdocs "github.com/nhost/nhost/cli/cmd/docs"
 	"github.com/nhost/nhost/cli/cmd/mcp"
 	"github.com/nhost/nhost/cli/cmd/project"
 	"github.com/nhost/nhost/cli/cmd/run"
@@ -48,6 +49,7 @@ func main() {
 			project.CommandInit(),
 			project.CommandList(),
 			project.CommandLink(),
+			nhostdocs.Command(),
 			run.Command(),
 			secrets.Command(),
 			software.Command(),
@@ -68,7 +70,7 @@ func main() {
 
 func markdownDocs() *cli.Command {
 	return &cli.Command{ //nolint:exhaustruct
-		Name:  "docs",
+		Name:  "gen-docs",
 		Usage: "Generate markdown documentation for the CLI",
 		Action: func(_ context.Context, cmd *cli.Command) error {
 			md, err := docs.ToMarkdown(cmd.Root())
