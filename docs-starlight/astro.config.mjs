@@ -37,6 +37,7 @@ export default defineConfig({
             ],
             components: {
                 Header: './src/components/Header.astro',
+                Head: './src/components/Head.astro',
             },
             plugins: [
                 // OpenAPI must come first to process sidebar placeholders
