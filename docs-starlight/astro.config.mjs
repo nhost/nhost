@@ -381,43 +381,49 @@ export default defineConfig({
                             icon: 'open-book',
                             items: [
                                 { label: 'Overview', slug: 'reference/overview' },
-                                authAPISidebarGroup,
-                                storageAPISidebarGroup,
                                 {
-                                    label: 'AI GraphQL',
-                                    collapsed: true,
+                                    label: 'Backend Services',
+                                    collapsed: false,
                                     items: [
-                                        { slug: 'reference/graphql/ai/overview' },
+                                        authAPISidebarGroup,
+                                        storageAPISidebarGroup,
                                         {
-                                            label: 'Query',
+                                            label: 'AI GraphQL',
                                             collapsed: true,
                                             items: [
-                                                { slug: 'reference/graphql/ai/query/assistant' },
-                                                { slug: 'reference/graphql/ai/query/assistants' },
-                                                { slug: 'reference/graphql/ai/query/session' },
-                                                { slug: 'reference/graphql/ai/query/session-messages' },
-                                                { slug: 'reference/graphql/ai/query/sessions' },
-                                            ],
-                                        },
-                                        {
-                                            label: 'Mutation',
-                                            collapsed: true,
-                                            items: [
-                                                { slug: 'reference/graphql/ai/mutation/insert-assistant' },
-                                                { slug: 'reference/graphql/ai/mutation/update-assistant' },
-                                                { slug: 'reference/graphql/ai/mutation/delete-assistant' },
-                                                { slug: 'reference/graphql/ai/mutation/start-session' },
-                                                { slug: 'reference/graphql/ai/mutation/delete-session' },
-                                                { slug: 'reference/graphql/ai/mutation/send-message' },
-                                                { slug: 'reference/graphql/ai/mutation/start-dev-session' },
-                                                { slug: 'reference/graphql/ai/mutation/send-dev-message' },
+                                                { slug: 'reference/graphql/ai/overview' },
+                                                {
+                                                    label: 'Query',
+                                                    collapsed: true,
+                                                    items: [
+                                                        { slug: 'reference/graphql/ai/query/assistant' },
+                                                        { slug: 'reference/graphql/ai/query/assistants' },
+                                                        { slug: 'reference/graphql/ai/query/session' },
+                                                        { slug: 'reference/graphql/ai/query/session-messages' },
+                                                        { slug: 'reference/graphql/ai/query/sessions' },
+                                                    ],
+                                                },
+                                                {
+                                                    label: 'Mutation',
+                                                    collapsed: true,
+                                                    items: [
+                                                        { slug: 'reference/graphql/ai/mutation/insert-assistant' },
+                                                        { slug: 'reference/graphql/ai/mutation/update-assistant' },
+                                                        { slug: 'reference/graphql/ai/mutation/delete-assistant' },
+                                                        { slug: 'reference/graphql/ai/mutation/start-session' },
+                                                        { slug: 'reference/graphql/ai/mutation/delete-session' },
+                                                        { slug: 'reference/graphql/ai/mutation/send-message' },
+                                                        { slug: 'reference/graphql/ai/mutation/start-dev-session' },
+                                                        { slug: 'reference/graphql/ai/mutation/send-dev-message' },
+                                                    ],
+                                                },
                                             ],
                                         },
                                     ],
                                 },
                                 {
                                     label: 'Client Libraries',
-                                    collapsed: true,
+                                    collapsed: false,
                                     items: [
                                         {
                                             label: 'JavaScript',
@@ -442,6 +448,7 @@ export default defineConfig({
                                 },
                                 {
                                     label: 'CLI',
+                                    collapsed: false,
                                     items: [{ label: 'Commands', slug: 'reference/cli/commands' }],
                                 },
                                 {
