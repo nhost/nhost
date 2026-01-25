@@ -85,6 +85,28 @@ html:not([class~="dark"]) .welcome-get-started {
   display: none;
 }
 
+/* Make nested collapsible summaries look like regular links */
+/* Regular sidebar links use --sl-color-gray-2 */
+.sidebar-content ul:not(.top-level) li details > summary,
+.sidebar-content ul:not(.top-level) li details > summary .group-label,
+.sidebar-content ul:not(.top-level) li details > summary .group-label .large {
+  font-weight: normal !important;
+  color: var(--sl-color-gray-2) !important;
+  font-size: var(--sl-text-sm);
+}
+
+.sidebar-content ul:not(.top-level) li details > summary:hover,
+.sidebar-content ul:not(.top-level) li details > summary:hover .group-label,
+.sidebar-content ul:not(.top-level) li details > summary:hover .group-label .large {
+  color: var(--sl-color-white) !important;
+}
+
+/* Keep the caret smaller and aligned */
+.sidebar-content ul:not(.top-level) li details > summary .caret {
+  width: 1rem;
+  height: 1rem;
+}
+
 /* Make the logo smaller */
 .site-title img {
   height: 1.5rem;
