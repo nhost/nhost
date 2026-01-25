@@ -1,0 +1,479 @@
+---
+title: List of Available Extensions
+description: List of available extensions with Nhost Postgres.
+---
+
+## Overview
+
+In the table below you can find a list of available extensions with Nhost Postgres:
+
+
+| Name | Version | Comment |
+|------|---------|---------|
+| address_standardizer | 3.6.1 | Used to parse an address into constituent elements. Generally used to support geocoding address normalization step. |
+| address_standardizer_data_us | 3.6.1 | Address Standardizer US dataset example |
+| amcheck | 1.5 | functions for verifying relation integrity |
+| autoinc | 1.0 | functions for autoincrementing fields |
+| bloom | 1.0 | bloom access method - signature file based index |
+| btree_gin | 1.3 | support for indexing common datatypes in GIN |
+| btree_gist | 1.8 | support for indexing common datatypes in GiST |
+| citext | 1.8 | data type for case-insensitive character strings |
+| cube | 1.5 | data type for multidimensional cubes |
+| dblink | 1.2 | connect to other PostgreSQL databases from within a database |
+| dict_int | 1.0 | text search dictionary template for integers |
+| dict_xsyn | 1.0 | text search dictionary template for extended synonym processing |
+| earthdistance | 1.2 | calculate great-circle distances on the surface of the Earth |
+| file_fdw | 1.0 | foreign-data wrapper for flat file access |
+| fuzzystrmatch | 1.2 | determine similarities and distance between strings |
+| hstore | 1.8 | data type for storing sets of (key, value) pairs |
+| http | 1.7 | HTTP client for PostgreSQL, allows web page retrieval inside the database. |
+| hypopg | 1.4.2 | Hypothetical indexes for PostgreSQL |
+| insert_username | 1.0 | functions for tracking who changed a table |
+| intagg | 1.1 | integer aggregator and enumerator (obsolete) |
+| intarray | 1.5 | functions, operators, and index support for 1-D arrays of integers |
+| ip4r | 2.4 | |
+| isn | 1.3 | data types for international product numbering standards |
+| lo | 1.2 | Large Object maintenance |
+| ltree | 1.3 | data type for hierarchical tree-like structures |
+| moddatetime | 1.0 | functions for tracking last modification time |
+| pageinspect | 1.13 | inspect the contents of database pages at a low level |
+| pg_buffercache | 1.6 | examine the shared buffer cache |
+| pg_cron | 1.6 | Job scheduler for PostgreSQL |
+| pg_freespacemap | 1.3 | examine the free space map (FSM) |
+| pg_hashids | 1.3 | pg_hashids |
+| pg_ivm | 1.13 | incremental view maintenance on PostgreSQL |
+| pg_jsonschema | 0.3.3 | pg_jsonschema |
+| pg_logicalinspect | 1.0 | functions to inspect logical decoding components |
+| pg_prewarm | 1.2 | prewarm relation data |
+| pg_repack | 1.5.3 | Reorganize tables in PostgreSQL databases with minimal locks |
+| pg_search | 0.21.1 | pg_search: Full text search for PostgreSQL using BM25 |
+| pg_squeeze | 1.9 | A tool to remove unused space from a relation. |
+| pg_stat_statements | 1.12 | track planning and execution statistics of all SQL statements executed |
+| pg_surgery | 1.0 | extension to perform surgery on a damaged relation |
+| pg_trgm | 1.6 | text similarity measurement and index searching based on trigrams |
+| pg_visibility | 1.2 | examine the visibility map (VM) and page-level visibility info |
+| pg_walinspect | 1.1 | functions to inspect contents of PostgreSQL Write-Ahead Log |
+| pgcrypto | 1.4 | cryptographic functions |
+| pgmq | 1.8.0 | A lightweight message queue. Like AWS SQS and RSMQ but on Postgres. |
+| pgrouting | 4.0.0 | pgRouting Extension |
+| pgrowlocks | 1.2 | show row-level locking information |
+| pgstattuple | 1.5 | show tuple-level statistics |
+| plpgsql | 1.0 | PL/pgSQL procedural language |
+| postgis | 3.6.1 | PostGIS geometry and geography spatial types and functions |
+| postgis_raster | 3.6.1 | PostGIS raster types and functions |
+| postgis_tiger_geocoder | 3.6.1 | PostGIS tiger geocoder and reverse geocoder |
+| postgis_topology | 3.6.1 | PostGIS topology spatial types and functions |
+| postgres_fdw | 1.2 | foreign-data wrapper for remote PostgreSQL servers |
+| refint | 1.0 | functions for implementing referential integrity (obsolete) |
+| seg | 1.4 | data type for representing line segments or floating-point intervals |
+| sslinfo | 1.2 | information about SSL certificates |
+| tablefunc | 1.0 | functions that manipulate whole tables, including crosstab |
+| tcn | 1.0 | Triggered change notifications |
+| timescaledb | 2.24.0 | Enables scalable inserts and complex queries for time-series data |
+| tsm_system_rows | 1.0 | TABLESAMPLE method which accepts number of rows as a limit |
+| tsm_system_time | 1.0 | TABLESAMPLE method which accepts time in milliseconds as a limit |
+| unaccent | 1.1 | text search dictionary that removes accents |
+| uuid-ossp | 1.1 | generate universally unique identifiers (UUIDs) |
+| vector | 0.8.1 | vector data type and ivfflat and hnsw access methods |
+| xml2 | 1.2 | XPath querying and XSLT |
+
+In addition, you can find more information about some of the extensions below
+
+## hypopg
+
+HypoPG is a PostgreSQL extension adding support for hypothetical indexes.
+
+An hypothetical -- or virtual -- index is an index that doesn't really exists, and thus doesn't cost CPU, disk or any resource to create. They're useful to know if specific indexes can increase performance for problematic queries, since you can know if PostgreSQL will use these indexes or not without having to spend resources to create them.
+
+### Managing
+
+To install the extension you can create a migration with the following contents:
+
+```sql SQL
+SET ROLE postgres;
+CREATE EXTENSION hypopg;
+```
+
+To uninstall it, you can use the following migration:
+
+```sql SQL
+SET ROLE postgres;
+DROP EXTENSION hypopg;
+```
+
+### Resources
+
+- [GitHub](https://github.com/HypoPG/hypopg)
+- [Documentation](https://hypopg.readthedocs.io/)
+
+## http
+
+HTTP client for PostgreSQL, retrieve a web page from inside the database.
+
+### Managing
+
+To install the extension you can create a migration with the following contents:
+
+```sql SQL
+SET ROLE postgres;
+CREATE EXTENSION http;
+```
+
+To uninstall it, you can use the following migration:
+
+```sql SQL
+SET ROLE postgres;
+DROP EXTENSION http;
+```
+
+## ip4r
+
+IPv4/v6 and IPv4/v6 range index type for PostgreSQL.
+
+### Managing
+
+To install the extension you can create a migration with the following contents:
+
+```sql SQL
+SET ROLE postgres;
+CREATE EXTENSION ip4r;
+```
+
+To uninstall it, you can use the following migration:
+
+```sql SQL
+SET ROLE postgres;
+DROP EXTENSION ip4r;
+```
+
+### Resources
+
+- [GitHub](https://github.com/RhodiumToad/ip4r)
+
+## pgmq
+
+A lightweight message queue. Like AWS SQS and RSMQ but on Postgres.
+
+### Managing
+
+To install the extension you can create a migration with the following contents:
+
+```sql SQL
+SET ROLE postgres;
+CREATE EXTENSION pgmq;
+```
+
+To uninstall it, you can use the following migration:
+
+```sql SQL
+SET ROLE postgres;
+DROP EXTENSION pgmq;
+```
+
+### Resources
+
+- [GitHub](https://github.com/tembo-io/pgmq)
+
+## pgrouting
+
+pgRouting extends the PostGIS/PostgreSQL geospatial database to provide geospatial routing and other network analysis functionality.
+
+### Managing
+
+To install the extension you can create a migration with the following contents:
+
+```sql SQL
+SET ROLE postgres;
+CREATE EXTENSION pgrouting;
+```
+
+To uninstall it, you can use the following migration:
+
+```sql SQL
+SET ROLE postgres;
+DROP EXTENSION pgrouting;
+```
+
+### Resources
+
+- [GitHub](https://github.com/pgRouting/pgrouting)
+
+## postgis
+
+PostGIS extends the capabilities of the PostgreSQL relational database by adding support storing, indexing and querying geographic data.
+
+### Managing
+
+To install the extension you can create a migration with the following contents:
+
+```sql SQL
+SET ROLE postgres;
+CREATE EXTENSION postgis;
+```
+
+To uninstall it, you can use the following migration:
+
+```sql SQL
+SET ROLE postgres;
+DROP EXTENSION postgis;
+```
+
+### Resources
+
+- [Official website](https://postgis.net/)
+
+## pgvector
+
+Open-source vector similarity search for Postgres. Store your vectors with the rest of your data.
+
+Supports:
+
+- exact and approximate nearest neighbor search
+- L2 distance, inner product, and cosine distance
+- any language with a Postgres client
+
+Plus ACID compliance, point-in-time recovery, JOINs, and all of the other great features of Postgres
+
+### Managing
+
+To install the extension you can create a migration with the following contents:
+
+```sql SQL
+SET ROLE postgres;
+CREATE EXTENSION vector;
+```
+
+To uninstall it, you can use the following migration:
+
+```sql SQL
+SET ROLE postgres;
+DROP EXTENSION vector;
+```
+
+### Resources
+
+- [GitHub](https://github.com/pgvector/pgvector)
+
+## pg_cron
+
+pg_cron is a simple cron-based job scheduler for PostgreSQL (10 or higher) that runs inside the database as an extension. It uses the same syntax as regular cron, but it allows you to schedule PostgreSQL commands directly from the database. You can also use '[1-59] seconds' to schedule a job based on an interval.
+
+### Managing
+
+To install the extension you can create a migration with the following contents:
+
+```sql SQL
+SET ROLE postgres;
+CREATE EXTENSION pg_cron;
+```
+
+To uninstall it, you can use the following migration:
+
+```sql SQL
+SET ROLE postgres;
+DROP EXTENSION pg_cron;
+```
+
+### Resources
+
+- [GitHub](https://github.com/citusdata/pg_cron)
+
+## pg_hashids
+
+Hashids is a small open-source library that generates short, unique, non-sequential ids from numbers. It converts numbers like 347 into strings like “yr8”. You can also decode those ids back. This is useful in bundling several parameters into one or simply using them as short UIDs.
+
+### Managing
+
+To install the extension you can create a migration with the following contents:
+
+```sql SQL
+SET ROLE postgres;
+CREATE EXTENSION pg_hashids;
+```
+
+To uninstall it, you can use the following migration:
+
+```sql SQL
+SET ROLE postgres;
+DROP EXTENSION pg_hashids;
+```
+
+### Resources
+
+- [GitHub](https://github.com/iCyberon/pg_hashids)
+
+## pg_ivm
+
+The pg_ivm module provides Incremental View Maintenance (IVM) feature for PostgreSQL.
+
+Incremental View Maintenance (IVM) is a way to make materialized views up-to-date in which only incremental changes are computed and applied on views rather than recomputing the contents from scratch as REFRESH MATERIALIZED VIEW does. IVM can update materialized views more efficiently than recomputation when only small parts of the view are changed.
+
+### Managing
+
+To install the extension you can create a migration with the following contents:
+
+```sql SQL
+SET ROLE postgres;
+CREATE EXTENSION pg_ivm;
+```
+
+To uninstall it, you can use the following migration:
+
+```sql SQL
+SET ROLE postgres;
+DROP EXTENSION pg_ivm;
+```
+
+### Resources
+
+- [GitHub](https://github.com/sraoss/pg_ivm)
+
+## pg_jsonschema
+
+pg_jsonschema is a PostgreSQL extension adding support for JSON schema validation on json and jsonb data types.
+
+### Managing
+
+To install the extension you can create a migration with the following contents:
+
+```sql SQL
+SET ROLE postgres;
+CREATE EXTENSION pg_jsonschema;
+```
+
+To uninstall it, you can use the following migration:
+
+```sql SQL
+SET ROLE postgres;
+DROP EXTENSION pg_jsonschema;
+```
+
+### Resources
+
+- [GitHub](https://github.com/supabase/pg_jsonschema)
+
+## pg_repack
+
+pg_repack is a PostgreSQL extension which lets you remove bloat from tables and indexes, and optionally restore the physical order of clustered indexes. Unlike CLUSTER and VACUUM FULL it works online, without holding an exclusive lock on the processed tables during processing. pg_repack is efficient to boot, with performance comparable to using CLUSTER directly.
+
+### Managing
+
+To install the extension you can create a migration with the following contents:
+
+```sql SQL
+SET ROLE postgres;
+CREATE EXTENSION pg_repack;
+```
+In addition, you may need to configure the WAL level and replication slots. Check the official documentation for details.
+
+To uninstall it, you can use the following migration:
+
+```sql SQL
+SET ROLE postgres;
+DROP EXTENSION pg_repack;
+```
+
+### Resources
+
+- [GitHub](https://github.com/cybertec-postgresql/pg_squeeze)
+
+## pg_search
+
+pg_search is a Postgres extension that enables full text search over heap tables using the BM25 algorithm. It is built on top of Tantivy, the Rust-based alternative to Apache Lucene, using pgrx.
+
+### Managing
+
+To install the extension you can create a migration with the following contents:
+
+```sql SQL
+SET ROLE postgres;
+CREATE EXTENSION pg_search;
+```
+
+To uninstall it, you can use the following migration:
+
+```sql SQL
+SET ROLE postgres;
+DROP EXTENSION pg_search;
+```
+
+### Resources
+
+- [GitHub](https://github.com/paradedb/paradedb/tree/main/pg_search)
+- [Documentation](https://docs.paradedb.com/documentation/getting-started/quickstart)
+
+## pg_squeeze
+
+PostgreSQL extension that removes unused space from a table and optionally sorts tuples according to particular index (as if CLUSTER command was executed concurrently with regular reads / writes). In fact we try to replace pg_repack extension.
+
+### Managing
+
+To install the extension you can create a migration with the following contents:
+
+```sql SQL
+SET ROLE postgres;
+CREATE EXTENSION pg_squeeze;
+```
+In addition, you may need to configure the WAL level and replication slots. Check the official documentation for details.
+
+To uninstall it, you can use the following migration:
+
+```sql SQL
+SET ROLE postgres;
+DROP EXTENSION pg_squeeze;
+```
+
+### Resources
+
+- [GitHub](https://github.com/cybertec-postgresql/pg_squeeze)
+
+## pg_stat_statements
+
+The pg_stat_statements module provides a means for tracking planning and execution statistics of all SQL statements executed by a server.
+
+### Managing
+
+To install the extension you can create a migration with the following contents:
+
+```sql SQL
+SET ROLE postgres;
+CREATE EXTENSION pg_stat_statements;
+```
+
+To uninstall it, you can use the following migration:
+
+```sql SQL
+SET ROLE postgres;
+DROP EXTENSION pg_stat_statements;
+```
+
+### Resources
+
+- [Documentation](https://www.postgresql.org/docs/14/pgstatstatements.html)
+
+## timescaledb
+
+TimescaleDB is an open-source database designed to make SQL scalable for time-series data. It is engineered up from PostgreSQL and packaged as a PostgreSQL extension, providing automatic partitioning across time and space (partitioning key), as well as full SQL support.
+
+### Managing
+
+To install the extension you can create a migration with the following contents:
+
+```sql SQL
+SET ROLE postgres;
+CREATE EXTENSION timescaledb;
+```
+
+To uninstall it, you can use the following migration:
+
+```sql SQL
+SET ROLE postgres;
+DROP EXTENSION timescaledb;
+```
+
+### Resources
+
+- [GitHub](https://github.com/timescale/timescaledb)
+- [Documentation](https://docs.timescale.com/)
+- [Website](https://www.timescale.com/)
+

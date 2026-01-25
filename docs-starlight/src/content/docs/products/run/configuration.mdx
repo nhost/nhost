@@ -1,0 +1,59 @@
+---
+title: Configuration
+description: Learn how to configure a Run service
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+
+To configure a service you can use either the dashboard or a TOML configuration file with the following format:
+
+<Tabs>
+  <TabItem label="dashboard">
+
+
+![configuration](/images/run/configuration.png)
+
+  </TabItem>
+  <TabItem label="toml">
+
+```toml
+name="mynodeapp"
+
+[image]
+image="registry.eu-central-1.nhost.run/b719c4a4-6fb2-4feb-8220-c7f01ef5bfe8:0.1.1"
+
+[[environment]]
+name="ENV"
+value="prod"
+
+[[ports]]
+type="http"
+port=3000
+publish=true
+
+[resources]
+replicas=1
+
+[resources.compute]
+cpu=62
+memory=128
+
+[[resources.storage]]
+name="data"
+path="/var/lib/data"
+capacity=1
+```
+
+  </TabItem>
+</Tabs>
+
+:::note
+Head to [CLI & CI deployments](/platform/cloud/git) for more details on how to deploy using a configuration file.
+:::
+
+The `name` of the service is used as an identifier and to generate URLs when exposing the service to the Internet. You can use any container image publicly available or you can push your own to the [Nhost registry](/products/run/registry).
+
+All environment variables set here are exclusive to this service and will not be shared with other services or with the Nhost stack. If you are using a configuration file secrets are supported.
+
+For more details about the `Ports` section head to [networking](/products/run/networking). You can also head to [resources](/products/run/resources) for more information about replicas, compute, and storage.
+

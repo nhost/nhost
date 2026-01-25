@@ -1,0 +1,112 @@
+---
+interface Props {
+  title: string;
+  icon?: string;
+  href?: string;
+}
+
+const { title, icon, href } = Astro.props;
+
+// Map Mintlify icons to simple emoji/text representations
+const iconMap: Record<string, string> = {
+  rocket: '🚀',
+  react: '⚛️',
+  code: '💻',
+  cloud: '☁️',
+  box: '📦',
+  mobile: '📱',
+  'mobile-notch': '📱',
+  house: '🏠',
+  triangle: '▲',
+  vuejs: '💚',
+  s: '🔶',
+  lock: '🔒',
+  database: '🗄️',
+  lambda: '⚡',
+  webhook: '🔗',
+  warehouse: '📁',
+  robot: '🤖',
+  play: '▶️',
+  eye: '👁️',
+  terminal: '💻',
+  server: '🖥️',
+  bolt: '⚡',
+  'user-check': '👤',
+  at: '📧',
+  gear: '⚙️',
+  'diagram-project': '📊',
+  shield: '🛡️',
+  book: '📖',
+  brain: '🧠',
+  js: '🟨',
+};
+
+const displayIcon = icon ? iconMap[icon] || '📄' : '';
+---
+
+<div class="sl-card">
+  {href ? (
+    <a href={href} class="sl-card-link">
+      <div class="sl-card-content">
+        {displayIcon && <span class="sl-card-icon">{displayIcon}</span>}
+        <h3 class="sl-card-title">{title}</h3>
+        <div class="sl-card-description">
+          <slot />
+        </div>
+      </div>
+    </a>
+  ) : (
+    <div class="sl-card-content">
+      {displayIcon && <span class="sl-card-icon">{displayIcon}</span>}
+      <h3 class="sl-card-title">{title}</h3>
+      <div class="sl-card-description">
+        <slot />
+      </div>
+    </div>
+  )}
+</div>
+
+<style>
+  .sl-card {
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    background: var(--sl-color-bg-nav);
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .sl-card:hover {
+    border-color: var(--sl-color-accent);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .sl-card-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+
+  .sl-card-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .sl-card-icon {
+    font-size: 1.5rem;
+    line-height: 1;
+  }
+
+  .sl-card-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--sl-color-white);
+  }
+
+  .sl-card-description {
+    font-size: 0.875rem;
+    color: var(--sl-color-gray-2);
+    line-height: 1.5;
+  }
+</style>

@@ -1,0 +1,165 @@
+---
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import { Card, CardGroup } from '../components';
+---
+
+<StarlightPage frontmatter={{ title: 'Welcome to Nhost', template: 'splash' }}>
+  <div class="welcome-page">
+    <div class="welcome-hero">
+      <h1>Build. Deploy. Scale.</h1>
+      <p>Learn how to get started with Nhost</p>
+      <a href="/getting-started/overview" class="hero-link">Explore the docs →</a>
+    </div>
+
+    <div class="welcome-get-started">
+      <h2>Get started with our guides or explore our community</h2>
+
+      <div class="card-grid">
+        <a href="/getting-started/overview" class="card">
+          <span class="card-icon">🚀</span>
+          <h3>Getting Started</h3>
+          <p>Learn the fundamentals of Nhost and how to set up your first project</p>
+        </a>
+        <a href="/getting-started/quickstart/react" class="card">
+          <span class="card-icon">⚛️</span>
+          <h3>React</h3>
+          <p>Integrate Nhost with your React application</p>
+        </a>
+        <a href="/reference/overview" class="card">
+          <span class="card-icon">💻</span>
+          <h3>API Reference</h3>
+          <p>Explore the API reference for client SDKs and data APIs</p>
+        </a>
+        <a href="/platform/overview" class="card">
+          <span class="card-icon">☁️</span>
+          <h3>Platform</h3>
+          <p>Learn about the Nhost Platform and deployment targets</p>
+        </a>
+        <a href="/products/overview" class="card">
+          <span class="card-icon">📦</span>
+          <h3>Products</h3>
+          <p>Explore our integrated products like database, auth, GraphQL & storage</p>
+        </a>
+        <a href="https://github.com/nhost/nhost/tree/main/examples" class="card">
+          <span class="card-icon">📱</span>
+          <h3>Example Applications</h3>
+          <p>Deployable applications built with Nhost</p>
+        </a>
+      </div>
+    </div>
+  </div>
+</StarlightPage>
+
+<style>
+  .welcome-page {
+    margin: 0 auto;
+    max-width: 1200px;
+  }
+
+  .welcome-hero {
+    text-align: center;
+    padding: 4rem 2rem;
+    margin-bottom: 3rem;
+    background: linear-gradient(135deg, var(--sl-color-accent-low), var(--sl-color-bg));
+    border-radius: 1rem;
+  }
+
+  .welcome-hero h1 {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--sl-color-accent), var(--sl-color-text-accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .welcome-hero p {
+    font-size: 1.25rem;
+    color: var(--sl-color-gray-2);
+    margin-bottom: 2rem;
+  }
+
+  .hero-link {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    background: var(--sl-color-accent);
+    color: var(--sl-color-black);
+    text-decoration: none;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    transition: opacity 0.2s;
+  }
+
+  .hero-link:hover {
+    opacity: 0.9;
+  }
+
+  .welcome-get-started {
+    padding: 0 2rem 4rem;
+  }
+
+  .welcome-get-started h2 {
+    text-align: center;
+    font-size: 1.5rem;
+    margin-bottom: 2rem;
+    color: var(--sl-color-white);
+  }
+
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+
+  @media (max-width: 900px) {
+    .card-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 600px) {
+    .card-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .welcome-hero h1 {
+      font-size: 2rem;
+    }
+  }
+
+  .card {
+    display: block;
+    padding: 1.5rem;
+    background: var(--sl-color-bg-nav);
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.75rem;
+    text-decoration: none;
+    transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+  }
+
+  .card:hover {
+    border-color: var(--sl-color-accent);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+  }
+
+  .card-icon {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 0.75rem;
+  }
+
+  .card h3 {
+    margin: 0 0 0.5rem;
+    font-size: 1.1rem;
+    color: var(--sl-color-white);
+  }
+
+  .card p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--sl-color-gray-2);
+    line-height: 1.5;
+  }
+</style>

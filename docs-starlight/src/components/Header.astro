@@ -1,0 +1,158 @@
+---
+import type { Props } from '@astrojs/starlight/props';
+import Default from '@astrojs/starlight/components/Header.astro';
+
+const navLinks = [
+    { label: 'Welcome', href: '/' },
+    { label: 'Getting Started', href: '/getting-started/overview/' },
+    { label: 'Products', href: '/products/overview/' },
+    { label: 'Platform', href: '/platform/overview/' },
+    { label: 'Reference', href: '/reference/overview/' },
+    { label: 'Blog', href: 'https://nhost.io/blog', external: true },
+];
+
+// Determine current section from URL
+const pathname = Astro.url.pathname;
+const currentSection = navLinks.find(link => {
+    if (link.external) return false;
+    // Handle root/welcome page specifically - only match exact root
+    if (link.href === '/') {
+        return pathname === '/' || pathname === '/welcome' || pathname === '/welcome/';
+    }
+    // For section pages, check if pathname starts with the section base path
+    const basePath = link.href.replace('/overview/', '/').replace(/\/$/, '');
+    return pathname.startsWith(basePath);
+});
+---
+
+<Default {...Astro.props}>
+    <slot />
+</Default>
+
+<style is:global>
+    /* Subheader navigation */
+    .subheader-nav {
+        display: none;
+        width: 100%;
+        flex: 0 0 100%;
+        align-items: stretch;
+        justify-content: space-between;
+        padding: 0 var(--sl-nav-pad-x) 0 calc(var(--sl-nav-pad-x) - 2rem);
+        border-top: 1px solid var(--sl-color-hairline-light);
+        background: var(--sl-color-bg-nav);
+    }
+
+    .subheader-links {
+        display: flex;
+        align-items: stretch;
+        gap: 0;
+    }
+
+    .subheader-actions {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .subheader-link {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem 0;
+        font-weight: 500;
+        font-size: 0.875rem;
+        text-decoration: none;
+        white-space: nowrap;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -2px;
+        transition: color 0.15s, border-color 0.15s;
+        color: var(--sl-color-gray-3);
+    }
+
+    .subheader-link + .subheader-link {
+        margin-left: 1.5rem;
+    }
+
+    .subheader-link:hover {
+        color: var(--sl-color-gray-1);
+    }
+
+    .subheader-link.active {
+        color: var(--sl-color-text-accent);
+        border-bottom-color: var(--sl-color-text-accent);
+    }
+
+    .action-link {
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-decoration: none;
+        color: var(--sl-color-gray-3);
+        transition: color 0.15s;
+    }
+
+    .action-link:hover {
+        color: var(--sl-color-gray-1);
+    }
+
+    .action-button {
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-decoration: none;
+        padding: 0.375rem 0.875rem;
+        border-radius: 0.375rem;
+        background: var(--sl-color-text-accent);
+        color: white;
+        transition: opacity 0.15s;
+    }
+
+    .action-button:hover {
+        opacity: 0.9;
+    }
+
+    /* Show on desktop */
+    @media (min-width: 50rem) {
+        /* Make header wrap */
+        header.header {
+            flex-wrap: wrap !important;
+            height: auto !important;
+            border-bottom: none !important;
+            padding-bottom: 0 !important;
+        }
+
+        .subheader-nav.visible {
+            display: flex;
+        }
+    }
+</style>
+
+<nav class="subheader-nav" aria-label="Main sections" id="subheader-nav">
+    <div class="subheader-links">
+        {navLinks.map(link => (
+            <a
+                href={link.href}
+                class:list={[
+                    'subheader-link',
+                    { active: currentSection?.href === link.href }
+                ]}
+                aria-current={currentSection?.href === link.href ? 'page' : undefined}
+                target={link.external ? '_blank' : undefined}
+                rel={link.external ? 'noopener noreferrer' : undefined}
+            >
+                {link.label}
+            </a>
+        ))}
+    </div>
+    <div class="subheader-actions">
+        <a href="https://app.nhost.io/support" class="action-link" target="_blank" rel="noopener noreferrer">Support</a>
+        <a href="https://app.nhost.io" class="action-button" target="_blank" rel="noopener noreferrer">Dashboard</a>
+    </div>
+</nav>
+
+<script>
+    // Move subheader nav inside the header
+    const nav = document.getElementById('subheader-nav');
+    const header = document.querySelector('header.header');
+    if (nav && header) {
+        header.appendChild(nav);
+        nav.classList.add('visible');
+    }
+</script>

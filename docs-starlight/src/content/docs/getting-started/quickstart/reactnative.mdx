@@ -1,0 +1,196 @@
+---
+title: Get up and running with Nhost and React Native
+description: Get up and running with Nhost and React Native
+sidebar:
+  label: React Native
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+
+
+  ### Create Project
+
+If you haven't, please create a project through the [Nhost Dashboard](https://app.nhost.io).
+
+
+
+  ### Setup Database
+
+Navigate to the **SQL Editor** of the database and run the following SQL to create a new table `movies` with some great movies.
+
+    ```sql SQL Editor
+    CREATE TABLE movies (
+      id SERIAL PRIMARY KEY,
+      title VARCHAR(255) NOT NULL,
+      director VARCHAR(255),
+      release_year INTEGER,
+      genre VARCHAR(100),
+      rating FLOAT
+    );
+
+    INSERT INTO movies (title, director, release_year, genre, rating) VALUES
+      ('Inception', 'Christopher Nolan', 2010, 'Sci-Fi', 8.8),
+      ('The Godfather', 'Francis Ford Coppola', 1972, 'Crime', 9.2),
+      ('Forrest Gump', 'Robert Zemeckis', 1994, 'Drama', 8.8),
+      ('The Matrix', 'Lana Wachowski, Lilly Wachowski', 1999, 'Action', 8.7);
+    ```
+
+    :::caution
+Make sure the option `Track this` is enabled
+:::
+
+    ![SQL Editor](/images/quickstarts/react/sql-editor.png)
+
+
+
+  ### Permissions
+
+Select the new table `movies` just created, and click in **Edit Permissions** to set the following permissions for the `public` role and `select` action.
+
+    ![Permission Rules](/images/quickstarts/react/permissions.png)
+
+
+
+  ### Setup the Application
+
+Create the application using standard tooling:
+
+    ```bash Terminal
+    npx create-expo-app@latest --template default -y my-reactnative-app
+    cd my-reactnative-app
+    ```
+
+
+
+  ### Install the Nhost package
+
+Navigate to the application and install `@nhost/nhost-js`.
+
+    ```bash Terminal
+    npm install @nhost/nhost-js
+    ```
+
+
+
+  ### Configure the Nhost client and fetch the list of movies
+
+<Tabs>
+
+
+    <TabItem label="./src/lib/nhost.js">
+```js
+    import { NhostClient } from "@nhost/nhost-js";
+
+    // Replace <subdomain> and <region> with your project's values
+    export const nhost = new NhostClient({
+      subdomain: "<subdomain>",
+      region: "<region>",
+    })
+    ```
+</TabItem>
+
+    <TabItem label="./app/(tabs)/index.tsx">
+```js
+    import { useEffect, useState } from 'react';
+    import { ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
+    import { ThemedText } from '@/components/ThemedText';
+    import { ThemedView } from '@/components/ThemedView';
+    import { nhost } from '@/lib/nhost';
+
+    export default function HomeScreen() {
+      const [movies, setMovies] = useState<unknown[]>([]);
+      const [loading, setLoading] = useState(true);
+      const [error, setError] = useState<string|null>(null);
+
+      useEffect(() => {
+        const fetchMovies = async () => {
+          try {
+            const resp = await nhost.graphql.request({
+              query: `query GetMovies {
+                movies {
+                  title
+                  director
+                  release_year
+                  genre
+                  rating
+                }
+              }`,
+            });
+
+            setMovies(resp.body.data.movies || []);
+          } catch (err) {
+            setError('Failed to fetch movies');
+          } finally {
+            setLoading(false);
+          }
+        };
+
+        fetchMovies();
+      }, []);
+
+      if (loading) {
+        return (
+          <ThemedView style={styles.container}>
+            <ActivityIndicator size="large" />
+            <ThemedText>Loading...</ThemedText>
+          </ThemedView>
+        );
+      }
+
+      if (error) {
+        return (
+          <ThemedView style={styles.container}>
+            <ThemedText>Error: {error}</ThemedText>
+          </ThemedView>
+        );
+      }
+
+      return (
+        <ScrollView style={styles.container}>
+          <ThemedView style={styles.header}>
+            <ThemedText type="title">Movies</ThemedText>
+          </ThemedView>
+          {movies.map((movie, index) => (
+            <ThemedView key={index} style={styles.movieCard}>
+              <ThemedText type="subtitle">{movie.title}</ThemedText>
+              <ThemedText>Director: {movie.director}</ThemedText>
+              <ThemedText>Year: {movie.release_year}</ThemedText>
+              <ThemedText>Genre: {movie.genre}</ThemedText>
+              <ThemedText>Rating: {movie.rating}</ThemedText>
+            </ThemedView>
+          ))}
+        </ScrollView>
+      );
+    }
+
+    const styles = StyleSheet.create({
+      container: {
+        flex: 1,
+        padding: 16,
+      },
+      header: {
+        marginBottom: 20,
+        alignItems: 'center',
+      },
+      movieCard: {
+        backgroundColor: 'rgba(0, 0, 0, 0.1)',
+        padding: 16,
+        marginBottom: 12,
+        borderRadius: 8,
+      },
+    });
+    ```
+</TabItem>
+
+    
+</Tabs>
+
+
+
+  ### The end
+
+Run your project with `npm run web` and navigate to `http://localhost:8081` in your browser.
+
+
+
+

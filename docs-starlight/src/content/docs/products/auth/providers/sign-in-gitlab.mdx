@@ -1,0 +1,36 @@
+---
+title: Sign In with GitLab
+description: Follow this guide to sign in users with GitLab.
+---
+
+## Create GitLab Account
+
+- Create a new [GitLab Account](https://gitlab.com/users/sign_up) if you don't have one already.
+
+## Create GitLab OAuth App
+
+- Create a new OAuth application [(direct link)](https://gitlab.com/oauth/applications) by:
+   - On the left Sidebar, Select Applications.
+   - Select Add new application on the right.
+   
+## GitLab OAuth App Information.
+
+- Enter a Name and a Redirect URI.
+- Select OAuth 2 Scopes as defined in the [Authorized Applications documentation](https://docs.gitlab.com/integration/oauth_provider/#view-all-authorized-applications).
+  - Minimum required scope:
+    `read_user`
+  - OAuth 2.0 Application Type:
+    `confidential`
+
+- Fill in the **Redirect URI** with your OAuth Callback URL from Nhost.
+
+## Configure Nhost
+
+- Click Generate a new client secret to generate an OAuth client secret.
+- Copy and paste the **Client ID** and **Client Secret** from GitLab to your Nhost OAuth settings for GitLab. Make sure the OAuth provider is enabled in Nhost.
+- Click the checkbox “**I have pasted the redirect URI into GitLab”**.
+- Click **Confirm settings**.
+
+## Sign In Users
+
+Once you've configured GitLab as an OAuth provider in Nhost, you can sign in users using the GitLab provider. See the [OAuth Provider Sign-In Guide](/products/auth/providers/sign-in-provider) for detailed implementation instructions including the complete OAuth flow, error handling, and session management.

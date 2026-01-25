@@ -1,0 +1,23 @@
+{
+  "name": "docs-starlight",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "^0.37.4",
+    "@babel/parser": "^7.28.6",
+    "astro": "^5.6.1",
+    "glob": "^13.0.0",
+    "gray-matter": "^4.0.3",
+    "sharp": "^0.34.2",
+    "starlight-openapi": "^0.22.0",
+    "starlight-sidebar-topics": "^0.6.2",
+    "tsx": "^4.21.0"
+  }
+}

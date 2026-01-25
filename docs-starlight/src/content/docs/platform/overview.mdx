@@ -1,0 +1,47 @@
+---
+title: Platform
+---
+import { Card, CardGroup } from '@components';
+
+
+<div className="welcome-page">
+  <div className="welcome-hero">
+    <h1>Platform</h1>
+    <p>Learn about platform features</p>
+    <b>
+      [Explore Nhost Cloud →](/platform/cloud)
+    </b>
+  </div>
+
+  <div className="welcome-get-started">
+    <h1>Explore different deployment options</h1>
+
+<CardGroup cols={3}>
+  <Card
+    title="Cloud"
+    icon="cloud"
+    href="/platform/cloud/"
+  >
+    Fully managed backend infrastructure
+  </Card>
+
+  <Card
+    title="Development"
+    icon="terminal"
+    href="/platform/cli/"
+  >
+    Develop your project with Nhost
+  </Card>
+
+  <Card
+    title="Self-Hosting"
+    icon="server"
+    href="/platform/self-hosting/"
+  >
+    Run Nhost on your own infrastructure
+  </Card>
+</CardGroup>
+  </div>
+</div>
+
+
