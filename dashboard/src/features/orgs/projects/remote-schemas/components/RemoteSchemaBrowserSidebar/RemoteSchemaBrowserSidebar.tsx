@@ -305,10 +305,12 @@ function RemoteSchemaBrowserSidebarContent({
                                       <EditRemoteSchemaForm
                                         originalSchema={remoteSchema}
                                         onSubmit={async () => {
-                                          await queryClient.refetchQueries([
-                                            `remote_schemas`,
-                                            project?.subdomain,
-                                          ]);
+                                          await queryClient.refetchQueries({
+                                            queryKey: [
+                                              `remote_schemas`,
+                                              project?.subdomain,
+                                            ],
+                                          });
                                           await refetch();
                                         }}
                                       />
