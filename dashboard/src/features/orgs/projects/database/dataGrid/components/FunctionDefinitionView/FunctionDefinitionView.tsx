@@ -39,7 +39,7 @@ export default function FunctionDefinitionView({
   const functionName = functionNameProp || (functionSlug as string);
   const dataSource = dataSourceProp || (dataSourceSlug as string) || 'default';
 
-  const currentTablePath =
+  const currentFunctionPath =
     dataSource && schema && functionName
       ? `${dataSource}.${schema}.${functionName}`
       : '';
@@ -55,13 +55,13 @@ export default function FunctionDefinitionView({
   } = useFunctionPreviewHook();
 
   const { data, status, error } = useFunctionQuery(
-    ['function-definition', currentTablePath],
+    ['function-definition', currentFunctionPath],
     {
-      table: functionName,
+      functionName,
       schema,
       dataSource,
       queryOptions: {
-        enabled: !!currentTablePath && !!functionName,
+        enabled: !!currentFunctionPath && !!functionName,
       },
     },
   );

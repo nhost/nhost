@@ -33,6 +33,8 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { EditTableSettingsForm } from '@/features/orgs/projects/database/dataGrid/components/EditTableSettingsForm';
 import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
 import { useDeleteTableWithToastMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteTableMutation';
+import { useDeleteFunctionMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteFunctionMutation';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useMetadataQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useMetadataQuery';
 import { isSchemaLocked } from '@/features/orgs/projects/database/dataGrid/utils/schemaHelpers';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -183,6 +185,7 @@ function DataBrowserSidebarContent({
   }
 
   const { mutateAsync: deleteTable } = useDeleteTableWithToastMutation();
+  const { mutateAsync: deleteFunction } = useDeleteFunctionMutation();
 
   const [removableTable, setRemovableTable] = useState<string>();
   const [optimisticlyRemovedTable, setOptimisticlyRemovedTable] =
@@ -383,6 +386,107 @@ function DataBrowserSidebarContent({
         primaryButtonText: 'Delete',
         primaryButtonColor: 'error',
         onPrimaryAction: () => handleDeleteTableConfirmation(schema, table),
+      },
+    });
+  }
+
+  async function handleDeleteFunctionConfirmation(
+    schema: string,
+    functionName: string,
+  ) {
+    const functionPath = `${schema}.${functionName}`;
+
+    // We are greying out and disabling it in the sidebar
+    setRemovableTable(functionPath);
+
+    try {
+      let nextFunctionIndex: number | null = null;
+
+      if (
+        isNotEmptyValue(functions) &&
+        functions.length > 1
+      ) {
+        // We go to the next function if available or to the previous one if the
+        // current one is the last one in the list
+        const currentFunctionIndex = functions.findIndex(
+          ({ table_schema: functionSchema, table_name: fnName }) =>
+            `${functionSchema}.${fnName}` === functionPath,
+        );
+
+        nextFunctionIndex = currentFunctionIndex + 1;
+
+        if (currentFunctionIndex + 1 === functions.length) {
+          nextFunctionIndex = currentFunctionIndex - 1;
+        }
+      }
+
+      const nextFunction =
+        isNotEmptyValue(nextFunctionIndex) &&
+        isNotEmptyValue(functions)
+          ? functions[nextFunctionIndex]
+          : null;
+
+      // The hook fetches inputArgTypes internally, so we only need to pass schema and functionName
+      // The mutation function signature requires inputArgTypes, but the hook handles fetching it internally
+      // Type assertion needed because the hook's type signature doesn't reflect that it fetches inputArgTypes
+      const promise = deleteFunction({
+        schema,
+        functionName,
+      } as { schema: string; functionName: string; inputArgTypes: never });
+      await execPromiseWithErrorToast(() => promise, {
+        loadingMessage: 'Deleting function...',
+        successMessage: 'Function deleted successfully.',
+        errorMessage: 'An error occurred while deleting the function.',
+      });
+
+      queryClient.removeQueries([
+        `function-definition`,
+        `default.${schema}.${functionName}`,
+      ]);
+
+      // Note: At this point we can optimisticly assume that the function was
+      // removed, so we can improve the UX by removing it from the list right
+      // away, without waiting for the refetch to succeed.
+      setOptimisticlyRemovedTable(functionPath);
+      await refetch();
+
+      // If this was the last function in the schema, we go back to the data
+      // browser's main screen
+      if (!nextFunction) {
+        await router.push(
+          `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/${dataSourceSlug}`,
+        );
+
+        return;
+      }
+
+      if (schema === schemaSlug && functionName === functionSlug) {
+        await router.push(
+          `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/${dataSourceSlug}/${nextFunction.table_schema}/functions/${nextFunction.table_name}`,
+        );
+      }
+    } catch {
+      // TODO: Introduce logging
+    } finally {
+      setRemovableTable(undefined);
+      setOptimisticlyRemovedTable(undefined);
+    }
+  }
+
+  function handleDeleteFunctionClick(schema: string, functionName: string) {
+    openAlertDialog({
+      title: 'Delete Function',
+      payload: (
+        <span>
+          Are you sure you want to delete the{' '}
+          <strong className="break-all">{functionName}</strong> function?
+        </span>
+      ),
+      props: {
+        primaryButtonText: 'Delete',
+        primaryButtonColor: 'error',
+        onPrimaryAction: () =>
+          handleDeleteFunctionConfirmation(schema, functionName),
       },
     });
   }
@@ -694,7 +798,7 @@ function DataBrowserSidebarContent({
                               );
                             }}
                             onDelete={() =>
-                              handleDeleteTableClick(
+                              handleDeleteFunctionClick(
                                 dbObject.table_schema,
                                 dbObject.table_name,
                               )

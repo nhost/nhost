@@ -6,7 +6,12 @@ import type {
 import { getPreparedReadOnlyHasuraQuery } from '@/features/orgs/projects/database/dataGrid/utils/hasuraQueryHelpers';
 
 export interface FetchFunctionDefinitionOptions
-  extends MutationOrQueryBaseOptions {}
+  extends Omit<MutationOrQueryBaseOptions, 'table'> {
+  /**
+   * Function name to fetch.
+   */
+  functionName: string;
+}
 
 export interface FunctionParameter {
   name: string | null;
@@ -48,7 +53,7 @@ export interface FetchFunctionDefinitionReturnType {
 export default async function fetchFunctionDefinition({
   dataSource,
   schema,
-  table: functionName,
+  functionName,
   appUrl,
   adminSecret,
 }: FetchFunctionDefinitionOptions): Promise<FetchFunctionDefinitionReturnType> {

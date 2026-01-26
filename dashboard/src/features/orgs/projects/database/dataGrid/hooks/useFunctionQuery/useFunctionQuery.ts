@@ -32,7 +32,7 @@ export default function useFunctionQuery(
   {
     dataSource: customDataSource,
     schema: customSchema,
-    table: customFunctionName,
+    functionName: customFunctionName,
     appUrl: customAppUrl,
     adminSecret: customAdminSecret,
     queryOptions,
@@ -40,7 +40,7 @@ export default function useFunctionQuery(
   }: UseFunctionQueryOptions = {},
 ) {
   const {
-    query: { dataSourceSlug, schemaSlug, tableSlug },
+    query: { dataSourceSlug, schemaSlug, functionSlug },
     isReady,
   } = useRouter();
   const { project } = useProject();
@@ -63,7 +63,7 @@ export default function useFunctionQuery(
             : customAdminSecret || project!.config!.hasura.adminSecret,
         dataSource: customDataSource || (dataSourceSlug as string),
         schema: customSchema || (schemaSlug as string),
-        table: customFunctionName || (tableSlug as string),
+        functionName: customFunctionName || (functionSlug as string),
       });
     },
     retry: false,
