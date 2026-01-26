@@ -200,6 +200,7 @@ func (ctrl *Controller) GetFileWithPresignedURL( //nolint: ireturn
 		fmt.Sprintf("max-age=%d", expires),
 		request.Params,
 		acceptHeader,
+		slog.Default(),
 	)
 	if apiErr != nil {
 		logger.ErrorContext(

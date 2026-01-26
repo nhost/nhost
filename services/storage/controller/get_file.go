@@ -156,12 +156,12 @@ func (p *FakeReadCloserWrapper) Close() error {
 }
 
 func (ctrl *Controller) manipulateImage(
-	object io.ReadCloser, size uint64, opts image.Options,
+	object io.ReadCloser, size uint64, opts image.Options, logger *slog.Logger,
 ) (io.ReadCloser, int64, *APIError) {
 	defer object.Close()
 
 	buf := &bytes.Buffer{}
-	if err := ctrl.imageTransformer.Run(object, size, buf, opts); err != nil {
+	if err := ctrl.imageTransformer.Run(object, size, buf, opts, logger); err != nil {
 		return nil, 0, InternalServerError(err)
 	}
 
@@ -204,6 +204,7 @@ func (ctrl *Controller) processFileToDownload(
 	cacheControl string,
 	params processFiler,
 	acceptHeader []string,
+	logger *slog.Logger,
 ) (*processedFile, *APIError) {
 	opts, apiErr := getImageManipulationOptions(params, fileMetadata.MimeType, acceptHeader)
 	if apiErr != nil {
@@ -230,7 +231,7 @@ func (ctrl *Controller) processFileToDownload(
 		defer body.Close()
 
 		body, contentLength, apiErr = ctrl.manipulateImage(
-			body, uint64(contentLength), opts, //nolint:gosec
+			body, uint64(contentLength), opts, logger, //nolint:gosec
 		)
 		if apiErr != nil {
 			return nil, apiErr
@@ -363,6 +364,7 @@ func (ctrl *Controller) GetFile( //nolint:ireturn
 		bucketMetadata.CacheControl,
 		request.Params,
 		acceptHeader,
+		logger,
 	)
 	if apiErr != nil {
 		logger.ErrorContext(

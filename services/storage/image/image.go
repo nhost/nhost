@@ -3,6 +3,7 @@ package image
 import (
 	"fmt"
 	"io"
+	"log/slog"
 	"sync/atomic"
 
 	"github.com/cshum/vipsgen/vips"
@@ -63,7 +64,11 @@ func (o Options) FormatMimeType() string {
 }
 
 func (o Options) FileExtension() string {
-	switch o.Format {
+	return imageTypeToString(o.Format)
+}
+
+func imageTypeToString(t ImageType) string {
+	switch t {
 	case ImageTypeJPEG:
 		return "jpeg"
 	case ImageTypePNG:
@@ -76,7 +81,7 @@ func (o Options) FileExtension() string {
 		return "heic"
 	}
 
-	return ""
+	return "unknown"
 }
 
 type Transformer struct {
@@ -216,9 +221,10 @@ func imagePipeline(image *vips.Image, opts Options) error {
 
 func (t *Transformer) Run(
 	orig io.Reader,
-	length uint64, //nolint:revive
+	length uint64,
 	modified io.Writer,
 	opts Options,
+	logger *slog.Logger,
 ) error {
 	// Limit concurrent processing to avoid processing too many images at the same time
 	<-t.workers
@@ -235,6 +241,30 @@ func (t *Transformer) Run(
 	}
 
 	defer image.Close()
+
+	// Check for interlace/progressive encoding (can affect memory during decode)
+	interlaced := false
+	if val, err := image.GetInt("interlace"); err == nil && val != 0 {
+		interlaced = true
+	}
+
+	// Log image metadata to help diagnose memory issues
+	logger.Info("processing image",
+		slog.Uint64("file_size_bytes", length),
+		slog.Int("width", image.Width()),
+		slog.Int("height", image.Height()),
+		slog.Int("bands", image.Bands()),
+		slog.Int("interpretation", int(image.Interpretation())),
+		slog.String("original_format", imageTypeToString(opts.OriginalFormat)),
+		slog.String("target_format", imageTypeToString(opts.Format)),
+		slog.Int("target_width", opts.Width),
+		slog.Int("target_height", opts.Height),
+		slog.Bool("will_resize", opts.Width > 0 || opts.Height > 0),
+		slog.Bool("will_autorotate", opts.FormatChanged()),
+		slog.Float64("blur", float64(opts.Blur)),
+		slog.Bool("interlaced", interlaced),
+		slog.Any("vips_fields", image.GetFields()),
+	)
 
 	// Apply additional processing (auto-rotate, blur)
 	if err := imagePipeline(image, opts); err != nil {

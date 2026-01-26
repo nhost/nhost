@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"io"
+	"log/slog"
 	"os"
 	"testing"
 
@@ -126,8 +127,10 @@ func TestManipulate(t *testing.T) {
 			hasher := sha256.New()
 			// f, _ := os.OpenFile("/tmp/nhost-test."+tc.name, os.O_WRONLY|os.O_CREATE, 0o644)
 			// defer f.Close()
-			// if err := transformer.Run(orig, tc.size, f, tc.options); err != nil {
-			if err := transformer.Run(orig, tc.size, hasher, tc.options); err != nil {
+			// if err := transformer.Run(slog.Default(), orig, tc.size, f, tc.options); err != nil {
+			if err := transformer.Run(
+				orig, tc.size, hasher, tc.options, slog.Default(),
+			); err != nil {
 				t.Fatal(err)
 			}
 
@@ -156,6 +159,7 @@ func BenchmarkManipulate(b *testing.B) {
 			33399,
 			io.Discard,
 			image.Options{Width: 300, Height: 100, Blur: 1.5, Format: image.ImageTypeJPEG},
+			slog.Default(),
 		); err != nil {
 			b.Fatal(err)
 		}

@@ -5,10 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"time"
 
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/storage/api"
 	"github.com/nhost/nhost/services/storage/middleware"
 )
@@ -147,7 +149,7 @@ func (ctrl *Controller) getFileMetadataHeadersResponseObject( //nolint:ireturn
 }
 
 func (ctrl *Controller) getFileMetadataHeaders( //nolint:ireturn
-	ctx context.Context, request api.GetFileMetadataHeadersRequestObject,
+	ctx context.Context, request api.GetFileMetadataHeadersRequestObject, logger *slog.Logger,
 ) (api.GetFileMetadataHeadersResponseObject, *APIError) {
 	sessionHeaders := middleware.SessionHeadersFromContext(ctx)
 	acceptHeader := middleware.AcceptHeaderFromContext(ctx)
@@ -183,7 +185,7 @@ func (ctrl *Controller) getFileMetadataHeaders( //nolint:ireturn
 		var object io.ReadCloser
 
 		object, fileMetadata.Size, apiErr = ctrl.manipulateImage(
-			download.Body, uint64(fileMetadata.Size), opts, //nolint:gosec
+			download.Body, uint64(fileMetadata.Size), opts, logger, //nolint:gosec
 		)
 		if apiErr != nil {
 			return nil, apiErr
@@ -197,7 +199,9 @@ func (ctrl *Controller) getFileMetadataHeaders( //nolint:ireturn
 func (ctrl *Controller) GetFileMetadataHeaders( //nolint:ireturn
 	ctx context.Context, request api.GetFileMetadataHeadersRequestObject,
 ) (api.GetFileMetadataHeadersResponseObject, error) {
-	response, apiErr := ctrl.getFileMetadataHeaders(ctx, request)
+	logger := oapimw.LoggerFromContext(ctx)
+
+	response, apiErr := ctrl.getFileMetadataHeaders(ctx, request, logger)
 	if apiErr != nil {
 		return api.GetFileMetadataHeadersdefaultResponse{
 			Headers: api.GetFileMetadataHeadersdefaultResponseHeaders{
