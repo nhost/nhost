@@ -174,7 +174,7 @@
     "lint-staged": "^15.2.2",
     "msw": "^2.11.4",
     "node-fetch": "^3.3.2",
-    "orval": "^8.0.2",
+    "orval": "^8.0.3",
     "postcss": "^8.4.38",
     "require-from-string": "^2.0.2",
     "snake-case": "^3.0.4",
