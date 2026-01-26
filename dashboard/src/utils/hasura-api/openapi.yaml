@@ -21,6 +21,7 @@ paths:
               oneOf:
                 - $ref: '#/components/schemas/ExportMetadata'
                 - $ref: '#/components/schemas/SetTableCustomizationBulkOperation'
+                - $ref: '#/components/schemas/SetFunctionCustomizationOperation'
                 - $ref: '#/components/schemas/SetTableIsEnumBulkOperation'
                 - $ref: '#/components/schemas/AddRemoteSchemaOperation'
                 - $ref: '#/components/schemas/UpdateRemoteSchemaBulkOperation'
@@ -181,7 +182,34 @@ components:
         configuration:
           description: Configuration for the table/view
           $ref: '#/components/schemas/TableConfig'
-    
+
+    SetFunctionCustomizationOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_set_function_customization]
+        args:
+          $ref: '#/components/schemas/SetFunctionCustomizationArgs'
+
+    SetFunctionCustomizationArgs:
+      type: object
+      required:
+        - function 
+      properties:
+        function:
+          $ref: '#/components/schemas/Function'
+        configuration:
+          description: Configuration for the function
+          $ref: '#/components/schemas/FunctionConfiguration'
+        source:
+          type: string
+          description: Name of the source database of the function
+          default: default
+
     Function:
       type: object
       required:
@@ -194,6 +222,33 @@ components:
         schema:
           type: string
           description: Schema of the function
+
+    FunctionConfiguration:
+      type: object
+      properties:
+        custom_name:
+          type: string
+          description: Customize the <function-name> with the provided custom name value. The GraphQL nodes for the function will be generated according to the custom name.
+        custom_root_fields:
+          $ref: '#/components/schemas/CustomFunctionRootFields'
+          description: Customize the root fields
+        session_argument:
+          type: string
+          description: Function argument which accepts session info JSON
+        exposed_as:
+          type: string
+          description: In which part of the schema to expose this function. Either "mutation" or "query".
+          enum: ["mutation", "query"]
+
+    CustomFunctionRootFields:
+      type: object
+      properties:
+        function:
+          type: string
+          description: Customize the <function-name> root field
+        function_aggregate:
+          type: string
+          description: Customize the <function-name>_aggregate root field
 
     TableConfig:
       type: object
@@ -640,6 +695,8 @@ components:
                         function:
                           type: object
                           $ref: '#/components/schemas/Function'
+                        configuration:
+                          $ref: '#/components/schemas/FunctionConfiguration'
                 additionalProperties: true
             remote_schemas:
               type: array

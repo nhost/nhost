@@ -7,7 +7,6 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { DataBrowserGrid } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid';
 import { DataGridQueryParamsProvider } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
 import { DataBrowserSidebar } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserSidebar';
-import FunctionDefinitionView from '@/features/orgs/projects/database/dataGrid/components/FunctionDefinitionView';
 import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
@@ -25,26 +24,22 @@ export default function DataBrowserTableDetailsPage() {
     },
   });
 
+  const isView = [
+    ...(databaseData?.views || []),
+    ...(databaseData?.materializedViews || []),
+  ].some(
+    (view) => view.table_schema === schemaSlug && view.table_name === tableSlug,
+  );
+
   if (isPlatform && !project?.config?.hasura.adminSecret) {
     return <LoadingScreen />;
   }
 
-  // Check if the current object is a function
-  const isFunction =
-    databaseData?.functions?.some(
-      (func) =>
-        func.table_schema === schemaSlug && func.table_name === tableSlug,
-    ) || false;
-
   return (
     <RetryableErrorBoundary>
-      {isFunction ? (
-        <FunctionDefinitionView />
-      ) : (
-        <DataGridQueryParamsProvider>
-          <DataBrowserGrid />
-        </DataGridQueryParamsProvider>
-      )}
+      <DataGridQueryParamsProvider>
+        <DataBrowserGrid isView={isView} />
+      </DataGridQueryParamsProvider>
     </RetryableErrorBoundary>
   );
 }

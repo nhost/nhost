@@ -20,6 +20,10 @@ export interface FetchDatabaseReturnType {
    */
   tables?: NormalizedQueryDataRow[];
   /**
+   * List of available views in the database.
+   */
+  views?: NormalizedQueryDataRow[];
+  /**
    * List of available materialized views in the database.
    */
   materializedViews?: NormalizedQueryDataRow[];
@@ -116,6 +120,7 @@ export default async function fetchDatabase({
         return {
           schemas: [],
           tables: [],
+          views: [],
           materializedViews: [],
           functions: [],
           metadata: { dataSource, databaseNotFound: true },
@@ -131,13 +136,23 @@ export default async function fetchDatabase({
   const [, ...rawMaterializedViews] = responseData[2].result;
   const [, ...rawFunctions] = responseData[3].result;
 
+  // Parse all tables data
+  const allTables = rawTables.map((rawData) =>
+    JSON.parse(rawData),
+  ) as NormalizedQueryDataRow[];
+
+  // Separate base tables from views based on table_type
+  const tables = allTables.filter(
+    (table) => table.table_type === 'BASE TABLE',
+  );
+  const views = allTables.filter((table) => table.table_type === 'VIEW');
+
   return {
     schemas: rawSchemas.map((rawData) =>
       JSON.parse(rawData),
     ) as NormalizedQueryDataRow[],
-    tables: rawTables.map((rawData) =>
-      JSON.parse(rawData),
-    ) as NormalizedQueryDataRow[],
+    tables,
+    views,
     materializedViews: rawMaterializedViews.map((rawData) =>
       JSON.parse(rawData),
     ) as NormalizedQueryDataRow[],

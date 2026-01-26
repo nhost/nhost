@@ -8,7 +8,10 @@
 import type { Function } from './function';
 import type { FunctionConfiguration } from './functionConfiguration';
 
-export type ExportMetadataResponseMetadataSourcesItemFunctionsItem = {
+export interface SetFunctionCustomizationArgs {
   function: Function;
+  /** Configuration for the function */
   configuration?: FunctionConfiguration;
-};
+  /** Name of the source database of the function */
+  source?: string;
+}

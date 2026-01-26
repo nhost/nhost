@@ -1,7 +1,3 @@
-import { useTheme } from '@mui/material';
-import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
-import CodeMirror from '@uiw/react-codemirror';
-import { SquarePen } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { Badge } from '@/components/ui/v3/badge';
@@ -9,22 +5,44 @@ import { Button } from '@/components/ui/v3/button';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import { Input } from '@/components/ui/v3/input';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
 import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
 import { useFunctionPreviewHook } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionPreview';
 import { useFunctionQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionQuery';
-import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
-export default function FunctionDefinitionView() {
-  const theme = useTheme();
+export interface FunctionDefinitionViewProps {
+  /**
+   * Schema where the function is located. Falls back to router query if not provided.
+   */
+  schema?: string;
+  /**
+   * Function name. Falls back to router query if not provided.
+   */
+  functionName?: string;
+  /**
+   * Data source. Falls back to router query if not provided.
+   */
+  dataSource?: string;
+}
+
+export default function FunctionDefinitionView({
+  schema: schemaProp,
+  functionName: functionNameProp,
+  dataSource: dataSourceProp,
+}: FunctionDefinitionViewProps = {}) {
   const router = useRouter();
   const {
-    query: { schemaSlug, tableSlug, dataSourceSlug },
+    query: { schemaSlug, functionSlug, dataSourceSlug },
   } = router;
-  const { project } = useProject();
-  const { org } = useCurrentOrg();
-  const currentTablePath = useTablePath();
+
+  // Use props if provided, otherwise fall back to router query
+  const schema = schemaProp || (schemaSlug as string);
+  const functionName = functionNameProp || (functionSlug as string);
+  const dataSource = dataSourceProp || (dataSourceSlug as string) || 'default';
+
+  const currentTablePath =
+    dataSource && schema && functionName
+      ? `${dataSource}.${schema}.${functionName}`
+      : '';
   const [showPreview, setShowPreview] = useState(false);
   const [parameterValues, setParameterValues] = useState<
     Record<number, string>
@@ -39,40 +57,22 @@ export default function FunctionDefinitionView() {
   const { data, status, error } = useFunctionQuery(
     ['function-definition', currentTablePath],
     {
+      table: functionName,
+      schema,
+      dataSource,
       queryOptions: {
-        enabled: !!currentTablePath,
+        enabled: !!currentTablePath && !!functionName,
       },
     },
   );
 
-  const {
-    functionDefinition,
-    functionMetadata,
-    error: functionError,
-  } = data || {
-    functionDefinition: '',
+  const { functionMetadata, error: functionError } = data || {
     functionMetadata: null,
     error: null,
   };
 
-  function handleModify() {
-    // Store function definition in sessionStorage (not in URL to avoid logs/history)
-    // The functionDefinition already contains the full CREATE OR REPLACE FUNCTION statement
-    if (typeof window !== 'undefined') {
-      sessionStorage.setItem('pending-sql', functionDefinition);
-    }
-
-    // Navigate to editor (no query params needed)
-    // Use router.query if available, otherwise fall back to project/org data
-    const orgSlug = (router.query.orgSlug as string) || org?.slug || '';
-    const appSubdomain =
-      (router.query.appSubdomain as string) || project?.subdomain || '';
-    const editorPath = `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/${dataSourceSlug || 'default'}/editor`;
-    router.push(editorPath);
-  }
-
   function handlePreview() {
-    if (!schemaSlug || !tableSlug || !functionMetadata) {
+    if (!schema || !functionName || !functionMetadata) {
       return;
     }
 
@@ -103,9 +103,9 @@ export default function FunctionDefinitionView() {
 
     setShowPreview(true);
     runPreview({
-      schema: schemaSlug as string,
-      functionName: tableSlug as string,
-      dataSource: dataSourceSlug as string,
+      schema,
+      functionName,
+      dataSource,
       limit: 20,
       parameters: params,
     });
@@ -140,7 +140,7 @@ export default function FunctionDefinitionView() {
     );
   }
 
-  if (!functionDefinition) {
+  if (!functionMetadata) {
     return (
       <DataBrowserEmptyState
         title="Function not found"
@@ -148,7 +148,7 @@ export default function FunctionDefinitionView() {
           <span>
             Function{' '}
             <InlineCode className="bg-opacity-80 px-1.5 text-sm">
-              {schemaSlug}.{tableSlug}
+              {schema}.{functionName}
             </InlineCode>{' '}
             does not exist or is not a table-returning function.
           </span>
@@ -164,7 +164,7 @@ export default function FunctionDefinitionView() {
           <h2 className="font-semibold text-lg">Function Definition</h2>
           <p className="text-muted-foreground text-sm">
             <InlineCode className="bg-opacity-80 px-1.5 text-sm">
-              {schemaSlug}.{tableSlug}
+              {schema}.{functionName}
             </InlineCode>
           </p>
         </div>
@@ -363,30 +363,6 @@ export default function FunctionDefinitionView() {
           )}
         </div>
       )}
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <div className="flex items-center justify-between border-b bg-muted/30 px-3 py-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleModify}
-            className="gap-2"
-          >
-            <SquarePen className="h-4 w-4" />
-            Modify
-          </Button>
-        </div>
-        <div className="flex-1 overflow-hidden p-4">
-          <CodeMirror
-            value={functionDefinition}
-            height="100%"
-            className="h-full max-h-120 w-full"
-            theme={theme.palette.mode === 'light' ? githubLight : githubDark}
-            // extensions={[sql({ dialect: PostgreSQL })]}
-            editable={false}
-            readOnly={true}
-          />
-        </div>
-      </div>
     </div>
   );
 }
