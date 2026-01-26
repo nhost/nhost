@@ -41,39 +41,56 @@ importers:
 
   .:
     dependencies:
+      '@astrojs/markdown-remark':
+        specifier: ^6.3.10
+        version: 6.3.10
       '@astrojs/starlight':
         specifier: ^0.37.4
         version: 0.37.4(astro@5.16.15(rollup@4.56.0)(tsx@4.21.0)(typescript@5.9.3))
       '@babel/parser':
         specifier: ^7.28.6
         version: 7.28.6
+      '@readme/openapi-parser':
+        specifier: ^5.5.0
+        version: 5.5.0(openapi-types@12.1.3)
       astro:
         specifier: ^5.6.1
         version: 5.16.15(rollup@4.56.0)(tsx@4.21.0)(typescript@5.9.3)
+      github-slugger:
+        specifier: ^2.0.0
+        version: 2.0.0
       glob:
         specifier: ^13.0.0
         version: 13.0.0
       gray-matter:
         specifier: ^4.0.3
         version: 4.0.3
+      js-yaml:
+        specifier: ^4.1.1
+        version: 4.1.1
+      openapi-types:
+        specifier: ^12.1.3
+        version: 12.1.3
       sharp:
         specifier: ^0.34.2
         version: 0.34.5
-      starlight-openapi:
-        specifier: ^0.22.0
-        version: 0.22.0(@astrojs/markdown-remark@6.3.10)(@astrojs/starlight@0.37.4(astro@5.16.15(rollup@4.56.0)(tsx@4.21.0)(typescript@5.9.3)))(astro@5.16.15(rollup@4.56.0)(tsx@4.21.0)(typescript@5.9.3))(openapi-types@12.1.3)
       starlight-sidebar-topics:
         specifier: ^0.6.2
         version: 0.6.2(@astrojs/starlight@0.37.4(astro@5.16.15(rollup@4.56.0)(tsx@4.21.0)(typescript@5.9.3)))
       tsx:
         specifier: ^4.21.0
         version: 4.21.0
+      url-template:
+        specifier: ^3.1.1
+        version: 3.1.1
 
 packages:
 
-  '@apidevtools/json-schema-ref-parser@13.0.5':
-    resolution: {integrity: sha512-xfh4xVJD62gG6spIc7lwxoWT+l16nZu1ELyU8FkjaP/oD2yP09EvLAU6KhtudN9aML2Khhs9pY6Slr7KGTES3w==}
-    engines: {node: '>= 16'}
+  '@apidevtools/json-schema-ref-parser@14.2.1':
+    resolution: {integrity: sha512-HmdFw9CDYqM6B25pqGBpNeLCKvGPlIx1EbLrVL0zPvj50CJQUHyBNBw45Muk0kEIkogo1VZvOKHajdMuAzSxRg==}
+    engines: {node: '>= 20'}
+    peerDependencies:
+      '@types/json-schema': ^7.0.15
 
   '@astrojs/compiler@2.13.0':
     resolution: {integrity: sha512-mqVORhUJViA28fwHYaWmsXSzLO9osbdZ5ImUfxBarqsYdMlPbqAqGJCxsNzvppp1BEzc1mJNjOVvQqeDN8Vspw==}
@@ -663,8 +680,8 @@ packages:
     peerDependencies:
       ajv: 4.11.8 - 8
 
-  '@readme/openapi-parser@4.1.2':
-    resolution: {integrity: sha512-lAFH88r/CHs5VZDUocEda0OSMSQsr6801sziIjOKyVA+0hSFN+BPuelPF5XvkMROHecnPd+XEJN1iNQqCgER/g==}
+  '@readme/openapi-parser@5.5.0':
+    resolution: {integrity: sha512-uY9+3ouf6NWd/ck5PzlhcRwvRFLDd9ajRsMzZPp/iqdReGgPR7m8xEXtCYbLTGXJZcrDgYyNsHUL7e87Wsh+ew==}
     engines: {node: '>=20'}
     peerDependencies:
       openapi-types: '>=7'
@@ -1863,14 +1880,6 @@ packages:
   sprintf-js@1.0.3:
     resolution: {integrity: sha512-D9cPgkvLlV3t3IzL0D0YLvGA9Ahk4PcvVwUbN0dSGr1aP0Nrt4AEnTUbuGvquEC0mA64Gqt1fzirlRs5ibXx8g==}
 
-  starlight-openapi@0.22.0:
-    resolution: {integrity: sha512-4H/fywAoTcvKbcv+xBr9LdrjMc5geDOSnydvzpiOxjxkHvI6g+7uPhWNCejnJPyZUd/MC1MI23tvYug85d/WzA==}
-    engines: {node: '>=18.17.1'}
-    peerDependencies:
-      '@astrojs/markdown-remark': '>=6.0.1'
-      '@astrojs/starlight': '>=0.34.0'
-      astro: '>=5.5.0'
-
   starlight-sidebar-topics@0.6.2:
     resolution: {integrity: sha512-SNCTUZS/hcVor0ZcaXbaSVU37+V+qtvzNirkvnOg3Mqu/awuGpthkH5+uKpiZqWxLffp6TrOlsv5E5QsxrndNg==}
     engines: {node: '>=18'}
@@ -2182,7 +2191,7 @@ packages:
 
 snapshots:
 
-  '@apidevtools/json-schema-ref-parser@13.0.5':
+  '@apidevtools/json-schema-ref-parser@14.2.1(@types/json-schema@7.0.15)':
     dependencies:
       '@types/json-schema': 7.0.15
       js-yaml: 4.1.1
@@ -2673,9 +2682,9 @@ snapshots:
       leven: 3.1.0
       picocolors: 1.1.1
 
-  '@readme/openapi-parser@4.1.2(openapi-types@12.1.3)':
+  '@readme/openapi-parser@5.5.0(openapi-types@12.1.3)':
     dependencies:
-      '@apidevtools/json-schema-ref-parser': 13.0.5
+      '@apidevtools/json-schema-ref-parser': 14.2.1(@types/json-schema@7.0.15)
       '@readme/better-ajv-errors': 2.4.0(ajv@8.17.1)
       '@readme/openapi-schemas': 3.1.0
       '@types/json-schema': 7.0.15
@@ -4469,17 +4478,6 @@ snapshots:
   space-separated-tokens@2.0.2: {}
 
   sprintf-js@1.0.3: {}
-
-  starlight-openapi@0.22.0(@astrojs/markdown-remark@6.3.10)(@astrojs/starlight@0.37.4(astro@5.16.15(rollup@4.56.0)(tsx@4.21.0)(typescript@5.9.3)))(astro@5.16.15(rollup@4.56.0)(tsx@4.21.0)(typescript@5.9.3))(openapi-types@12.1.3):
-    dependencies:
-      '@astrojs/markdown-remark': 6.3.10
-      '@astrojs/starlight': 0.37.4(astro@5.16.15(rollup@4.56.0)(tsx@4.21.0)(typescript@5.9.3))
-      '@readme/openapi-parser': 4.1.2(openapi-types@12.1.3)
-      astro: 5.16.15(rollup@4.56.0)(tsx@4.21.0)(typescript@5.9.3)
-      github-slugger: 2.0.0
-      url-template: 3.1.1
-    transitivePeerDependencies:
-      - openapi-types
 
   starlight-sidebar-topics@0.6.2(@astrojs/starlight@0.37.4(astro@5.16.15(rollup@4.56.0)(tsx@4.21.0)(typescript@5.9.3))):
     dependencies:

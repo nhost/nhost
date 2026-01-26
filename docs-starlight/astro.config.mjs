@@ -1,7 +1,7 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
-import starlightOpenAPI, { createOpenAPISidebarGroup } from 'starlight-openapi';
+import starlightOpenAPI, { createOpenAPISidebarGroup } from './src/plugins/starlight-openapi/index.ts';
 import starlightSidebarTopics from 'starlight-sidebar-topics';
 import { fileURLToPath } from 'url';
 import path from 'path';
@@ -40,7 +40,6 @@ export default defineConfig({
                 Head: './src/components/Head.astro',
             },
             plugins: [
-                // OpenAPI must come first to process sidebar placeholders
                 starlightOpenAPI([
                     {
                         base: 'reference/auth',
@@ -49,6 +48,10 @@ export default defineConfig({
                             label: 'Auth API',
                             collapsed: true,
                             group: authAPISidebarGroup,
+                            operations: {
+                                labels: 'path',
+                                badges: true,
+                            },
                         },
                     },
                     {
@@ -58,6 +61,10 @@ export default defineConfig({
                             label: 'Storage API',
                             collapsed: true,
                             group: storageAPISidebarGroup,
+                            operations: {
+                                labels: 'path',
+                                badges: true,
+                            },
                         },
                     },
                 ]),
