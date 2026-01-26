@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Container } from '@/components/layout/Container';
-import { Modal } from '@/components/ui/v1/Modal';
 import { Button } from '@/components/ui/v2/Button';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/v3/dialog';
 import { TransferProjectDialog } from '@/features/orgs/components/common/TransferProjectDialog';
 import { ApplicationInfo } from '@/features/orgs/projects/common/components/ApplicationInfo';
 import { ApplicationPausedBanner } from '@/features/orgs/projects/common/components/ApplicationPausedBanner';
@@ -10,6 +10,7 @@ import { StagingMetadata } from '@/features/orgs/projects/common/components/Stag
 import { useIsCurrentUserOwner } from '@/features/orgs/projects/common/hooks/useIsCurrentUserOwner';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { DialogDescription } from '@radix-ui/react-dialog';
 
 export default function ApplicationPaused() {
   const { org } = useCurrentOrg();
@@ -22,19 +23,28 @@ export default function ApplicationPaused() {
 
   return (
     <>
-      <Modal
-        showModal={showDeletingModal}
-        close={() => setShowDeletingModal(false)}
-        className="flex h-screen items-center justify-center"
-      >
-        <RemoveApplicationModal
-          close={() => setShowDeletingModal(false)}
-          title={`Remove project ${project?.name}?`}
-          description={`The project ${project?.name} will be removed. All data will be lost and there will be no way to
+      <Dialog open={showDeletingModal} onOpenChange={setShowDeletingModal}>
+        <DialogContent
+          className="!bg-red !shadow-none !p-0 max-w-sm border-none"
+          hideCloseButton
+        >
+          <DialogTitle className="sr-only">
+            `Remove project ${project?.name}?`
+          </DialogTitle>
+          <DialogDescription className="sr-only">
+            `The project ${project?.name} will be removed. All data will be lost
+            and there will be no way to recover the app once it has been
+            deleted.`
+          </DialogDescription>
+          <RemoveApplicationModal
+            close={() => setShowDeletingModal(false)}
+            title={`Remove project ${project?.name}?`}
+            description={`The project ${project?.name} will be removed. All data will be lost and there will be no way to
           recover the app once it has been deleted.`}
-          className="z-50"
-        />
-      </Modal>
+            className="z-50"
+          />
+        </DialogContent>
+      </Dialog>
 
       <Container className="mx-auto grid max-w-lg grid-flow-row gap-6 text-center">
         <div className="mx-auto flex w-full max-w-xs flex-col gap-4">
