@@ -1,19 +1,39 @@
 package image
 
+/*
+#cgo pkg-config: vips
+#include <vips/vips.h>
+*/
+import "C"
+
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"log/slog"
+	"sync"
 	"sync/atomic"
 
 	"github.com/cshum/vipsgen/vips"
 )
 
+// shutdownThread clears the libvips cache for the current thread.
+// This helps release thread-local memory when a goroutine finishes
+// processing images. Should be called when done with image operations.
+func shutdownThread() {
+	C.vips_thread_shutdown()
+}
+
 const (
+	// maxWorkers limits concurrent image processing to control memory usage.
+	// Each worker processing a large image (e.g., 70MP) can use ~300MB of RSS.
+	// With 3 workers and large images, expect up to ~900MB peak memory.
+	// The C allocator typically doesn't return this memory to the OS after processing.
+	// Reduce this value if you need tighter memory control (at cost of throughput).
 	maxWorkers    = 3
-	maxMemory     = 50 * 1024 * 1024 // 50MB
+	maxMemory     = 50 * 1024 * 1024 // 50MB - VIPS operation cache limit
 	maxCache      = 100              // max 100 cached operations
-	maxCacheFiles = 0                // unlimited cached files
+	maxCacheFiles = 0                // no file caching
 )
 
 type ImageType int //nolint: revive
@@ -86,6 +106,7 @@ func imageTypeToString(t ImageType) string {
 
 type Transformer struct {
 	workers chan struct{}
+	pool    sync.Pool
 }
 
 func NewTransformer() *Transformer {
@@ -105,23 +126,16 @@ func NewTransformer() *Transformer {
 
 	return &Transformer{
 		workers: workers,
+		pool: sync.Pool{
+			New: func() any {
+				return new(bytes.Buffer)
+			},
+		},
 	}
 }
 
 func (t *Transformer) Shutdown() {
 	vips.Shutdown()
-}
-
-type readCloserAdapter struct {
-	io.Reader
-}
-
-func (r readCloserAdapter) Close() error {
-	if closer, ok := r.Reader.(io.Closer); ok {
-		return closer.Close() //nolint: wrapcheck
-	}
-
-	return nil
 }
 
 type writeCloserAdapter struct {
@@ -230,16 +244,27 @@ func (t *Transformer) Run(
 	<-t.workers
 	defer func() { t.workers <- struct{}{} }()
 
-	// Create streaming source from io.Reader
-	// This avoids loading the entire file into a buffer!
-	source := vips.NewSource(readCloserAdapter{orig})
-	defer source.Close()
+	// Get a buffer from the pool to read the image into.
+	// This reuses buffers to reduce memory fragmentation and allocator pressure.
+	buf, _ := t.pool.Get().(*bytes.Buffer)
+	defer t.pool.Put(buf)
+	defer buf.Reset()
 
-	image, err := vips.NewImageFromSource(source, nil)
-	if err != nil {
-		return fmt.Errorf("failed to load image from source: %w", err)
+	// Pre-grow buffer if we know the size
+	if length > 0 && buf.Cap() < int(length) {
+		buf.Grow(int(length))
 	}
 
+	// Read the entire image into the buffer
+	if _, err := io.Copy(buf, orig); err != nil {
+		return fmt.Errorf("failed to read image: %w", err)
+	}
+
+	// Load image from buffer (more predictable memory behavior than streaming)
+	image, err := vips.NewImageFromBuffer(buf.Bytes(), nil)
+	if err != nil {
+		return fmt.Errorf("failed to load image from buffer: %w", err)
+	}
 	defer image.Close()
 
 	// Check for interlace/progressive encoding (can affect memory during decode)
@@ -278,6 +303,9 @@ func (t *Transformer) Run(
 	if err := exportToTarget(image, target, opts); err != nil {
 		return fmt.Errorf("failed to export: %w", err)
 	}
+
+	// Release thread-local caches to reduce memory holding
+	shutdownThread()
 
 	return nil
 }
