@@ -1,17 +1,17 @@
-import type { MutableRefObject } from 'react';
-import { useMemo } from 'react';
-import type { PluginHook, TableInstance, TableOptions } from 'react-table';
+import type { RefObject } from 'react'
+import { useMemo } from 'react'
+import type { PluginHook, TableInstance, TableOptions } from 'react-table'
 import {
   useBlockLayout,
   useColumnOrder,
   useResizeColumns,
   useRowSelect,
   useSortBy,
-  useTable,
-} from 'react-table';
-import { Checkbox } from '@/components/ui/v3/checkbox';
-import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
-import PersistenColumnConfigurationStorage from '@/features/orgs/projects/storage/dataGrid/utils/PersistenDataTableConfigurationStorage';
+  useTable
+} from 'react-table'
+import { Checkbox } from '@/components/ui/v3/checkbox'
+import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath'
+import PersistenColumnConfigurationStorage from '@/features/orgs/projects/storage/dataGrid/utils/PersistenDataTableConfigurationStorage'
 
 export interface UseDataGridBaseOptions {
   /**
@@ -19,29 +19,27 @@ export interface UseDataGridBaseOptions {
    *
    * @default false
    */
-  allowSelection?: boolean;
+  allowSelection?: boolean
   /**
    * Determines whether data grid columns are sortable.
    *
    * @default false
    */
-  allowSort?: boolean;
+  allowSort?: boolean
   /**
    * Determine whether data grid columns are resizable.
    *
    * @default false
    */
-  allowResize?: boolean;
+  allowResize?: boolean
   /**
    * Reference to the data grid root element.
    */
-  tableRef?: MutableRefObject<HTMLDivElement | null>;
+  tableRef?: RefObject<HTMLDivElement | null>
 }
 
-export type UseDataGridOptions<T extends object = {}> = TableOptions<T> &
-  UseDataGridBaseOptions;
-export type UseDataGridReturn<T extends object = {}> = TableInstance<T> &
-  UseDataGridBaseOptions;
+export type UseDataGridOptions<T extends object = {}> = TableOptions<T> & UseDataGridBaseOptions
+export type UseDataGridReturn<T extends object = {}> = TableInstance<T> & UseDataGridBaseOptions
 
 export default function useDataGrid<T extends object>(
   { allowSelection, allowSort, allowResize, ...options }: UseDataGridOptions<T>,
@@ -56,31 +54,23 @@ export default function useDataGrid<T extends object>(
         <span className="truncate">
           {typeof value === 'object' ? JSON.stringify(value) : value}
         </span>
-      ),
+      )
     }),
-    [],
-  );
+    []
+  )
 
-  const tablePath = useTablePath();
+  const tablePath = useTablePath()
 
-  const pluginHooks = [
-    useBlockLayout,
-    useResizeColumns,
-    useSortBy,
-    useRowSelect,
-    useColumnOrder,
-  ];
+  const pluginHooks = [useBlockLayout, useResizeColumns, useSortBy, useRowSelect, useColumnOrder]
 
   const tableData = useTable<T>(
     {
       defaultColumn,
       ...options,
       initialState: {
-        hiddenColumns:
-          PersistenColumnConfigurationStorage.getHiddenColumns(tablePath),
-        columnOrder:
-          PersistenColumnConfigurationStorage.getColumnOrder(tablePath),
-      },
+        hiddenColumns: PersistenColumnConfigurationStorage.getHiddenColumns(tablePath),
+        columnOrder: PersistenColumnConfigurationStorage.getColumnOrder(tablePath)
+      }
     },
     ...pluginHooks,
     ...plugins,
@@ -91,11 +81,10 @@ export default function useDataGrid<T extends object>(
               id: 'selection-column',
               // biome-ignore lint/suspicious/noExplicitAny: TODO
               Header: ({ rows, getToggleAllRowsSelectedProps }: any) => {
-                const { indeterminate, style, onChange, ...props } =
-                  getToggleAllRowsSelectedProps();
+                const { indeterminate, style, onChange, ...props } = getToggleAllRowsSelectedProps()
 
                 function handleCheckedChange(newCheckedState: boolean) {
-                  onChange({ target: { checked: newCheckedState } });
+                  onChange({ target: { checked: newCheckedState } })
                 }
                 return (
                   <Checkbox
@@ -104,22 +93,21 @@ export default function useDataGrid<T extends object>(
                     {...props}
                     style={{
                       ...style,
-                      cursor: rows.length === 0 ? 'default' : 'pointer',
+                      cursor: rows.length === 0 ? 'default' : 'pointer'
                     }}
                     onCheckedChange={handleCheckedChange}
                   />
-                );
+                )
               },
               // biome-ignore lint/suspicious/noExplicitAny: TODO
               Cell: ({ row }: any) => {
                 // biome-ignore lint/suspicious/noExplicitAny: TODO
-                const originalValue = row.original as any;
+                const originalValue = row.original as any
 
-                const { indeterminate, onChange, ...props } =
-                  row.getToggleRowSelectedProps();
+                const { indeterminate, onChange, ...props } = row.getToggleRowSelectedProps()
 
                 function handleCheckedChange(newCheckedState: boolean) {
-                  onChange({ target: { checked: newCheckedState } });
+                  onChange({ target: { checked: newCheckedState } })
                 }
                 return (
                   <Checkbox
@@ -130,15 +118,15 @@ export default function useDataGrid<T extends object>(
                     disabled={originalValue.uploading}
                     onCheckedChange={handleCheckedChange}
                   />
-                );
+                )
               },
               disableSortBy: true,
-              disableResizing: true,
+              disableResizing: true
             },
-            ...columns,
+            ...columns
           ])
-        : hooks.visibleColumns,
-  );
+        : hooks.visibleColumns
+  )
 
-  return { ...tableData, allowSort, allowResize, allowSelection };
+  return { ...tableData, allowSort, allowResize, allowSelection }
 }
