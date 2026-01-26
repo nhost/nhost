@@ -186,38 +186,30 @@ func exportToTarget(image *vips.Image, target *vips.Target, opts Options) error 
 	return err //nolint: wrapcheck
 }
 
-func imageResize(image *vips.Image, opts Options) error {
+// loadImage loads an image from buffer, using ThumbnailBuffer for resize operations
+// (more memory efficient) or NewImageFromBuffer for other operations.
+func (t *Transformer) loadImage(data []byte, opts Options) (*vips.Image, error) {
+	// Use ThumbnailBuffer when resizing is needed - it's much more memory efficient
+	// because it shrinks while decoding, never loading the full image into memory.
 	if opts.Width > 0 || opts.Height > 0 {
-		width := opts.Width
-		height := opts.Height
-
-		if width == 0 {
-			width = int((float64(height) / float64(image.Height())) * float64(image.Width()))
-		}
-
-		if height == 0 {
-			height = int((float64(width) / float64(image.Width())) * float64(image.Height()))
-		}
-
-		thumbnailOpts := vips.DefaultThumbnailImageOptions()
-		thumbnailOpts.Crop = vips.InterestingCentre
-		thumbnailOpts.Height = height
-
-		if err := image.ThumbnailImage(width, thumbnailOpts); err != nil {
-			return fmt.Errorf("failed to thumbnail: %w", err)
-		}
+		return t.loadWithThumbnail(data, opts)
 	}
 
-	return nil
+	// For operations without resizing (format conversion, blur only),
+	// we need to load the full image
+	img, err := vips.NewImageFromBuffer(data, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load image: %w", err)
+	}
+
+	return img, nil
 }
 
-func imagePipeline(image *vips.Image, opts Options) error {
-	if err := imageResize(image, opts); err != nil {
-		return err
-	}
-
-	// Auto-rotate when converting formats to ensure correct display
-	if opts.FormatChanged() {
+// applyTransforms applies auto-rotation and blur to the image.
+func applyTransforms(image *vips.Image, opts Options) error {
+	// Auto-rotate based on EXIF orientation when converting formats.
+	// ThumbnailBuffer already handles this, but for non-resize paths we need to do it explicitly.
+	if opts.FormatChanged() && opts.Width <= 0 && opts.Height <= 0 {
 		if err := image.Autorot(nil); err != nil {
 			return fmt.Errorf("failed to auto-rotate: %w", err)
 		}
@@ -245,36 +237,44 @@ func (t *Transformer) Run(
 	defer func() { t.workers <- struct{}{} }()
 
 	// Get a buffer from the pool to read the image into.
-	// This reuses buffers to reduce memory fragmentation and allocator pressure.
 	buf, _ := t.pool.Get().(*bytes.Buffer)
 	defer t.pool.Put(buf)
 	defer buf.Reset()
 
-	// Pre-grow buffer if we know the size
 	if length > 0 && buf.Cap() < int(length) {
 		buf.Grow(int(length))
 	}
 
-	// Read the entire image into the buffer
 	if _, err := io.Copy(buf, orig); err != nil {
 		return fmt.Errorf("failed to read image: %w", err)
 	}
 
-	// Load image from buffer (more predictable memory behavior than streaming)
-	image, err := vips.NewImageFromBuffer(buf.Bytes(), nil)
+	image, err := t.loadImage(buf.Bytes(), opts)
 	if err != nil {
-		return fmt.Errorf("failed to load image from buffer: %w", err)
+		return err
 	}
 	defer image.Close()
 
-	// Check for interlace/progressive encoding (can affect memory during decode)
-	interlaced := false
-	if val, err := image.GetInt("interlace"); err == nil && val != 0 {
-		interlaced = true
+	logImageMetadata(logger, length, image, opts)
+
+	if err := applyTransforms(image, opts); err != nil {
+		return err
 	}
 
-	// Log image metadata to help diagnose memory issues
-	logger.Info("processing image",
+	target := vips.NewTarget(writeCloserAdapter{modified})
+	defer target.Close()
+
+	if err := exportToTarget(image, target, opts); err != nil {
+		return fmt.Errorf("failed to export: %w", err)
+	}
+
+	shutdownThread()
+
+	return nil
+}
+
+func logImageMetadata(logger *slog.Logger, length uint64, image *vips.Image, opts Options) {
+	logger.Debug("processing image",
 		slog.Uint64("file_size_bytes", length),
 		slog.Int("width", image.Width()),
 		slog.Int("height", image.Height()),
@@ -287,25 +287,37 @@ func (t *Transformer) Run(
 		slog.Bool("will_resize", opts.Width > 0 || opts.Height > 0),
 		slog.Bool("will_autorotate", opts.FormatChanged()),
 		slog.Float64("blur", float64(opts.Blur)),
-		slog.Bool("interlaced", interlaced),
-		slog.Any("vips_fields", image.GetFields()),
 	)
+}
 
-	// Apply additional processing (auto-rotate, blur)
-	if err := imagePipeline(image, opts); err != nil {
-		return err
+// loadWithThumbnail uses vips_thumbnail_buffer which is optimized for memory efficiency.
+// It shrinks the image while decoding, never loading the full resolution into memory.
+func (t *Transformer) loadWithThumbnail(data []byte, opts Options) (*vips.Image, error) {
+	width := opts.Width
+	height := opts.Height
+
+	// ThumbnailBuffer needs at least a width
+	if width == 0 {
+		width = 10000000 // Very large number - height will constrain
 	}
 
-	// Export with streaming target
-	target := vips.NewTarget(writeCloserAdapter{modified})
-	defer target.Close()
+	thumbOpts := vips.DefaultThumbnailBufferOptions()
+	thumbOpts.Height = height
 
-	if err := exportToTarget(image, target, opts); err != nil {
-		return fmt.Errorf("failed to export: %w", err)
+	// Only crop when BOTH dimensions are specified - this means the user wants
+	// to fill a specific aspect ratio. When only one dimension is given,
+	// resize proportionally without cropping.
+	if opts.Width > 0 && opts.Height > 0 {
+		thumbOpts.Crop = vips.InterestingCentre
 	}
 
-	// Release thread-local caches to reduce memory holding
-	shutdownThread()
+	// Auto-rotate based on EXIF orientation (NoRotate = false means DO auto-rotate)
+	thumbOpts.NoRotate = false
 
-	return nil
+	img, err := vips.NewThumbnailBuffer(data, width, thumbOpts)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create thumbnail: %w", err)
+	}
+
+	return img, nil
 }
