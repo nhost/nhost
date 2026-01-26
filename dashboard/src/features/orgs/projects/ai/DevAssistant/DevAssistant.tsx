@@ -141,7 +141,7 @@ export default function DevAssistant() {
     }
   };
 
-  const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
       const form = event.currentTarget.closest('form');
@@ -204,7 +204,7 @@ export default function DevAssistant() {
               const { value } = event.target;
               setUserInput(value);
             }}
-            onKeyPress={handleKeyPress}
+            onKeyDown={handleKeyDown}
             placeholder="Ask graphite anything!"
             className="w-full"
             required
