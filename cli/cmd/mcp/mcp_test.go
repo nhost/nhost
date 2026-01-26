@@ -312,8 +312,10 @@ config validate after making changes to your nhost.toml file to ensure it is val
 						Type: "object",
 						Properties: map[string]any{
 							"path": map[string]any{
-								"description": string("The documentation page path (e.g., /products/auth/overview or products/auth/overview)"),
-								"type":        string("string"),
+								"description": string(
+									"The documentation page path (e.g., /products/auth/overview or products/auth/overview)",
+								),
+								"type": string("string"),
 							},
 						},
 						Required: []string{"path"},
@@ -337,8 +339,10 @@ config validate after making changes to your nhost.toml file to ensure it is val
 								"type":        string("string"),
 							},
 							"limit": map[string]any{
-								"description": string("Maximum number of results to return (default: 10)"),
-								"type":        string("number"),
+								"description": string(
+									"Maximum number of results to return (default: 10)",
+								),
+								"type": string("number"),
 							},
 						},
 						Required: []string{"query"},

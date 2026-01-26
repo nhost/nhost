@@ -112,7 +112,7 @@ func ReadPage(pagePath string) (string, error) {
 		}
 	}
 
-	return "", fmt.Errorf( //nolint:goerr113
+	return "", fmt.Errorf( //nolint:err113
 		"page not found: %s",
 		pagePath,
 	)

@@ -2,6 +2,8 @@ package docs
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
@@ -77,7 +79,7 @@ func (t *Tool) handleSearch(
 		limit = defaultSearchLimit
 	}
 
-	results, err := docssearch.Search(args.Query, limit)
+	results, err := docssearch.Search(args.Query, limit, false)
 	if err != nil {
 		return mcp.NewToolResultErrorFromErr("search failed", err), nil
 	}
@@ -90,49 +92,16 @@ func (t *Tool) handleSearch(
 	}
 
 	for _, r := range results.Results {
-		// Strip ANSI codes from fragments for MCP output
-		cleanFragments := make([]string, 0, len(r.Fragments))
-		for _, f := range r.Fragments {
-			cleanFragments = append(cleanFragments, stripANSICodes(f))
-		}
-
 		response.Results = append(response.Results, SearchResultOutput{
 			Path:      r.Path,
 			URL:       "https://docs.nhost.io" + r.Path,
 			Title:     r.Title,
 			Score:     r.Score,
-			Fragments: cleanFragments,
+			Fragments: r.Fragments,
 		})
 	}
 
 	return mcp.NewToolResultStructured(response, formatSearchResultsText(response)), nil
-}
-
-func stripANSICodes(s string) string {
-	// Remove ANSI escape codes (like \033[1;33m and \033[0m)
-	result := s
-	for {
-		start := -1
-		for i := 0; i < len(result)-1; i++ {
-			if result[i] == '\033' && result[i+1] == '[' {
-				start = i
-				break
-			}
-		}
-		if start == -1 {
-			break
-		}
-		end := start + 2
-		for end < len(result) && result[end] != 'm' {
-			end++
-		}
-		if end < len(result) {
-			result = result[:start] + result[end+1:]
-		} else {
-			break
-		}
-	}
-	return result
 }
 
 func formatSearchResultsText(response SearchResponse) string {
@@ -142,9 +111,12 @@ func formatSearchResultsText(response SearchResponse) string {
 
 	text := "Search results for: " + response.Query + "\n\n"
 
+	var textSb145 strings.Builder
 	for i, r := range response.Results {
-		text += formatResultText(i+1, r)
+		textSb145.WriteString(formatResultText(i+1, r))
 	}
+
+	text += textSb145.String()
 
 	return text
 }
@@ -155,20 +127,20 @@ func formatResultText(index int, r SearchResultOutput) string {
 	result += "## " + r.Title + "\n"
 	result += "Path: " + r.Path + "\n"
 	result += "URL: " + r.URL + "\n"
-	result += "Score: " + formatFloat(r.Score) + "\n"
+	result += fmt.Sprintf("Score: %.2f\n", r.Score)
 
 	if len(r.Fragments) > 0 {
 		result += "\nRelevant excerpts:\n"
+
+		var resultSb162 strings.Builder
 		for _, f := range r.Fragments {
-			result += "> " + f + "\n"
+			resultSb162.WriteString("> " + f + "\n")
 		}
+
+		result += resultSb162.String()
 	}
 
 	_ = index // unused but kept for potential future use
 
 	return result + "\n"
-}
-
-func formatFloat(f float64) string {
-	return string(rune('0'+int(f))) + "." + string(rune('0'+int(f*10)%10)) + string(rune('0'+int(f*100)%10))
 }

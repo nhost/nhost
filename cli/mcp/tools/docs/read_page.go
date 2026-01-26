@@ -40,7 +40,9 @@ func (t *Tool) registerReadPage(mcpServer *server.MCPServer) {
 		),
 		mcp.WithString(
 			"path",
-			mcp.Description("The documentation page path (e.g., /products/auth/overview or products/auth/overview)"),
+			mcp.Description(
+				"The documentation page path (e.g., /products/auth/overview or products/auth/overview)",
+			),
 			mcp.Required(),
 		),
 	)

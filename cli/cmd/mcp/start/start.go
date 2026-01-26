@@ -77,7 +77,7 @@ func Command() *cli.Command {
 	}
 }
 
-func action(ctx context.Context, cmd *cli.Command) error {
+func action(_ context.Context, cmd *cli.Command) error {
 	cfg, err := getConfig(cmd)
 	if err != nil {
 		return err

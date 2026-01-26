@@ -18,11 +18,12 @@ import (
 var (
 	searchIndex     bleve.Index
 	searchIndexOnce sync.Once
-	searchIndexErr  error
+	searchIndexErr  error //nolint:errname
 )
 
 // Search performs a search query and returns results.
-func Search(queryStr string, limit int) (*SearchResults, error) {
+// If ansiHighlight is true, matched terms are highlighted with ANSI codes.
+func Search(queryStr string, limit int, ansiHighlight bool) (*SearchResults, error) {
 	index, err := getSearchIndex()
 	if err != nil {
 		return nil, fmt.Errorf("failed to build search index: %w", err)
@@ -49,15 +50,16 @@ func Search(queryStr string, limit int) (*SearchResults, error) {
 
 	for _, hit := range results.Hits {
 		result := SearchResult{
-			Path:  getFieldString(hit.Fields, "path"),
-			Title: getFieldString(hit.Fields, "title"),
-			Score: hit.Score,
+			Path:      getFieldString(hit.Fields, "path"),
+			Title:     getFieldString(hit.Fields, "title"),
+			Score:     hit.Score,
+			Fragments: []string{},
 		}
 
 		if len(hit.Fragments) > 0 {
 			if contentFragments, ok := hit.Fragments["content"]; ok && len(contentFragments) > 0 {
 				for _, fragment := range contentFragments {
-					cleanFragment := CleanupFragment(fragment)
+					cleanFragment := CleanupFragment(fragment, ansiHighlight)
 					if cleanFragment != "" {
 						result.Fragments = append(result.Fragments, cleanFragment)
 					}
@@ -268,10 +270,16 @@ func StripFrontmatter(content string) string {
 }
 
 // CleanupFragment cleans up a search result fragment for display.
-func CleanupFragment(fragment string) string {
-	// Convert HTML highlight marks to ANSI bold yellow
-	fragment = strings.ReplaceAll(fragment, "<mark>", "\033[1;33m")
-	fragment = strings.ReplaceAll(fragment, "</mark>", "\033[0m")
+// If ansiHighlight is true, matched terms are highlighted with ANSI codes.
+func CleanupFragment(fragment string, ansiHighlight bool) string {
+	// Convert HTML highlight marks to ANSI bold yellow, or remove them
+	if ansiHighlight {
+		fragment = strings.ReplaceAll(fragment, "<mark>", "\033[1;33m")
+		fragment = strings.ReplaceAll(fragment, "</mark>", "\033[0m")
+	} else {
+		fragment = strings.ReplaceAll(fragment, "<mark>", "")
+		fragment = strings.ReplaceAll(fragment, "</mark>", "")
+	}
 
 	// Decode common HTML entities first
 	cleaned := strings.ReplaceAll(fragment, "&#34;", "\"")

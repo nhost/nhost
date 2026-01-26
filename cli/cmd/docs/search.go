@@ -2,7 +2,6 @@ package docs
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 
@@ -18,11 +17,18 @@ const (
 
 func CommandSearch() *cli.Command {
 	return &cli.Command{ //nolint:exhaustruct
-		Name:      "search",
-		Aliases:   []string{"s", "find"},
-		Usage:     "Search documentation pages",
-		ArgsUsage: "<query>",
-		Action:    commandSearch,
+		Name:    "search",
+		Aliases: []string{"s", "find"},
+		Usage:   "Search documentation pages",
+		Action:  commandSearch,
+		Arguments: []cli.Argument{
+			&cli.StringArgs{ //nolint:exhaustruct
+				Name:      "query",
+				Min:       1,
+				UsageText: "<query>",
+				Max:       -1,
+			},
+		},
 		Flags: []cli.Flag{
 			&cli.IntFlag{ //nolint:exhaustruct
 				Name:    flagLimit,
@@ -37,14 +43,10 @@ func CommandSearch() *cli.Command {
 func commandSearch(_ context.Context, cmd *cli.Command) error {
 	ce := clienv.FromCLI(cmd)
 
-	if cmd.NArg() < 1 {
-		return errors.New("missing search query. Usage: nhost docs search <query>")
-	}
-
-	query := strings.Join(cmd.Args().Slice(), " ")
+	query := strings.Join(cmd.StringArgs("query"), " ")
 	limit := cmd.Int(flagLimit)
 
-	results, err := docssearch.Search(query, limit)
+	results, err := docssearch.Search(query, limit, true)
 	if err != nil {
 		return fmt.Errorf("search failed: %w", err)
 	}
@@ -69,7 +71,7 @@ func commandSearch(_ context.Context, cmd *cli.Command) error {
 			ce.Println("   ---")
 
 			for _, fragment := range hit.Fragments {
-				for _, line := range strings.Split(fragment, "\n") {
+				for line := range strings.SplitSeq(fragment, "\n") {
 					if strings.TrimSpace(line) != "" {
 						ce.Println("   %s", line)
 					}

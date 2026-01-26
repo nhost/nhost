@@ -2,7 +2,6 @@ package docs
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/nhost/nhost/cli/clienv"
@@ -14,11 +13,18 @@ const flagRaw = "raw"
 
 func CommandShow() *cli.Command {
 	return &cli.Command{ //nolint:exhaustruct
-		Name:      "show",
-		Aliases:   []string{"view"},
-		Usage:     "Display contents of a documentation page",
-		ArgsUsage: "<page>",
-		Action:    commandShow,
+		Name:    "show",
+		Aliases: []string{"view"},
+		Usage:   "Display contents of a documentation page",
+		Action:  commandShow,
+		Arguments: []cli.Argument{
+			&cli.StringArgs{ //nolint:exhaustruct
+				Name:      "page",
+				UsageText: "<page-path>",
+				Min:       1,
+				Max:       1,
+			},
+		},
 		Flags: []cli.Flag{
 			&cli.BoolFlag{ //nolint:exhaustruct
 				Name:  flagRaw,
@@ -31,11 +37,7 @@ func CommandShow() *cli.Command {
 func commandShow(_ context.Context, cmd *cli.Command) error {
 	ce := clienv.FromCLI(cmd)
 
-	if cmd.NArg() < 1 {
-		return errors.New("missing page argument. Usage: nhost docs show <page>")
-	}
-
-	pagePath := cmd.Args().First()
+	pagePath := cmd.StringArgs("page")[0]
 	showRaw := cmd.Bool(flagRaw)
 
 	content, err := docssearch.ReadPage(pagePath)

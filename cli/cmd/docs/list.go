@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/nhost/nhost/cli/clienv"
+	"github.com/nhost/nhost/cli/pkg/docssearch"
 	"github.com/urfave/cli/v3"
 )
 
@@ -29,7 +30,7 @@ func CommandList() *cli.Command {
 func commandList(_ context.Context, cmd *cli.Command) error {
 	ce := clienv.FromCLI(cmd)
 
-	config, err := LoadDocsIndex()
+	config, err := docssearch.LoadConfig()
 	if err != nil {
 		return fmt.Errorf("failed to load docs index: %w", err)
 	}
@@ -41,8 +42,8 @@ func commandList(_ context.Context, cmd *cli.Command) error {
 	return listFlat(ce, config)
 }
 
-func listFlat(ce *clienv.CliEnv, config *Config) error {
-	paths := GetAllPagePaths(config)
+func listFlat(ce *clienv.CliEnv, config *docssearch.Config) error {
+	paths := docssearch.GetAllPagePaths(config)
 	for _, path := range paths {
 		ce.Println("%s", path)
 	}
@@ -50,7 +51,7 @@ func listFlat(ce *clienv.CliEnv, config *Config) error {
 	return nil
 }
 
-func listGrouped(ce *clienv.CliEnv, config *Config) error {
+func listGrouped(ce *clienv.CliEnv, config *docssearch.Config) error {
 	for _, tab := range config.Navigation.Tabs {
 		if tab.Href != "" {
 			continue
@@ -88,7 +89,7 @@ func printPagesGrouped(ce *clienv.CliEnv, pages []any, indent int) {
 		switch v := page.(type) {
 		case string:
 			// Skip deprecated pages
-			if isDeprecatedPath(v) {
+			if docssearch.IsDeprecatedPath(v) {
 				continue
 			}
 
