@@ -11,13 +11,15 @@
 }
 
 /* dark mode */
+:root[data-theme="dark"] .welcome-hero,
 html[class~="dark"] .welcome-hero {
   background-color: rgb(23, 29, 38);
   color: white;
 }
 
 /* light mode */
-html:not([class~="dark"]) .welcome-hero {
+:root[data-theme="light"] .welcome-hero,
+:root:not([data-theme="dark"]):not([class~="dark"]) .welcome-hero {
   background-color: #f5f8ff;
   color: #111827;
 }

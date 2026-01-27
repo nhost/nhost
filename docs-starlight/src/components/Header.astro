@@ -2,10 +2,21 @@
 import type { Props } from '@astrojs/starlight/props';
 import Default from '@astrojs/starlight/components/Header.astro';
 
+const products = [
+    { label: 'Overview', href: '/products/overview/' },
+    { label: 'Database', href: '/products/database/overview/' },
+    { label: 'GraphQL', href: '/products/graphql/overview/' },
+    { label: 'Auth', href: '/products/auth/overview/' },
+    { label: 'Storage', href: '/products/storage/overview/' },
+    { label: 'Run', href: '/products/run/overview/' },
+    { label: 'Functions', href: '/products/functions/overview/' },
+    { label: 'AI', href: '/products/ai/overview/' },
+];
+
 const navLinks = [
     { label: 'Welcome', href: '/' },
     { label: 'Getting Started', href: '/getting-started/overview/' },
-    { label: 'Products', href: '/products/overview/' },
+    { label: 'Products', href: '/products/overview/', hasDropdown: true, dropdownItems: products },
     { label: 'Platform', href: '/platform/overview/' },
     { label: 'Reference', href: '/reference/overview/' },
     { label: 'Blog', href: 'https://nhost.io/blog', external: true },
@@ -68,7 +79,10 @@ const currentSection = navLinks.find(link => {
         color: var(--sl-color-gray-3);
     }
 
-    .subheader-link + .subheader-link {
+    .subheader-link + .subheader-link,
+    .subheader-link + .dropdown-container,
+    .dropdown-container + .subheader-link,
+    .dropdown-container + .dropdown-container {
         margin-left: 1.5rem;
     }
 
@@ -79,6 +93,72 @@ const currentSection = navLinks.find(link => {
     .subheader-link.active {
         color: var(--sl-color-text-accent);
         border-bottom-color: var(--sl-color-text-accent);
+    }
+
+    /* Dropdown styles */
+    .dropdown-container {
+        position: relative;
+        display: flex;
+        align-items: stretch;
+    }
+
+    .dropdown-trigger {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        background: none;
+        border: none;
+        border-bottom: 2px solid transparent;
+        cursor: pointer;
+        font-family: inherit;
+    }
+
+    .dropdown-arrow {
+        transition: transform 0.2s;
+    }
+
+    .dropdown-container:hover .dropdown-arrow,
+    .dropdown-container.open .dropdown-arrow {
+        transform: rotate(180deg);
+    }
+
+    .dropdown-menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        min-width: 160px;
+        padding: 0.5rem 0;
+        background: var(--sl-color-bg-nav);
+        border: 1px solid var(--sl-color-hairline-light);
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-4px);
+        transition: opacity 0.15s, transform 0.15s, visibility 0.15s;
+        z-index: 100;
+    }
+
+    .dropdown-container:hover .dropdown-menu,
+    .dropdown-container.open .dropdown-menu {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    .dropdown-item {
+        display: block;
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-decoration: none;
+        color: var(--sl-color-gray-3);
+        transition: background 0.15s, color 0.15s;
+    }
+
+    .dropdown-item:hover {
+        background: var(--sl-color-gray-6);
+        color: var(--sl-color-gray-1);
     }
 
     .action-link {
@@ -127,18 +207,47 @@ const currentSection = navLinks.find(link => {
 <nav class="subheader-nav" aria-label="Main sections" id="subheader-nav">
     <div class="subheader-links">
         {navLinks.map(link => (
-            <a
-                href={link.href}
-                class:list={[
-                    'subheader-link',
-                    { active: currentSection?.href === link.href }
-                ]}
-                aria-current={currentSection?.href === link.href ? 'page' : undefined}
-                target={link.external ? '_blank' : undefined}
-                rel={link.external ? 'noopener noreferrer' : undefined}
-            >
-                {link.label}
-            </a>
+            link.hasDropdown ? (
+                <div class="dropdown-container">
+                    <button
+                        class:list={[
+                            'subheader-link',
+                            'dropdown-trigger',
+                            { active: currentSection?.href === link.href }
+                        ]}
+                        aria-expanded="false"
+                        aria-haspopup="true"
+                    >
+                        {link.label}
+                        <svg class="dropdown-arrow" width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                    <div class="dropdown-menu">
+                        {link.dropdownItems?.map(item => (
+                            <a
+                                href={item.href}
+                                class="dropdown-item"
+                            >
+                                {item.label}
+                            </a>
+                        ))}
+                    </div>
+                </div>
+            ) : (
+                <a
+                    href={link.href}
+                    class:list={[
+                        'subheader-link',
+                        { active: currentSection?.href === link.href }
+                    ]}
+                    aria-current={currentSection?.href === link.href ? 'page' : undefined}
+                    target={link.external ? '_blank' : undefined}
+                    rel={link.external ? 'noopener noreferrer' : undefined}
+                >
+                    {link.label}
+                </a>
+            )
         ))}
     </div>
     <div class="subheader-actions">
@@ -155,4 +264,44 @@ const currentSection = navLinks.find(link => {
         header.appendChild(nav);
         nav.classList.add('visible');
     }
+
+    // Handle dropdown click toggle (for touch/keyboard accessibility)
+    document.querySelectorAll('.dropdown-trigger').forEach(trigger => {
+        trigger.addEventListener('click', (e) => {
+            const container = trigger.closest('.dropdown-container');
+            const isOpen = container?.classList.contains('open');
+
+            // Close all other dropdowns
+            document.querySelectorAll('.dropdown-container.open').forEach(el => {
+                el.classList.remove('open');
+                el.querySelector('.dropdown-trigger')?.setAttribute('aria-expanded', 'false');
+            });
+
+            // Toggle this dropdown
+            if (!isOpen && container) {
+                container.classList.add('open');
+                trigger.setAttribute('aria-expanded', 'true');
+            }
+        });
+    });
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!(e.target as Element).closest('.dropdown-container')) {
+            document.querySelectorAll('.dropdown-container.open').forEach(el => {
+                el.classList.remove('open');
+                el.querySelector('.dropdown-trigger')?.setAttribute('aria-expanded', 'false');
+            });
+        }
+    });
+
+    // Close on Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.dropdown-container.open').forEach(el => {
+                el.classList.remove('open');
+                el.querySelector('.dropdown-trigger')?.setAttribute('aria-expanded', 'false');
+            });
+        }
+    });
 </script>
