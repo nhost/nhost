@@ -82,6 +82,15 @@ html:not([class~="dark"]) .welcome-get-started {
 }
 
 /* Subheader spacing - add margin to content below the subheader */
+/* Hero background - full width */
+.hero {
+  background-color: rgb(23, 29, 38);
+  margin-left: calc(-50vw + 50%);
+  margin-right: calc(-50vw + 50%);
+  padding: 3rem calc(50vw - 50%);
+  margin-bottom: 2rem;
+}
+
 @media (min-width: 50rem) {
   /* Push sidebar pane to meet subheader */
   .sidebar-pane {
