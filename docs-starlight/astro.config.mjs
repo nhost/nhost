@@ -76,7 +76,6 @@ export default defineConfig({
                             label: 'Getting Started',
                             link: '/getting-started/overview/',
                             items: [
-                                { label: 'Welcome', slug: 'welcome' },
                                 { label: 'Overview', slug: 'getting-started/overview' },
                                 {
                                     label: 'Quickstart',
@@ -349,7 +348,7 @@ export default defineConfig({
                                     label: 'Cloud',
                                     collapsed: false,
                                     items: [
-                                        { slug: 'platform/cloud/overview' },
+                                        { slug: 'platform/cloud' },
                                         { slug: 'platform/cloud/subdomain' },
                                         { slug: 'platform/cloud/compute-resources' },
                                         { slug: 'platform/cloud/service-replicas' },

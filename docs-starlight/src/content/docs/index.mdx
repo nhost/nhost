@@ -1,40 +1,76 @@
 ---
-title: Welcome to Starlight
-description: Get started building your docs site with Starlight.
-template: splash # Remove or comment out this line to display the site sidebar on this page.
+title: Welcome
+template: splash
 hero:
-  tagline: Congrats on setting up a new Starlight project!
+  title: 'Build. Deploy. Scale'
+  tagline: 'Learn how to get started with Nhost'
   image:
-    file: ../../assets/houston.webp
+    alt: Nhost Logo
+    light: '../../assets/logo/light.svg'
+    dark: '../../assets/logo/dark.svg'
   actions:
-    - text: Example Guide
-      link: /guides/example/
+    - text: Explore the docs
+      link: /getting-started
       icon: right-arrow
-    - text: Read the Starlight docs
-      link: https://starlight.astro.build
+    - text: View on GitHub
+      link: https://github.com/nhost/nhost
       icon: external
       variant: minimal
+      attrs:
+        rel: me
 ---
+import { Card, CardGroup } from '@components';
 
-import { Card, CardGrid } from '@astrojs/starlight/components';
 
-## Next steps
+<div className="welcome-page">
+  <div className="welcome-get-started">
+    <h1>Get started with our guides or explore our community</h1>
 
-<CardGrid stagger>
-	<Card title="Update content" icon="pencil">
-		Edit `src/content/docs/index.mdx` to see this page change.
-	</Card>
-	<Card title="Change page layout" icon="document">
-		Delete `template: splash` in `src/content/docs/index.mdx` to display a
-		sidebar on this page.
-	</Card>
-	<Card title="Add new content" icon="add-document">
-		Add Markdown or MDX files to `src/content/docs` to create new pages.
-	</Card>
-	<Card title="Configure your site" icon="setting">
-		Edit your `sidebar` and other config in `astro.config.mjs`.
-	</Card>
-	<Card title="Read the docs" icon="open-book">
-		Learn more in [the Starlight Docs](https://starlight.astro.build/).
-	</Card>
-</CardGrid>
+    <CardGroup cols={3}>
+      <Card
+        title="Getting Started"
+        icon="rocket"
+        href="/getting-started/overview"
+      >
+        Learn the fundamentals of Nhost and how to set up your first project
+      </Card>
+      <Card
+        title="React"
+        icon="react"
+        href="/getting-started/quickstart/react"
+      >
+        Integrate Nhost with your React application
+      </Card>
+      <Card
+        title="API Reference"
+        icon="code"
+        href="/reference/overview"
+      >
+        Explore the API reference for client SDKs and data APIs
+      </Card>
+      <Card
+        title="Platform"
+        icon="cloud"
+        href="/platform/overview"
+      >
+        Learn about the Nhost Platform and deployment targets
+      </Card>
+      <Card
+        title="Products"
+        icon="box"
+        href="/products/overview"
+      >
+        Explore our integrated products like database, auth, GraphQL & storage.
+      </Card>
+      <Card
+        title="Example Applications"
+        icon="mobile"
+        href="https://github.com/nhost/nhost/tree/main/examples"
+      >
+        Deployable applications built with Nhost
+      </Card>
+    </CardGroup>
+
+  </div>
+</div>
+
