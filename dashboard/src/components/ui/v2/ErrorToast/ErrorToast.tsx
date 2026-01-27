@@ -94,7 +94,7 @@ export default function ErrorToast({
         >
           <XIcon className="h-4 w-4 text-white" />
         </button>
-        <span className="flex-grow overflow-hidden break-words">
+        <span className="flex-grow overflow-hidden whitespace-normal break-words">
           {msg ?? 'An unkown error has occured, please try again later!'}
         </span>
 
@@ -116,7 +116,7 @@ export default function ErrorToast({
       {showInfo && (
         <div className="flex flex-col space-y-4">
           <div className="relative flex flex-col">
-            <div className="relative flex max-h-[400px] w-[552px] flex-row justify-between overflow-x-auto rounded-lg bg-black p-4">
+            <div className="relative flex max-h-[400px] w-full flex-row justify-between overflow-x-auto rounded-lg bg-black p-4">
               <pre>{JSON.stringify(errorDetails, null, 2)}</pre>
             </div>
             <button

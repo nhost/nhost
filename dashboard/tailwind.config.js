@@ -35,6 +35,7 @@ module.exports = {
         'table-selected': 'hsl(var(--table-selected))',
         'error-main': '#f13154',
         'error-bg': '#f131541a',
+        'error-toast-bg': 'hsl(var(--error-toast-bg))',
         'secondary-hover': '#475569',
         default: 'hsl(var(--default))',
         background: 'hsl(var(--background))',

@@ -9,7 +9,6 @@ interface Props {
   className?: string;
   withAnonId?: boolean;
   redirectTo?: string;
-  errorText?: string;
 }
 
 function GithubAuthButton({

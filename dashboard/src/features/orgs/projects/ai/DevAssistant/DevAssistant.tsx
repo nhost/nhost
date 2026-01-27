@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { toast } from 'react-hot-toast';
+import { type Toast, toast } from 'react-hot-toast';
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
@@ -124,8 +124,8 @@ export default function DevAssistant() {
         setMessages(thread);
       }
     } catch (error) {
-      toast.custom(
-        (t) => (
+      toast(
+        (t: Toast) => (
           <ErrorToast
             toastId={t.id}
             errorMessage="Failed to send the message. Please try again later."
@@ -133,6 +133,7 @@ export default function DevAssistant() {
           />
         ),
         {
+          className: 'error-toast',
           duration: Number.POSITIVE_INFINITY,
         },
       );

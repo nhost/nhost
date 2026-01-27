@@ -69,7 +69,6 @@ function AccountMenuContent() {
         </NavLink>
 
         <Button
-          color="error"
           variant="ghost"
           className="h-9 w-full justify-start px-2 text-error-main hover:bg-error-bg"
           onClick={handleSignOut}

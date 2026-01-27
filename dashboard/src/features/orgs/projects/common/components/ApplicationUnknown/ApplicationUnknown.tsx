@@ -34,12 +34,12 @@ export default function ApplicationUnknown() {
           hideCloseButton
         >
           <DialogTitle className="sr-only">
-            `Remove project ${project?.name}?`
+            {`Remove project ${project?.name}?`}
           </DialogTitle>
           <DialogDescription className="sr-only">
-            `The project ${project?.name} will be removed. All data will be lost
+            {`The project ${project?.name} will be removed. All data will be lost
             and there will be no way to recover the app once it has been
-            deleted.`
+            deleted.`}
           </DialogDescription>
           <RemoveApplicationModal
             close={() => setShowDeleteModal(false)}

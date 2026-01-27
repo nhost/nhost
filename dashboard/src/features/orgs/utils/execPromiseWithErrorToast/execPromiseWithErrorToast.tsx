@@ -48,12 +48,7 @@ export default async function execPromiseWithErrorToast(
         <ErrorToast toastId={t.id} errorMessage={errorMessage} error={error} />
       ),
       {
-        style: {
-          maxWidth: '36rem',
-          width: '36rem',
-          padding: '12px 2px',
-          backgroundColor: toastStyle.style!.backgroundColor,
-        },
+        className: 'error-toast',
         duration: Number.POSITIVE_INFINITY,
       },
     );
