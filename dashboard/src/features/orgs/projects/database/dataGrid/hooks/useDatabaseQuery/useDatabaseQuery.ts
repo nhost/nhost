@@ -9,6 +9,7 @@ import type {
   FetchDatabaseReturnType,
 } from './fetchDatabase';
 import fetchDatabase from './fetchDatabase';
+import { useGetMetadata } from '@/features/orgs/projects/common/hooks/useGetMetadata';
 
 export interface UseDatabaseQueryOptions extends Partial<FetchDatabaseOptions> {
   /**
@@ -40,6 +41,16 @@ export default function useDatabaseQuery(
   } = useRouter();
 
   const { project } = useProject();
+  const { data: metadata } = useGetMetadata();
+  const defaultDataSource = metadata?.sources?.find(
+    (source) => source.name === 'default',
+  );
+
+  const defaultDataSourceFunctions = new Set(
+    defaultDataSource?.functions?.map(
+      (func) => `${func.function.schema}.${func.function.name}`,
+    ) ?? [],
+  );
 
   const query = useQuery<FetchDatabaseReturnType>(
     queryKey,
@@ -64,6 +75,17 @@ export default function useDatabaseQuery(
         project?.config?.hasura.adminSecret && isReady
           ? queryOptions?.enabled
           : false,
+      select: (data) => ({
+        ...data,
+        // TODO: Check if this is necessary
+        functions: data.functions?.filter(
+          (func) =>
+            func.table_type === 'FUNCTION' &&
+            defaultDataSourceFunctions.has(
+              `${func.table_schema}.${func.table_name}`,
+            ),
+        ),
+      }),
     },
   );
 

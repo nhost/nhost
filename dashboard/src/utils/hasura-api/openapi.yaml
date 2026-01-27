@@ -181,6 +181,19 @@ components:
         configuration:
           description: Configuration for the table/view
           $ref: '#/components/schemas/TableConfig'
+    
+    Function:
+      type: object
+      required:
+        - name
+        - schema
+      properties:
+        name:
+          type: string
+          description: Name of the function
+        schema:
+          type: string
+          description: Schema of the function
 
     TableConfig:
       type: object
@@ -616,6 +629,17 @@ components:
                           items:
                             type: object
                             $ref: '#/components/schemas/EventTrigger'
+                  functions:
+                    type: array
+                    description: List of functions in the data source
+                    items:
+                      type: object
+                      required:
+                        - function
+                      properties:
+                        function:
+                          type: object
+                          $ref: '#/components/schemas/Function'
                 additionalProperties: true
             remote_schemas:
               type: array
