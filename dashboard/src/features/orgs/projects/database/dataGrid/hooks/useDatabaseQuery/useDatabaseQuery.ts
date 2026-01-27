@@ -1,6 +1,7 @@
 import type { QueryKey, UseQueryOptions } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
+import { useGetMetadata } from '@/features/orgs/projects/common/hooks/useGetMetadata';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { getHasuraAdminSecret } from '@/utils/env';
@@ -9,7 +10,6 @@ import type {
   FetchDatabaseReturnType,
 } from './fetchDatabase';
 import fetchDatabase from './fetchDatabase';
-import { useGetMetadata } from '@/features/orgs/projects/common/hooks/useGetMetadata';
 
 export interface UseDatabaseQueryOptions extends Partial<FetchDatabaseOptions> {
   /**
@@ -78,13 +78,13 @@ export default function useDatabaseQuery(
       select: (data) => ({
         ...data,
         // TODO: Check if this is necessary
-        functions: data.functions?.filter(
-          (func) =>
-            func.table_type === 'FUNCTION' &&
-            defaultDataSourceFunctions.has(
-              `${func.table_schema}.${func.table_name}`,
-            ),
-        ),
+        // functions: data.functions?.filter(
+        //   (func) =>
+        //     func.table_type === 'FUNCTION' &&
+        //     defaultDataSourceFunctions.has(
+        //       `${func.table_schema}.${func.table_name}`,
+        //     ),
+        // ),
       }),
     },
   );

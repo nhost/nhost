@@ -20,21 +20,26 @@ export interface DeleteTableMigrationVariables {
    * Table to delete.
    */
   table: string;
+  /**
+   * Type of the table to delete.
+   */
+  type: 'TABLE' | 'VIEW' | 'MATERIALIZED VIEW';
 }
 
 export interface DeleteTableMigration
-  extends Omit<MutationOrQueryBaseOptions, 'schema' | 'table'> {}
+  extends Omit<MutationOrQueryBaseOptions, 'schema' | 'table' | 'type'> {}
 
 export default async function deleteTable({
   dataSource,
   adminSecret,
   schema,
   table,
+  type,
 }: DeleteTableMigration & DeleteTableMigrationVariables) {
   const deleteTableArgs = [
     getPreparedHasuraQuery(
       dataSource,
-      'DROP TABLE IF EXISTS %I.%I',
+      `DROP ${type} IF EXISTS %I.%I`,
       schema,
       table,
     ),

@@ -88,10 +88,12 @@ export default async function fetchDatabase({
               'FUNCTION' as table_type
             FROM pg_proc p
             JOIN pg_namespace n ON p.pronamespace = n.oid
+            JOIN pg_type ON p.prorettype = pg_type.oid
             WHERE n.nspname NOT LIKE 'pg_%'
               AND n.nspname != 'information_schema'
-              AND p.prokind = 'f'
+              AND pg_type.typtype ='c'
               AND p.proretset = true
+              AND p.provolatile IN ('s', 'i')
             ORDER BY p.proname ASC
           ) func_data`,
           '',
@@ -142,9 +144,7 @@ export default async function fetchDatabase({
   ) as NormalizedQueryDataRow[];
 
   // Separate base tables from views based on table_type
-  const tables = allTables.filter(
-    (table) => table.table_type === 'BASE TABLE',
-  );
+  const tables = allTables.filter((table) => table.table_type === 'BASE TABLE');
   const views = allTables.filter((table) => table.table_type === 'VIEW');
 
   return {

@@ -2,10 +2,13 @@ import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
+import fetchFunctionDefinition from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionQuery/fetchFunctionDefinition';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { getHasuraAdminSecret } from '@/utils/env';
-import fetchFunctionDefinition from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionQuery/fetchFunctionDefinition';
-import type { DeleteFunctionOptions, DeleteFunctionVariables } from './deleteFunction';
+import type {
+  DeleteFunctionOptions,
+  DeleteFunctionVariables,
+} from './deleteFunction';
 import deleteFunction from './deleteFunction';
 
 export interface UseDeleteFunctionMutationOptions

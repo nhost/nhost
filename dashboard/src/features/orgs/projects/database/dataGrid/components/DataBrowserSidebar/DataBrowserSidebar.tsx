@@ -32,12 +32,12 @@ import { Spinner } from '@/components/ui/v3/spinner';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { EditTableSettingsForm } from '@/features/orgs/projects/database/dataGrid/components/EditTableSettingsForm';
 import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
+import { useDeleteFunctionWithToastMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteFunctionMutation';
 import { useDeleteTableWithToastMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteTableMutation';
-import { useDeleteFunctionMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteFunctionMutation';
-import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useMetadataQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useMetadataQuery';
 import { isSchemaLocked } from '@/features/orgs/projects/database/dataGrid/utils/schemaHelpers';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { cn, isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import FunctionActions from './FunctionActions';
 import TableActions from './TableActions';
@@ -185,7 +185,7 @@ function DataBrowserSidebarContent({
   }
 
   const { mutateAsync: deleteTable } = useDeleteTableWithToastMutation();
-  const { mutateAsync: deleteFunction } = useDeleteFunctionMutation();
+  const { mutateAsync: deleteFunction } = useDeleteFunctionWithToastMutation();
 
   const [removableTable, setRemovableTable] = useState<string>();
   const [optimisticlyRemovedTable, setOptimisticlyRemovedTable] =
@@ -338,7 +338,14 @@ function DataBrowserSidebarContent({
           ? tablesInSelectedSchema[nextTableIndex]
           : null;
 
-      await deleteTable({ schema, table });
+      await deleteTable({
+        schema,
+        table,
+        type: nextTable?.object_type as
+          | 'BASE TABLE'
+          | 'VIEW'
+          | 'MATERIALIZED VIEW',
+      });
       queryClient.removeQueries([`${dataSourceSlug}.${schema}.${table}`]);
 
       // Note: At this point we can optimisticly assume that the table was
@@ -374,12 +381,32 @@ function DataBrowserSidebarContent({
   }
 
   function handleDeleteTableClick(schema: string, table: string) {
+    const tablePath = `${schema}.${table}`;
+    const object = allObjectsInSelectedSchema.find(
+      ({ table_schema: tableSchema, table_name: tableName }) =>
+        `${tableSchema}.${tableName}` === tablePath,
+    );
+
+    const objectLabel =
+      object?.object_type === 'MATERIALIZED VIEW'
+        ? 'materialized view'
+        : object?.object_type === 'VIEW'
+          ? 'view'
+          : 'table';
+
+    const title =
+      objectLabel === 'materialized view'
+        ? 'Delete Materialized View'
+        : objectLabel === 'view'
+          ? 'Delete View'
+          : 'Delete Table';
+
     openAlertDialog({
-      title: 'Delete Table',
+      title,
       payload: (
         <span>
           Are you sure you want to delete the{' '}
-          <strong className="break-all">{table}</strong> table?
+          <strong className="break-all">{table}</strong> {objectLabel}?
         </span>
       ),
       props: {
@@ -402,10 +429,7 @@ function DataBrowserSidebarContent({
     try {
       let nextFunctionIndex: number | null = null;
 
-      if (
-        isNotEmptyValue(functions) &&
-        functions.length > 1
-      ) {
+      if (isNotEmptyValue(functions) && functions.length > 1) {
         // We go to the next function if available or to the previous one if the
         // current one is the last one in the list
         const currentFunctionIndex = functions.findIndex(
@@ -421,8 +445,7 @@ function DataBrowserSidebarContent({
       }
 
       const nextFunction =
-        isNotEmptyValue(nextFunctionIndex) &&
-        isNotEmptyValue(functions)
+        isNotEmptyValue(nextFunctionIndex) && isNotEmptyValue(functions)
           ? functions[nextFunctionIndex]
           : null;
 
