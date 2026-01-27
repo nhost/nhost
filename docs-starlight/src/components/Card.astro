@@ -73,6 +73,7 @@ const displayIcon = icon ? iconMap[icon] || '📄' : '';
     padding: 1rem;
     background: var(--sl-color-bg-nav);
     transition: border-color 0.2s, box-shadow 0.2s;
+    height: 100%;
   }
 
   .sl-card:hover {
@@ -84,12 +85,14 @@ const displayIcon = icon ? iconMap[icon] || '📄' : '';
     text-decoration: none;
     color: inherit;
     display: block;
+    height: 100%;
   }
 
   .sl-card-content {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    height: 100%;
   }
 
   .sl-card-icon {
@@ -108,5 +111,6 @@ const displayIcon = icon ? iconMap[icon] || '📄' : '';
     font-size: 0.875rem;
     color: var(--sl-color-gray-2);
     line-height: 1.5;
+    flex-grow: 1;
   }
 </style>

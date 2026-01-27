@@ -10,12 +10,16 @@ const { cols = 2 } = Astro.props;
   <slot />
 </div>
 
-<style>
+<style is:global>
   .sl-card-group {
     display: grid;
     grid-template-columns: repeat(var(--cols, 2), 1fr);
     gap: 1rem;
     margin: 1.5rem 0;
+  }
+
+  .sl-card-group > * {
+    margin-top: 0;
   }
 
   @media (max-width: 768px) {

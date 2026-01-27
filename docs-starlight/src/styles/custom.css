@@ -87,6 +87,7 @@ html:not([class~="dark"]) .welcome-get-started {
   background-color: rgb(23, 29, 38);
   margin-left: calc(-50vw + 50%);
   margin-right: calc(-50vw + 50%);
+  margin-top: -1.5rem;
   padding: 3rem calc(50vw - 50%);
   margin-bottom: 2rem;
 }
