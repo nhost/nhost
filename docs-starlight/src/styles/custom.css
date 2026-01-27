@@ -8,6 +8,11 @@
   padding-bottom: 2rem;
   margin-bottom: 6rem;
   background-color: var(--custom-background);
+  /* Extend full width */
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
+  padding-left: 1rem;
+  padding-right: 1rem;
 }
 
 /* dark mode */
