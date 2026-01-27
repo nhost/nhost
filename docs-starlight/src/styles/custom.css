@@ -88,8 +88,8 @@ html:not([class~="dark"]) .welcome-get-started {
   margin-left: calc(-50vw + 50%);
   margin-right: calc(-50vw + 50%);
   margin-top: -1.5rem;
-  padding: 3rem calc(50vw - 50%);
-  margin-bottom: 2rem;
+  padding: 6rem calc(50vw - 50%);
+  margin-bottom: 6rem;
 }
 
 @media (min-width: 50rem) {
