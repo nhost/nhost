@@ -35,7 +35,9 @@ export default function DeleteCronTriggerDialog({
           cronTriggerName: cronTriggerToDelete,
         });
         if (cronTriggerSlug === cronTriggerToDelete) {
-          router.push(`/orgs/${orgSlug}/projects/${appSubdomain}/events`);
+          router.push(
+            `/orgs/${orgSlug}/projects/${appSubdomain}/events/cron-triggers`,
+          );
         }
       },
       {
