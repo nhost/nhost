@@ -1,3 +1,4 @@
+import { DialogDescription } from '@radix-ui/react-dialog';
 import { useState } from 'react';
 import { Container } from '@/components/layout/Container';
 import { Button } from '@/components/ui/v2/Button';
@@ -10,7 +11,6 @@ import { StagingMetadata } from '@/features/orgs/projects/common/components/Stag
 import { useIsCurrentUserOwner } from '@/features/orgs/projects/common/hooks/useIsCurrentUserOwner';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { DialogDescription } from '@radix-ui/react-dialog';
 
 export default function ApplicationPaused() {
   const { org } = useCurrentOrg();
