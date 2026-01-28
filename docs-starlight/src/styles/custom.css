@@ -252,6 +252,15 @@ html:not([class~="dark"]) .welcome-get-started {
   color: var(--sl-color-text-accent) !important;
 }
 
+/* Smaller pagination (Next/Previous) links */
+.pagination-links a {
+  font-size: 0.875rem;
+}
+
+.pagination-links .link-title {
+  font-size: 0.8125rem;
+}
+
 /* Consistent border color for left sidebar */
 .sidebar-pane {
   border-inline-end-color: var(--sl-color-hairline-light) !important;
