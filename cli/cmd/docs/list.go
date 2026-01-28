@@ -43,9 +43,18 @@ func commandList(_ context.Context, cmd *cli.Command) error {
 }
 
 func listFlat(ce *clienv.CliEnv, config *docssearch.Config) error {
-	paths := docssearch.GetAllPagePaths(config)
-	for _, path := range paths {
-		ce.Println("%s", path)
+	pages := docssearch.GetAllPagesWithInfo(config)
+	for _, page := range pages {
+		title := page.Title
+		if title == "" {
+			title = page.Path
+		}
+
+		if page.Description != "" {
+			ce.Println("[%s](%s) - %s", page.Path, title, page.Description)
+		} else {
+			ce.Println("[%s](%s)", page.Path, title)
+		}
 	}
 
 	return nil
@@ -76,37 +85,50 @@ func listGrouped(ce *clienv.CliEnv, config *docssearch.Config) error {
 }
 
 func printPagesGrouped(ce *clienv.CliEnv, pages []any, indent int) {
-	indentStr := ""
-
-	var indentStrSb76 strings.Builder
-	for range indent {
-		indentStrSb76.WriteString(" ")
-	}
-
-	indentStr += indentStrSb76.String()
+	indentStr := strings.Repeat(" ", indent)
 
 	for _, page := range pages {
 		switch v := page.(type) {
 		case string:
-			// Skip deprecated pages
-			if docssearch.IsDeprecatedPath(v) {
-				continue
-			}
-
-			ce.Println("%s  %s", indentStr, v)
+			printSinglePageGrouped(ce, v, indentStr)
 		case map[string]any:
-			if groupName, ok := v["group"].(string); ok {
-				// Skip deprecated groups
-				if strings.Contains(strings.ToLower(groupName), "deprecated") {
-					continue
-				}
-
-				ce.Println("%s  [%s]", indentStr, groupName)
-
-				if groupPages, ok := v["pages"].([]any); ok {
-					printPagesGrouped(ce, groupPages, indent+2) //nolint:mnd
-				}
-			}
+			printGroupGrouped(ce, v, indentStr, indent)
 		}
+	}
+}
+
+func printSinglePageGrouped(ce *clienv.CliEnv, path, indentStr string) {
+	if docssearch.IsDeprecatedPath(path) {
+		return
+	}
+
+	info := docssearch.GetPageInfo(path)
+	title := info.Title
+
+	if title == "" {
+		title = path
+	}
+
+	if info.Description != "" {
+		ce.Println("%s  [%s](%s) - %s", indentStr, path, title, info.Description)
+	} else {
+		ce.Println("%s  [%s](%s)", indentStr, path, title)
+	}
+}
+
+func printGroupGrouped(ce *clienv.CliEnv, v map[string]any, indentStr string, indent int) {
+	groupName, ok := v["group"].(string)
+	if !ok {
+		return
+	}
+
+	if strings.Contains(strings.ToLower(groupName), "deprecated") {
+		return
+	}
+
+	ce.Println("%s  [%s]", indentStr, groupName)
+
+	if groupPages, ok := v["pages"].([]any); ok {
+		printPagesGrouped(ce, groupPages, indent+2) //nolint:mnd
 	}
 }

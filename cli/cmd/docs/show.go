@@ -40,15 +40,16 @@ func commandShow(_ context.Context, cmd *cli.Command) error {
 	pagePath := cmd.StringArgs("page")[0]
 	showRaw := cmd.Bool(flagRaw)
 
-	content, err := docssearch.ReadPage(pagePath)
+	content, err := docssearch.ReadPageBytes(pagePath)
 	if err != nil {
 		return fmt.Errorf("%w\nTry running 'nhost docs list' to see available pages", err)
 	}
 
 	if showRaw {
-		ce.Println("%s", content)
+		ce.Println("%s", string(content))
 	} else {
-		ce.Println("%s", docssearch.StripFrontmatter(content))
+		_, body := docssearch.ParseFrontmatter(content)
+		ce.Println("%s", body)
 	}
 
 	return nil

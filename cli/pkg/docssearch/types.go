@@ -46,6 +46,13 @@ type DocPage struct {
 	Content  string `json:"content"`
 }
 
+// Frontmatter represents the YAML frontmatter of a documentation page.
+type Frontmatter struct {
+	Title       string   `yaml:"title"`
+	Description string   `yaml:"description"`
+	Keywords    []string `yaml:"keywords"`
+}
+
 // SearchResult represents a single search result.
 type SearchResult struct {
 	Path      string   `json:"path"`

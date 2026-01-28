@@ -1,9 +1,21 @@
 ---
 import type { Props } from '@astrojs/starlight/props';
 import Default from '@astrojs/starlight/components/Head.astro';
+
+// Keywords for SEO: Renders <meta name="keywords"> in <head> for external search engines (Google, etc.)
+// Note: This is NOT searchable by Pagefind since <head> is outside <main data-pagefind-body>.
+// For Pagefind site search, see PageTitle.astro which renders keywords inside the content area.
+const propsEntry = Astro.props.entry;
+const localsEntry = Astro.locals.starlightRoute?.entry;
+const entry = propsEntry || localsEntry;
+const keywords = entry?.data?.keywords as string[] | undefined;
 ---
 
 <Default {...Astro.props}><slot /></Default>
+{/* SEO meta tag for external search engines */}
+{keywords && keywords.length > 0 && (
+  <meta name="keywords" content={keywords.join(', ')} />
+)}
 
 <script type="module">
     import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';

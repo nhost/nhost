@@ -11,6 +11,8 @@ import (
 	"github.com/blevesearch/bleve/v2/mapping"
 	"github.com/blevesearch/bleve/v2/search/highlight/format/html"
 	"github.com/blevesearch/bleve/v2/search/query"
+
+	"github.com/nhost/nhost/cli/pkg/frontmatter"
 	docsembed "github.com/nhost/nhost/docs"
 )
 
@@ -112,16 +114,13 @@ func buildSearchIndex() (bleve.Index, error) { //nolint:ireturn
 			return nil //nolint:nilerr // Skip files we can't read
 		}
 
-		content := string(data)
-		title := ExtractTitle(content)
-		keywords := ExtractKeywords(content)
-		cleanContent := StripFrontmatter(content)
+		fm, body := ParseFrontmatter(data)
 
 		doc := DocPage{
 			Path:     "/" + strings.TrimSuffix(strings.TrimSuffix(path, ".mdx"), ".md"),
-			Title:    title,
-			Keywords: keywords,
-			Content:  cleanContent,
+			Title:    fm.Title,
+			Keywords: strings.Join(fm.Keywords, " "),
+			Content:  body,
 		}
 
 		if indexErr := index.Index(path, doc); indexErr != nil {
@@ -222,51 +221,16 @@ func getFieldString(fields map[string]any, key string) string {
 	return ""
 }
 
-// ExtractTitle extracts the title from frontmatter.
-func ExtractTitle(content string) string {
-	titleRegex := regexp.MustCompile(`(?m)^title:\s*["']?([^"'\n]+)["']?\s*$`)
-	matches := titleRegex.FindStringSubmatch(content)
+// ParseFrontmatter parses the frontmatter from content and returns it along with the body.
+func ParseFrontmatter(content []byte) (Frontmatter, string) {
+	var fm Frontmatter
 
-	if len(matches) > 1 {
-		return strings.TrimSpace(matches[1])
+	body, err := frontmatter.Parse(content, &fm)
+	if err != nil {
+		return fm, string(content)
 	}
 
-	return ""
-}
-
-// ExtractKeywords extracts keywords from frontmatter.
-func ExtractKeywords(content string) string {
-	// Match keywords array in frontmatter: keywords: ["word1", "word2"] or keywords: [word1, word2]
-	keywordsRegex := regexp.MustCompile(`(?m)^keywords:\s*\[([^\]]+)\]`)
-	matches := keywordsRegex.FindStringSubmatch(content)
-
-	if len(matches) > 1 {
-		// Clean up the keywords: remove quotes, trim spaces
-		raw := matches[1]
-		raw = strings.ReplaceAll(raw, "\"", "")
-		raw = strings.ReplaceAll(raw, "'", "")
-
-		// Split by comma and rejoin with spaces for better indexing
-		parts := strings.Split(raw, ",")
-
-		var keywords []string
-		for _, p := range parts {
-			trimmed := strings.TrimSpace(p)
-			if trimmed != "" {
-				keywords = append(keywords, trimmed)
-			}
-		}
-
-		return strings.Join(keywords, " ")
-	}
-
-	return ""
-}
-
-// StripFrontmatter removes YAML frontmatter from content.
-func StripFrontmatter(content string) string {
-	frontmatterRegex := regexp.MustCompile(`(?s)^---\n.*?\n---\n*`)
-	return frontmatterRegex.ReplaceAllString(content, "")
+	return fm, string(body)
 }
 
 // CleanupFragment cleans up a search result fragment for display.

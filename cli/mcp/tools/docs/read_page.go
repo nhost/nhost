@@ -56,14 +56,12 @@ func (t *Tool) handleReadPage(
 		return mcp.NewToolResultError("path is required"), nil
 	}
 
-	content, err := docssearch.ReadPage(args.Path)
+	content, err := docssearch.ReadPageBytes(args.Path)
 	if err != nil {
 		return mcp.NewToolResultErrorFromErr("failed to read page", err), nil
 	}
 
-	// Strip frontmatter for cleaner output
-	cleanContent := docssearch.StripFrontmatter(content)
-	title := docssearch.ExtractTitle(content)
+	fm, body := docssearch.ParseFrontmatter(content)
 
 	// Normalize path for URL
 	path := args.Path
@@ -74,8 +72,8 @@ func (t *Tool) handleReadPage(
 	response := ReadPageResponse{
 		Path:    path,
 		URL:     "https://docs.nhost.io" + path,
-		Title:   title,
-		Content: cleanContent,
+		Title:   fm.Title,
+		Content: body,
 	}
 
 	return mcp.NewToolResultStructured(response, formatReadPageText(response)), nil
