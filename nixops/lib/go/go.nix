@@ -149,7 +149,11 @@ in
 
       subPackages = [ submodule ];
 
-      nativeBuildInputs = nativeBuildInputs ++ [ pkgs.removeReferencesTo ];
+      nativeBuildInputs = nativeBuildInputs ++ [
+        pkgs.removeReferencesTo
+        pkgs.rcodesign
+        pkgs.file
+      ];
 
       postInstall = postInstall;
 
@@ -171,6 +175,13 @@ in
 
       postFixup = (old.postFixup or "") + ''
         find $out/bin -type f -exec remove-references-to -t ${pkgs.go} {} +
+
+        # Re-sign darwin (Mach-O) binaries after modification to fix invalid signatures
+        for f in $out/bin/*; do
+          if file "$f" | grep -q "Mach-O"; then
+            rcodesign sign "$f"
+          fi
+        done
       '';
     });
 
