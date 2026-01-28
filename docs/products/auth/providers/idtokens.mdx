@@ -14,7 +14,11 @@ ID tokens serve as a secure proof that a user has already been authenticated by 
 ## Usage
 
 <Note>
-To use ID tokens, you need to configure supported identity providers (currently [apple](/products/auth/providers/sign-in-apple) and [google](/products/auth/providers/sign-in-google)) and make sure the `audience` is set correctly.
+To use ID tokens, you need to:
+1. Configure supported identity providers (currently [apple](/products/auth/providers/sign-in-apple) and [google](/products/auth/providers/sign-in-google))
+2. Set the `audience` field in the provider configuration to match the audience claim in the ID token
+
+Multiple audiences are supported—simply enter them separated by commas.
 </Note>
 
 ### Sign in

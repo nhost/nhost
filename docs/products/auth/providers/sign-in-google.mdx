@@ -64,6 +64,10 @@ icon: google
 - Click the checkbox “**I have pasted the redirect URI into Google”**.
 - Click **Confirm settings**.
 
+## Configure Audience (Optional)
+
+To enable sign-in with [ID tokens](/products/auth/providers/idtokens) (for native authentication on mobile and supported devices), set the `audience` field in your Google provider configuration to match the audience claim in the ID token. Multiple audiences can be specified by separating them with commas.
+
 ## Sign In Users
 
 Once you've configured Google as an OAuth provider in Nhost, you can sign in users using the Google provider. See the [OAuth Provider Sign-In Guide](/products/auth/providers/sign-in-provider) for detailed implementation instructions including the complete OAuth flow, error handling, and session management.

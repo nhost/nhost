@@ -84,6 +84,10 @@ icon: apple
 - Click **Download** to download the key to your computer.
 - **Private Key**: Copy and paste the content of the downloaded key to your Nhost OAuth settings for Apple.
 
+## Configure Audience (Optional)
+
+To enable sign-in with [ID tokens](/products/auth/providers/idtokens) (for native authentication on mobile and supported devices), set the `audience` field in your Apple provider configuration to match the audience claim in the ID token. Multiple audiences can be specified by separating them with commas.
+
 ## Sign In Users
 
 Once you've configured Apple as an OAuth provider in Nhost, you can sign in users using the Apple provider. See the [OAuth Provider Sign-In Guide](/products/auth/providers/sign-in-provider) for detailed implementation instructions including the complete OAuth flow, error handling, and session management.
