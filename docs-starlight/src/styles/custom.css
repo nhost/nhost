@@ -205,7 +205,7 @@ html:not([class~="dark"]) .welcome-get-started {
 
 .sidebar-content ul.top-level > li > details > summary:hover .large,
 .sidebar-content ul.top-level > li > a.large:hover {
-  color: var(--sl-color-white) !important;
+  color: var(--sl-color-text) !important;
 }
 
 /* Use text accent for selected sidebar item (like subheader) */
@@ -232,7 +232,19 @@ html:not([class~="dark"]) .welcome-get-started {
 .sidebar-content ul:not(.top-level) li details > summary:hover,
 .sidebar-content ul:not(.top-level) li details > summary:hover .group-label,
 .sidebar-content ul:not(.top-level) li details > summary:hover .group-label .large {
-  color: var(--sl-color-white) !important;
+  color: var(--sl-color-text) !important;
+}
+
+/* Override Starlight's default white hover color for all sidebar links */
+.sidebar-content a:hover,
+.sidebar-content a:focus {
+  color: var(--sl-color-text-accent) !important;
+}
+
+/* Right sidebar (table of contents) hover */
+.right-sidebar-panel a:hover,
+.right-sidebar-panel a:focus {
+  color: var(--sl-color-text-accent) !important;
 }
 
 /* Keep the caret smaller and aligned */
@@ -275,7 +287,7 @@ html:not([class~="dark"]) .welcome-get-started {
 /* Subheader spacing - add margin to content below the subheader */
 /* Hero background - full width */
 .hero {
-  background-color: #080808;
+  background-color: var(--sl-color-bg);
   margin-left: calc(-50vw + 50%);
   margin-right: calc(-50vw + 50%);
   margin-top: -1.5rem;
@@ -294,8 +306,25 @@ html:not([class~="dark"]) .welcome-get-started {
   align-items: center !important;
 }
 
+.hero .copy h1 {
+  color: var(--sl-color-text) !important;
+}
+
+.hero .copy .tagline {
+  color: var(--sl-color-gray-2) !important;
+}
+
 .hero .actions {
   justify-content: center !important;
+}
+
+.hero .actions a.sl-link-button:not(.primary) {
+  color: var(--sl-color-text) !important;
+}
+
+/* Page titles - theme aware */
+h1#_top {
+  color: var(--sl-color-text) !important;
 }
 
 /* Center the search in the header - consistent across all page types */
