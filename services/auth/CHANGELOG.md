@@ -1,3 +1,9 @@
+## [auth@0.46.0] - 2026-01-28
+
+### 🚀 Features
+
+- *(nixops)* Update nixpkgs (#3808)
+
 ## [auth@0.45.0] - 2026-01-13
 
 ### 🚀 Features
