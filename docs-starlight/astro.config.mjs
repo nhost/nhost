@@ -38,6 +38,7 @@ export default defineConfig({
             components: {
                 Header: './src/components/Header.astro',
                 Head: './src/components/Head.astro',
+                PageTitle: './src/components/PageTitle.astro',
             },
             plugins: [
                 starlightOpenAPI([

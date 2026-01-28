@@ -306,6 +306,29 @@ config validate after making changes to your nhost.toml file to ensure it is val
 					},
 				},
 				{
+					Name:        "read_page",
+					Description: docs.ToolReadPageInstructions,
+					InputSchema: mcp.ToolInputSchema{
+						Type: "object",
+						Properties: map[string]any{
+							"path": map[string]any{
+								"description": string(
+									"The documentation page path (e.g., /products/auth/overview or products/auth/overview)",
+								),
+								"type": string("string"),
+							},
+						},
+						Required: []string{"path"},
+					},
+					Annotations: mcp.ToolAnnotation{
+						Title:           "Read Nhost Documentation Page",
+						ReadOnlyHint:    ptr(true),
+						IdempotentHint:  ptr(true),
+						DestructiveHint: ptr(false),
+						OpenWorldHint:   ptr(true),
+					},
+				},
+				{
 					Name:        "search",
 					Description: docs.ToolSearchInstructions,
 					InputSchema: mcp.ToolInputSchema{
@@ -314,6 +337,12 @@ config validate after making changes to your nhost.toml file to ensure it is val
 							"query": map[string]any{
 								"description": string("The search query"),
 								"type":        string("string"),
+							},
+							"limit": map[string]any{
+								"description": string(
+									"Maximum number of results to return (default: 10)",
+								),
+								"type": string("number"),
 							},
 						},
 						Required: []string{"query"},
