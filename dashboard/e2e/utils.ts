@@ -411,7 +411,6 @@ export async function openRelationshipDialog({
   page: Page;
   tableName: string;
 }) {
-  // Press three horizontal dots more options button next to the table name
   await page
     .locator(`li:has-text("${tableName}") #table-management-menu-${tableName}`)
     .click();
@@ -457,16 +456,13 @@ export async function createRelationship({
   referenceSource?: string;
   referenceSchema?: string;
 }) {
-  // Fill relationship name
   await page.getByLabel(/relationship name/i).fill(relationshipName);
 
-  // Select relationship type
   await page.getByLabel(/relationship type/i).click();
   const relationshipTypeOption =
     type === 'object' ? /object relationship/i : /array relationship/i;
   await page.getByRole('option', { name: relationshipTypeOption }).click();
 
-  // Configure source/reference - select target table using data-testid
   await page.getByTestId('toReferenceSourceSelect').click();
   const sourceOption = page.getByRole('option', {
     name: referenceSource,
@@ -479,33 +475,26 @@ export async function createRelationship({
   await page.getByTestId('toReferenceTableCombobox').click();
   await page.getByRole('option', { name: referenceTable, exact: true }).click();
 
-  // Wait for field mapping to be available
   await page.waitForTimeout(1000);
 
-  // Add new mapping
   await page.getByRole('button', { name: /add new mapping/i }).click();
 
-  // Map columns
   await page.getByTestId('fieldMapping.0.sourceColumn').click();
   await page.getByRole('option', { name: sourceColumn }).click();
 
   await page.getByTestId('fieldMapping.0.referenceColumn').click();
   await page.getByRole('option', { name: referenceColumn }).click();
 
-  // Submit
   await page.getByRole('button', { name: /create relationship/i }).click();
 
-  // Verify success toast appears
   await page.waitForSelector(
     'div:has-text("Relationship created successfully.")',
   );
 
-  // Wait for the dialog to close
   await expect(
     page.getByRole('heading', { name: /create relationship/i }),
   ).not.toBeVisible();
 
-  // Verify relationship appears in the relationships list
   await expect(page.getByText(relationshipName, { exact: true })).toBeVisible();
 }
 
@@ -531,14 +520,12 @@ export async function deleteRelationship({
 
   await page.getByRole('button', { name: /^delete$/i }).click();
 
-  // Verify deletion success
   await page.waitForSelector(
     'div:has-text("Relationship deleted successfully.")',
   );
 
   await page.waitForTimeout(1000);
 
-  // Verify relationship is removed from the relationships list
   await expect(
     page.getByText(relationshipName, { exact: true }),
   ).not.toBeVisible();

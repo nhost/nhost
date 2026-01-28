@@ -22,7 +22,6 @@ test.beforeEach(async ({ authenticatedNhostPage: page }) => {
 test('should create and delete an object relationship from scratch', async ({
   authenticatedNhostPage: page,
 }) => {
-  // Create reference table (authors)
   const authorTableName = snakeCase(`e2e ${faker.lorem.words(2)}`);
   await page.getByRole('button', { name: /new table/i }).click();
   await expect(page.getByText(/create a new table/i)).toBeVisible();
@@ -40,7 +39,6 @@ test('should create and delete an object relationship from scratch', async ({
     `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/${authorTableName}`,
   );
 
-  // Create main table (books) with foreign key column
   const bookTableName = snakeCase(`e2e ${faker.lorem.words(2)}`);
   await page.getByRole('button', { name: /new table/i }).click();
   await expect(page.getByText(/create a new table/i)).toBeVisible();
@@ -61,7 +59,6 @@ test('should create and delete an object relationship from scratch', async ({
     `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/${bookTableName}`,
   );
 
-  // Create object relationship
   const relationshipName = `object_rel_${faker.lorem.word()}`;
 
   await openRelationshipDialog({ page, tableName: bookTableName });
@@ -75,14 +72,12 @@ test('should create and delete an object relationship from scratch', async ({
     referenceColumn: 'id',
   });
 
-  // Delete the relationship
   await deleteRelationship({ page, relationshipName });
 });
 
 test('should create and delete an array relationship from scratch', async ({
   authenticatedNhostPage: page,
 }) => {
-  // Create main table (authors)
   const authorTableName = snakeCase(`e2e ${faker.lorem.words(2)}`);
   await page.getByRole('button', { name: /new table/i }).click();
   await expect(page.getByText(/create a new table/i)).toBeVisible();
@@ -100,7 +95,6 @@ test('should create and delete an array relationship from scratch', async ({
     `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/${authorTableName}`,
   );
 
-  // Create related table (books) with foreign key
   const bookTableName = snakeCase(`e2e ${faker.lorem.words(2)}`);
   await page.getByRole('button', { name: /new table/i }).click();
   await expect(page.getByText(/create a new table/i)).toBeVisible();
@@ -121,7 +115,6 @@ test('should create and delete an array relationship from scratch', async ({
     `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/${bookTableName}`,
   );
 
-  // Navigate back to author table to create array relationship
   await page.goto(
     `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/${authorTableName}`,
   );
@@ -129,7 +122,6 @@ test('should create and delete an array relationship from scratch', async ({
     `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/${authorTableName}`,
   );
 
-  // Create array relationship
   const relationshipName = `array_rel_${faker.lorem.word()}`;
 
   await openRelationshipDialog({ page, tableName: authorTableName });
@@ -143,14 +135,12 @@ test('should create and delete an array relationship from scratch', async ({
     referenceColumn: 'author_id',
   });
 
-  // Delete the relationship
   await deleteRelationship({ page, relationshipName });
 });
 
 test('should create and delete a remote schema relationship', async ({
   authenticatedNhostPage: page,
 }) => {
-  // Setup: Create a remote schema first
   const remoteSchemasRoute = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/graphql/remote-schemas`;
   await page.goto(remoteSchemasRoute);
   await page.waitForURL(remoteSchemasRoute);
@@ -175,7 +165,6 @@ test('should create and delete a remote schema relationship', async ({
   const detailsUrl = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/graphql/remote-schemas/${schemaName}`;
   await page.waitForURL(detailsUrl);
 
-  // Create a local table
   const databaseRoute = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default`;
   await page.goto(databaseRoute);
   await page.waitForURL(databaseRoute);
@@ -200,12 +189,10 @@ test('should create and delete a remote schema relationship', async ({
     `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/${userTableName}`,
   );
 
-  // Create remote schema relationship
   const relationshipName = `remote_rel_${faker.lorem.word()}`;
 
   await openRelationshipDialog({ page, tableName: userTableName });
 
-  // Fill relationship name
   await page.getByLabel(/relationship name/i).fill(relationshipName);
 
   await page.getByTestId('toReferenceSourceSelect').click();
@@ -218,13 +205,10 @@ test('should create and delete a remote schema relationship', async ({
     .locator('button[role="checkbox"][id^="root-query-"]')
     .first();
 
-  // Wait for the checkbox to be visible and clickable
   await expect(firstQueryCheckbox).toBeVisible({ timeout: 5000 });
   await firstQueryCheckbox.click();
   await page.waitForTimeout(500);
 
-  // Map LHS fields - these map table columns to remote schema arguments
-  // Look for LHS field selectors
   const lhsFieldLabels = page
     .locator('label')
     .filter({ hasText: /lhs field/i });
@@ -245,26 +229,20 @@ test('should create and delete a remote schema relationship', async ({
     }
   }
 
-  // Submit
   await page.getByRole('button', { name: /create relationship/i }).click();
 
-  // Verify success toast appears
   await page.waitForSelector(
     'div:has-text("Relationship created successfully.")',
   );
 
-  // Wait for the dialog to close
   await expect(
     page.getByRole('heading', { name: /create relationship/i }),
   ).not.toBeVisible();
 
-  // Verify relationship appears in the relationships list
   await expect(page.getByText(relationshipName, { exact: true })).toBeVisible();
 
-  // Delete the relationship (remote relationship)
   await deleteRelationship({ page, relationshipName });
 
-  // Cleanup: Delete the remote schema
   await page.goto(remoteSchemasRoute);
   await page.waitForURL(remoteSchemasRoute);
 
