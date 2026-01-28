@@ -46,6 +46,7 @@ const currentSection = navLinks.find(link => {
         display: none;
         width: 100%;
         flex: 0 0 100%;
+        height: var(--custom-subheader-height);
         align-items: stretch;
         justify-content: space-between;
         padding: 0 var(--sl-nav-pad-x) 0 calc(var(--sl-nav-pad-x) - 2rem);
@@ -68,7 +69,7 @@ const currentSection = navLinks.find(link => {
     .subheader-link {
         display: flex;
         align-items: center;
-        padding: 0.5rem 0;
+        padding: 0;
         font-weight: 500;
         font-size: 0.875rem;
         text-decoration: none;
@@ -213,7 +214,8 @@ const currentSection = navLinks.find(link => {
         align-items: center;
         justify-content: space-between;
         width: 100%;
-        padding: 0.75rem 1rem;
+        height: var(--custom-mobile-nav-height);
+        padding: 0 1rem;
         background: var(--sl-color-bg);
         border: none;
         border-bottom: 1px solid var(--sl-color-hairline-light);
@@ -239,7 +241,7 @@ const currentSection = navLinks.find(link => {
 
     .mobile-nav-content {
         padding: 0.5rem 0;
-        margin-top: calc(var(--sl-nav-height) + 44px);
+        margin-top: calc(var(--sl-nav-height) + var(--custom-mobile-nav-height));
     }
 
     .mobile-nav-section {
@@ -280,10 +282,16 @@ const currentSection = navLinks.find(link => {
         margin-top: 0.5rem;
     }
 
-    /* Push content down on mobile when nav is present */
-    @media (max-width: 49.99rem) {
-        .main-frame {
-            padding-top: 44px !important;
+    /* Solid header on mobile, transparent on tablet+ */
+    header.header {
+        background-color: var(--sl-color-bg) !important;
+        border-bottom: 1px solid var(--sl-color-hairline-light) !important;
+    }
+
+    @media (min-width: 50rem) {
+        header.header {
+            background-color: var(--sl-color-bg) !important;
+            border-bottom: 1px solid var(--sl-color-hairline-light) !important;
         }
     }
 
@@ -294,25 +302,17 @@ const currentSection = navLinks.find(link => {
             display: none !important;
         }
 
-        /* Make header wrap */
+        /* Make header wrap for subheader */
         header.header {
             flex-wrap: wrap !important;
             height: auto !important;
-            border-bottom: none !important;
             padding-bottom: 0 !important;
-            background-color: rgba(8, 8, 8, 0.6) !important;
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-        }
-
-        /* Light mode */
-        [data-theme='light'] header.header {
-            background-color: rgba(255, 255, 255, 0.6) !important;
         }
 
         .subheader-nav.visible {
             display: flex;
             background: transparent;
+            border-top: none;
         }
     }
 </style>

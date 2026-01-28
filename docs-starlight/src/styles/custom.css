@@ -13,6 +13,11 @@
 
 /* Dark mode (default) */
 :root {
+  /* Custom mobile nav toggle height */
+  --custom-mobile-nav-height: 2.75rem;
+  /* Subheader height (visible at 50rem+) */
+  --custom-subheader-height: 2.5rem;
+
   /* Brand accent */
   --sl-color-accent-low: #00398e;
   --sl-color-accent: #0066ff;
@@ -298,3 +303,80 @@ html:not([class~="dark"]) .welcome-get-started {
   }
 }
 
+/* Mobile layout fixes - account for custom mobile nav toggle */
+@media (max-width: 49.99rem) {
+  /* Push mobile TOC below the custom mobile nav toggle */
+  mobile-starlight-toc nav {
+    top: calc(var(--sl-nav-height) + var(--custom-mobile-nav-height)) !important;
+  }
+
+  /* Main content needs padding for: nav + custom toggle + mobile TOC */
+  .main-frame {
+    padding-top: calc(var(--sl-nav-height) + var(--custom-mobile-nav-height) + var(--sl-mobile-toc-height)) !important;
+  }
+
+  /* Scroll padding for anchor links */
+  html {
+    scroll-padding-top: calc(1.5rem + var(--sl-nav-height) + var(--custom-mobile-nav-height) + var(--sl-mobile-toc-height)) !important;
+  }
+}
+
+/* Tablet layout fixes (50-72rem) - subheader visible, mobile TOC still shown */
+@media (min-width: 50rem) and (max-width: 71.99rem) {
+  /* Reset all the 50rem+ margins/padding that were designed for desktop */
+  .sidebar-pane {
+    margin-top: 0 !important;
+  }
+
+  .sidebar-pane .sidebar-content {
+    padding-top: 0 !important;
+  }
+
+  .main-frame {
+    margin-top: 0 !important;
+    padding-top: calc(var(--sl-nav-height) + var(--custom-subheader-height) + var(--sl-mobile-toc-height)) !important;
+  }
+
+  .right-sidebar {
+    margin-top: 0 !important;
+  }
+
+  /* Scroll padding for anchor links */
+  html {
+    scroll-padding-top: calc(1.5rem + var(--sl-nav-height) + var(--custom-subheader-height) + var(--sl-mobile-toc-height)) !important;
+  }
+}
+
+/* Mobile TOC - solid background, no borders */
+mobile-starlight-toc nav {
+  background-color: var(--sl-color-bg-nav) !important;
+  border: none !important;
+}
+
+mobile-starlight-toc .dropdown {
+  background-color: var(--sl-color-bg) !important;
+}
+
+mobile-starlight-toc .toggle {
+  background-color: var(--sl-color-bg) !important;
+  border: none !important;
+}
+
+/* Mobile TOC on tablet (50-72rem) */
+@media (min-width: 50rem) and (max-width: 71.99rem) {
+  mobile-starlight-toc nav {
+    /* Position flush with header - header has padding-bottom:0 so subtract original padding */
+    top: calc(var(--sl-nav-height) + var(--custom-subheader-height) - 0.75rem) !important;
+    background-color: var(--sl-color-bg) !important;
+    border: none !important;
+  }
+
+  mobile-starlight-toc .dropdown {
+    background-color: var(--sl-color-bg) !important;
+  }
+
+  mobile-starlight-toc .toggle {
+    background-color: transparent !important;
+    border: none !important;
+  }
+}
