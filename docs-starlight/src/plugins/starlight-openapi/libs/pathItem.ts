@@ -19,7 +19,15 @@ export function getPathItemSidebarGroups(
       : [...operations.entries()]
 
   // Flatten all operations into a single list (no tag grouping)
-  const allOperations = tags.flatMap(([, operations]) => operations.entries)
+  // Deduplicate by slug since operations with multiple tags appear in multiple groups
+  const seenSlugs = new Set<string>()
+  const allOperations = tags.flatMap(([, operations]) => operations.entries).filter((op) => {
+    if (seenSlugs.has(op.slug)) {
+      return false
+    }
+    seenSlugs.add(op.slug)
+    return true
+  })
 
   const sortedOperations =
     config.sidebar.operations.sort === 'alphabetical'
