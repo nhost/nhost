@@ -247,6 +247,11 @@ html:not([class~="dark"]) .welcome-get-started {
   color: var(--sl-color-text-accent) !important;
 }
 
+/* Consistent border color for left sidebar */
+.sidebar-pane {
+  border-inline-end-color: var(--sl-color-hairline-light) !important;
+}
+
 /* Keep the caret smaller and aligned */
 .sidebar-content ul:not(.top-level) li details > summary .caret {
   width: 1rem;
