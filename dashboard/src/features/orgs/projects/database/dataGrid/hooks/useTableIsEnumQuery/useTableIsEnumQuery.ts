@@ -36,9 +36,9 @@ export default function useTableIsEnumQuery({
 }: UseTableIsEnumQueryOptions) {
   const { project, loading } = useProject();
 
-  const query = useQuery<ExportMetadataResponse, unknown, boolean>(
-    ['export-metadata', project?.subdomain],
-    () => {
+  const query = useQuery<ExportMetadataResponse, unknown, boolean>({
+    queryKey: ['export-metadata', project?.subdomain],
+    queryFn: () => {
       const appUrl = generateAppServiceUrl(
         project!.subdomain,
         project!.region,
@@ -49,36 +49,33 @@ export default function useTableIsEnumQuery({
 
       return fetchExportMetadata({ appUrl, adminSecret });
     },
-    {
-      ...queryOptions,
-      enabled: !!(
-        project?.subdomain &&
-        project?.region &&
-        project?.config?.hasura.adminSecret &&
-        queryOptions?.enabled !== false &&
-        !loading
-      ),
-      select: (data) => {
-        if (!data.metadata.sources) {
-          return false;
-        }
+    ...queryOptions,
+    enabled: !!(
+      project?.subdomain &&
+      project?.region &&
+      project?.config?.hasura.adminSecret &&
+      queryOptions?.enabled !== false &&
+      !loading
+    ),
+    select: (data) => {
+      if (!data.metadata.sources) {
+        return false;
+      }
 
-        const sourceMetadata = data.metadata.sources.find(
-          (item) => item.name === dataSource,
-        );
-        if (!sourceMetadata?.tables) {
-          return false;
-        }
+      const sourceMetadata = data.metadata.sources.find(
+        (item) => item.name === dataSource,
+      );
+      if (!sourceMetadata?.tables) {
+        return false;
+      }
 
-        const tableMetadata = sourceMetadata.tables.find(
-          (item) =>
-            item.table.name === table.name &&
-            item.table.schema === table.schema,
-        );
-        return Boolean(tableMetadata?.is_enum);
-      },
+      const tableMetadata = sourceMetadata.tables.find(
+        (item) =>
+          item.table.name === table.name && item.table.schema === table.schema,
+      );
+      return Boolean(tableMetadata?.is_enum);
     },
-  );
+  });
 
   return query;
 }

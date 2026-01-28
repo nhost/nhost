@@ -78,11 +78,7 @@ export default function Header({ className, ...props }: HeaderProps) {
           <NavLink
             underline="none"
             href="/support"
-            className="mr-1 rounded-md px-2.5 py-1.5 text-sm motion-safe:transition-colors"
-            sx={{
-              color: 'text.primary',
-              '&:hover': { backgroundColor: 'grey.200' },
-            }}
+            className="mr-1 rounded-md px-2.5 py-1.5 text-foreground text-sm hover:bg-accent motion-safe:transition-colors"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -93,11 +89,7 @@ export default function Header({ className, ...props }: HeaderProps) {
         <NavLink
           underline="none"
           href="https://docs.nhost.io"
-          className="mr-2 rounded-md px-2.5 py-1.5 text-sm motion-safe:transition-colors"
-          sx={{
-            color: 'text.primary',
-            '&:hover': { backgroundColor: 'grey.200' },
-          }}
+          className="mr-2 rounded-md px-2.5 py-1.5 text-foreground text-sm hover:bg-accent motion-safe:transition-colors"
           target="_blank"
           rel="noopener noreferrer"
         >

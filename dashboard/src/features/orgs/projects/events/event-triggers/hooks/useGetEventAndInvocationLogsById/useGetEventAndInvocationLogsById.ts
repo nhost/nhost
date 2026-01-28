@@ -44,15 +44,15 @@ export default function useGetEventAndInvocationLogsById(
 ) {
   const { project, loading } = useProject();
 
-  const query = useQuery(
-    [
+  const query = useQuery({
+    queryKey: [
       'get-event-and-invocation-logs-by-id',
       args.event_id,
       args.source ?? 'default',
       args.invocation_log_limit ?? 100,
       args.invocation_log_offset ?? 0,
-    ],
-    () => {
+    ] as const,
+    queryFn: () => {
       const appUrl = generateAppServiceUrl(
         project!.subdomain,
         project!.region,
@@ -67,18 +67,16 @@ export default function useGetEventAndInvocationLogsById(
         args,
       });
     },
-    {
-      ...queryOptions,
-      enabled: !!(
-        project?.subdomain &&
-        project?.region &&
-        project?.config?.hasura.adminSecret &&
-        args.event_id &&
-        queryOptions?.enabled !== false &&
-        !loading
-      ),
-    },
-  );
+    ...queryOptions,
+    enabled: !!(
+      project?.subdomain &&
+      project?.region &&
+      project?.config?.hasura.adminSecret &&
+      args.event_id &&
+      queryOptions?.enabled !== false &&
+      !loading
+    ),
+  });
 
   return query;
 }

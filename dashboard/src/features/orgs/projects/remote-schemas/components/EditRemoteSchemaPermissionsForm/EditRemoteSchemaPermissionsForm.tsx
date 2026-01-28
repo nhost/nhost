@@ -1,7 +1,6 @@
-import NavLink from 'next/link';
 import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
-import { useDialog } from '@/components/common/DialogProvider';
+import { NavLink } from '@/components/common/NavLink';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
@@ -68,7 +67,6 @@ export default function EditRemoteSchemaPermissionsForm({
     error: rolesError,
   } = useGetRemoteAppRolesQuery({ client });
 
-  const { closeDrawerWithDirtyGuard } = useDialog();
   const { project } = useProject();
   const { org } = useCurrentOrg();
   const isPlatform = useIsPlatform();
@@ -295,16 +293,10 @@ export default function EditRemoteSchemaPermissionsForm({
             Please go to the{' '}
             <NavLink
               href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/roles-and-permissions`}
-              passHref
-              legacyBehavior
+              underline="hover"
+              className="px-0"
             >
-              <Link
-                href="settings/roles-and-permissions"
-                underline="hover"
-                onClick={closeDrawerWithDirtyGuard}
-              >
-                Settings page
-              </Link>
+              Settings page
             </NavLink>{' '}
             to add and delete roles.
           </Alert>

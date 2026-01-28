@@ -26,7 +26,7 @@ import { Order_By as OrderBy } from '@/utils/__generated__/graphql';
 import { getHasuraAdminSecret } from '@/utils/env';
 import { showLoadingToast, triggerToast } from '@/utils/toast';
 
-export type StoredFile = Files & {
+export type StoredFile = Omit<Files, 'bucket'> & {
   preview: PreviewProps;
 };
 
@@ -183,7 +183,7 @@ export default function FilesDataGrid(props: FilesDataGridProps) {
     }
   }, [router.query, loading, numberOfPages, currentOffset]);
 
-  const memoizedData = useMemo(() => files, [files]);
+  const memoizedData = useMemo(() => files as StoredFile[], [files]);
 
   async function refetchFilesAndAggregate() {
     await refetchFiles();

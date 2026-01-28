@@ -18,7 +18,7 @@ export interface IconLinkProps extends PropsWithoutRef<NavLinkProps> {
 
 function IconLink(
   { className, children, icon, active, href, ...props }: IconLinkProps,
-  ref: ForwardedRef<HTMLAnchorElement>,
+  ref: ForwardedRef<HTMLButtonElement>,
 ) {
   if (props.disabled) {
     return (
@@ -66,21 +66,16 @@ function IconLink(
     <NavLink
       ref={ref}
       href={href}
+      {...props}
       underline="none"
       className={twMerge(
-        'grid grid-flow-row justify-items-center gap-1 rounded-md px-0.5 py-2.5 text-center font-medium motion-safe:transition-colors',
+        'grid grid-flow-row justify-items-center gap-1 rounded-md px-0.5 py-2.5 text-center font-medium text-[10px] leading-[15px] motion-safe:transition-colors',
+        active
+          ? 'bg-primary/10 text-primary'
+          : 'bg-transparent text-foreground',
+        !active && 'hover:bg-accent',
         className,
       )}
-      sx={{
-        fontSize: (theme) => theme.typography.pxToRem(10),
-        lineHeight: (theme) => theme.typography.pxToRem(15),
-        backgroundColor: active ? 'primary.light' : 'transparent',
-        color: active ? 'primary.main' : 'text.primary',
-        [`&:hover`]: {
-          backgroundColor: active ? 'primary.light' : 'action.hover',
-        },
-      }}
-      {...props}
     >
       {isValidElement(icon)
         ? cloneElement(icon, {

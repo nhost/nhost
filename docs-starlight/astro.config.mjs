@@ -39,6 +39,7 @@ export default defineConfig({
                 Header: './src/components/Header.astro',
                 Head: './src/components/Head.astro',
                 PageTitle: './src/components/PageTitle.astro',
+                ThemeSelect: './src/components/ThemeSelect.astro',
             },
             plugins: [
                 starlightOpenAPI([
@@ -75,9 +76,9 @@ export default defineConfig({
                         {
                             id: 'getting-started',
                             label: 'Getting Started',
-                            link: '/getting-started/overview/',
+                            link: '/getting-started/',
                             items: [
-                                { label: 'Overview', slug: 'getting-started/overview' },
+                                { label: 'Overview', slug: 'getting-started' },
                                 {
                                     label: 'Quickstart',
                                     items: [
@@ -156,20 +157,20 @@ export default defineConfig({
                         {
                             id: 'products',
                             label: 'Products',
-                            link: '/products/overview/',
+                            link: '/products/',
                             icon: 'puzzle',
                             items: [
-                                { slug: 'products/overview' },
+                                { slug: 'products' },
                             ],
                         },
                         // Products - Each product is its own topic
                         {
                             id: 'products-database',
                             label: 'Database',
-                            link: '/products/database/overview/',
+                            link: '/products/database/',
                             icon: 'seti:db',
                             items: [
-                                { slug: 'products/database/overview' },
+                                { slug: 'products/database' },
                                 { slug: 'products/database/configuring-postgres' },
                                 { slug: 'products/database/backups' },
                                 { slug: 'products/database/access' },
@@ -181,10 +182,10 @@ export default defineConfig({
                         {
                             id: 'products-graphql',
                             label: 'GraphQL',
-                            link: '/products/graphql/overview/',
+                            link: '/products/graphql/',
                             icon: 'seti:graphql',
                             items: [
-                                { slug: 'products/graphql/overview' },
+                                { slug: 'products/graphql' },
                                 { slug: 'products/graphql/configuring-hasura' },
                                 { slug: 'products/graphql/permissions' },
                                 { slug: 'products/graphql/advanced-features' },
@@ -203,10 +204,10 @@ export default defineConfig({
                         {
                             id: 'products-auth',
                             label: 'Auth',
-                            link: '/products/auth/overview/',
+                            link: '/products/auth/',
                             icon: 'seti:lock',
                             items: [
-                                { slug: 'products/auth/overview' },
+                                { slug: 'products/auth' },
                                 { slug: 'products/auth/users' },
                                 { slug: 'products/auth/client_and_redirect_urls' },
                                 { slug: 'products/auth/jwt' },
@@ -220,7 +221,7 @@ export default defineConfig({
                                             label: 'Providers',
                                             collapsed: true,
                                             items: [
-                                                { slug: 'products/auth/providers/overview' },
+                                                { slug: 'products/auth/providers' },
                                                 { slug: 'products/auth/providers/sign-in-provider' },
                                                 { slug: 'products/auth/providers/tokens' },
                                                 { slug: 'products/auth/providers/connect' },
@@ -285,10 +286,10 @@ export default defineConfig({
                         {
                             id: 'products-storage',
                             label: 'Storage',
-                            link: '/products/storage/overview/',
+                            link: '/products/storage/',
                             icon: 'seti:folder',
                             items: [
-                                { slug: 'products/storage/overview' },
+                                { slug: 'products/storage' },
                                 { slug: 'products/storage/cdn' },
                                 { slug: 'products/storage/antivirus' },
                             ],
@@ -296,10 +297,10 @@ export default defineConfig({
                         {
                             id: 'products-run',
                             label: 'Run',
-                            link: '/products/run/overview/',
+                            link: '/products/run/',
                             icon: 'seti:docker',
                             items: [
-                                { slug: 'products/run/overview' },
+                                { slug: 'products/run' },
                                 { slug: 'products/run/getting-started' },
                                 { slug: 'products/run/configuration' },
                                 { slug: 'products/run/networking' },
@@ -314,10 +315,10 @@ export default defineConfig({
                         {
                             id: 'products-functions',
                             label: 'Functions',
-                            link: '/products/functions/overview/',
+                            link: '/products/functions/',
                             icon: 'seti:javascript',
                             items: [
-                                { slug: 'products/functions/overview' },
+                                { slug: 'products/functions' },
                                 { slug: 'products/functions/getting-started' },
                                 { slug: 'products/functions/runtimes' },
                                 { slug: 'products/functions/logging' },
@@ -326,10 +327,10 @@ export default defineConfig({
                         {
                             id: 'products-ai',
                             label: 'AI',
-                            link: '/products/ai/overview/',
+                            link: '/products/ai/',
                             icon: 'star',
                             items: [
-                                { slug: 'products/ai/overview' },
+                                { slug: 'products/ai' },
                                 { slug: 'products/ai/enabling-service' },
                                 { slug: 'products/ai/local-development' },
                                 { slug: 'products/ai/auto-embeddings' },
@@ -341,10 +342,10 @@ export default defineConfig({
                         {
                             id: 'platform',
                             label: 'Platform',
-                            link: '/platform/overview/',
+                            link: '/platform/',
                             icon: 'laptop',
                             items: [
-                                { label: 'Overview', slug: 'platform/overview' },
+                                { label: 'Overview', slug: 'platform' },
                                 {
                                     label: 'Cloud',
                                     collapsed: false,
@@ -368,7 +369,7 @@ export default defineConfig({
                                     label: 'Development',
                                     collapsed: true,
                                     items: [
-                                        { slug: 'platform/cli/overview' },
+                                        { slug: 'platform/cli' },
                                         { slug: 'platform/cli/local-development' },
                                         { slug: 'platform/cli/cloud-development' },
                                         { slug: 'platform/cli/subdomain' },
@@ -380,7 +381,7 @@ export default defineConfig({
                                             label: 'MCP Server',
                                             collapsed: true,
                                             items: [
-                                                { slug: 'platform/cli/mcp/overview' },
+                                                { slug: 'platform/cli/mcp' },
                                                 { slug: 'platform/cli/mcp/configuration' },
                                                 { slug: 'platform/cli/mcp/clients' },
                                                 { slug: 'platform/cli/mcp/troubleshooting' },
@@ -392,7 +393,7 @@ export default defineConfig({
                                     label: 'Self-Hosting',
                                     collapsed: true,
                                     items: [
-                                        { slug: 'platform/self-hosting/overview' },
+                                        { slug: 'platform/self-hosting' },
                                         { slug: 'platform/self-hosting/community' },
                                         { slug: 'platform/self-hosting/support' },
                                         { slug: 'platform/self-hosting/dedicated' },
@@ -404,10 +405,10 @@ export default defineConfig({
                         {
                             id: 'reference',
                             label: 'Reference',
-                            link: '/reference/overview/',
+                            link: '/reference/',
                             icon: 'open-book',
                             items: [
-                                { label: 'Overview', slug: 'reference/overview' },
+                                { label: 'Overview', slug: 'reference' },
                                 {
                                     label: 'Backend Services',
                                     collapsed: false,
@@ -418,7 +419,7 @@ export default defineConfig({
                                             label: 'AI GraphQL',
                                             collapsed: true,
                                             items: [
-                                                { slug: 'reference/graphql/ai/overview' },
+                                                { slug: 'reference/graphql/ai' },
                                                 {
                                                     label: 'Query',
                                                     collapsed: true,

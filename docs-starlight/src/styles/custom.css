@@ -1,3 +1,170 @@
+/* ==============================================
+   NHOST BRAND THEME
+   ============================================== */
+
+/* Force dark theme only */
+:root {
+  color-scheme: dark;
+}
+
+/* Font declarations */
+@font-face {
+  font-family: 'Mona Sans';
+  src: url('/fonts/Mona-Sans.woff2') format('woff2');
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: optional;
+}
+
+/* Dark mode (default) */
+:root {
+  /* Custom mobile nav toggle height */
+  --custom-mobile-nav-height: 2.75rem;
+  /* Subheader height (visible at 50rem+) */
+  --custom-subheader-height: 2.5rem;
+  /* Max width for the entire layout */
+  --custom-max-width: 90rem;
+
+  /* Brand accent */
+  --sl-color-accent-low: #00398e;
+  --sl-color-accent: #0066ff;
+  --sl-color-accent-high: #8cc1f2;
+
+  /* Backgrounds */
+  --sl-color-black: #080808;
+  --sl-color-bg: #080808;
+  --sl-color-bg-nav: #080808;
+  --sl-color-bg-sidebar: #080808;
+  --sl-color-bg-inline-code: #1a1a1a;
+
+  /* Gray scale */
+  --sl-color-gray-6: #111111;
+  --sl-color-gray-5: #1a1a1a;
+  --sl-color-gray-4: #262626;
+  --sl-color-gray-3: rgba(255, 255, 255, 0.65);
+  --sl-color-gray-2: rgba(255, 255, 255, 0.80);
+  --sl-color-gray-1: #ffffff;
+  --sl-color-white: #ffffff;
+
+  /* Dividers */
+  --sl-color-hairline-light: #262626;
+  --sl-color-hairline: #1a1a1a;
+  --sl-color-hairline-shade: #080808;
+
+  /* Text */
+  --sl-color-text: rgba(255, 255, 255, 0.80);
+  --sl-color-text-accent: #8cc1f2;
+
+  /* Typography */
+  --sl-font: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --sl-font-headings: 'Mona Sans', var(--sl-font);
+}
+
+/* Light mode */
+[data-theme='light'], :root[data-theme='light'] {
+  --sl-color-accent-low: #e6f0ff;
+  --sl-color-accent: #0066ff;
+  --sl-color-accent-high: #00398e;
+
+  --sl-color-bg: #ffffff;
+  --sl-color-bg-nav: #ffffff;
+  --sl-color-bg-sidebar: #ffffff;
+  --sl-color-bg-inline-code: #f0f0f0;
+
+  --sl-color-gray-1: #111111;
+  --sl-color-gray-2: #333333;
+  --sl-color-gray-3: #666666;
+  --sl-color-gray-4: #999999;
+  --sl-color-gray-5: #e0e0e0;
+  --sl-color-gray-6: #f0f0f0;
+
+  --sl-color-hairline-light: #e0e0e0;
+  --sl-color-hairline: #d0d0d0;
+
+  --sl-color-text: #333333;
+  --sl-color-text-accent: #0066ff;
+}
+
+/* Apply Mona Sans to headings */
+h1, h2, h3, h4, h5, h6,
+.sl-markdown-content h1,
+.sl-markdown-content h2,
+.sl-markdown-content h3,
+.sl-markdown-content h4,
+.sl-markdown-content h5,
+.sl-markdown-content h6,
+.site-title {
+  font-family: var(--sl-font-headings);
+}
+
+/* Primary buttons - white with black text (matching landing page) */
+.sl-link-button.primary {
+  background-color: #ffffff !important;
+  border-color: transparent !important;
+  color: #000000 !important;
+}
+
+.sl-link-button.primary:hover {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
+}
+
+/* Secondary/outlined buttons */
+.sl-link-button.secondary {
+  background-color: #080808 !important;
+  color: #ffffff !important;
+  border-color: #262626 !important;
+}
+
+.sl-link-button.secondary:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+}
+
+/* Dashboard action button in subheader */
+.action-button {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+.action-button:hover {
+  background-color: #ffffff !important;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
+  opacity: 1 !important;
+}
+
+/* Light mode button adjustments */
+[data-theme='light'] .sl-link-button.primary {
+  background-color: #0066ff !important;
+  color: #ffffff !important;
+  border-color: transparent !important;
+}
+
+[data-theme='light'] .sl-link-button.primary:hover {
+  background-color: #0052cd !important;
+  box-shadow: 0 0 0 2px rgba(0, 102, 255, 0.3);
+}
+
+[data-theme='light'] .sl-link-button.secondary {
+  background-color: #ffffff !important;
+  color: #111111 !important;
+  border-color: #e0e0e0 !important;
+}
+
+[data-theme='light'] .sl-link-button.secondary:hover {
+  background-color: #f5f5f5 !important;
+}
+
+[data-theme='light'] .action-button {
+  background-color: #0066ff !important;
+  color: #ffffff !important;
+}
+
+[data-theme='light'] .action-button:hover {
+  background-color: #0052cd !important;
+}
+
 .welcome-page {
   margin: 0 auto;
 }
@@ -28,6 +195,35 @@ html:not([class~="dark"]) .welcome-get-started {
   display: none;
 }
 
+/* Make top-level sidebar items look like nested items (but no border) */
+.sidebar-content ul.top-level > li {
+  margin-top: 0.25rem !important;
+}
+
+/* Make top-level labels look like nested ones */
+.sidebar-content ul.top-level > li > details > summary .large,
+.sidebar-content ul.top-level > li > a.large {
+  font-size: var(--sl-text-sm) !important;
+  font-weight: normal !important;
+  color: var(--sl-color-gray-2) !important;
+}
+
+.sidebar-content ul.top-level > li > details > summary:hover .large,
+.sidebar-content ul.top-level > li > a.large:hover {
+  color: var(--sl-color-text) !important;
+}
+
+/* Use text accent for selected sidebar item (like subheader) */
+.sidebar-content a[aria-current='page'],
+.sidebar-content a[aria-current='page']:hover,
+.sidebar-content a[aria-current='page']:focus,
+.sidebar-content ul.top-level > li > a.large[aria-current='page'],
+.sidebar-content ul.top-level > li > a.large[aria-current='page']:hover {
+  background-color: transparent !important;
+  color: var(--sl-color-text-accent) !important;
+  font-weight: 600 !important;
+}
+
 /* Make nested collapsible summaries look like regular links */
 /* Regular sidebar links use --sl-color-gray-2 */
 .sidebar-content ul:not(.top-level) li details > summary,
@@ -41,7 +237,33 @@ html:not([class~="dark"]) .welcome-get-started {
 .sidebar-content ul:not(.top-level) li details > summary:hover,
 .sidebar-content ul:not(.top-level) li details > summary:hover .group-label,
 .sidebar-content ul:not(.top-level) li details > summary:hover .group-label .large {
-  color: var(--sl-color-white) !important;
+  color: var(--sl-color-text) !important;
+}
+
+/* Override Starlight's default white hover color for all sidebar links */
+.sidebar-content a:hover,
+.sidebar-content a:focus {
+  color: var(--sl-color-text-accent) !important;
+}
+
+/* Right sidebar (table of contents) hover */
+.right-sidebar-panel a:hover,
+.right-sidebar-panel a:focus {
+  color: var(--sl-color-text-accent) !important;
+}
+
+/* Smaller pagination (Next/Previous) links */
+.pagination-links a {
+  font-size: 0.875rem;
+}
+
+.pagination-links .link-title {
+  font-size: 0.8125rem;
+}
+
+/* Consistent border color for left sidebar */
+.sidebar-pane {
+  border-inline-end-color: var(--sl-color-hairline-light) !important;
 }
 
 /* Keep the caret smaller and aligned */
@@ -84,33 +306,209 @@ html:not([class~="dark"]) .welcome-get-started {
 /* Subheader spacing - add margin to content below the subheader */
 /* Hero background - full width */
 .hero {
-  background-color: rgb(23, 29, 38);
+  background-color: var(--sl-color-bg);
   margin-left: calc(-50vw + 50%);
   margin-right: calc(-50vw + 50%);
   margin-top: -1.5rem;
   padding: 6rem calc(50vw - 50%);
   margin-bottom: 6rem;
+  /* Override desktop grid to stay centered */
+  grid-template-columns: 1fr !important;
+  justify-items: center;
+}
+
+.hero .stack {
+  text-align: center !important;
+}
+
+.hero .copy {
+  align-items: center !important;
+}
+
+.hero .copy h1 {
+  color: var(--sl-color-text) !important;
+}
+
+.hero .copy .tagline {
+  color: var(--sl-color-gray-2) !important;
+}
+
+.hero .actions {
+  justify-content: center !important;
+}
+
+.hero .actions a.sl-link-button:not(.primary) {
+  color: var(--sl-color-text) !important;
+}
+
+/* Page titles - theme aware */
+h1#_top {
+  color: var(--sl-color-text) !important;
+}
+
+/* Center the search in the header - consistent across all page types */
+@media (min-width: 50rem) {
+  header.header .header {
+    display: grid !important;
+    grid-template-columns: 1fr minmax(20rem, 30rem) 1fr !important;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  header.header .header .title-wrapper {
+    justify-self: start;
+  }
+
+  header.header .header > div:has(site-search) {
+    justify-self: center;
+    width: 100%;
+  }
+
+  header.header .header .right-group {
+    justify-self: end;
+  }
+
+  header.header .header site-search {
+    width: 100%;
+  }
+
+  header.header .header site-search button[data-open-modal] {
+    width: 100%;
+  }
 }
 
 @media (min-width: 50rem) {
-  /* Push sidebar pane to meet subheader */
+  /* Left sidebar sticky position accounts for header + subheader */
   .sidebar-pane {
-    margin-top: 2rem;
-  }
-
-  /* Push sidebar content down */
-  .sidebar-pane .sidebar-content {
-    padding-top: 1.5rem;
-  }
-
-  /* Push main content down */
-  .main-frame {
-    margin-top: 1.5rem;
-  }
-
-  /* Push right sidebar (table of contents) down */
-  .right-sidebar {
-    margin-top: 2.5rem;
+    top: calc(var(--sl-nav-height) + var(--custom-subheader-height)) !important;
   }
 }
 
+@media (min-width: 72rem) {
+  /* Right sidebar (On this page) - only visible on large desktop */
+  .right-sidebar {
+    top: var(--custom-subheader-height) !important;
+  }
+}
+
+/* Mobile layout fixes - account for custom mobile nav toggle */
+@media (max-width: 49.99rem) {
+  /* Push mobile TOC below the custom mobile nav toggle */
+  mobile-starlight-toc nav {
+    top: calc(var(--sl-nav-height) + var(--custom-mobile-nav-height)) !important;
+  }
+
+  /* Main content needs padding for: nav + custom toggle + mobile TOC */
+  .main-frame {
+    padding-top: calc(var(--sl-nav-height) + var(--custom-mobile-nav-height) + var(--sl-mobile-toc-height)) !important;
+  }
+
+  /* Scroll padding for anchor links */
+  html {
+    scroll-padding-top: calc(1.5rem + var(--sl-nav-height) + var(--custom-mobile-nav-height) + var(--sl-mobile-toc-height)) !important;
+  }
+}
+
+/* Tablet layout fixes (50-72rem) - subheader visible, mobile TOC still shown */
+@media (min-width: 50rem) and (max-width: 71.99rem) {
+  .main-frame {
+    padding-top: calc(var(--sl-nav-height) + var(--custom-subheader-height) + var(--sl-mobile-toc-height)) !important;
+  }
+
+  /* Scroll padding for anchor links */
+  html {
+    scroll-padding-top: calc(1.5rem + var(--sl-nav-height) + var(--custom-subheader-height) + var(--sl-mobile-toc-height)) !important;
+  }
+}
+
+/* Large desktop layout (72rem+) - no mobile TOC */
+@media (min-width: 72rem) {
+  .main-frame {
+    padding-top: calc(var(--sl-nav-height) + var(--custom-subheader-height)) !important;
+  }
+
+  /* Scroll padding for anchor links */
+  html {
+    scroll-padding-top: calc(1.5rem + var(--sl-nav-height) + var(--custom-subheader-height)) !important;
+  }
+}
+
+/* Mobile TOC - solid background, no borders */
+mobile-starlight-toc nav {
+  background-color: var(--sl-color-bg-nav) !important;
+  border: none !important;
+}
+
+mobile-starlight-toc .dropdown {
+  background-color: var(--sl-color-bg) !important;
+}
+
+mobile-starlight-toc .toggle {
+  background-color: var(--sl-color-bg) !important;
+  border: none !important;
+}
+
+/* Mobile TOC on tablet (50-72rem) */
+@media (min-width: 50rem) and (max-width: 71.99rem) {
+  mobile-starlight-toc nav {
+    top: calc(var(--sl-nav-height) + var(--custom-subheader-height)) !important;
+    background-color: var(--sl-color-bg) !important;
+    border: none !important;
+  }
+
+  mobile-starlight-toc .dropdown {
+    background-color: var(--sl-color-bg) !important;
+  }
+
+  mobile-starlight-toc .toggle {
+    background-color: transparent !important;
+    border: none !important;
+  }
+}
+
+/* ==============================================
+   MAX-WIDTH LAYOUT CONSTRAINT
+   ============================================== */
+
+/* Constrain the entire page layout */
+.page {
+  max-width: var(--custom-max-width);
+  margin-inline: auto;
+}
+
+/* Header needs to be full-width with content constrained */
+header.header {
+  width: 100%;
+  max-width: var(--custom-max-width);
+  margin-inline: auto;
+  left: 50% !important;
+  transform: translateX(-50%);
+}
+
+/* Subheader follows header width */
+@media (min-width: 50rem) {
+  .subheader-nav {
+    max-width: var(--custom-max-width);
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%);
+  }
+}
+
+/* Mobile nav toggle follows header width */
+@media (max-width: 49.99rem) {
+  .mobile-nav-toggle {
+    max-width: var(--custom-max-width);
+    margin-inline: auto;
+    left: 50% !important;
+    transform: translateX(-50%);
+  }
+}
+
+
+/* Sidebar borders extend to edge of constrained area */
+@media (min-width: 50rem) {
+  .sidebar-pane {
+    left: auto !important;
+  }
+}

@@ -12,6 +12,19 @@ const keywords = entry?.data?.keywords as string[] | undefined;
 ---
 
 <Default {...Astro.props}><slot /></Default>
+
+<!-- Force dark mode -->
+<script is:inline>
+  document.documentElement.dataset.theme = 'dark';
+  localStorage.setItem('starlight-theme', 'dark');
+</script>
+
+<!-- Font preloads -->
+<link rel="preload" href="/fonts/Mona-Sans.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
 {/* SEO meta tag for external search engines */}
 {keywords && keywords.length > 0 && (
   <meta name="keywords" content={keywords.join(', ')} />
@@ -229,4 +242,118 @@ const keywords = entry?.data?.keywords as string[] | undefined;
         width: 100%;
         height: auto;
     }
+
+    /* Image lightbox */
+    .sl-markdown-content img {
+        cursor: zoom-in;
+    }
+
+    .lightbox-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.9);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        cursor: zoom-out;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.2s, visibility 0.2s;
+    }
+
+    .lightbox-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .lightbox-overlay img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+        transform: scale(0.9);
+        transition: transform 0.2s ease-out;
+    }
+
+    .lightbox-overlay.active img {
+        transform: scale(1);
+    }
+
+    .lightbox-close {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        width: 2.5rem;
+        height: 2.5rem;
+        border: none;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        font-size: 1.5rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.15s;
+    }
+
+    .lightbox-close:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
 </style>
+
+<script>
+    // Image lightbox
+    function initLightbox() {
+        // Create overlay if it doesn't exist
+        let overlay = document.querySelector('.lightbox-overlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.className = 'lightbox-overlay';
+            overlay.innerHTML = `
+                <button class="lightbox-close" aria-label="Close">&times;</button>
+                <img src="" alt="" />
+            `;
+            document.body.appendChild(overlay);
+
+            // Close on overlay click
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay || e.target.classList.contains('lightbox-close')) {
+                    overlay.classList.remove('active');
+                }
+            });
+
+            // Close on Escape
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && overlay.classList.contains('active')) {
+                    overlay.classList.remove('active');
+                }
+            });
+        }
+
+        // Add click handlers to content images
+        const contentImages = document.querySelectorAll('.sl-markdown-content img');
+        contentImages.forEach(img => {
+            if (img.dataset.lightboxInit) return;
+            img.dataset.lightboxInit = 'true';
+
+            img.addEventListener('click', () => {
+                const overlayImg = overlay.querySelector('img');
+                overlayImg.src = img.src;
+                overlayImg.alt = img.alt;
+                overlay.classList.add('active');
+            });
+        });
+    }
+
+    // Run on load and after view transitions
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initLightbox);
+    } else {
+        initLightbox();
+    }
+    document.addEventListener('astro:after-swap', initLightbox);
+</script>

@@ -35,9 +35,14 @@ export default function useTestWebhookTransformQuery(
 ) {
   const { project, loading } = useProject();
 
-  const query = useQuery(
-    ['test-webhook-transform', args],
-    () => {
+  const query = useQuery<
+    TestWebhookTransformResponse,
+    HasuraError,
+    TestWebhookTransformResponse,
+    readonly ['test-webhook-transform', TestWebhookTransformArgs]
+  >({
+    queryKey: ['test-webhook-transform', args] as const,
+    queryFn: () => {
       const appUrl = generateAppServiceUrl(
         project!.subdomain,
         project!.region,
@@ -52,20 +57,17 @@ export default function useTestWebhookTransformQuery(
         args,
       });
     },
-    {
-      keepPreviousData: true,
-      ...queryOptions,
-      retry: false,
-      enabled: !!(
-        project?.subdomain &&
-        project?.region &&
-        project?.config?.hasura.adminSecret &&
-        args.webhook_url &&
-        queryOptions?.enabled !== false &&
-        !loading
-      ),
-    },
-  );
+    ...queryOptions,
+    retry: false,
+    enabled: !!(
+      project?.subdomain &&
+      project?.region &&
+      project?.config?.hasura.adminSecret &&
+      args.webhook_url &&
+      queryOptions?.enabled !== false &&
+      !loading
+    ),
+  });
 
   return query;
 }
