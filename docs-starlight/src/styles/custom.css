@@ -7,14 +7,6 @@
   color-scheme: dark;
 }
 
-/* Font declarations */
-@font-face {
-  font-family: 'Mona Sans';
-  src: url('/fonts/Mona-Sans.woff2') format('woff2');
-  font-weight: 400 700;
-  font-style: normal;
-  font-display: optional;
-}
 
 /* Dark mode (default) */
 :root {
@@ -57,7 +49,7 @@
 
   /* Typography */
   --sl-font: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  --sl-font-headings: 'Mona Sans', var(--sl-font);
+  --sl-font-headings: var(--sl-font);
 }
 
 /* Light mode */
