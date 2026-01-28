@@ -1,0 +1,112 @@
+---
+title: Compute Resources
+description: Allocate CPU and Memory to your backend infrastructure
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+
+Compute resources are the fundamental units that represent the processing power and memory available to your projects. The primary compute resources are vCPU and RAM.
+
+This documentation outlines the key aspects of compute resources in the context of the Nhost Cloud Platform.
+
+:::tip
+To further improve availability and fault tolerance, check out [Service Replicas](/platform/cloud/service-replicas#service-replicas)
+:::
+
+## Shared Compute
+
+In a shared model, compute resources are shared amongst users. This is fine if your services mostly run at low to medium load, occasionally burst for brief periods of time, and can tolerate drops in performance. It is important to understand that the availability of CPU time is **not guaranteed**.
+
+### Free Plan
+
+Projects on the free tier have a total of 2 shared vCPUs and 1 GiB of RAM spread over services as follows:
+
+| Service | CPU (MiB) | Memory (GiB) |
+| --------| ----------|--------------|
+| Postgres| 0.5 | 256 |
+| Hasura  | 0.5 | 384 |
+| Auth    | 0.5 | 256 |
+| Storage | 0.5 | 128 |
+
+### Pro Plan
+
+Projects on the pro tier have a total of 2 shared vCPUs and 2 GiB of RAM spread over services as follows:
+
+| Service | CPU (MiB) | Memory (GiB) |
+| --------| ----------|--------------|
+| Postgres| 0.5 | 512 |
+| Hasura  | 0.5 | 768 |
+| Auth    | 0.5 | 384 |
+| Storage | 0.5 | 384 |
+
+
+
+## Dedicated Compute
+
+For production workloads where latency is essential or consistent performance is non-negotiable, we strongly suggest the use of dedicated resources.
+
+:::note
+Compute/Dedicated resources are only available on the Pro plan
+:::
+
+
+To setup dedicated resources for your project, you can either use the Dashboard or the Config.
+
+<Tabs>
+  <TabItem label="Config">
+    ```bash nhost/nhost.toml
+    [hasura.resources.compute]
+    cpu = 500
+    memory = 1024
+
+    [auth.resources.compute]
+    cpu = 500
+    memory = 1024
+
+    [postgres.resources.compute]
+    cpu = 500
+    memory = 1024
+
+    [storage.resources.compute]
+    cpu = 500
+    memory = 1024
+  ```
+  </TabItem>
+  <TabItem label="Dashboard">
+    ![compute](/images/platform/compute-resources/dashboard.png)
+  </TabItem>
+</Tabs>
+
+### Bursting with Dedicated Compute
+
+When using dedicated compute we allow your application to use more than its alloted CPU resources if those resources are available. This means what we are calling dedicated compute is, in fact, guaranteed compute. For instance:
+
+<div align="center">
+<img width="300" src="/images/platform/compute-resources/guaranteed-resources.png" alt="resource allocation" />
+</div>
+
+In the graph above we can see three applications assigned to the same node, each with its own dedicated compute (the solid lines block). However, all applications are allowed to use the non-solid region of compute as long as the rest of the projects are not using it:
+
+<div align="center">
+<img width="300" src="/images/platform/compute-resources/resource-utilization.png" alt="resource utilization" />
+</div>
+
+Above we can see three different scenarios:
+
+- In scenario A the green application is barely using its alloted CPU so if the other applications need it, they can borrow it.
+- Similarly, in scenario B the green application can borrow resources if it needs it from other applications if those aren't using them.
+- In the case all applications need to use all of their resources, nobody can steal from each other as resources are guaranteed per application.
+
+This borrowing of resources is convenient in case of short and unexpected bursts, however, as those are not guaranteed you shouldn't rely on them for sustained usage.
+
+## Disk Performance
+
+By default disks are provisioned with a capacity for 3000 IOPS and 125 Mbps of throughput. If you need higher performance don't hesitate to contact us.
+
+## Encryption at Rest
+
+All files uploaded to the [storage](/products/storage/overview) service are encrypted at rest using AES-256 encryption. Similarly, any volumes provisioned for your [database](/products/database/overview) and [Run services](/products/run/overview) are also encrypted using AES-256.
+
+:::caution
+Only volumes provisioned after December 2024 are encrypted with AES-256. You can verify your volume's encryption status by navigating to your project's settings -> Database -> Storage capacity. If your volume is not encrypted, you'll see a warning message indicating this. To enable encryption on your volume, you can pause and then unpause your project. This action will provision new volumes with encryption enabled.
+:::

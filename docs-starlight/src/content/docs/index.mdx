@@ -1,0 +1,76 @@
+---
+title: Welcome
+template: splash
+hero:
+  title: 'Build. Deploy. Scale'
+  tagline: 'Learn how to get started with Nhost'
+  image:
+    alt: Nhost Logo
+    light: '../../assets/logo/light.svg'
+    dark: '../../assets/logo/dark.svg'
+  actions:
+    - text: Explore the docs
+      link: /getting-started
+      icon: right-arrow
+    - text: View on GitHub
+      link: https://github.com/nhost/nhost
+      icon: external
+      variant: minimal
+      attrs:
+        rel: me
+---
+import { Card, CardGroup } from '@components';
+
+
+<div className="welcome-page">
+  <div className="welcome-get-started">
+    <h1>Get started with our guides or explore our community</h1>
+
+    <CardGroup cols={3}>
+      <Card
+        title="Getting Started"
+        icon="rocket"
+        href="/getting-started/overview"
+      >
+        Learn the fundamentals of Nhost and how to set up your first project
+      </Card>
+      <Card
+        title="React"
+        icon="react"
+        href="/getting-started/quickstart/react"
+      >
+        Integrate Nhost with your React application
+      </Card>
+      <Card
+        title="API Reference"
+        icon="code"
+        href="/reference/overview"
+      >
+        Explore the API reference for client SDKs and data APIs
+      </Card>
+      <Card
+        title="Platform"
+        icon="cloud"
+        href="/platform/overview"
+      >
+        Learn about the Nhost Platform and deployment targets
+      </Card>
+      <Card
+        title="Products"
+        icon="box"
+        href="/products/overview"
+      >
+        Explore our integrated products like database, auth, GraphQL & storage.
+      </Card>
+      <Card
+        title="Example Applications"
+        icon="mobile"
+        href="https://github.com/nhost/nhost/tree/main/examples"
+      >
+        Deployable applications built with Nhost
+      </Card>
+    </CardGroup>
+
+  </div>
+</div>
+

@@ -1,0 +1,30 @@
+---
+title: Clients
+description: Configuration examples for various MCP clients
+---
+
+The Nhost MCP server can be accessed through any client that supports the Model Context Protocol (MCP). Below are examples of how to configure and use various MCP clients.
+
+#### Cursor
+
+1. Go to "Cursor Settings"
+2. Click on "MCP"
+3. Click on "+ Add new global MCP server"
+4. Add the following object inside `"mcpServers"`:
+
+```json
+    "mcp-nhost": {
+      "command": "nhost",
+      "args": [
+        "mcp", "start",
+      ],
+    }
+```
+
+#### Claude Code
+
+Run the command:
+
+```
+claude mcp add nhost nhost mcp start
+```

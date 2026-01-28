@@ -1,0 +1,362 @@
+---
+title: insertAssistant
+---
+
+```graphql
+insertAssistant {
+   object: AssistantInput! 
+}: Assistant!
+```
+
+Create an assistant
+
+## Permissions needed
+
+select (assistants):
+- id
+insert (assistants):
+- user_id
+
+
+## Arguments
+
+
+
+    - **`object`** (`AssistantInput!`): Assistant to create
+    <details>
+<summary>properties</summary>
+
+    
+    
+    
+    - **`name`** (`String!`): Name of the assistant
+    
+    
+    - **`description`** (`String!`): Description of the assistant
+    
+    
+    - **`instructions`** (`String!`): Instructions for the assistant. This is used to instruct the AI assistant
+on how to behave and respond to the user
+    
+    
+    - **`model`** (`String!`): Model to use for the assistant.
+    
+    
+    - **`graphql`** (`[AssistantToolGraphQLInput]`): GraphQL data sources. Run against the project's GraphQL API
+    <details>
+<summary>properties</summary>
+
+    
+    
+    
+    - **`name`** (`String!`): Name of the data source. Use a descriptive name
+    
+    
+    - **`description`** (`String!`): Description of the data source. Be as clear and concise as possible.
+This is used to help the AI assistant understand when and how
+external data sources should be used.
+    
+    
+    - **`query`** (`String!`): GraphQL query to run against the project's GraphQL API.
+    
+    
+    - **`arguments`** (`[AssistantToolArgumentInput!]!`): Arguments to pass to the GraphQL query
+    <details>
+<summary>properties</summary>
+
+    
+    
+    
+    - **`name`** (`String!`): Name of the argument
+    
+    
+    - **`description`** (`String!`): Description of the argument. Be as clear and concise as possible.
+    
+    
+    - **`type`** (`String!`): Type of the argument
+    
+    
+    - **`required`** (`Boolean!`): Whether or not the argument is required
+    
+    
+</details>
+    
+    
+    
+</details>
+    
+    
+    
+    - **`webhooks`** (`[AssistantToolWebhookInput]`): Webhook data sources
+    <details>
+<summary>properties</summary>
+
+    
+    
+    
+    - **`name`** (`String!`): Name of the data source. Use a descriptive name
+    
+    
+    - **`description`** (`String!`): Description of the data source. Be as clear and concise as possible.
+This is used to help the AI assistant understand when and how
+external data sources should be used.
+    
+    
+    - **`URL`** (`String!`): URL of the webhook
+    
+    
+    - **`arguments`** (`[AssistantToolArgumentInput!]!`): Arguments to pass to the webhook
+    <details>
+<summary>properties</summary>
+
+    
+    
+    
+    - **`name`** (`String!`): Name of the argument
+    
+    
+    - **`description`** (`String!`): Description of the argument. Be as clear and concise as possible.
+    
+    
+    - **`type`** (`String!`): Type of the argument
+    
+    
+    - **`required`** (`Boolean!`): Whether or not the argument is required
+    
+    
+</details>
+    
+    
+    
+</details>
+    
+    
+    
+</details>
+    
+
+
+
+## Response
+
+Type: `Assistant!`
+
+
+
+
+
+    
+    - **`assistantID`** (`String!`): ID of the assistant
+    
+    - **`name`** (`String!`): Name of the assistant
+    
+    - **`description`** (`String!`): Description of the assistant
+    
+    - **`instructions`** (`String!`): Instructions for the assistant. This is used to instruct the AI assistant
+on how to behave and respond to the user
+    
+    - **`model`** (`String!`): Model to use for the assistant.
+    
+    - **`graphql`** (`[AssistantToolGraphQL!]`): GraphQL data sources and tools. Run against the project's GraphQL API
+    <details>
+<summary>properties</summary>
+
+    
+    
+    - **`name`** (`String!`): Name of the data source
+    
+    - **`description`** (`String!`): Description of the data source
+    
+    - **`query`** (`String!`): GraphQL query to run against the project's GraphQL API.
+    
+    - **`arguments`** (`[AssistantToolArgument!]!`): Arguments to pass to the GraphQL query
+    <details>
+<summary>properties</summary>
+
+    
+    
+    - **`name`** (`String!`): 
+    
+    - **`description`** (`String!`): 
+    
+    - **`type`** (`String!`): 
+    
+    - **`required`** (`Boolean!`): 
+    
+    
+</details>
+    
+    
+    
+</details>
+    
+    
+    - **`webhooks`** (`[AssistantToolWebhook!]`): Webhook data sources and tools
+    <details>
+<summary>properties</summary>
+
+    
+    
+    - **`name`** (`String!`): Name of the data source
+    
+    - **`description`** (`String!`): Description of the data source
+    
+    - **`URL`** (`String!`): URL of the webhook
+    
+    - **`arguments`** (`[AssistantToolArgument!]!`): Arguments to pass to the webhook
+    <details>
+<summary>properties</summary>
+
+    
+    
+    - **`name`** (`String!`): 
+    
+    - **`description`** (`String!`): 
+    
+    - **`type`** (`String!`): 
+    
+    - **`required`** (`Boolean!`): 
+    
+    
+</details>
+    
+    
+    
+</details>
+    
+    
+
+
+
+**Request Example:**
+
+```graphql query
+query insertAssistant (
+  $object: AssistantInput!
+) {
+  graphite {
+    insertAssistant (
+      object: $object
+    ) {
+      assistantID
+      name
+      description
+      instructions
+      model
+      graphql {
+        name
+        description
+        query
+        arguments {
+          name
+          description
+          type
+          required
+          }
+        }
+      webhooks {
+        name
+        description
+        URL
+        arguments {
+          name
+          description
+          type
+          required
+          }
+        }
+    }
+  }
+}
+```
+
+```json variables
+{
+  "object": {
+    "description": "string",
+    "graphql": [
+      {
+        "arguments": [
+          {
+            "description": "string",
+            "name": "string",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "description": "string",
+        "name": "string",
+        "query": "string"
+      }
+    ],
+    "instructions": "string",
+    "model": "string",
+    "name": "string",
+    "webhooks": [
+      {
+        "URL": "string",
+        "arguments": [
+          {
+            "description": "string",
+            "name": "string",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "description": "string",
+        "name": "string"
+      }
+    ]
+  }
+}
+```
+
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "graphite": {
+      "insertAssistant": {
+        "assistantID": "string",
+        "description": "string",
+        "graphql": [
+          {
+            "arguments": [
+              {
+                "description": "string",
+                "name": "string",
+                "required": true,
+                "type": "string"
+              }
+            ],
+            "description": "string",
+            "name": "string",
+            "query": "string"
+          }
+        ],
+        "instructions": "string",
+        "model": "string",
+        "name": "string",
+        "webhooks": [
+          {
+            "URL": "string",
+            "arguments": [
+              {
+                "description": "string",
+                "name": "string",
+                "required": true,
+                "type": "string"
+              }
+            ],
+            "description": "string",
+            "name": "string"
+          }
+        ]
+      }
+    }
+  }
+}
+```
+

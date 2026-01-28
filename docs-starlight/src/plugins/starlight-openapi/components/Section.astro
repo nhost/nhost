@@ -1,0 +1,73 @@
+---
+import { slug } from '../libs/path'
+
+import Heading from './Heading.astro'
+
+export interface SectionHeadingProps {
+  level?: number
+  prefix?: string | undefined
+}
+
+interface Props extends SectionHeadingProps {
+  empty?: boolean
+  title: string
+}
+
+const { empty, level = 3, prefix = '', title } = Astro.props
+---
+
+<section>
+  <Heading {level} id={slug(prefix ? `${prefix}-${title}` : title)}>
+    {title}<slot name="post-title" />
+  </Heading>
+  {
+    Astro.slots.has('pre-panel') && (
+      <div>
+        <slot name="pre-panel" />
+      </div>
+    )
+  }
+  {
+    !empty && (
+      <div class="panel">
+        <slot />
+      </div>
+    )
+  }
+  {
+    Astro.slots.has('post-panel') && (
+      <div>
+        <slot name="post-panel" />
+      </div>
+    )
+  }
+</section>
+
+<style>
+  .panel {
+    background-color: var(--sl-color-gray-6);
+    border: 1px solid var(--sl-color-gray-5);
+    overflow-x: auto;
+    padding: 1rem;
+  }
+
+  .panel:empty {
+    display: none;
+  }
+
+  :global(main .content) section :global(p) {
+    margin-top: 0.5rem;
+  }
+
+  :global(main .content) section :global(p:first-child) {
+    margin-top: 0;
+  }
+
+  :global(main .content) section :global(ul:not(:first-child)) {
+    margin-top: 0.5rem;
+  }
+
+  :global(main .content) section :global(ul:only-child:not([role='tablist'])) {
+    padding-inline-start: 1.3rem;
+  }
+</style>

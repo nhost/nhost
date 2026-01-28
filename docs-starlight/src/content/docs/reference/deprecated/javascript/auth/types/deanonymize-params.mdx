@@ -1,0 +1,21 @@
+---
+title: DeanonymizeParams
+description: No description provided.
+sidebar:
+  label: DeanonymizeParams
+---
+
+# `DeanonymizeParams`
+
+```ts
+type DeanonymizeParams =
+  | ({ signInMethod: 'email-password' } & SignUpEmailPasswordParams)
+  | ({
+      signInMethod: 'passwordless'
+      connection: 'email'
+    } & SignInPasswordlessEmailParams)
+  | ({
+      signInMethod: 'passwordless'
+      connection: 'sms'
+    } & SignInPasswordlessSmsParams)
+```

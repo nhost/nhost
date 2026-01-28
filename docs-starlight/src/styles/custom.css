@@ -1,0 +1,116 @@
+.welcome-page {
+  margin: 0 auto;
+}
+
+.welcome-get-started {
+  margin: 0 auto;
+  max-width: 1000px;
+}
+
+.welcome-get-started h1 {
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 2.0rem;
+}
+
+html[class~="dark"] .welcome-get-started {
+  color: white;
+}
+
+/* light mode */
+html:not([class~="dark"]) .welcome-get-started {
+  color: #111827;
+}
+
+/* Hide the sidebar topic list since we show it in the header */
+.starlight-sidebar-topics {
+  display: none;
+}
+
+/* Make nested collapsible summaries look like regular links */
+/* Regular sidebar links use --sl-color-gray-2 */
+.sidebar-content ul:not(.top-level) li details > summary,
+.sidebar-content ul:not(.top-level) li details > summary .group-label,
+.sidebar-content ul:not(.top-level) li details > summary .group-label .large {
+  font-weight: normal !important;
+  color: var(--sl-color-gray-2) !important;
+  font-size: var(--sl-text-sm);
+}
+
+.sidebar-content ul:not(.top-level) li details > summary:hover,
+.sidebar-content ul:not(.top-level) li details > summary:hover .group-label,
+.sidebar-content ul:not(.top-level) li details > summary:hover .group-label .large {
+  color: var(--sl-color-white) !important;
+}
+
+/* Keep the caret smaller and aligned */
+.sidebar-content ul:not(.top-level) li details > summary .caret {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Make the logo smaller */
+.site-title img {
+  height: 1.5rem;
+  width: auto;
+}
+
+/* Move OpenAPI method badges to the left of the label */
+.sidebar-content a:has(.sl-badge[class*="sl-openapi-method"]) {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+  align-items: flex-start;
+  gap: 0.5em;
+}
+
+/* Make OpenAPI method badges smaller and prevent line breaks */
+.sidebar-content .sl-badge[class*="sl-openapi-method"] {
+  font-size: 0.6em;
+  padding: 0.2em 0;
+  white-space: nowrap;
+  flex-shrink: 0;
+  height: fit-content;
+  line-height: 1.4;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 0.2em;
+  width: 4em;
+  font-family: monospace;
+}
+
+/* Subheader spacing - add margin to content below the subheader */
+/* Hero background - full width */
+.hero {
+  background-color: rgb(23, 29, 38);
+  margin-left: calc(-50vw + 50%);
+  margin-right: calc(-50vw + 50%);
+  margin-top: -1.5rem;
+  padding: 6rem calc(50vw - 50%);
+  margin-bottom: 6rem;
+}
+
+@media (min-width: 50rem) {
+  /* Push sidebar pane to meet subheader */
+  .sidebar-pane {
+    margin-top: 2rem;
+  }
+
+  /* Push sidebar content down */
+  .sidebar-pane .sidebar-content {
+    padding-top: 1.5rem;
+  }
+
+  /* Push main content down */
+  .main-frame {
+    margin-top: 1.5rem;
+  }
+
+  /* Push right sidebar (table of contents) down */
+  .right-sidebar {
+    margin-top: 2.5rem;
+  }
+}
+
