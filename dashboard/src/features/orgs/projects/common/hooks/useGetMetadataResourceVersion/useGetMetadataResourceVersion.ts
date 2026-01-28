@@ -23,9 +23,9 @@ export default function useGetMetadataResourceVersion({
 }: UseGetMetadataResourceVersionOptions = {}) {
   const { project } = useProject();
 
-  const query = useQuery<ExportMetadataResponse, unknown, number>(
-    ['export-metadata', project?.subdomain],
-    () => {
+  const query = useQuery<ExportMetadataResponse, unknown, number>({
+    queryKey: ['export-metadata', project?.subdomain],
+    queryFn: () => {
       const appUrl = generateAppServiceUrl(
         project!.subdomain,
         project!.region,
@@ -36,11 +36,9 @@ export default function useGetMetadataResourceVersion({
 
       return fetchExportMetadata({ appUrl, adminSecret });
     },
-    {
-      ...queryOptions,
-      select: (data) => data.resource_version,
-    },
-  );
+    ...queryOptions,
+    select: (data) => data.resource_version,
+  });
 
   return query;
 }

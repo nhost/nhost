@@ -1,16 +1,14 @@
 import { SiGithub } from '@icons-pack/react-simple-icons';
+import type { SignInProviderParams } from '@nhost/nhost-js/auth';
 import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
-import {
-  type UseGithubAuthenticationHookProps,
-  useGithubAuthentication,
-} from '@/features/auth/AuthProviders/Github/hooks/useGithubAuthentication';
-import { cn } from '@/lib/utils';
+import { cn, isNotEmptyValue } from '@/lib/utils';
+import { nhost } from '@/utils/nhost';
 
-interface Props extends UseGithubAuthenticationHookProps {
+interface Props {
   buttonText?: string;
+  className?: string;
   withAnonId?: boolean;
   redirectTo?: string;
-  className?: string;
 }
 
 function GithubAuthButton({
@@ -19,19 +17,30 @@ function GithubAuthButton({
   redirectTo,
   className,
 }: Props) {
-  const { mutate: signInWithGithub, isLoading } = useGithubAuthentication({
-    withAnonId,
-    redirectTo,
-  });
+  function signInWithGithub() {
+    let options: SignInProviderParams | undefined;
+    if (isNotEmptyValue(redirectTo)) {
+      options = {
+        redirectTo,
+      };
+    }
+    if (withAnonId) {
+      options = {
+        ...options,
+      };
+    }
+
+    const redirectURL = nhost.auth.signInProviderURL('github', options);
+    window.location.href = redirectURL;
+  }
+
   return (
     <Button
       className={cn(
         '!bg-white !text-black disabled:!text-black disabled:!text-opacity-60 gap-2 text-sm+ hover:ring-2 hover:ring-white hover:ring-opacity-50',
         className,
       )}
-      disabled={isLoading}
-      loading={isLoading}
-      onClick={() => signInWithGithub()}
+      onClick={signInWithGithub}
     >
       <SiGithub size={14} /> {buttonText}
     </Button>

@@ -270,6 +270,7 @@ body {
     --table-selected: 216 100% 96.08%;
     --default: 0 0% 98.04%;
     --primary-highlight: 216 100% 40.2% / 8%;
+    --error-toast-bg: 215.7 12.9% 70.6%;
   }
 
   .dark {
@@ -311,6 +312,7 @@ body {
     --table-selected: 216 31.65% 15.49%;
     --default: 216.92 23.64% 10.78%;
     --primary-highlight: 215.88 100% 60.98% / 16%;
+    --error-toast-bg: 221.5, 10.7%, 23.7%;
   }
 }
 
@@ -339,4 +341,13 @@ body {
   transform: none !important;
   position: relative !important;
   will-change: auto !important;
+}
+
+.error-toast.error-toast {
+  @apply flex w-full max-w-xl flex-col space-y-4 rounded-lg p-4 text-white;
+  background-color: hsl(var(--error-toast-bg));
+}
+
+.error-toast div[role="status"] {
+  @apply w-full m-0;
 }

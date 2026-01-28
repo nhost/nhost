@@ -6,8 +6,8 @@ import { ApplicationRestoring } from '@/features/orgs/projects/common/components
 import { ApplicationUnknown } from '@/features/orgs/projects/common/components/ApplicationUnknown';
 import { ApplicationUnpausing } from '@/features/orgs/projects/common/components/ApplicationUnpausing';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
+import { isNotEmptyValue } from '@/lib/utils';
 import { ApplicationStatus } from '@/types/application';
-
 import PausedProjectContent from './PausedProjectContent';
 
 function ProjectViewWithState({ children }: PropsWithChildren) {
@@ -26,10 +26,25 @@ function ProjectViewWithState({ children }: PropsWithChildren) {
     }
 
     switch (state) {
-      case ApplicationStatus.Empty:
+      case ApplicationStatus.Empty: {
+        if (typeof window !== 'undefined') {
+          const newProjectSubdomain = sessionStorage.getItem(
+            'newProjectSubdomain',
+          );
+          if (
+            isNotEmptyValue(newProjectSubdomain) &&
+            newProjectSubdomain === appSubdomain
+          ) {
+            return <ApplicationProvisioning />;
+          }
+        }
+
         return null;
-      case ApplicationStatus.Provisioning:
+      }
+      case ApplicationStatus.Provisioning: {
+        sessionStorage.removeItem('newProjectSubdomain');
         return <ApplicationProvisioning />;
+      }
       case ApplicationStatus.Errored:
         if (isOnOverviewPage) {
           return (

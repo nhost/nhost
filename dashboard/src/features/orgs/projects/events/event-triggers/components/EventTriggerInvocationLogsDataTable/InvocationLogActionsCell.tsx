@@ -27,7 +27,7 @@ export default function InvocationLogActionsCell({
 }) {
   const meta = table.options.meta as EventTriggerInvocationLogsDataTableMeta;
 
-  const { mutateAsync: redeliverEvent, isLoading: isRedelivering } =
+  const { mutateAsync: redeliverEvent, isPending: isRedelivering } =
     useRedeliverEventMutation();
 
   const [open, setOpen] = useState(false);

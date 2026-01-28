@@ -8,7 +8,7 @@ interface ProgressProps
 }
 
 const Progress = React.forwardRef<
-  React.ElementRef<typeof ProgressPrimitive.Root>,
+  React.ComponentRef<typeof ProgressPrimitive.Root>,
   ProgressProps
 >(({ className, value, indeterminate = false, ...props }, ref) => (
   <ProgressPrimitive.Root

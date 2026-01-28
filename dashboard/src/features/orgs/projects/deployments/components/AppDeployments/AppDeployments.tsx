@@ -1,9 +1,8 @@
-import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { Fragment } from 'react';
+import { IconLink } from '@/components/common/IconLink';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Divider } from '@/components/ui/v2/Divider';
-import { IconButton } from '@/components/ui/v2/IconButton';
 import { ChevronLeftIcon } from '@/components/ui/v2/icons/ChevronLeftIcon';
 import { ChevronRightIcon } from '@/components/ui/v2/icons/ChevronRightIcon';
 import { List } from '@/components/ui/v2/List';
@@ -31,33 +30,39 @@ function NextPrevPageLink(props: NextPrevPageLinkProps) {
 
   if (direction === 'prev') {
     if (!prevAllowed) {
-      return <ChevronLeftIcon className="h-4 w-4 cursor-not-allowed" />;
+      return (
+        <div className="flex h-8 items-center justify-center">
+          <ChevronLeftIcon className="h-4 w-4 cursor-not-allowed" />
+        </div>
+      );
     }
     return (
-      <Link
+      <IconLink
+        variant="link"
+        underline="none"
+        className="flex items-center justify-center py-0"
         href={`${window.location.pathname}?page=${currentPage - 1}`}
-        passHref
-        legacyBehavior
       >
-        <IconButton variant="borderless" color="secondary">
-          <ChevronLeftIcon className="h-4 w-4" />
-        </IconButton>
-      </Link>
+        <ChevronLeftIcon className="h-4 w-4" />
+      </IconLink>
     );
   }
   if (!nextAllowed) {
-    return <ChevronRightIcon className="h-4 w-4 cursor-not-allowed" />;
+    return (
+      <div className="flex h-8 items-center justify-center">
+        <ChevronRightIcon className="h-4 w-4 cursor-not-allowed" />
+      </div>
+    );
   }
   return (
-    <Link
-      href={`${window.location.pathname}?page=${currentPage + 1}`}
-      passHref
-      legacyBehavior
+    <IconLink
+      variant="link"
+      underline="none"
+      className="flex items-center justify-center py-0"
+      href={`${window.location.pathname}?page=${currentPage - 1}`}
     >
-      <IconButton variant="borderless" color="secondary">
-        <ChevronRightIcon className="h-4 w-4" />
-      </IconButton>
-    </Link>
+      <ChevronRightIcon className="h-4 w-4" />
+    </IconLink>
   );
 }
 

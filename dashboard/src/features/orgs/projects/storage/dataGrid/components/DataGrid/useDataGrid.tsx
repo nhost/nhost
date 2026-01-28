@@ -1,4 +1,4 @@
-import type { MutableRefObject } from 'react';
+import type { RefObject } from 'react';
 import { useMemo } from 'react';
 import type { PluginHook, TableInstance, TableOptions } from 'react-table';
 import {
@@ -35,7 +35,7 @@ export interface UseDataGridBaseOptions {
   /**
    * Reference to the data grid root element.
    */
-  tableRef?: MutableRefObject<HTMLDivElement | null>;
+  tableRef?: RefObject<HTMLDivElement | null>;
 }
 
 export type UseDataGridOptions<T extends object = {}> = TableOptions<T> &
