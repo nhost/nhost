@@ -3,22 +3,22 @@ import type { Props } from '@astrojs/starlight/props';
 import Default from '@astrojs/starlight/components/Header.astro';
 
 const products = [
-    { label: 'Overview', href: '/products/overview/' },
-    { label: 'Database', href: '/products/database/overview/' },
-    { label: 'GraphQL', href: '/products/graphql/overview/' },
-    { label: 'Auth', href: '/products/auth/overview/' },
-    { label: 'Storage', href: '/products/storage/overview/' },
-    { label: 'Run', href: '/products/run/overview/' },
-    { label: 'Functions', href: '/products/functions/overview/' },
-    { label: 'AI', href: '/products/ai/overview/' },
+    { label: 'Overview', href: '/products/' },
+    { label: 'Database', href: '/products/database/' },
+    { label: 'GraphQL', href: '/products/graphql/' },
+    { label: 'Auth', href: '/products/auth/' },
+    { label: 'Storage', href: '/products/storage/' },
+    { label: 'Run', href: '/products/run/' },
+    { label: 'Functions', href: '/products/functions/' },
+    { label: 'AI', href: '/products/ai/' },
 ];
 
 const navLinks = [
     { label: 'Welcome', href: '/' },
-    { label: 'Getting Started', href: '/getting-started/overview/' },
-    { label: 'Products', href: '/products/overview/', hasDropdown: true, dropdownItems: products },
-    { label: 'Platform', href: '/platform/overview/' },
-    { label: 'Reference', href: '/reference/overview/' },
+    { label: 'Getting Started', href: '/getting-started/' },
+    { label: 'Products', href: '/products/', hasDropdown: true, dropdownItems: products },
+    { label: 'Platform', href: '/platform/' },
+    { label: 'Reference', href: '/reference/' },
     { label: 'Blog', href: 'https://nhost.io/blog', external: true },
 ];
 
@@ -31,7 +31,7 @@ const currentSection = navLinks.find(link => {
         return pathname === '/' || pathname === '/welcome' || pathname === '/welcome/';
     }
     // For section pages, check if pathname starts with the section base path
-    const basePath = link.href.replace('/overview/', '/').replace(/\/$/, '');
+    const basePath = link.href.replace('/', '/').replace(/\/$/, '');
     return pathname.startsWith(basePath);
 });
 ---

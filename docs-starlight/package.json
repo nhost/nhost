@@ -7,7 +7,8 @@
     "start": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "check-links": "linkinator dist/ --recurse --skip '^https?://(?!localhost)' --skip '\/reference\/' --skip '\/deprecated\/' --skip '\/favicon.svg$' --skip '\/@vite\/client$' --concurrency 10 --timeout 30000 --retry-errors --retry-errors-count 3"
   },
   "dependencies": {
     "@astrojs/markdown-remark": "^6.3.10",
@@ -24,5 +25,8 @@
     "starlight-sidebar-topics": "^0.6.2",
     "tsx": "^4.21.0",
     "url-template": "^3.1.1"
+  },
+  "devDependencies": {
+    "linkinator": "^7.5.3"
   }
 }
