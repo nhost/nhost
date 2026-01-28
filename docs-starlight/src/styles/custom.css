@@ -281,6 +281,52 @@ html:not([class~="dark"]) .welcome-get-started {
   margin-top: -1.5rem;
   padding: 6rem calc(50vw - 50%);
   margin-bottom: 6rem;
+  /* Override desktop grid to stay centered */
+  grid-template-columns: 1fr !important;
+  justify-items: center;
+}
+
+.hero .stack {
+  text-align: center !important;
+}
+
+.hero .copy {
+  align-items: center !important;
+}
+
+.hero .actions {
+  justify-content: center !important;
+}
+
+/* Center the search in the header - consistent across all page types */
+@media (min-width: 50rem) {
+  header.header .header {
+    display: grid !important;
+    grid-template-columns: 1fr minmax(20rem, 30rem) 1fr !important;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  header.header .header .title-wrapper {
+    justify-self: start;
+  }
+
+  header.header .header > div:has(site-search) {
+    justify-self: center;
+    width: 100%;
+  }
+
+  header.header .header .right-group {
+    justify-self: end;
+  }
+
+  header.header .header site-search {
+    width: 100%;
+  }
+
+  header.header .header site-search button[data-open-modal] {
+    width: 100%;
+  }
 }
 
 @media (min-width: 50rem) {
