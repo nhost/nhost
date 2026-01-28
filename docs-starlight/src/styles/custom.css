@@ -1,3 +1,158 @@
+/* ==============================================
+   NHOST BRAND THEME
+   ============================================== */
+
+/* Font declarations */
+@font-face {
+  font-family: 'Mona Sans';
+  src: url('/fonts/Mona-Sans.woff2') format('woff2');
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Dark mode (default) */
+:root {
+  /* Brand accent */
+  --sl-color-accent-low: #00398e;
+  --sl-color-accent: #0066ff;
+  --sl-color-accent-high: #8cc1f2;
+
+  /* Backgrounds */
+  --sl-color-black: #080808;
+  --sl-color-bg: #080808;
+  --sl-color-bg-nav: #080808;
+  --sl-color-bg-sidebar: #080808;
+  --sl-color-bg-inline-code: #1a1a1a;
+
+  /* Gray scale */
+  --sl-color-gray-6: #111111;
+  --sl-color-gray-5: #1a1a1a;
+  --sl-color-gray-4: #262626;
+  --sl-color-gray-3: rgba(255, 255, 255, 0.65);
+  --sl-color-gray-2: rgba(255, 255, 255, 0.80);
+  --sl-color-gray-1: #ffffff;
+  --sl-color-white: #ffffff;
+
+  /* Dividers */
+  --sl-color-hairline-light: #262626;
+  --sl-color-hairline: #1a1a1a;
+  --sl-color-hairline-shade: #080808;
+
+  /* Text */
+  --sl-color-text: rgba(255, 255, 255, 0.80);
+  --sl-color-text-accent: #8cc1f2;
+
+  /* Typography */
+  --sl-font: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --sl-font-headings: 'Mona Sans', var(--sl-font);
+}
+
+/* Light mode */
+[data-theme='light'], :root[data-theme='light'] {
+  --sl-color-accent-low: #e6f0ff;
+  --sl-color-accent: #0066ff;
+  --sl-color-accent-high: #00398e;
+
+  --sl-color-bg: #ffffff;
+  --sl-color-bg-nav: #ffffff;
+  --sl-color-bg-sidebar: #ffffff;
+  --sl-color-bg-inline-code: #f0f0f0;
+
+  --sl-color-gray-1: #111111;
+  --sl-color-gray-2: #333333;
+  --sl-color-gray-3: #666666;
+  --sl-color-gray-4: #999999;
+  --sl-color-gray-5: #e0e0e0;
+  --sl-color-gray-6: #f0f0f0;
+
+  --sl-color-hairline-light: #e0e0e0;
+  --sl-color-hairline: #d0d0d0;
+
+  --sl-color-text: #333333;
+  --sl-color-text-accent: #0066ff;
+}
+
+/* Apply Mona Sans to headings */
+h1, h2, h3, h4, h5, h6,
+.sl-markdown-content h1,
+.sl-markdown-content h2,
+.sl-markdown-content h3,
+.sl-markdown-content h4,
+.sl-markdown-content h5,
+.sl-markdown-content h6,
+.site-title {
+  font-family: var(--sl-font-headings);
+}
+
+/* Primary buttons - white with black text (matching landing page) */
+.sl-link-button.primary {
+  background-color: #ffffff !important;
+  border-color: transparent !important;
+  color: #000000 !important;
+}
+
+.sl-link-button.primary:hover {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
+}
+
+/* Secondary/outlined buttons */
+.sl-link-button.secondary {
+  background-color: #080808 !important;
+  color: #ffffff !important;
+  border-color: #262626 !important;
+}
+
+.sl-link-button.secondary:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+}
+
+/* Dashboard action button in subheader */
+.action-button {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+.action-button:hover {
+  background-color: #ffffff !important;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
+  opacity: 1 !important;
+}
+
+/* Light mode button adjustments */
+[data-theme='light'] .sl-link-button.primary {
+  background-color: #0066ff !important;
+  color: #ffffff !important;
+  border-color: transparent !important;
+}
+
+[data-theme='light'] .sl-link-button.primary:hover {
+  background-color: #0052cd !important;
+  box-shadow: 0 0 0 2px rgba(0, 102, 255, 0.3);
+}
+
+[data-theme='light'] .sl-link-button.secondary {
+  background-color: #ffffff !important;
+  color: #111111 !important;
+  border-color: #e0e0e0 !important;
+}
+
+[data-theme='light'] .sl-link-button.secondary:hover {
+  background-color: #f5f5f5 !important;
+}
+
+[data-theme='light'] .action-button {
+  background-color: #0066ff !important;
+  color: #ffffff !important;
+}
+
+[data-theme='light'] .action-button:hover {
+  background-color: #0052cd !important;
+}
+
 .welcome-page {
   margin: 0 auto;
 }
@@ -26,6 +181,35 @@ html:not([class~="dark"]) .welcome-get-started {
 /* Hide the sidebar topic list since we show it in the header */
 .starlight-sidebar-topics {
   display: none;
+}
+
+/* Make top-level sidebar items look like nested items (but no border) */
+.sidebar-content ul.top-level > li {
+  margin-top: 0.25rem !important;
+}
+
+/* Make top-level labels look like nested ones */
+.sidebar-content ul.top-level > li > details > summary .large,
+.sidebar-content ul.top-level > li > a.large {
+  font-size: var(--sl-text-sm) !important;
+  font-weight: normal !important;
+  color: var(--sl-color-gray-2) !important;
+}
+
+.sidebar-content ul.top-level > li > details > summary:hover .large,
+.sidebar-content ul.top-level > li > a.large:hover {
+  color: var(--sl-color-white) !important;
+}
+
+/* Use text accent for selected sidebar item (like subheader) */
+.sidebar-content a[aria-current='page'],
+.sidebar-content a[aria-current='page']:hover,
+.sidebar-content a[aria-current='page']:focus,
+.sidebar-content ul.top-level > li > a.large[aria-current='page'],
+.sidebar-content ul.top-level > li > a.large[aria-current='page']:hover {
+  background-color: transparent !important;
+  color: var(--sl-color-text-accent) !important;
+  font-weight: 600 !important;
 }
 
 /* Make nested collapsible summaries look like regular links */
@@ -84,7 +268,7 @@ html:not([class~="dark"]) .welcome-get-started {
 /* Subheader spacing - add margin to content below the subheader */
 /* Hero background - full width */
 .hero {
-  background-color: rgb(23, 29, 38);
+  background-color: #080808;
   margin-left: calc(-50vw + 50%);
   margin-right: calc(-50vw + 50%);
   margin-top: -1.5rem;

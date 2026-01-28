@@ -196,10 +196,19 @@ const currentSection = navLinks.find(link => {
             height: auto !important;
             border-bottom: none !important;
             padding-bottom: 0 !important;
+            background-color: rgba(8, 8, 8, 0.6) !important;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        /* Light mode */
+        [data-theme='light'] header.header {
+            background-color: rgba(255, 255, 255, 0.6) !important;
         }
 
         .subheader-nav.visible {
             display: flex;
+            background: transparent;
         }
     }
 </style>
