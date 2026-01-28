@@ -1,0 +1,34 @@
+---
+title: ActivateMfaHandlerResult
+description: No description provided.
+sidebar:
+  label: ActivateMfaHandlerResult
+---
+
+# `ActivateMfaHandlerResult`
+
+## Parameters
+
+---
+
+**<span className="parameter-name">isActivated</span>** <span className="optional-status">required</span> <code>boolean</code>
+
+---
+
+**<span className="parameter-name">isError</span>** <span className="optional-status">required</span> <code>boolean</code>
+
+**`@returns`**
+
+`true` if an error occurred
+
+**`@depreacted`**
+
+use `!isSuccess` or `!!error` instead
+
+---
+
+**<span className="parameter-name">error</span>** <span className="optional-status">required</span> <code>null &#124; [`AuthErrorPayload`](/reference/deprecated/javascript/auth/types/auth-error-payload)</code>
+
+Provides details about the error
+
+---

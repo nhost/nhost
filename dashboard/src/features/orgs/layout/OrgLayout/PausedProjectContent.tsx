@@ -10,11 +10,16 @@ const blockedPausedProjectPages = [
   'graphql',
   'graphql/remote-schemas',
   'graphql/remote-schemas/[remoteSchemaSlug]',
+  'events/event-triggers',
+  'events/event-triggers/[eventTriggerSlug]',
+  'events/cron-triggers',
+  'events/cron-triggers/[cronTriggerSlug]',
   'hasura',
   'users',
   'storage',
   'ai/auto-embeddings',
   'ai/assistants',
+  'ai/file-stores',
   'metrics',
 ].map((page) => baseProjectPageRoute.concat(page));
 

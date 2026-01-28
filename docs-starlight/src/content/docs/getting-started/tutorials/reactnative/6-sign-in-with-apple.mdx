@@ -1,0 +1,672 @@
+---
+title: Sign in with Apple in React Native
+description: >-
+  Learn how to implement Sign in with Apple authentication in your React Native
+  app using Nhost Auth with proper configuration and native integration
+keywords: ["React Native", "Sign in with Apple", "Apple authentication", "iOS", "OAuth", "social login"]
+sidebar:
+  label: Sign in with Apple
+---
+import { Card, CardGroup } from '@components';
+
+
+This tutorial extends the authentication system built in the previous parts by adding Sign in with Apple functionality. You'll learn how to configure Apple Sign In in the Nhost dashboard, implement the native iOS integration, and handle the authentication flow in your React Native application.
+
+:::note
+This is **Part 6** in the Full-Stack React Native Development with Nhost series. This part focuses on integrating Apple's native authentication system with your existing Nhost authentication flow.
+:::
+
+## Full-Stack React Native Development with Nhost
+
+<CardGroup cols={3}>
+<Card title="1. Create Project" icon="plus" href="/getting-started/tutorials/reactnative/1-introduction">
+Set up your Nhost project
+</Card>
+
+<Card title="2. Protected Routes" icon="lock" href="/getting-started/tutorials/reactnative/2-protected-routes">
+Route protection basics
+</Card>
+
+<Card title="3. User Authentication" icon="user" href="/getting-started/tutorials/reactnative/3-user-authentication">
+Complete auth flow
+</Card>
+
+<Card title="4. GraphQL Operations" icon="list-check" href="/getting-started/tutorials/reactnative/4-graphql-operations">
+CRUD operations with GraphQL
+</Card>
+
+<Card title="5. File Uploads" icon="upload" href="/getting-started/tutorials/reactnative/5-file-uploads">
+File upload and management
+</Card>
+
+<Card title="6. Sign in with Apple" icon="apple" href="/getting-started/tutorials/reactnative/6-sign-in-with-apple">
+**Current** - Apple authentication integration
+</Card>
+</CardGroup>
+
+## Prerequisites
+
+- Complete the [User Authentication part](/getting-started/tutorials/reactnative/3-user-authentication) first
+- Access to an Apple Developer account (required for Sign in with Apple)
+- An iOS device or simulator for testing (Sign in with Apple requires iOS)
+- The project from the previous parts set up and running
+
+## What You'll Build
+
+By the end of this part, you'll have:
+- **Apple Developer Console configuration** for Sign in with Apple
+- **Nhost Auth provider setup** for Apple authentication
+- **Native Sign in with Apple button** in your React Native app
+- **Seamless integration** with your existing authentication flow
+- **Error handling** for Apple Sign In specific scenarios
+
+## Step-by-Step Guide
+
+
+### Configure Apple Developer Console
+
+Before we start we need to configure Apple Sign In. To do so, follow the [sign in with Apple](/products/auth/social/sign-in-apple) guide. In addition, you will have to configure the audience in the nhost dashboard. To do so, set the audience with your application's bundle identifier (e.g. `com.yourcompany.yourapp`).
+
+:::caution
+If you are testing this flow in Expo Go, you will need to configure the audience to be `host.exp.Exponent`.
+:::
+
+
+
+### Install Required Dependencies
+
+Install the necessary packages for Apple Sign In in React Native:
+
+```bash
+npx expo install expo-apple-authentication@7 expo-crypto@14 --legacy-peer-deps
+```
+
+The required packages provide:
+- **expo-apple-authentication**: Native Apple Sign In functionality and Apple-styled sign-in buttons
+- **expo-crypto**: Cryptographic utilities needed for secure nonce generation and hashing
+
+
+
+### Update App Configuration
+
+Add the Sign in with Apple configuration to your `app.json` or `app.config.js`:
+
+```json app.json lines highlight={15-27,41}
+{
+  "expo": {
+    "name": "nhost-reactnative-tutorial2",
+    "slug": "nhost-reactnative-tutorial2",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "io.example.nhost-reactnative-tutorial",
+      "jsEngine": "jsc",
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "This app uses Face ID for signing in",
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": ["nhost-reactnative-tutorial"]
+          }
+        ]
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      ["expo-apple-authentication"]
+    ],
+    "extra": {
+      "NHOST_REGION": <region>,
+      "NHOST_SUBDOMAIN": <subdomain>
+    }
+  }
+}
+```
+
+:::caution
+Make sure the `bundleIdentifier` matches the App ID you configured in the Apple Developer Console, and set `usesAppleSignIn` to `true`.
+:::
+
+
+
+### Create Apple Sign In Component
+
+Create a reusable component for Apple Sign In functionality following the ReactNativeDemo approach:
+
+```tsx app/components/AppleSignInButton.tsx
+import * as AppleAuthentication from "expo-apple-authentication";
+import * as Crypto from "expo-crypto";
+import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import { Alert, Platform, StyleSheet } from "react-native";
+import { useAuth } from "../lib/nhost/AuthProvider";
+
+interface AppleSignInButtonProps {
+  isLoading: boolean;
+  setIsLoading: (isLoading: boolean) => void;
+}
+
+export default function AppleSignInButton({
+  setIsLoading,
+}: AppleSignInButtonProps) {
+  const { nhost } = useAuth();
+  const router = useRouter();
+  const [appleAuthAvailable, setAppleAuthAvailable] = useState(false);
+
+  useEffect(() => {
+    const checkAvailability = async () => {
+      if (Platform.OS === "ios") {
+        const isAvailable = await AppleAuthentication.isAvailableAsync();
+        setAppleAuthAvailable(isAvailable);
+      }
+    };
+
+    void checkAvailability();
+  }, []);
+
+  const handleAppleSignIn = async () => {
+    try {
+      setIsLoading(true);
+
+      // Generate a random nonce for security
+      const nonce = Math.random().toString(36).substring(2, 15);
+
+      // Hash the nonce for Apple Authentication
+      const hashedNonce = await Crypto.digestStringAsync(
+        Crypto.CryptoDigestAlgorithm.SHA256,
+        nonce,
+      );
+
+      // Request Apple authentication with our hashed nonce
+      const credential = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        ],
+        nonce: hashedNonce,
+      });
+
+      if (credential.identityToken) {
+        // Use the identity token to sign in with Nhost
+        // Pass the original unhashed nonce to the SDK
+        // so the server can verify it
+        const response = await nhost.auth.signInIdToken({
+          provider: "apple",
+          idToken: credential.identityToken,
+          nonce,
+        });
+
+        if (response.body?.session) {
+          router.replace("/profile");
+        } else {
+          Alert.alert(
+            "Authentication Error",
+            "Failed to authenticate with Nhost",
+          );
+        }
+      } else {
+        Alert.alert(
+          "Authentication Error",
+          "No identity token received from Apple",
+        );
+      }
+    } catch (error: unknown) {
+      // Handle user cancellation gracefully
+      if (error instanceof Error && error.message.includes("canceled")) {
+        // User cancelled the sign-in flow, don't show an error
+        return;
+      }
+
+      // Handle other errors
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to authenticate with Apple";
+      Alert.alert("Authentication Error", message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Only show the button on iOS devices where Apple authentication is available
+  if (Platform.OS !== "ios" || !appleAuthAvailable) {
+    return null;
+  }
+
+  return (
+    <AppleAuthentication.AppleAuthenticationButton
+      buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
+      buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+      cornerRadius={5}
+      style={styles.appleButton}
+      onPress={handleAppleSignIn}
+    />
+  );
+}
+
+const styles = StyleSheet.create({
+  appleButton: {
+    width: "100%",
+    height: 45,
+    marginBottom: 10,
+  },
+});
+```
+
+
+
+### Update Sign In Screen
+
+Now integrate the Apple Sign In button into your existing sign-in screen following the tutorial structure:
+
+```tsx app/signin.tsx lines highlight={13,70-81}
+import { Link, router } from "expo-router";
+import { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import AppleSignInButton from "./components/AppleSignInButton";
+import { useAuth } from "./lib/nhost/AuthProvider";
+import { commonStyles } from "./styles/commonStyles";
+import { colors } from "./styles/theme";
+
+export default function SignIn() {
+  const { nhost, isAuthenticated } = useAuth();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Use useEffect for navigation after authentication is confirmed
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace("/profile");
+    }
+  }, [isAuthenticated]);
+
+  const handleSubmit = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Use the signIn function from auth context
+      const response = await nhost.auth.signInEmailPassword({
+        email,
+        password,
+      });
+
+      // If we have a session, sign in was successful
+      if (response.body?.session) {
+        router.replace("/profile");
+      } else {
+        setError("Failed to sign in. Please check your credentials.");
+      }
+    } catch (err) {
+      const message = (err as Error).message || "Unknown error";
+      setError(`An error occurred during sign in: ${message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={commonStyles.container}
+    >
+      <ScrollView
+        contentContainerStyle={commonStyles.centerContent}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Text style={commonStyles.title}>Sign In</Text>
+
+        <View style={commonStyles.card}>
+          {/* Apple Sign In Button */}
+          <AppleSignInButton
+            isLoading={isLoading}
+            setIsLoading={setIsLoading}
+          />
+
+          {/* Divider */}
+          <View style={commonStyles.dividerContainer}>
+            <View style={commonStyles.divider} />
+            <Text style={commonStyles.dividerText}>or</Text>
+            <View style={commonStyles.divider} />
+          </View>
+
+          <View style={commonStyles.formField}>
+            <Text style={commonStyles.labelText}>Email</Text>
+            <TextInput
+              style={commonStyles.input}
+              value={email}
+              onChangeText={setEmail}
+              placeholder="Enter your email"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoComplete="email"
+            />
+          </View>
+
+          <View style={commonStyles.formField}>
+            <Text style={commonStyles.labelText}>Password</Text>
+            <TextInput
+              style={commonStyles.input}
+              value={password}
+              onChangeText={setPassword}
+              placeholder="Enter your password"
+              secureTextEntry
+              autoCapitalize="none"
+            />
+          </View>
+
+          {error && (
+            <View style={commonStyles.errorContainer}>
+              <Text style={commonStyles.errorText}>{error}</Text>
+            </View>
+          )}
+
+          <TouchableOpacity
+            style={[commonStyles.button, commonStyles.fullWidth]}
+            onPress={handleSubmit}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator size="small" color={colors.surface} />
+            ) : (
+              <Text style={commonStyles.buttonText}>Sign In</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+
+        <View style={commonStyles.linkContainer}>
+          <Text style={commonStyles.linkText}>
+            Don't have an account?{" "}
+            <Link href="/signup" style={commonStyles.link}>
+              Sign Up
+            </Link>
+          </Text>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+}
+```
+
+
+
+### Update Sign Up Screen
+
+Also add Apple Sign In to your sign-up screen for consistency:
+
+```tsx app/signup.tsx lines highlight={14,103-114}
+import * as Linking from "expo-linking";
+import { Link, router } from "expo-router";
+import { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import AppleSignInButton from "./components/AppleSignInButton";
+import { useAuth } from "./lib/nhost/AuthProvider";
+import { commonStyles } from "./styles/commonStyles";
+import { colors } from "./styles/theme";
+
+export default function SignUp() {
+  const { nhost, isAuthenticated } = useAuth();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+
+  // Redirect authenticated users to profile
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace("/profile");
+    }
+  }, [isAuthenticated]);
+
+  const handleSubmit = async () => {
+    setIsLoading(true);
+    setError(null);
+    setSuccess(false);
+
+    try {
+      const response = await nhost.auth.signUpEmailPassword({
+        email,
+        password,
+        options: {
+          displayName,
+          // Set the redirect URL for email verification
+          redirectTo: Linking.createURL("verify"),
+        },
+      });
+
+      if (response.body?.session) {
+        // Successfully signed up and automatically signed in
+        router.replace("/profile");
+      } else {
+        // Verification email sent
+        setSuccess(true);
+      }
+    } catch (err) {
+      const message = (err as Error).message || "Unknown error";
+      setError(`An error occurred during sign up: ${message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (success) {
+    return (
+      <View style={commonStyles.centerContent}>
+        <Text style={commonStyles.title}>Check Your Email</Text>
+        <View style={commonStyles.successContainer}>
+          <Text style={commonStyles.successText}>
+            We've sent a verification link to{" "}
+            <Text style={commonStyles.emailText}>{email}</Text>
+          </Text>
+          <Text style={[commonStyles.bodyText, commonStyles.textCenter]}>
+            Please check your email and click the verification link to activate
+            your account.
+          </Text>
+        </View>
+        <TouchableOpacity
+          style={[commonStyles.button, commonStyles.fullWidth]}
+          onPress={() => router.replace("/signin")}
+        >
+          <Text style={commonStyles.buttonText}>Back to Sign In</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  return (
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={commonStyles.container}
+    >
+      <ScrollView
+        contentContainerStyle={commonStyles.centerContent}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Text style={commonStyles.title}>Sign Up</Text>
+
+        <View style={commonStyles.card}>
+          {/* Apple Sign In Button */}
+          <AppleSignInButton
+            isLoading={isLoading}
+            setIsLoading={setIsLoading}
+          />
+
+          {/* Divider */}
+          <View style={commonStyles.dividerContainer}>
+            <View style={commonStyles.divider} />
+            <Text style={commonStyles.dividerText}>or</Text>
+            <View style={commonStyles.divider} />
+          </View>
+
+          <View style={commonStyles.formField}>
+            <Text style={commonStyles.labelText}>Display Name</Text>
+            <TextInput
+              style={commonStyles.input}
+              value={displayName}
+              onChangeText={setDisplayName}
+              placeholder="Enter your name"
+              autoCapitalize="words"
+            />
+          </View>
+
+          <View style={commonStyles.formField}>
+            <Text style={commonStyles.labelText}>Email</Text>
+            <TextInput
+              style={commonStyles.input}
+              value={email}
+              onChangeText={setEmail}
+              placeholder="Enter your email"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoComplete="email"
+            />
+          </View>
+
+          <View style={commonStyles.formField}>
+            <Text style={commonStyles.labelText}>Password</Text>
+            <TextInput
+              style={commonStyles.input}
+              value={password}
+              onChangeText={setPassword}
+              placeholder="Enter your password"
+              secureTextEntry
+              autoCapitalize="none"
+            />
+            <Text style={commonStyles.helperText}>Minimum 8 characters</Text>
+          </View>
+
+          {error && (
+            <View style={commonStyles.errorContainer}>
+              <Text style={commonStyles.errorText}>{error}</Text>
+            </View>
+          )}
+
+          <TouchableOpacity
+            style={[commonStyles.button, commonStyles.fullWidth]}
+            onPress={handleSubmit}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator size="small" color={colors.surface} />
+            ) : (
+              <Text style={commonStyles.buttonText}>Sign Up</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+
+        <View style={commonStyles.linkContainer}>
+          <Text style={commonStyles.linkText}>
+            Already have an account?{" "}
+            <Link href="/signin" style={commonStyles.link}>
+              Sign In
+            </Link>
+          </Text>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+}
+```
+
+
+
+### Test Sign in with Apple
+
+Build and test your application on an iOS device or simulator:
+
+```bash
+npm start
+```
+
+Things to test:
+
+1. **Apple Sign In Flow**: Tap the "Sign in with Apple" button and complete the authentication
+2. **User Creation**: Sign in with Apple for the first time to create a new user account
+3. **Returning Users**: Sign in again with the same Apple ID to verify user recognition
+4. **Profile Information**: Check that user name and email are properly populated
+5. **Integration**: Verify that Apple Sign In users can access todos, files, and other protected features
+6. **Error Handling**: Test network errors and authentication failures
+
+:::note
+Sign in with Apple only works on physical iOS devices or iOS simulators running iOS 13+. It will not work on Android or web platforms in this implementation.
+:::
+
+
+
+
+
+## Key Features Implemented
+
+
+<details>
+<summary>Apple Developer Configuration</summary>
+
+Complete setup of Apple Developer Console including App ID configuration, Service ID creation, and private key generation for secure authentication.
+
+</details>
+
+<details>
+<summary>Nhost Provider Integration</summary>
+
+Seamless integration with Nhost Auth system using Apple's identity tokens and authorization codes for secure user authentication.
+
+</details>
+
+<details>
+<summary>Native iOS Integration</summary>
+
+Native Apple Sign In button using expo-apple-authentication with proper iOS styling and user experience guidelines.
+
+</details>
+
+<details>
+<summary>Error Handling</summary>
+
+Comprehensive error handling for Apple Sign In failures, network issues, and user cancellations with appropriate user feedback.
+
+</details>
+
+

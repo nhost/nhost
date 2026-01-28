@@ -1,0 +1,232 @@
+---
+import type { Props } from '@astrojs/starlight/props';
+import Default from '@astrojs/starlight/components/Head.astro';
+
+// Keywords for SEO: Renders <meta name="keywords"> in <head> for external search engines (Google, etc.)
+// Note: This is NOT searchable by Pagefind since <head> is outside <main data-pagefind-body>.
+// For Pagefind site search, see PageTitle.astro which renders keywords inside the content area.
+const propsEntry = Astro.props.entry;
+const localsEntry = Astro.locals.starlightRoute?.entry;
+const entry = propsEntry || localsEntry;
+const keywords = entry?.data?.keywords as string[] | undefined;
+---
+
+<Default {...Astro.props}><slot /></Default>
+{/* SEO meta tag for external search engines */}
+{keywords && keywords.length > 0 && (
+  <meta name="keywords" content={keywords.join(', ')} />
+)}
+
+<script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+
+    function getTheme() {
+        // Starlight uses data-theme attribute
+        return document.documentElement.dataset.theme === 'dark' ? 'dark' : 'default';
+    }
+
+    function initMermaid() {
+        mermaid.initialize({
+            startOnLoad: false,
+            theme: getTheme(),
+        });
+    }
+
+    initMermaid();
+
+    // Find all mermaid code blocks and render them
+    async function renderMermaid() {
+        // Re-initialize with current theme
+        initMermaid();
+
+        // Starlight's expressive-code uses data-language attribute on pre element
+        const mermaidBlocks = document.querySelectorAll('pre[data-language="mermaid"]');
+
+        for (const pre of mermaidBlocks) {
+            // The structure is: div.expressive-code > figure > pre > code > div.ec-line
+            const wrapper = pre.closest('.expressive-code');
+
+            // Extract code from ec-line divs, preserving newlines
+            const lines = pre.querySelectorAll('.ec-line');
+            const code = Array.from(lines).map(line => line.textContent || '').join('\n');
+
+            // Create wrapper with controls
+            const container = document.createElement('div');
+            container.className = 'mermaid-wrapper';
+            container.dataset.mermaidCode = code; // Store code for theme re-rendering
+
+            const controls = document.createElement('div');
+            controls.className = 'mermaid-controls';
+            controls.innerHTML = `
+                <button class="mermaid-btn mermaid-reset" title="Reset">↺</button>
+            `;
+
+            const viewport = document.createElement('div');
+            viewport.className = 'mermaid-viewport';
+
+            const diagram = document.createElement('div');
+            diagram.className = 'mermaid';
+
+            try {
+                const { svg } = await mermaid.render(`mermaid-${Math.random().toString(36).slice(2)}`, code);
+                diagram.innerHTML = svg;
+
+                viewport.appendChild(diagram);
+                container.appendChild(controls);
+                container.appendChild(viewport);
+
+                // Set up zoom/pan
+                let scale = 1;
+                let panX = 0;
+                let panY = 0;
+                let isPanning = false;
+                let startX = 0;
+                let startY = 0;
+
+                function updateTransform() {
+                    diagram.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+                }
+
+                controls.querySelector('.mermaid-reset').addEventListener('click', () => {
+                    scale = 1;
+                    panX = 0;
+                    panY = 0;
+                    updateTransform();
+                });
+
+                viewport.addEventListener('mousedown', (e) => {
+                    isPanning = true;
+                    startX = e.clientX - panX;
+                    startY = e.clientY - panY;
+                    viewport.style.cursor = 'grabbing';
+                });
+
+                document.addEventListener('mousemove', (e) => {
+                    if (!isPanning) return;
+                    panX = e.clientX - startX;
+                    panY = e.clientY - startY;
+                    updateTransform();
+                });
+
+                document.addEventListener('mouseup', () => {
+                    isPanning = false;
+                    viewport.style.cursor = 'grab';
+                });
+
+                viewport.addEventListener('wheel', (e) => {
+                    e.preventDefault();
+                    const delta = e.deltaY > 0 ? 0.9 : 1.1;
+                    scale = Math.max(0.25, Math.min(4, scale * delta));
+                    updateTransform();
+                }, { passive: false });
+
+                // Replace the entire expressive-code wrapper
+                (wrapper || pre).replaceWith(container);
+            } catch (e) {
+                console.error('Mermaid rendering failed:', e);
+            }
+        }
+    }
+
+    // Run on page load and after view transitions
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', renderMermaid);
+    } else {
+        renderMermaid();
+    }
+    document.addEventListener('astro:after-swap', renderMermaid);
+
+    // Re-render existing diagrams on theme change
+    async function reRenderMermaid() {
+        initMermaid();
+        const wrappers = document.querySelectorAll('.mermaid-wrapper[data-mermaid-code]');
+
+        for (const wrapper of wrappers) {
+            const code = wrapper.dataset.mermaidCode;
+            if (!code) continue;
+
+            const diagram = wrapper.querySelector('.mermaid');
+            if (!diagram) continue;
+
+            try {
+                const { svg } = await mermaid.render(`mermaid-${Math.random().toString(36).slice(2)}`, code);
+                diagram.innerHTML = svg;
+            } catch (e) {
+                console.error('Mermaid re-rendering failed:', e);
+            }
+        }
+    }
+
+    // Re-render on theme change
+    const observer = new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+            if (mutation.attributeName === 'data-theme') {
+                reRenderMermaid();
+            }
+        }
+    });
+    observer.observe(document.documentElement, { attributes: true });
+</script>
+
+<style is:global>
+    .mermaid-wrapper {
+        position: relative;
+        margin: 1.5rem 0;
+        border: 1px solid var(--sl-color-gray-5);
+        border-radius: 0.5rem;
+        overflow: hidden;
+        background: var(--sl-color-bg);
+    }
+
+    .mermaid-controls {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        display: flex;
+        gap: 0.25rem;
+        z-index: 10;
+    }
+
+    .mermaid-btn {
+        width: 2rem;
+        height: 2rem;
+        border: 1px solid var(--sl-color-gray-5);
+        border-radius: 0.25rem;
+        background: var(--sl-color-bg);
+        color: var(--sl-color-text);
+        cursor: pointer;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.15s, border-color 0.15s;
+    }
+
+    .mermaid-btn:hover {
+        background: var(--sl-color-gray-6);
+        border-color: var(--sl-color-gray-4);
+    }
+
+    .mermaid-viewport {
+        overflow: hidden;
+        min-height: 200px;
+        cursor: grab;
+        padding: 1rem;
+    }
+
+    .mermaid-viewport:active {
+        cursor: grabbing;
+    }
+
+    .mermaid {
+        display: block;
+        width: 100%;
+        transform-origin: center center;
+        transition: transform 0.1s ease-out;
+    }
+
+    .mermaid svg {
+        width: 100%;
+        height: auto;
+    }
+</style>

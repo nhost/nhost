@@ -1,3 +1,17 @@
+## [cli@1.35.0] - 2026-01-28
+
+### 🚀 Features
+
+- *(docs)* Document functions logging (#3793)
+- *(nixops)* Update nixpkgs (#3808)
+- *(cli)* Embed documentation in the binary and add subcommands and MCP tools to search/retrieve (#3836)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Update certs (#3791)
+- *(cli)* Update dev/local certs (#3843)
+
 ## [cli@1.34.12] - 2025-12-23
 
 ### Chore

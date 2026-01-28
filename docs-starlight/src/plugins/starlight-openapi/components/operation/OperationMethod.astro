@@ -1,0 +1,78 @@
+---
+import type { OperationHttpMethod } from '../../libs/operation'
+
+interface Props {
+  method: OperationHttpMethod
+  path?: string
+}
+
+const { method, path } = Astro.props
+---
+
+<div class="method-path">
+  <div class:list={['method', method]}>{method.toUpperCase()}</div>
+  <div class="path">{path}</div>
+</div>
+
+<style>
+  .method-path {
+    display: flex;
+    gap: 0.8rem;
+    overflow-x: hidden;
+  }
+
+  .method {
+    background-color: var(--sl-openapi-method-bg);
+    border: 1px solid var(--sl-openapi-method-border);
+    color: hsl(0, 0%, 100%);
+    font-weight: 600;
+    padding-inline: 0.5rem;
+  }
+
+  .method.get {
+    --sl-openapi-method-bg: var(--sl-openapi-method-bg-get);
+    --sl-openapi-method-border: var(--sl-openapi-method-border-get);
+  }
+
+  .method.put {
+    --sl-openapi-method-bg: var(--sl-openapi-method-bg-put);
+    --sl-openapi-method-border: var(--sl-openapi-method-border-put);
+  }
+
+  .method.post {
+    --sl-openapi-method-bg: var(--sl-openapi-method-bg-post);
+    --sl-openapi-method-border: var(--sl-openapi-method-border-post);
+  }
+
+  .method.delete {
+    --sl-openapi-method-bg: var(--sl-openapi-method-bg-delete);
+    --sl-openapi-method-border: var(--sl-openapi-method-border-delete);
+  }
+
+  .method.options {
+    --sl-openapi-method-bg: var(--sl-openapi-method-bg-options);
+    --sl-openapi-method-border: var(--sl-openapi-method-border-options);
+  }
+
+  .method.head {
+    --sl-openapi-method-bg: var(--sl-openapi-method-bg-head);
+    --sl-openapi-method-border: var(--sl-openapi-method-border-head);
+  }
+
+  .method.patch {
+    --sl-openapi-method-bg: var(--sl-openapi-method-bg-patch);
+    --sl-openapi-method-border: var(--sl-openapi-method-border-patch);
+  }
+
+  .method.trace {
+    --sl-openapi-method-bg: var(--sl-openapi-method-bg-trace);
+    --sl-openapi-method-border: var(--sl-openapi-method-border-trace);
+  }
+
+  .path {
+    display: flex;
+    flex-grow: 0;
+    flex-shrink: 1;
+    overflow-x: auto;
+  }
+</style>

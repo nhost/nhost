@@ -1,0 +1,53 @@
+---
+import { isOpenAPIV2ResponseWithExamples } from '../../libs/example'
+import { isResponseWithHeaders } from '../../libs/header'
+import type { Operation } from '../../libs/operation'
+import { getOpenAPIV2OperationProduces } from '../../libs/requestBody'
+import {
+  getOpenAPIV2ResponseSchema,
+  getOpenAPIV3ResponseContent,
+  type Response,
+  type Responses,
+} from '../../libs/response'
+import type { Schema } from '../../libs/schema'
+import Content from '../Content.astro'
+import Md from '../Md.astro'
+import SchemaObject from '../schema/SchemaObject.astro'
+import Section, { type SectionHeadingProps } from '../Section.astro'
+import Select from '../Select.astro'
+
+import ResponseExamples from './ResponseExamples.astro'
+import ResponseHeaders from './ResponseHeaders.astro'
+
+interface Props extends SectionHeadingProps {
+  name: keyof Responses
+  operation: Operation
+  response: Response
+  schema: Schema
+}
+
+const { name, operation, response, schema, ...sectionHeadingProps } = Astro.props
+
+const openAPIV2ResponseSchema = getOpenAPIV2ResponseSchema(response)
+const openAPIV3ResponseContent = getOpenAPIV3ResponseContent(response)
+
+const produces = getOpenAPIV2OperationProduces(schema, operation)
+
+const isEmpty = !openAPIV2ResponseSchema && !openAPIV3ResponseContent
+---
+
+<Section {...sectionHeadingProps} empty={isEmpty} title={name}>
+  <Md text={response.description} slot="pre-panel" />
+  {
+    openAPIV2ResponseSchema ? (
+      <>
+        <Select label="The list of MIME types the operation can produce" options={produces} />
+        <SchemaObject schemaObject={openAPIV2ResponseSchema} />
+      </>
+    ) : openAPIV3ResponseContent ? (
+      <Content content={openAPIV3ResponseContent} />
+    ) : null
+  }
+  {isResponseWithHeaders(response) && <ResponseHeaders headers={response.headers} slot="post-panel" />}
+  {isOpenAPIV2ResponseWithExamples(response) && <ResponseExamples examples={response.examples} slot="post-panel" />}
+</Section>

@@ -1,0 +1,28 @@
+---
+title: Troubleshooting
+description: Tips for troubleshooting issues with the Nhost MCP server
+keywords: ["MCP troubleshooting", "debugging", "MCP tools", "JSON-RPC", "testing MCP"]
+---
+
+If you run into issues using the MCP server on your favorite AI service you can try running the tools yourself. For example:
+
+```bash
+# cloud-graphql-query
+echo '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"cloud-graphql-query","arguments":{"query":"{ apps { id subdomain name } }"}},"id":1}' | nhost mcp start
+
+# graphql-query
+echo '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"graphql-query","arguments":{"query":"{ users { id } }","subdomain":"local","role":"admin"}},"id":1}' | nhost mcp start
+
+# manage-graphql
+echo '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"manage-graphql","arguments":{"body":"{\"type\":\"export_metadata\",\"args\":{}}","subdomain":"local","path":"/v1/metadata"}},"id":1}' | nhost mcp start
+
+# get-schema
+echo '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"get-schema","arguments":{"subdomain":"local","role":"admin","summary":true}},"id":1}' | nhost mcp start
+
+# search
+echo '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"search","arguments":{"query":"how to enable magic links"}},"id":1}' | nhost mcp start
+
+# Read resource
+echo '{"jsonrpc":"2.0","method":"resources/read","params":{"uri":"schema://nhost-cloud"},"id":1}' | nhost mcp start
+```
+
