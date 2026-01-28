@@ -10,9 +10,9 @@ import extractLhsFieldsFromMappings from '@/features/orgs/projects/database/data
 import { useIntrospectRemoteSchemaQuery } from '@/features/orgs/projects/remote-schemas/hooks/useIntrospectRemoteSchemaQuery';
 import buildRemoteFieldFromSelection from '@/features/orgs/projects/remote-schemas/utils/buildRemoteFieldFromSelection';
 import convertIntrospectionToSchema from '@/features/orgs/projects/remote-schemas/utils/convertIntrospectionToSchema';
-import getQueryRoot from '@/features/orgs/projects/remote-schemas/utils/getQueryRoot';
 import getTypeString from '@/features/orgs/projects/remote-schemas/utils/getTypeString';
 import parseRemoteFieldToSelection from '@/features/orgs/projects/remote-schemas/utils/parseRemoteFieldToSelection';
+import { isEmptyValue } from '@/lib/utils';
 import type { RemoteField } from '@/utils/hasura-api/generated/schemas';
 
 export interface RemoteSchemaRelationshipDetailsValue {
@@ -163,8 +163,8 @@ export default function RemoteSchemaRelationshipDetails({
         <div className="space-y-2">
           <div className="font-medium text-sm">Root operation fields</div>
           {(() => {
-            const queryRoot = getQueryRoot(targetGraphqlSchema);
-            if (!queryRoot) {
+            const queryRoot = targetGraphqlSchema.getQueryType();
+            if (isEmptyValue(queryRoot)) {
               return (
                 <p className="text-muted-foreground text-sm">
                   No Query type found in the remote schema.
@@ -172,7 +172,7 @@ export default function RemoteSchemaRelationshipDetails({
               );
             }
 
-            const rootFields = Object.values(queryRoot.type.getFields());
+            const rootFields = Object.values(queryRoot!.getFields());
             if (rootFields.length === 0) {
               return (
                 <p className="text-muted-foreground text-sm">
