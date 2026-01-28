@@ -1,3 +1,12 @@
+## [@nhost/dashboard@2.46.3] - 2026-01-28
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Update orval to 8.0.3 (#3839)
+- *(dashboard)* Show paused banner in events and file stores pages (#3844)
+- *(dashboard)* Update nextjs to 16 (#3841)
+- *(deps)* Update nextjs due to vulnerability (#3854)
+
 ## [@nhost/dashboard@2.46.2] - 2026-01-22
 
 ### 🐛 Bug Fixes
