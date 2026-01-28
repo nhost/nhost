@@ -188,6 +188,7 @@ export default defineConfig({
                                 { slug: 'products/graphql' },
                                 { slug: 'products/graphql/configuring-hasura' },
                                 { slug: 'products/graphql/permissions' },
+                                { slug: 'products/graphql/remote-schemas' },
                                 { slug: 'products/graphql/advanced-features' },
                                 {
                                     label: 'Guides',
