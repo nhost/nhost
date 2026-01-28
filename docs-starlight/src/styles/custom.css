@@ -13,7 +13,7 @@
   src: url('/fonts/Mona-Sans.woff2') format('woff2');
   font-weight: 400 700;
   font-style: normal;
-  font-display: swap;
+  font-display: optional;
 }
 
 /* Dark mode (default) */
@@ -369,24 +369,16 @@ h1#_top {
 }
 
 @media (min-width: 50rem) {
-  /* Push sidebar pane to meet subheader */
+  /* Left sidebar sticky position accounts for header + subheader */
   .sidebar-pane {
-    margin-top: 2rem;
+    top: calc(var(--sl-nav-height) + var(--custom-subheader-height)) !important;
   }
+}
 
-  /* Push sidebar content down */
-  .sidebar-pane .sidebar-content {
-    padding-top: 1.5rem;
-  }
-
-  /* Push main content down */
-  .main-frame {
-    margin-top: 1.5rem;
-  }
-
-  /* Push right sidebar (table of contents) down */
+@media (min-width: 72rem) {
+  /* Right sidebar (On this page) - only visible on large desktop */
   .right-sidebar {
-    margin-top: 2.5rem;
+    top: var(--custom-subheader-height) !important;
   }
 }
 
@@ -410,27 +402,25 @@ h1#_top {
 
 /* Tablet layout fixes (50-72rem) - subheader visible, mobile TOC still shown */
 @media (min-width: 50rem) and (max-width: 71.99rem) {
-  /* Reset all the 50rem+ margins/padding that were designed for desktop */
-  .sidebar-pane {
-    margin-top: 0 !important;
-  }
-
-  .sidebar-pane .sidebar-content {
-    padding-top: 0 !important;
-  }
-
   .main-frame {
-    margin-top: 0 !important;
     padding-top: calc(var(--sl-nav-height) + var(--custom-subheader-height) + var(--sl-mobile-toc-height)) !important;
-  }
-
-  .right-sidebar {
-    margin-top: 0 !important;
   }
 
   /* Scroll padding for anchor links */
   html {
     scroll-padding-top: calc(1.5rem + var(--sl-nav-height) + var(--custom-subheader-height) + var(--sl-mobile-toc-height)) !important;
+  }
+}
+
+/* Large desktop layout (72rem+) - no mobile TOC */
+@media (min-width: 72rem) {
+  .main-frame {
+    padding-top: calc(var(--sl-nav-height) + var(--custom-subheader-height)) !important;
+  }
+
+  /* Scroll padding for anchor links */
+  html {
+    scroll-padding-top: calc(1.5rem + var(--sl-nav-height) + var(--custom-subheader-height)) !important;
   }
 }
 
@@ -452,8 +442,7 @@ mobile-starlight-toc .toggle {
 /* Mobile TOC on tablet (50-72rem) */
 @media (min-width: 50rem) and (max-width: 71.99rem) {
   mobile-starlight-toc nav {
-    /* Position flush with header - header has padding-bottom:0 so subtract original padding */
-    top: calc(var(--sl-nav-height) + var(--custom-subheader-height) - 0.75rem) !important;
+    top: calc(var(--sl-nav-height) + var(--custom-subheader-height)) !important;
     background-color: var(--sl-color-bg) !important;
     border: none !important;
   }
@@ -487,6 +476,16 @@ header.header {
   transform: translateX(-50%);
 }
 
+/* Subheader follows header width */
+@media (min-width: 50rem) {
+  .subheader-nav {
+    max-width: var(--custom-max-width);
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%);
+  }
+}
+
 /* Mobile nav toggle follows header width */
 @media (max-width: 49.99rem) {
   .mobile-nav-toggle {
@@ -497,12 +496,6 @@ header.header {
   }
 }
 
-/* Mobile TOC follows header width */
-mobile-starlight-toc nav {
-  max-width: var(--custom-max-width);
-  left: 50% !important;
-  transform: translateX(-50%);
-}
 
 /* Sidebar borders extend to edge of constrained area */
 @media (min-width: 50rem) {

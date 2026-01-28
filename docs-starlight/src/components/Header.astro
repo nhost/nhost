@@ -41,17 +41,27 @@ const currentSection = navLinks.find(link => {
 </Default>
 
 <style is:global>
-    /* Subheader navigation */
+    /* Subheader: hidden on mobile, visible on desktop */
     .subheader-nav {
         display: none;
-        width: 100%;
-        flex: 0 0 100%;
-        height: var(--custom-subheader-height);
-        align-items: stretch;
-        justify-content: space-between;
-        padding: 0 var(--sl-nav-pad-x) 0 calc(var(--sl-nav-pad-x) - 2rem);
-        border-top: 1px solid var(--sl-color-hairline-light);
-        background: var(--sl-color-bg-nav);
+    }
+
+    @media (min-width: 50rem) {
+        .subheader-nav {
+            display: flex;
+            position: fixed;
+            top: var(--sl-nav-height);
+            left: 0;
+            right: 0;
+            z-index: var(--sl-z-index-navbar);
+            width: 100%;
+            height: var(--custom-subheader-height);
+            align-items: stretch;
+            justify-content: space-between;
+            padding: 0 var(--sl-nav-pad-x);
+            background: var(--sl-color-bg);
+            border-bottom: 1px solid var(--sl-color-hairline-light);
+        }
     }
 
     .subheader-links {
@@ -306,19 +316,6 @@ const currentSection = navLinks.find(link => {
         .mobile-nav-toggle {
             display: none !important;
         }
-
-        /* Make header wrap for subheader */
-        header.header {
-            flex-wrap: wrap !important;
-            height: auto !important;
-            padding-bottom: 0 !important;
-        }
-
-        .subheader-nav.visible {
-            display: flex;
-            background: transparent;
-            border-top: none;
-        }
     }
 </style>
 
@@ -415,14 +412,6 @@ const currentSection = navLinks.find(link => {
 </nav>
 
 <script>
-    // Move subheader nav inside the header
-    const nav = document.getElementById('subheader-nav');
-    const header = document.querySelector('header.header');
-    if (nav && header) {
-        header.appendChild(nav);
-        nav.classList.add('visible');
-    }
-
     // Mobile navigation toggle
     const mobileNavToggle = document.getElementById('mobile-nav-toggle');
     const mobileNav = document.getElementById('mobile-nav');
