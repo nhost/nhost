@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"io"
+	"log/slog"
 	"os"
 	"testing"
 
@@ -51,7 +52,7 @@ func TestManipulate(t *testing.T) {
 		{
 			name:     "webp",
 			filename: "testdata/nhost.webp",
-			sum:      "e9e2342f901aa447ebd32ee4ef5a6f89f007f8d692350ec45b7f02b727cc043b",
+			sum:      "66a16ec7b05240a9bc9b3d634b9119c5a4eefef0276d50a9e2c38ae9610d746b",
 			size:     17784,
 			options:  image.Options{Width: 300, Height: 100, Blur: 2, Format: image.ImageTypeWEBP},
 		},
@@ -65,14 +66,14 @@ func TestManipulate(t *testing.T) {
 		{
 			name:     "webp to avif",
 			filename: "testdata/nhost.webp",
-			sum:      "44ae1c37353bcd8db71df35120be7c6c22435d258ccb3248662bd4fd181b7cf0",
+			sum:      "389bb2071673d6aaa5b66ee520fc8d08176c5bbe2ce044ab0b6dfa9bbb1c5d9e",
 			size:     17784,
 			options:  image.Options{Width: 300, Height: 100, Blur: 2, Format: image.ImageTypeAVIF},
 		},
 		{
 			name:     "jpeg to avif, no image manipulation",
 			filename: "testdata/nhost.jpg",
-			sum:      "3c03519a14713701db1eaab77dae305b5484f20baacac9625294dd6952446062",
+			sum:      "1483ec3d4cd4166898238efe7c7df7bff56a8369b44b5f7a2aa91231df992e90",
 			size:     17784,
 			options:  image.Options{Format: image.ImageTypeAVIF},
 		},
@@ -105,7 +106,7 @@ func TestManipulate(t *testing.T) {
 		{
 			name:     "webp to heic",
 			filename: "testdata/nhost.webp",
-			sum:      "f1d3ebb85e83f70b4d283b30e5c2f765a9f8847b7dceae3d40907aab16b93004",
+			sum:      "7a3650d554f72197a6d34a9e2543a0e4fe93db2babfd723ebb07e780f7aa7f5a",
 			size:     17784,
 			options:  image.Options{Width: 300, Height: 100, Blur: 2, Format: image.ImageTypeHEIC},
 		},
@@ -126,8 +127,10 @@ func TestManipulate(t *testing.T) {
 			hasher := sha256.New()
 			// f, _ := os.OpenFile("/tmp/nhost-test."+tc.name, os.O_WRONLY|os.O_CREATE, 0o644)
 			// defer f.Close()
-			// if err := transformer.Run(orig, tc.size, f, tc.options); err != nil {
-			if err := transformer.Run(orig, tc.size, hasher, tc.options); err != nil {
+			// if err := transformer.Run(slog.Default(), orig, tc.size, f, tc.options); err != nil {
+			if err := transformer.Run(
+				orig, tc.size, hasher, tc.options, slog.Default(),
+			); err != nil {
 				t.Fatal(err)
 			}
 
@@ -156,6 +159,7 @@ func BenchmarkManipulate(b *testing.B) {
 			33399,
 			io.Discard,
 			image.Options{Width: 300, Height: 100, Blur: 1.5, Format: image.ImageTypeJPEG},
+			slog.Default(),
 		); err != nil {
 			b.Fatal(err)
 		}
