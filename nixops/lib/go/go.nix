@@ -139,7 +139,7 @@ in
     , nativeBuildInputs
     , postInstall ? ""
     }: (pkgs.buildGoModule.override { go = pkgs.go; } {
-      inherit src version ldflags buildInputs nativeBuildInputs;
+      inherit src version ldflags buildInputs;
 
       pname = name;
 
@@ -148,6 +148,8 @@ in
       doCheck = false;
 
       subPackages = [ submodule ];
+
+      nativeBuildInputs = nativeBuildInputs ++ [ pkgs.removeReferencesTo ];
 
       postInstall = postInstall;
 
@@ -165,6 +167,10 @@ in
           mv $dir/* $dir/..
           rm -rf $dir
         fi
+      '';
+
+      postFixup = (old.postFixup or "") + ''
+        find $out/bin -type f -exec remove-references-to -t ${pkgs.go} {} +
       '';
     });
 
