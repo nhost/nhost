@@ -288,6 +288,11 @@ const currentSection = navLinks.find(link => {
         border-bottom: 1px solid var(--sl-color-hairline-light) !important;
     }
 
+    /* Hide the border/gap where theme toggle used to be */
+    .social-icons::after {
+        display: none !important;
+    }
+
     @media (min-width: 50rem) {
         header.header {
             background-color: var(--sl-color-bg) !important;

@@ -2,6 +2,11 @@
    NHOST BRAND THEME
    ============================================== */
 
+/* Force dark theme only */
+:root {
+  color-scheme: dark;
+}
+
 /* Font declarations */
 @font-face {
   font-family: 'Mona Sans';
