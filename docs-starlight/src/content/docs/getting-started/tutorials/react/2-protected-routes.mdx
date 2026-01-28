@@ -1,0 +1,1438 @@
+---
+title: Protecting Routes and Content in React
+description: >-
+  Learn how to protect routes and content in a React application using Nhost
+  authentication.
+sidebar:
+  label: Protecting Routes
+---
+import { Card, CardGroup } from '@components';
+
+
+This tutorial part demonstrates how to implement robust route protection in a React application using Nhost authentication. You'll build a complete authentication system with a protected `/profile` page that includes cross-tab session synchronization and automatic redirects. In addition, we will see how to show conditional navigation and content based on authentication status.
+
+:::note
+This is **Part 2** in the Full-Stack React Development with Nhost series. This part builds a foundation for authentication-protected routes that you can extend to secure any part of your application.
+:::
+
+## Full-Stack React Development with Nhost
+
+<CardGroup cols={3}>
+<Card title="1. Create Project" icon="plus" href="/getting-started/tutorials/react/1-introduction">
+Set up your Nhost project
+</Card>
+
+<Card title="2. Protected Routes" icon="lock" href="/getting-started/tutorials/react/2-protected-routes">
+**Current** - Route protection basics
+</Card>
+
+<Card title="3. User Authentication" icon="user" href="/getting-started/tutorials/react/3-user-authentication">
+Complete auth flow
+</Card>
+
+<Card title="4. GraphQL Operations" icon="list-check" href="/getting-started/tutorials/react/4-graphql-operations">
+CRUD operations with GraphQL
+</Card>
+
+<Card title="5. File Uploads" icon="upload" href="/getting-started/tutorials/react/5-file-uploads">
+File upload and management
+</Card>
+</CardGroup>
+
+## Prerequisites
+
+- An [Nhost project](/getting-started/tutorials/react/1-introduction) set up
+- Node.js 20+ installed
+- Basic knowledge of React and React Router
+
+## Step-by-Step Guide
+
+
+### Create a New React App
+
+We'll start by creating a fresh React application using Vite with TypeScript support. Vite provides fast development server and optimized builds for modern React applications.
+
+```bash
+npm create vite@latest nhost-react-tutorial -- --template react-ts
+cd nhost-react-tutorial
+npm install
+```
+
+
+
+### Install Required Dependencies
+
+Install the Nhost JavaScript SDK and React Router for client-side routing. The Nhost SDK handles authentication, while React Router enables protected route navigation.
+
+```bash
+npm install @nhost/nhost-js react-router-dom
+```
+
+
+
+### Environment Configuration
+
+Configure your Nhost project connection by creating environment variables. This allows the app to connect to your specific Nhost backend.
+
+Create a `.env` file in your project root:
+
+```bash
+VITE_NHOST_REGION=<region>
+VITE_NHOST_SUBDOMAIN=<subdomain>
+```
+
+:::caution
+Replace `<region>` and `<subdomain>` with the actual values from your Nhost project dashboard.
+:::
+
+
+
+### Create the Nhost Auth Provider
+
+Build the core authentication provider that manages user sessions across your application. This component provides authentication state to all child components and handles cross-tab synchronization.
+
+```tsx src/lib/nhost/AuthProvider.tsx lines
+import { createClient, type NhostClient } from "@nhost/nhost-js";
+import type { Session } from "@nhost/nhost-js/auth";
+import {
+  createContext,
+  type ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+
+/**
+ * Authentication context interface providing access to user session state and Nhost client.
+ * Used throughout the React application to access authentication-related data and operations.
+ */
+interface AuthContextType {
+  /** Current authenticated user object, null if not authenticated */
+  user: Session["user"] | null;
+  /** Current session object containing tokens and user data, null if no active session */
+  session: Session | null;
+  /** Boolean indicating if user is currently authenticated */
+  isAuthenticated: boolean;
+  /** Boolean indicating if authentication state is still loading */
+  isLoading: boolean;
+  /** Nhost client instance for making authenticated requests */
+  nhost: NhostClient;
+}
+
+// Create React context for authentication state and nhost client
+const AuthContext = createContext<AuthContextType | null>(null);
+
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+/**
+ * AuthProvider component that provides authentication context to the React application.
+ *
+ * This component handles:
+ * - Initializing the Nhost client with default EventEmitterStorage
+ * - Managing authentication state (user, session, loading, authenticated status)
+ * - Cross-tab session synchronization using sessionStorage.onChange events
+ * - Page visibility and focus event handling to maintain session consistency
+ * - Client-side only session management (no server-side rendering)
+ */
+export const AuthProvider = ({ children }: AuthProviderProps) => {
+  const [user, setUser] = useState<Session["user"] | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const lastRefreshTokenIdRef = useRef<string | null>(null);
+
+  // Initialize Nhost client with default SessionStorage (local storage)
+  const nhost = useMemo(
+    () =>
+      createClient({
+        region: import.meta.env.VITE_NHOST_REGION || "local",
+        subdomain: import.meta.env.VITE_NHOST_SUBDOMAIN || "local",
+      }),
+    [],
+  );
+
+  /**
+   * Handles session reload when refresh token changes.
+   * This detects when the session has been updated from other tabs.
+   *
+   * @param currentRefreshTokenId - The current refresh token ID to compare against stored value
+   */
+  const reloadSession = useCallback(
+    (currentRefreshTokenId: string | null) => {
+      if (currentRefreshTokenId !== lastRefreshTokenIdRef.current) {
+        lastRefreshTokenIdRef.current = currentRefreshTokenId;
+
+        // Update local authentication state to match current session
+        const currentSession = nhost.getUserSession();
+        setUser(currentSession?.user || null);
+        setSession(currentSession);
+        setIsAuthenticated(!!currentSession);
+      }
+    },
+    [nhost],
+  );
+
+  // Initialize authentication state and set up cross-tab session synchronization
+  useEffect(() => {
+    setIsLoading(true);
+
+    // Load initial session state from Nhost client
+    const currentSession = nhost.getUserSession();
+    setUser(currentSession?.user || null);
+    setSession(currentSession);
+    setIsAuthenticated(!!currentSession);
+    lastRefreshTokenIdRef.current = currentSession?.refreshTokenId ?? null;
+    setIsLoading(false);
+
+    // Subscribe to session changes from other browser tabs
+    // This enables real-time synchronization when user signs in/out in another tab
+    const unsubscribe = nhost.sessionStorage.onChange((session) => {
+      reloadSession(session?.refreshTokenId ?? null);
+    });
+
+    return unsubscribe;
+  }, [nhost, reloadSession]);
+
+  // Handle session changes from page focus events (for additional session consistency)
+  useEffect(() => {
+    /**
+     * Checks for session changes when page becomes visible or focused.
+     * In the React SPA context, this provides additional consistency checks
+     * though it's less critical than in the Next.js SSR version.
+     */
+    const checkSessionOnFocus = () => {
+      reloadSession(nhost.getUserSession()?.refreshTokenId ?? null);
+    };
+
+    // Monitor page visibility changes (tab switching, window minimizing)
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) {
+        checkSessionOnFocus();
+      }
+    });
+
+    // Monitor window focus events (clicking back into the browser window)
+    window.addEventListener("focus", checkSessionOnFocus);
+
+    // Cleanup event listeners on component unmount
+    return () => {
+      document.removeEventListener("visibilitychange", checkSessionOnFocus);
+      window.removeEventListener("focus", checkSessionOnFocus);
+    };
+  }, [nhost, reloadSession]);
+
+  const value: AuthContextType = {
+    user,
+    session,
+    isAuthenticated,
+    isLoading,
+    nhost,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
+
+/**
+ * Custom hook to access the authentication context.
+ *
+ * Must be used within a component wrapped by AuthProvider.
+ * Provides access to current user session, authentication state, and Nhost client.
+ *
+ * @throws {Error} When used outside of AuthProvider
+ * @returns {AuthContextType} Authentication context containing user, session, and client
+ *
+ * @example
+ * ```tsx
+ * function MyComponent() {
+ *   const { user, isAuthenticated, nhost } = useAuth();
+ *
+ *   if (!isAuthenticated) {
+ *     return <div>Please sign in</div>;
+ *   }
+ *
+ *   return <div>Welcome, {user?.displayName}!</div>;
+ * }
+ * ```
+ */
+export const useAuth = (): AuthContextType => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};
+```
+
+
+
+### Create the Protected Route Component
+
+Build a reusable component that wraps protected routes and handles authentication checks. This component prevents unauthorized access and provides loading states during authentication verification.
+
+```tsx src/components/ProtectedRoute.tsx lines
+import { Navigate, Outlet } from "react-router-dom";
+import { useAuth } from "../lib/nhost/AuthProvider";
+
+interface ProtectedRouteProps {
+  redirectTo?: string;
+}
+
+export default function ProtectedRoute({
+  redirectTo = "/signin",
+}: ProtectedRouteProps) {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="loading-container">
+        <div className="loading-content">
+          <div className="spinner"></div>
+          <span className="loading-text">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to={redirectTo} />;
+  }
+
+  return <Outlet />;
+}
+```
+
+
+
+### Create the Profile Page
+
+Create a page that displays user information. Note that the page itself doesn't need any special authentication logic - the route protection is handled entirely by wrapping it with the ProtectedRoute component from the previous step when we set up routing later.
+
+```tsx src/pages/Profile.tsx lines
+import { useAuth } from "../lib/nhost/AuthProvider";
+
+export default function Profile() {
+  const { user, session } = useAuth();
+
+  return (
+    <div className="container">
+      <header className="page-header">
+        <h1 className="page-title">Your Profile</h1>
+      </header>
+
+      <div className="form-card">
+        <h3 className="form-title">User Information</h3>
+        <div className="form-fields">
+          <div className="field-group">
+            <strong>Display Name:</strong> {user?.displayName || "Not set"}
+          </div>
+          <div className="field-group">
+            <strong>Email:</strong> {user?.email || "Not available"}
+          </div>
+          <div className="field-group">
+            <strong>User ID:</strong> {user?.id || "Not available"}
+          </div>
+          <div className="field-group">
+            <strong>Roles:</strong> {user?.roles?.join(", ") || "None"}
+          </div>
+          <div className="field-group">
+            <strong>Email Verified:</strong>
+            <span
+              className={
+                user?.emailVerified ? "email-verified" : "email-unverified"
+              }
+            >
+              {user?.emailVerified ? "✓ Yes" : "✗ No"}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div className="form-card">
+        <h3 className="form-title">Session Information</h3>
+        <div className="description">
+          <pre className="session-display">
+            {JSON.stringify(session, null, 2)}
+          </pre>
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+
+
+### Create a Simple Home Page
+
+Build a public homepage that adapts its content based on authentication status. This shows users different options depending on whether they're signed in.
+
+```tsx src/pages/Home.tsx lines
+import { useAuth } from "../lib/nhost/AuthProvider";
+
+export default function Home() {
+  const { isAuthenticated, user } = useAuth();
+
+  return (
+    <div className="container">
+      <header className="page-header">
+        <h1 className="page-title">Welcome to Nhost React Demo</h1>
+      </header>
+
+      {isAuthenticated ? (
+        <div>
+          <p>Hello, {user?.displayName || user?.email}!</p>
+        </div>
+      ) : (
+        <div>
+          <p>You are not signed in.</p>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+
+
+### Create the Navigation Component
+
+Create a reusable navigation component that provides consistent navigation across all pages. This component adapts its links based on authentication status - showing different options for signed-in and signed-out users.
+
+```tsx src/components/Navigation.tsx lines
+import { Link } from "react-router-dom";
+import { useAuth } from "../lib/nhost/AuthProvider";
+
+export default function Navigation() {
+  const { isAuthenticated } = useAuth();
+
+  return (
+    <nav className="navigation">
+      <div className="nav-container">
+        <Link to="/" className="nav-logo">
+          Nhost React Demo
+        </Link>
+
+        <div className="nav-links">
+          <Link to="/" className="nav-link">
+            Home
+          </Link>
+
+          {isAuthenticated ? (
+            <>
+              <Link to="/profile" className="nav-link">
+                Profile
+              </Link>
+            </>
+          ) : (
+            <>
+             Placeholder for signin/signup links
+            </>
+          )}
+        </div>
+      </div>
+    </nav>
+  );
+}
+```
+
+
+
+### Update the Main App Component
+
+Configure the application's routing structure with React Router. This sets up the route hierarchy, wraps protected routes with the ProtectedRoute component, includes the navigation component, and provides the authentication context to the entire app.
+
+```tsx src/App.tsx lines
+import {
+  createBrowserRouter,
+  createRoutesFromElements,
+  Navigate,
+  Outlet,
+  Route,
+  RouterProvider,
+} from "react-router-dom";
+import Navigation from "./components/Navigation";
+import ProtectedRoute from "./components/ProtectedRoute";
+import { AuthProvider } from "./lib/nhost/AuthProvider";
+import Home from "./pages/Home";
+import Profile from "./pages/Profile";
+
+// Root layout component to wrap all routes
+const RootLayout = () => {
+  return (
+    <>
+      <Navigation />
+      <div className="app-content">
+        <Outlet />
+      </div>
+    </>
+  );
+};
+
+// Create router with routes
+const router = createBrowserRouter(
+  createRoutesFromElements(
+    <Route element={<RootLayout />}>
+      <Route index element={<Home />} />
+      <Route element={<ProtectedRoute />}>
+        <Route path="profile" element={<Profile />} />
+      </Route>
+      <Route path="*" element={<Navigate to="/" />} />
+    </Route>,
+  ),
+);
+
+function App() {
+  return (
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
+  );
+}
+
+export default App;
+```
+
+
+
+### Add Application Styles
+
+Replace the contents of the file `src/index.css` with the following styles to provide a clean and modern look for the application. This file will be used across the rest of series.
+
+```css src/index.css lines
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  display: block;
+  margin: 0;
+  padding: 0;
+}
+
+a {
+  font-weight: 500;
+  color: #646cff;
+  text-decoration: inherit;
+}
+
+a:hover {
+  color: #535bf2;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #1a1a1a;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+
+button:hover {
+  border-color: #646cff;
+}
+
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+input,
+textarea {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+input:focus,
+textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 4rem;
+}
+
+label {
+  display: block;
+  margin: 0 0 0.5rem 0;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.875rem;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Global Layout */
+.app-content {
+  padding: 0 2rem 2rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.page-center {
+  text-align: center;
+  padding: 2rem;
+}
+
+.page-header {
+  margin-bottom: 2rem;
+}
+
+.page-title {
+  font-weight: 700;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.margin-bottom {
+  margin-bottom: 1rem;
+}
+
+.margin-top {
+  margin-top: 1rem;
+}
+
+.container {
+  width: 800px;
+  max-width: calc(100vw - 4rem);
+  min-width: 320px;
+  margin: 0 auto;
+  padding: 2rem;
+  box-sizing: border-box;
+  position: relative;
+}
+
+/* Status Messages */
+.success-message {
+  padding: 1rem;
+  background-color: #d4edda;
+  color: #155724;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.error-message {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  margin: 1rem 0;
+}
+
+.help-text {
+  color: #666;
+}
+
+.verification-status {
+  color: #28a745;
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.verification-status.error {
+  color: #dc3545;
+  font-size: 1.1rem;
+}
+
+/* Email Verification Status */
+.email-verified {
+  color: #10b981;
+  font-weight: bold;
+  margin-left: 0.5rem;
+}
+
+.email-unverified {
+  color: #ef4444;
+  font-weight: bold;
+  margin-left: 0.5rem;
+}
+
+/* Debug Info */
+.debug-panel {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  text-align: left;
+  max-height: 200px;
+  overflow: auto;
+}
+
+.debug-title {
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.debug-item {
+  margin-bottom: 0.25rem;
+}
+
+.debug-key {
+  font-family: monospace;
+  color: #007bff;
+}
+
+.debug-value {
+  font-family: monospace;
+}
+
+/* Session Display */
+.session-display {
+  font-size: 0.75rem;
+  overflow: auto;
+  margin: 0;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Loading Spinner */
+.spinner-verify {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+/* Navigation */
+.navigation {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  margin-bottom: 2rem;
+}
+
+.nav-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nav-logo {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: white;
+  text-decoration: none;
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.nav-logo:hover {
+  opacity: 0.8;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.nav-link {
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.875rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.nav-link:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.nav-button {
+  color: #ef4444;
+}
+
+.nav-button:hover {
+  background: rgba(239, 68, 68, 0.2);
+}
+
+/* Buttons */
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-width: 120px;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  color: white;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.btn-cancel {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.btn-cancel:hover {
+  background: rgba(239, 68, 68, 0.2);
+}
+
+/* Loading State */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 4rem 2rem;
+}
+
+.loading-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 3px solid rgba(59, 130, 246, 0.3);
+  border-top: 3px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loading-text {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.875rem;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+}
+
+.empty-icon {
+  width: 4rem;
+  height: 4rem;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 0 auto 1rem;
+}
+
+.empty-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: white;
+  margin: 0 0 0.5rem 0;
+}
+
+.empty-description {
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+}
+
+/* Forms */
+.form-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.form-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: white;
+  margin: 0 0 1.5rem 0;
+}
+
+.form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+/* Auth Pages */
+.auth-form {
+  max-width: 400px;
+}
+
+.auth-form-field {
+  margin-bottom: 1rem;
+}
+
+.auth-input {
+  width: 100%;
+  padding: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.auth-error {
+  color: red;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  background-color: #fee;
+  border-radius: 4px;
+}
+
+.auth-button {
+  width: 100%;
+  padding: 0.75rem;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.auth-button:disabled {
+  cursor: not-allowed;
+}
+
+.auth-button.primary {
+  background-color: #28a745;
+}
+
+.auth-button.secondary {
+  background-color: #007bff;
+}
+
+.auth-links {
+  margin-top: 1rem;
+}
+
+/* Todos */
+
+.todo-form {
+  width: 100%;
+}
+
+/* Todo List */
+.todos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.todo-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.todo-card:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.todo-card.completed {
+  opacity: 0.7;
+}
+
+/* Todo Content */
+.todo-content {
+  padding: 1rem 1.5rem;
+}
+
+.todo-edit {
+  padding: 1.5rem;
+  min-height: 200px;
+}
+
+.edit-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.todo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.todo-title-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  flex: 1;
+  line-height: 1.4;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: calc(100% - 140px);
+}
+
+.todo-title-btn:hover {
+  color: #3b82f6;
+}
+
+.todo-title-btn.completed {
+  text-decoration: line-through;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.todo-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  min-width: 132px;
+  justify-content: flex-end;
+}
+
+/* Action Buttons */
+.action-btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: all 0.2s ease;
+  -webkit-text-fill-color: currentColor;
+}
+
+.action-btn-complete {
+  color: #10b981;
+  font-size: 20px;
+}
+
+.action-btn-complete:hover {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+}
+
+.action-btn-edit {
+  color: #3b82f6;
+}
+
+.action-btn-edit:hover {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+}
+
+.action-btn-delete {
+  color: #ef4444;
+}
+
+.action-btn-delete:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+/* Add Todo Button */
+.add-todo-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 18px;
+  font-weight: normal;
+  -webkit-text-fill-color: white;
+  transition: all 0.2s ease;
+}
+
+.add-todo-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+}
+
+/* Todo Details */
+.todo-details {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.description {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.description p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.6;
+}
+
+.description.completed p {
+  text-decoration: line-through;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.todo-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.meta-dates {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.meta-item {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.completion-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: #10b981;
+  font-weight: 500;
+}
+
+.completion-icon {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .nav-container {
+    padding: 1rem;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .nav-links {
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .container {
+    padding: 1rem;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .edit-actions {
+    flex-direction: column;
+  }
+
+  .todo-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .todo-actions {
+    align-self: stretch;
+    justify-content: center;
+  }
+
+  .meta-dates {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .todo-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}
+
+/* File Upload */
+.file-upload-btn {
+  min-height: 120px;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  border: 2px dashed rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.file-upload-btn:hover {
+  border-color: rgba(255, 255, 255, 0.5);
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.file-upload-info {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* File Table */
+.file-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.file-table th {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.file-table th:last-child {
+  text-align: center;
+}
+
+.file-table td {
+  padding: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.file-table tr:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.file-name {
+  color: white;
+  font-weight: 500;
+}
+
+.file-meta {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.875rem;
+}
+
+.file-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+/* Responsive File Table */
+@media (max-width: 768px) {
+  .file-table {
+    font-size: 0.875rem;
+  }
+
+  .file-table th,
+  .file-table td {
+    padding: 0.5rem;
+  }
+
+  .file-actions {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+}
+```
+
+
+
+### Run and test the Application
+
+Start the development server to test your route protection implementation:
+
+```bash
+npm run dev
+```
+
+Things to try out:
+
+1. Try navigating to `/profile` - you should be redirected to the homepage `/` since you're not authenticated.
+2. Because you are not signed in, the navigation bar should only show the "Home" link and the placeholder for signin/signup links.
+3. On the homepage, you should see a message indicating that you are not signed in.
+
+After we complete the next tutorial on user authentication, you will be able to sign in and access the protected `/profile` page and see how the navigation bar and homepage updates accordingly.
+
+
+
+
+## How It Works
+
+1. **AuthProvider**: Manages authentication state using Nhost's client and provides it through React Context
+2. **ProtectedRoute**: A wrapper component that checks authentication status before rendering child routes
+3. **Profile Page**: A protected page that displays user information, only accessible when authenticated
+4. **Automatic Redirects**: Unauthenticated users are redirected to `/signin`, authenticated users can access `/profile`
+
+## Key Features Demonstrated
+
+
+<details>
+<summary>Route Protection</summary>
+
+Routes are protected using React Router and authentication context, preventing unauthorized access to sensitive areas.
+
+</details>
+
+<details>
+<summary>Loading States</summary>
+
+Smooth loading indicators are shown during authentication checks to improve user experience.
+
+</details>
+
+<details>
+<summary>Automatic Redirects</summary>
+
+Users are automatically redirected based on their authentication status, ensuring proper navigation flow.
+
+</details>
+
+<details>
+<summary>Cross-tab Synchronization</summary>
+
+Authentication state is synchronized across multiple browser tabs using Nhost's session storage events.
+
+</details>
+
+<details>
+<summary>Session Management</summary>
+
+Complete user session and profile information is displayed and managed throughout the application.
+
+</details>
+

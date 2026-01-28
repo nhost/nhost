@@ -1,0 +1,171 @@
+---
+title: Get up and running with Nhost and Vue
+description: Get up and running with Nhost and Vue
+sidebar:
+  label: Vue
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+
+
+  ### Create Project
+
+If you haven't, please create a project through the [Nhost Dashboard](https://app.nhost.io).
+
+
+
+  ### Setup Database
+
+Navigate to the **SQL Editor** of the database and run the following SQL to create a new table `movies` with some great movies.
+
+    ```sql SQL Editor
+    CREATE TABLE movies (
+      id SERIAL PRIMARY KEY,
+      title VARCHAR(255) NOT NULL,
+      director VARCHAR(255),
+      release_year INTEGER,
+      genre VARCHAR(100),
+      rating FLOAT
+    );
+
+    INSERT INTO movies (title, director, release_year, genre, rating) VALUES
+      ('Inception', 'Christopher Nolan', 2010, 'Sci-Fi', 8.8),
+      ('The Godfather', 'Francis Ford Coppola', 1972, 'Crime', 9.2),
+      ('Forrest Gump', 'Robert Zemeckis', 1994, 'Drama', 8.8),
+      ('The Matrix', 'Lana Wachowski, Lilly Wachowski', 1999, 'Action', 8.7);
+    ```
+
+    :::caution
+Make sure the option `Track this` is enabled
+:::
+
+    ![SQL Editor](/images/quickstarts/react/sql-editor.png)
+
+
+
+  ### Permissions
+
+Select the new table `movies` just created, and click in **Edit Permissions** to set the following permissions for the `public` role and `select` action.
+
+    ![Permission Rules](/images/quickstarts/react/permissions.png)
+
+
+
+  ### Setup the Application
+
+Create the application using standard tooling:
+
+    ```bash Terminal
+    npm create vite@latest my-vue-app -- --template vue
+    cd my-vue-app
+    ```
+
+
+
+  ### Install the Nhost package
+
+Navigate to the application and install `@nhost/nhost-js`.
+
+    ```bash Terminal
+    npm install @nhost/nhost-js
+    ```
+
+
+
+  ### Configure the Nhost client and fetch the list of movies
+
+<Tabs>
+
+
+    <TabItem label="./src/lib/nhost.js">
+```js
+    import { NhostClient } from "@nhost/nhost-js";
+
+    // Replace <subdomain> and <region> with your project's values
+    export const nhost = new NhostClient({
+      subdomain: "<subdomain>",
+      region: "<region>",
+    })
+    ```
+</TabItem>
+
+    <TabItem label="./src/App.vue">
+```vue
+    <script setup>
+    import { ref, onMounted } from 'vue'
+    import { nhost } from './lib/nhost'
+
+    const movies = ref([])
+    const loading = ref(true)
+    const error = ref(null)
+
+    const fetchMovies = async () => {
+      try {
+        const resp = await nhost.graphql.request({
+          query: `query GetMovies {
+            movies {
+              title
+              director
+              release_year
+              genre
+              rating
+            }
+          }`,
+        })
+
+        movies.value = resp.body.data.movies || []
+      } catch (err) {
+        error.value = 'Failed to fetch movies'
+      } finally {
+        loading.value = false
+      }
+    }
+
+    onMounted(() => {
+      fetchMovies()
+    })
+    </script>
+
+    <template>
+      <div v-if="loading">Loading...</div>
+      <div v-else-if="error">Error: {{ error }}</div>
+      <div v-else>
+        <h1>Movies</h1>
+        <table>
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Director</th>
+              <th>Release Year</th>
+              <th>Genre</th>
+              <th>Rating</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(movie, index) in movies" :key="index">
+              <td>{{ movie.title }}</td>
+              <td>{{ movie.director }}</td>
+              <td>{{ movie.release_year }}</td>
+              <td>{{ movie.genre }}</td>
+              <td>{{ movie.rating }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </template>
+    ```
+</TabItem>
+
+    
+</Tabs>
+
+
+
+  ### The end
+
+Run your project with `npm run dev` and navigate to `http://localhost:5173` in your browser.
+
+
+
+
+

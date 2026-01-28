@@ -1,0 +1,172 @@
+---
+title: Get up and running with Nhost and SvelteKit
+description: Get up and running with Nhost and SvelteKit
+sidebar:
+  label: SvelteKit
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+
+
+  ### Create Project
+
+If you haven't, please create a project through the [Nhost Dashboard](https://app.nhost.io).
+
+
+
+  ### Setup Database
+
+Navigate to the **SQL Editor** of the database and run the following SQL to create a new table `movies` with some great movies.
+
+    ```sql SQL Editor
+    CREATE TABLE movies (
+      id SERIAL PRIMARY KEY,
+      title VARCHAR(255) NOT NULL,
+      director VARCHAR(255),
+      release_year INTEGER,
+      genre VARCHAR(100),
+      rating FLOAT
+    );
+
+    INSERT INTO movies (title, director, release_year, genre, rating) VALUES
+      ('Inception', 'Christopher Nolan', 2010, 'Sci-Fi', 8.8),
+      ('The Godfather', 'Francis Ford Coppola', 1972, 'Crime', 9.2),
+      ('Forrest Gump', 'Robert Zemeckis', 1994, 'Drama', 8.8),
+      ('The Matrix', 'Lana Wachowski, Lilly Wachowski', 1999, 'Action', 8.7);
+    ```
+
+    :::caution
+Make sure the option `Track this` is enabled
+:::
+
+    ![SQL Editor](/images/quickstarts/react/sql-editor.png)
+
+
+
+  ### Permissions
+
+Select the new table `movies` just created, and click in **Edit Permissions** to set the following permissions for the `public` role and `select` action.
+
+    ![Permission Rules](/images/quickstarts/react/permissions.png)
+
+
+
+  ### Setup the Application
+
+Create the application using standard tooling:
+
+    ```bash Terminal
+    npm create vite@latest my-svelte-app -- --template svelte
+    cd my-svelte-app
+    ```
+
+
+
+  ### Install the Nhost package
+
+Navigate to the application and install `@nhost/nhost-js`.
+
+    ```bash Terminal
+    npm install @nhost/nhost-js
+    ```
+
+
+
+  ### Configure the Nhost client and fetch the list of movies
+
+<Tabs>
+
+
+    <TabItem label="./src/lib/nhost.js">
+```js
+    import { NhostClient } from "@nhost/nhost-js";
+
+    // Replace <subdomain> and <region> with your project's values
+    export const nhost = new NhostClient({
+      subdomain: "<subdomain>",
+      region: "<region>",
+    })
+    ```
+</TabItem>
+
+    <TabItem label="./src/App.svelte">
+```svelte
+    <script>
+      import { onMount } from 'svelte'
+      import { nhost } from './lib/nhost'
+
+      let movies = []
+      let loading = true
+      let error = null
+
+      onMount(async () => {
+        try {
+          const resp = await nhost.graphql.request({
+            query: `query GetMovies {
+              movies {
+                title
+                director
+                release_year
+                genre
+                rating
+              }
+            }`,
+          })
+
+          movies = resp.body.data.movies || []
+        } catch (err) {
+          error = 'Failed to fetch movies'
+        } finally {
+          loading = false
+        }
+      })
+    </script>
+
+    {#if loading}
+      <div>Loading...</div>
+    {:else if error}
+      <div>Error: {error}</div>
+    {:else}
+      <div>
+        <h1>Movies</h1>
+        <table>
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Director</th>
+              <th>Release Year</th>
+              <th>Genre</th>
+              <th>Rating</th>
+            </tr>
+          </thead>
+          <tbody>
+            {#each movies as movie, index (index)}
+              <tr>
+                <td>{movie.title}</td>
+                <td>{movie.director}</td>
+                <td>{movie.release_year}</td>
+                <td>{movie.genre}</td>
+                <td>{movie.rating}</td>
+              </tr>
+            {/each}
+          </tbody>
+        </table>
+      </div>
+    {/if}
+    ```
+</TabItem>
+
+    
+</Tabs>
+
+
+
+  ### The end
+
+Run your project with `npm run dev` and navigate to `http://localhost:5173` in your browser.
+
+
+
+
+
+

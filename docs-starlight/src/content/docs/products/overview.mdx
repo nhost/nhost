@@ -1,0 +1,92 @@
+---
+title: Products
+template: splash
+hero:
+  title: 'Products'
+  tagline: 'Turn-key convenience plus extensibility'
+  image:
+    alt: Nhost Logo
+    light: '../../../assets/logo/light.svg'
+    dark: '../../../assets/logo/dark.svg'
+  actions:
+    - text: Explore Products
+      link: /products/database/overview
+      icon: right-arrow
+    - text: View on GitHub
+      link: https://github.com/nhost/nhost
+      icon: external
+      variant: minimal
+      attrs:
+        rel: me
+---
+import { Card, CardGroup } from '@components';
+
+
+
+<div className="welcome-page">
+  <div className="welcome-get-started">
+    <h1>Nhost Stack</h1>
+
+<CardGroup cols={2}>
+  <Card
+    title="Database"
+    icon="database"
+    href="/products/database/overview"
+  >
+    Powerful PostgreSQL database with automated migrations and backups
+  </Card>
+  <Card
+    title="GraphQL"
+    icon="webhook"
+    href="/products/graphql/overview"
+  >
+    Instant GraphQL API with comprehensive permissions system
+  </Card>
+  </CardGroup>
+
+<CardGroup cols={2}>
+  <Card
+    title="Auth"
+    icon="lock"
+    href="/products/auth/overview"
+  >
+    Secure authentication with multiple sign-in methods and social providers
+  </Card>
+  <Card
+    title="Storage"
+    icon="warehouse"
+    href="/products/storage/overview"
+  >
+    Scalable file storage with permissions and CDN integration
+  </Card>
+
+</CardGroup>
+
+<h1>Nhost Extend</h1>
+<CardGroup cols={3}>
+  <Card
+    title="Run"
+    icon="play"
+    href="/products/run/overview"
+  >
+    Deploy custom services alongside your Nhost project
+  </Card>
+  <Card
+    title="Functions"
+    icon="lambda"
+    href="/products/functions/overview"
+  >
+    Serverless functions for backend logic and API integrations
+  </Card>
+  <Card
+    title="AI"
+    icon="robot"
+    href="/products/ai/overview"
+  >
+    Integrate AI capabilities with auto-embeddings and assistants
+  </Card>
+</CardGroup>
+  </div>
+</div>
+
+

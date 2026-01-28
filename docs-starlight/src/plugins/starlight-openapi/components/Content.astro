@@ -1,0 +1,31 @@
+---
+import type { Content } from '../libs/content'
+import { isExamples } from '../libs/example'
+import { isSchemaObject } from '../libs/schemaObject'
+
+import ContentPicker from './ContentPicker.astro'
+import Schema from './schema/Schema.astro'
+
+interface Props {
+  content: Content
+}
+
+const { content } = Astro.props
+---
+
+<ContentPicker label="Select media type" types={Object.keys(content)}>
+  {
+    Object.entries(content).map(([type, media], index) => {
+      return (
+        <div data-openapi-content-type={type} hidden={index > 0} role="tabpanel">
+          <Schema
+            example={media.example}
+            examples={isExamples(media.examples) ? media.examples : undefined}
+            schema={isSchemaObject(media.schema) ? media.schema : undefined}
+            {type}
+          />
+        </div>
+      )
+    })
+  }
+</ContentPicker>

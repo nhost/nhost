@@ -1,0 +1,25 @@
+---
+import AnchorHeading from '@astrojs/starlight/components/AnchorHeading.astro'
+import starlightConfig from 'virtual:starlight/user-config'
+
+export interface Props {
+  id: string
+  level: number
+}
+
+const { id, level } = Astro.props
+const headingLevel = Math.min(Math.max(level, 1), 6) as 1 | 2 | 3 | 4 | 5 | 6
+const Element = `h${headingLevel}` as const
+---
+
+{
+  starlightConfig.markdown.headingLinks ? (
+    <AnchorHeading {id} level={headingLevel}>
+      <slot />
+    </AnchorHeading>
+  ) : (
+    <Element {id}>
+      <slot />
+    </Element>
+  )
+}

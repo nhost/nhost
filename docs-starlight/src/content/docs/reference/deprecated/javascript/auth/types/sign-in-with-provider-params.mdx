@@ -1,0 +1,14 @@
+---
+title: SignInWithProviderParams
+description: No description provided.
+sidebar:
+  label: SignInWithProviderParams
+---
+
+# `SignInWithProviderParams`
+
+```ts
+type SignInWithProviderParams =
+  | { provider: Exclude<Provider, 'workos'>; options: CommonProviderOptions }
+  | { provider: 'workos'; options: WorkOsOptions }
+```

@@ -1,0 +1,49 @@
+---
+import type { Operation } from '../../libs/operation'
+import { includesDefaultResponse, type Responses } from '../../libs/response'
+import type { Schema } from '../../libs/schema'
+import Heading from '../Heading.astro'
+import type { SectionHeadingProps } from '../Section.astro'
+
+import Response from './Response.astro'
+
+interface Props extends SectionHeadingProps {
+  operation: Operation
+  responses: Responses | undefined
+  schema: Schema
+}
+
+const { level = 2, operation, prefix = '', responses, schema } = Astro.props
+
+const id = prefix ? `${prefix}-responses` : 'responses'
+const responseSectionHeadingProps: SectionHeadingProps = {
+  level: level + 1,
+  prefix: prefix ? id : undefined,
+}
+---
+
+{
+  responses && (
+    <>
+      <Heading {level} {id}>
+        Responses
+      </Heading>
+      {Object.entries(responses).map(([name, response]) => {
+        if (name === 'default') {
+          return null
+        }
+
+        return <Response {...responseSectionHeadingProps} {name} {operation} {response} {schema} />
+      })}
+      {includesDefaultResponse(responses) && (
+        <Response
+          {...responseSectionHeadingProps}
+          name="default"
+          {operation}
+          response={responses['default']}
+          {schema}
+        />
+      )}
+    </>
+  )
+}
