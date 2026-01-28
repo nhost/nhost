@@ -21,10 +21,7 @@ export default function buildRelationshipSuggestionViewModel({
   dataSource,
   existingRelationshipKeys,
 }: BuildRelationshipSuggestionViewModelProps): RelationshipSuggestionViewModel | null {
-  const typeLabel =
-    suggestion.type && suggestion.type.toLowerCase() === 'array'
-      ? 'Array'
-      : 'Object';
+  const typeLabel = suggestion.type === 'array' ? 'Array' : 'Object';
 
   const fromElement = suggestion.from;
   const toElement = suggestion.to;

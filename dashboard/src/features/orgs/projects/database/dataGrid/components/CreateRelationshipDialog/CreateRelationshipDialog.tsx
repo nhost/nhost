@@ -1,12 +1,10 @@
 import { PlusIcon } from 'lucide-react';
 import { useState } from 'react';
-
 import { Button } from '@/components/ui/v3/button';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { BaseRelationshipDialog } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog';
 import type { BaseRelationshipFormValues } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/BaseRelationshipFormTypes';
-import { useCreateArrayRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateArrayRelationshipMutation';
-import { useCreateObjectRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateObjectRelationshipMutation';
+import { useCreateRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateRelationshipMutation';
 import { useCreateRemoteRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateRemoteRelationshipMutation';
 import { isRemoteSchemaRelationshipFormValues } from '@/features/orgs/projects/database/dataGrid/types/relationships/guards';
 import { prepareLocalRelationshipDTO } from '@/features/orgs/projects/database/dataGrid/utils/prepareLocalRelationshipDTO';
@@ -27,10 +25,8 @@ export default function CreateRelationshipDialog({
 }: CreateRelationshipDialogProps) {
   const [open, setOpen] = useState(false);
   const { data: resourceVersion } = useGetMetadataResourceVersion();
-  const { mutateAsync: createArrayRelationship } =
-    useCreateArrayRelationshipMutation();
-  const { mutateAsync: createObjectRelationship } =
-    useCreateObjectRelationshipMutation();
+  const { mutateAsync: createLocalRelationship } =
+    useCreateRelationshipMutation();
   const { mutateAsync: createRemoteRelationship } =
     useCreateRemoteRelationshipMutation();
 
@@ -59,14 +55,10 @@ export default function CreateRelationshipDialog({
         });
       } else {
         const args = prepareLocalRelationshipDTO(values);
-        const createLocalRelationship =
-          values.relationshipType === 'array'
-            ? createArrayRelationship
-            : createObjectRelationship;
-
         await createLocalRelationship({
           resourceVersion,
           args,
+          type: values.relationshipType,
         });
       }
       triggerToast('Relationship created successfully.');

@@ -132,7 +132,7 @@ export default function DeleteRelationshipDialog({
               <TextWithTooltip
                 text={relationshipToDelete}
                 className="rounded-md bg-muted px-1 py-0.5 font-mono"
-                containerClassName="inline-block max-w-sm"
+                containerClassName="inline-flex max-w-sm"
               />{' '}
               relationship?
             </DialogDescription>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { FormInput } from '@/components/form/FormInput';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
@@ -13,13 +13,12 @@ import {
 } from '@/components/ui/v3/dialog';
 import { Form } from '@/components/ui/v3/form';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
-import { useCreateArrayRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateArrayRelationshipMutation';
-import { useCreateObjectRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateObjectRelationshipMutation';
+import { useCreateRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateRelationshipMutation';
 import { normalizeColumns } from '@/features/orgs/projects/database/dataGrid/utils/normalizeColumns';
 import { prepareSuggestedRelationshipDTO } from '@/features/orgs/projects/database/dataGrid/utils/prepareSuggestedRelationshipDTO';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type {
-  MetadataOperation200,
+  CreateLocalRelationshipArgs,
   SuggestedArrayRelationship,
   SuggestedObjectRelationship,
 } from '@/utils/hasura-api/generated/schemas';
@@ -40,28 +39,13 @@ interface AddSuggestedRelationshipDialogProps {
    */
   tableName: string;
   /**
+   * Default name of the relationship.
+   */
+  defaultRelationshipName: string;
+  /**
    * Suggested relationship to be transformed into a tracked relationship.
    */
   suggestion: SuggestedObjectRelationship | SuggestedArrayRelationship;
-}
-
-function getDefaultRelationshipName(
-  suggestion?: SuggestedObjectRelationship | SuggestedArrayRelationship | null,
-) {
-  if (!suggestion) {
-    return '';
-  }
-
-  const targetTable =
-    suggestion.type?.toLowerCase() === 'array'
-      ? suggestion.to?.table?.name
-      : (suggestion.to?.table?.name ?? suggestion.from?.table?.name);
-
-  if (!targetTable) {
-    return '';
-  }
-
-  return `${targetTable}_${suggestion.type ?? 'relationship'}`;
 }
 
 const RELATIONSHIP_NAME_VALIDATION_MESSAGE =
@@ -76,23 +60,13 @@ export default function AddSuggestedRelationshipDialog({
   schema,
   tableName,
   suggestion,
+  defaultRelationshipName,
 }: AddSuggestedRelationshipDialogProps) {
   const [open, setOpen] = useState(false);
   const { data: resourceVersion } = useGetMetadataResourceVersion();
 
-  const {
-    mutateAsync: createObjectRelationship,
-    isLoading: isCreatingObjectRelationship,
-  } = useCreateObjectRelationshipMutation();
-
-  const {
-    mutateAsync: createArrayRelationship,
-    isLoading: isCreatingArrayRelationship,
-  } = useCreateArrayRelationshipMutation();
-
-  const defaultRelationshipName = getDefaultRelationshipName(suggestion);
-
-  const relationshipNameInputRef = useRef<HTMLInputElement | null>(null);
+  const { mutateAsync: createRelationship, isPending: isCreatingRelationship } =
+    useCreateRelationshipMutation();
 
   const relationshipForm = useForm<AddSuggestedRelationshipFormValues>({
     defaultValues: {
@@ -103,10 +77,7 @@ export default function AddSuggestedRelationshipDialog({
   const { control, handleSubmit, reset, setError, clearErrors, formState } =
     relationshipForm;
 
-  const isSubmitting =
-    isCreatingObjectRelationship ||
-    isCreatingArrayRelationship ||
-    formState.isSubmitting;
+  const isSubmitting = isCreatingRelationship || formState.isSubmitting;
 
   const relationshipSummary = useMemo(() => {
     if (!suggestion) {
@@ -138,15 +109,6 @@ export default function AddSuggestedRelationshipDialog({
 
     reset({ relationshipName: defaultRelationshipName });
     clearErrors('relationshipName');
-
-    const timer = setTimeout(() => {
-      relationshipNameInputRef.current?.focus();
-      relationshipNameInputRef.current?.select();
-    }, 0);
-
-    return () => {
-      clearTimeout(timer);
-    };
   }, [open, defaultRelationshipName, reset, clearErrors]);
 
   const showRelationshipNameError = (message: string) => {
@@ -200,23 +162,17 @@ export default function AddSuggestedRelationshipDialog({
       return;
     }
 
-    let promise: Promise<MetadataOperation200>;
-
+    let args: CreateLocalRelationshipArgs;
+    const type =
+      suggestion.type === 'array'
+        ? 'pg_create_array_relationship'
+        : 'pg_create_object_relationship';
     try {
-      const args = prepareSuggestedRelationshipDTO({
+      args = prepareSuggestedRelationshipDTO({
         baseTable,
         relationshipName,
         source,
         suggestion,
-      });
-      const createRelationship =
-        suggestion.type === 'array'
-          ? createArrayRelationship
-          : createObjectRelationship;
-
-      promise = createRelationship({
-        resourceVersion,
-        args,
       });
     } catch (error) {
       showRelationshipNameError(
@@ -227,11 +183,20 @@ export default function AddSuggestedRelationshipDialog({
       return;
     }
 
-    await execPromiseWithErrorToast(() => promise, {
-      loadingMessage: 'Creating relationship...',
-      successMessage: 'Relationship created successfully.',
-      errorMessage: 'An error occurred while creating the relationship.',
-    });
+    await execPromiseWithErrorToast(
+      async () => {
+        await createRelationship({
+          resourceVersion,
+          args,
+          type,
+        });
+      },
+      {
+        loadingMessage: 'Creating relationship...',
+        successMessage: 'Relationship created successfully.',
+        errorMessage: 'An error occurred while creating the relationship.',
+      },
+    );
 
     handleClose(false);
   };
@@ -269,7 +234,6 @@ export default function AddSuggestedRelationshipDialog({
               className="mt-4 flex flex-col gap-4 text-foreground"
             >
               <FormInput
-                ref={relationshipNameInputRef}
                 control={control}
                 name="relationshipName"
                 label="Relationship Name"

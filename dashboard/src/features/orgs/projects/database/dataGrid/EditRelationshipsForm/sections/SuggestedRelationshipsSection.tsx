@@ -103,6 +103,7 @@ export default function SuggestedRelationshipsSection({
                       schema={tableSchema}
                       tableName={tableName}
                       source={dataSource}
+                      defaultRelationshipName={suggestion.name}
                       suggestion={suggestion.rawSuggestion}
                     />
                   </TableCell>

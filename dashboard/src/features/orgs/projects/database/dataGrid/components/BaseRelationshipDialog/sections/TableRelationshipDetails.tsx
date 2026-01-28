@@ -85,8 +85,12 @@ export default function TableRelationshipDetails() {
         label="Relationship Type"
         placeholder="Select relationship type"
       >
-        <SelectItem value="object">Object Relationship</SelectItem>
-        <SelectItem value="array">Array Relationship</SelectItem>
+        <SelectItem value="pg_create_object_relationship">
+          Object Relationship
+        </SelectItem>
+        <SelectItem value="pg_create_array_relationship">
+          Array Relationship
+        </SelectItem>
       </FormSelect>
 
       <div className="space-y-2 rounded-md border p-4">

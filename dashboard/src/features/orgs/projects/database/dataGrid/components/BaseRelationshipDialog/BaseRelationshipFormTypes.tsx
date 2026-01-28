@@ -73,9 +73,12 @@ const tableRelationshipFormSchema = baseRelationshipFormSchema.extend({
     schema: z.string().min(1, { message: 'Schema is required' }),
     table: z.string().min(1, { message: 'Table is required' }),
   }),
-  relationshipType: z.enum(['array', 'object'], {
-    required_error: 'Relationship type is required',
-  }),
+  relationshipType: z.enum(
+    ['pg_create_array_relationship', 'pg_create_object_relationship'],
+    {
+      required_error: 'Relationship type is required',
+    },
+  ),
   fieldMapping: z.array(fieldMappingSchema),
 });
 
@@ -111,7 +114,10 @@ export const relationshipFormSchema = z
       return;
     }
 
-    if (data.relationshipType === 'array' && data.fieldMapping.length === 0) {
+    if (
+      data.relationshipType === 'pg_create_array_relationship' &&
+      data.fieldMapping.length === 0
+    ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message:
@@ -134,7 +140,7 @@ export const defaultFormValues: BaseRelationshipFormInitialValues = {
     schema: '',
     table: '',
   },
-  relationshipType: 'object',
+  relationshipType: 'pg_create_object_relationship',
   fieldMapping: [],
 };
 
