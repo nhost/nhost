@@ -17,6 +17,8 @@
   --custom-mobile-nav-height: 2.75rem;
   /* Subheader height (visible at 50rem+) */
   --custom-subheader-height: 2.5rem;
+  /* Max width for the entire layout */
+  --custom-max-width: 90rem;
 
   /* Brand accent */
   --sl-color-accent-low: #00398e;
@@ -378,5 +380,48 @@ mobile-starlight-toc .toggle {
   mobile-starlight-toc .toggle {
     background-color: transparent !important;
     border: none !important;
+  }
+}
+
+/* ==============================================
+   MAX-WIDTH LAYOUT CONSTRAINT
+   ============================================== */
+
+/* Constrain the entire page layout */
+.page {
+  max-width: var(--custom-max-width);
+  margin-inline: auto;
+}
+
+/* Header needs to be full-width with content constrained */
+header.header {
+  width: 100%;
+  max-width: var(--custom-max-width);
+  margin-inline: auto;
+  left: 50% !important;
+  transform: translateX(-50%);
+}
+
+/* Mobile nav toggle follows header width */
+@media (max-width: 49.99rem) {
+  .mobile-nav-toggle {
+    max-width: var(--custom-max-width);
+    margin-inline: auto;
+    left: 50% !important;
+    transform: translateX(-50%);
+  }
+}
+
+/* Mobile TOC follows header width */
+mobile-starlight-toc nav {
+  max-width: var(--custom-max-width);
+  left: 50% !important;
+  transform: translateX(-50%);
+}
+
+/* Sidebar borders extend to edge of constrained area */
+@media (min-width: 50rem) {
+  .sidebar-pane {
+    left: auto !important;
   }
 }
