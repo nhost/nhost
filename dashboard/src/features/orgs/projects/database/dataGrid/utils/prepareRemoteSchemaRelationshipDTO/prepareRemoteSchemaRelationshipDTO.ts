@@ -1,0 +1,32 @@
+import type { RemoteSchemaRelationshipFormValues } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/BaseRelationshipFormTypes';
+import type { CreateRemoteRelationshipArgs } from '@/utils/hasura-api/generated/schemas';
+
+export default function prepareRemoteSchemaRelationshipDTO(
+  values: RemoteSchemaRelationshipFormValues,
+): CreateRemoteRelationshipArgs {
+  const selectedRemoteSchema = values.remoteSchema?.name ?? '';
+
+  if (!selectedRemoteSchema || !values.remoteSchema?.remoteField) {
+    throw new Error('Invalid remote schema relationship values');
+  }
+
+  const remoteField = values.remoteSchema.remoteField;
+
+  const args: CreateRemoteRelationshipArgs = {
+    name: values.name,
+    source: values.fromSource.source,
+    table: {
+      schema: values.fromSource.schema,
+      name: values.fromSource.table,
+    },
+    definition: {
+      to_remote_schema: {
+        remote_schema: selectedRemoteSchema,
+        lhs_fields: values.remoteSchema.lhsFields ?? [],
+        remote_field: remoteField,
+      },
+    },
+  };
+
+  return args;
+}
