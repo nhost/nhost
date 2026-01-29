@@ -485,10 +485,6 @@ github.com/cpuguy83/go-md2man/v2/md2man
 # github.com/creack/pty v1.1.24
 ## explicit; go 1.18
 github.com/creack/pty
-# github.com/cshum/vipsgen v1.2.1
-## explicit; go 1.24.2
-github.com/cshum/vipsgen/pointer
-github.com/cshum/vipsgen/vips
 # github.com/cyphar/filepath-securejoin v0.4.1
 ## explicit; go 1.18
 github.com/cyphar/filepath-securejoin

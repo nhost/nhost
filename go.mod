@@ -14,7 +14,6 @@ require (
 	github.com/bradfitz/gomemcache v0.0.0-20250403215159-8d39553ac7cf
 	github.com/charmbracelet/lipgloss v1.1.0
 	github.com/creack/pty v1.1.24
-	github.com/cshum/vipsgen v1.2.1
 	github.com/davidbyttow/govips/v2 v2.16.0
 	github.com/gabriel-vasile/mimetype v1.4.8
 	github.com/getkin/kin-openapi v0.133.0
