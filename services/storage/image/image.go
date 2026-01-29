@@ -217,32 +217,14 @@ func (t *Transformer) Run(
 	<-t.workers
 	defer func() { t.workers <- struct{}{} }()
 
-	// HEIF/AVIF encoders need to seek in the source during export, which fails
-	// with streaming sources. Use buffer-based loading only for those formats;
-	// all others benefit from streaming input.
-	needsBuffer := opts.Format == ImageTypeHEIC || opts.Format == ImageTypeAVIF
+	source := vips.NewSource(readCloserAdapter{orig})
+	defer source.Close()
 
-	var image *vips.Image
-	if needsBuffer {
-		data, err := io.ReadAll(orig)
-		if err != nil {
-			return fmt.Errorf("failed to read image data: %w", err)
-		}
+	var err error
 
-		image, err = vips.NewImageFromBuffer(data, nil)
-		if err != nil {
-			return fmt.Errorf("failed to load image from buffer: %w", err)
-		}
-	} else {
-		source := vips.NewSource(readCloserAdapter{orig})
-		defer source.Close()
-
-		var err error
-
-		image, err = vips.NewImageFromSource(source, nil)
-		if err != nil {
-			return fmt.Errorf("failed to load image from source: %w", err)
-		}
+	image, err := vips.NewImageFromSource(source, nil)
+	if err != nil {
+		return fmt.Errorf("failed to load image from source: %w", err)
 	}
 
 	defer image.Close()

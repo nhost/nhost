@@ -156,12 +156,35 @@ func (p *FakeReadCloserWrapper) Close() error {
 }
 
 func (ctrl *Controller) manipulateImage(
-	object io.ReadCloser, size uint64, opts image.Options, logger *slog.Logger,
+	object io.ReadCloser, size uint64, opts image.Options,
 ) (io.ReadCloser, int64, *APIError) {
 	defer object.Close()
 
-	buf := &bytes.Buffer{}
-	if err := ctrl.imageTransformer.Run(object, size, buf, opts, logger); err != nil {
+	// We need to buffer because the HTTP response requires Content-Length
+	// before the body is sent. Using io.Pipe would prevent setting
+	// Content-Length, causing chunked transfer encoding which breaks
+	// range requests and client progress indicators.
+	//
+	// Pre-allocate the buffer based on the original file size to avoid
+	// repeated growth allocations. Transformed images are typically
+	// similar in size to the original.
+	buf := bytes.NewBuffer(make([]byte, 0, size))
+
+	done := make(chan error, 1)
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				slog.Error("panic in image manipulation", slog.Any("panic", r))
+
+				done <- fmt.Errorf("panic in image manipulation: %v", r) //nolint: err113
+			}
+		}()
+
+		done <- ctrl.imageTransformer.Run(object, size, buf, opts)
+	}()
+
+	if err := <-done; err != nil {
+		slog.Error("image manipulation failed", slog.String("error", err.Error()))
 		return nil, 0, InternalServerError(err)
 	}
 
@@ -204,7 +227,6 @@ func (ctrl *Controller) processFileToDownload(
 	cacheControl string,
 	params processFiler,
 	acceptHeader []string,
-	logger *slog.Logger,
 ) (*processedFile, *APIError) {
 	opts, apiErr := getImageManipulationOptions(params, fileMetadata.MimeType, acceptHeader)
 	if apiErr != nil {
@@ -231,7 +253,7 @@ func (ctrl *Controller) processFileToDownload(
 		defer body.Close()
 
 		body, contentLength, apiErr = ctrl.manipulateImage(
-			body, uint64(contentLength), opts, logger, //nolint:gosec
+			body, uint64(contentLength), opts, //nolint:gosec
 		)
 		if apiErr != nil {
 			return nil, apiErr
@@ -364,7 +386,6 @@ func (ctrl *Controller) GetFile( //nolint:ireturn
 		bucketMetadata.CacheControl,
 		request.Params,
 		acceptHeader,
-		logger,
 	)
 	if apiErr != nil {
 		logger.ErrorContext(
