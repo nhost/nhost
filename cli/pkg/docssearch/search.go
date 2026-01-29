@@ -13,7 +13,7 @@ import (
 	"github.com/blevesearch/bleve/v2/search/query"
 
 	"github.com/nhost/nhost/cli/pkg/frontmatter"
-	docsembed "github.com/nhost/nhost/docs"
+	docsembed "github.com/nhost/nhost/docs-starlight"
 )
 
 //nolint:gochecknoglobals
@@ -61,7 +61,7 @@ func Search(queryStr string, limit int, ansiHighlight bool) (*SearchResults, err
 		if len(hit.Fragments) > 0 {
 			if contentFragments, ok := hit.Fragments["content"]; ok && len(contentFragments) > 0 {
 				for _, fragment := range contentFragments {
-					cleanFragment := CleanupFragment(fragment, ansiHighlight)
+					cleanFragment := cleanupFragment(fragment, ansiHighlight)
 					if cleanFragment != "" {
 						result.Fragments = append(result.Fragments, cleanFragment)
 					}
@@ -83,7 +83,7 @@ func getSearchIndex() (bleve.Index, error) { //nolint:ireturn
 	return searchIndex, searchIndexErr
 }
 
-func buildSearchIndex() (bleve.Index, error) { //nolint:ireturn
+func buildSearchIndex() (bleve.Index, error) { //nolint:ireturn,cyclop
 	indexMapping := buildIndexMapping()
 
 	index, err := bleve.NewMemOnly(indexMapping)
@@ -91,44 +91,58 @@ func buildSearchIndex() (bleve.Index, error) { //nolint:ireturn
 		return nil, fmt.Errorf("failed to create index: %w", err)
 	}
 
-	err = fs.WalkDir(docsembed.DocsFS, ".", func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
+	err = fs.WalkDir(
+		docsembed.DocsFS,
+		docsembed.DocsRoot,
+		func(path string, d fs.DirEntry, err error) error {
+			if err != nil {
+				return err
+			}
 
-		if d.IsDir() {
+			if d.IsDir() {
+				return nil
+			}
+
+			if !strings.HasSuffix(path, ".mdx") && !strings.HasSuffix(path, ".md") {
+				return nil
+			}
+
+			// Skip deprecated documentation
+			if isDeprecatedPath(path) {
+				return nil
+			}
+
+			data, readErr := docsembed.DocsFS.ReadFile(path)
+			if readErr != nil {
+				return nil //nolint:nilerr // Skip files we can't read
+			}
+
+			fm, body := ParseFrontmatter(data)
+
+			// Convert filesystem path to page path
+			pagePath := strings.TrimPrefix(path, docsembed.DocsRoot)
+			pagePath = strings.TrimPrefix(pagePath, "/")
+			pagePath = strings.TrimSuffix(strings.TrimSuffix(pagePath, ".mdx"), ".md")
+
+			pagePath = strings.TrimSuffix(pagePath, "/index")
+			if pagePath == "index" {
+				pagePath = ""
+			}
+
+			doc := docPage{
+				Path:     "/" + pagePath,
+				Title:    fm.Title,
+				Keywords: strings.Join(fm.Keywords, " "),
+				Content:  body,
+			}
+
+			if indexErr := index.Index(path, doc); indexErr != nil {
+				return nil //nolint:nilerr // Skip files we can't index
+			}
+
 			return nil
-		}
-
-		if !strings.HasSuffix(path, ".mdx") && !strings.HasSuffix(path, ".md") {
-			return nil
-		}
-
-		// Skip deprecated documentation
-		if IsDeprecatedPath(path) {
-			return nil
-		}
-
-		data, readErr := docsembed.DocsFS.ReadFile(path)
-		if readErr != nil {
-			return nil //nolint:nilerr // Skip files we can't read
-		}
-
-		fm, body := ParseFrontmatter(data)
-
-		doc := DocPage{
-			Path:     "/" + strings.TrimSuffix(strings.TrimSuffix(path, ".mdx"), ".md"),
-			Title:    fm.Title,
-			Keywords: strings.Join(fm.Keywords, " "),
-			Content:  body,
-		}
-
-		if indexErr := index.Index(path, doc); indexErr != nil {
-			return nil //nolint:nilerr // Skip files we can't index
-		}
-
-		return nil
-	})
+		},
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to walk docs: %w", err)
 	}
@@ -235,7 +249,7 @@ func ParseFrontmatter(content []byte) (Frontmatter, string) {
 
 // CleanupFragment cleans up a search result fragment for display.
 // If ansiHighlight is true, matched terms are highlighted with ANSI codes.
-func CleanupFragment(fragment string, ansiHighlight bool) string {
+func cleanupFragment(fragment string, ansiHighlight bool) string {
 	// Convert HTML highlight marks to ANSI bold yellow, or remove them
 	if ansiHighlight {
 		fragment = strings.ReplaceAll(fragment, "<mark>", "\033[1;33m")
