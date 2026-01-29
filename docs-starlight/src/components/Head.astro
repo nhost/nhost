@@ -181,6 +181,15 @@ const keywords = entry?.data?.keywords as string[] | undefined;
 </script>
 
 <style is:global>
+    /* Hide raw mermaid code blocks until they are rendered into diagrams */
+    .expressive-code:has(pre[data-language="mermaid"]) {
+        visibility: hidden;
+        height: 0;
+        overflow: hidden;
+        margin: 0;
+        padding: 0;
+    }
+
     .mermaid-wrapper {
         position: relative;
         margin: 1.5rem 0;
