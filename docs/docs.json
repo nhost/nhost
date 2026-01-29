@@ -214,6 +214,7 @@
               "/products/graphql/overview",
               "/products/graphql/configuring-hasura",
               "/products/graphql/permissions",
+              "/products/graphql/remote-schemas",
               "/products/graphql/advanced-features",
               {
                 "group": "Guides",
