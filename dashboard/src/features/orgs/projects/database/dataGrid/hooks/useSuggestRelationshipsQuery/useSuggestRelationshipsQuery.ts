@@ -37,9 +37,9 @@ export default function useSuggestRelationshipsQuery(
 ) {
   const { project, loading } = useProject();
 
-  const query = useQuery(
-    ['suggest-relationships', source ?? 'default'],
-    () => {
+  const query = useQuery({
+    queryKey: ['suggest-relationships', source ?? 'default'],
+    queryFn: () => {
       const appUrl = generateAppServiceUrl(
         project!.subdomain,
         project!.region,
@@ -58,17 +58,15 @@ export default function useSuggestRelationshipsQuery(
         },
       });
     },
-    {
-      ...queryOptions,
-      enabled: !!(
-        project?.subdomain &&
-        project?.region &&
-        project?.config?.hasura.adminSecret &&
-        queryOptions?.enabled !== false &&
-        !loading
-      ),
-    },
-  );
+    ...queryOptions,
+    enabled: !!(
+      project?.subdomain &&
+      project?.region &&
+      project?.config?.hasura.adminSecret &&
+      queryOptions?.enabled !== false &&
+      !loading
+    ),
+  });
 
   return query;
 }

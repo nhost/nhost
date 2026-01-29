@@ -1,9 +1,9 @@
 import type { RemoteFieldArgumentMappingsByPath } from '@/features/orgs/projects/database/dataGrid/types/relationships/relationships';
+import inferStaticValue from '@/features/orgs/projects/remote-schemas/utils/inferStaticValue';
 import type {
   RemoteField,
   RemoteFieldArguments,
 } from '@/utils/hasura-api/generated/schemas';
-import inferStaticValue from './inferStaticValue';
 
 type RemoteFieldNode = RemoteField[string];
 

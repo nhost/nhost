@@ -2,7 +2,7 @@ import type {
   RemoteFieldArgumentMapping,
   RemoteFieldArgumentMappingsByPath,
 } from '@/features/orgs/projects/database/dataGrid/types/relationships/relationships';
-import { serializeRemoteFieldArgumentValue } from './forms';
+import { serializeRemoteFieldArgumentValue } from '@/features/orgs/projects/remote-schemas/utils/forms';
 
 export type ParsedRemoteFieldSelection = {
   rootFieldPath: string;
@@ -53,15 +53,18 @@ export default function parseRemoteFieldToSelection(
 
       const args = config?.arguments ?? {};
       const argEntries = Object.entries(args);
+      console.log('argEntries', argEntries);
       if (argEntries.length > 0) {
         argumentMappingsByPath[currentPath] = argEntries.reduce<
           Record<string, RemoteFieldArgumentMapping>
-        >((accumulator, [argumentName, argumentValue]) => {
+        >((argumentMappings, [argumentName, argumentValue]) => {
           const isColumnReference =
             typeof argumentValue === 'string' && argumentValue.startsWith('$');
 
+          console.log('argumentMappings', argumentMappings);
+
           return {
-            ...accumulator,
+            ...argumentMappings,
             [argumentName]: {
               enabled: true,
               type: isColumnReference ? 'column' : 'static',
@@ -74,6 +77,7 @@ export default function parseRemoteFieldToSelection(
       }
 
       if (config?.field && Object.keys(config.field).length > 0) {
+        console.log('called walk again');
         walk(
           config.field as Record<
             string,

@@ -1,18 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
-import { Checkbox } from '@/components/ui/v3/checkbox';
 import { Textarea } from '@/components/ui/v3/textarea';
 import type { RemoteSchemaRelationshipFormValues } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/BaseRelationshipFormTypes';
-import RemoteSchemaFieldNode from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/RemoteSchemaFieldNode';
+import RootOperationFields from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/RootOperationFields';
+import SelectedFieldTree from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/SelectedFieldTree';
 import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
 import type { RemoteFieldArgumentMappingsByPath } from '@/features/orgs/projects/database/dataGrid/types/relationships/relationships';
+import { buildRemoteFieldFromSelection } from '@/features/orgs/projects/database/dataGrid/utils/buildRemoteFieldFromSelection';
 import extractLhsFieldsFromMappings from '@/features/orgs/projects/database/dataGrid/utils/extractLhsFieldsFromMappings/extractLhsFieldsFromMappings';
+import { parseRemoteFieldToSelection } from '@/features/orgs/projects/database/dataGrid/utils/parseRemoteFieldToSelection';
 import { useIntrospectRemoteSchemaQuery } from '@/features/orgs/projects/remote-schemas/hooks/useIntrospectRemoteSchemaQuery';
-import buildRemoteFieldFromSelection from '@/features/orgs/projects/remote-schemas/utils/buildRemoteFieldFromSelection';
 import convertIntrospectionToSchema from '@/features/orgs/projects/remote-schemas/utils/convertIntrospectionToSchema';
-import getTypeString from '@/features/orgs/projects/remote-schemas/utils/getTypeString';
-import parseRemoteFieldToSelection from '@/features/orgs/projects/remote-schemas/utils/parseRemoteFieldToSelection';
-import { isEmptyValue } from '@/lib/utils';
 import type { RemoteField } from '@/utils/hasura-api/generated/schemas';
 
 export interface RemoteSchemaRelationshipDetailsValue {
@@ -159,7 +157,7 @@ export default function RemoteSchemaRelationshipDetails() {
     handleRemoteFieldChange({ lhsFields, remoteField: remoteFieldObject });
   }, [lhsFields, remoteFieldObject, handleRemoteFieldChange]);
 
-  const remoteFieldsContent = useMemo(() => {
+  const getRemoteFieldsContent = () => {
     if (!remoteSchemaName) {
       return (
         <p className="text-muted-foreground text-sm">
@@ -180,122 +178,42 @@ export default function RemoteSchemaRelationshipDetails() {
       <div className="space-y-4">
         <div className="space-y-2">
           <div className="font-medium text-sm">Root operation fields</div>
-          {(() => {
-            const queryRoot = targetGraphqlSchema.getQueryType();
-            if (isEmptyValue(queryRoot)) {
-              return (
-                <p className="text-muted-foreground text-sm">
-                  No Query type found in the remote schema.
-                </p>
-              );
-            }
-
-            const rootFields = Object.values(queryRoot!.getFields());
-            if (rootFields.length === 0) {
-              return (
-                <p className="text-muted-foreground text-sm">
-                  No fields found in the Query type.
-                </p>
-              );
-            }
-
-            return (
-              <div className="space-y-2 rounded-md border border-border p-3">
-                <div className="font-semibold text-sm">Query</div>
-                <div className="space-y-2">
-                  {rootFields.map((rootField) => {
-                    const rootFieldPath = rootField.name;
-                    const checked = selectedRootFieldPath === rootFieldPath;
-                    return (
-                      <div
-                        key={rootField.name}
-                        className="flex items-center gap-3"
-                      >
-                        <Checkbox
-                          id={`root-query-${rootField.name}`}
-                          checked={checked}
-                          onCheckedChange={(nextChecked) => {
-                            const shouldSelect = Boolean(nextChecked);
-                            if (!shouldSelect) {
-                              setSelectedRootFieldPath('');
-                              setSelectedFieldPaths(new Set());
-                              setArgumentMappingsByPath({});
-                              return;
-                            }
-
-                            setSelectedRootFieldPath(rootFieldPath);
-                            setSelectedFieldPaths(new Set([rootFieldPath]));
-                            setArgumentMappingsByPath({});
-                          }}
-                          disabled={disabled}
-                        />
-                        <label
-                          htmlFor={`root-query-${rootField.name}`}
-                          className="cursor-pointer text-sm"
-                        >
-                          <span className="font-medium">{rootField.name}</span>{' '}
-                          <span className="text-muted-foreground text-xs">
-                            ({getTypeString(rootField.type)})
-                          </span>
-                        </label>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })()}
+          <RootOperationFields
+            graphqlSchema={targetGraphqlSchema}
+            selectedRootFieldPath={selectedRootFieldPath}
+            onRootFieldChange={(rootFieldPath) => {
+              if (rootFieldPath === null) {
+                setSelectedRootFieldPath('');
+                setSelectedFieldPaths(new Set());
+                setArgumentMappingsByPath({});
+                return;
+              }
+              setSelectedRootFieldPath(rootFieldPath);
+              setSelectedFieldPaths(new Set([rootFieldPath]));
+              setArgumentMappingsByPath({});
+            }}
+            disabled={disabled}
+          />
         </div>
 
-        {selectedRootFieldPath ? (
+        {selectedRootFieldPath && (
           <div className="space-y-2 rounded-md border border-border p-3">
             <div className="font-medium text-sm">Selected field tree</div>
-            {(() => {
-              const graphqlSchema = targetGraphqlSchema;
-              const queryType = graphqlSchema.getQueryType();
-              const mutationType = graphqlSchema.getMutationType();
-              const subscriptionType = graphqlSchema.getSubscriptionType();
-              const rootField =
-                queryType?.getFields()[selectedRootFieldPath] ??
-                mutationType?.getFields()[selectedRootFieldPath] ??
-                subscriptionType?.getFields()[selectedRootFieldPath];
-
-              if (!rootField) {
-                return (
-                  <p className="text-muted-foreground text-sm">
-                    Unable to resolve the selected root field.
-                  </p>
-                );
-              }
-
-              return (
-                <RemoteSchemaFieldNode
-                  schema={graphqlSchema}
-                  field={rootField}
-                  fieldPath={selectedRootFieldPath}
-                  selectedFieldPaths={selectedFieldPaths}
-                  setSelectedFieldPaths={setSelectedFieldPaths}
-                  argumentMappingsByPath={argumentMappingsByPath}
-                  setArgumentMappingsByPath={setArgumentMappingsByPath}
-                  tableColumnOptions={tableColumnOptions}
-                  disabled={disabled}
-                  depth={0}
-                />
-              );
-            })()}
+            <SelectedFieldTree
+              graphqlSchema={targetGraphqlSchema}
+              selectedRootFieldPath={selectedRootFieldPath}
+              selectedFieldPaths={selectedFieldPaths}
+              setSelectedFieldPaths={setSelectedFieldPaths}
+              argumentMappingsByPath={argumentMappingsByPath}
+              setArgumentMappingsByPath={setArgumentMappingsByPath}
+              tableColumnOptions={tableColumnOptions}
+              disabled={disabled}
+            />
           </div>
-        ) : null}
+        )}
       </div>
     );
-  }, [
-    argumentMappingsByPath,
-    disabled,
-    remoteSchemaName,
-    selectedRootFieldPath,
-    selectedFieldPaths,
-    tableColumnOptions,
-    targetGraphqlSchema,
-  ]);
+  };
 
   const remoteFieldPreview = remoteFieldObject
     ? JSON.stringify(remoteFieldObject, null, 2)
@@ -313,7 +231,7 @@ export default function RemoteSchemaRelationshipDetails() {
         />
       </div>
 
-      {remoteFieldsContent}
+      {getRemoteFieldsContent()}
     </div>
   );
 }
