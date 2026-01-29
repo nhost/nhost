@@ -30,9 +30,9 @@ export default function useGetRemoteSchemas({
 }: UseGetRemoteSchemasOptions = {}) {
   const { project, loading } = useProject();
 
-  const query = useQuery<ExportMetadataResponse, unknown, RemoteSchemaInfo[]>(
-    ['export-metadata', project?.subdomain],
-    () => {
+  const query = useQuery<ExportMetadataResponse, unknown, RemoteSchemaInfo[]>({
+    queryKey: ['export-metadata', project?.subdomain],
+    queryFn: () => {
       const appUrl = generateAppServiceUrl(
         project!.subdomain,
         project!.region,
@@ -43,18 +43,16 @@ export default function useGetRemoteSchemas({
 
       return fetchExportMetadata({ appUrl, adminSecret });
     },
-    {
-      ...queryOptions,
-      enabled: !!(
-        project?.subdomain &&
-        project?.region &&
-        project?.config?.hasura.adminSecret &&
-        queryOptions?.enabled !== false &&
-        !loading
-      ),
-      select: (data) => data.metadata?.remote_schemas ?? [],
-    },
-  );
+    ...queryOptions,
+    enabled: !!(
+      project?.subdomain &&
+      project?.region &&
+      project?.config?.hasura.adminSecret &&
+      queryOptions?.enabled !== false &&
+      !loading
+    ),
+    select: (data) => data.metadata?.remote_schemas ?? [],
+  });
 
   return query;
 }

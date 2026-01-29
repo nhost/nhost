@@ -24,8 +24,7 @@ export interface DataGridProps<TColumnData extends object>
   /**
    * Data to be displayed in the table.
    */
-  // biome-ignore lint/suspicious/noExplicitAny: TODO
-  data: any[];
+  data: TColumnData[];
   /**
    * Text to be displayed when no data is available in the data grid.
    *
@@ -164,6 +163,7 @@ function DataGrid<TColumnData extends object>(
   );
 }
 
-export default forwardRef(DataGrid) as <TColumnData extends object>(
+// biome-ignore lint/suspicious/noExplicitAny: TODO: workaround find a solution
+export default forwardRef(DataGrid as any) as <TColumnData extends object>(
   props: DataGridProps<TColumnData> & { ref?: ForwardedRef<HTMLDivElement> },
 ) => ReturnType<typeof DataGrid>;

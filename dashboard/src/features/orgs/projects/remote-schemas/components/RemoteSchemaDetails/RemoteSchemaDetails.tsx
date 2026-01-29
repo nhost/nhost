@@ -16,7 +16,7 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import { isNotEmptyValue } from '@/lib/utils';
 
 export default function RemoteSchemaDetails() {
-  const { mutateAsync: reloadRemoteSchema, isLoading: isReloading } =
+  const { mutateAsync: reloadRemoteSchema, isPending: isReloading } =
     useReloadRemoteSchemaMutation();
 
   const router = useRouter();

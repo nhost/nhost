@@ -1,10 +1,9 @@
 import Image from 'next/image';
-import NavLink from 'next/link';
 import type { ReactElement } from 'react';
+import { NavLink } from '@/components/common/NavLink';
 import { useUI } from '@/components/common/UIProvider';
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { AppDeployments } from '@/features/orgs/projects/deployments/components/AppDeployments';
@@ -36,20 +35,17 @@ export default function DeploymentsPage() {
             deployed automatically.
           </Text>
         </div>
-
-        <NavLink
-          href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/git`}
-          passHref
-          legacyBehavior
-        >
-          <Button
-            variant="borderless"
-            className="mx-auto font-medium"
+        <div className="flex w-full justify-center">
+          <NavLink
+            href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/git`}
+            underline="none"
+            variant="ghost"
+            className="!text-primary"
             disabled={maintenanceActive}
           >
             Connect your Project to GitHub
-          </Button>
-        </NavLink>
+          </NavLink>
+        </div>
       </Container>
     );
   }

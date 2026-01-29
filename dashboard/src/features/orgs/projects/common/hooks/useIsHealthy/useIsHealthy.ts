@@ -10,9 +10,9 @@ export default function useIsHealthy() {
   const isPlatform = useIsPlatform();
   const { project } = useProject();
 
-  const { failureCount, status, isLoading } = useQuery(
-    ['/v1/version'],
-    () => {
+  const { failureCount, status, isLoading } = useQuery({
+    queryKey: ['/v1/version'],
+    queryFn: () => {
       const appUrl = generateAppServiceUrl(
         project!.subdomain,
         project!.region,
@@ -21,13 +21,11 @@ export default function useIsHealthy() {
 
       return fetch(`${appUrl}/v1/version`);
     },
-    {
-      enabled: !isPlatform && !!project,
-      retry: true,
-      retryDelay: 5000,
-      cacheTime: 0,
-    },
-  );
+    enabled: !isPlatform && !!project,
+    retry: true,
+    retryDelay: 5000,
+    cacheTime: 0,
+  });
 
   return {
     isHealthy: isPlatform || (status === 'success' && failureCount === 0),

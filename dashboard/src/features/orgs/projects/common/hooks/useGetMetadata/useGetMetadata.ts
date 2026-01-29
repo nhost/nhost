@@ -34,9 +34,9 @@ export default function useGetMetadata({
     ExportMetadataResponse,
     unknown,
     ExportMetadataResponseMetadata
-  >(
-    ['export-metadata', project?.subdomain],
-    () => {
+  >({
+    queryKey: ['export-metadata', project?.subdomain],
+    queryFn: () => {
       const appUrl = generateAppServiceUrl(
         project!.subdomain,
         project!.region,
@@ -47,11 +47,9 @@ export default function useGetMetadata({
 
       return fetchExportMetadata({ appUrl, adminSecret });
     },
-    {
-      ...queryOptions,
-      select: (data) => data.metadata,
-    },
-  );
+    ...queryOptions,
+    select: (data) => data.metadata,
+  });
 
   return query;
 }

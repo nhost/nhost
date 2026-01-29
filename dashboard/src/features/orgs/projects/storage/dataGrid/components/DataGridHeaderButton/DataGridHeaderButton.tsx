@@ -16,10 +16,12 @@ export default function DataGridHeaderButton<T extends object>({
 }: DataGridHeaderButtonProps<T>) {
   const { allowSort, allowResize } = useDataGridConfig();
 
+  const { key, ...restHeaderProps } = headerProps;
   if (column.id === 'selection-column') {
     return (
       <span
-        {...headerProps}
+        key={key}
+        {...restHeaderProps}
         className="!inline-flex h-8 w-8 items-center justify-center"
       >
         {column.render('Header')}
@@ -44,7 +46,8 @@ export default function DataGridHeaderButton<T extends object>({
       disabled={column.isDisabled || column.disableSortBy}
     >
       <div
-        {...headerProps}
+        key={key}
+        {...restHeaderProps}
         className="!flex relative h-full w-full grid-flow-col items-center justify-between p-2"
       >
         {column.render('Header')}

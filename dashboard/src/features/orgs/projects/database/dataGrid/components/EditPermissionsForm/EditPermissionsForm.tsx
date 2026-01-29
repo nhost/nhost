@@ -1,7 +1,6 @@
-import NavLink from 'next/link';
 import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
-import { useDialog } from '@/components/common/DialogProvider';
+import { NavLink } from '@/components/common/NavLink';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
@@ -9,7 +8,6 @@ import { Button } from '@/components/ui/v2/Button';
 import { FullPermissionIcon } from '@/components/ui/v2/icons/FullPermissionIcon';
 import { NoPermissionIcon } from '@/components/ui/v2/icons/NoPermissionIcon';
 import { PartialPermissionIcon } from '@/components/ui/v2/icons/PartialPermissionIcon';
-import { Link } from '@/components/ui/v2/Link';
 import { Table } from '@/components/ui/v2/Table';
 import { TableBody } from '@/components/ui/v2/TableBody';
 import { TableCell } from '@/components/ui/v2/TableCell';
@@ -61,7 +59,6 @@ export default function EditPermissionsForm({
   const [role, setRole] = useState<string>();
   const [action, setAction] = useState<DatabaseAction>();
 
-  const { closeDrawerWithDirtyGuard } = useDialog();
   const { project } = useProject();
   const { org } = useCurrentOrg();
 
@@ -332,16 +329,10 @@ export default function EditPermissionsForm({
             Please go to the{' '}
             <NavLink
               href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/roles-and-permissions`}
-              passHref
-              legacyBehavior
+              underline="hover"
+              className="px-0"
             >
-              <Link
-                href="settings/roles-and-permissions"
-                underline="hover"
-                onClick={closeDrawerWithDirtyGuard}
-              >
-                Settings page
-              </Link>
+              Settings page
             </NavLink>{' '}
             to add and delete roles.
           </Alert>

@@ -182,7 +182,7 @@ export default function RolePermissionEditorForm({
     mutateAsync: managePermission,
     error,
     reset: resetError,
-    isLoading,
+    isPending,
   } = useManagePermissionMutation({
     schema,
     table,
@@ -430,7 +430,7 @@ export default function RolePermissionEditorForm({
                   variant="outlined"
                   color="error"
                   onClick={handleDeleteClick}
-                  disabled={isLoading}
+                  disabled={isPending}
                 >
                   Delete Permissions
                 </Button>

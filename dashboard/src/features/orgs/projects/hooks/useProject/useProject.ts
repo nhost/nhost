@@ -42,19 +42,17 @@ export default function useProject(): UseProjectReturnType {
     [isPlatform, isAuthenticated, isAuthLoading, appSubdomain, isRouterReady],
   );
 
-  const { data, isLoading, refetch, error, isFetched } = useQuery(
-    ['project', appSubdomain as string],
-    async () => {
+  const { data, isLoading, refetch, error, isFetched } = useQuery({
+    queryKey: ['project', appSubdomain as string],
+    queryFn: async () => {
       const response = await nhost.graphql.request<{
         apps: ProjectFragment[];
       }>(GetProjectDocument, { subdomain: (appSubdomain as string) || '' });
 
       return response?.body.data;
     },
-    {
-      enabled: shouldFetchProject,
-    },
-  );
+    enabled: shouldFetchProject,
+  });
 
   if (isPlatform) {
     return {

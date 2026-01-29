@@ -41,9 +41,9 @@ export default function useDatabaseQuery(
 
   const { project } = useProject();
 
-  const query = useQuery<FetchDatabaseReturnType>(
+  const query = useQuery<FetchDatabaseReturnType>({
     queryKey,
-    () => {
+    queryFn: () => {
       const appUrl = generateAppServiceUrl(
         project!.subdomain,
         project!.region,
@@ -58,14 +58,12 @@ export default function useDatabaseQuery(
         dataSource: customDataSource || (dataSourceSlug as string),
       });
     },
-    {
-      ...queryOptions,
-      enabled:
-        project?.config?.hasura.adminSecret && isReady
-          ? queryOptions?.enabled
-          : false,
-    },
-  );
+    ...queryOptions,
+    enabled:
+      project?.config?.hasura.adminSecret && isReady
+        ? queryOptions?.enabled
+        : false,
+  });
 
   return query;
 }
