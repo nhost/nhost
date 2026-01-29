@@ -139,6 +139,7 @@ rec {
     config = {
       Env = [
         "MALLOC_ARENA_MAX=2"
+        "X265_NO_NUMA=1"
         "TMPDIR=/tmp"
         "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
       ];
