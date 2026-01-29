@@ -11,6 +11,12 @@ import {
 import { normalizeQueryError } from '@/features/orgs/projects/database/dataGrid/utils/normalizeQueryError';
 import { getHasuraMigrationsApiUrl } from '@/utils/env';
 
+const typeToQuery = {
+  'BASE TABLE': 'TABLE',
+  VIEW: 'VIEW',
+  'MATERIALIZED VIEW': 'MATERIALIZED VIEW',
+};
+
 export interface DeleteTableMigrationVariables {
   /**
    * Schema where the table is located.
@@ -23,7 +29,7 @@ export interface DeleteTableMigrationVariables {
   /**
    * Type of the table to delete.
    */
-  type: 'TABLE' | 'VIEW' | 'MATERIALIZED VIEW';
+  type: 'BASE TABLE' | 'VIEW' | 'MATERIALIZED VIEW';
 }
 
 export interface DeleteTableMigration
@@ -39,7 +45,7 @@ export default async function deleteTable({
   const deleteTableArgs = [
     getPreparedHasuraQuery(
       dataSource,
-      `DROP ${type} IF EXISTS %I.%I`,
+      `DROP ${typeToQuery[type]} IF EXISTS %I.%I`,
       schema,
       table,
     ),

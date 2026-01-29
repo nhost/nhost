@@ -88,12 +88,13 @@ export default function useFunctionCustomizationQuery({
           return undefined;
         }
 
-        const functionMetadata: ExportMetadataResponseMetadataSourcesItemFunctionsItem | undefined =
-          sourceMetadata.functions.find(
-            (item) =>
-              item.function.name === fn.name &&
-              item.function.schema === fn.schema,
-          );
+        const functionMetadata:
+          | ExportMetadataResponseMetadataSourcesItemFunctionsItem
+          | undefined = sourceMetadata.functions.find(
+          (item) =>
+            item.function.name === fn.name &&
+            item.function.schema === fn.schema,
+        );
 
         if (!functionMetadata) {
           return undefined;

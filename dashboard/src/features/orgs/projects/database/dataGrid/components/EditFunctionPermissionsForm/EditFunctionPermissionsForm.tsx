@@ -1,19 +1,13 @@
 import NavLink from 'next/link';
-import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { useFunctionCustomizationQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionCustomizationQuery';
-import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { useGetHasuraSettingsQuery } from '@/utils/__generated__/graphql';
-import { useFunctionQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionQuery';
-import { useMetadataQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useMetadataQuery';
-import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
-import { useGetRemoteAppRolesQuery } from '@/utils/__generated__/graphql';
-import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
-import { Text } from '@/components/ui/v2/Text';
-import { Box } from '@/components/ui/v2/Box';
+import { useDialog } from '@/components/common/DialogProvider';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
+import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
+import { CheckIcon } from '@/components/ui/v2/icons/CheckIcon';
+import { XIcon } from '@/components/ui/v2/icons/XIcon';
+import { Link } from '@/components/ui/v2/Link';
+import { Text } from '@/components/ui/v2/Text';
 import {
   Table,
   TableBody,
@@ -22,10 +16,18 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/v3/table';
-import { Link } from '@/components/ui/v2/Link';
-import { CheckIcon } from '@/components/ui/v2/icons/CheckIcon';
-import { XIcon } from '@/components/ui/v2/icons/XIcon';
-import { useDialog } from '@/components/common/DialogProvider';
+import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { useFunctionCustomizationQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionCustomizationQuery';
+import { useFunctionQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionQuery';
+import { useMetadataQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useMetadataQuery';
+import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
+import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import {
+  useGetHasuraSettingsQuery,
+  useGetRemoteAppRolesQuery,
+} from '@/utils/__generated__/graphql';
 
 export interface EditFunctionPermissionsFormProps {
   /**
@@ -66,22 +68,20 @@ export default function EditFunctionPermissionsForm({
   const inferFunctionPermissions =
     hasuraSettingsData?.config?.hasura.settings?.inferFunctionPermissions;
 
-  const {
-    data: functionConfig,
-    isLoading: isLoadingFunctionConfig,
-  } = useFunctionCustomizationQuery({
-    function: {
-      name: functionName,
-      schema,
-    },
-    dataSource: 'default',
-  });
+  const { data: functionConfig, isLoading: isLoadingFunctionConfig } =
+    useFunctionCustomizationQuery({
+      function: {
+        name: functionName,
+        schema,
+      },
+      dataSource: 'default',
+    });
 
   const { data: functionData, isLoading: isLoadingFunctionData } =
     useFunctionQuery(
       [`function-definition`, `default.${schema}.${functionName}`],
       {
-        table: functionName,
+        functionName,
         schema,
         dataSource: 'default',
         queryOptions: {
@@ -215,7 +215,9 @@ export default function EditFunctionPermissionsForm({
 
                   return (
                     <TableRow key={currentRole}>
-                      <TableCell className="font-medium">{currentRole}</TableCell>
+                      <TableCell className="font-medium">
+                        {currentRole}
+                      </TableCell>
                       <TableCell className="text-center">
                         {disabled ? (
                           <div className="flex items-center justify-center">

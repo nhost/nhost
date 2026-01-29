@@ -40,12 +40,12 @@ export default function EditFunctionForm({
   const { org } = useCurrentOrg();
 
   const dataSource = (dataSourceSlug as string) || 'default';
-  const currentTablePath = `${dataSource}.${schema}.${functionName}`;
+  const currentFunctionPath = `${dataSource}.${schema}.${functionName}`;
 
   const { data, status, error } = useFunctionQuery(
-    ['function-definition', currentTablePath],
+    ['function-definition', currentFunctionPath],
     {
-      table: functionName,
+      functionName,
       schema,
       dataSource,
       queryOptions: {
