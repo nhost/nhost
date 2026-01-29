@@ -34,10 +34,9 @@ let
       (inDirectory "${submodule}/mcp/graphql/testdata")
 
       # docs
-      ../docs/embed.go
-      ../docs/docs.json
+      ../docs-starlight/embed.go
       (and
-        (inDirectory ../docs)
+        (inDirectory ../docs-starlight/src/content/docs)
         (matchExt "mdx")
       )
     ];
