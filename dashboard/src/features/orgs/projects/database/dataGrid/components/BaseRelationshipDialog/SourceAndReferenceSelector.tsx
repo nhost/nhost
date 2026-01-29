@@ -1,13 +1,20 @@
+import { Database, Plug } from 'lucide-react';
 import { useMemo } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { FormCombobox } from '@/components/form/FormCombobox';
 import { FormSelect } from '@/components/form/FormSelect';
 import { ReadOnlyCombobox } from '@/components/presentational/ReadOnlyCombobox';
 import { ReadOnlySelect } from '@/components/presentational/ReadOnlySelect';
-import { SelectItem, SelectSeparator } from '@/components/ui/v3/select';
+import {
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectSeparator,
+} from '@/components/ui/v3/select';
 import { useGetDataSources } from '@/features/orgs/projects/common/hooks/useGetDataSources';
 import { useGetMetadata } from '@/features/orgs/projects/common/hooks/useGetMetadata';
 import { useGetRemoteSchemas } from '@/features/orgs/projects/remote-schemas/hooks/useGetRemoteSchemas';
+import { cn, isEmptyValue } from '@/lib/utils';
 import {
   type BaseRelationshipFormValues,
   ReferenceSource,
@@ -29,7 +36,7 @@ export default function SourceAndReferenceSelector() {
 
   const referenceKind = watch('referenceKind');
 
-  const isRemoteSchemaRelationship = referenceKind === 'remoteSchema';
+  const isTableRelationship = referenceKind === 'table';
 
   const allTables = useMemo(
     () =>
@@ -93,14 +100,10 @@ export default function SourceAndReferenceSelector() {
 
   const toSchemaOptions = useMemo(
     () =>
-      !isRemoteSchemaRelationship && selectedToReference?.source
+      isTableRelationship && selectedToReference?.source
         ? (schemaOptionsBySource[selectedToReference.source] ?? [])
         : [],
-    [
-      isRemoteSchemaRelationship,
-      schemaOptionsBySource,
-      selectedToReference?.source,
-    ],
+    [isTableRelationship, schemaOptionsBySource, selectedToReference?.source],
   );
 
   const toSourceTableNames = useMemo(() => {
@@ -152,20 +155,26 @@ export default function SourceAndReferenceSelector() {
     return (
       <>
         <SelectSeparator />
-        <SelectItem disabled value="__remote-schemas-label">
-          Remote schemas
-        </SelectItem>
-        {remoteSchemas.map((remoteSchema) => (
-          <SelectItem
-            key={`to-remote-schema-${remoteSchema.name}`}
-            value={
-              ReferenceSource.createTypeRemoteSchemaFromName(remoteSchema.name)
-                .fullValue
-            }
-          >
-            {remoteSchema.name}
-          </SelectItem>
-        ))}
+        <SelectGroup>
+          <SelectLabel className="font-normal text-muted-foreground">
+            Remote schemas
+          </SelectLabel>
+          {remoteSchemas.map((remoteSchema) => (
+            <SelectItem
+              key={`to-remote-schema-${remoteSchema.name}`}
+              value={
+                ReferenceSource.createTypeRemoteSchemaFromName(
+                  remoteSchema.name,
+                ).fullValue
+              }
+            >
+              <span className="inline-flex items-center gap-1.5">
+                <Plug className="size-4 shrink-0 text-muted-foreground" />
+                {remoteSchema.name}
+              </span>
+            </SelectItem>
+          ))}
+        </SelectGroup>
       </>
     );
   }, [remoteSchemas, remoteSchemasStatus]);
@@ -177,7 +186,15 @@ export default function SourceAndReferenceSelector() {
 
         <div className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
-            <ReadOnlySelect label="Source" value={selectedFromSource?.source} />
+            <ReadOnlySelect
+              label="Source"
+              value={
+                <span className="inline-flex items-center gap-1.5">
+                  <Database className="size-4 shrink-0 text-muted-foreground" />
+                  {selectedFromSource?.source ?? ''}
+                </span>
+              }
+            />
             <ReadOnlySelect label="Schema" value={selectedFromSource?.schema} />
           </div>
           <ReadOnlyCombobox label="Table" value={selectedFromSource?.table} />
@@ -188,7 +205,11 @@ export default function SourceAndReferenceSelector() {
         <h3 className="font-semibold text-foreground text-sm">To Reference</h3>
 
         <div className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div
+            className={cn('grid gap-4 sm:grid-cols-2', {
+              'sm:grid-cols-2': isTableRelationship,
+            })}
+          >
             <FormSelect
               control={control}
               name="toReference.source"
@@ -202,11 +223,11 @@ export default function SourceAndReferenceSelector() {
                     return '';
                   }
 
-                  const referenceSource = isRemoteSchemaRelationship
-                    ? ReferenceSource.createTypeRemoteSchemaFromName(
+                  const referenceSource = isTableRelationship
+                    ? ReferenceSource.createTypeSourceFromName(storedValue)
+                    : ReferenceSource.createTypeRemoteSchemaFromName(
                         storedValue,
-                      )
-                    : ReferenceSource.createTypeSourceFromName(storedValue);
+                      );
 
                   return referenceSource.fullValue;
                 },
@@ -259,89 +280,101 @@ export default function SourceAndReferenceSelector() {
                 },
               }}
             >
-              {sourceOptions.map((option) => (
-                <SelectItem
-                  key={`to-source-${option.value}`}
-                  value={option.value}
-                >
-                  {option.label}
-                </SelectItem>
-              ))}
+              <SelectGroup>
+                <SelectLabel className="font-normal text-muted-foreground">
+                  Databases
+                </SelectLabel>
+                {sourceOptions.map((option) => (
+                  <SelectItem
+                    key={`to-source-${option.value}`}
+                    value={option.value}
+                  >
+                    <span className="inline-flex items-center gap-1.5">
+                      <Database className="size-4 shrink-0 text-muted-foreground" />
+                      {option.label}
+                    </span>
+                  </SelectItem>
+                ))}
+                {sourceOptions.length === 0 && (
+                  <SelectItem disabled value="__no-to-sources">
+                    No sources available
+                  </SelectItem>
+                )}
+              </SelectGroup>
               {remoteSchemaSelectItems}
-              {sourceOptions.length === 0 && (
-                <SelectItem disabled value="__no-to-sources">
-                  No sources available
-                </SelectItem>
-              )}
             </FormSelect>
 
-            <FormSelect
-              control={control}
-              name="toReference.schema"
-              label="Schema"
-              placeholder={isRemoteSchemaRelationship ? '' : 'Select schema'}
-              containerClassName="w-full"
-              data-testid="toReferenceSchemaSelect"
-              disabled={
-                !selectedToReference?.source || isRemoteSchemaRelationship
-              }
-              transform={{
-                in: (storedValue: string) => storedValue,
-                out: (selectedSchema: string) => {
-                  if (!selectedSchema || isRemoteSchemaRelationship) {
+            {isTableRelationship ? (
+              <FormSelect
+                control={control}
+                name="toReference.schema"
+                label="Schema"
+                placeholder="Select schema"
+                containerClassName="w-full"
+                data-testid="toReferenceSchemaSelect"
+                disabled={!selectedToReference?.source}
+                transform={{
+                  in: (storedValue: string) => storedValue,
+                  out: (selectedSchema: string) => {
+                    if (isEmptyValue(selectedSchema)) {
+                      return selectedSchema;
+                    }
+
+                    const key = getTableKey(
+                      selectedToReference?.source,
+                      selectedSchema,
+                    );
+
+                    const availableTables = key
+                      ? [...(tablesBySourceSchema[key] ?? [])]
+                      : [];
+
+                    if (
+                      availableTables.length > 0 &&
+                      (!selectedToReference?.table ||
+                        !availableTables.includes(selectedToReference.table))
+                    ) {
+                      setValue('toReference.table', availableTables[0], {
+                        shouldValidate: true,
+                        shouldDirty: true,
+                      });
+                    }
+
                     return selectedSchema;
-                  }
-
-                  const key = getTableKey(
-                    selectedToReference?.source,
-                    selectedSchema,
-                  );
-
-                  const availableTables = key
-                    ? [...(tablesBySourceSchema[key] ?? [])]
-                    : [];
-
-                  if (
-                    availableTables.length > 0 &&
-                    (!selectedToReference?.table ||
-                      !availableTables.includes(selectedToReference.table))
-                  ) {
-                    setValue('toReference.table', availableTables[0], {
-                      shouldValidate: true,
-                      shouldDirty: true,
-                    });
-                  }
-
-                  return selectedSchema;
-                },
-              }}
-            >
-              {toSchemaOptions.map((option) => (
-                <SelectItem key={`to-schema-${option}`} value={option}>
-                  {option}
-                </SelectItem>
-              ))}
-              {toSchemaOptions.length === 0 && (
-                <SelectItem disabled value="__no-to-schemas">
-                  No schemas available
-                </SelectItem>
-              )}
-            </FormSelect>
+                  },
+                }}
+              >
+                {toSchemaOptions.map((option) => (
+                  <SelectItem key={`to-schema-${option}`} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+                {toSchemaOptions.length === 0 && (
+                  <SelectItem disabled value="__no-to-schemas">
+                    No schemas available
+                  </SelectItem>
+                )}
+              </FormSelect>
+            ) : (
+              <ReadOnlySelect label="Schema" value="N/A" />
+            )}
           </div>
 
-          <FormCombobox
-            control={control}
-            name="toReference.table"
-            label="Table"
-            placeholder={isRemoteSchemaRelationship ? '' : 'Select table'}
-            disabled={
-              !selectedToReference?.schema || isRemoteSchemaRelationship
-            }
-            searchPlaceholder="Search table..."
-            emptyText="No tables found."
-            data-testid="toReferenceTableCombobox"
-            options={toTableOptions}
-          />
+          {isTableRelationship ? (
+            <FormCombobox
+              control={control}
+              name="toReference.table"
+              label="Table"
+              placeholder="Select table"
+              disabled={!selectedToReference?.schema}
+              searchPlaceholder="Search table..."
+              emptyText="No tables found."
+              data-testid="toReferenceTableCombobox"
+              options={toTableOptions}
+            />
+          ) : (
+            <ReadOnlyCombobox label="Table" value="N/A" />
+          )}
         </div>
       </div>
     </div>

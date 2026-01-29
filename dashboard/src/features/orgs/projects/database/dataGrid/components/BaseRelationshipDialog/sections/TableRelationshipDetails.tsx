@@ -33,6 +33,7 @@ export default function TableRelationshipDetails() {
       dataSource: selectedFromSource?.source,
       schema: selectedFromSource?.schema,
       table: selectedFromSource?.table,
+      preventRowFetching: true,
       queryOptions: {
         enabled: Boolean(
           selectedFromSource?.source &&
@@ -51,6 +52,7 @@ export default function TableRelationshipDetails() {
       dataSource: selectedToReference?.source,
       schema: selectedToReference?.schema,
       table: selectedToReference?.table,
+      preventRowFetching: true,
       queryOptions: {
         enabled: Boolean(
           selectedToReference?.source &&
@@ -111,7 +113,6 @@ export default function TableRelationshipDetails() {
               <FormSelect
                 control={form.control}
                 name={`fieldMapping.${index}.sourceColumn`}
-                label=""
                 placeholder="Select source column"
                 containerClassName="col-span-5"
                 data-testid={`fieldMapping.${index}.sourceColumn`}

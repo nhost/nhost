@@ -1,7 +1,8 @@
 import { ChevronsUpDown } from 'lucide-react';
+import type { ReactNode } from 'react';
 
 interface ReadOnlyComboboxProps {
-  label: string;
+  label: ReactNode;
   value: string;
 }
 

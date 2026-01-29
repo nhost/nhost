@@ -1,7 +1,6 @@
 import useGetRelationships from '@/features/orgs/projects/database/dataGrid/hooks/useGetRelationships/useGetRelationships';
 import { useSuggestRelationshipsQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useSuggestRelationshipsQuery';
 import { isLocalRelationshipViewModel } from '@/features/orgs/projects/database/dataGrid/types/relationships/guards';
-import type { RelationshipSuggestionViewModel } from '@/features/orgs/projects/database/dataGrid/types/relationships/relationships';
 import buildRelationshipSuggestionViewModel from '@/features/orgs/projects/database/dataGrid/utils/buildRelationshipSuggestionViewModel/buildRelationshipSuggestionViewModel';
 import { isNotEmptyValue } from '@/lib/utils';
 
@@ -10,10 +9,6 @@ interface UseGetSuggestedRelationshipsOptions {
   schema: string;
   tableName: string;
 }
-
-const filterNotNullRelationshipSuggestionViewModel = (
-  item: RelationshipSuggestionViewModel | null,
-): item is RelationshipSuggestionViewModel => item !== null;
 
 export default function useGetSuggestedRelationships({
   dataSource,

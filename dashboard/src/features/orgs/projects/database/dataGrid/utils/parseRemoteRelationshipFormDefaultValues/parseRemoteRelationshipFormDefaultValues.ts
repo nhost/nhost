@@ -41,9 +41,9 @@ export default function parseRemoteRelationshipFormDefaultValues({
         source: toSourceDefinition.source,
       },
       relationshipType:
-        toSourceDefinition.relationship_type?.toLowerCase() === 'array'
-          ? 'array'
-          : 'object',
+        toSourceDefinition.relationship_type === 'array'
+          ? 'pg_create_array_relationship'
+          : 'pg_create_object_relationship',
       fieldMapping: fieldMappingEntries.map(
         ([sourceColumn, referenceColumn]) => ({
           sourceColumn,

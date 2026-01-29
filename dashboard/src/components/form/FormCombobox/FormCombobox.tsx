@@ -84,13 +84,8 @@ function FormComboboxImpl<
       render={({ field }) => {
         const { ref: fieldRef, onChange, value } = field;
 
-        let fieldValue = '';
-        if (isNotEmptyValue(value)) {
-          fieldValue = typeof value === 'string' ? value : String(value);
-        }
-
-        const selectedOption = options.find((opt) => opt.value === fieldValue);
-        const selectedLabel = selectedOption?.label ?? fieldValue;
+        const selectedOption = options.find((opt) => opt.value === value);
+        const selectedLabel = selectedOption?.label ?? value;
 
         return (
           <FormItem
@@ -124,7 +119,7 @@ function FormComboboxImpl<
                         comboboxTriggerClasses,
                         'w-full justify-between',
                         !selectedLabel &&
-                          !isNotEmptyValue(fieldValue) &&
+                          !isNotEmptyValue(value) &&
                           'text-muted-foreground',
                         className,
                       )}
@@ -133,9 +128,7 @@ function FormComboboxImpl<
                       data-testid={dataTestId}
                     >
                       {selectedLabel ||
-                        (isNotEmptyValue(fieldValue)
-                          ? fieldValue
-                          : placeholder)}
+                        (isNotEmptyValue(value) ? value : placeholder)}
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </FormControl>
@@ -162,8 +155,8 @@ function FormComboboxImpl<
                             {option.label}
                             <Check
                               className={cn(
-                                'ml-auto',
-                                option.value === fieldValue
+                                'ml-auto size-4',
+                                option.value === value
                                   ? 'opacity-100'
                                   : 'opacity-0',
                               )}

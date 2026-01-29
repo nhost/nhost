@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import { Textarea } from '@/components/ui/v3/textarea';
@@ -20,18 +20,7 @@ export interface RemoteSchemaRelationshipDetailsValue {
   remoteField?: RemoteField;
 }
 
-export interface RemoteSchemaRelationshipDetailsProps {
-  onChange: (value: RemoteSchemaRelationshipDetailsValue) => void;
-}
-
-export default function RemoteSchemaRelationshipDetails({
-  onChange,
-}: RemoteSchemaRelationshipDetailsProps) {
-  const onChangeRef = useRef(onChange);
-  useEffect(() => {
-    onChangeRef.current = onChange;
-  }, [onChange]);
-
+export default function RemoteSchemaRelationshipDetails() {
   const [selectedRootFieldPath, setSelectedRootFieldPath] = useState('');
   const [selectedFieldPaths, setSelectedFieldPaths] = useState<Set<string>>(
     new Set(),
@@ -43,7 +32,7 @@ export default function RemoteSchemaRelationshipDetails({
   const { isSubmitting: disabled } = formState;
 
   const remoteSchemaFormValue = watch('remoteSchema');
-  const remoteSchema = remoteSchemaFormValue.name;
+  const remoteSchemaName = remoteSchemaFormValue.name;
   const initialRemoteField = remoteSchemaFormValue?.remoteField;
   const selectedFromSource = watch('fromSource');
 
@@ -55,6 +44,7 @@ export default function RemoteSchemaRelationshipDetails({
       dataSource: selectedFromSource?.source,
       schema: selectedFromSource?.schema,
       table: selectedFromSource?.table,
+      preventRowFetching: true,
       queryOptions: {
         enabled: Boolean(
           selectedFromSource?.source &&
@@ -74,12 +64,13 @@ export default function RemoteSchemaRelationshipDetails({
     useState<RemoteFieldArgumentMappingsByPath>({});
 
   const lastInitializedSchemaRef = useRef<string | undefined>(undefined);
+  const lastSyncedRemoteFieldRef = useRef<string | null>(null);
 
   const { data: targetIntrospectionData } = useIntrospectRemoteSchemaQuery(
-    remoteSchema,
+    remoteSchemaName,
     {
       queryOptions: {
-        enabled: !!remoteSchema,
+        enabled: !!remoteSchemaName,
       },
     },
   );
@@ -91,30 +82,47 @@ export default function RemoteSchemaRelationshipDetails({
     return convertIntrospectionToSchema(targetIntrospectionData);
   }, [targetIntrospectionData]);
 
-  useEffect(() => {
-    const hasSchemaChanged = lastInitializedSchemaRef.current !== remoteSchema;
-    const isInitialMount = lastInitializedSchemaRef.current === undefined;
+  const handleRemoteFieldChange = useCallback(
+    ({
+      lhsFields: updatedLhsFields,
+      remoteField,
+    }: {
+      lhsFields: string[];
+      remoteField?: RemoteField;
+    }) => {
+      if (!remoteSchemaName) {
+        return;
+      }
 
-    if (!hasSchemaChanged && !isInitialMount) {
-      return;
-    }
+      form.setValue(
+        'remoteSchema',
+        {
+          name: remoteSchemaName,
+          lhsFields: updatedLhsFields,
+          remoteField,
+        },
+        { shouldDirty: true, shouldValidate: true },
+      );
+    },
+    [form, remoteSchemaName],
+  );
 
-    if (hasSchemaChanged) {
+  const prevSchemaRef = lastInitializedSchemaRef.current;
+  if (remoteSchemaName !== prevSchemaRef) {
+    lastInitializedSchemaRef.current = remoteSchemaName;
+    lastSyncedRemoteFieldRef.current = null;
+    if (prevSchemaRef !== undefined) {
       setSelectedRootFieldPath('');
       setSelectedFieldPaths(new Set());
       setArgumentMappingsByPath({});
-      onChangeRef.current({ lhsFields: [], remoteField: undefined });
     }
-
-    if (initialRemoteField && remoteSchema) {
+    if (initialRemoteField && remoteSchemaName) {
       const parsed = parseRemoteFieldToSelection(initialRemoteField);
       setSelectedRootFieldPath(parsed.rootFieldPath);
       setSelectedFieldPaths(parsed.selectedFieldPaths);
       setArgumentMappingsByPath(parsed.argumentMappingsByPath);
     }
-
-    lastInitializedSchemaRef.current = remoteSchema;
-  }, [remoteSchema, initialRemoteField]);
+  }
 
   const remoteFieldObject = useMemo(() => {
     if (selectedFieldPaths.size === 0) {
@@ -133,16 +141,26 @@ export default function RemoteSchemaRelationshipDetails({
   );
 
   useEffect(() => {
+    const nextRemoteFieldSerialized =
+      remoteFieldObject == null
+        ? ''
+        : JSON.stringify({ lhsFields, remoteField: remoteFieldObject });
+
+    if (lastSyncedRemoteFieldRef.current === nextRemoteFieldSerialized) {
+      return;
+    }
+    lastSyncedRemoteFieldRef.current = nextRemoteFieldSerialized;
+
     if (!remoteFieldObject) {
-      onChangeRef.current({ lhsFields, remoteField: undefined });
+      handleRemoteFieldChange({ lhsFields, remoteField: undefined });
       return;
     }
 
-    onChangeRef.current({ lhsFields, remoteField: remoteFieldObject });
-  }, [lhsFields, remoteFieldObject]);
+    handleRemoteFieldChange({ lhsFields, remoteField: remoteFieldObject });
+  }, [lhsFields, remoteFieldObject, handleRemoteFieldChange]);
 
   const remoteFieldsContent = useMemo(() => {
-    if (!remoteSchema) {
+    if (!remoteSchemaName) {
       return (
         <p className="text-muted-foreground text-sm">
           Select a remote schema to browse available fields.
@@ -272,7 +290,7 @@ export default function RemoteSchemaRelationshipDetails({
   }, [
     argumentMappingsByPath,
     disabled,
-    remoteSchema,
+    remoteSchemaName,
     selectedRootFieldPath,
     selectedFieldPaths,
     tableColumnOptions,

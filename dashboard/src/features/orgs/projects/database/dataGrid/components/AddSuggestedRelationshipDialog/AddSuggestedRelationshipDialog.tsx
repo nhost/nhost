@@ -1,5 +1,7 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 import { FormInput } from '@/components/form/FormInput';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import {
@@ -13,6 +15,7 @@ import {
 } from '@/components/ui/v3/dialog';
 import { Form } from '@/components/ui/v3/form';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
+import { getRelationshipNameSchema } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/BaseRelationshipFormTypes';
 import { useCreateRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateRelationshipMutation';
 import { normalizeColumns } from '@/features/orgs/projects/database/dataGrid/utils/normalizeColumns';
 import { prepareSuggestedRelationshipDTO } from '@/features/orgs/projects/database/dataGrid/utils/prepareSuggestedRelationshipDTO';
@@ -24,6 +27,10 @@ import type {
 } from '@/utils/hasura-api/generated/schemas';
 
 interface AddSuggestedRelationshipDialogProps {
+  /**
+   * Whether the trigger button is disabled.
+   */
+  disabled?: boolean;
   /**
    * Source where the relationship will be created.
    *
@@ -48,14 +55,14 @@ interface AddSuggestedRelationshipDialogProps {
   suggestion: SuggestedObjectRelationship | SuggestedArrayRelationship;
 }
 
-const RELATIONSHIP_NAME_VALIDATION_MESSAGE =
-  'Relationship name is required. GraphQL fields are limited to letters, numbers, and underscores.';
+type AddSuggestedRelationshipFormValues = z.infer<typeof validationSchema>;
 
-type AddSuggestedRelationshipFormValues = {
-  relationshipName: string;
-};
+const validationSchema = z.object({
+  relationshipName: getRelationshipNameSchema('Relationship name'),
+});
 
 export default function AddSuggestedRelationshipDialog({
+  disabled,
   source = 'default',
   schema,
   tableName,
@@ -72,6 +79,7 @@ export default function AddSuggestedRelationshipDialog({
     defaultValues: {
       relationshipName: defaultRelationshipName,
     },
+    resolver: zodResolver(validationSchema),
   });
 
   const { control, handleSubmit, reset, setError, clearErrors, formState } =
@@ -107,13 +115,6 @@ export default function AddSuggestedRelationshipDialog({
     clearErrors('relationshipName');
   }, [open, defaultRelationshipName, reset, clearErrors]);
 
-  const showRelationshipNameError = (message: string) => {
-    setError('relationshipName', {
-      type: 'manual',
-      message,
-    });
-  };
-
   const handleClose = (nextOpen: boolean) => {
     if (!nextOpen) {
       clearErrors('relationshipName');
@@ -125,24 +126,19 @@ export default function AddSuggestedRelationshipDialog({
   const handleCreateRelationship = async ({
     relationshipName,
   }: AddSuggestedRelationshipFormValues) => {
-    clearErrors('relationshipName');
-
     if (!suggestion) {
-      showRelationshipNameError('No suggestion selected.');
+      setError('relationshipName', {
+        type: 'manual',
+        message: 'No suggestion selected.',
+      });
       return;
     }
 
     if (!resourceVersion) {
-      showRelationshipNameError(
-        'Metadata is not ready yet. Please try again in a moment.',
-      );
-      return;
-    }
-
-    const trimmedName = relationshipName.trim();
-
-    if (!trimmedName) {
-      showRelationshipNameError(RELATIONSHIP_NAME_VALIDATION_MESSAGE);
+      setError('relationshipName', {
+        type: 'manual',
+        message: 'Metadata is not ready yet. Please try again in a moment.',
+      });
       return;
     }
 
@@ -152,9 +148,10 @@ export default function AddSuggestedRelationshipDialog({
     };
 
     if (!baseTable.schema || !baseTable.name) {
-      showRelationshipNameError(
-        'Missing table information for the relationship.',
-      );
+      setError('relationshipName', {
+        type: 'manual',
+        message: 'Missing table information for the relationship.',
+      });
       return;
     }
 
@@ -171,11 +168,13 @@ export default function AddSuggestedRelationshipDialog({
         suggestion,
       });
     } catch (error) {
-      showRelationshipNameError(
-        error instanceof Error
-          ? error.message
-          : 'An error occurred while preparing the relationship.',
-      );
+      setError('relationshipName', {
+        type: 'manual',
+        message:
+          error instanceof Error
+            ? error.message
+            : 'An error occurred while preparing the relationship.',
+      });
       return;
     }
 
@@ -199,7 +198,7 @@ export default function AddSuggestedRelationshipDialog({
 
   return (
     <>
-      <Button size="sm" onClick={() => setOpen(true)}>
+      <Button size="sm" onClick={() => setOpen(true)} disabled={disabled}>
         Add
       </Button>
       <Dialog open={open} onOpenChange={handleClose}>
@@ -207,6 +206,7 @@ export default function AddSuggestedRelationshipDialog({
           className="sm:max-w-[425px]"
           hideCloseButton
           disableOutsideClick={isSubmitting}
+          onEscapeKeyDown={(e) => e.stopPropagation()}
         >
           <DialogHeader>
             <DialogTitle className="text-foreground">

@@ -12,11 +12,9 @@ import {
 } from '@/components/ui/v3/dialog';
 import TextWithTooltip from '@/features/orgs/projects/common/components/TextWithTooltip/TextWithTooltip';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
-import { useDeleteRemoteRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteRemoteRelationshipMutation';
-import { useDropRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDropRelationshipMutation';
+import { useDeleteRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteRelationshipMutation';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas';
-import { triggerToast } from '@/utils/toast';
+import { isEmptyValue } from '@/lib/utils';
 
 interface DeleteRelationshipDialogProps {
   /**
@@ -48,59 +46,43 @@ export default function DeleteRelationshipDialog({
   isRemoteRelationship,
 }: DeleteRelationshipDialogProps) {
   const [open, setOpen] = useState(false);
-  const {
-    mutateAsync: deleteLocalRelationship,
-    isLoading: isDeletingLocalRelationship,
-  } = useDropRelationshipMutation();
 
-  const {
-    mutateAsync: deleteRemoteRelationship,
-    isLoading: isDeletingRemoteRelationship,
-  } = useDeleteRemoteRelationshipMutation();
+  const { mutateAsync: deleteRelationship } = useDeleteRelationshipMutation();
 
-  const isDeletingRelationship = isRemoteRelationship
-    ? isDeletingRemoteRelationship
-    : isDeletingLocalRelationship;
+  const [loadingDelete, setLoadingDelete] = useState(false);
 
-  const { data: resourceVersion } = useGetMetadataResourceVersion();
+  const { data: resourceVersion, refetch: refetchResourceVersion } =
+    useGetMetadataResourceVersion();
+
+  const isDeleteDisabled = isEmptyValue(resourceVersion) || loadingDelete;
 
   const handleDeleteDialogClick = async () => {
-    if (!resourceVersion) {
-      triggerToast('Metadata is not ready yet. Please try again in a moment.');
-      return;
-    }
+    setLoadingDelete(true);
+    const { data: latestResourceVersion } = await refetchResourceVersion();
+    const type = isRemoteRelationship ? 'remote' : 'local';
 
-    let deleteRelationshipPromise: Promise<MetadataOperation200>;
-    if (isRemoteRelationship) {
-      deleteRelationshipPromise = deleteRemoteRelationship({
-        resourceVersion: resourceVersion!,
-        args: {
-          name: relationshipToDelete,
-          table: {
-            schema,
-            name: tableName,
+    await execPromiseWithErrorToast(
+      async () => {
+        await deleteRelationship({
+          resourceVersion: latestResourceVersion!,
+          type,
+          args: {
+            relationshipName: relationshipToDelete,
+            table: {
+              schema,
+              name: tableName,
+            },
+            source,
           },
-          source,
-        },
-      });
-    } else {
-      deleteRelationshipPromise = deleteLocalRelationship({
-        resourceVersion: resourceVersion!,
-        args: {
-          relationship: relationshipToDelete,
-          table: {
-            schema,
-            name: tableName,
-          },
-          source,
-        },
-      });
-    }
-    await execPromiseWithErrorToast(() => deleteRelationshipPromise, {
-      loadingMessage: 'Deleting relationship...',
-      successMessage: 'Relationship deleted successfully.',
-      errorMessage: 'An error occurred while deleting the relationship.',
-    });
+        });
+      },
+      {
+        loadingMessage: 'Deleting relationship...',
+        successMessage: 'Relationship deleted successfully.',
+        errorMessage: 'An error occurred while deleting the relationship.',
+      },
+    );
+    setLoadingDelete(false);
     setOpen(false);
   };
 
@@ -121,7 +103,8 @@ export default function DeleteRelationshipDialog({
         <DialogContent
           className="sm:max-w-[425px]"
           hideCloseButton
-          disableOutsideClick={isDeletingRelationship}
+          disableOutsideClick={loadingDelete}
+          onEscapeKeyDown={(e) => e.stopPropagation()}
         >
           <DialogHeader>
             <DialogTitle className="text-foreground">
@@ -142,7 +125,8 @@ export default function DeleteRelationshipDialog({
               variant="destructive"
               className="!text-sm+ text-white"
               onClick={handleDeleteDialogClick}
-              loading={isDeletingRelationship}
+              loading={loadingDelete}
+              disabled={isDeleteDisabled}
             >
               Delete
             </ButtonWithLoading>

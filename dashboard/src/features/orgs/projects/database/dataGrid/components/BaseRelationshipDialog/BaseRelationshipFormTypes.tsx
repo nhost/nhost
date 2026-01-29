@@ -1,5 +1,14 @@
 import { z } from 'zod';
-import type { RemoteField } from '@/utils/hasura-api/generated/schemas';
+import { isNotEmptyValue } from '@/lib/utils';
+import type { RemoteFieldArguments } from '@/utils/hasura-api/generated/schemas';
+
+export type RemoteFieldForm = Record<
+  string,
+  {
+    arguments?: RemoteFieldArguments;
+    field?: Record<string, unknown>;
+  }
+>;
 
 enum ToReferenceSourceTypePrefix {
   REMOTE_SCHEMA = 'remote-schema-',
@@ -47,8 +56,19 @@ export class ReferenceSource {
   }
 }
 
+export const getRelationshipNameSchema = (fieldName: string) =>
+  z
+    .string()
+    .min(1, { message: `${fieldName} is required` })
+    .regex(/^([A-Za-z]|_)+/i, {
+      message: `${fieldName} must start with a letter or underscore.`,
+    })
+    .regex(/^\w+$/i, {
+      message: `${fieldName} must contain only letters, numbers, or underscores.`,
+    });
+
 const baseRelationshipFormSchema = z.object({
-  name: z.string().min(1, { message: 'Name is required' }),
+  name: getRelationshipNameSchema('Name'),
   fromSource: z.object(
     {
       schema: z.string().min(1),
@@ -79,7 +99,9 @@ const tableRelationshipFormSchema = baseRelationshipFormSchema.extend({
       required_error: 'Relationship type is required',
     },
   ),
-  fieldMapping: z.array(fieldMappingSchema),
+  fieldMapping: z
+    .array(fieldMappingSchema)
+    .min(1, { message: 'At least one column mapping is required' }),
 });
 
 const remoteSchemaRelationshipFormSchema = baseRelationshipFormSchema.extend({
@@ -92,40 +114,19 @@ const remoteSchemaRelationshipFormSchema = baseRelationshipFormSchema.extend({
   remoteSchema: z.object({
     name: z.string().min(1, { message: 'Remote schema is required' }),
     lhsFields: z.array(z.string()),
-    remoteField: z.custom<RemoteField>().optional(),
+    remoteField: z
+      .custom<RemoteFieldForm>(isNotEmptyValue, {
+        message: 'Please provide at least one remote field.',
+        path: ['remoteSchema'],
+      })
+      .optional(),
   }),
 });
 
-export const relationshipFormSchema = z
-  .discriminatedUnion('referenceKind', [
-    tableRelationshipFormSchema,
-    remoteSchemaRelationshipFormSchema,
-  ])
-  .superRefine((data, ctx) => {
-    if (data.referenceKind === 'remoteSchema') {
-      if (!data.remoteSchema?.remoteField) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Please provide at least one remote field.',
-          path: ['remoteSchema'],
-        });
-      }
-
-      return;
-    }
-
-    if (
-      data.relationshipType === 'pg_create_array_relationship' &&
-      data.fieldMapping.length === 0
-    ) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message:
-          'At least one column mapping is required for array relationships.',
-        path: ['fieldMapping'],
-      });
-    }
-  });
+export const relationshipFormSchema = z.discriminatedUnion('referenceKind', [
+  tableRelationshipFormSchema,
+  remoteSchemaRelationshipFormSchema,
+]);
 
 export const defaultFormValues: BaseRelationshipFormInitialValues = {
   name: '',

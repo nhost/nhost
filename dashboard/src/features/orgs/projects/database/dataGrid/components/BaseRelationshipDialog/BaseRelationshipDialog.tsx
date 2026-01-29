@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { FormInput } from '@/components/form/FormInput';
@@ -14,7 +14,6 @@ import {
   DialogTitle,
 } from '@/components/ui/v3/dialog';
 import { Form, FormDescription } from '@/components/ui/v3/form';
-import type { RemoteField } from '@/utils/hasura-api/generated/schemas';
 import {
   type BaseRelationshipFormValues,
   buildDefaultFormValues,
@@ -50,9 +49,9 @@ export interface BaseRelationshipDialogProps {
 export default function BaseRelationshipDialog({
   open,
   setOpen,
-  dialogTitle = 'Create Relationship',
-  dialogDescription = 'Create and track a new relationship in your GraphQL schema.',
-  submitButtonText = 'Create Relationship',
+  dialogTitle,
+  dialogDescription,
+  submitButtonText,
   schema,
   tableName,
   source,
@@ -89,8 +88,6 @@ export default function BaseRelationshipDialog({
 
   const isRemoteSchemaRelationship = referenceKind === 'remoteSchema';
 
-  const remoteSchemaName = watch('remoteSchema.name');
-
   const handleOpenChange = (nextOpen: boolean) => {
     if (!nextOpen && !initialValues) {
       form.reset();
@@ -99,37 +96,13 @@ export default function BaseRelationshipDialog({
     setOpen(nextOpen);
   };
 
-  const handleRemoteSchemaRelationshipDetailsChange = useCallback(
-    ({
-      lhsFields,
-      remoteField,
-    }: {
-      lhsFields: string[];
-      remoteField?: RemoteField;
-    }) => {
-      if (!remoteSchemaName) {
-        return;
-      }
-
-      form.setValue(
-        'remoteSchema',
-        {
-          name: remoteSchemaName,
-          lhsFields,
-          remoteField,
-        },
-        { shouldDirty: true, shouldValidate: true },
-      );
-    },
-    [form, remoteSchemaName],
-  );
-
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
-        className="sm:max-w-[720px]"
+        className="max-h-near-screen overflow-y-auto sm:max-w-[720px]"
         hideCloseButton
         disableOutsideClick={isSubmitting}
+        onEscapeKeyDown={(e) => e.stopPropagation()}
       >
         <DialogHeader>
           <DialogTitle className="text-foreground">{dialogTitle}</DialogTitle>
@@ -168,9 +141,7 @@ export default function BaseRelationshipDialog({
               </div>
 
               {isRemoteSchemaRelationship ? (
-                <RemoteSchemaRelationshipDetails
-                  onChange={handleRemoteSchemaRelationshipDetailsChange}
-                />
+                <RemoteSchemaRelationshipDetails />
               ) : (
                 <TableRelationshipDetails />
               )}

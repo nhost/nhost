@@ -7,6 +7,7 @@ import type {
   RelationshipUsing,
   RelationshipUsingForeignKeyConstraintOn,
   RelationshipUsingManualConfiguration,
+  RemoteField,
   RemoteRelationshipDefinition,
   ToRemoteSchemaRelationshipDefinition,
   ToSourceRelationshipDefinition,
@@ -58,4 +59,31 @@ export function isRemoteSchemaRelationshipFormValues(
   values: BaseRelationshipFormValues,
 ): values is RemoteSchemaRelationshipFormValues {
   return values.referenceKind === 'remoteSchema';
+}
+
+/**
+ * Type guard for RemoteField (recursive structure). Use when reading
+ * remoteSchema.remoteField from form values (typed as unknown).
+ */
+export function isRemoteField(value: unknown): value is RemoteField {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+    return false;
+  }
+  for (const v of Object.values(value as Record<string, unknown>)) {
+    if (v === null || typeof v !== 'object' || Array.isArray(v)) {
+      return false;
+    }
+    const entry = v as Record<string, unknown>;
+    if (!('arguments' in entry || 'field' in entry)) {
+      return false;
+    }
+    if (
+      'field' in entry &&
+      entry.field !== undefined &&
+      !isRemoteField(entry.field)
+    ) {
+      return false;
+    }
+  }
+  return true;
 }

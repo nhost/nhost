@@ -37,7 +37,10 @@ export default function prepareRemoteSourceRelationshipDTO(
     table: baseTable,
     definition: {
       to_source: {
-        relationship_type: values.relationshipType,
+        relationship_type:
+          values.relationshipType === 'pg_create_array_relationship'
+            ? 'array'
+            : 'object',
         source: toSourceName,
         table: remoteTable,
         field_mapping: fieldMapping,

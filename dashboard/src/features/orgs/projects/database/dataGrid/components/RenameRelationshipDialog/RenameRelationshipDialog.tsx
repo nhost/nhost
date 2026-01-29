@@ -1,6 +1,8 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import { PencilIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 import { FormInput } from '@/components/form/FormInput';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import {
@@ -15,6 +17,7 @@ import {
 import { Form } from '@/components/ui/v3/form';
 import TextWithTooltip from '@/features/orgs/projects/common/components/TextWithTooltip/TextWithTooltip';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
+import { getRelationshipNameSchema } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/BaseRelationshipFormTypes';
 import { useRenameRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useRenameRelationshipMutation';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 
@@ -46,9 +49,11 @@ interface RenameRelationshipDialogProps {
 const RELATIONSHIP_NAME_HELPER_TEXT =
   'GraphQL fields are limited to letters, numbers, and underscores.';
 
-type RenameRelationshipFormValues = {
-  newRelationshipName: string;
-};
+const validationSchema = z.object({
+  newRelationshipName: getRelationshipNameSchema('Relationship name'),
+});
+
+type RenameRelationshipFormValues = z.infer<typeof validationSchema>;
 
 export default function RenameRelationshipDialog({
   schema,
@@ -66,6 +71,7 @@ export default function RenameRelationshipDialog({
   const relationshipNameInputRef = useRef<HTMLInputElement | null>(null);
 
   const renameForm = useForm<RenameRelationshipFormValues>({
+    resolver: zodResolver(validationSchema),
     defaultValues: {
       newRelationshipName: relationshipToRename,
     },
@@ -84,22 +90,15 @@ export default function RenameRelationshipDialog({
     reset({ newRelationshipName: relationshipToRename });
     clearErrors('newRelationshipName');
 
-    const timer = setTimeout(() => {
-      relationshipNameInputRef.current?.focus();
-      relationshipNameInputRef.current?.select();
-    }, 0);
+    // const timer = setTimeout(() => {
+    //   relationshipNameInputRef.current?.focus();
+    //   relationshipNameInputRef.current?.select();
+    // }, 0);
 
-    return () => {
-      clearTimeout(timer);
-    };
+    // return () => {
+    //   clearTimeout(timer);
+    // };
   }, [open, relationshipToRename, reset, clearErrors]);
-
-  const showRelationshipNameError = (message: string) => {
-    setError('newRelationshipName', {
-      type: 'manual',
-      message,
-    });
-  };
 
   const handleClose = (nextOpen: boolean) => {
     if (!nextOpen) {
@@ -120,26 +119,11 @@ export default function RenameRelationshipDialog({
   const handleRenameRelationship = async ({
     newRelationshipName,
   }: RenameRelationshipFormValues) => {
-    clearErrors('newRelationshipName');
-
     if (!resourceVersion) {
-      showRelationshipNameError(
-        'Metadata is not ready yet. Please try again in a moment.',
-      );
-      return;
-    }
-
-    const trimmedName = newRelationshipName.trim();
-
-    if (!trimmedName) {
-      showRelationshipNameError('New relationship name is required.');
-      return;
-    }
-
-    if (trimmedName === relationshipToRename.trim()) {
-      showRelationshipNameError(
-        'New relationship name must be different from the current name.',
-      );
+      setError('newRelationshipName', {
+        type: 'manual',
+        message: 'Metadata is not ready yet. Please try again in a moment.',
+      });
       return;
     }
 
@@ -185,6 +169,7 @@ export default function RenameRelationshipDialog({
           className="sm:max-w-[425px]"
           hideCloseButton
           disableOutsideClick={isSubmitting}
+          onEscapeKeyDown={(e) => e.stopPropagation()}
         >
           <DialogHeader>
             <DialogTitle className="text-foreground">
@@ -221,7 +206,7 @@ export default function RenameRelationshipDialog({
                 <ButtonWithLoading
                   type="submit"
                   loading={isSubmitting}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !formState.isDirty}
                   className="!text-sm+"
                 >
                   Rename

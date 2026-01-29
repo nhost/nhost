@@ -34,7 +34,7 @@ interface FormSelectProps<
 > {
   control: Control<TFieldValues>;
   name: TName;
-  label: ReactNode;
+  label?: ReactNode;
   placeholder?: string;
   className?: string;
   containerClassName?: string;

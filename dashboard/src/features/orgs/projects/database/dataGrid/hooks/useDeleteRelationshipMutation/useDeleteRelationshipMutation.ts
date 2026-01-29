@@ -3,30 +3,30 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
-import dropRelationship, {
-  type DropRelationshipVariables,
-} from './dropRelationship';
+import deleteRelationship, {
+  type DeleteRelationshipVariables,
+} from './deleteRelationship';
 
-export interface UseDropRelationshipMutationOptions {
+export interface UseDeleteRelationshipMutationOptions {
   /**
    * Props passed to the underlying mutation hook.
    */
   mutationOptions?: MutationOptions<
     MetadataOperation200,
     unknown,
-    DropRelationshipVariables
+    DeleteRelationshipVariables
   >;
 }
 
 /**
- * This hook is a wrapper around a fetch call that drops a relationship.
+ * This hook is a wrapper around a fetch call that deletes a relationship.
  *
  * @param options - Options to use for the mutation.
  * @returns The result of the mutation.
  */
-export default function useDropRelationshipMutation({
+export default function useDeleteRelationshipMutation({
   mutationOptions,
-}: UseDropRelationshipMutationOptions = {}) {
+}: UseDeleteRelationshipMutationOptions = {}) {
   const { project } = useProject();
   const queryClient = useQueryClient();
 
@@ -38,7 +38,7 @@ export default function useDropRelationshipMutation({
         'hasura',
       );
 
-      return dropRelationship({
+      return deleteRelationship({
         ...variables,
         appUrl,
         adminSecret: project!.config!.hasura.adminSecret,

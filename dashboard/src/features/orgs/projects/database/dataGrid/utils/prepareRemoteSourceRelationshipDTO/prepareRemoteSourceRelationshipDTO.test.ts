@@ -18,7 +18,7 @@ describe('prepareRemoteSourceRelationshipDTO', () => {
         table: 'externaltable',
         source: 'externaldb',
       },
-      relationshipType: 'object',
+      relationshipType: 'pg_create_object_relationship',
       fieldMapping: [
         {
           sourceColumn: 'user_id',

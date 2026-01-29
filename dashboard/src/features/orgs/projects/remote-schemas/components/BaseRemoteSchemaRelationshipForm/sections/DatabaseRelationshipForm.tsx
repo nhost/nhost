@@ -59,10 +59,7 @@ const formSchema = z.object({
     .refine((value) => Boolean(value?.name) && Boolean(value?.schema), {
       message: 'Target table is required',
     }),
-  relationshipType: z.enum([
-    'pg_create_array_relationship',
-    'pg_create_object_relationship',
-  ]),
+  relationshipType: z.enum(['array', 'object']),
   fieldMapping: z.array(
     z.object({
       sourceField: z.string().min(1, { message: 'Source field is required' }),
