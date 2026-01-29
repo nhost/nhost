@@ -20,6 +20,8 @@ When you add a Remote Schema, its types and operations are merged with your exis
 
 ## Adding a Remote Schema
 
+![Add Remote Schema](/images/graphql/remote-schemas-create.png)
+
 <Steps>
 
 1. **Navigate to Remote Schemas**
@@ -69,10 +71,6 @@ For sensitive values like API keys, tokens, and credentials, use environment var
 | `Authorization` | `Bearer {{PAYMENTS_API_TOKEN}}` |
 | `x-api-key` | `{{EXTERNAL_API_KEY}}` |
 
-:::caution
-Never hardcode API keys, tokens, or other credentials directly in header values. Always store sensitive values as Nhost Secrets and reference them using the `{{SECRET_NAME}}` syntax.
-:::
-
 ### Forward Client Headers
 
 Enable **Forward Client Headers** to pass headers from the original client request to the remote service. This is useful when the remote service needs to receive authentication tokens or other context from your users.
@@ -82,6 +80,8 @@ When enabled, headers from the client (like `Authorization`) are forwarded to th
 ## GraphQL Customizations
 
 When merging schemas, naming conflicts can occur if the remote schema uses type or field names that already exist in your schema. Use GraphQL Customizations to add prefixes, suffixes, or namespaces to avoid conflicts.
+
+![GraphQL Customizations](/images/graphql/remote-schemas-customizations.png)
 
 ### Root Field Namespace
 
@@ -125,7 +125,7 @@ Once enabled, access to Remote Schemas is restricted for all roles (except `admi
 
 Navigate to **Settings** > **Hasura** and enable the **Remote Schema Permissions** toggle.
 
-![permission](/images/graphql/remote-schemas-permission.png)
+![permission](/images/graphql/remote-schemas-settings-permissions.png)
 
   </TabItem>
   <TabItem label="toml">
@@ -150,18 +150,24 @@ Once enabled, you can configure permissions for each role:
 
 2. **Go to Permissions**
 
-   Click on the **Edit Permissions** option to view the permissions table with all available roles.
+   Click on the **...** menu for the Remote Schema, then select **Edit Permissions** to view the permissions table with all available roles.
+
+   ![Edit Permissions menu](/images/graphql/remote-schemas-permissions-edit.png)
 
 3. **Edit permissions for a role**
 
-   Click on the **Permission** cell for the role you want to configure. You'll see a list of all available operations and types from the Remote Schema:
+   Click on the **Permission** cell for the role you want to configure.
+
+   ![Permissions matrix](/images/graphql/remote-schemas-permissions-cell.png)
+
+   You'll see a list of all available operations and types from the Remote Schema:
    - **Query operations**: Each query field has a checkbox to grant or deny access
    - **Mutation operations**: Each mutation field has a checkbox to grant or deny access
    - **Custom types**: Each type exposed by the Remote Schema can be individually enabled or disabled
 
    Check the boxes for the specific operations and types you want to allow for this role.
 
-   ![permission-roles](/images/graphql/remote-schemas-permission-roles.png)
+   ![Permission roles configuration](/images/graphql/remote-schemas-permissions-roles.png)
 
 4. **Save permissions**
 
