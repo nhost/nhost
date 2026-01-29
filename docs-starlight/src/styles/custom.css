@@ -49,7 +49,7 @@
 
   /* Typography */
   --sl-font: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  --sl-font-headings: var(--sl-font);
+  --sl-font-headings: 'Mona Sans', var(--sl-font);
 }
 
 /* Light mode */
@@ -75,6 +75,18 @@
 
   --sl-color-text: #333333;
   --sl-color-text-accent: #0066ff;
+}
+
+/* Apply different font for headings */
+h1, h2, h3, h4, h5, h6,
+.sl-markdown-content h1,
+.sl-markdown-content h2,
+.sl-markdown-content h3,
+.sl-markdown-content h4,
+.sl-markdown-content h5,
+.sl-markdown-content h6,
+.site-title {
+  font-family: var(--sl-font-headings);
 }
 
 /* Primary buttons - white with black text (matching landing page) */
