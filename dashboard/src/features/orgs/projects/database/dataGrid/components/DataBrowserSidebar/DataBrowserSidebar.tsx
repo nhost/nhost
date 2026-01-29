@@ -346,7 +346,9 @@ function DataBrowserSidebarContent({
           | 'VIEW'
           | 'MATERIALIZED VIEW',
       });
-      queryClient.removeQueries([`${dataSourceSlug}.${schema}.${table}`]);
+      queryClient.removeQueries({
+        queryKey: [`${dataSourceSlug}.${schema}.${table}`],
+      });
 
       // Note: At this point we can optimisticly assume that the table was
       // removed, so we can improve the UX by removing it from the list right
@@ -929,9 +931,11 @@ function DataBrowserSidebarContent({
                                 component: (
                                   <EditTableForm
                                     onSubmit={async (tableName) => {
-                                      await queryClient.refetchQueries([
-                                        `${dataSourceSlug}.${dbObject.table_schema}.${tableName}`,
-                                      ]);
+                                      await queryClient.refetchQueries({
+                                        queryKey: [
+                                          `${dataSourceSlug}.${dbObject.table_schema}.${tableName}`,
+                                        ],
+                                      });
                                       await refetch();
                                     }}
                                     schema={dbObject.table_schema}

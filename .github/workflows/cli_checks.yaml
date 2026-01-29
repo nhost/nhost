@@ -22,6 +22,9 @@ on:
 
       # cli
       - 'cli/**'
+
+      # docs
+      - 'docs/**'
   push:
     branches:
       - main

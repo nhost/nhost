@@ -25,7 +25,7 @@ export default function DeleteCronTriggerDialog({
 }: DeleteCronTriggerDialogProps) {
   const router = useRouter();
   const { orgSlug, appSubdomain, cronTriggerSlug } = router.query;
-  const { mutateAsync: deleteCronTrigger, isLoading: isDeletingCronTrigger } =
+  const { mutateAsync: deleteCronTrigger, isPending: isDeletingCronTrigger } =
     useDeleteCronTriggerMutation();
 
   const handleDeleteDialogClick = async () => {
@@ -35,7 +35,9 @@ export default function DeleteCronTriggerDialog({
           cronTriggerName: cronTriggerToDelete,
         });
         if (cronTriggerSlug === cronTriggerToDelete) {
-          router.push(`/orgs/${orgSlug}/projects/${appSubdomain}/events`);
+          router.push(
+            `/orgs/${orgSlug}/projects/${appSubdomain}/events/cron-triggers`,
+          );
         }
       },
       {

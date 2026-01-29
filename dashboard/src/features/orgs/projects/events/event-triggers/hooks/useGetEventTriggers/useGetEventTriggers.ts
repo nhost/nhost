@@ -33,9 +33,9 @@ export default function useGetEventTriggers({
     ExportMetadataResponse,
     unknown,
     EventTriggerViewModel[]
-  >(
-    ['export-metadata', project?.subdomain],
-    () => {
+  >({
+    queryKey: ['export-metadata', project?.subdomain],
+    queryFn: () => {
       const appUrl = generateAppServiceUrl(
         project!.subdomain,
         project!.region,
@@ -46,18 +46,16 @@ export default function useGetEventTriggers({
 
       return fetchExportMetadata({ appUrl, adminSecret });
     },
-    {
-      ...queryOptions,
-      enabled: !!(
-        project?.subdomain &&
-        project?.region &&
-        project?.config?.hasura.adminSecret &&
-        queryOptions?.enabled !== false &&
-        !loading
-      ),
-      select: (data) => parseEventTriggersFromMetadata(data.metadata),
-    },
-  );
+    ...queryOptions,
+    enabled: !!(
+      project?.subdomain &&
+      project?.region &&
+      project?.config?.hasura.adminSecret &&
+      queryOptions?.enabled !== false &&
+      !loading
+    ),
+    select: (data) => parseEventTriggersFromMetadata(data.metadata),
+  });
 
   return query;
 }

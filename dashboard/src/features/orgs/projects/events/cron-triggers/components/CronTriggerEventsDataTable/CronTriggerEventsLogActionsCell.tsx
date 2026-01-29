@@ -25,7 +25,7 @@ export default function CronTriggerEventsLogActionsCell({
   ] = useState(false);
   const {
     mutateAsync: deleteScheduledCronTriggerEvent,
-    isLoading: isDeleteScheduledEventLoading,
+    isPending: isDeleteScheduledEventLoading,
   } = useDeleteScheduledCronTriggerEventMutation();
 
   const handleDeleteScheduledEvent = async () => {

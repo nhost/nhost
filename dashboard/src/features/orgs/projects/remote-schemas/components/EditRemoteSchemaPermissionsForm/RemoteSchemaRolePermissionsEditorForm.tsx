@@ -131,11 +131,11 @@ export default function RemoteSchemaRolePermissionsEditorForm({
     error: schemaError,
   } = useIntrospectRemoteSchemaQuery(remoteSchemaName);
 
-  const { mutateAsync: addPermission, isLoading: isAddingPermission } =
+  const { mutateAsync: addPermission, isPending: isAddingPermission } =
     useAddRemoteSchemaPermissionsMutation();
-  const { mutateAsync: updatePermission, isLoading: isUpdatingPermission } =
+  const { mutateAsync: updatePermission, isPending: isUpdatingPermission } =
     useUpdateRemoteSchemaPermissionsMutation();
-  const { mutateAsync: removePermission, isLoading: isRemovingPermission } =
+  const { mutateAsync: removePermission, isPending: isRemovingPermission } =
     useRemoveRemoteSchemaPermissionsMutation();
 
   const { openAlertDialog } = useDialog();

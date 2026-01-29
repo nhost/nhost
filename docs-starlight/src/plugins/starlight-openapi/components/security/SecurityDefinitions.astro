@@ -1,0 +1,58 @@
+---
+import {
+  isOpenAPIV2OAuth2SecurityScheme,
+  isOpenAPIV3OAuth2SecurityScheme,
+  type SecurityDefinitions,
+} from '../../libs/security'
+import { capitalize } from '../../libs/utils'
+import Heading from '../Heading.astro'
+import Md from '../Md.astro'
+import Section from '../Section.astro'
+import Text from '../Text.astro'
+
+import SecurityOAuth2Flow from './SecurityOAuth2Flow.astro'
+
+interface Props {
+  definitions: SecurityDefinitions | undefined
+}
+
+const { definitions } = Astro.props
+---
+
+{
+  definitions && (
+    <>
+      <Heading level={2} id="authentication">
+        Authentication
+      </Heading>
+      {Object.entries(definitions).map(([name, scheme]) => (
+        <Section title={name}>
+          <Md text={scheme.description} />
+          <Text label="Security scheme type" tag>
+            {scheme.type}
+          </Text>
+          {'bearerFormat' in scheme && (
+            <Text label="Bearer format" tag>
+              {scheme.bearerFormat}
+            </Text>
+          )}
+          {'openIdConnectUrl' in scheme && (
+            <Text label="OpenID Connect URL">
+              <a href={scheme.openIdConnectUrl}>{scheme.openIdConnectUrl}</a>
+            </Text>
+          )}
+          {scheme.type === 'apiKey' && (
+            <Text label={`${capitalize(scheme.in)} parameter name`} tag>
+              {scheme.name}
+            </Text>
+          )}
+          {isOpenAPIV2OAuth2SecurityScheme(scheme) ? (
+            <SecurityOAuth2Flow flow={scheme} type={scheme.flow} />
+          ) : isOpenAPIV3OAuth2SecurityScheme(scheme) ? (
+            Object.entries(scheme.flows).map(([type, flow]) => <SecurityOAuth2Flow {flow} type={type} />)
+          ) : null}
+        </Section>
+      ))}
+    </>
+  )
+}

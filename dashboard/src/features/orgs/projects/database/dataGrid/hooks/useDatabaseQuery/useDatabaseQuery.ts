@@ -1,7 +1,6 @@
 import type { QueryKey, UseQueryOptions } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
-import { useGetMetadata } from '@/features/orgs/projects/common/hooks/useGetMetadata';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { getHasuraAdminSecret } from '@/utils/env';
@@ -41,20 +40,10 @@ export default function useDatabaseQuery(
   } = useRouter();
 
   const { project } = useProject();
-  const { data: metadata } = useGetMetadata();
-  const defaultDataSource = metadata?.sources?.find(
-    (source) => source.name === 'default',
-  );
 
-  const defaultDataSourceFunctions = new Set(
-    defaultDataSource?.functions?.map(
-      (func) => `${func.function.schema}.${func.function.name}`,
-    ) ?? [],
-  );
-
-  const query = useQuery<FetchDatabaseReturnType>(
+  const query = useQuery<FetchDatabaseReturnType>({
     queryKey,
-    () => {
+    queryFn: () => {
       const appUrl = generateAppServiceUrl(
         project!.subdomain,
         project!.region,
@@ -69,25 +58,12 @@ export default function useDatabaseQuery(
         dataSource: customDataSource || (dataSourceSlug as string),
       });
     },
-    {
-      ...queryOptions,
-      enabled:
-        project?.config?.hasura.adminSecret && isReady
-          ? queryOptions?.enabled
-          : false,
-      select: (data) => ({
-        ...data,
-        // TODO: Check if this is necessary
-        // functions: data.functions?.filter(
-        //   (func) =>
-        //     func.table_type === 'FUNCTION' &&
-        //     defaultDataSourceFunctions.has(
-        //       `${func.table_schema}.${func.table_name}`,
-        //     ),
-        // ),
-      }),
-    },
-  );
+    ...queryOptions,
+    enabled:
+      project?.config?.hasura.adminSecret && isReady
+        ? queryOptions?.enabled
+        : false,
+  });
 
   return query;
 }

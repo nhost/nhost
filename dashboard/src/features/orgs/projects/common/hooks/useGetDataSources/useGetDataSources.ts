@@ -23,9 +23,9 @@ export default function useGetDataSources({
 }: UseGetDataSourcesOptions = {}) {
   const { project } = useProject();
 
-  const query = useQuery<ExportMetadataResponse, unknown, string[]>(
-    ['export-metadata', project?.subdomain],
-    () => {
+  const query = useQuery<ExportMetadataResponse, unknown, string[]>({
+    queryKey: ['export-metadata', project?.subdomain],
+    queryFn: () => {
       const appUrl = generateAppServiceUrl(
         project!.subdomain,
         project!.region,
@@ -36,17 +36,15 @@ export default function useGetDataSources({
 
       return fetchExportMetadata({ appUrl, adminSecret });
     },
-    {
-      ...queryOptions,
-      select: (data) =>
-        data.metadata?.sources?.reduce<string[]>((acc, source) => {
-          if (source.name) {
-            acc.push(source.name);
-          }
-          return acc;
-        }, []) ?? [],
-    },
-  );
+    ...queryOptions,
+    select: (data) =>
+      data.metadata?.sources?.reduce<string[]>((acc, source) => {
+        if (source.name) {
+          acc.push(source.name);
+        }
+        return acc;
+      }, []) ?? [],
+  });
 
   return query;
 }

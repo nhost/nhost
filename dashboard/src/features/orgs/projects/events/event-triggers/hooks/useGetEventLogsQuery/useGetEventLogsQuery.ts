@@ -39,15 +39,15 @@ export default function useGetEventLogsQuery(
 ) {
   const { project, loading } = useProject();
 
-  const query = useQuery(
-    [
+  const query = useQuery({
+    queryKey: [
       'get-event-logs',
       args.name,
       args.source ?? 'default',
       args.limit ?? 100,
       args.offset ?? 0,
-    ],
-    () => {
+    ] as const,
+    queryFn: () => {
       const appUrl = generateAppServiceUrl(
         project!.subdomain,
         project!.region,
@@ -62,18 +62,16 @@ export default function useGetEventLogsQuery(
         args,
       });
     },
-    {
-      ...queryOptions,
-      enabled: !!(
-        project?.subdomain &&
-        project?.region &&
-        project?.config?.hasura.adminSecret &&
-        args.name &&
-        queryOptions?.enabled !== false &&
-        !loading
-      ),
-    },
-  );
+    ...queryOptions,
+    enabled: !!(
+      project?.subdomain &&
+      project?.region &&
+      project?.config?.hasura.adminSecret &&
+      args.name &&
+      queryOptions?.enabled !== false &&
+      !loading
+    ),
+  });
 
   return query;
 }

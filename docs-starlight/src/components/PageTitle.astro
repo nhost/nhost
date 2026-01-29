@@ -1,0 +1,31 @@
+---
+import type { Props } from '@astrojs/starlight/props';
+import Default from '@astrojs/starlight/components/PageTitle.astro';
+
+// Keywords for Pagefind site search: Renders keywords as hidden text inside <main data-pagefind-body>.
+// Pagefind (v1.4) only indexes content within data-pagefind-body, so we render keywords here
+// as a visually hidden span. The data-pagefind-weight="2" boosts their relevance in search results.
+// For SEO meta tags, see Head.astro which renders <meta name="keywords"> in <head>.
+const entry = Astro.locals.starlightRoute?.entry;
+const keywords = entry?.data?.keywords as string[] | undefined;
+---
+
+<Default {...Astro.props}><slot /></Default>
+{/* Hidden keywords for Pagefind indexing */}
+{keywords && keywords.length > 0 && (
+  <span data-pagefind-weight="2" class="sr-only">{keywords.join(' ')}</span>
+)}
+
+<style>
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+</style>

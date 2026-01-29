@@ -74,15 +74,15 @@ export default function useGetCronEventLogsQuery(
     }
   }
 
-  const query = useQuery(
-    [
+  const query = useQuery({
+    queryKey: [
       'get-cron-event-logs',
       args.trigger_name,
       args.eventLogsSection,
       args.limit ?? 100,
       args.offset ?? 0,
-    ],
-    () => {
+    ] as const,
+    queryFn: () => {
       const appUrl = generateAppServiceUrl(
         project!.subdomain,
         project!.region,
@@ -104,19 +104,17 @@ export default function useGetCronEventLogsQuery(
         },
       });
     },
-    {
-      ...queryOptions,
-      enabled: !!(
-        project?.subdomain &&
-        project?.region &&
-        project?.config?.hasura.adminSecret &&
-        args.trigger_name &&
-        queryOptions?.enabled !== false &&
-        !loading
-      ),
-      select: (data) => data.events,
-    },
-  );
+    ...queryOptions,
+    enabled: !!(
+      project?.subdomain &&
+      project?.region &&
+      project?.config?.hasura.adminSecret &&
+      args.trigger_name &&
+      queryOptions?.enabled !== false &&
+      !loading
+    ),
+    select: (data) => data.events,
+  });
 
   return query;
 }

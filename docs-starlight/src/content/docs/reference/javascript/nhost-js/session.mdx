@@ -1,0 +1,658 @@
+---
+title: Session
+---
+Session management module for Nhost authentication
+
+This module exports utilities for managing authentication sessions across
+different environments and storage backends. It provides:
+
+- Session storage abstractions for different environments
+- Session persistence and synchronization
+- Automatic token refresh mechanisms
+
+This is an advanced submodule of the Nhost SDK, primarily used internally but it is exposed
+for advanced use cases.
+
+# Classes
+
+## CookieStorage
+
+Cookie-based storage implementation.
+This storage uses web browser cookies to store the session so it's not
+available in server-side environments. It is useful though for synchronizing
+sessions between client and server environments.
+
+### Implements
+
+- [`SessionStorageBackend`](#sessionstoragebackend)
+
+### Constructors
+
+#### Constructor
+
+```ts
+new CookieStorage(options?: object): CookieStorage;
+```
+
+Creates a new CookieStorage instance
+
+##### Parameters
+
+| Parameter                 | Type                                                                                                                              | Description                                                     |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| `options?`                | \{ `cookieName?`: `string`; `expirationDays?`: `number`; `sameSite?`: `"strict"` \| `"lax"` \| `"none"`; `secure?`: `boolean`; \} | Configuration options                                           |
+| `options.cookieName?`     | `string`                                                                                                                          | Name of the cookie to use (defaults to "nhostSession")          |
+| `options.expirationDays?` | `number`                                                                                                                          | Number of days until the cookie expires (defaults to 30)        |
+| `options.sameSite?`       | `"strict"` \| `"lax"` \| `"none"`                                                                                                 | SameSite policy for the cookie (defaults to "lax")              |
+| `options.secure?`         | `boolean`                                                                                                                         | Whether to set the Secure flag on the cookie (defaults to true) |
+
+##### Returns
+
+[`CookieStorage`](#cookiestorage)
+
+### Methods
+
+#### get()
+
+```ts
+get(): null | Session;
+```
+
+Gets the session from cookies
+
+##### Returns
+
+`null` \| [`Session`](#session)
+
+The stored session or null if not found
+
+##### Implementation of
+
+[`SessionStorageBackend`](#sessionstoragebackend).[`get`](#get-8)
+
+#### remove()
+
+```ts
+remove(): void;
+```
+
+Removes the session cookie
+
+##### Returns
+
+`void`
+
+##### Implementation of
+
+[`SessionStorageBackend`](#sessionstoragebackend).[`remove`](#remove-8)
+
+#### set()
+
+```ts
+set(value: Session): void;
+```
+
+Sets the session in a cookie
+
+##### Parameters
+
+| Parameter | Type                  | Description          |
+| --------- | --------------------- | -------------------- |
+| `value`   | [`Session`](#session) | The session to store |
+
+##### Returns
+
+`void`
+
+##### Implementation of
+
+[`SessionStorageBackend`](#sessionstoragebackend).[`set`](#set-8)
+
+---
+
+## LocalStorage
+
+Browser localStorage implementation of StorageInterface.
+Persists the session across page reloads and browser restarts.
+
+### Implements
+
+- [`SessionStorageBackend`](#sessionstoragebackend)
+
+### Constructors
+
+#### Constructor
+
+```ts
+new LocalStorage(options?: object): LocalStorage;
+```
+
+Creates a new LocalStorage instance
+
+##### Parameters
+
+| Parameter             | Type                           | Description                                                 |
+| --------------------- | ------------------------------ | ----------------------------------------------------------- |
+| `options?`            | \{ `storageKey?`: `string`; \} | Configuration options                                       |
+| `options.storageKey?` | `string`                       | The key to use in localStorage (defaults to "nhostSession") |
+
+##### Returns
+
+[`LocalStorage`](#localstorage)
+
+### Methods
+
+#### get()
+
+```ts
+get(): null | Session;
+```
+
+Gets the session from localStorage
+
+##### Returns
+
+`null` \| [`Session`](#session)
+
+The stored session or null if not found
+
+##### Implementation of
+
+[`SessionStorageBackend`](#sessionstoragebackend).[`get`](#get-8)
+
+#### remove()
+
+```ts
+remove(): void;
+```
+
+Removes the session from localStorage
+
+##### Returns
+
+`void`
+
+##### Implementation of
+
+[`SessionStorageBackend`](#sessionstoragebackend).[`remove`](#remove-8)
+
+#### set()
+
+```ts
+set(value: Session): void;
+```
+
+Sets the session in localStorage
+
+##### Parameters
+
+| Parameter | Type                  | Description          |
+| --------- | --------------------- | -------------------- |
+| `value`   | [`Session`](#session) | The session to store |
+
+##### Returns
+
+`void`
+
+##### Implementation of
+
+[`SessionStorageBackend`](#sessionstoragebackend).[`set`](#set-8)
+
+---
+
+## MemoryStorage
+
+In-memory storage implementation for non-browser environments or when
+persistent storage is not available or desirable.
+
+### Implements
+
+- [`SessionStorageBackend`](#sessionstoragebackend)
+
+### Constructors
+
+#### Constructor
+
+```ts
+new MemoryStorage(): MemoryStorage;
+```
+
+##### Returns
+
+[`MemoryStorage`](#memorystorage)
+
+### Methods
+
+#### get()
+
+```ts
+get(): null | Session;
+```
+
+Gets the session from memory
+
+##### Returns
+
+`null` \| [`Session`](#session)
+
+The stored session or null if not set
+
+##### Implementation of
+
+[`SessionStorageBackend`](#sessionstoragebackend).[`get`](#get-8)
+
+#### remove()
+
+```ts
+remove(): void;
+```
+
+Clears the session from memory
+
+##### Returns
+
+`void`
+
+##### Implementation of
+
+[`SessionStorageBackend`](#sessionstoragebackend).[`remove`](#remove-8)
+
+#### set()
+
+```ts
+set(value: Session): void;
+```
+
+Sets the session in memory
+
+##### Parameters
+
+| Parameter | Type                  | Description          |
+| --------- | --------------------- | -------------------- |
+| `value`   | [`Session`](#session) | The session to store |
+
+##### Returns
+
+`void`
+
+##### Implementation of
+
+[`SessionStorageBackend`](#sessionstoragebackend).[`set`](#set-8)
+
+---
+
+## SessionStorage
+
+A wrapper around any SessionStorageInterface implementation that adds
+the ability to subscribe to session changes.
+
+### Constructors
+
+#### Constructor
+
+```ts
+new SessionStorage(storage: SessionStorageBackend): SessionStorage;
+```
+
+Creates a new SessionStorage instance
+
+##### Parameters
+
+| Parameter | Type                                              | Description                                  |
+| --------- | ------------------------------------------------- | -------------------------------------------- |
+| `storage` | [`SessionStorageBackend`](#sessionstoragebackend) | The underlying storage implementation to use |
+
+##### Returns
+
+[`SessionStorage`](#sessionstorage)
+
+### Methods
+
+#### get()
+
+```ts
+get(): null | Session;
+```
+
+Gets the session from the underlying storage
+
+##### Returns
+
+`null` \| [`Session`](#session)
+
+The stored session or null if not found
+
+#### onChange()
+
+```ts
+onChange(callback: SessionChangeCallback): () => void;
+```
+
+Subscribe to session changes
+
+##### Parameters
+
+| Parameter  | Type                                              | Description                                           |
+| ---------- | ------------------------------------------------- | ----------------------------------------------------- |
+| `callback` | [`SessionChangeCallback`](#sessionchangecallback) | Function that will be called when the session changes |
+
+##### Returns
+
+An unsubscribe function to remove this subscription
+
+```ts
+(): void;
+```
+
+##### Returns
+
+`void`
+
+#### remove()
+
+```ts
+remove(): void;
+```
+
+Removes the session from the underlying storage and notifies subscribers
+
+##### Returns
+
+`void`
+
+#### set()
+
+```ts
+set(value: Session): void;
+```
+
+Sets the session in the underlying storage and notifies subscribers
+
+##### Parameters
+
+| Parameter | Type                          | Description          |
+| --------- | ----------------------------- | -------------------- |
+| `value`   | [`Session`](./auth#session) | The session to store |
+
+##### Returns
+
+`void`
+
+# Interfaces
+
+## DecodedToken
+
+Decoded JWT token payload with processed timestamps and Hasura claims
+
+### Indexable
+
+```ts
+[key: string]: unknown
+```
+
+Any other JWT claims
+
+### Properties
+
+#### exp?
+
+```ts
+optional exp: number;
+```
+
+Token expiration time as Date object
+
+#### https://hasura.io/jwt/claims?
+
+```ts
+optional https://hasura.io/jwt/claims: Record<string, unknown>;
+```
+
+Hasura JWT claims with PostgreSQL arrays converted to JavaScript arrays
+
+#### iat?
+
+```ts
+optional iat: number;
+```
+
+Token issued at time as Date object
+
+#### iss?
+
+```ts
+optional iss: string;
+```
+
+Token issuer
+
+#### sub?
+
+```ts
+optional sub: string;
+```
+
+Token subject (user ID)
+
+---
+
+## Session
+
+User authentication session containing tokens and user information
+
+### Extends
+
+- [`Session`](./auth#session)
+
+### Properties
+
+#### accessToken
+
+```ts
+accessToken: string
+```
+
+JWT token for authenticating API requests
+Example - `"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."`
+
+##### Inherited from
+
+[`Session`](./auth#session).[`accessToken`](./auth#accesstoken-1)
+
+#### accessTokenExpiresIn
+
+```ts
+accessTokenExpiresIn: number
+```
+
+Expiration time of the access token in seconds
+Example - `900`
+Format - int64
+
+##### Inherited from
+
+[`Session`](./auth#session).[`accessTokenExpiresIn`](./auth#accesstokenexpiresin)
+
+#### decodedToken
+
+```ts
+decodedToken: DecodedToken
+```
+
+Decoded JWT token payload with processed timestamps and Hasura claims
+
+#### refreshToken
+
+```ts
+refreshToken: string
+```
+
+Token used to refresh the access token
+Example - `"2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"`
+Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
+
+##### Inherited from
+
+[`Session`](./auth#session).[`refreshToken`](./auth#refreshtoken-5)
+
+#### refreshTokenId
+
+```ts
+refreshTokenId: string
+```
+
+Identifier for the refresh token
+Example - `"2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"`
+Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
+
+##### Inherited from
+
+[`Session`](./auth#session).[`refreshTokenId`](./auth#refreshtokenid)
+
+#### user?
+
+```ts
+optional user: User;
+```
+
+User profile and account information
+
+##### Inherited from
+
+[`Session`](./auth#session).[`user`](./auth#user-1)
+
+---
+
+## SessionStorageBackend
+
+Session storage interface for session persistence.
+This interface can be implemented to provide custom storage solutions.
+
+### Methods
+
+#### get()
+
+```ts
+get(): null | Session;
+```
+
+Get the current session from storage
+
+##### Returns
+
+`null` \| [`Session`](#session)
+
+The stored session or null if not found
+
+#### remove()
+
+```ts
+remove(): void;
+```
+
+Remove the session from storage
+
+##### Returns
+
+`void`
+
+#### set()
+
+```ts
+set(value: Session): void;
+```
+
+Set the session in storage
+
+##### Parameters
+
+| Parameter | Type                  | Description          |
+| --------- | --------------------- | -------------------- |
+| `value`   | [`Session`](#session) | The session to store |
+
+##### Returns
+
+`void`
+
+# Type Aliases
+
+## SessionChangeCallback()
+
+```ts
+type SessionChangeCallback = (session: Session | null) => void
+```
+
+Callback function type for session change subscriptions
+
+### Parameters
+
+| Parameter | Type                            |
+| --------- | ------------------------------- |
+| `session` | [`Session`](#session) \| `null` |
+
+### Returns
+
+`void`
+
+# Variables
+
+## DEFAULT_SESSION_KEY
+
+```ts
+const DEFAULT_SESSION_KEY: 'nhostSession' = 'nhostSession'
+```
+
+Default storage key used for storing the Nhost session
+
+# Functions
+
+## detectStorage()
+
+```ts
+function detectStorage(): SessionStorageBackend
+```
+
+Detects the best available storage implementation for the current environment.
+
+The detection process follows this order:
+
+1. Try to use localStorage if we're in a browser environment
+2. Fall back to in-memory storage if localStorage isn't available
+
+### Returns
+
+[`SessionStorageBackend`](#sessionstoragebackend)
+
+The best available storage implementation as a SessionStorageBackend
+
+---
+
+## refreshSession()
+
+```ts
+function refreshSession(
+  auth: Client,
+  storage: SessionStorage,
+  marginSeconds: number
+): Promise<null | Session>
+```
+
+Refreshes the authentication session if needed
+
+This function checks if the current session needs to be refreshed based on
+the access token expiration time. If a refresh is needed, it will attempt to
+refresh the token using the provided auth client.
+
+### Parameters
+
+| Parameter       | Type                                | Default value | Description                                                                                                                                                                       |
+| --------------- | ----------------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `auth`          | [`Client`](./auth#client)         | `undefined`   | The authentication client to use for token refresh                                                                                                                                |
+| `storage`       | [`SessionStorage`](#sessionstorage) | `undefined`   | The session storage implementation                                                                                                                                                |
+| `marginSeconds` | `number`                            | `60`          | The number of seconds before the token expiration to refresh the session. If the token is still valid for this duration, it will not be refreshed. Set to 0 to force the refresh. |
+
+### Returns
+
+`Promise`&lt;`null` \| [`Session`](#session)&gt;
+
+A promise that resolves to the current session (refreshed if needed) or null if no session exists

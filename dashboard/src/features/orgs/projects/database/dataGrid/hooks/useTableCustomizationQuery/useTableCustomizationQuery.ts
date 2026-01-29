@@ -45,9 +45,9 @@ export default function useTableCustomizationQuery({
     ExportMetadataResponse,
     unknown,
     TableConfig | undefined
-  >(
-    ['export-metadata', project?.subdomain],
-    () => {
+  >({
+    queryKey: ['export-metadata', project?.subdomain],
+    queryFn: () => {
       const appUrl = generateAppServiceUrl(
         project!.subdomain,
         project!.region,
@@ -58,36 +58,33 @@ export default function useTableCustomizationQuery({
 
       return fetchExportMetadata({ appUrl, adminSecret });
     },
-    {
-      ...queryOptions,
-      enabled: !!(
-        project?.subdomain &&
-        project?.region &&
-        project?.config?.hasura.adminSecret &&
-        queryOptions?.enabled !== false &&
-        !loading
-      ),
-      select: (data) => {
-        if (!data.metadata.sources) {
-          return undefined;
-        }
+    ...queryOptions,
+    enabled: !!(
+      project?.subdomain &&
+      project?.region &&
+      project?.config?.hasura.adminSecret &&
+      queryOptions?.enabled !== false &&
+      !loading
+    ),
+    select: (data) => {
+      if (!data.metadata.sources) {
+        return undefined;
+      }
 
-        const sourceMetadata = data.metadata.sources.find(
-          (item) => item.name === dataSource,
-        );
-        if (!sourceMetadata?.tables) {
-          return undefined;
-        }
+      const sourceMetadata = data.metadata.sources.find(
+        (item) => item.name === dataSource,
+      );
+      if (!sourceMetadata?.tables) {
+        return undefined;
+      }
 
-        const tableMetadata = sourceMetadata.tables.find(
-          (item) =>
-            item.table.name === table.name &&
-            item.table.schema === table.schema,
-        );
-        return tableMetadata?.configuration;
-      },
+      const tableMetadata = sourceMetadata.tables.find(
+        (item) =>
+          item.table.name === table.name && item.table.schema === table.schema,
+      );
+      return tableMetadata?.configuration;
     },
-  );
+  });
 
   return query;
 }

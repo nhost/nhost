@@ -1,0 +1,12 @@
+---
+title: AuthContext
+description: No description provided.
+sidebar:
+  label: AuthContext
+---
+
+# `AuthContext`
+
+```ts
+type AuthContext = () => { errors: Partial<Record<StateErrorTypes, AuthErrorPayload>>, importTokenAttempts: number, refreshToken: { value: string | null, isPAT: boolean }, refreshTimer: { startedAt: Date | null, attempts: number, lastAttempt: Date | null }, accessToken: { value: string | null, expiresAt: Date | null, expiresInSeconds: number | null }, mfa: { ticket: string } | null, user: [User](/reference/deprecated/javascript/auth/types/user) | null }
+```
