@@ -1,19 +1,8 @@
 import { Check, ChevronsUpDown } from 'lucide-react';
-import {
-  Children,
-  cloneElement,
-  type ForwardedRef,
-  forwardRef,
-  isValidElement,
-  type PropsWithChildren,
-  type ReactNode,
-  useState,
-} from 'react';
+import type { ForwardedRef, ReactNode } from 'react';
+import { forwardRef, useState } from 'react';
 import type { Control, FieldPath, FieldValues } from 'react-hook-form';
 import { mergeRefs } from 'react-merge-refs';
-import getTransformedFieldProps, {
-  type Transformer,
-} from '@/components/form/utils/getTransformedFieldProps';
 import { Button } from '@/components/ui/v3/button';
 import {
   Command,
@@ -41,6 +30,11 @@ import { cn, isNotEmptyValue } from '@/lib/utils';
 const comboboxTriggerClasses =
   'aria-[invalid=true]:border-red-500 aria-[invalid=true]:focus:border-red-500 aria-[invalid=true]:focus:ring-red-500';
 
+export interface FormComboboxOption {
+  value: string;
+  label: ReactNode;
+}
+
 interface FormComboboxProps<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
@@ -52,139 +46,12 @@ interface FormComboboxProps<
   className?: string;
   containerClassName?: string;
   inline?: boolean;
-  helperText?: string | null;
+  helperText?: ReactNode | null;
   disabled?: boolean;
   searchPlaceholder?: string;
   emptyText?: string;
-  showSelectedIcon?: boolean;
-  transform?: Transformer;
+  options: FormComboboxOption[];
   'data-testid'?: string;
-}
-
-function isComponentType(element: ReactNode, component: unknown) {
-  return isValidElement(element) && element.type === component;
-}
-
-function findSelectedLabel(
-  children: ReactNode,
-  value: string,
-): ReactNode | null {
-  let selected: ReactNode | null = null;
-  Children.forEach(children, (child) => {
-    if (selected) {
-      return;
-    }
-
-    if (!isValidElement(child)) {
-      return;
-    }
-
-    if (isComponentType(child, CommandItem) && child.props.value === value) {
-      selected = child.props.children;
-      return;
-    }
-
-    if (isNotEmptyValue(child.props?.children)) {
-      selected = findSelectedLabel(child.props.children, value);
-    }
-  });
-
-  return selected;
-}
-
-function hasCommandGroup(children: ReactNode): boolean {
-  let found = false;
-  Children.forEach(children, (child) => {
-    if (found) {
-      return;
-    }
-
-    if (!isValidElement(child)) {
-      return;
-    }
-
-    if (isComponentType(child, CommandGroup)) {
-      found = true;
-      return;
-    }
-
-    if (
-      isNotEmptyValue(child.props?.children) &&
-      hasCommandGroup(child.props.children)
-    ) {
-      found = true;
-    }
-  });
-
-  return found;
-}
-
-function enhanceCommandItems({
-  children,
-  selectedValue,
-  onSelect,
-  showSelectedIcon,
-}: {
-  children: ReactNode;
-  selectedValue: string;
-  onSelect: (value: string) => void;
-  showSelectedIcon: boolean;
-}): ReactNode {
-  return Children.map(children, (child) => {
-    if (!isValidElement(child)) {
-      return child;
-    }
-
-    if (isComponentType(child, CommandItem)) {
-      const originalOnSelect = child.props.onSelect as
-        | ((value: string) => void)
-        | undefined;
-
-      const originalChildren = child.props.children as ReactNode;
-      const itemValue = child.props.value as string | undefined;
-      const isSelected =
-        isNotEmptyValue(itemValue) && itemValue === selectedValue;
-
-      return (
-        <CommandItem
-          {...child.props}
-          onSelect={(value) => {
-            onSelect(value);
-            originalOnSelect?.(value);
-          }}
-        >
-          {enhanceCommandItems({
-            children: originalChildren,
-            selectedValue,
-            onSelect,
-            showSelectedIcon: false,
-          })}
-          {showSelectedIcon && (
-            <Check
-              className={cn(
-                'ml-auto h-4 w-4',
-                isSelected ? 'opacity-100' : 'opacity-0',
-              )}
-            />
-          )}
-        </CommandItem>
-      );
-    }
-
-    if (!isNotEmptyValue(child.props?.children)) {
-      return child;
-    }
-
-    return cloneElement(child, {
-      ...child.props,
-      children: enhanceCommandItems({
-        children: child.props.children,
-        selectedValue,
-        onSelect,
-        showSelectedIcon,
-      }),
-    });
-  });
 }
 
 function FormComboboxImpl<
@@ -201,13 +68,11 @@ function FormComboboxImpl<
     inline,
     helperText,
     disabled,
-    children,
+    options,
     searchPlaceholder = 'Search...',
     emptyText = 'No results found.',
-    showSelectedIcon = true,
-    transform,
     'data-testid': dataTestId,
-  }: PropsWithChildren<FormComboboxProps<TFieldValues, TName>>,
+  }: FormComboboxProps<TFieldValues, TName>,
   ref?: ForwardedRef<HTMLButtonElement>,
 ) {
   const [open, setOpen] = useState(false);
@@ -217,34 +82,15 @@ function FormComboboxImpl<
       control={control}
       name={name}
       render={({ field }) => {
-        const {
-          ref: fieldRef,
-          onChange,
-          value,
-        } = isNotEmptyValue(transform)
-          ? getTransformedFieldProps(field, transform)
-          : field;
+        const { ref: fieldRef, onChange, value } = field;
 
         let fieldValue = '';
         if (isNotEmptyValue(value)) {
           fieldValue = typeof value === 'string' ? value : String(value);
         }
 
-        const selectedLabel = isNotEmptyValue(fieldValue)
-          ? findSelectedLabel(children, fieldValue)
-          : null;
-
-        const enhancedChildren = enhanceCommandItems({
-          children,
-          selectedValue: fieldValue,
-          onSelect: (nextValue) => {
-            onChange(nextValue);
-            setOpen(false);
-          },
-          showSelectedIcon,
-        });
-
-        const wrapInGroup = !hasCommandGroup(children);
+        const selectedOption = options.find((opt) => opt.value === fieldValue);
+        const selectedLabel = selectedOption?.label ?? fieldValue;
 
         return (
           <FormItem
@@ -303,11 +149,28 @@ function FormComboboxImpl<
                     />
                     <CommandList>
                       <CommandEmpty>{emptyText}</CommandEmpty>
-                      {wrapInGroup ? (
-                        <CommandGroup>{enhancedChildren}</CommandGroup>
-                      ) : (
-                        enhancedChildren
-                      )}
+                      <CommandGroup>
+                        {options.map((option) => (
+                          <CommandItem
+                            key={option.value}
+                            value={option.value}
+                            onSelect={() => {
+                              onChange(option.value);
+                              setOpen(false);
+                            }}
+                          >
+                            {option.label}
+                            <Check
+                              className={cn(
+                                'ml-auto',
+                                option.value === fieldValue
+                                  ? 'opacity-100'
+                                  : 'opacity-0',
+                              )}
+                            />
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
                     </CommandList>
                   </Command>
                 </PopoverContent>
@@ -330,7 +193,7 @@ const FormCombobox = forwardRef(FormComboboxImpl) as <
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 >(
-  props: PropsWithChildren<FormComboboxProps<TFieldValues, TName>> & {
+  props: FormComboboxProps<TFieldValues, TName> & {
     ref?: ForwardedRef<HTMLButtonElement>;
   },
 ) => ReturnType<typeof FormComboboxImpl>;

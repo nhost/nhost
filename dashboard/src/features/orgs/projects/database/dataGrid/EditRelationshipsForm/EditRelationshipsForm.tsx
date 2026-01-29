@@ -58,6 +58,7 @@ export default function EditRelationshipsForm(
     {
       schema,
       table: originalTable.table_name,
+      preventRowFetching: true,
     },
   );
 

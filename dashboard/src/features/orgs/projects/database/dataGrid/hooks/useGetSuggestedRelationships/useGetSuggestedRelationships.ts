@@ -3,6 +3,7 @@ import { useSuggestRelationshipsQuery } from '@/features/orgs/projects/database/
 import { isLocalRelationshipViewModel } from '@/features/orgs/projects/database/dataGrid/types/relationships/guards';
 import type { RelationshipSuggestionViewModel } from '@/features/orgs/projects/database/dataGrid/types/relationships/relationships';
 import buildRelationshipSuggestionViewModel from '@/features/orgs/projects/database/dataGrid/utils/buildRelationshipSuggestionViewModel/buildRelationshipSuggestionViewModel';
+import { isNotEmptyValue } from '@/lib/utils';
 
 interface UseGetSuggestedRelationshipsOptions {
   dataSource: string;
@@ -60,7 +61,7 @@ export default function useGetSuggestedRelationships({
         existingRelationshipKeys,
       }),
     )
-    .filter(filterNotNullRelationshipSuggestionViewModel);
+    .filter(isNotEmptyValue);
 
   return {
     suggestedRelationships,

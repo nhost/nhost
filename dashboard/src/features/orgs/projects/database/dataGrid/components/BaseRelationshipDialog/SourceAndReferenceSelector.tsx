@@ -1,9 +1,9 @@
 import { useMemo } from 'react';
 import { useFormContext } from 'react-hook-form';
-
 import { FormCombobox } from '@/components/form/FormCombobox';
 import { FormSelect } from '@/components/form/FormSelect';
-import { CommandItem } from '@/components/ui/v3/command';
+import { ReadOnlyCombobox } from '@/components/presentational/ReadOnlyCombobox';
+import { ReadOnlySelect } from '@/components/presentational/ReadOnlySelect';
 import { SelectItem, SelectSeparator } from '@/components/ui/v3/select';
 import { useGetDataSources } from '@/features/orgs/projects/common/hooks/useGetDataSources';
 import { useGetMetadata } from '@/features/orgs/projects/common/hooks/useGetMetadata';
@@ -177,45 +177,10 @@ export default function SourceAndReferenceSelector() {
 
         <div className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
-            <FormSelect
-              control={control}
-              name="fromSource.source"
-              label="Source"
-              placeholder="Select source"
-              containerClassName="w-full"
-              disabled
-            >
-              <SelectItem value={selectedFromSource?.source}>
-                {selectedFromSource?.source}
-              </SelectItem>
-            </FormSelect>
-
-            <FormSelect
-              control={control}
-              name="fromSource.schema"
-              label="Schema"
-              placeholder="Select schema"
-              containerClassName="w-full"
-              disabled
-            >
-              <SelectItem value={selectedFromSource?.schema}>
-                {selectedFromSource?.schema}
-              </SelectItem>
-            </FormSelect>
+            <ReadOnlySelect label="Source" value={selectedFromSource?.source} />
+            <ReadOnlySelect label="Schema" value={selectedFromSource?.schema} />
           </div>
-
-          <FormCombobox
-            control={control}
-            name="fromSource.table"
-            label="Table"
-            disabled
-            searchPlaceholder="Search table..."
-            emptyText="No tables found."
-          >
-            <CommandItem value={selectedFromSource?.table}>
-              {selectedFromSource?.table}
-            </CommandItem>
-          </FormCombobox>
+          <ReadOnlyCombobox label="Table" value={selectedFromSource?.table} />
         </div>
       </div>
 
@@ -375,13 +340,8 @@ export default function SourceAndReferenceSelector() {
             searchPlaceholder="Search table..."
             emptyText="No tables found."
             data-testid="toReferenceTableCombobox"
-          >
-            {toTableOptions.map((option) => (
-              <CommandItem key={option.value} value={option.value}>
-                {option.label}
-              </CommandItem>
-            ))}
-          </FormCombobox>
+            options={toTableOptions}
+          />
         </div>
       </div>
     </div>

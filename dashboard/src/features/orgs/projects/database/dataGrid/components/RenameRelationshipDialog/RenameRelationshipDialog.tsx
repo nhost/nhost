@@ -143,22 +143,20 @@ export default function RenameRelationshipDialog({
       return;
     }
 
-    const promise = renameRelationship({
-      resourceVersion,
-      args: {
-        table: {
-          schema,
-          name: tableName,
-        },
-        name: relationshipToRename,
-        new_name: newRelationshipName,
-        source,
-      },
-    });
-
     await execPromiseWithErrorToast(
       async () => {
-        await promise;
+        await renameRelationship({
+          resourceVersion,
+          args: {
+            table: {
+              schema,
+              name: tableName,
+            },
+            name: relationshipToRename,
+            new_name: newRelationshipName,
+            source,
+          },
+        });
       },
       {
         loadingMessage: 'Renaming relationship...',
@@ -190,16 +188,15 @@ export default function RenameRelationshipDialog({
         >
           <DialogHeader>
             <DialogTitle className="text-foreground">
-              Rename Relationship
-            </DialogTitle>
-            <DialogDescription>
-              Provide a new name for the{' '}
+              Rename{' '}
               <TextWithTooltip
                 text={relationshipToRename}
-                className="rounded-md bg-muted px-1 py-0.5 font-mono"
+                className="rounded-md bg-muted px-1 py-0.5 font-medium font-mono"
                 containerClassName="inline-flex max-w-sm"
               />{' '}
-              relationship.
+            </DialogTitle>
+            <DialogDescription>
+              Provide a new name for the relationship.
             </DialogDescription>
           </DialogHeader>
 

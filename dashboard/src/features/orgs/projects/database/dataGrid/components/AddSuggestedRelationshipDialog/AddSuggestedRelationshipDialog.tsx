@@ -80,10 +80,6 @@ export default function AddSuggestedRelationshipDialog({
   const isSubmitting = isCreatingRelationship || formState.isSubmitting;
 
   const relationshipSummary = useMemo(() => {
-    if (!suggestion) {
-      return '';
-    }
-
     const fromTable = suggestion.from?.table;
     const toTable = suggestion.to?.table;
 
@@ -222,16 +218,21 @@ export default function AddSuggestedRelationshipDialog({
             </DialogDescription>
           </DialogHeader>
 
-          {relationshipSummary && (
-            <p className="rounded-md bg-muted px-3 py-2 text-muted-foreground text-sm">
-              {relationshipSummary}
-            </p>
-          )}
+          <p className="text-foreground text-sm">
+            Type:{' '}
+            <span className="font-normal text-foreground">
+              {suggestion.type === 'array' ? 'Array' : 'Object'} Relationship
+            </span>
+          </p>
+
+          <p className="rounded-md bg-muted px-3 py-2 text-muted-foreground text-sm">
+            {relationshipSummary}
+          </p>
 
           <Form {...relationshipForm}>
             <form
               onSubmit={handleSubmit(handleCreateRelationship)}
-              className="mt-4 flex flex-col gap-4 text-foreground"
+              className="flex flex-col gap-4 text-foreground"
             >
               <FormInput
                 control={control}
@@ -240,7 +241,7 @@ export default function AddSuggestedRelationshipDialog({
                 containerClassName="mt-0"
               />
 
-              <DialogFooter className="gap-2 sm:flex sm:flex-col sm:space-x-0">
+              <DialogFooter className="gap-2 pt-2 sm:flex sm:flex-col sm:space-x-0">
                 <ButtonWithLoading
                   type="submit"
                   loading={isSubmitting}
