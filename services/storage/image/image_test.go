@@ -4,7 +4,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"io"
-	"log/slog"
 	"os"
 	"testing"
 
@@ -25,7 +24,7 @@ func TestManipulate(t *testing.T) {
 		{
 			name:     "jpg",
 			filename: "testdata/nhost.jpg",
-			sum:      "3cffeb9c31e624970f6b6e440213a9805c4ecf56052268631d1add81f9fde37b",
+			sum:      "6180baf39820a0ac3aa32a862517271deedfd0c80bcfdb5bd2744e4079ba83e1",
 			size:     33399,
 			options: image.Options{
 				Height:  100,
@@ -38,49 +37,49 @@ func TestManipulate(t *testing.T) {
 		{
 			name:     "jpg",
 			filename: "testdata/nhost.jpg",
-			sum:      "131c9a8f0dfb0aa345bb498a314da97711b5f3c146e572c02d62d09ace22db7b",
+			sum:      "983f8c573c125e447679e0f2d7a9bcb6ea1608ae48b09c1f953b7597ee74181a",
 			size:     33399,
 			options:  image.Options{Width: 300, Height: 100, Blur: 2, Format: image.ImageTypeJPEG},
 		},
 		{
 			name:     "png",
 			filename: "testdata/nhost.png",
-			sum:      "ac7da45c3a994e50fdbc25123992b31116d32f20dac2c5436d2d6fdbfd319853",
+			sum:      "d538212aa74ad1d17261bc2126e60964e6d2dc1c7898ea3b9f9bd3b5bc94b380",
 			size:     68307,
 			options:  image.Options{Width: 300, Height: 100, Blur: 2, Format: image.ImageTypePNG},
 		},
 		{
 			name:     "webp",
 			filename: "testdata/nhost.webp",
-			sum:      "66a16ec7b05240a9bc9b3d634b9119c5a4eefef0276d50a9e2c38ae9610d746b",
+			sum:      "11848414f628bec47db284e646e24385420d22bae5760ceacf1180e150b0c021",
 			size:     17784,
 			options:  image.Options{Width: 300, Height: 100, Blur: 2, Format: image.ImageTypeWEBP},
 		},
 		{
 			name:     "jpg only blur",
 			filename: "testdata/nhost.jpg",
-			sum:      "e359c19b3a708cfce10577d7b67f7372ddc57b478dcfc5c34b7d49e63bd13a86",
+			sum:      "382cd51a0b0dc899ccbfb7757dbe9299b18dfe6b417be30ef6909299393aafea",
 			size:     33399,
 			options:  image.Options{Blur: 2, Format: image.ImageTypeJPEG},
 		},
 		{
 			name:     "webp to avif",
 			filename: "testdata/nhost.webp",
-			sum:      "389bb2071673d6aaa5b66ee520fc8d08176c5bbe2ce044ab0b6dfa9bbb1c5d9e",
+			sum:      "e0a5fb177567987b16b379ce2f263cc319c4f7f5e7145c9ae81682b02c7a9f6d",
 			size:     17784,
 			options:  image.Options{Width: 300, Height: 100, Blur: 2, Format: image.ImageTypeAVIF},
 		},
 		{
 			name:     "jpeg to avif, no image manipulation",
 			filename: "testdata/nhost.jpg",
-			sum:      "1483ec3d4cd4166898238efe7c7df7bff56a8369b44b5f7a2aa91231df992e90",
+			sum:      "cd3f0137250dcc145ee9f1e63733c30bccfc6ad1c058b2be719ea9e8148029db",
 			size:     17784,
 			options:  image.Options{Format: image.ImageTypeAVIF},
 		},
 		{
 			name:     "heic",
 			filename: "testdata/nhost.heic",
-			sum:      "621a8cac7292d02342e699b11db69b1b5b6f55cb09ce06006a53f9cff7727a98",
+			sum:      "1a2ab1930eef77710d35254a6fbd3e59f60b929070c44e47d0c6043e05b5ab99",
 			size:     12968,
 			options: image.Options{
 				Width:   300,
@@ -93,7 +92,7 @@ func TestManipulate(t *testing.T) {
 		{
 			name:     "jpeg to heic",
 			filename: "testdata/nhost.jpg",
-			sum:      "c564a40516e3c6f39a8b5d1ba934f3007512d9766630fd512a4c268a0c0b4cb8",
+			sum:      "870fcccf978667bafdab18ebd5ff2816c2947563cf2718e0b944aed2b3379b0d",
 			size:     33399,
 			options: image.Options{
 				Width:   300,
@@ -106,7 +105,7 @@ func TestManipulate(t *testing.T) {
 		{
 			name:     "webp to heic",
 			filename: "testdata/nhost.webp",
-			sum:      "7a3650d554f72197a6d34a9e2543a0e4fe93db2babfd723ebb07e780f7aa7f5a",
+			sum:      "34f36705183310f9a88f147aca2905a872981920e93e9ab9714413185b395aa1",
 			size:     17784,
 			options:  image.Options{Width: 300, Height: 100, Blur: 2, Format: image.ImageTypeHEIC},
 		},
@@ -129,7 +128,7 @@ func TestManipulate(t *testing.T) {
 			// defer f.Close()
 			// if err := transformer.Run(slog.Default(), orig, tc.size, f, tc.options); err != nil {
 			if err := transformer.Run(
-				orig, tc.size, hasher, tc.options, slog.Default(),
+				orig, tc.size, hasher, tc.options,
 			); err != nil {
 				t.Fatal(err)
 			}
@@ -159,7 +158,6 @@ func BenchmarkManipulate(b *testing.B) {
 			33399,
 			io.Discard,
 			image.Options{Width: 300, Height: 100, Blur: 1.5, Format: image.ImageTypeJPEG},
-			slog.Default(),
 		); err != nil {
 			b.Fatal(err)
 		}
