@@ -49,7 +49,7 @@
 
   /* Typography */
   --sl-font: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  --sl-font-headings: 'Mona Sans', var(--sl-font);
+  --sl-font-headings: var(--sl-font);
 }
 
 /* Light mode */
