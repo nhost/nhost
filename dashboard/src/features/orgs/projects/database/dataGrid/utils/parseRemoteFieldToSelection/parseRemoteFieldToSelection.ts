@@ -53,15 +53,12 @@ export default function parseRemoteFieldToSelection(
 
       const args = config?.arguments ?? {};
       const argEntries = Object.entries(args);
-      console.log('argEntries', argEntries);
       if (argEntries.length > 0) {
         argumentMappingsByPath[currentPath] = argEntries.reduce<
           Record<string, RemoteFieldArgumentMapping>
         >((argumentMappings, [argumentName, argumentValue]) => {
           const isColumnReference =
             typeof argumentValue === 'string' && argumentValue.startsWith('$');
-
-          console.log('argumentMappings', argumentMappings);
 
           return {
             ...argumentMappings,
@@ -77,7 +74,6 @@ export default function parseRemoteFieldToSelection(
       }
 
       if (config?.field && Object.keys(config.field).length > 0) {
-        console.log('called walk again');
         walk(
           config.field as Record<
             string,
