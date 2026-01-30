@@ -307,7 +307,11 @@ function DataBrowserSidebarContent({
     (obj) => obj.object_type !== 'MATERIALIZED VIEW',
   );
 
-  async function handleDeleteTableConfirmation(schema: string, table: string) {
+  async function handleDeleteTableConfirmation(
+    schema: string,
+    table: string,
+    type: 'BASE TABLE' | 'VIEW' | 'MATERIALIZED VIEW',
+  ) {
     const tablePath = `${schema}.${table}`;
 
     // We are greying out and disabling it in the sidebar
@@ -343,10 +347,7 @@ function DataBrowserSidebarContent({
       await deleteTable({
         schema,
         table,
-        type: nextTable?.object_type as
-          | 'BASE TABLE'
-          | 'VIEW'
-          | 'MATERIALIZED VIEW',
+        type,
       });
       queryClient.removeQueries({
         queryKey: [`${dataSourceSlug}.${schema}.${table}`],
@@ -416,7 +417,12 @@ function DataBrowserSidebarContent({
       props: {
         primaryButtonText: 'Delete',
         primaryButtonColor: 'error',
-        onPrimaryAction: () => handleDeleteTableConfirmation(schema, table),
+        onPrimaryAction: () =>
+          handleDeleteTableConfirmation(
+            schema,
+            table,
+            object?.object_type as 'BASE TABLE' | 'VIEW' | 'MATERIALIZED VIEW',
+          ),
       },
     });
   }
