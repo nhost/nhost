@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"mime"
 	"net/http"
 
 	"github.com/getkin/kin-openapi/openapi3"
@@ -87,13 +89,24 @@ func validateRequestFromContext(
 		}
 	}
 
+	// For multipart requests, temporarily nil out the body before validation
+	// to prevent kin-openapi's validateSecurityRequirement from reading the
+	// entire body into memory (it does io.ReadAll unconditionally).
+	var savedBody io.ReadCloser
+
+	isMultipart := isMultipartFormData(c.Request)
+	if isMultipart {
+		savedBody = c.Request.Body
+		c.Request.Body = http.NoBody
+	}
+
 	validationInput := &openapi3filter.RequestValidationInput{ //nolint:exhaustruct
 		Request:    c.Request,
 		PathParams: pathParams,
 		Route:      route,
 		Options: &openapi3filter.Options{
 			AuthenticationFunc:          authFn,
-			ExcludeRequestBody:          false,
+			ExcludeRequestBody:          isMultipart,
 			ExcludeRequestQueryParams:   false,
 			ExcludeResponseBody:         false,
 			ExcludeReadOnlyValidations:  false,
@@ -107,10 +120,23 @@ func validateRequestFromContext(
 
 	requestContext := context.WithValue(c.Request.Context(), GinContextKey, c)
 	if err := openapi3filter.ValidateRequest(requestContext, validationInput); err != nil {
+		if isMultipart {
+			c.Request.Body = savedBody
+		}
+
 		return err //nolint:wrapcheck
 	}
 
+	if isMultipart {
+		c.Request.Body = savedBody
+	}
+
 	return nil
+}
+
+func isMultipartFormData(r *http.Request) bool {
+	mediaType, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
+	return mediaType == "multipart/form-data"
 }
 
 func GetGinContext(c context.Context) *gin.Context {
