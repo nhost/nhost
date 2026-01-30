@@ -166,6 +166,7 @@ export default function BaseRecordForm({
         <Button
           variant="outline"
           className="border-none"
+          type="button"
           size="sm"
           onClick={onCancel}
           tabIndex={isDirty ? -1 : 0}
