@@ -272,6 +272,34 @@ config validate after making changes to your nhost.toml file to ensure it is val
 					},
 				},
 				{
+					Name:        "list",
+					Description: docs.ToolListInstructions,
+					InputSchema: mcp.ToolInputSchema{
+						Type: "object",
+						Properties: map[string]any{
+							"grouped": map[string]any{
+								"description": string(
+									"Show pages organized by top-level section",
+								),
+								"type": string("boolean"),
+							},
+							"summary": map[string]any{
+								"description": string(
+									"Show page descriptions",
+								),
+								"type": string("boolean"),
+							},
+						},
+					},
+					Annotations: mcp.ToolAnnotation{
+						Title:           "List Nhost Docs",
+						ReadOnlyHint:    ptr(true),
+						IdempotentHint:  ptr(true),
+						DestructiveHint: ptr(false),
+						OpenWorldHint:   ptr(false),
+					},
+				},
+				{
 					Name:        "manage-graphql",
 					Description: project.ToolManageGraphqlInstructions,
 					InputSchema: mcp.ToolInputSchema{
@@ -325,7 +353,7 @@ config validate after making changes to your nhost.toml file to ensure it is val
 						ReadOnlyHint:    ptr(true),
 						IdempotentHint:  ptr(true),
 						DestructiveHint: ptr(false),
-						OpenWorldHint:   ptr(true),
+						OpenWorldHint:   ptr(false),
 					},
 				},
 				{
@@ -352,7 +380,7 @@ config validate after making changes to your nhost.toml file to ensure it is val
 						ReadOnlyHint:    ptr(true),
 						IdempotentHint:  ptr(true),
 						DestructiveHint: ptr(false),
-						OpenWorldHint:   ptr(true),
+						OpenWorldHint:   ptr(false),
 					},
 				},
 			},

@@ -51,7 +51,7 @@ func (t *Tool) registerSearch(mcpServer *server.MCPServer) {
 				ReadOnlyHint:    ptr(true),
 				DestructiveHint: ptr(false),
 				IdempotentHint:  ptr(true),
-				OpenWorldHint:   ptr(true),
+				OpenWorldHint:   ptr(false),
 			},
 		),
 		mcp.WithString(
