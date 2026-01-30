@@ -2,9 +2,6 @@
 
 set -euo pipefail
 
-echo "⚒️⚒️⚒️ Building site..."
-pnpm exec astro build
-
 echo "⚒️⚒️⚒️ Checking for broken links..."
 pnpm exec linkinator dist/ \
     --recurse \

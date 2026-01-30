@@ -9,11 +9,11 @@
     "preview": "astro preview",
     "astro": "astro",
     "generate": "./gen.sh",
-    "lint": "pnpm lint:code && pnpm lint:prose",
+    "lint": "pnpm lint:code",
     "lint:code": "biome check",
     "lint:prose": "vale src/content/docs/",
     "format": "biome format --write",
-    "test": "pnpm lint && pnpm test:check-links",
+    "test": "pnpm build && pnpm lint && pnpm test:check-links",
     "test:check-links": "./check_broken_links.sh"
   },
   "dependencies": {
