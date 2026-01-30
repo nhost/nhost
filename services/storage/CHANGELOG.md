@@ -1,3 +1,16 @@
+## [storage@0.11.0] - 2026-01-30
+
+### 🚀 Features
+
+- *(nixops)* Update nixpkgs (#3808)
+
+
+### 🐛 Bug Fixes
+
+- *(cli)* Bump schema (#3763)
+- *(internal/lib)* Avoid reading multipart-form body (#3861)
+- *(storage)* Improve image processing and resource management (#3835)
+
 ## [storage@0.10.0] - 2025-11-27
 
 ### 🚀 Features
