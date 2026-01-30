@@ -51,7 +51,7 @@ let
   };
 
   checkDeps = with pkgs; [
-    # self.packages.${pkgs.stdenv.hostPlatform.system}.cli
+    self.packages.${pkgs.stdenv.hostPlatform.system}.cli
     vale
   ];
 

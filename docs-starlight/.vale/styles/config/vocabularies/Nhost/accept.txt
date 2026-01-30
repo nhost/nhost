@@ -29,3 +29,10 @@ Starlight
 [Pp]asswordless
 [Mm]ultipart
 [Gg]ravatar
+[Tt]odo
+Vue
+[Pp]erformant
+Svelte
+SvelteKit
+APIs
+namespace
