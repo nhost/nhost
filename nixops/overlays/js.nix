@@ -43,7 +43,12 @@ rec{
     };
   };
 
-  nodePackages = prev.nodejs.pkgs;
+  nodePackages = prev.nodejs.pkgs // {
+    vercel = (import ./vercel {
+      pkgs = final;
+      nodejs = final.nodejs;
+    })."vercel-50.9.5";
+  };
 
   buildNpmPackage = prev.buildNpmPackage.override {
     nodejs = prev.nodejs;

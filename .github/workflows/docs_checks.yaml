@@ -58,8 +58,8 @@ jobs:
     needs:
       - check-permissions
     with:
-      NAME: docs
-      PATH: docs
+      NAME: docs-starlight
+      PATH: docs-starlight
       GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
