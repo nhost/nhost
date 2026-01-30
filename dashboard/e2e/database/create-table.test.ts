@@ -29,7 +29,7 @@ test('should create a simple table', async ({
   await page.getByRole('button', { name: /create/i }).click();
 
   await page.waitForURL(
-    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/${tableName}`,
+    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/tables/${tableName}`,
   );
 
   await expect(
@@ -60,7 +60,7 @@ test('should create a table with unique constraints', async ({
   await page.getByRole('button', { name: /create/i }).click();
 
   await page.waitForURL(
-    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/${tableName}`,
+    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/tables/${tableName}`,
   );
 
   await expect(
@@ -90,7 +90,7 @@ test('should create a table with nullable columns', async ({
   await page.getByRole('button', { name: /create/i }).click();
 
   await page.waitForURL(
-    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/${tableName}`,
+    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/tables/${tableName}`,
   );
 
   await expect(
@@ -130,7 +130,7 @@ test('should create a table with an identity column', async ({
   await page.getByRole('button', { name: /create/i }).click();
 
   await page.waitForURL(
-    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/${tableName}`,
+    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/tables/${tableName}`,
   );
 
   await expect(
@@ -168,7 +168,7 @@ test('should create table with foreign key constraint', async ({
   await page.getByRole('button', { name: /create/i }).click();
 
   await page.waitForURL(
-    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/${firstTableName}`,
+    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/tables/${firstTableName}`,
   );
 
   await page.getByRole('button', { name: /new table/i }).click();
@@ -216,7 +216,7 @@ test('should create table with foreign key constraint', async ({
   await page.getByRole('button', { name: /create/i }).click();
 
   await page.waitForURL(
-    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/${secondTableName}`,
+    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/tables/${secondTableName}`,
   );
 
   await expect(
@@ -248,7 +248,7 @@ test('should be able to create a table with a composite key', async ({
   await page.getByRole('button', { name: /create/i }).click();
 
   await page.waitForURL(
-    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/${tableName}`,
+    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/tables/${tableName}`,
   );
 
   await expect(
@@ -282,7 +282,7 @@ test('should not be able to create a table with a name that already exists', asy
   await page.getByRole('button', { name: /create/i }).click();
 
   await page.waitForURL(
-    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/${tableName}`,
+    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/tables/${tableName}`,
   );
 
   await page.getByRole('button', { name: /new table/i }).click();
