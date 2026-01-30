@@ -1,6 +1,7 @@
 ---
 title: Main
 ---
+
 Main entry point for the Nhost JavaScript SDK.
 
 This package provides a unified client for interacting with Nhost services:
@@ -284,7 +285,7 @@ nhost.clearSession()
 #### getUserSession()
 
 ```ts
-getUserSession(): null | Session;
+getUserSession(): Session | null;
 ```
 
 Get the current session from storage.
@@ -292,7 +293,7 @@ This method retrieves the authenticated user's session information if one exists
 
 ##### Returns
 
-`null` \| [`Session`](./session#session)
+[`Session`](./session#session) \| `null`
 
 The current session or null if no session exists
 
@@ -310,7 +311,7 @@ if (session) {
 #### refreshSession()
 
 ```ts
-refreshSession(marginSeconds: number): Promise<null | Session>;
+refreshSession(marginSeconds: number): Promise<Session | null>;
 ```
 
 Refresh the session using the current refresh token
@@ -327,7 +328,7 @@ or to force a refresh when needed.
 
 ##### Returns
 
-`Promise`&lt;`null` \| [`Session`](./session#session)&gt;
+`Promise`&lt;[`Session`](./session#session) \| `null`&gt;
 
 The new session or null if there is currently no session or if refresh fails
 
@@ -543,14 +544,14 @@ Configuration function that receives all clients and can configure them
 
 ### Parameters
 
-| Parameter                | Type                                                                                                                                                                                                                                              |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Parameter                | Type                                                                                                                                                                                                                                         |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `clients`                | \{ `auth`: [`Client`](./auth#client); `functions`: [`Client`](./functions#client); `graphql`: [`Client`](./graphql#client); `sessionStorage`: [`SessionStorage`](./session#sessionstorage); `storage`: [`Client`](./storage#client); \} |
-| `clients.auth`           | [`Client`](./auth#client)                                                                                                                                                                                                                       |
-| `clients.functions`      | [`Client`](./functions#client)                                                                                                                                                                                                                  |
-| `clients.graphql`        | [`Client`](./graphql#client)                                                                                                                                                                                                                    |
-| `clients.sessionStorage` | [`SessionStorage`](./session#sessionstorage)                                                                                                                                                                                                    |
-| `clients.storage`        | [`Client`](./storage#client)                                                                                                                                                                                                                    |
+| `clients.auth`           | [`Client`](./auth#client)                                                                                                                                                                                                                   |
+| `clients.functions`      | [`Client`](./functions#client)                                                                                                                                                                                                              |
+| `clients.graphql`        | [`Client`](./graphql#client)                                                                                                                                                                                                                |
+| `clients.sessionStorage` | [`SessionStorage`](./session#sessionstorage)                                                                                                                                                                                                |
+| `clients.storage`        | [`Client`](./storage#client)                                                                                                                                                                                                                |
 
 ### Returns
 
@@ -890,8 +891,8 @@ unrestricted access to your entire database.
 
 ### Parameters
 
-| Parameter      | Type                                                   | Description                                                               |
-| -------------- | ------------------------------------------------------ | ------------------------------------------------------------------------- |
+| Parameter      | Type                                                  | Description                                                               |
+| -------------- | ----------------------------------------------------- | ------------------------------------------------------------------------- |
 | `adminSession` | [`AdminSessionOptions`](./fetch#adminsessionoptions) | Admin session options including admin secret, role, and session variables |
 
 ### Returns

@@ -1,6 +1,7 @@
 ---
 title: Session
 ---
+
 Session management module for Nhost authentication
 
 This module exports utilities for managing authentication sessions across
@@ -55,14 +56,14 @@ Creates a new CookieStorage instance
 #### get()
 
 ```ts
-get(): null | Session;
+get(): Session | null;
 ```
 
 Gets the session from cookies
 
 ##### Returns
 
-`null` \| [`Session`](#session)
+[`Session`](#session) \| `null`
 
 The stored session or null if not found
 
@@ -145,14 +146,14 @@ Creates a new LocalStorage instance
 #### get()
 
 ```ts
-get(): null | Session;
+get(): Session | null;
 ```
 
 Gets the session from localStorage
 
 ##### Returns
 
-`null` \| [`Session`](#session)
+[`Session`](#session) \| `null`
 
 The stored session or null if not found
 
@@ -226,14 +227,14 @@ new MemoryStorage(): MemoryStorage;
 #### get()
 
 ```ts
-get(): null | Session;
+get(): Session | null;
 ```
 
 Gets the session from memory
 
 ##### Returns
 
-`null` \| [`Session`](#session)
+[`Session`](#session) \| `null`
 
 The stored session or null if not set
 
@@ -311,14 +312,14 @@ Creates a new SessionStorage instance
 #### get()
 
 ```ts
-get(): null | Session;
+get(): Session | null;
 ```
 
 Gets the session from the underlying storage
 
 ##### Returns
 
-`null` \| [`Session`](#session)
+[`Session`](#session) \| `null`
 
 The stored session or null if not found
 
@@ -370,8 +371,8 @@ Sets the session in the underlying storage and notifies subscribers
 
 ##### Parameters
 
-| Parameter | Type                          | Description          |
-| --------- | ----------------------------- | -------------------- |
+| Parameter | Type                         | Description          |
+| --------- | ---------------------------- | -------------------- |
 | `value`   | [`Session`](./auth#session) | The session to store |
 
 ##### Returns
@@ -533,14 +534,14 @@ This interface can be implemented to provide custom storage solutions.
 #### get()
 
 ```ts
-get(): null | Session;
+get(): Session | null;
 ```
 
 Get the current session from storage
 
 ##### Returns
 
-`null` \| [`Session`](#session)
+[`Session`](#session) \| `null`
 
 The stored session or null if not found
 
@@ -634,7 +635,7 @@ function refreshSession(
   auth: Client,
   storage: SessionStorage,
   marginSeconds: number
-): Promise<null | Session>
+): Promise<Session | null>
 ```
 
 Refreshes the authentication session if needed
@@ -647,12 +648,12 @@ refresh the token using the provided auth client.
 
 | Parameter       | Type                                | Default value | Description                                                                                                                                                                       |
 | --------------- | ----------------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `auth`          | [`Client`](./auth#client)         | `undefined`   | The authentication client to use for token refresh                                                                                                                                |
+| `auth`          | [`Client`](./auth#client)          | `undefined`   | The authentication client to use for token refresh                                                                                                                                |
 | `storage`       | [`SessionStorage`](#sessionstorage) | `undefined`   | The session storage implementation                                                                                                                                                |
 | `marginSeconds` | `number`                            | `60`          | The number of seconds before the token expiration to refresh the session. If the token is still valid for this duration, it will not be refreshed. Set to 0 to force the refresh. |
 
 ### Returns
 
-`Promise`&lt;`null` \| [`Session`](#session)&gt;
+`Promise`&lt;[`Session`](#session) \| `null`&gt;
 
 A promise that resolves to the current session (refreshed if needed) or null if no session exists
