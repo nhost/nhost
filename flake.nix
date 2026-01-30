@@ -118,6 +118,9 @@
               pnpm
               biome
 
+              # lint docs
+              vale
+
               # go
               go
               golines

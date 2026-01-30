@@ -27,6 +27,8 @@ let
     include = with nix-filter.lib; [
       isDirectory
       ".npmrc"
+      ".prettierignore"
+      ".prettierrc.js"
       "audit-ci.jsonc"
       "package.json"
       "pnpm-workspace.yaml"
@@ -46,8 +48,9 @@ let
     ];
   };
 
-  checkDeps = [
+  checkDeps = with pkgs; [
     # self.packages.${pkgs.stdenv.hostPlatform.system}.cli
+    vale
   ];
 
   buildInputs = with pkgs; [ nodejs ];
