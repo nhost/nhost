@@ -1,3 +1,14 @@
+## [cli@1.36.0] - 2026-01-30
+
+### 🚀 Features
+
+- *(cli)* Added mcp tool to list documentation (#3863)
+
+
+### 🐛 Bug Fixes
+
+- *(cli)* Use astro docs as source (#3859)
+
 ## [cli@1.35.0] - 2026-01-28
 
 ### 🚀 Features
