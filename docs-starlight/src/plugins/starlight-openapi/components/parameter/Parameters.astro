@@ -1,0 +1,31 @@
+---
+import type { getParametersByLocation } from '../../libs/parameter'
+import { capitalize } from '../../libs/utils'
+import Heading from '../Heading.astro'
+import Section, { type SectionHeadingProps } from '../Section.astro'
+
+import Parameter from './Parameter.astro'
+
+interface Props extends SectionHeadingProps {
+  parameters: ReturnType<typeof getParametersByLocation>
+}
+
+const { level = 2, parameters, prefix } = Astro.props
+---
+
+{
+  parameters.size > 0 && (
+    <>
+      <Heading level={level} id={prefix ? `${prefix}-parameters` : 'parameters'}>
+        Parameters
+      </Heading>
+      {[...parameters.entries()].map(([location, parameters]) => (
+        <Section level={level + 1} {prefix} title={`${capitalize(location)} Parameters`}>
+          {[...parameters.values()].map((parameter) => (
+            <Parameter {parameter} />
+          ))}
+        </Section>
+      ))}
+    </>
+  )
+}

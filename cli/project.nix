@@ -32,6 +32,13 @@ let
       "${submodule}/mcp/resources/nhost_toml_schema.cue"
       (inDirectory "${submodule}/cmd/mcp/testdata")
       (inDirectory "${submodule}/mcp/graphql/testdata")
+
+      # docs
+      ../docs-starlight/embed.go
+      (and
+        (inDirectory ../docs-starlight/src/content/docs)
+        (matchExt "mdx")
+      )
     ];
   };
 

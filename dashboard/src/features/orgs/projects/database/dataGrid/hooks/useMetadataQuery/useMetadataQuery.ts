@@ -41,9 +41,9 @@ export default function useMetadataQuery(
   } = useRouter();
   const { project } = useProject();
 
-  const query = useQuery<FetchMetadataReturnType>(
+  const query = useQuery<FetchMetadataReturnType>({
     queryKey,
-    () => {
+    queryFn: () => {
       const appUrl = generateAppServiceUrl(
         project!.subdomain,
         project!.region,
@@ -59,14 +59,12 @@ export default function useMetadataQuery(
         dataSource: customDataSource || (dataSourceSlug as string),
       });
     },
-    {
-      ...queryOptions,
-      enabled:
-        project?.config?.hasura.adminSecret && isReady
-          ? queryOptions?.enabled
-          : false,
-    },
-  );
+    ...queryOptions,
+    enabled:
+      project?.config?.hasura.adminSecret && isReady
+        ? queryOptions?.enabled
+        : false,
+  });
 
   return query;
 }

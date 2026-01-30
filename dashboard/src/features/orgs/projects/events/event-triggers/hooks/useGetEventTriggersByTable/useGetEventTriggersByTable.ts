@@ -42,9 +42,9 @@ export default function useGetEventTriggersByTable({
 }: UseGetEventTriggersByTableOptions) {
   const { project, loading } = useProject();
 
-  const query = useQuery<ExportMetadataResponse, unknown, EventTrigger[]>(
-    ['export-metadata', project?.subdomain],
-    () => {
+  const query = useQuery<ExportMetadataResponse, unknown, EventTrigger[]>({
+    queryKey: ['export-metadata', project?.subdomain],
+    queryFn: () => {
       const appUrl = generateAppServiceUrl(
         project!.subdomain,
         project!.region,
@@ -55,23 +55,21 @@ export default function useGetEventTriggersByTable({
 
       return fetchExportMetadata({ appUrl, adminSecret });
     },
-    {
-      ...queryOptions,
-      enabled: !!(
-        project?.subdomain &&
-        project?.region &&
-        project?.config?.hasura.adminSecret &&
-        queryOptions?.enabled !== false &&
-        !loading
-      ),
-      select: (data) =>
-        getEventTriggersByTable({
-          metadata: data.metadata,
-          table,
-          dataSource,
-        }),
-    },
-  );
+    ...queryOptions,
+    enabled: !!(
+      project?.subdomain &&
+      project?.region &&
+      project?.config?.hasura.adminSecret &&
+      queryOptions?.enabled !== false &&
+      !loading
+    ),
+    select: (data) =>
+      getEventTriggersByTable({
+        metadata: data.metadata,
+        table,
+        dataSource,
+      }),
+  });
 
   return query;
 }

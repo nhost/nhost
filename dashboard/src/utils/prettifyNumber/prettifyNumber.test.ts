@@ -1,7 +1,7 @@
 import prettifyNumber from './prettifyNumber';
 
 test('should throw an error if multiplier is lower than 0', () => {
-  expect(() => prettifyNumber(1000, { multiplier: -1 })).toThrowError(
+  expect(() => prettifyNumber(1000, { multiplier: -1 })).toThrow(
     'Multiplier must be greater than 0',
   );
 });

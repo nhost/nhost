@@ -1,0 +1,58 @@
+---
+import { Icon } from '@astrojs/starlight/components'
+
+interface Props {
+  label: string
+  options: string[] | undefined
+}
+
+const { label, options } = Astro.props
+---
+
+{
+  options && options.length > 0 && (
+    <label class="not-content">
+      <span class="sr-only">{label}</span>
+      <select>
+        {options.map((option) => (
+          <option value={option}>{option}</option>
+        ))}
+      </select>
+      <Icon name="down-caret" class="caret" />
+    </label>
+  )
+}
+
+<style>
+  label {
+    color: var(--sl-color-gray-1);
+    display: flex;
+    margin-bottom: 0.5rem;
+    position: relative;
+  }
+
+  label:hover {
+    color: var(--sl-color-gray-2);
+  }
+
+  select {
+    appearance: none;
+    background-color: var(--sl-color-gray-5);
+    border: 1px solid var(--sl-color-gray-4);
+    color: inherit;
+    cursor: pointer;
+    padding: 0.5rem;
+    padding-inline-end: 2rem;
+    text-overflow: ellipsis;
+    width: 100%;
+  }
+
+  .caret {
+    font-size: var(1.25rem);
+    inset-inline-end: 0.8rem;
+    pointer-events: none;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+</style>

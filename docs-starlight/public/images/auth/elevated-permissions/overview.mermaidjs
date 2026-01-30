@@ -1,0 +1,24 @@
+sequenceDiagram
+    Note over User: User logins as usual
+    User->>App: I want to login, please
+    App->>Backend: /signin/...
+    Backend->>App: Session{...}
+    App->>User: Here is your session
+
+    Note over User: Actions that don't require elevated permissions work as usual
+    User->>App: I want to see my profile data
+    App->>Backend: query getProfileData { ... }
+    Backend->>App: data { ... }
+    App->>User: Here is your profile
+
+    Note over User: Action that requires elevated permissions starts here
+    User->>App: I want to change my address to X
+    App->>Backend: /elevate/webauthn
+    Backend->>App: SecurityChallenge{ ... }
+    App->>User: SecurityChallenge{ ... }
+    User->>App: SecurityChallengeResponse{ ... }
+    App->>+Backend: SecurityChallengeResponse{ ... }
+    Backend->>App: SessionWithElevatedClaim{ ... }
+    App->>Backend: mutation updateAddress { ... }
+    Backend->>App: success { ... }
+    App->>User: Your address has been changed

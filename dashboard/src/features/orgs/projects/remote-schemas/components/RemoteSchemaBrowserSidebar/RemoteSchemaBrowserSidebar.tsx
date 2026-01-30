@@ -5,7 +5,7 @@ import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 import { useDialog } from '@/components/common/DialogProvider';
-import { NavLink } from '@/components/common/NavLink';
+import { ListNavLink } from '@/components/common/NavLink';
 import { FormActivityIndicator } from '@/components/form/FormActivityIndicator';
 import { InlineCode } from '@/components/presentational/InlineCode';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
@@ -305,10 +305,12 @@ function RemoteSchemaBrowserSidebarContent({
                                       <EditRemoteSchemaForm
                                         originalSchema={remoteSchema}
                                         onSubmit={async () => {
-                                          await queryClient.refetchQueries([
-                                            `remote_schemas`,
-                                            project?.subdomain,
-                                          ]);
+                                          await queryClient.refetchQueries({
+                                            queryKey: [
+                                              `remote_schemas`,
+                                              project?.subdomain,
+                                            ],
+                                          });
                                           await refetch();
                                         }}
                                       />
@@ -390,7 +392,7 @@ function RemoteSchemaBrowserSidebarContent({
                         (isSelected || isSidebarMenuOpen) &&
                         '2.25rem !important',
                     }}
-                    component={NavLink}
+                    component={ListNavLink}
                     href={`/orgs/${orgSlug}/projects/${appSubdomain}/graphql/remote-schemas/${remoteSchema.name}`}
                     onClick={() => {
                       if (onSidebarItemClick) {

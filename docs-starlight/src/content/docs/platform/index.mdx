@@ -1,0 +1,51 @@
+---
+title: Platform
+description: Explore Nhost platform deployment options
+keywords: ["Nhost platform", "cloud hosting", "self-hosting", "deployment options", "managed infrastructure"]
+template: splash
+prev: false
+next: false
+hero:
+  title: 'Platform'
+  tagline: 'Learn about platform features'
+  actions:
+    - text: Explore Nhost Cloud
+      link: /platform/cloud
+      icon: right-arrow
+---
+import { Card, CardGroup } from '@components';
+
+
+<div className="welcome-page">
+  <div className="welcome-get-started">
+    <h1>Explore different deployment options</h1>
+
+<CardGroup cols={3}>
+  <Card
+    title="Cloud"
+    icon="cloud"
+    href="/platform/cloud/"
+  >
+    Fully managed backend infrastructure
+  </Card>
+
+  <Card
+    title="Development"
+    icon="terminal"
+    href="/platform/cli/"
+  >
+    Develop your project with Nhost
+  </Card>
+
+  <Card
+    title="Self-Hosting"
+    icon="server"
+    href="/platform/self-hosting/"
+  >
+    Run Nhost on your own infrastructure
+  </Card>
+</CardGroup>
+  </div>
+</div>
+
+

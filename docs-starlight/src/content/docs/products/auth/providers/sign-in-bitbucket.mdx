@@ -1,0 +1,42 @@
+---
+title: Sign In with Bitbucket
+description: Follow this guide to sign in users with Bitbucket.
+keywords: ["Bitbucket", "OAuth", "social login", "Bitbucket sign-in", "Atlassian", "authentication provider"]
+---
+
+## Create Bitbucket Account
+
+- Create a new [Bitbucket account](https://bitbucket.org/product/) by clicking on Sign in on the top left if you don't have one already.
+
+## Create Bitbucket OAuth App
+
+1. Go to Atlassian [admin page](https://admin.atlassian.com) and log in if you haven't already.
+2. Select the "Products" tab on the top navigation bar.
+3. Select the "Add product" button.
+4. Select "Bitbucket" from the list of products.
+5. Name your workspace - (Note: Workspace ID is auto-created based on your workspace name.)
+6. Select the "Agree and add" button to create your workspace in Atlassian Administration after reviewing the Atlassian Cloud Terms of Service and Privacy Policy.
+
+## Bitbucket OAuth App Information
+
+- **Name**: Enter your application name.
+- **Callback URL**: Use your **OAuth Callback URL** from Nhost.
+- **URL**: Enter your homepage URL (your app or company homepage).
+- Under **Permissions**, select the scopes (`Account - Email, Read`).
+
+- Click **Save**.
+
+Once saved, Bitbucket will show you a **Key (Client ID)** and a **Secret (Client Secret)**.
+
+## Configure Nhost
+
+- Go to your [Nhost project dashboard](https://app.nhost.io).
+- Navigate to **Authentication > Providers**.
+- Enable the **Bitbucket** provider.
+- Paste the **Client ID** and **Client Secret** from Bitbucket into the respective fields.
+- Check the box: **"I have pasted the redirect URI into Bitbucket"**.
+- Click **Confirm settings**.
+
+## Sign In Users
+
+Once you've configured Bitbucket as an OAuth provider in Nhost, you can sign in users using the Bitbucket provider. See the [OAuth Provider Sign-In Guide](/products/auth/providers/sign-in-provider) for detailed implementation instructions including the complete OAuth flow, error handling, and session management.

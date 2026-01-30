@@ -1,0 +1,41 @@
+---
+title: Sign In with Azure
+description: Follow this guide to sign in users with Azure.
+keywords: ["Azure AD", "Microsoft", "OAuth", "enterprise SSO", "authentication provider", "Active Directory", "deprecated"]
+---
+
+:::caution
+Deprecated: Use [Entra ID](/products/auth/providers/sign-in-entraid) instead
+:::
+
+## Set up Azure AD
+
+1. Visit the Azure Portal and create an account if needed.
+2. Navigate to "Microsoft Entra ID".
+3. Under "Manage", select "App Registrations".
+4. Click "+ New Registration" and fill out the form:
+   * Name: Choose a descriptive name
+   * Supported Account Type: Select based on your needs
+   * Redirect URI: Choose "Web" and enter your Auth service's callback URL (e.g., https://&lt;subdomain&gt;.auth.&lt;region&gt;.nhost.run/v1/signin/provider/azuread/callback)
+   * Click "Register"
+
+:::note
+Find the Redirect URL in your project settings -> Sign In Methods after enabling Azure AD.
+:::
+
+5. Copy the "Application (client) ID" for later use.
+6. Create a new client secret:
+   * Click "Add a certificate or secret"
+   * Select "New client secret"
+   * Set a description and expiration time
+   * Copy the secret's "Value" (not the ID)
+
+## Configure Nhost
+
+1. Go to your project's settings -> Sign In Methods.
+2. Find Azure AD, enable it, and enter the client ID and secret.
+3. Save your changes.
+
+## User Sign-In
+
+Once you've configured Azure AD as an OAuth provider in Nhost, you can sign in users using the Azure AD provider. See the [OAuth Provider Sign-In Guide](/products/auth/providers/sign-in-provider) for detailed implementation instructions including the complete OAuth flow, error handling, and session management.

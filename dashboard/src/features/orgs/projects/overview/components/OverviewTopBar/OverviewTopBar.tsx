@@ -1,10 +1,9 @@
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import Image from 'next/image';
-import Link from 'next/link';
+import { NavLink } from '@/components/common/NavLink';
 import { useUI } from '@/components/common/UIProvider';
 import { CogIcon } from '@/components/ui/v2/icons/CogIcon';
 import { Text } from '@/components/ui/v2/Text';
-import { Button } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -92,21 +91,15 @@ export default function OverviewTopBar() {
       </div>
       <div className="flex content-center gap-4">
         {isFreeProject && <UpgradeToProButton />}
-        <Link
+        <NavLink
           href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings`}
-          passHref
-          legacyBehavior
+          className="flex h-10 gap-2"
+          variant="outline"
+          disabled={maintenanceActive}
         >
-          <Button
-            variant="outline"
-            className="gap-2"
-            color="secondary"
-            disabled={maintenanceActive}
-          >
-            Settings
-            <CogIcon className="h-4 w-4" />
-          </Button>
-        </Link>
+          Settings
+          <CogIcon className="h-4 w-4" />
+        </NavLink>
       </div>
     </div>
   ) : null;

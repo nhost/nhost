@@ -2,8 +2,8 @@ import { useRouter } from 'next/router';
 import {
   createContext,
   type Dispatch,
-  type MutableRefObject,
   type PropsWithChildren,
+  type RefObject,
   type SetStateAction,
   useContext,
   useEffect,
@@ -36,7 +36,7 @@ export type DataGridFilter = {
 };
 
 type DataGridQueryParamsContextProps = {
-  isFiltersLoadedFromStorage: MutableRefObject<boolean>;
+  isFiltersLoadedFromStorage: RefObject<boolean>;
   appliedFilters: DataGridFilter[];
   setAppliedFilters: (filters: DataGridFilter[]) => void;
   // biome-ignore lint/suspicious/noExplicitAny: TODO

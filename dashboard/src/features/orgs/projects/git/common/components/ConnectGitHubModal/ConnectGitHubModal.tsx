@@ -1,9 +1,9 @@
 import { Divider } from '@mui/material';
 import debounce from 'lodash.debounce';
-import NavLink from 'next/link';
 import type { ChangeEvent } from 'react';
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
+import { NavLink } from '@/components/common/NavLink';
 import { ErrorMessage } from '@/components/presentational/ErrorMessage';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
@@ -18,7 +18,7 @@ import { Link } from '@/components/ui/v2/Link';
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
-import { GithubAuthButton } from '@/features/auth/AuthProviders/Github/components/GithubAuthButton';
+import { GithubAuthButton } from '@/features/auth/AuthProviders/Github/GithubAuthButton';
 import { useHostName } from '@/features/orgs/projects/common/hooks/useHostName';
 import { EditRepositorySettings } from '@/features/orgs/projects/git/common/components/EditRepositorySettings';
 import {
@@ -266,19 +266,13 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
           You need to connect your GitHub account to continue.
         </p>
         <NavLink
+          variant="outline"
+          className="flex w-72 max-w-72 gap-2"
           href={getGitHubConnectUrl()}
-          passHref
           rel="noreferrer noopener"
-          legacyBehavior
         >
-          <Button
-            className="w-full max-w-72"
-            variant="outlined"
-            color="secondary"
-            startIcon={<GitHubIcon />}
-          >
-            Connect to GitHub
-          </Button>
+          <GitHubIcon />
+          Connect to GitHub
         </NavLink>
       </div>
     );

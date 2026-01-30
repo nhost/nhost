@@ -272,7 +272,7 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
         ...createDataGridColumn(column, true),
         onCellEdit: async (variables: UpdateRecordVariables) => {
           const result = await updateRow(variables);
-          await queryClient.invalidateQueries([currentTablePath]);
+          await queryClient.invalidateQueries({ queryKey: [currentTablePath] });
 
           return result;
         },

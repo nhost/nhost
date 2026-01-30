@@ -156,7 +156,10 @@ export default function NewPasswordPage() {
 
       <Text color="secondary" className="text-center text-base lg:text-lg">
         Is your password okay?{' '}
-        <NavLink href="/signin/email" color="white" className="font-medium">
+        <NavLink
+          href="/signin/email"
+          className="px-0 font-medium text-[1.125rem] text-white"
+        >
           Sign In
         </NavLink>
       </Text>

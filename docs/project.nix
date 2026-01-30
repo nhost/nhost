@@ -49,8 +49,8 @@ let
   };
 
   checkDeps = [
-    self.packages.${pkgs.system}.cli
-    self.packages.${pkgs.system}.mintlify-openapi
+    self.packages.${pkgs.stdenv.hostPlatform.system}.cli
+    self.packages.${pkgs.stdenv.hostPlatform.system}.mintlify-openapi
   ];
 
   buildInputs = with pkgs; [ nodejs mintlify ];
@@ -70,8 +70,8 @@ in
 
     preCheck = ''
       mkdir -p packages/nhost-js
-      cp -r ${self.packages.${pkgs.system}.nhost-js}/dist packages/nhost-js/dist
-      cp -r ${self.packages.${pkgs.system}.nhost-js}/node_modules packages/nhost-js/node_modules
+      cp -r ${self.packages.${pkgs.stdenv.hostPlatform.system}.nhost-js}/dist packages/nhost-js/dist
+      cp -r ${self.packages.${pkgs.stdenv.hostPlatform.system}.nhost-js}/node_modules packages/nhost-js/node_modules
     '';
   };
 }

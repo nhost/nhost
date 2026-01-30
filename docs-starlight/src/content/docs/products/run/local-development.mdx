@@ -1,0 +1,104 @@
+---
+title: Local development
+description: Developing with the Nhost stack and Run services locally
+keywords: ["local development", "Nhost CLI", "Run services", "development environment", "env file generation"]
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+
+You can start Nhost Run services alongside your Nhost project very easily using the [Nhost CLI](/platform/cli/local-development) by simply using the option `--run-service path/to/run-service.toml[:overlay_name]`, for instance:
+
+![cli](/images/run/local_development_1.png)
+
+Let's first take a look at the commend above, the first thing you can notice is that multiple `--run-service` flags are supported. You can pass as many as you need and they all will be added to your project. You can also add or remove Run services to an already running instance by re-running the command specifying the final list of `--run-service` you want. Any missing service will be removed and any new one will be added.
+
+The second thing you will notice is that one of the `--run-service` flags contains the suffix `:mysvc` while the other one doesn't. If you add to the configuration path the suffix `:overlay_name` the [configuration overlay](/products/run/configuration-overlays) with name `overlay_name` will be applied.
+
+The last thing to notice in the screenshot is that the URLs include information on how to connect to the Run service (in the example used in this guide only one of the started services expose a port):
+
+```
+- run-bun-gen:        From laptop:      http://localhost:5000
+                      From services:    http://run-bun-gen:5000
+```
+
+Based on the information above, if you want to connect directly to your service from your laptop you can use the URL `http://localhost:5000` while if you want to connect to the Run service from another service (i.e. another Run service or hasura) you can use `http://run-bun-gen:5000`
+
+:::note
+You can also use the environment variable `NHOST_RUN_SERVICE` passing comma-separated values. For
+  instance, the equivalent environment variable for this example would be
+  `NHOST_RUN_SERVICE=../mysvc/nhost-run-service.toml:mysvc,../mysvc/nhost-run-service.toml`
+:::
+
+:::caution
+The Nhost CLI doesn't build services so make sure you build any image that might be needed for
+  running `nhost run --run-service...`
+:::
+
+# Quick Development
+
+While developing your service, you may want to run it locally outside of the Nhost CLI to quickly iterate on it. To simplify this the Nhost CLI includes a command to generate an `.env` file based on your environment variables configuration and secrets. For instance, imagine a service with the following configuration:
+
+<Tabs>
+<TabItem label="run-service.toml">
+```toml
+[[environment]]
+name = 'HASURA_GRAPHQL_URL'
+value = 'http://hasura-service:8080/v1/graphql'
+
+[[environment]]
+name = 'SOME_CONFIGURATION_PARAMETER'
+value = 'some-value'
+
+[[environment]]
+name = 'SECRET_KEY'
+value = '{{ secrets.SECRET_KEY }}'
+
+````
+</TabItem>
+
+<TabItem label="overlay">
+```json
+[
+  {
+    "value": {
+      "name": "ENVIRONMENT",
+      "value": "dev"
+    },
+    "op": "add",
+    "path": "/environment/-"
+  },
+  {
+    "value": "https://local.graphql.local.nhost.run/v1/graphql",
+    "op": "replace",
+    "path": "/environment/0/value"
+  }
+]
+````
+
+</TabItem>
+<TabItem label=".secrets">
+```toml
+SECRET_KEY = '#asdasd;l;kq23\\n40-0as9d"$\\'
+```
+</TabItem>
+</Tabs>
+
+We can then generate an `env` file for our service with the folllowing command:
+
+```
+$ nhost run env --config ../mysvc/nhost-run-service.toml --overlay-name local-dev > .env
+$ cat .env
+HASURA_GRAPHQL_URL="https://local.graphql.local.nhost.run/v1/graphql"
+SOME_CONFIGURATION_PARAMETER="some-value"
+SECRET_KEY="#asdasd;l;kq23\\n40-0as9d\"\$\\"
+ENVIRONMENT="dev"
+```
+
+:::caution
+Keep in mind you may need to use different configuration when attempting to connect to other
+  services in the stack. For instance, in the example above we are using
+  `http://hasura-service:8080/v1/graphql` to connect to hasura in production and in the CLI but when
+  running the service in the host machine using the env file we are using an overlay to change the
+  value to `https://local.graphql.local.nhost.run/v1/graphql`. Refer to the [network](/products/run/networking)
+  configuration for more details.
+:::
