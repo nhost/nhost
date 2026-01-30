@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import type { BaseRelationshipFormInitialValues } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/BaseRelationshipFormTypes';
 import {
   isRemoteSchemaRelationshipFormValues,
   isTableRelationshipFormValues,
@@ -36,7 +37,7 @@ describe('parseRemoteRelationshipFormDefaultValues', () => {
         definition,
       });
 
-      expect(result).toEqual({
+      const expected: BaseRelationshipFormInitialValues = {
         name: 'userProfile',
         referenceKind: 'table',
         fromSource: {
@@ -49,7 +50,7 @@ describe('parseRemoteRelationshipFormDefaultValues', () => {
           table: 'profiles',
           source: 'externaldb',
         },
-        relationshipType: 'object',
+        relationshipType: 'pg_create_object_relationship',
         fieldMapping: [
           {
             sourceColumn: 'user_id',
@@ -60,7 +61,9 @@ describe('parseRemoteRelationshipFormDefaultValues', () => {
             referenceColumn: 'email',
           },
         ],
-      });
+      };
+
+      expect(result).toEqual(expected);
     });
 
     it('should parse a to_source relationship with array relationship type', () => {
@@ -83,7 +86,7 @@ describe('parseRemoteRelationshipFormDefaultValues', () => {
         definition,
       });
 
-      expect(result).toEqual({
+      const expected: BaseRelationshipFormInitialValues = {
         name: 'userProfile',
         referenceKind: 'table',
         fromSource: {
@@ -96,14 +99,16 @@ describe('parseRemoteRelationshipFormDefaultValues', () => {
           table: 'orders',
           source: 'externaldb',
         },
-        relationshipType: 'array',
+        relationshipType: 'pg_create_array_relationship',
         fieldMapping: [
           {
             sourceColumn: 'user_id',
             referenceColumn: 'customer_id',
           },
         ],
-      });
+      };
+
+      expect(result).toEqual(expected);
     });
 
     it('should handle empty field_mapping', () => {
@@ -281,7 +286,7 @@ describe('parseRemoteRelationshipFormDefaultValues', () => {
         definition,
       });
 
-      expect(result).toEqual({
+      const expected: BaseRelationshipFormInitialValues = {
         name: '',
         fromSource: {
           schema: '',
@@ -294,9 +299,11 @@ describe('parseRemoteRelationshipFormDefaultValues', () => {
           schema: '',
           table: '',
         },
-        relationshipType: 'object',
+        relationshipType: 'pg_create_object_relationship',
         fieldMapping: [],
-      });
+      };
+
+      expect(result).toEqual(expected);
     });
   });
 });
