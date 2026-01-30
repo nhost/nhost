@@ -7,7 +7,6 @@
   color-scheme: dark;
 }
 
-
 /* Dark mode (default) */
 :root {
   /* Custom mobile nav toggle height */
@@ -34,7 +33,7 @@
   --sl-color-gray-5: #1a1a1a;
   --sl-color-gray-4: #262626;
   --sl-color-gray-3: rgba(255, 255, 255, 0.65);
-  --sl-color-gray-2: rgba(255, 255, 255, 0.80);
+  --sl-color-gray-2: rgba(255, 255, 255, 0.8);
   --sl-color-gray-1: #ffffff;
   --sl-color-white: #ffffff;
 
@@ -44,16 +43,17 @@
   --sl-color-hairline-shade: #080808;
 
   /* Text */
-  --sl-color-text: rgba(255, 255, 255, 0.80);
+  --sl-color-text: rgba(255, 255, 255, 0.8);
   --sl-color-text-accent: #8cc1f2;
 
   /* Typography */
-  --sl-font: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --sl-font: "Inter", ui-sans-serif, system-ui, sans-serif;
   --sl-font-headings: var(--sl-font);
 }
 
 /* Light mode */
-[data-theme='light'], :root[data-theme='light'] {
+[data-theme="light"],
+:root[data-theme="light"] {
   --sl-color-accent-low: #e6f0ff;
   --sl-color-accent: #0066ff;
   --sl-color-accent-high: #00398e;
@@ -78,7 +78,12 @@
 }
 
 /* Apply different font for headings */
-h1, h2, h3, h4, h5, h6,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
 .sl-markdown-content h1,
 .sl-markdown-content h2,
 .sl-markdown-content h3,
@@ -127,33 +132,33 @@ h1, h2, h3, h4, h5, h6,
 }
 
 /* Light mode button adjustments */
-[data-theme='light'] .sl-link-button.primary {
+[data-theme="light"] .sl-link-button.primary {
   background-color: #0066ff !important;
   color: #ffffff !important;
   border-color: transparent !important;
 }
 
-[data-theme='light'] .sl-link-button.primary:hover {
+[data-theme="light"] .sl-link-button.primary:hover {
   background-color: #0052cd !important;
   box-shadow: 0 0 0 2px rgba(0, 102, 255, 0.3);
 }
 
-[data-theme='light'] .sl-link-button.secondary {
+[data-theme="light"] .sl-link-button.secondary {
   background-color: #ffffff !important;
   color: #111111 !important;
   border-color: #e0e0e0 !important;
 }
 
-[data-theme='light'] .sl-link-button.secondary:hover {
+[data-theme="light"] .sl-link-button.secondary:hover {
   background-color: #f5f5f5 !important;
 }
 
-[data-theme='light'] .action-button {
+[data-theme="light"] .action-button {
   background-color: #0066ff !important;
   color: #ffffff !important;
 }
 
-[data-theme='light'] .action-button:hover {
+[data-theme="light"] .action-button:hover {
   background-color: #0052cd !important;
 }
 
@@ -170,7 +175,7 @@ h1, h2, h3, h4, h5, h6,
   text-align: center;
   font-size: 1.5rem;
   font-weight: 600;
-  margin: 2.0rem;
+  margin: 2rem;
 }
 
 html[class~="dark"] .welcome-get-started {
@@ -206,11 +211,11 @@ html:not([class~="dark"]) .welcome-get-started {
 }
 
 /* Use text accent for selected sidebar item (like subheader) */
-.sidebar-content a[aria-current='page'],
-.sidebar-content a[aria-current='page']:hover,
-.sidebar-content a[aria-current='page']:focus,
-.sidebar-content ul.top-level > li > a.large[aria-current='page'],
-.sidebar-content ul.top-level > li > a.large[aria-current='page']:hover {
+.sidebar-content a[aria-current="page"],
+.sidebar-content a[aria-current="page"]:hover,
+.sidebar-content a[aria-current="page"]:focus,
+.sidebar-content ul.top-level > li > a.large[aria-current="page"],
+.sidebar-content ul.top-level > li > a.large[aria-current="page"]:hover {
   background-color: transparent !important;
   color: var(--sl-color-text-accent) !important;
   font-weight: 600 !important;
@@ -228,7 +233,13 @@ html:not([class~="dark"]) .welcome-get-started {
 
 .sidebar-content ul:not(.top-level) li details > summary:hover,
 .sidebar-content ul:not(.top-level) li details > summary:hover .group-label,
-.sidebar-content ul:not(.top-level) li details > summary:hover .group-label .large {
+.sidebar-content
+  ul:not(.top-level)
+  li
+  details
+  > summary:hover
+  .group-label
+  .large {
   color: var(--sl-color-text) !important;
 }
 
@@ -387,41 +398,69 @@ h1#_top {
 @media (max-width: 49.99rem) {
   /* Push mobile TOC below the custom mobile nav toggle */
   mobile-starlight-toc nav {
-    top: calc(var(--sl-nav-height) + var(--custom-mobile-nav-height)) !important;
+    top: calc(
+      var(--sl-nav-height) +
+      var(--custom-mobile-nav-height)
+    ) !important;
   }
 
   /* Main content needs padding for: nav + custom toggle + mobile TOC */
   .main-frame {
-    padding-top: calc(var(--sl-nav-height) + var(--custom-mobile-nav-height) + var(--sl-mobile-toc-height)) !important;
+    padding-top: calc(
+      var(--sl-nav-height) +
+      var(--custom-mobile-nav-height) +
+      var(--sl-mobile-toc-height)
+    ) !important;
   }
 
   /* Scroll padding for anchor links */
   html {
-    scroll-padding-top: calc(1.5rem + var(--sl-nav-height) + var(--custom-mobile-nav-height) + var(--sl-mobile-toc-height)) !important;
+    scroll-padding-top: calc(
+      1.5rem +
+      var(--sl-nav-height) +
+      var(--custom-mobile-nav-height) +
+      var(--sl-mobile-toc-height)
+    ) !important;
   }
 }
 
 /* Tablet layout fixes (50-72rem) - subheader visible, mobile TOC still shown */
 @media (min-width: 50rem) and (max-width: 71.99rem) {
   .main-frame {
-    padding-top: calc(var(--sl-nav-height) + var(--custom-subheader-height) + var(--sl-mobile-toc-height)) !important;
+    padding-top: calc(
+      var(--sl-nav-height) +
+      var(--custom-subheader-height) +
+      var(--sl-mobile-toc-height)
+    ) !important;
   }
 
   /* Scroll padding for anchor links */
   html {
-    scroll-padding-top: calc(1.5rem + var(--sl-nav-height) + var(--custom-subheader-height) + var(--sl-mobile-toc-height)) !important;
+    scroll-padding-top: calc(
+      1.5rem +
+      var(--sl-nav-height) +
+      var(--custom-subheader-height) +
+      var(--sl-mobile-toc-height)
+    ) !important;
   }
 }
 
 /* Large desktop layout (72rem+) - no mobile TOC */
 @media (min-width: 72rem) {
   .main-frame {
-    padding-top: calc(var(--sl-nav-height) + var(--custom-subheader-height)) !important;
+    padding-top: calc(
+      var(--sl-nav-height) +
+      var(--custom-subheader-height)
+    ) !important;
   }
 
   /* Scroll padding for anchor links */
   html {
-    scroll-padding-top: calc(1.5rem + var(--sl-nav-height) + var(--custom-subheader-height)) !important;
+    scroll-padding-top: calc(
+      1.5rem +
+      var(--sl-nav-height) +
+      var(--custom-subheader-height)
+    ) !important;
   }
 }
 
@@ -496,7 +535,6 @@ header.header {
     transform: translateX(-50%);
   }
 }
-
 
 /* Sidebar borders extend to edge of constrained area */
 @media (min-width: 50rem) {

@@ -1,6 +1,7 @@
 ---
 title: Functions
 ---
+
 This is the main module to interact with Nhost's Functions service.
 Typically you would use this module via the main [Nhost client](./main#createclient)
 but you can also use it directly if you have a specific use case.
@@ -220,8 +221,8 @@ Add a middleware function to the fetch chain
 
 ##### Parameters
 
-| Parameter       | Type                                       | Description                    |
-| --------------- | ------------------------------------------ | ------------------------------ |
+| Parameter       | Type                                      | Description                    |
+| --------------- | ----------------------------------------- | ------------------------------ |
 | `chainFunction` | [`ChainFunction`](./fetch#chainfunction) | The middleware function to add |
 
 ##### Returns
@@ -244,9 +245,9 @@ and other cross-cutting concerns.
 
 ### Parameters
 
-| Parameter        | Type                                         | Default value | Description                                       |
-| ---------------- | -------------------------------------------- | ------------- | ------------------------------------------------- |
-| `baseURL`        | `string`                                     | `undefined`   | Base URL for the functions endpoint               |
+| Parameter        | Type                                        | Default value | Description                                       |
+| ---------------- | ------------------------------------------- | ------------- | ------------------------------------------------- |
+| `baseURL`        | `string`                                    | `undefined`   | Base URL for the functions endpoint               |
 | `chainFunctions` | [`ChainFunction`](./fetch#chainfunction)[] | `[]`          | Array of middleware functions for the fetch chain |
 
 ### Returns

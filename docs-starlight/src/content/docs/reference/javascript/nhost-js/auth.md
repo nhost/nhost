@@ -1,6 +1,7 @@
 ---
 title: Auth
 ---
+
 This is the main module to interact with Nhost's Auth service.
 Typically you would use this module via the main [Nhost client](./main#createclient)
 but you can also use it directly if you have a specific use case.
@@ -621,8 +622,8 @@ Add a middleware function to the fetch chain
 
 ##### Parameters
 
-| Parameter       | Type                                       | Description                    |
-| --------------- | ------------------------------------------ | ------------------------------ |
+| Parameter       | Type                                      | Description                    |
+| --------------- | ----------------------------------------- | ------------------------------ |
 | `chainFunction` | [`ChainFunction`](./fetch#chainfunction) | The middleware function to add |
 
 ##### Returns
@@ -2202,7 +2203,7 @@ ticket: string
 
 (`string`) - Ticket
 
-- Pattern - `^mfaTotp:.\*$`
+- Pattern - ^mfaTotp:.\*$
 
 ---
 
@@ -2582,7 +2583,7 @@ optional displayName: string;
 ```
 
 Example - `"John Smith"`
-Pattern - `^[\p{L}\p{N}\p{S} ,.'-]+$`
+Pattern - ^[\p{L}\p{N}\p{S} ,.'-]+$
 MaxLength - 32
 
 #### locale?
@@ -3019,7 +3020,7 @@ optional ticket: string;
 ```
 
 Ticket to reset the password, required if the user is not authenticated
-Pattern - `^passwordReset\:.\*$`
+Pattern - ^passwordReset\:.\*$
 
 ---
 
@@ -3381,9 +3382,9 @@ function createAPIClient(baseURL: string, chainFunctions: ChainFunction[]): Clie
 
 ### Parameters
 
-| Parameter        | Type                                         | Default value |
-| ---------------- | -------------------------------------------- | ------------- |
-| `baseURL`        | `string`                                     | `undefined`   |
+| Parameter        | Type                                        | Default value |
+| ---------------- | ------------------------------------------- | ------------- |
+| `baseURL`        | `string`                                    | `undefined`   |
 | `chainFunctions` | [`ChainFunction`](./fetch#chainfunction)[] | `[]`          |
 
 ### Returns

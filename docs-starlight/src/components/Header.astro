@@ -1,38 +1,45 @@
 ---
-import type { Props } from '@astrojs/starlight/props';
 import Default from '@astrojs/starlight/components/Header.astro';
+import type { Props } from '@astrojs/starlight/props';
 
 const products = [
-    { label: 'Overview', href: '/products/' },
-    { label: 'Database', href: '/products/database/' },
-    { label: 'GraphQL', href: '/products/graphql/' },
-    { label: 'Auth', href: '/products/auth/' },
-    { label: 'Storage', href: '/products/storage/' },
-    { label: 'Run', href: '/products/run/' },
-    { label: 'Functions', href: '/products/functions/' },
-    { label: 'AI', href: '/products/ai/' },
+  { label: 'Overview', href: '/products/' },
+  { label: 'Database', href: '/products/database/' },
+  { label: 'GraphQL', href: '/products/graphql/' },
+  { label: 'Auth', href: '/products/auth/' },
+  { label: 'Storage', href: '/products/storage/' },
+  { label: 'Run', href: '/products/run/' },
+  { label: 'Functions', href: '/products/functions/' },
+  { label: 'AI', href: '/products/ai/' },
 ];
 
 const navLinks = [
-    { label: 'Welcome', href: '/' },
-    { label: 'Getting Started', href: '/getting-started/' },
-    { label: 'Products', href: '/products/', hasDropdown: true, dropdownItems: products },
-    { label: 'Platform', href: '/platform/' },
-    { label: 'Reference', href: '/reference/' },
-    { label: 'Blog', href: 'https://nhost.io/blog', external: true },
+  { label: 'Welcome', href: '/' },
+  { label: 'Getting Started', href: '/getting-started/' },
+  {
+    label: 'Products',
+    href: '/products/',
+    hasDropdown: true,
+    dropdownItems: products,
+  },
+  { label: 'Platform', href: '/platform/' },
+  { label: 'Reference', href: '/reference/' },
+  { label: 'Blog', href: 'https://nhost.io/blog', external: true },
 ];
 
 // Determine current section from URL
 const pathname = Astro.url.pathname;
-const currentSection = navLinks.find(link => {
-    if (link.external) return false;
-    // Handle root/welcome page specifically - only match exact root
-    if (link.href === '/') {
-        return pathname === '/' || pathname === '/welcome' || pathname === '/welcome/';
-    }
-    // For section pages, check if pathname starts with the section base path
-    const basePath = link.href.replace('/', '/').replace(/\/$/, '');
-    return pathname.startsWith(basePath);
+const currentSection = navLinks.find((link) => {
+  if (link.external) return false;
+  // Handle root/welcome page specifically - only match exact root
+  if (link.href === '/') {
+    return (
+      pathname === '/' || pathname === '/welcome' || pathname === '/welcome/'
+    );
+  }
+  // For section pages, check if pathname starts with the section base path
+  const basePath = link.href.replace('/', '/').replace(/\/$/, '');
+  return pathname.startsWith(basePath);
 });
 ---
 
