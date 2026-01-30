@@ -29,6 +29,7 @@ import userEvent, {
 import { HttpResponse } from 'msw';
 import { RouterContext } from 'next/dist/shared/lib/router-context.shared-runtime';
 import type { PropsWithChildren, ReactElement } from 'react';
+import { useMemo } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { vi } from 'vitest';
 import { DialogProvider } from '@/components/common/DialogProvider';
@@ -78,29 +79,38 @@ export const queryClient = new QueryClient({
   },
 });
 
-const mockClient = new ApolloClient({
-  cache: new InMemoryCache(),
-  link: createHttpLink({
-    uri: 'https://local.graphql.local.nhost.run/v1',
-  }),
-  defaultOptions: {
-    query: {
-      fetchPolicy: 'no-cache',
-    },
-    watchQuery: {
-      fetchPolicy: 'no-cache',
-    },
-  },
-});
-const nhost = createServerClient({
-  subdomain: 'local',
-  region: 'local',
-  storage: new DummySessionStorage(),
-});
-nhost.sessionStorage.set(mockSession);
-
 function Providers({ children }: PropsWithChildren) {
   const theme = createTheme('light');
+
+  const mockClient = useMemo(
+    () =>
+      new ApolloClient({
+        cache: new InMemoryCache(),
+        link: createHttpLink({
+          uri: 'https://local.graphql.local.nhost.run/v1',
+        }),
+        defaultOptions: {
+          query: {
+            fetchPolicy: 'no-cache',
+          },
+          watchQuery: {
+            fetchPolicy: 'no-cache',
+          },
+        },
+      }),
+    [],
+  );
+
+  const nhost = useMemo(() => {
+    const client = createServerClient({
+      subdomain: 'local',
+      region: 'local',
+      storage: new DummySessionStorage(),
+    });
+    client.sessionStorage.set(mockSession);
+
+    return client;
+  }, []);
 
   return (
     <RouterContext.Provider value={mockRouter}>

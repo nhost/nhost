@@ -4,7 +4,6 @@ import { FormInput } from '@/components/form/FormInput';
 export interface CustomGraphQLRootFieldsFieldGroupProps {
   disabled?: boolean;
   fieldLabel: string;
-  key: string;
   commentPath: string;
   fieldNamePath: string;
   fieldPlaceholder: string;
@@ -14,7 +13,6 @@ export interface CustomGraphQLRootFieldsFieldGroupProps {
 export default function CustomGraphQLRootFieldsFieldGroup({
   disabled,
   fieldLabel,
-  key,
   commentPath,
   fieldNamePath,
   fieldPlaceholder,
@@ -23,10 +21,7 @@ export default function CustomGraphQLRootFieldsFieldGroup({
   const form = useFormContext();
 
   return (
-    <div
-      key={key}
-      className="grid grid-cols-[120px,minmax(0,0.8fr),minmax(0,1fr)] items-center gap-3 bg-background px-4 py-3"
-    >
+    <div className="grid grid-cols-[120px,minmax(0,0.8fr),minmax(0,1fr)] items-center gap-3 bg-background px-4 py-3">
       <span className="font-medium text-foreground text-sm">{fieldLabel}</span>
       <FormInput
         disabled={disabled}

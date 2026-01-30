@@ -21,21 +21,21 @@ let
   };
 in
 rec{
-  nodejs-slim_20 = prev.nodejs-slim_20.overrideAttrs (oldAttrs: rec {
-    version = "20.20.0";
+  nodejs-slim_24 = prev.nodejs-slim_24.overrideAttrs (oldAttrs: rec {
+    version = "24.13.0";
     src = prev.fetchurl {
       url = "https://nodejs.org/dist/v${version}/node-v${version}.tar.xz";
-      sha256 = "sha256-UpTZ0pFWIOgZ5okv1+VFuY1lC6022uVOZSfqrEgq3Zg=";
+      sha256 = "sha256-Mg/pCcuzR9z1FiAeSWTvF3uBON+af4ENDVSVBIGzFYs=";
     };
   });
 
   nodejs = final.symlinkJoin {
     name = "nodejs";
-    version = final.nodejs-slim_20.version;
-    paths = [ final.nodejs-slim_20 npm_11 ];
+    version = final.nodejs-slim_24.version;
+    paths = [ final.nodejs-slim_24 npm_11 ];
 
     passthru = {
-      inherit (final.nodejs-slim_20) version python meta src;
+      inherit (final.nodejs-slim_24) version python meta src;
 
       pkgs = final.callPackage "${final.path}/pkgs/development/node-packages/default.nix" {
         nodejs = final.nodejs;

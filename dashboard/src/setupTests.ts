@@ -1,7 +1,15 @@
 import '@testing-library/jest-dom/extend-expect';
 import matchers from '@testing-library/jest-dom/matchers';
-import fetch from 'node-fetch';
+import { fetch, Headers, Request, Response } from 'undici';
 import { expect, vi } from 'vitest';
+
+// Restore Node.js native fetch (powered by undici)
+Object.assign(global, {
+  fetch,
+  Headers,
+  Request,
+  Response,
+});
 
 // Mock the ResizeObserver
 const ResizeObserverMock = vi.fn(() => ({
@@ -12,8 +20,5 @@ const ResizeObserverMock = vi.fn(() => ({
 
 // Stub the global ResizeObserver
 vi.stubGlobal('ResizeObserver', ResizeObserverMock);
-
-// @ts-expect-error
-global.fetch = fetch;
 
 expect.extend(matchers);

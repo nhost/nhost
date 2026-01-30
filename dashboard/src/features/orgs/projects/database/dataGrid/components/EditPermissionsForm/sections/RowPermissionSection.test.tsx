@@ -125,6 +125,8 @@ function getRouter() {
 describe('RowPermissionsSection', () => {
   beforeAll(() => {
     process.env.NEXT_PUBLIC_ENV = 'dev';
+    process.env.NEXT_PUBLIC_NHOST_CONFIGSERVER_URL =
+      'https://local.graphql.local.nhost.run/v1';
     server.listen();
   });
   beforeEach(() => {
