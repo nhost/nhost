@@ -84,4 +84,4 @@ function build_cli_docs() {
 }
 
 build_typedoc
-# build_cli_docs
+build_cli_docs
