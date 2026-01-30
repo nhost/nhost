@@ -44,6 +44,7 @@ let
     bun
     clang
     pkg-config
+    nodejs
   ];
 
   nativeBuildInputs = [ ];

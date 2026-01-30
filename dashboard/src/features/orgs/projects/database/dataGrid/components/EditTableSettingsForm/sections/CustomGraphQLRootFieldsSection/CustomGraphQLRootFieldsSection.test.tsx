@@ -140,8 +140,8 @@ describe('CustomGraphQLRootFieldsSection', () => {
       'insert_userProfile_one (default)',
     );
 
-    await user.type(customTableInput, 'userProfileCustom');
-    await user.type(selectAggregateField, 'custom_select_field');
+    TestUserEvent.fireTypeEvent(customTableInput, 'userProfileCustom');
+    TestUserEvent.fireTypeEvent(selectAggregateField, 'custom_select_field');
 
     await user.click(screen.getByRole('button', { name: 'Make camelCase' }));
 
