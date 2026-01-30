@@ -2,7 +2,7 @@ package docs
 
 import (
 	"context"
-	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/nhost/nhost/cli/clienv"
@@ -10,7 +10,10 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
-const flagGrouped = "grouped"
+const (
+	flagGrouped = "grouped"
+	flagSummary = "summary"
+)
 
 func CommandList() *cli.Command {
 	return &cli.Command{ //nolint:exhaustruct
@@ -21,7 +24,11 @@ func CommandList() *cli.Command {
 		Flags: []cli.Flag{
 			&cli.BoolFlag{ //nolint:exhaustruct
 				Name:  flagGrouped,
-				Usage: "Show pages organized by tab and section",
+				Usage: "Show pages organized by section",
+			},
+			&cli.BoolFlag{ //nolint:exhaustruct
+				Name:  flagSummary,
+				Usage: "Show page descriptions",
 			},
 		},
 	}
@@ -30,27 +37,24 @@ func CommandList() *cli.Command {
 func commandList(_ context.Context, cmd *cli.Command) error {
 	ce := clienv.FromCLI(cmd)
 
-	config, err := docssearch.LoadConfig()
-	if err != nil {
-		return fmt.Errorf("failed to load docs index: %w", err)
-	}
+	showSummary := cmd.Bool(flagSummary)
 
 	if cmd.Bool(flagGrouped) {
-		return listGrouped(ce, config)
+		return listGrouped(ce, showSummary)
 	}
 
-	return listFlat(ce, config)
+	return listFlat(ce, showSummary)
 }
 
-func listFlat(ce *clienv.CliEnv, config *docssearch.Config) error {
-	pages := docssearch.GetAllPagesWithInfo(config)
+func listFlat(ce *clienv.CliEnv, showSummary bool) error {
+	pages := docssearch.GetAllPagesWithInfo()
 	for _, page := range pages {
 		title := page.Title
 		if title == "" {
 			title = page.Path
 		}
 
-		if page.Description != "" {
+		if showSummary && page.Description != "" {
 			ce.Println("[%s](%s) - %s", page.Path, title, page.Description)
 		} else {
 			ce.Println("[%s](%s)", page.Path, title)
@@ -60,75 +64,45 @@ func listFlat(ce *clienv.CliEnv, config *docssearch.Config) error {
 	return nil
 }
 
-func listGrouped(ce *clienv.CliEnv, config *docssearch.Config) error {
-	for _, tab := range config.Navigation.Tabs {
-		if tab.Href != "" {
-			continue
-		}
+func listGrouped(ce *clienv.CliEnv, showSummary bool) error {
+	pages := docssearch.GetAllPagesWithInfo()
 
-		ce.Println("## %s", tab.Tab)
+	// Group pages by top-level section
+	sections := make(map[string][]docssearch.PageInfo)
+
+	for _, page := range pages {
+		parts := strings.SplitN(strings.TrimPrefix(page.Path, "/"), "/", 2) //nolint:mnd
+		section := parts[0]
+		sections[section] = append(sections[section], page)
+	}
+
+	// Sort section names
+	sectionNames := make([]string, 0, len(sections))
+	for name := range sections {
+		sectionNames = append(sectionNames, name)
+	}
+
+	sort.Strings(sectionNames)
+
+	for _, section := range sectionNames {
+		ce.Println("## %s", section)
 		ce.Println("")
 
-		if len(tab.Pages) > 0 {
-			printPagesGrouped(ce, tab.Pages, 0)
-		}
+		for _, page := range sections[section] {
+			title := page.Title
+			if title == "" {
+				title = page.Path
+			}
 
-		for _, dropdown := range tab.Dropdowns {
-			ce.Println("  ### %s", dropdown.Dropdown)
-			printPagesGrouped(ce, dropdown.Pages, 2) //nolint:mnd
+			if showSummary && page.Description != "" {
+				ce.Println("  [%s](%s) - %s", page.Path, title, page.Description)
+			} else {
+				ce.Println("  [%s](%s)", page.Path, title)
+			}
 		}
 
 		ce.Println("")
 	}
 
 	return nil
-}
-
-func printPagesGrouped(ce *clienv.CliEnv, pages []any, indent int) {
-	indentStr := strings.Repeat(" ", indent)
-
-	for _, page := range pages {
-		switch v := page.(type) {
-		case string:
-			printSinglePageGrouped(ce, v, indentStr)
-		case map[string]any:
-			printGroupGrouped(ce, v, indentStr, indent)
-		}
-	}
-}
-
-func printSinglePageGrouped(ce *clienv.CliEnv, path, indentStr string) {
-	if docssearch.IsDeprecatedPath(path) {
-		return
-	}
-
-	info := docssearch.GetPageInfo(path)
-	title := info.Title
-
-	if title == "" {
-		title = path
-	}
-
-	if info.Description != "" {
-		ce.Println("%s  [%s](%s) - %s", indentStr, path, title, info.Description)
-	} else {
-		ce.Println("%s  [%s](%s)", indentStr, path, title)
-	}
-}
-
-func printGroupGrouped(ce *clienv.CliEnv, v map[string]any, indentStr string, indent int) {
-	groupName, ok := v["group"].(string)
-	if !ok {
-		return
-	}
-
-	if strings.Contains(strings.ToLower(groupName), "deprecated") {
-		return
-	}
-
-	ce.Println("%s  [%s]", indentStr, groupName)
-
-	if groupPages, ok := v["pages"].([]any); ok {
-		printPagesGrouped(ce, groupPages, indent+2) //nolint:mnd
-	}
 }

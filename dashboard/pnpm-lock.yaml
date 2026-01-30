@@ -34,6 +34,7 @@ overrides:
   diff@<4.0.4: '>=4.0.4'
   lodash@>=4.0.0 <=4.17.22: '>=4.17.23'
   tar@<=7.5.3: '>=7.5.4'
+  next@>=10.0.0 <15.5.10: '>=15.5.10'
 
 packageExtensionsChecksum: sha256-4W2ZoS34f/mESDz44tHgi/lHRwttYSe+a+CMb+QBm1Y=
 
@@ -6042,7 +6043,7 @@ packages:
   next-seo@6.5.0:
     resolution: {integrity: sha512-MfzUeWTN/x/rsKp/1n0213eojO97lIl0unxqbeCY+6pAucViHDA8GSLRRcXpgjsSmBxfCFdfpu7LXbt4ANQoNQ==}
     peerDependencies:
-      next: ^8.1.1-canary.54 || >=9.0.0
+      next: '>=15.5.10'
       react: '>=16.0.0'
       react-dom: '>=16.0.0'
 
