@@ -54,6 +54,16 @@ let
     vacuum-go
   ];
 
+  x265-no-numa = pkgs.x265.overrideAttrs (oldAttrs: {
+    cmakeFlags = (oldAttrs.cmakeFlags or [ ]) ++ [
+      "-DENABLE_LIBNUMA=OFF"
+    ];
+  });
+
+  libheif-no-numa = pkgs.libheif.override {
+    x265 = x265-no-numa;
+  };
+
   vips = pkgs.vips.overrideAttrs (oldAttrs: {
     outputs = [ "bin" "out" "man" "dev" ];
     buildInputs = with pkgs; [
@@ -67,7 +77,7 @@ let
       pango
       libarchive
       libhwy
-      libheif
+      libheif-no-numa
     ];
     mesonFlags = [
       "-Dcgif=disabled"
@@ -139,7 +149,6 @@ rec {
     config = {
       Env = [
         "MALLOC_ARENA_MAX=2"
-        "X265_NO_NUMA=1"
         "TMPDIR=/tmp"
         "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
       ];
@@ -192,3 +201,4 @@ rec {
     };
   };
 }
+
