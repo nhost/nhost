@@ -283,6 +283,12 @@ config validate after making changes to your nhost.toml file to ensure it is val
 								),
 								"type": string("boolean"),
 							},
+							"summary": map[string]any{
+								"description": string(
+									"Show page descriptions",
+								),
+								"type": string("boolean"),
+							},
 						},
 					},
 					Annotations: mcp.ToolAnnotation{
@@ -347,7 +353,7 @@ config validate after making changes to your nhost.toml file to ensure it is val
 						ReadOnlyHint:    ptr(true),
 						IdempotentHint:  ptr(true),
 						DestructiveHint: ptr(false),
-						OpenWorldHint:   ptr(true),
+						OpenWorldHint:   ptr(false),
 					},
 				},
 				{
@@ -374,7 +380,7 @@ config validate after making changes to your nhost.toml file to ensure it is val
 						ReadOnlyHint:    ptr(true),
 						IdempotentHint:  ptr(true),
 						DestructiveHint: ptr(false),
-						OpenWorldHint:   ptr(true),
+						OpenWorldHint:   ptr(false),
 					},
 				},
 			},

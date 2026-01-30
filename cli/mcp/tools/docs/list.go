@@ -18,6 +18,7 @@ const (
 
 type ListRequest struct {
 	Grouped bool `json:"grouped,omitempty"`
+	Summary bool `json:"summary,omitempty"`
 }
 
 type ListPageOutput struct {
@@ -49,6 +50,10 @@ func (t *Tool) registerList(mcpServer *server.MCPServer) {
 			"grouped",
 			mcp.Description("Show pages organized by top-level section"),
 		),
+		mcp.WithBoolean(
+			"summary",
+			mcp.Description("Show page descriptions"),
+		),
 	)
 	mcpServer.AddTool(listTool, mcp.NewStructuredToolHandler(t.handleList))
 }
@@ -64,25 +69,30 @@ func (t *Tool) handleList(
 	}
 
 	for _, page := range pages {
-		response.Pages = append(response.Pages, ListPageOutput{
+		output := ListPageOutput{
 			Path:        page.Path,
 			URL:         "https://docs.nhost.io" + page.Path,
 			Title:       page.Title,
-			Description: page.Description,
-		})
+			Description: "",
+		}
+		if args.Summary {
+			output.Description = page.Description
+		}
+
+		response.Pages = append(response.Pages, output)
 	}
 
 	var text string
 	if args.Grouped {
-		text = formatListGroupedText(pages)
+		text = formatListGroupedText(pages, args.Summary)
 	} else {
-		text = formatListFlatText(pages)
+		text = formatListFlatText(pages, args.Summary)
 	}
 
 	return mcp.NewToolResultStructured(response, text), nil
 }
 
-func formatListFlatText(pages []docssearch.PageInfo) string {
+func formatListFlatText(pages []docssearch.PageInfo, showSummary bool) string {
 	var sb strings.Builder
 
 	sb.WriteString("Documentation pages:\n\n")
@@ -93,7 +103,7 @@ func formatListFlatText(pages []docssearch.PageInfo) string {
 			title = page.Path
 		}
 
-		if page.Description != "" {
+		if showSummary && page.Description != "" {
 			sb.WriteString("[" + page.Path + "](" + title + ") - " + page.Description + "\n")
 		} else {
 			sb.WriteString("[" + page.Path + "](" + title + ")\n")
@@ -103,7 +113,7 @@ func formatListFlatText(pages []docssearch.PageInfo) string {
 	return sb.String()
 }
 
-func formatListGroupedText(pages []docssearch.PageInfo) string {
+func formatListGroupedText(pages []docssearch.PageInfo, showSummary bool) string {
 	sections := make(map[string][]docssearch.PageInfo)
 
 	for _, page := range pages {
@@ -132,7 +142,7 @@ func formatListGroupedText(pages []docssearch.PageInfo) string {
 				title = page.Path
 			}
 
-			if page.Description != "" {
+			if showSummary && page.Description != "" {
 				sb.WriteString("  [" + page.Path + "](" + title + ") - " + page.Description + "\n")
 			} else {
 				sb.WriteString("  [" + page.Path + "](" + title + ")\n")
