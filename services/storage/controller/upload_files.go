@@ -261,6 +261,7 @@ func (ctrl *Controller) UploadFiles( //nolint:ireturn
 
 		return InternalServerError(err), nil
 	}
+	defer form.RemoveAll() //nolint:errcheck
 
 	uploadFilesRequest, apiErr := parseUploadRequest(form)
 	if apiErr != nil {

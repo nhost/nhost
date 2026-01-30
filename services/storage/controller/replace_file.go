@@ -37,6 +37,7 @@ func replaceFileParseRequest(request api.ReplaceFileRequestObject) (fileData, *A
 			fmt.Errorf("problem reading multipart form: %w", err),
 		)
 	}
+	defer form.RemoveAll() //nolint:errcheck
 
 	file := form.File["file"]
 	if len(file) != 1 {
