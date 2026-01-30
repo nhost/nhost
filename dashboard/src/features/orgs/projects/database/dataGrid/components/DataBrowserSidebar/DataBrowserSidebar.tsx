@@ -1,5 +1,14 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { Info, Lock, Plus, Terminal } from 'lucide-react';
+import {
+  Info,
+  List,
+  Lock,
+  Plus,
+  SquareFunction,
+  Table2,
+  Terminal,
+  View,
+} from 'lucide-react';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import NextLink from 'next/link';
@@ -23,11 +32,16 @@ import { Spinner } from '@/components/ui/v3/spinner';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { EditTableSettingsForm } from '@/features/orgs/projects/database/dataGrid/components/EditTableSettingsForm';
 import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
+import { useDeleteFunctionWithToastMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteFunctionMutation';
 import { useDeleteTableWithToastMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteTableMutation';
+import { useMetadataQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useMetadataQuery';
 import { isSchemaLocked } from '@/features/orgs/projects/database/dataGrid/utils/schemaHelpers';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { cn, isEmptyValue, isNotEmptyValue } from '@/lib/utils';
+import FunctionActions from './FunctionActions';
 import TableActions from './TableActions';
+import ViewActions from './ViewActions';
 
 const CreateTableForm = dynamic(
   () =>
@@ -51,6 +65,39 @@ const EditTableForm = dynamic(
   },
 );
 
+const EditViewForm = dynamic(
+  () =>
+    import(
+      '@/features/orgs/projects/database/dataGrid/components/EditViewForm/EditViewForm'
+    ),
+  {
+    ssr: false,
+    loading: () => <FormActivityIndicator />,
+  },
+);
+
+const EditFunctionForm = dynamic(
+  () =>
+    import(
+      '@/features/orgs/projects/database/dataGrid/components/EditFunctionForm/EditFunctionForm'
+    ),
+  {
+    ssr: false,
+    loading: () => <FormActivityIndicator />,
+  },
+);
+
+const EditFunctionSettingsForm = dynamic(
+  () =>
+    import(
+      '@/features/orgs/projects/database/dataGrid/components/EditFunctionSettingsForm/EditFunctionSettingsForm'
+    ),
+  {
+    ssr: false,
+    loading: () => <FormActivityIndicator />,
+  },
+);
+
 const EditPermissionsForm = dynamic(
   () =>
     import(
@@ -61,6 +108,19 @@ const EditPermissionsForm = dynamic(
     loading: () => <FormActivityIndicator />,
   },
 );
+
+/* Edit Permissions for functions - not yet implemented
+const EditFunctionPermissionsForm = dynamic(
+  () =>
+    import(
+      '@/features/orgs/projects/database/dataGrid/components/EditFunctionPermissionsForm/EditFunctionPermissionsForm'
+    ),
+  {
+    ssr: false,
+    loading: () => <FormActivityIndicator />,
+  },
+);
+*/
 
 export interface DataBrowserSidebarProps {
   className?: string;
@@ -82,20 +142,68 @@ function DataBrowserSidebarContent({
 
   const {
     asPath,
-    query: { orgSlug, appSubdomain, dataSourceSlug, schemaSlug, tableSlug },
+    query: {
+      orgSlug,
+      appSubdomain,
+      dataSourceSlug,
+      schemaSlug,
+      tableSlug,
+      functionSlug,
+    },
   } = router;
 
   const { data, status, error, refetch } = useDatabaseQuery([
     dataSourceSlug as string,
   ]);
 
-  const { schemas, tables, metadata } = data || { schemas: [], tables: [] };
+  const { schemas, tables, views, materializedViews, functions, metadata } =
+    data || {
+      schemas: [],
+      tables: [],
+      views: [],
+      materializedViews: [],
+      functions: [],
+    };
+
+  // Get metadata to detect enum tables
+  const { data: metadataData } = useMetadataQuery(
+    ['export-metadata', dataSourceSlug as string],
+    {
+      queryOptions: {
+        enabled: !!dataSourceSlug && !!project?.config?.hasura.adminSecret,
+      },
+    },
+  );
+
+  // Create a Set of enum table paths for quick lookup
+  const enumTablePaths = new Set<string>();
+  if (metadataData?.tables) {
+    metadataData.tables.forEach((table) => {
+      // biome-ignore lint/suspicious/noExplicitAny: Metadata table may have is_enum property
+      if ((table as any).is_enum) {
+        enumTablePaths.add(`${table.table.schema}.${table.table.name}`);
+      }
+    });
+  }
 
   const { mutateAsync: deleteTable } = useDeleteTableWithToastMutation();
+  const { mutateAsync: deleteFunction } = useDeleteFunctionWithToastMutation();
 
   const [removableTable, setRemovableTable] = useState<string>();
   const [optimisticlyRemovedTable, setOptimisticlyRemovedTable] =
     useState<string>();
+
+  /**
+   * Maps database object type to URL segment
+   */
+  function getObjectTypeUrlSegment(
+    objectType: string,
+  ): 'tables' | 'views' | 'functions' {
+    if (objectType === 'FUNCTION') {
+      return 'functions';
+    }
+    return 'tables';
+  }
 
   const [selectedSchema, setSelectedSchema] = useState<string>('');
   const isSelectedSchemaLocked = isSchemaLocked(selectedSchema);
@@ -145,14 +253,65 @@ function DataBrowserSidebarContent({
     return null;
   }
 
-  const tablesInSelectedSchema = tables
-    ?.filter(({ table_schema: tableSchema }) => tableSchema === selectedSchema)
+  // Merge tables, views, materialized views, and functions into a single list
+  const allObjectsInSelectedSchema = [
+    ...(tables || []).map((table) => ({
+      table_schema: table.table_schema as string,
+      table_name: table.table_name as string,
+      object_type: (table.table_type as string) || 'BASE TABLE',
+    })),
+    ...(views || []).map((view) => ({
+      table_schema: view.table_schema as string,
+      table_name: view.table_name as string,
+      object_type: 'VIEW',
+    })),
+    ...(materializedViews || []).map((mv) => ({
+      table_schema: mv.table_schema as string,
+      table_name: mv.table_name as string,
+      object_type: 'MATERIALIZED VIEW',
+    })),
+    ...(functions || []).map((func) => ({
+      table_schema: func.table_schema,
+      table_name: func.table_name,
+      object_type: 'FUNCTION',
+    })),
+  ]
+    .filter(({ table_schema: tableSchema }) => tableSchema === selectedSchema)
     .filter(
       ({ table_schema: tableSchema, table_name: tableName }) =>
         `${tableSchema}.${tableName}` !== optimisticlyRemovedTable,
-    );
+    )
+    .sort((a, b) => {
+      // Define type order: MATERIALIZED VIEW, VIEW, BASE TABLE (and other tables), FUNCTION
+      const typeOrder: Record<string, number> = {
+        'BASE TABLE': 0,
+        'MATERIALIZED VIEW': 1,
+        VIEW: 2,
+        FUNCTION: 3,
+      };
 
-  async function handleDeleteTableConfirmation(schema: string, table: string) {
+      const orderA = typeOrder[a.object_type] ?? 99;
+      const orderB = typeOrder[b.object_type] ?? 99;
+
+      // First sort by type
+      if (orderA !== orderB) {
+        return orderA - orderB;
+      }
+
+      // Then sort alphabetically by name
+      return a.table_name.localeCompare(b.table_name);
+    });
+
+  // Keep tablesInSelectedSchema for backward compatibility with delete logic
+  const tablesInSelectedSchema = allObjectsInSelectedSchema.filter(
+    (obj) => obj.object_type !== 'MATERIALIZED VIEW',
+  );
+
+  async function handleDeleteTableConfirmation(
+    schema: string,
+    table: string,
+    type: 'BASE TABLE' | 'VIEW' | 'MATERIALIZED VIEW',
+  ) {
     const tablePath = `${schema}.${table}`;
 
     // We are greying out and disabling it in the sidebar
@@ -185,7 +344,11 @@ function DataBrowserSidebarContent({
           ? tablesInSelectedSchema[nextTableIndex]
           : null;
 
-      await deleteTable({ schema, table });
+      await deleteTable({
+        schema,
+        table,
+        type,
+      });
       queryClient.removeQueries({
         queryKey: [`${dataSourceSlug}.${schema}.${table}`],
       });
@@ -207,8 +370,11 @@ function DataBrowserSidebarContent({
       }
 
       if (schema === schemaSlug && table === tableSlug) {
+        const objectTypeSegment = getObjectTypeUrlSegment(
+          nextTable.object_type,
+        );
         await router.push(
-          `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/${dataSourceSlug}/${nextTable.table_schema}/${nextTable.table_name}`,
+          `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/${dataSourceSlug}/${nextTable.table_schema}/${objectTypeSegment}/${nextTable.table_name}`,
         );
       }
     } catch {
@@ -220,18 +386,140 @@ function DataBrowserSidebarContent({
   }
 
   function handleDeleteTableClick(schema: string, table: string) {
+    const tablePath = `${schema}.${table}`;
+    const object = allObjectsInSelectedSchema.find(
+      ({ table_schema: tableSchema, table_name: tableName }) =>
+        `${tableSchema}.${tableName}` === tablePath,
+    );
+
+    const objectLabel =
+      object?.object_type === 'MATERIALIZED VIEW'
+        ? 'materialized view'
+        : object?.object_type === 'VIEW'
+          ? 'view'
+          : 'table';
+
+    const title =
+      objectLabel === 'materialized view'
+        ? 'Delete Materialized View'
+        : objectLabel === 'view'
+          ? 'Delete View'
+          : 'Delete Table';
+
     openAlertDialog({
-      title: 'Delete Table',
+      title,
       payload: (
         <span>
           Are you sure you want to delete the{' '}
-          <strong className="break-all">{table}</strong> table?
+          <strong className="break-all">{table}</strong> {objectLabel}?
         </span>
       ),
       props: {
         primaryButtonText: 'Delete',
         primaryButtonColor: 'error',
-        onPrimaryAction: () => handleDeleteTableConfirmation(schema, table),
+        onPrimaryAction: () =>
+          handleDeleteTableConfirmation(
+            schema,
+            table,
+            object?.object_type as 'BASE TABLE' | 'VIEW' | 'MATERIALIZED VIEW',
+          ),
+      },
+    });
+  }
+
+  async function handleDeleteFunctionConfirmation(
+    schema: string,
+    functionName: string,
+  ) {
+    const functionPath = `${schema}.${functionName}`;
+
+    // We are greying out and disabling it in the sidebar
+    setRemovableTable(functionPath);
+
+    try {
+      let nextFunctionIndex: number | null = null;
+
+      if (isNotEmptyValue(functions) && functions.length > 1) {
+        // We go to the next function if available or to the previous one if the
+        // current one is the last one in the list
+        const currentFunctionIndex = functions.findIndex(
+          ({ table_schema: functionSchema, table_name: fnName }) =>
+            `${functionSchema}.${fnName}` === functionPath,
+        );
+
+        nextFunctionIndex = currentFunctionIndex + 1;
+
+        if (currentFunctionIndex + 1 === functions.length) {
+          nextFunctionIndex = currentFunctionIndex - 1;
+        }
+      }
+
+      const nextFunction =
+        isNotEmptyValue(nextFunctionIndex) && isNotEmptyValue(functions)
+          ? functions[nextFunctionIndex]
+          : null;
+
+      // The hook fetches inputArgTypes internally, so we only need to pass schema and functionName
+      // The mutation function signature requires inputArgTypes, but the hook handles fetching it internally
+      // Type assertion needed because the hook's type signature doesn't reflect that it fetches inputArgTypes
+      const promise = deleteFunction({
+        schema,
+        functionName,
+      } as { schema: string; functionName: string; inputArgTypes: never });
+      await execPromiseWithErrorToast(() => promise, {
+        loadingMessage: 'Deleting function...',
+        successMessage: 'Function deleted successfully.',
+        errorMessage: 'An error occurred while deleting the function.',
+      });
+
+      queryClient.removeQueries([
+        `function-definition`,
+        `default.${schema}.${functionName}`,
+      ]);
+
+      // Note: At this point we can optimisticly assume that the function was
+      // removed, so we can improve the UX by removing it from the list right
+      // away, without waiting for the refetch to succeed.
+      setOptimisticlyRemovedTable(functionPath);
+      await refetch();
+
+      // If this was the last function in the schema, we go back to the data
+      // browser's main screen
+      if (!nextFunction) {
+        await router.push(
+          `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/${dataSourceSlug}`,
+        );
+
+        return;
+      }
+
+      if (schema === schemaSlug && functionName === functionSlug) {
+        await router.push(
+          `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/${dataSourceSlug}/${nextFunction.table_schema}/functions/${nextFunction.table_name}`,
+        );
+      }
+    } catch {
+      // TODO: Introduce logging
+    } finally {
+      setRemovableTable(undefined);
+      setOptimisticlyRemovedTable(undefined);
+    }
+  }
+
+  function handleDeleteFunctionClick(schema: string, functionName: string) {
+    openAlertDialog({
+      title: 'Delete Function',
+      payload: (
+        <span>
+          Are you sure you want to delete the{' '}
+          <strong className="break-all">{functionName}</strong> function?
+        </span>
+      ),
+      props: {
+        primaryButtonText: 'Delete',
+        primaryButtonColor: 'error',
+        onPrimaryAction: () =>
+          handleDeleteFunctionConfirmation(schema, functionName),
       },
     });
   }
@@ -269,10 +557,42 @@ function DataBrowserSidebarContent({
     });
   }
 
+  /* Edit Permissions for functions - not yet implemented
+  function handleEditFunctionPermissionClick(
+    schema: string,
+    functionName: string,
+    disabled?: boolean,
+  ) {
+    openDrawer({
+      title: (
+        <span className="inline-grid grid-flow-col items-center gap-2">
+          Permissions
+          <InlineCode className="!text-sm+ font-normal">
+            {functionName}
+          </InlineCode>
+        </span>
+      ),
+      component: (
+        <EditFunctionPermissionsForm
+          disabled={disabled}
+          schema={schema}
+          functionName={functionName}
+        />
+      ),
+      props: {
+        PaperProps: {
+          className: 'lg:w-[65%] lg:max-w-7xl',
+        },
+      },
+    });
+  }
+  */
+
   function handleEditSettingsClick(
     schema: string,
     table: string,
     disabled?: boolean,
+    objectType?: string,
   ) {
     openDrawer({
       title: (
@@ -287,6 +607,37 @@ function DataBrowserSidebarContent({
           disabled={disabled}
           schema={schema}
           tableName={table}
+          objectType={objectType}
+        />
+      ),
+      props: {
+        PaperProps: {
+          className: 'overflow-hidden ',
+        },
+      },
+    });
+  }
+
+  function handleEditFunctionSettingsClick(
+    schema: string,
+    functionName: string,
+    disabled?: boolean,
+  ) {
+    openDrawer({
+      title: (
+        <span className="inline-grid grid-flow-col items-center gap-2">
+          {disabled ? 'View settings for' : 'Edit settings for'}
+          <InlineCode className="!text-sm+ font-normal">
+            {functionName}
+          </InlineCode>
+          function
+        </span>
+      ),
+      component: (
+        <EditFunctionSettingsForm
+          disabled={disabled}
+          schema={schema}
+          functionName={functionName}
         />
       ),
       props: {
@@ -352,23 +703,42 @@ function DataBrowserSidebarContent({
             New Table <Plus className="h-4 w-4" />
           </Button>
         )}
-        {isNotEmptyValue(schemas) && isEmptyValue(tablesInSelectedSchema) && (
-          <p className="px-2 py-1.5 text-disabled text-xs">No tables found.</p>
-        )}
+        {isNotEmptyValue(schemas) &&
+          isEmptyValue(allObjectsInSelectedSchema) && (
+            <p className="px-2 py-1.5 text-disabled text-xs">
+              No tables found.
+            </p>
+          )}
         <nav aria-label="Database navigation">
-          {isNotEmptyValue(tablesInSelectedSchema) && (
+          {isNotEmptyValue(allObjectsInSelectedSchema) && (
             <ul className="w-full max-w-full pb-6">
-              {tablesInSelectedSchema.map((table) => {
-                const tablePath = `${table.table_schema}.${table.table_name}`;
-                const isSelected = `${schemaSlug}.${tableSlug}` === tablePath;
-                const isSidebarMenuOpen = sidebarMenuTable === tablePath;
+              {allObjectsInSelectedSchema.map((dbObject) => {
+                const objectPath = `${dbObject.object_type}.${dbObject.table_schema}.${dbObject.table_name}`;
+                let isSelected = false;
+                if (functionSlug) {
+                  isSelected =
+                    dbObject.object_type === 'FUNCTION' &&
+                    dbObject.table_schema === schemaSlug &&
+                    dbObject.table_name === functionSlug;
+                } else if (tableSlug) {
+                  isSelected =
+                    dbObject.object_type !== 'FUNCTION' &&
+                    dbObject.table_schema === schemaSlug &&
+                    dbObject.table_name === tableSlug;
+                }
+                const isSidebarMenuOpen = sidebarMenuTable === objectPath;
+                const isMaterializedView =
+                  dbObject.object_type === 'MATERIALIZED VIEW';
+                const isFunction = dbObject.object_type === 'FUNCTION';
+                const isView = dbObject.object_type === 'VIEW';
+                const isEnum = enumTablePaths.has(objectPath);
                 return (
-                  <li className="group pb-1" key={tablePath}>
+                  <li className="group pb-1" key={objectPath}>
                     <Button
                       asChild
                       variant="link"
                       size="sm"
-                      disabled={tablePath === removableTable}
+                      disabled={objectPath === removableTable}
                       className={cn(
                         'flex w-full max-w-full justify-between pl-0 text-sm+ hover:bg-accent hover:no-underline',
                         {
@@ -379,88 +749,220 @@ function DataBrowserSidebarContent({
                       <div>
                         <NextLink
                           className={cn(
-                            'flex h-full w-[calc(100%-1.6rem)] items-center p-[0.625rem] pr-0 text-left',
+                            'flex h-full w-[calc(100%-1.6rem)] items-center gap-1.5 p-[0.625rem] pr-0 text-left',
                             {
                               'text-primary-main': isSelected,
                             },
                           )}
                           onClick={() => {
                             if (onSidebarItemClick) {
-                              onSidebarItemClick(`default.${tablePath}`);
+                              onSidebarItemClick(`default.${objectPath}`);
                             }
                           }}
-                          href={`/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/default/${table.table_schema}/${table.table_name}`}
+                          href={`/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/default/${dbObject.table_schema}/${getObjectTypeUrlSegment(dbObject.object_type)}/${dbObject.table_name}`}
                         >
+                          {isFunction ? (
+                            <SquareFunction className="h-4 w-4 shrink-0" />
+                          ) : isMaterializedView || isView ? (
+                            <View className="h-4 w-4 shrink-0" />
+                          ) : isEnum ? (
+                            <List className="h-4 w-4 shrink-0" />
+                          ) : (
+                            <Table2 className="h-4 w-4 shrink-0" />
+                          )}
                           <span className="!truncate text-ellipsis">
-                            {table.table_name}
+                            {dbObject.table_name}
                           </span>
                         </NextLink>
-                        <TableActions
-                          tableName={table.table_name}
-                          disabled={tablePath === removableTable}
-                          open={isSidebarMenuOpen}
-                          onOpen={() => setSidebarMenuTable(tablePath)}
-                          onClose={() => setSidebarMenuTable(undefined)}
-                          className={cn(
-                            'relative z-10 opacity-0 group-hover:opacity-100',
-                            {
-                              'opacity-100': isSelected || isSidebarMenuOpen,
-                            },
-                          )}
-                          isSelectedNotSchemaLocked={!isSelectedSchemaLocked}
-                          onViewPermissions={() =>
-                            handleEditPermissionClick(
-                              table.table_schema,
-                              table.table_name,
-                              true,
-                            )
-                          }
-                          onViewSettings={() =>
-                            handleEditSettingsClick(
-                              table.table_schema,
-                              table.table_name,
-                              true,
-                            )
-                          }
-                          onEditTable={() =>
-                            openDrawer({
-                              title: 'Edit Table',
-                              component: (
-                                <EditTableForm
-                                  onSubmit={async (tableName) => {
-                                    await queryClient.refetchQueries({
-                                      queryKey: [
-                                        `${dataSourceSlug}.${table.table_schema}.${tableName}`,
-                                      ],
-                                    });
-                                    await refetch();
-                                  }}
-                                  schema={table.table_schema}
-                                  table={table}
-                                />
-                              ),
-                            })
-                          }
-                          onEditPermissions={() =>
-                            handleEditPermissionClick(
-                              table.table_schema,
-                              table.table_name,
-                            )
-                          }
-                          onEditSettings={() => {
-                            handleEditSettingsClick(
-                              table.table_schema,
-                              table.table_name,
-                              false,
-                            );
-                          }}
-                          onDelete={() =>
-                            handleDeleteTableClick(
-                              table.table_schema,
-                              table.table_name,
-                            )
-                          }
-                        />
+                        {isFunction ? (
+                          <FunctionActions
+                            tableName={dbObject.table_name}
+                            disabled={objectPath === removableTable}
+                            open={isSidebarMenuOpen}
+                            onOpen={() => setSidebarMenuTable(objectPath)}
+                            onClose={() => setSidebarMenuTable(undefined)}
+                            className={cn(
+                              'relative z-10 opacity-0 group-hover:opacity-100',
+                              {
+                                'opacity-100': isSelected || isSidebarMenuOpen,
+                              },
+                            )}
+                            isSelectedNotSchemaLocked={!isSelectedSchemaLocked}
+                            onEditFunction={() =>
+                              openDrawer({
+                                title: 'Edit Function',
+                                component: (
+                                  <EditFunctionForm
+                                    onSubmit={async (functionName) => {
+                                      await queryClient.refetchQueries([
+                                        `${dataSourceSlug}.${dbObject.table_schema}.${functionName}`,
+                                      ]);
+                                      await refetch();
+                                    }}
+                                    schema={dbObject.table_schema}
+                                    functionName={dbObject.table_name}
+                                  />
+                                ),
+                              })
+                            }
+                            onViewSettings={() =>
+                              handleEditFunctionSettingsClick(
+                                dbObject.table_schema,
+                                dbObject.table_name,
+                                true,
+                              )
+                            }
+                            onEditSettings={() => {
+                              handleEditFunctionSettingsClick(
+                                dbObject.table_schema,
+                                dbObject.table_name,
+                                false,
+                              );
+                            }}
+                            onDelete={() =>
+                              handleDeleteFunctionClick(
+                                dbObject.table_schema,
+                                dbObject.table_name,
+                              )
+                            }
+                          />
+                        ) : isMaterializedView || isView ? (
+                          <ViewActions
+                            tableName={dbObject.table_name}
+                            disabled={objectPath === removableTable}
+                            open={isSidebarMenuOpen}
+                            onOpen={() => setSidebarMenuTable(objectPath)}
+                            onClose={() => setSidebarMenuTable(undefined)}
+                            className={cn(
+                              'relative z-10 opacity-0 group-hover:opacity-100',
+                              {
+                                'opacity-100': isSelected || isSidebarMenuOpen,
+                              },
+                            )}
+                            isSelectedNotSchemaLocked={!isSelectedSchemaLocked}
+                            onViewPermissions={() =>
+                              handleEditPermissionClick(
+                                dbObject.table_schema,
+                                dbObject.table_name,
+                                true,
+                              )
+                            }
+                            onViewSettings={() =>
+                              handleEditSettingsClick(
+                                dbObject.table_schema,
+                                dbObject.table_name,
+                                true,
+                                dbObject.object_type,
+                              )
+                            }
+                            onEditView={() =>
+                              openDrawer({
+                                title: 'Edit View',
+                                component: (
+                                  <EditViewForm
+                                    onSubmit={async (tableName) => {
+                                      await queryClient.refetchQueries([
+                                        `${dataSourceSlug}.${dbObject.table_schema}.${tableName}`,
+                                      ]);
+                                      await refetch();
+                                    }}
+                                    schema={dbObject.table_schema}
+                                    table={dbObject}
+                                  />
+                                ),
+                              })
+                            }
+                            onEditPermissions={() =>
+                              handleEditPermissionClick(
+                                dbObject.table_schema,
+                                dbObject.table_name,
+                              )
+                            }
+                            onEditSettings={() => {
+                              handleEditSettingsClick(
+                                dbObject.table_schema,
+                                dbObject.table_name,
+                                false,
+                                dbObject.object_type,
+                              );
+                            }}
+                            onDelete={() =>
+                              handleDeleteTableClick(
+                                dbObject.table_schema,
+                                dbObject.table_name,
+                              )
+                            }
+                          />
+                        ) : (
+                          <TableActions
+                            tableName={dbObject.table_name}
+                            disabled={objectPath === removableTable}
+                            open={isSidebarMenuOpen}
+                            onOpen={() => setSidebarMenuTable(objectPath)}
+                            onClose={() => setSidebarMenuTable(undefined)}
+                            className={cn(
+                              'relative z-10 opacity-0 group-hover:opacity-100',
+                              {
+                                'opacity-100': isSelected || isSidebarMenuOpen,
+                              },
+                            )}
+                            isSelectedNotSchemaLocked={!isSelectedSchemaLocked}
+                            onViewPermissions={() =>
+                              handleEditPermissionClick(
+                                dbObject.table_schema,
+                                dbObject.table_name,
+                                true,
+                              )
+                            }
+                            onViewSettings={() =>
+                              handleEditSettingsClick(
+                                dbObject.table_schema,
+                                dbObject.table_name,
+                                true,
+                                dbObject.object_type,
+                              )
+                            }
+                            onEditTable={() =>
+                              openDrawer({
+                                title: 'Edit Table',
+                                component: (
+                                  <EditTableForm
+                                    onSubmit={async (tableName) => {
+                                      await queryClient.refetchQueries({
+                                        queryKey: [
+                                          `${dataSourceSlug}.${dbObject.table_schema}.${tableName}`,
+                                        ],
+                                      });
+                                      await refetch();
+                                    }}
+                                    schema={dbObject.table_schema}
+                                    table={dbObject}
+                                  />
+                                ),
+                              })
+                            }
+                            onEditPermissions={() =>
+                              handleEditPermissionClick(
+                                dbObject.table_schema,
+                                dbObject.table_name,
+                              )
+                            }
+                            onEditSettings={() => {
+                              handleEditSettingsClick(
+                                dbObject.table_schema,
+                                dbObject.table_name,
+                                false,
+                                dbObject.object_type,
+                              );
+                            }}
+                            onDelete={() =>
+                              handleDeleteTableClick(
+                                dbObject.table_schema,
+                                dbObject.table_name,
+                              )
+                            }
+                          />
+                        )}
                       </div>
                     </Button>
                   </li>

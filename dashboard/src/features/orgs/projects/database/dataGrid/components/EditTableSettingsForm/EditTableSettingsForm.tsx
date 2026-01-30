@@ -20,6 +20,10 @@ export interface EditTableSettingsFormProps {
    * Whether the form is disabled, if true, the form will be read-only.
    */
   disabled?: boolean;
+  /**
+   * Type of the database object (e.g., 'BASE TABLE', 'VIEW', 'MATERIALIZED VIEW', 'FUNCTION').
+   */
+  objectType?: string;
 }
 
 export default function EditTableSettingsForm({
@@ -27,10 +31,13 @@ export default function EditTableSettingsForm({
   schema,
   tableName,
   disabled,
+  objectType,
 }: EditTableSettingsFormProps) {
   const handleCancel = () => {
     onCancel?.();
   };
+
+  const isView = objectType === 'VIEW' || objectType === 'MATERIALIZED VIEW';
 
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden">
@@ -45,11 +52,13 @@ export default function EditTableSettingsForm({
           schema={schema}
           tableName={tableName}
         />
-        <SetIsEnumSection
-          disabled={disabled}
-          schema={schema}
-          tableName={tableName}
-        />
+        {!isView && (
+          <SetIsEnumSection
+            disabled={disabled}
+            schema={schema}
+            tableName={tableName}
+          />
+        )}
       </div>
 
       <div className="grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 px-6 py-3">

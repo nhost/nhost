@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/v3/form';
 import { Switch } from '@/components/ui/v3/switch';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
-import useSetTableIsEnumMutation from '@/features/orgs/projects/database/dataGrid/hooks/useSetTableIsEnumMutation/useSetTableIsEnumMutation';
+import { useSetTableIsEnumMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useSetTableIsEnumMutation';
 import { useTableIsEnumQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableIsEnumQuery';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { cn } from '@/lib/utils';
