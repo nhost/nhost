@@ -22,6 +22,7 @@ import {
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { EditTableSettingsForm } from '@/features/orgs/projects/database/dataGrid/components/EditTableSettingsForm';
+import { EditRelationshipsForm } from '@/features/orgs/projects/database/dataGrid/EditRelationshipsForm';
 import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
 import { useDeleteTableWithToastMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteTableMutation';
 import { isSchemaLocked } from '@/features/orgs/projects/database/dataGrid/utils/schemaHelpers';
@@ -297,6 +298,28 @@ function DataBrowserSidebarContent({
     });
   }
 
+  function handleRelationshipsClick(
+    schema: string,
+    table: string,
+    disabled?: boolean,
+  ) {
+    openDrawer({
+      title: `${disabled ? 'View' : 'Edit'} Relationships`,
+      component: (
+        <EditRelationshipsForm
+          schema={schema}
+          table={table}
+          disabled={disabled}
+        />
+      ),
+      props: {
+        PaperProps: {
+          className: 'overflow-hidden',
+        },
+      },
+    });
+  }
+
   return (
     <div className="flex h-full flex-col justify-between">
       <div className="box flex flex-col px-2">
@@ -422,6 +445,13 @@ function DataBrowserSidebarContent({
                               true,
                             )
                           }
+                          onViewRelationships={() =>
+                            handleRelationshipsClick(
+                              table.table_schema,
+                              table.table_name,
+                              true,
+                            )
+                          }
                           onEditTable={() =>
                             openDrawer({
                               title: 'Edit Table',
@@ -452,6 +482,12 @@ function DataBrowserSidebarContent({
                               table.table_schema,
                               table.table_name,
                               false,
+                            );
+                          }}
+                          onEditRelationships={() => {
+                            handleRelationshipsClick(
+                              table.table_schema,
+                              table.table_name,
                             );
                           }}
                           onDelete={() =>

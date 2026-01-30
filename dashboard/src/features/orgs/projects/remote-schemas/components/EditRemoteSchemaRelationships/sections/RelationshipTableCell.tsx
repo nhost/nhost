@@ -2,7 +2,8 @@ import { ArrowRightIcon } from '@/components/ui/v2/icons/ArrowRightIcon';
 import {
   isToRemoteSchemaRelationshipDefinition,
   isToSourceRelationshipDefinition,
-} from '@/features/orgs/projects/remote-schemas/utils/guards';
+} from '@/features/orgs/projects/database/dataGrid/types/relationships/guards';
+import getRemoteFieldPath from '@/features/orgs/projects/remote-schemas/utils/getRemoteFieldPath';
 import type { RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItem } from '@/utils/hasura-api/generated/schemas';
 
 interface RelationshipTableCellProps {
@@ -22,23 +23,6 @@ export default function RelationshipTableCell({
       return definition.to_remote_schema.lhs_fields || [];
     }
     return [];
-  };
-
-  const getRemoteFieldPath = (
-    remoteField: Record<string, unknown> | undefined,
-  ): string[] => {
-    if (!remoteField) {
-      return [];
-    }
-    const keys = Object.keys(remoteField);
-    if (keys.length === 0) {
-      return [];
-    }
-    const head = keys[0];
-    const value = remoteField[head] as
-      | { field?: Record<string, unknown> }
-      | undefined;
-    return [head, ...(value?.field ? getRemoteFieldPath(value.field) : [])];
   };
 
   const renderRightSide = () => {

@@ -7,8 +7,7 @@
  */
 
 /**
- * Arguments to pass to the remote field
+ * Mapping of columns from current table to remote table
  */
-export type ToRemoteSchemaRelationshipDefinitionRemoteFieldArguments = {
-  [key: string]: string;
-};
+export type RelationshipUsingManualConfigurationManualConfigurationColumnMapping =
+  { [key: string]: string };
