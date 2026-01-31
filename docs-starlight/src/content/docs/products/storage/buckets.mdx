@@ -1,0 +1,95 @@
+---
+title: Buckets
+description: Organize files into configurable containers
+keywords: ["storage", "buckets", "file organization", "configuration", "file restrictions"]
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+Buckets are containers that organize files and group configuration. Each bucket can have its own size limits, cache settings, and pre-signed URL configuration. Buckets are stored in the `storage.buckets` table and are accessible through the GraphQL API.
+
+## Default Bucket
+
+Every Nhost project includes a `default` bucket. When no bucket is specified during upload, files go into this bucket. The default bucket cannot be deleted.
+
+## Bucket Configuration
+
+Each bucket supports the following settings:
+
+| Setting | Description |
+|---------|-------------|
+| **Minimum file size** | Reject files smaller than this value (bytes) |
+| **Maximum file size** | Reject files larger than this value (bytes) |
+| **Cache control** | HTTP `Cache-Control` header for files in this bucket |
+| **Pre-signed URLs enabled** | Whether to allow pre-signed URL generation |
+| **Download expiration** | Pre-signed URL expiration time (seconds) |
+
+## Creating Buckets
+
+You can create buckets by inserting rows into `storage.buckets`, either through the Nhost Dashboard or via a database migration.
+
+**Via the Dashboard:**
+1. Navigate to **Database**
+2. Switch to the **storage** schema, then select the **buckets** table
+3. Click **Insert** and set the bucket `id` (e.g., `avatars`)
+
+**Via a migration:**
+
+```sql
+INSERT INTO storage.buckets (id, max_upload_file_size, cache_control, presigned_urls_enabled, download_expiration)
+VALUES ('avatars', 5242880, 'public, max-age=3600', true, 300);
+```
+
+## Uploading to a Bucket
+
+Specify the `bucket-id` field when uploading:
+
+<Tabs>
+<TabItem label="JavaScript">
+
+```typescript
+const { body } = await nhost.storage.uploadFiles({
+  'bucket-id': 'avatars',
+  'file[]': [avatarFile],
+})
+
+```
+</TabItem>
+
+<TabItem label="cURL">
+
+```bash
+curl -X POST \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "bucket-id=avatars" \
+  -F "file[]=@avatar.jpg" \
+  https://local.storage.local.nhost.run/v1/files
+```
+
+</TabItem>
+
+</Tabs>
+
+## Querying Buckets
+
+```graphql
+query ListBuckets {
+  buckets {
+    id
+    minUploadFileSize
+    maxUploadFileSize
+    cacheControl
+    presignedUrlsEnabled
+    downloadExpiration
+  }
+}
+```
+
+## Common Patterns
+
+**User-scoped buckets** -- separate public and private content:
+- `avatars` -- profile pictures, publicly accessible
+- `personal` -- private user files, restricted to the owner
+
+**Content-type buckets** -- apply different size limits:
+- `documents` -- PDFs, spreadsheets (larger max size)
+- `thumbnails` -- small images (smaller max size, aggressive caching)

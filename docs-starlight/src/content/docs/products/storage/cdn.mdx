@@ -1,28 +1,99 @@
 ---
 title: CDN
 description: Serving files lightning fast
-keywords: ["CDN", "content delivery network", "caching", "fast", "performance", "edge", "global distribution"]
+keywords: ["CDN", "content delivery network", "caching", "fast", "performance", "edge", "global distribution", "Fastly"]
 ---
 
-The [storage](/products/storage/) service integrates with a CDN service to cache files and serve them close to users. This leads to faster response times and lower load on the backend service. You can read our initial [announcement](https://nhost.io/blog/launching-nhost-cdn-nhost-storage-is-now-blazing-fast) for some general information about what a CDN is and the performance gains.
+The [storage](/products/storage/) service integrates with a CDN to cache files and serve them from edge locations close to users. This reduces response times and offloads the backend. You can read our initial [announcement](https://nhost.io/blog/launching-nhost-cdn-nhost-storage-is-now-blazing-fast) for general information about the CDN and performance gains.
 
-# Security
+## How It Works
 
-The primary function of a CDN is to deliver cached files quickly to users without relying on the backend. While this is effective for public files, we need to handle non-public files differently to ensure that only users with proper permissions can access those files. Instead of serving the file directly, a conditional fetch is performed, including the user's Authorization header. This allows the backend service to verify the user's permissions. By conducting this conditional check, the backend service only needs to confirm to the CDN that the file can be served to the specific user, eliminating the need to serve the file itself.
+### Public Files
 
-# Cache invalidation
+Public files are cached at the edge and served directly to users without hitting the backend. The `Cache-Control` and `Surrogate-Control` headers (configured per [bucket](/products/storage/buckets)) control how long the CDN caches the file.
 
-If a file is modified or deleted, we instruct the CDN to immediately invalidate the cached files. This is done automatically by the storage service and requires no special handling.
+```mermaid
+sequenceDiagram
+  actor C as Client
+  participant E as CDN Edge
+  participant S as Storage Service
+  participant O as S3
 
-# Maximizing HITs
+  C->>E: GET /v1/files/{id}
+  alt Cache HIT
+    E-->>C: Cached file
+  else Cache MISS
+    E->>S: Forward request
+    S->>O: Fetch file
+    O-->>S: File content
+    S-->>E: File + Cache-Control + Surrogate-Key headers
+    E-->>C: File content (now cached at edge)
+  end
+```
 
-In CDN terminology, a HIT occurs when a file is found in the cache and can be served to the user. Conversely, a MISS happens when the file is not yet cached and requires a round trip to the backend to retrieve it before it can be served to the user.
+### Authenticated Files
 
-To lower response times and backend load, we want to maximize HITs as much as possible. To do that here are some notes and recommendations:
+For files that require authentication, the CDN caches the file content but re-validates every request by forwarding the client's `Authorization` header to the backend. The backend checks permissions and responds with a `304 Not Modified` if access is allowed and the file hasn't changed -- the CDN then serves the cached content without re-downloading the file from S3.
 
-1. Links with different query arguments are treated as different files, even if they all point to the same underlying file.
-2. Due to (1), if you are using the image manipulation feature, each set of options (i.e. different sizes or qualities), will be treated as different files. Having too many different combinations may increase the number of MISSes and be counterproductive.
-3. Only use presigned URLs if you really must to and reuse if possible. Due to (1) as well, each presigned URL is different, which means they are treated by the CDN as different files, even if they all point to the same file.
-4. If possible, always prefer public files
-5. Authenticated files are your second best option. You can use [nhost.storage.getFile](/reference/javascript/nhost-js/storage#getfile) to download private files.
-6. If you are hosting large files, don't be afraid of using the [range header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Range). The service should be able to cache and serve partial files too.
+```mermaid
+sequenceDiagram
+  actor C as Client
+  participant E as CDN Edge
+  participant S as Storage Service
+
+  C->>E: GET /v1/files/{id} + Authorization header
+  E->>S: Conditional request (If-None-Match + Authorization)
+  alt Permission granted, file unchanged
+    S-->>E: 304 Not Modified
+    E-->>C: Cached file content
+  else Permission granted, file changed
+    S-->>E: 200 OK + new file content
+    E-->>C: Updated file content
+  else Permission denied
+    S-->>E: 403 Forbidden
+    E-->>C: 403 Forbidden
+  end
+```
+
+This means authenticated files still benefit from CDN caching -- the backend only validates the permission without re-serving the file content.
+
+## Cache Invalidation
+
+When a file is deleted or replaced, the storage service immediately purges it from the CDN. Each file is tagged with a **Surrogate-Key** (the file's ID), which allows targeted purging without affecting other cached content.
+
+```mermaid
+sequenceDiagram
+  actor C as Client
+  participant S as Storage Service
+  participant O as S3
+  participant E as CDN Edge
+
+  C->>S: DELETE /v1/files/{id}
+  S->>O: Delete file from S3
+  S->>E: Purge Surrogate-Key: {file ID}
+  E->>E: Evict all cached variants of the file
+  S-->>C: 204 No Content
+```
+
+This happens automatically -- no action is needed from your application.
+
+## Large File Support
+
+The CDN uses **segmented caching** for large files, breaking them into segments that can be cached and streamed independently. This means:
+
+- Large files don't need to be fully downloaded before the CDN starts serving them
+- [Range requests](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Range) are supported, allowing partial downloads of cached files
+
+## Maximizing Cache HITs
+
+A **HIT** occurs when a file is found in the cache and served directly. A **MISS** requires a round trip to the backend. To maximize HITs:
+
+1. **Limit query parameter combinations.** Each unique set of query parameters (e.g., image transformations) is treated as a separate cached resource. Standardize on a few sizes rather than generating unique dimensions per request.
+
+2. **Avoid pre-signed URLs for cacheable content.** Each pre-signed URL is unique, so the CDN treats them as different resources even if they point to the same file. Pre-signed URLs effectively bypass the cache.
+
+3. **Prefer public files when possible.** Public files get full CDN caching with no revalidation overhead.
+
+4. **Authenticated files are the next best option.** They benefit from CDN caching with lightweight conditional revalidation. Use [`nhost.storage.getFile`](/reference/javascript/nhost-js/storage#getfile) to download private files with proper auth headers.
+
+5. **Use range requests for large files.** The CDN caches and serves partial content, so range requests avoid re-downloading the entire file.

@@ -1,0 +1,95 @@
+---
+title: Image Transformation
+description: Resize, convert, and optimize images on-the-fly
+keywords: ["storage", "images", "resize", "transform", "optimization", "webp", "avif", "thumbnails"]
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+
+Images can be transformed on-the-fly by adding query parameters to file URLs. Transformations work with both public URLs and pre-signed URLs, and results are cached at the CDN layer.
+
+## Parameters
+
+| Parameter | Description | Values |
+|-----------|-------------|--------|
+| `w` | Maximum width (maintains aspect ratio) | Pixels (e.g., `400`) |
+| `h` | Maximum height (maintains aspect ratio) | Pixels (e.g., `300`) |
+| `q` | Image quality | `1` -- `100` (applies to JPEG, WebP, PNG) |
+| `f` | Output format | `auto`, `same`, `jpeg`, `webp`, `png`, `avif` |
+| `b` | Blur sigma | `0` or higher |
+
+**Format options:**
+- `auto` -- uses content negotiation based on the `Accept` header (serves WebP/AVIF to browsers that support it)
+- `same` -- keeps the original format (default)
+
+## Usage
+
+<Tabs>
+<TabItem label="TypeScript">
+
+```typescript
+// Resize to 400px wide, convert to WebP
+const { body } = await nhost.storage.getFile(fileId, {
+  w: 400,
+  q: 85,
+  f: 'webp',
+})
+```
+
+</TabItem>
+<TabItem label="curl">
+
+```bash
+# Resize to 500px width
+curl -H "Authorization: Bearer $TOKEN" \
+  "https://local.storage.local.nhost.run/v1/files/$FILE_ID?w=500"
+
+# Multiple transformations
+curl -H "Authorization: Bearer $TOKEN" \
+  "https://local.storage.local.nhost.run/v1/files/$FILE_ID?w=800&h=600&q=85&f=webp"
+
+# Auto format (browser gets best supported format)
+curl -H "Accept: image/webp,image/avif,image/*" \
+  -H "Authorization: Bearer $TOKEN" \
+  "https://local.storage.local.nhost.run/v1/files/$FILE_ID?w=400&f=auto"
+```
+
+</TabItem>
+</Tabs>
+
+## Common Patterns
+
+### Responsive Images
+
+Generate different sizes for different devices:
+
+```typescript
+const fileUrl = `https://${subdomain}.storage.${region}.nhost.run/v1/files/${fileId}`
+
+const thumbnail = `${fileUrl}?w=150&h=150&q=80&f=webp`
+const mobile    = `${fileUrl}?w=400&q=85&f=webp`
+const desktop   = `${fileUrl}?w=1200&q=90&f=webp`
+```
+
+### Blurred Placeholder
+
+Generate a low-quality blurred image for progressive loading:
+
+```typescript
+const placeholder = `${fileUrl}?w=40&q=30&b=10&f=webp`
+const full        = `${fileUrl}?w=1200&q=90&f=webp`
+```
+
+### Optimized Avatars
+
+Serve small, square-ish avatars with aggressive compression:
+
+```typescript
+const avatar = `${fileUrl}?w=128&h=128&q=75&f=webp`
+```
+
+## Caching Behavior
+
+Transformed images are cached at the CDN level. The first request for a specific combination of parameters generates the transformed image; subsequent requests are served from cache.
+
+Each unique set of query parameters is treated as a separate cached resource. Keep the number of distinct parameter combinations reasonable to maximize cache hit rates. See [CDN](/products/storage/cdn) for more details.

@@ -1,0 +1,86 @@
+---
+title: Pre-signed URLs
+description: Generate temporary secure URLs for file access
+keywords: ["storage", "pre-signed URLs", "temporary access", "secure download", "presigned"]
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+
+Pre-signed URLs provide temporary, tokenless access to a file. They are useful when you need to share a file with a system or user that doesn't have an authentication token, such as an email link, an external service, or a public-facing page that shouldn't require login.
+
+## How They Work
+
+1. An authenticated user requests a pre-signed URL for a file
+2. Storage checks the user's permission to access the file (via Hasura)
+3. If allowed, a time-limited URL is returned
+4. Anyone with that URL can download the file -- no authentication headers needed
+5. The URL expires after the configured duration
+
+## Generating a Pre-signed URL
+
+<Tabs>
+<TabItem label="TypeScript">
+
+```typescript
+const { body } = await nhost.storage.getFilePresignedURL(fileId)
+
+console.log(body.url)        // the temporary download URL
+console.log(body.expiration) // expiration time in seconds
+
+// Use the URL (no auth needed)
+const response = await fetch(body.url)
+const blob = await response.blob()
+```
+
+</TabItem>
+<TabItem label="curl">
+
+```bash
+# Get a pre-signed URL
+curl -H "Authorization: Bearer $TOKEN" \
+  "https://local.storage.local.nhost.run/v1/files/$FILE_ID/presignedurl"
+
+# Response:
+# { "url": "https://...", "expiration": 300 }
+
+# Download using the pre-signed URL (no auth header needed)
+curl -o file.pdf "https://...presigned-url..."
+```
+
+</TabItem>
+</Tabs>
+
+## Configuring Expiration
+
+Pre-signed URL expiration is configured per bucket via the `download_expiration` field (in seconds):
+
+| Bucket setting | Default |
+|---------------|---------|
+| `download_expiration` | `30` seconds |
+| `presigned_urls_enabled` | `true` |
+
+To change the expiration for a bucket:
+
+```graphql
+mutation UpdateBucketExpiration {
+  updateBucket(
+    pk_columns: { id: "documents" }
+    _set: { downloadExpiration: 3600, presignedUrlsEnabled: true }
+  ) {
+    id
+    downloadExpiration
+  }
+}
+```
+
+## When to Use Pre-signed URLs
+
+**Good use cases:**
+- Sharing files via email or messaging (recipient doesn't need to log in)
+- Serving files to external systems (webhooks, third-party integrations)
+- One-time download links
+
+**Avoid when:**
+- The user is already authenticated (use direct file access instead)
+- You need long-lived URLs (pre-signed URLs expire)
+- You need CDN caching efficiency (each pre-signed URL is unique, reducing cache hit rate -- see [CDN](/products/storage/cdn))

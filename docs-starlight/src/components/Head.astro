@@ -70,6 +70,8 @@ const keywords = entry?.data?.keywords as string[] | undefined;
             const controls = document.createElement('div');
             controls.className = 'mermaid-controls';
             controls.innerHTML = `
+                <button class="mermaid-btn mermaid-zoom-in" title="Zoom in">+</button>
+                <button class="mermaid-btn mermaid-zoom-out" title="Zoom out">−</button>
                 <button class="mermaid-btn mermaid-reset" title="Reset">↺</button>
             `;
 
@@ -125,13 +127,22 @@ const keywords = entry?.data?.keywords as string[] | undefined;
                     viewport.style.cursor = 'grab';
                 });
 
-                viewport.addEventListener('wheel', (e) => {
-                    e.preventDefault();
-                    const delta = e.deltaY > 0 ? 0.9 : 1.1;
-                    scale = Math.max(0.25, Math.min(4, scale * delta));
+                controls.querySelector('.mermaid-zoom-in').addEventListener('click', () => {
+                    scale = Math.min(4, scale * 1.2);
                     updateTransform();
-                }, { passive: false });
+                });
 
+                controls.querySelector('.mermaid-zoom-out').addEventListener('click', () => {
+                    scale = Math.max(0.25, scale * 0.8);
+                    updateTransform();
+                });
+
+                // Preserve any <link>/<script> elements (EC assets) before replacing
+                if (wrapper) {
+                    wrapper.querySelectorAll(':scope > link, :scope > script').forEach(el => {
+                        wrapper.parentNode.insertBefore(el, wrapper);
+                    });
+                }
                 // Replace the entire expressive-code wrapper
                 (wrapper || pre).replaceWith(container);
             } catch (e) {
@@ -204,15 +215,18 @@ const keywords = entry?.data?.keywords as string[] | undefined;
         top: 0.5rem;
         right: 0.5rem;
         display: flex;
-        gap: 0.25rem;
+        flex-direction: column;
+        gap: 4px;
         z-index: 10;
     }
 
     .mermaid-btn {
-        width: 2rem;
-        height: 2rem;
+        width: 1.5rem;
+        height: 1.5rem;
+        margin: 0;
+        padding: 0;
         border: 1px solid var(--sl-color-gray-5);
-        border-radius: 0.25rem;
+        border-radius: 0.125rem;
         background: var(--sl-color-bg);
         color: var(--sl-color-text);
         cursor: pointer;

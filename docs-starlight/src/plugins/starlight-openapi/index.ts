@@ -46,6 +46,10 @@ export default function starlightOpenAPIPlugin(userConfig: StarlightOpenAPIUserC
               ? {}
               : updatedConfig.expressiveCode
           updatedConfig.expressiveCode.removeUnusedThemes = false
+          updatedConfig.expressiveCode.defaultProps = {
+            ...updatedConfig.expressiveCode.defaultProps,
+            frame: 'none',
+          }
         }
 
         updateConfig(updatedConfig)

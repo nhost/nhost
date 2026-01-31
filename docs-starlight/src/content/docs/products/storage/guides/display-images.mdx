@@ -1,0 +1,198 @@
+---
+title: Display Images
+description: Fetch authenticated images and display them in the browser
+keywords: ["storage", "images", "display", "authenticated", "img tag", "blob URL", "React", "guide"]
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+
+When files are protected by permissions, you can't just point an `<img>` tag at the storage URL -- the browser won't send the authentication header. This guide shows how to fetch an image with an authenticated session and display it.
+
+## The Problem
+
+A plain `<img src>` tag makes an unauthenticated GET request. If your file requires authentication, the request will be rejected:
+
+```html
+<!-- This won't work for authenticated files -->
+<img src="https://local.storage.local.nhost.run/v1/files/FILE_ID" />
+```
+
+There are three ways to solve this:
+
+1. **Blob URL** (recommended) -- fetch the file with the SDK, create a local object URL. CDN-friendly: the CDN caches the file and re-validates with the client's auth headers.
+2. **Pre-signed URL** -- generate a temporary public URL. Not CDN-friendly: each URL is unique, bypassing the cache.
+3. **Public bucket** -- if the file doesn't need protection, make it public.
+
+## Option 1: Blob URL (Recommended for Private Files)
+
+Fetch the image using the SDK (which includes the auth token), then create a blob URL for the `<img>` tag.
+
+<Tabs>
+<TabItem label="TypeScript">
+
+```typescript
+async function getImageUrl(fileId: string): Promise<string> {
+  const { body } = await nhost.storage.getFile(fileId, {
+    w: 400,
+    f: 'webp',
+  })
+  return URL.createObjectURL(body)
+}
+
+// Usage
+const url = await getImageUrl('file-uuid')
+const img = document.createElement('img')
+img.src = url
+img.alt = 'User avatar'
+document.body.appendChild(img)
+
+// Clean up when the image is no longer needed
+img.addEventListener('load', () => {
+  // URL can be revoked after the image loads
+  // URL.revokeObjectURL(url)
+})
+```
+
+</TabItem>
+<TabItem label="React">
+
+```tsx
+import { useEffect, useState } from 'react'
+
+function AuthenticatedImage({
+  fileId,
+  alt,
+  width,
+  height,
+}: {
+  fileId: string
+  alt: string
+  width?: number
+  height?: number
+}) {
+  const { nhost } = useAuth()
+  const [src, setSrc] = useState<string | null>(null)
+
+  useEffect(() => {
+    let revoked = false
+    let objectUrl: string | undefined
+
+    async function fetchImage() {
+      const { body } = await nhost.storage.getFile(fileId, {
+        w: width,
+        h: height,
+        f: 'webp',
+      })
+      if (revoked) return
+      objectUrl = URL.createObjectURL(body)
+      setSrc(objectUrl)
+    }
+
+    fetchImage()
+
+    return () => {
+      revoked = true
+      if (objectUrl) URL.revokeObjectURL(objectUrl)
+    }
+  }, [fileId, nhost, width, height])
+
+  if (!src) return null
+  return <img src={src} alt={alt} width={width} height={height} />
+}
+
+// Usage
+<AuthenticatedImage fileId="file-uuid" alt="Profile photo" width={128} height={128} />
+```
+
+</TabItem>
+</Tabs>
+
+:::tip
+Call `URL.revokeObjectURL()` when the image is removed from the DOM to free memory. In the React example above, the cleanup function handles this automatically.
+:::
+
+This is the recommended approach for private files. The request goes through the CDN, which caches the file content. On subsequent requests the CDN re-validates using a conditional request that includes the client's `Authorization` header, so the backend only confirms the user still has access without re-serving the file. This gives you both privacy and CDN performance.
+
+## Option 2: Pre-signed URL
+
+Generate a temporary URL that doesn't require authentication. The image loads like a normal `<img>` tag.
+
+<Tabs>
+<TabItem label="TypeScript">
+
+```typescript
+async function getPresignedImageUrl(fileId: string): Promise<string> {
+  const { body } = await nhost.storage.getFilePresignedURL(fileId)
+  return body.url
+}
+
+// Usage
+const url = await getPresignedImageUrl('file-uuid')
+const img = document.createElement('img')
+img.src = url
+img.alt = 'Shared document preview'
+document.body.appendChild(img)
+```
+
+</TabItem>
+<TabItem label="React">
+
+```tsx
+import { useEffect, useState } from 'react'
+
+function PresignedImage({
+  fileId,
+  alt,
+}: {
+  fileId: string
+  alt: string
+}) {
+  const { nhost } = useAuth()
+  const [src, setSrc] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function fetchUrl() {
+      const { body } = await nhost.storage.getFilePresignedURL(fileId)
+      if (!cancelled) setSrc(body.url)
+    }
+
+    fetchUrl()
+    return () => { cancelled = true }
+  }, [fileId, nhost])
+
+  if (!src) return null
+  return <img src={src} alt={alt} />
+}
+```
+
+</TabItem>
+</Tabs>
+
+Pre-signed URLs are simpler but expire after the bucket's `download_expiration` (default: 30 seconds). Each pre-signed URL is unique, which means the CDN treats every generated URL as a different resource -- effectively bypassing the cache entirely. Only use pre-signed URLs when you need to share files with systems that cannot send authentication headers. See [Pre-signed URLs](/products/storage/guides/presigned-urls) for details.
+
+## Option 3: Public Bucket
+
+If the file doesn't need protection, place it in a bucket with `public` role select permissions. Then the URL works directly:
+
+```html
+<img
+  src="https://local.storage.local.nhost.run/v1/files/FILE_ID?w=400&f=webp"
+  alt="Public image"
+/>
+```
+
+This is the simplest approach and works best with CDN caching. See [Permissions](/products/storage/permissions) for how to configure public access.
+
+## Which Approach to Use
+
+| Approach | Auth required | CDN-friendly | Expiration | Best for |
+|----------|:------------:|:------------:|:----------:|----------|
+| Blob URL (recommended) | Yes | Yes (re-validates with auth headers) | None | Private files in an authenticated UI |
+| Pre-signed URL | Only to generate | No (unique URLs bypass cache) | Configurable | Sharing with external systems |
+| Public bucket | No | Yes | None | Content accessible to everyone |
+
+- Use **blob URLs** for private files displayed in an authenticated UI (avatars, user uploads) -- this is the preferred approach as it combines privacy with CDN caching
+- Use **pre-signed URLs** only when sharing files with systems that cannot send authentication headers (email links, third-party integrations)
+- Use **public buckets** for content that anyone should be able to see (marketing images, public assets)

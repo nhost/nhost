@@ -357,8 +357,34 @@ export default defineConfig({
               icon: 'seti:folder',
               items: [
                 { slug: 'products/storage' },
-                { slug: 'products/storage/cdn' },
-                { slug: 'products/storage/antivirus' },
+                {
+                  label: 'Concepts',
+                  collapsed: false,
+                  items: [
+                    { slug: 'products/storage/architecture' },
+                    { slug: 'products/storage/buckets' },
+                    { slug: 'products/storage/permissions' },
+                    { slug: 'products/storage/image-transformation' },
+                  ],
+                },
+                {
+                  label: 'Guides',
+                  collapsed: false,
+                  items: [
+                    { slug: 'products/storage/guides/file-operations' },
+                    { slug: 'products/storage/guides/presigned-urls' },
+                    { slug: 'products/storage/guides/display-images' },
+                    { slug: 'products/storage/guides/permissions-and-relationships' },
+                  ],
+                },
+                {
+                  label: 'Platform',
+                  collapsed: true,
+                  items: [
+                    { slug: 'products/storage/cdn' },
+                    { slug: 'products/storage/antivirus' },
+                  ],
+                },
               ],
             },
             {
