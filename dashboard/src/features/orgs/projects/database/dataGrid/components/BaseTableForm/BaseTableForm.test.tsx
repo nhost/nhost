@@ -152,7 +152,7 @@ describe('BaseTableForm', () => {
     await fillColumnForm(
       {
         columnName: 'id',
-        optionName: 'uuid uuid',
+        optionName: /^uuid.*uuid/,
         typeValue: 'uuid',
         defaultValue: 'gen_random_uuid()',
       },
@@ -166,7 +166,7 @@ describe('BaseTableForm', () => {
     await fillColumnForm(
       {
         columnName: 'note',
-        optionName: 'text text',
+        optionName: /^text.*text/,
         typeValue: 'text',
       },
       1,
@@ -180,7 +180,7 @@ describe('BaseTableForm', () => {
     await fillColumnForm(
       {
         columnName: 'isDone',
-        optionName: 'boolean bool',
+        optionName: /^boolean.*bool/,
         typeValue: 'boolean',
         defaultValue: 'false',
       },
@@ -216,7 +216,7 @@ describe('BaseTableForm', () => {
     await fillColumnForm(
       {
         columnName: 'id',
-        optionName: 'uuid uuid',
+        optionName: /^uuid.*uuid/,
         typeValue: 'uuid',
         defaultValue: 'gen_random_uuid()',
       },
@@ -230,7 +230,7 @@ describe('BaseTableForm', () => {
     await fillColumnForm(
       {
         columnName: 'identity_column',
-        optionName: 'smallint int2',
+        optionName: /^smallint.*int2/,
         typeValue: 'smallint',
       },
       1,
@@ -261,7 +261,7 @@ describe('BaseTableForm', () => {
     );
     await user.type(screen.getByPlaceholderText('Select type'), 'int');
     await TestUserEvent.fireClickEvent(
-      screen.getByRole('option', { name: 'smallint int2' }),
+      screen.getByRole('option', { name: /^smallint.*int2/ }),
     );
 
     expect(screen.getByDisplayValue('smallint')).toBeInTheDocument();
@@ -279,7 +279,7 @@ describe('BaseTableForm', () => {
     );
     await user.type(screen.getByPlaceholderText('Select type'), 'int');
     await TestUserEvent.fireClickEvent(
-      screen.getByRole('option', { name: 'integer int4' }),
+      screen.getByRole('option', { name: /^integer.*int4/ }),
     );
 
     expect(screen.getByDisplayValue('integer')).toBeInTheDocument();
@@ -297,7 +297,7 @@ describe('BaseTableForm', () => {
     );
     await user.type(screen.getByPlaceholderText('Select type'), 'int');
     await TestUserEvent.fireClickEvent(
-      screen.getByRole('option', { name: 'bigint int8' }),
+      screen.getByRole('option', { name: /^bigint.*int8/ }),
     );
 
     expect(screen.getByDisplayValue('bigint')).toBeInTheDocument();
@@ -315,7 +315,7 @@ describe('BaseTableForm', () => {
     );
     await user.type(screen.getByPlaceholderText('Select type'), 'text');
     await TestUserEvent.fireClickEvent(
-      screen.getByRole('option', { name: 'text text' }),
+      screen.getByRole('option', { name: /^text.*text/ }),
     );
 
     expect(screen.getByDisplayValue('text')).toBeInTheDocument();
@@ -328,12 +328,12 @@ describe('BaseTableForm', () => {
 
     expect(screen.queryByLabelText('Identity')).not.toBeInTheDocument();
 
-    await TestUserEvent.fireClickEvent(
+    await TestUserEvent.fireTypeEvent(
       screen.getByPlaceholderText('Select type'),
+      'numeric',
     );
-    await user.type(screen.getByPlaceholderText('Select type'), 'numeric');
     await TestUserEvent.fireClickEvent(
-      screen.getByRole('option', { name: 'numeric numeric' }),
+      screen.getByRole('option', { name: /^numeric.*numeric/ }),
     );
 
     expect(screen.getByDisplayValue('numeric')).toBeInTheDocument();
@@ -351,7 +351,7 @@ describe('BaseTableForm', () => {
     );
     await user.type(screen.getByPlaceholderText('Select type'), 'text');
     await TestUserEvent.fireClickEvent(
-      screen.getByRole('option', { name: 'text text' }),
+      screen.getByRole('option', { name: /^text.*text/ }),
     );
 
     expect(screen.queryByLabelText('Identity')).not.toBeInTheDocument();
@@ -360,7 +360,7 @@ describe('BaseTableForm', () => {
     await user.clear(screen.getByTestId('columns.0.type'));
     await user.type(screen.getByTestId('columns.0.type'), 'int');
     await TestUserEvent.fireClickEvent(
-      screen.getByRole('option', { name: 'integer int4' }),
+      screen.getByRole('option', { name: /^integer.*int4/ }),
     );
 
     expect(screen.getByDisplayValue('integer')).toBeInTheDocument();
@@ -425,7 +425,7 @@ describe('BaseTableForm', () => {
     await fillColumnForm(
       {
         columnName: 'id',
-        optionName: 'uuid uuid',
+        optionName: /^uuid.*uuid/,
         typeValue: 'uuid',
         defaultValue: 'gen_random_uuid()',
       },
@@ -454,7 +454,7 @@ describe('BaseTableForm', () => {
     await fillColumnForm(
       {
         columnName: 'description',
-        optionName: 'text text',
+        optionName: /^text.*text/,
         typeValue: 'text',
       },
       1,
@@ -467,7 +467,7 @@ describe('BaseTableForm', () => {
     await fillColumnForm(
       {
         columnName: 'identity_column',
-        optionName: 'smallint int2',
+        optionName: /^smallint.*int2/,
         typeValue: 'smallint',
       },
       2,

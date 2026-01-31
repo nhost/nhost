@@ -11,10 +11,12 @@ import {
   getPiTRNotEnabledPostgresSettings,
   getPostgresSettings,
 } from '@/tests/msw/mocks/graphql/getPostgresSettings';
+import { getProjectQuery } from '@/tests/msw/mocks/graphql/getProjectQuery';
 import {
   getEmptyProjectsQuery,
   getProjectsQuery,
 } from '@/tests/msw/mocks/graphql/getProjectsQuery';
+import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import {
   mockPointerEvent,
   render,
@@ -39,7 +41,7 @@ Object.defineProperty(window, 'matchMedia', {
   value: vi.fn().mockImplementation(mockMatchMediaValue),
 });
 
-const server = setupServer();
+const server = setupServer(tokenQuery, getProjectQuery);
 
 const mocks = vi.hoisted(() => ({
   useGetPiTrBaseBackupsLazyQuery: vi.fn(),
@@ -74,10 +76,6 @@ vi.mock('@/features/orgs/hooks/useRestoreApplicationDatabasePiTR', () => ({
   }),
 }));
 
-vi.mock('@/features/orgs/projects/hooks/useProject', async () => ({
-  useProject: () => ({ project: mockApplication }),
-}));
-
 describe('ImportBackupContent', () => {
   beforeAll(() => {
     process.env.NEXT_PUBLIC_NHOST_PLATFORM = 'true';
@@ -100,11 +98,13 @@ describe('ImportBackupContent', () => {
     server.use(getProjectsQuery);
 
     render(<TestComponent />);
-    expect(
-      screen.getByText(
-        `${mockApplication.name} (${mockApplication.region.name})`,
-      ),
-    ).toBeInTheDocument();
+    await waitFor(async () =>
+      expect(
+        screen.getByText(
+          `${mockApplication.name} (${mockApplication.region.name})`,
+        ),
+      ).toBeInTheDocument(),
+    );
 
     const projectComboBox = await screen.findByRole('combobox');
 
@@ -122,17 +122,17 @@ describe('ImportBackupContent', () => {
     ).not.toBeInTheDocument();
   });
 
-  test('that warning is displayed if there is no other project in the same organization', async () => {
+  test('warning is displayed if there is no other project in the same organization', async () => {
     server.use(getOrganization);
     server.use(getEmptyProjectsQuery);
 
     render(<TestComponent />);
 
-    expect(
-      await screen.findByText(
-        /There are no other projects within the region:/i,
-      ),
-    ).toBeInTheDocument();
+    await waitFor(async () =>
+      expect(
+        screen.getByText(/There are no other projects within the region:/i),
+      ).toBeInTheDocument(),
+    );
   });
 
   test('will schedule an import from the selected project', async () => {

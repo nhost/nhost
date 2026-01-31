@@ -98,7 +98,7 @@
     "url": "https://github.com/nhost/nhost/issues"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "devDependencies": {
     "@graphql-typed-document-node/core": "^3.2.0",
