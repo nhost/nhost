@@ -1,7 +1,7 @@
 [global]
 
 [hasura]
-version = 'v2.48.5-ce'
+version = 'v2.48.10-ce'
 adminSecret = '{{ secrets.HASURA_GRAPHQL_ADMIN_SECRET }}'
 webhookSecret = '{{ secrets.NHOST_WEBHOOK_SECRET }}'
 
@@ -31,7 +31,7 @@ httpPoolSize = 100
 version = 22
 
 [auth]
-version = '0.42.2'
+version = '0.45.0'
 
 [auth.elevatedPrivileges]
 mode = 'disabled'
@@ -182,7 +182,7 @@ limit = 1000
 interval = '1m'
 
 [postgres]
-version = '17.5-20250728-1'
+version = '17.7-20260113-1'
 
 [postgres.resources]
 [postgres.resources.storage]
@@ -191,7 +191,7 @@ capacity = 1
 [provider]
 
 [storage]
-version = '0.8.2'
+version = '0.10.1-beta2'
 
 [observability]
 [observability.grafana]
