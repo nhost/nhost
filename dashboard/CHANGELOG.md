@@ -1,3 +1,20 @@
+## [@nhost/dashboard@2.46.3] - 2026-02-02
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Update orval to 8.0.3 (#3839)
+- *(dashboard)* Show paused banner in events and file stores pages (#3844)
+- *(dashboard)* Update nextjs to 16 (#3841)
+- *(deps)* Update nextjs due to vulnerability (#3854)
+- *(dashboard)* Update orval due to cve (#3869)
+- *(dashboard)* Disable delete personal account button if confirm checkbox isn't pressed (#3864)
+- *(dashboard)* Do not submit new record form after clicking on cancel (#3853)
+
+
+### Chore
+
+- *(deps)* Update tar due to cve (#3867)
+
 ## [@nhost/dashboard@2.46.2] - 2026-01-22
 
 ### 🐛 Bug Fixes
