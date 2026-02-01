@@ -1,6 +1,7 @@
 ---
 title: Fetch
 ---
+
 Enhanced fetch implementation with middleware support.
 
 This module provides a middleware pattern for the Fetch API, allowing
@@ -12,7 +13,7 @@ for advanced use cases.
 
 # Classes
 
-## FetchError&lt;T&gt;
+## FetchError
 
 Error class for representing fetch operation failures.
 
@@ -117,7 +118,7 @@ Keys will be automatically prefixed with 'x-hasura-' if not already present.
 
 ---
 
-## FetchResponse&lt;T&gt;
+## FetchResponse
 
 Interface representing a structured API response.
 
@@ -227,8 +228,8 @@ ensure the most recent token is used.
 
 ### Parameters
 
-| Parameter | Type                                           | Description                                        |
-| --------- | ---------------------------------------------- | -------------------------------------------------- |
+| Parameter | Type                                          | Description                                        |
+| --------- | --------------------------------------------- | -------------------------------------------------- |
 | `storage` | [`SessionStorage`](./session#sessionstorage) | Storage implementation for retrieving session data |
 
 ### Returns
@@ -305,12 +306,12 @@ doesn't need to manually refresh tokens.
 
 ### Parameters
 
-| Parameter                | Type                                           | Description                                                                           |
-| ------------------------ | ---------------------------------------------- | ------------------------------------------------------------------------------------- |
+| Parameter                | Type                                          | Description                                                                           |
+| ------------------------ | --------------------------------------------- | ------------------------------------------------------------------------------------- |
 | `auth`                   | [`Client`](./auth#client)                    | Auth API client for token refresh operations                                          |
 | `storage`                | [`SessionStorage`](./session#sessionstorage) | Storage implementation for persisting session data                                    |
-| `options?`               | \{ `marginSeconds?`: `number`; \}              | Configuration options for token refresh behavior                                      |
-| `options.marginSeconds?` | `number`                                       | Number of seconds before token expiration to trigger a refresh, default is 60 seconds |
+| `options?`               | \{ `marginSeconds?`: `number`; \}             | Configuration options for token refresh behavior                                      |
+| `options.marginSeconds?` | `number`                                      | Number of seconds before token expiration to trigger a refresh, default is 60 seconds |
 
 ### Returns
 
@@ -340,8 +341,8 @@ that create or invalidate sessions.
 
 ### Parameters
 
-| Parameter | Type                                           | Description                                        |
-| --------- | ---------------------------------------------- | -------------------------------------------------- |
+| Parameter | Type                                          | Description                                        |
+| --------- | --------------------------------------------- | -------------------------------------------------- |
 | `storage` | [`SessionStorage`](./session#sessionstorage) | Storage implementation for persisting session data |
 
 ### Returns

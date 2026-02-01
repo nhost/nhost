@@ -87,6 +87,8 @@ let
         nativeBuildInputs = jsCheckDeps ++ checkDeps ++ buildInputs ++ nativeBuildInputs;
       }
       ''
+        export HOME=$(mktemp -d)
+
         cp -r ${src} src
         chmod +w -R .
 

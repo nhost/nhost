@@ -1,6 +1,7 @@
 ---
 title: Graphql
 ---
+
 This is the main module to interact with Nhost's GraphQL service.
 Typically you would use this module via the main [Nhost client](./main#createclient)
 but you can also use it directly if you have a specific use case.
@@ -302,8 +303,8 @@ Add a middleware function to the fetch chain
 
 ##### Parameters
 
-| Parameter       | Type                                       | Description                    |
-| --------------- | ------------------------------------------ | ------------------------------ |
+| Parameter       | Type                                      | Description                    |
+| --------------- | ----------------------------------------- | ------------------------------ |
 | `chainFunction` | [`ChainFunction`](./fetch#chainfunction) | The middleware function to add |
 
 ##### Returns
@@ -426,7 +427,7 @@ Path in the query where the error occurred
 
 ---
 
-## GraphQLRequest&lt;TVariables&gt;
+## GraphQLRequest
 
 GraphQL request object used for queries and mutations.
 
@@ -464,7 +465,7 @@ Optional variables for parameterized queries
 
 ---
 
-## GraphQLResponse&lt;TResponseData&gt;
+## GraphQLResponse
 
 Standard GraphQL response format as defined by the GraphQL specification.
 
@@ -519,9 +520,9 @@ error handling, and other cross-cutting concerns.
 
 ### Parameters
 
-| Parameter        | Type                                         | Default value | Description                                       |
-| ---------------- | -------------------------------------------- | ------------- | ------------------------------------------------- |
-| `url`            | `string`                                     | `undefined`   | Base URL for the GraphQL endpoint                 |
+| Parameter        | Type                                        | Default value | Description                                       |
+| ---------------- | ------------------------------------------- | ------------- | ------------------------------------------------- |
+| `url`            | `string`                                    | `undefined`   | Base URL for the GraphQL endpoint                 |
 | `chainFunctions` | [`ChainFunction`](./fetch#chainfunction)[] | `[]`          | Array of middleware functions for the fetch chain |
 
 ### Returns
