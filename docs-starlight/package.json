@@ -8,7 +8,13 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "check-links": "linkinator dist/ --recurse --skip '^https?://(?!localhost)' --skip '\/reference\/' --skip '\/deprecated\/' --skip '\/favicon.svg$' --skip '\/@vite\/client$' --concurrency 10 --timeout 30000 --retry-errors --retry-errors-count 3"
+    "generate": "./gen.sh",
+    "lint": "pnpm lint:code",
+    "lint:code": "biome check",
+    "lint:prose": "vale src/content/docs/",
+    "format": "biome format --write",
+    "test": "pnpm build && pnpm lint && pnpm test:check-links",
+    "test:check-links": "./check_broken_links.sh"
   },
   "dependencies": {
     "@astrojs/markdown-remark": "^6.3.10",
@@ -27,6 +33,9 @@
     "url-template": "^3.1.1"
   },
   "devDependencies": {
-    "linkinator": "^7.5.3"
+    "linkinator": "^7.5.3",
+    "prettier": "^3.5.3",
+    "typedoc": "^0.28.4",
+    "typedoc-plugin-markdown": "^4.6.3"
   }
 }

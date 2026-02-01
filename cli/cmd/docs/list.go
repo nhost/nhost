@@ -10,7 +10,10 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
-const flagGrouped = "grouped"
+const (
+	flagGrouped = "grouped"
+	flagSummary = "summary"
+)
 
 func CommandList() *cli.Command {
 	return &cli.Command{ //nolint:exhaustruct
@@ -23,6 +26,10 @@ func CommandList() *cli.Command {
 				Name:  flagGrouped,
 				Usage: "Show pages organized by section",
 			},
+			&cli.BoolFlag{ //nolint:exhaustruct
+				Name:  flagSummary,
+				Usage: "Show page descriptions",
+			},
 		},
 	}
 }
@@ -30,14 +37,16 @@ func CommandList() *cli.Command {
 func commandList(_ context.Context, cmd *cli.Command) error {
 	ce := clienv.FromCLI(cmd)
 
+	showSummary := cmd.Bool(flagSummary)
+
 	if cmd.Bool(flagGrouped) {
-		return listGrouped(ce)
+		return listGrouped(ce, showSummary)
 	}
 
-	return listFlat(ce)
+	return listFlat(ce, showSummary)
 }
 
-func listFlat(ce *clienv.CliEnv) error {
+func listFlat(ce *clienv.CliEnv, showSummary bool) error {
 	pages := docssearch.GetAllPagesWithInfo()
 	for _, page := range pages {
 		title := page.Title
@@ -45,7 +54,7 @@ func listFlat(ce *clienv.CliEnv) error {
 			title = page.Path
 		}
 
-		if page.Description != "" {
+		if showSummary && page.Description != "" {
 			ce.Println("[%s](%s) - %s", page.Path, title, page.Description)
 		} else {
 			ce.Println("[%s](%s)", page.Path, title)
@@ -55,7 +64,7 @@ func listFlat(ce *clienv.CliEnv) error {
 	return nil
 }
 
-func listGrouped(ce *clienv.CliEnv) error {
+func listGrouped(ce *clienv.CliEnv, showSummary bool) error {
 	pages := docssearch.GetAllPagesWithInfo()
 
 	// Group pages by top-level section
@@ -85,7 +94,7 @@ func listGrouped(ce *clienv.CliEnv) error {
 				title = page.Path
 			}
 
-			if page.Description != "" {
+			if showSummary && page.Description != "" {
 				ce.Println("  [%s](%s) - %s", page.Path, title, page.Description)
 			} else {
 				ce.Println("  [%s](%s)", page.Path, title)

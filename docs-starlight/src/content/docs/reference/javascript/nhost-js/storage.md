@@ -1,6 +1,7 @@
 ---
 title: Storage
 ---
+
 This is the main module to interact with Nhost's Storage service.
 Typically you would use this module via the main [Nhost client](./main#createclient)
 but you can also use it directly if you have a specific use case.
@@ -406,8 +407,8 @@ Add a middleware function to the fetch chain
 
 ##### Parameters
 
-| Parameter       | Type                                       | Description                    |
-| --------------- | ------------------------------------------ | ------------------------------ |
+| Parameter       | Type                                      | Description                    |
+| --------------- | ----------------------------------------- | ------------------------------ |
 | `chainFunction` | [`ChainFunction`](./fetch#chainfunction) | The middleware function to add |
 
 ##### Returns
@@ -1096,9 +1097,9 @@ function createAPIClient(baseURL: string, chainFunctions: ChainFunction[]): Clie
 
 ### Parameters
 
-| Parameter        | Type                                         | Default value |
-| ---------------- | -------------------------------------------- | ------------- |
-| `baseURL`        | `string`                                     | `undefined`   |
+| Parameter        | Type                                        | Default value |
+| ---------------- | ------------------------------------------- | ------------- |
+| `baseURL`        | `string`                                    | `undefined`   |
 | `chainFunctions` | [`ChainFunction`](./fetch#chainfunction)[] | `[]`          |
 
 ### Returns
