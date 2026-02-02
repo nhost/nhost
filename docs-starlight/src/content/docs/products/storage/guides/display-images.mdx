@@ -3,7 +3,6 @@ title: Display Images
 description: Fetch authenticated images and display them in the browser
 keywords: ["storage", "images", "display", "authenticated", "img tag", "blob URL", "React", "guide"]
 ---
-import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 
 When files are protected by permissions, you can't just point an `<img>` tag at the storage URL -- the browser won't send the authentication header. This guide shows how to fetch an image with an authenticated session and display it.
@@ -27,85 +26,47 @@ There are three ways to solve this:
 
 Fetch the image using the SDK (which includes the auth token), then create a blob URL for the `<img>` tag.
 
-<Tabs>
-<TabItem label="TypeScript">
+```typescript
+const { body } = await nhost.storage.getFile(fileId, {
+  w: 100,
+  h: 100,
+  f: 'webp',
+})
+const url = URL.createObjectURL(body)
+```
+
+Thumbnails can be loaded for each image file and stored in a state map:
 
 ```typescript
-async function getImageUrl(fileId: string): Promise<string> {
-  const { body } = await nhost.storage.getFile(fileId, {
-    w: 400,
-    f: 'webp',
-  })
-  return URL.createObjectURL(body)
-}
-
-// Usage
-const url = await getImageUrl('file-uuid')
-const img = document.createElement('img')
-img.src = url
-img.alt = 'User avatar'
-document.body.appendChild(img)
-
-// Clean up when the image is no longer needed
-img.addEventListener('load', () => {
-  // URL can be revoked after the image loads
-  // URL.revokeObjectURL(url)
-})
-```
-
-</TabItem>
-<TabItem label="React">
-
-```tsx
-import { useEffect, useState } from 'react'
-
-function AuthenticatedImage({
-  fileId,
-  alt,
-  width,
-  height,
-}: {
-  fileId: string
-  alt: string
-  width?: number
-  height?: number
-}) {
-  const { nhost } = useAuth()
-  const [src, setSrc] = useState<string | null>(null)
-
-  useEffect(() => {
-    let revoked = false
-    let objectUrl: string | undefined
-
-    async function fetchImage() {
+const loadThumbnail = useCallback(
+  async (fileId: string): Promise<void> => {
+    try {
       const { body } = await nhost.storage.getFile(fileId, {
-        w: width,
-        h: height,
+        w: 100,
+        h: 100,
         f: 'webp',
       })
-      if (revoked) return
-      objectUrl = URL.createObjectURL(body)
-      setSrc(objectUrl)
+      const url = URL.createObjectURL(body)
+      setThumbnails((prev) => ({ ...prev, [fileId]: url }))
+    } catch {
+      // Silently skip thumbnails that fail to load
     }
-
-    fetchImage()
-
-    return () => {
-      revoked = true
-      if (objectUrl) URL.revokeObjectURL(objectUrl)
-    }
-  }, [fileId, nhost, width, height])
-
-  if (!src) return null
-  return <img src={src} alt={alt} width={width} height={height} />
-}
-
-// Usage
-<AuthenticatedImage fileId="file-uuid" alt="Profile photo" width={128} height={128} />
+  },
+  [nhost.storage],
+)
 ```
 
-</TabItem>
-</Tabs>
+Then rendered inline:
+
+```tsx
+{file.mimeType?.startsWith('image/') && file.id && thumbnails[file.id] && (
+  <img
+    src={thumbnails[file.id]}
+    alt={file.name || ''}
+    style={{ width: 32, height: 32, objectFit: 'cover', borderRadius: 4 }}
+  />
+)}
+```
 
 :::tip
 Call `URL.revokeObjectURL()` when the image is removed from the DOM to free memory. In the React example above, the cleanup function handles this automatically.
@@ -117,58 +78,31 @@ This is the recommended approach for private files. The request goes through the
 
 Generate a temporary URL that doesn't require authentication. The image loads like a normal `<img>` tag.
 
-<Tabs>
-<TabItem label="TypeScript">
-
 ```typescript
-async function getPresignedImageUrl(fileId: string): Promise<string> {
-  const { body } = await nhost.storage.getFilePresignedURL(fileId)
-  return body.url
-}
+const { body } = await nhost.storage.getFilePresignedURL(fileId)
+const url = body.url
 
-// Usage
-const url = await getPresignedImageUrl('file-uuid')
+// Use as an <img> src — no auth headers needed
 const img = document.createElement('img')
 img.src = url
-img.alt = 'Shared document preview'
-document.body.appendChild(img)
 ```
 
-</TabItem>
-<TabItem label="React">
+You can also store the pre-signed URL in state and display it in a text field for sharing:
 
-```tsx
-import { useEffect, useState } from 'react'
-
-function PresignedImage({
-  fileId,
-  alt,
-}: {
-  fileId: string
-  alt: string
-}) {
-  const { nhost } = useAuth()
-  const [src, setSrc] = useState<string | null>(null)
-
-  useEffect(() => {
-    let cancelled = false
-
-    async function fetchUrl() {
-      const { body } = await nhost.storage.getFilePresignedURL(fileId)
-      if (!cancelled) setSrc(body.url)
-    }
-
-    fetchUrl()
-    return () => { cancelled = true }
-  }, [fileId, nhost])
-
-  if (!src) return null
-  return <img src={src} alt={alt} />
+```typescript
+const handleGetPresignedUrl = async (fileId: string): Promise<void> => {
+  try {
+    const { body } = await nhost.storage.getFilePresignedURL(fileId)
+    setPresignedUrl(body.url)
+  } catch (err) {
+    const error = err as FetchError<ErrorResponse>
+    setStatusMessage({
+      message: `Failed to get pre-signed URL: ${error.message}`,
+      isError: true,
+    })
+  }
 }
 ```
-
-</TabItem>
-</Tabs>
 
 Pre-signed URLs are simpler but expire after the bucket's `download_expiration` (default: 30 seconds). Each pre-signed URL is unique, which means the CDN treats every generated URL as a different resource -- effectively bypassing the cache entirely. Only use pre-signed URLs when you need to share files with systems that cannot send authentication headers. See [Pre-signed URLs](/products/storage/guides/presigned-urls) for details.
 

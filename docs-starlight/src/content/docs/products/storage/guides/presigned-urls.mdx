@@ -24,12 +24,8 @@ Pre-signed URLs provide temporary, tokenless access to a file. They are useful w
 ```typescript
 const { body } = await nhost.storage.getFilePresignedURL(fileId)
 
-console.log(body.url)        // the temporary download URL
-console.log(body.expiration) // expiration time in seconds
-
-// Use the URL (no auth needed)
-const response = await fetch(body.url)
-const blob = await response.blob()
+// body.url contains the temporary download URL
+// body.expiration contains the expiration time in seconds
 ```
 
 </TabItem>

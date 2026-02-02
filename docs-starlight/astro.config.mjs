@@ -412,9 +412,28 @@ export default defineConfig({
               icon: 'seti:javascript',
               items: [
                 { slug: 'products/functions' },
-                { slug: 'products/functions/getting-started' },
-                { slug: 'products/functions/runtimes' },
-                { slug: 'products/functions/logging' },
+                {
+                  label: 'Concepts',
+                  collapsed: false,
+                  items: [
+                    { slug: 'products/functions/runtimes' },
+                    { slug: 'products/functions/logging' },
+                    { slug: 'products/functions/limits' },
+                  ],
+                },
+                {
+                  label: 'Guides',
+                  collapsed: false,
+                  items: [
+                    { slug: 'products/functions/guides/getting-started' },
+                    { slug: 'products/functions/guides/jwt-verification' },
+                    { slug: 'products/functions/guides/custom-jwts' },
+                    { slug: 'products/functions/guides/graphql-server' },
+                    { slug: 'products/functions/guides/error-handling' },
+                    { slug: 'products/functions/guides/nhost-sdk' },
+                    { slug: 'products/functions/guides/cors' },
+                  ],
+                },
               ],
             },
             {

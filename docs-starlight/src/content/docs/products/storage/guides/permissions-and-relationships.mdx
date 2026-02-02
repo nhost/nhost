@@ -1,16 +1,17 @@
 ---
 title: Permissions and Relationships
-description: Set up file permissions and GraphQL relationships for user and department files
-keywords: ["storage", "permissions", "relationships", "Hasura", "GraphQL", "departments", "multi-tenant", "guide"]
+description: Set up file permissions and GraphQL relationships for personal and community-shared files
+keywords: ["storage", "permissions", "relationships", "Hasura", "GraphQL", "communities", "multi-tenant", "guide"]
 ---
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 
-This guide walks through two common file access patterns: **personal files** (users access only their own) and **department files** (shared across a team using a junction table and custom JWT claims). Both patterns build on [Hasura permissions](/products/graphql/permissions) applied to the `storage.files` table.
+This guide walks through two common file-access patterns: **personal files** (users access only their own) and **community files** (shared across a group via a junction table and membership). Both patterns build on [Hasura permissions](/products/graphql/permissions) applied to the `storage.files` table.
+
 
 ## Personal Files
 
-The simplest pattern -- users can upload, view, and delete only their own files in a dedicated bucket.
+The simplest pattern — users can upload, view, and delete only their own files in a dedicated bucket.
 
 ### 1. Create a Bucket
 
@@ -66,7 +67,11 @@ const { body } = await nhost.storage.uploadFiles({
 const uploadedFile = body.processedFiles?.[0]
 ```
 
-Because metadata lives in Hasura, you can query files via GraphQL -- permissions are applied automatically:
+:::note
+The pattern is the same as the `default` bucket — only the `bucket-id` value changes.
+:::
+
+Because metadata lives in Hasura, you can query files via GraphQL — permissions are applied automatically:
 
 ```typescript
 const response = await nhost.graphql.request<{
@@ -89,36 +94,35 @@ const files = response.body.data?.files ?? []
 
 ---
 
-## Department Files
+## Community Files
 
-A more advanced pattern where files are shared with teams. Files are uploaded to storage, then associated with departments through a junction table. Access is controlled using custom JWT claims that contain the user's department memberships.
+A more advanced pattern where files are shared with groups. Users join communities, upload files to a shared `communities` storage bucket, and associate files with communities through a junction table. Access is controlled by membership — only community members can see the community's files.
 
 ### Architecture
 
 ```mermaid
 erDiagram
-    departments ||--o{ department_files : has
-    department_files }o--|| storage_files : references
-    departments ||--o{ user_departments : has
-    user_departments }o--|| auth_users : belongs_to
+    communities ||--o{ community_members : has
+    communities ||--o{ community_files : has
+    community_files }o--|| storage_files : references
+    community_members }o--|| auth_users : belongs_to
     storage_files }o--|| auth_users : uploaded_by
 
-    departments {
+    communities {
         uuid id PK
         text name
         text description
     }
-    user_departments {
+    community_members {
         uuid id PK
         uuid user_id FK
-        uuid department_id FK
-        text role
+        uuid community_id FK
+        timestamptz joined_at
     }
-    department_files {
+    community_files {
         uuid id PK
         uuid file_id FK
-        uuid department_id FK
-        text description
+        uuid community_id FK
     }
     storage_files {
         uuid id PK
@@ -135,232 +139,256 @@ erDiagram
 
 ### 1. Create the Schema
 
-Set up departments, membership, and the file junction table:
-
 ```sql
--- Departments
-CREATE TABLE public.departments (
+-- Communities bucket
+INSERT INTO storage.buckets (id) VALUES ('communities');
+
+-- Communities
+CREATE TABLE public.communities (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT NOT NULL UNIQUE,
     description TEXT,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- Department membership (users belong to departments with a role)
-CREATE TABLE public.user_departments (
+-- Membership junction
+CREATE TABLE public.community_members (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-    department_id UUID NOT NULL REFERENCES public.departments(id) ON DELETE CASCADE,
-    role TEXT NOT NULL DEFAULT 'member',
+    community_id UUID NOT NULL REFERENCES public.communities(id) ON DELETE CASCADE,
     joined_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    UNIQUE(user_id, department_id)
+    UNIQUE(user_id, community_id)
 );
 
--- Junction table linking files to departments
-CREATE TABLE public.department_files (
+-- File ↔ community junction
+CREATE TABLE public.community_files (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     file_id UUID NOT NULL REFERENCES storage.files(id) ON DELETE CASCADE,
-    department_id UUID NOT NULL REFERENCES public.departments(id) ON DELETE CASCADE,
-    description TEXT
+    community_id UUID NOT NULL REFERENCES public.communities(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 ```
 
-Track all three tables and their foreign key relationships in Hasura so they appear in the GraphQL API.
+Track all three tables and their foreign-key relationships in Hasura so they appear in the GraphQL API.
 
-### 2. Configure Custom JWT Claims
+### 2. Configure Relationships in Hasura
 
-Add a custom claim so the user's JWT includes their department IDs. In `nhost.toml`:
+| Source table | Relationship | Type | Target |
+|---|---|---|---|
+| `communities` | `members` | array | `community_members.community_id` |
+| `communities` | `community_files` | array | `community_files.community_id` |
+| `community_members` | `community` | object | `community_members.community_id → communities.id` |
+| `community_members` | `user` | object | `community_members.user_id → auth.users.id` |
+| `community_files` | `community` | object | `community_files.community_id → communities.id` |
+| `community_files` | `file` | object | `community_files.file_id → storage.files.id` |
+| `storage.files` | `community_files` | array | `community_files.file_id` |
+| `storage.files` | `uploadedByUser` | object | `storage.files.uploaded_by_user_id → auth.users.id` (manual config) |
 
-```toml
-[[auth.session.accessToken.customClaims]]
-key = 'departments'
-value = 'departments[*].department.id'
-```
+### 3. Configure Permissions
 
-This produces a claim `X-Hasura-Departments` containing a PostgreSQL array of department UUIDs, e.g. `{uuid1,uuid2}`. You can then use this claim in Hasura permission rules. See [Permission Variables](/products/graphql/permissions#permission-variables) for details.
+#### `public.communities` (user role)
 
-### 3. Configure Relationships in Hasura
+| Operation | Columns | Filter |
+|-----------|---------|--------|
+| Select | all | `{}` (all communities visible) |
 
-Add a relationship from `storage.files` to `department_files` so you can navigate from files to their department associations in GraphQL:
+#### `public.community_members` (user role)
 
-- On the `storage.files` table, add an **array relationship** named `department_files` using the `file_id` foreign key on `public.department_files`
-- On the `public.department_files` table, add **object relationships** named `file` (to `storage.files` via `file_id`) and `department` (to `public.departments` via `department_id`)
+<Tabs>
+<TabItem label="Select">
 
-### 4. Configure Permissions
+| Setting | Value |
+|---------|-------|
+| Columns | all |
+| Filter | `{}` |
 
-#### `storage.files` permissions (user role)
+</TabItem>
+<TabItem label="Insert">
+
+| Setting | Value |
+|---------|-------|
+| Columns | `user_id`, `community_id` |
+| Row check | `{"user_id": {"_eq": "X-Hasura-User-Id"}}` |
+| Column preset | `user_id` = `X-Hasura-User-Id` |
+
+</TabItem>
+<TabItem label="Delete">
+
+| Setting | Value |
+|---------|-------|
+| Filter | `{"user_id": {"_eq": "X-Hasura-User-Id"}}` |
+
+</TabItem>
+</Tabs>
+
+#### `public.community_files` (user role)
+
+<Tabs>
+<TabItem label="Select">
+
+Only members of the file's community can see it:
+
+| Setting | Value |
+|---------|-------|
+| Columns | all |
+| Filter | `{"community": {"members": {"user_id": {"_eq": "X-Hasura-User-Id"}}}}` |
+
+This traverses the `community` → `members` relationships to check membership.
+
+</TabItem>
+<TabItem label="Insert">
+
+| Setting | Value |
+|---------|-------|
+| Columns | `file_id`, `community_id` |
+| Row check | `{"community": {"members": {"user_id": {"_eq": "X-Hasura-User-Id"}}}}` |
+
+</TabItem>
+<TabItem label="Delete">
+
+| Setting | Value |
+|---------|-------|
+| Filter | `{"file": {"uploaded_by_user_id": {"_eq": "X-Hasura-User-Id"}}}` |
+
+</TabItem>
+</Tabs>
+
+#### `storage.files` (user role)
+
+Update the existing `storage.files` permissions to support all three buckets:
 
 <Tabs>
 <TabItem label="Insert (Upload)">
 
-Users can upload to the `default` bucket. The uploader is automatically recorded:
-
 | Setting | Value |
 |---------|-------|
 | Columns | `id`, `bucket_id`, `name`, `size`, `mime_type` |
-| Row check | `{"bucket_id": {"_eq": "default"}}` |
+| Row check | `{"bucket_id": {"_in": ["default", "personal", "communities"]}}` |
 | Column preset | `uploaded_by_user_id` = `X-Hasura-User-Id` |
 
 </TabItem>
 <TabItem label="Select (Download)">
 
-Users can see files that belong to their departments (via the junction table):
+Users can see their own files in `default`/`personal` buckets, plus any community files they have membership for:
 
 | Setting | Value |
 |---------|-------|
-| Columns | **All** |
-| Row check | `{"department_files": {"department_id": {"_in": "X-Hasura-Departments"}}}` |
-
-This uses the relationship to check if any `department_files` row links this file to one of the user's departments.
+| Columns | all |
+| Filter | `{"_or": [{"_and": [{"uploaded_by_user_id": {"_eq": "X-Hasura-User-Id"}}, {"bucket_id": {"_in": ["default", "personal"]}}]}, {"community_files": {"community": {"members": {"user_id": {"_eq": "X-Hasura-User-Id"}}}}}]}` |
 
 </TabItem>
 <TabItem label="Delete">
 
-Users can delete files they uploaded OR files in their departments:
-
 | Setting | Value |
 |---------|-------|
-| Row check | `{"_or": [{"uploaded_by_user_id": {"_eq": "X-Hasura-User-Id"}}, {"department_files": {"department_id": {"_in": "X-Hasura-Departments"}}}]}` |
+| Filter | `{"uploaded_by_user_id": {"_eq": "X-Hasura-User-Id"}}` |
 
 </TabItem>
 </Tabs>
 
-#### `department_files` permissions (user role)
-
-<Tabs>
-<TabItem label="Insert">
-
-Users can assign files to departments they belong to:
-
-| Setting | Value |
-|---------|-------|
-| Columns | `file_id`, `department_id` |
-| Row check | `{"department_id": {"_in": "X-Hasura-Departments"}}` |
-
-</TabItem>
-<TabItem label="Select">
-
-Users can see file-department associations for their departments:
-
-| Setting | Value |
-|---------|-------|
-| Columns | **All** |
-| Row check | `{"department_id": {"_in": "X-Hasura-Departments"}}` |
-
-</TabItem>
-<TabItem label="Delete">
-
-Users can remove file-department associations for their departments:
-
-| Setting | Value |
-|---------|-------|
-| Row check | `{"department_id": {"_in": "X-Hasura-Departments"}}` |
-
-</TabItem>
-</Tabs>
-
-### 5. Upload and Assign to a Department
+### 4. Join and Leave Communities
 
 ```typescript
-// 1. Upload the file
-const { body } = await nhost.storage.uploadFiles({
-  'bucket-id': 'default',
+
+// Join a community
+await nhost.graphql.request({
+  query: `mutation JoinCommunity($communityId: uuid!) {
+    insert_community_members_one(object: { community_id: $communityId }) {
+      id
+    }
+  }`,
+  variables: { communityId },
+})
+
+// Leave a community
+await nhost.graphql.request({
+  query: `mutation LeaveCommunity($communityId: uuid!, $userId: uuid!) {
+    delete_community_members(where: {
+      community_id: { _eq: $communityId },
+      user_id: { _eq: $userId }
+    }) {
+      affected_rows
+    }
+  }`,
+  variables: { communityId, userId },
+})
+```
+
+The insert permission's column preset automatically sets `user_id` to the authenticated user, and the check constraint prevents users from adding memberships for other users.
+
+### 5. Upload and Assign to a Community
+
+```typescript
+
+// 1. Upload the file to the communities bucket
+const uploadResponse = await nhost.storage.uploadFiles({
+  'bucket-id': 'communities',
   'file[]': [file],
 })
 
-const uploadedFile = body.processedFiles?.[0]
-if (!uploadedFile) throw new Error('Upload failed')
+const uploadedFile = uploadResponse.body.processedFiles?.[0]
+if (!uploadedFile?.id) throw new Error('Upload failed')
 
-// 2. Associate the file with a department
+// 2. Associate the file with a community
 await nhost.graphql.request({
-  query: `mutation AddDepartmentFile($fileId: uuid!, $departmentId: uuid!) {
-    insert_department_files(objects: [{ file_id: $fileId, department_id: $departmentId }]) {
-      affected_rows
+  query: `mutation AddCommunityFile($fileId: uuid!, $communityId: uuid!) {
+    insert_community_files_one(object: {
+      file_id: $fileId,
+      community_id: $communityId
+    }) {
+      id
     }
   }`,
-  variables: {
-    fileId: uploadedFile.id,
-    departmentId: 'engineering-dept-uuid',
-  },
+  variables: { fileId: uploadedFile.id, communityId },
 })
 ```
 
-### 6. Query Department Files
+### 6. Query Community Files
 
 ```typescript
-// Fetch all files shared with the user's departments
 const response = await nhost.graphql.request<{
-  department_files: Array<{
+  community_files: Array<{
     id: string
-    department: { id: string; name: string }
-    file: { id: string; name: string; size: number; mimeType: string; createdAt: string }
+    file: { id: string; name: string; size: number; mimeType: string; uploadedByUser: { displayName: string } | null }
   }>
 }>({
-  query: `query GetDepartmentFiles {
-    department_files {
+  query: `query GetCommunityFiles($communityId: uuid!) {
+    community_files(where: { community_id: { _eq: $communityId } }) {
       id
-      department {
-        id
-        name
-      }
       file {
         id
         name
         size
         mimeType
-        createdAt
-        uploadedByUserId
+        uploadedByUser {
+          displayName
+        }
       }
     }
   }`,
+  variables: { communityId },
 })
 
-// Permissions automatically filter to the user's departments
-const departmentFiles = response.body.data?.department_files ?? []
+// Permissions automatically filter to communities the user is a member of
+const communityFiles = response.body.data?.community_files ?? []
 ```
 
-You can also navigate from a department to its files:
-
-```graphql
-query GetDepartmentWithFiles($deptId: uuid!) {
-  departments_by_pk(id: $deptId) {
-    id
-    name
-    files {
-      file {
-        id
-        name
-        size
-        mimeType
-      }
-    }
-  }
-}
-```
-
-### 7. Remove a File from a Department
+### 7. Remove a File from a Community
 
 ```typescript
+
+// Remove the junction record
 await nhost.graphql.request({
-  query: `mutation RemoveDepartmentFile($fileId: uuid!, $departmentId: uuid!) {
-    delete_department_files(
-      where: { file_id: { _eq: $fileId }, department_id: { _eq: $departmentId } }
-    ) {
-      affected_rows
+  query: `mutation RemoveCommunityFile($id: uuid!) {
+    delete_community_files_by_pk(id: $id) {
+      id
     }
   }`,
-  variables: {
-    fileId: 'file-uuid',
-    departmentId: 'dept-uuid',
-  },
+  variables: { id: communityFileId },
 })
-```
 
-This removes the association but does not delete the file itself. To delete the file from storage entirely:
-
-```typescript
+// Optionally delete the file from storage entirely
 await nhost.storage.deleteFile(fileId)
 ```
 
-The `ON DELETE CASCADE` on `department_files.file_id` automatically removes all department associations when the file is deleted.
+The `ON DELETE CASCADE` on `community_files.file_id` automatically removes all community associations when the storage file is deleted.

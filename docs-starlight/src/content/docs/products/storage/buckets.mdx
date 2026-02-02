@@ -47,21 +47,67 @@ Specify the `bucket-id` field when uploading:
 <TabItem label="JavaScript">
 
 ```typescript
-const { body } = await nhost.storage.uploadFiles({
+// Upload to a specific bucket
+const response = await nhost.storage.uploadFiles({
   'bucket-id': 'avatars',
   'file[]': [avatarFile],
 })
 
+const uploadedFile = response.body.processedFiles?.[0]
+```
+
+```typescript
+// Upload with custom metadata
+const response = await nhost.storage.uploadFiles({
+  'bucket-id': 'documents',
+  'file[]': [pdfFile],
+  'metadata[]': [{
+    name: 'quarterly-report.pdf',
+    metadata: {
+      department: 'finance',
+      quarter: 'Q4-2024',
+    },
+  }],
+})
+```
+
+```typescript
+// Upload multiple files at once
+const response = await nhost.storage.uploadFiles({
+  'bucket-id': 'photos',
+  'file[]': [photo1, photo2, photo3],
+})
+
+for (const file of response.body.processedFiles ?? []) {
+  console.log(`Uploaded: ${file.name} (${file.id})`)
+}
 ```
 </TabItem>
 
 <TabItem label="cURL">
 
 ```bash
+# Upload to a specific bucket
 curl -X POST \
   -H "Authorization: Bearer $TOKEN" \
   -F "bucket-id=avatars" \
   -F "file[]=@avatar.jpg" \
+  https://local.storage.local.nhost.run/v1/files
+
+# Upload with custom metadata
+curl -X POST \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "bucket-id=documents" \
+  -F "file[]=@report.pdf" \
+  -F 'metadata[]={"name":"quarterly-report.pdf","metadata":{"department":"finance","quarter":"Q4-2024"}}' \
+  https://local.storage.local.nhost.run/v1/files
+
+# Upload multiple files
+curl -X POST \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "bucket-id=photos" \
+  -F "file[]=@photo1.jpg" \
+  -F "file[]=@photo2.jpg" \
   https://local.storage.local.nhost.run/v1/files
 ```
 

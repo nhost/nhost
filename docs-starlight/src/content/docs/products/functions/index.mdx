@@ -1,45 +1,129 @@
 ---
 title: Overview
 description: Server-side code that works as API endpoints
-keywords: ["functions", "serverless", "lambda", "API endpoints", "backend", "webhooks", "event triggers", "TypeScript", "JavaScript"]
+keywords: ["functions", "serverless", "lambda", "API endpoints", "backend", "webhooks", "event triggers", "TypeScript", "JavaScript", "routing", "deployment", "environment variables"]
 ---
 import { Card, CardGroup } from '@components';
 
 
-Nhost Functions are server-side JavaScript or TypeScript functions that are a great option for handling things like Event Triggers for async workflows, as well as to integrate with external service providers like Stripe or Slack.
+Nhost Functions are server-side JavaScript or TypeScript functions that are deployed as HTTP endpoints. They are a great option for handling Event Triggers, integrating with external services like Stripe or Slack, and building custom API logic.
 
 :::tip
 For more sophisticated use-cases and control over the runtime, use [Nhost Run](/products/run/).
 :::
 
-## Hello World
+## How Functions Work
 
-```js ./functions/hello-world.js
-export default (req, res) => {
-  res.status(200).send(`Hello World!`)
+Each `.js` or `.ts` file you place in the `./functions` directory of your project becomes an HTTP endpoint. A function exports a default handler that receives an Express `Request` and `Response`:
+
+```ts
+import type { Request, Response } from 'express'
+
+export default (req: Request, res: Response) => {
+  res.status(200).send('Hello World!')
 }
 ```
 
-Deploying functions is as easy as pushing your code!
+## Routing
 
-## Limits
+Endpoints are generated based on the file path relative to `./functions`:
 
-### Execution Timeout
+| File                        | HTTP Endpoint                                                      |
+| --------------------------- | ------------------------------------------------------------------ |
+| `functions/index.js`        | `https://[subdomain].functions.[region].nhost.run/v1/`             |
+| `functions/users/index.ts`  | `https://[subdomain].functions.[region].nhost.run/v1/users`        |
+| `functions/users/active.ts` | `https://[subdomain].functions.[region].nhost.run/v1/users/active` |
+| `functions/my-company.js`   | `https://[subdomain].functions.[region].nhost.run/v1/my-company`   |
 
-Function execution timeout limits vary by project tier:
+All HTTP methods (GET, POST, PUT, DELETE, etc.) are routed to the same handler. Use `req.method` to differentiate.
 
-- **Starter**: 10 seconds
-- **Pro**: 180 seconds (3 minutes)
-- **Teams**: 600 seconds (10 minutes)
-- **Enterprise**: Custom timeout values available
+### Directory Conventions
 
-### Response Payload
+- Files and folders prefixed with an **underscore** (`_`) are ignored and not exposed as endpoints. Use this for shared utilities.
+- `index` files map to the parent directory path.
 
-All functions have a hard limit of 6MB for response payloads, regardless of the project tier.
+## Request and Response
 
-## Additional Resources
+Functions receive standard Express `Request` and `Response` objects with a few additions:
 
-<CardGroup cols={2}>
-  <Card title="Learn how to use Functions" href="/products/functions/"></Card>
-  <Card title="Supported runtimes" href="/products/functions/runtimes"></Card>
+| Property          | Description                                        |
+| ----------------- | -------------------------------------------------- |
+| `req.method`      | HTTP method (GET, POST, etc.)                      |
+| `req.headers`     | Request headers                                    |
+| `req.query`       | Parsed query string parameters                     |
+| `req.body`        | Parsed request body (JSON, form data)              |
+| `req.rawBody`     | Raw request body as a Buffer                       |
+| `req.invocationId`| Unique identifier for this function invocation     |
+
+The `invocationId` is useful for correlating [logs](/products/functions/logging) across a single invocation.
+
+## Environment Variables
+
+The following environment variables are automatically injected into your functions at runtime:
+
+| Variable                          | Description                                    |
+| --------------------------------- | ---------------------------------------------- |
+| `NHOST_ADMIN_SECRET`              | Admin secret for your project                  |
+| `NHOST_WEBHOOK_SECRET`            | Webhook secret for your project                |
+| `NHOST_JWT_SECRET`                | JWT secret configuration (JSON string)         |
+| `NHOST_SUBDOMAIN`                 | Project subdomain                              |
+| `NHOST_REGION`                    | Project region                                 |
+| `NHOST_HASURA_URL`                | Internal Hasura URL                            |
+| `NHOST_AUTH_URL`                  | Internal Auth URL                              |
+| `NHOST_GRAPHQL_URL`               | Internal GraphQL URL                           |
+| `NHOST_STORAGE_URL`               | Internal Storage URL                           |
+| `NHOST_FUNCTIONS_URL`             | Internal Functions URL                         |
+
+Any [custom environment variables](/platform/cloud/environment-variables) you define are also available.
+
+## Deployment
+
+Functions are deployed automatically when you push to the connected GitHub repository. Nhost computes checksums for your functions and their dependencies, so unchanged functions are skipped during deployment.
+
+Nhost detects your package manager based on the lockfile present in the functions folder or a parent folder. See [Runtimes and Dependencies](/products/functions/runtimes) for details.
+
+## Billing
+
+Functions are billed per GB-sec or GB-hour. 1 GB-hour is 3600 GB-seconds.
+
+1 GB-sec is 1 function with 1 GB of RAM running for 1 second. If 1 function with 1 GB of RAM runs for 3600 seconds, that equals 1 GB-hour.
+
+## Concepts
+
+<CardGroup cols={3}>
+  <Card title="Runtimes" icon="gear" href="/products/functions/runtimes">
+    Supported Node.js versions and package managers
+  </Card>
+  <Card title="Logging" icon="list-check" href="/products/functions/logging">
+    Log format, execution metrics, and request tracing
+  </Card>
+  <Card title="Limitations" icon="triangle" href="/products/functions/limits">
+    Supported languages, timeouts, and payload limits
+  </Card>
+</CardGroup>
+
+## Guides
+
+<CardGroup cols={3}>
+  <Card title="Getting Started" icon="rocket" href="/products/functions/guides/getting-started">
+    Create and deploy your first function
+  </Card>
+  <Card title="JWT Verification" icon="lock" href="/products/functions/guides/jwt-verification">
+    Verify access tokens with symmetric and asymmetric keys
+  </Card>
+  <Card title="Custom JWTs" icon="key" href="/products/functions/guides/custom-jwts">
+    Generate tokens to act on behalf of users
+  </Card>
+  <Card title="GraphQL Server" icon="diagram-project" href="/products/functions/guides/graphql-server">
+    Run a GraphQL Yoga server as a function
+  </Card>
+  <Card title="Error Handling" icon="shield" href="/products/functions/guides/error-handling">
+    Handle errors gracefully and debug failures
+  </Card>
+  <Card title="Using the Nhost SDK" icon="code" href="/products/functions/guides/nhost-sdk">
+    Query GraphQL, upload files, and call Nhost services from functions
+  </Card>
+  <Card title="CORS" icon="globe" href="/products/functions/guides/cors">
+    Handle cross-origin requests from browser clients
+  </Card>
 </CardGroup>

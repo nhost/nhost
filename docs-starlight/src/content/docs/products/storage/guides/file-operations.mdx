@@ -16,41 +16,14 @@ Upload one or more files. Each uploaded file returns its metadata including the 
 <TabItem label="TypeScript">
 
 ```typescript
-// Basic upload
-const { body } = await nhost.storage.uploadFiles({
-  'file[]': [new File(['hello'], 'hello.txt', { type: 'text/plain' })],
+const response = await nhost.storage.uploadFiles({
+  'bucket-id': 'default',
+  'file[]': [selectedFile],
 })
 
-const uploadedFile = body.processedFiles?.[0]
-console.log('File ID:', uploadedFile?.id)
+const uploadedFile = response.body.processedFiles?.[0]
 ```
 
-```typescript
-// Upload to a specific bucket with custom metadata
-const { body } = await nhost.storage.uploadFiles({
-  'bucket-id': 'documents',
-  'file[]': [pdfFile],
-  'metadata[]': [{
-    name: 'quarterly-report.pdf',
-    metadata: {
-      department: 'finance',
-      quarter: 'Q4-2024',
-    },
-  }],
-})
-```
-
-```typescript
-// Upload multiple files at once
-const { body } = await nhost.storage.uploadFiles({
-  'bucket-id': 'photos',
-  'file[]': [photo1, photo2, photo3],
-})
-
-for (const file of body.processedFiles ?? []) {
-  console.log(`Uploaded: ${file.name} (${file.id})`)
-}
-```
 
 </TabItem>
 <TabItem label="curl">
@@ -89,25 +62,19 @@ Download a file by its ID. The response body contains the raw file content.
 <TabItem label="TypeScript">
 
 ```typescript
-// Download file content
-const { body } = await nhost.storage.getFile(fileId)
-const text = await body.text()    // for text files
-// or
-const buffer = await body.arrayBuffer()  // for binary files
+const response = await nhost.storage.getFile(fileId)
+const url = URL.createObjectURL(response.body)
+window.open(url, '_blank')
 ```
 
 ```typescript
-// Get only metadata headers (no file content)
-const { headers } = await nhost.storage.getFileMetadataHeaders(fileId)
-```
-
-```typescript
-// Download with image transformation
+// Download with image transformation (e.g. thumbnails)
 const { body } = await nhost.storage.getFile(fileId, {
-  w: 400,
-  q: 85,
+  w: 100,
+  h: 100,
   f: 'webp',
 })
+const url = URL.createObjectURL(body)
 ```
 
 </TabItem>
@@ -135,15 +102,7 @@ Replace file content while keeping the same file ID. References to the file rema
 <TabItem label="TypeScript">
 
 ```typescript
-const updatedFile = new File(['updated content'], 'report-v2.pdf', { type: 'application/pdf' })
-
-await nhost.storage.replaceFile(fileId, {
-  file: updatedFile,
-  metadata: {
-    name: 'report-v2.pdf',
-    metadata: { version: '2.0' },
-  },
-})
+await nhost.storage.replaceFile(fileId, { file: newFile })
 ```
 
 </TabItem>
@@ -194,22 +153,18 @@ The Storage REST API handles file content operations. To list, search, or filter
 
 ```typescript
 const response = await nhost.graphql.request<{
-  files: Array<{ id: string; name: string; size: number; mimeType: string }>
+  files: Array<{ id: string; name: string; size: number; mimeType: string; bucketId: string; uploadedByUserId: string }>
 }>({
-  query: `query ListFiles($bucketId: String!) {
-    files(
-      where: { bucketId: { _eq: $bucketId } }
-      order_by: { createdAt: desc }
-      limit: 20
-    ) {
+  query: `query GetFiles {
+    files {
       id
       name
       size
       mimeType
-      createdAt
+      bucketId
+      uploadedByUserId
     }
   }`,
-  variables: { bucketId: 'personal' },
 })
 
 const files = response.body.data?.files ?? []

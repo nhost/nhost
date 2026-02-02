@@ -1,0 +1,71 @@
+---
+title: GraphQL Server
+description: Run a GraphQL Yoga server inside an Nhost Function
+keywords: ["GraphQL", "GraphQL Yoga", "remote schema", "Hasura", "serverless functions"]
+---
+
+You can run a full [GraphQL Yoga](https://the-guild.dev/graphql/yoga-server) server inside an Nhost Function. This is useful for creating [Hasura Remote Schemas](https://hasura.io/docs/latest/remote-schemas/overview/) — extending your GraphQL API with custom types and resolvers without running a separate service.
+
+## Dependencies
+
+```shell
+npm install graphql graphql-yoga
+```
+
+## Function
+
+Create a file at `./functions/remote-schema.ts`:
+
+```ts ./functions/graphql.ts
+import type { Request, Response } from 'express'
+import { createSchema, createYoga } from 'graphql-yoga'
+
+const typeDefs = `
+  type Query {
+    hello: String!
+  }
+`
+
+const resolvers = {
+  Query: {
+    hello: () => 'world',
+  },
+}
+
+const schema = createSchema({ typeDefs, resolvers })
+
+const yoga = createYoga({
+  schema,
+  graphqlEndpoint: '*',
+})
+
+export default async function handler(req: Request, res: Response) {
+  const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`
+
+  const response = await yoga.fetch(url, {
+    method: req.method,
+    headers: req.headers as HeadersInit,
+    body: req.method !== 'GET' ? JSON.stringify(req.body) : undefined,
+  })
+
+  res.status(response.status)
+  response.headers.forEach((value, key) => {
+    res.setHeader(key, value)
+  })
+
+  const body = await response.text()
+  res.send(body)
+}
+```
+
+Setting `graphqlEndpoint: '*'` tells Yoga to handle requests at any path, which is necessary because the function's URL is determined by its file location.
+
+## Adding as a Hasura Remote Schema
+
+Once deployed, you can add the function as a remote schema in Hasura. Point Hasura to the function's endpoint:
+
+```
+{{NHOST_FUNCTIONS_URL}}/remote-schema
+```
+
+Use the `NHOST_ADMIN_SECRET` environment variable or a forwarded authorization header to secure the connection.

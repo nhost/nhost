@@ -129,14 +129,14 @@ query MyFiles {
 
 ```graphql
 # Create a relationship between your tables and files
-# After setting up a relationship in Hasura:
-query UserWithAvatar {
-  user(id: "user-uuid") {
-    displayName
-    avatar {    # relationship to storage.files
-      id
-      name
-      mimeType
+# After setting up a relationship:
+query CommunitiesWithFiles {
+	communities {
+    name
+    community_files {
+      file {
+        name
+      }
     }
   }
 }
@@ -145,18 +145,23 @@ query UserWithAvatar {
 ### Using the SDK
 
 ```typescript
-const response = await nhost.graphql.request({
+// Query all files accessible to the current user
+const response = await nhost.graphql.request<{
+  files: Array<{ id: string; name: string; size: number; mimeType: string; bucketId: string; uploadedByUserId: string }>
+}>({
   query: `query GetFiles {
-    files(order_by: { createdAt: desc }, limit: 10) {
+    files {
       id
       name
       size
       mimeType
+      bucketId
+      uploadedByUserId
     }
   }`,
 })
 
-const files = response.body.data?.files
+const files = response.body.data?.files ?? []
 ```
 
 This integration means you don't need a separate API to search, filter, or paginate files -- it's all handled through the same GraphQL API you use for the rest of your data.
