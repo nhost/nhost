@@ -93,7 +93,7 @@ func (a *App) IndexService(id string) (int, error) {
 	return 0, ErrServiceNotFound
 }
 
-// This method is used to resolve the config with all the templates.
+// ResolveConfig resolves the config with all the templates.
 // As this is a somewhat expensive operation, we cache the result if
 // the cached object is nil or if refresh is set to true.
 func (a *App) ResolveConfig(sch *schema.Schema, refresh bool) (*model.ConfigConfig, error) {
