@@ -374,7 +374,9 @@ export default defineConfig({
                     { slug: 'products/storage/guides/file-operations' },
                     { slug: 'products/storage/guides/presigned-urls' },
                     { slug: 'products/storage/guides/display-images' },
-                    { slug: 'products/storage/guides/permissions-and-relationships' },
+                    {
+                      slug: 'products/storage/guides/permissions-and-relationships',
+                    },
                   ],
                 },
                 {
