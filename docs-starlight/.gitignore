@@ -3,6 +3,9 @@ dist/
 # generated types
 .astro/
 
+# vite cache
+.vite/
+
 # dependencies
 node_modules/
 
@@ -16,6 +19,9 @@ pnpm-debug.log*
 # environment variables
 .env
 .env.production
+
+# vale - downloaded package styles
+.vale/styles/Google/
 
 # macOS-specific files
 .DS_Store

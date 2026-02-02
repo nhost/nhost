@@ -13,4 +13,5 @@ func NewTool() *Tool {
 func (t *Tool) Register(mcpServer *server.MCPServer) {
 	t.registerSearch(mcpServer)
 	t.registerReadPage(mcpServer)
+	t.registerList(mcpServer)
 }

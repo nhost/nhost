@@ -1,0 +1,37 @@
+name: "docs: release production"
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/docs_release_production.yaml'
+      - 'flake.nix'
+      - 'flake.lock'
+      - 'nixops/**'
+      - 'build/**'
+      - ".npmrc"
+      - ".prettierignore"
+      - ".prettierrc.js"
+      - "audit-ci.jsonc"
+      - "package.json"
+      - "pnpm-workspace.yaml"
+      - "pnpm-lock.yaml"
+      - "turbo.json"
+      - "docs-starlight/**"
+
+jobs:
+  deploy-vercel:
+    uses: ./.github/workflows/wf_deploy_vercel.yaml
+    with:
+      NAME: docs
+      GIT_REF: ${{ github.sha }}
+      ENVIRONMENT: production
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
+      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+      VERCEL_TEAM_ID: ${{ secrets.DASHBOARD_VERCEL_TEAM_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.DOCS_VERCEL_PROJECT_ID }}
+      VERCEL_DEPLOY_TOKEN: ${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
+      TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+      DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_PRODUCTION }}

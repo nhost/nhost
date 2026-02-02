@@ -1,10 +1,9 @@
----
 name: "docs: check and build"
 on:
   pull_request_target:
     paths:
       - '.github/workflows/wf_check.yaml'
-      - '.github/workflows/dashboard_checks.yaml'
+      - '.github/workflows/docs_checks.yaml'
 
       # common build
       - 'flake.nix'
@@ -23,7 +22,7 @@ on:
       - "turbo.json"
 
       # docs
-      - docs/**
+      - docs-starlight/**
 
       # nhost-js
       - packages/nhost-js/**
@@ -54,20 +53,35 @@ jobs:
         run: |
           exit 1
 
-
   tests:
     uses: ./.github/workflows/wf_check.yaml
     needs:
       - check-permissions
     with:
-      NAME: docs
-      PATH: docs
+      NAME: docs-starlight
+      PATH: docs-starlight
       GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
       NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
 
+  deploy-vercel:
+    uses: ./.github/workflows/wf_deploy_vercel.yaml
+    needs:
+      - check-permissions
+    with:
+      NAME: docs
+      GIT_REF: ${{ github.event.pull_request.head.sha }}
+      ENVIRONMENT: preview
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
+      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+      VERCEL_TEAM_ID: ${{ secrets.DASHBOARD_VERCEL_TEAM_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.DOCS_VERCEL_PROJECT_ID }}
+      VERCEL_DEPLOY_TOKEN: ${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
+      TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
 
   remove_label:
     runs-on: ubuntu-latest
