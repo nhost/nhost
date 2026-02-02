@@ -1,3 +1,29 @@
+## [@nhost/nhost-js@4.3.0] - 2026-02-02
+
+### 🚀 Features
+
+- *(auth)* Change locale so it allows for 3 characters (#3776)
+- *(nixops)* Update nixpkgs (#3808)
+- *(nixops)* Package mintlify (#3822)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Migrate to biome from prettier in the dashboard (#3788)
+- *(examples)* Update svelte and devalue (#3817)
+- *(deps)* Added pnpm overrides due to cves (#3831)
+- *(deps)* Update nextjs due to vulnerability (#3854)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(nhost-js)* Biome migration follow up (#3812)
+
+
+### Chore
+
+- *(deps)* Update tar due to cve (#3867)
+
 ## [@nhost/nhost-js@4.2.2] - 2026-01-13
 
 ### 🐛 Bug Fixes

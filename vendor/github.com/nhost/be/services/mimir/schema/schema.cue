@@ -223,7 +223,7 @@ import (
 	// Releases:
 	//
 	// https://github.com/nhost/hasura-storage/releases
-	version: string | *"0.10.0"
+	version: string | *"0.11.0"
 
 	// Networking (custom domains at the moment) are not allowed as we need to do further
 	// configurations in the CDN. We will enable it again in the future.
@@ -633,7 +633,7 @@ import (
 
 	postgres: {
 		enabled:      bool | *true
-		majorVersion: "14" | "15" | "16" | "17" | *"14"
+		majorVersion: "14" | "15" | "16" | "17" | "18" | *"14"
 		if enabled {
 			database: string
 		}
