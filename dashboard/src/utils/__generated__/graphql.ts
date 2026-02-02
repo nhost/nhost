@@ -27716,6 +27716,13 @@ export type Workspaces_Updates = {
   where: Workspaces_Bool_Exp;
 };
 
+export type DeleteAuthUserProviderMutationVariables = Exact<{
+  id: Scalars['uuid'];
+}>;
+
+
+export type DeleteAuthUserProviderMutation = { __typename?: 'mutation_root', deleteAuthUserProvider?: { __typename: 'authUserProviders' } | null };
+
 export type DeleteUserAccountMutationVariables = Exact<{
   id: Scalars['uuid'];
 }>;
@@ -29047,6 +29054,39 @@ export const RunServiceRateLimitFragmentDoc = gql`
   }
 }
     `;
+export const DeleteAuthUserProviderDocument = gql`
+    mutation deleteAuthUserProvider($id: uuid!) {
+  deleteAuthUserProvider(id: $id) {
+    __typename
+  }
+}
+    `;
+export type DeleteAuthUserProviderMutationFn = Apollo.MutationFunction<DeleteAuthUserProviderMutation, DeleteAuthUserProviderMutationVariables>;
+
+/**
+ * __useDeleteAuthUserProviderMutation__
+ *
+ * To run a mutation, you first call `useDeleteAuthUserProviderMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteAuthUserProviderMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteAuthUserProviderMutation, { data, loading, error }] = useDeleteAuthUserProviderMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useDeleteAuthUserProviderMutation(baseOptions?: Apollo.MutationHookOptions<DeleteAuthUserProviderMutation, DeleteAuthUserProviderMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteAuthUserProviderMutation, DeleteAuthUserProviderMutationVariables>(DeleteAuthUserProviderDocument, options);
+      }
+export type DeleteAuthUserProviderMutationHookResult = ReturnType<typeof useDeleteAuthUserProviderMutation>;
+export type DeleteAuthUserProviderMutationResult = Apollo.MutationResult<DeleteAuthUserProviderMutation>;
+export type DeleteAuthUserProviderMutationOptions = Apollo.BaseMutationOptions<DeleteAuthUserProviderMutation, DeleteAuthUserProviderMutationVariables>;
 export const DeleteUserAccountDocument = gql`
     mutation deleteUserAccount($id: uuid!) {
   deleteUser(id: $id) {
