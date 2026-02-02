@@ -21,7 +21,8 @@ const FUNCTIONS: FunctionDef[] = [
   {
     id: 'echo',
     name: 'Echo',
-    description: 'Returns request metadata: headers, query params, method, Node version, and invocation ID.',
+    description:
+      'Returns request metadata: headers, query params, method, Node version, and invocation ID.',
     path: '/echo?demo=true',
     method: 'GET',
     needsAuth: false,
@@ -29,7 +30,8 @@ const FUNCTIONS: FunctionDef[] = [
   {
     id: 'error',
     name: 'Handled Error',
-    description: 'Throws an error inside a try/catch and returns a structured 500 response.',
+    description:
+      'Throws an error inside a try/catch and returns a structured 500 response.',
     path: '/error',
     method: 'GET',
     needsAuth: false,
@@ -37,7 +39,8 @@ const FUNCTIONS: FunctionDef[] = [
   {
     id: 'crash',
     name: 'Unhandled Error (Crash)',
-    description: 'Throws an unhandled error — the function crashes and returns a generic 500.',
+    description:
+      'Throws an unhandled error — the function crashes and returns a generic 500.',
     path: '/crash',
     method: 'GET',
     needsAuth: false,
@@ -45,7 +48,8 @@ const FUNCTIONS: FunctionDef[] = [
   {
     id: 'jwt-verify',
     name: 'JWT Verification',
-    description: 'Verifies the caller\'s JWT using the JWKS endpoint and returns the decoded token.',
+    description:
+      "Verifies the caller's JWT using the JWKS endpoint and returns the decoded token.",
     path: '/jwt-verify',
     method: 'GET',
     needsAuth: true,
@@ -53,7 +57,8 @@ const FUNCTIONS: FunctionDef[] = [
   {
     id: 'custom-jwt',
     name: 'Custom JWT',
-    description: 'Generates a custom JWT for a given user ID. Requires admin secret or an admin/operator JWT.',
+    description:
+      'Generates a custom JWT for a given user ID. Requires admin secret or an admin/operator JWT.',
     path: '/custom-jwt',
     method: 'POST',
     needsAuth: true,
@@ -66,7 +71,8 @@ const FUNCTIONS: FunctionDef[] = [
   {
     id: 'cors',
     name: 'CORS (Manual)',
-    description: 'A function with manual CORS headers. Returns the request origin and method. Handles OPTIONS preflight.',
+    description:
+      'A function with manual CORS headers. Returns the request origin and method. Handles OPTIONS preflight.',
     path: '/cors',
     method: 'GET',
     needsAuth: false,
@@ -74,7 +80,8 @@ const FUNCTIONS: FunctionDef[] = [
   {
     id: 'cors-middleware',
     name: 'CORS (Middleware)',
-    description: 'A function using the cors npm package for automatic CORS handling.',
+    description:
+      'A function using the cors npm package for automatic CORS handling.',
     path: '/cors-middleware',
     method: 'GET',
     needsAuth: false,
@@ -82,7 +89,8 @@ const FUNCTIONS: FunctionDef[] = [
   {
     id: 'sdk-todos',
     name: 'SDK: Todos (as caller)',
-    description: 'Uses the Nhost SDK to query todos on behalf of the authenticated user by forwarding the Authorization header.',
+    description:
+      'Uses the Nhost SDK to query todos on behalf of the authenticated user by forwarding the Authorization header.',
     path: '/sdk-todos',
     method: 'GET',
     needsAuth: true,
@@ -90,7 +98,8 @@ const FUNCTIONS: FunctionDef[] = [
   {
     id: 'sdk-admin',
     name: 'SDK: Users (as admin)',
-    description: 'Uses the Nhost SDK with admin secret to list all users. No caller auth required.',
+    description:
+      'Uses the Nhost SDK with admin secret to list all users. No caller auth required.',
     path: '/sdk-admin',
     method: 'GET',
     needsAuth: false,
@@ -136,7 +145,11 @@ export default function Functions(): JSX.Element {
       }));
     } catch (err: unknown) {
       const duration = Math.round(performance.now() - start);
-      const fetchErr = err as { status?: number; body?: unknown; message?: string };
+      const fetchErr = err as {
+        status?: number;
+        body?: unknown;
+        message?: string;
+      };
       setResults((prev) => ({
         ...prev,
         [fn.id]: {
@@ -156,10 +169,15 @@ export default function Functions(): JSX.Element {
 
       <div className="glass-card p-8 mb-6">
         <p style={{ color: 'var(--text-muted)', marginBottom: '1rem' }}>
-          Test the serverless functions deployed in the backend. Each button calls the corresponding function endpoint via the Nhost SDK and displays the response.
+          Test the serverless functions deployed in the backend. Each button
+          calls the corresponding function endpoint via the Nhost SDK and
+          displays the response.
         </p>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-          Base URL: <code style={{ color: 'var(--primary)' }}>{nhost.functions.baseURL}</code>
+          Base URL:{' '}
+          <code style={{ color: 'var(--primary)' }}>
+            {nhost.functions.baseURL}
+          </code>
         </p>
       </div>
 
@@ -169,18 +187,43 @@ export default function Functions(): JSX.Element {
 
         return (
           <div key={fn.id} className="glass-card p-8 mb-6">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
+                marginBottom: '0.75rem',
+              }}
+            >
               <div>
-                <h2 className="text-2xl" style={{ marginBottom: '0.25rem' }}>{fn.name}</h2>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '0.5rem' }}>
-                  <code>{fn.method} {fn.path}</code>
+                <h2 className="text-2xl" style={{ marginBottom: '0.25rem' }}>
+                  {fn.name}
+                </h2>
+                <p
+                  style={{
+                    color: 'var(--text-muted)',
+                    fontSize: '0.85rem',
+                    marginBottom: '0.5rem',
+                  }}
+                >
+                  <code>
+                    {fn.method} {fn.path}
+                  </code>
                   {fn.needsAuth && (
-                    <span style={{ marginLeft: '0.5rem', color: 'var(--warning, #f59e0b)', fontSize: '0.8rem' }}>
+                    <span
+                      style={{
+                        marginLeft: '0.5rem',
+                        color: 'var(--warning, #f59e0b)',
+                        fontSize: '0.8rem',
+                      }}
+                    >
                       🔒 Auth required
                     </span>
                   )}
                 </p>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{fn.description}</p>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                  {fn.description}
+                </p>
               </div>
               <button
                 type="button"
@@ -195,8 +238,25 @@ export default function Functions(): JSX.Element {
 
             {fn.body && (
               <div style={{ marginBottom: '0.75rem' }}>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '0.25rem' }}>Request body:</p>
-                <pre style={{ fontSize: '0.8rem', padding: '0.75rem', borderRadius: '6px', background: 'var(--bg-secondary, rgba(0,0,0,0.2))', overflow: 'auto', margin: 0 }}>
+                <p
+                  style={{
+                    color: 'var(--text-muted)',
+                    fontSize: '0.8rem',
+                    marginBottom: '0.25rem',
+                  }}
+                >
+                  Request body:
+                </p>
+                <pre
+                  style={{
+                    fontSize: '0.8rem',
+                    padding: '0.75rem',
+                    borderRadius: '6px',
+                    background: 'var(--bg-secondary, rgba(0,0,0,0.2))',
+                    overflow: 'auto',
+                    margin: 0,
+                  }}
+                >
                   {formatJson(fn.body)}
                 </pre>
               </div>
@@ -204,15 +264,39 @@ export default function Functions(): JSX.Element {
 
             {result && (
               <div style={{ marginTop: '0.75rem' }}>
-                <div style={{ display: 'flex', gap: '1rem', marginBottom: '0.5rem', fontSize: '0.8rem' }}>
-                  <span style={{ color: result.status >= 200 && result.status < 300 ? 'var(--success, #22c55e)' : 'var(--error, #ef4444)' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    gap: '1rem',
+                    marginBottom: '0.5rem',
+                    fontSize: '0.8rem',
+                  }}
+                >
+                  <span
+                    style={{
+                      color:
+                        result.status >= 200 && result.status < 300
+                          ? 'var(--success, #22c55e)'
+                          : 'var(--error, #ef4444)',
+                    }}
+                  >
                     Status: {result.status || 'Network Error'}
                   </span>
                   <span style={{ color: 'var(--text-muted)' }}>
                     {result.duration}ms
                   </span>
                 </div>
-                <pre style={{ fontSize: '0.8rem', padding: '0.75rem', borderRadius: '6px', background: 'var(--bg-secondary, rgba(0,0,0,0.2))', overflow: 'auto', maxHeight: '300px', margin: 0 }}>
+                <pre
+                  style={{
+                    fontSize: '0.8rem',
+                    padding: '0.75rem',
+                    borderRadius: '6px',
+                    background: 'var(--bg-secondary, rgba(0,0,0,0.2))',
+                    overflow: 'auto',
+                    maxHeight: '300px',
+                    margin: 0,
+                  }}
+                >
                   {formatJson(result.body)}
                 </pre>
               </div>
