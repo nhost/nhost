@@ -8,6 +8,46 @@ import { Card, CardGroup } from '@components';
 
 Nhost Storage is a file storage service seamlessly integrated with the [GraphQL API](/products/graphql) and its [Permission System](/products/graphql/permissions). Files are stored on an S3-compatible backend, metadata is managed through GraphQL, and access control is handled by the same Hasura permission system used for the rest of your data. Files are served through a [CDN](/products/storage/cdn) for optimal performance.
 
+## How Storage Works
+
+When you upload a file, the Storage service validates the user's JWT, checks permissions via Hasura, stores the file content in S3, and records metadata in the `storage.files` table. Downloads follow the same path in reverse -- permissions are checked before the file is served. See [Architecture](/products/storage/architecture) for the full request flow.
+
+```typescript
+// Upload a file
+const response = await nhost.storage.uploadFiles({
+  'bucket-id': 'default',
+  'file[]': [file],
+})
+```
+
+```typescript
+// Download a file
+const { body } = await nhost.storage.getFile(fileId)
+const url = URL.createObjectURL(body)
+```
+
+## Buckets
+
+[Buckets](/products/storage/buckets) are containers that organize files and group configuration. Each bucket can have its own size limits, cache settings, and pre-signed URL configuration. Every project includes a `default` bucket; you can create additional buckets for different use cases (e.g., `avatars`, `documents`, `communities`).
+
+## Permissions
+
+[Permissions](/products/storage/permissions) follow a **Zero Trust** model -- no role has access by default. You grant access by configuring `insert`, `select`, and `delete` permissions on the `storage.files` table in Hasura. The same session variables (`X-Hasura-User-Id`, `X-Hasura-Role`, custom claims) available in your GraphQL permissions also work for storage.
+
+## Image Transformation
+
+Images can be [transformed on-the-fly](/products/storage/image-transformation) by adding query parameters to file URLs. Resize, change format (WebP, AVIF), adjust quality, and apply blur -- all cached at the CDN layer.
+
+```typescript
+// Fetch a 100x100 WebP thumbnail
+const { body } = await nhost.storage.getFile(fileId, {
+  w: 100,
+  h: 100,
+  f: 'webp',
+})
+const url = URL.createObjectURL(body)
+```
+
 ## Concepts
 
 <CardGroup cols={3}>
