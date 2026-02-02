@@ -108,7 +108,6 @@ const EditPermissionsForm = dynamic(
   },
 );
 
-/* Edit Permissions for functions - not yet implemented
 const EditFunctionPermissionsForm = dynamic(
   () =>
     import(
@@ -119,7 +118,6 @@ const EditFunctionPermissionsForm = dynamic(
     loading: () => <FormActivityIndicator />,
   },
 );
-*/
 
 export interface DataBrowserSidebarProps {
   className?: string;
@@ -553,7 +551,6 @@ function DataBrowserSidebarContent({
     });
   }
 
-  /* Edit Permissions for functions - not yet implemented
   function handleEditFunctionPermissionClick(
     schema: string,
     functionName: string,
@@ -582,7 +579,6 @@ function DataBrowserSidebarContent({
       },
     });
   }
-  */
 
   function handleEditSettingsClick(
     schema: string,
@@ -784,6 +780,19 @@ function DataBrowserSidebarContent({
                               },
                             )}
                             isSelectedNotSchemaLocked={!isSelectedSchemaLocked}
+                            onViewPermissions={() =>
+                              handleEditFunctionPermissionClick(
+                                dbObject.table_schema,
+                                dbObject.table_name,
+                                true,
+                              )
+                            }
+                            onEditPermissions={() =>
+                              handleEditFunctionPermissionClick(
+                                dbObject.table_schema,
+                                dbObject.table_name,
+                              )
+                            }
                             onEditFunction={() =>
                               openDrawer({
                                 title: 'Edit Function',

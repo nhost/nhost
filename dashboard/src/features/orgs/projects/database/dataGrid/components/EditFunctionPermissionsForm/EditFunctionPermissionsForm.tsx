@@ -1,13 +1,9 @@
+import { Check, X } from 'lucide-react';
 import NavLink from 'next/link';
 import { useDialog } from '@/components/common/DialogProvider';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Alert } from '@/components/ui/v2/Alert';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { CheckIcon } from '@/components/ui/v2/icons/CheckIcon';
-import { XIcon } from '@/components/ui/v2/icons/XIcon';
-import { Link } from '@/components/ui/v2/Link';
-import { Text } from '@/components/ui/v2/Text';
+import { Alert, AlertDescription } from '@/components/ui/v3/alert';
+import { Button } from '@/components/ui/v3/button';
+import { Spinner } from '@/components/ui/v3/spinner';
 import {
   Table,
   TableBody,
@@ -123,9 +119,9 @@ export default function EditFunctionPermissionsForm({
     metadataStatus === 'loading'
   ) {
     return (
-      <Box className="flex h-full items-center justify-center p-6">
-        <ActivityIndicator label="Loading function permissions..." />
-      </Box>
+      <div className="box flex h-full items-center justify-center p-6">
+        <Spinner>Loading function permissions...</Spinner>
+      </div>
     );
   }
 
@@ -164,32 +160,48 @@ export default function EditFunctionPermissionsForm({
     );
   };
 
-  const description =
-    inferFunctionPermissions === false
-      ? `Permissions will be inherited from the SELECT permissions of the referenced table (${referencedTable}) by default.\n\nThe function will be exposed to the role if SELECT permissions are enabled and function permissions are enabled for the role.`
-      : `Permissions will be inherited from the SELECT permissions of the referenced table (${referencedTable}) by default.\n\nFunction will be exposed automatically if there are SELECT permissions for the role. To expose query functions to roles explicitly, set HASURA_GRAPHQL_INFER_FUNCTION_PERMISSIONS=false on the server.`;
+  const description = (
+    <>
+      Permissions will be inherited from the SELECT permissions of the
+      referenced table ({referencedTable}) by default.
+      {inferFunctionPermissions === false ? (
+        <>
+          <br />
+          <br />
+          The function will be exposed to the role if SELECT permissions are
+          enabled and function permissions are enabled for the role.
+        </>
+      ) : (
+        <>
+          <br />
+          <br />
+          Function will be exposed automatically if there are SELECT permissions
+          for the role. To expose query functions to roles explicitly, set{' '}
+          <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-sm">
+            HASURA_GRAPHQL_INFER_FUNCTION_PERMISSIONS=false
+          </code>{' '}
+          on the server.
+        </>
+      )}
+    </>
+  );
 
   return (
-    <Box
-      className="flex flex-auto flex-col content-between overflow-hidden border-t-1"
-      sx={{ backgroundColor: 'background.default' }}
-    >
+    <div className="box flex flex-auto flex-col content-between overflow-hidden border-t bg-background">
       <div className="flex-auto">
-        <Box className="grid grid-flow-row content-start gap-6 overflow-y-auto border-b-1 p-6">
+        <div className="box grid grid-flow-row content-start gap-6 overflow-y-auto border-b p-6">
           <div className="grid grid-flow-row gap-2">
-            <Text component="h2" className="!font-bold">
-              Roles & Permissions overview
-            </Text>
+            <h2 className="font-bold">Roles & Permissions overview</h2>
 
-            <Text>
+            <p>
               Click on a permission cell to toggle function permissions for a
               role.
-            </Text>
+            </p>
           </div>
 
-          <Box className="grid grid-flow-row gap-4 border-b-1 pb-4">
-            <Text className="whitespace-pre-line text-sm">{description}</Text>
-          </Box>
+          <div className="box grid grid-flow-row gap-4 border-b pb-4">
+            <p className="text-sm">{description}</p>
+          </div>
 
           <div className="rounded-md border">
             <Table>
@@ -205,7 +217,7 @@ export default function EditFunctionPermissionsForm({
                   <TableCell className="font-medium">admin</TableCell>
                   <TableCell className="text-center">
                     <div className="flex items-center justify-center">
-                      <CheckIcon />
+                      <Check className="h-4 w-4" />
                     </div>
                   </TableCell>
                 </TableRow>
@@ -221,7 +233,11 @@ export default function EditFunctionPermissionsForm({
                       <TableCell className="text-center">
                         {disabled ? (
                           <div className="flex items-center justify-center">
-                            {hasPerm ? <CheckIcon /> : <XIcon />}
+                            {hasPerm ? (
+                              <Check className="h-4 w-4" />
+                            ) : (
+                              <X className="h-4 w-4" />
+                            )}
                           </div>
                         ) : (
                           <button
@@ -232,7 +248,11 @@ export default function EditFunctionPermissionsForm({
                               // Toggle permission for role
                             }}
                           >
-                            {hasPerm ? <CheckIcon /> : <XIcon />}
+                            {hasPerm ? (
+                              <Check className="h-4 w-4" />
+                            ) : (
+                              <X className="h-4 w-4" />
+                            )}
                           </button>
                         )}
                       </TableCell>
@@ -243,31 +263,40 @@ export default function EditFunctionPermissionsForm({
             </Table>
           </div>
 
-          <Alert className="text-left">
-            Please go to the{' '}
-            <NavLink
-              href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/roles-and-permissions`}
-              passHref
-              legacyBehavior
-            >
-              <Link
-                href="settings/roles-and-permissions"
-                underline="hover"
-                onClick={closeDrawerWithDirtyGuard}
-              >
-                Settings page
-              </Link>
-            </NavLink>{' '}
-            to add and delete roles.
+          <Alert>
+            <AlertDescription className="space-y-2">
+              <p>
+                Please go to the{' '}
+                <NavLink
+                  href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/roles-and-permissions`}
+                  className="text-primary underline-offset-4 hover:underline"
+                  onClick={closeDrawerWithDirtyGuard}
+                >
+                  Roles and Permissions
+                </NavLink>{' '}
+                page to add and delete roles.
+              </p>
+              <p>
+                To configure infer function permissions, go to{' '}
+                <NavLink
+                  href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/hasura`}
+                  className="text-primary underline-offset-4 hover:underline"
+                  onClick={closeDrawerWithDirtyGuard}
+                >
+                  Hasura Settings
+                </NavLink>
+                .
+              </p>
+            </AlertDescription>
           </Alert>
-        </Box>
+        </div>
       </div>
 
-      <Box className="grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 p-2">
-        <Button variant="borderless" color="secondary" onClick={onCancel}>
+      <div className="box grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t p-2">
+        <Button variant="ghost" onClick={onCancel}>
           Cancel
         </Button>
-      </Box>
-    </Box>
+      </div>
+    </div>
   );
 }

@@ -1,4 +1,4 @@
-import { Ellipsis, Settings, SquarePen, Trash2 } from 'lucide-react';
+import { Ellipsis, Settings, SquarePen, Trash2, Users } from 'lucide-react';
 import { Button } from '@/components/ui/v3/button';
 import {
   DropdownMenu,
@@ -21,9 +21,7 @@ type Props = {
   disabled: boolean;
   isSelectedNotSchemaLocked: boolean;
   onEditFunction: () => void;
-  /** Not yet implemented - dropdown item commented out */
   onEditPermissions?: () => void;
-  /** Not yet implemented - dropdown item commented out */
   onViewPermissions?: () => void;
   onEditSettings: () => void;
   onViewSettings: () => void;
@@ -39,8 +37,8 @@ function FunctionActions({
   disabled,
   isSelectedNotSchemaLocked,
   onEditFunction,
-  onEditPermissions: _onEditPermissions,
-  onViewPermissions: _onViewPermissions,
+  onEditPermissions,
+  onViewPermissions,
   onEditSettings,
   onViewSettings,
   onDelete,
@@ -74,14 +72,12 @@ function FunctionActions({
       <DropdownMenuContent side="bottom" align="start" className="w-52 p-0">
         {isGitHubConnected ? (
           <>
-            {/* View Permissions for functions - not yet implemented
             <DropdownMenuItem
               className={menuItemClassName}
               onClick={onViewPermissions}
             >
               <Users className="h-4 w-4" /> <span>View Permissions</span>
             </DropdownMenuItem>
-            */}
             <DropdownMenuItem
               className={menuItemClassName}
               onClick={onViewSettings}
@@ -99,14 +95,12 @@ function FunctionActions({
                 <SquarePen className="h-4 w-4" /> <span>Edit Function</span>
               </DropdownMenuItem>
             )}
-            {/* Edit Permissions for functions - not yet implemented
             <DropdownMenuItem
               className={menuItemClassName}
               onClick={onEditPermissions}
             >
               <Users className="h-4 w-4" /> <span>Edit Permissions</span>
             </DropdownMenuItem>
-            */}
             <DropdownMenuItem
               className={menuItemClassName}
               onClick={onEditSettings}
