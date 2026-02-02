@@ -98,6 +98,17 @@ const EditTableSettingsForm = dynamic(
   },
 );
 
+const TableInfoView = dynamic(
+  () =>
+    import(
+      '@/features/orgs/projects/database/dataGrid/components/TableInfoView/TableInfoView'
+    ),
+  {
+    ssr: false,
+    loading: () => <FormActivityIndicator />,
+  },
+);
+
 export interface DatabaseObject {
   table_schema: string;
   table_name: string;
@@ -559,6 +570,23 @@ export function useDataBrowserActions({
     });
   }
 
+  function handleViewTableInfoClick(schema: string, table: string) {
+    openDrawer({
+      title: (
+        <span className="inline-grid grid-flow-col items-center gap-2">
+          Table Info
+          <InlineCode className="!text-sm+ font-normal">{table}</InlineCode>
+        </span>
+      ),
+      component: <TableInfoView schema={schema} table={table} />,
+      props: {
+        PaperProps: {
+          className: 'lg:w-[50%] lg:max-w-3xl',
+        },
+      },
+    });
+  }
+
   return {
     // State
     removableTable,
@@ -583,6 +611,9 @@ export function useDataBrowserActions({
     openEditViewDrawer,
     openEditFunctionDrawer,
     openCreateTableDrawer,
+
+    // Info actions
+    handleViewTableInfoClick,
   };
 }
 

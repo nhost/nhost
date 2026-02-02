@@ -1,4 +1,11 @@
-import { Ellipsis, Settings, SquarePen, Trash2, Users } from 'lucide-react';
+import {
+  Ellipsis,
+  Info,
+  Settings,
+  SquarePen,
+  Trash2,
+  Users,
+} from 'lucide-react';
 import { Button } from '@/components/ui/v3/button';
 import {
   DropdownMenu,
@@ -26,6 +33,7 @@ type Props = {
   onEditTable: () => void;
   onEditSettings: () => void;
   onViewSettings: () => void;
+  onViewInfo: () => void;
 };
 
 function TableActions({
@@ -42,6 +50,7 @@ function TableActions({
   onEditTable,
   onEditSettings,
   onViewSettings,
+  onViewInfo,
 }: Props) {
   const { project } = useProject();
   const isGitHubConnected = !!project?.githubRepository;
@@ -74,6 +83,12 @@ function TableActions({
           <>
             <DropdownMenuItem
               className={menuItemClassName}
+              onClick={onViewInfo}
+            >
+              <Info className="h-4 w-4" /> <span>View Info</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className={menuItemClassName}
               onClick={onViewPermissions}
             >
               <Users className="h-4 w-4" /> <span>View Permissions</span>
@@ -87,6 +102,12 @@ function TableActions({
           </>
         ) : (
           <>
+            <DropdownMenuItem
+              className={menuItemClassName}
+              onClick={onViewInfo}
+            >
+              <Info className="h-4 w-4" /> <span>View Info</span>
+            </DropdownMenuItem>
             {isSelectedNotSchemaLocked && (
               <DropdownMenuItem
                 className={menuItemClassName}

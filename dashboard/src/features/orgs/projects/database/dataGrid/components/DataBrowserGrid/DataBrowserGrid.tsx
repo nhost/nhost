@@ -181,12 +181,10 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
   const materializedViews = databaseData?.materializedViews ?? [];
   const isViewOrMaterializedView =
     views.some(
-      (v) =>
-        v.table_schema === schemaSlug && v.table_name === tableSlug,
+      (v) => v.table_schema === schemaSlug && v.table_name === tableSlug,
     ) ||
     materializedViews.some(
-      (mv) =>
-        mv.table_schema === schemaSlug && mv.table_name === tableSlug,
+      (mv) => mv.table_schema === schemaSlug && mv.table_name === tableSlug,
     );
 
   const { data, status, error, refetch } = useTableQuery(

@@ -45,7 +45,11 @@ export interface UseFunctionPermissionQueryOptions {
  */
 export default function useFunctionPermissionQuery(
   _queryKey: unknown,
-  { schema, functionName, dataSource = 'default' }: UseFunctionPermissionQueryOptions,
+  {
+    schema,
+    functionName,
+    dataSource = 'default',
+  }: UseFunctionPermissionQueryOptions,
 ) {
   const {
     data: metadata,
