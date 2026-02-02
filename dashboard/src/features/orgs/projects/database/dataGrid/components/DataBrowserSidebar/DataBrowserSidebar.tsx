@@ -859,9 +859,11 @@ function DataBrowserSidebarContent({
                                 component: (
                                   <EditViewForm
                                     onSubmit={async (tableName) => {
-                                      await queryClient.refetchQueries([
-                                        `${dataSourceSlug}.${dbObject.table_schema}.${tableName}`,
-                                      ]);
+                                      await queryClient.refetchQueries({
+                                        queryKey: [
+                                          `${dataSourceSlug}.${dbObject.table_schema}.${tableName}`,
+                                        ],
+                                      });
                                       await refetch();
                                     }}
                                     schema={dbObject.table_schema}

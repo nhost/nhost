@@ -174,7 +174,12 @@ export default function FunctionDefinitionView({
               <h3 className="font-semibold text-base">
                 {functionMetadata.functionName}
               </h3>
-              <p className="text-muted-foreground text-sm">
+              {functionMetadata.comment && (
+                <p className="mt-1 text-muted-foreground text-sm">
+                  {functionMetadata.comment}
+                </p>
+              )}
+              <p className="mt-1 text-muted-foreground text-sm">
                 {functionMetadata.language === 'sql'
                   ? 'SQL function'
                   : `${functionMetadata.language.toUpperCase()} function`}{' '}
@@ -191,12 +196,16 @@ export default function FunctionDefinitionView({
                   <>
                     SETOF{' '}
                     <InlineCode className="bg-opacity-80 px-1 text-xs">
-                      {functionMetadata.returnTypeName}
+                      {functionMetadata.returnTableName
+                        ? `${functionMetadata.returnTableSchema}.${functionMetadata.returnTableName}`
+                        : functionMetadata.returnTypeName}
                     </InlineCode>
                   </>
                 ) : (
                   <InlineCode className="bg-opacity-80 px-1 text-xs">
-                    {functionMetadata.returnTypeName}
+                    {functionMetadata.returnTableName
+                      ? `${functionMetadata.returnTableSchema}.${functionMetadata.returnTableName}`
+                      : functionMetadata.returnTypeName}
                   </InlineCode>
                 )}
               </p>
@@ -210,6 +219,12 @@ export default function FunctionDefinitionView({
               {functionMetadata.returnsSet && (
                 <Badge variant="outline" className="font-medium">
                   SETOF {functionMetadata.returnTypeName}
+                </Badge>
+              )}
+              {functionMetadata.returnTableName && (
+                <Badge variant="outline" className="font-medium">
+                  Returns table: {functionMetadata.returnTableSchema}.
+                  {functionMetadata.returnTableName}
                 </Badge>
               )}
               {functionMetadata.functionType === 'STABLE' ||
@@ -249,7 +264,7 @@ export default function FunctionDefinitionView({
                         <Input
                           id={`param-${index}`}
                           type="text"
-                          placeholder={`${param.type}${param.schema ? ` (${param.schema})` : ''}`}
+                          placeholder={param.displayType}
                           value={parameterValues[index] || ''}
                           onChange={(e) =>
                             setParameterValues({

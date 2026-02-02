@@ -15,7 +15,10 @@ export interface FetchFunctionDefinitionOptions
 
 export interface FunctionParameter {
   name: string | null;
+  /** Raw type name (e.g., "int4", "varchar") */
   type: string;
+  /** Human-readable type name (e.g., "integer", "character varying(255)") */
+  displayType: string;
   schema: string | null;
 }
 
@@ -37,6 +40,12 @@ export interface FetchFunctionDefinitionReturnType {
     language: string;
     parameters: FunctionParameter[];
     defaultArgsCount: number;
+    /** Table name if the function returns a composite type from a table */
+    returnTableName: string | null;
+    /** Schema of the return table */
+    returnTableSchema: string | null;
+    /** Function comment from pg_catalog */
+    comment: string | null;
   } | null;
   /**
    * Error message if any.
@@ -67,7 +76,7 @@ export default async function fetchFunctionDefinition({
         getPreparedReadOnlyHasuraQuery(
           dataSource,
           `SELECT row_to_json(func_data) as data FROM (
-            SELECT 
+            SELECT
               pg_get_functiondef(p.oid) as function_definition,
               p.proname::text as function_name,
               n.nspname::text as function_schema,
@@ -81,12 +90,29 @@ export default async function fetchFunctionDefinition({
               rtn.nspname::text as return_type_schema,
               p.proretset as returns_set,
               l.lanname::text as language,
-              (SELECT COALESCE(json_agg(json_build_object('name', pt.typname, 'schema', pns.nspname) ORDER BY pat.ordinality), '[]'::json)
+              (SELECT COALESCE(json_agg(json_build_object(
+                'name', pt.typname,
+                'schema', pns.nspname,
+                'display_type', format_type(pat.oid, NULL)
+               ) ORDER BY pat.ordinality), '[]'::json)
                FROM unnest(COALESCE(p.proallargtypes, p.proargtypes::oid[])) WITH ORDINALITY pat(oid, ordinality)
                LEFT JOIN pg_type pt ON pt.oid = pat.oid
                LEFT JOIN pg_namespace pns ON pt.typnamespace = pns.oid) as input_arg_types,
               to_json(COALESCE(p.proargnames, ARRAY[]::text[])) as input_arg_names,
-              p.pronargdefaults as default_args_count
+              p.pronargdefaults as default_args_count,
+              CASE
+                WHEN rt.typrelid != 0 THEN
+                  (SELECT c.relname FROM pg_class c WHERE c.oid = rt.typrelid)
+                ELSE NULL
+              END AS return_table_name,
+              CASE
+                WHEN rt.typrelid != 0 THEN
+                  (SELECT ns.nspname FROM pg_class c
+                   JOIN pg_namespace ns ON c.relnamespace = ns.oid
+                   WHERE c.oid = rt.typrelid)
+                ELSE NULL
+              END AS return_table_schema,
+              pg_catalog.obj_description(p.oid, 'pg_proc') AS comment
             FROM pg_proc p
             JOIN pg_namespace n ON p.pronamespace = n.oid
             JOIN pg_type rt ON rt.oid = p.prorettype
@@ -141,8 +167,11 @@ export default async function fetchFunctionDefinition({
   const functionDefinition = result.function_definition || '';
 
   // Parse parameters
-  const inputArgTypes: Array<{ name: string; schema: string }> =
-    result.input_arg_types || [];
+  const inputArgTypes: Array<{
+    name: string;
+    schema: string;
+    display_type: string;
+  }> = result.input_arg_types || [];
   const inputArgNames: string[] = result.input_arg_names || [];
   const defaultArgsCount: number = result.default_args_count || 0;
 
@@ -150,6 +179,7 @@ export default async function fetchFunctionDefinition({
     (argType, index) => ({
       name: inputArgNames[index] || null,
       type: argType.name,
+      displayType: argType.display_type,
       schema: argType.schema,
     }),
   );
@@ -171,6 +201,9 @@ export default async function fetchFunctionDefinition({
         language: result.language,
         parameters,
         defaultArgsCount,
+        returnTableName: result.return_table_name || null,
+        returnTableSchema: result.return_table_schema || null,
+        comment: result.comment || null,
       }
     : null;
 
