@@ -6,12 +6,11 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { Function } from './function';
-import type { FunctionConfiguration } from './functionConfiguration';
 
-export interface SetFunctionCustomizationArgs {
+export interface DropFunctionPermissionArgs {
   function: Function;
-  /** Configuration for the function */
-  configuration?: FunctionConfiguration;
+  /** Name of the role */
+  role: string;
   /** Name of the source database of the function */
   source?: string;
 }
