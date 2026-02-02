@@ -1,3 +1,20 @@
+## [cli@1.36.0] - 2026-02-02
+
+### 🚀 Features
+
+- *(cli)* Added mcp tool to list documentation (#3863)
+
+
+### 🐛 Bug Fixes
+
+- *(cli)* Use astro docs as source (#3859)
+- *(cli)* Bump schema (#3872)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump nhost/dashboard to 2.46.3 (#3800)
+
 ## [cli@1.35.0] - 2026-01-28
 
 ### 🚀 Features
