@@ -40,6 +40,7 @@ type Decoder struct {
 	isResolvedReference  bool
 	validator            StructValidator
 	disallowUnknownField bool
+	allowedFieldPrefixes []string
 	allowDuplicateMapKey bool
 	useOrderedMap        bool
 	useJSONUnmarshaler   bool
@@ -287,7 +288,9 @@ func (d *Decoder) addSequenceNodeCommentToMap(node *ast.SequenceNode) {
 			texts = append(texts, comment.Token.Value)
 		}
 		if len(texts) != 0 {
-			d.addCommentToMap(node.Values[0].GetPath(), HeadComment(texts...))
+			if len(node.Values) != 0 {
+				d.addCommentToMap(node.Values[0].GetPath(), HeadComment(texts...))
+			}
 		}
 	}
 }
@@ -462,8 +465,10 @@ func (d *Decoder) nodeToValue(ctx context.Context, node ast.Node) (any, error) {
 			}
 			return v.Interface(), nil
 		}
-		aliasName := n.Value.GetToken().Value
-		return nil, errors.ErrSyntax(fmt.Sprintf("could not find alias %q", aliasName), n.Value.GetToken())
+		if node, exists := d.anchorNodeMap[text]; exists {
+			return d.nodeToValue(ctx, node)
+		}
+		return nil, errors.ErrSyntax(fmt.Sprintf("could not find alias %q", text), n.Value.GetToken())
 	case *ast.LiteralNode:
 		return n.Value.GetValue(), nil
 	case *ast.MappingKeyNode:
@@ -1446,12 +1451,21 @@ func (d *Decoder) decodeStruct(ctx context.Context, dst reflect.Value, src ast.N
 	// Unknown fields are expected (they could be fields from the parent struct).
 	if len(unknownFields) != 0 && d.disallowUnknownField && src.GetToken() != nil {
 		for key, node := range unknownFields {
-			return errors.ErrUnknownField(fmt.Sprintf(`unknown field "%s"`, key), node.GetToken())
+			var ok bool
+			for _, prefix := range d.allowedFieldPrefixes {
+				if strings.HasPrefix(key, prefix) {
+					ok = true
+					break
+				}
+			}
+			if !ok {
+				return errors.ErrUnknownField(fmt.Sprintf(`unknown field "%s"`, key), node.GetToken())
+			}
 		}
 	}
 
 	if d.validator != nil {
-		if err := d.validator.Struct(dst.Addr().Interface()); err != nil {
+		if err := d.validator.Struct(dst.Interface()); err != nil {
 			ev := reflect.ValueOf(err)
 			if ev.Type().Kind() == reflect.Slice {
 				for i := 0; i < ev.Len(); i++ {
@@ -1740,14 +1754,11 @@ func (d *Decoder) decodeMap(ctx context.Context, dst reflect.Value, src ast.Node
 				return err
 			}
 		} else {
-			keyVal, err := d.nodeToValue(ctx, key)
+			keyVal, err := d.createDecodedNewValue(ctx, keyType, reflect.Value{}, key)
 			if err != nil {
 				return err
 			}
-			k = reflect.ValueOf(keyVal)
-			if k.IsValid() && k.Type().ConvertibleTo(keyType) {
-				k = k.Convert(keyType)
-			}
+			k = keyVal
 		}
 
 		if k.IsValid() {
