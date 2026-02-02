@@ -37,7 +37,6 @@ import { useDeleteTableWithToastMutation } from '@/features/orgs/projects/databa
 import { useMetadataQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useMetadataQuery';
 import { isSchemaLocked } from '@/features/orgs/projects/database/dataGrid/utils/schemaHelpers';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { cn, isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import FunctionActions from './FunctionActions';
 import TableActions from './TableActions';
@@ -462,20 +461,17 @@ function DataBrowserSidebarContent({
       // The hook fetches inputArgTypes internally, so we only need to pass schema and functionName
       // The mutation function signature requires inputArgTypes, but the hook handles fetching it internally
       // Type assertion needed because the hook's type signature doesn't reflect that it fetches inputArgTypes
-      const promise = deleteFunction({
+      await deleteFunction({
         schema,
         functionName,
       } as { schema: string; functionName: string; inputArgTypes: never });
-      await execPromiseWithErrorToast(() => promise, {
-        loadingMessage: 'Deleting function...',
-        successMessage: 'Function deleted successfully.',
-        errorMessage: 'An error occurred while deleting the function.',
-      });
 
-      queryClient.removeQueries([
-        `function-definition`,
-        `default.${schema}.${functionName}`,
-      ]);
+      queryClient.removeQueries({
+        queryKey: [
+          'function-definition',
+          `${dataSourceSlug}.${schema}.${functionName}`,
+        ],
+      });
 
       // Note: At this point we can optimisticly assume that the function was
       // removed, so we can improve the UX by removing it from the list right
@@ -857,7 +853,9 @@ function DataBrowserSidebarContent({
                             }
                             onEditView={() =>
                               openDrawer({
-                                title: 'Edit View',
+                                title: isMaterializedView
+                                  ? 'Edit Materialized View'
+                                  : 'Edit View',
                                 component: (
                                   <EditViewForm
                                     onSubmit={async (tableName) => {
