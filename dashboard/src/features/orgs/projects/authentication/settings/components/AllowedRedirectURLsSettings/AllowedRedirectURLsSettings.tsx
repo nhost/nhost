@@ -133,7 +133,7 @@ export default function AllowedRedirectURLsSettings() {
               loading: formState.isSubmitting,
             },
           }}
-          docsLink="https://docs.nhost.io/products/auth/overview#allowed-redirect-urls"
+          docsLink="https://docs.nhost.io/products/auth/client_and_redirect_urls#allowed-redirect-urls"
           className="grid grid-flow-row px-4 lg:grid-cols-5"
         >
           <Input

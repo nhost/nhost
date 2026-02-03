@@ -58,7 +58,7 @@ export default function StorageFormSection() {
                 <a
                   target="_blank"
                   rel="noopener noreferrer"
-                  href="https://docs.nhost.io/guides/run/resources#storage"
+                  href="https://docs.nhost.io/products/run/resources#storage"
                   className="underline"
                 >
                   Storage

@@ -170,7 +170,7 @@ export default function BlockedEmailSettings() {
               loading: formState.isSubmitting,
             },
           }}
-          docsLink="https://docs.nhost.io/products/auth/overview#allowed-emails-and-domains"
+          docsLink="https://docs.nhost.io/products/auth/restricting_emails_and_domains#blocked-emails-and-domains"
           switchId="enabled"
           showSwitch
           className={twMerge(
