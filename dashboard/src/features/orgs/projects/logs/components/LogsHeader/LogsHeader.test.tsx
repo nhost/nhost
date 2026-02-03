@@ -67,9 +67,9 @@ describe('LogsHeader', () => {
     waitFor(() => {
       expect(screen.getByTestId('ServicePicker')).toBeInTheDocument();
     });
-    waitFor(async () => {
-      await user.click(await screen.findByTestId('ServicePicker'));
-    });
+    await TestUserEvent.fireClickEvent(
+      await screen.findByTestId('ServicePicker')
+    );
 
     waitFor(async () => {
       expect(screen.getByText('run-service')).toBeInTheDocument();
