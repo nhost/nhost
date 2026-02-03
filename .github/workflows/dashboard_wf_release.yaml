@@ -88,7 +88,7 @@ jobs:
       - name: Bump version in source code
         run: |
           find cli -type f -exec sed -i 's/"nhost\/dashboard:[^"]*"/"nhost\/dashboard:${{ inputs.VERSION }}"/g' {} +
-          sed -i 's/nhost\/dashboard:[^)]*/nhost\/dashboard:${{ inputs.VERSION }}/g' docs/reference/cli/commands.mdx
+          sed -i 's/nhost\/dashboard:[^)]*/nhost\/dashboard:${{ inputs.VERSION }}/g' docs/src/content/docs/reference/cli/commands.mdx
 
       - name: "Create Pull Request"
         uses: peter-evans/create-pull-request@v8

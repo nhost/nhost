@@ -17,6 +17,7 @@ const storageAPISidebarGroup = createOpenAPISidebarGroup();
 
 // https://astro.build/config
 export default defineConfig({
+  site: 'https://docs.nhost.io',
   cacheDir: path.resolve(__dirname, '.astro'),
   vite: {
     cacheDir: path.resolve(__dirname, '.vite'),

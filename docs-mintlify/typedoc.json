@@ -10,7 +10,7 @@
     "../packages/nhost-js/src/storage/index.ts"
   ],
   "entryPointStrategy": "expand",
-  "out": "src/content/docs/reference/javascript/nhost-js",
+  "out": "reference/javascript/nhost-js",
 
   "includeVersion": true,
   "excludePrivate": true,
@@ -32,7 +32,7 @@
   "titleLink": "sdk-reference",
 
   "entryFileName": null,
-  "fileExtension": ".md",
+  "fileExtension": ".mdx",
 
   "hidePageTitle": true,
   "hidePageHeader": true,

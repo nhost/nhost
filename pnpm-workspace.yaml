@@ -1,7 +1,6 @@
 packages:
   - dashboard
   - docs
-  - docs-starlight
   - packages/**
   - examples/demos/**
   - examples/guides/**

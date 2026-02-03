@@ -1,6 +1,6 @@
 { self, pkgs, nixops-lib, nix-filter }:
 let
-  name = "docs";
+  name = "docs-starlight";
   version = "0.0.0-dev";
   created = "1970-01-01T00:00:00Z";
   submodule = "${name}";
@@ -11,7 +11,7 @@ let
 
     src = nix-filter.lib.filter {
       root = ../.;
-      include = [
+      include = with nix-filter.lib; [
         ".npmrc"
         "package.json"
         "pnpm-workspace.yaml"
@@ -29,7 +29,9 @@ let
       ".npmrc"
       ".prettierignore"
       ".prettierrc.js"
+      ".gitignore"
       "audit-ci.jsonc"
+      "biome.json"
       "package.json"
       "pnpm-workspace.yaml"
       "pnpm-lock.yaml"
@@ -48,12 +50,12 @@ let
     ];
   };
 
-  checkDeps = [
+  checkDeps = with pkgs; [
     self.packages.${pkgs.stdenv.hostPlatform.system}.cli
-    self.packages.${pkgs.stdenv.hostPlatform.system}.mintlify-openapi
+    vale
   ];
 
-  buildInputs = with pkgs; [ nodejs mintlify ];
+  buildInputs = with pkgs; [ nodejs ];
 
   nativeBuildInputs = with pkgs; [ pnpm cacert ];
 in
