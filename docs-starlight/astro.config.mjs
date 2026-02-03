@@ -456,7 +456,6 @@ export default defineConfig({
               link: '/platform/',
               icon: 'laptop',
               items: [
-                { label: 'Platform', slug: 'platform' },
                 {
                   label: 'Cloud',
                   collapsed: false,

@@ -214,42 +214,34 @@ html:not([class~="dark"]) .welcome-get-started {
 }
 
 /* Top-level direct links (topic overview - e.g., "Getting Started", "Platform") */
-/* PlanetScale-style highlighted sidebar item */
 .sidebar-content ul.top-level > li > a {
   display: block;
   padding: 0.5rem 0.75rem;
   margin: 0 -0.75rem 0.5rem -0.75rem;
   font-size: 0.875rem;
   font-weight: 500;
-  color: var(--sl-color-gray-1);
+  color: var(--sl-color-gray-2);
   text-decoration: none;
-  background-color: var(--sl-color-gray-5);
   border-radius: 0.375rem;
-  transition: color 0.15s, background-color 0.15s;
+  transition:
+    color 0.15s,
+    background-color 0.15s;
 }
 
 .sidebar-content ul.top-level > li > a:hover {
   color: var(--sl-color-white);
-  background-color: var(--sl-color-gray-4);
 }
 
-/* Current page - highlighted with accent color */
+/* Current page - highlighted with background */
 .sidebar-content a[aria-current="page"],
 .sidebar-content a[aria-current="page"]:hover,
 .sidebar-content a[aria-current="page"]:focus {
   color: var(--sl-color-text-accent) !important;
   font-weight: 500 !important;
-}
-
-/* Keep background for top-level topic link when active */
-.sidebar-content ul.top-level > li > a[aria-current="page"],
-.sidebar-content ul.top-level > li > a[aria-current="page"]:hover {
   background-color: var(--sl-color-gray-5) !important;
-}
-
-/* Regular sidebar items (not top-level) should have transparent background when active */
-.sidebar-content ul.top-level > li > details a[aria-current="page"] {
-  background-color: transparent !important;
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.75rem !important;
+  margin: 0 -0.75rem !important;
 }
 
 /* Top-level section groups */
@@ -419,7 +411,6 @@ html:not([class~="dark"]) .welcome-get-started {
 .pagination-links .link-title {
   font-size: 0.8125rem;
 }
-
 
 /* Keep the caret smaller and aligned */
 .sidebar-content ul:not(.top-level) li details > summary .caret {
@@ -755,22 +746,31 @@ mobile-starlight-toc .toggle {
   margin-inline: auto;
 }
 
-/* Header needs to be full-width with content constrained */
+/* Header spans full width, inner content constrained */
 header.header {
   width: 100%;
-  max-width: var(--custom-max-width);
-  margin-inline: auto;
-  left: 50% !important;
-  transform: translateX(-50%);
+  left: 0 !important;
+  right: 0 !important;
 }
 
-/* Subheader follows header width */
+header.header > .header {
+  max-width: var(--custom-max-width);
+  margin-inline: auto;
+}
+
+/* Subheader spans full width, inner content constrained */
 @media (min-width: 50rem) {
   .subheader-nav {
+    left: 0 !important;
+    right: 0 !important;
+  }
+
+  .subheader-inner {
     max-width: var(--custom-max-width);
-    left: 50% !important;
-    right: auto !important;
-    transform: translateX(-50%);
+    margin-inline: auto;
+    width: 100%;
+    display: flex;
+    align-items: stretch;
   }
 }
 
@@ -807,7 +807,7 @@ html[data-has-hero]:not([data-has-sidebar]) .main-pane {
   padding-inline-start: 0 !important;
 }
 
-/* Prevent scrolling on splash pages when content fits */
+/* Allow scrolling on splash pages only when content overflows */
 html[data-has-hero]:not([data-has-sidebar]) body {
-  overflow: hidden;
+  overflow-y: auto;
 }
