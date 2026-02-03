@@ -641,6 +641,8 @@ components:
         - $ref: "#/components/schemas/AddRemoteSchemaStep"
         - $ref: "#/components/schemas/CreateEventTriggerStep"
         - $ref: "#/components/schemas/DeleteEventTriggerStep"
+        - $ref: "#/components/schemas/CreateFunctionPermissionStep"
+        - $ref: "#/components/schemas/DropFunctionPermissionStep"
 
     MigrationRequest:
       type: object

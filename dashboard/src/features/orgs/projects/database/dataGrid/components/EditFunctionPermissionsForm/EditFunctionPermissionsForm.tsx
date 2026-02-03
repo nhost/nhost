@@ -19,7 +19,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/v3/table';
-import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useFunctionCustomizationQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionCustomizationQuery';
 import { useFunctionPermissionQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionPermissionQuery';
@@ -29,10 +28,7 @@ import { useMetadataQuery } from '@/features/orgs/projects/database/dataGrid/hoo
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import {
-  useGetHasuraSettingsQuery,
-  useGetRemoteAppRolesQuery,
-} from '@/utils/__generated__/graphql';
+import { useGetHasuraSettingsQuery } from '@/utils/__generated__/graphql';
 import { triggerToast } from '@/utils/toast';
 
 export interface EditFunctionPermissionsFormProps {
@@ -96,13 +92,6 @@ export default function EditFunctionPermissionsForm({
       },
     );
 
-  const client = useRemoteApplicationGQLClient();
-  const {
-    data: rolesData,
-    loading: rolesLoading,
-    error: rolesError,
-  } = useGetRemoteAppRolesQuery({ client });
-
   const {
     data: functionPermissionData,
     status: permissionStatus,
@@ -159,7 +148,6 @@ export default function EditFunctionPermissionsForm({
     hasuraSettingsLoading ||
     isLoadingFunctionConfig ||
     isLoadingFunctionData ||
-    rolesLoading ||
     permissionStatus === 'loading' ||
     metadataStatus === 'loading'
   ) {
@@ -170,10 +158,6 @@ export default function EditFunctionPermissionsForm({
     );
   }
 
-  if (rolesError) {
-    throw rolesError;
-  }
-
   if (permissionError) {
     throw permissionError;
   }
@@ -182,10 +166,43 @@ export default function EditFunctionPermissionsForm({
     throw metadataError;
   }
 
-  const allRoles = [
-    'public',
-    ...(rolesData?.authRoles?.map(({ role: authRole }) => authRole) || []),
-  ];
+  // Collect all roles from the system, similar to Hasura console's rolesSelector
+  // Only include roles that have at least one permission configured in metadata
+  // This excludes roles like 'me', 'anonymous' that are in authRoles but have no permissions
+  const metadataRoles = new Set<string>();
+  if (metadata?.tables) {
+    for (const table of metadata.tables) {
+      const permissionTypes = [
+        'insert_permissions',
+        'update_permissions',
+        'select_permissions',
+        'delete_permissions',
+      ] as const;
+
+      for (const permType of permissionTypes) {
+        const perms = table[permType];
+        if (perms) {
+          for (const perm of perms) {
+            if (perm.role && perm.role !== 'admin') {
+              metadataRoles.add(perm.role);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Only use roles from metadata (roles that have permissions configured somewhere)
+  const allRoles = Array.from(metadataRoles).sort((a, b) => {
+    // Keep 'public' first, then sort alphabetically
+    if (a === 'public') {
+      return -1;
+    }
+    if (b === 'public') {
+      return 1;
+    }
+    return a.localeCompare(b);
+  });
 
   // Find the metadata for the return table to check role permissions
   const returnTableMetadata = metadata?.tables?.find(
@@ -193,32 +210,6 @@ export default function EditFunctionPermissionsForm({
       currentTable.name === returnTableName &&
       currentTable.schema === returnTableSchema,
   );
-
-  // Check if a role has any permission on the return table
-  const roleHasTablePermission = (role: string): boolean => {
-    if (!returnTableMetadata) {
-      return true; // If we can't find the table, show all roles
-    }
-
-    const hasInsert =
-      returnTableMetadata.insert_permissions?.some(
-        (perm) => perm.role === role,
-      ) ?? false;
-    const hasSelect =
-      returnTableMetadata.select_permissions?.some(
-        (perm) => perm.role === role,
-      ) ?? false;
-    const hasUpdate =
-      returnTableMetadata.update_permissions?.some(
-        (perm) => perm.role === role,
-      ) ?? false;
-    const hasDelete =
-      returnTableMetadata.delete_permissions?.some(
-        (perm) => perm.role === role,
-      ) ?? false;
-
-    return hasInsert || hasSelect || hasUpdate || hasDelete;
-  };
 
   // Check if a role has SELECT permission on the return table
   const roleHasSelectPermission = (role: string): boolean => {
@@ -233,8 +224,9 @@ export default function EditFunctionPermissionsForm({
     );
   };
 
-  // Filter roles to only include those with at least one permission on the return table
-  const availableRoles = allRoles.filter(roleHasTablePermission);
+  // Show all roles (like Hasura console), not filtered by SELECT permission
+  // The permission state icons will indicate whether SELECT permission exists
+  const availableRoles = allRoles;
 
   // Get permissions and resourceVersion from the custom hook
   const { permissions, resourceVersion } = functionPermissionData || {
@@ -345,8 +337,8 @@ export default function EditFunctionPermissionsForm({
 
   return (
     <div className="box flex flex-auto flex-col content-between overflow-hidden border-t bg-background">
-      <div className="flex-auto">
-        <div className="box grid grid-flow-row content-start gap-6 overflow-y-auto border-b p-6">
+      <div className="flex-auto overflow-hidden">
+        <div className="box grid h-full grid-flow-row content-start gap-6 overflow-y-auto border-b p-6">
           <div className="grid grid-flow-row gap-2">
             <h2 className="font-bold">Roles & Permissions overview</h2>
 
@@ -415,6 +407,7 @@ export default function EditFunctionPermissionsForm({
                         setExpandedRole(open ? currentRole : null)
                       }
                     >
+                      {/* biome-ignore lint/complexity/noUselessFragments: Fragment required for Collapsible with multiple children */}
                       <>
                         <TableRow>
                           <TableCell className="font-medium">

@@ -310,7 +310,8 @@ function DataBrowserSidebarContent({
                   dbObject.object_type === 'MATERIALIZED VIEW';
                 const isFunction = dbObject.object_type === 'FUNCTION';
                 const isView = dbObject.object_type === 'VIEW';
-                const isEnum = enumTablePaths.has(objectPath);
+                const tablePath = `${dbObject.table_schema}.${dbObject.table_name}`;
+                const isEnum = enumTablePaths.has(tablePath);
                 return (
                   <li className="group pb-1" key={objectPath}>
                     <Button

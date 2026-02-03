@@ -1,11 +1,14 @@
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
 import type { SuccessResponse } from '@/utils/hasura-api/generated/schemas/successResponse';
 import type { ManageFunctionPermissionVariables } from './manageFunctionPermission';
 import manageFunctionPermission from './manageFunctionPermission';
+import type { ManageFunctionPermissionMigrationVariables } from './manageFunctionPermissionMigration';
+import manageFunctionPermissionMigration from './manageFunctionPermissionMigration';
 
 export interface UseManagePermissionMutationOptions {
   /**
@@ -14,7 +17,8 @@ export interface UseManagePermissionMutationOptions {
   mutationOptions?: MutationOptions<
     SuccessResponse | MetadataOperation200,
     unknown,
-    ManageFunctionPermissionVariables
+    | ManageFunctionPermissionVariables
+    | ManageFunctionPermissionMigrationVariables
   >;
 }
 
@@ -28,12 +32,14 @@ export default function useManageFunctionPermissionMutation({
   mutationOptions,
 }: UseManagePermissionMutationOptions = {}) {
   const { project } = useProject();
+  const isPlatform = useIsPlatform();
   const queryClient = useQueryClient();
 
   const mutation = useMutation<
     SuccessResponse | MetadataOperation200,
     unknown,
-    ManageFunctionPermissionVariables
+    | ManageFunctionPermissionVariables
+    | ManageFunctionPermissionMigrationVariables
   >(
     (variables) => {
       const appUrl = generateAppServiceUrl(
@@ -47,8 +53,15 @@ export default function useManageFunctionPermissionMutation({
         adminSecret: project!.config!.hasura.adminSecret,
       } as const;
 
-      return manageFunctionPermission({
-        ...variables,
+      if (isPlatform) {
+        return manageFunctionPermission({
+          ...(variables as ManageFunctionPermissionVariables),
+          ...base,
+        });
+      }
+
+      return manageFunctionPermissionMigration({
+        ...(variables as ManageFunctionPermissionMigrationVariables),
         ...base,
       });
     },
