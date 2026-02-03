@@ -8,7 +8,9 @@
 import type { AddRemoteSchemaPermissionsStep } from './addRemoteSchemaPermissionsStep';
 import type { AddRemoteSchemaStep } from './addRemoteSchemaStep';
 import type { CreateEventTriggerStep } from './createEventTriggerStep';
+import type { CreateFunctionPermissionStep } from './createFunctionPermissionStep';
 import type { DeleteEventTriggerStep } from './deleteEventTriggerStep';
+import type { DropFunctionPermissionStep } from './dropFunctionPermissionStep';
 import type { DropRemoteSchemaPermissionsStep } from './dropRemoteSchemaPermissionsStep';
 import type { RemoveRemoteSchemaStep } from './removeRemoteSchemaStep';
 import type { SetTableCustomizationStep } from './setTableCustomizationStep';
@@ -24,4 +26,6 @@ export type MigrationStep =
   | RemoveRemoteSchemaStep
   | AddRemoteSchemaStep
   | CreateEventTriggerStep
-  | DeleteEventTriggerStep;
+  | DeleteEventTriggerStep
+  | CreateFunctionPermissionStep
+  | DropFunctionPermissionStep;

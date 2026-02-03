@@ -19,7 +19,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/v3/table';
-import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useFunctionCustomizationQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionCustomizationQuery';
 import { useFunctionPermissionQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionPermissionQuery';
@@ -29,10 +28,7 @@ import { useMetadataQuery } from '@/features/orgs/projects/database/dataGrid/hoo
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import {
-  useGetHasuraSettingsQuery,
-  useGetRemoteAppRolesQuery,
-} from '@/utils/__generated__/graphql';
+import { useGetHasuraSettingsQuery } from '@/utils/__generated__/graphql';
 import { triggerToast } from '@/utils/toast';
 
 export interface EditFunctionPermissionsFormProps {
@@ -96,13 +92,6 @@ export default function EditFunctionPermissionsForm({
       },
     );
 
-  const client = useRemoteApplicationGQLClient();
-  const {
-    data: rolesData,
-    loading: rolesLoading,
-    error: rolesError,
-  } = useGetRemoteAppRolesQuery({ client });
-
   const {
     data: functionPermissionData,
     status: permissionStatus,
@@ -159,7 +148,6 @@ export default function EditFunctionPermissionsForm({
     hasuraSettingsLoading ||
     isLoadingFunctionConfig ||
     isLoadingFunctionData ||
-    rolesLoading ||
     permissionStatus === 'loading' ||
     metadataStatus === 'loading'
   ) {
@@ -168,10 +156,6 @@ export default function EditFunctionPermissionsForm({
         <Spinner>Loading function permissions...</Spinner>
       </div>
     );
-  }
-
-  if (rolesError) {
-    throw rolesError;
   }
 
   if (permissionError) {
@@ -183,11 +167,8 @@ export default function EditFunctionPermissionsForm({
   }
 
   // Collect all roles from the system, similar to Hasura console's rolesSelector
-  // This includes roles from authRoles and all table permissions in metadata
-  const authRolesList =
-    rolesData?.authRoles?.map(({ role: authRole }) => authRole) || [];
-
-  // Extract all unique roles from table permissions in metadata
+  // Only include roles that have at least one permission configured in metadata
+  // This excludes roles like 'me', 'anonymous' that are in authRoles but have no permissions
   const metadataRoles = new Set<string>();
   if (metadata?.tables) {
     for (const table of metadata.tables) {
@@ -211,13 +192,15 @@ export default function EditFunctionPermissionsForm({
     }
   }
 
-  // Combine authRoles with metadata roles, ensuring 'public' is included
-  const allRoles = Array.from(
-    new Set(['public', ...authRolesList, ...metadataRoles]),
-  ).sort((a, b) => {
+  // Only use roles from metadata (roles that have permissions configured somewhere)
+  const allRoles = Array.from(metadataRoles).sort((a, b) => {
     // Keep 'public' first, then sort alphabetically
-    if (a === 'public') return -1;
-    if (b === 'public') return 1;
+    if (a === 'public') {
+      return -1;
+    }
+    if (b === 'public') {
+      return 1;
+    }
     return a.localeCompare(b);
   });
 
@@ -424,6 +407,7 @@ export default function EditFunctionPermissionsForm({
                         setExpandedRole(open ? currentRole : null)
                       }
                     >
+                      {/* biome-ignore lint/complexity/noUselessFragments: Fragment required for Collapsible with multiple children */}
                       <>
                         <TableRow>
                           <TableCell className="font-medium">
