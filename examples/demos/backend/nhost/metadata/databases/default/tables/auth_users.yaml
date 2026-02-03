@@ -92,6 +92,13 @@ object_relationships:
     using:
       foreign_key_constraint_on: default_role
 array_relationships:
+  - name: community_memberships
+    using:
+      foreign_key_constraint_on:
+        column: user_id
+        table:
+          name: community_members
+          schema: public
   - name: refreshTokens
     using:
       foreign_key_constraint_on:
@@ -120,3 +127,12 @@ array_relationships:
         table:
           name: user_providers
           schema: auth
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - id
+        - display_name
+        - email
+        - avatar_url
+      filter: {}
