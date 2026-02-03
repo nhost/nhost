@@ -192,64 +192,212 @@ html:not([class~="dark"]) .welcome-get-started {
   display: none;
 }
 
-/* Make top-level sidebar items look like nested items (but no border) */
+/* ==============================================
+   SIDEBAR STYLING (Clean, modern design)
+   ============================================== */
+
+/* Left sidebar */
+.sidebar-pane {
+  padding-right: 1.5rem !important;
+}
+
+/* Reset top-level list */
+.sidebar-content ul.top-level {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* Top-level items */
 .sidebar-content ul.top-level > li {
-  margin-top: 0.25rem !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
-/* Make top-level labels look like nested ones */
-.sidebar-content ul.top-level > li > details > summary .large,
-.sidebar-content ul.top-level > li > a.large {
-  font-size: var(--sl-text-sm) !important;
-  font-weight: normal !important;
-  color: var(--sl-color-gray-2) !important;
+/* Top-level direct links (topic overview - e.g., "Getting Started", "Platform") */
+.sidebar-content ul.top-level > li > a {
+  display: block;
+  padding: 0.5rem 0.75rem;
+  margin: 0 -0.75rem 0.5rem -0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--sl-color-gray-2);
+  text-decoration: none;
+  border-radius: 0.375rem;
+  transition:
+    color 0.15s,
+    background-color 0.15s;
 }
 
-.sidebar-content ul.top-level > li > details > summary:hover .large,
-.sidebar-content ul.top-level > li > a.large:hover {
-  color: var(--sl-color-text) !important;
+.sidebar-content ul.top-level > li > a:hover {
+  color: var(--sl-color-white);
 }
 
-/* Use text accent for selected sidebar item (like subheader) */
+/* Current page - highlighted with background */
 .sidebar-content a[aria-current="page"],
 .sidebar-content a[aria-current="page"]:hover,
-.sidebar-content a[aria-current="page"]:focus,
-.sidebar-content ul.top-level > li > a.large[aria-current="page"],
-.sidebar-content ul.top-level > li > a.large[aria-current="page"]:hover {
-  background-color: transparent !important;
+.sidebar-content a[aria-current="page"]:focus {
   color: var(--sl-color-text-accent) !important;
+  font-weight: 500 !important;
+  background-color: var(--sl-color-gray-5) !important;
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.75rem !important;
+  margin: 0 -0.75rem !important;
+}
+
+/* Top-level section groups */
+.sidebar-content ul.top-level > li > details {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--sl-color-hairline-light);
+}
+
+/* First section doesn't need top border */
+.sidebar-content ul.top-level > li:first-child > details {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+/* Force ALL top-level sections to be always open */
+.sidebar-content ul.top-level > li > details {
+  pointer-events: none;
+}
+
+.sidebar-content ul.top-level > li > details > * {
+  pointer-events: auto;
+}
+
+.sidebar-content ul.top-level > li > details > summary {
+  pointer-events: none;
+}
+
+/* Section titles - uppercase labels, NOT clickable */
+.sidebar-content ul.top-level > li > details > summary {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 0.75rem;
+  cursor: default;
+}
+
+.sidebar-content ul.top-level > li > details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.sidebar-content ul.top-level > li > details > summary .group-label .large {
+  font-size: 0.6875rem !important;
   font-weight: 600 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--sl-color-gray-3) !important;
 }
 
-/* Make nested collapsible summaries look like regular links */
-/* Regular sidebar links use --sl-color-gray-2 */
-.sidebar-content ul:not(.top-level) li details > summary,
-.sidebar-content ul:not(.top-level) li details > summary .group-label,
-.sidebar-content ul:not(.top-level) li details > summary .group-label .large {
-  font-weight: normal !important;
-  color: var(--sl-color-gray-2) !important;
-  font-size: var(--sl-text-sm);
+/* Hide the caret on top-level section titles */
+.sidebar-content ul.top-level > li > details > summary .caret {
+  display: none !important;
 }
 
-.sidebar-content ul:not(.top-level) li details > summary:hover,
-.sidebar-content ul:not(.top-level) li details > summary:hover .group-label,
-.sidebar-content
-  ul:not(.top-level)
-  li
-  details
-  > summary:hover
-  .group-label
-  .large {
-  color: var(--sl-color-text) !important;
+/* Nested list inside sections */
+.sidebar-content ul.top-level > li > details > ul {
+  padding: 0 !important;
+  margin: 0 !important;
 }
 
-/* Override Starlight's default white hover color for all sidebar links */
+/* Nested items */
+.sidebar-content ul.top-level > li > details > ul > li {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Nested links */
+.sidebar-content ul.top-level > li > details > ul a {
+  display: block;
+  padding: 0.375rem 0;
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--sl-color-gray-2);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.sidebar-content ul.top-level > li > details > ul a:hover {
+  color: var(--sl-color-white);
+}
+
+/* Deeply nested groups (collapsible subsections) */
+.sidebar-content ul.top-level > li > details > ul details {
+  margin-top: 0.25rem;
+}
+
+.sidebar-content ul.top-level > li > details > ul details > summary {
+  padding: 0.375rem 0;
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--sl-color-gray-2);
+  cursor: pointer;
+}
+
+.sidebar-content ul.top-level > li > details > ul details > summary:hover {
+  color: var(--sl-color-white);
+}
+
+.sidebar-content ul.top-level > li > details > ul details > summary .large {
+  font-size: 0.875rem !important;
+  font-weight: 400 !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+}
+
+/* Keep the caret for nested collapsible items */
+.sidebar-content ul.top-level > li > details > ul details > summary .caret {
+  display: inline-block !important;
+  width: 1rem;
+  height: 1rem;
+  opacity: 0.6;
+}
+
+/* Deeply nested list - add left padding */
+.sidebar-content ul.top-level > li > details > ul details > ul {
+  padding-left: 1rem !important;
+  margin: 0.25rem 0 !important;
+}
+
+.sidebar-content ul.top-level > li > details > ul details > ul a {
+  padding: 0.25rem 0;
+  font-size: 0.8125rem;
+}
+
+/* Remove the left border from nested sidebar items (Starlight default) */
+.sidebar-content ul ul li {
+  border-inline-start: none !important;
+  margin-inline-start: 0 !important;
+  padding-inline-start: 0 !important;
+}
+
+/* Override Starlight's default hover color */
 .sidebar-content a:hover,
 .sidebar-content a:focus {
   color: var(--sl-color-text-accent) !important;
 }
 
-/* Right sidebar (table of contents) hover */
+/* ==============================================
+   MAIN CONTENT AREA
+   ============================================== */
+
+/* Main content area */
+.main-pane {
+  padding-inline-start: 2rem !important;
+}
+
+/* ==============================================
+   RIGHT SIDEBAR (Table of Contents)
+   ============================================== */
+
+/* Remove separation between content and right sidebar */
+.right-sidebar {
+  border-inline-start: none !important;
+  padding-inline-start: 1rem !important;
+}
+
 .right-sidebar-panel a:hover,
 .right-sidebar-panel a:focus {
   color: var(--sl-color-text-accent) !important;
@@ -262,11 +410,6 @@ html:not([class~="dark"]) .welcome-get-started {
 
 .pagination-links .link-title {
   font-size: 0.8125rem;
-}
-
-/* Consistent border color for left sidebar */
-.sidebar-pane {
-  border-inline-end-color: var(--sl-color-hairline-light) !important;
 }
 
 /* Keep the caret smaller and aligned */
@@ -307,9 +450,9 @@ html:not([class~="dark"]) .welcome-get-started {
 }
 
 /* Subheader spacing - add margin to content below the subheader */
-/* Hero background - full width */
+/* Hero background - full width with colored background */
 .hero {
-  background-color: var(--sl-color-bg);
+  background: linear-gradient(to bottom, #0d1a2d 0%, #0a1420 100%);
   margin-left: calc(-50vw + 50%);
   margin-right: calc(-50vw + 50%);
   margin-top: -1.5rem;
@@ -330,6 +473,15 @@ html:not([class~="dark"]) .welcome-get-started {
 
 .hero .copy h1 {
   color: var(--sl-color-text) !important;
+  font-size: 2.25rem !important;
+  font-weight: 700 !important;
+  line-height: 1.2 !important;
+}
+
+@media (min-width: 50rem) {
+  .hero .copy h1 {
+    font-size: 2.75rem !important;
+  }
 }
 
 .hero .copy .tagline {
@@ -344,39 +496,126 @@ html:not([class~="dark"]) .welcome-get-started {
   color: var(--sl-color-text) !important;
 }
 
-/* Page titles - theme aware */
-h1#_top {
+/* ==============================================
+   CONTENT AREA TYPOGRAPHY & SPACING
+   ============================================== */
+
+/* Page title - larger, prominent (content pages only, not hero) */
+.content-panel h1#_top {
   color: var(--sl-color-text) !important;
+  font-size: 2rem !important;
+  font-weight: 600 !important;
+  margin-bottom: 1.5rem !important;
+  line-height: 1.2 !important;
 }
 
-/* Center the search in the header - consistent across all page types */
+/* Remove separator/border between content panels (title and body) */
+.content-panel + .content-panel {
+  border-top: none !important;
+}
+
+/* Content headings - smaller than page title (exclude cards) */
+.sl-markdown-content h2:not(.sl-card-title) {
+  font-size: 1.25rem !important;
+  font-weight: 600 !important;
+  margin-top: 2.5rem !important;
+  margin-bottom: 1rem !important;
+  line-height: 1.3 !important;
+}
+
+.sl-markdown-content h3:not(.sl-card-title) {
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  margin-top: 2rem !important;
+  margin-bottom: 0.75rem !important;
+  line-height: 1.4 !important;
+}
+
+.sl-markdown-content h4:not(.sl-card-title) {
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  margin-top: 1.5rem !important;
+  margin-bottom: 0.5rem !important;
+  line-height: 1.4 !important;
+}
+
+/* Paragraphs - better spacing (only direct children, not inside cards) */
+.sl-markdown-content > p {
+  margin-bottom: 1.25rem !important;
+  line-height: 1.7 !important;
+}
+
+/* Lists - better spacing (only direct children) */
+.sl-markdown-content > ul,
+.sl-markdown-content > ol {
+  margin-bottom: 1.25rem !important;
+  padding-left: 1.5rem !important;
+}
+
+.sl-markdown-content > ul > li,
+.sl-markdown-content > ol > li {
+  margin-bottom: 0.5rem !important;
+  line-height: 1.6 !important;
+}
+
+.sl-markdown-content > ul > li:last-child,
+.sl-markdown-content > ol > li:last-child {
+  margin-bottom: 0 !important;
+}
+
+/* Code blocks - better spacing */
+.sl-markdown-content > pre {
+  margin-top: 1rem !important;
+  margin-bottom: 1.5rem !important;
+}
+
+/* Tables - better spacing */
+.sl-markdown-content > table {
+  margin-top: 1rem !important;
+  margin-bottom: 1.5rem !important;
+}
+
+/* Blockquotes */
+.sl-markdown-content > blockquote {
+  margin-top: 1rem !important;
+  margin-bottom: 1.5rem !important;
+  padding-left: 1rem !important;
+}
+
+/* First element after heading - reduce top margin */
+.sl-markdown-content > h2 + p,
+.sl-markdown-content > h3 + p,
+.sl-markdown-content > h4 + p,
+.sl-markdown-content > h2 + ul,
+.sl-markdown-content > h3 + ul,
+.sl-markdown-content > h4 + ul {
+  margin-top: 0 !important;
+}
+
+/* Header - center the search bar consistently across all pages */
 @media (min-width: 50rem) {
   header.header .header {
-    display: grid !important;
-    grid-template-columns: 1fr minmax(20rem, 30rem) 1fr !important;
-    align-items: center;
-    gap: 1rem;
+    /* Override Starlight's complex grid to center the search bar */
+    grid-template-columns: auto 1fr auto !important;
   }
 
-  header.header .header .title-wrapper {
-    justify-self: start;
-  }
-
-  header.header .header > div:has(site-search) {
+  header.header .header > div:nth-child(2) {
+    /* Search container - center it and give it a good width */
     justify-self: center;
     width: 100%;
+    max-width: 400px;
+    display: flex;
+    justify-content: center;
   }
 
-  header.header .header .right-group {
+  header.header .header > div:nth-child(2) site-search {
+    width: 100%;
+  }
+
+  header.header .right-group {
+    /* Right group - align right */
     justify-self: end;
-  }
-
-  header.header .header site-search {
-    width: 100%;
-  }
-
-  header.header .header site-search button[data-open-modal] {
-    width: 100%;
+    margin-left: auto;
   }
 }
 
@@ -507,22 +746,31 @@ mobile-starlight-toc .toggle {
   margin-inline: auto;
 }
 
-/* Header needs to be full-width with content constrained */
+/* Header spans full width, inner content constrained */
 header.header {
   width: 100%;
-  max-width: var(--custom-max-width);
-  margin-inline: auto;
-  left: 50% !important;
-  transform: translateX(-50%);
+  left: 0 !important;
+  right: 0 !important;
 }
 
-/* Subheader follows header width */
+header.header > .header {
+  max-width: var(--custom-max-width);
+  margin-inline: auto;
+}
+
+/* Subheader spans full width, inner content constrained */
 @media (min-width: 50rem) {
   .subheader-nav {
+    left: 0 !important;
+    right: 0 !important;
+  }
+
+  .subheader-inner {
     max-width: var(--custom-max-width);
-    left: 50% !important;
-    right: auto !important;
-    transform: translateX(-50%);
+    margin-inline: auto;
+    width: 100%;
+    display: flex;
+    align-items: stretch;
   }
 }
 
@@ -541,4 +789,25 @@ header.header {
   .sidebar-pane {
     left: auto !important;
   }
+}
+
+/* ==============================================
+   SPLASH PAGE FIXES (Welcome page)
+   ============================================== */
+
+/* Splash pages (with hero, no sidebar) shouldn't force 100vh min-height
+   which creates unnecessary scroll on large screens */
+html[data-has-hero]:not([data-has-sidebar]) .page {
+  min-height: auto !important;
+  max-width: none !important;
+}
+
+/* Remove left padding on splash pages so hero extends to edge */
+html[data-has-hero]:not([data-has-sidebar]) .main-pane {
+  padding-inline-start: 0 !important;
+}
+
+/* Allow scrolling on splash pages only when content overflows */
+html[data-has-hero]:not([data-has-sidebar]) body {
+  overflow-y: auto;
 }

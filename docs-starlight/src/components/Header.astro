@@ -3,14 +3,46 @@ import Default from '@astrojs/starlight/components/Header.astro';
 import type { Props } from '@astrojs/starlight/props';
 
 const products = [
-  { label: 'Overview', href: '/products/' },
-  { label: 'Database', href: '/products/database/' },
-  { label: 'GraphQL', href: '/products/graphql/' },
-  { label: 'Auth', href: '/products/auth/' },
-  { label: 'Storage', href: '/products/storage/' },
-  { label: 'Run', href: '/products/run/' },
-  { label: 'Functions', href: '/products/functions/' },
-  { label: 'AI', href: '/products/ai/' },
+  {
+    label: 'Overview',
+    href: '/products/',
+    icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>',
+  },
+  {
+    label: 'Database',
+    href: '/products/database/',
+    icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>',
+  },
+  {
+    label: 'GraphQL',
+    href: '/products/graphql/',
+    icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 2 17 12 22 22 17 22 7 12 2"/><line x1="12" y1="22" x2="12" y2="12"/><line x1="22" y1="7" x2="12" y2="12"/><line x1="2" y1="7" x2="12" y2="12"/></svg>',
+  },
+  {
+    label: 'Auth',
+    href: '/products/auth/',
+    icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
+  },
+  {
+    label: 'Storage',
+    href: '/products/storage/',
+    icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>',
+  },
+  {
+    label: 'Run',
+    href: '/products/run/',
+    icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>',
+  },
+  {
+    label: 'Functions',
+    href: '/products/functions/',
+    icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>',
+  },
+  {
+    label: 'AI',
+    href: '/products/ai/',
+    icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2z"/></svg>',
+  },
 ];
 
 const navLinks = [
@@ -31,13 +63,11 @@ const navLinks = [
 const pathname = Astro.url.pathname;
 const currentSection = navLinks.find((link) => {
   if (link.external) return false;
-  // Handle root/welcome page specifically - only match exact root
   if (link.href === '/') {
     return (
       pathname === '/' || pathname === '/welcome' || pathname === '/welcome/'
     );
   }
-  // For section pages, check if pathname starts with the section base path
   const basePath = link.href.replace('/', '/').replace(/\/$/, '');
   return pathname.startsWith(basePath);
 });
@@ -47,8 +77,100 @@ const currentSection = navLinks.find((link) => {
     <slot />
 </Default>
 
+<!-- Header action buttons - positioned via CSS into the header -->
+<div class="header-actions sl-hidden md:sl-flex">
+    <a href="https://discord.com/invite/nhost" class="header-social-link" target="_blank" rel="noopener noreferrer" aria-label="Discord">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+        </svg>
+    </a>
+    <a href="https://github.com/nhost/nhost" class="header-social-link" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+        </svg>
+    </a>
+    <a href="https://x.com/nhaborcloud" class="header-social-link" target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+        </svg>
+    </a>
+    <a href="https://app.nhost.io/support" class="header-support-link" target="_blank" rel="noopener noreferrer">Support</a>
+    <a href="https://app.nhost.io" class="header-dashboard-btn" target="_blank" rel="noopener noreferrer">Dashboard</a>
+</div>
+
 <style is:global>
-    /* Subheader: hidden on mobile, visible on desktop */
+    /* ==============================================
+       HEADER ACTION BUTTONS
+       ============================================== */
+
+    /* Position the action buttons inside the header */
+    .header-actions {
+        position: fixed;
+        top: 0;
+        right: var(--sl-nav-pad-x);
+        height: var(--sl-nav-height);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        z-index: calc(var(--sl-z-index-navbar) + 1);
+    }
+
+    /* Align with constrained content on wide screens (90rem = --custom-max-width) */
+    @media (min-width: 90rem) {
+        .header-actions {
+            right: calc((100vw - var(--custom-max-width)) / 2 + var(--sl-nav-pad-x));
+        }
+    }
+
+    /* Hide Starlight's default social icons and right-group items */
+    header.header .social-icons,
+    header.header .right-group starlight-theme-select,
+    header.header .right-group starlight-lang-select {
+        display: none !important;
+    }
+
+    .header-social-link {
+        display: flex;
+        align-items: center;
+        color: var(--sl-color-gray-3);
+        transition: color 0.15s;
+    }
+
+    .header-social-link:hover {
+        color: var(--sl-color-gray-1);
+    }
+
+    .header-support-link {
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-decoration: none;
+        color: var(--sl-color-gray-3);
+        transition: color 0.15s;
+    }
+
+    .header-support-link:hover {
+        color: var(--sl-color-gray-1);
+    }
+
+    .header-dashboard-btn {
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-decoration: none;
+        padding: 0.375rem 0.875rem;
+        border-radius: 0.375rem;
+        background-color: #0066ff;
+        color: white !important;
+        transition: background-color 0.15s;
+    }
+
+    .header-dashboard-btn:hover {
+        background-color: #0052cc;
+    }
+
+    /* ==============================================
+       SUBHEADER: Navigation below main header
+       ============================================== */
+
     .subheader-nav {
         display: none;
     }
@@ -64,10 +186,9 @@ const currentSection = navLinks.find((link) => {
             width: 100%;
             height: var(--custom-subheader-height);
             align-items: stretch;
-            justify-content: space-between;
+            justify-content: flex-start;
             padding: 0 var(--sl-nav-pad-x);
             background: var(--sl-color-bg);
-            border-bottom: 1px solid var(--sl-color-hairline-light);
         }
     }
 
@@ -75,12 +196,6 @@ const currentSection = navLinks.find((link) => {
         display: flex;
         align-items: stretch;
         gap: 0;
-    }
-
-    .subheader-actions {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
     }
 
     .subheader-link {
@@ -165,7 +280,9 @@ const currentSection = navLinks.find((link) => {
     }
 
     .dropdown-item {
-        display: block;
+        display: flex;
+        align-items: center;
+        gap: 0.625rem;
         padding: 0.5rem 1rem;
         font-size: 0.875rem;
         font-weight: 500;
@@ -179,34 +296,26 @@ const currentSection = navLinks.find((link) => {
         color: var(--sl-color-gray-1);
     }
 
-    .action-link {
-        font-size: 0.875rem;
-        font-weight: 500;
-        text-decoration: none;
-        color: var(--sl-color-gray-3);
-        transition: color 0.15s;
+    .dropdown-item-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        opacity: 0.7;
     }
 
-    .action-link:hover {
-        color: var(--sl-color-gray-1);
+    .dropdown-item:hover .dropdown-item-icon {
+        opacity: 1;
     }
 
-    .action-button {
-        font-size: 0.875rem;
-        font-weight: 500;
-        text-decoration: none;
-        padding: 0.375rem 0.875rem;
-        border-radius: 0.375rem;
-        background: var(--sl-color-text-accent);
-        color: black;
-        transition: opacity 0.15s;
+    .dropdown-item-label {
+        flex: 1;
     }
 
-    .action-button:hover {
-        opacity: 0.9;
-    }
+    /* ==============================================
+       MOBILE NAVIGATION
+       ============================================== */
 
-    /* Mobile navigation */
     .mobile-nav {
         display: block;
         position: fixed;
@@ -214,7 +323,6 @@ const currentSection = navLinks.find((link) => {
         left: 0;
         right: 0;
         background: var(--sl-color-bg);
-        border-bottom: 1px solid var(--sl-color-hairline-light);
         z-index: 9;
         max-height: 0;
         overflow: hidden;
@@ -235,7 +343,6 @@ const currentSection = navLinks.find((link) => {
         padding: 0 1rem;
         background: var(--sl-color-bg);
         border: none;
-        border-bottom: 1px solid var(--sl-color-hairline-light);
         color: var(--sl-color-text);
         font-family: inherit;
         font-size: 0.875rem;
@@ -289,35 +396,61 @@ const currentSection = navLinks.find((link) => {
         color: var(--sl-color-text-accent);
     }
 
+    .mobile-nav-link-with-icon {
+        display: flex;
+        align-items: center;
+        gap: 0.625rem;
+    }
+
+    .mobile-nav-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        opacity: 0.7;
+    }
+
+    .mobile-nav-link:hover .mobile-nav-icon {
+        opacity: 1;
+    }
+
     .mobile-nav-actions {
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 1rem;
         padding: 1rem;
-        border-top: 1px solid var(--sl-color-hairline-light);
         margin-top: 0.5rem;
     }
 
-    /* Solid header on mobile, transparent on tablet+ */
-    header.header {
-        background-color: var(--sl-color-bg) !important;
-        border-bottom: 1px solid var(--sl-color-hairline-light) !important;
+    .action-link {
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-decoration: none;
+        color: var(--sl-color-gray-3);
+        transition: color 0.15s;
     }
 
-    /* Hide the border/gap where theme toggle used to be */
-    .social-icons::after {
-        display: none !important;
+    .action-link:hover {
+        color: var(--sl-color-gray-1);
     }
 
-    @media (min-width: 50rem) {
-        header.header {
-            background-color: var(--sl-color-bg) !important;
-            border-bottom: 1px solid var(--sl-color-hairline-light) !important;
-        }
+    .action-button {
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-decoration: none;
+        padding: 0.375rem 0.875rem;
+        border-radius: 0.375rem;
+        background: #0066ff;
+        color: white !important;
+        transition: background-color 0.15s;
     }
 
-    /* Show on desktop */
+    .action-button:hover {
+        background-color: #0052cc;
+    }
+
+    /* Hide mobile nav on desktop */
     @media (min-width: 50rem) {
         .mobile-nav,
         .mobile-nav-toggle {
@@ -354,8 +487,9 @@ const currentSection = navLinks.find((link) => {
         <div class="mobile-nav-section">
             <div class="mobile-nav-section-title">Products</div>
             {products.map(product => (
-                <a href={product.href} class="mobile-nav-link">
-                    {product.label}
+                <a href={product.href} class="mobile-nav-link mobile-nav-link-with-icon">
+                    {product.icon && <span class="mobile-nav-icon" set:html={product.icon} />}
+                    <span>{product.label}</span>
                 </a>
             ))}
         </div>
@@ -367,6 +501,7 @@ const currentSection = navLinks.find((link) => {
 </nav>
 
 <nav class="subheader-nav" aria-label="Main sections" id="subheader-nav">
+    <div class="subheader-inner">
     <div class="subheader-links">
         {navLinks.map(link => (
             link.hasDropdown ? (
@@ -391,7 +526,8 @@ const currentSection = navLinks.find((link) => {
                                 href={item.href}
                                 class="dropdown-item"
                             >
-                                {item.label}
+                                {item.icon && <span class="dropdown-item-icon" set:html={item.icon} />}
+                                <span class="dropdown-item-label">{item.label}</span>
                             </a>
                         ))}
                     </div>
@@ -412,13 +548,29 @@ const currentSection = navLinks.find((link) => {
             )
         ))}
     </div>
-    <div class="subheader-actions">
-        <a href="https://app.nhost.io/support" class="action-link" target="_blank" rel="noopener noreferrer">Support</a>
-        <a href="https://app.nhost.io" class="action-button" target="_blank" rel="noopener noreferrer">Dashboard</a>
     </div>
 </nav>
 
 <script>
+    // Force all top-level sidebar sections to be always open
+    function forceOpenSidebarSections() {
+        const sidebar = document.querySelector('.sidebar-content');
+        if (sidebar) {
+            // Open all top-level details elements
+            sidebar.querySelectorAll('ul.top-level > li > details').forEach(details => {
+                details.setAttribute('open', '');
+            });
+        }
+    }
+
+    // Run on initial load
+    forceOpenSidebarSections();
+
+    // Re-run after Astro view transitions
+    document.addEventListener('astro:after-swap', () => {
+        forceOpenSidebarSections();
+    });
+
     // Mobile navigation toggle
     const mobileNavToggle = document.getElementById('mobile-nav-toggle');
     const mobileNav = document.getElementById('mobile-nav');
@@ -431,7 +583,6 @@ const currentSection = navLinks.find((link) => {
             mobileNavToggle.setAttribute('aria-expanded', String(!isOpen));
         });
 
-        // Close mobile nav when clicking a link
         mobileNav.querySelectorAll('a').forEach(link => {
             link.addEventListener('click', () => {
                 mobileNav.classList.remove('open');
@@ -440,7 +591,6 @@ const currentSection = navLinks.find((link) => {
             });
         });
 
-        // Close on Escape
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && mobileNav.classList.contains('open')) {
                 mobileNav.classList.remove('open');
@@ -449,7 +599,6 @@ const currentSection = navLinks.find((link) => {
             }
         });
 
-        // Close on view transition
         document.addEventListener('astro:before-swap', () => {
             mobileNav.classList.remove('open');
             mobileNavToggle.classList.remove('open');
@@ -457,19 +606,17 @@ const currentSection = navLinks.find((link) => {
         });
     }
 
-    // Handle dropdown click toggle (for touch/keyboard accessibility)
+    // Dropdown click toggle
     document.querySelectorAll('.dropdown-trigger').forEach(trigger => {
         trigger.addEventListener('click', (e) => {
             const container = trigger.closest('.dropdown-container');
             const isOpen = container?.classList.contains('open');
 
-            // Close all other dropdowns
             document.querySelectorAll('.dropdown-container.open').forEach(el => {
                 el.classList.remove('open');
                 el.querySelector('.dropdown-trigger')?.setAttribute('aria-expanded', 'false');
             });
 
-            // Toggle this dropdown
             if (!isOpen && container) {
                 container.classList.add('open');
                 trigger.setAttribute('aria-expanded', 'true');
@@ -477,7 +624,6 @@ const currentSection = navLinks.find((link) => {
         });
     });
 
-    // Close dropdowns when clicking outside
     document.addEventListener('click', (e) => {
         if (!(e.target as Element).closest('.dropdown-container')) {
             document.querySelectorAll('.dropdown-container.open').forEach(el => {
@@ -487,7 +633,6 @@ const currentSection = navLinks.find((link) => {
         }
     });
 
-    // Close on Escape key
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             document.querySelectorAll('.dropdown-container.open').forEach(el => {
