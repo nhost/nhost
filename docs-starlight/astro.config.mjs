@@ -378,8 +378,30 @@ export default defineConfig({
               items: [
                 { label: 'Storage', slug: 'products/storage' },
                 {
-                  label: 'Features',
+                  label: 'Concepts',
                   collapsed: false,
+                  items: [
+                    { slug: 'products/storage/architecture' },
+                    { slug: 'products/storage/buckets' },
+                    { slug: 'products/storage/permissions' },
+                    { slug: 'products/storage/image-transformation' },
+                  ],
+                },
+                {
+                  label: 'Guides',
+                  collapsed: false,
+                  items: [
+                    { slug: 'products/storage/guides/file-operations' },
+                    { slug: 'products/storage/guides/presigned-urls' },
+                    { slug: 'products/storage/guides/display-images' },
+                    {
+                      slug: 'products/storage/guides/permissions-and-relationships',
+                    },
+                  ],
+                },
+                {
+                  label: 'Platform',
+                  collapsed: true,
                   items: [
                     { slug: 'products/storage/cdn' },
                     { slug: 'products/storage/antivirus' },
@@ -419,12 +441,25 @@ export default defineConfig({
               items: [
                 { label: 'Functions', slug: 'products/functions' },
                 {
+                  label: 'Concepts',
+                  collapsed: false,
+                  items: [
+                    { slug: 'products/functions/runtimes' },
+                    { slug: 'products/functions/logging' },
+                    { slug: 'products/functions/limits' },
+                  ],
+                },
+                {
                   label: 'Guides',
                   collapsed: false,
                   items: [
-                    { slug: 'products/functions/getting-started' },
-                    { slug: 'products/functions/runtimes' },
-                    { slug: 'products/functions/logging' },
+                    { slug: 'products/functions/guides/getting-started' },
+                    { slug: 'products/functions/guides/jwt-verification' },
+                    { slug: 'products/functions/guides/custom-jwts' },
+                    { slug: 'products/functions/guides/graphql-server' },
+                    { slug: 'products/functions/guides/error-handling' },
+                    { slug: 'products/functions/guides/nhost-sdk' },
+                    { slug: 'products/functions/guides/cors' },
                   ],
                 },
               ],

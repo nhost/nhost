@@ -1,0 +1,74 @@
+---
+title: CORS
+description: Handle Cross-Origin Resource Sharing in Nhost Functions
+keywords: ["CORS", "cross-origin", "serverless functions", "Access-Control", "preflight", "OPTIONS"]
+---
+
+Nhost Functions do not set any CORS headers automatically. If your function is called from a browser on a different origin (for example, a frontend app on `localhost:5173` calling functions at `local.functions.local.nhost.run`), you need to handle CORS yourself.
+
+## Using the `cors` Package
+
+The simplest approach is to use the [`cors`](https://www.npmjs.com/package/cors) npm package:
+
+```shell
+npm install cors
+npm install -D @types/cors
+```
+
+```ts ./functions/api.ts
+import type { Request, Response } from 'express'
+import cors from 'cors'
+
+const corsMiddleware = cors()
+
+export default (req: Request, res: Response) => {
+  corsMiddleware(req, res, () => {
+    res.status(200).json({ message: 'Hello from a CORS-enabled function!' })
+  })
+}
+```
+
+This allows requests from any origin. To restrict to specific origins:
+
+```ts
+const corsMiddleware = cors({
+  origin: ['https://myapp.com', 'http://localhost:5173'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+})
+```
+
+## Manual CORS Headers
+
+If you prefer not to add a dependency, set the headers manually:
+
+```ts ./functions/api.ts
+import type { Request, Response } from 'express'
+
+export default (req: Request, res: Response) => {
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+
+  // Handle preflight
+  if (req.method === 'OPTIONS') {
+    return res.status(204).end()
+  }
+
+  res.status(200).json({ message: 'Hello from a CORS-enabled function!' })
+}
+```
+
+:::caution
+Using `*` for `Access-Control-Allow-Origin` allows any website to call your function. In production, restrict this to your actual frontend origin(s).
+:::
+
+## Preflight Requests
+
+Browsers send a preflight `OPTIONS` request before the actual request when:
+
+- The request uses a method other than GET, HEAD, or POST
+- The request includes custom headers (like `Authorization`)
+- The request uses `Content-Type` other than `application/x-www-form-urlencoded`, `multipart/form-data`, or `text/plain`
+
+Your function receives all HTTP methods on the same handler, so you must check for `OPTIONS` and respond appropriately. The `cors` package handles this automatically.
+
