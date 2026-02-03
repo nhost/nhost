@@ -93,7 +93,6 @@ export default async function fetchDatabase({
               AND n.nspname != 'information_schema'
               AND pg_type.typtype ='c'
               AND p.proretset = true
-              AND p.provolatile IN ('s', 'i')
             ORDER BY p.proname ASC
           ) func_data`,
           '',
