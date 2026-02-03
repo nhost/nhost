@@ -1,49 +1,66 @@
-# Starlight Starter Kit: Basics
+# Nhost Documentation
 
-[![Built with Starlight](https://astro.badg.es/v2/built-with-starlight/tiny.svg)](https://starlight.astro.build)
+This is the source for [docs.nhost.io](https://docs.nhost.io), built with [Astro](https://astro.build) and [Starlight](https://starlight.astro.build).
 
-```
-pnpm create astro@latest -- --template starlight
-```
-
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
-
-## 🚀 Project Structure
-
-Inside of your Astro + Starlight project, you'll see the following folders and files:
+## Project Structure
 
 ```
-.
-├── public/
+docs/
+├── public/              # Static assets (favicons, etc.)
 ├── src/
-│   ├── assets/
+│   ├── assets/          # Images and other assets
+│   ├── components/      # Custom Astro components
 │   ├── content/
-│   │   └── docs/
-│   └── content.config.ts
-├── astro.config.mjs
-├── package.json
-└── tsconfig.json
+│   │   └── docs/        # Documentation pages (.md/.mdx)
+│   ├── plugins/         # Custom Starlight plugins
+│   ├── schemas/         # OpenAPI schemas for API reference
+│   └── styles/          # Custom CSS
+├── astro.config.mjs     # Astro/Starlight configuration
+└── package.json
 ```
 
-Starlight looks for `.md` or `.mdx` files in the `src/content/docs/` directory. Each file is exposed as a route based on its file name.
+## Development
 
-Images can be added to `src/assets/` and embedded in Markdown with a relative link.
+```bash
+# Install dependencies
+pnpm install
 
-Static assets, like favicons, can be placed in the `public/` directory.
+# Start dev server at localhost:4321
+pnpm dev
 
-## 🧞 Commands
+# Build for production
+pnpm build
 
-All commands are run from the root of the project, from a terminal:
+# Preview production build
+pnpm preview
+```
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `pnpm install`             | Installs dependencies                            |
-| `pnpm dev`             | Starts local dev server at `localhost:4321`      |
-| `pnpm build`           | Build your production site to `./dist/`          |
-| `pnpm preview`         | Preview your build locally, before deploying     |
-| `pnpm astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `pnpm astro -- --help` | Get help using the Astro CLI                     |
+## Writing Documentation
 
-## 👀 Want to learn more?
+Documentation pages live in `src/content/docs/`. Each `.md` or `.mdx` file becomes a page based on its path:
 
-Check out [Starlight’s docs](https://starlight.astro.build/), read [the Astro documentation](https://docs.astro.build), or jump into the [Astro Discord server](https://astro.build/chat).
+- `src/content/docs/products/auth.md` → `/products/auth/`
+- `src/content/docs/getting-started/index.md` → `/getting-started/`
+
+### Frontmatter
+
+Every page needs frontmatter at the top:
+
+```yaml
+---
+title: Page Title
+description: A brief description for SEO and previews.
+keywords: [keyword1, keyword2]
+---
+```
+
+### Adding to Sidebar
+
+The sidebar is configured in `astro.config.mjs` using `starlightSidebarTopics`. Add new pages to the appropriate section.
+
+## API Reference
+
+API documentation is auto-generated from OpenAPI schemas in `src/schemas/`. To update:
+
+1. Edit the relevant schema file (`auth.yaml` or `storage.yaml`)
+2. The pages will regenerate on build

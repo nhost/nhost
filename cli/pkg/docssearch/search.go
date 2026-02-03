@@ -13,7 +13,7 @@ import (
 	"github.com/blevesearch/bleve/v2/search/query"
 
 	"github.com/nhost/nhost/cli/pkg/frontmatter"
-	docsembed "github.com/nhost/nhost/docs-starlight"
+	docsembed "github.com/nhost/nhost/docs"
 )
 
 //nolint:gochecknoglobals

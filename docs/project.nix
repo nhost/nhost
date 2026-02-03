@@ -1,6 +1,6 @@
 { self, pkgs, nixops-lib, nix-filter }:
 let
-  name = "docs-starlight";
+  name = "docs";
   version = "0.0.0-dev";
   created = "1970-01-01T00:00:00Z";
   submodule = "${name}";
