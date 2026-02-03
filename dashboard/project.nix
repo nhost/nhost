@@ -51,6 +51,7 @@ let
       "${submodule}/biome.json"
       "${submodule}/.npmrc"
       "${submodule}/.prettierignore"
+      "${submodule}/.lychee.toml"
       "${submodule}/components.json"
       "${submodule}/graphite.graphql.config.yaml"
       "${submodule}/graphql.config.yaml"
