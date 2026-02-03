@@ -1,11 +1,17 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { KeyRound } from 'lucide-react';
+import { Hash, KeyRound, Link2 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import { useEffect, useMemo, useRef } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { FormActivityIndicator } from '@/components/form/FormActivityIndicator';
 import { InlineCode } from '@/components/ui/v3/inline-code';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
 import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
 import { DataBrowserGridControls } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGridControls';
@@ -45,8 +51,67 @@ const CreateRecordForm = dynamic(
   { ssr: false, loading: () => <FormActivityIndicator /> },
 );
 
+const TableInfoView = dynamic(
+  () =>
+    import(
+      '@/features/orgs/projects/database/dataGrid/components/TableInfoView/TableInfoView'
+    ),
+  { ssr: false, loading: () => <FormActivityIndicator /> },
+);
+
 // biome-ignore lint/suspicious/noExplicitAny: TODO
 export interface DataBrowserGridProps extends Partial<DataGridProps<any>> {}
+
+function ColumnConstraintIcons({
+  isPrimary,
+  isUnique,
+  hasForeignKey,
+  foreignKeyTarget,
+}: {
+  isPrimary: boolean;
+  isUnique: boolean;
+  hasForeignKey: boolean;
+  foreignKeyTarget?: string;
+}) {
+  return (
+    <TooltipProvider delayDuration={200}>
+      {isPrimary && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <KeyRound
+              width={14}
+              height={14}
+              className="shrink-0 text-yellow-600"
+            />
+          </TooltipTrigger>
+          <TooltipContent side="top" className="text-xs">
+            Primary Key
+          </TooltipContent>
+        </Tooltip>
+      )}
+      {hasForeignKey && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link2 width={14} height={14} className="shrink-0 text-blue-600" />
+          </TooltipTrigger>
+          <TooltipContent side="top" className="text-xs">
+            Foreign Key{foreignKeyTarget ? ` → ${foreignKeyTarget}` : ''}
+          </TooltipContent>
+        </Tooltip>
+      )}
+      {isUnique && !isPrimary && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Hash width={14} height={14} className="shrink-0 text-purple-600" />
+          </TooltipTrigger>
+          <TooltipContent side="top" className="text-xs">
+            Unique
+          </TooltipContent>
+        </Tooltip>
+      )}
+    </TooltipProvider>
+  );
+}
 
 export function createDataGridColumn(
   column: NormalizedQueryDataRow,
@@ -55,10 +120,20 @@ export function createDataGridColumn(
   const { normalizedDefaultValue, custom: isDefaultValueCustom } =
     normalizeDefaultValue(column.column_default);
 
+  const hasForeignKey = !!column.foreign_key_relation;
+  const foreignKeyTarget = column.foreign_key_relation
+    ? `${column.foreign_key_relation.referencedTable}.${column.foreign_key_relation.referencedColumn}`
+    : undefined;
+
   const defaultColumnConfiguration = {
     Header: () => (
       <div className="grid grid-flow-col items-center justify-start gap-1 font-normal">
-        {column.is_primary && <KeyRound width={14} height={14} />}
+        <ColumnConstraintIcons
+          isPrimary={column.is_primary}
+          isUnique={column.is_unique}
+          hasForeignKey={hasForeignKey}
+          foreignKeyTarget={foreignKeyTarget}
+        />
 
         <span className="truncate font-bold" title={column.column_name}>
           {column.column_name}
@@ -317,6 +392,30 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
     });
   }
 
+  function handleViewTableInfo() {
+    openDrawer({
+      title: (
+        <span className="inline-grid grid-flow-col items-center gap-2">
+          Table Info
+          <InlineCode className="!text-sm+ font-normal">
+            {tableSlug as string}
+          </InlineCode>
+        </span>
+      ),
+      component: (
+        <TableInfoView
+          schema={schemaSlug as string}
+          table={tableSlug as string}
+        />
+      ),
+      props: {
+        PaperProps: {
+          className: 'lg:w-[50%] lg:max-w-3xl',
+        },
+      },
+    });
+  }
+
   if (metadata?.schemaNotFound) {
     return (
       <DataBrowserEmptyState
@@ -396,6 +495,7 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
           onInsertRowClick={
             isViewOrMaterializedView ? undefined : handleInsertRowClick
           }
+          onViewTableInfo={handleViewTableInfo}
           paginationProps={{
             currentPage: Math.max(currentPage, 1),
             totalPages: Math.max(numberOfPages, 1),

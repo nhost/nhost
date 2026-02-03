@@ -18,6 +18,7 @@ import type { DataGridPaginationProps } from '@/features/orgs/projects/storage/d
 import { DataGridPagination } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPagination';
 import { cn } from '@/lib/utils';
 import { triggerToast } from '@/utils/toast';
+import TableInfoBar from './TableInfoBar';
 
 export interface DataBrowserGridControlsProps {
   /**
@@ -32,6 +33,10 @@ export interface DataBrowserGridControlsProps {
    * Function to be called when the button to add a new row is clicked.
    */
   onInsertRowClick?: () => void;
+  /**
+   * Function to be called when user wants to view full table info.
+   */
+  onViewTableInfo?: () => void;
 }
 
 // TODO: Get rid of Data Browser related code from here. This component should
@@ -40,6 +45,7 @@ export default function DataBrowserGridControls({
   paginationProps,
   refetchData,
   onInsertRowClick,
+  onViewTableInfo,
 }: DataBrowserGridControlsProps) {
   const queryClient = useQueryClient();
   const { openAlertDialog } = useDialog();
@@ -175,13 +181,16 @@ export default function DataBrowserGridControls({
         {numberOfSelectedRows === 0 && (
           <div className="col-span-6 grid grid-flow-col items-center gap-2">
             {columns.length > 0 && (
-              <DataGridPagination
-                className={twMerge(
-                  'col-span-6 xs+:col-span-2 h-9 lg:col-span-2',
-                  paginationClassName,
-                )}
-                {...restPaginationProps}
-              />
+              <>
+                <DataGridPagination
+                  className={twMerge(
+                    'col-span-6 xs+:col-span-2 h-9 lg:col-span-2',
+                    paginationClassName,
+                  )}
+                  {...restPaginationProps}
+                />
+                <TableInfoBar onViewFullInfo={onViewTableInfo} />
+              </>
             )}
             <DataGridFiltersPopover />
             <DataGridTableViewConfigurationPopover />
