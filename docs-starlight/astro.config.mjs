@@ -87,9 +87,10 @@ export default defineConfig({
               label: 'Getting Started',
               link: '/getting-started/',
               items: [
-                { label: 'Overview', slug: 'getting-started' },
+                { label: 'Getting Started', slug: 'getting-started' },
                 {
                   label: 'Quickstart',
+                  collapsed: false,
                   items: [
                     { slug: 'getting-started/quickstart/react' },
                     { slug: 'getting-started/quickstart/nextjs' },
@@ -103,7 +104,7 @@ export default defineConfig({
                   collapsed: false,
                   items: [
                     {
-                      label: 'ToDo App (React)',
+                      label: 'React',
                       collapsed: true,
                       items: [
                         {
@@ -124,7 +125,7 @@ export default defineConfig({
                       ],
                     },
                     {
-                      label: 'ToDo App (Next.js)',
+                      label: 'Next.js',
                       collapsed: true,
                       items: [
                         {
@@ -145,7 +146,7 @@ export default defineConfig({
                       ],
                     },
                     {
-                      label: 'ToDo App (Vue)',
+                      label: 'Vue',
                       collapsed: true,
                       items: [
                         {
@@ -166,7 +167,7 @@ export default defineConfig({
                       ],
                     },
                     {
-                      label: 'ToDo App (Svelte)',
+                      label: 'Svelte',
                       collapsed: true,
                       items: [
                         {
@@ -187,7 +188,7 @@ export default defineConfig({
                       ],
                     },
                     {
-                      label: 'ToDo App (React Native)',
+                      label: 'React Native',
                       collapsed: true,
                       items: [
                         {
@@ -229,13 +230,19 @@ export default defineConfig({
               link: '/products/database/',
               icon: 'seti:db',
               items: [
-                { slug: 'products/database' },
-                { slug: 'products/database/configuring-postgres' },
-                { slug: 'products/database/backups' },
-                { slug: 'products/database/access' },
-                { slug: 'products/database/extensions' },
-                { slug: 'products/database/performance' },
-                { slug: 'products/database/upgrade-major' },
+                { label: 'Database', slug: 'products/database' },
+                {
+                  label: 'Guides',
+                  collapsed: false,
+                  items: [
+                    { slug: 'products/database/configuring-postgres' },
+                    { slug: 'products/database/backups' },
+                    { slug: 'products/database/access' },
+                    { slug: 'products/database/extensions' },
+                    { slug: 'products/database/performance' },
+                    { slug: 'products/database/upgrade-major' },
+                  ],
+                },
               ],
             },
             {
@@ -244,11 +251,17 @@ export default defineConfig({
               link: '/products/graphql/',
               icon: 'seti:graphql',
               items: [
-                { slug: 'products/graphql' },
-                { slug: 'products/graphql/configuring-hasura' },
-                { slug: 'products/graphql/permissions' },
-                { slug: 'products/graphql/remote-schemas' },
-                { slug: 'products/graphql/advanced-features' },
+                { label: 'GraphQL', slug: 'products/graphql' },
+                {
+                  label: 'Configuration',
+                  collapsed: false,
+                  items: [
+                    { slug: 'products/graphql/configuring-hasura' },
+                    { slug: 'products/graphql/permissions' },
+                    { slug: 'products/graphql/remote-schemas' },
+                    { slug: 'products/graphql/advanced-features' },
+                  ],
+                },
                 {
                   label: 'Guides',
                   collapsed: false,
@@ -267,12 +280,18 @@ export default defineConfig({
               link: '/products/auth/',
               icon: 'seti:lock',
               items: [
-                { slug: 'products/auth' },
-                { slug: 'products/auth/users' },
-                { slug: 'products/auth/client_and_redirect_urls' },
-                { slug: 'products/auth/jwt' },
-                { slug: 'products/auth/email-templates' },
-                { slug: 'products/auth/gravatar' },
+                { label: 'Auth', slug: 'products/auth' },
+                {
+                  label: 'Configuration',
+                  collapsed: false,
+                  items: [
+                    { slug: 'products/auth/users' },
+                    { slug: 'products/auth/client_and_redirect_urls' },
+                    { slug: 'products/auth/jwt' },
+                    { slug: 'products/auth/email-templates' },
+                    { slug: 'products/auth/gravatar' },
+                  ],
+                },
                 {
                   label: 'Sign In Methods',
                   collapsed: false,
@@ -357,9 +376,15 @@ export default defineConfig({
               link: '/products/storage/',
               icon: 'seti:folder',
               items: [
-                { slug: 'products/storage' },
-                { slug: 'products/storage/cdn' },
-                { slug: 'products/storage/antivirus' },
+                { label: 'Storage', slug: 'products/storage' },
+                {
+                  label: 'Features',
+                  collapsed: false,
+                  items: [
+                    { slug: 'products/storage/cdn' },
+                    { slug: 'products/storage/antivirus' },
+                  ],
+                },
               ],
             },
             {
@@ -368,16 +393,22 @@ export default defineConfig({
               link: '/products/run/',
               icon: 'seti:docker',
               items: [
-                { slug: 'products/run' },
-                { slug: 'products/run/getting-started' },
-                { slug: 'products/run/configuration' },
-                { slug: 'products/run/networking' },
-                { slug: 'products/run/health-checks' },
-                { slug: 'products/run/resources' },
-                { slug: 'products/run/registry' },
-                { slug: 'products/run/local-development' },
-                { slug: 'products/run/configuration-overlays' },
-                { slug: 'products/run/cli-deployments' },
+                { label: 'Run', slug: 'products/run' },
+                {
+                  label: 'Guides',
+                  collapsed: false,
+                  items: [
+                    { slug: 'products/run/getting-started' },
+                    { slug: 'products/run/configuration' },
+                    { slug: 'products/run/networking' },
+                    { slug: 'products/run/health-checks' },
+                    { slug: 'products/run/resources' },
+                    { slug: 'products/run/registry' },
+                    { slug: 'products/run/local-development' },
+                    { slug: 'products/run/configuration-overlays' },
+                    { slug: 'products/run/cli-deployments' },
+                  ],
+                },
               ],
             },
             {
@@ -386,10 +417,16 @@ export default defineConfig({
               link: '/products/functions/',
               icon: 'seti:javascript',
               items: [
-                { slug: 'products/functions' },
-                { slug: 'products/functions/getting-started' },
-                { slug: 'products/functions/runtimes' },
-                { slug: 'products/functions/logging' },
+                { label: 'Functions', slug: 'products/functions' },
+                {
+                  label: 'Guides',
+                  collapsed: false,
+                  items: [
+                    { slug: 'products/functions/getting-started' },
+                    { slug: 'products/functions/runtimes' },
+                    { slug: 'products/functions/logging' },
+                  ],
+                },
               ],
             },
             {
@@ -398,12 +435,18 @@ export default defineConfig({
               link: '/products/ai/',
               icon: 'star',
               items: [
-                { slug: 'products/ai' },
-                { slug: 'products/ai/enabling-service' },
-                { slug: 'products/ai/local-development' },
-                { slug: 'products/ai/auto-embeddings' },
-                { slug: 'products/ai/assistants' },
-                { slug: 'products/ai/dev-assistant' },
+                { label: 'AI', slug: 'products/ai' },
+                {
+                  label: 'Guides',
+                  collapsed: false,
+                  items: [
+                    { slug: 'products/ai/enabling-service' },
+                    { slug: 'products/ai/local-development' },
+                    { slug: 'products/ai/auto-embeddings' },
+                    { slug: 'products/ai/assistants' },
+                    { slug: 'products/ai/dev-assistant' },
+                  ],
+                },
               ],
             },
             // Platform
@@ -413,7 +456,7 @@ export default defineConfig({
               link: '/platform/',
               icon: 'laptop',
               items: [
-                { label: 'Overview', slug: 'platform' },
+                { label: 'Platform', slug: 'platform' },
                 {
                   label: 'Cloud',
                   collapsed: false,
@@ -476,7 +519,7 @@ export default defineConfig({
               link: '/reference/',
               icon: 'open-book',
               items: [
-                { label: 'Overview', slug: 'reference' },
+                { label: 'Reference', slug: 'reference' },
                 {
                   label: 'Backend Services',
                   collapsed: false,
