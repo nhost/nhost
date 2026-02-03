@@ -75,6 +75,7 @@ let
 
   checkDeps = with pkgs; [
     nhost-cli
+    lychee
     playwright-driver
   ];
 
