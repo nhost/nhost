@@ -193,6 +193,7 @@ function DataBrowserSidebarContent({
     handleEditFunctionPermissionClick,
     handleEditSettingsClick,
     handleEditFunctionSettingsClick,
+    handleViewTableInfoClick,
     openEditTableDrawer,
     openEditViewDrawer,
     openEditFunctionDrawer,
@@ -477,6 +478,12 @@ function DataBrowserSidebarContent({
                               },
                             )}
                             isSelectedNotSchemaLocked={!isSelectedSchemaLocked}
+                            onViewInfo={() =>
+                              handleViewTableInfoClick(
+                                dbObject.table_schema,
+                                dbObject.table_name,
+                              )
+                            }
                             onViewPermissions={() =>
                               handleEditPermissionClick(
                                 dbObject.table_schema,
