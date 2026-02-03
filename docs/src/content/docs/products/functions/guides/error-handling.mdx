@@ -1,0 +1,51 @@
+---
+title: Error Handling
+description: Handle errors in Nhost Functions
+keywords: ["error handling", "try-catch", "unhandled errors", "debugging", "serverless functions"]
+---
+
+## Caught Errors
+
+Use standard `try`/`catch` blocks to handle errors and return meaningful responses:
+
+```ts ./functions/error.ts
+import type { Request, Response } from 'express'
+
+export default (_: Request, res: Response) => {
+  try {
+    throw new Error('This is an error')
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({
+      error: error.message,
+    })
+  }
+}
+```
+
+The `console.log(error)` call ensures the error appears in your [function logs](/products/functions/logging), including the full stack trace. The client receives a structured JSON response.
+
+## Unhandled Errors
+
+If an error is thrown without being caught, the function crashes and the client receives a generic error response:
+
+```ts ./functions/crash.ts
+import type { Request, Response } from 'express'
+
+export default (_: Request, _res: Response) => {
+  throw new Error('This is an unhandled error')
+}
+```
+
+Unhandled errors are still captured in the logs with level `ERROR`, so you can diagnose them from the [logs page](https://app.nhost.io/orgs/_/projects/_/logs).
+
+:::caution
+Unhandled errors return a generic 500 response to the client with no detail about the failure. Always use `try`/`catch` for errors you want to communicate back to the caller.
+:::
+
+## Best Practices
+
+- **Log before responding**: Call `console.log()` or `console.error()` before sending the response so the error is captured in logs regardless of client behavior.
+- **Use the invocation ID**: Include `req.invocationId` in log messages to correlate errors with specific requests. See [Logging](/products/functions/logging) for details.
+- **Return structured errors**: Use a consistent error shape (e.g., `{ error: string }`) so clients can parse failures reliably.
+- **Set appropriate status codes**: Use `400` for bad input, `401`/`403` for auth failures, and `500` for unexpected server errors.

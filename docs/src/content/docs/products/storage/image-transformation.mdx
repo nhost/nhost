@@ -1,0 +1,57 @@
+---
+title: Image Transformation
+description: Resize, convert, and optimize images on-the-fly
+keywords: ["storage", "images", "resize", "transform", "optimization", "webp", "avif", "thumbnails"]
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+
+Images can be transformed on-the-fly by adding query parameters to file URLs. Transformations work with both public URLs and pre-signed URLs, and results are cached at the CDN layer.
+
+## Parameters
+
+| Parameter | Description | Values |
+|-----------|-------------|--------|
+| `w` | Maximum width (maintains aspect ratio) | Pixels (e.g., `400`) |
+| `h` | Maximum height (maintains aspect ratio) | Pixels (e.g., `300`) |
+| `q` | Image quality | `1` -- `100` (applies to JPEG, WebP, PNG) |
+| `f` | Output format | `auto`, `same`, `jpeg`, `webp`, `png`, `avif` |
+| `b` | Blur sigma | `0` or higher |
+
+**Format options:**
+- `auto` -- uses content negotiation based on the `Accept` header (serves WebP/AVIF to browsers that support it)
+- `same` -- keeps the original format (default)
+
+## Usage
+
+<Tabs>
+<TabItem label="TypeScript">
+
+```typescript
+// Fetch a 100x100 WebP thumbnail
+const { body } = await nhost.storage.getFile(fileId, {
+  w: 100,
+  h: 100,
+  f: 'webp',
+})
+const url = URL.createObjectURL(body)
+```
+
+</TabItem>
+<TabItem label="curl">
+
+```bash
+# Fetch a 100x100 WebP thumbnail
+curl -H "Authorization: Bearer $TOKEN" \
+  --output thumbnail.webp \
+  "https://local.storage.local.nhost.run/v1/files/$FILE_ID?w=100&h=100&f=webp"
+```
+
+</TabItem>
+</Tabs>
+
+## Caching Behavior
+
+Transformed images are cached at the CDN level. The first request for a specific combination of parameters generates the transformed image; subsequent requests are served from cache.
+
+Each unique set of query parameters is treated as a separate cached resource. Keep the number of distinct parameter combinations reasonable to maximize cache hit rates. See [CDN](/products/storage/cdn) for more details.

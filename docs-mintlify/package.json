@@ -1,0 +1,16 @@
+{
+  "name": "@nhost/docs",
+  "version": "2.35.0",
+  "private": true,
+  "scripts": {
+    "dev": "mintlify dev",
+    "generate": "./gen.sh",
+    "test": "./check_broken_links.sh",
+    "test:broken-links": "mintlify broken-links"
+  },
+  "devDependencies": {
+    "prettier": "^3.5.3",
+    "typedoc": "^0.28.4",
+    "typedoc-plugin-markdown": "^4.6.3"
+  }
+}
