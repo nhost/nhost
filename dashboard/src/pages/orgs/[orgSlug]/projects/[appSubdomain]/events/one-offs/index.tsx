@@ -2,8 +2,8 @@ import type { ReactElement } from 'react';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { EventsEmptyState } from '@/features/orgs/projects/events/common/components/EventsEmptyState';
-import { CronTriggersBrowserSidebar } from '@/features/orgs/projects/events/cron-triggers/components/CronTriggersBrowserSidebar';
 import { useGetCronTriggers } from '@/features/orgs/projects/events/cron-triggers/hooks/useGetCronTriggers';
+import { OneOffsBrowserSidebar } from '@/features/orgs/projects/events/one-offs/components/OneOffsBrowserSidebar';
 
 export default function CronTriggersPage() {
   const {
@@ -56,7 +56,7 @@ CronTriggersPage.getLayout = function getLayout(page: ReactElement) {
         className: 'flex h-full',
       }}
     >
-      <CronTriggersBrowserSidebar className="w-full max-w-sidebar" />
+      <OneOffsBrowserSidebar className="w-full max-w-sidebar" />
 
       <div className="box flex w-full flex-auto flex-col overflow-x-hidden">
         {page}

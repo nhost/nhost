@@ -7,7 +7,7 @@ import { CronTriggersBrowserSidebar } from '@/features/orgs/projects/events/cron
 import { CronTriggerView } from '@/features/orgs/projects/events/cron-triggers/components/CronTriggerView';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
-export default function CronTriggerDetailsPage() {
+export default function OneOffDetailsPage() {
   const { project } = useProject();
   const isPlatform = useIsPlatform();
 
@@ -22,7 +22,7 @@ export default function CronTriggerDetailsPage() {
   );
 }
 
-CronTriggerDetailsPage.getLayout = function getLayout(page: ReactElement) {
+OneOffDetailsPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <OrgLayout
       mainContainerProps={{

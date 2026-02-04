@@ -189,6 +189,11 @@ const projectEventsPages = [
     slug: 'cron-triggers',
     route: 'events/cron-triggers',
   },
+  {
+    name: 'One-Off Scheduled Events',
+    slug: 'one-offs',
+    route: 'events/one-offs',
+  },
 ];
 
 const createOrganization = (org: Org) => {

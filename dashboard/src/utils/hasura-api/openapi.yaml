@@ -42,6 +42,7 @@ paths:
                 - $ref: "#/components/schemas/DeleteCronTriggerOperation"
                 - $ref: "#/components/schemas/GetScheduledEventsOperation"
                 - $ref: "#/components/schemas/GetScheduledEventInvocationsOperation"
+                - $ref: "#/components/schemas/CreateScheduledEventOperation"
                 - $ref: "#/components/schemas/DeleteScheduledEventOperation"
       responses:
         "200":
@@ -2451,6 +2452,48 @@ components:
               type: string
               description: Version of the response format
               example: "1"
+
+    CreateScheduledEventOperation:
+      type: object
+      description: Used to create a scheduled event.
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [create_scheduled_event]
+        args:
+          $ref: "#/components/schemas/CreateScheduledEventArgs"
+
+    CreateScheduledEventArgs:
+      type: object
+      required:
+        - webhook
+        - schedule_at
+      properties:
+        webhook:
+          type: string
+          description: URL of the webhook. A String value which supports templating environment variables enclosed in {{ and }}.
+          example: "{{SERVICE_URL}}/hooks"
+        schedule_at:
+          type: string
+          format: date-time
+          description: The time at which the invocation should be invoked (ISO8601 format).
+          example: "2025-09-19T16:01:31.086239Z"
+        payload:
+          type: object
+          description: Any JSON payload which will be sent when the webhook is invoked.
+          additionalProperties: true
+        headers:
+          description: List of headers to be sent with the webhook
+          $ref: "#/components/schemas/Headers"
+        retry_conf:
+          description: Retry configuration if scheduled event delivery fails
+          $ref: "#/components/schemas/RetryConfCT"
+        comment:
+          type: string
+          description: Custom comment.
 
     DeleteScheduledEventOperation:
       type: object

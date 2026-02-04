@@ -1,25 +1,25 @@
 import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
 import type {
-  DeleteCronTriggerArgs,
-  DeleteCronTriggerOperation,
+  DeleteScheduledEventArgs,
+  DeleteScheduledEventOperation,
 } from '@/utils/hasura-api/generated/schemas';
 import type { MetadataOperationOptions } from '@/utils/hasura-api/types';
 
-export interface DeleteCronTriggerVariables {
-  args: DeleteCronTriggerArgs;
+export interface DeleteOneOffVariables {
+  args: DeleteScheduledEventArgs;
 }
 
-export default async function deleteCronTrigger({
+export default async function deleteOneOff({
   appUrl,
   adminSecret,
   args,
-}: MetadataOperationOptions & DeleteCronTriggerVariables) {
+}: MetadataOperationOptions & DeleteOneOffVariables) {
   try {
     const response = await metadataOperation(
       {
-        type: 'delete_cron_trigger',
+        type: 'delete_scheduled_event',
         args,
-      } satisfies DeleteCronTriggerOperation,
+      } satisfies DeleteScheduledEventOperation,
       {
         baseUrl: appUrl,
         adminSecret,

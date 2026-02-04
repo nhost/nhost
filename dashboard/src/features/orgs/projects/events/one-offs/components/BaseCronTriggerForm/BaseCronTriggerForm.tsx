@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PlusIcon, TrashIcon } from 'lucide-react';
-import { type ReactNode, useCallback, useRef, useState } from 'react';
+import { type ReactNode, useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { DiscardChangesDialog } from '@/components/common/DiscardChangesDialog';
 import { FormInput } from '@/components/form/FormInput';
@@ -88,8 +88,6 @@ export default function BaseCronTriggerForm({
 
   const { watch, reset, setValue } = form;
   const { isDirty } = form.formState;
-
-  const sheetContentRef = useRef<HTMLDivElement | null>(null);
 
   const resetFormValues = useCallback(() => {
     reset(initialData ?? defaultFormValues);
@@ -198,7 +196,6 @@ export default function BaseCronTriggerForm({
       {triggerNode}
       <Sheet open={isSheetOpen} onOpenChange={handleSheetOpenChange}>
         <SheetContent
-          ref={sheetContentRef}
           showOverlay
           className="box flex w-xl flex-auto flex-col gap-0 p-0 sm:max-w-4xl md:w-4xl"
         >

@@ -1,30 +1,25 @@
 import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
 import type {
-  CreateCronTriggerArgs,
-  CreateCronTriggerBulkOperation,
+  CreateScheduledEventArgs,
+  CreateScheduledEventOperation,
 } from '@/utils/hasura-api/generated/schemas';
 import type { MetadataOperationOptions } from '@/utils/hasura-api/types';
 
-export interface CreateCronTriggerVariables {
-  args: CreateCronTriggerArgs;
+export interface CreateOneOffVariables {
+  args: CreateScheduledEventArgs;
 }
 
-export default async function createCronTrigger({
+export default async function createOneOff({
   appUrl,
   adminSecret,
   args,
-}: MetadataOperationOptions & CreateCronTriggerVariables) {
+}: MetadataOperationOptions & CreateOneOffVariables) {
   try {
     const response = await metadataOperation(
       {
-        type: 'bulk',
-        args: [
-          {
-            type: 'create_cron_trigger',
-            args,
-          },
-        ],
-      } satisfies CreateCronTriggerBulkOperation,
+        type: 'create_scheduled_event',
+        args,
+      } satisfies CreateScheduledEventOperation,
       {
         baseUrl: appUrl,
         adminSecret,
