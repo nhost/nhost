@@ -1,16 +1,16 @@
-import type { Column } from 'react-table';
+import type { ColumnDef } from '@tanstack/react-table';
 import { expect, it } from 'vitest';
 import { render, screen } from '@/tests/testUtils';
 import DataGrid from './DataGrid';
 
-interface MockDataDetails {
+type MockDataDetails = {
   id: number;
   name: string;
-}
+};
 
-const mockColumns: Column<MockDataDetails>[] = [
-  { id: 'id', Header: 'ID', accessor: 'id' },
-  { id: 'name', Header: 'Name', accessor: 'name' },
+const mockColumns: ColumnDef<MockDataDetails>[] = [
+  { id: 'id', header: 'ID', accessorKey: 'id' },
+  { id: 'name', header: 'Name', accessorKey: 'name' },
 ];
 
 const mockData: MockDataDetails[] = [
@@ -25,10 +25,10 @@ describe('DataGrid', () => {
     expect(screen.getByText(/columns not found/i)).toBeInTheDocument();
   });
 
-  it('should render columns and empty state message if data is unavailable', () => {
+  it('should render columns and empty state message if data is unavailable', async () => {
     render(<DataGrid columns={mockColumns} data={[]} />);
 
-    expect(screen.getByRole('table')).toBeInTheDocument();
+    expect(await screen.findByRole('table')).toBeInTheDocument();
 
     expect(
       screen.getByRole('columnheader', { name: /id/i }),
@@ -40,7 +40,7 @@ describe('DataGrid', () => {
     expect(screen.getByText(/no data is available/i)).toBeInTheDocument();
   });
 
-  it('should render custom empty state message if data is unavailable', () => {
+  it('should render custom empty state message if data is unavailable', async () => {
     const customEmptyStateMessage = 'custom empty state message';
 
     render(
@@ -51,20 +51,21 @@ describe('DataGrid', () => {
       />,
     );
 
-    expect(screen.getByText(customEmptyStateMessage)).toBeInTheDocument();
+    expect(
+      await screen.findByText(customEmptyStateMessage),
+    ).toBeInTheDocument();
   });
 
   it('should display a loading indicator', async () => {
     render(<DataGrid columns={mockColumns} data={[]} loading />);
 
-    // Activity indicator is not immediately displayed, so we need to wait
     expect(await screen.findByRole('progressbar')).toBeInTheDocument();
   });
 
-  it('should render data if provided', () => {
+  it('should render data if provided', async () => {
     render(<DataGrid columns={mockColumns} data={mockData} />);
 
-    expect(screen.getAllByRole('row')).toHaveLength(2);
+    expect(await screen.findAllByRole('row')).toHaveLength(2);
     expect(screen.getByRole('cell', { name: /1/i })).toBeInTheDocument();
     expect(screen.getByRole('cell', { name: /foo/i })).toBeInTheDocument();
   });

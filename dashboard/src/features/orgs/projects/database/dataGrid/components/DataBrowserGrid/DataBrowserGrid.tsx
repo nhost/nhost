@@ -1,4 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
+import type { CellContext } from '@tanstack/react-table';
 import { KeyRound } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
@@ -16,7 +17,7 @@ import {
 import type { UpdateRecordVariables } from '@/features/orgs/projects/database/dataGrid/hooks/useUpdateRecordMutation';
 import { useUpdateRecordWithToastMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useUpdateRecordMutation';
 import type {
-  DataBrowserGridColumn,
+  DataBrowserGridColumnDef,
   NormalizedQueryDataRow,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { normalizeDefaultValue } from '@/features/orgs/projects/database/dataGrid/utils/normalizeDefaultValue';
@@ -26,8 +27,11 @@ import {
   POSTGRESQL_JSON_TYPES,
   POSTGRESQL_NUMERIC_TYPES,
 } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
-import type { DataGridProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
-import { DataGrid } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
+import {
+  DataGrid,
+  type DataGridProps,
+  type UnknownDataGridRow,
+} from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import { DataGridBooleanCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridBooleanCell';
 import { DataGridDateCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridDateCell';
 import { DataGridNumericCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridNumericCell';
@@ -44,18 +48,34 @@ const CreateRecordForm = dynamic(
   { ssr: false, loading: () => <FormActivityIndicator /> },
 );
 
-// biome-ignore lint/suspicious/noExplicitAny: TODO
-export interface DataBrowserGridProps extends Partial<DataGridProps<any>> {}
+export interface DataBrowserGridProps extends Partial<DataGridProps> {}
 
 export function createDataGridColumn(
   column: NormalizedQueryDataRow,
   isEditable: boolean = true,
-) {
+): DataBrowserGridColumnDef {
   const { normalizedDefaultValue, custom: isDefaultValueCustom } =
     normalizeDefaultValue(column.column_default);
 
+  const meta = {
+    isEditable,
+    isPrimary: column.is_primary,
+    isNullable: column.is_nullable !== 'NO',
+    isIdentity: column.is_identity === 'YES',
+    defaultValue: normalizedDefaultValue,
+    isDefaultValueCustom,
+    isUnique: column.is_unique,
+    comment: column.column_comment,
+    uniqueConstraints: column.unique_constraints,
+    primaryConstraints: column.primary_constraints,
+    foreignKeyRelation: column.foreign_key_relation,
+    specificType: column.full_data_type,
+    dataType: column.data_type,
+    type: 'text',
+  };
+
   const defaultColumnConfiguration = {
-    Header: () => (
+    header: () => (
       <div className="grid grid-flow-col items-center justify-start gap-1 font-normal">
         {column.is_primary && <KeyRound width={14} height={14} />}
 
@@ -67,42 +87,39 @@ export function createDataGridColumn(
       </div>
     ),
     id: column.column_name,
-    accessor: column.column_name,
-    sortType: 'basic',
-    width: 250,
-    isEditable,
-    type: 'text',
-    specificType: column.full_data_type,
-    dataType: column.data_type,
-    Cell: DataGridTextCell,
-    isPrimary: column.is_primary,
-    isNullable: column.is_nullable !== 'NO',
-    isIdentity: column.is_identity === 'YES',
-    defaultValue: normalizedDefaultValue,
-    isDefaultValueCustom,
-    isUnique: column.is_unique,
-    comment: column.column_comment,
-    uniqueConstraints: column.unique_constraints,
-    primaryConstraints: column.primary_constraints,
-    foreignKeyRelation: column.foreign_key_relation,
+    accessorKey: column.column_name as string,
+    size: 250,
+    meta,
+    cell: (props: CellContext<UnknownDataGridRow, string>) => (
+      <DataGridTextCell {...props} />
+    ),
   };
 
   if (POSTGRESQL_NUMERIC_TYPES.includes(column.data_type)) {
     return {
       ...defaultColumnConfiguration,
-      type: 'number',
-      isCopiable: true,
-      width: 250,
-      Cell: DataGridNumericCell,
+      meta: {
+        ...meta,
+        type: 'number',
+      },
+      size: 250,
+      cell: (props: CellContext<UnknownDataGridRow, number | null>) => (
+        <DataGridNumericCell {...props} />
+      ),
     };
   }
 
   if (column.data_type === 'boolean') {
     return {
       ...defaultColumnConfiguration,
-      type: 'boolean',
-      width: 140,
-      Cell: DataGridBooleanCell,
+      meta: {
+        ...meta,
+        type: 'boolean',
+      },
+      size: 140,
+      cell: (
+        props: CellContext<UnknownDataGridRow, boolean | undefined | null>,
+      ) => <DataGridBooleanCell {...props} />,
     };
   }
 
@@ -112,30 +129,42 @@ export function createDataGridColumn(
   ) {
     return {
       ...defaultColumnConfiguration,
-      type: 'text',
-      isCopiable: true,
-      width: 250,
-      Cell: DataGridTextCell,
+      meta: {
+        ...meta,
+        type: 'text',
+      },
+      size: 250,
+      cell: (props: CellContext<UnknownDataGridRow, string>) => (
+        <DataGridTextCell {...props} />
+      ),
     };
   }
 
   if (column.udt_name === 'uuid') {
     return {
       ...defaultColumnConfiguration,
-      type: 'uuid',
-      width: 318,
-      isCopiable: true,
-      Cell: DataGridTextCell,
+      meta: {
+        ...meta,
+        type: 'uuid',
+      },
+      size: 318,
+      cell: (props: CellContext<UnknownDataGridRow, string>) => (
+        <DataGridTextCell {...props} />
+      ),
     };
   }
 
   if (POSTGRESQL_DATE_TIME_TYPES.includes(column.data_type)) {
     return {
       ...defaultColumnConfiguration,
-      type: 'date',
-      width: 200,
-      isCopiable: true,
-      Cell: DataGridDateCell,
+      meta: {
+        ...meta,
+        type: 'date',
+      },
+      size: 200,
+      cell: (props: CellContext<UnknownDataGridRow, string>) => (
+        <DataGridDateCell {...props} />
+      ),
     };
   }
 
@@ -268,15 +297,24 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
 
   const memoizedColumns = useMemo(
     () =>
-      columns.map((column) => ({
-        ...createDataGridColumn(column, true),
-        onCellEdit: async (variables: UpdateRecordVariables) => {
-          const result = await updateRow(variables);
-          await queryClient.invalidateQueries({ queryKey: [currentTablePath] });
+      columns.map((column) => {
+        const colDef = createDataGridColumn(column, true);
 
-          return result;
-        },
-      })),
+        return {
+          ...colDef,
+          meta: {
+            ...colDef.meta,
+            onCellEdit: async (variables: UpdateRecordVariables) => {
+              const result = await updateRow(variables);
+              await queryClient.invalidateQueries({
+                queryKey: [currentTablePath],
+              });
+
+              return result;
+            },
+          },
+        };
+      }),
     [columns, currentTablePath, queryClient, updateRow],
   );
 
@@ -287,8 +325,7 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
       title: 'Insert a New Row',
       component: (
         <CreateRecordForm
-          // TODO: Create proper typings for data browser columns
-          columns={memoizedColumns as unknown as DataBrowserGridColumn[]}
+          columns={memoizedColumns}
           onSubmit={refetch}
           currentOffset={currentOffset}
         />
@@ -364,11 +401,8 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
       className="pb-17 sm:pb-0"
       onInsertRow={handleInsertRowClick}
       options={{
-        manualSortBy: true,
-        disableMultiSort: true,
-        autoResetSortBy: false,
-        autoResetSelectedRows: false,
-        autoResetResize: false,
+        manualSorting: true,
+        enableMultiSort: false,
       }}
       controls={
         <DataBrowserGridControls
@@ -383,8 +417,8 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
         />
       }
       {...props}
-      sortBy={sortBy}
-      onSort={setSortBy}
+      sorting={sortBy}
+      onSortingChange={setSortBy}
     />
   );
 }

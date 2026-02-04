@@ -1,5 +1,7 @@
+import type { ColumnOrderState, VisibilityState } from '@tanstack/react-table';
 import type { RowDensity } from '@/features/orgs/projects/common/types/dataTableConfigurationTypes';
-import { isEmptyValue } from '@/lib/utils';
+import { SELECTION_COLUMN_ID } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid/useDataGrid';
+import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 
 export const COLUMN_CONFIGURATION_STORAGE_KEY =
   'nhost_column_configuration_storage';
@@ -7,13 +9,20 @@ export const COLUMN_CONFIGURATION_STORAGE_KEY =
 const DATA_TABLE_CONFIGURATION_STORAGE_KEY =
   'nhost_data_table_configuration_storage';
 
+const CONFIG_HAS_BEEN_CONVERTED_TO_V8_KEY = 'nhost_has_been_converted_to_v8';
+
 type ColumnConfiguration = {
-  hiddenColumns: string[];
-  columnOrder: string[];
+  columnVisibility: VisibilityState;
+  columnOrder: ColumnOrderState;
 };
 
 type DataTableViewConfiguration = {
   rowDensity: RowDensity;
+};
+
+type OldColumnConfiguration = {
+  hiddenColumns: string[];
+  columnOrder: string[];
 };
 
 // biome-ignore lint/complexity/noStaticOnlyClass: TODO: use functions instead
@@ -28,13 +37,16 @@ class PersistenDataTableConfigurationStorage {
     return allStoredData;
   }
 
-  static getHiddenColumns(tablePath: string): string[] {
+  static getColumnVisibility(tablePath: string): VisibilityState {
     const allStoredData =
       PersistenDataTableConfigurationStorage.getAllStoredData();
-    return allStoredData[tablePath]?.hiddenColumns ?? [];
+    return allStoredData[tablePath]?.columnVisibility ?? {};
   }
 
-  static saveHiddenColumns(tablePath: string, columnIds: string[]) {
+  static saveColumnVisibility(
+    tablePath: string,
+    columnVisibility: VisibilityState,
+  ) {
     const allStoredData =
       PersistenDataTableConfigurationStorage.getAllStoredData();
 
@@ -42,7 +54,7 @@ class PersistenDataTableConfigurationStorage {
       ...allStoredData,
       [tablePath]: {
         ...allStoredData[tablePath],
-        hiddenColumns: columnIds,
+        columnVisibility,
       },
     };
 
@@ -53,26 +65,24 @@ class PersistenDataTableConfigurationStorage {
   }
 
   static toggleColumnVisibility(tablePath: string, columnId: string) {
-    const allHiddenColumns =
-      PersistenDataTableConfigurationStorage.getHiddenColumns(tablePath);
+    const columnVisibility =
+      PersistenDataTableConfigurationStorage.getColumnVisibility(tablePath);
 
-    const newHiddenColumns = allHiddenColumns.includes(columnId)
-      ? allHiddenColumns.filter((id) => columnId !== id)
-      : allHiddenColumns.concat(columnId);
+    const isVisible = !!columnVisibility[columnId];
 
-    PersistenDataTableConfigurationStorage.saveHiddenColumns(
-      tablePath,
-      newHiddenColumns,
-    );
+    PersistenDataTableConfigurationStorage.saveColumnVisibility(tablePath, {
+      ...columnVisibility,
+      [columnId]: !isVisible,
+    });
   }
 
-  static getColumnOrder(tablePath: string) {
+  static getColumnOrder(tablePath: string): ColumnOrderState {
     const allStoredData =
       PersistenDataTableConfigurationStorage.getAllStoredData();
     return allStoredData[tablePath]?.columnOrder ?? [];
   }
 
-  static saveColumnOrder(tablePath: string, newColumnOrder: string[]) {
+  static saveColumnOrder(tablePath: string, newColumnOrder: ColumnOrderState) {
     const allStoredData =
       PersistenDataTableConfigurationStorage.getAllStoredData();
 
@@ -116,6 +126,52 @@ class PersistenDataTableConfigurationStorage {
       JSON.stringify(updatedConfig),
     );
   }
-}
 
+  static convertToV8IfNeeded() {
+    const isConfigNotConvertedToV8 =
+      localStorage.getItem(CONFIG_HAS_BEEN_CONVERTED_TO_V8_KEY) !== 'true';
+
+    const allStoredData =
+      PersistenDataTableConfigurationStorage.getAllStoredData();
+    if (isConfigNotConvertedToV8 && isNotEmptyValue(allStoredData)) {
+      const convertedData = {
+        ...allStoredData,
+      };
+
+      Object.keys(allStoredData).forEach((key) => {
+        const tableConfiguration = allStoredData[
+          key
+        ] as unknown as OldColumnConfiguration;
+
+        const { hiddenColumns = [] } = tableConfiguration;
+        if (isNotEmptyValue(hiddenColumns)) {
+          const columnVisibility = hiddenColumns.reduce<VisibilityState>(
+            (vs, col) => ({
+              ...vs,
+              [col]: false,
+            }),
+            {},
+          );
+
+          const columnOrder = isNotEmptyValue(tableConfiguration.columnOrder)
+            ? [SELECTION_COLUMN_ID, ...(tableConfiguration.columnOrder ?? [])]
+            : [];
+
+          const v8TableConfig: ColumnConfiguration = {
+            columnVisibility,
+            columnOrder,
+          };
+          convertedData[key] = v8TableConfig;
+        }
+      });
+
+      localStorage.setItem(
+        COLUMN_CONFIGURATION_STORAGE_KEY,
+        JSON.stringify(convertedData),
+      );
+
+      localStorage.setItem(CONFIG_HAS_BEEN_CONVERTED_TO_V8_KEY, 'true');
+    }
+  }
+}
 export default PersistenDataTableConfigurationStorage;

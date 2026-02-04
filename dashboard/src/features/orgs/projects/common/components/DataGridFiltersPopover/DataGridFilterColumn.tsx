@@ -6,6 +6,7 @@ import {
   SelectItem,
   SelectTrigger,
 } from '@/components/ui/v3/select';
+import { SELECTION_COLUMN_ID } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid/useDataGrid';
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
 import { isNotEmptyValue } from '@/lib/utils';
 import { useDataGridFilters } from './DataGridFiltersProvider';
@@ -15,10 +16,13 @@ type DataFilterColumnProps = {
   index: number;
 };
 
-function DataGrdiFitlerColumn({ value, index }: DataFilterColumnProps) {
-  const { columns } = useDataGridConfig<{ dataType: string }>();
+function DataGridFilterColumn({ value, index }: DataFilterColumnProps) {
+  const { getAllColumns } = useDataGridConfig<{ dataType: string }>();
   const { setColumn } = useDataGridFilters();
   const selectRef = useRef<HTMLButtonElement | null>(null);
+  const columns = getAllColumns().filter(
+    ({ id }) => id !== SELECTION_COLUMN_ID,
+  );
 
   useEffect(() => {
     if (isNotEmptyValue(selectRef.current)) {
@@ -43,8 +47,7 @@ function DataGrdiFitlerColumn({ value, index }: DataFilterColumnProps) {
           <SelectItem key={column.id} value={column.id}>
             {column.id}{' '}
             <Badge className="rounded-sm+ bg-secondary p-1 font-normal text-[0.75rem] leading-[0.75]">
-              {/* biome-ignore lint/suspicious/noExplicitAny: TODO: https://github.com/nhost/nhost/issues/3728  */}
-              {(column as any).dataType}
+              {column.columnDef.meta?.dataType}
             </Badge>
           </SelectItem>
         ))}
@@ -53,4 +56,4 @@ function DataGrdiFitlerColumn({ value, index }: DataFilterColumnProps) {
   );
 }
 
-export default DataGrdiFitlerColumn;
+export default DataGridFilterColumn;

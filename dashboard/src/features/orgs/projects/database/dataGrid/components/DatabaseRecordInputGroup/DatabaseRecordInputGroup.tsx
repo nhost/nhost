@@ -7,7 +7,7 @@ import { FormTextarea } from '@/components/form/FormTextarea';
 import { ReadOnlyToggle } from '@/components/presentational/ReadOnlyToggle';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import { SelectItem } from '@/components/ui/v3/select';
-import type { DataBrowserGridColumn } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import type { DataBrowserGridColumnDef } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser/dataBrowser';
 import { getInputType } from '@/features/orgs/projects/database/dataGrid/utils/inputHelpers';
 import { normalizeDefaultValue } from '@/features/orgs/projects/database/dataGrid/utils/normalizeDefaultValue';
 import { cn } from '@/lib/utils';
@@ -16,7 +16,7 @@ export interface DatabaseRecordInputGroupProps {
   /**
    * List of columns for which input fields should be generated.
    */
-  columns: DataBrowserGridColumn[];
+  columns: DataBrowserGridColumnDef[];
   /**
    * Title of the input group.
    */
@@ -120,107 +120,104 @@ export default function DatabaseRecordInputGroup({
         <p className="mb-3 text-secondary text-xs">{description}</p>
       )}
       <div>
-        {columns.map(
-          (
-            {
-              id: columnId,
-              type,
-              specificType,
-              defaultValue,
-              isPrimary,
-              isNullable,
-              isIdentity,
-              comment,
-            },
-            index,
-          ) => {
-            const isMultiline =
-              specificType === 'text' ||
-              specificType === 'bpchar' ||
-              specificType?.includes('character varying') ||
-              specificType === 'json' ||
-              specificType === 'jsonb';
+        {columns.map((column, index) => {
+          const { id: columnId, meta } = column;
+          const {
+            type,
+            specificType,
+            defaultValue,
+            isPrimary,
+            isNullable,
+            isIdentity,
+            comment,
+          } = meta || {};
 
-            const placeholder = getPlaceholder(
-              defaultValue,
-              isIdentity,
-              isNullable,
-            );
+          const isMultiline =
+            specificType === 'text' ||
+            specificType === 'bpchar' ||
+            specificType?.includes('character varying') ||
+            specificType === 'json' ||
+            specificType === 'jsonb';
 
-            const inputLabel = (
-              <span className="inline-grid grid-flow-col gap-1">
-                <span className="inline-grid grid-flow-col items-center gap-1 break-all">
-                  {isPrimary && (
-                    <KeyRound className="text-base text-inherit" size={13} />
-                  )}
-                  <span>{columnId}</span>
-                </span>
+          const placeholder = getPlaceholder(
+            defaultValue,
+            isIdentity,
+            isNullable,
+          );
 
-                <InlineCode
-                  className="h-[1.125rem] overflow-hidden whitespace-nowrap leading-[1.125rem]"
-                  title={specificType}
-                >
-                  {specificType}
-                </InlineCode>
+          const inputLabel = (
+            <span className="inline-grid grid-flow-col gap-1">
+              <span className="inline-grid grid-flow-col items-center gap-1 break-all">
+                {isPrimary && (
+                  <KeyRound className="text-base text-inherit" size={13} />
+                )}
+                <span>{columnId}</span>
               </span>
-            );
 
-            if (type === 'boolean') {
-              return (
-                <FormSelect
-                  key={columnId}
-                  inline
-                  name={columnId}
-                  control={control}
-                  label={inputLabel}
-                  placeholder="Select an option"
-                  helperText={comment}
-                  transform={{
-                    in: getBooleanValueTransformer(!!isNullable),
-                    out: getBooleanValueTransformer(!!isNullable),
-                  }}
-                >
-                  <SelectItem value="true">
-                    <ReadOnlyToggle checked />
-                  </SelectItem>
+              <InlineCode
+                className="h-[1.125rem] overflow-hidden whitespace-nowrap leading-[1.125rem]"
+                title={specificType}
+              >
+                {specificType}
+              </InlineCode>
+            </span>
+          );
 
-                  <SelectItem value="false">
-                    <ReadOnlyToggle checked={false} />
-                  </SelectItem>
-
-                  {isNullable && (
-                    <SelectItem value="null">
-                      <ReadOnlyToggle checked={null} />
-                    </SelectItem>
-                  )}
-                </FormSelect>
-              );
-            }
-
-            const InputComponent = isMultiline ? FormTextarea : FormInput;
+          if (type === 'boolean') {
             return (
-              <InputComponent
-                ref={getRef(index)}
+              <FormSelect
                 key={columnId}
                 inline
-                name={columnId}
+                name={columnId!}
                 control={control}
                 label={inputLabel}
-                placeholder={placeholder}
+                placeholder="Select an option"
                 helperText={comment}
                 transform={{
-                  in: convertNullToEmptyString,
-                  out: convertEmptyStringToNull,
+                  in: getBooleanValueTransformer(!!isNullable),
+                  out: getBooleanValueTransformer(!!isNullable),
                 }}
-                className={cn(
-                  { 'resize-none': isMultiline },
-                  'focus-visible:ring-0',
+              >
+                <SelectItem value="true">
+                  <ReadOnlyToggle checked />
+                </SelectItem>
+
+                <SelectItem value="false">
+                  <ReadOnlyToggle checked={false} />
+                </SelectItem>
+
+                {isNullable && (
+                  <SelectItem value="null">
+                    <ReadOnlyToggle checked={null} />
+                  </SelectItem>
                 )}
-                type={getInputType({ type, specificType })}
-              />
+              </FormSelect>
             );
-          },
-        )}
+          }
+
+          const InputComponent = isMultiline ? FormTextarea : FormInput;
+          return (
+            <InputComponent
+              ref={getRef(index)}
+              key={columnId}
+              inline
+              name={columnId!}
+              control={control}
+              label={inputLabel}
+              placeholder={placeholder}
+              helperText={comment}
+              transform={{
+                in: convertNullToEmptyString,
+                out: convertEmptyStringToNull,
+              }}
+              className={cn(
+                { 'resize-none': isMultiline },
+                'focus-visible:ring-0',
+              )}
+              type={getInputType({ type, specificType })}
+            />
+          );
+        })}
       </div>
     </section>
   );
