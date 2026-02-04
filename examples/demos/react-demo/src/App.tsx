@@ -10,6 +10,8 @@ import {
 import Navigation from './components/Navigation';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './lib/nhost/AuthProvider';
+import Communities from './pages/Communities';
+import Functions from './pages/Functions';
 import Home from './pages/Home';
 import Profile from './pages/Profile';
 import SignIn from './pages/SignIn';
@@ -62,6 +64,8 @@ const router = createBrowserRouter(
         <Route path="profile" element={<Profile />} />
         <Route path="todos" element={<Todos />} />
         <Route path="upload" element={<Upload />} />
+        <Route path="communities" element={<Communities />} />
+        <Route path="functions" element={<Functions />} />
       </Route>
       <Route path="*" element={<Navigate to="/" />} />
     </Route>,

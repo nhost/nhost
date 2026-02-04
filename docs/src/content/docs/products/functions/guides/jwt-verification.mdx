@@ -1,0 +1,118 @@
+---
+title: JWT Verification
+description: Verify JWTs in Nhost Functions using symmetric and asymmetric keys
+keywords: ["JWT", "verification", "serverless functions", "authentication", "JWKS", "bearer token"]
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+
+This guide shows how to verify JSON Web Tokens inside an Nhost Function. For background on JWT configuration (key types, generation, and external signing), see [JSON Web Tokens](/products/auth/jwt).
+
+## Dependencies
+
+```shell
+npm install jsonwebtoken jwks-rsa
+npm install -D @types/jsonwebtoken
+```
+
+## Symmetric Key Verification
+
+Use this approach when your project signs JWTs with a symmetric key (`HS256`/`HS384`/`HS512`). You need access to the same secret used for signing.
+
+```ts ./functions/verify-symmetric.ts
+import type { Request, Response } from 'express'
+import process from 'node:process'
+import jwt from 'jsonwebtoken'
+
+const JWT_SECRET = process.env.HASURA_GRAPHQL_JWT_SECRET
+
+export default (req: Request, res: Response) => {
+  const authHeader = req.headers.authorization
+
+  if (!authHeader?.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Unauthorized: missing header' })
+  }
+
+  const token = authHeader.split(' ')[1]
+
+  const verifyToken = new Promise((resolve, reject) => {
+    jwt.verify(token, JWT_SECRET, { algorithms: ['HS256', 'HS384', 'HS512'] }, (err, decoded) => {
+      if (err) reject(err)
+      else resolve(decoded)
+    })
+  })
+
+  verifyToken
+    .then((decoded) => {
+      res.status(200).json({ token: decoded })
+    })
+    .catch((err) => {
+      res.status(401).json({ error: `Unauthorized: ${err}` })
+    })
+}
+```
+
+:::caution
+The symmetric key must be kept secret. If you need to verify tokens in third-party services, consider using asymmetric keys instead.
+:::
+
+## Asymmetric Key Verification
+
+When your project uses asymmetric keys (`RS256`/`RS384`/`RS512`), you can verify tokens using the public key from the JWKS endpoint. This is the recommended approach because the public key can be shared safely.
+
+The JWKS endpoint is available at:
+
+```
+https://[subdomain].auth.[region].nhost.run/v1/.well-known/jwks.json
+```
+
+```ts ./functions/verify-asymmetric.ts
+import type { Request, Response } from 'express'
+import process from 'node:process'
+import jwt from 'jsonwebtoken'
+import jwksClient from 'jwks-rsa'
+
+const subdomain = process.env.NHOST_SUBDOMAIN
+const region = process.env.NHOST_REGION
+
+const client = jwksClient({
+  jwksUri: `https://${subdomain}.auth.${region}.nhost.run/v1/.well-known/jwks.json`,
+  cache: true,
+  cacheMaxAge: 86400000, // 24 hours
+})
+
+export default (req: Request, res: Response) => {
+  const authHeader = req.headers.authorization
+
+  if (!authHeader?.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Unauthorized: missing header' })
+  }
+
+  const token = authHeader.split(' ')[1]
+
+  const verifyToken = new Promise((resolve, reject) => {
+    jwt.verify(
+      token,
+      (header, callback) => {
+        client.getSigningKey(header.kid, (err, key) => {
+          if (err) return callback(err)
+          callback(null, key.getPublicKey())
+        })
+      },
+      { algorithms: ['RS256', 'RS384', 'RS512'] },
+      (err, decoded) => {
+        if (err) reject(err)
+        else resolve(decoded)
+      },
+    )
+  })
+
+  verifyToken
+    .then((decoded) => {
+      res.status(200).json({ token: decoded })
+    })
+    .catch((err) => {
+      res.status(401).json({ error: `Unauthorized: ${err}` })
+    })
+}
+```

@@ -116,7 +116,7 @@ export default function DisableSignUpsSettings() {
         <SettingsContainer
           title="Disable Sign Ups"
           description="If set, new users won't be able to sign up."
-          docsLink="https://docs.nhost.io/products/auth/overview#disable-sign-ups"
+          docsLink="https://docs.nhost.io/products/auth"
           switchId="disabled"
           showSwitch
           slotProps={{

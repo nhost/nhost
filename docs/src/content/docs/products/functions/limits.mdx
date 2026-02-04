@@ -1,0 +1,33 @@
+---
+title: Limitations
+description: Constraints and limits for Nhost Functions
+keywords: ["functions", "limits", "timeout", "payload", "response size", "execution time", "limitations", "JavaScript", "TypeScript"]
+---
+
+## JavaScript and TypeScript Only
+
+Each function is bundled and minified into a single JavaScript file during deployment. Native binaries and non-JavaScript code are stripped out in this process, so libraries that rely on native addons will not work. Common examples include:
+
+- **sharp** (image processing) — uses native C++ bindings
+- **bcrypt** — uses native C bindings (use `bcryptjs` instead)
+- **better-sqlite3** — embeds a native SQLite binary
+- **canvas** — depends on native Cairo bindings
+
+If you need native dependencies or a non-JavaScript runtime, use [Nhost Run](/products/run/) instead.
+
+## Execution Timeout
+
+Function execution timeout limits vary by project tier:
+
+| Tier           | Timeout              |
+| -------------- | -------------------- |
+| **Starter**    | 10 seconds           |
+| **Pro**        | 180 seconds (3 min)  |
+| **Teams**      | 600 seconds (10 min) |
+| **Enterprise** | Custom               |
+
+If a function exceeds its timeout, the execution is terminated and the client receives an error response.
+
+## Response Payload
+
+All functions have a hard limit of **6 MB** for response payloads, regardless of the project tier.

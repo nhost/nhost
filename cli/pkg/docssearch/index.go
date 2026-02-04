@@ -7,7 +7,7 @@ import (
 	"sort"
 	"strings"
 
-	docsembed "github.com/nhost/nhost/docs-starlight"
+	docsembed "github.com/nhost/nhost/docs"
 )
 
 // getAllPagePaths returns all non-deprecated page paths by walking the embedded filesystem.

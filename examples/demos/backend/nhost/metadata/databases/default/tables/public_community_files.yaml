@@ -1,0 +1,41 @@
+table:
+  name: community_files
+  schema: public
+object_relationships:
+  - name: community
+    using:
+      foreign_key_constraint_on: community_id
+  - name: file
+    using:
+      foreign_key_constraint_on: file_id
+insert_permissions:
+  - role: user
+    permission:
+      check:
+        community:
+          members:
+            user_id:
+              _eq: X-Hasura-User-Id
+      columns:
+        - file_id
+        - community_id
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - id
+        - file_id
+        - community_id
+        - created_at
+      filter:
+        community:
+          members:
+            user_id:
+              _eq: X-Hasura-User-Id
+delete_permissions:
+  - role: user
+    permission:
+      filter:
+        file:
+          uploaded_by_user_id:
+            _eq: X-Hasura-User-Id

@@ -48,10 +48,6 @@
           inherit self pkgs nix-filter nixops-lib;
         };
 
-        docs-starlightf = import ./docs-starlight/project.nix {
-          inherit self pkgs nix-filter nixops-lib;
-        };
-
         guidesf = import ./examples/guides/project.nix {
           inherit self pkgs nix-filter nixops-lib nix2containerPkgs;
         };
@@ -86,7 +82,6 @@
           demos = demosf.check;
           guides = guidesf.check;
           docs = docsf.check;
-          docs-starlight = docs-starlightf.check;
           mintlify-openapi = mintlify-openapif.check;
           nhost-js = nhost-jsf.check;
           nixops = nixopsf.check;
@@ -112,6 +107,7 @@
               # dashboard
               nodePackages.vercel
               playwright-driver
+              lychee
 
               # javascript
               nodejs
@@ -177,7 +173,6 @@
           demos = demosf.devShell;
           guides = guidesf.devShell;
           docs = docsf.devShell;
-          docs-starlight = docs-starlightf.devShell;
           mintlify-openapi = mintlify-openapif.devShell;
           nhost-js = nhost-jsf.devShell;
           nixops = nixopsf.devShell;

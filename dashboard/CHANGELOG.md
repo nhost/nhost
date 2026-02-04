@@ -1,3 +1,21 @@
+## [@nhost/dashboard@2.47.0] - 2026-02-04
+
+### 🚀 Features
+
+- *(dashboard)* Disconnect GitHub's auth provider from Nhost account (#3847)
+- *(docs)* Release starlight (#3877)
+
+
+### 🐛 Bug Fixes
+
+- *(nixops)* Update nodejs to v24 (#3862)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(dashboard)* Add CLAUDE.md (#3880)
+- *(dashboard)* Test links (#3881)
+
 ## [@nhost/dashboard@2.46.3] - 2026-02-02
 
 ### 🐛 Bug Fixes

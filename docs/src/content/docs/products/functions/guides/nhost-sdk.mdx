@@ -1,0 +1,155 @@
+---
+title: Using the Nhost SDK
+description: Use the Nhost SDK inside functions to interact with GraphQL, Storage, and Auth
+keywords: ["Nhost SDK", "GraphQL", "serverless functions", "authorization", "admin secret"]
+---
+
+You can use the Nhost SDK inside a function to interact with GraphQL, Storage, and other Nhost services. This is useful when your function needs to query data, upload files, or perform mutations as part of its logic.
+
+## Dependencies
+
+```shell
+npm install @nhost/nhost-js
+```
+
+## Acting as the Caller
+
+Forward the caller's `Authorization` header via the `options` parameter on each request. The request runs with the permissions of the calling user:
+
+```ts ./functions/todos.ts
+import type { Request, Response } from 'express'
+import { createClient } from '@nhost/nhost-js'
+
+const nhost = createClient({
+  region: process.env.NHOST_REGION,
+  subdomain: process.env.NHOST_SUBDOMAIN,
+})
+
+export default async (req: Request, res: Response) => {
+  const { body } = await nhost.graphql.request(
+    {
+      query: `
+        query {
+          todos {
+            id
+            title
+            completed
+          }
+        }
+      `,
+    },
+    {
+      headers: {
+        Authorization: req.headers.authorization ?? '',
+      },
+    },
+  )
+
+  if (body.errors) {
+    return res.status(400).json({ errors: body.errors })
+  }
+
+  res.status(200).json(body.data)
+}
+```
+
+This pattern is useful when you want to add server-side logic (validation, side effects, external API calls) while still respecting the user's Hasura permissions.
+
+## Acting as Admin
+
+Use `withAdminSession` when the function needs elevated access — for example, to read or write data the caller wouldn't normally have permission to access:
+
+```ts ./functions/admin-action.ts
+import type { Request, Response } from 'express'
+import { createClient, withAdminSession } from '@nhost/nhost-js'
+
+const nhost = createClient({
+  region: process.env.NHOST_REGION,
+  subdomain: process.env.NHOST_SUBDOMAIN,
+  configure: [
+    withAdminSession({
+      adminSecret: process.env.NHOST_ADMIN_SECRET,
+    }),
+  ],
+})
+
+export default async (req: Request, res: Response) => {
+  const { body } = await nhost.graphql.request({
+    query: `
+      query {
+        users {
+          id
+          email
+          displayName
+        }
+      }
+    `,
+  })
+
+  if (body.errors) {
+    return res.status(400).json({ errors: body.errors })
+  }
+
+  res.status(200).json(body.data)
+}
+```
+
+:::caution
+Admin requests bypass all Hasura permissions. Make sure your function validates the caller's authorization before performing privileged operations.
+:::
+
+## Acting as a Specific User
+
+Combine `withAdminSession` with a `role` and `sessionVariables` to execute requests as a specific user while using the admin secret for authentication:
+
+```ts
+const nhost = createClient({
+  region: process.env.NHOST_REGION,
+  subdomain: process.env.NHOST_SUBDOMAIN,
+  configure: [
+    withAdminSession({
+      adminSecret: process.env.NHOST_ADMIN_SECRET,
+      role: 'user',
+      sessionVariables: {
+        'user-id': userId,
+      },
+    }),
+  ],
+})
+```
+
+This is useful when you need to perform operations on behalf of a user without requiring their access token — for example, in background jobs or event triggers.
+
+## Uploading Files
+
+The SDK can also be used for storage operations:
+
+```ts ./functions/generate-report.ts
+import type { Request, Response } from 'express'
+import { createClient, withAdminSession } from '@nhost/nhost-js'
+
+const nhost = createClient({
+  region: process.env.NHOST_REGION,
+  subdomain: process.env.NHOST_SUBDOMAIN,
+  configure: [
+    withAdminSession({
+      adminSecret: process.env.NHOST_ADMIN_SECRET,
+    }),
+  ],
+})
+
+export default async (req: Request, res: Response) => {
+  const report = new Blob(['report content'], { type: 'text/plain' })
+
+  const { body } = await nhost.storage.uploadFiles({
+    'bucket-id': 'reports',
+    'file[]': [new File([report], 'report.txt')],
+  })
+
+  if (!body.processedFiles?.length) {
+    return res.status(500).json({ error: 'Upload failed' })
+  }
+
+  res.status(200).json({ fileId: body.processedFiles[0].id })
+}
+```
