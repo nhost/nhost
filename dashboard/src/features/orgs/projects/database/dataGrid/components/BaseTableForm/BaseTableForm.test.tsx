@@ -324,7 +324,6 @@ describe('BaseTableForm', () => {
 
   it('should not display identity column picker when numeric type is selected', async () => {
     render(<TestTableFormWrapper />);
-    const user = new TestUserEvent();
 
     expect(screen.queryByLabelText('Identity')).not.toBeInTheDocument();
 

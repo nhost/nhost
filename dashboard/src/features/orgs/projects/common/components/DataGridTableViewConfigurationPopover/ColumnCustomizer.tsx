@@ -3,7 +3,7 @@ import type { ColumnInstance } from 'react-table';
 import { DragAndDropList } from '@/components/common/DragAndDropList';
 import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
-import PersistenDataTableConfigurationStorage from '@/features/orgs/projects/storage/dataGrid/utils/PersistenDataTableConfigurationStorage';
+import { saveColumnOrder } from '@/features/orgs/projects/storage/dataGrid/utils/PersistentDataTableConfigurationStorage';
 import { isEmptyValue } from '@/lib/utils';
 import ColumnCustomizerRow from './ColumnCustomizerRow';
 import ShowHideAllColumnsButtons from './ShowHideAllColumnsButtons';
@@ -32,10 +32,7 @@ function ColumnCustomizer() {
     ).map(({ id }) => id);
 
     setColumnOrder(reordered);
-    PersistenDataTableConfigurationStorage.saveColumnOrder(
-      tablePath,
-      reordered,
-    );
+    saveColumnOrder(tablePath, reordered);
   }
 
   return (

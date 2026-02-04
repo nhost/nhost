@@ -11,7 +11,10 @@ import {
 } from 'react-table';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
-import PersistenColumnConfigurationStorage from '@/features/orgs/projects/storage/dataGrid/utils/PersistenDataTableConfigurationStorage';
+import {
+  getColumnOrder,
+  getHiddenColumns,
+} from '@/features/orgs/projects/storage/dataGrid/utils/PersistentDataTableConfigurationStorage';
 
 export interface UseDataGridBaseOptions {
   /**
@@ -76,10 +79,8 @@ export default function useDataGrid<T extends object>(
       defaultColumn,
       ...options,
       initialState: {
-        hiddenColumns:
-          PersistenColumnConfigurationStorage.getHiddenColumns(tablePath),
-        columnOrder:
-          PersistenColumnConfigurationStorage.getColumnOrder(tablePath),
+        hiddenColumns: getHiddenColumns(tablePath),
+        columnOrder: getColumnOrder(tablePath),
       },
     },
     ...pluginHooks,
