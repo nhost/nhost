@@ -8,9 +8,10 @@ function DataBrowserCustomizerTrigger(
   props: ButtonProps,
   ref: ForwardedRef<HTMLButtonElement>,
 ) {
-  const { allColumns } = useDataGridConfig();
+  const { getAllColumns } = useDataGridConfig();
+  const allColumns = getAllColumns();
   const numberOfHiddenColumns = allColumns.filter(
-    ({ isVisible }) => !isVisible,
+    (column) => !column.getIsVisible(),
   ).length;
   const hasHiddenColumns = numberOfHiddenColumns !== 0;
 

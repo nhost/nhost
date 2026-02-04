@@ -5,23 +5,24 @@ import {
   useEffect,
 } from 'react';
 import { Input } from '@/components/ui/v3/input';
+import type { UnknownDataBaseRow } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser/dataBrowser';
 import type { CommonDataGridCellProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGridCell';
 import { useDataGridCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridCell';
 import { isNotEmptyValue } from '@/lib/utils';
 
-export type DataGridNumericCellProps<TData extends object> =
+export type DataGridNumericCellProps<TData extends UnknownDataBaseRow> =
   CommonDataGridCellProps<TData, number | null>;
 
-export default function DataGridNumericCell<TData extends object>({
+export default function DataGridNumericCell<TData extends UnknownDataBaseRow>({
   onSave,
   optimisticValue,
   temporaryValue,
   onTemporaryValueChange,
-  cell: {
-    column: { dataType },
-  },
+  cell: { column },
 }: DataGridNumericCellProps<TData>) {
   const { inputRef, isEditing } = useDataGridCell<HTMLInputElement>();
+
+  const dataType = column.columnDef.meta?.dataType;
 
   useEffect(() => {
     const controller = new AbortController();

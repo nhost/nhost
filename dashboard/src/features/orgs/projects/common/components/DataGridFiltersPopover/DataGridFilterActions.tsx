@@ -32,7 +32,8 @@ function DataGridFilterActions() {
     ),
   });
 
-  const { columns } = useDataGridConfig();
+  const { getAllColumns } = useDataGridConfig();
+  const columns = getAllColumns();
 
   function handleAddFilter() {
     addFilter({ column: columns[0].id, op: '=', value: '', id: uuidV4() });

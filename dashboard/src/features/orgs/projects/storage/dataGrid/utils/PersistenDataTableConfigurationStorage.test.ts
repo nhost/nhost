@@ -13,7 +13,7 @@ describe('PersistenDataTableConfigurationStorage', () => {
     setInitialStore({
       [COLUMN_CONFIGURATION_STORAGE_KEY]: JSON.stringify({
         [TABLE_PATH]: {
-          hiddenColumns: ['column1', 'column2'],
+          columnVisibility: { column1: false, column2: false },
           columnOrder: ['column3', 'column1', 'column2'],
         },
       }),
@@ -21,53 +21,54 @@ describe('PersistenDataTableConfigurationStorage', () => {
   });
 
   it('should return the hidden columns for the tablePath', () => {
-    const hiddenColumns =
-      PersistenDataTableConfigurationStorage.getHiddenColumns(TABLE_PATH);
+    const columnVisibility =
+      PersistenDataTableConfigurationStorage.getColumnVisibility(TABLE_PATH);
 
-    expect(hiddenColumns).toStrictEqual(['column1', 'column2']);
+    expect(columnVisibility).toStrictEqual({ column1: false, column2: false });
   });
 
   it('should return an empty array if there are no hidden columns for the tablePath', () => {
-    const hiddenColumns =
-      PersistenDataTableConfigurationStorage.getHiddenColumns(
+    const columnVisibility =
+      PersistenDataTableConfigurationStorage.getColumnVisibility(
         'default.public.no_hidden_columns',
       );
 
-    expect(hiddenColumns).toStrictEqual([]);
+    expect(columnVisibility).toStrictEqual({});
   });
 
   it('should save the new hidden column state', () => {
-    PersistenDataTableConfigurationStorage.saveHiddenColumns(TABLE_PATH, []);
+    PersistenDataTableConfigurationStorage.saveColumnVisibility(TABLE_PATH, {});
 
-    const hiddenColumns =
-      PersistenDataTableConfigurationStorage.getHiddenColumns(TABLE_PATH);
+    const columnVisibility =
+      PersistenDataTableConfigurationStorage.getColumnVisibility(TABLE_PATH);
 
-    expect(hiddenColumns).toStrictEqual([]);
+    expect(columnVisibility).toStrictEqual({});
 
-    PersistenDataTableConfigurationStorage.saveHiddenColumns('newTable', [
-      'Hello',
-      'There',
-    ]);
-    const newTableHiddenColumns =
-      PersistenDataTableConfigurationStorage.getHiddenColumns('newTable');
-    expect(newTableHiddenColumns).toStrictEqual(['Hello', 'There']);
+    PersistenDataTableConfigurationStorage.saveColumnVisibility('newTable', {
+      Hello: false,
+      There: false,
+    });
+    const newTableColumnVisibility =
+      PersistenDataTableConfigurationStorage.getColumnVisibility('newTable');
+    expect(newTableColumnVisibility).toStrictEqual({
+      Hello: false,
+      There: false,
+    });
   });
 
   it('should toggle the columns visibility', () => {
-    const hiddenColumns =
-      PersistenDataTableConfigurationStorage.getHiddenColumns(TABLE_PATH);
-
-    expect(hiddenColumns).toStrictEqual(['column1', 'column2']);
-
     PersistenDataTableConfigurationStorage.toggleColumnVisibility(
       TABLE_PATH,
       'column2',
     );
 
-    const updatedHiddenColumns =
-      PersistenDataTableConfigurationStorage.getHiddenColumns(TABLE_PATH);
+    const updatedColumnVisibility =
+      PersistenDataTableConfigurationStorage.getColumnVisibility(TABLE_PATH);
 
-    expect(updatedHiddenColumns).toStrictEqual(['column1']);
+    expect(updatedColumnVisibility).toStrictEqual({
+      column2: true,
+      column1: false,
+    });
   });
 
   it('should get the column order', () => {

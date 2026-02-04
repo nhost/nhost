@@ -2,23 +2,27 @@ import type { ChangeEvent, KeyboardEvent, Ref } from 'react';
 import { useEffect } from 'react';
 import { Input } from '@/components/ui/v3/input';
 import { Textarea } from '@/components/ui/v3/textarea';
+import type { UnknownDataBaseRow } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser/dataBrowser';
 import {
   type CommonDataGridCellProps,
   useDataGridCell,
 } from '@/features/orgs/projects/storage/dataGrid/components/DataGridCell';
 
-export type DataGridTextCellProps<TData extends object> =
-  CommonDataGridCellProps<TData, string>;
+export type DataGridTextCellProps<
+  TData extends UnknownDataBaseRow = UnknownDataBaseRow,
+> = CommonDataGridCellProps<TData, string | null>;
 
-export default function DataGridTextCell<TData extends object>({
+export default function DataGridTextCell<
+  TData extends UnknownDataBaseRow = UnknownDataBaseRow,
+>({
   onSave,
   optimisticValue,
   temporaryValue,
   onTemporaryValueChange,
-  cell: {
-    column: { specificType },
-  },
+  cell: { column },
 }: DataGridTextCellProps<TData>) {
+  const specificType = column.columnDef.meta?.specificType;
+
   const isMultiline =
     specificType === 'text' ||
     specificType === 'bpchar' ||
