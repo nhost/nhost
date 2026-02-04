@@ -185,9 +185,11 @@ export default function DataBrowserGridControls({
             )}
             <DataGridFiltersPopover />
             <DataGridTableViewConfigurationPopover />
-            <Button onClick={onInsertRowClick} size="sm">
-              <Plus className="h-4 w-4" /> Insert row
-            </Button>
+            {onInsertRowClick && (
+              <Button onClick={onInsertRowClick} size="sm">
+                <Plus className="h-4 w-4" /> Insert row
+              </Button>
+            )}
           </div>
         )}
       </div>

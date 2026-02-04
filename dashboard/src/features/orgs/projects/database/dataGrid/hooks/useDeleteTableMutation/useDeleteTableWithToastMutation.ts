@@ -23,7 +23,7 @@ export default function useDeleteTableWithToastMutation(
 
   useEffect(() => {
     if (status === 'loading') {
-      const loadingToastId = showLoadingToast('Deleting table...', {
+      const loadingToastId = showLoadingToast(`Deleting object...`, {
         id: 'data-browser-table-delete',
       });
 
@@ -35,17 +35,17 @@ export default function useDeleteTableWithToastMutation(
 
       if (error && error instanceof Error) {
         triggerToast(
-          error.message || 'An error occurred while deleting the table.',
+          error.message || `An error occurred while deleting the object.`,
         );
       } else {
-        triggerToast('An error occurred while deleting the table.');
+        triggerToast(`An error occurred while deleting the object.`);
       }
     }
 
     if (status === 'success' && toastId) {
       toast.remove(toastId);
 
-      triggerToast('The table has been deleted successfully.');
+      triggerToast(`The object has been deleted successfully.`);
     }
   }, [status, error, toastId]);
 

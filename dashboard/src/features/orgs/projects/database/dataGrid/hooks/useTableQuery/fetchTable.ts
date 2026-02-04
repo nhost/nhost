@@ -135,7 +135,18 @@ export default async function fetchTable({
           dataSource,
           `
             SELECT ROW_TO_JSON(TABLE_DATA) FROM (
-                SELECT *,
+                SELECT 
+                    COLS.COLUMN_NAME,
+                    COLS.ORDINAL_POSITION,
+                    COLS.COLUMN_DEFAULT,
+                    COLS.IS_NULLABLE,
+                    COLS.DATA_TYPE,
+                    COLS.UDT_NAME,
+                    COLS.CHARACTER_MAXIMUM_LENGTH,
+                    COLS.NUMERIC_PRECISION,
+                    COLS.NUMERIC_SCALE,
+                    COLS.DATETIME_PRECISION,
+                    COLS.IS_IDENTITY,
                     PG_CATALOG.FORMAT_TYPE(
                         (SELECT ATTTYPID FROM PG_ATTRIBUTE
                          WHERE ATTRELID = (SELECT OID FROM PG_CLASS WHERE RELNAME = %2$L AND RELNAMESPACE = (SELECT OID FROM PG_NAMESPACE WHERE NSPNAME = %1$L))
@@ -167,7 +178,53 @@ export default async function fetchTable({
                     ) AS COLUMN_COMMENT
                 FROM INFORMATION_SCHEMA.COLUMNS COLS
                 WHERE TABLE_SCHEMA = %1$L AND TABLE_NAME = %2$L
-            ) TABLE_DATA;
+                UNION ALL
+                SELECT 
+                    ATTR.ATTNAME AS COLUMN_NAME,
+                    ATTR.ATTNUM AS ORDINAL_POSITION,
+                    CASE WHEN AD.ADBIN IS NOT NULL THEN PG_GET_EXPR(AD.ADBIN, AD.ADRELID, true) ELSE NULL END AS COLUMN_DEFAULT,
+                    CASE WHEN ATTR.ATTNOTNULL THEN 'NO' ELSE 'YES' END AS IS_NULLABLE,
+                    TYP.TYPNAME AS DATA_TYPE,
+                    TYP.TYPNAME AS UDT_NAME,
+                    NULL AS CHARACTER_MAXIMUM_LENGTH,
+                    NULL AS NUMERIC_PRECISION,
+                    NULL AS NUMERIC_SCALE,
+                    NULL AS DATETIME_PRECISION,
+                    'NO' AS IS_IDENTITY,
+                    PG_CATALOG.FORMAT_TYPE(ATTR.ATTTYPID, ATTR.ATTTYPMOD) AS FULL_DATA_TYPE,
+                    EXISTS (
+                        SELECT 1
+                        FROM PG_INDEX IND
+                        WHERE IND.INDRELID = CLS.OID 
+                        AND ATTR.ATTNUM = ANY(IND.INDKEY)
+                        AND IND.INDISPRIMARY
+                    ) AS IS_PRIMARY,
+                    EXISTS (
+                        SELECT 1
+                        FROM PG_INDEX IND
+                        WHERE IND.INDRELID = CLS.OID 
+                        AND ATTR.ATTNUM = ANY(IND.INDKEY)
+                        AND IND.INDISUNIQUE
+                        AND NOT IND.INDISPRIMARY
+                    ) AS IS_UNIQUE,
+                    PG_CATALOG.COL_DESCRIPTION(CLS.OID, ATTR.ATTNUM) AS COLUMN_COMMENT
+                FROM PG_ATTRIBUTE ATTR
+                JOIN PG_CLASS CLS ON CLS.OID = ATTR.ATTRELID
+                JOIN PG_NAMESPACE NSP ON NSP.OID = CLS.RELNAMESPACE
+                JOIN PG_TYPE TYP ON TYP.OID = ATTR.ATTTYPID
+                LEFT JOIN PG_ATTRDEF AD ON AD.ADRELID = CLS.OID AND AD.ADNUM = ATTR.ATTNUM
+                WHERE NSP.NSPNAME = %1$L 
+                AND CLS.RELNAME = %2$L
+                AND ATTR.ATTNUM > 0
+                AND NOT ATTR.ATTISDROPPED
+                AND NOT EXISTS (
+                    SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS IC
+                    WHERE IC.TABLE_SCHEMA = %1$L 
+                    AND IC.TABLE_NAME = %2$L
+                    AND IC.COLUMN_NAME = ATTR.ATTNAME
+                )
+            ) TABLE_DATA
+            ORDER BY ORDINAL_POSITION;
           `,
           schema,
           table,

@@ -79,6 +79,7 @@ export interface HasuraMetadataTable {
     name: string;
     schema: string;
   };
+  is_enum?: boolean;
   // biome-ignore lint/suspicious/noExplicitAny: TODO
   configuration: Record<string, Record<string, any>>;
   array_relationships?: HasuraMetadataRelationship[];
@@ -180,6 +181,12 @@ export type RawQueryDataRow = string[];
  */
 // biome-ignore lint/suspicious/noExplicitAny: TODO
 export type NormalizedQueryDataRow = Record<string, any>;
+
+export type NormalizedQueryFunctionRow = {
+  table_schema: string;
+  table_name: string;
+  table_type: 'FUNCTION';
+};
 
 /**
  * Represents an object that can be used to set up ordering in an SQL query.
