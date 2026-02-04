@@ -92,7 +92,8 @@ function FunctionActions({
                 className={menuItemClassName}
                 onClick={onEditFunction}
               >
-                <SquarePen className="h-4 w-4" /> <span>Edit Function</span>
+                <SquarePen className="h-4 w-4" />{' '}
+                <span>Function Definition</span>
               </DropdownMenuItem>
             )}
             <DropdownMenuItem

@@ -1,3 +1,4 @@
+import { PostgreSQL, sql } from '@codemirror/lang-sql';
 import { useTheme } from '@mui/material';
 import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
 import CodeMirror from '@uiw/react-codemirror';
@@ -145,6 +146,7 @@ export default function ViewDefinitionView({
           height="100%"
           className="h-full max-h-120 w-full"
           theme={theme.palette.mode === 'light' ? githubLight : githubDark}
+          extensions={[sql({ dialect: PostgreSQL })]}
           editable={false}
           readOnly={true}
         />

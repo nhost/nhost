@@ -92,7 +92,7 @@ function ViewActions({
                 className={menuItemClassName}
                 onClick={onEditView}
               >
-                <SquarePen className="h-4 w-4" /> <span>Edit View</span>
+                <SquarePen className="h-4 w-4" /> <span>View Definition</span>
               </DropdownMenuItem>
             )}
             <DropdownMenuItem

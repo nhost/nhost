@@ -518,7 +518,9 @@ export function useDataBrowserActions({
   function openEditViewDrawer(schema: string, table: DatabaseObject) {
     const isMaterializedView = table.object_type === 'MATERIALIZED VIEW';
     openDrawer({
-      title: isMaterializedView ? 'Edit Materialized View' : 'Edit View',
+      title: isMaterializedView
+        ? 'Materialized View Definition'
+        : 'View Definition',
       component: (
         <EditViewForm
           onSubmit={async (tableName) => {
@@ -536,7 +538,7 @@ export function useDataBrowserActions({
 
   function openEditFunctionDrawer(schema: string, functionName: string) {
     openDrawer({
-      title: 'Edit Function',
+      title: 'Function Definition',
       component: (
         <EditFunctionForm
           onSubmit={async (fnName) => {
