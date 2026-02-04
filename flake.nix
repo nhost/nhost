@@ -107,6 +107,7 @@
               # dashboard
               nodePackages.vercel
               playwright-driver
+              lychee
 
               # javascript
               nodejs
