@@ -50,13 +50,17 @@ export default function StatusColumnHeader({
         <Button
           variant="ghost"
           type="button"
-          className="relative flex h-fit items-center justify-between p-2 font-bold text-foreground text-xs transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring motion-safe:transition-colors dark:hover:bg-[#21262d]"
+          className="relative flex h-fit items-center gap-1 p-2 font-bold text-foreground text-xs transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring motion-safe:transition-colors dark:hover:bg-[#21262d]"
           aria-label={`Filter events by ${label.toLowerCase()} status`}
         >
-          <span className="truncate">Status</span>
-          <span className="flex items-center pl-1 font-normal text-muted-foreground">
-            <ChevronDown className="h-3 w-3" aria-hidden="true" />
+          <span className="truncate">Status:</span>
+          <span className="truncate font-normal text-muted-foreground">
+            {label}
           </span>
+          <ChevronDown
+            className="h-3 w-3 shrink-0 text-muted-foreground"
+            aria-hidden="true"
+          />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="center" className="w-56">

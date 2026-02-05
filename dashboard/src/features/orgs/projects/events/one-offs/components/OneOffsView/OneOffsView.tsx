@@ -11,7 +11,7 @@ export default function OneOffsView() {
   const { project } = useProject();
   const isGitHubConnected = !!project?.githubRepository;
   const [eventLogsSection, setEventLogsSection] =
-    useState<EventsSection>('processed');
+    useState<EventsSection>('all');
 
   const {
     offset,
@@ -33,8 +33,6 @@ export default function OneOffsView() {
       offset: offsetArg,
     }),
   });
-
-  console.log('eventsData', eventsData);
 
   return (
     <div className="flex h-full w-full flex-col overflow-hidden bg-background">

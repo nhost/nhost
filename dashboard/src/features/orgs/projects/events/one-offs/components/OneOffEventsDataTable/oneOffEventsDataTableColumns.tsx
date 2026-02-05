@@ -27,19 +27,23 @@ export function createOneOffEventsDataTableColumns({
       cell: ({ row }) => <OneOffEventsLogActionsCell row={row} />,
     },
     {
-      id: 'scheduled_time',
-      accessorKey: 'scheduled_time',
-      size: 230,
+      id: 'comment',
+      accessorKey: 'comment',
+      header: () => <div className="p-2">Comment</div>,
+      minSize: 80,
+      size: 180,
+      maxSize: 400,
       enableResizing: true,
-      header: ({ column }) => (
-        <SortableHeader column={column} label="Scheduled Time" />
-      ),
-      cell: ({ row }) => (
-        <HoverCardTimestamp
-          date={new Date(row.original.scheduled_time)}
-          className="block w-full truncate font-mono text-xs"
-        />
-      ),
+      cell: ({ row }) =>
+        row.original.comment ? (
+          <TextWithTooltip
+            className="text-xs"
+            containerClassName="cursor-text"
+            text={row.original.comment}
+          />
+        ) : (
+          <span className="text-muted-foreground text-xs">—</span>
+        ),
     },
     {
       id: 'status',
@@ -56,6 +60,40 @@ export function createOneOffEventsDataTableColumns({
       enableSorting: false,
       cell: ({ row }) => (
         <ScheduledEventStatusCell status={row.original.status} />
+      ),
+    },
+    {
+      id: 'webhook_conf',
+      accessorKey: 'webhook_conf',
+      header: () => <div className="p-2">Webhook</div>,
+      minSize: 80,
+      size: 240,
+      maxSize: 560,
+      enableResizing: true,
+      cell: ({ row }) =>
+        row.original.webhook_conf ? (
+          <TextWithTooltip
+            className="font-mono text-xs"
+            containerClassName="cursor-text"
+            text={row.original.webhook_conf}
+          />
+        ) : (
+          <span className="text-muted-foreground text-xs">—</span>
+        ),
+    },
+    {
+      id: 'scheduled_time',
+      accessorKey: 'scheduled_time',
+      size: 230,
+      enableResizing: true,
+      header: ({ column }) => (
+        <SortableHeader column={column} label="Scheduled Time" />
+      ),
+      cell: ({ row }) => (
+        <HoverCardTimestamp
+          date={new Date(row.original.scheduled_time)}
+          className="block w-full truncate font-mono text-xs"
+        />
       ),
     },
     {
