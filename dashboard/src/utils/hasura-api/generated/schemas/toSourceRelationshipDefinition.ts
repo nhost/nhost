@@ -5,18 +5,18 @@
  * API for managing remote schemas and events in Hasura
  * OpenAPI spec version: 1.0.0
  */
+import type { QualifiedTable } from './qualifiedTable';
 import type { ToSourceRelationshipDefinitionFieldMapping } from './toSourceRelationshipDefinitionFieldMapping';
 import type { ToSourceRelationshipDefinitionRelationshipType } from './toSourceRelationshipDefinitionRelationshipType';
-import type { ToSourceRelationshipDefinitionTable } from './toSourceRelationshipDefinitionTable';
 
 /**
  * Definition for relationship to a database source
  */
 export interface ToSourceRelationshipDefinition {
-  /** Name of the database source */
+  /** Name of the source of the target table */
   source: string;
   /** Target table information */
-  table: ToSourceRelationshipDefinitionTable;
+  table: QualifiedTable;
   /** Type of relationship - object for one-to-one, array for one-to-many */
   relationship_type: ToSourceRelationshipDefinitionRelationshipType;
   /** Mapping from remote schema fields to database table columns */

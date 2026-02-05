@@ -1,4 +1,11 @@
-import { Ellipsis, Settings, SquarePen, Trash2, Users } from 'lucide-react';
+import {
+  Anchor,
+  Ellipsis,
+  Settings,
+  SquarePen,
+  Trash2,
+  Users,
+} from 'lucide-react';
 import { Button } from '@/components/ui/v3/button';
 import {
   DropdownMenu,
@@ -6,6 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/v3/dropdown-menu';
+import useGetTrackedTablesNames from '@/features/orgs/projects/common/hooks/useGetTrackedTablesNames/useGetTrackedTablesNames';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { cn } from '@/lib/utils';
 
@@ -26,6 +34,8 @@ type Props = {
   onEditTable: () => void;
   onEditSettings: () => void;
   onViewSettings: () => void;
+  onEditRelationships: () => void;
+  onViewRelationships: () => void;
 };
 
 function TableActions({
@@ -42,9 +52,14 @@ function TableActions({
   onEditTable,
   onEditSettings,
   onViewSettings,
+  onEditRelationships,
+  onViewRelationships,
 }: Props) {
   const { project } = useProject();
   const isGitHubConnected = !!project?.githubRepository;
+  const { data } = useGetTrackedTablesNames({ dataSource: 'default' });
+  const trackedTablesSet = new Set(data ?? []);
+  const isTrackedTable = trackedTablesSet.has(tableName);
 
   function handleOnOpenChange(newOpenState: boolean) {
     if (newOpenState) {
@@ -78,6 +93,14 @@ function TableActions({
             >
               <Users className="h-4 w-4" /> <span>View Permissions</span>
             </DropdownMenuItem>
+            {isTrackedTable && (
+              <DropdownMenuItem
+                className={menuItemClassName}
+                onClick={onViewRelationships}
+              >
+                <Anchor className="h-4 w-4" /> <span>View Relationships</span>
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem
               className={menuItemClassName}
               onClick={onViewSettings}
@@ -101,6 +124,14 @@ function TableActions({
             >
               <Users className="h-4 w-4" /> <span>Edit Permissions</span>
             </DropdownMenuItem>
+            {isTrackedTable && (
+              <DropdownMenuItem
+                className={menuItemClassName}
+                onClick={onEditRelationships}
+              >
+                <Anchor className="h-4 w-4" /> <span>Edit Relationships</span>
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem
               className={menuItemClassName}
               onClick={onEditSettings}

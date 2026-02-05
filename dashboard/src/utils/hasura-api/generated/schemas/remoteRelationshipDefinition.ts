@@ -11,10 +11,12 @@ import type { ToSourceRelationshipDefinition } from './toSourceRelationshipDefin
 /**
  * Relationship definition
  */
-export type RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItemDefinition =
+export type RemoteRelationshipDefinition =
   | {
+      /** Remote Relationship definition to a Remote Schema */
       to_remote_schema: ToRemoteSchemaRelationshipDefinition;
     }
   | {
+      /** Remote Relationship definition to a table on a different database */
       to_source: ToSourceRelationshipDefinition;
     };
