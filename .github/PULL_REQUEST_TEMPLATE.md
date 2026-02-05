@@ -33,7 +33,6 @@ Where `PKG` is:
 - `docs`: For changes to the documentation
 - `examples`: For changes to the examples
 - `internal/lib`: For changes to Nhost's common libraries (internal)
-- `mintlify-openapi`: For changes to the Mintlify OpenAPI tool
 - `nhost-js`: For changes to the Nhost JavaScript SDK
 - `nixops`: For changes to the NixOps
 - `storage`: For changes to the Nhost Storage service

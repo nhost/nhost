@@ -49,16 +49,6 @@
           "@babel/runtime": "^7.0.0",
           "@lezer/highlight": "^1.0.0"
         }
-      },
-      "@mintlify/link-rot@*": {
-        "dependencies": {
-          "react": "18.2.0"
-        }
-      },
-      "@mintlify/scraping@*": {
-        "dependencies": {
-          "openapi-types": "*"
-        }
       }
     },
     "overrides": {
