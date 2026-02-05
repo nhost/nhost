@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { HEADER_TYPES } from '@/features/orgs/projects/events/common/components/HeadersFormSection';
@@ -62,14 +62,8 @@ const defaultFormValues: CreateOneOffFormValues = {
   headers: [],
 };
 
-const ACCORDION_SECTION_VALUE = 'retry-configuration';
-
 export default function useCreateOneOffForm() {
   const { mutateAsync: createOneOff } = useCreateOneOffMutation();
-
-  const [openAccordionSection, setOpenAccordionSection] = useState<
-    string | undefined
-  >(undefined);
 
   const [showUnsavedChangesDialog, setShowUnsavedChangesDialog] =
     useState(false);
@@ -80,88 +74,61 @@ export default function useCreateOneOffForm() {
     defaultValues: defaultFormValues,
   });
 
-  const { reset } = form;
-  const { isDirty } = form.formState;
+  function resetFormValues() {
+    form.reset(defaultFormValues);
+  }
 
-  const resetFormValues = useCallback(() => {
-    reset(defaultFormValues);
-  }, [reset]);
-
-  const openForm = useCallback(() => {
+  function openForm() {
     resetFormValues();
     setShowUnsavedChangesDialog(false);
     setIsSheetOpen(true);
-    setOpenAccordionSection(undefined);
-  }, [resetFormValues]);
+  }
 
-  const closeForm = useCallback(
-    (options?: { reset?: boolean }) => {
-      if (options?.reset !== false) {
-        resetFormValues();
-      }
-      setIsSheetOpen(false);
-      setShowUnsavedChangesDialog(false);
-      setOpenAccordionSection(undefined);
-    },
-    [resetFormValues],
-  );
+  function closeForm(options?: { reset?: boolean }) {
+    if (options?.reset !== false) {
+      resetFormValues();
+    }
+    setIsSheetOpen(false);
+    setShowUnsavedChangesDialog(false);
+  }
 
-  const handleSheetOpenChange = useCallback(
-    (nextOpen: boolean) => {
-      if (nextOpen) {
-        return;
-      }
+  function handleSheetOpenChange(nextOpen: boolean) {
+    if (nextOpen) {
+      return;
+    }
 
-      if (isDirty) {
-        setShowUnsavedChangesDialog(true);
-        return;
-      }
+    if (form.formState.isDirty) {
+      setShowUnsavedChangesDialog(true);
+      return;
+    }
 
-      closeForm();
-    },
-    [closeForm, isDirty],
-  );
-
-  const handleSubmit = form.handleSubmit(
-    async (values) => {
-      await execPromiseWithErrorToast(
-        async () => {
-          const args = buildOneOffDTO(values);
-          await createOneOff({ args });
-        },
-        {
-          loadingMessage: 'Creating one off scheduled event...',
-          successMessage: 'The scheduled event has been created successfully.',
-          errorMessage:
-            'An error occurred while creating the scheduled event. Please try again.',
-        },
-      );
-      closeForm();
-    },
-    () => {
-      setOpenAccordionSection(ACCORDION_SECTION_VALUE);
-    },
-  );
-
-  const handleDiscardChanges = useCallback(() => {
     closeForm();
-  }, [closeForm]);
+  }
 
-  const handleAccordionValueChange = useCallback((value: string) => {
-    setOpenAccordionSection(value);
-  }, []);
+  const handleSubmit = form.handleSubmit(async (values) => {
+    await execPromiseWithErrorToast(
+      async () => {
+        const args = buildOneOffDTO(values);
+        await createOneOff({ args });
+      },
+      {
+        loadingMessage: 'Creating one off scheduled event...',
+        successMessage: 'The scheduled event has been created successfully.',
+        errorMessage:
+          'An error occurred while creating the scheduled event. Please try again.',
+      },
+    );
+    closeForm();
+  });
 
   return {
     form,
     isSheetOpen,
     showUnsavedChangesDialog,
     setShowUnsavedChangesDialog,
-    openAccordionSection,
     openForm,
     closeForm,
     handleSheetOpenChange,
     handleSubmit,
-    handleDiscardChanges,
-    handleAccordionValueChange,
   };
 }

@@ -3,15 +3,14 @@ import { HoverCardTimestamp } from '@/components/presentational/HoverCardTimesta
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import { ScheduledEventStatusCell } from '@/features/orgs/projects/events/common/components/ScheduledEventStatusCell';
 import { SortableHeader } from '@/features/orgs/projects/events/common/components/SortableHeader';
+import { StatusColumnHeader } from '@/features/orgs/projects/events/common/components/StatusColumnHeader';
+import type { EventsSection } from '@/features/orgs/projects/events/common/types';
 import type { ScheduledEventLogEntry } from '@/utils/hasura-api/generated/schemas';
 import OneOffEventsLogActionsCell from './OneOffEventsLogActionsCell';
-import StatusColumnHeader from './StatusColumnHeader';
-
-export type OneOffEventsSection = 'scheduled' | 'processed' | 'failed' | 'all';
 
 interface CreateOneOffEventsDataTableColumnsOptions {
-  eventLogsSection: OneOffEventsSection;
-  onEventLogsSectionChange: (value: OneOffEventsSection) => void;
+  eventLogsSection: EventsSection;
+  onEventLogsSectionChange: (value: EventsSection) => void;
 }
 
 export function createOneOffEventsDataTableColumns({

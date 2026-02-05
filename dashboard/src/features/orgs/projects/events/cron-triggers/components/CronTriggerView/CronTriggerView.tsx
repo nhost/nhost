@@ -63,8 +63,6 @@ export default function CronTriggerView() {
     resetKey: `${triggerName}:${eventLogsSection}`,
   });
 
-  console.log('eventsData', eventsData);
-
   if (isLoading && cronTriggerSlug) {
     return <CronTriggerViewSkeleton />;
   }

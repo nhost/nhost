@@ -17,17 +17,15 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/v3/table';
+import type { EventsSection } from '@/features/orgs/projects/events/common/types';
 import { OneOffInvocationLogsDataTable } from '@/features/orgs/projects/events/one-offs/components/OneOffInvocationLogsDataTable';
 import { cn, isNotEmptyValue } from '@/lib/utils';
 import type { ScheduledEventLogEntry } from '@/utils/hasura-api/generated/schemas';
-import {
-  createOneOffEventsDataTableColumns,
-  type OneOffEventsSection,
-} from './oneOffEventsDataTableColumns';
+import { createOneOffEventsDataTableColumns } from './oneOffEventsDataTableColumns';
 
 interface OneOffEventsDataTableProps {
-  eventLogsSection: OneOffEventsSection;
-  onEventLogsSectionChange: (value: OneOffEventsSection) => void;
+  eventLogsSection: EventsSection;
+  onEventLogsSectionChange: (value: EventsSection) => void;
   data: ScheduledEventLogEntry[] | undefined;
   isLoading: boolean;
   limit: number;

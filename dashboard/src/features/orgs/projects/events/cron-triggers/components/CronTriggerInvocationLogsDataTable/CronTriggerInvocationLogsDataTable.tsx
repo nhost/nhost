@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/v3/table';
 import { useGetCronInvocationLogsById } from '@/features/orgs/projects/events/cron-triggers/hooks/useGetCronInvocationLogsById';
 import { cn } from '@/lib/utils';
-import type { CronTriggerInvocationLogEntry } from '@/utils/hasura-api/generated/schemas/cronTriggerInvocationLogEntry';
+import type { InvocationLogEntry } from '@/utils/hasura-api/generated/schemas/invocationLogEntry';
 import columns from './invocationDataTableColumns';
 import type { CronTriggerInvocationLogsDataTableMeta } from './types';
 
@@ -30,8 +30,9 @@ const skeletonRowKeys = ['skeleton-s1', 'skeleton-s2', 'skeleton-s3'];
 export default function CronTriggerInvocationLogsDataTable({
   eventId,
 }: CronTriggerInvocationLogsDataTableProps) {
-  const [selectedLog, setSelectedLog] =
-    useState<CronTriggerInvocationLogEntry | null>(null);
+  const [selectedLog, setSelectedLog] = useState<InvocationLogEntry | null>(
+    null,
+  );
 
   const { data, isInitialLoading, isLoading } = useGetCronInvocationLogsById({
     event_id: eventId,

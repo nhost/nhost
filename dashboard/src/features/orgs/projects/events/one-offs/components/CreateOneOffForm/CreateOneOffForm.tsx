@@ -41,7 +41,7 @@ export default function CreateOneOffForm({ disabled }: CreateOneOffFormProps) {
     openForm,
     handleSheetOpenChange,
     handleSubmit,
-    handleDiscardChanges,
+    closeForm,
   } = useCreateOneOffForm();
 
   return (
@@ -166,7 +166,7 @@ export default function CreateOneOffForm({ disabled }: CreateOneOffFormProps) {
       <DiscardChangesDialog
         open={showUnsavedChangesDialog}
         onOpenChange={setShowUnsavedChangesDialog}
-        onDiscardChanges={handleDiscardChanges}
+        onDiscardChanges={closeForm}
       />
     </>
   );

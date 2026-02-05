@@ -9,15 +9,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/v3/dropdown-menu';
-import type { OneOffEventsSection } from './oneOffEventsDataTableColumns';
+import type { EventsSection } from '@/features/orgs/projects/events/common/types';
 
 interface StatusColumnHeaderProps {
-  value: OneOffEventsSection;
-  onChange: (value: OneOffEventsSection) => void;
+  value: EventsSection;
+  onChange: (value: EventsSection) => void;
 }
 
 const STATUS_FILTER_OPTIONS: Record<
-  OneOffEventsSection,
+  EventsSection,
   { label: string; description: string }
 > = {
   scheduled: {
@@ -69,7 +69,7 @@ export default function StatusColumnHeader({
         <DropdownMenuRadioGroup
           value={value}
           onValueChange={(selectedValue) =>
-            onChange(selectedValue as OneOffEventsSection)
+            onChange(selectedValue as EventsSection)
           }
         >
           {Object.entries(STATUS_FILTER_OPTIONS).map(([option, optionMeta]) => (
