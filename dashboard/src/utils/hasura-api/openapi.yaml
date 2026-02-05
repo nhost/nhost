@@ -2841,6 +2841,25 @@ components:
           type: integer
         trigger_name:
           type: string
+        comment:
+          type: string
+          nullable: true
+        header_conf:
+          $ref: "#/components/schemas/Headers"
+        payload:
+          type: object
+        retry_conf:
+          $ref: "#/components/schemas/RetryConfCT"
+        webhook_conf:
+          type: string
+        request_transform:
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/RequestTransformation"
+        response_transform:
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/ResponseTransformation"
 
     GetScheduledEventInvocationsOperation:
       type: object

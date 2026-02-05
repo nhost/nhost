@@ -3,7 +3,7 @@ import { Controller, useFormContext } from 'react-hook-form';
 import { DateTimePicker } from '@/components/common/DateTimePicker';
 import { FormItem, FormLabel, FormMessage } from '@/components/ui/v3/form';
 import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
-import type { CreateOneOffFormValues } from '@/features/orgs/projects/events/one-offs/components/CreateOneOffForm';
+import type { CreateOneOffFormValues } from '@/features/orgs/projects/events/one-offs/hooks/useCreateOneOffForm';
 
 export default function ScheduleAtTimePicker() {
   const form = useFormContext<CreateOneOffFormValues>();

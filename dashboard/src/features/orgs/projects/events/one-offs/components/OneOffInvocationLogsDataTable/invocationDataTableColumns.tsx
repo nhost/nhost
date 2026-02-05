@@ -3,10 +3,10 @@ import { HoverCardTimestamp } from '@/components/presentational/HoverCardTimesta
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import { HttpStatusText } from '@/features/orgs/projects/events/common/components/HttpStatusText';
 import { SortableHeader } from '@/features/orgs/projects/events/common/components/SortableHeader';
-import type { CronTriggerInvocationLogEntry } from '@/utils/hasura-api/generated/schemas/cronTriggerInvocationLogEntry';
+import type { InvocationLogEntry } from '@/utils/hasura-api/generated/schemas/invocationLogEntry';
 import InvocationLogActionsCell from './InvocationLogActionsCell';
 
-const columns: ColumnDef<CronTriggerInvocationLogEntry>[] = [
+const columns: ColumnDef<InvocationLogEntry>[] = [
   {
     id: 'created_at',
     accessorKey: 'created_at',

@@ -19,10 +19,10 @@ import {
   TabsTrigger,
 } from '@/components/ui/v3/tabs';
 import { HttpStatusText } from '@/features/orgs/projects/events/common/components/HttpStatusText';
-import type { CronTriggerInvocationLogEntry } from '@/utils/hasura-api/generated/schemas';
+import type { InvocationLogEntry } from '@/utils/hasura-api/generated/schemas';
 
 interface InvocationLogDetailsDialogContentProps {
-  log: CronTriggerInvocationLogEntry | null;
+  log: InvocationLogEntry | null;
 }
 
 export default function InvocationLogDetailsDialogContent({

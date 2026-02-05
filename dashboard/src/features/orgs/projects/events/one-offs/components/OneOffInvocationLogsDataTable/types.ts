@@ -1,9 +1,7 @@
 import type { Dispatch, SetStateAction } from 'react';
-import type { CronTriggerInvocationLogEntry } from '@/utils/hasura-api/generated/schemas/cronTriggerInvocationLogEntry';
+import type { InvocationLogEntry } from '@/utils/hasura-api/generated/schemas/invocationLogEntry';
 
-export interface CronTriggerInvocationLogsDataTableMeta {
-  selectedLog: CronTriggerInvocationLogEntry | null;
-  setSelectedLog: Dispatch<
-    SetStateAction<CronTriggerInvocationLogEntry | null>
-  >;
+export interface OneOffInvocationLogsDataTableMeta {
+  selectedLog: InvocationLogEntry | null;
+  setSelectedLog: Dispatch<SetStateAction<InvocationLogEntry | null>>;
 }

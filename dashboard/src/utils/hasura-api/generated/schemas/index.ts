@@ -232,6 +232,7 @@ export * from './responseTransformationVersion';
 export * from './retryConf';
 export * from './retryConfCT';
 export * from './scheduledEventLogEntry';
+export * from './scheduledEventLogEntryPayload';
 export * from './scheduledEventStatus';
 export * from './setTableCustomizationArgs';
 export * from './setTableCustomizationBulkOperation';

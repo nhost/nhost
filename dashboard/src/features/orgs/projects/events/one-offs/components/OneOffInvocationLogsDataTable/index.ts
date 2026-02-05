@@ -1,1 +1,1 @@
-export { default as CronTriggerInvocationLogsDataTable } from './OneOffInvocationLogsDataTable';
+export { default as OneOffInvocationLogsDataTable } from './OneOffInvocationLogsDataTable';

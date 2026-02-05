@@ -3,7 +3,6 @@ import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { OneOffsBrowserSidebar } from '@/features/orgs/projects/events/one-offs/components/OneOffsBrowserSidebar';
 import { OneOffsView } from '@/features/orgs/projects/events/one-offs/components/OneOffsView';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
@@ -29,8 +28,6 @@ CronTriggersPage.getLayout = function getLayout(page: ReactElement) {
         className: 'flex h-full',
       }}
     >
-      <OneOffsBrowserSidebar className="w-full max-w-sidebar" />
-
       <div className="box flex w-full flex-auto flex-col overflow-x-hidden">
         {page}
       </div>

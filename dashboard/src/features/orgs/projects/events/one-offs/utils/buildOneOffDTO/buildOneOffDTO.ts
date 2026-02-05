@@ -1,4 +1,4 @@
-import type { CreateOneOffFormValues } from '@/features/orgs/projects/events/one-offs/components/CreateOneOffForm/CreateOneOffForm';
+import type { CreateOneOffFormValues } from '@/features/orgs/projects/events/one-offs/hooks/useCreateOneOffForm';
 import { isNotEmptyValue } from '@/lib/utils';
 import type {
   CreateScheduledEventArgs,

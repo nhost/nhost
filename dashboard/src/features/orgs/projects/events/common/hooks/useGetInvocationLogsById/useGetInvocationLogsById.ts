@@ -8,6 +8,14 @@ import type {
   InvocationLogEntry,
 } from '@/utils/hasura-api/generated/schemas';
 
+type InvocationLogsByIdQueryKey = readonly [
+  'get-invocation-logs-by-id',
+  GetScheduledEventInvocationsArgs['type'],
+  string | undefined,
+  number,
+  number,
+];
+
 export interface UseGetInvocationLogsByIdQueryOptions {
   /**
    * Props passed to the underlying query hook.
@@ -17,13 +25,7 @@ export interface UseGetInvocationLogsByIdQueryOptions {
       GetScheduledEventInvocationsResponse,
       unknown,
       InvocationLogEntry[],
-      readonly [
-        'get-invocation-logs-by-id',
-        GetScheduledEventInvocationsArgs['type'],
-        string,
-        number,
-        number,
-      ]
+      InvocationLogsByIdQueryKey
     >,
     'queryKey' | 'queryFn'
   >;
@@ -44,7 +46,12 @@ export default function useGetInvocationLogsById(
 ) {
   const { project, loading } = useProject();
 
-  const query = useQuery({
+  const query = useQuery<
+    GetScheduledEventInvocationsResponse,
+    unknown,
+    InvocationLogEntry[],
+    InvocationLogsByIdQueryKey
+  >({
     queryKey: [
       'get-invocation-logs-by-id',
       args.type,

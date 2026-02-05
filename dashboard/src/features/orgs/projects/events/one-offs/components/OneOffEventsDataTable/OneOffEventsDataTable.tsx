@@ -17,7 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/v3/table';
-import { CronTriggerInvocationLogsDataTable } from '@/features/orgs/projects/events/cron-triggers/components/CronTriggerInvocationLogsDataTable';
+import { OneOffInvocationLogsDataTable } from '@/features/orgs/projects/events/one-offs/components/OneOffInvocationLogsDataTable';
 import { cn, isNotEmptyValue } from '@/lib/utils';
 import type { ScheduledEventLogEntry } from '@/utils/hasura-api/generated/schemas';
 import {
@@ -25,7 +25,7 @@ import {
   type OneOffEventsSection,
 } from './oneOffEventsDataTableColumns';
 
-interface CronTriggerEventsDataTableProps {
+interface OneOffEventsDataTableProps {
   eventLogsSection: OneOffEventsSection;
   onEventLogsSectionChange: (value: OneOffEventsSection) => void;
   data: ScheduledEventLogEntry[] | undefined;
@@ -33,13 +33,13 @@ interface CronTriggerEventsDataTableProps {
   limit: number;
 }
 
-export default function CronTriggerEventsDataTable({
+export default function OneOffEventsDataTable({
   eventLogsSection,
   onEventLogsSectionChange,
   data,
   isLoading,
   limit,
-}: CronTriggerEventsDataTableProps) {
+}: OneOffEventsDataTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
 
@@ -179,7 +179,27 @@ export default function CronTriggerEventsDataTable({
               {row.getIsExpanded() && (
                 <TableRow key={`${row.id}-expanded`} className="border-0">
                   <TableCell colSpan={columns.length} className="p-0">
-                    <CronTriggerInvocationLogsDataTable eventId={row.id} />
+                    <div className="flex flex-col gap-2 border-b bg-muted/30 px-4 py-3 text-sm">
+                      {row.original.comment && (
+                        <div className="flex items-baseline gap-2">
+                          <span className="font-medium text-muted-foreground">
+                            Comment:
+                          </span>
+                          <span>{row.original.comment}</span>
+                        </div>
+                      )}
+                      {row.original.webhook_conf && (
+                        <div className="flex items-baseline gap-2">
+                          <span className="font-medium text-muted-foreground">
+                            Webhook:
+                          </span>
+                          <span className="font-mono text-xs">
+                            {row.original.webhook_conf}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    <OneOffInvocationLogsDataTable eventId={row.id} />
                   </TableCell>
                 </TableRow>
               )}
