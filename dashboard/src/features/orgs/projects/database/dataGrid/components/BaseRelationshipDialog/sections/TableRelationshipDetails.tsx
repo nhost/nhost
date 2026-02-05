@@ -136,7 +136,6 @@ export default function TableRelationshipDetails() {
               <FormSelect
                 control={form.control}
                 name={`fieldMapping.${index}.referenceColumn`}
-                label=""
                 placeholder="Select reference column"
                 containerClassName="col-span-4 col-start-8"
                 data-testid={`fieldMapping.${index}.referenceColumn`}
