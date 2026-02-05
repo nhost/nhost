@@ -37,7 +37,7 @@ overrides:
   next@>=10.0.0 <15.5.10: '>=15.5.10'
   tar@<7.5.7: '>=7.5.7'
 
-packageExtensionsChecksum: sha256-4W2ZoS34f/mESDz44tHgi/lHRwttYSe+a+CMb+QBm1Y=
+packageExtensionsChecksum: sha256-gRFeykwiwMfEE6etcYx6N48XwVeKzxbqNveL7KTQgSQ=
 
 importers:
 
