@@ -36,6 +36,7 @@ overrides:
   tar@<=7.5.3: '>=7.5.4'
   next@>=10.0.0 <15.5.10: '>=15.5.10'
   tar@<7.5.7: '>=7.5.7'
+  '@isaacs/brace-expansion@<=5.0.0': '>=5.0.1'
 
 packageExtensionsChecksum: sha256-4W2ZoS34f/mESDz44tHgi/lHRwttYSe+a+CMb+QBm1Y=
 

@@ -22,6 +22,13 @@ paths:
                 - $ref: "#/components/schemas/ExportMetadata"
                 - $ref: "#/components/schemas/SetTableCustomizationBulkOperation"
                 - $ref: "#/components/schemas/SetTableIsEnumBulkOperation"
+                - $ref: "#/components/schemas/SuggestRelationshipsOperation"
+                - $ref: "#/components/schemas/DropRelationshipBulkOperation"
+                - $ref: "#/components/schemas/DeleteRemoteRelationshipBulkOperation"
+                - $ref: "#/components/schemas/CreateObjectRelationshipBulkOperation"
+                - $ref: "#/components/schemas/CreateArrayRelationshipBulkOperation"
+                - $ref: "#/components/schemas/CreateRemoteRelationshipBulkOperation"
+                - $ref: "#/components/schemas/RenameRelationshipBulkOperation"
                 - $ref: "#/components/schemas/AddRemoteSchemaOperation"
                 - $ref: "#/components/schemas/UpdateRemoteSchemaBulkOperation"
                 - $ref: "#/components/schemas/RemoveRemoteSchemaOperation"
@@ -57,6 +64,7 @@ paths:
                         type: string
                         example: success
                   - $ref: "#/components/schemas/ExportMetadataResponse"
+                  - $ref: "#/components/schemas/SuggestRelationshipsResponse"
                   - $ref: "#/components/schemas/IntrospectRemoteSchemaResponse"
                   - $ref: "#/components/schemas/GetEventLogsResponse"
                   - $ref: "#/components/schemas/GetEventAndInvocationLogsByIdResponse"
@@ -342,6 +350,455 @@ components:
           description: Name of the source database of the table
           default: default
 
+    SuggestRelationshipsOperation:
+      type: object
+      description: Use to suggest relationships that can be tracked by the pg_create_*_relationship API.
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_suggest_relationships]
+        args:
+          $ref: "#/components/schemas/SuggestRelationshipsArgs"
+
+    SuggestRelationshipsArgs:
+      type: object
+      properties:
+        source:
+          type: string
+          description: The source to suggest relationships for
+          default: default
+        tables:
+          type: array
+          description: List of tables to consider for suggestions
+          items:
+            oneOf:
+              - type: string
+              - $ref: "#/components/schemas/QualifiedTable"
+            default: All Tables
+        omit_tracked:
+          type: boolean
+          description: Don't re-suggest tracked relationships
+          default: false
+
+    SuggestRelationshipsResponse:
+      type: object
+      properties:
+        relationships:
+          type: array
+          items:
+            oneOf:
+              - $ref: "#/components/schemas/SuggestedObjectRelationship"
+              - $ref: "#/components/schemas/SuggestedArrayRelationship"
+
+    SuggestedRelationshipElement:
+      type: object
+      properties:
+        table:
+          $ref: "#/components/schemas/QualifiedTable"
+        columns:
+          type: array
+          items:
+            type: string
+        constraint_name:
+          type: string
+
+    SuggestedObjectRelationship:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [object]
+        from:
+          allOf:
+            - $ref: "#/components/schemas/SuggestedRelationshipElement"
+            - type: object
+              properties:
+                constraint_name:
+                  type: string
+        to:
+          $ref: "#/components/schemas/SuggestedRelationshipElement"
+
+    SuggestedArrayRelationship:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [array]
+        from:
+          $ref: "#/components/schemas/SuggestedRelationshipElement"
+        to:
+          allOf:
+            - $ref: "#/components/schemas/SuggestedRelationshipElement"
+            - type: object
+              properties:
+                constraint_name:
+                  type: string
+
+    DropRelationshipBulkOperation:
+      type: object
+      required:
+        - type
+        - resource_version
+        - args
+      properties:
+        type:
+          type: string
+          enum: [bulk_atomic]
+          description: Type of operation to drop relationship
+        resource_version:
+          type: integer
+          description: Resource version of the operation
+          example: 1
+        args:
+          type: array
+          items:
+            $ref: "#/components/schemas/DropRelationshipStep"
+
+    DropRelationshipStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_drop_relationship]
+        args:
+          type: object
+          required:
+            - table
+            - relationship
+          properties:
+            table:
+              $ref: "#/components/schemas/QualifiedTable"
+            relationship:
+              type: string
+              description: Name of the relationship that needs to be dropped
+            cascade:
+              type: boolean
+              description: When set to true, all the dependent items on this relationship are also dropped
+            source:
+              type: string
+              description: Name of the source database of the table
+              default: default
+
+    DeleteRemoteRelationshipBulkOperation:
+      type: object
+      required:
+        - type
+        - resource_version
+        - args
+      properties:
+        type:
+          type: string
+          enum: [bulk_atomic]
+          description: Type of operation to delete remote relationship
+        resource_version:
+          type: integer
+          description: Resource version of the operation
+          example: 1
+        args:
+          type: array
+          items:
+            $ref: "#/components/schemas/DeleteRemoteRelationshipStep"
+
+    DeleteRemoteRelationshipStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_delete_remote_relationship]
+        args:
+          type: object
+          required:
+            - table
+            - name
+          properties:
+            source:
+              type: string
+              description: Name of the source database of the table
+              default: default
+            table:
+              $ref: "#/components/schemas/QualifiedTable"
+              description: Object with table name and schema
+            name:
+              type: string
+              description: Name of the remote relationship
+
+    CreateLocalRelationshipArgs:
+      type: object
+      required:
+        - table
+        - name
+        - using
+      properties:
+        table:
+          description: Name of the table
+          $ref: "#/components/schemas/QualifiedTable"
+        name:
+          type: string
+          description: Name of the new relationship
+        using:
+          description: Use one of the available ways to define a relationship. There has to be at least one and only one of foreign_key_constraint_on and manual_configuration.
+          $ref: "#/components/schemas/RelationshipUsing"
+        comment:
+          type: string
+        source:
+          type: string
+          description: Name of the source database of the table
+          default: default
+
+    CreateObjectRelationshipBulkOperation:
+      type: object
+      required:
+        - type
+        - args
+        - resource_version
+      properties:
+        type:
+          type: string
+          enum: [bulk_atomic]
+          description: Type of operation to create object relationship
+        resource_version:
+          type: integer
+          description: Resource version of the operation
+          example: 1
+        args:
+          type: array
+          items:
+            $ref: "#/components/schemas/CreateObjectRelationshipStep"
+
+    CreateObjectRelationshipStep:
+      type: object
+      description: Define a new object relationship between Postgres tables/views
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_create_object_relationship]
+        args:
+          $ref: "#/components/schemas/CreateLocalRelationshipArgs"
+
+    RelationshipUsing:
+      type: object
+      oneOf:
+        - $ref: "#/components/schemas/RelationshipUsingForeignKeyConstraintOn"
+        - $ref: "#/components/schemas/RelationshipUsingManualConfiguration"
+
+    RelationshipUsingForeignKeyConstraintOn:
+      type: object
+      description: The column with foreign key constraint or the remote table and column
+      required:
+        - foreign_key_constraint_on
+      properties:
+        foreign_key_constraint_on:
+          $ref: "#/components/schemas/ForeignKeyConstraintOn"
+
+    ForeignKeyConstraintOn:
+      type: object
+      oneOf:
+        - $ref: "#/components/schemas/ForeignKeyConstraintObjectRelationship"
+        - $ref: "#/components/schemas/ForeignKeyConstraintArrayRelationship"
+
+    ForeignKeyConstraintObjectRelationship:
+      description: Column(s) from same table. Used for object relationships.
+      oneOf:
+        - type: string
+        - type: array
+          items:
+            type: string
+
+    ForeignKeyConstraintArrayRelationship:
+      description: Column(s) from remote table. Used for array relationships.
+      oneOf:
+        - type: object
+          properties:
+            table:
+              $ref: "#/components/schemas/QualifiedTable"
+            column:
+              type: string
+        - type: object
+          properties:
+            table:
+              $ref: "#/components/schemas/QualifiedTable"
+            columns:
+              type: array
+              items:
+                type: string
+
+    RelationshipUsingManualConfiguration:
+      type: object
+      description: Manual mapping of table and columns
+      required:
+        - manual_configuration
+      properties:
+        manual_configuration:
+          type: object
+          required:
+            - remote_table
+            - column_mapping
+          properties:
+            remote_table:
+              $ref: "#/components/schemas/QualifiedTable"
+              description: The table to which the relationship has to be established
+            column_mapping:
+              type: object
+              description: Mapping of columns from current table to remote table
+              additionalProperties:
+                type: string
+            insertion_order:
+              type: string
+              description: Insertion order before or after parent. Describes when should the referenced table row be inserted in relation to the current table row in case of a nested insert.
+              enum: [before_parent, after_parent]
+              default: before_parent
+
+    CreateArrayRelationshipBulkOperation:
+      type: object
+      required:
+        - type
+        - args
+        - resource_version
+      properties:
+        type:
+          type: string
+          enum: [bulk_atomic]
+          description: Type of operation to create array relationship
+        resource_version:
+          type: integer
+          description: Resource version of the operation
+          example: 1
+        args:
+          type: array
+          items:
+            $ref: "#/components/schemas/CreateArrayRelationshipStep"
+
+    CreateArrayRelationshipStep:
+      type: object
+      description: Define a new array relationship between Postgres tables/views
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_create_array_relationship]
+        args:
+          $ref: "#/components/schemas/CreateLocalRelationshipArgs"
+
+    CreateRemoteRelationshipBulkOperation:
+      type: object
+      required:
+        - type
+        - args
+        - resource_version
+      properties:
+        type:
+          type: string
+          enum: [bulk, bulk_keep_going]
+          description: Type of operation to create remote relationship
+        resource_version:
+          type: integer
+          description: Resource version of the operation
+          example: 1
+        args:
+          type: array
+          items:
+            $ref: "#/components/schemas/CreateRemoteRelationshipStep"
+
+    CreateRemoteRelationshipStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_create_remote_relationship]
+        args:
+          $ref: "#/components/schemas/CreateRemoteRelationshipArgs"
+
+    CreateRemoteRelationshipArgs:
+      type: object
+      required:
+        - name
+        - table
+        - definition
+      properties:
+        name:
+          type: string
+          description: User defined name of the new remote relationship
+        source:
+          type: string
+          description: Name of the source database of the table
+          default: default
+        table:
+          description: Table on which the relationship is being defined
+          $ref: "#/components/schemas/QualifiedTable"
+        definition:
+          description: Definition of the remote relationship
+          $ref: "#/components/schemas/RemoteRelationshipDefinition"
+
+    RenameRelationshipBulkOperation:
+      type: object
+      required:
+        - type
+        - args
+        - resource_version
+      properties:
+        type:
+          type: string
+          enum: [bulk, bulk_keep_going]
+          description: Type of operation to rename relationship
+        resource_version:
+          type: integer
+          description: Resource version of the operation
+          example: 1
+        args:
+          type: array
+          items:
+            $ref: "#/components/schemas/RenameRelationshipStep"
+
+    RenameRelationshipStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_rename_relationship]
+        args:
+          $ref: "#/components/schemas/RenameRelationshipArgs"
+
+    RenameRelationshipArgs:
+      type: object
+      required:
+        - table
+        - name
+        - new_name
+      properties:
+        table:
+          description: Name of the table
+          $ref: "#/components/schemas/QualifiedTable"
+        name:
+          type: string
+          description: Name of the relationship
+        new_name:
+          type: string
+          description: New relationship name
+        source:
+          type: string
+          description: Name of the source database of the table
+          default: default
+
     QualifiedTable:
       type: object
       description: Object with table name and schema
@@ -617,6 +1074,21 @@ components:
                           items:
                             type: object
                             $ref: "#/components/schemas/EventTrigger"
+                        array_relationships:
+                          type: array
+                          description: List of array relationships for the table
+                          items:
+                            $ref: "#/components/schemas/ArrayRelationshipItem"
+                        object_relationships:
+                          type: array
+                          description: List of object relationships for the table
+                          items:
+                            $ref: "#/components/schemas/ObjectRelationshipItem"
+                        remote_relationships:
+                          type: array
+                          description: List of remote relationships for the table
+                          items:
+                            $ref: "#/components/schemas/RemoteRelationshipItem"
                 additionalProperties: true
             remote_schemas:
               type: array
@@ -629,6 +1101,54 @@ components:
               items:
                 $ref: "#/components/schemas/CronTrigger"
           additionalProperties: true
+
+    ArrayRelationshipItem:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the relationship
+        using:
+          $ref: "#/components/schemas/RelationshipUsing"
+
+    ObjectRelationshipItem:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the relationship
+        using:
+          $ref: "#/components/schemas/RelationshipUsing"
+
+    RemoteRelationshipItem:
+      required:
+        - name
+        - definition
+      properties:
+        name:
+          type: string
+          description: Name of the remote relationship
+        definition:
+          $ref: "#/components/schemas/RemoteRelationshipDefinition"
+
+    RemoteRelationshipDefinition:
+      type: object
+      description: Relationship definition
+      oneOf:
+        - type: object
+          required:
+            - to_remote_schema
+          properties:
+            to_remote_schema:
+              description: Remote Relationship definition to a Remote Schema
+              $ref: "#/components/schemas/ToRemoteSchemaRelationshipDefinition"
+        - type: object
+          required:
+            - to_source
+          properties:
+            to_source:
+              description: Remote Relationship definition to a table on a different database
+              $ref: "#/components/schemas/ToSourceRelationshipDefinition"
 
     RemoteSchemaInfo:
       type: object
@@ -674,21 +1194,7 @@ components:
                       description: Name of the relationship
                       example: user
                     definition:
-                      type: object
-                      description: Relationship definition
-                      oneOf:
-                        - type: object
-                          required:
-                            - to_remote_schema
-                          properties:
-                            to_remote_schema:
-                              $ref: "#/components/schemas/ToRemoteSchemaRelationshipDefinition"
-                        - type: object
-                          required:
-                            - to_source
-                          properties:
-                            to_source:
-                              $ref: "#/components/schemas/ToSourceRelationshipDefinition"
+                      $ref: "#/components/schemas/RemoteRelationshipDefinition"
         permissions:
           type: array
           description: Permissions for the remote schema
@@ -1035,7 +1541,7 @@ components:
 
     ToRemoteSchemaRelationshipDefinition:
       type: object
-      description: Definition for relationship to another remote schema
+      description: Definition for relationship to other remote schema
       required:
         - remote_schema
         - lhs_fields
@@ -1047,27 +1553,49 @@ components:
           example: user-remote-schema
         lhs_fields:
           type: array
-          description: Fields from the source type to use in the relationship
+          description: Column/Computed field(s) in the table that is used for joining with Remote Schema field. All join keys in remote_field must appear here.
           items:
             type: string
           example: ["user_id"]
         remote_field:
-          type: object
-          description: Remote field configuration
-          additionalProperties:
+          $ref: "#/components/schemas/RemoteField"
+
+    RemoteField:
+      type: object
+      description: >
+        The schema tree ending at the field in the remote schema which needs
+        to be joined with. Each key represents a field name in the remote
+        schema and maps to the configuration for that node in the tree.
+      additionalProperties:
+        type: object
+        description: Configuration for a specific remote field node
+        properties:
+          arguments:
             type: object
-            properties:
+            description: >
+              GraphQL arguments to pass to this remote field. Argument values
+              can be literals or references to table columns by prefixing the
+              column name with `$`, for example `$id`.
+            additionalProperties:
+              oneOf:
+                - type: string
+                - type: integer
+                - type: number
+                - type: boolean
+                - type: object
+                  additionalProperties: {}
+                - type: array
+                  items: {}
+          field:
+            $ref: "#/components/schemas/RemoteField"
+      example:
+        messages:
+          arguments:
+            limit: 100
+          field:
+            private:
               arguments:
-                type: object
-                description: Arguments to pass to the remote field
-                additionalProperties:
-                  type: string
-                example:
-                  id: "$user_id"
-          example:
-            user:
-              arguments:
-                id: "$user_id"
+                id: "$id"
 
     ToSourceRelationshipDefinition:
       type: object
@@ -1080,28 +1608,15 @@ components:
       properties:
         source:
           type: string
-          description: Name of the database source
+          description: Name of the source of the target table
           example: default
         table:
-          type: object
           description: Target table information
-          required:
-            - name
-            - schema
-          properties:
-            name:
-              type: string
-              description: Name of the table
-              example: plans
-            schema:
-              type: string
-              description: Schema name of the table
-              example: public
+          $ref: "#/components/schemas/QualifiedTable"
         relationship_type:
           type: string
           enum: [object, array]
           description: Type of relationship - object for one-to-one, array for one-to-many
-          example: array
         field_mapping:
           type: object
           description: Mapping from remote schema fields to database table columns
