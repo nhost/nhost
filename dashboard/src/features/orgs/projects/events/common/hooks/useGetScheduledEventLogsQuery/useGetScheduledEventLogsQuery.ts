@@ -1,9 +1,12 @@
-import { type UseQueryOptions, useQuery } from '@tanstack/react-query';
+import {
+  type DistributiveOmit,
+  type UseQueryOptions,
+  useQuery,
+} from '@tanstack/react-query';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { getScheduledEvents } from '@/features/orgs/projects/events/common/api/getScheduledEvents';
 import type { EventsSection } from '@/features/orgs/projects/events/common/types';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import type { DistributiveOmit } from '@/types/common';
 import type {
   GetScheduledEventsArgs,
   GetScheduledEventsArgsType,

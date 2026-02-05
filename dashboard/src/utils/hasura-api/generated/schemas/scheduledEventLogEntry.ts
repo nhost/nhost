@@ -21,7 +21,8 @@ export interface ScheduledEventLogEntry {
   status: ScheduledEventStatus;
   tries: number;
   trigger_name: string;
-  comment?: string;
+  /** @nullable */
+  comment?: string | null;
   header_conf?: Headers;
   payload?: ScheduledEventLogEntryPayload;
   retry_conf?: RetryConfCT;
