@@ -1,51 +1,24 @@
 import type { ReactElement } from 'react';
-import { Spinner } from '@/components/ui/v3/spinner';
+import { LoadingScreen } from '@/components/presentational/LoadingScreen';
+import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
-import { EventsEmptyState } from '@/features/orgs/projects/events/common/components/EventsEmptyState';
-import { useGetCronTriggers } from '@/features/orgs/projects/events/cron-triggers/hooks/useGetCronTriggers';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { OneOffsBrowserSidebar } from '@/features/orgs/projects/events/one-offs/components/OneOffsBrowserSidebar';
+import { OneOffsView } from '@/features/orgs/projects/events/one-offs/components/OneOffsView';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
 export default function CronTriggersPage() {
-  const {
-    data: cronTriggers,
-    isLoading: isLoadingCronTriggers,
-    error: errorCronTriggers,
-  } = useGetCronTriggers();
+  const { project } = useProject();
+  const isPlatform = useIsPlatform();
 
-  if (isLoadingCronTriggers) {
-    return (
-      <div className="flex h-full justify-center">
-        <Spinner />
-      </div>
-    );
-  }
-
-  if (errorCronTriggers instanceof Error) {
-    return (
-      <EventsEmptyState
-        title="Cron triggers"
-        description="An error occurred while fetching cron triggers."
-      />
-    );
-  }
-
-  const showNoCronTriggersMessage =
-    Array.isArray(cronTriggers) && cronTriggers.length === 0;
-
-  if (showNoCronTriggersMessage) {
-    return (
-      <EventsEmptyState
-        title="Cron triggers"
-        description="Add a cron trigger to get started."
-      />
-    );
+  if (isPlatform && !project?.config?.hasura.adminSecret) {
+    return <LoadingScreen />;
   }
 
   return (
-    <EventsEmptyState
-      title="Cron triggers"
-      description="Select a cron trigger from the sidebar to get started."
-    />
+    <RetryableErrorBoundary>
+      <OneOffsView />
+    </RetryableErrorBoundary>
   );
 }
 

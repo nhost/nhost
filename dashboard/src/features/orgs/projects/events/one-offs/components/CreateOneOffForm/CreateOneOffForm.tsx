@@ -24,6 +24,7 @@ import {
   DEFAULT_RETRY_INTERVAL_SECONDS,
   DEFAULT_RETRY_TIMEOUT_SECONDS,
 } from '@/features/orgs/projects/events/common/constants';
+import { ScheduleAtTimePicker } from '@/features/orgs/projects/events/one-offs/components/ScheduleAtTimePicker';
 import { useCreateOneOffMutation } from '@/features/orgs/projects/events/one-offs/hooks/useCreateOneOffMutation';
 import { buildOneOffDTO } from '@/features/orgs/projects/events/one-offs/utils/buildOneOffDTO';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
@@ -68,10 +69,16 @@ const validationSchema = z.object({
   ),
 });
 
+function getDefaultScheduleAt() {
+  const date = new Date();
+  date.setHours(date.getHours() + 1);
+  return date.toISOString();
+}
+
 const defaultFormValues: CreateOneOffFormValues = {
   comment: '',
   webhook: '',
-  scheduleAt: '',
+  scheduleAt: getDefaultScheduleAt(),
   retryConf: {
     numRetries: DEFAULT_NUM_RETRIES,
     intervalSec: DEFAULT_RETRY_INTERVAL_SECONDS,
@@ -85,7 +92,11 @@ export type CreateOneOffFormValues = z.infer<typeof validationSchema>;
 
 export type CreateOneOffFormInitialData = CreateOneOffFormValues;
 
-export default function CreateOneOffForm() {
+interface CreateOneOffFormProps {
+  disabled?: boolean;
+}
+
+export default function CreateOneOffForm({ disabled }: CreateOneOffFormProps) {
   // const router = useRouter();
   // const { orgSlug, appSubdomain } = router.query;
 
@@ -173,7 +184,7 @@ export default function CreateOneOffForm() {
         aria-label="Add scheduled event"
         onClick={() => openForm()}
       >
-        New One-off scheduled event <Plus className="h-4 w-4" />
+        New One-off <Plus className="h-4 w-4" />
       </Button>
       <Sheet open={isSheetOpen} onOpenChange={handleSheetOpenChange}>
         <SheetContent
@@ -206,20 +217,7 @@ export default function CreateOneOffForm() {
                     className="max-w-lg"
                     autoComplete="off"
                   />
-                  <FormInput
-                    control={form.control}
-                    name="scheduleAt"
-                    label={
-                      <div className="flex flex-row items-center gap-2">
-                        Schedule At
-                        <InfoTooltip>
-                          The time that this event must be delivered
-                        </InfoTooltip>
-                      </div>
-                    }
-                    placeholder="02/04/2026"
-                    className="max-w-lg text-foreground"
-                  />
+                  <ScheduleAtTimePicker />
                   <Separator />
                   <FormInput
                     control={form.control}

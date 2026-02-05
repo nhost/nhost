@@ -21,13 +21,13 @@ import { CronTriggerInvocationLogsDataTable } from '@/features/orgs/projects/eve
 import { cn, isNotEmptyValue } from '@/lib/utils';
 import type { ScheduledEventLogEntry } from '@/utils/hasura-api/generated/schemas';
 import {
-  type CronTriggerEventsSection,
-  createCronTriggerEventsDataTableColumns,
+  createOneOffEventsDataTableColumns,
+  type OneOffEventsSection,
 } from './oneOffEventsDataTableColumns';
 
 interface CronTriggerEventsDataTableProps {
-  eventLogsSection: CronTriggerEventsSection;
-  onEventLogsSectionChange: (value: CronTriggerEventsSection) => void;
+  eventLogsSection: OneOffEventsSection;
+  onEventLogsSectionChange: (value: OneOffEventsSection) => void;
   data: ScheduledEventLogEntry[] | undefined;
   isLoading: boolean;
   limit: number;
@@ -45,7 +45,7 @@ export default function CronTriggerEventsDataTable({
 
   const columns = useMemo(
     () =>
-      createCronTriggerEventsDataTableColumns({
+      createOneOffEventsDataTableColumns({
         eventLogsSection,
         onEventLogsSectionChange,
       }),

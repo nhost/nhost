@@ -1,1 +1,1 @@
-export { default as CronTriggerEventsDataTable } from './CronTriggerEventsDataTable';
+export { default as OneOffEventsDataTable } from './OneOffEventsDataTable';

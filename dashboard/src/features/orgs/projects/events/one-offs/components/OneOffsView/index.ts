@@ -1,1 +1,1 @@
-export { default as CronTriggerView } from './CronTriggerView';
+export { default as OneOffsView } from './OneOffsView';

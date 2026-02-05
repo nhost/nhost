@@ -6,8 +6,8 @@ import { RetryableErrorBoundary } from '@/components/presentational/RetryableErr
 import { Backdrop } from '@/components/ui/v2/Backdrop';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { CreateCronTriggerForm } from '@/features/orgs/projects/events/cron-triggers/components/CreateCronTriggerForm';
 import { useGetCronTriggers } from '@/features/orgs/projects/events/cron-triggers/hooks/useGetCronTriggers';
+import { CreateOneOffForm } from '@/features/orgs/projects/events/one-offs/components/CreateOneOffForm';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import CronTriggerListItem from './OneOffListItem';
 import OneOffsBrowserSidebarSkeleton from './OneOffsBrowserSidebarSkeleton';
@@ -54,7 +54,7 @@ function OneOffsBrowserSidebarContent() {
           </div>
         )}
         <div className="flex flex-row items-center justify-between">
-          <CreateCronTriggerForm disabled={isGitHubConnected} />
+          <CreateOneOffForm disabled={isGitHubConnected} />
         </div>
         <div className="flex flex-col text-balance">
           {(cronTriggersData ?? []).map((cronTrigger) => (

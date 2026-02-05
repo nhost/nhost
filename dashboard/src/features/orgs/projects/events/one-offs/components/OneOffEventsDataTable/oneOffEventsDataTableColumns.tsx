@@ -4,31 +4,27 @@ import { TextWithTooltip } from '@/features/orgs/projects/common/components/Text
 import { ScheduledEventStatusCell } from '@/features/orgs/projects/events/common/components/ScheduledEventStatusCell';
 import { SortableHeader } from '@/features/orgs/projects/events/common/components/SortableHeader';
 import type { ScheduledEventLogEntry } from '@/utils/hasura-api/generated/schemas';
-import CronTriggerEventsLogActionsCell from './CronTriggerEventsLogActionsCell';
+import OneOffEventsLogActionsCell from './OneOffEventsLogActionsCell';
 import StatusColumnHeader from './StatusColumnHeader';
 
-export type CronTriggerEventsSection =
-  | 'scheduled'
-  | 'processed'
-  | 'failed'
-  | 'all';
+export type OneOffEventsSection = 'scheduled' | 'processed' | 'failed' | 'all';
 
-interface CreateCronTriggerEventsDataTableColumnsOptions {
-  eventLogsSection: CronTriggerEventsSection;
-  onEventLogsSectionChange: (value: CronTriggerEventsSection) => void;
+interface CreateOneOffEventsDataTableColumnsOptions {
+  eventLogsSection: OneOffEventsSection;
+  onEventLogsSectionChange: (value: OneOffEventsSection) => void;
 }
 
-export function createCronTriggerEventsDataTableColumns({
+export function createOneOffEventsDataTableColumns({
   eventLogsSection,
   onEventLogsSectionChange,
-}: CreateCronTriggerEventsDataTableColumnsOptions) {
+}: CreateOneOffEventsDataTableColumnsOptions) {
   const columns: ColumnDef<ScheduledEventLogEntry>[] = [
     {
       id: 'actions',
       size: 20,
       enableResizing: false,
       enableSorting: false,
-      cell: ({ row }) => <CronTriggerEventsLogActionsCell row={row} />,
+      cell: ({ row }) => <OneOffEventsLogActionsCell row={row} />,
     },
     {
       id: 'scheduled_time',
@@ -97,4 +93,4 @@ export function createCronTriggerEventsDataTableColumns({
   return columns;
 }
 
-export default createCronTriggerEventsDataTableColumns;
+export default createOneOffEventsDataTableColumns;

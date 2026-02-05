@@ -9,15 +9,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/v3/dropdown-menu';
-import type { CronTriggerEventsSection } from './oneOffEventsDataTableColumns';
+import type { OneOffEventsSection } from './oneOffEventsDataTableColumns';
 
 interface StatusColumnHeaderProps {
-  value: CronTriggerEventsSection;
-  onChange: (value: CronTriggerEventsSection) => void;
+  value: OneOffEventsSection;
+  onChange: (value: OneOffEventsSection) => void;
 }
 
 const STATUS_FILTER_OPTIONS: Record<
-  CronTriggerEventsSection,
+  OneOffEventsSection,
   { label: string; description: string }
 > = {
   scheduled: {
@@ -65,7 +65,7 @@ export default function StatusColumnHeader({
         <DropdownMenuRadioGroup
           value={value}
           onValueChange={(selectedValue) =>
-            onChange(selectedValue as CronTriggerEventsSection)
+            onChange(selectedValue as OneOffEventsSection)
           }
         >
           {Object.entries(STATUS_FILTER_OPTIONS).map(([option, optionMeta]) => (

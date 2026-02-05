@@ -2,14 +2,13 @@ import { type UseQueryOptions, useQuery } from '@tanstack/react-query';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { getScheduledEventInvocations } from '@/features/orgs/projects/events/common/api/getScheduledEventInvocations';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import type { MakeRequired } from '@/types/common';
 import type {
   GetScheduledEventInvocationsArgs,
   GetScheduledEventInvocationsResponse,
   InvocationLogEntry,
 } from '@/utils/hasura-api/generated/schemas';
 
-export interface UseGetCronInvocationLogsByIdQueryOptions {
+export interface UseGetInvocationLogsByIdQueryOptions {
   /**
    * Props passed to the underlying query hook.
    */
@@ -18,35 +17,37 @@ export interface UseGetCronInvocationLogsByIdQueryOptions {
       GetScheduledEventInvocationsResponse,
       unknown,
       InvocationLogEntry[],
-      readonly ['get-cron-invocation-logs-by-id', string, number, number]
+      readonly [
+        'get-invocation-logs-by-id',
+        GetScheduledEventInvocationsArgs['type'],
+        string,
+        number,
+        number,
+      ]
     >,
     'queryKey' | 'queryFn'
   >;
 }
 
-type UseGetCronInvocationLogsByIdArgs = MakeRequired<
-  Omit<GetScheduledEventInvocationsArgs, 'type'>,
-  'event_id'
->;
-
 /**
- * This hook is a wrapper around a fetch call that gets the invocation logs for a given cron trigger id.
+ * This hook is a wrapper around a fetch call that gets the invocation logs for a given event id.
  *
  * @param args - Arguments for the query.
- * @param args.event_id - ID of the cron trigger to get the invocation logs for
+ * @param args.event_id - ID of the event to get the invocation logs for
  * @param args.limit - Maximum number of invocation logs to be returned in one API call
  * @param args.offset - Offset for the query
  * @returns The result of the query.
  */
-export default function useGetCronInvocationLogsById(
-  args: UseGetCronInvocationLogsByIdArgs,
-  { queryOptions }: UseGetCronInvocationLogsByIdQueryOptions = {},
+export default function useGetInvocationLogsById(
+  args: GetScheduledEventInvocationsArgs,
+  { queryOptions }: UseGetInvocationLogsByIdQueryOptions = {},
 ) {
   const { project, loading } = useProject();
 
   const query = useQuery({
     queryKey: [
-      'get-cron-invocation-logs-by-id',
+      'get-invocation-logs-by-id',
+      args.type,
       args.event_id,
       args.limit ?? 100,
       args.offset ?? 0,
@@ -64,7 +65,7 @@ export default function useGetCronInvocationLogsById(
         appUrl,
         adminSecret,
         args: {
-          type: 'cron',
+          type: args.type,
           event_id: args.event_id,
           get_rows_count: false,
           ...(args.limit && { limit: args.limit }),

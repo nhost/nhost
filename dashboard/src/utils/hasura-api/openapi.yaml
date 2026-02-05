@@ -2372,9 +2372,9 @@ components:
         invocations:
           type: array
           items:
-            $ref: "#/components/schemas/CronTriggerInvocationLogEntry"
+            $ref: "#/components/schemas/InvocationLogEntry"
 
-    CronTriggerInvocationLogEntry:
+    InvocationLogEntry:
       type: object
       required:
         - id

@@ -10,8 +10,9 @@ import type {
   ScheduledEventLogEntry,
   ScheduledEventStatus,
 } from '@/utils/hasura-api/generated/schemas';
+import type { OneOffEventsSection } from '../../components/OneOffEventsDataTable/oneOffEventsDataTableColumns';
 
-export interface UseGetCronEventLogsQueryOptions {
+export interface UseGetOneOffsQueryOptions {
   /**
    * Props passed to the underlying query hook.
    */
@@ -21,7 +22,7 @@ export interface UseGetCronEventLogsQueryOptions {
       unknown,
       ScheduledEventLogEntry[],
       readonly [
-        'get-cron-event-logs',
+        'get-one-offs-logs',
         string,
         CronTriggerEventsSection,
         number,
@@ -36,7 +37,7 @@ type UseGetCronEventLogsQueryArgs = MakeRequired<
   Omit<GetScheduledEventsArgs, 'type'>,
   'trigger_name'
 > & {
-  eventLogsSection: CronTriggerEventsSection;
+  eventLogsSection: OneOffEventsSection;
 };
 
 /**
@@ -50,7 +51,7 @@ type UseGetCronEventLogsQueryArgs = MakeRequired<
  */
 export default function useGetCronEventLogsQuery(
   args: UseGetCronEventLogsQueryArgs,
-  { queryOptions }: UseGetCronEventLogsQueryOptions = {},
+  { queryOptions }: UseGetOneOffsQueryOptions = {},
 ) {
   const { project, loading } = useProject();
 
@@ -77,6 +78,7 @@ export default function useGetCronEventLogsQuery(
   const query = useQuery({
     queryKey: [
       'get-cron-event-logs',
+      args.trigger_name,
       args.eventLogsSection,
       args.limit ?? 100,
       args.offset ?? 0,
@@ -94,10 +96,11 @@ export default function useGetCronEventLogsQuery(
         appUrl,
         adminSecret,
         args: {
-          type: 'one_off',
+          type: 'cron',
           get_rows_count: false,
           limit: args.limit ?? 100,
           offset: args.offset ?? 0,
+          trigger_name: args.trigger_name,
           status,
         },
       });
