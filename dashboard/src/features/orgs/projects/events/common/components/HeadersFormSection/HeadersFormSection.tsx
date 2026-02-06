@@ -54,6 +54,7 @@ export default function HeadersFormSection({
           size="sm"
           className="px-4 text-primary hover:bg-muted hover:text-primary"
           onClick={() => append({ name: '', type: 'fromValue', value: '' })}
+          data-testid="add-header-button"
         >
           <Plus className="size-5" />
         </Button>
