@@ -1,3 +1,16 @@
+## [@nhost/dashboard@2.48.0] - 2026-02-06
+
+### 🚀 Features
+
+- *(dashboard)* Edit table relationships (#3720)
+- *(ci)* Remove mintlify (#3887)
+
+
+### 🐛 Bug Fixes
+
+- *(deps)* Update brace-expansion due to cve (#3886)
+- *(dashboard)* Run type check before tests (#3894)
+
 ## [@nhost/dashboard@2.47.0] - 2026-02-04
 
 ### 🚀 Features
