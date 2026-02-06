@@ -1,5 +1,6 @@
 ---
 title: Nhost CLI Reference
+icon: terminal
 ---
 
 # NAME
@@ -33,22 +34,22 @@ nhost [GLOBAL OPTIONS] [command [COMMAND OPTIONS]] [ARGUMENTS...]
 
 # GLOBAL OPTIONS
 
-**--branch**="": Git branch name. If not set, it will be detected from the current git repository. This flag is used to dynamically create docker volumes for each branch. If you want to have a static volume name or if you are not using git, set this flag to a static value. (default: nogit)
+**--branch**="": Git branch name. If not set, it will be detected from the current git repository. This flag is used to dynamically create docker volumes for each branch. If you want to have a static volume name or if you are not using git, set this flag to a static value. (default: &lt;current-git-branch&gt;) [$BRANCH]
 
 **--dot-nhost-folder**="": Path to .nhost folder
-	 (default: .nhost)
+	 (default: ".nhost") [$NHOST_DOT_NHOST_FOLDER]
 
 **--help, -h**: show help
 
-**--local-subdomain**="": Local subdomain to reach the development environment (default: local)
+**--local-subdomain**="": Local subdomain to reach the development environment (default: "local") [$NHOST_LOCAL_SUBDOMAIN]
 
 **--nhost-folder**="": Path to nhost folder
-	 (default: nhost)
+	 (default: "nhost") [$NHOST_NHOST_FOLDER]
 
-**--project-name**="": Project name (default: docs)
+**--project-name**="": Project name (default: &lt;project-directory-name&gt;) [$NHOST_PROJECT_NAME]
 
 **--root-folder**="": Root folder of project
-	 (default: .)
+	 (default: ".") [$NHOST_ROOT_FOLDER]
 
 **--version, -v**: print the version
 
@@ -87,9 +88,9 @@ Apply configuration to cloud project
 
 **--help, -h**: show help
 
-**--subdomain**="": Subdomain of the Nhost project to apply configuration to. Defaults to linked project
+**--subdomain**="": Subdomain of the Nhost project to apply configuration to. Defaults to linked project [$NHOST_SUBDOMAIN]
 
-**--yes**: Skip confirmation
+**--yes**: Skip confirmation [$NHOST_YES]
 
 #### help, h
 
@@ -101,9 +102,9 @@ Get cloud configuration
 
 **--help, -h**: show help
 
-**--subdomain**="": Pull this subdomain's configuration. Defaults to linked project
+**--subdomain**="": Pull this subdomain's configuration. Defaults to linked project [$NHOST_SUBDOMAIN]
 
-**--yes**: Skip confirmation
+**--yes**: Skip confirmation [$NHOST_YES]
 
 #### help, h
 
@@ -115,7 +116,7 @@ Shows configuration after resolving secrets
 
 **--help, -h**: show help
 
-**--subdomain**="": Show this subdomain's rendered configuration. Defaults to base configuration
+**--subdomain**="": Show this subdomain's rendered configuration. Defaults to base configuration [$NHOST_SUBDOMAIN]
 
 #### help, h
 
@@ -127,7 +128,7 @@ Validate configuration
 
 **--help, -h**: show help
 
-**--subdomain**="": Validate this subdomain's configuration. Defaults to linked project
+**--subdomain**="": Validate this subdomain's configuration. Defaults to linked project [$NHOST_SUBDOMAIN]
 
 #### help, h
 
@@ -137,11 +138,11 @@ Shows a list of commands or help for one command
 
 Edit base configuration or an overlay
 
-**--editor**="": Editor to use (default: vim)
+**--editor**="": Editor to use (default: "vim") [$EDITOR]
 
 **--help, -h**: show help
 
-**--subdomain**="": If specified, edit this subdomain's overlay, otherwise edit base configuation
+**--subdomain**="": If specified, edit this subdomain's overlay, otherwise edit base configuation [$NHOST_SUBDOMAIN]
 
 #### help, h
 
@@ -163,7 +164,7 @@ List deployments in the cloud environment
 
 **--help, -h**: show help
 
-**--subdomain**="": Project's subdomain to operate on, defaults to linked project
+**--subdomain**="": Project's subdomain to operate on, defaults to linked project [$NHOST_SUBDOMAIN]
 
 #### help, h
 
@@ -177,7 +178,7 @@ View deployments logs in the cloud environment
 
 **--help, -h**: show help
 
-**--subdomain**="": Project's subdomain to operate on, defaults to linked project
+**--subdomain**="": Project's subdomain to operate on, defaults to linked project [$NHOST_SUBDOMAIN]
 
 **--timeout**="": Specify the timeout for streaming logs (default: 5m0s)
 
@@ -195,13 +196,13 @@ Shows a list of commands or help for one command
 
 **--message**="": Commit message
 
-**--ref**="": Git reference
+**--ref**="": Git reference [$GITHUB_SHA]
 
-**--subdomain**="": Project's subdomain to operate on, defaults to linked project
+**--subdomain**="": Project's subdomain to operate on, defaults to linked project [$NHOST_SUBDOMAIN]
 
 **--timeout**="": Specify the timeout for streaming logs (default: 5m0s)
 
-**--user**="": Commit user name
+**--user**="": Commit user name [$GITHUB_ACTOR]
 
 **--user-avatar-url**="": Commit user avatar URL
 
@@ -247,17 +248,17 @@ Shows a list of commands or help for one command
 
 Start local development environment
 
-**--apply-seeds**: Apply seeds. If the .nhost folder does not exist, seeds will be applied regardless of this flag
+**--apply-seeds**: Apply seeds. If the .nhost folder does not exist, seeds will be applied regardless of this flag [$NHOST_APPLY_SEEDS]
 
 **--auth-port**="": If specified, expose auth on this port. Not recommended (default: 0)
 
-**--ca-certificates**="": Mounts and everrides path to CA certificates in the containers
+**--ca-certificates**="": Mounts and everrides path to CA certificates in the containers [$NHOST_CA_CERTIFICATES]
 
-**--dashboard-version**="": Dashboard version to use (default: nhost/dashboard:2.47.0)
+**--dashboard-version**="": Dashboard version to use (default: "nhost/dashboard:2.47.0") [$NHOST_DASHBOARD_VERSION]
 
-**--disable-tls**: Disable TLS
+**--disable-tls**: Disable TLS [$NHOST_DISABLE_TLS]
 
-**--down-on-error**: Skip confirmation
+**--down-on-error**: Skip confirmation [$NHOST_YES]
 
 **--functions-port**="": If specified, expose functions on this port. Not recommended (default: 0)
 
@@ -267,11 +268,11 @@ Start local development environment
 
 **--help, -h**: show help
 
-**--http-port**="": HTTP port to listen on (default: 443)
+**--http-port**="": HTTP port to listen on (default: 443) [$NHOST_HTTP_PORT]
 
-**--postgres-port**="": Postgres port to listen on (default: 5432)
+**--postgres-port**="": Postgres port to listen on (default: 5432) [$NHOST_POSTGRES_PORT]
 
-**--run-service**="": Run service to add to the development environment. Can be passed multiple times. Comma-separated values are also accepted. Format: /path/to/run-service.toml[:overlay_name] (default: [])
+**--run-service**="": Run service to add to the development environment. Can be passed multiple times. Comma-separated values are also accepted. Format: /path/to/run-service.toml[:overlay_name] [$NHOST_RUN_SERVICE]
 
 **--storage-port**="": If specified, expose storage on this port. Not recommended (default: 0)
 
@@ -279,25 +280,25 @@ Start local development environment
 
 Start local development environment connected to an Nhost Cloud project (BETA)
 
-**--apply-seeds**: Apply seeds. If the .nhost folder does not exist, seeds will be applied regardless of this flag
+**--apply-seeds**: Apply seeds. If the .nhost folder does not exist, seeds will be applied regardless of this flag [$NHOST_APPLY_SEEDS]
 
-**--ca-certificates**="": Mounts and everrides path to CA certificates in the containers
+**--ca-certificates**="": Mounts and everrides path to CA certificates in the containers [$NHOST_CA_CERTIFICATES]
 
-**--dashboard-version**="": Dashboard version to use (default: nhost/dashboard:2.47.0)
+**--dashboard-version**="": Dashboard version to use (default: "nhost/dashboard:2.47.0") [$NHOST_DASHBOARD_VERSION]
 
-**--disable-tls**: Disable TLS
+**--disable-tls**: Disable TLS [$NHOST_DISABLE_TLS]
 
-**--down-on-error**: Skip confirmation
+**--down-on-error**: Skip confirmation [$NHOST_YES]
 
 **--hasura-console-port**="": If specified, expose hasura console on this port. Not recommended (default: 0)
 
 **--help, -h**: show help
 
-**--http-port**="": HTTP port to listen on (default: 443)
+**--http-port**="": HTTP port to listen on (default: 443) [$NHOST_HTTP_PORT]
 
-**--postgres-url**="": Postgres URL
+**--postgres-url**="": Postgres URL [$NHOST_POSTGRES_URL]
 
-**--subdomain**="": Project's subdomain to operate on, defaults to linked project
+**--subdomain**="": Project's subdomain to operate on, defaults to linked project [$NHOST_SUBDOMAIN]
 
 #### help, h
 
@@ -339,11 +340,11 @@ Perform docker-credentials operations
 
 Install credentials helper and configure docker so it can authenticate with Nhost's registry
 
-**--docker-config**="": Path to docker config file (default: /homeless-shelter/.docker/config.json)
+**--docker-config**="": Path to docker config file (default: $HOME/.docker/config.json) [$DOCKER_CONFIG]
 
 **--help, -h**: show help
 
-**--no-interactive**: Do not prompt for confirmation
+**--no-interactive**: Do not prompt for confirmation [$NO_INTERACTIVE]
 
 #### help, h
 
@@ -357,7 +358,7 @@ Shows a list of commands or help for one command
 
 Model Context Protocol (MCP) related commands
 
-**--config-file**="": Configuration file path. Defaults to $NHOST_DOT_NHOST_FOLDER/nhost-mcp.toml
+**--config-file**="": Configuration file path. Defaults to $NHOST_DOT_NHOST_FOLDER/nhost-mcp.toml [$NHOST_MCP_CONFIG_FILE]
 
 **--help, -h**: show help
 
@@ -365,7 +366,7 @@ Model Context Protocol (MCP) related commands
 
 Generate and save configuration file
 
-**--confirm**: Skip confirmation prompt
+**--confirm**: Skip confirmation prompt [$CONFIRM]
 
 **--help, -h**: show help
 
@@ -387,7 +388,7 @@ Shows a list of commands or help for one command
 
 Starts the MCP server
 
-**--bind**="": Bind address in the form $host:$port. If omitted use stdio
+**--bind**="": Bind address in the form $host:$port. If omitted use stdio [$BIND]
 
 **--help, -h**: show help
 
@@ -401,9 +402,9 @@ Generate GraphQL schema for Nhost Cloud
 
 **--help, -h**: show help
 
-**--nhost-pat**="": Personal Access Token
+**--nhost-pat**="": Personal Access Token [$NHOST_PAT]
 
-**--with-mutations**: Include mutations in the generated schema
+**--with-mutations**: Include mutations in the generated schema [$WITH_MUTATIONS]
 
 #### help, h
 
@@ -419,7 +420,7 @@ Initialize a new Nhost project
 
 **--help, -h**: show help
 
-**--remote**: Initialize pulling configuration, migrations and metadata from the linked project
+**--remote**: Initialize pulling configuration, migrations and metadata from the linked project [$NHOST_REMOTE]
 
 ### help, h
 
@@ -445,6 +446,54 @@ Link local app to a remote one
 
 Shows a list of commands or help for one command
 
+## docs
+
+Access embedded documentation
+
+**--help, -h**: show help
+
+### list, ls
+
+List all documentation pages
+
+**--grouped**: Show pages organized by section
+
+**--help, -h**: show help
+
+**--summary**: Show page descriptions
+
+#### help, h
+
+Shows a list of commands or help for one command
+
+### search, s, find
+
+Search documentation pages
+
+**--help, -h**: show help
+
+**--limit, -n**="": Maximum number of results to return (default: 5)
+
+#### help, h
+
+Shows a list of commands or help for one command
+
+### show, view
+
+Display contents of a documentation page
+
+**--help, -h**: show help
+
+**--raw**: Show raw MDX content including frontmatter
+
+#### help, h
+
+Shows a list of commands or help for one command
+
+### help, h
+
+Shows a list of commands or help for one command
+
 ## run
 
 Perform operations on Nhost Run
@@ -455,11 +504,11 @@ Perform operations on Nhost Run
 
 Shows Run service configuration after resolving secrets
 
-**--config**="": Service configuration file (default: nhost-run-service.toml)
+**--config**="": Service configuration file (default: "nhost-run-service.toml") [$NHOST_RUN_SERVICE_CONFIG]
 
 **--help, -h**: show help
 
-**--overlay-name**="": If specified, apply this overlay
+**--overlay-name**="": If specified, apply this overlay [$NHOST_RUN_SERVICE_ID, $NHOST_SERVICE_OVERLAY_NAME]
 
 #### help, h
 
@@ -469,11 +518,11 @@ Shows a list of commands or help for one command
 
 Deploy service configuration
 
-**--config**="": Service configuration file (default: nhost-run-service.toml)
+**--config**="": Service configuration file (default: "nhost-run-service.toml") [$NHOST_RUN_SERVICE_CONFIG]
 
 **--help, -h**: show help
 
-**--service-id**="": Service ID to update. Applies overlay of the same name
+**--service-id**="": Service ID to update. Applies overlay of the same name [$NHOST_RUN_SERVICE_ID]
 
 #### help, h
 
@@ -483,13 +532,13 @@ Shows a list of commands or help for one command
 
 Edit service configuration
 
-**--config**="": Service configuration file (default: nhost-run-service.toml)
+**--config**="": Service configuration file (default: "nhost-run-service.toml") [$NHOST_RUN_SERVICE_CONFIG]
 
-**--editor**="": Editor to use (default: vim)
+**--editor**="": Editor to use (default: "vim") [$EDITOR]
 
 **--help, -h**: show help
 
-**--overlay-name**="": If specified, apply this overlay
+**--overlay-name**="": If specified, apply this overlay [$NHOST_RUN_SERVICE_ID, $NHOST_SERVICE_OVERLAY_NAME]
 
 #### help, h
 
@@ -499,11 +548,11 @@ Shows a list of commands or help for one command
 
 Edits configuration file and sets the image
 
-**--config**="": Service configuration file (default: nhost-run-service.toml)
+**--config**="": Service configuration file (default: "nhost-run-service.toml") [$NHOST_RUN_SERVICE_CONFIG]
 
 **--help, -h**: show help
 
-**--image**="": Image to use
+**--image**="": Image to use [$NHOST_RUN_SERVICE_IMAGE]
 
 #### help, h
 
@@ -513,11 +562,11 @@ Shows a list of commands or help for one command
 
 Download service configuration
 
-**--config**="": Service configuration file (default: nhost-run-service.toml)
+**--config**="": Service configuration file (default: "nhost-run-service.toml") [$NHOST_RUN_SERVICE_CONFIG]
 
 **--help, -h**: show help
 
-**--service-id**="": Service ID to update
+**--service-id**="": Service ID to update [$NHOST_RUN_SERVICE_ID]
 
 #### help, h
 
@@ -527,13 +576,13 @@ Shows a list of commands or help for one command
 
 Validates service configuration after resolving secrets
 
-**--config**="": Service configuration file (default: nhost-run-service.toml)
+**--config**="": Service configuration file (default: "nhost-run-service.toml") [$NHOST_RUN_SERVICE_CONFIG]
 
 **--help, -h**: show help
 
-**--overlay-name**="": If specified, apply this overlay
+**--overlay-name**="": If specified, apply this overlay [$NHOST_SERVICE_OVERLAY_NAME]
 
-**--service-id**="": If specified, apply this overlay and remote secrets for this service
+**--service-id**="": If specified, apply this overlay and remote secrets for this service [$NHOST_RUN_SERVICE_ID]
 
 #### help, h
 
@@ -553,13 +602,13 @@ Shows a list of commands or help for one command
 
 Outputs environment variables. Useful to generate .env files
 
-**--config**="": Service configuration file (default: nhost-run-service.toml)
+**--config**="": Service configuration file (default: "nhost-run-service.toml") [$NHOST_RUN_SERVICE_CONFIG]
 
 **--help, -h**: show help
 
-**--overlay-name**="": If specified, apply this overlay
+**--overlay-name**="": If specified, apply this overlay [$NHOST_RUN_SERVICE_ID, $NHOST_SERVICE_OVERLAY_NAME]
 
-**--prepend-export**: Prepend 'export' to each line
+**--prepend-export**: Prepend 'export' to each line [$NHOST_RuN_SERVICE_ENV_PREPEND_EXPORT]
 
 #### help, h
 
@@ -581,7 +630,7 @@ Create secret in the cloud environment
 
 **--help, -h**: show help
 
-**--subdomain**="": Project's subdomain to operate on, defaults to linked project
+**--subdomain**="": Project's subdomain to operate on, defaults to linked project [$NHOST_SUBDOMAIN]
 
 #### help, h
 
@@ -593,7 +642,7 @@ Delete secret in the cloud environment
 
 **--help, -h**: show help
 
-**--subdomain**="": Project's subdomain to operate on, defaults to linked project
+**--subdomain**="": Project's subdomain to operate on, defaults to linked project [$NHOST_SUBDOMAIN]
 
 #### help, h
 
@@ -605,7 +654,7 @@ List secrets in the cloud environment
 
 **--help, -h**: show help
 
-**--subdomain**="": Project's subdomain to operate on, defaults to linked project
+**--subdomain**="": Project's subdomain to operate on, defaults to linked project [$NHOST_SUBDOMAIN]
 
 #### help, h
 
@@ -617,7 +666,7 @@ Update secret in the cloud environment
 
 **--help, -h**: show help
 
-**--subdomain**="": Project's subdomain to operate on, defaults to linked project
+**--subdomain**="": Project's subdomain to operate on, defaults to linked project [$NHOST_SUBDOMAIN]
 
 #### help, h
 
@@ -637,7 +686,7 @@ Perform software management operations
 
 Remove the installed CLI from system permanently
 
-**--force**: Force uninstall without confirmation
+**--force**: Force uninstall without confirmation [$NHOST_FORCE_UNINSTALL]
 
 **--help, -h**: show help
 
@@ -673,19 +722,19 @@ Shows a list of commands or help for one command
 
 Login to Nhost
 
-**--email**="": Email address
+**--email**="": Email address [$NHOST_EMAIL]
 
 **--help, -h**: show help
 
-**--password**="": Password
+**--password**="": Password [$NHOST_PASSWORD]
 
-**--pat**="": Use this Personal Access Token instead of generating a new one with your email/password
+**--pat**="": Use this Personal Access Token instead of generating a new one with your email/password [$NHOST_PAT]
 
 ### help, h
 
 Shows a list of commands or help for one command
 
-## docs
+## gen-docs
 
 Generate markdown documentation for the CLI
 
