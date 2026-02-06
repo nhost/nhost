@@ -18,7 +18,7 @@ describe('prepareLocalRelationshipDTO', () => {
         table: 'authors',
         source: 'default',
       },
-      relationshipType: 'object',
+      relationshipType: 'pg_create_object_relationship',
       fieldMapping: [
         {
           sourceColumn: 'author_id',
@@ -63,7 +63,7 @@ describe('prepareLocalRelationshipDTO', () => {
         table: 'books',
         source: 'default',
       },
-      relationshipType: 'array',
+      relationshipType: 'pg_create_array_relationship',
       fieldMapping: [
         {
           sourceColumn: 'id',
