@@ -65,11 +65,12 @@ func Flags() ([]cli.Flag, error) {
 			Hidden:  true,
 		},
 		&cli.StringFlag{ //nolint:exhaustruct
-			Name:    flagBranch,
-			Usage:   "Git branch name. If not set, it will be detected from the current git repository. This flag is used to dynamically create docker volumes for each branch. If you want to have a static volume name or if you are not using git, set this flag to a static value.", //nolint:lll
-			Sources: cli.EnvVars("BRANCH"),
-			Value:   branch,
-			Hidden:  false,
+			Name:        flagBranch,
+			Usage:       "Git branch name. If not set, it will be detected from the current git repository. This flag is used to dynamically create docker volumes for each branch. If you want to have a static volume name or if you are not using git, set this flag to a static value.", //nolint:lll
+			Sources:     cli.EnvVars("BRANCH"),
+			Value:       branch,
+			DefaultText: "<current-git-branch>",
+			Hidden:      false,
 		},
 		&cli.StringFlag{ //nolint:exhaustruct
 			Name:     flagRootFolder,
@@ -93,10 +94,11 @@ func Flags() ([]cli.Flag, error) {
 			Category: "Project structure",
 		},
 		&cli.StringFlag{ //nolint:exhaustruct
-			Name:    flagProjectName,
-			Usage:   "Project name",
-			Value:   filepath.Base(fullWorkingDir),
-			Sources: cli.EnvVars("NHOST_PROJECT_NAME"),
+			Name:        flagProjectName,
+			Usage:       "Project name",
+			Value:       filepath.Base(fullWorkingDir),
+			DefaultText: "<project-directory-name>",
+			Sources:     cli.EnvVars("NHOST_PROJECT_NAME"),
 		},
 		&cli.StringFlag{ //nolint:exhaustruct
 			Name:    flagLocalSubdomain,

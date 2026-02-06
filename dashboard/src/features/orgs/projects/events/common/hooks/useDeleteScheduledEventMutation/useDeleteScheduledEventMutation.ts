@@ -66,7 +66,11 @@ export default function useDeleteScheduledEventMutation({
     {
       onSuccess: (_, variables) => {
         queryClient.invalidateQueries({
-          queryKey: ['get-scheduled-event-logs', variables.type],
+          queryKey: [
+            'get-scheduled-event-logs',
+            project?.subdomain,
+            variables.type,
+          ],
         });
       },
       ...mutationOptions,

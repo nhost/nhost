@@ -17,6 +17,7 @@ import type {
 
 type ScheduledEventLogsQueryKey = readonly [
   'get-scheduled-event-logs',
+  string | undefined,
   GetScheduledEventsArgsType,
   string | undefined,
   EventsSection,
@@ -94,6 +95,7 @@ export default function useGetScheduledEventLogsQuery(
   >({
     queryKey: [
       'get-scheduled-event-logs',
+      project?.subdomain,
       args.type,
       args.type === 'cron' ? args.trigger_name : undefined,
       args.eventLogsSection,

@@ -1,5 +1,5 @@
 import type { MutationOptions } from '@tanstack/react-query';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { CreateScheduledEventArgs } from '@/utils/hasura-api/generated/schemas';
@@ -34,7 +34,7 @@ export default function UseCreateOneOffMutationOptions({
   mutationOptions,
 }: UseCreateOneOffMutationOptions = {}) {
   const { project } = useProject();
-  // const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
   const mutation = useMutation<
     MetadataOperation200,
@@ -58,10 +58,13 @@ export default function UseCreateOneOffMutationOptions({
     },
     {
       onSuccess: () => {
-        // queryClient.invalidateQueries({
-        //   queryKey: ['export-metadata', project?.subdomain],
-        // });
-        // TODO: Invalidate one-offs query here once implemented
+        queryClient.invalidateQueries({
+          queryKey: [
+            'get-scheduled-event-logs',
+            project?.subdomain,
+            'one_off',
+          ],
+        });
       },
       ...mutationOptions,
     },

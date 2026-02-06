@@ -71,6 +71,7 @@ export default function OneOffEventsLogActionsCell({
               disabled={isDeleteScheduledEventLoading}
               loading={isThisDeleteScheduledEventActionLoading}
               loaderClassName="mr-0 size-5"
+              data-testid="delete-scheduled-event"
             >
               {!isThisDeleteScheduledEventActionLoading && (
                 <X className="size-4" />
