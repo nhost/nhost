@@ -1,3 +1,9 @@
+## [cli@1.37.1] - 2026-02-06
+
+### 🐛 Bug Fixes
+
+- *(docs)* Fix CLI reference documentation (#3895)
+
 ## [cli@1.37.0] - 2026-02-05
 
 ### 🚀 Features
