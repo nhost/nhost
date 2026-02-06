@@ -4,9 +4,9 @@ import { getScheduledEventInvocations } from '@/features/orgs/projects/events/co
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { MakeRequired } from '@/types/common';
 import type {
-  CronTriggerInvocationLogEntry,
   GetScheduledEventInvocationsArgs,
   GetScheduledEventInvocationsResponse,
+  InvocationLogEntry,
 } from '@/utils/hasura-api/generated/schemas';
 
 export interface UseGetCronInvocationLogsByIdQueryOptions {
@@ -17,7 +17,7 @@ export interface UseGetCronInvocationLogsByIdQueryOptions {
     UseQueryOptions<
       GetScheduledEventInvocationsResponse,
       unknown,
-      CronTriggerInvocationLogEntry[],
+      InvocationLogEntry[],
       readonly ['get-cron-invocation-logs-by-id', string, number, number]
     >,
     'queryKey' | 'queryFn'

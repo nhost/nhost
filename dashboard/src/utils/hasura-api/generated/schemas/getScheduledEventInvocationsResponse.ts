@@ -5,8 +5,8 @@
  * API for managing remote schemas and events in Hasura
  * OpenAPI spec version: 1.0.0
  */
-import type { CronTriggerInvocationLogEntry } from './cronTriggerInvocationLogEntry';
+import type { InvocationLogEntry } from './invocationLogEntry';
 
 export interface GetScheduledEventInvocationsResponse {
-  invocations: CronTriggerInvocationLogEntry[];
+  invocations: InvocationLogEntry[];
 }
