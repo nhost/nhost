@@ -89,8 +89,6 @@ export default function HasuraPage() {
           <div className="mt-6 grid grid-flow-row gap-2">
             <Button
               href={hasuraUrl}
-              // Both `target` and `rel` are available when `href` is set. This is
-              // a limitation of MUI.
               // @ts-expect-error
               target="_blank"
               rel="noreferrer noopener"
