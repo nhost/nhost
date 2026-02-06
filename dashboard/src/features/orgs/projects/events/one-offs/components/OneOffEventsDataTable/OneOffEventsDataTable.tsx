@@ -38,7 +38,9 @@ export default function OneOffEventsDataTable({
   isLoading,
   limit,
 }: OneOffEventsDataTableProps) {
-  const [sorting, setSorting] = useState<SortingState>([]);
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: 'scheduled_time', desc: true },
+  ]);
   const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
 
   const columns = useMemo(
