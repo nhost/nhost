@@ -33,10 +33,11 @@ func CommandConfigure() *cli.Command {
 		Usage:   "Install credentials helper and configure docker so it can authenticate with Nhost's registry",
 		Flags: []cli.Flag{
 			&cli.StringFlag{ //nolint:exhaustruct
-				Name:    flagDockerConfig,
-				Usage:   "Path to docker config file",
-				Sources: cli.EnvVars("DOCKER_CONFIG"),
-				Value:   home + "/.docker/config.json",
+				Name:        flagDockerConfig,
+				Usage:       "Path to docker config file",
+				Sources:     cli.EnvVars("DOCKER_CONFIG"),
+				Value:       home + "/.docker/config.json",
+				DefaultText: "$HOME/.docker/config.json",
 			},
 			&cli.BoolFlag{ //nolint:exhaustruct
 				Name:    flagNoInteractive,

@@ -25,6 +25,11 @@ let
       (inDirectory "${submodule}/cmd/project/templates")
       (inDirectory "${submodule}/nhostclient/graphql/query/")
 
+      (and
+        (inDirectory "internal/lib/clidocs")
+        (matchExt "go")
+      )
+
       "${submodule}/mcp/nhost/auth/openapi.yaml"
       "${submodule}/mcp/nhost/graphql/openapi.yaml"
       "${submodule}/mcp/resources/cloud_schema.graphql"
@@ -81,9 +86,13 @@ rec {
     ] ++ checkDeps ++ buildInputs ++ nativeBuildInputs;
   };
 
-  package = nixops-lib.go.package {
+  package = (nixops-lib.go.package {
     inherit name description version src submodule ldflags buildInputs nativeBuildInputs;
-  };
+  }).overrideAttrs (old: old // {
+    env = {
+      CGO_ENABLED = "0";
+    };
+  });
 
   dockerImage = nixops-lib.go.docker-image {
     inherit name package created version buildInputs;
