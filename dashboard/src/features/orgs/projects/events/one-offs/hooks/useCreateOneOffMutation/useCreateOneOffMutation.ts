@@ -59,11 +59,7 @@ export default function UseCreateOneOffMutationOptions({
     {
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey: [
-            'get-scheduled-event-logs',
-            project?.subdomain,
-            'one_off',
-          ],
+          queryKey: ['get-scheduled-event-logs', project?.subdomain, 'one_off'],
         });
       },
       ...mutationOptions,
