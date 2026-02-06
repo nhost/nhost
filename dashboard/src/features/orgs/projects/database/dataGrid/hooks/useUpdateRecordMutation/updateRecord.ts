@@ -7,13 +7,16 @@ import type {
   QueryError,
   QueryResult,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import type { UnknownDataBaseRow } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser/dataBrowser';
 import {
   getPreparedHasuraQuery,
   getPreparedReadOnlyHasuraQuery,
 } from '@/features/orgs/projects/database/dataGrid/utils/hasuraQueryHelpers';
 import { normalizeQueryError } from '@/features/orgs/projects/database/dataGrid/utils/normalizeQueryError';
 
-export interface UpdateRecordVariables<TData extends object = {}> {
+export interface UpdateRecordVariables<
+  TData extends UnknownDataBaseRow = UnknownDataBaseRow,
+> {
   /**
    * Table row to update.
    */
@@ -26,7 +29,9 @@ export interface UpdateRecordVariables<TData extends object = {}> {
 
 export interface UpdateRecordOptions extends MutationOrQueryBaseOptions {}
 
-export default async function updateRecord<TData extends object = {}>({
+export default async function updateRecord<
+  TData extends UnknownDataBaseRow = UnknownDataBaseRow,
+>({
   dataSource,
   schema,
   table,
@@ -35,7 +40,9 @@ export default async function updateRecord<TData extends object = {}>({
   row,
   columnsToUpdate,
 }: UpdateRecordOptions & UpdateRecordVariables<TData>) {
-  const primaryKeys = row.cells.filter(({ column }) => column.isPrimary);
+  const primaryKeys = row
+    .getAllCells()
+    .filter(({ column }) => column.columnDef.meta?.isPrimary);
 
   if (primaryKeys.length === 0) {
     throw new Error('No primary keys found for row.');

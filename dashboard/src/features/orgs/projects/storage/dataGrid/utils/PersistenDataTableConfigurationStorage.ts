@@ -1,3 +1,4 @@
+import type { ColumnOrderState, VisibilityState } from '@tanstack/react-table';
 import type { RowDensity } from '@/features/orgs/projects/common/types/dataTableConfigurationTypes';
 import { isEmptyValue } from '@/lib/utils';
 
@@ -8,8 +9,8 @@ const DATA_TABLE_CONFIGURATION_STORAGE_KEY =
   'nhost_data_table_configuration_storage';
 
 type ColumnConfiguration = {
-  hiddenColumns: string[];
-  columnOrder: string[];
+  columnVisibility: VisibilityState;
+  columnOrder: ColumnOrderState;
 };
 
 type DataTableViewConfiguration = {
@@ -28,13 +29,16 @@ class PersistenDataTableConfigurationStorage {
     return allStoredData;
   }
 
-  static getHiddenColumns(tablePath: string): string[] {
+  static getColumnVisibility(tablePath: string): VisibilityState {
     const allStoredData =
       PersistenDataTableConfigurationStorage.getAllStoredData();
-    return allStoredData[tablePath]?.hiddenColumns ?? [];
+    return allStoredData[tablePath]?.columnVisibility ?? {};
   }
 
-  static saveHiddenColumns(tablePath: string, columnIds: string[]) {
+  static saveColumnVisibility(
+    tablePath: string,
+    columnVisibility: VisibilityState,
+  ) {
     const allStoredData =
       PersistenDataTableConfigurationStorage.getAllStoredData();
 
@@ -42,7 +46,7 @@ class PersistenDataTableConfigurationStorage {
       ...allStoredData,
       [tablePath]: {
         ...allStoredData[tablePath],
-        hiddenColumns: columnIds,
+        columnVisibility,
       },
     };
 
@@ -53,26 +57,24 @@ class PersistenDataTableConfigurationStorage {
   }
 
   static toggleColumnVisibility(tablePath: string, columnId: string) {
-    const allHiddenColumns =
-      PersistenDataTableConfigurationStorage.getHiddenColumns(tablePath);
+    const columnVisibility =
+      PersistenDataTableConfigurationStorage.getColumnVisibility(tablePath);
 
-    const newHiddenColumns = allHiddenColumns.includes(columnId)
-      ? allHiddenColumns.filter((id) => columnId !== id)
-      : allHiddenColumns.concat(columnId);
+    const isVisible = !!columnVisibility[columnId];
 
-    PersistenDataTableConfigurationStorage.saveHiddenColumns(
-      tablePath,
-      newHiddenColumns,
-    );
+    PersistenDataTableConfigurationStorage.saveColumnVisibility(tablePath, {
+      ...columnVisibility,
+      [columnId]: !isVisible,
+    });
   }
 
-  static getColumnOrder(tablePath: string) {
+  static getColumnOrder(tablePath: string): ColumnOrderState {
     const allStoredData =
       PersistenDataTableConfigurationStorage.getAllStoredData();
     return allStoredData[tablePath]?.columnOrder ?? [];
   }
 
-  static saveColumnOrder(tablePath: string, newColumnOrder: string[]) {
+  static saveColumnOrder(tablePath: string, newColumnOrder: ColumnOrderState) {
     const allStoredData =
       PersistenDataTableConfigurationStorage.getAllStoredData();
 

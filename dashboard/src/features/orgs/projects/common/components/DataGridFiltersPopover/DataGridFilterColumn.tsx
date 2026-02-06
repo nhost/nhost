@@ -16,9 +16,10 @@ type DataFilterColumnProps = {
 };
 
 function DataGrdiFitlerColumn({ value, index }: DataFilterColumnProps) {
-  const { columns } = useDataGridConfig<{ dataType: string }>();
+  const { getAllColumns } = useDataGridConfig<{ dataType: string }>();
   const { setColumn } = useDataGridFilters();
   const selectRef = useRef<HTMLButtonElement | null>(null);
+  const columns = getAllColumns();
 
   useEffect(() => {
     if (isNotEmptyValue(selectRef.current)) {

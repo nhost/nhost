@@ -1,7 +1,7 @@
+import type { CellContext } from '@tanstack/react-table';
 import { FileText } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useEffect, useReducer, useState } from 'react';
-import type { CellProps } from 'react-table';
 import { AudioPreviewIcon } from '@/components/ui/v2/icons/AudioPreviewIcon';
 import { PDFPreviewIcon } from '@/components/ui/v2/icons/PDFPreviewIcon';
 import { VideoPreviewIcon } from '@/components/ui/v2/icons/VideoPreviewIcon';
@@ -30,7 +30,7 @@ export type PreviewProps = {
   id: string;
 };
 
-export type DataGridPreviewCellProps<TData extends object> = CellProps<
+export type DataGridPreviewCellProps<TData extends object> = CellContext<
   TData,
   PreviewProps
 > & {
@@ -176,9 +176,10 @@ function previewReducer(
 }
 
 export default function DataGridPreviewCell<TData extends object>({
-  value: { fetchBlob, id, mimeType, alt, blob },
+  getValue,
   fallbackPreview = null,
 }: DataGridPreviewCellProps<TData>) {
+  const { fetchBlob, id, mimeType, alt, blob } = getValue();
   const appClient = useAppClient();
   const { objectUrl, loading, error } = useBlob({
     fetchBlob,
