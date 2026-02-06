@@ -3,10 +3,9 @@ import { FormInput } from '@/components/form/FormInput';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { Button } from '@/components/ui/v3/button';
-import type { BaseCronTriggerFormValues } from '@/features/orgs/projects/events/cron-triggers/components/BaseCronTriggerForm/BaseCronTriggerFormTypes';
 
 export default function KeyValueQueryParams() {
-  const form = useFormContext<BaseCronTriggerFormValues>();
+  const form = useFormContext();
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,

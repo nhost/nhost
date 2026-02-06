@@ -1,7 +1,6 @@
 import { useFormContext } from 'react-hook-form';
 import {
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -15,22 +14,21 @@ import {
 } from '@/components/ui/v3/input-group';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
 import {
-  type BaseEventTriggerFormValues,
   requestOptionsTransformQueryParamsTypeOptions,
   requestTransformMethods,
-} from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerFormTypes';
+} from '@/features/orgs/projects/events/common/constants';
 import KeyValueQueryParams from './KeyValueQueryParams';
 import RequestURLTransformPreview from './RequestURLTransformPreview';
 import URLTemplateQueryParams from './URLTemplateQueryParams';
 
-interface RequestOptionsSectionProps {
+interface RequestOptionsFormSectionProps {
   className?: string;
 }
 
-export default function RequestOptionsSection({
+export default function RequestOptionsFormSection({
   className,
-}: RequestOptionsSectionProps) {
-  const form = useFormContext<BaseEventTriggerFormValues>();
+}: RequestOptionsFormSectionProps) {
+  const form = useFormContext();
   const { watch } = form;
 
   const queryParamsType = watch(
@@ -39,15 +37,6 @@ export default function RequestOptionsSection({
 
   return (
     <div className={`flex flex-col gap-6 ${className}`}>
-      <div className="space-y-2">
-        <h3 className="font-medium text-base text-foreground">
-          Request Options
-        </h3>
-        <FormDescription>
-          Configuration to transform the request before sending it to the
-          webhook
-        </FormDescription>
-      </div>
       <div className="flex flex-col gap-8">
         <FormField
           name="requestOptionsTransform.method"

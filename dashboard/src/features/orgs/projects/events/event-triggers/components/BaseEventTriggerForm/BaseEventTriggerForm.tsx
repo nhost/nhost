@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { PlusIcon, TrashIcon } from 'lucide-react';
 import { type ReactNode, useCallback, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { DiscardChangesDialog } from '@/components/common/DiscardChangesDialog';
@@ -35,6 +36,13 @@ import {
 } from '@/components/ui/v3/sheet';
 import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
 import { useGetMetadata } from '@/features/orgs/projects/common/hooks/useGetMetadata';
+import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
+import { HeadersFormSection } from '@/features/orgs/projects/events/common/components/HeadersFormSection';
+import { PayloadTransformFormSection } from '@/features/orgs/projects/events/common/components/PayloadTransformFormSection';
+import { RequestOptionsFormSection } from '@/features/orgs/projects/events/common/components/RequestOptionsFormSection';
+import { RetryConfigurationFormSection } from '@/features/orgs/projects/events/common/components/RetryConfigurationFormSection';
+import { getSampleInputPayload } from '@/features/orgs/projects/events/event-triggers/utils/getSampleInputPayload';
+import { cn } from '@/lib/utils';
 import {
   ALL_TRIGGER_OPERATIONS,
   type BaseEventTriggerFormInitialData,
@@ -45,10 +53,6 @@ import {
   updateTriggerOnOptions,
   validationSchema,
 } from './BaseEventTriggerFormTypes';
-import HeadersSection from './sections/HeadersSection';
-import PayloadTransformSection from './sections/PayloadTransformSection/PayloadTransformSection';
-import { RequestOptionsSection } from './sections/RequestOptionsSection';
-import RetryConfigurationSection from './sections/RetryConfigurationSection';
 import UpdateTriggerColumnsSection from './sections/UpdateTriggerColumnsSection';
 
 const ACCORDION_SECTION_VALUES = [
@@ -88,6 +92,11 @@ export default function BaseEventTriggerForm({
   const [openAccordionSections, setOpenAccordionSections] = useState<
     AccordionSectionValue[]
   >([]);
+  const [isRequestOptionsSectionOpen, setIsRequestOptionsSectionOpen] =
+    useState(Boolean(initialData?.requestOptionsTransform));
+  const [isPayloadSectionOpen, setIsPayloadSectionOpen] = useState(
+    Boolean(initialData?.payloadTransform),
+  );
 
   const dataSources = metadata?.sources?.map((source) => source.name!) ?? [];
 
@@ -101,6 +110,10 @@ export default function BaseEventTriggerForm({
 
   const resetFormValues = useCallback(() => {
     reset(initialData ?? defaultFormValues);
+    setIsRequestOptionsSectionOpen(
+      Boolean(initialData?.requestOptionsTransform),
+    );
+    setIsPayloadSectionOpen(Boolean(initialData?.payloadTransform));
   }, [initialData, reset]);
 
   const openForm = useCallback(() => {
@@ -160,6 +173,62 @@ export default function BaseEventTriggerForm({
 
   const isRequestOptionsTransformEnabled = !!watch('requestOptionsTransform');
   const isPayloadTransformEnabled = !!watch('payloadTransform');
+
+  const toggleRequestOptionsSectionOpen = useCallback(() => {
+    setIsRequestOptionsSectionOpen((prev) => {
+      const next = !prev;
+
+      if (next && !isRequestOptionsTransformEnabled) {
+        setValue(
+          'requestOptionsTransform',
+          defaultRequestOptionsTransformValues,
+          { shouldDirty: true },
+        );
+      } else {
+        setValue('requestOptionsTransform', undefined, { shouldDirty: true });
+      }
+
+      return next;
+    });
+  }, [isRequestOptionsTransformEnabled, setValue]);
+
+  const togglePayloadSectionOpen = useCallback(() => {
+    setIsPayloadSectionOpen((prev) => {
+      const next = !prev;
+
+      if (next && !isPayloadTransformEnabled) {
+        setValue('payloadTransform', defaultPayloadTransformValues, {
+          shouldDirty: true,
+        });
+      } else {
+        setValue('payloadTransform', undefined, { shouldDirty: true });
+      }
+
+      return next;
+    });
+  }, [isPayloadTransformEnabled, setValue]);
+
+  const { data: selectedTableData } = useTableQuery(
+    [`default.${selectedTableSchema}.${selectedTableName}`],
+    {
+      schema: selectedTableSchema,
+      table: selectedTableName,
+      queryOptions: {
+        enabled: !!selectedTableSchema && !!selectedTableName,
+      },
+    },
+  );
+
+  const handleResetSampleInput = useCallback(() => {
+    const values = form.getValues();
+    setValue(
+      'payloadTransform.sampleInput',
+      getSampleInputPayload({
+        formValues: values,
+        columns: selectedTableData?.columns,
+      }),
+    );
+  }, [form, setValue, selectedTableData?.columns]);
 
   const schemas = useMemo(() => {
     const databaseSchemas =
@@ -436,9 +505,9 @@ export default function BaseEventTriggerForm({
                     </AccordionTrigger>
                     <AccordionContent>
                       <div className="flex flex-col gap-8 border-l">
-                        <RetryConfigurationSection className="pl-4" />
+                        <RetryConfigurationFormSection className="pl-4" />
                         <Separator />
-                        <HeadersSection className="pl-4" />
+                        <HeadersFormSection className="pl-4" />
                       </div>
                     </AccordionContent>
                   </AccordionItem>
@@ -451,73 +520,92 @@ export default function BaseEventTriggerForm({
                     </AccordionTrigger>
                     <AccordionContent>
                       <div className="flex flex-col gap-8 border-l">
-                        <div className="space-y-4 pl-4">
-                          <div className="space-y-2">
-                            <h3 className="font-medium text-foreground text-sm">
-                              Enable Transformations
-                            </h3>
-                          </div>
-                          <div className="flex flex-row items-center gap-8">
-                            <FormItem className="flex w-auto flex-row items-center space-x-2 space-y-0">
-                              <FormControl>
-                                <Checkbox
-                                  id="enable-request-transform"
-                                  checked={isRequestOptionsTransformEnabled}
-                                  onCheckedChange={(checked) => {
-                                    const enabled = !!checked;
-                                    setValue(
-                                      'requestOptionsTransform',
-                                      enabled
-                                        ? defaultRequestOptionsTransformValues
-                                        : undefined,
-                                      { shouldDirty: true },
-                                    );
-                                  }}
-                                />
-                              </FormControl>
-                              <FormLabel
-                                htmlFor="enable-request-transform"
-                                className="cursor-pointer font-normal text-foreground"
-                              >
+                        <div className="flex flex-col gap-6 pl-4">
+                          <div className="flex items-end justify-between gap-2">
+                            <div className="space-y-1">
+                              <h3 className="font-medium text-foreground text-sm">
                                 Request Options Transform
-                              </FormLabel>
-                            </FormItem>
-                            <FormItem className="flex w-auto flex-row items-center space-x-2 space-y-0">
-                              <FormControl>
-                                <Checkbox
-                                  id="enable-payload-transform"
-                                  checked={isPayloadTransformEnabled}
-                                  onCheckedChange={(checked) => {
-                                    const enabled = !!checked;
-                                    setValue(
-                                      'payloadTransform',
-                                      enabled
-                                        ? defaultPayloadTransformValues
-                                        : undefined,
-                                      { shouldDirty: true },
-                                    );
-                                  }}
-                                />
-                              </FormControl>
-                              <FormLabel
-                                htmlFor="enable-payload-transform"
-                                className="cursor-pointer font-normal text-foreground"
-                              >
-                                Payload Transform
-                              </FormLabel>
-                            </FormItem>
+                              </h3>
+                              <p className="text-muted-foreground text-xs">
+                                Configuration to transform the request before
+                                sending it to the webhook
+                              </p>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className={cn(
+                                'flex flex-row items-center gap-2 text-foreground',
+                                {
+                                  'border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive':
+                                    isRequestOptionsSectionOpen,
+                                },
+                              )}
+                              onClick={toggleRequestOptionsSectionOpen}
+                            >
+                              {isRequestOptionsSectionOpen ? (
+                                <>
+                                  <TrashIcon className="size-4" />
+                                  <span>Remove Options Transform</span>
+                                </>
+                              ) : (
+                                <>
+                                  <PlusIcon className="size-4" />
+                                  <span>Add Options Transform</span>
+                                </>
+                              )}
+                            </Button>
                           </div>
+                          {isRequestOptionsSectionOpen &&
+                            isRequestOptionsTransformEnabled && (
+                              <RequestOptionsFormSection className="pl-4" />
+                            )}
+                          {isRequestOptionsSectionOpen &&
+                            isPayloadSectionOpen && <Separator />}
+                          <div className="flex items-end justify-between gap-2">
+                            <div className="space-y-1">
+                              <h3 className="font-medium text-foreground text-sm">
+                                Payload Transform
+                              </h3>
+                              <p className="text-muted-foreground text-xs">
+                                Adjust the request body.
+                              </p>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className={cn(
+                                'flex flex-row items-center gap-2 text-foreground',
+                                {
+                                  'border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive':
+                                    isPayloadSectionOpen,
+                                },
+                              )}
+                              onClick={togglePayloadSectionOpen}
+                            >
+                              {isPayloadSectionOpen ? (
+                                <>
+                                  <TrashIcon className="size-4" />
+                                  <span>Remove Payload Transform</span>
+                                </>
+                              ) : (
+                                <>
+                                  <PlusIcon className="size-4" />
+                                  <span>Add Payload Transform</span>
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                          {isPayloadSectionOpen &&
+                            isPayloadTransformEnabled && (
+                              <PayloadTransformFormSection
+                                className="pl-4"
+                                onResetSampleInput={handleResetSampleInput}
+                              />
+                            )}
                         </div>
-                        {(isRequestOptionsTransformEnabled ||
-                          isPayloadTransformEnabled) && <Separator />}
-                        {isRequestOptionsTransformEnabled && (
-                          <RequestOptionsSection className="pl-4" />
-                        )}
-                        {isRequestOptionsTransformEnabled &&
-                          isPayloadTransformEnabled && <Separator />}
-                        {isPayloadTransformEnabled && (
-                          <PayloadTransformSection className="pl-4" />
-                        )}
                       </div>
                     </AccordionContent>
                   </AccordionItem>

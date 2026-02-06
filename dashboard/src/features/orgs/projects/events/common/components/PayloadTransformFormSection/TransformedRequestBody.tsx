@@ -6,13 +6,15 @@ import { FormDescription, FormItem, FormLabel } from '@/components/ui/v3/form';
 import { Skeleton } from '@/components/ui/v3/skeleton';
 import { Textarea } from '@/components/ui/v3/textarea';
 import { useTestWebhookTransformQuery } from '@/features/orgs/projects/events/common/hooks/useTestWebhookTransformQuery';
-import { buildTestWebhookTransformDTO } from '@/features/orgs/projects/events/common/utils/buildTestWebhookTransformDTO';
-import type { BaseCronTriggerFormValues } from '@/features/orgs/projects/events/cron-triggers/components/BaseCronTriggerForm/BaseCronTriggerFormTypes';
+import {
+  buildTestWebhookTransformDTO,
+  type WebhookTransformFormValues,
+} from '@/features/orgs/projects/events/common/utils/buildTestWebhookTransformDTO';
 import type { TestWebhookTransformArgs } from '@/utils/hasura-api/generated/schemas';
 
 export default function TransformedRequestBody() {
-  const form = useFormContext<BaseCronTriggerFormValues>();
-  const values = form.watch();
+  const form = useFormContext();
+  const values = form.watch() as WebhookTransformFormValues;
 
   let args: TestWebhookTransformArgs;
   let buildArgsError: string | null = null;
@@ -31,7 +33,7 @@ export default function TransformedRequestBody() {
         ...(values.payloadTransform ?? {}),
         sampleInput: '{}',
       },
-    } as BaseCronTriggerFormValues;
+    } as WebhookTransformFormValues;
 
     args = buildTestWebhookTransformDTO({ formValues: sanitizedValues });
   }

@@ -3,6 +3,8 @@ import {
   DEFAULT_NUM_RETRIES,
   DEFAULT_RETRY_INTERVAL_SECONDS,
   DEFAULT_RETRY_TIMEOUT_SECONDS,
+  requestOptionsTransformQueryParamsTypeOptions,
+  requestTransformMethods,
 } from '@/features/orgs/projects/events/common/constants';
 import { getSampleInputPayload } from '@/features/orgs/projects/events/event-triggers/utils/getSampleInputPayload';
 
@@ -28,18 +30,10 @@ export type TriggerOperation = (typeof ALL_TRIGGER_OPERATIONS)[number];
 
 export const updateTriggerOnOptions = ['all', 'choose'] as const;
 
-export const requestTransformMethods = [
-  'GET',
-  'POST',
-  'PUT',
-  'PATCH',
-  'DELETE',
-] as const;
-
-export const requestOptionsTransformQueryParamsTypeOptions = [
-  'Key Value',
-  'URL string template',
-] as const;
+export {
+  requestOptionsTransformQueryParamsTypeOptions,
+  requestTransformMethods,
+} from '@/features/orgs/projects/events/common/constants';
 
 export const validationSchema = z
   .object({

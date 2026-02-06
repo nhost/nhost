@@ -3,14 +3,16 @@ import { useEffect, useMemo, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { Skeleton } from '@/components/ui/v3/skeleton';
 import { useTestWebhookTransformQuery } from '@/features/orgs/projects/events/common/hooks/useTestWebhookTransformQuery';
-import { buildTestWebhookTransformDTO } from '@/features/orgs/projects/events/common/utils/buildTestWebhookTransformDTO';
-import type { BaseCronTriggerFormValues } from '@/features/orgs/projects/events/cron-triggers/components/BaseCronTriggerForm/BaseCronTriggerFormTypes';
+import {
+  buildTestWebhookTransformDTO,
+  type WebhookTransformFormValues,
+} from '@/features/orgs/projects/events/common/utils/buildTestWebhookTransformDTO';
 import { isEmptyValue } from '@/lib/utils';
 import type { TestWebhookTransformArgs } from '@/utils/hasura-api/generated/schemas';
 
 export default function RequestURLTransformPreview() {
-  const form = useFormContext<BaseCronTriggerFormValues>();
-  const formValues = form.watch();
+  const form = useFormContext();
+  const formValues = form.watch() as WebhookTransformFormValues;
   const { args, argsError } = useMemo(() => {
     try {
       return {

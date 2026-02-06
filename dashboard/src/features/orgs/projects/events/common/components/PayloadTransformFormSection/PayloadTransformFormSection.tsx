@@ -2,35 +2,26 @@ import { RefreshCw } from 'lucide-react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import { FormInput } from '@/components/form/FormInput';
 import { FormSelect } from '@/components/form/FormSelect';
+import { FormTextarea } from '@/components/form/FormTextarea';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { Button } from '@/components/ui/v3/button';
-import {
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/v3/form';
 import { SelectItem } from '@/components/ui/v3/select';
-import { Textarea } from '@/components/ui/v3/textarea';
 import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
-import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
-import type { BaseEventTriggerFormValues } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerFormTypes';
-import { getSampleInputPayload } from '@/features/orgs/projects/events/event-triggers/utils/getSampleInputPayload';
 import TransformedRequestBody from './TransformedRequestBody';
 
-interface PayloadTransformSectionProps {
+interface PayloadTransformFormSectionProps {
   className?: string;
+  onResetSampleInput: () => void;
 }
 
-export default function PayloadTransformSection({
+export default function PayloadTransformFormSection({
   className,
-}: PayloadTransformSectionProps) {
-  const form = useFormContext<BaseEventTriggerFormValues>();
-  const { watch, setValue } = form;
+  onResetSampleInput,
+}: PayloadTransformFormSectionProps) {
+  const form = useFormContext();
+  const { watch } = form;
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: 'payloadTransform.requestBodyTransform.formTemplate',
@@ -38,74 +29,31 @@ export default function PayloadTransformSection({
 
   const values = watch();
 
-  const selectedTableSchema = watch('tableSchema');
-  const selectedTableName = watch('tableName');
-
-  const { data: selectedTableData } = useTableQuery(
-    [`default.${selectedTableSchema}.${selectedTableName}`],
-    {
-      schema: selectedTableSchema,
-      table: selectedTableName,
-      queryOptions: {
-        enabled: !!selectedTableSchema && !!selectedTableName,
-      },
-    },
-  );
-
-  const handleResetPayload = () => {
-    setValue(
-      'payloadTransform.sampleInput',
-      getSampleInputPayload({
-        formValues: values,
-        columns: selectedTableData?.columns,
-      }),
-    );
-  };
-
   return (
     <div className={`flex flex-col gap-6 ${className}`}>
-      <div className="space-y-2">
-        <h3 className="font-medium text-base text-foreground">
-          Payload Transform
-        </h3>
-        <FormDescription>
-          Change the payload to adapt to your API&apos;s expected format.
-        </FormDescription>
-      </div>
       <div className="flex flex-col gap-12">
-        <FormField
-          name="payloadTransform.sampleInput"
+        <FormTextarea
           control={form.control}
-          render={({ field }) => (
-            <FormItem>
-              <div className="flex flex-row items-center gap-2">
-                <FormLabel className="text-foreground">Sample Input</FormLabel>
-                <FormDescription>
-                  <InfoTooltip>
-                    <p>Sample input defined by your definition.</p>
-                  </InfoTooltip>
-                </FormDescription>
-                <Button
-                  className="flex flex-row items-center gap-2 text-foreground"
-                  size="sm"
-                  variant="outline"
-                  type="button"
-                  onClick={handleResetPayload}
-                >
-                  <RefreshCw className="size-4" />
-                  Reset
-                </Button>
-              </div>
-              <FormControl>
-                <Textarea
-                  {...field}
-                  id="payloadTransform.sampleInput"
-                  className="min-h-[250px] max-w-lg font-mono text-foreground aria-[invalid=true]:border-destructive aria-[invalid=true]:focus:border-destructive aria-[invalid=true]:focus:ring-destructive/20"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          name="payloadTransform.sampleInput"
+          label={
+            <div className="flex flex-row items-center gap-2">
+              <span className="text-foreground">Sample Input</span>
+              <InfoTooltip>
+                <p>Sample input defined by your definition.</p>
+              </InfoTooltip>
+              <Button
+                className="flex flex-row items-center gap-2 text-foreground"
+                size="sm"
+                variant="outline"
+                type="button"
+                onClick={onResetSampleInput}
+              >
+                <RefreshCw className="size-4" />
+                Reset
+              </Button>
+            </div>
+          }
+          className="min-h-[250px] max-w-lg font-mono text-foreground"
         />
         <div className="space-y-4">
           <div className="flex max-w-lg flex-row justify-between gap-4 text-foreground">
@@ -113,7 +61,7 @@ export default function PayloadTransformSection({
               <h4 className="font-medium text-foreground text-sm">
                 Request Body Transform
               </h4>
-              <FormDescription className="flex flex-row items-center gap-2">
+              <p className="flex flex-row items-center gap-2 text-muted-foreground text-sm">
                 <InfoTooltip>
                   <p>
                     The template which will transform your request body into the
@@ -124,7 +72,7 @@ export default function PayloadTransformSection({
                     body
                   </p>
                 </InfoTooltip>
-              </FormDescription>
+              </p>
             </div>
             <FormSelect
               control={form.control}
@@ -149,24 +97,12 @@ export default function PayloadTransformSection({
           </div>
           {values?.payloadTransform?.requestBodyTransform
             ?.requestBodyTransformType === 'application/json' && (
-            <FormField
-              name="payloadTransform.requestBodyTransform.template"
+            <FormTextarea
               control={form.control}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-foreground">
-                    Request Body Transform JSON Template
-                  </FormLabel>
-                  <FormControl>
-                    <Textarea
-                      {...field}
-                      id="payloadTransform.requestBodyTransform.template"
-                      className="min-h-[250px] max-w-lg font-mono text-foreground aria-[invalid=true]:border-destructive aria-[invalid=true]:focus:border-destructive aria-[invalid=true]:focus:ring-destructive/20"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              name="payloadTransform.requestBodyTransform.template"
+              label="Request Body Transform JSON Template"
+              placeholder="Request Body Transform JSON Template"
+              className="min-h-[250px] max-w-lg font-mono text-foreground"
             />
           )}
           {values?.payloadTransform?.requestBodyTransform
@@ -246,8 +182,8 @@ export default function PayloadTransformSection({
               <AlertTitle>Request Body Transformation Disabled</AlertTitle>
               <AlertDescription>
                 The request body is disabled. No request body will be sent with
-                this event trigger. Enable the request body transform to
-                customize the payload sent with this event trigger.
+                this trigger. Enable the request body transform to customize the
+                payload sent with this trigger.
               </AlertDescription>
             </Alert>
           )}
