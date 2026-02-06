@@ -1,13 +1,13 @@
 import {
+  DEFAULT_NUM_RETRIES,
+  DEFAULT_RETRY_INTERVAL_SECONDS,
+  DEFAULT_RETRY_TIMEOUT_SECONDS,
+} from '@/features/orgs/projects/events/common/constants';
+import {
   ALL_TRIGGER_OPERATIONS,
   type BaseEventTriggerFormInitialData,
   type BaseEventTriggerFormValues,
 } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerFormTypes';
-import {
-  DEFAULT_NUM_RETRIES,
-  DEFAULT_RETRY_INTERVAL_SECONDS,
-  DEFAULT_RETRY_TIMEOUT_SECONDS,
-} from '@/features/orgs/projects/events/event-triggers/constants';
 import type { EventTriggerViewModel } from '@/features/orgs/projects/events/event-triggers/types';
 import { getSampleInputPayload } from '@/features/orgs/projects/events/event-triggers/utils/getSampleInputPayload';
 import type { RequestTransformation } from '@/utils/hasura-api/generated/schemas';

@@ -1,13 +1,13 @@
-import type {
-  BaseCronTriggerFormInitialData,
-  BaseCronTriggerFormValues,
-} from '@/features/orgs/projects/events/cron-triggers/components/BaseCronTriggerForm/BaseCronTriggerFormTypes';
 import {
   DEFAULT_NUM_RETRIES,
   DEFAULT_RETRY_INTERVAL_SECONDS,
   DEFAULT_RETRY_TIMEOUT_SECONDS,
   DEFAULT_TOLERANCE_SECONDS,
-} from '@/features/orgs/projects/events/cron-triggers/constants';
+} from '@/features/orgs/projects/events/common/constants';
+import type {
+  BaseCronTriggerFormInitialData,
+  BaseCronTriggerFormValues,
+} from '@/features/orgs/projects/events/cron-triggers/components/BaseCronTriggerForm/BaseCronTriggerFormTypes';
 import { getCronTriggerSampleInputPayload } from '@/features/orgs/projects/events/cron-triggers/utils/getCronTriggerSampleInputPayload';
 import { isNotEmptyValue } from '@/lib/utils';
 import type {
