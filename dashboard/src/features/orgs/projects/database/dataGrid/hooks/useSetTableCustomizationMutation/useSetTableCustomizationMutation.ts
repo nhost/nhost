@@ -3,10 +3,8 @@ import { useMutation } from '@tanstack/react-query';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import type {
-  MetadataOperationResponse,
-  SuccessResponse,
-} from '@/utils/hasura-api/generated/schemas';
+import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
+import type { SuccessResponse } from '@/utils/hasura-api/generated/schemas/successResponse';
 import type { SetTableCustomizationVariables } from './setTableCustomization';
 import setTableCustomization from './setTableCustomization';
 import type { SetTableCustomizationMigrationVariables } from './setTableCustomizationMigration';
@@ -17,7 +15,7 @@ export interface UseSetTableCustomizationMutationOptions {
    * Props passed to the underlying mutation hook.
    */
   mutationOptions?: MutationOptions<
-    SuccessResponse | MetadataOperationResponse,
+    SuccessResponse | MetadataOperation200,
     unknown,
     SetTableCustomizationVariables | SetTableCustomizationMigrationVariables
   >;
@@ -36,7 +34,7 @@ export default function useSetTableCustomizationMutation({
   const isPlatform = useIsPlatform();
 
   const mutation = useMutation<
-    SuccessResponse | MetadataOperationResponse,
+    SuccessResponse | MetadataOperation200,
     unknown,
     SetTableCustomizationVariables | SetTableCustomizationMigrationVariables
   >((variables) => {

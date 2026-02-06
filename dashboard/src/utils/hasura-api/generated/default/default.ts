@@ -12,8 +12,8 @@ import { customFetch } from '../../customFetch';
 import type {
   ErrorResponse,
   MetadataOperation,
+  MetadataOperation200,
   MetadataOperation401,
-  MetadataOperationResponse,
   MigrationRequest,
   SuccessResponse,
 } from '.././schemas';
@@ -23,7 +23,7 @@ import type {
  * @summary Metadata API endpoint
  */
 export type metadataOperationResponse200 = {
-  data: MetadataOperationResponse;
+  data: MetadataOperation200;
   status: 200;
 };
 

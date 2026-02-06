@@ -2,10 +2,8 @@ import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation } from '@tanstack/react-query';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import type {
-  CreateScheduledEventArgs,
-  MetadataOperationResponse,
-} from '@/utils/hasura-api/generated/schemas';
+import type { CreateScheduledEventArgs } from '@/utils/hasura-api/generated/schemas';
+import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
 import createOneOff from './createOneOff';
 
 export interface CreateOneOffMutationVariables {
@@ -20,7 +18,7 @@ export interface UseCreateOneOffMutationOptions {
    * Props passed to the underlying mutation hook.
    */
   mutationOptions?: MutationOptions<
-    MetadataOperationResponse,
+    MetadataOperation200,
     unknown,
     CreateOneOffMutationVariables
   >;
@@ -39,7 +37,7 @@ export default function UseCreateOneOffMutationOptions({
   // const queryClient = useQueryClient();
 
   const mutation = useMutation<
-    MetadataOperationResponse,
+    MetadataOperation200,
     unknown,
     CreateOneOffMutationVariables
   >(

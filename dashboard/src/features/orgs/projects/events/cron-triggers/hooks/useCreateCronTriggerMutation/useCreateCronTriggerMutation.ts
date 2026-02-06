@@ -2,10 +2,8 @@ import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import type {
-  CreateCronTriggerArgs,
-  MetadataOperationResponse,
-} from '@/utils/hasura-api/generated/schemas';
+import type { CreateCronTriggerArgs } from '@/utils/hasura-api/generated/schemas';
+import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
 import createCronTrigger from './createCronTrigger';
 
 export interface CreateCronTriggerMutationVariables {
@@ -20,7 +18,7 @@ export interface UseCreateCronTriggerMutationOptions {
    * Props passed to the underlying mutation hook.
    */
   mutationOptions?: MutationOptions<
-    MetadataOperationResponse,
+    MetadataOperation200,
     unknown,
     CreateCronTriggerMutationVariables
   >;
@@ -39,7 +37,7 @@ export default function useCreateCronTriggerMutation({
   const queryClient = useQueryClient();
 
   const mutation = useMutation<
-    MetadataOperationResponse,
+    MetadataOperation200,
     unknown,
     CreateCronTriggerMutationVariables
   >(
