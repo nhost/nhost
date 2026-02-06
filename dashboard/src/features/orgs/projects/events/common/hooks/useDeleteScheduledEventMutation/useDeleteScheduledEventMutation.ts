@@ -3,8 +3,10 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { deleteScheduledEvent } from '@/features/orgs/projects/events/common/api/deleteScheduledEvent';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import type { DeleteScheduledEventArgsType } from '@/utils/hasura-api/generated/schemas';
-import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
+import type {
+  DeleteScheduledEventArgsType,
+  MetadataOperationResponse,
+} from '@/utils/hasura-api/generated/schemas';
 
 export interface DeleteScheduledEventMutationVariables {
   /**
@@ -22,7 +24,7 @@ export interface UseDeleteScheduledEventMutationOptions {
    * Props passed to the underlying mutation hook.
    */
   mutationOptions?: MutationOptions<
-    MetadataOperation200,
+    MetadataOperationResponse,
     unknown,
     DeleteScheduledEventMutationVariables
   >;
@@ -41,7 +43,7 @@ export default function useDeleteScheduledEventMutation({
   const queryClient = useQueryClient();
 
   const mutation = useMutation<
-    MetadataOperation200,
+    MetadataOperationResponse,
     unknown,
     DeleteScheduledEventMutationVariables
   >(

@@ -3,8 +3,10 @@ import { useMutation } from '@tanstack/react-query';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
-import type { SuccessResponse } from '@/utils/hasura-api/generated/schemas/successResponse';
+import type {
+  MetadataOperationResponse,
+  SuccessResponse,
+} from '@/utils/hasura-api/generated/schemas';
 import type { SetTableIsEnumVariables } from './setTableIsEnum';
 import setTableIsEnum from './setTableIsEnum';
 import type { SetTableIsEnumMigrationVariables } from './setTableIsEnumMigration';
@@ -15,7 +17,7 @@ export interface UseSetTableIsEnumMutationOptions {
    * Props passed to the underlying mutation hook.
    */
   mutationOptions?: MutationOptions<
-    SuccessResponse | MetadataOperation200,
+    SuccessResponse | MetadataOperationResponse,
     unknown,
     SetTableIsEnumVariables | SetTableIsEnumMigrationVariables
   >;
@@ -34,7 +36,7 @@ export default function useSetTableIsEnumMutation({
   const isPlatform = useIsPlatform();
 
   const mutation = useMutation<
-    SuccessResponse | MetadataOperation200,
+    SuccessResponse | MetadataOperationResponse,
     unknown,
     SetTableIsEnumVariables | SetTableIsEnumMigrationVariables
   >((variables) => {

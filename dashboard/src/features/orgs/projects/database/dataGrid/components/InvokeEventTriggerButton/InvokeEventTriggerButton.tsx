@@ -18,8 +18,8 @@ import {
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
+import { DEFAULT_RETRY_TIMEOUT_SECONDS } from '@/features/orgs/projects/events/common/constants';
 import { InvocationLogDetailsDialogContent } from '@/features/orgs/projects/events/event-triggers/components/InvocationLogDetailsDialogContent';
-import { DEFAULT_RETRY_TIMEOUT_SECONDS } from '@/features/orgs/projects/events/event-triggers/constants';
 import fetchEventAndInvocationLogsById from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventAndInvocationLogsById/fetchEventAndInvocationLogsById';
 import { useGetEventTriggersByTable } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventTriggersByTable';
 import { useInvokeEventTriggerMutation } from '@/features/orgs/projects/events/event-triggers/hooks/useInvokeEventTriggerMutation';

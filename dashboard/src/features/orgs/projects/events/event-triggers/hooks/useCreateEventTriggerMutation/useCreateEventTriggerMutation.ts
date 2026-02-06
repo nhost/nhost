@@ -5,9 +5,9 @@ import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/gen
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type {
   CreateEventTriggerArgs,
+  MetadataOperationResponse,
   SuccessResponse,
 } from '@/utils/hasura-api/generated/schemas';
-import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
 import createEventTrigger from './createEventTrigger';
 import createEventTriggerMigration from './createEventTriggerMigration';
 
@@ -27,7 +27,7 @@ export interface UseCreateEventTriggerMutationOptions {
    * Props passed to the underlying mutation hook.
    */
   mutationOptions?: MutationOptions<
-    SuccessResponse | MetadataOperation200,
+    SuccessResponse | MetadataOperationResponse,
     unknown,
     CreateEventTriggerMutationVariables
   >;
@@ -47,7 +47,7 @@ export default function useCreateEventTriggerMutation({
   const queryClient = useQueryClient();
 
   const mutation = useMutation<
-    SuccessResponse | MetadataOperation200,
+    SuccessResponse | MetadataOperationResponse,
     unknown,
     CreateEventTriggerMutationVariables
   >(

@@ -3,8 +3,10 @@ import { useMutation } from '@tanstack/react-query';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
-import type { SuccessResponse } from '@/utils/hasura-api/generated/schemas/successResponse';
+import type {
+  MetadataOperationResponse,
+  SuccessResponse,
+} from '@/utils/hasura-api/generated/schemas';
 import type { RemoveRemoteSchemaPermissionsVariables } from './removeRemoteSchemaPermissions';
 import removeRemoteSchemaPermissions from './removeRemoteSchemaPermissions';
 import type { RemoveRemoteSchemaPermissionsMigrationVariables } from './removeRemoteSchemaPermissionsMigration';
@@ -15,7 +17,7 @@ export interface UseRemoveRemoteSchemaPermissionsMutationOptions {
    * Props passed to the underlying mutation hook.
    */
   mutationOptions?: MutationOptions<
-    SuccessResponse | MetadataOperation200,
+    SuccessResponse | MetadataOperationResponse,
     unknown,
     | RemoveRemoteSchemaPermissionsVariables
     | RemoveRemoteSchemaPermissionsMigrationVariables
@@ -35,7 +37,7 @@ export default function useRemoveRemoteSchemaPermissionsMutation({
   const isPlatform = useIsPlatform();
 
   const mutation = useMutation<
-    SuccessResponse | MetadataOperation200,
+    SuccessResponse | MetadataOperationResponse,
     unknown,
     | RemoveRemoteSchemaPermissionsVariables
     | RemoveRemoteSchemaPermissionsMigrationVariables

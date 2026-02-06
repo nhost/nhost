@@ -2,7 +2,7 @@ import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
+import type { MetadataOperationResponse } from '@/utils/hasura-api/generated/schemas';
 import deleteCronTrigger from './deleteCronTrigger';
 
 export interface DeleteCronTriggerMutationVariables {
@@ -17,7 +17,7 @@ export interface UseDeleteCronTriggerMutationOptions {
    * Props passed to the underlying mutation hook.
    */
   mutationOptions?: MutationOptions<
-    MetadataOperation200,
+    MetadataOperationResponse,
     unknown,
     DeleteCronTriggerMutationVariables
   >;
@@ -36,7 +36,7 @@ export default function useDeleteCronTriggerMutation({
   const queryClient = useQueryClient();
 
   const mutation = useMutation<
-    MetadataOperation200,
+    MetadataOperationResponse,
     unknown,
     DeleteCronTriggerMutationVariables
   >(

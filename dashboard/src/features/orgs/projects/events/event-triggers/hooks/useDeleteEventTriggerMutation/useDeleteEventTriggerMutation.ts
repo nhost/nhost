@@ -4,8 +4,10 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import type { EventTriggerViewModel } from '@/features/orgs/projects/events/event-triggers/types';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import type { SuccessResponse } from '@/utils/hasura-api/generated/schemas';
-import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
+import type {
+  MetadataOperationResponse,
+  SuccessResponse,
+} from '@/utils/hasura-api/generated/schemas';
 import { deleteEventTrigger } from './deleteEventTrigger';
 import { deleteEventTriggerMigration } from './deleteEventTriggerMigration';
 
@@ -25,7 +27,7 @@ export interface UseDeleteEventTriggerMutationOptions {
    * Props passed to the underlying mutation hook.
    */
   mutationOptions?: MutationOptions<
-    SuccessResponse | MetadataOperation200,
+    SuccessResponse | MetadataOperationResponse,
     unknown,
     DeleteEventTriggerMutationVariables
   >;
@@ -45,7 +47,7 @@ export default function useDeleteEventTriggerMutation({
   const queryClient = useQueryClient();
 
   const mutation = useMutation<
-    SuccessResponse | MetadataOperation200,
+    SuccessResponse | MetadataOperationResponse,
     unknown,
     DeleteEventTriggerMutationVariables
   >(

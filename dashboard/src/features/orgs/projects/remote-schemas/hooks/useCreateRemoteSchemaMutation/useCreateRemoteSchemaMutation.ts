@@ -2,7 +2,7 @@ import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation } from '@tanstack/react-query';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
+import type { MetadataOperationResponse } from '@/utils/hasura-api/generated/schemas';
 import type { HasuraError } from '@/utils/hasura-api/types';
 import type { CreateRemoteSchemaVariables } from './createRemoteSchema';
 import createRemoteSchema from './createRemoteSchema';
@@ -12,7 +12,7 @@ export interface UseCreateRemoteSchemaMutationOptions {
    * Props passed to the underlying mutation hook.
    */
   mutationOptions?: MutationOptions<
-    MetadataOperation200,
+    MetadataOperationResponse,
     HasuraError,
     CreateRemoteSchemaVariables
   >;
