@@ -1,7 +1,6 @@
+import { Plus, Trash } from 'lucide-react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import { FormInput } from '@/components/form/FormInput';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
-import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { Button } from '@/components/ui/v3/button';
 
 export default function KeyValueQueryParams() {
@@ -25,7 +24,7 @@ export default function KeyValueQueryParams() {
           className="px-4 text-primary hover:bg-muted hover:text-primary"
           onClick={() => append({ key: '', value: '' })}
         >
-          <PlusIcon className="size-5" />
+          <Plus className="size-5" />
         </Button>
       </div>
       <div className="flex flex-col gap-4">
@@ -73,7 +72,7 @@ export default function KeyValueQueryParams() {
                 className="px-4 text-destructive hover:bg-destructive/10 hover:text-destructive"
                 onClick={() => remove(index)}
               >
-                <TrashIcon className="size-4" />
+                <Trash className="size-4" />
               </Button>
             </div>
           </div>
