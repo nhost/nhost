@@ -6,8 +6,8 @@ import { FormDescription, FormItem, FormLabel } from '@/components/ui/v3/form';
 import { Skeleton } from '@/components/ui/v3/skeleton';
 import { Textarea } from '@/components/ui/v3/textarea';
 import { useTestWebhookTransformQuery } from '@/features/orgs/projects/events/common/hooks/useTestWebhookTransformQuery';
+import { buildTestWebhookTransformDTO } from '@/features/orgs/projects/events/common/utils/buildTestWebhookTransformDTO';
 import type { BaseCronTriggerFormValues } from '@/features/orgs/projects/events/cron-triggers/components/BaseCronTriggerForm/BaseCronTriggerFormTypes';
-import { buildTestWebhookTransformDTO } from '@/features/orgs/projects/events/cron-triggers/utils/buildTestWebhookTransformDTO';
 import type { TestWebhookTransformArgs } from '@/utils/hasura-api/generated/schemas';
 
 export default function TransformedRequestBody() {
@@ -33,9 +33,7 @@ export default function TransformedRequestBody() {
       },
     } as BaseCronTriggerFormValues;
 
-    args = buildTestWebhookTransformDTO({
-      formValues: sanitizedValues,
-    });
+    args = buildTestWebhookTransformDTO({ formValues: sanitizedValues });
   }
 
   const [debouncedArgs, setDebouncedArgs] =

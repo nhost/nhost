@@ -4,8 +4,8 @@ import { useFormContext } from 'react-hook-form';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { Skeleton } from '@/components/ui/v3/skeleton';
 import { useTestWebhookTransformQuery } from '@/features/orgs/projects/events/common/hooks/useTestWebhookTransformQuery';
+import { buildTestWebhookTransformDTO } from '@/features/orgs/projects/events/common/utils/buildTestWebhookTransformDTO';
 import type { BaseEventTriggerFormValues } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerFormTypes';
-import buildTestWebhookTransformDTO from '@/features/orgs/projects/events/event-triggers/utils/buildTestWebhookTransformDTO/buildTestWebhookTransformDTO';
 import { isEmptyValue } from '@/lib/utils';
 import type { TestWebhookTransformArgs } from '@/utils/hasura-api/generated/schemas';
 

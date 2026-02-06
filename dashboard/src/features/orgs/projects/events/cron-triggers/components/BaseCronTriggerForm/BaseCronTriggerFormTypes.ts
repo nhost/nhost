@@ -4,7 +4,7 @@ import {
   DEFAULT_RETRY_INTERVAL_SECONDS,
   DEFAULT_RETRY_TIMEOUT_SECONDS,
   DEFAULT_TOLERANCE_SECONDS,
-} from '@/features/orgs/projects/events/cron-triggers/constants';
+} from '@/features/orgs/projects/events/common/constants';
 import { getCronTriggerSampleInputPayload } from '@/features/orgs/projects/events/cron-triggers/utils/getCronTriggerSampleInputPayload';
 import { isJSONString } from '@/lib/utils';
 

@@ -54,6 +54,7 @@ type UseGetScheduledEventLogsQueryArgs =
  * This hook is a wrapper around a fetch call that gets the event logs for a given scheduled event.
  *
  * @param args - Arguments for the query.
+ * @param args.type - Type of the scheduled event, either 'cron' or 'one_off'
  * @param args.trigger_name - Name of the cron trigger to get the event logs for
  * @param args.limit - Maximum number of event logs to be returned in one API call
  * @param args.offset - Offset for the query

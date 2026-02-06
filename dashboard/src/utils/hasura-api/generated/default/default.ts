@@ -10,43 +10,12 @@ import type { CustomFetchOptions } from '../../customFetch';
 
 import { customFetch } from '../../customFetch';
 import type {
-  AddRemoteSchemaOperation,
-  CreateArrayRelationshipBulkOperation,
-  CreateCronTriggerBulkOperation,
-  CreateEventTriggerBulkOperation,
-  CreateObjectRelationshipBulkOperation,
-  CreateRemoteRelationshipBulkOperation,
-  CreateScheduledEventOperation,
-  DeleteCronTriggerOperation,
-  DeleteEventTriggerBulkOperation,
-  DeleteRemoteRelationshipBulkOperation,
-  DeleteRemoteSchemaRemoteRelationshipOperation,
-  DeleteScheduledEventOperation,
-  DropRelationshipBulkOperation,
   ErrorResponse,
-  ExportMetadata,
-  GetCronTriggersOperation,
-  GetEventAndInvocationLogsByIdOperation,
-  GetEventLogsOperation,
-  GetScheduledEventInvocationsOperation,
-  GetScheduledEventsOperation,
-  IntrospectRemoteSchemaOperation,
-  InvokeEventTriggerOperation,
-  MetadataOperation200,
+  MetadataOperation,
   MetadataOperation401,
+  MetadataOperationResponse,
   MigrationRequest,
-  RedeliverEventOperation,
-  ReloadRemoteSchemaOperation,
-  RemoteSchemaPermissionsBulkOperation,
-  RemoteSchemaRemoteRelationshipOperation,
-  RemoveRemoteSchemaOperation,
-  RenameRelationshipBulkOperation,
-  SetTableCustomizationBulkOperation,
-  SetTableIsEnumBulkOperation,
   SuccessResponse,
-  SuggestRelationshipsOperation,
-  TestWebhookTransformOperation,
-  UpdateRemoteSchemaBulkOperation,
 } from '.././schemas';
 
 /**
@@ -54,7 +23,7 @@ import type {
  * @summary Metadata API endpoint
  */
 export type metadataOperationResponse200 = {
-  data: MetadataOperation200;
+  data: MetadataOperationResponse;
   status: 200;
 };
 
@@ -93,48 +62,14 @@ export const getMetadataOperationUrl = () => {
 };
 
 export const metadataOperation = async (
-  exportMetadataSetTableCustomizationBulkOperationSetTableIsEnumBulkOperationSuggestRelationshipsOperationDropRelationshipBulkOperationDeleteRemoteRelationshipBulkOperationCreateObjectRelationshipBulkOperationCreateArrayRelationshipBulkOperationCreateRemoteRelationshipBulkOperationRenameRelationshipBulkOperationAddRemoteSchemaOperationUpdateRemoteSchemaBulkOperationRemoveRemoteSchemaOperationReloadRemoteSchemaOperationIntrospectRemoteSchemaOperationRemoteSchemaRemoteRelationshipOperationDeleteRemoteSchemaRemoteRelationshipOperationRemoteSchemaPermissionsBulkOperationGetEventLogsOperationGetEventAndInvocationLogsByIdOperationRedeliverEventOperationCreateEventTriggerBulkOperationDeleteEventTriggerBulkOperationTestWebhookTransformOperationInvokeEventTriggerOperationGetCronTriggersOperationCreateCronTriggerBulkOperationDeleteCronTriggerOperationGetScheduledEventsOperationGetScheduledEventInvocationsOperationCreateScheduledEventOperationDeleteScheduledEventOperation:
-    | ExportMetadata
-    | SetTableCustomizationBulkOperation
-    | SetTableIsEnumBulkOperation
-    | SuggestRelationshipsOperation
-    | DropRelationshipBulkOperation
-    | DeleteRemoteRelationshipBulkOperation
-    | CreateObjectRelationshipBulkOperation
-    | CreateArrayRelationshipBulkOperation
-    | CreateRemoteRelationshipBulkOperation
-    | RenameRelationshipBulkOperation
-    | AddRemoteSchemaOperation
-    | UpdateRemoteSchemaBulkOperation
-    | RemoveRemoteSchemaOperation
-    | ReloadRemoteSchemaOperation
-    | IntrospectRemoteSchemaOperation
-    | RemoteSchemaRemoteRelationshipOperation
-    | DeleteRemoteSchemaRemoteRelationshipOperation
-    | RemoteSchemaPermissionsBulkOperation
-    | GetEventLogsOperation
-    | GetEventAndInvocationLogsByIdOperation
-    | RedeliverEventOperation
-    | CreateEventTriggerBulkOperation
-    | DeleteEventTriggerBulkOperation
-    | TestWebhookTransformOperation
-    | InvokeEventTriggerOperation
-    | GetCronTriggersOperation
-    | CreateCronTriggerBulkOperation
-    | DeleteCronTriggerOperation
-    | GetScheduledEventsOperation
-    | GetScheduledEventInvocationsOperation
-    | CreateScheduledEventOperation
-    | DeleteScheduledEventOperation,
+  metadataOperation: MetadataOperation,
   options?: CustomFetchOptions,
 ): Promise<metadataOperationResponse> => {
   return customFetch<metadataOperationResponse>(getMetadataOperationUrl(), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      exportMetadataSetTableCustomizationBulkOperationSetTableIsEnumBulkOperationSuggestRelationshipsOperationDropRelationshipBulkOperationDeleteRemoteRelationshipBulkOperationCreateObjectRelationshipBulkOperationCreateArrayRelationshipBulkOperationCreateRemoteRelationshipBulkOperationRenameRelationshipBulkOperationAddRemoteSchemaOperationUpdateRemoteSchemaBulkOperationRemoveRemoteSchemaOperationReloadRemoteSchemaOperationIntrospectRemoteSchemaOperationRemoteSchemaRemoteRelationshipOperationDeleteRemoteSchemaRemoteRelationshipOperationRemoteSchemaPermissionsBulkOperationGetEventLogsOperationGetEventAndInvocationLogsByIdOperationRedeliverEventOperationCreateEventTriggerBulkOperationDeleteEventTriggerBulkOperationTestWebhookTransformOperationInvokeEventTriggerOperationGetCronTriggersOperationCreateCronTriggerBulkOperationDeleteCronTriggerOperationGetScheduledEventsOperationGetScheduledEventInvocationsOperationCreateScheduledEventOperationDeleteScheduledEventOperation,
-    ),
+    body: JSON.stringify(metadataOperation),
   });
 };
 

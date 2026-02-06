@@ -6,8 +6,8 @@ import { FormDescription, FormItem, FormLabel } from '@/components/ui/v3/form';
 import { Skeleton } from '@/components/ui/v3/skeleton';
 import { Textarea } from '@/components/ui/v3/textarea';
 import { useTestWebhookTransformQuery } from '@/features/orgs/projects/events/common/hooks/useTestWebhookTransformQuery';
+import { buildTestWebhookTransformDTO } from '@/features/orgs/projects/events/common/utils/buildTestWebhookTransformDTO';
 import type { BaseEventTriggerFormValues } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerFormTypes';
-import buildTestWebhookTransformDTO from '@/features/orgs/projects/events/event-triggers/utils/buildTestWebhookTransformDTO/buildTestWebhookTransformDTO';
 import type { TestWebhookTransformArgs } from '@/utils/hasura-api/generated/schemas';
 
 export default function TransformedRequestBody() {
@@ -33,9 +33,7 @@ export default function TransformedRequestBody() {
       },
     } as BaseEventTriggerFormValues;
 
-    args = buildTestWebhookTransformDTO({
-      formValues: sanitizedValues,
-    });
+    args = buildTestWebhookTransformDTO({ formValues: sanitizedValues });
   }
 
   const [debouncedArgs, setDebouncedArgs] =

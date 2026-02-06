@@ -16,7 +16,7 @@ import type { InvokeEventTriggerResponse } from './invokeEventTriggerResponse';
 import type { SuggestRelationshipsResponse } from './suggestRelationshipsResponse';
 import type { TestWebhookTransformResponse } from './testWebhookTransformResponse';
 
-export type MetadataOperation200 =
+export type MetadataOperationResponse =
   | {
       message?: string;
     }
