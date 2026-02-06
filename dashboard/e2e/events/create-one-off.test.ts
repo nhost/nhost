@@ -12,9 +12,7 @@ async function fillBasicFields({
   page: Page;
   comment: string;
 }) {
-  await page
-    .getByPlaceholder(/describe the scheduled event/i)
-    .fill(comment);
+  await page.getByPlaceholder(/describe the scheduled event/i).fill(comment);
 
   await page
     .getByPlaceholder(/httpbin\.org/i)
