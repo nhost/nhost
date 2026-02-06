@@ -23,17 +23,37 @@ export interface Session extends AuthSession {
   decodedToken: DecodedToken;
 }
 
+/**
+ * Decodes a base64url-encoded string (RFC 4648 Section 5) to a UTF-8 string.
+ *
+ * JWTs use base64url encoding, which differs from standard base64 by using
+ * `-` and `_` instead of `+` and `/`, and omitting padding. The browser's
+ * native `atob()` does not support base64url, so we must handle the conversion.
+ */
+const decodeBase64Url = (input: string): string => {
+  // Convert base64url to standard base64
+  let base64 = input.replace(/-/g, '+').replace(/_/g, '/');
+  const pad = base64.length % 4;
+  if (pad) {
+    base64 += '='.repeat(4 - pad);
+  }
+
+  // Use TextDecoder for proper UTF-8 support (atob alone mangles multi-byte characters)
+  const binaryString = atob(base64);
+  const bytes = Uint8Array.from(binaryString, (c) => c.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
+};
+
 export const decodeUserSession = (accessToken: string): DecodedToken => {
   const s = accessToken.split('.');
   if (s.length !== 3 || !s[1]) {
     throw new Error('Invalid access token format');
   }
 
-  const decodedToken = JSON.parse(
-    typeof atob !== 'undefined'
-      ? atob(s[1])
-      : Buffer.from(s[1], 'base64').toString('utf-8'),
-  ) as Record<string, unknown>;
+  const decodedToken = JSON.parse(decodeBase64Url(s[1])) as Record<
+    string,
+    unknown
+  >;
 
   // Convert iat and exp to Date objects
   const iat =

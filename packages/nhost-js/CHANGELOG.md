@@ -1,3 +1,16 @@
+## [@nhost/nhost-js@4.4.0] - 2026-02-06
+
+### 🚀 Features
+
+- *(ci)* Remove mintlify (#3887)
+
+
+### 🐛 Bug Fixes
+
+- *(nixops)* Update nodejs to v24 (#3862)
+- *(deps)* Update brace-expansion due to cve (#3886)
+- *(nhost-js)* Decode base64url-encoded strings correctly in jwt tokens (#3892)
+
 ## [@nhost/nhost-js@4.3.0] - 2026-02-02
 
 ### 🚀 Features

@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import type {
   CreateLocalRelationshipArgs,
-  SuggestRelationshipsResponseRelationshipsItem,
+  SuggestedArrayRelationship,
+  SuggestedObjectRelationship,
 } from '@/utils/hasura-api/generated/schemas';
 import prepareSuggestedRelationshipDTO from './prepareSuggestedRelationshipDTO';
 
@@ -10,7 +11,7 @@ const source = 'default';
 
 describe('prepareSuggestedRelationshipDTO', () => {
   it('should create a valid object relationship DTO with manual configuration', () => {
-    const arrayRelSuggestion: SuggestRelationshipsResponseRelationshipsItem = {
+    const arrayRelSuggestion: SuggestedArrayRelationship = {
       type: 'array',
       from: {
         table: {
@@ -58,7 +59,7 @@ describe('prepareSuggestedRelationshipDTO', () => {
   });
 
   it('should create a valid object relationship DTO from a suggested relationship', () => {
-    const objectRelSuggestion: SuggestRelationshipsResponseRelationshipsItem = {
+    const objectRelSuggestion: SuggestedObjectRelationship = {
       type: 'object',
       from: {
         table: {

@@ -9,10 +9,11 @@
     "analyze": "ANALYZE=true pnpm build",
     "start": "next start",
     "lint": "biome check; b=$?; eslint src/; e=$?; [ $b -eq 0 ] && [ $e -eq 0 ]",
-    "test": "pnpm lint && pnpm test:vitest && pnpm test:broken-links",
+    "test": "pnpm test:typecheck && pnpm lint && pnpm test:vitest && pnpm test:broken-links",
     "test:vitest": "vitest run",
     "test:watch": "vitest",
     "test:broken-links": "lychee --config .lychee.toml \"src/**/*.tsx\" \"src/**/*.ts\"",
+    "test:typecheck": "tsc --noEmit --pretty -p tsconfig.json",
     "generate": "pnpm codegen-hasura-api",
     "codegen": "DOTENV_CONFIG_PATH=./.env.local graphql-codegen -r dotenv/config --config graphql.config.yaml --errors-only",
     "codegen-graphite": "graphql-codegen --config graphite.graphql.config.yaml --errors-only",
@@ -22,8 +23,7 @@
     "e2e:tests": "pnpm playwright test --config=playwright.config.ts -x",
     "e2e": "pnpm e2e:tests --project=main",
     "e2e:local": "pnpm e2e:tests --project=local",
-    "e2e:onboarding": "pnpm e2e:tests --project=onboarding",
-    "type-check": "tsc --noEmit --pretty -p tsconfig.json"
+    "e2e:onboarding": "pnpm e2e:tests --project=onboarding"
   },
   "dependencies": {
     "@apollo/client": "^3.14.0",
