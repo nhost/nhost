@@ -3,7 +3,7 @@ import { Eye } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import { Dialog, DialogTrigger } from '@/components/ui/v3/dialog';
-import type { CronTriggerInvocationLogEntry } from '@/utils/hasura-api/generated/schemas';
+import type { InvocationLogEntry } from '@/utils/hasura-api/generated/schemas';
 import InvocationLogDetailsDialogContent from './InvocationLogDetailsDialogContent';
 import type { CronTriggerInvocationLogsDataTableMeta } from './types';
 
@@ -11,8 +11,8 @@ export default function InvocationLogActionsCell({
   row,
   table,
 }: {
-  row: CronTriggerInvocationLogEntry;
-  table: TanStackTable<CronTriggerInvocationLogEntry>;
+  row: InvocationLogEntry;
+  table: TanStackTable<InvocationLogEntry>;
 }) {
   const meta = table.options.meta as CronTriggerInvocationLogsDataTableMeta;
 

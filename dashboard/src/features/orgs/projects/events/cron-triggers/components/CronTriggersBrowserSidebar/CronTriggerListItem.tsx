@@ -93,6 +93,7 @@ export default function CronTriggerListItem({
                       '!pointer-events-auto !cursor-not-allowed': isViewOnly,
                     },
                   )}
+                  data-testid={`cron-trigger-menu-${cronTrigger.name}`}
                   onClick={(event) => {
                     event.preventDefault();
                     event.stopPropagation();

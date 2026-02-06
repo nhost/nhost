@@ -5,6 +5,11 @@
  * API for managing remote schemas and events in Hasura
  * OpenAPI spec version: 1.0.0
  */
+import type { Headers } from './headers';
+import type { RequestTransformation } from './requestTransformation';
+import type { ResponseTransformation } from './responseTransformation';
+import type { RetryConfCT } from './retryConfCT';
+import type { ScheduledEventLogEntryPayload } from './scheduledEventLogEntryPayload';
 import type { ScheduledEventStatus } from './scheduledEventStatus';
 
 export interface ScheduledEventLogEntry {
@@ -16,4 +21,12 @@ export interface ScheduledEventLogEntry {
   status: ScheduledEventStatus;
   tries: number;
   trigger_name: string;
+  /** @nullable */
+  comment?: string | null;
+  header_conf?: Headers;
+  payload?: ScheduledEventLogEntryPayload;
+  retry_conf?: RetryConfCT;
+  webhook_conf?: string;
+  request_transform?: RequestTransformation | null;
+  response_transform?: ResponseTransformation | null;
 }

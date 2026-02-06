@@ -9,6 +9,4 @@
 /**
  * The event payload sent to the webhook
  */
-export type CronTriggerInvocationLogEntryRequestPayload = {
-  [key: string]: unknown;
-};
+export type InvocationLogEntryRequestPayload = { [key: string]: unknown };

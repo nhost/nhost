@@ -104,8 +104,8 @@ src/
 ### CSS and Styling
 
 - Use Tailwind CSS classes (configured with `tailwind-merge` and `clsx`)
-- Use `cn()` utility from `@/lib/utils` for class merging
-- Example: `className={cn('base-class', variant && 'variant-class', className)}`
+- Use `cn()` utility from `@/lib/utils` for class merging and conditional styling
+- Example: `className={cn('base-class', variant && 'variant-class', {"bg-red-500": isError}, className)}`
 - Component variants use `class-variance-authority` (see `button.tsx`)
 
 ### Error Handling
