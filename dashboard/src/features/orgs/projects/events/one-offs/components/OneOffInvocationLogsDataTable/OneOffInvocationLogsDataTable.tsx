@@ -115,7 +115,7 @@ export default function OneOffInvocationLogsDataTable({
                 {row.getVisibleCells().map((cell) => (
                   <TableCell
                     key={cell.id}
-                    className={`${cell.column.id === 'id' ? 'max-w-0 truncate' : ''}`}
+                    className="max-w-0 truncate"
                     style={{ width: cell.column.getSize() }}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
