@@ -148,7 +148,7 @@ test('should create and delete a remote schema relationship', async ({
   const schemaName = snakeCase(`e2e ${faker.lorem.words(2)}`);
   const REMOTE_SCHEMA_TEST_URL = `https://${TEST_PROJECT_SUBDOMAIN}.functions.eu-central-1.staging.nhost.run/v1/${TEST_PROJECT_REMOTE_SCHEMA_NAME}`;
 
-  await page.getByRole('button', { name: /add remote schema/i }).click();
+  await page.getByRole('button', { name: /new remote schema/i }).click();
   await expect(page.getByText(/create a new remote schema/i)).toBeVisible();
 
   await page.getByPlaceholder(/remote schema name/i).fill(schemaName);
