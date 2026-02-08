@@ -9,6 +9,79 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+// In-flight OAuth2 authorization requests.
+type AuthOauth2AuthRequest struct {
+	ID                  uuid.UUID
+	ClientID            string
+	Scopes              []string
+	RedirectUri         string
+	State               pgtype.Text
+	Nonce               pgtype.Text
+	ResponseType        string
+	CodeChallenge       pgtype.Text
+	CodeChallengeMethod pgtype.Text
+	Resource            pgtype.Text
+	UserID              pgtype.UUID
+	Done                bool
+	AuthTime            pgtype.Timestamptz
+	CreatedAt           pgtype.Timestamptz
+	ExpiresAt           pgtype.Timestamptz
+}
+
+// OAuth2 authorization codes pending exchange for tokens.
+type AuthOauth2AuthorizationCode struct {
+	ID            uuid.UUID
+	CodeHash      string
+	AuthRequestID uuid.UUID
+	CreatedAt     pgtype.Timestamptz
+	ExpiresAt     pgtype.Timestamptz
+}
+
+// Registered OAuth2 client applications for the identity provider.
+type AuthOauth2Client struct {
+	ID                       uuid.UUID
+	ClientID                 string
+	ClientSecretHash         pgtype.Text
+	ClientName               string
+	ClientUri                pgtype.Text
+	LogoUri                  pgtype.Text
+	RedirectUris             []string
+	GrantTypes               []string
+	ResponseTypes            []string
+	Scopes                   []string
+	IsPublic                 bool
+	TokenEndpointAuthMethod  string
+	IDTokenSignedResponseAlg string
+	AccessTokenLifetime      int32
+	RefreshTokenLifetime     int32
+	CreatedAt                pgtype.Timestamptz
+	UpdatedAt                pgtype.Timestamptz
+}
+
+// OAuth2 refresh tokens with client and scope binding.
+type AuthOauth2RefreshToken struct {
+	ID            uuid.UUID
+	TokenHash     string
+	AuthRequestID pgtype.UUID
+	ClientID      string
+	UserID        uuid.UUID
+	Scopes        []string
+	CreatedAt     pgtype.Timestamptz
+	ExpiresAt     pgtype.Timestamptz
+}
+
+// RSA key pairs for OAuth2/OIDC token signing. Private keys are stored encrypted.
+type AuthOauth2SigningKey struct {
+	ID         uuid.UUID
+	PrivateKey []byte
+	PublicKey  []byte
+	Algorithm  string
+	KeyID      string
+	IsActive   bool
+	CreatedAt  pgtype.Timestamptz
+	ExpiresAt  pgtype.Timestamptz
+}
+
 // List of available Oauth providers. Don't modify its structure as Hasura Auth relies on it to function properly.
 type AuthProvider struct {
 	ID string

@@ -1370,6 +1370,479 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: "An error occurred while processing the request"
 
+  # =========================================================================
+  # OAuth2/OIDC Identity Provider endpoints
+  # =========================================================================
+
+  /.well-known/openid-configuration:
+    get:
+      summary: OpenID Connect Discovery
+      description: Returns the OpenID Provider Metadata (RFC 8414)
+      operationId: getOpenIDConfiguration
+      tags:
+        - system
+      responses:
+        "200":
+          description: OpenID Provider Metadata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuth2DiscoveryResponse"
+
+  /.well-known/oauth-authorization-server:
+    get:
+      summary: OAuth2 Authorization Server Metadata
+      description: Returns the Authorization Server Metadata (RFC 8414). Same content as OpenID Discovery.
+      operationId: getOAuthAuthorizationServer
+      tags:
+        - system
+      responses:
+        "200":
+          description: Authorization Server Metadata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuth2DiscoveryResponse"
+
+  /oauth2/authorize:
+    get:
+      summary: OAuth2 Authorization Endpoint
+      description: >-
+        Initiates an OAuth2 authorization code flow. Validates the request and redirects
+        to the login UI for user authentication and consent.
+      operationId: oauth2Authorize
+      tags:
+        - authentication
+      parameters:
+        - name: client_id
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: redirect_uri
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: response_type
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [code]
+        - name: scope
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: state
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: nonce
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: code_challenge
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: code_challenge_method
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [S256, plain]
+        - name: resource
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "302":
+          description: Redirect to login UI or back to client with error
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuth2ErrorResponse"
+          description: OAuth2 error response
+
+  /oauth2/token:
+    post:
+      summary: OAuth2 Token Endpoint
+      description: >-
+        Exchange an authorization code for tokens, or refresh an existing token.
+        Supports grant_type authorization_code and refresh_token.
+      operationId: oauth2Token
+      tags:
+        - authentication
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/OAuth2TokenRequest"
+      responses:
+        "200":
+          description: Token response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuth2TokenResponse"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuth2ErrorResponse"
+          description: OAuth2 error response
+
+  /oauth2/userinfo:
+    get:
+      summary: OpenID Connect UserInfo Endpoint (GET)
+      description: Returns claims about the authenticated user based on the access token scopes.
+      operationId: oauth2UserinfoGet
+      tags:
+        - user
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: UserInfo claims
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuth2UserinfoResponse"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuth2ErrorResponse"
+          description: OAuth2 error response
+    post:
+      summary: OpenID Connect UserInfo Endpoint (POST)
+      description: Returns claims about the authenticated user based on the access token scopes.
+      operationId: oauth2UserinfoPost
+      tags:
+        - user
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: UserInfo claims
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuth2UserinfoResponse"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuth2ErrorResponse"
+          description: OAuth2 error response
+
+  /oauth2/jwks:
+    get:
+      summary: OAuth2 Provider JWKS Endpoint
+      description: Returns the JSON Web Key Set containing public keys used for OAuth2/OIDC token signing.
+      operationId: oauth2Jwks
+      tags:
+        - system
+      responses:
+        "200":
+          description: JWKS response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuth2JWKSResponse"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuth2ErrorResponse"
+
+  /oauth2/revoke:
+    post:
+      summary: OAuth2 Token Revocation (RFC 7009)
+      description: Revoke an access token or refresh token.
+      operationId: oauth2Revoke
+      tags:
+        - session
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/OAuth2RevokeRequest"
+      responses:
+        "200":
+          description: Token successfully revoked (or was already invalid)
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuth2ErrorResponse"
+          description: OAuth2 error response
+
+  /oauth2/introspect:
+    post:
+      summary: OAuth2 Token Introspection (RFC 7662)
+      description: Introspect a token to determine its current state and metadata.
+      operationId: oauth2Introspect
+      tags:
+        - session
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/OAuth2IntrospectRequest"
+      responses:
+        "200":
+          description: Token introspection response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuth2IntrospectResponse"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuth2ErrorResponse"
+          description: OAuth2 error response
+
+  /oauth2/register:
+    post:
+      summary: Dynamic Client Registration (RFC 7591)
+      description: Register a new OAuth2 client dynamically. No authentication required.
+      operationId: oauth2Register
+      tags:
+        - authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OAuth2RegisterRequest"
+      responses:
+        "201":
+          description: Client registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuth2RegisterResponse"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuth2ErrorResponse"
+          description: OAuth2 error response
+
+  /oauth2/login:
+    get:
+      summary: Get authorization request details for consent screen
+      description: Called by the consent UI to get details about the pending authorization request.
+      operationId: oauth2LoginGet
+      tags:
+        - authentication
+      parameters:
+        - name: request_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Authorization request details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuth2LoginResponse"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: An error occurred
+
+    post:
+      summary: Complete login/consent for an authorization request
+      description: >-
+        Called by the consent UI after user authenticates and consents.
+        Sets the user on the auth request and redirects back to the client with an authorization code.
+      operationId: oauth2LoginPost
+      tags:
+        - authentication
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OAuth2LoginRequest"
+      responses:
+        "200":
+          description: Authorization completed, redirect URL returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuth2LoginCompleteResponse"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: An error occurred
+
+  /oauth2/clients:
+    get:
+      summary: List OAuth2 clients
+      description: List all registered OAuth2 clients. Requires admin authentication.
+      operationId: oauth2ClientsList
+      tags:
+        - security
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: List of clients
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuth2ClientsListResponse"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: An error occurred
+
+    post:
+      summary: Create OAuth2 client
+      description: Create a new OAuth2 client. Requires admin authentication.
+      operationId: oauth2ClientsCreate
+      tags:
+        - security
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OAuth2CreateClientRequest"
+      responses:
+        "201":
+          description: Client created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuth2ClientResponse"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: An error occurred
+
+  /oauth2/clients/{clientId}:
+    get:
+      summary: Get OAuth2 client
+      description: Get details of an OAuth2 client by client ID. Requires admin authentication.
+      operationId: oauth2ClientsGet
+      tags:
+        - security
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: clientId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Client details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuth2ClientResponse"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: An error occurred
+
+    put:
+      summary: Update OAuth2 client
+      description: Update an OAuth2 client. Requires admin authentication.
+      operationId: oauth2ClientsUpdate
+      tags:
+        - security
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: clientId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OAuth2UpdateClientRequest"
+      responses:
+        "200":
+          description: Client updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuth2ClientResponse"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: An error occurred
+
+    delete:
+      summary: Delete OAuth2 client
+      description: Delete an OAuth2 client. Requires admin authentication.
+      operationId: oauth2ClientsDelete
+      tags:
+        - security
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: clientId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Client deleted
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: An error occurred
+
 components:
   securitySchemes:
     BearerAuth:
@@ -2597,6 +3070,474 @@ components:
         token:
           type: string
           description: JWT token to verify
+
+    # =========================================================================
+    # OAuth2/OIDC Identity Provider schemas
+    # =========================================================================
+
+    OAuth2ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: OAuth2 error code
+        error_description:
+          type: string
+          description: Human-readable error description
+      required:
+        - error
+
+    OAuth2DiscoveryResponse:
+      type: object
+      additionalProperties: true
+      properties:
+        issuer:
+          type: string
+        authorization_endpoint:
+          type: string
+        token_endpoint:
+          type: string
+        userinfo_endpoint:
+          type: string
+        jwks_uri:
+          type: string
+        registration_endpoint:
+          type: string
+        revocation_endpoint:
+          type: string
+        introspection_endpoint:
+          type: string
+        scopes_supported:
+          type: array
+          items:
+            type: string
+        response_types_supported:
+          type: array
+          items:
+            type: string
+        grant_types_supported:
+          type: array
+          items:
+            type: string
+        subject_types_supported:
+          type: array
+          items:
+            type: string
+        id_token_signing_alg_values_supported:
+          type: array
+          items:
+            type: string
+        token_endpoint_auth_methods_supported:
+          type: array
+          items:
+            type: string
+        code_challenge_methods_supported:
+          type: array
+          items:
+            type: string
+      required:
+        - issuer
+        - authorization_endpoint
+        - token_endpoint
+        - jwks_uri
+        - response_types_supported
+
+    OAuth2TokenRequest:
+      type: object
+      properties:
+        grant_type:
+          type: string
+          enum: [authorization_code, refresh_token]
+        code:
+          type: string
+          nullable: true
+        redirect_uri:
+          type: string
+          nullable: true
+        client_id:
+          type: string
+          nullable: true
+        client_secret:
+          type: string
+          nullable: true
+        code_verifier:
+          type: string
+          nullable: true
+        refresh_token:
+          type: string
+          nullable: true
+        resource:
+          type: string
+          nullable: true
+      required:
+        - grant_type
+
+    OAuth2TokenResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+        token_type:
+          type: string
+        expires_in:
+          type: integer
+        refresh_token:
+          type: string
+        id_token:
+          type: string
+        scope:
+          type: string
+      required:
+        - access_token
+        - token_type
+        - expires_in
+
+    OAuth2UserinfoResponse:
+      type: object
+      additionalProperties: true
+      properties:
+        sub:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        email_verified:
+          type: boolean
+        picture:
+          type: string
+        locale:
+          type: string
+        phone_number:
+          type: string
+        phone_number_verified:
+          type: boolean
+      required:
+        - sub
+
+    OAuth2JWKSResponse:
+      type: object
+      properties:
+        keys:
+          type: array
+          items:
+            type: object
+            properties:
+              kty:
+                type: string
+              use:
+                type: string
+              alg:
+                type: string
+              kid:
+                type: string
+              "n":
+                type: string
+              e:
+                type: string
+      required:
+        - keys
+
+    OAuth2RevokeRequest:
+      type: object
+      properties:
+        token:
+          type: string
+        token_type_hint:
+          type: string
+          enum: [access_token, refresh_token]
+          nullable: true
+        client_id:
+          type: string
+          nullable: true
+        client_secret:
+          type: string
+          nullable: true
+      required:
+        - token
+
+    OAuth2IntrospectRequest:
+      type: object
+      properties:
+        token:
+          type: string
+        token_type_hint:
+          type: string
+          enum: [access_token, refresh_token]
+          nullable: true
+        client_id:
+          type: string
+          nullable: true
+        client_secret:
+          type: string
+          nullable: true
+      required:
+        - token
+
+    OAuth2IntrospectResponse:
+      type: object
+      additionalProperties: true
+      properties:
+        active:
+          type: boolean
+        scope:
+          type: string
+        client_id:
+          type: string
+        sub:
+          type: string
+        exp:
+          type: integer
+        iat:
+          type: integer
+        iss:
+          type: string
+        token_type:
+          type: string
+      required:
+        - active
+
+    OAuth2RegisterRequest:
+      type: object
+      properties:
+        client_name:
+          type: string
+        redirect_uris:
+          type: array
+          items:
+            type: string
+        grant_types:
+          type: array
+          items:
+            type: string
+        response_types:
+          type: array
+          items:
+            type: string
+        scope:
+          type: string
+        token_endpoint_auth_method:
+          type: string
+          enum: [client_secret_basic, client_secret_post, none]
+        client_uri:
+          type: string
+        logo_uri:
+          type: string
+      required:
+        - client_name
+        - redirect_uris
+
+    OAuth2RegisterResponse:
+      type: object
+      properties:
+        client_id:
+          type: string
+        client_secret:
+          type: string
+        client_name:
+          type: string
+        redirect_uris:
+          type: array
+          items:
+            type: string
+        grant_types:
+          type: array
+          items:
+            type: string
+        response_types:
+          type: array
+          items:
+            type: string
+        scope:
+          type: string
+        token_endpoint_auth_method:
+          type: string
+        client_uri:
+          type: string
+        logo_uri:
+          type: string
+      required:
+        - client_id
+        - client_name
+        - redirect_uris
+
+    OAuth2LoginResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        requestId:
+          type: string
+          format: uuid
+        clientId:
+          type: string
+        clientName:
+          type: string
+        scopes:
+          type: array
+          items:
+            type: string
+        redirectUri:
+          type: string
+      required:
+        - requestId
+        - clientId
+        - clientName
+        - scopes
+        - redirectUri
+
+    OAuth2LoginRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        requestId:
+          type: string
+          format: uuid
+      required:
+        - requestId
+
+    OAuth2LoginCompleteResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        redirectUri:
+          type: string
+          format: uri
+      required:
+        - redirectUri
+
+    OAuth2ClientResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        clientId:
+          type: string
+        clientName:
+          type: string
+        clientUri:
+          type: string
+        logoUri:
+          type: string
+        redirectUris:
+          type: array
+          items:
+            type: string
+        grantTypes:
+          type: array
+          items:
+            type: string
+        responseTypes:
+          type: array
+          items:
+            type: string
+        scopes:
+          type: array
+          items:
+            type: string
+        isPublic:
+          type: boolean
+        tokenEndpointAuthMethod:
+          type: string
+        accessTokenLifetime:
+          type: integer
+        refreshTokenLifetime:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - clientId
+        - clientName
+        - redirectUris
+
+    OAuth2ClientsListResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        clients:
+          type: array
+          items:
+            $ref: "#/components/schemas/OAuth2ClientResponse"
+      required:
+        - clients
+
+    OAuth2CreateClientRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        clientName:
+          type: string
+        redirectUris:
+          type: array
+          items:
+            type: string
+        grantTypes:
+          type: array
+          items:
+            type: string
+        responseTypes:
+          type: array
+          items:
+            type: string
+        scopes:
+          type: array
+          items:
+            type: string
+        isPublic:
+          type: boolean
+        tokenEndpointAuthMethod:
+          type: string
+        clientUri:
+          type: string
+        logoUri:
+          type: string
+        accessTokenLifetime:
+          type: integer
+        refreshTokenLifetime:
+          type: integer
+      required:
+        - clientName
+        - redirectUris
+
+    OAuth2UpdateClientRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        clientName:
+          type: string
+        redirectUris:
+          type: array
+          items:
+            type: string
+        grantTypes:
+          type: array
+          items:
+            type: string
+        responseTypes:
+          type: array
+          items:
+            type: string
+        scopes:
+          type: array
+          items:
+            type: string
+        isPublic:
+          type: boolean
+        tokenEndpointAuthMethod:
+          type: string
+        clientUri:
+          type: string
+        logoUri:
+          type: string
+        accessTokenLifetime:
+          type: integer
+        refreshTokenLifetime:
+          type: integer
+      required:
+        - clientName
+        - redirectUris
 
   parameters:
     RedirectToQuery:

@@ -19,6 +19,7 @@ import (
 	"github.com/nhost/nhost/services/auth/go/middleware"
 	"github.com/nhost/nhost/services/auth/go/middleware/ratelimit"
 	"github.com/nhost/nhost/services/auth/go/oidc"
+	oidcprovider "github.com/nhost/nhost/services/auth/go/oidc/provider"
 	"github.com/nhost/nhost/services/auth/go/providers"
 	"github.com/nhost/nhost/services/auth/go/sql"
 	"github.com/urfave/cli/v3"
@@ -178,6 +179,11 @@ const (
 	flagTwitterEnabled                   = "twitter-enabled"
 	flagTwitterConsumerKey               = "twitter-consumer-key"
 	flagTwitterConsumerSecret            = "twitter-consumer-secret"
+	flagOAuth2ProviderEnabled            = "oauth2-provider-enabled"
+	flagOAuth2ProviderIssuer             = "oauth2-provider-issuer"
+	flagOAuth2ProviderLoginURL           = "oauth2-provider-login-url"
+	flagOAuth2ProviderAccessTokenTTL     = "oauth2-provider-access-token-ttl"  //nolint:gosec
+	flagOAuth2ProviderRefreshTokenTTL    = "oauth2-provider-refresh-token-ttl" //nolint:gosec
 )
 
 func CommandServe() *cli.Command { //nolint:funlen,maintidx
@@ -1223,6 +1229,40 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 				Category: "oauth-twitter",
 				Sources:  cli.EnvVars("AUTH_PROVIDER_TWITTER_CONSUMER_SECRET"),
 			},
+			// OAuth2 Identity Provider flags
+			&cli.BoolFlag{ //nolint: exhaustruct
+				Name:     flagOAuth2ProviderEnabled,
+				Usage:    "Enable OAuth2/OIDC identity provider",
+				Category: "oauth2-provider",
+				Value:    false,
+				Sources:  cli.EnvVars("AUTH_OAUTH2_PROVIDER_ENABLED"),
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagOAuth2ProviderIssuer,
+				Usage:    "Issuer URL for OAuth2/OIDC tokens. Defaults to AUTH_SERVER_URL",
+				Category: "oauth2-provider",
+				Sources:  cli.EnvVars("AUTH_OAUTH2_PROVIDER_ISSUER"),
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagOAuth2ProviderLoginURL,
+				Usage:    "URL of the consent/login UI where users are redirected to authorize",
+				Category: "oauth2-provider",
+				Sources:  cli.EnvVars("AUTH_OAUTH2_PROVIDER_LOGIN_URL"),
+			},
+			&cli.IntFlag{ //nolint: exhaustruct
+				Name:     flagOAuth2ProviderAccessTokenTTL,
+				Usage:    "OAuth2 provider access token lifetime in seconds",
+				Category: "oauth2-provider",
+				Value:    900, //nolint:mnd
+				Sources:  cli.EnvVars("AUTH_OAUTH2_PROVIDER_ACCESS_TOKEN_TTL"),
+			},
+			&cli.IntFlag{ //nolint: exhaustruct
+				Name:     flagOAuth2ProviderRefreshTokenTTL,
+				Usage:    "OAuth2 provider refresh token lifetime in seconds",
+				Category: "oauth2-provider",
+				Value:    2592000, //nolint:mnd
+				Sources:  cli.EnvVars("AUTH_OAUTH2_PROVIDER_REFRESH_TOKEN_TTL"),
+			},
 		},
 		Action: serve,
 	}
@@ -1396,6 +1436,14 @@ func getController(
 		return nil, nil, fmt.Errorf("problem creating oauth providers: %w", err)
 	}
 
+	var km *oidcprovider.KeyManager
+	if cmd.Bool(flagOAuth2ProviderEnabled) {
+		km = oidcprovider.NewKeyManager(db, encrypter)
+		if err := km.EnsureSigningKey(ctx, logger); err != nil {
+			return nil, nil, fmt.Errorf("problem ensuring OAuth2 signing key: %w", err)
+		}
+	}
+
 	ctrl, err := controller.New(
 		db,
 		config,
@@ -1408,6 +1456,7 @@ func getController(
 		controller.NewTotp(cmd.String(flagMfaTotpIssuer), time.Now),
 		encrypter,
 		cmd.Root().Version,
+		km,
 	)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create controller: %w", err)

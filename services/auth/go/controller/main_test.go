@@ -316,6 +316,7 @@ func getController( //nolint:cyclop
 		controllerOpts.totp,
 		controllerOpts.encrypter,
 		"dev",
+		nil,
 	)
 	if err != nil {
 		t.Fatalf("failed to create controller: %v", err)

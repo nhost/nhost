@@ -1,0 +1,202 @@
+services:
+    postgres:
+        image: nhost/postgres:14.6-20231018-1
+        command:
+            - postgres
+            - -c
+            - config_file=/etc/postgresql.conf
+            - -c
+            - hba_file=/etc/pg_hba_local.conf
+        environment:
+            PGDATA: /var/lib/postgresql/data/pgdata
+            POSTGRES_DB: local
+            POSTGRES_PASSWORD: postgres
+            POSTGRES_USER: postgres
+        healthcheck:
+            test:
+                - CMD-SHELL
+                - pg_isready -U postgres
+                - -d
+                - postgres
+                - -q
+            timeout: 60s
+            interval: 10s
+            start_period: 10s
+        ports:
+            - mode: ingress
+              target: 5432
+              published: "5432"
+              protocol: tcp
+        restart: always
+        volumes:
+            - type: volume
+              source: pgdata
+              target: /var/lib/postgresql/data/pgdata
+            - type: bind
+              source: ./pg_hba_local.conf
+              target: /etc/pg_hba_local.conf
+              read_only: true
+
+    graphql:
+        image: nhost/graphql-engine:v2.33.4-ce
+        depends_on:
+            postgres:
+                condition: service_healthy
+        environment:
+            HASURA_GRAPHQL_ADMIN_INTERNAL_ERRORS: "true"
+            HASURA_GRAPHQL_ADMIN_SECRET: nhost-admin-secret
+            HASURA_GRAPHQL_CONSOLE_ASSETS_DIR: /srv/console-assets
+            HASURA_GRAPHQL_CORS_DOMAIN: '*'
+            HASURA_GRAPHQL_DATABASE_URL: postgres://nhost_hasura@postgres:5432/local
+            HASURA_GRAPHQL_DEV_MODE: "true"
+            HASURA_GRAPHQL_DISABLE_CORS: "false"
+            HASURA_GRAPHQL_ENABLE_ALLOWLIST: "false"
+            HASURA_GRAPHQL_ENABLE_CONSOLE: "true"
+            HASURA_GRAPHQL_ENABLE_REMOTE_SCHEMA_PERMISSIONS: "false"
+            HASURA_GRAPHQL_ENABLE_TELEMETRY: "false"
+            HASURA_GRAPHQL_ENABLED_APIS: metadata,graphql,pgdump,config
+            HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup,http-log,webhook-log,websocket-log
+            HASURA_GRAPHQL_EVENTS_HTTP_POOL_SIZE: "100"
+            HASURA_GRAPHQL_JWT_SECRET: '{"type":"HS256", "key":"5152fa850c02dc222631cca898ed1485821a70912a6e3649c49076912daa3b62182ba013315915d64f40cddfbb8b58eb5bd11ba225336a6af45bbae07ca873f3","issuer":"hasura-auth"}'
+            HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_BATCH_SIZE: "100"
+            HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL: "1000"
+            HASURA_GRAPHQL_LOG_LEVEL: warn
+            HASURA_GRAPHQL_PG_CONNECTIONS: "50"
+            HASURA_GRAPHQL_PG_TIMEOUT: "180"
+            HASURA_GRAPHQL_STRINGIFY_NUMERIC_TYPES: "false"
+            HASURA_GRAPHQL_TX_ISOLATION: read-committed
+            HASURA_GRAPHQL_UNAUTHORIZED_ROLE: public
+            HASURA_GRAPHQL_USE_PREPARED_STATEMENTS: "true"
+            HASURA_GRAPHQL_WS_READ_COOKIE: "false"
+            GRAPHITE_WEBHOOK_SECRET: graphite-secret
+        ports:
+            - mode: ingress
+              target: 8080
+              published: "8080"
+              protocol: tcp
+        healthcheck:
+            test:
+                - CMD-SHELL
+                - curl http://localhost:8080/healthz > /dev/null 2>&1
+            timeout: 60s
+            interval: 10s
+            start_period: 10s
+        restart: always
+
+    auth:
+        image: auth:0.0.0-dev
+        command: serve
+        depends_on:
+            graphql:
+                condition: service_healthy
+            postgres:
+                condition: service_healthy
+        ports:
+            - mode: ingress
+              target: 4000
+              published: "4000"
+              protocol: tcp
+        environment:
+            AUTH_ENABLE_CHANGE_ENV: "true"
+            AUTH_API_PREFIX: ""
+            HASURA_GRAPHQL_DATABASE_URL: "postgres://postgres:postgres@postgres:5432/local?sslmode=disable"
+            HASURA_GRAPHQL_JWT_SECRET: '{"type":"HS256", "key":"5152fa850c02dc222631cca898ed1485821a70912a6e3649c49076912daa3b62182ba013315915d64f40cddfbb8b58eb5bd11ba225336a6af45bbae07ca873f3","issuer":"hasura-auth"}'
+            HASURA_GRAPHQL_ADMIN_SECRET: nhost-admin-secret
+            HASURA_GRAPHQL_GRAPHQL_URL: http://graphql:8080/v1/graphql
+            AUTH_ENCRYPTION_KEY: 5181f67e2844e4b60d571fa346cac9c37fc00d1ff519212eae6cead138e639ba
+            AUTH_PORT: 4000
+            AUTH_SERVER_URL: http://localhost:4000
+            AUTH_USER_DEFAULT_ALLOWED_ROLES: 'me,user,editor'
+            AUTH_SMTP_AUTH_METHOD: PLAIN
+            AUTH_SMTP_HOST: mailhog
+            AUTH_SMTP_PASS: password
+            AUTH_SMTP_PORT: "1025"
+            AUTH_SMTP_SECURE: "false"
+            AUTH_SMTP_SENDER: auth@example.com
+            AUTH_SMTP_USER: user
+            AUTH_LOG_LEVEL: debug
+            AUTH_CLIENT_URL: 'http://localhost:3000'
+            AUTH_LOG_FORMAT_TEXT: 'true'
+            AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: 'false'
+            AUTH_OAUTH2_PROVIDER_ENABLED: 'true'
+            AUTH_OAUTH2_PROVIDER_LOGIN_URL: 'http://localhost:3000/consent.html'
+        healthcheck:
+            test:
+                - CMD
+                - wget
+                - --spider
+                - -S
+                - http://localhost:4000/healthz
+            timeout: 60s
+            interval: 10s
+            start_period: 10s
+        restart: always
+
+    consent-ui:
+        image: nginx:alpine
+        ports:
+            - mode: ingress
+              target: 80
+              published: "3000"
+              protocol: tcp
+        volumes:
+            - type: bind
+              source: ./consent-ui
+              target: /usr/share/nginx/html
+              read_only: true
+            - type: bind
+              source: ./consent-ui/nginx.conf
+              target: /etc/nginx/conf.d/default.conf
+              read_only: true
+        restart: always
+
+    grafana:
+        image: grafana/grafana:11.4.0
+        depends_on:
+            auth:
+                condition: service_healthy
+        ports:
+            - mode: ingress
+              target: 3000
+              published: "3001"
+              protocol: tcp
+        environment:
+            GF_SERVER_ROOT_URL: http://localhost:3001
+            GF_AUTH_GENERIC_OAUTH_ENABLED: "true"
+            GF_AUTH_GENERIC_OAUTH_NAME: Nhost
+            GF_AUTH_GENERIC_OAUTH_CLIENT_ID: ${OAUTH2_CLIENT_ID}
+            GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET: ${OAUTH2_CLIENT_SECRET}
+            GF_AUTH_GENERIC_OAUTH_SCOPES: openid profile email
+            GF_AUTH_GENERIC_OAUTH_AUTH_URL: http://localhost:4000/oauth2/authorize
+            GF_AUTH_GENERIC_OAUTH_TOKEN_URL: http://auth:4000/oauth2/token
+            GF_AUTH_GENERIC_OAUTH_API_URL: http://auth:4000/oauth2/userinfo
+            GF_AUTH_GENERIC_OAUTH_USE_PKCE: "true"
+            GF_AUTH_GENERIC_OAUTH_EMAIL_ATTRIBUTE_PATH: email
+            GF_AUTH_GENERIC_OAUTH_NAME_ATTRIBUTE_PATH: displayName
+            GF_AUTH_GENERIC_OAUTH_LOGIN_ATTRIBUTE_PATH: email
+            GF_AUTH_GENERIC_OAUTH_ALLOW_SIGN_UP: "true"
+            GF_AUTH_GENERIC_OAUTH_AUTO_LOGIN: "false"
+        restart: always
+
+    mailhog:
+        image: jcalonso/mailhog:v1.0.1
+        ports:
+            - mode: ingress
+              target: 1025
+              published: "1025"
+              protocol: tcp
+            - mode: ingress
+              target: 8025
+              published: "8025"
+              protocol: tcp
+        environment:
+            SMTP_HOST: mailhog
+            SMTP_PASS: password
+            SMTP_PORT: "1025"
+            SMTP_SECURE: "false"
+            SMTP_SENDER: auth@example.com
+            SMTP_USER: user
+        restart: always
+
+volumes:
+    pgdata: {}

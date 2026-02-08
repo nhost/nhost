@@ -99,6 +99,31 @@ const (
 	IdTokenProviderGoogle IdTokenProvider = "google"
 )
 
+// Defines values for OAuth2IntrospectRequestTokenTypeHint.
+const (
+	OAuth2IntrospectRequestTokenTypeHintAccessToken  OAuth2IntrospectRequestTokenTypeHint = "access_token"
+	OAuth2IntrospectRequestTokenTypeHintRefreshToken OAuth2IntrospectRequestTokenTypeHint = "refresh_token"
+)
+
+// Defines values for OAuth2RegisterRequestTokenEndpointAuthMethod.
+const (
+	ClientSecretBasic OAuth2RegisterRequestTokenEndpointAuthMethod = "client_secret_basic"
+	ClientSecretPost  OAuth2RegisterRequestTokenEndpointAuthMethod = "client_secret_post"
+	None              OAuth2RegisterRequestTokenEndpointAuthMethod = "none"
+)
+
+// Defines values for OAuth2RevokeRequestTokenTypeHint.
+const (
+	OAuth2RevokeRequestTokenTypeHintAccessToken  OAuth2RevokeRequestTokenTypeHint = "access_token"
+	OAuth2RevokeRequestTokenTypeHintRefreshToken OAuth2RevokeRequestTokenTypeHint = "refresh_token"
+)
+
+// Defines values for OAuth2TokenRequestGrantType.
+const (
+	AuthorizationCode OAuth2TokenRequestGrantType = "authorization_code"
+	RefreshToken      OAuth2TokenRequestGrantType = "refresh_token"
+)
+
 // Defines values for OKResponse.
 const (
 	OK OKResponse = "OK"
@@ -163,6 +188,17 @@ const (
 	TicketTypeQueryEmailVerify        TicketTypeQuery = "emailVerify"
 	TicketTypeQueryPasswordReset      TicketTypeQuery = "passwordReset"
 	TicketTypeQuerySigninPasswordless TicketTypeQuery = "signinPasswordless"
+)
+
+// Defines values for Oauth2AuthorizeParamsResponseType.
+const (
+	Code Oauth2AuthorizeParamsResponseType = "code"
+)
+
+// Defines values for Oauth2AuthorizeParamsCodeChallengeMethod.
+const (
+	Plain Oauth2AuthorizeParamsCodeChallengeMethod = "plain"
+	S256  Oauth2AuthorizeParamsCodeChallengeMethod = "S256"
 )
 
 // Defines values for SignInProviderParamsProvider.
@@ -451,6 +487,221 @@ type LinkIdTokenRequest struct {
 type MFAChallengePayload struct {
 	// Ticket Ticket to use when completing the MFA challenge
 	Ticket string `json:"ticket"`
+}
+
+// OAuth2ClientResponse defines model for OAuth2ClientResponse.
+type OAuth2ClientResponse struct {
+	AccessTokenLifetime     *int       `json:"accessTokenLifetime,omitempty"`
+	ClientId                string     `json:"clientId"`
+	ClientName              string     `json:"clientName"`
+	ClientUri               *string    `json:"clientUri,omitempty"`
+	CreatedAt               *time.Time `json:"createdAt,omitempty"`
+	GrantTypes              *[]string  `json:"grantTypes,omitempty"`
+	IsPublic                *bool      `json:"isPublic,omitempty"`
+	LogoUri                 *string    `json:"logoUri,omitempty"`
+	RedirectUris            []string   `json:"redirectUris"`
+	RefreshTokenLifetime    *int       `json:"refreshTokenLifetime,omitempty"`
+	ResponseTypes           *[]string  `json:"responseTypes,omitempty"`
+	Scopes                  *[]string  `json:"scopes,omitempty"`
+	TokenEndpointAuthMethod *string    `json:"tokenEndpointAuthMethod,omitempty"`
+	UpdatedAt               *time.Time `json:"updatedAt,omitempty"`
+}
+
+// OAuth2ClientsListResponse defines model for OAuth2ClientsListResponse.
+type OAuth2ClientsListResponse struct {
+	Clients []OAuth2ClientResponse `json:"clients"`
+}
+
+// OAuth2CreateClientRequest defines model for OAuth2CreateClientRequest.
+type OAuth2CreateClientRequest struct {
+	AccessTokenLifetime     *int      `json:"accessTokenLifetime,omitempty"`
+	ClientName              string    `json:"clientName"`
+	ClientUri               *string   `json:"clientUri,omitempty"`
+	GrantTypes              *[]string `json:"grantTypes,omitempty"`
+	IsPublic                *bool     `json:"isPublic,omitempty"`
+	LogoUri                 *string   `json:"logoUri,omitempty"`
+	RedirectUris            []string  `json:"redirectUris"`
+	RefreshTokenLifetime    *int      `json:"refreshTokenLifetime,omitempty"`
+	ResponseTypes           *[]string `json:"responseTypes,omitempty"`
+	Scopes                  *[]string `json:"scopes,omitempty"`
+	TokenEndpointAuthMethod *string   `json:"tokenEndpointAuthMethod,omitempty"`
+}
+
+// OAuth2DiscoveryResponse defines model for OAuth2DiscoveryResponse.
+type OAuth2DiscoveryResponse struct {
+	AuthorizationEndpoint             string                 `json:"authorization_endpoint"`
+	CodeChallengeMethodsSupported     *[]string              `json:"code_challenge_methods_supported,omitempty"`
+	GrantTypesSupported               *[]string              `json:"grant_types_supported,omitempty"`
+	IdTokenSigningAlgValuesSupported  *[]string              `json:"id_token_signing_alg_values_supported,omitempty"`
+	IntrospectionEndpoint             *string                `json:"introspection_endpoint,omitempty"`
+	Issuer                            string                 `json:"issuer"`
+	JwksUri                           string                 `json:"jwks_uri"`
+	RegistrationEndpoint              *string                `json:"registration_endpoint,omitempty"`
+	ResponseTypesSupported            []string               `json:"response_types_supported"`
+	RevocationEndpoint                *string                `json:"revocation_endpoint,omitempty"`
+	ScopesSupported                   *[]string              `json:"scopes_supported,omitempty"`
+	SubjectTypesSupported             *[]string              `json:"subject_types_supported,omitempty"`
+	TokenEndpoint                     string                 `json:"token_endpoint"`
+	TokenEndpointAuthMethodsSupported *[]string              `json:"token_endpoint_auth_methods_supported,omitempty"`
+	UserinfoEndpoint                  *string                `json:"userinfo_endpoint,omitempty"`
+	AdditionalProperties              map[string]interface{} `json:"-"`
+}
+
+// OAuth2ErrorResponse defines model for OAuth2ErrorResponse.
+type OAuth2ErrorResponse struct {
+	// Error OAuth2 error code
+	Error string `json:"error"`
+
+	// ErrorDescription Human-readable error description
+	ErrorDescription *string `json:"error_description,omitempty"`
+}
+
+// OAuth2IntrospectRequest defines model for OAuth2IntrospectRequest.
+type OAuth2IntrospectRequest struct {
+	ClientId      *string                               `json:"client_id"`
+	ClientSecret  *string                               `json:"client_secret"`
+	Token         string                                `json:"token"`
+	TokenTypeHint *OAuth2IntrospectRequestTokenTypeHint `json:"token_type_hint"`
+}
+
+// OAuth2IntrospectRequestTokenTypeHint defines model for OAuth2IntrospectRequest.TokenTypeHint.
+type OAuth2IntrospectRequestTokenTypeHint string
+
+// OAuth2IntrospectResponse defines model for OAuth2IntrospectResponse.
+type OAuth2IntrospectResponse struct {
+	Active               bool                   `json:"active"`
+	ClientId             *string                `json:"client_id,omitempty"`
+	Exp                  *int                   `json:"exp,omitempty"`
+	Iat                  *int                   `json:"iat,omitempty"`
+	Iss                  *string                `json:"iss,omitempty"`
+	Scope                *string                `json:"scope,omitempty"`
+	Sub                  *string                `json:"sub,omitempty"`
+	TokenType            *string                `json:"token_type,omitempty"`
+	AdditionalProperties map[string]interface{} `json:"-"`
+}
+
+// OAuth2JWKSResponse defines model for OAuth2JWKSResponse.
+type OAuth2JWKSResponse struct {
+	Keys []struct {
+		Alg *string `json:"alg,omitempty"`
+		E   *string `json:"e,omitempty"`
+		Kid *string `json:"kid,omitempty"`
+		Kty *string `json:"kty,omitempty"`
+		N   *string `json:"n,omitempty"`
+		Use *string `json:"use,omitempty"`
+	} `json:"keys"`
+}
+
+// OAuth2LoginCompleteResponse defines model for OAuth2LoginCompleteResponse.
+type OAuth2LoginCompleteResponse struct {
+	RedirectUri string `json:"redirectUri"`
+}
+
+// OAuth2LoginRequest defines model for OAuth2LoginRequest.
+type OAuth2LoginRequest struct {
+	RequestId openapi_types.UUID `json:"requestId"`
+}
+
+// OAuth2LoginResponse defines model for OAuth2LoginResponse.
+type OAuth2LoginResponse struct {
+	ClientId    string             `json:"clientId"`
+	ClientName  string             `json:"clientName"`
+	RedirectUri string             `json:"redirectUri"`
+	RequestId   openapi_types.UUID `json:"requestId"`
+	Scopes      []string           `json:"scopes"`
+}
+
+// OAuth2RegisterRequest defines model for OAuth2RegisterRequest.
+type OAuth2RegisterRequest struct {
+	ClientName              string                                        `json:"client_name"`
+	ClientUri               *string                                       `json:"client_uri,omitempty"`
+	GrantTypes              *[]string                                     `json:"grant_types,omitempty"`
+	LogoUri                 *string                                       `json:"logo_uri,omitempty"`
+	RedirectUris            []string                                      `json:"redirect_uris"`
+	ResponseTypes           *[]string                                     `json:"response_types,omitempty"`
+	Scope                   *string                                       `json:"scope,omitempty"`
+	TokenEndpointAuthMethod *OAuth2RegisterRequestTokenEndpointAuthMethod `json:"token_endpoint_auth_method,omitempty"`
+}
+
+// OAuth2RegisterRequestTokenEndpointAuthMethod defines model for OAuth2RegisterRequest.TokenEndpointAuthMethod.
+type OAuth2RegisterRequestTokenEndpointAuthMethod string
+
+// OAuth2RegisterResponse defines model for OAuth2RegisterResponse.
+type OAuth2RegisterResponse struct {
+	ClientId                string    `json:"client_id"`
+	ClientName              string    `json:"client_name"`
+	ClientSecret            *string   `json:"client_secret,omitempty"`
+	ClientUri               *string   `json:"client_uri,omitempty"`
+	GrantTypes              *[]string `json:"grant_types,omitempty"`
+	LogoUri                 *string   `json:"logo_uri,omitempty"`
+	RedirectUris            []string  `json:"redirect_uris"`
+	ResponseTypes           *[]string `json:"response_types,omitempty"`
+	Scope                   *string   `json:"scope,omitempty"`
+	TokenEndpointAuthMethod *string   `json:"token_endpoint_auth_method,omitempty"`
+}
+
+// OAuth2RevokeRequest defines model for OAuth2RevokeRequest.
+type OAuth2RevokeRequest struct {
+	ClientId      *string                           `json:"client_id"`
+	ClientSecret  *string                           `json:"client_secret"`
+	Token         string                            `json:"token"`
+	TokenTypeHint *OAuth2RevokeRequestTokenTypeHint `json:"token_type_hint"`
+}
+
+// OAuth2RevokeRequestTokenTypeHint defines model for OAuth2RevokeRequest.TokenTypeHint.
+type OAuth2RevokeRequestTokenTypeHint string
+
+// OAuth2TokenRequest defines model for OAuth2TokenRequest.
+type OAuth2TokenRequest struct {
+	ClientId     *string                     `json:"client_id"`
+	ClientSecret *string                     `json:"client_secret"`
+	Code         *string                     `json:"code"`
+	CodeVerifier *string                     `json:"code_verifier"`
+	GrantType    OAuth2TokenRequestGrantType `json:"grant_type"`
+	RedirectUri  *string                     `json:"redirect_uri"`
+	RefreshToken *string                     `json:"refresh_token"`
+	Resource     *string                     `json:"resource"`
+}
+
+// OAuth2TokenRequestGrantType defines model for OAuth2TokenRequest.GrantType.
+type OAuth2TokenRequestGrantType string
+
+// OAuth2TokenResponse defines model for OAuth2TokenResponse.
+type OAuth2TokenResponse struct {
+	AccessToken  string  `json:"access_token"`
+	ExpiresIn    int     `json:"expires_in"`
+	IdToken      *string `json:"id_token,omitempty"`
+	RefreshToken *string `json:"refresh_token,omitempty"`
+	Scope        *string `json:"scope,omitempty"`
+	TokenType    string  `json:"token_type"`
+}
+
+// OAuth2UpdateClientRequest defines model for OAuth2UpdateClientRequest.
+type OAuth2UpdateClientRequest struct {
+	AccessTokenLifetime     *int      `json:"accessTokenLifetime,omitempty"`
+	ClientName              string    `json:"clientName"`
+	ClientUri               *string   `json:"clientUri,omitempty"`
+	GrantTypes              *[]string `json:"grantTypes,omitempty"`
+	IsPublic                *bool     `json:"isPublic,omitempty"`
+	LogoUri                 *string   `json:"logoUri,omitempty"`
+	RedirectUris            []string  `json:"redirectUris"`
+	RefreshTokenLifetime    *int      `json:"refreshTokenLifetime,omitempty"`
+	ResponseTypes           *[]string `json:"responseTypes,omitempty"`
+	Scopes                  *[]string `json:"scopes,omitempty"`
+	TokenEndpointAuthMethod *string   `json:"tokenEndpointAuthMethod,omitempty"`
+}
+
+// OAuth2UserinfoResponse defines model for OAuth2UserinfoResponse.
+type OAuth2UserinfoResponse struct {
+	Email                *string                `json:"email,omitempty"`
+	EmailVerified        *bool                  `json:"email_verified,omitempty"`
+	Locale               *string                `json:"locale,omitempty"`
+	Name                 *string                `json:"name,omitempty"`
+	PhoneNumber          *string                `json:"phone_number,omitempty"`
+	PhoneNumberVerified  *bool                  `json:"phone_number_verified,omitempty"`
+	Picture              *string                `json:"picture,omitempty"`
+	Sub                  string                 `json:"sub"`
+	AdditionalProperties map[string]interface{} `json:"-"`
 }
 
 // OKResponse defines model for OKResponse.
@@ -893,6 +1144,30 @@ type TicketQuery = string
 // TicketTypeQuery Type of the ticket
 type TicketTypeQuery string
 
+// Oauth2AuthorizeParams defines parameters for Oauth2Authorize.
+type Oauth2AuthorizeParams struct {
+	ClientId            string                                    `form:"client_id" json:"client_id"`
+	RedirectUri         string                                    `form:"redirect_uri" json:"redirect_uri"`
+	ResponseType        Oauth2AuthorizeParamsResponseType         `form:"response_type" json:"response_type"`
+	Scope               *string                                   `form:"scope,omitempty" json:"scope,omitempty"`
+	State               *string                                   `form:"state,omitempty" json:"state,omitempty"`
+	Nonce               *string                                   `form:"nonce,omitempty" json:"nonce,omitempty"`
+	CodeChallenge       *string                                   `form:"code_challenge,omitempty" json:"code_challenge,omitempty"`
+	CodeChallengeMethod *Oauth2AuthorizeParamsCodeChallengeMethod `form:"code_challenge_method,omitempty" json:"code_challenge_method,omitempty"`
+	Resource            *string                                   `form:"resource,omitempty" json:"resource,omitempty"`
+}
+
+// Oauth2AuthorizeParamsResponseType defines parameters for Oauth2Authorize.
+type Oauth2AuthorizeParamsResponseType string
+
+// Oauth2AuthorizeParamsCodeChallengeMethod defines parameters for Oauth2Authorize.
+type Oauth2AuthorizeParamsCodeChallengeMethod string
+
+// Oauth2LoginGetParams defines parameters for Oauth2LoginGet.
+type Oauth2LoginGetParams struct {
+	RequestId openapi_types.UUID `form:"request_id" json:"request_id"`
+}
+
 // SignInProviderParams defines parameters for SignInProvider.
 type SignInProviderParams struct {
 	// AllowedRoles Array of allowed roles for the user
@@ -1010,6 +1285,27 @@ type VerifyElevateWebauthnJSONRequestBody = SignInWebauthnVerifyRequest
 
 // LinkIdTokenJSONRequestBody defines body for LinkIdToken for application/json ContentType.
 type LinkIdTokenJSONRequestBody = LinkIdTokenRequest
+
+// Oauth2ClientsCreateJSONRequestBody defines body for Oauth2ClientsCreate for application/json ContentType.
+type Oauth2ClientsCreateJSONRequestBody = OAuth2CreateClientRequest
+
+// Oauth2ClientsUpdateJSONRequestBody defines body for Oauth2ClientsUpdate for application/json ContentType.
+type Oauth2ClientsUpdateJSONRequestBody = OAuth2UpdateClientRequest
+
+// Oauth2IntrospectFormdataRequestBody defines body for Oauth2Introspect for application/x-www-form-urlencoded ContentType.
+type Oauth2IntrospectFormdataRequestBody = OAuth2IntrospectRequest
+
+// Oauth2LoginPostJSONRequestBody defines body for Oauth2LoginPost for application/json ContentType.
+type Oauth2LoginPostJSONRequestBody = OAuth2LoginRequest
+
+// Oauth2RegisterJSONRequestBody defines body for Oauth2Register for application/json ContentType.
+type Oauth2RegisterJSONRequestBody = OAuth2RegisterRequest
+
+// Oauth2RevokeFormdataRequestBody defines body for Oauth2Revoke for application/x-www-form-urlencoded ContentType.
+type Oauth2RevokeFormdataRequestBody = OAuth2RevokeRequest
+
+// Oauth2TokenFormdataRequestBody defines body for Oauth2Token for application/x-www-form-urlencoded ContentType.
+type Oauth2TokenFormdataRequestBody = OAuth2TokenRequest
 
 // CreatePATJSONRequestBody defines body for CreatePAT for application/json ContentType.
 type CreatePATJSONRequestBody = CreatePATRequest
@@ -1338,6 +1634,616 @@ func (a AuthenticationExtensionsClientOutputs) MarshalJSON() ([]byte, error) {
 		if err != nil {
 			return nil, fmt.Errorf("error marshaling 'hmacCreateSecret': %w", err)
 		}
+	}
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
+
+// Getter for additional properties for OAuth2DiscoveryResponse. Returns the specified
+// element and whether it was found
+func (a OAuth2DiscoveryResponse) Get(fieldName string) (value interface{}, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for OAuth2DiscoveryResponse
+func (a *OAuth2DiscoveryResponse) Set(fieldName string, value interface{}) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]interface{})
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for OAuth2DiscoveryResponse to handle AdditionalProperties
+func (a *OAuth2DiscoveryResponse) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if raw, found := object["authorization_endpoint"]; found {
+		err = json.Unmarshal(raw, &a.AuthorizationEndpoint)
+		if err != nil {
+			return fmt.Errorf("error reading 'authorization_endpoint': %w", err)
+		}
+		delete(object, "authorization_endpoint")
+	}
+
+	if raw, found := object["code_challenge_methods_supported"]; found {
+		err = json.Unmarshal(raw, &a.CodeChallengeMethodsSupported)
+		if err != nil {
+			return fmt.Errorf("error reading 'code_challenge_methods_supported': %w", err)
+		}
+		delete(object, "code_challenge_methods_supported")
+	}
+
+	if raw, found := object["grant_types_supported"]; found {
+		err = json.Unmarshal(raw, &a.GrantTypesSupported)
+		if err != nil {
+			return fmt.Errorf("error reading 'grant_types_supported': %w", err)
+		}
+		delete(object, "grant_types_supported")
+	}
+
+	if raw, found := object["id_token_signing_alg_values_supported"]; found {
+		err = json.Unmarshal(raw, &a.IdTokenSigningAlgValuesSupported)
+		if err != nil {
+			return fmt.Errorf("error reading 'id_token_signing_alg_values_supported': %w", err)
+		}
+		delete(object, "id_token_signing_alg_values_supported")
+	}
+
+	if raw, found := object["introspection_endpoint"]; found {
+		err = json.Unmarshal(raw, &a.IntrospectionEndpoint)
+		if err != nil {
+			return fmt.Errorf("error reading 'introspection_endpoint': %w", err)
+		}
+		delete(object, "introspection_endpoint")
+	}
+
+	if raw, found := object["issuer"]; found {
+		err = json.Unmarshal(raw, &a.Issuer)
+		if err != nil {
+			return fmt.Errorf("error reading 'issuer': %w", err)
+		}
+		delete(object, "issuer")
+	}
+
+	if raw, found := object["jwks_uri"]; found {
+		err = json.Unmarshal(raw, &a.JwksUri)
+		if err != nil {
+			return fmt.Errorf("error reading 'jwks_uri': %w", err)
+		}
+		delete(object, "jwks_uri")
+	}
+
+	if raw, found := object["registration_endpoint"]; found {
+		err = json.Unmarshal(raw, &a.RegistrationEndpoint)
+		if err != nil {
+			return fmt.Errorf("error reading 'registration_endpoint': %w", err)
+		}
+		delete(object, "registration_endpoint")
+	}
+
+	if raw, found := object["response_types_supported"]; found {
+		err = json.Unmarshal(raw, &a.ResponseTypesSupported)
+		if err != nil {
+			return fmt.Errorf("error reading 'response_types_supported': %w", err)
+		}
+		delete(object, "response_types_supported")
+	}
+
+	if raw, found := object["revocation_endpoint"]; found {
+		err = json.Unmarshal(raw, &a.RevocationEndpoint)
+		if err != nil {
+			return fmt.Errorf("error reading 'revocation_endpoint': %w", err)
+		}
+		delete(object, "revocation_endpoint")
+	}
+
+	if raw, found := object["scopes_supported"]; found {
+		err = json.Unmarshal(raw, &a.ScopesSupported)
+		if err != nil {
+			return fmt.Errorf("error reading 'scopes_supported': %w", err)
+		}
+		delete(object, "scopes_supported")
+	}
+
+	if raw, found := object["subject_types_supported"]; found {
+		err = json.Unmarshal(raw, &a.SubjectTypesSupported)
+		if err != nil {
+			return fmt.Errorf("error reading 'subject_types_supported': %w", err)
+		}
+		delete(object, "subject_types_supported")
+	}
+
+	if raw, found := object["token_endpoint"]; found {
+		err = json.Unmarshal(raw, &a.TokenEndpoint)
+		if err != nil {
+			return fmt.Errorf("error reading 'token_endpoint': %w", err)
+		}
+		delete(object, "token_endpoint")
+	}
+
+	if raw, found := object["token_endpoint_auth_methods_supported"]; found {
+		err = json.Unmarshal(raw, &a.TokenEndpointAuthMethodsSupported)
+		if err != nil {
+			return fmt.Errorf("error reading 'token_endpoint_auth_methods_supported': %w", err)
+		}
+		delete(object, "token_endpoint_auth_methods_supported")
+	}
+
+	if raw, found := object["userinfo_endpoint"]; found {
+		err = json.Unmarshal(raw, &a.UserinfoEndpoint)
+		if err != nil {
+			return fmt.Errorf("error reading 'userinfo_endpoint': %w", err)
+		}
+		delete(object, "userinfo_endpoint")
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]interface{})
+		for fieldName, fieldBuf := range object {
+			var fieldVal interface{}
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for OAuth2DiscoveryResponse to handle AdditionalProperties
+func (a OAuth2DiscoveryResponse) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	object["authorization_endpoint"], err = json.Marshal(a.AuthorizationEndpoint)
+	if err != nil {
+		return nil, fmt.Errorf("error marshaling 'authorization_endpoint': %w", err)
+	}
+
+	if a.CodeChallengeMethodsSupported != nil {
+		object["code_challenge_methods_supported"], err = json.Marshal(a.CodeChallengeMethodsSupported)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'code_challenge_methods_supported': %w", err)
+		}
+	}
+
+	if a.GrantTypesSupported != nil {
+		object["grant_types_supported"], err = json.Marshal(a.GrantTypesSupported)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'grant_types_supported': %w", err)
+		}
+	}
+
+	if a.IdTokenSigningAlgValuesSupported != nil {
+		object["id_token_signing_alg_values_supported"], err = json.Marshal(a.IdTokenSigningAlgValuesSupported)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'id_token_signing_alg_values_supported': %w", err)
+		}
+	}
+
+	if a.IntrospectionEndpoint != nil {
+		object["introspection_endpoint"], err = json.Marshal(a.IntrospectionEndpoint)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'introspection_endpoint': %w", err)
+		}
+	}
+
+	object["issuer"], err = json.Marshal(a.Issuer)
+	if err != nil {
+		return nil, fmt.Errorf("error marshaling 'issuer': %w", err)
+	}
+
+	object["jwks_uri"], err = json.Marshal(a.JwksUri)
+	if err != nil {
+		return nil, fmt.Errorf("error marshaling 'jwks_uri': %w", err)
+	}
+
+	if a.RegistrationEndpoint != nil {
+		object["registration_endpoint"], err = json.Marshal(a.RegistrationEndpoint)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'registration_endpoint': %w", err)
+		}
+	}
+
+	object["response_types_supported"], err = json.Marshal(a.ResponseTypesSupported)
+	if err != nil {
+		return nil, fmt.Errorf("error marshaling 'response_types_supported': %w", err)
+	}
+
+	if a.RevocationEndpoint != nil {
+		object["revocation_endpoint"], err = json.Marshal(a.RevocationEndpoint)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'revocation_endpoint': %w", err)
+		}
+	}
+
+	if a.ScopesSupported != nil {
+		object["scopes_supported"], err = json.Marshal(a.ScopesSupported)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'scopes_supported': %w", err)
+		}
+	}
+
+	if a.SubjectTypesSupported != nil {
+		object["subject_types_supported"], err = json.Marshal(a.SubjectTypesSupported)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'subject_types_supported': %w", err)
+		}
+	}
+
+	object["token_endpoint"], err = json.Marshal(a.TokenEndpoint)
+	if err != nil {
+		return nil, fmt.Errorf("error marshaling 'token_endpoint': %w", err)
+	}
+
+	if a.TokenEndpointAuthMethodsSupported != nil {
+		object["token_endpoint_auth_methods_supported"], err = json.Marshal(a.TokenEndpointAuthMethodsSupported)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'token_endpoint_auth_methods_supported': %w", err)
+		}
+	}
+
+	if a.UserinfoEndpoint != nil {
+		object["userinfo_endpoint"], err = json.Marshal(a.UserinfoEndpoint)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'userinfo_endpoint': %w", err)
+		}
+	}
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
+
+// Getter for additional properties for OAuth2IntrospectResponse. Returns the specified
+// element and whether it was found
+func (a OAuth2IntrospectResponse) Get(fieldName string) (value interface{}, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for OAuth2IntrospectResponse
+func (a *OAuth2IntrospectResponse) Set(fieldName string, value interface{}) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]interface{})
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for OAuth2IntrospectResponse to handle AdditionalProperties
+func (a *OAuth2IntrospectResponse) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if raw, found := object["active"]; found {
+		err = json.Unmarshal(raw, &a.Active)
+		if err != nil {
+			return fmt.Errorf("error reading 'active': %w", err)
+		}
+		delete(object, "active")
+	}
+
+	if raw, found := object["client_id"]; found {
+		err = json.Unmarshal(raw, &a.ClientId)
+		if err != nil {
+			return fmt.Errorf("error reading 'client_id': %w", err)
+		}
+		delete(object, "client_id")
+	}
+
+	if raw, found := object["exp"]; found {
+		err = json.Unmarshal(raw, &a.Exp)
+		if err != nil {
+			return fmt.Errorf("error reading 'exp': %w", err)
+		}
+		delete(object, "exp")
+	}
+
+	if raw, found := object["iat"]; found {
+		err = json.Unmarshal(raw, &a.Iat)
+		if err != nil {
+			return fmt.Errorf("error reading 'iat': %w", err)
+		}
+		delete(object, "iat")
+	}
+
+	if raw, found := object["iss"]; found {
+		err = json.Unmarshal(raw, &a.Iss)
+		if err != nil {
+			return fmt.Errorf("error reading 'iss': %w", err)
+		}
+		delete(object, "iss")
+	}
+
+	if raw, found := object["scope"]; found {
+		err = json.Unmarshal(raw, &a.Scope)
+		if err != nil {
+			return fmt.Errorf("error reading 'scope': %w", err)
+		}
+		delete(object, "scope")
+	}
+
+	if raw, found := object["sub"]; found {
+		err = json.Unmarshal(raw, &a.Sub)
+		if err != nil {
+			return fmt.Errorf("error reading 'sub': %w", err)
+		}
+		delete(object, "sub")
+	}
+
+	if raw, found := object["token_type"]; found {
+		err = json.Unmarshal(raw, &a.TokenType)
+		if err != nil {
+			return fmt.Errorf("error reading 'token_type': %w", err)
+		}
+		delete(object, "token_type")
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]interface{})
+		for fieldName, fieldBuf := range object {
+			var fieldVal interface{}
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for OAuth2IntrospectResponse to handle AdditionalProperties
+func (a OAuth2IntrospectResponse) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	object["active"], err = json.Marshal(a.Active)
+	if err != nil {
+		return nil, fmt.Errorf("error marshaling 'active': %w", err)
+	}
+
+	if a.ClientId != nil {
+		object["client_id"], err = json.Marshal(a.ClientId)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'client_id': %w", err)
+		}
+	}
+
+	if a.Exp != nil {
+		object["exp"], err = json.Marshal(a.Exp)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'exp': %w", err)
+		}
+	}
+
+	if a.Iat != nil {
+		object["iat"], err = json.Marshal(a.Iat)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'iat': %w", err)
+		}
+	}
+
+	if a.Iss != nil {
+		object["iss"], err = json.Marshal(a.Iss)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'iss': %w", err)
+		}
+	}
+
+	if a.Scope != nil {
+		object["scope"], err = json.Marshal(a.Scope)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'scope': %w", err)
+		}
+	}
+
+	if a.Sub != nil {
+		object["sub"], err = json.Marshal(a.Sub)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'sub': %w", err)
+		}
+	}
+
+	if a.TokenType != nil {
+		object["token_type"], err = json.Marshal(a.TokenType)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'token_type': %w", err)
+		}
+	}
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
+
+// Getter for additional properties for OAuth2UserinfoResponse. Returns the specified
+// element and whether it was found
+func (a OAuth2UserinfoResponse) Get(fieldName string) (value interface{}, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for OAuth2UserinfoResponse
+func (a *OAuth2UserinfoResponse) Set(fieldName string, value interface{}) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]interface{})
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for OAuth2UserinfoResponse to handle AdditionalProperties
+func (a *OAuth2UserinfoResponse) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if raw, found := object["email"]; found {
+		err = json.Unmarshal(raw, &a.Email)
+		if err != nil {
+			return fmt.Errorf("error reading 'email': %w", err)
+		}
+		delete(object, "email")
+	}
+
+	if raw, found := object["email_verified"]; found {
+		err = json.Unmarshal(raw, &a.EmailVerified)
+		if err != nil {
+			return fmt.Errorf("error reading 'email_verified': %w", err)
+		}
+		delete(object, "email_verified")
+	}
+
+	if raw, found := object["locale"]; found {
+		err = json.Unmarshal(raw, &a.Locale)
+		if err != nil {
+			return fmt.Errorf("error reading 'locale': %w", err)
+		}
+		delete(object, "locale")
+	}
+
+	if raw, found := object["name"]; found {
+		err = json.Unmarshal(raw, &a.Name)
+		if err != nil {
+			return fmt.Errorf("error reading 'name': %w", err)
+		}
+		delete(object, "name")
+	}
+
+	if raw, found := object["phone_number"]; found {
+		err = json.Unmarshal(raw, &a.PhoneNumber)
+		if err != nil {
+			return fmt.Errorf("error reading 'phone_number': %w", err)
+		}
+		delete(object, "phone_number")
+	}
+
+	if raw, found := object["phone_number_verified"]; found {
+		err = json.Unmarshal(raw, &a.PhoneNumberVerified)
+		if err != nil {
+			return fmt.Errorf("error reading 'phone_number_verified': %w", err)
+		}
+		delete(object, "phone_number_verified")
+	}
+
+	if raw, found := object["picture"]; found {
+		err = json.Unmarshal(raw, &a.Picture)
+		if err != nil {
+			return fmt.Errorf("error reading 'picture': %w", err)
+		}
+		delete(object, "picture")
+	}
+
+	if raw, found := object["sub"]; found {
+		err = json.Unmarshal(raw, &a.Sub)
+		if err != nil {
+			return fmt.Errorf("error reading 'sub': %w", err)
+		}
+		delete(object, "sub")
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]interface{})
+		for fieldName, fieldBuf := range object {
+			var fieldVal interface{}
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for OAuth2UserinfoResponse to handle AdditionalProperties
+func (a OAuth2UserinfoResponse) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	if a.Email != nil {
+		object["email"], err = json.Marshal(a.Email)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'email': %w", err)
+		}
+	}
+
+	if a.EmailVerified != nil {
+		object["email_verified"], err = json.Marshal(a.EmailVerified)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'email_verified': %w", err)
+		}
+	}
+
+	if a.Locale != nil {
+		object["locale"], err = json.Marshal(a.Locale)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'locale': %w", err)
+		}
+	}
+
+	if a.Name != nil {
+		object["name"], err = json.Marshal(a.Name)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'name': %w", err)
+		}
+	}
+
+	if a.PhoneNumber != nil {
+		object["phone_number"], err = json.Marshal(a.PhoneNumber)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'phone_number': %w", err)
+		}
+	}
+
+	if a.PhoneNumberVerified != nil {
+		object["phone_number_verified"], err = json.Marshal(a.PhoneNumberVerified)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'phone_number_verified': %w", err)
+		}
+	}
+
+	if a.Picture != nil {
+		object["picture"], err = json.Marshal(a.Picture)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'picture': %w", err)
+		}
+	}
+
+	object["sub"], err = json.Marshal(a.Sub)
+	if err != nil {
+		return nil, fmt.Errorf("error marshaling 'sub': %w", err)
 	}
 
 	for fieldName, field := range a.AdditionalProperties {

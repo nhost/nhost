@@ -426,3 +426,159 @@ UPDATE auth.user_providers
 SET access_token = ''
 WHERE user_id = @user_id AND provider_id = @provider_id
 RETURNING (SELECT access_token FROM old_token);
+
+-- =============================================================================
+-- OAuth2 Provider - Signing Keys
+-- =============================================================================
+
+-- name: GetActiveOAuth2SigningKey :one
+SELECT * FROM auth.oauth2_signing_keys
+WHERE is_active = true
+ORDER BY created_at DESC
+LIMIT 1;
+
+-- name: GetOAuth2SigningKeys :many
+SELECT * FROM auth.oauth2_signing_keys
+ORDER BY created_at DESC;
+
+-- name: InsertOAuth2SigningKey :one
+INSERT INTO auth.oauth2_signing_keys (private_key, public_key, algorithm, key_id, is_active)
+VALUES ($1, $2, $3, $4, $5)
+RETURNING *;
+
+-- =============================================================================
+-- OAuth2 Provider - Clients
+-- =============================================================================
+
+-- name: GetOAuth2ClientByClientID :one
+SELECT * FROM auth.oauth2_clients
+WHERE client_id = $1
+LIMIT 1;
+
+-- name: ListOAuth2Clients :many
+SELECT * FROM auth.oauth2_clients
+ORDER BY created_at DESC;
+
+-- name: InsertOAuth2Client :one
+INSERT INTO auth.oauth2_clients (
+    client_id, client_secret_hash, client_name, client_uri, logo_uri,
+    redirect_uris, grant_types, response_types, scopes, is_public,
+    token_endpoint_auth_method, id_token_signed_response_alg,
+    access_token_lifetime, refresh_token_lifetime
+) VALUES (
+    $1, $2, $3, $4, $5,
+    $6, $7, $8, $9, $10,
+    $11, $12,
+    $13, $14
+)
+RETURNING *;
+
+-- name: UpdateOAuth2Client :one
+UPDATE auth.oauth2_clients
+SET
+    client_name = $2,
+    client_uri = $3,
+    logo_uri = $4,
+    redirect_uris = $5,
+    grant_types = $6,
+    response_types = $7,
+    scopes = $8,
+    is_public = $9,
+    token_endpoint_auth_method = $10,
+    access_token_lifetime = $11,
+    refresh_token_lifetime = $12
+WHERE client_id = $1
+RETURNING *;
+
+-- name: DeleteOAuth2Client :exec
+DELETE FROM auth.oauth2_clients
+WHERE client_id = $1;
+
+-- =============================================================================
+-- OAuth2 Provider - Auth Requests
+-- =============================================================================
+
+-- name: InsertOAuth2AuthRequest :one
+INSERT INTO auth.oauth2_auth_requests (
+    client_id, scopes, redirect_uri, state, nonce,
+    response_type, code_challenge, code_challenge_method,
+    resource, expires_at
+) VALUES (
+    $1, $2, $3, $4, $5,
+    $6, $7, $8,
+    $9, $10
+)
+RETURNING *;
+
+-- name: GetOAuth2AuthRequest :one
+SELECT * FROM auth.oauth2_auth_requests
+WHERE id = $1
+LIMIT 1;
+
+-- name: UpdateOAuth2AuthRequestSetUser :one
+UPDATE auth.oauth2_auth_requests
+SET user_id = $2, done = true, auth_time = now()
+WHERE id = $1
+RETURNING *;
+
+-- name: DeleteOAuth2AuthRequest :exec
+DELETE FROM auth.oauth2_auth_requests
+WHERE id = $1;
+
+-- name: DeleteExpiredOAuth2AuthRequests :exec
+DELETE FROM auth.oauth2_auth_requests
+WHERE expires_at < now();
+
+-- =============================================================================
+-- OAuth2 Provider - Authorization Codes
+-- =============================================================================
+
+-- name: InsertOAuth2AuthorizationCode :one
+INSERT INTO auth.oauth2_authorization_codes (code_hash, auth_request_id, expires_at)
+VALUES ($1, $2, $3)
+RETURNING *;
+
+-- name: GetOAuth2AuthRequestByCodeHash :one
+SELECT ar.* FROM auth.oauth2_auth_requests ar
+JOIN auth.oauth2_authorization_codes ac ON ac.auth_request_id = ar.id
+WHERE ac.code_hash = $1 AND ac.expires_at > now()
+LIMIT 1;
+
+-- name: DeleteOAuth2AuthorizationCode :exec
+DELETE FROM auth.oauth2_authorization_codes
+WHERE code_hash = $1;
+
+-- =============================================================================
+-- OAuth2 Provider - Refresh Tokens
+-- =============================================================================
+
+-- name: InsertOAuth2RefreshToken :one
+INSERT INTO auth.oauth2_refresh_tokens (
+    token_hash, auth_request_id, client_id, user_id, scopes, expires_at
+) VALUES (
+    $1, $2, $3, $4, $5, $6
+)
+RETURNING *;
+
+-- name: GetOAuth2RefreshTokenByHash :one
+SELECT * FROM auth.oauth2_refresh_tokens
+WHERE token_hash = $1 AND expires_at > now()
+LIMIT 1;
+
+-- name: DeleteOAuth2RefreshToken :exec
+DELETE FROM auth.oauth2_refresh_tokens
+WHERE token_hash = $1;
+
+-- name: UpdateOAuth2RefreshToken :one
+UPDATE auth.oauth2_refresh_tokens
+SET token_hash = $2, expires_at = $3
+WHERE token_hash = $1
+RETURNING *;
+
+-- name: DeleteOAuth2RefreshTokensByUserID :exec
+DELETE FROM auth.oauth2_refresh_tokens
+WHERE user_id = $1;
+
+-- name: DeleteExpiredOAuth2RefreshTokens :exec
+DELETE FROM auth.oauth2_refresh_tokens
+WHERE expires_at < now();

@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign in — Nhost</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 420px;
+            width: 90%;
+        }
+        h1 { font-size: 22px; margin-bottom: 4px; }
+        .subtitle { color: #666; margin-bottom: 24px; font-size: 14px; }
+        .client-info {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 14px;
+            margin-bottom: 24px;
+            font-size: 14px;
+        }
+        .client-info .label { color: #888; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .client-info .value { font-weight: 500; margin-bottom: 8px; }
+        .client-info .value:last-child { margin-bottom: 0; }
+        .scopes { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+        .scope-tag {
+            background: #e8f0fe;
+            color: #1a73e8;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .form-group { margin-bottom: 16px; }
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 6px;
+        }
+        input[type="email"],
+        input[type="password"] {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+        input:focus {
+            outline: none;
+            border-color: #0052cc;
+            box-shadow: 0 0 0 3px rgba(0,82,204,0.1);
+        }
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-primary {
+            background: #0052cc;
+            color: white;
+        }
+        .btn-primary:hover { background: #003d99; }
+        .btn-primary:disabled {
+            background: #99bfff;
+            cursor: not-allowed;
+        }
+        .btn-cancel {
+            background: #f0f0f0;
+            color: #333;
+            margin-top: 8px;
+        }
+        .btn-cancel:hover { background: #e0e0e0; }
+        .error {
+            background: #fef2f2;
+            color: #dc2626;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-bottom: 16px;
+            display: none;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #888;
+        }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="loading" class="loading">Loading authorization request...</div>
+
+        <div id="error-page" class="hidden">
+            <h1>Error</h1>
+            <p id="error-page-msg" class="subtitle" style="color:#dc2626;"></p>
+        </div>
+
+        <div id="consent-form" class="hidden">
+            <h1>Sign in to continue</h1>
+            <p class="subtitle"><span id="client-name"></span> is requesting access to your account.</p>
+
+            <div class="client-info">
+                <div class="label">Application</div>
+                <div class="value" id="info-client-name"></div>
+                <div class="label">Redirect</div>
+                <div class="value" id="info-redirect" style="word-break:break-all;font-size:13px;"></div>
+                <div class="label">Scopes</div>
+                <div class="scopes" id="info-scopes"></div>
+            </div>
+
+            <div id="form-error" class="error"></div>
+
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required autocomplete="email" placeholder="demo@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required autocomplete="current-password" placeholder="Enter your password">
+                </div>
+                <button type="submit" class="btn btn-primary" id="submit-btn">Sign in &amp; Authorize</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const AUTH_URL = 'http://localhost:4000';
+        let requestId = null;
+
+        async function init() {
+            const params = new URLSearchParams(window.location.search);
+            requestId = params.get('request_id');
+
+            if (!requestId) {
+                showError('Missing request_id parameter. This page should be accessed via an OAuth2 authorization flow.');
+                return;
+            }
+
+            try {
+                const resp = await fetch(`${AUTH_URL}/oauth2/login?request_id=${encodeURIComponent(requestId)}`);
+                const data = await resp.json();
+
+                if (!resp.ok) {
+                    showError(data.message || data.error_description || 'Failed to load authorization request.');
+                    return;
+                }
+
+                document.getElementById('client-name').textContent = data.clientName;
+                document.getElementById('info-client-name').textContent = data.clientName;
+                document.getElementById('info-redirect').textContent = data.redirectUri;
+
+                const scopesEl = document.getElementById('info-scopes');
+                (data.scopes || []).forEach(function(scope) {
+                    const tag = document.createElement('span');
+                    tag.className = 'scope-tag';
+                    tag.textContent = scope;
+                    scopesEl.appendChild(tag);
+                });
+
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('consent-form').classList.remove('hidden');
+            } catch (err) {
+                showError('Could not connect to the auth service. Is it running on ' + AUTH_URL + '?');
+            }
+        }
+
+        function showError(msg) {
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('error-page').classList.remove('hidden');
+            document.getElementById('error-page-msg').textContent = msg;
+        }
+
+        function showFormError(msg) {
+            const el = document.getElementById('form-error');
+            el.textContent = msg;
+            el.style.display = 'block';
+        }
+
+        document.getElementById('login-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const btn = document.getElementById('submit-btn');
+
+            btn.disabled = true;
+            btn.textContent = 'Signing in...';
+            document.getElementById('form-error').style.display = 'none';
+
+            try {
+                // Step 1: Sign in to get a JWT
+                const signInResp = await fetch(`${AUTH_URL}/signin/email-password`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email, password: password }),
+                });
+                const signInData = await signInResp.json();
+
+                if (!signInResp.ok) {
+                    showFormError(signInData.message || 'Sign in failed.');
+                    btn.disabled = false;
+                    btn.textContent = 'Sign in & Authorize';
+                    return;
+                }
+
+                const accessToken = signInData.session && signInData.session.accessToken;
+                if (!accessToken) {
+                    showFormError('Sign in succeeded but no access token was returned.');
+                    btn.disabled = false;
+                    btn.textContent = 'Sign in & Authorize';
+                    return;
+                }
+
+                // Step 2: Complete the OAuth2 login/consent
+                btn.textContent = 'Authorizing...';
+
+                const consentResp = await fetch(`${AUTH_URL}/oauth2/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`,
+                    },
+                    body: JSON.stringify({ requestId: requestId }),
+                });
+                const consentData = await consentResp.json();
+
+                if (!consentResp.ok) {
+                    showFormError(consentData.message || consentData.error_description || 'Authorization failed.');
+                    btn.disabled = false;
+                    btn.textContent = 'Sign in & Authorize';
+                    return;
+                }
+
+                // Step 3: Redirect to the authorization callback
+                if (consentData.redirectUri) {
+                    window.location.href = consentData.redirectUri;
+                } else {
+                    showFormError('No redirect URI returned from authorization.');
+                    btn.disabled = false;
+                    btn.textContent = 'Sign in & Authorize';
+                }
+            } catch (err) {
+                showFormError('Network error: ' + err.message);
+                btn.disabled = false;
+                btn.textContent = 'Sign in & Authorize';
+            }
+        });
+
+        init();
+    </script>
+</body>
+</html>

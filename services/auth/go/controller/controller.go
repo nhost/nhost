@@ -10,6 +10,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/nhost/nhost/services/auth/go/notifications"
 	"github.com/nhost/nhost/services/auth/go/oidc"
+	oidcprovider "github.com/nhost/nhost/services/auth/go/oidc/provider"
 	"github.com/nhost/nhost/services/auth/go/providers"
 	"github.com/nhost/nhost/services/auth/go/sql"
 )
@@ -111,11 +112,57 @@ type DBClientUserProvider interface {
 	) (sql.AuthUserProvider, error)
 }
 
+type DBClientOAuth2Provider interface { //nolint:interfacebloat
+	GetActiveOAuth2SigningKey(ctx context.Context) (sql.AuthOauth2SigningKey, error)
+	GetOAuth2SigningKeys(ctx context.Context) ([]sql.AuthOauth2SigningKey, error)
+	InsertOAuth2SigningKey(
+		ctx context.Context, arg sql.InsertOAuth2SigningKeyParams,
+	) (sql.AuthOauth2SigningKey, error)
+	GetOAuth2ClientByClientID(ctx context.Context, clientID string) (sql.AuthOauth2Client, error)
+	ListOAuth2Clients(ctx context.Context) ([]sql.AuthOauth2Client, error)
+	InsertOAuth2Client(
+		ctx context.Context, arg sql.InsertOAuth2ClientParams,
+	) (sql.AuthOauth2Client, error)
+	UpdateOAuth2Client(
+		ctx context.Context, arg sql.UpdateOAuth2ClientParams,
+	) (sql.AuthOauth2Client, error)
+	DeleteOAuth2Client(ctx context.Context, clientID string) error
+	InsertOAuth2AuthRequest(
+		ctx context.Context, arg sql.InsertOAuth2AuthRequestParams,
+	) (sql.AuthOauth2AuthRequest, error)
+	GetOAuth2AuthRequest(ctx context.Context, id uuid.UUID) (sql.AuthOauth2AuthRequest, error)
+	UpdateOAuth2AuthRequestSetUser(
+		ctx context.Context, arg sql.UpdateOAuth2AuthRequestSetUserParams,
+	) (sql.AuthOauth2AuthRequest, error)
+	DeleteOAuth2AuthRequest(ctx context.Context, id uuid.UUID) error
+	DeleteExpiredOAuth2AuthRequests(ctx context.Context) error
+	InsertOAuth2AuthorizationCode(
+		ctx context.Context, arg sql.InsertOAuth2AuthorizationCodeParams,
+	) (sql.AuthOauth2AuthorizationCode, error)
+	GetOAuth2AuthRequestByCodeHash(
+		ctx context.Context, codeHash string,
+	) (sql.AuthOauth2AuthRequest, error)
+	DeleteOAuth2AuthorizationCode(ctx context.Context, codeHash string) error
+	InsertOAuth2RefreshToken(
+		ctx context.Context, arg sql.InsertOAuth2RefreshTokenParams,
+	) (sql.AuthOauth2RefreshToken, error)
+	GetOAuth2RefreshTokenByHash(
+		ctx context.Context, tokenHash string,
+	) (sql.AuthOauth2RefreshToken, error)
+	DeleteOAuth2RefreshToken(ctx context.Context, tokenHash string) error
+	UpdateOAuth2RefreshToken(
+		ctx context.Context, arg sql.UpdateOAuth2RefreshTokenParams,
+	) (sql.AuthOauth2RefreshToken, error)
+	DeleteOAuth2RefreshTokensByUserID(ctx context.Context, userID uuid.UUID) error
+	DeleteExpiredOAuth2RefreshTokens(ctx context.Context) error
+}
+
 type DBClient interface { //nolint:interfacebloat
 	DBClientGetUser
 	DBClientInsertUser
 	DBClientUpdateUser
 	DBClientUserProvider
+	DBClientOAuth2Provider
 
 	CountSecurityKeysUser(ctx context.Context, userID uuid.UUID) (int64, error)
 	GetSecurityKeys(ctx context.Context, userID uuid.UUID) ([]sql.AuthUserSecurityKey, error)
@@ -148,6 +195,7 @@ type Controller struct {
 	Webauthn         *Webauthn
 	Providers        providers.Map
 	version          string
+	keyManager       *oidcprovider.KeyManager
 }
 
 func New(
@@ -162,6 +210,7 @@ func New(
 	totp *Totp,
 	encrypter Encrypter,
 	version string,
+	keyManager *oidcprovider.KeyManager,
 ) (*Controller, error) {
 	validator, err := NewWorkflows(
 		&config,
@@ -196,5 +245,6 @@ func New(
 		encrypter:        encrypter,
 		version:          version,
 		Providers:        providers,
+		keyManager:       keyManager,
 	}, nil
 }

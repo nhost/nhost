@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nhost OAuth2 Demo</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+        }
+        h1 { font-size: 24px; margin-bottom: 8px; }
+        p { color: #666; margin-bottom: 16px; line-height: 1.5; }
+        .links { margin-top: 24px; }
+        .links a {
+            display: block;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            background: #0052cc;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+        .links a:hover { background: #003d99; }
+        .links a.secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+        .links a.secondary:hover { background: #e0e0e0; }
+        .info {
+            margin-top: 24px;
+            padding: 16px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .info code {
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 13px;
+        }
+        .info ul { list-style: none; padding: 0; }
+        .info li { padding: 4px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Nhost OAuth2 Demo</h1>
+        <p>This demo showcases Nhost Auth acting as an OAuth2/OpenID Connect Identity Provider,
+           with Grafana configured as a relying party.</p>
+
+        <div class="links">
+            <a href="http://localhost:3001">Open Grafana (Sign in with Nhost)</a>
+            <a href="http://localhost:4000/.well-known/openid-configuration" class="secondary">OIDC Discovery</a>
+            <a href="http://localhost:4000/oauth2/jwks" class="secondary">JWKS Endpoint</a>
+            <a href="http://localhost:8025" class="secondary">Mailhog (Email UI)</a>
+            <a href="http://localhost:8080" class="secondary">Hasura Console</a>
+        </div>
+
+        <div class="info">
+            <strong>Test Credentials</strong>
+            <ul>
+                <li>Email: <code>demo@example.com</code></li>
+                <li>Password: <code>Demo1234!</code></li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

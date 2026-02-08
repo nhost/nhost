@@ -24,6 +24,26 @@ func (q *Queries) CountSecurityKeysUser(ctx context.Context, userID uuid.UUID) (
 	return count, err
 }
 
+const deleteExpiredOAuth2AuthRequests = `-- name: DeleteExpiredOAuth2AuthRequests :exec
+DELETE FROM auth.oauth2_auth_requests
+WHERE expires_at < now()
+`
+
+func (q *Queries) DeleteExpiredOAuth2AuthRequests(ctx context.Context) error {
+	_, err := q.db.Exec(ctx, deleteExpiredOAuth2AuthRequests)
+	return err
+}
+
+const deleteExpiredOAuth2RefreshTokens = `-- name: DeleteExpiredOAuth2RefreshTokens :exec
+DELETE FROM auth.oauth2_refresh_tokens
+WHERE expires_at < now()
+`
+
+func (q *Queries) DeleteExpiredOAuth2RefreshTokens(ctx context.Context) error {
+	_, err := q.db.Exec(ctx, deleteExpiredOAuth2RefreshTokens)
+	return err
+}
+
 const deleteExpiredRefreshTokens = `-- name: DeleteExpiredRefreshTokens :exec
 DELETE FROM auth.refresh_tokens
 WHERE expires_at < now()
@@ -31,6 +51,56 @@ WHERE expires_at < now()
 
 func (q *Queries) DeleteExpiredRefreshTokens(ctx context.Context) error {
 	_, err := q.db.Exec(ctx, deleteExpiredRefreshTokens)
+	return err
+}
+
+const deleteOAuth2AuthRequest = `-- name: DeleteOAuth2AuthRequest :exec
+DELETE FROM auth.oauth2_auth_requests
+WHERE id = $1
+`
+
+func (q *Queries) DeleteOAuth2AuthRequest(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteOAuth2AuthRequest, id)
+	return err
+}
+
+const deleteOAuth2AuthorizationCode = `-- name: DeleteOAuth2AuthorizationCode :exec
+DELETE FROM auth.oauth2_authorization_codes
+WHERE code_hash = $1
+`
+
+func (q *Queries) DeleteOAuth2AuthorizationCode(ctx context.Context, codeHash string) error {
+	_, err := q.db.Exec(ctx, deleteOAuth2AuthorizationCode, codeHash)
+	return err
+}
+
+const deleteOAuth2Client = `-- name: DeleteOAuth2Client :exec
+DELETE FROM auth.oauth2_clients
+WHERE client_id = $1
+`
+
+func (q *Queries) DeleteOAuth2Client(ctx context.Context, clientID string) error {
+	_, err := q.db.Exec(ctx, deleteOAuth2Client, clientID)
+	return err
+}
+
+const deleteOAuth2RefreshToken = `-- name: DeleteOAuth2RefreshToken :exec
+DELETE FROM auth.oauth2_refresh_tokens
+WHERE token_hash = $1
+`
+
+func (q *Queries) DeleteOAuth2RefreshToken(ctx context.Context, tokenHash string) error {
+	_, err := q.db.Exec(ctx, deleteOAuth2RefreshToken, tokenHash)
+	return err
+}
+
+const deleteOAuth2RefreshTokensByUserID = `-- name: DeleteOAuth2RefreshTokensByUserID :exec
+DELETE FROM auth.oauth2_refresh_tokens
+WHERE user_id = $1
+`
+
+func (q *Queries) DeleteOAuth2RefreshTokensByUserID(ctx context.Context, userID uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteOAuth2RefreshTokensByUserID, userID)
 	return err
 }
 
@@ -88,6 +158,183 @@ func (q *Queries) FindUserProviderByProviderId(ctx context.Context, arg FindUser
 		&i.ProviderUserID,
 	)
 	return i, err
+}
+
+const getActiveOAuth2SigningKey = `-- name: GetActiveOAuth2SigningKey :one
+
+SELECT id, private_key, public_key, algorithm, key_id, is_active, created_at, expires_at FROM auth.oauth2_signing_keys
+WHERE is_active = true
+ORDER BY created_at DESC
+LIMIT 1
+`
+
+// =============================================================================
+// OAuth2 Provider - Signing Keys
+// =============================================================================
+func (q *Queries) GetActiveOAuth2SigningKey(ctx context.Context) (AuthOauth2SigningKey, error) {
+	row := q.db.QueryRow(ctx, getActiveOAuth2SigningKey)
+	var i AuthOauth2SigningKey
+	err := row.Scan(
+		&i.ID,
+		&i.PrivateKey,
+		&i.PublicKey,
+		&i.Algorithm,
+		&i.KeyID,
+		&i.IsActive,
+		&i.CreatedAt,
+		&i.ExpiresAt,
+	)
+	return i, err
+}
+
+const getOAuth2AuthRequest = `-- name: GetOAuth2AuthRequest :one
+SELECT id, client_id, scopes, redirect_uri, state, nonce, response_type, code_challenge, code_challenge_method, resource, user_id, done, auth_time, created_at, expires_at FROM auth.oauth2_auth_requests
+WHERE id = $1
+LIMIT 1
+`
+
+func (q *Queries) GetOAuth2AuthRequest(ctx context.Context, id uuid.UUID) (AuthOauth2AuthRequest, error) {
+	row := q.db.QueryRow(ctx, getOAuth2AuthRequest, id)
+	var i AuthOauth2AuthRequest
+	err := row.Scan(
+		&i.ID,
+		&i.ClientID,
+		&i.Scopes,
+		&i.RedirectUri,
+		&i.State,
+		&i.Nonce,
+		&i.ResponseType,
+		&i.CodeChallenge,
+		&i.CodeChallengeMethod,
+		&i.Resource,
+		&i.UserID,
+		&i.Done,
+		&i.AuthTime,
+		&i.CreatedAt,
+		&i.ExpiresAt,
+	)
+	return i, err
+}
+
+const getOAuth2AuthRequestByCodeHash = `-- name: GetOAuth2AuthRequestByCodeHash :one
+SELECT ar.id, ar.client_id, ar.scopes, ar.redirect_uri, ar.state, ar.nonce, ar.response_type, ar.code_challenge, ar.code_challenge_method, ar.resource, ar.user_id, ar.done, ar.auth_time, ar.created_at, ar.expires_at FROM auth.oauth2_auth_requests ar
+JOIN auth.oauth2_authorization_codes ac ON ac.auth_request_id = ar.id
+WHERE ac.code_hash = $1 AND ac.expires_at > now()
+LIMIT 1
+`
+
+func (q *Queries) GetOAuth2AuthRequestByCodeHash(ctx context.Context, codeHash string) (AuthOauth2AuthRequest, error) {
+	row := q.db.QueryRow(ctx, getOAuth2AuthRequestByCodeHash, codeHash)
+	var i AuthOauth2AuthRequest
+	err := row.Scan(
+		&i.ID,
+		&i.ClientID,
+		&i.Scopes,
+		&i.RedirectUri,
+		&i.State,
+		&i.Nonce,
+		&i.ResponseType,
+		&i.CodeChallenge,
+		&i.CodeChallengeMethod,
+		&i.Resource,
+		&i.UserID,
+		&i.Done,
+		&i.AuthTime,
+		&i.CreatedAt,
+		&i.ExpiresAt,
+	)
+	return i, err
+}
+
+const getOAuth2ClientByClientID = `-- name: GetOAuth2ClientByClientID :one
+
+SELECT id, client_id, client_secret_hash, client_name, client_uri, logo_uri, redirect_uris, grant_types, response_types, scopes, is_public, token_endpoint_auth_method, id_token_signed_response_alg, access_token_lifetime, refresh_token_lifetime, created_at, updated_at FROM auth.oauth2_clients
+WHERE client_id = $1
+LIMIT 1
+`
+
+// =============================================================================
+// OAuth2 Provider - Clients
+// =============================================================================
+func (q *Queries) GetOAuth2ClientByClientID(ctx context.Context, clientID string) (AuthOauth2Client, error) {
+	row := q.db.QueryRow(ctx, getOAuth2ClientByClientID, clientID)
+	var i AuthOauth2Client
+	err := row.Scan(
+		&i.ID,
+		&i.ClientID,
+		&i.ClientSecretHash,
+		&i.ClientName,
+		&i.ClientUri,
+		&i.LogoUri,
+		&i.RedirectUris,
+		&i.GrantTypes,
+		&i.ResponseTypes,
+		&i.Scopes,
+		&i.IsPublic,
+		&i.TokenEndpointAuthMethod,
+		&i.IDTokenSignedResponseAlg,
+		&i.AccessTokenLifetime,
+		&i.RefreshTokenLifetime,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getOAuth2RefreshTokenByHash = `-- name: GetOAuth2RefreshTokenByHash :one
+SELECT id, token_hash, auth_request_id, client_id, user_id, scopes, created_at, expires_at FROM auth.oauth2_refresh_tokens
+WHERE token_hash = $1 AND expires_at > now()
+LIMIT 1
+`
+
+func (q *Queries) GetOAuth2RefreshTokenByHash(ctx context.Context, tokenHash string) (AuthOauth2RefreshToken, error) {
+	row := q.db.QueryRow(ctx, getOAuth2RefreshTokenByHash, tokenHash)
+	var i AuthOauth2RefreshToken
+	err := row.Scan(
+		&i.ID,
+		&i.TokenHash,
+		&i.AuthRequestID,
+		&i.ClientID,
+		&i.UserID,
+		&i.Scopes,
+		&i.CreatedAt,
+		&i.ExpiresAt,
+	)
+	return i, err
+}
+
+const getOAuth2SigningKeys = `-- name: GetOAuth2SigningKeys :many
+SELECT id, private_key, public_key, algorithm, key_id, is_active, created_at, expires_at FROM auth.oauth2_signing_keys
+ORDER BY created_at DESC
+`
+
+func (q *Queries) GetOAuth2SigningKeys(ctx context.Context) ([]AuthOauth2SigningKey, error) {
+	rows, err := q.db.Query(ctx, getOAuth2SigningKeys)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AuthOauth2SigningKey
+	for rows.Next() {
+		var i AuthOauth2SigningKey
+		if err := rows.Scan(
+			&i.ID,
+			&i.PrivateKey,
+			&i.PublicKey,
+			&i.Algorithm,
+			&i.KeyID,
+			&i.IsActive,
+			&i.CreatedAt,
+			&i.ExpiresAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getProviderSession = `-- name: GetProviderSession :one
@@ -577,6 +824,252 @@ func (q *Queries) GetUsersWithUnencryptedTOTPSecret(ctx context.Context) ([]Auth
 		return nil, err
 	}
 	return items, nil
+}
+
+const insertOAuth2AuthRequest = `-- name: InsertOAuth2AuthRequest :one
+
+INSERT INTO auth.oauth2_auth_requests (
+    client_id, scopes, redirect_uri, state, nonce,
+    response_type, code_challenge, code_challenge_method,
+    resource, expires_at
+) VALUES (
+    $1, $2, $3, $4, $5,
+    $6, $7, $8,
+    $9, $10
+)
+RETURNING id, client_id, scopes, redirect_uri, state, nonce, response_type, code_challenge, code_challenge_method, resource, user_id, done, auth_time, created_at, expires_at
+`
+
+type InsertOAuth2AuthRequestParams struct {
+	ClientID            string
+	Scopes              []string
+	RedirectUri         string
+	State               pgtype.Text
+	Nonce               pgtype.Text
+	ResponseType        string
+	CodeChallenge       pgtype.Text
+	CodeChallengeMethod pgtype.Text
+	Resource            pgtype.Text
+	ExpiresAt           pgtype.Timestamptz
+}
+
+// =============================================================================
+// OAuth2 Provider - Auth Requests
+// =============================================================================
+func (q *Queries) InsertOAuth2AuthRequest(ctx context.Context, arg InsertOAuth2AuthRequestParams) (AuthOauth2AuthRequest, error) {
+	row := q.db.QueryRow(ctx, insertOAuth2AuthRequest,
+		arg.ClientID,
+		arg.Scopes,
+		arg.RedirectUri,
+		arg.State,
+		arg.Nonce,
+		arg.ResponseType,
+		arg.CodeChallenge,
+		arg.CodeChallengeMethod,
+		arg.Resource,
+		arg.ExpiresAt,
+	)
+	var i AuthOauth2AuthRequest
+	err := row.Scan(
+		&i.ID,
+		&i.ClientID,
+		&i.Scopes,
+		&i.RedirectUri,
+		&i.State,
+		&i.Nonce,
+		&i.ResponseType,
+		&i.CodeChallenge,
+		&i.CodeChallengeMethod,
+		&i.Resource,
+		&i.UserID,
+		&i.Done,
+		&i.AuthTime,
+		&i.CreatedAt,
+		&i.ExpiresAt,
+	)
+	return i, err
+}
+
+const insertOAuth2AuthorizationCode = `-- name: InsertOAuth2AuthorizationCode :one
+
+INSERT INTO auth.oauth2_authorization_codes (code_hash, auth_request_id, expires_at)
+VALUES ($1, $2, $3)
+RETURNING id, code_hash, auth_request_id, created_at, expires_at
+`
+
+type InsertOAuth2AuthorizationCodeParams struct {
+	CodeHash      string
+	AuthRequestID uuid.UUID
+	ExpiresAt     pgtype.Timestamptz
+}
+
+// =============================================================================
+// OAuth2 Provider - Authorization Codes
+// =============================================================================
+func (q *Queries) InsertOAuth2AuthorizationCode(ctx context.Context, arg InsertOAuth2AuthorizationCodeParams) (AuthOauth2AuthorizationCode, error) {
+	row := q.db.QueryRow(ctx, insertOAuth2AuthorizationCode, arg.CodeHash, arg.AuthRequestID, arg.ExpiresAt)
+	var i AuthOauth2AuthorizationCode
+	err := row.Scan(
+		&i.ID,
+		&i.CodeHash,
+		&i.AuthRequestID,
+		&i.CreatedAt,
+		&i.ExpiresAt,
+	)
+	return i, err
+}
+
+const insertOAuth2Client = `-- name: InsertOAuth2Client :one
+INSERT INTO auth.oauth2_clients (
+    client_id, client_secret_hash, client_name, client_uri, logo_uri,
+    redirect_uris, grant_types, response_types, scopes, is_public,
+    token_endpoint_auth_method, id_token_signed_response_alg,
+    access_token_lifetime, refresh_token_lifetime
+) VALUES (
+    $1, $2, $3, $4, $5,
+    $6, $7, $8, $9, $10,
+    $11, $12,
+    $13, $14
+)
+RETURNING id, client_id, client_secret_hash, client_name, client_uri, logo_uri, redirect_uris, grant_types, response_types, scopes, is_public, token_endpoint_auth_method, id_token_signed_response_alg, access_token_lifetime, refresh_token_lifetime, created_at, updated_at
+`
+
+type InsertOAuth2ClientParams struct {
+	ClientID                 string
+	ClientSecretHash         pgtype.Text
+	ClientName               string
+	ClientUri                pgtype.Text
+	LogoUri                  pgtype.Text
+	RedirectUris             []string
+	GrantTypes               []string
+	ResponseTypes            []string
+	Scopes                   []string
+	IsPublic                 bool
+	TokenEndpointAuthMethod  string
+	IDTokenSignedResponseAlg string
+	AccessTokenLifetime      int32
+	RefreshTokenLifetime     int32
+}
+
+func (q *Queries) InsertOAuth2Client(ctx context.Context, arg InsertOAuth2ClientParams) (AuthOauth2Client, error) {
+	row := q.db.QueryRow(ctx, insertOAuth2Client,
+		arg.ClientID,
+		arg.ClientSecretHash,
+		arg.ClientName,
+		arg.ClientUri,
+		arg.LogoUri,
+		arg.RedirectUris,
+		arg.GrantTypes,
+		arg.ResponseTypes,
+		arg.Scopes,
+		arg.IsPublic,
+		arg.TokenEndpointAuthMethod,
+		arg.IDTokenSignedResponseAlg,
+		arg.AccessTokenLifetime,
+		arg.RefreshTokenLifetime,
+	)
+	var i AuthOauth2Client
+	err := row.Scan(
+		&i.ID,
+		&i.ClientID,
+		&i.ClientSecretHash,
+		&i.ClientName,
+		&i.ClientUri,
+		&i.LogoUri,
+		&i.RedirectUris,
+		&i.GrantTypes,
+		&i.ResponseTypes,
+		&i.Scopes,
+		&i.IsPublic,
+		&i.TokenEndpointAuthMethod,
+		&i.IDTokenSignedResponseAlg,
+		&i.AccessTokenLifetime,
+		&i.RefreshTokenLifetime,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const insertOAuth2RefreshToken = `-- name: InsertOAuth2RefreshToken :one
+
+INSERT INTO auth.oauth2_refresh_tokens (
+    token_hash, auth_request_id, client_id, user_id, scopes, expires_at
+) VALUES (
+    $1, $2, $3, $4, $5, $6
+)
+RETURNING id, token_hash, auth_request_id, client_id, user_id, scopes, created_at, expires_at
+`
+
+type InsertOAuth2RefreshTokenParams struct {
+	TokenHash     string
+	AuthRequestID pgtype.UUID
+	ClientID      string
+	UserID        uuid.UUID
+	Scopes        []string
+	ExpiresAt     pgtype.Timestamptz
+}
+
+// =============================================================================
+// OAuth2 Provider - Refresh Tokens
+// =============================================================================
+func (q *Queries) InsertOAuth2RefreshToken(ctx context.Context, arg InsertOAuth2RefreshTokenParams) (AuthOauth2RefreshToken, error) {
+	row := q.db.QueryRow(ctx, insertOAuth2RefreshToken,
+		arg.TokenHash,
+		arg.AuthRequestID,
+		arg.ClientID,
+		arg.UserID,
+		arg.Scopes,
+		arg.ExpiresAt,
+	)
+	var i AuthOauth2RefreshToken
+	err := row.Scan(
+		&i.ID,
+		&i.TokenHash,
+		&i.AuthRequestID,
+		&i.ClientID,
+		&i.UserID,
+		&i.Scopes,
+		&i.CreatedAt,
+		&i.ExpiresAt,
+	)
+	return i, err
+}
+
+const insertOAuth2SigningKey = `-- name: InsertOAuth2SigningKey :one
+INSERT INTO auth.oauth2_signing_keys (private_key, public_key, algorithm, key_id, is_active)
+VALUES ($1, $2, $3, $4, $5)
+RETURNING id, private_key, public_key, algorithm, key_id, is_active, created_at, expires_at
+`
+
+type InsertOAuth2SigningKeyParams struct {
+	PrivateKey []byte
+	PublicKey  []byte
+	Algorithm  string
+	KeyID      string
+	IsActive   bool
+}
+
+func (q *Queries) InsertOAuth2SigningKey(ctx context.Context, arg InsertOAuth2SigningKeyParams) (AuthOauth2SigningKey, error) {
+	row := q.db.QueryRow(ctx, insertOAuth2SigningKey,
+		arg.PrivateKey,
+		arg.PublicKey,
+		arg.Algorithm,
+		arg.KeyID,
+		arg.IsActive,
+	)
+	var i AuthOauth2SigningKey
+	err := row.Scan(
+		&i.ID,
+		&i.PrivateKey,
+		&i.PublicKey,
+		&i.Algorithm,
+		&i.KeyID,
+		&i.IsActive,
+		&i.CreatedAt,
+		&i.ExpiresAt,
+	)
+	return i, err
 }
 
 const insertRefreshtoken = `-- name: InsertRefreshtoken :one
@@ -1142,6 +1635,49 @@ func (q *Queries) InsertUserWithUserProviderAndRefreshToken(ctx context.Context,
 	return i, err
 }
 
+const listOAuth2Clients = `-- name: ListOAuth2Clients :many
+SELECT id, client_id, client_secret_hash, client_name, client_uri, logo_uri, redirect_uris, grant_types, response_types, scopes, is_public, token_endpoint_auth_method, id_token_signed_response_alg, access_token_lifetime, refresh_token_lifetime, created_at, updated_at FROM auth.oauth2_clients
+ORDER BY created_at DESC
+`
+
+func (q *Queries) ListOAuth2Clients(ctx context.Context) ([]AuthOauth2Client, error) {
+	rows, err := q.db.Query(ctx, listOAuth2Clients)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AuthOauth2Client
+	for rows.Next() {
+		var i AuthOauth2Client
+		if err := rows.Scan(
+			&i.ID,
+			&i.ClientID,
+			&i.ClientSecretHash,
+			&i.ClientName,
+			&i.ClientUri,
+			&i.LogoUri,
+			&i.RedirectUris,
+			&i.GrantTypes,
+			&i.ResponseTypes,
+			&i.Scopes,
+			&i.IsPublic,
+			&i.TokenEndpointAuthMethod,
+			&i.IDTokenSignedResponseAlg,
+			&i.AccessTokenLifetime,
+			&i.RefreshTokenLifetime,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const refreshTokenAndGetUserRoles = `-- name: RefreshTokenAndGetUserRoles :many
 WITH refreshed_token AS (
     UPDATE auth.refresh_tokens
@@ -1190,6 +1726,141 @@ func (q *Queries) RefreshTokenAndGetUserRoles(ctx context.Context, arg RefreshTo
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateOAuth2AuthRequestSetUser = `-- name: UpdateOAuth2AuthRequestSetUser :one
+UPDATE auth.oauth2_auth_requests
+SET user_id = $2, done = true, auth_time = now()
+WHERE id = $1
+RETURNING id, client_id, scopes, redirect_uri, state, nonce, response_type, code_challenge, code_challenge_method, resource, user_id, done, auth_time, created_at, expires_at
+`
+
+type UpdateOAuth2AuthRequestSetUserParams struct {
+	ID     uuid.UUID
+	UserID pgtype.UUID
+}
+
+func (q *Queries) UpdateOAuth2AuthRequestSetUser(ctx context.Context, arg UpdateOAuth2AuthRequestSetUserParams) (AuthOauth2AuthRequest, error) {
+	row := q.db.QueryRow(ctx, updateOAuth2AuthRequestSetUser, arg.ID, arg.UserID)
+	var i AuthOauth2AuthRequest
+	err := row.Scan(
+		&i.ID,
+		&i.ClientID,
+		&i.Scopes,
+		&i.RedirectUri,
+		&i.State,
+		&i.Nonce,
+		&i.ResponseType,
+		&i.CodeChallenge,
+		&i.CodeChallengeMethod,
+		&i.Resource,
+		&i.UserID,
+		&i.Done,
+		&i.AuthTime,
+		&i.CreatedAt,
+		&i.ExpiresAt,
+	)
+	return i, err
+}
+
+const updateOAuth2Client = `-- name: UpdateOAuth2Client :one
+UPDATE auth.oauth2_clients
+SET
+    client_name = $2,
+    client_uri = $3,
+    logo_uri = $4,
+    redirect_uris = $5,
+    grant_types = $6,
+    response_types = $7,
+    scopes = $8,
+    is_public = $9,
+    token_endpoint_auth_method = $10,
+    access_token_lifetime = $11,
+    refresh_token_lifetime = $12
+WHERE client_id = $1
+RETURNING id, client_id, client_secret_hash, client_name, client_uri, logo_uri, redirect_uris, grant_types, response_types, scopes, is_public, token_endpoint_auth_method, id_token_signed_response_alg, access_token_lifetime, refresh_token_lifetime, created_at, updated_at
+`
+
+type UpdateOAuth2ClientParams struct {
+	ClientID                string
+	ClientName              string
+	ClientUri               pgtype.Text
+	LogoUri                 pgtype.Text
+	RedirectUris            []string
+	GrantTypes              []string
+	ResponseTypes           []string
+	Scopes                  []string
+	IsPublic                bool
+	TokenEndpointAuthMethod string
+	AccessTokenLifetime     int32
+	RefreshTokenLifetime    int32
+}
+
+func (q *Queries) UpdateOAuth2Client(ctx context.Context, arg UpdateOAuth2ClientParams) (AuthOauth2Client, error) {
+	row := q.db.QueryRow(ctx, updateOAuth2Client,
+		arg.ClientID,
+		arg.ClientName,
+		arg.ClientUri,
+		arg.LogoUri,
+		arg.RedirectUris,
+		arg.GrantTypes,
+		arg.ResponseTypes,
+		arg.Scopes,
+		arg.IsPublic,
+		arg.TokenEndpointAuthMethod,
+		arg.AccessTokenLifetime,
+		arg.RefreshTokenLifetime,
+	)
+	var i AuthOauth2Client
+	err := row.Scan(
+		&i.ID,
+		&i.ClientID,
+		&i.ClientSecretHash,
+		&i.ClientName,
+		&i.ClientUri,
+		&i.LogoUri,
+		&i.RedirectUris,
+		&i.GrantTypes,
+		&i.ResponseTypes,
+		&i.Scopes,
+		&i.IsPublic,
+		&i.TokenEndpointAuthMethod,
+		&i.IDTokenSignedResponseAlg,
+		&i.AccessTokenLifetime,
+		&i.RefreshTokenLifetime,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const updateOAuth2RefreshToken = `-- name: UpdateOAuth2RefreshToken :one
+UPDATE auth.oauth2_refresh_tokens
+SET token_hash = $2, expires_at = $3
+WHERE token_hash = $1
+RETURNING id, token_hash, auth_request_id, client_id, user_id, scopes, created_at, expires_at
+`
+
+type UpdateOAuth2RefreshTokenParams struct {
+	TokenHash   string
+	TokenHash_2 string
+	ExpiresAt   pgtype.Timestamptz
+}
+
+func (q *Queries) UpdateOAuth2RefreshToken(ctx context.Context, arg UpdateOAuth2RefreshTokenParams) (AuthOauth2RefreshToken, error) {
+	row := q.db.QueryRow(ctx, updateOAuth2RefreshToken, arg.TokenHash, arg.TokenHash_2, arg.ExpiresAt)
+	var i AuthOauth2RefreshToken
+	err := row.Scan(
+		&i.ID,
+		&i.TokenHash,
+		&i.AuthRequestID,
+		&i.ClientID,
+		&i.UserID,
+		&i.Scopes,
+		&i.CreatedAt,
+		&i.ExpiresAt,
+	)
+	return i, err
 }
 
 const updateProviderSession = `-- name: UpdateProviderSession :exec
