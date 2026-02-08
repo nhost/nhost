@@ -20,6 +20,8 @@ paths:
             schema:
               oneOf:
                 - $ref: "#/components/schemas/ExportMetadata"
+                - $ref: "#/components/schemas/GetInconsistentMetadataOperation"
+                - $ref: "#/components/schemas/ReloadMetadataOperation"
                 - $ref: "#/components/schemas/SetTableCustomizationBulkOperation"
                 - $ref: "#/components/schemas/SetTableIsEnumBulkOperation"
                 - $ref: "#/components/schemas/SuggestRelationshipsOperation"
@@ -63,6 +65,8 @@ paths:
                         type: string
                         example: success
                   - $ref: "#/components/schemas/ExportMetadataResponse"
+                  - $ref: "#/components/schemas/GetInconsistentMetadataResponse"
+                  - $ref: "#/components/schemas/ReloadMetadataResponse"
                   - $ref: "#/components/schemas/SuggestRelationshipsResponse"
                   - $ref: "#/components/schemas/IntrospectRemoteSchemaResponse"
                   - $ref: "#/components/schemas/GetEventLogsResponse"
@@ -1100,6 +1104,56 @@ components:
               items:
                 $ref: "#/components/schemas/CronTrigger"
           additionalProperties: true
+
+    GetInconsistentMetadataOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [get_inconsistent_metadata]
+        args:
+          type: object
+          example: {}
+
+    GetInconsistentMetadataResponse:
+      type: object
+      required:
+        - is_consistent
+      properties:
+        is_consistent:
+          type: boolean
+        inconsistent_objects:
+          type: array
+
+    ReloadMetadataOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [reload_metadata]
+        args:
+          type: object
+          properties:
+            reload_remote_schema:
+              oneOf:
+                - type: boolean
+                - type: array
+            reload_sources:
+              oneOf:
+                - type: boolean
+                - type: array
+
+    ReloadMetadaOperationResponse:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/SuccessResponse"
+        - $ref: "#/components/schemas/GetIncosistentMetadataResponse"
 
     ArrayRelationshipItem:
       type: object
