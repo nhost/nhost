@@ -164,5 +164,52 @@ func TestOauth2Register(t *testing.T) { //nolint:cyclop
 		if registerResp.ClientSecret == nil {
 			t.Error("expected client_secret for confidential client")
 		}
+
+		if registerResp.ClientSecretExpiresAt == nil {
+			t.Error("expected client_secret_expires_at for confidential client")
+		} else if *registerResp.ClientSecretExpiresAt != 0 {
+			t.Errorf("expected client_secret_expires_at=0, got %d", *registerResp.ClientSecretExpiresAt)
+		}
+	})
+
+	t.Run("public client has no secret_expires_at", func(t *testing.T) {
+		t.Parallel()
+
+		ctrl := gomock.NewController(t)
+
+		db := mock.NewMockDBClient(ctrl)
+		db.EXPECT().InsertOAuth2Client(gomock.Any(), gomock.Any()).
+			Return(testOAuth2Client(), nil)
+
+		c, _ := getController(
+			t,
+			ctrl,
+			getConfigOAuth2Enabled,
+			func(_ *gomock.Controller) controller.DBClient {
+				return db
+			},
+		)
+
+		authMethod := api.OAuth2RegisterRequestTokenEndpointAuthMethod("none")
+
+		resp, err := c.Oauth2Register(context.Background(), api.Oauth2RegisterRequestObject{
+			Body: &api.OAuth2RegisterRequest{ //nolint:exhaustruct
+				ClientName:              "Public App",
+				RedirectUris:            []string{"https://example.com/callback"},
+				TokenEndpointAuthMethod: &authMethod,
+			},
+		})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		registerResp, ok := resp.(api.Oauth2Register201JSONResponse)
+		if !ok {
+			t.Fatalf("expected 201 response, got %T: %+v", resp, resp)
+		}
+
+		if registerResp.ClientSecretExpiresAt != nil {
+			t.Error("expected no client_secret_expires_at for public client")
+		}
 	})
 }

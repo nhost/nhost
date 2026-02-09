@@ -3356,6 +3356,9 @@ components:
           type: string
         logo_uri:
           type: string
+        client_secret_expires_at:
+          type: integer
+          description: Time at which the client secret expires, or 0 if it does not expire (RFC 7591).
       required:
         - client_id
         - client_name

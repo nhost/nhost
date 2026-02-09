@@ -628,9 +628,12 @@ type OAuth2RegisterRequestTokenEndpointAuthMethod string
 
 // OAuth2RegisterResponse defines model for OAuth2RegisterResponse.
 type OAuth2RegisterResponse struct {
-	ClientId                string    `json:"client_id"`
-	ClientName              string    `json:"client_name"`
-	ClientSecret            *string   `json:"client_secret,omitempty"`
+	ClientId     string  `json:"client_id"`
+	ClientName   string  `json:"client_name"`
+	ClientSecret *string `json:"client_secret,omitempty"`
+
+	// ClientSecretExpiresAt Time at which the client secret expires, or 0 if it does not expire (RFC 7591).
+	ClientSecretExpiresAt   *int      `json:"client_secret_expires_at,omitempty"`
 	ClientUri               *string   `json:"client_uri,omitempty"`
 	GrantTypes              *[]string `json:"grant_types,omitempty"`
 	LogoUri                 *string   `json:"logo_uri,omitempty"`

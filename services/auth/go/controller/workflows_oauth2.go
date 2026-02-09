@@ -650,9 +650,16 @@ func (wf *Workflows) oauth2RegisterClient( //nolint:funlen
 
 	scope := strings.Join(scopes, " ")
 
+	var secretExpiresAt *int
+	if clientSecretPtr != nil {
+		zero := 0
+		secretExpiresAt = &zero
+	}
+
 	return &api.OAuth2RegisterResponse{
 		ClientId:                clientID,
 		ClientSecret:            clientSecretPtr,
+		ClientSecretExpiresAt:   secretExpiresAt,
 		ClientName:              req.ClientName,
 		ClientUri:               req.ClientUri,
 		LogoUri:                 req.LogoUri,
