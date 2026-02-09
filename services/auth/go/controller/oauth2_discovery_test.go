@@ -42,7 +42,7 @@ func TestGetOpenIDConfiguration(t *testing.T) { //nolint:dupl
 				return mock.NewMockDBClient(ctrl)
 			},
 			request: api.GetOpenIDConfigurationRequestObject{},
-			expectedResponse: api.GetOpenIDConfiguration200JSONResponse{ //nolint:exhaustruct
+			expectedResponse: api.GetOpenIDConfiguration200JSONResponse{
 				Issuer:                 "https://local.auth.nhost.run",
 				AuthorizationEndpoint:  "https://local.auth.nhost.run/oauth2/authorize",
 				TokenEndpoint:          "https://local.auth.nhost.run/oauth2/token",
@@ -62,6 +62,9 @@ func TestGetOpenIDConfiguration(t *testing.T) { //nolint:dupl
 					"client_secret_basic", "client_secret_post", "none",
 				},
 				CodeChallengeMethodsSupported: &[]string{"S256", "plain"},
+				AdditionalProperties: map[string]any{
+					"request_parameter_supported": false,
+				},
 			},
 			expectedJWT: nil,
 			jwtTokenFn:  nil,
@@ -106,7 +109,7 @@ func TestGetOAuthAuthorizationServer(t *testing.T) { //nolint:dupl
 				return mock.NewMockDBClient(ctrl)
 			},
 			request: api.GetOAuthAuthorizationServerRequestObject{},
-			expectedResponse: api.GetOAuthAuthorizationServer200JSONResponse{ //nolint:exhaustruct
+			expectedResponse: api.GetOAuthAuthorizationServer200JSONResponse{
 				Issuer:                 "https://local.auth.nhost.run",
 				AuthorizationEndpoint:  "https://local.auth.nhost.run/oauth2/authorize",
 				TokenEndpoint:          "https://local.auth.nhost.run/oauth2/token",
@@ -126,6 +129,9 @@ func TestGetOAuthAuthorizationServer(t *testing.T) { //nolint:dupl
 					"client_secret_basic", "client_secret_post", "none",
 				},
 				CodeChallengeMethodsSupported: &[]string{"S256", "plain"},
+				AdditionalProperties: map[string]any{
+					"request_parameter_supported": false,
+				},
 			},
 			expectedJWT: nil,
 			jwtTokenFn:  nil,

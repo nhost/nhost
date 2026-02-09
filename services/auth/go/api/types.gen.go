@@ -192,13 +192,24 @@ const (
 
 // Defines values for Oauth2AuthorizeParamsResponseType.
 const (
-	Code Oauth2AuthorizeParamsResponseType = "code"
+	Oauth2AuthorizeParamsResponseTypeCode Oauth2AuthorizeParamsResponseType = "code"
 )
 
 // Defines values for Oauth2AuthorizeParamsCodeChallengeMethod.
 const (
-	Plain Oauth2AuthorizeParamsCodeChallengeMethod = "plain"
-	S256  Oauth2AuthorizeParamsCodeChallengeMethod = "S256"
+	Oauth2AuthorizeParamsCodeChallengeMethodPlain Oauth2AuthorizeParamsCodeChallengeMethod = "plain"
+	Oauth2AuthorizeParamsCodeChallengeMethodS256  Oauth2AuthorizeParamsCodeChallengeMethod = "S256"
+)
+
+// Defines values for Oauth2AuthorizePostFormdataBodyCodeChallengeMethod.
+const (
+	Oauth2AuthorizePostFormdataBodyCodeChallengeMethodPlain Oauth2AuthorizePostFormdataBodyCodeChallengeMethod = "plain"
+	Oauth2AuthorizePostFormdataBodyCodeChallengeMethodS256  Oauth2AuthorizePostFormdataBodyCodeChallengeMethod = "S256"
+)
+
+// Defines values for Oauth2AuthorizePostFormdataBodyResponseType.
+const (
+	Oauth2AuthorizePostFormdataBodyResponseTypeCode Oauth2AuthorizePostFormdataBodyResponseType = "code"
 )
 
 // Defines values for SignInProviderParamsProvider.
@@ -1158,6 +1169,8 @@ type Oauth2AuthorizeParams struct {
 	CodeChallenge       *string                                   `form:"code_challenge,omitempty" json:"code_challenge,omitempty"`
 	CodeChallengeMethod *Oauth2AuthorizeParamsCodeChallengeMethod `form:"code_challenge_method,omitempty" json:"code_challenge_method,omitempty"`
 	Resource            *string                                   `form:"resource,omitempty" json:"resource,omitempty"`
+	Prompt              *string                                   `form:"prompt,omitempty" json:"prompt,omitempty"`
+	Request             *string                                   `form:"request,omitempty" json:"request,omitempty"`
 }
 
 // Oauth2AuthorizeParamsResponseType defines parameters for Oauth2Authorize.
@@ -1165,6 +1178,27 @@ type Oauth2AuthorizeParamsResponseType string
 
 // Oauth2AuthorizeParamsCodeChallengeMethod defines parameters for Oauth2Authorize.
 type Oauth2AuthorizeParamsCodeChallengeMethod string
+
+// Oauth2AuthorizePostFormdataBody defines parameters for Oauth2AuthorizePost.
+type Oauth2AuthorizePostFormdataBody struct {
+	ClientId            string                                              `form:"client_id" json:"client_id"`
+	CodeChallenge       *string                                             `form:"code_challenge,omitempty" json:"code_challenge,omitempty"`
+	CodeChallengeMethod *Oauth2AuthorizePostFormdataBodyCodeChallengeMethod `form:"code_challenge_method,omitempty" json:"code_challenge_method,omitempty"`
+	Nonce               *string                                             `form:"nonce,omitempty" json:"nonce,omitempty"`
+	Prompt              *string                                             `form:"prompt,omitempty" json:"prompt,omitempty"`
+	RedirectUri         string                                              `form:"redirect_uri" json:"redirect_uri"`
+	Request             *string                                             `form:"request,omitempty" json:"request,omitempty"`
+	Resource            *string                                             `form:"resource,omitempty" json:"resource,omitempty"`
+	ResponseType        *Oauth2AuthorizePostFormdataBodyResponseType        `form:"response_type,omitempty" json:"response_type,omitempty"`
+	Scope               *string                                             `form:"scope,omitempty" json:"scope,omitempty"`
+	State               *string                                             `form:"state,omitempty" json:"state,omitempty"`
+}
+
+// Oauth2AuthorizePostFormdataBodyCodeChallengeMethod defines parameters for Oauth2AuthorizePost.
+type Oauth2AuthorizePostFormdataBodyCodeChallengeMethod string
+
+// Oauth2AuthorizePostFormdataBodyResponseType defines parameters for Oauth2AuthorizePost.
+type Oauth2AuthorizePostFormdataBodyResponseType string
 
 // Oauth2LoginGetParams defines parameters for Oauth2LoginGet.
 type Oauth2LoginGetParams struct {
@@ -1288,6 +1322,9 @@ type VerifyElevateWebauthnJSONRequestBody = SignInWebauthnVerifyRequest
 
 // LinkIdTokenJSONRequestBody defines body for LinkIdToken for application/json ContentType.
 type LinkIdTokenJSONRequestBody = LinkIdTokenRequest
+
+// Oauth2AuthorizePostFormdataRequestBody defines body for Oauth2AuthorizePost for application/x-www-form-urlencoded ContentType.
+type Oauth2AuthorizePostFormdataRequestBody Oauth2AuthorizePostFormdataBody
 
 // Oauth2ClientsCreateJSONRequestBody defines body for Oauth2ClientsCreate for application/json ContentType.
 type Oauth2ClientsCreateJSONRequestBody = OAuth2CreateClientRequest

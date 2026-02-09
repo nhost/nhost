@@ -15,6 +15,7 @@ import (
 
 	"github.com/go-jose/go-jose/v4"
 	josejwt "github.com/go-jose/go-jose/v4/jwt"
+	jwtlib "github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -35,57 +36,135 @@ func hashOAuth2Token(token string) string {
 	return hex.EncodeToString(hash[:])
 }
 
+// oauth2AuthorizeParams is a unified representation of authorization request parameters
+// that can be populated from either GET query parameters or POST form body.
+type oauth2AuthorizeParams struct {
+	ClientID            string
+	RedirectURI         string
+	ResponseType        *string
+	Scope               *string
+	State               *string
+	Nonce               *string
+	CodeChallenge       *string
+	CodeChallengeMethod *string
+	Resource            *string
+	Prompt              *string
+	Request             *string
+}
+
+func authorizeParamsFromGet(params api.Oauth2AuthorizeParams) oauth2AuthorizeParams {
+	p := oauth2AuthorizeParams{ //nolint:exhaustruct
+		ClientID:      params.ClientId,
+		RedirectURI:   params.RedirectUri,
+		Scope:         params.Scope,
+		State:         params.State,
+		Nonce:         params.Nonce,
+		CodeChallenge: params.CodeChallenge,
+		Resource:      params.Resource,
+		Prompt:        params.Prompt,
+		Request:       params.Request,
+	}
+	if params.ResponseType != nil {
+		s := string(*params.ResponseType)
+		p.ResponseType = &s
+	}
+
+	if params.CodeChallengeMethod != nil {
+		s := string(*params.CodeChallengeMethod)
+		p.CodeChallengeMethod = &s
+	}
+
+	return p
+}
+
+func authorizeParamsFromPost(
+	body *api.Oauth2AuthorizePostFormdataRequestBody,
+) oauth2AuthorizeParams {
+	p := oauth2AuthorizeParams{ //nolint:exhaustruct
+		ClientID:      body.ClientId,
+		RedirectURI:   body.RedirectUri,
+		Scope:         body.Scope,
+		State:         body.State,
+		Nonce:         body.Nonce,
+		CodeChallenge: body.CodeChallenge,
+		Resource:      body.Resource,
+		Prompt:        body.Prompt,
+		Request:       body.Request,
+	}
+	if body.ResponseType != nil {
+		s := string(*body.ResponseType)
+		p.ResponseType = &s
+	}
+
+	if body.CodeChallengeMethod != nil {
+		s := string(*body.CodeChallengeMethod)
+		p.CodeChallengeMethod = &s
+	}
+
+	return p
+}
+
 func (wf *Workflows) oauth2ValidateAuthorizeRequest( //nolint:cyclop,funlen
 	ctx context.Context,
 	config *Config,
-	params api.Oauth2AuthorizeParams,
+	params oauth2AuthorizeParams,
 	logger *slog.Logger,
-) (*api.OAuth2LoginResponse, string, *OAuth2Error) {
-	client, err := wf.db.GetOAuth2ClientByClientID(ctx, params.ClientId)
+) (string, *OAuth2Error) {
+	client, err := wf.db.GetOAuth2ClientByClientID(ctx, params.ClientID)
 	if errors.Is(err, pgx.ErrNoRows) {
 		logger.WarnContext(
 			ctx,
 			"OAuth2 client not found",
-			slog.String("client_id", params.ClientId),
+			slog.String("client_id", params.ClientID),
 		)
 
-		return nil, "", &OAuth2Error{Err: "invalid_client", Description: "Unknown client"}
+		return "", &OAuth2Error{Err: "invalid_client", Description: "Unknown client"}
 	}
 
 	if err != nil {
 		logger.ErrorContext(ctx, "error getting OAuth2 client", logError(err))
-		return nil, "", &OAuth2Error{Err: "server_error", Description: "Internal server error"}
+		return "", &OAuth2Error{Err: "server_error", Description: "Internal server error"}
 	}
 
-	if !slices.Contains(client.RedirectUris, params.RedirectUri) {
+	if !slices.Contains(client.RedirectUris, params.RedirectURI) {
 		logger.WarnContext(
 			ctx,
 			"redirect URI not registered",
-			slog.String("redirect_uri", params.RedirectUri),
+			slog.String("redirect_uri", params.RedirectURI),
 		)
 
-		return nil, "", &OAuth2Error{
+		return "", &OAuth2Error{
 			Err:         "invalid_request",
 			Description: "Invalid redirect_uri",
 		}
 	}
 
 	errorRedirect := func(oauthErr *OAuth2Error) string {
-		return oauth2ErrorRedirectURL(params.RedirectUri, deptr(params.State), oauthErr)
+		return oauth2ErrorRedirectURL(params.RedirectURI, deptr(params.State), oauthErr)
+	}
+
+	// Reject request objects (JWT-based request parameter) as unsupported
+	if params.Request != nil && *params.Request != "" {
+		oauthErr := &OAuth2Error{
+			Err:         "request_not_supported",
+			Description: "Request objects are not supported",
+		}
+
+		return errorRedirect(oauthErr), oauthErr
 	}
 
 	if params.ResponseType == nil {
 		oauthErr := &OAuth2Error{Err: "invalid_request", Description: "Missing response_type"}
-		return nil, errorRedirect(oauthErr), oauthErr
+		return errorRedirect(oauthErr), oauthErr
 	}
 
-	if string(*params.ResponseType) != "code" {
+	if *params.ResponseType != "code" {
 		oauthErr := &OAuth2Error{
 			Err:         "unsupported_response_type",
 			Description: "Only response_type=code is supported",
 		}
 
-		return nil, errorRedirect(oauthErr), oauthErr
+		return errorRedirect(oauthErr), oauthErr
 	}
 
 	requestedScopes := []string{"openid"}
@@ -100,21 +179,26 @@ func (wf *Workflows) oauth2ValidateAuthorizeRequest( //nolint:cyclop,funlen
 				Description: fmt.Sprintf("Scope %q not allowed for this client", s),
 			}
 
-			return nil, errorRedirect(oauthErr), oauthErr
+			return errorRedirect(oauthErr), oauthErr
 		}
 	}
 
 	expiresAt := time.Now().Add(oauth2AuthRequestTTL)
 
+	codeChallengeMethod := pgtype.Text{} //nolint:exhaustruct
+	if params.CodeChallengeMethod != nil {
+		codeChallengeMethod = pgtype.Text{String: *params.CodeChallengeMethod, Valid: true}
+	}
+
 	authReq, err := wf.db.InsertOAuth2AuthRequest(ctx, sql.InsertOAuth2AuthRequestParams{
-		ClientID:            params.ClientId,
+		ClientID:            params.ClientID,
 		Scopes:              requestedScopes,
-		RedirectUri:         params.RedirectUri,
+		RedirectUri:         params.RedirectURI,
 		State:               pgText(params.State),
 		Nonce:               pgText(params.Nonce),
-		ResponseType:        string(*params.ResponseType),
+		ResponseType:        *params.ResponseType,
 		CodeChallenge:       pgText(params.CodeChallenge),
-		CodeChallengeMethod: pgTextFromCodeChallengeMethod(params.CodeChallengeMethod),
+		CodeChallengeMethod: codeChallengeMethod,
 		Resource:            pgText(params.Resource),
 		ExpiresAt:           sql.TimestampTz(expiresAt),
 	})
@@ -123,7 +207,7 @@ func (wf *Workflows) oauth2ValidateAuthorizeRequest( //nolint:cyclop,funlen
 
 		oauthErr := &OAuth2Error{Err: "server_error", Description: "Internal server error"}
 
-		return nil, errorRedirect(oauthErr), oauthErr
+		return errorRedirect(oauthErr), oauthErr
 	}
 
 	loginURL := config.OAuth2ProviderLoginURL
@@ -131,17 +215,13 @@ func (wf *Workflows) oauth2ValidateAuthorizeRequest( //nolint:cyclop,funlen
 		loginURL = config.ClientURL.String() + "/oauth2/login"
 	}
 
-	loginResp := &api.OAuth2LoginResponse{
-		RequestId:   authReq.ID,
-		ClientId:    client.ClientID,
-		ClientName:  client.ClientName,
-		Scopes:      requestedScopes,
-		RedirectUri: params.RedirectUri,
-	}
-
 	redirectURL := fmt.Sprintf("%s?request_id=%s", loginURL, authReq.ID.String())
 
-	return loginResp, redirectURL, nil
+	if params.Prompt != nil && *params.Prompt != "" {
+		redirectURL += "&prompt=" + url.QueryEscape(*params.Prompt)
+	}
+
+	return redirectURL, nil
 }
 
 func (wf *Workflows) oauth2GetLoginRequest(
@@ -436,7 +516,26 @@ func (wf *Workflows) oauth2RefreshToken( //nolint:cyclop,funlen
 	return resp, nil
 }
 
-func (wf *Workflows) oauth2GetUserinfo(
+func (wf *Workflows) oauth2GetScopesFromJWT(ctx context.Context) []string {
+	jwtToken, ok := wf.jwtGetter.FromContext(ctx)
+	if !ok {
+		return nil
+	}
+
+	claims, ok := jwtToken.Claims.(jwtlib.MapClaims)
+	if !ok {
+		return nil
+	}
+
+	scopeStr, ok := claims["scope"].(string)
+	if !ok || scopeStr == "" {
+		return nil
+	}
+
+	return strings.Split(scopeStr, " ")
+}
+
+func (wf *Workflows) oauth2GetUserinfo( //nolint:cyclop
 	ctx context.Context,
 	logger *slog.Logger,
 ) (*api.OAuth2UserinfoResponse, *OAuth2Error) {
@@ -459,24 +558,28 @@ func (wf *Workflows) oauth2GetUserinfo(
 		Sub: userID.String(),
 	}
 
-	if user.Email.Valid {
+	scopes := wf.oauth2GetScopesFromJWT(ctx)
+
+	if slices.Contains(scopes, "email") && user.Email.Valid {
 		resp.Email = &user.Email.String
 		resp.EmailVerified = &user.EmailVerified
 	}
 
-	if user.DisplayName != "" {
-		resp.Name = &user.DisplayName
+	if slices.Contains(scopes, "profile") {
+		if user.DisplayName != "" {
+			resp.Name = &user.DisplayName
+		}
+
+		if user.AvatarUrl != "" {
+			resp.Picture = &user.AvatarUrl
+		}
+
+		if user.Locale != "" {
+			resp.Locale = &user.Locale
+		}
 	}
 
-	if user.AvatarUrl != "" {
-		resp.Picture = &user.AvatarUrl
-	}
-
-	if user.Locale != "" {
-		resp.Locale = &user.Locale
-	}
-
-	if user.PhoneNumber.Valid {
+	if slices.Contains(scopes, "phone") && user.PhoneNumber.Valid {
 		resp.PhoneNumber = &user.PhoneNumber.String
 		resp.PhoneNumberVerified = &user.PhoneNumberVerified
 	}
@@ -578,7 +681,7 @@ func (wf *Workflows) oauth2IntrospectToken( //nolint:cyclop,funlen
 	}
 }
 
-func (wf *Workflows) oauth2RegisterClient( //nolint:funlen
+func (wf *Workflows) oauth2RegisterClient( //nolint:funlen,cyclop
 	ctx context.Context,
 	config *Config,
 	req *api.OAuth2RegisterRequest,
@@ -601,7 +704,7 @@ func (wf *Workflows) oauth2RegisterClient( //nolint:funlen
 		responseTypes = *req.ResponseTypes
 	}
 
-	scopes := []string{"openid", "profile", "email"}
+	scopes := []string{"openid", "profile", "email", "phone", "offline_access"}
 	if req.Scope != nil && *req.Scope != "" {
 		scopes = strings.Split(*req.Scope, " ")
 	}
@@ -1027,14 +1130,6 @@ func pgTextFromString(s string) pgtype.Text {
 	}
 
 	return pgtype.Text{String: s, Valid: true}
-}
-
-func pgTextFromCodeChallengeMethod(m *api.Oauth2AuthorizeParamsCodeChallengeMethod) pgtype.Text {
-	if m == nil {
-		return pgtype.Text{} //nolint:exhaustruct
-	}
-
-	return pgtype.Text{String: string(*m), Valid: true}
 }
 
 type OAuth2Error struct {

@@ -19,7 +19,7 @@ func (ctrl *Controller) buildDiscoveryResponse() api.OAuth2DiscoveryResponse {
 	introspectionEndpoint := baseURL + "/oauth2/introspect"
 	registrationEndpoint := baseURL + "/oauth2/register"
 
-	return api.OAuth2DiscoveryResponse{ //nolint:exhaustruct
+	resp := api.OAuth2DiscoveryResponse{ //nolint:exhaustruct
 		Issuer:                 issuer,
 		AuthorizationEndpoint:  authEndpoint,
 		TokenEndpoint:          tokenEndpoint,
@@ -46,6 +46,10 @@ func (ctrl *Controller) buildDiscoveryResponse() api.OAuth2DiscoveryResponse {
 		},
 		CodeChallengeMethodsSupported: &[]string{"S256", "plain"},
 	}
+
+	resp.Set("request_parameter_supported", false)
+
+	return resp
 }
 
 func (ctrl *Controller) GetOpenIDConfiguration( //nolint:ireturn

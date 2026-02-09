@@ -1461,6 +1461,72 @@ paths:
           required: false
           schema:
             type: string
+        - name: prompt
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: request
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "302":
+          description: Redirect to login UI or back to client with error
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuth2ErrorResponse"
+          description: OAuth2 error response
+    post:
+      summary: OAuth2 Authorization Endpoint (POST)
+      description: >-
+        Initiates an OAuth2 authorization code flow via POST. Validates the request and redirects
+        to the login UI for user authentication and consent.
+      operationId: oauth2AuthorizePost
+      tags:
+        - authentication
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                client_id:
+                  type: string
+                redirect_uri:
+                  type: string
+                response_type:
+                  type: string
+                  enum: [code]
+                scope:
+                  type: string
+                state:
+                  type: string
+                nonce:
+                  type: string
+                code_challenge:
+                  type: string
+                code_challenge_method:
+                  type: string
+                  enum: [S256, plain]
+                resource:
+                  type: string
+                prompt:
+                  type: string
+                request:
+                  type: string
+              required:
+                - client_id
+                - redirect_uri
       responses:
         "302":
           description: Redirect to login UI or back to client with error
