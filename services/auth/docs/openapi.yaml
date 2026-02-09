@@ -1426,7 +1426,7 @@ paths:
             type: string
         - name: response_type
           in: query
-          required: true
+          required: false
           schema:
             type: string
             enum: [code]

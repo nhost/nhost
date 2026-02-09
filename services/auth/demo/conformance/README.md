@@ -79,12 +79,15 @@ The conformance suite includes a Python test runner. After `./run.sh` completes:
 
 ```bash
 cd conformance-suite
+python3 -m venv venv
+. ./venv/bin/activate
 pip install httpx pyparsing   # one-time
 
 CONFORMANCE_SERVER=https://localhost.emobix.co.uk:8443 \
+CONFORMANCE_DEV_MODE=1 \
 DISABLE_SSL_VERIFY=1 \
 python3 scripts/run-test-plan.py \
-    'oidcc-basic-certification-test-plan[server_metadata=discovery]' \
+    'oidcc-basic-certification-test-plan[server_metadata=discovery][client_registration=static_client]' \
     ../test-config.json
 ```
 

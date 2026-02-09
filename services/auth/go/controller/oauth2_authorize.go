@@ -21,6 +21,14 @@ func (ctrl *Controller) Oauth2Authorize( //nolint:ireturn
 		ctx, &ctrl.config, request.Params, logger,
 	)
 	if oauthErr != nil {
+		if redirectURL != "" {
+			return api.Oauth2Authorize302Response{
+				Headers: api.Oauth2Authorize302ResponseHeaders{
+					Location: redirectURL,
+				},
+			}, nil
+		}
+
 		return ctrl.oauth2Error(oauthErr.Err, oauthErr.Description), nil
 	}
 

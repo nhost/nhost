@@ -1151,7 +1151,7 @@ type TicketTypeQuery string
 type Oauth2AuthorizeParams struct {
 	ClientId            string                                    `form:"client_id" json:"client_id"`
 	RedirectUri         string                                    `form:"redirect_uri" json:"redirect_uri"`
-	ResponseType        Oauth2AuthorizeParamsResponseType         `form:"response_type" json:"response_type"`
+	ResponseType        *Oauth2AuthorizeParamsResponseType        `form:"response_type,omitempty" json:"response_type,omitempty"`
 	Scope               *string                                   `form:"scope,omitempty" json:"scope,omitempty"`
 	State               *string                                   `form:"state,omitempty" json:"state,omitempty"`
 	Nonce               *string                                   `form:"nonce,omitempty" json:"nonce,omitempty"`

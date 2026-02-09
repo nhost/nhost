@@ -70,18 +70,6 @@ type AuthOauth2RefreshToken struct {
 	ExpiresAt     pgtype.Timestamptz
 }
 
-// RSA key pairs for OAuth2/OIDC token signing. Private keys are stored encrypted.
-type AuthOauth2SigningKey struct {
-	ID         uuid.UUID
-	PrivateKey []byte
-	PublicKey  []byte
-	Algorithm  string
-	KeyID      string
-	IsActive   bool
-	CreatedAt  pgtype.Timestamptz
-	ExpiresAt  pgtype.Timestamptz
-}
-
 // List of available Oauth providers. Don't modify its structure as Hasura Auth relies on it to function properly.
 type AuthProvider struct {
 	ID string

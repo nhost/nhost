@@ -174,31 +174,6 @@ COMMENT ON TABLE auth.oauth2_refresh_tokens IS 'OAuth2 refresh tokens with clien
 
 
 --
--- Name: oauth2_signing_keys; Type: TABLE; Schema: auth; Owner: postgres
---
-
-CREATE TABLE auth.oauth2_signing_keys (
-    id uuid DEFAULT gen_random_uuid() NOT NULL,
-    private_key bytea NOT NULL,
-    public_key bytea NOT NULL,
-    algorithm text DEFAULT 'RS256'::text NOT NULL,
-    key_id text NOT NULL,
-    is_active boolean DEFAULT true NOT NULL,
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    expires_at timestamp with time zone
-);
-
-
-ALTER TABLE auth.oauth2_signing_keys OWNER TO postgres;
-
---
--- Name: TABLE oauth2_signing_keys; Type: COMMENT; Schema: auth; Owner: postgres
---
-
-COMMENT ON TABLE auth.oauth2_signing_keys IS 'RSA key pairs for OAuth2/OIDC token signing. Private keys are stored encrypted.';
-
-
---
 -- Name: provider_requests; Type: TABLE; Schema: auth; Owner: postgres
 --
 
@@ -475,22 +450,6 @@ ALTER TABLE ONLY auth.oauth2_refresh_tokens
 
 ALTER TABLE ONLY auth.oauth2_refresh_tokens
     ADD CONSTRAINT oauth2_refresh_tokens_token_hash_key UNIQUE (token_hash);
-
-
---
--- Name: oauth2_signing_keys oauth2_signing_keys_key_id_key; Type: CONSTRAINT; Schema: auth; Owner: postgres
---
-
-ALTER TABLE ONLY auth.oauth2_signing_keys
-    ADD CONSTRAINT oauth2_signing_keys_key_id_key UNIQUE (key_id);
-
-
---
--- Name: oauth2_signing_keys oauth2_signing_keys_pkey; Type: CONSTRAINT; Schema: auth; Owner: postgres
---
-
-ALTER TABLE ONLY auth.oauth2_signing_keys
-    ADD CONSTRAINT oauth2_signing_keys_pkey PRIMARY KEY (id);
 
 
 --
@@ -833,14 +792,6 @@ GRANT SELECT ON TABLE auth.oauth2_clients TO nhost_hasura;
 
 GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE auth.oauth2_refresh_tokens TO nhost_auth_admin;
 GRANT SELECT ON TABLE auth.oauth2_refresh_tokens TO nhost_hasura;
-
-
---
--- Name: TABLE oauth2_signing_keys; Type: ACL; Schema: auth; Owner: postgres
---
-
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE auth.oauth2_signing_keys TO nhost_auth_admin;
-GRANT SELECT ON TABLE auth.oauth2_signing_keys TO nhost_hasura;
 
 
 --

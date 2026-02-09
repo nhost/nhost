@@ -3,6 +3,7 @@ package controller_test
 import (
 	"context"
 	"net/http"
+	"net/url"
 	"testing"
 	"time"
 
@@ -16,7 +17,7 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func TestOauth2Authorize(t *testing.T) {
+func TestOauth2Authorize(t *testing.T) { //nolint:cyclop,gocognit,gocyclo,maintidx
 	t.Parallel()
 
 	clientID := "nhost_abc123def456"
@@ -45,7 +46,7 @@ func TestOauth2Authorize(t *testing.T) {
 			Params: api.Oauth2AuthorizeParams{ //nolint:exhaustruct
 				ClientId:     clientID,
 				RedirectUri:  redirectURI,
-				ResponseType: responseType,
+				ResponseType: &responseType,
 				State:        &state,
 			},
 		})
@@ -100,7 +101,7 @@ func TestOauth2Authorize(t *testing.T) {
 			Params: api.Oauth2AuthorizeParams{ //nolint:exhaustruct
 				ClientId:     clientID,
 				RedirectUri:  redirectURI,
-				ResponseType: responseType,
+				ResponseType: &responseType,
 				State:        &state,
 			},
 		})
@@ -140,7 +141,7 @@ func TestOauth2Authorize(t *testing.T) {
 			Params: api.Oauth2AuthorizeParams{ //nolint:exhaustruct
 				ClientId:     "unknown_client",
 				RedirectUri:  redirectURI,
-				ResponseType: responseType,
+				ResponseType: &responseType,
 				State:        &state,
 			},
 		})
@@ -155,6 +156,211 @@ func TestOauth2Authorize(t *testing.T) {
 
 		if defaultResp.StatusCode != http.StatusUnauthorized {
 			t.Errorf("expected status %d, got %d", http.StatusUnauthorized, defaultResp.StatusCode)
+		}
+	})
+
+	t.Run("missing response_type redirects", func(t *testing.T) {
+		t.Parallel()
+
+		ctrl := gomock.NewController(t)
+
+		db := mock.NewMockDBClient(ctrl)
+		db.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), clientID).
+			Return(client, nil)
+
+		c, _ := getController(
+			t,
+			ctrl,
+			getConfigOAuth2Enabled,
+			func(_ *gomock.Controller) controller.DBClient {
+				return db
+			},
+		)
+
+		resp, err := c.Oauth2Authorize(context.Background(), api.Oauth2AuthorizeRequestObject{
+			Params: api.Oauth2AuthorizeParams{ //nolint:exhaustruct
+				ClientId:     clientID,
+				RedirectUri:  redirectURI,
+				ResponseType: nil,
+				State:        &state,
+			},
+		})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		redirectResp, ok := resp.(api.Oauth2Authorize302Response)
+		if !ok {
+			t.Fatalf("expected 302 response, got %T: %+v", resp, resp)
+		}
+
+		u, err := url.Parse(redirectResp.Headers.Location)
+		if err != nil {
+			t.Fatalf("failed to parse redirect URL: %v", err)
+		}
+
+		if got := u.Query().Get("error"); got != "invalid_request" {
+			t.Errorf("expected error=invalid_request, got %q", got)
+		}
+
+		if got := u.Query().Get("error_description"); got != "Missing response_type" {
+			t.Errorf("expected error_description='Missing response_type', got %q", got)
+		}
+
+		if got := u.Query().Get("state"); got != state {
+			t.Errorf("expected state=%q, got %q", state, got)
+		}
+	})
+
+	t.Run("missing response_type without state", func(t *testing.T) {
+		t.Parallel()
+
+		ctrl := gomock.NewController(t)
+
+		db := mock.NewMockDBClient(ctrl)
+		db.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), clientID).
+			Return(client, nil)
+
+		c, _ := getController(
+			t,
+			ctrl,
+			getConfigOAuth2Enabled,
+			func(_ *gomock.Controller) controller.DBClient {
+				return db
+			},
+		)
+
+		resp, err := c.Oauth2Authorize(context.Background(), api.Oauth2AuthorizeRequestObject{
+			Params: api.Oauth2AuthorizeParams{ //nolint:exhaustruct
+				ClientId:     clientID,
+				RedirectUri:  redirectURI,
+				ResponseType: nil,
+				State:        nil,
+			},
+		})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		redirectResp, ok := resp.(api.Oauth2Authorize302Response)
+		if !ok {
+			t.Fatalf("expected 302 response, got %T: %+v", resp, resp)
+		}
+
+		u, err := url.Parse(redirectResp.Headers.Location)
+		if err != nil {
+			t.Fatalf("failed to parse redirect URL: %v", err)
+		}
+
+		if got := u.Query().Get("error"); got != "invalid_request" {
+			t.Errorf("expected error=invalid_request, got %q", got)
+		}
+
+		if got := u.Query().Get("state"); got != "" {
+			t.Errorf("expected no state param, got %q", got)
+		}
+	})
+
+	t.Run("unsupported response_type redirects", func(t *testing.T) {
+		t.Parallel()
+
+		ctrl := gomock.NewController(t)
+
+		db := mock.NewMockDBClient(ctrl)
+		db.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), clientID).
+			Return(client, nil)
+
+		c, _ := getController(
+			t,
+			ctrl,
+			getConfigOAuth2Enabled,
+			func(_ *gomock.Controller) controller.DBClient {
+				return db
+			},
+		)
+
+		tokenType := api.Oauth2AuthorizeParamsResponseType("token")
+
+		resp, err := c.Oauth2Authorize(context.Background(), api.Oauth2AuthorizeRequestObject{
+			Params: api.Oauth2AuthorizeParams{ //nolint:exhaustruct
+				ClientId:     clientID,
+				RedirectUri:  redirectURI,
+				ResponseType: &tokenType,
+				State:        &state,
+			},
+		})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		redirectResp, ok := resp.(api.Oauth2Authorize302Response)
+		if !ok {
+			t.Fatalf("expected 302 response, got %T: %+v", resp, resp)
+		}
+
+		u, err := url.Parse(redirectResp.Headers.Location)
+		if err != nil {
+			t.Fatalf("failed to parse redirect URL: %v", err)
+		}
+
+		if got := u.Query().Get("error"); got != "unsupported_response_type" {
+			t.Errorf("expected error=unsupported_response_type, got %q", got)
+		}
+
+		if got := u.Query().Get("state"); got != state {
+			t.Errorf("expected state=%q, got %q", state, got)
+		}
+	})
+
+	t.Run("invalid scope redirects", func(t *testing.T) {
+		t.Parallel()
+
+		ctrl := gomock.NewController(t)
+
+		db := mock.NewMockDBClient(ctrl)
+		db.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), clientID).
+			Return(client, nil)
+
+		c, _ := getController(
+			t,
+			ctrl,
+			getConfigOAuth2Enabled,
+			func(_ *gomock.Controller) controller.DBClient {
+				return db
+			},
+		)
+
+		badScope := "openid invalid_scope"
+
+		resp, err := c.Oauth2Authorize(context.Background(), api.Oauth2AuthorizeRequestObject{
+			Params: api.Oauth2AuthorizeParams{ //nolint:exhaustruct
+				ClientId:     clientID,
+				RedirectUri:  redirectURI,
+				ResponseType: &responseType,
+				Scope:        &badScope,
+				State:        &state,
+			},
+		})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		redirectResp, ok := resp.(api.Oauth2Authorize302Response)
+		if !ok {
+			t.Fatalf("expected 302 response, got %T: %+v", resp, resp)
+		}
+
+		u, err := url.Parse(redirectResp.Headers.Location)
+		if err != nil {
+			t.Fatalf("failed to parse redirect URL: %v", err)
+		}
+
+		if got := u.Query().Get("error"); got != "invalid_scope" {
+			t.Errorf("expected error=invalid_scope, got %q", got)
+		}
+
+		if got := u.Query().Get("state"); got != state {
+			t.Errorf("expected state=%q, got %q", state, got)
 		}
 	})
 }

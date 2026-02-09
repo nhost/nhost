@@ -131,7 +131,21 @@ cat > "${SCRIPT_DIR}/test-config.json" <<EOF
   "second_client": {
     "client_id": "${client3_id}",
     "client_secret": "${client3_secret}"
-  }
+  },
+  "browser": [
+    {
+      "match": "http://auth:4000/oauth2/authorize*",
+      "tasks": [
+        {
+          "task": "Verify Complete",
+          "match": "https://localhost.emobix.co.uk:8443/*",
+          "commands": [
+            ["wait", "id", "submission_complete", 10, ".*", "update-image-placeholder-optional"]
+          ]
+        }
+      ]
+    }
+  ]
 }
 EOF
 

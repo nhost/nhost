@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net/url"
 	"slices"
 	"strings"
 	"time"
@@ -69,11 +70,22 @@ func (wf *Workflows) oauth2ValidateAuthorizeRequest( //nolint:cyclop,funlen
 		}
 	}
 
-	if string(params.ResponseType) != "code" {
-		return nil, "", &OAuth2Error{
+	errorRedirect := func(oauthErr *OAuth2Error) string {
+		return oauth2ErrorRedirectURL(params.RedirectUri, deptr(params.State), oauthErr)
+	}
+
+	if params.ResponseType == nil {
+		oauthErr := &OAuth2Error{Err: "invalid_request", Description: "Missing response_type"}
+		return nil, errorRedirect(oauthErr), oauthErr
+	}
+
+	if string(*params.ResponseType) != "code" {
+		oauthErr := &OAuth2Error{
 			Err:         "unsupported_response_type",
 			Description: "Only response_type=code is supported",
 		}
+
+		return nil, errorRedirect(oauthErr), oauthErr
 	}
 
 	requestedScopes := []string{"openid"}
@@ -83,10 +95,12 @@ func (wf *Workflows) oauth2ValidateAuthorizeRequest( //nolint:cyclop,funlen
 
 	for _, s := range requestedScopes {
 		if !slices.Contains(client.Scopes, s) {
-			return nil, "", &OAuth2Error{
+			oauthErr := &OAuth2Error{
 				Err:         "invalid_scope",
 				Description: fmt.Sprintf("Scope %q not allowed for this client", s),
 			}
+
+			return nil, errorRedirect(oauthErr), oauthErr
 		}
 	}
 
@@ -98,7 +112,7 @@ func (wf *Workflows) oauth2ValidateAuthorizeRequest( //nolint:cyclop,funlen
 		RedirectUri:         params.RedirectUri,
 		State:               pgText(params.State),
 		Nonce:               pgText(params.Nonce),
-		ResponseType:        string(params.ResponseType),
+		ResponseType:        string(*params.ResponseType),
 		CodeChallenge:       pgText(params.CodeChallenge),
 		CodeChallengeMethod: pgTextFromCodeChallengeMethod(params.CodeChallengeMethod),
 		Resource:            pgText(params.Resource),
@@ -106,7 +120,10 @@ func (wf *Workflows) oauth2ValidateAuthorizeRequest( //nolint:cyclop,funlen
 	})
 	if err != nil {
 		logger.ErrorContext(ctx, "error inserting OAuth2 auth request", logError(err))
-		return nil, "", &OAuth2Error{Err: "server_error", Description: "Internal server error"}
+
+		oauthErr := &OAuth2Error{Err: "server_error", Description: "Internal server error"}
+
+		return nil, errorRedirect(oauthErr), oauthErr
 	}
 
 	loginURL := config.OAuth2ProviderLoginURL
@@ -1023,4 +1040,20 @@ func pgTextFromCodeChallengeMethod(m *api.Oauth2AuthorizeParamsCodeChallengeMeth
 type OAuth2Error struct {
 	Err         string
 	Description string
+}
+
+func oauth2ErrorRedirectURL(redirectURI, state string, oauthErr *OAuth2Error) string {
+	u, _ := url.Parse(redirectURI)
+
+	q := u.Query()
+	q.Set("error", oauthErr.Err)
+	q.Set("error_description", oauthErr.Description)
+
+	if state != "" {
+		q.Set("state", state)
+	}
+
+	u.RawQuery = q.Encode()
+
+	return u.String()
 }
