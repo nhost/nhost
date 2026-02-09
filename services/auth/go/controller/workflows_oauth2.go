@@ -18,7 +18,6 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/nhost/nhost/services/auth/go/api"
-	oidcprovider "github.com/nhost/nhost/services/auth/go/oidc/provider"
 	"github.com/nhost/nhost/services/auth/go/sql"
 )
 
@@ -250,7 +249,6 @@ func (wf *Workflows) oauth2CompleteLogin( //nolint:funlen
 func (wf *Workflows) oauth2ExchangeCode( //nolint:cyclop
 	ctx context.Context,
 	config *Config,
-	keyManager *oidcprovider.KeyManager,
 	req *api.OAuth2TokenRequest,
 	logger *slog.Logger,
 ) (*api.OAuth2TokenResponse, *OAuth2Error) {
@@ -305,13 +303,12 @@ func (wf *Workflows) oauth2ExchangeCode( //nolint:cyclop
 
 	userID := uuid.UUID(authReq.UserID.Bytes)
 
-	return wf.issueOAuth2Tokens(ctx, config, keyManager, userID, authReq, logger)
+	return wf.issueOAuth2Tokens(ctx, config, userID, authReq, logger)
 }
 
 func (wf *Workflows) oauth2RefreshToken( //nolint:cyclop,funlen
 	ctx context.Context,
 	config *Config,
-	keyManager *oidcprovider.KeyManager,
 	req *api.OAuth2TokenRequest,
 	logger *slog.Logger,
 ) (*api.OAuth2TokenResponse, *OAuth2Error) {
@@ -368,7 +365,7 @@ func (wf *Workflows) oauth2RefreshToken( //nolint:cyclop,funlen
 	}
 
 	accessToken, err := wf.createOAuth2AccessToken(
-		ctx, config, keyManager, rt.UserID, rt.Scopes, accessTokenTTL, logger,
+		ctx, config, rt.UserID, rt.Scopes, accessTokenTTL, logger,
 	)
 	if err != nil {
 		logger.ErrorContext(ctx, "error creating OAuth2 access token", logError(err))
@@ -405,7 +402,6 @@ func (wf *Workflows) oauth2RefreshToken( //nolint:cyclop,funlen
 		idToken, err := wf.createOAuth2IDToken(
 			ctx,
 			config,
-			keyManager,
 			rt.UserID,
 			rt.ClientID,
 			authReqNonce(nil),
@@ -425,8 +421,6 @@ func (wf *Workflows) oauth2RefreshToken( //nolint:cyclop,funlen
 
 func (wf *Workflows) oauth2GetUserinfo(
 	ctx context.Context,
-	_ *Config,
-	_ *oidcprovider.KeyManager,
 	logger *slog.Logger,
 ) (*api.OAuth2UserinfoResponse, *OAuth2Error) {
 	userID, apiErr := wf.GetJWTInContext(ctx, logger)
@@ -488,7 +482,6 @@ func (wf *Workflows) oauth2RevokeToken(
 func (wf *Workflows) oauth2IntrospectToken( //nolint:cyclop,funlen
 	ctx context.Context,
 	config *Config,
-	keyManager *oidcprovider.KeyManager,
 	req *api.OAuth2IntrospectRequest,
 	logger *slog.Logger,
 ) *api.OAuth2IntrospectResponse {
@@ -526,7 +519,7 @@ func (wf *Workflows) oauth2IntrospectToken( //nolint:cyclop,funlen
 		}
 	}
 
-	privateKey, keyID, err := keyManager.GetSigningKey(ctx)
+	privateKey, _, err := wf.jwtGetter.RSASigningKey()
 	if err != nil {
 		logger.ErrorContext(ctx, "error getting signing key for introspection", logError(err))
 		return inactive
@@ -557,8 +550,6 @@ func (wf *Workflows) oauth2IntrospectToken( //nolint:cyclop,funlen
 	iat := int(claims.IssuedAt.Time().Unix())
 	iss := claims.Issuer
 	tokenType := "access_token"
-
-	_ = keyID
 
 	return &api.OAuth2IntrospectResponse{ //nolint:exhaustruct
 		Active:    true,
@@ -674,7 +665,6 @@ func (wf *Workflows) oauth2RegisterClient( //nolint:funlen
 func (wf *Workflows) issueOAuth2Tokens( //nolint:funlen
 	ctx context.Context,
 	config *Config,
-	keyManager *oidcprovider.KeyManager,
 	userID uuid.UUID,
 	authReq sql.AuthOauth2AuthRequest,
 	logger *slog.Logger,
@@ -697,7 +687,7 @@ func (wf *Workflows) issueOAuth2Tokens( //nolint:funlen
 	}
 
 	accessToken, err := wf.createOAuth2AccessToken(
-		ctx, config, keyManager, userID, authReq.Scopes, accessTokenTTL, logger,
+		ctx, config, userID, authReq.Scopes, accessTokenTTL, logger,
 	)
 	if err != nil {
 		logger.ErrorContext(ctx, "error creating access token", logError(err))
@@ -736,7 +726,6 @@ func (wf *Workflows) issueOAuth2Tokens( //nolint:funlen
 		idToken, err := wf.createOAuth2IDToken(
 			ctx,
 			config,
-			keyManager,
 			userID,
 			authReq.ClientID,
 			nonce,
@@ -757,13 +746,12 @@ func (wf *Workflows) issueOAuth2Tokens( //nolint:funlen
 func (wf *Workflows) createOAuth2AccessToken(
 	ctx context.Context,
 	config *Config,
-	keyManager *oidcprovider.KeyManager,
 	userID uuid.UUID,
 	scopes []string,
 	ttl time.Duration,
 	_ *slog.Logger,
 ) (string, error) {
-	privateKey, keyID, err := keyManager.GetSigningKey(ctx)
+	privateKey, keyID, err := wf.jwtGetter.RSASigningKey()
 	if err != nil {
 		return "", fmt.Errorf("error getting signing key: %w", err)
 	}
@@ -821,7 +809,6 @@ func (wf *Workflows) createOAuth2AccessToken(
 func (wf *Workflows) createOAuth2IDToken(
 	ctx context.Context,
 	config *Config,
-	keyManager *oidcprovider.KeyManager,
 	userID uuid.UUID,
 	clientID string,
 	nonce string,
@@ -829,7 +816,7 @@ func (wf *Workflows) createOAuth2IDToken(
 	ttl time.Duration,
 	_ *slog.Logger,
 ) (string, error) {
-	privateKey, keyID, err := keyManager.GetSigningKey(ctx)
+	privateKey, keyID, err := wf.jwtGetter.RSASigningKey()
 	if err != nil {
 		return "", fmt.Errorf("error getting signing key: %w", err)
 	}

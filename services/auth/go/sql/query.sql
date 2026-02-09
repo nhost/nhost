@@ -428,25 +428,6 @@ WHERE user_id = @user_id AND provider_id = @provider_id
 RETURNING (SELECT access_token FROM old_token);
 
 -- =============================================================================
--- OAuth2 Provider - Signing Keys
--- =============================================================================
-
--- name: GetActiveOAuth2SigningKey :one
-SELECT * FROM auth.oauth2_signing_keys
-WHERE is_active = true
-ORDER BY created_at DESC
-LIMIT 1;
-
--- name: GetOAuth2SigningKeys :many
-SELECT * FROM auth.oauth2_signing_keys
-ORDER BY created_at DESC;
-
--- name: InsertOAuth2SigningKey :one
-INSERT INTO auth.oauth2_signing_keys (private_key, public_key, algorithm, key_id, is_active)
-VALUES ($1, $2, $3, $4, $5)
-RETURNING *;
-
--- =============================================================================
 -- OAuth2 Provider - Clients
 -- =============================================================================
 

@@ -168,7 +168,10 @@ func TestOauth2Register(t *testing.T) { //nolint:cyclop
 		if registerResp.ClientSecretExpiresAt == nil {
 			t.Error("expected client_secret_expires_at for confidential client")
 		} else if *registerResp.ClientSecretExpiresAt != 0 {
-			t.Errorf("expected client_secret_expires_at=0, got %d", *registerResp.ClientSecretExpiresAt)
+			t.Errorf(
+				"expected client_secret_expires_at=0, got %d",
+				*registerResp.ClientSecretExpiresAt,
+			)
 		}
 	})
 

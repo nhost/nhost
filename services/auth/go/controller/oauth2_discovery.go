@@ -2,7 +2,6 @@ package controller
 
 import (
 	"context"
-	"net/http"
 
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
@@ -85,24 +84,13 @@ func (ctrl *Controller) Oauth2Jwks( //nolint:ireturn
 ) (api.Oauth2JwksResponseObject, error) {
 	logger := oapimw.LoggerFromContext(ctx)
 
-	if ctrl.keyManager == nil {
+	if !ctrl.config.OAuth2ProviderEnabled {
 		logger.WarnContext(ctx, "OAuth2 provider is disabled")
 
 		return api.Oauth2Jwks200JSONResponse{Keys: nil}, nil
 	}
 
-	jwksResp, err := ctrl.keyManager.GetJWKSResponse(ctx)
-	if err != nil {
-		logger.ErrorContext(ctx, "error getting JWKS", logError(err))
-
-		return api.Oauth2JwksdefaultJSONResponse{
-			StatusCode: http.StatusInternalServerError,
-			Body: api.OAuth2ErrorResponse{
-				Error:            "server_error",
-				ErrorDescription: ptr("Internal server error"),
-			},
-		}, nil
-	}
+	jwks := ctrl.jwtGetter.JWKS()
 
 	keys := make([]struct {
 		Alg *string `json:"alg,omitempty"`
@@ -111,9 +99,9 @@ func (ctrl *Controller) Oauth2Jwks( //nolint:ireturn
 		Kty *string `json:"kty,omitempty"`
 		N   *string `json:"n,omitempty"`
 		Use *string `json:"use,omitempty"`
-	}, len(jwksResp.Keys))
+	}, len(jwks))
 
-	for i, k := range jwksResp.Keys {
+	for i, k := range jwks {
 		keys[i] = struct {
 			Alg *string `json:"alg,omitempty"`
 			E   *string `json:"e,omitempty"`

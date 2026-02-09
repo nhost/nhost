@@ -719,21 +719,6 @@ func (mr *MockDBClientOAuth2ProviderMockRecorder) DeleteOAuth2RefreshTokensByUse
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteOAuth2RefreshTokensByUserID", reflect.TypeOf((*MockDBClientOAuth2Provider)(nil).DeleteOAuth2RefreshTokensByUserID), ctx, userID)
 }
 
-// GetActiveOAuth2SigningKey mocks base method.
-func (m *MockDBClientOAuth2Provider) GetActiveOAuth2SigningKey(ctx context.Context) (sql.AuthOauth2SigningKey, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetActiveOAuth2SigningKey", ctx)
-	ret0, _ := ret[0].(sql.AuthOauth2SigningKey)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetActiveOAuth2SigningKey indicates an expected call of GetActiveOAuth2SigningKey.
-func (mr *MockDBClientOAuth2ProviderMockRecorder) GetActiveOAuth2SigningKey(ctx any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetActiveOAuth2SigningKey", reflect.TypeOf((*MockDBClientOAuth2Provider)(nil).GetActiveOAuth2SigningKey), ctx)
-}
-
 // GetOAuth2AuthRequest mocks base method.
 func (m *MockDBClientOAuth2Provider) GetOAuth2AuthRequest(ctx context.Context, id uuid.UUID) (sql.AuthOauth2AuthRequest, error) {
 	m.ctrl.T.Helper()
@@ -794,21 +779,6 @@ func (mr *MockDBClientOAuth2ProviderMockRecorder) GetOAuth2RefreshTokenByHash(ct
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOAuth2RefreshTokenByHash", reflect.TypeOf((*MockDBClientOAuth2Provider)(nil).GetOAuth2RefreshTokenByHash), ctx, tokenHash)
 }
 
-// GetOAuth2SigningKeys mocks base method.
-func (m *MockDBClientOAuth2Provider) GetOAuth2SigningKeys(ctx context.Context) ([]sql.AuthOauth2SigningKey, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetOAuth2SigningKeys", ctx)
-	ret0, _ := ret[0].([]sql.AuthOauth2SigningKey)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetOAuth2SigningKeys indicates an expected call of GetOAuth2SigningKeys.
-func (mr *MockDBClientOAuth2ProviderMockRecorder) GetOAuth2SigningKeys(ctx any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOAuth2SigningKeys", reflect.TypeOf((*MockDBClientOAuth2Provider)(nil).GetOAuth2SigningKeys), ctx)
-}
-
 // InsertOAuth2AuthRequest mocks base method.
 func (m *MockDBClientOAuth2Provider) InsertOAuth2AuthRequest(ctx context.Context, arg sql.InsertOAuth2AuthRequestParams) (sql.AuthOauth2AuthRequest, error) {
 	m.ctrl.T.Helper()
@@ -867,21 +837,6 @@ func (m *MockDBClientOAuth2Provider) InsertOAuth2RefreshToken(ctx context.Contex
 func (mr *MockDBClientOAuth2ProviderMockRecorder) InsertOAuth2RefreshToken(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertOAuth2RefreshToken", reflect.TypeOf((*MockDBClientOAuth2Provider)(nil).InsertOAuth2RefreshToken), ctx, arg)
-}
-
-// InsertOAuth2SigningKey mocks base method.
-func (m *MockDBClientOAuth2Provider) InsertOAuth2SigningKey(ctx context.Context, arg sql.InsertOAuth2SigningKeyParams) (sql.AuthOauth2SigningKey, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "InsertOAuth2SigningKey", ctx, arg)
-	ret0, _ := ret[0].(sql.AuthOauth2SigningKey)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// InsertOAuth2SigningKey indicates an expected call of InsertOAuth2SigningKey.
-func (mr *MockDBClientOAuth2ProviderMockRecorder) InsertOAuth2SigningKey(ctx, arg any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertOAuth2SigningKey", reflect.TypeOf((*MockDBClientOAuth2Provider)(nil).InsertOAuth2SigningKey), ctx, arg)
 }
 
 // ListOAuth2Clients mocks base method.
@@ -1152,21 +1107,6 @@ func (mr *MockDBClientMockRecorder) FindUserProviderByProviderId(ctx, arg any) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindUserProviderByProviderId", reflect.TypeOf((*MockDBClient)(nil).FindUserProviderByProviderId), ctx, arg)
 }
 
-// GetActiveOAuth2SigningKey mocks base method.
-func (m *MockDBClient) GetActiveOAuth2SigningKey(ctx context.Context) (sql.AuthOauth2SigningKey, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetActiveOAuth2SigningKey", ctx)
-	ret0, _ := ret[0].(sql.AuthOauth2SigningKey)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetActiveOAuth2SigningKey indicates an expected call of GetActiveOAuth2SigningKey.
-func (mr *MockDBClientMockRecorder) GetActiveOAuth2SigningKey(ctx any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetActiveOAuth2SigningKey", reflect.TypeOf((*MockDBClient)(nil).GetActiveOAuth2SigningKey), ctx)
-}
-
 // GetOAuth2AuthRequest mocks base method.
 func (m *MockDBClient) GetOAuth2AuthRequest(ctx context.Context, id uuid.UUID) (sql.AuthOauth2AuthRequest, error) {
 	m.ctrl.T.Helper()
@@ -1225,21 +1165,6 @@ func (m *MockDBClient) GetOAuth2RefreshTokenByHash(ctx context.Context, tokenHas
 func (mr *MockDBClientMockRecorder) GetOAuth2RefreshTokenByHash(ctx, tokenHash any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOAuth2RefreshTokenByHash", reflect.TypeOf((*MockDBClient)(nil).GetOAuth2RefreshTokenByHash), ctx, tokenHash)
-}
-
-// GetOAuth2SigningKeys mocks base method.
-func (m *MockDBClient) GetOAuth2SigningKeys(ctx context.Context) ([]sql.AuthOauth2SigningKey, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetOAuth2SigningKeys", ctx)
-	ret0, _ := ret[0].([]sql.AuthOauth2SigningKey)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetOAuth2SigningKeys indicates an expected call of GetOAuth2SigningKeys.
-func (mr *MockDBClientMockRecorder) GetOAuth2SigningKeys(ctx any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOAuth2SigningKeys", reflect.TypeOf((*MockDBClient)(nil).GetOAuth2SigningKeys), ctx)
 }
 
 // GetProviderSession mocks base method.
@@ -1450,21 +1375,6 @@ func (m *MockDBClient) InsertOAuth2RefreshToken(ctx context.Context, arg sql.Ins
 func (mr *MockDBClientMockRecorder) InsertOAuth2RefreshToken(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertOAuth2RefreshToken", reflect.TypeOf((*MockDBClient)(nil).InsertOAuth2RefreshToken), ctx, arg)
-}
-
-// InsertOAuth2SigningKey mocks base method.
-func (m *MockDBClient) InsertOAuth2SigningKey(ctx context.Context, arg sql.InsertOAuth2SigningKeyParams) (sql.AuthOauth2SigningKey, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "InsertOAuth2SigningKey", ctx, arg)
-	ret0, _ := ret[0].(sql.AuthOauth2SigningKey)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// InsertOAuth2SigningKey indicates an expected call of InsertOAuth2SigningKey.
-func (mr *MockDBClientMockRecorder) InsertOAuth2SigningKey(ctx, arg any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertOAuth2SigningKey", reflect.TypeOf((*MockDBClient)(nil).InsertOAuth2SigningKey), ctx, arg)
 }
 
 // InsertRefreshtoken mocks base method.

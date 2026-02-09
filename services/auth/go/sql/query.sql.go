@@ -160,33 +160,6 @@ func (q *Queries) FindUserProviderByProviderId(ctx context.Context, arg FindUser
 	return i, err
 }
 
-const getActiveOAuth2SigningKey = `-- name: GetActiveOAuth2SigningKey :one
-
-SELECT id, private_key, public_key, algorithm, key_id, is_active, created_at, expires_at FROM auth.oauth2_signing_keys
-WHERE is_active = true
-ORDER BY created_at DESC
-LIMIT 1
-`
-
-// =============================================================================
-// OAuth2 Provider - Signing Keys
-// =============================================================================
-func (q *Queries) GetActiveOAuth2SigningKey(ctx context.Context) (AuthOauth2SigningKey, error) {
-	row := q.db.QueryRow(ctx, getActiveOAuth2SigningKey)
-	var i AuthOauth2SigningKey
-	err := row.Scan(
-		&i.ID,
-		&i.PrivateKey,
-		&i.PublicKey,
-		&i.Algorithm,
-		&i.KeyID,
-		&i.IsActive,
-		&i.CreatedAt,
-		&i.ExpiresAt,
-	)
-	return i, err
-}
-
 const getOAuth2AuthRequest = `-- name: GetOAuth2AuthRequest :one
 SELECT id, client_id, scopes, redirect_uri, state, nonce, response_type, code_challenge, code_challenge_method, resource, user_id, done, auth_time, created_at, expires_at FROM auth.oauth2_auth_requests
 WHERE id = $1
@@ -301,40 +274,6 @@ func (q *Queries) GetOAuth2RefreshTokenByHash(ctx context.Context, tokenHash str
 		&i.ExpiresAt,
 	)
 	return i, err
-}
-
-const getOAuth2SigningKeys = `-- name: GetOAuth2SigningKeys :many
-SELECT id, private_key, public_key, algorithm, key_id, is_active, created_at, expires_at FROM auth.oauth2_signing_keys
-ORDER BY created_at DESC
-`
-
-func (q *Queries) GetOAuth2SigningKeys(ctx context.Context) ([]AuthOauth2SigningKey, error) {
-	rows, err := q.db.Query(ctx, getOAuth2SigningKeys)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []AuthOauth2SigningKey
-	for rows.Next() {
-		var i AuthOauth2SigningKey
-		if err := rows.Scan(
-			&i.ID,
-			&i.PrivateKey,
-			&i.PublicKey,
-			&i.Algorithm,
-			&i.KeyID,
-			&i.IsActive,
-			&i.CreatedAt,
-			&i.ExpiresAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
 }
 
 const getProviderSession = `-- name: GetProviderSession :one
@@ -1030,42 +969,6 @@ func (q *Queries) InsertOAuth2RefreshToken(ctx context.Context, arg InsertOAuth2
 		&i.ClientID,
 		&i.UserID,
 		&i.Scopes,
-		&i.CreatedAt,
-		&i.ExpiresAt,
-	)
-	return i, err
-}
-
-const insertOAuth2SigningKey = `-- name: InsertOAuth2SigningKey :one
-INSERT INTO auth.oauth2_signing_keys (private_key, public_key, algorithm, key_id, is_active)
-VALUES ($1, $2, $3, $4, $5)
-RETURNING id, private_key, public_key, algorithm, key_id, is_active, created_at, expires_at
-`
-
-type InsertOAuth2SigningKeyParams struct {
-	PrivateKey []byte
-	PublicKey  []byte
-	Algorithm  string
-	KeyID      string
-	IsActive   bool
-}
-
-func (q *Queries) InsertOAuth2SigningKey(ctx context.Context, arg InsertOAuth2SigningKeyParams) (AuthOauth2SigningKey, error) {
-	row := q.db.QueryRow(ctx, insertOAuth2SigningKey,
-		arg.PrivateKey,
-		arg.PublicKey,
-		arg.Algorithm,
-		arg.KeyID,
-		arg.IsActive,
-	)
-	var i AuthOauth2SigningKey
-	err := row.Scan(
-		&i.ID,
-		&i.PrivateKey,
-		&i.PublicKey,
-		&i.Algorithm,
-		&i.KeyID,
-		&i.IsActive,
 		&i.CreatedAt,
 		&i.ExpiresAt,
 	)

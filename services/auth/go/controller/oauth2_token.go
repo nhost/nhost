@@ -32,11 +32,11 @@ func (ctrl *Controller) Oauth2Token( //nolint:ireturn
 	switch request.Body.GrantType {
 	case api.AuthorizationCode:
 		resp, oauthErr = ctrl.wf.oauth2ExchangeCode(
-			ctx, &ctrl.config, ctrl.keyManager, request.Body, logger,
+			ctx, &ctrl.config, request.Body, logger,
 		)
 	case api.RefreshToken:
 		resp, oauthErr = ctrl.wf.oauth2RefreshToken(
-			ctx, &ctrl.config, ctrl.keyManager, request.Body, logger,
+			ctx, &ctrl.config, request.Body, logger,
 		)
 	default:
 		return oauth2TokenError("unsupported_grant_type", "Unsupported grant_type"), nil

@@ -22,7 +22,7 @@ func (ctrl *Controller) Oauth2Introspect( //nolint:ireturn
 	}
 
 	resp := ctrl.wf.oauth2IntrospectToken(
-		ctx, &ctrl.config, ctrl.keyManager, request.Body, logger,
+		ctx, &ctrl.config, request.Body, logger,
 	)
 
 	return api.Oauth2Introspect200JSONResponse(*resp), nil

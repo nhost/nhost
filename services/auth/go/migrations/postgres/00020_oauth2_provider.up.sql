@@ -1,21 +1,5 @@
 -- OAuth2/OIDC Identity Provider tables
 
--- Signing keys for JWT tokens (RSA key pairs)
-CREATE TABLE auth.oauth2_signing_keys (
-    id uuid DEFAULT gen_random_uuid() NOT NULL,
-    private_key bytea NOT NULL,
-    public_key bytea NOT NULL,
-    algorithm text NOT NULL DEFAULT 'RS256',
-    key_id text NOT NULL,
-    is_active boolean NOT NULL DEFAULT true,
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    expires_at timestamp with time zone,
-    PRIMARY KEY (id),
-    UNIQUE (key_id)
-);
-
-COMMENT ON TABLE auth.oauth2_signing_keys IS 'RSA key pairs for OAuth2/OIDC token signing. Private keys are stored encrypted.';
-
 -- Registered OAuth2 client applications
 CREATE TABLE auth.oauth2_clients (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
@@ -117,13 +101,11 @@ CREATE INDEX oauth2_refresh_tokens_client_id_idx ON auth.oauth2_refresh_tokens (
 CREATE INDEX oauth2_refresh_tokens_expires_at_idx ON auth.oauth2_refresh_tokens (expires_at);
 
 -- Grants
-GRANT ALL ON auth.oauth2_signing_keys TO nhost_auth_admin;
 GRANT ALL ON auth.oauth2_clients TO nhost_auth_admin;
 GRANT ALL ON auth.oauth2_auth_requests TO nhost_auth_admin;
 GRANT ALL ON auth.oauth2_authorization_codes TO nhost_auth_admin;
 GRANT ALL ON auth.oauth2_refresh_tokens TO nhost_auth_admin;
 
-GRANT SELECT ON auth.oauth2_signing_keys TO nhost_hasura;
 GRANT SELECT ON auth.oauth2_clients TO nhost_hasura;
 GRANT SELECT ON auth.oauth2_auth_requests TO nhost_hasura;
 GRANT SELECT ON auth.oauth2_authorization_codes TO nhost_hasura;

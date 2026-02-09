@@ -10,7 +10,6 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/nhost/nhost/services/auth/go/notifications"
 	"github.com/nhost/nhost/services/auth/go/oidc"
-	oidcprovider "github.com/nhost/nhost/services/auth/go/oidc/provider"
 	"github.com/nhost/nhost/services/auth/go/providers"
 	"github.com/nhost/nhost/services/auth/go/sql"
 )
@@ -113,11 +112,6 @@ type DBClientUserProvider interface {
 }
 
 type DBClientOAuth2Provider interface { //nolint:interfacebloat
-	GetActiveOAuth2SigningKey(ctx context.Context) (sql.AuthOauth2SigningKey, error)
-	GetOAuth2SigningKeys(ctx context.Context) ([]sql.AuthOauth2SigningKey, error)
-	InsertOAuth2SigningKey(
-		ctx context.Context, arg sql.InsertOAuth2SigningKeyParams,
-	) (sql.AuthOauth2SigningKey, error)
 	GetOAuth2ClientByClientID(ctx context.Context, clientID string) (sql.AuthOauth2Client, error)
 	ListOAuth2Clients(ctx context.Context) ([]sql.AuthOauth2Client, error)
 	InsertOAuth2Client(
@@ -195,7 +189,7 @@ type Controller struct {
 	Webauthn         *Webauthn
 	Providers        providers.Map
 	version          string
-	keyManager       *oidcprovider.KeyManager
+	jwtGetter        *JWTGetter
 }
 
 func New(
@@ -210,11 +204,10 @@ func New(
 	totp *Totp,
 	encrypter Encrypter,
 	version string,
-	keyManager *oidcprovider.KeyManager,
 ) (*Controller, error) {
 	validator, err := NewWorkflows(
 		&config,
-		*jwtGetter,
+		jwtGetter,
 		db,
 		hibp,
 		emailer,
@@ -245,6 +238,6 @@ func New(
 		encrypter:        encrypter,
 		version:          version,
 		Providers:        providers,
-		keyManager:       keyManager,
+		jwtGetter:        jwtGetter,
 	}, nil
 }

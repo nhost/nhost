@@ -29,7 +29,7 @@ type HIBPClient interface {
 
 type Workflows struct {
 	config               *Config
-	jwtGetter            JWTGetter
+	jwtGetter            *JWTGetter
 	db                   DBClient
 	hibp                 HIBPClient
 	email                Emailer
@@ -42,7 +42,7 @@ type Workflows struct {
 
 func NewWorkflows(
 	cfg *Config,
-	jwtGetter JWTGetter,
+	jwtGetter *JWTGetter,
 	db DBClient,
 	hibp HIBPClient,
 	email Emailer,

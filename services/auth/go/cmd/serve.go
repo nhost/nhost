@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -19,7 +20,6 @@ import (
 	"github.com/nhost/nhost/services/auth/go/middleware"
 	"github.com/nhost/nhost/services/auth/go/middleware/ratelimit"
 	"github.com/nhost/nhost/services/auth/go/oidc"
-	oidcprovider "github.com/nhost/nhost/services/auth/go/oidc/provider"
 	"github.com/nhost/nhost/services/auth/go/providers"
 	"github.com/nhost/nhost/services/auth/go/sql"
 	"github.com/urfave/cli/v3"
@@ -1436,11 +1436,11 @@ func getController(
 		return nil, nil, fmt.Errorf("problem creating oauth providers: %w", err)
 	}
 
-	var km *oidcprovider.KeyManager
 	if cmd.Bool(flagOAuth2ProviderEnabled) {
-		km = oidcprovider.NewKeyManager(db, encrypter)
-		if err := km.EnsureSigningKey(ctx, logger); err != nil {
-			return nil, nil, fmt.Errorf("problem ensuring OAuth2 signing key: %w", err)
+		if !jwtGetter.IsRS256() {
+			return nil, nil, errors.New(
+				"OAuth2 provider requires HASURA_GRAPHQL_JWT_SECRET to be configured with RS256",
+			)
 		}
 	}
 
@@ -1456,7 +1456,6 @@ func getController(
 		controller.NewTotp(cmd.String(flagMfaTotpIssuer), time.Now),
 		encrypter,
 		cmd.Root().Version,
-		km,
 	)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create controller: %w", err)

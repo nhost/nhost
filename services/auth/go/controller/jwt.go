@@ -3,8 +3,10 @@ package controller
 
 import (
 	"context"
+	"crypto/rsa"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"reflect"
@@ -164,6 +166,23 @@ func NewJWTGetter(
 		db:                   db,
 		jwks:                 jwks,
 	}, nil
+}
+
+func (j *JWTGetter) RSASigningKey() (*rsa.PrivateKey, string, error) {
+	privateKey, ok := j.signingKey.(*rsa.PrivateKey)
+	if !ok {
+		return nil, "", errors.New("signing key is not an RSA private key") //nolint:goerr113
+	}
+
+	return privateKey, j.kid, nil
+}
+
+func (j *JWTGetter) JWKS() []api.JWK {
+	return j.jwks
+}
+
+func (j *JWTGetter) IsRS256() bool {
+	return j.method.Alg() == "RS256"
 }
 
 func pgEncode(v any) (string, error) {

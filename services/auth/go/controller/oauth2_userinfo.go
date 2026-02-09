@@ -17,7 +17,7 @@ func (ctrl *Controller) Oauth2UserinfoGet( //nolint:ireturn
 		return oauth2UserinfoGetError("server_error", "OAuth2 provider is disabled"), nil
 	}
 
-	resp, oauthErr := ctrl.wf.oauth2GetUserinfo(ctx, &ctrl.config, ctrl.keyManager, logger)
+	resp, oauthErr := ctrl.wf.oauth2GetUserinfo(ctx, logger)
 	if oauthErr != nil {
 		return oauth2UserinfoGetError(oauthErr.Err, oauthErr.Description), nil
 	}
@@ -35,7 +35,7 @@ func (ctrl *Controller) Oauth2UserinfoPost( //nolint:ireturn
 		return oauth2UserinfoPostError("server_error", "OAuth2 provider is disabled"), nil
 	}
 
-	resp, oauthErr := ctrl.wf.oauth2GetUserinfo(ctx, &ctrl.config, ctrl.keyManager, logger)
+	resp, oauthErr := ctrl.wf.oauth2GetUserinfo(ctx, logger)
 	if oauthErr != nil {
 		return oauth2UserinfoPostError(oauthErr.Err, oauthErr.Description), nil
 	}
