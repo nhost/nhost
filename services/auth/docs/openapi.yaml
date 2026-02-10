@@ -1453,9 +1453,10 @@ paths:
         - name: code_challenge_method
           in: query
           required: false
+          description: "Only S256 is supported. The plain method is not allowed."
           schema:
             type: string
-            enum: [S256, plain]
+            enum: [S256]
         - name: resource
           in: query
           required: false
@@ -1516,8 +1517,9 @@ paths:
                 code_challenge:
                   type: string
                 code_challenge_method:
+                  description: "Only S256 is supported. The plain method is not allowed."
                   type: string
-                  enum: [S256, plain]
+                  enum: [S256]
                 resource:
                   type: string
                 prompt:

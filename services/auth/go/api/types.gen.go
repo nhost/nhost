@@ -197,14 +197,12 @@ const (
 
 // Defines values for Oauth2AuthorizeParamsCodeChallengeMethod.
 const (
-	Oauth2AuthorizeParamsCodeChallengeMethodPlain Oauth2AuthorizeParamsCodeChallengeMethod = "plain"
-	Oauth2AuthorizeParamsCodeChallengeMethodS256  Oauth2AuthorizeParamsCodeChallengeMethod = "S256"
+	Oauth2AuthorizeParamsCodeChallengeMethodS256 Oauth2AuthorizeParamsCodeChallengeMethod = "S256"
 )
 
 // Defines values for Oauth2AuthorizePostFormdataBodyCodeChallengeMethod.
 const (
-	Oauth2AuthorizePostFormdataBodyCodeChallengeMethodPlain Oauth2AuthorizePostFormdataBodyCodeChallengeMethod = "plain"
-	Oauth2AuthorizePostFormdataBodyCodeChallengeMethodS256  Oauth2AuthorizePostFormdataBodyCodeChallengeMethod = "S256"
+	Oauth2AuthorizePostFormdataBodyCodeChallengeMethodS256 Oauth2AuthorizePostFormdataBodyCodeChallengeMethod = "S256"
 )
 
 // Defines values for Oauth2AuthorizePostFormdataBodyResponseType.
@@ -1181,13 +1179,15 @@ type TicketTypeQuery string
 
 // Oauth2AuthorizeParams defines parameters for Oauth2Authorize.
 type Oauth2AuthorizeParams struct {
-	ClientId            string                                    `form:"client_id" json:"client_id"`
-	RedirectUri         string                                    `form:"redirect_uri" json:"redirect_uri"`
-	ResponseType        *Oauth2AuthorizeParamsResponseType        `form:"response_type,omitempty" json:"response_type,omitempty"`
-	Scope               *string                                   `form:"scope,omitempty" json:"scope,omitempty"`
-	State               *string                                   `form:"state,omitempty" json:"state,omitempty"`
-	Nonce               *string                                   `form:"nonce,omitempty" json:"nonce,omitempty"`
-	CodeChallenge       *string                                   `form:"code_challenge,omitempty" json:"code_challenge,omitempty"`
+	ClientId      string                             `form:"client_id" json:"client_id"`
+	RedirectUri   string                             `form:"redirect_uri" json:"redirect_uri"`
+	ResponseType  *Oauth2AuthorizeParamsResponseType `form:"response_type,omitempty" json:"response_type,omitempty"`
+	Scope         *string                            `form:"scope,omitempty" json:"scope,omitempty"`
+	State         *string                            `form:"state,omitempty" json:"state,omitempty"`
+	Nonce         *string                            `form:"nonce,omitempty" json:"nonce,omitempty"`
+	CodeChallenge *string                            `form:"code_challenge,omitempty" json:"code_challenge,omitempty"`
+
+	// CodeChallengeMethod Only S256 is supported. The plain method is not allowed.
 	CodeChallengeMethod *Oauth2AuthorizeParamsCodeChallengeMethod `form:"code_challenge_method,omitempty" json:"code_challenge_method,omitempty"`
 	Resource            *string                                   `form:"resource,omitempty" json:"resource,omitempty"`
 	Prompt              *string                                   `form:"prompt,omitempty" json:"prompt,omitempty"`
@@ -1202,8 +1202,10 @@ type Oauth2AuthorizeParamsCodeChallengeMethod string
 
 // Oauth2AuthorizePostFormdataBody defines parameters for Oauth2AuthorizePost.
 type Oauth2AuthorizePostFormdataBody struct {
-	ClientId            string                                              `form:"client_id" json:"client_id"`
-	CodeChallenge       *string                                             `form:"code_challenge,omitempty" json:"code_challenge,omitempty"`
+	ClientId      string  `form:"client_id" json:"client_id"`
+	CodeChallenge *string `form:"code_challenge,omitempty" json:"code_challenge,omitempty"`
+
+	// CodeChallengeMethod Only S256 is supported. The plain method is not allowed.
 	CodeChallengeMethod *Oauth2AuthorizePostFormdataBodyCodeChallengeMethod `form:"code_challenge_method,omitempty" json:"code_challenge_method,omitempty"`
 	Nonce               *string                                             `form:"nonce,omitempty" json:"nonce,omitempty"`
 	Prompt              *string                                             `form:"prompt,omitempty" json:"prompt,omitempty"`

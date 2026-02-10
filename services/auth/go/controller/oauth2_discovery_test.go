@@ -61,7 +61,7 @@ func TestGetOpenIDConfiguration(t *testing.T) { //nolint:dupl
 				TokenEndpointAuthMethodsSupported: &[]string{
 					"client_secret_basic", "client_secret_post", "none",
 				},
-				CodeChallengeMethodsSupported: &[]string{"S256", "plain"},
+				CodeChallengeMethodsSupported: &[]string{"S256"},
 				AdditionalProperties: map[string]any{
 					"request_parameter_supported": false,
 				},
@@ -128,7 +128,7 @@ func TestGetOAuthAuthorizationServer(t *testing.T) { //nolint:dupl
 				TokenEndpointAuthMethodsSupported: &[]string{
 					"client_secret_basic", "client_secret_post", "none",
 				},
-				CodeChallengeMethodsSupported: &[]string{"S256", "plain"},
+				CodeChallengeMethodsSupported: &[]string{"S256"},
 				AdditionalProperties: map[string]any{
 					"request_parameter_supported": false,
 				},

@@ -41,7 +41,7 @@ func (p *Provider) BuildDiscoveryResponse() api.OAuth2DiscoveryResponse {
 			"client_secret_post",
 			"none",
 		},
-		CodeChallengeMethodsSupported: &[]string{"S256", "plain"},
+		CodeChallengeMethodsSupported: &[]string{"S256"},
 	}
 
 	resp.Set("request_parameter_supported", false)
