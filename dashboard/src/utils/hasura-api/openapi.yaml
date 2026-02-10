@@ -68,7 +68,7 @@ paths:
                         type: string
                         example: success
                   - $ref: "#/components/schemas/ExportMetadataResponse"
-                  - $ref: "#/components/schemas/GetInconsistentMetadataResponse"
+                  - $ref: "#/components/schemas/InconsistentMetadataResponse"
                   - $ref: "#/components/schemas/ReloadMetadataOperationResponse"
                   - $ref: "#/components/schemas/SuggestRelationshipsResponse"
                   - $ref: "#/components/schemas/IntrospectRemoteSchemaResponse"
@@ -1121,7 +1121,7 @@ components:
           type: object
           example: {}
 
-    GetInconsistentMetadataResponse:
+    InconsistentMetadataResponse:
       type: object
       required:
         - is_consistent
@@ -1156,7 +1156,7 @@ components:
       type: object
       allOf:
         - $ref: "#/components/schemas/SuccessResponse"
-        - $ref: "#/components/schemas/GetInconsistentMetadataResponse"
+        - $ref: "#/components/schemas/InconsistentMetadataResponse"
 
     DropInconsistentMetadataOperation:
       type: object
@@ -1188,15 +1188,11 @@ components:
       type: object
       required:
         - type
-        - version
         - args
       properties:
         type:
           type: string
           enum: [replace_metadata]
-        version:
-          type: integer
-          enum: [2]
         args:
           $ref: "#/components/schemas/ReplaceMetadataArgs"
 

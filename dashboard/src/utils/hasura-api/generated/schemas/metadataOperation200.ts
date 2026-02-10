@@ -9,9 +9,9 @@ import type { ExportMetadataResponse } from './exportMetadataResponse';
 import type { GetCronTriggersResponse } from './getCronTriggersResponse';
 import type { GetEventAndInvocationLogsByIdResponse } from './getEventAndInvocationLogsByIdResponse';
 import type { GetEventLogsResponse } from './getEventLogsResponse';
-import type { GetInconsistentMetadataResponse } from './getInconsistentMetadataResponse';
 import type { GetScheduledEventInvocationsResponse } from './getScheduledEventInvocationsResponse';
 import type { GetScheduledEventsResponse } from './getScheduledEventsResponse';
+import type { InconsistentMetadataResponse } from './inconsistentMetadataResponse';
 import type { IntrospectRemoteSchemaResponse } from './introspectRemoteSchemaResponse';
 import type { InvokeEventTriggerResponse } from './invokeEventTriggerResponse';
 import type { ReloadMetadataOperationResponse } from './reloadMetadataOperationResponse';
@@ -23,7 +23,7 @@ export type MetadataOperation200 =
       message?: string;
     }
   | ExportMetadataResponse
-  | GetInconsistentMetadataResponse
+  | InconsistentMetadataResponse
   | ReloadMetadataOperationResponse
   | SuggestRelationshipsResponse
   | IntrospectRemoteSchemaResponse

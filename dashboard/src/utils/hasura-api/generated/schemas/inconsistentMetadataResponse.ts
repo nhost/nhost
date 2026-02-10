@@ -6,7 +6,7 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export interface GetInconsistentMetadataResponse {
+export interface InconsistentMetadataResponse {
   is_consistent: boolean;
   inconsistent_objects?: unknown[];
 }

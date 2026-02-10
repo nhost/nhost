@@ -2,22 +2,18 @@ import type { UseQueryOptions } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import type { GetInconsistentMetadataResponse } from '@/utils/hasura-api/generated/schemas';
+import type { InconsistentMetadataResponse } from '@/utils/hasura-api/generated/schemas';
 import getInconsistentMetadata from './getInconsistentMetadata';
 
 export interface UseGetInconsistentMetadataOptions {
   /**
    * Props passed to the underlying query hook.
    */
-  queryOptions?: UseQueryOptions<
-    GetInconsistentMetadataResponse,
-    unknown,
-    GetInconsistentMetadataResponse
-  >;
+  queryOptions?: UseQueryOptions<InconsistentMetadataResponse, unknown>;
 }
 
 /**
- * This hook gets the inconsistent metadata from the Hasura API.
+ * This hook gets the inconsistent metadata objects.
  *
  * @param options - Options to use for the query.
  * @returns The result of the query.
@@ -27,11 +23,7 @@ export default function useGetInconsistentMetadata({
 }: UseGetInconsistentMetadataOptions = {}) {
   const { project } = useProject();
 
-  const query = useQuery<
-    GetInconsistentMetadataResponse,
-    unknown,
-    GetInconsistentMetadataResponse
-  >({
+  const query = useQuery<InconsistentMetadataResponse, unknown>({
     queryKey: ['inconsistent-metadata', project?.subdomain],
     queryFn: () => {
       const appUrl = generateAppServiceUrl(

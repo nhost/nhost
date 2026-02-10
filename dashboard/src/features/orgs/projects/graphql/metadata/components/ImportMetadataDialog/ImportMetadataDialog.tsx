@@ -28,7 +28,7 @@ export default function ImportMetadataDialog({
   onImportSuccess,
 }: ImportMetadataDialogProps) {
   const [allowInconsistentMetadata, setAllowInconsistentMetadata] =
-    useState(true);
+    useState(false);
 
   const { isPending, mutateAsync: replaceMetadata } =
     useReplaceMetadataMutation();

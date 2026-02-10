@@ -44,7 +44,7 @@ export default function ReloadMetadataCard() {
   };
 
   return (
-    <div className="rounded-lg border bg-card p-4">
+    <div className="rounded-lg border bg-paper p-4">
       <h3 className="mb-4 font-medium text-foreground text-sm">
         Reload Metadata
       </h3>

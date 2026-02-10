@@ -7,7 +7,7 @@ export default function ResetMetadataCard() {
   const [clearDialogOpen, setClearDialogOpen] = useState(false);
 
   return (
-    <div className="rounded-lg border bg-card p-4">
+    <div className="rounded-lg border bg-paper p-4">
       <h3 className="mb-4 font-medium text-foreground text-sm">
         Reset Metadata
       </h3>

@@ -7,10 +7,8 @@
  */
 import type { ReplaceMetadataArgs } from './replaceMetadataArgs';
 import type { ReplaceMetadataOperationType } from './replaceMetadataOperationType';
-import type { ReplaceMetadataOperationVersion } from './replaceMetadataOperationVersion';
 
 export interface ReplaceMetadataOperation {
   type: ReplaceMetadataOperationType;
-  version: ReplaceMetadataOperationVersion;
   args: ReplaceMetadataArgs;
 }

@@ -1,6 +1,6 @@
 import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
 import type {
-  GetInconsistentMetadataResponse,
+  InconsistentMetadataResponse,
   ReplaceMetadataOperation,
 } from '@/utils/hasura-api/generated/schemas';
 import type { MetadataOperationOptions } from '@/utils/hasura-api/types';
@@ -20,7 +20,6 @@ export default async function replaceMetadata({
     const response = await metadataOperation(
       {
         type: 'replace_metadata',
-        version: 2,
         args: {
           allow_inconsistent_metadata: allowInconsistentMetadata,
           metadata,
@@ -33,8 +32,7 @@ export default async function replaceMetadata({
     );
 
     if (response.status === 200) {
-      // It returns the same response as get inconsistent metadata, so we can reuse the same type
-      return response.data as GetInconsistentMetadataResponse;
+      return response.data as InconsistentMetadataResponse;
     }
 
     throw new Error(response.data.error);

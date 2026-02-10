@@ -12,7 +12,7 @@ export default function MetadataStatusCard() {
 
   if (isLoading) {
     return (
-      <div className="rounded-lg border bg-card p-6">
+      <div className="rounded-lg border bg-paper p-6">
         <div className="flex w-full items-center justify-center py-4">
           <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         </div>
@@ -21,7 +21,7 @@ export default function MetadataStatusCard() {
   }
 
   return (
-    <div className="rounded-lg border bg-card p-6">
+    <div className="rounded-lg border bg-paper p-6">
       {hasInconsistencies ? (
         <MetadataInconsistentStatus inconsistentObjects={inconsistentObjects} />
       ) : (

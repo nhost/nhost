@@ -1,10 +1,10 @@
 import type { ReactElement } from 'react';
 import { Container } from '@/components/layout/Container';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
-import ExportImportMetadataCard from '@/features/orgs/projects/graphql/metadata/components/ExportImportMetadataCard/ExportImportMetadataCard';
-import MetadataStatusCard from '@/features/orgs/projects/graphql/metadata/components/MetadataStatusCard/MetadataStatusCard';
-import ReloadMetadataCard from '@/features/orgs/projects/graphql/metadata/components/ReloadMetadataCard/ReloadMetadataCard';
-import ResetMetadataCard from '@/features/orgs/projects/graphql/metadata/components/ResetMetadataCard/ResetMetadataCard';
+import { ImportExportMetadataCard } from '@/features/orgs/projects/graphql/metadata/components/ImportExportMetadataCard';
+import { MetadataStatusCard } from '@/features/orgs/projects/graphql/metadata/components/MetadataStatusCard';
+import { ReloadMetadataCard } from '@/features/orgs/projects/graphql/metadata/components/ReloadMetadataCard';
+import { ResetMetadataCard } from '@/features/orgs/projects/graphql/metadata/components/ResetMetadataCard';
 
 export default function MetadataPage() {
   return (
@@ -24,12 +24,21 @@ export default function MetadataPage() {
 
       <MetadataStatusCard />
       <ReloadMetadataCard />
-      <ExportImportMetadataCard />
+      <ImportExportMetadataCard />
       <ResetMetadataCard />
     </Container>
   );
 }
 
 MetadataPage.getLayout = function getLayout(page: ReactElement) {
-  return <OrgLayout>{page}</OrgLayout>;
+  return (
+    <OrgLayout>
+      <Container
+        sx={{ backgroundColor: 'background.default' }}
+        className="max-w-5xl"
+      >
+        {page}
+      </Container>
+    </OrgLayout>
+  );
 };
