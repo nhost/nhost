@@ -1,0 +1,57 @@
+openapi: "3.0.0"
+
+paths:
+  /oauth2/revoke:
+    post:
+      summary: OAuth2 Token Revocation (RFC 7009)
+      description: Revoke an access token or refresh token.
+      operationId: oauth2Revoke
+      tags:
+        - session
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/OAuth2RevokeRequest"
+      responses:
+        "200":
+          description: Token successfully revoked (or was already invalid)
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuth2ErrorResponse"
+          description: OAuth2 error response
+
+components:
+  schemas:
+    OAuth2RevokeRequest:
+      type: object
+      properties:
+        token:
+          type: string
+        token_type_hint:
+          type: string
+          enum: [access_token, refresh_token]
+          nullable: true
+        client_id:
+          type: string
+          nullable: true
+        client_secret:
+          type: string
+          nullable: true
+      required:
+        - token
+
+    OAuth2ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: OAuth2 error code
+        error_description:
+          type: string
+          description: Human-readable error description
+      required:
+        - error
