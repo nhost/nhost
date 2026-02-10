@@ -108,11 +108,11 @@ fi
 echo "    Client 3 ID:     ${client3_id}"
 echo "    Client 3 Secret: ${client3_secret}"
 
-# Write test-config.json for run-test-plan.py
+# Write test-config.json for static client plans (basic certification)
 cat > "${SCRIPT_DIR}/test-config.json" <<EOF
 {
   "alias": "nhost",
-  "description": "Nhost Auth OIDC Basic Profile",
+  "description": "Nhost Auth OIDC Basic Profile (static clients)",
   "server": {
     "discoveryUrl": "http://auth:4000/.well-known/openid-configuration"
   },
@@ -149,12 +149,40 @@ cat > "${SCRIPT_DIR}/test-config.json" <<EOF
 }
 EOF
 
+# Write test-config-dcr.json for dynamic client registration plans.
+# No client credentials needed — the conformance suite registers its own clients.
+cat > "${SCRIPT_DIR}/test-config-dcr.json" <<EOF
+{
+  "alias": "nhost",
+  "description": "Nhost Auth OIDC Basic Profile (dynamic client registration)",
+  "server": {
+    "discoveryUrl": "http://auth:4000/.well-known/openid-configuration"
+  },
+  "browser": [
+    {
+      "match": "http://auth:4000/oauth2/authorize*",
+      "tasks": [
+        {
+          "task": "Verify Complete",
+          "match": "https://localhost.emobix.co.uk:8443/*",
+          "commands": [
+            ["wait", "id", "submission_complete", 10, ".*", "update-image-placeholder-optional"]
+          ]
+        }
+      ]
+    }
+  ]
+}
+EOF
+
 echo ""
 echo "============================================"
 echo "  Setup complete!"
 echo "============================================"
 echo ""
-echo "  test-config.json written with client credentials."
+echo "  Config files written:"
+echo "    test-config.json     — static clients (basic certification)"
+echo "    test-config-dcr.json — dynamic client registration"
 echo ""
 echo "  Test credentials:"
 echo "    Email:    ${DEMO_EMAIL}"

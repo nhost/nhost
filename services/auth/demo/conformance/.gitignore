@@ -1,3 +1,4 @@
 conformance-suite/
 test-config.json
+test-config-dcr.json
 .env
