@@ -126,7 +126,7 @@ test('should create a table with role permissions and a custom check to select r
 test('should be able to select jsonb specific operators for filter operations', async ({
   authenticatedNhostPage: page,
 }) => {
-    await page.getByRole('button', { name: /new table/i }).click();
+  await page.getByRole('button', { name: /new table/i }).click();
   await expect(page.getByText(/create a new table/i)).toBeVisible();
 
   const tableName = snakeCase(faker.lorem.words(3));
@@ -134,9 +134,8 @@ test('should be able to select jsonb specific operators for filter operations', 
   await prepareTable({
     page,
     name: tableName,
-    primaryKey: 'id',
+    primaryKeys: [],
     columns: [
-      { name: 'id', type: 'uuid', defaultValue: 'gen_random_uuid()' },
       { name: 'title', type: 'text' },
       { name: 'jsonField', type: 'jsonb' },
     ],
@@ -155,7 +154,7 @@ test('should be able to select jsonb specific operators for filter operations', 
 
   // Press three horizontal dots more options button next to the table name
   await page
-    .locator(`li:has-text("${tableName}") #table-management-menu button`)
+    .locator(`li:has-text("${tableName}") #table-management-menu-${tableName}`)
     .click();
 
   await page.getByRole('menuitem', { name: /edit permissions/i }).click();
@@ -164,7 +163,6 @@ test('should be able to select jsonb specific operators for filter operations', 
 
   await page.getByLabel('With custom check').click();
 
-  // await page.getByRole('combobox', { name: /select a column/i }).click();
   await page.getByText('Select a column', { exact: true }).click();
 
   const columnSelector = page.locator('input[role="combobox"]');
@@ -177,7 +175,7 @@ test('should be able to select jsonb specific operators for filter operations', 
 
   const operatorSelector = page.locator('input[role="combobox"]');
 
-  await operatorSelector.fill('_contains')
+  await operatorSelector.fill('_contains');
 
   await expect(page.getByText(/No operator found/i)).not.toBeVisible();
 
@@ -185,7 +183,7 @@ test('should be able to select jsonb specific operators for filter operations', 
 
   await page.getByText('Select variable...', { exact: true }).click();
 
-  const variableSelector = await page.locator('input[role="combobox"]');
+  const variableSelector = page.locator('input[role="combobox"]');
 
   await variableSelector.fill('X-Hasura-User-Id');
 
