@@ -130,7 +130,11 @@ export default function MetadataInconsistentStatus({
                             <TableCell className="font-medium">
                               {String(obj.name)}
                             </TableCell>
-                            <TableCell>{String(obj.type)}</TableCell>
+                            <TableCell>
+                              <Badge variant="outline">
+                                {String(obj.type)}
+                              </Badge>
+                            </TableCell>
                             <TableCell>
                               <pre className="whitespace-pre-wrap break-all font-mono text-xs">
                                 {JSON.stringify(obj.definition, null, 2)}

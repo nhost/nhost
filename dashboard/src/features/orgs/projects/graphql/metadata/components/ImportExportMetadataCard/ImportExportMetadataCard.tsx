@@ -107,58 +107,58 @@ export default function ImportExportMetadataCard() {
         Import & Export Metadata
       </h3>
 
-      <div className="flex flex-col gap-4 rounded-lg border p-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-500/10">
-            <Upload className="h-4 w-4 text-amber-500" />
-          </div>
-          <h4 className="font-medium text-foreground text-sm">Import</h4>
-        </div>
-        <p className="text-muted-foreground text-sm">
-          Replace your existing metadata with the contents of an uploaded JSON
-          file.
-        </p>
-        <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2">
-          <div className="flex items-center gap-2">
-            <TriangleAlert className="h-4 w-4 shrink-0 text-amber-500" />
-            <p className="text-muted-foreground text-xs">
-              Importing will overwrite all existing metadata. Make sure to
-              export a backup first.
-            </p>
-          </div>
-        </div>
-        <button
-          type="button"
-          className={cn(
-            'flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-4 py-8 transition-colors',
-            isDragging
-              ? 'border-primary bg-primary/5'
-              : 'border-muted-foreground/25 hover:border-muted-foreground/50',
-          )}
-          onClick={() => fileInputRef.current?.click()}
-          onDragOver={(e) => {
-            e.preventDefault();
-            setIsDragging(true);
-          }}
-          onDragLeave={() => setIsDragging(false)}
-          onDrop={handleDrop}
-        >
-          <FileJson className="h-8 w-8 text-muted-foreground/50" />
-          <p className="font-medium text-foreground text-sm">
-            Drop a .json file here
-          </p>
-          <p className="text-muted-foreground text-xs">or click to browse</p>
-        </button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".json"
-          className="hidden"
-          onChange={handleFileSelect}
-        />
-      </div>
-
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div className="flex flex-col gap-4 rounded-lg border p-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-500/10">
+              <Upload className="h-4 w-4 text-amber-500" />
+            </div>
+            <h4 className="font-medium text-foreground text-sm">Import</h4>
+          </div>
+          <p className="text-muted-foreground text-sm">
+            Replace your existing metadata with the contents of an uploaded JSON
+            file.
+          </p>
+          <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2">
+            <div className="flex items-center gap-2">
+              <TriangleAlert className="h-4 w-4 shrink-0 text-amber-500" />
+              <p className="text-muted-foreground text-xs">
+                Importing will overwrite all existing metadata. Make sure to
+                export a backup first.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            className={cn(
+              'flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-4 py-8 transition-colors',
+              isDragging
+                ? 'border-primary bg-primary/5'
+                : 'border-muted-foreground/25 hover:border-muted-foreground/50',
+            )}
+            onClick={() => fileInputRef.current?.click()}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setIsDragging(true);
+            }}
+            onDragLeave={() => setIsDragging(false)}
+            onDrop={handleDrop}
+          >
+            <FileJson className="h-8 w-8 text-muted-foreground/50" />
+            <p className="font-medium text-foreground text-sm">
+              Drop a .json file here
+            </p>
+            <p className="text-muted-foreground text-xs">or click to browse</p>
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".json"
+            className="hidden"
+            onChange={handleFileSelect}
+          />
+        </div>
+
         <div className="flex flex-col gap-4 rounded-lg border p-4">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
