@@ -15,8 +15,21 @@ func (p *Provider) IntrospectToken( //nolint:cyclop,funlen
 	ctx context.Context,
 	req *api.OAuth2IntrospectRequest,
 	logger *slog.Logger,
-) *api.OAuth2IntrospectResponse {
+) (*api.OAuth2IntrospectResponse, *Error) {
 	inactive := &api.OAuth2IntrospectResponse{Active: false} //nolint:exhaustruct
+
+	if req.ClientId == nil || *req.ClientId == "" {
+		return nil, &Error{
+			Err:         "invalid_client",
+			Description: "Client ID is required",
+		}
+	}
+
+	if oauthErr := p.authenticateClient(
+		ctx, *req.ClientId, req.ClientId, req.ClientSecret, logger,
+	); oauthErr != nil {
+		return nil, oauthErr
+	}
 
 	hint := ""
 	if req.TokenTypeHint != nil {
@@ -42,18 +55,18 @@ func (p *Provider) IntrospectToken( //nolint:cyclop,funlen
 				Exp:       &exp,
 				Iat:       &iat,
 				TokenType: &tokenType,
-			}
+			}, nil
 		}
 
 		if hint == TokenTypeRefreshToken {
-			return inactive
+			return inactive, nil
 		}
 	}
 
 	privateKey, _, err := p.signer.RSASigningKey()
 	if err != nil {
 		logger.ErrorContext(ctx, "error getting signing key for introspection", logError(err))
-		return inactive
+		return inactive, nil
 	}
 
 	pubKey := &privateKey.PublicKey
@@ -62,18 +75,18 @@ func (p *Provider) IntrospectToken( //nolint:cyclop,funlen
 		req.Token, []jose.SignatureAlgorithm{jose.RS256},
 	)
 	if err != nil {
-		return inactive
+		return inactive, nil
 	}
 
 	claims := josejwt.Claims{} //nolint:exhaustruct
 	if err := tok.Claims(pubKey, &claims); err != nil {
-		return inactive
+		return inactive, nil
 	}
 
 	if err := claims.ValidateWithLeeway(josejwt.Expected{ //nolint:exhaustruct
 		Issuer: p.Issuer(),
 	}, 0); err != nil {
-		return inactive
+		return inactive, nil
 	}
 
 	sub := claims.Subject
@@ -89,5 +102,5 @@ func (p *Provider) IntrospectToken( //nolint:cyclop,funlen
 		Iat:       &iat,
 		Iss:       &iss,
 		TokenType: &tokenType,
-	}
+	}, nil
 }

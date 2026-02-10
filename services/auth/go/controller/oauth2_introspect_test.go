@@ -16,8 +16,18 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func TestOauth2Introspect(t *testing.T) { //nolint:cyclop
+func TestOauth2Introspect(t *testing.T) { //nolint:cyclop,funlen
 	t.Parallel()
+
+	clientID := "nhost_abc123def456"
+
+	publicClient := sql.AuthOauth2Client{ //nolint:exhaustruct
+		ID:                       uuid.MustParse("11111111-1111-1111-1111-111111111111"),
+		ClientID:                 clientID,
+		IsPublic:                 true,
+		TokenEndpointAuthMethod:  "none",
+		IDTokenSignedResponseAlg: "RS256",
+	}
 
 	t.Run("disabled", func(t *testing.T) {
 		t.Parallel()
@@ -87,6 +97,87 @@ func TestOauth2Introspect(t *testing.T) { //nolint:cyclop
 		}
 	})
 
+	t.Run("missing client_id", func(t *testing.T) {
+		t.Parallel()
+
+		ctrl := gomock.NewController(t)
+
+		c, _ := getController(
+			t,
+			ctrl,
+			getConfigOAuth2Enabled,
+			func(ctrl *gomock.Controller) controller.DBClient {
+				return mock.NewMockDBClient(ctrl)
+			},
+		)
+
+		resp, err := c.Oauth2Introspect(context.Background(), api.Oauth2IntrospectRequestObject{
+			Body: &api.OAuth2IntrospectRequest{ //nolint:exhaustruct
+				Token: "some-token",
+			},
+		})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		defaultResp, ok := resp.(api.Oauth2IntrospectdefaultJSONResponse)
+		if !ok {
+			t.Fatalf("expected default JSON response, got %T", resp)
+		}
+
+		if defaultResp.StatusCode != http.StatusUnauthorized {
+			t.Errorf("expected status %d, got %d", http.StatusUnauthorized, defaultResp.StatusCode)
+		}
+
+		if defaultResp.Body.Error != "invalid_client" {
+			t.Errorf("expected error %q, got %q", "invalid_client", defaultResp.Body.Error)
+		}
+	})
+
+	t.Run("unknown client", func(t *testing.T) {
+		t.Parallel()
+
+		ctrl := gomock.NewController(t)
+
+		unknownClientID := "nhost_unknown"
+
+		db := mock.NewMockDBClient(ctrl)
+		db.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), unknownClientID).
+			Return(sql.AuthOauth2Client{}, pgx.ErrNoRows) //nolint:exhaustruct
+
+		c, _ := getController(
+			t,
+			ctrl,
+			getConfigOAuth2Enabled,
+			func(_ *gomock.Controller) controller.DBClient {
+				return db
+			},
+		)
+
+		resp, err := c.Oauth2Introspect(context.Background(), api.Oauth2IntrospectRequestObject{
+			Body: &api.OAuth2IntrospectRequest{ //nolint:exhaustruct
+				Token:    "some-token",
+				ClientId: &unknownClientID,
+			},
+		})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		defaultResp, ok := resp.(api.Oauth2IntrospectdefaultJSONResponse)
+		if !ok {
+			t.Fatalf("expected default JSON response, got %T", resp)
+		}
+
+		if defaultResp.StatusCode != http.StatusUnauthorized {
+			t.Errorf("expected status %d, got %d", http.StatusUnauthorized, defaultResp.StatusCode)
+		}
+
+		if defaultResp.Body.Error != "invalid_client" {
+			t.Errorf("expected error %q, got %q", "invalid_client", defaultResp.Body.Error)
+		}
+	})
+
 	t.Run("refresh token - active", func(t *testing.T) {
 		t.Parallel()
 
@@ -100,7 +191,7 @@ func TestOauth2Introspect(t *testing.T) { //nolint:cyclop
 			ID:            uuid.MustParse("33333333-3333-3333-3333-333333333333"),
 			TokenHash:     "somehash",
 			AuthRequestID: pgtype.UUID{Valid: false}, //nolint:exhaustruct
-			ClientID:      "nhost_abc123def456",
+			ClientID:      clientID,
 			UserID:        userID,
 			Scopes:        []string{"openid", "profile"},
 			CreatedAt: pgtype.Timestamptz{ //nolint:exhaustruct
@@ -114,6 +205,8 @@ func TestOauth2Introspect(t *testing.T) { //nolint:cyclop
 		}
 
 		db := mock.NewMockDBClient(ctrl)
+		db.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), clientID).
+			Return(publicClient, nil)
 		db.EXPECT().GetOAuth2RefreshTokenByHash(gomock.Any(), gomock.Any()).
 			Return(rt, nil)
 
@@ -130,6 +223,7 @@ func TestOauth2Introspect(t *testing.T) { //nolint:cyclop
 			Body: &api.OAuth2IntrospectRequest{ //nolint:exhaustruct
 				Token:         "some-refresh-token",
 				TokenTypeHint: &hint,
+				ClientId:      &clientID,
 			},
 		})
 		if err != nil {
@@ -158,6 +252,8 @@ func TestOauth2Introspect(t *testing.T) { //nolint:cyclop
 		hint := api.OAuth2IntrospectRequestTokenTypeHintRefreshToken
 
 		db := mock.NewMockDBClient(ctrl)
+		db.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), clientID).
+			Return(publicClient, nil)
 		db.EXPECT().GetOAuth2RefreshTokenByHash(gomock.Any(), gomock.Any()).
 			Return(sql.AuthOauth2RefreshToken{}, pgx.ErrNoRows) //nolint:exhaustruct
 
@@ -174,6 +270,7 @@ func TestOauth2Introspect(t *testing.T) { //nolint:cyclop
 			Body: &api.OAuth2IntrospectRequest{ //nolint:exhaustruct
 				Token:         "unknown-token",
 				TokenTypeHint: &hint,
+				ClientId:      &clientID,
 			},
 		})
 		if err != nil {

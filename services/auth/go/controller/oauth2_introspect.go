@@ -22,9 +22,12 @@ func (ctrl *Controller) Oauth2Introspect( //nolint:ireturn
 		return oauth2IntrospectError("invalid_request", "Missing request body"), nil
 	}
 
-	resp := ctrl.oauth2.IntrospectToken(
+	resp, oauthErr := ctrl.oauth2.IntrospectToken(
 		ctx, request.Body, logger,
 	)
+	if oauthErr != nil {
+		return oauth2IntrospectError(oauthErr.Err, oauthErr.Description), nil
+	}
 
 	return api.Oauth2Introspect200JSONResponse(*resp), nil
 }
