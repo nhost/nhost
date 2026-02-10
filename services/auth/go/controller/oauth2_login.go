@@ -25,7 +25,7 @@ func (ctrl *Controller) Oauth2LoginGet( //nolint:ireturn
 		}, nil
 	}
 
-	resp, oauthErr := ctrl.wf.oauth2GetLoginRequest(ctx, request.Params.RequestId, logger)
+	resp, oauthErr := ctrl.oauth2.GetLoginRequest(ctx, request.Params.RequestId, logger)
 	if oauthErr != nil {
 		return api.Oauth2LoginGetdefaultJSONResponse{
 			StatusCode: http.StatusBadRequest,
@@ -80,7 +80,7 @@ func (ctrl *Controller) Oauth2LoginPost( //nolint:ireturn
 		}, nil
 	}
 
-	resp, oauthErr := ctrl.wf.oauth2CompleteLogin(ctx, request.Body.RequestId, userID, logger)
+	resp, oauthErr := ctrl.oauth2.CompleteLogin(ctx, request.Body.RequestId, userID, logger)
 	if oauthErr != nil {
 		return api.Oauth2LoginPostdefaultJSONResponse{
 			StatusCode: http.StatusBadRequest,

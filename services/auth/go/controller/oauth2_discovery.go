@@ -7,51 +7,6 @@ import (
 	"github.com/nhost/nhost/services/auth/go/api"
 )
 
-func (ctrl *Controller) buildDiscoveryResponse() api.OAuth2DiscoveryResponse {
-	issuer := oauth2Issuer(&ctrl.config)
-	baseURL := ctrl.config.ServerURL.String()
-
-	authEndpoint := baseURL + "/oauth2/authorize"
-	tokenEndpoint := baseURL + "/oauth2/token"
-	userinfoEndpoint := baseURL + "/oauth2/userinfo"
-	jwksURI := baseURL + "/oauth2/jwks"
-	revocationEndpoint := baseURL + "/oauth2/revoke"
-	introspectionEndpoint := baseURL + "/oauth2/introspect"
-	registrationEndpoint := baseURL + "/oauth2/register"
-
-	resp := api.OAuth2DiscoveryResponse{ //nolint:exhaustruct
-		Issuer:                 issuer,
-		AuthorizationEndpoint:  authEndpoint,
-		TokenEndpoint:          tokenEndpoint,
-		UserinfoEndpoint:       &userinfoEndpoint,
-		JwksUri:                jwksURI,
-		RevocationEndpoint:     &revocationEndpoint,
-		IntrospectionEndpoint:  &introspectionEndpoint,
-		RegistrationEndpoint:   &registrationEndpoint,
-		ResponseTypesSupported: []string{"code"},
-		GrantTypesSupported:    &[]string{"authorization_code", "refresh_token"},
-		ScopesSupported: &[]string{
-			"openid",
-			"profile",
-			"email",
-			"phone",
-			"offline_access",
-		},
-		SubjectTypesSupported:            &[]string{"public"},
-		IdTokenSigningAlgValuesSupported: &[]string{"RS256"},
-		TokenEndpointAuthMethodsSupported: &[]string{
-			"client_secret_basic",
-			"client_secret_post",
-			"none",
-		},
-		CodeChallengeMethodsSupported: &[]string{"S256", "plain"},
-	}
-
-	resp.Set("request_parameter_supported", false)
-
-	return resp
-}
-
 func (ctrl *Controller) GetOpenIDConfiguration( //nolint:ireturn
 	ctx context.Context,
 	_ api.GetOpenIDConfigurationRequestObject,
@@ -64,7 +19,7 @@ func (ctrl *Controller) GetOpenIDConfiguration( //nolint:ireturn
 		return nil, nil //nolint:nilnil
 	}
 
-	return api.GetOpenIDConfiguration200JSONResponse(ctrl.buildDiscoveryResponse()), nil
+	return api.GetOpenIDConfiguration200JSONResponse(ctrl.oauth2.BuildDiscoveryResponse()), nil
 }
 
 func (ctrl *Controller) GetOAuthAuthorizationServer( //nolint:ireturn
@@ -79,7 +34,9 @@ func (ctrl *Controller) GetOAuthAuthorizationServer( //nolint:ireturn
 		return nil, nil //nolint:nilnil
 	}
 
-	return api.GetOAuthAuthorizationServer200JSONResponse(ctrl.buildDiscoveryResponse()), nil
+	return api.GetOAuthAuthorizationServer200JSONResponse(
+		ctrl.oauth2.BuildDiscoveryResponse(),
+	), nil
 }
 
 func (ctrl *Controller) Oauth2Jwks( //nolint:ireturn
@@ -94,7 +51,7 @@ func (ctrl *Controller) Oauth2Jwks( //nolint:ireturn
 		return api.Oauth2Jwks200JSONResponse{Keys: nil}, nil
 	}
 
-	jwks := ctrl.jwtGetter.JWKS()
+	jwks := ctrl.oauth2.JWKS()
 
 	keys := make([]struct {
 		Alg *string `json:"alg,omitempty"`

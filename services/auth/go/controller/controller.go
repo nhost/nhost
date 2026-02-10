@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/nhost/nhost/services/auth/go/notifications"
+	oauth2provider "github.com/nhost/nhost/services/auth/go/oauth2"
 	"github.com/nhost/nhost/services/auth/go/oidc"
 	"github.com/nhost/nhost/services/auth/go/providers"
 	"github.com/nhost/nhost/services/auth/go/sql"
@@ -111,52 +112,12 @@ type DBClientUserProvider interface {
 	) (sql.AuthUserProvider, error)
 }
 
-type DBClientOAuth2Provider interface { //nolint:interfacebloat
-	GetOAuth2ClientByClientID(ctx context.Context, clientID string) (sql.AuthOauth2Client, error)
-	ListOAuth2Clients(ctx context.Context) ([]sql.AuthOauth2Client, error)
-	InsertOAuth2Client(
-		ctx context.Context, arg sql.InsertOAuth2ClientParams,
-	) (sql.AuthOauth2Client, error)
-	UpdateOAuth2Client(
-		ctx context.Context, arg sql.UpdateOAuth2ClientParams,
-	) (sql.AuthOauth2Client, error)
-	DeleteOAuth2Client(ctx context.Context, clientID string) error
-	InsertOAuth2AuthRequest(
-		ctx context.Context, arg sql.InsertOAuth2AuthRequestParams,
-	) (sql.AuthOauth2AuthRequest, error)
-	GetOAuth2AuthRequest(ctx context.Context, id uuid.UUID) (sql.AuthOauth2AuthRequest, error)
-	UpdateOAuth2AuthRequestSetUser(
-		ctx context.Context, arg sql.UpdateOAuth2AuthRequestSetUserParams,
-	) (sql.AuthOauth2AuthRequest, error)
-	DeleteOAuth2AuthRequest(ctx context.Context, id uuid.UUID) error
-	DeleteExpiredOAuth2AuthRequests(ctx context.Context) error
-	InsertOAuth2AuthorizationCode(
-		ctx context.Context, arg sql.InsertOAuth2AuthorizationCodeParams,
-	) (sql.AuthOauth2AuthorizationCode, error)
-	GetOAuth2AuthRequestByCodeHash(
-		ctx context.Context, codeHash string,
-	) (sql.AuthOauth2AuthRequest, error)
-	DeleteOAuth2AuthorizationCode(ctx context.Context, codeHash string) error
-	InsertOAuth2RefreshToken(
-		ctx context.Context, arg sql.InsertOAuth2RefreshTokenParams,
-	) (sql.AuthOauth2RefreshToken, error)
-	GetOAuth2RefreshTokenByHash(
-		ctx context.Context, tokenHash string,
-	) (sql.AuthOauth2RefreshToken, error)
-	DeleteOAuth2RefreshToken(ctx context.Context, tokenHash string) error
-	UpdateOAuth2RefreshToken(
-		ctx context.Context, arg sql.UpdateOAuth2RefreshTokenParams,
-	) (sql.AuthOauth2RefreshToken, error)
-	DeleteOAuth2RefreshTokensByUserID(ctx context.Context, userID uuid.UUID) error
-	DeleteExpiredOAuth2RefreshTokens(ctx context.Context) error
-}
-
 type DBClient interface { //nolint:interfacebloat
 	DBClientGetUser
 	DBClientInsertUser
 	DBClientUpdateUser
 	DBClientUserProvider
-	DBClientOAuth2Provider
+	oauth2provider.DBClient
 
 	CountSecurityKeysUser(ctx context.Context, userID uuid.UUID) (int64, error)
 	GetSecurityKeys(ctx context.Context, userID uuid.UUID) ([]sql.AuthUserSecurityKey, error)
@@ -180,6 +141,16 @@ type Encrypter interface {
 	Decrypt(cipherText []byte) ([]byte, error)
 }
 
+type bcryptHasher struct{}
+
+func (b *bcryptHasher) Hash(password string) (string, error) {
+	return hashPassword(password)
+}
+
+func (b *bcryptHasher) Verify(password, hash string) bool {
+	return verifyHashPassword(password, hash)
+}
+
 type Controller struct {
 	totp             *Totp
 	encrypter        Encrypter
@@ -190,9 +161,10 @@ type Controller struct {
 	Providers        providers.Map
 	version          string
 	jwtGetter        *JWTGetter
+	oauth2           *oauth2provider.Provider
 }
 
-func New(
+func New( //nolint:funlen
 	db DBClient,
 	config Config,
 	jwtGetter *JWTGetter,
@@ -229,7 +201,7 @@ func New(
 		}
 	}
 
-	return &Controller{
+	ctrl := &Controller{
 		config:           config,
 		wf:               validator,
 		Webauthn:         wa,
@@ -239,5 +211,26 @@ func New(
 		version:          version,
 		Providers:        providers,
 		jwtGetter:        jwtGetter,
-	}, nil
+		oauth2:           nil,
+	}
+
+	if config.OAuth2ProviderEnabled {
+		ctrl.oauth2 = oauth2provider.NewProvider(
+			db,
+			jwtGetter,
+			jwtGetter,
+			jwtGetter,
+			&bcryptHasher{},
+			oauth2provider.Config{
+				Issuer:          config.OAuth2ProviderIssuer,
+				LoginURL:        config.OAuth2ProviderLoginURL,
+				ClientURL:       config.ClientURL.String(),
+				ServerURL:       config.ServerURL.String(),
+				AccessTokenTTL:  config.OAuth2ProviderAccessTokenTTL,
+				RefreshTokenTTL: config.OAuth2ProviderRefreshTokenTTL,
+			},
+		)
+	}
+
+	return ctrl, nil
 }

@@ -5,6 +5,7 @@ import (
 
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
+	oauth2provider "github.com/nhost/nhost/services/auth/go/oauth2"
 )
 
 func (ctrl *Controller) Oauth2Introspect( //nolint:ireturn
@@ -21,8 +22,8 @@ func (ctrl *Controller) Oauth2Introspect( //nolint:ireturn
 		return oauth2IntrospectError("invalid_request", "Missing request body"), nil
 	}
 
-	resp := ctrl.wf.oauth2IntrospectToken(
-		ctx, &ctrl.config, request.Body, logger,
+	resp := ctrl.oauth2.IntrospectToken(
+		ctx, request.Body, logger,
 	)
 
 	return api.Oauth2Introspect200JSONResponse(*resp), nil
@@ -32,7 +33,7 @@ func oauth2IntrospectError(
 	errCode string, description string,
 ) api.Oauth2IntrospectdefaultJSONResponse {
 	return api.Oauth2IntrospectdefaultJSONResponse{
-		StatusCode: oauth2ErrorStatusCode(errCode),
+		StatusCode: oauth2provider.ErrorStatusCode(errCode),
 		Body: api.OAuth2ErrorResponse{
 			Error:            errCode,
 			ErrorDescription: &description,

@@ -5,6 +5,7 @@ import (
 
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
+	oauth2provider "github.com/nhost/nhost/services/auth/go/oauth2"
 )
 
 func (ctrl *Controller) Oauth2UserinfoGet( //nolint:ireturn
@@ -17,7 +18,12 @@ func (ctrl *Controller) Oauth2UserinfoGet( //nolint:ireturn
 		return oauth2UserinfoGetError("server_error", "OAuth2 provider is disabled"), nil
 	}
 
-	resp, oauthErr := ctrl.wf.oauth2GetUserinfo(ctx, logger)
+	userID, apiErr := ctrl.wf.GetJWTInContext(ctx, logger)
+	if apiErr != nil {
+		return oauth2UserinfoGetError("invalid_token", "Invalid access token"), nil //nolint:nilerr
+	}
+
+	resp, oauthErr := ctrl.oauth2.GetUserinfo(ctx, userID, logger)
 	if oauthErr != nil {
 		return oauth2UserinfoGetError(oauthErr.Err, oauthErr.Description), nil
 	}
@@ -35,7 +41,12 @@ func (ctrl *Controller) Oauth2UserinfoPost( //nolint:ireturn
 		return oauth2UserinfoPostError("server_error", "OAuth2 provider is disabled"), nil
 	}
 
-	resp, oauthErr := ctrl.wf.oauth2GetUserinfo(ctx, logger)
+	userID, apiErr := ctrl.wf.GetJWTInContext(ctx, logger)
+	if apiErr != nil {
+		return oauth2UserinfoPostError("invalid_token", "Invalid access token"), nil //nolint:nilerr
+	}
+
+	resp, oauthErr := ctrl.oauth2.GetUserinfo(ctx, userID, logger)
 	if oauthErr != nil {
 		return oauth2UserinfoPostError(oauthErr.Err, oauthErr.Description), nil
 	}
@@ -47,7 +58,7 @@ func oauth2UserinfoGetError(
 	errCode string, description string,
 ) api.Oauth2UserinfoGetdefaultJSONResponse {
 	return api.Oauth2UserinfoGetdefaultJSONResponse{
-		StatusCode: oauth2ErrorStatusCode(errCode),
+		StatusCode: oauth2provider.ErrorStatusCode(errCode),
 		Body: api.OAuth2ErrorResponse{
 			Error:            errCode,
 			ErrorDescription: &description,
@@ -59,7 +70,7 @@ func oauth2UserinfoPostError(
 	errCode string, description string,
 ) api.Oauth2UserinfoPostdefaultJSONResponse {
 	return api.Oauth2UserinfoPostdefaultJSONResponse{
-		StatusCode: oauth2ErrorStatusCode(errCode),
+		StatusCode: oauth2provider.ErrorStatusCode(errCode),
 		Body: api.OAuth2ErrorResponse{
 			Error:            errCode,
 			ErrorDescription: &description,

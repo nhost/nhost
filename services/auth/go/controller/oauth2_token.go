@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
+	oauth2provider "github.com/nhost/nhost/services/auth/go/oauth2"
 )
 
 func (ctrl *Controller) Oauth2Token( //nolint:ireturn
@@ -26,17 +27,17 @@ func (ctrl *Controller) Oauth2Token( //nolint:ireturn
 
 	var (
 		resp     *api.OAuth2TokenResponse
-		oauthErr *OAuth2Error
+		oauthErr *oauth2provider.Error
 	)
 
 	switch request.Body.GrantType {
 	case api.AuthorizationCode:
-		resp, oauthErr = ctrl.wf.oauth2ExchangeCode(
-			ctx, &ctrl.config, request.Body, logger,
+		resp, oauthErr = ctrl.oauth2.ExchangeCode(
+			ctx, request.Body, logger,
 		)
 	case api.RefreshToken:
-		resp, oauthErr = ctrl.wf.oauth2RefreshToken(
-			ctx, &ctrl.config, request.Body, logger,
+		resp, oauthErr = ctrl.oauth2.RefreshToken(
+			ctx, request.Body, logger,
 		)
 	default:
 		return oauth2TokenError("unsupported_grant_type", "Unsupported grant_type"), nil
@@ -51,7 +52,7 @@ func (ctrl *Controller) Oauth2Token( //nolint:ireturn
 
 func oauth2TokenError(errCode string, description string) api.Oauth2TokendefaultJSONResponse {
 	return api.Oauth2TokendefaultJSONResponse{
-		StatusCode: oauth2ErrorStatusCode(errCode),
+		StatusCode: oauth2provider.ErrorStatusCode(errCode),
 		Body: api.OAuth2ErrorResponse{
 			Error:            errCode,
 			ErrorDescription: &description,

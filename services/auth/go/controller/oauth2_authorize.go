@@ -5,6 +5,7 @@ import (
 
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
+	oauth2provider "github.com/nhost/nhost/services/auth/go/oauth2"
 )
 
 func (ctrl *Controller) Oauth2Authorize( //nolint:ireturn
@@ -17,10 +18,10 @@ func (ctrl *Controller) Oauth2Authorize( //nolint:ireturn
 		return ctrl.oauth2Error("server_error", "OAuth2 provider is disabled"), nil
 	}
 
-	params := authorizeParamsFromGet(request.Params)
+	params := oauth2provider.AuthorizeParamsFromGet(request.Params)
 
-	redirectURL, oauthErr := ctrl.wf.oauth2ValidateAuthorizeRequest(
-		ctx, &ctrl.config, params, logger,
+	redirectURL, oauthErr := ctrl.oauth2.ValidateAuthorizeRequest(
+		ctx, params, logger,
 	)
 	if oauthErr != nil {
 		if redirectURL != "" {
@@ -55,10 +56,10 @@ func (ctrl *Controller) Oauth2AuthorizePost( //nolint:ireturn
 		return ctrl.oauth2PostError("invalid_request", "Missing request body"), nil
 	}
 
-	params := authorizeParamsFromPost(request.Body)
+	params := oauth2provider.AuthorizeParamsFromPost(request.Body)
 
-	redirectURL, oauthErr := ctrl.wf.oauth2ValidateAuthorizeRequest(
-		ctx, &ctrl.config, params, logger,
+	redirectURL, oauthErr := ctrl.oauth2.ValidateAuthorizeRequest(
+		ctx, params, logger,
 	)
 	if oauthErr != nil {
 		if redirectURL != "" {
@@ -83,7 +84,7 @@ func (ctrl *Controller) oauth2Error(
 	errCode string, description string,
 ) api.Oauth2AuthorizedefaultJSONResponse {
 	return api.Oauth2AuthorizedefaultJSONResponse{
-		StatusCode: oauth2ErrorStatusCode(errCode),
+		StatusCode: oauth2provider.ErrorStatusCode(errCode),
 		Body: api.OAuth2ErrorResponse{
 			Error:            errCode,
 			ErrorDescription: &description,
@@ -95,7 +96,7 @@ func (ctrl *Controller) oauth2PostError(
 	errCode string, description string,
 ) api.Oauth2AuthorizePostdefaultJSONResponse {
 	return api.Oauth2AuthorizePostdefaultJSONResponse{
-		StatusCode: oauth2ErrorStatusCode(errCode),
+		StatusCode: oauth2provider.ErrorStatusCode(errCode),
 		Body: api.OAuth2ErrorResponse{
 			Error:            errCode,
 			ErrorDescription: &description,

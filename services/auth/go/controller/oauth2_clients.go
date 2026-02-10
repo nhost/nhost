@@ -4,15 +4,30 @@ import (
 	"context"
 	"errors"
 	"net/http"
-	"time"
 
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
+	oauth2provider "github.com/nhost/nhost/services/auth/go/oauth2"
 	"github.com/nhost/nhost/services/auth/go/sql"
 )
+
+func pgText(s *string) pgtype.Text {
+	if s == nil || *s == "" {
+		return pgtype.Text{} //nolint:exhaustruct
+	}
+
+	return pgtype.Text{String: *s, Valid: true}
+}
+
+func pgTextFromString(s string) pgtype.Text {
+	if s == "" {
+		return pgtype.Text{} //nolint:exhaustruct
+	}
+
+	return pgtype.Text{String: s, Valid: true}
+}
 
 func (ctrl *Controller) Oauth2ClientsList( //nolint:ireturn
 	ctx context.Context,
@@ -37,7 +52,7 @@ func (ctrl *Controller) Oauth2ClientsList( //nolint:ireturn
 
 	resp := make([]api.OAuth2ClientResponse, 0, len(clients))
 	for _, c := range clients {
-		resp = append(resp, clientToResponse(c))
+		resp = append(resp, oauth2provider.ClientToResponse(c))
 	}
 
 	return api.Oauth2ClientsList200JSONResponse{Clients: resp}, nil
@@ -63,13 +78,13 @@ func (ctrl *Controller) Oauth2ClientsCreate( //nolint:ireturn,cyclop,funlen
 
 	isPublic := deptr(request.Body.IsPublic)
 
-	authMethod := oauth2AuthMethodClientSecretPost
+	authMethod := oauth2provider.AuthMethodClientSecretPost
 	if request.Body.TokenEndpointAuthMethod != nil {
 		authMethod = *request.Body.TokenEndpointAuthMethod
 	}
 
 	if isPublic {
-		authMethod = oauth2AuthMethodNone
+		authMethod = oauth2provider.AuthMethodNone
 	}
 
 	grantTypes := []string{"authorization_code"}
@@ -112,7 +127,7 @@ func (ctrl *Controller) Oauth2ClientsCreate( //nolint:ireturn,cyclop,funlen
 	}
 
 	client, err := ctrl.wf.db.InsertOAuth2Client(ctx, sql.InsertOAuth2ClientParams{
-		ClientID:                 generateClientID(),
+		ClientID:                 oauth2provider.GenerateClientID(),
 		ClientSecretHash:         pgTextFromString(clientSecretHash),
 		ClientName:               request.Body.ClientName,
 		ClientUri:                pgText(request.Body.ClientUri),
@@ -135,7 +150,7 @@ func (ctrl *Controller) Oauth2ClientsCreate( //nolint:ireturn,cyclop,funlen
 		), nil
 	}
 
-	return api.Oauth2ClientsCreate201JSONResponse(clientToResponse(client)), nil
+	return api.Oauth2ClientsCreate201JSONResponse(oauth2provider.ClientToResponse(client)), nil
 }
 
 func (ctrl *Controller) Oauth2ClientsGet( //nolint:ireturn
@@ -163,7 +178,7 @@ func (ctrl *Controller) Oauth2ClientsGet( //nolint:ireturn
 		), nil
 	}
 
-	return api.Oauth2ClientsGet200JSONResponse(clientToResponse(client)), nil
+	return api.Oauth2ClientsGet200JSONResponse(oauth2provider.ClientToResponse(client)), nil
 }
 
 func (ctrl *Controller) Oauth2ClientsUpdate( //nolint:ireturn,cyclop,funlen
@@ -186,13 +201,13 @@ func (ctrl *Controller) Oauth2ClientsUpdate( //nolint:ireturn,cyclop,funlen
 
 	isPublic := deptr(request.Body.IsPublic)
 
-	authMethod := oauth2AuthMethodClientSecretPost
+	authMethod := oauth2provider.AuthMethodClientSecretPost
 	if request.Body.TokenEndpointAuthMethod != nil {
 		authMethod = *request.Body.TokenEndpointAuthMethod
 	}
 
 	if isPublic {
-		authMethod = oauth2AuthMethodNone
+		authMethod = oauth2provider.AuthMethodNone
 	}
 
 	grantTypes := []string{"authorization_code"}
@@ -246,7 +261,7 @@ func (ctrl *Controller) Oauth2ClientsUpdate( //nolint:ireturn,cyclop,funlen
 		), nil
 	}
 
-	return api.Oauth2ClientsUpdate200JSONResponse(clientToResponse(client)), nil
+	return api.Oauth2ClientsUpdate200JSONResponse(oauth2provider.ClientToResponse(client)), nil
 }
 
 func (ctrl *Controller) Oauth2ClientsDelete( //nolint:ireturn
@@ -270,49 +285,6 @@ func (ctrl *Controller) Oauth2ClientsDelete( //nolint:ireturn
 	}
 
 	return api.Oauth2ClientsDelete204Response{}, nil
-}
-
-func clientToResponse(c sql.AuthOauth2Client) api.OAuth2ClientResponse {
-	accessTokenLifetime := int(c.AccessTokenLifetime)
-	refreshTokenLifetime := int(c.RefreshTokenLifetime)
-
-	resp := api.OAuth2ClientResponse{ //nolint:exhaustruct
-		ClientId:             c.ClientID,
-		ClientName:           c.ClientName,
-		RedirectUris:         c.RedirectUris,
-		GrantTypes:           &c.GrantTypes,
-		ResponseTypes:        &c.ResponseTypes,
-		Scopes:               &c.Scopes,
-		IsPublic:             &c.IsPublic,
-		AccessTokenLifetime:  &accessTokenLifetime,
-		RefreshTokenLifetime: &refreshTokenLifetime,
-		CreatedAt:            timePtr(c.CreatedAt),
-		UpdatedAt:            timePtr(c.UpdatedAt),
-	}
-
-	if c.ClientUri.Valid {
-		resp.ClientUri = &c.ClientUri.String
-	}
-
-	if c.LogoUri.Valid {
-		resp.LogoUri = &c.LogoUri.String
-	}
-
-	resp.TokenEndpointAuthMethod = &c.TokenEndpointAuthMethod
-
-	return resp
-}
-
-func generateClientID() string {
-	return "nhost_" + hashOAuth2Token(uuid.NewString())[:16]
-}
-
-func timePtr(ts pgtype.Timestamptz) *time.Time {
-	if !ts.Valid {
-		return nil
-	}
-
-	return &ts.Time
 }
 
 func oauth2ClientsListError(
