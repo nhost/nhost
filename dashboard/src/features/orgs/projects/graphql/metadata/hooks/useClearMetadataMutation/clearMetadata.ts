@@ -1,26 +1,20 @@
 import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
 import type {
-  ReloadMetadaOperationResponse,
-  ReloadMetadataOperation,
-  ReloadMetadataOperationArgs,
+  ClearMetadataOperation,
+  SuccessResponse,
 } from '@/utils/hasura-api/generated/schemas';
 import type { MetadataOperationOptions } from '@/utils/hasura-api/types';
 
-export interface ReloadMetadataVariables {
-  args: ReloadMetadataOperationArgs;
-}
-
-export default async function reloadMetadata({
+export default async function clearMetadata({
   appUrl,
   adminSecret,
-  args,
-}: MetadataOperationOptions & ReloadMetadataVariables) {
+}: MetadataOperationOptions) {
   try {
     const response = await metadataOperation(
       {
-        type: 'reload_metadata',
-        args,
-      } satisfies ReloadMetadataOperation,
+        type: 'clear_metadata',
+        args: {},
+      } satisfies ClearMetadataOperation,
       {
         baseUrl: appUrl,
         adminSecret,
@@ -28,7 +22,7 @@ export default async function reloadMetadata({
     );
 
     if (response.status === 200) {
-      return response.data as ReloadMetadaOperationResponse;
+      return response.data as SuccessResponse;
     }
 
     throw new Error(response.data.error);

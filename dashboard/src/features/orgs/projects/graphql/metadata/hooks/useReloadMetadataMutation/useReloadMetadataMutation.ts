@@ -2,15 +2,15 @@ import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import type { ReloadMetadaOperationResponse } from '@/utils/hasura-api/generated/schemas';
+import type { ReloadMetadataOperationResponse } from '@/utils/hasura-api/generated/schemas';
 import reloadMetadata, { type ReloadMetadataVariables } from './reloadMetadata';
 
-export interface UseDeleteRelationshipMutationOptions {
+export interface UseReloadMetadataMutationOptions {
   /**
    * Props passed to the underlying mutation hook.
    */
   mutationOptions?: MutationOptions<
-    ReloadMetadaOperationResponse,
+    ReloadMetadataOperationResponse,
     unknown,
     ReloadMetadataVariables
   >;
@@ -24,7 +24,7 @@ export interface UseDeleteRelationshipMutationOptions {
  */
 export default function useReloadMetadataMutation({
   mutationOptions,
-}: UseDeleteRelationshipMutationOptions = {}) {
+}: UseReloadMetadataMutationOptions = {}) {
   const { project } = useProject();
   const queryClient = useQueryClient();
 

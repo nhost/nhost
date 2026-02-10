@@ -22,6 +22,9 @@ paths:
                 - $ref: "#/components/schemas/ExportMetadata"
                 - $ref: "#/components/schemas/GetInconsistentMetadataOperation"
                 - $ref: "#/components/schemas/ReloadMetadataOperation"
+                - $ref: "#/components/schemas/DropInconsistentMetadataOperation"
+                - $ref: "#/components/schemas/ClearMetadataOperation"
+                - $ref: "#/components/schemas/ReplaceMetadataOperation"
                 - $ref: "#/components/schemas/SetTableCustomizationBulkOperation"
                 - $ref: "#/components/schemas/SetTableIsEnumBulkOperation"
                 - $ref: "#/components/schemas/SuggestRelationshipsOperation"
@@ -66,7 +69,7 @@ paths:
                         example: success
                   - $ref: "#/components/schemas/ExportMetadataResponse"
                   - $ref: "#/components/schemas/GetInconsistentMetadataResponse"
-                  - $ref: "#/components/schemas/ReloadMetadataResponse"
+                  - $ref: "#/components/schemas/ReloadMetadataOperationResponse"
                   - $ref: "#/components/schemas/SuggestRelationshipsResponse"
                   - $ref: "#/components/schemas/IntrospectRemoteSchemaResponse"
                   - $ref: "#/components/schemas/GetEventLogsResponse"
@@ -1149,11 +1152,63 @@ components:
                 - type: boolean
                 - type: array
 
-    ReloadMetadaOperationResponse:
+    ReloadMetadataOperationResponse:
       type: object
       allOf:
         - $ref: "#/components/schemas/SuccessResponse"
-        - $ref: "#/components/schemas/GetIncosistentMetadataResponse"
+        - $ref: "#/components/schemas/GetInconsistentMetadataResponse"
+
+    DropInconsistentMetadataOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [drop_inconsistent_metadata]
+        args:
+          type: object
+          example: {}
+
+    ClearMetadataOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [clear_metadata]
+        args:
+          type: object
+          example: {}
+
+    ReplaceMetadataOperation:
+      type: object
+      required:
+        - type
+        - version
+        - args
+      properties:
+        type:
+          type: string
+          enum: [replace_metadata]
+        version:
+          type: integer
+          enum: [2]
+        args:
+          $ref: "#/components/schemas/ReplaceMetadataArgs"
+
+    ReplaceMetadataArgs:
+      type: object
+      required:
+        - metadata
+      properties:
+        allow_inconsistent_metadata:
+          type: boolean
+        metadata:
+          type: object
 
     ArrayRelationshipItem:
       type: object

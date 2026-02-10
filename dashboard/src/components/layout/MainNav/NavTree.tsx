@@ -176,6 +176,11 @@ const projectGraphQLPages = [
     slug: 'remote-schemas',
     route: 'graphql/remote-schemas',
   },
+  {
+    name: 'Metadata',
+    slug: 'metadata',
+    route: 'graphql/metadata',
+  },
 ];
 
 const projectEventsPages = [
@@ -188,19 +193,6 @@ const projectEventsPages = [
     name: 'Cron Triggers',
     slug: 'cron-triggers',
     route: 'events/cron-triggers',
-  },
-];
-
-const projectHasuraPages = [
-  {
-    name: 'Console',
-    slug: 'console',
-    route: 'hasura',
-  },
-  {
-    name: 'Metadata',
-    slug: 'metadata',
-    route: 'hasura/metadata',
   },
 ];
 
@@ -289,8 +281,7 @@ const createOrganization = (org: Org) => {
         isFolder:
           (_page.name === 'Settings' && !shouldDisableSettings) ||
           _page.name === 'GraphQL' ||
-          _page.name === 'Events' ||
-          _page.name === 'Hasura',
+          _page.name === 'Events',
         children: (() => {
           if (_page.name === 'Settings' && !shouldDisableSettings) {
             return projectSettingsPages.map(
@@ -305,11 +296,6 @@ const createOrganization = (org: Org) => {
           if (_page.name === 'Events') {
             return projectEventsPages.map(
               (p) => `${org.slug}-${_app.subdomain}-events-${p.slug}`,
-            );
-          }
-          if (_page.name === 'Hasura') {
-            return projectHasuraPages.map(
-              (p) => `${org.slug}-${_app.subdomain}-hasura-${p.slug}`,
             );
           }
           return undefined;
@@ -367,20 +353,6 @@ const createOrganization = (org: Org) => {
     projectEventsPages.forEach((p) => {
       result[`${org.slug}-${_app.subdomain}-events-${p.slug}`] = {
         index: `${org.slug}-${_app.subdomain}-events-${p.slug}`,
-        canMove: false,
-        isFolder: false,
-        children: undefined,
-        data: {
-          name: p.name,
-          targetUrl: `/orgs/${org.slug}/projects/${_app.subdomain}/${p.route}`,
-        },
-        canRename: false,
-      };
-    });
-
-    projectHasuraPages.forEach((p) => {
-      result[`${org.slug}-${_app.subdomain}-hasura-${p.slug}`] = {
-        index: `${org.slug}-${_app.subdomain}-hasura-${p.slug}`,
         canMove: false,
         isFolder: false,
         children: undefined,
@@ -543,7 +515,7 @@ export default function NavTree() {
                 }
 
                 if (
-                  ['GraphQL', 'Events', 'Hasura'].includes(item.data.name) &&
+                  ['GraphQL', 'Events'].includes(item.data.name) &&
                   item.isFolder
                 ) {
                   if (!context.isExpanded) {

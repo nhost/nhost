@@ -5,8 +5,8 @@
  * API for managing remote schemas and events in Hasura
  * OpenAPI spec version: 1.0.0
  */
-import type { GetIncosistentMetadataResponse } from './getIncosistentMetadataResponse';
+import type { GetInconsistentMetadataResponse } from './getInconsistentMetadataResponse';
 import type { SuccessResponse } from './successResponse';
 
-export type ReloadMetadaOperationResponse = SuccessResponse &
-  GetIncosistentMetadataResponse;
+export type ReloadMetadataOperationResponse = SuccessResponse &
+  GetInconsistentMetadataResponse;

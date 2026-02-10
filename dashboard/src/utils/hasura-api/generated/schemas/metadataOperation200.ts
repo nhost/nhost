@@ -14,7 +14,7 @@ import type { GetScheduledEventInvocationsResponse } from './getScheduledEventIn
 import type { GetScheduledEventsResponse } from './getScheduledEventsResponse';
 import type { IntrospectRemoteSchemaResponse } from './introspectRemoteSchemaResponse';
 import type { InvokeEventTriggerResponse } from './invokeEventTriggerResponse';
-import type { ReloadMetadataResponse } from './reloadMetadataResponse';
+import type { ReloadMetadataOperationResponse } from './reloadMetadataOperationResponse';
 import type { SuggestRelationshipsResponse } from './suggestRelationshipsResponse';
 import type { TestWebhookTransformResponse } from './testWebhookTransformResponse';
 
@@ -24,7 +24,7 @@ export type MetadataOperation200 =
     }
   | ExportMetadataResponse
   | GetInconsistentMetadataResponse
-  | ReloadMetadataResponse
+  | ReloadMetadataOperationResponse
   | SuggestRelationshipsResponse
   | IntrospectRemoteSchemaResponse
   | GetEventLogsResponse

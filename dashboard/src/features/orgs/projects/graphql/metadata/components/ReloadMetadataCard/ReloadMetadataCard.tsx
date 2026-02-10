@@ -1,0 +1,133 @@
+import { Loader2, RefreshCw } from 'lucide-react';
+import { useState } from 'react';
+import { Button } from '@/components/ui/v3/button';
+import { Checkbox } from '@/components/ui/v3/checkbox';
+import { Label } from '@/components/ui/v3/label';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
+import useReloadMetadataMutation from '@/features/orgs/projects/graphql/metadata/hooks/useReloadMetadataMutation/useReloadMetadataMutation';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+
+export default function ReloadMetadataCard() {
+  const [reloadRemoteSchemas, setReloadRemoteSchemas] = useState(false);
+  const [reloadDatabases, setReloadDatabases] = useState(false);
+
+  const { isPending, mutateAsync: reloadMetadata } =
+    useReloadMetadataMutation();
+
+  const handleReload = async () => {
+    await execPromiseWithErrorToast(
+      async () => {
+        const result = await reloadMetadata({
+          args: {
+            reload_remote_schema: reloadRemoteSchemas,
+            reload_sources: reloadDatabases,
+          },
+        });
+
+        if (!result.is_consistent) {
+          throw new Error(
+            'Metadata was reloaded but inconsistencies were detected.',
+          );
+        }
+      },
+      {
+        loadingMessage: 'Reloading metadata...',
+        successMessage: 'Metadata reloaded successfully.',
+        errorMessage: 'Failed to reload metadata.',
+      },
+    );
+  };
+
+  return (
+    <div className="rounded-lg border bg-card p-4">
+      <h3 className="mb-4 font-medium text-foreground text-sm">
+        Reload Metadata
+      </h3>
+
+      <div className="space-y-4">
+        <Button onClick={handleReload} disabled={isPending} size="sm">
+          {isPending ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Reloading Metadata...
+            </>
+          ) : (
+            <>
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Reload Metadata
+            </>
+          )}
+        </Button>
+
+        <div className="flex flex-row flex-wrap gap-4">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="reload-remote-schemas"
+                    checked={reloadRemoteSchemas}
+                    onCheckedChange={(checked) =>
+                      setReloadRemoteSchemas(Boolean(checked))
+                    }
+                  />
+                  <Label
+                    htmlFor="reload-remote-schemas"
+                    className="cursor-pointer font-normal text-muted-foreground text-xs"
+                  >
+                    Reload all remote schemas
+                  </Label>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="max-w-xs text-xs">
+                  Refreshes the schema and metadata for all remote GraphQL
+                  schemas connected to your instance.
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="reload-databases"
+                    checked={reloadDatabases}
+                    onCheckedChange={(checked) =>
+                      setReloadDatabases(Boolean(checked))
+                    }
+                  />
+                  <Label
+                    htmlFor="reload-databases"
+                    className="cursor-pointer font-normal text-muted-foreground text-xs"
+                  >
+                    Reload all databases
+                  </Label>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="max-w-xs text-xs">
+                  Check this if you have inconsistent databases. This will
+                  refresh the schema and metadata for all connected databases,
+                  including tables, views, and relationships.
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+
+        <p className="text-muted-foreground text-xs">
+          Reloading metadata syncs your GraphQL schema with the current state of
+          your data sources.
+        </p>
+      </div>
+    </div>
+  );
+}

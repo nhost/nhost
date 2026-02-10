@@ -11,7 +11,6 @@ import OrgPagesComboBox from './OrgPagesComboBox';
 import OrgsComboBox from './OrgsComboBox';
 import ProjectEventsPagesComboBox from './ProjectEventsPagesComboBox';
 import ProjectGraphQLPagesComboBox from './ProjectGraphQLPagesComboBox';
-import ProjectHasuraPagesComboBox from './ProjectHasuraPagesComboBox';
 import ProjectPagesComboBox from './ProjectPagesComboBox';
 import ProjectSettingsPagesComboBox from './ProjectSettingsPagesComboBox';
 import ProjectsComboBox from './ProjectsComboBox';
@@ -29,8 +28,6 @@ export default function BreadcrumbNav() {
   const isSettingsPage = pathSegments[5] === 'settings';
   const isGraphQLPage = pathSegments[5] === 'graphql';
   const isEventsPage = pathSegments[5] === 'events';
-  const isHasuraPage = pathSegments[5] === 'hasura';
-
   const showBreadcrumbs = !['/', '/orgs/verify'].includes(route);
 
   return (
@@ -113,21 +110,6 @@ export default function BreadcrumbNav() {
 
                 <BreadcrumbItem>
                   <ProjectEventsPagesComboBox />
-                </BreadcrumbItem>
-              </>
-            )}
-
-            {isHasuraPage && (
-              <>
-                <BreadcrumbSeparator>
-                  <Slash
-                    strokeWidth={3.5}
-                    className="text-muted-foreground/50"
-                  />
-                </BreadcrumbSeparator>
-
-                <BreadcrumbItem>
-                  <ProjectHasuraPagesComboBox />
                 </BreadcrumbItem>
               </>
             )}
