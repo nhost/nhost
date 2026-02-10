@@ -123,12 +123,20 @@ func (p *Provider) CompleteLogin( //nolint:funlen
 		return nil, &Error{Err: "server_error", Description: "Internal server error"}
 	}
 
-	redirectURI := authReq.RedirectUri + "?code=" + code
-	if authReq.State.Valid && authReq.State.String != "" {
-		redirectURI += "&state=" + url.QueryEscape(authReq.State.String)
+	parsedRedirectURI, parseErr := url.Parse(authReq.RedirectUri)
+	if parseErr != nil {
+		logger.ErrorContext(ctx, "error parsing redirect URI", logError(parseErr))
+		return nil, &Error{Err: "server_error", Description: "Internal server error"}
 	}
 
+	q := parsedRedirectURI.Query()
+	q.Set("code", code)
+	if authReq.State.Valid && authReq.State.String != "" {
+		q.Set("state", authReq.State.String)
+	}
+	parsedRedirectURI.RawQuery = q.Encode()
+
 	return &api.OAuth2LoginCompleteResponse{
-		RedirectUri: redirectURI,
+		RedirectUri: parsedRedirectURI.String(),
 	}, nil
 }
