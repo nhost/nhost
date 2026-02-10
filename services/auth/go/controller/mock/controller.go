@@ -621,6 +621,21 @@ func (m *MockDBClient) EXPECT() *MockDBClientMockRecorder {
 	return m.recorder
 }
 
+// CountOAuth2ClientsByCreatedBy mocks base method.
+func (m *MockDBClient) CountOAuth2ClientsByCreatedBy(ctx context.Context, createdBy pgtype.UUID) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CountOAuth2ClientsByCreatedBy", ctx, createdBy)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CountOAuth2ClientsByCreatedBy indicates an expected call of CountOAuth2ClientsByCreatedBy.
+func (mr *MockDBClientMockRecorder) CountOAuth2ClientsByCreatedBy(ctx, createdBy any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountOAuth2ClientsByCreatedBy", reflect.TypeOf((*MockDBClient)(nil).CountOAuth2ClientsByCreatedBy), ctx, createdBy)
+}
+
 // CountSecurityKeysUser mocks base method.
 func (m *MockDBClient) CountSecurityKeysUser(ctx context.Context, userID uuid.UUID) (int64, error) {
 	m.ctrl.T.Helper()

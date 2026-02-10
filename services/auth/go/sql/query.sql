@@ -440,17 +440,21 @@ LIMIT 1;
 SELECT * FROM auth.oauth2_clients
 ORDER BY created_at DESC;
 
+-- name: CountOAuth2ClientsByCreatedBy :one
+SELECT count(*) FROM auth.oauth2_clients
+WHERE created_by = $1;
+
 -- name: InsertOAuth2Client :one
 INSERT INTO auth.oauth2_clients (
     client_id, client_secret_hash, client_name, client_uri, logo_uri,
     redirect_uris, grant_types, response_types, scopes, is_public,
     token_endpoint_auth_method, id_token_signed_response_alg,
-    access_token_lifetime, refresh_token_lifetime
+    access_token_lifetime, refresh_token_lifetime, created_by
 ) VALUES (
     $1, $2, $3, $4, $5,
     $6, $7, $8, $9, $10,
     $11, $12,
-    $13, $14
+    $13, $14, $15
 )
 RETURNING *;
 

@@ -8,6 +8,7 @@ import (
 
 	jwtlib "github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/sql"
 )
@@ -47,6 +48,7 @@ type PasswordHasher interface {
 }
 
 type DBClient interface { //nolint:interfacebloat
+	CountOAuth2ClientsByCreatedBy(ctx context.Context, createdBy pgtype.UUID) (int64, error)
 	GetOAuth2ClientByClientID(ctx context.Context, clientID string) (sql.AuthOauth2Client, error)
 	ListOAuth2Clients(ctx context.Context) ([]sql.AuthOauth2Client, error)
 	InsertOAuth2Client(

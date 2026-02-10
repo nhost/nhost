@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/sql"
 )
@@ -13,8 +14,28 @@ import (
 func (p *Provider) RegisterClient( //nolint:funlen,cyclop
 	ctx context.Context,
 	req *api.OAuth2RegisterRequest,
+	userID uuid.UUID,
+	maxClientsPerUser int,
 	logger *slog.Logger,
 ) (*api.OAuth2RegisterResponse, *Error) {
+	if maxClientsPerUser > 0 {
+		count, err := p.db.CountOAuth2ClientsByCreatedBy(
+			ctx,
+			pgtype.UUID{Bytes: userID, Valid: true},
+		)
+		if err != nil {
+			logger.ErrorContext(ctx, "error counting OAuth2 clients", logError(err))
+			return nil, &Error{Err: "server_error", Description: "Internal server error"}
+		}
+
+		if count >= int64(maxClientsPerUser) {
+			return nil, &Error{
+				Err:         "invalid_request",
+				Description: "Maximum number of clients reached",
+			}
+		}
+	}
+
 	if len(req.RedirectUris) == 0 {
 		return nil, &Error{
 			Err:         "invalid_client_metadata",
@@ -81,6 +102,7 @@ func (p *Provider) RegisterClient( //nolint:funlen,cyclop
 		IDTokenSignedResponseAlg: "RS256",
 		AccessTokenLifetime:      accessTokenLifetime,
 		RefreshTokenLifetime:     refreshTokenLifetime,
+		CreatedBy:                pgtype.UUID{Bytes: userID, Valid: true},
 	})
 	if err != nil {
 		logger.ErrorContext(ctx, "error inserting OAuth2 client", logError(err))

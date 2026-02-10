@@ -1534,6 +1534,814 @@ export interface VerifyTokenRequest {
 }
 
 /**
+ * 
+ @property error (`string`) - OAuth2 error code
+ @property error_description? (`string`) - Human-readable error description*/
+export interface OAuth2ErrorResponse {
+  /**
+   * OAuth2 error code
+   */
+  error: string;
+  /**
+   * Human-readable error description
+   */
+  error_description?: string;
+}
+
+/**
+ * 
+ @property issuer (`string`) - 
+ @property authorization_endpoint (`string`) - 
+ @property token_endpoint (`string`) - 
+ @property userinfo_endpoint? (`string`) - 
+ @property jwks_uri (`string`) - 
+ @property registration_endpoint? (`string`) - 
+ @property revocation_endpoint? (`string`) - 
+ @property introspection_endpoint? (`string`) - 
+ @property scopes_supported? (`string[]`) - 
+ @property response_types_supported (`string[]`) - 
+ @property grant_types_supported? (`string[]`) - 
+ @property subject_types_supported? (`string[]`) - 
+ @property id_token_signing_alg_values_supported? (`string[]`) - 
+ @property token_endpoint_auth_methods_supported? (`string[]`) - 
+ @property code_challenge_methods_supported? (`string[]`) - */
+export interface OAuth2DiscoveryResponse {
+  /**
+   *
+   */
+  issuer: string;
+  /**
+   *
+   */
+  authorization_endpoint: string;
+  /**
+   *
+   */
+  token_endpoint: string;
+  /**
+   *
+   */
+  userinfo_endpoint?: string;
+  /**
+   *
+   */
+  jwks_uri: string;
+  /**
+   *
+   */
+  registration_endpoint?: string;
+  /**
+   *
+   */
+  revocation_endpoint?: string;
+  /**
+   *
+   */
+  introspection_endpoint?: string;
+  /**
+   *
+   */
+  scopes_supported?: string[];
+  /**
+   *
+   */
+  response_types_supported: string[];
+  /**
+   *
+   */
+  grant_types_supported?: string[];
+  /**
+   *
+   */
+  subject_types_supported?: string[];
+  /**
+   *
+   */
+  id_token_signing_alg_values_supported?: string[];
+  /**
+   *
+   */
+  token_endpoint_auth_methods_supported?: string[];
+  /**
+   *
+   */
+  code_challenge_methods_supported?: string[];
+}
+
+/**
+ *
+ */
+export type OAuth2TokenRequestGrant_type =
+  | 'authorization_code'
+  | 'refresh_token';
+
+/**
+ * 
+ @property grant_type (`OAuth2TokenRequestGrant_type`) - 
+ @property code? (`string`) - 
+ @property redirect_uri? (`string`) - 
+ @property client_id? (`string`) - 
+ @property client_secret? (`string`) - 
+ @property code_verifier? (`string`) - 
+ @property refresh_token? (`string`) - 
+ @property resource? (`string`) - */
+export interface OAuth2TokenRequest {
+  /**
+   *
+   */
+  grant_type: OAuth2TokenRequestGrant_type;
+  /**
+   *
+   */
+  code?: string;
+  /**
+   *
+   */
+  redirect_uri?: string;
+  /**
+   *
+   */
+  client_id?: string;
+  /**
+   *
+   */
+  client_secret?: string;
+  /**
+   *
+   */
+  code_verifier?: string;
+  /**
+   *
+   */
+  refresh_token?: string;
+  /**
+   *
+   */
+  resource?: string;
+}
+
+/**
+ * 
+ @property access_token (`string`) - 
+ @property token_type (`string`) - 
+ @property expires_in (`number`) - 
+ @property refresh_token? (`string`) - 
+ @property id_token? (`string`) - 
+ @property scope? (`string`) - */
+export interface OAuth2TokenResponse {
+  /**
+   *
+   */
+  access_token: string;
+  /**
+   *
+   */
+  token_type: string;
+  /**
+   *
+   */
+  expires_in: number;
+  /**
+   *
+   */
+  refresh_token?: string;
+  /**
+   *
+   */
+  id_token?: string;
+  /**
+   *
+   */
+  scope?: string;
+}
+
+/**
+ * 
+ @property sub (`string`) - 
+ @property name? (`string`) - 
+ @property email? (`string`) - 
+ @property email_verified? (`boolean`) - 
+ @property picture? (`string`) - 
+ @property locale? (`string`) - 
+ @property phone_number? (`string`) - 
+ @property phone_number_verified? (`boolean`) - */
+export interface OAuth2UserinfoResponse {
+  /**
+   *
+   */
+  sub: string;
+  /**
+   *
+   */
+  name?: string;
+  /**
+   *
+   */
+  email?: string;
+  /**
+   *
+   */
+  email_verified?: boolean;
+  /**
+   *
+   */
+  picture?: string;
+  /**
+   *
+   */
+  locale?: string;
+  /**
+   *
+   */
+  phone_number?: string;
+  /**
+   *
+   */
+  phone_number_verified?: boolean;
+}
+
+/**
+ * 
+ @property keys (`object[]`) - */
+export interface OAuth2JWKSResponse {
+  /**
+   *
+   */
+  keys: object[];
+}
+
+/**
+ *
+ */
+export type OAuth2RevokeRequestToken_type_hint =
+  | 'access_token'
+  | 'refresh_token';
+
+/**
+ * 
+ @property token (`string`) - 
+ @property token_type_hint? (`OAuth2RevokeRequestToken_type_hint`) - 
+ @property client_id? (`string`) - 
+ @property client_secret? (`string`) - */
+export interface OAuth2RevokeRequest {
+  /**
+   *
+   */
+  token: string;
+  /**
+   *
+   */
+  token_type_hint?: OAuth2RevokeRequestToken_type_hint;
+  /**
+   *
+   */
+  client_id?: string;
+  /**
+   *
+   */
+  client_secret?: string;
+}
+
+/**
+ *
+ */
+export type OAuth2IntrospectRequestToken_type_hint =
+  | 'access_token'
+  | 'refresh_token';
+
+/**
+ * 
+ @property token (`string`) - 
+ @property token_type_hint? (`OAuth2IntrospectRequestToken_type_hint`) - 
+ @property client_id? (`string`) - 
+ @property client_secret? (`string`) - */
+export interface OAuth2IntrospectRequest {
+  /**
+   *
+   */
+  token: string;
+  /**
+   *
+   */
+  token_type_hint?: OAuth2IntrospectRequestToken_type_hint;
+  /**
+   *
+   */
+  client_id?: string;
+  /**
+   *
+   */
+  client_secret?: string;
+}
+
+/**
+ * 
+ @property active (`boolean`) - 
+ @property scope? (`string`) - 
+ @property client_id? (`string`) - 
+ @property sub? (`string`) - 
+ @property exp? (`number`) - 
+ @property iat? (`number`) - 
+ @property iss? (`string`) - 
+ @property token_type? (`string`) - */
+export interface OAuth2IntrospectResponse {
+  /**
+   *
+   */
+  active: boolean;
+  /**
+   *
+   */
+  scope?: string;
+  /**
+   *
+   */
+  client_id?: string;
+  /**
+   *
+   */
+  sub?: string;
+  /**
+   *
+   */
+  exp?: number;
+  /**
+   *
+   */
+  iat?: number;
+  /**
+   *
+   */
+  iss?: string;
+  /**
+   *
+   */
+  token_type?: string;
+}
+
+/**
+ *
+ */
+export type OAuth2RegisterRequestToken_endpoint_auth_method =
+  | 'client_secret_basic'
+  | 'client_secret_post'
+  | 'none';
+
+/**
+ * 
+ @property client_name (`string`) - 
+ @property redirect_uris (`string[]`) - 
+ @property grant_types? (`string[]`) - 
+ @property response_types? (`string[]`) - 
+ @property scope? (`string`) - 
+ @property token_endpoint_auth_method? (`OAuth2RegisterRequestToken_endpoint_auth_method`) - 
+ @property client_uri? (`string`) - 
+ @property logo_uri? (`string`) - */
+export interface OAuth2RegisterRequest {
+  /**
+   *
+   */
+  client_name: string;
+  /**
+   *
+   */
+  redirect_uris: string[];
+  /**
+   *
+   */
+  grant_types?: string[];
+  /**
+   *
+   */
+  response_types?: string[];
+  /**
+   *
+   */
+  scope?: string;
+  /**
+   *
+   */
+  token_endpoint_auth_method?: OAuth2RegisterRequestToken_endpoint_auth_method;
+  /**
+   *
+   */
+  client_uri?: string;
+  /**
+   *
+   */
+  logo_uri?: string;
+}
+
+/**
+ * 
+ @property client_id (`string`) - 
+ @property client_secret? (`string`) - 
+ @property client_name (`string`) - 
+ @property redirect_uris (`string[]`) - 
+ @property grant_types? (`string[]`) - 
+ @property response_types? (`string[]`) - 
+ @property scope? (`string`) - 
+ @property token_endpoint_auth_method? (`string`) - 
+ @property client_uri? (`string`) - 
+ @property logo_uri? (`string`) - 
+ @property client_secret_expires_at? (`number`) - Time at which the client secret expires, or 0 if it does not expire (RFC 7591).*/
+export interface OAuth2RegisterResponse {
+  /**
+   *
+   */
+  client_id: string;
+  /**
+   *
+   */
+  client_secret?: string;
+  /**
+   *
+   */
+  client_name: string;
+  /**
+   *
+   */
+  redirect_uris: string[];
+  /**
+   *
+   */
+  grant_types?: string[];
+  /**
+   *
+   */
+  response_types?: string[];
+  /**
+   *
+   */
+  scope?: string;
+  /**
+   *
+   */
+  token_endpoint_auth_method?: string;
+  /**
+   *
+   */
+  client_uri?: string;
+  /**
+   *
+   */
+  logo_uri?: string;
+  /**
+   * Time at which the client secret expires, or 0 if it does not expire (RFC 7591).
+   */
+  client_secret_expires_at?: number;
+}
+
+/**
+ * 
+ @property requestId (`string`) - 
+    *    Format - uuid
+ @property clientId (`string`) - 
+ @property clientName (`string`) - 
+ @property scopes (`string[]`) - 
+ @property redirectUri (`string`) - */
+export interface OAuth2LoginResponse {
+  /**
+   *
+   *    Format - uuid
+   */
+  requestId: string;
+  /**
+   *
+   */
+  clientId: string;
+  /**
+   *
+   */
+  clientName: string;
+  /**
+   *
+   */
+  scopes: string[];
+  /**
+   *
+   */
+  redirectUri: string;
+}
+
+/**
+ * 
+ @property requestId (`string`) - 
+    *    Format - uuid*/
+export interface OAuth2LoginRequest {
+  /**
+   *
+   *    Format - uuid
+   */
+  requestId: string;
+}
+
+/**
+ * 
+ @property redirectUri (`string`) - 
+    *    Format - uri*/
+export interface OAuth2LoginCompleteResponse {
+  /**
+   *
+   *    Format - uri
+   */
+  redirectUri: string;
+}
+
+/**
+ * 
+ @property clientId (`string`) - 
+ @property clientName (`string`) - 
+ @property clientUri? (`string`) - 
+ @property logoUri? (`string`) - 
+ @property redirectUris (`string[]`) - 
+ @property grantTypes? (`string[]`) - 
+ @property responseTypes? (`string[]`) - 
+ @property scopes? (`string[]`) - 
+ @property isPublic? (`boolean`) - 
+ @property tokenEndpointAuthMethod? (`string`) - 
+ @property accessTokenLifetime? (`number`) - 
+ @property refreshTokenLifetime? (`number`) - 
+ @property createdAt? (`string`) - 
+    *    Format - date-time
+ @property updatedAt? (`string`) - 
+    *    Format - date-time*/
+export interface OAuth2ClientResponse {
+  /**
+   *
+   */
+  clientId: string;
+  /**
+   *
+   */
+  clientName: string;
+  /**
+   *
+   */
+  clientUri?: string;
+  /**
+   *
+   */
+  logoUri?: string;
+  /**
+   *
+   */
+  redirectUris: string[];
+  /**
+   *
+   */
+  grantTypes?: string[];
+  /**
+   *
+   */
+  responseTypes?: string[];
+  /**
+   *
+   */
+  scopes?: string[];
+  /**
+   *
+   */
+  isPublic?: boolean;
+  /**
+   *
+   */
+  tokenEndpointAuthMethod?: string;
+  /**
+   *
+   */
+  accessTokenLifetime?: number;
+  /**
+   *
+   */
+  refreshTokenLifetime?: number;
+  /**
+   *
+   *    Format - date-time
+   */
+  createdAt?: string;
+  /**
+   *
+   *    Format - date-time
+   */
+  updatedAt?: string;
+}
+
+/**
+ * 
+ @property clientId (`string`) - 
+ @property clientName (`string`) - 
+ @property clientSecret? (`string`) - Client secret. Only returned once upon creation.
+ @property clientUri? (`string`) - 
+ @property logoUri? (`string`) - 
+ @property redirectUris (`string[]`) - 
+ @property grantTypes? (`string[]`) - 
+ @property responseTypes? (`string[]`) - 
+ @property scopes? (`string[]`) - 
+ @property isPublic? (`boolean`) - 
+ @property tokenEndpointAuthMethod? (`string`) - 
+ @property accessTokenLifetime? (`number`) - 
+ @property refreshTokenLifetime? (`number`) - 
+ @property createdAt? (`string`) - 
+    *    Format - date-time
+ @property updatedAt? (`string`) - 
+    *    Format - date-time*/
+export interface OAuth2CreateClientResponse {
+  /**
+   *
+   */
+  clientId: string;
+  /**
+   *
+   */
+  clientName: string;
+  /**
+   * Client secret. Only returned once upon creation.
+   */
+  clientSecret?: string;
+  /**
+   *
+   */
+  clientUri?: string;
+  /**
+   *
+   */
+  logoUri?: string;
+  /**
+   *
+   */
+  redirectUris: string[];
+  /**
+   *
+   */
+  grantTypes?: string[];
+  /**
+   *
+   */
+  responseTypes?: string[];
+  /**
+   *
+   */
+  scopes?: string[];
+  /**
+   *
+   */
+  isPublic?: boolean;
+  /**
+   *
+   */
+  tokenEndpointAuthMethod?: string;
+  /**
+   *
+   */
+  accessTokenLifetime?: number;
+  /**
+   *
+   */
+  refreshTokenLifetime?: number;
+  /**
+   *
+   *    Format - date-time
+   */
+  createdAt?: string;
+  /**
+   *
+   *    Format - date-time
+   */
+  updatedAt?: string;
+}
+
+/**
+ * 
+ @property clients (`OAuth2ClientResponse[]`) - */
+export interface OAuth2ClientsListResponse {
+  /**
+   *
+   */
+  clients: OAuth2ClientResponse[];
+}
+
+/**
+ * 
+ @property clientName (`string`) - 
+ @property redirectUris (`string[]`) - 
+ @property grantTypes? (`string[]`) - 
+ @property responseTypes? (`string[]`) - 
+ @property scopes? (`string[]`) - 
+ @property isPublic? (`boolean`) - 
+ @property tokenEndpointAuthMethod? (`string`) - 
+ @property clientUri? (`string`) - 
+ @property logoUri? (`string`) - 
+ @property accessTokenLifetime? (`number`) - 
+ @property refreshTokenLifetime? (`number`) - */
+export interface OAuth2CreateClientRequest {
+  /**
+   *
+   */
+  clientName: string;
+  /**
+   *
+   */
+  redirectUris: string[];
+  /**
+   *
+   */
+  grantTypes?: string[];
+  /**
+   *
+   */
+  responseTypes?: string[];
+  /**
+   *
+   */
+  scopes?: string[];
+  /**
+   *
+   */
+  isPublic?: boolean;
+  /**
+   *
+   */
+  tokenEndpointAuthMethod?: string;
+  /**
+   *
+   */
+  clientUri?: string;
+  /**
+   *
+   */
+  logoUri?: string;
+  /**
+   *
+   */
+  accessTokenLifetime?: number;
+  /**
+   *
+   */
+  refreshTokenLifetime?: number;
+}
+
+/**
+ * 
+ @property clientName (`string`) - 
+ @property redirectUris (`string[]`) - 
+ @property grantTypes? (`string[]`) - 
+ @property responseTypes? (`string[]`) - 
+ @property scopes? (`string[]`) - 
+ @property isPublic? (`boolean`) - 
+ @property tokenEndpointAuthMethod? (`string`) - 
+ @property clientUri? (`string`) - 
+ @property logoUri? (`string`) - 
+ @property accessTokenLifetime? (`number`) - 
+ @property refreshTokenLifetime? (`number`) - */
+export interface OAuth2UpdateClientRequest {
+  /**
+   *
+   */
+  clientName: string;
+  /**
+   *
+   */
+  redirectUris: string[];
+  /**
+   *
+   */
+  grantTypes?: string[];
+  /**
+   *
+   */
+  responseTypes?: string[];
+  /**
+   *
+   */
+  scopes?: string[];
+  /**
+   *
+   */
+  isPublic?: boolean;
+  /**
+   *
+   */
+  tokenEndpointAuthMethod?: string;
+  /**
+   *
+   */
+  clientUri?: string;
+  /**
+   *
+   */
+  logoUri?: string;
+  /**
+   *
+   */
+  accessTokenLifetime?: number;
+  /**
+   *
+   */
+  refreshTokenLifetime?: number;
+}
+
+/**
  * Target URL for the redirect
  */
 export type RedirectToQuery = string;
@@ -1583,6 +2391,86 @@ export interface GetVersionResponse200 {
    *    Example - `"1.2.3"`
    */
   version: string;
+}
+
+/**
+ *
+ */
+export type GetResponse_type = 'code';
+
+/**
+ *
+ */
+export type GetCode_challenge_method = 'S256';
+
+/**
+ *
+ */
+export type Oauth2AuthorizePostBodyResponse_type = 'code';
+
+/**
+ * Only S256 is supported. The plain method is not allowed.
+ */
+export type Oauth2AuthorizePostBodyCode_challenge_method = 'S256';
+
+/**
+ * 
+ @property client_id (`string`) - 
+ @property redirect_uri (`string`) - 
+ @property response_type? (`Oauth2AuthorizePostBodyResponse_type`) - 
+ @property scope? (`string`) - 
+ @property state? (`string`) - 
+ @property nonce? (`string`) - 
+ @property code_challenge? (`string`) - 
+ @property code_challenge_method? (`Oauth2AuthorizePostBodyCode_challenge_method`) - Only S256 is supported. The plain method is not allowed.
+ @property resource? (`string`) - 
+ @property prompt? (`string`) - 
+ @property request? (`string`) - */
+export interface Oauth2AuthorizePostBody {
+  /**
+   *
+   */
+  client_id: string;
+  /**
+   *
+   */
+  redirect_uri: string;
+  /**
+   *
+   */
+  response_type?: Oauth2AuthorizePostBodyResponse_type;
+  /**
+   *
+   */
+  scope?: string;
+  /**
+   *
+   */
+  state?: string;
+  /**
+   *
+   */
+  nonce?: string;
+  /**
+   *
+   */
+  code_challenge?: string;
+  /**
+   * Only S256 is supported. The plain method is not allowed.
+   */
+  code_challenge_method?: Oauth2AuthorizePostBodyCode_challenge_method;
+  /**
+   *
+   */
+  resource?: string;
+  /**
+   *
+   */
+  prompt?: string;
+  /**
+   *
+   */
+  request?: string;
 }
 
 /**
@@ -1682,6 +2570,76 @@ export interface VerifyTicketParams {
     *    Target URL for the redirect
    */
   redirectTo: RedirectToQuery;
+}
+/**
+ * Parameters for the oauth2Authorize method.
+    @property client_id (string) - 
+    @property redirect_uri (string) - 
+    @property response_type? (GetResponse_type) - 
+    @property scope? (string) - 
+    @property state? (string) - 
+    @property nonce? (string) - 
+    @property code_challenge? (string) - 
+    @property code_challenge_method? (GetCode_challenge_method) - Only S256 is supported. The plain method is not allowed.
+  
+    @property resource? (string) - 
+    @property prompt? (string) - 
+    @property request? (string) - */
+export interface Oauth2AuthorizeParams {
+  /**
+   *
+   */
+  client_id: string;
+  /**
+   *
+   */
+  redirect_uri: string;
+  /**
+   *
+   */
+  response_type?: GetResponse_type;
+  /**
+   *
+   */
+  scope?: string;
+  /**
+   *
+   */
+  state?: string;
+  /**
+   *
+   */
+  nonce?: string;
+  /**
+   *
+   */
+  code_challenge?: string;
+  /**
+   * Only S256 is supported. The plain method is not allowed.
+  
+   */
+  code_challenge_method?: GetCode_challenge_method;
+  /**
+   *
+   */
+  resource?: string;
+  /**
+   *
+   */
+  prompt?: string;
+  /**
+   *
+   */
+  request?: string;
+}
+/**
+ * Parameters for the oauth2LoginGet method.
+    @property request_id (string) - */
+export interface Oauth2LoginGetParams {
+  /**
+   *
+   */
+  request_id: string;
 }
 
 export interface Client {
@@ -2151,6 +3109,213 @@ export interface Client {
   getVersion(
     options?: RequestInit,
   ): Promise<FetchResponse<GetVersionResponse200>>;
+
+  /**
+     Summary: OpenID Connect Discovery
+     Returns the OpenID Provider Metadata (RFC 8414)
+
+     This method may return different T based on the response code:
+     - 200: OAuth2DiscoveryResponse
+     */
+  getOpenIDConfiguration(
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2DiscoveryResponse>>;
+
+  /**
+     Summary: OAuth2 Authorization Server Metadata
+     Returns the Authorization Server Metadata (RFC 8414). Same content as OpenID Discovery.
+
+     This method may return different T based on the response code:
+     - 200: OAuth2DiscoveryResponse
+     */
+  getOAuthAuthorizationServer(
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2DiscoveryResponse>>;
+
+  /**
+     Summary: OAuth2 Authorization Endpoint
+     Initiates an OAuth2 authorization code flow. Validates the request and redirects to the login UI for user authentication and consent.
+
+     As this method is a redirect, it returns a URL string instead of a Promise
+     */
+  oauth2AuthorizeURL(
+    params?: Oauth2AuthorizeParams,
+    options?: RequestInit,
+  ): string;
+
+  /**
+     Summary: OAuth2 Authorization Endpoint (POST)
+     Initiates an OAuth2 authorization code flow via POST. Validates the request and redirects to the login UI for user authentication and consent.
+
+     As this method is a redirect, it returns a URL string instead of a Promise
+     */
+  oauth2AuthorizePostURL(
+    body: Oauth2AuthorizePostBody,
+    options?: RequestInit,
+  ): string;
+
+  /**
+     Summary: OAuth2 Token Endpoint
+     Exchange an authorization code for tokens, or refresh an existing token. Supports grant_type authorization_code and refresh_token.
+
+     This method may return different T based on the response code:
+     - 200: OAuth2TokenResponse
+     */
+  oauth2Token(
+    body: OAuth2TokenRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2TokenResponse>>;
+
+  /**
+     Summary: OpenID Connect UserInfo Endpoint (GET)
+     Returns claims about the authenticated user based on the access token scopes.
+
+     This method may return different T based on the response code:
+     - 200: OAuth2UserinfoResponse
+     */
+  oauth2UserinfoGet(
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2UserinfoResponse>>;
+
+  /**
+     Summary: OpenID Connect UserInfo Endpoint (POST)
+     Returns claims about the authenticated user based on the access token scopes.
+
+     This method may return different T based on the response code:
+     - 200: OAuth2UserinfoResponse
+     */
+  oauth2UserinfoPost(
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2UserinfoResponse>>;
+
+  /**
+     Summary: OAuth2 Provider JWKS Endpoint
+     Returns the JSON Web Key Set containing public keys used for OAuth2/OIDC token signing.
+
+     This method may return different T based on the response code:
+     - 200: OAuth2JWKSResponse
+     */
+  oauth2Jwks(options?: RequestInit): Promise<FetchResponse<OAuth2JWKSResponse>>;
+
+  /**
+     Summary: OAuth2 Token Revocation (RFC 7009)
+     Revoke an access token or refresh token.
+
+     This method may return different T based on the response code:
+     - 200: void
+     */
+  oauth2Revoke(
+    body: OAuth2RevokeRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<void>>;
+
+  /**
+     Summary: OAuth2 Token Introspection (RFC 7662)
+     Introspect a token to determine its current state and metadata.
+
+     This method may return different T based on the response code:
+     - 200: OAuth2IntrospectResponse
+     */
+  oauth2Introspect(
+    body: OAuth2IntrospectRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2IntrospectResponse>>;
+
+  /**
+     Summary: Dynamic Client Registration (RFC 7591)
+     Register a new OAuth2 client dynamically. Requires authentication.
+
+     This method may return different T based on the response code:
+     - 201: OAuth2RegisterResponse
+     */
+  oauth2Register(
+    body: OAuth2RegisterRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2RegisterResponse>>;
+
+  /**
+     Summary: Get authorization request details for consent screen
+     Called by the consent UI to get details about the pending authorization request.
+
+     This method may return different T based on the response code:
+     - 200: OAuth2LoginResponse
+     */
+  oauth2LoginGet(
+    params?: Oauth2LoginGetParams,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2LoginResponse>>;
+
+  /**
+     Summary: Complete login/consent for an authorization request
+     Called by the consent UI after user authenticates and consents. Sets the user on the auth request and redirects back to the client with an authorization code.
+
+     This method may return different T based on the response code:
+     - 200: OAuth2LoginCompleteResponse
+     */
+  oauth2LoginPost(
+    body: OAuth2LoginRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2LoginCompleteResponse>>;
+
+  /**
+     Summary: List OAuth2 clients
+     List all registered OAuth2 clients. Requires admin authentication.
+
+     This method may return different T based on the response code:
+     - 200: OAuth2ClientsListResponse
+     */
+  oauth2ClientsList(
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2ClientsListResponse>>;
+
+  /**
+     Summary: Create OAuth2 client
+     Create a new OAuth2 client. Requires admin authentication.
+
+     This method may return different T based on the response code:
+     - 201: OAuth2CreateClientResponse
+     */
+  oauth2ClientsCreate(
+    body: OAuth2CreateClientRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2CreateClientResponse>>;
+
+  /**
+     Summary: Get OAuth2 client
+     Get details of an OAuth2 client by client ID. Requires admin authentication.
+
+     This method may return different T based on the response code:
+     - 200: OAuth2ClientResponse
+     */
+  oauth2ClientsGet(
+    clientId: string,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2ClientResponse>>;
+
+  /**
+     Summary: Update OAuth2 client
+     Update an OAuth2 client. Requires admin authentication.
+
+     This method may return different T based on the response code:
+     - 200: OAuth2ClientResponse
+     */
+  oauth2ClientsUpdate(
+    clientId: string,
+    body: OAuth2UpdateClientRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2ClientResponse>>;
+
+  /**
+     Summary: Delete OAuth2 client
+     Delete an OAuth2 client. Requires admin authentication.
+
+     This method may return different T based on the response code:
+     - 204: void
+     */
+  oauth2ClientsDelete(
+    clientId: string,
+    options?: RequestInit,
+  ): Promise<FetchResponse<void>>;
 }
 
 export const createAPIClient = (
@@ -3489,6 +4654,629 @@ export const createAPIClient = (
     } as FetchResponse<GetVersionResponse200>;
   };
 
+  const getOpenIDConfiguration = async (
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2DiscoveryResponse>> => {
+    const url = `${baseURL}/.well-known/openid-configuration`;
+    const res = await fetch(url, {
+      ...options,
+      method: 'GET',
+      headers: {
+        ...options?.headers,
+      },
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: OAuth2DiscoveryResponse = responseBody
+      ? JSON.parse(responseBody)
+      : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<OAuth2DiscoveryResponse>;
+  };
+
+  const getOAuthAuthorizationServer = async (
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2DiscoveryResponse>> => {
+    const url = `${baseURL}/.well-known/oauth-authorization-server`;
+    const res = await fetch(url, {
+      ...options,
+      method: 'GET',
+      headers: {
+        ...options?.headers,
+      },
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: OAuth2DiscoveryResponse = responseBody
+      ? JSON.parse(responseBody)
+      : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<OAuth2DiscoveryResponse>;
+  };
+
+  const oauth2AuthorizeURL = (params?: Oauth2AuthorizeParams): string => {
+    const encodedParameters =
+      params &&
+      Object.entries(params)
+        .flatMap(([key, value]) => {
+          // Default handling (scalars or explode: false)
+          const stringValue = Array.isArray(value)
+            ? value.join(',')
+            : typeof value === 'object' && value !== null
+              ? JSON.stringify(value)
+              : String(value);
+          return [`${key}=${encodeURIComponent(stringValue)}`];
+        })
+        .join('&');
+
+    const url = encodedParameters
+      ? `${baseURL}/oauth2/authorize?${encodedParameters}`
+      : `${baseURL}/oauth2/authorize`;
+    return url;
+  };
+
+  const oauth2AuthorizePostURL = (): string => {
+    const url = `${baseURL}/oauth2/authorize`;
+    return url;
+  };
+
+  const oauth2Token = async (
+    body: OAuth2TokenRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2TokenResponse>> => {
+    const url = `${baseURL}/oauth2/token`;
+    const params = new URLSearchParams();
+    if (body['grant_type'] !== undefined) {
+      params.append('grant_type', String(body['grant_type']));
+    }
+    if (body['code'] !== undefined) {
+      params.append('code', String(body['code']));
+    }
+    if (body['redirect_uri'] !== undefined) {
+      params.append('redirect_uri', String(body['redirect_uri']));
+    }
+    if (body['client_id'] !== undefined) {
+      params.append('client_id', String(body['client_id']));
+    }
+    if (body['client_secret'] !== undefined) {
+      params.append('client_secret', String(body['client_secret']));
+    }
+    if (body['code_verifier'] !== undefined) {
+      params.append('code_verifier', String(body['code_verifier']));
+    }
+    if (body['refresh_token'] !== undefined) {
+      params.append('refresh_token', String(body['refresh_token']));
+    }
+    if (body['resource'] !== undefined) {
+      params.append('resource', String(body['resource']));
+    }
+
+    const res = await fetch(url, {
+      ...options,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        ...options?.headers,
+      },
+      body: params.toString(),
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: OAuth2TokenResponse = responseBody
+      ? JSON.parse(responseBody)
+      : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<OAuth2TokenResponse>;
+  };
+
+  const oauth2UserinfoGet = async (
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2UserinfoResponse>> => {
+    const url = `${baseURL}/oauth2/userinfo`;
+    const res = await fetch(url, {
+      ...options,
+      method: 'GET',
+      headers: {
+        ...options?.headers,
+      },
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: OAuth2UserinfoResponse = responseBody
+      ? JSON.parse(responseBody)
+      : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<OAuth2UserinfoResponse>;
+  };
+
+  const oauth2UserinfoPost = async (
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2UserinfoResponse>> => {
+    const url = `${baseURL}/oauth2/userinfo`;
+    const res = await fetch(url, {
+      ...options,
+      method: 'POST',
+      headers: {
+        ...options?.headers,
+      },
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: OAuth2UserinfoResponse = responseBody
+      ? JSON.parse(responseBody)
+      : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<OAuth2UserinfoResponse>;
+  };
+
+  const oauth2Jwks = async (
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2JWKSResponse>> => {
+    const url = `${baseURL}/oauth2/jwks`;
+    const res = await fetch(url, {
+      ...options,
+      method: 'GET',
+      headers: {
+        ...options?.headers,
+      },
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: OAuth2JWKSResponse = responseBody
+      ? JSON.parse(responseBody)
+      : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<OAuth2JWKSResponse>;
+  };
+
+  const oauth2Revoke = async (
+    body: OAuth2RevokeRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<void>> => {
+    const url = `${baseURL}/oauth2/revoke`;
+    const params = new URLSearchParams();
+    if (body['token'] !== undefined) {
+      params.append('token', String(body['token']));
+    }
+    if (body['token_type_hint'] !== undefined) {
+      params.append('token_type_hint', String(body['token_type_hint']));
+    }
+    if (body['client_id'] !== undefined) {
+      params.append('client_id', String(body['client_id']));
+    }
+    if (body['client_secret'] !== undefined) {
+      params.append('client_secret', String(body['client_secret']));
+    }
+
+    const res = await fetch(url, {
+      ...options,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        ...options?.headers,
+      },
+      body: params.toString(),
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const payload: undefined = undefined;
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<void>;
+  };
+
+  const oauth2Introspect = async (
+    body: OAuth2IntrospectRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2IntrospectResponse>> => {
+    const url = `${baseURL}/oauth2/introspect`;
+    const params = new URLSearchParams();
+    if (body['token'] !== undefined) {
+      params.append('token', String(body['token']));
+    }
+    if (body['token_type_hint'] !== undefined) {
+      params.append('token_type_hint', String(body['token_type_hint']));
+    }
+    if (body['client_id'] !== undefined) {
+      params.append('client_id', String(body['client_id']));
+    }
+    if (body['client_secret'] !== undefined) {
+      params.append('client_secret', String(body['client_secret']));
+    }
+
+    const res = await fetch(url, {
+      ...options,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        ...options?.headers,
+      },
+      body: params.toString(),
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: OAuth2IntrospectResponse = responseBody
+      ? JSON.parse(responseBody)
+      : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<OAuth2IntrospectResponse>;
+  };
+
+  const oauth2Register = async (
+    body: OAuth2RegisterRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2RegisterResponse>> => {
+    const url = `${baseURL}/oauth2/register`;
+    const res = await fetch(url, {
+      ...options,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: OAuth2RegisterResponse = responseBody
+      ? JSON.parse(responseBody)
+      : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<OAuth2RegisterResponse>;
+  };
+
+  const oauth2LoginGet = async (
+    params?: Oauth2LoginGetParams,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2LoginResponse>> => {
+    const encodedParameters =
+      params &&
+      Object.entries(params)
+        .flatMap(([key, value]) => {
+          // Default handling (scalars or explode: false)
+          const stringValue = Array.isArray(value)
+            ? value.join(',')
+            : typeof value === 'object' && value !== null
+              ? JSON.stringify(value)
+              : String(value);
+          return [`${key}=${encodeURIComponent(stringValue)}`];
+        })
+        .join('&');
+
+    const url = encodedParameters
+      ? `${baseURL}/oauth2/login?${encodedParameters}`
+      : `${baseURL}/oauth2/login`;
+    const res = await fetch(url, {
+      ...options,
+      method: 'GET',
+      headers: {
+        ...options?.headers,
+      },
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: OAuth2LoginResponse = responseBody
+      ? JSON.parse(responseBody)
+      : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<OAuth2LoginResponse>;
+  };
+
+  const oauth2LoginPost = async (
+    body: OAuth2LoginRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2LoginCompleteResponse>> => {
+    const url = `${baseURL}/oauth2/login`;
+    const res = await fetch(url, {
+      ...options,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: OAuth2LoginCompleteResponse = responseBody
+      ? JSON.parse(responseBody)
+      : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<OAuth2LoginCompleteResponse>;
+  };
+
+  const oauth2ClientsList = async (
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2ClientsListResponse>> => {
+    const url = `${baseURL}/oauth2/clients`;
+    const res = await fetch(url, {
+      ...options,
+      method: 'GET',
+      headers: {
+        ...options?.headers,
+      },
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: OAuth2ClientsListResponse = responseBody
+      ? JSON.parse(responseBody)
+      : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<OAuth2ClientsListResponse>;
+  };
+
+  const oauth2ClientsCreate = async (
+    body: OAuth2CreateClientRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2CreateClientResponse>> => {
+    const url = `${baseURL}/oauth2/clients`;
+    const res = await fetch(url, {
+      ...options,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: OAuth2CreateClientResponse = responseBody
+      ? JSON.parse(responseBody)
+      : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<OAuth2CreateClientResponse>;
+  };
+
+  const oauth2ClientsGet = async (
+    clientId: string,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2ClientResponse>> => {
+    const url = `${baseURL}/oauth2/clients/${clientId}`;
+    const res = await fetch(url, {
+      ...options,
+      method: 'GET',
+      headers: {
+        ...options?.headers,
+      },
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: OAuth2ClientResponse = responseBody
+      ? JSON.parse(responseBody)
+      : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<OAuth2ClientResponse>;
+  };
+
+  const oauth2ClientsUpdate = async (
+    clientId: string,
+    body: OAuth2UpdateClientRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OAuth2ClientResponse>> => {
+    const url = `${baseURL}/oauth2/clients/${clientId}`;
+    const res = await fetch(url, {
+      ...options,
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: OAuth2ClientResponse = responseBody
+      ? JSON.parse(responseBody)
+      : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<OAuth2ClientResponse>;
+  };
+
+  const oauth2ClientsDelete = async (
+    clientId: string,
+    options?: RequestInit,
+  ): Promise<FetchResponse<void>> => {
+    const url = `${baseURL}/oauth2/clients/${clientId}`;
+    const res = await fetch(url, {
+      ...options,
+      method: 'DELETE',
+      headers: {
+        ...options?.headers,
+      },
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const payload: undefined = undefined;
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<void>;
+  };
+
   return {
     baseURL,
     pushChainFunction,
@@ -3532,5 +5320,23 @@ export const createAPIClient = (
     verifyAddSecurityKey,
     verifyTicketURL,
     getVersion,
+    getOpenIDConfiguration,
+    getOAuthAuthorizationServer,
+    oauth2AuthorizeURL,
+    oauth2AuthorizePostURL,
+    oauth2Token,
+    oauth2UserinfoGet,
+    oauth2UserinfoPost,
+    oauth2Jwks,
+    oauth2Revoke,
+    oauth2Introspect,
+    oauth2Register,
+    oauth2LoginGet,
+    oauth2LoginPost,
+    oauth2ClientsList,
+    oauth2ClientsCreate,
+    oauth2ClientsGet,
+    oauth2ClientsUpdate,
+    oauth2ClientsDelete,
   };
 };

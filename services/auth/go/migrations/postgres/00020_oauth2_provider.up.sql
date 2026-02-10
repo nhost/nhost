@@ -17,10 +17,13 @@ CREATE TABLE auth.oauth2_clients (
     id_token_signed_response_alg text NOT NULL DEFAULT 'RS256',
     access_token_lifetime integer NOT NULL DEFAULT 900,
     refresh_token_lifetime integer NOT NULL DEFAULT 2592000,
+    created_by uuid,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     PRIMARY KEY (id),
-    UNIQUE (client_id)
+    UNIQUE (client_id),
+    CONSTRAINT fk_oauth2_clients_created_by FOREIGN KEY (created_by)
+        REFERENCES auth.users(id) ON UPDATE CASCADE ON DELETE SET NULL
 );
 
 COMMENT ON TABLE auth.oauth2_clients IS 'Registered OAuth2 client applications for the identity provider.';
@@ -99,6 +102,7 @@ CREATE INDEX oauth2_authorization_codes_expires_at_idx ON auth.oauth2_authorizat
 CREATE INDEX oauth2_refresh_tokens_user_id_idx ON auth.oauth2_refresh_tokens (user_id);
 CREATE INDEX oauth2_refresh_tokens_client_id_idx ON auth.oauth2_refresh_tokens (client_id);
 CREATE INDEX oauth2_refresh_tokens_expires_at_idx ON auth.oauth2_refresh_tokens (expires_at);
+CREATE INDEX oauth2_clients_created_by_idx ON auth.oauth2_clients (created_by);
 
 -- Grants
 GRANT ALL ON auth.oauth2_clients TO nhost_auth_admin;

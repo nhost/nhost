@@ -135,7 +135,8 @@ CREATE TABLE auth.oauth2_clients (
     access_token_lifetime integer DEFAULT 900 NOT NULL,
     refresh_token_lifetime integer DEFAULT 2592000 NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    created_by uuid
 );
 
 
@@ -594,6 +595,13 @@ CREATE INDEX oauth2_authorization_codes_expires_at_idx ON auth.oauth2_authorizat
 
 
 --
+-- Name: oauth2_clients_created_by_idx; Type: INDEX; Schema: auth; Owner: postgres
+--
+
+CREATE INDEX oauth2_clients_created_by_idx ON auth.oauth2_clients USING btree (created_by);
+
+
+--
 -- Name: oauth2_refresh_tokens_client_id_idx; Type: INDEX; Schema: auth; Owner: postgres
 --
 
@@ -672,6 +680,14 @@ ALTER TABLE ONLY auth.oauth2_auth_requests
 
 ALTER TABLE ONLY auth.oauth2_authorization_codes
     ADD CONSTRAINT fk_oauth2_authorization_codes_auth_request FOREIGN KEY (auth_request_id) REFERENCES auth.oauth2_auth_requests(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: oauth2_clients fk_oauth2_clients_created_by; Type: FK CONSTRAINT; Schema: auth; Owner: postgres
+--
+
+ALTER TABLE ONLY auth.oauth2_clients
+    ADD CONSTRAINT fk_oauth2_clients_created_by FOREIGN KEY (created_by) REFERENCES auth.users(id) ON UPDATE CASCADE ON DELETE SET NULL;
 
 
 --

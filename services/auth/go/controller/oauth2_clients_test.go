@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -35,6 +36,7 @@ func testOAuth2Client() sql.AuthOauth2Client {
 		IDTokenSignedResponseAlg: "RS256",
 		AccessTokenLifetime:      900,
 		RefreshTokenLifetime:     2592000,
+		CreatedBy:                pgtype.UUID{},                              //nolint:exhaustruct
 		CreatedAt:                pgtype.Timestamptz{Time: now, Valid: true}, //nolint:exhaustruct
 		UpdatedAt:                pgtype.Timestamptz{Time: now, Valid: true}, //nolint:exhaustruct
 	}
@@ -264,6 +266,235 @@ func TestOauth2ClientsDelete(t *testing.T) {
 			)
 		})
 	}
+}
+
+func TestOauth2ClientsCreate(t *testing.T) { //nolint:cyclop
+	t.Parallel()
+
+	userID := uuid.MustParse("db477732-48fa-4289-b694-2886a646b6eb")
+
+	jwtTokenFn := func() *jwt.Token {
+		return &jwt.Token{
+			Raw:    "",
+			Method: jwt.SigningMethodHS256,
+			Header: map[string]any{
+				"alg": "HS256",
+				"typ": "JWT",
+			},
+			Claims: jwt.MapClaims{
+				"exp": float64(time.Now().Add(900 * time.Second).Unix()),
+				"https://hasura.io/jwt/claims": map[string]any{
+					"x-hasura-allowed-roles":     []any{"user", "me"},
+					"x-hasura-default-role":      "user",
+					"x-hasura-user-id":           "db477732-48fa-4289-b694-2886a646b6eb",
+					"x-hasura-user-is-anonymous": "false",
+				},
+				"iat": float64(time.Now().Unix()),
+				"iss": "hasura-auth",
+				"sub": "db477732-48fa-4289-b694-2886a646b6eb",
+			},
+			Signature: []byte{},
+			Valid:     true,
+		}
+	}
+
+	t.Run("disabled", func(t *testing.T) {
+		t.Parallel()
+
+		ctrl := gomock.NewController(t)
+
+		c, _ := getController(
+			t,
+			ctrl,
+			getConfig,
+			func(ctrl *gomock.Controller) controller.DBClient {
+				return mock.NewMockDBClient(ctrl)
+			},
+		)
+
+		resp, err := c.Oauth2ClientsCreate(
+			context.Background(),
+			api.Oauth2ClientsCreateRequestObject{
+				Body: &api.OAuth2CreateClientRequest{ //nolint:exhaustruct
+					ClientName:   "Test App",
+					RedirectUris: []string{"https://example.com/callback"},
+				},
+			},
+		)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		defaultResp, ok := resp.(api.Oauth2ClientsCreatedefaultJSONResponse)
+		if !ok {
+			t.Fatalf("expected default JSON response, got %T", resp)
+		}
+
+		if defaultResp.StatusCode != http.StatusBadRequest {
+			t.Errorf("expected status %d, got %d", http.StatusBadRequest, defaultResp.StatusCode)
+		}
+	})
+
+	t.Run("unauthenticated", func(t *testing.T) {
+		t.Parallel()
+
+		ctrl := gomock.NewController(t)
+
+		c, _ := getController(
+			t,
+			ctrl,
+			getConfigOAuth2Enabled,
+			func(ctrl *gomock.Controller) controller.DBClient {
+				return mock.NewMockDBClient(ctrl)
+			},
+		)
+
+		resp, err := c.Oauth2ClientsCreate(
+			context.Background(),
+			api.Oauth2ClientsCreateRequestObject{
+				Body: &api.OAuth2CreateClientRequest{ //nolint:exhaustruct
+					ClientName:   "Test App",
+					RedirectUris: []string{"https://example.com/callback"},
+				},
+			},
+		)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		defaultResp, ok := resp.(api.Oauth2ClientsCreatedefaultJSONResponse)
+		if !ok {
+			t.Fatalf("expected default JSON response, got %T", resp)
+		}
+
+		if defaultResp.StatusCode != http.StatusUnauthorized {
+			t.Errorf("expected status %d, got %d", http.StatusUnauthorized, defaultResp.StatusCode)
+		}
+	})
+
+	t.Run("missing body", func(t *testing.T) { //nolint:dupl
+		t.Parallel()
+
+		ctrl := gomock.NewController(t)
+
+		db := mock.NewMockDBClient(ctrl)
+		db.EXPECT().GetUser(gomock.Any(), userID).
+			Return(sql.AuthUser{ //nolint:exhaustruct
+				ID:    userID,
+				Email: sql.Text("jane@acme.com"),
+			}, nil)
+
+		c, jwtGetter := getController(
+			t, ctrl, getConfigOAuth2Enabled,
+			func(_ *gomock.Controller) controller.DBClient { return db },
+		)
+
+		ctx := jwtGetter.ToContext(context.Background(), jwtTokenFn())
+
+		resp, err := c.Oauth2ClientsCreate(ctx, api.Oauth2ClientsCreateRequestObject{Body: nil})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		defaultResp, ok := resp.(api.Oauth2ClientsCreatedefaultJSONResponse)
+		if !ok {
+			t.Fatalf("expected default JSON response, got %T", resp)
+		}
+
+		if defaultResp.StatusCode != http.StatusBadRequest {
+			t.Errorf("expected status %d, got %d", http.StatusBadRequest, defaultResp.StatusCode)
+		}
+	})
+
+	t.Run("success - public client", func(t *testing.T) {
+		t.Parallel()
+
+		ctrl := gomock.NewController(t)
+
+		db := mock.NewMockDBClient(ctrl)
+		db.EXPECT().GetUser(gomock.Any(), userID).
+			Return(sql.AuthUser{ //nolint:exhaustruct
+				ID:    userID,
+				Email: sql.Text("jane@acme.com"),
+			}, nil)
+		db.EXPECT().InsertOAuth2Client(gomock.Any(), gomock.Any()).
+			Return(testOAuth2Client(), nil)
+
+		c, jwtGetter := getController(
+			t, ctrl, getConfigOAuth2Enabled,
+			func(_ *gomock.Controller) controller.DBClient { return db },
+		)
+
+		ctx := jwtGetter.ToContext(context.Background(), jwtTokenFn())
+
+		isPublic := true
+
+		resp, err := c.Oauth2ClientsCreate(ctx, api.Oauth2ClientsCreateRequestObject{
+			Body: &api.OAuth2CreateClientRequest{ //nolint:exhaustruct
+				ClientName:   "Test App",
+				RedirectUris: []string{"https://example.com/callback"},
+				IsPublic:     &isPublic,
+			},
+		})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		createResp, ok := resp.(api.Oauth2ClientsCreate201JSONResponse)
+		if !ok {
+			t.Fatalf("expected 201 response, got %T: %+v", resp, resp)
+		}
+
+		if createResp.ClientSecret != nil {
+			t.Error("expected no client_secret for public client")
+		}
+	})
+
+	t.Run("success - confidential client", func(t *testing.T) {
+		t.Parallel()
+
+		ctrl := gomock.NewController(t)
+
+		confidentialClient := testOAuth2Client()
+		confidentialClient.IsPublic = false
+		confidentialClient.TokenEndpointAuthMethod = "client_secret_post"
+		confidentialClient.ClientSecretHash = sql.Text("$2a$10$hashedvalue")
+
+		db := mock.NewMockDBClient(ctrl)
+		db.EXPECT().GetUser(gomock.Any(), userID).
+			Return(sql.AuthUser{ //nolint:exhaustruct
+				ID:    userID,
+				Email: sql.Text("jane@acme.com"),
+			}, nil)
+		db.EXPECT().InsertOAuth2Client(gomock.Any(), gomock.Any()).
+			Return(confidentialClient, nil)
+
+		c, jwtGetter := getController(
+			t, ctrl, getConfigOAuth2Enabled,
+			func(_ *gomock.Controller) controller.DBClient { return db },
+		)
+
+		ctx := jwtGetter.ToContext(context.Background(), jwtTokenFn())
+
+		resp, err := c.Oauth2ClientsCreate(ctx, api.Oauth2ClientsCreateRequestObject{
+			Body: &api.OAuth2CreateClientRequest{ //nolint:exhaustruct
+				ClientName:   "Confidential App",
+				RedirectUris: []string{"https://example.com/callback"},
+			},
+		})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		createResp, ok := resp.(api.Oauth2ClientsCreate201JSONResponse)
+		if !ok {
+			t.Fatalf("expected 201 response, got %T: %+v", resp, resp)
+		}
+
+		if createResp.ClientSecret == nil {
+			t.Error("expected client_secret for confidential client")
+		}
+	})
 }
 
 func clientToExpectedResponse(c sql.AuthOauth2Client) api.OAuth2ClientResponse {

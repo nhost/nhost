@@ -1691,10 +1691,12 @@ paths:
   /oauth2/register:
     post:
       summary: Dynamic Client Registration (RFC 7591)
-      description: Register a new OAuth2 client dynamically. No authentication required.
+      description: Register a new OAuth2 client dynamically. Requires authentication.
       operationId: oauth2Register
       tags:
         - authentication
+      security:
+        - BearerAuth: []
       requestBody:
         required: true
         content:

@@ -14,15 +14,25 @@ func (ctrl *Controller) Oauth2Register( //nolint:ireturn
 ) (api.Oauth2RegisterResponseObject, error) {
 	logger := oapimw.LoggerFromContext(ctx)
 
-	if !ctrl.config.OAuth2ProviderEnabled {
-		return oauth2RegisterError("server_error", "OAuth2 provider is disabled"), nil
+	if !ctrl.config.OAuth2ProviderEnabled || !ctrl.config.OAuth2ProviderDCREnabled {
+		return oauth2RegisterError(
+			"server_error",
+			"OAuth2 dynamic client registration is disabled",
+		), nil
+	}
+
+	user, apiErr := ctrl.wf.GetUserFromJWTInContext(ctx, logger)
+	if apiErr != nil {
+		return oauth2RegisterError("invalid_token", "Authentication required"), nil //nolint:nilerr
 	}
 
 	if request.Body == nil {
 		return oauth2RegisterError("invalid_request", "Missing request body"), nil
 	}
 
-	resp, oauthErr := ctrl.oauth2.RegisterClient(ctx, request.Body, logger)
+	resp, oauthErr := ctrl.oauth2.RegisterClient(
+		ctx, request.Body, user.ID, ctrl.config.OAuth2ProviderDCRMaxClientsPerUser, logger,
+	)
 	if oauthErr != nil {
 		return oauth2RegisterError(oauthErr.Err, oauthErr.Description), nil
 	}

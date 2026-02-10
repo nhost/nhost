@@ -56,6 +56,7 @@ type AuthOauth2Client struct {
 	RefreshTokenLifetime     int32
 	CreatedAt                pgtype.Timestamptz
 	UpdatedAt                pgtype.Timestamptz
+	CreatedBy                pgtype.UUID
 }
 
 // OAuth2 refresh tokens with client and scope binding.

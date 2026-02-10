@@ -12,6 +12,18 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const countOAuth2ClientsByCreatedBy = `-- name: CountOAuth2ClientsByCreatedBy :one
+SELECT count(*) FROM auth.oauth2_clients
+WHERE created_by = $1
+`
+
+func (q *Queries) CountOAuth2ClientsByCreatedBy(ctx context.Context, createdBy pgtype.UUID) (int64, error) {
+	row := q.db.QueryRow(ctx, countOAuth2ClientsByCreatedBy, createdBy)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const countSecurityKeysUser = `-- name: CountSecurityKeysUser :one
 SELECT COUNT(*) FROM auth.user_security_keys
 WHERE user_id = $1
@@ -231,7 +243,7 @@ func (q *Queries) GetOAuth2AuthRequestByCodeHash(ctx context.Context, codeHash s
 
 const getOAuth2ClientByClientID = `-- name: GetOAuth2ClientByClientID :one
 
-SELECT id, client_id, client_secret_hash, client_name, client_uri, logo_uri, redirect_uris, grant_types, response_types, scopes, is_public, token_endpoint_auth_method, id_token_signed_response_alg, access_token_lifetime, refresh_token_lifetime, created_at, updated_at FROM auth.oauth2_clients
+SELECT id, client_id, client_secret_hash, client_name, client_uri, logo_uri, redirect_uris, grant_types, response_types, scopes, is_public, token_endpoint_auth_method, id_token_signed_response_alg, access_token_lifetime, refresh_token_lifetime, created_at, updated_at, created_by FROM auth.oauth2_clients
 WHERE client_id = $1
 LIMIT 1
 `
@@ -260,6 +272,7 @@ func (q *Queries) GetOAuth2ClientByClientID(ctx context.Context, clientID string
 		&i.RefreshTokenLifetime,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.CreatedBy,
 	)
 	return i, err
 }
@@ -873,14 +886,14 @@ INSERT INTO auth.oauth2_clients (
     client_id, client_secret_hash, client_name, client_uri, logo_uri,
     redirect_uris, grant_types, response_types, scopes, is_public,
     token_endpoint_auth_method, id_token_signed_response_alg,
-    access_token_lifetime, refresh_token_lifetime
+    access_token_lifetime, refresh_token_lifetime, created_by
 ) VALUES (
     $1, $2, $3, $4, $5,
     $6, $7, $8, $9, $10,
     $11, $12,
-    $13, $14
+    $13, $14, $15
 )
-RETURNING id, client_id, client_secret_hash, client_name, client_uri, logo_uri, redirect_uris, grant_types, response_types, scopes, is_public, token_endpoint_auth_method, id_token_signed_response_alg, access_token_lifetime, refresh_token_lifetime, created_at, updated_at
+RETURNING id, client_id, client_secret_hash, client_name, client_uri, logo_uri, redirect_uris, grant_types, response_types, scopes, is_public, token_endpoint_auth_method, id_token_signed_response_alg, access_token_lifetime, refresh_token_lifetime, created_at, updated_at, created_by
 `
 
 type InsertOAuth2ClientParams struct {
@@ -898,6 +911,7 @@ type InsertOAuth2ClientParams struct {
 	IDTokenSignedResponseAlg string
 	AccessTokenLifetime      int32
 	RefreshTokenLifetime     int32
+	CreatedBy                pgtype.UUID
 }
 
 func (q *Queries) InsertOAuth2Client(ctx context.Context, arg InsertOAuth2ClientParams) (AuthOauth2Client, error) {
@@ -916,6 +930,7 @@ func (q *Queries) InsertOAuth2Client(ctx context.Context, arg InsertOAuth2Client
 		arg.IDTokenSignedResponseAlg,
 		arg.AccessTokenLifetime,
 		arg.RefreshTokenLifetime,
+		arg.CreatedBy,
 	)
 	var i AuthOauth2Client
 	err := row.Scan(
@@ -936,6 +951,7 @@ func (q *Queries) InsertOAuth2Client(ctx context.Context, arg InsertOAuth2Client
 		&i.RefreshTokenLifetime,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.CreatedBy,
 	)
 	return i, err
 }
@@ -1549,7 +1565,7 @@ func (q *Queries) InsertUserWithUserProviderAndRefreshToken(ctx context.Context,
 }
 
 const listOAuth2Clients = `-- name: ListOAuth2Clients :many
-SELECT id, client_id, client_secret_hash, client_name, client_uri, logo_uri, redirect_uris, grant_types, response_types, scopes, is_public, token_endpoint_auth_method, id_token_signed_response_alg, access_token_lifetime, refresh_token_lifetime, created_at, updated_at FROM auth.oauth2_clients
+SELECT id, client_id, client_secret_hash, client_name, client_uri, logo_uri, redirect_uris, grant_types, response_types, scopes, is_public, token_endpoint_auth_method, id_token_signed_response_alg, access_token_lifetime, refresh_token_lifetime, created_at, updated_at, created_by FROM auth.oauth2_clients
 ORDER BY created_at DESC
 `
 
@@ -1580,6 +1596,7 @@ func (q *Queries) ListOAuth2Clients(ctx context.Context) ([]AuthOauth2Client, er
 			&i.RefreshTokenLifetime,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.CreatedBy,
 		); err != nil {
 			return nil, err
 		}
@@ -1691,7 +1708,7 @@ SET
     access_token_lifetime = $11,
     refresh_token_lifetime = $12
 WHERE client_id = $1
-RETURNING id, client_id, client_secret_hash, client_name, client_uri, logo_uri, redirect_uris, grant_types, response_types, scopes, is_public, token_endpoint_auth_method, id_token_signed_response_alg, access_token_lifetime, refresh_token_lifetime, created_at, updated_at
+RETURNING id, client_id, client_secret_hash, client_name, client_uri, logo_uri, redirect_uris, grant_types, response_types, scopes, is_public, token_endpoint_auth_method, id_token_signed_response_alg, access_token_lifetime, refresh_token_lifetime, created_at, updated_at, created_by
 `
 
 type UpdateOAuth2ClientParams struct {
@@ -1743,6 +1760,7 @@ func (q *Queries) UpdateOAuth2Client(ctx context.Context, arg UpdateOAuth2Client
 		&i.RefreshTokenLifetime,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.CreatedBy,
 	)
 	return i, err
 }

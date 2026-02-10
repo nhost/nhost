@@ -70,6 +70,11 @@ func (ctrl *Controller) Oauth2ClientsCreate( //nolint:ireturn,cyclop,funlen
 		), nil
 	}
 
+	user, apiErr := ctrl.wf.GetUserFromJWTInContext(ctx, logger)
+	if apiErr != nil {
+		return oauth2ClientsCreateError(http.StatusUnauthorized, "Authentication required"), nil //nolint:nilerr
+	}
+
 	if request.Body == nil {
 		return oauth2ClientsCreateError(
 			http.StatusBadRequest, "Missing request body",
@@ -148,6 +153,7 @@ func (ctrl *Controller) Oauth2ClientsCreate( //nolint:ireturn,cyclop,funlen
 		IDTokenSignedResponseAlg: "RS256",
 		AccessTokenLifetime:      accessTokenLifetime,
 		RefreshTokenLifetime:     refreshTokenLifetime,
+		CreatedBy:                pgtype.UUID{Bytes: user.ID, Valid: true},
 	})
 	if err != nil {
 		logger.ErrorContext(ctx, "error creating OAuth2 client", logError(err))

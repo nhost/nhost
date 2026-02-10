@@ -131,9 +131,11 @@ func (p *Provider) CompleteLogin( //nolint:funlen
 
 	q := parsedRedirectURI.Query()
 	q.Set("code", code)
+
 	if authReq.State.Valid && authReq.State.String != "" {
 		q.Set("state", authReq.State.String)
 	}
+
 	parsedRedirectURI.RawQuery = q.Encode()
 
 	return &api.OAuth2LoginCompleteResponse{

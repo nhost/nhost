@@ -171,7 +171,7 @@ func NewJWTGetter(
 func (j *JWTGetter) RSASigningKey() (*rsa.PrivateKey, string, error) {
 	privateKey, ok := j.signingKey.(*rsa.PrivateKey)
 	if !ok {
-		return nil, "", errors.New("signing key is not an RSA private key") //nolint:goerr113
+		return nil, "", errors.New("signing key is not an RSA private key") //nolint:err113
 	}
 
 	return privateKey, j.kid, nil
