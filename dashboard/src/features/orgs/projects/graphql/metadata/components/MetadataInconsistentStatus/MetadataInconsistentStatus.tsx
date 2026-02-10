@@ -39,6 +39,8 @@ export default function MetadataInconsistentStatus({
   const [inconsistenciesOpen, setInconsistenciesOpen] = useState(false);
   const [dropDialogOpen, setDropDialogOpen] = useState(false);
 
+  console.log('inconsistentObjects', inconsistentObjects);
+
   return (
     <>
       <div className="flex items-center justify-between">

@@ -16,7 +16,6 @@ const blockedPausedProjectPages = [
   'events/cron-triggers',
   'events/cron-triggers/[cronTriggerSlug]',
   'hasura',
-  'graphql/metadata',
   'users',
   'storage',
   'ai/auto-embeddings',

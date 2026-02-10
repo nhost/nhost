@@ -28,6 +28,7 @@ export default function BreadcrumbNav() {
   const isSettingsPage = pathSegments[5] === 'settings';
   const isGraphQLPage = pathSegments[5] === 'graphql';
   const isEventsPage = pathSegments[5] === 'events';
+
   const showBreadcrumbs = !['/', '/orgs/verify'].includes(route);
 
   return (
