@@ -650,6 +650,20 @@ func (mr *MockDBClientMockRecorder) DeleteExpiredOAuth2AuthRequests(ctx any) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteExpiredOAuth2AuthRequests", reflect.TypeOf((*MockDBClient)(nil).DeleteExpiredOAuth2AuthRequests), ctx)
 }
 
+// DeleteExpiredOAuth2AuthorizationCodes mocks base method.
+func (m *MockDBClient) DeleteExpiredOAuth2AuthorizationCodes(ctx context.Context) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteExpiredOAuth2AuthorizationCodes", ctx)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteExpiredOAuth2AuthorizationCodes indicates an expected call of DeleteExpiredOAuth2AuthorizationCodes.
+func (mr *MockDBClientMockRecorder) DeleteExpiredOAuth2AuthorizationCodes(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteExpiredOAuth2AuthorizationCodes", reflect.TypeOf((*MockDBClient)(nil).DeleteExpiredOAuth2AuthorizationCodes), ctx)
+}
+
 // DeleteExpiredOAuth2RefreshTokens mocks base method.
 func (m *MockDBClient) DeleteExpiredOAuth2RefreshTokens(ctx context.Context) error {
 	m.ctrl.T.Helper()

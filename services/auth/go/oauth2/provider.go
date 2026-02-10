@@ -3,6 +3,7 @@ package oauth2
 import (
 	"context"
 	"crypto/rsa"
+	"log/slog"
 	"time"
 
 	jwtlib "github.com/golang-jwt/jwt/v5"
@@ -71,6 +72,7 @@ type DBClient interface { //nolint:interfacebloat
 		ctx context.Context, codeHash string,
 	) (sql.AuthOauth2AuthRequest, error)
 	DeleteOAuth2AuthorizationCode(ctx context.Context, codeHash string) error
+	DeleteExpiredOAuth2AuthorizationCodes(ctx context.Context) error
 	InsertOAuth2RefreshToken(
 		ctx context.Context, arg sql.InsertOAuth2RefreshTokenParams,
 	) (sql.AuthOauth2RefreshToken, error)
@@ -112,6 +114,20 @@ func NewProvider(
 		jwksProvider:     jwksProvider,
 		hasher:           hasher,
 		config:           config,
+	}
+}
+
+func (p *Provider) DeleteExpiredRecords(ctx context.Context, logger *slog.Logger) {
+	if err := p.db.DeleteExpiredOAuth2AuthRequests(ctx); err != nil {
+		logger.ErrorContext(ctx, "error deleting expired OAuth2 auth requests", logError(err))
+	}
+
+	if err := p.db.DeleteExpiredOAuth2AuthorizationCodes(ctx); err != nil {
+		logger.ErrorContext(ctx, "error deleting expired OAuth2 authorization codes", logError(err))
+	}
+
+	if err := p.db.DeleteExpiredOAuth2RefreshTokens(ctx); err != nil {
+		logger.ErrorContext(ctx, "error deleting expired OAuth2 refresh tokens", logError(err))
 	}
 }
 

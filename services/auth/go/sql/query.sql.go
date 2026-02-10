@@ -34,6 +34,16 @@ func (q *Queries) DeleteExpiredOAuth2AuthRequests(ctx context.Context) error {
 	return err
 }
 
+const deleteExpiredOAuth2AuthorizationCodes = `-- name: DeleteExpiredOAuth2AuthorizationCodes :exec
+DELETE FROM auth.oauth2_authorization_codes
+WHERE expires_at < now()
+`
+
+func (q *Queries) DeleteExpiredOAuth2AuthorizationCodes(ctx context.Context) error {
+	_, err := q.db.Exec(ctx, deleteExpiredOAuth2AuthorizationCodes)
+	return err
+}
+
 const deleteExpiredOAuth2RefreshTokens = `-- name: DeleteExpiredOAuth2RefreshTokens :exec
 DELETE FROM auth.oauth2_refresh_tokens
 WHERE expires_at < now()

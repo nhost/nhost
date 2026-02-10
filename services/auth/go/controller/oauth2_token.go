@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"math/rand/v2"
 
 	"github.com/gin-gonic/gin"
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
@@ -45,6 +46,11 @@ func (ctrl *Controller) Oauth2Token( //nolint:ireturn
 
 	if oauthErr != nil {
 		return oauth2TokenError(oauthErr.Err, oauthErr.Description), nil
+	}
+
+	// no need to be cryptographically secure, performance of pseudo-random number is preferred
+	if rand.IntN(1000) < 1 { //nolint:gosec,mnd
+		ctrl.oauth2.DeleteExpiredRecords(ctx, logger)
 	}
 
 	return api.Oauth2Token200JSONResponse(*resp), nil

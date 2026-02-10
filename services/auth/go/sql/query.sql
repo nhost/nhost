@@ -529,6 +529,10 @@ LIMIT 1;
 DELETE FROM auth.oauth2_authorization_codes
 WHERE code_hash = $1;
 
+-- name: DeleteExpiredOAuth2AuthorizationCodes :exec
+DELETE FROM auth.oauth2_authorization_codes
+WHERE expires_at < now();
+
 -- =============================================================================
 -- OAuth2 Provider - Refresh Tokens
 -- =============================================================================
