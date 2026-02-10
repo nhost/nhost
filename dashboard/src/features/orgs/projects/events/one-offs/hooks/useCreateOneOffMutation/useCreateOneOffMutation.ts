@@ -30,7 +30,7 @@ export interface UseCreateOneOffMutationOptions {
  * @param options - Options to use for the mutation.
  * @returns The result of the mutation.
  */
-export default function UseCreateOneOffMutationOptions({
+export default function useCreateOneOffMutation({
   mutationOptions,
 }: UseCreateOneOffMutationOptions = {}) {
   const { project } = useProject();

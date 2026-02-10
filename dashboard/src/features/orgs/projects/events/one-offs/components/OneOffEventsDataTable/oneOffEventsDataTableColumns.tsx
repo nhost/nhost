@@ -69,16 +69,13 @@ export function createOneOffEventsDataTableColumns({
       size: 240,
       maxSize: 560,
       enableResizing: true,
-      cell: ({ row }) =>
-        row.original.webhook_conf ? (
-          <TextWithTooltip
-            className="font-mono text-xs"
-            containerClassName="cursor-text"
-            text={row.original.webhook_conf}
-          />
-        ) : (
-          <span className="text-muted-foreground text-xs">—</span>
-        ),
+      cell: ({ row }) => (
+        <TextWithTooltip
+          className="font-mono text-xs"
+          containerClassName="cursor-text"
+          text={row.original.webhook_conf}
+        />
+      ),
     },
     {
       id: 'scheduled_time',
