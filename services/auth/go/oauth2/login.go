@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log/slog"
+	"net/url"
 	"time"
 
 	"github.com/google/uuid"
@@ -124,7 +125,7 @@ func (p *Provider) CompleteLogin( //nolint:funlen
 
 	redirectURI := authReq.RedirectUri + "?code=" + code
 	if authReq.State.Valid && authReq.State.String != "" {
-		redirectURI += "&state=" + authReq.State.String
+		redirectURI += "&state=" + url.QueryEscape(authReq.State.String)
 	}
 
 	return &api.OAuth2LoginCompleteResponse{
