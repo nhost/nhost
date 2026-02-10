@@ -3,6 +3,7 @@ package processor_test
 import (
 	"bytes"
 	"errors"
+	"flag"
 	"fmt"
 	"os"
 	"testing"
@@ -13,6 +14,9 @@ import (
 	v3 "github.com/pb33f/libopenapi/datamodel/high/v3"
 	"github.com/stretchr/testify/assert"
 )
+
+//nolint:gochecknoglobals
+var flagUpdate = flag.Bool("update", false, "update expected output files with current output")
 
 func getModel(filepath string) (*libopenapi.DocumentModel[v3.Document], error) {
 	// Read OpenAPI file
@@ -54,6 +58,9 @@ func TestInterMediateRepresentationRender(t *testing.T) {
 		{
 			name: "content.yaml",
 		},
+		{
+			name: "form-url-encoded.yaml",
+		},
 	}
 
 	for _, tc := range cases {
@@ -77,18 +84,21 @@ func TestInterMediateRepresentationRender(t *testing.T) {
 
 			output := buf.String()
 
-			// f, err := os.OpenFile(
-			// 	"testdata/"+tc.name+".ts",
-			// 	os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
-			// 	0o644,
-			// )
-			// if err != nil {
-			// 	t.Fatalf("failed to open output file: %v", err)
-			// }
-			// defer f.Close()
-			// if _, err := f.WriteString(output); err != nil {
-			// 	t.Fatalf("failed to write output file: %v", err)
-			// }
+			if *flagUpdate {
+				f, err := os.OpenFile(
+					"testdata/"+tc.name+".ts",
+					os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
+					0o644,
+				)
+				if err != nil {
+					t.Fatalf("failed to open output file: %v", err)
+				}
+				defer f.Close()
+
+				if _, err := f.WriteString(output); err != nil {
+					t.Fatalf("failed to write output file: %v", err)
+				}
+			}
 
 			b, err := os.ReadFile("testdata/" + tc.name + ".ts")
 			if err != nil {
