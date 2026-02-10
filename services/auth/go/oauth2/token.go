@@ -135,7 +135,7 @@ func (p *Provider) RefreshToken( //nolint:cyclop,funlen
 	}
 
 	accessToken, err := p.createAccessToken(
-		ctx, rt.UserID, rt.Scopes, accessTokenTTL, logger,
+		ctx, rt.UserID, rt.ClientID, rt.Scopes, accessTokenTTL, logger,
 	)
 	if err != nil {
 		logger.ErrorContext(ctx, "error creating OAuth2 access token", logError(err))
@@ -212,7 +212,7 @@ func (p *Provider) issueTokens( //nolint:funlen
 	}
 
 	accessToken, err := p.createAccessToken(
-		ctx, userID, authReq.Scopes, accessTokenTTL, logger,
+		ctx, userID, authReq.ClientID, authReq.Scopes, accessTokenTTL, logger,
 	)
 	if err != nil {
 		logger.ErrorContext(ctx, "error creating access token", logError(err))
@@ -270,6 +270,7 @@ func (p *Provider) issueTokens( //nolint:funlen
 func (p *Provider) createAccessToken(
 	ctx context.Context,
 	userID uuid.UUID,
+	clientID string,
 	scopes []string,
 	ttl time.Duration,
 	_ *slog.Logger,
@@ -311,6 +312,7 @@ func (p *Provider) createAccessToken(
 	claims := map[string]any{
 		"iss":   p.Issuer(),
 		"sub":   userID.String(),
+		"aud":   clientID,
 		"iat":   now.Unix(),
 		"exp":   now.Add(ttl).Unix(),
 		"scope": strings.Join(scopes, " "),
