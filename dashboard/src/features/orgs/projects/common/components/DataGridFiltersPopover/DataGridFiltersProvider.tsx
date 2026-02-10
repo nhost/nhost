@@ -11,7 +11,7 @@ import type {
   DataGridFilter,
   DataGridFilterOperator,
 } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
-import PersistenDataGrdiFilterStorage from '@/features/orgs/projects/database/dataGrid/utils/PersistentDataGridFilterStorage';
+import { getDataGridFilters } from '@/features/orgs/projects/database/dataGrid/utils/PersistentDataGridFilterStorage';
 
 function updateFilterInArray(
   filters: DataGridFilter[],
@@ -58,12 +58,12 @@ const DataGridFiltersContext = createContext<DataGridFiltersContextProps>({
 function DataGridFiltersProvider({ children }: PropsWithChildren) {
   const tablePath = useTablePath();
   const [filters, setFilters] = useState<DataGridFilter[]>(() =>
-    PersistenDataGrdiFilterStorage.getDataGridFilters(tablePath),
+    getDataGridFilters(tablePath),
   );
 
   useEffect(() => {
     const filtersForTheTable =
-      PersistenDataGrdiFilterStorage.getDataGridFilters(tablePath);
+      getDataGridFilters(tablePath);
     setFilters(filtersForTheTable);
   }, [tablePath]);
 

@@ -2,7 +2,10 @@ import { Button } from '@/components/ui/v3/button';
 import { ButtonGroup } from '@/components/ui/v3/button-group';
 import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
-import PersistenDataTableConfigurationStorage from '@/features/orgs/projects/storage/dataGrid/utils/PersistenDataTableConfigurationStorage';
+import {
+  saveColumnOrder,
+  saveHiddenColumns,
+} from '@/features/orgs/projects/storage/dataGrid/utils/PersistentDataTableConfigurationStorage';
 
 function ShowHideAllColumnsButtons() {
   const tablePath = useTablePath();
@@ -13,12 +16,12 @@ function ShowHideAllColumnsButtons() {
 
   function saveHiddenCols(cols: string[]) {
     setHiddenColumns(cols);
-    PersistenDataTableConfigurationStorage.saveHiddenColumns(tablePath, cols);
+    saveHiddenColumns(tablePath, cols);
   }
 
   function showOriginalOrder() {
     setColumnOrder([]);
-    PersistenDataTableConfigurationStorage.saveColumnOrder(tablePath, []);
+    saveColumnOrder(tablePath, []);
   }
 
   function handleReset() {

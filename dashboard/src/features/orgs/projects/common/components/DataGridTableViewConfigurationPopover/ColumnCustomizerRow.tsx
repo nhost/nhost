@@ -6,7 +6,7 @@ import {
 } from '@/components/common/DragAndDropList';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
-import PersistenDataTableConfigurationStorage from '@/features/orgs/projects/storage/dataGrid/utils/PersistenDataTableConfigurationStorage';
+import { toggleColumnVisibility } from '@/features/orgs/projects/storage/dataGrid/utils/PersistentDataTableConfigurationStorage';
 import { cn } from '@/lib/utils';
 
 type ColumnCustomizerProps = {
@@ -17,10 +17,7 @@ function ColumnCustomizerRow({ column, index }: ColumnCustomizerProps) {
   const tablePath = useTablePath();
 
   function handleVisibilityChange() {
-    PersistenDataTableConfigurationStorage.toggleColumnVisibility(
-      tablePath,
-      column.id,
-    );
+    toggleColumnVisibility(tablePath, column.id);
     column.toggleHidden();
   }
 

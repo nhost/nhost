@@ -6,7 +6,10 @@ import {
   useState,
 } from 'react';
 import type { RowDensity } from '@/features/orgs/projects/common/types/dataTableConfigurationTypes';
-import PersistenDataTableConfigurationStorage from '@/features/orgs/projects/storage/dataGrid/utils/PersistenDataTableConfigurationStorage';
+import {
+  getDataTableViewConfiguration,
+  saveRowDensity,
+} from '@/features/orgs/projects/storage/dataGrid/utils/PersistentDataTableConfigurationStorage';
 
 type DataTableDesign = {
   setRowDensity: (newDensity: RowDensity) => void;
@@ -21,15 +24,14 @@ const DataTableDesignContext = createContext<DataTableDesign>({
 function DataTableDesignProvider({ children }: PropsWithChildren) {
   const [rowDensity, setRowDensity] = useState<RowDensity>(
     () =>
-      PersistenDataTableConfigurationStorage.getDataTableViewConfiguration()
-        ?.rowDensity ?? 'comfortable',
+      getDataTableViewConfiguration()?.rowDensity ?? 'comfortable',
   );
 
   const contextValue: DataTableDesign = useMemo(
     () => ({
       rowDensity,
       setRowDensity: (newRowDensity: RowDensity) => {
-        PersistenDataTableConfigurationStorage.saveRowDensity(newRowDensity);
+        saveRowDensity(newRowDensity);
         setRowDensity(newRowDensity);
       },
     }),
