@@ -15,51 +15,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
-import type { HasuraOperator } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { getAvailableOperators } from '@/features/orgs/projects/database/dataGrid/components/RuleGroupEditor/getAvailableOperators';
 import { cn } from '@/lib/utils';
-
-const commonOperators: {
-  value: HasuraOperator;
-  label?: string;
-  helperText: string;
-}[] = [
-  { value: '_eq', helperText: 'equal' },
-  { value: '_neq', helperText: 'not equal' },
-  { value: '_in', helperText: 'in (array)' },
-  { value: '_nin', helperText: 'not in (array)' },
-  { value: '_gt', helperText: 'greater than' },
-  { value: '_lt', helperText: 'lower than' },
-  { value: '_gte', helperText: 'greater than or equal' },
-  { value: '_lte', helperText: 'lower than or equal' },
-  { value: '_ceq', helperText: 'equal to column' },
-  { value: '_cne', helperText: 'not equal to column' },
-  { value: '_cgt', helperText: 'greater than column' },
-  { value: '_clt', helperText: 'lower than column' },
-  { value: '_cgte', helperText: 'greater than or equal to column' },
-  { value: '_clte', helperText: 'lower than or equal to column' },
-  { value: '_is_null', helperText: 'null' },
-];
-
-const textSpecificOperators: typeof commonOperators = [
-  { value: '_like', helperText: 'like' },
-  { value: '_nlike', helperText: 'not like' },
-  { value: '_ilike', helperText: 'like (case-insensitive)' },
-  { value: '_nilike', helperText: 'not like (case-insensitive)' },
-  { value: '_similar', helperText: 'similar' },
-  { value: '_nsimilar', helperText: 'not similar' },
-  { value: '_regex', helperText: 'matches regex' },
-  { value: '_nregex', helperText: `doesn't match regex` },
-  { value: '_iregex', helperText: 'matches case-insensitive regex' },
-  { value: '_niregex', helperText: `doesn't match case-insensitive regex` },
-];
-
-const jsonbSpecificOperators: typeof commonOperators = [
-  { value: '_contains', helperText: 'contains the specified value' },
-  { value: '_contained_in', helperText: 'is contained in the specified value' },
-  { value: '_has_key', helperText: 'has the specified key' },
-  { value: '_has_keys_any', helperText: 'has any of the specified keys' },
-  { value: '_has_keys_all', helperText: 'has all of the specified keys' },
-]
 
 interface OperatorComboBoxProps {
   name: string;
@@ -77,11 +34,11 @@ export default function OperatorComboBox({
 
   const operator = watch(`${name}.operator`);
 
-  const availableOperators = [
-    ...commonOperators,
-    ...(selectedColumnType === 'text' ? textSpecificOperators : []),
-    ...(selectedColumnType === 'jsonb' ? jsonbSpecificOperators : []),
-  ];
+  const availableOperators = getAvailableOperators(selectedColumnType);
+
+  const maxOperatorLength = Math.max(
+    ...availableOperators.map((op) => op.value.length),
+  );
 
   const handleSelect = (value: string) => {
     const newValue = ['_in', '_nin'].includes(value) ? [] : null;
@@ -105,7 +62,7 @@ export default function OperatorComboBox({
           <ChevronsUpDown className="h-5 w-5 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent side="bottom" align="start" className="p-0">
+      <PopoverContent side="bottom" align="start" className="w-80 p-0">
         <Command>
           <CommandInput placeholder="Search operator..." />
           <CommandList>
@@ -120,7 +77,12 @@ export default function OperatorComboBox({
                   className="flex flex-row justify-between"
                 >
                   <div className="flex flex-row gap-2">
-                    <span className="min-w-[9ch]">{op.value}</span>
+                    <span
+                      className="shrink-0"
+                      style={{ minWidth: `${maxOperatorLength}ch` }}
+                    >
+                      {op.value}
+                    </span>
                     <span className="text-muted-foreground">
                       {op.helperText}
                     </span>
