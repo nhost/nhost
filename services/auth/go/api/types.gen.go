@@ -538,6 +538,27 @@ type OAuth2CreateClientRequest struct {
 	TokenEndpointAuthMethod *string   `json:"tokenEndpointAuthMethod,omitempty"`
 }
 
+// OAuth2CreateClientResponse defines model for OAuth2CreateClientResponse.
+type OAuth2CreateClientResponse struct {
+	AccessTokenLifetime *int   `json:"accessTokenLifetime,omitempty"`
+	ClientId            string `json:"clientId"`
+	ClientName          string `json:"clientName"`
+
+	// ClientSecret Client secret. Only returned once upon creation.
+	ClientSecret            *string    `json:"clientSecret,omitempty"`
+	ClientUri               *string    `json:"clientUri,omitempty"`
+	CreatedAt               *time.Time `json:"createdAt,omitempty"`
+	GrantTypes              *[]string  `json:"grantTypes,omitempty"`
+	IsPublic                *bool      `json:"isPublic,omitempty"`
+	LogoUri                 *string    `json:"logoUri,omitempty"`
+	RedirectUris            []string   `json:"redirectUris"`
+	RefreshTokenLifetime    *int       `json:"refreshTokenLifetime,omitempty"`
+	ResponseTypes           *[]string  `json:"responseTypes,omitempty"`
+	Scopes                  *[]string  `json:"scopes,omitempty"`
+	TokenEndpointAuthMethod *string    `json:"tokenEndpointAuthMethod,omitempty"`
+	UpdatedAt               *time.Time `json:"updatedAt,omitempty"`
+}
+
 // OAuth2DiscoveryResponse defines model for OAuth2DiscoveryResponse.
 type OAuth2DiscoveryResponse struct {
 	AuthorizationEndpoint             string                 `json:"authorization_endpoint"`

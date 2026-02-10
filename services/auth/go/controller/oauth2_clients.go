@@ -112,9 +112,16 @@ func (ctrl *Controller) Oauth2ClientsCreate( //nolint:ireturn,cyclop,funlen
 		refreshTokenLifetime = int32(*request.Body.RefreshTokenLifetime) //nolint:gosec
 	}
 
-	var clientSecretHash string
+	var (
+		clientSecretHash string
+		clientSecret     *string
+	)
+
 	if !isPublic {
-		hash, err := hashPassword("placeholder")
+		secret := oauth2provider.GenerateClientSecret()
+		clientSecret = &secret
+
+		hash, err := hashPassword(secret)
 		if err != nil {
 			logger.ErrorContext(ctx, "error hashing client secret", logError(err))
 
@@ -150,7 +157,9 @@ func (ctrl *Controller) Oauth2ClientsCreate( //nolint:ireturn,cyclop,funlen
 		), nil
 	}
 
-	return api.Oauth2ClientsCreate201JSONResponse(oauth2provider.ClientToResponse(client)), nil
+	return api.Oauth2ClientsCreate201JSONResponse(
+		oauth2provider.ClientToCreateResponse(client, clientSecret),
+	), nil
 }
 
 func (ctrl *Controller) Oauth2ClientsGet( //nolint:ireturn

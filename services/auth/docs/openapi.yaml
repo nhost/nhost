@@ -1814,7 +1814,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/OAuth2ClientResponse"
+                $ref: "#/components/schemas/OAuth2CreateClientResponse"
         default:
           content:
             application/json:
@@ -3482,6 +3482,56 @@ components:
           type: string
         clientName:
           type: string
+        clientUri:
+          type: string
+        logoUri:
+          type: string
+        redirectUris:
+          type: array
+          items:
+            type: string
+        grantTypes:
+          type: array
+          items:
+            type: string
+        responseTypes:
+          type: array
+          items:
+            type: string
+        scopes:
+          type: array
+          items:
+            type: string
+        isPublic:
+          type: boolean
+        tokenEndpointAuthMethod:
+          type: string
+        accessTokenLifetime:
+          type: integer
+        refreshTokenLifetime:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - clientId
+        - clientName
+        - redirectUris
+
+    OAuth2CreateClientResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        clientId:
+          type: string
+        clientName:
+          type: string
+        clientSecret:
+          type: string
+          description: Client secret. Only returned once upon creation.
         clientUri:
           type: string
         logoUri:
