@@ -1,5 +1,17 @@
 -- OAuth2/OIDC Identity Provider tables
 
+-- Lookup table for OAuth2 client types
+CREATE TABLE auth.oauth2_client_types (
+    value text NOT NULL,
+    comment text,
+    PRIMARY KEY (value)
+);
+
+INSERT INTO auth.oauth2_client_types (value, comment) VALUES
+    ('registered', 'Manually registered client'),
+    ('dcr', 'Dynamically registered client'),
+    ('client_id_metadata_document', 'Client resolved via Client ID Metadata Document');
+
 -- Registered OAuth2 client applications
 CREATE TABLE auth.oauth2_clients (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
@@ -17,13 +29,17 @@ CREATE TABLE auth.oauth2_clients (
     id_token_signed_response_alg text NOT NULL DEFAULT 'RS256',
     access_token_lifetime integer NOT NULL DEFAULT 900,
     refresh_token_lifetime integer NOT NULL DEFAULT 2592000,
+    type text NOT NULL DEFAULT 'registered',
+    metadata_document_fetched_at timestamptz,
     created_by uuid,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     PRIMARY KEY (id),
     UNIQUE (client_id),
     CONSTRAINT fk_oauth2_clients_created_by FOREIGN KEY (created_by)
-        REFERENCES auth.users(id) ON UPDATE CASCADE ON DELETE SET NULL
+        REFERENCES auth.users(id) ON UPDATE CASCADE ON DELETE SET NULL,
+    CONSTRAINT fk_oauth2_clients_type
+        FOREIGN KEY (type) REFERENCES auth.oauth2_client_types(value) ON DELETE RESTRICT
 );
 
 COMMENT ON TABLE auth.oauth2_clients IS 'Registered OAuth2 client applications for the identity provider.';
@@ -105,11 +121,13 @@ CREATE INDEX oauth2_refresh_tokens_expires_at_idx ON auth.oauth2_refresh_tokens 
 CREATE INDEX oauth2_clients_created_by_idx ON auth.oauth2_clients (created_by);
 
 -- Grants
+GRANT ALL ON auth.oauth2_client_types TO nhost_auth_admin;
 GRANT ALL ON auth.oauth2_clients TO nhost_auth_admin;
 GRANT ALL ON auth.oauth2_auth_requests TO nhost_auth_admin;
 GRANT ALL ON auth.oauth2_authorization_codes TO nhost_auth_admin;
 GRANT ALL ON auth.oauth2_refresh_tokens TO nhost_auth_admin;
 
+GRANT SELECT ON auth.oauth2_client_types TO nhost_hasura;
 GRANT SELECT ON auth.oauth2_clients TO nhost_hasura;
 GRANT SELECT ON auth.oauth2_auth_requests TO nhost_hasura;
 GRANT SELECT ON auth.oauth2_authorization_codes TO nhost_hasura;

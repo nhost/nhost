@@ -39,24 +39,31 @@ type AuthOauth2AuthorizationCode struct {
 
 // Registered OAuth2 client applications for the identity provider.
 type AuthOauth2Client struct {
-	ID                       uuid.UUID
-	ClientID                 string
-	ClientSecretHash         pgtype.Text
-	ClientName               string
-	ClientUri                pgtype.Text
-	LogoUri                  pgtype.Text
-	RedirectUris             []string
-	GrantTypes               []string
-	ResponseTypes            []string
-	Scopes                   []string
-	IsPublic                 bool
-	TokenEndpointAuthMethod  string
-	IDTokenSignedResponseAlg string
-	AccessTokenLifetime      int32
-	RefreshTokenLifetime     int32
-	CreatedAt                pgtype.Timestamptz
-	UpdatedAt                pgtype.Timestamptz
-	CreatedBy                pgtype.UUID
+	ID                        uuid.UUID
+	ClientID                  string
+	ClientSecretHash          pgtype.Text
+	ClientName                string
+	ClientUri                 pgtype.Text
+	LogoUri                   pgtype.Text
+	RedirectUris              []string
+	GrantTypes                []string
+	ResponseTypes             []string
+	Scopes                    []string
+	IsPublic                  bool
+	TokenEndpointAuthMethod   string
+	IDTokenSignedResponseAlg  string
+	AccessTokenLifetime       int32
+	RefreshTokenLifetime      int32
+	Type                      OAuth2ClientType
+	MetadataDocumentFetchedAt pgtype.Timestamptz
+	CreatedBy                 pgtype.UUID
+	CreatedAt                 pgtype.Timestamptz
+	UpdatedAt                 pgtype.Timestamptz
+}
+
+type AuthOauth2ClientType struct {
+	Value   string
+	Comment pgtype.Text
 }
 
 // OAuth2 refresh tokens with client and scope binding.

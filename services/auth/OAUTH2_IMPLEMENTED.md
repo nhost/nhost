@@ -14,14 +14,15 @@ This document describes the OAuth2/OIDC Identity Provider functionality implemen
 8. [Scopes and Claims](#scopes-and-claims)
 9. [Client Types and Authentication](#client-types-and-authentication)
 10. [Dynamic Client Registration (RFC 7591)](#dynamic-client-registration-rfc-7591)
-11. [Discovery and Metadata (RFC 8414)](#discovery-and-metadata-rfc-8414)
-12. [Token Introspection (RFC 7662)](#token-introspection-rfc-7662)
-13. [Token Revocation (RFC 7009)](#token-revocation-rfc-7009)
-14. [Resource Indicators (RFC 8707)](#resource-indicators-rfc-8707)
-15. [Key Management and JWKS](#key-management-and-jwks)
-16. [Security Measures](#security-measures)
-17. [Configuration](#configuration)
-18. [Database Schema](#database-schema)
+11. [Client ID Metadata Document (draft-ietf-oauth-client-id-metadata-document)](#client-id-metadata-document)
+12. [Discovery and Metadata (RFC 8414)](#discovery-and-metadata-rfc-8414)
+13. [Token Introspection (RFC 7662)](#token-introspection-rfc-7662)
+14. [Token Revocation (RFC 7009)](#token-revocation-rfc-7009)
+15. [Resource Indicators (RFC 8707)](#resource-indicators-rfc-8707)
+16. [Key Management and JWKS](#key-management-and-jwks)
+17. [Security Measures](#security-measures)
+18. [Configuration](#configuration)
+19. [Database Schema](#database-schema)
 
 ---
 
@@ -43,6 +44,7 @@ The implementation follows the controller/workflow pattern used throughout Nhost
 | [RFC 7517](https://datatracker.ietf.org/doc/html/rfc7517) | JSON Web Key (JWK) | Full | JWKS endpoint serves RSA public keys. |
 | [RFC 7519](https://datatracker.ietf.org/doc/html/rfc7519) | JSON Web Token (JWT) | Full | Access tokens and ID tokens are RS256-signed JWTs. |
 | [RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591) | OAuth 2.0 Dynamic Client Registration | Partial | Open registration (no initial access token). Client update (RFC 7592) not implemented via DCR endpoint. |
+| [draft-ietf-oauth-client-id-metadata-document](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-00.html) | Client ID Metadata Document | Full | URL-based client_id with metadata fetched from the URL. SSRF protection, 1h cache TTL. |
 | [RFC 7636](https://datatracker.ietf.org/doc/html/rfc7636) | PKCE | Full | S256 and plain methods supported. Optional (not enforced for public clients). |
 | [RFC 7662](https://datatracker.ietf.org/doc/html/rfc7662) | OAuth 2.0 Token Introspection | Full | Supports both refresh tokens (DB lookup) and access tokens (JWT verification). |
 | [RFC 8414](https://datatracker.ietf.org/doc/html/rfc8414) | OAuth 2.0 Authorization Server Metadata | Full | Both `/.well-known/openid-configuration` and `/.well-known/oauth-authorization-server`. |
@@ -338,10 +340,14 @@ The UserInfo endpoint (`/oauth2/userinfo`) returns all available user claims bas
 
 ### Client Types
 
-| Type | `is_public` | Has Secret | `token_endpoint_auth_method` |
-|------|------------|------------|------------------------------|
-| Confidential | `false` | Yes (bcrypt hash stored) | `client_secret_post` or `client_secret_basic` |
-| Public | `true` | No | `none` |
+| Type | `type` column | `is_public` | Has Secret | `token_endpoint_auth_method` |
+|------|---------------|------------|------------|------------------------------|
+| Confidential (registered) | `registered` | `false` | Yes (bcrypt hash stored) | `client_secret_post` or `client_secret_basic` |
+| Public (registered) | `registered` | `true` | No | `none` |
+| DCR | `dcr` | Varies | Varies | Per registration request |
+| CIMD | `client_id_metadata_document` | `true` | No | `none` |
+
+The `type` column in `oauth2_clients` tracks how the client was created. It references the `auth.oauth2_client_types` lookup table. CIMD clients are always public and cannot have a client secret.
 
 ### Client Authentication at Token Endpoint
 
@@ -433,6 +439,117 @@ None required (open registration).
 
 ---
 
+## Client ID Metadata Document
+
+### Specification
+
+[draft-ietf-oauth-client-id-metadata-document-00](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-00.html)
+
+### Overview
+
+Instead of pre-registering a client via admin endpoints or DCR, a client can present an HTTPS URL as its `client_id` (e.g., `https://my-mcp-tool.example.com/oauth/client.json`). The authorization server fetches JSON metadata from that URL to learn the client's name, redirect URIs, logo, etc. This is particularly useful for the MCP (Model Context Protocol) authorization use case.
+
+CIMD clients are always **public** (no client secret). They are upserted into the `oauth2_clients` table with `type = 'client_id_metadata_document'`, preserving existing FK constraints and requiring no changes to the token flow.
+
+### Detection
+
+A `client_id` is treated as a CIMD client when all of the following are true:
+- Scheme is `https`
+- Host is non-empty
+- Path is non-empty and not just `/`
+
+Otherwise, the client_id is looked up as a regular registered or DCR client.
+
+### URL Validation (`ValidateCIMDURL`)
+
+The client_id URL must satisfy:
+- **HTTPS only** — HTTP and other schemes are rejected
+- **Path required** — must have a non-trivial path (not empty, not just `/`)
+- **No fragment** — URL must not contain a `#fragment`
+- **No credentials** — URL must not contain `user:password@`
+- **No dot segments** — path must not contain `/.`, `/..`, `/../`, `/./`
+- **No private IPs** — hostname must not resolve to a loopback, private, or link-local address
+
+### Metadata Document Format
+
+The server fetches the URL with `Accept: application/json` and expects a JSON document:
+
+```json
+{
+  "client_id": "https://my-mcp-tool.example.com/oauth/client.json",
+  "client_name": "My MCP Tool",
+  "client_uri": "https://my-mcp-tool.example.com",
+  "logo_uri": "https://my-mcp-tool.example.com/logo.png",
+  "redirect_uris": ["https://my-mcp-tool.example.com/callback"],
+  "scope": "openid profile email",
+  "grant_types": ["authorization_code"],
+  "response_types": ["code"],
+  "token_endpoint_auth_method": "none"
+}
+```
+
+### Metadata Validation
+
+| Field | Required | Validation |
+|-------|----------|------------|
+| `client_id` | Yes | Must exactly match the URL used to fetch the document |
+| `redirect_uris` | Yes | Must contain at least one URI |
+| `client_name` | No | Defaults to the URL's hostname if missing |
+| `client_secret` | Prohibited | Document must not contain this field |
+| `client_secret_expires_at` | Prohibited | Document must not contain this field |
+| `scope` | No | Defaults to `openid profile email phone offline_access` |
+| Other fields | No | `client_uri`, `logo_uri`, `grant_types`, `response_types`, `token_endpoint_auth_method` are accepted but not enforced |
+
+### Caching
+
+- Fetched metadata is cached for **1 hour** (`CIMDCacheTTL`), tracked via the `metadata_document_fetched_at` column.
+- On subsequent requests within the TTL, the cached client record is returned without re-fetching.
+- After the TTL expires, the metadata is re-fetched and the client record is upserted with fresh data.
+
+### SSRF Protection
+
+The HTTP client used for fetching metadata documents includes multiple layers of SSRF protection:
+
+| Protection | Description |
+|------------|-------------|
+| URL validation | Loopback and private IPs rejected before fetch |
+| DNS resolution validation | After DNS resolution, all resolved IPs are checked for private/loopback/link-local ranges (defends against DNS rebinding) |
+| HTTPS-only redirects | Redirects to non-HTTPS URLs are rejected |
+| Redirect limit | Maximum 3 redirects |
+| Timeout | 5-second fetch timeout (`CIMDFetchTimeout`) |
+| Response size limit | Maximum 5KB response body (`CIMDMaxResponseSize`) |
+
+### Authorization Flow
+
+When CIMD is enabled and a URL-based `client_id` arrives at `/oauth2/authorize`:
+
+```
+1. Detect URL-based client_id (IsCIMDClientID)
+2. Validate URL (ValidateCIMDURL)
+3. Check DB cache:
+   - If client exists with type='client_id_metadata_document'
+     and metadata_document_fetched_at is within 1 hour → use cached record
+4. Fetch metadata document (FetchCIMDMetadata)
+5. Validate metadata (client_id match, no secrets, redirect_uris present)
+6. Upsert client record (UpsertOAuth2CIMDClient):
+   - type = 'client_id_metadata_document'
+   - is_public = true
+   - token_endpoint_auth_method = 'none'
+   - grant_types = '{authorization_code}'
+   - response_types = '{code}'
+7. Continue with standard authorization flow (redirect_uri validation, scope validation, etc.)
+```
+
+### Constants
+
+| Constant | Value | Description |
+|----------|-------|-------------|
+| `CIMDMaxResponseSize` | 5 KB | Maximum metadata document response body size |
+| `CIMDFetchTimeout` | 5 seconds | HTTP fetch timeout |
+| `CIMDCacheTTL` | 1 hour | How long to cache metadata before re-fetching |
+
+---
+
 ## Discovery and Metadata (RFC 8414)
 
 Both endpoints return identical content:
@@ -465,6 +582,13 @@ Both endpoints return identical content:
 The `issuer` is derived from `AUTH_OAUTH2_PROVIDER_ISSUER` if set, otherwise from `AUTH_SERVER_URL`. All endpoint URLs use `AUTH_SERVER_URL` as base regardless of issuer setting.
 
 When the OAuth2 provider is disabled, both endpoints return `nil` (no response body).
+
+### Conditional Fields
+
+| Field | Condition | Value |
+|-------|-----------|-------|
+| `registration_endpoint` | DCR enabled | `<server_url>/oauth2/register` |
+| `client_id_metadata_document_supported` | CIMD enabled | `true` |
 
 ---
 
@@ -667,6 +791,9 @@ This limits the window of exposure if a refresh token is compromised.
 | `AUTH_OAUTH2_PROVIDER_LOGIN_URL` | string | `AUTH_CLIENT_URL/oauth2/login` | URL where `/oauth2/authorize` redirects for user login/consent. |
 | `AUTH_OAUTH2_PROVIDER_ACCESS_TOKEN_TTL` | int | `900` | Access token lifetime in seconds (15 minutes). |
 | `AUTH_OAUTH2_PROVIDER_REFRESH_TOKEN_TTL` | int | `2592000` | Refresh token lifetime in seconds (30 days). |
+| `AUTH_OAUTH2_PROVIDER_DCR_ENABLED` | bool | `false` | Enable Dynamic Client Registration (RFC 7591). |
+| `AUTH_OAUTH2_PROVIDER_DCR_MAX_CLIENTS_PER_USER` | int | `0` | Maximum DCR clients per user (0 = unlimited). |
+| `AUTH_OAUTH2_PROVIDER_CIMD_ENABLED` | bool | `false` | Enable Client ID Metadata Document support. |
 
 ### Hardcoded Values
 
@@ -700,6 +827,17 @@ RSA key pairs for JWT signing.
 | `created_at` | timestamptz | Creation timestamp |
 | `expires_at` | timestamptz | Optional expiration (not enforced) |
 
+### `auth.oauth2_client_types`
+
+Lookup table for client type values.
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `value` | text PK | Type identifier |
+| `comment` | text | Human-readable description |
+
+Values: `registered`, `dcr`, `client_id_metadata_document`
+
 ### `auth.oauth2_clients`
 
 Registered OAuth2 client applications.
@@ -707,7 +845,7 @@ Registered OAuth2 client applications.
 | Column | Type | Description |
 |--------|------|-------------|
 | `id` | uuid PK | Row identifier |
-| `client_id` | text UNIQUE | Client identifier |
+| `client_id` | text UNIQUE | Client identifier (UUID for registered/DCR, HTTPS URL for CIMD) |
 | `client_secret_hash` | text nullable | bcrypt hash (null for public clients) |
 | `client_name` | text | Human-readable name |
 | `client_uri` | text nullable | Client website URL |
@@ -721,6 +859,8 @@ Registered OAuth2 client applications.
 | `id_token_signed_response_alg` | text | `"RS256"` |
 | `access_token_lifetime` | integer | Per-client override (0 = use global, default: 900) |
 | `refresh_token_lifetime` | integer | Per-client override (0 = use global, default: 2592000) |
+| `type` | text NOT NULL | Client type, FK to `oauth2_client_types` (default: `registered`) |
+| `metadata_document_fetched_at` | timestamptz nullable | When CIMD metadata was last fetched (null for non-CIMD clients) |
 | `created_at` | timestamptz | Creation timestamp |
 | `updated_at` | timestamptz | Auto-updated via trigger |
 

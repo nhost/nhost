@@ -115,6 +115,18 @@ COMMENT ON TABLE auth.oauth2_authorization_codes IS 'OAuth2 authorization codes 
 
 
 --
+-- Name: oauth2_client_types; Type: TABLE; Schema: auth; Owner: postgres
+--
+
+CREATE TABLE auth.oauth2_client_types (
+    value text NOT NULL,
+    comment text
+);
+
+
+ALTER TABLE auth.oauth2_client_types OWNER TO postgres;
+
+--
 -- Name: oauth2_clients; Type: TABLE; Schema: auth; Owner: postgres
 --
 
@@ -134,9 +146,11 @@ CREATE TABLE auth.oauth2_clients (
     id_token_signed_response_alg text DEFAULT 'RS256'::text NOT NULL,
     access_token_lifetime integer DEFAULT 900 NOT NULL,
     refresh_token_lifetime integer DEFAULT 2592000 NOT NULL,
+    type text DEFAULT 'registered'::text NOT NULL,
+    metadata_document_fetched_at timestamp with time zone,
+    created_by uuid,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL,
-    created_by uuid
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -422,6 +436,14 @@ ALTER TABLE ONLY auth.oauth2_authorization_codes
 
 
 --
+-- Name: oauth2_client_types oauth2_client_types_pkey; Type: CONSTRAINT; Schema: auth; Owner: postgres
+--
+
+ALTER TABLE ONLY auth.oauth2_client_types
+    ADD CONSTRAINT oauth2_client_types_pkey PRIMARY KEY (value);
+
+
+--
 -- Name: oauth2_clients oauth2_clients_client_id_key; Type: CONSTRAINT; Schema: auth; Owner: postgres
 --
 
@@ -691,6 +713,14 @@ ALTER TABLE ONLY auth.oauth2_clients
 
 
 --
+-- Name: oauth2_clients fk_oauth2_clients_type; Type: FK CONSTRAINT; Schema: auth; Owner: postgres
+--
+
+ALTER TABLE ONLY auth.oauth2_clients
+    ADD CONSTRAINT fk_oauth2_clients_type FOREIGN KEY (type) REFERENCES auth.oauth2_client_types(value) ON DELETE RESTRICT;
+
+
+--
 -- Name: oauth2_refresh_tokens fk_oauth2_refresh_tokens_auth_request; Type: FK CONSTRAINT; Schema: auth; Owner: postgres
 --
 
@@ -792,6 +822,14 @@ GRANT SELECT ON TABLE auth.oauth2_auth_requests TO nhost_hasura;
 
 GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE auth.oauth2_authorization_codes TO nhost_auth_admin;
 GRANT SELECT ON TABLE auth.oauth2_authorization_codes TO nhost_hasura;
+
+
+--
+-- Name: TABLE oauth2_client_types; Type: ACL; Schema: auth; Owner: postgres
+--
+
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE auth.oauth2_client_types TO nhost_auth_admin;
+GRANT SELECT ON TABLE auth.oauth2_client_types TO nhost_hasura;
 
 
 --

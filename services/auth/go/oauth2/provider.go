@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rsa"
 	"log/slog"
+	"net/http"
 	"time"
 
 	jwtlib "github.com/golang-jwt/jwt/v5"
@@ -22,12 +23,14 @@ const (
 )
 
 type Config struct {
-	Issuer          string
-	LoginURL        string
-	ClientURL       string
-	ServerURL       string
-	AccessTokenTTL  int
-	RefreshTokenTTL int
+	Issuer                     string
+	LoginURL                   string
+	ClientURL                  string
+	ServerURL                  string
+	AccessTokenTTL             int
+	RefreshTokenTTL            int
+	CIMDEnabled                bool
+	CIMDAllowInsecureTransport bool
 }
 
 type Signer interface {
@@ -87,6 +90,9 @@ type DBClient interface { //nolint:interfacebloat
 	) (sql.AuthOauth2RefreshToken, error)
 	DeleteOAuth2RefreshTokensByUserID(ctx context.Context, userID uuid.UUID) error
 	DeleteExpiredOAuth2RefreshTokens(ctx context.Context) error
+	UpsertOAuth2CIMDClient(
+		ctx context.Context, arg sql.UpsertOAuth2CIMDClientParams,
+	) (sql.AuthOauth2Client, error)
 
 	GetUser(ctx context.Context, id uuid.UUID) (sql.AuthUser, error)
 	GetUserRoles(ctx context.Context, userID uuid.UUID) ([]sql.AuthUserRole, error)
@@ -99,6 +105,7 @@ type Provider struct {
 	jwksProvider     JWKSProvider
 	hasher           PasswordHasher
 	config           Config
+	httpClient       *http.Client
 }
 
 func NewProvider(
@@ -108,7 +115,16 @@ func NewProvider(
 	jwksProvider JWKSProvider,
 	hasher PasswordHasher,
 	config Config,
+	httpClient *http.Client,
 ) *Provider {
+	if httpClient == nil {
+		if config.CIMDAllowInsecureTransport {
+			httpClient = newInsecureHTTPClient()
+		} else {
+			httpClient = newSafeHTTPClient()
+		}
+	}
+
 	return &Provider{
 		db:               db,
 		signer:           signer,
@@ -116,6 +132,7 @@ func NewProvider(
 		jwksProvider:     jwksProvider,
 		hasher:           hasher,
 		config:           config,
+		httpClient:       httpClient,
 	}
 }
 

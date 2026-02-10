@@ -1179,19 +1179,38 @@ type TicketTypeQuery string
 
 // Oauth2AuthorizeParams defines parameters for Oauth2Authorize.
 type Oauth2AuthorizeParams struct {
-	ClientId      string                             `form:"client_id" json:"client_id"`
-	RedirectUri   string                             `form:"redirect_uri" json:"redirect_uri"`
-	ResponseType  *Oauth2AuthorizeParamsResponseType `form:"response_type,omitempty" json:"response_type,omitempty"`
-	Scope         *string                            `form:"scope,omitempty" json:"scope,omitempty"`
-	State         *string                            `form:"state,omitempty" json:"state,omitempty"`
-	Nonce         *string                            `form:"nonce,omitempty" json:"nonce,omitempty"`
-	CodeChallenge *string                            `form:"code_challenge,omitempty" json:"code_challenge,omitempty"`
+	// ClientId The OAuth2 client identifier (RFC 6749 Section 2.2).
+	ClientId string `form:"client_id" json:"client_id"`
+
+	// RedirectUri The URI to redirect the user-agent to after authorization (RFC 6749 Section 3.1.2).
+	RedirectUri string `form:"redirect_uri" json:"redirect_uri"`
+
+	// ResponseType The authorization response type. Only 'code' is supported (RFC 6749 Section 3.1.1).
+	ResponseType *Oauth2AuthorizeParamsResponseType `form:"response_type,omitempty" json:"response_type,omitempty"`
+
+	// Scope Space-delimited list of requested scopes (RFC 6749 Section 3.3).
+	Scope *string `form:"scope,omitempty" json:"scope,omitempty"`
+
+	// State Opaque value used to maintain state between the request and callback (RFC 6749 Section 4.1.1).
+	State *string `form:"state,omitempty" json:"state,omitempty"`
+
+	// Nonce String value used to associate a client session with an ID token (OpenID Connect Core Section 3.1.2.1).
+	Nonce *string `form:"nonce,omitempty" json:"nonce,omitempty"`
+
+	// CodeChallenge PKCE code challenge derived from the code verifier (RFC 7636 Section 4.2).
+	CodeChallenge *string `form:"code_challenge,omitempty" json:"code_challenge,omitempty"`
 
 	// CodeChallengeMethod Only S256 is supported. The plain method is not allowed.
 	CodeChallengeMethod *Oauth2AuthorizeParamsCodeChallengeMethod `form:"code_challenge_method,omitempty" json:"code_challenge_method,omitempty"`
-	Resource            *string                                   `form:"resource,omitempty" json:"resource,omitempty"`
-	Prompt              *string                                   `form:"prompt,omitempty" json:"prompt,omitempty"`
-	Request             *string                                   `form:"request,omitempty" json:"request,omitempty"`
+
+	// Resource Resource indicator for the target service (RFC 8707).
+	Resource *string `form:"resource,omitempty" json:"resource,omitempty"`
+
+	// Prompt Space-delimited list of prompts to present to the user (OpenID Connect Core Section 3.1.2.1).
+	Prompt *string `form:"prompt,omitempty" json:"prompt,omitempty"`
+
+	// Request JWT-encoded authorization request object (RFC 9101).
+	Request *string `form:"request,omitempty" json:"request,omitempty"`
 }
 
 // Oauth2AuthorizeParamsResponseType defines parameters for Oauth2Authorize.
@@ -1225,6 +1244,7 @@ type Oauth2AuthorizePostFormdataBodyResponseType string
 
 // Oauth2LoginGetParams defines parameters for Oauth2LoginGet.
 type Oauth2LoginGetParams struct {
+	// RequestId The pending authorization request identifier.
 	RequestId openapi_types.UUID `form:"request_id" json:"request_id"`
 }
 

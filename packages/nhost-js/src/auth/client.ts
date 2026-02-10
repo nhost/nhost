@@ -2573,45 +2573,62 @@ export interface VerifyTicketParams {
 }
 /**
  * Parameters for the oauth2Authorize method.
-    @property client_id (string) - 
-    @property redirect_uri (string) - 
-    @property response_type? (GetResponse_type) - 
-    @property scope? (string) - 
-    @property state? (string) - 
-    @property nonce? (string) - 
-    @property code_challenge? (string) - 
+    @property client_id (string) - The OAuth2 client identifier (RFC 6749 Section 2.2).
+  
+    @property redirect_uri (string) - The URI to redirect the user-agent to after authorization (RFC 6749 Section 3.1.2).
+  
+    @property response_type? (GetResponse_type) - The authorization response type. Only 'code' is supported (RFC 6749 Section 3.1.1).
+  
+    @property scope? (string) - Space-delimited list of requested scopes (RFC 6749 Section 3.3).
+  
+    @property state? (string) - Opaque value used to maintain state between the request and callback (RFC 6749 Section 4.1.1).
+  
+    @property nonce? (string) - String value used to associate a client session with an ID token (OpenID Connect Core Section 3.1.2.1).
+  
+    @property code_challenge? (string) - PKCE code challenge derived from the code verifier (RFC 7636 Section 4.2).
+  
     @property code_challenge_method? (GetCode_challenge_method) - Only S256 is supported. The plain method is not allowed.
   
-    @property resource? (string) - 
-    @property prompt? (string) - 
-    @property request? (string) - */
+    @property resource? (string) - Resource indicator for the target service (RFC 8707).
+  
+    @property prompt? (string) - Space-delimited list of prompts to present to the user (OpenID Connect Core Section 3.1.2.1).
+  
+    @property request? (string) - JWT-encoded authorization request object (RFC 9101).
+  */
 export interface Oauth2AuthorizeParams {
   /**
-   *
+   * The OAuth2 client identifier (RFC 6749 Section 2.2).
+  
    */
   client_id: string;
   /**
-   *
+   * The URI to redirect the user-agent to after authorization (RFC 6749 Section 3.1.2).
+  
    */
   redirect_uri: string;
   /**
-   *
+   * The authorization response type. Only 'code' is supported (RFC 6749 Section 3.1.1).
+  
    */
   response_type?: GetResponse_type;
   /**
-   *
+   * Space-delimited list of requested scopes (RFC 6749 Section 3.3).
+  
    */
   scope?: string;
   /**
-   *
+   * Opaque value used to maintain state between the request and callback (RFC 6749 Section 4.1.1).
+  
    */
   state?: string;
   /**
-   *
+   * String value used to associate a client session with an ID token (OpenID Connect Core Section 3.1.2.1).
+  
    */
   nonce?: string;
   /**
-   *
+   * PKCE code challenge derived from the code verifier (RFC 7636 Section 4.2).
+  
    */
   code_challenge?: string;
   /**
@@ -2620,24 +2637,29 @@ export interface Oauth2AuthorizeParams {
    */
   code_challenge_method?: GetCode_challenge_method;
   /**
-   *
+   * Resource indicator for the target service (RFC 8707).
+  
    */
   resource?: string;
   /**
-   *
+   * Space-delimited list of prompts to present to the user (OpenID Connect Core Section 3.1.2.1).
+  
    */
   prompt?: string;
   /**
-   *
+   * JWT-encoded authorization request object (RFC 9101).
+  
    */
   request?: string;
 }
 /**
  * Parameters for the oauth2LoginGet method.
-    @property request_id (string) - */
+    @property request_id (string) - The pending authorization request identifier.
+  */
 export interface Oauth2LoginGetParams {
   /**
-   *
+   * The pending authorization request identifier.
+  
    */
   request_id: string;
 }

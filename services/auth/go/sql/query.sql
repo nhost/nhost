@@ -571,3 +571,24 @@ WHERE user_id = $1;
 -- name: DeleteExpiredOAuth2RefreshTokens :exec
 DELETE FROM auth.oauth2_refresh_tokens
 WHERE expires_at < now();
+
+-- name: UpsertOAuth2CIMDClient :one
+INSERT INTO auth.oauth2_clients (
+    client_id, client_name, client_uri, logo_uri,
+    redirect_uris, grant_types, response_types, scopes,
+    is_public, token_endpoint_auth_method,
+    "type", metadata_document_fetched_at
+) VALUES (
+    $1, $2, $3, $4,
+    $5, '{authorization_code}', '{code}', $6,
+    true, 'none',
+    'client_id_metadata_document', now()
+)
+ON CONFLICT (client_id) DO UPDATE SET
+    client_name = EXCLUDED.client_name,
+    client_uri = EXCLUDED.client_uri,
+    logo_uri = EXCLUDED.logo_uri,
+    redirect_uris = EXCLUDED.redirect_uris,
+    scopes = EXCLUDED.scopes,
+    metadata_document_fetched_at = now()
+RETURNING *;

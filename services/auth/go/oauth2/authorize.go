@@ -87,20 +87,35 @@ func (p *Provider) ValidateAuthorizeRequest( //nolint:cyclop,funlen
 	params AuthorizeParams,
 	logger *slog.Logger,
 ) (string, *Error) {
-	client, err := p.db.GetOAuth2ClientByClientID(ctx, params.ClientID)
-	if errors.Is(err, pgx.ErrNoRows) {
-		logger.WarnContext(
-			ctx,
-			"OAuth2 client not found",
-			slog.String("client_id", params.ClientID),
-		)
+	var client sql.AuthOauth2Client
 
-		return "", &Error{Err: "invalid_client", Description: "Unknown client"}
-	}
+	if p.config.CIMDEnabled && IsCIMDClientID(params.ClientID, p.config.CIMDAllowInsecureTransport) {
+		var oauthErr *Error
 
-	if err != nil {
-		logger.ErrorContext(ctx, "error getting OAuth2 client", logError(err))
-		return "", &Error{Err: "server_error", Description: "Internal server error"}
+		client, oauthErr = p.ResolveCIMDClient(ctx, params.ClientID, logger)
+
+		if oauthErr != nil {
+			return "", oauthErr
+		}
+	} else {
+		var err error
+
+		client, err = p.db.GetOAuth2ClientByClientID(ctx, params.ClientID)
+
+		if errors.Is(err, pgx.ErrNoRows) {
+			logger.WarnContext(
+				ctx,
+				"OAuth2 client not found",
+				slog.String("client_id", params.ClientID),
+			)
+
+			return "", &Error{Err: "invalid_client", Description: "Unknown client"}
+		}
+
+		if err != nil {
+			logger.ErrorContext(ctx, "error getting OAuth2 client", logError(err))
+			return "", &Error{Err: "server_error", Description: "Internal server error"}
+		}
 	}
 
 	if !slices.Contains(client.RedirectUris, params.RedirectURI) {

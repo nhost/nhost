@@ -1475,6 +1475,21 @@ func (mr *MockDBClientMockRecorder) UpdateUserVerifyEmail(ctx, id any) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserVerifyEmail", reflect.TypeOf((*MockDBClient)(nil).UpdateUserVerifyEmail), ctx, id)
 }
 
+// UpsertOAuth2CIMDClient mocks base method.
+func (m *MockDBClient) UpsertOAuth2CIMDClient(ctx context.Context, arg sql.UpsertOAuth2CIMDClientParams) (sql.AuthOauth2Client, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpsertOAuth2CIMDClient", ctx, arg)
+	ret0, _ := ret[0].(sql.AuthOauth2Client)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpsertOAuth2CIMDClient indicates an expected call of UpsertOAuth2CIMDClient.
+func (mr *MockDBClientMockRecorder) UpsertOAuth2CIMDClient(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpsertOAuth2CIMDClient", reflect.TypeOf((*MockDBClient)(nil).UpsertOAuth2CIMDClient), ctx, arg)
+}
+
 // MockEncrypter is a mock of Encrypter interface.
 type MockEncrypter struct {
 	ctrl     *gomock.Controller

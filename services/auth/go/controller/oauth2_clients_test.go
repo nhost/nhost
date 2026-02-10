@@ -21,24 +21,26 @@ func testOAuth2Client() sql.AuthOauth2Client {
 	now := time.Now()
 
 	return sql.AuthOauth2Client{
-		ID:                       uuid.MustParse("a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
-		ClientID:                 "nhost_abc123def456",
-		ClientSecretHash:         pgtype.Text{String: "", Valid: false},
-		ClientName:               "Test App",
-		ClientUri:                pgtype.Text{String: "https://example.com", Valid: true},
-		LogoUri:                  pgtype.Text{String: "", Valid: false},
-		RedirectUris:             []string{"https://example.com/callback"},
-		GrantTypes:               []string{"authorization_code"},
-		ResponseTypes:            []string{"code"},
-		Scopes:                   []string{"openid", "profile", "email"},
-		IsPublic:                 true,
-		TokenEndpointAuthMethod:  "none",
-		IDTokenSignedResponseAlg: "RS256",
-		AccessTokenLifetime:      900,
-		RefreshTokenLifetime:     2592000,
-		CreatedBy:                pgtype.UUID{},                              //nolint:exhaustruct
-		CreatedAt:                pgtype.Timestamptz{Time: now, Valid: true}, //nolint:exhaustruct
-		UpdatedAt:                pgtype.Timestamptz{Time: now, Valid: true}, //nolint:exhaustruct
+		ID:                        uuid.MustParse("a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
+		ClientID:                  "nhost_abc123def456",
+		ClientSecretHash:          pgtype.Text{String: "", Valid: false},
+		ClientName:                "Test App",
+		ClientUri:                 pgtype.Text{String: "https://example.com", Valid: true},
+		LogoUri:                   pgtype.Text{String: "", Valid: false},
+		RedirectUris:              []string{"https://example.com/callback"},
+		GrantTypes:                []string{"authorization_code"},
+		ResponseTypes:             []string{"code"},
+		Scopes:                    []string{"openid", "profile", "email"},
+		IsPublic:                  true,
+		TokenEndpointAuthMethod:   "none",
+		IDTokenSignedResponseAlg:  "RS256",
+		AccessTokenLifetime:       900,
+		RefreshTokenLifetime:      2592000,
+		CreatedBy:                 pgtype.UUID{},                              //nolint:exhaustruct
+		CreatedAt:                 pgtype.Timestamptz{Time: now, Valid: true}, //nolint:exhaustruct
+		UpdatedAt:                 pgtype.Timestamptz{Time: now, Valid: true}, //nolint:exhaustruct
+		Type:                      sql.OAuth2ClientTypeRegistered,
+		MetadataDocumentFetchedAt: pgtype.Timestamptz{}, //nolint:exhaustruct
 	}
 }
 

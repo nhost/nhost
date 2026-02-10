@@ -222,13 +222,16 @@ func New( //nolint:funlen
 			jwtGetter,
 			&bcryptHasher{},
 			oauth2provider.Config{
-				Issuer:          config.OAuth2ProviderIssuer,
-				LoginURL:        config.OAuth2ProviderLoginURL,
-				ClientURL:       config.ClientURL.String(),
-				ServerURL:       config.ServerURL.String(),
-				AccessTokenTTL:  config.OAuth2ProviderAccessTokenTTL,
-				RefreshTokenTTL: config.OAuth2ProviderRefreshTokenTTL,
+				Issuer:                     config.OAuth2ProviderIssuer,
+				LoginURL:                   config.OAuth2ProviderLoginURL,
+				ClientURL:                  config.ClientURL.String(),
+				ServerURL:                  config.ServerURL.String(),
+				AccessTokenTTL:             config.OAuth2ProviderAccessTokenTTL,
+				RefreshTokenTTL:            config.OAuth2ProviderRefreshTokenTTL,
+				CIMDEnabled:                config.OAuth2ProviderCIMDEnabled,
+				CIMDAllowInsecureTransport: config.OAuth2ProviderCIMDAllowInsecureTransport,
 			},
+			nil,
 		)
 	}
 

@@ -127,5 +127,9 @@ func getConfig(cmd *cli.Command) (controller.Config, error) { //nolint:funlen
 		OAuth2ProviderRefreshTokenTTL:      cmd.Int(flagOAuth2ProviderRefreshTokenTTL),
 		OAuth2ProviderDCREnabled:           cmd.Bool(flagOAuth2ProviderDCREnabled),
 		OAuth2ProviderDCRMaxClientsPerUser: cmd.Int(flagOAuth2ProviderDCRMaxClientsPerUser),
+		OAuth2ProviderCIMDEnabled:          cmd.Bool(flagOAuth2ProviderCIMDEnabled),
+		OAuth2ProviderCIMDAllowInsecureTransport: cmd.Bool(
+			flagOAuth2ProviderCIMDAllowInsecureTransport,
+		),
 	}, nil
 }
