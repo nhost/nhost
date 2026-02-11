@@ -36,26 +36,23 @@ export default function InconsistentObjectDefinitionDialog({
         </TooltipTrigger>
         <TooltipContent>View definition</TooltipContent>
       </Tooltip>
-      <DialogContent className="text-foreground sm:max-w-lg">
+      <DialogContent className="max-h-[80vh] max-w-xl overflow-y-auto text-foreground">
         <DialogHeader>
           <DialogTitle className="text-foreground">
             Inconsistent Object Definition
           </DialogTitle>
         </DialogHeader>
-        <div>
-          <p
-            className="truncate font-mono text-muted-foreground text-sm"
-            title={name}
-          >
+        <div className="min-w-0">
+          <p className="break-all font-mono text-muted-foreground text-sm">
             {name}
           </p>
-          <CodeBlock
-            className="rounded py-2"
-            copyToClipboardToastTitle="Object definition"
-          >
-            {JSON.stringify(definition, null, 2)}
-          </CodeBlock>
         </div>
+        <CodeBlock
+          className="rounded py-2"
+          copyToClipboardToastTitle="Object definition"
+        >
+          {JSON.stringify(definition, null, 2)}
+        </CodeBlock>
       </DialogContent>
     </Dialog>
   );

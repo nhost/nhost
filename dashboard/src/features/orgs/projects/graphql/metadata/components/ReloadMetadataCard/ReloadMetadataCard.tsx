@@ -1,3 +1,4 @@
+import { RefreshCw } from 'lucide-react';
 import { useState } from 'react';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { Checkbox } from '@/components/ui/v3/checkbox';
@@ -14,7 +15,7 @@ export default function ReloadMetadataCard() {
   const [reloadRemoteSchemas, setReloadRemoteSchemas] = useState(false);
   const [reloadDatabases, setReloadDatabases] = useState(false);
 
-  const { isPending, mutateAsync: reloadMetadata } =
+  const { isPending: isReloading, mutateAsync: reloadMetadata } =
     useReloadMetadataMutation();
 
   const handleReload = async () => {
@@ -48,7 +49,13 @@ export default function ReloadMetadataCard() {
       </h3>
 
       <div className="space-y-4">
-        <ButtonWithLoading onClick={handleReload} loading={isPending} size="sm">
+        <ButtonWithLoading
+          className="flex gap-1"
+          onClick={handleReload}
+          loading={isReloading}
+          disabled={isReloading}
+        >
+          {!isReloading && <RefreshCw className="size-4" />}
           Reload Metadata
         </ButtonWithLoading>
 

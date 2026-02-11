@@ -1,11 +1,7 @@
-import { Trash2, TriangleAlert } from 'lucide-react';
-import { useState } from 'react';
-import { Button } from '@/components/ui/v3/button';
+import { TriangleAlert } from 'lucide-react';
 import ResetMetadataDialog from '@/features/orgs/projects/graphql/metadata/components/ResetMetadataDialog/ResetMetadataDialog';
 
 export default function ResetMetadataCard() {
-  const [clearDialogOpen, setClearDialogOpen] = useState(false);
-
   return (
     <div className="flex flex-col gap-1 rounded-lg border bg-paper p-4">
       <h3 className="font-medium text-foreground text-lg">Reset Metadata</h3>
@@ -27,23 +23,11 @@ export default function ResetMetadataCard() {
       </div>
 
       <div className="mt-4 flex items-center justify-between gap-2">
-        <Button
-          variant="outline"
-          className="border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive"
-          onClick={() => setClearDialogOpen(true)}
-        >
-          <Trash2 className="mr-2 h-4 w-4" />
-          Reset Metadata
-        </Button>
+        <ResetMetadataDialog />
         <span className="text-muted-foreground text-sm">
           This action cannot be undone
         </span>
       </div>
-
-      <ResetMetadataDialog
-        open={clearDialogOpen}
-        onOpenChange={setClearDialogOpen}
-      />
     </div>
   );
 }
