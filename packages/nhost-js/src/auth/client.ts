@@ -2424,8 +2424,7 @@ export type Oauth2AuthorizePostBodyCode_challenge_method = 'S256';
  @property code_challenge? (`string`) - 
  @property code_challenge_method? (`Oauth2AuthorizePostBodyCode_challenge_method`) - Only S256 is supported. The plain method is not allowed.
  @property resource? (`string`) - 
- @property prompt? (`string`) - 
- @property request? (`string`) - */
+ @property prompt? (`string`) - */
 export interface Oauth2AuthorizePostBody {
   /**
    *
@@ -2467,10 +2466,6 @@ export interface Oauth2AuthorizePostBody {
    *
    */
   prompt?: string;
-  /**
-   *
-   */
-  request?: string;
 }
 
 /**
@@ -2592,8 +2587,6 @@ export interface VerifyTicketParams {
     @property resource? (string) - Resource indicator for the target service (RFC 8707).
   
     @property prompt? (string) - Space-delimited list of prompts to present to the user (OpenID Connect Core Section 3.1.2.1).
-  
-    @property request? (string) - JWT-encoded authorization request object (RFC 9101).
   */
 export interface Oauth2AuthorizeParams {
   /**
@@ -2646,11 +2639,6 @@ export interface Oauth2AuthorizeParams {
   
    */
   prompt?: string;
-  /**
-   * JWT-encoded authorization request object (RFC 9101).
-  
-   */
-  request?: string;
 }
 /**
  * Parameters for the oauth2LoginGet method.

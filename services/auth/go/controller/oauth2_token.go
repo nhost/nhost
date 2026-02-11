@@ -24,7 +24,7 @@ func (ctrl *Controller) Oauth2Token( //nolint:ireturn
 		return oauth2TokenError("invalid_request", "Missing request body"), nil
 	}
 
-	extractBasicAuthCredentials(ctx, request.Body)
+	extractBasicAuthCredentials(ctx, &request.Body.ClientId, &request.Body.ClientSecret)
 
 	var (
 		resp     *api.OAuth2TokenResponse
@@ -71,9 +71,10 @@ func oauth2TokenError(errCode string, description string) api.Oauth2Tokendefault
 // when they are not provided in the request body.
 func extractBasicAuthCredentials(
 	ctx context.Context,
-	body *api.OAuth2TokenRequest,
+	clientID **string,
+	clientSecret **string,
 ) {
-	if body.ClientId != nil && body.ClientSecret != nil {
+	if *clientID != nil && *clientSecret != nil {
 		return
 	}
 
@@ -82,16 +83,16 @@ func extractBasicAuthCredentials(
 		return
 	}
 
-	clientID, clientSecret, ok := ginCtx.Request.BasicAuth()
+	basicID, basicSecret, ok := ginCtx.Request.BasicAuth()
 	if !ok {
 		return
 	}
 
-	if body.ClientId == nil {
-		body.ClientId = &clientID
+	if *clientID == nil {
+		*clientID = &basicID
 	}
 
-	if body.ClientSecret == nil {
-		body.ClientSecret = &clientSecret
+	if *clientSecret == nil {
+		*clientSecret = &basicSecret
 	}
 }

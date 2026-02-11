@@ -22,8 +22,12 @@ func (ctrl *Controller) Oauth2Revoke( //nolint:ireturn
 		return oauth2RevokeError("invalid_request", "Missing request body"), nil
 	}
 
-	ctrl.oauth2.RevokeToken(ctx, request.Body, logger)
-	// TODO: document we can't revoke access tokens
+	extractBasicAuthCredentials(ctx, &request.Body.ClientId, &request.Body.ClientSecret)
+
+	oauthErr := ctrl.oauth2.RevokeToken(ctx, request.Body, logger)
+	if oauthErr != nil {
+		return oauth2RevokeError(oauthErr.Err, oauthErr.Description), nil
+	}
 
 	return api.Oauth2Revoke200Response{}, nil
 }

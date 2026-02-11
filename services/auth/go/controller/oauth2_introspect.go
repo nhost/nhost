@@ -22,6 +22,8 @@ func (ctrl *Controller) Oauth2Introspect( //nolint:ireturn
 		return oauth2IntrospectError("invalid_request", "Missing request body"), nil
 	}
 
+	extractBasicAuthCredentials(ctx, &request.Body.ClientId, &request.Body.ClientSecret)
+
 	resp, oauthErr := ctrl.oauth2.IntrospectToken(
 		ctx, request.Body, logger,
 	)

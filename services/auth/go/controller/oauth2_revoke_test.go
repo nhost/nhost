@@ -82,12 +82,54 @@ func TestOauth2Revoke(t *testing.T) {
 		}
 	})
 
-	t.Run("success", func(t *testing.T) {
+	t.Run("missing client_id", func(t *testing.T) {
 		t.Parallel()
 
 		ctrl := gomock.NewController(t)
 
+		c, _ := getController(
+			t,
+			ctrl,
+			getConfigOAuth2Enabled,
+			func(ctrl *gomock.Controller) controller.DBClient {
+				return mock.NewMockDBClient(ctrl)
+			},
+		)
+
+		resp, err := c.Oauth2Revoke(context.Background(), api.Oauth2RevokeRequestObject{
+			Body: &api.OAuth2RevokeRequest{ //nolint:exhaustruct
+				Token: "some-token",
+			},
+		})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		defaultResp, ok := resp.(api.Oauth2RevokedefaultJSONResponse)
+		if !ok {
+			t.Fatalf("expected default JSON response, got %T", resp)
+		}
+
+		if defaultResp.StatusCode != http.StatusUnauthorized {
+			t.Errorf("expected status %d, got %d", http.StatusUnauthorized, defaultResp.StatusCode)
+		}
+
+		if defaultResp.Body.Error != "invalid_client" {
+			t.Errorf("expected error %q, got %q", "invalid_client", defaultResp.Body.Error)
+		}
+	})
+
+	t.Run("success", func(t *testing.T) {
+		t.Parallel()
+
+		clientID := "nhost_abc123def456"
+		client := testOAuth2Client()
+
+		ctrl := gomock.NewController(t)
+
 		db := mock.NewMockDBClient(ctrl)
+		db.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), clientID).
+			Return(client, nil)
 		db.EXPECT().DeleteOAuth2RefreshToken(gomock.Any(), gomock.Any()).
 			Return(nil)
 
@@ -102,7 +144,8 @@ func TestOauth2Revoke(t *testing.T) {
 
 		resp, err := c.Oauth2Revoke(context.Background(), api.Oauth2RevokeRequestObject{
 			Body: &api.OAuth2RevokeRequest{ //nolint:exhaustruct
-				Token: "some-token",
+				Token:    "some-token",
+				ClientId: &clientID,
 			},
 		})
 		if err != nil {
