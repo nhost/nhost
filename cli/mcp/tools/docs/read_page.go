@@ -32,10 +32,10 @@ func (t *Tool) registerReadPage(mcpServer *server.MCPServer) {
 		mcp.WithToolAnnotation(
 			mcp.ToolAnnotation{
 				Title:           "Read Nhost Documentation Page",
-				ReadOnlyHint:    ptr(true),
-				DestructiveHint: ptr(false),
-				IdempotentHint:  ptr(true),
-				OpenWorldHint:   ptr(false),
+				ReadOnlyHint:    new(true),
+				DestructiveHint: new(false),
+				IdempotentHint:  new(true),
+				OpenWorldHint:   new(false),
 			},
 		),
 		mcp.WithString(

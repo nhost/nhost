@@ -1,4 +1,4 @@
-package image
+package image //nolint:revive
 
 import (
 	"fmt"

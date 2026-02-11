@@ -201,7 +201,7 @@ func TestVerifySignUpWebauthn(t *testing.T) { //nolint:maintidx
 				Body: &api.SignUpWebauthnVerifyRequest{
 					Credential: touchIDRequest,
 					Options:    nil,
-					Nickname:   ptr("my-authenticator"),
+					Nickname:   new("my-authenticator"),
 				},
 			},
 			expectedResponse: api.VerifySignUpWebauthn200JSONResponse{
