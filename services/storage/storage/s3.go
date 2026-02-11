@@ -18,7 +18,7 @@ import (
 	"github.com/nhost/nhost/services/storage/controller"
 )
 
-func deptr[T any](p *T) T {
+func deptr[T any](p *T) T { //nolint:ireturn
 	if p == nil {
 		return *new(T)
 	}
