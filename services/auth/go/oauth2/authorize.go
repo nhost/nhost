@@ -19,7 +19,7 @@ import (
 type AuthorizeParams struct {
 	ClientID            string
 	RedirectURI         string
-	ResponseType        *string
+	ResponseType        string
 	Scope               *string
 	State               *string
 	Nonce               *string
@@ -31,55 +31,47 @@ type AuthorizeParams struct {
 }
 
 func AuthorizeParamsFromGet(params api.Oauth2AuthorizeParams) AuthorizeParams {
-	p := AuthorizeParams{ //nolint:exhaustruct
-		ClientID:      params.ClientId,
-		RedirectURI:   params.RedirectUri,
-		Scope:         params.Scope,
-		State:         params.State,
-		Nonce:         params.Nonce,
-		CodeChallenge: params.CodeChallenge,
-		Resource:      params.Resource,
-		Prompt:        params.Prompt,
-		Request:       params.Request,
-	}
-	if params.ResponseType != nil {
-		s := string(*params.ResponseType)
-		p.ResponseType = &s
-	}
-
+	var codeChallengeMethod *string
 	if params.CodeChallengeMethod != nil {
-		s := string(*params.CodeChallengeMethod)
-		p.CodeChallengeMethod = &s
+		codeChallengeMethod = (*string)(params.CodeChallengeMethod)
 	}
 
-	return p
+	return AuthorizeParams{
+		ClientID:            params.ClientId,
+		RedirectURI:         params.RedirectUri,
+		Scope:               params.Scope,
+		State:               params.State,
+		Nonce:               params.Nonce,
+		CodeChallenge:       params.CodeChallenge,
+		Resource:            params.Resource,
+		Prompt:              params.Prompt,
+		Request:             params.Request,
+		ResponseType:        string(params.ResponseType),
+		CodeChallengeMethod: codeChallengeMethod,
+	}
 }
 
 func AuthorizeParamsFromPost(
 	body *api.Oauth2AuthorizePostFormdataRequestBody,
 ) AuthorizeParams {
-	p := AuthorizeParams{ //nolint:exhaustruct
-		ClientID:      body.ClientId,
-		RedirectURI:   body.RedirectUri,
-		Scope:         body.Scope,
-		State:         body.State,
-		Nonce:         body.Nonce,
-		CodeChallenge: body.CodeChallenge,
-		Resource:      body.Resource,
-		Prompt:        body.Prompt,
-		Request:       body.Request,
-	}
-	if body.ResponseType != nil {
-		s := string(*body.ResponseType)
-		p.ResponseType = &s
-	}
-
+	var codeChallengeMethod *string
 	if body.CodeChallengeMethod != nil {
-		s := string(*body.CodeChallengeMethod)
-		p.CodeChallengeMethod = &s
+		codeChallengeMethod = (*string)(body.CodeChallengeMethod)
 	}
 
-	return p
+	return AuthorizeParams{
+		ClientID:            body.ClientId,
+		RedirectURI:         body.RedirectUri,
+		Scope:               body.Scope,
+		State:               body.State,
+		Nonce:               body.Nonce,
+		CodeChallenge:       body.CodeChallenge,
+		Resource:            body.Resource,
+		Prompt:              body.Prompt,
+		Request:             body.Request,
+		ResponseType:        string(body.ResponseType),
+		CodeChallengeMethod: codeChallengeMethod,
+	}
 }
 
 func (p *Provider) ValidateAuthorizeRequest( //nolint:cyclop,funlen
@@ -146,12 +138,7 @@ func (p *Provider) ValidateAuthorizeRequest( //nolint:cyclop,funlen
 		return errorRedirect(oauthErr), oauthErr
 	}
 
-	if params.ResponseType == nil {
-		oauthErr := &Error{Err: "invalid_request", Description: "Missing response_type"}
-		return errorRedirect(oauthErr), oauthErr
-	}
-
-	if *params.ResponseType != "code" {
+	if params.ResponseType != "code" {
 		oauthErr := &Error{
 			Err:         "unsupported_response_type",
 			Description: "Only response_type=code is supported",
@@ -189,7 +176,7 @@ func (p *Provider) ValidateAuthorizeRequest( //nolint:cyclop,funlen
 		RedirectUri:         params.RedirectURI,
 		State:               pgText(params.State),
 		Nonce:               pgText(params.Nonce),
-		ResponseType:        *params.ResponseType,
+		ResponseType:        params.ResponseType,
 		CodeChallenge:       pgText(params.CodeChallenge),
 		CodeChallengeMethod: codeChallengeMethod,
 		Resource:            pgText(params.Resource),

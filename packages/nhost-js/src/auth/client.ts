@@ -2417,7 +2417,7 @@ export type Oauth2AuthorizePostBodyCode_challenge_method = 'S256';
  * 
  @property client_id (`string`) - 
  @property redirect_uri (`string`) - 
- @property response_type? (`Oauth2AuthorizePostBodyResponse_type`) - 
+ @property response_type (`Oauth2AuthorizePostBodyResponse_type`) - 
  @property scope? (`string`) - 
  @property state? (`string`) - 
  @property nonce? (`string`) - 
@@ -2438,7 +2438,7 @@ export interface Oauth2AuthorizePostBody {
   /**
    *
    */
-  response_type?: Oauth2AuthorizePostBodyResponse_type;
+  response_type: Oauth2AuthorizePostBodyResponse_type;
   /**
    *
    */
@@ -2577,7 +2577,7 @@ export interface VerifyTicketParams {
   
     @property redirect_uri (string) - The URI to redirect the user-agent to after authorization (RFC 6749 Section 3.1.2).
   
-    @property response_type? (GetResponse_type) - The authorization response type. Only 'code' is supported (RFC 6749 Section 3.1.1).
+    @property response_type (GetResponse_type) - The authorization response type. Only 'code' is supported (RFC 6749 Section 3.1.1).
   
     @property scope? (string) - Space-delimited list of requested scopes (RFC 6749 Section 3.3).
   
@@ -2610,7 +2610,7 @@ export interface Oauth2AuthorizeParams {
    * The authorization response type. Only 'code' is supported (RFC 6749 Section 3.1.1).
   
    */
-  response_type?: GetResponse_type;
+  response_type: GetResponse_type;
   /**
    * Space-delimited list of requested scopes (RFC 6749 Section 3.3).
   

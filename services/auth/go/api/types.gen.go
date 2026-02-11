@@ -1186,7 +1186,7 @@ type Oauth2AuthorizeParams struct {
 	RedirectUri string `form:"redirect_uri" json:"redirect_uri"`
 
 	// ResponseType The authorization response type. Only 'code' is supported (RFC 6749 Section 3.1.1).
-	ResponseType *Oauth2AuthorizeParamsResponseType `form:"response_type,omitempty" json:"response_type,omitempty"`
+	ResponseType Oauth2AuthorizeParamsResponseType `form:"response_type" json:"response_type"`
 
 	// Scope Space-delimited list of requested scopes (RFC 6749 Section 3.3).
 	Scope *string `form:"scope,omitempty" json:"scope,omitempty"`
@@ -1231,7 +1231,7 @@ type Oauth2AuthorizePostFormdataBody struct {
 	RedirectUri         string                                              `form:"redirect_uri" json:"redirect_uri"`
 	Request             *string                                             `form:"request,omitempty" json:"request,omitempty"`
 	Resource            *string                                             `form:"resource,omitempty" json:"resource,omitempty"`
-	ResponseType        *Oauth2AuthorizePostFormdataBodyResponseType        `form:"response_type,omitempty" json:"response_type,omitempty"`
+	ResponseType        Oauth2AuthorizePostFormdataBodyResponseType         `form:"response_type" json:"response_type"`
 	Scope               *string                                             `form:"scope,omitempty" json:"scope,omitempty"`
 	State               *string                                             `form:"state,omitempty" json:"state,omitempty"`
 }

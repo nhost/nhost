@@ -46,7 +46,7 @@ func TestOauth2Authorize(t *testing.T) { //nolint:cyclop,gocognit,gocyclo,mainti
 			Params: api.Oauth2AuthorizeParams{ //nolint:exhaustruct
 				ClientId:     clientID,
 				RedirectUri:  redirectURI,
-				ResponseType: &responseType,
+				ResponseType: responseType,
 				State:        &state,
 			},
 		})
@@ -101,7 +101,7 @@ func TestOauth2Authorize(t *testing.T) { //nolint:cyclop,gocognit,gocyclo,mainti
 			Params: api.Oauth2AuthorizeParams{ //nolint:exhaustruct
 				ClientId:     clientID,
 				RedirectUri:  redirectURI,
-				ResponseType: &responseType,
+				ResponseType: responseType,
 				State:        &state,
 			},
 		})
@@ -141,7 +141,7 @@ func TestOauth2Authorize(t *testing.T) { //nolint:cyclop,gocognit,gocyclo,mainti
 			Params: api.Oauth2AuthorizeParams{ //nolint:exhaustruct
 				ClientId:     "unknown_client",
 				RedirectUri:  redirectURI,
-				ResponseType: &responseType,
+				ResponseType: responseType,
 				State:        &state,
 			},
 		})
@@ -159,7 +159,7 @@ func TestOauth2Authorize(t *testing.T) { //nolint:cyclop,gocognit,gocyclo,mainti
 		}
 	})
 
-	t.Run("missing response_type redirects", func(t *testing.T) {
+	t.Run("empty response_type redirects", func(t *testing.T) {
 		t.Parallel()
 
 		ctrl := gomock.NewController(t)
@@ -181,7 +181,7 @@ func TestOauth2Authorize(t *testing.T) { //nolint:cyclop,gocognit,gocyclo,mainti
 			Params: api.Oauth2AuthorizeParams{ //nolint:exhaustruct
 				ClientId:     clientID,
 				RedirectUri:  redirectURI,
-				ResponseType: nil,
+				ResponseType: "",
 				State:        &state,
 			},
 		})
@@ -199,12 +199,8 @@ func TestOauth2Authorize(t *testing.T) { //nolint:cyclop,gocognit,gocyclo,mainti
 			t.Fatalf("failed to parse redirect URL: %v", err)
 		}
 
-		if got := u.Query().Get("error"); got != "invalid_request" {
-			t.Errorf("expected error=invalid_request, got %q", got)
-		}
-
-		if got := u.Query().Get("error_description"); got != "Missing response_type" {
-			t.Errorf("expected error_description='Missing response_type', got %q", got)
+		if got := u.Query().Get("error"); got != "unsupported_response_type" {
+			t.Errorf("expected error=unsupported_response_type, got %q", got)
 		}
 
 		if got := u.Query().Get("state"); got != state {
@@ -212,7 +208,7 @@ func TestOauth2Authorize(t *testing.T) { //nolint:cyclop,gocognit,gocyclo,mainti
 		}
 	})
 
-	t.Run("missing response_type without state", func(t *testing.T) {
+	t.Run("empty response_type without state", func(t *testing.T) {
 		t.Parallel()
 
 		ctrl := gomock.NewController(t)
@@ -234,7 +230,7 @@ func TestOauth2Authorize(t *testing.T) { //nolint:cyclop,gocognit,gocyclo,mainti
 			Params: api.Oauth2AuthorizeParams{ //nolint:exhaustruct
 				ClientId:     clientID,
 				RedirectUri:  redirectURI,
-				ResponseType: nil,
+				ResponseType: "",
 				State:        nil,
 			},
 		})
@@ -252,8 +248,8 @@ func TestOauth2Authorize(t *testing.T) { //nolint:cyclop,gocognit,gocyclo,mainti
 			t.Fatalf("failed to parse redirect URL: %v", err)
 		}
 
-		if got := u.Query().Get("error"); got != "invalid_request" {
-			t.Errorf("expected error=invalid_request, got %q", got)
+		if got := u.Query().Get("error"); got != "unsupported_response_type" {
+			t.Errorf("expected error=unsupported_response_type, got %q", got)
 		}
 
 		if got := u.Query().Get("state"); got != "" {
@@ -285,7 +281,7 @@ func TestOauth2Authorize(t *testing.T) { //nolint:cyclop,gocognit,gocyclo,mainti
 			Params: api.Oauth2AuthorizeParams{ //nolint:exhaustruct
 				ClientId:     clientID,
 				RedirectUri:  redirectURI,
-				ResponseType: &tokenType,
+				ResponseType: tokenType,
 				State:        &state,
 			},
 		})
@@ -336,7 +332,7 @@ func TestOauth2Authorize(t *testing.T) { //nolint:cyclop,gocognit,gocyclo,mainti
 			Params: api.Oauth2AuthorizeParams{ //nolint:exhaustruct
 				ClientId:     clientID,
 				RedirectUri:  redirectURI,
-				ResponseType: &responseType,
+				ResponseType: responseType,
 				Scope:        &badScope,
 				State:        &state,
 			},

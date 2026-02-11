@@ -1439,7 +1439,7 @@ paths:
             type: string
         - name: response_type
           in: query
-          required: false
+          required: true
           description: The authorization response type. Only 'code' is supported (RFC 6749 Section 3.1.1).
           schema:
             type: string
@@ -1551,6 +1551,7 @@ paths:
               required:
                 - client_id
                 - redirect_uri
+                - response_type
       responses:
         "302":
           description: Redirect to login UI or back to client with error

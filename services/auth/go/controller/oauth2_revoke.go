@@ -23,6 +23,7 @@ func (ctrl *Controller) Oauth2Revoke( //nolint:ireturn
 	}
 
 	ctrl.oauth2.RevokeToken(ctx, request.Body, logger)
+	// TODO: document we can't revoke access tokens
 
 	return api.Oauth2Revoke200Response{}, nil
 }

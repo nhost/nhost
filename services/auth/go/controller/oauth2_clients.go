@@ -34,6 +34,10 @@ func (ctrl *Controller) Oauth2ClientsList( //nolint:ireturn
 	_ api.Oauth2ClientsListRequestObject,
 ) (api.Oauth2ClientsListResponseObject, error) {
 	logger := oapimw.LoggerFromContext(ctx)
+	// TODO figure out permissions for this one, docs say admin but that's not true
+	// ideally we'd use hasura permissions here but we don't have graphql ???
+	// alternatively remove this endpoints and use graphql directly
+	// or maybe add a require role setting or an action?
 
 	if !ctrl.config.OAuth2ProviderEnabled {
 		return oauth2ClientsListError(
