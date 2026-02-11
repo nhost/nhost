@@ -7,12 +7,10 @@ export default function ResetMetadataCard() {
   const [clearDialogOpen, setClearDialogOpen] = useState(false);
 
   return (
-    <div className="rounded-lg border bg-paper p-4">
-      <h3 className="mb-4 font-medium text-foreground text-sm">
-        Reset Metadata
-      </h3>
+    <div className="flex flex-col gap-1 rounded-lg border bg-paper p-4">
+      <h3 className="font-medium text-foreground text-lg">Reset Metadata</h3>
 
-      <p className="mb-4 text-muted-foreground text-sm">
+      <p className="mb-4 max-w-prose text-pretty text-muted-foreground">
         Reset all metadata and start fresh. This will remove all tracked tables,
         relationships, permissions, and other configuration from the GraphQL
         engine.
@@ -20,8 +18,8 @@ export default function ResetMetadataCard() {
 
       <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2">
         <div className="flex items-center gap-2">
-          <TriangleAlert className="h-4 w-4 shrink-0 text-amber-500" />
-          <p className="text-muted-foreground text-xs">
+          <TriangleAlert className="size-5 shrink-0 text-amber-500" />
+          <p className="text-pretty text-muted-foreground text-sm">
             This action is irreversible. Make sure to export a backup before
             resetting metadata.
           </p>
@@ -37,9 +35,9 @@ export default function ResetMetadataCard() {
           <Trash2 className="mr-2 h-4 w-4" />
           Reset Metadata
         </Button>
-        <p className="text-muted-foreground text-xs">
+        <span className="text-muted-foreground text-sm">
           This action cannot be undone
-        </p>
+        </span>
       </div>
 
       <ResetMetadataDialog

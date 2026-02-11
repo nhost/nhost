@@ -10,14 +10,14 @@ import { ResetMetadataCard } from '@/features/orgs/projects/graphql/metadata/com
 export default function MetadataPage() {
   return (
     <Container
-      className="grid max-w-5xl grid-flow-row gap-y-6 bg-transparent"
-      rootClassName="bg-transparent"
+      className="grid max-w-5xl grid-flow-row gap-y-8 bg-transparent"
+      rootClassName="bg-transparent py-4"
     >
       <div>
         <h1 className="font-semibold text-foreground text-lg tracking-tight">
           Metadata
         </h1>
-        <p className="mt-1 text-muted-foreground text-sm">
+        <p className="mt-1 max-w-prose text-pretty text-muted-foreground">
           Manage and reload your metadata to keep your GraphQL schema in sync
           with your data sources.
         </p>

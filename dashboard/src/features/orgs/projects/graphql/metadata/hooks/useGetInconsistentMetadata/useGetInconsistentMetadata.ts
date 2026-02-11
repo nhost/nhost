@@ -21,7 +21,7 @@ export interface UseGetInconsistentMetadataOptions {
 export default function useGetInconsistentMetadata({
   queryOptions,
 }: UseGetInconsistentMetadataOptions = {}) {
-  const { project } = useProject();
+  const { project, loading } = useProject();
 
   const query = useQuery<InconsistentMetadataResponse, unknown>({
     queryKey: ['inconsistent-metadata', project?.subdomain],
@@ -36,8 +36,15 @@ export default function useGetInconsistentMetadata({
 
       return getInconsistentMetadata({ appUrl, adminSecret });
     },
-    retry: false,
     ...queryOptions,
+    enabled: !!(
+      project?.subdomain &&
+      project?.region &&
+      project?.config?.hasura.adminSecret &&
+      queryOptions?.enabled !== false &&
+      !loading
+    ),
+    retry: false,
   });
 
   return query;

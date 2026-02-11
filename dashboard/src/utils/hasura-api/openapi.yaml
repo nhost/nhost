@@ -1130,6 +1130,26 @@ components:
           type: boolean
         inconsistent_objects:
           type: array
+          items:
+            $ref: "#/components/schemas/InconsistentObject"
+
+    InconsistentObject:
+      type: object
+      required:
+        - type
+        - name
+        - reason
+        - definition
+      properties:
+        type:
+          type: string
+        name:
+          type: string
+        reason:
+          type: string
+        definition:
+          type: object
+          additionalProperties: true
 
     ReloadMetadataOperation:
       type: object

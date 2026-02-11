@@ -23,6 +23,20 @@ export default function DeleteInconsistentObjectsDialog({
   const { isPending, mutateAsync: dropInconsistentMetadata } =
     useDropInconsistentMetadataMutation();
 
+  const handleDeleteInconsistentObjects = async () => {
+    await execPromiseWithErrorToast(
+      async () => {
+        await dropInconsistentMetadata();
+        onOpenChange(false);
+      },
+      {
+        loadingMessage: 'Removing inconsistent metadata...',
+        successMessage: 'Inconsistent metadata removed successfully.',
+        errorMessage: 'Failed to remove inconsistent metadata.',
+      },
+    );
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
@@ -35,15 +49,15 @@ export default function DeleteInconsistentObjectsDialog({
             Remove Inconsistent Objects
           </DialogTitle>
           <DialogDescription className="space-y-2">
-            <span>
-              This will permanently remove all inconsistent objects from your
-              metadata, including any affected databases, remote schemas,
-              actions, and related Hasura features such as permissions,
-              relationships, and event triggers tied to those objects.
-            </span>
-            <span className="block font-medium">
-              This action is irreversible.
-            </span>
+            <p className="text-pretty text-sm+">
+              Permanently remove all inconsistent objects from your metadata.
+            </p>
+            <p className="text-pretty text-sm+">
+              Affected databases, remote schemas, actions, and related features
+              such as permissions, relationships, and event triggers tied to
+              those objects will also be removed.
+            </p>
+            <p className="font-medium">This action is irreversible.</p>
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:flex sm:flex-col sm:space-x-0">
@@ -51,19 +65,7 @@ export default function DeleteInconsistentObjectsDialog({
             variant="destructive"
             className="!text-sm+ text-white"
             loading={isPending}
-            onClick={async () => {
-              await execPromiseWithErrorToast(
-                async () => {
-                  await dropInconsistentMetadata();
-                  onOpenChange(false);
-                },
-                {
-                  loadingMessage: 'Removing inconsistent metadata...',
-                  successMessage: 'Inconsistent metadata removed successfully.',
-                  errorMessage: 'Failed to remove inconsistent metadata.',
-                },
-              );
-            }}
+            onClick={handleDeleteInconsistentObjects}
           >
             Remove
           </ButtonWithLoading>

@@ -164,6 +164,8 @@ export * from './headers';
 export * from './headerWithEnv';
 export * from './headerWithValue';
 export * from './inconsistentMetadataResponse';
+export * from './inconsistentObject';
+export * from './inconsistentObjectDefinition';
 export * from './introspectRemoteSchemaArgs';
 export * from './introspectRemoteSchemaOperation';
 export * from './introspectRemoteSchemaOperationType';

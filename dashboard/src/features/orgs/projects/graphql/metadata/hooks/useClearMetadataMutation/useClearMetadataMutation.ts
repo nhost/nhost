@@ -30,14 +30,13 @@ export default function useClearMetadataMutation({
     },
     {
       ...mutationOptions,
-      onSuccess: (...args) => {
+      onSuccess: () => {
         queryClient.invalidateQueries({
           queryKey: ['export-metadata', project?.subdomain],
         });
         queryClient.invalidateQueries({
           queryKey: ['inconsistent-metadata', project?.subdomain],
         });
-        mutationOptions?.onSuccess?.(...args);
       },
     },
   );
