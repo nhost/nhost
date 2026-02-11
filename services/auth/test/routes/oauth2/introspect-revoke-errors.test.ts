@@ -1,0 +1,223 @@
+import { describe, it, expect, beforeAll } from 'bun:test';
+import { createNhostClient } from '@nhost/nhost-js';
+import { FetchError } from '@nhost/nhost-js/fetch';
+
+import { request, resetEnvironment } from '../../server';
+
+const AUTH_URL = 'http://127.0.0.1:4000';
+const REDIRECT_URI = 'http://localhost:9999/callback';
+const DEMO_EMAIL = 'introspect-revoke@example.com';
+const DEMO_PASSWORD = 'Demo1234!';
+
+const nhost = createNhostClient({
+  authUrl: AUTH_URL,
+  configure: [],
+});
+
+/** Run the full auth code flow and return tokens + client credentials. */
+async function getTokens(jwt: string) {
+  const { body: client } = await nhost.auth.oauth2Register(
+    {
+      client_name: `Introspect Revoke Test (${Date.now()})`,
+      redirect_uris: [REDIRECT_URI],
+      scope: 'openid profile email',
+      grant_types: ['authorization_code'],
+      response_types: ['code'],
+      token_endpoint_auth_method: 'client_secret_post',
+    },
+    { headers: { Authorization: `Bearer ${jwt}` } },
+  );
+
+  const clientId = client.client_id;
+  const clientSecret = client.client_secret!;
+
+  const authorizeUrl = nhost.auth.oauth2AuthorizeURL({
+    client_id: clientId,
+    redirect_uri: REDIRECT_URI,
+    response_type: 'code',
+    scope: 'openid profile email',
+    state: `ir-${Date.now()}`,
+  });
+
+  const authResp = await fetch(authorizeUrl, { redirect: 'manual' });
+  const requestId = new URL(authResp.headers.get('location')!).searchParams.get('request_id')!;
+
+  const { body: loginResp } = await nhost.auth.oauth2LoginPost(
+    { requestId },
+    { headers: { Authorization: `Bearer ${jwt}` } },
+  );
+  const authCode = new URL(loginResp.redirectUri).searchParams.get('code')!;
+
+  const { body: tokenResp } = await nhost.auth.oauth2Token({
+    grant_type: 'authorization_code',
+    code: authCode,
+    redirect_uri: REDIRECT_URI,
+    client_id: clientId,
+    client_secret: clientSecret,
+  });
+
+  return { tokenResp, clientId, clientSecret };
+}
+
+describe('introspect-revoke-errors', () => {
+  let jwt: string;
+
+  beforeAll(async () => {
+    await resetEnvironment();
+    await request.post('/change-env').send({
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
+      AUTH_OAUTH2_PROVIDER_ENABLED: true,
+      AUTH_OAUTH2_PROVIDER_DCR_ENABLED: true,
+    });
+
+    try {
+      await nhost.auth.signUpEmailPassword({
+        email: DEMO_EMAIL,
+        password: DEMO_PASSWORD,
+      });
+    } catch (err) {
+      if (!(err instanceof FetchError) || err.status !== 409) {
+        throw err;
+      }
+    }
+
+    const { body: signInResp } = await nhost.auth.signInEmailPassword({
+      email: DEMO_EMAIL,
+      password: DEMO_PASSWORD,
+    });
+    jwt = signInResp.session!.accessToken;
+  });
+
+  it('should return active:false for garbage token on introspect', async () => {
+    const { clientId, clientSecret } = await getTokens(jwt);
+
+    const { body: introspection } = await nhost.auth.oauth2Introspect({
+      token: 'garbage-token-that-does-not-exist',
+      token_type_hint: 'access_token',
+      client_id: clientId,
+      client_secret: clientSecret,
+    });
+
+    expect(introspection).toMatchObject({
+      active: false,
+    });
+  });
+
+  it('should reject introspect without client credentials', async () => {
+    const { tokenResp } = await getTokens(jwt);
+
+    try {
+      await nhost.auth.oauth2Introspect({
+        token: tokenResp.access_token,
+        token_type_hint: 'access_token',
+      });
+      expect(true).toBe(false);
+    } catch (err) {
+      expect(err).toBeInstanceOf(FetchError);
+      expect((err as FetchError).status).toBeGreaterThanOrEqual(400);
+    }
+  });
+
+  it('should reject introspect with wrong client secret', async () => {
+    const { tokenResp, clientId } = await getTokens(jwt);
+
+    try {
+      await nhost.auth.oauth2Introspect({
+        token: tokenResp.access_token,
+        token_type_hint: 'access_token',
+        client_id: clientId,
+        client_secret: 'wrong-secret',
+      });
+      expect(true).toBe(false);
+    } catch (err) {
+      expect(err).toBeInstanceOf(FetchError);
+      expect((err as FetchError).status).toBeGreaterThanOrEqual(400);
+    }
+  });
+
+  it('should return 200 for revoke of garbage token (RFC 7009)', async () => {
+    const { clientId, clientSecret } = await getTokens(jwt);
+
+    // Revoking a non-existent token should succeed (idempotent per RFC 7009)
+    await nhost.auth.oauth2Revoke({
+      token: 'garbage-token-that-does-not-exist',
+      token_type_hint: 'refresh_token',
+      client_id: clientId,
+      client_secret: clientSecret,
+    });
+
+    // If we get here without error, the test passes (200 response)
+  });
+
+  it('should return 200 for double-revoke (RFC 7009 idempotency)', async () => {
+    const { tokenResp, clientId, clientSecret } = await getTokens(jwt);
+    const refreshToken = tokenResp.refresh_token!;
+
+    // First revoke
+    await nhost.auth.oauth2Revoke({
+      token: refreshToken,
+      token_type_hint: 'refresh_token',
+      client_id: clientId,
+      client_secret: clientSecret,
+    });
+
+    // Second revoke — should also succeed
+    await nhost.auth.oauth2Revoke({
+      token: refreshToken,
+      token_type_hint: 'refresh_token',
+      client_id: clientId,
+      client_secret: clientSecret,
+    });
+
+    // Both succeed without error
+  });
+
+  it('should reject revoke without client credentials', async () => {
+    const { tokenResp } = await getTokens(jwt);
+
+    try {
+      await nhost.auth.oauth2Revoke({
+        token: tokenResp.refresh_token!,
+        token_type_hint: 'refresh_token',
+      });
+      expect(true).toBe(false);
+    } catch (err) {
+      expect(err).toBeInstanceOf(FetchError);
+      expect((err as FetchError).status).toBeGreaterThanOrEqual(400);
+    }
+  });
+
+  it('should reject revoke with wrong client secret', async () => {
+    const { tokenResp, clientId } = await getTokens(jwt);
+
+    try {
+      await nhost.auth.oauth2Revoke({
+        token: tokenResp.refresh_token!,
+        token_type_hint: 'refresh_token',
+        client_id: clientId,
+        client_secret: 'wrong-secret',
+      });
+      expect(true).toBe(false);
+    } catch (err) {
+      expect(err).toBeInstanceOf(FetchError);
+      expect((err as FetchError).status).toBeGreaterThanOrEqual(400);
+    }
+  });
+
+  it('should introspect access_token without token_type_hint', async () => {
+    const { tokenResp, clientId, clientSecret } = await getTokens(jwt);
+
+    const { body: introspection } = await nhost.auth.oauth2Introspect({
+      token: tokenResp.access_token,
+      client_id: clientId,
+      client_secret: clientSecret,
+    });
+
+    expect(introspection).toMatchObject({
+      active: true,
+      sub: expect.any(String),
+      token_type: 'access_token',
+    });
+  });
+});

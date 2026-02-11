@@ -81,3 +81,6 @@ nullable-enum-contains-null:
   # instead of a redirect, so by allowing null we can handle this ourselves and redirect properly
   - $.components.schemas['OAuth2RevokeRequest'].properties['token_type_hint'].enum
   - $.components.schemas['OAuth2IntrospectRequest'].properties['token_type_hint'].enum
+
+contact-properties:
+  - $.info.contact

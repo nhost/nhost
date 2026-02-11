@@ -190,24 +190,9 @@ const (
 	TicketTypeQuerySigninPasswordless TicketTypeQuery = "signinPasswordless"
 )
 
-// Defines values for Oauth2AuthorizeParamsResponseType.
-const (
-	Oauth2AuthorizeParamsResponseTypeCode Oauth2AuthorizeParamsResponseType = "code"
-)
-
 // Defines values for Oauth2AuthorizeParamsCodeChallengeMethod.
 const (
-	Oauth2AuthorizeParamsCodeChallengeMethodS256 Oauth2AuthorizeParamsCodeChallengeMethod = "S256"
-)
-
-// Defines values for Oauth2AuthorizePostFormdataBodyCodeChallengeMethod.
-const (
-	Oauth2AuthorizePostFormdataBodyCodeChallengeMethodS256 Oauth2AuthorizePostFormdataBodyCodeChallengeMethod = "S256"
-)
-
-// Defines values for Oauth2AuthorizePostFormdataBodyResponseType.
-const (
-	Oauth2AuthorizePostFormdataBodyResponseTypeCode Oauth2AuthorizePostFormdataBodyResponseType = "code"
+	S256 Oauth2AuthorizeParamsCodeChallengeMethod = "S256"
 )
 
 // Defines values for SignInProviderParamsProvider.
@@ -1186,7 +1171,7 @@ type Oauth2AuthorizeParams struct {
 	RedirectUri string `form:"redirect_uri" json:"redirect_uri"`
 
 	// ResponseType The authorization response type. Only 'code' is supported (RFC 6749 Section 3.1.1).
-	ResponseType Oauth2AuthorizeParamsResponseType `form:"response_type" json:"response_type"`
+	ResponseType string `form:"response_type" json:"response_type"`
 
 	// Scope Space-delimited list of requested scopes (RFC 6749 Section 3.3).
 	Scope *string `form:"scope,omitempty" json:"scope,omitempty"`
@@ -1210,33 +1195,24 @@ type Oauth2AuthorizeParams struct {
 	Prompt *string `form:"prompt,omitempty" json:"prompt,omitempty"`
 }
 
-// Oauth2AuthorizeParamsResponseType defines parameters for Oauth2Authorize.
-type Oauth2AuthorizeParamsResponseType string
-
 // Oauth2AuthorizeParamsCodeChallengeMethod defines parameters for Oauth2Authorize.
 type Oauth2AuthorizeParamsCodeChallengeMethod string
 
 // Oauth2AuthorizePostFormdataBody defines parameters for Oauth2AuthorizePost.
 type Oauth2AuthorizePostFormdataBody struct {
 	ClientId      string  `form:"client_id" json:"client_id"`
-	CodeChallenge *string `form:"code_challenge,omitempty" json:"code_challenge,omitempty"`
+	CodeChallenge *string `form:"code_challenge" json:"code_challenge"`
 
 	// CodeChallengeMethod Only S256 is supported. The plain method is not allowed.
-	CodeChallengeMethod *Oauth2AuthorizePostFormdataBodyCodeChallengeMethod `form:"code_challenge_method,omitempty" json:"code_challenge_method,omitempty"`
-	Nonce               *string                                             `form:"nonce,omitempty" json:"nonce,omitempty"`
-	Prompt              *string                                             `form:"prompt,omitempty" json:"prompt,omitempty"`
-	RedirectUri         string                                              `form:"redirect_uri" json:"redirect_uri"`
-	Resource            *string                                             `form:"resource,omitempty" json:"resource,omitempty"`
-	ResponseType        Oauth2AuthorizePostFormdataBodyResponseType         `form:"response_type" json:"response_type"`
-	Scope               *string                                             `form:"scope,omitempty" json:"scope,omitempty"`
-	State               *string                                             `form:"state,omitempty" json:"state,omitempty"`
+	CodeChallengeMethod *string `form:"code_challenge_method" json:"code_challenge_method"`
+	Nonce               *string `form:"nonce" json:"nonce"`
+	Prompt              *string `form:"prompt" json:"prompt"`
+	RedirectUri         string  `form:"redirect_uri" json:"redirect_uri"`
+	Resource            *string `form:"resource" json:"resource"`
+	ResponseType        string  `form:"response_type" json:"response_type"`
+	Scope               *string `form:"scope" json:"scope"`
+	State               *string `form:"state" json:"state"`
 }
-
-// Oauth2AuthorizePostFormdataBodyCodeChallengeMethod defines parameters for Oauth2AuthorizePost.
-type Oauth2AuthorizePostFormdataBodyCodeChallengeMethod string
-
-// Oauth2AuthorizePostFormdataBodyResponseType defines parameters for Oauth2AuthorizePost.
-type Oauth2AuthorizePostFormdataBodyResponseType string
 
 // Oauth2LoginGetParams defines parameters for Oauth2LoginGet.
 type Oauth2LoginGetParams struct {

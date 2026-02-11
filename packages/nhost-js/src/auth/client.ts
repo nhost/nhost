@@ -2396,33 +2396,18 @@ export interface GetVersionResponse200 {
 /**
  *
  */
-export type GetResponse_type = 'code';
-
-/**
- *
- */
 export type GetCode_challenge_method = 'S256';
-
-/**
- *
- */
-export type Oauth2AuthorizePostBodyResponse_type = 'code';
-
-/**
- * Only S256 is supported. The plain method is not allowed.
- */
-export type Oauth2AuthorizePostBodyCode_challenge_method = 'S256';
 
 /**
  * 
  @property client_id (`string`) - 
  @property redirect_uri (`string`) - 
- @property response_type (`Oauth2AuthorizePostBodyResponse_type`) - 
+ @property response_type (`string`) - 
  @property scope? (`string`) - 
  @property state? (`string`) - 
  @property nonce? (`string`) - 
  @property code_challenge? (`string`) - 
- @property code_challenge_method? (`Oauth2AuthorizePostBodyCode_challenge_method`) - Only S256 is supported. The plain method is not allowed.
+ @property code_challenge_method? (`string`) - Only S256 is supported. The plain method is not allowed.
  @property resource? (`string`) - 
  @property prompt? (`string`) - */
 export interface Oauth2AuthorizePostBody {
@@ -2437,7 +2422,7 @@ export interface Oauth2AuthorizePostBody {
   /**
    *
    */
-  response_type: Oauth2AuthorizePostBodyResponse_type;
+  response_type: string;
   /**
    *
    */
@@ -2457,7 +2442,7 @@ export interface Oauth2AuthorizePostBody {
   /**
    * Only S256 is supported. The plain method is not allowed.
    */
-  code_challenge_method?: Oauth2AuthorizePostBodyCode_challenge_method;
+  code_challenge_method?: string;
   /**
    *
    */
@@ -2572,7 +2557,7 @@ export interface VerifyTicketParams {
   
     @property redirect_uri (string) - The URI to redirect the user-agent to after authorization (RFC 6749 Section 3.1.2).
   
-    @property response_type (GetResponse_type) - The authorization response type. Only 'code' is supported (RFC 6749 Section 3.1.1).
+    @property response_type (string) - The authorization response type. Only 'code' is supported (RFC 6749 Section 3.1.1).
   
     @property scope? (string) - Space-delimited list of requested scopes (RFC 6749 Section 3.3).
   
@@ -2603,7 +2588,7 @@ export interface Oauth2AuthorizeParams {
    * The authorization response type. Only 'code' is supported (RFC 6749 Section 3.1.1).
   
    */
-  response_type: GetResponse_type;
+  response_type: string;
   /**
    * Space-delimited list of requested scopes (RFC 6749 Section 3.3).
   

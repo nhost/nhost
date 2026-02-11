@@ -1443,7 +1443,6 @@ paths:
           description: The authorization response type. Only 'code' is supported (RFC 6749 Section 3.1.1).
           schema:
             type: string
-            enum: [code]
         - name: scope
           in: query
           required: false
@@ -1523,23 +1522,28 @@ paths:
                   type: string
                 response_type:
                   type: string
-                  enum: [code]
                 scope:
                   type: string
+                  nullable: true
                 state:
                   type: string
+                  nullable: true
                 nonce:
                   type: string
+                  nullable: true
                 code_challenge:
                   type: string
+                  nullable: true
                 code_challenge_method:
                   description: "Only S256 is supported. The plain method is not allowed."
                   type: string
-                  enum: [S256]
+                  nullable: true
                 resource:
                   type: string
+                  nullable: true
                 prompt:
                   type: string
+                  nullable: true
               required:
                 - client_id
                 - redirect_uri
