@@ -14,7 +14,11 @@ import type { ReactNode, RefObject } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
-import PersistenDataTableConfigurationStorage from '@/features/orgs/projects/storage/dataGrid/utils/PersistenDataTableConfigurationStorage';
+import {
+  convertToV8IfNeeded,
+  getColumnOrder,
+  getColumnVisibility,
+} from '@/features/orgs/projects/storage/dataGrid/utils/PersistentDataTableConfigurationStorage';
 import type { UnknownDataGridRow } from './types';
 
 export const SELECTION_COLUMN_ID = 'selection-column';
@@ -142,10 +146,8 @@ export default function useDataGrid<T extends UnknownDataGridRow>({
     columns: tableColumns,
     defaultColumn,
     initialState: {
-      columnVisibility:
-        PersistenDataTableConfigurationStorage.getColumnVisibility(tablePath),
-      columnOrder:
-        PersistenDataTableConfigurationStorage.getColumnOrder(tablePath),
+      columnVisibility: getColumnVisibility(tablePath),
+      columnOrder: getColumnOrder(tablePath),
     },
     state: {
       ...(sorting !== undefined ? { sorting } : {}),
@@ -160,14 +162,12 @@ export default function useDataGrid<T extends UnknownDataGridRow>({
   });
 
   useEffect(() => {
-    PersistenDataTableConfigurationStorage.convertToV8IfNeeded();
+    convertToV8IfNeeded();
     setTableInitialized(false);
-    const columnVisibilityForTable =
-      PersistenDataTableConfigurationStorage.getColumnVisibility(tablePath);
+    const columnVisibilityForTable = getColumnVisibility(tablePath);
     reactTable.setColumnVisibility(columnVisibilityForTable);
 
-    const columnOrderForTable =
-      PersistenDataTableConfigurationStorage.getColumnOrder(tablePath);
+    const columnOrderForTable = getColumnOrder(tablePath);
     reactTable.setColumnOrder(columnOrderForTable);
     const st = setTimeout(() => {
       setTableInitialized(true);
