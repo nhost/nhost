@@ -1208,9 +1208,6 @@ type Oauth2AuthorizeParams struct {
 
 	// Prompt Space-delimited list of prompts to present to the user (OpenID Connect Core Section 3.1.2.1).
 	Prompt *string `form:"prompt,omitempty" json:"prompt,omitempty"`
-
-	// Request JWT-encoded authorization request object (RFC 9101).
-	Request *string `form:"request,omitempty" json:"request,omitempty"`
 }
 
 // Oauth2AuthorizeParamsResponseType defines parameters for Oauth2Authorize.
@@ -1229,7 +1226,6 @@ type Oauth2AuthorizePostFormdataBody struct {
 	Nonce               *string                                             `form:"nonce,omitempty" json:"nonce,omitempty"`
 	Prompt              *string                                             `form:"prompt,omitempty" json:"prompt,omitempty"`
 	RedirectUri         string                                              `form:"redirect_uri" json:"redirect_uri"`
-	Request             *string                                             `form:"request,omitempty" json:"request,omitempty"`
 	Resource            *string                                             `form:"resource,omitempty" json:"resource,omitempty"`
 	ResponseType        Oauth2AuthorizePostFormdataBodyResponseType         `form:"response_type" json:"response_type"`
 	Scope               *string                                             `form:"scope,omitempty" json:"scope,omitempty"`

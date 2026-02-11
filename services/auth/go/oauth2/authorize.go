@@ -27,7 +27,6 @@ type AuthorizeParams struct {
 	CodeChallengeMethod *string
 	Resource            *string
 	Prompt              *string
-	Request             *string
 }
 
 func AuthorizeParamsFromGet(params api.Oauth2AuthorizeParams) AuthorizeParams {
@@ -45,7 +44,6 @@ func AuthorizeParamsFromGet(params api.Oauth2AuthorizeParams) AuthorizeParams {
 		CodeChallenge:       params.CodeChallenge,
 		Resource:            params.Resource,
 		Prompt:              params.Prompt,
-		Request:             params.Request,
 		ResponseType:        string(params.ResponseType),
 		CodeChallengeMethod: codeChallengeMethod,
 	}
@@ -68,7 +66,6 @@ func AuthorizeParamsFromPost(
 		CodeChallenge:       body.CodeChallenge,
 		Resource:            body.Resource,
 		Prompt:              body.Prompt,
-		Request:             body.Request,
 		ResponseType:        string(body.ResponseType),
 		CodeChallengeMethod: codeChallengeMethod,
 	}
@@ -126,16 +123,6 @@ func (p *Provider) ValidateAuthorizeRequest( //nolint:cyclop,funlen
 
 	errorRedirect := func(oauthErr *Error) string {
 		return ErrorRedirectURL(params.RedirectURI, deptr(params.State), oauthErr)
-	}
-
-	// Reject request objects (JWT-based request parameter) as unsupported
-	if params.Request != nil && *params.Request != "" {
-		oauthErr := &Error{
-			Err:         "request_not_supported",
-			Description: "Request objects are not supported",
-		}
-
-		return errorRedirect(oauthErr), oauthErr
 	}
 
 	if params.ResponseType != "code" {

@@ -1487,12 +1487,6 @@ paths:
           description: Space-delimited list of prompts to present to the user (OpenID Connect Core Section 3.1.2.1).
           schema:
             type: string
-        - name: request
-          in: query
-          required: false
-          description: JWT-encoded authorization request object (RFC 9101).
-          schema:
-            type: string
       responses:
         "302":
           description: Redirect to login UI or back to client with error
@@ -1545,8 +1539,6 @@ paths:
                 resource:
                   type: string
                 prompt:
-                  type: string
-                request:
                   type: string
               required:
                 - client_id
