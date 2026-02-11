@@ -246,6 +246,53 @@ func (j *JWTGetter) addClaimsToMap(
 	return nil
 }
 
+func (j *JWTGetter) GraphQLClaims(
+	ctx context.Context,
+	userID uuid.UUID,
+	isAnonymous bool,
+	allowedRoles []string,
+	defaultRole string,
+	extraClaims map[string]any,
+	logger *slog.Logger,
+) (string, map[string]any, error) {
+	var (
+		customClaims map[string]any
+		err          error
+	)
+	if j.customClaimer != nil {
+		fmt.Println("getting custom claims for user", userID.String())
+		customClaims, err = j.customClaimer.GetClaims(ctx, userID.String())
+		if err != nil {
+			logger.ErrorContext(
+				ctx,
+				"error getting custom claims",
+				slog.String("error", err.Error()),
+			)
+
+			customClaims = map[string]any{}
+		}
+
+		fmt.Println("custom claims for user", userID.String(), ":", customClaims)
+	}
+
+	c := map[string]any{
+		"x-hasura-allowed-roles":     allowedRoles,
+		"x-hasura-default-role":      defaultRole,
+		"x-hasura-user-id":           userID.String(),
+		"x-hasura-user-is-anonymous": strconv.FormatBool(isAnonymous),
+	}
+
+	if err := j.addClaimsToMap(c, customClaims, false); err != nil {
+		return "", nil, fmt.Errorf("error adding custom claims: %w", err)
+	}
+
+	if err := j.addClaimsToMap(c, extraClaims, true); err != nil {
+		return "", nil, fmt.Errorf("error adding extra claims: %w", err)
+	}
+
+	return j.claimsNamespace, c, nil
+}
+
 func (j *JWTGetter) GetToken(
 	ctx context.Context,
 	userID uuid.UUID,
@@ -259,46 +306,20 @@ func (j *JWTGetter) GetToken(
 	iat := now.Unix()
 	exp := now.Add(j.accessTokenExpiresIn).Unix()
 
-	var (
-		customClaims map[string]any
-		err          error
+	ns, c, err := j.GraphQLClaims(
+		ctx, userID, isAnonymous, allowedRoles, defaultRole, extraClaims, logger,
 	)
-
-	if j.customClaimer != nil {
-		customClaims, err = j.customClaimer.GetClaims(ctx, userID.String())
-		if err != nil {
-			logger.ErrorContext(
-				ctx,
-				"error getting custom claims",
-				slog.String("error", err.Error()),
-			)
-
-			customClaims = map[string]any{}
-		}
-	}
-
-	c := map[string]any{
-		"x-hasura-allowed-roles":     allowedRoles,
-		"x-hasura-default-role":      defaultRole,
-		"x-hasura-user-id":           userID.String(),
-		"x-hasura-user-is-anonymous": strconv.FormatBool(isAnonymous),
-	}
-
-	if err := j.addClaimsToMap(c, customClaims, false); err != nil {
-		return "", 0, fmt.Errorf("error adding custom claims: %w", err)
-	}
-
-	if err := j.addClaimsToMap(c, extraClaims, true); err != nil {
-		return "", 0, fmt.Errorf("error adding extra claims: %w", err)
+	if err != nil {
+		return "", 0, fmt.Errorf("error getting claims: %w", err)
 	}
 
 	// Create the Claims
 	claims := &jwt.MapClaims{
-		"sub":             userID.String(),
-		"iss":             j.issuer,
-		"iat":             iat,
-		"exp":             exp,
-		j.claimsNamespace: c,
+		"sub": userID.String(),
+		"iss": j.issuer,
+		"iat": iat,
+		"exp": exp,
+		ns:    c,
 	}
 
 	token := jwt.NewWithClaims(j.method, claims)

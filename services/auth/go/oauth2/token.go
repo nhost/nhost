@@ -271,36 +271,42 @@ func (p *Provider) createAccessToken(
 	clientID string,
 	scopes []string,
 	ttl time.Duration,
-	_ *slog.Logger,
+	logger *slog.Logger,
 ) (string, error) {
-	user, err := p.db.GetUser(ctx, userID)
-	if err != nil {
-		return "", fmt.Errorf("error getting user: %w", err)
-	}
-
-	userRoles, err := p.db.GetUserRoles(ctx, userID)
-	if err != nil {
-		return "", fmt.Errorf("error getting user roles: %w", err)
-	}
-
-	allowedRoles := make([]string, 0, len(userRoles))
-	for _, role := range userRoles {
-		allowedRoles = append(allowedRoles, role.Role)
-	}
-
-	if !slices.Contains(allowedRoles, user.DefaultRole) {
-		allowedRoles = append(allowedRoles, user.DefaultRole)
-	}
-
 	claims := map[string]any{
 		"sub":   userID.String(),
 		"aud":   clientID,
 		"scope": strings.Join(scopes, " "),
-		"https://hasura.io/jwt/claims": map[string]any{
-			"x-hasura-allowed-roles": allowedRoles,
-			"x-hasura-default-role":  user.DefaultRole,
-			"x-hasura-user-id":       userID.String(),
-		},
+	}
+
+	if slices.Contains(scopes, "graphql") {
+		user, err := p.db.GetUser(ctx, userID)
+		if err != nil {
+			return "", fmt.Errorf("error getting user: %w", err)
+		}
+
+		userRoles, err := p.db.GetUserRoles(ctx, userID)
+		if err != nil {
+			return "", fmt.Errorf("error getting user roles: %w", err)
+		}
+
+		allowedRoles := make([]string, 0, len(userRoles))
+		for _, role := range userRoles {
+			allowedRoles = append(allowedRoles, role.Role)
+		}
+
+		if !slices.Contains(allowedRoles, user.DefaultRole) {
+			allowedRoles = append(allowedRoles, user.DefaultRole)
+		}
+
+		ns, c, err := p.signer.GraphQLClaims(
+			ctx, userID, user.IsAnonymous, allowedRoles, user.DefaultRole, nil, logger,
+		)
+		if err != nil {
+			return "", fmt.Errorf("error creating GraphQL claims: %w", err)
+		}
+
+		claims[ns] = c
 	}
 
 	exp := time.Now().Add(ttl)

@@ -60,7 +60,7 @@ describe('discovery-jwks', () => {
         'none',
       ],
       code_challenge_methods_supported: ['S256'],
-      scopes_supported: ['openid', 'profile', 'email', 'phone', 'offline_access'],
+      scopes_supported: ['openid', 'profile', 'email', 'phone', 'offline_access', 'graphql'],
     });
   });
 

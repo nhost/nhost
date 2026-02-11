@@ -32,6 +32,7 @@ func (p *Provider) BuildDiscoveryResponse() api.OAuth2DiscoveryResponse {
 			"email",
 			"phone",
 			"offline_access",
+			"graphql",
 		},
 		SubjectTypesSupported:            &[]string{"public"},
 		IdTokenSigningAlgValuesSupported: &[]string{"RS256"},

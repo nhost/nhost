@@ -38,6 +38,15 @@ type Signer interface {
 	SignClaims(claims map[string]any, exp time.Time) (string, error)
 	ValidateToken(token string) (sub string, iat time.Time, exp time.Time, iss string, err error)
 	Issuer() string
+	GraphQLClaims(
+		ctx context.Context,
+		userID uuid.UUID,
+		isAnonymous bool,
+		allowedRoles []string,
+		defaultRole string,
+		extraClaims map[string]any,
+		logger *slog.Logger,
+	) (string, map[string]any, error)
 }
 
 type JWTContextReader interface {

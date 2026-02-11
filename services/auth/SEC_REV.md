@@ -43,27 +43,13 @@ This makes incident response and compliance difficult.
 ---
 
 TODO:
-- attach only hasura claims if a given scope is passed?
-- attach custom claims using some scope-based mechanism?
-- make the two above configurable at the client_id level and also at the user level?
 - rate limiting?
-- Client ID Metadata Documents (CIMD) optional via setting
-- enforce some client_id format in general so CIMD is easier to detect?
-
-
----
-- jwt signing keys - move default to RS256 and also document they need this to oauth2
+- [factorio] jwt signing keys - move default to RS256 and also document they need this to oauth2
 - issuer - implications? check billing and bragi
-- scopes
- - graphql scope we include everything we have today in a regular jwt
- - we will think about separate custom scopes for custom claims for oauth2 clients in the future but they should be separate
-dynamic clients
-document clients
-
+- test creating oauth2 client with fewer scopes than the default and see if it works as expected
 
 ---
 
 REVIEW:
-- endpoints, specially the ones that are not part of the spec
 - security
 - code
