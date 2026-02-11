@@ -16,6 +16,7 @@ func getConfigOAuth2Enabled() *controller.Config {
 	config.OAuth2ProviderEnabled = true
 	config.OAuth2ProviderLoginURL = "https://auth.example.com/oauth2/consent"
 	config.OAuth2ProviderIssuer = ""
+	config.JWTSecret = `{"type":"HS256", "key":"5152fa850c02dc222631cca898ed1485821a70912a6e3649c49076912daa3b62182ba013315915d64f40cddfbb8b58eb5bd11ba225336a6af45bbae07ca873f3","issuer":"https://local.auth.nhost.run"}` //nolint:lll
 
 	return config
 }

@@ -1,0 +1,218 @@
+import { describe, it, expect, beforeAll } from 'bun:test';
+import { createNhostClient } from '@nhost/nhost-js';
+import { FetchError } from '@nhost/nhost-js/fetch';
+
+import { request, resetEnvironment } from '../../server';
+
+const AUTH_URL = 'http://127.0.0.1:4000';
+const REDIRECT_URI = 'http://localhost:9999/callback';
+const DEMO_EMAIL = 'token-lifecycle@example.com';
+const DEMO_PASSWORD = 'Demo1234!';
+
+const nhost = createNhostClient({
+  authUrl: AUTH_URL,
+  configure: [],
+});
+
+/** Register a confidential client and run the auth code flow, returns tokens + client credentials. */
+async function getTokens(jwt: string) {
+  const { body: client } = await nhost.auth.oauth2Register(
+    {
+      client_name: `Token Lifecycle Test (${Date.now()})`,
+      redirect_uris: [REDIRECT_URI],
+      scope: 'openid profile email',
+      grant_types: ['authorization_code'],
+      response_types: ['code'],
+      token_endpoint_auth_method: 'client_secret_post',
+    },
+    { headers: { Authorization: `Bearer ${jwt}` } },
+  );
+
+  const clientId = client.client_id;
+  const clientSecret = client.client_secret!;
+
+  // Authorize
+  const authorizeUrl = nhost.auth.oauth2AuthorizeURL({
+    client_id: clientId,
+    redirect_uri: REDIRECT_URI,
+    response_type: 'code',
+    scope: 'openid profile email',
+    state: `lifecycle-${Date.now()}`,
+  });
+
+  const authResp = await fetch(authorizeUrl, { redirect: 'manual' });
+  const requestId = new URL(authResp.headers.get('location')!).searchParams.get('request_id')!;
+
+  // Consent
+  const { body: loginResp } = await nhost.auth.oauth2LoginPost(
+    { requestId },
+    { headers: { Authorization: `Bearer ${jwt}` } },
+  );
+  const authCode = new URL(loginResp.redirectUri).searchParams.get('code')!;
+
+  // Exchange
+  const { body: tokenResp } = await nhost.auth.oauth2Token({
+    grant_type: 'authorization_code',
+    code: authCode,
+    redirect_uri: REDIRECT_URI,
+    client_id: clientId,
+    client_secret: clientSecret,
+  });
+
+  return { tokenResp, clientId, clientSecret };
+}
+
+describe('token-lifecycle', () => {
+  let jwt: string;
+
+  beforeAll(async () => {
+    await resetEnvironment();
+    await request.post('/change-env').send({
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
+      AUTH_OAUTH2_PROVIDER_ENABLED: true,
+      AUTH_OAUTH2_PROVIDER_DCR_ENABLED: true,
+    });
+
+    try {
+      await nhost.auth.signUpEmailPassword({
+        email: DEMO_EMAIL,
+        password: DEMO_PASSWORD,
+      });
+    } catch (err) {
+      if (!(err instanceof FetchError) || err.status !== 409) {
+        throw err;
+      }
+    }
+
+    const { body: signInResp } = await nhost.auth.signInEmailPassword({
+      email: DEMO_EMAIL,
+      password: DEMO_PASSWORD,
+    });
+    jwt = signInResp.session!.accessToken;
+  });
+
+  it('should introspect an active access token', async () => {
+    const { tokenResp, clientId, clientSecret } = await getTokens(jwt);
+
+    const { body: introspection } = await nhost.auth.oauth2Introspect({
+      token: tokenResp.access_token,
+      token_type_hint: 'access_token',
+      client_id: clientId,
+      client_secret: clientSecret,
+    });
+
+    expect(introspection).toMatchObject({
+      active: true,
+      sub: expect.any(String),
+      exp: expect.any(Number),
+      iat: expect.any(Number),
+      iss: expect.any(String),
+    });
+  });
+
+  it('should introspect an active refresh token', async () => {
+    const { tokenResp, clientId, clientSecret } = await getTokens(jwt);
+
+    const { body: introspection } = await nhost.auth.oauth2Introspect({
+      token: tokenResp.refresh_token!,
+      token_type_hint: 'refresh_token',
+      client_id: clientId,
+      client_secret: clientSecret,
+    });
+
+    expect(introspection).toMatchObject({
+      active: true,
+      sub: expect.any(String),
+      client_id: clientId,
+      scope: 'openid profile email',
+      token_type: 'refresh_token',
+      exp: expect.any(Number),
+      iat: expect.any(Number),
+    });
+  });
+
+  it('should rotate refresh tokens (old token becomes inactive)', async () => {
+    const { tokenResp, clientId, clientSecret } = await getTokens(jwt);
+    const oldRefreshToken = tokenResp.refresh_token!;
+
+    // Refresh the token
+    const { body: refreshResp } = await nhost.auth.oauth2Token({
+      grant_type: 'refresh_token',
+      refresh_token: oldRefreshToken,
+      client_id: clientId,
+      client_secret: clientSecret,
+    });
+
+    expect(refreshResp).toMatchObject({
+      access_token: expect.any(String),
+      refresh_token: expect.any(String),
+      token_type: 'Bearer',
+      expires_in: expect.any(Number),
+    });
+
+    // Old refresh token should now be inactive
+    const { body: oldIntrospection } = await nhost.auth.oauth2Introspect({
+      token: oldRefreshToken,
+      token_type_hint: 'refresh_token',
+      client_id: clientId,
+      client_secret: clientSecret,
+    });
+
+    expect(oldIntrospection).toMatchObject({
+      active: false,
+    });
+  });
+
+  it('should revoke a refresh token (RFC 7009)', async () => {
+    const { tokenResp, clientId, clientSecret } = await getTokens(jwt);
+    const refreshToken = tokenResp.refresh_token!;
+
+    // Revoke the token
+    await nhost.auth.oauth2Revoke({
+      token: refreshToken,
+      token_type_hint: 'refresh_token',
+      client_id: clientId,
+      client_secret: clientSecret,
+    });
+
+    // Introspect the revoked token — should be inactive
+    const { body: introspection } = await nhost.auth.oauth2Introspect({
+      token: refreshToken,
+      token_type_hint: 'refresh_token',
+      client_id: clientId,
+      client_secret: clientSecret,
+    });
+
+    expect(introspection).toMatchObject({
+      active: false,
+    });
+  });
+
+  it('should reject refresh with a revoked token', async () => {
+    const { tokenResp, clientId, clientSecret } = await getTokens(jwt);
+    const refreshToken = tokenResp.refresh_token!;
+
+    // Revoke first
+    await nhost.auth.oauth2Revoke({
+      token: refreshToken,
+      token_type_hint: 'refresh_token',
+      client_id: clientId,
+      client_secret: clientSecret,
+    });
+
+    // Try to use the revoked token — should fail
+    try {
+      await nhost.auth.oauth2Token({
+        grant_type: 'refresh_token',
+        refresh_token: refreshToken,
+        client_id: clientId,
+        client_secret: clientSecret,
+      });
+      expect(true).toBe(false);
+    } catch (err) {
+      expect(err).toBeInstanceOf(FetchError);
+      expect((err as FetchError).status).toBeGreaterThanOrEqual(400);
+    }
+  });
+});

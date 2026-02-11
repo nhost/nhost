@@ -72,7 +72,7 @@ func ClientToCreateResponse(
 }
 
 func GenerateClientID() string {
-	return "nhost_" + HashToken(uuid.NewString())[:16]
+	return "nhoa_" + HashToken(uuid.NewString())[:16]
 }
 
 func GenerateClientSecret() string {

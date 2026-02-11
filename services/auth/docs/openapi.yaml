@@ -9,7 +9,6 @@ info:
     url: "https://opensource.org/licenses/MIT"
   contact:
     name: "Nhost Support"
-    email: "support@nhost.io"
     url: "https://nhost.io"
 
 servers:

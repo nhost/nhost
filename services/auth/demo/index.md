@@ -23,10 +23,6 @@ Required tools (installed on most systems):
 |------|-----------|-------------------|
 | **Grafana Sign-in** | [`grafana/`](grafana/) | Authorization Code + PKCE with Grafana as a confidential client (interactive browser flow) |
 | **Conformance Suite** | [`conformance/`](conformance/) | OpenID Connect Conformance Suite automated testing |
-| **PKCE Public Client** | [`pkce-public-client/`](pkce-public-client/) | Authorization Code + PKCE (S256) with a public client (no client secret) |
-| **Token Lifecycle** | [`token-lifecycle/`](token-lifecycle/) | Token introspection (RFC 7662), revocation (RFC 7009), and refresh token rotation |
-| **Dynamic Registration** | [`dynamic-registration/`](dynamic-registration/) | Dynamic Client Registration (RFC 7591) followed by a full OAuth2 flow |
-| **Discovery & JWKS** | [`discovery-jwks/`](discovery-jwks/) | OIDC Discovery (RFC 8414), JWKS retrieval, and offline JWT signature verification |
 
 ## Running a Demo
 

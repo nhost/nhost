@@ -55,6 +55,7 @@ func getJWTGetter(cmd *cli.Command, db controller.DBClient) (*controller.JWTGett
 		customClaimer,
 		cmd.String(flagRequireElevatedClaim),
 		db,
+		cmd.String(flagServerURL),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("error creating jwt getter: %w", err)

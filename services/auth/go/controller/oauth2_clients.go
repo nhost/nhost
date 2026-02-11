@@ -72,7 +72,10 @@ func (ctrl *Controller) Oauth2ClientsCreate( //nolint:ireturn,cyclop,funlen
 
 	user, apiErr := ctrl.wf.GetUserFromJWTInContext(ctx, logger)
 	if apiErr != nil {
-		return oauth2ClientsCreateError(http.StatusUnauthorized, "Authentication required"), nil //nolint:nilerr
+		return oauth2ClientsCreateError( //nolint:nilerr
+			http.StatusUnauthorized,
+			"Authentication required",
+		), nil
 	}
 
 	if request.Body == nil {

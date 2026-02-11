@@ -6,12 +6,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-jose/go-jose/v4"
-	josejwt "github.com/go-jose/go-jose/v4/jwt"
 	"github.com/nhost/nhost/services/auth/go/api"
 )
 
-func (p *Provider) IntrospectToken( //nolint:cyclop,funlen
+func (p *Provider) IntrospectToken( //nolint:cyclop
 	ctx context.Context,
 	req *api.OAuth2IntrospectRequest,
 	logger *slog.Logger,
@@ -63,36 +61,13 @@ func (p *Provider) IntrospectToken( //nolint:cyclop,funlen
 		}
 	}
 
-	privateKey, _, err := p.signer.RSASigningKey()
-	if err != nil {
-		logger.ErrorContext(ctx, "error getting signing key for introspection", logError(err))
-		return inactive, nil
-	}
-
-	pubKey := &privateKey.PublicKey
-
-	tok, err := josejwt.ParseSigned(
-		req.Token, []jose.SignatureAlgorithm{jose.RS256},
-	)
+	sub, iatTime, expTime, iss, err := p.signer.ValidateToken(req.Token)
 	if err != nil {
 		return inactive, nil
 	}
 
-	claims := josejwt.Claims{} //nolint:exhaustruct
-	if err := tok.Claims(pubKey, &claims); err != nil {
-		return inactive, nil
-	}
-
-	if err := claims.ValidateWithLeeway(josejwt.Expected{ //nolint:exhaustruct
-		Issuer: p.Issuer(),
-	}, 0); err != nil {
-		return inactive, nil
-	}
-
-	sub := claims.Subject
-	exp := int(claims.Expiry.Time().Unix())
-	iat := int(claims.IssuedAt.Time().Unix())
-	iss := claims.Issuer
+	exp := int(expTime.Unix())
+	iat := int(iatTime.Unix())
 	tokenType := "access_token"
 
 	return &api.OAuth2IntrospectResponse{ //nolint:exhaustruct

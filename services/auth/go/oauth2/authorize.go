@@ -89,7 +89,8 @@ func (p *Provider) ValidateAuthorizeRequest( //nolint:cyclop,funlen
 ) (string, *Error) {
 	var client sql.AuthOauth2Client
 
-	if p.config.CIMDEnabled && IsCIMDClientID(params.ClientID, p.config.CIMDAllowInsecureTransport) {
+	if p.config.CIMDEnabled &&
+		IsCIMDClientID(params.ClientID, p.config.CIMDAllowInsecureTransport) {
 		var oauthErr *Error
 
 		client, oauthErr = p.ResolveCIMDClient(ctx, params.ClientID, logger)

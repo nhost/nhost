@@ -35,6 +35,9 @@ type Config struct {
 
 type Signer interface {
 	RSASigningKey() (*rsa.PrivateKey, string, error)
+	SignClaims(claims map[string]any, exp time.Time) (string, error)
+	ValidateToken(token string) (sub string, iat time.Time, exp time.Time, iss string, err error)
+	Issuer() string
 }
 
 type JWTContextReader interface {
@@ -151,9 +154,5 @@ func (p *Provider) DeleteExpiredRecords(ctx context.Context, logger *slog.Logger
 }
 
 func (p *Provider) Issuer() string {
-	if p.config.Issuer != "" {
-		return p.config.Issuer
-	}
-
-	return p.config.ServerURL
+	return p.signer.Issuer()
 }

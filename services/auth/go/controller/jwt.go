@@ -83,14 +83,14 @@ func decodeJWTSecretForRSA(jwtSecret JWTSecret) (JWTSecret, []api.JWK, error) {
 	return jwtSecret, jwks, nil
 }
 
-func decodeJWTSecret(jwtSecretb []byte) (JWTSecret, []api.JWK, error) {
+func decodeJWTSecret(jwtSecretb []byte, defaultIssuer string) (JWTSecret, []api.JWK, error) {
 	var jwtSecret JWTSecret
 	if err := json.Unmarshal(jwtSecretb, &jwtSecret); err != nil {
 		return JWTSecret{}, nil, fmt.Errorf("error unmarshalling jwt secret: %w", err)
 	}
 
 	if jwtSecret.Issuer == "" {
-		jwtSecret.Issuer = "hasura-auth"
+		jwtSecret.Issuer = defaultIssuer
 	}
 
 	if jwtSecret.ClaimsNamespace == "" {
@@ -145,8 +145,9 @@ func NewJWTGetter(
 	customClaimer CustomClaimer,
 	elevatedClaimMode string,
 	db DBClient,
+	defaultIssuer string,
 ) (*JWTGetter, error) {
-	jwtSecret, jwks, err := decodeJWTSecret(jwtSecretb)
+	jwtSecret, jwks, err := decodeJWTSecret(jwtSecretb, defaultIssuer)
 	if err != nil {
 		return nil, err
 	}
@@ -504,6 +505,49 @@ func (j *JWTGetter) GetCustomClaim(token *jwt.Token, customClaim string) string 
 	}
 
 	return v
+}
+
+func (j *JWTGetter) SignClaims(claims map[string]any, exp time.Time) (string, error) {
+	mapClaims := jwt.MapClaims(claims)
+	return j.SignTokenWithClaims(mapClaims, exp)
+}
+
+func (j *JWTGetter) ValidateToken(
+	token string,
+) (string, time.Time, time.Time, string, error) {
+	jwtToken, err := j.Validate(token)
+	if err != nil {
+		return "", time.Time{}, time.Time{}, "", err
+	}
+
+	claims, ok := jwtToken.Claims.(jwt.MapClaims)
+	if !ok {
+		return "", time.Time{}, time.Time{}, "",
+			errors.New("unexpected claims type") //nolint:err113
+	}
+
+	sub, _ := claims.GetSubject()
+	iss, _ := claims.GetIssuer()
+
+	expTime, _ := claims.GetExpirationTime()
+
+	var exp time.Time
+	if expTime != nil {
+		exp = expTime.Time
+	}
+
+	iatTime, _ := claims.GetIssuedAt()
+
+	var iat time.Time
+	if iatTime != nil {
+		iat = iatTime.Time
+	}
+
+	return sub, iat, exp, iss, nil
+}
+
+func (j *JWTGetter) Issuer() string {
+	return j.issuer
 }
 
 func (j *JWTGetter) IsAnonymous(token *jwt.Token) bool {

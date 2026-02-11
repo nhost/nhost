@@ -9,8 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-jose/go-jose/v4"
-	josejwt "github.com/go-jose/go-jose/v4/jwt"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -275,21 +273,6 @@ func (p *Provider) createAccessToken(
 	ttl time.Duration,
 	_ *slog.Logger,
 ) (string, error) {
-	privateKey, keyID, err := p.signer.RSASigningKey()
-	if err != nil {
-		return "", fmt.Errorf("error getting signing key: %w", err)
-	}
-
-	signer, err := jose.NewSigner(
-		jose.SigningKey{Algorithm: jose.RS256, Key: privateKey},
-		(&jose.SignerOptions{}).WithType("JWT").WithHeader("kid", keyID), //nolint:exhaustruct
-	)
-	if err != nil {
-		return "", fmt.Errorf("error creating signer: %w", err)
-	}
-
-	now := time.Now()
-
 	user, err := p.db.GetUser(ctx, userID)
 	if err != nil {
 		return "", fmt.Errorf("error getting user: %w", err)
@@ -310,11 +293,8 @@ func (p *Provider) createAccessToken(
 	}
 
 	claims := map[string]any{
-		"iss":   p.Issuer(),
 		"sub":   userID.String(),
 		"aud":   clientID,
-		"iat":   now.Unix(),
-		"exp":   now.Add(ttl).Unix(),
 		"scope": strings.Join(scopes, " "),
 		"https://hasura.io/jwt/claims": map[string]any{
 			"x-hasura-allowed-roles": allowedRoles,
@@ -323,9 +303,11 @@ func (p *Provider) createAccessToken(
 		},
 	}
 
-	raw, err := josejwt.Signed(signer).Claims(claims).Serialize()
+	exp := time.Now().Add(ttl)
+
+	raw, err := p.signer.SignClaims(claims, exp)
 	if err != nil {
-		return "", fmt.Errorf("error serializing access token: %w", err)
+		return "", fmt.Errorf("error signing access token: %w", err)
 	}
 
 	return raw, nil
@@ -340,27 +322,11 @@ func (p *Provider) createIDToken(
 	ttl time.Duration,
 	_ *slog.Logger,
 ) (string, error) {
-	privateKey, keyID, err := p.signer.RSASigningKey()
-	if err != nil {
-		return "", fmt.Errorf("error getting signing key: %w", err)
-	}
-
-	signer, err := jose.NewSigner(
-		jose.SigningKey{Algorithm: jose.RS256, Key: privateKey},
-		(&jose.SignerOptions{}).WithType("JWT").WithHeader("kid", keyID), //nolint:exhaustruct
-	)
-	if err != nil {
-		return "", fmt.Errorf("error creating signer: %w", err)
-	}
-
 	now := time.Now()
 
 	claims := map[string]any{
-		"iss":       p.Issuer(),
 		"sub":       userID.String(),
 		"aud":       clientID,
-		"iat":       now.Unix(),
-		"exp":       now.Add(ttl).Unix(),
 		"auth_time": now.Unix(),
 	}
 
@@ -372,9 +338,11 @@ func (p *Provider) createIDToken(
 		return "", err
 	}
 
-	raw, err := josejwt.Signed(signer).Claims(claims).Serialize()
+	exp := now.Add(ttl)
+
+	raw, err := p.signer.SignClaims(claims, exp)
 	if err != nil {
-		return "", fmt.Errorf("error serializing id token: %w", err)
+		return "", fmt.Errorf("error signing id token: %w", err)
 	}
 
 	return raw, nil

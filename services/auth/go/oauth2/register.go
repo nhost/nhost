@@ -65,7 +65,7 @@ func (p *Provider) RegisterClient( //nolint:funlen,cyclop
 
 	isPublic := authMethod == AuthMethodNone
 
-	clientID := uuid.NewString()
+	clientID := GenerateClientID()
 
 	var clientSecretHash string
 

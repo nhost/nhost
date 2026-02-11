@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	oauth2provider "github.com/nhost/nhost/services/auth/go/oauth2"
 )
 
 func (ctrl *Controller) PostChangeEnv(c *gin.Context) { //nolint:funlen,cyclop
@@ -106,6 +107,27 @@ func (ctrl *Controller) PostChangeEnv(c *gin.Context) { //nolint:funlen,cyclop
 		}
 
 		ctrl.Webauthn = wa
+	}
+
+	if ctrl.config.OAuth2ProviderEnabled {
+		ctrl.oauth2 = oauth2provider.NewProvider(
+			ctrl.wf.db,
+			ctrl.wf.jwtGetter,
+			ctrl.wf.jwtGetter,
+			ctrl.wf.jwtGetter,
+			&bcryptHasher{},
+			oauth2provider.Config{
+				Issuer:                     ctrl.config.OAuth2ProviderIssuer,
+				LoginURL:                   ctrl.config.OAuth2ProviderLoginURL,
+				ClientURL:                  ctrl.config.ClientURL.String(),
+				ServerURL:                  ctrl.config.ServerURL.String(),
+				AccessTokenTTL:             ctrl.config.OAuth2ProviderAccessTokenTTL,
+				RefreshTokenTTL:            ctrl.config.OAuth2ProviderRefreshTokenTTL,
+				CIMDEnabled:                ctrl.config.OAuth2ProviderCIMDEnabled,
+				CIMDAllowInsecureTransport: ctrl.config.OAuth2ProviderCIMDAllowInsecureTransport,
+			},
+			nil,
+		)
 	}
 
 	c.JSON(

@@ -366,7 +366,10 @@ func newSafeHTTPClient() *http.Client {
 func newInsecureHTTPClient() *http.Client {
 	return &http.Client{ //nolint:exhaustruct
 		Transport: &http.Transport{ //nolint:exhaustruct
-			TLSClientConfig: &tls.Config{MinVersion: tls.VersionTLS12, InsecureSkipVerify: true}, //nolint:gosec,exhaustruct
+			TLSClientConfig: &tls.Config{ //nolint:exhaustruct
+				MinVersion:         tls.VersionTLS12,
+				InsecureSkipVerify: true, //nolint:gosec
+			},
 		},
 		Timeout: CIMDFetchTimeout,
 	}

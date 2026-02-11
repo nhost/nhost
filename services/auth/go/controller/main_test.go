@@ -252,11 +252,12 @@ func getController( //nolint:cyclop
 	}
 
 	jwtGetter, err := controller.NewJWTGetter(
-		jwtSecret,
+		[]byte(config.JWTSecret),
 		time.Second*time.Duration(config.AccessTokenExpiresIn),
 		cc,
 		"",
 		nil,
+		config.ServerURL.String(),
 	)
 	if err != nil {
 		t.Fatalf("failed to create jwt getter: %v", err)

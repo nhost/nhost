@@ -5,16 +5,15 @@ import (
 )
 
 func (p *Provider) BuildDiscoveryResponse() api.OAuth2DiscoveryResponse {
-	issuer := p.Issuer()
-	baseURL := p.config.ServerURL
+	issuer := p.signer.Issuer()
 
-	authEndpoint := baseURL + "/oauth2/authorize"
-	tokenEndpoint := baseURL + "/oauth2/token"
-	userinfoEndpoint := baseURL + "/oauth2/userinfo"
-	jwksURI := baseURL + "/oauth2/jwks"
-	revocationEndpoint := baseURL + "/oauth2/revoke"
-	introspectionEndpoint := baseURL + "/oauth2/introspect"
-	registrationEndpoint := baseURL + "/oauth2/register"
+	authEndpoint := issuer + "/oauth2/authorize"
+	tokenEndpoint := issuer + "/oauth2/token"
+	userinfoEndpoint := issuer + "/oauth2/userinfo"
+	jwksURI := issuer + "/oauth2/jwks"
+	revocationEndpoint := issuer + "/oauth2/revoke"
+	introspectionEndpoint := issuer + "/oauth2/introspect"
+	registrationEndpoint := issuer + "/oauth2/register"
 
 	resp := api.OAuth2DiscoveryResponse{ //nolint:exhaustruct
 		Issuer:                 issuer,
