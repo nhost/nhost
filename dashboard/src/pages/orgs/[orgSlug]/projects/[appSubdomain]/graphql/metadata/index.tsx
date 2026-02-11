@@ -35,7 +35,7 @@ MetadataPage.getLayout = function getLayout(page: ReactElement) {
       }}
     >
       <GitRepoMetadataAlert />
-      <div className="mx-auto w-full max-w-5xl">{page}</div>
+      <div className="mx-auto w-full max-w-5xl px-10">{page}</div>
     </OrgLayout>
   );
 };

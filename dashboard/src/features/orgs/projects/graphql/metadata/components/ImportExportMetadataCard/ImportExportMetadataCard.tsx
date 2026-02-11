@@ -1,6 +1,6 @@
 import { Separator } from '@/components/ui/v3/separator';
-import ExportMetadataSection from '@/features/orgs/projects/graphql/metadata/components/ImportExportMetadataCard/ExportMetadataSection';
-import ImportMetadataSection from '@/features/orgs/projects/graphql/metadata/components/ImportExportMetadataCard/ImportMetadataSection';
+import { ExportMetadataSection } from './sections/ExportMetadataSection';
+import { ImportMetadataSection } from './sections/ImportMetadataSection';
 
 export default function ImportExportMetadataCard() {
   return (
