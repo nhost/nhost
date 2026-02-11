@@ -36,6 +36,7 @@ export default function useGetInconsistentMetadata({
 
       return getInconsistentMetadata({ appUrl, adminSecret });
     },
+    retry: false,
     ...queryOptions,
   });
 

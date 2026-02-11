@@ -84,7 +84,7 @@ export default function ReloadMetadataCard() {
                   </Label>
                 </div>
               </TooltipTrigger>
-              <TooltipContent>
+              <TooltipContent side="bottom">
                 <p className="max-w-xs text-xs">
                   Refreshes the schema and metadata for all remote GraphQL
                   schemas connected to your instance.
@@ -112,7 +112,7 @@ export default function ReloadMetadataCard() {
                   </Label>
                 </div>
               </TooltipTrigger>
-              <TooltipContent>
+              <TooltipContent side="bottom">
                 <p className="max-w-xs text-xs">
                   Check this if you have inconsistent databases. This will
                   refresh the schema and metadata for all connected databases,

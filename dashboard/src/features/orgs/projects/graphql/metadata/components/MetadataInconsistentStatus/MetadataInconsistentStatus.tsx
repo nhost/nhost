@@ -28,6 +28,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
 import DeleteInconsistentObjectsDialog from '@/features/orgs/projects/graphql/metadata/components/DeleteInconsistentObjectsDialog/DeleteInconsistentObjectsDialog';
+import InconsistentObjectDefinitionDialog from '@/features/orgs/projects/graphql/metadata/components/InconsistentObjectDefinitionDialog/InconsistentObjectDefinitionDialog';
 
 interface MetadataInconsistentStatusProps {
   inconsistentObjects: unknown[];
@@ -36,10 +37,9 @@ interface MetadataInconsistentStatusProps {
 export default function MetadataInconsistentStatus({
   inconsistentObjects,
 }: MetadataInconsistentStatusProps) {
-  const [inconsistenciesOpen, setInconsistenciesOpen] = useState(false);
-  const [dropDialogOpen, setDropDialogOpen] = useState(false);
-
-  console.log('inconsistentObjects', inconsistentObjects);
+  const [inconsistenciesTableOpen, setInconsistenciesTableOpen] =
+    useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   return (
     <>
@@ -97,15 +97,15 @@ export default function MetadataInconsistentStatus({
 
         {inconsistentObjects.length > 0 && (
           <Collapsible
-            open={inconsistenciesOpen}
-            onOpenChange={setInconsistenciesOpen}
+            open={inconsistenciesTableOpen}
+            onOpenChange={setInconsistenciesTableOpen}
           >
             <div className="rounded-lg border">
               <CollapsibleTrigger className="flex w-full items-center justify-between p-4 hover:bg-muted/50">
                 <span className="font-medium text-foreground text-sm">
                   View inconsistent objects ({inconsistentObjects.length})
                 </span>
-                {inconsistenciesOpen ? (
+                {inconsistenciesTableOpen ? (
                   <ChevronDown className="h-4 w-4 text-muted-foreground" />
                 ) : (
                   <ChevronRight className="h-4 w-4 text-muted-foreground" />
@@ -118,8 +118,8 @@ export default function MetadataInconsistentStatus({
                       <TableRow>
                         <TableHead>Name</TableHead>
                         <TableHead>Type</TableHead>
-                        <TableHead className="w-1/3">Description</TableHead>
-                        <TableHead className="w-1/3">Reason</TableHead>
+                        <TableHead>Reason</TableHead>
+                        <TableHead className="w-10" />
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -137,13 +137,13 @@ export default function MetadataInconsistentStatus({
                                 {String(obj.type)}
                               </Badge>
                             </TableCell>
-                            <TableCell>
-                              <pre className="whitespace-pre-wrap break-all font-mono text-xs">
-                                {JSON.stringify(obj.definition, null, 2)}
-                              </pre>
-                            </TableCell>
                             <TableCell className="text-xs">
                               {String(obj.reason)}
+                            </TableCell>
+                            <TableCell>
+                              <InconsistentObjectDefinitionDialog
+                                definition={obj.definition}
+                              />
                             </TableCell>
                           </TableRow>
                         );
@@ -160,7 +160,7 @@ export default function MetadataInconsistentStatus({
           <Button
             variant="outline"
             className="border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive"
-            onClick={() => setDropDialogOpen(true)}
+            onClick={() => setDeleteDialogOpen(true)}
           >
             <Trash2 className="mr-2 h-4 w-4" />
             Remove Inconsistent Metadata
@@ -170,8 +170,8 @@ export default function MetadataInconsistentStatus({
           </p>
 
           <DeleteInconsistentObjectsDialog
-            open={dropDialogOpen}
-            onOpenChange={setDropDialogOpen}
+            open={deleteDialogOpen}
+            onOpenChange={setDeleteDialogOpen}
           />
         </div>
       </div>
