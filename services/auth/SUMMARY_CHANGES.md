@@ -221,6 +221,7 @@ The diff also includes:
 | RFC 7662 (Token Introspection) | Supported |
 | RFC 8414 (Authorization Server Metadata) | Both OIDC and OAuth2 discovery |
 | RFC 8707 (Resource Indicators) | Supported in authorize + token |
+| RFC 9207 (Authorization Server Issuer Identification) | `iss` parameter in authorization responses, advertised in discovery |
 | RFC 9728 (Client ID Metadata Document) | Supported (CIMD) - client_id as URL with auto-fetched metadata, SSRF-safe, cached 1h |
 | OpenID Connect Core 1.0 | Authorization code flow, UserInfo, ID tokens, nonce |
 | OpenID Connect Discovery 1.0 | Supported |
@@ -230,32 +231,16 @@ The diff also includes:
 - Hybrid flow (`response_type=code token`, etc.)
 - `plain` PKCE method (only S256)
 - RFC 7592 (Dynamic Client Registration Management) -- admin endpoints used instead
-- RFC 9101 (JAR) -- `request` parameter is accepted in the OpenAPI spec but the implementation explicitly rejects it with `request_not_supported` (`authorize.go:140-147`)
+- RFC 9101 (JAR) -- not supported, `request` parameter removed from API
 
 ---
 
 ## Review Feedback
 
-### Spec Inconsistencies (should fix)
-
-1. **`response_type` is marked `required: false` on `/oauth2/authorize`** -- RFC 6749 Section 3.1.1 says it's REQUIRED. The code correctly rejects it if missing (`authorize.go:149-151`), but the OpenAPI spec is misleading. A client reading the spec would think it's optional. Should be `required: true`.
-
-2. **`request` parameter (JAR) is listed but rejected** -- The OpenAPI spec accepts a `request` parameter on the authorize endpoint, but the implementation explicitly rejects it with `request_not_supported` (`authorize.go:140-147`). Either remove the parameter from the OpenAPI spec or add a description noting it will return `request_not_supported`. As-is, a client would try to use it and get a surprising error.
-
 ### Potential Omissions (worth considering)
 
-3. **RFC 9207 (Authorization Server Issuer Identification)** -- Adds an `iss` parameter to authorization responses (the redirect back to the client). It's a simple addition that prevents mix-up attacks when a client talks to multiple authorization servers. Increasingly recommended, and the implementation cost is trivial (one extra query parameter on the redirect).
-
-4. **`client_credentials` grant type** -- Not supported. Fine if the service is purely user-authentication focused, but if there's a machine-to-machine use case (service-to-service API access), it would be needed. Intentional omission?
+3. ~~**RFC 9207 (Authorization Server Issuer Identification)**~~ -- **FIXED**: Added `iss` parameter to authorization response redirect (`login.go`) and advertised `authorization_response_iss_parameter_supported: true` in discovery (`discovery.go`).
 
 5. **Client authentication on introspect/revoke** -- The schemas accept `client_id`/`client_secret` as form body parameters (`client_secret_post`), but RFC 7662 Section 2.1 and RFC 7009 Section 2.1 also expect support for `client_secret_basic` (HTTP Basic auth header). Many OAuth2 clients default to Basic auth for these endpoints.
 
 6. **OIDC parameters on authorize** -- Some commonly used OIDC parameters are missing: `login_hint` (pre-fill email on login screen), `max_age` (force re-auth after N seconds), `acr_values` (requested authentication levels). These are optional but frequently expected by OIDC client libraries.
-
-### Things That Look Good
-
-- No implicit/hybrid flow -- aligns with OAuth 2.1 direction
-- S256-only PKCE -- correct, `plain` is basically useless
-- CIMD (RFC 9728) with SSRF protections -- well done
-- Separate admin CRUD vs RFC 7591 dynamic registration -- clean separation
-- `request` parameter rejected but present in schema -- valid per RFC 9101 Section 10.4, just needs better documentation in the OpenAPI spec

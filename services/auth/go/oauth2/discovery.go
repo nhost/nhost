@@ -44,6 +44,7 @@ func (p *Provider) BuildDiscoveryResponse() api.OAuth2DiscoveryResponse {
 	}
 
 	resp.Set("request_parameter_supported", false)
+	resp.Set("authorization_response_iss_parameter_supported", true)
 
 	if p.config.CIMDEnabled {
 		resp.Set("client_id_metadata_document_supported", true)

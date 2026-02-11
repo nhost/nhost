@@ -131,6 +131,7 @@ func (p *Provider) CompleteLogin( //nolint:funlen
 
 	q := parsedRedirectURI.Query()
 	q.Set("code", code)
+	q.Set("iss", p.signer.Issuer())
 
 	if authReq.State.Valid && authReq.State.String != "" {
 		q.Set("state", authReq.State.String)
