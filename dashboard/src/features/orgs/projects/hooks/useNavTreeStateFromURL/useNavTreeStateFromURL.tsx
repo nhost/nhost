@@ -34,10 +34,6 @@ const useNavTreeStateFromURL = (): TreeState => {
   const eventsSubPage =
     isEventsPage && pathSegments.length > 6 ? pathSegments[6] || null : null;
 
-  const isHasuraPage = pathSegments.includes('hasura');
-  const hasuraSubPage =
-    isHasuraPage && pathSegments.length > 6 ? pathSegments[6] || null : null;
-
   return useMemo(() => {
     if (!orgSlug) {
       // If no orgSlug, return an empty state
@@ -97,15 +93,6 @@ const useNavTreeStateFromURL = (): TreeState => {
       }
     }
 
-    if (isHasuraPage) {
-      expandedItems.push(`${orgSlug}-${appSubdomain}-hasura`);
-      if (!hasuraSubPage) {
-        focusedItem = `${orgSlug}-${appSubdomain}-hasura-console`;
-      } else {
-        focusedItem = `${orgSlug}-${appSubdomain}-hasura-${hasuraSubPage}`;
-      }
-    }
-
     return { expandedItems, focusedItem };
   }, [
     orgSlug,
@@ -118,8 +105,6 @@ const useNavTreeStateFromURL = (): TreeState => {
     graphqlSubPage,
     isEventsPage,
     eventsSubPage,
-    isHasuraPage,
-    hasuraSubPage,
     newProject,
   ]);
 };

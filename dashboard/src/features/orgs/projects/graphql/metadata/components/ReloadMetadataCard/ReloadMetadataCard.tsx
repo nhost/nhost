@@ -1,6 +1,5 @@
-import { Loader2, RefreshCw } from 'lucide-react';
 import { useState } from 'react';
-import { Button } from '@/components/ui/v3/button';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import { Label } from '@/components/ui/v3/label';
 import {
@@ -49,19 +48,9 @@ export default function ReloadMetadataCard() {
       </h3>
 
       <div className="space-y-4">
-        <Button onClick={handleReload} disabled={isPending} size="sm">
-          {isPending ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Reloading Metadata...
-            </>
-          ) : (
-            <>
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Reload Metadata
-            </>
-          )}
-        </Button>
+        <ButtonWithLoading onClick={handleReload} loading={isPending} size="sm">
+          Reload Metadata
+        </ButtonWithLoading>
 
         <div className="flex flex-row flex-wrap gap-4">
           <Tooltip>
@@ -102,7 +91,7 @@ export default function ReloadMetadataCard() {
                 />
                 <Label
                   htmlFor="reload-databases"
-                  className="cursor-pointer font-normal text-muted-foreground text-sm"
+                  className="cursor-pointer font-normal text-muted-foreground"
                 >
                   Reload all databases
                 </Label>

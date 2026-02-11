@@ -73,7 +73,7 @@ export default function ImportMetadataDialog({
             id="allow-inconsistent-metadata"
             checked={allowInconsistentMetadata}
             onCheckedChange={(checked) =>
-              setAllowInconsistentMetadata(checked as boolean)
+              setAllowInconsistentMetadata(Boolean(checked))
             }
           />
           <Label

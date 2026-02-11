@@ -1,5 +1,4 @@
 import type { ReactElement } from 'react';
-import { Container } from '@/components/layout/Container';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { GitRepoMetadataAlert } from '@/features/orgs/projects/graphql/metadata/components/GitRepoMetadataAlert';
 import { ImportExportMetadataCard } from '@/features/orgs/projects/graphql/metadata/components/ImportExportMetadataCard';
@@ -9,10 +8,7 @@ import { ResetMetadataCard } from '@/features/orgs/projects/graphql/metadata/com
 
 export default function MetadataPage() {
   return (
-    <Container
-      className="grid max-w-5xl grid-flow-row gap-y-8 bg-transparent"
-      rootClassName="bg-transparent py-4"
-    >
+    <div className="grid grid-flow-row gap-y-8 py-8">
       <div>
         <h1 className="font-semibold text-foreground text-lg tracking-tight">
           Metadata
@@ -27,7 +23,7 @@ export default function MetadataPage() {
       <ReloadMetadataCard />
       <ImportExportMetadataCard />
       <ResetMetadataCard />
-    </Container>
+    </div>
   );
 }
 

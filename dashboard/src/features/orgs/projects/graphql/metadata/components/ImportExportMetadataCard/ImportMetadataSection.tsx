@@ -1,7 +1,9 @@
 import { FileJson, TriangleAlert, Upload } from 'lucide-react';
 import { useRef, useState } from 'react';
+import { toast } from 'react-hot-toast';
 import ImportMetadataDialog from '@/features/orgs/projects/graphql/metadata/components/ImportMetadataDialog/ImportMetadataDialog';
 import { cn } from '@/lib/utils';
+import { getToastStyleProps } from '@/utils/constants/settings';
 
 export default function ImportMetadataSection() {
   const [isDragging, setIsDragging] = useState(false);
@@ -20,8 +22,11 @@ export default function ImportMetadataSection() {
         const metadata = parsed.metadata ?? parsed;
         setPendingImportMetadata(metadata);
         setImportDialogOpen(true);
-      } catch {
-        console.error('Failed to parse JSON file');
+      } catch (error) {
+        toast.error(
+          error?.message || 'Failed to parse JSON file.',
+          getToastStyleProps(),
+        );
       }
     };
     reader.readAsText(file);

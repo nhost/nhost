@@ -31,30 +31,27 @@ export default function MetadataStatusCard() {
   if (isError) {
     return (
       <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4">
-        <div className="flex items-center gap-2">
-          <TriangleAlert className="size-5 shrink-0 text-destructive" />
-          <h4 className="font-medium text-foreground text-sm">
-            Unable to fetch metadata status
-          </h4>
-        </div>
-        <div className="mt-1 space-y-2 pl-6 text-muted-foreground text-sm">
-          <div className="space-y-1">
-            <p>Could not connect to the Hasura endpoint.</p>
+        <div className="flex gap-3">
+          <TriangleAlert className="mt-0.5 size-5 shrink-0 text-destructive" />
+          <div className="space-y-2 text-muted-foreground">
+            <h4 className="font-medium text-foreground">
+              Unable to fetch metadata status
+            </h4>
             <p className="max-w-prose text-pretty">
               This is usually caused by a CORS or network error. Please check
               that Hasura is running and accessible.
             </p>
+            <p>
+              You can verify the{' '}
+              <Link
+                href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/hasura`}
+                className="text-primary underline"
+              >
+                Hasura settings page
+              </Link>
+              .
+            </p>
           </div>
-          <p>
-            You can verify the{' '}
-            <Link
-              href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/hasura`}
-              className="text-primary underline"
-            >
-              Hasura settings page
-            </Link>
-            .
-          </p>
         </div>
       </div>
     );
