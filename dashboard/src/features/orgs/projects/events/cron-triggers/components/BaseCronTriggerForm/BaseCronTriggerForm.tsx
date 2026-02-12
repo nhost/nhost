@@ -358,7 +358,7 @@ export default function BaseCronTriggerForm({
                           </div>
                           {isRequestOptionsSectionOpen &&
                             isRequestOptionsTransformEnabled && (
-                              <RequestOptionsFormSection className="pl-4" />
+                              <RequestOptionsFormSection />
                             )}
                           {isRequestOptionsSectionOpen &&
                             isPayloadSectionOpen && <Separator />}
@@ -400,7 +400,6 @@ export default function BaseCronTriggerForm({
                           {isPayloadSectionOpen &&
                             isPayloadTransformEnabled && (
                               <PayloadTransformFormSection
-                                className="pl-4"
                                 onResetSampleInput={handleResetSampleInput}
                               />
                             )}

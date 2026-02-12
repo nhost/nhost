@@ -559,7 +559,7 @@ export default function BaseEventTriggerForm({
                           </div>
                           {isRequestOptionsSectionOpen &&
                             isRequestOptionsTransformEnabled && (
-                              <RequestOptionsFormSection className="pl-4" />
+                              <RequestOptionsFormSection />
                             )}
                           {isRequestOptionsSectionOpen &&
                             isPayloadSectionOpen && <Separator />}
@@ -601,7 +601,6 @@ export default function BaseEventTriggerForm({
                           {isPayloadSectionOpen &&
                             isPayloadTransformEnabled && (
                               <PayloadTransformFormSection
-                                className="pl-4"
                                 onResetSampleInput={handleResetSampleInput}
                               />
                             )}

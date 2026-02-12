@@ -21,13 +21,7 @@ import KeyValueQueryParams from './KeyValueQueryParams';
 import RequestURLTransformPreview from './RequestURLTransformPreview';
 import URLTemplateQueryParams from './URLTemplateQueryParams';
 
-interface RequestOptionsFormSectionProps {
-  className?: string;
-}
-
-export default function RequestOptionsFormSection({
-  className,
-}: RequestOptionsFormSectionProps) {
+export default function RequestOptionsFormSection() {
   const form = useFormContext();
   const { watch } = form;
 
@@ -36,7 +30,7 @@ export default function RequestOptionsFormSection({
   );
 
   return (
-    <div className={`flex flex-col gap-6 ${className}`}>
+    <div className="flex flex-col gap-6 pl-4">
       <div className="flex flex-col gap-8">
         <FormField
           name="requestOptionsTransform.method"

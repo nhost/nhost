@@ -12,12 +12,10 @@ import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTool
 import TransformedRequestBody from './TransformedRequestBody';
 
 interface PayloadTransformFormSectionProps {
-  className?: string;
   onResetSampleInput: () => void;
 }
 
 export default function PayloadTransformFormSection({
-  className,
   onResetSampleInput,
 }: PayloadTransformFormSectionProps) {
   const form = useFormContext();
@@ -30,7 +28,7 @@ export default function PayloadTransformFormSection({
   const values = watch();
 
   return (
-    <div className={`flex flex-col gap-6 ${className}`}>
+    <div className="flex flex-col gap-6 pl-4">
       <div className="flex flex-col gap-12">
         <FormTextarea
           control={form.control}
