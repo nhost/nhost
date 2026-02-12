@@ -112,7 +112,7 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 			request: api.SignInIdTokenRequestObject{
 				Body: &api.SignInIdTokenRequest{
 					IdToken:  token,
-					Nonce:    ptr(nonce),
+					Nonce:    new(nonce),
 					Options:  nil,
 					Provider: "fake",
 				},
@@ -217,12 +217,12 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 			request: api.SignInIdTokenRequestObject{
 				Body: &api.SignInIdTokenRequest{
 					IdToken: token,
-					Nonce:   ptr(nonce),
+					Nonce:   new(nonce),
 					Options: &api.SignUpOptions{
 						AllowedRoles: &[]string{"me"},
-						DefaultRole:  ptr("me"),
-						DisplayName:  ptr("Some other name"),
-						Locale:       ptr("se"),
+						DefaultRole:  new("me"),
+						DisplayName:  new("Some other name"),
+						Locale:       new("se"),
 						Metadata: &map[string]any{
 							"key": "value",
 						},
@@ -312,7 +312,7 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 			request: api.SignInIdTokenRequestObject{
 				Body: &api.SignInIdTokenRequest{
 					IdToken:  token,
-					Nonce:    ptr(nonce),
+					Nonce:    new(nonce),
 					Options:  nil,
 					Provider: "fake",
 				},
@@ -383,7 +383,7 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 			request: api.SignInIdTokenRequestObject{
 				Body: &api.SignInIdTokenRequest{
 					IdToken:  token,
-					Nonce:    ptr(nonce),
+					Nonce:    new(nonce),
 					Options:  nil,
 					Provider: "fake",
 				},
@@ -416,7 +416,7 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 			request: api.SignInIdTokenRequestObject{
 				Body: &api.SignInIdTokenRequest{
 					IdToken:  token,
-					Nonce:    ptr(nonce),
+					Nonce:    new(nonce),
 					Options:  nil,
 					Provider: "fake",
 				},
@@ -509,7 +509,7 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 			request: api.SignInIdTokenRequestObject{
 				Body: &api.SignInIdTokenRequest{
 					IdToken:  token,
-					Nonce:    ptr(nonce),
+					Nonce:    new(nonce),
 					Options:  nil,
 					Provider: "fake",
 				},
@@ -664,7 +664,7 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 			request: api.SignInIdTokenRequestObject{
 				Body: &api.SignInIdTokenRequest{
 					IdToken:  token,
-					Nonce:    ptr(nonce),
+					Nonce:    new(nonce),
 					Options:  nil,
 					Provider: "fake",
 				},
@@ -772,7 +772,7 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 			request: api.SignInIdTokenRequestObject{
 				Body: &api.SignInIdTokenRequest{
 					IdToken:  token,
-					Nonce:    ptr(nonce),
+					Nonce:    new(nonce),
 					Options:  nil,
 					Provider: "fake",
 				},

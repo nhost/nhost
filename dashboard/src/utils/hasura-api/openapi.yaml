@@ -2824,6 +2824,7 @@ components:
         - id
         - next_retry_at
         - scheduled_time
+        - webhook_conf
         - status
         - tries
         - trigger_name

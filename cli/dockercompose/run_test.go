@@ -40,7 +40,7 @@ func TestRun(t *testing.T) {
 						{
 							Port:    80,
 							Type:    "http",
-							Publish: ptr(true),
+							Publish: new(true),
 							Ingresses: []*model.ConfigIngress{
 								{
 									Fqdn: []string{"svc.domain.com"},
@@ -50,13 +50,13 @@ func TestRun(t *testing.T) {
 						{
 							Port:      3000,
 							Type:      "tcp",
-							Publish:   ptr(false),
+							Publish:   new(false),
 							Ingresses: nil,
 						},
 						{
 							Port:      3000,
 							Type:      "udp",
-							Publish:   ptr(false),
+							Publish:   new(false),
 							Ingresses: nil,
 						},
 					},
@@ -77,8 +77,8 @@ func TestRun(t *testing.T) {
 					},
 					HealthCheck: &model.ConfigHealthCheck{
 						Port:                80,
-						InitialDelaySeconds: ptr(10),
-						ProbePeriodSeconds:  ptr(10),
+						InitialDelaySeconds: new(10),
+						ProbePeriodSeconds:  new(10),
 					},
 				}
 			},
@@ -117,7 +117,7 @@ func TestRun(t *testing.T) {
 							Type:     "volume",
 							Source:   "branch-run-service-name-asd",
 							Target:   "/path/to/asd",
-							ReadOnly: ptr(false),
+							ReadOnly: new(false),
 						},
 					},
 				}

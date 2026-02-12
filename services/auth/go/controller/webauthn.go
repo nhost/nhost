@@ -74,7 +74,7 @@ func NewWebAuthn(config Config) (*Webauthn, error) {
 		},
 		AuthenticatorSelection: protocol.AuthenticatorSelection{
 			AuthenticatorAttachment: "",
-			RequireResidentKey:      ptr(false),
+			RequireResidentKey:      new(false),
 			ResidentKey:             protocol.ResidentKeyRequirementPreferred,
 			UserVerification:        protocol.VerificationPreferred,
 		},

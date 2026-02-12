@@ -66,10 +66,10 @@ func (t *Tool) registerManageGraphql(mcpServer *server.MCPServer) {
 		mcp.WithToolAnnotation(
 			mcp.ToolAnnotation{
 				Title:           "Manage GraphQL's Metadata on an Nhost Development Project",
-				ReadOnlyHint:    ptr(false),
-				DestructiveHint: ptr(true),
-				IdempotentHint:  ptr(true),
-				OpenWorldHint:   ptr(true),
+				ReadOnlyHint:    new(false),
+				DestructiveHint: new(true),
+				IdempotentHint:  new(true),
+				OpenWorldHint:   new(true),
 			},
 		),
 		mcp.WithString(

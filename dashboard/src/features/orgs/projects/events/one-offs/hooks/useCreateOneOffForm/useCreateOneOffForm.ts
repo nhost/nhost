@@ -71,6 +71,7 @@ export default function useCreateOneOffForm() {
 
   const form = useForm<CreateOneOffFormValues>({
     resolver: zodResolver(validationSchema),
+    reValidateMode: 'onSubmit',
     defaultValues: defaultFormValues,
   });
 

@@ -19,13 +19,7 @@ export const HEADER_TYPES = [
   { label: 'Env Var', value: 'fromEnv' },
 ] as const;
 
-interface HeadersFormSectionProps {
-  className?: string;
-}
-
-export default function HeadersFormSection({
-  className,
-}: HeadersFormSectionProps) {
+export default function HeadersFormSection() {
   const form = useFormContext<HeadersFormValues>();
   const { watch } = form;
   const { fields, append, remove } = useFieldArray({
@@ -36,7 +30,7 @@ export default function HeadersFormSection({
   const types = watch('headers').map((header) => header.type);
 
   return (
-    <div className={`flex flex-col gap-6 ${className}`}>
+    <div className="flex flex-col gap-6 pl-4">
       <div className="flex items-center justify-between">
         <div className="flex flex-row items-center gap-2">
           <h3 className="font-medium text-base text-foreground">
@@ -61,19 +55,17 @@ export default function HeadersFormSection({
       </div>
       <div className="flex flex-col gap-4">
         {fields.length > 0 && (
-          <div className="grid grid-cols-[3fr_auto_4fr_auto] gap-2 text-foreground text-sm+">
-            <span>Key</span>
-            <div />
-            <span>Value</span>
-            <div />
+          <div className="grid grid-cols-9 gap-2 text-foreground text-sm+">
+            <span className="col-span-3">Key</span>
+            <span className="col-span-4 col-start-5">Value</span>
           </div>
         )}
         {fields.map((fieldItem, index) => (
           <div
             key={fieldItem.id}
-            className="grid grid-cols-[3fr_auto_4fr_auto] items-center gap-2"
+            className="grid grid-cols-9 items-center gap-2"
           >
-            <div className="self-start">
+            <div className="col-span-3 self-start">
               <FormInput
                 control={form.control}
                 name={`headers.${index}.name`}
@@ -86,7 +78,7 @@ export default function HeadersFormSection({
             <div className="flex h-10 items-center justify-center self-start pt-2">
               <span className="text-center text-foreground">:</span>
             </div>
-            <div className="flex items-center self-start">
+            <div className="col-span-4 flex items-center self-start">
               <div className="self-start">
                 <FormSelect
                   control={form.control}
@@ -117,7 +109,7 @@ export default function HeadersFormSection({
                 />
               </div>
             </div>
-            <div className="self-start pt-3">
+            <div className="flex justify-end self-start pt-3">
               <Button
                 type="button"
                 variant="ghost"

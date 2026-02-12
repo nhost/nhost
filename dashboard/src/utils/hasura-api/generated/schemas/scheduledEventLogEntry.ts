@@ -26,7 +26,7 @@ export interface ScheduledEventLogEntry {
   header_conf?: Headers;
   payload?: ScheduledEventLogEntryPayload;
   retry_conf?: RetryConfCT;
-  webhook_conf?: string;
+  webhook_conf: string;
   request_transform?: RequestTransformation | null;
   response_transform?: ResponseTransformation | null;
 }

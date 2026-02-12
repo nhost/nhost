@@ -130,7 +130,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
-					Code:  ptr("valid-code-1"),
+					Code:  new("valid-code-1"),
 					State: getState(t, jwtGetter, nil, api.SignUpOptions{}), //nolint:exhaustruct
 				},
 				Provider: "fake",
@@ -200,16 +200,16 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
-					Code: ptr("valid-code-1"),
+					Code: new("valid-code-1"),
 					State: getState(t, jwtGetter, nil, api.SignUpOptions{
 						AllowedRoles: &[]string{"me"},
-						DefaultRole:  ptr("me"),
-						DisplayName:  ptr("My Name"),
-						Locale:       ptr("es"),
+						DefaultRole:  new("me"),
+						DisplayName:  new("My Name"),
+						Locale:       new("es"),
 						Metadata: &map[string]any{
 							"key": "value",
 						},
-						RedirectTo: ptr("http://localhost:3000/redirect/me/here"),
+						RedirectTo: new("http://localhost:3000/redirect/me/here"),
 					}),
 				},
 				Provider: "fake",
@@ -252,7 +252,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
-					Code:  ptr("valid-code-1"),
+					Code:  new("valid-code-1"),
 					State: getState(t, jwtGetter, nil, api.SignUpOptions{}), //nolint:exhaustruct
 				},
 				Provider: "fake",
@@ -320,7 +320,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
-					Code:  ptr("valid-code-1"),
+					Code:  new("valid-code-1"),
 					State: getState(t, jwtGetter, nil, api.SignUpOptions{}), //nolint:exhaustruct
 				},
 				Provider: "fake",
@@ -363,7 +363,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
-					Code:  ptr("valid-code-1"),
+					Code:  new("valid-code-1"),
 					State: getState(t, jwtGetter, nil, api.SignUpOptions{}), //nolint:exhaustruct
 				},
 				Provider: "fake",
@@ -455,7 +455,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
-					Code:  ptr("valid-code-1"),
+					Code:  new("valid-code-1"),
 					State: getState(t, jwtGetter, nil, api.SignUpOptions{}), //nolint:exhaustruct
 				},
 				Provider: "fake",
@@ -572,7 +572,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
-					Code:  ptr("valid-code-1"),
+					Code:  new("valid-code-1"),
 					State: getState(t, jwtGetter, nil, api.SignUpOptions{}), //nolint:exhaustruct
 				},
 				Provider: "fake",
@@ -637,7 +637,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
-					Code:  ptr("valid-code-1"),
+					Code:  new("valid-code-1"),
 					State: getState(t, jwtGetter, nil, api.SignUpOptions{}), //nolint:exhaustruct
 				},
 				Provider: "fake",
@@ -662,7 +662,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
-					Code:  ptr("valid-code-1"),
+					Code:  new("valid-code-1"),
 					State: "wrong-state",
 				},
 				Provider: "fake",
@@ -687,9 +687,9 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
-					Code: ptr("valid-code-1"),
+					Code: new("valid-code-1"),
 					State: getState(t, jwtGetter, nil, api.SignUpOptions{ //nolint:exhaustruct
-						RedirectTo: ptr("http://now.allowed/redirect/me/here"),
+						RedirectTo: new("http://now.allowed/redirect/me/here"),
 					}),
 				},
 				Provider: "fake",
@@ -714,7 +714,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
-					Code:  ptr("valid-code-1"),
+					Code:  new("valid-code-1"),
 					State: getState(t, jwtGetter, nil, api.SignUpOptions{}), //nolint:exhaustruct
 				},
 				Provider: "idontexist",
@@ -742,9 +742,9 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 					State: getState(
 						t, jwtGetter, nil, api.SignUpOptions{}, //nolint:exhaustruct
 					),
-					Error:            ptr("error-coming-from-provider"),
-					ErrorDescription: ptr("This is an error coming from the provider"),
-					ErrorUri:         ptr("https://example.com/error"),
+					Error:            new("error-coming-from-provider"),
+					ErrorDescription: new("This is an error coming from the provider"),
+					ErrorUri:         new("https://example.com/error"),
 				},
 				Provider: "fake",
 			},
@@ -830,9 +830,9 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
-					Code: ptr("valid-code-1"),
+					Code: new("valid-code-1"),
 					State: getState(t, jwtGetter, &jwtToken, api.SignUpOptions{ //nolint:exhaustruct
-						RedirectTo: ptr("http://localhost:3000/connect-success"),
+						RedirectTo: new("http://localhost:3000/connect-success"),
 					}),
 				},
 				Provider: "fake",
@@ -893,9 +893,9 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
-					Code: ptr("valid-code-1"),
+					Code: new("valid-code-1"),
 					State: getState(t, jwtGetter, &jwtToken, api.SignUpOptions{ //nolint:exhaustruct
-						RedirectTo: ptr("http://localhost:3000/connect-success"),
+						RedirectTo: new("http://localhost:3000/connect-success"),
 					}),
 				},
 				Provider: "fake",
@@ -925,9 +925,9 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
-					Code: ptr("valid-code-1"),
+					Code: new("valid-code-1"),
 					State: getState(t, jwtGetter, &jwtToken, api.SignUpOptions{ //nolint:exhaustruct
-						RedirectTo: ptr("http://localhost:3000/connect-success"),
+						RedirectTo: new("http://localhost:3000/connect-success"),
 					}),
 				},
 				Provider: "fake",
@@ -1000,9 +1000,9 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
-					Code: ptr("valid-code-1"),
+					Code: new("valid-code-1"),
 					State: getState(t, jwtGetter, &jwtToken, api.SignUpOptions{ //nolint:exhaustruct
-						RedirectTo: ptr("http://localhost:3000/connect-success"),
+						RedirectTo: new("http://localhost:3000/connect-success"),
 					}),
 				},
 				Provider: "fake",
@@ -1026,10 +1026,10 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
-					Code: ptr("valid-code-1"),
-					State: getState(t, jwtGetter, ptr("invalid-jwt-token"),
+					Code: new("valid-code-1"),
+					State: getState(t, jwtGetter, new("invalid-jwt-token"),
 						api.SignUpOptions{ //nolint:exhaustruct
-							RedirectTo: ptr("http://localhost:3000/connect-success"),
+							RedirectTo: new("http://localhost:3000/connect-success"),
 						},
 					),
 				},
@@ -1100,7 +1100,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
-					Code:  ptr("valid-code-empty-email"),
+					Code:  new("valid-code-empty-email"),
 					State: getState(t, jwtGetter, nil, api.SignUpOptions{}), //nolint:exhaustruct
 				},
 				Provider: "fake",
@@ -1143,7 +1143,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
-					Code:  ptr("valid-code-empty-email"),
+					Code:  new("valid-code-empty-email"),
 					State: getState(t, jwtGetter, nil, api.SignUpOptions{}), //nolint:exhaustruct
 				},
 				Provider: "fake",
@@ -1211,7 +1211,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			},
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
-					Code:  ptr("valid-code-empty-email"),
+					Code:  new("valid-code-empty-email"),
 					State: getState(t, jwtGetter, nil, api.SignUpOptions{}), //nolint:exhaustruct
 				},
 				Provider: "fake",

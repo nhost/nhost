@@ -17,7 +17,7 @@ runs:
 
         # Define valid types and packages
         VALID_TYPES="feat|fix|chore"
-        VALID_PKGS="auth|ci|cli|codegen|dashboard|deps|docs|examples|internal\/lib|nhost-js|nixops|storage"
+        VALID_PKGS="auth|ci|cli|codegen|dashboard|deps|docs|examples|internal\/lib|nhost-js|nixops|storage|observability"
 
         # Check if title matches the pattern TYPE(PKG): SUMMARY
         if [[ ! "$PR_TITLE" =~ ^(${VALID_TYPES})\((${VALID_PKGS})\):\ .+ ]]; then
@@ -32,7 +32,7 @@ runs:
           echo ""
           echo "Valid PKGs:"
           echo "  - auth, ci, cli, codegen, dashboard, deps, docs, examples,"
-          echo "  - nhost-js, nixops, storage"
+          echo "  - nhost-js, nixops, storage, observability, internal/lib"
           echo ""
           echo "Example: feat(cli): add new command for database migrations"
           exit 1

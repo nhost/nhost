@@ -18,10 +18,6 @@ const (
 	defaultSearchLimit = 10
 )
 
-func ptr[T any](v T) *T {
-	return &v
-}
-
 type SearchRequest struct {
 	Query string `json:"query"`
 	Limit int    `json:"limit,omitempty"`
@@ -48,10 +44,10 @@ func (t *Tool) registerSearch(mcpServer *server.MCPServer) {
 		mcp.WithToolAnnotation(
 			mcp.ToolAnnotation{
 				Title:           "Search Nhost Docs",
-				ReadOnlyHint:    ptr(true),
-				DestructiveHint: ptr(false),
-				IdempotentHint:  ptr(true),
-				OpenWorldHint:   ptr(false),
+				ReadOnlyHint:    new(true),
+				DestructiveHint: new(false),
+				IdempotentHint:  new(true),
+				OpenWorldHint:   new(false),
 			},
 		),
 		mcp.WithString(

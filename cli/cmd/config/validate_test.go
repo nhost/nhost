@@ -12,10 +12,6 @@ import (
 	"github.com/nhost/nhost/cli/project/env"
 )
 
-func ptr[T any](t T) *T {
-	return &t
-}
-
 func expectedConfig() *model.ConfigConfig {
 	//nolint:exhaustruct
 	return &model.ConfigConfig{
@@ -26,20 +22,20 @@ func expectedConfig() *model.ConfigConfig {
 			},
 		},
 		Hasura: &model.ConfigHasura{
-			Version: ptr("v2.25.0-ce"),
+			Version: new("v2.25.0-ce"),
 			JwtSecrets: []*model.ConfigJWTSecret{
 				{
-					Type: ptr("HS256"),
-					Key:  ptr("0f987876650b4a085e64594fae9219e7781b17506bec02489ad061fba8cb22db"),
+					Type: new("HS256"),
+					Key:  new("0f987876650b4a085e64594fae9219e7781b17506bec02489ad061fba8cb22db"),
 				},
 			},
 			AdminSecret:   "nhost-admin-secret",
 			WebhookSecret: "nhost-webhook-secret",
 			Settings: &model.ConfigHasuraSettings{
 				CorsDomain:                    []string{"*"},
-				DevMode:                       ptr(true),
-				EnableAllowList:               ptr(false),
-				EnableConsole:                 ptr(true),
+				DevMode:                       new(true),
+				EnableAllowList:               new(false),
+				EnableConsole:                 new(true),
 				EnableRemoteSchemaPermissions: new(bool),
 				EnabledAPIs: []string{
 					"metadata",
@@ -47,43 +43,43 @@ func expectedConfig() *model.ConfigConfig {
 					"pgdump",
 					"config",
 				},
-				InferFunctionPermissions:              ptr(true),
-				LiveQueriesMultiplexedRefetchInterval: ptr(uint32(1000)),
-				StringifyNumericTypes:                 ptr(false),
+				InferFunctionPermissions:              new(true),
+				LiveQueriesMultiplexedRefetchInterval: new(uint32(1000)),
+				StringifyNumericTypes:                 new(false),
 			},
-			Logs:   &model.ConfigHasuraLogs{Level: ptr("warn")},
-			Events: &model.ConfigHasuraEvents{HttpPoolSize: ptr(uint32(100))},
+			Logs:   &model.ConfigHasuraLogs{Level: new("warn")},
+			Events: &model.ConfigHasuraEvents{HttpPoolSize: new(uint32(100))},
 		},
-		Functions: &model.ConfigFunctions{Node: &model.ConfigFunctionsNode{Version: ptr(22)}},
+		Functions: &model.ConfigFunctions{Node: &model.ConfigFunctionsNode{Version: new(22)}},
 		Auth: &model.ConfigAuth{
-			Version: ptr("0.20.0"),
+			Version: new("0.20.0"),
 			Misc: &model.ConfigAuthMisc{
-				ConcealErrors: ptr(false),
+				ConcealErrors: new(false),
 			},
 			ElevatedPrivileges: &model.ConfigAuthElevatedPrivileges{
-				Mode: ptr("disabled"),
+				Mode: new("disabled"),
 			},
 			Redirections: &model.ConfigAuthRedirections{
-				ClientUrl:   ptr("http://localhost:3000"),
+				ClientUrl:   new("http://localhost:3000"),
 				AllowedUrls: []string{},
 			},
 			SignUp: &model.ConfigAuthSignUp{
-				Enabled:         ptr(true),
-				DisableNewUsers: ptr(false),
+				Enabled:         new(true),
+				DisableNewUsers: new(false),
 			},
 			User: &model.ConfigAuthUser{
 				Roles: &model.ConfigAuthUserRoles{
-					Default: ptr("user"),
+					Default: new("user"),
 					Allowed: []string{"user", "me"},
 				},
 				Locale: &model.ConfigAuthUserLocale{
-					Default: ptr("en"),
+					Default: new("en"),
 					Allowed: []string{"en"},
 				},
 				Gravatar: &model.ConfigAuthUserGravatar{
-					Enabled: ptr(true),
-					Default: ptr("blank"),
-					Rating:  ptr("g"),
+					Enabled: new(true),
+					Default: new("blank"),
+					Rating:  new("g"),
 				},
 				Email: &model.ConfigAuthUserEmail{
 					Allowed: []string{},
@@ -96,94 +92,94 @@ func expectedConfig() *model.ConfigConfig {
 			},
 			Session: &model.ConfigAuthSession{
 				AccessToken: &model.ConfigAuthSessionAccessToken{
-					ExpiresIn:    ptr(uint32(900)),
+					ExpiresIn:    new(uint32(900)),
 					CustomClaims: []*model.ConfigAuthsessionaccessTokenCustomClaims{},
 				},
 				RefreshToken: &model.ConfigAuthSessionRefreshToken{
-					ExpiresIn: ptr(uint32(2592000)),
+					ExpiresIn: new(uint32(2592000)),
 				},
 			},
 			Method: &model.ConfigAuthMethod{
 				Anonymous: &model.ConfigAuthMethodAnonymous{
-					Enabled: ptr(false),
+					Enabled: new(false),
 				},
 				Otp: &model.ConfigAuthMethodOtp{
 					Email: &model.ConfigAuthMethodOtpEmail{
-						Enabled: ptr(false),
+						Enabled: new(false),
 					},
 				},
 				EmailPasswordless: &model.ConfigAuthMethodEmailPasswordless{
-					Enabled: ptr(false),
+					Enabled: new(false),
 				},
 				EmailPassword: &model.ConfigAuthMethodEmailPassword{
-					HibpEnabled:               ptr(false),
-					EmailVerificationRequired: ptr(true),
-					PasswordMinLength:         ptr(uint8(9)),
+					HibpEnabled:               new(false),
+					EmailVerificationRequired: new(true),
+					PasswordMinLength:         new(uint8(9)),
 				},
 				SmsPasswordless: &model.ConfigAuthMethodSmsPasswordless{
-					Enabled: ptr(false),
+					Enabled: new(false),
 				},
 				Oauth: &model.ConfigAuthMethodOauth{
 					Apple: &model.ConfigAuthMethodOauthApple{
-						Enabled: ptr(false),
+						Enabled: new(false),
 					},
 					Azuread: &model.ConfigAuthMethodOauthAzuread{
-						Enabled: ptr(false),
-						Tenant:  ptr("common"),
+						Enabled: new(false),
+						Tenant:  new("common"),
 					},
 					Bitbucket: &model.ConfigStandardOauthProvider{
-						Enabled: ptr(false),
+						Enabled: new(false),
 					},
 					Discord: &model.ConfigStandardOauthProviderWithScope{
-						Enabled: ptr(false),
+						Enabled: new(false),
 					},
 					Entraid: &model.ConfigAuthMethodOauthEntraid{
-						Enabled: ptr(false),
-						Tenant:  ptr("common"),
+						Enabled: new(false),
+						Tenant:  new("common"),
 					},
 					Facebook: &model.ConfigStandardOauthProviderWithScope{
-						Enabled: ptr(false),
+						Enabled: new(false),
 					},
 					Github: &model.ConfigStandardOauthProviderWithScope{
-						Enabled: ptr(false),
+						Enabled: new(false),
 					},
 					Gitlab: &model.ConfigStandardOauthProviderWithScope{
-						Enabled: ptr(false),
+						Enabled: new(false),
 					},
 					Google: &model.ConfigStandardOauthProviderWithScope{
-						Enabled: ptr(false),
+						Enabled: new(false),
 					},
 					Linkedin: &model.ConfigStandardOauthProviderWithScope{
-						Enabled: ptr(false),
+						Enabled: new(false),
 					},
 					Spotify: &model.ConfigStandardOauthProviderWithScope{
-						Enabled: ptr(false),
+						Enabled: new(false),
 					},
 					Strava: &model.ConfigStandardOauthProviderWithScope{
-						Enabled: ptr(false),
+						Enabled: new(false),
 					},
 					Twitch: &model.ConfigStandardOauthProviderWithScope{
-						Enabled: ptr(false),
+						Enabled: new(false),
 					},
 					Twitter: &model.ConfigAuthMethodOauthTwitter{
-						Enabled: ptr(false),
+						Enabled: new(false),
 					},
 					Windowslive: &model.ConfigStandardOauthProviderWithScope{
-						Enabled: ptr(false),
+						Enabled: new(false),
 					},
 					Workos: &model.ConfigAuthMethodOauthWorkos{
-						Enabled: ptr(false),
+						Enabled: new(false),
 					},
 				},
 				Webauthn: &model.ConfigAuthMethodWebauthn{
-					Enabled:      ptr(false),
+					Enabled:      new(false),
 					RelyingParty: nil,
 					Attestation: &model.ConfigAuthMethodWebauthnAttestation{
-						Timeout: ptr(uint32(60000)),
+						Timeout: new(uint32(60000)),
 					},
 				},
 			},
-			Totp: &model.ConfigAuthTotp{Enabled: ptr(false)},
+			Totp: &model.ConfigAuthTotp{Enabled: new(false)},
 			RateLimit: &model.ConfigAuthRateLimit{
 				Emails: &model.ConfigRateLimit{
 					Limit:    10,
@@ -208,7 +204,7 @@ func expectedConfig() *model.ConfigConfig {
 			},
 		},
 		Postgres: &model.ConfigPostgres{
-			Version: ptr("14.6-20230406-2"),
+			Version: new("14.6-20230406-2"),
 			Resources: &model.ConfigPostgresResources{
 				Storage: &model.ConfigPostgresResourcesStorage{
 					Capacity: 1,
@@ -216,13 +212,13 @@ func expectedConfig() *model.ConfigConfig {
 			},
 		},
 		Provider: &model.ConfigProvider{},
-		Storage:  &model.ConfigStorage{Version: ptr("0.3.4")},
+		Storage:  &model.ConfigStorage{Version: new("0.3.4")},
 		Observability: &model.ConfigObservability{
 			Grafana: &model.ConfigGrafana{
 				AdminPassword: "grafana-admin-password",
 				Smtp:          nil,
 				Alerting: &model.ConfigGrafanaAlerting{
-					Enabled: ptr(false),
+					Enabled: new(false),
 				},
 				Contacts: &model.ConfigGrafanaContacts{},
 			},

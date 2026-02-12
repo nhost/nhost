@@ -38,7 +38,7 @@ export default function OneOffsView() {
     <div className="flex h-full w-full flex-col overflow-hidden bg-background">
       <div className="sticky top-0 z-10 border-b-1 bg-background">
         <div className="flex flex-col items-start justify-between gap-4 px-6 py-4 lg:flex-row lg:items-center">
-          <h1 className="w-full">One-off Scheduled Events</h1>
+          <h1 className="w-full">One-Off Scheduled Events</h1>
 
           <div className="flex w-full flex-row items-center gap-4">
             <PaginationControls

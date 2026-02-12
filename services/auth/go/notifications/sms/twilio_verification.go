@@ -47,7 +47,7 @@ func (s *TwilioVerificationService) SendVerificationCode(
 		&openapi.CreateVerificationParams{ //nolint:exhaustruct
 			To:      &to,
 			Locale:  &locale,
-			Channel: ptr("sms"),
+			Channel: new("sms"),
 		},
 	); err != nil {
 		return "", time.Time{}, fmt.Errorf("failed to fetch verification service: %w", err)

@@ -1,1 +1,1 @@
-package user
+package user //nolint:revive

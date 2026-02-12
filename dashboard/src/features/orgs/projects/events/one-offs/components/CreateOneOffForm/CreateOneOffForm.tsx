@@ -128,9 +128,9 @@ export default function CreateOneOffForm({ disabled }: CreateOneOffFormProps) {
                     </AccordionTrigger>
                     <AccordionContent>
                       <div className="flex flex-col gap-8 border-l">
-                        <RetryConfigurationFormSection className="pl-4" />
+                        <RetryConfigurationFormSection />
                         <Separator />
-                        <HeadersFormSection className="pl-4" />
+                        <HeadersFormSection />
                       </div>
                     </AccordionContent>
                   </AccordionItem>

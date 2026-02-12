@@ -195,6 +195,6 @@ func console( //nolint:funlen
 				ReadOnly: new(bool),
 			},
 		},
-		WorkingDir: ptr("/app"),
+		WorkingDir: new("/app"),
 	}, nil
 }
