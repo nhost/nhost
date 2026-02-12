@@ -1,5 +1,5 @@
 import { TriangleAlert } from 'lucide-react';
-import ResetMetadataDialog from '@/features/orgs/projects/graphql/metadata/components/ResetMetadataDialog/ResetMetadataDialog';
+import { ResetMetadataDialog } from '@/features/orgs/projects/graphql/metadata/components/ResetMetadataDialog';
 
 export default function ResetMetadataCard() {
   return (

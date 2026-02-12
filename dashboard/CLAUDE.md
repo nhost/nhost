@@ -161,7 +161,7 @@ src/
 - Use `VoidFunction` for callback types
 - Curly braces required for all control statements (ESLint `curly: ['error', 'all']`)
 - Prefer early returns over nested conditionals
-- No comments unless explaining complex logic (code should be self-documenting)
+- No comments unless explaining complex logic (code should be self-explanatory)
 - Do not add inline JSX comments like `{/* Section Name */}` to label sections in components — the code should be self-documenting
 
 ## Linting and Formatting

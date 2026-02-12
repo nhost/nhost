@@ -13,7 +13,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/v3/dialog';
 import { Label } from '@/components/ui/v3/label';
-import useClearMetadataMutation from '@/features/orgs/projects/graphql/metadata/hooks/useClearMetadataMutation/useClearMetadataMutation';
+import { useClearMetadataMutation } from '@/features/orgs/projects/graphql/metadata/hooks/useClearMetadataMutation';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 
 export default function ResetMetadataDialog() {
@@ -26,6 +26,7 @@ export default function ResetMetadataDialog() {
       async () => {
         await clearMetadata();
         setOpen(false);
+        setConfirmed(false);
       },
       {
         loadingMessage: 'Resetting metadata...',
@@ -40,9 +41,7 @@ export default function ResetMetadataDialog() {
       open={open}
       onOpenChange={(value) => {
         setOpen(value);
-        if (!value) {
-          setConfirmed(false);
-        }
+        setConfirmed(false);
       }}
     >
       <DialogTrigger asChild>

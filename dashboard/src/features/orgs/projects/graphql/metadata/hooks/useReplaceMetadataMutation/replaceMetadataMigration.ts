@@ -7,7 +7,7 @@ export interface ReplaceMetadataMigrationVariables {
   allowInconsistentMetadata: boolean;
 }
 
-export default async function addRemoteSchemaPermissionsMigration({
+export default async function replaceMetadataMigration({
   appUrl,
   adminSecret,
   oldMetadata,

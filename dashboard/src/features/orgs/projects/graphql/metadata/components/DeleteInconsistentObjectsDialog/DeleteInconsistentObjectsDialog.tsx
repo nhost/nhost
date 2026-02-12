@@ -11,7 +11,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/v3/dialog';
-import useDropInconsistentMetadataMutation from '@/features/orgs/projects/graphql/metadata/hooks/useDropInconsistentMetadataMutation/useDropInconsistentMetadataMutation';
+import { useDropInconsistentMetadataMutation } from '@/features/orgs/projects/graphql/metadata/hooks/useDropInconsistentMetadataMutation';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 
 export default function DeleteInconsistentObjectsDialog() {

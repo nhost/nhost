@@ -1,8 +1,8 @@
 import { Loader2, TriangleAlert } from 'lucide-react';
 import Link from 'next/link';
-import MetadataConsistentStatus from '@/features/orgs/projects/graphql/metadata/components/MetadataConsistentStatus/MetadataConsistentStatus';
-import MetadataInconsistentStatus from '@/features/orgs/projects/graphql/metadata/components/MetadataInconsistentStatus/MetadataInconsistentStatus';
-import useGetInconsistentMetadata from '@/features/orgs/projects/graphql/metadata/hooks/useGetInconsistentMetadata/useGetInconsistentMetadata';
+import { MetadataConsistentStatus } from '@/features/orgs/projects/graphql/metadata/components/MetadataConsistentStatus';
+import { MetadataInconsistentStatus } from '@/features/orgs/projects/graphql/metadata/components/MetadataInconsistentStatus';
+import { useGetInconsistentMetadata } from '@/features/orgs/projects/graphql/metadata/hooks/useGetInconsistentMetadata';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 

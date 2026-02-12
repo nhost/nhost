@@ -15,7 +15,7 @@ import {
   TableRow,
 } from '@/components/ui/v3/table';
 import { DeleteInconsistentObjectsDialog } from '@/features/orgs/projects/graphql/metadata/components/DeleteInconsistentObjectsDialog';
-import InconsistentObjectDefinitionDialog from '@/features/orgs/projects/graphql/metadata/components/InconsistentObjectDefinitionDialog/InconsistentObjectDefinitionDialog';
+import { InconsistentObjectDefinitionDialog } from '@/features/orgs/projects/graphql/metadata/components/InconsistentObjectDefinitionDialog';
 import type { InconsistentObject } from '@/utils/hasura-api/generated/schemas';
 
 interface MetadataInconsistentStatusProps {
