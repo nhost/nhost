@@ -39,9 +39,12 @@ func (n *Client) Login(ctx context.Context, email, password string) (credentials
 				b, _ := io.ReadAll(resp.Body)
 
 				var reqErr *RequestError
+
 				_ = json.Unmarshal(b, &reqErr)
+
 				return reqErr
 			}
+
 			return nil
 		},
 		n.retryer,
@@ -73,9 +76,12 @@ func (n *Client) VerifyEmail(ctx context.Context, email string) error {
 				b, _ := io.ReadAll(resp.Body)
 
 				var reqErr *RequestError
+
 				_ = json.Unmarshal(b, &reqErr)
+
 				return reqErr
 			}
+
 			return nil
 		},
 		n.retryer,
@@ -105,12 +111,14 @@ func (n *Client) LoginPAT(ctx context.Context, pat string) (credentials.Session,
 		func(resp *http.Response) error {
 			if resp.StatusCode != http.StatusOK {
 				b, _ := io.ReadAll(resp.Body)
+
 				return fmt.Errorf( //nolint:err113
 					"unexpected status code: %d, message: %s",
 					resp.StatusCode,
 					string(b),
 				)
 			}
+
 			return nil
 		},
 		n.retryer,
@@ -149,12 +157,14 @@ func (n *Client) CreatePAT(
 		func(resp *http.Response) error {
 			if resp.StatusCode != http.StatusOK {
 				b, _ := io.ReadAll(resp.Body)
+
 				return fmt.Errorf( //nolint:err113
 					"unexpected status code: %d, message: %s",
 					resp.StatusCode,
 					string(b),
 				)
 			}
+
 			return nil
 		},
 		n.retryer,
@@ -208,12 +218,14 @@ func (n *Client) RefreshToken(
 		func(resp *http.Response) error {
 			if resp.StatusCode != http.StatusOK {
 				b, _ := io.ReadAll(resp.Body)
+
 				return fmt.Errorf( //nolint:err113
 					"unexpected status code: %d, message: %s",
 					resp.StatusCode,
 					string(b),
 				)
 			}
+
 			return nil
 		},
 		n.retryer,

@@ -48,7 +48,7 @@ func run(
 			Type:     "volume",
 			Source:   runVolumeName(cfg.GetName(), s.GetName(), branchName),
 			Target:   s.GetPath(),
-			ReadOnly: ptr(false),
+			ReadOnly: new(false),
 		})
 	}
 

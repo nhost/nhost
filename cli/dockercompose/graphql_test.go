@@ -236,9 +236,9 @@ func expectedConsole() *Service {
 		Ports:   nil,
 		Restart: "always",
 		Volumes: []Volume{
-			{Type: "bind", Source: "/path/to/nhost", Target: "/app", ReadOnly: ptr(false)},
+			{Type: "bind", Source: "/path/to/nhost", Target: "/app", ReadOnly: new(false)},
 		},
-		WorkingDir: ptr("/app"),
+		WorkingDir: new("/app"),
 	}
 }
 
@@ -255,7 +255,7 @@ func TestConsole(t *testing.T) {
 			name: "success",
 			cfg: func() *model.ConfigConfig {
 				cfg := getConfig()
-				cfg.Hasura.Version = ptr("v2.25.0")
+				cfg.Hasura.Version = new("v2.25.0")
 
 				return cfg
 			},
