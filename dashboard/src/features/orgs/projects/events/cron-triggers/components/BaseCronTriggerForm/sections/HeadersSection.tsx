@@ -44,6 +44,7 @@ export default function HeadersSection({ className }: HeadersSectionProps) {
           size="sm"
           className="px-4 text-primary hover:bg-muted hover:text-primary"
           onClick={() => append({ name: '', type: 'fromValue', value: '' })}
+          data-testid="add-header-button"
         >
           <PlusIcon className="size-5" />
         </Button>

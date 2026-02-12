@@ -10,7 +10,7 @@ import type { EventInvocationLogEntryHeaders } from './eventInvocationLogEntryHe
 /**
  * Response data from the webhook
  */
-export type CronTriggerInvocationLogEntryResponseData = {
+export type InvocationLogEntryResponseData = {
   /** Response body as string */
   body?: string;
   headers?: EventInvocationLogEntryHeaders;

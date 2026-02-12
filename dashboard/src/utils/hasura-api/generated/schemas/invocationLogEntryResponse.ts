@@ -5,14 +5,14 @@
  * API for managing remote schemas and events in Hasura
  * OpenAPI spec version: 1.0.0
  */
-import type { CronTriggerInvocationLogEntryResponseData } from './cronTriggerInvocationLogEntryResponseData';
+import type { InvocationLogEntryResponseData } from './invocationLogEntryResponseData';
 
 /**
  * Details of the HTTP response from the webhook
  */
-export type CronTriggerInvocationLogEntryResponse = {
+export type InvocationLogEntryResponse = {
   /** Response data from the webhook */
-  data: CronTriggerInvocationLogEntryResponseData;
+  data: InvocationLogEntryResponseData;
   /** Type of response */
   type: string;
   /** Version of the response format */
