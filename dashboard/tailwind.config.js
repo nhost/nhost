@@ -24,6 +24,7 @@ module.exports = {
         'data-cell-bg-odd': 'hsl(var(--data-cell-bg-odd))',
         'data-cell-bg-hover': 'hsl(var(--data-cell-bg-hover))',
         'data-table-border-color': 'hsl(var(--data-table-border-color))',
+        'check-permissions-bg': 'hsl(var(--check-permissions-bg))',
         'primary-text': 'hsl(var(--primary-text))',
         'primary-main': 'hsl(var(--primary-main))',
         'primary-highlight': 'hsl(var(--primary-highlight))',
@@ -55,6 +56,14 @@ module.exports = {
         secondary: {
           DEFAULT: 'hsl(var(--secondary))',
           foreground: 'hsl(var(--secondary-foreground))',
+          100: 'hsl(var(--secondary-100))',
+          200: 'hsl(var(--secondary-200))',
+          300: 'hsl(var(--secondary-300))',
+          400: 'hsl(var(--secondary-400))',
+          500: 'hsl(var(--secondary-500))',
+          600: 'hsl(var(--secondary-600))',
+          700: 'hsl(var(--secondary-700))',
+          800: 'hsl(var(--secondary-800))',
         },
         muted: {
           DEFAULT: 'hsl(var(--muted))',

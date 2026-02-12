@@ -13,10 +13,12 @@ import { useManagePermissionMutation } from '@/features/orgs/projects/database/d
 import type {
   DatabaseAction,
   HasuraMetadataPermission,
-  RuleGroup,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { convertToHasuraPermissions } from '@/features/orgs/projects/database/dataGrid/utils/convertToHasuraPermissions';
-import { convertToRuleGroup } from '@/features/orgs/projects/database/dataGrid/utils/convertToRuleGroup';
+import type { GroupNode } from '@/features/orgs/projects/database/dataGrid/utils/ruleGroupV2';
+import {
+  parseRuleGroup,
+  serializeRuleGroup,
+} from '@/features/orgs/projects/database/dataGrid/utils/ruleGroupV2';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import type { DialogFormProps } from '@/types/common';
@@ -116,17 +118,17 @@ export interface RolePermissionEditorFormProps extends DialogFormProps {
 function getDefaultRuleGroup(
   action: DatabaseAction,
   permission?: HasuraMetadataPermission['permission'],
-): RuleGroup | null {
+): GroupNode | null {
   if (!permission) {
     return null;
   }
 
   if (action === 'insert' && isNotEmptyValue(permission.check)) {
-    return convertToRuleGroup(permission.check);
+    return parseRuleGroup(permission.check);
   }
 
   return isNotEmptyValue(permission.filter)
-    ? convertToRuleGroup(permission.filter)
+    ? parseRuleGroup(permission.filter)
     : null;
 }
 
@@ -244,11 +246,15 @@ export default function RolePermissionEditorForm({
           : null,
         filter:
           action !== 'insert'
-            ? (convertToHasuraPermissions(values.filter as RuleGroup) ?? {})
+            ? values.filter
+              ? serializeRuleGroup(values.filter as GroupNode)
+              : {}
             : permission?.filter,
         check:
           action === 'insert'
-            ? (convertToHasuraPermissions(values.filter as RuleGroup) ?? {})
+            ? values.filter
+              ? serializeRuleGroup(values.filter as GroupNode)
+              : {}
             : permission?.check,
         backend_only: values.backendOnly,
         computed_fields: isNotEmptyValue(permission?.computed_fields)

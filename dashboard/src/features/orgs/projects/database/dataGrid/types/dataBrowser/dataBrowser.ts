@@ -597,9 +597,7 @@ export interface Rule {
  * groups.
  */
 export interface RuleGroup {
-  operator: '_and' | '_or';
+  operator: '_and' | '_or' | '_not';
   rules: Rule[];
   groups: RuleGroup[];
-  // biome-ignore lint/suspicious/noExplicitAny: TODO
-  unsupported?: Record<string, any>[];
 }

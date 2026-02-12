@@ -271,6 +271,15 @@ body {
     --default: 0 0% 98.04%;
     --primary-highlight: 216 100% 40.2% / 8%;
     --error-toast-bg: 215.7 12.9% 70.6%;
+    --check-permissions-bg: 204, 29.4%, 96.7%;
+    --secondary-100: 204, 28.6%, 96.9%;
+    --secondary-200: 210, 21.7%, 92.4%;
+    --secondary-300: 213, 27.3%, 87.5%;
+    --secondary-400: 214, 25.6%, 83.5%;
+    --secondary-500: 211, 23.1%, 79.4%;
+    --secondary-600: 212, 24.1%, 75.7%;
+    --secondary-700: 213, 24.7%, 72.2%;
+    --secondary-800: 214, 24.7%, 69%;
   }
 
   .dark {
@@ -313,6 +322,15 @@ body {
     --default: 216.92 23.64% 10.78%;
     --primary-highlight: 215.88 100% 60.98% / 16%;
     --error-toast-bg: 221.5, 10.7%, 23.7%;
+    --check-permissions-bg: 215 15.4% 15.3%;
+    --secondary-100: 216, 14.5%, 15.3%;
+    --secondary-200: 215, 16.3%, 17.5%;
+    --secondary-300: 213, 15.3%, 25.7%;
+    --secondary-400: 212, 15.8%, 31.8%;
+    --secondary-500: 212, 14%, 39.6%;
+    --secondary-600: 213, 12.5%, 49.2%;
+    --secondary-700: 213, 16.1%, 59.2%;
+    --secondary-800: 213, 20%, 70.2%;
   }
 }
 

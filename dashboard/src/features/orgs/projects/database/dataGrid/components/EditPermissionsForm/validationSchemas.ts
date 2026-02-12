@@ -1,7 +1,9 @@
 import * as Yup from 'yup';
 import type { DatabaseAction } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 
-const ruleSchema = Yup.object().shape({
+const conditionNodeSchema = Yup.object().shape({
+  type: Yup.string(),
+  id: Yup.string(),
   column: Yup.string().nullable().required('Please select a column.'),
   operator: Yup.string().nullable().required('Please select an operator.'),
   value: Yup.mixed()
@@ -17,32 +19,37 @@ const ruleSchema = Yup.object().shape({
     .required('Please enter a value.'),
 });
 
-const ruleGroupSchema = Yup.object().shape({
-  operator: Yup.string().test(
-    'operator',
-    'Please select an operator.',
-    (selectedOperator, ctx) => {
-      // `from` is part of the Yup API, but it's not typed.
-      // @ts-expect-error
-      const [, { value }] = ctx.from;
-      if (
-        value.filter &&
-        Object.keys(value.filter).length > 0 &&
-        !selectedOperator
-      ) {
-        return false;
+// biome-ignore lint/suspicious/noExplicitAny: recursive schema requires any
+const groupNodeSchema: Yup.ObjectSchema<any> = Yup.object().shape({
+  type: Yup.string(),
+  id: Yup.string(),
+  operator: Yup.string(),
+  children: Yup.array().of(
+    // biome-ignore lint/suspicious/noExplicitAny: discriminated union requires any
+    Yup.lazy((value: any) => {
+      if (value?.type === 'condition') {
+        return conditionNodeSchema;
       }
-
-      return true;
-    },
+      if (value?.type === 'exists') {
+        return existsNodeSchema;
+      }
+      return groupNodeSchema;
+      // biome-ignore lint/suspicious/noExplicitAny: discriminated union requires any
+    }) as any,
   ),
-  rules: Yup.array().of(ruleSchema),
-  // biome-ignore lint/suspicious/noExplicitAny: TODO
-  groups: Yup.array().of(Yup.lazy(() => ruleGroupSchema) as any),
+});
+
+// biome-ignore lint/suspicious/noExplicitAny: recursive schema requires any
+const existsNodeSchema: Yup.ObjectSchema<any> = Yup.object().shape({
+  type: Yup.string(),
+  id: Yup.string(),
+  schema: Yup.string().required('Please select a schema.'),
+  table: Yup.string().required('Please select a table.'),
+  where: groupNodeSchema,
 });
 
 const baseValidationSchema = Yup.object().shape({
-  filter: ruleGroupSchema.nullable(),
+  filter: groupNodeSchema.nullable(),
   columns: Yup.array().of(Yup.string()).nullable(),
 });
 
@@ -60,7 +67,8 @@ const columnPresetSchema = Yup.object().shape({
   column: Yup.string()
     .nullable()
     .test('column', 'Please select a column.', (selectedColumn, ctx) => {
-      const [, { value }] = ctx.from;
+      // biome-ignore lint/suspicious/noExplicitAny: `from` is part of the Yup API but not typed
+      const [, { value }] = (ctx as any).from;
 
       if (
         (value.columnPresets.length > 1 && !selectedColumn) ||
@@ -74,7 +82,8 @@ const columnPresetSchema = Yup.object().shape({
   value: Yup.string()
     .nullable()
     .test('value', 'Please enter a value.', (selectedValue, ctx) => {
-      const [, { value }] = ctx.from;
+      // biome-ignore lint/suspicious/noExplicitAny: `from` is part of the Yup API but not typed
+      const [, { value }] = (ctx as any).from;
 
       if (
         (value.columnPresets.length > 1 && !selectedValue) ||

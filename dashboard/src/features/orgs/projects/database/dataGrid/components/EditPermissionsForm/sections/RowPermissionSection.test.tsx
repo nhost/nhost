@@ -16,7 +16,6 @@ import {
   render,
   screen,
   TestUserEvent,
-  waitFor,
 } from '@/tests/testUtils';
 import RowPermissionsSection from './RowPermissionsSection';
 
@@ -146,13 +145,25 @@ describe('RowPermissionsSection', () => {
 
   it('the Without any checks NOT selected when there are filters', () => {
     mocks.useRouter.mockImplementation(() => getRouter());
-    waitFor(async () => {
-      renderRowPermissionsSection(undefined, {
+    renderRowPermissionsSection(
+      { action: 'insert' },
+      {
         filter: {
-          rules: [{ column: 'id', operator: '_eq', value: 'x-hasura-user-id' }],
+          type: 'group',
+          id: 'test-group-id',
+          operator: '_and',
+          children: [
+            {
+              type: 'condition',
+              id: 'test-condition-id',
+              column: 'id',
+              operator: '_eq',
+              value: 'x-hasura-user-id',
+            },
+          ],
         },
-      });
-    });
+      },
+    );
     expect(screen.getByLabelText('Without any checks')).not.toBeChecked();
     expect(screen.getByLabelText('With custom check')).toBeChecked();
   });
@@ -167,7 +178,6 @@ describe('RowPermissionsSection', () => {
     expect(screen.getByLabelText('With custom check')).toBeChecked();
 
     expect(await screen.findByText('Select a column')).toBeInTheDocument();
-    // await TestUserEvent.fireClickEvent(screen.getByText('Select a column'));
 
     await TestUserEvent.fireClickEvent(screen.getByTestId('submitButton'));
     expect(screen.getByText('Please select a column.')).toBeInTheDocument();
