@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll } from 'bun:test';
 import { createNhostClient } from '@nhost/nhost-js';
 import { FetchError } from '@nhost/nhost-js/fetch';
+import * as jose from 'jose';
 
 import { request, resetEnvironment } from '../../server';
 
@@ -64,6 +65,8 @@ async function getTokens(jwt: string) {
 
 describe('token-lifecycle', () => {
   let jwt: string;
+  let userId: string;
+  let issuer: string;
 
   beforeAll(async () => {
     await resetEnvironment();
@@ -90,6 +93,10 @@ describe('token-lifecycle', () => {
       password: DEMO_PASSWORD,
     });
     jwt = signInResp.session!.accessToken;
+
+    const sessionPayload = jose.decodeJwt(jwt);
+    userId = sessionPayload.sub!;
+    issuer = sessionPayload.iss!;
   });
 
   it('should introspect an active access token', async () => {
@@ -102,12 +109,15 @@ describe('token-lifecycle', () => {
       client_secret: clientSecret,
     });
 
-    expect(introspection).toMatchObject({
+    expect(introspection).toEqual({
       active: true,
-      sub: expect.any(String),
+      sub: userId,
+      client_id: clientId,
+      scope: 'openid profile email',
       exp: expect.any(Number),
       iat: expect.any(Number),
-      iss: expect.any(String),
+      iss: issuer,
+      token_type: 'access_token',
     });
   });
 
@@ -121,14 +131,15 @@ describe('token-lifecycle', () => {
       client_secret: clientSecret,
     });
 
-    expect(introspection).toMatchObject({
+    expect(introspection).toEqual({
       active: true,
-      sub: expect.any(String),
+      sub: userId,
       client_id: clientId,
       scope: 'openid profile email',
       token_type: 'refresh_token',
       exp: expect.any(Number),
       iat: expect.any(Number),
+      iss: issuer,
     });
   });
 
@@ -144,11 +155,13 @@ describe('token-lifecycle', () => {
       client_secret: clientSecret,
     });
 
-    expect(refreshResp).toMatchObject({
+    expect(refreshResp).toEqual({
       access_token: expect.any(String),
-      refresh_token: expect.any(String),
       token_type: 'Bearer',
-      expires_in: expect.any(Number),
+      expires_in: 900,
+      id_token: expect.any(String),
+      refresh_token: expect.any(String),
+      scope: 'openid profile email',
     });
 
     // Old refresh token should now be inactive
@@ -159,7 +172,7 @@ describe('token-lifecycle', () => {
       client_secret: clientSecret,
     });
 
-    expect(oldIntrospection).toMatchObject({
+    expect(oldIntrospection).toEqual({
       active: false,
     });
   });
@@ -184,7 +197,7 @@ describe('token-lifecycle', () => {
       client_secret: clientSecret,
     });
 
-    expect(introspection).toMatchObject({
+    expect(introspection).toEqual({
       active: false,
     });
   });

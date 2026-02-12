@@ -20,6 +20,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/nhost/nhost/internal/lib/oapi"
 	"github.com/nhost/nhost/services/auth/go/api"
+	oauth2provider "github.com/nhost/nhost/services/auth/go/oauth2"
 )
 
 const JWTContextKey = "nhost/auth/jwt"
@@ -260,7 +261,6 @@ func (j *JWTGetter) GraphQLClaims(
 		err          error
 	)
 	if j.customClaimer != nil {
-		fmt.Println("getting custom claims for user", userID.String())
 		customClaims, err = j.customClaimer.GetClaims(ctx, userID.String())
 		if err != nil {
 			logger.ErrorContext(
@@ -271,8 +271,6 @@ func (j *JWTGetter) GraphQLClaims(
 
 			customClaims = map[string]any{}
 		}
-
-		fmt.Println("custom claims for user", userID.String(), ":", customClaims)
 	}
 
 	c := map[string]any{
@@ -533,38 +531,71 @@ func (j *JWTGetter) SignClaims(claims map[string]any, exp time.Time) (string, er
 	return j.SignTokenWithClaims(mapClaims, exp)
 }
 
-func (j *JWTGetter) ValidateToken(
+func (j *JWTGetter) ValidateToken( //nolint:cyclop
 	token string,
-) (string, time.Time, time.Time, string, error) {
+) (*oauth2provider.ValidatedClaims, error) {
 	jwtToken, err := j.Validate(token)
 	if err != nil {
-		return "", time.Time{}, time.Time{}, "", err
+		return nil, err
 	}
 
 	claims, ok := jwtToken.Claims.(jwt.MapClaims)
 	if !ok {
-		return "", time.Time{}, time.Time{}, "",
-			errors.New("unexpected claims type") //nolint:err113
+		return nil, errors.New("unexpected claims type") //nolint:err113
 	}
 
-	sub, _ := claims.GetSubject()
-	iss, _ := claims.GetIssuer()
+	sub, err := claims.GetSubject()
+	if err != nil {
+		return nil, fmt.Errorf("error getting subject: %w", err)
+	}
 
-	expTime, _ := claims.GetExpirationTime()
+	iss, err := claims.GetIssuer()
+	if err != nil {
+		return nil, fmt.Errorf("error getting issuer: %w", err)
+	}
+
+	expTime, err := claims.GetExpirationTime()
+	if err != nil {
+		return nil, fmt.Errorf("error getting expiration time: %w", err)
+	}
 
 	var exp time.Time
 	if expTime != nil {
 		exp = expTime.Time
 	}
 
-	iatTime, _ := claims.GetIssuedAt()
+	iatTime, err := claims.GetIssuedAt()
+	if err != nil {
+		return nil, fmt.Errorf("error getting issued at: %w", err)
+	}
 
 	var iat time.Time
 	if iatTime != nil {
 		iat = iatTime.Time
 	}
 
-	return sub, iat, exp, iss, nil
+	aud, ok := claims["aud"].(string)
+	if !ok && claims["aud"] != nil {
+		return nil, fmt.Errorf( //nolint:err113
+			"error getting audience: unexpected type %T", claims["aud"],
+		)
+	}
+
+	scope, ok := claims["scope"].(string)
+	if !ok && claims["scope"] != nil {
+		return nil, fmt.Errorf( //nolint:err113
+			"error getting scope: unexpected type %T", claims["scope"],
+		)
+	}
+
+	return &oauth2provider.ValidatedClaims{
+		Sub:   sub,
+		Aud:   aud,
+		Scope: scope,
+		Iat:   iat,
+		Exp:   exp,
+		Iss:   iss,
+	}, nil
 }
 
 func (j *JWTGetter) Issuer() string {

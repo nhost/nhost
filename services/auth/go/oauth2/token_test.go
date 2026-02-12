@@ -29,12 +29,28 @@ func (s *fakeSigner) SignClaims(claims map[string]any, _ time.Time) (string, err
 
 func (s *fakeSigner) ValidateToken(
 	_ string,
-) (string, time.Time, time.Time, string, error) {
-	return "", time.Time{}, time.Time{}, "", nil
+) (*oauth2.ValidatedClaims, error) {
+	return &oauth2.ValidatedClaims{}, nil //nolint:exhaustruct
 }
 
 func (s *fakeSigner) Issuer() string {
 	return "https://test.example.com"
+}
+
+func (s *fakeSigner) GraphQLClaims(
+	_ context.Context,
+	userID uuid.UUID,
+	_ bool,
+	allowedRoles []string,
+	defaultRole string,
+	_ map[string]any,
+	_ *slog.Logger,
+) (string, map[string]any, error) {
+	return "https://hasura.io/jwt/claims", map[string]any{
+		"x-hasura-user-id":       userID.String(),
+		"x-hasura-default-role":  defaultRole,
+		"x-hasura-allowed-roles": allowedRoles,
+	}, nil
 }
 
 func TestCreateAccessTokenWithGraphQLScope(t *testing.T) { //nolint:gocognit,cyclop

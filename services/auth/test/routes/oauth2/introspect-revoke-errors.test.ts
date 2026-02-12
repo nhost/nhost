@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll } from 'bun:test';
 import { createNhostClient } from '@nhost/nhost-js';
 import { FetchError } from '@nhost/nhost-js/fetch';
+import * as jose from 'jose';
 
 import { request, resetEnvironment } from '../../server';
 
@@ -61,6 +62,8 @@ async function getTokens(jwt: string) {
 
 describe('introspect-revoke-errors', () => {
   let jwt: string;
+  let userId: string;
+  let issuer: string;
 
   beforeAll(async () => {
     await resetEnvironment();
@@ -87,6 +90,10 @@ describe('introspect-revoke-errors', () => {
       password: DEMO_PASSWORD,
     });
     jwt = signInResp.session!.accessToken;
+
+    const sessionPayload = jose.decodeJwt(jwt);
+    userId = sessionPayload.sub!;
+    issuer = sessionPayload.iss!;
   });
 
   it('should return active:false for garbage token on introspect', async () => {
@@ -99,7 +106,7 @@ describe('introspect-revoke-errors', () => {
       client_secret: clientSecret,
     });
 
-    expect(introspection).toMatchObject({
+    expect(introspection).toEqual({
       active: false,
     });
   });
@@ -214,9 +221,14 @@ describe('introspect-revoke-errors', () => {
       client_secret: clientSecret,
     });
 
-    expect(introspection).toMatchObject({
+    expect(introspection).toEqual({
       active: true,
-      sub: expect.any(String),
+      sub: userId,
+      client_id: clientId,
+      scope: 'openid profile email',
+      exp: expect.any(Number),
+      iat: expect.any(Number),
+      iss: issuer,
       token_type: 'access_token',
     });
   });

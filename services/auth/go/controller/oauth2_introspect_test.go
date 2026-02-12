@@ -97,7 +97,7 @@ func TestOauth2Introspect(t *testing.T) { //nolint:cyclop,gocognit,maintidx
 		}
 	})
 
-	t.Run("missing client_id", func(t *testing.T) {
+	t.Run("missing client_id", func(t *testing.T) { //nolint:dupl
 		t.Parallel()
 
 		ctrl := gomock.NewController(t)

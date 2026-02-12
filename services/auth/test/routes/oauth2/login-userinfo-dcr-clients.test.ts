@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll } from 'bun:test';
 import { createNhostClient } from '@nhost/nhost-js';
 import { FetchError } from '@nhost/nhost-js/fetch';
+import * as jose from 'jose';
 
 import { request, resetEnvironment } from '../../server';
 
@@ -51,6 +52,7 @@ async function getOAuth2AccessToken(jwt: string, clientId: string, clientSecret:
 
 describe('login-userinfo-dcr-clients', () => {
   let jwt: string;
+  let userId: string;
   let clientId: string;
   let clientSecret: string;
 
@@ -79,6 +81,7 @@ describe('login-userinfo-dcr-clients', () => {
       password: DEMO_PASSWORD,
     });
     jwt = signInResp.session!.accessToken;
+    userId = jose.decodeJwt(jwt).sub!;
 
     // Create a confidential client
     const { body: client } = await nhost.auth.oauth2ClientsCreate(
@@ -103,7 +106,7 @@ describe('login-userinfo-dcr-clients', () => {
 
     const { body: loginInfo } = await nhost.auth.oauth2LoginGet({ request_id: requestId });
 
-    expect(loginInfo).toMatchObject({
+    expect(loginInfo).toEqual({
       requestId: expect.any(String),
       clientId: clientId,
       clientName: 'Login UI Test Client',
@@ -169,9 +172,13 @@ describe('login-userinfo-dcr-clients', () => {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
 
-    expect(userinfo).toMatchObject({
-      sub: expect.any(String),
+    expect(userinfo).toEqual({
+      sub: userId,
       email: DEMO_EMAIL,
+      email_verified: false,
+      locale: 'en',
+      name: DEMO_EMAIL,
+      picture: expect.stringContaining('gravatar.com'),
     });
   });
 

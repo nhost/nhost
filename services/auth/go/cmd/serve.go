@@ -90,6 +90,8 @@ const (
 	flagRateLimitBruteForceInterval              = "rate-limit-brute-force-interval"
 	flagRateLimitSignupsBurst                    = "rate-limit-signups-burst"
 	flagRateLimitSignupsInterval                 = "rate-limit-signups-interval"
+	flagRateLimitOAuth2ServerBurst               = "rate-limit-oauth2-server-burst"
+	flagRateLimitOAuth2ServerInterval            = "rate-limit-oauth2-server-interval"
 	flagRateLimitMemcacheServer                  = "rate-limit-memcache-server"
 	flagRateLimitMemcachePrefix                  = "rate-limit-memcache-prefix"
 	flagTurnstileSecret                          = "turnstile-secret"
@@ -643,6 +645,20 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 				Value:    5 * time.Minute, //nolint:mnd
 				Category: "rate-limit",
 				Sources:  cli.EnvVars("AUTH_RATE_LIMIT_SIGNUPS_INTERVAL"),
+			},
+			&cli.IntFlag{ //nolint: exhaustruct
+				Name:     flagRateLimitOAuth2ServerBurst,
+				Usage:    "OAuth2 server-to-server rate limit burst",
+				Value:    100, //nolint:mnd
+				Category: "rate-limit",
+				Sources:  cli.EnvVars("AUTH_RATE_LIMIT_OAUTH2_SERVER_BURST"),
+			},
+			&cli.DurationFlag{ //nolint: exhaustruct
+				Name:     flagRateLimitOAuth2ServerInterval,
+				Usage:    "OAuth2 server-to-server rate limit interval",
+				Value:    5 * time.Minute, //nolint:mnd
+				Category: "rate-limit",
+				Sources:  cli.EnvVars("AUTH_RATE_LIMIT_OAUTH2_SERVER_INTERVAL"),
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     flagRateLimitMemcacheServer,
@@ -1326,6 +1342,8 @@ func getRateLimiter(cmd *cli.Command, logger *slog.Logger) gin.HandlerFunc {
 		cmd.Duration(flagRateLimitBruteForceInterval),
 		cmd.Int(flagRateLimitSignupsBurst),
 		cmd.Duration(flagRateLimitSignupsInterval),
+		cmd.Int(flagRateLimitOAuth2ServerBurst),
+		cmd.Duration(flagRateLimitOAuth2ServerInterval),
 		store,
 	)
 }

@@ -33,10 +33,19 @@ type Config struct {
 	CIMDAllowInsecureTransport bool
 }
 
+type ValidatedClaims struct {
+	Sub   string
+	Aud   string
+	Scope string
+	Iat   time.Time
+	Exp   time.Time
+	Iss   string
+}
+
 type Signer interface {
 	RSASigningKey() (*rsa.PrivateKey, string, error)
 	SignClaims(claims map[string]any, exp time.Time) (string, error)
-	ValidateToken(token string) (sub string, iat time.Time, exp time.Time, iss string, err error)
+	ValidateToken(token string) (*ValidatedClaims, error)
 	Issuer() string
 	GraphQLClaims(
 		ctx context.Context,

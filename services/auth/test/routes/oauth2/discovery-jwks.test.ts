@@ -41,7 +41,7 @@ describe('discovery-jwks', () => {
     const { body: discovery } = await nhost.auth.getOpenIDConfiguration();
     const issuer = discovery.issuer;
 
-    expect(discovery).toMatchObject({
+    expect(discovery).toEqual({
       issuer: "http://127.0.0.2:4000",
       authorization_endpoint: `${issuer}/oauth2/authorize`,
       token_endpoint: `${issuer}/oauth2/token`,
@@ -68,7 +68,7 @@ describe('discovery-jwks', () => {
     const { body: jwks } = await nhost.auth.oauth2Jwks();
 
     expect(jwks.keys.length).toBeGreaterThan(0);
-    expect(jwks.keys[0]).toMatchObject({
+    expect(jwks.keys[0]).toEqual({
       kid: expect.any(String),
       kty: 'RSA',
       use: 'sig',
@@ -149,29 +149,39 @@ describe('discovery-jwks', () => {
       client_secret: clientSecret,
     });
 
-    // Extract values before toMatchObject (bun mutates the object with matchers)
+    // Extract values before toEqual (bun mutates the object with matchers)
     const idToken = tokenResp.id_token!;
-    expect(tokenResp).toMatchObject({
+    expect(tokenResp).toEqual({
+      access_token: expect.any(String),
       token_type: 'Bearer',
+      expires_in: 900,
       id_token: expect.any(String),
       refresh_token: expect.any(String),
       scope: 'openid profile email',
     });
-    // Decode the id_token — extract values before toMatchObject (bun mutates objects)
+    // Decode the id_token — extract values before toEqual (bun mutates objects)
     const header = jose.decodeProtectedHeader(idToken);
     const payload = jose.decodeJwt(idToken);
     const payloadSub = payload.sub;
 
-    expect(header).toMatchObject({
+    expect(header).toEqual({
       alg: 'RS256',
       kid: jwksKid,
+      typ: 'JWT',
     });
 
-    expect(payload).toMatchObject({
-      iss: discovery.issuer,
+    expect(payload).toEqual({
       sub: expect.any(String),
+      aud: expect.any(String),
+      auth_time: expect.any(Number),
+      iss: discovery.issuer,
       exp: expect.any(Number),
+      iat: expect.any(Number),
       email: DEMO_EMAIL,
+      email_verified: false,
+      locale: 'en',
+      name: DEMO_EMAIL,
+      picture: expect.stringContaining('gravatar.com'),
     });
 
     // Verify the JWT signature using the JWKS
@@ -181,11 +191,19 @@ describe('discovery-jwks', () => {
       jwksKeySet,
     );
 
-    expect(protectedHeader).toMatchObject({ kid: jwksKid });
-    expect(verifiedPayload).toMatchObject({
-      iss: discovery.issuer,
+    expect(protectedHeader).toEqual({ alg: 'RS256', kid: jwksKid, typ: 'JWT' });
+    expect(verifiedPayload).toEqual({
       sub: payloadSub,
+      aud: expect.any(String),
+      auth_time: expect.any(Number),
+      iss: discovery.issuer,
+      exp: expect.any(Number),
+      iat: expect.any(Number),
       email: DEMO_EMAIL,
+      email_verified: false,
+      locale: 'en',
+      name: DEMO_EMAIL,
+      picture: expect.stringContaining('gravatar.com'),
     });
   });
 
@@ -193,11 +211,6 @@ describe('discovery-jwks', () => {
     const { body: discovery } = await nhost.auth.getOpenIDConfiguration();
     const { body: asMeta } = await nhost.auth.getOAuthAuthorizationServer();
 
-    expect(asMeta).toMatchObject({
-      issuer: discovery.issuer,
-      authorization_endpoint: discovery.authorization_endpoint,
-      token_endpoint: discovery.token_endpoint,
-      jwks_uri: discovery.jwks_uri,
-    });
+    expect(asMeta).toEqual(discovery);
   });
 });

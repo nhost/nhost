@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll } from 'bun:test';
 import { createNhostClient } from '@nhost/nhost-js';
 import { FetchError } from '@nhost/nhost-js/fetch';
+import * as jose from 'jose';
 
 import { request, resetEnvironment } from '../../server';
 
@@ -44,6 +45,8 @@ async function getAuthCode(
 
 describe('client_secret_basic authentication (RFC 6749 Section 2.3.1)', () => {
   let jwt: string;
+  let userId: string;
+  let issuer: string;
   let clientId: string;
   let clientSecret: string;
 
@@ -72,6 +75,9 @@ describe('client_secret_basic authentication (RFC 6749 Section 2.3.1)', () => {
       password: DEMO_PASSWORD,
     });
     jwt = signInResp.session!.accessToken;
+    const sessionPayload = jose.decodeJwt(jwt);
+    userId = sessionPayload.sub!;
+    issuer = sessionPayload.iss!;
 
     // Create a confidential client
     const { body: client } = await nhost.auth.oauth2ClientsCreate(
@@ -101,10 +107,10 @@ describe('client_secret_basic authentication (RFC 6749 Section 2.3.1)', () => {
       { headers: { Authorization: basicAuthHeader(clientId, clientSecret) } },
     );
 
-    expect(tokenResp).toMatchObject({
+    expect(tokenResp).toEqual({
       access_token: expect.any(String),
       token_type: 'Bearer',
-      expires_in: expect.any(Number),
+      expires_in: 900,
       refresh_token: expect.any(String),
       id_token: expect.any(String),
       scope: 'openid profile email',
@@ -131,11 +137,13 @@ describe('client_secret_basic authentication (RFC 6749 Section 2.3.1)', () => {
       { headers: { Authorization: basicAuthHeader(clientId, clientSecret) } },
     );
 
-    expect(refreshed).toMatchObject({
+    expect(refreshed).toEqual({
       access_token: expect.any(String),
       token_type: 'Bearer',
-      expires_in: expect.any(Number),
+      expires_in: 900,
+      id_token: expect.any(String),
       refresh_token: expect.any(String),
+      scope: 'openid profile email',
     });
   });
 
@@ -159,12 +167,15 @@ describe('client_secret_basic authentication (RFC 6749 Section 2.3.1)', () => {
       { headers: { Authorization: basicAuthHeader(clientId, clientSecret) } },
     );
 
-    expect(introspection).toMatchObject({
+    expect(introspection).toEqual({
       active: true,
-      sub: expect.any(String),
+      sub: userId,
       client_id: clientId,
       scope: 'openid profile email',
       token_type: 'refresh_token',
+      exp: expect.any(Number),
+      iat: expect.any(Number),
+      iss: issuer,
     });
   });
 
@@ -197,7 +208,7 @@ describe('client_secret_basic authentication (RFC 6749 Section 2.3.1)', () => {
       { headers: { Authorization: basicAuthHeader(clientId, clientSecret) } },
     );
 
-    expect(introspection).toMatchObject({ active: false });
+    expect(introspection).toEqual({ active: false });
   });
 
   it('should reject Basic auth with wrong secret', async () => {

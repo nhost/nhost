@@ -17,6 +17,8 @@ const nhost = createNhostClient({
 
 describe('confidential-client', () => {
   let jwt: string;
+  let userId: string;
+  let issuer: string;
 
   beforeAll(async () => {
     await resetEnvironment();
@@ -43,6 +45,10 @@ describe('confidential-client', () => {
       password: DEMO_PASSWORD,
     });
     jwt = signInResp.session!.accessToken;
+
+    const sessionPayload = jose.decodeJwt(jwt);
+    userId = sessionPayload.sub!;
+    issuer = sessionPayload.iss!;
   });
 
   it('should create a confidential client via the admin API and return the secret once', async () => {
@@ -58,10 +64,10 @@ describe('confidential-client', () => {
       { headers: { Authorization: `Bearer ${jwt}` } },
     );
 
-    // Extract before toMatchObject (bun mutates objects with matchers)
+    // Extract before toEqual (bun mutates objects with matchers)
     const clientId = client.clientId;
 
-    expect(client).toMatchObject({
+    expect(client).toEqual({
       clientId: expect.any(String),
       clientName: 'Grafana-like Server App',
       clientSecret: expect.any(String),
@@ -71,6 +77,10 @@ describe('confidential-client', () => {
       scopes: ['openid', 'profile', 'email'],
       tokenEndpointAuthMethod: 'client_secret_post',
       isPublic: false,
+      accessTokenLifetime: 900,
+      refreshTokenLifetime: 2592000,
+      createdAt: expect.any(String),
+      updatedAt: expect.any(String),
     });
 
     // GET the same client — secret should NOT be returned
@@ -78,13 +88,20 @@ describe('confidential-client', () => {
       headers: { Authorization: `Bearer ${jwt}` },
     });
 
-    expect(fetched).toMatchObject({
+    expect(fetched).toEqual({
       clientId,
       clientName: 'Grafana-like Server App',
       redirectUris: [REDIRECT_URI],
+      grantTypes: ['authorization_code'],
+      responseTypes: ['code'],
+      scopes: ['openid', 'profile', 'email'],
+      tokenEndpointAuthMethod: 'client_secret_post',
       isPublic: false,
+      accessTokenLifetime: 900,
+      refreshTokenLifetime: 2592000,
+      createdAt: expect.any(String),
+      updatedAt: expect.any(String),
     });
-    expect((fetched as any).clientSecret).toBeUndefined();
   });
 
   it('should list, update, and delete clients via admin API', async () => {
@@ -102,9 +119,19 @@ describe('confidential-client', () => {
       headers: { Authorization: `Bearer ${jwt}` },
     });
     const found = listResp.clients.find((c) => c.clientId === clientId);
-    expect(found).toMatchObject({
+    expect(found).toEqual({
       clientId,
       clientName: 'CRUD Test Client',
+      redirectUris: [REDIRECT_URI],
+      grantTypes: ['authorization_code'],
+      responseTypes: ['code'],
+      scopes: ['openid', 'profile', 'email'],
+      tokenEndpointAuthMethod: 'client_secret_post',
+      isPublic: false,
+      accessTokenLifetime: 900,
+      refreshTokenLifetime: 2592000,
+      createdAt: expect.any(String),
+      updatedAt: expect.any(String),
     });
 
     // Update
@@ -116,9 +143,19 @@ describe('confidential-client', () => {
       },
       { headers: { Authorization: `Bearer ${jwt}` } },
     );
-    expect(updated).toMatchObject({
+    expect(updated).toEqual({
       clientId,
       clientName: 'CRUD Test Client (Updated)',
+      redirectUris: [REDIRECT_URI],
+      grantTypes: ['authorization_code'],
+      responseTypes: ['code'],
+      scopes: ['openid', 'profile', 'email'],
+      tokenEndpointAuthMethod: 'client_secret_post',
+      isPublic: false,
+      accessTokenLifetime: 900,
+      refreshTokenLifetime: 2592000,
+      createdAt: expect.any(String),
+      updatedAt: expect.any(String),
     });
 
     // Delete
@@ -187,10 +224,10 @@ describe('confidential-client', () => {
     });
 
     const idToken = tokenResp.id_token!;
-    expect(tokenResp).toMatchObject({
+    expect(tokenResp).toEqual({
       access_token: expect.any(String),
       token_type: 'Bearer',
-      expires_in: expect.any(Number),
+      expires_in: 900,
       id_token: expect.any(String),
       refresh_token: expect.any(String),
       scope: 'openid profile email',
@@ -198,11 +235,18 @@ describe('confidential-client', () => {
 
     // Verify the id_token
     const payload = jose.decodeJwt(idToken);
-    expect(payload).toMatchObject({
-      iss: expect.any(String),
-      sub: expect.any(String),
+    expect(payload).toEqual({
+      sub: userId,
+      aud: expect.any(String),
+      auth_time: expect.any(Number),
+      iss: issuer,
       exp: expect.any(Number),
+      iat: expect.any(Number),
       email: DEMO_EMAIL,
+      email_verified: false,
+      locale: 'en',
+      name: DEMO_EMAIL,
+      picture: expect.stringContaining('gravatar.com'),
     });
   });
 
@@ -251,9 +295,13 @@ describe('confidential-client', () => {
       headers: { Authorization: `Bearer ${tokenResp.access_token}` },
     });
 
-    expect(userinfo).toMatchObject({
-      sub: expect.any(String),
+    expect(userinfo).toEqual({
+      sub: userId,
       email: DEMO_EMAIL,
+      email_verified: false,
+      locale: 'en',
+      name: DEMO_EMAIL,
+      picture: expect.stringContaining('gravatar.com'),
     });
   });
 

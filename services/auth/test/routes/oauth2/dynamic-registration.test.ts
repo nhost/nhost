@@ -17,6 +17,7 @@ const nhost = createNhostClient({
 
 describe('dynamic-registration', () => {
   let jwt: string;
+  let userId: string;
 
   beforeAll(async () => {
     await resetEnvironment();
@@ -43,6 +44,7 @@ describe('dynamic-registration', () => {
       password: DEMO_PASSWORD,
     });
     jwt = signInResp.session!.accessToken;
+    userId = jose.decodeJwt(jwt).sub!;
   });
 
   it('should register a new client via DCR and return correct metadata', async () => {
@@ -60,7 +62,7 @@ describe('dynamic-registration', () => {
       { headers: { Authorization: `Bearer ${jwt}` } },
     );
 
-    expect(client).toMatchObject({
+    expect(client).toEqual({
       client_id: expect.any(String),
       client_secret: expect.any(String),
       client_name: expect.stringContaining('My Dynamic App'),
@@ -70,6 +72,8 @@ describe('dynamic-registration', () => {
       scope: 'openid profile email',
       token_endpoint_auth_method: 'client_secret_post',
       client_secret_expires_at: 0,
+      client_uri: 'https://example.com',
+      logo_uri: 'https://example.com/logo.png',
     });
   });
 
@@ -87,7 +91,7 @@ describe('dynamic-registration', () => {
       { headers: { Authorization: `Bearer ${jwt}` } },
     );
 
-    // Extract before toMatchObject (bun mutation quirk)
+    // Extract before toEqual (bun mutation quirk)
     const clientId = client.client_id;
     const clientSecret = client.client_secret!;
 
@@ -124,19 +128,31 @@ describe('dynamic-registration', () => {
       client_secret: clientSecret,
     });
 
-    // Extract before toMatchObject
+    // Extract before toEqual
     const idToken = tokenResp.id_token!;
-    expect(tokenResp).toMatchObject({
+    expect(tokenResp).toEqual({
+      access_token: expect.any(String),
       token_type: 'Bearer',
+      expires_in: 900,
       id_token: expect.any(String),
+      refresh_token: expect.any(String),
       scope: 'openid profile email',
     });
 
     // Verify the id_token is a valid JWT
     const payload = jose.decodeJwt(idToken);
-    expect(payload).toMatchObject({
-      sub: expect.any(String),
+    expect(payload).toEqual({
+      sub: userId,
+      aud: expect.any(String),
+      auth_time: expect.any(Number),
+      iss: expect.any(String),
+      exp: expect.any(Number),
+      iat: expect.any(Number),
       email: DEMO_EMAIL,
+      email_verified: false,
+      locale: 'en',
+      name: DEMO_EMAIL,
+      picture: expect.stringContaining('gravatar.com'),
     });
   });
 
@@ -189,9 +205,13 @@ describe('dynamic-registration', () => {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
 
-    expect(userinfo).toMatchObject({
-      sub: expect.any(String),
+    expect(userinfo).toEqual({
+      sub: userId,
       email: DEMO_EMAIL,
+      email_verified: false,
+      locale: 'en',
+      name: DEMO_EMAIL,
+      picture: expect.stringContaining('gravatar.com'),
     });
   });
 });

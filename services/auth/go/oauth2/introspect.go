@@ -9,7 +9,7 @@ import (
 	"github.com/nhost/nhost/services/auth/go/api"
 )
 
-func (p *Provider) IntrospectToken( //nolint:cyclop
+func (p *Provider) IntrospectToken( //nolint:cyclop,funlen
 	ctx context.Context,
 	req *api.OAuth2IntrospectRequest,
 	logger *slog.Logger,
@@ -44,6 +44,7 @@ func (p *Provider) IntrospectToken( //nolint:cyclop
 			exp := int(rt.ExpiresAt.Time.Unix())
 			iat := int(rt.CreatedAt.Time.Unix())
 			tokenType := TokenTypeRefreshToken
+			iss := p.signer.Issuer()
 
 			return &api.OAuth2IntrospectResponse{ //nolint:exhaustruct
 				Active:    true,
@@ -52,6 +53,7 @@ func (p *Provider) IntrospectToken( //nolint:cyclop
 				Scope:     &scope,
 				Exp:       &exp,
 				Iat:       &iat,
+				Iss:       &iss,
 				TokenType: &tokenType,
 			}, nil
 		}
@@ -61,21 +63,31 @@ func (p *Provider) IntrospectToken( //nolint:cyclop
 		}
 	}
 
-	sub, iatTime, expTime, iss, err := p.signer.ValidateToken(req.Token)
+	claims, err := p.signer.ValidateToken(req.Token)
 	if err != nil {
 		return inactive, nil
 	}
 
-	exp := int(expTime.Unix())
-	iat := int(iatTime.Unix())
+	exp := int(claims.Exp.Unix())
+	iat := int(claims.Iat.Unix())
 	tokenType := "access_token"
 
-	return &api.OAuth2IntrospectResponse{ //nolint:exhaustruct
+	resp := &api.OAuth2IntrospectResponse{ //nolint:exhaustruct
 		Active:    true,
-		Sub:       &sub,
+		Sub:       &claims.Sub,
 		Exp:       &exp,
 		Iat:       &iat,
-		Iss:       &iss,
+		Iss:       &claims.Iss,
 		TokenType: &tokenType,
-	}, nil
+	}
+
+	if claims.Aud != "" {
+		resp.ClientId = &claims.Aud
+	}
+
+	if claims.Scope != "" {
+		resp.Scope = &claims.Scope
+	}
+
+	return resp, nil
 }

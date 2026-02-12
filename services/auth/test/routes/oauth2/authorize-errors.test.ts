@@ -294,10 +294,13 @@ describe('authorize-errors', () => {
       client_secret: clientSecret,
     });
 
-    expect(tokenResp).toMatchObject({
+    expect(tokenResp).toEqual({
       access_token: expect.any(String),
       token_type: 'Bearer',
+      expires_in: 900,
       id_token: expect.any(String),
+      refresh_token: expect.any(String),
+      scope: 'openid profile email',
     });
   });
 

@@ -44,7 +44,7 @@ func AuthorizeParamsFromGet(params api.Oauth2AuthorizeParams) AuthorizeParams {
 		CodeChallenge:       params.CodeChallenge,
 		Resource:            params.Resource,
 		Prompt:              params.Prompt,
-		ResponseType:        string(params.ResponseType),
+		ResponseType:        params.ResponseType,
 		CodeChallengeMethod: codeChallengeMethod,
 	}
 }
@@ -54,7 +54,7 @@ func AuthorizeParamsFromPost(
 ) AuthorizeParams {
 	var codeChallengeMethod *string
 	if body.CodeChallengeMethod != nil {
-		codeChallengeMethod = (*string)(body.CodeChallengeMethod)
+		codeChallengeMethod = body.CodeChallengeMethod
 	}
 
 	return AuthorizeParams{
@@ -66,7 +66,7 @@ func AuthorizeParamsFromPost(
 		CodeChallenge:       body.CodeChallenge,
 		Resource:            body.Resource,
 		Prompt:              body.Prompt,
-		ResponseType:        string(body.ResponseType),
+		ResponseType:        body.ResponseType,
 		CodeChallengeMethod: codeChallengeMethod,
 	}
 }

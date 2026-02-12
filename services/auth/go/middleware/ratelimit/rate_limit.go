@@ -40,15 +40,24 @@ func sendsSMS(path string) bool {
 func bruteForceProtected(path string) bool {
 	return strings.HasPrefix(path, "/signin") ||
 		strings.HasSuffix(path, "/verify") ||
-		strings.HasSuffix(path, "/otp")
+		strings.HasSuffix(path, "/otp") ||
+		path == "/oauth2/authorize" ||
+		path == "/oauth2/login"
 }
 
 // signups.
 func isSignup(path string) bool {
-	return strings.HasPrefix(path, "/signup")
+	return strings.HasPrefix(path, "/signup") ||
+		path == "/oauth2/register"
 }
 
-func RateLimit( //nolint:cyclop,funlen
+// oauth2 server-to-server endpoints (token, introspect).
+func isOAuth2Server(path string) bool {
+	return path == "/oauth2/token" ||
+		path == "/oauth2/introspect"
+}
+
+func RateLimit( //nolint:cyclop,funlen,cyclop,gocognit
 	ignorePrefix string,
 	globalLimit int,
 	globalInterval time.Duration,
@@ -62,6 +71,8 @@ func RateLimit( //nolint:cyclop,funlen
 	bruteForceInterval time.Duration,
 	signupsLimit int,
 	signupsInterval time.Duration,
+	oauth2ServerLimit int,
+	oauth2ServerInterval time.Duration,
 	store Store,
 ) gin.HandlerFunc {
 	perUserRL := NewSlidingWindow("user-global", globalLimit, globalInterval, store)
@@ -82,6 +93,9 @@ func RateLimit( //nolint:cyclop,funlen
 		"user-bruteforce", bruteForceLimit, bruteForceInterval, store,
 	)
 	perUserSignupsRL := NewSlidingWindow("user-bruteforce", signupsLimit, signupsInterval, store)
+	perUserOAuth2ServerRL := NewSlidingWindow(
+		"user-oauth2-server", oauth2ServerLimit, oauth2ServerInterval, store,
+	)
 
 	return func(ctx *gin.Context) {
 		clientIP := ctx.ClientIP()
@@ -116,6 +130,12 @@ func RateLimit( //nolint:cyclop,funlen
 
 		if isSignup(path) {
 			if !perUserSignupsRL.Allow(ctx, clientIP) {
+				ctx.AbortWithStatus(http.StatusTooManyRequests)
+			}
+		}
+
+		if isOAuth2Server(path) {
+			if !perUserOAuth2ServerRL.Allow(ctx, clientIP) {
 				ctx.AbortWithStatus(http.StatusTooManyRequests)
 			}
 		}

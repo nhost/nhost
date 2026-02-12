@@ -87,11 +87,23 @@ describe('cimd', () => {
   it('should advertise CIMD support in discovery metadata', async () => {
     const { body: discovery } = await nhost.auth.getOpenIDConfiguration();
 
-    expect(discovery).toMatchObject({
-      issuer: expect.any(String),
-      authorization_endpoint: expect.any(String),
-      token_endpoint: expect.any(String),
+    const issuer = discovery.issuer;
+    expect(discovery).toEqual({
+      issuer,
+      authorization_endpoint: `${issuer}/oauth2/authorize`,
+      token_endpoint: `${issuer}/oauth2/token`,
+      jwks_uri: `${issuer}/oauth2/jwks`,
+      userinfo_endpoint: `${issuer}/oauth2/userinfo`,
+      registration_endpoint: `${issuer}/oauth2/register`,
+      introspection_endpoint: `${issuer}/oauth2/introspect`,
+      revocation_endpoint: `${issuer}/oauth2/revoke`,
+      response_types_supported: ['code'],
+      grant_types_supported: ['authorization_code', 'refresh_token'],
+      subject_types_supported: ['public'],
+      id_token_signing_alg_values_supported: ['RS256'],
+      token_endpoint_auth_methods_supported: ['client_secret_basic', 'client_secret_post', 'none'],
       code_challenge_methods_supported: ['S256'],
+      scopes_supported: ['openid', 'profile', 'email', 'phone', 'offline_access', 'graphql'],
     });
   });
 
@@ -112,21 +124,29 @@ describe('cimd', () => {
     });
 
     const idToken = tokenResp.id_token!;
-    expect(tokenResp).toMatchObject({
+    expect(tokenResp).toEqual({
       access_token: expect.any(String),
       token_type: 'Bearer',
-      expires_in: expect.any(Number),
+      expires_in: 900,
       id_token: expect.any(String),
+      refresh_token: expect.any(String),
       scope: 'openid profile email',
     });
 
     // Verify the id_token is a valid JWT with expected claims
     const payload = jose.decodeJwt(idToken);
-    expect(payload).toMatchObject({
-      iss: expect.any(String),
+    expect(payload).toEqual({
       sub: expect.any(String),
+      aud: CIMD_CLIENT_ID,
+      auth_time: expect.any(Number),
+      iss: expect.any(String),
       exp: expect.any(Number),
+      iat: expect.any(Number),
       email: DEMO_EMAIL,
+      email_verified: false,
+      locale: 'en',
+      name: DEMO_EMAIL,
+      picture: expect.stringContaining('gravatar.com'),
     });
   });
 
@@ -146,9 +166,13 @@ describe('cimd', () => {
       headers: { Authorization: `Bearer ${tokenResp.access_token}` },
     });
 
-    expect(userinfo).toMatchObject({
+    expect(userinfo).toEqual({
       sub: expect.any(String),
       email: DEMO_EMAIL,
+      email_verified: false,
+      locale: 'en',
+      name: DEMO_EMAIL,
+      picture: expect.stringContaining('gravatar.com'),
     });
   });
 

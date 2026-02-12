@@ -11,7 +11,7 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func TestOauth2Revoke(t *testing.T) {
+func TestOauth2Revoke(t *testing.T) { //nolint:cyclop
 	t.Parallel()
 
 	t.Run("disabled", func(t *testing.T) {
@@ -82,7 +82,7 @@ func TestOauth2Revoke(t *testing.T) {
 		}
 	})
 
-	t.Run("missing client_id", func(t *testing.T) {
+	t.Run("missing client_id", func(t *testing.T) { //nolint:dupl
 		t.Parallel()
 
 		ctrl := gomock.NewController(t)

@@ -54,6 +54,7 @@ async function getAuthCode(
 
 describe('pkce-public-client', () => {
   let jwt: string;
+  let userId: string;
   let clientId: string;
 
   beforeAll(async () => {
@@ -81,6 +82,7 @@ describe('pkce-public-client', () => {
       password: DEMO_PASSWORD,
     });
     jwt = signInResp.session!.accessToken;
+    userId = jose.decodeJwt(jwt).sub!;
 
     // Register a public client (no secret)
     const { body: client } = await nhost.auth.oauth2Register(
@@ -111,7 +113,7 @@ describe('pkce-public-client', () => {
       { headers: { Authorization: `Bearer ${jwt}` } },
     );
 
-    expect(client).toMatchObject({
+    expect(client).toEqual({
       client_id: expect.any(String),
       client_name: 'Public Client Metadata Test',
       redirect_uris: [REDIRECT_URI],
@@ -141,16 +143,28 @@ describe('pkce-public-client', () => {
     });
 
     const idToken = tokenResp.id_token!;
-    expect(tokenResp).toMatchObject({
+    expect(tokenResp).toEqual({
+      access_token: expect.any(String),
       token_type: 'Bearer',
+      expires_in: 900,
       id_token: expect.any(String),
+      refresh_token: expect.any(String),
       scope: 'openid profile email',
     });
 
     const payload = jose.decodeJwt(idToken);
-    expect(payload).toMatchObject({
-      sub: expect.any(String),
+    expect(payload).toEqual({
+      sub: userId,
+      aud: expect.any(String),
+      auth_time: expect.any(Number),
+      iss: expect.any(String),
+      exp: expect.any(Number),
+      iat: expect.any(Number),
       email: DEMO_EMAIL,
+      email_verified: false,
+      locale: 'en',
+      name: DEMO_EMAIL,
+      picture: expect.stringContaining('gravatar.com'),
     });
   });
 
@@ -171,9 +185,13 @@ describe('pkce-public-client', () => {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
 
-    expect(userinfo).toMatchObject({
-      sub: expect.any(String),
+    expect(userinfo).toEqual({
+      sub: userId,
       email: DEMO_EMAIL,
+      email_verified: false,
+      locale: 'en',
+      name: DEMO_EMAIL,
+      picture: expect.stringContaining('gravatar.com'),
     });
   });
 

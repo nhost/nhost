@@ -23,7 +23,7 @@ func TestOauth2Authorize(t *testing.T) { //nolint:cyclop,gocognit,maintidx
 	clientID := "nhost_abc123def456"
 	redirectURI := "https://example.com/callback"
 	state := "test-state"
-	responseType := api.Oauth2AuthorizeParamsResponseTypeCode
+	responseType := "code"
 
 	client := testOAuth2Client()
 	client.ClientID = clientID
@@ -275,7 +275,7 @@ func TestOauth2Authorize(t *testing.T) { //nolint:cyclop,gocognit,maintidx
 			},
 		)
 
-		tokenType := api.Oauth2AuthorizeParamsResponseType("token")
+		tokenType := "token"
 
 		resp, err := c.Oauth2Authorize(context.Background(), api.Oauth2AuthorizeRequestObject{
 			Params: api.Oauth2AuthorizeParams{ //nolint:exhaustruct

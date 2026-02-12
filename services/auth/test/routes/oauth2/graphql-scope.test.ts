@@ -298,4 +298,124 @@ describe('oauth2-scope-claims', () => {
     const payload = jose.decodeJwt(refreshResp.access_token);
     expect(payload['https://hasura.io/jwt/claims']).toBeUndefined();
   });
+
+  // --- Client scope enforcement ---
+
+  describe('client scope restrictions', () => {
+    let limitedClientId: string;
+    let limitedClientSecret: string;
+
+    beforeAll(async () => {
+      const { body: client } = await nhost.auth.oauth2Register(
+        {
+          client_name: 'Limited Scope Client',
+          redirect_uris: [REDIRECT_URI],
+          scope: 'openid email',
+          grant_types: ['authorization_code'],
+          response_types: ['code'],
+          token_endpoint_auth_method: 'client_secret_post',
+        },
+        { headers: { Authorization: `Bearer ${jwt}` } },
+      );
+
+      limitedClientId = client.client_id;
+      limitedClientSecret = client.client_secret!;
+    });
+
+    it('should allow requesting a subset of registered scopes', async () => {
+      const tokenResp = await getTokens(jwt, limitedClientId, limitedClientSecret, 'openid email');
+
+      expect(tokenResp).toEqual({
+        access_token: expect.any(String),
+        token_type: 'Bearer',
+        expires_in: 900,
+        id_token: expect.any(String),
+        refresh_token: expect.any(String),
+        scope: 'openid email',
+      });
+
+      const idPayload = jose.decodeJwt(tokenResp.id_token!);
+      expect(idPayload).toEqual({
+        sub: userId,
+        aud: limitedClientId,
+        auth_time: expect.any(Number),
+        iss: issuer,
+        exp: expect.any(Number),
+        iat: expect.any(Number),
+        email: DEMO_EMAIL,
+        email_verified: false,
+      });
+    });
+
+    it('should allow requesting only openid when client has openid+email', async () => {
+      const tokenResp = await getTokens(jwt, limitedClientId, limitedClientSecret, 'openid');
+
+      expect(tokenResp).toEqual({
+        access_token: expect.any(String),
+        token_type: 'Bearer',
+        expires_in: 900,
+        id_token: expect.any(String),
+        refresh_token: expect.any(String),
+        scope: 'openid',
+      });
+
+      const idPayload = jose.decodeJwt(tokenResp.id_token!);
+      expect(idPayload).toEqual({
+        sub: userId,
+        aud: limitedClientId,
+        auth_time: expect.any(Number),
+        iss: issuer,
+        exp: expect.any(Number),
+        iat: expect.any(Number),
+      });
+    });
+
+    it('should reject requesting profile scope not registered on the client', async () => {
+      const authorizeUrl = nhost.auth.oauth2AuthorizeURL({
+        client_id: limitedClientId,
+        redirect_uri: REDIRECT_URI,
+        response_type: 'code',
+        scope: 'openid profile',
+        state: `scope-reject-${Date.now()}`,
+      });
+
+      const authResp = await fetch(authorizeUrl, { redirect: 'manual' });
+      const location = authResp.headers.get('location')!;
+      const params = new URL(location).searchParams;
+
+      expect(params.get('error')).toBe('invalid_scope');
+    });
+
+    it('should reject requesting graphql scope not registered on the client', async () => {
+      const authorizeUrl = nhost.auth.oauth2AuthorizeURL({
+        client_id: limitedClientId,
+        redirect_uri: REDIRECT_URI,
+        response_type: 'code',
+        scope: 'openid graphql',
+        state: `scope-reject-graphql-${Date.now()}`,
+      });
+
+      const authResp = await fetch(authorizeUrl, { redirect: 'manual' });
+      const location = authResp.headers.get('location')!;
+      const params = new URL(location).searchParams;
+
+      expect(params.get('error')).toBe('invalid_scope');
+    });
+
+    it('should reject when any one requested scope is not registered', async () => {
+      const authorizeUrl = nhost.auth.oauth2AuthorizeURL({
+        client_id: limitedClientId,
+        redirect_uri: REDIRECT_URI,
+        response_type: 'code',
+        scope: 'openid email phone',
+        state: `scope-reject-partial-${Date.now()}`,
+      });
+
+      const authResp = await fetch(authorizeUrl, { redirect: 'manual' });
+      const location = authResp.headers.get('location')!;
+      const params = new URL(location).searchParams;
+
+      expect(params.get('error')).toBe('invalid_scope');
+    });
+  });
 });
