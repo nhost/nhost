@@ -18,6 +18,7 @@ interface HoverCardTimestampProps {
   sideOffset?: HoverCardContentProps['sideOffset'];
   align?: HoverCardContentProps['align'];
   alignOffset?: HoverCardContentProps['alignOffset'];
+  openDelay?: number;
   className?: string;
 }
 
@@ -51,12 +52,13 @@ export default function HoverCardTimestamp({
   align = 'start',
   alignOffset = -4,
   sideOffset,
+  openDelay = 0,
   className,
 }: HoverCardTimestampProps) {
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   return (
-    <HoverCard openDelay={0} closeDelay={150}>
+    <HoverCard openDelay={openDelay} closeDelay={150}>
       <HoverCardTrigger asChild>
         <div className={cn('whitespace-nowrap font-mono', className)}>
           {date.toISOString()}

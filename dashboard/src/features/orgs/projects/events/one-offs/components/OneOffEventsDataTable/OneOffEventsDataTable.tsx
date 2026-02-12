@@ -171,6 +171,9 @@ export default function OneOffEventsDataTable({
                         cell.column.id === 'scheduled_time' ||
                         cell.column.id === 'comment' ||
                         cell.column.id === 'webhook_conf',
+                      'group/cell':
+                        cell.column.id === 'id' ||
+                        cell.column.id === 'webhook_conf',
                       'p-1': cell.column.id === 'actions',
                     })}
                   >
