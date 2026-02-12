@@ -24,7 +24,12 @@ import {
   SheetTitle,
 } from '@/components/ui/v3/sheet';
 import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
+import { HeadersFormSection } from '@/features/orgs/projects/events/common/components/HeadersFormSection';
+import { PayloadTransformFormSection } from '@/features/orgs/projects/events/common/components/PayloadTransformFormSection';
+import { RequestOptionsFormSection } from '@/features/orgs/projects/events/common/components/RequestOptionsFormSection';
+import { RetryConfigurationFormSection } from '@/features/orgs/projects/events/common/components/RetryConfigurationFormSection';
 import { CronScheduleInput } from '@/features/orgs/projects/events/cron-triggers/components/CronScheduleInput';
+import { getCronTriggerSampleInputPayload } from '@/features/orgs/projects/events/cron-triggers/utils/getCronTriggerSampleInputPayload';
 import { cn } from '@/lib/utils';
 import {
   type BaseCronTriggerFormInitialData,
@@ -34,10 +39,6 @@ import {
   defaultRequestOptionsTransformValues,
   validationSchema,
 } from './BaseCronTriggerFormTypes';
-import HeadersSection from './sections/HeadersSection';
-import PayloadTransformSection from './sections/PayloadTransformSection/PayloadTransformSection';
-import { RequestOptionsSection } from './sections/RequestOptionsSection';
-import RetryConfigurationSection from './sections/RetryConfigurationSection';
 
 const ACCORDION_SECTION_VALUES = [
   'retry-configuration',
@@ -183,6 +184,14 @@ export default function BaseCronTriggerForm({
     });
   }, [isPayloadTransformEnabled, setValue]);
 
+  const handleResetSampleInput = useCallback(() => {
+    const values = form.getValues();
+    form.setValue(
+      'payloadTransform.sampleInput',
+      getCronTriggerSampleInputPayload(values.payload),
+    );
+  }, [form]);
+
   const handleDiscardChanges = () => {
     closeForm();
   };
@@ -295,9 +304,9 @@ export default function BaseCronTriggerForm({
                     </AccordionTrigger>
                     <AccordionContent>
                       <div className="flex flex-col gap-8 border-l">
-                        <RetryConfigurationSection className="pl-4" />
+                        <RetryConfigurationFormSection showToleranceSec />
                         <Separator />
-                        <HeadersSection className="pl-4" />
+                        <HeadersFormSection />
                       </div>
                     </AccordionContent>
                   </AccordionItem>
@@ -349,7 +358,7 @@ export default function BaseCronTriggerForm({
                           </div>
                           {isRequestOptionsSectionOpen &&
                             isRequestOptionsTransformEnabled && (
-                              <RequestOptionsSection className="pl-4" />
+                              <RequestOptionsFormSection />
                             )}
                           {isRequestOptionsSectionOpen &&
                             isPayloadSectionOpen && <Separator />}
@@ -390,7 +399,9 @@ export default function BaseCronTriggerForm({
                           </div>
                           {isPayloadSectionOpen &&
                             isPayloadTransformEnabled && (
-                              <PayloadTransformSection className="pl-4" />
+                              <PayloadTransformFormSection
+                                onResetSampleInput={handleResetSampleInput}
+                              />
                             )}
                         </div>
                       </div>

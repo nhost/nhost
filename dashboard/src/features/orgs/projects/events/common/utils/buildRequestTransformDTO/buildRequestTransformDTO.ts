@@ -1,9 +1,34 @@
-import type { BaseCronTriggerFormValues } from '@/features/orgs/projects/events/cron-triggers/components/BaseCronTriggerForm/BaseCronTriggerFormTypes';
 import { isNotEmptyValue } from '@/lib/utils';
 import type { RequestTransformation } from '@/utils/hasura-api/generated/schemas';
 
-export default function buildCronTriggerRequestTransformDTO(
-  formValues: BaseCronTriggerFormValues,
+export interface RequestTransformFormValues {
+  requestOptionsTransform?: {
+    method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+    urlTemplate?: string;
+    queryParams:
+      | {
+          queryParamsType: 'Key Value';
+          queryParams: Array<{ key: string; value: string }>;
+        }
+      | {
+          queryParamsType: 'URL string template';
+          queryParamsURL: string;
+        };
+  };
+  payloadTransform?: {
+    sampleInput: string;
+    requestBodyTransform:
+      | { requestBodyTransformType: 'disabled' }
+      | { requestBodyTransformType: 'application/json'; template: string }
+      | {
+          requestBodyTransformType: 'application/x-www-form-urlencoded';
+          formTemplate: Array<{ key: string; value: string }>;
+        };
+  };
+}
+
+export default function buildRequestTransformDTO(
+  formValues: RequestTransformFormValues,
 ): RequestTransformation | undefined {
   if (!formValues.requestOptionsTransform && !formValues.payloadTransform) {
     return undefined;
@@ -21,18 +46,22 @@ export default function buildCronTriggerRequestTransformDTO(
   if (isNotEmptyValue(urlTemplate)) {
     requestTransform.url = `{{$base_url}}${urlTemplate}`;
   }
-  let queryParams: Record<string, string> | null | string = null;
+
+  let queryParams: string | Record<string, string> | null = null;
   if (
     formValues.requestOptionsTransform?.queryParams.queryParamsType ===
     'Key Value'
   ) {
     const { queryParams: queryParamsList } =
       formValues.requestOptionsTransform.queryParams;
-    queryParams = queryParamsList.reduce((acc, item) => {
-      // biome-ignore lint/style/noParameterAssign: Disabled to avoid spread operator performance overhead in reduce.
-      acc[item.key] = item.value;
-      return acc;
-    }, {});
+    queryParams = queryParamsList.reduce<Record<string, string>>(
+      (acc, item) => {
+        // biome-ignore lint/style/noParameterAssign: Disabled to avoid spread operator performance overhead in reduce.
+        acc[item.key] = item.value;
+        return acc;
+      },
+      {},
+    );
   } else if (
     formValues.requestOptionsTransform?.queryParams.queryParamsType ===
     'URL string template'

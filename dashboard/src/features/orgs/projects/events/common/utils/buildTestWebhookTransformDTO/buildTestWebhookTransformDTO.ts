@@ -1,20 +1,25 @@
-import type { BaseCronTriggerFormValues } from '@/features/orgs/projects/events/cron-triggers/components/BaseCronTriggerForm/BaseCronTriggerFormTypes';
-import { buildCronTriggerRequestTransformDTO } from '@/features/orgs/projects/events/cron-triggers/utils/buildCronTriggerRequestTransformDTO';
+import type { RequestTransformFormValues } from '@/features/orgs/projects/events/common/utils/buildRequestTransformDTO';
+import { buildRequestTransformDTO } from '@/features/orgs/projects/events/common/utils/buildRequestTransformDTO';
 import type { TestWebhookTransformArgs } from '@/utils/hasura-api/generated/schemas';
 
-export interface BuildWebhookTransformDTOParams {
-  formValues: BaseCronTriggerFormValues;
+export interface WebhookTransformFormValues extends RequestTransformFormValues {
+  webhook: string;
+  sampleContext: Array<{ key: string; value: string }>;
+}
+
+export interface BuildTestWebhookTransformDTOParams {
+  formValues: WebhookTransformFormValues;
 }
 
 export default function buildTestWebhookTransformDTO({
   formValues,
-}: BuildWebhookTransformDTOParams): TestWebhookTransformArgs {
+}: BuildTestWebhookTransformDTOParams): TestWebhookTransformArgs {
   let body = {};
   try {
     body = formValues.payloadTransform?.sampleInput
       ? JSON.parse(formValues.payloadTransform.sampleInput)
       : null;
-  } catch (error) {
+  } catch {
     throw new Error('Invalid sample input. Please enter a valid JSON string.');
   }
 
@@ -24,7 +29,7 @@ export default function buildTestWebhookTransformDTO({
     return acc;
   }, {});
 
-  const requestTransform = buildCronTriggerRequestTransformDTO(formValues);
+  const requestTransform = buildRequestTransformDTO(formValues);
 
   return {
     webhook_url: formValues.webhook ?? '',

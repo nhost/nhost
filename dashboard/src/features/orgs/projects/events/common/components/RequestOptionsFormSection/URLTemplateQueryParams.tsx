@@ -6,10 +6,9 @@ import {
   FormMessage,
 } from '@/components/ui/v3/form';
 import { Textarea } from '@/components/ui/v3/textarea';
-import type { BaseCronTriggerFormValues } from '@/features/orgs/projects/events/cron-triggers/components/BaseCronTriggerForm/BaseCronTriggerFormTypes';
 
 export default function URLTemplateQueryParams() {
-  const form = useFormContext<BaseCronTriggerFormValues>();
+  const form = useFormContext();
 
   return (
     <FormField
