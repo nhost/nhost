@@ -1,3 +1,10 @@
+## [cli@1.37.1] - 2026-02-12
+
+### 🐛 Bug Fixes
+
+- *(docs)* Fix CLI reference documentation (#3895)
+- *(nixops)* Bump go to 1.26.0 (#3907)
+
 ## [cli@1.37.0] - 2026-02-05
 
 ### 🚀 Features
