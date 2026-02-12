@@ -81,7 +81,7 @@ func TestChangeUserPassword(t *testing.T) { //nolint:maintidx
 			request: api.ChangeUserPasswordRequestObject{
 				Body: &api.ChangeUserPasswordJSONRequestBody{
 					NewPassword: "password",
-					Ticket:      ptr("passwordReset:ticket"),
+					Ticket:      new("passwordReset:ticket"),
 				},
 			},
 			expectedResponse:  api.ChangeUserPassword200JSONResponse(api.OK),
@@ -108,7 +108,7 @@ func TestChangeUserPassword(t *testing.T) { //nolint:maintidx
 			request: api.ChangeUserPasswordRequestObject{
 				Body: &api.ChangeUserPasswordJSONRequestBody{
 					NewPassword: "password",
-					Ticket:      ptr("passwordReset:ticket"),
+					Ticket:      new("passwordReset:ticket"),
 				},
 			},
 			expectedResponse: controller.ErrorResponse{
@@ -141,7 +141,7 @@ func TestChangeUserPassword(t *testing.T) { //nolint:maintidx
 			request: api.ChangeUserPasswordRequestObject{
 				Body: &api.ChangeUserPasswordJSONRequestBody{
 					NewPassword: "password",
-					Ticket:      ptr("passwordReset:ticket"),
+					Ticket:      new("passwordReset:ticket"),
 				},
 			},
 			expectedResponse: controller.ErrorResponse{
@@ -174,7 +174,7 @@ func TestChangeUserPassword(t *testing.T) { //nolint:maintidx
 			request: api.ChangeUserPasswordRequestObject{
 				Body: &api.ChangeUserPasswordJSONRequestBody{
 					NewPassword: "password",
-					Ticket:      ptr("passwordReset:ticket"),
+					Ticket:      new("passwordReset:ticket"),
 				},
 			},
 			expectedResponse: controller.ErrorResponse{
@@ -206,7 +206,7 @@ func TestChangeUserPassword(t *testing.T) { //nolint:maintidx
 			request: api.ChangeUserPasswordRequestObject{
 				Body: &api.ChangeUserPasswordJSONRequestBody{
 					NewPassword: "p",
-					Ticket:      ptr("passwordReset:ticket"),
+					Ticket:      new("passwordReset:ticket"),
 				},
 			},
 			expectedResponse: controller.ErrorResponse{

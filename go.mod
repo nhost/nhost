@@ -1,6 +1,6 @@
 module github.com/nhost/nhost
 
-go 1.25.3
+go 1.26.0
 
 require (
 	github.com/99designs/gqlgen v0.17.86

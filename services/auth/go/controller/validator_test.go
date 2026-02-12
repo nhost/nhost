@@ -9,7 +9,7 @@ import (
 	"github.com/nhost/nhost/services/auth/go/controller"
 )
 
-func ptr[T any](x T) *T { return &x }
+func ptr[T any](x T) *T { return new(x) }
 
 func getConfig() *controller.Config {
 	clientURL, _ := url.Parse("http://localhost:3000")

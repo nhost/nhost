@@ -204,8 +204,8 @@ func TestUploadFile(t *testing.T) {
 						UpdatedAt:        time.Time{}, // ignored
 						IsUploaded:       true,
 						MimeType:         "text/plain; charset=utf-8",
-						UploadedByUserId: ptr("some-valid-uuid"),
-						Metadata:         ptr(map[string]any{}),
+						UploadedByUserId: new("some-valid-uuid"),
+						Metadata:         new(map[string]any{}),
 					},
 					nil)
 			}
@@ -254,8 +254,8 @@ func TestUploadFile(t *testing.T) {
 						UpdatedAt:        time.Time{}, // ignored
 						IsUploaded:       true,
 						MimeType:         "text/markdown",
-						UploadedByUserId: ptr("some-valid-uuid"),
-						Metadata:         ptr(map[string]any{"some": "metadata"}),
+						UploadedByUserId: new("some-valid-uuid"),
+						Metadata:         new(map[string]any{"some": "metadata"}),
 					},
 					nil)
 			}
@@ -296,8 +296,8 @@ func TestUploadFile(t *testing.T) {
 						UpdatedAt:        time.Time{}, // ignored
 						IsUploaded:       true,
 						MimeType:         "text/plain; charset=utf-8",
-						UploadedByUserId: ptr("some-valid-uuid"),
-						Metadata:         ptr(map[string]any{}),
+						UploadedByUserId: new("some-valid-uuid"),
+						Metadata:         new(map[string]any{}),
 					},
 					{
 						Id:               "d041c7c5-10e7-410e-a599-799409b5",
@@ -309,8 +309,8 @@ func TestUploadFile(t *testing.T) {
 						UpdatedAt:        time.Time{}, // ignored
 						IsUploaded:       true,
 						MimeType:         "text/markdown",
-						UploadedByUserId: ptr("some-valid-uuid"),
-						Metadata:         ptr(map[string]any{"some": "metadata"}),
+						UploadedByUserId: new("some-valid-uuid"),
+						Metadata:         new(map[string]any{"some": "metadata"}),
 					},
 				},
 			}, resp,

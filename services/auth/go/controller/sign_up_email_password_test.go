@@ -153,14 +153,14 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 					Password: "password",
 					Options: &api.SignUpOptions{
 						AllowedRoles: &[]string{"me"},
-						DefaultRole:  ptr("me"),
-						DisplayName:  ptr("Jane Doe"),
-						Locale:       ptr("se"),
+						DefaultRole:  new("me"),
+						DisplayName:  new("Jane Doe"),
+						Locale:       new("se"),
 						Metadata: &map[string]any{
 							"firstName": "Jane",
 							"lastName":  "Doe",
 						},
-						RedirectTo: ptr("http://localhost:3000"),
+						RedirectTo: new("http://localhost:3000"),
 					},
 				},
 			},
@@ -648,7 +648,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 					Password: "password",
 					Options: &api.SignUpOptions{
 						AllowedRoles: &[]string{"admin", "user"},
-						DefaultRole:  ptr("user"),
+						DefaultRole:  new("user"),
 						DisplayName:  nil,
 						Locale:       nil,
 						Metadata:     nil,

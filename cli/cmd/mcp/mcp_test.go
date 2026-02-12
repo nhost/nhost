@@ -21,10 +21,6 @@ import (
 	"github.com/nhost/nhost/cli/mcp/tools/schemas"
 )
 
-func ptr[T any](v T) *T {
-	return &v
-}
-
 func TestStart(t *testing.T) { //nolint:cyclop,maintidx,paralleltest
 	loginCmd := user.CommandLogin()
 	mcpCmd := nhostmcp.Command()
@@ -172,10 +168,10 @@ config validate after making changes to your nhost.toml file to ensure it is val
 					},
 					Annotations: mcp.ToolAnnotation{
 						Title:           "Perform GraphQL Query on Nhost Cloud Platform",
-						ReadOnlyHint:    ptr(false),
-						DestructiveHint: ptr(true),
-						IdempotentHint:  ptr(false),
-						OpenWorldHint:   ptr(true),
+						ReadOnlyHint:    new(false),
+						DestructiveHint: new(true),
+						IdempotentHint:  new(false),
+						OpenWorldHint:   new(true),
 					},
 				},
 				{
@@ -221,10 +217,10 @@ config validate after making changes to your nhost.toml file to ensure it is val
 					},
 					Annotations: mcp.ToolAnnotation{
 						Title:           "Get GraphQL/API schema for various services",
-						ReadOnlyHint:    ptr(true),
-						DestructiveHint: ptr(false),
-						IdempotentHint:  ptr(true),
-						OpenWorldHint:   ptr(true),
+						ReadOnlyHint:    new(true),
+						DestructiveHint: new(false),
+						IdempotentHint:  new(true),
+						OpenWorldHint:   new(true),
 					},
 				},
 				{
@@ -265,10 +261,10 @@ config validate after making changes to your nhost.toml file to ensure it is val
 					},
 					Annotations: mcp.ToolAnnotation{
 						Title:           "Perform GraphQL Query on Nhost Project running on Nhost Cloud",
-						ReadOnlyHint:    ptr(false),
-						DestructiveHint: ptr(true),
-						IdempotentHint:  ptr(false),
-						OpenWorldHint:   ptr(true),
+						ReadOnlyHint:    new(false),
+						DestructiveHint: new(true),
+						IdempotentHint:  new(false),
+						OpenWorldHint:   new(true),
 					},
 				},
 				{
@@ -293,10 +289,10 @@ config validate after making changes to your nhost.toml file to ensure it is val
 					},
 					Annotations: mcp.ToolAnnotation{
 						Title:           "List Nhost Docs",
-						ReadOnlyHint:    ptr(true),
-						IdempotentHint:  ptr(true),
-						DestructiveHint: ptr(false),
-						OpenWorldHint:   ptr(false),
+						ReadOnlyHint:    new(true),
+						IdempotentHint:  new(true),
+						DestructiveHint: new(false),
+						OpenWorldHint:   new(false),
 					},
 				},
 				{
@@ -327,10 +323,10 @@ config validate after making changes to your nhost.toml file to ensure it is val
 					},
 					Annotations: mcp.ToolAnnotation{
 						Title:           "Manage GraphQL's Metadata on an Nhost Development Project",
-						ReadOnlyHint:    ptr(false),
-						DestructiveHint: ptr(true),
-						IdempotentHint:  ptr(true),
-						OpenWorldHint:   ptr(true),
+						ReadOnlyHint:    new(false),
+						DestructiveHint: new(true),
+						IdempotentHint:  new(true),
+						OpenWorldHint:   new(true),
 					},
 				},
 				{
@@ -350,10 +346,10 @@ config validate after making changes to your nhost.toml file to ensure it is val
 					},
 					Annotations: mcp.ToolAnnotation{
 						Title:           "Read Nhost Documentation Page",
-						ReadOnlyHint:    ptr(true),
-						IdempotentHint:  ptr(true),
-						DestructiveHint: ptr(false),
-						OpenWorldHint:   ptr(false),
+						ReadOnlyHint:    new(true),
+						IdempotentHint:  new(true),
+						DestructiveHint: new(false),
+						OpenWorldHint:   new(false),
 					},
 				},
 				{
@@ -377,10 +373,10 @@ config validate after making changes to your nhost.toml file to ensure it is val
 					},
 					Annotations: mcp.ToolAnnotation{
 						Title:           "Search Nhost Docs",
-						ReadOnlyHint:    ptr(true),
-						IdempotentHint:  ptr(true),
-						DestructiveHint: ptr(false),
-						OpenWorldHint:   ptr(false),
+						ReadOnlyHint:    new(true),
+						IdempotentHint:  new(true),
+						DestructiveHint: new(false),
+						OpenWorldHint:   new(false),
 					},
 				},
 			},
