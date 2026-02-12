@@ -71,12 +71,12 @@ func (ctrl *Controller) Oauth2Jwks( //nolint:ireturn
 			N   *string `json:"n,omitempty"`
 			Use *string `json:"use,omitempty"`
 		}{
-			Alg: ptr(k.Alg),
-			E:   ptr(k.E),
-			Kid: ptr(k.Kid),
-			Kty: ptr(k.Kty),
-			N:   ptr(k.N),
-			Use: ptr(k.Use),
+			Alg: new(k.Alg),
+			E:   new(k.E),
+			Kid: new(k.Kid),
+			Kty: new(k.Kty),
+			N:   new(k.N),
+			Use: new(k.Use),
 		}
 	}
 
