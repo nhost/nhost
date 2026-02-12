@@ -11,8 +11,10 @@ import type { GetEventAndInvocationLogsByIdResponse } from './getEventAndInvocat
 import type { GetEventLogsResponse } from './getEventLogsResponse';
 import type { GetScheduledEventInvocationsResponse } from './getScheduledEventInvocationsResponse';
 import type { GetScheduledEventsResponse } from './getScheduledEventsResponse';
+import type { InconsistentMetadataResponse } from './inconsistentMetadataResponse';
 import type { IntrospectRemoteSchemaResponse } from './introspectRemoteSchemaResponse';
 import type { InvokeEventTriggerResponse } from './invokeEventTriggerResponse';
+import type { ReloadMetadataOperationResponse } from './reloadMetadataOperationResponse';
 import type { SuggestRelationshipsResponse } from './suggestRelationshipsResponse';
 import type { TestWebhookTransformResponse } from './testWebhookTransformResponse';
 
@@ -21,6 +23,8 @@ export type MetadataOperation200 =
       message?: string;
     }
   | ExportMetadataResponse
+  | InconsistentMetadataResponse
+  | ReloadMetadataOperationResponse
   | SuggestRelationshipsResponse
   | IntrospectRemoteSchemaResponse
   | GetEventLogsResponse

@@ -115,6 +115,7 @@ src/
 - Use toast notifications for user-facing errors (`react-hot-toast`)
 - Wrap async operations with error boundaries where appropriate
 - Use `react-error-boundary` for component-level error handling
+- Use `execPromiseWithErrorToast` from `@/features/orgs/utils/execPromiseWithErrorToast` when calling mutations or async operations that should show loading/success/error toasts to the user. It takes a promise callback and `{ loadingMessage, successMessage, errorMessage }` options.
 
 ### Testing
 
@@ -136,7 +137,7 @@ src/
 ### State Management
 
 - Use Recoil for global state (Recoil atoms/selectors)
-- Use TanStack Query (React Query) for server state
+- Use TanStack Query (React Query) for server state. For mutations, use `isPending` instead of the deprecated `isLoading` for status checks.
 - Use local state with `useState`/`useReducer` for UI state
 - When using `useTableQuery`, check whether you need to fetch rows eagerly. If you only need table metadata (for example column definitions) or want to control when rows are loaded, pass `preventRowFetching: true` to `useTableQuery` to avoid automatic row fetching.
 
@@ -160,20 +161,21 @@ src/
 - Use `VoidFunction` for callback types
 - Curly braces required for all control statements (ESLint `curly: ['error', 'all']`)
 - Prefer early returns over nested conditionals
-- No comments unless explaining complex logic (code should be self-documenting)
+- No comments unless explaining complex logic (code should be self-explanatory)
+- Do not add inline JSX comments like `{/* Section Name */}` to label sections in components — the code should be self-documenting
 
 ## Linting and Formatting
 
 - **Biome**: Used for both linting and formatting
   - Formatting: Single quotes for JavaScript/TypeScript
-  - Linting: Enforces code quality rules (complexity, style, suspicious code, correctness, performance)
+  - Linting: Enforces code quality rules (complexity, style, suspicious code, correctness, performance, import sorting)
   - CSS: Supports Tailwind directives
   - Excludes generated files (`__generated__/`, `hasura-api/generated/`) and `public/`
 - **ESLint**: Uses flat config format with `typescript-eslint`
   - Enforces absolute imports (must use `@/` alias, no relative imports)
   - Restricts direct imports from `@testing-library/react*` (must use `@/tests/testUtils`)
   - Excludes generated files and config files
-- **Lint command**: Runs both Biome and ESLint (`pnpm lint`)
+- **Lint command**: Runs both Biome and ESLint (`pnpm lint`). Auto-fix with `pnpm biome check --write` or `pnpm biome check --write <file>`
 - **Format command**: Uses Biome (`pnpm format`)
 
 ## Commit Message Format
