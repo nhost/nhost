@@ -1,26 +1,28 @@
 final: prev: rec {
-  go = prev.go_1_25.overrideAttrs
+  go = prev.go_1_26.overrideAttrs
     (finalAttrs: previousAttrs: rec {
-      version = "1.25.7";
+      version = "1.26.0";
 
       src = final.fetchurl {
         url = "https://go.dev/dl/go${version}.src.tar.gz";
-        sha256 = "sha256-F48oMoICdLQ+F30y8Go+uwEp5CfdIKXkyI3ywXY88Qo=";
+        sha256 = "sha256-yRMqih9r0qpKrR10uCMdlSdJUEg6SVBlfubFbm6Bd5A=";
       };
 
     });
 
   buildGoModule = prev.buildGoModule.override { go = go; };
 
-  golangci-lint = prev.golangci-lint.overrideAttrs (oldAttrs: rec {
-    version = "2.8.0";
-    src = prev.fetchFromGitHub {
+  golangci-lint = final.buildGoModule rec {
+    pname = "golangci-lint";
+    version = "2.9.0";
+    src = final.fetchFromGitHub {
       owner = "golangci";
       repo = "golangci-lint";
       rev = "v${version}";
-      sha256 = "sha256-w6MAOirj8rPHYbKrW4gJeemXCS64fNtteV6IioqIQTQ=";
+      sha256 = "sha256-8LEtm1v0slKwdLBtS41OilKJLXytSxcI9fUlZbj5Gfw=";
     };
-    vendorHash = "sha256-/Vqo/yrmGh6XipELQ9NDtlMEO2a654XykmvnMs0BdrI=";
+    vendorHash = "sha256-w8JfF6n1ylrU652HEv/cYdsOdDZz9J2uRQDqxObyhkY=";
+    subPackages = [ "cmd/golangci-lint" ];
     ldflags = [
       "-s"
       "-w"
@@ -28,7 +30,8 @@ final: prev: rec {
       "-X main.commit=v${version}"
       "-X main.date=19700101-00:00:00"
     ];
-  });
+    doCheck = false;
+  };
 
   golines = final.buildGoModule rec {
     pname = "golines";

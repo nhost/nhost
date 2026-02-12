@@ -202,7 +202,7 @@ func expectedAuth() *Service {
 				Type:     "bind",
 				Source:   "/tmp/nhost/emails",
 				Target:   "/app/email-templates",
-				ReadOnly: ptr(false),
+				ReadOnly: new(false),
 			},
 		},
 		WorkingDir: nil,
@@ -230,7 +230,7 @@ func TestAuth(t *testing.T) {
 			name: "pre-0.22.0",
 			cfg: func() *model.ConfigConfig {
 				cfg := getConfig()
-				cfg.Auth.Version = ptr("0.21.3")
+				cfg.Auth.Version = new("0.21.3")
 
 				return cfg
 			},

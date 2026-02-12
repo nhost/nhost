@@ -98,12 +98,12 @@ func TestVerifyAddSecurityKey(t *testing.T) { //nolint:maintidx
 			request: api.VerifyAddSecurityKeyRequestObject{
 				Body: &api.VerifyAddSecurityKeyJSONRequestBody{
 					Credential: touchIDRequest,
-					Nickname:   ptr("my-touch-id"),
+					Nickname:   new("my-touch-id"),
 				},
 			},
 			expectedResponse: api.VerifyAddSecurityKey200JSONResponse{
 				Id:       "d0902ee3-d160-4853-af6a-8d4b6248117e",
-				Nickname: ptr("my-touch-id"),
+				Nickname: new("my-touch-id"),
 			},
 			expectedJWT:       nil,
 			jwtTokenFn:        jwtTokenFn,
@@ -212,7 +212,7 @@ func TestVerifyAddSecurityKey(t *testing.T) { //nolint:maintidx
 			request: api.VerifyAddSecurityKeyRequestObject{
 				Body: &api.VerifyAddSecurityKeyJSONRequestBody{
 					Credential: touchIDRequest,
-					Nickname:   ptr("my-touch-id"),
+					Nickname:   new("my-touch-id"),
 				},
 			},
 			expectedResponse: controller.ErrorResponse{

@@ -56,6 +56,7 @@ func NewTemplatesFromFilesystem(
 				if err != nil {
 					return fmt.Errorf("error reading file: %w", err)
 				}
+
 				templates[relativePath] = fasttemplate.New(string(f), "${", "}")
 			}
 		}

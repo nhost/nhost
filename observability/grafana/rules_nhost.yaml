@@ -51,7 +51,7 @@ groups:
                 maxDataPoints: 43200
                 refId: B
                 type: threshold
-          noDataState: Alerting
+          noDataState: OK
           execErrState: Alerting
           for: 15m
           annotations:
@@ -123,7 +123,7 @@ groups:
                 maxDataPoints: 43200
                 refId: B
                 type: threshold
-          noDataState: Alerting
+          noDataState: OK
           execErrState: Alerting
           for: 15m
           annotations:
@@ -195,7 +195,7 @@ groups:
                 maxDataPoints: 43200
                 refId: B
                 type: threshold
-          noDataState: Alerting
+          noDataState: OK
           execErrState: Alerting
           for: 15m
           annotations:
@@ -342,7 +342,7 @@ groups:
                 maxDataPoints: 43200
                 refId: B
                 type: threshold
-          noDataState: Alerting
+          noDataState: OK
           execErrState: Alerting
           for: 15m
           annotations:
