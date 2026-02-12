@@ -186,11 +186,11 @@ export default function BaseCronTriggerForm({
 
   const handleResetSampleInput = useCallback(() => {
     const values = form.getValues();
-    setValue(
+    form.setValue(
       'payloadTransform.sampleInput',
       getCronTriggerSampleInputPayload(values.payload),
     );
-  }, [form, setValue]);
+  }, [form]);
 
   const handleDiscardChanges = () => {
     closeForm();
