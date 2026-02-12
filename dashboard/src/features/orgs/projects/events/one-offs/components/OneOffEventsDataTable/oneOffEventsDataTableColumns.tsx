@@ -67,7 +67,6 @@ export function createOneOffEventsDataTableColumns({
       header: () => <div className="p-2">Webhook</div>,
       minSize: 80,
       size: 240,
-      maxSize: 560,
       enableResizing: true,
       cell: ({ row }) => (
         <TextWithTooltip
