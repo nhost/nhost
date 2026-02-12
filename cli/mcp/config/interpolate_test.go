@@ -197,10 +197,6 @@ func TestIsAlphaNumUnderscore(t *testing.T) {
 	}
 }
 
-func ptr[T any](v T) *T {
-	return &v
-}
-
 func TestLoadWithInterpolation(t *testing.T) {
 	// Create a temporary config file
 	content := `[[projects]]
@@ -241,12 +237,12 @@ allow_queries = ["*"]
 		Cloud: nil,
 		Projects: ProjectList{
 			{ //nolint:exhaustruct
-				AdminSecret: ptr("local-secret"),
+				AdminSecret: new("local-secret"),
 			},
 			{ //nolint:exhaustruct
 				Subdomain:    "myapp",
 				Region:       "us-east-1",
-				AdminSecret:  ptr("project-secret"),
+				AdminSecret:  new("project-secret"),
 				AllowQueries: []string{"*"},
 			},
 		},

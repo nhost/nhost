@@ -125,7 +125,7 @@ func TestCreatePAT(t *testing.T) {
 			request: api.CreatePATRequestObject{
 				Body: &api.CreatePATRequest{
 					ExpiresAt: time.Now().Add(time.Hour),
-					Metadata:  ptr(map[string]any{"key": "value"}),
+					Metadata:  new(map[string]any{"key": "value"}),
 				},
 			},
 			expectedResponse: api.CreatePAT200JSONResponse{

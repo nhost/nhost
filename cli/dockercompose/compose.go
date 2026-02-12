@@ -37,10 +37,6 @@ func functionsNodeModules(branch string) string {
 	return sanitizeBranch(branch) + "-functions_node_modules"
 }
 
-func ptr[T any](v T) *T {
-	return &v
-}
-
 func ports(host, container uint) []Port {
 	if host == 0 {
 		return nil
@@ -238,7 +234,7 @@ func traefik(subdomain, projectName string, port uint, dotnhostfolder string) (*
 		Type:     "bind",
 		Source:   filepath.Join(dotnhostfolder, "traefik"),
 		Target:   "/opt/traefik",
-		ReadOnly: ptr(true),
+		ReadOnly: new(true),
 	}}
 
 	dockerEndpoint := dockerURL.String()
@@ -247,7 +243,7 @@ func traefik(subdomain, projectName string, port uint, dotnhostfolder string) (*
 			Type:     "bind",
 			Source:   dockerURL.Path,
 			Target:   "/var/run/docker.sock",
-			ReadOnly: ptr(true),
+			ReadOnly: new(true),
 		})
 		dockerEndpoint = "unix:///var/run/docker.sock"
 	}
@@ -432,19 +428,19 @@ func functions( //nolint:funlen
 				Type:     "bind",
 				Source:   rootFolder,
 				Target:   "/opt/project",
-				ReadOnly: ptr(false),
+				ReadOnly: new(false),
 			},
 			{
 				Type:     "volume",
 				Source:   rootNodeModules(branch),
 				Target:   "/opt/project/node_modules",
-				ReadOnly: ptr(false),
+				ReadOnly: new(false),
 			},
 			{
 				Type:     "volume",
 				Source:   functionsNodeModules(branch),
 				Target:   "/opt/project/functions/node_modules",
-				ReadOnly: ptr(false),
+				ReadOnly: new(false),
 			},
 		},
 		WorkingDir: nil,
@@ -483,7 +479,7 @@ func mailhog(subdomain, volumeName string, useTLS bool) *Service {
 				Type:     "volume",
 				Source:   volumeName,
 				Target:   "/maildir",
-				ReadOnly: ptr(false),
+				ReadOnly: new(false),
 			},
 		},
 		WorkingDir: nil,
@@ -635,7 +631,7 @@ func mountCACertificates(
 			Type:     "bind",
 			Source:   path,
 			Target:   "/etc/ssl/certs/ca-certificates.crt",
-			ReadOnly: ptr(true),
+			ReadOnly: new(true),
 		})
 	}
 }

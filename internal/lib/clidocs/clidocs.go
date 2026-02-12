@@ -63,23 +63,29 @@ func ToMarkdown(cmd *cli.Command) (string, error) {
 	if err := writeDocTemplate(cmd, &w); err != nil {
 		return "", err
 	}
+
 	return w.String(), nil
 }
 
 func writeDocTemplate(cmd *cli.Command, w *bytes.Buffer) error {
 	const name = "cli"
+
 	t, err := template.New(name).Parse(markdownDocTemplate)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to parse template: %w", err)
 	}
 
-	return t.ExecuteTemplate(w, name, &cliCommandTemplate{
+	if err := t.ExecuteTemplate(w, name, &cliCommandTemplate{
 		Command:      cmd,
 		SectionNum:   0,
 		Commands:     prepareCommands(cmd.Commands, 0),
 		GlobalArgs:   prepareArgsWithValues(cmd.VisibleFlags()),
 		SynopsisArgs: prepareArgsSynopsis(cmd.VisibleFlags()),
-	})
+	}); err != nil {
+		return fmt.Errorf("failed to execute template: %w", err)
+	}
+
+	return nil
 }
 
 func prepareCommands(commands []*cli.Command, level int) []string {
@@ -93,7 +99,7 @@ func prepareCommands(commands []*cli.Command, level int) []string {
 		usage := prepareUsage(command, usageText)
 
 		prepared := fmt.Sprintf("%s %s\n\n%s%s",
-			strings.Repeat("#", level+2),
+			strings.Repeat("#", level+2), //nolint:mnd
 			strings.Join(command.Names(), ", "),
 			usage,
 			usageText,
@@ -101,7 +107,7 @@ func prepareCommands(commands []*cli.Command, level int) []string {
 
 		flags := prepareArgsWithValues(command.VisibleFlags())
 		if len(flags) > 0 {
-			prepared += fmt.Sprintf("\n%s", strings.Join(flags, "\n"))
+			prepared += "\n" + strings.Join(flags, "\n")
 		}
 
 		coms = append(coms, prepared)
@@ -136,22 +142,26 @@ func prepareFlags(
 		if !ok {
 			continue
 		}
+
 		modifiedArg := opener
 
 		for _, s := range f.Names() {
 			trimmed := strings.TrimSpace(s)
+
 			if len(modifiedArg) > len(opener) {
 				modifiedArg += sep
 			}
+
 			if len(trimmed) > 1 {
-				modifiedArg += fmt.Sprintf("--%s", trimmed)
+				modifiedArg += "--" + trimmed
 			} else {
-				modifiedArg += fmt.Sprintf("-%s", trimmed)
+				modifiedArg += "-" + trimmed
 			}
 		}
+
 		modifiedArg += closer
 		if flag.TakesValue() {
-			modifiedArg += fmt.Sprintf("=%s", value)
+			modifiedArg += "=" + value
 		}
 
 		if addDetails {
@@ -160,22 +170,28 @@ func prepareFlags(
 
 		args = append(args, modifiedArg+"\n")
 	}
+
 	sort.Strings(args)
+
 	return args
 }
 
 func flagDetails(flag cli.DocGenerationFlag) string {
 	description := flag.GetUsage()
+
 	value := getFlagDefaultValue(flag)
 	if value != "" {
 		description += " (default: " + value + ")"
 	}
+
 	if envVars := flag.GetEnvVars(); len(envVars) > 0 {
 		for i, v := range envVars {
 			envVars[i] = "$" + v
 		}
+
 		description += " [" + strings.Join(envVars, ", ") + "]"
 	}
+
 	return ": " + description
 }
 
@@ -188,9 +204,12 @@ func prepareUsageText(command *cli.Command) string {
 
 	var usageText string
 	if strings.Contains(preparedUsageText, "\n") {
-		for _, ln := range strings.Split(preparedUsageText, "\n") {
-			usageText += fmt.Sprintf("    %s\n", ln)
+		var usageTextSb191 strings.Builder
+		for ln := range strings.SplitSeq(preparedUsageText, "\n") {
+			usageTextSb191.WriteString(fmt.Sprintf("    %s\n", ln))
 		}
+
+		usageText += usageTextSb191.String()
 	} else {
 		usageText = fmt.Sprintf(">%s\n", preparedUsageText)
 	}
@@ -231,9 +250,9 @@ func getFlagDefaultValue(f cli.DocGenerationFlag) string {
 	ref := reflect.ValueOf(f)
 	if ref.Kind() != reflect.Ptr {
 		return ""
-	} else {
-		ref = ref.Elem()
 	}
+
+	ref = ref.Elem()
 
 	if ref.Kind() != reflect.Struct {
 		return ""

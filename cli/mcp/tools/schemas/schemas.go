@@ -21,10 +21,6 @@ specify which schema you want. Supported services are:
 `
 )
 
-func ptr[T any](v T) *T {
-	return &v
-}
-
 type Tool struct {
 	cfg *config.Config
 }
@@ -40,10 +36,10 @@ func (t *Tool) Register(mcpServer *server.MCPServer) {
 		mcp.WithToolAnnotation(
 			mcp.ToolAnnotation{
 				Title:           "Get GraphQL/API schema for various services",
-				ReadOnlyHint:    ptr(true),
-				DestructiveHint: ptr(false),
-				IdempotentHint:  ptr(true),
-				OpenWorldHint:   ptr(true),
+				ReadOnlyHint:    new(true),
+				DestructiveHint: new(false),
+				IdempotentHint:  new(true),
+				OpenWorldHint:   new(true),
 			},
 		),
 		mcp.WithString(

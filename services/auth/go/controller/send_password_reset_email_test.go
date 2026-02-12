@@ -133,7 +133,7 @@ func TestSendPasswordResetEmail(t *testing.T) { //nolint:maintidx
 				Body: &api.SendPasswordResetEmailJSONRequestBody{
 					Email: "jane@acme.com",
 					Options: &api.OptionsRedirectTo{
-						RedirectTo: ptr("https://myapp.com"),
+						RedirectTo: new("https://myapp.com"),
 					},
 				},
 			},
@@ -184,7 +184,7 @@ func TestSendPasswordResetEmail(t *testing.T) { //nolint:maintidx
 				Body: &api.SendPasswordResetEmailJSONRequestBody{
 					Email: "jane@acme.com",
 					Options: &api.OptionsRedirectTo{
-						RedirectTo: ptr("https://myapp.com"),
+						RedirectTo: new("https://myapp.com"),
 					},
 				},
 			},

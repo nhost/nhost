@@ -211,7 +211,7 @@ func TestSendVerificationEmail(t *testing.T) { //nolint:maintidx
 				Body: &api.SendVerificationEmailJSONRequestBody{
 					Email: "jane@acme.com",
 					Options: &api.OptionsRedirectTo{
-						RedirectTo: ptr("https://myapp.com/verify"),
+						RedirectTo: new("https://myapp.com/verify"),
 					},
 				},
 			},
@@ -267,7 +267,7 @@ func TestSendVerificationEmail(t *testing.T) { //nolint:maintidx
 				Body: &api.SendVerificationEmailJSONRequestBody{
 					Email: "jane@acme.com",
 					Options: &api.OptionsRedirectTo{
-						RedirectTo: ptr("https://evil.com/verify"),
+						RedirectTo: new("https://evil.com/verify"),
 					},
 				},
 			},

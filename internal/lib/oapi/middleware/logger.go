@@ -10,12 +10,12 @@ import (
 
 type loggerCtxKey struct{}
 
-// Stores the logger in the context.
+// LoggerToContext stores the logger in the context.
 func LoggerToContext(ctx context.Context, logger *slog.Logger) context.Context {
 	return context.WithValue(ctx, loggerCtxKey{}, logger)
 }
 
-// Retrieves the logger from the context. It creates a new one if it can't be found.
+// LoggerFromContext retrieves the logger from the context. It creates a new one if it can't be found.
 func LoggerFromContext(ctx context.Context) *slog.Logger { //nolint:contextcheck
 	ginCtx, ok := ctx.(*gin.Context)
 	if ok {
