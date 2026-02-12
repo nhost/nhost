@@ -47,7 +47,7 @@ export default function RuleEditorRow({
   return (
     <div
       className={twMerge(
-        'flex flex-col gap-1 space-y-1 overflow-x-hidden pb-4 xl:grid xl:grid-flow-row xl:grid-cols-[320px_140px_minmax(100px,_1fr)_40px] xl:space-y-0 xl:overflow-x-visible',
+        'flex flex-col gap-1 space-y-1 overflow-x-hidden pb-4 xl:grid xl:grid-flow-row xl:grid-cols-[320px_160px_minmax(100px,_1fr)_40px] xl:space-y-0 xl:overflow-x-visible',
         className,
       )}
       {...props}
