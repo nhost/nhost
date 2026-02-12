@@ -89,6 +89,7 @@ type ComplexityRoot struct {
 		ElevatedPrivileges func(childComplexity int) int
 		Method             func(childComplexity int) int
 		Misc               func(childComplexity int) int
+		Oauth2Provider     func(childComplexity int) int
 		RateLimit          func(childComplexity int) int
 		Redirections       func(childComplexity int) int
 		Resources          func(childComplexity int) int
@@ -216,12 +217,39 @@ type ComplexityRoot struct {
 		ConcealErrors func(childComplexity int) int
 	}
 
+	ConfigAuthOauth2Provider struct {
+		AccessToken               func(childComplexity int) int
+		ClientIdMetadataDocument  func(childComplexity int) int
+		DynamicClientRegistration func(childComplexity int) int
+		Enabled                   func(childComplexity int) int
+		LoginURL                  func(childComplexity int) int
+		RefreshToken              func(childComplexity int) int
+	}
+
+	ConfigAuthOauth2ProviderAccessToken struct {
+		ExpiresIn func(childComplexity int) int
+	}
+
+	ConfigAuthOauth2ProviderClientIdMetadataDocument struct {
+		Enabled func(childComplexity int) int
+	}
+
+	ConfigAuthOauth2ProviderDynamicClientRegistration struct {
+		Enabled           func(childComplexity int) int
+		MaxClientsPerUser func(childComplexity int) int
+	}
+
+	ConfigAuthOauth2ProviderRefreshToken struct {
+		ExpiresIn func(childComplexity int) int
+	}
+
 	ConfigAuthRateLimit struct {
-		BruteForce func(childComplexity int) int
-		Emails     func(childComplexity int) int
-		Global     func(childComplexity int) int
-		Signups    func(childComplexity int) int
-		Sms        func(childComplexity int) int
+		BruteForce   func(childComplexity int) int
+		Emails       func(childComplexity int) int
+		Global       func(childComplexity int) int
+		Oauth2Server func(childComplexity int) int
+		Signups      func(childComplexity int) int
+		Sms          func(childComplexity int) int
 	}
 
 	ConfigAuthRedirections struct {
@@ -910,6 +938,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.ConfigAuth.Misc(childComplexity), true
+	case "ConfigAuth.oauth2Provider":
+		if e.complexity.ConfigAuth.Oauth2Provider == nil {
+			break
+		}
+
+		return e.complexity.ConfigAuth.Oauth2Provider(childComplexity), true
 	case "ConfigAuth.rateLimit":
 		if e.complexity.ConfigAuth.RateLimit == nil {
 			break
@@ -1355,6 +1389,77 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.ConfigAuthMisc.ConcealErrors(childComplexity), true
 
+	case "ConfigAuthOauth2Provider.accessToken":
+		if e.complexity.ConfigAuthOauth2Provider.AccessToken == nil {
+			break
+		}
+
+		return e.complexity.ConfigAuthOauth2Provider.AccessToken(childComplexity), true
+	case "ConfigAuthOauth2Provider.clientIdMetadataDocument":
+		if e.complexity.ConfigAuthOauth2Provider.ClientIdMetadataDocument == nil {
+			break
+		}
+
+		return e.complexity.ConfigAuthOauth2Provider.ClientIdMetadataDocument(childComplexity), true
+	case "ConfigAuthOauth2Provider.dynamicClientRegistration":
+		if e.complexity.ConfigAuthOauth2Provider.DynamicClientRegistration == nil {
+			break
+		}
+
+		return e.complexity.ConfigAuthOauth2Provider.DynamicClientRegistration(childComplexity), true
+	case "ConfigAuthOauth2Provider.enabled":
+		if e.complexity.ConfigAuthOauth2Provider.Enabled == nil {
+			break
+		}
+
+		return e.complexity.ConfigAuthOauth2Provider.Enabled(childComplexity), true
+	case "ConfigAuthOauth2Provider.loginURL":
+		if e.complexity.ConfigAuthOauth2Provider.LoginURL == nil {
+			break
+		}
+
+		return e.complexity.ConfigAuthOauth2Provider.LoginURL(childComplexity), true
+	case "ConfigAuthOauth2Provider.refreshToken":
+		if e.complexity.ConfigAuthOauth2Provider.RefreshToken == nil {
+			break
+		}
+
+		return e.complexity.ConfigAuthOauth2Provider.RefreshToken(childComplexity), true
+
+	case "ConfigAuthOauth2ProviderAccessToken.expiresIn":
+		if e.complexity.ConfigAuthOauth2ProviderAccessToken.ExpiresIn == nil {
+			break
+		}
+
+		return e.complexity.ConfigAuthOauth2ProviderAccessToken.ExpiresIn(childComplexity), true
+
+	case "ConfigAuthOauth2ProviderClientIdMetadataDocument.enabled":
+		if e.complexity.ConfigAuthOauth2ProviderClientIdMetadataDocument.Enabled == nil {
+			break
+		}
+
+		return e.complexity.ConfigAuthOauth2ProviderClientIdMetadataDocument.Enabled(childComplexity), true
+
+	case "ConfigAuthOauth2ProviderDynamicClientRegistration.enabled":
+		if e.complexity.ConfigAuthOauth2ProviderDynamicClientRegistration.Enabled == nil {
+			break
+		}
+
+		return e.complexity.ConfigAuthOauth2ProviderDynamicClientRegistration.Enabled(childComplexity), true
+	case "ConfigAuthOauth2ProviderDynamicClientRegistration.maxClientsPerUser":
+		if e.complexity.ConfigAuthOauth2ProviderDynamicClientRegistration.MaxClientsPerUser == nil {
+			break
+		}
+
+		return e.complexity.ConfigAuthOauth2ProviderDynamicClientRegistration.MaxClientsPerUser(childComplexity), true
+
+	case "ConfigAuthOauth2ProviderRefreshToken.expiresIn":
+		if e.complexity.ConfigAuthOauth2ProviderRefreshToken.ExpiresIn == nil {
+			break
+		}
+
+		return e.complexity.ConfigAuthOauth2ProviderRefreshToken.ExpiresIn(childComplexity), true
+
 	case "ConfigAuthRateLimit.bruteForce":
 		if e.complexity.ConfigAuthRateLimit.BruteForce == nil {
 			break
@@ -1373,6 +1478,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.ConfigAuthRateLimit.Global(childComplexity), true
+	case "ConfigAuthRateLimit.oauth2Server":
+		if e.complexity.ConfigAuthRateLimit.Oauth2Server == nil {
+			break
+		}
+
+		return e.complexity.ConfigAuthRateLimit.Oauth2Server(childComplexity), true
 	case "ConfigAuthRateLimit.signups":
 		if e.complexity.ConfigAuthRateLimit.Signups == nil {
 			break
@@ -3360,6 +3471,16 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputConfigAuthMethodWebauthnRelyingPartyInsertInput,
 		ec.unmarshalInputConfigAuthMiscComparisonExp,
 		ec.unmarshalInputConfigAuthMiscInsertInput,
+		ec.unmarshalInputConfigAuthOauth2ProviderAccessTokenComparisonExp,
+		ec.unmarshalInputConfigAuthOauth2ProviderAccessTokenInsertInput,
+		ec.unmarshalInputConfigAuthOauth2ProviderClientIdMetadataDocumentComparisonExp,
+		ec.unmarshalInputConfigAuthOauth2ProviderClientIdMetadataDocumentInsertInput,
+		ec.unmarshalInputConfigAuthOauth2ProviderComparisonExp,
+		ec.unmarshalInputConfigAuthOauth2ProviderDynamicClientRegistrationComparisonExp,
+		ec.unmarshalInputConfigAuthOauth2ProviderDynamicClientRegistrationInsertInput,
+		ec.unmarshalInputConfigAuthOauth2ProviderInsertInput,
+		ec.unmarshalInputConfigAuthOauth2ProviderRefreshTokenComparisonExp,
+		ec.unmarshalInputConfigAuthOauth2ProviderRefreshTokenInsertInput,
 		ec.unmarshalInputConfigAuthRateLimitComparisonExp,
 		ec.unmarshalInputConfigAuthRateLimitInsertInput,
 		ec.unmarshalInputConfigAuthRedirectionsComparisonExp,
@@ -4075,6 +4196,10 @@ type ConfigAuth {
     """
 
     """
+    oauth2Provider: ConfigAuthOauth2Provider
+    """
+
+    """
     misc: ConfigAuthMisc
     """
 
@@ -4092,6 +4217,7 @@ input ConfigAuthUpdateInput {
     session: ConfigAuthSessionUpdateInput
     method: ConfigAuthMethodUpdateInput
     totp: ConfigAuthTotpUpdateInput
+    oauth2Provider: ConfigAuthOauth2ProviderUpdateInput
     misc: ConfigAuthMiscUpdateInput
     rateLimit: ConfigAuthRateLimitUpdateInput
 }
@@ -4106,6 +4232,7 @@ input ConfigAuthInsertInput {
     session: ConfigAuthSessionInsertInput
     method: ConfigAuthMethodInsertInput
     totp: ConfigAuthTotpInsertInput
+    oauth2Provider: ConfigAuthOauth2ProviderInsertInput
     misc: ConfigAuthMiscInsertInput
     rateLimit: ConfigAuthRateLimitInsertInput
 }
@@ -4123,6 +4250,7 @@ input ConfigAuthComparisonExp {
     session: ConfigAuthSessionComparisonExp
     method: ConfigAuthMethodComparisonExp
     totp: ConfigAuthTotpComparisonExp
+    oauth2Provider: ConfigAuthOauth2ProviderComparisonExp
     misc: ConfigAuthMiscComparisonExp
     rateLimit: ConfigAuthRateLimitComparisonExp
 }
@@ -4896,6 +5024,173 @@ input ConfigAuthMiscComparisonExp {
 """
 
 """
+type ConfigAuthOauth2Provider {
+    """
+
+    """
+    enabled: Boolean
+    """
+
+    """
+    accessToken: ConfigAuthOauth2ProviderAccessToken
+    """
+
+    """
+    refreshToken: ConfigAuthOauth2ProviderRefreshToken
+    """
+
+    """
+    dynamicClientRegistration: ConfigAuthOauth2ProviderDynamicClientRegistration
+    """
+
+    """
+    loginURL: String
+    """
+
+    """
+    clientIdMetadataDocument: ConfigAuthOauth2ProviderClientIdMetadataDocument
+}
+
+input ConfigAuthOauth2ProviderUpdateInput {
+    enabled: Boolean
+    accessToken: ConfigAuthOauth2ProviderAccessTokenUpdateInput
+    refreshToken: ConfigAuthOauth2ProviderRefreshTokenUpdateInput
+    dynamicClientRegistration: ConfigAuthOauth2ProviderDynamicClientRegistrationUpdateInput
+    loginURL: String
+    clientIdMetadataDocument: ConfigAuthOauth2ProviderClientIdMetadataDocumentUpdateInput
+}
+
+input ConfigAuthOauth2ProviderInsertInput {
+    enabled: Boolean
+    accessToken: ConfigAuthOauth2ProviderAccessTokenInsertInput
+    refreshToken: ConfigAuthOauth2ProviderRefreshTokenInsertInput
+    dynamicClientRegistration: ConfigAuthOauth2ProviderDynamicClientRegistrationInsertInput
+    loginURL: String
+    clientIdMetadataDocument: ConfigAuthOauth2ProviderClientIdMetadataDocumentInsertInput
+}
+
+input ConfigAuthOauth2ProviderComparisonExp {
+    _and: [ConfigAuthOauth2ProviderComparisonExp!]
+    _not: ConfigAuthOauth2ProviderComparisonExp
+    _or: [ConfigAuthOauth2ProviderComparisonExp!]
+    enabled: ConfigBooleanComparisonExp
+    accessToken: ConfigAuthOauth2ProviderAccessTokenComparisonExp
+    refreshToken: ConfigAuthOauth2ProviderRefreshTokenComparisonExp
+    dynamicClientRegistration: ConfigAuthOauth2ProviderDynamicClientRegistrationComparisonExp
+    loginURL: ConfigStringComparisonExp
+    clientIdMetadataDocument: ConfigAuthOauth2ProviderClientIdMetadataDocumentComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthOauth2ProviderAccessToken {
+    """
+
+    """
+    expiresIn: ConfigUint32
+}
+
+input ConfigAuthOauth2ProviderAccessTokenUpdateInput {
+    expiresIn: ConfigUint32
+}
+
+input ConfigAuthOauth2ProviderAccessTokenInsertInput {
+    expiresIn: ConfigUint32
+}
+
+input ConfigAuthOauth2ProviderAccessTokenComparisonExp {
+    _and: [ConfigAuthOauth2ProviderAccessTokenComparisonExp!]
+    _not: ConfigAuthOauth2ProviderAccessTokenComparisonExp
+    _or: [ConfigAuthOauth2ProviderAccessTokenComparisonExp!]
+    expiresIn: ConfigUint32ComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthOauth2ProviderClientIdMetadataDocument {
+    """
+
+    """
+    enabled: Boolean
+}
+
+input ConfigAuthOauth2ProviderClientIdMetadataDocumentUpdateInput {
+    enabled: Boolean
+}
+
+input ConfigAuthOauth2ProviderClientIdMetadataDocumentInsertInput {
+    enabled: Boolean
+}
+
+input ConfigAuthOauth2ProviderClientIdMetadataDocumentComparisonExp {
+    _and: [ConfigAuthOauth2ProviderClientIdMetadataDocumentComparisonExp!]
+    _not: ConfigAuthOauth2ProviderClientIdMetadataDocumentComparisonExp
+    _or: [ConfigAuthOauth2ProviderClientIdMetadataDocumentComparisonExp!]
+    enabled: ConfigBooleanComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthOauth2ProviderDynamicClientRegistration {
+    """
+
+    """
+    enabled: Boolean
+    """
+
+    """
+    maxClientsPerUser: ConfigUint32
+}
+
+input ConfigAuthOauth2ProviderDynamicClientRegistrationUpdateInput {
+    enabled: Boolean
+    maxClientsPerUser: ConfigUint32
+}
+
+input ConfigAuthOauth2ProviderDynamicClientRegistrationInsertInput {
+    enabled: Boolean
+    maxClientsPerUser: ConfigUint32
+}
+
+input ConfigAuthOauth2ProviderDynamicClientRegistrationComparisonExp {
+    _and: [ConfigAuthOauth2ProviderDynamicClientRegistrationComparisonExp!]
+    _not: ConfigAuthOauth2ProviderDynamicClientRegistrationComparisonExp
+    _or: [ConfigAuthOauth2ProviderDynamicClientRegistrationComparisonExp!]
+    enabled: ConfigBooleanComparisonExp
+    maxClientsPerUser: ConfigUint32ComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthOauth2ProviderRefreshToken {
+    """
+
+    """
+    expiresIn: ConfigUint32
+}
+
+input ConfigAuthOauth2ProviderRefreshTokenUpdateInput {
+    expiresIn: ConfigUint32
+}
+
+input ConfigAuthOauth2ProviderRefreshTokenInsertInput {
+    expiresIn: ConfigUint32
+}
+
+input ConfigAuthOauth2ProviderRefreshTokenComparisonExp {
+    _and: [ConfigAuthOauth2ProviderRefreshTokenComparisonExp!]
+    _not: ConfigAuthOauth2ProviderRefreshTokenComparisonExp
+    _or: [ConfigAuthOauth2ProviderRefreshTokenComparisonExp!]
+    expiresIn: ConfigUint32ComparisonExp
+}
+
+"""
+
+"""
 type ConfigAuthRateLimit {
     """
 
@@ -4917,6 +5212,10 @@ type ConfigAuthRateLimit {
 
     """
     global: ConfigRateLimit
+    """
+
+    """
+    oauth2Server: ConfigRateLimit
 }
 
 input ConfigAuthRateLimitUpdateInput {
@@ -4925,6 +5224,7 @@ input ConfigAuthRateLimitUpdateInput {
     bruteForce: ConfigRateLimitUpdateInput
     signups: ConfigRateLimitUpdateInput
     global: ConfigRateLimitUpdateInput
+    oauth2Server: ConfigRateLimitUpdateInput
 }
 
 input ConfigAuthRateLimitInsertInput {
@@ -4933,6 +5233,7 @@ input ConfigAuthRateLimitInsertInput {
     bruteForce: ConfigRateLimitInsertInput
     signups: ConfigRateLimitInsertInput
     global: ConfigRateLimitInsertInput
+    oauth2Server: ConfigRateLimitInsertInput
 }
 
 input ConfigAuthRateLimitComparisonExp {
@@ -4944,6 +5245,7 @@ input ConfigAuthRateLimitComparisonExp {
     bruteForce: ConfigRateLimitComparisonExp
     signups: ConfigRateLimitComparisonExp
     global: ConfigRateLimitComparisonExp
+    oauth2Server: ConfigRateLimitComparisonExp
 }
 
 """
@@ -10281,6 +10583,49 @@ func (ec *executionContext) fieldContext_ConfigAuth_totp(_ context.Context, fiel
 	return fc, nil
 }
 
+func (ec *executionContext) _ConfigAuth_oauth2Provider(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAuth) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ConfigAuth_oauth2Provider,
+		func(ctx context.Context) (any, error) {
+			return obj.Oauth2Provider, nil
+		},
+		nil,
+		ec.marshalOConfigAuthOauth2Provider2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2Provider,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ConfigAuth_oauth2Provider(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigAuth",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "enabled":
+				return ec.fieldContext_ConfigAuthOauth2Provider_enabled(ctx, field)
+			case "accessToken":
+				return ec.fieldContext_ConfigAuthOauth2Provider_accessToken(ctx, field)
+			case "refreshToken":
+				return ec.fieldContext_ConfigAuthOauth2Provider_refreshToken(ctx, field)
+			case "dynamicClientRegistration":
+				return ec.fieldContext_ConfigAuthOauth2Provider_dynamicClientRegistration(ctx, field)
+			case "loginURL":
+				return ec.fieldContext_ConfigAuthOauth2Provider_loginURL(ctx, field)
+			case "clientIdMetadataDocument":
+				return ec.fieldContext_ConfigAuthOauth2Provider_clientIdMetadataDocument(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConfigAuthOauth2Provider", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ConfigAuth_misc(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAuth) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -10348,6 +10693,8 @@ func (ec *executionContext) fieldContext_ConfigAuth_rateLimit(_ context.Context,
 				return ec.fieldContext_ConfigAuthRateLimit_signups(ctx, field)
 			case "global":
 				return ec.fieldContext_ConfigAuthRateLimit_global(ctx, field)
+			case "oauth2Server":
+				return ec.fieldContext_ConfigAuthRateLimit_oauth2Server(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ConfigAuthRateLimit", field.Name)
 		},
@@ -12448,6 +12795,343 @@ func (ec *executionContext) fieldContext_ConfigAuthMisc_concealErrors(_ context.
 	return fc, nil
 }
 
+func (ec *executionContext) _ConfigAuthOauth2Provider_enabled(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAuthOauth2Provider) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ConfigAuthOauth2Provider_enabled,
+		func(ctx context.Context) (any, error) {
+			return obj.Enabled, nil
+		},
+		nil,
+		ec.marshalOBoolean2ᚖbool,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ConfigAuthOauth2Provider_enabled(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigAuthOauth2Provider",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigAuthOauth2Provider_accessToken(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAuthOauth2Provider) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ConfigAuthOauth2Provider_accessToken,
+		func(ctx context.Context) (any, error) {
+			return obj.AccessToken, nil
+		},
+		nil,
+		ec.marshalOConfigAuthOauth2ProviderAccessToken2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderAccessToken,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ConfigAuthOauth2Provider_accessToken(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigAuthOauth2Provider",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "expiresIn":
+				return ec.fieldContext_ConfigAuthOauth2ProviderAccessToken_expiresIn(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConfigAuthOauth2ProviderAccessToken", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigAuthOauth2Provider_refreshToken(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAuthOauth2Provider) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ConfigAuthOauth2Provider_refreshToken,
+		func(ctx context.Context) (any, error) {
+			return obj.RefreshToken, nil
+		},
+		nil,
+		ec.marshalOConfigAuthOauth2ProviderRefreshToken2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderRefreshToken,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ConfigAuthOauth2Provider_refreshToken(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigAuthOauth2Provider",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "expiresIn":
+				return ec.fieldContext_ConfigAuthOauth2ProviderRefreshToken_expiresIn(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConfigAuthOauth2ProviderRefreshToken", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigAuthOauth2Provider_dynamicClientRegistration(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAuthOauth2Provider) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ConfigAuthOauth2Provider_dynamicClientRegistration,
+		func(ctx context.Context) (any, error) {
+			return obj.DynamicClientRegistration, nil
+		},
+		nil,
+		ec.marshalOConfigAuthOauth2ProviderDynamicClientRegistration2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderDynamicClientRegistration,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ConfigAuthOauth2Provider_dynamicClientRegistration(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigAuthOauth2Provider",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "enabled":
+				return ec.fieldContext_ConfigAuthOauth2ProviderDynamicClientRegistration_enabled(ctx, field)
+			case "maxClientsPerUser":
+				return ec.fieldContext_ConfigAuthOauth2ProviderDynamicClientRegistration_maxClientsPerUser(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConfigAuthOauth2ProviderDynamicClientRegistration", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigAuthOauth2Provider_loginURL(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAuthOauth2Provider) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ConfigAuthOauth2Provider_loginURL,
+		func(ctx context.Context) (any, error) {
+			return obj.LoginURL, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ConfigAuthOauth2Provider_loginURL(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigAuthOauth2Provider",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigAuthOauth2Provider_clientIdMetadataDocument(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAuthOauth2Provider) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ConfigAuthOauth2Provider_clientIdMetadataDocument,
+		func(ctx context.Context) (any, error) {
+			return obj.ClientIdMetadataDocument, nil
+		},
+		nil,
+		ec.marshalOConfigAuthOauth2ProviderClientIdMetadataDocument2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderClientIdMetadataDocument,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ConfigAuthOauth2Provider_clientIdMetadataDocument(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigAuthOauth2Provider",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "enabled":
+				return ec.fieldContext_ConfigAuthOauth2ProviderClientIdMetadataDocument_enabled(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConfigAuthOauth2ProviderClientIdMetadataDocument", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigAuthOauth2ProviderAccessToken_expiresIn(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAuthOauth2ProviderAccessToken) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ConfigAuthOauth2ProviderAccessToken_expiresIn,
+		func(ctx context.Context) (any, error) {
+			return obj.ExpiresIn, nil
+		},
+		nil,
+		ec.marshalOConfigUint322ᚖuint32,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ConfigAuthOauth2ProviderAccessToken_expiresIn(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigAuthOauth2ProviderAccessToken",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ConfigUint32 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigAuthOauth2ProviderClientIdMetadataDocument_enabled(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAuthOauth2ProviderClientIdMetadataDocument) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ConfigAuthOauth2ProviderClientIdMetadataDocument_enabled,
+		func(ctx context.Context) (any, error) {
+			return obj.Enabled, nil
+		},
+		nil,
+		ec.marshalOBoolean2ᚖbool,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ConfigAuthOauth2ProviderClientIdMetadataDocument_enabled(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigAuthOauth2ProviderClientIdMetadataDocument",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigAuthOauth2ProviderDynamicClientRegistration_enabled(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAuthOauth2ProviderDynamicClientRegistration) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ConfigAuthOauth2ProviderDynamicClientRegistration_enabled,
+		func(ctx context.Context) (any, error) {
+			return obj.Enabled, nil
+		},
+		nil,
+		ec.marshalOBoolean2ᚖbool,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ConfigAuthOauth2ProviderDynamicClientRegistration_enabled(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigAuthOauth2ProviderDynamicClientRegistration",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigAuthOauth2ProviderDynamicClientRegistration_maxClientsPerUser(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAuthOauth2ProviderDynamicClientRegistration) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ConfigAuthOauth2ProviderDynamicClientRegistration_maxClientsPerUser,
+		func(ctx context.Context) (any, error) {
+			return obj.MaxClientsPerUser, nil
+		},
+		nil,
+		ec.marshalOConfigUint322ᚖuint32,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ConfigAuthOauth2ProviderDynamicClientRegistration_maxClientsPerUser(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigAuthOauth2ProviderDynamicClientRegistration",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ConfigUint32 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigAuthOauth2ProviderRefreshToken_expiresIn(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAuthOauth2ProviderRefreshToken) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ConfigAuthOauth2ProviderRefreshToken_expiresIn,
+		func(ctx context.Context) (any, error) {
+			return obj.ExpiresIn, nil
+		},
+		nil,
+		ec.marshalOConfigUint322ᚖuint32,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ConfigAuthOauth2ProviderRefreshToken_expiresIn(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigAuthOauth2ProviderRefreshToken",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ConfigUint32 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ConfigAuthRateLimit_emails(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAuthRateLimit) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -12605,6 +13289,41 @@ func (ec *executionContext) _ConfigAuthRateLimit_global(ctx context.Context, fie
 }
 
 func (ec *executionContext) fieldContext_ConfigAuthRateLimit_global(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigAuthRateLimit",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "limit":
+				return ec.fieldContext_ConfigRateLimit_limit(ctx, field)
+			case "interval":
+				return ec.fieldContext_ConfigRateLimit_interval(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConfigRateLimit", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigAuthRateLimit_oauth2Server(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAuthRateLimit) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ConfigAuthRateLimit_oauth2Server,
+		func(ctx context.Context) (any, error) {
+			return obj.Oauth2Server, nil
+		},
+		nil,
+		ec.marshalOConfigRateLimit2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimit,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ConfigAuthRateLimit_oauth2Server(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ConfigAuthRateLimit",
 		Field:      field,
@@ -14004,6 +14723,8 @@ func (ec *executionContext) fieldContext_ConfigConfig_auth(_ context.Context, fi
 				return ec.fieldContext_ConfigAuth_method(ctx, field)
 			case "totp":
 				return ec.fieldContext_ConfigAuth_totp(ctx, field)
+			case "oauth2Provider":
+				return ec.fieldContext_ConfigAuth_oauth2Provider(ctx, field)
 			case "misc":
 				return ec.fieldContext_ConfigAuth_misc(ctx, field)
 			case "rateLimit":
@@ -24181,7 +24902,7 @@ func (ec *executionContext) unmarshalInputConfigAuthComparisonExp(ctx context.Co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "version", "resources", "elevatedPrivileges", "redirections", "signUp", "user", "session", "method", "totp", "misc", "rateLimit"}
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "version", "resources", "elevatedPrivileges", "redirections", "signUp", "user", "session", "method", "totp", "oauth2Provider", "misc", "rateLimit"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -24272,6 +24993,13 @@ func (ec *executionContext) unmarshalInputConfigAuthComparisonExp(ctx context.Co
 				return it, err
 			}
 			it.Totp = data
+		case "oauth2Provider":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("oauth2Provider"))
+			data, err := ec.unmarshalOConfigAuthOauth2ProviderComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Oauth2Provider = data
 		case "misc":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("misc"))
 			data, err := ec.unmarshalOConfigAuthMiscComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMiscComparisonExp(ctx, v)
@@ -24374,7 +25102,7 @@ func (ec *executionContext) unmarshalInputConfigAuthInsertInput(ctx context.Cont
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"version", "resources", "elevatedPrivileges", "redirections", "signUp", "user", "session", "method", "totp", "misc", "rateLimit"}
+	fieldsInOrder := [...]string{"version", "resources", "elevatedPrivileges", "redirections", "signUp", "user", "session", "method", "totp", "oauth2Provider", "misc", "rateLimit"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -24444,6 +25172,13 @@ func (ec *executionContext) unmarshalInputConfigAuthInsertInput(ctx context.Cont
 				return it, err
 			}
 			it.Totp = data
+		case "oauth2Provider":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("oauth2Provider"))
+			data, err := ec.unmarshalOConfigAuthOauth2ProviderInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderInsertInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Oauth2Provider = data
 		case "misc":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("misc"))
 			data, err := ec.unmarshalOConfigAuthMiscInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMiscInsertInput(ctx, v)
@@ -26369,6 +27104,465 @@ func (ec *executionContext) unmarshalInputConfigAuthMiscInsertInput(ctx context.
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputConfigAuthOauth2ProviderAccessTokenComparisonExp(ctx context.Context, obj any) (model.ConfigAuthOauth2ProviderAccessTokenComparisonExp, error) {
+	var it model.ConfigAuthOauth2ProviderAccessTokenComparisonExp
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "expiresIn"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "_and":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_and"))
+			data, err := ec.unmarshalOConfigAuthOauth2ProviderAccessTokenComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderAccessTokenComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.And = data
+		case "_not":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_not"))
+			data, err := ec.unmarshalOConfigAuthOauth2ProviderAccessTokenComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderAccessTokenComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Not = data
+		case "_or":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_or"))
+			data, err := ec.unmarshalOConfigAuthOauth2ProviderAccessTokenComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderAccessTokenComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Or = data
+		case "expiresIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("expiresIn"))
+			data, err := ec.unmarshalOConfigUint32ComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ExpiresIn = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigAuthOauth2ProviderAccessTokenInsertInput(ctx context.Context, obj any) (model.ConfigAuthOauth2ProviderAccessTokenInsertInput, error) {
+	var it model.ConfigAuthOauth2ProviderAccessTokenInsertInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"expiresIn"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "expiresIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("expiresIn"))
+			data, err := ec.unmarshalOConfigUint322ᚖuint32(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ExpiresIn = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigAuthOauth2ProviderClientIdMetadataDocumentComparisonExp(ctx context.Context, obj any) (model.ConfigAuthOauth2ProviderClientIdMetadataDocumentComparisonExp, error) {
+	var it model.ConfigAuthOauth2ProviderClientIdMetadataDocumentComparisonExp
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "enabled"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "_and":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_and"))
+			data, err := ec.unmarshalOConfigAuthOauth2ProviderClientIdMetadataDocumentComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderClientIdMetadataDocumentComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.And = data
+		case "_not":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_not"))
+			data, err := ec.unmarshalOConfigAuthOauth2ProviderClientIdMetadataDocumentComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderClientIdMetadataDocumentComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Not = data
+		case "_or":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_or"))
+			data, err := ec.unmarshalOConfigAuthOauth2ProviderClientIdMetadataDocumentComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderClientIdMetadataDocumentComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Or = data
+		case "enabled":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("enabled"))
+			data, err := ec.unmarshalOConfigBooleanComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Enabled = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigAuthOauth2ProviderClientIdMetadataDocumentInsertInput(ctx context.Context, obj any) (model.ConfigAuthOauth2ProviderClientIdMetadataDocumentInsertInput, error) {
+	var it model.ConfigAuthOauth2ProviderClientIdMetadataDocumentInsertInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"enabled"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "enabled":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("enabled"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Enabled = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigAuthOauth2ProviderComparisonExp(ctx context.Context, obj any) (model.ConfigAuthOauth2ProviderComparisonExp, error) {
+	var it model.ConfigAuthOauth2ProviderComparisonExp
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "enabled", "accessToken", "refreshToken", "dynamicClientRegistration", "loginURL", "clientIdMetadataDocument"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "_and":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_and"))
+			data, err := ec.unmarshalOConfigAuthOauth2ProviderComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.And = data
+		case "_not":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_not"))
+			data, err := ec.unmarshalOConfigAuthOauth2ProviderComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Not = data
+		case "_or":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_or"))
+			data, err := ec.unmarshalOConfigAuthOauth2ProviderComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Or = data
+		case "enabled":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("enabled"))
+			data, err := ec.unmarshalOConfigBooleanComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Enabled = data
+		case "accessToken":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("accessToken"))
+			data, err := ec.unmarshalOConfigAuthOauth2ProviderAccessTokenComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderAccessTokenComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.AccessToken = data
+		case "refreshToken":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("refreshToken"))
+			data, err := ec.unmarshalOConfigAuthOauth2ProviderRefreshTokenComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderRefreshTokenComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RefreshToken = data
+		case "dynamicClientRegistration":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dynamicClientRegistration"))
+			data, err := ec.unmarshalOConfigAuthOauth2ProviderDynamicClientRegistrationComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderDynamicClientRegistrationComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DynamicClientRegistration = data
+		case "loginURL":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("loginURL"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LoginURL = data
+		case "clientIdMetadataDocument":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientIdMetadataDocument"))
+			data, err := ec.unmarshalOConfigAuthOauth2ProviderClientIdMetadataDocumentComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderClientIdMetadataDocumentComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ClientIdMetadataDocument = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigAuthOauth2ProviderDynamicClientRegistrationComparisonExp(ctx context.Context, obj any) (model.ConfigAuthOauth2ProviderDynamicClientRegistrationComparisonExp, error) {
+	var it model.ConfigAuthOauth2ProviderDynamicClientRegistrationComparisonExp
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "enabled", "maxClientsPerUser"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "_and":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_and"))
+			data, err := ec.unmarshalOConfigAuthOauth2ProviderDynamicClientRegistrationComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderDynamicClientRegistrationComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.And = data
+		case "_not":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_not"))
+			data, err := ec.unmarshalOConfigAuthOauth2ProviderDynamicClientRegistrationComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderDynamicClientRegistrationComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Not = data
+		case "_or":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_or"))
+			data, err := ec.unmarshalOConfigAuthOauth2ProviderDynamicClientRegistrationComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderDynamicClientRegistrationComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Or = data
+		case "enabled":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("enabled"))
+			data, err := ec.unmarshalOConfigBooleanComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Enabled = data
+		case "maxClientsPerUser":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("maxClientsPerUser"))
+			data, err := ec.unmarshalOConfigUint32ComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.MaxClientsPerUser = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigAuthOauth2ProviderDynamicClientRegistrationInsertInput(ctx context.Context, obj any) (model.ConfigAuthOauth2ProviderDynamicClientRegistrationInsertInput, error) {
+	var it model.ConfigAuthOauth2ProviderDynamicClientRegistrationInsertInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"enabled", "maxClientsPerUser"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "enabled":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("enabled"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Enabled = data
+		case "maxClientsPerUser":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("maxClientsPerUser"))
+			data, err := ec.unmarshalOConfigUint322ᚖuint32(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.MaxClientsPerUser = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigAuthOauth2ProviderInsertInput(ctx context.Context, obj any) (model.ConfigAuthOauth2ProviderInsertInput, error) {
+	var it model.ConfigAuthOauth2ProviderInsertInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"enabled", "accessToken", "refreshToken", "dynamicClientRegistration", "loginURL", "clientIdMetadataDocument"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "enabled":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("enabled"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Enabled = data
+		case "accessToken":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("accessToken"))
+			data, err := ec.unmarshalOConfigAuthOauth2ProviderAccessTokenInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderAccessTokenInsertInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.AccessToken = data
+		case "refreshToken":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("refreshToken"))
+			data, err := ec.unmarshalOConfigAuthOauth2ProviderRefreshTokenInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderRefreshTokenInsertInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RefreshToken = data
+		case "dynamicClientRegistration":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dynamicClientRegistration"))
+			data, err := ec.unmarshalOConfigAuthOauth2ProviderDynamicClientRegistrationInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderDynamicClientRegistrationInsertInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DynamicClientRegistration = data
+		case "loginURL":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("loginURL"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LoginURL = data
+		case "clientIdMetadataDocument":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientIdMetadataDocument"))
+			data, err := ec.unmarshalOConfigAuthOauth2ProviderClientIdMetadataDocumentInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderClientIdMetadataDocumentInsertInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ClientIdMetadataDocument = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigAuthOauth2ProviderRefreshTokenComparisonExp(ctx context.Context, obj any) (model.ConfigAuthOauth2ProviderRefreshTokenComparisonExp, error) {
+	var it model.ConfigAuthOauth2ProviderRefreshTokenComparisonExp
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "expiresIn"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "_and":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_and"))
+			data, err := ec.unmarshalOConfigAuthOauth2ProviderRefreshTokenComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderRefreshTokenComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.And = data
+		case "_not":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_not"))
+			data, err := ec.unmarshalOConfigAuthOauth2ProviderRefreshTokenComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderRefreshTokenComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Not = data
+		case "_or":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_or"))
+			data, err := ec.unmarshalOConfigAuthOauth2ProviderRefreshTokenComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderRefreshTokenComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Or = data
+		case "expiresIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("expiresIn"))
+			data, err := ec.unmarshalOConfigUint32ComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ExpiresIn = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigAuthOauth2ProviderRefreshTokenInsertInput(ctx context.Context, obj any) (model.ConfigAuthOauth2ProviderRefreshTokenInsertInput, error) {
+	var it model.ConfigAuthOauth2ProviderRefreshTokenInsertInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"expiresIn"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "expiresIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("expiresIn"))
+			data, err := ec.unmarshalOConfigUint322ᚖuint32(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ExpiresIn = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputConfigAuthRateLimitComparisonExp(ctx context.Context, obj any) (model.ConfigAuthRateLimitComparisonExp, error) {
 	var it model.ConfigAuthRateLimitComparisonExp
 	asMap := map[string]any{}
@@ -26376,7 +27570,7 @@ func (ec *executionContext) unmarshalInputConfigAuthRateLimitComparisonExp(ctx c
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "emails", "sms", "bruteForce", "signups", "global"}
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "emails", "sms", "bruteForce", "signups", "global", "oauth2Server"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -26439,6 +27633,13 @@ func (ec *executionContext) unmarshalInputConfigAuthRateLimitComparisonExp(ctx c
 				return it, err
 			}
 			it.Global = data
+		case "oauth2Server":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("oauth2Server"))
+			data, err := ec.unmarshalOConfigRateLimitComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimitComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Oauth2Server = data
 		}
 	}
 
@@ -26452,7 +27653,7 @@ func (ec *executionContext) unmarshalInputConfigAuthRateLimitInsertInput(ctx con
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"emails", "sms", "bruteForce", "signups", "global"}
+	fieldsInOrder := [...]string{"emails", "sms", "bruteForce", "signups", "global", "oauth2Server"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -26494,6 +27695,13 @@ func (ec *executionContext) unmarshalInputConfigAuthRateLimitInsertInput(ctx con
 				return it, err
 			}
 			it.Global = data
+		case "oauth2Server":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("oauth2Server"))
+			data, err := ec.unmarshalOConfigRateLimitInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimitInsertInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Oauth2Server = data
 		}
 	}
 
@@ -35821,6 +37029,8 @@ func (ec *executionContext) _ConfigAuth(ctx context.Context, sel ast.SelectionSe
 			out.Values[i] = ec._ConfigAuth_method(ctx, field, obj)
 		case "totp":
 			out.Values[i] = ec._ConfigAuth_totp(ctx, field, obj)
+		case "oauth2Provider":
+			out.Values[i] = ec._ConfigAuth_oauth2Provider(ctx, field, obj)
 		case "misc":
 			out.Values[i] = ec._ConfigAuth_misc(ctx, field, obj)
 		case "rateLimit":
@@ -36586,6 +37796,198 @@ func (ec *executionContext) _ConfigAuthMisc(ctx context.Context, sel ast.Selecti
 	return out
 }
 
+var configAuthOauth2ProviderImplementors = []string{"ConfigAuthOauth2Provider"}
+
+func (ec *executionContext) _ConfigAuthOauth2Provider(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigAuthOauth2Provider) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, configAuthOauth2ProviderImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ConfigAuthOauth2Provider")
+		case "enabled":
+			out.Values[i] = ec._ConfigAuthOauth2Provider_enabled(ctx, field, obj)
+		case "accessToken":
+			out.Values[i] = ec._ConfigAuthOauth2Provider_accessToken(ctx, field, obj)
+		case "refreshToken":
+			out.Values[i] = ec._ConfigAuthOauth2Provider_refreshToken(ctx, field, obj)
+		case "dynamicClientRegistration":
+			out.Values[i] = ec._ConfigAuthOauth2Provider_dynamicClientRegistration(ctx, field, obj)
+		case "loginURL":
+			out.Values[i] = ec._ConfigAuthOauth2Provider_loginURL(ctx, field, obj)
+		case "clientIdMetadataDocument":
+			out.Values[i] = ec._ConfigAuthOauth2Provider_clientIdMetadataDocument(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var configAuthOauth2ProviderAccessTokenImplementors = []string{"ConfigAuthOauth2ProviderAccessToken"}
+
+func (ec *executionContext) _ConfigAuthOauth2ProviderAccessToken(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigAuthOauth2ProviderAccessToken) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, configAuthOauth2ProviderAccessTokenImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ConfigAuthOauth2ProviderAccessToken")
+		case "expiresIn":
+			out.Values[i] = ec._ConfigAuthOauth2ProviderAccessToken_expiresIn(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var configAuthOauth2ProviderClientIdMetadataDocumentImplementors = []string{"ConfigAuthOauth2ProviderClientIdMetadataDocument"}
+
+func (ec *executionContext) _ConfigAuthOauth2ProviderClientIdMetadataDocument(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigAuthOauth2ProviderClientIdMetadataDocument) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, configAuthOauth2ProviderClientIdMetadataDocumentImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ConfigAuthOauth2ProviderClientIdMetadataDocument")
+		case "enabled":
+			out.Values[i] = ec._ConfigAuthOauth2ProviderClientIdMetadataDocument_enabled(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var configAuthOauth2ProviderDynamicClientRegistrationImplementors = []string{"ConfigAuthOauth2ProviderDynamicClientRegistration"}
+
+func (ec *executionContext) _ConfigAuthOauth2ProviderDynamicClientRegistration(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigAuthOauth2ProviderDynamicClientRegistration) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, configAuthOauth2ProviderDynamicClientRegistrationImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ConfigAuthOauth2ProviderDynamicClientRegistration")
+		case "enabled":
+			out.Values[i] = ec._ConfigAuthOauth2ProviderDynamicClientRegistration_enabled(ctx, field, obj)
+		case "maxClientsPerUser":
+			out.Values[i] = ec._ConfigAuthOauth2ProviderDynamicClientRegistration_maxClientsPerUser(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var configAuthOauth2ProviderRefreshTokenImplementors = []string{"ConfigAuthOauth2ProviderRefreshToken"}
+
+func (ec *executionContext) _ConfigAuthOauth2ProviderRefreshToken(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigAuthOauth2ProviderRefreshToken) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, configAuthOauth2ProviderRefreshTokenImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ConfigAuthOauth2ProviderRefreshToken")
+		case "expiresIn":
+			out.Values[i] = ec._ConfigAuthOauth2ProviderRefreshToken_expiresIn(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var configAuthRateLimitImplementors = []string{"ConfigAuthRateLimit"}
 
 func (ec *executionContext) _ConfigAuthRateLimit(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigAuthRateLimit) graphql.Marshaler {
@@ -36607,6 +38009,8 @@ func (ec *executionContext) _ConfigAuthRateLimit(ctx context.Context, sel ast.Se
 			out.Values[i] = ec._ConfigAuthRateLimit_signups(ctx, field, obj)
 		case "global":
 			out.Values[i] = ec._ConfigAuthRateLimit_global(ctx, field, obj)
+		case "oauth2Server":
+			out.Values[i] = ec._ConfigAuthRateLimit_oauth2Server(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -41036,6 +42440,31 @@ func (ec *executionContext) unmarshalNConfigAuthMiscComparisonExp2ᚖgithubᚗco
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNConfigAuthOauth2ProviderAccessTokenComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderAccessTokenComparisonExp(ctx context.Context, v any) (*model.ConfigAuthOauth2ProviderAccessTokenComparisonExp, error) {
+	res, err := ec.unmarshalInputConfigAuthOauth2ProviderAccessTokenComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNConfigAuthOauth2ProviderClientIdMetadataDocumentComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderClientIdMetadataDocumentComparisonExp(ctx context.Context, v any) (*model.ConfigAuthOauth2ProviderClientIdMetadataDocumentComparisonExp, error) {
+	res, err := ec.unmarshalInputConfigAuthOauth2ProviderClientIdMetadataDocumentComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNConfigAuthOauth2ProviderComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderComparisonExp(ctx context.Context, v any) (*model.ConfigAuthOauth2ProviderComparisonExp, error) {
+	res, err := ec.unmarshalInputConfigAuthOauth2ProviderComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNConfigAuthOauth2ProviderDynamicClientRegistrationComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderDynamicClientRegistrationComparisonExp(ctx context.Context, v any) (*model.ConfigAuthOauth2ProviderDynamicClientRegistrationComparisonExp, error) {
+	res, err := ec.unmarshalInputConfigAuthOauth2ProviderDynamicClientRegistrationComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNConfigAuthOauth2ProviderRefreshTokenComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderRefreshTokenComparisonExp(ctx context.Context, v any) (*model.ConfigAuthOauth2ProviderRefreshTokenComparisonExp, error) {
+	res, err := ec.unmarshalInputConfigAuthOauth2ProviderRefreshTokenComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNConfigAuthRateLimitComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthRateLimitComparisonExp(ctx context.Context, v any) (*model.ConfigAuthRateLimitComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigAuthRateLimitComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
@@ -43856,6 +45285,256 @@ func (ec *executionContext) unmarshalOConfigAuthMiscUpdateInput2ᚖgithubᚗcom�
 		return nil, nil
 	}
 	var res = new(model.ConfigAuthMiscUpdateInput)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOConfigAuthOauth2Provider2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2Provider(ctx context.Context, sel ast.SelectionSet, v *model.ConfigAuthOauth2Provider) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ConfigAuthOauth2Provider(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOConfigAuthOauth2ProviderAccessToken2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderAccessToken(ctx context.Context, sel ast.SelectionSet, v *model.ConfigAuthOauth2ProviderAccessToken) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ConfigAuthOauth2ProviderAccessToken(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOConfigAuthOauth2ProviderAccessTokenComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderAccessTokenComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAuthOauth2ProviderAccessTokenComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]*model.ConfigAuthOauth2ProviderAccessTokenComparisonExp, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigAuthOauth2ProviderAccessTokenComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderAccessTokenComparisonExp(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOConfigAuthOauth2ProviderAccessTokenComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderAccessTokenComparisonExp(ctx context.Context, v any) (*model.ConfigAuthOauth2ProviderAccessTokenComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigAuthOauth2ProviderAccessTokenComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigAuthOauth2ProviderAccessTokenInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderAccessTokenInsertInput(ctx context.Context, v any) (*model.ConfigAuthOauth2ProviderAccessTokenInsertInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigAuthOauth2ProviderAccessTokenInsertInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigAuthOauth2ProviderAccessTokenUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderAccessTokenUpdateInput(ctx context.Context, v any) (*model.ConfigAuthOauth2ProviderAccessTokenUpdateInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.ConfigAuthOauth2ProviderAccessTokenUpdateInput)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOConfigAuthOauth2ProviderClientIdMetadataDocument2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderClientIdMetadataDocument(ctx context.Context, sel ast.SelectionSet, v *model.ConfigAuthOauth2ProviderClientIdMetadataDocument) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ConfigAuthOauth2ProviderClientIdMetadataDocument(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOConfigAuthOauth2ProviderClientIdMetadataDocumentComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderClientIdMetadataDocumentComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAuthOauth2ProviderClientIdMetadataDocumentComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]*model.ConfigAuthOauth2ProviderClientIdMetadataDocumentComparisonExp, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigAuthOauth2ProviderClientIdMetadataDocumentComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderClientIdMetadataDocumentComparisonExp(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOConfigAuthOauth2ProviderClientIdMetadataDocumentComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderClientIdMetadataDocumentComparisonExp(ctx context.Context, v any) (*model.ConfigAuthOauth2ProviderClientIdMetadataDocumentComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigAuthOauth2ProviderClientIdMetadataDocumentComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigAuthOauth2ProviderClientIdMetadataDocumentInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderClientIdMetadataDocumentInsertInput(ctx context.Context, v any) (*model.ConfigAuthOauth2ProviderClientIdMetadataDocumentInsertInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigAuthOauth2ProviderClientIdMetadataDocumentInsertInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigAuthOauth2ProviderClientIdMetadataDocumentUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderClientIdMetadataDocumentUpdateInput(ctx context.Context, v any) (*model.ConfigAuthOauth2ProviderClientIdMetadataDocumentUpdateInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.ConfigAuthOauth2ProviderClientIdMetadataDocumentUpdateInput)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigAuthOauth2ProviderComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAuthOauth2ProviderComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]*model.ConfigAuthOauth2ProviderComparisonExp, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigAuthOauth2ProviderComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderComparisonExp(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOConfigAuthOauth2ProviderComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderComparisonExp(ctx context.Context, v any) (*model.ConfigAuthOauth2ProviderComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigAuthOauth2ProviderComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOConfigAuthOauth2ProviderDynamicClientRegistration2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderDynamicClientRegistration(ctx context.Context, sel ast.SelectionSet, v *model.ConfigAuthOauth2ProviderDynamicClientRegistration) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ConfigAuthOauth2ProviderDynamicClientRegistration(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOConfigAuthOauth2ProviderDynamicClientRegistrationComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderDynamicClientRegistrationComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAuthOauth2ProviderDynamicClientRegistrationComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]*model.ConfigAuthOauth2ProviderDynamicClientRegistrationComparisonExp, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigAuthOauth2ProviderDynamicClientRegistrationComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderDynamicClientRegistrationComparisonExp(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOConfigAuthOauth2ProviderDynamicClientRegistrationComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderDynamicClientRegistrationComparisonExp(ctx context.Context, v any) (*model.ConfigAuthOauth2ProviderDynamicClientRegistrationComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigAuthOauth2ProviderDynamicClientRegistrationComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigAuthOauth2ProviderDynamicClientRegistrationInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderDynamicClientRegistrationInsertInput(ctx context.Context, v any) (*model.ConfigAuthOauth2ProviderDynamicClientRegistrationInsertInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigAuthOauth2ProviderDynamicClientRegistrationInsertInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigAuthOauth2ProviderDynamicClientRegistrationUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderDynamicClientRegistrationUpdateInput(ctx context.Context, v any) (*model.ConfigAuthOauth2ProviderDynamicClientRegistrationUpdateInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.ConfigAuthOauth2ProviderDynamicClientRegistrationUpdateInput)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigAuthOauth2ProviderInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderInsertInput(ctx context.Context, v any) (*model.ConfigAuthOauth2ProviderInsertInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigAuthOauth2ProviderInsertInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOConfigAuthOauth2ProviderRefreshToken2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderRefreshToken(ctx context.Context, sel ast.SelectionSet, v *model.ConfigAuthOauth2ProviderRefreshToken) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ConfigAuthOauth2ProviderRefreshToken(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOConfigAuthOauth2ProviderRefreshTokenComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderRefreshTokenComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAuthOauth2ProviderRefreshTokenComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]*model.ConfigAuthOauth2ProviderRefreshTokenComparisonExp, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigAuthOauth2ProviderRefreshTokenComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderRefreshTokenComparisonExp(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOConfigAuthOauth2ProviderRefreshTokenComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderRefreshTokenComparisonExp(ctx context.Context, v any) (*model.ConfigAuthOauth2ProviderRefreshTokenComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigAuthOauth2ProviderRefreshTokenComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigAuthOauth2ProviderRefreshTokenInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderRefreshTokenInsertInput(ctx context.Context, v any) (*model.ConfigAuthOauth2ProviderRefreshTokenInsertInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigAuthOauth2ProviderRefreshTokenInsertInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigAuthOauth2ProviderRefreshTokenUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderRefreshTokenUpdateInput(ctx context.Context, v any) (*model.ConfigAuthOauth2ProviderRefreshTokenUpdateInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.ConfigAuthOauth2ProviderRefreshTokenUpdateInput)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigAuthOauth2ProviderUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthOauth2ProviderUpdateInput(ctx context.Context, v any) (*model.ConfigAuthOauth2ProviderUpdateInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.ConfigAuthOauth2ProviderUpdateInput)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }

@@ -121,7 +121,6 @@ func getConfig(cmd *cli.Command) (controller.Config, error) { //nolint:funlen
 		MfaEnabled:                         cmd.Bool(flagMfaEnabled),
 		ServerPrefix:                       cmd.String(flagAPIPrefix),
 		OAuth2ProviderEnabled:              cmd.Bool(flagOAuth2ProviderEnabled),
-		OAuth2ProviderIssuer:               cmd.String(flagOAuth2ProviderIssuer),
 		OAuth2ProviderLoginURL:             cmd.String(flagOAuth2ProviderLoginURL),
 		OAuth2ProviderAccessTokenTTL:       cmd.Int(flagOAuth2ProviderAccessTokenTTL),
 		OAuth2ProviderRefreshTokenTTL:      cmd.Int(flagOAuth2ProviderRefreshTokenTTL),

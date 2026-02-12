@@ -182,7 +182,6 @@ const (
 	flagTwitterConsumerKey                       = "twitter-consumer-key"
 	flagTwitterConsumerSecret                    = "twitter-consumer-secret"
 	flagOAuth2ProviderEnabled                    = "oauth2-provider-enabled"
-	flagOAuth2ProviderIssuer                     = "oauth2-provider-issuer"
 	flagOAuth2ProviderLoginURL                   = "oauth2-provider-login-url"
 	flagOAuth2ProviderAccessTokenTTL             = "oauth2-provider-access-token-ttl"  //nolint:gosec
 	flagOAuth2ProviderRefreshTokenTTL            = "oauth2-provider-refresh-token-ttl" //nolint:gosec
@@ -1256,12 +1255,6 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 				Category: "oauth2-provider",
 				Value:    false,
 				Sources:  cli.EnvVars("AUTH_OAUTH2_PROVIDER_ENABLED"),
-			},
-			&cli.StringFlag{ //nolint: exhaustruct
-				Name:     flagOAuth2ProviderIssuer,
-				Usage:    "Issuer URL for OAuth2/OIDC tokens. Defaults to AUTH_SERVER_URL",
-				Category: "oauth2-provider",
-				Sources:  cli.EnvVars("AUTH_OAUTH2_PROVIDER_ISSUER"),
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     flagOAuth2ProviderLoginURL,
