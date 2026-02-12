@@ -48,14 +48,24 @@ export const jsonbSpecificOperators: OperatorOption[] = [
   { value: '_has_keys_all', helperText: 'has all of the specified keys' },
 ];
 
+const TEXT_COLUMN_TYPES = new Set(['text', 'varchar', 'bpchar']);
+
+const textOperators: OperatorOption[] = [
+  ...commonOperators,
+  ...textSpecificOperators,
+];
+
+const jsonbOperators: OperatorOption[] = [
+  ...commonOperators,
+  ...jsonbSpecificOperators,
+];
+
 export function getAvailableOperators(columnType?: string): OperatorOption[] {
-  let operators = [...commonOperators];
-
-  if (columnType === 'text') {
-    operators = operators.concat(textSpecificOperators);
-  } else if (columnType === 'jsonb') {
-    operators = operators.concat(jsonbSpecificOperators);
+  if (columnType && TEXT_COLUMN_TYPES.has(columnType)) {
+    return textOperators;
   }
-
-  return operators;
+  if (columnType === 'jsonb') {
+    return jsonbOperators;
+  }
+  return commonOperators;
 }

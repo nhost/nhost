@@ -4,7 +4,7 @@ import {
   getAvailableOperators,
   jsonbSpecificOperators,
   textSpecificOperators,
-} from '@/features/orgs/projects/database/dataGrid/components/RuleGroupEditor/getAvailableOperators';
+} from './getAvailableOperators';
 
 describe('getAvailableOperators', () => {
   it('should return only common operators when no column type is provided', () => {
@@ -19,10 +19,15 @@ describe('getAvailableOperators', () => {
     expect(result).toEqual(commonOperators);
   });
 
-  it('should return common + text operators for text column type', () => {
-    const result = getAvailableOperators('text');
-
-    expect(result).toEqual([...commonOperators, ...textSpecificOperators]);
+  it.each([
+    'text',
+    'varchar',
+    'bpchar',
+  ])('should return common + text operators for %s column type', (columnType) => {
+    expect(getAvailableOperators(columnType)).toEqual([
+      ...commonOperators,
+      ...textSpecificOperators,
+    ]);
   });
 
   it('should return common + jsonb operators for jsonb column type', () => {

@@ -38,8 +38,7 @@ export interface UseAsyncValueOptions {
    */
   onInitialized?: (value: {
     value: string;
-    // biome-ignore lint/suspicious/noExplicitAny: TODO
-    columnMetadata?: Record<string, any>;
+    columnMetadata: Record<string, unknown>;
   }) => void;
 }
 
@@ -60,7 +59,7 @@ export default function useAsyncValue({
   // look for the column in a stale table when initializing
   const [asyncTablePath, setAsyncTablePath] = useState(currentTablePath);
   const [remainingColumnPath, setRemainingColumnPath] = useState(
-    initialValue?.split('.') || [],
+    initialValue ? initialValue.split('.') : [],
   );
   const [selectedRelationships, setSelectedRelationships] = useState<
     { schema: string; table: string; name: string }[]
@@ -128,7 +127,7 @@ export default function useAsyncValue({
       group: 'columns',
       metadata: tableData.columns.find(
         (column) => column.column_name === activeColumn,
-      ),
+      )!,
     });
     setRemainingColumnPath((columnPath) => columnPath.slice(1));
   }, [

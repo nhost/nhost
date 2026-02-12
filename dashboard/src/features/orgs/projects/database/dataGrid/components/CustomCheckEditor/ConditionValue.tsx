@@ -40,7 +40,7 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { getAllPermissionVariables } from '@/features/orgs/projects/permissions/settings/utils/getAllPermissionVariables';
 import { cn, isNotEmptyValue } from '@/lib/utils';
 import { useGetRolesPermissionsQuery } from '@/utils/__generated__/graphql';
-import useRuleGroupEditor from './useRuleGroupEditor';
+import useCustomCheckEditor from './useCustomCheckEditor';
 
 const xHasuraString = 'x-hasura-';
 
@@ -102,7 +102,7 @@ function ColumnSelectorInput({
   );
 }
 
-export interface RuleValueInputProps {
+export interface ConditionValueProps {
   /**
    * Name of the parent group editor.
    */
@@ -117,12 +117,12 @@ export interface RuleValueInputProps {
   selectedTablePath: string;
 }
 
-function RuleValueInput({
+function ConditionValue({
   name,
   selectedTablePath,
   className,
-}: RuleValueInputProps) {
-  const { schema, table, disabled } = useRuleGroupEditor();
+}: ConditionValueProps) {
+  const { schema, table, disabled } = useCustomCheckEditor();
   const { project } = useProject();
   const { setValue, control } = useFormContext();
   const inputName = `${name}.value`;
@@ -139,12 +139,11 @@ function RuleValueInput({
 
   const { data, loading } = useGetRolesPermissionsQuery({
     variables: { appId: project?.id },
-    skip: !project?.id,
+    skip: !project?.id || operator === '_is_null',
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   if (operator === '_is_null') {
-    const defaultValue = comboboxValue ?? undefined;
     const triggerClasses =
       'border hover:bg-accent-background hover:text-accent-foreground focus:ring-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2';
     return (
@@ -154,7 +153,7 @@ function RuleValueInput({
         onValueChange={(newValue: string) => {
           setValue(inputName, newValue, { shouldDirty: true });
         }}
-        defaultValue={defaultValue}
+        value={comboboxValue ?? undefined}
       >
         <SelectTrigger className={cn(triggerClasses, className)}>
           <SelectValue placeholder="Is null?" />
@@ -213,6 +212,7 @@ function RuleValueInput({
         className={className}
         options={availableHasuraPermissionVariables}
         creatable
+        disabled={disabled}
         value={defaultValue}
         onChange={handleOnChange}
       />
@@ -245,6 +245,7 @@ function RuleValueInput({
           variant="outline"
           role="combobox"
           aria-expanded={open}
+          disabled={disabled}
           className={cn('w-full justify-between', className)}
         >
           <span className="truncate">{comboboxLabel}</span>
@@ -296,7 +297,7 @@ function RuleValueInput({
   );
 }
 
-export default function RuleInputWrapper(props: RuleValueInputProps) {
+export default function ConditionValueWrapper(props: ConditionValueProps) {
   const { name, className } = props;
 
   const { control } = useFormContext();
@@ -320,7 +321,7 @@ export default function RuleInputWrapper(props: RuleValueInputProps) {
         return (
           <div className="flex w-full flex-col gap-2">
             <FormItem>
-              <RuleValueInput {...mergedProps} />
+              <ConditionValue {...mergedProps} />
             </FormItem>
             <FormMessage />
           </div>
