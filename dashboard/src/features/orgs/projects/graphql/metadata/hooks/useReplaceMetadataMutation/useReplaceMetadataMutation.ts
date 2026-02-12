@@ -1,16 +1,23 @@
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import type { InconsistentMetadataResponse } from '@/utils/hasura-api/generated/schemas';
+import type {
+  InconsistentMetadataResponse,
+  SuccessResponse,
+} from '@/utils/hasura-api/generated/schemas';
 import type { ReplaceMetadataVariables } from './replaceMetadata';
 import replaceMetadata from './replaceMetadata';
+import replaceMetadataMigration, {
+  type ReplaceMetadataMigrationVariables,
+} from './replaceMetadataMigration';
 
 export interface UseReplaceMetadataMutationOptions {
   mutationOptions?: MutationOptions<
-    InconsistentMetadataResponse,
+    InconsistentMetadataResponse | SuccessResponse,
     unknown,
-    ReplaceMetadataVariables
+    ReplaceMetadataVariables | ReplaceMetadataMigrationVariables
   >;
 }
 
@@ -18,30 +25,47 @@ export default function useReplaceMetadataMutation({
   mutationOptions,
 }: UseReplaceMetadataMutationOptions = {}) {
   const { project } = useProject();
+  const isPlatform = useIsPlatform();
   const queryClient = useQueryClient();
 
-  const mutation = useMutation(
-    (input: ReplaceMetadataVariables) => {
+  const mutation = useMutation<
+    InconsistentMetadataResponse | SuccessResponse,
+    unknown,
+    ReplaceMetadataVariables | ReplaceMetadataMigrationVariables
+  >(
+    (variables) => {
       const appUrl = generateAppServiceUrl(
         project!.subdomain,
         project!.region,
         'hasura',
       );
 
-      return replaceMetadata({
+      const base = {
         appUrl,
         adminSecret: project!.config!.hasura.adminSecret,
-        metadata: input.metadata,
-        allowInconsistentMetadata: input.allowInconsistentMetadata,
+      } as const;
+
+      if (isPlatform) {
+        return replaceMetadata({
+          ...(variables as ReplaceMetadataVariables),
+          ...base,
+        });
+      }
+
+      return replaceMetadataMigration({
+        ...(variables as ReplaceMetadataMigrationVariables),
+        ...base,
       });
     },
     {
       ...mutationOptions,
       onSuccess: (data) => {
-        queryClient.setQueryData(
-          ['inconsistent-metadata', project?.subdomain],
-          { ...data },
-        );
+        if (isPlatform) {
+          queryClient.setQueryData(
+            ['inconsistent-metadata', project?.subdomain],
+            { ...data },
+          );
+        }
         queryClient.invalidateQueries({
           queryKey: ['export-metadata', project?.subdomain],
         });

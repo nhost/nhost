@@ -1,3 +1,5 @@
+import { Trash2 } from 'lucide-react';
+import { useState } from 'react';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   Dialog,
@@ -7,19 +9,13 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from '@/components/ui/v3/dialog';
 import useDropInconsistentMetadataMutation from '@/features/orgs/projects/graphql/metadata/hooks/useDropInconsistentMetadataMutation/useDropInconsistentMetadataMutation';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 
-interface DeleteInconsistentObjectsDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
-
-export default function DeleteInconsistentObjectsDialog({
-  open,
-  onOpenChange,
-}: DeleteInconsistentObjectsDialogProps) {
+export default function DeleteInconsistentObjectsDialog() {
+  const [open, setOpen] = useState(false);
   const { isPending, mutateAsync: dropInconsistentMetadata } =
     useDropInconsistentMetadataMutation();
 
@@ -27,7 +23,7 @@ export default function DeleteInconsistentObjectsDialog({
     await execPromiseWithErrorToast(
       async () => {
         await dropInconsistentMetadata();
-        onOpenChange(false);
+        setOpen(false);
       },
       {
         loadingMessage: 'Removing inconsistent metadata...',
@@ -38,7 +34,16 @@ export default function DeleteInconsistentObjectsDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button
+          variant="outline"
+          className="border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive"
+        >
+          <Trash2 className="mr-2 h-4 w-4" />
+          Remove Inconsistent Metadata
+        </Button>
+      </DialogTrigger>
       <DialogContent
         className="sm:max-w-[425px]"
         hideCloseButton

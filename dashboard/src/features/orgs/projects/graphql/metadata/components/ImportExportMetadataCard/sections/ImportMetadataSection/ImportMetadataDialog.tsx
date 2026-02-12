@@ -14,7 +14,8 @@ import {
   DialogTitle,
 } from '@/components/ui/v3/dialog';
 import { Label } from '@/components/ui/v3/label';
-import useReplaceMetadataMutation from '@/features/orgs/projects/graphql/metadata/hooks/useReplaceMetadataMutation/useReplaceMetadataMutation';
+import { useGetMetadata } from '@/features/orgs/projects/common/hooks/useGetMetadata';
+import { useReplaceMetadataMutation } from '@/features/orgs/projects/graphql/metadata/hooks/useReplaceMetadataMutation';
 import { readMetadataFile } from '@/features/orgs/projects/graphql/metadata/utils/readMetadataFile';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { cn, isEmptyValue } from '@/lib/utils';
@@ -30,6 +31,8 @@ export default function ImportMetadataDialog() {
   const [allowInconsistentMetadata, setAllowInconsistentMetadata] =
     useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { data: oldMetadata } = useGetMetadata();
 
   const { isPending: isReplacing, mutateAsync: replaceMetadata } =
     useReplaceMetadataMutation();
@@ -73,11 +76,13 @@ export default function ImportMetadataDialog() {
     await execPromiseWithErrorToast(
       async () => {
         await replaceMetadata({
+          oldMetadata,
           metadata: pendingMetadata!,
           allowInconsistentMetadata,
         });
         setDialogOpen(false);
         setPendingMetadata(null);
+        setAllowInconsistentMetadata(false);
       },
       {
         loadingMessage: 'Importing metadata...',

@@ -922,6 +922,7 @@ components:
 
     MigrationStep:
       oneOf:
+        - $ref: "#/components/schemas/ReplaceMetadataOperation"
         - $ref: "#/components/schemas/SetTableIsEnumStep"
         - $ref: "#/components/schemas/SetTableCustomizationStep"
         - $ref: "#/components/schemas/AddRemoteSchemaPermissionsStep"

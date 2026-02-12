@@ -1,13 +1,6 @@
-import {
-  ChevronDown,
-  ChevronRight,
-  Info,
-  Trash2,
-  TriangleAlert,
-} from 'lucide-react';
+import { ChevronDown, ChevronRight, Info, TriangleAlert } from 'lucide-react';
 import { useState } from 'react';
 import { Badge } from '@/components/ui/v3/badge';
-import { Button } from '@/components/ui/v3/button';
 import {
   Collapsible,
   CollapsibleContent,
@@ -21,7 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/v3/table';
-import DeleteInconsistentObjectsDialog from '@/features/orgs/projects/graphql/metadata/components/DeleteInconsistentObjectsDialog/DeleteInconsistentObjectsDialog';
+import { DeleteInconsistentObjectsDialog } from '@/features/orgs/projects/graphql/metadata/components/DeleteInconsistentObjectsDialog';
 import InconsistentObjectDefinitionDialog from '@/features/orgs/projects/graphql/metadata/components/InconsistentObjectDefinitionDialog/InconsistentObjectDefinitionDialog';
 import type { InconsistentObject } from '@/utils/hasura-api/generated/schemas';
 
@@ -34,7 +27,6 @@ export default function MetadataInconsistentStatus({
 }: MetadataInconsistentStatusProps) {
   const [inconsistenciesTableOpen, setInconsistenciesTableOpen] =
     useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const label =
     inconsistentObjects.length === 1 ? 'inconsistency' : 'inconsistencies';
@@ -141,22 +133,10 @@ export default function MetadataInconsistentStatus({
         )}
 
         <div className="flex items-center justify-between gap-2">
-          <Button
-            variant="outline"
-            className="border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive"
-            onClick={() => setDeleteDialogOpen(true)}
-          >
-            <Trash2 className="mr-2 h-4 w-4" />
-            Remove Inconsistent Metadata
-          </Button>
+          <DeleteInconsistentObjectsDialog />
           <span className="text-muted-foreground text-sm">
             This action cannot be undone
           </span>
-
-          <DeleteInconsistentObjectsDialog
-            open={deleteDialogOpen}
-            onOpenChange={setDeleteDialogOpen}
-          />
         </div>
       </div>
     </>
