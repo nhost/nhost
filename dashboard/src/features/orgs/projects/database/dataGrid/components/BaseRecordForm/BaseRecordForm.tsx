@@ -6,7 +6,7 @@ import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
 import { DatabaseRecordInputGroup } from '@/features/orgs/projects/database/dataGrid/components/DatabaseRecordInputGroup';
 import type {
   ColumnInsertOptions,
-  DataBrowserGridColumnDef,
+  DataBrowserColumnMetadata,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { cn } from '@/lib/utils';
 import type { DialogFormProps } from '@/types/common';
@@ -15,7 +15,7 @@ export interface BaseRecordFormProps extends DialogFormProps {
   /**
    * The columns of the table.
    */
-  columns: DataBrowserGridColumnDef[];
+  columns: DataBrowserColumnMetadata[];
   /**
    * Function to be called when the form is submitted.
    */
@@ -41,15 +41,13 @@ export default function BaseRecordForm({
 }: BaseRecordFormProps) {
   const { onDirtyStateChange } = useDialog();
   const { requiredColumns, optionalColumns } = columns.reduce<{
-    requiredColumns: DataBrowserGridColumnDef[];
-    optionalColumns: DataBrowserGridColumnDef[];
+    requiredColumns: DataBrowserColumnMetadata[];
+    optionalColumns: DataBrowserColumnMetadata[];
   }>(
     (accumulator, column) => {
       if (
-        column.meta?.isPrimary ||
-        (!column.meta?.isNullable &&
-          !column.meta?.defaultValue &&
-          !column.meta?.isIdentity)
+        column.isPrimary ||
+        (!column.isNullable && !column.defaultValue && !column.isIdentity)
       ) {
         return {
           ...accumulator,
@@ -83,8 +81,8 @@ export default function BaseRecordForm({
   // Stores columns in a map to have constant time lookup. This is necessary
   // for tables with many columns.
   const gridColumnMap = columns.reduce(
-    (map, column) => map.set(column.id as string, column),
-    new Map<string, DataBrowserGridColumnDef>(),
+    (map, column) => map.set(column.id, column),
+    new Map<string, DataBrowserColumnMetadata>(),
   );
 
   if (!columns?.length) {
@@ -93,8 +91,7 @@ export default function BaseRecordForm({
     );
   }
 
-  // biome-ignore lint/suspicious/noExplicitAny: TODO
-  async function handleSubmit(columnValues: Record<string, any>) {
+  async function handleSubmit(columnValues: Record<string, unknown>) {
     const columnIds = Object.keys(columnValues);
 
     const insertableValues: Record<string, ColumnInsertOptions> =
@@ -102,10 +99,7 @@ export default function BaseRecordForm({
         const gridColumn = gridColumnMap.get(columnId);
         const value = columnValues[columnId];
 
-        if (
-          !value &&
-          (gridColumn?.meta?.defaultValue || gridColumn?.meta?.isIdentity)
-        ) {
+        if (!value && (gridColumn?.defaultValue || gridColumn?.isIdentity)) {
           return {
             ...options,
             [columnId]: {
@@ -115,7 +109,7 @@ export default function BaseRecordForm({
           };
         }
 
-        if (!value && gridColumn?.meta?.isNullable) {
+        if (!value && gridColumn?.isNullable) {
           return {
             ...options,
             [columnId]: {
@@ -129,7 +123,7 @@ export default function BaseRecordForm({
           ...options,
           [columnId]: {
             value:
-              gridColumn?.meta?.type === 'date' && value instanceof Date
+              gridColumn?.type === 'date' && value instanceof Date
                 ? value.toUTCString()
                 : value,
           },

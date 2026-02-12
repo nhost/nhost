@@ -1,6 +1,6 @@
 import { FormProvider, useForm } from 'react-hook-form';
 import { vi } from 'vitest';
-import type { DataBrowserGridColumnDef } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import type { DataBrowserColumnMetadata } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { render, screen, TestUserEvent } from '@/tests/testUtils';
 import BaseRecordForm, { type BaseRecordFormProps } from './BaseRecordForm';
 
@@ -9,16 +9,16 @@ const mocks = vi.hoisted(() => ({
   onCancel: vi.fn(),
 }));
 
-const mockColumns: DataBrowserGridColumnDef[] = [
+const mockColumns: DataBrowserColumnMetadata[] = [
   {
-    meta: {
-      isPrimary: true,
-      isNullable: false,
-      isIdentity: false,
-      defaultValue: null,
-      type: 'text',
-    },
     id: 'col1',
+    isPrimary: true,
+    isNullable: false,
+    isIdentity: false,
+    defaultValue: undefined,
+    type: 'text',
+    specificType: 'text',
+    dataType: 'text',
   },
 ];
 
