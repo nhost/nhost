@@ -49,11 +49,10 @@ export default function ImportMetadataDialog() {
 
   const handleFileSelect = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (isEmptyValue(file)) {
-      toast.error('Failed to select file.', getToastStyleProps());
+    if (!file) {
       return;
     }
-    processFile(file!);
+    processFile(file);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
