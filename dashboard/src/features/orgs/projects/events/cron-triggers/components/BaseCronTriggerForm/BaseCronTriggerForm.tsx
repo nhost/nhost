@@ -304,12 +304,9 @@ export default function BaseCronTriggerForm({
                     </AccordionTrigger>
                     <AccordionContent>
                       <div className="flex flex-col gap-8 border-l">
-                        <RetryConfigurationFormSection
-                          className="pl-4"
-                          showToleranceSec
-                        />
+                        <RetryConfigurationFormSection showToleranceSec />
                         <Separator />
-                        <HeadersFormSection className="pl-4" />
+                        <HeadersFormSection />
                       </div>
                     </AccordionContent>
                   </AccordionItem>
