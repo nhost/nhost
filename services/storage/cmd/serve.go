@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	_ "net/http/pprof" //nolint:gosec
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -426,6 +427,20 @@ func serve(ctx context.Context, cmd *cli.Command) error { //nolint:funlen
 	if err != nil {
 		return err
 	}
+
+	logger.InfoContext(servCtx, "starting pprof server", slog.String("bind", ":6060"))
+
+	pprofServer := &http.Server{ //nolint:exhaustruct
+		Addr:              ":6060",
+		Handler:           http.DefaultServeMux,
+		ReadHeaderTimeout: 5 * time.Second, //nolint:mnd
+	}
+
+	go func() {
+		if err := pprofServer.ListenAndServe(); err != nil {
+			logger.ErrorContext(servCtx, "pprof server failed", slog.String("error", err.Error()))
+		}
+	}()
 
 	go func() {
 		defer cancel()
