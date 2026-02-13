@@ -155,6 +155,16 @@ func (p *Provider) ValidateAuthorizeRequest( //nolint:cyclop,funlen
 		}
 	}
 
+	if client.IsPublic &&
+		(params.CodeChallenge == nil || *params.CodeChallenge == "") {
+		oauthErr := &Error{
+			Err:         "invalid_request",
+			Description: "PKCE code_challenge is required for public clients",
+		}
+
+		return errorRedirect(oauthErr), oauthErr
+	}
+
 	expiresAt := time.Now().Add(AuthRequestTTL)
 
 	codeChallengeMethod := pgtype.Text{} //nolint:exhaustruct

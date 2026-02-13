@@ -16,7 +16,7 @@ import (
 	"github.com/nhost/nhost/services/auth/go/sql"
 )
 
-func (p *Provider) ExchangeCode(
+func (p *Provider) ExchangeCode( //nolint:cyclop
 	ctx context.Context,
 	req *api.OAuth2TokenRequest,
 	logger *slog.Logger,
@@ -48,7 +48,13 @@ func (p *Provider) ExchangeCode(
 		return nil, &Error{Err: "invalid_grant", Description: "redirect_uri mismatch"}
 	}
 
-	if oauthErr := ValidatePKCE(authReq, req.CodeVerifier); oauthErr != nil {
+	client, err := p.db.GetOAuth2ClientByClientID(ctx, authReq.ClientID)
+	if err != nil {
+		logger.ErrorContext(ctx, "error getting OAuth2 client", logError(err))
+		return nil, &Error{Err: "invalid_client", Description: "Unknown client"}
+	}
+
+	if oauthErr := ValidatePKCE(authReq, req.CodeVerifier, client.IsPublic); oauthErr != nil {
 		return nil, oauthErr
 	}
 

@@ -11,8 +11,16 @@ import (
 func ValidatePKCE(
 	authReq sql.AuthOauth2AuthRequest,
 	codeVerifier *string,
+	isPublicClient bool,
 ) *Error {
 	if !authReq.CodeChallenge.Valid || authReq.CodeChallenge.String == "" {
+		if isPublicClient {
+			return &Error{
+				Err:         "invalid_request",
+				Description: "PKCE code_challenge is required for public clients",
+			}
+		}
+
 		return nil
 	}
 

@@ -216,6 +216,29 @@ describe('pkce-public-client', () => {
     }
   });
 
+  it('should reject authorize request without PKCE for public client', async () => {
+    // Authorize WITHOUT code_challenge — should fail for public clients
+    const params = new URLSearchParams({
+      client_id: clientId,
+      redirect_uri: REDIRECT_URI,
+      response_type: 'code',
+      scope: 'openid profile email',
+      state: `no-pkce-test-${Date.now()}`,
+      // no code_challenge
+    });
+
+    const resp = await fetch(`${AUTH_URL}/oauth2/authorize?${params}`, {
+      redirect: 'manual',
+    });
+
+    const location = resp.headers.get('location')!;
+    const redirectUrl = new URL(location);
+    expect(redirectUrl.searchParams.get('error')).toBe('invalid_request');
+    expect(redirectUrl.searchParams.get('error_description')).toContain(
+      'PKCE',
+    );
+  });
+
   it('should reject token exchange when code_verifier is wrong', async () => {
     const pkce = generatePKCE();
     const authCode = await getAuthCode(clientId, jwt, pkce);

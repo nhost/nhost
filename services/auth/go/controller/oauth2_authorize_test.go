@@ -97,12 +97,17 @@ func TestOauth2Authorize(t *testing.T) { //nolint:cyclop,gocognit,gocyclo,mainti
 			},
 		)
 
+		codeChallenge := "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"
+		codeChallengeMethod := api.S256
+
 		resp, err := c.Oauth2Authorize(context.Background(), api.Oauth2AuthorizeRequestObject{
 			Params: api.Oauth2AuthorizeParams{ //nolint:exhaustruct
-				ClientId:     clientID,
-				RedirectUri:  redirectURI,
-				ResponseType: responseType,
-				State:        &state,
+				ClientId:            clientID,
+				RedirectUri:         redirectURI,
+				ResponseType:        responseType,
+				State:               &state,
+				CodeChallenge:       &codeChallenge,
+				CodeChallengeMethod: &codeChallengeMethod,
 			},
 		})
 		if err != nil {
@@ -317,6 +322,61 @@ func TestOauth2Authorize(t *testing.T) { //nolint:cyclop,gocognit,gocyclo,mainti
 
 		if got := u.Query().Get("iss"); got != "https://local.auth.nhost.run" {
 			t.Errorf("expected iss=https://local.auth.nhost.run, got %q", got)
+		}
+	})
+
+	t.Run("public client without PKCE redirects with error", func(t *testing.T) {
+		t.Parallel()
+
+		ctrl := gomock.NewController(t)
+
+		db := mock.NewMockDBClient(ctrl)
+		db.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), clientID).
+			Return(client, nil)
+
+		c, _ := getController(
+			t,
+			ctrl,
+			getConfigOAuth2Enabled,
+			func(_ *gomock.Controller) controller.DBClient {
+				return db
+			},
+		)
+
+		resp, err := c.Oauth2Authorize(context.Background(), api.Oauth2AuthorizeRequestObject{
+			Params: api.Oauth2AuthorizeParams{ //nolint:exhaustruct
+				ClientId:     clientID,
+				RedirectUri:  redirectURI,
+				ResponseType: responseType,
+				State:        &state,
+				// No CodeChallenge — should fail for public client
+			},
+		})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		redirectResp, ok := resp.(api.Oauth2Authorize302Response)
+		if !ok {
+			t.Fatalf("expected 302 response, got %T: %+v", resp, resp)
+		}
+
+		u, err := url.Parse(redirectResp.Headers.Location)
+		if err != nil {
+			t.Fatalf("failed to parse redirect URL: %v", err)
+		}
+
+		if got := u.Query().Get("error"); got != "invalid_request" {
+			t.Errorf("expected error=invalid_request, got %q", got)
+		}
+
+		if got := u.Query().
+			Get("error_description"); got != "PKCE code_challenge is required for public clients" {
+			t.Errorf("unexpected error_description: %q", got)
+		}
+
+		if got := u.Query().Get("state"); got != state {
+			t.Errorf("expected state=%q, got %q", state, got)
 		}
 	})
 

@@ -75,9 +75,6 @@ Unlike `create_oauth2_client` which takes `hasura_session` and extracts `x-hasur
 ### 12. Plaintext client secret in SQL function parameters (migration `00021:16,44,102,133`)
 Raw client secrets appear in `pg_stat_activity` and PostgreSQL logs.
 
-### 13. PKCE not enforced for public clients (`oauth2/pkce.go:15-17`)
-`ValidatePKCE()` returns `nil` (success) when no `code_challenge` was stored. For public clients (`token_endpoint_auth_method=none`), PKCE should be mandatory per OAuth 2.1.
-
 ### 14. JWT middleware leaks validation details to client (`controller/jwt.go:468`)
 ```go
 Message: fmt.Sprintf("error validating token: %s", err),
