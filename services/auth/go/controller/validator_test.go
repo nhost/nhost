@@ -62,7 +62,6 @@ func getConfig() *controller.Config {
 		SMSModicaUsername:                        "modicaUsername",
 		SMSModicaPassword:                        "modicaPassword",
 		OAuth2ProviderEnabled:                    false,
-		OAuth2ProviderIssuer:                     "",
 		OAuth2ProviderLoginURL:                   "",
 		OAuth2ProviderAccessTokenTTL:             900,
 		OAuth2ProviderRefreshTokenTTL:            2592000,

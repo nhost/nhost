@@ -218,7 +218,6 @@ func New( //nolint:funlen
 			jwtGetter,
 			&bcryptHasher{},
 			oauth2provider.Config{
-				Issuer:                     config.OAuth2ProviderIssuer,
 				LoginURL:                   config.OAuth2ProviderLoginURL,
 				ClientURL:                  config.ClientURL.String(),
 				ServerURL:                  config.ServerURL.String(),

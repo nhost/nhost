@@ -117,7 +117,6 @@ func (ctrl *Controller) PostChangeEnv(c *gin.Context) { //nolint:funlen,cyclop
 			ctrl.wf.jwtGetter,
 			&bcryptHasher{},
 			oauth2provider.Config{
-				Issuer:                     ctrl.config.OAuth2ProviderIssuer,
 				LoginURL:                   ctrl.config.OAuth2ProviderLoginURL,
 				ClientURL:                  ctrl.config.ClientURL.String(),
 				ServerURL:                  ctrl.config.ServerURL.String(),

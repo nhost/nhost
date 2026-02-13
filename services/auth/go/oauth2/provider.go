@@ -23,7 +23,6 @@ const (
 )
 
 type Config struct {
-	Issuer                     string
 	LoginURL                   string
 	ClientURL                  string
 	ServerURL                  string

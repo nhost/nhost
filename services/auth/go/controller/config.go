@@ -72,7 +72,6 @@ type Config struct {
 	SMSModicaPassword                        string        `json:"AUTH_SMS_MODICA_PASSWORD"`
 	ServerPrefix                             string        `json:"AUTH_SERVER_PREFIX"`
 	OAuth2ProviderEnabled                    bool          `json:"AUTH_OAUTH2_PROVIDER_ENABLED"`
-	OAuth2ProviderIssuer                     string        `json:"AUTH_OAUTH2_PROVIDER_ISSUER"`
 	OAuth2ProviderLoginURL                   string        `json:"AUTH_OAUTH2_PROVIDER_LOGIN_URL"`
 	OAuth2ProviderAccessTokenTTL             int           `json:"AUTH_OAUTH2_PROVIDER_ACCESS_TOKEN_TTL"`
 	OAuth2ProviderRefreshTokenTTL            int           `json:"AUTH_OAUTH2_PROVIDER_REFRESH_TOKEN_TTL"`

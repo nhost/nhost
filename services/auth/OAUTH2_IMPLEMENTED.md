@@ -14,7 +14,7 @@ This document describes the OAuth2/OIDC Identity Provider functionality implemen
 8. [Scopes and Claims](#scopes-and-claims)
 9. [Client Types and Authentication](#client-types-and-authentication)
 10. [Dynamic Client Registration (RFC 7591)](#dynamic-client-registration-rfc-7591)
-11. [Client ID Metadata Document (draft-ietf-oauth-client-id-metadata-document)](#client-id-metadata-document)
+11. [Client ID Metadata Document (RFC 9728)](#client-id-metadata-document-rfc-9728)
 12. [Discovery and Metadata (RFC 8414)](#discovery-and-metadata-rfc-8414)
 13. [Token Introspection (RFC 7662)](#token-introspection-rfc-7662)
 14. [Token Revocation (RFC 7009)](#token-revocation-rfc-7009)
@@ -23,6 +23,7 @@ This document describes the OAuth2/OIDC Identity Provider functionality implemen
 17. [Security Measures](#security-measures)
 18. [Configuration](#configuration)
 19. [Database Schema](#database-schema)
+20. [Appendix A: Changes to Existing Code](#appendix-a-changes-to-existing-code)
 
 ---
 
@@ -30,7 +31,7 @@ This document describes the OAuth2/OIDC Identity Provider functionality implemen
 
 Nhost Auth acts as an OAuth2 Authorization Server and OpenID Connect Provider. External applications can use standard OAuth2/OIDC flows to authenticate Nhost users and obtain access tokens, ID tokens, and refresh tokens.
 
-The implementation follows the controller/workflow pattern used throughout Nhost Auth: endpoints are defined in the OpenAPI spec, generated via oapi-codegen, and implemented as controller methods that delegate to workflow functions for business logic.
+The implementation follows the controller/workflow pattern used throughout Nhost Auth: endpoints are defined in the OpenAPI spec, generated via oapi-codegen, and implemented as controller methods that delegate to an `oauth2.Provider` struct for business logic. The OAuth2 provider code lives in `go/oauth2/` as a self-contained package with its own interfaces (`Signer`, `DBClient`, `PasswordHasher`, etc.), wired to the controller at initialization time.
 
 ---
 
@@ -40,16 +41,18 @@ The implementation follows the controller/workflow pattern used throughout Nhost
 |-----|-------|--------|-------|
 | [RFC 6749](https://datatracker.ietf.org/doc/html/rfc6749) | OAuth 2.0 Authorization Framework | Partial | Authorization Code grant only. Implicit, Password, and Client Credentials grants not implemented. |
 | [RFC 6750](https://datatracker.ietf.org/doc/html/rfc6750) | OAuth 2.0 Bearer Token Usage | Full | Bearer tokens in `Authorization` header. |
-| [RFC 7009](https://datatracker.ietf.org/doc/html/rfc7009) | OAuth 2.0 Token Revocation | Partial | Refresh tokens revoked from DB. Access tokens are stateless JWTs and cannot be revoked. Always returns 200. |
+| [RFC 7009](https://datatracker.ietf.org/doc/html/rfc7009) | OAuth 2.0 Token Revocation | Partial | Refresh tokens revoked from DB. Access tokens are stateless JWTs and cannot be revoked. Client authentication required. Always returns 200. |
 | [RFC 7517](https://datatracker.ietf.org/doc/html/rfc7517) | JSON Web Key (JWK) | Full | JWKS endpoint serves RSA public keys. |
 | [RFC 7519](https://datatracker.ietf.org/doc/html/rfc7519) | JSON Web Token (JWT) | Full | Access tokens and ID tokens are RS256-signed JWTs. |
-| [RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591) | OAuth 2.0 Dynamic Client Registration | Partial | Open registration (no initial access token). Client update (RFC 7592) not implemented via DCR endpoint. |
-| [draft-ietf-oauth-client-id-metadata-document](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-00.html) | Client ID Metadata Document | Full | URL-based client_id with metadata fetched from the URL. SSRF protection, 1h cache TTL. |
-| [RFC 7636](https://datatracker.ietf.org/doc/html/rfc7636) | PKCE | Full | S256 and plain methods supported. Optional (not enforced for public clients). |
-| [RFC 7662](https://datatracker.ietf.org/doc/html/rfc7662) | OAuth 2.0 Token Introspection | Full | Supports both refresh tokens (DB lookup) and access tokens (JWT verification). |
+| [RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591) | OAuth 2.0 Dynamic Client Registration | Partial | Requires Bearer authentication (user must be logged in). Client update (RFC 7592) not implemented via DCR endpoint. |
+| [RFC 7636](https://datatracker.ietf.org/doc/html/rfc7636) | PKCE | Partial | Only S256 method supported. `plain` method is explicitly rejected. PKCE is optional (not enforced for public clients). |
+| [RFC 7662](https://datatracker.ietf.org/doc/html/rfc7662) | OAuth 2.0 Token Introspection | Full | Supports both refresh tokens (DB lookup) and access tokens (JWT verification). Client authentication required. |
 | [RFC 8414](https://datatracker.ietf.org/doc/html/rfc8414) | OAuth 2.0 Authorization Server Metadata | Full | Both `/.well-known/openid-configuration` and `/.well-known/oauth-authorization-server`. |
 | [RFC 8707](https://datatracker.ietf.org/doc/html/rfc8707) | Resource Indicators for OAuth 2.0 | Partial | `resource` parameter accepted and stored. Not used for audience restriction in issued tokens. |
-| [OpenID Connect Core 1.0](https://openid.net/specs/openid-connect-core-1_0.html) | OpenID Connect | Partial | ID tokens, UserInfo endpoint, `nonce`, standard claims. No RP-initiated logout, no session management, no pairwise subject identifiers. |
+| [RFC 9101](https://datatracker.ietf.org/doc/html/rfc9101) | JWT-Secured Authorization Request (JAR) | Not Supported | `request` parameter accepted in schema but explicitly rejected with `request_not_supported` (valid per RFC 9101 Section 10.4). |
+| [RFC 9207](https://datatracker.ietf.org/doc/html/rfc9207) | OAuth 2.0 Authorization Server Issuer Identification | Full | `iss` parameter included in authorization response redirects. `authorization_response_iss_parameter_supported: true` advertised in discovery. |
+| [RFC 9728](https://datatracker.ietf.org/doc/html/rfc9728) | OAuth 2.0 Client ID Metadata Document | Full | URL-based client_id with metadata fetched from the URL. SSRF protection, 1h cache TTL. |
+| [OpenID Connect Core 1.0](https://openid.net/specs/openid-connect-core-1_0.html) | OpenID Connect | Partial | ID tokens, UserInfo endpoint, `nonce`, standard claims. `prompt` parameter accepted. No RP-initiated logout, no session management, no pairwise subject identifiers. |
 
 ---
 
@@ -67,13 +70,14 @@ The implementation follows the controller/workflow pattern used throughout Nhost
 | Method | Path | Content-Type | Description |
 |--------|------|-------------|-------------|
 | GET | `/oauth2/authorize` | — | Authorization endpoint. Validates request, creates auth request, redirects to login UI. |
+| POST | `/oauth2/authorize` | `application/x-www-form-urlencoded` | Authorization endpoint (POST variant). Same behavior as GET. |
 | POST | `/oauth2/token` | `application/x-www-form-urlencoded` | Token endpoint. Exchanges authorization codes and refresh tokens for tokens. |
 
 ### OIDC
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/oauth2/userinfo` | Returns user claims for the authenticated access token. |
+| GET | `/oauth2/userinfo` | Returns user claims for the authenticated access token, filtered by token scopes. |
 | POST | `/oauth2/userinfo` | Same as GET (per OIDC spec). |
 | GET | `/oauth2/jwks` | JSON Web Key Set with RSA public signing keys. |
 
@@ -81,14 +85,14 @@ The implementation follows the controller/workflow pattern used throughout Nhost
 
 | Method | Path | Content-Type | Description |
 |--------|------|-------------|-------------|
-| POST | `/oauth2/revoke` | `application/x-www-form-urlencoded` | Token revocation (RFC 7009). |
-| POST | `/oauth2/introspect` | `application/x-www-form-urlencoded` | Token introspection (RFC 7662). |
+| POST | `/oauth2/revoke` | `application/x-www-form-urlencoded` | Token revocation (RFC 7009). Requires client authentication. |
+| POST | `/oauth2/introspect` | `application/x-www-form-urlencoded` | Token introspection (RFC 7662). Requires client authentication. |
 
 ### Dynamic Client Registration
 
 | Method | Path | Content-Type | Description |
 |--------|------|-------------|-------------|
-| POST | `/oauth2/register` | `application/json` | Register a new OAuth2 client (RFC 7591). No authentication required. |
+| POST | `/oauth2/register` | `application/json` | Register a new OAuth2 client (RFC 7591). Requires Bearer authentication. |
 
 ### Login/Consent API (called by frontend consent UI)
 
@@ -97,15 +101,14 @@ The implementation follows the controller/workflow pattern used throughout Nhost
 | GET | `/oauth2/login?request_id={uuid}` | Retrieve auth request details for the consent screen. |
 | POST | `/oauth2/login` | Complete login/consent. Requires authenticated user (Bearer token). Generates authorization code. |
 
-### Admin Client Management
+### Client Management (via Hasura GraphQL)
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/oauth2/clients` | List all registered clients. |
-| POST | `/oauth2/clients` | Create a new client. |
-| GET | `/oauth2/clients/{clientId}` | Get a single client. |
-| PUT | `/oauth2/clients/{clientId}` | Update a client. |
-| DELETE | `/oauth2/clients/{clientId}` | Delete a client. |
+Client CRUD operations are exposed through the Hasura GraphQL API, not as REST endpoints. The database tables are tracked in Hasura metadata and two SQL functions are available as mutations:
+
+- **`create_oauth2_client`** — Creates a new client. Accepts client name, secret, redirect URIs, scopes, etc. Hashes the secret with bcrypt, derives `is_public` from whether a secret is provided.
+- **`modify_oauth2_client`** — Updates an existing client. NULL parameters keep existing values. Empty string for secret removes it (makes client public).
+- **DELETE** — Direct table operation via Hasura GraphQL.
+- **Query** — Clients can be queried via standard Hasura GraphQL queries on the `oauth2_clients` table.
 
 ---
 
@@ -123,11 +126,13 @@ Complete flow from authorization request to token issuance:
    &nonce=<oidc_nonce>
    &code_challenge=<base64url(sha256(verifier))>
    &code_challenge_method=S256
+   &prompt=<prompt>              (optional, forwarded to login UI)
+   &resource=<resource_uri>      (optional, RFC 8707)
 
    Server validates: client exists, redirect_uri registered, scopes allowed,
    response_type is "code". Creates auth request in DB (expires in 10 min).
 
-   → 302 redirect to login UI with ?request_id=<uuid>
+   → 302 redirect to login UI with ?request_id=<uuid>[&prompt=<prompt>]
 
 2. GET /oauth2/login?request_id=<uuid>
 
@@ -140,7 +145,7 @@ Complete flow from authorization request to token issuance:
    Server sets user_id on auth request, generates authorization code (UUID),
    stores SHA256(code) in DB (expires in 5 min).
 
-   → { "redirectUri": "<redirect_uri>?code=<code>&state=<state>" }
+   → { "redirectUri": "<redirect_uri>?code=<code>&iss=<issuer>&state=<state>" }
 
 4. POST /oauth2/token
    Content-Type: application/x-www-form-urlencoded
@@ -165,6 +170,8 @@ Complete flow from authorization request to token issuance:
        "scope": "openid profile email"
      }
 ```
+
+**Note**: The authorization response includes `iss` (issuer) as a query parameter per RFC 9207.
 
 ---
 
@@ -194,22 +201,24 @@ Complete flow from authorization request to token issuance:
 
 | Method | `code_challenge_method` | Description |
 |--------|------------------------|-------------|
-| S256 | `S256` | `code_challenge = BASE64URL(SHA256(code_verifier))`. Recommended. |
-| Plain | `plain` | `code_challenge = code_verifier`. Less secure, supported for compatibility. |
+| S256 | `S256` | `code_challenge = BASE64URL(SHA256(code_verifier))`. Required if PKCE is used. |
+
+The `plain` method is **explicitly rejected** with error `"Unsupported code_challenge_method, only S256 is supported"`.
 
 ### Behavior
 
 - PKCE is **optional**. If `code_challenge` is not sent in the authorization request, no PKCE validation occurs at the token endpoint.
 - If `code_challenge` is present in the authorization request, `code_verifier` is **required** at the token endpoint.
 - PKCE parameters are stored in the auth request record and validated during code exchange.
+- Uses constant-time comparison (`subtle.ConstantTimeCompare`) to prevent timing attacks.
 
-### Validation Logic (`validatePKCE`)
+### Validation Logic (`ValidatePKCE`)
 
 ```
 if no code_challenge stored → pass (PKCE not used)
 if code_challenge stored but no code_verifier provided → error: "Missing code_verifier"
-if method is S256 → BASE64URL(SHA256(code_verifier)) must equal stored code_challenge
-if method is plain → code_verifier must exactly equal stored code_challenge
+if method is not S256 → error: "Unsupported code_challenge_method"
+if BASE64URL(SHA256(code_verifier)) != stored code_challenge → error: "Invalid code_verifier"
 ```
 
 ---
@@ -223,14 +232,27 @@ if method is plain → code_verifier must exactly equal stored code_challenge
 - **Configurable**: globally via `AUTH_OAUTH2_PROVIDER_ACCESS_TOKEN_TTL`, per-client via `access_token_lifetime`
 - **Headers**: `{ "alg": "RS256", "typ": "JWT", "kid": "<key_id>" }`
 
-**Claims**:
+**Standard claims**:
 ```json
 {
   "iss": "<issuer_url>",
   "sub": "<user_uuid>",
+  "aud": "<client_id>",
   "iat": 1234567890,
   "exp": 1234568790,
-  "scope": "openid profile email",
+  "scope": "openid profile email"
+}
+```
+
+**With `graphql` scope** (adds Hasura-compatible claims):
+```json
+{
+  "iss": "<issuer_url>",
+  "sub": "<user_uuid>",
+  "aud": "<client_id>",
+  "iat": 1234567890,
+  "exp": 1234568790,
+  "scope": "openid profile email graphql",
   "https://hasura.io/jwt/claims": {
     "x-hasura-allowed-roles": ["user", "me"],
     "x-hasura-default-role": "user",
@@ -239,7 +261,7 @@ if method is plain → code_verifier must exactly equal stored code_challenge
 }
 ```
 
-The `https://hasura.io/jwt/claims` namespace is included so access tokens can be used directly with Hasura for authorization. Roles are fetched from the user's assigned roles in the database.
+The `https://hasura.io/jwt/claims` namespace is only included when the `graphql` scope is requested, allowing access tokens to be used directly with Hasura for authorization. Roles are fetched from the user's assigned roles in the database.
 
 ### ID Token (JWT)
 
@@ -261,7 +283,7 @@ The `https://hasura.io/jwt/claims` namespace is included so access tokens can be
 ```
 
 **Conditional claims** (see [Scopes and Claims](#scopes-and-claims) for details):
-- `nonce`: included if provided in the authorization request
+- `nonce`: included if provided in the authorization request (not included on refresh)
 - `name`, `picture`, `locale`: included if `profile` scope and values exist
 - `email`, `email_verified`: included if `email` scope and email is set
 - `phone_number`, `phone_number_verified`: included if `phone` scope and phone is set
@@ -277,7 +299,7 @@ The `https://hasura.io/jwt/claims` namespace is included so access tokens can be
 ### Authorization Code
 
 - **Format**: UUID string
-- **Lifetime**: 5 minutes (hardcoded, `oauth2AuthCodeTTL`)
+- **Lifetime**: 5 minutes (hardcoded, `AuthCodeTTL`)
 - **Storage**: SHA256 hash stored in database
 - **One-time use**: deleted immediately after exchange (whether successful or not)
 - **Binding**: tied to the auth request which contains client_id, redirect_uri, scopes, PKCE challenge
@@ -291,10 +313,11 @@ The `https://hasura.io/jwt/claims` namespace is included so access tokens can be
 | Scope | Effect |
 |-------|--------|
 | `openid` | Required for OIDC. Triggers ID token issuance. Default if no scope specified. |
-| `profile` | Adds `name`, `picture`, `locale` to ID token (if values exist on user). |
-| `email` | Adds `email`, `email_verified` to ID token (if user has email). |
-| `phone` | Adds `phone_number`, `phone_number_verified` to ID token (if user has phone). |
+| `profile` | Adds `name`, `picture`, `locale` to ID token and UserInfo (if values exist on user). |
+| `email` | Adds `email`, `email_verified` to ID token and UserInfo (if user has email). |
+| `phone` | Adds `phone_number`, `phone_number_verified` to ID token and UserInfo (if user has phone). |
 | `offline_access` | Recognized in discovery metadata. Refresh tokens are issued regardless of this scope. |
+| `graphql` | Adds Hasura GraphQL claims (`https://hasura.io/jwt/claims`) to access tokens. Includes user roles, default role, and user ID. |
 
 ### Scope Validation
 
@@ -304,8 +327,8 @@ The `https://hasura.io/jwt/claims` namespace is included so access tokens can be
 
 ### Default Client Scopes
 
-- Dynamic registration default: `openid profile email`
-- Admin-created client default: configurable at creation time
+- Dynamic registration default: `openid profile email phone offline_access`
+- Admin-created client default: `{openid}` (database column default), configurable at creation time
 
 ### ID Token Claims by Scope
 
@@ -321,16 +344,16 @@ The `https://hasura.io/jwt/claims` namespace is included so access tokens can be
 
 ### UserInfo Endpoint Claims
 
-The UserInfo endpoint (`/oauth2/userinfo`) returns all available user claims based on data availability. Unlike the ID token, it does **not** filter by the token's scopes - it returns all non-null user fields:
+The UserInfo endpoint (`/oauth2/userinfo`) returns user claims **filtered by the token's scopes**. It extracts the `scope` claim from the JWT access token and only returns claims matching the granted scopes:
 
-| Claim | Condition |
-|-------|-----------|
-| `sub` | Always (user UUID) |
-| `email`, `email_verified` | If user has email |
-| `name` | If `display_name` non-empty |
-| `picture` | If `avatar_url` non-empty |
-| `locale` | If `locale` non-empty |
-| `phone_number`, `phone_number_verified` | If user has phone number |
+| Scope | Claim | Condition |
+|-------|-------|-----------|
+| (always) | `sub` | Always (user UUID) |
+| `email` | `email`, `email_verified` | If user has email |
+| `profile` | `name` | If `display_name` non-empty |
+| `profile` | `picture` | If `avatar_url` non-empty |
+| `profile` | `locale` | If `locale` non-empty |
+| `phone` | `phone_number`, `phone_number_verified` | If user has phone number |
 
 **Note**: The UserInfo endpoint authenticates via the existing Nhost Auth JWT middleware (`GetJWTInContext`), which validates the Bearer token as a Hasura-compatible JWT.
 
@@ -349,16 +372,22 @@ The UserInfo endpoint (`/oauth2/userinfo`) returns all available user claims bas
 
 The `type` column in `oauth2_clients` tracks how the client was created. It references the `auth.oauth2_client_types` lookup table. CIMD clients are always public and cannot have a client secret.
 
-### Client Authentication at Token Endpoint
+### Client Authentication
 
-The token endpoint supports two authentication methods for confidential clients:
+Client authentication via `authenticateClient` is required at the following endpoints:
+
+- **Token endpoint** (`/oauth2/token`) — during code exchange and refresh token grants
+- **Introspection endpoint** (`/oauth2/introspect`) — `client_id` is required
+- **Revocation endpoint** (`/oauth2/revoke`) — `client_id` is required
+
+All three endpoints support two authentication methods for confidential clients:
 
 - **`client_secret_post`**: Client credentials (`client_id`, `client_secret`) sent in the form body.
 - **`client_secret_basic`**: Client credentials sent via `Authorization: Basic` header (RFC 6749 Section 2.3.1). The header value is `base64(client_id:client_secret)`.
 
-When `client_secret_basic` is used, the credentials are extracted from the `Authorization` header and injected into the request before processing. If credentials are present in both the header and the body, the body values take precedence.
+When `client_secret_basic` is used, the credentials are extracted from the `Authorization` header and injected into the request before processing. Body values take precedence if both are provided.
 
-The `authenticateClient` function runs during code exchange and token refresh:
+The `authenticateClient` function:
 
 1. If `client_id` is provided in the request and doesn't match the expected client → `invalid_client`
 2. Look up client by expected `client_id`
@@ -369,7 +398,7 @@ The `authenticateClient` function runs during code exchange and token refresh:
 
 ### Client ID Format
 
-Generated as a UUID string (e.g., `550e8400-e29b-41d4-a716-446655440000`). Unique constraint enforced in database.
+Generated as `nhoa_` + 16 hex characters (e.g., `nhoa_a1b2c3d4e5f67890`), derived from `SHA256(UUID)[:16]`. Unique constraint enforced in database. For CIMD clients, the client_id is the HTTPS URL itself.
 
 ### Client Secret Generation
 
@@ -385,7 +414,7 @@ For confidential clients: `uuid.NewString() + uuid.NewString()` (two concatenate
 
 ### Authentication
 
-None required (open registration).
+**Bearer authentication required.** The user must be logged in with a valid JWT. The authenticated user is recorded as the client's `created_by` owner. This is an optional security measure allowed by RFC 7591.
 
 ### Request
 
@@ -408,7 +437,7 @@ None required (open registration).
 | `redirect_uris` | Yes (non-empty) | — |
 | `grant_types` | No | `["authorization_code"]` |
 | `response_types` | No | `["code"]` |
-| `scope` | No | `"openid profile email"` |
+| `scope` | No | `"openid profile email phone offline_access"` |
 | `token_endpoint_auth_method` | No | `"client_secret_post"` |
 | `client_uri` | No | — |
 | `logo_uri` | No | — |
@@ -417,33 +446,38 @@ None required (open registration).
 
 ```json
 {
-  "client_id": "<uuid>",
+  "client_id": "nhoa_a1b2c3d4e5f67890",
   "client_secret": "<secret>",
+  "client_secret_expires_at": 0,
   "client_name": "My App",
   "redirect_uris": ["https://app.example.com/callback"],
   "grant_types": ["authorization_code"],
   "response_types": ["code"],
-  "scope": "openid profile email",
+  "scope": "openid profile email phone offline_access",
   "token_endpoint_auth_method": "client_secret_post"
 }
 ```
 
 - `client_secret` is only present for confidential clients (`token_endpoint_auth_method != "none"`)
 - `client_secret` is returned only at registration time
+- `client_secret_expires_at` is `0` (non-expiring)
+
+### Per-User Client Limit
+
+When `AUTH_OAUTH2_PROVIDER_DCR_MAX_CLIENTS_PER_USER` is set to a value > 0, the endpoint checks the number of existing clients owned by the user and rejects registration if the limit is reached.
 
 ### Limitations
 
-- No initial access token required (fully open)
-- RFC 7592 (Client Configuration Management) not implemented via DCR - use admin endpoints instead
+- RFC 7592 (Client Configuration Management) not implemented via DCR — use Hasura GraphQL mutations instead
 - No software statement support
 
 ---
 
-## Client ID Metadata Document
+## Client ID Metadata Document (RFC 9728)
 
 ### Specification
 
-[draft-ietf-oauth-client-id-metadata-document-00](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-00.html)
+[RFC 9728 — OAuth 2.0 Client ID Metadata Document](https://datatracker.ietf.org/doc/html/rfc9728)
 
 ### Overview
 
@@ -454,7 +488,7 @@ CIMD clients are always **public** (no client secret). They are upserted into th
 ### Detection
 
 A `client_id` is treated as a CIMD client when all of the following are true:
-- Scheme is `https`
+- Scheme is `https` (or `http` if `CIMDAllowInsecureTransport` is set for development)
 - Host is non-empty
 - Path is non-empty and not just `/`
 
@@ -463,7 +497,7 @@ Otherwise, the client_id is looked up as a regular registered or DCR client.
 ### URL Validation (`ValidateCIMDURL`)
 
 The client_id URL must satisfy:
-- **HTTPS only** — HTTP and other schemes are rejected
+- **HTTPS only** — HTTP and other schemes are rejected (unless `CIMDAllowInsecureTransport`)
 - **Path required** — must have a non-trivial path (not empty, not just `/`)
 - **No fragment** — URL must not contain a `#fragment`
 - **No credentials** — URL must not contain `user:password@`
@@ -519,6 +553,8 @@ The HTTP client used for fetching metadata documents includes multiple layers of
 | Timeout | 5-second fetch timeout (`CIMDFetchTimeout`) |
 | Response size limit | Maximum 5KB response body (`CIMDMaxResponseSize`) |
 
+**Development mode**: When `CIMDAllowInsecureTransport` is enabled, an insecure HTTP client is used that skips TLS verification and allows HTTP URLs, but still enforces timeouts.
+
 ### Authorization Flow
 
 When CIMD is enabled and a URL-based `client_id` arrives at `/oauth2/authorize`:
@@ -561,25 +597,27 @@ Both endpoints return identical content:
 
 ```json
 {
-  "issuer": "<server_url or custom issuer>",
-  "authorization_endpoint": "<server_url>/oauth2/authorize",
-  "token_endpoint": "<server_url>/oauth2/token",
-  "userinfo_endpoint": "<server_url>/oauth2/userinfo",
-  "jwks_uri": "<server_url>/oauth2/jwks",
-  "revocation_endpoint": "<server_url>/oauth2/revoke",
-  "introspection_endpoint": "<server_url>/oauth2/introspect",
-  "registration_endpoint": "<server_url>/oauth2/register",
+  "issuer": "<issuer>",
+  "authorization_endpoint": "<issuer>/oauth2/authorize",
+  "token_endpoint": "<issuer>/oauth2/token",
+  "userinfo_endpoint": "<issuer>/oauth2/userinfo",
+  "jwks_uri": "<issuer>/oauth2/jwks",
+  "revocation_endpoint": "<issuer>/oauth2/revoke",
+  "introspection_endpoint": "<issuer>/oauth2/introspect",
+  "registration_endpoint": "<issuer>/oauth2/register",
   "response_types_supported": ["code"],
   "grant_types_supported": ["authorization_code", "refresh_token"],
-  "scopes_supported": ["openid", "profile", "email", "phone", "offline_access"],
+  "scopes_supported": ["openid", "profile", "email", "phone", "offline_access", "graphql"],
   "subject_types_supported": ["public"],
   "id_token_signing_alg_values_supported": ["RS256"],
   "token_endpoint_auth_methods_supported": ["client_secret_basic", "client_secret_post", "none"],
-  "code_challenge_methods_supported": ["S256", "plain"]
+  "code_challenge_methods_supported": ["S256"],
+  "request_parameter_supported": false,
+  "authorization_response_iss_parameter_supported": true
 }
 ```
 
-The `issuer` is derived from `AUTH_OAUTH2_PROVIDER_ISSUER` if set, otherwise from `AUTH_SERVER_URL`. All endpoint URLs use `AUTH_SERVER_URL` as base regardless of issuer setting.
+The `issuer` and all endpoint URLs are derived from the JWT signer's configured issuer (which comes from the `HASURA_GRAPHQL_JWT_SECRET` configuration).
 
 When the OAuth2 provider is disabled, both endpoints return `nil` (no response body).
 
@@ -587,7 +625,7 @@ When the OAuth2 provider is disabled, both endpoints return `nil` (no response b
 
 | Field | Condition | Value |
 |-------|-----------|-------|
-| `registration_endpoint` | DCR enabled | `<server_url>/oauth2/register` |
+| `registration_endpoint` | Always present | `<issuer>/oauth2/register` |
 | `client_id_metadata_document_supported` | CIMD enabled | `true` |
 
 ---
@@ -598,21 +636,26 @@ When the OAuth2 provider is disabled, both endpoints return `nil` (no response b
 
 `POST /oauth2/introspect` (`application/x-www-form-urlencoded`)
 
+### Authentication
+
+**Client authentication is required.** The `client_id` parameter is mandatory, and the client is authenticated via `authenticateClient` (public clients pass with just the ID; confidential clients need their secret). Supports both `client_secret_post` and `client_secret_basic`.
+
 ### Parameters
 
 | Parameter | Required | Description |
 |-----------|----------|-------------|
 | `token` | Yes | The token to introspect |
 | `token_type_hint` | No | `access_token` or `refresh_token` |
-| `client_id` | No | Not currently validated |
-| `client_secret` | No | Not currently validated |
+| `client_id` | Yes | Client identifier (required for authentication) |
+| `client_secret` | Conditional | Required for confidential clients |
 
 ### Introspection Logic
 
-1. If `token_type_hint` is `refresh_token` or unset: look up `SHA256(token)` in refresh tokens table.
+1. Authenticate the client.
+2. If `token_type_hint` is `refresh_token` or unset: look up `SHA256(token)` in refresh tokens table.
    - If found and not expired → return active response with refresh token metadata.
    - If hint was explicitly `refresh_token` and not found → return `{ "active": false }`.
-2. Parse token as JWT, verify RS256 signature against the active signing key, validate issuer claim.
+3. Parse token as JWT, verify RS256 signature against the signing key, validate claims.
    - If valid → return active response with JWT claims.
    - If invalid → return `{ "active": false }`.
 
@@ -626,6 +669,7 @@ When the OAuth2 provider is disabled, both endpoints return `nil` (no response b
   "scope": "openid profile email",
   "exp": 1234568790,
   "iat": 1234567890,
+  "iss": "<issuer>",
   "token_type": "refresh_token"
 }
 ```
@@ -635,7 +679,9 @@ When the OAuth2 provider is disabled, both endpoints return `nil` (no response b
 ```json
 {
   "active": true,
+  "client_id": "<client_id>",
   "sub": "<user_uuid>",
+  "scope": "openid profile email",
   "exp": 1234568790,
   "iat": 1234567890,
   "iss": "<issuer>",
@@ -643,9 +689,7 @@ When the OAuth2 provider is disabled, both endpoints return `nil` (no response b
 }
 ```
 
-### Limitations
-
-- Client authentication is not enforced on the introspection endpoint (the `client_id`/`client_secret` parameters are accepted but not validated).
+**Note**: `client_id` and `scope` in the access token response are only included if the JWT contains `aud` and `scope` claims respectively.
 
 ---
 
@@ -655,24 +699,28 @@ When the OAuth2 provider is disabled, both endpoints return `nil` (no response b
 
 `POST /oauth2/revoke` (`application/x-www-form-urlencoded`)
 
+### Authentication
+
+**Client authentication is required.** The `client_id` parameter is mandatory, and the client is authenticated via `authenticateClient`. Supports both `client_secret_post` and `client_secret_basic`.
+
 ### Parameters
 
 | Parameter | Required | Description |
 |-----------|----------|-------------|
 | `token` | Yes | The token to revoke |
 | `token_type_hint` | No | Accepted but ignored |
-| `client_id` | No | Accepted but not validated |
-| `client_secret` | No | Accepted but not validated |
+| `client_id` | Yes | Client identifier (required for authentication) |
+| `client_secret` | Conditional | Required for confidential clients |
 
 ### Behavior
 
-1. Compute `SHA256(token)` and attempt to delete the matching refresh token from the database.
-2. Always return `200 OK` regardless of whether the token existed or was already revoked (per RFC 7009 security considerations).
+1. Authenticate the client.
+2. Compute `SHA256(token)` and attempt to delete the matching refresh token from the database.
+3. Always return `200 OK` regardless of whether the token existed or was already revoked (per RFC 7009 security considerations).
 
 ### Limitations
 
 - **Only refresh tokens can be revoked.** Access tokens are stateless JWTs and cannot be invalidated server-side. Clients must wait for the access token to expire.
-- Client authentication is not enforced on the revocation endpoint.
 - The `token_type_hint` is ignored; the token is always treated as a potential refresh token.
 
 ---
@@ -693,23 +741,17 @@ This means the parameter is wire-compatible with RFC 8707 but does not provide a
 
 ## Key Management and JWKS
 
-### RSA Key Generation
+### Signing Key
 
-- **Algorithm**: RS256 (RSA PKCS#1 v1.5 with SHA-256)
-- **Key size**: 2048 bits
-- **Generation**: `rsa.GenerateKey(crypto/rand.Reader, 2048)`
-- **Key ID**: UUID string
-- **Initialization**: `EnsureSigningKey()` is called at startup. If no active key exists, a new key pair is generated.
+The OAuth2 provider reuses the existing Nhost Auth JWT signing infrastructure configured via `HASURA_GRAPHQL_JWT_SECRET`. There is no separate OAuth2-specific signing key table.
 
-### Key Storage
-
-- **Private key**: serialized as PKCS#1 DER (`x509.MarshalPKCS1PrivateKey`), then encrypted using the application's `Encrypter` interface (AES), stored as `bytea`.
-- **Public key**: serialized as PKIX DER (`x509.MarshalPKIXPublicKey`), stored as `bytea` in plaintext.
-- **Table**: `auth.oauth2_signing_keys`
+- **Algorithm**: RS256 (RSA PKCS#1 v1.5 with SHA-256) — **required** when the OAuth2 provider is enabled
+- The provider requires an RS256 key to be configured; other algorithms will prevent the OAuth2 provider from starting
+- The signing key is managed by the existing `JWTGetter`, which the OAuth2 provider accesses via the `Signer` interface
 
 ### JWKS Endpoint
 
-`GET /oauth2/jwks` returns all signing keys (currently one active key):
+`GET /oauth2/jwks` returns the public key(s) from the existing JWT configuration:
 
 ```json
 {
@@ -718,7 +760,7 @@ This means the parameter is wire-compatible with RFC 8707 but does not provide a
       "kty": "RSA",
       "use": "sig",
       "alg": "RS256",
-      "kid": "<key_uuid>",
+      "kid": "<key_id>",
       "n": "<base64url_modulus>",
       "e": "AQAB"
     }
@@ -728,9 +770,8 @@ This means the parameter is wire-compatible with RFC 8707 but does not provide a
 
 ### Limitations
 
-- No automatic key rotation. Only one active key at a time.
-- Key rotation must be done manually (insert new key, deactivate old one).
-- No key expiration enforcement (the `expires_at` column exists but is not used in rotation logic).
+- No automatic key rotation.
+- Key management follows the same process as the existing Nhost Auth JWT key configuration.
 
 ---
 
@@ -745,7 +786,6 @@ All secrets stored in the database are hashed:
 | Authorization codes | `hex(SHA256(code))` | `oauth2_authorization_codes.code_hash` |
 | Refresh tokens | `hex(SHA256(token))` | `oauth2_refresh_tokens.token_hash` |
 | Client secrets | bcrypt | `oauth2_clients.client_secret_hash` |
-| RSA private keys | AES encryption | `oauth2_signing_keys.private_key` |
 
 ### Authorization Code Security
 
@@ -767,16 +807,33 @@ This limits the window of exposure if a refresh token is compromised.
 - The `state` parameter is stored in the auth request and returned to the client in the redirect URI.
 - The client is responsible for verifying the returned state matches what it sent.
 
+### Issuer Identification (RFC 9207)
+
+- The `iss` (issuer) parameter is included in the authorization response redirect URL.
+- This helps clients verify the response came from the expected authorization server, preventing mix-up attacks.
+
 ### Nonce (OIDC Replay Protection)
 
 - The `nonce` parameter from the authorization request is stored and included in the ID token.
 - The client should verify the nonce in the ID token matches the one it sent.
+- On refresh token grants, the nonce is not included in the reissued ID token.
 
 ### Scope Binding
 
 - Scopes are validated against the client's allowed scopes at authorization time.
 - Scopes are stored in the auth request and propagated to refresh tokens.
 - Refresh token grants preserve the original scopes (no scope escalation).
+
+### Expired Record Cleanup
+
+The token endpoint performs opportunistic cleanup of expired records: on approximately 1 in 1000 requests, `DeleteExpiredRecords()` is called, which removes expired auth requests, authorization codes, and refresh tokens from the database.
+
+### Rate Limiting
+
+OAuth2 endpoints have specific rate limiting:
+- `/oauth2/authorize` and `/oauth2/login` are brute-force protected (same rate limiter as sign-in endpoints).
+- `/oauth2/register` uses the signup rate limiter.
+- `/oauth2/token` and `/oauth2/introspect` have a dedicated rate limiter (default: burst 100, interval 5 minutes).
 
 ---
 
@@ -787,22 +844,21 @@ This limits the window of exposure if a refresh token is compromised.
 | Variable | Type | Default | Description |
 |----------|------|---------|-------------|
 | `AUTH_OAUTH2_PROVIDER_ENABLED` | bool | `false` | Enable/disable the OAuth2 provider. |
-| `AUTH_OAUTH2_PROVIDER_ISSUER` | string | `AUTH_SERVER_URL` | Custom issuer URL for token `iss` claim. |
 | `AUTH_OAUTH2_PROVIDER_LOGIN_URL` | string | `AUTH_CLIENT_URL/oauth2/login` | URL where `/oauth2/authorize` redirects for user login/consent. |
 | `AUTH_OAUTH2_PROVIDER_ACCESS_TOKEN_TTL` | int | `900` | Access token lifetime in seconds (15 minutes). |
 | `AUTH_OAUTH2_PROVIDER_REFRESH_TOKEN_TTL` | int | `2592000` | Refresh token lifetime in seconds (30 days). |
 | `AUTH_OAUTH2_PROVIDER_DCR_ENABLED` | bool | `false` | Enable Dynamic Client Registration (RFC 7591). |
 | `AUTH_OAUTH2_PROVIDER_DCR_MAX_CLIENTS_PER_USER` | int | `0` | Maximum DCR clients per user (0 = unlimited). |
-| `AUTH_OAUTH2_PROVIDER_CIMD_ENABLED` | bool | `false` | Enable Client ID Metadata Document support. |
+| `AUTH_OAUTH2_PROVIDER_CIMD_ENABLED` | bool | `false` | Enable Client ID Metadata Document support (RFC 9728). |
+| `AUTH_OAUTH2_PROVIDER_CIMD_ALLOW_INSECURE_TRANSPORT` | bool | `false` | Allow HTTP (non-HTTPS) for CIMD URLs. For development/testing only. |
 
 ### Hardcoded Values
 
 | Value | Duration | Description |
 |-------|----------|-------------|
-| Auth request TTL | 10 minutes | Time before an uncompleted authorization request expires. |
-| Authorization code TTL | 5 minutes | Time before an unexchanged authorization code expires. |
-| RSA key size | 2048 bits | Signing key size. |
-| Signing algorithm | RS256 | JWT signing algorithm. |
+| Auth request TTL | 10 minutes | Time before an uncompleted authorization request expires (`AuthRequestTTL`). |
+| Authorization code TTL | 5 minutes | Time before an unexchanged authorization code expires (`AuthCodeTTL`). |
+| Signing algorithm | RS256 | JWT signing algorithm (required). |
 
 ### Per-Client Overrides
 
@@ -811,21 +867,6 @@ Each client has `access_token_lifetime` and `refresh_token_lifetime` fields (in 
 ---
 
 ## Database Schema
-
-### `auth.oauth2_signing_keys`
-
-RSA key pairs for JWT signing.
-
-| Column | Type | Description |
-|--------|------|-------------|
-| `id` | uuid PK | Row identifier |
-| `private_key` | bytea | AES-encrypted PKCS#1 DER private key |
-| `public_key` | bytea | PKIX DER public key |
-| `algorithm` | text | `"RS256"` |
-| `key_id` | text UNIQUE | Key identifier (UUID), used as JWT `kid` header |
-| `is_active` | boolean | Whether this key is the active signing key |
-| `created_at` | timestamptz | Creation timestamp |
-| `expires_at` | timestamptz | Optional expiration (not enforced) |
 
 ### `auth.oauth2_client_types`
 
@@ -845,22 +886,24 @@ Registered OAuth2 client applications.
 | Column | Type | Description |
 |--------|------|-------------|
 | `id` | uuid PK | Row identifier |
-| `client_id` | text UNIQUE | Client identifier (UUID for registered/DCR, HTTPS URL for CIMD) |
+| `client_id` | text UNIQUE | Client identifier (`nhoa_` prefix for registered/DCR, HTTPS URL for CIMD) |
 | `client_secret_hash` | text nullable | bcrypt hash (null for public clients) |
 | `client_name` | text | Human-readable name |
 | `client_uri` | text nullable | Client website URL |
 | `logo_uri` | text nullable | Client logo URL |
-| `redirect_uris` | text[] | Registered redirect URIs |
+| `redirect_uris` | text[] | Registered redirect URIs (default: `{}`) |
 | `grant_types` | text[] | Allowed grant types (default: `{authorization_code}`) |
 | `response_types` | text[] | Allowed response types (default: `{code}`) |
 | `scopes` | text[] | Allowed scopes (default: `{openid}`) |
-| `is_public` | boolean | Public client flag |
-| `token_endpoint_auth_method` | text | Auth method (default: `client_secret_basic`) |
+| `is_public` | boolean | Public client flag (derived: true when no secret hash) |
+| `token_endpoint_auth_method` | text | Auth method (default: `client_secret_basic`, forced to `none` for public clients) |
 | `id_token_signed_response_alg` | text | `"RS256"` |
-| `access_token_lifetime` | integer | Per-client override (0 = use global, default: 900) |
-| `refresh_token_lifetime` | integer | Per-client override (0 = use global, default: 2592000) |
+| `access_token_lifetime` | integer | Per-client override (default: 900) |
+| `refresh_token_lifetime` | integer | Per-client override (default: 2592000) |
 | `type` | text NOT NULL | Client type, FK to `oauth2_client_types` (default: `registered`) |
+| `metadata` | jsonb nullable | Arbitrary metadata |
 | `metadata_document_fetched_at` | timestamptz nullable | When CIMD metadata was last fetched (null for non-CIMD clients) |
+| `created_by` | uuid nullable FK | User who created the client. References `users.id` (SET NULL on delete) |
 | `created_at` | timestamptz | Creation timestamp |
 | `updated_at` | timestamptz | Auto-updated via trigger |
 
@@ -878,7 +921,7 @@ In-flight authorization requests.
 | `nonce` | text nullable | OIDC nonce for ID token |
 | `response_type` | text | `"code"` |
 | `code_challenge` | text nullable | PKCE code challenge |
-| `code_challenge_method` | text nullable | PKCE method (`S256` or `plain`) |
+| `code_challenge_method` | text nullable | PKCE method (only `S256` supported) |
 | `resource` | text nullable | RFC 8707 resource indicator |
 | `user_id` | uuid nullable FK | Set after user completes login. References `users.id` |
 | `done` | boolean | Whether authorization has been completed |
@@ -934,6 +977,8 @@ oauth2_refresh_tokens_expires_at_idx   ON oauth2_refresh_tokens (expires_at)
 | `refresh_tokens.auth_request_id` → `auth_requests.id` | CASCADE | SET NULL |
 | `refresh_tokens.client_id` → `clients.client_id` | CASCADE | CASCADE |
 | `refresh_tokens.user_id` → `users.id` | CASCADE | CASCADE |
+| `clients.created_by` → `users.id` | CASCADE | SET NULL |
+| `clients.type` → `client_types.value` | — | RESTRICT |
 
 ---
 
@@ -959,3 +1004,74 @@ All OAuth2 endpoints use the standard OAuth2 error format:
 | `unsupported_response_type` | 400 | Response type other than `code` |
 | `unsupported_grant_type` | 400 | Grant type not `authorization_code` or `refresh_token` |
 | `server_error` | 500 | Internal error |
+
+---
+
+## Appendix A: Changes to Existing Code
+
+This section describes modifications to existing files in `services/auth/go/` that were necessary to support the OAuth2 provider feature.
+
+### `go/controller/jwt.go` — JWT Handling Enhancements
+
+The JWTGetter was extended with methods required by the OAuth2 provider's `Signer` interface:
+
+- **`RSASigningKey()`** — Returns the RSA private key and kid for OAuth2 token signing.
+- **`JWKS()`** — Returns the JWKS array for the `/oauth2/jwks` endpoint.
+- **`SignClaims(claims, exp)`** — Signs arbitrary claim maps (used for access tokens and ID tokens).
+- **`ValidateToken(token)`** — Validates JWTs and returns structured `oauth2provider.ValidatedClaims`.
+- **`GraphQLClaims()`** — Extracted from `GetToken()` to allow the OAuth2 provider to build Hasura-compatible claims for access tokens with the `graphql` scope.
+- **`Issuer()`** — Returns the configured issuer string.
+- **Signature change**: `NewJWTGetter()` and `decodeJWTSecret()` now accept a `defaultIssuer` parameter.
+
+### `go/controller/workflows.go` — JWTGetter Pointer
+
+- Changed `jwtGetter` field from value type to pointer (`*JWTGetter`) so the same instance can be shared between the Workflows and the OAuth2 provider.
+
+### `go/controller/controller.go` — OAuth2 Provider Integration
+
+- `DBClient` interface now composes `oauth2provider.DBClient` (adds ~20 OAuth2 database methods).
+- Added `bcryptHasher` struct implementing `oauth2provider.PasswordHasher`.
+- `Controller` struct gained `jwtGetter *JWTGetter` and `oauth2 *oauth2provider.Provider` fields.
+- `New()` constructor conditionally initializes the OAuth2 provider when `config.OAuth2ProviderEnabled` is true.
+
+### `go/controller/config.go` — Configuration Fields
+
+Added 9 new fields to `Config` struct for OAuth2 provider settings (see [Configuration](#configuration)).
+
+### `go/controller/errors.go` — Error Response Visitors
+
+Added `VisitOauth2LoginGetResponse()` and `VisitOauth2LoginPostResponse()` methods for OAuth2 login endpoint error handling.
+
+### `go/cmd/serve.go` — CLI Flags and Rate Limiting
+
+- Added CLI flag definitions for all OAuth2 provider settings.
+- Added rate limiting flags (`--rate-limit-oauth2-server-burst`, `--rate-limit-oauth2-server-interval`) with defaults of burst=100, interval=5 minutes.
+- Validates that RS256 JWT algorithm is configured when OAuth2 provider is enabled.
+
+### `go/cmd/config.go` — Flag-to-Config Mapping
+
+Maps new CLI flags to the controller Config struct fields.
+
+### `go/middleware/ratelimit/rate_limit.go` — OAuth2 Rate Limiting
+
+- `/oauth2/authorize` and `/oauth2/login` added to brute-force protection.
+- `/oauth2/register` added to signup rate limiter.
+- New `isOAuth2Server()` function and dedicated rate limiter for `/oauth2/token` and `/oauth2/introspect`.
+- `RateLimit()` function signature changed to accept `oauth2ServerLimit` and `oauth2ServerInterval` parameters.
+
+### `go/migrations/hasura.go` — Hasura Metadata
+
+- Added OAuth2 table tracking (oauth2_client_types, oauth2_clients, oauth2_auth_requests, oauth2_authorization_codes, oauth2_refresh_tokens).
+- Added relationships from `auth.users` to OAuth2 entities (`oauth2Clients`, `oauth2AuthRequests`, `oauth2RefreshTokens`).
+- Added function tracking for `create_oauth2_client` and `modify_oauth2_client` SQL functions.
+- Added custom naming and field mappings for all OAuth2 tables.
+
+### `go/oidc/idtoken.go` — Minor Lint Fix
+
+Added `nolintlint` directive to `GetClaim()` function (cosmetic only).
+
+### Test Files
+
+- **`main_test.go`**: Updated `getController()` helper for new `NewJWTGetter()` signature. Added `testOAuth2Client()` helper.
+- **`jwt_test.go`**: Updated for new `NewJWTGetter()` signature. Refactored to use dynamic test token generation.
+- **`validator_test.go`**: Updated `getConfig()` helper to include all OAuth2 provider config fields with defaults.

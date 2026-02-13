@@ -192,14 +192,14 @@ type DropRelationshipArgs struct {
 }
 
 type TrackFunction struct {
-	Type string             `json:"type"`
-	Args TrackFunctionArgs  `json:"args"`
+	Type string            `json:"type"`
+	Args TrackFunctionArgs `json:"args"`
 }
 
 type TrackFunctionArgs struct {
-	Source        string                 `json:"source"`
-	Function      Table                  `json:"function"`
-	Configuration FunctionConfiguration  `json:"configuration"`
+	Source        string                `json:"source"`
+	Function      Table                 `json:"function"`
+	Configuration FunctionConfiguration `json:"configuration"`
 }
 
 type FunctionConfiguration struct {
@@ -934,7 +934,7 @@ func ApplyHasuraMetadata( //nolint: funlen,maintidx,cyclop
 		},
 		{ //nolint:exhaustruct
 			Type: "pg_track_table",
-			Args: PgTrackTableArgs{ //nolint:exhaustruct
+			Args: PgTrackTableArgs{
 				Source: hasuraDBName,
 				Table: Table{
 					Schema: "auth",
@@ -1166,7 +1166,7 @@ func ApplyHasuraMetadata( //nolint: funlen,maintidx,cyclop
 					Schema: "auth",
 					Name:   "modify_oauth2_client",
 				},
-				Configuration: FunctionConfiguration{
+				Configuration: FunctionConfiguration{ //nolint:exhaustruct
 					CustomName: "modifyAuthOauth2Client",
 					ExposedAs:  "mutation",
 				},

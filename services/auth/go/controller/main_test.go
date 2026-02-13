@@ -408,10 +408,10 @@ func testOAuth2Client() sql.AuthOauth2Client {
 	return sql.AuthOauth2Client{
 		ID:                        uuid.MustParse("a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
 		ClientID:                  "nhost_abc123def456",
-		ClientSecretHash:          pgtype.Text{String: "", Valid: false},    //nolint:exhaustruct
+		ClientSecretHash:          pgtype.Text{String: "", Valid: false},
 		ClientName:                "Test App",
-		ClientUri:                 pgtype.Text{String: "https://example.com", Valid: true}, //nolint:exhaustruct
-		LogoUri:                   pgtype.Text{String: "", Valid: false},    //nolint:exhaustruct
+		ClientUri:                 pgtype.Text{String: "https://example.com", Valid: true},
+		LogoUri:                   pgtype.Text{String: "", Valid: false},
 		RedirectUris:              []string{"https://example.com/callback"},
 		GrantTypes:                []string{"authorization_code"},
 		ResponseTypes:             []string{"code"},
@@ -426,5 +426,6 @@ func testOAuth2Client() sql.AuthOauth2Client {
 		UpdatedAt:                 pgtype.Timestamptz{Time: now, Valid: true}, //nolint:exhaustruct
 		Type:                      sql.OAuth2ClientTypeRegistered,
 		MetadataDocumentFetchedAt: pgtype.Timestamptz{}, //nolint:exhaustruct
+		Metadata:                  nil,
 	}
 }

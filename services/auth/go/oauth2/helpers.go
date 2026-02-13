@@ -3,7 +3,6 @@ package oauth2
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/nhost/nhost/services/auth/go/sql"
@@ -40,14 +39,6 @@ func authReqNonce(authReq *sql.AuthOauth2AuthRequest) string {
 	}
 
 	return ""
-}
-
-func timePtr(ts pgtype.Timestamptz) *time.Time {
-	if !ts.Valid {
-		return nil
-	}
-
-	return &ts.Time
 }
 
 func deptr[T any](x *T) T { //nolint:ireturn

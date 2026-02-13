@@ -176,7 +176,7 @@ func TestOauth2Register(t *testing.T) { //nolint:cyclop,gocognit,maintidx
 		}
 	})
 
-	t.Run("missing body", func(t *testing.T) { //nolint:dupl
+	t.Run("missing body", func(t *testing.T) {
 		t.Parallel()
 
 		ctrl := gomock.NewController(t)
