@@ -43,9 +43,6 @@ This makes incident response and compliance difficult.
 ---
 
 TODO:
-- rate limiting?
-- [factorio] jwt signing keys - move default to RS256 and also document they need this to oauth2
 - issuer - implications? check billing and bragi
-- evaluate CRUD operations on oauth2 clients, not part of any standard and graphql might be better, maybe using a pg function
 
 ---

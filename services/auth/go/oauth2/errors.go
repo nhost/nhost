@@ -29,7 +29,10 @@ func ErrorStatusCode(errCode string) int {
 }
 
 func ErrorRedirectURL(redirectURI, state, issuer string, oauthErr *Error) string {
-	u, _ := url.Parse(redirectURI)
+	u, err := url.Parse(redirectURI)
+	if err != nil {
+		u = &url.URL{} //nolint:exhaustruct
+	}
 
 	q := u.Query()
 	q.Set("error", oauthErr.Err)

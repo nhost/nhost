@@ -2,6 +2,7 @@ package controller_test
 
 import (
 	"context"
+	"net/http"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -30,10 +31,16 @@ func TestGetOpenIDConfiguration(t *testing.T) { //nolint:dupl
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				return mock.NewMockDBClient(ctrl)
 			},
-			request:          api.GetOpenIDConfigurationRequestObject{},
-			expectedResponse: nil,
-			expectedJWT:      nil,
-			jwtTokenFn:       nil,
+			request: api.GetOpenIDConfigurationRequestObject{},
+			expectedResponse: api.GetOpenIDConfigurationdefaultJSONResponse{
+				StatusCode: http.StatusNotFound,
+				Body: api.OAuth2ErrorResponse{
+					Error:            "server_error",
+					ErrorDescription: ptr("OAuth2 provider is disabled"),
+				},
+			},
+			expectedJWT: nil,
+			jwtTokenFn:  nil,
 		},
 		{ //nolint:exhaustruct
 			name:   "success - DCR disabled",
@@ -133,10 +140,16 @@ func TestGetOAuthAuthorizationServer(t *testing.T) { //nolint:dupl
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				return mock.NewMockDBClient(ctrl)
 			},
-			request:          api.GetOAuthAuthorizationServerRequestObject{},
-			expectedResponse: nil,
-			expectedJWT:      nil,
-			jwtTokenFn:       nil,
+			request: api.GetOAuthAuthorizationServerRequestObject{},
+			expectedResponse: api.GetOAuthAuthorizationServerdefaultJSONResponse{
+				StatusCode: http.StatusNotFound,
+				Body: api.OAuth2ErrorResponse{
+					Error:            "server_error",
+					ErrorDescription: ptr("OAuth2 provider is disabled"),
+				},
+			},
+			expectedJWT: nil,
+			jwtTokenFn:  nil,
 		},
 		{ //nolint:exhaustruct
 			name:   "success - DCR disabled",

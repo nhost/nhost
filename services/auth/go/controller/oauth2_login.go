@@ -6,6 +6,7 @@ import (
 
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
+	oauth2provider "github.com/nhost/nhost/services/auth/go/oauth2"
 )
 
 func (ctrl *Controller) Oauth2LoginGet( //nolint:ireturn
@@ -27,10 +28,12 @@ func (ctrl *Controller) Oauth2LoginGet( //nolint:ireturn
 
 	resp, oauthErr := ctrl.oauth2.GetLoginRequest(ctx, request.Params.RequestId, logger)
 	if oauthErr != nil {
+		statusCode := oauth2provider.ErrorStatusCode(oauthErr.Err)
+
 		return api.Oauth2LoginGetdefaultJSONResponse{
-			StatusCode: http.StatusBadRequest,
+			StatusCode: statusCode,
 			Body: api.ErrorResponse{
-				Status:  http.StatusBadRequest,
+				Status:  statusCode,
 				Error:   api.InvalidRequest,
 				Message: oauthErr.Description,
 			},
@@ -82,10 +85,12 @@ func (ctrl *Controller) Oauth2LoginPost( //nolint:ireturn
 
 	resp, oauthErr := ctrl.oauth2.CompleteLogin(ctx, request.Body.RequestId, userID, logger)
 	if oauthErr != nil {
+		statusCode := oauth2provider.ErrorStatusCode(oauthErr.Err)
+
 		return api.Oauth2LoginPostdefaultJSONResponse{
-			StatusCode: http.StatusBadRequest,
+			StatusCode: statusCode,
 			Body: api.ErrorResponse{
-				Status:  http.StatusBadRequest,
+				Status:  statusCode,
 				Error:   api.InvalidRequest,
 				Message: oauthErr.Description,
 			},

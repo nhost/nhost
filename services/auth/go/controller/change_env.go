@@ -44,6 +44,8 @@ func (ctrl *Controller) PostChangeEnv(c *gin.Context) { //nolint:funlen,cyclop
 				http.StatusBadRequest,
 				gin.H{"message": "failed to unmarshal custom claims", "error": err.Error()},
 			)
+
+			return
 		}
 
 		var defaults map[string]any
@@ -61,6 +63,8 @@ func (ctrl *Controller) PostChangeEnv(c *gin.Context) { //nolint:funlen,cyclop
 						"error":   err.Error(),
 					},
 				)
+
+				return
 			}
 		}
 

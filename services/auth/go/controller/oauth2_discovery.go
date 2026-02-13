@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"net/http"
 
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
@@ -16,7 +17,13 @@ func (ctrl *Controller) GetOpenIDConfiguration( //nolint:ireturn
 	if !ctrl.config.OAuth2ProviderEnabled {
 		logger.WarnContext(ctx, "OAuth2 provider is disabled")
 
-		return nil, nil //nolint:nilnil
+		return api.GetOpenIDConfigurationdefaultJSONResponse{
+			StatusCode: http.StatusNotFound,
+			Body: api.OAuth2ErrorResponse{
+				Error:            "server_error",
+				ErrorDescription: new("OAuth2 provider is disabled"),
+			},
+		}, nil
 	}
 
 	return api.GetOpenIDConfiguration200JSONResponse(ctrl.oauth2.BuildDiscoveryResponse()), nil
@@ -31,7 +38,13 @@ func (ctrl *Controller) GetOAuthAuthorizationServer( //nolint:ireturn
 	if !ctrl.config.OAuth2ProviderEnabled {
 		logger.WarnContext(ctx, "OAuth2 provider is disabled")
 
-		return nil, nil //nolint:nilnil
+		return api.GetOAuthAuthorizationServerdefaultJSONResponse{
+			StatusCode: http.StatusNotFound,
+			Body: api.OAuth2ErrorResponse{
+				Error:            "server_error",
+				ErrorDescription: new("OAuth2 provider is disabled"),
+			},
+		}, nil
 	}
 
 	return api.GetOAuthAuthorizationServer200JSONResponse(
