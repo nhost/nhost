@@ -1,18 +1,12 @@
+import { flexRender } from '@tanstack/react-table';
 import { Copy } from 'lucide-react';
 import type {
-  CSSProperties,
   FocusEvent,
   KeyboardEvent,
   MouseEvent,
   PropsWithChildren,
 } from 'react';
-import {
-  Children,
-  cloneElement,
-  isValidElement,
-  useEffect,
-  useState,
-} from 'react';
+import { useEffect, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { useTooltip } from '@/components/ui/v2/Tooltip';
 import { Button } from '@/components/ui/v3/button';
@@ -21,21 +15,24 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
-import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
 import type {
-  ColumnType,
   DataBrowserGridCell,
   DataBrowserGridCellProps,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import type { UnknownDataGridRow } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
+import { SELECTION_COLUMN_ID } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid/useDataGrid';
 import { cn, isNotEmptyValue } from '@/lib/utils';
 import { copy } from '@/utils/copy';
 import { triggerToast } from '@/utils/toast';
 import DataGridCellProvider from './DataGridCellProvider';
 import useDataGridCell from './useDataGridCell';
 
-// biome-ignore lint/suspicious/noExplicitAny: TODO
-export interface CommonDataGridCellProps<TData extends object, TValue = any>
-  extends DataBrowserGridCellProps<TData, TValue> {
+type DataGridCellValue = string | number | boolean | undefined | null;
+
+export interface CommonDataGridCellProps<
+  TData extends UnknownDataGridRow,
+  TValue = DataGridCellValue,
+> extends DataBrowserGridCellProps<TData, TValue> {
   /**
    * Function that is called when the cell is saved.
    */
@@ -60,39 +57,25 @@ export interface CommonDataGridCellProps<TData extends object, TValue = any>
   onTemporaryValueChange?: (value: TValue) => void;
 }
 
-export interface DataGridCellProps<TData extends object> {
+export interface DataGridCellProps<
+  TData extends UnknownDataGridRow = UnknownDataGridRow,
+> {
   /**
    * Current cell's props.
    */
-  // biome-ignore lint/suspicious/noExplicitAny: TODO
-  cell: DataBrowserGridCell<TData, any>;
-  /**
-   * Determines whether the cell is editable.
-   */
-  isEditable?: boolean;
-  /**
-   * Determines the column's type.
-   */
-  columnType?: ColumnType;
-  className?: string;
-  id?: string;
-  style?: CSSProperties;
+  cell: DataBrowserGridCell<TData, unknown>;
 }
-
-function DataGridCellContent<TData extends object = {}>({
-  isEditable,
-  children,
-  className,
-  cell: {
-    value: originalValue,
-    column: { onCellEdit, id, isNullable, isPrimary, type },
+function DataGridCellContent<
+  TData extends UnknownDataGridRow = UnknownDataGridRow,
+>({ cell }: PropsWithChildren<DataGridCellProps<TData>>) {
+  const originalValue = cell.getValue<DataGridCellValue>();
+  const {
+    column: { id, columnDef },
     row,
-  },
-  ...props
-}: PropsWithChildren<DataGridCellProps<TData>>) {
+  } = cell;
+  const { onCellEdit, isNullable, isPrimary, type, isEditable } =
+    columnDef.meta || {};
   const { openAlertDialog } = useDialog();
-  const tablePath = useTablePath();
-  const cellId = `${tablePath}_${id}_${row.id}`;
 
   const {
     title: tooltipTitle,
@@ -163,8 +146,7 @@ function DataGridCellContent<TData extends object = {}>({
   }
 
   async function handleSave(
-    // biome-ignore lint/suspicious/noExplicitAny: TODO
-    value: any,
+    value: DataGridCellValue,
     options: { reset: boolean } = { reset: false },
   ) {
     if (!onCellEdit) {
@@ -210,8 +192,8 @@ function DataGridCellContent<TData extends object = {}>({
       focusCell();
       cancelEditCell();
       // Syncing optimistic value with server-side value
-      setTemporaryValue(data.original[id.toString()]);
-      setOptimisticValue(data.original[id.toString()]);
+      setTemporaryValue(data.original[id.toString()] as DataGridCellValue);
+      setOptimisticValue(data.original[id.toString()] as DataGridCellValue);
     } catch (error) {
       triggerToast(`Error: ${error.message || 'Unknown error occurred.'}`);
 
@@ -225,8 +207,8 @@ function DataGridCellContent<TData extends object = {}>({
   async function handleBlur(event: FocusEvent<HTMLDivElement>) {
     // We are deselecting cell only if focus target is not a descendant of it.
     const isTargetDropdownMenu =
-      event.relatedTarget?.id === cellId ||
-      event.relatedTarget?.parentElement?.id === cellId;
+      event.relatedTarget?.id === cell.id ||
+      event.relatedTarget?.parentElement?.id === cell.id;
 
     if (
       !isEditable ||
@@ -334,68 +316,66 @@ function DataGridCellContent<TData extends object = {}>({
     }
   }
 
+  const cellProps = {
+    ...cell.getContext(),
+    onSave: handleSave,
+    optimisticValue,
+    onOptimisticValueChange: setOptimisticValue,
+    temporaryValue,
+    onTemporaryValueChange: setTemporaryValue,
+  };
+
   const content = (
     // biome-ignore lint/a11y/useSemanticElements: need to add event handler to static element
     <div
       ref={cellRef}
       className={cn(
+        'group !inline-flex items-center bg-inherit font-display text-xs',
+        'border-r-1 border-b-0',
+        'scroll-mt-[57px] scroll-ml-8',
+        'border-r-transparent last:border-r-data-table-border-color',
         'relative grid w-full cursor-default grid-flow-col items-center gap-1 border-divider px-2 py-1.5 text-primary-text',
+        cell.column.id === SELECTION_COLUMN_ID &&
+          'sticky left-0 z-20 justify-center px-0',
         isEditable &&
           'focus-within:outline-none focus-within:ring-0 focus:ring-0',
         isSelected && 'shadow-outline',
         isEditing && 'shadow-outline-dark',
-        className,
       )}
+      style={{
+        width: cell.column.getSize(),
+      }}
       onFocus={handleFocus}
       onBlur={handleBlur}
       onKeyDown={handleKeyDown}
       tabIndex={isEditable ? 0 : undefined}
       onClick={handleClick}
-      role="textbox"
-      {...props}
+      role="cell"
+      id={cell.id}
     >
-      {Children.map(children, (child) => {
-        if (!isValidElement<Record<string, unknown>>(child)) {
-          return null;
-        }
-        const clonedChild = cloneElement(child, {
-          ...child.props,
-          onSave: handleSave,
-          optimisticValue,
-          onOptimisticValueChange: setOptimisticValue,
-          temporaryValue,
-          onTemporaryValueChange: setTemporaryValue,
-          cellId,
-        });
+      {flexRender(cell.column.columnDef.cell, cellProps)}
+      {id !== 'preview-column' &&
+        type !== 'boolean' &&
+        isNotEmptyValue(optimisticValue) && (
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={(event) => {
+              event.stopPropagation();
 
-        return (
-          <>
-            {clonedChild}
-            {id !== 'preview-column' &&
-              type !== 'boolean' &&
-              isNotEmptyValue(optimisticValue) && (
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={(event) => {
-                    event.stopPropagation();
+              const copiableValue =
+                typeof optimisticValue === 'object'
+                  ? JSON.stringify(optimisticValue)
+                  : String(optimisticValue).replace(/\\n/gi, '\n');
 
-                    const copiableValue =
-                      typeof optimisticValue === 'object'
-                        ? JSON.stringify(optimisticValue)
-                        : String(optimisticValue).replace(/\\n/gi, '\n');
-
-                    copy(copiableValue, 'Value');
-                  }}
-                  className="-ml-px h-6 w-6 border-transparent bg-transparent p-1 text-disabled opacity-0 hover:bg-transparent group-hover:opacity-100"
-                  aria-label="Copy value"
-                >
-                  <Copy width={16} height={16} />
-                </Button>
-              )}
-          </>
-        );
-      })}
+              copy(copiableValue, 'Value');
+            }}
+            className="-ml-px h-6 w-6 border-transparent bg-transparent p-1 text-disabled opacity-0 hover:bg-transparent group-hover:opacity-100"
+            aria-label="Copy value"
+          >
+            <Copy width={16} height={16} />
+          </Button>
+        )}
     </div>
   );
   // TODO: https://github.com/nhost/nhost/issues/3677
@@ -419,9 +399,9 @@ function DataGridCellContent<TData extends object = {}>({
   return content;
 }
 
-export default function DataGridCell<TData extends object>(
-  props: PropsWithChildren<DataGridCellProps<TData>>,
-) {
+export default function DataGridCell<
+  TData extends UnknownDataGridRow = UnknownDataGridRow,
+>(props: PropsWithChildren<DataGridCellProps<TData>>) {
   return (
     <DataGridCellProvider>
       <DataGridCellContent {...props} />

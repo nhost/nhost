@@ -1,7 +1,7 @@
+import type { CellContext } from '@tanstack/react-table';
 import { FileText } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useEffect, useReducer, useState } from 'react';
-import type { CellProps } from 'react-table';
 import { AudioPreviewIcon } from '@/components/ui/v2/icons/AudioPreviewIcon';
 import { PDFPreviewIcon } from '@/components/ui/v2/icons/PDFPreviewIcon';
 import { VideoPreviewIcon } from '@/components/ui/v2/icons/VideoPreviewIcon';
@@ -15,6 +15,7 @@ import {
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useAppClient } from '@/features/orgs/projects/hooks/useAppClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import type { StoredFile } from '@/features/orgs/projects/storage/dataGrid/components/FilesDataGrid';
 import { usePreviewToggle } from '@/features/orgs/projects/storage/dataGrid/hooks/usePreviewToggle';
 import { cn } from '@/lib/utils';
 import { getHasuraAdminSecret } from '@/utils/env';
@@ -30,9 +31,9 @@ export type PreviewProps = {
   id: string;
 };
 
-export type DataGridPreviewCellProps<TData extends object> = CellProps<
-  TData,
-  PreviewProps
+export type DataGridPreviewCellProps = Pick<
+  CellContext<StoredFile, PreviewProps>,
+  'getValue'
 > & {
   /**
    * Preview to use when the file is not an image or blob can't be fetched
@@ -41,6 +42,10 @@ export type DataGridPreviewCellProps<TData extends object> = CellProps<
    * @default null
    */
   fallbackPreview?: ReactNode;
+  /**
+   * Whether the preview is disabled
+   */
+  isDisabled: boolean;
 };
 
 function useBlob({
@@ -175,10 +180,12 @@ function previewReducer(
   }
 }
 
-export default function DataGridPreviewCell<TData extends object>({
-  value: { fetchBlob, id, mimeType, alt, blob },
+export default function DataGridPreviewCell({
+  getValue,
   fallbackPreview = null,
-}: DataGridPreviewCellProps<TData>) {
+  isDisabled,
+}: DataGridPreviewCellProps) {
+  const { fetchBlob, id, mimeType, alt, blob } = getValue();
   const appClient = useAppClient();
   const { objectUrl, loading, error } = useBlob({
     fetchBlob,
@@ -216,7 +223,6 @@ export default function DataGridPreviewCell<TData extends object>({
 
       return;
     }
-
     if (isPreviewable) {
       setShowModal(true);
       dispatch({ type: 'PREVIEW_LOADING' });
@@ -277,10 +283,14 @@ export default function DataGridPreviewCell<TData extends object>({
         <button
           type="button"
           aria-label={alt}
+          disabled={isDisabled}
           onClick={handleOpenPreview}
-          className={cn('flex h-full w-full items-center justify-center')}
+          className={cn('flex h-full w-full items-center justify-center', {
+            'cursor-not-allowed': isDisabled,
+          })}
         >
-          {previewEnabled &&
+          {!isDisabled &&
+          previewEnabled &&
           mimeType &&
           previewableImages.includes(mimeType) &&
           objectUrl ? (

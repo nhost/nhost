@@ -1,4 +1,4 @@
-import type { SortingRule } from 'react-table';
+import type { ColumnSort } from '@tanstack/react-table';
 import type { DataGridFilter } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
 import { createTableQueryKey } from './createTableQueryKey';
 
@@ -8,8 +8,7 @@ describe('createTableQueryKey', () => {
 
   describe('sorting', () => {
     it('should create query key with default sort when sortBy is empty', () => {
-      // biome-ignore lint/suspicious/noExplicitAny: test file
-      const sortBy: SortingRule<any>[] = [];
+      const sortBy: ColumnSort[] = [];
       const filters: DataGridFilter[] = [];
 
       const result = createTableQueryKey(tablePath, offset, sortBy, filters);
@@ -18,8 +17,7 @@ describe('createTableQueryKey', () => {
     });
 
     it('should create query key with ascending sort', () => {
-      // biome-ignore lint/suspicious/noExplicitAny: test file
-      const sortBy: SortingRule<any>[] = [{ id: 'name', desc: false }];
+      const sortBy: ColumnSort[] = [{ id: 'name', desc: false }];
       const filters: DataGridFilter[] = [];
 
       const result = createTableQueryKey(tablePath, offset, sortBy, filters);
@@ -28,8 +26,7 @@ describe('createTableQueryKey', () => {
     });
 
     it('should create query key with descending sort', () => {
-      // biome-ignore lint/suspicious/noExplicitAny: test file
-      const sortBy: SortingRule<any>[] = [{ id: 'age', desc: true }];
+      const sortBy: ColumnSort[] = [{ id: 'age', desc: true }];
       const filters: DataGridFilter[] = [];
 
       const result = createTableQueryKey(tablePath, offset, sortBy, filters);
@@ -38,8 +35,7 @@ describe('createTableQueryKey', () => {
     });
 
     it('should only use first sort rule when multiple are provided', () => {
-      // biome-ignore lint/suspicious/noExplicitAny: test file
-      const sortBy: SortingRule<any>[] = [
+      const sortBy: ColumnSort[] = [
         { id: 'name', desc: false },
         { id: 'age', desc: true },
       ];
@@ -53,8 +49,7 @@ describe('createTableQueryKey', () => {
 
   describe('filters', () => {
     it('should create query key with no filters', () => {
-      // biome-ignore lint/suspicious/noExplicitAny: test file
-      const sortBy: SortingRule<any>[] = [];
+      const sortBy: ColumnSort[] = [];
       const filters: DataGridFilter[] = [];
 
       const result = createTableQueryKey(tablePath, offset, sortBy, filters);
@@ -63,8 +58,7 @@ describe('createTableQueryKey', () => {
     });
 
     it('should create query key with single filter', () => {
-      // biome-ignore lint/suspicious/noExplicitAny: test file
-      const sortBy: SortingRule<any>[] = [];
+      const sortBy: ColumnSort[] = [];
       const filters: DataGridFilter[] = [
         { column: 'status', op: '=', value: 'active', id: 'id' },
       ];
@@ -75,8 +69,7 @@ describe('createTableQueryKey', () => {
     });
 
     it('should create query key with multiple filters', () => {
-      // biome-ignore lint/suspicious/noExplicitAny: test file
-      const sortBy: SortingRule<any>[] = [];
+      const sortBy: ColumnSort[] = [];
       const filters: DataGridFilter[] = [
         { column: 'status', op: '=', value: 'active', id: 'id' },
         { column: 'age', op: '>', value: '18', id: 'id' },
@@ -94,8 +87,7 @@ describe('createTableQueryKey', () => {
     });
 
     it('should handle filters with different operators', () => {
-      // biome-ignore lint/suspicious/noExplicitAny: test file
-      const sortBy: SortingRule<any>[] = [];
+      const sortBy: ColumnSort[] = [];
       const filters: DataGridFilter[] = [
         { column: 'price', op: '>=', value: '100', id: 'id' },
         { column: 'name', op: 'LIKE', value: 'John%', id: 'id' },
@@ -112,23 +104,17 @@ describe('createTableQueryKey', () => {
     });
 
     it('should handle undefined filters', () => {
-      // biome-ignore lint/suspicious/noExplicitAny: test file
-      const sortBy: SortingRule<any>[] = [];
-      // biome-ignore lint/suspicious/noExplicitAny: test file
-      const filters = undefined as any;
+      const sortBy: ColumnSort[] = [];
 
-      const result = createTableQueryKey(tablePath, offset, sortBy, filters);
+      const result = createTableQueryKey(tablePath, offset, sortBy, undefined);
 
       expect(result).toEqual(['users', 0, 'default-order', 'no-filter']);
     });
 
     it('should handle null filters', () => {
-      // biome-ignore lint/suspicious/noExplicitAny: test file
-      const sortBy: SortingRule<any>[] = [];
-      // biome-ignore lint/suspicious/noExplicitAny: test file
-      const filters = null as any;
+      const sortBy: ColumnSort[] = [];
 
-      const result = createTableQueryKey(tablePath, offset, sortBy, filters);
+      const result = createTableQueryKey(tablePath, offset, sortBy, null);
 
       expect(result).toEqual(['users', 0, 'default-order', 'no-filter']);
     });
@@ -136,8 +122,7 @@ describe('createTableQueryKey', () => {
 
   describe('combined sorting and filtering', () => {
     it('should create query key with both sort and filter', () => {
-      // biome-ignore lint/suspicious/noExplicitAny: test file
-      const sortBy: SortingRule<any>[] = [{ id: 'created_at', desc: true }];
+      const sortBy: ColumnSort[] = [{ id: 'created_at', desc: true }];
       const filters: DataGridFilter[] = [
         { column: 'status', op: '=', value: 'active', id: 'id' },
       ];
@@ -153,8 +138,7 @@ describe('createTableQueryKey', () => {
     });
 
     it('should create query key with sort and multiple filters', () => {
-      // biome-ignore lint/suspicious/noExplicitAny: test file
-      const sortBy: SortingRule<any>[] = [{ id: 'name', desc: false }];
+      const sortBy: ColumnSort[] = [{ id: 'name', desc: false }];
       const filters: DataGridFilter[] = [
         { column: 'status', op: '=', value: 'active', id: 'id' },
         { column: 'role', op: 'IN', value: 'admin,user', id: 'id' },
@@ -173,8 +157,7 @@ describe('createTableQueryKey', () => {
 
   describe('tablePath and offset', () => {
     it('should handle different table paths', () => {
-      // biome-ignore lint/suspicious/noExplicitAny: test file
-      const sortBy: SortingRule<any>[] = [];
+      const sortBy: ColumnSort[] = [];
       const filters: DataGridFilter[] = [];
 
       const result = createTableQueryKey('orders', offset, sortBy, filters);
@@ -183,8 +166,7 @@ describe('createTableQueryKey', () => {
     });
 
     it('should handle different offsets', () => {
-      // biome-ignore lint/suspicious/noExplicitAny: test file
-      const sortBy: SortingRule<any>[] = [];
+      const sortBy: ColumnSort[] = [];
       const filters: DataGridFilter[] = [];
 
       const result1 = createTableQueryKey(tablePath, 0, sortBy, filters);
@@ -197,8 +179,7 @@ describe('createTableQueryKey', () => {
     });
 
     it('should handle nested table paths', () => {
-      // biome-ignore lint/suspicious/noExplicitAny: test file
-      const sortBy: SortingRule<any>[] = [];
+      const sortBy: ColumnSort[] = [];
       const filters: DataGridFilter[] = [];
 
       const result = createTableQueryKey(
@@ -212,8 +193,7 @@ describe('createTableQueryKey', () => {
     });
 
     it('should handle special characters in filter values', () => {
-      // biome-ignore lint/suspicious/noExplicitAny: test file
-      const sortBy: SortingRule<any>[] = [];
+      const sortBy: ColumnSort[] = [];
       const filters: DataGridFilter[] = [
         { column: 'email', op: '=', value: 'user@example.com', id: 'id' },
       ];
@@ -229,8 +209,7 @@ describe('createTableQueryKey', () => {
     });
 
     it('should handle numeric filter values', () => {
-      // biome-ignore lint/suspicious/noExplicitAny: test file
-      const sortBy: SortingRule<any>[] = [];
+      const sortBy: ColumnSort[] = [];
       const filters: DataGridFilter[] = [
         // biome-ignore lint/suspicious/noExplicitAny: test file
         { column: 'age', op: '=', value: 25 as any, id: 'id' },
@@ -242,8 +221,7 @@ describe('createTableQueryKey', () => {
     });
 
     it('should handle empty string filter values', () => {
-      // biome-ignore lint/suspicious/noExplicitAny: test file
-      const sortBy: SortingRule<any>[] = [];
+      const sortBy: ColumnSort[] = [];
       const filters: DataGridFilter[] = [
         { column: 'description', op: '=', value: '', id: 'id' },
       ];
