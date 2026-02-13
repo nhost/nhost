@@ -445,12 +445,12 @@ INSERT INTO auth.oauth2_clients (
     client_id, client_secret_hash, client_name, client_uri, logo_uri,
     redirect_uris, grant_types, response_types, scopes, is_public,
     token_endpoint_auth_method, id_token_signed_response_alg,
-    access_token_lifetime, refresh_token_lifetime, created_by
+    access_token_lifetime, refresh_token_lifetime, type, created_by
 ) VALUES (
     $1, $2, $3, $4, $5,
     $6, $7, $8, $9, $10,
     $11, $12,
-    $13, $14, $15
+    $13, $14, $15, $16
 )
 RETURNING *;
 

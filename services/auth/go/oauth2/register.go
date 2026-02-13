@@ -102,6 +102,7 @@ func (p *Provider) RegisterClient( //nolint:funlen,cyclop
 		IDTokenSignedResponseAlg: "RS256",
 		AccessTokenLifetime:      accessTokenLifetime,
 		RefreshTokenLifetime:     refreshTokenLifetime,
+		Type:                     sql.OAuth2ClientTypeDCR,
 		CreatedBy:                pgtype.UUID{Bytes: userID, Valid: true},
 	})
 	if err != nil {

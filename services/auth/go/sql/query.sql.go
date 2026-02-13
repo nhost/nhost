@@ -879,12 +879,12 @@ INSERT INTO auth.oauth2_clients (
     client_id, client_secret_hash, client_name, client_uri, logo_uri,
     redirect_uris, grant_types, response_types, scopes, is_public,
     token_endpoint_auth_method, id_token_signed_response_alg,
-    access_token_lifetime, refresh_token_lifetime, created_by
+    access_token_lifetime, refresh_token_lifetime, type, created_by
 ) VALUES (
     $1, $2, $3, $4, $5,
     $6, $7, $8, $9, $10,
     $11, $12,
-    $13, $14, $15
+    $13, $14, $15, $16
 )
 RETURNING id, client_id, client_secret_hash, client_name, client_uri, logo_uri, redirect_uris, grant_types, response_types, scopes, is_public, token_endpoint_auth_method, id_token_signed_response_alg, access_token_lifetime, refresh_token_lifetime, type, metadata, metadata_document_fetched_at, created_by, created_at, updated_at
 `
@@ -904,6 +904,7 @@ type InsertOAuth2ClientParams struct {
 	IDTokenSignedResponseAlg string
 	AccessTokenLifetime      int32
 	RefreshTokenLifetime     int32
+	Type                     OAuth2ClientType
 	CreatedBy                pgtype.UUID
 }
 
@@ -923,6 +924,7 @@ func (q *Queries) InsertOAuth2Client(ctx context.Context, arg InsertOAuth2Client
 		arg.IDTokenSignedResponseAlg,
 		arg.AccessTokenLifetime,
 		arg.RefreshTokenLifetime,
+		arg.Type,
 		arg.CreatedBy,
 	)
 	var i AuthOauth2Client

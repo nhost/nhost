@@ -93,18 +93,22 @@ COMMENT ON TABLE auth.oauth2_clients IS 'Registered OAuth2 client applications f
 
 
 --
--- Name: create_oauth2_client(text, text[], text, text, text, text[], text[], text[], text, text, integer, integer, text, jsonb, uuid); Type: FUNCTION; Schema: auth; Owner: postgres
+-- Name: create_oauth2_client(json, text, text[], text, text, text, text[], text[], text[], text, text, integer, integer, text, jsonb); Type: FUNCTION; Schema: auth; Owner: postgres
 --
 
-CREATE FUNCTION auth.create_oauth2_client(client_name text, redirect_uris text[] DEFAULT '{}'::text[], client_secret text DEFAULT NULL::text, client_uri text DEFAULT NULL::text, logo_uri text DEFAULT NULL::text, grant_types text[] DEFAULT '{authorization_code}'::text[], response_types text[] DEFAULT '{code}'::text[], scopes text[] DEFAULT '{openid}'::text[], token_endpoint_auth_method text DEFAULT 'client_secret_basic'::text, id_token_signed_response_alg text DEFAULT 'RS256'::text, access_token_lifetime integer DEFAULT 900, refresh_token_lifetime integer DEFAULT 2592000, type text DEFAULT 'registered'::text, metadata jsonb DEFAULT NULL::jsonb, created_by uuid DEFAULT NULL::uuid) RETURNS auth.oauth2_clients
+CREATE FUNCTION auth.create_oauth2_client(hasura_session json, client_name text, redirect_uris text[] DEFAULT '{}'::text[], client_secret text DEFAULT NULL::text, client_uri text DEFAULT NULL::text, logo_uri text DEFAULT NULL::text, grant_types text[] DEFAULT '{authorization_code}'::text[], response_types text[] DEFAULT '{code}'::text[], scopes text[] DEFAULT '{openid}'::text[], token_endpoint_auth_method text DEFAULT 'client_secret_basic'::text, id_token_signed_response_alg text DEFAULT 'RS256'::text, access_token_lifetime integer DEFAULT 900, refresh_token_lifetime integer DEFAULT 2592000, type text DEFAULT 'registered'::text, metadata jsonb DEFAULT NULL::jsonb) RETURNS auth.oauth2_clients
     LANGUAGE plpgsql
     AS $$
 DECLARE
     secret_hash text := NULL;
     is_public boolean;
     v_auth_method text;
+    v_created_by uuid;
     result auth.oauth2_clients;
 BEGIN
+    -- Extract user ID from Hasura session
+    v_created_by := (hasura_session ->> 'x-hasura-user-id')::uuid;
+
     -- Hash secret if provided
     IF client_secret IS NOT NULL AND client_secret <> '' THEN
         secret_hash := crypt(client_secret, gen_salt('bf'));
@@ -149,7 +153,7 @@ BEGIN
         create_oauth2_client.refresh_token_lifetime,
         create_oauth2_client.type,
         create_oauth2_client.metadata,
-        create_oauth2_client.created_by
+        v_created_by
     )
     RETURNING * INTO result;
 
@@ -158,7 +162,7 @@ END;
 $$;
 
 
-ALTER FUNCTION auth.create_oauth2_client(client_name text, redirect_uris text[], client_secret text, client_uri text, logo_uri text, grant_types text[], response_types text[], scopes text[], token_endpoint_auth_method text, id_token_signed_response_alg text, access_token_lifetime integer, refresh_token_lifetime integer, type text, metadata jsonb, created_by uuid) OWNER TO postgres;
+ALTER FUNCTION auth.create_oauth2_client(hasura_session json, client_name text, redirect_uris text[], client_secret text, client_uri text, logo_uri text, grant_types text[], response_types text[], scopes text[], token_endpoint_auth_method text, id_token_signed_response_alg text, access_token_lifetime integer, refresh_token_lifetime integer, type text, metadata jsonb) OWNER TO postgres;
 
 --
 -- Name: modify_oauth2_client(text, text, text, text[], text, text, text[], text[], text[], text, text, integer, integer, text, jsonb); Type: FUNCTION; Schema: auth; Owner: postgres
@@ -962,10 +966,10 @@ GRANT SELECT,DELETE ON TABLE auth.oauth2_clients TO nhost_hasura;
 
 
 --
--- Name: FUNCTION create_oauth2_client(client_name text, redirect_uris text[], client_secret text, client_uri text, logo_uri text, grant_types text[], response_types text[], scopes text[], token_endpoint_auth_method text, id_token_signed_response_alg text, access_token_lifetime integer, refresh_token_lifetime integer, type text, metadata jsonb, created_by uuid); Type: ACL; Schema: auth; Owner: postgres
+-- Name: FUNCTION create_oauth2_client(hasura_session json, client_name text, redirect_uris text[], client_secret text, client_uri text, logo_uri text, grant_types text[], response_types text[], scopes text[], token_endpoint_auth_method text, id_token_signed_response_alg text, access_token_lifetime integer, refresh_token_lifetime integer, type text, metadata jsonb); Type: ACL; Schema: auth; Owner: postgres
 --
 
-GRANT ALL ON FUNCTION auth.create_oauth2_client(client_name text, redirect_uris text[], client_secret text, client_uri text, logo_uri text, grant_types text[], response_types text[], scopes text[], token_endpoint_auth_method text, id_token_signed_response_alg text, access_token_lifetime integer, refresh_token_lifetime integer, type text, metadata jsonb, created_by uuid) TO nhost_hasura;
+GRANT ALL ON FUNCTION auth.create_oauth2_client(hasura_session json, client_name text, redirect_uris text[], client_secret text, client_uri text, logo_uri text, grant_types text[], response_types text[], scopes text[], token_endpoint_auth_method text, id_token_signed_response_alg text, access_token_lifetime integer, refresh_token_lifetime integer, type text, metadata jsonb) TO nhost_hasura;
 
 
 --
