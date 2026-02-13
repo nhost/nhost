@@ -327,8 +327,8 @@ The `https://hasura.io/jwt/claims` namespace is only included when the `graphql`
 
 ### Default Client Scopes
 
-- Dynamic registration default: `openid profile email phone offline_access`
-- Admin-created client default: `{openid}` (database column default), configurable at creation time
+- All creation paths default to: `openid profile email phone offline_access graphql`
+- Configurable at creation time via DCR `scope` field, CIMD metadata `scope` field, or Hasura mutation `scopes` parameter
 
 ### ID Token Claims by Scope
 
@@ -894,7 +894,7 @@ Registered OAuth2 client applications.
 | `redirect_uris` | text[] | Registered redirect URIs (default: `{}`) |
 | `grant_types` | text[] | Allowed grant types (default: `{authorization_code}`) |
 | `response_types` | text[] | Allowed response types (default: `{code}`) |
-| `scopes` | text[] | Allowed scopes (default: `{openid}`) |
+| `scopes` | text[] | Allowed scopes (default: `{openid,profile,email,phone,offline_access,graphql}`) |
 | `is_public` | boolean | Public client flag (derived: true when no secret hash) |
 | `token_endpoint_auth_method` | text | Auth method (default: `client_secret_basic`, forced to `none` for public clients) |
 | `id_token_signed_response_alg` | text | `"RS256"` |
