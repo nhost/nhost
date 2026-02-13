@@ -171,7 +171,7 @@ func TestValidateCIMDURL(t *testing.T) { //nolint:cyclop
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			u, oauthErr := oauth2.ValidateCIMDURL(tc.clientID, false)
+			u, oauthErr := oauth2.ValidateCIMDURL(t.Context(), tc.clientID, false)
 
 			if tc.expectErr && oauthErr == nil {
 				t.Fatal("expected error, got nil")
@@ -201,7 +201,7 @@ func TestValidateCIMDURLInsecure(t *testing.T) {
 	t.Parallel()
 
 	// HTTP URL should pass in insecure mode
-	u, oauthErr := oauth2.ValidateCIMDURL("http://example.com/oauth/client.json", true)
+	u, oauthErr := oauth2.ValidateCIMDURL(t.Context(), "http://example.com/oauth/client.json", true)
 	if oauthErr != nil {
 		t.Fatalf("unexpected error: %s", oauthErr.Description)
 	}
@@ -211,7 +211,7 @@ func TestValidateCIMDURLInsecure(t *testing.T) {
 	}
 
 	// Private IP should pass in insecure mode
-	u, oauthErr = oauth2.ValidateCIMDURL("http://127.0.0.1/oauth/client.json", true)
+	u, oauthErr = oauth2.ValidateCIMDURL(t.Context(), "http://127.0.0.1/oauth/client.json", true)
 	if oauthErr != nil {
 		t.Fatalf("unexpected error for private IP in insecure mode: %s", oauthErr.Description)
 	}

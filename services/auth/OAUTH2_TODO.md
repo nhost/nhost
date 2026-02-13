@@ -75,12 +75,6 @@ Unlike `create_oauth2_client` which takes `hasura_session` and extracts `x-hasur
 ### 12. Plaintext client secret in SQL function parameters (migration `00021:16,44,102,133`)
 Raw client secrets appear in `pg_stat_activity` and PostgreSQL logs.
 
-### 14. JWT middleware leaks validation details to client (`controller/jwt.go:468`)
-```go
-Message: fmt.Sprintf("error validating token: %s", err),
-```
-Exposes internal JWT validation error details (key type, signing algorithm, etc.) to the client.
-
 ---
 
 ## OPERATIONAL
@@ -90,9 +84,6 @@ When the parent `ctx` is cancelled by OS signal, `server.Shutdown(ctx)` returns 
 
 ### 19. Missing `http.ErrServerClosed` check (`serve.go:1545-1547`)
 `ListenAndServe` always returns `ErrServerClosed` after `Shutdown()`. This is logged at error level on every normal shutdown.
-
-### 20. WebAuthn attestation timeout type mismatch (`serve.go:557`, `config.go:112`)
-Flag registered as `cli.IntFlag` (value: 60000) but read with `cmd.Duration()`. This likely results in a zero-second timeout in production.
 
 ### 21. No startup validation of `OAuth2ProviderLoginURL` (`serve.go:1482-1488`)
 When `flagOAuth2ProviderEnabled` is true, RS256 is validated but `LoginURL` is not checked. An empty login URL causes silent runtime failures in the authorize flow.

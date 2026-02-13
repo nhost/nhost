@@ -58,7 +58,9 @@ func IsCIMDClientID(clientID string, allowInsecure bool) bool {
 	return validScheme && u.Host != "" && u.Path != "" && u.Path != "/"
 }
 
-func ValidateCIMDURL(clientID string, allowInsecure bool) (*url.URL, *Error) { //nolint:cyclop
+func ValidateCIMDURL( //nolint:cyclop
+	ctx context.Context, clientID string, allowInsecure bool,
+) (*url.URL, *Error) {
 	u, err := url.Parse(clientID)
 	if err != nil {
 		return nil, &Error{Err: "invalid_client", Description: "Invalid client_id URL"}
@@ -100,7 +102,7 @@ func ValidateCIMDURL(clientID string, allowInsecure bool) (*url.URL, *Error) { /
 		}
 	}
 
-	if !allowInsecure && isPrivateOrLoopback(u.Hostname()) {
+	if !allowInsecure && isPrivateOrLoopback(ctx, u.Hostname()) {
 		return nil, &Error{
 			Err:         "invalid_client",
 			Description: "Client ID metadata document URL must not point to a private address",
@@ -117,22 +119,24 @@ func hasDotSegments(path string) bool {
 		strings.HasSuffix(path, "/..")
 }
 
-func isPrivateOrLoopback(host string) bool {
+func isPrivateOrLoopback(ctx context.Context, host string) bool { //nolint:cyclop
 	ip := net.ParseIP(host)
 	if ip != nil {
 		return ip.IsLoopback() || ip.IsPrivate() ||
 			ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast()
 	}
 
+	resolver := net.DefaultResolver
+
 	// Resolve hostnames so that e.g. "localhost" is correctly detected.
-	ips, err := net.LookupIP(host)
+	ips, err := resolver.LookupIPAddr(ctx, host)
 	if err != nil {
 		return false
 	}
 
 	for _, resolved := range ips {
-		if resolved.IsLoopback() || resolved.IsPrivate() ||
-			resolved.IsLinkLocalUnicast() || resolved.IsLinkLocalMulticast() {
+		if resolved.IP.IsLoopback() || resolved.IP.IsPrivate() ||
+			resolved.IP.IsLinkLocalUnicast() || resolved.IP.IsLinkLocalMulticast() {
 			return true
 		}
 	}
@@ -265,7 +269,7 @@ func (p *Provider) ResolveCIMDClient( //nolint:cyclop
 	logger *slog.Logger,
 ) (sql.AuthOauth2Client, *Error) {
 	clientIDURL, oauthErr := ValidateCIMDURL(
-		clientID, p.config.CIMDAllowInsecureTransport,
+		ctx, clientID, p.config.CIMDAllowInsecureTransport,
 	)
 	if oauthErr != nil {
 		return sql.AuthOauth2Client{}, oauthErr //nolint:exhaustruct

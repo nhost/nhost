@@ -462,10 +462,12 @@ func (j *JWTGetter) MiddlewareFunc(
 
 	jwtToken, err := j.Validate(parts[1])
 	if err != nil {
+		slog.WarnContext(ctx, "error validating JWT", slog.String("error", err.Error()))
+
 		return &oapi.AuthenticatorError{
 			Scheme:  input.SecuritySchemeName,
 			Code:    "unauthorized",
-			Message: fmt.Sprintf("error validating token: %s", err),
+			Message: "invalid or expired token",
 		}
 	}
 
@@ -485,10 +487,14 @@ func (j *JWTGetter) MiddlewareFunc(
 
 		found, err := j.verifyElevatedClaim(ctx, jwtToken, requestPath)
 		if err != nil {
+			slog.WarnContext(
+				ctx, "error verifying elevated claim", slog.String("error", err.Error()),
+			)
+
 			return &oapi.AuthenticatorError{
 				Scheme:  input.SecuritySchemeName,
 				Code:    "unauthorized",
-				Message: fmt.Sprintf("error verifying elevated claim: %s", err),
+				Message: "error verifying elevated claim",
 			}
 		}
 

@@ -54,7 +54,7 @@ func (s *fakeSigner) GraphQLClaims(
 	}, nil
 }
 
-func TestExchangeCodeRedirectURIValidation(t *testing.T) {
+func TestExchangeCodeRedirectURIValidation(t *testing.T) { //nolint:cyclop
 	t.Parallel()
 
 	logger := slog.Default()
@@ -68,7 +68,7 @@ func TestExchangeCodeRedirectURIValidation(t *testing.T) {
 		ClientID:    clientID,
 		RedirectUri: redirectURI,
 		Scopes:      []string{"openid"},
-		UserID:      pgtype.UUID{Bytes: uuid.UUID(userID), Valid: true},
+		UserID:      pgtype.UUID{Bytes: userID, Valid: true},
 	}
 
 	t.Run("missing redirect_uri returns error", func(t *testing.T) {
@@ -148,7 +148,7 @@ func TestExchangeCodeRedirectURIValidation(t *testing.T) {
 			ClientID:    clientID,
 			RedirectUri: "",
 			Scopes:      []string{"openid"},
-			UserID:      pgtype.UUID{Bytes: uuid.UUID(userID), Valid: true},
+			UserID:      pgtype.UUID{Bytes: userID, Valid: true},
 		}
 
 		mockDB.EXPECT().ConsumeOAuth2AuthorizationCode(gomock.Any(), codeHash).
@@ -191,7 +191,7 @@ func TestExchangeCodeRedirectURIValidation(t *testing.T) {
 			ClientID:    clientID,
 			RedirectUri: "",
 			Scopes:      []string{"openid"},
-			UserID:      pgtype.UUID{Bytes: uuid.UUID(userID), Valid: true},
+			UserID:      pgtype.UUID{Bytes: userID, Valid: true},
 		}
 
 		confidentialClient := sql.AuthOauth2Client{ //nolint:exhaustruct
