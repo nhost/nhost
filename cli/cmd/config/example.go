@@ -21,8 +21,6 @@ func CommandExample() *cli.Command {
 	}
 }
 
-func ptr[T any](v T) *T { return &v }
-
 func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen,maintidx
 	ce := clienv.FromCLI(cmd)
 
@@ -37,7 +35,7 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 			},
 		},
 		Ai: &model.ConfigAI{
-			Version: ptr("0.3.0"),
+			Version: new("0.3.0"),
 			Resources: &model.ConfigAIResources{
 				Compute: &model.ConfigComputeResources{
 					Cpu:    256,
@@ -45,66 +43,66 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 				},
 			},
 			Openai: &model.ConfigAIOpenai{
-				Organization: ptr("org-id"),
+				Organization: new("org-id"),
 				ApiKey:       "opeanai-api-key",
 			},
 			AutoEmbeddings: &model.ConfigAIAutoEmbeddings{
-				SynchPeriodMinutes: ptr(uint32(10)),
+				SynchPeriodMinutes: new(uint32(10)),
 			},
 			WebhookSecret: "this-is-a-webhook-secret",
 		},
 		Graphql: &model.ConfigGraphql{
 			Security: &model.ConfigGraphqlSecurity{
-				ForbidAminSecret: ptr(true),
-				MaxDepthQueries:  ptr(uint(4)),
+				ForbidAminSecret: new(true),
+				MaxDepthQueries:  new(uint(4)),
 			},
 		},
 		Hasura: &model.ConfigHasura{
 			Version: new(string),
 			JwtSecrets: []*model.ConfigJWTSecret{
 				{
-					Type: ptr("HS256"),
-					Key:  ptr("secret"),
+					Type: new("HS256"),
+					Key:  new("secret"),
 				},
 			},
 			AdminSecret:   "adminsecret",
 			WebhookSecret: "webhooksecret",
 			Settings: &model.ConfigHasuraSettings{
 				CorsDomain:                    []string{"*"},
-				DevMode:                       ptr(false),
-				EnableAllowList:               ptr(true),
-				EnableConsole:                 ptr(true),
-				EnableRemoteSchemaPermissions: ptr(true),
+				DevMode:                       new(false),
+				EnableAllowList:               new(true),
+				EnableConsole:                 new(true),
+				EnableRemoteSchemaPermissions: new(true),
 				EnabledAPIs: []string{
 					"metadata",
 				},
-				InferFunctionPermissions:              ptr(true),
-				LiveQueriesMultiplexedRefetchInterval: ptr(uint32(1000)),
-				StringifyNumericTypes:                 ptr(false),
+				InferFunctionPermissions:              new(true),
+				LiveQueriesMultiplexedRefetchInterval: new(uint32(1000)),
+				StringifyNumericTypes:                 new(false),
 			},
 			AuthHook: &model.ConfigHasuraAuthHook{
 				Url:             "https://customauth.example.com/hook",
-				Mode:            ptr("POST"),
-				SendRequestBody: ptr(true),
+				Mode:            new("POST"),
+				SendRequestBody: new(true),
 			},
 			Logs: &model.ConfigHasuraLogs{
-				Level: ptr("warn"),
+				Level: new("warn"),
 			},
 			Events: &model.ConfigHasuraEvents{
-				HttpPoolSize: ptr(uint32(10)),
+				HttpPoolSize: new(uint32(10)),
 			},
 			Resources: &model.ConfigResources{
 				Compute: &model.ConfigResourcesCompute{
 					Cpu:    500,
 					Memory: 1024,
 				},
-				Replicas: ptr(uint8(1)),
+				Replicas: new(uint8(1)),
 				Networking: &model.ConfigNetworking{
 					Ingresses: []*model.ConfigIngress{
 						{
 							Fqdn: []string{"hasura.example.com"},
 							Tls: &model.ConfigIngressTls{
-								ClientCA: ptr(
+								ClientCA: new(
 									"---BEGIN CERTIFICATE---\n...\n---END CERTIFICATE---",
 								),
 							},
@@ -120,7 +118,7 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 		},
 		Functions: &model.ConfigFunctions{
 			Node: &model.ConfigFunctionsNode{
-				Version: ptr(int(22)),
+				Version: new(int(22)),
 			},
 			Resources: &model.ConfigFunctionsResources{
 				Networking: &model.ConfigNetworking{
@@ -128,7 +126,7 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 						{
 							Fqdn: []string{"hasura.example.com"},
 							Tls: &model.ConfigIngressTls{
-								ClientCA: ptr(
+								ClientCA: new(
 									"---BEGIN CERTIFICATE---\n...\n---END CERTIFICATE---",
 								),
 							},
@@ -142,25 +140,25 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 			},
 		},
 		Auth: &model.ConfigAuth{
-			Version: ptr("0.25.0"),
+			Version: new("0.25.0"),
 			Misc: &model.ConfigAuthMisc{
-				ConcealErrors: ptr(false),
+				ConcealErrors: new(false),
 			},
 			ElevatedPrivileges: &model.ConfigAuthElevatedPrivileges{
-				Mode: ptr("required"),
+				Mode: new("required"),
 			},
 			Resources: &model.ConfigResources{
 				Compute: &model.ConfigResourcesCompute{
 					Cpu:    250,
 					Memory: 512,
 				},
-				Replicas: ptr(uint8(1)),
+				Replicas: new(uint8(1)),
 				Networking: &model.ConfigNetworking{
 					Ingresses: []*model.ConfigIngress{
 						{
 							Fqdn: []string{"auth.example.com"},
 							Tls: &model.ConfigIngressTls{
-								ClientCA: ptr(
+								ClientCA: new(
 									"---BEGIN CERTIFICATE---\n...\n---END CERTIFICATE---",
 								),
 							},
@@ -170,31 +168,31 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 				Autoscaler: nil,
 			},
 			Redirections: &model.ConfigAuthRedirections{
-				ClientUrl: ptr("https://example.com"),
+				ClientUrl: new("https://example.com"),
 				AllowedUrls: []string{
 					"https://example.com",
 				},
 			},
 			SignUp: &model.ConfigAuthSignUp{
-				Enabled:         ptr(true),
-				DisableNewUsers: ptr(false),
+				Enabled:         new(true),
+				DisableNewUsers: new(false),
 				Turnstile: &model.ConfigAuthSignUpTurnstile{
 					SecretKey: "turnstileSecretKey",
 				},
 			},
 			User: &model.ConfigAuthUser{
 				Roles: &model.ConfigAuthUserRoles{
-					Default: ptr("user"),
+					Default: new("user"),
 					Allowed: []string{"user", "me"},
 				},
 				Locale: &model.ConfigAuthUserLocale{
-					Default: ptr("en"),
+					Default: new("en"),
 					Allowed: []string{"en"},
 				},
 				Gravatar: &model.ConfigAuthUserGravatar{
-					Enabled: ptr(true),
-					Default: ptr("identicon"),
-					Rating:  ptr("g"),
+					Enabled: new(true),
+					Default: new("identicon"),
+					Rating:  new("g"),
 				},
 				Email: &model.ConfigAuthUserEmail{
 					Allowed: []string{"asd@example.org"},
@@ -207,166 +205,166 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 			},
 			Session: &model.ConfigAuthSession{
 				AccessToken: &model.ConfigAuthSessionAccessToken{
-					ExpiresIn: ptr(uint32(3600)),
+					ExpiresIn: new(uint32(3600)),
 					CustomClaims: []*model.ConfigAuthsessionaccessTokenCustomClaims{
 						{
 							Key:     "key",
 							Value:   "value",
-							Default: ptr("default-value"),
+							Default: new("default-value"),
 						},
 					},
 				},
 				RefreshToken: &model.ConfigAuthSessionRefreshToken{
-					ExpiresIn: ptr(uint32(3600)),
+					ExpiresIn: new(uint32(3600)),
 				},
 			},
 			Method: &model.ConfigAuthMethod{
 				Anonymous: &model.ConfigAuthMethodAnonymous{
-					Enabled: ptr(false),
+					Enabled: new(false),
 				},
 				Otp: &model.ConfigAuthMethodOtp{
 					Email: &model.ConfigAuthMethodOtpEmail{
-						Enabled: ptr(true),
+						Enabled: new(true),
 					},
 				},
 				EmailPasswordless: &model.ConfigAuthMethodEmailPasswordless{
-					Enabled: ptr(true),
+					Enabled: new(true),
 				},
 				EmailPassword: &model.ConfigAuthMethodEmailPassword{
-					HibpEnabled:               ptr(true),
-					EmailVerificationRequired: ptr(true),
-					PasswordMinLength:         ptr(uint8(12)),
+					HibpEnabled:               new(true),
+					EmailVerificationRequired: new(true),
+					PasswordMinLength:         new(uint8(12)),
 				},
 				SmsPasswordless: &model.ConfigAuthMethodSmsPasswordless{
-					Enabled: ptr(true),
+					Enabled: new(true),
 				},
 				Oauth: &model.ConfigAuthMethodOauth{
 					Apple: &model.ConfigAuthMethodOauthApple{
-						Enabled:    ptr(true),
-						ClientId:   ptr("clientid"),
-						KeyId:      ptr("keyid"),
-						TeamId:     ptr("teamid"),
+						Enabled:    new(true),
+						ClientId:   new("clientid"),
+						KeyId:      new("keyid"),
+						TeamId:     new("teamid"),
 						Scope:      []string{"scope"},
-						PrivateKey: ptr("privatekey"),
-						Audience:   ptr("audience"),
+						PrivateKey: new("privatekey"),
+						Audience:   new("audience"),
 					},
 					Azuread: &model.ConfigAuthMethodOauthAzuread{
-						Tenant:       ptr("tenant"),
-						Enabled:      ptr(true),
-						ClientId:     ptr("clientid"),
-						ClientSecret: ptr("clientsecret"),
+						Tenant:       new("tenant"),
+						Enabled:      new(true),
+						ClientId:     new("clientid"),
+						ClientSecret: new("clientsecret"),
 					},
 					Bitbucket: &model.ConfigStandardOauthProvider{
-						Enabled:      ptr(true),
-						ClientId:     ptr("clientid"),
-						ClientSecret: ptr("clientsecret"),
+						Enabled:      new(true),
+						ClientId:     new("clientid"),
+						ClientSecret: new("clientsecret"),
 					},
 					Discord: &model.ConfigStandardOauthProviderWithScope{
-						Enabled:      ptr(true),
-						ClientId:     ptr("clientid"),
+						Enabled:      new(true),
+						ClientId:     new("clientid"),
 						Scope:        []string{"scope"},
-						ClientSecret: ptr("clientsecret"),
-						Audience:     ptr("audience"),
+						ClientSecret: new("clientsecret"),
+						Audience:     new("audience"),
 					},
 					Entraid: &model.ConfigAuthMethodOauthEntraid{
-						ClientId:     ptr("entraidClientId"),
-						ClientSecret: ptr("entraidClientSecret"),
-						Enabled:      ptr(true),
-						Tenant:       ptr("entraidTenant"),
+						ClientId:     new("entraidClientId"),
+						ClientSecret: new("entraidClientSecret"),
+						Enabled:      new(true),
+						Tenant:       new("entraidTenant"),
 					},
 					Facebook: &model.ConfigStandardOauthProviderWithScope{
-						Enabled:      ptr(true),
-						ClientId:     ptr("clientid"),
+						Enabled:      new(true),
+						ClientId:     new("clientid"),
 						Scope:        []string{"scope"},
-						ClientSecret: ptr("clientsecret"),
-						Audience:     ptr("audience"),
+						ClientSecret: new("clientsecret"),
+						Audience:     new("audience"),
 					},
 					Github: &model.ConfigStandardOauthProviderWithScope{
-						Enabled:      ptr(true),
-						ClientId:     ptr("clientid"),
+						Enabled:      new(true),
+						ClientId:     new("clientid"),
 						Scope:        []string{"scope"},
-						ClientSecret: ptr("clientsecret"),
-						Audience:     ptr("audience"),
+						ClientSecret: new("clientsecret"),
+						Audience:     new("audience"),
 					},
 					Gitlab: &model.ConfigStandardOauthProviderWithScope{
-						Enabled:      ptr(true),
-						ClientId:     ptr("clientid"),
+						Enabled:      new(true),
+						ClientId:     new("clientid"),
 						Scope:        []string{"scope"},
-						ClientSecret: ptr("clientsecret"),
-						Audience:     ptr("audience"),
+						ClientSecret: new("clientsecret"),
+						Audience:     new("audience"),
 					},
 					Google: &model.ConfigStandardOauthProviderWithScope{
-						Enabled:      ptr(true),
-						ClientId:     ptr("clientid"),
+						Enabled:      new(true),
+						ClientId:     new("clientid"),
 						Scope:        []string{"scope"},
-						ClientSecret: ptr("clientsecret"),
-						Audience:     ptr("audience"),
+						ClientSecret: new("clientsecret"),
+						Audience:     new("audience"),
 					},
 					Linkedin: &model.ConfigStandardOauthProviderWithScope{
-						Enabled:      ptr(true),
-						ClientId:     ptr("clientid"),
+						Enabled:      new(true),
+						ClientId:     new("clientid"),
 						Scope:        []string{"scope"},
-						ClientSecret: ptr("clientsecret"),
-						Audience:     ptr("audience"),
+						ClientSecret: new("clientsecret"),
+						Audience:     new("audience"),
 					},
 					Spotify: &model.ConfigStandardOauthProviderWithScope{
-						Enabled:      ptr(true),
-						ClientId:     ptr("clientid"),
+						Enabled:      new(true),
+						ClientId:     new("clientid"),
 						Scope:        []string{"scope"},
-						ClientSecret: ptr("clientsecret"),
-						Audience:     ptr("audience"),
+						ClientSecret: new("clientsecret"),
+						Audience:     new("audience"),
 					},
 					Strava: &model.ConfigStandardOauthProviderWithScope{
-						Enabled:      ptr(true),
-						ClientId:     ptr("clientid"),
+						Enabled:      new(true),
+						ClientId:     new("clientid"),
 						Scope:        []string{"scope"},
-						ClientSecret: ptr("clientsecret"),
-						Audience:     ptr("audience"),
+						ClientSecret: new("clientsecret"),
+						Audience:     new("audience"),
 					},
 					Twitch: &model.ConfigStandardOauthProviderWithScope{
-						Enabled:      ptr(true),
-						ClientId:     ptr("clientid"),
+						Enabled:      new(true),
+						ClientId:     new("clientid"),
 						Scope:        []string{"scope"},
-						ClientSecret: ptr("clientsecret"),
-						Audience:     ptr("audience"),
+						ClientSecret: new("clientsecret"),
+						Audience:     new("audience"),
 					},
 					Twitter: &model.ConfigAuthMethodOauthTwitter{
-						Enabled:        ptr(true),
-						ConsumerKey:    ptr("consumerkey"),
-						ConsumerSecret: ptr("consumersecret"),
+						Enabled:        new(true),
+						ConsumerKey:    new("consumerkey"),
+						ConsumerSecret: new("consumersecret"),
 					},
 					Windowslive: &model.ConfigStandardOauthProviderWithScope{
-						Enabled:      ptr(true),
-						ClientId:     ptr("clientid"),
+						Enabled:      new(true),
+						ClientId:     new("clientid"),
 						Scope:        []string{"scope"},
-						ClientSecret: ptr("clientsecret"),
-						Audience:     ptr("audience"),
+						ClientSecret: new("clientsecret"),
+						Audience:     new("audience"),
 					},
 					Workos: &model.ConfigAuthMethodOauthWorkos{
-						Connection:   ptr("connection"),
-						Enabled:      ptr(true),
-						ClientId:     ptr("clientid"),
-						Organization: ptr("organization"),
-						ClientSecret: ptr("clientsecret"),
+						Connection:   new("connection"),
+						Enabled:      new(true),
+						ClientId:     new("clientid"),
+						Organization: new("organization"),
+						ClientSecret: new("clientsecret"),
 					},
 				},
 				Webauthn: &model.ConfigAuthMethodWebauthn{
-					Enabled: ptr(true),
+					Enabled: new(true),
 					RelyingParty: &model.ConfigAuthMethodWebauthnRelyingParty{
-						Id:   ptr("example.com"),
-						Name: ptr("name"),
+						Id:   new("example.com"),
+						Name: new("name"),
 						Origins: []string{
 							"https://example.com",
 						},
 					},
 					Attestation: &model.ConfigAuthMethodWebauthnAttestation{
-						Timeout: ptr(uint32(60000)),
+						Timeout: new(uint32(60000)),
 					},
 				},
 			},
 			Totp: &model.ConfigAuthTotp{
-				Enabled: ptr(true),
-				Issuer:  ptr("issuer"),
+				Enabled: new(true),
+				Issuer:  new("issuer"),
 			},
 			RateLimit: &model.ConfigAuthRateLimit{
 				Emails: &model.ConfigRateLimit{
@@ -392,45 +390,45 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 			},
 		},
 		Postgres: &model.ConfigPostgres{
-			Version: ptr("14-20230312-1"),
+			Version: new("14-20230312-1"),
 			Resources: &model.ConfigPostgresResources{
 				Compute: &model.ConfigResourcesCompute{
 					Cpu:    2000,
 					Memory: 4096,
 				},
-				EnablePublicAccess: ptr(true),
+				EnablePublicAccess: new(true),
 				Storage: &model.ConfigPostgresResourcesStorage{
 					Capacity: 20,
 				},
 				Replicas: nil,
 			},
 			Settings: &model.ConfigPostgresSettings{
-				Jit:                           ptr("off"),
-				MaxConnections:                ptr(int32(100)),
-				SharedBuffers:                 ptr("128MB"),
-				EffectiveCacheSize:            ptr("4GB"),
-				MaintenanceWorkMem:            ptr("64MB"),
-				CheckpointCompletionTarget:    ptr(float64(0.9)),
-				WalBuffers:                    ptr("-1"),
-				DefaultStatisticsTarget:       ptr(int32(100)),
-				RandomPageCost:                ptr(float64(4)),
-				EffectiveIOConcurrency:        ptr(int32(1)),
-				WorkMem:                       ptr("4MB"),
-				HugePages:                     ptr("try"),
-				MinWalSize:                    ptr("80MB"),
-				MaxWalSize:                    ptr("1GB"),
-				MaxWorkerProcesses:            ptr(int32(8)),
-				MaxParallelWorkersPerGather:   ptr(int32(2)),
-				MaxParallelWorkers:            ptr(int32(8)),
-				MaxParallelMaintenanceWorkers: ptr(int32(2)),
-				WalLevel:                      ptr("replica"),
-				MaxWalSenders:                 ptr(int32(10)),
-				MaxReplicationSlots:           ptr(int32(10)),
-				ArchiveTimeout:                ptr(int32(300)),
-				TrackIoTiming:                 ptr("off"),
+				Jit:                           new("off"),
+				MaxConnections:                new(int32(100)),
+				SharedBuffers:                 new("128MB"),
+				EffectiveCacheSize:            new("4GB"),
+				MaintenanceWorkMem:            new("64MB"),
+				CheckpointCompletionTarget:    new(float64(0.9)),
+				WalBuffers:                    new("-1"),
+				DefaultStatisticsTarget:       new(int32(100)),
+				RandomPageCost:                new(float64(4)),
+				EffectiveIOConcurrency:        new(int32(1)),
+				WorkMem:                       new("4MB"),
+				HugePages:                     new("try"),
+				MinWalSize:                    new("80MB"),
+				MaxWalSize:                    new("1GB"),
+				MaxWorkerProcesses:            new(int32(8)),
+				MaxParallelWorkersPerGather:   new(int32(2)),
+				MaxParallelWorkers:            new(int32(8)),
+				MaxParallelMaintenanceWorkers: new(int32(2)),
+				WalLevel:                      new("replica"),
+				MaxWalSenders:                 new(int32(10)),
+				MaxReplicationSlots:           new(int32(10)),
+				ArchiveTimeout:                new(int32(300)),
+				TrackIoTiming:                 new("off"),
 			},
 			Pitr: &model.ConfigPostgresPitr{
-				Retention: ptr(uint8(7)),
+				Retention: new(uint8(7)),
 			},
 		},
 		Provider: &model.ConfigProvider{
@@ -444,16 +442,16 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 				Method:   "LOGIN",
 			},
 			Sms: &model.ConfigSms{
-				Provider:           ptr("twilio"),
+				Provider:           new("twilio"),
 				AccountSid:         "twilioAccountSid",
 				AuthToken:          "twilioAuthToken",
 				MessagingServiceId: "twilioMessagingServiceId",
 			},
 		},
 		Storage: &model.ConfigStorage{
-			Version: ptr("0.3.5"),
+			Version: new("0.3.5"),
 			Antivirus: &model.ConfigStorageAntivirus{
-				Server: ptr("tcp://run-clamav:3310"),
+				Server: new("tcp://run-clamav:3310"),
 			},
 			Resources: &model.ConfigResources{
 				Compute: &model.ConfigResourcesCompute{
@@ -461,7 +459,7 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 					Memory: 1024,
 				},
 				Networking: nil,
-				Replicas:   ptr(uint8(1)),
+				Replicas:   new(uint8(1)),
 				Autoscaler: nil,
 			},
 			RateLimit: &model.ConfigRateLimit{
@@ -480,7 +478,7 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 					Password: "smtpPassword",
 				},
 				Alerting: &model.ConfigGrafanaAlerting{
-					Enabled: ptr(true),
+					Enabled: new(true),
 				},
 				Contacts: &model.ConfigGrafanaContacts{
 					Emails: []string{

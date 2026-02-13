@@ -47,13 +47,13 @@ func TestSignInProvider(t *testing.T) {
 			request: api.SignInProviderRequestObject{
 				Params: api.SignInProviderParams{
 					AllowedRoles:           &[]string{"admin", "user"},
-					DefaultRole:            ptr("admin"),
-					DisplayName:            ptr("Test User"),
-					Locale:                 ptr("es"),
-					Metadata:               ptr(map[string]any{"key": "value"}),
-					RedirectTo:             ptr("http://localhost:3000/redirect"),
-					Connect:                ptr("asdasd"),
-					State:                  ptr("custom-state"),
+					DefaultRole:            new("admin"),
+					DisplayName:            new("Test User"),
+					Locale:                 new("es"),
+					Metadata:               new(map[string]any{"key": "value"}),
+					RedirectTo:             new("http://localhost:3000/redirect"),
+					Connect:                new("asdasd"),
+					State:                  new("custom-state"),
 					ProviderSpecificParams: nil,
 				},
 				Provider: "fake",
@@ -78,7 +78,7 @@ func TestSignInProvider(t *testing.T) {
 			},
 			request: api.SignInProviderRequestObject{
 				Params: api.SignInProviderParams{ //nolint:exhaustruct
-					RedirectTo: ptr("http://not.allowed.com"),
+					RedirectTo: new("http://not.allowed.com"),
 				},
 				Provider: "not-enabled",
 			},

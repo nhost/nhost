@@ -15,10 +15,6 @@ const accessTokenValidUser = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjIwN
 
 const eicarTestFile = `X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*`
 
-func ptr[T any](v T) *T {
-	return &v
-}
-
 func WithAccessToken(accessToken string) func(ctx context.Context, req *http.Request) error {
 	return func(_ context.Context, req *http.Request) error {
 		req.Header.Set("Authorization", "Bearer "+accessToken)

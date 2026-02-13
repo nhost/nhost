@@ -28,10 +28,6 @@ func deptr[T any](x *T) T { //nolint:ireturn
 	return *x
 }
 
-func ptr[T any](x T) *T {
-	return &x
-}
-
 type Emailer interface {
 	SendEmail(
 		ctx context.Context,

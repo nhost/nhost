@@ -82,7 +82,7 @@ func TestGetProviderTokens(t *testing.T) {
 				AccessToken:  "valid-accesstoken-1",
 				ExpiresIn:    9000,
 				ExpiresAt:    time.Date(2025, 10, 27, 12, 29, 7, 0, time.UTC),
-				RefreshToken: ptr("valid-refreshtoken-1"),
+				RefreshToken: new("valid-refreshtoken-1"),
 			},
 			expectedJWT:       nil,
 			jwtTokenFn:        jwtTokenFn,

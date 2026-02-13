@@ -104,7 +104,7 @@ func TestReplaceFile(t *testing.T) {
 					UpdatedAt:        time.Date(2021, 12, 27, 9, 58, 11, 0, time.UTC), // ignored
 					IsUploaded:       true,
 					MimeType:         "text/plain; charset=utf-8",
-					UploadedByUserId: ptr("some-valid-uuid"),
+					UploadedByUserId: new("some-valid-uuid"),
 				},
 				nil,
 			)
@@ -158,8 +158,8 @@ func TestReplaceFile(t *testing.T) {
 					UpdatedAt:        time.Time{}, // ignored
 					IsUploaded:       true,
 					MimeType:         "text/plain; charset=utf-8",
-					UploadedByUserId: ptr("some-valid-uuid"),
-					Metadata:         ptr(map[string]any{"some": "metadata"}),
+					UploadedByUserId: new("some-valid-uuid"),
+					Metadata:         new(map[string]any{"some": "metadata"}),
 				},
 				nil)
 
@@ -197,8 +197,8 @@ func TestReplaceFile(t *testing.T) {
 				UpdatedAt:        time.Time{}, // ignored
 				IsUploaded:       true,
 				MimeType:         "text/plain; charset=utf-8",
-				UploadedByUserId: ptr("some-valid-uuid"),
-				Metadata:         ptr(map[string]any{"some": "metadata"}),
+				UploadedByUserId: new("some-valid-uuid"),
+				Metadata:         new(map[string]any{"some": "metadata"}),
 			}, resp,
 				cmpopts.IgnoreFields(api.FileMetadata{}, "Id", "CreatedAt", "UpdatedAt"),
 			)

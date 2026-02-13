@@ -98,6 +98,17 @@ const EditTableSettingsForm = dynamic(
   },
 );
 
+const EditRelationshipsForm = dynamic(
+  () =>
+    import(
+      '@/features/orgs/projects/database/dataGrid/components/EditRelationshipsForm/EditRelationshipsForm'
+    ),
+  {
+    ssr: false,
+    loading: () => <FormActivityIndicator />,
+  },
+);
+
 export interface DatabaseObject {
   table_schema: string;
   table_name: string;
@@ -554,6 +565,28 @@ export function useDataBrowserActions({
     });
   }
 
+  function handleRelationshipsClick(
+    schema: string,
+    table: string,
+    disabled?: boolean,
+  ) {
+    openDrawer({
+      title: `${disabled ? 'View' : 'Edit'} Relationships`,
+      component: (
+        <EditRelationshipsForm
+          schema={schema}
+          table={table}
+          disabled={disabled}
+        />
+      ),
+      props: {
+        PaperProps: {
+          className: 'overflow-hidden',
+        },
+      },
+    });
+  }
+
   function openCreateTableDrawer() {
     openDrawer({
       title: 'Create a New Table',
@@ -579,6 +612,9 @@ export function useDataBrowserActions({
     // Settings actions
     handleEditSettingsClick,
     handleEditFunctionSettingsClick,
+
+    // Relationships actions
+    handleRelationshipsClick,
 
     // Drawer openers
     openEditTableDrawer,

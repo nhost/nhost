@@ -27,10 +27,6 @@ adminPassword = 'asdasd'
 const rawSecrets = `someSecret = 'asdasd'
 `
 
-func ptr[T any](v T) *T {
-	return &v
-}
-
 func newApp() *graph.App {
 	return &graph.App{
 		Config: &model.ConfigConfig{
@@ -41,8 +37,8 @@ func newApp() *graph.App {
 				WebhookSecret: "webhookSecret",
 				JwtSecrets: []*model.ConfigJWTSecret{
 					{
-						Type: ptr("HS256"),
-						Key:  ptr("asdasdasdasd"),
+						Type: new("HS256"),
+						Key:  new("asdasdasdasd"),
 					},
 				},
 			},
@@ -63,7 +59,7 @@ func newApp() *graph.App {
 		},
 		SystemConfig: &model.ConfigSystemConfig{ //nolint:exhaustruct
 			Postgres: &model.ConfigSystemConfigPostgres{ //nolint:exhaustruct
-				MajorVersion: ptr("14"),
+				MajorVersion: new("14"),
 				Database:     "local",
 				ConnectionString: &model.ConfigSystemConfigPostgresConnectionString{
 					Backup:  "a",

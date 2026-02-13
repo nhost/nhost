@@ -1,3 +1,14 @@
+## [cli@1.37.0] - 2026-02-05
+
+### 🚀 Features
+
+- *(docs)* Release starlight (#3877)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump nhost/dashboard to 2.47.0 (#3884)
+
 ## [cli@1.36.0] - 2026-02-02
 
 ### 🚀 Features

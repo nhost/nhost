@@ -40,10 +40,10 @@ func (t *Tool) registerList(mcpServer *server.MCPServer) {
 		mcp.WithToolAnnotation(
 			mcp.ToolAnnotation{
 				Title:           "List Nhost Docs",
-				ReadOnlyHint:    ptr(true),
-				DestructiveHint: ptr(false),
-				IdempotentHint:  ptr(true),
-				OpenWorldHint:   ptr(false),
+				ReadOnlyHint:    new(true),
+				DestructiveHint: new(false),
+				IdempotentHint:  new(true),
+				OpenWorldHint:   new(false),
 			},
 		),
 		mcp.WithBoolean(

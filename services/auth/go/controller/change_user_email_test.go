@@ -241,7 +241,7 @@ func TestChangeUserEmail(t *testing.T) { //nolint:maintidx
 				Body: &api.UserEmailChangeRequest{
 					NewEmail: "newEmail@acme.com",
 					Options: &api.OptionsRedirectTo{
-						RedirectTo: ptr("https://myapp/redirect"),
+						RedirectTo: new("https://myapp/redirect"),
 					},
 				},
 			},
@@ -292,7 +292,7 @@ func TestChangeUserEmail(t *testing.T) { //nolint:maintidx
 				Body: &api.UserEmailChangeRequest{
 					NewEmail: "newEmail@acme.com",
 					Options: &api.OptionsRedirectTo{
-						RedirectTo: ptr("https://myapp/redirect"),
+						RedirectTo: new("https://myapp/redirect"),
 					},
 				},
 			},

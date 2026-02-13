@@ -23,6 +23,9 @@ on:
       # cli
       - 'cli/**'
 
+      # lib
+      - 'internal/lib/clidocs/**'
+
       # docs
       - 'docs/**'
   push:

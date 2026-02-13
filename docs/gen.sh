@@ -79,8 +79,10 @@ function build_typedoc() {
 
 function build_cli_docs() {
     echo "⚒️⚒️⚒️ Building CLI documentation..."
-    cli gen-docs > src/content/docs/reference/cli/commands.md
-    cat src/content/docs/reference/cli/commands.md
+    cli gen-docs > src/content/docs/reference/cli/commands.mdx
+    cat src/content/docs/reference/cli/commands.mdx
+
+    sed -i 's/</\&lt;/g; s/>/\&gt;/g' src/content/docs/reference/cli/commands.mdx
 }
 
 build_typedoc

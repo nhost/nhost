@@ -135,7 +135,7 @@ func tokenToProviderSession(token *oauth2.Token) api.ProviderSession {
 		AccessToken:  token.AccessToken,
 		ExpiresIn:    expiresIn,
 		ExpiresAt:    expiresAt,
-		RefreshToken: ptr(token.RefreshToken),
+		RefreshToken: new(token.RefreshToken),
 	}
 }
 

@@ -12,7 +12,7 @@ pnpm dev              # Start development server (port 3000)
 pnpm build            # Production build (skips lint)
 pnpm start            # Start production server
 pnpm lint             # Run both Biome and ESLint
-pnpm type-check       # TypeScript type checking
+pnpm test:typecheck       # TypeScript type checking
 ```
 
 ### Testing

@@ -193,6 +193,7 @@ function DataBrowserSidebarContent({
     handleEditFunctionPermissionClick,
     handleEditSettingsClick,
     handleEditFunctionSettingsClick,
+    handleRelationshipsClick,
     openEditTableDrawer,
     openEditViewDrawer,
     openEditFunctionDrawer,
@@ -492,6 +493,13 @@ function DataBrowserSidebarContent({
                                 dbObject.object_type,
                               )
                             }
+                            onViewRelationships={() =>
+                              handleRelationshipsClick(
+                                dbObject.table_schema,
+                                dbObject.table_name,
+                                true,
+                              )
+                            }
                             onEditTable={() =>
                               openEditTableDrawer(
                                 dbObject.table_schema,
@@ -510,6 +518,12 @@ function DataBrowserSidebarContent({
                                 dbObject.table_name,
                                 false,
                                 dbObject.object_type,
+                              );
+                            }}
+                            onEditRelationships={() => {
+                              handleRelationshipsClick(
+                                dbObject.table_schema,
+                                dbObject.table_name,
                               );
                             }}
                             onDelete={() =>
