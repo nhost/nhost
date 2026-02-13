@@ -12,18 +12,16 @@ vi.mock('@/features/orgs/projects/database/common/hooks/useTablePath', () => ({
 }));
 
 vi.mock(
-  '@/features/orgs/projects/storage/dataGrid/utils/PersistenDataTableConfigurationStorage',
+  '@/features/orgs/projects/storage/dataGrid/utils/PersistentDataTableConfigurationStorage',
   async () => {
     const actual = await vi.importActual(
-      '@/features/orgs/projects/storage/dataGrid/utils/PersistenDataTableConfigurationStorage',
+      '@/features/orgs/projects/storage/dataGrid/utils/PersistentDataTableConfigurationStorage',
     );
     return {
       ...actual,
-      default: {
-        convertToV8IfNeeded: vi.fn(),
-        getColumnVisibility: mocks.getColumnVisibility,
-        getColumnOrder: mocks.getColumnOrder,
-      },
+      convertToV8IfNeeded: vi.fn(),
+      getColumnVisibility: mocks.getColumnVisibility,
+      getColumnOrder: mocks.getColumnOrder,
     };
   },
 );

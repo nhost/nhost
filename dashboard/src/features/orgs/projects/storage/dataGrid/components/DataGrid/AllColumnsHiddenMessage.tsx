@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/v3/button';
 import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
 import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
-import PersistenDataTableConfigurationStorage from '@/features/orgs/projects/storage/dataGrid/utils/PersistenDataTableConfigurationStorage';
+import { saveColumnVisibility } from '@/features/orgs/projects/storage/dataGrid/utils/PersistentDataTableConfigurationStorage';
 
 function Description() {
   const { setColumnVisibility } = useDataGridConfig();
@@ -10,7 +10,7 @@ function Description() {
 
   function saveHiddenCols() {
     setColumnVisibility({});
-    PersistenDataTableConfigurationStorage.saveColumnVisibility(tablePath, {});
+    saveColumnVisibility(tablePath, {});
   }
 
   return (
