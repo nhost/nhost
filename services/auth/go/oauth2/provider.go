@@ -22,6 +22,14 @@ const (
 	AuthCodeTTL                = 5 * time.Minute
 )
 
+// DefaultScopes returns the canonical set of scopes assigned to a new OAuth2
+// client when no explicit scopes are provided. All creation paths (DCR, CIMD,
+// Hasura mutation) should use this same set so behaviour is consistent
+// regardless of how the client was registered.
+func DefaultScopes() []string {
+	return []string{"openid", "profile", "email", "phone", "offline_access", "graphql"}
+}
+
 type Config struct {
 	LoginURL                   string
 	ClientURL                  string

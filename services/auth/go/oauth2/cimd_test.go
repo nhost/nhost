@@ -541,7 +541,7 @@ func newTestClientWithRewrite(
 	}
 }
 
-func TestResolveCIMDClient(t *testing.T) {
+func TestResolveCIMDClient(t *testing.T) { //nolint:cyclop,maintidx
 	t.Parallel()
 
 	logger := slog.Default()
@@ -701,6 +701,111 @@ func TestResolveCIMDClient(t *testing.T) {
 
 		if got.ClientName != "New App" {
 			t.Errorf("expected client_name 'New App', got %q", got.ClientName)
+		}
+	})
+
+	t.Run("no scope in metadata uses DefaultScopes", func(t *testing.T) {
+		t.Parallel()
+
+		ctrl := gomock.NewController(t)
+
+		mockDB := NewMockDBClient(ctrl)
+		clientID := fakeHost + "/no-scope.json"
+
+		server := httptest.NewTLSServer(
+			http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.Header().Set("Content-Type", "application/json")
+
+				meta := map[string]any{
+					"client_id":     clientID,
+					"client_name":   "No Scope App",
+					"redirect_uris": []string{"https://app.example.com/callback"},
+					// no "scope" field
+				}
+
+				json.NewEncoder(w).Encode(meta) //nolint:errcheck
+			}),
+		)
+		defer server.Close()
+
+		mockDB.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), clientID).
+			Return(sql.AuthOauth2Client{}, pgx.ErrNoRows) //nolint:exhaustruct
+
+		mockDB.EXPECT().UpsertOAuth2CIMDClient(gomock.Any(), gomock.Any()).
+			DoAndReturn(func(
+				_ context.Context, params sql.UpsertOAuth2CIMDClientParams,
+			) (sql.AuthOauth2Client, error) {
+				if diff := cmp.Diff(oauth2.DefaultScopes(), params.Scopes); diff != "" {
+					t.Errorf("scopes mismatch (-want +got):\n%s", diff)
+				}
+
+				return newTestClient(clientID), nil
+			})
+
+		provider := oauth2.NewProvider(
+			mockDB, nil, nil, nil, nil,
+			oauth2.Config{CIMDEnabled: true}, //nolint:exhaustruct
+			newTestClientWithRewrite(server),
+		)
+
+		_, oauthErr := provider.ResolveCIMDClient(
+			context.Background(), clientID, logger,
+		)
+		if oauthErr != nil {
+			t.Fatalf("unexpected error: %s", oauthErr.Description)
+		}
+	})
+
+	t.Run("explicit scope in metadata overrides default", func(t *testing.T) {
+		t.Parallel()
+
+		ctrl := gomock.NewController(t)
+
+		mockDB := NewMockDBClient(ctrl)
+		clientID := fakeHost + "/custom-scope.json"
+
+		server := httptest.NewTLSServer(
+			http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.Header().Set("Content-Type", "application/json")
+
+				meta := map[string]any{
+					"client_id":     clientID,
+					"client_name":   "Custom Scope App",
+					"redirect_uris": []string{"https://app.example.com/callback"},
+					"scope":         "openid email",
+				}
+
+				json.NewEncoder(w).Encode(meta) //nolint:errcheck
+			}),
+		)
+		defer server.Close()
+
+		mockDB.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), clientID).
+			Return(sql.AuthOauth2Client{}, pgx.ErrNoRows) //nolint:exhaustruct
+
+		mockDB.EXPECT().UpsertOAuth2CIMDClient(gomock.Any(), gomock.Any()).
+			DoAndReturn(func(
+				_ context.Context, params sql.UpsertOAuth2CIMDClientParams,
+			) (sql.AuthOauth2Client, error) {
+				expected := []string{"openid", "email"}
+				if diff := cmp.Diff(expected, params.Scopes); diff != "" {
+					t.Errorf("scopes mismatch (-want +got):\n%s", diff)
+				}
+
+				return newTestClient(clientID), nil
+			})
+
+		provider := oauth2.NewProvider(
+			mockDB, nil, nil, nil, nil,
+			oauth2.Config{CIMDEnabled: true}, //nolint:exhaustruct
+			newTestClientWithRewrite(server),
+		)
+
+		_, oauthErr := provider.ResolveCIMDClient(
+			context.Background(), clientID, logger,
+		)
+		if oauthErr != nil {
+			t.Fatalf("unexpected error: %s", oauthErr.Description)
 		}
 	})
 

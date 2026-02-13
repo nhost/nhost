@@ -281,7 +281,7 @@ func (p *Provider) ResolveCIMDClient( //nolint:cyclop
 		return sql.AuthOauth2Client{}, oauthErr //nolint:exhaustruct
 	}
 
-	scopes := []string{"openid", "profile", "email", "phone", "offline_access"}
+	scopes := DefaultScopes()
 	if metadata.Scope != "" {
 		scopes = strings.Split(metadata.Scope, " ")
 	}

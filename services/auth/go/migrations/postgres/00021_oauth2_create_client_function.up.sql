@@ -18,7 +18,7 @@ CREATE OR REPLACE FUNCTION auth.create_oauth2_client(
     logo_uri text DEFAULT NULL,
     grant_types text[] DEFAULT '{authorization_code}'::text[],
     response_types text[] DEFAULT '{code}'::text[],
-    scopes text[] DEFAULT '{openid}'::text[],
+    scopes text[] DEFAULT '{openid,profile,email,phone,offline_access,graphql}'::text[],
     token_endpoint_auth_method text DEFAULT 'client_secret_basic',
     id_token_signed_response_alg text DEFAULT 'RS256',
     access_token_lifetime integer DEFAULT 900,

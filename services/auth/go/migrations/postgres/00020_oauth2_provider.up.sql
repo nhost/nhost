@@ -23,7 +23,7 @@ CREATE TABLE auth.oauth2_clients (
     redirect_uris text[] NOT NULL DEFAULT '{}',
     grant_types text[] NOT NULL DEFAULT '{authorization_code}',
     response_types text[] NOT NULL DEFAULT '{code}',
-    scopes text[] NOT NULL DEFAULT '{openid}',
+    scopes text[] NOT NULL DEFAULT '{openid,profile,email,phone,offline_access,graphql}',
     is_public boolean NOT NULL DEFAULT false,
     token_endpoint_auth_method text NOT NULL DEFAULT 'client_secret_basic',
     id_token_signed_response_alg text NOT NULL DEFAULT 'RS256',

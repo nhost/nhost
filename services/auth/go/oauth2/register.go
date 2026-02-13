@@ -53,7 +53,7 @@ func (p *Provider) RegisterClient( //nolint:funlen,cyclop
 		responseTypes = *req.ResponseTypes
 	}
 
-	scopes := []string{"openid", "profile", "email", "phone", "offline_access"}
+	scopes := DefaultScopes()
 	if req.Scope != nil && *req.Scope != "" {
 		scopes = strings.Split(*req.Scope, " ")
 	}
