@@ -44,8 +44,15 @@ func (p *Provider) ExchangeCode( //nolint:cyclop
 		}
 	}
 
-	if req.RedirectUri != nil && *req.RedirectUri != authReq.RedirectUri {
-		return nil, &Error{Err: "invalid_grant", Description: "redirect_uri mismatch"}
+	switch {
+	case authReq.RedirectUri != "":
+		if req.RedirectUri == nil || *req.RedirectUri != authReq.RedirectUri {
+			return nil, &Error{Err: "invalid_grant", Description: "redirect_uri mismatch"}
+		}
+	default:
+		if req.RedirectUri != nil {
+			return nil, &Error{Err: "invalid_request", Description: "redirect_uri not expected"}
+		}
 	}
 
 	client, err := p.db.GetOAuth2ClientByClientID(ctx, authReq.ClientID)

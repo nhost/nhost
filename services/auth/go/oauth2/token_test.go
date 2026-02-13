@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/oauth2"
 	"github.com/nhost/nhost/services/auth/go/sql"
@@ -51,6 +52,239 @@ func (s *fakeSigner) GraphQLClaims(
 		"x-hasura-default-role":  defaultRole,
 		"x-hasura-allowed-roles": allowedRoles,
 	}, nil
+}
+
+func TestExchangeCodeRedirectURIValidation(t *testing.T) {
+	t.Parallel()
+
+	logger := slog.Default()
+	userID := uuid.MustParse("db477732-48fa-4289-b694-2886a646b6eb")
+	clientID := "test-client"
+	codeValue := "test-code"
+	codeHash := oauth2.HashToken(codeValue)
+	redirectURI := "https://example.com/callback"
+
+	baseAuthReq := sql.AuthOauth2AuthRequest{ //nolint:exhaustruct
+		ClientID:    clientID,
+		RedirectUri: redirectURI,
+		Scopes:      []string{"openid"},
+		UserID:      pgtype.UUID{Bytes: uuid.UUID(userID), Valid: true},
+	}
+
+	t.Run("missing redirect_uri returns error", func(t *testing.T) {
+		t.Parallel()
+
+		ctrl := gomock.NewController(t)
+		mockDB := NewMockDBClient(ctrl)
+
+		mockDB.EXPECT().ConsumeOAuth2AuthorizationCode(gomock.Any(), codeHash).
+			Return(baseAuthReq, nil)
+
+		provider := oauth2.NewProvider(
+			mockDB, &fakeSigner{}, nil, nil, nil, //nolint:exhaustruct
+			oauth2.Config{}, //nolint:exhaustruct
+			nil,
+		)
+
+		_, oauthErr := provider.ExchangeCode(
+			context.Background(),
+			&api.OAuth2TokenRequest{ //nolint:exhaustruct
+				Code:      &codeValue,
+				GrantType: "authorization_code",
+			},
+			logger,
+		)
+		if oauthErr == nil {
+			t.Fatal("expected error when redirect_uri is missing")
+		}
+
+		if oauthErr.Err != "invalid_grant" {
+			t.Errorf("expected error 'invalid_grant', got %q", oauthErr.Err)
+		}
+	})
+
+	t.Run("mismatched redirect_uri returns error", func(t *testing.T) {
+		t.Parallel()
+
+		ctrl := gomock.NewController(t)
+		mockDB := NewMockDBClient(ctrl)
+
+		mockDB.EXPECT().ConsumeOAuth2AuthorizationCode(gomock.Any(), codeHash).
+			Return(baseAuthReq, nil)
+
+		provider := oauth2.NewProvider(
+			mockDB, &fakeSigner{}, nil, nil, nil, //nolint:exhaustruct
+			oauth2.Config{}, //nolint:exhaustruct
+			nil,
+		)
+
+		wrongURI := "https://evil.com/callback"
+
+		_, oauthErr := provider.ExchangeCode(
+			context.Background(),
+			&api.OAuth2TokenRequest{ //nolint:exhaustruct
+				Code:        &codeValue,
+				GrantType:   "authorization_code",
+				RedirectUri: &wrongURI,
+			},
+			logger,
+		)
+		if oauthErr == nil {
+			t.Fatal("expected error when redirect_uri does not match")
+		}
+
+		if oauthErr.Err != "invalid_grant" {
+			t.Errorf("expected error 'invalid_grant', got %q", oauthErr.Err)
+		}
+	})
+
+	t.Run("unexpected redirect_uri when not in auth request returns error", func(t *testing.T) {
+		t.Parallel()
+
+		ctrl := gomock.NewController(t)
+		mockDB := NewMockDBClient(ctrl)
+
+		authReqNoRedirect := sql.AuthOauth2AuthRequest{ //nolint:exhaustruct
+			ClientID:    clientID,
+			RedirectUri: "",
+			Scopes:      []string{"openid"},
+			UserID:      pgtype.UUID{Bytes: uuid.UUID(userID), Valid: true},
+		}
+
+		mockDB.EXPECT().ConsumeOAuth2AuthorizationCode(gomock.Any(), codeHash).
+			Return(authReqNoRedirect, nil)
+
+		provider := oauth2.NewProvider(
+			mockDB, &fakeSigner{}, nil, nil, nil, //nolint:exhaustruct
+			oauth2.Config{}, //nolint:exhaustruct
+			nil,
+		)
+
+		someURI := "https://example.com/callback"
+
+		_, oauthErr := provider.ExchangeCode(
+			context.Background(),
+			&api.OAuth2TokenRequest{ //nolint:exhaustruct
+				Code:        &codeValue,
+				GrantType:   "authorization_code",
+				RedirectUri: &someURI,
+			},
+			logger,
+		)
+		if oauthErr == nil {
+			t.Fatal("expected error when redirect_uri sent but not in auth request")
+		}
+
+		if oauthErr.Err != "invalid_request" {
+			t.Errorf("expected error 'invalid_request', got %q", oauthErr.Err)
+		}
+	})
+
+	t.Run("no redirect_uri in either request succeeds", func(t *testing.T) {
+		t.Parallel()
+
+		ctrl := gomock.NewController(t)
+		mockDB := NewMockDBClient(ctrl)
+		signer := &fakeSigner{} //nolint:exhaustruct
+
+		authReqNoRedirect := sql.AuthOauth2AuthRequest{ //nolint:exhaustruct
+			ClientID:    clientID,
+			RedirectUri: "",
+			Scopes:      []string{"openid"},
+			UserID:      pgtype.UUID{Bytes: uuid.UUID(userID), Valid: true},
+		}
+
+		confidentialClient := sql.AuthOauth2Client{ //nolint:exhaustruct
+			ClientID:         clientID,
+			IsPublic:         false,
+			ClientSecretHash: pgtype.Text{String: "hashed-secret", Valid: true},
+		}
+
+		mockDB.EXPECT().ConsumeOAuth2AuthorizationCode(gomock.Any(), codeHash).
+			Return(authReqNoRedirect, nil)
+		mockDB.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), clientID).
+			Return(confidentialClient, nil).Times(3)
+		mockDB.EXPECT().InsertOAuth2RefreshToken(gomock.Any(), gomock.Any()).
+			Return(sql.AuthOauth2RefreshToken{}, nil) //nolint:exhaustruct
+
+		secret := "my-secret"
+
+		provider := oauth2.NewProvider(
+			mockDB, signer, nil, nil, &fakeHasher{},
+			oauth2.Config{ //nolint:exhaustruct
+				AccessTokenTTL:  300,
+				RefreshTokenTTL: 3600,
+			},
+			nil,
+		)
+
+		resp, oauthErr := provider.ExchangeCode(
+			context.Background(),
+			&api.OAuth2TokenRequest{ //nolint:exhaustruct
+				Code:         &codeValue,
+				GrantType:    "authorization_code",
+				ClientSecret: &secret,
+			},
+			logger,
+		)
+		if oauthErr != nil {
+			t.Fatalf("unexpected error: %s", oauthErr.Description)
+		}
+
+		if resp.AccessToken != "fake-token" {
+			t.Errorf("expected access token 'fake-token', got %q", resp.AccessToken)
+		}
+	})
+
+	t.Run("matching redirect_uri succeeds", func(t *testing.T) {
+		t.Parallel()
+
+		ctrl := gomock.NewController(t)
+		mockDB := NewMockDBClient(ctrl)
+		signer := &fakeSigner{} //nolint:exhaustruct
+
+		confidentialClient := sql.AuthOauth2Client{ //nolint:exhaustruct
+			ClientID:         clientID,
+			IsPublic:         false,
+			ClientSecretHash: pgtype.Text{String: "hashed-secret", Valid: true},
+		}
+
+		mockDB.EXPECT().ConsumeOAuth2AuthorizationCode(gomock.Any(), codeHash).
+			Return(baseAuthReq, nil)
+		mockDB.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), clientID).
+			Return(confidentialClient, nil).Times(3)
+		mockDB.EXPECT().InsertOAuth2RefreshToken(gomock.Any(), gomock.Any()).
+			Return(sql.AuthOauth2RefreshToken{}, nil) //nolint:exhaustruct
+
+		secret := "my-secret"
+
+		provider := oauth2.NewProvider(
+			mockDB, signer, nil, nil, &fakeHasher{},
+			oauth2.Config{ //nolint:exhaustruct
+				AccessTokenTTL:  300,
+				RefreshTokenTTL: 3600,
+			},
+			nil,
+		)
+
+		resp, oauthErr := provider.ExchangeCode(
+			context.Background(),
+			&api.OAuth2TokenRequest{ //nolint:exhaustruct
+				Code:         &codeValue,
+				GrantType:    "authorization_code",
+				RedirectUri:  &redirectURI,
+				ClientSecret: &secret,
+			},
+			logger,
+		)
+		if oauthErr != nil {
+			t.Fatalf("unexpected error: %s", oauthErr.Description)
+		}
+
+		if resp.AccessToken != "fake-token" {
+			t.Errorf("expected access token 'fake-token', got %q", resp.AccessToken)
+		}
+	})
 }
 
 func TestCreateAccessTokenWithGraphQLScope(t *testing.T) { //nolint:gocognit,cyclop

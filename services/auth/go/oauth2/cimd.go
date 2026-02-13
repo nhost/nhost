@@ -119,12 +119,25 @@ func hasDotSegments(path string) bool {
 
 func isPrivateOrLoopback(host string) bool {
 	ip := net.ParseIP(host)
-	if ip == nil {
+	if ip != nil {
+		return ip.IsLoopback() || ip.IsPrivate() ||
+			ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast()
+	}
+
+	// Resolve hostnames so that e.g. "localhost" is correctly detected.
+	ips, err := net.LookupIP(host)
+	if err != nil {
 		return false
 	}
 
-	return ip.IsLoopback() || ip.IsPrivate() ||
-		ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast()
+	for _, resolved := range ips {
+		if resolved.IsLoopback() || resolved.IsPrivate() ||
+			resolved.IsLinkLocalUnicast() || resolved.IsLinkLocalMulticast() {
+			return true
+		}
+	}
+
+	return false
 }
 
 func FetchCIMDMetadata( //nolint:funlen

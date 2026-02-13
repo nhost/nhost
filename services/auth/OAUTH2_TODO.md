@@ -81,15 +81,6 @@ Message: fmt.Sprintf("error validating token: %s", err),
 ```
 Exposes internal JWT validation error details (key type, signing algorithm, etc.) to the client.
 
-### 15. `redirect_uri` validation is optional in token exchange (`oauth2/token.go:55`)
-The check only fires if `req.RedirectUri != nil`. Per RFC 6749, if `redirect_uri` was included in the authorization request, it MUST be included and matched in the token request.
-
-### 16. SSRF: `newInsecureHTTPClient` lacks private IP checks (`oauth2/cimd.go`)
-When `CIMDAllowInsecureTransport` is enabled, the insecure HTTP client lacks the SSRF protections (private IP checks in the dialer) that `newSafeHTTPClient` has.
-
-### 17. `isPrivateOrLoopback` doesn't resolve hostnames (`oauth2/cimd.go:120-128`)
-Only checks literal IP addresses. A hostname like `localhost` passes through because `net.ParseIP("localhost")` returns nil.
-
 ---
 
 ## OPERATIONAL
