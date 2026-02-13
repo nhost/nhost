@@ -17,7 +17,7 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func TestOauth2Authorize(t *testing.T) { //nolint:cyclop,gocognit,maintidx
+func TestOauth2Authorize(t *testing.T) { //nolint:cyclop,gocognit,gocyclo,maintidx
 	t.Parallel()
 
 	clientID := "nhost_abc123def456"

@@ -122,7 +122,12 @@ func (p *Provider) ValidateAuthorizeRequest( //nolint:cyclop,funlen
 	}
 
 	errorRedirect := func(oauthErr *Error) string {
-		return ErrorRedirectURL(params.RedirectURI, deptr(params.State), p.signer.Issuer(), oauthErr)
+		return ErrorRedirectURL(
+			params.RedirectURI,
+			deptr(params.State),
+			p.signer.Issuer(),
+			oauthErr,
+		)
 	}
 
 	if params.ResponseType != "code" {
