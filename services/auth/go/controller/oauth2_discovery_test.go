@@ -36,8 +36,43 @@ func TestGetOpenIDConfiguration(t *testing.T) { //nolint:dupl
 			jwtTokenFn:       nil,
 		},
 		{ //nolint:exhaustruct
-			name:   "success",
+			name:   "success - DCR disabled",
 			config: getConfigOAuth2Enabled,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				return mock.NewMockDBClient(ctrl)
+			},
+			request: api.GetOpenIDConfigurationRequestObject{},
+			expectedResponse: api.GetOpenIDConfiguration200JSONResponse{
+				Issuer:                 "https://local.auth.nhost.run",
+				AuthorizationEndpoint:  "https://local.auth.nhost.run/oauth2/authorize",
+				TokenEndpoint:          "https://local.auth.nhost.run/oauth2/token",
+				UserinfoEndpoint:       ptr("https://local.auth.nhost.run/oauth2/userinfo"),
+				JwksUri:                "https://local.auth.nhost.run/oauth2/jwks",
+				RevocationEndpoint:     ptr("https://local.auth.nhost.run/oauth2/revoke"),
+				IntrospectionEndpoint:  ptr("https://local.auth.nhost.run/oauth2/introspect"),
+				RegistrationEndpoint:   nil,
+				ResponseTypesSupported: []string{"code"},
+				GrantTypesSupported:    &[]string{"authorization_code", "refresh_token"},
+				ScopesSupported: &[]string{
+					"openid", "profile", "email", "phone", "offline_access", "graphql",
+				},
+				SubjectTypesSupported:            &[]string{"public"},
+				IdTokenSigningAlgValuesSupported: &[]string{"RS256"},
+				TokenEndpointAuthMethodsSupported: &[]string{
+					"client_secret_basic", "client_secret_post", "none",
+				},
+				CodeChallengeMethodsSupported: &[]string{"S256"},
+				AdditionalProperties: map[string]any{
+					"request_parameter_supported":                    false,
+					"authorization_response_iss_parameter_supported": true,
+				},
+			},
+			expectedJWT: nil,
+			jwtTokenFn:  nil,
+		},
+		{ //nolint:exhaustruct
+			name:   "success - DCR enabled",
+			config: getConfigOAuth2DCREnabled,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				return mock.NewMockDBClient(ctrl)
 			},
@@ -104,8 +139,43 @@ func TestGetOAuthAuthorizationServer(t *testing.T) { //nolint:dupl
 			jwtTokenFn:       nil,
 		},
 		{ //nolint:exhaustruct
-			name:   "success",
+			name:   "success - DCR disabled",
 			config: getConfigOAuth2Enabled,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				return mock.NewMockDBClient(ctrl)
+			},
+			request: api.GetOAuthAuthorizationServerRequestObject{},
+			expectedResponse: api.GetOAuthAuthorizationServer200JSONResponse{
+				Issuer:                 "https://local.auth.nhost.run",
+				AuthorizationEndpoint:  "https://local.auth.nhost.run/oauth2/authorize",
+				TokenEndpoint:          "https://local.auth.nhost.run/oauth2/token",
+				UserinfoEndpoint:       ptr("https://local.auth.nhost.run/oauth2/userinfo"),
+				JwksUri:                "https://local.auth.nhost.run/oauth2/jwks",
+				RevocationEndpoint:     ptr("https://local.auth.nhost.run/oauth2/revoke"),
+				IntrospectionEndpoint:  ptr("https://local.auth.nhost.run/oauth2/introspect"),
+				RegistrationEndpoint:   nil,
+				ResponseTypesSupported: []string{"code"},
+				GrantTypesSupported:    &[]string{"authorization_code", "refresh_token"},
+				ScopesSupported: &[]string{
+					"openid", "profile", "email", "phone", "offline_access", "graphql",
+				},
+				SubjectTypesSupported:            &[]string{"public"},
+				IdTokenSigningAlgValuesSupported: &[]string{"RS256"},
+				TokenEndpointAuthMethodsSupported: &[]string{
+					"client_secret_basic", "client_secret_post", "none",
+				},
+				CodeChallengeMethodsSupported: &[]string{"S256"},
+				AdditionalProperties: map[string]any{
+					"request_parameter_supported":                    false,
+					"authorization_response_iss_parameter_supported": true,
+				},
+			},
+			expectedJWT: nil,
+			jwtTokenFn:  nil,
+		},
+		{ //nolint:exhaustruct
+			name:   "success - DCR enabled",
+			config: getConfigOAuth2DCREnabled,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				return mock.NewMockDBClient(ctrl)
 			},

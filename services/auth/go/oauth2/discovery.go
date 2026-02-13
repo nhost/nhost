@@ -13,8 +13,6 @@ func (p *Provider) BuildDiscoveryResponse() api.OAuth2DiscoveryResponse {
 	jwksURI := issuer + "/oauth2/jwks"
 	revocationEndpoint := issuer + "/oauth2/revoke"
 	introspectionEndpoint := issuer + "/oauth2/introspect"
-	registrationEndpoint := issuer + "/oauth2/register"
-
 	resp := api.OAuth2DiscoveryResponse{ //nolint:exhaustruct
 		Issuer:                 issuer,
 		AuthorizationEndpoint:  authEndpoint,
@@ -23,7 +21,6 @@ func (p *Provider) BuildDiscoveryResponse() api.OAuth2DiscoveryResponse {
 		JwksUri:                jwksURI,
 		RevocationEndpoint:     &revocationEndpoint,
 		IntrospectionEndpoint:  &introspectionEndpoint,
-		RegistrationEndpoint:   &registrationEndpoint,
 		ResponseTypesSupported: []string{"code"},
 		GrantTypesSupported:    &[]string{"authorization_code", "refresh_token"},
 		ScopesSupported: &[]string{
@@ -42,6 +39,11 @@ func (p *Provider) BuildDiscoveryResponse() api.OAuth2DiscoveryResponse {
 			"none",
 		},
 		CodeChallengeMethodsSupported: &[]string{"S256"},
+	}
+
+	if p.config.DCREnabled {
+		registrationEndpoint := issuer + "/oauth2/register"
+		resp.RegistrationEndpoint = &registrationEndpoint
 	}
 
 	resp.Set("request_parameter_supported", false)

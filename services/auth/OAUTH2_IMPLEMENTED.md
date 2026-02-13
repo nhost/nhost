@@ -625,7 +625,7 @@ When the OAuth2 provider is disabled, both endpoints return `nil` (no response b
 
 | Field | Condition | Value |
 |-------|-----------|-------|
-| `registration_endpoint` | Always present | `<issuer>/oauth2/register` |
+| `registration_endpoint` | DCR enabled | `<issuer>/oauth2/register` |
 | `client_id_metadata_document_supported` | CIMD enabled | `true` |
 
 ---

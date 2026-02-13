@@ -37,6 +37,7 @@ type Config struct {
 	ServerURL                  string
 	AccessTokenTTL             int
 	RefreshTokenTTL            int
+	DCREnabled                 bool
 	CIMDEnabled                bool
 	CIMDAllowInsecureTransport bool
 }

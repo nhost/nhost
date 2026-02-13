@@ -207,6 +207,27 @@ describe('discovery-jwks', () => {
     });
   });
 
+  it('should omit registration_endpoint when DCR is disabled', async () => {
+    await request.post('/change-env').send({
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
+      AUTH_OAUTH2_PROVIDER_ENABLED: true,
+      AUTH_OAUTH2_PROVIDER_DCR_ENABLED: false,
+    });
+
+    const { body: discovery } = await nhost.auth.getOpenIDConfiguration();
+
+    expect(discovery.registration_endpoint).toBeUndefined();
+
+    // Restore DCR for remaining tests
+    await request.post('/change-env').send({
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
+      AUTH_OAUTH2_PROVIDER_ENABLED: true,
+      AUTH_OAUTH2_PROVIDER_DCR_ENABLED: true,
+    });
+  });
+
   it('should also expose RFC 8414 authorization server metadata', async () => {
     const { body: discovery } = await nhost.auth.getOpenIDConfiguration();
     const { body: asMeta } = await nhost.auth.getOAuthAuthorizationServer();

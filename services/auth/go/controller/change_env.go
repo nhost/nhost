@@ -122,6 +122,7 @@ func (ctrl *Controller) PostChangeEnv(c *gin.Context) { //nolint:funlen,cyclop
 				ServerURL:                  ctrl.config.ServerURL.String(),
 				AccessTokenTTL:             ctrl.config.OAuth2ProviderAccessTokenTTL,
 				RefreshTokenTTL:            ctrl.config.OAuth2ProviderRefreshTokenTTL,
+				DCREnabled:                 ctrl.config.OAuth2ProviderDCREnabled,
 				CIMDEnabled:                ctrl.config.OAuth2ProviderCIMDEnabled,
 				CIMDAllowInsecureTransport: ctrl.config.OAuth2ProviderCIMDAllowInsecureTransport,
 			},

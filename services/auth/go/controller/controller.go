@@ -223,6 +223,7 @@ func New( //nolint:funlen
 				ServerURL:                  config.ServerURL.String(),
 				AccessTokenTTL:             config.OAuth2ProviderAccessTokenTTL,
 				RefreshTokenTTL:            config.OAuth2ProviderRefreshTokenTTL,
+				DCREnabled:                 config.OAuth2ProviderDCREnabled,
 				CIMDEnabled:                config.OAuth2ProviderCIMDEnabled,
 				CIMDAllowInsecureTransport: config.OAuth2ProviderCIMDAllowInsecureTransport,
 			},
