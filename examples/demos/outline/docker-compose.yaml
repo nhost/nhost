@@ -1,0 +1,55 @@
+services:
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test:
+        - CMD
+        - redis-cli
+        - ping
+      timeout: 10s
+      interval: 5s
+      start_period: 5s
+    restart: always
+
+  outline:
+    image: outlinewiki/outline:latest
+    depends_on:
+      redis:
+        condition: service_healthy
+    ports:
+      - mode: ingress
+        target: 3000
+        published: "3000"
+        protocol: tcp
+    environment:
+      URL: http://localhost:3000
+      FORCE_HTTPS: "false"
+      SECRET_KEY: ${SECRET_KEY:-}
+      UTILS_SECRET: ${UTILS_SECRET:-}
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/local
+      PGSSLMODE: disable
+      REDIS_URL: redis://redis:6379
+      FILE_STORAGE: local
+      FILE_STORAGE_LOCAL_ROOT_DIR: /var/lib/outline/data
+      OIDC_CLIENT_ID: ${OAUTH2_CLIENT_ID:-}
+      OIDC_CLIENT_SECRET: ${OAUTH2_CLIENT_SECRET:-}
+      OIDC_AUTH_URI: https://local.auth.local.nhost.run/v1/oauth2/authorize
+      OIDC_TOKEN_URI: https://local.auth.local.nhost.run/v1/oauth2/token
+      OIDC_USERINFO_URI: https://local.auth.local.nhost.run/v1/oauth2/userinfo
+      OIDC_DISPLAY_NAME: Nhost
+      OIDC_SCOPES: openid profile email
+    extra_hosts:
+      - local.auth.local.nhost.run:host-gateway
+    volumes:
+      - type: volume
+        source: outline-data
+        target: /var/lib/outline/data
+    restart: always
+
+volumes:
+  outline-data: {}
+
+networks:
+  default:
+    name: backend_default
+    external: true

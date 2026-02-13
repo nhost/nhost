@@ -18,6 +18,7 @@ import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
 import Todos from './pages/Todos';
 import Upload from './pages/Upload';
+import Consent from './pages/Consent';
 import Verify from './pages/Verify';
 
 const MfaVerification = lazy(() => import('./pages/signin/mfa'));
@@ -60,6 +61,7 @@ const router = createBrowserRouter(
       />
       <Route path="signup" element={<SignUp />} />
       <Route path="verify" element={<Verify />} />
+      <Route path="oauth2/consent" element={<Consent />} />
       <Route element={<ProtectedRoute />}>
         <Route path="profile" element={<Profile />} />
         <Route path="todos" element={<Todos />} />
