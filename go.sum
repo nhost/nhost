@@ -384,6 +384,10 @@ github.com/nhost/be v0.0.0-20260202150031-69c6ca795273 h1:Ip+xKo3WITciAzfZ4114Nk
 github.com/nhost/be v0.0.0-20260202150031-69c6ca795273/go.mod h1:18pM4GvfpmGHEF9D05Xn1Hs4IFCbLc+yo3r5NAli6/0=
 github.com/nhost/be v0.0.0-20260212153331-7b8fd282d7d8 h1:LbGpT2QdlOoGdGF1Jc4YvcBq6r4aVRgzeCw8NK9ozdw=
 github.com/nhost/be v0.0.0-20260212153331-7b8fd282d7d8/go.mod h1:18pM4GvfpmGHEF9D05Xn1Hs4IFCbLc+yo3r5NAli6/0=
+github.com/nhost/be v0.0.0-20260212161433-05c22f1fdd56 h1:GB8LaqWhR+5kXBhpv8ypYxbLlQiPgsjV2Yg0vzJzVaw=
+github.com/nhost/be v0.0.0-20260212161433-05c22f1fdd56/go.mod h1:18pM4GvfpmGHEF9D05Xn1Hs4IFCbLc+yo3r5NAli6/0=
+github.com/nhost/be v0.0.0-20260213070520-702e50de92a6 h1:SKUjA2oKPUFnyJvhMUcQtScLhN1tN2vI0d2IBmdeS80=
+github.com/nhost/be v0.0.0-20260213070520-702e50de92a6/go.mod h1:18pM4GvfpmGHEF9D05Xn1Hs4IFCbLc+yo3r5NAli6/0=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
 github.com/oapi-codegen/runtime v1.1.1 h1:EXLHh0DXIJnWhdRPN2w4MXAzFyE4CskzhNLUmtpMYro=
 github.com/oapi-codegen/runtime v1.1.1/go.mod h1:SK9X900oXmPWilYR5/WKPzt3Kqxn/uS/+lbpREv+eCg=

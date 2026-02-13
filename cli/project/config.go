@@ -19,8 +19,10 @@ func DefaultConfig() (*model.ConfigConfig, error) {
 			WebhookSecret: "{{ secrets.NHOST_WEBHOOK_SECRET }}",
 			JwtSecrets: []*model.ConfigJWTSecret{
 				{
-					Type: new("HS256"),
-					Key:  new("{{ secrets.HASURA_GRAPHQL_JWT_SECRET }}"),
+					Type:       new("RS256"),
+					Key:        new("{{ secrets.NHOST_JWT_PUBLIC_KEY }}"),
+					SigningKey: new("{{ secrets.NHOST_JWT_PRIVATE_KEY }}"),
+					Kid:        new("{{ secrets.NHOST_JWT_KID }}"),
 				},
 			},
 		},

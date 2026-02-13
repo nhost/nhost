@@ -128,7 +128,7 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 		return nil, fmt.Errorf("problem marshalling auth jwt custom claims defaults: %w", err)
 	}
 
-	jwtSecret, err := marshalJWT(config.GetHasura().GetJwtSecrets()[0])
+	jwtSecret, err := marshalJWT(config.GetHasura().GetJwtSecrets()[0], true)
 	if err != nil {
 		return nil, fmt.Errorf("could not marshal JWT secret: %w", err)
 	}

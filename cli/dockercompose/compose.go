@@ -1,6 +1,7 @@
 package dockercompose
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/url"
 	"os"
@@ -365,6 +366,29 @@ func dashboard(
 	}
 }
 
+func stripJWTSecretToPublic(value string) (string, error) {
+	var full map[string]any
+	if err := json.Unmarshal([]byte(value), &full); err != nil {
+		return value, nil //nolint:nilerr
+	}
+
+	public := make(map[string]any)
+	if v, ok := full["key"]; ok {
+		public["key"] = v
+	}
+
+	if v, ok := full["type"]; ok {
+		public["type"] = v
+	}
+
+	b, err := json.Marshal(public)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal JWT secret: %w", err)
+	}
+
+	return string(b), nil
+}
+
 func functions( //nolint:funlen
 	cfg *model.ConfigConfig,
 	subdomain string,
@@ -374,7 +398,12 @@ func functions( //nolint:funlen
 	jwtSecret string,
 	port uint,
 	branch string,
-) *Service {
+) (*Service, error) {
+	jwtSecret, err := stripJWTSecretToPublic(jwtSecret)
+	if err != nil {
+		return nil, fmt.Errorf("failed to strip JWT secret for %s: %w", "functions", err)
+	}
+
 	envVars := map[string]string{
 		"HASURA_GRAPHQL_ADMIN_SECRET": cfg.Hasura.AdminSecret,
 		"HASURA_GRAPHQL_DATABASE_URL": "postgres://nhost_auth_admin@local.db.nhost.run:5432/local",
@@ -444,7 +473,7 @@ func functions( //nolint:funlen
 			},
 		},
 		WorkingDir: nil,
-	}
+	}, nil
 }
 
 func mailhog(subdomain, volumeName string, useTLS bool) *Service {
@@ -583,7 +612,7 @@ func getServices( //nolint: funlen,cyclop
 	}
 
 	if startFunctions {
-		services["functions"] = functions(
+		services["functions"], err = functions(
 			cfg,
 			subdomain,
 			httpPort,
@@ -593,6 +622,9 @@ func getServices( //nolint: funlen,cyclop
 			ports.Functions,
 			branch,
 		)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if len(cfg.GetHasura().GetJwtSecrets()) > 0 &&

@@ -387,6 +387,27 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 					Limit:    100,
 					Interval: "15m",
 				},
+				Oauth2Server: &model.ConfigRateLimit{
+					Limit:    100,
+					Interval: "5m",
+				},
+			},
+			Oauth2Provider: &model.ConfigAuthOauth2Provider{
+				Enabled: new(true),
+				AccessToken: &model.ConfigAuthOauth2ProviderAccessToken{
+					ExpiresIn: new(uint32(900)),
+				},
+				RefreshToken: &model.ConfigAuthOauth2ProviderRefreshToken{
+					ExpiresIn: new(uint32(2592000)),
+				},
+				DynamicClientRegistration: &model.ConfigAuthOauth2ProviderDynamicClientRegistration{
+					Enabled:           new(true),
+					MaxClientsPerUser: new(uint32(20)),
+				},
+				LoginURL: new("https://example.com/oauth2/login"),
+				ClientIdMetadataDocument: &model.ConfigAuthOauth2ProviderClientIdMetadataDocument{
+					Enabled: new(true),
+				},
 			},
 		},
 		Postgres: &model.ConfigPostgres{

@@ -1,6 +1,7 @@
 package appconfig
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 
@@ -22,6 +23,29 @@ func deptr[T any](x *T) T {
 	return *x
 }
 
+func stripJWTSecretToPublic(value string) (string, error) {
+	var full map[string]any
+	if err := json.Unmarshal([]byte(value), &full); err != nil {
+		return value, nil //nolint:nilerr
+	}
+
+	public := make(map[string]any)
+	if v, ok := full["key"]; ok {
+		public["key"] = v
+	}
+
+	if v, ok := full["type"]; ok {
+		public["type"] = v
+	}
+
+	b, err := json.Marshal(public)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal JWT secret: %w", err)
+	}
+
+	return string(b), nil
+}
+
 func HasuraEnv( //nolint:funlen,maintidx
 	config *model.ConfigConfig,
 	subdomain,
@@ -31,7 +55,7 @@ func HasuraEnv( //nolint:funlen,maintidx
 	useTLS bool,
 	httpPort uint,
 ) ([]EnvVar, error) {
-	jwtSecret, err := marshalJWT(config.GetHasura().GetJwtSecrets()[0])
+	jwtSecret, err := marshalJWT(config.GetHasura().GetJwtSecrets()[0], false)
 	if err != nil {
 		return nil, fmt.Errorf("could not marshal JWT secret: %w", err)
 	}
