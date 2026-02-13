@@ -12,6 +12,40 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const consumeOAuth2AuthorizationCode = `-- name: ConsumeOAuth2AuthorizationCode :one
+WITH deleted_code AS (
+    DELETE FROM auth.oauth2_authorization_codes
+    WHERE code_hash = $1 AND expires_at > now()
+    RETURNING auth_request_id
+)
+SELECT ar.id, ar.client_id, ar.scopes, ar.redirect_uri, ar.state, ar.nonce, ar.response_type, ar.code_challenge, ar.code_challenge_method, ar.resource, ar.user_id, ar.done, ar.auth_time, ar.created_at, ar.expires_at FROM auth.oauth2_auth_requests ar
+JOIN deleted_code dc ON dc.auth_request_id = ar.id
+LIMIT 1
+`
+
+func (q *Queries) ConsumeOAuth2AuthorizationCode(ctx context.Context, codeHash string) (AuthOauth2AuthRequest, error) {
+	row := q.db.QueryRow(ctx, consumeOAuth2AuthorizationCode, codeHash)
+	var i AuthOauth2AuthRequest
+	err := row.Scan(
+		&i.ID,
+		&i.ClientID,
+		&i.Scopes,
+		&i.RedirectUri,
+		&i.State,
+		&i.Nonce,
+		&i.ResponseType,
+		&i.CodeChallenge,
+		&i.CodeChallengeMethod,
+		&i.Resource,
+		&i.UserID,
+		&i.Done,
+		&i.AuthTime,
+		&i.CreatedAt,
+		&i.ExpiresAt,
+	)
+	return i, err
+}
+
 const countOAuth2ClientsByCreatedBy = `-- name: CountOAuth2ClientsByCreatedBy :one
 SELECT count(*) FROM auth.oauth2_clients
 WHERE created_by = $1
@@ -83,16 +117,6 @@ WHERE id = $1
 
 func (q *Queries) DeleteOAuth2AuthRequest(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.Exec(ctx, deleteOAuth2AuthRequest, id)
-	return err
-}
-
-const deleteOAuth2AuthorizationCode = `-- name: DeleteOAuth2AuthorizationCode :exec
-DELETE FROM auth.oauth2_authorization_codes
-WHERE code_hash = $1
-`
-
-func (q *Queries) DeleteOAuth2AuthorizationCode(ctx context.Context, codeHash string) error {
-	_, err := q.db.Exec(ctx, deleteOAuth2AuthorizationCode, codeHash)
 	return err
 }
 
@@ -180,36 +204,6 @@ LIMIT 1
 
 func (q *Queries) GetOAuth2AuthRequest(ctx context.Context, id uuid.UUID) (AuthOauth2AuthRequest, error) {
 	row := q.db.QueryRow(ctx, getOAuth2AuthRequest, id)
-	var i AuthOauth2AuthRequest
-	err := row.Scan(
-		&i.ID,
-		&i.ClientID,
-		&i.Scopes,
-		&i.RedirectUri,
-		&i.State,
-		&i.Nonce,
-		&i.ResponseType,
-		&i.CodeChallenge,
-		&i.CodeChallengeMethod,
-		&i.Resource,
-		&i.UserID,
-		&i.Done,
-		&i.AuthTime,
-		&i.CreatedAt,
-		&i.ExpiresAt,
-	)
-	return i, err
-}
-
-const getOAuth2AuthRequestByCodeHash = `-- name: GetOAuth2AuthRequestByCodeHash :one
-SELECT ar.id, ar.client_id, ar.scopes, ar.redirect_uri, ar.state, ar.nonce, ar.response_type, ar.code_challenge, ar.code_challenge_method, ar.resource, ar.user_id, ar.done, ar.auth_time, ar.created_at, ar.expires_at FROM auth.oauth2_auth_requests ar
-JOIN auth.oauth2_authorization_codes ac ON ac.auth_request_id = ar.id
-WHERE ac.code_hash = $1 AND ac.expires_at > now()
-LIMIT 1
-`
-
-func (q *Queries) GetOAuth2AuthRequestByCodeHash(ctx context.Context, codeHash string) (AuthOauth2AuthRequest, error) {
-	row := q.db.QueryRow(ctx, getOAuth2AuthRequestByCodeHash, codeHash)
 	var i AuthOauth2AuthRequest
 	err := row.Scan(
 		&i.ID,

@@ -498,15 +498,15 @@ INSERT INTO auth.oauth2_authorization_codes (code_hash, auth_request_id, expires
 VALUES ($1, $2, $3)
 RETURNING *;
 
--- name: GetOAuth2AuthRequestByCodeHash :one
+-- name: ConsumeOAuth2AuthorizationCode :one
+WITH deleted_code AS (
+    DELETE FROM auth.oauth2_authorization_codes
+    WHERE code_hash = $1 AND expires_at > now()
+    RETURNING auth_request_id
+)
 SELECT ar.* FROM auth.oauth2_auth_requests ar
-JOIN auth.oauth2_authorization_codes ac ON ac.auth_request_id = ar.id
-WHERE ac.code_hash = $1 AND ac.expires_at > now()
+JOIN deleted_code dc ON dc.auth_request_id = ar.id
 LIMIT 1;
-
--- name: DeleteOAuth2AuthorizationCode :exec
-DELETE FROM auth.oauth2_authorization_codes
-WHERE code_hash = $1;
 
 -- name: DeleteExpiredOAuth2AuthorizationCodes :exec
 DELETE FROM auth.oauth2_authorization_codes

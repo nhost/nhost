@@ -98,10 +98,9 @@ type DBClient interface { //nolint:interfacebloat
 	InsertOAuth2AuthorizationCode(
 		ctx context.Context, arg sql.InsertOAuth2AuthorizationCodeParams,
 	) (sql.AuthOauth2AuthorizationCode, error)
-	GetOAuth2AuthRequestByCodeHash(
+	ConsumeOAuth2AuthorizationCode(
 		ctx context.Context, codeHash string,
 	) (sql.AuthOauth2AuthRequest, error)
-	DeleteOAuth2AuthorizationCode(ctx context.Context, codeHash string) error
 	DeleteExpiredOAuth2AuthorizationCodes(ctx context.Context) error
 	InsertOAuth2RefreshToken(
 		ctx context.Context, arg sql.InsertOAuth2RefreshTokenParams,

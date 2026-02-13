@@ -16,7 +16,7 @@ import (
 	"github.com/nhost/nhost/services/auth/go/sql"
 )
 
-func (p *Provider) ExchangeCode( //nolint:cyclop
+func (p *Provider) ExchangeCode(
 	ctx context.Context,
 	req *api.OAuth2TokenRequest,
 	logger *slog.Logger,
@@ -27,23 +27,15 @@ func (p *Provider) ExchangeCode( //nolint:cyclop
 
 	codeHash := HashToken(*req.Code)
 
-	authReq, err := p.db.GetOAuth2AuthRequestByCodeHash(ctx, codeHash)
+	authReq, err := p.db.ConsumeOAuth2AuthorizationCode(ctx, codeHash)
 	if errors.Is(err, pgx.ErrNoRows) {
-		logger.WarnContext(ctx, "OAuth2 authorization code not found")
+		logger.WarnContext(ctx, "OAuth2 authorization code not found or already consumed")
 		return nil, &Error{Err: "invalid_grant", Description: "Invalid authorization code"}
 	}
 
 	if err != nil {
-		logger.ErrorContext(ctx, "error getting OAuth2 auth request by code hash", logError(err))
+		logger.ErrorContext(ctx, "error consuming OAuth2 authorization code", logError(err))
 		return nil, &Error{Err: "server_error", Description: "Internal server error"}
-	}
-
-	if err := p.db.DeleteOAuth2AuthorizationCode(ctx, codeHash); err != nil {
-		logger.ErrorContext(ctx, "error deleting OAuth2 authorization code", logError(err))
-	}
-
-	if authReq.ExpiresAt.Time.Before(time.Now()) {
-		return nil, &Error{Err: "invalid_grant", Description: "Authorization code expired"}
 	}
 
 	if !authReq.UserID.Valid {
@@ -101,10 +93,6 @@ func (p *Provider) RefreshToken( //nolint:cyclop,funlen
 		return nil, &Error{Err: "invalid_grant", Description: "Refresh token expired"}
 	}
 
-	if err := p.db.DeleteOAuth2RefreshToken(ctx, tokenHash); err != nil {
-		logger.ErrorContext(ctx, "error deleting old OAuth2 refresh token", logError(err))
-	}
-
 	if oauthErr := p.authenticateClient(
 		ctx,
 		rt.ClientID,
@@ -143,16 +131,18 @@ func (p *Provider) RefreshToken( //nolint:cyclop,funlen
 	newRefreshToken := uuid.NewString()
 	newTokenHash := HashToken(newRefreshToken)
 
-	_, err = p.db.InsertOAuth2RefreshToken(ctx, sql.InsertOAuth2RefreshTokenParams{
-		TokenHash:     newTokenHash,
-		AuthRequestID: rt.AuthRequestID,
-		ClientID:      rt.ClientID,
-		UserID:        rt.UserID,
-		Scopes:        rt.Scopes,
-		ExpiresAt:     sql.TimestampTz(time.Now().Add(refreshTokenTTL)),
+	_, err = p.db.UpdateOAuth2RefreshToken(ctx, sql.UpdateOAuth2RefreshTokenParams{
+		TokenHash:   tokenHash,
+		TokenHash_2: newTokenHash,
+		ExpiresAt:   sql.TimestampTz(time.Now().Add(refreshTokenTTL)),
 	})
+	if errors.Is(err, pgx.ErrNoRows) {
+		logger.WarnContext(ctx, "OAuth2 refresh token already consumed")
+		return nil, &Error{Err: "invalid_grant", Description: "Invalid refresh token"}
+	}
+
 	if err != nil {
-		logger.ErrorContext(ctx, "error inserting new OAuth2 refresh token", logError(err))
+		logger.ErrorContext(ctx, "error rotating OAuth2 refresh token", logError(err))
 		return nil, &Error{Err: "server_error", Description: "Internal server error"}
 	}
 

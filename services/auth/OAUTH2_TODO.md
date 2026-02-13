@@ -66,25 +66,6 @@ Unlike every other oauth2 endpoint (which returns a proper error response), thes
 
 ## SECURITY
 
-### 5. Authorization code not atomically consumed (`oauth2/token.go:41-43`)
-If `DeleteOAuth2AuthorizationCode` fails, the error is only logged and token issuance proceeds. This violates RFC 6749 Section 4.1.2 (codes must be single-use). A persistent DB failure allows repeated code exchange. Additionally, the lookup and delete are separate operations (TOCTOU race) -- two concurrent requests with the same code can both succeed. Fix: use an atomic `DELETE ... RETURNING` query or a serializable transaction.
-
-### 6. Refresh token rotation failure ignored (`oauth2/token.go:104-106`)
-Same pattern: old refresh token deletion can fail silently while a new token is still issued, undermining rotation security. Also subject to the same TOCTOU race as auth codes.
-
-### 7. Refresh token deleted before client authentication (`oauth2/token.go:104 vs 108`)
-In `RefreshToken()`, the old refresh token is deleted on line 104 BEFORE the client is authenticated on line 108. If client authentication fails, the old token is already gone and unrecoverable. The order should be reversed.
-
-### 8. Data race in `PostChangeEnv` (`change_env.go`)
-All mutations to `ctrl.config`, `ctrl.wf.*`, `ctrl.Webauthn`, `ctrl.oauth2` are performed without any synchronization while concurrent request handlers read these fields. This violates Go's memory model and can cause corrupt reads.
-
-### 9. CORS wildcard with credentials (`serve.go:1381-1390`)
-```go
-AllowedOrigins:   []string{"*"},
-AllowCredentials: true,
-```
-Most CORS libraries reflect the request `Origin` header when `*` + credentials is set, allowing any origin to make credentialed requests to the auth service.
-
 ### 10. `modify_oauth2_client` SQL function lacks authorization (migration `00021`)
 Unlike `create_oauth2_client` which takes `hasura_session` and extracts `x-hasura-user-id`, `modify_oauth2_client` has no session parameter and performs no ownership check. Any Hasura user with mutation access can modify any client.
 

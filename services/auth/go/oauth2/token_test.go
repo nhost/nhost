@@ -96,15 +96,13 @@ func TestCreateAccessTokenWithGraphQLScope(t *testing.T) { //nolint:gocognit,cyc
 
 		mockDB.EXPECT().GetOAuth2RefreshTokenByHash(gomock.Any(), tokenHash).
 			Return(rt, nil)
-		mockDB.EXPECT().DeleteOAuth2RefreshToken(gomock.Any(), tokenHash).
-			Return(nil)
 		mockDB.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), clientID).
 			Return(client, nil).Times(2)
 		mockDB.EXPECT().GetUser(gomock.Any(), userID).
 			Return(user, nil)
 		mockDB.EXPECT().GetUserRoles(gomock.Any(), userID).
 			Return(userRoles, nil)
-		mockDB.EXPECT().InsertOAuth2RefreshToken(gomock.Any(), gomock.Any()).
+		mockDB.EXPECT().UpdateOAuth2RefreshToken(gomock.Any(), gomock.Any()).
 			Return(sql.AuthOauth2RefreshToken{}, nil) //nolint:exhaustruct
 
 		provider := oauth2.NewProvider(
@@ -184,11 +182,9 @@ func TestCreateAccessTokenWithGraphQLScope(t *testing.T) { //nolint:gocognit,cyc
 
 		mockDB.EXPECT().GetOAuth2RefreshTokenByHash(gomock.Any(), tokenHash).
 			Return(rt, nil)
-		mockDB.EXPECT().DeleteOAuth2RefreshToken(gomock.Any(), tokenHash).
-			Return(nil)
 		mockDB.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), clientID).
 			Return(client, nil).Times(2)
-		mockDB.EXPECT().InsertOAuth2RefreshToken(gomock.Any(), gomock.Any()).
+		mockDB.EXPECT().UpdateOAuth2RefreshToken(gomock.Any(), gomock.Any()).
 			Return(sql.AuthOauth2RefreshToken{}, nil) //nolint:exhaustruct
 
 		// NOTE: GetUser and GetUserRoles should NOT be called
@@ -241,11 +237,9 @@ func TestCreateAccessTokenWithGraphQLScope(t *testing.T) { //nolint:gocognit,cyc
 
 		mockDB.EXPECT().GetOAuth2RefreshTokenByHash(gomock.Any(), tokenHash).
 			Return(rt, nil)
-		mockDB.EXPECT().DeleteOAuth2RefreshToken(gomock.Any(), tokenHash).
-			Return(nil)
 		mockDB.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), clientID).
 			Return(client, nil).Times(2)
-		mockDB.EXPECT().InsertOAuth2RefreshToken(gomock.Any(), gomock.Any()).
+		mockDB.EXPECT().UpdateOAuth2RefreshToken(gomock.Any(), gomock.Any()).
 			Return(sql.AuthOauth2RefreshToken{}, nil) //nolint:exhaustruct
 
 		provider := oauth2.NewProvider(

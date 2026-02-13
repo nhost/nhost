@@ -68,7 +68,7 @@ CREATE TABLE auth.oauth2_clients (
     redirect_uris text[] DEFAULT '{}'::text[] NOT NULL,
     grant_types text[] DEFAULT '{authorization_code}'::text[] NOT NULL,
     response_types text[] DEFAULT '{code}'::text[] NOT NULL,
-    scopes text[] DEFAULT '{openid}'::text[] NOT NULL,
+    scopes text[] DEFAULT '{openid,profile,email,phone,offline_access,graphql}'::text[] NOT NULL,
     is_public boolean DEFAULT false NOT NULL,
     token_endpoint_auth_method text DEFAULT 'client_secret_basic'::text NOT NULL,
     id_token_signed_response_alg text DEFAULT 'RS256'::text NOT NULL,
@@ -96,7 +96,7 @@ COMMENT ON TABLE auth.oauth2_clients IS 'Registered OAuth2 client applications f
 -- Name: create_oauth2_client(json, text, text[], text, text, text, text[], text[], text[], text, text, integer, integer, text, jsonb); Type: FUNCTION; Schema: auth; Owner: postgres
 --
 
-CREATE FUNCTION auth.create_oauth2_client(hasura_session json, client_name text, redirect_uris text[] DEFAULT '{}'::text[], client_secret text DEFAULT NULL::text, client_uri text DEFAULT NULL::text, logo_uri text DEFAULT NULL::text, grant_types text[] DEFAULT '{authorization_code}'::text[], response_types text[] DEFAULT '{code}'::text[], scopes text[] DEFAULT '{openid}'::text[], token_endpoint_auth_method text DEFAULT 'client_secret_basic'::text, id_token_signed_response_alg text DEFAULT 'RS256'::text, access_token_lifetime integer DEFAULT 900, refresh_token_lifetime integer DEFAULT 2592000, type text DEFAULT 'registered'::text, metadata jsonb DEFAULT NULL::jsonb) RETURNS auth.oauth2_clients
+CREATE FUNCTION auth.create_oauth2_client(hasura_session json, client_name text, redirect_uris text[] DEFAULT '{}'::text[], client_secret text DEFAULT NULL::text, client_uri text DEFAULT NULL::text, logo_uri text DEFAULT NULL::text, grant_types text[] DEFAULT '{authorization_code}'::text[], response_types text[] DEFAULT '{code}'::text[], scopes text[] DEFAULT '{openid,profile,email,phone,offline_access,graphql}'::text[], token_endpoint_auth_method text DEFAULT 'client_secret_basic'::text, id_token_signed_response_alg text DEFAULT 'RS256'::text, access_token_lifetime integer DEFAULT 900, refresh_token_lifetime integer DEFAULT 2592000, type text DEFAULT 'registered'::text, metadata jsonb DEFAULT NULL::jsonb) RETURNS auth.oauth2_clients
     LANGUAGE plpgsql
     AS $$
 DECLARE
