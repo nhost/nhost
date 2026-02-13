@@ -61,8 +61,8 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 			Version: new(string),
 			JwtSecrets: []*model.ConfigJWTSecret{
 				{
-					Type: new("HS256"),
-					Key:  new("secret"),
+					Type: new("RS256"),
+					Key:  new("pubKey"),
 				},
 			},
 			AdminSecret:   "adminsecret",
