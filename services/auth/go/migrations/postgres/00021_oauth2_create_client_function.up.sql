@@ -41,7 +41,7 @@ BEGIN
 
     -- Hash secret if provided
     IF client_secret IS NOT NULL AND client_secret <> '' THEN
-        secret_hash := crypt(client_secret, gen_salt('bf'));
+        secret_hash := crypt(client_secret, gen_salt('bf', 10));
     END IF;
 
     -- Derive is_public from secret presence
@@ -130,7 +130,7 @@ BEGIN
     ELSIF client_secret = '' THEN
         new_secret_hash := NULL;
     ELSE
-        new_secret_hash := crypt(client_secret, gen_salt('bf'));
+        new_secret_hash := crypt(client_secret, gen_salt('bf', 10));
     END IF;
 
     -- Derive is_public from resolved secret

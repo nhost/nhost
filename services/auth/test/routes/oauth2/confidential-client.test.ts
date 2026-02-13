@@ -157,7 +157,7 @@ describe('confidential-client', () => {
     expect(client).toEqual({
       clientId: expect.stringMatching(/^nhoa_/),
       clientName: 'Third party application',
-      clientSecretHash: expect.stringMatching(/^\$2[aby]?\$/),
+      clientSecretHash: expect.stringMatching(/^\$2[aby]?\$10\$/),
       redirectUris: [REDIRECT_URI],
       grantTypes: ['authorization_code'],
       responseTypes: ['code'],
@@ -557,7 +557,7 @@ describe('confidential-client', () => {
 
     const updated = updateData!.modifyAuthOauth2Client;
     // Hash should have changed and still be bcrypt
-    expect(updated.clientSecretHash).toMatch(/^\$2[aby]?\$/);
+    expect(updated.clientSecretHash).toMatch(/^\$2[aby]?\$10\$/);
     expect(updated.clientSecretHash).not.toBe(originalHash);
     // Should remain confidential
     expect(updated.isPublic).toBe(false);
@@ -722,7 +722,7 @@ describe('confidential-client', () => {
     );
 
     const updated = updateData!.modifyAuthOauth2Client;
-    expect(updated.clientSecretHash).toMatch(/^\$2[aby]?\$/);
+    expect(updated.clientSecretHash).toMatch(/^\$2[aby]?\$10\$/);
     expect(updated.isPublic).toBe(false);
     expect(updated.tokenEndpointAuthMethod).toBe('client_secret_post');
   });
