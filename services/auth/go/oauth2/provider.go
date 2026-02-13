@@ -15,11 +15,12 @@ import (
 )
 
 const (
-	AuthMethodClientSecretPost = "client_secret_post"
-	AuthMethodNone             = "none"
-	TokenTypeRefreshToken      = "refresh_token"
-	AuthRequestTTL             = 10 * time.Minute
-	AuthCodeTTL                = 5 * time.Minute
+	AuthMethodClientSecretBasic = "client_secret_basic"
+	AuthMethodClientSecretPost  = "client_secret_post"
+	AuthMethodNone              = "none"
+	TokenTypeRefreshToken       = "refresh_token"
+	AuthRequestTTL              = 10 * time.Minute
+	AuthCodeTTL                 = 5 * time.Minute
 )
 
 // DefaultScopes returns the canonical set of scopes assigned to a new OAuth2

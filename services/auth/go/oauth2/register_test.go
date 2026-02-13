@@ -120,3 +120,125 @@ func TestRegisterClientDefaultScopes(t *testing.T) {
 		}
 	})
 }
+
+func TestRegisterClientDefaultAuthMethod(t *testing.T) {
+	t.Parallel()
+
+	logger := slog.Default()
+	userID := uuid.MustParse("db477732-48fa-4289-b694-2886a646b6eb")
+
+	t.Run("no auth method in request defaults to client_secret_basic", func(t *testing.T) {
+		t.Parallel()
+
+		ctrl := gomock.NewController(t)
+		mockDB := NewMockDBClient(ctrl)
+
+		mockDB.EXPECT().InsertOAuth2Client(gomock.Any(), gomock.Any()).
+			DoAndReturn(func(
+				_ context.Context, params sql.InsertOAuth2ClientParams,
+			) (sql.AuthOauth2Client, error) {
+				if params.TokenEndpointAuthMethod != oauth2.AuthMethodClientSecretBasic {
+					t.Errorf(
+						"expected auth method %q, got %q",
+						oauth2.AuthMethodClientSecretBasic,
+						params.TokenEndpointAuthMethod,
+					)
+				}
+
+				if params.IsPublic {
+					t.Error("expected is_public to be false for confidential client")
+				}
+
+				return sql.AuthOauth2Client{}, nil //nolint:exhaustruct
+			})
+
+		provider := oauth2.NewProvider(
+			mockDB, nil, nil, nil, fakeHasher{},
+			oauth2.Config{ //nolint:exhaustruct
+				AccessTokenTTL:  900,
+				RefreshTokenTTL: 2592000,
+			},
+			nil,
+		)
+
+		resp, oauthErr := provider.RegisterClient(
+			context.Background(),
+			&api.OAuth2RegisterRequest{ //nolint:exhaustruct
+				ClientName:   "Test App",
+				RedirectUris: []string{"https://app.example.com/callback"},
+			},
+			userID,
+			0,
+			logger,
+		)
+		if oauthErr != nil {
+			t.Fatalf("unexpected error: %s", oauthErr.Description)
+		}
+
+		if resp.TokenEndpointAuthMethod == nil ||
+			*resp.TokenEndpointAuthMethod != oauth2.AuthMethodClientSecretBasic {
+			t.Errorf(
+				"expected response auth method %q, got %v",
+				oauth2.AuthMethodClientSecretBasic,
+				resp.TokenEndpointAuthMethod,
+			)
+		}
+	})
+
+	t.Run("explicit auth method overrides default", func(t *testing.T) {
+		t.Parallel()
+
+		ctrl := gomock.NewController(t)
+		mockDB := NewMockDBClient(ctrl)
+
+		authMethod := api.ClientSecretPost
+
+		mockDB.EXPECT().InsertOAuth2Client(gomock.Any(), gomock.Any()).
+			DoAndReturn(func(
+				_ context.Context, params sql.InsertOAuth2ClientParams,
+			) (sql.AuthOauth2Client, error) {
+				if params.TokenEndpointAuthMethod != oauth2.AuthMethodClientSecretPost {
+					t.Errorf(
+						"expected auth method %q, got %q",
+						oauth2.AuthMethodClientSecretPost,
+						params.TokenEndpointAuthMethod,
+					)
+				}
+
+				return sql.AuthOauth2Client{}, nil //nolint:exhaustruct
+			})
+
+		provider := oauth2.NewProvider(
+			mockDB, nil, nil, nil, fakeHasher{},
+			oauth2.Config{ //nolint:exhaustruct
+				AccessTokenTTL:  900,
+				RefreshTokenTTL: 2592000,
+			},
+			nil,
+		)
+
+		resp, oauthErr := provider.RegisterClient(
+			context.Background(),
+			&api.OAuth2RegisterRequest{ //nolint:exhaustruct
+				ClientName:              "Test App",
+				RedirectUris:            []string{"https://app.example.com/callback"},
+				TokenEndpointAuthMethod: &authMethod,
+			},
+			userID,
+			0,
+			logger,
+		)
+		if oauthErr != nil {
+			t.Fatalf("unexpected error: %s", oauthErr.Description)
+		}
+
+		if resp.TokenEndpointAuthMethod == nil ||
+			*resp.TokenEndpointAuthMethod != oauth2.AuthMethodClientSecretPost {
+			t.Errorf(
+				"expected response auth method %q, got %v",
+				oauth2.AuthMethodClientSecretPost,
+				resp.TokenEndpointAuthMethod,
+			)
+		}
+	})
+}

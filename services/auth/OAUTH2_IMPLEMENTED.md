@@ -425,7 +425,7 @@ For confidential clients: `uuid.NewString() + uuid.NewString()` (two concatenate
   "grant_types": ["authorization_code"],
   "response_types": ["code"],
   "scope": "openid profile email",
-  "token_endpoint_auth_method": "client_secret_post",
+  "token_endpoint_auth_method": "client_secret_basic",
   "client_uri": "https://app.example.com",
   "logo_uri": "https://app.example.com/logo.png"
 }
@@ -438,7 +438,7 @@ For confidential clients: `uuid.NewString() + uuid.NewString()` (two concatenate
 | `grant_types` | No | `["authorization_code"]` |
 | `response_types` | No | `["code"]` |
 | `scope` | No | `"openid profile email phone offline_access"` |
-| `token_endpoint_auth_method` | No | `"client_secret_post"` |
+| `token_endpoint_auth_method` | No | `"client_secret_basic"` (per RFC 7591) |
 | `client_uri` | No | — |
 | `logo_uri` | No | — |
 
@@ -454,7 +454,7 @@ For confidential clients: `uuid.NewString() + uuid.NewString()` (two concatenate
   "grant_types": ["authorization_code"],
   "response_types": ["code"],
   "scope": "openid profile email phone offline_access",
-  "token_endpoint_auth_method": "client_secret_post"
+  "token_endpoint_auth_method": "client_secret_basic"
 }
 ```
 

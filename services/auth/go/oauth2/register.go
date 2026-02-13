@@ -58,7 +58,7 @@ func (p *Provider) RegisterClient( //nolint:funlen,cyclop
 		scopes = strings.Split(*req.Scope, " ")
 	}
 
-	authMethod := AuthMethodClientSecretPost
+	authMethod := AuthMethodClientSecretBasic
 	if req.TokenEndpointAuthMethod != nil {
 		authMethod = string(*req.TokenEndpointAuthMethod)
 	}
