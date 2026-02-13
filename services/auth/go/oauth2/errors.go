@@ -28,12 +28,16 @@ func ErrorStatusCode(errCode string) int {
 	}
 }
 
-func ErrorRedirectURL(redirectURI, state string, oauthErr *Error) string {
+func ErrorRedirectURL(redirectURI, state, issuer string, oauthErr *Error) string {
 	u, _ := url.Parse(redirectURI)
 
 	q := u.Query()
 	q.Set("error", oauthErr.Err)
 	q.Set("error_description", oauthErr.Description)
+
+	if issuer != "" {
+		q.Set("iss", issuer)
+	}
 
 	if state != "" {
 		q.Set("state", state)

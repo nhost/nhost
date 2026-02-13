@@ -206,6 +206,10 @@ func TestOauth2Authorize(t *testing.T) { //nolint:cyclop,gocognit,maintidx
 		if got := u.Query().Get("state"); got != state {
 			t.Errorf("expected state=%q, got %q", state, got)
 		}
+
+		if got := u.Query().Get("iss"); got != "https://local.auth.nhost.run" {
+			t.Errorf("expected iss=https://local.auth.nhost.run, got %q", got)
+		}
 	})
 
 	t.Run("empty response_type without state", func(t *testing.T) {
@@ -254,6 +258,10 @@ func TestOauth2Authorize(t *testing.T) { //nolint:cyclop,gocognit,maintidx
 
 		if got := u.Query().Get("state"); got != "" {
 			t.Errorf("expected no state param, got %q", got)
+		}
+
+		if got := u.Query().Get("iss"); got != "https://local.auth.nhost.run" {
+			t.Errorf("expected iss=https://local.auth.nhost.run, got %q", got)
 		}
 	})
 
@@ -306,6 +314,10 @@ func TestOauth2Authorize(t *testing.T) { //nolint:cyclop,gocognit,maintidx
 		if got := u.Query().Get("state"); got != state {
 			t.Errorf("expected state=%q, got %q", state, got)
 		}
+
+		if got := u.Query().Get("iss"); got != "https://local.auth.nhost.run" {
+			t.Errorf("expected iss=https://local.auth.nhost.run, got %q", got)
+		}
 	})
 
 	t.Run("invalid scope redirects", func(t *testing.T) {
@@ -357,6 +369,10 @@ func TestOauth2Authorize(t *testing.T) { //nolint:cyclop,gocognit,maintidx
 
 		if got := u.Query().Get("state"); got != state {
 			t.Errorf("expected state=%q, got %q", state, got)
+		}
+
+		if got := u.Query().Get("iss"); got != "https://local.auth.nhost.run" {
+			t.Errorf("expected iss=https://local.auth.nhost.run, got %q", got)
 		}
 	})
 }
