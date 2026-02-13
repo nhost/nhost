@@ -2,18 +2,26 @@ import { describe, it, expect, beforeAll } from 'bun:test';
 import { createNhostClient } from '@nhost/nhost-js';
 import { FetchError } from '@nhost/nhost-js/fetch';
 import * as jose from 'jose';
+import { randomBytes } from 'crypto';
 
 import { request, resetEnvironment } from '../../server';
 
 const AUTH_URL = 'http://127.0.0.1:4000';
+const HASURA_URL = 'http://127.0.0.1:8080/v1/graphql';
+const HASURA_ADMIN_SECRET = 'nhost-admin-secret';
 const REDIRECT_URI = 'http://localhost:9999/callback';
 const DEMO_EMAIL = 'login-ui-errors@example.com';
 const DEMO_PASSWORD = 'Demo1234!';
 
 const nhost = createNhostClient({
   authUrl: AUTH_URL,
+  graphqlUrl: HASURA_URL,
   configure: [],
 });
+
+const adminHeaders = {
+  headers: { 'x-hasura-admin-secret': HASURA_ADMIN_SECRET },
+};
 
 /** Run the authorize step and return the request_id (without completing login). */
 async function getRequestId(clientId: string): Promise<string> {
@@ -83,20 +91,29 @@ describe('login-userinfo-dcr-clients', () => {
     jwt = signInResp.session!.accessToken;
     userId = jose.decodeJwt(jwt).sub!;
 
-    // Create a confidential client
-    const { body: client } = await nhost.auth.oauth2ClientsCreate(
+    // Create a confidential client via GraphQL
+    const secret = randomBytes(32).toString('hex');
+    const { body: { data } } = await nhost.graphql.request<{ createAuthOauth2Client: { clientId: string } }>(
       {
-        clientName: 'Login UI Test Client',
-        redirectUris: [REDIRECT_URI],
-        scopes: ['openid', 'profile', 'email'],
-        grantTypes: ['authorization_code'],
-        responseTypes: ['code'],
-        tokenEndpointAuthMethod: 'client_secret_post',
+        query: `mutation ($args: createAuthOauth2Client_args!) {
+          createAuthOauth2Client(args: $args) { clientId }
+        }`,
+        variables: {
+          args: {
+            client_name: 'Login UI Test Client',
+            client_secret: secret,
+            redirect_uris: `{${REDIRECT_URI}}`,
+            scopes: '{openid,profile,email}',
+            grant_types: '{authorization_code}',
+            response_types: '{code}',
+            token_endpoint_auth_method: 'client_secret_post',
+          },
+        },
       },
-      { headers: { Authorization: `Bearer ${jwt}` } },
+      adminHeaders,
     );
-    clientId = client.clientId;
-    clientSecret = client.clientSecret!;
+    clientId = data!.createAuthOauth2Client.clientId;
+    clientSecret = secret;
   });
 
   // --- GET /oauth2/login tests ---
@@ -233,30 +250,4 @@ describe('login-userinfo-dcr-clients', () => {
     }
   });
 
-  // --- Client admin API error tests ---
-
-  it('should return 404 for GET non-existent client', async () => {
-    try {
-      await nhost.auth.oauth2ClientsGet('non-existent-client-id', {
-        headers: { Authorization: `Bearer ${jwt}` },
-      });
-      expect(true).toBe(false);
-    } catch (err) {
-      expect(err).toBeInstanceOf(FetchError);
-      expect((err as FetchError).status).toBe(404);
-    }
-  });
-
-  it('should reject client create without authentication', async () => {
-    try {
-      await nhost.auth.oauth2ClientsCreate({
-        clientName: 'Unauthorized Client',
-        redirectUris: [REDIRECT_URI],
-      });
-      expect(true).toBe(false);
-    } catch (err) {
-      expect(err).toBeInstanceOf(FetchError);
-      expect((err as FetchError).status).toBe(401);
-    }
-  });
 });

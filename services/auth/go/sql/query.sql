@@ -436,10 +436,6 @@ SELECT * FROM auth.oauth2_clients
 WHERE client_id = $1
 LIMIT 1;
 
--- name: ListOAuth2Clients :many
-SELECT * FROM auth.oauth2_clients
-ORDER BY created_at DESC;
-
 -- name: CountOAuth2ClientsByCreatedBy :one
 SELECT count(*) FROM auth.oauth2_clients
 WHERE created_by = $1;
@@ -457,27 +453,6 @@ INSERT INTO auth.oauth2_clients (
     $13, $14, $15
 )
 RETURNING *;
-
--- name: UpdateOAuth2Client :one
-UPDATE auth.oauth2_clients
-SET
-    client_name = $2,
-    client_uri = $3,
-    logo_uri = $4,
-    redirect_uris = $5,
-    grant_types = $6,
-    response_types = $7,
-    scopes = $8,
-    is_public = $9,
-    token_endpoint_auth_method = $10,
-    access_token_lifetime = $11,
-    refresh_token_lifetime = $12
-WHERE client_id = $1
-RETURNING *;
-
--- name: DeleteOAuth2Client :exec
-DELETE FROM auth.oauth2_clients
-WHERE client_id = $1;
 
 -- =============================================================================
 -- OAuth2 Provider - Auth Requests

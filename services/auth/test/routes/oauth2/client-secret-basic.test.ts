@@ -2,18 +2,26 @@ import { describe, it, expect, beforeAll } from 'bun:test';
 import { createNhostClient } from '@nhost/nhost-js';
 import { FetchError } from '@nhost/nhost-js/fetch';
 import * as jose from 'jose';
+import { randomBytes } from 'crypto';
 
 import { request, resetEnvironment } from '../../server';
 
 const AUTH_URL = 'http://127.0.0.1:4000';
+const HASURA_URL = 'http://127.0.0.1:8080/v1/graphql';
+const HASURA_ADMIN_SECRET = 'nhost-admin-secret';
 const REDIRECT_URI = 'http://localhost:9999/callback';
 const DEMO_EMAIL = 'basic-auth@example.com';
 const DEMO_PASSWORD = 'Demo1234!';
 
 const nhost = createNhostClient({
   authUrl: AUTH_URL,
+  graphqlUrl: HASURA_URL,
   configure: [],
 });
+
+const adminHeaders = {
+  headers: { 'x-hasura-admin-secret': HASURA_ADMIN_SECRET },
+};
 
 function basicAuthHeader(clientId: string, clientSecret: string): string {
   return `Basic ${btoa(`${clientId}:${clientSecret}`)}`;
@@ -79,20 +87,29 @@ describe('client_secret_basic authentication (RFC 6749 Section 2.3.1)', () => {
     userId = sessionPayload.sub!;
     issuer = sessionPayload.iss!;
 
-    // Create a confidential client
-    const { body: client } = await nhost.auth.oauth2ClientsCreate(
+    // Create a confidential client via GraphQL
+    const secret = randomBytes(32).toString('hex');
+    const { body: { data } } = await nhost.graphql.request<{ createAuthOauth2Client: { clientId: string } }>(
       {
-        clientName: 'Basic Auth Test Client',
-        redirectUris: [REDIRECT_URI],
-        scopes: ['openid', 'profile', 'email'],
-        grantTypes: ['authorization_code'],
-        responseTypes: ['code'],
-        tokenEndpointAuthMethod: 'client_secret_post',
+        query: `mutation ($args: createAuthOauth2Client_args!) {
+          createAuthOauth2Client(args: $args) { clientId }
+        }`,
+        variables: {
+          args: {
+            client_name: 'Basic Auth Test Client',
+            client_secret: secret,
+            redirect_uris: `{${REDIRECT_URI}}`,
+            scopes: '{openid,profile,email}',
+            grant_types: '{authorization_code}',
+            response_types: '{code}',
+            token_endpoint_auth_method: 'client_secret_post',
+          },
+        },
       },
-      { headers: { Authorization: `Bearer ${jwt}` } },
+      adminHeaders,
     );
-    clientId = client.clientId;
-    clientSecret = client.clientSecret!;
+    clientId = data!.createAuthOauth2Client.clientId;
+    clientSecret = secret;
   });
 
   it('should exchange authorization code using Basic auth header', async () => {

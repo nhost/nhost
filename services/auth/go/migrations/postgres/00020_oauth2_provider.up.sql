@@ -30,6 +30,7 @@ CREATE TABLE auth.oauth2_clients (
     access_token_lifetime integer NOT NULL DEFAULT 900,
     refresh_token_lifetime integer NOT NULL DEFAULT 2592000,
     type text NOT NULL DEFAULT 'registered',
+    metadata JSONB,
     metadata_document_fetched_at timestamptz,
     created_by uuid,
     created_at timestamp with time zone DEFAULT now() NOT NULL,

@@ -128,20 +128,6 @@ func (mr *MockDBClientMockRecorder) DeleteOAuth2AuthorizationCode(ctx, codeHash 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteOAuth2AuthorizationCode", reflect.TypeOf((*MockDBClient)(nil).DeleteOAuth2AuthorizationCode), ctx, codeHash)
 }
 
-// DeleteOAuth2Client mocks base method.
-func (m *MockDBClient) DeleteOAuth2Client(ctx context.Context, clientID string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteOAuth2Client", ctx, clientID)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// DeleteOAuth2Client indicates an expected call of DeleteOAuth2Client.
-func (mr *MockDBClientMockRecorder) DeleteOAuth2Client(ctx, clientID any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteOAuth2Client", reflect.TypeOf((*MockDBClient)(nil).DeleteOAuth2Client), ctx, clientID)
-}
-
 // DeleteOAuth2RefreshToken mocks base method.
 func (m *MockDBClient) DeleteOAuth2RefreshToken(ctx context.Context, tokenHash string) error {
 	m.ctrl.T.Helper()
@@ -320,21 +306,6 @@ func (mr *MockDBClientMockRecorder) InsertOAuth2RefreshToken(ctx, arg any) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertOAuth2RefreshToken", reflect.TypeOf((*MockDBClient)(nil).InsertOAuth2RefreshToken), ctx, arg)
 }
 
-// ListOAuth2Clients mocks base method.
-func (m *MockDBClient) ListOAuth2Clients(ctx context.Context) ([]sql.AuthOauth2Client, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListOAuth2Clients", ctx)
-	ret0, _ := ret[0].([]sql.AuthOauth2Client)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListOAuth2Clients indicates an expected call of ListOAuth2Clients.
-func (mr *MockDBClientMockRecorder) ListOAuth2Clients(ctx any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListOAuth2Clients", reflect.TypeOf((*MockDBClient)(nil).ListOAuth2Clients), ctx)
-}
-
 // UpdateOAuth2AuthRequestSetUser mocks base method.
 func (m *MockDBClient) UpdateOAuth2AuthRequestSetUser(ctx context.Context, arg sql.UpdateOAuth2AuthRequestSetUserParams) (sql.AuthOauth2AuthRequest, error) {
 	m.ctrl.T.Helper()
@@ -348,21 +319,6 @@ func (m *MockDBClient) UpdateOAuth2AuthRequestSetUser(ctx context.Context, arg s
 func (mr *MockDBClientMockRecorder) UpdateOAuth2AuthRequestSetUser(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOAuth2AuthRequestSetUser", reflect.TypeOf((*MockDBClient)(nil).UpdateOAuth2AuthRequestSetUser), ctx, arg)
-}
-
-// UpdateOAuth2Client mocks base method.
-func (m *MockDBClient) UpdateOAuth2Client(ctx context.Context, arg sql.UpdateOAuth2ClientParams) (sql.AuthOauth2Client, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateOAuth2Client", ctx, arg)
-	ret0, _ := ret[0].(sql.AuthOauth2Client)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// UpdateOAuth2Client indicates an expected call of UpdateOAuth2Client.
-func (mr *MockDBClientMockRecorder) UpdateOAuth2Client(ctx, arg any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOAuth2Client", reflect.TypeOf((*MockDBClient)(nil).UpdateOAuth2Client), ctx, arg)
 }
 
 // UpdateOAuth2RefreshToken mocks base method.

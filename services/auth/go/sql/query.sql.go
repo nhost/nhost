@@ -96,16 +96,6 @@ func (q *Queries) DeleteOAuth2AuthorizationCode(ctx context.Context, codeHash st
 	return err
 }
 
-const deleteOAuth2Client = `-- name: DeleteOAuth2Client :exec
-DELETE FROM auth.oauth2_clients
-WHERE client_id = $1
-`
-
-func (q *Queries) DeleteOAuth2Client(ctx context.Context, clientID string) error {
-	_, err := q.db.Exec(ctx, deleteOAuth2Client, clientID)
-	return err
-}
-
 const deleteOAuth2RefreshToken = `-- name: DeleteOAuth2RefreshToken :exec
 DELETE FROM auth.oauth2_refresh_tokens
 WHERE token_hash = $1
@@ -243,7 +233,7 @@ func (q *Queries) GetOAuth2AuthRequestByCodeHash(ctx context.Context, codeHash s
 
 const getOAuth2ClientByClientID = `-- name: GetOAuth2ClientByClientID :one
 
-SELECT id, client_id, client_secret_hash, client_name, client_uri, logo_uri, redirect_uris, grant_types, response_types, scopes, is_public, token_endpoint_auth_method, id_token_signed_response_alg, access_token_lifetime, refresh_token_lifetime, type, metadata_document_fetched_at, created_by, created_at, updated_at FROM auth.oauth2_clients
+SELECT id, client_id, client_secret_hash, client_name, client_uri, logo_uri, redirect_uris, grant_types, response_types, scopes, is_public, token_endpoint_auth_method, id_token_signed_response_alg, access_token_lifetime, refresh_token_lifetime, type, metadata, metadata_document_fetched_at, created_by, created_at, updated_at FROM auth.oauth2_clients
 WHERE client_id = $1
 LIMIT 1
 `
@@ -271,6 +261,7 @@ func (q *Queries) GetOAuth2ClientByClientID(ctx context.Context, clientID string
 		&i.AccessTokenLifetime,
 		&i.RefreshTokenLifetime,
 		&i.Type,
+		&i.Metadata,
 		&i.MetadataDocumentFetchedAt,
 		&i.CreatedBy,
 		&i.CreatedAt,
@@ -895,7 +886,7 @@ INSERT INTO auth.oauth2_clients (
     $11, $12,
     $13, $14, $15
 )
-RETURNING id, client_id, client_secret_hash, client_name, client_uri, logo_uri, redirect_uris, grant_types, response_types, scopes, is_public, token_endpoint_auth_method, id_token_signed_response_alg, access_token_lifetime, refresh_token_lifetime, type, metadata_document_fetched_at, created_by, created_at, updated_at
+RETURNING id, client_id, client_secret_hash, client_name, client_uri, logo_uri, redirect_uris, grant_types, response_types, scopes, is_public, token_endpoint_auth_method, id_token_signed_response_alg, access_token_lifetime, refresh_token_lifetime, type, metadata, metadata_document_fetched_at, created_by, created_at, updated_at
 `
 
 type InsertOAuth2ClientParams struct {
@@ -952,6 +943,7 @@ func (q *Queries) InsertOAuth2Client(ctx context.Context, arg InsertOAuth2Client
 		&i.AccessTokenLifetime,
 		&i.RefreshTokenLifetime,
 		&i.Type,
+		&i.Metadata,
 		&i.MetadataDocumentFetchedAt,
 		&i.CreatedBy,
 		&i.CreatedAt,
@@ -1568,52 +1560,6 @@ func (q *Queries) InsertUserWithUserProviderAndRefreshToken(ctx context.Context,
 	return i, err
 }
 
-const listOAuth2Clients = `-- name: ListOAuth2Clients :many
-SELECT id, client_id, client_secret_hash, client_name, client_uri, logo_uri, redirect_uris, grant_types, response_types, scopes, is_public, token_endpoint_auth_method, id_token_signed_response_alg, access_token_lifetime, refresh_token_lifetime, type, metadata_document_fetched_at, created_by, created_at, updated_at FROM auth.oauth2_clients
-ORDER BY created_at DESC
-`
-
-func (q *Queries) ListOAuth2Clients(ctx context.Context) ([]AuthOauth2Client, error) {
-	rows, err := q.db.Query(ctx, listOAuth2Clients)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []AuthOauth2Client
-	for rows.Next() {
-		var i AuthOauth2Client
-		if err := rows.Scan(
-			&i.ID,
-			&i.ClientID,
-			&i.ClientSecretHash,
-			&i.ClientName,
-			&i.ClientUri,
-			&i.LogoUri,
-			&i.RedirectUris,
-			&i.GrantTypes,
-			&i.ResponseTypes,
-			&i.Scopes,
-			&i.IsPublic,
-			&i.TokenEndpointAuthMethod,
-			&i.IDTokenSignedResponseAlg,
-			&i.AccessTokenLifetime,
-			&i.RefreshTokenLifetime,
-			&i.Type,
-			&i.MetadataDocumentFetchedAt,
-			&i.CreatedBy,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const refreshTokenAndGetUserRoles = `-- name: RefreshTokenAndGetUserRoles :many
 WITH refreshed_token AS (
     UPDATE auth.refresh_tokens
@@ -1695,80 +1641,6 @@ func (q *Queries) UpdateOAuth2AuthRequestSetUser(ctx context.Context, arg Update
 		&i.AuthTime,
 		&i.CreatedAt,
 		&i.ExpiresAt,
-	)
-	return i, err
-}
-
-const updateOAuth2Client = `-- name: UpdateOAuth2Client :one
-UPDATE auth.oauth2_clients
-SET
-    client_name = $2,
-    client_uri = $3,
-    logo_uri = $4,
-    redirect_uris = $5,
-    grant_types = $6,
-    response_types = $7,
-    scopes = $8,
-    is_public = $9,
-    token_endpoint_auth_method = $10,
-    access_token_lifetime = $11,
-    refresh_token_lifetime = $12
-WHERE client_id = $1
-RETURNING id, client_id, client_secret_hash, client_name, client_uri, logo_uri, redirect_uris, grant_types, response_types, scopes, is_public, token_endpoint_auth_method, id_token_signed_response_alg, access_token_lifetime, refresh_token_lifetime, type, metadata_document_fetched_at, created_by, created_at, updated_at
-`
-
-type UpdateOAuth2ClientParams struct {
-	ClientID                string
-	ClientName              string
-	ClientUri               pgtype.Text
-	LogoUri                 pgtype.Text
-	RedirectUris            []string
-	GrantTypes              []string
-	ResponseTypes           []string
-	Scopes                  []string
-	IsPublic                bool
-	TokenEndpointAuthMethod string
-	AccessTokenLifetime     int32
-	RefreshTokenLifetime    int32
-}
-
-func (q *Queries) UpdateOAuth2Client(ctx context.Context, arg UpdateOAuth2ClientParams) (AuthOauth2Client, error) {
-	row := q.db.QueryRow(ctx, updateOAuth2Client,
-		arg.ClientID,
-		arg.ClientName,
-		arg.ClientUri,
-		arg.LogoUri,
-		arg.RedirectUris,
-		arg.GrantTypes,
-		arg.ResponseTypes,
-		arg.Scopes,
-		arg.IsPublic,
-		arg.TokenEndpointAuthMethod,
-		arg.AccessTokenLifetime,
-		arg.RefreshTokenLifetime,
-	)
-	var i AuthOauth2Client
-	err := row.Scan(
-		&i.ID,
-		&i.ClientID,
-		&i.ClientSecretHash,
-		&i.ClientName,
-		&i.ClientUri,
-		&i.LogoUri,
-		&i.RedirectUris,
-		&i.GrantTypes,
-		&i.ResponseTypes,
-		&i.Scopes,
-		&i.IsPublic,
-		&i.TokenEndpointAuthMethod,
-		&i.IDTokenSignedResponseAlg,
-		&i.AccessTokenLifetime,
-		&i.RefreshTokenLifetime,
-		&i.Type,
-		&i.MetadataDocumentFetchedAt,
-		&i.CreatedBy,
-		&i.CreatedAt,
-		&i.UpdatedAt,
 	)
 	return i, err
 }
@@ -2133,7 +2005,7 @@ ON CONFLICT (client_id) DO UPDATE SET
     redirect_uris = EXCLUDED.redirect_uris,
     scopes = EXCLUDED.scopes,
     metadata_document_fetched_at = now()
-RETURNING id, client_id, client_secret_hash, client_name, client_uri, logo_uri, redirect_uris, grant_types, response_types, scopes, is_public, token_endpoint_auth_method, id_token_signed_response_alg, access_token_lifetime, refresh_token_lifetime, type, metadata_document_fetched_at, created_by, created_at, updated_at
+RETURNING id, client_id, client_secret_hash, client_name, client_uri, logo_uri, redirect_uris, grant_types, response_types, scopes, is_public, token_endpoint_auth_method, id_token_signed_response_alg, access_token_lifetime, refresh_token_lifetime, type, metadata, metadata_document_fetched_at, created_by, created_at, updated_at
 `
 
 type UpsertOAuth2CIMDClientParams struct {
@@ -2172,6 +2044,7 @@ func (q *Queries) UpsertOAuth2CIMDClient(ctx context.Context, arg UpsertOAuth2CI
 		&i.AccessTokenLifetime,
 		&i.RefreshTokenLifetime,
 		&i.Type,
+		&i.Metadata,
 		&i.MetadataDocumentFetchedAt,
 		&i.CreatedBy,
 		&i.CreatedAt,

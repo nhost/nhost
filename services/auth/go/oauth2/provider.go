@@ -74,14 +74,9 @@ type PasswordHasher interface {
 type DBClient interface { //nolint:interfacebloat
 	CountOAuth2ClientsByCreatedBy(ctx context.Context, createdBy pgtype.UUID) (int64, error)
 	GetOAuth2ClientByClientID(ctx context.Context, clientID string) (sql.AuthOauth2Client, error)
-	ListOAuth2Clients(ctx context.Context) ([]sql.AuthOauth2Client, error)
 	InsertOAuth2Client(
 		ctx context.Context, arg sql.InsertOAuth2ClientParams,
 	) (sql.AuthOauth2Client, error)
-	UpdateOAuth2Client(
-		ctx context.Context, arg sql.UpdateOAuth2ClientParams,
-	) (sql.AuthOauth2Client, error)
-	DeleteOAuth2Client(ctx context.Context, clientID string) error
 	InsertOAuth2AuthRequest(
 		ctx context.Context, arg sql.InsertOAuth2AuthRequestParams,
 	) (sql.AuthOauth2AuthRequest, error)

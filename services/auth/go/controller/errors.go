@@ -236,25 +236,6 @@ func (response ErrorResponse) VisitVerifySignInPasswordlessSmsResponse(
 	return response.visit(w)
 }
 
-func (response ErrorResponse) VisitOauth2ClientsListResponse(w http.ResponseWriter) error {
-	return response.visit(w)
-}
-
-func (response ErrorResponse) VisitOauth2ClientsCreateResponse(w http.ResponseWriter) error {
-	return response.visit(w)
-}
-
-func (response ErrorResponse) VisitOauth2ClientsGetResponse(w http.ResponseWriter) error {
-	return response.visit(w)
-}
-
-func (response ErrorResponse) VisitOauth2ClientsUpdateResponse(w http.ResponseWriter) error {
-	return response.visit(w)
-}
-
-func (response ErrorResponse) VisitOauth2ClientsDeleteResponse(w http.ResponseWriter) error {
-	return response.visit(w)
-}
 
 func (response ErrorResponse) VisitOauth2LoginGetResponse(w http.ResponseWriter) error {
 	return response.visit(w)

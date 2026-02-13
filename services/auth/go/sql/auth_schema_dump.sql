@@ -38,6 +38,192 @@ CREATE DOMAIN auth.email AS public.citext
 ALTER DOMAIN auth.email OWNER TO postgres;
 
 --
+-- Name: generate_oauth2_client_id(); Type: FUNCTION; Schema: auth; Owner: postgres
+--
+
+CREATE FUNCTION auth.generate_oauth2_client_id() RETURNS text
+    LANGUAGE sql
+    AS $$
+    SELECT 'nhoa_' || substring(encode(sha256(gen_random_uuid()::text::bytea), 'hex') from 1 for 16);
+$$;
+
+
+ALTER FUNCTION auth.generate_oauth2_client_id() OWNER TO postgres;
+
+SET default_tablespace = '';
+
+SET default_table_access_method = heap;
+
+--
+-- Name: oauth2_clients; Type: TABLE; Schema: auth; Owner: postgres
+--
+
+CREATE TABLE auth.oauth2_clients (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    client_id text DEFAULT auth.generate_oauth2_client_id() NOT NULL,
+    client_secret_hash text,
+    client_name text NOT NULL,
+    client_uri text,
+    logo_uri text,
+    redirect_uris text[] DEFAULT '{}'::text[] NOT NULL,
+    grant_types text[] DEFAULT '{authorization_code}'::text[] NOT NULL,
+    response_types text[] DEFAULT '{code}'::text[] NOT NULL,
+    scopes text[] DEFAULT '{openid}'::text[] NOT NULL,
+    is_public boolean DEFAULT false NOT NULL,
+    token_endpoint_auth_method text DEFAULT 'client_secret_basic'::text NOT NULL,
+    id_token_signed_response_alg text DEFAULT 'RS256'::text NOT NULL,
+    access_token_lifetime integer DEFAULT 900 NOT NULL,
+    refresh_token_lifetime integer DEFAULT 2592000 NOT NULL,
+    type text DEFAULT 'registered'::text NOT NULL,
+    metadata jsonb,
+    metadata_document_fetched_at timestamp with time zone,
+    created_by uuid,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+ALTER TABLE auth.oauth2_clients OWNER TO postgres;
+
+--
+-- Name: TABLE oauth2_clients; Type: COMMENT; Schema: auth; Owner: postgres
+--
+
+COMMENT ON TABLE auth.oauth2_clients IS 'Registered OAuth2 client applications for the identity provider.';
+
+
+--
+-- Name: create_oauth2_client(text, text[], text, text, text, text[], text[], text[], text, text, integer, integer, text, jsonb, uuid); Type: FUNCTION; Schema: auth; Owner: postgres
+--
+
+CREATE FUNCTION auth.create_oauth2_client(client_name text, redirect_uris text[] DEFAULT '{}'::text[], client_secret text DEFAULT NULL::text, client_uri text DEFAULT NULL::text, logo_uri text DEFAULT NULL::text, grant_types text[] DEFAULT '{authorization_code}'::text[], response_types text[] DEFAULT '{code}'::text[], scopes text[] DEFAULT '{openid}'::text[], token_endpoint_auth_method text DEFAULT 'client_secret_basic'::text, id_token_signed_response_alg text DEFAULT 'RS256'::text, access_token_lifetime integer DEFAULT 900, refresh_token_lifetime integer DEFAULT 2592000, type text DEFAULT 'registered'::text, metadata jsonb DEFAULT NULL::jsonb, created_by uuid DEFAULT NULL::uuid) RETURNS auth.oauth2_clients
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+    secret_hash text := NULL;
+    is_public boolean;
+    v_auth_method text;
+    result auth.oauth2_clients;
+BEGIN
+    -- Hash secret if provided
+    IF client_secret IS NOT NULL AND client_secret <> '' THEN
+        secret_hash := crypt(client_secret, gen_salt('bf'));
+    END IF;
+
+    -- Derive is_public from secret presence
+    is_public := (secret_hash IS NULL);
+
+    -- Force auth method to 'none' for public clients
+    v_auth_method := CASE WHEN is_public THEN 'none' ELSE token_endpoint_auth_method END;
+
+    INSERT INTO auth.oauth2_clients (
+        client_name,
+        client_secret_hash,
+        redirect_uris,
+        client_uri,
+        logo_uri,
+        grant_types,
+        response_types,
+        scopes,
+        is_public,
+        token_endpoint_auth_method,
+        id_token_signed_response_alg,
+        access_token_lifetime,
+        refresh_token_lifetime,
+        type,
+        metadata,
+        created_by
+    ) VALUES (
+        create_oauth2_client.client_name,
+        secret_hash,
+        create_oauth2_client.redirect_uris,
+        create_oauth2_client.client_uri,
+        create_oauth2_client.logo_uri,
+        create_oauth2_client.grant_types,
+        create_oauth2_client.response_types,
+        create_oauth2_client.scopes,
+        is_public,
+        v_auth_method,
+        create_oauth2_client.id_token_signed_response_alg,
+        create_oauth2_client.access_token_lifetime,
+        create_oauth2_client.refresh_token_lifetime,
+        create_oauth2_client.type,
+        create_oauth2_client.metadata,
+        create_oauth2_client.created_by
+    )
+    RETURNING * INTO result;
+
+    RETURN result;
+END;
+$$;
+
+
+ALTER FUNCTION auth.create_oauth2_client(client_name text, redirect_uris text[], client_secret text, client_uri text, logo_uri text, grant_types text[], response_types text[], scopes text[], token_endpoint_auth_method text, id_token_signed_response_alg text, access_token_lifetime integer, refresh_token_lifetime integer, type text, metadata jsonb, created_by uuid) OWNER TO postgres;
+
+--
+-- Name: modify_oauth2_client(text, text, text, text[], text, text, text[], text[], text[], text, text, integer, integer, text, jsonb); Type: FUNCTION; Schema: auth; Owner: postgres
+--
+
+CREATE FUNCTION auth.modify_oauth2_client(p_client_id text, client_name text DEFAULT NULL::text, client_secret text DEFAULT NULL::text, redirect_uris text[] DEFAULT NULL::text[], client_uri text DEFAULT NULL::text, logo_uri text DEFAULT NULL::text, grant_types text[] DEFAULT NULL::text[], response_types text[] DEFAULT NULL::text[], scopes text[] DEFAULT NULL::text[], token_endpoint_auth_method text DEFAULT NULL::text, id_token_signed_response_alg text DEFAULT NULL::text, access_token_lifetime integer DEFAULT NULL::integer, refresh_token_lifetime integer DEFAULT NULL::integer, type text DEFAULT NULL::text, metadata jsonb DEFAULT NULL::jsonb) RETURNS auth.oauth2_clients
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+    new_secret_hash text;
+    new_is_public boolean;
+    v_auth_method text;
+    result auth.oauth2_clients;
+BEGIN
+    -- Resolve secret hash: NULL = keep, '' = remove, else = hash new
+    IF client_secret IS NULL THEN
+        -- Keep existing
+        SELECT o.client_secret_hash INTO new_secret_hash
+        FROM auth.oauth2_clients o WHERE o.client_id = p_client_id;
+    ELSIF client_secret = '' THEN
+        new_secret_hash := NULL;
+    ELSE
+        new_secret_hash := crypt(client_secret, gen_salt('bf'));
+    END IF;
+
+    -- Derive is_public from resolved secret
+    new_is_public := (new_secret_hash IS NULL);
+
+    -- Resolve auth method: force 'none' for public, otherwise use provided or keep existing
+    IF new_is_public THEN
+        v_auth_method := 'none';
+    ELSIF token_endpoint_auth_method IS NOT NULL THEN
+        v_auth_method := token_endpoint_auth_method;
+    ELSE
+        SELECT o.token_endpoint_auth_method INTO v_auth_method
+        FROM auth.oauth2_clients o WHERE o.client_id = p_client_id;
+    END IF;
+
+    UPDATE auth.oauth2_clients SET
+        client_name                 = COALESCE(modify_oauth2_client.client_name, auth.oauth2_clients.client_name),
+        client_secret_hash          = new_secret_hash,
+        redirect_uris               = COALESCE(modify_oauth2_client.redirect_uris, auth.oauth2_clients.redirect_uris),
+        client_uri                  = COALESCE(modify_oauth2_client.client_uri, auth.oauth2_clients.client_uri),
+        logo_uri                    = COALESCE(modify_oauth2_client.logo_uri, auth.oauth2_clients.logo_uri),
+        grant_types                 = COALESCE(modify_oauth2_client.grant_types, auth.oauth2_clients.grant_types),
+        response_types              = COALESCE(modify_oauth2_client.response_types, auth.oauth2_clients.response_types),
+        scopes                      = COALESCE(modify_oauth2_client.scopes, auth.oauth2_clients.scopes),
+        is_public                   = new_is_public,
+        token_endpoint_auth_method  = v_auth_method,
+        id_token_signed_response_alg = COALESCE(modify_oauth2_client.id_token_signed_response_alg, auth.oauth2_clients.id_token_signed_response_alg),
+        access_token_lifetime       = COALESCE(modify_oauth2_client.access_token_lifetime, auth.oauth2_clients.access_token_lifetime),
+        refresh_token_lifetime      = COALESCE(modify_oauth2_client.refresh_token_lifetime, auth.oauth2_clients.refresh_token_lifetime),
+        type                        = COALESCE(modify_oauth2_client.type, auth.oauth2_clients.type),
+        metadata                    = COALESCE(modify_oauth2_client.metadata, auth.oauth2_clients.metadata)
+    WHERE auth.oauth2_clients.client_id = p_client_id
+    RETURNING * INTO result;
+
+    RETURN result;
+END;
+$$;
+
+
+ALTER FUNCTION auth.modify_oauth2_client(p_client_id text, client_name text, client_secret text, redirect_uris text[], client_uri text, logo_uri text, grant_types text[], response_types text[], scopes text[], token_endpoint_auth_method text, id_token_signed_response_alg text, access_token_lifetime integer, refresh_token_lifetime integer, type text, metadata jsonb) OWNER TO postgres;
+
+--
 -- Name: set_current_timestamp_updated_at(); Type: FUNCTION; Schema: auth; Owner: postgres
 --
 
@@ -55,10 +241,6 @@ $$;
 
 
 ALTER FUNCTION auth.set_current_timestamp_updated_at() OWNER TO postgres;
-
-SET default_tablespace = '';
-
-SET default_table_access_method = heap;
 
 --
 -- Name: oauth2_auth_requests; Type: TABLE; Schema: auth; Owner: postgres
@@ -125,43 +307,6 @@ CREATE TABLE auth.oauth2_client_types (
 
 
 ALTER TABLE auth.oauth2_client_types OWNER TO postgres;
-
---
--- Name: oauth2_clients; Type: TABLE; Schema: auth; Owner: postgres
---
-
-CREATE TABLE auth.oauth2_clients (
-    id uuid DEFAULT gen_random_uuid() NOT NULL,
-    client_id text NOT NULL,
-    client_secret_hash text,
-    client_name text NOT NULL,
-    client_uri text,
-    logo_uri text,
-    redirect_uris text[] DEFAULT '{}'::text[] NOT NULL,
-    grant_types text[] DEFAULT '{authorization_code}'::text[] NOT NULL,
-    response_types text[] DEFAULT '{code}'::text[] NOT NULL,
-    scopes text[] DEFAULT '{openid}'::text[] NOT NULL,
-    is_public boolean DEFAULT false NOT NULL,
-    token_endpoint_auth_method text DEFAULT 'client_secret_basic'::text NOT NULL,
-    id_token_signed_response_alg text DEFAULT 'RS256'::text NOT NULL,
-    access_token_lifetime integer DEFAULT 900 NOT NULL,
-    refresh_token_lifetime integer DEFAULT 2592000 NOT NULL,
-    type text DEFAULT 'registered'::text NOT NULL,
-    metadata_document_fetched_at timestamp with time zone,
-    created_by uuid,
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
-);
-
-
-ALTER TABLE auth.oauth2_clients OWNER TO postgres;
-
---
--- Name: TABLE oauth2_clients; Type: COMMENT; Schema: auth; Owner: postgres
---
-
-COMMENT ON TABLE auth.oauth2_clients IS 'Registered OAuth2 client applications for the identity provider.';
-
 
 --
 -- Name: oauth2_refresh_tokens; Type: TABLE; Schema: auth; Owner: postgres
@@ -809,6 +954,28 @@ GRANT USAGE ON SCHEMA auth TO nhost_hasura;
 
 
 --
+-- Name: TABLE oauth2_clients; Type: ACL; Schema: auth; Owner: postgres
+--
+
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE auth.oauth2_clients TO nhost_auth_admin;
+GRANT SELECT,DELETE ON TABLE auth.oauth2_clients TO nhost_hasura;
+
+
+--
+-- Name: FUNCTION create_oauth2_client(client_name text, redirect_uris text[], client_secret text, client_uri text, logo_uri text, grant_types text[], response_types text[], scopes text[], token_endpoint_auth_method text, id_token_signed_response_alg text, access_token_lifetime integer, refresh_token_lifetime integer, type text, metadata jsonb, created_by uuid); Type: ACL; Schema: auth; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION auth.create_oauth2_client(client_name text, redirect_uris text[], client_secret text, client_uri text, logo_uri text, grant_types text[], response_types text[], scopes text[], token_endpoint_auth_method text, id_token_signed_response_alg text, access_token_lifetime integer, refresh_token_lifetime integer, type text, metadata jsonb, created_by uuid) TO nhost_hasura;
+
+
+--
+-- Name: FUNCTION modify_oauth2_client(p_client_id text, client_name text, client_secret text, redirect_uris text[], client_uri text, logo_uri text, grant_types text[], response_types text[], scopes text[], token_endpoint_auth_method text, id_token_signed_response_alg text, access_token_lifetime integer, refresh_token_lifetime integer, type text, metadata jsonb); Type: ACL; Schema: auth; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION auth.modify_oauth2_client(p_client_id text, client_name text, client_secret text, redirect_uris text[], client_uri text, logo_uri text, grant_types text[], response_types text[], scopes text[], token_endpoint_auth_method text, id_token_signed_response_alg text, access_token_lifetime integer, refresh_token_lifetime integer, type text, metadata jsonb) TO nhost_hasura;
+
+
+--
 -- Name: TABLE oauth2_auth_requests; Type: ACL; Schema: auth; Owner: postgres
 --
 
@@ -830,14 +997,6 @@ GRANT SELECT ON TABLE auth.oauth2_authorization_codes TO nhost_hasura;
 
 GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE auth.oauth2_client_types TO nhost_auth_admin;
 GRANT SELECT ON TABLE auth.oauth2_client_types TO nhost_hasura;
-
-
---
--- Name: TABLE oauth2_clients; Type: ACL; Schema: auth; Owner: postgres
---
-
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE auth.oauth2_clients TO nhost_auth_admin;
-GRANT SELECT ON TABLE auth.oauth2_clients TO nhost_hasura;
 
 
 --

@@ -55,6 +55,7 @@ type AuthOauth2Client struct {
 	AccessTokenLifetime       int32
 	RefreshTokenLifetime      int32
 	Type                      OAuth2ClientType
+	Metadata                  []byte
 	MetadataDocumentFetchedAt pgtype.Timestamptz
 	CreatedBy                 pgtype.UUID
 	CreatedAt                 pgtype.Timestamptz

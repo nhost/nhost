@@ -2,18 +2,26 @@ import { describe, it, expect, beforeAll } from 'bun:test';
 import { createNhostClient } from '@nhost/nhost-js';
 import { FetchError } from '@nhost/nhost-js/fetch';
 import * as jose from 'jose';
+import { randomBytes } from 'crypto';
 
 import { request, resetEnvironment } from '../../server';
 
 const AUTH_URL = 'http://127.0.0.1:4000';
+const HASURA_URL = 'http://127.0.0.1:8080/v1/graphql';
+const HASURA_ADMIN_SECRET = 'nhost-admin-secret';
 const REDIRECT_URI = 'http://localhost:9999/callback';
 const DEMO_EMAIL = 'authorize-errors@example.com';
 const DEMO_PASSWORD = 'Demo1234!';
 
 const nhost = createNhostClient({
   authUrl: AUTH_URL,
+  graphqlUrl: HASURA_URL,
   configure: [],
 });
+
+const adminHeaders = {
+  headers: { 'x-hasura-admin-secret': HASURA_ADMIN_SECRET },
+};
 
 /** Run the full auth code flow and return tokens. */
 async function getTokens(
@@ -86,35 +94,53 @@ describe('authorize-errors', () => {
     });
     jwt = signInResp.session!.accessToken;
 
-    // Create a confidential client with standard scopes
-    const { body: client } = await nhost.auth.oauth2ClientsCreate(
+    // Create a confidential client with standard scopes via GraphQL
+    const secret = randomBytes(32).toString('hex');
+    const { body: { data } } = await nhost.graphql.request<{ createAuthOauth2Client: { clientId: string } }>(
       {
-        clientName: 'Authorize Error Test Client',
-        redirectUris: [REDIRECT_URI],
-        scopes: ['openid', 'profile', 'email'],
-        grantTypes: ['authorization_code'],
-        responseTypes: ['code'],
-        tokenEndpointAuthMethod: 'client_secret_post',
+        query: `mutation ($args: createAuthOauth2Client_args!) {
+          createAuthOauth2Client(args: $args) { clientId }
+        }`,
+        variables: {
+          args: {
+            client_name: 'Authorize Error Test Client',
+            client_secret: secret,
+            redirect_uris: `{${REDIRECT_URI}}`,
+            scopes: '{openid,profile,email}',
+            grant_types: '{authorization_code}',
+            response_types: '{code}',
+            token_endpoint_auth_method: 'client_secret_post',
+          },
+        },
       },
-      { headers: { Authorization: `Bearer ${jwt}` } },
+      adminHeaders,
     );
-    clientId = client.clientId;
-    clientSecret = client.clientSecret!;
+    clientId = data!.createAuthOauth2Client.clientId;
+    clientSecret = secret;
 
-    // Create a second client with narrow scopes (openid only)
-    const { body: narrowClient } = await nhost.auth.oauth2ClientsCreate(
+    // Create a second client with narrow scopes (openid only) via GraphQL
+    const narrowSecret = randomBytes(32).toString('hex');
+    const { body: { data: narrowData } } = await nhost.graphql.request<{ createAuthOauth2Client: { clientId: string } }>(
       {
-        clientName: 'Narrow Scope Client',
-        redirectUris: [REDIRECT_URI],
-        scopes: ['openid'],
-        grantTypes: ['authorization_code'],
-        responseTypes: ['code'],
-        tokenEndpointAuthMethod: 'client_secret_post',
+        query: `mutation ($args: createAuthOauth2Client_args!) {
+          createAuthOauth2Client(args: $args) { clientId }
+        }`,
+        variables: {
+          args: {
+            client_name: 'Narrow Scope Client',
+            client_secret: narrowSecret,
+            redirect_uris: `{${REDIRECT_URI}}`,
+            scopes: '{openid}',
+            grant_types: '{authorization_code}',
+            response_types: '{code}',
+            token_endpoint_auth_method: 'client_secret_post',
+          },
+        },
       },
-      { headers: { Authorization: `Bearer ${jwt}` } },
+      adminHeaders,
     );
-    narrowClientId = narrowClient.clientId;
-    narrowClientSecret = narrowClient.clientSecret!;
+    narrowClientId = narrowData!.createAuthOauth2Client.clientId;
+    narrowClientSecret = narrowSecret;
   });
 
   // --- GET authorize error cases ---

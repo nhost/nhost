@@ -483,65 +483,6 @@ type MFAChallengePayload struct {
 	Ticket string `json:"ticket"`
 }
 
-// OAuth2ClientResponse defines model for OAuth2ClientResponse.
-type OAuth2ClientResponse struct {
-	AccessTokenLifetime     *int       `json:"accessTokenLifetime,omitempty"`
-	ClientId                string     `json:"clientId"`
-	ClientName              string     `json:"clientName"`
-	ClientUri               *string    `json:"clientUri,omitempty"`
-	CreatedAt               *time.Time `json:"createdAt,omitempty"`
-	GrantTypes              *[]string  `json:"grantTypes,omitempty"`
-	IsPublic                *bool      `json:"isPublic,omitempty"`
-	LogoUri                 *string    `json:"logoUri,omitempty"`
-	RedirectUris            []string   `json:"redirectUris"`
-	RefreshTokenLifetime    *int       `json:"refreshTokenLifetime,omitempty"`
-	ResponseTypes           *[]string  `json:"responseTypes,omitempty"`
-	Scopes                  *[]string  `json:"scopes,omitempty"`
-	TokenEndpointAuthMethod *string    `json:"tokenEndpointAuthMethod,omitempty"`
-	UpdatedAt               *time.Time `json:"updatedAt,omitempty"`
-}
-
-// OAuth2ClientsListResponse defines model for OAuth2ClientsListResponse.
-type OAuth2ClientsListResponse struct {
-	Clients []OAuth2ClientResponse `json:"clients"`
-}
-
-// OAuth2CreateClientRequest defines model for OAuth2CreateClientRequest.
-type OAuth2CreateClientRequest struct {
-	AccessTokenLifetime     *int      `json:"accessTokenLifetime,omitempty"`
-	ClientName              string    `json:"clientName"`
-	ClientUri               *string   `json:"clientUri,omitempty"`
-	GrantTypes              *[]string `json:"grantTypes,omitempty"`
-	IsPublic                *bool     `json:"isPublic,omitempty"`
-	LogoUri                 *string   `json:"logoUri,omitempty"`
-	RedirectUris            []string  `json:"redirectUris"`
-	RefreshTokenLifetime    *int      `json:"refreshTokenLifetime,omitempty"`
-	ResponseTypes           *[]string `json:"responseTypes,omitempty"`
-	Scopes                  *[]string `json:"scopes,omitempty"`
-	TokenEndpointAuthMethod *string   `json:"tokenEndpointAuthMethod,omitempty"`
-}
-
-// OAuth2CreateClientResponse defines model for OAuth2CreateClientResponse.
-type OAuth2CreateClientResponse struct {
-	AccessTokenLifetime *int   `json:"accessTokenLifetime,omitempty"`
-	ClientId            string `json:"clientId"`
-	ClientName          string `json:"clientName"`
-
-	// ClientSecret Client secret. Only returned once upon creation.
-	ClientSecret            *string    `json:"clientSecret,omitempty"`
-	ClientUri               *string    `json:"clientUri,omitempty"`
-	CreatedAt               *time.Time `json:"createdAt,omitempty"`
-	GrantTypes              *[]string  `json:"grantTypes,omitempty"`
-	IsPublic                *bool      `json:"isPublic,omitempty"`
-	LogoUri                 *string    `json:"logoUri,omitempty"`
-	RedirectUris            []string   `json:"redirectUris"`
-	RefreshTokenLifetime    *int       `json:"refreshTokenLifetime,omitempty"`
-	ResponseTypes           *[]string  `json:"responseTypes,omitempty"`
-	Scopes                  *[]string  `json:"scopes,omitempty"`
-	TokenEndpointAuthMethod *string    `json:"tokenEndpointAuthMethod,omitempty"`
-	UpdatedAt               *time.Time `json:"updatedAt,omitempty"`
-}
-
 // OAuth2DiscoveryResponse defines model for OAuth2DiscoveryResponse.
 type OAuth2DiscoveryResponse struct {
 	AuthorizationEndpoint             string                 `json:"authorization_endpoint"`
@@ -692,21 +633,6 @@ type OAuth2TokenResponse struct {
 	RefreshToken *string `json:"refresh_token,omitempty"`
 	Scope        *string `json:"scope,omitempty"`
 	TokenType    string  `json:"token_type"`
-}
-
-// OAuth2UpdateClientRequest defines model for OAuth2UpdateClientRequest.
-type OAuth2UpdateClientRequest struct {
-	AccessTokenLifetime     *int      `json:"accessTokenLifetime,omitempty"`
-	ClientName              string    `json:"clientName"`
-	ClientUri               *string   `json:"clientUri,omitempty"`
-	GrantTypes              *[]string `json:"grantTypes,omitempty"`
-	IsPublic                *bool     `json:"isPublic,omitempty"`
-	LogoUri                 *string   `json:"logoUri,omitempty"`
-	RedirectUris            []string  `json:"redirectUris"`
-	RefreshTokenLifetime    *int      `json:"refreshTokenLifetime,omitempty"`
-	ResponseTypes           *[]string `json:"responseTypes,omitempty"`
-	Scopes                  *[]string `json:"scopes,omitempty"`
-	TokenEndpointAuthMethod *string   `json:"tokenEndpointAuthMethod,omitempty"`
 }
 
 // OAuth2UserinfoResponse defines model for OAuth2UserinfoResponse.
@@ -1340,12 +1266,6 @@ type LinkIdTokenJSONRequestBody = LinkIdTokenRequest
 
 // Oauth2AuthorizePostFormdataRequestBody defines body for Oauth2AuthorizePost for application/x-www-form-urlencoded ContentType.
 type Oauth2AuthorizePostFormdataRequestBody Oauth2AuthorizePostFormdataBody
-
-// Oauth2ClientsCreateJSONRequestBody defines body for Oauth2ClientsCreate for application/json ContentType.
-type Oauth2ClientsCreateJSONRequestBody = OAuth2CreateClientRequest
-
-// Oauth2ClientsUpdateJSONRequestBody defines body for Oauth2ClientsUpdate for application/json ContentType.
-type Oauth2ClientsUpdateJSONRequestBody = OAuth2UpdateClientRequest
 
 // Oauth2IntrospectFormdataRequestBody defines body for Oauth2Introspect for application/x-www-form-urlencoded ContentType.
 type Oauth2IntrospectFormdataRequestBody = OAuth2IntrospectRequest
