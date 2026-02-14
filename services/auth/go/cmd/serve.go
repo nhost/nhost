@@ -31,7 +31,6 @@ const (
 	flagDebug                                    = "debug"
 	flagLogFormatTEXT                            = "log-format-text"
 	flagEncryptionKey                            = "encryption-key"
-	flagTrustedProxies                           = "trusted-proxies"
 	flagPostgresConnection                       = "postgres"
 	flagPostgresMigrationsConnection             = "postgres-migrations"
 	flagDisableSignup                            = "disable-signup"
@@ -1457,6 +1456,36 @@ func getGoServer(
 	return server, nil
 }
 
+func validateOauth2ProviderConfig(cmd *cli.Command, jwtGetter *controller.JWTGetter) error {
+	if cmd.Bool(flagOAuth2ProviderEnabled) {
+		if !jwtGetter.IsRS256() {
+			return errors.New( //nolint:err113
+				"OAuth2 provider requires HASURA_GRAPHQL_JWT_SECRET to be configured with RS256",
+			)
+		}
+
+		if cmd.String(flagOAuth2ProviderLoginURL) == "" && cmd.String(flagClientURL) == "" {
+			return errors.New( //nolint:err113
+				"OAuth2 provider requires AUTH_OAUTH2_PROVIDER_LOGIN_URL or AUTH_CLIENT_URL to be set",
+			)
+		}
+
+		if cmd.Int(flagOAuth2ProviderAccessTokenTTL) <= 0 {
+			return errors.New( //nolint:err113
+				"OAuth2 provider access token TTL must be a positive number of seconds",
+			)
+		}
+
+		if cmd.Int(flagOAuth2ProviderRefreshTokenTTL) <= 0 {
+			return errors.New( //nolint:err113
+				"OAuth2 provider refresh token TTL must be a positive number of seconds",
+			)
+		}
+	}
+
+	return nil
+}
+
 func getController(
 	ctx context.Context,
 	cmd *cli.Command,
@@ -1479,12 +1508,8 @@ func getController(
 		return nil, nil, fmt.Errorf("problem creating oauth providers: %w", err)
 	}
 
-	if cmd.Bool(flagOAuth2ProviderEnabled) {
-		if !jwtGetter.IsRS256() {
-			return nil, nil, errors.New( //nolint:err113
-				"OAuth2 provider requires HASURA_GRAPHQL_JWT_SECRET to be configured with RS256",
-			)
-		}
+	if err := validateOauth2ProviderConfig(cmd, jwtGetter); err != nil {
+		return nil, nil, err
 	}
 
 	ctrl, err := controller.New(

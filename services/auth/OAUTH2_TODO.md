@@ -85,12 +85,6 @@ When the parent `ctx` is cancelled by OS signal, `server.Shutdown(ctx)` returns 
 ### 19. Missing `http.ErrServerClosed` check (`serve.go:1545-1547`)
 `ListenAndServe` always returns `ErrServerClosed` after `Shutdown()`. This is logged at error level on every normal shutdown.
 
-### 21. No startup validation of `OAuth2ProviderLoginURL` (`serve.go:1482-1488`)
-When `flagOAuth2ProviderEnabled` is true, RS256 is validated but `LoginURL` is not checked. An empty login URL causes silent runtime failures in the authorize flow.
-
-### 22. No bounds checking on OAuth2 TTL values (`config.go:125-126`)
-TTL values passed through without validation. Zero or negative values cause tokens that expire immediately or have undefined behavior.
-
 ---
 
 ## CODE DUPLICATION
