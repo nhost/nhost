@@ -124,6 +124,8 @@ func (ctrl *Controller) getFileWithPresignedURLResponseObject( //nolint: ireturn
 			ContentLength: file.contentLength,
 		}
 	case http.StatusNotModified:
+		file.body.Close()
+
 		return api.GetFileWithPresignedURL304Response{
 			Headers: api.GetFileWithPresignedURL304ResponseHeaders{
 				CacheControl:     file.cacheControl,
@@ -132,6 +134,8 @@ func (ctrl *Controller) getFileWithPresignedURLResponseObject( //nolint: ireturn
 			},
 		}
 	case http.StatusPreconditionFailed:
+		file.body.Close()
+
 		return api.GetFileWithPresignedURL412Response{
 			Headers: api.GetFileWithPresignedURL412ResponseHeaders{
 				CacheControl:     file.cacheControl,
@@ -140,6 +144,8 @@ func (ctrl *Controller) getFileWithPresignedURLResponseObject( //nolint: ireturn
 			},
 		}
 	default:
+		file.body.Close()
+
 		logger.ErrorContext(
 			ctx, "unexpected status code from download", slog.Int("statusCode", file.statusCode),
 		)

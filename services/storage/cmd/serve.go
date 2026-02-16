@@ -2,15 +2,18 @@ package cmd
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"net/http"
+	_ "net/http/pprof" //nolint:gosec
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/cshum/vipsgen/vips"
 	"github.com/gin-gonic/gin"
 	"github.com/nhost/nhost/internal/lib/oapi"
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
@@ -49,6 +52,7 @@ const (
 	flagCorsAllowCredentials     = "cors-allow-credentials" //nolint: gosec
 	flagClamavServer             = "clamav-server"
 	flagHasuraDBName             = "hasura-db-name"
+	flagPprofBind                = "pprof-bind"
 )
 
 func getCORSOptions(cmd *cli.Command) oapimw.CORSOptions {
@@ -371,9 +375,43 @@ func CommandServe() *cli.Command { //nolint:funlen
 				Category: "antivirus",
 				Sources:  cli.EnvVars("CLAMAV_SERVER"),
 			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:     flagPprofBind,
+				Usage:    "If set, bind pprof and vips debug endpoints to this address. Example: :6060",
+				Category: "debug",
+				Sources:  cli.EnvVars("BIND_PPROF"),
+			},
 		},
 		Action: serve,
 	}
+}
+
+func startPprofServer(ctx context.Context, bind string, logger *slog.Logger) {
+	if bind == "" {
+		return
+	}
+
+	http.HandleFunc("/debug/vips", func(w http.ResponseWriter, _ *http.Request) {
+		var stats vips.MemoryStats
+		vips.ReadVipsMemStats(&stats)
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(stats) //nolint:errcheck
+	})
+
+	logger.InfoContext(ctx, "starting pprof server", slog.String("bind", bind))
+
+	pprofServer := &http.Server{ //nolint:exhaustruct
+		Addr:              bind,
+		Handler:           http.DefaultServeMux,
+		ReadHeaderTimeout: 5 * time.Second, //nolint:mnd
+	}
+
+	go func() {
+		if err := pprofServer.ListenAndServe(); err != nil {
+			logger.ErrorContext(ctx, "pprof server failed", slog.String("error", err.Error()))
+		}
+	}()
 }
 
 func serve(ctx context.Context, cmd *cli.Command) error { //nolint:funlen
@@ -426,6 +464,8 @@ func serve(ctx context.Context, cmd *cli.Command) error { //nolint:funlen
 	if err != nil {
 		return err
 	}
+
+	startPprofServer(servCtx, cmd.String(flagPprofBind), logger)
 
 	go func() {
 		defer cancel()
