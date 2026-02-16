@@ -37,6 +37,7 @@ overrides:
   next@>=10.0.0 <15.5.10: '>=15.5.10'
   tar@<7.5.7: '>=7.5.7'
   '@isaacs/brace-expansion@<=5.0.0': '>=5.0.1'
+  markdown-it@>=13.0.0 <14.1.1: '>=14.1.1'
 
 packageExtensionsChecksum: sha256-gRFeykwiwMfEE6etcYx6N48XwVeKzxbqNveL7KTQgSQ=
 
@@ -5850,8 +5851,8 @@ packages:
   map-stream@0.0.7:
     resolution: {integrity: sha512-C0X0KQmGm3N2ftbTGBhSyuydQ+vV1LC3f3zPvT3RXHXNZrvfPZcoXp/N5DOa8vedX/rTMm2CjTtivFg2STJMRQ==}
 
-  markdown-it@14.1.0:
-    resolution: {integrity: sha512-a54IwgWPaeBCAAsv13YgmALOF1elABB08FxO9i+r4VFk5Vl4pKokRPeX8u5TCgSsPi6ec1otfLjdOpVcgbpshg==}
+  markdown-it@14.1.1:
+    resolution: {integrity: sha512-BuU2qnTti9YKgK5N+IeMubp14ZUKUUw7yeJbkjtosvHiP0AZ5c8IAgEMk79D0eC8F23r4Ac/q8cAIFdm2FtyoA==}
     hasBin: true
 
   markdown-table@3.0.3:
@@ -8871,7 +8872,7 @@ snapshots:
       framer-motion: 6.5.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       graphql: 16.8.1
       graphql-language-service: 5.3.0(graphql@16.8.1)
-      markdown-it: 14.1.0
+      markdown-it: 14.1.1
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
       set-value: 4.1.0
@@ -13025,7 +13026,7 @@ snapshots:
       '@graphiql/toolkit': 0.9.1(@types/node@20.14.8)(graphql-ws@5.16.0(graphql@16.8.1))(graphql@16.8.1)
       graphql: 16.8.1
       graphql-language-service: 5.3.0(graphql@16.8.1)
-      markdown-it: 14.1.0
+      markdown-it: 14.1.1
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
     transitivePeerDependencies:
@@ -13648,7 +13649,7 @@ snapshots:
 
   map-stream@0.0.7: {}
 
-  markdown-it@14.1.0:
+  markdown-it@14.1.1:
     dependencies:
       argparse: 2.0.1
       entities: 4.5.0
@@ -15384,7 +15385,7 @@ snapshots:
     dependencies:
       '@gerrit0/mini-shiki': 3.21.0
       lunr: 2.3.9
-      markdown-it: 14.1.0
+      markdown-it: 14.1.1
       minimatch: 9.0.5
       typescript: 5.8.3
       yaml: 2.8.2
