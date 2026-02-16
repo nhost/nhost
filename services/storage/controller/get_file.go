@@ -160,15 +160,7 @@ func (ctrl *Controller) manipulateImage(
 ) (io.ReadCloser, int64, *APIError) {
 	defer object.Close()
 
-	// We need to buffer because the HTTP response requires Content-Length
-	// before the body is sent. Using io.Pipe would prevent setting
-	// Content-Length, causing chunked transfer encoding which breaks
-	// range requests and client progress indicators.
-	//
-	// Pre-allocate the buffer based on the original file size to avoid
-	// repeated growth allocations. Transformed images are typically
-	// similar in size to the original.
-	buf := bytes.NewBuffer(make([]byte, 0, size))
+	buf := &bytes.Buffer{}
 
 	done := make(chan error, 1)
 	go func() {
@@ -185,6 +177,7 @@ func (ctrl *Controller) manipulateImage(
 
 	if err := <-done; err != nil {
 		slog.Error("image manipulation failed", slog.String("error", err.Error()))
+
 		return nil, 0, InternalServerError(err)
 	}
 
@@ -250,8 +243,6 @@ func (ctrl *Controller) processFileToDownload(
 	contentLength := download.ContentLength
 
 	if !opts.IsEmpty() {
-		defer body.Close()
-
 		body, contentLength, apiErr = ctrl.manipulateImage(
 			body, uint64(contentLength), opts, //nolint:gosec
 		)
@@ -269,6 +260,8 @@ func (ctrl *Controller) processFileToDownload(
 		download.StatusCode,
 	)
 	if apiErr != nil {
+		body.Close()
+
 		return nil, apiErr
 	}
 
@@ -286,7 +279,7 @@ func (ctrl *Controller) processFileToDownload(
 	}, nil
 }
 
-func (ctrl *Controller) getFileResponse( //nolint: ireturn,dupl
+func (ctrl *Controller) getFileResponse( //nolint: ireturn,dupl,funlen
 	ctx context.Context,
 	file *processedFile,
 	logger *slog.Logger,
@@ -329,6 +322,8 @@ func (ctrl *Controller) getFileResponse( //nolint: ireturn,dupl
 			ContentLength: file.contentLength,
 		}
 	case http.StatusNotModified:
+		file.body.Close()
+
 		return api.GetFile304Response{
 			Headers: api.GetFile304ResponseHeaders{
 				CacheControl:     file.cacheControl,
@@ -337,6 +332,8 @@ func (ctrl *Controller) getFileResponse( //nolint: ireturn,dupl
 			},
 		}
 	case http.StatusPreconditionFailed:
+		file.body.Close()
+
 		return api.GetFile412Response{
 			Headers: api.GetFile412ResponseHeaders{
 				CacheControl:     file.cacheControl,
@@ -345,6 +342,8 @@ func (ctrl *Controller) getFileResponse( //nolint: ireturn,dupl
 			},
 		}
 	default:
+		file.body.Close()
+
 		logger.ErrorContext(
 			ctx, "unexpected status code from download", slog.Int("statusCode", file.statusCode),
 		)
