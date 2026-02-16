@@ -184,28 +184,39 @@ export default function RuleGroupEditor({
 
           {unsupportedValues?.length > 0 && (
             <Alert severity="warning" className="text-left">
-              <Text>
-                This rule group contains one or more objects (e.g: _exists) that
-                are not supported by our dashboard yet.{' '}
-                {project && (
-                  <span>
-                    Please{' '}
-                    <Link
-                      href={`${generateAppServiceUrl(
-                        project.subdomain,
-                        project.region,
-                        'hasura',
-                      )}/console/data/default/schema/${schema}/tables/${table}/permissions`}
-                      underline="hover"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      visit Hasura
-                    </Link>{' '}
-                    to edit them.
-                  </span>
-                )}
-              </Text>
+              <div className="flex flex-col gap-2">
+                <Text>
+                  This rule group contains one or more objects (e.g: _exists)
+                  that are not supported by our dashboard yet.{' '}
+                  {project && (
+                    <span>
+                      Please{' '}
+                      <Link
+                        href={`${generateAppServiceUrl(
+                          project.subdomain,
+                          project.region,
+                          'hasura',
+                        )}/console/data/default/schema/${schema}/tables/${table}/permissions`}
+                        underline="hover"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        visit Hasura
+                      </Link>{' '}
+                      to edit them.
+                    </span>
+                  )}
+                </Text>
+                <h2>Unsupported objects:</h2>
+                <ul className="list-inside list-disc">
+                  {unsupportedValues.map((value, index) => (
+                    // biome-ignore lint/suspicious/noArrayIndexKey: list will not change between renders
+                    <li key={index} className="font-mono text-xs">
+                      {JSON.stringify(value)}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </Alert>
           )}
         </div>

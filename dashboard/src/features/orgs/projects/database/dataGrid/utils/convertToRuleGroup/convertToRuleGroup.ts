@@ -27,33 +27,51 @@ const negatedArrayOperatorPairs: Record<'_and' | '_or', '_and' | '_or'> = {
   _or: '_and',
 };
 
-const negatedValueOperatorPairs: Record<HasuraOperator, HasuraOperator> = {
-  _eq: '_neq',
-  _neq: '_eq',
-  _in: '_nin',
-  _nin: '_in',
-  _gt: '_lte',
-  _lt: '_gte',
-  _gte: '_lt',
-  _lte: '_gt',
-  _like: '_nlike',
-  _nlike: '_like',
-  _ilike: '_nilike',
-  _nilike: '_ilike',
-  _similar: '_nsimilar',
-  _nsimilar: '_similar',
-  _regex: '_nregex',
-  _nregex: '_regex',
-  _iregex: '_niregex',
-  _niregex: '_iregex',
-  _ceq: '_cne',
-  _cne: '_ceq',
-  _cgt: '_clte',
-  _clt: '_cgte',
-  _cgte: '_clt',
-  _clte: '_cgt',
-  _is_null: '_is_null',
-};
+type NegatableOperator = Exclude<
+  HasuraOperator,
+  | '_is_null'
+  | '_contains'
+  | '_contained_in'
+  | '_has_key'
+  | '_has_keys_any'
+  | '_has_keys_all'
+>;
+
+const negatedValueOperatorPairs: Record<NegatableOperator, NegatableOperator> =
+  {
+    _eq: '_neq',
+    _neq: '_eq',
+    _in: '_nin',
+    _nin: '_in',
+    _gt: '_lte',
+    _lt: '_gte',
+    _gte: '_lt',
+    _lte: '_gt',
+    _like: '_nlike',
+    _nlike: '_like',
+    _ilike: '_nilike',
+    _nilike: '_ilike',
+    _similar: '_nsimilar',
+    _nsimilar: '_similar',
+    _regex: '_nregex',
+    _nregex: '_regex',
+    _iregex: '_niregex',
+    _niregex: '_iregex',
+    _ceq: '_cne',
+    _cne: '_ceq',
+    _cgt: '_clte',
+    _clt: '_cgte',
+    _cgte: '_clt',
+    _clte: '_cgt',
+  };
+
+const nonInvertibleOperators = [
+  '_contains',
+  '_contained_in',
+  '_has_key',
+  '_has_keys_any',
+  '_has_keys_all',
+];
 
 export default function convertToRuleGroup(
   // biome-ignore lint/suspicious/noExplicitAny: TODO
@@ -157,8 +175,8 @@ export default function convertToRuleGroup(
         {
           column: previousKey as string,
           operator: shouldNegate
-            ? negatedValueOperatorPairs[currentKey]
-            : currentKey,
+            ? negatedValueOperatorPairs[currentKey as NegatableOperator]
+            : (currentKey as HasuraOperator),
           value,
         },
       ],
@@ -192,16 +210,40 @@ export default function convertToRuleGroup(
       '_clt',
       '_cgte',
       '_clte',
+      '_contains',
+      '_contained_in',
+      '_has_key',
+      '_has_keys_any',
+      '_has_keys_all',
     ].includes(currentKey)
   ) {
+    if (shouldNegate && nonInvertibleOperators.includes(currentKey)) {
+      const pathParts = previousKey?.split('.') || [];
+      const unsupportedObject = createNestedObject(pathParts, {
+        _not: { [currentKey]: value },
+      });
+
+      if (!isNested) {
+        return {
+          operator: '_and',
+          rules: [],
+          groups: [],
+          unsupported: [unsupportedObject],
+        };
+      }
+
+      return unsupportedObject;
+    }
+
     return {
       operator: '_and',
       rules: [
         {
           column: previousKey as string,
-          operator: shouldNegate
-            ? negatedValueOperatorPairs[currentKey]
-            : currentKey,
+          operator:
+            shouldNegate && !nonInvertibleOperators.includes(currentKey)
+              ? negatedValueOperatorPairs[currentKey]
+              : currentKey,
           value,
         },
       ],
