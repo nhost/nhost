@@ -1,5 +1,5 @@
+import { buildRequestTransformDTO } from '@/features/orgs/projects/events/common/utils/buildRequestTransformDTO';
 import type { BaseEventTriggerFormValues } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerFormTypes';
-import { buildRequestTransformDTO } from '@/features/orgs/projects/events/event-triggers/utils/buildRequestTransformDTO';
 import type { CreateEventTriggerArgs } from '@/utils/hasura-api/generated/schemas';
 import type { OperationSpec } from '@/utils/hasura-api/generated/schemas/operationSpec';
 

@@ -93,6 +93,7 @@ export default function EventTriggerListItem({
                       '!pointer-events-auto !cursor-not-allowed': isViewOnly,
                     },
                   )}
+                  data-testid={`event-trigger-menu-${eventTrigger.name}`}
                   onClick={(event) => {
                     event.preventDefault();
                     event.stopPropagation();

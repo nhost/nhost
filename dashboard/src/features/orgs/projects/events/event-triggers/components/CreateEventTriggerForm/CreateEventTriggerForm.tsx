@@ -21,7 +21,7 @@ const renderCreateEventTriggerButton = ({
   <Button
     variant="link"
     className="!text-sm+ mt-1 flex w-full justify-between px-[0.625rem] text-primary hover:bg-accent hover:no-underline disabled:text-disabled"
-    aria-label="Add event trigger"
+    aria-label="Create event trigger"
     onClick={() => open()}
   >
     New Event Trigger <Plus className="h-4 w-4" />

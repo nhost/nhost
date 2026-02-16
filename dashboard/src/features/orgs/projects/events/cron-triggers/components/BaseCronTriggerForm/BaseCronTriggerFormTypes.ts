@@ -4,7 +4,9 @@ import {
   DEFAULT_RETRY_INTERVAL_SECONDS,
   DEFAULT_RETRY_TIMEOUT_SECONDS,
   DEFAULT_TOLERANCE_SECONDS,
-} from '@/features/orgs/projects/events/cron-triggers/constants';
+  requestOptionsTransformQueryParamsTypeOptions,
+  requestTransformMethods,
+} from '@/features/orgs/projects/events/common/constants';
 import { getCronTriggerSampleInputPayload } from '@/features/orgs/projects/events/cron-triggers/utils/getCronTriggerSampleInputPayload';
 import { isJSONString } from '@/lib/utils';
 
@@ -19,18 +21,10 @@ export const cronHeaderTypes = [
   },
 ] as const;
 
-export const cronRequestTransformMethods = [
-  'GET',
-  'POST',
-  'PUT',
-  'PATCH',
-  'DELETE',
-] as const;
-
-export const cronRequestOptionsTransformQueryParamsTypeOptions = [
-  'Key Value',
-  'URL string template',
-] as const;
+export {
+  requestOptionsTransformQueryParamsTypeOptions as cronRequestOptionsTransformQueryParamsTypeOptions,
+  requestTransformMethods as cronRequestTransformMethods,
+} from '@/features/orgs/projects/events/common/constants';
 
 export const validationSchema = z.object({
   triggerName: z
@@ -72,12 +66,12 @@ export const validationSchema = z.object({
   ),
   requestOptionsTransform: z
     .object({
-      method: z.enum(cronRequestTransformMethods).optional(),
+      method: z.enum(requestTransformMethods).optional(),
       urlTemplate: z.string().optional(),
       queryParams: z.discriminatedUnion('queryParamsType', [
         z.object({
           queryParamsType: z.literal(
-            cronRequestOptionsTransformQueryParamsTypeOptions[0],
+            requestOptionsTransformQueryParamsTypeOptions[0],
           ),
           queryParams: z.array(
             z.object({
@@ -88,7 +82,7 @@ export const validationSchema = z.object({
         }),
         z.object({
           queryParamsType: z.literal(
-            cronRequestOptionsTransformQueryParamsTypeOptions[1],
+            requestOptionsTransformQueryParamsTypeOptions[1],
           ),
           queryParamsURL: z.string(),
         }),

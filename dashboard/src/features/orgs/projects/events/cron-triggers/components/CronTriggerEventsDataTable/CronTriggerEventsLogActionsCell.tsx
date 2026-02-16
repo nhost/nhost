@@ -7,7 +7,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
-import { useDeleteScheduledCronTriggerEventMutation } from '@/features/orgs/projects/events/cron-triggers/hooks/useDeleteScheduledCronTriggerEventMutation';
+import { useDeleteScheduledEventMutation } from '@/features/orgs/projects/events/common/hooks/useDeleteScheduledEventMutation';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { ScheduledEventLogEntry } from '@/utils/hasura-api/generated/schemas';
 
@@ -24,15 +24,16 @@ export default function CronTriggerEventsLogActionsCell({
     setIsThisDeleteScheduledEventActionLoading,
   ] = useState(false);
   const {
-    mutateAsync: deleteScheduledCronTriggerEvent,
+    mutateAsync: deleteScheduledEvent,
     isPending: isDeleteScheduledEventLoading,
-  } = useDeleteScheduledCronTriggerEventMutation();
+  } = useDeleteScheduledEventMutation();
 
   const handleDeleteScheduledEvent = async () => {
     setIsThisDeleteScheduledEventActionLoading(true);
     await execPromiseWithErrorToast(
       async () => {
-        await deleteScheduledCronTriggerEvent({
+        await deleteScheduledEvent({
+          type: 'cron',
           eventId: scheduledEventId,
         });
       },

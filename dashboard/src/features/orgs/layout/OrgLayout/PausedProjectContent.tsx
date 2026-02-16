@@ -14,6 +14,7 @@ const blockedPausedProjectPages = [
   'events/event-triggers/[eventTriggerSlug]',
   'events/cron-triggers',
   'events/cron-triggers/[cronTriggerSlug]',
+  'events/one-offs',
   'hasura',
   'users',
   'storage',
