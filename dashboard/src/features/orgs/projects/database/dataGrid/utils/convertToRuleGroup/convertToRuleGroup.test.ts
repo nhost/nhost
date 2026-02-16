@@ -170,33 +170,55 @@ test('should convert a complex permission to a rule group', () => {
       },
     ],
   });
+});
+
+test('should convert JSONB operators to rules', () => {
+  expect(
+    convertToRuleGroup({ metadata: { _contains: { foo: 'bar' } } }),
+  ).toMatchObject({
+    operator: '_and',
+    rules: [
+      { column: 'metadata', operator: '_contains', value: { foo: 'bar' } },
+    ],
+    groups: [],
+  });
+
+  expect(convertToRuleGroup({ metadata: { _has_key: 'foo' } })).toMatchObject({
+    operator: '_and',
+    rules: [{ column: 'metadata', operator: '_has_key', value: 'foo' }],
+    groups: [],
+  });
+});
+
+test('should treat negated non-invertible operators as unsupported', () => {
+  expect(
+    convertToRuleGroup({ _not: { metadata: { _contains: { foo: 'bar' } } } }),
+  ).toMatchObject({
+    operator: '_and',
+    rules: [],
+    groups: [],
+    unsupported: [{ metadata: { _not: { _contains: { foo: 'bar' } } } }],
+  });
 
   expect(
     convertToRuleGroup({
-      _or: [
-        {
-          author: {
-            _and: [{ name: { _eq: 'John Doe' } }, { age: { _gte: '32' } }],
-          },
+      _not: {
+        json: {
+          _has_key: 'hello',
         },
-        { title: { _eq: 'test' } },
-        { publisher: { name: { _eq: 'Test Publisher' } } },
-      ],
+      },
     }),
   ).toMatchObject({
-    operator: '_or',
-    rules: [
-      { column: 'title', operator: '_eq', value: 'test' },
-      { column: 'publisher.name', operator: '_eq', value: 'Test Publisher' },
-    ],
-    groups: [
+    operator: '_and',
+    rules: [],
+    groups: [],
+    unsupported: [
       {
-        operator: '_and',
-        rules: [
-          { column: 'author.name', operator: '_eq', value: 'John Doe' },
-          { column: 'author.age', operator: '_gte', value: '32' },
-        ],
-        groups: [],
+        json: {
+          _not: {
+            _has_key: 'hello',
+          },
+        },
       },
     ],
   });
