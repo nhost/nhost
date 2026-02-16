@@ -3,8 +3,8 @@ import { Eye } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import { Dialog, DialogTrigger } from '@/components/ui/v3/dialog';
+import { ScheduledEventInvocationDialogContent } from '@/features/orgs/projects/events/common/components/ScheduledEventInvocationDialogContent';
 import type { InvocationLogEntry } from '@/utils/hasura-api/generated/schemas';
-import InvocationLogDetailsDialogContent from './InvocationLogDetailsDialogContent';
 import type { CronTriggerInvocationLogsDataTableMeta } from './types';
 
 export default function InvocationLogActionsCell({
@@ -40,7 +40,7 @@ export default function InvocationLogActionsCell({
             <Eye className="h-4 w-4" />
           </Button>
         </DialogTrigger>
-        <InvocationLogDetailsDialogContent log={meta.selectedLog} />
+        <ScheduledEventInvocationDialogContent log={meta.selectedLog} />
       </Dialog>
     </div>
   );

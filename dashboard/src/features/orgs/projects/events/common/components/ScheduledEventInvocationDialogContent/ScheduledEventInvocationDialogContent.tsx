@@ -19,15 +19,15 @@ import {
   TabsTrigger,
 } from '@/components/ui/v3/tabs';
 import { HttpStatusText } from '@/features/orgs/projects/events/common/components/HttpStatusText';
-import type { EventInvocationLogEntry } from '@/utils/hasura-api/generated/schemas';
+import type { InvocationLogEntry } from '@/utils/hasura-api/generated/schemas';
 
-interface InvocationLogDetailsDialogContentProps {
-  log: EventInvocationLogEntry | null;
+interface ScheduledEventInvocationDialogContentProps {
+  log: InvocationLogEntry | null;
 }
 
-export default function InvocationLogDetailsDialogContent({
+export default function ScheduledEventInvocationDialogContent({
   log,
-}: InvocationLogDetailsDialogContentProps) {
+}: ScheduledEventInvocationDialogContentProps) {
   return (
     <DialogContent className="flex h-[80vh] max-w-4xl flex-col overflow-y-auto text-foreground">
       <DialogHeader>
@@ -57,7 +57,7 @@ export default function InvocationLogDetailsDialogContent({
             <span className="font-medium text-muted-foreground text-sm">
               HTTP Status:
             </span>
-            <HttpStatusText className="text-sm" status={log?.http_status} />
+            <HttpStatusText className="text-sm" status={log?.status} />
           </div>
           <div className="flex justify-between gap-1">
             <span className="font-medium text-muted-foreground text-sm">
@@ -105,7 +105,7 @@ export default function InvocationLogDetailsDialogContent({
               <h4 className="mb-2 font-medium text-foreground">Payload</h4>
               <CodeBlock
                 className="rounded py-2"
-                copyToClipboardToastTitle={`${log.trigger_name} payload`}
+                copyToClipboardToastTitle={`${log.event_id} payload`}
               >
                 {JSON.stringify(log.request.payload, null, 2)}
               </CodeBlock>
@@ -156,7 +156,7 @@ export default function InvocationLogDetailsDialogContent({
               <h4 className="mb-2 font-medium">Response Body</h4>
               <CodeBlock
                 className="w-full max-w-full whitespace-pre-wrap break-all rounded py-2"
-                copyToClipboardToastTitle={`${log.trigger_name} response body`}
+                copyToClipboardToastTitle={`${log.event_id} response body`}
               >
                 {log.response?.data?.body ?? log.response?.data?.message}
               </CodeBlock>
