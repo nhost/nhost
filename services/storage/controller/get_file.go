@@ -279,7 +279,7 @@ func (ctrl *Controller) processFileToDownload(
 	}, nil
 }
 
-func (ctrl *Controller) getFileResponse( //nolint: ireturn,dupl
+func (ctrl *Controller) getFileResponse( //nolint: ireturn,dupl,funlen
 	ctx context.Context,
 	file *processedFile,
 	logger *slog.Logger,
