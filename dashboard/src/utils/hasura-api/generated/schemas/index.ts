@@ -168,6 +168,7 @@ export * from './invokeEventTriggerArgsPayload';
 export * from './invokeEventTriggerOperation';
 export * from './invokeEventTriggerOperationType';
 export * from './invokeEventTriggerResponse';
+export * from './metadataOperation';
 export * from './metadataOperation200';
 export * from './metadataOperation401';
 export * from './migrationRequest';

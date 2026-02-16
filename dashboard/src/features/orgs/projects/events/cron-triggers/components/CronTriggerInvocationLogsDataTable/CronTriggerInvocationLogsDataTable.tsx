@@ -15,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/v3/table';
-import { useGetCronInvocationLogsById } from '@/features/orgs/projects/events/cron-triggers/hooks/useGetCronInvocationLogsById';
+import { useGetInvocationLogsById } from '@/features/orgs/projects/events/common/hooks/useGetInvocationLogsById';
 import { cn } from '@/lib/utils';
 import type { InvocationLogEntry } from '@/utils/hasura-api/generated/schemas/invocationLogEntry';
 import columns from './invocationDataTableColumns';
@@ -34,7 +34,8 @@ export default function CronTriggerInvocationLogsDataTable({
     null,
   );
 
-  const { data, isInitialLoading, isLoading } = useGetCronInvocationLogsById({
+  const { data, isInitialLoading, isLoading } = useGetInvocationLogsById({
+    type: 'cron',
     event_id: eventId,
   });
 
