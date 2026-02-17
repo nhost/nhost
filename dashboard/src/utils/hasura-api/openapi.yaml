@@ -87,6 +87,11 @@ components:
     MetadataOperation:
       oneOf:
         - $ref: "#/components/schemas/ExportMetadata"
+        - $ref: "#/components/schemas/GetInconsistentMetadataOperation"
+        - $ref: "#/components/schemas/ReloadMetadataOperation"
+        - $ref: "#/components/schemas/DropInconsistentMetadataOperation"
+        - $ref: "#/components/schemas/ClearMetadataOperation"
+        - $ref: "#/components/schemas/ReplaceMetadataOperation"
         - $ref: "#/components/schemas/SetTableCustomizationBulkOperation"
         - $ref: "#/components/schemas/SetTableIsEnumBulkOperation"
         - $ref: "#/components/schemas/SuggestRelationshipsOperation"
@@ -127,6 +132,8 @@ components:
               type: string
               example: success
         - $ref: "#/components/schemas/ExportMetadataResponse"
+        - $ref: "#/components/schemas/InconsistentMetadataResponse"
+        - $ref: "#/components/schemas/ReloadMetadataOperationResponse"
         - $ref: "#/components/schemas/SuggestRelationshipsResponse"
         - $ref: "#/components/schemas/IntrospectRemoteSchemaResponse"
         - $ref: "#/components/schemas/GetEventLogsResponse"
@@ -922,6 +929,7 @@ components:
 
     MigrationStep:
       oneOf:
+        - $ref: "#/components/schemas/ReplaceMetadataOperation"
         - $ref: "#/components/schemas/SetTableIsEnumStep"
         - $ref: "#/components/schemas/SetTableCustomizationStep"
         - $ref: "#/components/schemas/AddRemoteSchemaPermissionsStep"
@@ -1107,6 +1115,124 @@ components:
               items:
                 $ref: "#/components/schemas/CronTrigger"
           additionalProperties: true
+
+    GetInconsistentMetadataOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [get_inconsistent_metadata]
+        args:
+          type: object
+          example: {}
+
+    InconsistentMetadataResponse:
+      type: object
+      required:
+        - is_consistent
+      properties:
+        is_consistent:
+          type: boolean
+        inconsistent_objects:
+          type: array
+          items:
+            $ref: "#/components/schemas/InconsistentObject"
+
+    InconsistentObject:
+      type: object
+      required:
+        - type
+        - name
+        - reason
+        - definition
+      properties:
+        type:
+          type: string
+        name:
+          type: string
+        reason:
+          type: string
+        definition:
+          type: object
+          additionalProperties: true
+
+    ReloadMetadataOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [reload_metadata]
+        args:
+          type: object
+          properties:
+            reload_remote_schema:
+              oneOf:
+                - type: boolean
+                - type: array
+            reload_sources:
+              oneOf:
+                - type: boolean
+                - type: array
+
+    ReloadMetadataOperationResponse:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/SuccessResponse"
+        - $ref: "#/components/schemas/InconsistentMetadataResponse"
+
+    DropInconsistentMetadataOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [drop_inconsistent_metadata]
+        args:
+          type: object
+          example: {}
+
+    ClearMetadataOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [clear_metadata]
+        args:
+          type: object
+          example: {}
+
+    ReplaceMetadataOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [replace_metadata]
+        args:
+          $ref: "#/components/schemas/ReplaceMetadataArgs"
+
+    ReplaceMetadataArgs:
+      type: object
+      required:
+        - metadata
+      properties:
+        allow_inconsistent_metadata:
+          type: boolean
+        metadata:
+          type: object
 
     ArrayRelationshipItem:
       type: object
