@@ -21,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
+import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { type Org, useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
@@ -54,8 +55,9 @@ function TransferProjectForm({
   const { push } = useRouter();
   const { orgs, currentOrg } = useOrgs();
   const { project } = useProject();
+  const { state } = useAppState();
   const user = useUserData();
-  const isProjectNotPaused = project?.desiredState !== ApplicationStatus.Paused;
+  const isProjectNotPaused = state !== ApplicationStatus.Paused;
   const [transferProject] = useBillingTransferAppMutation();
 
   const form = useForm<z.infer<typeof transferProjectFormSchema>>({

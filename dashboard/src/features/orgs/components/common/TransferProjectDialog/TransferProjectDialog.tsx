@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { Dialog, DialogContent } from '@/components/ui/v3/dialog';
 import CreateOrgDialog from '@/features/orgs/components/CreateOrgFormDialog/CreateOrgFormDialog';
+import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { ApplicationStatus } from '@/types/application';
@@ -19,9 +20,10 @@ export default function TransferProjectDialog({
 }: TransferProjectDialogProps) {
   const { asPath, query, isReady: isRouterReady } = useRouter();
   const { session_id } = query;
-  const { project, loading: projectLoading } = useProject();
+  const { loading: projectLoading } = useProject();
+  const { state } = useAppState();
   const { loading: orgsLoading } = useOrgs();
-  const isProjectNotPaused = project?.desiredState !== ApplicationStatus.Paused;
+  const isProjectNotPaused = state !== ApplicationStatus.Paused;
 
   const [showCreateOrgModal, setShowCreateOrgModal] = useState(false);
   const [preventClose, setPreventClose] = useState(false);

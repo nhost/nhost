@@ -6,8 +6,8 @@ import {
   DialogTitle,
 } from '@/components/ui/v3/dialog';
 import type { FinishOrgCreationOnCompletedCb } from '@/features/orgs/hooks/useFinishOrganizationProcess/useFinishOrganizationProcess';
+import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useRemoveQueryParamsFromUrl } from '@/hooks/useRemoveQueryParamsFromUrl';
 import { isNotEmptyValue } from '@/lib/utils';
 import { ApplicationStatus } from '@/types/application';
@@ -31,9 +31,9 @@ function TransferProjectDialogContent({
 }: Props) {
   const { query } = useRouter();
   const { session_id } = query;
-  const { project } = useProject();
+  const { state } = useAppState();
   const { refetch: refetchOrgs } = useOrgs();
-  const isProjectNotPaused = project?.desiredState !== ApplicationStatus.Paused;
+  const isProjectNotPaused = state !== ApplicationStatus.Paused;
   const [showContent, setShowContent] = useState(true);
 
   const removeQueryParamsFromUrl = useRemoveQueryParamsFromUrl();
