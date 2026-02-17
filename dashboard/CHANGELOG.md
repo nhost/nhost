@@ -1,3 +1,16 @@
+## [@nhost/dashboard@2.49.0] - 2026-02-17
+
+### 🚀 Features
+
+- *(dashboard)* Add jsonb specific operators to OperationComboBox (#3904)
+- *(dashboard)* Add one-off scheduled events (#3889)
+
+
+### 🐛 Bug Fixes
+
+- *(deps)* Bump up markdown-it to address vulnerability (#3914)
+- *(dashboard)* Allow transferring free and paused project to Starter orgs (#3918)
+
 ## [@nhost/dashboard@2.48.0] - 2026-02-12
 
 ### 🚀 Features
