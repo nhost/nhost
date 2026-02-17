@@ -126,7 +126,24 @@ function TransferProjectForm({
               <Select onValueChange={onOrganizationChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Organization" />
+                    <SelectValue
+                      placeholder={
+                        <span className="flex items-center">
+                          {currentOrg?.name}
+                          <Badge
+                            variant={
+                              currentOrg?.plan.isFree ? 'outline' : 'default'
+                            }
+                            className={cn(
+                              currentOrg?.plan.isFree ? 'bg-muted' : '',
+                              'hover:none ml-2 h-5 px-[6px] text-[10px]',
+                            )}
+                          >
+                            {currentOrg?.plan.name}
+                          </Badge>
+                        </span>
+                      }
+                    />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
