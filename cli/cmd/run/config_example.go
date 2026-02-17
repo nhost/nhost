@@ -11,10 +11,6 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
-func ptr[T any](v T) *T {
-	return &v
-}
-
 func CommandConfigExample() *cli.Command {
 	return &cli.Command{ //nolint:exhaustruct
 		Name:    "config-example",
@@ -33,7 +29,7 @@ func commandConfigExample(_ context.Context, cmd *cli.Command) error { //nolint:
 		Name: "my-run-service",
 		Image: &model.ConfigRunServiceImage{
 			Image: "docker.io/org/img:latest",
-			PullCredentials: ptr(
+			PullCredentials: new(
 				`{"https://myregistry.com/v1": {"username": "myuser", "password": "mypassword"}}`,
 			),
 		},
@@ -54,12 +50,12 @@ func commandConfigExample(_ context.Context, cmd *cli.Command) error { //nolint:
 			{
 				Port:    8080,
 				Type:    "http",
-				Publish: ptr(true),
+				Publish: new(true),
 				Ingresses: []*model.ConfigIngress{
 					{
 						Fqdn: []string{"my-run-service.acme.com"},
 						Tls: &model.ConfigIngressTls{
-							ClientCA: ptr("---BEGIN CERTIFICATE---\n...\n---END CERTIFICATE---"),
+							ClientCA: new("---BEGIN CERTIFICATE---\n...\n---END CERTIFICATE---"),
 						},
 					},
 				},
@@ -82,8 +78,8 @@ func commandConfigExample(_ context.Context, cmd *cli.Command) error { //nolint:
 		},
 		HealthCheck: &model.ConfigHealthCheck{
 			Port:                8080,
-			InitialDelaySeconds: ptr(10),
-			ProbePeriodSeconds:  ptr(20),
+			InitialDelaySeconds: new(10),
+			ProbePeriodSeconds:  new(20),
 		},
 	}
 

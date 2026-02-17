@@ -75,7 +75,7 @@ func Search(queryStr string, limit int, ansiHighlight bool) (*SearchResults, err
 	return searchResults, nil
 }
 
-func getSearchIndex() (bleve.Index, error) { //nolint:ireturn
+func getSearchIndex() (bleve.Index, error) { //nolint:ireturn,nolintlint
 	searchIndexOnce.Do(func() {
 		searchIndex, searchIndexErr = buildSearchIndex()
 	})
@@ -83,7 +83,7 @@ func getSearchIndex() (bleve.Index, error) { //nolint:ireturn
 	return searchIndex, searchIndexErr
 }
 
-func buildSearchIndex() (bleve.Index, error) { //nolint:ireturn,cyclop
+func buildSearchIndex() (bleve.Index, error) { //nolint:ireturn,cyclop,nolintlint
 	indexMapping := buildIndexMapping()
 
 	index, err := bleve.NewMemOnly(indexMapping)
@@ -150,7 +150,7 @@ func buildSearchIndex() (bleve.Index, error) { //nolint:ireturn,cyclop
 	return index, nil
 }
 
-func buildSearchQuery(queryStr string) query.Query { //nolint:ireturn
+func buildSearchQuery(queryStr string) query.Query { //nolint:ireturn,nolintlint
 	keywordsMatch := bleve.NewMatchQuery(queryStr)
 	keywordsMatch.SetField("keywords")
 	keywordsMatch.SetBoost(15.0) //nolint:mnd

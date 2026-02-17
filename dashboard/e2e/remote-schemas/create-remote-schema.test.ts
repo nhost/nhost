@@ -23,7 +23,7 @@ test.beforeEach(async ({ authenticatedNhostPage: page }) => {
 test('should create and delete a remote schema from URL', async ({
   authenticatedNhostPage: page,
 }) => {
-  await page.getByRole('button', { name: /add remote schema/i }).click();
+  await page.getByRole('button', { name: /new remote schema/i }).click();
   await expect(page.getByText(/create a new remote schema/i)).toBeVisible();
 
   const schemaName = snakeCase(`e2e ${faker.lorem.words(2)}`);

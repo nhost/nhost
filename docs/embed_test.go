@@ -1,4 +1,4 @@
-package docsembed
+package docsembed_test
 
 import (
 	"io/fs"
@@ -6,15 +6,17 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	docsembed "github.com/nhost/nhost/docs"
 )
 
-func TestDocsFS_EmbedAllMDXFiles(t *testing.T) {
-	t.Helper()
+func TestDocsFS_EmbedAllMDXFiles(t *testing.T) { //nolint:cyclop
+	t.Parallel()
 
 	// Walk the actual filesystem to find all .mdx files
 	var onDisk []string
 
-	err := filepath.WalkDir(DocsRoot, func(path string, d fs.DirEntry, err error) error {
+	err := filepath.WalkDir(docsembed.DocsRoot, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -31,7 +33,7 @@ func TestDocsFS_EmbedAllMDXFiles(t *testing.T) {
 		return nil
 	})
 	if err != nil {
-		t.Fatalf("failed to walk %s on disk: %v", DocsRoot, err)
+		t.Fatalf("failed to walk %s on disk: %v", docsembed.DocsRoot, err)
 	}
 
 	if len(onDisk) == 0 {
@@ -42,7 +44,7 @@ func TestDocsFS_EmbedAllMDXFiles(t *testing.T) {
 	var missing []string
 
 	for _, path := range onDisk {
-		if _, err := DocsFS.ReadFile(path); err != nil {
+		if _, err := docsembed.DocsFS.ReadFile(path); err != nil {
 			missing = append(missing, path)
 		}
 	}
@@ -59,17 +61,21 @@ func TestDocsFS_EmbedAllMDXFiles(t *testing.T) {
 	// Also walk the embedded FS and count to make sure we don't have extras
 	var embedded int
 
-	err = fs.WalkDir(DocsFS, DocsRoot, func(path string, d fs.DirEntry, err error) error {
-		if err != nil || d.IsDir() {
-			return nil //nolint:nilerr
-		}
+	err = fs.WalkDir(
+		docsembed.DocsFS,
+		docsembed.DocsRoot,
+		func(path string, d fs.DirEntry, err error) error {
+			if err != nil || d.IsDir() {
+				return nil //nolint:nilerr
+			}
 
-		if strings.HasSuffix(path, ".mdx") {
-			embedded++
-		}
+			if strings.HasSuffix(path, ".mdx") {
+				embedded++
+			}
 
-		return nil
-	})
+			return nil
+		},
+	)
 	if err != nil {
 		t.Fatalf("failed to walk embedded FS: %v", err)
 	}
@@ -82,10 +88,12 @@ func TestDocsFS_EmbedAllMDXFiles(t *testing.T) {
 }
 
 func TestDocsFS_CanReadSamplePage(t *testing.T) {
+	t.Parallel()
+
 	// Find any .mdx file on disk to verify readability
 	var sample string
 
-	_ = filepath.WalkDir(DocsRoot, func(path string, d fs.DirEntry, err error) error {
+	_ = filepath.WalkDir(docsembed.DocsRoot, func(path string, d fs.DirEntry, err error) error {
 		if err != nil || d.IsDir() {
 			return nil //nolint:nilerr
 		}
@@ -103,7 +111,7 @@ func TestDocsFS_CanReadSamplePage(t *testing.T) {
 		t.Skip("no .mdx files found on disk")
 	}
 
-	data, err := DocsFS.ReadFile(sample)
+	data, err := docsembed.DocsFS.ReadFile(sample)
 	if err != nil {
 		t.Fatalf("failed to read embedded file %s: %v", sample, err)
 	}

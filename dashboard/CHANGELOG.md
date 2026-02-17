@@ -1,3 +1,29 @@
+## [@nhost/dashboard@2.49.0] - 2026-02-17
+
+### 🚀 Features
+
+- *(dashboard)* Add jsonb specific operators to OperationComboBox (#3904)
+- *(dashboard)* Add one-off scheduled events (#3889)
+
+
+### 🐛 Bug Fixes
+
+- *(deps)* Bump up markdown-it to address vulnerability (#3914)
+- *(dashboard)* Allow transferring free and paused project to Starter orgs (#3918)
+
+## [@nhost/dashboard@2.48.0] - 2026-02-12
+
+### 🚀 Features
+
+- *(dashboard)* Edit table relationships (#3720)
+- *(ci)* Remove mintlify (#3887)
+
+
+### 🐛 Bug Fixes
+
+- *(deps)* Update brace-expansion due to cve (#3886)
+- *(dashboard)* Run type check before tests (#3894)
+
 ## [@nhost/dashboard@2.47.0] - 2026-02-04
 
 ### 🚀 Features

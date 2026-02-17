@@ -242,8 +242,8 @@ func TestSignInAnonymous(t *testing.T) { //nolint:maintidx
 			},
 			request: api.SignInAnonymousRequestObject{
 				Body: &api.SignInAnonymousJSONRequestBody{
-					DisplayName: ptr("J. Doe"),
-					Locale:      ptr("es"),
+					DisplayName: new("J. Doe"),
+					Locale:      new("es"),
 					Metadata: &map[string]any{
 						"key":  "value",
 						"key2": "value2",

@@ -123,7 +123,7 @@ func (wf *Workflows) ValidateSignUpOptions( //nolint:cyclop
 	}
 
 	if options.RedirectTo == nil {
-		options.RedirectTo = ptr(wf.config.ClientURL.String())
+		options.RedirectTo = new(wf.config.ClientURL.String())
 	} else if !wf.redirectURLValidator(deptr(options.RedirectTo)) {
 		logger.WarnContext(
 			ctx,
@@ -135,11 +135,11 @@ func (wf *Workflows) ValidateSignUpOptions( //nolint:cyclop
 	}
 
 	if options.DefaultRole == nil {
-		options.DefaultRole = ptr(wf.config.DefaultRole)
+		options.DefaultRole = new(wf.config.DefaultRole)
 	}
 
 	if options.AllowedRoles == nil {
-		options.AllowedRoles = ptr(wf.config.DefaultAllowedRoles)
+		options.AllowedRoles = new(wf.config.DefaultAllowedRoles)
 	} else {
 		for _, role := range deptr(options.AllowedRoles) {
 			if !slices.Contains(wf.config.DefaultAllowedRoles, role) {
@@ -159,7 +159,7 @@ func (wf *Workflows) ValidateSignUpOptions( //nolint:cyclop
 	}
 
 	if options.Locale == nil {
-		options.Locale = ptr(wf.config.DefaultLocale)
+		options.Locale = new(wf.config.DefaultLocale)
 	}
 
 	if !slices.Contains(wf.config.AllowedLocales, deptr(options.Locale)) {
@@ -168,7 +168,7 @@ func (wf *Workflows) ValidateSignUpOptions( //nolint:cyclop
 			"locale not allowed, using default",
 			slog.String("locale", deptr(options.Locale)),
 		)
-		options.Locale = ptr(wf.config.DefaultLocale)
+		options.Locale = new(wf.config.DefaultLocale)
 	}
 
 	return options, nil
@@ -240,7 +240,7 @@ func (wf *Workflows) ValidateOptionsRedirectTo(
 	}
 
 	if options.RedirectTo == nil {
-		options.RedirectTo = ptr(wf.config.ClientURL.String())
+		options.RedirectTo = new(wf.config.ClientURL.String())
 	} else if !wf.redirectURLValidator(deptr(options.RedirectTo)) {
 		logger.WarnContext(
 			ctx,
@@ -440,7 +440,7 @@ func (wf *Workflows) GetUserByEmailAndTicket(
 func pgtypeTextToOAPIEmail(pgemail pgtype.Text) *types.Email {
 	var email *types.Email
 	if pgemail.Valid {
-		email = ptr(types.Email(pgemail.String))
+		email = new(types.Email(pgemail.String))
 	}
 
 	return email
@@ -895,7 +895,7 @@ func (wf *Workflows) SignupUserWithSession( //nolint:funlen
 			CreatedAt:           time.Now(),
 			DefaultRole:         *options.DefaultRole,
 			DisplayName:         deptr(options.DisplayName),
-			Email:               ptr(types.Email(email)),
+			Email:               new(types.Email(email)),
 			EmailVerified:       false,
 			Id:                  userID.String(),
 			IsAnonymous:         false,

@@ -67,8 +67,7 @@ jobs:
           for ARCH in "x86_64" "aarch64"; do
             skopeo copy --insecure-policy \
               dir:/home/runner/artifacts/${{ inputs.NAME }}-docker-image-$ARCH-$VERSION \
-              docker-daemon:$CONTAINER_NAME:$VERSION-$ARCH
-            docker push $CONTAINER_NAME:$VERSION-$ARCH
+              docker://$CONTAINER_NAME:$VERSION-$ARCH
           done
 
           docker manifest create \

@@ -216,7 +216,7 @@ function RemoteSchemaBrowserSidebarContent({
         }}
         disabled={isGitHubConnected}
       >
-        Add Remote Schema
+        New Remote Schema
       </Button>
       {remoteSchemas && remoteSchemas.length === 0 && (
         <Text className="px-2 py-1.5 text-xs" color="disabled">

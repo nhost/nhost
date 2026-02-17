@@ -18,68 +18,14 @@ paths:
         content:
           application/json:
             schema:
-              oneOf:
-                - $ref: "#/components/schemas/ExportMetadata"
-                - $ref: "#/components/schemas/SetTableCustomizationBulkOperation"
-                - $ref: "#/components/schemas/SetTableIsEnumBulkOperation"
-                - $ref: "#/components/schemas/SuggestRelationshipsOperation"
-                - $ref: "#/components/schemas/DropRelationshipBulkOperation"
-                - $ref: "#/components/schemas/DeleteRemoteRelationshipBulkOperation"
-                - $ref: "#/components/schemas/CreateObjectRelationshipBulkOperation"
-                - $ref: "#/components/schemas/CreateArrayRelationshipBulkOperation"
-                - $ref: "#/components/schemas/CreateRemoteRelationshipBulkOperation"
-                - $ref: "#/components/schemas/RenameRelationshipBulkOperation"
-                - $ref: "#/components/schemas/AddRemoteSchemaOperation"
-                - $ref: "#/components/schemas/UpdateRemoteSchemaBulkOperation"
-                - $ref: "#/components/schemas/RemoveRemoteSchemaOperation"
-                - $ref: "#/components/schemas/ReloadRemoteSchemaOperation"
-                - $ref: "#/components/schemas/IntrospectRemoteSchemaOperation"
-                - $ref: "#/components/schemas/RemoteSchemaRemoteRelationshipOperation"
-                - $ref: "#/components/schemas/DeleteRemoteSchemaRemoteRelationshipOperation"
-                - $ref: "#/components/schemas/RemoteSchemaPermissionsBulkOperation"
-                - $ref: "#/components/schemas/GetEventLogsOperation"
-                - $ref: "#/components/schemas/GetEventAndInvocationLogsByIdOperation"
-                - $ref: "#/components/schemas/RedeliverEventOperation"
-                - $ref: "#/components/schemas/CreateEventTriggerBulkOperation"
-                - $ref: "#/components/schemas/DeleteEventTriggerBulkOperation"
-                - $ref: "#/components/schemas/TestWebhookTransformOperation"
-                - $ref: "#/components/schemas/InvokeEventTriggerOperation"
-                - $ref: "#/components/schemas/GetCronTriggersOperation"
-                - $ref: "#/components/schemas/CreateCronTriggerBulkOperation"
-                - $ref: "#/components/schemas/DeleteCronTriggerOperation"
-                - $ref: "#/components/schemas/GetScheduledEventsOperation"
-                - $ref: "#/components/schemas/GetScheduledEventInvocationsOperation"
-                - $ref: "#/components/schemas/DeleteScheduledEventOperation"
+              $ref: "#/components/schemas/MetadataOperation"
       responses:
         "200":
           description: Operation executed successfully
           content:
             application/json:
               schema:
-                oneOf:
-                  - type: object
-                    properties:
-                      message:
-                        type: string
-                        example: success
-                  - $ref: "#/components/schemas/ExportMetadataResponse"
-                  - $ref: "#/components/schemas/SuggestRelationshipsResponse"
-                  - $ref: "#/components/schemas/IntrospectRemoteSchemaResponse"
-                  - $ref: "#/components/schemas/GetEventLogsResponse"
-                  - $ref: "#/components/schemas/GetEventAndInvocationLogsByIdResponse"
-                  - $ref: "#/components/schemas/TestWebhookTransformResponse"
-                  - $ref: "#/components/schemas/InvokeEventTriggerResponse"
-                  - $ref: "#/components/schemas/GetCronTriggersResponse"
-                  - $ref: "#/components/schemas/GetScheduledEventsResponse"
-                  - $ref: "#/components/schemas/GetScheduledEventInvocationsResponse"
-                  - type: array
-                    description: List of success messages for bulk operations
-                    items:
-                      type: object
-                      properties:
-                        message:
-                          type: string
-                          example: success
+                $ref: "#/components/schemas/MetadataOperation200"
 
         "400":
           description: Bad request
@@ -138,6 +84,74 @@ components:
       name: x-hasura-admin-secret
 
   schemas:
+    MetadataOperation:
+      oneOf:
+        - $ref: "#/components/schemas/ExportMetadata"
+        - $ref: "#/components/schemas/GetInconsistentMetadataOperation"
+        - $ref: "#/components/schemas/ReloadMetadataOperation"
+        - $ref: "#/components/schemas/DropInconsistentMetadataOperation"
+        - $ref: "#/components/schemas/ClearMetadataOperation"
+        - $ref: "#/components/schemas/ReplaceMetadataOperation"
+        - $ref: "#/components/schemas/SetTableCustomizationBulkOperation"
+        - $ref: "#/components/schemas/SetTableIsEnumBulkOperation"
+        - $ref: "#/components/schemas/SuggestRelationshipsOperation"
+        - $ref: "#/components/schemas/DropRelationshipBulkOperation"
+        - $ref: "#/components/schemas/DeleteRemoteRelationshipBulkOperation"
+        - $ref: "#/components/schemas/CreateObjectRelationshipBulkOperation"
+        - $ref: "#/components/schemas/CreateArrayRelationshipBulkOperation"
+        - $ref: "#/components/schemas/CreateRemoteRelationshipBulkOperation"
+        - $ref: "#/components/schemas/RenameRelationshipBulkOperation"
+        - $ref: "#/components/schemas/AddRemoteSchemaOperation"
+        - $ref: "#/components/schemas/UpdateRemoteSchemaBulkOperation"
+        - $ref: "#/components/schemas/RemoveRemoteSchemaOperation"
+        - $ref: "#/components/schemas/ReloadRemoteSchemaOperation"
+        - $ref: "#/components/schemas/IntrospectRemoteSchemaOperation"
+        - $ref: "#/components/schemas/RemoteSchemaRemoteRelationshipOperation"
+        - $ref: "#/components/schemas/DeleteRemoteSchemaRemoteRelationshipOperation"
+        - $ref: "#/components/schemas/RemoteSchemaPermissionsBulkOperation"
+        - $ref: "#/components/schemas/GetEventLogsOperation"
+        - $ref: "#/components/schemas/GetEventAndInvocationLogsByIdOperation"
+        - $ref: "#/components/schemas/RedeliverEventOperation"
+        - $ref: "#/components/schemas/CreateEventTriggerBulkOperation"
+        - $ref: "#/components/schemas/DeleteEventTriggerBulkOperation"
+        - $ref: "#/components/schemas/TestWebhookTransformOperation"
+        - $ref: "#/components/schemas/InvokeEventTriggerOperation"
+        - $ref: "#/components/schemas/GetCronTriggersOperation"
+        - $ref: "#/components/schemas/CreateCronTriggerBulkOperation"
+        - $ref: "#/components/schemas/DeleteCronTriggerOperation"
+        - $ref: "#/components/schemas/GetScheduledEventsOperation"
+        - $ref: "#/components/schemas/GetScheduledEventInvocationsOperation"
+        - $ref: "#/components/schemas/CreateScheduledEventOperation"
+        - $ref: "#/components/schemas/DeleteScheduledEventOperation"
+
+    MetadataOperation200:
+      oneOf:
+        - type: object
+          properties:
+            message:
+              type: string
+              example: success
+        - $ref: "#/components/schemas/ExportMetadataResponse"
+        - $ref: "#/components/schemas/InconsistentMetadataResponse"
+        - $ref: "#/components/schemas/ReloadMetadataOperationResponse"
+        - $ref: "#/components/schemas/SuggestRelationshipsResponse"
+        - $ref: "#/components/schemas/IntrospectRemoteSchemaResponse"
+        - $ref: "#/components/schemas/GetEventLogsResponse"
+        - $ref: "#/components/schemas/GetEventAndInvocationLogsByIdResponse"
+        - $ref: "#/components/schemas/TestWebhookTransformResponse"
+        - $ref: "#/components/schemas/InvokeEventTriggerResponse"
+        - $ref: "#/components/schemas/GetCronTriggersResponse"
+        - $ref: "#/components/schemas/GetScheduledEventsResponse"
+        - $ref: "#/components/schemas/GetScheduledEventInvocationsResponse"
+        - type: array
+          description: List of success messages for bulk operations
+          items:
+            type: object
+            properties:
+              message:
+                type: string
+                example: success
+
     SetTableCustomizationBulkOperation:
       type: object
       required:
@@ -915,6 +929,7 @@ components:
 
     MigrationStep:
       oneOf:
+        - $ref: "#/components/schemas/ReplaceMetadataOperation"
         - $ref: "#/components/schemas/SetTableIsEnumStep"
         - $ref: "#/components/schemas/SetTableCustomizationStep"
         - $ref: "#/components/schemas/AddRemoteSchemaPermissionsStep"
@@ -1100,6 +1115,124 @@ components:
               items:
                 $ref: "#/components/schemas/CronTrigger"
           additionalProperties: true
+
+    GetInconsistentMetadataOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [get_inconsistent_metadata]
+        args:
+          type: object
+          example: {}
+
+    InconsistentMetadataResponse:
+      type: object
+      required:
+        - is_consistent
+      properties:
+        is_consistent:
+          type: boolean
+        inconsistent_objects:
+          type: array
+          items:
+            $ref: "#/components/schemas/InconsistentObject"
+
+    InconsistentObject:
+      type: object
+      required:
+        - type
+        - name
+        - reason
+        - definition
+      properties:
+        type:
+          type: string
+        name:
+          type: string
+        reason:
+          type: string
+        definition:
+          type: object
+          additionalProperties: true
+
+    ReloadMetadataOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [reload_metadata]
+        args:
+          type: object
+          properties:
+            reload_remote_schema:
+              oneOf:
+                - type: boolean
+                - type: array
+            reload_sources:
+              oneOf:
+                - type: boolean
+                - type: array
+
+    ReloadMetadataOperationResponse:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/SuccessResponse"
+        - $ref: "#/components/schemas/InconsistentMetadataResponse"
+
+    DropInconsistentMetadataOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [drop_inconsistent_metadata]
+        args:
+          type: object
+          example: {}
+
+    ClearMetadataOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [clear_metadata]
+        args:
+          type: object
+          example: {}
+
+    ReplaceMetadataOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [replace_metadata]
+        args:
+          $ref: "#/components/schemas/ReplaceMetadataArgs"
+
+    ReplaceMetadataArgs:
+      type: object
+      required:
+        - metadata
+      properties:
+        allow_inconsistent_metadata:
+          type: boolean
+        metadata:
+          type: object
 
     ArrayRelationshipItem:
       type: object
@@ -2817,6 +2950,7 @@ components:
         - id
         - next_retry_at
         - scheduled_time
+        - webhook_conf
         - status
         - tries
         - trigger_name
@@ -2840,6 +2974,25 @@ components:
           type: integer
         trigger_name:
           type: string
+        comment:
+          type: string
+          nullable: true
+        header_conf:
+          $ref: "#/components/schemas/Headers"
+        payload:
+          type: object
+        retry_conf:
+          $ref: "#/components/schemas/RetryConfCT"
+        webhook_conf:
+          type: string
+        request_transform:
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/RequestTransformation"
+        response_transform:
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/ResponseTransformation"
 
     GetScheduledEventInvocationsOperation:
       type: object
@@ -2886,9 +3039,9 @@ components:
         invocations:
           type: array
           items:
-            $ref: "#/components/schemas/CronTriggerInvocationLogEntry"
+            $ref: "#/components/schemas/InvocationLogEntry"
 
-    CronTriggerInvocationLogEntry:
+    InvocationLogEntry:
       type: object
       required:
         - id
@@ -2966,6 +3119,48 @@ components:
               type: string
               description: Version of the response format
               example: "1"
+
+    CreateScheduledEventOperation:
+      type: object
+      description: Used to create a scheduled event.
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [create_scheduled_event]
+        args:
+          $ref: "#/components/schemas/CreateScheduledEventArgs"
+
+    CreateScheduledEventArgs:
+      type: object
+      required:
+        - webhook
+        - schedule_at
+      properties:
+        webhook:
+          type: string
+          description: URL of the webhook. A String value which supports templating environment variables enclosed in {{ and }}.
+          example: "{{SERVICE_URL}}/hooks"
+        schedule_at:
+          type: string
+          format: date-time
+          description: The time at which the invocation should be invoked (ISO8601 format).
+          example: "2025-09-19T16:01:31.086239Z"
+        payload:
+          type: object
+          description: Any JSON payload which will be sent when the webhook is invoked.
+          additionalProperties: true
+        headers:
+          description: List of headers to be sent with the webhook
+          $ref: "#/components/schemas/Headers"
+        retry_conf:
+          description: Retry configuration if scheduled event delivery fails
+          $ref: "#/components/schemas/RetryConfCT"
+        comment:
+          type: string
+          description: Custom comment.
 
     DeleteScheduledEventOperation:
       type: object

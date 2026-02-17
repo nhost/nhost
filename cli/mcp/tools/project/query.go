@@ -17,10 +17,6 @@ const (
 	ToolGraphqlQueryInstructions = `Execute a GraphQL query against a Nhost project. This tool is useful to query and mutate data. If you run into issues executing queries, retrieve the schema again in case the schema has changed. If you get an error indicating the query or mutation is not allowed the user may have disabled them in the server, don't retry and tell the user they need to enable them when starting nhost's mcp`
 )
 
-func ptr[T any](v T) *T {
-	return &v
-}
-
 type GraphqlQueryRequest struct {
 	Query     string         `json:"query"`
 	Variables map[string]any `json:"variables,omitempty"`
@@ -45,10 +41,10 @@ func (t *Tool) registerGraphqlQuery(mcpServer *server.MCPServer) {
 		mcp.WithToolAnnotation(
 			mcp.ToolAnnotation{
 				Title:           "Perform GraphQL Query on Nhost Project running on Nhost Cloud",
-				ReadOnlyHint:    ptr(!allowedMutations),
-				DestructiveHint: ptr(allowedMutations),
-				IdempotentHint:  ptr(false),
-				OpenWorldHint:   ptr(true),
+				ReadOnlyHint:    new(!allowedMutations),
+				DestructiveHint: new(allowedMutations),
+				IdempotentHint:  new(false),
+				OpenWorldHint:   new(true),
 			},
 		),
 		mcp.WithString(

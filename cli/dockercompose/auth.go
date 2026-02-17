@@ -106,7 +106,7 @@ func auth( //nolint:funlen
 				Type:     "bind",
 				Source:   nhostFolder + "/emails",
 				Target:   "/app/email-templates",
-				ReadOnly: ptr(false),
+				ReadOnly: new(false),
 			},
 		},
 		WorkingDir: nil,

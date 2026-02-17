@@ -176,6 +176,11 @@ const projectGraphQLPages = [
     slug: 'remote-schemas',
     route: 'graphql/remote-schemas',
   },
+  {
+    name: 'Metadata',
+    slug: 'metadata',
+    route: 'graphql/metadata',
+  },
 ];
 
 const projectEventsPages = [
@@ -188,6 +193,11 @@ const projectEventsPages = [
     name: 'Cron Triggers',
     slug: 'cron-triggers',
     route: 'events/cron-triggers',
+  },
+  {
+    name: 'One-Off Scheduled Events',
+    slug: 'one-offs',
+    route: 'events/one-offs',
   },
 ];
 

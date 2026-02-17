@@ -40,14 +40,12 @@ build-docker-image-clamav:  ## Build docker container for clamav
 		.\#packages.aarch64-linux.clamav-docker-image \
 		--print-build-logs
 	nix develop \#skopeo -c \
-		skopeo copy --insecure-policy dir:./result docker-daemon:clamav:$(VERSION)-aarch64
+		skopeo copy --insecure-policy dir:./result docker://nhost/clamav:$(VERSION)-aarch64
 	nix build $(docker-build-options) --show-trace \
 		.\#packages.x86_64-linux.clamav-docker-image \
 		--print-build-logs
 	nix develop \#skopeo -c \
-		skopeo copy --insecure-policy dir:./result docker-daemon:clamav:$(VERSION)-x86_64
-	docker push nhost/clamav:$(VERSION)-aarch64
-	docker push nhost/clamav:$(VERSION)-x86_64
+		skopeo copy --insecure-policy dir:./result docker://nhost/clamav:$(VERSION)-x86_64
 	docker manifest create \
 	  nhost/clamav:$(VERSION) \
 	    --amend nhost/clamav:$(VERSION)-aarch64 \

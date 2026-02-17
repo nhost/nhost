@@ -16,10 +16,6 @@ const (
 	in10Minutes = 10 * 60 * time.Second
 )
 
-func ptr[T any](v T) *T {
-	return &v
-}
-
 func deptr[T any](v *T) T { //nolint:ireturn,nolintlint
 	if v == nil {
 		var zero T

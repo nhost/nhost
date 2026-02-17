@@ -28,14 +28,14 @@ func uploadInitialFile(t *testing.T, cl client.ClientWithResponsesInterface, id1
 			"testfile.txt",
 			strings.NewReader("Hello, World!"),
 			&client.UploadFileMetadata{
-				Id: ptr(id1),
+				Id: new(id1),
 			},
 		),
 		client.NewFile(
 			"nhost.jpg",
 			f,
 			&client.UploadFileMetadata{
-				Id: ptr(id2),
+				Id: new(id2),
 			},
 		),
 	)
@@ -108,7 +108,7 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 			name: "IfMatch matches",
 			id:   id1,
 			params: &client.GetFileParams{
-				IfMatch: ptr(`"65a8e27d8879283831b664bd8b7f0ad4"`),
+				IfMatch: new(`"65a8e27d8879283831b664bd8b7f0ad4"`),
 			},
 			interceptor:        WithAccessToken(accessTokenValidUser),
 			expectedStatusCode: http.StatusOK,
@@ -130,7 +130,7 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 			name: "IfMatch does not match",
 			id:   id1,
 			params: &client.GetFileParams{
-				IfMatch: ptr(`"85a8e27d8879283831b664bd8b7f0ad4"`),
+				IfMatch: new(`"85a8e27d8879283831b664bd8b7f0ad4"`),
 			},
 			interceptor:        WithAccessToken(accessTokenValidUser),
 			expectedStatusCode: http.StatusPreconditionFailed,
@@ -149,7 +149,7 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 			name: "IfNoneMatch matches",
 			id:   id1,
 			params: &client.GetFileParams{
-				IfNoneMatch: ptr(`"65a8e27d8879283831b664bd8b7f0ad4"`),
+				IfNoneMatch: new(`"65a8e27d8879283831b664bd8b7f0ad4"`),
 			},
 			interceptor:        WithAccessToken(accessTokenValidUser),
 			expectedStatusCode: http.StatusNotModified,
@@ -167,7 +167,7 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 			name: "IfNoneMatch does not match",
 			id:   id1,
 			params: &client.GetFileParams{
-				IfNoneMatch: ptr(`"85a8e27d8879283831b664bd8b7f0ad4"`),
+				IfNoneMatch: new(`"85a8e27d8879283831b664bd8b7f0ad4"`),
 			},
 			interceptor:        WithAccessToken(accessTokenValidUser),
 			expectedStatusCode: http.StatusOK,
@@ -189,7 +189,7 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 			name: "IfModifiedSince matches",
 			id:   id1,
 			params: &client.GetFileParams{
-				IfModifiedSince: ptr(client.NewTime(time.Now().Add(-time.Hour))),
+				IfModifiedSince: new(client.NewTime(time.Now().Add(-time.Hour))),
 			},
 			interceptor:        WithAccessToken(accessTokenValidUser),
 			expectedStatusCode: http.StatusOK,
@@ -211,7 +211,7 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 			name: "IfModifiedSince does not match",
 			id:   id1,
 			params: &client.GetFileParams{
-				IfModifiedSince: ptr(client.NewTime(time.Now().Add(time.Hour))),
+				IfModifiedSince: new(client.NewTime(time.Now().Add(time.Hour))),
 			},
 			interceptor:        WithAccessToken(accessTokenValidUser),
 			expectedStatusCode: http.StatusNotModified,
@@ -229,7 +229,7 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 			name: "IfUnmodifiedSince matches",
 			id:   id1,
 			params: &client.GetFileParams{
-				IfUnmodifiedSince: ptr(client.NewTime(time.Now().Add(-time.Hour))),
+				IfUnmodifiedSince: new(client.NewTime(time.Now().Add(-time.Hour))),
 			},
 			interceptor:        WithAccessToken(accessTokenValidUser),
 			expectedStatusCode: http.StatusPreconditionFailed,
@@ -248,7 +248,7 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 			name: "IfUnmodifiedSince does not match",
 			id:   id1,
 			params: &client.GetFileParams{
-				IfUnmodifiedSince: ptr(client.NewTime(time.Now().Add(time.Hour))),
+				IfUnmodifiedSince: new(client.NewTime(time.Now().Add(time.Hour))),
 			},
 			interceptor:        WithAccessToken(accessTokenValidUser),
 			expectedStatusCode: http.StatusOK,
@@ -323,7 +323,7 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 			name: "range",
 			id:   id1,
 			params: &client.GetFileParams{
-				Range: ptr("bytes=0-4"),
+				Range: new("bytes=0-4"),
 			},
 			interceptor:        WithAccessToken(accessTokenValidUser),
 			expectedStatusCode: http.StatusPartialContent,
@@ -345,7 +345,7 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 			name: "range middle",
 			id:   id1,
 			params: &client.GetFileParams{
-				Range: ptr("bytes=2-8"),
+				Range: new("bytes=2-8"),
 			},
 			interceptor:        WithAccessToken(accessTokenValidUser),
 			expectedStatusCode: http.StatusPartialContent,
@@ -387,10 +387,10 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 			name: "image manipulation",
 			id:   id2,
 			params: &client.GetFileParams{
-				Q: ptr(80),
-				H: ptr(100),
-				W: ptr(100),
-				B: ptr(float32(0.10)),
+				Q: new(80),
+				H: new(100),
+				W: new(100),
+				B: new(float32(0.10)),
 			},
 			interceptor:        WithAccessToken(accessTokenValidUser),
 			expectedStatusCode: http.StatusOK,
