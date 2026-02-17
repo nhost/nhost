@@ -55,7 +55,7 @@ function TransferProjectForm({
   const { orgs, currentOrg } = useOrgs();
   const { project } = useProject();
   const user = useUserData();
-  const isProjectPaused = project?.desiredState === ApplicationStatus.Paused;
+  const isProjectNotPaused = project?.desiredState !== ApplicationStatus.Paused;
   const [transferProject] = useBillingTransferAppMutation();
 
   const form = useForm<z.infer<typeof transferProjectFormSchema>>({
@@ -135,7 +135,7 @@ function TransferProjectForm({
                       key={org.id}
                       value={org.id}
                       disabled={
-                        (org.plan.isFree && !isProjectPaused) || // disable free orgs unless project is paused
+                        (org.plan.isFree && isProjectNotPaused) || // disable free orgs unless project is paused
                         org.id === currentOrg?.id || // disable the current org as it can't be a destination org
                         !isUserAdminOfOrg(org, user?.id) // disable orgs that the current user is not admin of
                       }

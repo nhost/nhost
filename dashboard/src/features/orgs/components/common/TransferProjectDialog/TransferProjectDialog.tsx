@@ -21,7 +21,7 @@ export default function TransferProjectDialog({
   const { session_id } = query;
   const { project, loading: projectLoading } = useProject();
   const { loading: orgsLoading } = useOrgs();
-  const isProjectPaused = project?.desiredState === ApplicationStatus.Paused;
+  const isProjectNotPaused = project?.desiredState !== ApplicationStatus.Paused;
 
   const [showCreateOrgModal, setShowCreateOrgModal] = useState(false);
   const [preventClose, setPreventClose] = useState(false);
@@ -90,7 +90,7 @@ export default function TransferProjectDialog({
         isOpen={showCreateOrgModal}
         onOpenStateChange={handleCreateDialogOpenStateChange}
         redirectUrl={redirectUrl}
-        isStarterDisabled={!isProjectPaused}
+        isStarterDisabled={isProjectNotPaused}
       />
     </>
   );

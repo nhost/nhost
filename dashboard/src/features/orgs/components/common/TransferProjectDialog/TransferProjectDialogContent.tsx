@@ -33,7 +33,7 @@ function TransferProjectDialogContent({
   const { session_id } = query;
   const { project } = useProject();
   const { refetch: refetchOrgs } = useOrgs();
-  const isProjectPaused = project?.desiredState === ApplicationStatus.Paused;
+  const isProjectNotPaused = project?.desiredState !== ApplicationStatus.Paused;
   const [showContent, setShowContent] = useState(true);
 
   const removeQueryParamsFromUrl = useRemoveQueryParamsFromUrl();
@@ -81,7 +81,7 @@ function TransferProjectDialogContent({
             When transferred to a new organization, the project will adopt that
             organization's plan.
           </DialogDescription>
-          {!isProjectPaused && (
+          {isProjectNotPaused && (
             <p className="text-muted-foreground text-sm">
               To transfer to a Starter organization, the project must be paused
               first.
