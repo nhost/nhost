@@ -168,7 +168,7 @@
     "jsdom": "^27.4.0",
     "lint-staged": "^15.2.2",
     "msw": "^2.12.7",
-    "orval": "^8.2.0",
+    "orval": "^8.4.0",
     "postcss": "^8.4.38",
     "require-from-string": "^2.0.2",
     "snake-case": "^3.0.4",
