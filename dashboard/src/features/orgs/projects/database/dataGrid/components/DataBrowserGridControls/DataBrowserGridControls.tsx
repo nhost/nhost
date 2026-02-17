@@ -32,6 +32,18 @@ export interface DataBrowserGridControlsProps {
    * Function to be called when the button to add a new row is clicked.
    */
   onInsertRowClick?: () => void;
+  /**
+   * Whether the current table is tracked in Hasura GraphQL.
+   */
+  isTracked?: boolean;
+  /**
+   * Callback to track the current table.
+   */
+  onTrackTable?: () => Promise<void>;
+  /**
+   * Whether a track operation is in progress.
+   */
+  isTrackingTable?: boolean;
 }
 
 // TODO: Get rid of Data Browser related code from here. This component should
@@ -40,6 +52,9 @@ export default function DataBrowserGridControls({
   paginationProps,
   refetchData,
   onInsertRowClick,
+  isTracked,
+  onTrackTable,
+  isTrackingTable,
 }: DataBrowserGridControlsProps) {
   const queryClient = useQueryClient();
   const { openAlertDialog } = useDialog();
@@ -119,6 +134,24 @@ export default function DataBrowserGridControls({
 
   return (
     <div className="box sticky top-0 z-40 border-b-1 p-2">
+      {isTracked === false && (
+        <div className="mb-2 flex items-center gap-3 rounded-md border border-amber-500/20 bg-amber-500/10 px-3.5 py-2">
+          <span className="h-2 w-2 shrink-0 rounded-full bg-amber-500" />
+          <span className="font-medium text-amber-600 text-sm dark:text-amber-400">
+            Not tracked in GraphQL
+          </span>
+          <Button
+            onClick={onTrackTable}
+            disabled={isTrackingTable}
+            loading={isTrackingTable}
+            size="sm"
+            variant="outline"
+            className="ml-auto border-amber-500/30 text-amber-600 text-sm hover:bg-amber-500/10 dark:text-amber-400"
+          >
+            Track now
+          </Button>
+        </div>
+      )}
       <div
         className={cn(
           'mx-auto grid min-h-10 grid-flow-col items-center gap-3',

@@ -14,6 +14,8 @@ import type { RemoveRemoteSchemaStep } from './removeRemoteSchemaStep';
 import type { ReplaceMetadataOperation } from './replaceMetadataOperation';
 import type { SetTableCustomizationStep } from './setTableCustomizationStep';
 import type { SetTableIsEnumStep } from './setTableIsEnumStep';
+import type { TrackTableStep } from './trackTableStep';
+import type { UntrackTableStep } from './untrackTableStep';
 import type { UpdateRemoteSchemaStep } from './updateRemoteSchemaStep';
 
 export type MigrationStep =
@@ -26,4 +28,6 @@ export type MigrationStep =
   | RemoveRemoteSchemaStep
   | AddRemoteSchemaStep
   | CreateEventTriggerStep
-  | DeleteEventTriggerStep;
+  | DeleteEventTriggerStep
+  | TrackTableStep
+  | UntrackTableStep;

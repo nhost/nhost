@@ -2,10 +2,11 @@ import { useQueryClient } from '@tanstack/react-query';
 import { KeyRound } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { FormActivityIndicator } from '@/components/form/FormActivityIndicator';
 import { InlineCode } from '@/components/ui/v3/inline-code';
+import useGetTrackedTablesNames from '@/features/orgs/projects/common/hooks/useGetTrackedTablesNames/useGetTrackedTablesNames';
 import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
 import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
 import { DataBrowserGridControls } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGridControls';
@@ -13,10 +14,12 @@ import {
   createTableQueryKey,
   useTableQuery,
 } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
+import { useTrackTableMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useTrackTableMutation';
 import type { UpdateRecordVariables } from '@/features/orgs/projects/database/dataGrid/hooks/useUpdateRecordMutation';
 import { useUpdateRecordWithToastMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useUpdateRecordMutation';
 import type {
   DataBrowserGridColumn,
+  DatabaseTable,
   NormalizedQueryDataRow,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { normalizeDefaultValue } from '@/features/orgs/projects/database/dataGrid/utils/normalizeDefaultValue';
@@ -26,6 +29,7 @@ import {
   POSTGRESQL_JSON_TYPES,
   POSTGRESQL_NUMERIC_TYPES,
 } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { DataGridProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import { DataGrid } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import { DataGridBooleanCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridBooleanCell';
@@ -33,6 +37,7 @@ import { DataGridDateCell } from '@/features/orgs/projects/storage/dataGrid/comp
 import { DataGridNumericCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridNumericCell';
 import { DataGridTextCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridTextCell';
 import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
+import { triggerToast } from '@/utils/toast';
 import { useDataGridQueryParams } from './DataGridQueryParamsProvider';
 import NoMatchesFound from './NoMatchesFound';
 
@@ -152,8 +157,37 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
     ...router
   } = useRouter();
   const currentTablePath = useTablePath();
+  const { project } = useProject();
 
   const { openDrawer } = useDialog();
+
+  const { data: trackedTableNames } = useGetTrackedTablesNames({
+    dataSource: 'default',
+  });
+  const trackedTablesSet = new Set(trackedTableNames ?? []);
+  const isTracked =
+    typeof tableSlug === 'string' ? trackedTablesSet.has(tableSlug) : undefined;
+
+  const { mutateAsync: trackTable, status: trackStatus } =
+    useTrackTableMutation();
+
+  const onTrackTable = useCallback(async () => {
+    try {
+      await trackTable({
+        table: { name: tableSlug as string } as DatabaseTable,
+      });
+      triggerToast('Table tracked successfully.');
+      await queryClient.invalidateQueries({
+        queryKey: ['export-metadata', project?.subdomain],
+      });
+    } catch (trackError) {
+      triggerToast(
+        trackError instanceof Error
+          ? trackError.message
+          : 'Failed to track table.',
+      );
+    }
+  }, [trackTable, tableSlug, queryClient, project?.subdomain]);
 
   const {
     isFiltersLoadedFromStorage,
@@ -380,6 +414,9 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
             onOpenNextPage: handleOpenNextPage,
           }}
           refetchData={refetch}
+          isTracked={isTracked}
+          onTrackTable={onTrackTable}
+          isTrackingTable={trackStatus === 'loading'}
         />
       }
       {...props}
