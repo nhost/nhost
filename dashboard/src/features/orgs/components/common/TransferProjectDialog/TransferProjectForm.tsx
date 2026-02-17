@@ -26,6 +26,7 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useUserData } from '@/hooks/useUserData';
 import { cn, isNotEmptyValue } from '@/lib/utils';
+import { ApplicationStatus } from '@/types/application';
 import {
   Organization_Members_Role_Enum,
   useBillingTransferAppMutation,
@@ -54,6 +55,7 @@ function TransferProjectForm({
   const { orgs, currentOrg } = useOrgs();
   const { project } = useProject();
   const user = useUserData();
+  const isProjectPaused = project?.desiredState === ApplicationStatus.Paused;
   const [transferProject] = useBillingTransferAppMutation();
 
   const form = useForm<z.infer<typeof transferProjectFormSchema>>({
@@ -133,7 +135,7 @@ function TransferProjectForm({
                       key={org.id}
                       value={org.id}
                       disabled={
-                        org.plan.isFree || // disable the personal org
+                        (org.plan.isFree && !isProjectPaused) || // disable free orgs unless project is paused
                         org.id === currentOrg?.id || // disable the current org as it can't be a destination org
                         !isUserAdminOfOrg(org, user?.id) // disable orgs that the current user is not admin of
                       }

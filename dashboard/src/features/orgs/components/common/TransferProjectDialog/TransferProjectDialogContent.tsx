@@ -7,8 +7,10 @@ import {
 } from '@/components/ui/v3/dialog';
 import type { FinishOrgCreationOnCompletedCb } from '@/features/orgs/hooks/useFinishOrganizationProcess/useFinishOrganizationProcess';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useRemoveQueryParamsFromUrl } from '@/hooks/useRemoveQueryParamsFromUrl';
 import { isNotEmptyValue } from '@/lib/utils';
+import { ApplicationStatus } from '@/types/application';
 import FinishOrgCreation from './FinishOrgCreation';
 import TransferProjectForm, {
   type TransferProjectFormProps,
@@ -29,7 +31,9 @@ function TransferProjectDialogContent({
 }: Props) {
   const { query } = useRouter();
   const { session_id } = query;
+  const { project } = useProject();
   const { refetch: refetchOrgs } = useOrgs();
+  const isProjectPaused = project?.desiredState === ApplicationStatus.Paused;
   const [showContent, setShowContent] = useState(true);
 
   const removeQueryParamsFromUrl = useRemoveQueryParamsFromUrl();
@@ -75,8 +79,14 @@ function TransferProjectDialogContent({
             <span className="font-bold">ADMIN</span> in both.
             <br />
             When transferred to a new organization, the project will adopt that
-            organization’s plan.
+            organization's plan.
           </DialogDescription>
+          {!isProjectPaused && (
+            <p className="text-muted-foreground text-sm">
+              To transfer to a Starter organization, the project must be paused
+              first.
+            </p>
+          )}
           <TransferProjectForm
             onCreateNewOrg={onCreateNewOrg}
             selectedOrganizationId={selectedOrganizationId}

@@ -18,6 +18,19 @@ An organization is an organizational unit where:
 
 For more information about the plans and their features, please refer to the [pricing page](https://nhost.io/pricing).
 
+### Downgrading to Starter
+
+Direct downgrades from a paid plan to the Starter (free) plan are not available. To move to Starter:
+
+1. Create a new Starter organization (or use an existing one).
+2. Pause the projects you want to keep.
+3. Transfer each paused project to the Starter organization via **Project Settings > Transfer**.
+4. Once all projects have been moved, cancel the paid organization from the Stripe Customer Portal.
+
+Note that only paused projects can be transferred to a Starter organization and a Starter organization can only have one active project at a time.
+
+Before transferring, be aware that Starter organizations have lower resource limits than paid plans (e.g. postgres disk size, function execution timeout, number of functions per deployment). If your project exceeds the Starter limits you may need to reduce its resources before unpausing it in the new organization. Refer to the [pricing page](https://nhost.io/pricing) for a full comparison of plan limits.
+
 ### Billing cycle
 
 Regardless of when you created an organization the billing cycle will always start on the 1st of the month and end on the last day of the month. If you create the organization in the middle of the month you will be charged for the remaining days of the month.

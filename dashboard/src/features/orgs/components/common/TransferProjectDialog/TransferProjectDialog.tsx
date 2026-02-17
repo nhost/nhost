@@ -5,6 +5,7 @@ import { Dialog, DialogContent } from '@/components/ui/v3/dialog';
 import CreateOrgDialog from '@/features/orgs/components/CreateOrgFormDialog/CreateOrgFormDialog';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { ApplicationStatus } from '@/types/application';
 import TransferProjectDialogContent from './TransferProjectDialogContent';
 
 interface TransferProjectDialogProps {
@@ -18,8 +19,9 @@ export default function TransferProjectDialog({
 }: TransferProjectDialogProps) {
   const { asPath, query, isReady: isRouterReady } = useRouter();
   const { session_id } = query;
-  const { loading: projectLoading } = useProject();
+  const { project, loading: projectLoading } = useProject();
   const { loading: orgsLoading } = useOrgs();
+  const isProjectPaused = project?.desiredState === ApplicationStatus.Paused;
 
   const [showCreateOrgModal, setShowCreateOrgModal] = useState(false);
   const [preventClose, setPreventClose] = useState(false);
@@ -88,7 +90,7 @@ export default function TransferProjectDialog({
         isOpen={showCreateOrgModal}
         onOpenStateChange={handleCreateDialogOpenStateChange}
         redirectUrl={redirectUrl}
-        isStarterDisabled
+        isStarterDisabled={!isProjectPaused}
       />
     </>
   );
