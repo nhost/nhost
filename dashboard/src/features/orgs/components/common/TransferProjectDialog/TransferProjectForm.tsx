@@ -130,28 +130,29 @@ function TransferProjectForm({
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {orgs.map((org) => (
-                    <SelectItem
-                      key={org.id}
-                      value={org.id}
-                      disabled={
-                        (org.plan.isFree && isProjectNotPaused) || // disable free orgs unless project is paused
-                        org.id === currentOrg?.id || // disable the current org as it can't be a destination org
-                        !isUserAdminOfOrg(org, user?.id) // disable orgs that the current user is not admin of
-                      }
-                    >
-                      {org.name}
-                      <Badge
-                        variant={org.plan.isFree ? 'outline' : 'default'}
-                        className={cn(
-                          org.plan.isFree ? 'bg-muted' : '',
-                          'hover:none ml-2 h-5 px-[6px] text-[10px]',
-                        )}
+                  {orgs
+                    .filter((org) => org.id !== currentOrg?.id)
+                    .map((org) => (
+                      <SelectItem
+                        key={org.id}
+                        value={org.id}
+                        textContent={org.name}
+                        disabled={
+                          (org.plan.isFree && isProjectNotPaused) || // disable free orgs unless project is paused
+                          !isUserAdminOfOrg(org, user?.id) // disable orgs that the current user is not admin of
+                        }
                       >
-                        {org.plan.name}
-                      </Badge>
-                    </SelectItem>
-                  ))}
+                        <Badge
+                          variant={org.plan.isFree ? 'outline' : 'default'}
+                          className={cn(
+                            org.plan.isFree ? 'bg-muted' : '',
+                            'hover:none ml-2 h-5 px-[6px] text-[10px]',
+                          )}
+                        >
+                          {org.plan.name}
+                        </Badge>
+                      </SelectItem>
+                    ))}
                   <SelectItem key={CREATE_NEW_ORG} value={CREATE_NEW_ORG}>
                     <div className="flex items-center justify-center gap-2">
                       <Plus className="h-4 w-4 font-bold" strokeWidth={3} />{' '}
