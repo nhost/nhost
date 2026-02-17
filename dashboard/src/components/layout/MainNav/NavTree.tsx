@@ -176,6 +176,11 @@ const projectGraphQLPages = [
     slug: 'remote-schemas',
     route: 'graphql/remote-schemas',
   },
+  {
+    name: 'Metadata',
+    slug: 'metadata',
+    route: 'graphql/metadata',
+  },
 ];
 
 const projectEventsPages = [

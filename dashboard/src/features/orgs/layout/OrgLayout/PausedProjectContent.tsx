@@ -10,6 +10,7 @@ const blockedPausedProjectPages = [
   'graphql',
   'graphql/remote-schemas',
   'graphql/remote-schemas/[remoteSchemaSlug]',
+  'graphql/metadata',
   'events/event-triggers',
   'events/event-triggers/[eventTriggerSlug]',
   'events/cron-triggers',

@@ -6,6 +6,7 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { AddRemoteSchemaOperation } from './addRemoteSchemaOperation';
+import type { ClearMetadataOperation } from './clearMetadataOperation';
 import type { CreateArrayRelationshipBulkOperation } from './createArrayRelationshipBulkOperation';
 import type { CreateCronTriggerBulkOperation } from './createCronTriggerBulkOperation';
 import type { CreateEventTriggerBulkOperation } from './createEventTriggerBulkOperation';
@@ -17,21 +18,25 @@ import type { DeleteEventTriggerBulkOperation } from './deleteEventTriggerBulkOp
 import type { DeleteRemoteRelationshipBulkOperation } from './deleteRemoteRelationshipBulkOperation';
 import type { DeleteRemoteSchemaRemoteRelationshipOperation } from './deleteRemoteSchemaRemoteRelationshipOperation';
 import type { DeleteScheduledEventOperation } from './deleteScheduledEventOperation';
+import type { DropInconsistentMetadataOperation } from './dropInconsistentMetadataOperation';
 import type { DropRelationshipBulkOperation } from './dropRelationshipBulkOperation';
 import type { ExportMetadata } from './exportMetadata';
 import type { GetCronTriggersOperation } from './getCronTriggersOperation';
 import type { GetEventAndInvocationLogsByIdOperation } from './getEventAndInvocationLogsByIdOperation';
 import type { GetEventLogsOperation } from './getEventLogsOperation';
+import type { GetInconsistentMetadataOperation } from './getInconsistentMetadataOperation';
 import type { GetScheduledEventInvocationsOperation } from './getScheduledEventInvocationsOperation';
 import type { GetScheduledEventsOperation } from './getScheduledEventsOperation';
 import type { IntrospectRemoteSchemaOperation } from './introspectRemoteSchemaOperation';
 import type { InvokeEventTriggerOperation } from './invokeEventTriggerOperation';
 import type { RedeliverEventOperation } from './redeliverEventOperation';
+import type { ReloadMetadataOperation } from './reloadMetadataOperation';
 import type { ReloadRemoteSchemaOperation } from './reloadRemoteSchemaOperation';
 import type { RemoteSchemaPermissionsBulkOperation } from './remoteSchemaPermissionsBulkOperation';
 import type { RemoteSchemaRemoteRelationshipOperation } from './remoteSchemaRemoteRelationshipOperation';
 import type { RemoveRemoteSchemaOperation } from './removeRemoteSchemaOperation';
 import type { RenameRelationshipBulkOperation } from './renameRelationshipBulkOperation';
+import type { ReplaceMetadataOperation } from './replaceMetadataOperation';
 import type { SetTableCustomizationBulkOperation } from './setTableCustomizationBulkOperation';
 import type { SetTableIsEnumBulkOperation } from './setTableIsEnumBulkOperation';
 import type { SuggestRelationshipsOperation } from './suggestRelationshipsOperation';
@@ -40,6 +45,11 @@ import type { UpdateRemoteSchemaBulkOperation } from './updateRemoteSchemaBulkOp
 
 export type MetadataOperation =
   | ExportMetadata
+  | GetInconsistentMetadataOperation
+  | ReloadMetadataOperation
+  | DropInconsistentMetadataOperation
+  | ClearMetadataOperation
+  | ReplaceMetadataOperation
   | SetTableCustomizationBulkOperation
   | SetTableIsEnumBulkOperation
   | SuggestRelationshipsOperation
