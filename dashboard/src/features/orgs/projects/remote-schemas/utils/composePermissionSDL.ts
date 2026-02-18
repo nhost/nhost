@@ -56,13 +56,12 @@ function printTypeSDL(
       }
 
       let fieldStr = f.name;
-      let valueStr = '';
 
       if (!typeName.startsWith('enum')) {
         if (f.args && !isEmptyValue(f.args)) {
           fieldStr = `${fieldStr}(`;
           Object.values(f.args).forEach((arg: GraphQLInputField) => {
-            valueStr = `${arg.name} : ${arg.type.toString()}`;
+            let valueStr = `${arg.name} : ${arg.type.toString()}`;
 
             if (arg.defaultValue !== undefined) {
               const defaultValue = stringifyGraphQLValue({
@@ -92,11 +91,7 @@ function printTypeSDL(
         }
       }
 
-      if (typeName.startsWith('input')) {
-        result = `${result}\n      ${valueStr}`;
-      } else {
-        result = `${result}\n      ${fieldStr}`;
-      }
+      result = `${result}\n      ${fieldStr}`;
     });
   }
 
