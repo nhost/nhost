@@ -231,7 +231,7 @@ export default function ServiceForm({
 
     const base64Config = btoa(JSON.stringify(config));
 
-    const link = `${hostName}/run-one-click-install?config=${base64Config}`;
+    const link = `${hostName}/run-one-click-install?config=${encodeURIComponent(base64Config)}`;
 
     copy(link, 'Service Config');
   };
