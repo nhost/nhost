@@ -346,7 +346,7 @@ export default defineConfig({
                 },
                 {
                   label: 'Workflows',
-                  collapsed: true,
+                  collapsed: false,
                   items: [
                     { slug: 'products/auth/workflows/email-password' },
                     { slug: 'products/auth/workflows/passwordless-email' },
@@ -361,7 +361,7 @@ export default defineConfig({
                 },
                 {
                   label: 'Security',
-                  collapsed: true,
+                  collapsed: false,
                   items: [
                     { slug: 'products/auth/elevated-permissions' },
                     { slug: 'products/auth/bot-protection' },
@@ -402,7 +402,7 @@ export default defineConfig({
                 },
                 {
                   label: 'Platform',
-                  collapsed: true,
+                  collapsed: false,
                   items: [
                     { slug: 'products/storage/cdn' },
                     { slug: 'products/storage/antivirus' },
@@ -513,7 +513,7 @@ export default defineConfig({
                 },
                 {
                   label: 'Development',
-                  collapsed: true,
+                  collapsed: false,
                   items: [
                     { slug: 'platform/cli' },
                     { slug: 'platform/cli/local-development' },
@@ -537,7 +537,7 @@ export default defineConfig({
                 },
                 {
                   label: 'Self-Hosting',
-                  collapsed: true,
+                  collapsed: false,
                   items: [
                     { slug: 'platform/self-hosting' },
                     { slug: 'platform/self-hosting/community' },
@@ -647,7 +647,7 @@ export default defineConfig({
                 },
                 {
                   label: 'Deprecated Libraries',
-                  collapsed: true,
+                  collapsed: false,
                   autogenerate: { directory: 'reference/deprecated' },
                 },
               ],
