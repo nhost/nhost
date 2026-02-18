@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { Plus } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { Row } from 'react-table';
 import { twMerge } from 'tailwind-merge';
 import { useDialog } from '@/components/common/DialogProvider';
@@ -76,8 +76,15 @@ export default function DataBrowserGridControls({
     Row[]
   >([]);
 
+  const [isNotTrackedBannerDismissed, setIsNotTrackedBannerDismissed] =
+    useState(false);
+
   const router = useRouter();
   const { dataSourceSlug, schemaSlug, tableSlug } = router.query;
+
+  useEffect(() => {
+    setIsNotTrackedBannerDismissed(false);
+  }, [tableSlug]);
 
   const { data: eventTriggersByTable } = useGetEventTriggersByTable({
     table: { name: tableSlug as string, schema: schemaSlug as string },
@@ -134,8 +141,8 @@ export default function DataBrowserGridControls({
 
   return (
     <div className="box sticky top-0 z-40 border-b-1 p-2">
-      {isTracked === false && (
-        <div className="mb-2 flex items-center gap-3 rounded-md border border-amber-500/20 bg-amber-500/10 px-3.5 py-2">
+      {isTracked === false && !isNotTrackedBannerDismissed && (
+        <div className="fixed bottom-4 right-4 z-50 flex items-center gap-3 rounded-lg border border-amber-500/20 bg-white px-4 py-3 shadow-lg dark:bg-neutral-900">
           <span className="h-2 w-2 shrink-0 rounded-full bg-amber-500" />
           <span className="font-medium text-amber-600 text-sm dark:text-amber-400">
             Not tracked in GraphQL
@@ -146,10 +153,17 @@ export default function DataBrowserGridControls({
             loading={isTrackingTable}
             size="sm"
             variant="outline"
-            className="ml-auto border-amber-500/30 text-amber-600 text-sm hover:bg-amber-500/10 dark:text-amber-400"
+            className="border-amber-500/30 text-amber-600 text-sm hover:bg-amber-500/10 dark:text-amber-400"
           >
             Track now
           </Button>
+          <button
+            type="button"
+            onClick={() => setIsNotTrackedBannerDismissed(true)}
+            className="ml-1 rounded p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
         </div>
       )}
       <div
@@ -205,24 +219,26 @@ export default function DataBrowserGridControls({
           </div>
         )}
 
-        {numberOfSelectedRows === 0 && (
-          <div className="col-span-6 grid grid-flow-col items-center gap-2">
-            {columns.length > 0 && (
-              <DataGridPagination
-                className={twMerge(
-                  'col-span-6 xs+:col-span-2 h-9 lg:col-span-2',
-                  paginationClassName,
-                )}
-                {...restPaginationProps}
-              />
-            )}
-            <DataGridFiltersPopover />
+        <div className="grid grid-flow-col items-center gap-2">
+          {numberOfSelectedRows === 0 && columns.length > 0 && (
+            <DataGridPagination
+              className={twMerge(
+                'col-span-6 xs+:col-span-2 h-9 lg:col-span-2',
+                paginationClassName,
+              )}
+              {...restPaginationProps}
+            />
+          )}
+          {numberOfSelectedRows === 0 && <DataGridFiltersPopover />}
+          {numberOfSelectedRows === 0 && (
             <DataGridTableViewConfigurationPopover />
+          )}
+          {numberOfSelectedRows === 0 && (
             <Button onClick={onInsertRowClick} size="sm">
               <Plus className="h-4 w-4" /> Insert row
             </Button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
