@@ -1,11 +1,5 @@
-import {
-  Anchor,
-  Ellipsis,
-  Settings,
-  SquarePen,
-  Trash2,
-  Users,
-} from 'lucide-react';
+import { Anchor, Ellipsis, SquarePen, Trash2, Users } from 'lucide-react';
+import { GraphQLIcon } from '@/components/ui/v2/icons/GraphQLIcon';
 import { Button } from '@/components/ui/v3/button';
 import {
   DropdownMenu,
@@ -105,7 +99,7 @@ function TableActions({
               className={menuItemClassName}
               onClick={onViewSettings}
             >
-              <Settings className="h-4 w-4" /> <span>View Settings</span>
+              <GraphQLIcon className="h-4 w-4" /> <span>View GraphQL</span>
             </DropdownMenuItem>
           </>
         ) : (
@@ -136,7 +130,7 @@ function TableActions({
               className={menuItemClassName}
               onClick={onEditSettings}
             >
-              <Settings className="h-4 w-4" /> <span>Edit Settings</span>
+              <GraphQLIcon className="h-4 w-4" /> <span>Edit GraphQL</span>
             </DropdownMenuItem>
             {isSelectedNotSchemaLocked && (
               <DropdownMenuItem
