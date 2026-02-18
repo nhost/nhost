@@ -23,6 +23,7 @@ module.exports = {
         'data-cell-bg': 'hsl(var(--data-cell-bg))',
         'data-cell-bg-odd': 'hsl(var(--data-cell-bg-odd))',
         'data-cell-bg-hover': 'hsl(var(--data-cell-bg-hover))',
+        'data-cell-bg-disabled': 'hsl(var(--data-cell-bg-disabled))',
         'data-table-border-color': 'hsl(var(--data-table-border-color))',
         'primary-text': 'hsl(var(--primary-text))',
         'primary-main': 'hsl(var(--primary-main))',

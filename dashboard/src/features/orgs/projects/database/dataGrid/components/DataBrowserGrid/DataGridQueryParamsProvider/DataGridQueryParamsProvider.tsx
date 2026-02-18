@@ -1,3 +1,4 @@
+import type { ColumnSort } from '@tanstack/react-table';
 import { useRouter } from 'next/router';
 import {
   createContext,
@@ -11,7 +12,6 @@ import {
   useRef,
   useState,
 } from 'react';
-import type { SortingRule } from 'react-table';
 import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
 import PersistenDataGrdiFilterStorage from '@/features/orgs/projects/database/dataGrid/utils/PersistentDataGridFilterStorage';
 import type { DataGridFilterOperator } from './operators';
@@ -39,10 +39,8 @@ type DataGridQueryParamsContextProps = {
   isFiltersLoadedFromStorage: RefObject<boolean>;
   appliedFilters: DataGridFilter[];
   setAppliedFilters: (filters: DataGridFilter[]) => void;
-  // biome-ignore lint/suspicious/noExplicitAny: TODO
-  sortBy: SortingRule<any>[];
-  // biome-ignore lint/suspicious/noExplicitAny: TODO
-  setSortBy: Dispatch<SetStateAction<SortingRule<any>[]>>;
+  sortBy: ColumnSort[];
+  setSortBy: Dispatch<SetStateAction<ColumnSort[]>>;
   currentOffset: number;
   setCurrentOffset: Dispatch<SetStateAction<number>>;
 };
@@ -64,8 +62,7 @@ function DataGridQueryParamsProvider({ children }: PropsWithChildren) {
     query: { page },
   } = useRouter();
 
-  // biome-ignore lint/suspicious/noExplicitAny: TODO
-  const [sortBy, setSortBy] = useState<SortingRule<any>[]>([]);
+  const [sortBy, setSortBy] = useState<ColumnSort[]>([]);
   const [currentOffset, setCurrentOffset] = useState<number>(
     parseInt(page as string, 10) - 1 || 0,
   );

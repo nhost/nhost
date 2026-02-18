@@ -310,9 +310,6 @@ importers:
       react-resizable-layout:
         specifier: ^0.7.2
         version: 0.7.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
-      react-table:
-        specifier: ^7.8.0
-        version: 7.8.0(react@19.2.3)
       recoil:
         specifier: ^0.7.7
         version: 0.7.7(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -416,9 +413,6 @@ importers:
       '@types/react-dom':
         specifier: ^19.2.3
         version: 19.2.3(@types/react@19.2.8)
-      '@types/react-table':
-        specifier: ^7.7.20
-        version: 7.7.20
       '@types/testing-library__jest-dom':
         specifier: ^5.14.9
         version: 5.14.9
@@ -3816,9 +3810,6 @@ packages:
     peerDependencies:
       '@types/react': ^19.2.0
 
-  '@types/react-table@7.7.20':
-    resolution: {integrity: sha512-ahMp4pmjVlnExxNwxyaDrFgmKxSbPwU23sGQw2gJK4EhCvnvmib2s/O/+y1dfV57dXOwpr2plfyBol+vEHbi2w==}
-
   '@types/react-transition-group@4.4.10':
     resolution: {integrity: sha512-hT/+s0VQs2ojCX823m60m5f0sL5idt9SO6Tj6Dg+rdphGPIeJbJ6CxvBYkgkGKrYeDjvIpKTR38UzmtHJOGW3Q==}
 
@@ -6224,11 +6215,6 @@ packages:
     peerDependenciesMeta:
       '@types/react':
         optional: true
-
-  react-table@7.8.0:
-    resolution: {integrity: sha512-hNaz4ygkZO4bESeFfnfOft73iBUj8K5oKi1EcSHPAibEydfsX2MyU6Z8KCr3mv3C9Kqqh71U+DhZkFvibbnPbA==}
-    peerDependencies:
-      react: ^16.8.3 || ^17.0.0-0 || ^18.0.0
 
   react-transition-group@4.4.5:
     resolution: {integrity: sha512-pZcd1MCJoiKiBR2NRxeCRg13uCXbydPnmB4EOeRrY7480qNWO8IIgQG6zlDkm6uRMsURXPuKq0GWtiM59a5Q6g==}
@@ -10877,10 +10863,6 @@ snapshots:
     dependencies:
       '@types/react': 19.2.8
 
-  '@types/react-table@7.7.20':
-    dependencies:
-      '@types/react': 19.2.8
-
   '@types/react-transition-group@4.4.10':
     dependencies:
       '@types/react': 19.2.8
@@ -13625,10 +13607,6 @@ snapshots:
       tslib: 2.8.1
     optionalDependencies:
       '@types/react': 19.2.8
-
-  react-table@7.8.0(react@19.2.3):
-    dependencies:
-      react: 19.2.3
 
   react-transition-group@4.4.5(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
     dependencies:

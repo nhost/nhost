@@ -1,9 +1,10 @@
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation } from '@tanstack/react-query';
+import type { Row } from '@tanstack/react-table';
 import { useRouter } from 'next/router';
-import type { Row } from 'react-table';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import type { UnknownDataGridRow } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import { getHasuraAdminSecret } from '@/utils/env';
 import type {
   UpdateRecordOptions,
@@ -11,8 +12,9 @@ import type {
 } from './updateRecord';
 import updateRecord from './updateRecord';
 
-export interface UseUpdateRecordMutationOptions<TData extends object = {}>
-  extends Partial<UpdateRecordOptions> {
+export interface UseUpdateRecordMutationOptions<
+  TData extends UnknownDataGridRow = UnknownDataGridRow,
+> extends Partial<UpdateRecordOptions> {
   /**
    * Props passed to the underlying mutation hook.
    */
@@ -29,7 +31,9 @@ export interface UseUpdateRecordMutationOptions<TData extends object = {}>
  * @param options - Options to use for the mutation.
  * @returns The result of the mutation.
  */
-export default function useUpdateRecordMutation<TData extends object = {}>({
+export default function useUpdateRecordMutation<
+  TData extends UnknownDataGridRow = UnknownDataGridRow,
+>({
   dataSource: customDataSource,
   schema: customSchema,
   table: customTable,

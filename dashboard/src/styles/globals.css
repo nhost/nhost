@@ -265,6 +265,7 @@ body {
     --data-cell-bg: 216, 12.2%, 92%;
     --data-cell-bg-odd: 220, 13%, 95.5%;
     --data-cell-bg-hover: 213.3, 14.8%, 88%;
+    --data-cell-bg-disabled: 210, 8%, 85%;
     --data-table-border-color: 210, 16.7%, 92.9%;
     --primary-main: 216 100% 40.2%;
     --table-selected: 216 100% 96.08%;
@@ -307,6 +308,7 @@ body {
     --data-cell-bg: 214.7, 24.1%, 15.5%;
     --data-cell-bg-odd: 216, 21.7%, 18%;
     --data-cell-bg-hover: 215 20% 22%;
+    --data-cell-bg-disabled: 215, 12%, 19%;
     --data-table-border-color: 210, 13%, 21.2%;
     --primary-main: 215.88 100% 60.98%;
     --table-selected: 216 31.65% 15.49%;

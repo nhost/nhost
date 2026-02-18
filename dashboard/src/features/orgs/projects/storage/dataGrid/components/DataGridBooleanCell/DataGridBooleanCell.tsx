@@ -10,26 +10,26 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from '@/components/ui/v3/dropdown-menu';
+import type { UnknownDataGridRow } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import type { CommonDataGridCellProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGridCell';
 import { useDataGridCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridCell';
 
-export interface DataGridBooleanCellProps<TData extends object>
-  extends CommonDataGridCellProps<TData, boolean | null | undefined> {
-  cellId?: string;
-}
+export interface DataGridBooleanCellProps<
+  TData extends UnknownDataGridRow = UnknownDataGridRow,
+> extends CommonDataGridCellProps<TData, boolean | null | undefined> {}
 
-export default function DataGridBooleanCell<TData extends object>({
+export default function DataGridBooleanCell<
+  TData extends UnknownDataGridRow = UnknownDataGridRow,
+>({
   onSave,
   optimisticValue,
   onTemporaryValueChange,
-  cellId,
-  cell: {
-    column: { isNullable, getHeaderProps },
-  },
+  cell: { column, id: cellId },
 }: DataGridBooleanCellProps<TData>) {
   const { inputRef, focusCell, cancelEditCell, focusNextCell, editCell } =
     useDataGridCell<HTMLButtonElement>();
   const [open, setOpen] = useState(false);
+  const isNullable = column.columnDef.meta?.isNullable;
 
   async function handleMenuClick(
     event: MouseEvent<HTMLDivElement> | ReactKeyboardEvent<HTMLDivElement>,
@@ -99,7 +99,7 @@ export default function DataGridBooleanCell<TData extends object>({
       </DropdownMenuTrigger>
       <DropdownMenuContent
         id={cellId}
-        style={{ width: getHeaderProps().style?.width }}
+        style={{ width: column.getSize() }}
         onKeyDown={handleMenuKeyDown}
         className="!border-t-0 rounded-none border-2 border-[#0052cd] bg-data-cell-bg"
       >
