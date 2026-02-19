@@ -814,38 +814,6 @@ GRANT USAGE ON SCHEMA auth TO nhost_hasura;
 
 
 --
--- Name: TABLE oauth2_auth_requests; Type: ACL; Schema: auth; Owner: postgres
---
-
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE auth.oauth2_auth_requests TO nhost_auth_admin;
-GRANT SELECT ON TABLE auth.oauth2_auth_requests TO nhost_hasura;
-
-
---
--- Name: TABLE oauth2_authorization_codes; Type: ACL; Schema: auth; Owner: postgres
---
-
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE auth.oauth2_authorization_codes TO nhost_auth_admin;
-GRANT SELECT ON TABLE auth.oauth2_authorization_codes TO nhost_hasura;
-
-
---
--- Name: TABLE oauth2_clients; Type: ACL; Schema: auth; Owner: postgres
---
-
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE auth.oauth2_clients TO nhost_auth_admin;
-GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE auth.oauth2_clients TO nhost_hasura;
-
-
---
--- Name: TABLE oauth2_refresh_tokens; Type: ACL; Schema: auth; Owner: postgres
---
-
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE auth.oauth2_refresh_tokens TO nhost_auth_admin;
-GRANT SELECT ON TABLE auth.oauth2_refresh_tokens TO nhost_hasura;
-
-
---
 -- Name: DEFAULT PRIVILEGES FOR TABLES; Type: DEFAULT ACL; Schema: auth; Owner: nhost_auth_admin
 --
 

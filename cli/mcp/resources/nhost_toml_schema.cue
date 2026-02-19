@@ -317,7 +317,7 @@ import (
 	// Releases:
 	//
 	// https://github.com/nhost/hasura-auth/releases
-	version: string | *"0.43.2"
+	version: string | *"0.44.2"
 
 	// Resources for the service
 	resources?: #Resources
