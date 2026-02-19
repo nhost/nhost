@@ -15,6 +15,13 @@ const (
 	RefreshTokenTypePAT     RefreshTokenType = "pat"
 )
 
+type OAuth2ClientType string
+
+const (
+	OAuth2ClientTypeRegistered OAuth2ClientType = "registered"
+	OAuth2ClientTypeCIMD       OAuth2ClientType = "client_id_metadata_document"
+)
+
 func UUID(value uuid.UUID) pgtype.UUID {
 	return pgtype.UUID{
 		Bytes: value,

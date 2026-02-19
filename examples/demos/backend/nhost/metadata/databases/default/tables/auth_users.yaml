@@ -99,6 +99,27 @@ array_relationships:
         table:
           name: community_members
           schema: public
+  - name: oauth2AuthRequests
+    using:
+      foreign_key_constraint_on:
+        column: user_id
+        table:
+          name: oauth2_auth_requests
+          schema: auth
+  - name: oauth2Clients
+    using:
+      foreign_key_constraint_on:
+        column: created_by
+        table:
+          name: oauth2_clients
+          schema: auth
+  - name: oauth2RefreshTokens
+    using:
+      foreign_key_constraint_on:
+        column: user_id
+        table:
+          name: oauth2_refresh_tokens
+          schema: auth
   - name: refreshTokens
     using:
       foreign_key_constraint_on:

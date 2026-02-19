@@ -43,6 +43,8 @@ func (ctrl *Controller) PostChangeEnv(c *gin.Context) { //nolint:funlen,cyclop
 				http.StatusBadRequest,
 				gin.H{"message": "failed to unmarshal custom claims", "error": err.Error()},
 			)
+
+			return
 		}
 
 		var defaults map[string]any
@@ -60,6 +62,8 @@ func (ctrl *Controller) PostChangeEnv(c *gin.Context) { //nolint:funlen,cyclop
 						"error":   err.Error(),
 					},
 				)
+
+				return
 			}
 		}
 
@@ -106,6 +110,10 @@ func (ctrl *Controller) PostChangeEnv(c *gin.Context) { //nolint:funlen,cyclop
 		}
 
 		ctrl.Webauthn = wa
+	}
+
+	if ctrl.config.OAuth2ProviderEnabled {
+		ctrl.oauth2 = ctrl.newOAuth2Provider()
 	}
 
 	c.JSON(

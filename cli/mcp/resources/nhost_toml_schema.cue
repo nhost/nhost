@@ -62,7 +62,7 @@ import (
 		postgres.resources.compute.cpu) >= 1000 & true @cuegraph(skip)
 
 	_validateAllResourcesAreSetOrNot: (
-		((hasura.resources.compute != _|_) == (auth.resources.compute != _|_)) &&
+						((hasura.resources.compute != _|_) == (auth.resources.compute != _|_)) &&
 		((auth.resources.compute != _|_) == (storage.resources.compute != _|_)) &&
 		((storage.resources.compute != _|_) == (postgres.resources.compute != _|_))) & true @cuegraph(skip)
 
@@ -71,6 +71,12 @@ import (
 	_isProviderSMTPSet:                                     provider.smtp != _|_                                                        @cuegraph(skip)
 	_isAuthRateLimitEmailsDefault:                          auth.rateLimit.emails.limit == 10 && auth.rateLimit.emails.interval == "1h" @cuegraph(skip)
 	_validateAuthRateLimitEmailsIsDefaultOrSMTPSettingsSet: (_isProviderSMTPSet | _isAuthRateLimitEmailsDefault) & true                 @cuegraph(skip)
+
+	_validateOAuth2ProviderRequiresRS256: (
+						!auth.oauth2Provider.enabled |
+		hasura.jwtSecrets[0].type == "RS256" |
+		hasura.jwtSecrets[0].type == "RS384" |
+		hasura.jwtSecrets[0].type == "RS512") & true @cuegraph(skip)
 }
 
 // Global configuration that applies to all services
@@ -132,16 +138,16 @@ import (
 }
 
 #ResourcesCompute: {
-    // milicpus, 1000 milicpus = 1 cpu
-    cpu: uint32 & >=250 & <=30000
-    // MiB: 128MiB to 30GiB
-    memory: uint32 & >=128 & <=62464
+	// milicpus, 1000 milicpus = 1 cpu
+	cpu: uint32 & >=250 & <=30000
+	// MiB: 128MiB to 30GiB
+	memory: uint32 & >=128 & <=62464
 
-    // validate CPU steps of 250 milicpus
-    _validateCPUSteps250: (mod(cpu, 250) == 0) & true @cuegraph(skip)
+	// validate CPU steps of 250 milicpus
+	_validateCPUSteps250: (mod(cpu, 250) == 0) & true @cuegraph(skip)
 
-    // validate memory steps of 128 MiB
-    _validateMemorySteps128: (mod(memory, 128) == 0) & true @cuegraph(skip)
+	// validate memory steps of 128 MiB
+	_validateMemorySteps128: (mod(memory, 128) == 0) & true @cuegraph(skip)
 }
 
 // Configuration for hasura service
@@ -223,7 +229,7 @@ import (
 	// Releases:
 	//
 	// https://github.com/nhost/hasura-storage/releases
-	version: string | *"0.11.0"
+	version: string | *"0.11.1"
 
 	// Networking (custom domains at the moment) are not allowed as we need to do further
 	// configurations in the CDN. We will enable it again in the future.
@@ -257,12 +263,12 @@ import (
 
 	// Resources for the service
 	resources: {
-        compute?: #ResourcesCompute
+		compute?: #ResourcesCompute
 		storage: {
 			capacity: uint32 & >=1 & <=1000 // GiB
 		}
 
-        replicas?: 1
+		replicas?: 1
 
 		enablePublicAccess?: bool | *false
 	}
@@ -290,15 +296,15 @@ import (
 		maxWalSenders:                 int32 | *10
 		maxReplicationSlots:           int32 | *10
 		archiveTimeout:                int32 & >=300 & <=1073741823 | *300
-        trackIoTiming:                 "on" | *"off"
+		trackIoTiming:                 "on" | *"off"
 
 		// if pitr is on we need walLevel to set to replica or logical
 		_validateWalLevelIsLogicalOrReplicaIfPitrIsEnabled: ( pitr == _|_ | walLevel == "replica" | walLevel == "logical") & true @cuegraph(skip)
 	}
 
 	pitr?: {
-        retention: uint8 & 7
-    }
+		retention: uint8 & 7
+	}
 }
 
 // Configuration for auth service
@@ -384,7 +390,7 @@ import (
 			customClaims: [...{
 				key:      =~"[a-zA-Z_]{1,}[a-zA-Z0-9_]*"
 				value:    string
-                default?: string
+				default?: string
 			}] | *[]
 		}
 
@@ -450,14 +456,14 @@ import (
 				#StandardOauthProvider
 				tenant: string | *"common"
 			}
-			facebook:  #StandardOauthProviderWithScope
-			github:    #StandardOauthProviderWithScope
-			gitlab:    #StandardOauthProviderWithScope
-			google:    #StandardOauthProviderWithScope
-			linkedin:  #StandardOauthProviderWithScope
-			spotify:   #StandardOauthProviderWithScope
-			strava:    #StandardOauthProviderWithScope
-			twitch:    #StandardOauthProviderWithScope
+			facebook: #StandardOauthProviderWithScope
+			github:   #StandardOauthProviderWithScope
+			gitlab:   #StandardOauthProviderWithScope
+			google:   #StandardOauthProviderWithScope
+			linkedin: #StandardOauthProviderWithScope
+			spotify:  #StandardOauthProviderWithScope
+			strava:   #StandardOauthProviderWithScope
+			twitch:   #StandardOauthProviderWithScope
 			twitter: {
 				enabled: bool | *false
 				if enabled {
@@ -500,6 +506,25 @@ import (
 		}
 	}
 
+	oauth2Provider: {
+		enabled: bool | *false
+		if enabled {
+			loginURL: string
+		}
+		if !enabled {
+			loginURL?: string
+		}
+		accessToken: {
+			expiresIn: uint32 | *900
+		}
+		refreshToken: {
+			expiresIn: uint32 | *2592000
+		}
+		clientIdMetadataDocument: {
+			enabled: bool | *false
+		}
+	}
+
 	misc: {
 		concealErrors: bool | *false
 	}
@@ -518,6 +543,7 @@ import (
 	bruteForce: #RateLimit | *{limit: 10, interval: "5m"}
 	signups: #RateLimit | *{limit: 10, interval: "5m"}
 	global: #RateLimit | *{limit: 100, interval: "1m"}
+	oauth2Server: #RateLimit | *{limit: 100, interval: "5m"}
 }
 
 #StandardOauthProvider: {
@@ -652,8 +678,8 @@ import (
 			tput: uint32 | *125
 		}
 
-        encryptColumnKey?: string & =~"^[0-9a-fA-F]{64}$"    // 32 bytes hex-encoded key
-        oldEncryptColumnKey?: string & =~"^[0-9a-fA-F]{64}$" // for key rotation
+		encryptColumnKey?:    string & =~"^[0-9a-fA-F]{64}$" // 32 bytes hex-encoded key
+		oldEncryptColumnKey?: string & =~"^[0-9a-fA-F]{64}$" // for key rotation
 	}
 
 	persistentVolumesEncrypted: bool | *false

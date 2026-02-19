@@ -426,3 +426,121 @@ UPDATE auth.user_providers
 SET access_token = ''
 WHERE user_id = @user_id AND provider_id = @provider_id
 RETURNING (SELECT access_token FROM old_token);
+
+-- =============================================================================
+-- OAuth2 Provider - Clients
+-- =============================================================================
+
+-- name: GetOAuth2ClientByClientID :one
+SELECT * FROM auth.oauth2_clients
+WHERE client_id = $1
+LIMIT 1;
+
+-- =============================================================================
+-- OAuth2 Provider - Auth Requests
+-- =============================================================================
+
+-- name: InsertOAuth2AuthRequest :one
+INSERT INTO auth.oauth2_auth_requests (
+    client_id, scopes, redirect_uri, state, nonce,
+    response_type, code_challenge, code_challenge_method,
+    resource, expires_at
+) VALUES (
+    $1, $2, $3, $4, $5,
+    $6, $7, $8,
+    $9, $10
+)
+RETURNING *;
+
+-- name: GetOAuth2AuthRequest :one
+SELECT * FROM auth.oauth2_auth_requests
+WHERE id = $1
+LIMIT 1;
+
+-- name: CompleteOAuth2LoginAndInsertCode :one
+WITH updated_request AS (
+    UPDATE auth.oauth2_auth_requests
+    SET user_id = sqlc.arg(user_id), done = true, auth_time = now()
+    WHERE id = sqlc.arg(id) AND done = false
+    RETURNING id
+)
+INSERT INTO auth.oauth2_authorization_codes (code_hash, auth_request_id, expires_at)
+SELECT sqlc.arg(code_hash), id, sqlc.arg(expires_at)
+FROM updated_request
+RETURNING *;
+
+-- name: DeleteOAuth2AuthRequest :exec
+DELETE FROM auth.oauth2_auth_requests
+WHERE id = $1;
+
+-- name: DeleteExpiredOAuth2AuthRequests :exec
+DELETE FROM auth.oauth2_auth_requests
+WHERE expires_at < now();
+
+-- =============================================================================
+-- OAuth2 Provider - Authorization Codes
+-- =============================================================================
+
+-- name: GetOAuth2AuthorizationCodeAuthRequest :one
+SELECT ar.* FROM auth.oauth2_auth_requests ar
+JOIN auth.oauth2_authorization_codes ac ON ac.auth_request_id = ar.id
+WHERE ac.code_hash = $1 AND ac.expires_at > now()
+LIMIT 1;
+
+-- name: ConsumeOAuth2CodeAndInsertRefreshToken :one
+WITH deleted_code AS (
+    DELETE FROM auth.oauth2_authorization_codes
+    WHERE code_hash = $1 AND expires_at > now()
+    RETURNING auth_request_id
+)
+INSERT INTO auth.oauth2_refresh_tokens (
+    token_hash, auth_request_id, client_id, user_id, scopes, expires_at
+)
+SELECT $2, dc.auth_request_id, $3, $4, $5, $6
+FROM deleted_code dc
+RETURNING *;
+
+-- name: DeleteExpiredOAuth2AuthorizationCodes :exec
+DELETE FROM auth.oauth2_authorization_codes
+WHERE expires_at < now();
+
+-- =============================================================================
+-- OAuth2 Provider - Refresh Tokens
+-- =============================================================================
+
+-- name: GetOAuth2RefreshTokenByHash :one
+SELECT * FROM auth.oauth2_refresh_tokens
+WHERE token_hash = $1 AND expires_at > now()
+LIMIT 1;
+
+-- name: DeleteOAuth2RefreshTokenByHashAndClientID :exec
+DELETE FROM auth.oauth2_refresh_tokens
+WHERE token_hash = $1 AND client_id = $2;
+
+-- name: UpdateOAuth2RefreshToken :one
+UPDATE auth.oauth2_refresh_tokens
+SET token_hash = $2, expires_at = $3
+WHERE token_hash = $1
+RETURNING *;
+
+-- name: DeleteOAuth2RefreshTokensByUserID :exec
+DELETE FROM auth.oauth2_refresh_tokens
+WHERE user_id = $1;
+
+-- name: DeleteExpiredOAuth2RefreshTokens :exec
+DELETE FROM auth.oauth2_refresh_tokens
+WHERE expires_at < now();
+
+-- name: UpsertOAuth2CIMDClient :one
+INSERT INTO auth.oauth2_clients (
+    client_id, redirect_uris, scopes,
+    "type", metadata_document_fetched_at
+) VALUES (
+    $1, $2, $3,
+    'client_id_metadata_document', now()
+)
+ON CONFLICT (client_id) DO UPDATE SET
+    redirect_uris = EXCLUDED.redirect_uris,
+    scopes = EXCLUDED.scopes,
+    metadata_document_fetched_at = now()
+RETURNING *;
