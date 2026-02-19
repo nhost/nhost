@@ -88,7 +88,7 @@ export default function OAuth2ClientsList({
         const description = client.metadata?.description as string | undefined;
 
         return (
-          <Fragment key={client.id}>
+          <Fragment key={client.clientId}>
             <ListItem.Root
               className="h-[64px] w-full"
               secondaryAction={
