@@ -204,10 +204,7 @@ export default function EditOAuth2ClientForm({
               variant="borderless"
               color="secondary"
               aria-label="Copy Client ID"
-              onClick={(e) => {
-                e.stopPropagation();
-                copy(oauth2Client.clientId, 'Client ID');
-              }}
+              onClick={() => copy(oauth2Client.clientId, 'Client ID')}
             >
               <CopyIcon className="h-4 w-4" />
             </IconButton>

@@ -103,7 +103,7 @@ export default function ProjectAuthPagesComboBox() {
           {selectedAuthPage ? (
             <div>{selectedAuthPage.label}</div>
           ) : (
-            <>Select a page</>
+            'Select a page'
           )}
           <ChevronsUpDown className="h-5 w-5 text-muted-foreground" />
         </Button>
