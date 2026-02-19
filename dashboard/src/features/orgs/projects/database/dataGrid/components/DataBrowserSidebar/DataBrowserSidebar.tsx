@@ -25,9 +25,9 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
-import useGetTrackedTablesNames from '@/features/orgs/projects/common/hooks/useGetTrackedTablesNames/useGetTrackedTablesNames';
+import { useGetTrackedTablesSet } from '@/features/orgs/projects/common/hooks/useGetTrackedTablesSet';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { EditTableSettingsForm } from '@/features/orgs/projects/database/dataGrid/components/EditTableSettingsForm';
+import { EditGraphQLSettingsForm } from '@/features/orgs/projects/database/dataGrid/components/EditGraphQLSettingsForm';
 import { EditRelationshipsForm } from '@/features/orgs/projects/database/dataGrid/EditRelationshipsForm';
 import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
 import { useDeleteTableWithToastMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteTableMutation';
@@ -92,10 +92,9 @@ function DataBrowserSidebarContent({
     query: { orgSlug, appSubdomain, dataSourceSlug, schemaSlug, tableSlug },
   } = router;
 
-  const { data: trackedTableNames } = useGetTrackedTablesNames({
+  const { data: trackedTablesSet } = useGetTrackedTablesSet({
     dataSource: 'default',
   });
-  const trackedTablesSet = new Set(trackedTableNames ?? []);
 
   const { data, status, error, refetch } = useDatabaseQuery([
     dataSourceSlug as string,
@@ -295,7 +294,7 @@ function DataBrowserSidebarContent({
         </span>
       ),
       component: (
-        <EditTableSettingsForm
+        <EditGraphQLSettingsForm
           disabled={disabled}
           schema={schema}
           tableName={table}
@@ -396,7 +395,9 @@ function DataBrowserSidebarContent({
                 const tablePath = `${table.table_schema}.${table.table_name}`;
                 const isSelected = `${schemaSlug}.${tableSlug}` === tablePath;
                 const isSidebarMenuOpen = sidebarMenuTable === tablePath;
-                const isTracked = trackedTablesSet.has(table.table_name);
+                const isTracked = trackedTablesSet?.has(
+                  `${table.table_schema}.${table.table_name}`,
+                );
 
                 const linkInner = (
                   <NextLink
@@ -444,6 +445,7 @@ function DataBrowserSidebarContent({
                             {linkInner}
                             <TableActions
                               tableName={table.table_name}
+                              schema={table.table_schema}
                               disabled={tablePath === removableTable}
                               open={isSidebarMenuOpen}
                               onOpen={() => setSidebarMenuTable(tablePath)}

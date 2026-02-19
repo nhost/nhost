@@ -4,6 +4,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import type * as Yup from 'yup';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Button } from '@/components/ui/v2/Button';
+import useGetMetadataResourceVersion from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion/useGetMetadataResourceVersion';
 import type {
   BaseTableFormProps,
   BaseTableFormValues,
@@ -38,6 +39,7 @@ export default function CreateTableForm({
   ...props
 }: CreateTableFormProps) {
   const router = useRouter();
+  const { dataSourceSlug } = router.query;
 
   const {
     mutateAsync: createTable,
@@ -49,10 +51,12 @@ export default function CreateTableForm({
     mutateAsync: trackTable,
     error: trackTableError,
     reset: resetTrackError,
-  } = useTrackTableMutation({ schema });
+  } = useTrackTableMutation();
 
   const { mutateAsync: trackForeignKeyRelation, error: foreignKeyError } =
     useTrackForeignKeyRelationsMutation();
+
+  const { data: resourceVersion } = useGetMetadataResourceVersion();
 
   const error = createTableError || trackTableError || foreignKeyError;
 
@@ -115,7 +119,13 @@ export default function CreateTableForm({
       };
 
       await createTable({ table });
-      await trackTable({ table });
+      await trackTable({
+        resourceVersion,
+        args: {
+          source: dataSourceSlug as string,
+          table: { name: table.name, schema },
+        },
+      });
 
       if (isNotEmptyValue(table.foreignKeyRelations)) {
         await trackForeignKeyRelation({

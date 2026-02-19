@@ -1,46 +1,48 @@
-import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
-import { useCallback } from 'react';
 import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
-import useGetTrackedTablesNames from '@/features/orgs/projects/common/hooks/useGetTrackedTablesNames/useGetTrackedTablesNames';
+import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
+import { useIsTrackedTable } from '@/features/orgs/projects/common/hooks/useIsTrackedTable';
 import { useTrackTableMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useTrackTableMutation';
-import type { DatabaseTable } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { triggerToast } from '@/utils/toast';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 
 export default function TrackTableButton() {
-  const queryClient = useQueryClient();
   const { query } = useRouter();
-  const { dataSourceSlug, tableSlug } = query;
-  const { project } = useProject();
+  const { dataSourceSlug, tableSlug, schemaSlug } = query;
 
-  const { data: trackedTableNames } = useGetTrackedTablesNames({
+  const { data: isTracked } = useIsTrackedTable({
     dataSource: dataSourceSlug as string,
-    queryOptions: { enabled: typeof dataSourceSlug === 'string' },
+    schema: schemaSlug as string,
+    tableName: tableSlug as string,
+    enabled:
+      typeof dataSourceSlug === 'string' &&
+      typeof schemaSlug === 'string' &&
+      typeof tableSlug === 'string',
   });
 
-  const isTracked =
-    typeof tableSlug === 'string'
-      ? new Set(trackedTableNames ?? []).has(tableSlug)
-      : undefined;
+  const { data: resourceVersion } = useGetMetadataResourceVersion();
+  const { mutateAsync: handleTrackMutation, status } = useTrackTableMutation();
 
-  const { mutateAsync: trackTable, status } = useTrackTableMutation();
-
-  const handleTrack = useCallback(async () => {
-    try {
-      await trackTable({
-        table: { name: tableSlug as string } as DatabaseTable,
-      });
-      triggerToast('Table tracked successfully.');
-      await queryClient.invalidateQueries({
-        queryKey: ['export-metadata', project?.subdomain],
-      });
-    } catch (error) {
-      triggerToast(
-        error instanceof Error ? error.message : 'Failed to track table.',
-      );
-    }
-  }, [trackTable, tableSlug, queryClient, project?.subdomain]);
+  const handleTrack = async () => {
+    await execPromiseWithErrorToast(
+      async () => {
+        await handleTrackMutation({
+          resourceVersion: resourceVersion,
+          args: {
+            source: dataSourceSlug as string,
+            table: {
+              name: tableSlug as string,
+              schema: schemaSlug as string,
+            },
+          },
+        });
+      },
+      {
+        successMessage: '',
+        loadingMessage: 'Tracking table...',
+        errorMessage: 'Failed to track table.',
+      },
+    );
+  };
 
   if (isTracked !== false) {
     return null;

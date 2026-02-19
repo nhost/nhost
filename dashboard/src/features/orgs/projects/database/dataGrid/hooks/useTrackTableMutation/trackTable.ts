@@ -1,56 +1,47 @@
+import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
 import type {
-  AffectedRowsResult,
-  DatabaseTable,
-  MetadataError,
-  MutationOrQueryBaseOptions,
-  QueryResult,
-} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { normalizeMetadataError } from '@/features/orgs/projects/database/dataGrid/utils/normalizeMetadataError';
+  TrackTableArgs,
+  TrackTableBulkOperation,
+} from '@/utils/hasura-api/generated/schemas';
+import type { MetadataOperationOptions } from '@/utils/hasura-api/types';
 
 export interface TrackTableVariables {
-  /**
-   * Table to track.
-   */
-  table: DatabaseTable;
+  resourceVersion: number;
+  args: TrackTableArgs;
 }
 
-export interface TrackTableOptions
-  extends Omit<MutationOrQueryBaseOptions, 'table'> {}
-
 export default async function trackTable({
-  dataSource,
-  schema,
   appUrl,
   adminSecret,
-  table,
-}: TrackTableOptions & TrackTableVariables) {
-  const response = await fetch(`${appUrl}/v1/metadata`, {
-    method: 'POST',
-    headers: {
-      'x-hasura-admin-secret': adminSecret,
-    },
-    body: JSON.stringify({
-      args: [
-        {
-          args: { source: dataSource, table: { schema, name: table.name } },
-          type: 'pg_track_table',
-        },
-      ],
-      type: 'bulk',
-      source: dataSource,
-      version: 1,
-    }),
-  });
+  resourceVersion,
+  args,
+}: MetadataOperationOptions & TrackTableVariables) {
+  try {
+    const response = await metadataOperation(
+      {
+        type: 'bulk',
+        source: args.source ?? 'default',
+        resource_version: resourceVersion,
+        args: [
+          {
+            type: 'pg_track_table',
+            args,
+          },
+        ],
+      } satisfies TrackTableBulkOperation,
+      {
+        baseUrl: appUrl,
+        adminSecret,
+      },
+    );
 
-  const responseData:
-    | [AffectedRowsResult, QueryResult<string[]>]
-    | MetadataError = await response.json();
+    if (response.status === 200) {
+      return response.data;
+    }
 
-  if (response.ok) {
-    return;
+    throw new Error(response.data.error);
+  } catch (error) {
+    console.error(error);
+    throw error;
   }
-
-  const normalizedError = normalizeMetadataError(responseData);
-
-  throw new Error(normalizedError);
 }

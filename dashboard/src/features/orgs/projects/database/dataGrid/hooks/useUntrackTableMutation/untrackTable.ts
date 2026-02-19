@@ -1,59 +1,44 @@
+import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
 import type {
-  AffectedRowsResult,
-  MetadataError,
-  MutationOrQueryBaseOptions,
-  QueryResult,
-} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { normalizeMetadataError } from '@/features/orgs/projects/database/dataGrid/utils/normalizeMetadataError';
+  UntrackTableArgs,
+  UntrackTableBulkOperation,
+} from '@/utils/hasura-api/generated/schemas';
+import type { MetadataOperationOptions } from '@/utils/hasura-api/types';
 
 export interface UntrackTableVariables {
-  /**
-   * Table to untrack.
-   */
-  table: { name: string };
+  args: UntrackTableArgs;
 }
 
-export interface UntrackTableOptions
-  extends Omit<MutationOrQueryBaseOptions, 'table'> {}
-
 export default async function untrackTable({
-  dataSource,
-  schema,
   appUrl,
   adminSecret,
-  table,
-}: UntrackTableOptions & UntrackTableVariables) {
-  const response = await fetch(`${appUrl}/v1/metadata`, {
-    method: 'POST',
-    headers: {
-      'x-hasura-admin-secret': adminSecret,
-    },
-    body: JSON.stringify({
-      args: [
-        {
-          args: {
-            source: dataSource,
-            table: { schema, name: table.name },
-            cascade: true,
+  args,
+}: MetadataOperationOptions & UntrackTableVariables) {
+  try {
+    const response = await metadataOperation(
+      {
+        type: 'bulk',
+        source: args.source ?? 'default',
+        args: [
+          {
+            type: 'pg_untrack_table',
+            args,
           },
-          type: 'pg_untrack_table',
-        },
-      ],
-      type: 'bulk',
-      source: dataSource,
-      version: 1,
-    }),
-  });
+        ],
+      } satisfies UntrackTableBulkOperation,
+      {
+        baseUrl: appUrl,
+        adminSecret,
+      },
+    );
 
-  const responseData:
-    | [AffectedRowsResult, QueryResult<string[]>]
-    | MetadataError = await response.json();
+    if (response.status === 200) {
+      return response.data;
+    }
 
-  if (response.ok) {
-    return;
+    throw new Error(response.data.error);
+  } catch (error) {
+    console.error(error);
+    throw error;
   }
-
-  const normalizedError = normalizeMetadataError(responseData);
-
-  throw new Error(normalizedError);
 }

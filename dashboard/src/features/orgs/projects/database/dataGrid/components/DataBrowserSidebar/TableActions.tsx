@@ -7,7 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/v3/dropdown-menu';
-import useGetTrackedTablesNames from '@/features/orgs/projects/common/hooks/useGetTrackedTablesNames/useGetTrackedTablesNames';
+import { useIsTrackedTable } from '@/features/orgs/projects/common/hooks/useIsTrackedTable';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { cn } from '@/lib/utils';
 
@@ -16,6 +16,7 @@ const menuItemClassName =
 
 type Props = {
   tableName: string;
+  schema: string;
   open: boolean;
   className?: string;
   onOpen: () => void;
@@ -34,6 +35,7 @@ type Props = {
 
 function TableActions({
   tableName,
+  schema,
   open,
   className,
   onClose,
@@ -51,9 +53,11 @@ function TableActions({
 }: Props) {
   const { project } = useProject();
   const isGitHubConnected = !!project?.githubRepository;
-  const { data } = useGetTrackedTablesNames({ dataSource: 'default' });
-  const trackedTablesSet = new Set(data ?? []);
-  const isTrackedTable = trackedTablesSet.has(tableName);
+  const { data: isTrackedTable } = useIsTrackedTable({
+    dataSource: 'default',
+    schema,
+    tableName,
+  });
 
   function handleOnOpenChange(newOpenState: boolean) {
     if (newOpenState) {

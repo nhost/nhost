@@ -3,14 +3,13 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchExportMetadata } from '@/features/orgs/projects/common/utils/fetchExportMetadata';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { isNotEmptyValue } from '@/lib/utils';
 import type { ExportMetadataResponse } from '@/utils/hasura-api/generated/schemas';
 
-export interface UseGetTrackedTablesNamesOptions {
+export interface UseGetTrackedTablesSetOptions {
   /**
    * Props passed to the underlying query hook.
    */
-  queryOptions?: UseQueryOptions<ExportMetadataResponse, unknown, string[]>;
+  queryOptions?: UseQueryOptions<ExportMetadataResponse, unknown, Set<string>>;
   /**
    * The data source to get the tracked tables names for.
    */
@@ -18,18 +17,20 @@ export interface UseGetTrackedTablesNamesOptions {
 }
 
 /**
- * This hook gets the tracked tables names from the metadata.
+ * This hook gets the tracked tables for a data source as a Set of
+ * "schema.name" qualified strings. The Set is constructed once per fetch
+ * and memoized by React Query until the underlying data changes.
  *
  * @param options - Options to use for the query.
  * @returns The result of the query.
  */
-export default function useGetTrackedTablesNames({
+export default function useGetTrackedTablesSet({
   dataSource,
   queryOptions,
-}: UseGetTrackedTablesNamesOptions) {
+}: UseGetTrackedTablesSetOptions) {
   const { project, loading } = useProject();
 
-  const query = useQuery<ExportMetadataResponse, unknown, string[]>({
+  const query = useQuery<ExportMetadataResponse, unknown, Set<string>>({
     queryKey: ['export-metadata', project?.subdomain],
     queryFn: () => {
       const appUrl = generateAppServiceUrl(
@@ -51,20 +52,15 @@ export default function useGetTrackedTablesNames({
       !loading
     ),
     select: (data) => {
-      if (!data.metadata.sources) {
-        return [];
-      }
-
-      const sourceMetadata = data.metadata.sources.find(
+      const sourceMetadata = data.metadata.sources?.find(
         (item) => item.name === dataSource,
       );
-      if (!sourceMetadata?.tables) {
-        return [];
-      }
 
-      return sourceMetadata.tables
-        .map((item) => `${item.table.schema}.${item.table.name}`)
-        .filter(isNotEmptyValue);
+      return new Set(
+        sourceMetadata?.tables?.map(
+          (item) => `${item.table.schema}.${item.table.name}`,
+        ) ?? [],
+      );
     },
   });
 

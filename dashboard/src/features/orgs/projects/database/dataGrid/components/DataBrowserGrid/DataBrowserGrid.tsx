@@ -33,7 +33,6 @@ import { DataGridDateCell } from '@/features/orgs/projects/storage/dataGrid/comp
 import { DataGridNumericCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridNumericCell';
 import { DataGridTextCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridTextCell';
 import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
-import { triggerToast } from '@/utils/toast';
 import { useDataGridQueryParams } from './DataGridQueryParamsProvider';
 import NoMatchesFound from './NoMatchesFound';
 

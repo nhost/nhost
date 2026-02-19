@@ -1,61 +1,48 @@
-import type {
-  AffectedRowsResult,
-  DatabaseTable,
-  MutationOrQueryBaseOptions,
-  QueryError,
-  QueryResult,
-} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { normalizeQueryError } from '@/features/orgs/projects/database/dataGrid/utils/normalizeQueryError';
-import { getHasuraMigrationsApiUrl } from '@/utils/env';
+import { executeMigration } from '@/utils/hasura-api/generated/default/default';
+import type { TrackTableArgs } from '@/utils/hasura-api/generated/schemas';
+import type { MigrationOperationOptions } from '@/utils/hasura-api/types';
 
 export interface TrackTableMigrationVariables {
-  /**
-   * Table to track.
-   */
-  table: DatabaseTable;
+  args: TrackTableArgs;
 }
 
-export interface TrackTableMigrationOptions
-  extends Omit<MutationOrQueryBaseOptions, 'table'> {}
-
 export default async function trackTableMigration({
-  dataSource,
-  schema,
+  appUrl,
   adminSecret,
-  table,
-}: TrackTableMigrationOptions & TrackTableMigrationVariables) {
-  const response = await fetch(`${getHasuraMigrationsApiUrl()}`, {
-    method: 'POST',
-    headers: {
-      'x-hasura-admin-secret': adminSecret,
-    },
-    body: JSON.stringify({
-      dataSource,
-      skip_execution: false,
-      name: `add_existing_table_or_view_${schema}_${table.name}`,
-      down: [
-        {
-          type: 'pg_untrack_table',
-          args: { source: dataSource, table: { schema, name: table.name } },
-        },
-      ],
-      up: [
-        {
-          args: { source: dataSource, table: { schema, name: table.name } },
-          type: 'pg_track_table',
-        },
-      ],
-    }),
-  });
+  args,
+}: MigrationOperationOptions & TrackTableMigrationVariables) {
+  try {
+    const response = await executeMigration(
+      {
+        name: `add_existing_table_or_view_${args.table.schema}_${args.table.name}`,
+        down: [
+          {
+            type: 'pg_untrack_table',
+            args,
+          },
+        ],
+        up: [
+          {
+            type: 'pg_track_table',
+            args,
+          },
+        ],
+        datasource: args.source ?? 'default',
+        skip_execution: false,
+      },
+      {
+        baseUrl: appUrl,
+        adminSecret,
+      },
+    );
 
-  const responseData: [AffectedRowsResult, QueryResult<string[]>] | QueryError =
-    await response.json();
+    if (response.status === 200) {
+      return response.data;
+    }
 
-  if (response.ok) {
-    return;
+    throw new Error(response.data.error);
+  } catch (error) {
+    console.error(error);
+    throw error;
   }
-
-  const normalizedError = normalizeQueryError(responseData);
-
-  throw new Error(normalizedError);
 }
