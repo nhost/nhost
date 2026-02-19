@@ -52,6 +52,8 @@ export type MetadataOperation =
   | DropInconsistentMetadataOperation
   | ClearMetadataOperation
   | ReplaceMetadataOperation
+  | TrackTableBulkOperation
+  | UntrackTableBulkOperation
   | SetTableCustomizationBulkOperation
   | SetTableIsEnumBulkOperation
   | SuggestRelationshipsOperation
@@ -82,6 +84,4 @@ export type MetadataOperation =
   | GetScheduledEventsOperation
   | GetScheduledEventInvocationsOperation
   | CreateScheduledEventOperation
-  | DeleteScheduledEventOperation
-  | TrackTableBulkOperation
-  | UntrackTableBulkOperation;
+  | DeleteScheduledEventOperation;

@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { Plus, X } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import type { Row } from 'react-table';
 import { twMerge } from 'tailwind-merge';
 import { useDialog } from '@/components/common/DialogProvider';
@@ -10,13 +10,13 @@ import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
 import { DataGridFiltersPopover } from '@/features/orgs/projects/common/components/DataGridFiltersPopover';
 import { DataGridTableViewConfigurationPopover } from '@/features/orgs/projects/common/components/DataGridTableViewConfigurationPopover';
 import { InvokeEventTriggerButton } from '@/features/orgs/projects/database/dataGrid/components/InvokeEventTriggerButton';
+import { TrackTableButton } from '@/features/orgs/projects/database/dataGrid/components/TrackTableButton';
 import { useDeleteRecordMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteRecordMutation';
 import type { DataBrowserGridColumn } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { useGetEventTriggersByTable } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventTriggersByTable';
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
 import type { DataGridPaginationProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPagination';
 import { DataGridPagination } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPagination';
-import { cn } from '@/lib/utils';
 import { triggerToast } from '@/utils/toast';
 
 export interface DataBrowserGridControlsProps {
@@ -32,18 +32,6 @@ export interface DataBrowserGridControlsProps {
    * Function to be called when the button to add a new row is clicked.
    */
   onInsertRowClick?: () => void;
-  /**
-   * Whether the current table is tracked in Hasura GraphQL.
-   */
-  isTracked?: boolean;
-  /**
-   * Callback to track the current table.
-   */
-  onTrackTable?: () => Promise<void>;
-  /**
-   * Whether a track operation is in progress.
-   */
-  isTrackingTable?: boolean;
 }
 
 // TODO: Get rid of Data Browser related code from here. This component should
@@ -52,9 +40,6 @@ export default function DataBrowserGridControls({
   paginationProps,
   refetchData,
   onInsertRowClick,
-  isTracked,
-  onTrackTable,
-  isTrackingTable,
 }: DataBrowserGridControlsProps) {
   const queryClient = useQueryClient();
   const { openAlertDialog } = useDialog();
@@ -76,15 +61,8 @@ export default function DataBrowserGridControls({
     Row[]
   >([]);
 
-  const [isNotTrackedBannerDismissed, setIsNotTrackedBannerDismissed] =
-    useState(false);
-
   const router = useRouter();
   const { dataSourceSlug, schemaSlug, tableSlug } = router.query;
-
-  useEffect(() => {
-    setIsNotTrackedBannerDismissed(false);
-  }, [tableSlug]);
 
   const { data: eventTriggersByTable } = useGetEventTriggersByTable({
     table: { name: tableSlug as string, schema: schemaSlug as string },
@@ -141,39 +119,9 @@ export default function DataBrowserGridControls({
 
   return (
     <div className="box sticky top-0 z-40 border-b-1 p-2">
-      {isTracked === false && !isNotTrackedBannerDismissed && (
-        <div className="fixed bottom-4 right-4 z-50 flex items-center gap-3 rounded-lg border border-amber-500/20 bg-white px-4 py-3 shadow-lg dark:bg-neutral-900">
-          <span className="h-2 w-2 shrink-0 rounded-full bg-amber-500" />
-          <span className="font-medium text-amber-600 text-sm dark:text-amber-400">
-            Not tracked in GraphQL
-          </span>
-          <Button
-            onClick={onTrackTable}
-            disabled={isTrackingTable}
-            loading={isTrackingTable}
-            size="sm"
-            variant="outline"
-            className="border-amber-500/30 text-amber-600 text-sm hover:bg-amber-500/10 dark:text-amber-400"
-          >
-            Track now
-          </Button>
-          <button
-            type="button"
-            onClick={() => setIsNotTrackedBannerDismissed(true)}
-            className="ml-1 rounded p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground"
-          >
-            <X className="h-3.5 w-3.5" />
-          </button>
-        </div>
-      )}
-      <div
-        className={cn(
-          'mx-auto grid min-h-10 grid-flow-col items-center gap-3',
-          numberOfSelectedRows > 0 ? 'justify-between' : 'justify-end',
-        )}
-      >
+      <div className="mx-auto flex min-h-10 items-center gap-3">
         {numberOfSelectedRows > 0 && (
-          <div className="grid grid-flow-col place-content-start items-center gap-2">
+          <div className="flex items-center gap-2">
             <Badge
               variant="secondary"
               className="!bg-[#ebf3ff] dark:!bg-[#1b2534] text-primary"
@@ -219,7 +167,9 @@ export default function DataBrowserGridControls({
           </div>
         )}
 
-        <div className="grid grid-flow-col items-center gap-2">
+        {numberOfSelectedRows === 0 && <TrackTableButton />}
+
+        <div className="ml-auto flex items-center gap-2">
           {numberOfSelectedRows === 0 && columns.length > 0 && (
             <DataGridPagination
               className={twMerge(
@@ -235,7 +185,9 @@ export default function DataBrowserGridControls({
           )}
           {numberOfSelectedRows === 0 && (
             <Button onClick={onInsertRowClick} size="sm">
-              <Plus className="h-4 w-4" /> Insert row
+              <Plus className="h-4 w-4" />
+              <span className="sm:hidden">Insert</span>
+              <span className="hidden sm:inline">Insert row</span>
             </Button>
           )}
         </div>
