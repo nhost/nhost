@@ -93,7 +93,7 @@ function DataBrowserSidebarContent({
   } = router;
 
   const { data: trackedTablesSet } = useGetTrackedTablesSet({
-    dataSource: 'default',
+    dataSource: dataSourceSlug as string,
   });
 
   const { data, status, error, refetch } = useDatabaseQuery([
@@ -395,39 +395,13 @@ function DataBrowserSidebarContent({
                 const tablePath = `${table.table_schema}.${table.table_name}`;
                 const isSelected = `${schemaSlug}.${tableSlug}` === tablePath;
                 const isSidebarMenuOpen = sidebarMenuTable === tablePath;
-                const isTracked = trackedTablesSet?.has(
+                const isUntracked = !trackedTablesSet?.has(
                   `${table.table_schema}.${table.table_name}`,
-                );
-
-                const linkInner = (
-                  <NextLink
-                    className={cn(
-                      'flex h-full w-[calc(100%-1.6rem)] items-center p-[0.625rem] pr-0 text-left',
-                      {
-                        'text-primary-main': isSelected,
-                      },
-                    )}
-                    onClick={() => {
-                      if (onSidebarItemClick) {
-                        onSidebarItemClick(`default.${tablePath}`);
-                      }
-                    }}
-                    href={`/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/default/${table.table_schema}/${table.table_name}`}
-                  >
-                    <span
-                      className={cn('!truncate text-ellipsis', {
-                        italic: !isTracked,
-                        'opacity-50': !isTracked && !isSelected,
-                      })}
-                    >
-                      {table.table_name}
-                    </span>
-                  </NextLink>
                 );
 
                 return (
                   <li className="group pb-1" key={tablePath}>
-                    <Tooltip open={!isTracked ? undefined : false}>
+                    <Tooltip open={isUntracked ? undefined : false}>
                       <TooltipTrigger asChild>
                         <Button
                           asChild
@@ -442,10 +416,33 @@ function DataBrowserSidebarContent({
                           )}
                         >
                           <div>
-                            {linkInner}
+                            <NextLink
+                              className={cn(
+                                'flex h-full w-[calc(100%-1.6rem)] items-center p-[0.625rem] pr-0 text-left',
+                                {
+                                  'text-primary-main': isSelected,
+                                },
+                              )}
+                              onClick={() => {
+                                if (onSidebarItemClick) {
+                                  onSidebarItemClick(`default.${tablePath}`);
+                                }
+                              }}
+                              href={`/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/default/${table.table_schema}/${table.table_name}`}
+                            >
+                              <span
+                                className={cn('!truncate text-ellipsis', {
+                                  italic: isUntracked,
+                                  'opacity-50': isUntracked && !isSelected,
+                                })}
+                              >
+                                {table.table_name}
+                              </span>
+                            </NextLink>
                             <TableActions
                               tableName={table.table_name}
                               schema={table.table_schema}
+                              dataSource={dataSourceSlug as string}
                               disabled={tablePath === removableTable}
                               open={isSidebarMenuOpen}
                               onOpen={() => setSidebarMenuTable(tablePath)}

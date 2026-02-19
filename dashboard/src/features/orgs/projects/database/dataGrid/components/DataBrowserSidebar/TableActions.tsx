@@ -17,6 +17,7 @@ const menuItemClassName =
 type Props = {
   tableName: string;
   schema: string;
+  dataSource: string;
   open: boolean;
   className?: string;
   onOpen: () => void;
@@ -36,6 +37,7 @@ type Props = {
 function TableActions({
   tableName,
   schema,
+  dataSource,
   open,
   className,
   onClose,
@@ -54,7 +56,7 @@ function TableActions({
   const { project } = useProject();
   const isGitHubConnected = !!project?.githubRepository;
   const { data: isTrackedTable } = useIsTrackedTable({
-    dataSource: 'default',
+    dataSource,
     schema,
     tableName,
   });

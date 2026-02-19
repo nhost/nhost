@@ -4,7 +4,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import type * as Yup from 'yup';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Button } from '@/components/ui/v2/Button';
-import useGetMetadataResourceVersion from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion/useGetMetadataResourceVersion';
+import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import type {
   BaseTableFormProps,
   BaseTableFormValues,
@@ -39,7 +39,6 @@ export default function CreateTableForm({
   ...props
 }: CreateTableFormProps) {
   const router = useRouter();
-  const { dataSourceSlug } = router.query;
 
   const {
     mutateAsync: createTable,
@@ -123,7 +122,7 @@ export default function CreateTableForm({
         tracked: true,
         resourceVersion,
         args: {
-          source: dataSourceSlug as string,
+          source: router.query.dataSourceSlug as string,
           table: { name: table.name, schema },
         },
       });
