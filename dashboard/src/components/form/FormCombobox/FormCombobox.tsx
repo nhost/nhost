@@ -75,6 +75,7 @@ function FormComboboxImpl<
   }: FormComboboxProps<TFieldValues, TName>,
   ref?: ForwardedRef<HTMLButtonElement>,
 ) {
+  // biome-ignore lint/correctness/useHookAtTopLevel: forwardRef render function with generic type cast
   const [open, setOpen] = useState(false);
 
   return (

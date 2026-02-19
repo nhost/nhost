@@ -46,7 +46,6 @@ let
       ".gitignore"
       "${submodule}/.env.test"
       "${submodule}/.env.example"
-      "${submodule}/eslint.config.mjs"
       "${submodule}/.lintstagedrc.json"
       "${submodule}/biome.json"
       "${submodule}/.npmrc"
