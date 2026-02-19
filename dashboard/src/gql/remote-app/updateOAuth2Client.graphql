@@ -7,7 +7,6 @@ mutation UpdateOAuth2Client(
     _set: $changes
   ) {
     returning {
-      id
       clientId
       clientSecretHash
       redirectUris

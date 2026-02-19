@@ -6105,7 +6105,6 @@ export type AuthOauth2Clients = {
   createdBy?: Maybe<Scalars['uuid']>;
   /** An object relationship */
   createdByUser?: Maybe<Users>;
-  id: Scalars['uuid'];
   metadata?: Maybe<Scalars['jsonb']>;
   metadataDocumentFetchedAt?: Maybe<Scalars['timestamptz']>;
   /** An array relationship */
@@ -6203,7 +6202,6 @@ export type AuthOauth2Clients_Bool_Exp = {
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   createdBy?: InputMaybe<Uuid_Comparison_Exp>;
   createdByUser?: InputMaybe<Users_Bool_Exp>;
-  id?: InputMaybe<Uuid_Comparison_Exp>;
   metadata?: InputMaybe<Jsonb_Comparison_Exp>;
   metadataDocumentFetchedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   oauth2RefreshTokens?: InputMaybe<AuthOauth2RefreshTokens_Bool_Exp>;
@@ -6218,7 +6216,7 @@ export type AuthOauth2Clients_Bool_Exp = {
 export enum AuthOauth2Clients_Constraint {
   /** unique or primary key constraint on columns "client_id" */
   Oauth2ClientsClientIdKey = 'oauth2_clients_client_id_key',
-  /** unique or primary key constraint on columns "id" */
+  /** unique or primary key constraint on columns "client_id" */
   Oauth2ClientsPkey = 'oauth2_clients_pkey'
 }
 
@@ -6245,7 +6243,6 @@ export type AuthOauth2Clients_Insert_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   createdBy?: InputMaybe<Scalars['uuid']>;
   createdByUser?: InputMaybe<Users_Obj_Rel_Insert_Input>;
-  id?: InputMaybe<Scalars['uuid']>;
   metadata?: InputMaybe<Scalars['jsonb']>;
   metadataDocumentFetchedAt?: InputMaybe<Scalars['timestamptz']>;
   oauth2RefreshTokens?: InputMaybe<AuthOauth2RefreshTokens_Arr_Rel_Insert_Input>;
@@ -6262,7 +6259,6 @@ export type AuthOauth2Clients_Max_Fields = {
   clientSecretHash?: Maybe<Scalars['String']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
   createdBy?: Maybe<Scalars['uuid']>;
-  id?: Maybe<Scalars['uuid']>;
   metadataDocumentFetchedAt?: Maybe<Scalars['timestamptz']>;
   redirectUris?: Maybe<Array<Scalars['String']>>;
   scopes?: Maybe<Array<Scalars['String']>>;
@@ -6277,7 +6273,6 @@ export type AuthOauth2Clients_Min_Fields = {
   clientSecretHash?: Maybe<Scalars['String']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
   createdBy?: Maybe<Scalars['uuid']>;
-  id?: Maybe<Scalars['uuid']>;
   metadataDocumentFetchedAt?: Maybe<Scalars['timestamptz']>;
   redirectUris?: Maybe<Array<Scalars['String']>>;
   scopes?: Maybe<Array<Scalars['String']>>;
@@ -6316,7 +6311,6 @@ export type AuthOauth2Clients_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   createdBy?: InputMaybe<Order_By>;
   createdByUser?: InputMaybe<Users_Order_By>;
-  id?: InputMaybe<Order_By>;
   metadata?: InputMaybe<Order_By>;
   metadataDocumentFetchedAt?: InputMaybe<Order_By>;
   oauth2RefreshTokens_aggregate?: InputMaybe<AuthOauth2RefreshTokens_Aggregate_Order_By>;
@@ -6328,7 +6322,7 @@ export type AuthOauth2Clients_Order_By = {
 
 /** primary key columns input for table: auth.oauth2_clients */
 export type AuthOauth2Clients_Pk_Columns_Input = {
-  id: Scalars['uuid'];
+  clientId: Scalars['String'];
 };
 
 /** prepend existing jsonb value of filtered columns with new jsonb value */
@@ -6346,8 +6340,6 @@ export enum AuthOauth2Clients_Select_Column {
   CreatedAt = 'createdAt',
   /** column name */
   CreatedBy = 'createdBy',
-  /** column name */
-  Id = 'id',
   /** column name */
   Metadata = 'metadata',
   /** column name */
@@ -6368,7 +6360,6 @@ export type AuthOauth2Clients_Set_Input = {
   clientSecretHash?: InputMaybe<Scalars['String']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   createdBy?: InputMaybe<Scalars['uuid']>;
-  id?: InputMaybe<Scalars['uuid']>;
   metadata?: InputMaybe<Scalars['jsonb']>;
   metadataDocumentFetchedAt?: InputMaybe<Scalars['timestamptz']>;
   redirectUris?: InputMaybe<Array<Scalars['String']>>;
@@ -6391,7 +6382,6 @@ export type AuthOauth2Clients_Stream_Cursor_Value_Input = {
   clientSecretHash?: InputMaybe<Scalars['String']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   createdBy?: InputMaybe<Scalars['uuid']>;
-  id?: InputMaybe<Scalars['uuid']>;
   metadata?: InputMaybe<Scalars['jsonb']>;
   metadataDocumentFetchedAt?: InputMaybe<Scalars['timestamptz']>;
   redirectUris?: InputMaybe<Array<Scalars['String']>>;
@@ -6410,8 +6400,6 @@ export enum AuthOauth2Clients_Update_Column {
   CreatedAt = 'createdAt',
   /** column name */
   CreatedBy = 'createdBy',
-  /** column name */
-  Id = 'id',
   /** column name */
   Metadata = 'metadata',
   /** column name */
@@ -15559,7 +15547,7 @@ export type Mutation_RootDeleteAuthOauth2AuthorizationCodesArgs = {
 
 /** mutation root */
 export type Mutation_RootDeleteAuthOauth2ClientArgs = {
-  id: Scalars['uuid'];
+  clientId: Scalars['String'];
 };
 
 
@@ -21814,7 +21802,7 @@ export type Query_RootAuthOauth2AuthorizationCodesAggregateArgs = {
 
 
 export type Query_RootAuthOauth2ClientArgs = {
-  id: Scalars['uuid'];
+  clientId: Scalars['String'];
 };
 
 
@@ -25743,7 +25731,7 @@ export type Subscription_RootAuthOauth2AuthorizationCodes_StreamArgs = {
 
 
 export type Subscription_RootAuthOauth2ClientArgs = {
-  id: Scalars['uuid'];
+  clientId: Scalars['String'];
 };
 
 
@@ -30550,7 +30538,7 @@ export type GetOAuth2ClientsQueryVariables = Exact<{
 }>;
 
 
-export type GetOAuth2ClientsQuery = { __typename?: 'query_root', authOauth2Clients: Array<{ __typename?: 'authOauth2Clients', id: any, clientId: string, clientSecretHash?: string | null, redirectUris: Array<string>, scopes: Array<string>, metadata?: any | null, createdAt: any, updatedAt: any }>, authOauth2ClientsAggregate: { __typename?: 'authOauth2Clients_aggregate', aggregate?: { __typename?: 'authOauth2Clients_aggregate_fields', count: number } | null } };
+export type GetOAuth2ClientsQuery = { __typename?: 'query_root', authOauth2Clients: Array<{ __typename?: 'authOauth2Clients', clientId: string, clientSecretHash?: string | null, redirectUris: Array<string>, scopes: Array<string>, metadata?: any | null, createdAt: any, updatedAt: any }>, authOauth2ClientsAggregate: { __typename?: 'authOauth2Clients_aggregate', aggregate?: { __typename?: 'authOauth2Clients_aggregate_fields', count: number } | null } };
 
 export type RemoteAppGetUsersFragment = { __typename?: 'users', id: any, createdAt: any, displayName: string, avatarUrl: string, email?: any | null, emailVerified: boolean, phoneNumber?: string | null, phoneNumberVerified: boolean, disabled: boolean, defaultRole: string, lastSeen?: any | null, locale: string, metadata?: any | null, roles: Array<{ __typename?: 'authUserRoles', id: any, role: string }>, userProviders: Array<{ __typename?: 'authUserProviders', id: any, providerId: string }> };
 
@@ -30597,7 +30585,7 @@ export type InsertOAuth2ClientMutationVariables = Exact<{
 }>;
 
 
-export type InsertOAuth2ClientMutation = { __typename?: 'mutation_root', insertAuthOauth2Client?: { __typename?: 'authOauth2Clients', id: any, clientId: string, clientSecretHash?: string | null, redirectUris: Array<string>, scopes: Array<string>, metadata?: any | null, createdAt: any, updatedAt: any } | null };
+export type InsertOAuth2ClientMutation = { __typename?: 'mutation_root', insertAuthOauth2Client?: { __typename?: 'authOauth2Clients', clientId: string, clientSecretHash?: string | null, redirectUris: Array<string>, scopes: Array<string>, metadata?: any | null, createdAt: any, updatedAt: any } | null };
 
 export type UpdateOAuth2ClientMutationVariables = Exact<{
   clientId: Scalars['String'];
@@ -30605,7 +30593,7 @@ export type UpdateOAuth2ClientMutationVariables = Exact<{
 }>;
 
 
-export type UpdateOAuth2ClientMutation = { __typename?: 'mutation_root', updateAuthOauth2Clients?: { __typename?: 'authOauth2Clients_mutation_response', returning: Array<{ __typename?: 'authOauth2Clients', id: any, clientId: string, clientSecretHash?: string | null, redirectUris: Array<string>, scopes: Array<string>, metadata?: any | null, createdAt: any, updatedAt: any }> } | null };
+export type UpdateOAuth2ClientMutation = { __typename?: 'mutation_root', updateAuthOauth2Clients?: { __typename?: 'authOauth2Clients_mutation_response', returning: Array<{ __typename?: 'authOauth2Clients', clientId: string, clientSecretHash?: string | null, redirectUris: Array<string>, scopes: Array<string>, metadata?: any | null, createdAt: any, updatedAt: any }> } | null };
 
 export type UpdateRemoteAppUserMutationVariables = Exact<{
   id: Scalars['uuid'];
@@ -36036,7 +36024,6 @@ export const GetOAuth2ClientsDocument = gql`
     offset: $offset
     where: $where
   ) {
-    id
     clientId
     clientSecretHash
     redirectUris
@@ -36325,7 +36312,6 @@ export function refetchTotalUsersByDateQuery(variables: TotalUsersByDateQueryVar
 export const InsertOAuth2ClientDocument = gql`
     mutation InsertOAuth2Client($object: authOauth2Clients_insert_input!) {
   insertAuthOauth2Client(object: $object) {
-    id
     clientId
     clientSecretHash
     redirectUris
@@ -36366,7 +36352,6 @@ export const UpdateOAuth2ClientDocument = gql`
     mutation UpdateOAuth2Client($clientId: String!, $changes: authOauth2Clients_set_input!) {
   updateAuthOauth2Clients(where: {clientId: {_eq: $clientId}}, _set: $changes) {
     returning {
-      id
       clientId
       clientSecretHash
       redirectUris

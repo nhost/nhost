@@ -1,6 +1,5 @@
 mutation InsertOAuth2Client($object: authOauth2Clients_insert_input!) {
   insertAuthOauth2Client(object: $object) {
-    id
     clientId
     clientSecretHash
     redirectUris
