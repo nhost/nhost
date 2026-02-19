@@ -1,3 +1,17 @@
+## [@nhost/nhost-js@4.5.0] - 2026-02-19
+
+### 🚀 Features
+
+- *(auth)* Added oauth2/oidc provider functionality (#3922)
+
+
+### 🐛 Bug Fixes
+
+- *(deps)* Bump up markdown-it to address vulnerability (#3914)
+- *(deps)* Bump Orval version and remove outdated pnpm overrides (#3920)
+- *(deps)* Bump ajv and tar due to cves (#3925)
+- *(docs)* Bump minimatch version (#3929)
+
 ## [@nhost/nhost-js@4.4.0] - 2026-02-06
 
 ### 🚀 Features
