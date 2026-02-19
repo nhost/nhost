@@ -28,69 +28,24 @@ type Option = {
   route: string;
 };
 
-const allProjectSettingsPages = [
-  { name: 'General', slug: 'general', route: '' },
+const allProjectAuthPages = [
   {
-    name: 'Compute Resources',
-    slug: 'compute-resources',
-    route: 'compute-resources',
-  },
-  { name: 'Database', slug: 'database', route: 'database' },
-  { name: 'Hasura', slug: 'hasura', route: 'hasura' },
-  {
-    name: 'Authentication',
-    slug: 'authentication',
-    route: 'authentication',
+    name: 'Users',
+    slug: 'users',
+    route: 'users',
   },
   {
-    name: 'JWT',
-    slug: 'jwt',
-    route: 'jwt',
+    name: 'OAuth2 Clients',
+    slug: 'oauth2-clients',
+    route: 'oauth2-clients',
   },
-  {
-    name: 'Sign-In methods',
-    slug: 'sign-in-methods',
-    route: 'sign-in-methods',
-  },
-  { name: 'Storage', slug: 'storage', route: 'storage' },
-  {
-    name: 'Roles and Permissions',
-    slug: 'roles-and-permissions',
-    route: 'roles-and-permissions',
-  },
-  { name: 'SMTP', slug: 'smtp', route: 'smtp' },
-  { name: 'Git', slug: 'git', route: 'git' },
-  {
-    name: 'Environment Variables',
-    slug: 'environment-variables',
-    route: 'environment-variables',
-  },
-  { name: 'Secrets', slug: 'secrets', route: 'secrets' },
-  {
-    name: 'Custom Domains',
-    slug: 'custom-domains',
-    route: 'custom-domains',
-  },
-  {
-    name: 'Rate Limiting',
-    slug: 'rate-limiting',
-    route: 'rate-limiting',
-  },
-  { name: 'AI', slug: 'ai', route: 'ai' },
-  {
-    name: 'OAuth2 Provider',
-    slug: 'oauth2-provider',
-    route: 'oauth2-provider',
-  },
-  { name: 'Observability', slug: 'metrics', route: 'metrics' },
-  { name: 'Configuration Editor', slug: 'editor', route: 'editor' },
 ].map((item) => ({
   label: item.name,
   value: item.slug,
   route: item.route,
 }));
 
-export default function ProjectSettingsPagesComboBox() {
+export default function ProjectAuthPagesComboBox() {
   const {
     query: { orgSlug, appSubdomain },
     push,
@@ -103,37 +58,34 @@ export default function ProjectSettingsPagesComboBox() {
     !isPlatform ||
     isVersionGte(auth.configuredVersion, MIN_AUTH_VERSION_OAUTH2);
 
-  const projectSettingsPages = useMemo(
+  const projectAuthPages = useMemo(
     () =>
-      allProjectSettingsPages.filter(
-        (page) => page.value !== 'oauth2-provider' || isOAuth2Available,
+      allProjectAuthPages.filter(
+        (page) => page.value !== 'oauth2-clients' || isOAuth2Available,
       ),
     [isOAuth2Available],
   );
 
   const pathSegments = useMemo(() => asPath.split('/'), [asPath]);
-  const isSettingsPage = pathSegments.includes('settings');
-  const settingsPageFromUrl = isSettingsPage
-    ? pathSegments[6] || 'general'
-    : null;
+  const isAuthPage = pathSegments.includes('auth');
+  const authPageFromUrl = isAuthPage ? pathSegments[6] || 'users' : null;
 
-  const selectedSettingsPageFromUrl = projectSettingsPages.find(
-    (item) => item.value === settingsPageFromUrl,
+  const selectedAuthPageFromUrl = projectAuthPages.find(
+    (item) => item.value === authPageFromUrl,
   );
-  const [selectedSettingsPage, setSelectedSettingsPage] =
-    useState<Option | null>(null);
+  const [selectedAuthPage, setSelectedAuthPage] = useState<Option | null>(null);
 
   useEffect(() => {
-    if (selectedSettingsPageFromUrl) {
-      setSelectedSettingsPage({
-        label: selectedSettingsPageFromUrl.label,
-        value: selectedSettingsPageFromUrl.value,
-        route: selectedSettingsPageFromUrl.route,
+    if (selectedAuthPageFromUrl) {
+      setSelectedAuthPage({
+        label: selectedAuthPageFromUrl.label,
+        value: selectedAuthPageFromUrl.value,
+        route: selectedAuthPageFromUrl.route,
       });
     }
-  }, [selectedSettingsPageFromUrl]);
+  }, [selectedAuthPageFromUrl]);
 
-  const options: Option[] = projectSettingsPages.map((page) => ({
+  const options: Option[] = projectAuthPages.map((page) => ({
     label: page.label,
     value: page.value,
     route: page.route,
@@ -149,8 +101,8 @@ export default function ProjectSettingsPagesComboBox() {
           size="sm"
           className="justify-start gap-2 bg-background text-foreground hover:bg-accent dark:hover:bg-muted"
         >
-          {selectedSettingsPage ? (
-            <div>{selectedSettingsPage.label}</div>
+          {selectedAuthPage ? (
+            <div>{selectedAuthPage.label}</div>
           ) : (
             <>Select a page</>
           )}
@@ -168,17 +120,17 @@ export default function ProjectSettingsPagesComboBox() {
                   key={option.value}
                   value={option.label}
                   onSelect={() => {
-                    setSelectedSettingsPage(option);
+                    setSelectedAuthPage(option);
                     setOpen(false);
                     push(
-                      `/orgs/${orgSlug}/projects/${appSubdomain}/settings/${option.route}/`,
+                      `/orgs/${orgSlug}/projects/${appSubdomain}/auth/${option.route}/`,
                     );
                   }}
                 >
                   <Check
                     className={cn(
                       'mr-2 h-4 w-4',
-                      selectedSettingsPage?.value === option.value
+                      selectedAuthPage?.value === option.value
                         ? 'opacity-100'
                         : 'opacity-0',
                     )}

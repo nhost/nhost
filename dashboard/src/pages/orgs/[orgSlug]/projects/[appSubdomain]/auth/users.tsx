@@ -35,9 +35,7 @@ export default function UsersPage() {
 
   const limit = useRef(25);
   const router = useRouter();
-  const [nrOfPages, setNrOfPages] = useState(
-    parseInt(router.query.page as string, 10) || 1,
-  );
+  const [nrOfPages, setNrOfPages] = useState(1);
 
   const [currentPage, setCurrentPage] = useState(
     parseInt(router.query.page as string, 10) || 1,
@@ -104,13 +102,13 @@ export default function UsersPage() {
     }
     if (router.query.page && typeof router.query.page === 'string') {
       const pageNumber = parseInt(router.query.page, 10);
-      if (nrOfPages >= pageNumber) {
+      if (nrOfPages >= pageNumber || loadingRemoteAppUsersQuery) {
         setCurrentPage(pageNumber);
       } else {
         setCurrentPage(1);
       }
     }
-  }, [nrOfPages, router.query.page]);
+  }, [nrOfPages, router.query.page, loadingRemoteAppUsersQuery]);
 
   /**
    * If the user is on the first page, we want to remove the page query param from the URL.
@@ -182,10 +180,7 @@ export default function UsersPage() {
     });
   }
 
-  const users = useMemo(
-    () => dataRemoteAppUsersAndAuthRoles?.users.map((user) => user) ?? [],
-    [dataRemoteAppUsersAndAuthRoles],
-  );
+  const users = dataRemoteAppUsersAndAuthRoles?.users ?? [];
 
   const usersCount = useMemo(
     () =>

@@ -1,0 +1,20 @@
+mutation UpdateOAuth2Client(
+  $clientId: String!
+  $changes: authOauth2Clients_set_input!
+) {
+  updateAuthOauth2Clients(
+    where: { clientId: { _eq: $clientId } }
+    _set: $changes
+  ) {
+    returning {
+      id
+      clientId
+      clientSecretHash
+      redirectUris
+      scopes
+      metadata
+      createdAt
+      updatedAt
+    }
+  }
+}
