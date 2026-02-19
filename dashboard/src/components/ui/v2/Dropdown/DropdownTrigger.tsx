@@ -54,75 +54,78 @@ function ChevronIcon({ open }: { open: boolean }) {
   return <ChevronDownIcon sx={{ fontSize: '0.75rem' }} />;
 }
 
-function DropdownTrigger(
-  {
-    asChild,
-    children,
-    type = 'button',
-    hideChevron,
-    onClick,
-    ...props
-  }: DropdownTriggerProps,
-  ref: ForwardedRef<HTMLButtonElement>,
-) {
-  const { id, handleOpen, open } = useDropdown();
+const DropdownTrigger = forwardRef(
+  (
+    {
+      asChild,
+      children,
+      type = 'button',
+      hideChevron,
+      onClick,
+      ...props
+    }: DropdownTriggerProps,
+    ref: ForwardedRef<HTMLButtonElement>,
+  ) => {
+    const { id, handleOpen, open } = useDropdown();
 
-  function handleClick(event: MouseEvent<HTMLButtonElement>) {
-    if (onClick) {
-      onClick(event);
+    function handleClick(event: MouseEvent<HTMLButtonElement>) {
+      if (onClick) {
+        onClick(event);
+      }
+
+      handleOpen(event);
     }
 
-    handleOpen(event);
-  }
+    const sharedProps = {
+      ref,
+      type,
+      'aria-describedby': id,
+      'aria-controls': open ? 'basic-menu' : undefined,
+      'aria-expanded': open ? 'true' : undefined,
+      'aria-haspopup': 'listbox',
+      onClick: handleClick,
+      ...props,
+      style: open ? { ...props.style, opacity: 1 } : props.style,
+    };
 
-  const sharedProps = {
-    ref,
-    type,
-    'aria-describedby': id,
-    'aria-controls': open ? 'basic-menu' : undefined,
-    'aria-expanded': open ? 'true' : undefined,
-    'aria-haspopup': 'listbox',
-    onClick: handleClick,
-    ...props,
-    style: open ? { ...props.style, opacity: 1 } : props.style,
-  };
+    if (
+      asChild &&
+      Children.count(children) === 1 &&
+      isValidElement<AsChildElement>(children)
+    ) {
+      return cloneElement(
+        children,
+        {
+          ...children.props,
+          ...sharedProps,
+          onClick: callAll(sharedProps.onClick, children.props.onClick),
+        },
+        <>
+          {children.props?.children}{' '}
+          {!hideChevron && <ChevronIcon open={open} />}
+        </>,
+      );
+    }
 
-  if (
-    asChild &&
-    Children.count(children) === 1 &&
-    isValidElement<AsChildElement>(children)
-  ) {
-    return cloneElement(
-      children,
-      {
-        ...children.props,
-        ...sharedProps,
-        onClick: callAll(sharedProps.onClick, children.props.onClick),
-      },
-      <>
-        {children.props?.children} {!hideChevron && <ChevronIcon open={open} />}
-      </>,
+    return (
+      <StyledButton
+        component="button"
+        ref={ref}
+        type={type}
+        aria-describedby={id}
+        aria-controls={open ? 'basic-menu' : undefined}
+        aria-expanded={open ? 'true' : undefined}
+        onClick={handleClick}
+        {...props}
+      >
+        {children}
+
+        {!hideChevron && <ChevronIcon open={open} />}
+      </StyledButton>
     );
-  }
-
-  return (
-    <StyledButton
-      component="button"
-      ref={ref}
-      type={type}
-      aria-describedby={id}
-      aria-controls={open ? 'basic-menu' : undefined}
-      aria-expanded={open ? 'true' : undefined}
-      onClick={handleClick}
-      {...props}
-    >
-      {children}
-
-      {!hideChevron && <ChevronIcon open={open} />}
-    </StyledButton>
-  );
-}
+  },
+);
 
 DropdownTrigger.displayName = 'NhostDropdownTrigger';
 
-export default forwardRef(DropdownTrigger);
+export default DropdownTrigger;

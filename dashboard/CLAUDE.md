@@ -11,7 +11,7 @@ pnpm install          # Install dependencies (use pnpm, not npm/yarn)
 pnpm dev              # Start development server (port 3000)
 pnpm build            # Production build (skips lint)
 pnpm start            # Start production server
-pnpm lint             # Run both Biome and ESLint
+pnpm lint             # Run both Biome
 pnpm test:typecheck       # TypeScript type checking
 ```
 
@@ -69,7 +69,7 @@ src/
 - Use explicit types for function parameters and return values when not obvious
 - Use `type` for complex types, `interface` for objects
 - Use TypeScript's `as const` for literal values
-- **DO NOT** prefix interfaces with `I` (ESLint rule: interface format must be PascalCase without `I` prefix)
+- **DO NOT** prefix interfaces with `I`
 - Use optional chaining (`?.`) and nullish coalescing (`??`) where appropriate
 - Use `unknown` instead of `any` when type is unknown; prefer explicit types
 
@@ -77,10 +77,9 @@ src/
 
 - Use absolute imports with `@/` alias (configured in tsconfig.json)
 - Example: `import Button from '@/components/ui/v3/button';`
-- **DO NOT** use relative imports like `../` or `./` (eslint rule warns)
+- **DO NOT** use relative imports like `../` or `./`
 - Group imports in this order: React → external libraries → absolute imports → absolute type imports
 - Use type-only imports for types: `import type { Foo } from '@/types'`
-- Use ESLint rule: `@typescript-eslint/consistent-type-imports`
 
 ### React Components
 
@@ -111,7 +110,7 @@ src/
 ### Error Handling
 
 - Use `try/catch` with explicit error types
-- Use `console.error` for logging errors (ESLint allows `console.error`, warns on other console methods)
+- Use `console.error` for logging errors (biome allows `console.error`, warns on other console methods)
 - Use toast notifications for user-facing errors (`react-hot-toast`)
 - Wrap async operations with error boundaries where appropriate
 - Use `react-error-boundary` for component-level error handling
@@ -159,7 +158,6 @@ src/
 - Use strict mode (configured in tsconfig.json)
 - No `any` type unless absolutely necessary
 - Use `VoidFunction` for callback types
-- Curly braces required for all control statements (ESLint `curly: ['error', 'all']`)
 - Prefer early returns over nested conditionals
 - No comments unless explaining complex logic (code should be self-explanatory)
 - Do not add inline JSX comments like `{/* Section Name */}` to label sections in components — the code should be self-documenting
@@ -171,11 +169,10 @@ src/
   - Linting: Enforces code quality rules (complexity, style, suspicious code, correctness, performance, import sorting)
   - CSS: Supports Tailwind directives
   - Excludes generated files (`__generated__/`, `hasura-api/generated/`) and `public/`
-- **ESLint**: Uses flat config format with `typescript-eslint`
   - Enforces absolute imports (must use `@/` alias, no relative imports)
   - Restricts direct imports from `@testing-library/react*` (must use `@/tests/testUtils`)
   - Excludes generated files and config files
-- **Lint command**: Runs both Biome and ESLint (`pnpm lint`). Auto-fix with `pnpm biome check --write` or `pnpm biome check --write <file>`
+- **Lint command**: Runs Biome (`pnpm lint`). Auto-fix with `pnpm biome check --write` or `pnpm biome check --write <file>`
 - **Format command**: Uses Biome (`pnpm format`)
 
 ## Commit Message Format
