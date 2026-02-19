@@ -1,0 +1,25 @@
+query GetOAuth2Clients(
+  $limit: Int!
+  $offset: Int!
+  $where: authOauth2Clients_bool_exp!
+) {
+  authOauth2Clients(
+    order_by: { createdAt: desc }
+    limit: $limit
+    offset: $offset
+    where: $where
+  ) {
+    clientId
+    clientSecretHash
+    redirectUris
+    scopes
+    metadata
+    createdAt
+    updatedAt
+  }
+  authOauth2ClientsAggregate(where: $where) {
+    aggregate {
+      count
+    }
+  }
+}

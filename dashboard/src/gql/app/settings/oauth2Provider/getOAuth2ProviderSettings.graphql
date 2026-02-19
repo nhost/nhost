@@ -1,0 +1,20 @@
+query GetOAuth2ProviderSettings($appId: uuid!) {
+  config(appID: $appId, resolve: false) {
+    id: __typename
+    auth {
+      oauth2Provider {
+        enabled
+        loginURL
+        accessToken {
+          expiresIn
+        }
+        refreshToken {
+          expiresIn
+        }
+        clientIdMetadataDocument {
+          enabled
+        }
+      }
+    }
+  }
+}
