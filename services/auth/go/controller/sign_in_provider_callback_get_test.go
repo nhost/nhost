@@ -57,6 +57,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 		nil,
 		"",
 		nil,
+		"hasura-auth",
 	)
 	if err != nil {
 		t.Fatalf("failed to create jwt getter: %v", err)

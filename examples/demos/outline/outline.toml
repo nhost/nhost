@@ -1,0 +1,81 @@
+name = "outline"
+
+[image]
+image = "outlinewiki/outline:latest"
+
+[[environment]]
+name = "URL"
+value = "http://localhost:3000"
+
+[[environment]]
+name = "FORCE_HTTPS"
+value = "false"
+
+[[environment]]
+name = "SECRET_KEY"
+value = "{{ secrets.OUTLINE_SECRET_KEY }}"
+
+[[environment]]
+name = "UTILS_SECRET"
+value = "{{ secrets.OUTLINE_UTILS_SECRET }}"
+
+[[environment]]
+name = "DATABASE_URL"
+value = "postgres://postgres:postgres@postgres:5432/local?sslmode=disable"
+
+[[environment]]
+name = "REDIS_URL"
+value = "redis://run-redis:6379"
+
+[[environment]]
+name = "FILE_STORAGE"
+value = "local"
+
+[[environment]]
+name = "FILE_STORAGE_LOCAL_ROOT_DIR"
+value = "/var/lib/outline/data"
+
+[[environment]]
+name = "OIDC_CLIENT_ID"
+value = "{{ secrets.OUTLINE_OIDC_CLIENT_ID }}"
+
+[[environment]]
+name = "OIDC_CLIENT_SECRET"
+value = "{{ secrets.OUTLINE_OIDC_CLIENT_SECRET }}"
+
+[[environment]]
+name = "OIDC_AUTH_URI"
+value = "https://local.auth.local.nhost.run/v1/oauth2/authorize"
+
+[[environment]]
+name = "OIDC_TOKEN_URI"
+value = "http://auth:4000/v1/oauth2/token"
+
+[[environment]]
+name = "OIDC_USERINFO_URI"
+value = "http://auth:4000/v1/oauth2/userinfo"
+
+[[environment]]
+name = "OIDC_DISPLAY_NAME"
+value = "Nhost"
+
+[[environment]]
+name = "OIDC_SCOPES"
+value = "openid profile email"
+
+[[ports]]
+type = "http"
+port = 3000
+publish = true
+
+[resources]
+replicas = 1
+
+[resources.compute]
+cpu = 62
+memory = 128
+
+[[resources.storage]]
+name = "data"
+path = "/var/lib/outline/data"
+capacity = 1

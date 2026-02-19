@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -25,159 +26,166 @@ import (
 )
 
 const (
-	flagAPIPrefix                        = "api-prefix"
-	flagPort                             = "port"
-	flagDebug                            = "debug"
-	flagLogFormatTEXT                    = "log-format-text"
-	flagEncryptionKey                    = "encryption-key"
-	flagTrustedProxies                   = "trusted-proxies"
-	flagPostgresConnection               = "postgres"
-	flagPostgresMigrationsConnection     = "postgres-migrations"
-	flagDisableSignup                    = "disable-signup"
-	flagConcealErrors                    = "conceal-errors"
-	flagDefaultAllowedRoles              = "default-allowed-roles"
-	flagDefaultRole                      = "default-role"
-	flagDefaultLocale                    = "default-locale"
-	flagAllowedLocales                   = "allowed-locales"
-	flagDisableNewUsers                  = "disable-new-users"
-	flagGravatarEnabled                  = "gravatar-enabled"
-	flagGravatarDefault                  = "gravatar-default"
-	flagGravatarRating                   = "gravatar-rating"
-	flagRefreshTokenExpiresIn            = "refresh-token-expires-in"
-	flagAccessTokensExpiresIn            = "access-tokens-expires-in"
-	flagHasuraGraphqlJWTSecret           = "hasura-graphql-jwt-secret" //nolint:gosec
-	flagEmailSigninEmailVerifiedRequired = "email-verification-required"
-	flagSMTPHost                         = "smtp-host"
-	flagSMTPPort                         = "smtp-port"
-	flagSMTPSecure                       = "smtp-secure"
-	flagSMTPUser                         = "smtp-user"
-	flagSMTPPassword                     = "smtp-password"
-	flagSMTPSender                       = "smtp-sender"
-	flagSMTPAPIHedaer                    = "smtp-api-header"
-	flagSMTPAuthMethod                   = "smtp-auth-method"
-	flagClientURL                        = "client-url"
-	flagServerURL                        = "server-url"
-	flagAllowRedirectURLs                = "allow-redirect-urls"
-	flagEnableChangeEnv                  = "enable-change-env"
-	flagCustomClaims                     = "custom-claims"
-	flagCustomClaimsDefaults             = "custom-claims-defaults"
-	flagGraphqlURL                       = "graphql-url"
-	flagHasuraAdminSecret                = "hasura-admin-secret" //nolint:gosec
-	flagPasswordMinLength                = "password-min-length"
-	flagPasswordHIBPEnabled              = "password-hibp-enabled"
-	flagEmailTemplatesPath               = "templates-path"
-	flagBlockedEmailDomains              = "block-email-domains"
-	flagBlockedEmails                    = "block-emails"
-	flagAllowedEmailDomains              = "allowed-email-domains"
-	flagAllowedEmails                    = "allowed-emails"
-	flagEmailPasswordlessEnabled         = "email-passwordless-enabled"
-	flagRequireElevatedClaim             = "require-elevated-claim"
-	flagWebauthnEnabled                  = "webauthn-enabled"
-	flagWebauhtnRPName                   = "webauthn-rp-name"
-	flagWebauthnRPID                     = "webauthn-rp-id"
-	flagWebauthnRPOrigins                = "webauthn-rp-origins"
-	flagWebauthnAttestationTimeout       = "webauthn-attestation-timeout"
-	flagRateLimitEnable                  = "rate-limit-enable"
-	flagRateLimitGlobalBurst             = "rate-limit-global-burst"
-	flagRateLimitGlobalInterval          = "rate-limit-global-interval"
-	flagRateLimitEmailBurst              = "rate-limit-email-burst"
-	flagRateLimitEmailInterval           = "rate-limit-email-interval"
-	flagRateLimitEmailIsGlobal           = "rate-limit-email-is-global"
-	flagRateLimitSMSBurst                = "rate-limit-sms-burst"
-	flagRateLimitSMSInterval             = "rate-limit-sms-interval"
-	flagRateLimitBruteForceBurst         = "rate-limit-brute-force-burst"
-	flagRateLimitBruteForceInterval      = "rate-limit-brute-force-interval"
-	flagRateLimitSignupsBurst            = "rate-limit-signups-burst"
-	flagRateLimitSignupsInterval         = "rate-limit-signups-interval"
-	flagRateLimitMemcacheServer          = "rate-limit-memcache-server"
-	flagRateLimitMemcachePrefix          = "rate-limit-memcache-prefix"
-	flagTurnstileSecret                  = "turnstile-secret"
-	flagAppleAudience                    = "apple-audience"
-	flagGoogleAudience                   = "google-audience"
-	flagOTPEmailEnabled                  = "otp-email-enabled"
-	flagSMSPasswordlessEnabled           = "sms-passwordless-enabled"
-	flagSMSProvider                      = "sms-provider"
-	flagSMSTwilioAccountSid              = "sms-twilio-account-sid"
-	flagSMSTwilioAuthToken               = "sms-twilio-auth-token" //nolint:gosec
-	flagSMSTwilioMessagingServiceID      = "sms-twilio-messaging-service-id"
-	flagSMSModicaUsername                = "sms-modica-username"
-	flagSMSModicaPassword                = "sms-modica-password" //nolint:gosec
-	flagAnonymousUsersEnabled            = "enable-anonymous-users"
-	flagMfaEnabled                       = "mfa-enabled"
-	flagMfaTotpIssuer                    = "mfa-totp-issuer"
-	flagGithubEnabled                    = "github-enabled"
-	flagGithubClientID                   = "github-client-id"
-	flagGithubClientSecret               = "github-client-secret" //nolint:gosec
-	flagGithubAuthorizationURL           = "github-authorization-url"
-	flagGithubTokenURL                   = "github-token-url" //nolint:gosec
-	flagGithubUserProfileURL             = "github-user-profile-url"
-	flagGithubScope                      = "github-scope"
-	flagGoogleEnabled                    = "google-enabled"
-	flagGoogleClientID                   = "google-client-id"
-	flagGoogleClientSecret               = "google-client-secret"
-	flagGoogleScope                      = "google-scope"
-	flagAppleEnabled                     = "apple-enabled"
-	flagAppleClientID                    = "apple-client-id"
-	flagAppleTeamID                      = "apple-team-id"
-	flagAppleKeyID                       = "apple-key-id"
-	flagApplePrivateKey                  = "apple-private-key"
-	flagAppleScope                       = "apple-scope"
-	flagLinkedInEnabled                  = "linkedin-enabled"
-	flagLinkedInClientID                 = "linkedin-client-id"
-	flagLinkedInClientSecret             = "linkedin-client-secret"
-	flagLinkedInScope                    = "linkedin-scope"
-	flagDiscordEnabled                   = "discord-enabled"
-	flagDiscordClientID                  = "discord-client-id"
-	flagDiscordClientSecret              = "discord-client-secret"
-	flagDiscordScope                     = "discord-scope"
-	flagSpotifyEnabled                   = "spotify-enabled"
-	flagSpotifyClientID                  = "spotify-client-id"
-	flagSpotifyClientSecret              = "spotify-client-secret" //nolint:gosec
-	flagSpotifyScope                     = "spotify-scope"
-	flagTwitchEnabled                    = "twitch-enabled"
-	flagTwitchClientID                   = "twitch-client-id"
-	flagTwitchClientSecret               = "twitch-client-secret"
-	flagTwitchScope                      = "twitch-scope"
-	flagGitlabEnabled                    = "gitlab-enabled"
-	flagGitlabClientID                   = "gitlab-client-id"
-	flagGitlabClientSecret               = "gitlab-client-secret" //nolint:gosec
-	flagGitlabScope                      = "gitlab-scope"
-	flagBitbucketEnabled                 = "bitbucket-enabled"
-	flagBitbucketClientID                = "bitbucket-client-id"
-	flagBitbucketClientSecret            = "bitbucket-client-secret"
-	flagBitbucketScope                   = "bitbucket-scope"
-	flagWorkosEnabled                    = "workos-enabled"
-	flagWorkosClientID                   = "workos-client-id"
-	flagWorkosClientSecret               = "workos-client-secret" //nolint:gosec
-	flagWorkosDefaultOrganization        = "workos-default-organization"
-	flagWorkosDefaultConnection          = "workos-default-connection"
-	flagWorkosDefaultDomain              = "workos-default-domain"
-	flagWorkosScope                      = "workos-scope"
-	flagAzureadEnabled                   = "azuread-enabled"
-	flagAzureadClientID                  = "azuread-client-id"
-	flagAzureadClientSecret              = "azuread-client-secret" //nolint:gosec
-	flagAzureadTenant                    = "azuread-tenant"
-	flagAzureadScope                     = "azuread-scope"
-	flagEntraIDEnabled                   = "entraid-enabled"
-	flagEntraIDClientID                  = "entraid-client-id"
-	flagEntraIDClientSecret              = "entraid-client-secret" //nolint:gosec
-	flagEntraIDTenant                    = "entraid-tenant"
-	flagEntraIDScope                     = "entraid-scope"
-	flagFacebookEnabled                  = "facebook-enabled"
-	flagFacebookClientID                 = "facebook-client-id"
-	flagFacebookClientSecret             = "facebook-client-secret"
-	flagFacebookScope                    = "facebook-scope"
-	flagWindowsliveEnabled               = "windowslive-enabled"
-	flagWindowsliveClientID              = "windowslive-client-id"
-	flagWindowsliveClientSecret          = "windowslive-client-secret"
-	flagWindowsliveScope                 = "windowslive-scope"
-	flagStravaEnabled                    = "strava-enabled"
-	flagStravaClientID                   = "strava-client-id"
-	flagStravaClientSecret               = "strava-client-secret" //nolint:gosec
-	flagStravaScope                      = "strava-scope"
-	flagTwitterEnabled                   = "twitter-enabled"
-	flagTwitterConsumerKey               = "twitter-consumer-key"
-	flagTwitterConsumerSecret            = "twitter-consumer-secret"
+	flagAPIPrefix                                = "api-prefix"
+	flagPort                                     = "port"
+	flagDebug                                    = "debug"
+	flagLogFormatTEXT                            = "log-format-text"
+	flagEncryptionKey                            = "encryption-key"
+	flagPostgresConnection                       = "postgres"
+	flagPostgresMigrationsConnection             = "postgres-migrations"
+	flagDisableSignup                            = "disable-signup"
+	flagConcealErrors                            = "conceal-errors"
+	flagDefaultAllowedRoles                      = "default-allowed-roles"
+	flagDefaultRole                              = "default-role"
+	flagDefaultLocale                            = "default-locale"
+	flagAllowedLocales                           = "allowed-locales"
+	flagDisableNewUsers                          = "disable-new-users"
+	flagGravatarEnabled                          = "gravatar-enabled"
+	flagGravatarDefault                          = "gravatar-default"
+	flagGravatarRating                           = "gravatar-rating"
+	flagRefreshTokenExpiresIn                    = "refresh-token-expires-in"
+	flagAccessTokensExpiresIn                    = "access-tokens-expires-in"
+	flagHasuraGraphqlJWTSecret                   = "hasura-graphql-jwt-secret" //nolint:gosec
+	flagEmailSigninEmailVerifiedRequired         = "email-verification-required"
+	flagSMTPHost                                 = "smtp-host"
+	flagSMTPPort                                 = "smtp-port"
+	flagSMTPSecure                               = "smtp-secure"
+	flagSMTPUser                                 = "smtp-user"
+	flagSMTPPassword                             = "smtp-password"
+	flagSMTPSender                               = "smtp-sender"
+	flagSMTPAPIHedaer                            = "smtp-api-header"
+	flagSMTPAuthMethod                           = "smtp-auth-method"
+	flagClientURL                                = "client-url"
+	flagServerURL                                = "server-url"
+	flagAllowRedirectURLs                        = "allow-redirect-urls"
+	flagEnableChangeEnv                          = "enable-change-env"
+	flagCustomClaims                             = "custom-claims"
+	flagCustomClaimsDefaults                     = "custom-claims-defaults"
+	flagGraphqlURL                               = "graphql-url"
+	flagHasuraAdminSecret                        = "hasura-admin-secret" //nolint:gosec
+	flagPasswordMinLength                        = "password-min-length"
+	flagPasswordHIBPEnabled                      = "password-hibp-enabled"
+	flagEmailTemplatesPath                       = "templates-path"
+	flagBlockedEmailDomains                      = "block-email-domains"
+	flagBlockedEmails                            = "block-emails"
+	flagAllowedEmailDomains                      = "allowed-email-domains"
+	flagAllowedEmails                            = "allowed-emails"
+	flagEmailPasswordlessEnabled                 = "email-passwordless-enabled"
+	flagRequireElevatedClaim                     = "require-elevated-claim"
+	flagWebauthnEnabled                          = "webauthn-enabled"
+	flagWebauhtnRPName                           = "webauthn-rp-name"
+	flagWebauthnRPID                             = "webauthn-rp-id"
+	flagWebauthnRPOrigins                        = "webauthn-rp-origins"
+	flagWebauthnAttestationTimeout               = "webauthn-attestation-timeout"
+	flagRateLimitEnable                          = "rate-limit-enable"
+	flagRateLimitGlobalBurst                     = "rate-limit-global-burst"
+	flagRateLimitGlobalInterval                  = "rate-limit-global-interval"
+	flagRateLimitEmailBurst                      = "rate-limit-email-burst"
+	flagRateLimitEmailInterval                   = "rate-limit-email-interval"
+	flagRateLimitEmailIsGlobal                   = "rate-limit-email-is-global"
+	flagRateLimitSMSBurst                        = "rate-limit-sms-burst"
+	flagRateLimitSMSInterval                     = "rate-limit-sms-interval"
+	flagRateLimitBruteForceBurst                 = "rate-limit-brute-force-burst"
+	flagRateLimitBruteForceInterval              = "rate-limit-brute-force-interval"
+	flagRateLimitSignupsBurst                    = "rate-limit-signups-burst"
+	flagRateLimitSignupsInterval                 = "rate-limit-signups-interval"
+	flagRateLimitOAuth2ServerBurst               = "rate-limit-oauth2-server-burst"
+	flagRateLimitOAuth2ServerInterval            = "rate-limit-oauth2-server-interval"
+	flagRateLimitMemcacheServer                  = "rate-limit-memcache-server"
+	flagRateLimitMemcachePrefix                  = "rate-limit-memcache-prefix"
+	flagTurnstileSecret                          = "turnstile-secret"
+	flagAppleAudience                            = "apple-audience"
+	flagGoogleAudience                           = "google-audience"
+	flagOTPEmailEnabled                          = "otp-email-enabled"
+	flagSMSPasswordlessEnabled                   = "sms-passwordless-enabled"
+	flagSMSProvider                              = "sms-provider"
+	flagSMSTwilioAccountSid                      = "sms-twilio-account-sid"
+	flagSMSTwilioAuthToken                       = "sms-twilio-auth-token" //nolint:gosec
+	flagSMSTwilioMessagingServiceID              = "sms-twilio-messaging-service-id"
+	flagSMSModicaUsername                        = "sms-modica-username"
+	flagSMSModicaPassword                        = "sms-modica-password" //nolint:gosec
+	flagAnonymousUsersEnabled                    = "enable-anonymous-users"
+	flagMfaEnabled                               = "mfa-enabled"
+	flagMfaTotpIssuer                            = "mfa-totp-issuer"
+	flagGithubEnabled                            = "github-enabled"
+	flagGithubClientID                           = "github-client-id"
+	flagGithubClientSecret                       = "github-client-secret" //nolint:gosec
+	flagGithubAuthorizationURL                   = "github-authorization-url"
+	flagGithubTokenURL                           = "github-token-url" //nolint:gosec
+	flagGithubUserProfileURL                     = "github-user-profile-url"
+	flagGithubScope                              = "github-scope"
+	flagGoogleEnabled                            = "google-enabled"
+	flagGoogleClientID                           = "google-client-id"
+	flagGoogleClientSecret                       = "google-client-secret"
+	flagGoogleScope                              = "google-scope"
+	flagAppleEnabled                             = "apple-enabled"
+	flagAppleClientID                            = "apple-client-id"
+	flagAppleTeamID                              = "apple-team-id"
+	flagAppleKeyID                               = "apple-key-id"
+	flagApplePrivateKey                          = "apple-private-key"
+	flagAppleScope                               = "apple-scope"
+	flagLinkedInEnabled                          = "linkedin-enabled"
+	flagLinkedInClientID                         = "linkedin-client-id"
+	flagLinkedInClientSecret                     = "linkedin-client-secret"
+	flagLinkedInScope                            = "linkedin-scope"
+	flagDiscordEnabled                           = "discord-enabled"
+	flagDiscordClientID                          = "discord-client-id"
+	flagDiscordClientSecret                      = "discord-client-secret"
+	flagDiscordScope                             = "discord-scope"
+	flagSpotifyEnabled                           = "spotify-enabled"
+	flagSpotifyClientID                          = "spotify-client-id"
+	flagSpotifyClientSecret                      = "spotify-client-secret" //nolint:gosec
+	flagSpotifyScope                             = "spotify-scope"
+	flagTwitchEnabled                            = "twitch-enabled"
+	flagTwitchClientID                           = "twitch-client-id"
+	flagTwitchClientSecret                       = "twitch-client-secret"
+	flagTwitchScope                              = "twitch-scope"
+	flagGitlabEnabled                            = "gitlab-enabled"
+	flagGitlabClientID                           = "gitlab-client-id"
+	flagGitlabClientSecret                       = "gitlab-client-secret" //nolint:gosec
+	flagGitlabScope                              = "gitlab-scope"
+	flagBitbucketEnabled                         = "bitbucket-enabled"
+	flagBitbucketClientID                        = "bitbucket-client-id"
+	flagBitbucketClientSecret                    = "bitbucket-client-secret"
+	flagBitbucketScope                           = "bitbucket-scope"
+	flagWorkosEnabled                            = "workos-enabled"
+	flagWorkosClientID                           = "workos-client-id"
+	flagWorkosClientSecret                       = "workos-client-secret" //nolint:gosec
+	flagWorkosDefaultOrganization                = "workos-default-organization"
+	flagWorkosDefaultConnection                  = "workos-default-connection"
+	flagWorkosDefaultDomain                      = "workos-default-domain"
+	flagWorkosScope                              = "workos-scope"
+	flagAzureadEnabled                           = "azuread-enabled"
+	flagAzureadClientID                          = "azuread-client-id"
+	flagAzureadClientSecret                      = "azuread-client-secret" //nolint:gosec
+	flagAzureadTenant                            = "azuread-tenant"
+	flagAzureadScope                             = "azuread-scope"
+	flagEntraIDEnabled                           = "entraid-enabled"
+	flagEntraIDClientID                          = "entraid-client-id"
+	flagEntraIDClientSecret                      = "entraid-client-secret" //nolint:gosec
+	flagEntraIDTenant                            = "entraid-tenant"
+	flagEntraIDScope                             = "entraid-scope"
+	flagFacebookEnabled                          = "facebook-enabled"
+	flagFacebookClientID                         = "facebook-client-id"
+	flagFacebookClientSecret                     = "facebook-client-secret"
+	flagFacebookScope                            = "facebook-scope"
+	flagWindowsliveEnabled                       = "windowslive-enabled"
+	flagWindowsliveClientID                      = "windowslive-client-id"
+	flagWindowsliveClientSecret                  = "windowslive-client-secret"
+	flagWindowsliveScope                         = "windowslive-scope"
+	flagStravaEnabled                            = "strava-enabled"
+	flagStravaClientID                           = "strava-client-id"
+	flagStravaClientSecret                       = "strava-client-secret" //nolint:gosec
+	flagStravaScope                              = "strava-scope"
+	flagTwitterEnabled                           = "twitter-enabled"
+	flagTwitterConsumerKey                       = "twitter-consumer-key"
+	flagTwitterConsumerSecret                    = "twitter-consumer-secret"
+	flagOAuth2ProviderEnabled                    = "oauth2-provider-enabled"
+	flagOAuth2ProviderLoginURL                   = "oauth2-provider-login-url"
+	flagOAuth2ProviderAccessTokenTTL             = "oauth2-provider-access-token-ttl"  //nolint:gosec
+	flagOAuth2ProviderRefreshTokenTTL            = "oauth2-provider-refresh-token-ttl" //nolint:gosec
+	flagOAuth2ProviderCIMDEnabled                = "oauth2-provider-cimd-enabled"
+	flagOAuth2ProviderCIMDAllowInsecureTransport = "oauth2-provider-cimd-allow-insecure-transport"
 )
 
 func CommandServe() *cli.Command { //nolint:funlen,maintidx
@@ -633,6 +641,20 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 				Value:    5 * time.Minute, //nolint:mnd
 				Category: "rate-limit",
 				Sources:  cli.EnvVars("AUTH_RATE_LIMIT_SIGNUPS_INTERVAL"),
+			},
+			&cli.IntFlag{ //nolint: exhaustruct
+				Name:     flagRateLimitOAuth2ServerBurst,
+				Usage:    "OAuth2 server-to-server rate limit burst",
+				Value:    100, //nolint:mnd
+				Category: "rate-limit",
+				Sources:  cli.EnvVars("AUTH_RATE_LIMIT_OAUTH2_SERVER_BURST"),
+			},
+			&cli.DurationFlag{ //nolint: exhaustruct
+				Name:     flagRateLimitOAuth2ServerInterval,
+				Usage:    "OAuth2 server-to-server rate limit interval",
+				Value:    5 * time.Minute, //nolint:mnd
+				Category: "rate-limit",
+				Sources:  cli.EnvVars("AUTH_RATE_LIMIT_OAUTH2_SERVER_INTERVAL"),
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     flagRateLimitMemcacheServer,
@@ -1223,6 +1245,48 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 				Category: "oauth-twitter",
 				Sources:  cli.EnvVars("AUTH_PROVIDER_TWITTER_CONSUMER_SECRET"),
 			},
+			// OAuth2 Identity Provider flags
+			&cli.BoolFlag{ //nolint: exhaustruct
+				Name:     flagOAuth2ProviderEnabled,
+				Usage:    "Enable OAuth2/OIDC identity provider",
+				Category: "oauth2-provider",
+				Value:    false,
+				Sources:  cli.EnvVars("AUTH_OAUTH2_PROVIDER_ENABLED"),
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagOAuth2ProviderLoginURL,
+				Usage:    "URL of the consent/login UI where users are redirected to authorize",
+				Category: "oauth2-provider",
+				Sources:  cli.EnvVars("AUTH_OAUTH2_PROVIDER_LOGIN_URL"),
+			},
+			&cli.IntFlag{ //nolint: exhaustruct
+				Name:     flagOAuth2ProviderAccessTokenTTL,
+				Usage:    "OAuth2 provider access token lifetime in seconds",
+				Category: "oauth2-provider",
+				Value:    900, //nolint:mnd
+				Sources:  cli.EnvVars("AUTH_OAUTH2_PROVIDER_ACCESS_TOKEN_TTL"),
+			},
+			&cli.IntFlag{ //nolint: exhaustruct
+				Name:     flagOAuth2ProviderRefreshTokenTTL,
+				Usage:    "OAuth2 provider refresh token lifetime in seconds",
+				Category: "oauth2-provider",
+				Value:    2592000, //nolint:mnd
+				Sources:  cli.EnvVars("AUTH_OAUTH2_PROVIDER_REFRESH_TOKEN_TTL"),
+			},
+			&cli.BoolFlag{ //nolint: exhaustruct
+				Name:     flagOAuth2ProviderCIMDEnabled,
+				Usage:    "Enable OAuth2 Client ID Metadata Document support",
+				Category: "oauth2-provider",
+				Value:    false,
+				Sources:  cli.EnvVars("AUTH_OAUTH2_PROVIDER_CIMD_ENABLED"),
+			},
+			&cli.BoolFlag{ //nolint: exhaustruct
+				Name:     flagOAuth2ProviderCIMDAllowInsecureTransport,
+				Usage:    "Allow HTTP and private IPs for CIMD metadata fetching (dev/testing only)",
+				Category: "oauth2-provider",
+				Value:    false,
+				Sources:  cli.EnvVars("AUTH_OAUTH2_PROVIDER_CIMD_ALLOW_INSECURE_TRANSPORT"),
+			},
 		},
 		Action: serve,
 	}
@@ -1254,6 +1318,8 @@ func getRateLimiter(cmd *cli.Command, logger *slog.Logger) gin.HandlerFunc {
 		cmd.Duration(flagRateLimitBruteForceInterval),
 		cmd.Int(flagRateLimitSignupsBurst),
 		cmd.Duration(flagRateLimitSignupsInterval),
+		cmd.Int(flagRateLimitOAuth2ServerBurst),
+		cmd.Duration(flagRateLimitOAuth2ServerInterval),
 		store,
 	)
 }
@@ -1374,6 +1440,37 @@ func getGoServer(
 	return server, nil
 }
 
+func validateOauth2ProviderConfig(cmd *cli.Command, jwtGetter *controller.JWTGetter) error {
+	if cmd.Bool(flagOAuth2ProviderEnabled) {
+		if !jwtGetter.IsRSA() {
+			return errors.New( //nolint:err113
+				"OAuth2 provider requires HASURA_GRAPHQL_JWT_SECRET to be configured " +
+					"with an RSA algorithm (RS256, RS384, or RS512)",
+			)
+		}
+
+		if cmd.String(flagOAuth2ProviderLoginURL) == "" && cmd.String(flagClientURL) == "" {
+			return errors.New( //nolint:err113
+				"OAuth2 provider requires AUTH_OAUTH2_PROVIDER_LOGIN_URL or AUTH_CLIENT_URL to be set",
+			)
+		}
+
+		if cmd.Int(flagOAuth2ProviderAccessTokenTTL) <= 0 {
+			return errors.New( //nolint:err113
+				"OAuth2 provider access token TTL must be a positive number of seconds",
+			)
+		}
+
+		if cmd.Int(flagOAuth2ProviderRefreshTokenTTL) <= 0 {
+			return errors.New( //nolint:err113
+				"OAuth2 provider refresh token TTL must be a positive number of seconds",
+			)
+		}
+	}
+
+	return nil
+}
+
 func getController(
 	ctx context.Context,
 	cmd *cli.Command,
@@ -1394,6 +1491,10 @@ func getController(
 	oauthProviders, err := getOauth2Providers(ctx, cmd, logger)
 	if err != nil {
 		return nil, nil, fmt.Errorf("problem creating oauth providers: %w", err)
+	}
+
+	if err := validateOauth2ProviderConfig(cmd, jwtGetter); err != nil {
+		return nil, nil, err
 	}
 
 	ctrl, err := controller.New(
@@ -1451,7 +1552,7 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 		logger.InfoContext(
 			ctx, "starting server", slog.String("port", cmd.String(flagPort)))
 
-		if err := server.ListenAndServe(); err != nil {
+		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			logger.ErrorContext(ctx, "server failed", slog.String("error", err.Error()))
 		}
 	}()
@@ -1460,7 +1561,11 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 
 	logger.InfoContext(ctx, "shutting down server")
 
-	if err := server.Shutdown(ctx); err != nil {
+	shutdownCtx, shutdownCancel := context.WithTimeout(
+		context.Background(), 30*time.Second) //nolint:mnd
+	defer shutdownCancel()
+
+	if err := server.Shutdown(shutdownCtx); err != nil { //nolint:contextcheck
 		return fmt.Errorf("failed to shutdown server: %w", err)
 	}
 

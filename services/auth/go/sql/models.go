@@ -9,6 +9,60 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+// In-flight OAuth2 authorization requests.
+type AuthOauth2AuthRequest struct {
+	ID                  uuid.UUID
+	ClientID            string
+	Scopes              []string
+	RedirectUri         string
+	State               pgtype.Text
+	Nonce               pgtype.Text
+	ResponseType        string
+	CodeChallenge       pgtype.Text
+	CodeChallengeMethod pgtype.Text
+	Resource            pgtype.Text
+	UserID              pgtype.UUID
+	Done                bool
+	AuthTime            pgtype.Timestamptz
+	CreatedAt           pgtype.Timestamptz
+	ExpiresAt           pgtype.Timestamptz
+}
+
+// OAuth2 authorization codes pending exchange for tokens.
+type AuthOauth2AuthorizationCode struct {
+	ID            uuid.UUID
+	CodeHash      string
+	AuthRequestID uuid.UUID
+	CreatedAt     pgtype.Timestamptz
+	ExpiresAt     pgtype.Timestamptz
+}
+
+// Registered OAuth2 client applications for the identity provider.
+type AuthOauth2Client struct {
+	ClientID                  string
+	ClientSecretHash          pgtype.Text
+	RedirectUris              []string
+	Scopes                    []string
+	Type                      OAuth2ClientType
+	Metadata                  []byte
+	MetadataDocumentFetchedAt pgtype.Timestamptz
+	CreatedBy                 pgtype.UUID
+	CreatedAt                 pgtype.Timestamptz
+	UpdatedAt                 pgtype.Timestamptz
+}
+
+// OAuth2 refresh tokens with client and scope binding.
+type AuthOauth2RefreshToken struct {
+	ID            uuid.UUID
+	TokenHash     string
+	AuthRequestID pgtype.UUID
+	ClientID      string
+	UserID        uuid.UUID
+	Scopes        []string
+	CreatedAt     pgtype.Timestamptz
+	ExpiresAt     pgtype.Timestamptz
+}
+
 // List of available Oauth providers. Don't modify its structure as Hasura Auth relies on it to function properly.
 type AuthProvider struct {
 	ID string

@@ -369,6 +369,41 @@ export default defineConfig({
                     { slug: 'products/auth/restricting_emails_and_domains' },
                   ],
                 },
+                {
+                  label: 'OAuth2 / OIDC Provider',
+                  collapsed: false,
+                  items: [
+                    { slug: 'products/auth/oauth2-provider' },
+                    {
+                      label: 'Authorization Flows',
+                      collapsed: true,
+                      items: [
+                        {
+                          label: 'Code Flow',
+                          collapsed: true,
+                          items: [
+                            {
+                              slug: 'products/auth/oauth2-provider/authorization-flow',
+                            },
+                            {
+                              slug: 'products/auth/oauth2-provider/confidential-clients',
+                            },
+                            {
+                              slug: 'products/auth/oauth2-provider/public-clients',
+                            },
+                            {
+                              slug: 'products/auth/oauth2-provider/cimd-clients',
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                    {
+                      slug: 'products/auth/oauth2-provider/tokens-and-scopes',
+                    },
+                    { slug: 'products/auth/oauth2-provider/managing-clients' },
+                  ],
+                },
               ],
             },
             {
