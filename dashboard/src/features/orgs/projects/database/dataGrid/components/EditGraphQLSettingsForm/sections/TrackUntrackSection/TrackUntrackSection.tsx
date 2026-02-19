@@ -2,7 +2,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import useGetMetadataResourceVersion from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion/useGetMetadataResourceVersion';
-import { useIsTrackedTable } from '@/features/orgs/projects/common/hooks/useIsTrackedTable';
+import { useIsTrackedTable } from '@/features/orgs/projects/database/dataGrid/hooks/useIsTrackedTable';
 import { useTrackTableMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useTrackTableMutation';
 import { useUntrackTableMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useUntrackTableMutation';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';

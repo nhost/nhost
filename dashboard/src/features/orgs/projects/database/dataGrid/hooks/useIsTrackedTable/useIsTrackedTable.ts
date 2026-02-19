@@ -1,4 +1,4 @@
-import { useGetTrackedTablesSet } from '@/features/orgs/projects/common/hooks/useGetTrackedTablesSet';
+import { useGetTrackedTablesSet } from '@/features/orgs/projects/database/dataGrid/hooks/useGetTrackedTablesSet';
 
 export interface UseIsTrackedTableOptions {
   /**

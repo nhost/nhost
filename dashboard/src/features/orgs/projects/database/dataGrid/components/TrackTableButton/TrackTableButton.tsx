@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router';
 import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
-import { useIsTrackedTable } from '@/features/orgs/projects/common/hooks/useIsTrackedTable';
+import { useIsTrackedTable } from '@/features/orgs/projects/database/dataGrid/hooks/useIsTrackedTable';
 import { useTrackTableMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useTrackTableMutation';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 
@@ -9,7 +9,7 @@ export default function TrackTableButton() {
   const { query } = useRouter();
   const { dataSourceSlug, tableSlug, schemaSlug } = query;
 
-  const { data: isTracked } = useIsTrackedTable({
+  const { data: isTracked, isLoading: isTrackedLoading } = useIsTrackedTable({
     dataSource: dataSourceSlug as string,
     schema: schemaSlug as string,
     tableName: tableSlug as string,
@@ -44,7 +44,7 @@ export default function TrackTableButton() {
     );
   };
 
-  if (isTracked !== false) {
+  if (isTrackedLoading || isTracked) {
     return null;
   }
 

@@ -7,7 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/v3/dropdown-menu';
-import { useIsTrackedTable } from '@/features/orgs/projects/common/hooks/useIsTrackedTable';
+import { useIsTrackedTable } from '@/features/orgs/projects/database/dataGrid/hooks/useIsTrackedTable';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { cn } from '@/lib/utils';
 

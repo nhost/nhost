@@ -25,7 +25,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
-import { useGetTrackedTablesSet } from '@/features/orgs/projects/common/hooks/useGetTrackedTablesSet';
+import { useGetTrackedTablesSet } from '@/features/orgs/projects/database/dataGrid/hooks/useGetTrackedTablesSet';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { EditGraphQLSettingsForm } from '@/features/orgs/projects/database/dataGrid/components/EditGraphQLSettingsForm';
 import { EditRelationshipsForm } from '@/features/orgs/projects/database/dataGrid/EditRelationshipsForm';
