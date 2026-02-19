@@ -2,7 +2,7 @@ import { useRouter } from 'next/router';
 import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { useIsTrackedTable } from '@/features/orgs/projects/database/dataGrid/hooks/useIsTrackedTable';
-import { useTrackTableMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useTrackTableMutation';
+import { useSetTableTrackingMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useSetTableTrackingMutation';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 
 export default function TrackTableButton() {
@@ -20,12 +20,14 @@ export default function TrackTableButton() {
   });
 
   const { data: resourceVersion } = useGetMetadataResourceVersion();
-  const { mutateAsync: handleTrackMutation, status } = useTrackTableMutation();
+  const { mutateAsync: setTableTracking, status } =
+    useSetTableTrackingMutation();
 
   const handleTrack = async () => {
     await execPromiseWithErrorToast(
       async () => {
-        await handleTrackMutation({
+        await setTableTracking({
+          tracked: true,
           resourceVersion: resourceVersion,
           args: {
             source: dataSourceSlug as string,

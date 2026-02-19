@@ -5,55 +5,54 @@ import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/gen
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
 import type { SuccessResponse } from '@/utils/hasura-api/generated/schemas/successResponse';
-import type { UntrackTableVariables } from './untrackTable';
-import untrackTable from './untrackTable';
-import type { UntrackTableMigrationVariables } from './untrackTableMigration';
-import untrackTableMigration from './untrackTableMigration';
+import type { TrackTableArgs } from '@/utils/hasura-api/generated/schemas/trackTableArgs';
+import setTableTracking from './setTableTracking';
+import setTableTrackingMigration from './setTableTrackingMigration';
 
-/**
- * Props passed to the underlying mutation hook.
- */
-export type UseUntrackTableMutationOptions = MutationOptions<
+export interface UseSetTableTrackingMutationVariables {
+  tracked: boolean;
+  resourceVersion: number | undefined;
+  args: TrackTableArgs;
+}
+
+export type UseSetTableTrackingMutationOptions = MutationOptions<
   SuccessResponse | MetadataOperation200,
   unknown,
-  UntrackTableVariables | UntrackTableMigrationVariables
+  UseSetTableTrackingMutationVariables
 >;
 
-export default function useUntrackTableMutation(
-  mutationOptions?: UseUntrackTableMutationOptions,
+export default function useSetTableTrackingMutation(
+  mutationOptions?: UseSetTableTrackingMutationOptions,
 ) {
   const { project } = useProject();
   const isPlatform = useIsPlatform();
   const queryClient = useQueryClient();
 
-  const mutation = useMutation<
+  return useMutation<
     SuccessResponse | MetadataOperation200,
     unknown,
-    UntrackTableVariables | UntrackTableMigrationVariables
+    UseSetTableTrackingMutationVariables
   >(
-    (variables) => {
+    ({ tracked, resourceVersion, args }) => {
       const appUrl = generateAppServiceUrl(
         project!.subdomain,
         project!.region,
         'hasura',
       );
-
       const base = {
         appUrl,
         adminSecret: project!.config!.hasura.adminSecret,
       } as const;
 
       if (isPlatform) {
-        return untrackTable({
-          ...(variables as UntrackTableVariables),
+        return setTableTracking({
+          tracked,
+          resourceVersion: resourceVersion!,
+          args,
           ...base,
         });
       }
-
-      return untrackTableMigration({
-        ...(variables as UntrackTableMigrationVariables),
-        ...base,
-      });
+      return setTableTrackingMigration({ tracked, args, ...base });
     },
     {
       ...mutationOptions,
@@ -64,6 +63,4 @@ export default function useUntrackTableMutation(
       },
     },
   );
-
-  return mutation;
 }

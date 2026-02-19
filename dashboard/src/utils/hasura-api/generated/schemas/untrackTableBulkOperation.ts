@@ -11,6 +11,7 @@ import type { UntrackTableStep } from './untrackTableStep';
 export interface UntrackTableBulkOperation {
   type: UntrackTableBulkOperationType;
   source?: string;
-  version?: number;
+  /** Resource version of the operation */
+  resource_version?: number;
   args: UntrackTableStep[];
 }

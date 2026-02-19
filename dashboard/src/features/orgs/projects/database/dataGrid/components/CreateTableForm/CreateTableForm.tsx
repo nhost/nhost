@@ -14,8 +14,8 @@ import {
   baseTableValidationSchema,
 } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm';
 import { useCreateTableMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateTableMutation';
+import { useSetTableTrackingMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useSetTableTrackingMutation';
 import { useTrackForeignKeyRelationsMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useTrackForeignKeyRelationsMutation';
-import { useTrackTableMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useTrackTableMutation';
 import type { DatabaseTable } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { isNotEmptyValue } from '@/lib/utils';
 import { triggerToast } from '@/utils/toast';
@@ -48,10 +48,10 @@ export default function CreateTableForm({
   } = useCreateTableMutation({ schema });
 
   const {
-    mutateAsync: trackTable,
+    mutateAsync: setTableTracking,
     error: trackTableError,
     reset: resetTrackError,
-  } = useTrackTableMutation();
+  } = useSetTableTrackingMutation();
 
   const { mutateAsync: trackForeignKeyRelation, error: foreignKeyError } =
     useTrackForeignKeyRelationsMutation();
@@ -119,7 +119,8 @@ export default function CreateTableForm({
       };
 
       await createTable({ table });
-      await trackTable({
+      await setTableTracking({
+        tracked: true,
         resourceVersion,
         args: {
           source: dataSourceSlug as string,

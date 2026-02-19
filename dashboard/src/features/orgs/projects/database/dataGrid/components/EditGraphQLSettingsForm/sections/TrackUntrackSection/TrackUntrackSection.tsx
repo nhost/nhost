@@ -1,11 +1,8 @@
-import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import useGetMetadataResourceVersion from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion/useGetMetadataResourceVersion';
 import { useIsTrackedTable } from '@/features/orgs/projects/database/dataGrid/hooks/useIsTrackedTable';
-import { useTrackTableMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useTrackTableMutation';
-import { useUntrackTableMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useUntrackTableMutation';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { useSetTableTrackingMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useSetTableTrackingMutation';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 
 interface TrackUntrackSectionProps {
@@ -19,8 +16,6 @@ export default function TrackUntrackSection({
   tableName,
   schema,
 }: TrackUntrackSectionProps) {
-  const queryClient = useQueryClient();
-  const { project } = useProject();
   const { query } = useRouter();
   const { dataSourceSlug } = query;
 
@@ -32,40 +27,28 @@ export default function TrackUntrackSection({
 
   const { data: resourceVersion } = useGetMetadataResourceVersion();
 
-  const { mutateAsync: trackTable, status: trackStatus } =
-    useTrackTableMutation();
-  const { mutateAsync: untrackTable, status: untrackStatus } =
-    useUntrackTableMutation();
+  const { mutateAsync: setTableTracking, status } =
+    useSetTableTrackingMutation();
 
-  const isPending = trackStatus === 'loading' || untrackStatus === 'loading';
+  const isPending = status === 'loading';
 
   async function handleTrackToggle() {
-    const action = isTracked ? 'untrack' : 'track';
+    const tracked = !isTracked;
+    const action = tracked ? 'track' : 'untrack';
 
     await execPromiseWithErrorToast(
       async () => {
-        if (isTracked) {
-          await untrackTable({
-            args: {
-              source: dataSourceSlug as string,
-              table: { name: tableName, schema },
-            },
-          });
-        } else {
-          await trackTable({
-            resourceVersion: resourceVersion,
-            args: {
-              source: dataSourceSlug as string,
-              table: { name: tableName, schema },
-            },
-          });
-        }
-        await queryClient.invalidateQueries({
-          queryKey: ['export-metadata', project?.subdomain],
+        await setTableTracking({
+          tracked,
+          resourceVersion,
+          args: {
+            source: dataSourceSlug as string,
+            table: { name: tableName, schema },
+          },
         });
       },
       {
-        loadingMessage: `${isTracked ? 'Untracking' : 'Tracking'} table...`,
+        loadingMessage: `${tracked ? 'Tracking' : 'Untracking'} table...`,
         successMessage: `Table ${action}ed successfully.`,
         errorMessage: `Failed to ${action} table.`,
       },

@@ -211,8 +211,9 @@ components:
         source:
           type: string
           default: default
-        version:
+        resource_version:
           type: integer
+          description: Resource version of the operation
           example: 1
         args:
           type: array
