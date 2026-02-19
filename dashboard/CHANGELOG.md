@@ -1,3 +1,18 @@
+## [@nhost/dashboard@2.50.0] - 2026-02-19
+
+### 🚀 Features
+
+- *(dashboard)* Add metadata page (#3899)
+- *(dashboard)* Added oauth2 provider configuration form and oauth2 client management (customers) (#3930)
+
+
+### 🐛 Bug Fixes
+
+- *(deps)* Bump Orval version and remove outdated pnpm overrides (#3920)
+- *(deps)* Bump ajv and tar due to cves (#3925)
+- *(docs)* Bump minimatch version (#3929)
+- *(dashboard)* Remove eslint (#3927)
+
 ## [@nhost/dashboard@2.49.0] - 2026-02-17
 
 ### 🚀 Features
