@@ -15,12 +15,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
+import { MIN_AUTH_VERSION_OAUTH2 } from '@/features/orgs/projects/authentication/oauth2/constants';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useSoftwareVersionsInfo } from '@/features/orgs/projects/common/hooks/useSoftwareVersionsInfo';
 import { cn } from '@/lib/utils';
 import { isVersionGte } from '@/utils/compareVersions';
-
-const MIN_AUTH_VERSION_OAUTH2 = '0.46.0';
 
 type Option = {
   value: string;

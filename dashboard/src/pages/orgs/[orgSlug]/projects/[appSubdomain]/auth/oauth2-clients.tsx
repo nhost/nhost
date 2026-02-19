@@ -15,6 +15,7 @@ import { SearchIcon } from '@/components/ui/v2/icons/SearchIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
+import { MIN_AUTH_VERSION_OAUTH2 } from '@/features/orgs/projects/authentication/oauth2/constants';
 import { CreateOAuth2ClientForm } from '@/features/orgs/projects/authentication/oauth2-clients/components/CreateOAuth2ClientForm';
 import { OAuth2ClientsList } from '@/features/orgs/projects/authentication/oauth2-clients/components/OAuth2ClientsList';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -26,8 +27,6 @@ import {
   useGetOAuth2ProviderSettingsQuery,
 } from '@/generated/graphql';
 import { isVersionGte } from '@/utils/compareVersions';
-
-const MIN_AUTH_VERSION_OAUTH2 = '0.46.0';
 
 const ELEMENTS_PER_PAGE = 25;
 

@@ -7,12 +7,11 @@ import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
+import { MIN_AUTH_VERSION_OAUTH2 } from '@/features/orgs/projects/authentication/oauth2/constants';
 import { OAuth2ProviderSettings } from '@/features/orgs/projects/authentication/settings/components/OAuth2ProviderSettings';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useSoftwareVersionsInfo } from '@/features/orgs/projects/common/hooks/useSoftwareVersionsInfo';
 import { isVersionGte } from '@/utils/compareVersions';
-
-const MIN_AUTH_VERSION_OAUTH2 = '0.46.0';
 
 export default function SettingsOAuth2ProviderPage() {
   const isPlatform = useIsPlatform();
