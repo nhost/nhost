@@ -31,43 +31,43 @@ export interface ControlledCheckboxProps<TFieldValues extends FieldValues = any>
   uncheckWhenDisabled?: boolean;
 }
 
-function ControlledCheckbox(
-  {
-    controllerProps,
-    name,
-    control,
-    uncheckWhenDisabled,
-    ...props
-  }: ControlledCheckboxProps,
-  ref: ForwardedRef<HTMLButtonElement>,
-) {
-  const { setValue } = useFormContext();
-  const nameAttr = controllerProps?.name || name || '';
-  const { field } = useController({
-    ...controllerProps,
-    name: nameAttr,
-    control: controllerProps?.control || control,
-  });
+export default forwardRef(
+  (
+    {
+      controllerProps,
+      name,
+      control,
+      uncheckWhenDisabled,
+      ...props
+    }: ControlledCheckboxProps,
+    ref: ForwardedRef<HTMLButtonElement>,
+  ) => {
+    const { setValue } = useFormContext();
+    const nameAttr = controllerProps?.name || name || '';
+    const { field } = useController({
+      ...controllerProps,
+      name: nameAttr,
+      control: controllerProps?.control || control,
+    });
 
-  return (
-    <Checkbox
-      {...props}
-      name={field.name}
-      ref={mergeRefs([field.ref, ref])}
-      onChange={(event, checked) => {
-        setValue(nameAttr, checked, { shouldDirty: true });
+    return (
+      <Checkbox
+        {...props}
+        name={field.name}
+        ref={mergeRefs([field.ref, ref])}
+        onChange={(event, checked) => {
+          setValue(nameAttr, checked, { shouldDirty: true });
 
-        if (props.onChange) {
-          props.onChange(event, checked);
-        }
-      }}
-      onBlur={callAll<[React.FocusEvent<HTMLButtonElement>]>(
-        field.onBlur,
-        props.onBlur,
-      )}
-      checked={uncheckWhenDisabled && props.disabled ? false : field.value}
-    />
-  );
-}
-
-export default forwardRef(ControlledCheckbox);
+          if (props.onChange) {
+            props.onChange(event, checked);
+          }
+        }}
+        onBlur={callAll<[React.FocusEvent<HTMLButtonElement>]>(
+          field.onBlur,
+          props.onBlur,
+        )}
+        checked={uncheckWhenDisabled && props.disabled ? false : field.value}
+      />
+    );
+  },
+);
