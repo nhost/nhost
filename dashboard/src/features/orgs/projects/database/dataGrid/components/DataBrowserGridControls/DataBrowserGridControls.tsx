@@ -167,30 +167,29 @@ export default function DataBrowserGridControls({
           </div>
         )}
 
-        {numberOfSelectedRows === 0 && <TrackTableButton />}
-
-        <div className="ml-auto flex items-center gap-2">
-          {numberOfSelectedRows === 0 && columns.length > 0 && (
-            <DataGridPagination
-              className={twMerge(
-                'col-span-6 xs+:col-span-2 h-9 lg:col-span-2',
-                paginationClassName,
+        {numberOfSelectedRows === 0 && (
+          <>
+            <TrackTableButton />
+            <div className="ml-auto flex items-center gap-2">
+              {columns.length > 0 && (
+                <DataGridPagination
+                  className={twMerge(
+                    'col-span-6 xs+:col-span-2 h-9 lg:col-span-2',
+                    paginationClassName,
+                  )}
+                  {...restPaginationProps}
+                />
               )}
-              {...restPaginationProps}
-            />
-          )}
-          {numberOfSelectedRows === 0 && <DataGridFiltersPopover />}
-          {numberOfSelectedRows === 0 && (
-            <DataGridTableViewConfigurationPopover />
-          )}
-          {numberOfSelectedRows === 0 && (
-            <Button onClick={onInsertRowClick} size="sm">
-              <Plus className="h-4 w-4" />
-              <span className="sm:hidden">Insert</span>
-              <span className="hidden sm:inline">Insert row</span>
-            </Button>
-          )}
-        </div>
+              <DataGridFiltersPopover />
+              <DataGridTableViewConfigurationPopover />
+              <Button onClick={onInsertRowClick} size="sm">
+                <Plus className="h-4 w-4" />
+                <span className="sm:hidden">Insert</span>
+                <span className="hidden sm:inline">Insert row</span>
+              </Button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
