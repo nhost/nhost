@@ -38,6 +38,7 @@ overrides:
   tar@<7.5.7: '>=7.5.7'
   ajv@<8.18.0: '>=8.18.0'
   tar@<7.5.8: '>=7.5.8'
+  minimatch@<10.2.1: '>=10.2.1'
 
 packageExtensionsChecksum: sha256-gRFeykwiwMfEE6etcYx6N48XwVeKzxbqNveL7KTQgSQ=
 
@@ -51,6 +52,9 @@ importers:
       '@simplewebauthn/browser':
         specifier: ^13.1.0
         version: 13.1.2
+      bcryptjs:
+        specifier: ^2.4.3
+        version: 2.4.3
       react:
         specifier: ^19.1.0
         version: 19.2.3
@@ -61,6 +65,9 @@ importers:
         specifier: ^7.6.0
         version: 7.8.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
     devDependencies:
+      '@types/bcryptjs':
+        specifier: ^2.4.6
+        version: 2.4.6
       '@types/react':
         specifier: ^19.1.2
         version: 19.1.12
@@ -451,6 +458,9 @@ packages:
   '@types/babel__traverse@7.28.0':
     resolution: {integrity: sha512-8PvcXf70gTDZBgt9ptxJ8elBeBjcLOAcOtoO/mPJjtji1+CdGbHgm77om1GrsPxsiE+uXIpNSK64UYaIwQXd4Q==}
 
+  '@types/bcryptjs@2.4.6':
+    resolution: {integrity: sha512-9xlo6R2qDs5uixm0bcIqCeMCE6HiQsIyel9KQySStiyqNl2tnj2mP3DX1Nf56MD6KMenNNlBBsy3LJ7gUEQPXQ==}
+
   '@types/estree@1.0.8':
     resolution: {integrity: sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w==}
 
@@ -467,6 +477,9 @@ packages:
     engines: {node: ^14.18.0 || >=16.0.0}
     peerDependencies:
       vite: '>=5.4.21'
+
+  bcryptjs@2.4.3:
+    resolution: {integrity: sha512-V/Hy/X9Vt7f3BbPJEi8BdVFMByHi+jNXrYkW3huaybV/kQ0KJg0Y6PkEMbn+zeT+i+SiKZ/HMqJGIIt4LZDqNQ==}
 
   browserslist@4.25.4:
     resolution: {integrity: sha512-4jYpcjabC606xJ3kw2QwGEZKX0Aw7sgQdZCvIK9dhVSPh76BKo+C+btT1RRofH7B+8iNpEbgGNVWiLki5q93yg==}
@@ -964,6 +977,8 @@ snapshots:
     dependencies:
       '@babel/types': 7.28.4
 
+  '@types/bcryptjs@2.4.6': {}
+
   '@types/estree@1.0.8': {}
 
   '@types/react-dom@19.1.9(@types/react@19.1.12)':
@@ -985,6 +1000,8 @@ snapshots:
       vite: 7.1.11
     transitivePeerDependencies:
       - supports-color
+
+  bcryptjs@2.4.3: {}
 
   browserslist@4.25.4:
     dependencies:

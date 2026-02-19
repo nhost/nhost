@@ -63,6 +63,13 @@ add_frontmatter() {
     echo "Frontmatter complete!"
 }
 
+function build_schemas() {
+    echo "⚒️⚒️⚒️ Building schemas documentation..."
+    cp ../services/storage/controller/openapi.yaml src/schemas/storage.yaml
+    cp ../services/auth/docs/openapi.yaml src/schemas/auth.yaml
+}
+
+
 function build_typedoc() {
     echo "⚒️⚒️⚒️ Building TypeDoc documentation..."
 
@@ -85,5 +92,6 @@ function build_cli_docs() {
     sed -i 's/</\&lt;/g; s/>/\&gt;/g' src/content/docs/reference/cli/commands.mdx
 }
 
+build_schemas
 build_typedoc
 build_cli_docs

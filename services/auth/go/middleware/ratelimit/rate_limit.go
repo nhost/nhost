@@ -40,7 +40,9 @@ func sendsSMS(path string) bool {
 func bruteForceProtected(path string) bool {
 	return strings.HasPrefix(path, "/signin") ||
 		strings.HasSuffix(path, "/verify") ||
-		strings.HasSuffix(path, "/otp")
+		strings.HasSuffix(path, "/otp") ||
+		path == "/oauth2/authorize" ||
+		path == "/oauth2/login"
 }
 
 // signups.
@@ -48,7 +50,13 @@ func isSignup(path string) bool {
 	return strings.HasPrefix(path, "/signup")
 }
 
-func RateLimit( //nolint:cyclop,funlen
+// oauth2 server-to-server endpoints (token, introspect).
+func isOAuth2Server(path string) bool {
+	return path == "/oauth2/token" ||
+		path == "/oauth2/introspect"
+}
+
+func RateLimit( //nolint:cyclop,funlen,cyclop,gocognit
 	ignorePrefix string,
 	globalLimit int,
 	globalInterval time.Duration,
@@ -62,6 +70,8 @@ func RateLimit( //nolint:cyclop,funlen
 	bruteForceInterval time.Duration,
 	signupsLimit int,
 	signupsInterval time.Duration,
+	oauth2ServerLimit int,
+	oauth2ServerInterval time.Duration,
 	store Store,
 ) gin.HandlerFunc {
 	perUserRL := NewSlidingWindow("user-global", globalLimit, globalInterval, store)
@@ -81,7 +91,10 @@ func RateLimit( //nolint:cyclop,funlen
 	perUserBruteForceRL := NewSlidingWindow(
 		"user-bruteforce", bruteForceLimit, bruteForceInterval, store,
 	)
-	perUserSignupsRL := NewSlidingWindow("user-bruteforce", signupsLimit, signupsInterval, store)
+	perUserSignupsRL := NewSlidingWindow("user-signups", signupsLimit, signupsInterval, store)
+	perUserOAuth2ServerRL := NewSlidingWindow(
+		"user-oauth2-server", oauth2ServerLimit, oauth2ServerInterval, store,
+	)
 
 	return func(ctx *gin.Context) {
 		clientIP := ctx.ClientIP()
@@ -95,28 +108,40 @@ func RateLimit( //nolint:cyclop,funlen
 		if sendsEmail(path, emailVerifyEnabled) {
 			if globalEmailRL != nil && !globalEmailRL.Allow(ctx, "global") {
 				ctx.AbortWithStatus(http.StatusTooManyRequests)
+				return
 			}
 
 			if perUserEmailRL != nil && !perUserEmailRL.Allow(ctx, clientIP) {
 				ctx.AbortWithStatus(http.StatusTooManyRequests)
+				return
 			}
 		}
 
 		if sendsSMS(path) {
 			if !globalSMSRL.Allow(ctx, clientIP) {
 				ctx.AbortWithStatus(http.StatusTooManyRequests)
+				return
 			}
 		}
 
 		if bruteForceProtected(path) {
 			if !perUserBruteForceRL.Allow(ctx, clientIP) {
 				ctx.AbortWithStatus(http.StatusTooManyRequests)
+				return
 			}
 		}
 
 		if isSignup(path) {
 			if !perUserSignupsRL.Allow(ctx, clientIP) {
 				ctx.AbortWithStatus(http.StatusTooManyRequests)
+				return
+			}
+		}
+
+		if isOAuth2Server(path) {
+			if !perUserOAuth2ServerRL.Allow(ctx, clientIP) {
+				ctx.AbortWithStatus(http.StatusTooManyRequests)
+				return
 			}
 		}
 

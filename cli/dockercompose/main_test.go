@@ -61,6 +61,10 @@ func getConfig() *model.ConfigConfig { //nolint:maintidx
 					Limit:    100,
 					Interval: "15m",
 				},
+				Oauth2Server: &model.ConfigRateLimit{
+					Limit:    100,
+					Interval: "5m",
+				},
 			},
 			Method: &model.ConfigAuthMethod{
 				Anonymous: &model.ConfigAuthMethodAnonymous{
@@ -254,6 +258,19 @@ func getConfig() *model.ConfigConfig { //nolint:maintidx
 				Roles: &model.ConfigAuthUserRoles{
 					Default: new("user"),
 					Allowed: []string{"user", "admin"},
+				},
+			},
+			Oauth2Provider: &model.ConfigAuthOauth2Provider{
+				Enabled: new(true),
+				AccessToken: &model.ConfigAuthOauth2ProviderAccessToken{
+					ExpiresIn: new(uint32(900)),
+				},
+				RefreshToken: &model.ConfigAuthOauth2ProviderRefreshToken{
+					ExpiresIn: new(uint32(2592000)),
+				},
+				LoginURL: new("https://example.com/oauth2/login"),
+				ClientIdMetadataDocument: &model.ConfigAuthOauth2ProviderClientIdMetadataDocument{
+					Enabled: new(true),
 				},
 			},
 			Version: new("0.31.0"),

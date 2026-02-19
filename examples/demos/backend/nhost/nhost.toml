@@ -33,14 +33,14 @@ httpPoolSize = 100
 version = 22
 
 [auth]
-version = '0.45.0'
+version = '1.0.0-dev'
 
 [auth.elevatedPrivileges]
 mode = 'disabled'
 
 [auth.redirections]
-clientUrl = 'http://localhost:3000'
-allowedUrls = ['http://localhost:5173', 'exp://192.168.1.103:8081']
+clientUrl = 'http://localhost:5173'
+allowedUrls = ['http://localhost:3000', 'exp://192.168.1.103:8081']
 
 [auth.signUp]
 enabled = true
@@ -63,6 +63,19 @@ rating = 'g'
 [auth.user.email]
 
 [auth.user.emailDomains]
+
+[auth.oauth2Provider]
+enabled = true
+loginURL = 'http://localhost:5173/oauth2/consent'
+
+[auth.oauth2Provider.accessToken]
+expiresIn = 900
+
+[auth.oauth2Provider.refreshToken]
+expiresIn = 2592000
+
+[auth.oauth2Provider.clientIdMetadataDocument]
+enabled = true
 
 [auth.session]
 [auth.session.accessToken]

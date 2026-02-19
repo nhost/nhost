@@ -89,54 +89,54 @@ export function defaultFilterGroupedOptions(
   return result;
 }
 
-function ControlledAutocomplete(
-  {
-    controllerProps,
-    name,
-    control,
-    ...props
-  }: ControlledAutocompleteProps<AutocompleteOption>,
-  ref: ForwardedRef<HTMLInputElement>,
-) {
-  const form = useFormContext();
-  const nameAttr = controllerProps?.name || name || '';
-  const { field } = useController({
-    ...(controllerProps || {}),
-    name: nameAttr,
-    control: controllerProps?.control || control,
-  });
+export default forwardRef(
+  (
+    {
+      controllerProps,
+      name,
+      control,
+      ...props
+    }: ControlledAutocompleteProps<AutocompleteOption>,
+    ref: ForwardedRef<HTMLInputElement>,
+  ) => {
+    const form = useFormContext();
+    const nameAttr = controllerProps?.name || name || '';
+    const { field } = useController({
+      ...(controllerProps || {}),
+      name: nameAttr,
+      control: controllerProps?.control || control,
+    });
 
-  if (!form) {
-    throw new Error('ControlledAutocomplete must be used in a FormContext.');
-  }
+    if (!form) {
+      throw new Error('ControlledAutocomplete must be used in a FormContext.');
+    }
 
-  const { setValue } = form || {};
+    const { setValue } = form || {};
 
-  return (
-    <Autocomplete
-      inputValue={
-        typeof field.value !== 'object' && isNotEmptyValue(field.value)
-          ? field.value.toString()
-          : undefined
-      }
-      {...props}
-      {...field}
-      ref={mergeRefs([field.ref, ref])}
-      onChange={(event, options, reason, details) => {
-        setValue?.(nameAttr, options, {
-          shouldDirty: true,
-        });
-
-        if (props.onChange) {
-          props.onChange(event, options, reason, details);
+    return (
+      <Autocomplete
+        inputValue={
+          typeof field.value !== 'object' && isNotEmptyValue(field.value)
+            ? field.value.toString()
+            : undefined
         }
-      }}
-      onBlur={callAll<[React.FocusEvent<HTMLDivElement>]>(
-        field.onBlur,
-        props.onBlur,
-      )}
-    />
-  );
-}
+        {...props}
+        {...field}
+        ref={mergeRefs([field.ref, ref])}
+        onChange={(event, options, reason, details) => {
+          setValue?.(nameAttr, options, {
+            shouldDirty: true,
+          });
 
-export default forwardRef(ControlledAutocomplete);
+          if (props.onChange) {
+            props.onChange(event, options, reason, details);
+          }
+        }}
+        onBlur={callAll<[React.FocusEvent<HTMLDivElement>]>(
+          field.onBlur,
+          props.onBlur,
+        )}
+      />
+    );
+  },
+);

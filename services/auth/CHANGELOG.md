@@ -1,3 +1,15 @@
+## [auth@0.46.0] - 2026-02-19
+
+### 🚀 Features
+
+- *(nixops)* Update nixpkgs (#3808)
+- *(auth)* Added oauth2/oidc provider functionality (#3922)
+
+
+### 🐛 Bug Fixes
+
+- *(nixops)* Bump go to 1.26.0 (#3907)
+
 ## [auth@0.45.0] - 2026-01-13
 
 ### 🚀 Features

@@ -25,8 +25,10 @@ func expectedConfig() *model.ConfigConfig {
 			Version: new("v2.25.0-ce"),
 			JwtSecrets: []*model.ConfigJWTSecret{
 				{
-					Type: new("HS256"),
-					Key:  new("0f987876650b4a085e64594fae9219e7781b17506bec02489ad061fba8cb22db"),
+					Type:       new("RS256"),
+					Key:        new("test-public-key"),
+					SigningKey: new("test-private-key"),
+					Kid:        new("test-kid"),
 				},
 			},
 			AdminSecret:   "nhost-admin-secret",
@@ -180,6 +182,18 @@ func expectedConfig() *model.ConfigConfig {
 				},
 			},
 			Totp: &model.ConfigAuthTotp{Enabled: new(false)},
+			Oauth2Provider: &model.ConfigAuthOauth2Provider{
+				Enabled: new(false),
+				AccessToken: &model.ConfigAuthOauth2ProviderAccessToken{
+					ExpiresIn: new(uint32(900)),
+				},
+				RefreshToken: &model.ConfigAuthOauth2ProviderRefreshToken{
+					ExpiresIn: new(uint32(2592000)),
+				},
+				ClientIdMetadataDocument: &model.ConfigAuthOauth2ProviderClientIdMetadataDocument{
+					Enabled: new(false),
+				},
+			},
 			RateLimit: &model.ConfigAuthRateLimit{
 				Emails: &model.ConfigRateLimit{
 					Limit:    10,
@@ -200,6 +214,10 @@ func expectedConfig() *model.ConfigConfig {
 				Global: &model.ConfigRateLimit{
 					Limit:    100,
 					Interval: "1m",
+				},
+				Oauth2Server: &model.ConfigRateLimit{
+					Limit:    100,
+					Interval: "5m",
 				},
 			},
 		},

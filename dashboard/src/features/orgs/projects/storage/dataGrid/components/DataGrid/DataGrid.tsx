@@ -89,8 +89,10 @@ function DataGrid<TColumnData extends object>(
   }: DataGridProps<TColumnData>,
   ref: ForwardedRef<HTMLDivElement>,
 ) {
+  // biome-ignore lint/correctness/useHookAtTopLevel: forwardRef render function with generic type cast
   const tableRef = useRef<HTMLDivElement | null>(null);
   const { toggleAllRowsSelected, setSortBy, ...dataGridProps } =
+    // biome-ignore lint/correctness/useHookAtTopLevel: forwardRef render function with generic type cast
     useDataGrid<TColumnData>({
       columns: columns || [],
       data: data || [],
@@ -100,12 +102,14 @@ function DataGrid<TColumnData extends object>(
       ...options,
     });
 
+  // biome-ignore lint/correctness/useHookAtTopLevel: forwardRef render function with generic type cast
   useEffect(() => {
     if (!sortBy && setSortBy) {
       setSortBy([]);
     }
   }, [setSortBy, sortBy]);
 
+  // biome-ignore lint/correctness/useHookAtTopLevel: forwardRef render function with generic type cast
   useEffect(() => {
     if (onSort && allowSort) {
       onSort(dataGridProps.state.sortBy);
