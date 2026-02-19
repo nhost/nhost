@@ -30,37 +30,40 @@ export default function useUntrackTableMutation(
     SuccessResponse | MetadataOperation200,
     unknown,
     UntrackTableVariables | UntrackTableMigrationVariables
-  >((variables) => {
-    const appUrl = generateAppServiceUrl(
-      project!.subdomain,
-      project!.region,
-      'hasura',
-    );
+  >(
+    (variables) => {
+      const appUrl = generateAppServiceUrl(
+        project!.subdomain,
+        project!.region,
+        'hasura',
+      );
 
-    const base = {
-      appUrl,
-      adminSecret: project!.config!.hasura.adminSecret,
-    } as const;
+      const base = {
+        appUrl,
+        adminSecret: project!.config!.hasura.adminSecret,
+      } as const;
 
-    if (isPlatform) {
-      return untrackTable({
-        ...(variables as UntrackTableVariables),
+      if (isPlatform) {
+        return untrackTable({
+          ...(variables as UntrackTableVariables),
+          ...base,
+        });
+      }
+
+      return untrackTableMigration({
+        ...(variables as UntrackTableMigrationVariables),
         ...base,
       });
-    }
-
-    return untrackTableMigration({
-      ...(variables as UntrackTableMigrationVariables),
-      ...base,
-    });
-  }, {
-    ...mutationOptions,
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['export-metadata', project?.subdomain],
-      });
     },
-  });
+    {
+      ...mutationOptions,
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: ['export-metadata', project?.subdomain],
+        });
+      },
+    },
+  );
 
   return mutation;
 }

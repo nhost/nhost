@@ -36,37 +36,40 @@ export default function useTrackTableMutation(
     SuccessResponse | MetadataOperation200,
     unknown,
     TrackTableVariables | TrackTableMigrationVariables
-  >((variables) => {
-    const appUrl = generateAppServiceUrl(
-      project!.subdomain,
-      project!.region,
-      'hasura',
-    );
+  >(
+    (variables) => {
+      const appUrl = generateAppServiceUrl(
+        project!.subdomain,
+        project!.region,
+        'hasura',
+      );
 
-    const base = {
-      appUrl,
-      adminSecret: project!.config!.hasura.adminSecret,
-    } as const;
+      const base = {
+        appUrl,
+        adminSecret: project!.config!.hasura.adminSecret,
+      } as const;
 
-    if (isPlatform) {
-      return trackTable({
-        ...(variables as TrackTableVariables),
+      if (isPlatform) {
+        return trackTable({
+          ...(variables as TrackTableVariables),
+          ...base,
+        });
+      }
+
+      return trackTableMigration({
+        ...(variables as TrackTableMigrationVariables),
         ...base,
       });
-    }
-
-    return trackTableMigration({
-      ...(variables as TrackTableMigrationVariables),
-      ...base,
-    });
-  }, {
-    ...mutationOptions,
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['export-metadata', project?.subdomain],
-      });
     },
-  });
+    {
+      ...mutationOptions,
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: ['export-metadata', project?.subdomain],
+        });
+      },
+    },
+  );
 
   return mutation;
 }
