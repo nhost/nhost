@@ -96,9 +96,9 @@ export default function ProjectPagesComboBox() {
       },
       {
         label: 'Auth',
-        value: 'users',
+        value: 'auth',
         icon: <UserIcon className="h-4 w-4" />,
-        slug: 'users',
+        slug: 'auth/users',
         disabled: false,
       },
       {

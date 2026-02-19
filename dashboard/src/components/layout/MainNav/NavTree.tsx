@@ -60,8 +60,8 @@ const projectPages = [
   {
     name: 'Auth',
     icon: <UserIcon className="h-4 w-4" />,
-    route: 'users',
-    slug: 'users',
+    route: 'auth/users',
+    slug: 'auth',
   },
   {
     name: 'Storage',
@@ -136,12 +136,17 @@ const projectSettingsPages = [
     slug: 'sign-in-methods',
     route: 'sign-in-methods',
   },
-  { name: 'Storage', slug: 'storage', route: 'storage' },
+  {
+    name: 'OAuth2 Provider',
+    slug: 'oauth2-provider',
+    route: 'oauth2-provider',
+  },
   {
     name: 'Roles and Permissions',
     slug: 'roles-and-permissions',
     route: 'roles-and-permissions',
   },
+  { name: 'Storage', slug: 'storage', route: 'storage' },
   { name: 'SMTP', slug: 'smtp', route: 'smtp' },
   { name: 'Git', slug: 'git', route: 'git' },
   {
@@ -198,6 +203,19 @@ const projectEventsPages = [
     name: 'One-Off Scheduled Events',
     slug: 'one-offs',
     route: 'events/one-offs',
+  },
+];
+
+const projectAuthPages = [
+  {
+    name: 'Users',
+    slug: 'users',
+    route: 'auth/users',
+  },
+  {
+    name: 'OAuth2 Clients',
+    slug: 'oauth2-clients',
+    route: 'auth/oauth2-clients',
   },
 ];
 
@@ -286,7 +304,8 @@ const createOrganization = (org: Org) => {
         isFolder:
           (_page.name === 'Settings' && !shouldDisableSettings) ||
           _page.name === 'GraphQL' ||
-          _page.name === 'Events',
+          _page.name === 'Events' ||
+          _page.name === 'Auth',
         children: (() => {
           if (_page.name === 'Settings' && !shouldDisableSettings) {
             return projectSettingsPages.map(
@@ -301,6 +320,11 @@ const createOrganization = (org: Org) => {
           if (_page.name === 'Events') {
             return projectEventsPages.map(
               (p) => `${org.slug}-${_app.subdomain}-events-${p.slug}`,
+            );
+          }
+          if (_page.name === 'Auth') {
+            return projectAuthPages.map(
+              (p) => `${org.slug}-${_app.subdomain}-auth-${p.slug}`,
             );
           }
           return undefined;
@@ -358,6 +382,20 @@ const createOrganization = (org: Org) => {
     projectEventsPages.forEach((p) => {
       result[`${org.slug}-${_app.subdomain}-events-${p.slug}`] = {
         index: `${org.slug}-${_app.subdomain}-events-${p.slug}`,
+        canMove: false,
+        isFolder: false,
+        children: undefined,
+        data: {
+          name: p.name,
+          targetUrl: `/orgs/${org.slug}/projects/${_app.subdomain}/${p.route}`,
+        },
+        canRename: false,
+      };
+    });
+
+    projectAuthPages.forEach((p) => {
+      result[`${org.slug}-${_app.subdomain}-auth-${p.slug}`] = {
+        index: `${org.slug}-${_app.subdomain}-auth-${p.slug}`,
         canMove: false,
         isFolder: false,
         children: undefined,
@@ -520,7 +558,7 @@ export default function NavTree() {
                 }
 
                 if (
-                  ['GraphQL', 'Events'].includes(item.data.name) &&
+                  ['GraphQL', 'Events', 'Auth'].includes(item.data.name) &&
                   item.isFolder
                 ) {
                   if (!context.isExpanded) {
