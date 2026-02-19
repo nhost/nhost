@@ -9,7 +9,6 @@ query GetOAuth2Clients(
     offset: $offset
     where: $where
   ) {
-    id
     clientId
     clientSecretHash
     redirectUris
