@@ -203,13 +203,31 @@ export default function OAuth2AuthorizePage() {
                 </Text>
               )}
 
-              <Button
-                disabled={isAuthorizing}
-                onClick={handleAuthorize}
-                className="w-full"
-              >
-                {isAuthorizing ? 'Authorizing...' : 'Authorize'}
-              </Button>
+              <div className="grid gap-2">
+                <Button
+                  disabled={isAuthorizing}
+                  onClick={handleAuthorize}
+                  className="w-full"
+                >
+                  {isAuthorizing ? 'Authorizing...' : 'Authorize'}
+                </Button>
+                <Button
+                  variant="outline"
+                  disabled={isAuthorizing}
+                  onClick={() => {
+                    const url = new URL(authRequest.redirectUri);
+                    url.searchParams.set('error', 'access_denied');
+                    url.searchParams.set(
+                      'error_description',
+                      'The user denied the authorization request.',
+                    );
+                    window.location.href = url.toString();
+                  }}
+                  className="w-full"
+                >
+                  Cancel
+                </Button>
+              </div>
             </div>
           ) : null}
         </div>
