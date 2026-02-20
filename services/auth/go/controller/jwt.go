@@ -283,6 +283,69 @@ func (j *JWTGetter) GraphQLClaims(
 	return j.claimsNamespace, c, nil
 }
 
+// RawGraphQLClaims returns the same claims as GraphQLClaims but without
+// Postgres-encoding values. Arrays remain as []any, booleans as bool, etc.
+// This is suitable for JSON responses (e.g. UserInfo) consumed by third
+// parties that expect standard JSON types.
+func (j *JWTGetter) RawGraphQLClaims(
+	ctx context.Context,
+	userID uuid.UUID,
+	isAnonymous bool,
+	allowedRoles []string,
+	defaultRole string,
+	extraClaims map[string]any,
+	logger *slog.Logger,
+) (string, map[string]any, error) {
+	var (
+		customClaims map[string]any
+		err          error
+	)
+	if j.customClaimer != nil {
+		customClaims, err = j.customClaimer.GetClaims(ctx, userID.String())
+		if err != nil {
+			logger.ErrorContext(
+				ctx,
+				"error getting custom claims",
+				slog.String("error", err.Error()),
+			)
+
+			customClaims = map[string]any{}
+		}
+	}
+
+	c := map[string]any{
+		"x-hasura-allowed-roles":     allowedRoles,
+		"x-hasura-default-role":      defaultRole,
+		"x-hasura-user-id":           userID.String(),
+		"x-hasura-user-is-anonymous": strconv.FormatBool(isAnonymous),
+	}
+
+	addRawClaimsToMap(c, customClaims, false)
+	addRawClaimsToMap(c, extraClaims, true)
+
+	return j.claimsNamespace, c, nil
+}
+
+func addRawClaimsToMap(
+	claims map[string]any,
+	newClaims map[string]any,
+	allowOverwrite bool,
+) {
+	for k, v := range newClaims {
+		if !strings.HasPrefix(strings.ToLower(k), "x-hasura-") {
+			k = strings.ToLower("x-hasura-" + k)
+		}
+
+		if !allowOverwrite {
+			if _, ok := claims[k]; ok {
+				continue
+			}
+		}
+
+		claims[k] = v
+	}
+}
+
 func (j *JWTGetter) GetToken(
 	ctx context.Context,
 	userID uuid.UUID,

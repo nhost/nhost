@@ -11,7 +11,7 @@ import (
 	"github.com/nhost/nhost/services/auth/go/api"
 )
 
-func (p *Provider) GetUserinfo( //nolint:cyclop
+func (p *Provider) GetUserinfo( //nolint:cyclop,funlen
 	ctx context.Context,
 	userID uuid.UUID,
 	scopes []string,
@@ -64,14 +64,44 @@ func (p *Provider) GetUserinfo( //nolint:cyclop
 		phoneNumberVerified = &user.PhoneNumberVerified
 	}
 
-	return &api.OAuth2UserinfoResponse{
-		Sub:                 userID.String(),
-		Email:               email,
-		EmailVerified:       emailVerified,
-		Locale:              locale,
-		Name:                name,
-		PhoneNumber:         phoneNumber,
-		PhoneNumberVerified: phoneNumberVerified,
-		Picture:             picture,
-	}, nil
+	resp := &api.OAuth2UserinfoResponse{
+		Sub:                  userID.String(),
+		Email:                email,
+		EmailVerified:        emailVerified,
+		Locale:               locale,
+		Name:                 name,
+		PhoneNumber:          phoneNumber,
+		PhoneNumberVerified:  phoneNumberVerified,
+		Picture:              picture,
+		AdditionalProperties: nil,
+	}
+
+	if slices.Contains(scopes, "graphql") {
+		userRoles, err := p.db.GetUserRoles(ctx, userID)
+		if err != nil {
+			logger.ErrorContext(ctx, "error getting user roles", logError(err))
+			return nil, &Error{Err: "server_error", Description: "Internal server error"}
+		}
+
+		allowedRoles := make([]string, 0, len(userRoles))
+		for _, role := range userRoles {
+			allowedRoles = append(allowedRoles, role.Role)
+		}
+
+		if !slices.Contains(allowedRoles, user.DefaultRole) {
+			allowedRoles = append(allowedRoles, user.DefaultRole)
+		}
+
+		ns, c, err := p.signer.RawGraphQLClaims(
+			ctx, userID, user.IsAnonymous, allowedRoles, user.DefaultRole, nil, logger,
+		)
+		if err != nil {
+			logger.ErrorContext(ctx, "error creating GraphQL claims", logError(err))
+			return nil, &Error{Err: "server_error", Description: "Internal server error"}
+		}
+
+		resp.Set(ns, c)
+	}
+
+	return resp, nil
 }
