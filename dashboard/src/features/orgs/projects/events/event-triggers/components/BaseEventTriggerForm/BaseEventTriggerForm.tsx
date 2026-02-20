@@ -468,7 +468,9 @@ export default function BaseEventTriggerForm({
                         />
                       </div>
                       {hasToChooseUpdateTriggerColumns && (
-                        <UpdateTriggerColumnsSection isSheetOpen={isSheetOpen} />
+                        <UpdateTriggerColumnsSection
+                          isSheetOpen={isSheetOpen}
+                        />
                       )}
                     </>
                   )}
