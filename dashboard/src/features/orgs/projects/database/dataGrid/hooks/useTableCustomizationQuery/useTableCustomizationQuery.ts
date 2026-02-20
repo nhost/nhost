@@ -1,4 +1,5 @@
 import { useExportMetadata } from '@/features/orgs/projects/common/hooks/useExportMetadata';
+import { isEmptyValue } from '@/lib/utils';
 import type {
   QualifiedTable,
   TableConfig,
@@ -20,18 +21,18 @@ export default function useTableCustomizationQuery({
   dataSource,
 }: UseTableCustomizationQueryOptions) {
   return useExportMetadata((data): TableConfig | undefined => {
-    if (!data.metadata.sources) {
+    if (isEmptyValue(data.metadata.sources)) {
       return undefined;
     }
 
-    const sourceMetadata = data.metadata.sources.find(
+    const sourceMetadata = data.metadata.sources!.find(
       (item) => item.name === dataSource,
     );
-    if (!sourceMetadata?.tables) {
+    if (isEmptyValue(sourceMetadata?.tables)) {
       return undefined;
     }
 
-    const tableMetadata = sourceMetadata.tables.find(
+    const tableMetadata = sourceMetadata!.tables!.find(
       (item) =>
         item.table.name === table.name && item.table.schema === table.schema,
     );

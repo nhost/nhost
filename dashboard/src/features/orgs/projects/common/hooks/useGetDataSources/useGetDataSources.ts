@@ -8,11 +8,11 @@ import { useExportMetadata } from '@/features/orgs/projects/common/hooks/useExpo
 export default function useGetDataSources() {
   return useExportMetadata(
     (data) =>
-      data.metadata?.sources?.reduce<string[]>((acc, source) => {
+      data.metadata?.sources?.reduce<string[]>((sourceNames, source) => {
         if (source.name) {
-          acc.push(source.name);
+          sourceNames.push(source.name);
         }
-        return acc;
+        return sourceNames;
       }, []) ?? [],
   );
 }

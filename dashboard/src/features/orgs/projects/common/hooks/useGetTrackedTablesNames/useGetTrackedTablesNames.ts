@@ -1,5 +1,5 @@
 import { useExportMetadata } from '@/features/orgs/projects/common/hooks/useExportMetadata';
-import { isNotEmptyValue } from '@/lib/utils';
+import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 
 export interface UseGetTrackedTablesNamesOptions {
   dataSource: string;
@@ -15,19 +15,19 @@ export default function useGetTrackedTablesNames({
   dataSource,
 }: UseGetTrackedTablesNamesOptions) {
   return useExportMetadata((data) => {
-    if (!data.metadata.sources) {
+    if (isEmptyValue(data.metadata.sources)) {
       return [];
     }
 
-    const sourceMetadata = data.metadata.sources.find(
+    const sourceMetadata = data.metadata.sources!.find(
       (item) => item.name === dataSource,
     );
-    if (!sourceMetadata?.tables) {
+    if (isEmptyValue(sourceMetadata?.tables)) {
       return [];
     }
 
-    return sourceMetadata.tables
-      .map((item) => item.table.name)
+    return sourceMetadata!
+      .tables!.map((item) => item.table.name)
       .filter(isNotEmptyValue);
   });
 }
