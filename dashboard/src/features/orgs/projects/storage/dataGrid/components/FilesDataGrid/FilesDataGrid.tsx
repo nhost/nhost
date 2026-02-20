@@ -1,10 +1,13 @@
+import type {
+  CellContext,
+  ColumnDef,
+  SortingState,
+} from '@tanstack/react-table';
 import debounce from 'lodash.debounce';
 import { useRouter } from 'next/router';
 import type { ChangeEvent } from 'react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
-import type { Column, SortingRule } from 'react-table';
-
 import { ReadOnlyToggle } from '@/components/presentational/ReadOnlyToggle';
 import { FilePreviewIcon } from '@/components/ui/v2/icons/FilePreviewIcon';
 import { useAppClient } from '@/features/orgs/projects/hooks/useAppClient';
@@ -32,75 +35,85 @@ export type StoredFile = Omit<Files, 'bucket'> & {
 
 export type FilesDataGridProps = Partial<DataGridProps<StoredFile>>;
 
-const columns: (Column<StoredFile> & {
-  isCopiable?: boolean;
-  isPrimary?: boolean;
-})[] = [
+const columns: ColumnDef<StoredFile>[] = [
   {
     id: 'preview-column',
-    Header: PreviewHeader,
-    accessor: 'preview',
-    Cell: (cellProps) => (
-      <DataGridPreviewCell
-        {...cellProps}
-        fallbackPreview={<FilePreviewIcon className="h-5 w-5 fill-current" />}
-      />
+    header: PreviewHeader,
+    accessorKey: 'preview',
+    cell: (props) => {
+      const { getValue, row } = props as CellContext<StoredFile, PreviewProps>;
+
+      return (
+        <DataGridPreviewCell
+          isDisabled={!row.original.isUploaded}
+          fallbackPreview={<FilePreviewIcon className="h-5 w-5 fill-current" />}
+          getValue={getValue}
+        />
+      );
+    },
+    minSize: 120,
+    size: 120,
+    enableSorting: false,
+    enableResizing: false,
+  },
+  {
+    header: 'id',
+    accessorKey: 'id',
+    cell: (props) => (
+      <DataGridTextCell {...(props as CellContext<StoredFile, string>)} />
     ),
-    minWidth: 120,
-    width: 120,
-    disableSortBy: true,
-    disableResizing: true,
+    size: 318,
+    meta: {
+      isPrimary: true,
+    },
   },
   {
-    Header: 'id',
-    accessor: 'id',
-    isCopiable: true,
-    Cell: DataGridTextCell,
-    width: 318,
-    sortType: 'basic',
-    isPrimary: true,
-  },
-  { Header: 'name', accessor: 'name', width: 200, sortType: 'basic' },
-  { Header: 'size', accessor: 'size', width: 80, sortType: 'basic' },
-  {
-    Header: 'mimeType',
-    accessor: 'mimeType',
-    width: 120,
-    sortType: 'basic',
+    header: 'name',
+    accessorKey: 'name',
+    size: 200,
   },
   {
-    Header: 'createdAt',
-    accessor: 'createdAt',
-    width: 120,
-    Cell: DataGridDateCell,
-    sortType: 'basic',
+    header: 'size',
+    accessorKey: 'size',
+    size: 80,
   },
   {
-    Header: 'updatedAt',
-    accessor: 'updatedAt',
-    width: 120,
-    Cell: DataGridDateCell,
-    sortType: 'basic',
+    header: 'mimeType',
+    accessorKey: 'mimeType',
+    size: 120,
   },
   {
-    Header: 'bucketId',
-    accessor: 'bucketId',
-    width: 200,
-    sortType: 'basic',
-  },
-  { Header: 'etag', accessor: 'etag', width: 280, sortType: 'basic' },
-  {
-    Header: 'isUploaded',
-    accessor: 'isUploaded',
-    width: 100,
-    Cell: ({ value }) => <ReadOnlyToggle checked={value} />,
-    sortType: 'basic',
+    header: 'createdAt',
+    accessorKey: 'createdAt',
+    size: 120,
+    cell: (props) => (
+      <DataGridDateCell {...(props as CellContext<StoredFile, string>)} />
+    ),
   },
   {
-    Header: 'uploadedByUserId',
-    accessor: 'uploadedByUserId',
-    width: 318,
-    sortType: 'basic',
+    header: 'updatedAt',
+    accessorKey: 'updatedAt',
+    size: 120,
+    cell: (props) => (
+      <DataGridDateCell {...(props as CellContext<StoredFile, string>)} />
+    ),
+  },
+  {
+    header: 'bucketId',
+    accessorKey: 'bucketId',
+    size: 200,
+  },
+  { header: 'etag', accessorKey: 'etag', size: 280 },
+  {
+    header: 'isUploaded',
+    accessorKey: 'isUploaded',
+    size: 100,
+    cell: ({ getValue }) => <ReadOnlyToggle checked={getValue<boolean>()} />,
+  },
+  {
+    header: 'uploadedByUserId',
+    accessorKey: 'uploadedByUserId',
+    size: 318,
   },
 ];
 
@@ -112,7 +125,7 @@ export default function FilesDataGrid(props: FilesDataGridProps) {
   const [currentOffset, setCurrentOffset] = useState<number>(
     parseInt(router.query.page as string, 10) - 1 || 0,
   );
-  const [sortBy, setSortBy] = useState<SortingRule<StoredFile>[]>();
+  const [sortBy, setSortBy] = useState<SortingState>([]);
   const limit = 10;
   const emptyStateMessage = searchString
     ? 'No search results found.'
@@ -300,10 +313,6 @@ export default function FilesDataGrid(props: FilesDataGridProps) {
     throw error;
   }
 
-  const handleSort = useCallback((args: SortingRule<StoredFile>[]) => {
-    setSortBy(args);
-  }, []);
-
   return (
     <DataGrid
       columns={columns}
@@ -311,15 +320,15 @@ export default function FilesDataGrid(props: FilesDataGridProps) {
       allowSelection
       allowResize
       allowSort
+      sorting={sortBy}
       emptyStateMessage={emptyStateMessage}
-      onSort={handleSort}
+      onSortingChange={setSortBy}
       loading={loading}
+      enableRowSelection={(row) => !!row.original.isUploaded}
       options={{
-        manualSortBy: true,
-        disableMultiSort: true,
-        autoResetSortBy: false,
-        autoResetSelectedRows: false,
-        autoResetResize: false,
+        manualSorting: true,
+        enableMultiSort: false,
+        autoResetPageIndex: false,
       }}
       controls={
         <FilesDataGridControls
@@ -340,7 +349,7 @@ export default function FilesDataGrid(props: FilesDataGridProps) {
           refetchData={refetchFilesAndAggregate}
         />
       }
-      isFileDataGrid
+      isRowDisabled={(row) => !row.original.isUploaded}
       {...props}
     />
   );

@@ -6,7 +6,7 @@ import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
 import { DatabaseRecordInputGroup } from '@/features/orgs/projects/database/dataGrid/components/DatabaseRecordInputGroup';
 import type {
   ColumnInsertOptions,
-  DataBrowserGridColumn,
+  DataBrowserGridColumnDef,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { cn } from '@/lib/utils';
 import type { DialogFormProps } from '@/types/common';
@@ -15,7 +15,7 @@ export interface BaseRecordFormProps extends DialogFormProps {
   /**
    * The columns of the table.
    */
-  columns: DataBrowserGridColumn[];
+  columns: DataBrowserGridColumnDef[];
   /**
    * Function to be called when the form is submitted.
    */
@@ -41,13 +41,15 @@ export default function BaseRecordForm({
 }: BaseRecordFormProps) {
   const { onDirtyStateChange } = useDialog();
   const { requiredColumns, optionalColumns } = columns.reduce<{
-    requiredColumns: DataBrowserGridColumn<{}>[];
-    optionalColumns: DataBrowserGridColumn<{}>[];
+    requiredColumns: DataBrowserGridColumnDef[];
+    optionalColumns: DataBrowserGridColumnDef[];
   }>(
     (accumulator, column) => {
       if (
-        column.isPrimary ||
-        (!column.isNullable && !column.defaultValue && !column.isIdentity)
+        column.meta?.isPrimary ||
+        (!column.meta?.isNullable &&
+          !column.meta?.defaultValue &&
+          !column.meta?.isIdentity)
       ) {
         return {
           ...accumulator,
@@ -81,8 +83,8 @@ export default function BaseRecordForm({
   // Stores columns in a map to have constant time lookup. This is necessary
   // for tables with many columns.
   const gridColumnMap = columns.reduce(
-    (map, column) => map.set(column.id, column),
-    new Map<string, DataBrowserGridColumn>(),
+    (map, column) => map.set(column.id as string, column),
+    new Map<string, DataBrowserGridColumnDef>(),
   );
 
   if (!columns?.length) {
@@ -100,7 +102,10 @@ export default function BaseRecordForm({
         const gridColumn = gridColumnMap.get(columnId);
         const value = columnValues[columnId];
 
-        if (!value && (gridColumn?.defaultValue || gridColumn?.isIdentity)) {
+        if (
+          !value &&
+          (gridColumn?.meta?.defaultValue || gridColumn?.meta?.isIdentity)
+        ) {
           return {
             ...options,
             [columnId]: {
@@ -110,7 +115,7 @@ export default function BaseRecordForm({
           };
         }
 
-        if (!value && gridColumn?.isNullable) {
+        if (!value && gridColumn?.meta?.isNullable) {
           return {
             ...options,
             [columnId]: {
@@ -124,7 +129,7 @@ export default function BaseRecordForm({
           ...options,
           [columnId]: {
             value:
-              gridColumn?.type === 'date' && value instanceof Date
+              gridColumn?.meta?.type === 'date' && value instanceof Date
                 ? value.toUTCString()
                 : value,
           },

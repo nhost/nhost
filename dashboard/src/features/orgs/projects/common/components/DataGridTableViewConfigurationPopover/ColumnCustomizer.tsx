@@ -1,14 +1,20 @@
 import type { DropResult } from '@hello-pangea/dnd';
-import type { ColumnInstance } from 'react-table';
+import type { Column } from '@tanstack/react-table';
 import { DragAndDropList } from '@/components/common/DragAndDropList';
 import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
+import type { UnknownDataGridRow } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
+import { SELECTION_COLUMN_ID } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid/useDataGrid';
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
 import PersistenDataTableConfigurationStorage from '@/features/orgs/projects/storage/dataGrid/utils/PersistenDataTableConfigurationStorage';
 import { isEmptyValue } from '@/lib/utils';
 import ColumnCustomizerRow from './ColumnCustomizerRow';
 import ShowHideAllColumnsButtons from './ShowHideAllColumnsButtons';
 
-function reorder(list: ColumnInstance[], startIndex: number, endIndex: number) {
+function reorder<TData extends UnknownDataGridRow>(
+  list: Column<TData, unknown>[],
+  startIndex: number,
+  endIndex: number,
+) {
   const result = Array.from(list);
   const [removed] = result.splice(startIndex, 1);
   result.splice(endIndex, 0, removed);
@@ -18,20 +24,22 @@ function reorder(list: ColumnInstance[], startIndex: number, endIndex: number) {
 
 function ColumnCustomizer() {
   const tablePath = useTablePath();
-  const { allColumns, setColumnOrder } = useDataGridConfig();
-  const columns = allColumns.filter(({ id }) => id !== 'selection-column');
-
+  const { setColumnOrder, getAllLeafColumns } = useDataGridConfig();
+  const columns = getAllLeafColumns().filter(
+    ({ id }) => id !== SELECTION_COLUMN_ID,
+  );
   function handleDragEnd(result: DropResult) {
     if (isEmptyValue(result.destination)) {
       return;
     }
+
     const reordered = reorder(
       columns,
       result.source.index,
       result.destination!.index,
     ).map(({ id }) => id);
 
-    setColumnOrder(reordered);
+    setColumnOrder([SELECTION_COLUMN_ID, ...reordered]);
     PersistenDataTableConfigurationStorage.saveColumnOrder(
       tablePath,
       reordered,

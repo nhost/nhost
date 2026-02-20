@@ -5,6 +5,7 @@ import { ButtonGroup } from '@/components/ui/v3/button-group';
 import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
 import { useDataGridQueryParams } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
 import { createTableQueryKey } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
+import { SELECTION_COLUMN_ID } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid/useDataGrid';
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
 import { useRemoveQueryParamsFromUrl } from '@/hooks/useRemoveQueryParamsFromUrl';
 import { useDataGridFilters } from './DataGridFiltersProvider';
@@ -32,7 +33,10 @@ function DataGridFilterActions() {
     ),
   });
 
-  const { columns } = useDataGridConfig();
+  const { getAllColumns } = useDataGridConfig();
+  const columns = getAllColumns().filter(
+    ({ id }) => id !== SELECTION_COLUMN_ID,
+  );
 
   function handleAddFilter() {
     addFilter({ column: columns[0].id, op: '=', value: '', id: uuidV4() });

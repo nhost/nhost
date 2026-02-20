@@ -5,12 +5,12 @@ import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/com
 import PersistenDataTableConfigurationStorage from '@/features/orgs/projects/storage/dataGrid/utils/PersistenDataTableConfigurationStorage';
 
 function Description() {
-  const { setHiddenColumns } = useDataGridConfig();
+  const { setColumnVisibility } = useDataGridConfig();
   const tablePath = useTablePath();
 
   function saveHiddenCols() {
-    setHiddenColumns([]);
-    PersistenDataTableConfigurationStorage.saveHiddenColumns(tablePath, []);
+    setColumnVisibility({});
+    PersistenDataTableConfigurationStorage.saveColumnVisibility(tablePath, {});
   }
 
   return (

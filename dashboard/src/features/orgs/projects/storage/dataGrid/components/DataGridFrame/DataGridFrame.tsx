@@ -1,27 +1,24 @@
 import clsx from 'clsx';
 import type { DetailedHTMLProps, HTMLProps } from 'react';
-import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
 
 export type DataGridFrameProps = DetailedHTMLProps<
   HTMLProps<HTMLDivElement>,
   HTMLDivElement
 >;
 
-export default function DataGridFrame<T extends object>({
+export default function DataGridFrame({
   style,
   children,
   className,
   ...props
 }: DataGridFrameProps) {
-  const { getTableProps } = useDataGridConfig<T>();
-  const { style: reactTableStyle, ...restTableProps } = getTableProps();
-
   return (
+    // biome-ignore lint/a11y/useSemanticElements: div based table
     <div
-      {...restTableProps}
       {...props}
       className={clsx('min-w-min', className)}
-      style={{ ...reactTableStyle, minWidth: undefined, ...style }}
+      style={{ ...style }}
+      role="table"
     >
       {children}
     </div>
