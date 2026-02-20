@@ -1,7 +1,7 @@
 import { useFormState, useWatch } from 'react-hook-form';
 import { ControlledSelect } from '@/components/form/ControlledSelect';
 import { Option } from '@/components/ui/v2/Option';
-import { useTableSchemaQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
+import { useTableSchemaQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableSchemaQuery';
 
 export default function ReferencedColumnSelect() {
   const { errors } = useFormState({ name: 'referencedColumn' });

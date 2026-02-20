@@ -18,7 +18,7 @@ import { DeleteRelationshipDialog } from '@/features/orgs/projects/database/data
 import { EditRemoteRelationshipButton } from '@/features/orgs/projects/database/dataGrid/components/EditRemoteRelationshipButton';
 import { RenameRelationshipDialog } from '@/features/orgs/projects/database/dataGrid/components/RenameRelationshipDialog';
 import useGetRelationships from '@/features/orgs/projects/database/dataGrid/hooks/useGetRelationships/useGetRelationships';
-import { useTableSchemaQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
+import { useTableSchemaQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableSchemaQuery';
 import { isRemoteRelationshipViewModel } from '@/features/orgs/projects/database/dataGrid/types/relationships/guards';
 import SuggestedRelationshipsSection from './sections/SuggestedRelationshipsSection';
 
