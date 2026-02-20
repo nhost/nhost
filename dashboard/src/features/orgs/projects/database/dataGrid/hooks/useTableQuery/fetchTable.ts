@@ -1,5 +1,6 @@
 import { formatWithArray } from 'node-pg-format';
 import type { DataGridFilter } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
+import { DEFAULT_ROWS_LIMIT } from '@/features/orgs/projects/database/dataGrid/constants';
 import type {
   ForeignKeyRelation,
   MutationOrQueryBaseOptions,
@@ -99,6 +100,8 @@ export default async function fetchTable({
     limitAndOffsetClause = `LIMIT ${limit} OFFSET ${offset}`;
   } else if (limit) {
     limitAndOffsetClause = `LIMIT ${limit}`;
+  } else {
+    limitAndOffsetClause = `LIMIT ${DEFAULT_ROWS_LIMIT}`;
   }
 
   let orderByClause = 'ORDER BY 1';
