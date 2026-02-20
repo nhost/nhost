@@ -1,125 +1,41 @@
-import { formatWithArray } from 'node-pg-format';
-import type { DataGridFilter } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
-import { DEFAULT_ROWS_LIMIT } from '@/features/orgs/projects/database/dataGrid/constants';
 import type {
   ForeignKeyRelation,
   MutationOrQueryBaseOptions,
   NormalizedQueryDataRow,
-  OrderBy,
   QueryError,
   QueryResult,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { extractForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
 import { getPreparedReadOnlyHasuraQuery } from '@/features/orgs/projects/database/dataGrid/utils/hasuraQueryHelpers';
 import { POSTGRESQL_ERROR_CODES } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
-import { filtersToWhere } from './filtersToWhere';
 
-function isQueryError(payload: unknown): payload is QueryError {
-  return 'error' in (payload as QueryError);
-}
+export type FetchTableSchemaOptions = MutationOrQueryBaseOptions;
 
-export interface FetchTableOptions extends MutationOrQueryBaseOptions {
-  /**
-   * Limit of rows to fetch.
-   */
-  limit?: number;
-  /**
-   * Offset of rows to fetch.
-   */
-  offset?: number;
-  /**
-   * Ordering configuration.
-   *
-   * @default []
-   */
-  orderBy?: OrderBy[];
-  /**
-   * Filtering configuration.
-   *
-   * @default []
-   */
-  filters?: DataGridFilter[];
-}
-
-export interface FetchTableReturnType {
+export interface FetchTableSchemaReturnType {
   /**
    * List of columns in the table.
    */
   columns: NormalizedQueryDataRow[];
   /**
-   * List of rows in the table.
-   */
-  rows: NormalizedQueryDataRow[];
-  /**
-   * Error for querying the rows
-   */
-  error: string | null;
-  /**
    * Foreign key relations in the table.
    */
   foreignKeyRelations: ForeignKeyRelation[];
-  /**
-   * Total number of rows in the table.
-   */
-  numberOfRows: number;
-  /**
-   * Response metadata that usually contains information about the schema and
-   * the table for which the query was run.
-   */
-  // biome-ignore lint/suspicious/noExplicitAny: TODO
-  metadata?: Record<string, any>;
 }
 
 /**
- * Fetch the available columns and rows of a table.
+ * Fetch the schema of a table (columns and foreign key relations) without
+ * fetching any row data.
  *
  * @param options - Options to use for the fetch call.
- * @returns The available columns and rows in the table.
+ * @returns The columns and foreign key relations of the table.
  */
-export default async function fetchTable({
+export default async function fetchTableSchema({
   dataSource,
   schema,
   table,
   appUrl,
   adminSecret,
-  limit,
-  offset,
-  orderBy,
-  filters,
-}: FetchTableOptions): Promise<FetchTableReturnType> {
-  let limitAndOffsetClause = '';
-
-  if (limit && offset) {
-    limitAndOffsetClause = `LIMIT ${limit} OFFSET ${offset}`;
-  } else if (limit) {
-    limitAndOffsetClause = `LIMIT ${limit}`;
-  } else {
-    limitAndOffsetClause = `LIMIT ${DEFAULT_ROWS_LIMIT}`;
-  }
-
-  let orderByClause = 'ORDER BY 1';
-  if (orderBy && orderBy.length > 0) {
-    // Note: This part will be added to the SQL template
-    const pgFormatTemplate = orderBy.map(() => '%I %s').join(' ');
-
-    // Note: We are flattening object values so that we can pass them to the
-    // formatter function as arguments
-    const flattenedOrderByValues = orderBy.reduce<OrderBy[]>(
-      (values, currentOrderBy) => {
-        const currentValues = Object.values(currentOrderBy) as OrderBy[];
-        return [...values, ...currentValues];
-      },
-      [],
-    );
-
-    orderByClause = formatWithArray(
-      `ORDER BY ${pgFormatTemplate}`,
-      flattenedOrderByValues,
-    );
-  }
-
-  const whereClause = filtersToWhere(filters);
-
+}: FetchTableSchemaOptions): Promise<FetchTableSchemaReturnType> {
   const tableDataResponse = await fetch(`${appUrl}/v2/query`, {
     method: 'POST',
     headers: {
@@ -190,34 +106,6 @@ export default async function fetchTable({
       version: 1,
     }),
   });
-  const rowDataResponse = await fetch(`${appUrl}/v2/query`, {
-    method: 'POST',
-    headers: {
-      'x-hasura-admin-secret': adminSecret,
-    },
-    body: JSON.stringify({
-      args: [
-        getPreparedReadOnlyHasuraQuery(
-          dataSource,
-          `SELECT ROW_TO_JSON(TABLE_DATA) FROM (SELECT * FROM %I.%I %s %s %s) TABLE_DATA`,
-          schema,
-          table,
-          whereClause,
-          orderByClause,
-          limitAndOffsetClause,
-        ),
-        getPreparedReadOnlyHasuraQuery(
-          dataSource,
-          `SELECT COUNT(*) FROM %I.%I %s`,
-          schema,
-          table,
-          whereClause,
-        ),
-      ],
-      type: 'bulk',
-      version: 1,
-    }),
-  });
 
   const responseData: QueryResult<string[]>[] | QueryError =
     await tableDataResponse.json();
@@ -228,34 +116,17 @@ export default async function fetchTable({
       const schemaNotFound =
         POSTGRESQL_ERROR_CODES.SCHEMA_NOT_FOUND ===
         queryError.internal?.error?.status_code;
-
       const tableNotFound =
         POSTGRESQL_ERROR_CODES.TABLE_NOT_FOUND ===
         queryError.internal?.error?.status_code;
 
-      if (schemaNotFound || tableNotFound) {
-        return {
-          columns: [],
-          rows: [],
-          error: null,
-          numberOfRows: 0,
-          foreignKeyRelations: [],
-          metadata: { schema, table, schemaNotFound, tableNotFound },
-        };
-      }
-
       if (
+        schemaNotFound ||
+        tableNotFound ||
         queryError.internal?.error?.status_code ===
-        POSTGRESQL_ERROR_CODES.COLUMNS_NOT_FOUND
+          POSTGRESQL_ERROR_CODES.COLUMNS_NOT_FOUND
       ) {
-        return {
-          columns: [],
-          rows: [],
-          error: null,
-          numberOfRows: 0,
-          foreignKeyRelations: [],
-          metadata: { schema, table, columnsNotFound: true },
-        };
+        return { columns: [], foreignKeyRelations: [] };
       }
 
       throw new Error(queryError.internal?.error?.message);
@@ -341,49 +212,26 @@ export default async function fetchTable({
     })
     .sort((a, b) => a.ordinal_position - b.ordinal_position);
 
-  const flatForeignKeyRelations = Array.from(
-    foreignKeyRelationMap.keys(),
-  ).reduce((accumulator, key) => {
-    const value = foreignKeyRelationMap.get(key);
+  const foreignKeyRelations = Array.from(foreignKeyRelationMap.keys()).reduce(
+    (accumulator, key) => {
+      const value = foreignKeyRelationMap.get(key);
 
-    if (!value) {
-      return accumulator;
-    }
+      if (!value) {
+        return accumulator;
+      }
 
-    const parsedValue = JSON.parse(value) as ForeignKeyRelation;
-    const column = columns.find(
-      ({ column_name }) => column_name === parsedValue.columnName,
-    )!;
-    const foreignKeyWithOneToOne: ForeignKeyRelation = {
-      ...parsedValue,
-      oneToOne: column.is_unique || column.is_primary,
-    };
-    return [...accumulator, foreignKeyWithOneToOne];
-  }, [] as ForeignKeyRelation[]);
+      const parsedValue = JSON.parse(value) as ForeignKeyRelation;
+      const column = columns.find(
+        ({ column_name }) => column_name === parsedValue.columnName,
+      )!;
+      const foreignKeyWithOneToOne: ForeignKeyRelation = {
+        ...parsedValue,
+        oneToOne: column.is_unique || column.is_primary,
+      };
+      return [...accumulator, foreignKeyWithOneToOne];
+    },
+    [] as ForeignKeyRelation[],
+  );
 
-  const rawData: QueryResult<string[]> | QueryError =
-    await rowDataResponse.json();
-
-  if (!rowDataResponse.ok && isQueryError(rawData)) {
-    return {
-      columns,
-      rows: [],
-      error:
-        rawData.internal?.error.message ||
-        'Something went wrong while fetching the table rows.',
-      foreignKeyRelations: flatForeignKeyRelations,
-      numberOfRows: 0,
-    };
-  }
-
-  const [, ...rowData] = rawData[0].result as string[];
-  const [, [rowAggregate]] = rawData[1].result as string[];
-
-  return {
-    columns,
-    rows: rowData.map((row) => JSON.parse(row)) as NormalizedQueryDataRow[],
-    error: null,
-    foreignKeyRelations: flatForeignKeyRelations,
-    numberOfRows: parseInt(rowAggregate, 10) || 0,
-  };
+  return { columns, foreignKeyRelations };
 }

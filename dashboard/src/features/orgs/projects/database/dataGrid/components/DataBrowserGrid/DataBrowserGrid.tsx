@@ -10,6 +10,7 @@ import { InlineCode } from '@/components/ui/v3/inline-code';
 import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
 import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
 import { DataBrowserGridControls } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGridControls';
+import { DEFAULT_ROWS_LIMIT } from '@/features/orgs/projects/database/dataGrid/constants';
 import {
   createTableQueryKey,
   useTableQuery,
@@ -170,7 +171,6 @@ export function createDataGridColumn(
 
   return defaultColumnConfiguration;
 }
-const LIMIT = 25;
 
 export default function DataBrowserGrid(props: DataBrowserGridProps) {
   const dataGridRef = useRef<HTMLDivElement | null>(null);
@@ -203,8 +203,8 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
       appliedFilters,
     ),
     {
-      limit: LIMIT,
-      offset: currentOffset * LIMIT,
+      limit: DEFAULT_ROWS_LIMIT,
+      offset: currentOffset * DEFAULT_ROWS_LIMIT,
       orderBy:
         sortBy?.map(({ id, desc }) => ({
           columnName: id,
@@ -240,7 +240,9 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
     }
   }, [currentTablePath]);
 
-  const numberOfPages = numberOfRows ? Math.ceil(numberOfRows / LIMIT) : 0;
+  const numberOfPages = numberOfRows
+    ? Math.ceil(numberOfRows / DEFAULT_ROWS_LIMIT)
+    : 0;
   const currentPage = Math.min(currentOffset + 1, numberOfPages);
 
   async function handleOpenPrevPage() {
