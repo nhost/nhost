@@ -51,9 +51,7 @@ export default function RowPermissionsSection({
   const { filter } = getValues();
 
   const defaultRowCheckType =
-    isNotEmptyValue(filter?.rules) ||
-    isNotEmptyValue(filter?.groups) ||
-    isNotEmptyValue(filter?.unsupported)
+    isNotEmptyValue(filter?.children) || isNotEmptyValue(filter?.unsupported)
       ? 'custom'
       : 'none';
 
@@ -68,9 +66,18 @@ export default function RowPermissionsSection({
       setValue('filter', {});
     } else {
       setValue('filter', {
+        type: 'group',
+        id: crypto.randomUUID(),
         operator: '_and',
-        rules: [{ column: null, operator: '_eq', value: null }],
-        groups: [],
+        children: [
+          {
+            type: 'condition',
+            id: crypto.randomUUID(),
+            column: '',
+            operator: '_eq',
+            value: null,
+          },
+        ],
       });
     }
   }

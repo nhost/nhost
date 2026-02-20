@@ -4,7 +4,7 @@ import {
   getAvailableOperators,
   jsonbSpecificOperators,
   textSpecificOperators,
-} from '@/features/orgs/projects/database/dataGrid/components/RuleGroupEditor/getAvailableOperators';
+} from './getAvailableOperators';
 
 describe('getAvailableOperators', () => {
   it('should return only common operators when no column type is provided', () => {

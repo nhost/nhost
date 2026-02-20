@@ -190,14 +190,15 @@ test('should convert JSONB operators to rules', () => {
   });
 });
 
-test('should treat negated non-invertible operators as unsupported', () => {
+test('should handle _not operator correctly for non-invertible operators', () => {
   expect(
     convertToRuleGroup({ _not: { metadata: { _contains: { foo: 'bar' } } } }),
   ).toMatchObject({
-    operator: '_and',
-    rules: [],
+    operator: '_not',
+    rules: [
+      { column: 'metadata', operator: '_contains', value: { foo: 'bar' } },
+    ],
     groups: [],
-    unsupported: [{ metadata: { _not: { _contains: { foo: 'bar' } } } }],
   });
 
   expect(
@@ -209,27 +210,18 @@ test('should treat negated non-invertible operators as unsupported', () => {
       },
     }),
   ).toMatchObject({
-    operator: '_and',
-    rules: [],
+    operator: '_not',
+    rules: [{ column: 'json', operator: '_has_key', value: 'hello' }],
     groups: [],
-    unsupported: [
-      {
-        json: {
-          _not: {
-            _has_key: 'hello',
-          },
-        },
-      },
-    ],
   });
 });
 
-test('should transform operators and relations if the _not operator is being used', () => {
+test('should handle _not operator correctly without flattening', () => {
   expect(
     convertToRuleGroup({ _not: { title: { _eq: 'test' } } }),
   ).toMatchObject({
-    operator: '_and',
-    rules: [{ column: 'title', operator: '_neq', value: 'test' }],
+    operator: '_not',
+    rules: [{ column: 'title', operator: '_eq', value: 'test' }],
     groups: [],
   });
 
@@ -240,12 +232,18 @@ test('should transform operators and relations if the _not operator is being use
       },
     }),
   ).toMatchObject({
-    operator: '_and',
-    rules: [
-      { column: 'title', operator: '_neq', value: 'test' },
-      { column: 'age', operator: '_lte', value: 32 },
+    operator: '_not',
+    rules: [],
+    groups: [
+      {
+        operator: '_or',
+        rules: [
+          { column: 'title', operator: '_eq', value: 'test' },
+          { column: 'age', operator: '_gt', value: 32 },
+        ],
+        groups: [],
+      },
     ],
-    groups: [],
   });
 
   expect(
@@ -259,19 +257,25 @@ test('should transform operators and relations if the _not operator is being use
       },
     }),
   ).toMatchObject({
-    operator: '_and',
-    rules: [
-      { column: 'title', operator: '_neq', value: 'test' },
-      { column: 'age', operator: '_lte', value: 32 },
-    ],
+    operator: '_not',
+    rules: [],
     groups: [
       {
-        operator: '_and',
+        operator: '_or',
         rules: [
-          { column: 'title', operator: '_neq', value: 'sample' },
-          { column: 'age', operator: '_gte', value: 24 },
+          { column: 'title', operator: '_eq', value: 'test' },
+          { column: 'age', operator: '_gt', value: 32 },
         ],
-        groups: [],
+        groups: [
+          {
+            operator: '_or',
+            rules: [
+              { column: 'title', operator: '_eq', value: 'sample' },
+              { column: 'age', operator: '_lt', value: 24 },
+            ],
+            groups: [],
+          },
+        ],
       },
     ],
   });
@@ -283,8 +287,8 @@ test('should transform operators and relations if the _not operator is being use
       },
     }),
   ).toMatchObject({
-    operator: '_and',
-    rules: [{ column: 'title', operator: '_is_null', value: 'false' }],
+    operator: '_not',
+    rules: [{ column: 'title', operator: '_is_null', value: 'true' }],
     groups: [],
   });
 
@@ -295,13 +299,13 @@ test('should transform operators and relations if the _not operator is being use
       },
     }),
   ).toMatchObject({
-    operator: '_and',
-    rules: [{ column: 'title', operator: '_is_null', value: 'true' }],
+    operator: '_not',
+    rules: [{ column: 'title', operator: '_is_null', value: 'false' }],
     groups: [],
   });
 });
 
-test('should retain unsupported _exists objects', () => {
+test('should ignore unsupported _exists objects', () => {
   expect(
     convertToRuleGroup({
       _or: [
@@ -368,32 +372,6 @@ test('should retain unsupported _exists objects', () => {
           { column: 'age', operator: '_gte', value: '32' },
         ],
         groups: [],
-        unsupported: [
-          {
-            _exists: {
-              _table: { name: 'users', schema: 'public' },
-              _where: { id: { _eq: 'X-Hasura-User-Id' } },
-            },
-          },
-        ],
-      },
-    ],
-    unsupported: [
-      {
-        _exists: {
-          _table: { name: 'users', schema: 'public' },
-          _where: { id: { _eq: 'X-Hasura-User-Id' } },
-        },
-      },
-      {
-        books: {
-          author: {
-            _exists: {
-              _table: { name: 'users', schema: 'public' },
-              _where: { id: { _eq: 'X-Hasura-User-Id' } },
-            },
-          },
-        },
       },
     ],
   });
@@ -422,14 +400,6 @@ test('should retain unsupported _exists objects', () => {
       { column: 'birth_date', operator: '_eq', value: 'X-Hasura-User-Id' },
     ],
     groups: [],
-    unsupported: [
-      {
-        _exists: {
-          _table: { name: 'books', schema: 'public' },
-          _where: { _and: [{ title: { _eq: 'X-Hasura-User-Id' } }] },
-        },
-      },
-    ],
   });
 
   expect(
@@ -454,17 +424,5 @@ test('should retain unsupported _exists objects', () => {
     operator: '_and',
     rules: [],
     groups: [],
-    unsupported: [
-      {
-        books: {
-          author: {
-            _exists: {
-              _table: { name: 'users', schema: 'public' },
-              _where: { id: { _eq: 'X-Hasura-User-Id' } },
-            },
-          },
-        },
-      },
-    ],
   });
 });

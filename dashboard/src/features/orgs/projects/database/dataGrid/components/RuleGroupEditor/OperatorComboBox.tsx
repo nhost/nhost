@@ -15,8 +15,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
-import { getAvailableOperators } from '@/features/orgs/projects/database/dataGrid/components/RuleGroupEditor/getAvailableOperators';
 import { cn } from '@/lib/utils';
+import { getAvailableOperators } from './getAvailableOperators';
 
 interface OperatorComboBoxProps {
   name: string;

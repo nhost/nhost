@@ -3,86 +3,14 @@ import type {
   RuleGroup,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 
-// biome-ignore lint/suspicious/noExplicitAny: TODO
-function createNestedObject(pathParts: string[], value: any) {
-  const [currentPath, ...restPath] = pathParts;
-
-  if (pathParts.length === 0) {
-    return value;
-  }
-
-  if (pathParts.length === 1) {
-    return {
-      [currentPath]: value,
-    };
-  }
-
-  return {
-    [currentPath]: createNestedObject(restPath, value),
-  };
-}
-
-const negatedArrayOperatorPairs: Record<'_and' | '_or', '_and' | '_or'> = {
-  _and: '_or',
-  _or: '_and',
-};
-
-type NegatableOperator = Exclude<
-  HasuraOperator,
-  | '_is_null'
-  | '_contains'
-  | '_contained_in'
-  | '_has_key'
-  | '_has_keys_any'
-  | '_has_keys_all'
->;
-
-const negatedValueOperatorPairs: Record<NegatableOperator, NegatableOperator> =
-  {
-    _eq: '_neq',
-    _neq: '_eq',
-    _in: '_nin',
-    _nin: '_in',
-    _gt: '_lte',
-    _lt: '_gte',
-    _gte: '_lt',
-    _lte: '_gt',
-    _like: '_nlike',
-    _nlike: '_like',
-    _ilike: '_nilike',
-    _nilike: '_ilike',
-    _similar: '_nsimilar',
-    _nsimilar: '_similar',
-    _regex: '_nregex',
-    _nregex: '_regex',
-    _iregex: '_niregex',
-    _niregex: '_iregex',
-    _ceq: '_cne',
-    _cne: '_ceq',
-    _cgt: '_clte',
-    _clt: '_cgte',
-    _cgte: '_clt',
-    _clte: '_cgt',
-  };
-
-const nonInvertibleOperators = [
-  '_contains',
-  '_contained_in',
-  '_has_key',
-  '_has_keys_any',
-  '_has_keys_all',
-];
-
 export default function convertToRuleGroup(
   // biome-ignore lint/suspicious/noExplicitAny: TODO
   hasuraPermissions: Record<string, any>,
   options?: {
     previousKey?: string;
-    shouldNegate?: boolean;
-    isNested?: boolean;
   },
 ): RuleGroup {
-  const { previousKey, shouldNegate = false, isNested = false } = options || {};
+  const { previousKey } = options || {};
 
   const keys = Object.keys(hasuraPermissions);
 
@@ -97,36 +25,30 @@ export default function convertToRuleGroup(
   const [currentKey] = keys;
   const value = hasuraPermissions[currentKey];
 
-  // Note: Exists is currently not supported by the UI, so we are returning it
-  // as is and treating it as an unsupported object type.
+  // Note: Exists is currently not supported by the UI, so we return an empty group.
   if (currentKey === '_exists') {
-    const pathParts = previousKey?.split('.') || [];
+    return {
+      operator: '_and',
+      rules: [],
+      groups: [],
+    };
+  }
 
-    if (!isNested) {
+  if (currentKey === '_not') {
+    const childGroup = convertToRuleGroup(value, options);
+
+    if (childGroup.operator === '_and') {
       return {
-        operator: '_and',
-        rules: [],
-        groups: [],
-        unsupported: [
-          createNestedObject(pathParts, {
-            _exists: value,
-          }),
-        ],
+        ...childGroup,
+        operator: '_not',
       };
     }
 
-    return createNestedObject(pathParts, {
-      _exists: value,
-    });
-  }
-
-  // Note: _not is a special case, we just need to negate the nested operators
-  // or values in certain cases (e.g: _is_null).
-  if (currentKey === '_not') {
-    return convertToRuleGroup(value, {
-      ...options,
-      shouldNegate: true,
-    });
+    return {
+      operator: '_not',
+      rules: [],
+      groups: [childGroup],
+    };
   }
 
   // Note: _is_null is special, because we need to negate its value instead of
@@ -141,9 +63,7 @@ export default function convertToRuleGroup(
           {
             column: previousKey as string,
             operator: '_is_null',
-            value: Boolean(
-              shouldNegate ? !convertedValue : convertedValue,
-            ).toString(),
+            value: String(convertedValue),
           },
         ],
         groups: [],
@@ -156,7 +76,7 @@ export default function convertToRuleGroup(
         {
           column: options?.previousKey as string,
           operator: '_is_null',
-          value: Boolean(shouldNegate ? !value : value).toString(),
+          value: String(value),
         },
       ],
       groups: [],
@@ -174,9 +94,7 @@ export default function convertToRuleGroup(
       rules: [
         {
           column: previousKey as string,
-          operator: shouldNegate
-            ? negatedValueOperatorPairs[currentKey as NegatableOperator]
-            : (currentKey as HasuraOperator),
+          operator: currentKey as HasuraOperator,
           value,
         },
       ],
@@ -217,33 +135,12 @@ export default function convertToRuleGroup(
       '_has_keys_all',
     ].includes(currentKey)
   ) {
-    if (shouldNegate && nonInvertibleOperators.includes(currentKey)) {
-      const pathParts = previousKey?.split('.') || [];
-      const unsupportedObject = createNestedObject(pathParts, {
-        _not: { [currentKey]: value },
-      });
-
-      if (!isNested) {
-        return {
-          operator: '_and',
-          rules: [],
-          groups: [],
-          unsupported: [unsupportedObject],
-        };
-      }
-
-      return unsupportedObject;
-    }
-
     return {
       operator: '_and',
       rules: [
         {
           column: previousKey as string,
-          operator:
-            shouldNegate && !nonInvertibleOperators.includes(currentKey)
-              ? negatedValueOperatorPairs[currentKey]
-              : currentKey,
+          operator: currentKey as HasuraOperator,
           value,
         },
       ],
@@ -258,18 +155,10 @@ export default function convertToRuleGroup(
         .map((permissionObject: ArrayLike<string> | Record<string, any>) =>
           convertToRuleGroup(permissionObject, {
             ...options,
-            isNested: true,
           }),
         )
         .reduce(
           (accumulator: RuleGroup, rule: RuleGroup) => {
-            if (!('rules' in rule) && !('groups' in rule)) {
-              return {
-                ...accumulator,
-                unsupported: [...(accumulator.unsupported || []), rule],
-              };
-            }
-
             if (rule.rules.length > 1) {
               return {
                 ...accumulator,
@@ -280,16 +169,10 @@ export default function convertToRuleGroup(
             return {
               ...accumulator,
               rules: [...(accumulator.rules || []), ...rule.rules],
-              unsupported: [
-                ...(accumulator.unsupported || []),
-                ...(rule.unsupported || []),
-              ],
             };
           },
           {
-            operator: shouldNegate
-              ? negatedArrayOperatorPairs[currentKey]
-              : currentKey,
+            operator: currentKey,
             rules: [...(value?.rules || [])],
             groups: [...(value?.groups || [])],
           },
