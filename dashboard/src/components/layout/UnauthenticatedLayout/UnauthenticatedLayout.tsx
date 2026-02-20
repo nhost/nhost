@@ -30,7 +30,22 @@ export default function UnauthenticatedLayout({
     if (!isPlatform || (!isLoading && isAuthenticated)) {
       // we do not want to redirect if the user tries to reset their password
       if (!isOnResetPassword) {
-        router.push('/');
+        const redirectQuery =
+          typeof router.query.redirect === 'string' &&
+          router.query.redirect.startsWith('/')
+            ? router.query.redirect
+            : null;
+        const storedRedirect = sessionStorage.getItem('postSignInRedirect');
+        const redirectTarget =
+          redirectQuery ||
+          (storedRedirect?.startsWith('/') ? storedRedirect : null) ||
+          '/';
+
+        if (storedRedirect) {
+          sessionStorage.removeItem('postSignInRedirect');
+        }
+
+        router.push(redirectTarget);
       }
     }
   }, [isLoading, isAuthenticated, router, isPlatform, isOnResetPassword]);

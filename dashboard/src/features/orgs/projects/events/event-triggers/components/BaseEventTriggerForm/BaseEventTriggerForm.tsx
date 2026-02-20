@@ -213,6 +213,7 @@ export default function BaseEventTriggerForm({
     {
       schema: selectedTableSchema,
       table: selectedTableName,
+      preventRowFetching: true,
       queryOptions: {
         enabled: isSheetOpen && !!selectedTableSchema && !!selectedTableName,
       },
@@ -467,7 +468,9 @@ export default function BaseEventTriggerForm({
                         />
                       </div>
                       {hasToChooseUpdateTriggerColumns && (
-                        <UpdateTriggerColumnsSection />
+                        <UpdateTriggerColumnsSection
+                          isSheetOpen={isSheetOpen}
+                        />
                       )}
                     </>
                   )}
