@@ -54,7 +54,7 @@ export interface DataBrowserGridProps extends Partial<DataGridProps> {}
 export function createDataGridColumn(
   column: NormalizedQueryDataRow,
   isEditable: boolean = true,
-): DataBrowserGridColumnDef<UnknownDataGridRow, any> {
+): DataBrowserGridColumnDef {
   const { normalizedDefaultValue, custom: isDefaultValueCustom } =
     normalizeDefaultValue(column.column_default);
 
