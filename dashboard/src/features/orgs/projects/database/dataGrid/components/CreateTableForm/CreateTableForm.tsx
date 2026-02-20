@@ -4,6 +4,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import type * as Yup from 'yup';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Button } from '@/components/ui/v2/Button';
+import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import type {
   BaseTableFormProps,
   BaseTableFormValues,
@@ -13,8 +14,8 @@ import {
   baseTableValidationSchema,
 } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm';
 import { useCreateTableMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateTableMutation';
+import { useSetTableTrackingMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useSetTableTrackingMutation';
 import { useTrackForeignKeyRelationsMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useTrackForeignKeyRelationsMutation';
-import { useTrackTableMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useTrackTableMutation';
 import type { DatabaseTable } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { isNotEmptyValue } from '@/lib/utils';
 import { triggerToast } from '@/utils/toast';
@@ -46,13 +47,15 @@ export default function CreateTableForm({
   } = useCreateTableMutation({ schema });
 
   const {
-    mutateAsync: trackTable,
+    mutateAsync: setTableTracking,
     error: trackTableError,
     reset: resetTrackError,
-  } = useTrackTableMutation({ schema });
+  } = useSetTableTrackingMutation();
 
   const { mutateAsync: trackForeignKeyRelation, error: foreignKeyError } =
     useTrackForeignKeyRelationsMutation();
+
+  const { data: resourceVersion } = useGetMetadataResourceVersion();
 
   const error = createTableError || trackTableError || foreignKeyError;
 
@@ -115,7 +118,14 @@ export default function CreateTableForm({
       };
 
       await createTable({ table });
-      await trackTable({ table });
+      await setTableTracking({
+        tracked: true,
+        resourceVersion,
+        args: {
+          source: router.query.dataSourceSlug as string,
+          table: { name: table.name, schema },
+        },
+      });
 
       if (isNotEmptyValue(table.foreignKeyRelations)) {
         await trackForeignKeyRelation({

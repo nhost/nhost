@@ -41,6 +41,8 @@ import type { SetTableCustomizationBulkOperation } from './setTableCustomization
 import type { SetTableIsEnumBulkOperation } from './setTableIsEnumBulkOperation';
 import type { SuggestRelationshipsOperation } from './suggestRelationshipsOperation';
 import type { TestWebhookTransformOperation } from './testWebhookTransformOperation';
+import type { TrackTableBulkOperation } from './trackTableBulkOperation';
+import type { UntrackTableBulkOperation } from './untrackTableBulkOperation';
 import type { UpdateRemoteSchemaBulkOperation } from './updateRemoteSchemaBulkOperation';
 
 export type MetadataOperation =
@@ -50,6 +52,8 @@ export type MetadataOperation =
   | DropInconsistentMetadataOperation
   | ClearMetadataOperation
   | ReplaceMetadataOperation
+  | TrackTableBulkOperation
+  | UntrackTableBulkOperation
   | SetTableCustomizationBulkOperation
   | SetTableIsEnumBulkOperation
   | SuggestRelationshipsOperation

@@ -20,11 +20,17 @@ import {
   SelectValue,
 } from '@/components/ui/v3/select';
 import { Spinner } from '@/components/ui/v3/spinner';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { EditTableSettingsForm } from '@/features/orgs/projects/database/dataGrid/components/EditTableSettingsForm';
+import { EditGraphQLSettingsForm } from '@/features/orgs/projects/database/dataGrid/components/EditGraphQLSettingsForm';
 import { EditRelationshipsForm } from '@/features/orgs/projects/database/dataGrid/EditRelationshipsForm';
 import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
 import { useDeleteTableWithToastMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteTableMutation';
+import { useGetTrackedTablesSet } from '@/features/orgs/projects/database/dataGrid/hooks/useGetTrackedTablesSet';
 import { isSchemaLocked } from '@/features/orgs/projects/database/dataGrid/utils/schemaHelpers';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { cn, isEmptyValue, isNotEmptyValue } from '@/lib/utils';
@@ -85,6 +91,10 @@ function DataBrowserSidebarContent({
     asPath,
     query: { orgSlug, appSubdomain, dataSourceSlug, schemaSlug, tableSlug },
   } = router;
+
+  const { data: trackedTablesSet } = useGetTrackedTablesSet({
+    dataSource: dataSourceSlug as string,
+  });
 
   const { data, status, error, refetch } = useDatabaseQuery([
     dataSourceSlug as string,
@@ -278,13 +288,13 @@ function DataBrowserSidebarContent({
     openDrawer({
       title: (
         <span className="inline-grid grid-flow-col items-center gap-2">
-          {disabled ? 'View settings for' : 'Edit settings for'}
+          {disabled ? 'View GraphQL settings for' : 'Edit GraphQL settings for'}
           <InlineCode className="!text-sm+ font-normal">{table}</InlineCode>
           table
         </span>
       ),
       component: (
-        <EditTableSettingsForm
+        <EditGraphQLSettingsForm
           disabled={disabled}
           schema={schema}
           tableName={table}
@@ -385,120 +395,141 @@ function DataBrowserSidebarContent({
                 const tablePath = `${table.table_schema}.${table.table_name}`;
                 const isSelected = `${schemaSlug}.${tableSlug}` === tablePath;
                 const isSidebarMenuOpen = sidebarMenuTable === tablePath;
+                const isUntracked = !trackedTablesSet?.has(
+                  `${table.table_schema}.${table.table_name}`,
+                );
+
                 return (
                   <li className="group pb-1" key={tablePath}>
-                    <Button
-                      asChild
-                      variant="link"
-                      size="sm"
-                      disabled={tablePath === removableTable}
-                      className={cn(
-                        'flex w-full max-w-full justify-between pl-0 text-sm+ hover:bg-accent hover:no-underline',
-                        {
-                          'bg-table-selected': isSelected,
-                        },
-                      )}
-                    >
-                      <div>
-                        <NextLink
-                          className={cn(
-                            'flex h-full w-[calc(100%-1.6rem)] items-center p-[0.625rem] pr-0 text-left',
-                            {
-                              'text-primary-main': isSelected,
-                            },
-                          )}
-                          onClick={() => {
-                            if (onSidebarItemClick) {
-                              onSidebarItemClick(`default.${tablePath}`);
-                            }
-                          }}
-                          href={`/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/default/${table.table_schema}/${table.table_name}`}
-                        >
-                          <span className="!truncate text-ellipsis">
-                            {table.table_name}
-                          </span>
-                        </NextLink>
-                        <TableActions
-                          tableName={table.table_name}
+                    <Tooltip open={isUntracked ? undefined : false}>
+                      <TooltipTrigger asChild>
+                        <Button
+                          asChild
+                          variant="link"
+                          size="sm"
                           disabled={tablePath === removableTable}
-                          open={isSidebarMenuOpen}
-                          onOpen={() => setSidebarMenuTable(tablePath)}
-                          onClose={() => setSidebarMenuTable(undefined)}
                           className={cn(
-                            'relative z-10 opacity-0 group-hover:opacity-100',
+                            'flex w-full max-w-full justify-between pl-0 text-sm+ hover:bg-accent hover:no-underline',
                             {
-                              'opacity-100': isSelected || isSidebarMenuOpen,
+                              'bg-table-selected': isSelected,
                             },
                           )}
-                          isSelectedNotSchemaLocked={!isSelectedSchemaLocked}
-                          onViewPermissions={() =>
-                            handleEditPermissionClick(
-                              table.table_schema,
-                              table.table_name,
-                              true,
-                            )
-                          }
-                          onViewSettings={() =>
-                            handleEditSettingsClick(
-                              table.table_schema,
-                              table.table_name,
-                              true,
-                            )
-                          }
-                          onViewRelationships={() =>
-                            handleRelationshipsClick(
-                              table.table_schema,
-                              table.table_name,
-                              true,
-                            )
-                          }
-                          onEditTable={() =>
-                            openDrawer({
-                              title: 'Edit Table',
-                              component: (
-                                <EditTableForm
-                                  onSubmit={async (tableName) => {
-                                    await queryClient.refetchQueries({
-                                      queryKey: [
-                                        `${dataSourceSlug}.${table.table_schema}.${tableName}`,
-                                      ],
-                                    });
-                                    await refetch();
-                                  }}
-                                  schema={table.table_schema}
-                                  table={table}
-                                />
-                              ),
-                            })
-                          }
-                          onEditPermissions={() =>
-                            handleEditPermissionClick(
-                              table.table_schema,
-                              table.table_name,
-                            )
-                          }
-                          onEditSettings={() => {
-                            handleEditSettingsClick(
-                              table.table_schema,
-                              table.table_name,
-                              false,
-                            );
-                          }}
-                          onEditRelationships={() => {
-                            handleRelationshipsClick(
-                              table.table_schema,
-                              table.table_name,
-                            );
-                          }}
-                          onDelete={() =>
-                            handleDeleteTableClick(
-                              table.table_schema,
-                              table.table_name,
-                            )
-                          }
-                        />
-                      </div>
-                    </Button>
+                        >
+                          <div>
+                            <NextLink
+                              className={cn(
+                                'flex h-full w-[calc(100%-1.6rem)] items-center p-[0.625rem] pr-0 text-left',
+                                {
+                                  'text-primary-main': isSelected,
+                                },
+                              )}
+                              onClick={() => {
+                                if (onSidebarItemClick) {
+                                  onSidebarItemClick(`default.${tablePath}`);
+                                }
+                              }}
+                              href={`/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/default/${table.table_schema}/${table.table_name}`}
+                            >
+                              <span
+                                className={cn('!truncate text-ellipsis', {
+                                  italic: isUntracked,
+                                  'opacity-50': isUntracked && !isSelected,
+                                })}
+                              >
+                                {table.table_name}
+                              </span>
+                            </NextLink>
+                            <TableActions
+                              tableName={table.table_name}
+                              schema={table.table_schema}
+                              dataSource={dataSourceSlug as string}
+                              disabled={tablePath === removableTable}
+                              open={isSidebarMenuOpen}
+                              onOpen={() => setSidebarMenuTable(tablePath)}
+                              onClose={() => setSidebarMenuTable(undefined)}
+                              className={cn(
+                                'relative z-10 opacity-0 group-hover:opacity-100',
+                                {
+                                  'opacity-100':
+                                    isSelected || isSidebarMenuOpen,
+                                },
+                              )}
+                              isSelectedNotSchemaLocked={
+                                !isSelectedSchemaLocked
+                              }
+                              onViewPermissions={() =>
+                                handleEditPermissionClick(
+                                  table.table_schema,
+                                  table.table_name,
+                                  true,
+                                )
+                              }
+                              onViewSettings={() =>
+                                handleEditSettingsClick(
+                                  table.table_schema,
+                                  table.table_name,
+                                  true,
+                                )
+                              }
+                              onViewRelationships={() =>
+                                handleRelationshipsClick(
+                                  table.table_schema,
+                                  table.table_name,
+                                  true,
+                                )
+                              }
+                              onEditTable={() =>
+                                openDrawer({
+                                  title: 'Edit Table',
+                                  component: (
+                                    <EditTableForm
+                                      onSubmit={async (tableName) => {
+                                        await queryClient.refetchQueries({
+                                          queryKey: [
+                                            `${dataSourceSlug}.${table.table_schema}.${tableName}`,
+                                          ],
+                                        });
+                                        await refetch();
+                                      }}
+                                      schema={table.table_schema}
+                                      table={table}
+                                    />
+                                  ),
+                                })
+                              }
+                              onEditPermissions={() =>
+                                handleEditPermissionClick(
+                                  table.table_schema,
+                                  table.table_name,
+                                )
+                              }
+                              onEditSettings={() => {
+                                handleEditSettingsClick(
+                                  table.table_schema,
+                                  table.table_name,
+                                  false,
+                                );
+                              }}
+                              onEditRelationships={() => {
+                                handleRelationshipsClick(
+                                  table.table_schema,
+                                  table.table_name,
+                                );
+                              }}
+                              onDelete={() =>
+                                handleDeleteTableClick(
+                                  table.table_schema,
+                                  table.table_name,
+                                )
+                              }
+                            />
+                          </div>
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="right" sideOffset={8}>
+                        Not tracked in GraphQL
+                      </TooltipContent>
+                    </Tooltip>
                   </li>
                 );
               })}
