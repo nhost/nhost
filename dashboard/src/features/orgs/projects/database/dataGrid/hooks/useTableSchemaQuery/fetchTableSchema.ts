@@ -1,3 +1,4 @@
+import type { FetchTableReturnType } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
 import type {
   ForeignKeyRelation,
   MutationOrQueryBaseOptions,
@@ -11,16 +12,10 @@ import { POSTGRESQL_ERROR_CODES } from '@/features/orgs/projects/database/dataGr
 
 export type FetchTableSchemaOptions = MutationOrQueryBaseOptions;
 
-export interface FetchTableSchemaReturnType {
-  /**
-   * List of columns in the table.
-   */
-  columns: NormalizedQueryDataRow[];
-  /**
-   * Foreign key relations in the table.
-   */
-  foreignKeyRelations: ForeignKeyRelation[];
-}
+export type FetchTableSchemaReturnType = Omit<
+  FetchTableReturnType,
+  'rows' | 'numberOfRows'
+>;
 
 /**
  * Fetch the schema of a table (columns and foreign key relations) without
@@ -120,13 +115,25 @@ export default async function fetchTableSchema({
         POSTGRESQL_ERROR_CODES.TABLE_NOT_FOUND ===
         queryError.internal?.error?.status_code;
 
+      if (schemaNotFound || tableNotFound) {
+        return {
+          columns: [],
+          foreignKeyRelations: [],
+          error: null,
+          metadata: { schema, table, schemaNotFound, tableNotFound },
+        };
+      }
+
       if (
-        schemaNotFound ||
-        tableNotFound ||
         queryError.internal?.error?.status_code ===
-          POSTGRESQL_ERROR_CODES.COLUMNS_NOT_FOUND
+        POSTGRESQL_ERROR_CODES.COLUMNS_NOT_FOUND
       ) {
-        return { columns: [], foreignKeyRelations: [] };
+        return {
+          columns: [],
+          foreignKeyRelations: [],
+          error: null,
+          metadata: { schema, table, columnsNotFound: true },
+        };
       }
 
       throw new Error(queryError.internal?.error?.message);
@@ -233,5 +240,5 @@ export default async function fetchTableSchema({
     [] as ForeignKeyRelation[],
   );
 
-  return { columns, foreignKeyRelations };
+  return { columns, foreignKeyRelations, error: null };
 }

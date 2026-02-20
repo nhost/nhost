@@ -33,7 +33,6 @@ export default function UpdateTriggerColumnsSection({
     {
       schema: selectedTableSchema,
       table: selectedTableName,
-      preventRowFetching: true,
       queryOptions: {
         enabled: canFetchColumns,
       },

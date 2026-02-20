@@ -46,22 +46,25 @@ export default function useTableSchemaQuery(
 
   return useQuery<FetchTableSchemaReturnType>({
     queryKey,
-    queryFn: () => {
+    queryFn: async () => {
       const appUrl = generateAppServiceUrl(
         project!.subdomain,
         project!.region,
         'hasura',
       );
 
-      return fetchTableSchema({
+      const schema = customSchema || (schemaSlug as string);
+      const table = customTable || (tableSlug as string);
+
+      return await fetchTableSchema({
         appUrl: customAppUrl || appUrl,
         adminSecret:
           process.env.NEXT_PUBLIC_ENV === 'dev'
             ? getHasuraAdminSecret()
             : customAdminSecret || project!.config!.hasura.adminSecret,
         dataSource: customDataSource || (dataSourceSlug as string),
-        schema: customSchema || (schemaSlug as string),
-        table: customTable || (tableSlug as string),
+        schema,
+        table,
       });
     },
     retry: false,

@@ -213,7 +213,6 @@ export default function BaseEventTriggerForm({
     {
       schema: selectedTableSchema,
       table: selectedTableName,
-      preventRowFetching: true,
       queryOptions: {
         enabled: isSheetOpen && !!selectedTableSchema && !!selectedTableName,
       },
