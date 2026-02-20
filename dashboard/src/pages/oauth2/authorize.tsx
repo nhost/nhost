@@ -6,11 +6,10 @@ import { useRouter } from 'next/router';
 import { type ReactElement, useCallback, useEffect, useState } from 'react';
 import { BaseLayout } from '@/components/layout/BaseLayout';
 import { Container } from '@/components/layout/Container';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Box } from '@/components/ui/v2/Box';
-import { Text } from '@/components/ui/v2/Text';
 import { ThemeProvider } from '@/components/ui/v2/ThemeProvider';
+import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { useAuth } from '@/providers/Auth';
 import { useNhostClient } from '@/providers/nhost';
 
@@ -109,27 +108,21 @@ export default function OAuth2AuthorizePage() {
   if (isAuthLoading || !router.isReady || !isAuthenticated) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <ActivityIndicator label="Loading..." />
+        <Spinner size="small">
+          <span className="text-[#A2B3BE] text-sm">Loading...</span>
+        </Spinner>
       </div>
     );
   }
 
   return (
-    <Box
-      className="flex min-h-screen items-center justify-center"
-      sx={{ backgroundColor: (theme) => theme.palette.common.black }}
-    >
+    <div className="flex min-h-screen items-center justify-center bg-black">
       <Container
         rootClassName="bg-transparent"
         className="flex max-w-md flex-col items-center gap-8 bg-transparent py-12"
       >
         <div className="relative flex items-center justify-center">
-          <Box
-            className="backface-hidden absolute right-0 left-0 z-0 mx-auto h-20 w-20 transform-gpu rounded-full opacity-80 blur-[56px]"
-            sx={{
-              backgroundColor: (theme) => theme.palette.primary.main,
-            }}
-          />
+          <div className="backface-hidden absolute right-0 left-0 z-0 mx-auto h-20 w-20 transform-gpu rounded-full bg-primary-main opacity-80 blur-[56px]" />
           <Image
             src="/assets/logo.svg"
             width={119}
@@ -141,69 +134,58 @@ export default function OAuth2AuthorizePage() {
         <div className="w-full rounded-md border p-6 lg:p-8">
           {isFetching ? (
             <div className="flex items-center justify-center py-8">
-              <ActivityIndicator label="Loading authorization request..." />
+              <Spinner size="small">
+                <span className="text-[#A2B3BE] text-sm">
+                  Loading authorization request...
+                </span>
+              </Spinner>
             </div>
           ) : error && !authRequest ? (
             <div className="grid gap-4">
-              <Text variant="h3" className="text-center">
-                Error
-              </Text>
-              <Text className="text-center text-red-500">{error}</Text>
+              <h3 className="text-center font-semibold text-xl">Error</h3>
+              <p className="text-center text-red-500">{error}</p>
             </div>
           ) : authRequest ? (
             <div className="grid gap-6">
               <div className="grid gap-2 text-center">
-                <Text variant="h3">Authorize Application</Text>
-                <Text color="secondary">
+                <h3 className="font-semibold text-xl">Authorize Application</h3>
+                <p className="text-[#A2B3BE]">
                   <strong>{clientDisplayName(authRequest)}</strong> is
                   requesting access to your account.
-                </Text>
+                </p>
               </div>
 
               <div className="grid gap-3">
                 <div>
-                  <Text variant="subtitle2" color="secondary">
+                  <p className="font-medium text-[#A2B3BE] text-sm">
                     Application
-                  </Text>
-                  <Text>{clientDisplayName(authRequest)}</Text>
+                  </p>
+                  <p>{clientDisplayName(authRequest)}</p>
                 </div>
                 <div>
-                  <Text variant="subtitle2" color="secondary">
+                  <p className="font-medium text-[#A2B3BE] text-sm">
                     Redirect URI
-                  </Text>
-                  <Text className="break-all text-sm">
-                    {authRequest.redirectUri}
-                  </Text>
+                  </p>
+                  <p className="break-all text-sm">{authRequest.redirectUri}</p>
                 </div>
                 <div>
-                  <Text variant="subtitle2" color="secondary">
-                    Scopes
-                  </Text>
+                  <p className="font-medium text-[#A2B3BE] text-sm">Scopes</p>
                   <div className="flex flex-wrap gap-2 pt-1">
                     {authRequest.scopes.map((scope) => (
-                      <Box
-                        key={scope}
-                        className="rounded-full px-3 py-1 text-sm"
-                        sx={{
-                          backgroundColor: (theme) =>
-                            theme.palette.action.hover,
-                        }}
-                      >
+                      <Badge key={scope} variant="secondary">
                         {scope}
-                      </Box>
+                      </Badge>
                     ))}
                   </div>
                 </div>
               </div>
 
-              {error && (
-                <Text className="text-center text-red-500">{error}</Text>
-              )}
+              {error && <p className="text-center text-red-500">{error}</p>}
 
               {user && (
-                <Text variant="body2" color="secondary" className="text-center">
+                <p className="text-center text-[#A2B3BE] text-sm">
                   Signed in as <strong>{user.email}</strong>
-                </Text>
+                </p>
               )}
 
               <div className="grid gap-2">
@@ -235,7 +217,7 @@ export default function OAuth2AuthorizePage() {
           ) : null}
         </div>
       </Container>
-    </Box>
+    </div>
   );
 }
 
